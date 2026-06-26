@@ -150,6 +150,104 @@ onBeforeUnmount(() => clearInterval(timer))
 
 ---
 layout: default
+transition: fade
+title: "Capaian Pembelajaran"
+---
+
+<div class="cp2-intro">🎯 Capaian yang disasar pertemuan ini — penerapan <b>Machine Learning</b> sebagai teknologi <b>Industri 4.0</b> untuk perawatan mesin.</div>
+
+<div class="cp2-hero">
+  <div class="cp2-hero-l">
+    <div class="cp2-tags">
+      <span class="cp2-cpmk">CPMK 4</span>
+      <span class="cp2-arrow">▸</span>
+      <span class="cp2-sub">Sub-CPMK 4.2</span>
+    </div>
+    <div class="cp2-desc">Mampu <b>merancang sistem otomasi berbasis teknologi 4.0</b> untuk <span class="cp2-eff">efisiensi</span>.</div>
+    <div class="cp2-meta">Indikator: merancang alur deteksi kerusakan <i>(sensor → fitur → model ML → aksi)</i> yang menekan <i>downtime</i> &amp; biaya perawatan.</div>
+  </div>
+  <div class="cp2-hero-r">
+    <svg class="cp2-svg" viewBox="0 0 200 92" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="cp2grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#34d399" stop-opacity=".5"/>
+          <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <line x1="16" y1="80" x2="192" y2="80" stroke="rgba(255,255,255,.12)" stroke-width="1"/>
+      <line x1="16" y1="8" x2="16" y2="80" stroke="rgba(255,255,255,.12)" stroke-width="1"/>
+      <path class="cp2-area" d="M16,72 L54,62 L94,46 L132,30 L184,12 L184,80 L16,80 Z"/>
+      <path class="cp2-line" d="M16,72 L54,62 L94,46 L132,30 L184,12"/>
+      <circle class="cp2-tip" cx="184" cy="12" r="3.5"/>
+    </svg>
+    <div class="cp2-efflb">Efisiensi ↑ · Downtime ↓</div>
+  </div>
+</div>
+
+<div class="cp2-pipe">
+  <div class="cp2-node"><div class="cp2-ic">📈</div><div class="cp2-lb">Sinyal<br>Getaran</div></div>
+  <div class="cp2-link"><i></i><i></i><i></i></div>
+  <div class="cp2-node"><div class="cp2-ic">🧮</div><div class="cp2-lb">Ekstraksi<br>Fitur</div></div>
+  <div class="cp2-link"><i></i><i></i><i></i></div>
+  <div class="cp2-node cp2-brain"><div class="cp2-ic">🧠</div><div class="cp2-lb">Model<br>ML</div></div>
+  <div class="cp2-link"><i></i><i></i><i></i></div>
+  <div class="cp2-node"><div class="cp2-ic"><span class="cp2-gear">⚙️</span></div><div class="cp2-lb">Aksi<br>Otomasi</div></div>
+</div>
+
+<style scoped>
+.cp2-intro { color:#94a3b8; font-size:13px; text-align:center; margin-bottom:12px; }
+.cp2-intro b { color:#c4b5fd; }
+
+.cp2-hero {
+  display:flex; gap:18px; align-items:center;
+  background:linear-gradient(135deg, rgba(124,77,255,.16), rgba(56,189,248,.08));
+  border:1px solid rgba(167,139,250,.4); border-left:4px solid #a78bfa;
+  border-radius:14px; padding:14px 18px;
+  box-shadow:0 8px 28px rgba(124,77,255,.14);
+  animation:cp2-rise .6s cubic-bezier(.22,1,.36,1) both;
+}
+.cp2-hero-l { flex:1.55; min-width:0; }
+.cp2-hero-r { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.cp2-tags { display:flex; align-items:center; gap:8px; margin-bottom:9px; }
+.cp2-cpmk { background:rgba(251,113,133,.14); color:#fb7185; border:1px solid rgba(251,113,133,.4); font-weight:800; font-size:11px; letter-spacing:.04em; padding:3px 10px; border-radius:999px; }
+.cp2-arrow { color:#64748b; font-size:13px; }
+.cp2-sub { background:#a78bfa; color:#0b1020; font-weight:800; font-size:12px; letter-spacing:.04em; padding:3px 12px; border-radius:999px; box-shadow:0 0 14px rgba(167,139,250,.5); animation:cp2-pop 2.4s ease-in-out infinite; }
+.cp2-desc { font-size:18px; line-height:1.45; color:#f1f5f9; font-weight:600; }
+.cp2-desc b { color:#67e8f9; }
+.cp2-eff { font-weight:800; background:linear-gradient(90deg,#34d399,#a7f3d0,#34d399); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:cp2-shine 3s linear infinite; }
+.cp2-meta { margin-top:9px; font-size:12px; color:#94a3b8; line-height:1.5; }
+.cp2-meta i { color:#cbd5e1; font-style:italic; }
+
+.cp2-svg { width:100%; max-width:200px; height:auto; }
+.cp2-area { fill:url(#cp2grad); opacity:0; animation:cp2-fill .8s ease .55s forwards; }
+.cp2-line { fill:none; stroke:#34d399; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:220; filter:drop-shadow(0 0 4px rgba(52,211,153,.5)); animation:cp2-draw 4.2s ease-in-out infinite; }
+.cp2-tip { fill:#34d399; filter:drop-shadow(0 0 6px #34d399); animation:cp2-tip 2s ease-in-out infinite; }
+.cp2-efflb { margin-top:5px; font-size:12px; font-weight:800; color:#34d399; }
+
+.cp2-pipe { display:flex; align-items:flex-start; justify-content:center; margin-top:16px; }
+.cp2-node { display:flex; flex-direction:column; align-items:center; gap:6px; width:92px; text-align:center; }
+.cp2-ic { width:50px; height:50px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:24px; background:#0d1526; border:1px solid rgba(255,255,255,.1); }
+.cp2-lb { font-size:11.5px; color:#cbd5e1; font-weight:600; line-height:1.25; }
+.cp2-brain .cp2-ic { border-color:rgba(167,139,250,.6); animation:cp2-glow 2.2s ease-in-out infinite; }
+.cp2-gear { display:inline-block; animation:cp2-spin 4s linear infinite; }
+.cp2-link { position:relative; width:54px; height:2px; margin:24px -7px 0; background:linear-gradient(90deg, rgba(56,189,248,.3), rgba(167,139,250,.3)); }
+.cp2-link i { position:absolute; top:50%; width:6px; height:6px; border-radius:50%; background:#38bdf8; box-shadow:0 0 8px #38bdf8; transform:translateY(-50%); opacity:0; animation:cp2-dot 1.8s linear infinite; }
+.cp2-link i:nth-child(2) { animation-delay:.6s; }
+.cp2-link i:nth-child(3) { animation-delay:1.2s; }
+
+@keyframes cp2-rise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+@keyframes cp2-pop { 0%,100% { transform:scale(1); } 50% { transform:scale(1.06); } }
+@keyframes cp2-shine { to { background-position:200% 0; } }
+@keyframes cp2-spin { to { transform:rotate(360deg); } }
+@keyframes cp2-glow { 0%,100% { box-shadow:0 0 0 1px rgba(167,139,250,.3), 0 0 8px rgba(167,139,250,.25); } 50% { box-shadow:0 0 0 1px rgba(167,139,250,.7), 0 0 22px rgba(167,139,250,.6); } }
+@keyframes cp2-dot { 0% { left:-4px; opacity:0; } 12% { opacity:1; } 88% { opacity:1; } 100% { left:52px; opacity:0; } }
+@keyframes cp2-draw { 0% { stroke-dashoffset:220; } 45% { stroke-dashoffset:0; } 88% { stroke-dashoffset:0; } 100% { stroke-dashoffset:220; } }
+@keyframes cp2-fill { to { opacity:.5; } }
+@keyframes cp2-tip { 0%,100% { r:3.2; opacity:.7; } 50% { r:5; opacity:1; } }
+</style>
+
+---
+layout: default
 transition: slide-left | slide-right
 title: "Peta Materi"
 ---
