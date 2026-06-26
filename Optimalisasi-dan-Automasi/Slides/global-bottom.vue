@@ -19,6 +19,14 @@
       <span class="footer-page">{{ $slidev.nav.currentPage }} / {{ $slidev.nav.total }}</span>
     </div>
   </div>
+
+  <!-- Ruang kamera (pojok kanan bawah) — panduan posisi overlay webcam. -->
+  <div v-if="$slidev.nav.currentPage !== 1" class="cam-space" aria-hidden="true">
+    <div class="cam-inner">
+      <span class="cam-ic">📷</span>
+      <span class="cam-lb">Kamera</span>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -80,4 +88,27 @@
   font-weight: 700;
   font-size: 12px;
 }
+
+/* Ruang kamera 16:9 di pojok kanan bawah, di atas footer (32px).
+   pointer-events:none agar tidak menghalangi interaksi konten di baliknya. */
+.cam-space {
+  position: fixed;
+  /* Cocok dengan kamera bawaan Slidev: diameter = lebar kanvas (980) / 8
+     ≈ innerWidth/8, posisi pojok kanan bawah ~30px margin (skala kanvas). */
+  right: 18px;
+  bottom: 18px;
+  width: 122px;
+  height: 122px;
+  border: 1.5px dashed rgba(255,255,255,.18);
+  border-radius: 50%;
+  background: rgba(255,255,255,.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 90;
+  pointer-events: none;
+}
+.cam-inner { display: flex; flex-direction: column; align-items: center; gap: 1px; opacity: .3; }
+.cam-ic { font-size: 20px; line-height: 1; }
+.cam-lb { font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: #cbd5e1; }
 </style>
