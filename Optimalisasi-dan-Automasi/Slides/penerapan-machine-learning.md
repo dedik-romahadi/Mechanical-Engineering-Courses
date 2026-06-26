@@ -385,17 +385,21 @@ class: tight
 
 Keputusan dari **aturan tetap** buatan engineer:
 
+<div style="max-width:78%">
+
 ```text
 JIKA RMS > 4.5 mm/s  → Alarm
 JIKA Kurtosis > 5    → Cek bearing
 ```
 
+</div>
+
 <div class="ml-card a" style="margin-top:8px; max-width:78%">
-  <div class="ml-h">✔️ Unggul saat</div>
+  <div class="ml-h">✔️ Keunggulan</div>
   <div class="ml-t">Aturan jelas, sedikit variabel, butuh transparansi & jaminan keselamatan (FSM, ANSI/ISA 18.2).</div>
 </div>
 <div class="ml-card c" style="margin-top:6px; max-width:78%">
-  <div class="ml-h">✘ Batasnya</div>
+  <div class="ml-h">✘ Kelemahan</div>
   <div class="ml-t">Tak skalabel: 50 fitur × 100 mode kerusakan → ribuan aturan manual yang mustahil dirawat.</div>
 </div>
 
@@ -410,11 +414,11 @@ JIKA Kurtosis > 5    → Cek bearing
 Model **belajar batas keputusan** langsung dari data berlabel:
 
 <div class="ml-card e" style="margin-top:6px">
-  <div class="ml-h">✔️ Unggul saat</div>
+  <div class="ml-h">✔️ Keunggulan</div>
   <div class="ml-t">Banyak fitur, pola rumit/non-linier, data historis melimpah, pola berubah seiring waktu.</div>
 </div>
 <div class="ml-card c" style="margin-top:6px">
-  <div class="ml-h">✘ Batasnya</div>
+  <div class="ml-h">✘ Kelemahan</div>
   <div class="ml-t">Butuh data berkualitas + berlabel; model bisa jadi "kotak hitam" yang sulit ditafsirkan.</div>
 </div>
 
