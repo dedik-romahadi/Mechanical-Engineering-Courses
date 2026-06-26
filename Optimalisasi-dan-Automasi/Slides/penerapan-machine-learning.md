@@ -180,6 +180,89 @@ Perjalanan dari **konsep dasar Machine Learning** menuju **penerapan nyata**: me
 ---
 layout: default
 transition: fade
+title: "Capaian Pembelajaran (CPMK)"
+---
+
+<div style="display:flex;flex-direction:column;gap:22px">
+
+<div style="color:#94a3b8;font-size:12.5px;letter-spacing:.02em;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.05)">
+  Setelah mempelajari materi ini, mahasiswa mampu:
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:stretch">
+
+<v-click>
+<div style="background:#0d1526;border:1px solid rgba(0,229,255,.15);border-left:3px solid #00e5ff;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
+  <div style="display:flex;align-items:center;gap:7px">
+    <span style="background:rgba(0,229,255,.12);color:#00e5ff;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 1</span>
+    <span style="color:#67e8f9;font-weight:700;font-size:13px">Menjelaskan</span>
+  </div>
+  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Konsep Machine Learning, bedanya dengan pendekatan <em>rule-based</em>, & tiga paradigma pembelajaran</div>
+  <div style="font-size:11px;color:#475569;margin-top:2px">🧠 Dasar Teori</div>
+</div>
+</v-click>
+
+<v-click>
+<div style="background:#0d1526;border:1px solid rgba(52,211,153,.15);border-left:3px solid #34d399;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
+  <div style="display:flex;align-items:center;gap:7px">
+    <span style="background:rgba(52,211,153,.12);color:#34d399;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 2</span>
+    <span style="color:#6ee7b7;font-weight:700;font-size:13px">Menerapkan</span>
+  </div>
+  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Ekstraksi fitur getaran & pipeline ML untuk klasifikasi kondisi mesin (Sehat / Rusak)</div>
+  <div style="font-size:11px;color:#475569;margin-top:2px">⚙️ Implementasi</div>
+</div>
+</v-click>
+
+<v-click>
+<div style="background:#0d1526;border:1px solid rgba(251,191,36,.15);border-left:3px solid #fbbf24;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
+  <div style="display:flex;align-items:center;gap:7px">
+    <span style="background:rgba(251,191,36,.12);color:#fbbf24;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 3</span>
+    <span style="color:#fcd34d;font-weight:700;font-size:13px">Merancang</span>
+  </div>
+  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Skema pelatihan (<em>train/test split</em>, validasi silang) & memilih algoritma klasifikasi yang sesuai</div>
+  <div style="font-size:11px;color:#475569;margin-top:2px">🎛️ Desain Model</div>
+</div>
+</v-click>
+
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start">
+
+<v-click>
+<div style="background:#0d1526;border:1px solid rgba(251,113,133,.15);border-left:3px solid #fb7185;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
+  <div style="display:flex;align-items:center;gap:7px">
+    <span style="background:rgba(251,113,133,.12);color:#fb7185;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 4</span>
+    <span style="color:#fda4af;font-weight:700;font-size:13px">Mengevaluasi</span>
+  </div>
+  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Performa model lewat <em>confusion matrix</em> & metrik: akurasi, presisi, recall, dan F1-score</div>
+  <div style="font-size:11px;color:#475569;margin-top:2px">🔍 Evaluasi Model</div>
+</div>
+</v-click>
+
+<v-click>
+<div style="background:#0d1526;border:1px solid rgba(167,139,250,.15);border-left:3px solid #a78bfa;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
+  <div style="display:flex;align-items:center;gap:7px">
+    <span style="background:rgba(167,139,250,.12);color:#a78bfa;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 5</span>
+    <span style="color:#c4b5fd;font-weight:700;font-size:13px">Menggunakan</span>
+  </div>
+  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Python (scikit-learn) membangun detektor kerusakan mesin dari data getaran nyata</div>
+  <div style="font-size:11px;color:#475569;margin-top:2px">💻 Pemrograman</div>
+</div>
+</v-click>
+
+</div>
+
+<v-click>
+<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:8px 14px;font-size:12px;color:#94a3b8">
+  📚 Referensi: Géron (2022) <em>Hands-On Machine Learning</em>. O'Reilly &nbsp;|&nbsp; Lei et al. (2020) <em>ML for Machine Fault Diagnosis</em>. MSSP
+</div>
+</v-click>
+
+</div>
+
+---
+layout: default
+transition: fade
 title: "Apa itu Machine Learning?"
 ---
 
@@ -432,6 +515,65 @@ title: "Mengukur Performa Model"
 <Callout type="warning" title="Di deteksi kerusakan, Recall sering lebih kritis">
 <b>Melewatkan</b> mesin rusak (False Negative) bisa berujung kegagalan katastrofik. Lebih baik sedikit alarm palsu (FP) daripada satu kerusakan lolos. Maka <b>Recall tinggi</b> kerap diprioritaskan.
 </Callout>
+
+---
+layout: default
+transition: zoom
+title: "Contoh Soal — Evaluasi dari Confusion Matrix"
+class: tight
+---
+
+<div class="soal-card">
+<span class="soal-badge">📝 SOAL</span>
+Sebuah model deteksi kerusakan diuji pada <b>100 mesin</b>. Hasilnya: <b>45</b> mesin rusak terdeteksi rusak (TP), <b>5</b> mesin rusak terlewat (FN), <b>10</b> mesin sehat ter-alarm rusak (FP), dan <b>40</b> mesin sehat terdeteksi sehat (TN). Hitung <b>Akurasi, Presisi, Recall, & F1-score</b> untuk kelas "Rusak".
+</div>
+
+<div class="ml-grid c2" style="align-items:start">
+<div>
+
+<v-clicks>
+
+<div class="step"><span class="step-no">1</span> <b>Susun confusion matrix</b> (baris = aktual, kolom = prediksi)</div>
+
+<table style="margin-top:4px">
+<thead><tr><th></th><th>Pred: Rusak</th><th>Pred: Sehat</th></tr></thead>
+<tbody>
+<tr><th>Aktual: Rusak</th><td style="color:#6ee7b7 !important">TP = 45</td><td style="color:#fda4af !important">FN = 5</td></tr>
+<tr><th>Aktual: Sehat</th><td style="color:#fda4af !important">FP = 10</td><td style="color:#6ee7b7 !important">TN = 40</td></tr>
+</tbody>
+</table>
+
+<div class="step"><span class="step-no">2</span> <b>Akurasi</b> — proporsi prediksi benar</div>
+
+$$\text{Akurasi}=\frac{TP+TN}{N}=\frac{45+40}{100}=\mathbf{85\%}$$
+
+</v-clicks>
+
+</div>
+<div>
+
+<v-clicks>
+
+<div class="step"><span class="step-no">3</span> <b>Presisi</b> — dari yang dialarm, berapa benar rusak</div>
+
+$$\text{Presisi}=\frac{TP}{TP+FP}=\frac{45}{55}=\mathbf{0.82}$$
+
+<div class="step"><span class="step-no">4</span> <b>Recall</b> — dari yang benar rusak, berapa tertangkap</div>
+
+$$\text{Recall}=\frac{TP}{TP+FN}=\frac{45}{50}=\mathbf{0.90}$$
+
+<div class="step"><span class="step-no">5</span> <b>F1-score</b> — harmonik presisi & recall</div>
+
+$$F_1=\frac{2PR}{P+R}=\frac{2(0.82)(0.90)}{0.82+0.90}=\mathbf{0.86}$$
+
+</v-clicks>
+
+</div>
+</div>
+
+<v-click>
+<div class="kesimpulan">✅ <b>Kesimpulan:</b> Recall <b>0.90</b> → 90% kerusakan tertangkap, tapi <b>5 mesin rusak masih lolos (FN)</b>. Untuk <i>predictive maintenance</i>, prioritaskan menaikkan recall meski presisi sedikit turun.</div>
+</v-click>
 
 ---
 layout: default
