@@ -2,6 +2,8 @@
 
 Quick-start untuk Claude session di repo ini. **Untuk detail apa pun, rujuk ke `Pedoman-Modul.md` (8029 baris, v20)** — ini cuma peta.
 
+> 🎞️ **Mengerjakan slide Slidev?** Baca dulu **`Pedoman-Slides.md`** (struktur deck, komponen, CSS classes, layout, transisi, git workflow slide).
+
 ---
 
 ## Apa ini
