@@ -276,7 +276,7 @@ title: "Capaian Pembelajaran"
 .cp2-tip { fill:#34d399; filter:drop-shadow(0 0 6px #34d399); animation:cp2-tip 2s ease-in-out infinite; }
 .cp2-efflb { margin-top:5px; font-size:12px; font-weight:800; color:#34d399; }
 
-.cp2-pipe { display:flex; align-items:flex-start; justify-content:center; margin-top:64px; }
+.cp2-pipe { display:flex; align-items:flex-start; justify-content:center; margin-top:84px; }
 .cp2-node { display:flex; flex-direction:column; align-items:center; gap:10px; width:144px; text-align:center; }
 .cp2-ic { width:90px; height:90px; border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:44px; background:#0d1526; border:1px solid rgba(255,255,255,.1); }
 .cp2-lb { font-size:15.5px; color:#cbd5e1; font-weight:600; line-height:1.3; }
