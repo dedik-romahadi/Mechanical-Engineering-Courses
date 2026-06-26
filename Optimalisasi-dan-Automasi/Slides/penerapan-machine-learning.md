@@ -150,6 +150,35 @@ onBeforeUnmount(() => clearInterval(timer))
 
 ---
 layout: default
+transition: slide-left | slide-right
+title: "Peta Materi"
+---
+
+Perjalanan dari **konsep dasar Machine Learning** menuju **penerapan nyata**: mendeteksi kerusakan mesin secara otomatis dari sinyal getaran.
+
+<div class="ml-grid c2" style="margin-top:14px">
+  <div class="ml-card v">
+    <div class="ml-h">🧠 Fondasi</div>
+    <div class="ml-t">Apa itu ML, AI vs ML vs Deep Learning, dan tiga paradigma pembelajaran (supervised, unsupervised, reinforcement).</div>
+  </div>
+  <div class="ml-card s">
+    <div class="ml-h">🔄 Alur Kerja</div>
+    <div class="ml-t">Pipeline ML end-to-end: dari sinyal getaran → ekstraksi fitur → model → prediksi.</div>
+  </div>
+  <div class="ml-card e">
+    <div class="ml-h">📊 Klasifikasi</div>
+    <div class="ml-t">Memisahkan kondisi <b>Sehat</b> vs <b>Rusak</b>, melatih model, dan algoritma populer (k-NN, Tree, RF, SVM).</div>
+  </div>
+  <div class="ml-card c">
+    <div class="ml-h">🛠️ Studi Kasus</div>
+    <div class="ml-t">Evaluasi (confusion matrix, precision/recall) dan deteksi kerusakan <i>bearing</i> dari getaran, lengkap dengan kode.</div>
+  </div>
+</div>
+
+<div style="margin-top:14px;text-align:center;color:#94a3b8;font-size:13px">🎯 <b style="color:#c4b5fd">Tujuan</b>: paham <i>kapan</i> & <i>bagaimana</i> ML menggantikan aturan manual untuk <i>predictive maintenance</i>.</div>
+
+---
+layout: default
 transition: fade
 title: "Capaian Pembelajaran"
 ---
@@ -245,118 +274,6 @@ title: "Capaian Pembelajaran"
 @keyframes cp2-fill { to { opacity:.5; } }
 @keyframes cp2-tip { 0%,100% { r:3.2; opacity:.7; } 50% { r:5; opacity:1; } }
 </style>
-
----
-layout: default
-transition: slide-left | slide-right
-title: "Peta Materi"
----
-
-Perjalanan dari **konsep dasar Machine Learning** menuju **penerapan nyata**: mendeteksi kerusakan mesin secara otomatis dari sinyal getaran.
-
-<div class="ml-grid c2" style="margin-top:14px">
-  <div class="ml-card v">
-    <div class="ml-h">🧠 Fondasi</div>
-    <div class="ml-t">Apa itu ML, AI vs ML vs Deep Learning, dan tiga paradigma pembelajaran (supervised, unsupervised, reinforcement).</div>
-  </div>
-  <div class="ml-card s">
-    <div class="ml-h">🔄 Alur Kerja</div>
-    <div class="ml-t">Pipeline ML end-to-end: dari sinyal getaran → ekstraksi fitur → model → prediksi.</div>
-  </div>
-  <div class="ml-card e">
-    <div class="ml-h">📊 Klasifikasi</div>
-    <div class="ml-t">Memisahkan kondisi <b>Sehat</b> vs <b>Rusak</b>, melatih model, dan algoritma populer (k-NN, Tree, RF, SVM).</div>
-  </div>
-  <div class="ml-card c">
-    <div class="ml-h">🛠️ Studi Kasus</div>
-    <div class="ml-t">Evaluasi (confusion matrix, precision/recall) dan deteksi kerusakan <i>bearing</i> dari getaran, lengkap dengan kode.</div>
-  </div>
-</div>
-
-<div style="margin-top:14px;text-align:center;color:#94a3b8;font-size:13px">🎯 <b style="color:#c4b5fd">Tujuan</b>: paham <i>kapan</i> & <i>bagaimana</i> ML menggantikan aturan manual untuk <i>predictive maintenance</i>.</div>
-
----
-layout: default
-transition: fade
-title: "Capaian Pembelajaran (CPMK)"
----
-
-<div style="display:flex;flex-direction:column;gap:22px">
-
-<div style="color:#94a3b8;font-size:12.5px;letter-spacing:.02em;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.05)">
-  Setelah mempelajari materi ini, mahasiswa mampu:
-</div>
-
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:stretch">
-
-<v-click>
-<div style="background:#0d1526;border:1px solid rgba(0,229,255,.15);border-left:3px solid #00e5ff;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
-  <div style="display:flex;align-items:center;gap:7px">
-    <span style="background:rgba(0,229,255,.12);color:#00e5ff;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 1</span>
-    <span style="color:#67e8f9;font-weight:700;font-size:13px">Menjelaskan</span>
-  </div>
-  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Konsep Machine Learning, bedanya dengan pendekatan <em>rule-based</em>, & tiga paradigma pembelajaran</div>
-  <div style="font-size:11px;color:#475569;margin-top:2px">🧠 Dasar Teori</div>
-</div>
-</v-click>
-
-<v-click>
-<div style="background:#0d1526;border:1px solid rgba(52,211,153,.15);border-left:3px solid #34d399;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
-  <div style="display:flex;align-items:center;gap:7px">
-    <span style="background:rgba(52,211,153,.12);color:#34d399;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 2</span>
-    <span style="color:#6ee7b7;font-weight:700;font-size:13px">Menerapkan</span>
-  </div>
-  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Ekstraksi fitur getaran & pipeline ML untuk klasifikasi kondisi mesin (Sehat / Rusak)</div>
-  <div style="font-size:11px;color:#475569;margin-top:2px">⚙️ Implementasi</div>
-</div>
-</v-click>
-
-<v-click>
-<div style="background:#0d1526;border:1px solid rgba(251,191,36,.15);border-left:3px solid #fbbf24;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
-  <div style="display:flex;align-items:center;gap:7px">
-    <span style="background:rgba(251,191,36,.12);color:#fbbf24;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 3</span>
-    <span style="color:#fcd34d;font-weight:700;font-size:13px">Merancang</span>
-  </div>
-  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Skema pelatihan (<em>train/test split</em>, validasi silang) & memilih algoritma klasifikasi yang sesuai</div>
-  <div style="font-size:11px;color:#475569;margin-top:2px">🎛️ Desain Model</div>
-</div>
-</v-click>
-
-</div>
-
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start">
-
-<v-click>
-<div style="background:#0d1526;border:1px solid rgba(251,113,133,.15);border-left:3px solid #fb7185;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
-  <div style="display:flex;align-items:center;gap:7px">
-    <span style="background:rgba(251,113,133,.12);color:#fb7185;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 4</span>
-    <span style="color:#fda4af;font-weight:700;font-size:13px">Mengevaluasi</span>
-  </div>
-  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Performa model lewat <em>confusion matrix</em> & metrik: akurasi, presisi, recall, dan F1-score</div>
-  <div style="font-size:11px;color:#475569;margin-top:2px">🔍 Evaluasi Model</div>
-</div>
-</v-click>
-
-<v-click>
-<div style="background:#0d1526;border:1px solid rgba(167,139,250,.15);border-left:3px solid #a78bfa;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
-  <div style="display:flex;align-items:center;gap:7px">
-    <span style="background:rgba(167,139,250,.12);color:#a78bfa;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap">CPMK 5</span>
-    <span style="color:#c4b5fd;font-weight:700;font-size:13px">Menggunakan</span>
-  </div>
-  <div style="font-size:12px;color:#94a3b8;line-height:1.5">Python (scikit-learn) membangun detektor kerusakan mesin dari data getaran nyata</div>
-  <div style="font-size:11px;color:#475569;margin-top:2px">💻 Pemrograman</div>
-</div>
-</v-click>
-
-</div>
-
-<v-click>
-<div style="background:#0d1526;border:1px solid rgba(255,255,255,.08);border-left:3px solid #a78bfa;border-radius:8px;padding:8px 14px;font-size:12px;color:#94a3b8">
-  📚 Referensi: Géron (2022) <em>Hands-On Machine Learning</em>. O'Reilly &nbsp;|&nbsp; Lei et al. (2020) <em>ML for Machine Fault Diagnosis</em>. MSSP
-</div>
-</v-click>
-
-</div>
 
 ---
 layout: default
