@@ -66,7 +66,7 @@ layout: none
     <div class="ttl1">Penerapan Machine Learning</div>
     <div class="ttl2">Deteksi Kerusakan Mesin dari Data Getaran</div>
     <div class="fml">
-      <span class="eq"><span class="vy">ŷ</span><span class="op"> = </span><span class="vf">f</span><span class="op">(</span><span class="vx">x</span><span class="op">;&nbsp;</span><span class="vt">θ</span><span class="op">)</span></span>
+      <span class="eq" v-html="eqHtml"></span>
       <span class="flow"><i></i><i></i><i></i></span>
       <span class="out ok">🟢&nbsp;Sehat</span>
       <span class="out-sep">/</span>
@@ -91,6 +91,8 @@ layout: none
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import katex from 'katex'
+const eqHtml = katex.renderToString('\\hat{y} = f(x;\\,\\theta)', { throwOnError: false })
 const nowStr = ref('')
 let timer
 function tick() {
@@ -146,16 +148,11 @@ onBeforeUnmount(() => clearInterval(timer))
   box-shadow: 0 14px 38px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
   animation: fml-rot 7s linear infinite, fml-aura 7s ease-in-out infinite;
 }
-.fml .eq {
-  font-family: 'Cambria Math', 'KaTeX_Math', Georgia, 'Times New Roman', serif;
-  font-style: italic; font-size: 25px; letter-spacing: .4px; white-space: nowrap;
+.fml .eq { display: inline-flex; align-items: center; line-height: 1; }
+.fml .eq :deep(.katex) {
+  font-size: 25px; color: #f1f5f9;
   text-shadow: 0 1px 10px rgba(0,0,0,.55);
 }
-.fml .eq .op { font-style: normal; color: #64748b; }
-.fml .eq .vy { color: #f8fafc; }
-.fml .eq .vf { color: #c4b5fd; }
-.fml .eq .vx { color: #fbbf24; }
-.fml .eq .vt { color: #67e8f9; }
 .fml .flow {
   position: relative; width: 50px; height: 3px; border-radius: 2px;
   background: linear-gradient(90deg, rgba(167,139,250,.4), rgba(56,189,248,.7));
