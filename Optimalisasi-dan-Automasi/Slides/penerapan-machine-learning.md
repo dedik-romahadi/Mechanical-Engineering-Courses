@@ -390,13 +390,13 @@ JIKA RMS > 4.5 mm/s  → Alarm
 JIKA Kurtosis > 5    → Cek bearing
 ```
 
-<div class="ml-card a" style="margin-top:8px">
-  <div class="ml-h">✔️ Unggul saat</div>
-  <div class="ml-t">Aturan jelas, sedikit variabel, butuh transparansi & jaminan keselamatan (FSM, ANSI/ISA 18.2).</div>
+<div class="ml-card a" style="margin-top:8px; padding:5px 12px">
+  <div class="ml-h" style="margin-bottom:1px">✔️ Unggul saat</div>
+  <div class="ml-t" style="line-height:1.35">Aturan jelas, sedikit variabel, butuh transparansi & jaminan keselamatan (FSM, ANSI/ISA 18.2).</div>
 </div>
-<div class="ml-card c" style="margin-top:6px">
-  <div class="ml-h">✘ Batasnya</div>
-  <div class="ml-t">Tak skalabel: 50 fitur × 100 mode kerusakan → ribuan aturan manual yang mustahil dirawat.</div>
+<div class="ml-card c" style="margin-top:5px; padding:5px 12px">
+  <div class="ml-h" style="margin-bottom:1px">✘ Batasnya</div>
+  <div class="ml-t" style="line-height:1.35">Tak skalabel: 50 fitur × 100 mode kerusakan → ribuan aturan manual yang mustahil dirawat.</div>
 </div>
 
 </div>
