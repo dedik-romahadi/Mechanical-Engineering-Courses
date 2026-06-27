@@ -40,7 +40,7 @@ layout: none
 
   <header class="hdr">
     <div class="hdr-l">
-      <img class="hdr-logo" src="./Logo/UMB.png" alt="Universitas Mercu Buana" />
+      <img class="hdr-logo" src="./Logo/Logo-UMB.png" alt="Universitas Mercu Buana" />
       <div>
         <div class="hdr-uni">Universitas Mercu Buana</div>
         <div class="hdr-dept">Program Studi Teknik Mesin</div>
