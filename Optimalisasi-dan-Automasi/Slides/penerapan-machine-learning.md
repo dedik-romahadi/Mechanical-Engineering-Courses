@@ -204,7 +204,7 @@ onBeforeUnmount(() => clearInterval(timer))
   background-size: 300% 100%; animation: rule-slide 4s linear infinite;
 }
 .ftr .dot { color: #334155; } .ftr .yr { margin-left: 8px; color: #475569; font-family: 'Fira Code', monospace; }
-.ftr .cam-btn { margin-left: auto; background: transparent; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; padding: 0 7px; height: 20px; line-height: 1; font-size: 13.5px; cursor: pointer; color: #94a3b8; opacity: .8; transition: opacity .15s, border-color .15s, color .15s, background .15s; }
+.ftr .cam-btn { margin-left: auto; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; padding: 0 7px; height: 22px; line-height: 1; font-size: 15.5px; cursor: pointer; color: #94a3b8; opacity: .8; transition: opacity .15s, border-color .15s, color .15s, background .15s; }
 .ftr .cam-btn:hover { opacity: 1; border-color: #38bdf8; }
 .ftr .cam-btn.on { opacity: 1; border-color: #34d399; color: #34d399; background: rgba(52,211,153,.2); }
 </style>
