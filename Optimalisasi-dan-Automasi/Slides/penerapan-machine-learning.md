@@ -98,10 +98,10 @@ let timer
 function tick() {
   const d = new Date()
   const day = d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-  const time = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+  const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`
   nowStr.value = `${day} · ${time}`
 }
-onMounted(() => { tick(); timer = setInterval(tick, 30000) })
+onMounted(() => { tick(); timer = setInterval(tick, 1000) })
 onBeforeUnmount(() => clearInterval(timer))
 </script>
 
