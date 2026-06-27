@@ -16,7 +16,7 @@
       </span>
     </div>
     <div class="footer-right">
-      <button class="cam-btn" :class="{ on: camOn }" @click.stop="toggleCam" :title="camOn ? 'Matikan kamera' : 'Nyalakan kamera'">📷</button>
+      <button class="cam-btn" :class="{ on: camOn }" @click.stop="toggleCam" :title="camOn ? 'Matikan kamera' : 'Nyalakan kamera'"><span class="cam-ico">📷</span></button>
       <span class="footer-page">{{ $slidev.nav.currentPage }} / {{ $slidev.nav.total }}</span>
     </div>
   </div>
@@ -189,4 +189,6 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
 }
 .cam-btn:hover { opacity: 1; border-color: #38bdf8; }
 .cam-btn.on { opacity: 1; border-color: #34d399; color: #34d399; background: rgba(52, 211, 153, .2); }
+/* Koreksi optik: glyph emoji 📷 sedikit naik dalam line-box-nya. */
+.cam-btn .cam-ico { display: inline-block; transform: translateY(1px); }
 </style>
