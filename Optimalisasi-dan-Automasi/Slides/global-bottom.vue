@@ -21,8 +21,8 @@
     </div>
   </div>
 
-  <!-- Ruang kamera (pojok kanan bawah) — panduan posisi overlay webcam. -->
-  <div v-if="$slidev.nav.currentPage !== 1" class="cam-space" aria-hidden="true">
+  <!-- Ruang kamera (pojok kanan bawah) — tampil di semua slide termasuk cover. -->
+  <div class="cam-space" aria-hidden="true">
     <video ref="camVideo" class="cam-video" v-show="camOn" autoplay muted playsinline></video>
     <svg class="cam-gear" viewBox="0 0 166 166" xmlns="http://www.w3.org/2000/svg">
       <defs>
