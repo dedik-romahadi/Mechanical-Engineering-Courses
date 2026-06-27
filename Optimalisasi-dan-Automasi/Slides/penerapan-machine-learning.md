@@ -464,19 +464,19 @@ title: "Tiga Paradigma Pembelajaran"
     <div class="ml-h">🎯 Supervised</div>
     <div class="ml-t"><b>Data berlabel</b> (input → output diketahui). Model belajar memetakan keduanya.
     <br><br>• Klasifikasi: Sehat / Rusak<br>• Regresi: sisa umur (RUL)</div>
-    <div style="margin-top:6px"><span class="chip e">← fokus kita</span></div>
+    <div style="margin-top:6px"><span class="chip e">← Fokus Kita</span></div>
   </div>
   <div class="ml-card s">
     <div class="ml-h">🔍 Unsupervised</div>
     <div class="ml-t"><b>Tanpa label</b>. Model mencari struktur tersembunyi sendiri.
     <br><br>• Clustering kondisi mesin<br>• <i>Anomaly detection</i> (deteksi pola asing)</div>
-    <div style="margin-top:6px"><span class="chip s">data tidak berlabel</span></div>
+    <div style="margin-top:6px"><span class="chip s">Data Tidak Berlabel</span></div>
   </div>
   <div class="ml-card a">
     <div class="ml-h">🕹️ Reinforcement</div>
     <div class="ml-t">Agen belajar lewat <b>coba–salah</b> & <i>reward</i> dari lingkungan.
     <br><br>• Penjadwalan perawatan optimal<br>• Kontrol adaptif</div>
-    <div style="margin-top:6px"><span class="chip a">reward-driven</span></div>
+    <div style="margin-top:6px"><span class="chip a">Reward-Driven</span></div>
   </div>
 </div>
 
@@ -569,9 +569,9 @@ title: "Memisahkan Sehat vs Rusak"
 <FeatureScatter />
 
 <div style="margin-top:6px;font-size:12px;color:#94a3b8">
-<span class="chip e">🟢 Sehat = RMS &amp; Kurtosis rendah</span>
-<span class="chip c">🔴 Rusak = RMS &amp; Kurtosis tinggi</span>
-<span class="chip v">Garis = batas yang "dipelajari" model</span>
+<span class="chip e">🟢 Sehat = RMS &amp; Kurtosis Rendah</span>
+<span class="chip c">🔴 Rusak = RMS &amp; Kurtosis Tinggi</span>
+<span class="chip v">Garis = Batas Yang "Dipelajari" Model</span>
 </div>
 
 ---
@@ -630,7 +630,7 @@ title: "Algoritma Klasifikasi Populer"
   </div>
   <div class="ml-card e">
     <div class="ml-h">🌲 Random Forest</div>
-    <div class="ml-t"><b>Banyak pohon</b> yang memilih bersama (<i>ensemble</i>). Akurat, tahan noise, andalan untuk data getaran. <span class="chip e">favorit PdM</span></div>
+    <div class="ml-t"><b>Banyak pohon</b> yang memilih bersama (<i>ensemble</i>). Akurat, tahan noise, andalan untuk data getaran. <span class="chip e">Favorit PdM</span></div>
   </div>
   <div class="ml-card v">
     <div class="ml-h">🎯 SVM</div>
