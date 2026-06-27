@@ -181,9 +181,10 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
 
 /* Tombol nyala/mati kamera (footer kanan). */
 .cam-btn {
+  display: inline-flex; align-items: center; justify-content: center;
   background: transparent; border: 1px solid rgba(255, 255, 255, .2);
-  border-radius: 6px; padding: 0 7px; height: 20px; line-height: 1;
-  font-size: 13.5px; cursor: pointer; color: #cbd5e1; opacity: .7;
+  border-radius: 6px; padding: 0 7px; height: 22px; line-height: 1;
+  font-size: 15.5px; cursor: pointer; color: #cbd5e1; opacity: .7;
   pointer-events: auto; transition: opacity .15s, border-color .15s, color .15s, background .15s;
 }
 .cam-btn:hover { opacity: 1; border-color: #38bdf8; }
