@@ -311,7 +311,7 @@ title: "Capaian Pembelajaran"
 
 ---
 layout: default
-transition: slide-left | slide-right
+transition: slide-right
 title: "Peta Materi"
 ---
 
@@ -361,7 +361,7 @@ Perjalanan dari **konsep dasar Machine Learning** menuju **penerapan nyata**: me
 
 ---
 layout: default
-transition: fade
+transition: zoom
 title: "Apa itu Machine Learning?"
 ---
 
@@ -461,7 +461,7 @@ Model **belajar batas keputusan** langsung dari data berlabel:
 
 ---
 layout: default
-transition: zoom
+transition: flip
 title: "Tiga Paradigma Pembelajaran"
 ---
 
@@ -554,7 +554,7 @@ title: "Alur Kerja Machine Learning"
 
 ---
 layout: default
-transition: slide-left
+transition: blur-fade
 title: "🙋 Sesi Interaktif — Soal 1 dari 3"
 class: qz
 ---
@@ -583,7 +583,7 @@ class: qz
 
 ---
 layout: default
-transition: slide-left
+transition: zoom
 title: "🙋 Sesi Interaktif — Soal 2 dari 3"
 class: qz
 ---
@@ -612,7 +612,7 @@ class: qz
 
 ---
 layout: default
-transition: slide-left
+transition: slide-right
 title: "🙋 Sesi Interaktif — Soal 3 dari 3"
 class: qz
 ---
@@ -643,7 +643,7 @@ class: qz
 
 ---
 layout: default
-transition: slide-left | slide-right
+transition: slide-left
 title: "Dari Getaran ke Fitur"
 class: tight
 ---
@@ -678,7 +678,7 @@ RMS, kurtosis, dan puncak FFT adalah hasil <b>analisis getaran</b> (domain waktu
 
 ---
 layout: default
-transition: slide-left | slide-right
+transition: fade
 title: "Memisahkan Sehat vs Rusak"
 ---
 
@@ -816,7 +816,7 @@ $$F_1=\frac{2PR}{P+R}=\frac{2(0.82)(0.90)}{0.82+0.90}=\mathbf{0.86}$$
 
 ---
 layout: default
-transition: slide-left
+transition: glide
 title: "🙋 Sesi Interaktif 2 — Soal 1 dari 3"
 class: qz
 ---
@@ -843,7 +843,7 @@ class: qz
 
 ---
 layout: default
-transition: slide-left
+transition: blur-fade
 title: "🙋 Sesi Interaktif 2 — Soal 2 dari 3"
 class: qz
 ---
@@ -872,7 +872,7 @@ class: qz
 
 ---
 layout: default
-transition: slide-left
+transition: swirl
 title: "🙋 Sesi Interaktif 2 — Soal 3 dari 3"
 class: qz
 ---
