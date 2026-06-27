@@ -598,43 +598,14 @@ title: "Memisahkan Sehat vs Rusak"
 </div>
 
 ---
-layout: two-cols
+layout: default
 transition: flip
 title: "Melatih Model: Train/Test & Overfitting"
-class: tight
 ---
 
-Data dibagi agar performa diukur **jujur** pada data yang belum pernah dilihat:
+<div style="color:#94a3b8;font-size:12.5px;margin-bottom:6px;text-align:center">Data dibagi <b>Training 70–80%</b> (model belajar) vs <b>Test 20–30%</b> (ujian jujur). Geser <b>Kompleksitas Model</b> — <i>train error</i> terus turun, tapi <i>test error</i> membentuk kurva-U.</div>
 
-<div style="display:flex;gap:6px;margin:10px 0">
-  <div style="flex:7;background:rgba(52,211,153,.14);border:1px solid rgba(52,211,153,.4);border-radius:8px;padding:8px;text-align:center;color:#6ee7b7;font-weight:700;font-size:12.5px">Training 70–80%<br><span style="font-weight:400;color:#94a3b8;font-size:11px">model belajar</span></div>
-  <div style="flex:3;background:rgba(56,189,248,.14);border:1px solid rgba(56,189,248,.4);border-radius:8px;padding:8px;text-align:center;color:#7dd3fc;font-weight:700;font-size:12.5px">Test 20–30%<br><span style="font-weight:400;color:#94a3b8;font-size:11px">ujian</span></div>
-</div>
-
-- **Training set** → model menyesuaikan parameter $\theta$.
-- **Test set** → mengukur *generalisasi* ke data baru.
-- *Cross-validation* → bagi berulang agar estimasi stabil.
-
-::right::
-
-<div class="pl-5 col-center">
-
-### Overfitting vs Underfitting
-
-<div class="ml-card c" style="margin:5px 0">
-  <div class="ml-h">📕 Overfitting</div>
-  <div class="ml-t">Hafal data latih (termasuk noise). Akurasi latih tinggi, <b>uji jeblok</b>. → sederhanakan model / tambah data.</div>
-</div>
-<div class="ml-card a" style="margin:5px 0">
-  <div class="ml-h">📘 Underfitting</div>
-  <div class="ml-t">Model terlalu sederhana, pola pun tidak tertangkap. Latih & uji sama-sama buruk. → model lebih kuat / fitur lebih baik.</div>
-</div>
-<div class="ml-card e" style="margin:5px 0">
-  <div class="ml-h">📗 Pas (Good Fit)</div>
-  <div class="ml-t">Menangkap pola, abaikan noise. Akurasi latih ≈ uji, dua-duanya tinggi.</div>
-</div>
-
-</div>
+<OverfitLab />
 
 ---
 layout: default
