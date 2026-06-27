@@ -537,7 +537,7 @@ title: "Alur Kerja Machine Learning"
     <div class="aa-belt">
       <div class="aa-st"><div class="aa-ic">📚</div><div class="aa-nm">Baca Materi</div><div class="aa-eq">Sinyal Getaran</div></div>
       <div class="aa-ar">▶</div>
-      <div class="aa-st"><div class="aa-ic">✍️</div><div class="aa-nm">Catat Poin</div><div class="aa-eq">Ekstraksi Fitur</div></div>
+      <div class="aa-st"><div class="aa-ic">✍️</div><div class="aa-nm">Rangkum Materi</div><div class="aa-eq">Ekstraksi Fitur</div></div>
       <div class="aa-ar">▶</div>
       <div class="aa-st"><div class="aa-ic">🎓</div><div class="aa-nm">Belajar Soal</div><div class="aa-eq">Latih Model</div></div>
       <div class="aa-ar">▶</div>
