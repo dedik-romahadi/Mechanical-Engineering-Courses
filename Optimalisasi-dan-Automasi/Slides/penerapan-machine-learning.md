@@ -1,11 +1,11 @@
 ---
 theme: default
 title: Penerapan Machine Learning
-titleTemplate: '%s — Optimalisasi & Otomasi'
+titleTemplate: '%s — Optimalisasi & Automasi'
 info: |
   ## Penerapan Machine Learning
   Deteksi Kerusakan Mesin dari Data Getaran
-  Mata Kuliah Optimalisasi & Otomasi — S1 Teknik Mesin
+  Mata Kuliah Optimalisasi & Automasi — S1 Teknik Mesin
   Universitas Mercu Buana
 author: Dedik Romahadi
 colorSchema: dark
@@ -58,7 +58,7 @@ layout: none
         <div class="hdr-dept">Program Studi Teknik Mesin</div>
       </div>
     </div>
-    <div class="hdr-tag">Optimalisasi &amp; Otomasi</div>
+    <div class="hdr-tag">Optimalisasi &amp; Automasi</div>
   </header>
 
   <main class="ctr">
@@ -80,7 +80,7 @@ layout: none
   </main>
 
   <footer class="ftr">
-    <span>Mata Kuliah Optimalisasi &amp; Otomasi</span>
+    <span>Mata Kuliah Optimalisasi &amp; Automasi</span>
     <span class="dot">•</span>
     <span>S1 Teknik Mesin</span>
     <span class="dot">•</span>
@@ -219,7 +219,7 @@ title: "Capaian Pembelajaran"
       <span class="cp2-arrow">▸</span>
       <span class="cp2-sub">Sub-CPMK 4.2</span>
     </div>
-    <div class="cp2-desc">Mampu <b>merancang sistem otomasi berbasis teknologi 4.0</b> untuk <span class="cp2-eff">efisiensi</span>.</div>
+    <div class="cp2-desc">Mampu <b>merancang sistem automasi berbasis teknologi 4.0</b> untuk <span class="cp2-eff">efisiensi</span>.</div>
     <div class="cp2-meta">Indikator: merancang alur deteksi kerusakan <i>(sensor → fitur → model ML → aksi)</i> yang menekan <i>downtime</i> &amp; biaya perawatan.</div>
   </div>
   <div class="cp2-hero-r">
@@ -247,7 +247,7 @@ title: "Capaian Pembelajaran"
   <div class="cp2-link"><i></i><i></i><i></i></div>
   <div class="cp2-node cp2-brain"><div class="cp2-ic">🧠</div><div class="cp2-lb">Model<br>ML</div></div>
   <div class="cp2-link"><i></i><i></i><i></i></div>
-  <div class="cp2-node"><div class="cp2-ic"><span class="cp2-gear">⚙️</span></div><div class="cp2-lb">Aksi<br>Otomasi</div></div>
+  <div class="cp2-node"><div class="cp2-ic"><span class="cp2-gear">⚙️</span></div><div class="cp2-lb">Aksi<br>Automasi</div></div>
 </div>
 
 <style scoped>
@@ -529,13 +529,22 @@ transition: glide
 title: "Alur Kerja Machine Learning"
 ---
 
-<div style="color:#94a3b8;font-size:14.5px;margin-bottom:14px">Klik tiap tahap untuk melihat detailnya. Inilah <i>pipeline</i> yang sama dipakai di hampir semua sistem ML industri.</div>
-
-<div class="pipe-big"><MLPipeline /></div>
-
-<style scoped>
-.pipe-big { transform: scale(1.12); transform-origin: center top; margin: 18px 0; }
-</style>
+<div class="alur7">
+  <div class="alur7-intro">Klik tiap tahap untuk melihat detailnya. Inilah <i>pipeline</i> yang sama dipakai di hampir semua sistem ML industri.</div>
+  <div class="alur7-pipe"><MLPipeline /></div>
+  <div class="aa-wrap">
+    <div class="aa-tag">🏭 Analogi: <b>jalur produksi pabrik</b> — struktur sama, beda yang mengalir</div>
+    <div class="aa-belt">
+      <div class="aa-st"><div class="aa-ic">🪨</div><div class="aa-nm">Bahan Baku</div><div class="aa-eq">Sinyal Getaran</div></div>
+      <div class="aa-ar">▶</div>
+      <div class="aa-st"><div class="aa-ic">⚙️</div><div class="aa-nm">Mesin Olah</div><div class="aa-eq">Ekstraksi Fitur</div></div>
+      <div class="aa-ar">▶</div>
+      <div class="aa-st"><div class="aa-ic">🎓</div><div class="aa-nm">Pelatihan</div><div class="aa-eq">Latih Model</div></div>
+      <div class="aa-ar">▶</div>
+      <div class="aa-st"><div class="aa-ic">📦</div><div class="aa-nm">Produk Jadi</div><div class="aa-eq">Prediksi</div></div>
+    </div>
+  </div>
+</div>
 
 ---
 layout: default
@@ -916,7 +925,7 @@ title: "Terima Kasih"
 
 <div style="margin-top:22px;color:#64748b;font-size:14px">
 <b style="color:#e2e8f0">Dedik Romahadi, S.T., M.Sc.</b><br>
-Mata Kuliah Optimalisasi &amp; Otomasi · S1 Teknik Mesin · Universitas Mercu Buana
+Mata Kuliah Optimalisasi &amp; Automasi · S1 Teknik Mesin · Universitas Mercu Buana
 </div>
 
 <div style="margin-top:14px;color:#475569;font-size:13px">Pertanyaan &amp; diskusi sangat diharapkan 🙌</div>
