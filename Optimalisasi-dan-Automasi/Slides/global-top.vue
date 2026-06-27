@@ -12,7 +12,7 @@
           <img src="/Only-Logo-UMB.png" class="gh-logo" alt="UMB" />
         </div>
         <div class="gh-brand-text">
-          <span class="gh-brand-name">OPTIMALISASI &amp; OTOMASI</span>
+          <span class="gh-brand-name">OPTIMALISASI &amp; AUTOMASI</span>
           <span class="gh-brand-sub">Penerapan Machine Learning</span>
         </div>
       </div>
