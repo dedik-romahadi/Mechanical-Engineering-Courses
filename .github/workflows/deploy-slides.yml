@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build kedua deck & Siapkan Pages
+    name: Build tiap deck (toleran gagal) & Siapkan Pages
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -31,13 +31,22 @@ jobs:
             Getaran-Mekanik/Slides/package-lock.json
             Optimalisasi-dan-Automasi/Slides/package-lock.json
 
+      # ──────────────────────────────────────────────────────────────────
+      # Opsi A — isolasi build per mata kuliah.
+      # Tiap deck di-install & di-build dengan continue-on-error, lalu pada
+      # langkah "Siapkan direktori Pages" hanya deck yang BERHASIL build yang
+      # disalin ke _site. Jadi 1 deck rusak TIDAK membatalkan deploy deck lain.
+      # ──────────────────────────────────────────────────────────────────
+
       # ── Getaran Mekanik — Analisis Getaran Berbasis Fourier Transform ──
       - name: Install dependencies — Getaran
         working-directory: Getaran-Mekanik/Slides
+        continue-on-error: true
         run: npm ci
 
       - name: Build Slidev — Getaran (Fourier Transform)
         working-directory: Getaran-Mekanik/Slides
+        continue-on-error: true
         run: |
           npx slidev build Analisis-Getaran-Berbasis-Fourier-Transform.md \
             --base /Mechanical-Engineering-Courses/Getaran-Mekanik/Slides/Analisis-Getaran-Berbasis-Fourier-Transform/ \
@@ -46,10 +55,12 @@ jobs:
       # ── Optimalisasi & Otomasi — Penerapan Machine Learning ──
       - name: Install dependencies — Optimalisasi & Otomasi
         working-directory: Optimalisasi-dan-Automasi/Slides
+        continue-on-error: true
         run: npm ci
 
       - name: Build Slidev — Opto (Penerapan Machine Learning)
         working-directory: Optimalisasi-dan-Automasi/Slides
+        continue-on-error: true
         run: |
           npx slidev build penerapan-machine-learning.md \
             --base /Mechanical-Engineering-Courses/Optimalisasi-dan-Automasi/Slides/penerapan-machine-learning/ \
@@ -66,11 +77,33 @@ jobs:
             --exclude='Getaran-Mekanik/Slides/' \
             --exclude='Optimalisasi-dan-Automasi/Slides/' \
             . _site/
-          # Copy build Slidev ke subdirektori URL masing-masing (sumber tetap flat di Slides/)
-          mkdir -p _site/Getaran-Mekanik/Slides/Analisis-Getaran-Berbasis-Fourier-Transform
-          cp -r Getaran-Mekanik/Slides/dist/. _site/Getaran-Mekanik/Slides/Analisis-Getaran-Berbasis-Fourier-Transform/
-          mkdir -p _site/Optimalisasi-dan-Automasi/Slides/penerapan-machine-learning
-          cp -r Optimalisasi-dan-Automasi/Slides/dist/. _site/Optimalisasi-dan-Automasi/Slides/penerapan-machine-learning/
+
+          # Hanya salin deck yang BERHASIL build (cek index.html hasil slidev).
+          built=0
+
+          if [ -f Getaran-Mekanik/Slides/dist/index.html ]; then
+            mkdir -p _site/Getaran-Mekanik/Slides/Analisis-Getaran-Berbasis-Fourier-Transform
+            cp -r Getaran-Mekanik/Slides/dist/. _site/Getaran-Mekanik/Slides/Analisis-Getaran-Berbasis-Fourier-Transform/
+            echo "::notice title=Getaran::Build sukses — disertakan ke Pages."
+            built=$((built+1))
+          else
+            echo "::warning title=Getaran::Build GAGAL — dilewati. Deck lain tetap deploy."
+          fi
+
+          if [ -f Optimalisasi-dan-Automasi/Slides/dist/index.html ]; then
+            mkdir -p _site/Optimalisasi-dan-Automasi/Slides/penerapan-machine-learning
+            cp -r Optimalisasi-dan-Automasi/Slides/dist/. _site/Optimalisasi-dan-Automasi/Slides/penerapan-machine-learning/
+            echo "::notice title=Opto::Build sukses — disertakan ke Pages."
+            built=$((built+1))
+          else
+            echo "::warning title=Opto::Build GAGAL — dilewati. Deck lain tetap deploy."
+          fi
+
+          if [ "$built" -eq 0 ]; then
+            echo "::error::Tidak ada deck yang berhasil di-build — batalkan deploy."
+            exit 1
+          fi
+          echo "Deck disertakan ke Pages: $built"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
