@@ -145,7 +145,7 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
   pointer-events: none;
 }
 /* Di cover (slide 1) frame digeser sedikit ke atas agar tak menimpa footer cover. */
-.cam-space.on-cover { bottom: 68px; }
+.cam-space.on-cover { bottom: 56px; }
 /* Bingkai kamera = roda gigi SOLID yang berputar pelan, warna selaras tema
    (gradien cyan→ungu→amber). Lebih besar dari lingkaran webcam (122px) agar
    gigi-giginya tetap terlihat mengelilingi kamera saat webcam menyala. */
@@ -182,10 +182,10 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
 /* Tombol nyala/mati kamera (footer kanan). */
 .cam-btn {
   background: transparent; border: 1px solid rgba(255, 255, 255, .2);
-  border-radius: 6px; padding: 0 6px; height: 18px; line-height: 1;
-  font-size: 11px; cursor: pointer; color: #cbd5e1; opacity: .65;
-  pointer-events: auto; transition: opacity .15s, border-color .15s, color .15s;
+  border-radius: 6px; padding: 0 7px; height: 20px; line-height: 1;
+  font-size: 13.5px; cursor: pointer; color: #cbd5e1; opacity: .7;
+  pointer-events: auto; transition: opacity .15s, border-color .15s, color .15s, background .15s;
 }
 .cam-btn:hover { opacity: 1; border-color: #38bdf8; }
-.cam-btn.on { opacity: 1; border-color: #34d399; color: #34d399; }
+.cam-btn.on { opacity: 1; border-color: #34d399; color: #34d399; background: rgba(52, 211, 153, .2); }
 </style>
