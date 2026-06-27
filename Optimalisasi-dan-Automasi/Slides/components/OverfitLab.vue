@@ -456,7 +456,8 @@ onBeforeUnmount(() => {
   font-family: 'Inter', ui-sans-serif, sans-serif;
   box-sizing: border-box;
   max-width: 944px;
-  margin: 0 auto;
+  margin-left: 48px;
+  margin-right: auto;
 }
 
 .ol-head {
@@ -492,7 +493,7 @@ onBeforeUnmount(() => {
 .ol-panel:last-child { flex: 1 1 44%; }
 .ol-cap { font-size: 11.5px; font-weight: 700; color: #cbd5e1; letter-spacing: 0.02em; }
 .ol-canvas {
-  width: 100%; height: 232px; display: block;
+  width: 100%; height: 250px; display: block;
   border-radius: 8px; background: #06091a; border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
