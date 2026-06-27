@@ -333,15 +333,24 @@ Perjalanan dari **konsep dasar Machine Learning** menuju **penerapan nyata**: me
 <div style="margin-top:14px;text-align:center;color:#94a3b8;font-size:13px">🎯 <b style="color:#c4b5fd">Tujuan</b>: paham <i>kapan</i> & <i>bagaimana</i> ML menggantikan aturan manual untuk <i>predictive maintenance</i>.</div>
 
 <div class="peta-map">
-  <div class="peta-track"><div class="peta-fill"></div><div class="peta-spark"></div></div>
-  <div class="peta-stops">
-    <div class="peta-stop"><span class="peta-node n-start">📍</span><span class="peta-lb strong">Konsep Dasar</span></div>
-    <div class="peta-stop"><span class="peta-node">🧠</span><span class="peta-lb">Fondasi</span></div>
-    <div class="peta-stop"><span class="peta-node">🔄</span><span class="peta-lb">Alur Kerja</span></div>
-    <div class="peta-stop"><span class="peta-node">📊</span><span class="peta-lb">Klasifikasi</span></div>
-    <div class="peta-stop"><span class="peta-node">🛠️</span><span class="peta-lb">Studi Kasus</span></div>
-    <div class="peta-stop"><span class="peta-node n-end">🎯</span><span class="peta-lb strong">Penerapan Nyata</span></div>
-  </div>
+  <svg class="peta-wave" viewBox="0 0 1000 104" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="wvg" x1="0" y1="0" x2="1000" y2="0" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#a78bfa"/><stop offset=".4" stop-color="#38bdf8"/><stop offset=".72" stop-color="#34d399"/><stop offset="1" stop-color="#fbbf24"/>
+      </linearGradient>
+      <filter id="wvglow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="3"/></filter>
+    </defs>
+    <path id="wvpath" class="wv-base" d="M44,58 C132.5,58 132.5,30 221,30 C309.5,30 309.5,58 398,58 C487,58 487,30 576,30 C664.5,30 664.5,58 753,58 C841.5,58 841.5,30 930,30" fill="none" stroke-width="9" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    <path class="wv-flow" d="M44,58 C132.5,58 132.5,30 221,30 C309.5,30 309.5,58 398,58 C487,58 487,30 576,30 C664.5,30 664.5,58 753,58 C841.5,58 841.5,30 930,30" fill="none" stroke="url(#wvg)" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 11" vector-effect="non-scaling-stroke"/>
+    <circle r="6" fill="#fff" filter="url(#wvglow)" opacity=".9"><animateMotion dur="5s" repeatCount="indefinite"><mpath href="#wvpath"/></animateMotion></circle>
+    <circle r="2.4" fill="#fff"><animateMotion dur="5s" repeatCount="indefinite"><mpath href="#wvpath"/></animateMotion></circle>
+  </svg>
+  <div class="peta-stop" style="left:4.4%;top:37px"><span class="peta-node n-start">📍</span><span class="peta-lb strong">Konsep Dasar</span></div>
+  <div class="peta-stop" style="left:22.1%;top:9px"><span class="peta-node">🧠</span><span class="peta-lb">Fondasi</span></div>
+  <div class="peta-stop" style="left:39.8%;top:37px"><span class="peta-node">🔄</span><span class="peta-lb">Alur Kerja</span></div>
+  <div class="peta-stop" style="left:57.6%;top:9px"><span class="peta-node">📊</span><span class="peta-lb">Klasifikasi</span></div>
+  <div class="peta-stop" style="left:75.3%;top:37px"><span class="peta-node">🛠️</span><span class="peta-lb">Studi Kasus</span></div>
+  <div class="peta-stop" style="left:93%;top:9px"><span class="peta-node n-end">🎯</span><span class="peta-lb strong">Penerapan Nyata</span></div>
 </div>
 
 ---
