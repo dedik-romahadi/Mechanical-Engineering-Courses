@@ -44,22 +44,22 @@
           <div class="cm-cell tp">
             <div class="cm-tag">TP</div>
             <div class="cm-num">{{ TP }}</div>
-            <div class="cm-sub">Rusak→Rusak</div>
+            <div class="cm-sub">Rusak <span class="cm-arr">→</span> Rusak</div>
           </div>
           <div class="cm-cell fp">
             <div class="cm-tag">FP</div>
             <div class="cm-num">{{ FP }}</div>
-            <div class="cm-sub">Sehat→Rusak</div>
+            <div class="cm-sub">Sehat <span class="cm-arr">→</span> Rusak</div>
           </div>
           <div class="cm-cell fn">
             <div class="cm-tag">FN</div>
             <div class="cm-num">{{ FN }}</div>
-            <div class="cm-sub">Rusak→Sehat</div>
+            <div class="cm-sub">Rusak <span class="cm-arr">→</span> Sehat</div>
           </div>
           <div class="cm-cell tn">
             <div class="cm-tag">TN</div>
             <div class="cm-num">{{ TN }}</div>
-            <div class="cm-sub">Sehat→Sehat</div>
+            <div class="cm-sub">Sehat <span class="cm-arr">→</span> Sehat</div>
           </div>
         </div>
         <div class="tm-metrics">
@@ -470,6 +470,12 @@ onMounted(() => {
 .cm-sub {
   font-size: 10px;
   color: #94a3b8;
+}
+.cm-arr {
+  color: #f1f5f9;
+  font-weight: 800;
+  font-size: 1.2em;
+  padding: 0 1px;
 }
 .cm-cell.tp {
   background: rgba(52, 211, 153, 0.12);
