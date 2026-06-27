@@ -276,13 +276,13 @@ title: "Capaian Pembelajaran"
 .cp2-tip { fill:#34d399; filter:drop-shadow(0 0 6px #34d399); animation:cp2-tip 2s ease-in-out infinite; }
 .cp2-efflb { margin-top:5px; font-size:12px; font-weight:800; color:#34d399; }
 
-.cp2-pipe { display:flex; align-items:flex-start; justify-content:center; margin-top:84px; }
+.cp2-pipe { display:flex; align-items:flex-start; justify-content:center; margin-top:56px; }
 .cp2-node { display:flex; flex-direction:column; align-items:center; gap:10px; width:144px; text-align:center; }
 .cp2-ic { width:90px; height:90px; border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:44px; background:#0d1526; border:1px solid rgba(255,255,255,.1); }
 .cp2-lb { font-size:15.5px; color:#cbd5e1; font-weight:600; line-height:1.3; }
 .cp2-brain .cp2-ic { border-color:rgba(167,139,250,.6); animation:cp2-glow 2.2s ease-in-out infinite; }
 .cp2-gear { display:inline-block; animation:cp2-spin 4s linear infinite; }
-.cp2-link { position:relative; width:96px; height:4px; margin:45px -8px 0; border-radius:2px; background:linear-gradient(90deg, rgba(56,189,248,.35), rgba(167,139,250,.6)); }
+.cp2-link { position:relative; width:124px; height:4px; margin:45px -8px 0; border-radius:2px; background:linear-gradient(90deg, rgba(56,189,248,.35), rgba(167,139,250,.6)); }
 .cp2-link::after { content:''; position:absolute; right:-3px; top:50%; transform:translateY(-50%); width:0; height:0; border-top:8px solid transparent; border-bottom:8px solid transparent; border-left:12px solid #a78bfa; filter:drop-shadow(0 0 5px rgba(167,139,250,.6)); }
 .cp2-link i { position:absolute; top:50%; width:12px; height:12px; border-radius:50%; background:#38bdf8; box-shadow:0 0 13px #38bdf8; transform:translateY(-50%); opacity:0; animation:cp2-dot 1.8s linear infinite; }
 .cp2-link i:nth-child(2) { animation-delay:.6s; }
@@ -293,7 +293,7 @@ title: "Capaian Pembelajaran"
 @keyframes cp2-shine { to { background-position:200% 0; } }
 @keyframes cp2-spin { to { transform:rotate(360deg); } }
 @keyframes cp2-glow { 0%,100% { box-shadow:0 0 0 1px rgba(167,139,250,.3), 0 0 12px rgba(167,139,250,.25); } 50% { box-shadow:0 0 0 1px rgba(167,139,250,.75), 0 0 36px rgba(167,139,250,.6); } }
-@keyframes cp2-dot { 0% { left:-6px; opacity:0; } 12% { opacity:1; } 86% { opacity:1; } 100% { left:90px; opacity:0; } }
+@keyframes cp2-dot { 0% { left:-6px; opacity:0; } 12% { opacity:1; } 86% { opacity:1; } 100% { left:118px; opacity:0; } }
 @keyframes cp2-draw { 0% { stroke-dashoffset:220; } 45% { stroke-dashoffset:0; } 88% { stroke-dashoffset:0; } 100% { stroke-dashoffset:220; } }
 @keyframes cp2-fill { to { opacity:.5; } }
 @keyframes cp2-tip { 0%,100% { r:3.2; opacity:.7; } 50% { r:5; opacity:1; } }
