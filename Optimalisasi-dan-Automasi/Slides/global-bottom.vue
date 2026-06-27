@@ -22,7 +22,18 @@
 
   <!-- Ruang kamera (pojok kanan bawah) — panduan posisi overlay webcam. -->
   <div v-if="$slidev.nav.currentPage !== 1" class="cam-space" aria-hidden="true">
-    <div class="cam-blaze"></div>
+    <svg class="cam-gear" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="cam-gear-grad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#00e5ff"/><stop offset="0.5" stop-color="#a78bfa"/><stop offset="1" stop-color="#fbbf24"/>
+        </linearGradient>
+      </defs>
+      <g class="cam-gear-spin">
+        <path d="M117.96,62.02 L116.51,73.05 L107.81,72.81 L103.71,83.24 L109.19,90.74 L102.42,99.56 L95.00,95.00 L86.23,101.98 L87.23,111.21 L76.96,115.47 L72.81,107.81 L61.73,109.47 L57.98,117.96 L46.95,116.51 L47.19,107.81 L36.76,103.71 L29.26,109.19 L20.44,102.42 L25.00,95.00 L18.02,86.23 L8.79,87.23 L4.53,76.96 L12.19,72.81 L10.53,61.73 L2.04,57.98 L3.49,46.95 L12.19,47.19 L16.29,36.76 L10.81,29.26 L17.58,20.44 L25.00,25.00 L33.77,18.02 L32.77,8.79 L43.04,4.53 L47.19,12.19 L58.27,10.53 L62.02,2.04 L73.05,3.49 L72.81,12.19 L83.24,16.29 L90.74,10.81 L99.56,17.58 L95.00,25.00 L101.98,33.77 L111.21,32.77 L115.47,43.04 L107.81,47.19 L109.47,58.27 Z"
+          fill="none" stroke="url(#cam-gear-grad)" stroke-width="1.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+        <circle cx="60" cy="60" r="41" fill="none" stroke="url(#cam-gear-grad)" stroke-width="1" stroke-dasharray="2 5" vector-effect="non-scaling-stroke" opacity="0.55"/>
+      </g>
+    </svg>
     <div class="cam-inner">
       <span class="cam-ic">📷</span>
       <span class="cam-lb">Kamera</span>
@@ -108,63 +119,24 @@
   z-index: 90;
   pointer-events: none;
 }
-/* Bingkai dash spektrum pelangi: cincin conic-gradient di-mask jadi garis
-   putus-putus, warnanya bersiklus terus lewat hue-rotate + glow. */
-.cam-space::before {
-  content: '';
+/* Bingkai kamera = roda gigi tipis yang berputar pelan, warna selaras
+   tema (gradien cyan→ungu→amber, sama seperti gear di header). */
+.cam-gear {
   position: absolute;
-  inset: -1px;
-  border-radius: 50%;
+  inset: -2px;
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
   z-index: 0;
-  background: conic-gradient(from 0deg,
-    #ff2d55, #ff9500, #ffd60a, #34c759, #00e5ff, #5e5ce6, #bf5af2, #ff2d55);
-  -webkit-mask:
-    repeating-conic-gradient(from 0deg, #000 0deg 6deg, transparent 6deg 12deg),
-    radial-gradient(circle, transparent 57px, #000 58.5px);
-  -webkit-mask-composite: source-in;
-  mask:
-    repeating-conic-gradient(from 0deg, #000 0deg 6deg, transparent 6deg 12deg),
-    radial-gradient(circle, transparent 57px, #000 58.5px);
-  mask-composite: intersect;
-  filter: hue-rotate(0deg) drop-shadow(0 0 4px rgba(255,120,0,.6)) saturate(1.3);
-  animation: cam-hue 5s linear infinite;
+  overflow: visible;
+  filter: drop-shadow(0 0 4px rgba(124,77,255,.45));
 }
-@keyframes cam-hue {
-  from { filter: hue-rotate(0deg)   drop-shadow(0 0 4px rgba(255,120,0,.6)) saturate(1.3); }
-  to   { filter: hue-rotate(360deg) drop-shadow(0 0 4px rgba(255,120,0,.6)) saturate(1.3); }
+.cam-gear-spin {
+  transform-origin: 60px 60px;
+  animation: cam-gear-spin 16s linear infinite;
 }
-/* Kobaran api: lidah-lidah spektrum memancar keluar dari cincin, berkedip
-   tak beraturan (flicker) & menjilat keluar (scale), warna ikut bersiklus. */
-.cam-blaze {
-  position: absolute;
-  inset: -18px;
-  border-radius: 50%;
-  z-index: -1;
-  background: conic-gradient(from 0deg,
-    #ff2d55, #ff9500, #ffd60a, #34c759, #00e5ff, #5e5ce6, #bf5af2, #ff2d55);
-  -webkit-mask:
-    repeating-conic-gradient(from 0deg, #000 0deg 2deg, transparent 5deg 9deg),
-    radial-gradient(circle 80px at center, transparent 56%, #000 72%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask:
-    repeating-conic-gradient(from 0deg, #000 0deg 2deg, transparent 5deg 9deg),
-    radial-gradient(circle 80px at center, transparent 56%, #000 72%, transparent 100%);
-  mask-composite: intersect;
-  transform-origin: center;
-  animation: cam-blaze-flicker 1.3s ease-in-out infinite, cam-blaze-hue 5s linear infinite;
-}
-@keyframes cam-blaze-flicker {
-  0%   { transform: scale(1);     opacity: .55; }
-  18%  { transform: scale(1.07);  opacity: .9;  }
-  34%  { transform: scale(1.02);  opacity: .62; }
-  52%  { transform: scale(1.12);  opacity: .95; }
-  68%  { transform: scale(1.05);  opacity: .7;  }
-  84%  { transform: scale(1.09);  opacity: .85; }
-  100% { transform: scale(1);     opacity: .55; }
-}
-@keyframes cam-blaze-hue {
-  from { filter: blur(3.5px) saturate(1.55) hue-rotate(0deg); }
-  to   { filter: blur(3.5px) saturate(1.55) hue-rotate(360deg); }
+@keyframes cam-gear-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 .cam-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; opacity: .3; }
 .cam-ic { font-size: 20px; line-height: 1; }
