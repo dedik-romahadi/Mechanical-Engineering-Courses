@@ -207,7 +207,7 @@ onBeforeUnmount(() => clearInterval(timer))
 .ftr .cam-btn { margin-left: auto; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; padding: 0 7px; height: 22px; line-height: 1; font-size: 15.5px; cursor: pointer; color: #94a3b8; opacity: .8; transition: opacity .15s, border-color .15s, color .15s, background .15s; }
 .ftr .cam-btn:hover { opacity: 1; border-color: #38bdf8; }
 .ftr .cam-btn.on { opacity: 1; border-color: #34d399; color: #34d399; background: rgba(52,211,153,.2); }
-.ftr .cam-btn .cam-ico { display: inline-block; transform: translateY(1px); }
+.ftr .cam-btn .cam-ico { display: inline-block; transform: translateY(-2px); }
 </style>
 
 ---
