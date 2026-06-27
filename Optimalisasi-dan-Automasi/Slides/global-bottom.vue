@@ -22,16 +22,15 @@
 
   <!-- Ruang kamera (pojok kanan bawah) — panduan posisi overlay webcam. -->
   <div v-if="$slidev.nav.currentPage !== 1" class="cam-space" aria-hidden="true">
-    <svg class="cam-gear" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <svg class="cam-gear" viewBox="0 0 166 166" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="cam-gear-grad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+        <linearGradient id="cam-gear-grad" x1="0" y1="0" x2="166" y2="166" gradientUnits="userSpaceOnUse">
           <stop stop-color="#00e5ff"/><stop offset="0.5" stop-color="#a78bfa"/><stop offset="1" stop-color="#fbbf24"/>
         </linearGradient>
       </defs>
       <g class="cam-gear-spin">
-        <path d="M117.96,62.02 L116.51,73.05 L107.81,72.81 L103.71,83.24 L109.19,90.74 L102.42,99.56 L95.00,95.00 L86.23,101.98 L87.23,111.21 L76.96,115.47 L72.81,107.81 L61.73,109.47 L57.98,117.96 L46.95,116.51 L47.19,107.81 L36.76,103.71 L29.26,109.19 L20.44,102.42 L25.00,95.00 L18.02,86.23 L8.79,87.23 L4.53,76.96 L12.19,72.81 L10.53,61.73 L2.04,57.98 L3.49,46.95 L12.19,47.19 L16.29,36.76 L10.81,29.26 L17.58,20.44 L25.00,25.00 L33.77,18.02 L32.77,8.79 L43.04,4.53 L47.19,12.19 L58.27,10.53 L62.02,2.04 L73.05,3.49 L72.81,12.19 L83.24,16.29 L90.74,10.81 L99.56,17.58 L95.00,25.00 L101.98,33.77 L111.21,32.77 L115.47,43.04 L107.81,47.19 L109.47,58.27 Z"
-          fill="none" stroke="url(#cam-gear-grad)" stroke-width="1.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
-        <circle cx="60" cy="60" r="41" fill="none" stroke="url(#cam-gear-grad)" stroke-width="1" stroke-dasharray="2 5" vector-effect="non-scaling-stroke" opacity="0.55"/>
+        <path fill-rule="evenodd" fill="url(#cam-gear-grad)" stroke="rgba(255,255,255,.18)" stroke-width="0.6"
+          d="M160.95,85.72 L159.00,100.55 L146.75,100.08 L141.27,113.99 L149.15,124.33 L140.05,136.20 L129.67,129.67 L117.97,138.97 L119.62,151.87 L105.80,157.59 L100.08,146.75 L85.30,148.96 L80.28,160.95 L65.45,159.00 L65.92,146.75 L52.01,141.27 L41.67,149.15 L29.80,140.05 L36.33,129.67 L27.03,117.97 L14.13,119.62 L8.41,105.80 L19.25,100.08 L17.04,85.30 L5.05,80.28 L7.00,65.45 L19.25,65.92 L24.73,52.01 L16.85,41.67 L25.95,29.80 L36.33,36.33 L48.03,27.03 L46.38,14.13 L60.20,8.41 L65.92,19.25 L80.70,17.04 L85.72,5.05 L100.55,7.00 L100.08,19.25 L113.99,24.73 L124.33,16.85 L136.20,25.95 L129.67,36.33 L138.97,48.03 L151.87,46.38 L157.59,60.20 L146.75,65.92 L148.96,80.70 Z M28.00,83.00 A55.0,55.0 0 1 0 138.00,83.00 A55.0,55.0 0 1 0 28.00,83.00 Z"/>
       </g>
     </svg>
     <div class="cam-inner">
@@ -119,19 +118,21 @@
   z-index: 90;
   pointer-events: none;
 }
-/* Bingkai kamera = roda gigi tipis yang berputar pelan, warna selaras
-   tema (gradien cyan→ungu→amber, sama seperti gear di header). */
+/* Bingkai kamera = roda gigi SOLID yang berputar pelan, warna selaras tema
+   (gradien cyan→ungu→amber). Lebih besar dari lingkaran webcam (122px) agar
+   gigi-giginya tetap terlihat mengelilingi kamera saat webcam menyala. */
 .cam-gear {
   position: absolute;
-  inset: -2px;
-  width: calc(100% + 4px);
-  height: calc(100% + 4px);
+  /* SVG 166px dipusatkan pada .cam-space 122px → inset (122-166)/2 = -22px */
+  inset: -22px;
+  width: 166px;
+  height: 166px;
   z-index: 0;
   overflow: visible;
-  filter: drop-shadow(0 0 4px rgba(124,77,255,.45));
+  filter: drop-shadow(0 0 5px rgba(124,77,255,.5));
 }
 .cam-gear-spin {
-  transform-origin: 60px 60px;
+  transform-origin: 83px 83px;
   animation: cam-gear-spin 16s linear infinite;
 }
 @keyframes cam-gear-spin {
