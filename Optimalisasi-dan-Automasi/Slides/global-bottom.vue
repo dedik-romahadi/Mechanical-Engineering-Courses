@@ -22,7 +22,7 @@
   </div>
 
   <!-- Ruang kamera (pojok kanan bawah) — tampil di semua slide termasuk cover. -->
-  <div class="cam-space" aria-hidden="true">
+  <div class="cam-space" :class="{ 'on-cover': $slidev.nav.currentPage === 1 }" aria-hidden="true">
     <video ref="camVideo" class="cam-video" v-show="camOn" autoplay muted playsinline></video>
     <svg class="cam-gear" viewBox="0 0 166 166" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -54,45 +54,16 @@
 
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { camOn, toggleCam, registerVideo, unregisterVideo, resumeCam } from './useCamera'
 
-// Webcam terkunci di .cam-space (bingkai roda gigi). Tombol nyala/mati di footer.
+// State kamera dipusatkan di ./useCamera agar tombol di cover pun bisa toggle.
 const camVideo = ref(null)
-const camOn = ref(false)
-let stream = null
-
-function attach() {
-  if (camVideo.value && stream) camVideo.value.srcObject = stream
-}
-async function startCam() {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-    camOn.value = true
-    attach()
-    try { localStorage.setItem('opto-cam-on', '1') } catch (e) {}
-  } catch (e) {
-    stream = null
-    camOn.value = false
-  }
-}
-function stopCam() {
-  if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null }
-  if (camVideo.value) camVideo.value.srcObject = null
-  camOn.value = false
-  try { localStorage.setItem('opto-cam-on', '0') } catch (e) {}
-}
-function toggleCam() {
-  camOn.value ? stopCam() : startCam()
-}
-
-// Pasang ulang stream bila elemen video di-mount ulang (mis. balik dari slide 1).
-watch(camVideo, () => attach())
-
-onMounted(() => {
-  let saved = '0'
-  try { saved = localStorage.getItem('opto-cam-on') || '0' } catch (e) {}
-  if (saved === '1') startCam()
+watch(camVideo, (el, old) => {
+  if (old) unregisterVideo(old)
+  registerVideo(el)
 })
-onBeforeUnmount(stopCam)
+onMounted(resumeCam)
+onBeforeUnmount(() => unregisterVideo(camVideo.value))
 </script>
 
 <style scoped>
@@ -173,6 +144,8 @@ onBeforeUnmount(stopCam)
   z-index: 90;
   pointer-events: none;
 }
+/* Di cover (slide 1) frame digeser sedikit ke atas agar tak menimpa footer cover. */
+.cam-space.on-cover { bottom: 68px; }
 /* Bingkai kamera = roda gigi SOLID yang berputar pelan, warna selaras tema
    (gradien cyan→ungu→amber). Lebih besar dari lingkaran webcam (122px) agar
    gigi-giginya tetap terlihat mengelilingi kamera saat webcam menyala. */

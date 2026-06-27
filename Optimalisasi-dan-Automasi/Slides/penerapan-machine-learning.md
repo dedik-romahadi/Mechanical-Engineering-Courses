@@ -85,6 +85,7 @@ layout: none
     <span>S1 Teknik Mesin</span>
     <span class="dot">•</span>
     <span>Universitas Mercu Buana</span>
+    <button class="cam-btn" :class="{ on: camOn }" @click.stop="toggleCam" :title="camOn ? 'Matikan kamera' : 'Nyalakan kamera'">📷</button>
     <span class="yr">{{ nowStr }}</span>
   </footer>
 </div>
@@ -92,6 +93,7 @@ layout: none
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import katex from 'katex'
+import { camOn, toggleCam } from './useCamera'
 const eqHtml = katex.renderToString('\\hat{y} = f(x;\\,\\theta)', { throwOnError: false })
 const nowStr = ref('')
 let timer
@@ -201,7 +203,10 @@ onBeforeUnmount(() => clearInterval(timer))
   background: linear-gradient(90deg, #7c4dff, #a78bfa, #00e5ff, #fbbf24, #a78bfa, #7c4dff);
   background-size: 300% 100%; animation: rule-slide 4s linear infinite;
 }
-.ftr .dot { color: #334155; } .ftr .yr { margin-left: auto; color: #475569; font-family: 'Fira Code', monospace; }
+.ftr .dot { color: #334155; } .ftr .yr { margin-left: 8px; color: #475569; font-family: 'Fira Code', monospace; }
+.ftr .cam-btn { margin-left: auto; background: transparent; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; padding: 0 6px; height: 18px; line-height: 1; font-size: 11px; cursor: pointer; color: #94a3b8; opacity: .75; transition: opacity .15s, border-color .15s, color .15s; }
+.ftr .cam-btn:hover { opacity: 1; border-color: #38bdf8; }
+.ftr .cam-btn.on { opacity: 1; border-color: #34d399; color: #34d399; }
 </style>
 
 ---
