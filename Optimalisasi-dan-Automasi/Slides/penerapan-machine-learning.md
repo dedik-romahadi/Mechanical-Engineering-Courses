@@ -728,12 +728,12 @@ title: "Rangkuman"
 
 ### Poin-Poin Kunci
 
-- 🧠 **Machine Learning** = belajar pola dari data, bukan aturan eksplisit — pelengkap, bukan pengganti rule-based.
+- 🧠 **Machine Learning** = belajar pola dari data, bukan aturan eksplisit, jadi pelengkap, bukan pengganti rule-based.
 - 🎯 Deteksi kerusakan = **supervised classification**: fitur getaran → label Sehat/Rusak.
 - 🔄 Alur baku: **Sinyal → Fitur → Latih → Model → Prediksi**; fitur berkualitas adalah kunci.
 - 📊 Evaluasi pakai **confusion matrix** & metrik (akurasi, presisi, **recall**, F1); waspadai **overfitting**.
 - 🌲 **Random Forest** baseline kuat untuk fitur getaran; pilih algoritma lewat validasi.
-- 🛠️ Penerapan: **predictive maintenance** — deteksi dini, hemat biaya & downtime.
+- 🛠️ Penerapan: **predictive maintenance** untuk deteksi dini, hemat biaya & downtime.
 
 </div>
 
