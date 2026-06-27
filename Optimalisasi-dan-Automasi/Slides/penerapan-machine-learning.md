@@ -465,9 +465,13 @@ transition: glide
 title: "Alur Kerja Machine Learning"
 ---
 
-<div style="color:#94a3b8;font-size:13px;margin-bottom:6px">Klik tiap tahap untuk melihat detailnya. Inilah <i>pipeline</i> yang sama dipakai di hampir semua sistem ML industri.</div>
+<div style="color:#94a3b8;font-size:14.5px;margin-bottom:14px">Klik tiap tahap untuk melihat detailnya. Inilah <i>pipeline</i> yang sama dipakai di hampir semua sistem ML industri.</div>
 
-<MLPipeline />
+<div class="pipe-big"><MLPipeline /></div>
+
+<style scoped>
+.pipe-big { transform: scale(1.12); transform-origin: center top; margin: 18px 0; }
+</style>
 
 ---
 layout: default
@@ -742,7 +746,6 @@ PdM yang baik memangkas <i>unplanned downtime</i> <b>30–50%</b> & biaya perawa
 layout: default
 transition: slide-left
 title: "Uji Pemahaman"
-class: tight
 ---
 
 <Quiz
@@ -770,6 +773,13 @@ class: tight
   :answer="2"
   explain="False Negative = kerusakan tak terdeteksi → risiko kegagalan katastrofik. Recall tinggi memastikan sebagian besar kasus rusak tertangkap, meski ada sedikit alarm palsu."
 />
+
+<style scoped>
+.slidev-layout :deep(.quiz) { margin: 18px 0; }
+.slidev-layout :deep(.quiz-q) { font-size: 16px !important; }
+.slidev-layout :deep(.quiz-opts) { gap: 8px !important; }
+.slidev-layout :deep(.quiz-opt) { padding: 9px 13px !important; font-size: 14px !important; }
+</style>
 
 ---
 layout: default
@@ -809,6 +819,10 @@ title: "Referensi"
 5. **Smith, W. A., & Randall, R. B.** (2015). *Rolling element bearing diagnostics using the Case Western Reserve University data*. MSSP, 64–65, 100–131.
 
 </div>
+
+<style scoped>
+.slidev-layout .ref-list li { font-size: 14.5px !important; padding-top: 13px !important; padding-bottom: 13px !important; margin: 12px 0 !important; line-height: 1.55; }
+</style>
 
 ---
 layout: center
