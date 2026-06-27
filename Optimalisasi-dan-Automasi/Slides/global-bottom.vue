@@ -21,8 +21,8 @@
     </div>
   </div>
 
-  <!-- Ruang kamera (pojok kanan bawah) — tampil di semua slide termasuk cover. -->
-  <div class="cam-space" :class="{ 'on-cover': $slidev.nav.currentPage === 1 }" aria-hidden="true">
+  <!-- Frame kamera (pojok kanan bawah) — hanya muncul saat kamera nyala. -->
+  <div v-show="camOn" class="cam-space" :class="{ 'on-cover': $slidev.nav.currentPage === 1 }" aria-hidden="true">
     <video ref="camVideo" class="cam-video" v-show="camOn" autoplay muted playsinline></video>
     <svg class="cam-gear" viewBox="0 0 166 166" xmlns="http://www.w3.org/2000/svg">
       <defs>
