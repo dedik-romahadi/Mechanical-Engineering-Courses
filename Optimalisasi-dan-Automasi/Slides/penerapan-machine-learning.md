@@ -533,15 +533,15 @@ title: "Alur Kerja Machine Learning"
   <div class="alur7-intro">Klik tiap tahap untuk melihat detailnya. Inilah <i>pipeline</i> yang sama dipakai di hampir semua sistem ML industri.</div>
   <div class="alur7-pipe"><MLPipeline /></div>
   <div class="aa-wrap">
-    <div class="aa-tag">🏭 Analogi: <b>jalur produksi pabrik</b> — struktur sama, beda yang mengalir</div>
+    <div class="aa-tag">🎓 Analogi: <b>siswa belajar lalu ujian</b> — belajar dari contoh berlabel, lalu diuji data baru</div>
     <div class="aa-belt">
-      <div class="aa-st"><div class="aa-ic">🪨</div><div class="aa-nm">Bahan Baku</div><div class="aa-eq">Sinyal Getaran</div></div>
+      <div class="aa-st"><div class="aa-ic">📚</div><div class="aa-nm">Baca Materi</div><div class="aa-eq">Sinyal Getaran</div></div>
       <div class="aa-ar">▶</div>
-      <div class="aa-st"><div class="aa-ic">⚙️</div><div class="aa-nm">Mesin Olah</div><div class="aa-eq">Ekstraksi Fitur</div></div>
+      <div class="aa-st"><div class="aa-ic">✍️</div><div class="aa-nm">Catat Poin</div><div class="aa-eq">Ekstraksi Fitur</div></div>
       <div class="aa-ar">▶</div>
-      <div class="aa-st"><div class="aa-ic">🎓</div><div class="aa-nm">Pelatihan</div><div class="aa-eq">Latih Model</div></div>
+      <div class="aa-st"><div class="aa-ic">🎓</div><div class="aa-nm">Belajar Soal</div><div class="aa-eq">Latih Model</div></div>
       <div class="aa-ar">▶</div>
-      <div class="aa-st"><div class="aa-ic">📦</div><div class="aa-nm">Produk Jadi</div><div class="aa-eq">Prediksi</div></div>
+      <div class="aa-st"><div class="aa-ic">📝</div><div class="aa-nm">Ujian Baru</div><div class="aa-eq">Prediksi</div></div>
     </div>
   </div>
 </div>
