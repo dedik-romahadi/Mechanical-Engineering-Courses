@@ -22,6 +22,7 @@
 
   <!-- Ruang kamera (pojok kanan bawah) — panduan posisi overlay webcam. -->
   <div v-if="$slidev.nav.currentPage !== 1" class="cam-space" aria-hidden="true">
+    <div class="cam-blaze"></div>
     <div class="cam-inner">
       <span class="cam-ic">📷</span>
       <span class="cam-lb">Kamera</span>
@@ -108,12 +109,13 @@
   pointer-events: none;
 }
 /* Bingkai dash spektrum pelangi: cincin conic-gradient di-mask jadi garis
-   putus-putus, warnanya bersiklus terus lewat hue-rotate + glow lembut. */
+   putus-putus, warnanya bersiklus terus lewat hue-rotate + glow. */
 .cam-space::before {
   content: '';
   position: absolute;
   inset: -1px;
   border-radius: 50%;
+  z-index: 0;
   background: conic-gradient(from 0deg,
     #ff2d55, #ff9500, #ffd60a, #34c759, #00e5ff, #5e5ce6, #bf5af2, #ff2d55);
   -webkit-mask:
@@ -124,12 +126,45 @@
     repeating-conic-gradient(from 0deg, #000 0deg 6deg, transparent 6deg 12deg),
     radial-gradient(circle, transparent 57px, #000 58.5px);
   mask-composite: intersect;
-  filter: hue-rotate(0deg) drop-shadow(0 0 3px rgba(0,229,255,.5)) saturate(1.25);
+  filter: hue-rotate(0deg) drop-shadow(0 0 4px rgba(255,120,0,.6)) saturate(1.3);
   animation: cam-hue 5s linear infinite;
 }
 @keyframes cam-hue {
-  from { filter: hue-rotate(0deg)   drop-shadow(0 0 3px rgba(0,229,255,.5)) saturate(1.25); }
-  to   { filter: hue-rotate(360deg) drop-shadow(0 0 3px rgba(0,229,255,.5)) saturate(1.25); }
+  from { filter: hue-rotate(0deg)   drop-shadow(0 0 4px rgba(255,120,0,.6)) saturate(1.3); }
+  to   { filter: hue-rotate(360deg) drop-shadow(0 0 4px rgba(255,120,0,.6)) saturate(1.3); }
+}
+/* Kobaran api: lidah-lidah spektrum memancar keluar dari cincin, berkedip
+   tak beraturan (flicker) & menjilat keluar (scale), warna ikut bersiklus. */
+.cam-blaze {
+  position: absolute;
+  inset: -18px;
+  border-radius: 50%;
+  z-index: -1;
+  background: conic-gradient(from 0deg,
+    #ff2d55, #ff9500, #ffd60a, #34c759, #00e5ff, #5e5ce6, #bf5af2, #ff2d55);
+  -webkit-mask:
+    repeating-conic-gradient(from 0deg, #000 0deg 2deg, transparent 5deg 9deg),
+    radial-gradient(circle 80px at center, transparent 56%, #000 72%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask:
+    repeating-conic-gradient(from 0deg, #000 0deg 2deg, transparent 5deg 9deg),
+    radial-gradient(circle 80px at center, transparent 56%, #000 72%, transparent 100%);
+  mask-composite: intersect;
+  transform-origin: center;
+  animation: cam-blaze-flicker 1.3s ease-in-out infinite, cam-blaze-hue 5s linear infinite;
+}
+@keyframes cam-blaze-flicker {
+  0%   { transform: scale(1);     opacity: .55; }
+  18%  { transform: scale(1.07);  opacity: .9;  }
+  34%  { transform: scale(1.02);  opacity: .62; }
+  52%  { transform: scale(1.12);  opacity: .95; }
+  68%  { transform: scale(1.05);  opacity: .7;  }
+  84%  { transform: scale(1.09);  opacity: .85; }
+  100% { transform: scale(1);     opacity: .55; }
+}
+@keyframes cam-blaze-hue {
+  from { filter: blur(3.5px) saturate(1.55) hue-rotate(0deg); }
+  to   { filter: blur(3.5px) saturate(1.55) hue-rotate(360deg); }
 }
 .cam-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; opacity: .3; }
 .cam-ic { font-size: 20px; line-height: 1; }
