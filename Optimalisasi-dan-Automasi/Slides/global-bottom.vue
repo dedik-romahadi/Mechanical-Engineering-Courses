@@ -24,26 +24,23 @@
   <div v-if="$slidev.nav.currentPage !== 1" class="cam-space" aria-hidden="true">
     <svg class="cam-gear" viewBox="0 0 166 166" xmlns="http://www.w3.org/2000/svg">
       <defs>
+        <!-- Gradien logam (baja): pita terang–gelap bergantian (kilau metal),
+             arah disapu berputar agar pantulan cahaya bergerak dinamik. -->
         <linearGradient id="cam-gear-grad" x1="0" y1="0" x2="166" y2="166" gradientUnits="userSpaceOnUse">
           <animateTransform attributeName="gradientTransform" type="rotate"
-            values="0 83 83;360 83 83" dur="9s" repeatCount="indefinite"/>
-          <stop offset="0" stop-color="#0c4a5a">
-            <animate attributeName="stop-color" dur="8s" repeatCount="indefinite"
-              values="#0c4a5a;#2e2168;#6b4f16;#0c4a5a"/>
-          </stop>
-          <stop offset="0.5" stop-color="#2e2168">
-            <animate attributeName="stop-color" dur="8s" repeatCount="indefinite"
-              values="#2e2168;#6b4f16;#0c4a5a;#2e2168"/>
-          </stop>
-          <stop offset="1" stop-color="#6b4f16">
-            <animate attributeName="stop-color" dur="8s" repeatCount="indefinite"
-              values="#6b4f16;#0c4a5a;#2e2168;#6b4f16"/>
-          </stop>
+            values="0 83 83;360 83 83" dur="7s" repeatCount="indefinite"/>
+          <stop offset="0"    stop-color="#39414f"/>
+          <stop offset="0.16" stop-color="#aab7cb"/>
+          <stop offset="0.3"  stop-color="#525c6d"/>
+          <stop offset="0.5"  stop-color="#eef3fb"/>
+          <stop offset="0.64" stop-color="#5a6577"/>
+          <stop offset="0.82" stop-color="#9aa6bb"/>
+          <stop offset="1"    stop-color="#333a47"/>
         </linearGradient>
       </defs>
       <g class="cam-gear-spin">
-        <path fill-rule="evenodd" fill="url(#cam-gear-grad)" stroke="rgba(255,255,255,.18)" stroke-width="0.6"
-          d="M160.95,85.72 L159.00,100.55 L146.75,100.08 L141.27,113.99 L149.15,124.33 L140.05,136.20 L129.67,129.67 L117.97,138.97 L119.62,151.87 L105.80,157.59 L100.08,146.75 L85.30,148.96 L80.28,160.95 L65.45,159.00 L65.92,146.75 L52.01,141.27 L41.67,149.15 L29.80,140.05 L36.33,129.67 L27.03,117.97 L14.13,119.62 L8.41,105.80 L19.25,100.08 L17.04,85.30 L5.05,80.28 L7.00,65.45 L19.25,65.92 L24.73,52.01 L16.85,41.67 L25.95,29.80 L36.33,36.33 L48.03,27.03 L46.38,14.13 L60.20,8.41 L65.92,19.25 L80.70,17.04 L85.72,5.05 L100.55,7.00 L100.08,19.25 L113.99,24.73 L124.33,16.85 L136.20,25.95 L129.67,36.33 L138.97,48.03 L151.87,46.38 L157.59,60.20 L146.75,65.92 L148.96,80.70 Z M28.00,83.00 A55.0,55.0 0 1 0 138.00,83.00 A55.0,55.0 0 1 0 28.00,83.00 Z"/>
+        <path fill-rule="evenodd" fill="url(#cam-gear-grad)" stroke="#161b24" stroke-width="0.8" stroke-linejoin="round"
+          d="M161.00,83.00 L158.34,103.19 L146.75,100.08 L140.16,116.00 L150.55,122.00 L138.15,138.15 L129.67,129.67 L116.00,140.16 L122.00,150.55 L103.19,158.34 L100.08,146.75 L83.00,149.00 L83.00,161.00 L62.81,158.34 L65.92,146.75 L50.00,140.16 L44.00,150.55 L27.85,138.15 L36.33,129.67 L25.84,116.00 L15.45,122.00 L7.66,103.19 L19.25,100.08 L17.00,83.00 L5.00,83.00 L7.66,62.81 L19.25,65.92 L25.84,50.00 L15.45,44.00 L27.85,27.85 L36.33,36.33 L50.00,25.84 L44.00,15.45 L62.81,7.66 L65.92,19.25 L83.00,17.00 L83.00,5.00 L103.19,7.66 L100.08,19.25 L116.00,25.84 L122.00,15.45 L138.15,27.85 L129.67,36.33 L140.16,50.00 L150.55,44.00 L158.34,62.81 L146.75,65.92 L149.00,83.00 Z M28.00,83.00 A55.0,55.0 0 1 0 138.00,83.00 A55.0,55.0 0 1 0 28.00,83.00 Z"/>
       </g>
     </svg>
     <div class="cam-inner">
@@ -142,7 +139,8 @@
   height: 166px;
   z-index: 0;
   overflow: visible;
-  filter: drop-shadow(0 0 5px rgba(124,77,255,.5));
+  /* bayangan gelap tipis untuk kesan logam timbul (bukan glow buram) */
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.65));
 }
 .cam-gear-spin {
   transform-origin: 83px 83px;
