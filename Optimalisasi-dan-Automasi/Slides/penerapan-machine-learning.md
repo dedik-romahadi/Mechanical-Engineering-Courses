@@ -748,6 +748,13 @@ transition: slide-left
 title: "Uji Pemahaman"
 ---
 
+<style scoped>
+.slidev-layout :deep(.quiz) { margin: 18px 0; }
+.slidev-layout :deep(.quiz-q) { font-size: 16px !important; }
+.slidev-layout :deep(.quiz-opts) { gap: 8px !important; }
+.slidev-layout :deep(.quiz-opt) { padding: 9px 13px !important; font-size: 14px !important; }
+</style>
+
 <Quiz
   :n="1"
   q="Apa pembeda utama Machine Learning dari pemrograman klasik?"
@@ -773,13 +780,6 @@ title: "Uji Pemahaman"
   :answer="2"
   explain="False Negative = kerusakan tak terdeteksi → risiko kegagalan katastrofik. Recall tinggi memastikan sebagian besar kasus rusak tertangkap, meski ada sedikit alarm palsu."
 />
-
-<style scoped>
-.slidev-layout :deep(.quiz) { margin: 18px 0; }
-.slidev-layout :deep(.quiz-q) { font-size: 16px !important; }
-.slidev-layout :deep(.quiz-opts) { gap: 8px !important; }
-.slidev-layout :deep(.quiz-opt) { padding: 9px 13px !important; font-size: 14px !important; }
-</style>
 
 ---
 layout: default
@@ -809,6 +809,10 @@ layout: default
 transition: slide-up
 title: "Referensi"
 ---
+
+<style scoped>
+.slidev-layout .ref-list li { font-size: 14.5px !important; padding-top: 13px !important; padding-bottom: 13px !important; margin: 12px 0 !important; line-height: 1.55; }
+</style>
 
 <div class="ref-list">
 
