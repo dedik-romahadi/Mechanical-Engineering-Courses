@@ -464,7 +464,7 @@ title: "Tiga Paradigma Pembelajaran"
     <div class="ml-h">🎯 Supervised</div>
     <div class="ml-t"><b>Data berlabel</b> (input → output diketahui). Model belajar memetakan keduanya.
     <br><br>• Klasifikasi: Sehat / Rusak<br>• Regresi: sisa umur (RUL)</div>
-    <div style="margin-top:6px"><span class="chip e">← Fokus Kita</span></div>
+    <div style="margin-top:6px"><span class="chip e">↑ Fokus Kita</span></div>
   </div>
   <div class="ml-card s">
     <div class="ml-h">🔍 Unsupervised</div>
