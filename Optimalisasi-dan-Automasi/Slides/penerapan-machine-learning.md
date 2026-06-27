@@ -109,8 +109,12 @@ onBeforeUnmount(() => clearInterval(timer))
 .cover { background: #080e1a; position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; color: #f1f5f9; }
 .nn-bg { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-46%); width: 92%; max-width: 980px; opacity: 0.22; pointer-events: none; }
 .nn-bg svg { width: 100%; height: auto; }
-.nn-node { transform-origin: center; animation: nn-pulse 2.6s ease-in-out infinite; animation-delay: var(--d); filter: drop-shadow(0 0 6px currentColor); }
-@keyframes nn-pulse { 0%,100% { opacity: .3; r: 7px; } 50% { opacity: .6; r: 10px; } }
+.nn-node { transform-origin: center; animation: nn-blink 0.9s ease-in-out infinite; animation-delay: var(--d); }
+@keyframes nn-blink {
+  0%, 40%, 100% { opacity: .12; r: 7px; filter: drop-shadow(0 0 2px currentColor); }
+  50% { opacity: 1; r: 9.5px; filter: drop-shadow(0 0 14px currentColor) drop-shadow(0 0 24px currentColor) brightness(1.5); }
+  60% { opacity: .12; r: 7px; filter: drop-shadow(0 0 2px currentColor); }
+}
 .hdr {
   display: flex; align-items: center; justify-content: space-between;
   padding: 5px 32px; border-bottom: none; position: relative; z-index: 10;
