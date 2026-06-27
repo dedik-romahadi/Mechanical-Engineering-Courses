@@ -816,6 +816,89 @@ $$F_1=\frac{2PR}{P+R}=\frac{2(0.82)(0.90)}{0.82+0.90}=\mathbf{0.86}$$
 
 ---
 layout: default
+transition: slide-left
+title: "🙋 Sesi Interaktif 2 — Soal 1 dari 3"
+class: qz
+---
+
+<div class="qz-ill">
+  <span class="qz-step"><span class="qz-ic">📈</span><span class="qz-lb">Sinyal Getaran</span></span>
+  <span class="qz-ar">▶</span>
+  <span class="qz-step"><span class="qz-ic">🔢</span><span class="qz-lb">RMS · Peak · Crest · Kurtosis · FFT</span></span>
+  <span class="qz-tag">materi slide 11</span>
+</div>
+
+<Quiz
+  :n="1"
+  q="Fitur getaran mana yang paling sensitif terhadap ketajaman impuls — penanda cacat bearing atau gigi?"
+  :options="[
+    'RMS — energi getaran keseluruhan',
+    'Peak — amplitudo maksimum sesaat',
+    'Crest Factor — rasio Peak terhadap RMS',
+    'Kurtosis — ketajaman impuls sinyal'
+  ]"
+  :answer="3"
+  explain="Kurtosis mengukur ketajaman/impulsif sinyal — nilainya melonjak saat ada impuls tajam akibat cacat bearing atau gigi. RMS lebih ke energi total, Peak ke amplitudo sesaat, Crest Factor ke awal kerusakan."
+/>
+
+---
+layout: default
+transition: slide-left
+title: "🙋 Sesi Interaktif 2 — Soal 2 dari 3"
+class: qz
+---
+
+<div class="qz-ill">
+  <span class="qz-step"><span class="qz-ic">📘</span><span class="qz-lb">Underfit</span></span>
+  <span class="qz-dot">·</span>
+  <span class="qz-step"><span class="qz-ic">📗</span><span class="qz-lb">Pas</span></span>
+  <span class="qz-dot">·</span>
+  <span class="qz-step"><span class="qz-ic">📕</span><span class="qz-lb">Overfit</span></span>
+  <span class="qz-tag">materi slide 13</span>
+</div>
+
+<Quiz
+  :n="2"
+  q="Sebuah model deteksi kerusakan punya akurasi LATIH 99% tetapi akurasi UJI hanya 70%. Ini gejala apa?"
+  :options="[
+    'Overfitting — model menghafal data latih termasuk noise-nya',
+    'Underfitting — model terlalu sederhana',
+    'Good fit — performa sudah seimbang',
+    'Jumlah data uji terlalu sedikit'
+  ]"
+  :answer="0"
+  explain="Akurasi latih sangat tinggi tetapi uji jeblok = Overfitting (model hafal noise data latih). Solusi: sederhanakan model, tambah data, atau regularisasi. Underfitting justru membuat latih DAN uji sama-sama buruk."
+/>
+
+---
+layout: default
+transition: slide-left
+title: "🙋 Sesi Interaktif 2 — Soal 3 dari 3"
+class: qz
+---
+
+<div class="qz-ill">
+  <span class="qz-step"><span class="qz-ic">🎯</span><span class="qz-lb">Recall</span></span>
+  <span class="qz-ar">▶</span>
+  <span class="qz-step hot"><span class="qz-ic">⚠️</span><span class="qz-lb">Jangan lewatkan yang Rusak</span></span>
+  <span class="qz-tag">materi slide 15–16</span>
+</div>
+
+<Quiz
+  :n="3"
+  q="Pada deteksi kerusakan mesin, mengapa Recall sering lebih diprioritaskan daripada Presisi?"
+  :options="[
+    'Karena Recall selalu sama nilainya dengan akurasi',
+    'Karena melewatkan mesin yang benar-benar rusak (False Negative) sangat berbahaya',
+    'Agar jumlah alarm palsu menjadi nol',
+    'Karena Recall membuat model berjalan lebih cepat'
+  ]"
+  :answer="1"
+  explain="False Negative (kerusakan terlewat) bisa berujung kegagalan katastrofik. Recall tinggi memastikan sebagian besar kerusakan tertangkap, meski harus menerima sedikit alarm palsu (False Positive)."
+/>
+
+---
+layout: default
 transition: fade
 title: "Rangkuman"
 ---
