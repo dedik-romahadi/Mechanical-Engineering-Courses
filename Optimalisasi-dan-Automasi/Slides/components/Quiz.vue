@@ -18,13 +18,16 @@
     <transition name="quiz-fade">
       <div v-if="revealed" class="quiz-feedback" :class="correct ? 'ok' : 'no'">
         <div class="quiz-verdict">
-          {{ correct ? '✓ Tepat!' : '✗ Belum tepat' }}
+          {{ correct ? '🎉 Tepat!' : '✗ Belum tepat' }}
           <span class="quiz-ans" v-if="!correct">— Jawaban: <b>{{ letters[answer] }}</b></span>
         </div>
         <div class="quiz-explain" v-if="explain" v-html="explain"></div>
         <button class="quiz-retry" @click="reset">Coba lagi ↺</button>
       </div>
     </transition>
+    <div v-if="revealed && correct" class="quiz-burst" aria-hidden="true">
+      <i v-for="k in 16" :key="k" class="cf" :style="cfStyle(k)"></i>
+    </div>
   </div>
 </template>
 
@@ -49,6 +52,21 @@ function stateOf(i) {
   if (i === selected.value) return 'is-wrong'
   return 'is-dim'
 }
+/* Konfeti reward saat jawaban benar (deterministik per-indeks). */
+const cfColors = ['#a78bfa', '#34d399', '#38bdf8', '#fbbf24', '#fb7185']
+function cfStyle(k) {
+  const ang = (k / 16) * Math.PI * 2
+  const dist = 72 + (k % 4) * 20
+  const tx = Math.cos(ang) * dist
+  const ty = Math.sin(ang) * dist * 0.7 + 28
+  return {
+    '--tx': tx.toFixed(0) + 'px',
+    '--ty': ty.toFixed(0) + 'px',
+    '--r': ((k * 57) % 360) + 'deg',
+    background: cfColors[k % cfColors.length],
+    animationDelay: ((k % 5) * 25) + 'ms',
+  }
+}
 </script>
 
 <style scoped>
@@ -60,6 +78,7 @@ function stateOf(i) {
   padding: 8px 12px;
   margin: 5px 0;
   color: #f1f5f9;
+  position: relative;
   transition: border-color 0.22s ease, box-shadow 0.22s ease;
 }
 .quiz:hover { border-color: rgba(167,139,250,0.5); box-shadow: 0 0 0 1px rgba(167,139,250,0.15), 0 6px 24px rgba(167,139,250,0.12); }
@@ -107,4 +126,23 @@ function stateOf(i) {
 .quiz-retry:hover { background: #a78bfa; color: #030712; }
 .quiz-fade-enter-active { transition: all 0.25s ease; }
 .quiz-fade-enter-from { opacity: 0; transform: translateY(-6px); }
+
+/* Reward saat benar: panel "pop" + konfeti menyembur dari kartu. */
+.quiz-feedback.ok { animation: quiz-pop .42s cubic-bezier(.2,1.4,.4,1); }
+@keyframes quiz-pop { 0% { transform: scale(.96); } 55% { transform: scale(1.025); } 100% { transform: scale(1); } }
+.quiz-burst { position: absolute; left: 50%; top: 58%; width: 0; height: 0; pointer-events: none; z-index: 5; }
+.cf {
+  position: absolute; width: 8px; height: 8px; border-radius: 2px;
+  transform: translate(-50%, -50%); opacity: 0;
+  animation: cf-pop 850ms cubic-bezier(.2,.7,.3,1) forwards;
+}
+@keyframes cf-pop {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(.4) rotate(0deg); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1) rotate(var(--r)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .quiz-burst { display: none; }
+  .quiz-feedback.ok { animation: none; }
+}
 </style>
