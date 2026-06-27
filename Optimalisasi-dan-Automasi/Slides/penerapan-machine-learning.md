@@ -769,7 +769,7 @@ title: "Terima Kasih"
 
 <div style="text-align:center">
 
-<div class="tq-icons"><span class="tq-bot">🤖</span><span class="tq-wr">🔧</span></div>
+<div class="tq-icons"><span class="tq-bot"><i class="rb-ant"></i><span class="rb-face"><span class="rb-eyes"><i class="rb-eye"></i><i class="rb-eye"></i></span><i class="rb-mouth"></i></span></span><span class="tq-wr">🔧</span></div>
 
 # Terima Kasih
 
