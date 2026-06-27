@@ -11,8 +11,8 @@
   <div class="fs">
     <div class="fs-head">
       <div class="fs-legend">
-        <span class="fs-chip"><span class="fs-dot sehat"></span>🟢 Sehat</span>
-        <span class="fs-chip"><span class="fs-dot rusak"></span>🔴 Rusak</span>
+        <span class="fs-chip"><span class="fs-dot sehat"></span>Sehat</span>
+        <span class="fs-chip"><span class="fs-dot rusak"></span>Rusak</span>
       </div>
       <div class="fs-readout">
         Akurasi = <b class="acc">{{ accPct }}%</b>
@@ -341,9 +341,9 @@ onMounted(() => {
   padding: 14px;
   color: #f1f5f9;
   font-family: 'Fira Code', ui-monospace, monospace;
-  max-width: 880px;
-  margin-left: auto;
-  margin-right: 36px;
+  max-width: 900px;
+  margin-left: 36px;
+  margin-right: auto;
 }
 
 .fs-head {
