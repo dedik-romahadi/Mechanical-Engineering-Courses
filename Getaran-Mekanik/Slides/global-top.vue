@@ -9,7 +9,7 @@
       <!-- Brand (kiri) -->
       <div class="gh-brand">
         <div class="gh-logo-wrap">
-          <img src="/UMB.png" class="gh-logo" alt="UMB" />
+          <img src="/Only-Logo-UMB.png" class="gh-logo" alt="UMB" />
         </div>
         <div class="gh-brand-text">
           <span class="gh-brand-name">GETARAN MEKANIK</span>
