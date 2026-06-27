@@ -309,6 +309,17 @@ transition: slide-left | slide-right
 title: "Peta Materi"
 ---
 
+<style scoped>
+.peta-map { position: relative; margin-top: auto; height: 102px; padding-top: 6px; }
+.peta-road { width: 100%; height: 76px; display: block; }
+.peta-road .road { animation: peta-flow 1.1s linear infinite; }
+@keyframes peta-flow { to { stroke-dashoffset: -12; } }
+.peta-pt { position: absolute; bottom: 2px; display: flex; align-items: center; gap: 7px; font-size: 13px; color: #94a3b8; font-weight: 600; }
+.peta-pt .peta-ic { font-size: 22px; line-height: 1; }
+.peta-a { left: 8px; }
+.peta-b { right: 8px; }
+</style>
+
 Perjalanan dari **konsep dasar Machine Learning** menuju **penerapan nyata**: mendeteksi kerusakan mesin secara otomatis dari sinyal getaran.
 
 <div class="ml-grid c2" style="margin-top:14px">
@@ -331,6 +342,28 @@ Perjalanan dari **konsep dasar Machine Learning** menuju **penerapan nyata**: me
 </div>
 
 <div style="margin-top:14px;text-align:center;color:#94a3b8;font-size:13px">🎯 <b style="color:#c4b5fd">Tujuan</b>: paham <i>kapan</i> & <i>bagaimana</i> ML menggantikan aturan manual untuk <i>predictive maintenance</i>.</div>
+
+<div class="peta-map">
+  <svg class="peta-road" viewBox="0 0 980 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="roadg" x1="0" y1="0" x2="980" y2="0" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#a78bfa"/><stop offset=".4" stop-color="#38bdf8"/><stop offset=".72" stop-color="#34d399"/><stop offset="1" stop-color="#fbbf24"/>
+      </linearGradient>
+      <filter id="petaglow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2"/></filter>
+    </defs>
+    <!-- jalur jalan (dasar + warna mengalir) -->
+    <path id="petaroad" d="M30,60 C 220,20 350,18 480,52 S 720,90 830,46 S 930,30 950,48" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="11" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    <path class="road" d="M30,60 C 220,20 350,18 480,52 S 720,90 830,46 S 930,30 950,48" fill="none" stroke="url(#roadg)" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 11" vector-effect="non-scaling-stroke"/>
+    <!-- titik singgah di sepanjang jalur -->
+    <circle cx="277" cy="28" r="4" fill="#38bdf8" opacity=".8"/>
+    <circle cx="662" cy="78" r="4" fill="#34d399" opacity=".8"/>
+    <!-- cahaya berjalan menyusuri jalur -->
+    <circle r="6.5" fill="#fff" filter="url(#petaglow)" opacity=".9"><animateMotion dur="5s" repeatCount="indefinite"><mpath href="#petaroad"/></animateMotion></circle>
+    <circle r="2.6" fill="#fff"><animateMotion dur="5s" repeatCount="indefinite"><mpath href="#petaroad"/></animateMotion></circle>
+  </svg>
+  <div class="peta-pt peta-a"><span class="peta-ic">📍</span>Konsep Dasar</div>
+  <div class="peta-pt peta-b"><span class="peta-ic">🎯</span>Penerapan Nyata</div>
+</div>
 
 ---
 layout: default
