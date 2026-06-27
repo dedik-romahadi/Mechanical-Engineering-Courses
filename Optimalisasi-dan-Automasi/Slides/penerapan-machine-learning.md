@@ -554,6 +554,95 @@ title: "Alur Kerja Machine Learning"
 
 ---
 layout: default
+transition: slide-left
+title: "🙋 Sesi Interaktif — Soal 1 dari 3"
+class: qz
+---
+
+<div class="qz-ill">
+  <span class="qz-step"><span class="qz-ic">🧩</span><span class="qz-lb">AI</span></span>
+  <span class="qz-sup">⊃</span>
+  <span class="qz-step"><span class="qz-ic">🤖</span><span class="qz-lb">Machine Learning</span></span>
+  <span class="qz-sup">⊃</span>
+  <span class="qz-step"><span class="qz-ic">🧠</span><span class="qz-lb">Deep Learning</span></span>
+  <span class="qz-tag">materi slide 4–5</span>
+</div>
+
+<Quiz
+  :n="1"
+  q="Apa inti Machine Learning yang membedakannya dari pemrograman rule-based?"
+  :options="[
+    'Komputer dijalankan oleh aturan if–else yang ditulis engineer',
+    'Komputer belajar pola dari data untuk mengambil keputusan',
+    'Komputer menyalin jawaban dari internet secara langsung',
+    'Komputer hanya menyimpan data tanpa mengolahnya'
+  ]"
+  :answer="1"
+  explain="Inti ML: model menemukan aturan/pola sendiri dari contoh (Data + Jawaban → Aturan), bukan diberi aturan eksplisit. ML adalah pelengkap rule-based, bukan pengganti — rule-based tetap berguna untuk aturan jelas dan jaminan keselamatan."
+/>
+
+---
+layout: default
+transition: slide-left
+title: "🙋 Sesi Interaktif — Soal 2 dari 3"
+class: qz
+---
+
+<div class="qz-ill">
+  <span class="qz-step"><span class="qz-ic">🎯</span><span class="qz-lb">Supervised</span></span>
+  <span class="qz-dot">·</span>
+  <span class="qz-step"><span class="qz-ic">🔍</span><span class="qz-lb">Unsupervised</span></span>
+  <span class="qz-dot">·</span>
+  <span class="qz-step"><span class="qz-ic">🕹️</span><span class="qz-lb">Reinforcement</span></span>
+  <span class="qz-tag">materi slide 6</span>
+</div>
+
+<Quiz
+  :n="2"
+  q="Data getaran historis sudah dilabeli teknisi (Sehat / Rusak), lalu model dilatih memetakan fitur → label. Ini termasuk paradigma apa?"
+  :options="[
+    'Unsupervised Learning — mencari struktur tersembunyi tanpa label',
+    'Supervised Learning — belajar dari data berlabel',
+    'Reinforcement Learning — belajar dari coba–salah dan reward',
+    'Bukan termasuk Machine Learning'
+  ]"
+  :answer="1"
+  explain="Karena datanya berlabel (Sehat/Rusak), ini Supervised Learning. Outputnya berupa kategori, jadi tepatnya klasifikasi terbimbing. Unsupervised tidak memakai label; Reinforcement belajar lewat reward dari lingkungan."
+/>
+
+---
+layout: default
+transition: slide-left
+title: "🙋 Sesi Interaktif — Soal 3 dari 3"
+class: qz
+---
+
+<div class="qz-ill">
+  <span class="qz-step"><span class="qz-ic">📈</span><span class="qz-lb">Sinyal</span></span>
+  <span class="qz-ar">▶</span>
+  <span class="qz-step hot"><span class="qz-ic">🧮</span><span class="qz-lb">Fitur</span></span>
+  <span class="qz-ar">▶</span>
+  <span class="qz-step"><span class="qz-ic">🎓</span><span class="qz-lb">Latih</span></span>
+  <span class="qz-ar">▶</span>
+  <span class="qz-step"><span class="qz-ic">🚦</span><span class="qz-lb">Prediksi</span></span>
+  <span class="qz-tag">materi slide 7</span>
+</div>
+
+<Quiz
+  :n="3"
+  q="Pada alur kerja ML, apa fungsi tahap Ekstraksi Fitur?"
+  :options="[
+    'Mengumpulkan sinyal getaran mentah dari sensor',
+    'Meringkas sinyal jadi angka padat (RMS, Kurtosis, puncak FFT) yang mewakili kondisi mesin',
+    'Melatih model memakai data berlabel',
+    'Memberi keputusan akhir: Sehat atau Rusak'
+  ]"
+  :answer="1"
+  explain="Ekstraksi fitur mengubah sinyal mentah ribuan titik menjadi beberapa angka bermakna (fitur) — inilah bahasa yang dimengerti model. Alur: Sinyal → Fitur → Latih → Prediksi. Fitur berkualitas adalah separuh keberhasilan model."
+/>
+
+---
+layout: default
 transition: slide-left | slide-right
 title: "Dari Getaran ke Fitur"
 class: tight
