@@ -113,7 +113,7 @@ onBeforeUnmount(() => clearInterval(timer))
 @keyframes nn-pulse { 0%,100% { opacity: .3; r: 7px; } 50% { opacity: .6; r: 10px; } }
 .hdr {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 32px; border-bottom: none; position: relative; z-index: 10;
+  padding: 5px 32px; border-bottom: none; position: relative; z-index: 10;
   background:
     radial-gradient(120% 180% at 50% -60%, rgba(124,77,255,0.14), transparent 60%),
     linear-gradient(90deg, #060c18 0%, #0d1526 50%, #060c18 100%);
@@ -125,7 +125,7 @@ onBeforeUnmount(() => clearInterval(timer))
 }
 @keyframes rule-slide { from { background-position: 0% 0%; } to { background-position: 100% 0%; } }
 .hdr-l { display: flex; align-items: center; gap: 14px; }
-.hdr-logo { height: 46px; width: auto; }
+.hdr-logo { height: 64px; width: auto; }
 .hdr-uni { font-size: 15px; font-weight: 700; color: #e2e8f0; }
 .hdr-dept { font-size: 12px; color: #64748b; }
 .hdr-tag { font-size: 12px; font-weight: 700; letter-spacing: .04em; color: #a78bfa; border: 1px solid rgba(167,139,250,.35); border-radius: 999px; padding: 5px 14px; background: rgba(167,139,250,.08); }
