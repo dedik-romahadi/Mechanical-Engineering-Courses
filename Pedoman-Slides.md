@@ -11,6 +11,8 @@ Dokumen ini adalah quick-start untuk Claude sesi baru yang mengerjakan slide Sli
 | Getaran Mekanik | `Getaran-Mekanik/Slides/` | `Analisis-Getaran-Berbasis-Fourier-Transform.md` | 3030 | `.../Getaran-Mekanik/Slides/Analisis-Getaran-Berbasis-Fourier-Transform/` |
 | Optimalisasi & Otomasi | `Optimalisasi-dan-Automasi/Slides/` | `penerapan-machine-learning.md` | 3031 | `.../Optimalisasi-dan-Automasi/Slides/penerapan-machine-learning/` |
 
+> Deck Opto `penerapan-machine-learning.md`: **22 slide**. Brand di SLIDE memakai **"Optimalisasi & Automasi"** (huruf A — sengaja beda dari LMS lain yang "Otomasi", atas permintaan dosen). Punya **2 sesi kuis interaktif** (§17) + **webcam terkunci** (§16). Penyesuaian per-slide via `.slidev-page-N` (§14).
+
 ### Struktur tiap deck
 ```
 <Course>/Slides/
@@ -111,7 +113,9 @@ Isi teks. <b>Bold</b> didukung via :deep(strong).
 />
 ```
 - `:answer` adalah index berbasis 0.
-- Tombol "Coba lagi" sudah built-in.
+- Tombol "Coba lagi" sudah built-in. Saat jawaban **benar** → muncul **reward konfeti + 🎉** (hormati `prefers-reduced-motion`).
+- **Variasikan posisi jawaban benar — JANGAN selalu B.** Sebar A/B/C/D.
+- `q`/`options`/`explain` dirender via `v-html` (boleh `<b>`). Untuk slide kuis lengkap (layout `class: qz` + ilustrasi + ruang penjelasan) lihat **§17**.
 
 ### Opto deck: komponen interaktif
 | Komponen | Fungsi |
@@ -119,6 +123,7 @@ Isi teks. <b>Bold</b> didukung via :deep(strong).
 | `<MLPipeline />` | Diagram alur ML end-to-end yang bisa diklik |
 | `<FeatureScatter />` | Scatter plot Sehat vs Rusak + slider batas keputusan |
 | `<ThresholdMetrics />` | Confusion matrix + slider ambang batas (Presisi↔Recall) |
+| `<OverfitLab />` | Lab overfitting/underfitting: slider derajat polinom + noise + preset, plot fit (kiri) & kurva train/test error U (kanan), kartu diagnosis menyala. Numerik least-squares ternormalisasi + ridge + Gauss pivoting (di komponen). |
 
 ### Getaran deck: komponen interaktif
 | Komponen | Fungsi |
@@ -243,6 +248,8 @@ Isi teks. <b>Bold</b> didukung via :deep(strong).
 
 Durasi global: `480ms` (set di `style.css` via `--slidev-transition-duration`).
 
+`zoom`, `flip`, `glide`, `swirl`, `blur-fade` adalah transisi **custom** (didefinisikan di `style.css` sebagai `.<nama>-enter-active/-leave-active` + `-enter-from/-leave-to`) — sisanya bawaan Slidev. **Variasikan transisi tiap slide**: idealnya tidak ada dua slide berurutan dengan transisi sama, dan semua efek terpakai.
+
 ---
 
 ## 8. Cover Slide — Pattern
@@ -340,3 +347,74 @@ Deploy ke GitHub Pages: jalankan workflow `Deploy Slides ke GitHub Pages` dari t
 | Gunakan `layout: none` untuk slide konten | Hanya untuk cover; konten akan kehilangan header/footer global |
 | Ubah `padding-top` di `.slidev-layout` tanpa pertimbangan | Akan menggeser seluruh konten dan bisa tumpang tindih header |
 | Gunakan `String` namespaced CSS di `<style scoped>` cover untuk override global | Scope cover terpisah dari layout — gunakan `style.css` untuk override global |
+| Sisip/hapus slide tanpa renumber selector `.slidev-page-N` | Nomor halaman bergeser → styling spesifik-slide salah sasaran. **Lihat §14** |
+| Tafsir kata **"panjang" = tinggi** | Untuk dosen ini, **"panjang" = lebar (horizontal/width)**, **"tinggi" = height (vertikal)** |
+| Netralkan notch (`margin-right:0 !important`) lalu andalkan `margin:0 auto` untuk center | `margin-right:0 !important` mengalahkan auto → konten kedorong ke kanan. Pakai `margin-left/right: auto !important`. **Lihat §15** |
+
+---
+
+## 14. Tata Letak Per-Slide via `.slidev-page-N` (+ GOTCHA renumber)
+
+Penyesuaian posisi/animasi khusus SATU slide ditaruh di `style.css` pakai selector `.slidev-page-N` (N = nomor halaman; cover = 1).
+
+```css
+/* "Geser isi slide ke atas" — default-nya .slidev-layout.default ter-center vertikal */
+.slidev-page-12 .slidev-layout.default { justify-content: flex-start; padding-top: 58px !important; }
+```
+- Default `.slidev-layout.default` = `flex-direction: column; justify-content: center`. Override `justify-content: flex-start` + atur `padding-top` untuk menggeser isi ke atas. `padding-top` lebih besar → jarak dari header lebih lega (header global 44px; default mulai 68px; ≥46px aman dari header).
+- Latar selang-seling pakai DAFTAR paritas `.slidev-page-3,5,7,…,25` (slide ganjil → `#04060d`). **Berbasis paritas, bukan konten.**
+
+### ⚠️ GOTCHA paling berbahaya: nomor halaman bergeser saat sisip/hapus slide
+Menyisipkan/menghapus slide **menggeser nomor semua slide setelahnya** → semua selector `.slidev-page-N` untuk slide yang bergeser jadi **salah sasaran**. Setelah sisip/hapus:
+1. Renumber selector spesifik-slide `±k` (k = jumlah slide yang disisip/hapus) untuk N ≥ titik sisip.
+2. **JANGAN** ubah daftar latar paritas — alternasinya tetap benar.
+3. Page ganjil (9, 11, 15, 17, 19…) muncul DI DUA tempat: daftar paritas **dan** aturan spesifik. Renumber HANYA yang spesifik → pakai regex shift pada region SETELAH daftar paritas (anchor pada selector unik spesifik-slide, mis. `.slidev-page-17 .slidev-layout.default`).
+
+```powershell
+$s = [IO.File]::ReadAllText($p)
+$i = $s.IndexOf('.slidev-page-17 .slidev-layout.default')   # awal blok spesifik (BUKAN daftar paritas)
+$h = $s.Substring(0,$i); $t = $s.Substring($i)
+$t = [regex]::Replace($t, '\.slidev-page-(\d+)', { param($m) '.slidev-page-' + ([int]$m.Groups[1].Value + 3) })
+[IO.File]::WriteAllText($p, $h + $t)
+```
+
+---
+
+## 15. Notch Kamera (zona webcam pojok kanan-bawah)
+
+Aturan global di `style.css`: `.slidev-layout.default > :last-child { margin-right: 150px !important }` → menyisihkan ~150px kanan untuk overlay kamera (pojok kanan-bawah, ±x≥818 & y≥363 pada kanvas 980×552). **Elemen TERAKHIR slide otomatis menyempit di kanan.**
+
+- Taruh `<style>` di ATAS slide agar elemen konten asli tetap `:last-child`.
+- Untuk konten **ter-center** (komponen/kuis), notch malah mendorong ke kanan. Solusi: center eksplisit `margin-left: auto !important; margin-right: auto !important` + batasi lebar ≤ ~660px (tepi kanan < 818, bebas kamera).
+- Komponen lebar (FeatureScatter/OverfitLab/ThresholdMetrics) biasanya di-anchor kiri (`margin-left:Npx; margin-right:auto`) atau membiarkan notch reserve 150px.
+
+---
+
+## 16. Webcam Terkunci (toggle on/off) — Opto deck
+
+`global-bottom.vue` merender **frame kamera** (`.cam-space` = bingkai roda-gigi) + `<video>` webcam yang **terkunci di posisi guide** (ikut scale slide) — beda dari kamera bawaan Slidev (`WebCamera.vue`) yang `position:fixed` ke viewport & draggable, jadi melenceng saat rasio window berubah.
+
+- State dipusatkan di **`useCamera.js`** (modul shared): `camOn` (ref), `toggleCam`, `startCam/stopCam` (`getUserMedia`), `registerVideo`. Dipakai bersama `global-bottom.vue` (render video) & cover (tombol di footer cover).
+- Tombol 📷 di footer global (slide 2+) **dan** footer cover. Status di `localStorage('opto-cam-on')` + auto-resume. `.cam-space` `v-show="camOn"` → frame ikut hilang saat kamera mati.
+- Posisi `.cam-space { bottom: 50px }`; di cover `.cam-space.on-cover { bottom: 56px }`. Diameter webcam = lubang tengah roda gigi (SVG: radius hole 60); diameter LUAR gear tetap.
+- Butuh konteks aman: `localhost` (dev) / `https` (Pages).
+
+---
+
+## 17. Slide Kuis Interaktif (`<Quiz>` + `class: qz`)
+
+```md
+---
+layout: default
+transition: <bervariasi, lihat §7>
+title: "🙋 Sesi Interaktif — Soal N dari 3"
+class: qz
+---
+
+<div class="qz-ill"> …strip ikon relevan… <span class="qz-tag">materi slide X</span> </div>
+
+<Quiz :n="1" q="…" :options="[…]" :answer="2" explain="…" />
+```
+- `class: qz` (CSS `.slidev-layout.qz …` di style.css) → layout **top-align + `padding-top`** (sisakan ruang untuk panel penjelasan yang muncul setelah dijawab), kartu kuis **ter-center**, teks kuis diperbesar.
+- **Variasikan `:answer`** (jangan selalu B). Reward konfeti otomatis dari `Quiz.vue` saat benar.
+- Ilustrasi `.qz-ill` page-agnostic (pakai class `qz`, bukan `.slidev-page-N`) → tahan terhadap sisip/hapus slide.

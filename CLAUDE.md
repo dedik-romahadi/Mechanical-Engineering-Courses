@@ -2,7 +2,7 @@
 
 Quick-start untuk Claude session di repo ini. **Untuk detail apa pun, rujuk ke `Pedoman-Modul.md` (8029 baris, v20)** — ini cuma peta.
 
-> 🎞️ **Mengerjakan slide Slidev?** Baca dulu **`Pedoman-Slides.md`** (struktur deck, komponen, CSS classes, layout, transisi, git workflow slide).
+> 🎞️ **Mengerjakan slide Slidev?** Baca dulu **`Pedoman-Slides.md`** (struktur deck, komponen, CSS classes, layout, transisi, git workflow slide). Termasuk: penyesuaian per-slide `.slidev-page-N` + **GOTCHA renumber saat sisip/hapus slide** (§14), notch kamera (§15), webcam terkunci (§16), slide kuis interaktif (§17).
 
 ---
 
@@ -16,7 +16,7 @@ LMS multi-course untuk **S1 Teknik Mesin Universitas Mercu Buana** (Dosen: Dedik
 | `Getaran-Mekanik/` | `getaran_mekanik` | Getaran |
 | `Optimalisasi-dan-Automasi/` | `optoauto` | Opto |
 
-> ⚠️ **Ejaan Optoauto (quirk on-disk — gampang salah saat scripting):** folder = `Optimalisasi-dan-Automasi/` (**Automasi**, huruf A) TAPI file asesmennya = `Asesmen-Optimalisasi-dan-Otomasi.json` (**Otomasi**, huruf O). Judul tampil "Optimalisasi & Otomasi", slug `optoauto`. Semua path/URL (`STUDENTS_JSON_URL`, dst.) pakai folder `Optimalisasi-dan-Automasi` — string `Optimization-Automation` **tidak pernah** dipakai di kode (itu salah ketik lama di Pedoman, sudah dikoreksi).
+> ⚠️ **Ejaan Optoauto (quirk on-disk — gampang salah saat scripting):** folder = `Optimalisasi-dan-Automasi/` (**Automasi**, huruf A) TAPI file asesmennya = `Asesmen-Optimalisasi-dan-Otomasi.json` (**Otomasi**, huruf O). Judul tampil "Optimalisasi & Otomasi", slug `optoauto`. Semua path/URL (`STUDENTS_JSON_URL`, dst.) pakai folder `Optimalisasi-dan-Automasi` — string `Optimization-Automation` **tidak pernah** dipakai di kode (itu salah ketik lama di Pedoman, sudah dikoreksi). **Pengecualian baru:** deck **slide** Opto (`penerapan-machine-learning.md`) memakai brand **"Optimalisasi & Automasi"** (huruf A) — sengaja beda dari LMS lain (Modul/Exam/OBE tetap "Otomasi"), atas permintaan dosen. Jangan "perbaiki" jadi Otomasi di slide.
 
 ## Struktur per-course
 
