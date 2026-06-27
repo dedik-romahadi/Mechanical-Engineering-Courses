@@ -25,7 +25,20 @@
     <svg class="cam-gear" viewBox="0 0 166 166" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="cam-gear-grad" x1="0" y1="0" x2="166" y2="166" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#00e5ff"/><stop offset="0.5" stop-color="#a78bfa"/><stop offset="1" stop-color="#fbbf24"/>
+          <animateTransform attributeName="gradientTransform" type="rotate"
+            values="0 83 83;360 83 83" dur="9s" repeatCount="indefinite"/>
+          <stop offset="0" stop-color="#0c4a5a">
+            <animate attributeName="stop-color" dur="8s" repeatCount="indefinite"
+              values="#0c4a5a;#2e2168;#6b4f16;#0c4a5a"/>
+          </stop>
+          <stop offset="0.5" stop-color="#2e2168">
+            <animate attributeName="stop-color" dur="8s" repeatCount="indefinite"
+              values="#2e2168;#6b4f16;#0c4a5a;#2e2168"/>
+          </stop>
+          <stop offset="1" stop-color="#6b4f16">
+            <animate attributeName="stop-color" dur="8s" repeatCount="indefinite"
+              values="#6b4f16;#0c4a5a;#2e2168;#6b4f16"/>
+          </stop>
         </linearGradient>
       </defs>
       <g class="cam-gear-spin">
