@@ -1781,7 +1781,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
       </div>
       <div id="m12SSInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Second Shift theorem: <strong>\(f(t-c) \cdot u(t-c) \leftrightarrow e^{-cs} \cdot F(s)\)</strong>. Translasi waktu di t-domain menjadi pengalian eksponensial di s-domain. <strong>T-DOMAIN view</strong>: bandingkan f(t) original dengan f(t−c)·u(t−c) shifted. <strong>S-DOMAIN view</strong>: |F(s)| dengan dan tanpa shift factor — magnitude sama, tapi fase bertambah −cω di Bode.
+        <strong>📊 Cara Membaca:</strong> Second Shift theorem: <strong>\(f(t-c) \cdot u(t-c) \leftrightarrow e^{-cs} \cdot F(s)\)</strong>. Translasi waktu di t-domain menjadi pengalian eksponensial di s-domain. <strong>T-DOMAIN view</strong>: bandingkan f(t) original dengan f(t−c)·u(t−c) shifted. <strong>S-DOMAIN view</strong>: Bode phase plot — abu-abu = ∠F(jω) asli (0°→−180°), amber = ∠F(jω) − c·ω (makin curam saat c besar). Magnitude |F(jω)| tidak berubah; geser slider c untuk melihat efek pada fase.
       </div>
     </div>
   </div>
@@ -9573,75 +9573,75 @@ function _createForumParticleBurst(event) {
       ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
       ctx.fillText('t', px1 + 5, ty(0) + 4);
     } else {
-      // S-domain: |F(s)| heatmap with and without phase shift
-      // Use F(s) = 2/((s+0.5)²+4), poles at s = -0.5±2i
-      // |F(s)| = 2/|s² + s + 4.25| ; magnitude unchanged by shift
-      const cx = (px0 + px1)/2, cy = (py0 + py1)/2;
-      const halfW = (px1 - px0)/2, halfH = (py1 - py0)/2;
-      const reR = 4, imR = 4;
-      function rx(re){ return cx + (re/reR)*halfW; }
-      function ry(im){ return cy - (im/imR)*halfH; }
+      // S-DOMAIN: Bode phase plot — ∠F(jω) vs ∠[e^{-jcω}·F(jω)], interaktif dengan slider c
+      // F(jω) = 2/((4.25−ω²)+jω), poles s = −0.5±2j (ωn≈2.06, ζ≈0.24)
+      const wMax = 6, N = 300;
+      const phMaxDeg = 20, phMinDeg = -380;
+      const wxS = (w) => px0 + (w / wMax) * (px1 - px0);
+      const phY  = (deg) => py0 + ((phMaxDeg - deg) / (phMaxDeg - phMinDeg)) * (py1 - py0);
+      // ∠F(jω) = −atan2(ω, 4.25−ω²) → 0° at ω=0, −90° at ωn, −180° at ω→∞
+      const fPhaseDeg = (w) => { const re = 4.25 - w*w; return -Math.atan2(w, re) * (180 / Math.PI); };
 
-      // Heatmap
-      const cellsX = 30, cellsY = 18;
-      const cw = (px1 - px0) / cellsX, ch = (py1 - py0) / cellsY;
-      let maxV = 0;
-      const grid = new Float64Array(cellsX * cellsY);
-      for (let i = 0; i < cellsX; i++){
-        for (let j = 0; j < cellsY; j++){
-          const re = -reR + ((i + 0.5)/cellsX) * 2*reR;
-          const im = -imR + ((j + 0.5)/cellsY) * 2*imR;
-          // F(s) = 2/(s² + s + 4.25)
-          const s2_re = re*re - im*im, s2_im = 2*re*im;
-          const den_re = s2_re + re + 4.25, den_im = s2_im + im;
-          const den_mag = Math.sqrt(den_re*den_re + den_im*den_im);
-          const v = den_mag > 0.05 ? 2/den_mag : 1e6;
-          grid[j*cellsX + i] = Math.min(v, 5);
-          if (grid[j*cellsX + i] > maxV) maxV = grid[j*cellsX + i];
-        }
-      }
-      // Draw cells
-      for (let i = 0; i < cellsX; i++){
-        for (let j = 0; j < cellsY; j++){
-          const v = grid[j*cellsX + i] / maxV;
-          ctx.fillStyle = `rgba(255, 179, 0, ${v})`;
-          ctx.fillRect(px0 + i*cw, py0 + j*ch, cw - 1, ch - 1);
-        }
-      }
-      // Border + axes
-      ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(px0, cy); ctx.lineTo(px1, cy); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
+      gridLines(ctx, px0, px1, py0, py1, 12, 6);
 
-      // Pole markers
-      [{re:-0.5, im:2}, {re:-0.5, im:-2}].forEach(p => {
-        const x = rx(p.re), y = ry(p.im);
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
-        ctx.shadowColor = '#ffb300'; ctx.shadowBlur = 14;
-        ctx.beginPath();
-        ctx.moveTo(x - 8, y - 8); ctx.lineTo(x + 8, y + 8);
-        ctx.moveTo(x + 8, y - 8); ctx.lineTo(x - 8, y + 8);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
+      // Reference lines 0°, −90°, −180°
+      [[0,'rgba(148,163,184,.5)','0°'],[-90,'rgba(148,163,184,.3)','−90°'],[-180,'rgba(100,116,139,.4)','−180°']].forEach(item => {
+        const y = phY(item[0]);
+        if (y >= py0 && y <= py1){
+          ctx.strokeStyle = item[1]; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
+          ctx.beginPath(); ctx.moveTo(px0, y); ctx.lineTo(px1, y); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#64748b'; ctx.font = '10px JetBrains Mono, monospace';
+          ctx.fillText(item[2], px0 - 36, y + 4);
+        }
       });
 
-      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
-      ctx.fillText('Re(s)', px1 - 36, cy - 8);
-      ctx.fillText('Im(s)', cx + 6, py0 + 12);
+      // ωn resonance marker
+      const wn = Math.sqrt(4.25);
+      ctx.strokeStyle = 'rgba(239,68,68,.45)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(wxS(wn), py0); ctx.lineTo(wxS(wn), py1); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#ef4444'; ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText('ωn≈' + wn.toFixed(1), wxS(wn) + 3, py0 + 14);
 
+      // ∠F(jω) — original, abu-abu putus-putus (c = 0 reference)
+      ctx.strokeStyle = 'rgba(148,163,184,.7)'; ctx.lineWidth = 1.8; ctx.setLineDash([5, 3]);
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++){
+        const w = 0.01 + (i / N) * (wMax - 0.01);
+        const y = Math.max(py0, Math.min(py1, phY(fPhaseDeg(w))));
+        if (i === 0) ctx.moveTo(wxS(w), y); else ctx.lineTo(wxS(w), y);
+      }
+      ctx.stroke(); ctx.setLineDash([]);
+
+      // ∠F(jω) − c·ω — fase tergeser, amber, berubah saat slider c digeser
+      ctx.strokeStyle = '#ffb300'; ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#ffb300'; ctx.shadowBlur = 10;
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++){
+        const w = 0.01 + (i / N) * (wMax - 0.01);
+        const y = Math.max(py0, Math.min(py1, phY(fPhaseDeg(w) - c * w * (180 / Math.PI))));
+        if (i === 0) ctx.moveTo(wxS(w), y); else ctx.lineTo(wxS(w), y);
+      }
+      ctx.stroke(); ctx.shadowBlur = 0;
+
+      // Frequency axis labels
+      ctx.fillStyle = '#64748b'; ctx.font = '10px JetBrains Mono, monospace';
+      [1,2,3,4,5,6].forEach(w => { ctx.fillText('' + w, wxS(w) - 3, py1 + 12); });
+      ctx.fillText('ω (rad/s)', px1 - 52, py1 + 12);
+
+      // Title + legend
       ctx.fillStyle = '#ffb300'; ctx.font = 'bold 13px JetBrains Mono, monospace';
-      ctx.fillText(`|F(s)| heatmap = |e^(−cs)·F(s)| (magnitude IDENTIK, fase berbeda)`, padL + 6, padT - 10);
-
-      // Annotation
-      ctx.fillStyle = '#fff'; ctx.font = '11px JetBrains Mono, monospace';
-      ctx.fillText(`Phase shift: −cω = −${c.toFixed(1)}ω`, px0 + 8, py1 + 8);
+      ctx.fillText('∠F(jω) − c·ω  (amber),  c = ' + c.toFixed(1) + ' s', padL + 6, padT - 10);
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText('abu = ∠F(jω) asli  │  |F(jω)| TIDAK BERUBAH — hanya fase yang bergeser', padL + 6, padT + 8);
     }
 
     const infoEl = document.getElementById('m12SSInfo');
     if (infoEl){
       infoEl.innerHTML = m12SS.isTime
         ? `<span style="color:#00e09e">●</span> Time domain: shift c=${c.toFixed(1)}s. Original f(t) faded; f(t−c)·u(t−c) solid.`
-        : `<span style="color:#ffb300">●</span> S-domain: |F(s)| <strong>tidak berubah</strong> dengan shift, hanya phase yang dimodifikasi −cω = −${c.toFixed(1)}ω.`;
+        : `<span style="color:#ffb300">●</span> S-domain Bode phase: abu = ∠F(jω) asli (0°→−180°), amber = ∠F(jω) − <strong>c·ω = ${c.toFixed(1)}·ω</strong>. Geser slider c untuk melihat pergeseran fase.`;
     }
 
     m12SS.raf = requestAnimationFrame(drawM12SS);
