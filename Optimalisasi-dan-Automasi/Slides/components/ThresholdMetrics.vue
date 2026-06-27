@@ -267,7 +267,7 @@ function draw() {
   ctx.lineTo(w - padR, baseY)
   ctx.stroke()
   ctx.fillStyle = '#64748b'
-  ctx.font = "9px 'Fira Code', ui-monospace, monospace"
+  ctx.font = "10.5px 'Fira Code', ui-monospace, monospace"
   ctx.textAlign = 'center'
   for (let gx = 0; gx <= XMAX; gx += 2) {
     const px = xToPx(gx, w, padL, padR)
@@ -373,7 +373,7 @@ onMounted(() => {
   gap: 4px;
 }
 .tm-slabel {
-  font-size: 10.5px;
+  font-size: 11.5px;
   color: #94a3b8;
   display: flex;
   justify-content: space-between;
@@ -382,7 +382,7 @@ onMounted(() => {
 .tm-sval {
   color: #a78bfa;
   font-weight: 700;
-  font-size: 11px;
+  font-size: 12px;
 }
 .tm-range {
   -webkit-appearance: none;
@@ -417,7 +417,7 @@ onMounted(() => {
 .tm-legend {
   display: flex;
   gap: 12px;
-  font-size: 9.5px;
+  font-size: 11px;
   color: #94a3b8;
   margin-top: 1px;
 }
@@ -458,7 +458,7 @@ onMounted(() => {
   line-height: 1.1;
 }
 .cm-tag {
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.5px;
   opacity: 0.85;
@@ -468,7 +468,7 @@ onMounted(() => {
   font-weight: 800;
 }
 .cm-sub {
-  font-size: 8.5px;
+  font-size: 10px;
   color: #94a3b8;
 }
 .cm-cell.tp {
@@ -520,7 +520,7 @@ onMounted(() => {
   padding: 4px 8px;
 }
 .mt-k {
-  font-size: 10px;
+  font-size: 11px;
   color: #94a3b8;
 }
 .mt-v {
