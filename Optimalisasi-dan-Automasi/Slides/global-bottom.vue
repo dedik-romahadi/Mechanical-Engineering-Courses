@@ -189,6 +189,6 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
 }
 .cam-btn:hover { opacity: 1; border-color: #38bdf8; }
 .cam-btn.on { opacity: 1; border-color: #34d399; color: #34d399; background: rgba(52, 211, 153, .2); }
-/* Koreksi optik: glyph emoji 📷 sedikit naik dalam line-box-nya. */
-.cam-btn .cam-ico { display: inline-block; transform: translateY(1px); }
+/* Koreksi optik: glyph emoji 📷 sedikit turun dalam line-box-nya → naikkan. */
+.cam-btn .cam-ico { display: inline-block; transform: translateY(-2px); }
 </style>
