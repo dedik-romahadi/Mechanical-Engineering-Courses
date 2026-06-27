@@ -338,10 +338,10 @@ onMounted(() => {
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,.08);
   background: #0d1526;
-  padding: 14px;
+  padding: 12px;
   color: #f1f5f9;
   font-family: 'Fira Code', ui-monospace, monospace;
-  max-width: 900px;
+  max-width: 960px;
   margin-left: 36px;
   margin-right: auto;
 }
@@ -369,7 +369,7 @@ onMounted(() => {
 .fs-canvas {
   display: block;
   width: 100%;
-  height: 300px;
+  height: 330px;
   background: #06091a;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,.05);
