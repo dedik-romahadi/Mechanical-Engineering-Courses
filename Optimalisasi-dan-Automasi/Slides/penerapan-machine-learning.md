@@ -484,6 +484,45 @@ title: "Tiga Paradigma Pembelajaran"
 Kita punya data getaran historis yang sudah dilabeli teknisi (<b>sehat</b>/<b>rusak</b>). Tugas model: memetakan <b>fitur getaran → label kondisi</b>. Inilah klasifikasi terbimbing.
 </Callout>
 
+<div class="para-ill">
+  <div class="para-cell">
+    <svg viewBox="0 0 200 124" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+      <line x1="26" y1="18" x2="180" y2="108" stroke="#34d399" stroke-width="2" stroke-dasharray="6 5" opacity=".85"/>
+      <g fill="#34d399">
+        <circle cx="122" cy="26" r="6"/><circle cx="146" cy="40" r="6"/><circle cx="162" cy="28" r="6"/><circle cx="134" cy="52" r="6"/><circle cx="158" cy="58" r="6"/>
+      </g>
+      <g fill="#f87171">
+        <circle cx="44" cy="50" r="6"/><circle cx="62" cy="66" r="6"/><circle cx="46" cy="82" r="6"/><circle cx="72" cy="92" r="6"/><circle cx="38" cy="68" r="6"/>
+      </g>
+    </svg>
+    <div class="para-cap e">🎯 Garis pemisah: Sehat ↔ Rusak</div>
+  </div>
+  <div class="para-cell">
+    <svg viewBox="0 0 200 124" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="52" cy="42" r="26" fill="none" stroke="#38bdf8" stroke-width="1.6" stroke-dasharray="5 5" opacity=".55"/>
+      <circle cx="148" cy="40" r="24" fill="none" stroke="#38bdf8" stroke-width="1.6" stroke-dasharray="5 5" opacity=".55"/>
+      <circle cx="100" cy="94" r="24" fill="none" stroke="#38bdf8" stroke-width="1.6" stroke-dasharray="5 5" opacity=".55"/>
+      <g fill="#7dd3fc">
+        <circle cx="44" cy="36" r="5"/><circle cx="60" cy="38" r="5"/><circle cx="50" cy="52" r="5"/><circle cx="64" cy="48" r="5"/>
+        <circle cx="140" cy="34" r="5"/><circle cx="156" cy="38" r="5"/><circle cx="146" cy="50" r="5"/><circle cx="158" cy="46" r="5"/>
+        <circle cx="92" cy="88" r="5"/><circle cx="108" cy="92" r="5"/><circle cx="98" cy="104" r="5"/><circle cx="112" cy="100" r="5"/>
+      </g>
+    </svg>
+    <div class="para-cap s">🔍 Klaster terbentuk sendiri</div>
+  </div>
+  <div class="para-cell">
+    <div class="rl-loop">
+      <div class="rl-box">Agen</div>
+      <div class="rl-mid">
+        <div class="rl-arrow">aksi ⟶</div>
+        <div class="rl-arrow">🏆 ⟵ reward</div>
+      </div>
+      <div class="rl-box">Ling&shy;kungan</div>
+    </div>
+    <div class="para-cap a">🕹️ Coba–salah demi reward</div>
+  </div>
+</div>
+
 ---
 layout: default
 transition: glide
