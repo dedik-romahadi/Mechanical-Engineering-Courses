@@ -351,7 +351,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   flex-wrap: wrap;
 }
 .fs-legend { display: flex; gap: 12px; font-size: 12px; }
@@ -369,7 +369,7 @@ onMounted(() => {
 .fs-canvas {
   display: block;
   width: 100%;
-  height: 350px;
+  height: 358px;
   background: #06091a;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,.05);
@@ -378,7 +378,7 @@ onMounted(() => {
 .fs-controls {
   display: flex;
   gap: 16px;
-  margin-top: 4px;
+  margin-top: 3px;
   flex-wrap: wrap;
 }
 .fs-ctrl {
