@@ -761,10 +761,6 @@ title: "Referensi"
 
 </div>
 
-<style scoped>
-.slidev-layout .ref-list li { font-size: 14.5px !important; padding-top: 13px !important; padding-bottom: 13px !important; margin: 12px 0 !important; line-height: 1.55; }
-</style>
-
 ---
 layout: center
 transition: zoom
