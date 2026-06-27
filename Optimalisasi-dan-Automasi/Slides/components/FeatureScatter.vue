@@ -17,8 +17,8 @@
       <div class="fs-readout">
         Akurasi = <b class="acc">{{ accPct }}%</b>
         <span class="sep">·</span>
-        <span class="ok">benar={{ pad(correct) }}</span>,
-        <span class="no">salah={{ pad(wrong) }}</span>
+        <span class="ok">Benar={{ pad(correct) }}</span>,
+        <span class="no">Salah={{ pad(wrong) }}</span>
       </div>
     </div>
 
@@ -369,7 +369,7 @@ onMounted(() => {
 .fs-canvas {
   display: block;
   width: 100%;
-  height: 340px;
+  height: 350px;
   background: #06091a;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,.05);
@@ -378,7 +378,7 @@ onMounted(() => {
 .fs-controls {
   display: flex;
   gap: 16px;
-  margin-top: 5px;
+  margin-top: 4px;
   flex-wrap: wrap;
 }
 .fs-ctrl {

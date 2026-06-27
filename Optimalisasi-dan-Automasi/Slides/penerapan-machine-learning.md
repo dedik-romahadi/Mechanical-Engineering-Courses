@@ -587,11 +587,11 @@ transition: slide-left | slide-right
 title: "Memisahkan Sehat vs Rusak"
 ---
 
-<div style="color:#94a3b8;font-size:13px;margin-bottom:4px;text-align:center">Tiap titik = satu mesin, diplot pada 2 fitur. Geser <b>garis batas keputusan</b> (slider) dan amati akurasinya — inilah inti kerja sebuah <i>classifier</i>.</div>
+<div style="color:#94a3b8;font-size:12px;margin-bottom:3px;text-align:center">Tiap titik = satu mesin, diplot pada 2 fitur. Geser <b>garis batas keputusan</b> (slider) dan amati akurasinya — inilah inti kerja sebuah <i>classifier</i>.</div>
 
 <FeatureScatter />
 
-<div style="margin-top:6px;font-size:12px;color:#94a3b8;text-align:center;padding-right:70px">
+<div style="margin-top:4px;font-size:12px;color:#94a3b8;text-align:center;padding-right:70px">
 <span class="chip e">🟢 Sehat = RMS &amp; Kurtosis Rendah</span>
 <span class="chip c">🔴 Rusak = RMS &amp; Kurtosis Tinggi</span>
 <span class="chip v">Garis = Batas Yang "Dipelajari" Model</span>
