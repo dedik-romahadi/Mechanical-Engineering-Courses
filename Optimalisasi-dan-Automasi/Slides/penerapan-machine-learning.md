@@ -247,7 +247,7 @@ title: "Capaian Pembelajaran"
 </div>
 
 <style scoped>
-.cp2-intro { color:#94a3b8; font-size:13px; text-align:center; margin-bottom:12px; }
+.cp2-intro { color:#94a3b8; font-size:13px; text-align:center; margin-top:-44px; margin-bottom:12px; }
 .cp2-intro b { color:#c4b5fd; }
 
 .cp2-hero {
