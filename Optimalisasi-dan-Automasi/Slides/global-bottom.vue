@@ -99,7 +99,6 @@
   bottom: 45px;
   width: 122px;
   height: 122px;
-  border: 1.5px dashed rgba(255,255,255,.18);
   border-radius: 50%;
   background: rgba(255,255,255,.02);
   display: flex;
@@ -108,7 +107,31 @@
   z-index: 90;
   pointer-events: none;
 }
-.cam-inner { display: flex; flex-direction: column; align-items: center; gap: 1px; opacity: .3; }
+/* Bingkai dash spektrum pelangi: cincin conic-gradient di-mask jadi garis
+   putus-putus, warnanya bersiklus terus lewat hue-rotate + glow lembut. */
+.cam-space::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg,
+    #ff2d55, #ff9500, #ffd60a, #34c759, #00e5ff, #5e5ce6, #bf5af2, #ff2d55);
+  -webkit-mask:
+    repeating-conic-gradient(from 0deg, #000 0deg 6deg, transparent 6deg 12deg),
+    radial-gradient(circle, transparent 57px, #000 58.5px);
+  -webkit-mask-composite: source-in;
+  mask:
+    repeating-conic-gradient(from 0deg, #000 0deg 6deg, transparent 6deg 12deg),
+    radial-gradient(circle, transparent 57px, #000 58.5px);
+  mask-composite: intersect;
+  filter: hue-rotate(0deg) drop-shadow(0 0 3px rgba(0,229,255,.5)) saturate(1.25);
+  animation: cam-hue 5s linear infinite;
+}
+@keyframes cam-hue {
+  from { filter: hue-rotate(0deg)   drop-shadow(0 0 3px rgba(0,229,255,.5)) saturate(1.25); }
+  to   { filter: hue-rotate(360deg) drop-shadow(0 0 3px rgba(0,229,255,.5)) saturate(1.25); }
+}
+.cam-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; opacity: .3; }
 .cam-ic { font-size: 20px; line-height: 1; }
 .cam-lb { font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: #cbd5e1; }
 </style>
