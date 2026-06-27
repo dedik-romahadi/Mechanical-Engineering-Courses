@@ -52,9 +52,9 @@
         <span>Data Uji</span>
       </label>
       <div class="ol-presets">
-        <button type="button" @click="preset(1)">Underfit</button>
-        <button type="button" @click="preset(mStar)">Pas</button>
-        <button type="button" @click="preset(11)">Overfit</button>
+        <button type="button" class="pre-a" :class="{ act: status.key === 'under' }" @click="preset(1)">Underfit</button>
+        <button type="button" class="pre-e" :class="{ act: status.key === 'good' }" @click="preset(mStar)">Pas</button>
+        <button type="button" class="pre-c" :class="{ act: status.key === 'over' }" @click="preset(11)">Overfit</button>
       </div>
     </div>
 
@@ -456,7 +456,7 @@ onBeforeUnmount(() => {
   font-family: 'Inter', ui-sans-serif, sans-serif;
   box-sizing: border-box;
   max-width: 944px;
-  margin-left: 48px;
+  margin-left: 12px;
   margin-right: auto;
 }
 
@@ -497,20 +497,25 @@ onBeforeUnmount(() => {
   border-radius: 8px; background: #06091a; border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.ol-controls { display: flex; align-items: center; gap: 14px; margin-top: 9px; flex-wrap: wrap; }
+.ol-controls { display: flex; align-items: center; gap: 10px 14px; margin-top: 7px; flex-wrap: wrap; }
 .ol-ctrl { display: flex; align-items: center; gap: 8px; flex: 1 1 220px; font-size: 11.5px; color: #94a3b8; }
 .ol-clbl { flex: none; color: #c4b5fd; white-space: nowrap; }
 .ol-cval { flex: none; width: 34px; text-align: right; color: #fbbf24; font-weight: 700; font-family: 'Fira Code', ui-monospace, monospace; }
 .ol-ctrl input[type='range'] { flex: 1; accent-color: #a78bfa; height: 4px; cursor: pointer; }
 .ol-check { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: #cbd5e1; cursor: pointer; white-space: nowrap; }
 .ol-check input { accent-color: #38bdf8; cursor: pointer; }
-.ol-presets { display: flex; gap: 6px; }
+.ol-presets { display: flex; gap: 6px; flex-basis: 100%; justify-content: center; }
 .ol-presets button {
   font-size: 11px; font-weight: 700; color: #cbd5e1; background: #06091a;
-  border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 7px; padding: 4px 9px;
-  cursor: pointer; font-family: inherit; transition: border-color 0.15s, color 0.15s;
+  border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 7px; padding: 4px 11px;
+  cursor: pointer; font-family: inherit; transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
 .ol-presets button:hover { border-color: #a78bfa; color: #fff; }
+/* Tombol preset yang cocok dengan zona aktif menyala (warna zona, teks gelap). */
+.ol-presets button.act { color: #0b1020; font-weight: 800; }
+.ol-presets button.pre-a.act { background: #fbbf24; border-color: #fbbf24; box-shadow: 0 0 12px rgba(251, 191, 36, 0.4); }
+.ol-presets button.pre-e.act { background: #34d399; border-color: #34d399; box-shadow: 0 0 12px rgba(52, 211, 153, 0.4); }
+.ol-presets button.pre-c.act { background: #fb7185; border-color: #fb7185; box-shadow: 0 0 12px rgba(251, 113, 133, 0.4); }
 
 .ol-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
 .ol-card {
