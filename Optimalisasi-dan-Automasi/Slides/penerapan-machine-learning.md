@@ -567,6 +567,20 @@ Model tidak "membaca" sinyal mentah ribuan titik. Sinyal diringkas jadi **fitur*
 RMS, kurtosis, dan puncak FFT adalah hasil <b>analisis getaran</b> (domain waktu & Fourier). Di sinilah ilmu Getaran Mekanik bertemu ML: <b>fitur yang baik = separuh keberhasilan model</b>.
 </Callout>
 
+<div class="fx-wrap">
+  <div class="fx-card fx-raw">
+    <div class="fx-cap">📈 Sinyal mentah</div>
+    <svg class="fx-wave" viewBox="0 0 220 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,28 L9,14 L18,41 L27,18 L36,45 L45,9 L54,37 L63,21 L72,47 L81,15 L90,34 L99,11 L108,43 L117,24 L126,46 L135,14 L144,33 L153,19 L162,45 L171,12 L180,36 L189,23 L198,42 L207,20 L220,28" fill="none" stroke="#38bdf8" stroke-width="1.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>
+    <div class="fx-sub">± ribuan titik / detik</div>
+  </div>
+  <div class="fx-flow"><span class="fx-ar">▶</span><span class="fx-lb">ekstraksi</span></div>
+  <div class="fx-card fx-feat">
+    <div class="fx-cap">🔢 Vektor fitur</div>
+    <div class="fx-vec"><span class="fx-br">[</span><span class="fx-n"><b>3.9</b><i>RMS</i></span><span class="fx-n"><b>12.1</b><i>Peak</i></span><span class="fx-n"><b>3.1</b><i>Crest</i></span><span class="fx-n"><b>4.8</b><i>Kurt</i></span><span class="fx-n"><b>0.21</b><i>FFT</i></span><span class="fx-br">]</span></div>
+    <div class="fx-sub">5 angka padat → input model</div>
+  </div>
+</div>
+
 ---
 layout: default
 transition: slide-left | slide-right
