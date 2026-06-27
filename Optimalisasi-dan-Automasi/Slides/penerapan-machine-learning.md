@@ -394,7 +394,7 @@ Model menemukan sendiri fungsi $f$ sehingga $\hat{y} = f(x;\theta)$ cocok dengan
 </div>
 
 <Callout type="analogy">
-Seperti <b>anak belajar mengenali kucing</b>: kita tak menjelaskan "kumis + 4 kaki + ekor". Kita cukup tunjukkan banyak <i>contoh</i> kucing — otaknya menyimpulkan polanya sendiri. ML bekerja persis begitu.
+Seperti <b>anak belajar mengenali kucing</b>: kita tidak menjelaskan "kumis + 4 kaki + ekor". Kita cukup tunjukkan banyak <i>contoh</i> kucing — otaknya menyimpulkan polanya sendiri. ML bekerja persis begitu.
 </Callout>
 
 ---
@@ -425,7 +425,7 @@ JIKA Kurtosis > 5    → Cek bearing
 </div>
 <div class="ml-card c" style="margin-top:6px; max-width:78%">
   <div class="ml-h">✘ Kelemahan</div>
-  <div class="ml-t">Tak skalabel: 50 fitur × 100 mode kerusakan → ribuan aturan manual yang mustahil dirawat.</div>
+  <div class="ml-t">Tidak skalabel: 50 fitur × 100 mode kerusakan → ribuan aturan manual yang mustahil dirawat.</div>
 </div>
 
 </div>
@@ -470,7 +470,7 @@ title: "Tiga Paradigma Pembelajaran"
     <div class="ml-h">🔍 Unsupervised</div>
     <div class="ml-t"><b>Tanpa label</b>. Model mencari struktur tersembunyi sendiri.
     <br><br>• Clustering kondisi mesin<br>• <i>Anomaly detection</i> (deteksi pola asing)</div>
-    <div style="margin-top:6px"><span class="chip s">data tak berlabel</span></div>
+    <div style="margin-top:6px"><span class="chip s">data tidak berlabel</span></div>
   </div>
   <div class="ml-card a">
     <div class="ml-h">🕹️ Reinforcement</div>
@@ -505,7 +505,7 @@ title: "Dari Getaran ke Fitur"
 class: tight
 ---
 
-Model tak "membaca" sinyal mentah ribuan titik. Sinyal diringkas jadi **fitur** — angka padat yang mewakili kondisi mesin.
+Model tidak "membaca" sinyal mentah ribuan titik. Sinyal diringkas jadi **fitur** — angka padat yang mewakili kondisi mesin.
 
 | Fitur | Rumus singkat | Sensitif terhadap |
 |-------|---------------|-------------------|
@@ -565,7 +565,7 @@ Data dibagi agar performa diukur **jujur** pada data yang belum pernah dilihat:
 </div>
 <div class="ml-card a" style="margin:5px 0">
   <div class="ml-h">📘 Underfitting</div>
-  <div class="ml-t">Model terlalu sederhana, pola pun tak tertangkap. Latih & uji sama-sama buruk. → model lebih kuat / fitur lebih baik.</div>
+  <div class="ml-t">Model terlalu sederhana, pola pun tidak tertangkap. Latih & uji sama-sama buruk. → model lebih kuat / fitur lebih baik.</div>
 </div>
 <div class="ml-card e" style="margin:5px 0">
   <div class="ml-h">📗 Pas (Good Fit)</div>
@@ -609,7 +609,7 @@ transition: slide-up | slide-down
 title: "Mengukur Performa Model"
 ---
 
-<div style="color:#94a3b8;font-size:13px;margin-bottom:4px">Geser <b>ambang batas</b> dan amati pertukaran <b>Presisi ↔ Recall</b>. Tak ada ambang yang sempurna — semua soal kompromi.</div>
+<div style="color:#94a3b8;font-size:13px;margin-bottom:4px">Geser <b>ambang batas</b> dan amati pertukaran <b>Presisi ↔ Recall</b>. Tidak ada ambang yang sempurna — semua soal kompromi.</div>
 
 <ThresholdMetrics />
 
@@ -803,7 +803,7 @@ title: "Uji Pemahaman"
     'Karena Recall membuat model berjalan lebih cepat'
   ]"
   :answer="2"
-  explain="False Negative = kerusakan tak terdeteksi → risiko kegagalan katastrofik. Recall tinggi memastikan sebagian besar kasus rusak tertangkap, meski ada sedikit alarm palsu."
+  explain="False Negative = kerusakan tidak terdeteksi → risiko kegagalan katastrofik. Recall tinggi memastikan sebagian besar kasus rusak tertangkap, meski ada sedikit alarm palsu."
 />
 
 ---
