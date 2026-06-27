@@ -252,7 +252,7 @@ function drawFit() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   ctx.clearRect(0, 0, w, h)
 
-  const padL = 30, padR = 12, padT = 10, padB = 22
+  const padL = 30, padR = 12, padT = 10, padB = 24
   const left = padL, right = w - padR, top = padT, bottom = h - padB
   const plotW = right - left, plotH = bottom - top
   const sx = (x) => left + x * plotW
@@ -312,7 +312,7 @@ function drawFit() {
   }
 
   // label sumbu
-  ctx.fillStyle = '#94a3b8'; ctx.font = "9px 'Fira Code', ui-monospace, monospace"
+  ctx.fillStyle = '#94a3b8'; ctx.font = "10.5px 'Fira Code', ui-monospace, monospace"
   ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'
   ctx.fillText('Fitur', (left + right) / 2, h - 5)
   ctx.save(); ctx.translate(10, (top + bottom) / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center'; ctx.fillText('Target', 0, 0); ctx.restore()
@@ -331,7 +331,7 @@ function drawCurve() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   ctx.clearRect(0, 0, w, h)
 
-  const padL = 32, padR = 12, padT = 10, padB = 22
+  const padL = 32, padR = 12, padT = 10, padB = 24
   const left = padL, right = w - padR, top = padT, bottom = h - padB
   const plotW = right - left, plotH = bottom - top
   const tr = trainRmse.value, te = testRmse.value
@@ -386,7 +386,7 @@ function drawCurve() {
   if (Number.isFinite(te[deg.value])) { ctx.beginPath(); ctx.arc(ax, sy(te[deg.value]), 3.3, 0, Math.PI * 2); ctx.fillStyle = '#fb7185'; ctx.fill() }
 
   // label
-  ctx.font = "9px 'Fira Code', ui-monospace, monospace"; ctx.textBaseline = 'alphabetic'
+  ctx.font = "10.5px 'Fira Code', ui-monospace, monospace"; ctx.textBaseline = 'alphabetic'
   ctx.fillStyle = '#64748b'
   ctx.textAlign = 'left'; ctx.fillText('underfit', left, h - 5)
   ctx.textAlign = 'right'; ctx.fillText('overfit', right, h - 5)
@@ -463,14 +463,14 @@ onBeforeUnmount(() => {
   display: flex; align-items: center; justify-content: space-between;
   gap: 10px; margin-bottom: 8px; flex-wrap: wrap;
 }
-.ol-legend { display: flex; gap: 12px; font-size: 10px; color: #94a3b8; }
+.ol-legend { display: flex; gap: 12px; font-size: 11px; color: #94a3b8; }
 .ol-lg { display: inline-flex; align-items: center; gap: 5px; }
 .ol-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .ol-dot.train { background: #38bdf8; }
 .ol-dot.test { background: transparent; border: 1.5px solid #fb7185; }
 .ol-dash { width: 13px; height: 0; border-top: 2px dashed #64748b; display: inline-block; }
 .ol-readout {
-  font-size: 11px; color: #94a3b8; font-family: 'Fira Code', ui-monospace, monospace;
+  font-size: 12px; color: #94a3b8; font-family: 'Fira Code', ui-monospace, monospace;
   display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
 }
 .ol-readout b { font-weight: 700; }
@@ -490,22 +490,22 @@ onBeforeUnmount(() => {
 .ol-panel { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .ol-panel:first-child { flex: 0 0 56%; }
 .ol-panel:last-child { flex: 1 1 44%; }
-.ol-cap { font-size: 10px; font-weight: 700; color: #cbd5e1; letter-spacing: 0.02em; }
+.ol-cap { font-size: 11.5px; font-weight: 700; color: #cbd5e1; letter-spacing: 0.02em; }
 .ol-canvas {
-  width: 100%; height: 205px; display: block;
+  width: 100%; height: 232px; display: block;
   border-radius: 8px; background: #06091a; border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .ol-controls { display: flex; align-items: center; gap: 14px; margin-top: 9px; flex-wrap: wrap; }
-.ol-ctrl { display: flex; align-items: center; gap: 8px; flex: 1 1 220px; font-size: 10.5px; color: #94a3b8; }
+.ol-ctrl { display: flex; align-items: center; gap: 8px; flex: 1 1 220px; font-size: 11.5px; color: #94a3b8; }
 .ol-clbl { flex: none; color: #c4b5fd; white-space: nowrap; }
 .ol-cval { flex: none; width: 34px; text-align: right; color: #fbbf24; font-weight: 700; font-family: 'Fira Code', ui-monospace, monospace; }
 .ol-ctrl input[type='range'] { flex: 1; accent-color: #a78bfa; height: 4px; cursor: pointer; }
-.ol-check { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: #cbd5e1; cursor: pointer; white-space: nowrap; }
+.ol-check { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: #cbd5e1; cursor: pointer; white-space: nowrap; }
 .ol-check input { accent-color: #38bdf8; cursor: pointer; }
 .ol-presets { display: flex; gap: 6px; }
 .ol-presets button {
-  font-size: 10px; font-weight: 700; color: #cbd5e1; background: #06091a;
+  font-size: 11px; font-weight: 700; color: #cbd5e1; background: #06091a;
   border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 7px; padding: 4px 9px;
   cursor: pointer; font-family: inherit; transition: border-color 0.15s, color 0.15s;
 }
@@ -517,8 +517,8 @@ onBeforeUnmount(() => {
   background: #06091a; display: flex; flex-direction: column; gap: 1px;
   opacity: 0.5; transition: opacity 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
-.ol-card b { font-size: 11.5px; color: #cbd5e1; }
-.ol-card span { font-size: 9.5px; color: #94a3b8; line-height: 1.3; }
+.ol-card b { font-size: 12.5px; color: #cbd5e1; }
+.ol-card span { font-size: 11px; color: #94a3b8; line-height: 1.32; }
 .ol-card.on { opacity: 1; animation: ol-pulse 2.2s ease-in-out infinite; }
 .ol-card.a.on { border-color: rgba(251, 191, 36, 0.55); box-shadow: 0 0 14px rgba(251, 191, 36, 0.22); }
 .ol-card.a.on b { color: #fbbf24; }
