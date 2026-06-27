@@ -514,10 +514,10 @@ Kita punya data getaran historis yang sudah dilabeli teknisi (<b>sehat</b>/<b>ru
     <div class="rl-loop">
       <div class="rl-box">Agen</div>
       <div class="rl-mid">
-        <div class="rl-arrow">aksi ⟶</div>
-        <div class="rl-arrow">🏆 ⟵ reward</div>
+        <div class="rl-arrow">Aksi ⟶</div>
+        <div class="rl-arrow">🏆 ⟵ Reward</div>
       </div>
-      <div class="rl-box">Ling&shy;kungan</div>
+      <div class="rl-box">Lingkungan</div>
     </div>
     <div class="para-cap a">🕹️ Coba–salah demi reward</div>
   </div>
