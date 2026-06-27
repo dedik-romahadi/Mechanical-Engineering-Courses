@@ -341,8 +341,8 @@ onMounted(() => {
   padding: 10px;
   color: #f1f5f9;
   font-family: 'Fira Code', ui-monospace, monospace;
-  max-width: 960px;
-  margin-left: 36px;
+  max-width: 760px;
+  margin-left: 16px;
   margin-right: auto;
 }
 
