@@ -338,7 +338,7 @@ onMounted(() => {
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,.08);
   background: #0d1526;
-  padding: 12px;
+  padding: 10px;
   color: #f1f5f9;
   font-family: 'Fira Code', ui-monospace, monospace;
   max-width: 960px;
@@ -351,7 +351,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   flex-wrap: wrap;
 }
 .fs-legend { display: flex; gap: 12px; font-size: 12px; }
@@ -369,7 +369,7 @@ onMounted(() => {
 .fs-canvas {
   display: block;
   width: 100%;
-  height: 330px;
+  height: 340px;
   background: #06091a;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,.05);
@@ -378,7 +378,7 @@ onMounted(() => {
 .fs-controls {
   display: flex;
   gap: 16px;
-  margin-top: 10px;
+  margin-top: 5px;
   flex-wrap: wrap;
 }
 .fs-ctrl {

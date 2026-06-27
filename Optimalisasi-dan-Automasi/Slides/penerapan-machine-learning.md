@@ -591,7 +591,7 @@ title: "Memisahkan Sehat vs Rusak"
 
 <FeatureScatter />
 
-<div style="margin-top:6px;font-size:12px;color:#94a3b8;text-align:center;padding-left:70px">
+<div style="margin-top:6px;font-size:12px;color:#94a3b8;text-align:center;padding-right:70px">
 <span class="chip e">🟢 Sehat = RMS &amp; Kurtosis Rendah</span>
 <span class="chip c">🔴 Rusak = RMS &amp; Kurtosis Tinggi</span>
 <span class="chip v">Garis = Batas Yang "Dipelajari" Model</span>
