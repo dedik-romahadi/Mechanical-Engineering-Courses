@@ -133,7 +133,7 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
   /* Cocok dengan kamera bawaan Slidev: diameter = lebar kanvas (980) / 8
      ≈ innerWidth/8, posisi pojok kanan bawah ~30px margin (skala kanvas). */
   right: 18px;
-  bottom: 45px;
+  bottom: 47px;
   width: 122px;
   height: 122px;
   border-radius: 50%;
