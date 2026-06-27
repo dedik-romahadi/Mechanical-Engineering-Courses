@@ -793,7 +793,7 @@ $$\text{Akurasi}=\frac{TP+TN}{N}=\frac{45+40}{100}=\mathbf{85\%}$$
 
 <v-clicks>
 
-<div class="step"><span class="step-no">3</span> <b>Presisi</b> — dari yang dialarm, berapa benar rusak</div>
+<div class="step"><span class="step-no">3</span> <b>Presisi</b> — dari yang diprediksi Rusak, berapa yang benar</div>
 
 $$\text{Presisi}=\frac{TP}{TP+FP}=\frac{45}{55}=\mathbf{0.82}$$
 
