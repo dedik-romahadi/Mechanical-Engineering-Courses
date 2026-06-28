@@ -1,8 +1,8 @@
 ---
 theme: default
 colorSchema: light
-title: PDD UKTPT — Bidang Pengajaran
-info: Pembukaan PDD UKTPT · SERDOS 2026
+title: PDD-UKTPT — Bidang Pengajaran · Optimalisasi dan Automasi
+info: Pembukaan PDD-UKTPT · SERDOS 2026
 transition: slide-left
 layout: default
 class: pdd-cover
@@ -30,27 +30,45 @@ class: pdd-cover
 </svg>
 <div class="pdd-grid">
 <div class="pdd-col pdd-col-title">
-<span class="pdd-eyebrow">Pembukaan · SERDOS 2026</span>
-<h1 class="pdd-title">PDD UKTPT</h1>
-<div class="pdd-sub">Bidang Pengajaran</div>
+<span class="pdd-eyebrow">PDD-UKTPT · SERDOS 2026</span>
+<h1 class="pdd-title">Bidang Pengajaran</h1>
+<div class="pdd-mk">Mata Kuliah: <b>Optimalisasi dan Automasi</b></div>
 <div class="pdd-rule"></div>
-<p class="pdd-lead">Pengantar singkat sebelum paparan penilaian bidang pengajaran dimulai.</p>
+<div class="pdd-goal"><div class="pdd-goal-h">Tujuan Presentasi</div><div class="pdd-goal-t">Mendemonstrasikan praktik pembelajaran mata kuliah ini secara utuh — <b>penyampaian materi</b>, <b>interaksi</b> dengan mahasiswa, dan <b>asesmen</b> capaian pembelajaran — sebagai bukti Bidang Pengajaran dalam PDD-UKTPT.</div></div>
 </div>
 <div class="pdd-col pdd-col-meta">
-<div class="pdd-presenter">
+<div class="pdd-card">
+<div class="pdd-card-bar"></div>
+<div class="pdd-card-head">
 <div class="pdd-ava">DR</div>
-<div>
-<div class="pdd-pname">Dedik Romahadi</div>
-<div class="pdd-prole">Program Studi Teknik Mesin</div>
-<div class="pdd-pinst">Universitas Mercu Buana</div>
+<div class="pdd-card-id">
+<div class="pdd-card-name">Dedik Romahadi</div>
+<div class="pdd-card-note">Dosen Tetap Universitas Mercu Buana</div>
 </div>
 </div>
-<div class="pdd-meta-list">
-<div class="pdd-meta"><span>🎓</span> Sertifikasi Dosen 2026</div>
-<div class="pdd-meta"><span>📘</span> Bidang Pengajaran</div>
+<div class="pdd-card-rows">
+<div class="pdd-card-row"><span class="pdd-card-k">NIDN</span><span class="pdd-card-v">0000&nbsp;000&nbsp;000</span></div>
+<div class="pdd-card-row"><span class="pdd-card-k">Fakultas</span><span class="pdd-card-v">Teknik</span></div>
+<div class="pdd-card-row"><span class="pdd-card-k">Program Studi</span><span class="pdd-card-v">Teknik Mesin</span></div>
+</div>
 </div>
 </div>
 <div class="pdd-col pdd-col-cam">
 <CameraFrame name="Dedik Romahadi" role="Narasumber" />
 </div>
 </div>
+
+<!--
+NARASI PEMBUKA (baca saat rekaman):
+
+Bismillahirrahmanirrahim. Assalamu'alaikum warahmatullahi wabarakatuh, selamat pagi dan salam sejahtera bagi kita semua.
+
+Perkenalkan, nama saya Dedik Romahadi, Dosen Tetap pada Program Studi Teknik Mesin, Fakultas Teknik, Universitas Mercu Buana, dengan NIDN [sebutkan NIDN Anda].
+
+Pada kesempatan ini, saya menyampaikan video pembelajaran untuk Bidang Pengajaran dalam dokumen PDD-UKTPT, sebagai salah satu syarat dalam proses Sertifikasi Dosen tahun 2026 yang diselenggarakan oleh Kementerian Pendidikan Tinggi, Sains, dan Teknologi.
+
+Mata kuliah yang akan saya bawakan adalah Optimalisasi dan Automasi. Melalui video ini, saya akan mendemonstrasikan praktik pembelajaran mata kuliah tersebut secara utuh — mulai dari penyampaian materi, interaksi dengan mahasiswa, hingga asesmen capaian pembelajaran.
+
+Baiklah, untuk mengawali, mari kita lihat gambaran umum dan capaian pembelajaran dari mata kuliah ini. [lanjut ke slide berikutnya]
+-->
+
