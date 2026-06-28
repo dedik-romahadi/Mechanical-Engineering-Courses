@@ -1,9 +1,9 @@
 <!--
   global-bottom.vue — Footer global (tampil di semua slide).
   Slidev auto-load global-bottom.vue (sejajar global-top.vue) — tak perlu registrasi.
-  Ramping (30px), putih, beraksen "kop dokumen" (pasangan dgn aksen dasar header).
-  CAMERA-SAFE: footer di-clip width:calc(100% - 312px) + clip-path miring kanan,
-  jadi ujungnya BERHENTI sebelum kolom kamera (290px) — frame kamera tak pernah tertutup.
+  Ramping (30px), putih, garis PENUH (full-width) + aksen "kop dokumen" pita gradien.
+  Aman thd kamera: pita footer (y≈522-552) berada DI BAWAH frame kamera (berakhir y≈488),
+  jadi tak menutupi kamera meski selebar layar.
 -->
 <template>
   <footer class="pdd-ft" aria-hidden="true">
@@ -24,22 +24,20 @@
 <style scoped>
 .pdd-ft {
   position: fixed; left: 0; bottom: 0; z-index: 95;
-  width: calc(100% - 312px);
+  width: 100%;
   height: 30px;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 30px 0 30px;
   background: #ffffff;
   border-top: 1px solid #e7ebf2;
-  clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 100%, 0 100%);
   font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Inter, Arial, sans-serif;
   font-size: 10.5px; letter-spacing: 0.02em; color: #5b6b86;
   pointer-events: none;
 }
 /* Aksen "kop dokumen": pita gradien brand tipis di tepi ATAS footer (pasangan header). */
 .pdd-ft::before {
-  content: ''; position: absolute; top: -1px; left: 0; height: 2px; width: 176px;
+  content: ''; position: absolute; top: -1px; left: 0; right: 0; height: 2px;
   background: linear-gradient(90deg, #15418f, #0f9d8f 60%, #f59e0b);
-  border-radius: 0 2px 2px 0;
 }
 .pdd-ft-l { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .pdd-ft-mark {
