@@ -60,5 +60,6 @@
   font-weight: 800; font-size: 11px; letter-spacing: 0.10em; color: #0f6e56;
   background: rgba(15, 157, 143, 0.10); border: 1px solid rgba(15, 157, 143, 0.24);
   padding: 2px 9px; border-radius: 999px; white-space: nowrap;
+  transform: translateX(8px);
 }
 </style>
