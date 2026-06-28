@@ -57,7 +57,7 @@ import dikti from './assets/diktisaintek.png'
   background: linear-gradient(180deg, #15418f, #0f9d8f);
 }
 /* Sepasang gear meshing (dipindah dari footer; ganti teks "SERDOS 2026") */
-.pdd-hd-gears { height: 26px; width: auto; display: block; overflow: visible; }
+.pdd-hd-gears { height: 32px; width: auto; display: block; overflow: visible; }
 .pdd-g { transform-box: fill-box; transform-origin: center; }
 .pdd-g-a { animation: pdd-gear 6s linear infinite; }
 .pdd-g-b { animation: pdd-gear-rev 6s linear infinite; animation-delay: -0.375s; }

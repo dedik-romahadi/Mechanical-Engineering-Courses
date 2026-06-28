@@ -26,13 +26,13 @@
 .pdd-ft {
   position: fixed; left: 0; bottom: 0; z-index: 95;
   width: 100%;
-  height: 30px;
+  height: 36px;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 30px 0 30px;
   background: #ffffff;
   border-top: 1px solid #e7ebf2;
   font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Inter, Arial, sans-serif;
-  font-size: 10.5px; letter-spacing: 0.02em; color: #5b6b86;
+  font-size: 11.5px; letter-spacing: 0.02em; color: #5b6b86;
   pointer-events: none;
 }
 /* Aksen "kop dokumen": pita gradien brand penuh di tepi ATAS footer (pasangan header). */
@@ -57,7 +57,7 @@
 .pdd-ft-r { display: flex; align-items: center; flex: none; padding-right: 6px; }
 /* Teks "SERDOS 2026" (dipindah dari header) */
 .pdd-ft-year {
-  font-weight: 800; font-size: 10px; letter-spacing: 0.10em; color: #0f6e56;
+  font-weight: 800; font-size: 11px; letter-spacing: 0.10em; color: #0f6e56;
   background: rgba(15, 157, 143, 0.10); border: 1px solid rgba(15, 157, 143, 0.24);
   padding: 2px 9px; border-radius: 999px; white-space: nowrap;
 }
