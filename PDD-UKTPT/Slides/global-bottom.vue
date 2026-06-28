@@ -59,7 +59,7 @@
 }
 .pdd-ft-r { display: flex; align-items: center; flex: none; padding-right: 6px; }
 /* Sepasang gear meshing — animasi (ganti teks "SERDOS 2026") */
-.pdd-ft-gears { height: 22px; width: auto; display: block; overflow: visible; }
+.pdd-ft-gears { height: 22px; width: auto; display: block; overflow: visible; transform: translateX(8px); }
 .pdd-g { transform-box: fill-box; transform-origin: center; }
 .pdd-g-a { animation: pdd-gear 6s linear infinite; }
 .pdd-g-b { animation: pdd-gear-rev 6s linear infinite; animation-delay: -0.375s; }
