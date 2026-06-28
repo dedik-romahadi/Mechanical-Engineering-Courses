@@ -31,187 +31,60 @@
   z-index: 0; pointer-events: none;
 }
 
-/* ── Isi slide: 2 kolom konten MENYATU (judul + presenter) + kamera ── */
-.pdd-grid {
-  position: relative; z-index: 2;
-  height: 100%;
-  display: grid;
-  grid-template-columns: 1.18fr 0.96fr 290px;
-  column-gap: 22px;
-  align-items: center;
-}
-.pdd-col { min-width: 0; }
-
-/* Kolom 1 — judul */
-.pdd-eyebrow {
-  display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--blue);
-  background: rgba(47, 107, 214, 0.08); border: 1px solid rgba(47, 107, 214, 0.22);
-  padding: 5px 12px; border-radius: 999px;
-}
-.pdd-title {
-  margin: 12px 0 3px; font-size: 42px; line-height: 1.0; font-weight: 800;
-  letter-spacing: -0.02em; color: var(--ink);
-}
-.pdd-sub { font-size: 24px; font-weight: 700; color: var(--blue2); }
-.pdd-rule {
-  width: 64px; height: 4px; border-radius: 3px; margin: 18px 0 14px;
-  background: linear-gradient(90deg, var(--blue), var(--teal));
-}
-.pdd-lead { font-size: 15px; line-height: 1.55; color: var(--muted); max-width: 330px; }
-
-/* Slide 1 — baris mata kuliah + blok Tujuan Presentasi */
-.pdd-mk { font-size: 18px; font-weight: 700; color: var(--blue2); margin-top: 2px; }
-.pdd-mk b { color: var(--ink); font-weight: 800; }
-.pdd-goal { margin-top: 4px; }
-.pdd-goal-h {
-  position: relative; display: inline-block; padding-left: 10px; margin-bottom: 5px;
-  font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue);
-}
-.pdd-goal-h::before {
-  content: ''; position: absolute; left: 0; top: 1px; bottom: 1px; width: 3px; border-radius: 2px;
-  background: linear-gradient(180deg, var(--blue), var(--teal));
-}
-.pdd-goal-t { font-size: 12.5px; line-height: 1.55; color: var(--muted); max-width: 330px; }
-.pdd-goal-t b { color: var(--ink); font-weight: 700; }
-
-/* Slide 1 — kartu nama dosen */
-.pdd-card {
-  position: relative; width: 100%; max-width: 290px;
-  background: #fff; border: 1px solid #e3e8f0; border-radius: 16px;
-  padding: 18px 18px 14px; overflow: hidden;
-  box-shadow: 0 16px 36px -22px rgba(15, 28, 52, 0.45);
-}
-.pdd-card-bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--blue), var(--teal) 60%, var(--amber)); }
-.pdd-card-head { display: flex; align-items: center; gap: 12px; }
-.pdd-card-id { min-width: 0; }
-.pdd-card-name { font-size: 16px; font-weight: 800; color: var(--ink); line-height: 1.12; }
-.pdd-card-note { font-size: 11px; font-weight: 600; color: #0f6e56; margin-top: 3px; }
-.pdd-card-rows { margin-top: 13px; border-top: 1px solid #eef1f6; padding-top: 11px; display: flex; flex-direction: column; gap: 7px; }
-.pdd-card-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12px; }
-.pdd-card-k { color: #8c98ad; font-weight: 600; }
-.pdd-card-v { color: var(--ink); font-weight: 700; text-align: right; }
-
-/* Kolom 2 — presenter (TANPA garis pemisah; menyatu dgn kolom judul) */
-.pdd-col-meta { border-left: none; padding-left: 0; }
-.pdd-presenter { display: flex; align-items: center; gap: 14px; }
-.pdd-ava {
-  width: 54px; height: 54px; border-radius: 14px; flex: none;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; font-weight: 800; color: #fff;
-  background: linear-gradient(135deg, var(--blue), var(--teal));
-  box-shadow: 0 6px 16px rgba(21, 65, 143, 0.28);
-}
-.pdd-pname { font-size: 17px; font-weight: 800; color: var(--ink); }
-.pdd-prole { font-size: 13px; color: var(--muted); }
-.pdd-pinst { font-size: 13px; color: var(--blue2); font-weight: 600; }
-.pdd-meta-list { margin-top: 18px; display: flex; flex-direction: column; gap: 8px; }
-.pdd-meta { display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--ink); }
-.pdd-meta span { font-size: 15px; }
-
-/* Kolom 3 — frame kamera (gaya detail di CameraFrame.vue) */
-.pdd-col-cam { display: flex; align-items: center; justify-content: center; margin-left: 12px; transform: translateX(14px); }
-
 /* ============================================================
-   BODY slide 1 (revisi MUAT): konten kiri (hero + kartu nama horizontal +
-   tujuan/chip) dibuat pas tanpa overflow; frame kamera kanan ukuran natural.
-   Ditaruh paling akhir agar menimpa rule slide-1 lama bernama sama.
+   BODY slide 1 (bersih): semua rule slide-1 lama dibuang untuk hindari
+   kebocoran properti (mis. max-width lama). 3 baris atas rapat; kartu Tujuan
+   memuat 3 chip aspek; kartu nama full-width di PALING BAWAH; kamera kanan
+   ukuran natural. Dibuat MUAT (no overflow).
    ============================================================ */
-.slidev-layout.pdd-cover { padding: 72px 44px 48px !important; overflow: hidden; }
+.slidev-layout.pdd-cover { padding: 70px 44px 46px !important; }
 
 .pdd-grid {
   position: relative; z-index: 2; height: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 286px;
-  column-gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  column-gap: 22px;
   align-items: stretch;
 }
 .pdd-rail { min-width: 0; }
 
-/* KIRI: tiga grup (hero / kartu / tujuan+chip) tersebar mengisi tinggi */
-.pdd-rail-main {
-  display: flex; flex-direction: column; justify-content: space-between;
-  min-width: 0; min-height: 0;
-}
+.pdd-rail-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .pdd-top { display: flex; flex-direction: column; }
 
 .pdd-eyebrow {
-  display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
-  font-size: 14.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; max-width: 100%;
+  font-size: 14px; font-weight: 800; letter-spacing: 0.11em; text-transform: uppercase;
   color: var(--blue); white-space: nowrap;
-  padding: 7px 16px; border-radius: 999px;
+  padding: 7px 15px; border-radius: 999px;
   background: linear-gradient(90deg, rgba(21,65,143,0.09), rgba(15,157,143,0.08));
   border: 1px solid rgba(47,107,214,0.24);
   box-shadow: 0 8px 20px -14px rgba(21,65,143,0.5);
 }
-.pdd-eyebrow-dot {
-  width: 9px; height: 9px; border-radius: 50%; flex: none;
-  background: linear-gradient(135deg, var(--blue2), var(--teal));
-  box-shadow: 0 0 0 4px rgba(47,107,214,0.14);
-}
+.pdd-eyebrow-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: linear-gradient(135deg, var(--blue2), var(--teal)); box-shadow: 0 0 0 4px rgba(47,107,214,0.14); }
 .pdd-eyebrow-sep { color: var(--teal); font-weight: 900; margin: 0 1px; }
 
-.pdd-title {
-  margin: 11px 0 0; font-size: 44px; line-height: 1.0; font-weight: 800;
-  letter-spacing: -0.025em; color: var(--ink);
-}
-
+.pdd-title { margin: 8px 0 0; font-size: 44px; line-height: 1.0; font-weight: 800; letter-spacing: -0.025em; color: var(--ink); }
 .pdd-mk {
-  display: inline-flex; align-items: center; gap: 10px; align-self: flex-start;
-  margin-top: 11px; padding: 5px 14px 5px 6px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 9px; align-self: flex-start; max-width: 100%;
+  margin-top: 10px; padding: 5px 14px 5px 6px; border-radius: 999px;
   background: #fff; border: 1px solid var(--line);
   box-shadow: 0 10px 24px -18px rgba(15,28,52,0.5);
 }
-.pdd-mk-k {
-  font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase;
-  color: #fff; padding: 5px 10px; border-radius: 999px;
-  background: linear-gradient(135deg, var(--blue), var(--teal));
-}
-.pdd-mk-v { font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; }
+.pdd-mk-k { flex: none; font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #fff; padding: 5px 10px; border-radius: 999px; background: linear-gradient(135deg, var(--blue), var(--teal)); }
+.pdd-mk-v { font-size: 16.5px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.pdd-rule {
-  width: 72px; height: 4px; border-radius: 3px; margin: 11px 0 0;
-  background: linear-gradient(90deg, var(--blue), var(--teal) 60%, var(--amber));
-}
-
-/* KARTU NAMA dosen: horizontal, lebar mengikuti konten (semua field tampak) */
-.pdd-card {
-  position: relative; display: inline-flex; align-items: center; gap: 16px;
-  align-self: flex-start; max-width: 100%;
-  background: #fff; border: 1px solid var(--line); border-radius: 15px;
-  padding: 11px 20px; overflow: hidden;
-  box-shadow: 0 16px 36px -24px rgba(15,28,52,0.5);
-}
-.pdd-card-bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--blue), var(--teal) 60%, var(--amber)); }
-.pdd-ava {
-  width: 56px; height: 56px; border-radius: 50%; flex: none; padding: 2.5px;
-  background: linear-gradient(135deg, var(--blue), var(--teal) 60%, var(--amber));
-  box-shadow: 0 8px 18px -8px rgba(21,65,143,0.5);
-}
-.pdd-ava-img { width: 100%; height: 100%; border-radius: 50%; display: block; object-fit: cover; background: #eef2f8; box-shadow: 0 0 0 2px #fff inset; }
-.pdd-card-id { flex: none; }
-.pdd-card-name { font-size: 14.5px; font-weight: 800; color: var(--ink); line-height: 1.15; letter-spacing: -0.01em; white-space: nowrap; }
-.pdd-card-note { font-size: 12px; font-weight: 700; color: #0f6e56; margin-top: 3px; }
-.pdd-card-inst { font-size: 12px; font-weight: 700; color: var(--blue2); margin-top: 1px; white-space: nowrap; }
-.pdd-card-sep { width: 1px; align-self: stretch; margin: 2px 0; background: #e7edf6; flex: none; }
-.pdd-card-rows { display: flex; flex-direction: column; gap: 4px; flex: none; }
-.pdd-card-row { display: flex; flex-direction: column; }
-.pdd-card-k { color: #8c98ad; font-weight: 600; font-size: 9.5px; letter-spacing: 0.04em; text-transform: uppercase; }
-.pdd-card-v { color: var(--ink); font-weight: 800; font-size: 12.5px; white-space: nowrap; }
-
-/* BAWAH: panel Tujuan (ringkas) + chip tahapan DIA */
-.pdd-bottom { display: flex; flex-direction: column; }
+/* Kartu TUJUAN: heading + teks + 3 chip aspek DI DALAM kartu */
 .pdd-goal {
-  position: relative; align-self: stretch;
-  padding: 10px 16px 10px 18px; border-radius: 13px;
+  position: relative; align-self: stretch; flex: none; margin-top: 16px;
+  padding: 12px 18px 13px 20px; border-radius: 14px;
   background: linear-gradient(180deg, rgba(47,107,214,0.05), rgba(15,157,143,0.035));
-  border: 1px solid #e7edf6; overflow: hidden;
+  border: 1px solid #e7edf6;
 }
 .pdd-goal::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--blue), var(--teal)); }
-.pdd-goal-h { display: inline-block; margin-bottom: 4px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.10em; text-transform: uppercase; color: var(--blue); }
+.pdd-goal-h { display: inline-block; margin-bottom: 5px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.10em; text-transform: uppercase; color: var(--blue); }
 .pdd-goal-t { font-size: 12.5px; line-height: 1.5; color: var(--muted); }
 .pdd-goal-t b { color: var(--ink); font-weight: 800; }
-.pdd-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.pdd-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 11px; }
 .pdd-chip {
   display: inline-flex; align-items: center; gap: 7px;
   font-size: 12px; font-weight: 700; color: var(--ink);
@@ -224,10 +97,28 @@
 .pdd-chip-i--teal { background: var(--teal); }
 .pdd-chip-i--amber { background: var(--amber); }
 
-/* KANAN: FRAME KAMERA, kolom sendiri, .cf ukuran natural, center.
-   max-height jaga agar tidak pernah melebihi tinggi kolom. */
-.pdd-col-cam {
-  display: flex; align-items: center; justify-content: center;
-  min-height: 0; transform: translateX(8px);
+/* KARTU NAMA: full-width, di PALING BAWAH (identitas kiri, kredensial kanan) */
+.pdd-card {
+  position: relative; flex: none; margin-top: auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  width: 100%; max-width: none;
+  background: #fff; border: 1px solid var(--line); border-radius: 15px;
+  padding: 10px 20px; overflow: hidden;
+  box-shadow: 0 16px 36px -24px rgba(15,28,52,0.5);
 }
+.pdd-card-bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--blue), var(--teal) 60%, var(--amber)); }
+.pdd-card-l { display: flex; align-items: center; gap: 13px; min-width: 0; }
+.pdd-ava { width: 52px; height: 52px; border-radius: 50%; flex: none; padding: 2.5px; background: linear-gradient(135deg, var(--blue), var(--teal) 60%, var(--amber)); box-shadow: 0 8px 18px -8px rgba(21,65,143,0.5); }
+.pdd-ava-img { width: 100%; height: 100%; border-radius: 50%; display: block; object-fit: cover; background: #eef2f8; box-shadow: 0 0 0 2px #fff inset; }
+.pdd-card-id { min-width: 0; }
+.pdd-card-name { font-size: 14px; font-weight: 800; color: var(--ink); line-height: 1.15; letter-spacing: -0.01em; white-space: nowrap; }
+.pdd-card-note { font-size: 11.5px; font-weight: 700; color: #0f6e56; margin-top: 2px; }
+.pdd-card-inst { font-size: 11.5px; font-weight: 700; color: var(--blue2); }
+.pdd-card-rows { display: flex; gap: 22px; flex: none; }
+.pdd-card-row { display: flex; flex-direction: column; }
+.pdd-card-k { color: #8c98ad; font-weight: 600; font-size: 9.5px; letter-spacing: 0.04em; text-transform: uppercase; }
+.pdd-card-v { color: var(--ink); font-weight: 800; font-size: 12.5px; white-space: nowrap; }
+
+/* KANAN: FRAME KAMERA, kolom sendiri, ukuran natural, center, tak overflow */
+.pdd-col-cam { display: flex; align-items: center; justify-content: center; min-height: 0; }
 .pdd-col-cam .cf { max-height: 100%; }
