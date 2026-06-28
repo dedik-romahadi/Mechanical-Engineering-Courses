@@ -28,42 +28,14 @@ class: pdd-cover
 <path d="M244 464 h11 M249.5 458.5 v11" stroke="#2f6bd6" stroke-width="1.5" stroke-linecap="round" opacity="0.42"/>
 <rect x="34" y="402" width="172" height="120" fill="url(#pddDots)" mask="url(#pddDotMask)"/>
 </svg>
-<div class="pdd-grid">
-<div class="pdd-col pdd-col-title">
-<span class="pdd-eyebrow">PDD-UKTPT · SERDOS 2026</span>
-<h1 class="pdd-title">Bidang Pengajaran</h1>
-<div class="pdd-mk">Mata Kuliah: <b>Optimalisasi dan Automasi</b></div>
-<div class="pdd-rule"></div>
-<div class="pdd-goal"><div class="pdd-goal-h">Tujuan Presentasi</div><div class="pdd-goal-t">Mendemonstrasikan praktik pembelajaran mata kuliah ini secara utuh, mulai dari <b>penyampaian materi</b>, <b>interaksi</b> dengan mahasiswa, hingga <b>asesmen</b> capaian pembelajaran, sebagai bukti Bidang Pengajaran dalam PDD-UKTPT.</div></div>
-</div>
-<div class="pdd-col pdd-col-meta">
-<div class="pdd-card">
-<div class="pdd-card-bar"></div>
-<div class="pdd-card-head">
-<div class="pdd-ava">DR</div>
-<div class="pdd-card-id">
-<div class="pdd-card-name">Dedik Romahadi</div>
-<div class="pdd-card-note">Dosen Tetap Universitas Mercu Buana</div>
-</div>
-</div>
-<div class="pdd-card-rows">
-<div class="pdd-card-row"><span class="pdd-card-k">NIDN</span><span class="pdd-card-v">0306029106</span></div>
-<div class="pdd-card-row"><span class="pdd-card-k">Fakultas</span><span class="pdd-card-v">Teknik</span></div>
-<div class="pdd-card-row"><span class="pdd-card-k">Program Studi</span><span class="pdd-card-v">Teknik Mesin</span></div>
-</div>
-</div>
-</div>
-<div class="pdd-col pdd-col-cam">
-<CameraFrame name="Dedik Romahadi" role="Narasumber" />
-</div>
-</div>
+<div class="pdd-grid"><div class="pdd-rail pdd-rail-main"><div class="pdd-top"><span class="pdd-eyebrow"><span class="pdd-eyebrow-dot"></span>PDD-UKTPT<span class="pdd-eyebrow-sep">·</span>SERDOS 2026</span><h1 class="pdd-title">Bidang Pengajaran</h1><div class="pdd-mk"><span class="pdd-mk-k">Mata Kuliah</span><span class="pdd-mk-v">Optimalisasi dan Automasi</span></div><div class="pdd-rule"></div></div><div class="pdd-goal"><div class="pdd-goal-h">Tujuan Presentasi</div><div class="pdd-goal-t">Mendemonstrasikan praktik pembelajaran mata kuliah ini secara utuh, mulai dari <b>penyampaian materi</b>, <b>interaksi</b> dengan mahasiswa, hingga <b>asesmen</b> capaian pembelajaran, sebagai bukti Bidang Pengajaran dalam PDD-UKTPT.</div><div class="pdd-chips"><span class="pdd-chip"><span class="pdd-chip-i pdd-chip-i--blue"></span>Penyampaian Materi</span><span class="pdd-chip"><span class="pdd-chip-i pdd-chip-i--teal"></span>Interaksi Mahasiswa</span><span class="pdd-chip"><span class="pdd-chip-i pdd-chip-i--amber"></span>Asesmen Capaian</span></div></div></div><div class="pdd-rail pdd-rail-media"><div class="pdd-card"><div class="pdd-card-bar"></div><div class="pdd-card-head"><div class="pdd-ava"><img class="pdd-ava-img" src="./assets/dosen.jpg" alt="Foto Dedik Romahadi" /></div><div class="pdd-card-id"><div class="pdd-card-name">Dedik Romahadi, ST., M.Sc.</div><div class="pdd-card-note">Dosen Tetap</div><div class="pdd-card-inst">Universitas Mercu Buana</div></div></div><div class="pdd-card-rows"><div class="pdd-card-row pdd-card-row--full"><span class="pdd-card-k">NIDN</span><span class="pdd-card-v">0306029106</span></div><div class="pdd-card-row"><span class="pdd-card-k">Fakultas</span><span class="pdd-card-v">Teknik</span></div><div class="pdd-card-row"><span class="pdd-card-k">Program Studi</span><span class="pdd-card-v">Teknik Mesin</span></div></div></div><div class="pdd-cam-wrap"><CameraFrame name="Dedik Romahadi" role="Narasumber" /></div></div></div>
 
 <!--
 NARASI PEMBUKA (baca saat rekaman):
 
 Bismillahirrahmanirrahim. Assalamu'alaikum warahmatullahi wabarakatuh, selamat pagi dan salam sejahtera bagi kita semua.
 
-Perkenalkan, nama saya Dedik Romahadi, Dosen Tetap pada Program Studi Teknik Mesin, Fakultas Teknik, Universitas Mercu Buana, dengan NIDN [sebutkan NIDN Anda].
+Perkenalkan, nama saya Dedik Romahadi, S.T., M.Sc., Dosen Tetap pada Program Studi Teknik Mesin, Fakultas Teknik, Universitas Mercu Buana, dengan NIDN 0306029106.
 
 Pada kesempatan ini, saya menyampaikan video pembelajaran untuk Bidang Pengajaran dalam dokumen PDD-UKTPT, sebagai salah satu syarat dalam proses Sertifikasi Dosen tahun 2026 yang diselenggarakan oleh Kementerian Pendidikan Tinggi, Sains, dan Teknologi.
 
