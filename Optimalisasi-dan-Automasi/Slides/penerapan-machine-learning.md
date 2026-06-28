@@ -899,7 +899,7 @@ class: qz
 
 ---
 layout: default
-transition: fade
+transition: zoom
 title: "Rangkuman"
 ---
 
