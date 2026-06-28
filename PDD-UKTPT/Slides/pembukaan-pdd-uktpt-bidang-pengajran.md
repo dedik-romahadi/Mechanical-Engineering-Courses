@@ -1,7 +1,7 @@
 ---
 theme: default
 colorSchema: light
-title: PDD-UKTPT · Bidang Pengajaran · Optimalisasi dan Automasi
+title: Pembukaan PDD-UKTPT
 info: Pembukaan PDD-UKTPT · SERDOS 2026
 transition: slide-left
 layout: default
