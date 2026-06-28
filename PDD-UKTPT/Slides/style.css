@@ -18,29 +18,26 @@
   font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Inter, Arial, sans-serif;
 }
 
-/* ── Slide cover: ruang untuk header (56px) + dekorasi halus ── */
+/* ── Slide cover: ruang untuk header (64px) + footer (30px) ── */
 .slidev-layout.pdd-cover {
-  padding: 74px 46px 30px !important;
+  padding: 82px 48px 44px !important;
   position: relative;
   overflow: hidden;
 }
-.slidev-layout.pdd-cover::before {
-  content: ''; position: absolute; right: -120px; top: -110px;
-  width: 340px; height: 340px; border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(47, 107, 214, 0.10), transparent 70%);
-  pointer-events: none;
-}
-.slidev-layout.pdd-cover::after {
-  content: ''; position: absolute; left: 0; bottom: 0; width: 100%; height: 6px;
-  background: linear-gradient(90deg, var(--blue), var(--teal) 55%, var(--amber));
+/* Lapisan ornamen (SVG) di belakang konten — markup .pdd-orn ada di slide .md.
+   z-index 0 + pointer-events none → tak menutupi teks maupun frame kamera. */
+.pdd-orn {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
 }
 
-/* ── Isi slide: 3 bagian (judul · presenter · kamera) ── */
+/* ── Isi slide: 2 kolom konten MENYATU (judul + presenter) + kamera ── */
 .pdd-grid {
+  position: relative; z-index: 2;
   height: 100%;
   display: grid;
-  grid-template-columns: 1.18fr 1fr 290px;
-  gap: 30px;
+  grid-template-columns: 1.18fr 0.96fr 290px;
+  column-gap: 22px;
   align-items: center;
 }
 .pdd-col { min-width: 0; }
@@ -63,8 +60,8 @@
 }
 .pdd-lead { font-size: 15px; line-height: 1.55; color: var(--muted); max-width: 330px; }
 
-/* Kolom 2 — presenter + meta */
-.pdd-col-meta { border-left: 1px solid var(--line); padding-left: 28px; }
+/* Kolom 2 — presenter (TANPA garis pemisah; menyatu dgn kolom judul) */
+.pdd-col-meta { border-left: none; padding-left: 0; }
 .pdd-presenter { display: flex; align-items: center; gap: 14px; }
 .pdd-ava {
   width: 54px; height: 54px; border-radius: 14px; flex: none;
@@ -81,4 +78,4 @@
 .pdd-meta span { font-size: 15px; }
 
 /* Kolom 3 — frame kamera (gaya detail di CameraFrame.vue) */
-.pdd-col-cam { display: flex; align-items: center; justify-content: center; }
+.pdd-col-cam { display: flex; align-items: center; justify-content: center; margin-left: 12px; }
