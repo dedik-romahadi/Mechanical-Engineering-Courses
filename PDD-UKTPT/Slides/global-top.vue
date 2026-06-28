@@ -33,9 +33,8 @@ import dikti from './assets/diktisaintek.png'
 }
 /* Aksen "kop dokumen": pita gradien brand tipis di dasar header (pasangan footer). */
 .pdd-hd::after {
-  content: ''; position: absolute; left: 0; bottom: -1px; height: 2px; width: 176px;
+  content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
   background: linear-gradient(90deg, #15418f, #0f9d8f 60%, #f59e0b);
-  border-radius: 0 2px 2px 0;
 }
 .pdd-hd-l { display: flex; align-items: center; gap: 16px; }
 .pdd-logo { height: 50px; width: auto; object-fit: contain; display: block; }
