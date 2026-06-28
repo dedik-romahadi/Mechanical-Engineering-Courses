@@ -51,7 +51,7 @@ import dikti from './assets/diktisaintek.png'
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
   /* system-ui (Segoe UI) mentok di Bold 700; tebalkan glyph via stroke supaya tampak lebih berat */
-  -webkit-text-stroke: 0.7px #15418f;
+  -webkit-text-stroke: 0.4px #15418f;
 }
 /* Pemisah: bilah gradien tipis */
 .pdd-hd-div2 {
