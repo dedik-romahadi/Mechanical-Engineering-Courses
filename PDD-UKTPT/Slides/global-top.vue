@@ -25,18 +25,24 @@ import dikti from './assets/diktisaintek.png'
 
 <style scoped>
 .pdd-hd {
-  position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 100;
-  display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  position: fixed; top: 0; left: 0; right: 0; height: 64px; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
   background: #ffffff;
   border-bottom: 1px solid #e7ebf2;
   box-shadow: 0 6px 18px -14px rgba(15, 28, 52, 0.35);
 }
-.pdd-hd-l { display: flex; align-items: center; gap: 14px; }
-.pdd-logo { height: 38px; width: auto; object-fit: contain; display: block; }
-.pdd-logo-dikti { height: 40px; }
-.pdd-hd-div { width: 1px; height: 30px; background: #e0e6ef; }
+/* Aksen "kop dokumen": pita gradien brand tipis di dasar header (pasangan footer). */
+.pdd-hd::after {
+  content: ''; position: absolute; left: 0; bottom: -1px; height: 2px; width: 176px;
+  background: linear-gradient(90deg, #15418f, #0f9d8f 60%, #f59e0b);
+  border-radius: 0 2px 2px 0;
+}
+.pdd-hd-l { display: flex; align-items: center; gap: 16px; }
+.pdd-logo { height: 50px; width: auto; object-fit: contain; display: block; }
+.pdd-logo-dikti { height: 52px; }
+.pdd-hd-div { width: 1px; height: 38px; background: #e0e6ef; }
 .pdd-hd-r { display: flex; align-items: center; gap: 9px; font-weight: 800; }
-.pdd-hd-main { font-size: 15px; letter-spacing: 0.02em; color: #15418f; }
+.pdd-hd-main { font-size: 16px; letter-spacing: 0.02em; color: #15418f; }
 .pdd-hd-bar { color: #cdd6e4; font-weight: 400; }
 .pdd-hd-sub {
   font-size: 12.5px; letter-spacing: 0.08em; color: #0f9d8f; font-weight: 800;
