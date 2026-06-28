@@ -1,7 +1,7 @@
 ---
 theme: default
 colorSchema: light
-title: PDD-UKTPT — Bidang Pengajaran · Optimalisasi dan Automasi
+title: PDD-UKTPT · Bidang Pengajaran · Optimalisasi dan Automasi
 info: Pembukaan PDD-UKTPT · SERDOS 2026
 transition: slide-left
 layout: default
@@ -34,7 +34,7 @@ class: pdd-cover
 <h1 class="pdd-title">Bidang Pengajaran</h1>
 <div class="pdd-mk">Mata Kuliah: <b>Optimalisasi dan Automasi</b></div>
 <div class="pdd-rule"></div>
-<div class="pdd-goal"><div class="pdd-goal-h">Tujuan Presentasi</div><div class="pdd-goal-t">Mendemonstrasikan praktik pembelajaran mata kuliah ini secara utuh — <b>penyampaian materi</b>, <b>interaksi</b> dengan mahasiswa, dan <b>asesmen</b> capaian pembelajaran — sebagai bukti Bidang Pengajaran dalam PDD-UKTPT.</div></div>
+<div class="pdd-goal"><div class="pdd-goal-h">Tujuan Presentasi</div><div class="pdd-goal-t">Mendemonstrasikan praktik pembelajaran mata kuliah ini secara utuh, mulai dari <b>penyampaian materi</b>, <b>interaksi</b> dengan mahasiswa, hingga <b>asesmen</b> capaian pembelajaran, sebagai bukti Bidang Pengajaran dalam PDD-UKTPT.</div></div>
 </div>
 <div class="pdd-col pdd-col-meta">
 <div class="pdd-card">
@@ -47,7 +47,7 @@ class: pdd-cover
 </div>
 </div>
 <div class="pdd-card-rows">
-<div class="pdd-card-row"><span class="pdd-card-k">NIDN</span><span class="pdd-card-v">0000&nbsp;000&nbsp;000</span></div>
+<div class="pdd-card-row"><span class="pdd-card-k">NIDN</span><span class="pdd-card-v">0306029106</span></div>
 <div class="pdd-card-row"><span class="pdd-card-k">Fakultas</span><span class="pdd-card-v">Teknik</span></div>
 <div class="pdd-card-row"><span class="pdd-card-k">Program Studi</span><span class="pdd-card-v">Teknik Mesin</span></div>
 </div>
@@ -67,7 +67,7 @@ Perkenalkan, nama saya Dedik Romahadi, Dosen Tetap pada Program Studi Teknik Mes
 
 Pada kesempatan ini, saya menyampaikan video pembelajaran untuk Bidang Pengajaran dalam dokumen PDD-UKTPT, sebagai salah satu syarat dalam proses Sertifikasi Dosen tahun 2026 yang diselenggarakan oleh Kementerian Pendidikan Tinggi, Sains, dan Teknologi.
 
-Mata kuliah yang akan saya bawakan adalah Optimalisasi dan Automasi. Melalui video ini, saya akan mendemonstrasikan praktik pembelajaran mata kuliah tersebut secara utuh — mulai dari penyampaian materi, interaksi dengan mahasiswa, hingga asesmen capaian pembelajaran.
+Mata kuliah yang akan saya bawakan adalah Optimalisasi dan Automasi. Melalui video ini, saya akan mendemonstrasikan praktik pembelajaran mata kuliah tersebut secara utuh, mulai dari penyampaian materi, interaksi dengan mahasiswa, hingga asesmen capaian pembelajaran.
 
 Baiklah, untuk mengawali, mari kita lihat gambaran umum dan capaian pembelajaran dari mata kuliah ini. [lanjut ke slide berikutnya]
 -->
