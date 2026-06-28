@@ -922,6 +922,37 @@ title: "Rangkuman"
 
 ---
 layout: default
+class: mtf
+transition: glide
+title: "Modul, Tugas & Forum"
+---
+
+<div class="mtf">
+<div class="mtf-lead">Lanjutkan dengan <b>belajar mandiri</b> — buka modulnya, kerjakan, lalu submit tepat waktu.</div>
+<a class="mtf-card" href="https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Optimalisasi-dan-Automasi/Modul/Modul-12.html" target="_blank" rel="noopener">
+<span class="mtf-ring"></span>
+<span class="mtf-card-l">
+<span class="mtf-badge"><i class="mtf-live"></i> Pertemuan 13</span>
+<span class="mtf-topic">Otomatisasi Monitoring</span>
+<span class="mtf-tags">Tier Alarm · FSM · ANSI/ISA 18.2</span>
+</span>
+<span class="mtf-cta">
+<span class="mtf-cta-ic">📘</span>
+<span class="mtf-cta-tx">Buka Modul 12</span>
+<span class="mtf-cta-ar">→</span>
+</span>
+</a>
+<div class="mtf-flow">
+<div class="mtf-step"><span class="mtf-num">1</span><span class="mtf-si">📖</span><span class="mtf-st">Pelajari Modul</span><span class="mtf-sd">Materi Pertemuan 13</span></div>
+<span class="mtf-conn"></span>
+<div class="mtf-step"><span class="mtf-num">2</span><span class="mtf-si">✍️</span><span class="mtf-st">Kerjakan Tugas &amp; Forum</span><span class="mtf-sd">Latihan &amp; diskusi</span></div>
+<span class="mtf-conn"></span>
+<div class="mtf-step"><span class="mtf-num">3</span><span class="mtf-si">⏰</span><span class="mtf-st">Submit Tepat Waktu</span><span class="mtf-sd">Sebelum pertemuan berikutnya</span></div>
+</div>
+</div>
+
+---
+layout: default
 transition: slide-up
 title: "Referensi"
 ---
