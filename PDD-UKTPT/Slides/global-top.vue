@@ -12,7 +12,7 @@
     </div>
     <div class="pdd-hd-r">
       <span class="pdd-hd-main">PDD UKTPT</span>
-      <span class="pdd-hd-bar">|</span>
+      <span class="pdd-hd-div2"></span>
       <span class="pdd-hd-sub">SERDOS 2026</span>
     </div>
   </header>
@@ -40,12 +40,22 @@ import dikti from './assets/diktisaintek.png'
 .pdd-logo { height: 50px; width: auto; object-fit: contain; display: block; }
 .pdd-logo-dikti { height: 52px; }
 .pdd-hd-div { width: 1px; height: 38px; background: #e0e6ef; }
-.pdd-hd-r { display: flex; align-items: center; gap: 9px; font-weight: 800; }
-.pdd-hd-main { font-size: 16px; letter-spacing: 0.02em; color: #15418f; }
-.pdd-hd-bar { color: #cdd6e4; font-weight: 400; }
+.pdd-hd-r { display: flex; align-items: center; gap: 11px; }
+/* Wordmark gradien brand — lebih "keren" dari teks polos */
+.pdd-hd-main {
+  font-size: 17px; font-weight: 800; letter-spacing: 0.06em;
+  background: linear-gradient(95deg, #15418f, #2f6bd6 48%, #0f9d8f);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+/* Pemisah: bilah gradien tipis (ganti '|') */
+.pdd-hd-div2 {
+  width: 2px; height: 18px; border-radius: 2px;
+  background: linear-gradient(180deg, #15418f, #0f9d8f);
+}
 .pdd-hd-sub {
-  font-size: 12.5px; letter-spacing: 0.08em; color: #0f9d8f; font-weight: 800;
-  background: rgba(15, 157, 143, 0.10); border: 1px solid rgba(15, 157, 143, 0.25);
-  padding: 3px 10px; border-radius: 999px;
+  font-size: 12px; letter-spacing: 0.10em; color: #0f6e56; font-weight: 800;
+  background: rgba(15, 157, 143, 0.10); border: 1px solid rgba(15, 157, 143, 0.28);
+  padding: 3px 11px; border-radius: 999px;
 }
 </style>
