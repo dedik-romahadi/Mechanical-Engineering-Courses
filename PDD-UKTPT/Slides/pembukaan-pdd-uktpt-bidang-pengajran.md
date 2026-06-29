@@ -21,7 +21,7 @@ class: pdd-cover
 <circle cx="-2" cy="50" r="140" stroke="#f59e0b" stroke-width="2" opacity="0.11"/>
 </g>
 </svg>
-<div class="pdd-grid"><div class="pdd-rail pdd-rail-main"><div class="pdd-top"><span class="pdd-eyebrow"><span class="pdd-eyebrow-dot"></span><span class="pdd-eb-a">PDD-UKTPT</span><span class="pdd-eyebrow-sep">·</span><span class="pdd-eb-b">SERDOS 2026</span></span><div class="pdd-mk pdd-bp"><span class="pdd-mk-k">Bidang</span><span class="pdd-mk-v">Pengajaran</span></div><div class="pdd-mk"><span class="pdd-mk-k">Mata Kuliah</span><span class="pdd-mk-v">Optimalisasi dan Automasi</span></div></div><div class="pdd-goal"><div class="pdd-goal-h">Tujuan Presentasi</div><div class="pdd-goal-t">Mendemonstrasikan praktik pembelajaran mata kuliah ini secara utuh sebagai bukti Bidang Pengajaran dalam PDD-UKTPT, mencakup tiga aspek utama:</div><div class="pdd-chips"><span class="pdd-chip"><span class="pdd-chip-i pdd-chip-i--blue"></span>Penyampaian Materi</span><span class="pdd-chip"><span class="pdd-chip-i pdd-chip-i--teal"></span>Interaksi Mahasiswa</span><span class="pdd-chip"><span class="pdd-chip-i pdd-chip-i--amber"></span>Asesmen Capaian</span></div></div><div class="pdd-card"><div class="pdd-card-bar"></div><div class="pdd-card-l"><div class="pdd-ava"><img class="pdd-ava-img" src="./assets/dosen.jpg" alt="Foto Dedik Romahadi" /></div><div class="pdd-card-id"><div class="pdd-card-name">Dedik Romahadi, ST., M.Sc.</div><div class="pdd-card-note">Dosen Tetap</div><div class="pdd-card-inst">Universitas Mercu Buana</div></div></div><div class="pdd-card-rows"><div class="pdd-card-row"><span class="pdd-card-k">NIDN</span><span class="pdd-card-v">0306029106</span></div><div class="pdd-card-row"><span class="pdd-card-k">Fakultas</span><span class="pdd-card-v">Teknik</span></div><div class="pdd-card-row"><span class="pdd-card-k">Program Studi</span><span class="pdd-card-v">Teknik Mesin</span></div></div></div></div><div class="pdd-col-cam"><CameraFrame name="Dedik Romahadi" role="Narasumber" /></div></div>
+<div class="pdd-grid"><div class="pdd-rail pdd-rail-main"><div class="pdd-top"><span class="pdd-eyebrow"><span class="pdd-eyebrow-dot"></span><span class="pdd-eb-a">PDD-UKTPT</span><span class="pdd-eyebrow-sep">·</span><span class="pdd-eb-b">SERDOS 2026</span></span><div class="pdd-mk pdd-bp"><span class="pdd-mk-k">Bidang</span><span class="pdd-mk-v">Pengajaran</span></div><div class="pdd-mk"><span class="pdd-mk-k">Mata Kuliah</span><span class="pdd-mk-v">Optimalisasi dan Automasi</span></div></div><div class="pdd-goal"><div class="pdd-goal-h">Tujuan Presentasi</div><div class="pdd-goal-t">Mendemonstrasikan praktik pembelajaran mata kuliah ini secara utuh sebagai bukti Bidang Pengajaran dalam PDD-UKTPT, mencakup tiga aspek utama:</div><div class="pdd-chips"><span class="pdd-chip"><span class="pdd-chip-i pdd-chip-i--blue"></span>Penyampaian Materi</span><span class="pdd-chip"><span class="pdd-chip-i pdd-chip-i--teal"></span>Interaksi Mahasiswa</span><span class="pdd-chip"><span class="pdd-chip-i pdd-chip-i--amber"></span>Asesmen Capaian</span></div></div><div class="pdd-card"><div class="pdd-card-bar"></div><div class="pdd-card-l"><div class="pdd-ava"><img class="pdd-ava-img" src="./assets/dosen.jpg" alt="Foto Dedik Romahadi" /></div><div class="pdd-card-id"><div class="pdd-card-name">Dedik Romahadi, ST., M.Sc.</div><div class="pdd-card-note">Dosen Tetap</div><div class="pdd-card-inst">Universitas Mercu Buana</div></div></div><div class="pdd-card-rows"><div class="pdd-card-row"><span class="pdd-card-k">NIDN</span><span class="pdd-card-v">0306029106</span></div><div class="pdd-card-row"><span class="pdd-card-k">Fakultas</span><span class="pdd-card-v">Teknik</span></div><div class="pdd-card-row"><span class="pdd-card-k">Program Studi</span><span class="pdd-card-v">Teknik Mesin</span></div></div></div></div><div class="pdd-col-cam"><CameraFrame name="Dedik Romahadi" role="0306029106" /></div></div>
 
 <!--
 NARASI PEMBUKA:
@@ -45,7 +45,7 @@ class: pdd-page pdd-s2 cam-left
 
 <div class="pg2">
 <aside class="pg2-cam">
-<CameraFrame name="Dedik Romahadi" role="Narasumber" />
+<CameraFrame name="Dedik Romahadi" role="0306029106" />
 <div class="pg2-id">
 <div class="pg2-id-bar"></div>
 <div class="pg2-id-item">
@@ -110,7 +110,7 @@ class: pdd-page pdd-s3 cam-right
 
 <div class="pg2">
 <aside class="pg2-cam">
-<CameraFrame name="Dedik Romahadi" role="Narasumber" />
+<CameraFrame name="Dedik Romahadi" role="0306029106" />
 <div class="pg2-note">
 <div class="pg2-note-h"><span class="pg2-note-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg></span><span class="pg2-note-k">Alur Berulang</span></div>
 <div class="pg2-note-t">Ketiga pilar berulang di <b>setiap pertemuan</b>, saling menguatkan menuju CPMK.</div>
@@ -179,7 +179,7 @@ class: pdd-page pdd-s4 cam-left
 
 <div class="pg2">
 <aside class="pg2-cam">
-<CameraFrame name="Dedik Romahadi" role="Narasumber" />
+<CameraFrame name="Dedik Romahadi" role="0306029106" />
 <div class="pg2-note">
 <div class="pg2-note-h"><span class="pg2-note-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg></span><span class="pg2-note-k">Pilar 1 dari 3</span></div>
 <div class="pg2-pill"><span class="pg2-pill-k">Delivery</span><span class="pg2-pill-n">Penyampaian Materi</span></div>
@@ -259,7 +259,7 @@ class: pdd-page pdd-s5 cam-right
 
 <div class="pg2">
 <aside class="pg2-cam">
-<CameraFrame name="Dedik Romahadi" role="Narasumber" />
+<CameraFrame name="Dedik Romahadi" role="0306029106" />
 <div class="pg2-note">
 <div class="pg2-note-h"><span class="pg2-note-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg></span><span class="pg2-note-k">Pilar 2 dari 3</span></div>
 <div class="pg2-pill"><span class="pg2-pill-k">Interaction</span><span class="pg2-pill-n">Interaksi Mahasiswa</span></div>
@@ -339,7 +339,7 @@ class: pdd-page pdd-s6 cam-left
 
 <div class="pg2">
 <aside class="pg2-cam">
-<CameraFrame name="Dedik Romahadi" role="Narasumber" />
+<CameraFrame name="Dedik Romahadi" role="0306029106" />
 <div class="pg2-note">
 <div class="pg2-note-h"><span class="pg2-note-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></span><span class="pg2-note-k">Pilar 3 dari 3</span></div>
 <div class="pg2-pill"><span class="pg2-pill-k">Assessment</span><span class="pg2-pill-n">Asesmen Capaian</span></div>
@@ -424,7 +424,7 @@ class: pdd-page pdd-s7
 <p class="s7-lead">Berikut rekaman pembelajaran <b>langsung di kelas</b> bersama mahasiswa, menampilkan ketiga pilar dalam praktik nyata.</p>
 </div>
 <div class="s7-stage">
-<CameraFrame name="Dedik Romahadi" role="Narasumber" />
+<CameraFrame name="Dedik Romahadi" role="0306029106" />
 <span class="s7-tag"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Video Pembelajaran</span>
 </div>
 <div class="s7-chips">
