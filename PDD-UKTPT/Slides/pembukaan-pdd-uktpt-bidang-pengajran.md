@@ -26,7 +26,7 @@ class: pdd-cover
 <!--
 NARASI PEMBUKA:
 
-Bismillah. Assalamu'alaikum warahmatullahi wabarakatuh, salam sejahtera bagi kita semua.
+Bismillah. Assalamu'alaikum warahmatullahi wabarakatuh.
 
 Perkenalkan, nama saya Dedik Romahadi, S.T., M.Sc., Dosen Tetap pada Program Studi Teknik Mesin, Fakultas Teknik, Universitas Mercu Buana, dengan NIDN 0306029106.
 
