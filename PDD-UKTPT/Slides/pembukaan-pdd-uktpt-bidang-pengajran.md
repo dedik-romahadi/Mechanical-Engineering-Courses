@@ -91,9 +91,7 @@ class: pdd-page pdd-s2 cam-left
 <!--
 NARASI SLIDE 2:
 
-Pertama, profil singkat mata kuliah Optimalisasi dan Automasi.
-
-Mata kuliah ini membekali mahasiswa Teknik Mesin untuk merancang, menyimulasikan, dan mengoptimalkan sistem mekanik dengan pendekatan otomasi berbasis teknologi Industri 4.0, secara utuh dari analisis kebutuhan hingga evaluasi kinerja.
+Mata kuliah Optimalisasi dan Automasi membekali mahasiswa Teknik Mesin untuk merancang, menyimulasikan, dan mengoptimalkan sistem mekanik dengan pendekatan otomasi berbasis teknologi Industri 4.0, secara utuh dari analisis kebutuhan hingga evaluasi kinerja.
 
 Secara kurikulum, mata kuliah ini menopang empat CPL. Yang terbesar adalah CPL3 dengan 43 persen, yaitu merancang solusi rekayasa berbasis teknologi 4.0 dengan pertimbangan multi-aspek, kemudian disusul CPL5 sebesar 22 persen, CPL4 21 persen, dan CPL6 14 persen.
 
