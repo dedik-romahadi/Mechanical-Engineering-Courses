@@ -3,7 +3,7 @@ theme: default
 colorSchema: light
 title: Pembukaan PDD-UKTPT
 info: Pembukaan PDD-UKTPT · SERDOS 2026
-transition: slide-left
+transition: fade
 layout: default
 class: pdd-cover
 ---
@@ -24,22 +24,21 @@ class: pdd-cover
 <div class="pdd-grid"><div class="pdd-rail pdd-rail-main"><div class="pdd-top"><span class="pdd-eyebrow"><span class="pdd-eyebrow-dot"></span><span class="pdd-eb-a">PDD-UKTPT</span><span class="pdd-eyebrow-sep">·</span><span class="pdd-eb-b">SERDOS 2026</span></span><div class="pdd-mk pdd-bp"><span class="pdd-mk-k">Bidang</span><span class="pdd-mk-v">Pengajaran</span></div><div class="pdd-mk"><span class="pdd-mk-k">Mata Kuliah</span><span class="pdd-mk-v">Optimalisasi dan Automasi</span></div></div><div class="pdd-goal"><div class="pdd-goal-h">Tujuan Presentasi</div><div class="pdd-goal-t">Mendemonstrasikan praktik pembelajaran mata kuliah ini secara utuh sebagai bukti Bidang Pengajaran dalam PDD-UKTPT, mencakup tiga aspek utama:</div><div class="pdd-chips"><span class="pdd-chip"><span class="pdd-chip-i pdd-chip-i--blue"></span>Penyampaian Materi</span><span class="pdd-chip"><span class="pdd-chip-i pdd-chip-i--teal"></span>Interaksi Mahasiswa</span><span class="pdd-chip"><span class="pdd-chip-i pdd-chip-i--amber"></span>Asesmen Capaian</span></div></div><div class="pdd-card"><div class="pdd-card-bar"></div><div class="pdd-card-l"><div class="pdd-ava"><img class="pdd-ava-img" src="./assets/dosen.jpg" alt="Foto Dedik Romahadi" /></div><div class="pdd-card-id"><div class="pdd-card-name">Dedik Romahadi, ST., M.Sc.</div><div class="pdd-card-note">Dosen Tetap</div><div class="pdd-card-inst">Universitas Mercu Buana</div></div></div><div class="pdd-card-rows"><div class="pdd-card-row"><span class="pdd-card-k">NIDN</span><span class="pdd-card-v">0306029106</span></div><div class="pdd-card-row"><span class="pdd-card-k">Fakultas</span><span class="pdd-card-v">Teknik</span></div><div class="pdd-card-row"><span class="pdd-card-k">Program Studi</span><span class="pdd-card-v">Teknik Mesin</span></div></div></div></div><div class="pdd-col-cam"><CameraFrame name="Dedik Romahadi" role="Narasumber" /></div></div>
 
 <!--
-NARASI PEMBUKA (baca saat rekaman):
+NARASI PEMBUKA:
 
-Bismillahirrahmanirrahim. Assalamu'alaikum warahmatullahi wabarakatuh, selamat pagi dan salam sejahtera bagi kita semua.
+Bismillah. Assalamu'alaikum warahmatullahi wabarakatuh, salam sejahtera bagi kita semua.
 
 Perkenalkan, nama saya Dedik Romahadi, S.T., M.Sc., Dosen Tetap pada Program Studi Teknik Mesin, Fakultas Teknik, Universitas Mercu Buana, dengan NIDN 0306029106.
 
-Pada kesempatan ini, saya menyampaikan video pembelajaran untuk Bidang Pengajaran dalam dokumen PDD-UKTPT, sebagai salah satu syarat dalam proses Sertifikasi Dosen tahun 2026 yang diselenggarakan oleh Kementerian Pendidikan Tinggi, Sains, dan Teknologi.
+Pada kesempatan ini, saya menyampaikan video pembelajaran untuk Bidang Pengajaran dalam dokumen Pernyataan Diri Dosen dalam Unjuk Kerja Tri Dharma Perguruan Tinggi, atau disingkat PDD-UKTPT, sebagai salah satu syarat dalam proses Sertifikasi Dosen tahun 2026 yang diselenggarakan oleh Kementerian Pendidikan Tinggi, Sains, dan Teknologi, atau Kemdiktisaintek.
 
 Mata kuliah yang akan saya bawakan adalah Optimalisasi dan Automasi. Melalui video ini, saya akan mendemonstrasikan praktik pembelajaran mata kuliah tersebut secara utuh, mulai dari penyampaian materi, interaksi dengan mahasiswa, hingga asesmen capaian pembelajaran.
 
-Baiklah, untuk mengawali, mari kita lihat gambaran umum dan capaian pembelajaran dari mata kuliah ini. [lanjut ke slide berikutnya]
--->
+Baiklah, untuk mengawali, mari kita lihat gambaran umum dan capaian pembelajaran dari mata kuliah ini.-->
 
 ---
 layout: default
-transition: fade
+transition: slide-left
 title: Profil & Capaian Pembelajaran
 class: pdd-page pdd-s2 cam-left
 ---
@@ -90,7 +89,7 @@ class: pdd-page pdd-s2 cam-left
 </div>
 
 <!--
-NARASI SLIDE 2 (baca saat rekaman):
+NARASI SLIDE 2:
 
 Sebelum masuk ke praktik pembelajaran, izinkan saya menjelaskan secara singkat profil mata kuliah Optimalisasi dan Automasi ini.
 
@@ -100,12 +99,11 @@ Secara kurikulum, mata kuliah ini menopang empat Capaian Pembelajaran Lulusan, a
 
 Keempat CPL tersebut kemudian diterjemahkan menjadi lima Capaian Pembelajaran Mata Kuliah, atau CPMK, yang dirinci lagi ke dalam empat belas Sub-CPMK. Mulai dari analisis kebutuhan, desain dan simulasi, penerapan teknologi 4.0, perancangan sistem otomasi 4.0, hingga evaluasi kinerja sistem. Bobot kelima CPMK ini cukup berimbang, antara empat belas sampai dua puluh tiga persen.
 
-Lima CPMK inilah yang akan saya buktikan pencapaiannya melalui tiga aspek pembelajaran tadi, yaitu penyampaian materi, interaksi dengan mahasiswa, dan asesmen capaian. [lanjut ke slide berikutnya]
--->
+Lima CPMK inilah yang akan saya buktikan pencapaiannya melalui tiga aspek pembelajaran tadi, yaitu penyampaian materi, interaksi dengan mahasiswa, dan asesmen capaian.-->
 
 ---
 layout: default
-transition: slide-left
+transition: zoom
 title: Alur Pembelajaran
 class: pdd-page pdd-s3 cam-right
 ---
@@ -160,7 +158,7 @@ class: pdd-page pdd-s3 cam-right
 </div>
 
 <!--
-NARASI SLIDE 3 (baca saat rekaman):
+NARASI SLIDE 3:
 
 Setelah memahami capaian yang ditargetkan, sekarang saya jelaskan bagaimana praktik pembelajaran mata kuliah ini dijalankan. Saya merangkumnya dalam tiga pilar yang berjalan berurutan dan berulang di setiap pertemuan.
 
@@ -170,12 +168,11 @@ Pilar kedua, Interaction atau interaksi dengan mahasiswa. Saya membangun keterli
 
 Pilar ketiga, Assessment atau asesmen capaian. Penilaian dibagi atas Tugas enam puluh persen, UTS dua puluh persen, dan UAS dua puluh persen, yang seluruhnya dipetakan ke CPMK sehingga capaian benar-benar terukur.
 
-Ketiga pilar ini selaras dengan Silabus dan RPS Program Studi, dan berulang sepanjang empat belas pertemuan. Pada bagian berikutnya, saya akan mendemonstrasikan masing-masing pilar secara lebih rinci. [lanjut ke slide berikutnya]
--->
+Ketiga pilar ini selaras dengan Silabus dan RPS Program Studi, dan berulang sepanjang empat belas pertemuan. Pada bagian berikutnya, saya akan mendemonstrasikan masing-masing pilar secara lebih rinci.-->
 
 ---
 layout: default
-transition: slide-up
+transition: glide
 title: Penyampaian Materi
 class: pdd-page pdd-s4 cam-left
 ---
@@ -208,7 +205,7 @@ class: pdd-page pdd-s4 cam-left
 </div>
 <div class="media-card" style="--c:#e8890b;--cs:#f9b13e">
 <span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg></span>
-<div class="media-tx"><div class="media-top"><span class="media-name">Video Pembelajaran</span><span class="media-tag">Asinkron</span></div><div class="media-d">Penjelasan terekam, dapat diputar ulang kapan saja.</div></div>
+<div class="media-tx"><div class="media-top"><span class="media-name">Video Pembelajaran</span><span class="media-tag">Asinkron</span></div><div class="media-d">Materi video, dapat diputar ulang kapan saja.</div></div>
 </div>
 </div>
 <div class="pg2-foot">
@@ -239,7 +236,7 @@ class: pdd-page pdd-s4 cam-left
 </div>
 
 <!--
-NARASI SLIDE 4 (baca saat rekaman):
+NARASI SLIDE 4:
 
 Sekarang kita masuk ke pilar pertama, yaitu Delivery atau penyampaian materi, secara lebih rinci. Saya menyampaikan materi melalui sebuah ekosistem media digital yang seluruhnya berbasis teknologi Industri 4.0.
 
@@ -249,14 +246,13 @@ Kedua, Slide Interaktif yang dibuat dengan Slidev. Di sini konsep tidak hanya di
 
 Ketiga, Python dan Jupyter. Saya mendemonstrasikan kode secara langsung untuk menjalankan simulasi optimasi dan automasi, sehingga mahasiswa melihat penerapan nyata dari teori.
 
-Keempat, Video Pembelajaran. Penjelasan saya rekam agar dapat diputar ulang kapan saja, mendukung belajar yang mandiri dan fleksibel.
+Keempat, Video Pembelajaran, yaitu materi dalam bentuk video yang dapat diputar ulang kapan saja sehingga mendukung belajar mandiri dan fleksibel.
 
-Perpaduan keempat media ini secara langsung mendukung pencapaian CPMK ketiga dan keempat yang berkaitan dengan penerapan teknologi 4.0. [lanjut ke slide berikutnya]
--->
+Perpaduan keempat media ini secara langsung mendukung pencapaian CPMK ketiga dan keempat yang berkaitan dengan penerapan teknologi 4.0.-->
 
 ---
 layout: default
-transition: fade
+transition: blur-fade
 title: Interaksi Mahasiswa
 class: pdd-page pdd-s5 cam-right
 ---
@@ -324,7 +320,7 @@ class: pdd-page pdd-s5 cam-right
 </div>
 
 <!--
-NARASI SLIDE 5 (baca saat rekaman):
+NARASI SLIDE 5:
 
 Pilar kedua adalah Interaction, yaitu interaksi dengan mahasiswa. Prinsip saya pembelajaran berpusat pada mahasiswa, dengan umpan balik yang langsung mereka terima.
 
@@ -332,12 +328,11 @@ Bentuk interaksinya beragam. Pertama, Kuis Interaktif, yaitu soal yang memberi u
 
 Ketiga, Diskusi dan Tanya-Jawab sebagai dialog dua arah untuk mengklarifikasi konsep yang sulit. Keempat, Kerja Kelompok, yang mendorong kolaborasi sekaligus melatih mahasiswa mempresentasikan hasilnya.
 
-Seperti terlihat pada ilustrasi, interaksi ini berlangsung dua arah, antara dosen dan mahasiswa, sehingga proses belajar menjadi hidup dan adaptif. [lanjut ke slide berikutnya]
--->
+Seperti terlihat pada ilustrasi, interaksi ini berlangsung dua arah, antara dosen dan mahasiswa, sehingga proses belajar menjadi hidup dan adaptif.-->
 
 ---
 layout: default
-transition: slide-left
+transition: slide-up
 title: Asesmen Capaian
 class: pdd-page pdd-s6 cam-left
 ---
@@ -371,7 +366,6 @@ class: pdd-page pdd-s6 cam-left
 </div>
 <div class="pg2-foot">
 <span class="pg2-foot-i"><i class="dot dot-grad"></i>5 CPMK · 14 Sub-CPMK</span>
-<span class="pg2-foot-i"><i class="dot" style="background:#8c98ad"></i>Praktikum 0%</span>
 </div>
 <div class="pg2-illus">
 <svg viewBox="0 0 680 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -407,16 +401,47 @@ class: pdd-page pdd-s6 cam-left
 </div>
 
 <!--
-NARASI SLIDE 6 (baca saat rekaman):
+NARASI SLIDE 6:
 
 Pilar ketiga adalah Assessment atau asesmen capaian. Prinsip utamanya, setiap komponen penilaian dipetakan secara jelas ke CPMK, sesuai pendekatan Outcome-Based Education.
 
-Komponen penilaian terdiri atas tiga bagian. Tugas memiliki bobot terbesar, enam puluh persen, bersifat berkelanjutan dan mencakup mayoritas Sub-CPMK; bahkan Sub-CPMK 2.1, 5.1, dan 5.2 dinilai sepenuhnya melalui Tugas. Berikutnya, UTS dengan bobot dua puluh persen yang mengukur Sub-CPMK 1.1, 1.2, 1.3, 2.2, dan 2.3. Lalu UAS, juga dua puluh persen, mengukur Sub-CPMK 3.1 sampai 3.3 dan 4.1 sampai 4.3.
+Komponen penilaian terdiri atas tiga bagian. Tugas memiliki bobot terbesar, yaitu enam puluh persen, bersifat berkelanjutan dan mencakup mayoritas Sub-CPMK. Berikutnya, UTS dan UAS yang masing-masing berbobot dua puluh persen, mengukur Sub-CPMK sesuai pemetaan yang tampak pada rincian di slide ini.
 
-Seperti terlihat pada ilustrasi, CPMK dijabarkan dan diukur melalui ketiga komponen penilaian ini, yang kemudian bermuara pada capaian pembelajaran yang benar-benar terukur. Pada periode ini komponen Praktikum belum diberi bobot.
+Seperti terlihat pada ilustrasi, CPMK dijabarkan dan diukur melalui ketiga komponen penilaian ini, yang kemudian bermuara pada capaian pembelajaran yang benar-benar terukur.
 
-Dengan demikian, lengkaplah ketiga pilar praktik pembelajaran mata kuliah ini, mulai dari penyampaian materi, interaksi mahasiswa, hingga asesmen capaian. [lanjut ke slide berikutnya]
+Dengan demikian, lengkaplah ketiga pilar praktik pembelajaran mata kuliah ini, mulai dari penyampaian materi, interaksi mahasiswa, hingga asesmen capaian.-->
+
+---
+layout: default
+transition: zoom
+title: Video Pembelajaran
+class: pdd-page pdd-s7
+---
+
+<div class="s7">
+<div class="s7-head">
+<h2 class="s7-title">Demonstrasi <span class="pg2-title-g">Praktik Mengajar di Kelas</span></h2>
+<p class="s7-lead">Berikut rekaman pembelajaran <b>langsung di kelas</b> bersama mahasiswa, menampilkan ketiga pilar dalam praktik nyata.</p>
+</div>
+<div class="s7-stage">
+<CameraFrame name="Dedik Romahadi" role="Narasumber" />
+<span class="s7-tag"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Video Pembelajaran</span>
+</div>
+<div class="s7-chips">
+<span class="pg2-foot-i"><i class="dot" style="background:#e8484f"></i>Live di kelas tatap muka virtual</span>
+<span class="pg2-foot-i"><i class="dot dot-grad"></i>Mahasiswa Teknik Mesin</span>
+<span class="pg2-foot-i"><i class="dot" style="background:#e8890b"></i>Penyampaian · Interaksi · Asesmen</span>
+</div>
+</div>
+
+<!--
+NARASI SLIDE 7:
+
+Demikian pemaparan kerangka praktik pembelajaran mata kuliah Optimalisasi dan Automasi, mulai dari capaian pembelajaran sampai ketiga pilarnya, yaitu penyampaian materi, interaksi dengan mahasiswa, dan asesmen capaian.
+
+Sebagai bukti penerapannya, berikut saya tampilkan rekaman pembelajaran langsung di kelas tatap muka virtual bersama mahasiswa Teknik Mesin.
 -->
+
 
 
 
