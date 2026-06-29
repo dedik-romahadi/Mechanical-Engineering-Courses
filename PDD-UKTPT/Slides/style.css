@@ -142,3 +142,129 @@
 /* KANAN: FRAME KAMERA, kolom sendiri, ukuran natural, center, tak overflow */
 .pdd-col-cam { display: flex; align-items: center; justify-content: center; min-height: 0; }
 .pdd-col-cam .cf { max-height: 100%; }
+
+/* ============================================================
+   SLIDE KONTEN UMUM (.pdd-page) — ruang untuk header (64px) + footer (36px).
+   Kamera berselang-seling: genap = kolom KIRI (.cam-left), ganjil = kanan (.cam-right).
+   Class-based (bukan .slidev-page-N) → tahan sisip/hapus slide.
+   ============================================================ */
+.slidev-layout.pdd-page {
+  padding: 68px 40px 42px !important;
+  position: relative; overflow: hidden;
+}
+
+/* ── Grid 2 kolom: kamera + konten ── */
+.pg2 {
+  position: relative; z-index: 2; height: 100%;
+  display: grid; grid-template-columns: 200px minmax(0, 1fr);
+  column-gap: 24px; align-items: stretch;
+  /* Slidev .slidev-layout mewariskan line-height ~31px (fixed) ke semua turunan,
+     menggelembungkan tinggi chip/badge/baris. Set unitless agar dihitung ulang per font. */
+  line-height: 1.35;
+}
+.pdd-page.cam-right .pg2 { grid-template-columns: minmax(0, 1fr) 200px; }
+.pdd-page.cam-right .pg2-main { order: 1; }
+.pdd-page.cam-right .pg2-cam { order: 2; }
+
+/* ── KOLOM KAMERA + identitas MK ── */
+.pg2-cam { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.pg2-cam .cf { width: 100%; max-width: 200px; }
+.pg2-id {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 5px;
+  background: #fff; border: 1px solid var(--line); border-radius: 13px;
+  padding: 8px 12px; box-shadow: 0 12px 26px -18px rgba(15, 28, 52, 0.55);
+}
+.pg2-id-bar { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--blue), var(--teal) 60%, var(--amber)); }
+.pg2-id-item { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.pg2-id-ic {
+  flex: none; width: 26px; height: 26px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--blue), var(--teal));
+  box-shadow: 0 6px 14px -8px rgba(21, 65, 143, 0.6);
+}
+.pg2-id-ic--t { background: linear-gradient(135deg, var(--teal), var(--amber)); }
+.pg2-id-ic svg { width: 14px; height: 14px; fill: #fff; display: block; }
+.pg2-id-tx { display: flex; flex-direction: column; min-width: 0; }
+.pg2-id-k { font-size: 9.2px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #8c98ad; line-height: 1.2; }
+.pg2-id-v { font-size: 12.5px; font-weight: 800; color: var(--ink); line-height: 1.18; margin-top: 1px; }
+
+/* Komponen Nilai: bar proporsi 60/20/20 + legenda */
+.pg2-id-grade { display: flex; flex-direction: column; gap: 4px; padding-top: 5px; border-top: 1px solid #eef2f8; }
+.pg2-bar { display: flex; height: 9px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(15, 28, 52, 0.05); }
+.pg2-bar-s { height: 100%; }
+.pg2-bar-tugas { width: 60%; background: linear-gradient(90deg, var(--blue), var(--blue2)); }
+.pg2-bar-uts { width: 20%; background: var(--teal); }
+.pg2-bar-uas { width: 20%; background: var(--amber); }
+.pg2-leg { display: flex; flex-wrap: wrap; gap: 4px 9px; }
+.pg2-leg-i { display: inline-flex; align-items: center; gap: 5px; font-size: 9.8px; font-weight: 800; color: var(--ink); line-height: 1.2; }
+.pg2-leg-i i { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.pg2-leg .d--b { background: var(--blue2); }
+.pg2-leg .d--t { background: var(--teal); }
+.pg2-leg .d--a { background: var(--amber); }
+
+/* Slidev .slidev-layout mewariskan line-height ~31px (fixed px) ke turunan,
+   menggelembungkan tinggi chip/badge/baris. Paksa line-height kecil pada leaf chip. */
+.pg2-no, .pg2-w, .pg2-sec-n, .pg2-sec-t,
+.pg2-cplc-k, .pg2-cplc-w, .pg2-cplc-d, .pg2-cplc-top,
+.pg2-id-k, .pg2-id-v, .pg2-row, .pg2-cplc { line-height: 1.25; }
+
+/* ── KOLOM KONTEN ── (judul ringkas ada di chip header; judul deskriptif di body) */
+.pg2-main { min-width: 0; display: flex; flex-direction: column; }
+.pg2-main h2.pg2-title { margin: 10px 0 0; font-size: 18px; line-height: 1.12; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+.pg2-title-g {
+  background: linear-gradient(95deg, var(--blue), var(--blue2) 45%, var(--teal));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.pg2-main p.pg2-desc { margin: 3px 0 0; font-size: 13px; line-height: 1.42; color: var(--muted); }
+.pg2-desc b { color: var(--ink); font-weight: 800; }
+
+/* ── Section heading dengan label + chip ── */
+.pg2-sec { margin-top: 9px; }
+.pg2-sec + .pg2-sec { margin-top: 23px; }   /* jarak lebih besar antara CPL dan CPMK */
+.pg2-sec-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.pg2-sec-t {
+  position: relative; padding-left: 12px;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--blue);
+}
+.pg2-sec-t::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 15px; border-radius: 2px; background: linear-gradient(180deg, var(--blue), var(--teal)); }
+.pg2-sec-n {
+  flex: none; font-size: 10.5px; font-weight: 800; color: #0f6e56; white-space: nowrap;
+  background: rgba(15, 157, 143, 0.10); border: 1px solid rgba(15, 157, 143, 0.22);
+  padding: 2px 10px; border-radius: 999px;
+}
+
+/* ── CPL: 4 mini-kartu sejajar ── */
+.pg2-cpl { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.pg2-cplc {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 3px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c, var(--blue)) 7%, #fff), #fff 72%);
+  border: 1px solid var(--line); border-radius: 11px;
+  padding: 8px 10px; box-shadow: 0 8px 18px -16px rgba(15, 28, 52, 0.5);
+}
+.pg2-cplc::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--c, var(--blue)); }
+.pg2-cplc::after { content: ''; position: absolute; left: 0; bottom: 0; height: 3.5px; width: var(--wpct, 0%); background: var(--c, var(--blue)); opacity: 0.92; }
+.pg2-cplc-top { display: flex; align-items: center; justify-content: space-between; }
+.pg2-cplc-k { font-size: 13px; font-weight: 900; color: var(--c, var(--blue)); letter-spacing: 0.02em; }
+.pg2-cplc-w { font-size: 10.5px; font-weight: 800; color: var(--c, var(--blue)); background: color-mix(in srgb, var(--c, var(--blue)) 13%, #fff); border: 1px solid color-mix(in srgb, var(--c, var(--blue)) 30%, #fff); padding: 1px 8px; border-radius: 999px; }
+.pg2-cplc-d { font-size: 10.5px; line-height: 1.3; color: var(--muted); font-weight: 600; }
+
+/* ── CPMK: 5 baris ── */
+.pg2-cpmk { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.pg2-row {
+  position: relative;
+  display: flex; align-items: center; gap: 11px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c, var(--blue)) 9%, #fff), #fff 56%);
+  border: 1px solid var(--line); border-radius: 11px;
+  padding: 8px 13px 8px 14px; box-shadow: 0 6px 16px -15px rgba(15, 28, 52, 0.5);
+}
+.pg2-row::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 4px; border-radius: 0 3px 3px 0; background: linear-gradient(180deg, var(--cs, var(--teal)), var(--c, var(--blue))); }
+.pg2-no { flex: none; width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 900; color: #fff; background: linear-gradient(135deg, var(--cs, var(--teal)), var(--c, var(--blue))); box-shadow: 0 4px 10px -5px color-mix(in srgb, var(--c, var(--blue)) 65%, transparent); }
+.pg2-rt { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.3; color: var(--muted); }
+.pg2-rt b { color: var(--ink); font-weight: 800; }
+.pg2-w { flex: none; font-size: 11.5px; font-weight: 800; color: var(--c, var(--blue)); background: color-mix(in srgb, var(--c, var(--blue)) 12%, #fff); border: 1px solid color-mix(in srgb, var(--c, var(--blue)) 28%, #fff); padding: 2px 10px; border-radius: 999px; }
+
+/* ── Fallback skrol bila konten tak muat (opsional, diaktifkan via .pg2-scroll) ── */
+.slidev-layout.pdd-page.pg2-scroll .pg2-main { overflow-y: auto; padding-right: 4px; }

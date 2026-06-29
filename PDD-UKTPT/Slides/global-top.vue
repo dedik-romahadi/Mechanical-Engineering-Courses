@@ -10,6 +10,12 @@
       <span class="pdd-hd-div"></span>
       <img :src="dikti" class="pdd-logo pdd-logo-dikti" alt="Diktisaintek Berdampak" />
     </div>
+    <div v-if="showTitle" class="pdd-hd-topic">
+      <span class="pdd-hd-dot"></span>
+      <transition name="pdd-hd-fade" mode="out-in">
+        <span class="pdd-hd-title" :key="title">{{ title }}</span>
+      </transition>
+    </div>
     <div class="pdd-hd-r">
       <span class="pdd-hd-main">PDD-UKTPT</span>
       <span class="pdd-hd-div2"></span>
@@ -22,8 +28,16 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useNav } from '@slidev/client'
 import umb from './assets/umb.png'
 import dikti from './assets/diktisaintek.png'
+
+// Judul tiap slide ditarik dari frontmatter `title` (meta.slide.title), tampil di header.
+// Disembunyikan di slide 1 (cover) yang punya treatment judul sendiri.
+const { currentPage, currentSlideRoute } = useNav()
+const showTitle = computed(() => currentPage.value !== 1)
+const title = computed(() => currentSlideRoute.value?.meta?.slide?.title || '')
 </script>
 
 <style scoped>
@@ -39,6 +53,42 @@ import dikti from './assets/diktisaintek.png'
   content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
   background: linear-gradient(90deg, #15418f, #0f9d8f 60%, #f59e0b);
 }
+/* Judul slide: chip di tengah header (absolute), aksen dot berdenyut + pita brand */
+.pdd-hd-topic {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: inline-flex; align-items: center; gap: 10px; max-width: 58%; pointer-events: none;
+  padding: 6px 18px; border-radius: 999px;
+  background: linear-gradient(90deg, rgba(21, 65, 143, 0.10), rgba(15, 157, 143, 0.10) 55%, rgba(245, 158, 11, 0.10));
+  border: 1px solid rgba(47, 107, 214, 0.30);
+  box-shadow: 0 10px 24px -14px rgba(21, 65, 143, 0.5);
+}
+.pdd-hd-dot {
+  width: 11px; height: 11px; border-radius: 50%; flex: none;
+  background: linear-gradient(135deg, #2f6bd6, #0f9d8f);
+  box-shadow: 0 0 0 0 rgba(15, 157, 143, 0.55);
+  animation: pdd-hd-pulse 2.2s ease-out infinite;
+}
+@keyframes pdd-hd-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(15, 157, 143, 0.55); }
+  70% { box-shadow: 0 0 0 7px rgba(15, 157, 143, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(15, 157, 143, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .pdd-hd-dot { animation: none; } }
+.pdd-hd-title {
+  min-width: 0;
+  font-size: 16px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: linear-gradient(95deg, #15418f, #2f6bd6 48%, #0f9d8f);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  /* Segoe UI mentok di 700/900; tebalkan glyph gradien via stroke tipis senada */
+  -webkit-text-stroke: 0.4px #15418f;
+}
+.pdd-hd-fade-enter-active, .pdd-hd-fade-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
+.pdd-hd-fade-enter-from { opacity: 0; transform: translateY(5px); }
+.pdd-hd-fade-leave-to { opacity: 0; transform: translateY(-5px); }
+@media (prefers-reduced-motion: reduce) { .pdd-hd-fade-enter-active, .pdd-hd-fade-leave-active { transition: none; } }
+
 .pdd-hd-l { display: flex; align-items: center; gap: 16px; }
 .pdd-logo { height: 50px; width: auto; object-fit: contain; display: block; }
 .pdd-logo-dikti { height: 52px; }
