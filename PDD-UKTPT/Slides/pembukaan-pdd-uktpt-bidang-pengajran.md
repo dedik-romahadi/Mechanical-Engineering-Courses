@@ -265,7 +265,7 @@ class: pdd-page pdd-s5 cam-right
 <div class="pg2-media">
 <div class="media-card" style="--c:#15418f;--cs:#2056b3">
 <span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.07 12.85c.77-1.39 2.25-2.21 3.11-3.44.91-1.29.4-3.7-2.18-3.7-1.69 0-2.52 1.28-2.87 2.34L6.54 7.87C7.25 5.74 9.18 4 11.99 4c2.35 0 3.96 1.07 4.78 2.41.7 1.15 1.11 3.3.03 4.9-1.2 1.77-2.35 2.31-2.97 3.45-.25.46-.35.76-.35 2.24h-2.89c-.01-.78-.13-2.05.45-3.15zM14 20c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"/></svg></span>
-<div class="media-tx"><div class="media-top"><span class="media-name">Kuis Interaktif</span></div><div class="media-d">Soal dengan umpan balik dan reward otomatis.</div></div>
+<div class="media-tx"><div class="media-top"><span class="media-name">Kuis Interaktif</span></div><div class="media-d">Soal dengan umpan balik dan penilaian otomatis.</div></div>
 </div>
 <div class="media-card" style="--c:#0f9d8f;--cs:#1ec3b1">
 <span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zm9.84 4.63-4.54-2.26c-.17-.07-.35-.11-.54-.11H13v-6c0-.83-.67-1.5-1.5-1.5S10 6.67 10 7.5v10.74l-3.43-.72c-.08-.01-.15-.03-.24-.03-.31 0-.59.13-.79.33l-.79.8 4.94 4.94c.27.27.65.44 1.06.44h6.79c.75 0 1.33-.55 1.44-1.28l.75-5.27c.01-.07.02-.14.02-.2 0-.62-.38-1.16-.92-1.39z"/></svg></span>
@@ -316,7 +316,7 @@ NARASI SLIDE 5:
 
 Pilar kedua, Interaction. Prinsipnya pembelajaran berpusat pada mahasiswa dengan umpan balik langsung.
 
-Bentuknya beragam. Pertama, Kuis Interaktif, yaitu soal dengan umpan balik dan reward otomatis. Kedua, Simulasi yang Dapat Dicoba, di mana mahasiswa memanipulasi komponen interaktif untuk eksplorasi mandiri. Ketiga, Diskusi dan Tanya-Jawab, sebagai dialog dua arah untuk mengklarifikasi konsep yang sulit. Keempat, Kerja Kelompok, yang mendorong kolaborasi sekaligus melatih mahasiswa mempresentasikan hasil.
+Interaksi ini saya wujudkan dalam empat bentuk. Pertama, Kuis Interaktif, yaitu soal dengan umpan balik dan penilaian otomatis. Kedua, Simulasi yang Dapat Dicoba, di mana mahasiswa memanipulasi komponen interaktif untuk eksplorasi mandiri. Ketiga, Diskusi dan Tanya-Jawab, sebagai dialog dua arah untuk mengklarifikasi konsep yang sulit. Keempat, Kerja Kelompok, yang mendorong kolaborasi sekaligus melatih mahasiswa mempresentasikan hasil.
 
 Seperti pada ilustrasi, interaksi berlangsung dua arah antara dosen dan mahasiswa, sehingga proses belajar menjadi hidup dan adaptif.-->
 
