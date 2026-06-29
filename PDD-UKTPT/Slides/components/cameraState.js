@@ -17,7 +17,15 @@ export async function ensureStream() {
   if (pending) return pending
   pending = navigator.mediaDevices
     .getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 960 } },
+      // Minta sumber LANDSCAPE 16:9. Stage slide 7 (16:9) jadi tampil utuh
+      // (tidak ter-zoom), sementara frame potret 3:4 di slide 1-6 cukup
+      // di-crop kiri-kanan oleh object-fit:cover -> tetap headshot rapi.
+      video: {
+        facingMode: 'user',
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        aspectRatio: { ideal: 1.7777778 },
+      },
       audio: false,
     })
     .then((s) => {
