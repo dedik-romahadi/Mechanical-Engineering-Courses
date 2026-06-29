@@ -395,7 +395,7 @@ NARASI SLIDE 6:
 
 Pilar ketiga, Assessment atau asesmen capaian. Prinsipnya, setiap komponen penilaian dipetakan jelas ke CPMK sesuai pendekatan Outcome-Based Education.
 
-Ada tiga komponen. Tugas berbobot terbesar, enam puluh persen, bersifat berkelanjutan dan mencakup mayoritas Sub-CPMK. UTS dan UAS masing-masing dua puluh persen, mengukur Sub-CPMK sesuai pemetaan pada slide ini.
+Ada tiga komponen. Tugas memiliki bobot terbesar, yaitu enam puluh persen, bersifat berkelanjutan dan mencakup mayoritas Sub-CPMK. UTS dan UAS masing-masing dua puluh persen, mengukur Sub-CPMK sesuai pemetaan pada slide ini.
 
 Seperti pada ilustrasi, CPMK dijabarkan dan diukur melalui ketiga komponen ini, lalu bermuara pada capaian pembelajaran yang terukur.
 
