@@ -254,5 +254,87 @@ Keempat, Video Pembelajaran. Penjelasan saya rekam agar dapat diputar ulang kapa
 Perpaduan keempat media ini secara langsung mendukung pencapaian CPMK ketiga dan keempat yang berkaitan dengan penerapan teknologi 4.0. [lanjut ke slide berikutnya]
 -->
 
+---
+layout: default
+transition: fade
+title: Interaksi Mahasiswa
+class: pdd-page pdd-s5 cam-right
+---
+
+<div class="pg2">
+<aside class="pg2-cam">
+<CameraFrame name="Dedik Romahadi" role="Narasumber" />
+<div class="pg2-note">
+<div class="pg2-note-h"><span class="pg2-note-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg></span><span class="pg2-note-k">Pilar 2 dari 3</span></div>
+<div class="pg2-pill"><span class="pg2-pill-k">Interaction</span><span class="pg2-pill-n">Interaksi Mahasiswa</span></div>
+<div class="pg2-note-t">Pembelajaran <b>berpusat pada mahasiswa</b> dengan umpan balik langsung.</div>
+<div class="pg2-prog"><span></span><span class="on"></span><span></span></div>
+</div>
+</aside>
+<section class="pg2-main">
+<h2 class="pg2-title">Belajar Aktif &amp; <span class="pg2-title-g">Umpan Balik Langsung</span></h2>
+<p class="pg2-desc">Mahasiswa dilibatkan secara aktif sepanjang pembelajaran melalui beragam interaksi yang memberi <b>respons langsung</b>.</p>
+<div class="pg2-media">
+<div class="media-card" style="--c:#15418f;--cs:#2056b3">
+<span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.07 12.85c.77-1.39 2.25-2.21 3.11-3.44.91-1.29.4-3.7-2.18-3.7-1.69 0-2.52 1.28-2.87 2.34L6.54 7.87C7.25 5.74 9.18 4 11.99 4c2.35 0 3.96 1.07 4.78 2.41.7 1.15 1.11 3.3.03 4.9-1.2 1.77-2.35 2.31-2.97 3.45-.25.46-.35.76-.35 2.24h-2.89c-.01-.78-.13-2.05.45-3.15zM14 20c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"/></svg></span>
+<div class="media-tx"><div class="media-top"><span class="media-name">Kuis Interaktif</span></div><div class="media-d">Soal dengan umpan balik dan reward otomatis.</div></div>
+</div>
+<div class="media-card" style="--c:#0f9d8f;--cs:#1ec3b1">
+<span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zm9.84 4.63-4.54-2.26c-.17-.07-.35-.11-.54-.11H13v-6c0-.83-.67-1.5-1.5-1.5S10 6.67 10 7.5v10.74l-3.43-.72c-.08-.01-.15-.03-.24-.03-.31 0-.59.13-.79.33l-.79.8 4.94 4.94c.27.27.65.44 1.06.44h6.79c.75 0 1.33-.55 1.44-1.28l.75-5.27c.01-.07.02-.14.02-.2 0-.62-.38-1.16-.92-1.39z"/></svg></span>
+<div class="media-tx"><div class="media-top"><span class="media-name">Simulasi Dapat Dicoba</span></div><div class="media-d">Komponen interaktif untuk eksplorasi konsep.</div></div>
+</div>
+<div class="media-card" style="--c:#2f6bd6;--cs:#5a8ee6">
+<span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg></span>
+<div class="media-tx"><div class="media-top"><span class="media-name">Diskusi &amp; Tanya-Jawab</span></div><div class="media-d">Dialog dua arah untuk klarifikasi konsep.</div></div>
+</div>
+<div class="media-card" style="--c:#e8890b;--cs:#f9b13e">
+<span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></span>
+<div class="media-tx"><div class="media-top"><span class="media-name">Kerja Kelompok</span></div><div class="media-d">Kolaborasi dan presentasi kelompok.</div></div>
+</div>
+</div>
+<div class="pg2-foot">
+<span class="pg2-foot-i"><i class="dot dot-grad"></i>Student-centered</span>
+<span class="pg2-foot-i"><i class="dot" style="background:#0f9d8f"></i>Umpan balik langsung</span>
+</div>
+<div class="pg2-illus">
+<svg viewBox="0 0 680 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs>
+<linearGradient id="s5flow" x1="0" y1="0" x2="680" y2="0"><stop offset="0" stop-color="#15418f"/><stop offset=".5" stop-color="#2f6bd6"/><stop offset="1" stop-color="#0f9d8f"/></linearGradient>
+<linearGradient id="s5dos" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a73da"/><stop offset="1" stop-color="#15418f"/></linearGradient>
+<linearGradient id="s5mhs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1ec3b1"/><stop offset="1" stop-color="#0f9d8f"/></linearGradient>
+<marker id="s5aT" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0 1 L9 5 L0 9 Z" fill="#0f9d8f"/></marker>
+<marker id="s5aB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0 1 L9 5 L0 9 Z" fill="#15418f"/></marker>
+</defs>
+<rect x="1" y="1" width="678" height="118" rx="16" fill="#f7faff" stroke="#e7edf6"/>
+<path class="s5-arc" d="M104 50 C 250 14 430 14 576 50" fill="none" stroke="url(#s5flow)" stroke-width="2.4" stroke-dasharray="1 8" stroke-linecap="round" opacity=".62" marker-end="url(#s5aT)"/>
+<path class="s5-arc" d="M576 70 C 430 106 250 106 104 70" fill="none" stroke="url(#s5flow)" stroke-width="2.4" stroke-dasharray="1 8" stroke-linecap="round" opacity=".62" marker-end="url(#s5aB)"/>
+<g class="s5-mid s5-mid1"><circle cx="340" cy="15" r="10" fill="#2f6bd6"/><path d="M335.5 12 h8 a1.4 1.4 0 0 1 1.4 1.4 v2.6 a1.4 1.4 0 0 1 -1.4 1.4 h-4.6 l-2.8 2.1 v-2.1 h-0.6 a1.4 1.4 0 0 1 -1.4 -1.4 v-2.6 a1.4 1.4 0 0 1 1.4 -1.4 z" fill="#fff"/></g>
+<g class="s5-mid s5-mid2"><circle cx="340" cy="105" r="10" fill="#0f9d8f"/><path d="M336 105 l2.6 2.6 L344 102.4" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></g>
+<circle class="s5-ring" cx="78" cy="60" r="21" fill="none" stroke="#2f6bd6" stroke-width="2"/>
+<circle cx="78" cy="60" r="22" fill="url(#s5dos)"/>
+<g transform="translate(78,60) scale(.86) translate(-12,-12)" fill="#fff"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></g>
+<text class="s5-lbl" x="78" y="105" text-anchor="middle" fill="#5b6b86">Dosen</text>
+<circle class="s5-ring s5-ring2" cx="602" cy="60" r="21" fill="none" stroke="#0f9d8f" stroke-width="2"/>
+<circle cx="602" cy="60" r="22" fill="url(#s5mhs)"/>
+<g transform="translate(602,60) scale(.86) translate(-12,-12)" fill="#fff"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></g>
+<text class="s5-lbl" x="602" y="105" text-anchor="middle" fill="#5b6b86">Mahasiswa</text>
+</svg>
+</div>
+</section>
+</div>
+
+<!--
+NARASI SLIDE 5 (baca saat rekaman):
+
+Pilar kedua adalah Interaction, yaitu interaksi dengan mahasiswa. Prinsip saya pembelajaran berpusat pada mahasiswa, dengan umpan balik yang langsung mereka terima.
+
+Bentuk interaksinya beragam. Pertama, Kuis Interaktif, yaitu soal yang memberi umpan balik dan reward secara otomatis begitu dijawab. Kedua, Simulasi yang Dapat Dicoba, di mana mahasiswa memanipulasi komponen interaktif untuk mengeksplorasi konsep secara mandiri.
+
+Ketiga, Diskusi dan Tanya-Jawab sebagai dialog dua arah untuk mengklarifikasi konsep yang sulit. Keempat, Kerja Kelompok, yang mendorong kolaborasi sekaligus melatih mahasiswa mempresentasikan hasilnya.
+
+Seperti terlihat pada ilustrasi, interaksi ini berlangsung dua arah, antara dosen dan mahasiswa, sehingga proses belajar menjadi hidup dan adaptif. [lanjut ke slide berikutnya]
+-->
+
+
 
 
