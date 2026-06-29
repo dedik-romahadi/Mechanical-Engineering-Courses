@@ -238,7 +238,7 @@ NARASI SLIDE 4:
 
 Masuk ke pilar pertama, Delivery. Materi saya sampaikan lewat ekosistem media digital berbasis teknologi Industri 4.0.
 
-Pertama, Modul Interaktif, yang berupa halaman interaktif untuk tiap pertemuan di GitHub, lengkap dengan latihan, kuis, dan penjadwalan otomatis. Kedua, Slide Interaktif dengan Slidev, di mana konsep tidak hanya dijelaskan, tetapi juga divisualisasikan lewat komponen simulasi yang bisa dicoba mahasiswa. Ketiga, Python dan Jupyter, untuk demonstrasi kode secara langsung dalam simulasi optimasi dan automasi, agar mahasiswa melihat penerapan teori secara nyata. Keempat, Video Pembelajaran, yaitu materi video yang dapat diputar ulang kapan saja untuk belajar mandiri.
+Pertama, Modul Interaktif, yang berupa halaman interaktif berbasis GitHub untuk tiap pertemuan, lengkap dengan latihan, kuis, dan penjadwalan otomatis. Kedua, Slide Interaktif dengan Slidev, di mana konsep tidak hanya dijelaskan, tetapi juga divisualisasikan lewat komponen simulasi yang bisa dicoba mahasiswa. Ketiga, Python dan Jupyter, untuk demonstrasi kode secara langsung dalam simulasi optimasi dan automasi, agar mahasiswa melihat penerapan teori secara nyata. Keempat, Video Pembelajaran, yaitu materi video yang dapat diputar ulang kapan saja untuk belajar mandiri.
 
 Perpaduan keempat media ini langsung mendukung pencapaian CPMK ketiga dan keempat terkait penerapan teknologi 4.0.-->
 
