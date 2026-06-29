@@ -335,6 +335,90 @@ Ketiga, Diskusi dan Tanya-Jawab sebagai dialog dua arah untuk mengklarifikasi ko
 Seperti terlihat pada ilustrasi, interaksi ini berlangsung dua arah, antara dosen dan mahasiswa, sehingga proses belajar menjadi hidup dan adaptif. [lanjut ke slide berikutnya]
 -->
 
+---
+layout: default
+transition: slide-left
+title: Asesmen Capaian
+class: pdd-page pdd-s6 cam-left
+---
+
+<div class="pg2">
+<aside class="pg2-cam">
+<CameraFrame name="Dedik Romahadi" role="Narasumber" />
+<div class="pg2-note">
+<div class="pg2-note-h"><span class="pg2-note-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></span><span class="pg2-note-k">Pilar 3 dari 3</span></div>
+<div class="pg2-pill"><span class="pg2-pill-k">Assessment</span><span class="pg2-pill-n">Asesmen Capaian</span></div>
+<div class="pg2-note-t">Setiap komponen nilai <b>dipetakan ke CPMK</b> sehingga capaian terukur.</div>
+<div class="pg2-prog"><span class="on"></span><span class="on"></span><span class="on"></span></div>
+</div>
+</aside>
+<section class="pg2-main">
+<h2 class="pg2-title">Penilaian Terukur &amp; <span class="pg2-title-g">Terpetakan ke CPMK</span></h2>
+<p class="pg2-desc">Capaian mahasiswa dinilai melalui tiga komponen yang seluruhnya <b>terpetakan ke CPMK</b> sesuai prinsip OBE.</p>
+<div class="pg2-media">
+<div class="media-card" style="--c:#15418f;--cs:#2056b3">
+<span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg></span>
+<div class="media-tx"><div class="media-top"><span class="media-name">Tugas</span><span class="media-tag">60%</span></div><div class="media-d">Berkelanjutan; mayoritas Sub-CPMK (2.1, 5.1, 5.2 penuh).</div></div>
+</div>
+<div class="media-card" style="--c:#0f9d8f;--cs:#1ec3b1">
+<span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></span>
+<div class="media-tx"><div class="media-top"><span class="media-name">UTS</span><span class="media-tag">20%</span></div><div class="media-d">Sub-CPMK 1.1, 1.2, 1.3, 2.2, 2.3.</div></div>
+</div>
+<div class="media-card" style="--c:#e8890b;--cs:#f9b13e">
+<span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3 1 9l11 6 9-4.91V17h2V9L12 3z"/></svg></span>
+<div class="media-tx"><div class="media-top"><span class="media-name">UAS</span><span class="media-tag">20%</span></div><div class="media-d">Sub-CPMK 3.1, 3.2, 3.3, 4.1, 4.2, 4.3.</div></div>
+</div>
+</div>
+<div class="pg2-foot">
+<span class="pg2-foot-i"><i class="dot dot-grad"></i>5 CPMK · 14 Sub-CPMK</span>
+<span class="pg2-foot-i"><i class="dot" style="background:#8c98ad"></i>Praktikum 0%</span>
+</div>
+<div class="pg2-illus">
+<svg viewBox="0 0 680 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs>
+<linearGradient id="s6flow" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="680" y2="0"><stop offset="0" stop-color="#15418f"/><stop offset=".5" stop-color="#2f6bd6"/><stop offset="1" stop-color="#0f9d8f"/></linearGradient>
+<linearGradient id="s6blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a73da"/><stop offset="1" stop-color="#15418f"/></linearGradient>
+<linearGradient id="s6teal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1ec3b1"/><stop offset="1" stop-color="#0f9d8f"/></linearGradient>
+<linearGradient id="s6amber" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f9b13e"/><stop offset="1" stop-color="#e8890b"/></linearGradient>
+<linearGradient id="s6hub" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f6bd6"/><stop offset="1" stop-color="#0f9d8f"/></linearGradient>
+<marker id="s6ar" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0 1 L9 5 L0 9 Z" fill="#0f9d8f"/></marker>
+</defs>
+<rect x="1" y="1" width="678" height="118" rx="16" fill="#f7faff" stroke="#e7edf6"/>
+<path class="s6-line" d="M108 55 C 170 46 230 30 286 30" fill="none" stroke="url(#s6flow)" stroke-linecap="round"/>
+<path class="s6-line" d="M108 60 C 180 60 230 60 286 60" fill="none" stroke="url(#s6flow)" stroke-linecap="round"/>
+<path class="s6-line" d="M108 65 C 170 74 230 90 286 90" fill="none" stroke="url(#s6flow)" stroke-linecap="round"/>
+<path class="s6-line" d="M402 30 C 480 30 522 56 576 57" fill="none" stroke="url(#s6flow)" stroke-linecap="round"/>
+<path class="s6-line" d="M402 60 C 490 60 522 60 576 60" fill="none" stroke="url(#s6flow)" stroke-linecap="round" marker-end="url(#s6ar)"/>
+<path class="s6-line" d="M402 90 C 480 90 522 64 576 63" fill="none" stroke="url(#s6flow)" stroke-linecap="round"/>
+<circle class="s6-ring" cx="80" cy="60" r="25" fill="none" stroke="#2f6bd6" stroke-width="2"/>
+<circle cx="80" cy="60" r="26" fill="url(#s6hub)"/>
+<g transform="translate(80,60) scale(.8) translate(-12,-12)" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></g>
+<text class="s6-lbl" x="80" y="101" text-anchor="middle" fill="#5b6b86">CPMK</text>
+<g><rect x="290" y="16" width="108" height="26" rx="8" fill="url(#s6blue)"/><text class="s6-pill-t" x="344" y="33" text-anchor="middle" fill="#fff">Tugas 60%</text></g>
+<g><rect x="290" y="47" width="108" height="26" rx="8" fill="url(#s6teal)"/><text class="s6-pill-t" x="344" y="64" text-anchor="middle" fill="#fff">UTS 20%</text></g>
+<g><rect x="290" y="78" width="108" height="26" rx="8" fill="url(#s6amber)"/><text class="s6-pill-t" x="344" y="95" text-anchor="middle" fill="#fff">UAS 20%</text></g>
+<circle class="s6-ring s6-ring2" cx="600" cy="60" r="25" fill="none" stroke="#0f9d8f" stroke-width="2"/>
+<circle cx="600" cy="60" r="26" fill="url(#s6teal)"/>
+<g transform="translate(600,60) scale(.86) translate(-12,-12)" fill="#fff"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></g>
+<text class="s6-lbl" x="600" y="101" text-anchor="middle" fill="#5b6b86">Capaian</text>
+</svg>
+</div>
+</section>
+</div>
+
+<!--
+NARASI SLIDE 6 (baca saat rekaman):
+
+Pilar ketiga adalah Assessment atau asesmen capaian. Prinsip utamanya, setiap komponen penilaian dipetakan secara jelas ke CPMK, sesuai pendekatan Outcome-Based Education.
+
+Komponen penilaian terdiri atas tiga bagian. Tugas memiliki bobot terbesar, enam puluh persen, bersifat berkelanjutan dan mencakup mayoritas Sub-CPMK; bahkan Sub-CPMK 2.1, 5.1, dan 5.2 dinilai sepenuhnya melalui Tugas. Berikutnya, UTS dengan bobot dua puluh persen yang mengukur Sub-CPMK 1.1, 1.2, 1.3, 2.2, dan 2.3. Lalu UAS, juga dua puluh persen, mengukur Sub-CPMK 3.1 sampai 3.3 dan 4.1 sampai 4.3.
+
+Seperti terlihat pada ilustrasi, CPMK dijabarkan dan diukur melalui ketiga komponen penilaian ini, yang kemudian bermuara pada capaian pembelajaran yang benar-benar terukur. Pada periode ini komponen Praktikum belum diberi bobot.
+
+Dengan demikian, lengkaplah ketiga pilar praktik pembelajaran mata kuliah ini, mulai dari penyampaian materi, interaksi mahasiswa, hingga asesmen capaian. [lanjut ke slide berikutnya]
+-->
+
+
 
 
 
