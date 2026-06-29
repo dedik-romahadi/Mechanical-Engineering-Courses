@@ -429,7 +429,7 @@ NARASI SLIDE 7:
 
 Demikian pemaparan kerangka praktik pembelajaran mata kuliah Optimalisasi dan Automasi, mulai dari capaian pembelajaran sampai ketiga pilarnya, yaitu penyampaian materi, interaksi dengan mahasiswa, dan asesmen capaian.
 
-Sebagai bukti penerapannya, berikut saya tampilkan rekaman pembelajaran langsung di kelas tatap muka virtual bersama mahasiswa Teknik Mesin.
+Sebagai bukti penerapannya, berikut saya tampilkan rekaman pembelajaran langsung di kelas tatap muka virtual bersama mahasiswa.
 -->
 
 
