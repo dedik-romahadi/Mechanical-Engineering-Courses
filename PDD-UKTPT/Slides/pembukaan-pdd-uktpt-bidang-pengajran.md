@@ -103,3 +103,74 @@ Keempat CPL tersebut kemudian diterjemahkan menjadi lima Capaian Pembelajaran Ma
 Lima CPMK inilah yang akan saya buktikan pencapaiannya melalui tiga aspek pembelajaran tadi, yaitu penyampaian materi, interaksi dengan mahasiswa, dan asesmen capaian. [lanjut ke slide berikutnya]
 -->
 
+---
+layout: default
+transition: slide-left
+title: Alur Pembelajaran
+class: pdd-page pdd-s3 cam-right
+---
+
+<div class="pg2">
+<aside class="pg2-cam">
+<CameraFrame name="Dedik Romahadi" role="Narasumber" />
+<div class="pg2-note">
+<div class="pg2-note-h"><span class="pg2-note-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg></span><span class="pg2-note-k">Alur Berulang</span></div>
+<div class="pg2-note-t">Ketiga pilar berulang di <b>setiap pertemuan</b>, saling menguatkan menuju CPMK.</div>
+<div class="pg2-note-leg">
+<span class="nleg"><span class="nleg-b" style="background:linear-gradient(135deg,#2056b3,#15418f)">D</span>Delivery</span>
+<span class="nleg"><span class="nleg-b" style="background:linear-gradient(135deg,#1ec3b1,#0f9d8f)">I</span>Interaction</span>
+<span class="nleg"><span class="nleg-b" style="background:linear-gradient(135deg,#f9b13e,#e8890b)">A</span>Assessment</span>
+</div>
+</div>
+</aside>
+<section class="pg2-main">
+<h2 class="pg2-title">Tiga Pilar <span class="pg2-title-g">Praktik Pembelajaran</span></h2>
+<p class="pg2-desc">Capaian pada langkah sebelumnya dibuktikan melalui <b>tiga aspek</b> yang berjalan berurutan dan berulang di setiap pertemuan.</p>
+<div class="pg2-flow">
+<div class="flow-card" style="--c:#15418f;--cs:#2056b3">
+<div class="flow-head"><span class="flow-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM10 8v8l5-4z"/></svg></span><span class="flow-step">01</span></div>
+<div class="flow-kicker">Delivery</div>
+<div class="flow-name">Penyampaian Materi</div>
+<ul class="flow-list"><li>Ceramah</li><li>Modul interaktif</li><li>Video &amp; slide</li><li>Demonstrasi kode/simulasi</li></ul>
+<div class="flow-out">Materi tersampaikan terstruktur tiap pertemuan.</div>
+</div>
+<div class="flow-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
+<div class="flow-card" style="--c:#0f9d8f;--cs:#1ec3b1">
+<div class="flow-head"><span class="flow-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg></span><span class="flow-step">02</span></div>
+<div class="flow-kicker">Interaction</div>
+<div class="flow-name">Interaksi Mahasiswa</div>
+<ul class="flow-list"><li>Kuis interaktif</li><li>Diskusi &amp; tanya-jawab</li><li>Kerja kelompok</li></ul>
+<div class="flow-out">Mahasiswa aktif dan memperoleh umpan balik.</div>
+</div>
+<div class="flow-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
+<div class="flow-card" style="--c:#e8890b;--cs:#f9b13e">
+<div class="flow-head"><span class="flow-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9z"/></svg></span><span class="flow-step">03</span></div>
+<div class="flow-kicker">Assessment</div>
+<div class="flow-name">Asesmen Capaian</div>
+<ul class="flow-list"><li>Tugas 60%</li><li>UTS 20%</li><li>UAS 20%</li></ul>
+<div class="flow-out">Capaian terukur dan dipetakan ke CPMK.</div>
+</div>
+</div>
+<div class="pg2-foot">
+<span class="pg2-foot-i"><i class="dot dot-grad"></i>Berulang tiap pertemuan</span>
+<span class="pg2-foot-i"><i class="dot" style="background:#0f9d8f"></i>Silabus &amp; RPS Prodi</span>
+<span class="pg2-foot-i"><i class="dot" style="background:#e8890b"></i>5 CPMK · 14 Sub-CPMK</span>
+</div>
+</section>
+</div>
+
+<!--
+NARASI SLIDE 3 (baca saat rekaman):
+
+Setelah memahami capaian yang ditargetkan, sekarang saya jelaskan bagaimana praktik pembelajaran mata kuliah ini dijalankan. Saya merangkumnya dalam tiga pilar yang berjalan berurutan dan berulang di setiap pertemuan.
+
+Pilar pertama, Delivery atau penyampaian materi. Di sini saya menggunakan ceramah, modul interaktif, video dan slide, serta demonstrasi kode dan simulasi. Tujuannya agar materi tersampaikan secara terstruktur pada setiap pertemuan.
+
+Pilar kedua, Interaction atau interaksi dengan mahasiswa. Saya membangun keterlibatan melalui kuis interaktif, diskusi dan tanya-jawab, serta kerja kelompok. Dengan begitu mahasiswa aktif dan memperoleh umpan balik secara langsung.
+
+Pilar ketiga, Assessment atau asesmen capaian. Penilaian dibagi atas Tugas enam puluh persen, UTS dua puluh persen, dan UAS dua puluh persen, yang seluruhnya dipetakan ke CPMK sehingga capaian benar-benar terukur.
+
+Ketiga pilar ini selaras dengan Silabus dan RPS Program Studi, dan berulang sepanjang empat belas pertemuan. Pada bagian berikutnya, saya akan mendemonstrasikan masing-masing pilar secara lebih rinci. [lanjut ke slide berikutnya]
+-->
+
+
