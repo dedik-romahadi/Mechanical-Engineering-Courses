@@ -30,6 +30,7 @@ jobs:
           cache-dependency-path: |
             Getaran-Mekanik/Slides/package-lock.json
             Optimalisasi-dan-Automasi/Slides/package-lock.json
+            PDD-UKTPT/Slides/package-lock.json
 
       # ──────────────────────────────────────────────────────────────────
       # Opsi A — isolasi build per mata kuliah.
@@ -66,6 +67,20 @@ jobs:
             --base /Mechanical-Engineering-Courses/Optimalisasi-dan-Automasi/Slides/penerapan-machine-learning/ \
             --out dist
 
+      # ── PDD-UKTPT — Pembukaan PDD-UKTPT (Bidang Pengajaran) ──
+      - name: Install dependencies — PDD-UKTPT
+        working-directory: PDD-UKTPT/Slides
+        continue-on-error: true
+        run: npm ci
+
+      - name: Build Slidev — PDD-UKTPT (Pembukaan)
+        working-directory: PDD-UKTPT/Slides
+        continue-on-error: true
+        run: |
+          npx slidev build pembukaan-pdd-uktpt-bidang-pengajran.md \
+            --base /Mechanical-Engineering-Courses/PDD-UKTPT/Slides/pembukaan-pdd-uktpt-bidang-pengajran/ \
+            --out dist
+
       - name: Siapkan direktori Pages
         run: |
           mkdir -p _site
@@ -76,6 +91,7 @@ jobs:
             --exclude='_site' \
             --exclude='Getaran-Mekanik/Slides/' \
             --exclude='Optimalisasi-dan-Automasi/Slides/' \
+            --exclude='PDD-UKTPT/Slides/' \
             . _site/
 
           # Hanya salin deck yang BERHASIL build (cek index.html hasil slidev).
@@ -97,6 +113,15 @@ jobs:
             built=$((built+1))
           else
             echo "::warning title=Opto::Build GAGAL — dilewati. Deck lain tetap deploy."
+          fi
+
+          if [ -f PDD-UKTPT/Slides/dist/index.html ]; then
+            mkdir -p _site/PDD-UKTPT/Slides/pembukaan-pdd-uktpt-bidang-pengajran
+            cp -r PDD-UKTPT/Slides/dist/. _site/PDD-UKTPT/Slides/pembukaan-pdd-uktpt-bidang-pengajran/
+            echo "::notice title=PDD-UKTPT::Build sukses — disertakan ke Pages."
+            built=$((built+1))
+          else
+            echo "::warning title=PDD-UKTPT::Build GAGAL — dilewati. Deck lain tetap deploy."
           fi
 
           if [ "$built" -eq 0 ]; then
