@@ -95,11 +95,11 @@ Pertama, profil singkat mata kuliah Optimalisasi dan Automasi.
 
 Mata kuliah ini membekali mahasiswa Teknik Mesin untuk merancang, menyimulasikan, dan mengoptimalkan sistem mekanik dengan pendekatan otomasi berbasis teknologi Industri 4.0, secara utuh dari analisis kebutuhan hingga evaluasi kinerja.
 
-Secara kurikulum, mata kuliah ini menopang empat CPL. Terbesar CPL3 dengan 43 persen, yaitu merancang solusi rekayasa berbasis teknologi 4.0 dengan pertimbangan multi-aspek; disusul CPL5 22 persen, CPL4 21 persen, dan CPL6 14 persen.
+Secara kurikulum, mata kuliah ini menopang empat CPL. Yang terbesar adalah CPL3 dengan 43 persen, yaitu merancang solusi rekayasa berbasis teknologi 4.0 dengan pertimbangan multi-aspek, kemudian disusul CPL5 sebesar 22 persen, CPL4 21 persen, dan CPL6 14 persen.
 
 Keempat CPL ini diterjemahkan menjadi lima CPMK dengan empat belas Sub-CPMK, mulai dari analisis kebutuhan, desain dan simulasi, penerapan teknologi 4.0, perancangan otomasi 4.0, hingga evaluasi kinerja, dengan bobot berimbang antara empat belas sampai dua puluh tiga persen.
 
-Kelima CPMK inilah yang akan saya buktikan melalui tiga aspek pembelajaran: penyampaian materi, interaksi mahasiswa, dan asesmen capaian.-->
+Kelima CPMK inilah yang akan saya buktikan melalui tiga aspek pembelajaran, yaitu penyampaian materi, interaksi dengan mahasiswa, dan asesmen capaian.-->
 
 ---
 layout: default
@@ -162,11 +162,11 @@ NARASI SLIDE 3:
 
 Selanjutnya, bagaimana pembelajaran dijalankan. Saya merangkumnya dalam tiga pilar yang berjalan berurutan dan berulang di setiap pertemuan.
 
-Pilar pertama, Delivery atau penyampaian materi: lewat ceramah, modul interaktif, video dan slide, serta demonstrasi kode dan simulasi, agar materi tersampaikan terstruktur.
+Pilar pertama, Delivery atau penyampaian materi, yang saya jalankan lewat ceramah, modul interaktif, video dan slide, serta demonstrasi kode dan simulasi, agar materi tersampaikan terstruktur.
 
-Pilar kedua, Interaction atau interaksi mahasiswa: lewat kuis interaktif, diskusi dan tanya-jawab, serta kerja kelompok, sehingga mahasiswa aktif dan memperoleh umpan balik langsung.
+Pilar kedua, Interaction atau interaksi mahasiswa, yang saya bangun lewat kuis interaktif, diskusi dan tanya-jawab, serta kerja kelompok, sehingga mahasiswa aktif dan memperoleh umpan balik langsung.
 
-Pilar ketiga, Assessment atau asesmen capaian: penilaian terdiri atas Tugas enam puluh persen, UTS dua puluh persen, dan UAS dua puluh persen, seluruhnya dipetakan ke CPMK agar capaian terukur.
+Pilar ketiga, Assessment atau asesmen capaian, yang penilaiannya terdiri atas Tugas enam puluh persen, UTS dua puluh persen, dan UAS dua puluh persen, seluruhnya dipetakan ke CPMK agar capaian terukur.
 
 Ketiga pilar ini selaras dengan Silabus dan RPS Program Studi dan berulang sepanjang empat belas pertemuan. Berikutnya, saya demonstrasikan tiap pilar lebih rinci.-->
 
@@ -240,7 +240,7 @@ NARASI SLIDE 4:
 
 Masuk ke pilar pertama, Delivery. Materi saya sampaikan lewat ekosistem media digital berbasis teknologi Industri 4.0.
 
-Pertama, Modul Interaktif: modul tiap pertemuan berupa halaman interaktif di GitHub, lengkap dengan latihan, kuis, dan penjadwalan otomatis. Kedua, Slide Interaktif dengan Slidev: konsep tidak hanya dijelaskan, tetapi divisualisasikan lewat komponen simulasi yang bisa dicoba mahasiswa. Ketiga, Python dan Jupyter: demonstrasi kode langsung untuk simulasi optimasi dan automasi, agar mahasiswa melihat penerapan teori secara nyata. Keempat, Video Pembelajaran: materi video yang dapat diputar ulang kapan saja untuk belajar mandiri.
+Pertama, Modul Interaktif, yang berupa halaman interaktif untuk tiap pertemuan di GitHub, lengkap dengan latihan, kuis, dan penjadwalan otomatis. Kedua, Slide Interaktif dengan Slidev, di mana konsep tidak hanya dijelaskan, tetapi juga divisualisasikan lewat komponen simulasi yang bisa dicoba mahasiswa. Ketiga, Python dan Jupyter, untuk demonstrasi kode secara langsung dalam simulasi optimasi dan automasi, agar mahasiswa melihat penerapan teori secara nyata. Keempat, Video Pembelajaran, yaitu materi video yang dapat diputar ulang kapan saja untuk belajar mandiri.
 
 Perpaduan keempat media ini langsung mendukung pencapaian CPMK ketiga dan keempat terkait penerapan teknologi 4.0.-->
 
@@ -318,7 +318,7 @@ NARASI SLIDE 5:
 
 Pilar kedua, Interaction. Prinsipnya pembelajaran berpusat pada mahasiswa dengan umpan balik langsung.
 
-Bentuknya beragam. Pertama, Kuis Interaktif: soal dengan umpan balik dan reward otomatis. Kedua, Simulasi yang Dapat Dicoba: mahasiswa memanipulasi komponen interaktif untuk eksplorasi mandiri. Ketiga, Diskusi dan Tanya-Jawab: dialog dua arah untuk mengklarifikasi konsep yang sulit. Keempat, Kerja Kelompok: mendorong kolaborasi sekaligus melatih mahasiswa mempresentasikan hasil.
+Bentuknya beragam. Pertama, Kuis Interaktif, yaitu soal dengan umpan balik dan reward otomatis. Kedua, Simulasi yang Dapat Dicoba, di mana mahasiswa memanipulasi komponen interaktif untuk eksplorasi mandiri. Ketiga, Diskusi dan Tanya-Jawab, sebagai dialog dua arah untuk mengklarifikasi konsep yang sulit. Keempat, Kerja Kelompok, yang mendorong kolaborasi sekaligus melatih mahasiswa mempresentasikan hasil.
 
 Seperti pada ilustrasi, interaksi berlangsung dua arah antara dosen dan mahasiswa, sehingga proses belajar menjadi hidup dan adaptif.-->
 
@@ -401,7 +401,7 @@ Ada tiga komponen. Tugas berbobot terbesar, enam puluh persen, bersifat berkelan
 
 Seperti pada ilustrasi, CPMK dijabarkan dan diukur melalui ketiga komponen ini, lalu bermuara pada capaian pembelajaran yang terukur.
 
-Dengan ini lengkap sudah ketiga pilar praktik pembelajaran: penyampaian materi, interaksi mahasiswa, dan asesmen capaian.-->
+Dengan ini lengkap sudah ketiga pilar praktik pembelajaran, yaitu penyampaian materi, interaksi dengan mahasiswa, dan asesmen capaian.-->
 
 ---
 layout: default
