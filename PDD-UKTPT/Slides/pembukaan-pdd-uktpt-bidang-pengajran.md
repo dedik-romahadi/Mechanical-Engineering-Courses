@@ -173,4 +173,86 @@ Pilar ketiga, Assessment atau asesmen capaian. Penilaian dibagi atas Tugas enam 
 Ketiga pilar ini selaras dengan Silabus dan RPS Program Studi, dan berulang sepanjang empat belas pertemuan. Pada bagian berikutnya, saya akan mendemonstrasikan masing-masing pilar secara lebih rinci. [lanjut ke slide berikutnya]
 -->
 
+---
+layout: default
+transition: slide-up
+title: Penyampaian Materi
+class: pdd-page pdd-s4 cam-left
+---
+
+<div class="pg2">
+<aside class="pg2-cam">
+<CameraFrame name="Dedik Romahadi" role="Narasumber" />
+<div class="pg2-note">
+<div class="pg2-note-h"><span class="pg2-note-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg></span><span class="pg2-note-k">Pilar 1 dari 3</span></div>
+<div class="pg2-pill"><span class="pg2-pill-k">Delivery</span><span class="pg2-pill-n">Penyampaian Materi</span></div>
+<div class="pg2-note-t">Materi disampaikan lewat media digital berbasis <b>teknologi Industri 4.0</b>.</div>
+<div class="pg2-prog"><span class="on"></span><span></span><span></span></div>
+</div>
+</aside>
+<section class="pg2-main">
+<h2 class="pg2-title">Ekosistem <span class="pg2-title-g">Media &amp; Teknologi 4.0</span></h2>
+<p class="pg2-desc">Penyampaian materi memadukan beragam media digital agar konsep <b>tersampaikan jelas dan dapat diakses kapan saja</b>.</p>
+<div class="pg2-media">
+<div class="media-card" style="--c:#15418f;--cs:#2056b3">
+<span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></span>
+<div class="media-tx"><div class="media-top"><span class="media-name">Modul Interaktif</span><span class="media-tag">GitHub</span></div><div class="media-d">Modul per pertemuan, latihan, kuis, dan jadwal otomatis.</div></div>
+</div>
+<div class="media-card" style="--c:#0f9d8f;--cs:#1ec3b1">
+<span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM10 8v8l5-4z"/></svg></span>
+<div class="media-tx"><div class="media-top"><span class="media-name">Slide Interaktif</span><span class="media-tag">Slidev</span></div><div class="media-d">Visualisasi konsep dengan komponen simulasi yang bisa dicoba.</div></div>
+</div>
+<div class="media-card" style="--c:#2f6bd6;--cs:#5a8ee6">
+<span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0 4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg></span>
+<div class="media-tx"><div class="media-top"><span class="media-name">Python &amp; Jupyter</span><span class="media-tag">Python</span></div><div class="media-d">Demonstrasi kode dan simulasi optimasi serta automasi.</div></div>
+</div>
+<div class="media-card" style="--c:#e8890b;--cs:#f9b13e">
+<span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg></span>
+<div class="media-tx"><div class="media-top"><span class="media-name">Video Pembelajaran</span><span class="media-tag">Asinkron</span></div><div class="media-d">Penjelasan terekam, dapat diputar ulang kapan saja.</div></div>
+</div>
+</div>
+<div class="pg2-foot">
+<span class="pg2-foot-i"><i class="dot dot-grad"></i>Berbasis teknologi Industri 4.0</span>
+<span class="pg2-foot-i"><i class="dot" style="background:#2f6bd6"></i>Mendukung CPMK 3 &amp; 4</span>
+</div>
+<div class="pg2-illus">
+<svg viewBox="0 0 680 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs>
+<linearGradient id="s4flow" x1="0" y1="0" x2="680" y2="0"><stop offset="0" stop-color="#15418f"/><stop offset=".5" stop-color="#2f6bd6"/><stop offset="1" stop-color="#0f9d8f"/></linearGradient>
+<linearGradient id="s4scr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a73da"/><stop offset="1" stop-color="#15418f"/></linearGradient>
+<linearGradient id="s4dev" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1ec3b1"/><stop offset="1" stop-color="#0f9d8f"/></linearGradient>
+</defs>
+<rect x="1" y="1" width="678" height="118" rx="16" fill="#f7faff" stroke="#e7edf6"/>
+<path class="s4-path" d="M117 61 C 215 61 255 56 340 56 C 430 56 430 66 530 66" fill="none" stroke="url(#s4flow)" stroke-width="2.6" stroke-dasharray="1 8" stroke-linecap="round" opacity=".6"/>
+<g transform="translate(308,15)"><g class="s4-cloud"><path d="M14 34 a14 14 0 0 1 1.5 -27 a18 18 0 0 1 34 5 a12 12 0 0 1 -2.5 22 Z" fill="#ffffff" stroke="#d4ddea" stroke-width="1.4"/><text class="s4-cloud-t" x="30" y="29" text-anchor="middle" fill="#15418f">4.0</text></g></g>
+<g transform="translate(58,40)"><rect x="0" y="0" width="58" height="38" rx="7" fill="url(#s4scr)"/><rect x="6" y="6" width="46" height="26" rx="3" fill="#e9f1ff"/><path d="M23 12 L35 19 L23 26 Z" fill="#2f6bd6"/><rect x="22" y="40" width="14" height="5" rx="2.5" fill="#c7d4e8"/><rect x="12" y="47" width="34" height="5" rx="2.5" fill="#c7d4e8"/></g>
+<text class="s4-lbl" x="87" y="103" text-anchor="middle" fill="#5b6b86">Materi</text>
+<g transform="translate(520,40)"><rect x="0" y="0" width="60" height="36" rx="6" fill="url(#s4dev)"/><rect x="5" y="5" width="50" height="26" rx="3" fill="#e8faf6"/><path d="M-7 40 H67 l-5 6 H-2 Z" fill="#c7d4e8"/><rect x="66" y="8" width="22" height="38" rx="5" fill="#0f9d8f"/><rect x="69.5" y="13" width="15" height="26" rx="2" fill="#e8faf6"/><circle cx="77" cy="43" r="1.6" fill="#bfe7df"/></g>
+<text class="s4-lbl" x="566" y="103" text-anchor="middle" fill="#5b6b86">Mahasiswa</text>
+<g class="s4-bub s4-bub1"><circle cx="205" cy="61" r="15" fill="#15418f"/><g transform="translate(205,61)"><rect x="-5" y="-6" width="10" height="12" rx="1.5" fill="#fff"/><rect x="-3" y="-3" width="6" height="1.4" rx=".7" fill="#15418f"/><rect x="-3" y="0" width="6" height="1.4" rx=".7" fill="#15418f"/><rect x="-3" y="3" width="4" height="1.4" rx=".7" fill="#15418f"/></g></g>
+<g class="s4-bub s4-bub2"><circle cx="285" cy="55" r="15" fill="#0f9d8f"/><path d="M281 50 L292 55 L281 60 Z" fill="#fff"/></g>
+<g class="s4-bub s4-bub3"><circle cx="385" cy="55" r="15" fill="#2f6bd6"/><g transform="translate(385,55)" stroke="#fff" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M-2 -4 L-6 0 L-2 4"/><path d="M2 -4 L6 0 L2 4"/></g></g>
+<g class="s4-bub s4-bub4"><circle cx="465" cy="61" r="15" fill="#e8890b"/><g transform="translate(465,61)"><rect x="-6" y="-4.5" width="9" height="9" rx="1.6" fill="#fff"/><path d="M3.5 -2.2 L7.5 -4.5 L7.5 4.5 L3.5 2.2 Z" fill="#fff"/></g></g>
+</svg>
+</div>
+</section>
+</div>
+
+<!--
+NARASI SLIDE 4 (baca saat rekaman):
+
+Sekarang kita masuk ke pilar pertama, yaitu Delivery atau penyampaian materi, secara lebih rinci. Saya menyampaikan materi melalui sebuah ekosistem media digital yang seluruhnya berbasis teknologi Industri 4.0.
+
+Pertama, Modul Interaktif. Modul untuk setiap pertemuan saya susun dalam bentuk halaman interaktif yang dipublikasikan melalui GitHub, lengkap dengan latihan, kuis, dan penjadwalan otomatis.
+
+Kedua, Slide Interaktif yang dibuat dengan Slidev. Di sini konsep tidak hanya dijelaskan, tetapi divisualisasikan melalui komponen simulasi yang bisa langsung dicoba oleh mahasiswa.
+
+Ketiga, Python dan Jupyter. Saya mendemonstrasikan kode secara langsung untuk menjalankan simulasi optimasi dan automasi, sehingga mahasiswa melihat penerapan nyata dari teori.
+
+Keempat, Video Pembelajaran. Penjelasan saya rekam agar dapat diputar ulang kapan saja, mendukung belajar yang mandiri dan fleksibel.
+
+Perpaduan keempat media ini secara langsung mendukung pencapaian CPMK ketiga dan keempat yang berkaitan dengan penerapan teknologi 4.0. [lanjut ke slide berikutnya]
+-->
+
+
 
