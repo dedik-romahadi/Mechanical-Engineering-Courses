@@ -91,15 +91,15 @@ class: pdd-page pdd-s2 cam-left
 <!--
 NARASI SLIDE 2:
 
-Sebelum masuk ke praktik pembelajaran, izinkan saya menjelaskan secara singkat profil mata kuliah Optimalisasi dan Automasi ini.
+Pertama, profil singkat mata kuliah Optimalisasi dan Automasi.
 
-Mata kuliah ini membekali mahasiswa Program Studi Teknik Mesin untuk merancang, menyimulasikan, dan mengoptimalkan sistem mekanik melalui pendekatan otomasi yang berbasis teknologi Industri 4.0. Cakupannya utuh, mulai dari menganalisis kebutuhan di awal, sampai mengevaluasi kinerja sistem di akhir.
+Mata kuliah ini membekali mahasiswa Teknik Mesin untuk merancang, menyimulasikan, dan mengoptimalkan sistem mekanik dengan pendekatan otomasi berbasis teknologi Industri 4.0, secara utuh dari analisis kebutuhan hingga evaluasi kinerja.
 
-Secara kurikulum, mata kuliah ini menopang empat Capaian Pembelajaran Lulusan, atau CPL. Yang terbesar adalah CPL3 dengan bobot 43 persen, yaitu kemampuan merancang solusi rekayasa berbasis teknologi 4.0 dengan pertimbangan multi-aspek. Disusul CPL5 sebesar 22 persen, CPL4 sebesar 21 persen, dan CPL6 sebesar 14 persen.
+Secara kurikulum, mata kuliah ini menopang empat CPL. Terbesar CPL3 dengan 43 persen, yaitu merancang solusi rekayasa berbasis teknologi 4.0 dengan pertimbangan multi-aspek; disusul CPL5 22 persen, CPL4 21 persen, dan CPL6 14 persen.
 
-Keempat CPL tersebut kemudian diterjemahkan menjadi lima Capaian Pembelajaran Mata Kuliah, atau CPMK, yang dirinci lagi ke dalam empat belas Sub-CPMK. Mulai dari analisis kebutuhan, desain dan simulasi, penerapan teknologi 4.0, perancangan sistem otomasi 4.0, hingga evaluasi kinerja sistem. Bobot kelima CPMK ini cukup berimbang, antara empat belas sampai dua puluh tiga persen.
+Keempat CPL ini diterjemahkan menjadi lima CPMK dengan empat belas Sub-CPMK, mulai dari analisis kebutuhan, desain dan simulasi, penerapan teknologi 4.0, perancangan otomasi 4.0, hingga evaluasi kinerja, dengan bobot berimbang antara empat belas sampai dua puluh tiga persen.
 
-Lima CPMK inilah yang akan saya buktikan pencapaiannya melalui tiga aspek pembelajaran tadi, yaitu penyampaian materi, interaksi dengan mahasiswa, dan asesmen capaian.-->
+Kelima CPMK inilah yang akan saya buktikan melalui tiga aspek pembelajaran: penyampaian materi, interaksi mahasiswa, dan asesmen capaian.-->
 
 ---
 layout: default
@@ -160,15 +160,15 @@ class: pdd-page pdd-s3 cam-right
 <!--
 NARASI SLIDE 3:
 
-Setelah memahami capaian yang ditargetkan, sekarang saya jelaskan bagaimana praktik pembelajaran mata kuliah ini dijalankan. Saya merangkumnya dalam tiga pilar yang berjalan berurutan dan berulang di setiap pertemuan.
+Selanjutnya, bagaimana pembelajaran dijalankan. Saya merangkumnya dalam tiga pilar yang berjalan berurutan dan berulang di setiap pertemuan.
 
-Pilar pertama, Delivery atau penyampaian materi. Di sini saya menggunakan ceramah, modul interaktif, video dan slide, serta demonstrasi kode dan simulasi. Tujuannya agar materi tersampaikan secara terstruktur pada setiap pertemuan.
+Pilar pertama, Delivery atau penyampaian materi: lewat ceramah, modul interaktif, video dan slide, serta demonstrasi kode dan simulasi, agar materi tersampaikan terstruktur.
 
-Pilar kedua, Interaction atau interaksi dengan mahasiswa. Saya membangun keterlibatan melalui kuis interaktif, diskusi dan tanya-jawab, serta kerja kelompok. Dengan begitu mahasiswa aktif dan memperoleh umpan balik secara langsung.
+Pilar kedua, Interaction atau interaksi mahasiswa: lewat kuis interaktif, diskusi dan tanya-jawab, serta kerja kelompok, sehingga mahasiswa aktif dan memperoleh umpan balik langsung.
 
-Pilar ketiga, Assessment atau asesmen capaian. Penilaian dibagi atas Tugas enam puluh persen, UTS dua puluh persen, dan UAS dua puluh persen, yang seluruhnya dipetakan ke CPMK sehingga capaian benar-benar terukur.
+Pilar ketiga, Assessment atau asesmen capaian: penilaian terdiri atas Tugas enam puluh persen, UTS dua puluh persen, dan UAS dua puluh persen, seluruhnya dipetakan ke CPMK agar capaian terukur.
 
-Ketiga pilar ini selaras dengan Silabus dan RPS Program Studi, dan berulang sepanjang empat belas pertemuan. Pada bagian berikutnya, saya akan mendemonstrasikan masing-masing pilar secara lebih rinci.-->
+Ketiga pilar ini selaras dengan Silabus dan RPS Program Studi dan berulang sepanjang empat belas pertemuan. Berikutnya, saya demonstrasikan tiap pilar lebih rinci.-->
 
 ---
 layout: default
@@ -238,17 +238,11 @@ class: pdd-page pdd-s4 cam-left
 <!--
 NARASI SLIDE 4:
 
-Sekarang kita masuk ke pilar pertama, yaitu Delivery atau penyampaian materi, secara lebih rinci. Saya menyampaikan materi melalui sebuah ekosistem media digital yang seluruhnya berbasis teknologi Industri 4.0.
+Masuk ke pilar pertama, Delivery, lebih rinci. Materi saya sampaikan lewat ekosistem media digital berbasis teknologi Industri 4.0.
 
-Pertama, Modul Interaktif. Modul untuk setiap pertemuan saya susun dalam bentuk halaman interaktif yang dipublikasikan melalui GitHub, lengkap dengan latihan, kuis, dan penjadwalan otomatis.
+Pertama, Modul Interaktif: modul tiap pertemuan berupa halaman interaktif di GitHub, lengkap dengan latihan, kuis, dan penjadwalan otomatis. Kedua, Slide Interaktif dengan Slidev: konsep tidak hanya dijelaskan, tetapi divisualisasikan lewat komponen simulasi yang bisa dicoba mahasiswa. Ketiga, Python dan Jupyter: demonstrasi kode langsung untuk simulasi optimasi dan automasi, agar mahasiswa melihat penerapan nyata teori. Keempat, Video Pembelajaran: materi video yang dapat diputar ulang kapan saja untuk belajar mandiri.
 
-Kedua, Slide Interaktif yang dibuat dengan Slidev. Di sini konsep tidak hanya dijelaskan, tetapi divisualisasikan melalui komponen simulasi yang bisa langsung dicoba oleh mahasiswa.
-
-Ketiga, Python dan Jupyter. Saya mendemonstrasikan kode secara langsung untuk menjalankan simulasi optimasi dan automasi, sehingga mahasiswa melihat penerapan nyata dari teori.
-
-Keempat, Video Pembelajaran, yaitu materi dalam bentuk video yang dapat diputar ulang kapan saja sehingga mendukung belajar mandiri dan fleksibel.
-
-Perpaduan keempat media ini secara langsung mendukung pencapaian CPMK ketiga dan keempat yang berkaitan dengan penerapan teknologi 4.0.-->
+Perpaduan keempat media ini langsung mendukung pencapaian CPMK ketiga dan keempat terkait penerapan teknologi 4.0.-->
 
 ---
 layout: default
@@ -322,13 +316,11 @@ class: pdd-page pdd-s5 cam-right
 <!--
 NARASI SLIDE 5:
 
-Pilar kedua adalah Interaction, yaitu interaksi dengan mahasiswa. Prinsip saya pembelajaran berpusat pada mahasiswa, dengan umpan balik yang langsung mereka terima.
+Pilar kedua, Interaction. Prinsipnya pembelajaran berpusat pada mahasiswa dengan umpan balik langsung.
 
-Bentuk interaksinya beragam. Pertama, Kuis Interaktif, yaitu soal yang memberi umpan balik dan reward secara otomatis begitu dijawab. Kedua, Simulasi yang Dapat Dicoba, di mana mahasiswa memanipulasi komponen interaktif untuk mengeksplorasi konsep secara mandiri.
+Bentuknya beragam. Pertama, Kuis Interaktif: soal dengan umpan balik dan reward otomatis. Kedua, Simulasi yang Dapat Dicoba: mahasiswa memanipulasi komponen interaktif untuk eksplorasi mandiri. Ketiga, Diskusi dan Tanya-Jawab: dialog dua arah untuk mengklarifikasi konsep yang sulit. Keempat, Kerja Kelompok: mendorong kolaborasi sekaligus melatih mahasiswa mempresentasikan hasil.
 
-Ketiga, Diskusi dan Tanya-Jawab sebagai dialog dua arah untuk mengklarifikasi konsep yang sulit. Keempat, Kerja Kelompok, yang mendorong kolaborasi sekaligus melatih mahasiswa mempresentasikan hasilnya.
-
-Seperti terlihat pada ilustrasi, interaksi ini berlangsung dua arah, antara dosen dan mahasiswa, sehingga proses belajar menjadi hidup dan adaptif.-->
+Seperti pada ilustrasi, interaksi berlangsung dua arah antara dosen dan mahasiswa, sehingga proses belajar menjadi hidup dan adaptif.-->
 
 ---
 layout: default
@@ -403,13 +395,13 @@ class: pdd-page pdd-s6 cam-left
 <!--
 NARASI SLIDE 6:
 
-Pilar ketiga adalah Assessment atau asesmen capaian. Prinsip utamanya, setiap komponen penilaian dipetakan secara jelas ke CPMK, sesuai pendekatan Outcome-Based Education.
+Pilar ketiga, Assessment atau asesmen capaian. Prinsipnya, setiap komponen penilaian dipetakan jelas ke CPMK sesuai pendekatan Outcome-Based Education.
 
-Komponen penilaian terdiri atas tiga bagian. Tugas memiliki bobot terbesar, yaitu enam puluh persen, bersifat berkelanjutan dan mencakup mayoritas Sub-CPMK. Berikutnya, UTS dan UAS yang masing-masing berbobot dua puluh persen, mengukur Sub-CPMK sesuai pemetaan yang tampak pada rincian di slide ini.
+Ada tiga komponen. Tugas berbobot terbesar, enam puluh persen, bersifat berkelanjutan dan mencakup mayoritas Sub-CPMK. UTS dan UAS masing-masing dua puluh persen, mengukur Sub-CPMK sesuai pemetaan pada slide ini.
 
-Seperti terlihat pada ilustrasi, CPMK dijabarkan dan diukur melalui ketiga komponen penilaian ini, yang kemudian bermuara pada capaian pembelajaran yang benar-benar terukur.
+Seperti pada ilustrasi, CPMK dijabarkan dan diukur melalui ketiga komponen ini, lalu bermuara pada capaian pembelajaran yang terukur.
 
-Dengan demikian, lengkaplah ketiga pilar praktik pembelajaran mata kuliah ini, mulai dari penyampaian materi, interaksi mahasiswa, hingga asesmen capaian.-->
+Dengan ini lengkap sudah ketiga pilar praktik pembelajaran: penyampaian materi, interaksi mahasiswa, dan asesmen capaian.-->
 
 ---
 layout: default
