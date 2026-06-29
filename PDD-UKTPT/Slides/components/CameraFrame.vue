@@ -1,59 +1,72 @@
 <!--
   CameraFrame.vue — Frame kamera presenter berbentuk kotak potrait dengan
   sudut membulat (fillet). Webcam live (getUserMedia) + tombol nyala/mati.
-  Saat mati menampilkan placeholder. Dipakai di salah satu kolom isi slide.
+
+  Kamera OTOMATIS menyala dan TETAP menyala di semua slide, kecuali jika
+  dimatikan lewat tombol matikan. Status on/off + MediaStream disimpan di
+  modul bersama cameraState.js, dipakai ulang oleh setiap instance di tiap
+  slide. Jadi: satu kali izin kamera, tanpa kedip / minta izin ulang saat
+  pindah slide; dan jika dimatikan, status mati ikut lintas-slide sampai
+  dinyalakan lagi.
 -->
 <template>
-  <div class="cf" :class="{ 'cf-off': !on }">
-    <video v-show="on" ref="video" class="cf-video" autoplay playsinline muted></video>
-    <div v-if="!on" class="cf-ph">
+  <div class="cf" :class="{ 'cf-off': !enabled }">
+    <video v-show="enabled" ref="video" class="cf-video" autoplay playsinline muted></video>
+    <div v-if="!enabled" class="cf-ph">
       <div class="cf-ph-ic">👤</div>
-      <button class="cf-start" @click="start">📷 Aktifkan Kamera</button>
+      <button class="cf-start" @click="enable">📷 Aktifkan Kamera</button>
     </div>
     <div class="cf-cap" v-if="name">
       <span class="cf-name">{{ name }}</span>
       <span class="cf-role" v-if="role">{{ role }}</span>
     </div>
-    <button v-if="on" class="cf-toggle" @click="stop" title="Matikan kamera">⏻</button>
+    <button v-if="enabled" class="cf-toggle" @click="disable" title="Matikan kamera">⏻</button>
   </div>
 </template>
 
 <script setup>
-import { ref, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { enabled, ensureStream, stopShared, enable, disable } from './cameraState.js'
 
 defineProps({
   name: { type: String, default: '' },
   role: { type: String, default: '' },
 })
 
-const on = ref(false)
 const video = ref(null)
-let stream = null
 
-async function start() {
+// Tempelkan stream bersama ke elemen <video> instance ini.
+async function attach() {
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 960 } },
-      audio: false,
-    })
-    on.value = true
-    await Promise.resolve()
-    if (video.value) video.value.srcObject = stream
+    const s = await ensureStream()
+    await nextTick()
+    if (video.value) video.value.srcObject = s
   } catch (e) {
-    on.value = false
+    /* enabled sudah di-set false di ensureStream */
   }
 }
 
-function stop() {
-  if (stream) {
-    stream.getTracks().forEach((t) => t.stop())
-    stream = null
-  }
+function detach() {
   if (video.value) video.value.srcObject = null
-  on.value = false
 }
 
-onUnmounted(stop)
+// Reaksi saat status global berubah (tombol ditekan di slide mana pun).
+watch(enabled, (v) => {
+  if (v) attach()
+  else {
+    detach()
+    stopShared() // benar-benar matikan perangkat (lampu kamera mati)
+  }
+})
+
+// Saat slide ini muncul: jika kamera aktif, sambungkan stream yang sudah ada.
+onMounted(() => {
+  if (enabled.value) attach()
+})
+
+// Saat pindah slide: cukup lepas <video> lokal; stream bersama TETAP hidup
+// agar kamera tidak mati / berkedip antar-slide.
+onUnmounted(detach)
 </script>
 
 <style scoped>
