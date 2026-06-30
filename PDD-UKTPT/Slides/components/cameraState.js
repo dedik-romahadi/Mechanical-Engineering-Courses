@@ -22,8 +22,8 @@ export async function ensureStream() {
       // di-crop kiri-kanan oleh object-fit:cover -> tetap headshot rapi.
       video: {
         facingMode: 'user',
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
         aspectRatio: { ideal: 1.7777778 },
       },
       audio: false,
