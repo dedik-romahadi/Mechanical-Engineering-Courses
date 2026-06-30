@@ -162,9 +162,9 @@ Selanjutnya, bagaimana pembelajaran dijalankan. Saya merangkumnya dalam tiga pil
 
 Pilar pertama, Delivery atau penyampaian materi, yang saya jalankan lewat ceramah, modul interaktif, video dan slide, serta demonstrasi kode dan simulasi, agar materi tersampaikan terstruktur.
 
-Pilar kedua, Interaction atau interaksi mahasiswa, yang saya bangun lewat kuis interaktif, diskusi dan tanya-jawab, serta kerja kelompok, sehingga mahasiswa aktif dan memperoleh umpan balik langsung.
+Pilar kedua, Interaction atau interaksi mahasiswa, yang saya bangun lewat kuis interaktif, diskusi dan tanya-jawab, serta kerja kelompok, sehingga mahasiswa aktif dan memperoleh umpan balik secara langsung.
 
-Pilar ketiga, Assessment atau asesmen capaian, yang penilaiannya terdiri atas Tugas enam puluh persen, UTS dua puluh persen, dan UAS dua puluh persen, seluruhnya dipetakan ke CPMK agar capaian terukur.
+Pilar ketiga, Assessment, yang penilaiannya terdiri atas Tugas enam puluh persen, UTS dua puluh persen, dan UAS dua puluh persen, seluruhnya dipetakan ke CPMK agar capaian terukur.
 
 Ketiga pilar ini selaras dengan Silabus dan RPS Program Studi dan berulang sepanjang empat belas pertemuan. Berikutnya, saya demonstrasikan tiap pilar lebih rinci.-->
 
@@ -314,7 +314,7 @@ class: pdd-page pdd-s5 cam-right
 <!--
 NARASI SLIDE 5:
 
-Pilar kedua, Interaction. Prinsipnya pembelajaran berpusat pada mahasiswa dengan umpan balik langsung.
+Pilar kedua, Interaction. Prinsipnya pembelajaran berpusat pada mahasiswa dengan umpan balik secara langsung.
 
 Interaksi ini saya wujudkan dalam empat bentuk. Pertama, Kuis Interaktif, yaitu soal dengan umpan balik dan penilaian otomatis. Kedua, Simulasi yang Dapat Dicoba, di mana mahasiswa memanipulasi komponen interaktif untuk eksplorasi mandiri. Ketiga, Diskusi dan Tanya-Jawab, sebagai dialog dua arah untuk mengklarifikasi konsep yang sulit. Keempat, Kerja Kelompok, yang mendorong kolaborasi sekaligus melatih mahasiswa mempresentasikan hasil.
 
@@ -393,7 +393,7 @@ class: pdd-page pdd-s6 cam-left
 <!--
 NARASI SLIDE 6:
 
-Pilar ketiga, Assessment atau asesmen capaian. Prinsipnya, setiap komponen penilaian dipetakan jelas ke CPMK sesuai pendekatan Outcome-Based Education.
+Pilar ketiga, Assessment. Prinsipnya, setiap komponen penilaian dipetakan jelas ke CPMK sesuai pendekatan Outcome-Based Education.
 
 Ada tiga komponen. Tugas memiliki bobot terbesar, yaitu enam puluh persen, bersifat berkelanjutan dan mencakup mayoritas Sub-CPMK. UTS dan UAS masing-masing dua puluh persen.
 
