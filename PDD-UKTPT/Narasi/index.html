@@ -24,9 +24,9 @@
   .title { margin: 1.5mm 0 1mm; font-size: 19pt; font-weight: 800; color: #0f1c34; letter-spacing: -0.01em; line-height: 1.1; }
   .subtitle { font-size: 10pt; font-weight: 700; color: #5b6b86; }
   .author { font-size: 8.5pt; color: #8c98ad; margin-top: 1mm; }
-  .hd-logos { display: flex; align-items: center; gap: 11px; flex: none; }
-  .hd-logos img { height: 42px; width: auto; display: block; }
-  .hd-div { width: 1px; height: 34px; background: #d4ddea; }
+  .hd-logos { display: flex; align-items: center; gap: 14px; flex: none; }
+  .hd-logos img { height: 60px; width: auto; display: block; }
+  .hd-div { width: 1px; height: 48px; background: #d4ddea; }
 
   /* Sections with per-section color accent */
   .sec {
@@ -34,9 +34,27 @@
     border: 1px solid #eaf0f8; border-radius: 10px;
     background: linear-gradient(180deg, color-mix(in srgb, var(--c) 6%, #fff), #ffffff 62%);
     overflow: hidden;
+    transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
   }
   .sec::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--c) 70%, #5aa9ff 0%), var(--c)); }
+    background: linear-gradient(180deg, color-mix(in srgb, var(--c) 70%, #5aa9ff 0%), var(--c));
+    transition: width .22s ease; }
+  /* Hover effect per card (web only) — accent-aware lift */
+  @media (hover: hover) {
+    .badge { transition: transform .22s ease; }
+    .sec:hover {
+      transform: translateY(-3px);
+      border-color: color-mix(in srgb, var(--c) 38%, #eaf0f8);
+      box-shadow: 0 14px 28px -12px color-mix(in srgb, var(--c) 50%, transparent),
+                  0 5px 12px -7px rgba(15,28,52,.14);
+    }
+    .sec:hover::before { width: 7px; }
+    .sec:hover .badge { transform: scale(1.07); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sec, .sec::before, .badge { transition: none; }
+    .sec:hover { transform: none; }
+  }
   .sec-h { display: flex; align-items: center; gap: 9px; margin-bottom: 2mm; }
   .badge {
     display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px;
