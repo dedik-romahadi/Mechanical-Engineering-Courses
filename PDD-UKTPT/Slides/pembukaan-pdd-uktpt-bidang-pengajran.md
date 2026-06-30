@@ -255,13 +255,13 @@ class: pdd-page pdd-s5 cam-right
 <div class="pg2-note">
 <div class="pg2-note-h"><span class="pg2-note-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg></span><span class="pg2-note-k">Pilar 2 dari 3</span></div>
 <div class="pg2-pill"><span class="pg2-pill-k">Interaction</span><span class="pg2-pill-n">Interaksi Mahasiswa</span></div>
-<div class="pg2-note-t">Pembelajaran <b>berpusat pada mahasiswa</b> dengan umpan balik langsung.</div>
+<div class="pg2-note-t">Pembelajaran <b>berpusat pada mahasiswa</b> dengan umpan balik otomatis (real-time).</div>
 <div class="pg2-prog"><span></span><span class="on"></span><span></span></div>
 </div>
 </aside>
 <section class="pg2-main">
-<h2 class="pg2-title">Belajar Aktif &amp; <span class="pg2-title-g">Umpan Balik Langsung</span></h2>
-<p class="pg2-desc">Mahasiswa dilibatkan secara aktif sepanjang pembelajaran melalui beragam interaksi yang memberi <b>respons langsung</b>.</p>
+<h2 class="pg2-title">Belajar Aktif &amp; <span class="pg2-title-g">Umpan Balik Otomatis (Real-time)</span></h2>
+<p class="pg2-desc">Mahasiswa dilibatkan secara aktif sepanjang pembelajaran melalui beragam interaksi yang memberi <b>respons otomatis (real-time)</b>.</p>
 <div class="pg2-media">
 <div class="media-card" style="--c:#15418f;--cs:#2056b3">
 <span class="media-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.07 12.85c.77-1.39 2.25-2.21 3.11-3.44.91-1.29.4-3.7-2.18-3.7-1.69 0-2.52 1.28-2.87 2.34L6.54 7.87C7.25 5.74 9.18 4 11.99 4c2.35 0 3.96 1.07 4.78 2.41.7 1.15 1.11 3.3.03 4.9-1.2 1.77-2.35 2.31-2.97 3.45-.25.46-.35.76-.35 2.24h-2.89c-.01-.78-.13-2.05.45-3.15zM14 20c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"/></svg></span>
@@ -282,7 +282,7 @@ class: pdd-page pdd-s5 cam-right
 </div>
 <div class="pg2-foot">
 <span class="pg2-foot-i"><i class="dot dot-grad"></i>Student-centered</span>
-<span class="pg2-foot-i"><i class="dot" style="background:#0f9d8f"></i>Umpan balik langsung</span>
+<span class="pg2-foot-i"><i class="dot" style="background:#0f9d8f"></i>Umpan balik otomatis (real-time)</span>
 </div>
 <div class="pg2-illus">
 <svg viewBox="0 0 680 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
