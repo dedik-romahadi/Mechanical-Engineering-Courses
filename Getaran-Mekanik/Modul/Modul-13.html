@@ -871,8 +871,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   <a href="#m-analogi">Bearing Fault</a>
   <a href="#m-anim">Gear Mesh</a>
   <a href="#m-aplikasi">Demodulasi</a>
-  <a href="#m-python">Python</a>
   <a href="#m-visualisasi">Animasi</a>
+  <a href="#m-python">Python</a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -1362,177 +1362,6 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   </div>
 </div>
 
-<!-- ═══ BAGIAN 08 — IMPLEMENTASI PYTHON ═══ -->
-<hr class="divider">
-<div class="section" id="m-python">
-  <div class="section-label reveal">Bagian 08</div>
-  <h2 class="section-title reveal">Implementasi Python:<br>Envelope Analysis &amp; Order Tracking</h2>
-  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow lengkap: simulasi sinyal bearing fault dengan modulasi (Cell 1), envelope analysis dengan Hilbert transform (Cell 2), order tracking dengan tachometer signal (Cell 3), dan dashboard diagnosis terintegrasi (Cell 4). Library: numpy, scipy.signal.</p>
-
-  <!-- Cell 1 -->
-  <div class="code-wrap reveal" style="margin-bottom:32px">
-    <div class="code-header">
-      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 1 — Simulate Bearing Fault Signal (BPFO Modulating Resonance)</span>
-      <span class="code-lang">Python</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
-
-fs = <span class="nm">25600.0</span>           <span class="cm"># 25.6 kHz</span>
-T = <span class="nm">2.0</span>                <span class="cm"># 2 detik buffer</span>
-N = <span class="fn">int</span>(fs * T)
-t = np.<span class="fn">arange</span>(N) / fs
-
-f_shaft = <span class="nm">30.0</span>         <span class="cm"># 30 Hz = 1800 rpm</span>
-f_resonance = <span class="nm">5000.0</span>   <span class="cm"># struktur housing bearing resonance</span>
-f_BPFO = <span class="nm">100.0</span>         <span class="cm"># BPFO untuk bearing tipikal (~3.3× shaft)</span>
-
-<span class="cm"># Sinyal background: 1×rpm + 2×rpm + noise</span>
-x_background = (<span class="nm">1.5</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_shaft*t)
-                + <span class="nm">0.4</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">2</span>*f_shaft*t)
-                + <span class="nm">0.3</span>*np.random.<span class="fn">randn</span>(N))
-
-<span class="cm"># Bearing fault: impulse train at BPFO modulating resonance 5 kHz</span>
-impulse_train = np.<span class="fn">zeros</span>(N)
-impulse_period = <span class="nm">1.0</span> / f_BPFO
-<span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">int</span>(T * f_BPFO)):
-    idx = <span class="fn">int</span>(k * impulse_period * fs)
-    <span class="kw">if</span> idx &lt; N - <span class="nm">200</span>:
-        <span class="cm"># damped oscillation at resonance</span>
-        decay = np.<span class="fn">exp</span>(-np.<span class="fn">arange</span>(<span class="nm">200</span>) * <span class="nm">0.02</span>)
-        impulse_train[idx:idx+<span class="nm">200</span>] += <span class="nm">2.0</span> * decay * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_resonance*np.<span class="fn">arange</span>(<span class="nm">200</span>)/fs)
-
-x_bearing = x_background + impulse_train
-
-<span class="fn">print</span>(<span class="st">f"Shaft freq: {f_shaft} Hz, BPFO: {f_BPFO} Hz, Resonance: {f_resonance} Hz"</span>)
-<span class="fn">print</span>(<span class="st">f"Signal length: {N} samples ({T} s)"</span>)</pre>
-  </div>
-
-  <!-- Cell 2 -->
-  <div class="code-wrap reveal" style="margin-bottom:32px">
-    <div class="code-header">
-      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 2 — Envelope Analysis: BPF + Hilbert + FFT</span>
-      <span class="code-lang">Python</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="kw">from</span> scipy.signal <span class="kw">import</span> butter, filtfilt, hilbert
-
-<span class="cm"># Step 1: Band-pass filter di sekitar resonance (3-7 kHz)</span>
-nyq = fs / <span class="nm">2</span>
-low_cut = <span class="nm">3000</span> / nyq
-high_cut = <span class="nm">7000</span> / nyq
-b, a = <span class="fn">butter</span>(<span class="nm">4</span>, [low_cut, high_cut], btype=<span class="st">'band'</span>)
-x_bp = <span class="fn">filtfilt</span>(b, a, x_bearing)
-
-<span class="cm"># Step 2: Hilbert transform → envelope</span>
-envelope = np.<span class="fn">abs</span>(<span class="fn">hilbert</span>(x_bp))
-
-<span class="cm"># Step 3: FFT of envelope</span>
-env_centered = envelope - envelope.<span class="fn">mean</span>()
-ENV = np.fft.<span class="fn">rfft</span>(env_centered)
-freqs_env = np.fft.<span class="fn">rfftfreq</span>(N, d=<span class="nm">1</span>/fs)
-mag_env = np.<span class="fn">abs</span>(ENV) * <span class="nm">2</span> / N
-
-<span class="cm"># Identify peak around BPFO</span>
-mask = (freqs_env &gt; <span class="nm">50</span>) &amp; (freqs_env &lt; <span class="nm">200</span>)
-peak_idx_local = np.<span class="fn">argmax</span>(mag_env[mask])
-peak_freq = freqs_env[mask][peak_idx_local]
-peak_amp = mag_env[mask][peak_idx_local]
-
-<span class="fn">print</span>(<span class="st">f"Envelope spectrum peak in 50-200 Hz: f = {peak_freq:.1f} Hz"</span>)
-<span class="fn">print</span>(<span class="st">f"  → Match BPFO ({f_BPFO} Hz)? {'YES' if abs(peak_freq - f_BPFO) &lt; 5 else 'NO'}"</span>)</pre>
-  </div>
-
-  <!-- Cell 3 -->
-  <div class="code-wrap reveal" style="margin-bottom:32px">
-    <div class="code-header">
-      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 3 — Order Tracking dengan Synthetic Tachometer</span>
-      <span class="code-lang">Python</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="kw">from</span> scipy.interpolate <span class="kw">import</span> interp1d
-
-<span class="cm"># Synthetic tachometer: rpm increases linearly 1500 → 2100 over 2 sec</span>
-rpm_t = <span class="nm">1500</span> + <span class="nm">300</span> * t   <span class="cm"># variable rpm</span>
-f_shaft_t = rpm_t / <span class="nm">60</span>   <span class="cm"># variable shaft freq</span>
-phase_t = <span class="nm">2</span>*np.pi * np.<span class="fn">cumsum</span>(f_shaft_t) / fs  <span class="cm"># cumulative phase</span>
-
-<span class="cm"># Signal with rpm-tracking 1× component</span>
-x_var = <span class="nm">1.5</span> * np.<span class="fn">sin</span>(phase_t) + <span class="nm">0.3</span> * np.random.<span class="fn">randn</span>(N)
-
-<span class="cm"># Synchronous resampling: M samples per revolution</span>
-M = <span class="nm">1024</span>  <span class="cm"># samples per rev</span>
-total_revs = phase_t[-<span class="nm">1</span>] / (<span class="nm">2</span>*np.pi)
-n_revs = <span class="fn">int</span>(total_revs)
-theta_uniform = np.<span class="fn">linspace</span>(<span class="nm">0</span>, n_revs * <span class="nm">2</span>*np.pi, n_revs * M)
-interp = <span class="fn">interp1d</span>(phase_t, x_var, bounds_error=<span class="kw">False</span>, fill_value=<span class="nm">0</span>)
-x_resampled = <span class="fn">interp</span>(theta_uniform)
-
-<span class="cm"># Order spectrum</span>
-X_order = np.fft.<span class="fn">rfft</span>(x_resampled)
-orders = np.fft.<span class="fn">rfftfreq</span>(<span class="fn">len</span>(x_resampled)) * M  <span class="cm"># normalized to orders</span>
-mag_order = np.<span class="fn">abs</span>(X_order) * <span class="nm">2</span> / <span class="fn">len</span>(x_resampled)
-
-<span class="cm"># Peak should be at order = 1 (= 1× rpm component)</span>
-mask = (orders &gt; <span class="nm">0.5</span>) &amp; (orders &lt; <span class="nm">1.5</span>)
-peak_order = orders[mask][np.<span class="fn">argmax</span>(mag_order[mask])]
-<span class="fn">print</span>(<span class="st">f"Order tracking peak: {peak_order:.3f} (expected 1.000)"</span>)</pre>
-  </div>
-
-  <!-- Cell 4 -->
-  <div class="code-wrap reveal" style="margin-bottom:32px">
-    <div class="code-header">
-      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 4 — Diagnosis Dashboard: Time + Spectrum + Envelope Spectrum</span>
-      <span class="code-lang">Python</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
-
-<span class="cm"># Raw spectrum (untuk komparasi)</span>
-X_raw = np.fft.<span class="fn">rfft</span>(x_bearing - x_bearing.<span class="fn">mean</span>())
-freqs = np.fft.<span class="fn">rfftfreq</span>(N, d=<span class="nm">1</span>/fs)
-mag_raw = np.<span class="fn">abs</span>(X_raw) * <span class="nm">2</span> / N
-
-fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">3</span>, <span class="nm">1</span>, figsize=(<span class="nm">11</span>, <span class="nm">9</span>))
-
-<span class="cm"># Time waveform</span>
-axes[<span class="nm">0</span>].<span class="fn">plot</span>(t[:<span class="nm">5000</span>], x_bearing[:<span class="nm">5000</span>], color=<span class="st">'#0ea5e9'</span>, lw=<span class="nm">0.5</span>)
-axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">'Time Waveform — Bearing Fault Signal'</span>)
-axes[<span class="nm">0</span>].<span class="fn">set_xlabel</span>(<span class="st">'t (s)'</span>); axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'Amplitude'</span>)
-axes[<span class="nm">0</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
-
-<span class="cm"># Raw spectrum (susah baca BPFO)</span>
-axes[<span class="nm">1</span>].<span class="fn">plot</span>(freqs, mag_raw, color=<span class="st">'#a855f7'</span>, lw=<span class="nm">0.7</span>)
-axes[<span class="nm">1</span>].<span class="fn">axvline</span>(f_BPFO, color=<span class="st">'red'</span>, ls=<span class="st">'--'</span>, label=<span class="st">f'BPFO @ {f_BPFO} Hz'</span>)
-axes[<span class="nm">1</span>].<span class="fn">axvline</span>(f_resonance, color=<span class="st">'orange'</span>, ls=<span class="st">':'</span>, label=<span class="st">f'Resonance @ {f_resonance} Hz'</span>)
-axes[<span class="nm">1</span>].<span class="fn">set_xlim</span>(<span class="nm">0</span>, <span class="nm">8000</span>)
-axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Raw Spectrum — BPFO sulit terlihat'</span>)
-axes[<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'Frequency (Hz)'</span>); axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'Amplitude'</span>)
-axes[<span class="nm">1</span>].<span class="fn">legend</span>(); axes[<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
-
-<span class="cm"># Envelope spectrum (BPFO clearly visible)</span>
-axes[<span class="nm">2</span>].<span class="fn">plot</span>(freqs_env, mag_env, color=<span class="st">'#16a34a'</span>, lw=<span class="nm">0.9</span>)
-axes[<span class="nm">2</span>].<span class="fn">axvline</span>(f_BPFO, color=<span class="st">'red'</span>, ls=<span class="st">'--'</span>, label=<span class="st">f'BPFO @ {f_BPFO} Hz'</span>)
-axes[<span class="nm">2</span>].<span class="fn">axvline</span>(<span class="nm">2</span>*f_BPFO, color=<span class="st">'red'</span>, ls=<span class="st">':'</span>, alpha=<span class="nm">0.5</span>, label=<span class="st">f'2×BPFO'</span>)
-axes[<span class="nm">2</span>].<span class="fn">set_xlim</span>(<span class="nm">0</span>, <span class="nm">500</span>)
-axes[<span class="nm">2</span>].<span class="fn">set_title</span>(<span class="st">'Envelope Spectrum — BPFO &amp; harmonik clearly visible'</span>)
-axes[<span class="nm">2</span>].<span class="fn">set_xlabel</span>(<span class="st">'Frequency (Hz)'</span>); axes[<span class="nm">2</span>].<span class="fn">set_ylabel</span>(<span class="st">'Envelope Amplitude'</span>)
-axes[<span class="nm">2</span>].<span class="fn">legend</span>(); axes[<span class="nm">2</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
-
-plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
-<span class="fn">print</span>(<span class="st">f"\nDiagnosis: BPFO peak amplitude = {peak_amp:.3f}"</span>)
-<span class="fn">print</span>(<span class="st">f"Dibanding raw spectrum di 100 Hz, envelope sensitivitas naik 10-100×."</span>)</pre>
-  </div>
-
-  <div class="info-box reveal">
-    <strong>Library Pro untuk Production:</strong> Untuk kasus production, gunakan library spesialis vibration analysis seperti <code>vibrationtoolbox</code>, <code>tsxlearn</code>, atau commercial toolkit (NI VibrationAssist, Brüel &amp; Kjær PULSE). Fitur tambahan: auto-detection BPFO/BPFI dari bearing model database, real-time waterfall plot, automated diagnostic reports.
-  </div>
-</div>
-
 <!-- ═══ BAGIAN VISUALISASI — ANIMASI INTERAKTIF ═══ -->
 <hr class="divider">
 <div class="section" id="m-visualisasi">
@@ -1756,6 +1585,177 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   draw();
 })();
 </script>
+
+<!-- ═══ BAGIAN 08 — IMPLEMENTASI PYTHON ═══ -->
+<hr class="divider">
+<div class="section" id="m-python">
+  <div class="section-label reveal">Bagian 08</div>
+  <h2 class="section-title reveal">Implementasi Python:<br>Envelope Analysis &amp; Order Tracking</h2>
+  <p class="section-desc reveal">Empat cell Python berikut mengimplementasikan workflow lengkap: simulasi sinyal bearing fault dengan modulasi (Cell 1), envelope analysis dengan Hilbert transform (Cell 2), order tracking dengan tachometer signal (Cell 3), dan dashboard diagnosis terintegrasi (Cell 4). Library: numpy, scipy.signal.</p>
+
+  <!-- Cell 1 -->
+  <div class="code-wrap reveal" style="margin-bottom:32px">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 1 — Simulate Bearing Fault Signal (BPFO Modulating Resonance)</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+fs = <span class="nm">25600.0</span>           <span class="cm"># 25.6 kHz</span>
+T = <span class="nm">2.0</span>                <span class="cm"># 2 detik buffer</span>
+N = <span class="fn">int</span>(fs * T)
+t = np.<span class="fn">arange</span>(N) / fs
+
+f_shaft = <span class="nm">30.0</span>         <span class="cm"># 30 Hz = 1800 rpm</span>
+f_resonance = <span class="nm">5000.0</span>   <span class="cm"># struktur housing bearing resonance</span>
+f_BPFO = <span class="nm">100.0</span>         <span class="cm"># BPFO untuk bearing tipikal (~3.3× shaft)</span>
+
+<span class="cm"># Sinyal background: 1×rpm + 2×rpm + noise</span>
+x_background = (<span class="nm">1.5</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_shaft*t)
+                + <span class="nm">0.4</span>*np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*<span class="nm">2</span>*f_shaft*t)
+                + <span class="nm">0.3</span>*np.random.<span class="fn">randn</span>(N))
+
+<span class="cm"># Bearing fault: impulse train at BPFO modulating resonance 5 kHz</span>
+impulse_train = np.<span class="fn">zeros</span>(N)
+impulse_period = <span class="nm">1.0</span> / f_BPFO
+<span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">int</span>(T * f_BPFO)):
+    idx = <span class="fn">int</span>(k * impulse_period * fs)
+    <span class="kw">if</span> idx &lt; N - <span class="nm">200</span>:
+        <span class="cm"># damped oscillation at resonance</span>
+        decay = np.<span class="fn">exp</span>(-np.<span class="fn">arange</span>(<span class="nm">200</span>) * <span class="nm">0.02</span>)
+        impulse_train[idx:idx+<span class="nm">200</span>] += <span class="nm">2.0</span> * decay * np.<span class="fn">sin</span>(<span class="nm">2</span>*np.pi*f_resonance*np.<span class="fn">arange</span>(<span class="nm">200</span>)/fs)
+
+x_bearing = x_background + impulse_train
+
+<span class="fn">print</span>(<span class="st">f"Shaft freq: {f_shaft} Hz, BPFO: {f_BPFO} Hz, Resonance: {f_resonance} Hz"</span>)
+<span class="fn">print</span>(<span class="st">f"Signal length: {N} samples ({T} s)"</span>)</pre>
+  </div>
+
+  <!-- Cell 2 -->
+  <div class="code-wrap reveal" style="margin-bottom:32px">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 2 — Envelope Analysis: BPF + Hilbert + FFT</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">from</span> scipy.signal <span class="kw">import</span> butter, filtfilt, hilbert
+
+<span class="cm"># Step 1: Band-pass filter di sekitar resonance (3-7 kHz)</span>
+nyq = fs / <span class="nm">2</span>
+low_cut = <span class="nm">3000</span> / nyq
+high_cut = <span class="nm">7000</span> / nyq
+b, a = <span class="fn">butter</span>(<span class="nm">4</span>, [low_cut, high_cut], btype=<span class="st">'band'</span>)
+x_bp = <span class="fn">filtfilt</span>(b, a, x_bearing)
+
+<span class="cm"># Step 2: Hilbert transform → envelope</span>
+envelope = np.<span class="fn">abs</span>(<span class="fn">hilbert</span>(x_bp))
+
+<span class="cm"># Step 3: FFT of envelope</span>
+env_centered = envelope - envelope.<span class="fn">mean</span>()
+ENV = np.fft.<span class="fn">rfft</span>(env_centered)
+freqs_env = np.fft.<span class="fn">rfftfreq</span>(N, d=<span class="nm">1</span>/fs)
+mag_env = np.<span class="fn">abs</span>(ENV) * <span class="nm">2</span> / N
+
+<span class="cm"># Identify peak around BPFO</span>
+mask = (freqs_env &gt; <span class="nm">50</span>) &amp; (freqs_env &lt; <span class="nm">200</span>)
+peak_idx_local = np.<span class="fn">argmax</span>(mag_env[mask])
+peak_freq = freqs_env[mask][peak_idx_local]
+peak_amp = mag_env[mask][peak_idx_local]
+
+<span class="fn">print</span>(<span class="st">f"Envelope spectrum peak in 50-200 Hz: f = {peak_freq:.1f} Hz"</span>)
+<span class="fn">print</span>(<span class="st">f"  → Match BPFO ({f_BPFO} Hz)? {'YES' if abs(peak_freq - f_BPFO) &lt; 5 else 'NO'}"</span>)</pre>
+  </div>
+
+  <!-- Cell 3 -->
+  <div class="code-wrap reveal" style="margin-bottom:32px">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 3 — Order Tracking dengan Synthetic Tachometer</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">from</span> scipy.interpolate <span class="kw">import</span> interp1d
+
+<span class="cm"># Synthetic tachometer: rpm increases linearly 1500 → 2100 over 2 sec</span>
+rpm_t = <span class="nm">1500</span> + <span class="nm">300</span> * t   <span class="cm"># variable rpm</span>
+f_shaft_t = rpm_t / <span class="nm">60</span>   <span class="cm"># variable shaft freq</span>
+phase_t = <span class="nm">2</span>*np.pi * np.<span class="fn">cumsum</span>(f_shaft_t) / fs  <span class="cm"># cumulative phase</span>
+
+<span class="cm"># Signal with rpm-tracking 1× component</span>
+x_var = <span class="nm">1.5</span> * np.<span class="fn">sin</span>(phase_t) + <span class="nm">0.3</span> * np.random.<span class="fn">randn</span>(N)
+
+<span class="cm"># Synchronous resampling: M samples per revolution</span>
+M = <span class="nm">1024</span>  <span class="cm"># samples per rev</span>
+total_revs = phase_t[-<span class="nm">1</span>] / (<span class="nm">2</span>*np.pi)
+n_revs = <span class="fn">int</span>(total_revs)
+theta_uniform = np.<span class="fn">linspace</span>(<span class="nm">0</span>, n_revs * <span class="nm">2</span>*np.pi, n_revs * M)
+interp = <span class="fn">interp1d</span>(phase_t, x_var, bounds_error=<span class="kw">False</span>, fill_value=<span class="nm">0</span>)
+x_resampled = <span class="fn">interp</span>(theta_uniform)
+
+<span class="cm"># Order spectrum</span>
+X_order = np.fft.<span class="fn">rfft</span>(x_resampled)
+orders = np.fft.<span class="fn">rfftfreq</span>(<span class="fn">len</span>(x_resampled)) * M  <span class="cm"># normalized to orders</span>
+mag_order = np.<span class="fn">abs</span>(X_order) * <span class="nm">2</span> / <span class="fn">len</span>(x_resampled)
+
+<span class="cm"># Peak should be at order = 1 (= 1× rpm component)</span>
+mask = (orders &gt; <span class="nm">0.5</span>) &amp; (orders &lt; <span class="nm">1.5</span>)
+peak_order = orders[mask][np.<span class="fn">argmax</span>(mag_order[mask])]
+<span class="fn">print</span>(<span class="st">f"Order tracking peak: {peak_order:.3f} (expected 1.000)"</span>)</pre>
+  </div>
+
+  <!-- Cell 4 -->
+  <div class="code-wrap reveal" style="margin-bottom:32px">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 4 — Diagnosis Dashboard: Time + Spectrum + Envelope Spectrum</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+
+<span class="cm"># Raw spectrum (untuk komparasi)</span>
+X_raw = np.fft.<span class="fn">rfft</span>(x_bearing - x_bearing.<span class="fn">mean</span>())
+freqs = np.fft.<span class="fn">rfftfreq</span>(N, d=<span class="nm">1</span>/fs)
+mag_raw = np.<span class="fn">abs</span>(X_raw) * <span class="nm">2</span> / N
+
+fig, axes = plt.<span class="fn">subplots</span>(<span class="nm">3</span>, <span class="nm">1</span>, figsize=(<span class="nm">11</span>, <span class="nm">9</span>))
+
+<span class="cm"># Time waveform</span>
+axes[<span class="nm">0</span>].<span class="fn">plot</span>(t[:<span class="nm">5000</span>], x_bearing[:<span class="nm">5000</span>], color=<span class="st">'#0ea5e9'</span>, lw=<span class="nm">0.5</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_title</span>(<span class="st">'Time Waveform — Bearing Fault Signal'</span>)
+axes[<span class="nm">0</span>].<span class="fn">set_xlabel</span>(<span class="st">'t (s)'</span>); axes[<span class="nm">0</span>].<span class="fn">set_ylabel</span>(<span class="st">'Amplitude'</span>)
+axes[<span class="nm">0</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+
+<span class="cm"># Raw spectrum (susah baca BPFO)</span>
+axes[<span class="nm">1</span>].<span class="fn">plot</span>(freqs, mag_raw, color=<span class="st">'#a855f7'</span>, lw=<span class="nm">0.7</span>)
+axes[<span class="nm">1</span>].<span class="fn">axvline</span>(f_BPFO, color=<span class="st">'red'</span>, ls=<span class="st">'--'</span>, label=<span class="st">f'BPFO @ {f_BPFO} Hz'</span>)
+axes[<span class="nm">1</span>].<span class="fn">axvline</span>(f_resonance, color=<span class="st">'orange'</span>, ls=<span class="st">':'</span>, label=<span class="st">f'Resonance @ {f_resonance} Hz'</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_xlim</span>(<span class="nm">0</span>, <span class="nm">8000</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_title</span>(<span class="st">'Raw Spectrum — BPFO sulit terlihat'</span>)
+axes[<span class="nm">1</span>].<span class="fn">set_xlabel</span>(<span class="st">'Frequency (Hz)'</span>); axes[<span class="nm">1</span>].<span class="fn">set_ylabel</span>(<span class="st">'Amplitude'</span>)
+axes[<span class="nm">1</span>].<span class="fn">legend</span>(); axes[<span class="nm">1</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+
+<span class="cm"># Envelope spectrum (BPFO clearly visible)</span>
+axes[<span class="nm">2</span>].<span class="fn">plot</span>(freqs_env, mag_env, color=<span class="st">'#16a34a'</span>, lw=<span class="nm">0.9</span>)
+axes[<span class="nm">2</span>].<span class="fn">axvline</span>(f_BPFO, color=<span class="st">'red'</span>, ls=<span class="st">'--'</span>, label=<span class="st">f'BPFO @ {f_BPFO} Hz'</span>)
+axes[<span class="nm">2</span>].<span class="fn">axvline</span>(<span class="nm">2</span>*f_BPFO, color=<span class="st">'red'</span>, ls=<span class="st">':'</span>, alpha=<span class="nm">0.5</span>, label=<span class="st">f'2×BPFO'</span>)
+axes[<span class="nm">2</span>].<span class="fn">set_xlim</span>(<span class="nm">0</span>, <span class="nm">500</span>)
+axes[<span class="nm">2</span>].<span class="fn">set_title</span>(<span class="st">'Envelope Spectrum — BPFO &amp; harmonik clearly visible'</span>)
+axes[<span class="nm">2</span>].<span class="fn">set_xlabel</span>(<span class="st">'Frequency (Hz)'</span>); axes[<span class="nm">2</span>].<span class="fn">set_ylabel</span>(<span class="st">'Envelope Amplitude'</span>)
+axes[<span class="nm">2</span>].<span class="fn">legend</span>(); axes[<span class="nm">2</span>].<span class="fn">grid</span>(alpha=<span class="nm">0.3</span>)
+
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
+<span class="fn">print</span>(<span class="st">f"\nDiagnosis: BPFO peak amplitude = {peak_amp:.3f}"</span>)
+<span class="fn">print</span>(<span class="st">f"Dibanding raw spectrum di 100 Hz, envelope sensitivitas naik 10-100×."</span>)</pre>
+  </div>
+
+  <div class="info-box reveal">
+    <strong>Library Pro untuk Production:</strong> Untuk kasus production, gunakan library spesialis vibration analysis seperti <code>vibrationtoolbox</code>, <code>tsxlearn</code>, atau commercial toolkit (NI VibrationAssist, Brüel &amp; Kjær PULSE). Fitur tambahan: auto-detection BPFO/BPFI dari bearing model database, real-time waterfall plot, automated diagnostic reports.
+  </div>
+</div>
 
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
 <hr class="divider">
@@ -8450,12 +8450,12 @@ function drawOrder(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const v = parseFloat(document.getElementById('sl_rpm').value);
+  const rpm = parseFloat(document.getElementById('sl_rpm').value);
   const valEl = document.getElementById('v_rpm');
-  if(valEl) valEl.textContent = v.toFixed(2);
+  if(valEl) valEl.textContent = rpm.toFixed(0);
+  const fr = rpm / 60; // frekuensi rotasi shaft, Hz
 
-  // Generic visualization: vertical bars representing eigenvalues / spectrum / etc
-  const padL=50, padR=20, padT=30, padB=40;
+  const padL=50, padR=20, padT=34, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
   ctx.strokeStyle = '#0d1929';
   for(let i=0; i<=10; i++){
@@ -8464,50 +8464,33 @@ function drawOrder(){
   ctx.strokeStyle = 'rgba(255,255,255,.25)';
   ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
 
-  // Topic-specific drawing — generic eigenvalue/parameter plot
-  const N = Math.max(2, Math.min(20, Math.floor(v)));
-  const useBars = (N === Math.floor(N));
-  if(useBars){
-    // Bar plot for N components
-    const bw = plotW/(N+1);
-    for(let i=0; i<N; i++){
-      const idx = i+1;
-      const eigval = Math.sin(((2*idx-1)*Math.PI/(2*(2*N+1)))) * 2;  // shear-building eigenvalue formula
-      const bx = padL + (i+0.5)*bw;
-      const bh = (eigval/2.5)*plotH;
-      const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
-      grad.addColorStop(0, 'var(--amber)');
-      grad.addColorStop(1, 'var(--amber)40');
-      ctx.fillStyle = grad;
-      ctx.fillRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
-      ctx.strokeStyle = 'var(--amber)';
-      ctx.strokeRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
-      ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
-      ctx.fillText('ω'+(i+1), bx, padT+plotH+14);
-      ctx.fillText(eigval.toFixed(2), bx, padT+plotH-bh-5);
-    }
-  } else {
-    // Continuous curve
-    ctx.strokeStyle = 'var(--amber)'; ctx.lineWidth = 2.5;
-    ctx.shadowColor = 'var(--amber)A0'; ctx.shadowBlur = 6;
-    ctx.beginPath();
-    for(let i=0; i<=200; i++){
-      const x = padL + plotW*i/200;
-      const xv = i/200;
-      const y = padT + plotH - (0.5+0.4*Math.sin(xv*v*Math.PI*2))*plotH;
-      if(i===0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-  }
+  // Spektrum Hz: peak di k × f_r (order 1, 2, 3) — posisi bergeser mengikuti RPM
+  const fMax = 220;
+  const orders = [{k:1, amp:1.00, color:'#0ea5e9'}, {k:2, amp:0.55, color:'#00e09e'}, {k:3, amp:0.30, color:'#f97316'}];
+  orders.forEach(o => {
+    const f = o.k * fr;
+    if (f > fMax) return;
+    const bx = padL + (f/fMax)*plotW;
+    const bh = o.amp*plotH*0.82;
+    const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
+    grad.addColorStop(0, o.color); grad.addColorStop(1, o.color+'30');
+    ctx.fillStyle = grad;
+    ctx.fillRect(bx-6, padT+plotH-bh, 12, bh);
+    ctx.strokeStyle = o.color; ctx.strokeRect(bx-6, padT+plotH-bh, 12, bh);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 10px JetBrains Mono'; ctx.textAlign = 'center';
+    ctx.fillText('Order '+o.k, bx, padT+plotH-bh-8);
+  });
 
+  ctx.fillStyle = '#64748b'; ctx.font = '9px JetBrains Mono'; ctx.textAlign='center';
+  [0,50,100,150,200].forEach(hz => { const x = padL+(hz/fMax)*plotW; ctx.fillText(hz+'', x, padT+plotH+16); });
+  ctx.fillText('f [Hz]', padL+plotW-14, padT+plotH+30);
   ctx.textAlign = 'left';
+
   ctx.fillStyle = 'var(--amber)'; ctx.font = 'bold 12px JetBrains Mono';
-  ctx.fillText('RPM = '+v.toFixed(2), padL+10, padT+18);
+  ctx.fillText('RPM = '+rpm.toFixed(0)+'  →  f_r = '+fr.toFixed(2)+' Hz', padL, padT-12);
 
   const info = document.getElementById('cvOrder_info');
-  if(info) info.innerHTML = `<strong>RPM</strong> = ${v.toFixed(2)} · Spectrum Diagnosis parameter exploration`;
+  if(info) info.innerHTML = `<strong>RPM</strong> = ${rpm.toFixed(0)} → f_r = ${fr.toFixed(2)} Hz. Peak 1×/2×/3× bergeser posisi Hz saat RPM berubah — tapi tetap konstan di <strong>order 1/2/3</strong>.`;
 }
 setTimeout(drawOrder, 800+650);
 
@@ -8524,7 +8507,7 @@ window.toggleEnvelope = function(){
   if(_cvEnvelope_mode === 1){
     if(view){ view.style.background = '#a855f730'; view.style.borderColor = '#a855f7'; }
     if(slider) slider.style.transform = 'translateX(28px)';
-    if(lbl){ lbl.textContent = 'Envelope Analysis (demodulated)'; lbl.style.color = '#a855f7'; }
+    if(lbl){ lbl.textContent = 'Envelope Spectrum (demodulated)'; lbl.style.color = '#a855f7'; }
   } else {
     if(view){ view.style.background = '#0ea5e930'; view.style.borderColor = '#0ea5e9'; }
     if(slider) slider.style.transform = 'translateX(0px)';
@@ -8541,15 +8524,15 @@ function drawEnvelope(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const isMode1 = (_cvEnvelope_mode === 1);
-  const color = isMode1 ? '#a855f7' : '#0ea5e9';
-  const label = isMode1 ? 'Envelope Analysis (demodulated)' : 'Raw FFT (high-freq carriers)';
+  const isEnv = (_cvEnvelope_mode === 1);
+  const color = isEnv ? '#a855f7' : '#0ea5e9';
+  const title = isEnv ? 'Envelope Spectrum (setelah BPF 3–10kHz + Hilbert)' : 'Raw FFT Spectrum (resonansi struktural dominan)';
 
-  ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(label, 20, 30);
+  ctx.fillStyle = color; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.fillText(title, 20, 22);
 
-  // Visualization differs per mode
-  const padL=50, padR=20, padT=50, padB=40;
+  // Spektrum bar — raw: carrier resonansi + sideband kecil; envelope: BPFO + harmonik jelas
+  const padL=50, padR=20, padT=38, padB=42;
   const plotW = W-padL-padR, plotH = H-padT-padB;
 
   ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
@@ -8557,34 +8540,52 @@ function drawEnvelope(){
     ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
   }
   ctx.strokeStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
-  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.stroke();
 
-  // Sample comparison curves
-  const T = Date.now()/1000;
-  const N = 200;
-  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
-  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
-  ctx.beginPath();
-  for(let i=0; i<=N; i++){
-    const x = padL + plotW*i/N;
-    const tt = i/N;
-    let y;
-    if(isMode1){
-      // Mode B: smoother / different
-      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*8*Math.PI + T)*Math.cos(tt*Math.PI);
+  const fMax = isEnv ? 300 : 6000;
+  const bpfo = 80; // Hz, contoh ilustratif
+  const N = 90, barW = plotW/N;
+  for(let i=0; i<N; i++){
+    const f = (i+0.5)/N*fMax;
+    let amp;
+    if(!isEnv){
+      const resonance = 4000;
+      amp  = 0.92*Math.exp(-Math.pow((f-resonance)/220,2));
+      amp += 0.16*Math.exp(-Math.pow((f-(resonance-bpfo))/90,2));
+      amp += 0.16*Math.exp(-Math.pow((f-(resonance+bpfo))/90,2));
+      amp += 0.05*Math.random();
     } else {
-      // Mode A: standard
-      y = padT + plotH/2 - 0.5*plotH*0.4*Math.sin(tt*6*Math.PI + T);
+      amp  = 0.85*Math.exp(-Math.pow((f-bpfo)/6,2));
+      amp += 0.5*Math.exp(-Math.pow((f-2*bpfo)/7,2));
+      amp += 0.3*Math.exp(-Math.pow((f-3*bpfo)/8,2));
+      amp += 0.04*Math.random();
     }
-    if(i===0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+    amp = Math.min(1, amp);
+    const h = amp*plotH*0.9;
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.5+0.5*amp;
+    ctx.fillRect(padL+i*barW, padT+plotH-h, barW*0.72, h);
   }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = '#64748b'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
+  const ticks = isEnv ? [0,80,160,240] : [0,2000,4000,6000];
+  ticks.forEach(f=>{ const x = padL + (f/fMax)*plotW; ctx.fillText(isEnv ? (f+'') : ((f/1000)+'k'), x, padT+plotH+14); });
+  ctx.fillText('f [Hz]', padL+plotW-16, padT+plotH+28);
+  ctx.textAlign='left';
+
+  if(isEnv){
+    ctx.fillStyle='#c4b5fd'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
+    ctx.fillText('BPFO', padL+(bpfo/fMax)*plotW, padT+14);
+    ctx.fillText('2×', padL+(2*bpfo/fMax)*plotW, padT+14);
+    ctx.fillText('3×', padL+(3*bpfo/fMax)*plotW, padT+14);
+    ctx.textAlign='left';
+  }
 
   const info = document.getElementById('cvEnvelope_info');
-  if(info) info.innerHTML = isMode1 ? '🟣 <strong>Envelope Analysis (demodulated)</strong>' : '🟢 <strong>Raw FFT (high-freq carriers)</strong>';
+  if(info) info.innerHTML = isEnv
+    ? '🟣 <strong>Envelope spectrum</strong>: BPFO + harmonik 2×/3× muncul jelas — carrier resonansi sudah dibuang via BPF + Hilbert transform.'
+    : '🟢 <strong>Raw FFT</strong>: didominasi resonansi struktural (~4 kHz); BPFO hanya tampak sebagai sideband kecil ±80 Hz — mudah terlewat tanpa envelope analysis.';
 }
 function _cvEnvelopeTick(){
   drawEnvelope();
@@ -8597,7 +8598,6 @@ setTimeout(_cvEnvelopeTick, 850+650);
 // Animasi 4 — Animasi 4 — Bearing Fault Frequencies (Radio)
 // ════════════════════════════════════════════════════════════
 let _cvBearingFault_val = 'bpfo';
-let _cvBearingFault_frame = 0;
 window.setBearingFault = function(v){
   _cvBearingFault_val = v;
   document.querySelectorAll('.bf-rlbl').forEach(lbl=>{
@@ -8611,6 +8611,14 @@ window.setBearingFault = function(v){
   });
 };
 
+// Formula Bagian 05: BPFO≈0.4·n·f_r, BPFI≈0.6·n·f_r, BSF≈2.3·f_r, FTF≈0.4·f_r
+const BEARING_FAULT_SPECS = {
+  bpfo: {label:'BPFO: Ball Pass Outer Race',   color:'#0ea5e9', mult:0.4, useN:true},
+  bpfi: {label:'BPFI: Ball Pass Inner Race',   color:'#00e09e', mult:0.6, useN:true},
+  bsf:  {label:'BSF: Ball Spin Frequency',     color:'#f97316', mult:2.3, useN:false},
+  ftf:  {label:'FTF: Fundamental Train Freq.', color:'#a855f7', mult:0.4, useN:false}
+};
+
 function drawBearingFault(){
   const cv = document.getElementById('cvBearingFault'); if(!cv) return;
   const W = cv.clientWidth; cv.width = W; const H = cv.height;
@@ -8619,49 +8627,48 @@ function drawBearingFault(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const opts = [('BPFO: Ball Pass Outer Race', '#0ea5e9', 'bpfo'), ('BPFI: Ball Pass Inner Race', '#00e09e', 'bpfi'), ('BSF: Ball Spin Frequency', '#f97316', 'bsf'), ('FTF: Fundamental Train Freq.', '#a855f7', 'ftf')];
-  const optMap = {};
-  opts.forEach(o => { optMap[o[2]] = {label: o[0], color: o[1]}; });
-  const cur = optMap[_cvBearingFault_val] || optMap[opts[0][2]];
-  const t = _cvBearingFault_frame * 0.012;
+  const cur = BEARING_FAULT_SPECS[_cvBearingFault_val] || BEARING_FAULT_SPECS.bpfo;
+  const fr = 30, n = 9; // contoh: f_r pada 1800 rpm, deep-groove 9 ball
+  const faultFreq = cur.mult * fr * (cur.useN ? n : 1);
 
-  ctx.fillStyle = cur.color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(cur.label, 20, 30);
+  ctx.fillStyle = cur.color; ctx.font = 'bold 13px JetBrains Mono';
+  ctx.fillText(cur.label, 20, 22);
 
-  // Per-option visualization (frequency content)
-  const padL=50, padR=20, padT=50, padB=40;
+  const padL=50, padR=20, padT=38, padB=42;
   const plotW = W-padL-padR, plotH = H-padT-padB;
   ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
   for(let i=0; i<=10; i++){
     ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
   }
   ctx.strokeStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
-  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.stroke();
 
-  // Map opt index → frequency multiplier
-  const optIdx = opts.findIndex(o => o[2] === _cvBearingFault_val);
-  const freqMult = (optIdx + 1) * 1.5;
-
-  ctx.strokeStyle = cur.color; ctx.lineWidth = 2.5;
-  ctx.shadowColor = cur.color + 'A0'; ctx.shadowBlur = 6;
-  ctx.beginPath();
-  for(let i=0; i<=200; i++){
-    const x = padL + plotW*i/200;
-    const tt = i/200;
-    const y = padT + plotH/2 - plotH*0.35*Math.sin(tt*freqMult*2*Math.PI + t);
-    if(i===0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+  // Spektrum: dominan di faultFreq + harmonik 2×/3×
+  const fMax = faultFreq*3.6;
+  const N = 90, barW = plotW/N;
+  for(let i=0; i<N; i++){
+    const f = (i+0.5)/N*fMax;
+    let amp = 0.9*Math.exp(-Math.pow((f-faultFreq)/6,2));
+    amp += 0.5*Math.exp(-Math.pow((f-2*faultFreq)/7,2));
+    amp += 0.28*Math.exp(-Math.pow((f-3*faultFreq)/8,2));
+    amp += 0.04*Math.random();
+    amp = Math.min(1, amp);
+    const h = amp*plotH*0.88;
+    ctx.fillStyle = cur.color; ctx.globalAlpha = 0.5+0.5*amp;
+    ctx.fillRect(padL+i*barW, padT+plotH-h, barW*0.72, h);
   }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = '#64748b'; ctx.font = '9px JetBrains Mono'; ctx.textAlign='center';
+  [1,2,3].forEach(k=>{ const f=k*faultFreq; ctx.fillText(f.toFixed(0), padL+(f/fMax)*plotW, padT+plotH+16); });
+  ctx.fillText('f [Hz]', padL+plotW-16, padT+plotH+30);
+  ctx.textAlign='left';
 
   const info = document.getElementById('cvBearingFault_info');
-  if(info) info.innerHTML = `<strong style="color:${cur.color}">${cur.label}</strong> — freq multiplier: ${freqMult.toFixed(1)}×`;
+  if(info) info.innerHTML = `<strong style="color:${cur.color}">${cur.label}</strong> ≈ ${faultFreq.toFixed(1)} Hz (f_r=${fr} Hz, n=${n} ball) — harmonik 2×/3× turut tampak di envelope spectrum.`;
 }
 
 function _cvBearingFaultTick(){
-  _cvBearingFault_frame++;
   drawBearingFault();
   requestAnimationFrame(_cvBearingFaultTick);
 }
@@ -8672,9 +8679,16 @@ setTimeout(_cvBearingFaultTick, 900+650);
 // Animasi 5 — Animasi 5 — Bearing Types & Spec (Dropdown)
 // ════════════════════════════════════════════════════════════
 let _cvBearingType_val = 'deep_groove';
-let _cvBearingType_frame = 0;
 window.setBearingType = function(v){
   _cvBearingType_val = v;
+};
+
+// Spec ilustratif per tipe bearing: n=jumlah ball, ratio=d/D, alphaDeg=contact angle
+const BEARING_TYPE_SPECS = {
+  deep_groove: {label:'Deep Groove Ball — 6203/6205 series, paling umum', n:9,  ratio:0.22, alphaDeg:0,  color:'#0ea5e9'},
+  cylindrical: {label:'Cylindrical Roller — high radial load',           n:12, ratio:0.18, alphaDeg:0,  color:'#00e09e'},
+  tapered:     {label:'Tapered Roller — combined radial+axial',          n:16, ratio:0.16, alphaDeg:15, color:'#f97316'},
+  spherical:   {label:'Spherical Roller — misalignment tolerant',        n:20, ratio:0.15, alphaDeg:10, color:'#a855f7'}
 };
 
 function drawBearingType(){
@@ -8685,50 +8699,54 @@ function drawBearingType(){
   bg.addColorStop(0,'#050a16'); bg.addColorStop(1,'#0a1424');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  const opts = [('deep_groove', '⚙️ Deep Groove Ball — 6203/6205 series, paling umum'), ('cylindrical', '⚙️ Cylindrical Roller — high radial load'), ('tapered', '⚙️ Tapered Roller — combined radial+axial'), ('spherical', '⚙️ Spherical Roller — misalignment tolerant')];
-  const idx = opts.findIndex(o => o[0] === _cvBearingType_val);
-  const opt = opts[Math.max(0, idx)];
-  const t = _cvBearingType_frame * 0.010;
+  const spec = BEARING_TYPE_SPECS[_cvBearingType_val] || BEARING_TYPE_SPECS.deep_groove;
+  const fr = 30; // Hz, contoh f_r pada 1800 rpm
+  const cosA = Math.cos(spec.alphaDeg * Math.PI/180);
+  const ratio = spec.ratio, n = spec.n;
+  // Formula Bagian 05 (BPFO/BPFI/BSF/FTF)
+  const bpfo = (n/2)*fr*(1 - ratio*cosA);
+  const bpfi = (n/2)*fr*(1 + ratio*cosA);
+  const bsf  = (1/(2*ratio))*fr*(1 - Math.pow(ratio*cosA, 2));
+  const ftf  = 0.5*fr*(1 - ratio*cosA);
 
-  ctx.fillStyle = '#a855f7'; ctx.font = 'bold 13px JetBrains Mono';
-  ctx.fillText(opt[1], 20, 25);
+  ctx.fillStyle = spec.color; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillText('⚙️ ' + spec.label, 20, 20);
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText(`n=${n} ball, d/D=${ratio}, α=${spec.alphaDeg}°, f_r=${fr} Hz`, 20, 36);
 
-  // Generic visualization: animated waveform + index-dependent amplitude/frequency
-  const padL=50, padR=20, padT=45, padB=40;
+  const padL=50, padR=20, padT=50, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
-  ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
-  for(let i=0; i<=10; i++){
-    ctx.beginPath(); ctx.moveTo(padL+plotW*i/10, padT); ctx.lineTo(padL+plotW*i/10, padT+plotH); ctx.stroke();
-  }
   ctx.strokeStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.moveTo(padL, padT+plotH/2); ctx.lineTo(padL+plotW, padT+plotH/2);
-  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.stroke();
 
-  const colors = ['#0ea5e9', '#00e09e', '#f97316', '#a855f7', '#ef4444', '#facc15'];
-  const color = colors[idx % colors.length];
-
-  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
-  ctx.shadowColor = color + 'A0'; ctx.shadowBlur = 6;
-  ctx.beginPath();
-  for(let i=0; i<=200; i++){
-    const x = padL + plotW*i/200;
-    const tt = i/200;
-    // Composite signal varying per option
-    const f1 = (idx+1)*1.5;
-    const f2 = (idx+1)*2.5;
-    const y = padT + plotH/2 - plotH*0.35*(Math.sin(tt*f1*2*Math.PI + t)+0.4*Math.sin(tt*f2*2*Math.PI - t));
-    if(i===0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  const bars = [
+    {label:'BPFO', val:bpfo, color:'#0ea5e9'},
+    {label:'BPFI', val:bpfi, color:'#00e09e'},
+    {label:'BSF',  val:bsf,  color:'#f97316'},
+    {label:'FTF',  val:ftf,  color:'#a855f7'}
+  ];
+  const maxVal = Math.max(...bars.map(b=>b.val)) * 1.15;
+  const bw = plotW/(bars.length+1);
+  bars.forEach((b,i)=>{
+    const bx = padL + (i+0.5)*bw;
+    const bh = (b.val/maxVal)*plotH;
+    const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
+    grad.addColorStop(0, b.color); grad.addColorStop(1, b.color+'40');
+    ctx.fillStyle = grad;
+    ctx.fillRect(bx-bw*0.3, padT+plotH-bh, bw*0.6, bh);
+    ctx.strokeStyle = b.color; ctx.strokeRect(bx-bw*0.3, padT+plotH-bh, bw*0.6, bh);
+    ctx.fillStyle = '#fff'; ctx.font='10px JetBrains Mono'; ctx.textAlign='center';
+    ctx.fillText(b.label, bx, padT+plotH+16);
+    ctx.fillStyle = b.color; ctx.font='bold 10px JetBrains Mono';
+    ctx.fillText(b.val.toFixed(1), bx, padT+plotH-bh-6);
+  });
+  ctx.textAlign='left';
 
   const info = document.getElementById('cvBearingType_info');
-  if(info) info.innerHTML = `<strong style="color:${color}">${opt[1]}</strong>`;
+  if(info) info.innerHTML = `<strong style="color:${spec.color}">${spec.label}</strong> — BPFO=${bpfo.toFixed(1)} Hz, BPFI=${bpfi.toFixed(1)} Hz, BSF=${bsf.toFixed(1)} Hz, FTF=${ftf.toFixed(1)} Hz`;
 }
 
 function _cvBearingTypeTick(){
-  _cvBearingType_frame++;
   drawBearingType();
   requestAnimationFrame(_cvBearingTypeTick);
 }
