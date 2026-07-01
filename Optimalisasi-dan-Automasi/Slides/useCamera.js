@@ -24,7 +24,16 @@ export function unregisterVideo(el) {
 
 export async function startCam() {
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    stream = await navigator.mediaDevices.getUserMedia({
+      // Minta resolusi HD (1280x720, 16:9). Browser akan menego mode
+      // kamera terdekat ke 720p bila perangkat mendukung.
+      video: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        aspectRatio: { ideal: 1.7777778 },
+      },
+      audio: false,
+    })
     camOn.value = true
     attachAll()
     try { localStorage.setItem('opto-cam-on', '1') } catch (e) {}
