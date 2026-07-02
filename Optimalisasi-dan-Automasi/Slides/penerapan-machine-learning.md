@@ -486,7 +486,7 @@ title: "Tiga Paradigma Pembelajaran"
   </div>
 </div>
 
-<Callout type="concept" title="Deteksi kerusakan = Supervised Classification">
+<Callout type="concept" title="Deteksi kerusakan = Supervised Classification" style="margin-right:201px">
 Kita punya data getaran historis yang sudah dilabeli teknisi (<b>sehat</b>/<b>rusak</b>). Tugas model: memetakan <b>fitur getaran → label kondisi</b>. Inilah klasifikasi terbimbing.
 </Callout>
 
@@ -658,7 +658,7 @@ Model tidak "membaca" sinyal mentah ribuan titik. Sinyal diringkas jadi **fitur*
 | **Kurtosis** | $\frac{1}{N}\sum\!\left(\frac{x_i-\mu}{\sigma}\right)^4$ | Ketajaman impuls → cacat *bearing*/gigi |
 | **Puncak FFT** | amplitudo @ $f_{BPFO}, f_{BPFI}$ | Frekuensi cacat spesifik (outer/inner race) |
 
-<Callout type="tip" title="Jembatan dari Getaran Mekanik">
+<Callout type="tip" title="Jembatan dari Getaran Mekanik" style="margin-right:201px">
 RMS, kurtosis, dan puncak FFT adalah hasil <b>analisis getaran</b> (domain waktu & Fourier). Di sinilah ilmu Getaran Mekanik bertemu ML: <b>fitur yang baik = separuh keberhasilan model</b>.
 </Callout>
 
@@ -687,7 +687,7 @@ title: "Memisahkan Sehat vs Rusak"
   <div class="s9-note">Tiap titik = satu mesin, diplot pada 2 fitur. Geser <b>garis batas keputusan</b> (slider) dan amati akurasinya — inilah inti kerja sebuah <i>classifier</i>.</div>
 </div>
 
-<div style="margin-top:18px;font-size:12px;color:#94a3b8;text-align:center;padding-right:95px">
+<div style="margin-top:18px;font-size:12px;color:#94a3b8;text-align:center;padding-right:150px">
 <span class="chip e">🟢 Sehat = RMS &amp; Kurtosis Rendah</span>
 <span class="chip c">🔴 Rusak = RMS &amp; Kurtosis Tinggi</span>
 <span class="chip v">Garis = Batas Yang "Dipelajari" Model</span>

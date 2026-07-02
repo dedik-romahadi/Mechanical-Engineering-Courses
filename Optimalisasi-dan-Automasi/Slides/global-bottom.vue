@@ -134,8 +134,8 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
      "tumbuh" ke arah kiri & atas — sudut kanan-bawah tetap jadi jangkar. */
   right: 18px;
   bottom: 50px;
-  width: 150px;
-  height: 150px;
+  width: 165px;
+  height: 165px;
   border-radius: 50%;
   background: rgba(255,255,255,.02);
   display: flex;
@@ -151,12 +151,12 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
    gigi-giginya tetap terlihat mengelilingi kamera saat webcam menyala. */
 .cam-gear {
   position: absolute;
-  /* SVG dipusatkan pada .cam-space (150px) dgn rasio yg sama spt semula
-     (166/122 ≈ 1.36) → 150*1.36 ≈ 204px, inset (150-204)/2 = -27px.
+  /* SVG dipusatkan pada .cam-space (165px) dgn rasio yg sama spt semula
+     (166/122 ≈ 1.36) → 165*1.36 ≈ 225px, inset (165-225)/2 = -30px.
      inset simetris di 4 sisi -> tetap center thd .cam-space walau membesar. */
-  inset: -27px;
-  width: 204px;
-  height: 204px;
+  inset: -30px;
+  width: 225px;
+  height: 225px;
   z-index: 1;
   overflow: visible;
   /* bayangan gelap tipis untuk kesan logam timbul (bukan glow buram) */
@@ -174,9 +174,9 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
 .cam-ic { font-size: 20px; line-height: 1; }
 .cam-lb { font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: #cbd5e1; }
 
-/* Webcam terkunci: mengisi lingkaran 150px, di belakang bingkai roda gigi. */
+/* Webcam terkunci: mengisi lingkaran 165px, di belakang bingkai roda gigi. */
 .cam-video {
-  position: absolute; top: 50%; left: 50%; width: 152px; height: 152px;
+  position: absolute; top: 50%; left: 50%; width: 167px; height: 167px;
   border-radius: 50%; object-fit: cover; z-index: 0;
   transform: translate(-50%, -50%) rotateY(180deg); background: #06091a;
 }
