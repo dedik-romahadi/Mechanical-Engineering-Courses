@@ -699,7 +699,7 @@ transition: flip
 title: "Melatih Model: Train/Test & Overfitting"
 ---
 
-<div style="color:#94a3b8;font-size:13px;margin-bottom:8px;text-align:center;white-space:nowrap">Geser <b>Kompleksitas Model</b> — <i>train error</i> terus turun, tapi <i>test error</i> membentuk <b>kurva-U</b> (bias–variance).</div>
+<div class="ol-side">Geser <b>Kompleksitas Model</b> — <i>train error</i> terus turun, tapi <i>test error</i> membentuk <b>kurva-U</b> (bias–variance).</div>
 
 <OverfitLab />
 

@@ -396,7 +396,7 @@ Aturan global di `style.css`: `.slidev-layout.default > :last-child { margin-rig
 
 - State dipusatkan di **`useCamera.js`** (modul shared): `camOn` (ref), `toggleCam`, `startCam/stopCam` (`getUserMedia`), `registerVideo`. Dipakai bersama `global-bottom.vue` (render video) & cover (tombol di footer cover).
 - Tombol 📷 di footer global (slide 2+) **dan** footer cover. Status di `localStorage('opto-cam-on')` + auto-resume. `.cam-space` `v-show="camOn"` → frame ikut hilang saat kamera mati.
-- Posisi `.cam-space { bottom: 50px }`; di cover `.cam-space.on-cover { bottom: 56px }`. Diameter webcam = lubang tengah roda gigi (SVG: radius hole 60); diameter LUAR gear tetap.
+- Posisi `.cam-space { right: 23px; bottom: 55px }`; di cover `.cam-space.on-cover { bottom: 61px }`. Diameter webcam = lubang tengah roda gigi (SVG: radius hole 60); diameter LUAR gear tetap.
 - Butuh konteks aman: `localhost` (dev) / `https` (Pages).
 
 ---

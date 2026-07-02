@@ -489,6 +489,17 @@
 .rl-mid { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .rl-arrow { font-size: 10.5px; font-weight: 700; color: #fbbf24; white-space: nowrap; letter-spacing: .02em; }
 
+/* ── Slide 5 "Rule-Based vs ML": kolom kanan dilebarkan. Notch generik
+   (two-columns .col-right > :last-child, 201px) mengenai WRAPPER kolom =
+   seluruh isi kolom 2 tergencet. Netralkan, lalu reserve kamera hanya pada
+   elemen yang sejajar gear (kartu Kelemahan + pesan-kunci); sisanya full. ── */
+.slidev-page-5 .slidev-layout.two-columns .col-right > :last-child { margin-right: 0 !important; }
+.slidev-page-5 .col-right .ml-card.c,
+.slidev-page-5 .col-right .pesan-kunci { margin-right: 165px; }
+/* Geser kolom 2 sedikit ke kiri: batalkan pl-5 wrapper + 3px ekstra
+   (margin-left negatif; tepi kanan tetap). */
+.slidev-page-5 .col-right .col-center { padding-left: 0 !important; margin-left: -3px; }
+
 /* ── Slide 7 "Alur Kerja ML": isi naik ke atas + ter-center + analogi pabrik. ── */
 /* Default men-center vertikal; di slide ini konten didorong ke atas agar ada
    ruang untuk strip analogi di bawah pipeline. */
@@ -562,9 +573,14 @@
 .slidev-page-12 .slidev-layout.default > :last-child { margin-right: 0 !important; }
 /* Slide 9: kartu (kiri) + teks penjelas (kanan) bersisian. */
 .slidev-page-12 .s9-row { display: flex; align-items: center; gap: 16px; }
-.slidev-page-12 .s9-plot { flex: 0 0 auto; }
+.slidev-page-12 .s9-plot { flex: 0 0 auto; transform: translateX(-10px); }
 .slidev-page-12 .s9-plot .fs { margin-right: 0; }
-.slidev-page-12 .s9-note { flex: 1 1 auto; min-width: 0; font-size: 12.5px; color: #94a3b8; line-height: 1.5; }
+/* padding-bottom mengangkat glyph ~14px (kotak note di-center vertikal oleh
+   .s9-row align-items:center) supaya kata terakhir "classifier" bebas dari
+   sapuan gigi gear kamera setelah kamera digeser ke right:23/bottom:55.
+   translateY -50px + rata tengah: teks dinaikkan menjauh dari kamera
+   (permintaan dosen, -30 lalu -20 lagi). */
+.slidev-page-12 .s9-note { flex: 1 1 auto; min-width: 0; font-size: 12.5px; color: #94a3b8; line-height: 1.5; padding-bottom: 28px; text-align: center; transform: translateY(-50px); }
 .slidev-page-12 .s9-note b { color: #c4b5fd; }
 .slidev-page-12 .s9-note i { color: #cbd5e1; font-style: italic; }
 /* Chip pill terakhir (baris legenda bawah) bukan :last-child (notch
@@ -573,12 +589,21 @@
    3 chip tetap 1 baris dgn reserve yang benar-benar aman dari gear. */
 .slidev-page-12 .chip { font-size: 10.5px; padding: 2px 8px; margin: 2px 3px 2px 0; }
 
-/* Slide 10 (OverfitLab): isi digeser ke atas. Reserve kamera dikurangi
-   dari notch generik (201px) supaya kartu lebih PANJANG (lebar) ke
-   kanan. Diverifikasi dgn gear 165px: 140px sudah aman (checkbox "Data
-   Uji", label "overfit", & kartu Overfit semua clear dari gear). */
-.slidev-page-13 .slidev-layout.default { justify-content: flex-start; padding-top: 52px !important; }
-.slidev-page-13 .slidev-layout.default > :last-child { margin-right: 140px !important; }
+/* Slide 10 (OverfitLab): isi digeser ke atas. Reserve kamera 175px (naik
+   dari 140px) supaya kolom teks intro .ol-side muat di kanan panel tanpa
+   menimpanya. padding-top 70 = kompensasi hilangnya teks intro dari flow
+   atas (80) minus 10px (panel dinaikkan atas permintaan dosen). */
+.slidev-page-13 .slidev-layout.default { justify-content: flex-start; padding-top: 70px !important; }
+.slidev-page-13 .slidev-layout.default > :last-child { margin-right: 175px !important; }
+/* Teks intro dipindah ke ruang kosong DI ATAS kamera (absolut, kanan panel;
+   containing block = #slide-content 980x552). Gear: top lingkaran gigi
+   y=315 -> blok teks harus selesai di atas ~305. */
+.slidev-page-13 .ol-side {
+  position: absolute; right: 26px; top: 130px; width: 140px;
+  font-size: 12.5px; color: #94a3b8; line-height: 1.55; text-align: center;
+}
+.slidev-page-13 .ol-side b { color: #c4b5fd; }
+.slidev-page-13 .ol-side i { color: #cbd5e1; font-style: italic; }
 
 /* ── Slide 11 "Algoritma Klasifikasi Populer": isi naik + strip batas keputusan (atas). ── */
 .slidev-page-14 .slidev-layout.default { justify-content: flex-start; padding-top: 58px !important; }
@@ -626,9 +651,17 @@
 
 /* ── Slide 12 "Mengukur Performa Model": isi digeser sedikit ke atas. ── */
 .slidev-page-15 .slidev-layout.default { justify-content: flex-start; padding-top: 58px !important; }
+/* Panel Recall + F1 (baris ke-2 grid .tm-metrics) dinaikkan 10px menjauh
+   dari gear kamera (permintaan dosen); transform murni visual, grid utuh. */
+.slidev-page-15 .tm-metrics .mt:nth-child(3),
+.slidev-page-15 .tm-metrics .mt:nth-child(4) { transform: translateY(-10px); }
 
 /* ── Slide 16 "Contoh Soal — Confusion Matrix": isi digeser sedikit ke atas. ── */
 .slidev-page-16 .slidev-layout.default { justify-content: flex-start; padding-top: 56px !important; }
+/* Bagian F1-score saja (step ke-5 = div.step terakhir + rumus KaTeX = p
+   terakhir kolom kanan) digeser 50px ke kiri menjauh dari gear kamera. */
+.slidev-page-16 .ml-grid.c2 > div:last-child .step:last-of-type,
+.slidev-page-16 .ml-grid.c2 > div:last-child p:last-of-type { transform: translateX(-50px); }
 
 /* ── Slide 14 "Rangkuman": isi naik + lebih menarik (grid 2 kolom, aksen warna per kartu). ── */
 .slidev-page-20 .slidev-layout.default { justify-content: flex-start; padding-top: 60px !important; }
@@ -673,7 +706,12 @@
 /* Slide ini pakai layout:center (bukan default), jadi TIDAK match notch
    generik (.slidev-layout.default > :last-child) -> chip "Predictive
    Maintenance" bebas overlap gear. Tambahkan reserve khusus di sini. */
-.slidev-page-23 .slidev-layout.center > :last-child { margin-right: 201px !important; }
+/* scale 1.2 memperbesar seluruh isi + naik 50px (permintaan dosen);
+   translate SEBELUM scale agar offset tidak ikut terskala. translateX 61px
+   = geser maksimal ke tengah yang AMAN: center penuh butuh +100px tapi
+   baris "Mata Kuliah ... Mercu Buana" akan masuk ~29px ke lingkaran gigi
+   gear; 61px menyisakan clearance 8px. */
+.slidev-page-23 .slidev-layout.center > :last-child { margin-right: 201px !important; transform: translate(61px, -50px) scale(1.2); }
 .slidev-page-23 .tq-icons {
   font-size: 64px; line-height: 1; margin-bottom: 6px;
   display: inline-flex; align-items: center; gap: 10px;
@@ -735,7 +773,9 @@
 .slidev-layout.qz .qz-sup { color: #a78bfa; font-size: 15px; font-weight: 800; }
 .slidev-layout.qz .qz-dot { color: #475569; font-size: 16px; }
 .slidev-layout.qz .qz-tag { margin-left: 4px; font-size: 10.5px; color: #a78bfa; background: rgba(167,139,250,.12); border: 1px solid rgba(167,139,250,.3); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
-.slidev-layout.qz .quiz { max-width: 640px; margin-left: auto !important; margin-right: auto !important; }
+/* translateX: kartu soal digeser 30px ke kiri dari titik center (permintaan
+   dosen); transform aman — animasi pop Quiz.vue hanya di .quiz-feedback. */
+.slidev-layout.qz .quiz { max-width: 640px; margin-left: auto !important; margin-right: auto !important; transform: translateX(-30px); }
 .slidev-layout.qz .quiz-q { font-size: 14px !important; }
 .slidev-layout.qz .quiz-opt { font-size: 13px !important; padding: 7px 11px !important; }
 .slidev-layout.qz .quiz-feedback { font-size: 13.5px !important; }
@@ -744,13 +784,18 @@
 /* ── Slide "Modul, Tugas & Forum" (class:mtf, page-agnostic). CTA ke Modul 12
    = Pertemuan 13 (Otomatisasi Monitoring) + alur belajar mandiri 3 langkah.
    Animasi relevan: cincin pulsa kartu, dot live, panah maju, konektor "stream". ── */
-.slidev-layout.mtf { justify-content: flex-start; padding-top: 82px !important; }
+/* padding-right layout DIPAKSA 56px (simetris kiri): class mtf menempel di
+   layout DAN div pembungkus sekaligus, dulu reserve 201px terhitung DOBEL
+   -> konten cuma 522px. Reserve kamera cukup sekali, di div dalam. */
+.slidev-layout.mtf { justify-content: flex-start; padding-top: 82px !important; padding-right: 56px !important; }
 .slidev-layout.mtf > :last-child { margin-right: auto !important; }  /* netralkan notch generik -> .mtf sendiri yg reserve (lihat bawah) */
 /* box-sizing:border-box + padding-right supaya width:100% mencakup jatah
    kamera; align-items:center jadi men-center SEMUA anak (lead/card/flow)
    di area aman (bukan di seluruh lebar slide) -> kartu ke-3 di .mtf-flow
-   tidak lagi masuk ke bawah gear. */
-.mtf { display: flex; flex-direction: column; align-items: center; gap: 34px; width: 100%; box-sizing: border-box; padding-right: 201px; }
+   tidak lagi masuk ke bawah gear. Reserve 157px = tepi kanan area aman
+   x=767, ~8px sebelum lingkaran ujung gigi gear (x=775 pada ketinggian
+   pusat gear). */
+.mtf { display: flex; flex-direction: column; align-items: center; gap: 34px; width: 100%; box-sizing: border-box; padding-right: 157px; }
 .mtf-lead { font-size: 15px; color: #cbd5e1; text-align: center; }
 .mtf-lead b { color: #a78bfa; }
 
