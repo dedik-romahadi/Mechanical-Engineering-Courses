@@ -132,8 +132,8 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
   position: fixed;
   /* right/bottom tetap (bukan left/top) supaya saat diperbesar, framenya
      "tumbuh" ke arah kiri & atas — sudut kanan-bawah tetap jadi jangkar. */
-  right: 18px;
-  bottom: 50px;
+  right: 23px;
+  bottom: 55px;
   width: 165px;
   height: 165px;
   border-radius: 50%;
@@ -145,7 +145,7 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
   pointer-events: none;
 }
 /* Di cover (slide 1) frame digeser sedikit ke atas agar tak menimpa footer cover. */
-.cam-space.on-cover { bottom: 56px; }
+.cam-space.on-cover { bottom: 61px; }
 /* Bingkai kamera = roda gigi SOLID yang berputar pelan, warna selaras tema
    (gradien cyan→ungu→amber). Lebih besar dari lingkaran webcam (122px) agar
    gigi-giginya tetap terlihat mengelilingi kamera saat webcam menyala. */
