@@ -46,9 +46,9 @@
    atas kamera) yang disesuaikan. */
 .slidev-layout.default > :last-child,
 .slidev-layout.two-columns .col-right > :last-child {
-  /* Diskalakan mengikuti pembesaran frame kamera (.cam-space 122->150px,
+  /* Diskalakan mengikuti pembesaran frame kamera (.cam-space 122->150->165px,
      .cam-gear turut membesar) supaya jarak aman thd konten tetap terjaga. */
-  margin-right: 184px !important;
+  margin-right: 201px !important;
 }
 
 /* Latar lebih hitam untuk slide ganjil (3,5,7,…) agar berselang-seling
@@ -567,12 +567,18 @@
 .slidev-page-12 .s9-note { flex: 1 1 auto; min-width: 0; font-size: 12.5px; color: #94a3b8; line-height: 1.5; }
 .slidev-page-12 .s9-note b { color: #c4b5fd; }
 .slidev-page-12 .s9-note i { color: #cbd5e1; font-style: italic; }
+/* Chip pill terakhir (baris legenda bawah) bukan :last-child (notch
+   dinetralkan) & tak cukup lebar utk reserve penuh tanpa wrap ke baris 2
+   (chip = inline-block, wrap sbg unit utuh). Kecilkan sedikit supaya
+   3 chip tetap 1 baris dgn reserve yang benar-benar aman dari gear. */
+.slidev-page-12 .chip { font-size: 10.5px; padding: 2px 8px; margin: 2px 3px 2px 0; }
 
 /* Slide 10 (OverfitLab): isi digeser ke atas. Reserve kamera dikurangi
-   150px -> 100px agar kartu lebih PANJANG (lebar) ke kanan; konsekuensinya
-   sisi kanan kanvas kanan sedikit masuk zona kamera kanan-bawah. */
+   dari notch generik (201px) supaya kartu lebih PANJANG (lebar) ke
+   kanan. Diverifikasi dgn gear 165px: 140px sudah aman (checkbox "Data
+   Uji", label "overfit", & kartu Overfit semua clear dari gear). */
 .slidev-page-13 .slidev-layout.default { justify-content: flex-start; padding-top: 52px !important; }
-.slidev-page-13 .slidev-layout.default > :last-child { margin-right: 100px !important; }
+.slidev-page-13 .slidev-layout.default > :last-child { margin-right: 140px !important; }
 
 /* ── Slide 11 "Algoritma Klasifikasi Populer": isi naik + strip batas keputusan (atas). ── */
 .slidev-page-14 .slidev-layout.default { justify-content: flex-start; padding-top: 58px !important; }
@@ -588,6 +594,10 @@
 .slidev-page-14 .alg-lb.e { color: #34d399; }
 .slidev-page-14 .alg-lb.v { color: #a78bfa; }
 .slidev-page-14 .alg-sub { font-size: 10px; color: #64748b; }
+/* Grid 2x2 (SVM di kanan-bawah) bukan :last-child (Callout di bawahnya
+   yang terakhir) -> tidak ter-notch otomatis. Reserve manual supaya kartu
+   SVM tak masuk zona kamera. */
+.slidev-page-14 .ml-grid.c2 { margin-right: 201px; }
 /* Animasi "proses pemisahan kelas": dot mulai TERCAMPUR di tengah lalu bertahap
    terpisah ke klaster Sehat/Rusak (posisi akhir), sementara garis batas keputusan
    menggambar dirinya masuk; ditahan (terpisah sempurna), lalu mengulang.
@@ -660,6 +670,10 @@
 .slidev-page-22 .ref-list li:nth-child(5) { --rf: #fb7185; }
 
 /* ── Slide 16 "Terima Kasih": robot custom — melayang + mata berkedip + mulut bicara; kunci memutar. Tanpa efek cahaya. ── */
+/* Slide ini pakai layout:center (bukan default), jadi TIDAK match notch
+   generik (.slidev-layout.default > :last-child) -> chip "Predictive
+   Maintenance" bebas overlap gear. Tambahkan reserve khusus di sini. */
+.slidev-page-23 .slidev-layout.center > :last-child { margin-right: 201px !important; }
 .slidev-page-23 .tq-icons {
   font-size: 64px; line-height: 1; margin-bottom: 6px;
   display: inline-flex; align-items: center; gap: 10px;
@@ -736,7 +750,7 @@
    kamera; align-items:center jadi men-center SEMUA anak (lead/card/flow)
    di area aman (bukan di seluruh lebar slide) -> kartu ke-3 di .mtf-flow
    tidak lagi masuk ke bawah gear. */
-.mtf { display: flex; flex-direction: column; align-items: center; gap: 34px; width: 100%; box-sizing: border-box; padding-right: 184px; }
+.mtf { display: flex; flex-direction: column; align-items: center; gap: 34px; width: 100%; box-sizing: border-box; padding-right: 201px; }
 .mtf-lead { font-size: 15px; color: #cbd5e1; text-align: center; }
 .mtf-lead b { color: #a78bfa; }
 
