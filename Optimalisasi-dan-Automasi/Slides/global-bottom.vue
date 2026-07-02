@@ -130,12 +130,12 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
    pointer-events:none agar tidak menghalangi interaksi konten di baliknya. */
 .cam-space {
   position: fixed;
-  /* Cocok dengan kamera bawaan Slidev: diameter = lebar kanvas (980) / 8
-     ≈ innerWidth/8, posisi pojok kanan bawah ~30px margin (skala kanvas). */
+  /* right/bottom tetap (bukan left/top) supaya saat diperbesar, framenya
+     "tumbuh" ke arah kiri & atas — sudut kanan-bawah tetap jadi jangkar. */
   right: 18px;
   bottom: 50px;
-  width: 122px;
-  height: 122px;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
   background: rgba(255,255,255,.02);
   display: flex;
@@ -151,10 +151,12 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
    gigi-giginya tetap terlihat mengelilingi kamera saat webcam menyala. */
 .cam-gear {
   position: absolute;
-  /* SVG 166px dipusatkan pada .cam-space 122px → inset (122-166)/2 = -22px */
-  inset: -22px;
-  width: 166px;
-  height: 166px;
+  /* SVG dipusatkan pada .cam-space (150px) dgn rasio yg sama spt semula
+     (166/122 ≈ 1.36) → 150*1.36 ≈ 204px, inset (150-204)/2 = -27px.
+     inset simetris di 4 sisi -> tetap center thd .cam-space walau membesar. */
+  inset: -27px;
+  width: 204px;
+  height: 204px;
   z-index: 1;
   overflow: visible;
   /* bayangan gelap tipis untuk kesan logam timbul (bukan glow buram) */
@@ -172,9 +174,9 @@ onBeforeUnmount(() => unregisterVideo(camVideo.value))
 .cam-ic { font-size: 20px; line-height: 1; }
 .cam-lb { font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: #cbd5e1; }
 
-/* Webcam terkunci: mengisi lingkaran 122px, di belakang bingkai roda gigi. */
+/* Webcam terkunci: mengisi lingkaran 150px, di belakang bingkai roda gigi. */
 .cam-video {
-  position: absolute; top: 50%; left: 50%; width: 124px; height: 124px;
+  position: absolute; top: 50%; left: 50%; width: 152px; height: 152px;
   border-radius: 50%; object-fit: cover; z-index: 0;
   transform: translate(-50%, -50%) rotateY(180deg); background: #06091a;
 }
