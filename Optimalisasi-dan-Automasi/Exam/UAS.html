@@ -1646,7 +1646,7 @@ const SCORE_CONFIG = {
 };
 window.SCORE_CONFIG = SCORE_CONFIG;
 
-// Helper: konversi poin (0..70) → nilai 0–100
+// Helper: poin per soal proporsional bobot Sub-CPMK (Σ = 100) → nilai 0–100 langsung
 // Poin per soal proporsional bobot Sub-CPMK OBE (auto-injected).
 // Σ poin semua 45 soal = 100. Sinkron dgn OBE_EXAM_CONFIG di functions/index.js.
 const EXAM_QID_POINTS = {"c11":4.0, "c12":4.0, "c13":4.0, "c14":4.0, "c15":4.0, "c4":2.8571, "c5":2.8571, "c6":2.8571, "c7":2.8571, "c8":2.8571, "c9":2.8571, "c10":2.8571, "tf1":1.6667, "tf2":1.6667, "tf3":1.6667, "tf4":1.6667, "tf5":1.6667, "tf6":1.6667, "tf7":1.6667, "c1":3.3333, "tf8":1.6667, "tf9":1.6667, "tf10":1.6667, "mc1":1.6667, "mc2":1.6667, "mc3":1.6667, "mc4":1.6667, "c2":3.3333, "mc5":1.5, "mc6":1.5, "mc7":1.5, "mc8":1.5, "mc9":1.5, "mc10":1.5, "mc11":1.5, "mc12":1.5, "c3":3.0, "mc13":1.875, "mc14":1.875, "mc15":1.875, "mc16":1.875, "mc17":1.875, "mc18":1.875, "mc19":1.875, "mc20":1.875};
@@ -3690,7 +3690,7 @@ function updateScore() {
     else                         ezComp   += pts;
   }
   const total = tf + mc + ezComp + hardComp;
-  const nilai = pointsToScore(total);   // 0..100, menggunakan SCORE_CONFIG.TOTAL=70
+  const nilai = pointsToScore(total);   // 0..100, Σ poin proporsional Sub-CPMK = 100 (langsung)
 
   const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
   set('scoreDisplay',  nilai);
@@ -3833,7 +3833,7 @@ function exportTugasHtml() {
     else                         compEz   += pts;
   }
   const total = tf + mc + compEz + compHard;
-  const nilai = pointsToScore(total);   // 0..100, /70 × 100
+  const nilai = pointsToScore(total);   // 0..100, Σ poin = 100 (tanpa konversi)
 
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function stripTags(s) { return (s||'').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); }
@@ -6541,12 +6541,12 @@ function renderVisitors(visitors){
             <div style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:14px;padding:18px;text-align:center">
               <div style="font-family:'JetBrains Mono',monospace;font-size:2.4rem;font-weight:800;color:#a855f7;line-height:1">${nilai}</div>
               <div style="font-size:.66rem;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:.12em;margin-top:8px">Nilai (0–100)</div>
-              <div style="font-size:.7rem;color:#94a3b8;margin-top:4px">${pts} / 70 poin</div>
+              <div style="font-size:.7rem;color:#94a3b8;margin-top:4px">${pts} / 100 poin</div>
             </div>
             <div style="background:rgba(0,224,158,.08);border:1px solid rgba(0,224,158,.25);border-radius:14px;padding:18px;text-align:center">
               <div style="font-family:'JetBrains Mono',monospace;font-size:2.4rem;font-weight:800;color:#00e09e;line-height:1">${pts}</div>
               <div style="font-size:.66rem;font-weight:700;color:#00e09e;text-transform:uppercase;letter-spacing:.12em;margin-top:8px">Total Poin</div>
-              <div style="font-size:.7rem;color:#94a3b8;margin-top:4px">dari maks 70</div>
+              <div style="font-size:.7rem;color:#94a3b8;margin-top:4px">dari maks 100</div>
             </div>
             <div style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.25);border-radius:14px;padding:18px;text-align:center">
               <div style="font-family:'JetBrains Mono',monospace;font-size:2.4rem;font-weight:800;color:#0ea5e9;line-height:1">${vc}</div>
