@@ -861,7 +861,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <button class="nav-tab" id="tab-forum" onclick="switchTab('forum')">💬 Forum</button>
     <button class="nav-tab" id="tab-hasil" onclick="switchTab('hasil')">📊 Hasil</button>
   </div>
-  <span class="nav-badge">👨‍🏫 DEDIK ROMAHADI</span>
+  <span class="nav-badge" id="navIdentityChip">👨‍🏫 DEDIK ROMAHADI</span>
   <button class="nav-switch-role" onclick="_switchRole()" title="Keluar dari sesi ini &amp; pilih peran lain (mahasiswa/dosen)">🔄 Ganti Peran</button>
 </nav>
 
@@ -6339,6 +6339,11 @@ window._switchRole = function() {
 function _applyRoleVisibility() {
   const me = (function(){ try { return JSON.parse(localStorage.getItem(LOCAL_IDENTITY) || 'null'); } catch(e){ return null; } })();
   const isDosen = !!(me && me.role === 'dosen' && me.nama && me.nama.toLowerCase() === 'dedik romahadi');
+
+  // Chip nama navbar — dulu statis "DEDIK ROMAHADI" utk semua role (padahal Pedoman §7.5
+  // mendokumentasikannya sbg indikator khusus dosen). Sekarang ikut identity yang login.
+  const navChip = document.getElementById('navIdentityChip');
+  if (navChip) navChip.textContent = (me && me.nama) ? (isDosen ? '👨‍🏫 ' : '🎓 ') + me.nama.toUpperCase() : '👋 TAMU';
 
   const resetBtn = document.getElementById('resetBtnHasil');
   if (resetBtn) resetBtn.style.display = isDosen ? 'flex' : 'none';
