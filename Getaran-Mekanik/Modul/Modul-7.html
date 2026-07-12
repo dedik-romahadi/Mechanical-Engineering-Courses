@@ -46,7 +46,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(6,10,16,.92)
 .nav-tab.active{background:rgba(168,85,247,.15);border-color:rgba(168,85,247,.4);color:var(--violet)}
 .nav-tab:hover:not(.active){background:rgba(255,255,255,.05);color:var(--text)}
 .nav-badge{font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);color:var(--violet);padding:4px 10px;border-radius:20px;white-space:nowrap}
-@media(max-width:700px){.nav-badge{display:none}.nav-brand span:not(.pulse){display:none}}
+.nav-switch-role{font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#fca5a5;padding:4px 9px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s}
+.nav-switch-role:hover{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.45)}
+@media(max-width:700px){.nav-badge{display:none}.nav-switch-role{display:none}.nav-brand span:not(.pulse){display:none}}
 
 /* ── SUBNAV (second fixed bar — modul only) ── */
 .subnav-bar{position:fixed;top:60px;left:0;right:0;z-index:99;background:rgba(4,8,16,.9);backdrop-filter:blur(16px);border-bottom:1px solid rgba(168,85,247,.15);padding:0 24px;height:40px;display:flex;align-items:center;gap:0;overflow-x:auto;scrollbar-width:none;transform:translateY(-100%);opacity:0;pointer-events:none;transition:transform .25s ease,opacity .2s ease}
@@ -859,7 +861,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
     <button class="nav-tab" id="tab-forum" onclick="switchTab('forum')">💬 Forum</button>
     <button class="nav-tab" id="tab-hasil" onclick="switchTab('hasil')">📊 Hasil</button>
   </div>
-  <span class="nav-badge">👨‍🏫 DEDIK ROMAHADI</span>
+  <span class="nav-badge" id="navIdentityChip">👨‍🏫 DEDIK ROMAHADI</span>
+  <button class="nav-switch-role" onclick="_switchRole()" title="Keluar dari sesi ini &amp; pilih peran lain (mahasiswa/dosen)">🔄 Ganti Peran</button>
 </nav>
 
 <!-- ─── SUBNAV (only visible when Modul tab is active) ─── -->
@@ -7123,6 +7126,16 @@ let _lastSentAt = 0;
 const VISIT_COOLDOWN = 3600000;
 
 function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
+
+// Auto-login dari localStorage (identity per-modul) tidak punya jalan keluar via UI —
+// begitu satu browser pernah login (mhs ATAU dosen), role picker tidak pernah tampil
+// lagi di kunjungan berikutnya. Tombol ini clear identity + reload supaya role picker
+// muncul lagi (mis. komputer lab yang dipakai bergantian mahasiswa & dosen).
+window._switchRole = function() {
+  if (!confirm('Keluar dari sesi saat ini dan kembali ke pilihan peran (Mahasiswa/Dosen)?')) return;
+  try { localStorage.removeItem(LOCAL_IDENTITY); } catch(e) {}
+  location.reload();
+};
 function saveIdentity(v){
   localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));
   // Bug fix: re-render chat UI immediately after identity changes
@@ -7152,6 +7165,11 @@ function saveIdentity(v){
 function _applyRoleVisibility() {
   const me = (function(){ try { return JSON.parse(localStorage.getItem(LOCAL_IDENTITY) || 'null'); } catch(e){ return null; } })();
   const isDosen = !!(me && me.role === 'dosen' && me.nama && me.nama.toLowerCase() === 'dedik romahadi');
+
+  // Chip nama navbar — dulu statis "DEDIK ROMAHADI" utk semua role (padahal Pedoman §7.5
+  // mendokumentasikannya sbg indikator khusus dosen). Sekarang ikut identity yang login.
+  const navChip = document.getElementById('navIdentityChip');
+  if (navChip) navChip.textContent = (me && me.nama) ? (isDosen ? '👨‍🏫 ' : '🎓 ') + me.nama.toUpperCase() : '👋 TAMU';
 
   const resetBtn = document.getElementById('resetBtnHasil');
   if (resetBtn) resetBtn.style.display = isDosen ? 'flex' : 'none';
