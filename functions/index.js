@@ -1330,29 +1330,34 @@ exports.rescaleModulLatePenalty = onCall({ timeoutSeconds: 300 }, async (request
   const EPS = 1e-9;
   const round4 = (x) => Math.round(x * 1e4) / 1e4;
 
-  // ── (Opsional) SET deadline baru dulu, lalu pakai sbg acuan ──
-  if (newEnd !== undefined && newEnd !== null && String(newEnd).trim() !== "") {
-    const t = new Date(newEnd).getTime();
-    if (!Number.isFinite(t)) {
-      throw new HttpsError("invalid-argument", `newEnd '${newEnd}' bukan tanggal valid`);
-    }
-    // update() sparse → preserve start/extension yang sudah ada
-    await rtdb.ref(cfg.schedulePath).update({ end: new Date(t).toISOString() });
-  }
-
-  // ── Baca schedule terkini → tentukan 'end' acuan ──
-  const schedSnap = await rtdb.ref(cfg.schedulePath).get();
-  if (!schedSnap.exists()) {
-    throw new HttpsError("failed-precondition", "Jadwal modul belum dikonfigurasi");
-  }
-  const sched = schedSnap.val() || {};
-  if (!sched.end) {
-    throw new HttpsError("failed-precondition", "Jadwal modul belum punya field 'end'");
-  }
-  const endMs = new Date(sched.end).getTime();
-  const lateMul = Number(cfg.lateMultiplierValue) || 0.7;
-
+  // PEDOMAN — try dimulai di sini (bukan setelah baca schedule) supaya kedua
+  // panggilan RTDB di bawah (update newEnd + get schedule) ikut ke-tangkap.
+  // Bug lama: keduanya di luar try/catch → exception apa pun (mis. transient
+  // RTDB error) lolos tanpa HttpsError, klien cuma lihat "internal" generik
+  // tanpa detail (lihat laporan dosen utk optoauto-modul-4).
   try {
+    // ── (Opsional) SET deadline baru dulu, lalu pakai sbg acuan ──
+    if (newEnd !== undefined && newEnd !== null && String(newEnd).trim() !== "") {
+      const t = new Date(newEnd).getTime();
+      if (!Number.isFinite(t)) {
+        throw new HttpsError("invalid-argument", `newEnd '${newEnd}' bukan tanggal valid`);
+      }
+      // update() sparse → preserve start/extension yang sudah ada
+      await rtdb.ref(cfg.schedulePath).update({ end: new Date(t).toISOString() });
+    }
+
+    // ── Baca schedule terkini → tentukan 'end' acuan ──
+    const schedSnap = await rtdb.ref(cfg.schedulePath).get();
+    if (!schedSnap.exists()) {
+      throw new HttpsError("failed-precondition", "Jadwal modul belum dikonfigurasi");
+    }
+    const sched = schedSnap.val() || {};
+    if (!sched.end) {
+      throw new HttpsError("failed-precondition", "Jadwal modul belum punya field 'end'");
+    }
+    const endMs = new Date(sched.end).getTime();
+    const lateMul = Number(cfg.lateMultiplierValue) || 0.7;
+
     // ── Daftar studentDoc yang diproses ──
     let studentDocs;
     if (Array.isArray(nims) && nims.length > 0) {
