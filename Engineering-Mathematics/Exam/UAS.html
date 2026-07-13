@@ -3164,7 +3164,11 @@ async function runAndCheck(qId, difficulty) {
     if (!errMsg) {
       const nums = parseNumbers(output || '');
       if (nums.length > 0) {
-        userAnswer = nums[nums.length - 1];
+        // Angka TERAKHIR dari versi output yg literal array/list "[...]"-nya dibuang
+        // dulu (mis. "Nilai outlier: [45.0, -8.0]") -- array biasa nilai pendukung,
+        // BUKAN jawaban skalar. userAnswers (multi-step) tetap kirim SEMUA angka asli.
+        const cleanNums = parseNumbers((output || '').replace(/\[[^\[\]]*\]/g, ' '));
+        userAnswer = cleanNums.length > 0 ? cleanNums[cleanNums.length - 1] : nums[nums.length - 1];
         userAnswers = nums;
       }
     }
