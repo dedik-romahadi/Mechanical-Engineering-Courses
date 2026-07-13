@@ -1239,13 +1239,16 @@ function renderMahasiswaView(){
     <td class="num sum" style="${nhColor(nh)}">${nh}</td>
   </tr>`;
   document.getElementById('recapStat').textContent = data.empty ? 'Nilai belum di-publish dosen' : (data.publishedAt ? `Update terakhir: ${new Date(data.publishedAt).toLocaleString('id-ID')}` : 'Tersinkron');
-  // Sembunyikan tombol export/import/paste utk mahasiswa
+  // Sembunyikan SEMUA tombol aksi (export/import/paste/default/simpan/hitung dll)
+  // utk mahasiswa — tab Mapping (n5) TETAP terlihat (mahasiswa boleh lihat isinya),
+  // tombol-tombolnya (Default/Simpan Mapping/Tarik & Hitung) sudah pakai class
+  // .actbar .actright yang sama, jadi ikut ke-hide otomatis di sini.
   document.querySelectorAll('.actbar .actright').forEach(b=>{
     b.style.display = 'none';
   });
-  // Sembunyikan tab Mapping (dosen-only)
-  const mapTab = document.querySelector('[data-tabgroup="nilai"] .tab[data-tab="n5"]');
-  if(mapTab) mapTab.style.display = 'none';
+  // Input mapping jadi read-only (view-only) utk mahasiswa — tanpa tombol Simpan
+  // pun tidak ada efek, tapi biar konsisten dgn .scoreinput yang juga di-disable.
+  document.querySelectorAll('.mapinput').forEach(inp => { inp.disabled = true; });
 }
 
 // Publish ke Firestore (dosen)
