@@ -3804,7 +3804,9 @@ function parseNumbers(str) {
 function _lastLineAnswer(str) {
   const lines = String(str || '').split('\n');
   for (let i = lines.length - 1; i >= 0; i--) {
-    const ns = parseNumbers(lines[i]);
+    // Abaikan angka di dalam literal array/list "[...]" (mis. "Nilai outlier: [45.0, -8.0]")
+    // -- itu nilai pendukung, BUKAN jawaban skalar yang diminta print()-nya terakhir.
+    const ns = parseNumbers(lines[i].replace(/\[[^\[\]]*\]/g, ' '));
     if (ns.length > 0) return ns[0];
   }
   return null;
