@@ -1336,31 +1336,47 @@ exports.rescaleModulLatePenalty = onCall({ timeoutSeconds: 300 }, async (request
   // RTDB error) lolos tanpa HttpsError, klien cuma lihat "internal" generik
   // tanpa detail (lihat laporan dosen utk optoauto-modul-4).
   try {
-    // ── (Opsional) SET deadline baru dulu, lalu pakai sbg acuan ──
+    const hasNims = Array.isArray(nims) && nims.length > 0;
+
+    // ── (Opsional) newEnd sbg acuan deadline ──
+    // Bug lama: newEnd SELALU ditulis ke schedule.end GLOBAL (settings/.../schedule),
+    // walau nims di-scope ke mahasiswa tertentu — akibatnya mahasiswa LAIN yang
+    // sebenarnya terlambat ikut ke-reclass "tepat waktu" karena deadline modul
+    // bergeser utk SEMUA orang, bukan cuma yg dituju.
+    // Fix: kalau nims diisi (scope ke mahasiswa tertentu), newEnd HANYA dipakai
+    // sbg acuan hitung ulang utk mereka — TIDAK menimpa schedule.end global.
+    // Kalau nims kosong (scope = semua mahasiswa modul ini), newEnd tetap
+    // persist ke schedule.end seperti semula (use-case: perpanjangan deadline
+    // utk satu kelas penuh).
+    let refEndIso = null;
     if (newEnd !== undefined && newEnd !== null && String(newEnd).trim() !== "") {
       const t = new Date(newEnd).getTime();
       if (!Number.isFinite(t)) {
         throw new HttpsError("invalid-argument", `newEnd '${newEnd}' bukan tanggal valid`);
       }
-      // update() sparse → preserve start/extension yang sudah ada
-      await rtdb.ref(cfg.schedulePath).update({ end: new Date(t).toISOString() });
+      refEndIso = new Date(t).toISOString();
+      if (!hasNims) {
+        // update() sparse → preserve start/extension yang sudah ada
+        await rtdb.ref(cfg.schedulePath).update({ end: refEndIso });
+      }
     }
 
-    // ── Baca schedule terkini → tentukan 'end' acuan ──
+    // ── Baca schedule terkini → tentukan 'end' acuan (refEndIso menang kalau ada) ──
     const schedSnap = await rtdb.ref(cfg.schedulePath).get();
-    if (!schedSnap.exists()) {
+    if (!schedSnap.exists() && !refEndIso) {
       throw new HttpsError("failed-precondition", "Jadwal modul belum dikonfigurasi");
     }
     const sched = schedSnap.val() || {};
-    if (!sched.end) {
+    if (!sched.end && !refEndIso) {
       throw new HttpsError("failed-precondition", "Jadwal modul belum punya field 'end'");
     }
-    const endMs = new Date(sched.end).getTime();
+    const effectiveEnd = refEndIso || sched.end;
+    const endMs = new Date(effectiveEnd).getTime();
     const lateMul = Number(cfg.lateMultiplierValue) || 0.7;
 
     // ── Daftar studentDoc yang diproses ──
     let studentDocs;
-    if (Array.isArray(nims) && nims.length > 0) {
+    if (hasNims) {
       studentDocs = nims.map((n) => {
         if (typeof n !== "string" || !/^[0-9]{1,20}$/.test(n)) {
           throw new HttpsError("invalid-argument", `nim '${n}' tidak valid`);
@@ -1469,11 +1485,12 @@ exports.rescaleModulLatePenalty = onCall({ timeoutSeconds: 300 }, async (request
     }
 
     console.log("[rescaleModulLatePenalty]", modulId,
-      "newEnd:", (newEnd || "(none)"),
+      "newEnd:", (newEnd || "(none)"), "scopedToNims:", hasNims,
       "students:", students.length, "attempts:", totalAdjusted);
     return {
       modulId,
-      scheduleEnd: sched.end,
+      scheduleEnd: effectiveEnd,
+      scheduleUnchanged: hasNims && !!refEndIso,
       totalStudents: students.length,
       totalAdjusted,
       students,
