@@ -49,6 +49,9 @@
   <div class="warn">
     ⚠ Isi <b>Deadline Baru</b> di bawah untuk atur jadwal + rescale sekaligus (atau kosongkan kalau deadline sudah diubah via Atur Jadwal).
     Tool menghitung ulang tiap attempt terhadap deadline acuan: jika waktu submit asli kini ≤ deadline → poin penuh; soal Hard yang dulu telat (0) bisa jadi <b>partial</b>. Aman dipanggil berulang (idempoten).
+    <br><br>
+    📌 <b>NIM diisi</b> → Deadline Baru HANYA jadi acuan hitung ulang utk NIM tsb, jadwal modul (global) <b>TIDAK ikut berubah</b> — mahasiswa lain tidak terpengaruh.
+    <b>NIM dikosongkan</b> → Deadline Baru mengubah jadwal modul utk SEMUA mahasiswa (dipakai utk perpanjangan deadline satu kelas).
   </div>
 
   <div class="card">
@@ -194,7 +197,11 @@ window.doRescale = async function(){
     console.log('[rescale] payload:', { ...payload, adminPwHash: '<hidden>' });
     const r = await rescaleModulLatePenalty(payload);
     const d = r.data;
-    let lines = [`✅ Rescale selesai — ${d.modulId}`, `Deadline acuan: ${d.scheduleEnd}`, ''];
+    let lines = [`✅ Rescale selesai — ${d.modulId}`, `Deadline acuan: ${d.scheduleEnd}`,
+      d.scheduleUnchanged
+        ? '📌 Jadwal modul (global) TIDAK diubah — deadline di atas cuma acuan lokal utk NIM yang di-scope.'
+        : '📌 Jadwal modul (global) DIUBAH ke deadline di atas — berlaku utk SEMUA mahasiswa modul ini.',
+      ''];
     lines.push(`Mahasiswa berubah: ${d.totalStudents} · attempt disesuaikan: ${d.totalAdjusted}`,'');
     if(d.students.length === 0){
       lines.push('(Tidak ada poin yang perlu disesuaikan — semua sudah sesuai deadline ini.)');
