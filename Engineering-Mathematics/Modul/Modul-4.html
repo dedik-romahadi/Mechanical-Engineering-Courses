@@ -5963,7 +5963,7 @@ window._loadScoredQuestions = function() {
 };
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+import { getDatabase, ref, get, set, remove, onValue, push, onDisconnect, serverTimestamp, query, limitToLast, update } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
 
 // Wrap post-import init in try-catch to surface any runtime error that
@@ -6869,12 +6869,9 @@ async function submitPinVerify() {
         // Sudah pernah akses course/module ini — update lastVisit + bump visitCount
         const lastV = new Date(existingVisitor.lastVisit || existingVisitor.timestamp).getTime();
         const canBump = (Date.now() - lastV) >= VISIT_COOLDOWN;
-        // Bersihkan legacy pinHash/pinSetAt jika ada — sudah tidak dipakai,
-        // dan rules baru akan menolak field tersebut di visitor records.
-        const { pinHash: _legacy1, pinSetAt: _legacy2, ...cleanVisitor } = existingVisitor;
-        updated = Object.assign({}, cleanVisitor, {
-          visitCount: canBump ? (cleanVisitor.visitCount || 1) + 1 : (cleanVisitor.visitCount || 1),
-          lastVisit: canBump ? nowISO : (cleanVisitor.lastVisit || cleanVisitor.timestamp)
+        updated = Object.assign({}, existingVisitor, {
+          visitCount: canBump ? (existingVisitor.visitCount || 1) + 1 : (existingVisitor.visitCount || 1),
+          lastVisit: canBump ? nowISO : (existingVisitor.lastVisit || existingVisitor.timestamp)
         });
       } else {
         // First visit di course/module ini (PIN global sudah ada dari course lain)
@@ -6884,7 +6881,41 @@ async function submitPinVerify() {
         };
       }
       saveIdentity(updated);
-      await set(ref(db, DB_PATH + '/' + key), updated);
+      try {
+        if (existingVisitor) {
+          // BUMP path — update() sparse (bukan set() penuh dari snapshot _pinFlow yang bisa
+          // sudah basi — mis. points berubah di server krn rescale sejak snapshot diambil).
+          // set() penuh dgn snapshot basi ditolak rules ("points naik > 4" dianggap invalid).
+          const patch = { visitCount: updated.visitCount, lastVisit: updated.lastVisit };
+          if (Object.prototype.hasOwnProperty.call(existingVisitor, 'pinHash')) patch.pinHash = null;
+          if (Object.prototype.hasOwnProperty.call(existingVisitor, 'pinSetAt')) patch.pinSetAt = null;
+          await update(ref(db, DB_PATH + '/' + key), patch);
+        } else {
+          await set(ref(db, DB_PATH + '/' + key), updated);
+        }
+      } catch (writeErr) {
+        console.error('[PIN Verify] Visitor write failed:', writeErr && writeErr.code, writeErr && writeErr.message);
+        // Fallback: kalau update gagal (mis. existing record corrupt), coba set fresh dgn nim/nama dari _pinFlow
+        if (existingVisitor && writeErr && writeErr.code === 'PERMISSION_DENIED') {
+          const freshRec = {
+            nama, nim, role: 'student',
+            timestamp: existingVisitor.timestamp || nowISO,
+            lastVisit: nowISO,
+            visitCount: existingVisitor.visitCount || 1,
+            points: typeof existingVisitor.points === 'number' ? existingVisitor.points : 0,
+            scoredQuestions: typeof existingVisitor.scoredQuestions === 'string' ? existingVisitor.scoredQuestions : ''
+          };
+          try {
+            await set(ref(db, DB_PATH + '/' + key), freshRec);
+            console.log('[PIN Verify] Recovered via fresh set()');
+          } catch (e2) {
+            console.error('[PIN Verify] Recovery failed:', e2 && e2.code, e2 && e2.message);
+            throw writeErr;
+          }
+        } else {
+          throw writeErr;
+        }
+      }
     }
 
     _hidePinModals();
