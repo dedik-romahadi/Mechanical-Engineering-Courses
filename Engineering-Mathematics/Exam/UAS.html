@@ -3056,6 +3056,20 @@ function parseNumbers(str) {
   return matches.map(Number).filter(n => isFinite(n));
 }
 
+// Angka PERTAMA pada SETIAP baris print() (bukan cuma satu angka terakhir/pertama
+// dari keseluruhan output) -- dipakai server sbg kandidat tambahan, karena banyak
+// soal punya baris jawaban di TENGAH output (mis. mahasiswa print label lain /
+// bonus konversi satuan setelahnya). Literal array/list "[...]" diabaikan per baris.
+function _lineAnswers(str) {
+  const lines = String(str || '').split('\n');
+  const out = [];
+  for (const line of lines) {
+    const ns = parseNumbers(line.replace(/\[[^\[\]]*\]/g, ' '));
+    if (ns.length > 0) out.push(ns[0]);
+  }
+  return out;
+}
+
 let compAnswered = {}, compScores = {};
 
 // ── Hint penjelasan jawaban benar untuk setiap soal komputasi ──
@@ -3169,11 +3183,12 @@ async function runAndCheck(qId, difficulty) {
         // BUKAN jawaban skalar. userAnswers (multi-step) tetap kirim SEMUA angka asli.
         const cleanNums = parseNumbers((output || '').replace(/\[[^\[\]]*\]/g, ' '));
         userAnswer = cleanNums.length > 0 ? cleanNums[cleanNums.length - 1] : nums[nums.length - 1];
+        var lineAnswers = _lineAnswers(output || '');
         userAnswers = nums;
       }
     }
     try {
-      const res = await window._callCheckExamAnswer(qId, userAnswer, code, userAnswers);
+      const res = await window._callCheckExamAnswer(qId, userAnswer, code, userAnswers, lineAnswers);
       if (ta) {
         ta.disabled = true;
         if (res.correct) {
@@ -5397,7 +5412,7 @@ function _setSessionPinHash(hash) {
 }
 window._setSessionPinHash = _setSessionPinHash;
 
-async function _callCheckExamAnswer(qId, userAnswer, codeText, userAnswers) {
+async function _callCheckExamAnswer(qId, userAnswer, codeText, userAnswers, lineAnswers) {
   const pinHash = window._sessionPinHash;
   if (!pinHash) throw new Error('Session PIN hash hilang — login ulang.');
   const me = (typeof getIdentity === 'function') ? getIdentity() : (window.getIdentity ? window.getIdentity() : null);
@@ -5405,6 +5420,7 @@ async function _callCheckExamAnswer(qId, userAnswer, codeText, userAnswers) {
   const payload = { examId: EXAM_ID, qId, userAnswer, nim: me.nim, nama: me.nama, pinHash };
   if (typeof codeText === 'string') payload.codeText = codeText.slice(0, 5000);
   if (Array.isArray(userAnswers)) payload.userAnswers = userAnswers.slice(0, 64).map(Number);
+  if (Array.isArray(lineAnswers)) payload.lineAnswers = lineAnswers.slice(0, 64).map(Number);
   const result = await _checkExamAnswerCallable(payload);
   return result.data;
 }
