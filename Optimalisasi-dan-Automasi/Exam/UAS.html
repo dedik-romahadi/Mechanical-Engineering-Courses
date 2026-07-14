@@ -3508,6 +3508,20 @@ function parseNumbers(str) {
   return matches.map(Number).filter(n => isFinite(n));
 }
 
+// Angka PERTAMA pada SETIAP baris print() (bukan cuma satu angka terakhir/pertama
+// dari keseluruhan output) -- dipakai server sbg kandidat tambahan, karena banyak
+// soal punya baris jawaban di TENGAH output (mis. mahasiswa print label lain /
+// bonus konversi satuan setelahnya). Literal array/list "[...]" diabaikan per baris.
+function _lineAnswers(str) {
+  const lines = String(str || '').split('\n');
+  const out = [];
+  for (const line of lines) {
+    const ns = parseNumbers(line.replace(/\[[^\[\]]*\]/g, ' '));
+    if (ns.length > 0) out.push(ns[0]);
+  }
+  return out;
+}
+
 let compAnswered = {}, compScores = {};
 
 async function runAndCheck(qId, difficulty) {
@@ -3612,11 +3626,12 @@ async function runAndCheck(qId, difficulty) {
         // BUKAN jawaban skalar. userAnswers (multi-step) tetap kirim SEMUA angka asli.
         const cleanNums = parseNumbers((output || '').replace(/\[[^\[\]]*\]/g, ' '));
         userAnswer = cleanNums.length > 0 ? cleanNums[cleanNums.length - 1] : nums[nums.length - 1];
+        var lineAnswers = _lineAnswers(output || '');
         userAnswers = nums;
       }
     }
     try {
-      const res = await window._callCheckExamAnswer(qId, userAnswer, code, userAnswers);
+      const res = await window._callCheckExamAnswer(qId, userAnswer, code, userAnswers, lineAnswers);
       if (ta) {
         ta.disabled = true;
         if (res.correct) {
@@ -5876,7 +5891,7 @@ window._setSessionPinHash = _setSessionPinHash;
 //   userAnswers — number[] optional (Comp multi-step)
 // Returns Promise<{correct, status, scoreDelta, marker, ...}>
 // Throws Error dengan .code (HttpsError code) dan .message human-readable.
-async function _callCheckExamAnswer(qId, userAnswer, codeText, userAnswers) {
+async function _callCheckExamAnswer(qId, userAnswer, codeText, userAnswers, lineAnswers) {
   const me = getIdentity();
   if (!me || !me.nim) {
     const err = new Error('Identity tidak ditemukan — silakan login ulang');
@@ -5893,6 +5908,9 @@ async function _callCheckExamAnswer(qId, userAnswer, codeText, userAnswers) {
   }
   if (Array.isArray(userAnswers) && userAnswers.length > 0) {
     payload.userAnswers = userAnswers.slice(0, 64).map(Number).filter(Number.isFinite);
+  }
+  if (Array.isArray(lineAnswers) && lineAnswers.length > 0) {
+    payload.lineAnswers = lineAnswers.slice(0, 64).map(Number).filter(Number.isFinite);
   }
   try {
     const result = await _checkExamAnswerCallable(payload);
