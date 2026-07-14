@@ -367,7 +367,7 @@ function matchExpectedSteps(userNums, steps) {
 
 // Bandingkan jawaban berdasarkan tipe.
 // Returns { correct: bool, allowPartial: bool, stepResults?: bool[] }.
-function evaluateAnswer(ans, userAnswer, userAnswers) {
+function evaluateAnswer(ans, userAnswer, userAnswers, lineAnswers) {
   if (ans.type === "tf") {
     if (userAnswer === undefined || userAnswer === null) {
       throw new HttpsError("invalid-argument", "userAnswer required for TF");
@@ -410,10 +410,16 @@ function evaluateAnswer(ans, userAnswer, userAnswers) {
     // print TERAKHIR. Jadi cek angka TERAKHIR dan PERTAMA dari output.
     //   - Angka terakhir → menangkap "print(intermediate); print(jawaban)".
     //   - Angka pertama  → backward-compat "print(jawaban)" saja.
-    // Sengaja TIDAK "match angka mana pun" supaya jawaban integer kecil (0, 1, 5)
-    // tidak lolos hanya karena kebetulan muncul di nilai antara. Field name
-    // flexibility: UTS pakai `answer:`, UAS pakai `expected:` (legacy) — keduanya
-    // sudah ditangani di `target`.
+    // Sengaja TIDAK "match angka mana pun di seluruh output" supaya jawaban
+    // integer kecil (0, 1, 5) tidak lolos hanya karena kebetulan muncul di
+    // nilai antara (mis. index array). Tapi TETAP cek `lineAnswers` — angka
+    // PERTAMA per baris print() (mirror client _lineAnswers()) — karena pola
+    // umum mahasiswa print BEBERAPA baris berlabel ("Label: value unit") dan
+    // baris jawaban yang diminta seringkali BUKAN baris pertama/terakhir (mis.
+    // ada baris bonus konversi satuan setelahnya). Fix laporan: C4/C6/C7
+    // Getaran Modul-14 — jawaban benar ada di baris tengah, bukan awal/akhir.
+    // Field name flexibility: UTS pakai `answer:`, UAS pakai `expected:`
+    // (legacy) — keduanya sudah ditangani di `target`.
     const finiteNums = Array.isArray(userAnswers)
       ? userAnswers.map(Number).filter(Number.isFinite)
       : [];
@@ -424,6 +430,12 @@ function evaluateAnswer(ans, userAnswer, userAnswers) {
     }
     const ua = Number(userAnswer);
     if (Number.isFinite(ua)) candidates.push(ua);          // fallback nums[0] client
+    if (Array.isArray(lineAnswers)) {
+      for (const v of lineAnswers) {
+        const n = Number(v);
+        if (Number.isFinite(n)) candidates.push(n);         // angka pertama per baris print()
+      }
+    }
     if (candidates.length === 0) {
       return { correct: false, allowPartial: ans.allowPartial === true };
     }
@@ -478,7 +490,7 @@ function normalizeSelection(type, userAnswer) {
 // ═════════════════════════════════════════════════════════════════════════════
 exports.checkExamAnswer = onCall(async (request) => {
   const d = request.data || {};
-  const { examId, qId, userAnswer, userAnswers, nim, pinHash, codeText } = d;
+  const { examId, qId, userAnswer, userAnswers, lineAnswers, nim, pinHash, codeText } = d;
 
   // ── 1) Validate input ──
   // Catatan: utk Comp dgn Pyodide error, client kirim userAnswer=null → tetap
@@ -598,7 +610,7 @@ exports.checkExamAnswer = onCall(async (request) => {
   const ans = resolveAnswerKey(rawAns, nim);
 
   // ── 6) Evaluate ──
-  const evalResult = evaluateAnswer(ans, userAnswer, userAnswers);
+  const evalResult = evaluateAnswer(ans, userAnswer, userAnswers, lineAnswers);
   const outcome = computeOutcome(ans, evalResult, sched.pastDeadline);
   // Override poin per soal dgn bobot OBE — proporsional Sub-CPMK / jumlah soal.
   // Σ poin semua soal = 100 (lihat _examQPoints + OBE_EXAM_CONFIG).
@@ -811,7 +823,7 @@ function _computeModulOutcome(ans, evalResult, pastDeadline) {
   return { markerSuffix: "", points: 0, status: "wrong" };
 }
 
-function _evaluateModulAnswer(ans, userAnswer, userAnswers) {
+function _evaluateModulAnswer(ans, userAnswer, userAnswers, lineAnswers) {
   if (ans.type === "mc") {
     // Modul MC: answer adalah letter 'A'/'B'/'C'/'D'. User send letter juga.
     if (typeof userAnswer !== "string" || !/^[A-D]$/.test(userAnswer)) {
@@ -829,7 +841,11 @@ function _evaluateModulAnswer(ans, userAnswer, userAnswers) {
     // userAnswer = nums[0] (angka PERTAMA output), padahal mahasiswa sering
     // print label / nilai antara (mis. "ω1= 10" → angka pertama = 1 dari "ω1")
     // sehingga jawaban final BUKAN angka pertama. Konvensi: jawaban di-print
-    // TERAKHIR. Cek angka TERAKHIR dan PERTAMA dari output (+ fallback userAnswer).
+    // TERAKHIR. Cek angka TERAKHIR dan PERTAMA dari output (+ fallback userAnswer),
+    // plus `lineAnswers` (angka pertama per baris print(), mirror client
+    // _lineAnswers()) — fix laporan mhs (C4/C6/C7 Getaran Modul-14): jawaban
+    // benar sering ada di baris TENGAH saat mahasiswa print beberapa baris
+    // berlabel + baris bonus (mis. konversi satuan) setelahnya.
     const finiteNums = Array.isArray(userAnswers)
       ? userAnswers.map(Number).filter(Number.isFinite)
       : [];
@@ -840,6 +856,12 @@ function _evaluateModulAnswer(ans, userAnswer, userAnswers) {
     }
     const ua = Number(userAnswer);
     if (Number.isFinite(ua)) candidates.push(ua);          // fallback nums[0] client
+    if (Array.isArray(lineAnswers)) {
+      for (const v of lineAnswers) {
+        const n = Number(v);
+        if (Number.isFinite(n)) candidates.push(n);         // angka pertama per baris print()
+      }
+    }
     if (candidates.length === 0) {
       return { correct: false };
     }
@@ -863,7 +885,7 @@ function _evaluateModulAnswer(ans, userAnswer, userAnswers) {
 // - Schedule per-modul (visitors/<course>/pertemuan-N)
 // ─────────────────────────────────────────────────────────────────────────────
 exports.checkModulAnswer = onCall(async (request) => {
-  const { modulId, qId, userAnswer, userAnswers, codeText, nim, nama, pinHash } = request.data || {};
+  const { modulId, qId, userAnswer, userAnswers, lineAnswers, codeText, nim, nama, pinHash } = request.data || {};
 
   if (!modulId || typeof modulId !== "string") {
     throw new HttpsError("invalid-argument", "modulId wajib diisi");
@@ -966,7 +988,7 @@ exports.checkModulAnswer = onCall(async (request) => {
   const ans = ansSnap.data();
 
   // ── 5) Evaluate ──
-  const evalResult = _evaluateModulAnswer(ans, userAnswer, userAnswers);
+  const evalResult = _evaluateModulAnswer(ans, userAnswer, userAnswers, lineAnswers);
   const outcome = _computeModulOutcome(ans, evalResult, sched.pastDeadline);
   const scoreDelta = outcome.points * sched.multiplier;
   const markerKey = qId + outcome.markerSuffix;

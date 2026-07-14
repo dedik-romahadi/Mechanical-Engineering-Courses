@@ -3902,6 +3902,21 @@ function _lastLineAnswer(str) {
   return null;
 }
 
+// Angka PERTAMA pada SETIAP baris print() (bukan cuma baris terakhir) -- dipakai
+// server sbg kandidat tambahan, karena banyak soal punya baris jawaban di
+// TENGAH output (mis. mahasiswa print label lain / bonus konversi satuan
+// setelahnya, sehingga jawaban yg diminta bukan angka pertama/terakhir dari
+// keseluruhan output). Literal array/list "[...]" tetap diabaikan per baris.
+function _lineAnswers(str) {
+  const lines = String(str || '').split('\n');
+  const out = [];
+  for (const line of lines) {
+    const ns = parseNumbers(line.replace(/\[[^\[\]]*\]/g, ' '));
+    if (ns.length > 0) out.push(ns[0]);
+  }
+  return out;
+}
+
 let compAnswered = {}, compScores = {};
 
 // ── PHASE 3 ── Hint penjelasan komputasi juga dipindah ke server (Cloud Function
@@ -3996,6 +4011,7 @@ async function runAndCheck(qId, difficulty) {
   // userAnswer: angka pertama dari output (atau null jika error/kosong).
   // userAnswers: SEMUA angka berurutan (utk multi-step validasi server).
   const nums = errMsg ? [] : parseNumbers(output || '');
+  const lineNums = errMsg ? [] : _lineAnswers(output || '');
   let userAnswer = null;
   if (!errMsg) {
     const lla = _lastLineAnswer(output || '');
@@ -4013,7 +4029,7 @@ async function runAndCheck(qId, difficulty) {
     if (typeof window._callCheckModulAnswer !== 'function') {
       throw new Error('Callable belum siap — refresh halaman.');
     }
-    const res = await window._callCheckModulAnswer(qId, userAnswer, code, nums);
+    const res = await window._callCheckModulAnswer(qId, userAnswer, code, nums, lineNums);
 
     // Visual updates pre-apply (button label restored to allow _applyModulServerResult to set final state)
     btn.textContent = (res && (res.correct || res.status === 'correct')) ? '✓ Selesai' : '✗ Terkunci';
@@ -7251,7 +7267,7 @@ window._setSessionPinHash = _setSessionPinHash;
 // Returns Promise<{correct, status, scoreDelta, marker, correctAnswer, explain,
 //                  lateMultiplier, pastDeadline, alreadyAnswered, healed, ...}>
 // Throws Error dengan .code (HttpsError code) dan .message human-readable.
-async function _callCheckModulAnswer(qId, userAnswer, codeText, userAnswers) {
+async function _callCheckModulAnswer(qId, userAnswer, codeText, userAnswers, lineAnswers) {
   const me = getIdentity();
   if (!me || !me.nim) {
     const err = new Error('Identity tidak ditemukan — silakan login ulang.');
@@ -7268,6 +7284,9 @@ async function _callCheckModulAnswer(qId, userAnswer, codeText, userAnswers) {
   }
   if (Array.isArray(userAnswers) && userAnswers.length > 0) {
     payload.userAnswers = userAnswers.slice(0, 64).map(Number).filter(Number.isFinite);
+  }
+  if (Array.isArray(lineAnswers) && lineAnswers.length > 0) {
+    payload.lineAnswers = lineAnswers.slice(0, 64).map(Number).filter(Number.isFinite);
   }
   try {
     const result = await _checkModulAnswerCallable(payload);
