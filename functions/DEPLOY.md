@@ -129,3 +129,53 @@ Atau cek di Firebase Console → Functions → Logs.
 - PinHash validasi: 64 hex chars (SHA-256). Format invalid → reject `invalid-argument`
 - NIM validasi: max 20 char alphanumeric setelah sanitize → reject `invalid-argument`
 - Schedule gate server-authoritative: client tidak bisa spoof `lateMultiplier`
+
+## Export Verification Code (`generateExportCode` / `verifyExportCode`)
+
+File "Export HTML" (tombol 📄 di tab Hasil setiap Modul) di-generate 100%
+client-side dan bisa diedit manual (tidak ada proteksi bawaan). Untuk
+mendeteksi (bukan mencegah) edit tsb, tiap export sekarang membawa kode
+verifikasi pendek = `HMAC-SHA256(EXPORT_CODE_SECRET, modulId|nim|points|
+generatedAt)`. Dosen bisa cocokkan kode via `Admin/verify-export-code.html`.
+
+**Kenapa perlu secret terpisah (bukan hardcode di `functions/index.js`
+seperti `ADMIN_PW_HASH`)**: repo ini public (GitHub Pages) — `ADMIN_PW_HASH`
+aman di-expose karena itu HASH satu arah (tidak bisa dibalik jadi password
+asli), tapi HMAC secret adalah **kunci mentah** — siapa pun yang punya
+string-nya bisa forge kode valid sendiri. Kalau di-hardcode di source, fitur
+ini jadi percuma (mahasiswa tinggal baca `functions/index.js` di GitHub).
+Makanya secret disimpan di **Firebase Secret Manager** via `defineSecret`,
+tidak pernah masuk git.
+
+### Setup sekali saja (sebelum deploy_functions pertama kali)
+
+1. Generate secret acak, mis.:
+   ```bash
+   openssl rand -hex 32
+   ```
+2. Simpan sbg GitHub Actions secret:
+   Repo → Settings → Secrets and variables → Actions → New repository secret
+   Name: `EXPORT_CODE_SECRET_VALUE`, Value: hasil langkah 1.
+3. Jalankan workflow "Firebase Deploy Exam (multi-course)" **sekali** dengan
+   input `set_export_secret = true` (boleh dibarengkan dengan
+   `deploy_functions = true` di run yang sama) — ini push nilai secret dari
+   GitHub Actions ke Firebase Secret Manager via
+   `firebase functions:secrets:set EXPORT_CODE_SECRET`.
+4. Service Account (`FIREBASE_SA_KEY`) butuh role tambahan
+   **Secret Manager Admin** (`roles/secretmanager.admin`) di IAM — kalau step
+   `set_export_secret` gagal dgn `PERMISSION_DENIED`, tambahkan role ini dulu.
+
+Setelah secret ter-set, deploy `deploy_functions` berikutnya tinggal berjalan
+normal — Cloud Functions v2 otomatis fetch secret dari Secret Manager saat
+runtime, tidak perlu di-set ulang tiap deploy. Kalau mau rotate secret,
+ulangi langkah 1-3 dgn value baru (kode verifikasi lama otomatis jadi
+invalid — tidak masalah, karena verifikasi cuma dipakai retroaktif kalau
+dosen curiga, bukan proses rutin).
+
+### Cara pakai (dosen)
+
+- Mahasiswa export HTML seperti biasa (tombol 📄 Export HTML) — sekarang ada
+  kotak "🔐 Kode Verifikasi" berisi Kode, Poin (server), dan waktu dibuat.
+- Kalau curiga file sudah diedit, buka `Admin/verify-export-code.html`,
+  salin ke-4 nilai itu persis dari file export + password admin → submit.
+  Server re-hitung HMAC dari field yang disubmit dan cocokkan ke kode.
