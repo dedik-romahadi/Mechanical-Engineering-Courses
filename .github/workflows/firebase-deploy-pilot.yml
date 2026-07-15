@@ -15,11 +15,18 @@ name: Firebase Deploy Exam (multi-course)
 #    - Service Account User           (roles/iam.serviceAccountUser)
 #    - Cloud Build Editor             (roles/cloudbuild.builds.editor)
 #    - Artifact Registry Writer       (roles/artifactregistry.writer)
+#    - Secret Manager Admin           (roles/secretmanager.admin) — utk step
+#      "set_export_secret" (fitur kode verifikasi Export HTML)
 #    Email SA biasanya: firebase-adminsdk-XXXXX@getaran-mekanik.iam.gserviceaccount.com
 # 3. Upload SA key sebagai GitHub Secret:
 #    Repo → Settings → Secrets and variables → Actions → "New repository secret"
 #    Name: FIREBASE_SA_KEY
 #    Value: paste ISI LENGKAP file JSON (mulai dari `{`, sampai `}`)
+# 4. (Sekali saja, utk fitur kode verifikasi Export HTML) Buat GitHub Secret lain:
+#    Name: EXPORT_CODE_SECRET_VALUE
+#    Value: string acak panjang, mis. hasil `openssl rand -hex 32`
+#    Lalu jalankan workflow ini SEKALI dgn input `set_export_secret=true` (boleh
+#    barengan dgn deploy_functions=true) — lihat functions/DEPLOY.md.
 #
 # Catatan: semua exam (Getaran, Optoauto, Math) deploy ke SATU Firebase project
 # yang sama (`getaran-mekanik`). Multi-tenancy via Firestore path prefix
@@ -75,6 +82,10 @@ on:
         default: false
       deploy_database_rules:
         description: 'Deploy RTDB rules (database.rules.json — utk Atur Jadwal, presence, dll)'
+        type: boolean
+        default: false
+      set_export_secret:
+        description: '⚠ SEKALI SAJA: push GitHub secret EXPORT_CODE_SECRET_VALUE ke Firebase Secret Manager (wajib sebelum deploy_functions pertama kali setelah fitur kode verifikasi export ditambahkan — lihat functions/DEPLOY.md § Export Verification Code)'
         type: boolean
         default: false
 
@@ -182,6 +193,15 @@ jobs:
         if: ${{ inputs.live_seed && steps.seed_flag.outputs.skip_seed != 'true' }}
         working-directory: functions
         run: node seed/seed-firestore.js ${{ steps.seed_flag.outputs.flag }}
+
+      - name: Step 3b — Set EXPORT_CODE_SECRET di Firebase Secret Manager (sekali saja)
+        if: ${{ inputs.set_export_secret }}
+        run: |
+          if [ -z "${{ secrets.EXPORT_CODE_SECRET_VALUE }}" ]; then
+            echo "❌ GitHub secret EXPORT_CODE_SECRET_VALUE belum di-set. Repo → Settings → Secrets and variables → Actions → New repository secret. Nama: EXPORT_CODE_SECRET_VALUE, isi: string acak (mis. hasil 'openssl rand -hex 32')."
+            exit 1
+          fi
+          printf '%s' "${{ secrets.EXPORT_CODE_SECRET_VALUE }}" | firebase functions:secrets:set EXPORT_CODE_SECRET --project getaran-mekanik --data-file=- --force
 
       - name: Step 4 — Deploy Cloud Functions
         if: ${{ inputs.deploy_functions }}

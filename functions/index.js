@@ -36,9 +36,11 @@
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
+const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getDatabase } = require("firebase-admin/database");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const crypto = require("crypto");
 
 initializeApp();
 
@@ -1071,6 +1073,112 @@ exports.checkModulAnswer = onCall(async (request) => {
     pastDeadline: sched.pastDeadline,
     consolationAwarded,
   };
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EXPORT VERIFICATION CODE — deterrent utk file "Export HTML" (Tugas/Forum).
+//
+// Export HTML (mis. Tugas4_<NIM>_<Course>.html) di-generate 100% client-side
+// dari state DOM/JS lokal saat tombol Export diklik — TIDAK ada proteksi
+// apa pun terhadap edit manual (mahasiswa buka file di text editor, ubah
+// poin/kode/nama). File export BUKAN sumber nilai resmi (nilai asli tetap
+// di RTDB via checkModulAnswer), tapi bisa disalahgunakan sbg bukti klaim
+// yang menyesatkan kalau di-edit lalu ditunjukkan ke dosen.
+//
+// Mitigasi (bukan mencegah edit — file lokal selalu bisa diedit siapa pun
+// yang punya file itu — tapi membuat edit TERDETEKSI): kode verifikasi
+// pendek = HMAC-SHA256(SECRET, modulId|nim|points|generatedAt), di-embed ke
+// file export saat generate. Dosen cocokkan via Admin/verify-export-code.html
+// (verifyExportCode) kapan pun curiga — field apa pun yang diedit (poin,
+// NIM, timestamp) bikin kode tidak lagi cocok.
+//
+// PENTING: SECRET disimpan via Firebase Secret Manager (defineSecret), BUKAN
+// hardcoded di source — repo ini public (GitHub Pages), hardcode secret di
+// sini akan membuatnya bisa dibaca siapa saja & mematahkan seluruh mekanisme.
+// Wajib di-set SEKALI via CLI sebelum deploy pertama:
+//   firebase functions:secrets:set EXPORT_CODE_SECRET
+// (isi bebas — string acak panjang, mis. hasil `openssl rand -hex 32`).
+// ─────────────────────────────────────────────────────────────────────────────
+const EXPORT_CODE_SECRET = defineSecret("EXPORT_CODE_SECRET");
+
+function _computeExportCode(secretValue, modulId, nim, points, generatedAt) {
+  const payload = `${modulId}|${nim}|${points}|${generatedAt}`;
+  const h = crypto.createHmac("sha256", secretValue).update(payload).digest("hex").toUpperCase();
+  // 3 grup 4-karakter (dari 256-bit HMAC) -- cukup pendek utk diketik ulang manual
+  // saat verifikasi, cukup panjang (~2^48 kemungkinan) utk sulit ditebak asal-asalan.
+  return `${h.slice(0, 4)}-${h.slice(4, 8)}-${h.slice(8, 12)}`;
+}
+
+// generateExportCode — student callable (PIN-authenticated), dipanggil client
+// SEBELUM membangun HTML export, supaya poin yg di-embed adalah poin RESMI
+// dari server (bukan state lokal yg bisa saja sudah stale/dimanipulasi).
+// Request: { modulId, nim, pinHash }
+// Response: { code, points, nilai, generatedAt }
+exports.generateExportCode = onCall({ secrets: [EXPORT_CODE_SECRET] }, async (request) => {
+  const { modulId, nim, pinHash } = request.data || {};
+  if (!modulId || typeof modulId !== "string") {
+    throw new HttpsError("invalid-argument", "modulId wajib diisi");
+  }
+  const cfg = MODUL_CONFIG[modulId];
+  if (!cfg) {
+    throw new HttpsError("invalid-argument", `modulId '${modulId}' tidak dikonfigurasi`);
+  }
+  if (!nim || !pinHash) {
+    throw new HttpsError("invalid-argument", "nim/pinHash wajib diisi");
+  }
+
+  const rtdb = getDatabase();
+  const nimKey = sanitizeKey("mhs_" + nim);
+
+  const pinSnap = await rtdb.ref(`pins/${nimKey}`).get();
+  if (!pinSnap.exists()) {
+    throw new HttpsError("unauthenticated", "PIN belum di-setup utk NIM ini");
+  }
+  if (pinSnap.val().pinHash !== pinHash) {
+    throw new HttpsError("unauthenticated", "PIN salah — silakan login ulang");
+  }
+
+  const vSnap = await rtdb.ref(`${cfg.dbPath}/${nimKey}`).get();
+  const points = Number((vSnap.val() || {}).points) || 0;
+  const generatedAt = new Date().toISOString();
+  const code = _computeExportCode(EXPORT_CODE_SECRET.value(), modulId, nim, points, generatedAt);
+
+  return { code, points, nilai: Math.round((points / cfg.totalPoints) * 100), generatedAt };
+});
+
+// verifyExportCode — admin callable, cocokkan kode yg tertera di file export
+// terhadap field (modulId/nim/points/generatedAt) yg juga tertera di file yg
+// sama. Kalau file diedit (poin/nim/timestamp berubah), kode tidak akan
+// cocok lagi -- HMAC dihitung ulang dari field yg di-submit, bukan dibaca
+// dari storage manapun.
+// Request: { adminPwHash, modulId, nim, points, generatedAt, code }
+// Response: { valid, currentPoints }
+exports.verifyExportCode = onCall({ secrets: [EXPORT_CODE_SECRET] }, async (request) => {
+  const { adminPwHash, modulId, nim, points, generatedAt, code } = request.data || {};
+  if (!adminPwHash || adminPwHash !== ADMIN_PW_HASH) {
+    throw new HttpsError("permission-denied", "Admin password salah");
+  }
+  if (!modulId || !nim || points === undefined || points === null || !generatedAt || !code) {
+    throw new HttpsError("invalid-argument", "modulId/nim/points/generatedAt/code wajib diisi");
+  }
+  const expected = _computeExportCode(
+    EXPORT_CODE_SECRET.value(), modulId, String(nim), Number(points), String(generatedAt)
+  );
+  const valid = expected === String(code).toUpperCase().trim();
+
+  // Info tambahan (bukan indikasi curang) -- poin TERKINI di RTDB, kalau beda
+  // dari poin di file berarti mahasiswa sudah lanjut mengerjakan setelah
+  // export dibuat (wajar), bukan tanda manipulasi.
+  let currentPoints = null;
+  const cfg = MODUL_CONFIG[modulId];
+  if (valid && cfg) {
+    const rtdb = getDatabase();
+    const nimKey = sanitizeKey("mhs_" + nim);
+    const vSnap = await rtdb.ref(`${cfg.dbPath}/${nimKey}`).get();
+    currentPoints = Number((vSnap.val() || {}).points) || 0;
+  }
+
+  return { valid, currentPoints };
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
