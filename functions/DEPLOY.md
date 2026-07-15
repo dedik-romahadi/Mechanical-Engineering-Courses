@@ -179,3 +179,25 @@ dosen curiga, bukan proses rutin).
 - Kalau curiga file sudah diedit, buka `Admin/verify-export-code.html`,
   salin ke-4 nilai itu persis dari file export + password admin → submit.
   Server re-hitung HMAC dari field yang disubmit dan cocokkan ke kode.
+
+### Cakupan: Modul DAN Exam (UTS/UAS)
+
+`generateExportCode`/`verifyExportCode` menerima `modulId` ATAU `examId`
+(di-resolve dari MODUL_CONFIG lalu EXAM_CONFIG). Poin exam bisa float
+(proporsional bobot Sub-CPMK) — dibulatkan 2 desimal SEBELUM di-hash supaya
+angka yang tertera di file & yang diketik ulang dosen saat verifikasi identik.
+Di `Admin/verify-export-code.html`, pilih "UTS"/"UAS" di dropdown modul.
+
+### Catatan regression fix EXAM_CONFIG (penting)
+
+Saat menambahkan dukungan exam, ditemukan bahwa entry `EXAM_CONFIG` di
+`functions/index.js` kehilangan SEMUA field path/scoring (`dbPath`,
+`schedulePath`, `totalPoints`, `consolationThreshold`, `consolationPoint`,
+`lateMultiplierValue`) yang dibaca `checkExamAnswer` & `recomputeExamPoints` —
+kemungkinan tertimpa saat refactor bobot OBE (entry hanya berisi
+`bobot`/`mapping`, yang justru tidak pernah dibaca fungsi mana pun). Efek:
+`evalSchedule` menerima path `undefined` → baca ROOT database →
+"schedule-incomplete" → semua submit exam DITOLAK. Field di-restore via loop
+augmentasi tepat di bawah object `EXAM_CONFIG` — kalau menambah exam baru,
+cukup tambah entry `bobot`/`mapping`, field path terisi otomatis dari pola
+`<course>-uts|uas`.

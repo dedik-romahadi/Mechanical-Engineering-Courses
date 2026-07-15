@@ -88,6 +88,38 @@ const EXAM_CONFIG = {
   },
 };
 
+// ── EXAM_CONFIG path & scoring fields (RESTORASI — regression fix) ──────────
+// checkExamAnswer & recomputeExamPoints membaca cfg.dbPath / cfg.schedulePath /
+// cfg.totalPoints / cfg.consolationThreshold / cfg.consolationPoint /
+// cfg.lateMultiplierValue — TAPI object EXAM_CONFIG di atas hanya berisi
+// bobot/mapping (yang justru tidak pernah dibaca siapa pun; _examQPoints pakai
+// OBE_EXAM_CONFIG). Field path/scoring hilang di suatu refactor — akibatnya
+// evalSchedule menerima path undefined (→ rtdb.ref(undefined) = ROOT →
+// "schedule-incomplete" → SEMUA submit exam ditolak), dan visitor write
+// mengarah ke path "undefined/mhs_<nim>". Loop ini mengembalikan field-field
+// tsb. Nilai diambil dari client Exam HTML (SSOT): DB_PATH =
+// visitors/<slug>/uts|uas, SCHEDULE_PATH = settings/<slug>/uts|uas/schedule,
+// total 100 poin (Σ _examQPoints = 100), konsolasi ≥30 attempt → 1 poin,
+// late multiplier 0.7 (PR #284).
+const _EXAM_COURSE_SLUG = {
+  "getaran-mekanik": "getaran_mekanik",
+  "optoauto": "optoauto",
+  "math4": "math4",
+};
+for (const _examId of Object.keys(EXAM_CONFIG)) {
+  const _m = _examId.match(/^(.+)-(uts|uas)$/);
+  const _slug = _m && _EXAM_COURSE_SLUG[_m[1]];
+  if (!_slug) throw new Error(`EXAM_CONFIG id '${_examId}' tidak match pola <course>-uts|uas`);
+  Object.assign(EXAM_CONFIG[_examId], {
+    dbPath: `visitors/${_slug}/${_m[2]}`,
+    schedulePath: `settings/${_slug}/${_m[2]}/schedule`,
+    totalPoints: 100,
+    consolationThreshold: 30,
+    consolationPoint: 1,
+    lateMultiplierValue: 0.7,
+  });
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // OBE_EXAM_CONFIG — mapping (Sub-CPMK → daftar Q 1-45) & bobot Sub-CPMK per
 // exam. SUMBER UTAMA poin per soal:
@@ -1112,16 +1144,21 @@ function _computeExportCode(secretValue, modulId, nim, points, generatedAt) {
 // generateExportCode — student callable (PIN-authenticated), dipanggil client
 // SEBELUM membangun HTML export, supaya poin yg di-embed adalah poin RESMI
 // dari server (bukan state lokal yg bisa saja sudah stale/dimanipulasi).
-// Request: { modulId, nim, pinHash }
+// Support Modul DAN Exam (UTS/UAS): kirim `modulId` ATAU `examId` — keduanya
+// di-resolve dari MODUL_CONFIG lalu EXAM_CONFIG. Poin exam bisa float
+// (proporsional bobot Sub-CPMK) → dibulatkan 2 desimal SEBELUM di-hash supaya
+// nilai yg di-embed & yg diketik ulang dosen saat verifikasi identik persis.
+// Request: { modulId | examId, nim, pinHash }
 // Response: { code, points, nilai, generatedAt }
 exports.generateExportCode = onCall({ secrets: [EXPORT_CODE_SECRET] }, async (request) => {
-  const { modulId, nim, pinHash } = request.data || {};
-  if (!modulId || typeof modulId !== "string") {
-    throw new HttpsError("invalid-argument", "modulId wajib diisi");
+  const { modulId, examId, nim, pinHash } = request.data || {};
+  const id = (typeof modulId === "string" && modulId) || (typeof examId === "string" && examId) || "";
+  if (!id) {
+    throw new HttpsError("invalid-argument", "modulId atau examId wajib diisi");
   }
-  const cfg = MODUL_CONFIG[modulId];
+  const cfg = MODUL_CONFIG[id] || EXAM_CONFIG[id];
   if (!cfg) {
-    throw new HttpsError("invalid-argument", `modulId '${modulId}' tidak dikonfigurasi`);
+    throw new HttpsError("invalid-argument", `id '${id}' tidak dikonfigurasi (bukan modul maupun exam)`);
   }
   if (!nim || !pinHash) {
     throw new HttpsError("invalid-argument", "nim/pinHash wajib diisi");
@@ -1139,9 +1176,10 @@ exports.generateExportCode = onCall({ secrets: [EXPORT_CODE_SECRET] }, async (re
   }
 
   const vSnap = await rtdb.ref(`${cfg.dbPath}/${nimKey}`).get();
-  const points = Number((vSnap.val() || {}).points) || 0;
+  const rawPoints = Number((vSnap.val() || {}).points) || 0;
+  const points = Math.round(rawPoints * 100) / 100;   // 2 desimal — exam points float
   const generatedAt = new Date().toISOString();
-  const code = _computeExportCode(EXPORT_CODE_SECRET.value(), modulId, nim, points, generatedAt);
+  const code = _computeExportCode(EXPORT_CODE_SECRET.value(), id, nim, points, generatedAt);
 
   return { code, points, nilai: Math.round((points / cfg.totalPoints) * 100), generatedAt };
 });
@@ -1154,15 +1192,16 @@ exports.generateExportCode = onCall({ secrets: [EXPORT_CODE_SECRET] }, async (re
 // Request: { adminPwHash, modulId, nim, points, generatedAt, code }
 // Response: { valid, currentPoints }
 exports.verifyExportCode = onCall({ secrets: [EXPORT_CODE_SECRET] }, async (request) => {
-  const { adminPwHash, modulId, nim, points, generatedAt, code } = request.data || {};
+  const { adminPwHash, modulId, examId, nim, points, generatedAt, code } = request.data || {};
   if (!adminPwHash || adminPwHash !== ADMIN_PW_HASH) {
     throw new HttpsError("permission-denied", "Admin password salah");
   }
-  if (!modulId || !nim || points === undefined || points === null || !generatedAt || !code) {
-    throw new HttpsError("invalid-argument", "modulId/nim/points/generatedAt/code wajib diisi");
+  const id = (typeof modulId === "string" && modulId) || (typeof examId === "string" && examId) || "";
+  if (!id || !nim || points === undefined || points === null || !generatedAt || !code) {
+    throw new HttpsError("invalid-argument", "modulId|examId/nim/points/generatedAt/code wajib diisi");
   }
   const expected = _computeExportCode(
-    EXPORT_CODE_SECRET.value(), modulId, String(nim), Number(points), String(generatedAt)
+    EXPORT_CODE_SECRET.value(), id, String(nim), Number(points), String(generatedAt)
   );
   const valid = expected === String(code).toUpperCase().trim();
 
@@ -1170,7 +1209,7 @@ exports.verifyExportCode = onCall({ secrets: [EXPORT_CODE_SECRET] }, async (requ
   // dari poin di file berarti mahasiswa sudah lanjut mengerjakan setelah
   // export dibuat (wajar), bukan tanda manipulasi.
   let currentPoints = null;
-  const cfg = MODUL_CONFIG[modulId];
+  const cfg = MODUL_CONFIG[id] || EXAM_CONFIG[id];
   if (valid && cfg) {
     const rtdb = getDatabase();
     const nimKey = sanitizeKey("mhs_" + nim);
