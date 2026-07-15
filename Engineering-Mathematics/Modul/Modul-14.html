@@ -4074,12 +4074,33 @@ function checkExportReady() {
 }
 
 // ── EXPORT TUGAS HTML ──
-function exportTugasHtml() {
+async function exportTugasHtml() {
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
   const nim  = identity ? identity.nim  : '-';
   const _d = new Date(); const _p = n => String(n).padStart(2,'0'); const now = _d.getDate()+'-'+(_d.getMonth()+1)+'-'+_d.getFullYear()+', '+_p(_d.getHours())+':'+_p(_d.getMinutes())+':'+_p(_d.getSeconds());
   const gdrive = document.getElementById('gdrive-link')?.value.trim() || '';
+
+  // ─── Kode verifikasi anti-tamper — poin RESMI dari server, bukan state lokal ───
+  // (fix: dosen bisa cocokkan kode ini via Admin/verify-export-code.html kalau
+  // curiga file export sudah diedit manual -- lihat functions/index.js
+  // generateExportCode/verifyExportCode)
+  const _exportBtn = document.getElementById('btn-score-export');
+  const _exportBtnLabel = _exportBtn ? _exportBtn.textContent : '';
+  let exportCode = '—', exportPoints = 0, exportGeneratedAt = '';
+  try {
+    if (_exportBtn) { _exportBtn.disabled = true; _exportBtn.textContent = '⏳ Membuat kode verifikasi...'; }
+    if (!window._sessionPinHash) throw new Error('Sesi PIN expired — refresh & login ulang');
+    const _r = await window._generateExportCodeCallable({ modulId: window.MODUL_ID, nim, pinHash: window._sessionPinHash });
+    exportCode = _r.data.code;
+    exportPoints = _r.data.points;
+    exportGeneratedAt = _r.data.generatedAt;
+  } catch (err) {
+    alert('Gagal membuat kode verifikasi (' + (err.message || 'error') + '). Pastikan Anda login dengan PIN, lalu coba Export lagi.');
+    if (_exportBtn) { _exportBtn.disabled = false; _exportBtn.textContent = _exportBtnLabel; }
+    return;
+  }
+  if (_exportBtn) { _exportBtn.disabled = false; _exportBtn.textContent = _exportBtnLabel; }
 
   // ─── 3 sub-total breakdown (Pedoman §15.3d) ───
   const mc = Object.values(mcScores).reduce((a,b)=>a+b, 0);
@@ -4520,6 +4541,14 @@ function exportTugasHtml() {
     <div class="meta-item"><span class="meta-label">👤 Nama</span><strong>${esc(name)}</strong></div>
     <div class="meta-item"><span class="meta-label">🆔 NIM</span><strong>${esc(nim)}</strong></div>
     <div class="meta-item"><span class="meta-label">📅 Tanggal</span><strong>${now}</strong></div>
+  </div>
+
+  <div style="margin:0 36px 20px;padding:12px 18px;border-radius:12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.18);font-size:11.5px;color:#475569;display:flex;flex-wrap:wrap;gap:5px 22px;align-items:center;">
+    <span style="font-weight:700;color:#7c3aed;">🔐 Kode Verifikasi</span>
+    <span>Kode: <strong style="font-family:'JetBrains Mono',monospace;letter-spacing:.5px;color:#1e293b;">${esc(exportCode)}</strong></span>
+    <span>Poin (server): <strong>${exportPoints}</strong></span>
+    <span>Dibuat: <strong style="font-family:'JetBrains Mono',monospace;">${esc(exportGeneratedAt)}</strong></span>
+    <span style="color:#94a3b8;font-size:10.5px;">— cocokkan via Admin/verify-export-code.html kalau diragukan.</span>
   </div>
 
   <div class="score-banner">
@@ -7130,9 +7159,12 @@ const STUDENTS_JSON_URL = 'https://dedik-romahadi.github.io/Mechanical-Engineeri
 //     return correctAnswer + explain saat jawaban salah, agar reveal terjadi.
 // ═══════════════════════════════════════════════════════════════════════════
 const MODUL_ID = 'math4-modul-14';   // ID untuk callable (beda dari MODULE_ID yg RTDB path)
+window.MODUL_ID = MODUL_ID;
 
 const _functions = getFunctions(app, 'asia-southeast1');
 const _checkModulAnswerCallable = httpsCallable(_functions, 'checkModulAnswer');
+const _generateExportCodeCallable = httpsCallable(_functions, 'generateExportCode');
+window._generateExportCodeCallable = _generateExportCodeCallable;
 
 // PIN hash session-scope (set saat login berhasil, dipakai utk auth ke callable).
 // Disimpan di sessionStorage: survive F5 reload, hilang otomatis saat tab ditutup.
