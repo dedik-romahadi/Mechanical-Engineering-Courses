@@ -3841,13 +3841,35 @@ function _setBtnState(btn, ready) {
 window._setBtnState = _setBtnState;
 
 // ── EXPORT UAS HTML ──
-function exportTugasHtml() {
+async function exportTugasHtml() {
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
   const nim  = identity ? identity.nim  : '-';
   const N = (typeof window.getN === 'function') ? window.getN() : 0;
   const _d = new Date(); const _p = n => String(n).padStart(2,'0'); const now = _d.getDate()+'-'+(_d.getMonth()+1)+'-'+_d.getFullYear()+', '+_p(_d.getHours())+':'+_p(_d.getMinutes())+':'+_p(_d.getSeconds());
   const gdriveLink = (document.getElementById('gdrive-link')?.value || '').trim();
+
+  // ─── Kode verifikasi anti-tamper — poin RESMI dari server, bukan state lokal ───
+  // (mirror fitur yg sama di 42 file Modul; dosen cocokkan via
+  // Admin/verify-export-code.html — lihat functions/index.js
+  // generateExportCode/verifyExportCode)
+  const _exportBtn = document.getElementById('btn-score-export');
+  const _exportBtnLabel = _exportBtn ? _exportBtn.textContent : '';
+  let exportCode = '—', exportPoints = 0, exportNilai = 0, exportGeneratedAt = '';
+  try {
+    if (_exportBtn) { _exportBtn.disabled = true; _exportBtn.textContent = '⏳ Membuat kode verifikasi...'; }
+    if (!window._sessionPinHash) throw new Error('Sesi PIN expired — refresh & login ulang');
+    const _r = await window._generateExportCodeCallable({ examId: window.EXAM_ID, nim, pinHash: window._sessionPinHash });
+    exportCode = _r.data.code;
+    exportPoints = _r.data.points;
+    exportNilai = _r.data.nilai;
+    exportGeneratedAt = _r.data.generatedAt;
+  } catch (err) {
+    alert('Gagal membuat kode verifikasi (' + (err.message || 'error') + '). Pastikan Anda login dengan PIN, lalu coba Export lagi.');
+    if (_exportBtn) { _exportBtn.disabled = false; _exportBtn.textContent = _exportBtnLabel; }
+    return;
+  }
+  if (_exportBtn) { _exportBtn.disabled = false; _exportBtn.textContent = _exportBtnLabel; }
 
   // ─── 4 sub-total breakdown ───
   const tf = Object.values(tfScores).reduce((a,b)=>a+b, 0);
@@ -3858,8 +3880,8 @@ function exportTugasHtml() {
     if (window._isHardComp(qId)) compHard += pts;
     else                         compEz   += pts;
   }
-  const total = tf + mc + compEz + compHard;
-  const nilai = pointsToScore(total);   // 0..100, Σ poin = 100 (tanpa konversi)
+  const total = exportPoints;   // poin RESMI dari server (anti-tamper -- konsisten dgn Kode Verifikasi)
+  const nilai = exportNilai;    // nilai RESMI dari server, idem
 
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function stripTags(s) { return (s||'').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); }
@@ -4276,6 +4298,14 @@ function exportTugasHtml() {
     <div class="meta-item"><span class="meta-label">👤 Nama</span><strong>${esc(name)}</strong></div>
     <div class="meta-item"><span class="meta-label">🆔 NIM</span><strong>${esc(nim)}</strong></div>
     <div class="meta-item"><span class="meta-label">📅 Tanggal</span><strong>${now}</strong></div>
+  </div>
+
+  <div style="margin:0 36px 20px;padding:12px 18px;border-radius:12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.18);font-size:11.5px;color:#475569;display:flex;flex-wrap:wrap;gap:5px 22px;align-items:center;">
+    <span style="font-weight:700;color:#7c3aed;">🔐 Kode Verifikasi</span>
+    <span>Kode: <strong style="font-family:'JetBrains Mono',monospace;letter-spacing:.5px;color:#1e293b;">${esc(exportCode)}</strong></span>
+    <span>Poin (server): <strong>${exportPoints}</strong></span>
+    <span>Dibuat: <strong style="font-family:'JetBrains Mono',monospace;">${esc(exportGeneratedAt)}</strong></span>
+    <span style="color:#94a3b8;font-size:10.5px;">— cocokkan via Admin/verify-export-code.html kalau diragukan.</span>
   </div>
 
   <div class="score-banner">
@@ -5867,9 +5897,12 @@ const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
 //     server adalah satu-satunya authority utk validasi & poin yg masuk RTDB.
 // ═══════════════════════════════════════════════════════════════════════════
 const EXAM_ID = 'optoauto-uas';
+window.EXAM_ID = EXAM_ID;
 
 const _functions = getFunctions(app, 'asia-southeast1');
 const _checkExamAnswerCallable = httpsCallable(_functions, 'checkExamAnswer');
+const _generateExportCodeCallable = httpsCallable(_functions, 'generateExportCode');
+window._generateExportCodeCallable = _generateExportCodeCallable;
 
 // PIN hash session-scope (set saat login berhasil, dipakai utk auth ke callable).
 // Disimpan di sessionStorage (bukan localStorage) supaya:

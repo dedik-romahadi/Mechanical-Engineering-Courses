@@ -41,7 +41,7 @@
 <body>
 <div class="wrap">
   <h1>🔐 Verifikasi Kode Export</h1>
-  <div class="sub">Admin-only. Cocokkan kode verifikasi yang tertera di file "Export HTML" mahasiswa terhadap poin resmi di server saat kode itu dibuat.</div>
+  <div class="sub">Admin-only. Cocokkan kode verifikasi yang tertera di file "Export HTML" mahasiswa (Modul 1-14 maupun UTS/UAS) terhadap poin resmi di server saat kode itu dibuat.</div>
 
   <div class="warn">
     ⚠ File export HTML dibuat 100% di browser mahasiswa dan bisa diedit manual (skor, kode, dsb).
@@ -51,7 +51,7 @@
   </div>
 
   <div class="card">
-    <label>Mata Kuliah &amp; Modul</label>
+    <label>Mata Kuliah &amp; Modul/Exam</label>
     <div class="row">
       <div>
         <select id="course">
@@ -64,13 +64,13 @@
         <select id="modul"></select>
       </div>
     </div>
-    <div class="hint">modulId: <span id="modulId" style="color:var(--cyan)">getaran-mekanik-modul-4</span></div>
+    <div class="hint">id: <span id="modulId" style="color:var(--cyan)">getaran-mekanik-modul-4</span></div>
 
     <label>NIM Mahasiswa</label>
     <input id="nim" inputmode="numeric" placeholder="mis. 41324120032" autocomplete="off">
 
     <label>Poin (server) — dari file export</label>
-    <input id="points" inputmode="numeric" placeholder="mis. 38" autocomplete="off">
+    <input id="points" inputmode="decimal" placeholder="mis. 38 (Modul) atau 78.67 (Exam — boleh desimal, salin persis)" autocomplete="off">
 
     <label>Dibuat — dari file export (persis, termasuk huruf T/Z)</label>
     <input id="generatedAt" data-mono placeholder="mis. 2026-07-14T16:20:00.000Z" autocomplete="off">
@@ -120,8 +120,16 @@ function buildModulOptions(){
     o.value = n; o.textContent = `Modul ${n}`;
     modulEl.appendChild(o);
   }
+  const uts = document.createElement('option'); uts.value = 'uts'; uts.textContent = 'UTS';
+  const uas = document.createElement('option'); uas.value = 'uas'; uas.textContent = 'UAS';
+  modulEl.appendChild(uts); modulEl.appendChild(uas);
 }
-function refreshModulId(){ modulIdEl.textContent = `${courseEl.value}-modul-${modulEl.value}`; }
+function refreshModulId(){
+  const v = modulEl.value;
+  modulIdEl.textContent = (v === 'uts' || v === 'uas')
+    ? `${courseEl.value}-${v}`
+    : `${courseEl.value}-modul-${v}`;
+}
 courseEl.onchange = refreshModulId;
 modulEl.onchange  = refreshModulId;
 buildModulOptions(); modulEl.value = 4; refreshModulId();
