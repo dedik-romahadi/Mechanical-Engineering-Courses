@@ -3557,13 +3557,14 @@ async function exportTugasHtml() {
   // generateExportCode/verifyExportCode)
   const _exportBtn = document.getElementById('btn-score-export');
   const _exportBtnLabel = _exportBtn ? _exportBtn.textContent : '';
-  let exportCode = '—', exportPoints = 0, exportGeneratedAt = '';
+  let exportCode = '—', exportPoints = 0, exportNilai = 0, exportGeneratedAt = '';
   try {
     if (_exportBtn) { _exportBtn.disabled = true; _exportBtn.textContent = '⏳ Membuat kode verifikasi...'; }
     if (!window._sessionPinHash) throw new Error('Sesi PIN expired — refresh & login ulang');
     const _r = await window._generateExportCodeCallable({ modulId: window.MODUL_ID, nim, pinHash: window._sessionPinHash });
     exportCode = _r.data.code;
     exportPoints = _r.data.points;
+    exportNilai = _r.data.nilai;
     exportGeneratedAt = _r.data.generatedAt;
   } catch (err) {
     alert('Gagal membuat kode verifikasi (' + (err.message || 'error') + '). Pastikan Anda login dengan PIN, lalu coba Export lagi.');
@@ -3580,8 +3581,8 @@ async function exportTugasHtml() {
     if (window._isHardComp(qId)) compHard += pts;
     else                         compEz   += pts;
   }
-  const total = mc + compEz + compHard;
-  const nilai = pointsToScore(total);
+  const total = exportPoints;   // poin RESMI dari server (anti-tamper -- konsisten dgn Kode Verifikasi di bawah)
+  const nilai = exportNilai;    // nilai RESMI dari server, idem
 
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
