@@ -3899,7 +3899,14 @@ function _lineAnswers(str) {
   const out = [];
   for (const line of lines) {
     const ns = parseNumbers(line.replace(/\[[^\[\]]*\]/g, ' '));
-    if (ns.length > 0) out.push(ns[0]);
+    if (ns.length > 0) {
+      out.push(ns[0]);                                 // angka PERTAMA per baris
+      if (ns.length > 1) out.push(ns[ns.length - 1]);   // + angka TERAKHIR per baris (kalau beda)
+      // -- fix laporan mhs (C8/C11 Getaran Modul-4): label print() kadang
+      // menyisipkan angka SEBELUM nilai jawaban (mis. "...(t > 5s): 0.246 m"
+      // -- "5" dari label mendahului nilai asli "0.246"). Cek juga angka
+      // TERAKHIR per baris karena nilai jawaban biasanya diletak di akhir.
+    }
   }
   return out;
 }
