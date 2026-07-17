@@ -8,6 +8,8 @@
 >
 > **Diperbarui:** April 2026 (v7) — mencerminkan refactor Modul-4 (countdown circular, palet per-tab, hero animation per-tab, scoring rule lengkap, Firebase Security Rules, blokir akses di luar jadwal, **sistem PIN 6-digit untuk mahasiswa**, **password admin ter-hash SHA-256**, **animasi login constellation + electric charges + lightning blasts**, **Dosen Login Modal dengan password masking**, **role-based visibility untuk tombol Reset** — tombol Atur Jadwal tetap visible sebagai bootstrap action, **scoring universal 50 poin** dengan 5 soal Komputasi Hard @4 poin, **partial credit +1 poin** untuk Hard yang salah, **status label butuh poin** — Tepat Waktu/Terlambat hanya diberikan jika mahasiswa memperoleh poin > 0 (akses tanpa poin = Belum), **Bolos diperluas** — mencakup juga mahasiswa yang akses tapi 0 poin saat jadwal sudah berakhir, **PIN global lintas-course** — satu PIN per mahasiswa yang berlaku di SEMUA mata kuliah dan modul, disimpan di node `pins/mhs_<NIM>` terpisah dari visitor records sehingga reset modul tidak menghapus PIN).
 >
+> **v21 (Juli 2026) — Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT:** Sesi laporan mahasiswa beruntun → 4 perbaikan sistemik + 1 standar baru. **Grading komputasi multi-kandidat (§15.5):** heuristik lama (angka pertama/terakhir seluruh output) menolak jawaban benar di baris tengah / setelah literal array / didahului angka label — 3 lapis fix: bracket-strip `[...]`, `_lineAnswers()` (angka pertama+terakhir PER BARIS print, field `lineAnswers` terpisah dari `userAnswers` agar multi-step `expectedSteps` tak terpengaruh), server terima kandidat baru di `_evaluateModulAnswer`/`evaluateAnswer` single-answer path (PR #620, #623, #624). **Kode Verifikasi Export HTML (§36.12):** HMAC-SHA256 server-side (`generateExportCode`/`verifyExportCode`, secret di Firebase Secret Manager — BUKAN hardcode, repo public) di 48 file; banner NILAI + poin di-embed dari SERVER (bukan state lokal); tool dosen `Admin/verify-export-code.html` (PR #625–#627). **RESTORASI EXAM_CONFIG (§25.20 — CRITICAL):** field path/scoring (`dbPath`/`schedulePath`/`totalPoints`/dst) hilang dari EXAM_CONFIG (tertimpa refactor bobot OBE) → semua submit exam DITOLAK di deploy Juli; di-restore via loop augmentasi (PR #627). **PERMISSION_DENIED stale-set() (§25.19):** rules bounded-delta menolak `set()` penuh dari snapshot basi → pola `update()` sparse + fallback. **Ganti Peran + chip identitas dinamis (§39.10):** tombol logout per-modul (42 file) + `navIdentityChip` ikut identity (PR #613–#614); auto PIN re-verify di-port ke 2 file Modul-4 outlier (PR #618–#619); chat/presence dilengkapi ke 2 file yang sama (§24, PR #621). **`rescaleModulLatePenalty` NIM-scoped (§38.7):** `nims` diisi → jadwal global TIDAK ditulis (PR #615–#616). **§40 BARU — Modul Word & PPT** (folder `Template-Modul-Word-dan-PPT/`): aturan BOP UMB Kurikulum 2025 + struktur template + workflow WAJIB pakai file template. PR references: #613–#627.
+>
 > **v20 (Juni 2026) — Content fixes + KaTeX/Animasi/Export anti-patterns:** Sesi perbaikan konten + pelajaran reusable. **Answer-key Getaran 10–14:** blok MC modal-analysis ter-copy salah → di-derive ulang per modul; 75 penjelasan Comp boilerplate ditulis ulang; 3 kunci numerik salah (modul-10 c2 Den Hartog pangkat-tiga `√(3μ/(8(1+μ)³))` + c5, modul-11 c7) + 2 soal rapuh (modul-12 c13 raw-vs-excess kurtosis, modul-13 c9 cepstrum) diperbaiki — tiap kunci diverifikasi compute (numpy/scipy). **`resetModulQuestion` all-students di-hardening** (512MiB, paralel ber-batch, `errorsSample`, client timeout 540s). **6 anti-pattern reusable — detail di §25.12–25.16 + §36.11:** KaTeX di `<option>`/teks-JS-dinamis, `ℒ⁻^1` double-superscript, slider animasi mati/ter-normalisasi, mis-seed MC antar-modul, bulk callable "internal" = instance mati, export judul tanpa `color`. §38.7 callable table + §25.8/§36.10 checklist di-update. PR references: #401–#409.
 >
 > **v19 (Juni 2026) — Role picker + Penalty 0.7 + Schedule defaults:** §39 BARU — login Modul + Exam pakai **role chooser overlay** duluan (`roleChooserOverlay` z-index 100002), bukan branch-by-name. Mahasiswa form **NIM + PIN inline** (no Nama input — auto-lookup dari `masterStudents`); listener `vNama` HARUS dihapus atau TypeError blok semua handler downstream. Dosen modal streamline: tombol "Atur Jadwal" inline, 1× password input + 1× klik "Simpan Jadwal & Masuk" sekaligus login. Animasi `initLoginAnimation(canvasId, particlesId)` refactor dari IIFE → function dipanggil 3× untuk picker+visitor+dosen. **WIB timezone enforcement global** (`timeZone:'Asia/Jakarta'` di semua `toLocale*`); exam pakai helper `_nowPlusMinAsWibString`/`_wibStringToDate` utk `<input type=datetime-local>`. **Schedule defaults baru**: Modul 7 hari + due +6 hari 23:59 WIB; Exam 180 menit + due +180m WIB + extension 120 menit. **Penalti terlambat 0.8 → 0.7 (20% → 30%)** untuk semua asesmen — `_getLateMultiplier() return 0.7` (PR #284); §9.2, §9.5.5, §15.4a + tabel poin (50×0.7=**35 poin** maks) sudah di-update. §38.7 callable table diperluas dengan `recomputeExamPoints`, `checkExamAnswer`, `resetExamAttempts`, `resetModulQuestion`, `rescaleModulLatePenalty`, `analyzeModulData`. §7.1–7.3 deprecated note — alur live ada di §39. CLAUDE.md baru di root utk orientasi sesi Claude. PR references: #370–#386 (login flow), #284 (penalty), #359–#363 (OBE scoring 1:1:2:4 mapping), #354 (recomputeExamPoints).
@@ -89,6 +91,7 @@
 37. [Forum Copy HTML — LMS-Compatible Output (BARU di v16)](#37-forum-copy-html--lms-compatible-output-baru-di-v16)
 38. [Dokumen OBE per Mata Kuliah (BARU di v18)](#38-dokumen-obe-per-mata-kuliah-baru-di-v18)
 39. [Role Picker + OBE-Style Login Flow (BARU di v19)](#39-role-picker--obe-style-login-flow-baru-di-v19)
+40. [Modul Word & PPT — Template BOP Kurikulum 2025 (BARU di v21)](#40-modul-word--ppt--template-bop-kurikulum-2025-baru-di-v21)
 
 ---
 
@@ -2843,6 +2846,11 @@ async function _awardCompPoint(qId, point){
 
 ### 15.3d Export HTML — Template dengan 3 Bagian
 
+> ⚠️ **Update v21:** snippet di bawah historis (konsep breakdown 3 sub-score).
+> Sejak PR #625–#626, `exportTugasHtml()` **async** dan `total`/`nilai` yang
+> di-embed berasal dari **server** (`generateExportCode`), BUKAN dihitung dari
+> state lokal — lihat §36.12. Breakdown per-kategori tetap dari state lokal.
+
 Template export harus include breakdown 3 sub-score:
 
 ```javascript
@@ -3148,6 +3156,39 @@ Jadi partial credit dan konsolasi **tidak berkonflik** — mereka saling eksklus
 | Mahasiswa buka soal Hard via DevTools + paste Firebase marker `_comp` fake | Rules tolak karena delta > 4 (jika points lonjak) + `_answeredQ` set prevent re-award |
 | Dua browser tab buka soal sama | Marker pertama yang write berhasil, kedua ter-reject karena `scored.includes(partialKey)` |
 | Mahasiswa submit kode kosong | Warning "Tulis kode Python terlebih dahulu", tidak locked, tidak dapat poin |
+
+---
+
+### 15.5 Ekstraksi Jawaban Komputasi — Kandidat Multi-Layer (BARU di v21)
+
+Mahasiswa jarang `print()` HANYA angka jawaban — mereka print label, nilai antara,
+array pendukung, dan baris bonus (konversi satuan). Heuristik ekstraksi harus
+menoleransi semua pola itu TANPA jatuh ke "match angka mana pun di seluruh
+output" (false-positive utk target integer kecil — 478 dari 630 soal comp punya
+target kecil/toleransi ketat).
+
+**Pipeline client** (identik di 42 Modul + 6 Exam — bulk-edit anchor-safe):
+
+| Helper | Output | Dipakai utk |
+|---|---|---|
+| `parseNumbers(str)` | SEMUA angka berurutan | `userAnswers` (multi-step `expectedSteps` — JANGAN difilter/diubah!) |
+| `_lastLineAnswer(str)` | angka pertama baris terakhir ber-angka, literal `[...]` di-strip per baris | `userAnswer` (tebakan utama; Exam pakai varian last-of-cleanNums) |
+| `_lineAnswers(str)` | angka **pertama DAN terakhir** per baris print, `[...]` di-strip | field payload `lineAnswers` (kandidat tambahan server) |
+
+**Server** (`_evaluateModulAnswer` modul / `evaluateAnswer` exam, single-answer
+path saja): kandidat = `[last(userAnswers), first(userAnswers), userAnswer,
+...lineAnswers]` → benar bila ADA kandidat `|v − target| ≤ tolerance`. Path
+`expectedSteps` TIDAK disentuh — step-matching tetap pakai `userAnswers` utuh.
+
+**3 pola kegagalan yang melahirkan tiap lapis** (regression suite di tiap perubahan):
+1. **Array literal setelah jawaban** — `Jumlah outlier: 2` lalu `Nilai outlier: [45.0, -8.0]` → baris terakhir menang → strip `[...]` (C11 Opto M4, PR #620).
+2. **Jawaban di baris TENGAH** — baris bonus (`Amplitudo X (mm): 122.83`) setelah baris jawaban (`Amplitudo X: 0.12`) → first/last seluruh output melewatkannya → `lineAnswers` per-baris (C4/C6/C7 Getaran M4, PR #623).
+3. **Angka label MENDAHULUI nilai** — `Amplitudo (t > 5s): 0.246` → angka pertama baris = 5 (dari label) → cek juga angka TERAKHIR per baris (C8/C11 Getaran M4, PR #624).
+
+Aturan pendamping: kalau jawaban benar mahasiswa tetap tertolak karena soal
+ambigu satuan/format (bukan bug ekstraksi), perbaiki **teks soalnya** (contoh:
+C1 Getaran M14 "array v sudah dalam mm/s, jangan dikali 1000" — PR #622), dan
+soal yang terlanjur terkunci di-reset via `resetModulQuestion` (§20/§38.7).
 
 ---
 
@@ -4166,6 +4207,13 @@ Contoh:
 
 Fitur sosial di widget mengambang pojok kanan-bawah (FAB 👥). Menampilkan: (a) mahasiswa yang sedang online real-time, (b) group chat kelas per modul.
 
+> **Cakupan v21:** SEMUA 42 file Modul sudah punya subsistem ini. Opto Modul-4 &
+> Math4 Modul-4 dulunya tertinggal dari rollout (fab ada, panel masih daftar
+> visitor statis, `PRESENCE_PATH`/`CHAT_PATH` tak pernah dideklarasi) — di-port
+> penuh dari Modul-3 course masing-masing di PR #621. Saat porting fitur
+> lintas-file: 2 file Modul-4 ini adalah outlier struktur yang paling sering
+> tertinggal — SELALU verifikasi keduanya eksplisit.
+
 ### 24.1 Tujuan & Prinsip Desain
 
 | Tujuan | Bentuk |
@@ -4903,6 +4951,61 @@ Tidak semua modul memakai jalur extractor yang sama — penting saat mengedit/me
 
 - **Getaran & Math (extract-based):** HTML berisi `const MC_HINTS = {...}` (answer letter + explain), `const COMP_HINTS = {...}`, dan `runAndCheck('qId', answer, tolerance)` inline. Seed di-generate oleh `functions/seed/extract-modul-answers.js` → **edit HTML, lalu re-extract**.
 - **Optoauto (server-side validation):** HTML **tidak punya** `MC_HINTS`/`COMP_HINTS`; `runAndCheck('qId'[, 'hard'])` hanya kirim kode ke server. Kunci jawaban **murni di seed file** `functions/seed/modul/optoauto-modul-N-answers.js` (= SSOT, di-author manual). Extractor **tidak berlaku** di sini → kalau membedakan/membetulkan soal Opto, edit **HTML (soal+opsi) DAN seed (kunci+tolerance+explain) secara konsisten**, lalu `live_seed`. Verifikasi jawaban komputasi dengan numpy sebelum commit.
+
+> ⚠️ Konsekuensi Jul 2026: Math4 Modul-4 punya `window.MC_HINTS = MC_HINTS;`
+> sisa migrasi padahal `MC_HINTS` tidak pernah dideklarasi di file itu →
+> ReferenceError di SETIAP page load, menghentikan sisa script block classic
+> (fix PR #621). Saat menghapus/memigrasi konstanta, grep SEMUA referensinya —
+> pemakaian null-safe (`window.X && ...`) selamat, assignment `window.X = X;` fatal.
+
+### 25.19 Bug Jul 2026 — PERMISSION_DENIED dari `set()` Penuh dgn Snapshot Basi (Critical)
+
+**Gejala:** mahasiswa tidak bisa lolos verifikasi PIN — `submitPinVerify()`
+gagal `PERMISSION_DENIED` (Sutari, Opto Modul-4).
+
+**Root cause:** rules `visitors/*` membatasi delta per-write RELATIF KE DATA
+SERVER SAAT INI (mis. `points` naik maks +4, `nim/nama/role/timestamp` immutable
+— §13). `set()` PENUH yang dibangun dari snapshot yang diambil beberapa saat
+sebelumnya (saat prompt PIN muncul) menulis ulang SEMUA field — kalau `points`
+di server sudah berubah > +4 sejak snapshot (mis. karena rescale berjalan),
+write ditolak. Bug hanya muncul saat ada write-write race → lolos testing biasa.
+
+**Fix pattern (WAJIB utk semua write ke node ber-rules bounded-delta):**
+`update()` sparse HANYA field yang benar-benar berubah (`visitCount`,
+`lastVisit`, clear legacy `pinHash`/`pinSetAt`) — field lain tidak disentuh
+jadi tidak mungkin melanggar rule — plus fallback `set()` fresh-record minimal
+kalau `update()` tetap ditolak. Pattern proven di `submitVisitor()`; PR #619
+menyamakan `submitPinVerify()` di 2 file Modul-4 outlier. Sekalian ditemukan:
+import `firebase-database.js` kedua file kehilangan `push/update/onDisconnect/
+serverTimestamp/query/limitToLast` → Forum (37×/32× pakai `push`) diam-diam
+ReferenceError. Audit import saat porting fitur antar-file.
+
+### 25.20 Bug Jul 2026 — Field Config Hilang Tertimpa Refactor (EXAM_CONFIG, CRITICAL)
+
+**Gejala (laten, baru terlihat saat exam berikutnya):** SEMUA submit exam
+ditolak "jadwal belum dikonfigurasi"; visitor write mengarah ke path sampah
+`undefined/mhs_<nim>`.
+
+**Root cause:** entry `EXAM_CONFIG` di `functions/index.js` tertimpa saat
+refactor bobot OBE menjadi HANYA `bobot`/`mapping` — dua field yang justru
+TIDAK dibaca fungsi mana pun (`_examQPoints` pakai `OBE_EXAM_CONFIG`) —
+sementara `checkExamAnswer`/`recomputeExamPoints` membaca `cfg.dbPath`,
+`cfg.schedulePath`, `cfg.totalPoints`, `cfg.consolationThreshold/Point`,
+`cfg.lateMultiplierValue` yang semuanya `undefined`. `rtdb.ref(undefined)` =
+ROOT database → `evalSchedule` return "schedule-incomplete" → tolak semua.
+JS tidak error utk akses field yang tidak ada — bug senyap total.
+
+**Fix (PR #627):** loop augmentasi tepat di bawah object meng-inject field
+path/scoring dari pola `<course>-uts|uas` (SSOT nilai = client Exam HTML:
+`visitors/<slug>/uts|uas`, `settings/<slug>/uts|uas/schedule`, total 100,
+konsolasi ≥30 → 1, late 0.7) + `throw` kalau examId tidak match pola. Exam
+baru cukup tambah entry `bobot`/`mapping`.
+
+**Pelajaran anti-recurrence:** (1) field yang DIKONSUMSI fungsi ≠ field yang
+ADA di config — saat refactor config, grep semua `cfg.<field>` konsumennya;
+(2) verifikasi shape config via runtime probe (load `index.js` dgn stub
+firebase, dump `Object.keys()`) — jangan percaya baca-mata; (3) harness stub
+RTDB yang merekam path yang diminta membuktikan fix (path benar vs undefined).
 
 ### 25.8 Audit Checklist — Wajib Sebelum Deploy Modul Baru
 
@@ -7425,6 +7528,46 @@ td:nth-child(4){text-align:center!important}
 
 ---
 
+### 36.12 Kode Verifikasi Anti-Tamper (BARU di v21)
+
+File export = file lokal milik mahasiswa → **mustahil dikunci** dari edit
+(text editor mana pun bisa mengubahnya). Yang bisa: membuat edit **terdeteksi**.
+Berlaku di SEMUA 48 file (42 Modul + 6 Exam). PR #625–#627.
+
+**Arsitektur:**
+1. `exportTugasHtml()` sekarang **async** — SEBELUM membangun HTML, panggil
+   callable `generateExportCode` (`{modulId|examId, nim, pinHash}`; PIN-auth).
+2. Server baca poin RESMI dari RTDB visitor, bulatkan **2 desimal** (poin exam
+   float — angka yang di-embed & yang diketik dosen saat verifikasi harus
+   identik), hitung `code = HMAC-SHA256(SECRET, id|nim|points|generatedAt)`
+   → format `XXXX-XXXX-XXXX`, return `{code, points, nilai, generatedAt}`.
+3. Kotak "🔐 Kode Verifikasi" (kode + Poin server + waktu dibuat) di-render di
+   bawah `.meta`, **dan banner ⭐ NILAI + total poin di-override dgn nilai
+   SERVER** (`exportPoints`/`exportNilai`) — bukan dihitung dari
+   `mcScores`/`compScores` lokal. Tanpa override ini mahasiswa cukup edit
+   banner besar & membiarkan kotak kecil utuh → kode tetap "valid" (celah yang
+   ditutup PR #626). Breakdown per-kategori & tabel per-soal tetap dari state
+   lokal (trade-off disengaja — server tidak expose breakdown granular).
+4. Verifikasi dosen: `Admin/verify-export-code.html` (pilih course + Modul
+   1-14/UTS/UAS, salin 4 nilai persis dari file + password admin). Field apa
+   pun yang diedit → kode tidak cocok. `currentPoints` ikut ditampilkan
+   (beda dari poin file = mahasiswa lanjut mengerjakan, BUKAN indikasi curang).
+
+**SECRET di Firebase Secret Manager** (`defineSecret("EXPORT_CODE_SECRET")`),
+BUKAN hardcode — repo public; HMAC key mentah yang bocor = siapa pun bisa forge
+kode (beda dgn `ADMIN_PW_HASH` yang aman di-expose karena hash satu-arah).
+Setup sekali: GitHub secret `EXPORT_CODE_SECRET_VALUE` → workflow input
+`set_export_secret=true` (butuh role IAM Secret Manager Admin). Detail di
+`functions/DEPLOY.md` § Export Verification Code.
+
+**Gotcha scoping (instance §26 cross-script trap):** `exportTugasHtml()` hidup
+di script CLASSIC, callable & `MODUL_ID`/`EXAM_ID` dideklarasi di
+`<script type="module">` — WAJIB export eksplisit
+`window._generateExportCodeCallable` + `window.MODUL_ID`/`window.EXAM_ID`
+dan panggil via prefix `window.` (pola sama `window._callCheckModulAnswer`).
+
+---
+
 ## 37. Forum Copy HTML — LMS-Compatible Output (BARU di v16)
 
 Standar **HTML yang di-copy ke clipboard** saat mahasiswa klik tombol "Copy Forum (kode HTML)" di tab Forum (`buildForumHtml() + copyForumHtml()`). HTML ini di-paste ke editor Fast Learning LMS forum dalam mode `</> HTML`. Output **WAJIB SURVIVE LMS sanitization** yang sering strip CSS dan beberapa HTML structure.
@@ -7719,8 +7862,10 @@ Catatan: formula Excel asli (`IF(AND(J>=79.95, J<=100), "A", ...)`) punya gap ro
 | `checkExamAnswer` | mahasiswa (PIN-gated) | Server-side validation jawaban UTS/UAS. Lookup answer key di Firestore `examAnswers/<examId>/qs/<qId>`, evaluate, write attempt ke `examAttempts` (idempotency), transaksi RTDB visitor (points + scoredQuestions). Lihat §27 + v18 changelog. |
 | `resetExamAttempts` | dosen (admin pw hash) | Hapus semua `examAttempts/<examId>/students/*` Firestore. Dipanggil sebagai bagian dari Reset Total di exam (sebelum hapus RTDB visitor). Lihat §20. |
 | `resetModulQuestion` | dosen (admin pw hash) | Clear attempt + score untuk **soal spesifik** (granular vs `resetModulAttempts`). **NIM diisi** = 1 mahasiswa; **NIM kosong** = SEMUA mahasiswa (loop paralel ber-batch, 512MiB, isolasi per-mhs `errorsSample`). Kasus jawaban server salah / mid-correction. (v19; all-students + hardening v20 — §25.16) |
-| `rescaleModulLatePenalty` | dosen (admin pw hash) | Ubah deadline modul + recompute poin terlambat utk SEMUA student. Dipakai saat dosen extend/shorten deadline retroaktif. UI di `Admin/rescale-deadline.html`. (BARU v19) |
+| `rescaleModulLatePenalty` | dosen (admin pw hash) | Recompute poin terlambat setelah deadline berubah. **`nims` KOSONG** = semua mahasiswa + `newEnd` ditulis ke jadwal global modul; **`nims` DIISI** = hanya NIM tsb + jadwal global TIDAK disentuh (`newEnd` cuma acuan hitung lokal — response `scheduleUnchanged:true`). UI di `Admin/rescale-deadline.html`. (v19; NIM-scoping v21 — PR #616) |
 | `analyzeModulData` | dosen (admin pw hash) | Kumpulkan answer key + scoredQuestions per student → output JSON untuk re-run grading di browser (`Admin/analyze-victims.html`). Read-only, untuk audit. (BARU v19) |
+| `generateExportCode` | mahasiswa (PIN-gated) | Baca poin RESMI dari RTDB (bulat 2 desimal), hitung kode HMAC utk file Export HTML. Terima `modulId` ATAU `examId`. Secret di Firebase Secret Manager. Lihat §36.12. (BARU v21) |
+| `verifyExportCode` | dosen (admin pw hash) | Recompute HMAC dari field yang disubmit (id/nim/points/generatedAt) & cocokkan ke kode di file export — edit field mana pun → tidak cocok. UI di `Admin/verify-export-code.html`. (BARU v21) |
 
 Akses lewat callable (admin SDK) → tidak melewati `firestore.rules`, jadi rules tidak perlu diubah saat tambah course baru.
 
@@ -7988,8 +8133,124 @@ Exam: input `scheduleDuration` adalah **menit**, calc `startDate = dueDate - dur
 - **§12** Animasi constellation + electric charges — implementation detail per layer, `initLoginAnimation` body tetap sama
 - **§15.4a** Late multiplier 0.7 — sudah di-update
 
+### 39.10 Ganti Peran + Chip Identitas Dinamis + Auto PIN Re-verify (BARU di v21)
+
+Auto-login dari localStorage (per-modul) semula tidak punya jalan keluar via UI
+— begitu satu browser login (mhs ATAU dosen), role picker tak pernah muncul
+lagi (fatal di komputer lab bergantian). Tiga pelengkap, semua di 42 file Modul:
+
+1. **Tombol `🔄 Ganti Peran`** di navbar (`.nav-switch-role`, hidden di
+   ≤700px): `window._switchRole()` → confirm → `localStorage.removeItem(
+   LOCAL_IDENTITY)` → reload → role picker muncul lagi. Aman utk Modul (state
+   jawaban di server); Exam TIDAK diberi tombol ini (sesi ujian terkunci —
+   keputusan terpisah). PR #613–#614.
+
+2. **Chip nama navbar dinamis** (`id="navIdentityChip"`, di-update dari
+   `_applyRoleVisibility()`): dosen → `👨‍🏫 DEDIK ROMAHADI`, mahasiswa →
+   `🎓 <NAMA>`, belum login → `👋 TAMU`. Sebelumnya statis "DEDIK ROMAHADI"
+   utk semua role — regresi migrasi v19 (§7.5 lama mendokumentasikannya sbg
+   indikator khusus dosen); sumber laporan "web saya jadi dosen".
+
+3. **Auto PIN re-verify**: `window._sessionPinHash` hidup di sessionStorage
+   (hilang saat tab ditutup) sedangkan identity di localStorage (persist) —
+   returning student ter-auto-login TAPI submit gagal "Sesi PIN expired".
+   Safety net: saat auto-login dgn `!window._sessionPinHash`, lookup
+   `pins/mhs_<NIM>` lalu `_showPinInput()` otomatis. 40/42 file sudah punya
+   sejak lama; 2 outlier (Opto & Math4 Modul-4) di-port PR #618. Write-nya
+   pakai `update()` sparse (§25.19).
+
 ---
 
+
+## 40. Modul Word & PPT — Template BOP Kurikulum 2025 (BARU di v21)
+
+Selain modul HTML interaktif (LMS), UMB mewajibkan setoran **modul bahan ajar
+resmi** per pertemuan dalam format **Word + PPT** ke BOP (Biro Operasional
+Perkuliahan) via OneDrive prodi — tayang di Fast Learning & SIA. Semua sumber
+ada di folder **`Template-Modul-Word-dan-PPT/`**:
+
+| File | Isi |
+|---|---|
+| `PANDUAN PENULISAN MODUL - KURIKULUM 2025.pdf` | Aturan resmi BOP (dirangkum di §40.1–40.2) |
+| `SE Modul Bahan Ajar TA 2025-2026.pdf` | Surat edaran (hasil scan — tidak ada text layer) |
+| `Template modul - kurikulum 2025.doc` | Template Word resmi (format .doc legacy/OLE) |
+| `Template Modul - Kurikulum 2025.pptx` | Template PPT resmi (13 slide) |
+
+> ⚠️ **ATURAN UTAMA: JANGAN membuat dokumen dari nol.** SELALU mulai dari file
+> template di folder ini lalu **sesuaikan isinya** — cover, footer, heading
+> style, dan layout adalah identitas institusi yang DILARANG diubah
+> (jenis/ukuran huruf bagian sampul tidak boleh diganti; hanya boleh
+> diperkecil kalau judul terlalu panjang).
+
+### 40.1 Aturan Modul Word (dari Panduan BOP)
+
+- **Isi minimal 8 halaman** (di luar cover & daftar pustaka; ketentuan lain di
+  panduan menyebut "minimal 10 halaman per modul pertemuan" utk bagian isi —
+  pakai ≥10 supaya aman dua-duanya).
+- **Kertas A4; margin** atas 3 cm, kiri 3 cm, kanan 2.5 cm, bawah 2.5 cm
+  (catatan: halaman "Petunjuk Bagi Penulis" menyebut 1" semua sisi — tabel
+  KETENTUAN PENULISAN yang 3/3/2.5/2.5 adalah yang mengikat utk bagian isi).
+- **Arial 11 pt, spasi 1.5.**
+- **Cover** — 8 kolom wajib diisi: Nama Mata Kuliah, Pokok Bahasan Modul,
+  Abstrak, Sub-CPMK, Fakultas & Program Studi, dipakai utk tatap muka ke-N,
+  Kode Mata Kuliah, Nama Dosen. Plus "Disusun Oleh:" + `myclass.mercubuana.ac.id`.
+- **Footer wajib di-update**: nama penyusun + mata kuliah + tahun; elemen
+  "BOP | Bagian e-Learning..." TIDAK boleh diubah/dihapus.
+- **Heading pakai style bawaan template** (judul utama & sub-judul bold).
+- **Isi**: uraian pokok bahasan per pertemuan, disarankan ada gambar/tabel
+  relevan (sebut sumber), kutipan WAJIB sitasi (anti-plagiarism).
+- **Daftar Pustaka format APA**; referensi ≤10 tahun terakhir, minimal
+  **5 jurnal internasional + link**-nya (eJournal/eBook boleh).
+- Pembaruan modul maksimal tiap 2 tahun mengikuti RPS.
+
+### 40.2 Aturan Modul PPT (dari Panduan BOP + struktur template)
+
+**Minimal 10 slide isi** (di luar cover & slide Terima Kasih). Struktur
+template `Template Modul - Kurikulum 2025.pptx` (13 slide, 13.33×7.5 in):
+
+| Slide | Isi template | Perlakuan |
+|---|---|---|
+| 1 | Instruksi utk dosen ("save file format PPTX") | **HAPUS** di modul final |
+| 2 | **Cover**: mata kuliah, kode MK, "MODUL KE" + nomor, fakultas, prodi, nama dosen (+anggota), tombol nav Pembuka/Daftar Pustaka/Akhiri, link myclass | Isi semua field |
+| 3–11 | Slide isi: placeholder `JUDUL` + `Pembahasan`/`Paparan`, tombol Next/Back | Ganti judul+isi; duplikasi slide bila butuh >9 halaman isi |
+| 12 | `DAFTAR PUSTAKA` | Isi referensi APA (sinkron dgn modul Word) |
+| 13 | `TERIMA KASIH` + tombol Akhiri Presentasi | Biarkan |
+
+Simpan hasil sebagai **`.pptx`** (instruksi slide 1). Dosen disarankan
+mengembangkan PPT jadi materi multimedia (opsional).
+
+### 40.3 Workflow Pembuatan (untuk sesi Claude)
+
+1. **Copy template** dari `Template-Modul-Word-dan-PPT/` — jangan menimpa file
+   template asli.
+2. **Sumber konten = modul HTML LMS pertemuan yang sama** (`<Course>/Modul/
+   Modul-N.html`): judul/pokok bahasan dari hero, Sub-CPMK dari
+   `Attributes/Asesmen-*.json` + mapping OBE (§33/§38), materi dari section
+   Tab Modul, contoh soal dari Tab Tugas. Jaga konsistensi istilah & notasi
+   dgn modul HTML.
+3. **Tooling**:
+   - PPT: `python-pptx` bisa langsung membuka & mengedit `.pptx` template
+     (ganti teks placeholder per-shape; nama shape lihat pemetaan §40.2).
+   - Word: format `.doc` (OLE) TIDAK bisa diedit `python-docx`. Jalur yang
+     valid: (a) konversi `.doc`→`.docx` dulu (LibreOffice headless — di
+     environment cloud sesi Juli 2026 konversi ini GAGAL "source file could
+     not be loaded", jadi verifikasi dulu; kalau gagal, minta dosen menyimpan
+     ulang sbg `.docx` dari MS Word), lalu edit `.docx` dgn `python-docx`;
+     (b) baca teks `.doc` utk referensi struktur bisa via `olefile` +
+     decode cp1252 stream `WordDocument`.
+   - Ekstraksi teks PDF panduan: `pypdf` (butuh `pip install cffi` di
+     environment ini — lihat error `_cffi_backend`).
+4. **Checklist sebelum setor**: semua field cover terisi & format cover tidak
+   berubah; footer nama+MK+tahun; ≥10 halaman isi (Word) / ≥10 slide isi
+   (PPT); sitasi lengkap + Daftar Pustaka APA ≥5 jurnal internasional
+   ber-link ≤10 th; file PPT tersimpan `.pptx`; slide instruksi terhapus.
+5. Hasil per pertemuan disetor prodi ke OneDrive BOP (bukan via repo ini) —
+  tapi simpan salinan kerja di folder course ybs bila dosen minta.
+
+---
+
+*Pedoman v21 — Juli 2026 (Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT).*
+*Update v21: §15.5 BARU — ekstraksi jawaban komputasi multi-layer (`_lineAnswers` per-baris first+last, bracket-strip, field `lineAnswers` terpisah dari `userAnswers`); §36.12 BARU — Kode Verifikasi HMAC utk Export HTML 48 file (server-authoritative points, secret di Secret Manager, `Admin/verify-export-code.html`); §25.19–25.20 BARU — PERMISSION_DENIED stale-set() vs update() sparse + EXAM_CONFIG field hilang tertimpa refactor (CRITICAL, restore PR #627); §39.10 BARU — Ganti Peran + chip identitas dinamis + auto PIN re-verify; §24 cakupan chat 42/42 (2 Modul-4 outlier di-port); §38.7 tambah `generateExportCode`/`verifyExportCode` + `rescaleModulLatePenalty` NIM-scoping; §40 BARU — Modul Word & PPT template BOP Kurikulum 2025 (WAJIB mulai dari file template `Template-Modul-Word-dan-PPT/`). PR references: #613–#627.*
 
 *Pedoman v19 — Juni 2026 (Role Picker + Schedule Defaults + Penalty 0.7).*
 *Update v19: §39 BARU — role picker overlay (Mahasiswa vs Dosen sebelum login form), Mahasiswa form OBE-style (NIM + PIN inline, no Nama), dosen streamline (1× pw input + 1× klik utk save jadwal & masuk), animasi `initLoginAnimation(canvasId, particlesId)` shared ke 3 canvas (refactor dari IIFE), WIB timezone enforcement global (`timeZone:'Asia/Jakarta'` di semua display + helper `_nowPlusMinAsWibString`/`_wibStringToDate` di exam). Schedule defaults baru: Modul 7 hari + due +6h WIB 23:59 (PR #383, #384); Exam 180 menit + due +180m WIB + extension 120 menit. **Penalti terlambat 0.8 → 0.7 (20% → 30%)** untuk semua asesmen (PR #284). §38.7 callable table diperluas: tambah `recomputeExamPoints`, `checkExamAnswer`, `resetExamAttempts`, `resetModulQuestion`, `rescaleModulLatePenalty`, `analyzeModulData`. §15.4a + §9.5.5 + §9.2 sync ke multiplier 0.7. §7.1–7.3 deprecated note (dipertahankan utk historis, alur live di §39). PR references: #370–#386 (login flow), #284 (penalty 0.7), #354 (recomputeExamPoints), #359–#363 (OBE scoring mapping 1:1:2:4 + Sub-CPMK biggest bobot owns Comp Hard).*
