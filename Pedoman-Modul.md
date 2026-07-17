@@ -8173,7 +8173,7 @@ ada di folder **`Template-Modul-Word-dan-PPT/`**:
 |---|---|
 | `PANDUAN PENULISAN MODUL - KURIKULUM 2025.pdf` | Aturan resmi BOP (dirangkum di §40.1–40.2) |
 | `SE Modul Bahan Ajar TA 2025-2026.pdf` | Surat edaran (hasil scan — tidak ada text layer) |
-| `Template modul - kurikulum 2025.doc` | Template Word resmi (format .doc legacy/OLE) |
+| `Template modul - kurikulum 2025.docx` | Template Word resmi (disimpan ulang dari `.doc` oleh dosen, Jul 2026 — bisa langsung diedit `python-docx`) |
 | `Template Modul - Kurikulum 2025.pptx` | Template PPT resmi (13 slide) |
 
 > ⚠️ **ATURAN UTAMA: JANGAN membuat dokumen dari nol.** SELALU mulai dari file
@@ -8231,13 +8231,45 @@ mengembangkan PPT jadi materi multimedia (opsional).
 3. **Tooling**:
    - PPT: `python-pptx` bisa langsung membuka & mengedit `.pptx` template
      (ganti teks placeholder per-shape; nama shape lihat pemetaan §40.2).
-   - Word: format `.doc` (OLE) TIDAK bisa diedit `python-docx`. Jalur yang
-     valid: (a) konversi `.doc`→`.docx` dulu (LibreOffice headless — di
-     environment cloud sesi Juli 2026 konversi ini GAGAL "source file could
-     not be loaded", jadi verifikasi dulu; kalau gagal, minta dosen menyimpan
-     ulang sbg `.docx` dari MS Word), lalu edit `.docx` dgn `python-docx`;
-     (b) baca teks `.doc` utk referensi struktur bisa via `olefile` +
-     decode cp1252 stream `WordDocument`.
+   - Word: template sudah tersedia sbg **`.docx`** (disimpan ulang dosen dari
+     `.doc` legacy, Jul 2026) — langsung editable `python-docx`. Peta struktur
+     terverifikasi:
+     - **Cover (hal. 1) = floating TEXT BOXES**, BUKAN paragraf body —
+       `doc.paragraphs` TIDAK melihatnya. ⚠️ Dua jebakan tervalidasi via
+       smoke-test (Jul 2026): (1) tiap teks cover muncul **2×** di XML
+       (`mc:AlternateContent` Choice + Fallback) — kedua salinan harus
+       diganti; (2) teks sering **terpecah antar-`w:t` run** ("Konseptual
+       Framework" = beberapa run) — replace per-run polos MISS; TAPI
+       konsolidasi run level-paragraf global juga SALAH karena SELURUH cover
+       hidup di SATU `w:p` besar → semua box tergabung & layout hancur.
+       **Resep yang benar** — konsolidasi run scoped per-`w:txbxContent`
+       per-paragraf:
+       ```python
+       W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+       def replace_in_textboxes(root, old, new):   # root = doc.element.body
+           for tx in root.iter(f'{W}txbxContent'):
+               for p in tx.iter(f'{W}p'):
+                   ts = list(p.iter(f'{W}t'))
+                   joined = ''.join(t.text or '' for t in ts)
+                   if ts and old in joined:
+                       ts[0].text = joined.replace(old, new)
+                       for t in ts[1:]: t.text = ''
+       ```
+       (Verifikasi pasca-edit: tiap replace kena tepat 2×, tidak ada teks
+       doubling, box lain utuh.) Field yang diganti: "TEORI"+"AKUNTANSI"
+       (judul MK), "Konseptual Framework" (pokok bahasan), "Modul I", kode
+       MK, teks Abstrak, teks Sub-CPMK, Fakultas/Prodi, "Dr. Erna Setiany,
+       M.Si" (2 lokasi). Label statis ("MODUL PERKULIAHAN", "Abstrak",
+       "Sub - CPMK", link myclass/www) JANGAN diubah.
+     - **Header** (bukan footer!) memuat "nama dosen | mata kuliah" + nomor
+       halaman → ganti jadi `Dedik Romahadi, ST., M.Sc | <Mata Kuliah>`.
+       **Footer** memuat tahun "2025 - 2026" + "BOP | Bagian e – Learning..."
+       — bagian BOP DILARANG diubah/dihapus.
+     - **Body** template berisi konten PANDUAN (LATAR BELAKANG s/d contoh
+       heading) sbg placeholder → GANTI SELURUHNYA dgn materi modul. Style
+       yang dipakai: `Materi` (custom, teks isi), `List Paragraph` (list),
+       `Normal` (judul section via direct formatting); judul bab standar
+       tampil sbg text-box berbingkai (lihat Gambar 3/4 di template).
    - Ekstraksi teks PDF panduan: `pypdf` (butuh `pip install cffi` di
      environment ini — lihat error `_cffi_backend`).
 4. **Checklist sebelum setor**: semua field cover terisi & format cover tidak
