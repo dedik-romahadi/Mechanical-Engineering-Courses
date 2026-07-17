@@ -1,7 +1,9 @@
 # CLAUDE.md — Orientation untuk Sesi Baru
 
-Quick-start untuk Claude session di repo ini. **Untuk detail apa pun, rujuk ke `Pedoman-Modul.md` (8029 baris, v20)** — ini cuma peta.
+Quick-start untuk Claude session di repo ini. **Untuk detail apa pun, rujuk ke `Pedoman-Modul.md` (~8300 baris, v21)** — ini cuma peta.
 
+> 📄 **Membuat modul Word/PPT setoran BOP?** Baca dulu **`Pedoman-Modul.md` §40** — WAJIB mulai dari file template di `Template-Modul-Word-dan-PPT/` (cover/footer/heading dilarang diubah), isi minimal 10 halaman/slide, Daftar Pustaka APA ≥5 jurnal internasional ber-link.
+>
 > 🎞️ **Mengerjakan slide Slidev?** Baca dulu **`Pedoman-Slides.md`** (struktur deck, komponen, CSS classes, layout, transisi, git workflow slide). Termasuk: penyesuaian per-slide `.slidev-page-N` + **GOTCHA renumber saat sisip/hapus slide** (§14), notch kamera (§15), webcam terkunci (§16), slide kuis interaktif (§17).
 
 ---
@@ -29,7 +31,7 @@ LMS multi-course untuk **S1 Teknik Mesin Universitas Mercu Buana** (Dosen: Dedik
 └── OBE/              Dokumen-OBE.html (1 file, gabung Silabus + Penilaian)
 ```
 
-Plus root: `Admin/` (tools dosen: rescale-deadline, recompute-obe-score, reset-soal), `functions/` (Cloud Functions Node), `Pedoman-Modul.md`, `database.rules.json`, `firestore.rules`.
+Plus root: `Admin/` (tools dosen: rescale-deadline, recompute-obe-score, reset-soal, verify-export-code), `functions/` (Cloud Functions Node), `Template-Modul-Word-dan-PPT/` (template resmi BOP utk modul Word+PPT — lihat Pedoman §40), `Pedoman-Modul.md`, `database.rules.json`, `firestore.rules`.
 
 Total file HTML utama: **42 modul + 6 exam + 3 OBE = 51 file**.
 
@@ -112,5 +114,7 @@ EXAM_CONFIG di functions/index.js wajib punya entry per examId: `getaran-mekanik
 - `Pedoman-Modul.md` §§7, 8, 9, 9.5 (login, PIN, schedule modul, schedule exam)
 - `Pedoman-Modul.md` §13 (Firebase paths + rules)
 - `Pedoman-Modul.md` §38 (Dokumen OBE)
-- `Pedoman-Modul.md` §39 (Role Picker — BARU di v19)
-- `functions/DEPLOY.md` (deploy Cloud Functions)
+- `Pedoman-Modul.md` §39 (Role Picker — BARU di v19; §39.10 Ganti Peran + chip + PIN re-verify)
+- `Pedoman-Modul.md` §15.5 (ekstraksi jawaban komputasi — WAJIB sebelum ubah grading), §36.12 (Kode Verifikasi Export), §25.19–25.20 (bug PERMISSION_DENIED stale-set & EXAM_CONFIG fields — v21)
+- `Pedoman-Modul.md` §40 (Modul Word & PPT — template BOP)
+- `functions/DEPLOY.md` (deploy Cloud Functions + Export Verification Code + catatan restorasi EXAM_CONFIG)
