@@ -669,6 +669,10 @@ body.friction-blurred #frictionToast{filter:none;}
 <body>
 
 <div id="scrollProgress"></div>
+<div id="previewModeBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:100001;background:linear-gradient(135deg,#7c4dff,#5e35b1);color:#fff;padding:10px 16px;font-size:.82rem;text-align:center;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.3);">
+  <span>👁️ <strong>Mode Preview</strong> — Anda masuk tanpa login. Semua soal <strong>tidak interaktif</strong> (jawaban benar/salah &amp; poin dinonaktifkan).</span>
+  <button onclick="exitPreviewMode()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.45);color:#fff;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:.78rem;font-weight:600;">Keluar Preview</button>
+</div>
 <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
 <!-- ═══ VISITOR LOGIN MODAL ═══ -->
@@ -682,6 +686,7 @@ body.friction-blurred #frictionToast{filter:none;}
     <p class="sub" style="margin-bottom:18px;">Untuk melanjutkan, pilih peran Anda.</p>
     <button class="v-btn-primary" onclick="choseMahasiswa()" style="margin-bottom:10px;">🎓 Mahasiswa</button>
     <button class="v-btn-primary" onclick="choseDosen()" style="background:linear-gradient(135deg,#7c4dff,#5e35b1);">👨‍🏫 Dosen</button>
+    <button class="v-btn-cancel" onclick="enterPreviewMode()" style="margin-top:10px;">👁️ Mode Preview (Tanpa Login)</button>
   </div>
 </div>
 
@@ -2550,6 +2555,7 @@ let _firebaseStateLoaded = false;
 window._firebaseStateLoaded = () => _firebaseStateLoaded;
 
 function selectMC(qId, opt, correct) {
+  if (window._previewGuard(qId)) return;
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
@@ -2579,6 +2585,7 @@ function selectMC(qId, opt, correct) {
   document.getElementById('sub-' + qId).disabled = false;
 }
 async function checkMC(qId) {
+  if (window._previewGuard(qId)) return;
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
@@ -2626,6 +2633,7 @@ async function checkMC(qId) {
 // TRUE/FALSE SYSTEM — UAS Bagian A
 // ═══════════════════════════════════════════════════════════════════════════
 function selectTF(qId, opt, isTrue) {
+  if (window._previewGuard(qId)) return;
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
@@ -2652,6 +2660,7 @@ function selectTF(qId, opt, isTrue) {
 }
 
 async function checkTF(qId) {
+  if (window._previewGuard(qId)) return;
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
     if (fb) { fb.className = 'feedback warn'; fb.textContent = '⏳ Memuat data jawaban Anda sebelumnya... Tunggu sebentar.'; }
@@ -3089,6 +3098,7 @@ let compAnswered = {}, compScores = {};
 // "terkunci" (✗ Terkunci, pink) tanpa poin.
 
 async function runAndCheck(qId, difficulty) {
+  if (window._previewGuard(qId)) return;
   // PEDOMAN §18.2 Layer 1 — race-condition guard
   if (!_firebaseStateLoaded) {
     const fb = document.getElementById('fb-' + qId);
@@ -3384,6 +3394,7 @@ window._setBtnState = _setBtnState;
 
 // ── EXPORT UAS HTML ──
 async function exportTugasHtml() {
+  if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
   const nim  = identity ? identity.nim  : '-';
@@ -6760,6 +6771,39 @@ window.choseDosen = function() {
     overlay.classList.remove('hidden');
     if (pwEl) setTimeout(() => pwEl.focus(), 100);
   }
+};
+
+// ═══ Preview Mode (Pedoman §39.11) — akses tanpa login; soal non-interaktif, poin nonaktif ═══
+window._previewMode = false;
+window.enterPreviewMode = function() {
+  window._previewMode = true;
+  const rc = document.getElementById('roleChooserOverlay');
+  if (rc) rc.classList.add('hidden');
+  const vo = document.getElementById('visitorOverlay');
+  if (vo) vo.classList.add('hidden');
+  const dosenOv = document.getElementById('dosenLoginOverlay');
+  if (dosenOv) dosenOv.classList.add('hidden');
+  const chip = document.getElementById('navIdentityChip');
+  if (chip) chip.textContent = '👁️ MODE PREVIEW';
+  const banner = document.getElementById('previewModeBanner');
+  if (banner) banner.style.display = 'flex';
+};
+window.exitPreviewMode = function() {
+  window._previewMode = false;
+  location.reload();
+};
+// Guard dipanggil di baris pertama tiap handler jawaban (selectMC/checkMC/selectTF/
+// checkTF/runAndCheck) — soal tetap TERLIHAT tapi tidak bisa dijawab/dinilai saat preview.
+window._previewGuard = function(qId) {
+  if (!window._previewMode) return false;
+  const fb = document.getElementById('fb-' + qId);
+  if (fb) { fb.className = 'feedback warn'; fb.textContent = '👁️ Mode Preview — soal tidak interaktif. Login untuk mengerjakan sungguhan.'; }
+  return true;
+};
+window._previewExportGuard = function() {
+  if (!window._previewMode) return false;
+  alert('👁️ Mode Preview — Export HTML dinonaktifkan (poin tidak berlaku tanpa login).');
+  return true;
 };
 // Dosen → Atur Jadwal: capture password sekali, reuse di schedule modal
 window.openScheduleFromDosen = function() {

@@ -8,7 +8,7 @@
 >
 > **Diperbarui:** April 2026 (v7) — mencerminkan refactor Modul-4 (countdown circular, palet per-tab, hero animation per-tab, scoring rule lengkap, Firebase Security Rules, blokir akses di luar jadwal, **sistem PIN 6-digit untuk mahasiswa**, **password admin ter-hash SHA-256**, **animasi login constellation + electric charges + lightning blasts**, **Dosen Login Modal dengan password masking**, **role-based visibility untuk tombol Reset** — tombol Atur Jadwal tetap visible sebagai bootstrap action, **scoring universal 50 poin** dengan 5 soal Komputasi Hard @4 poin, **partial credit +1 poin** untuk Hard yang salah, **status label butuh poin** — Tepat Waktu/Terlambat hanya diberikan jika mahasiswa memperoleh poin > 0 (akses tanpa poin = Belum), **Bolos diperluas** — mencakup juga mahasiswa yang akses tapi 0 poin saat jadwal sudah berakhir, **PIN global lintas-course** — satu PIN per mahasiswa yang berlaku di SEMUA mata kuliah dan modul, disimpan di node `pins/mhs_<NIM>` terpisah dari visitor records sehingga reset modul tidak menghapus PIN).
 >
-> **v21 (Juli 2026) — Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT:** Sesi laporan mahasiswa beruntun → 4 perbaikan sistemik + 1 standar baru. **Grading komputasi multi-kandidat (§15.5):** heuristik lama (angka pertama/terakhir seluruh output) menolak jawaban benar di baris tengah / setelah literal array / didahului angka label — 3 lapis fix: bracket-strip `[...]`, `_lineAnswers()` (angka pertama+terakhir PER BARIS print, field `lineAnswers` terpisah dari `userAnswers` agar multi-step `expectedSteps` tak terpengaruh), server terima kandidat baru di `_evaluateModulAnswer`/`evaluateAnswer` single-answer path (PR #620, #623, #624). **Kode Verifikasi Export HTML (§36.12):** HMAC-SHA256 server-side (`generateExportCode`/`verifyExportCode`, secret di Firebase Secret Manager — BUKAN hardcode, repo public) di 48 file; banner NILAI + poin di-embed dari SERVER (bukan state lokal); tool dosen `Admin/verify-export-code.html` (PR #625–#627). **RESTORASI EXAM_CONFIG (§25.20 — CRITICAL):** field path/scoring (`dbPath`/`schedulePath`/`totalPoints`/dst) hilang dari EXAM_CONFIG (tertimpa refactor bobot OBE) → semua submit exam DITOLAK di deploy Juli; di-restore via loop augmentasi (PR #627). **PERMISSION_DENIED stale-set() (§25.19):** rules bounded-delta menolak `set()` penuh dari snapshot basi → pola `update()` sparse + fallback. **Ganti Peran + chip identitas dinamis (§39.10):** tombol logout per-modul (42 file) + `navIdentityChip` ikut identity (PR #613–#614); auto PIN re-verify di-port ke 2 file Modul-4 outlier (PR #618–#619); chat/presence dilengkapi ke 2 file yang sama (§24, PR #621). **`rescaleModulLatePenalty` NIM-scoped (§38.7):** `nims` diisi → jadwal global TIDAK ditulis (PR #615–#616). **§40 BARU — Modul Word & PPT** (folder `Template-Modul-Word-dan-PPT/`): aturan BOP UMB Kurikulum 2025 + struktur template + workflow WAJIB pakai file template. PR references: #613–#627.
+> **v21 (Juli 2026) — Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT:** Sesi laporan mahasiswa beruntun → 4 perbaikan sistemik + 1 standar baru. **Grading komputasi multi-kandidat (§15.5):** heuristik lama (angka pertama/terakhir seluruh output) menolak jawaban benar di baris tengah / setelah literal array / didahului angka label — 3 lapis fix: bracket-strip `[...]`, `_lineAnswers()` (angka pertama+terakhir PER BARIS print, field `lineAnswers` terpisah dari `userAnswers` agar multi-step `expectedSteps` tak terpengaruh), server terima kandidat baru di `_evaluateModulAnswer`/`evaluateAnswer` single-answer path (PR #620, #623, #624). **Kode Verifikasi Export HTML (§36.12):** HMAC-SHA256 server-side (`generateExportCode`/`verifyExportCode`, secret di Firebase Secret Manager — BUKAN hardcode, repo public) di 48 file; banner NILAI + poin di-embed dari SERVER (bukan state lokal); tool dosen `Admin/verify-export-code.html` (PR #625–#627). **RESTORASI EXAM_CONFIG (§25.20 — CRITICAL):** field path/scoring (`dbPath`/`schedulePath`/`totalPoints`/dst) hilang dari EXAM_CONFIG (tertimpa refactor bobot OBE) → semua submit exam DITOLAK di deploy Juli; di-restore via loop augmentasi (PR #627). **PERMISSION_DENIED stale-set() (§25.19):** rules bounded-delta menolak `set()` penuh dari snapshot basi → pola `update()` sparse + fallback. **Ganti Peran + chip identitas dinamis (§39.10):** tombol logout per-modul (42 file) + `navIdentityChip` ikut identity (PR #613–#614); auto PIN re-verify di-port ke 2 file Modul-4 outlier (PR #618–#619); chat/presence dilengkapi ke 2 file yang sama (§24, PR #621). **`rescaleModulLatePenalty` NIM-scoped (§38.7):** `nims` diisi → jadwal global TIDAK ditulis (PR #615–#616). **§40 BARU — Modul Word & PPT** (folder `Template-Modul-Word-dan-PPT/`): aturan BOP UMB Kurikulum 2025 + struktur template + workflow WAJIB pakai file template. **§39.11 BARU — Preview Mode:** tombol "👁️ Mode Preview (Tanpa Login)" di `roleChooserOverlay` 48 file — akses tanpa NIM/PIN, soal tetap terlihat tapi non-interaktif (`window._previewGuard(qId)` di baris pertama `selectMC`/`checkMC`/`runAndCheck`/`selectTF`/`checkTF` — tidak pernah memanggil callable server, jadi kunci jawaban tidak pernah diminta), poin & export HTML dinonaktifkan total (`window._previewExportGuard()`). PR references: #613–#627, #631.
 >
 > **v20 (Juni 2026) — Content fixes + KaTeX/Animasi/Export anti-patterns:** Sesi perbaikan konten + pelajaran reusable. **Answer-key Getaran 10–14:** blok MC modal-analysis ter-copy salah → di-derive ulang per modul; 75 penjelasan Comp boilerplate ditulis ulang; 3 kunci numerik salah (modul-10 c2 Den Hartog pangkat-tiga `√(3μ/(8(1+μ)³))` + c5, modul-11 c7) + 2 soal rapuh (modul-12 c13 raw-vs-excess kurtosis, modul-13 c9 cepstrum) diperbaiki — tiap kunci diverifikasi compute (numpy/scipy). **`resetModulQuestion` all-students di-hardening** (512MiB, paralel ber-batch, `errorsSample`, client timeout 540s). **6 anti-pattern reusable — detail di §25.12–25.16 + §36.11:** KaTeX di `<option>`/teks-JS-dinamis, `ℒ⁻^1` double-superscript, slider animasi mati/ter-normalisasi, mis-seed MC antar-modul, bulk callable "internal" = instance mati, export judul tanpa `color`. §38.7 callable table + §25.8/§36.10 checklist di-update. PR references: #401–#409.
 >
@@ -8159,6 +8159,64 @@ lagi (fatal di komputer lab bergantian). Tiga pelengkap, semua di 42 file Modul:
    sejak lama; 2 outlier (Opto & Math4 Modul-4) di-port PR #618. Write-nya
    pakai `update()` sparse (§25.19).
 
+### 39.11 Preview Mode — Akses Tanpa Login (BARU di v21)
+
+Tombol **`👁️ Mode Preview (Tanpa Login)`** di `roleChooserOverlay`, di bawah
+tombol Mahasiswa/Dosen, di semua 48 file (42 Modul + 6 Exam). Tujuan: dosen
+atau pihak lain (BOP, reviewer kurikulum) bisa lihat isi soal tanpa perlu NIM
++ PIN, TANPA bisa mengungkap kunci jawaban atau mempengaruhi poin.
+
+**Arsitektur** — flag global `window._previewMode` + satu guard function yang
+dipanggil di baris PERTAMA tiap handler jawaban:
+
+```js
+window._previewMode = false;
+window.enterPreviewMode = function() {
+  window._previewMode = true;
+  // sembunyikan roleChooserOverlay + visitorOverlay + dosenLoginOverlay,
+  // tampilkan banner ungu permanen di top viewport (previewModeBanner)
+};
+window._previewGuard = function(qId) {
+  if (!window._previewMode) return false;
+  // isi #fb-<qId> dengan pesan "soal tidak interaktif", TIDAK reveal benar/salah
+  return true;
+};
+```
+
+Dipasang sebagai `if (window._previewGuard(qId)) return;` di baris pertama:
+`selectMC`, `checkMC`, `runAndCheck` (Modul + Exam), plus `selectTF`,
+`checkTF` (Exam only — Modul tidak punya soal TF). Karena guard adalah baris
+PERTAMA — sebelum cek `_firebaseStateLoaded`, sebelum cek jadwal, sebelum
+apa pun — **tidak ada request ke `checkModulAnswer`/`checkExamAnswer`
+callable sama sekali** saat preview; kunci jawaban di server tidak pernah
+diminta, apalagi diungkap. Soal tetap tampil (mahasiswa/reviewer bisa baca
+teks soal, opsi, kode Python starter) tapi memilih opsi / klik "Periksa" /
+"Run & Check" hanya menampilkan pesan info, tidak submit apa pun.
+
+`exportTugasHtml()` punya guard terpisah (`window._previewExportGuard()`,
+baris pertama) yang `alert()` dan `return` — export HTML (yang membawa poin +
+Kode Verifikasi resmi, §36.12) dinonaktifkan total di preview karena tidak
+ada identity/PIN untuk digenerate poin resminya.
+
+**Kenapa tidak reuse identity kosong (`nim:'-'`) alih-alih flag terpisah**:
+sempat dipertimbangkan biar `exportTugasHtml`/chat dsb "just work" dgn
+identity dummy, tapi itu berarti tiap fungsi turunan (chat presence, RTDB
+write, dsb) harus di-audit satu-satu supaya tidak menulis data sampah ke
+RTDB dengan NIM palsu. Guard eksplisit di titik masuk (5 fungsi jawaban + 1
+export) jauh lebih kecil blast radius-nya dan mudah diverifikasi — preview
+user tidak pernah menyentuh Firebase sama sekali.
+
+**Keluar dari preview**: tombol "Keluar Preview" di banner → `location.
+reload()` (tidak ada state preview yang persist di localStorage/sessionStorage,
+jadi reload otomatis kembali ke role picker).
+
+Anchor bulk-edit (semua unique per file, divalidasi `count()==1` sebelum
+tulis): baris tombol `choseDosen()`, `<body>\n\n<div id="scrollProgress">`,
+blok akhir `window.choseDosen = function(){...}`, dan signature tiap fungsi
+guard target. 2 file outlier historis (Opto & Math4 Modul-4, §24) tervalidasi
+sama seperti 46 file lain — anchor-nya adalah kode engine bersama, bukan
+bagian yang biasa mereka lag-kan (chat/export).
+
 ---
 
 
@@ -8282,7 +8340,7 @@ mengembangkan PPT jadi materi multimedia (opsional).
 ---
 
 *Pedoman v21 — Juli 2026 (Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT).*
-*Update v21: §15.5 BARU — ekstraksi jawaban komputasi multi-layer (`_lineAnswers` per-baris first+last, bracket-strip, field `lineAnswers` terpisah dari `userAnswers`); §36.12 BARU — Kode Verifikasi HMAC utk Export HTML 48 file (server-authoritative points, secret di Secret Manager, `Admin/verify-export-code.html`); §25.19–25.20 BARU — PERMISSION_DENIED stale-set() vs update() sparse + EXAM_CONFIG field hilang tertimpa refactor (CRITICAL, restore PR #627); §39.10 BARU — Ganti Peran + chip identitas dinamis + auto PIN re-verify; §24 cakupan chat 42/42 (2 Modul-4 outlier di-port); §38.7 tambah `generateExportCode`/`verifyExportCode` + `rescaleModulLatePenalty` NIM-scoping; §40 BARU — Modul Word & PPT template BOP Kurikulum 2025 (WAJIB mulai dari file template `Template-Modul-Word-dan-PPT/`). PR references: #613–#627.*
+*Update v21: §15.5 BARU — ekstraksi jawaban komputasi multi-layer (`_lineAnswers` per-baris first+last, bracket-strip, field `lineAnswers` terpisah dari `userAnswers`); §36.12 BARU — Kode Verifikasi HMAC utk Export HTML 48 file (server-authoritative points, secret di Secret Manager, `Admin/verify-export-code.html`); §25.19–25.20 BARU — PERMISSION_DENIED stale-set() vs update() sparse + EXAM_CONFIG field hilang tertimpa refactor (CRITICAL, restore PR #627); §39.10 BARU — Ganti Peran + chip identitas dinamis + auto PIN re-verify; §39.11 BARU — Preview Mode tanpa login (48 file, soal non-interaktif via `window._previewGuard`, tidak pernah memanggil callable server, poin & export dinonaktifkan); §24 cakupan chat 42/42 (2 Modul-4 outlier di-port); §38.7 tambah `generateExportCode`/`verifyExportCode` + `rescaleModulLatePenalty` NIM-scoping; §40 BARU — Modul Word & PPT template BOP Kurikulum 2025 (WAJIB mulai dari file template `Template-Modul-Word-dan-PPT/`). PR references: #613–#627, #631.*
 
 *Pedoman v19 — Juni 2026 (Role Picker + Schedule Defaults + Penalty 0.7).*
 *Update v19: §39 BARU — role picker overlay (Mahasiswa vs Dosen sebelum login form), Mahasiswa form OBE-style (NIM + PIN inline, no Nama), dosen streamline (1× pw input + 1× klik utk save jadwal & masuk), animasi `initLoginAnimation(canvasId, particlesId)` shared ke 3 canvas (refactor dari IIFE), WIB timezone enforcement global (`timeZone:'Asia/Jakarta'` di semua display + helper `_nowPlusMinAsWibString`/`_wibStringToDate` di exam). Schedule defaults baru: Modul 7 hari + due +6h WIB 23:59 (PR #383, #384); Exam 180 menit + due +180m WIB + extension 120 menit. **Penalti terlambat 0.8 → 0.7 (20% → 30%)** untuk semua asesmen (PR #284). §38.7 callable table diperluas: tambah `recomputeExamPoints`, `checkExamAnswer`, `resetExamAttempts`, `resetModulQuestion`, `rescaleModulLatePenalty`, `analyzeModulData`. §15.4a + §9.5.5 + §9.2 sync ke multiplier 0.7. §7.1–7.3 deprecated note (dipertahankan utk historis, alur live di §39). PR references: #370–#386 (login flow), #284 (penalty 0.7), #354 (recomputeExamPoints), #359–#363 (OBE scoring mapping 1:1:2:4 + Sub-CPMK biggest bobot owns Comp Hard).*
