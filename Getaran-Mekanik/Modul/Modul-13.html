@@ -8049,7 +8049,25 @@ window.enterPreviewMode = function() {
   const chip = document.getElementById('navIdentityChip');
   if (chip) chip.textContent = '👁️ MODE PREVIEW';
   const banner = document.getElementById('previewModeBanner');
-  if (banner) banner.style.display = 'flex';
+  if (banner) {
+    banner.style.display = 'flex';
+    // Geser navbar (tab Modul/Tugas/Forum/Hasil ada DI DALAM nav) + subnav +
+    // scrollProgress turun sebesar tinggi banner — ketiganya position:fixed
+    // top:0-an, tanpa ini banner menutupi tab navigasi (Pedoman §39.11).
+    const _pmReflow = function() {
+      const h = banner.offsetHeight;
+      document.body.style.paddingTop = h + 'px';
+      [document.getElementById('navTop'), document.getElementById('scrollProgress')]
+        .concat(Array.from(document.querySelectorAll('.subnav-bar')))
+        .forEach(function(el) {
+          if (!el) return;
+          if (el.dataset.pmBaseTop === undefined) el.dataset.pmBaseTop = String(parseFloat(getComputedStyle(el).top) || 0);
+          el.style.top = (parseFloat(el.dataset.pmBaseTop) + h) + 'px';
+        });
+    };
+    _pmReflow();
+    window.addEventListener('resize', _pmReflow);
+  }
 };
 window.exitPreviewMode = function() {
   window._previewMode = false;
