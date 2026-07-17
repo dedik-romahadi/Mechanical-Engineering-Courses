@@ -8337,10 +8337,89 @@ mengembangkan PPT jadi materi multimedia (opsional).
 5. Hasil per pertemuan disetor prodi ke OneDrive BOP (bukan via repo ini) —
   tapi simpan salinan kerja di folder course ybs bila dosen minta.
 
+### 40.4 Pelajaran dari Revisi Modul 1 Opto (BARU di v21, Jul 2026)
+
+**Kode MK Optoauto = `P132520004`** (dikonfirmasi dosen — tidak lagi placeholder
+`(kode MK)`; isi langsung di replace map cover Word + shape cover PPT).
+
+1. **Bug urutan child `w:pPr` — WAJIB `validate.py` sebelum commit.** Helper
+   `h1()`/heading kotak-arsir yang `pPr.append(pBdr)` lalu `pPr.append(shd)`
+   di ujung `pPr` **melanggar skema XSD** (`CT_PPrBase` mewajibkan urutan
+   `pStyle→...→pBdr→shd→tabs→...→spacing→ind→...→jc→...`; `spacing`/`jc` dari
+   `paragraph_format` sudah lebih dulu ada di `pPr`, jadi `append()` polos
+   menaruh `pBdr`/`shd` SETELAH-nya = invalid). Efek: file korup secara
+   diam-diam — python-docx tetap bisa `.save()` tanpa error, MS Word mungkin
+   masih membuka (auto-repair), tapi validasi skema gagal. **Fix**: helper
+   `pPr_insert_ordered(pPr, el)` yang cari posisi insert berdasar daftar
+   urutan resmi CT_PPrBase, bukan `pPr.append()` naif. **Jalankan selalu**
+   `python scripts/office/validate.py <file>.docx` (skill `docx`) sebelum
+   commit — 0 file baru boleh py lolos dgn validation error.
+2. **LibreOffice headless TIDAK BISA dipakai sama sekali di environment
+   sesi ini** — `soffice --headless --convert-to pdf` gagal
+   `"source file could not be loaded"` bahkan untuk file `.docx`/`.pptx`/`.txt`
+   TRIVIAL sekalipun (dites eksplisit), termasuk lewat wrapper
+   `scripts/office/soffice.py` punya skill `docx` (yang sudah menangani
+   AF_UNIX-socket-blocked via LD_PRELOAD shim + `-env:UserInstallation`) —
+   berarti bukan masalah socket/profile, melainkan limitasi sandbox yang
+   lebih dalam. **Verifikasi TANPA render visual**: (a) Word →
+   `validate.py` (skema XSD) + `pandoc -t markdown file.docx` (baca ulang
+   alur teks/gambar/caption apa adanya — install via `apt-get install -y
+   pandoc` kalau belum ada); (b) PPT → introspeksi geometri `python-pptx`
+   langsung (posisi/ukuran tiap shape dalam EMU) + Read tool pada PNG
+   ilustrasi yang di-generate sendiri (sebelum di-embed) utk cek visual.
+3. **Gambar ilustrasi wajib bernomor + caption + disitasi di teks** (bukan
+   sekadar ditempel). Pola: generate via `matplotlib` (bukan fetch gambar
+   eksternal — network `doi.org`/gambar pihak ketiga sering diblok proxy,
+   dan originalitas lebih aman dari isu hak cipta), simpan PNG, sisipkan via
+   helper `gambar(path, caption)` yang otomatis increment nomor + tulis
+   `Gambar N. <caption>` italic di bawahnya — lalu **body text SEBELUM/SESUDAH
+   gambar wajib menyebut nomornya** ("... ditunjukkan pada Gambar N",
+   "(lihat Gambar N)"), bukan cuma menempatkan gambar tanpa rujukan. Emoji
+   TIDAK bisa dipakai sbg ikon di gambar matplotlib (`DejaVu Sans` tidak
+   render glyph emoji, walau ada font `Noto Color Emoji` di sistem — bitmap
+   color font tidak didukung baik oleh backend Agg) — gambar ikon custom
+   pakai `matplotlib.patches` (Circle/Rectangle/FancyBboxPatch) alih-alih
+   emoji Unicode.
+4. **Link versi HTML Preview sebelum Pendahuluan** — sejak fitur Preview
+   Mode (§39.11), modul Word menyertakan box link ke modul HTML LMS +
+   instruksi klik "👁️ Mode Preview (Tanpa Login)", diletakkan SEBELUM heading
+   Pendahuluan (bukan di Daftar Pustaka/lampiran) supaya pembaca cepat lihat
+   versi interaktifnya.
+5. **Tugas WAJIB disalin PERSIS dari tab Tugas modul HTML** — semua 10 soal
+   PG dgn ke-4 opsi lengkap, semua soal Komputasi dgn hint lengkap — BUKAN
+   ringkasan 1-baris per soal. Sumber teks: scrape tab Tugas modul HTML
+   (`MC_QUESTIONS`/hint constants di `<script>`) sebelum menulis, jangan
+   parafrase dari ingatan supaya konsisten 100% dgn yang dikerjakan
+   mahasiswa di LMS.
+6. **PPT — setiap slide konten wajib ada gambar ilustrasi, judul selalu 1
+   baris, tidak ada elemen tumpang-tindih**:
+   - **Layout dua kolom**: body placeholder di-resize (kolom kiri, dipersempit
+     dari lebar penuh), gambar di kolom kanan via helper `add_picture_fit()`
+     (hitung skala dari ukuran piksel asli PNG thd box target, `min(w-scale,
+     h-scale)`, center — TIDAK PERNAH set width+height eksplisit tak
+     proporsional krn itu men-distorsi gambar).
+   - **Judul 1 baris**: font default (~28pt) sering meluap kalau judul
+     panjang (template pakai `Open Sans Bold`, tidak tersedia di environment
+     Linux ini) — proxy pengukuran pakai `DejaVu Sans Bold` (`PIL.ImageFont`)
+     dgn *safety margin* ~12% (font asli vs proxy tidak identik metrik-nya),
+     turunkan ukuran font bertahap sampai muat dalam lebar box dikurangi
+     inset kiri-kanan. Matikan `<a:normAutofit>`/`<a:spAutoFit>` di `bodyPr`
+     judul supaya ukuran yang sudah dihitung tidak di-override aplikasi
+     office saat file dibuka.
+   - **Verifikasi no-overlap terprogram**: setelah save, reload `.pptx` lalu
+     cek bounding-box (EMU) tiap pasang shape per slide (`left/top/width/
+     height`) tidak berpotongan (dgn toleransi kecil utk sentuhan tepi).
+     **Kecualikan slide cover/Daftar Pustaka/Terima Kasih** dari cek ini kalau
+     tidak ikut di-restrukturisasi — placeholder box template asli sering
+     BOUNDING-BOX overlap dgn tombol Next/Back (mis. body Daftar Pustaka
+     tinggi 4.76in vs tombol di 5835217 EMU) padahal teks aktualnya tidak
+     pernah sepanjang itu; verifikasi dulu overlap yang sama ADA di file
+     template mentah (belum disentuh) sebelum menyimpulkan itu bukan bug baru.
+
 ---
 
 *Pedoman v21 — Juli 2026 (Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT).*
-*Update v21: §15.5 BARU — ekstraksi jawaban komputasi multi-layer (`_lineAnswers` per-baris first+last, bracket-strip, field `lineAnswers` terpisah dari `userAnswers`); §36.12 BARU — Kode Verifikasi HMAC utk Export HTML 48 file (server-authoritative points, secret di Secret Manager, `Admin/verify-export-code.html`); §25.19–25.20 BARU — PERMISSION_DENIED stale-set() vs update() sparse + EXAM_CONFIG field hilang tertimpa refactor (CRITICAL, restore PR #627); §39.10 BARU — Ganti Peran + chip identitas dinamis + auto PIN re-verify; §39.11 BARU — Preview Mode tanpa login (48 file, soal non-interaktif via `window._previewGuard`, tidak pernah memanggil callable server, poin & export dinonaktifkan); §24 cakupan chat 42/42 (2 Modul-4 outlier di-port); §38.7 tambah `generateExportCode`/`verifyExportCode` + `rescaleModulLatePenalty` NIM-scoping; §40 BARU — Modul Word & PPT template BOP Kurikulum 2025 (WAJIB mulai dari file template `Template-Modul-Word-dan-PPT/`). PR references: #613–#627, #631.*
+*Update v21: §15.5 BARU — ekstraksi jawaban komputasi multi-layer (`_lineAnswers` per-baris first+last, bracket-strip, field `lineAnswers` terpisah dari `userAnswers`); §36.12 BARU — Kode Verifikasi HMAC utk Export HTML 48 file (server-authoritative points, secret di Secret Manager, `Admin/verify-export-code.html`); §25.19–25.20 BARU — PERMISSION_DENIED stale-set() vs update() sparse + EXAM_CONFIG field hilang tertimpa refactor (CRITICAL, restore PR #627); §39.10 BARU — Ganti Peran + chip identitas dinamis + auto PIN re-verify; §39.11 BARU — Preview Mode tanpa login (48 file, soal non-interaktif via `window._previewGuard`, tidak pernah memanggil callable server, poin & export dinonaktifkan); §24 cakupan chat 42/42 (2 Modul-4 outlier di-port); §38.7 tambah `generateExportCode`/`verifyExportCode` + `rescaleModulLatePenalty` NIM-scoping; §40 BARU — Modul Word & PPT template BOP Kurikulum 2025 (WAJIB mulai dari file template `Template-Modul-Word-dan-PPT/`); §40.4 BARU — pelajaran revisi Modul 1 Opto: fix bug urutan child `w:pPr` (pBdr/shd sblm spacing, WAJIB `validate.py`), LibreOffice headless nonfungsional total di environment sesi (verifikasi via validate.py+pandoc+introspeksi python-pptx, bukan render visual), gambar wajib bernomor+caption+sitasi teks, link versi Preview sebelum Pendahuluan, Tugas disalin persis modul HTML, PPT layout 2-kolom teks/gambar + title auto-fit 1-baris (PIL DejaVu Sans Bold proxy) + verifikasi no-overlap terprogram, Kode MK Optoauto `P132520004` terkonfirmasi. PR references: #613–#627, #631–#633.*
 
 *Pedoman v19 — Juni 2026 (Role Picker + Schedule Defaults + Penalty 0.7).*
 *Update v19: §39 BARU — role picker overlay (Mahasiswa vs Dosen sebelum login form), Mahasiswa form OBE-style (NIM + PIN inline, no Nama), dosen streamline (1× pw input + 1× klik utk save jadwal & masuk), animasi `initLoginAnimation(canvasId, particlesId)` shared ke 3 canvas (refactor dari IIFE), WIB timezone enforcement global (`timeZone:'Asia/Jakarta'` di semua display + helper `_nowPlusMinAsWibString`/`_wibStringToDate` di exam). Schedule defaults baru: Modul 7 hari + due +6h WIB 23:59 (PR #383, #384); Exam 180 menit + due +180m WIB + extension 120 menit. **Penalti terlambat 0.8 → 0.7 (20% → 30%)** untuk semua asesmen (PR #284). §38.7 callable table diperluas: tambah `recomputeExamPoints`, `checkExamAnswer`, `resetExamAttempts`, `resetModulQuestion`, `rescaleModulLatePenalty`, `analyzeModulData`. §15.4a + §9.5.5 + §9.2 sync ke multiplier 0.7. §7.1–7.3 deprecated note (dipertahankan utk historis, alur live di §39). PR references: #370–#386 (login flow), #284 (penalty 0.7), #354 (recomputeExamPoints), #359–#363 (OBE scoring mapping 1:1:2:4 + Sub-CPMK biggest bobot owns Comp Hard).*
