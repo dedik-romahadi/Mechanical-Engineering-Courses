@@ -8416,10 +8416,68 @@ mengembangkan PPT jadi materi multimedia (opsional).
      pernah sepanjang itu; verifikasi dulu overlap yang sama ADA di file
      template mentah (belum disentuh) sebelum menyimpulkan itu bukan bug baru.
 
+### 40.5 Simulasi Pagination Word Tanpa Render Visual (BARU di v21, Jul 2026)
+
+Revisi lanjutan Modul 1 Opto: dosen menolak solusi "perkecil gambar" utk cegah
+ruang kosong antar-halaman ("jangan kecilkan gambar, gambar harus jelas, semua
+teks di gambar seragam dgn teks modul; utk cegah ruang kosong atur lokasi teks,
+kalau tidak bisa tambah penjelasan"). Ini butuh pendekatan baru krn 2 alasan:
+
+1. **`docx-preview` (npm) dicoba sbg alternatif render, TERNYATA bukan solusi**:
+   opsi `breakPages` cuma memecah halaman di *explicit* page-break marker
+   (`w:br type="page"`/`pageBreakBefore`/section break) — BUKAN true
+   flow-based repagination yg mengukur tinggi konten thd tinggi halaman. Modul
+   yang mengandalkan natural Word flow (tanpa page-break eksplisit) akan
+   dirender sbg 1 section raksasa tak terbagi. Source: `docx-preview.js` fungsi
+   `splitPage` cuma cek `pageBreakBefore`/`w:br`, tidak pernah ukur bbox.
+2. **Solusi: simulator pagination heuristik** (`simulate_pages.py`, baca DOCX
+   yg SUDAH di-build via python-docx, bukan re-derive dari source) — mengukur
+   lebar teks pakai `PIL.ImageFont` dgn font **Liberation Sans** (metric-
+   compatible dgn Arial, beda dgn DejaVu Sans yg dipakai utk proxy PPT/Open
+   Sans), mensimulasikan word-wrap per paragraf thd lebar halaman efektif,
+   lalu men-flow paragraf/tabel/gambar ke "halaman" 686pt (24.2cm) dgn
+   menghormati rantai `keep_with_next` sbg unit atomik (tabel `cantSplit`+
+   `keepNext` dari §40.4 poin lain jadi SATU unit yg tak boleh terpecah,
+   gambar+caption jadi SATU unit). **Kalibrasi**: `line_height_pt = font_pt ×
+   1.15 × line_spacing_multiple` (1.15 = rasio tinggi-baris-tunggal Arial thd
+   font-size, divalidasi silang: Arial 11pt spasi 1.5 di A4 usable-height
+   686pt menurut aturan umum percetakan muat ~36 baris → 36×11×1.15×1.5=683pt,
+   cocok). Output: daftar per-halaman berisi list block + tinggi terpakai +
+   sisa kosong, dgn flag `GAP BESAR` (>120pt) utk halaman yg perlu diperbaiki.
+   **ANGKA INI HEURISTIK, BUKAN EKSAK** (font proxy, tanpa kerning presisi,
+   tanpa ligature) — dipakai utk menemukan KANDIDAT gap, bukan jaminan pixel-
+   perfect; halaman terakhir dokumen SELALU dikecualikan dari flag gap
+   (ruang kosong di penghujung dokumen itu normal, bukan bug).
+3. **`bbox_inches='tight'` matplotlib TIDAK bisa diasumsikan 1:1 dgn `figsize`
+   yang diminta** — title/label yg melebihi lebar axes akan MEMPERLEBAR bbox
+   final jauh di atas `figsize` (pernah expand 1.45× di kasus title panjang);
+   sebaliknya `ax.set_aspect('equal')` bisa MEMPERKECIL bbox final jauh di
+   bawah `figsize` (dipotong ke kotak sesuai xlim/ylim, bukan ke persegi
+   panjang penuh). **Solusi supaya teks di gambar match ukuran teks modul
+   (skala 1:1 pt tulis = pt cetak)**: (a) WRAP judul chart panjang jadi 2
+   baris (`\n` manual) supaya lebar tidak didikte panjang judul; (b) generate
+   gambar, UKUR pixel width aktual via PIL (`img.size[0]/dpi`), baru embed di
+   Word pakai `width_cm` = HASIL UKUR itu (bukan asumsi `figsize`) — ini
+   menjamin skala 1:1 apa pun perilaku tight-bbox. Iterasi figsize 1-2× utk
+   dapat lebar akhir yg pas (target ≤ usable-width halaman, idealnya
+   11–14cm — "besar & jelas" tanpa mepet batas 15.5cm).
+4. **Strategi cegah ruang kosong, urutan prioritas sesuai instruksi dosen**:
+   (a) **atur ulang lokasi teks** — pola paling efektif: tukar urutan
+   tabel-lalu-gambar jadi gambar-lalu-tabel atau sebaliknya per section
+   (tabel lebih pendek, lebih mudah "disisipkan" mengisi sisa halaman sebelum
+   unit gambar besar lompat halaman); (b) **kalau reorder tidak menutup gap**,
+   tambah paragraf penjelasan BERISI (bukan filler kosong — pakai contoh
+   angka/studi kasus konkret yg relevan) tepat sebelum titik gap, panjang
+   disesuaikan (ukur via simulator) supaya mengisi sisa ruang. **Catatan
+   whack-a-mole**: menyisipkan/memindah 1 blok menggeser SEMUA batas halaman
+   setelahnya — selalu re-run simulator stlh tiap perubahan, jangan asumsikan
+   1x fix langsung bersih; realistis target "0 GAP BESAR (>120pt) selain
+   halaman terakhir", bukan 0 gap sama sekali (mustahil tanpa render eksak).
+
 ---
 
 *Pedoman v21 — Juli 2026 (Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT).*
-*Update v21: §15.5 BARU — ekstraksi jawaban komputasi multi-layer (`_lineAnswers` per-baris first+last, bracket-strip, field `lineAnswers` terpisah dari `userAnswers`); §36.12 BARU — Kode Verifikasi HMAC utk Export HTML 48 file (server-authoritative points, secret di Secret Manager, `Admin/verify-export-code.html`); §25.19–25.20 BARU — PERMISSION_DENIED stale-set() vs update() sparse + EXAM_CONFIG field hilang tertimpa refactor (CRITICAL, restore PR #627); §39.10 BARU — Ganti Peran + chip identitas dinamis + auto PIN re-verify; §39.11 BARU — Preview Mode tanpa login (48 file, soal non-interaktif via `window._previewGuard`, tidak pernah memanggil callable server, poin & export dinonaktifkan); §24 cakupan chat 42/42 (2 Modul-4 outlier di-port); §38.7 tambah `generateExportCode`/`verifyExportCode` + `rescaleModulLatePenalty` NIM-scoping; §40 BARU — Modul Word & PPT template BOP Kurikulum 2025 (WAJIB mulai dari file template `Template-Modul-Word-dan-PPT/`); §40.4 BARU — pelajaran revisi Modul 1 Opto: fix bug urutan child `w:pPr` (pBdr/shd sblm spacing, WAJIB `validate.py`), LibreOffice headless nonfungsional total di environment sesi (verifikasi via validate.py+pandoc+introspeksi python-pptx, bukan render visual), gambar wajib bernomor+caption+sitasi teks, link versi Preview sebelum Pendahuluan, Tugas disalin persis modul HTML, PPT layout 2-kolom teks/gambar + title auto-fit 1-baris (PIL DejaVu Sans Bold proxy) + verifikasi no-overlap terprogram, Kode MK Optoauto `P132520004` terkonfirmasi. PR references: #613–#627, #631–#633.*
+*Update v21: §15.5 BARU — ekstraksi jawaban komputasi multi-layer (`_lineAnswers` per-baris first+last, bracket-strip, field `lineAnswers` terpisah dari `userAnswers`); §36.12 BARU — Kode Verifikasi HMAC utk Export HTML 48 file (server-authoritative points, secret di Secret Manager, `Admin/verify-export-code.html`); §25.19–25.20 BARU — PERMISSION_DENIED stale-set() vs update() sparse + EXAM_CONFIG field hilang tertimpa refactor (CRITICAL, restore PR #627); §39.10 BARU — Ganti Peran + chip identitas dinamis + auto PIN re-verify; §39.11 BARU — Preview Mode tanpa login (48 file, soal non-interaktif via `window._previewGuard`, tidak pernah memanggil callable server, poin & export dinonaktifkan); §24 cakupan chat 42/42 (2 Modul-4 outlier di-port); §38.7 tambah `generateExportCode`/`verifyExportCode` + `rescaleModulLatePenalty` NIM-scoping; §40 BARU — Modul Word & PPT template BOP Kurikulum 2025 (WAJIB mulai dari file template `Template-Modul-Word-dan-PPT/`); §40.4 BARU — pelajaran revisi Modul 1 Opto: fix bug urutan child `w:pPr` (pBdr/shd sblm spacing, WAJIB `validate.py`), LibreOffice headless nonfungsional total di environment sesi (verifikasi via validate.py+pandoc+introspeksi python-pptx, bukan render visual), gambar wajib bernomor+caption+sitasi teks, link versi Preview sebelum Pendahuluan, Tugas disalin persis modul HTML, PPT layout 2-kolom teks/gambar + title auto-fit 1-baris (PIL DejaVu Sans Bold proxy) + verifikasi no-overlap terprogram, Kode MK Optoauto `P132520004` terkonfirmasi; §40.5 BARU — simulasi pagination Word tanpa render visual (`simulate_pages.py`, heuristik PIL+Liberation Sans, `docx-preview` npm terbukti BUKAN solusi krn `breakPages` cuma baca explicit page-break), gotcha `bbox_inches='tight'` matplotlib tak 1:1 dgn `figsize` diminta (ukur pixel aktual baru embed), strategi reorder-dulu-baru-tambah-teks utk cegah ruang kosong. PR references: #613–#627, #631–#634.*
 
 *Pedoman v19 — Juni 2026 (Role Picker + Schedule Defaults + Penalty 0.7).*
 *Update v19: §39 BARU — role picker overlay (Mahasiswa vs Dosen sebelum login form), Mahasiswa form OBE-style (NIM + PIN inline, no Nama), dosen streamline (1× pw input + 1× klik utk save jadwal & masuk), animasi `initLoginAnimation(canvasId, particlesId)` shared ke 3 canvas (refactor dari IIFE), WIB timezone enforcement global (`timeZone:'Asia/Jakarta'` di semua display + helper `_nowPlusMinAsWibString`/`_wibStringToDate` di exam). Schedule defaults baru: Modul 7 hari + due +6h WIB 23:59 (PR #383, #384); Exam 180 menit + due +180m WIB + extension 120 menit. **Penalti terlambat 0.8 → 0.7 (20% → 30%)** untuk semua asesmen (PR #284). §38.7 callable table diperluas: tambah `recomputeExamPoints`, `checkExamAnswer`, `resetExamAttempts`, `resetModulQuestion`, `rescaleModulLatePenalty`, `analyzeModulData`. §15.4a + §9.5.5 + §9.2 sync ke multiplier 0.7. §7.1–7.3 deprecated note (dipertahankan utk historis, alur live di §39). PR references: #370–#386 (login flow), #284 (penalty 0.7), #354 (recomputeExamPoints), #359–#363 (OBE scoring mapping 1:1:2:4 + Sub-CPMK biggest bobot owns Comp Hard).*
