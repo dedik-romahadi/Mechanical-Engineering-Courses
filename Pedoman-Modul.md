@@ -8660,10 +8660,78 @@ akar masalahnya cuma package yang belum lengkap**:
    sinkron dgn jumlah `inline_shapes`/`tables` aktual di ke-14 modul
    (termasuk Modul-1 reference).
 
+### 40.8 ⚠️ KOREKSI KRITIS thd §40.7 poin 3 & 6 — Dosen TOLAK Strategi Kecilkan Gambar, Ganti ke Alokasi Teks (BARU di v21, Jul 2026)
+
+Revisi lanjutan ke-5, langsung setelah §40.7 dikirim ke dosen: **"Untuk
+menghindari space kosong, alokasikan posisi teksnya, jangan mengecilkan
+gambar, karena teks di gambar jadi terlalu kecil dan tidak terbaca."** Ini
+membatalkan strategi `max_h_cm` per-instance di §40.7 poin 3 — bukan
+sekadar preferensi, tapi echo dari instruksi dosen yang SUDAH ada sejak
+§40.5 poin 4 ("jangan kecilkan gambar... utk cegah ruang kosong atur
+lokasi teks") yang sempat terlanggar saat gap-fixing §40.7 dikerjakan.
+
+1. **Akar masalah `max_h_cm` per-instance**: `gambar()` mempertahankan
+   aspect ratio, jadi mengecilkan tinggi (`max_h_cm`) otomatis mengecilkan
+   LEBAR juga (w = cap/ar). Karena teks di dalam figure matplotlib
+   (title/label/legend) di-bake sbg PIKSEL pada `figsize` & DPI=220 tetap
+   saat generate, mengecilkan lebar tampil di halaman = mengecilkan ukuran
+   visual teks tsb secara proporsional. Beberapa override di §40.7 poin 3
+   turun sampai 3,8–4,8cm tinggi (dari natural ~6–10cm), cukup agresif utk
+   bikin label sumbu/legend sulit dibaca meski masih "look fine" saat
+   diverifikasi cuma lewat cek dimensi EMU (bukan baca visual sungguhan).
+2. **Fix**: (a) hapus SELURUH 17 override `max_h_cm` per-instance yg
+   ditambahkan di §40.7 poin 3 (kembali ke signature asli `gambar()` tanpa
+   override, ukuran murni dari piksel PNG natural + clamp lebar 15,2cm);
+   (b) `MAX_IMG_H_CM` global dikembalikan ke 12,5cm (nilai KOREKSI v21
+   original di §40.5, generous safety-net utk kasus pathological, hampir
+   tidak pernah ke-trigger oleh figure normal) dari 10,0cm yg dipakai
+   selama eksperimen gap-chasing §40.7. Redesign donut horizontal (§40.7
+   poin 4) & tabel dipadatkan via `tcMar`+`line_spacing=1.0` (§40.7 poin 5)
+   TETAP DIPERTAHANKAN — keduanya bukan "mengecilkan gambar" (donut
+   di-generate ulang dgn font absolut sama, cuma layout beda; tabel cuma
+   dirapatkan margin selnya, font tetap 9,5pt).
+3. **Strategi pengganti, PERSIS sesuai §40.5 poin 4(b) yg sempat
+   terlewat**: tambah paragraf penjelasan BERISI (worked example, studi
+   kasus konkret, penjelasan teknis lanjutan yg relevan dgn topik
+   section tsb — BUKAN filler kosong) tepat SEBELUM blok gambar/tabel yg
+   diketahui lompat halaman (via `find_culprits2.py`), panjang ditarget
+   generous dari gap terukur (heuristik ±0,669cm/baris @ 11pt spasi 1,5,
+   tapi TIDAK perlu presisi krn overshoot aman: teks body biasa boleh
+   mengalir terpotong rapi ke halaman berikut, beda dgn gambar/tabel yg
+   atomik). **Insight kunci yg beda dari strategi kecilkan-gambar**:
+   menambah teks SEBELUM blok yg lompat tidak mengubah UKURAN blok itu
+   (jadi tetap lompat, tidak dipaksa muat), tapi mengisi ruang kosong pada
+   halaman sebelumnya dgn konten berguna sehingga TIDAK ADA lagi area
+   blank tersisa — hasilnya jauh lebih predictable/tidak-whack-a-mole
+   dibanding mengecilkan gambar (yg mengubah titik lompat scr non-linear).
+   Utk tabel (atomik jg via `cantSplit`+`keepNext`), teks disisipkan
+   sebelum kalimat pengantar "Tabel N merangkum..." dgn pola sama.
+4. **Hasil akhir (menggantikan angka §40.7 poin 6)**: 10 dari 13 modul
+   (Pertemuan 2–15) mencapai **0 gap sama sekali** (M2, M3, M4, M6, M8, M9,
+   M10, M11, M12, M13); sisa 3 modul (M5, M7, M14) masing-masing 1 gap
+   residual kecil 3,5–3,9cm yg SENGAJA tidak dipaksa ditutup lagi krn: (a)
+   M7 berada di tengah teks soal Komputasi Hard (Bagian C Tugas) — memaksa
+   tambahan teks di situ akan merusak struktur soal/jawaban; (b) M5 & M14
+   sudah di bawah threshold flag 3,5cm shg dianggap noise dokumen wajar,
+   bukan masalah. **Total gap tersisa across ke-13 modul: ±10,9cm** (turun
+   dari baseline ±169cm, **-94%**), dicapai TANPA satupun gambar dikecilkan
+   di bawah ukuran natural/lebar-penuh-kolomnya. Verifikasi ulang: 0
+   margin-overflow, 0 em-dash (2 baru sempat masuk dari draft teks
+   tambahan, terdeteksi & diperbaiki via audit terprogram sblm commit), 0
+   `max_h_cm` override tersisa di source manapun, penomoran Gambar/Tabel
+   tetap sinkron di ke-14 modul.
+5. **Pelajaran utk sesi mendatang**: kalau dosen sudah PERNAH menyatakan
+   preferensi eksplisit (di sini: §40.5 poin 4, jauh sebelum §40.7
+   ditulis), jangan ambil jalan pintas yg berlawanan meski scr teknis
+   "lebih gampang diukur/dieksekusi" (mengecilkan 1 angka `max_h_cm` jauh
+   lebih cepat drpd menulis paragraf substantif baru) — cek ulang instruksi
+   lama sblm memilih strategi baru, krn dosen akan (dan berhak) menegur
+   ulang persis instruksi yg sama kalau dilanggar lagi.
+
 ---
 
 *Pedoman v21 — Juli 2026 (Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT).*
-*Update v21: §15.5 BARU — ekstraksi jawaban komputasi multi-layer (`_lineAnswers` per-baris first+last, bracket-strip, field `lineAnswers` terpisah dari `userAnswers`); §36.12 BARU — Kode Verifikasi HMAC utk Export HTML 48 file (server-authoritative points, secret di Secret Manager, `Admin/verify-export-code.html`); §25.19–25.20 BARU — PERMISSION_DENIED stale-set() vs update() sparse + EXAM_CONFIG field hilang tertimpa refactor (CRITICAL, restore PR #627); §39.10 BARU — Ganti Peran + chip identitas dinamis + auto PIN re-verify; §39.11 BARU — Preview Mode tanpa login (48 file, soal non-interaktif via `window._previewGuard`, tidak pernah memanggil callable server, poin & export dinonaktifkan); §24 cakupan chat 42/42 (2 Modul-4 outlier di-port); §38.7 tambah `generateExportCode`/`verifyExportCode` + `rescaleModulLatePenalty` NIM-scoping; §40 BARU — Modul Word & PPT template BOP Kurikulum 2025 (WAJIB mulai dari file template `Template-Modul-Word-dan-PPT/`); §40.4 BARU — pelajaran revisi Modul 1 Opto: fix bug urutan child `w:pPr` (pBdr/shd sblm spacing, WAJIB `validate.py`), LibreOffice headless nonfungsional total di environment sesi (verifikasi via validate.py+pandoc+introspeksi python-pptx, bukan render visual), gambar wajib bernomor+caption+sitasi teks, link versi Preview sebelum Pendahuluan, Tugas disalin persis modul HTML, PPT layout 2-kolom teks/gambar + title auto-fit 1-baris (PIL DejaVu Sans Bold proxy) + verifikasi no-overlap terprogram, Kode MK Optoauto `P132520004` terkonfirmasi; §40.5 BARU — simulasi pagination Word tanpa render visual (`simulate_pages.py`, heuristik PIL+Liberation Sans, `docx-preview` npm terbukti BUKAN solusi krn `breakPages` cuma baca explicit page-break), gotcha `bbox_inches='tight'` matplotlib tak 1:1 dgn `figsize` diminta (ukur pixel aktual baru embed), strategi reorder-dulu-baru-tambah-teks utk cegah ruang kosong; §40.6 BARU — tabel bernomor dgn caption DI ATAS tabel (kebalikan gambar, `make_table(..., caption=)` + `_TABEL_COUNTER`) + wajib disitasi teks, riset Daftar Pustaka via `WebSearch` (bekerja walau `WebFetch` langsung ke doi.org/mdpi.com/pmc.ncbi.nlm.nih.gov diblok proxy 403), aturan "≤10 tahun" berlaku ke SELURUH Daftar Pustaka bukan cuma minimal-5-jurnalnya (ganti paper fondasional tua dgn paper modern yang me-review/menerapkan metode yang sama), **koreksi §40.5**: simulator pagination heuristik TERBUKTI TIDAK AKURAT memprediksi lokasi/besar celah nyata (dosen laporkan gap di lokasi yang tidak diprediksi simulator sama sekali) — jangan percaya angka simulator sbg final, percaya lokasi yang dilaporkan dosen & tambal generous (bukan pas-pasan), checklist audit overlap/clipping per-gambar (legend bbox_to_anchor, donut label 1-baris, diagram kotak compact), PPT reuse PNG dari `figs/` Word apa adanya via `add_picture_fit` scale-to-fit (kecuali roadmap/analogi pakai varian `_vertical` dgn font hardcoded terpisah dari `SZ_*` global, wajib update manual), Daftar Pustaka Word/PPT sinkron manual; §40.7 BARU — **koreksi kritis §40.4/§40.5/§40.6**: LibreOffice headless TERNYATA bisa jalan, akar masalah cuma paket `libreoffice-writer` belum terpasang (fix: `apt-get install libreoffice-writer poppler-utils`), render+verifikasi visual sungguhan jadi mungkin utk pertama kali; tooling baru `analyze_gaps.py` (rasterize PDF + row-darkness analysis) + `find_culprits2.py` (pdftotext caption-matching) menggantikan `simulate_pages.py` yang tak akurat; strategi `max_h_cm` override per-instance (bukan cap global) ditarget dari gap terukur; redesign donut "Distribusi Poin Tugas" jadi horizontal (turun ~15-21cm → ~7,3cm, sumber gap terbesar di hampir semua modul); tabel dipadatkan global (`tcMar` tipis + `line_spacing=1.0`); hasil 13 modul (P2-15): total gap turun ±169cm→±57cm (-66%), 4/13 modul 0 gap, sisanya residual 3,6-7,9cm diterima sadar (diminishing return + whack-a-mole risk). PR references: #613–#627, #631–#641.*
+*Update v21: §15.5 BARU — ekstraksi jawaban komputasi multi-layer (`_lineAnswers` per-baris first+last, bracket-strip, field `lineAnswers` terpisah dari `userAnswers`); §36.12 BARU — Kode Verifikasi HMAC utk Export HTML 48 file (server-authoritative points, secret di Secret Manager, `Admin/verify-export-code.html`); §25.19–25.20 BARU — PERMISSION_DENIED stale-set() vs update() sparse + EXAM_CONFIG field hilang tertimpa refactor (CRITICAL, restore PR #627); §39.10 BARU — Ganti Peran + chip identitas dinamis + auto PIN re-verify; §39.11 BARU — Preview Mode tanpa login (48 file, soal non-interaktif via `window._previewGuard`, tidak pernah memanggil callable server, poin & export dinonaktifkan); §24 cakupan chat 42/42 (2 Modul-4 outlier di-port); §38.7 tambah `generateExportCode`/`verifyExportCode` + `rescaleModulLatePenalty` NIM-scoping; §40 BARU — Modul Word & PPT template BOP Kurikulum 2025 (WAJIB mulai dari file template `Template-Modul-Word-dan-PPT/`); §40.4 BARU — pelajaran revisi Modul 1 Opto: fix bug urutan child `w:pPr` (pBdr/shd sblm spacing, WAJIB `validate.py`), LibreOffice headless nonfungsional total di environment sesi (verifikasi via validate.py+pandoc+introspeksi python-pptx, bukan render visual), gambar wajib bernomor+caption+sitasi teks, link versi Preview sebelum Pendahuluan, Tugas disalin persis modul HTML, PPT layout 2-kolom teks/gambar + title auto-fit 1-baris (PIL DejaVu Sans Bold proxy) + verifikasi no-overlap terprogram, Kode MK Optoauto `P132520004` terkonfirmasi; §40.5 BARU — simulasi pagination Word tanpa render visual (`simulate_pages.py`, heuristik PIL+Liberation Sans, `docx-preview` npm terbukti BUKAN solusi krn `breakPages` cuma baca explicit page-break), gotcha `bbox_inches='tight'` matplotlib tak 1:1 dgn `figsize` diminta (ukur pixel aktual baru embed), strategi reorder-dulu-baru-tambah-teks utk cegah ruang kosong; §40.6 BARU — tabel bernomor dgn caption DI ATAS tabel (kebalikan gambar, `make_table(..., caption=)` + `_TABEL_COUNTER`) + wajib disitasi teks, riset Daftar Pustaka via `WebSearch` (bekerja walau `WebFetch` langsung ke doi.org/mdpi.com/pmc.ncbi.nlm.nih.gov diblok proxy 403), aturan "≤10 tahun" berlaku ke SELURUH Daftar Pustaka bukan cuma minimal-5-jurnalnya (ganti paper fondasional tua dgn paper modern yang me-review/menerapkan metode yang sama), **koreksi §40.5**: simulator pagination heuristik TERBUKTI TIDAK AKURAT memprediksi lokasi/besar celah nyata (dosen laporkan gap di lokasi yang tidak diprediksi simulator sama sekali) — jangan percaya angka simulator sbg final, percaya lokasi yang dilaporkan dosen & tambal generous (bukan pas-pasan), checklist audit overlap/clipping per-gambar (legend bbox_to_anchor, donut label 1-baris, diagram kotak compact), PPT reuse PNG dari `figs/` Word apa adanya via `add_picture_fit` scale-to-fit (kecuali roadmap/analogi pakai varian `_vertical` dgn font hardcoded terpisah dari `SZ_*` global, wajib update manual), Daftar Pustaka Word/PPT sinkron manual; §40.7 BARU — **koreksi kritis §40.4/§40.5/§40.6**: LibreOffice headless TERNYATA bisa jalan, akar masalah cuma paket `libreoffice-writer` belum terpasang (fix: `apt-get install libreoffice-writer poppler-utils`), render+verifikasi visual sungguhan jadi mungkin utk pertama kali; tooling baru `analyze_gaps.py` (rasterize PDF + row-darkness analysis) + `find_culprits2.py` (pdftotext caption-matching) menggantikan `simulate_pages.py` yang tak akurat; strategi `max_h_cm` override per-instance (bukan cap global) ditarget dari gap terukur; redesign donut "Distribusi Poin Tugas" jadi horizontal (turun ~15-21cm → ~7,3cm, sumber gap terbesar di hampir semua modul); tabel dipadatkan global (`tcMar` tipis + `line_spacing=1.0`); hasil 13 modul (P2-15) sblm koreksi §40.8: total gap turun ±169cm→±57cm (-66%), 4/13 modul 0 gap; §40.8 BARU — **koreksi kritis**: dosen tolak strategi kecilkan gambar ("teks di gambar jadi terlalu kecil dan tidak terbaca", echo instruksi lama §40.5 poin 4 yg sempat terlanggar) — hapus SELURUH 17 override `max_h_cm` per-instance, `MAX_IMG_H_CM` kembali ke 12,5cm generous safety-net, ganti strategi ke alokasi/tambah teks substantif (worked example, studi kasus) tepat sebelum blok gambar/tabel yg lompat halaman (bukan mengecilkan blok itu) — jauh lebih predictable drpd shrink krn tidak mengubah titik lompat scr non-linear; hasil akhir 10/13 modul 0 gap sama sekali, sisa 3 modul cuma 1 gap residual kecil (3,5-3,9cm) each, total gap ke-13 modul turun jadi ±10,9cm (-94% dari baseline), TANPA satupun gambar dikecilkan di bawah ukuran natural. PR references: #613–#627, #631–#642.*
 
 *Pedoman v19 — Juni 2026 (Role Picker + Schedule Defaults + Penalty 0.7).*
 *Update v19: §39 BARU — role picker overlay (Mahasiswa vs Dosen sebelum login form), Mahasiswa form OBE-style (NIM + PIN inline, no Nama), dosen streamline (1× pw input + 1× klik utk save jadwal & masuk), animasi `initLoginAnimation(canvasId, particlesId)` shared ke 3 canvas (refactor dari IIFE), WIB timezone enforcement global (`timeZone:'Asia/Jakarta'` di semua display + helper `_nowPlusMinAsWibString`/`_wibStringToDate` di exam). Schedule defaults baru: Modul 7 hari + due +6h WIB 23:59 (PR #383, #384); Exam 180 menit + due +180m WIB + extension 120 menit. **Penalti terlambat 0.8 → 0.7 (20% → 30%)** untuk semua asesmen (PR #284). §38.7 callable table diperluas: tambah `recomputeExamPoints`, `checkExamAnswer`, `resetExamAttempts`, `resetModulQuestion`, `rescaleModulLatePenalty`, `analyzeModulData`. §15.4a + §9.5.5 + §9.2 sync ke multiplier 0.7. §7.1–7.3 deprecated note (dipertahankan utk historis, alur live di §39). PR references: #370–#386 (login flow), #284 (penalty 0.7), #354 (recomputeExamPoints), #359–#363 (OBE scoring mapping 1:1:2:4 + Sub-CPMK biggest bobot owns Comp Hard).*
