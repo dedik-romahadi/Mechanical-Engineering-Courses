@@ -8461,6 +8461,20 @@ kalau tidak bisa tambah penjelasan"). Ini butuh pendekatan baru krn 2 alasan:
    menjamin skala 1:1 apa pun perilaku tight-bbox. Iterasi figsize 1-2× utk
    dapat lebar akhir yg pas (target ≤ usable-width halaman, idealnya
    11–14cm — "besar & jelas" tanpa mepet batas 15.5cm).
+   **KOREKSI v21 (dosen: "gambar melebihi batas margin, masih banyak space
+   kosong"):** memakai HASIL-UKUR-natural APA ADANYA sbg `width_cm` JUSTRU
+   biang overflow — figure `figsize` lebar 9-11 inci @220 DPI = 21-24cm natural,
+   jauh > kolom teks 15,5cm, jadi bleed lewat margin kanan; yang tinggi
+   (multi-panel/donut ~21cm) memicu page-break → gap besar. **Fix permanen di
+   `word_lib.gambar()`**: JANGAN percaya `width_cm` caller; hitung dari piksel
+   PNG lalu **clamp keras** `min(15,2cm, natural)` utk lebar DAN kalau tinggi
+   hasil > **12,5cm** kecilkan lagi supaya satu gambar tak menghabiskan halaman
+   (`MAX_IMG_W_CM=15,2`, `MAX_IMG_H_CM=12,5`, aspect-ratio dijaga, cover banner
+   template tidak lewat `gambar()` jadi aman full-bleed). Verifikasi terprogram:
+   baca `wp:extent` cx/cy tiap docx, pastikan semua cx ≤ 15,3cm & cy ≤ 12,7cm
+   (kecualikan banner cover ~21cm) — LibreOffice headless tetap nonfungsional
+   total di sesi ini (bahkan docx trivial gagal load), jadi tak ada render
+   visual; audit dimensi EMU adalah gate-nya.
 4. **Strategi cegah ruang kosong, urutan prioritas sesuai instruksi dosen**:
    (a) **atur ulang lokasi teks** — pola paling efektif: tukar urutan
    tabel-lalu-gambar jadi gambar-lalu-tabel atau sebaliknya per section
