@@ -8728,10 +8728,82 @@ lokasi teks") yang sempat terlanggar saat gap-fixing §40.7 dikerjakan.
    lama sblm memilih strategi baru, krn dosen akan (dan berhak) menegur
    ulang persis instruksi yg sama kalau dilanggar lagi.
 
+### 40.9 Tombol Export Modul ke PDF (dari Modul Word), Gated Login — Pilot Modul 1 Opto (BARU di v21, Jul 2026)
+
+Permintaan dosen: "Tambahkan tombol untuk export modul (dari modul word)
+yang outputnya PDF. Tombol ini aktif ketika user sudah login. Terapkan di
+modul 1 opto dahulu." Tujuannya: mahasiswa/dosen yang sudah login di LMS
+HTML modul bisa langsung mengunduh versi PDF dari dokumen Word BOP (§40)
+tanpa perlu software Word.
+
+1. **Pendekatan: PDF di-generate SEKALI di build-time (LibreOffice
+   headless, sama seperti tooling verifikasi §40.7), bukan konversi
+   dinamis di browser.** Alasan: (a) konversi docx→PDF client-side (JS
+   library) tidak reliable utk dokumen kompleks (tabel, gambar, header/
+   footer, page numbering per template BOP) dan bisa merusak fidelity yg
+   sudah divalidasi lewat render nyata; (b) tidak ada backend/Cloud
+   Function existing yg cocok utk convert on-demand (Cloud Functions Node
+   tidak bawa LibreOffice binary secara default, perlu custom container =
+   lift besar di luar skop); (c) PDF statis hasil render LibreOffice
+   PERSIS sama dgn yg sudah diverifikasi visual/terukur di §40.7-40.8, jadi
+   tidak ada risiko divergensi. File PDF disimpan sejajar dgn `.docx`
+   sumbernya: `Optimalisasi-dan-Automasi/Modul-Word/Modul-N-<slug>.pdf`
+   (di-generate via `soffice --headless --convert-to pdf`, sama exact
+   command dgn tooling gap-verification).
+2. **Tombol di navbar (`#navExportPdf`), disabled by default di HTML**
+   (aman thd race condition sblm JS jalan), diaktifkan/dinonaktifkan
+   TERPUSAT di dalam `_applyRoleVisibility()` — fungsi yg SUDAH ADA sbg
+   satu-satunya hook role/login-state (dipanggil di SEMUA titik transisi:
+   page-load auto-login, login mahasiswa sukses, login dosen sukses,
+   force-logout krn schedule hilang, `_switchRole()` — lihat §7.5/§39).
+   Logic: `loggedIn = !!(me && me.nama)` dari `LOCAL_IDENTITY` di
+   localStorage — TIDAK membedakan role (mahasiswa ATAU dosen keduanya
+   dianggap "sudah login", sesuai permintaan dosen yg tidak membatasi role
+   tertentu). Menambahkan hook baru di fungsi existing ini (bukan bikin
+   listener terpisah) menjamin state selalu sinkron tanpa perlu audit
+   ulang semua titik login/logout satu per satu.
+3. **Klik tombol**: buat elemen `<a download href="...">` sementara via JS
+   lalu `.click()` (bukan `window.open`, supaya browser treat sbg
+   download bukan navigasi/tab baru) — pola standar utk trigger download
+   file statis dari tombol. URL PDF pakai path RELATIF thd lokasi file
+   HTML modul (`../Modul-Word/Modul-N-<slug>.pdf`), konsisten dgn struktur
+   folder repo & GitHub Pages hosting (bukan absolute URL spt
+   `PREVIEW_URL`, krn itu utk link eksternal yg di-copy ke Word, beda
+   konteks).
+4. **Verifikasi tanpa Firebase live (sandbox tidak punya akses network ke
+   `gstatic.com`/Firebase CDN)**: `import` Firebase di `<script
+   type="module">` GAGAL total di headless browser sandboxed → seluruh
+   module (termasuk `MODULE_ID`, `LOCAL_IDENTITY`, `_applyRoleVisibility`)
+   tidak pernah tereksekusi kalau di-load apa adanya. **Solusi test**:
+   intercept via Playwright `page.route()`, serve STUB module lokal utk 3
+   URL Firebase (`firebase-app.js` → `initializeApp` no-op;
+   `firebase-database.js` → `ref/get/set/onValue/...` no-op/promise-resolve
+   kosong, `onValue` panggil callback sekali dgn snapshot kosong biar
+   `_handleScheduleReady()` jalan natural; `firebase-functions.js` →
+   `httpsCallable` no-op) — module script lolos tanpa throw, kode
+   sesungguhnya (bukan mock manual) jalan end-to-end. Test yg terverifikasi
+   lolos: (a) state awal disabled+tooltip benar; (b) simulasi login
+   mahasiswa (localStorage + `_applyRoleVisibility()`) → enabled; (c)
+   logout → disabled lagi; (d) simulasi login dosen → enabled; (e) klik
+   tombol saat enabled → event `download` browser sungguhan ter-trigger dgn
+   filename benar & ukuran file PERSIS cocok (1.309.684 byte) dgn PDF di
+   repo. **Pola stub-Firebase ini reusable** utk QA modul HTML lain di
+   sandbox tanpa network — dicatat di sini sbg referensi ke depan.
+5. **Status: PILOT di Modul 1 Opto saja** (per instruksi dosen "terapkan
+   di modul 1 opto dahulu") — BELUM di-generalisasi ke Modul 2-14 Opto
+   ataupun course lain (Getaran, Math4). Kalau dosen approve pola ini,
+   generalisasi ke modul lain butuh: (a) generate PDF tiap modul via
+   LibreOffice (`soffice --headless --convert-to pdf`, sudah ada di §40.7);
+   (b) tambah tombol+hook yg identik (path PDF beda per modul, disesuaikan
+   `MODULE_ID`/nama file); (c) commit PDF-nya sejajar `.docx` masing-
+   masing. Pertimbangkan juga apakah export PDF perlu diperluas ke course
+   lain (Getaran Mekanik, Math4) begitu template Word/PPT-nya juga selesai
+   dibuat utk course tsb.
+
 ---
 
 *Pedoman v21 — Juli 2026 (Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT).*
-*Update v21: §15.5 BARU — ekstraksi jawaban komputasi multi-layer (`_lineAnswers` per-baris first+last, bracket-strip, field `lineAnswers` terpisah dari `userAnswers`); §36.12 BARU — Kode Verifikasi HMAC utk Export HTML 48 file (server-authoritative points, secret di Secret Manager, `Admin/verify-export-code.html`); §25.19–25.20 BARU — PERMISSION_DENIED stale-set() vs update() sparse + EXAM_CONFIG field hilang tertimpa refactor (CRITICAL, restore PR #627); §39.10 BARU — Ganti Peran + chip identitas dinamis + auto PIN re-verify; §39.11 BARU — Preview Mode tanpa login (48 file, soal non-interaktif via `window._previewGuard`, tidak pernah memanggil callable server, poin & export dinonaktifkan); §24 cakupan chat 42/42 (2 Modul-4 outlier di-port); §38.7 tambah `generateExportCode`/`verifyExportCode` + `rescaleModulLatePenalty` NIM-scoping; §40 BARU — Modul Word & PPT template BOP Kurikulum 2025 (WAJIB mulai dari file template `Template-Modul-Word-dan-PPT/`); §40.4 BARU — pelajaran revisi Modul 1 Opto: fix bug urutan child `w:pPr` (pBdr/shd sblm spacing, WAJIB `validate.py`), LibreOffice headless nonfungsional total di environment sesi (verifikasi via validate.py+pandoc+introspeksi python-pptx, bukan render visual), gambar wajib bernomor+caption+sitasi teks, link versi Preview sebelum Pendahuluan, Tugas disalin persis modul HTML, PPT layout 2-kolom teks/gambar + title auto-fit 1-baris (PIL DejaVu Sans Bold proxy) + verifikasi no-overlap terprogram, Kode MK Optoauto `P132520004` terkonfirmasi; §40.5 BARU — simulasi pagination Word tanpa render visual (`simulate_pages.py`, heuristik PIL+Liberation Sans, `docx-preview` npm terbukti BUKAN solusi krn `breakPages` cuma baca explicit page-break), gotcha `bbox_inches='tight'` matplotlib tak 1:1 dgn `figsize` diminta (ukur pixel aktual baru embed), strategi reorder-dulu-baru-tambah-teks utk cegah ruang kosong; §40.6 BARU — tabel bernomor dgn caption DI ATAS tabel (kebalikan gambar, `make_table(..., caption=)` + `_TABEL_COUNTER`) + wajib disitasi teks, riset Daftar Pustaka via `WebSearch` (bekerja walau `WebFetch` langsung ke doi.org/mdpi.com/pmc.ncbi.nlm.nih.gov diblok proxy 403), aturan "≤10 tahun" berlaku ke SELURUH Daftar Pustaka bukan cuma minimal-5-jurnalnya (ganti paper fondasional tua dgn paper modern yang me-review/menerapkan metode yang sama), **koreksi §40.5**: simulator pagination heuristik TERBUKTI TIDAK AKURAT memprediksi lokasi/besar celah nyata (dosen laporkan gap di lokasi yang tidak diprediksi simulator sama sekali) — jangan percaya angka simulator sbg final, percaya lokasi yang dilaporkan dosen & tambal generous (bukan pas-pasan), checklist audit overlap/clipping per-gambar (legend bbox_to_anchor, donut label 1-baris, diagram kotak compact), PPT reuse PNG dari `figs/` Word apa adanya via `add_picture_fit` scale-to-fit (kecuali roadmap/analogi pakai varian `_vertical` dgn font hardcoded terpisah dari `SZ_*` global, wajib update manual), Daftar Pustaka Word/PPT sinkron manual; §40.7 BARU — **koreksi kritis §40.4/§40.5/§40.6**: LibreOffice headless TERNYATA bisa jalan, akar masalah cuma paket `libreoffice-writer` belum terpasang (fix: `apt-get install libreoffice-writer poppler-utils`), render+verifikasi visual sungguhan jadi mungkin utk pertama kali; tooling baru `analyze_gaps.py` (rasterize PDF + row-darkness analysis) + `find_culprits2.py` (pdftotext caption-matching) menggantikan `simulate_pages.py` yang tak akurat; strategi `max_h_cm` override per-instance (bukan cap global) ditarget dari gap terukur; redesign donut "Distribusi Poin Tugas" jadi horizontal (turun ~15-21cm → ~7,3cm, sumber gap terbesar di hampir semua modul); tabel dipadatkan global (`tcMar` tipis + `line_spacing=1.0`); hasil 13 modul (P2-15) sblm koreksi §40.8: total gap turun ±169cm→±57cm (-66%), 4/13 modul 0 gap; §40.8 BARU — **koreksi kritis**: dosen tolak strategi kecilkan gambar ("teks di gambar jadi terlalu kecil dan tidak terbaca", echo instruksi lama §40.5 poin 4 yg sempat terlanggar) — hapus SELURUH 17 override `max_h_cm` per-instance, `MAX_IMG_H_CM` kembali ke 12,5cm generous safety-net, ganti strategi ke alokasi/tambah teks substantif (worked example, studi kasus) tepat sebelum blok gambar/tabel yg lompat halaman (bukan mengecilkan blok itu) — jauh lebih predictable drpd shrink krn tidak mengubah titik lompat scr non-linear; hasil akhir 10/13 modul 0 gap sama sekali, sisa 3 modul cuma 1 gap residual kecil (3,5-3,9cm) each, total gap ke-13 modul turun jadi ±10,9cm (-94% dari baseline), TANPA satupun gambar dikecilkan di bawah ukuran natural. PR references: #613–#627, #631–#642.*
+*Update v21: §15.5 BARU — ekstraksi jawaban komputasi multi-layer (`_lineAnswers` per-baris first+last, bracket-strip, field `lineAnswers` terpisah dari `userAnswers`); §36.12 BARU — Kode Verifikasi HMAC utk Export HTML 48 file (server-authoritative points, secret di Secret Manager, `Admin/verify-export-code.html`); §25.19–25.20 BARU — PERMISSION_DENIED stale-set() vs update() sparse + EXAM_CONFIG field hilang tertimpa refactor (CRITICAL, restore PR #627); §39.10 BARU — Ganti Peran + chip identitas dinamis + auto PIN re-verify; §39.11 BARU — Preview Mode tanpa login (48 file, soal non-interaktif via `window._previewGuard`, tidak pernah memanggil callable server, poin & export dinonaktifkan); §24 cakupan chat 42/42 (2 Modul-4 outlier di-port); §38.7 tambah `generateExportCode`/`verifyExportCode` + `rescaleModulLatePenalty` NIM-scoping; §40 BARU — Modul Word & PPT template BOP Kurikulum 2025 (WAJIB mulai dari file template `Template-Modul-Word-dan-PPT/`); §40.4 BARU — pelajaran revisi Modul 1 Opto: fix bug urutan child `w:pPr` (pBdr/shd sblm spacing, WAJIB `validate.py`), LibreOffice headless nonfungsional total di environment sesi (verifikasi via validate.py+pandoc+introspeksi python-pptx, bukan render visual), gambar wajib bernomor+caption+sitasi teks, link versi Preview sebelum Pendahuluan, Tugas disalin persis modul HTML, PPT layout 2-kolom teks/gambar + title auto-fit 1-baris (PIL DejaVu Sans Bold proxy) + verifikasi no-overlap terprogram, Kode MK Optoauto `P132520004` terkonfirmasi; §40.5 BARU — simulasi pagination Word tanpa render visual (`simulate_pages.py`, heuristik PIL+Liberation Sans, `docx-preview` npm terbukti BUKAN solusi krn `breakPages` cuma baca explicit page-break), gotcha `bbox_inches='tight'` matplotlib tak 1:1 dgn `figsize` diminta (ukur pixel aktual baru embed), strategi reorder-dulu-baru-tambah-teks utk cegah ruang kosong; §40.6 BARU — tabel bernomor dgn caption DI ATAS tabel (kebalikan gambar, `make_table(..., caption=)` + `_TABEL_COUNTER`) + wajib disitasi teks, riset Daftar Pustaka via `WebSearch` (bekerja walau `WebFetch` langsung ke doi.org/mdpi.com/pmc.ncbi.nlm.nih.gov diblok proxy 403), aturan "≤10 tahun" berlaku ke SELURUH Daftar Pustaka bukan cuma minimal-5-jurnalnya (ganti paper fondasional tua dgn paper modern yang me-review/menerapkan metode yang sama), **koreksi §40.5**: simulator pagination heuristik TERBUKTI TIDAK AKURAT memprediksi lokasi/besar celah nyata (dosen laporkan gap di lokasi yang tidak diprediksi simulator sama sekali) — jangan percaya angka simulator sbg final, percaya lokasi yang dilaporkan dosen & tambal generous (bukan pas-pasan), checklist audit overlap/clipping per-gambar (legend bbox_to_anchor, donut label 1-baris, diagram kotak compact), PPT reuse PNG dari `figs/` Word apa adanya via `add_picture_fit` scale-to-fit (kecuali roadmap/analogi pakai varian `_vertical` dgn font hardcoded terpisah dari `SZ_*` global, wajib update manual), Daftar Pustaka Word/PPT sinkron manual; §40.7 BARU — **koreksi kritis §40.4/§40.5/§40.6**: LibreOffice headless TERNYATA bisa jalan, akar masalah cuma paket `libreoffice-writer` belum terpasang (fix: `apt-get install libreoffice-writer poppler-utils`), render+verifikasi visual sungguhan jadi mungkin utk pertama kali; tooling baru `analyze_gaps.py` (rasterize PDF + row-darkness analysis) + `find_culprits2.py` (pdftotext caption-matching) menggantikan `simulate_pages.py` yang tak akurat; strategi `max_h_cm` override per-instance (bukan cap global) ditarget dari gap terukur; redesign donut "Distribusi Poin Tugas" jadi horizontal (turun ~15-21cm → ~7,3cm, sumber gap terbesar di hampir semua modul); tabel dipadatkan global (`tcMar` tipis + `line_spacing=1.0`); hasil 13 modul (P2-15) sblm koreksi §40.8: total gap turun ±169cm→±57cm (-66%), 4/13 modul 0 gap; §40.8 BARU — **koreksi kritis**: dosen tolak strategi kecilkan gambar ("teks di gambar jadi terlalu kecil dan tidak terbaca", echo instruksi lama §40.5 poin 4 yg sempat terlanggar) — hapus SELURUH 17 override `max_h_cm` per-instance, `MAX_IMG_H_CM` kembali ke 12,5cm generous safety-net, ganti strategi ke alokasi/tambah teks substantif (worked example, studi kasus) tepat sebelum blok gambar/tabel yg lompat halaman (bukan mengecilkan blok itu) — jauh lebih predictable drpd shrink krn tidak mengubah titik lompat scr non-linear; hasil akhir 10/13 modul 0 gap sama sekali, sisa 3 modul cuma 1 gap residual kecil (3,5-3,9cm) each, total gap ke-13 modul turun jadi ±10,9cm (-94% dari baseline), TANPA satupun gambar dikecilkan di bawah ukuran natural; §40.9 BARU — tombol Export Modul ke PDF (dari Word, pre-rendered via LibreOffice, bukan konversi dinamis), gated login via hook baru di `_applyRoleVisibility()` existing (aktif utk mahasiswa MAUPUN dosen), path PDF relatif sejajar `.docx` sumbernya, verifikasi via Playwright dgn Firebase CDN di-stub lokal (`page.route`) krn sandbox tanpa akses network ke gstatic.com — pola stub reusable utk QA modul HTML lain, pilot di Modul 1 Opto saja per instruksi dosen. PR references: #613–#627, #631–#643.*
 
 *Pedoman v19 — Juni 2026 (Role Picker + Schedule Defaults + Penalty 0.7).*
 *Update v19: §39 BARU — role picker overlay (Mahasiswa vs Dosen sebelum login form), Mahasiswa form OBE-style (NIM + PIN inline, no Nama), dosen streamline (1× pw input + 1× klik utk save jadwal & masuk), animasi `initLoginAnimation(canvasId, particlesId)` shared ke 3 canvas (refactor dari IIFE), WIB timezone enforcement global (`timeZone:'Asia/Jakarta'` di semua display + helper `_nowPlusMinAsWibString`/`_wibStringToDate` di exam). Schedule defaults baru: Modul 7 hari + due +6h WIB 23:59 (PR #383, #384); Exam 180 menit + due +180m WIB + extension 120 menit. **Penalti terlambat 0.8 → 0.7 (20% → 30%)** untuk semua asesmen (PR #284). §38.7 callable table diperluas: tambah `recomputeExamPoints`, `checkExamAnswer`, `resetExamAttempts`, `resetModulQuestion`, `rescaleModulLatePenalty`, `analyzeModulData`. §15.4a + §9.5.5 + §9.2 sync ke multiplier 0.7. §7.1–7.3 deprecated note (dipertahankan utk historis, alur live di §39). PR references: #370–#386 (login flow), #284 (penalty 0.7), #354 (recomputeExamPoints), #359–#363 (OBE scoring mapping 1:1:2:4 + Sub-CPMK biggest bobot owns Comp Hard).*
