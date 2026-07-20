@@ -9597,6 +9597,26 @@ hilang, tabel jam SAP cuma 3 kolom bukan 4, dst.) — bukan sekadar
     Lebar gambar diskalakan mengikuti lebar kolom (3,2/3,0/2,6 cm utk
     Dosen/Koordinator/Ketua Prodi) supaya proporsional, tidak
     mendominasi blok tanda tangan. Page count tetap 15.
+14. **Follow-up dosen — posisi & ukuran tanda tangan**: (a) blok tanda
+    tangan+nama di sel Dosen Pengemban RPS terlihat tidak center
+    (numpuk ke bawah) — root cause: sel itu py 3 nama (vs 1 nama di 2
+    sel lain) shg kontennya PALING TINGGI di baris tsb dan otomatis
+    mengisi penuh tinggi baris; `w:vAlign="center"` di level sel jadi
+    tidak py "slack" apa pun utk benar-benar menggeser kontennya (0
+    ruang lebih) — sedangkan susunan internal sel itu sendiri masih 4
+    paragraf kosong di ATAS + 0 paragraf kosong di BAWAH (asimetris),
+    itulah yang membuatnya terlihat mepet ke bawah. Fix: pindahkan 2
+    dari 4 paragraf-kosong itu dari atas ke bawah (jadi 2 atas/2 bawah,
+    total tetap 8 paragraf spt semula, cuma redistribusi) — vAlign
+    sendiri tidak perlu diubah krn memang bukan akar masalahnya.
+    (b) TTD Koordinator & Ketua Prodi terlihat kecil dibanding TTD
+    Dosen padahal lebar cm-nya mirip (3,0/2,6 vs 3,2) — sebabnya
+    aspect ratio gambar beda jauh (Koordinator ~3,4:1 sangat landscape,
+    Ketua Prodi ~2,1:1, Dosen ~1,1:1 nyaris persegi), jadi menyamakan
+    LEBAR saja bikin TINGGI-nya jomplang. Fix: perbesar lebar (3,0→5,0
+    cm; 2,6→4,0 cm) supaya TINGGI hasil render mendekati tinggi TTD
+    Dosen (~2,8cm), tetap dicek muat di lebar kolom aslinya (kolom
+    Koordinator ~7,2cm, Ketua Prodi ~5,7cm — masih longgar).
 
 ---
 
