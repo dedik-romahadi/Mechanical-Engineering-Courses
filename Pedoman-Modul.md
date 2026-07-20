@@ -9451,6 +9451,93 @@ pendekatan hybrid redact+splice PDF di §40.17 poin 3 sepenuhnya.
    di akhir, supaya kesalahan struktural (spt bug bobot/UTS-UAS di
    atas) ketahuan sedini mungkin sebelum menumpuk di tahap selanjutnya.
 
+### 40.19 Koreksi §40.18: Dosen TOLAK Rebuild-dari-Nol, WAJIB Edit File Asli Dosen In-Place (BARU di v21, Jul 2026)
+
+Dosen hapus KEDUA file hasil §40.18 (`.docx` dan `.pdf`) dari repo dan
+balas "Salah. File RPS jangan diubah, gunakan itu sebagai template,
+format jangan diubah. Hanya sesuaikan isinya saja." — pendekatan
+rebuild-dari-nol via `python-docx` murni (§40.18) DITOLAK sepenuhnya,
+walau kontennya sudah sinkron, krn desain visual/struktur tabelnya
+BEDA dari file asli dosen (logo UMB asli hilang, sudut dekoratif
+hilang, tabel jam SAP cuma 3 kolom bukan 4, dst.) — bukan sekadar
+"mirip", harus file dosen sendiri yang diedit.
+
+1. **File dasar yang benar**: bukan file yang dosen upload balik ke
+   Claude (itu ternyata cuma salinan hasil §40.18 yang dikirim balik
+   sbg bukti "ini salah") — melainkan file ASLI yang dosen upload
+   SENDIRI ke repo sebelum sesi §40.18 (commit `182eb05`, 145.020
+   byte, 5 tabel bersarang, logo UMB asli). Diambil ulang via
+   `git show <commit>:<path>`.
+2. **Teknik: edit XML in-place, BUKAN python-docx `cell.text=`** —
+   `cell.text = X` mereset SEMUA formatting paragraf/run jadi default
+   (font salah), jadi WAJIB pola dari skill `docx`: hanya ubah
+   `run.text` pada run yang sudah ada (mempertahankan `rPr` asli),
+   tambah paragraf/baris/kolom baru via `copy.deepcopy` node yang
+   sudah py formatting benar (bukan bikin elemen baru dari nol).
+3. **GOTCHA python-docx vs vMerge (paling berbahaya, nyaris rusak
+   dokumen)**: `Row.cells[i]` python-docx OTOMATIS resolve continuation
+   cell (`vMerge` tanpa `val`) ke cell MASTER-nya (bukan cell fisik
+   baris itu sendiri) — assignment via `.cells[i]._tc` pada baris
+   continuation diam-diam mengedit baris RESTART-nya, korupsi
+   struktur merge. Fix: akses `<w:tc>` fisik langsung via
+   `tr.findall(qn('w:tc'))[col]`, JANGAN pernah lewat `.cells[]` utk
+   baris yang mungkin ber-vMerge.
+4. **GOTCHA formatting hilang saat promote continuation→restart**: cell
+   continuation yang dipromosikan jadi restart baru (utk regrouping
+   CPMK1-4→CPMK1-5, tambah 1 baris) sering TANPA `<w:rPr>` sama sekali
+   (mewarisi default font salah, bukan Times New Roman bold spt
+   sibling-nya) — WAJIB clone `rPr` dari cell restart asli yang masih
+   py formatting benar, baru attach ke run baru.
+5. **GOTCHA off-by-one row-lookup via formula ARITMETIK** — formula
+   tangan "row = 10+minggu utk minggu≤7, else 11+minggu" (asumsi
+   minggu-8/UTS makan 2 baris) SALAH krn UTS/UAS di kedua tabel (SAP
+   16-minggu & tabel mingguan detail) cuma makan 1 baris — minggu 9
+   ke atas ketulis ke baris yang SALAH (geser +1), nyaris menimpa
+   baris marker UAS minggu-16. Fix: cari baris via pencarian teks
+   kolom-0 (`col0.text.strip() == str(minggu)`), BUKAN aritmetik
+   tangan — immune thd asumsi struktur yang ternyata salah.
+6. **GOTCHA `<w:hyperlink>` bukan run biasa** — python-docx
+   `Paragraph.runs` TIDAK melihat run yang terbungkus
+   `<w:hyperlink>` (link YouTube lama di baris Pustaka Pendukung),
+   jadi `p.runs` tampak kosong dan `add_run()` nambah run KEDUA
+   alih-alih replace teks link lama → hasil dobel teks. Fix: hapus
+   elemen `<w:hyperlink>` dulu sebelum reuse paragraf sbg wadah teks
+   biasa (referensi pustaka baru bukan link, jadi aman dihapus).
+7. **GOTCHA auto-numbered list (`w:numPr`) + manual prefix nomor** —
+   sebagian baris kolom Materi[Pustaka] py list auto-nomor (`numId`)
+   dari template asli (dipakai kalau baris asli py >1 item), sebagian
+   tidak (kalau cuma 1 item asli); nge-generate teks baru dgn prefix
+   manual "1. "/"2. " di ATAS paragraf yang masih py `numPr` bikin
+   nomor dobel ("1.  1. Konsep..."). Fix: SELALU rebuild sel dari nol
+   pakai template paragraf NON-bernomor (baris sitasi terakhir, selalu
+   plain di semua baris) + prefix manual sendiri — jangan pernah
+   reuse/clone paragraf ber-`numPr` utk konten yang sudah dinomori manual.
+8. **Regrouping CPMK1-4→CPMK1-5 tetap perlu perubahan struktur minimal**
+   (bukan cuma relabel teks) di 2 titik krn TEMPLATE dosen sendiri
+   masih pakai skema lama (4/4/4/2): (a) tabel CPMK butuh tambah 1
+   baris (kalimat CPMK4 lama pindah jadi CPMK5, kalimat CPMK4 baru
+   disisipkan dari `build_rps_word.py`), (b) tabel Peta CPL dengan
+   CPMK butuh tambah 1 kolom (CPMK5) + reposisi centang (CPL3 sekarang
+   ganda ke CPMK1+CPMK2). Tabel Sub-CPMK breakdown (14 item) TIDAK
+   butuh tambah baris — cuma relabel kode+regroup `vMerge`, krn 14
+   kalimat deskripsi sub-CPMK terbukti byte-identik di kedua skema
+   (cuma geser slot, persis pola reverse-map §40.17).
+9. **Verifikasi ketat wording pra-existing vs bug baru**: baris tabel
+   mingguan detail py kalimat Sub-CPMK yang SEDIKIT beda kata dari
+   tabel breakdown CPL/CPMK (mis. "memperhitungkan" vs
+   "mempertimbangkan") utk kode Sub-CPMK yang SAMA — dikonfirmasi
+   pola ini SUDAH ADA di file asli dosen SEBELUM sesi ini (bukan bug
+   dari editing), jadi dibiarkan apa adanya (scope: sinkronkan kode +
+   topik + bobot, bukan menyeragamkan gaya bahasa yang memang sudah
+   variatif di source aslinya).
+10. Hasil akhir: `.docx` dosen ASLI (145KB→138KB, format 100% identik
+    — logo, border, hour-table 4-kolom, dst.) dgn HANYA konten
+    tersinkronisasi (Sub-CPMK/CPMK CPMK1-5, 16 topik mingguan riil dari
+    modul, bobot & UTS/UAS dari Asesmen JSON); `.pdf` turunan
+    (15 halaman, naik dari 13 krn konten riil lebih panjang dari teks
+    generik lama). PDF lama TIDAK diedit lagi — `.docx` dosen jadi
+    satu-satunya source of truth, `.pdf` cuma export.
+
 ---
 
 *Pedoman v21 — Juli 2026 (Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT).*
