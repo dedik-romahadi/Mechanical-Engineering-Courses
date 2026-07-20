@@ -9548,6 +9548,22 @@ hilang, tabel jam SAP cuma 3 kolom bukan 4, dst.) — bukan sekadar
     header pindah bersama sbg 1 unit) — perhatikan urutan child
     `w:pPr` sesuai skema (keepNext segera setelah `pStyle` kalau ada,
     bukan selalu index 0). Page count tetap 15, tidak ada halaman baru.
+12. **Verifikasi silang eksplisit thd sistem live** (dosen tanya "apakah
+    sudah sesuai dengan 6 screenshot") — bukan dijawab dari ingatan,
+    tapi query terprogram RPS vs `Asesmen-Optimalisasi-dan-Otomasi.json`
+    + `const CPMK`/`CPL`/`T2`/`T3`/`T4` di `Dokumen-OBE.html` (sumber
+    data yang sama dgn screenshot dosen). CPMK/Sub-CPMK/Peta-CPL/bobot-
+    per-minggu/cakupan-UTS-UAS terkonfirmasi cocok 100%. 2 penyimpangan
+    ditemukan & diperbaiki: (a) deskripsi CPL 3 ("...desain." kurang
+    kata "teknik") dan CPL 5 ("permasalahanpermasalahan" kurang tanda
+    hubung) — sudah py di file asli dosen dari awal, bukan diperkenalkan
+    sesi ini; (b) baris Bobot(%) tabel Komponen Penilaian masih placeholder
+    template asli (UTS=50/UAS=50/Tugas=kosong) padahal formula live
+    `Nilai-Akhir.html` (`W_TGS=.60, W_UTS=.20, W_UAS=.20, W_PRE=W_PRAK=0`)
+    py Tugas=60%/UTS=20%/UAS=20% — direlabel ke nilai live. Pelajaran:
+    dosen minta verifikasi ulang thd sumber acuan HARUS dijawab via
+    cross-check terprogram thd file live, bukan diasumsikan benar cuma
+    krn sudah "terlihat lengkap" secara visual.
 
 ---
 
