@@ -9755,6 +9755,34 @@ tidak perlu ekstraksi baru.
    WAJIB diregenerate ulang juga — 2 lokasi independen, gampang lupa
    salah satu (staleness trap yang sama spt §40.20 poin 4, kali ini
    sumbernya exam bukan modul).
+5. **Follow-up dosen: nama Imam tidak sejajar dgn nama Dedik** — akar
+   masalah: kedua cell `vAlign` default `top`, row height mengikuti cell
+   TERTINGGI (Dedik, gambar aspek 0.889 lebih tinggi dari Imam aspek
+   0.466 di lebar sama), jadi konten Imam (lebih pendek) numpuk di ATAS
+   cell menyisakan ruang kosong di bawah nama-nya, sedangkan nama Dedik
+   nempel di bawah krn kontennya lebih tinggi. Fix: set
+   `cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.BOTTOM` utk
+   KEDUA cell (bukan cuma Imam) — bikin kedua baris nama flush ke bawah
+   cell shg sejajar persis, independen dari beda tinggi gambar TTD di
+   atasnya. Scope pencarian cell WAJIB dibatasi ke tabel yg mengandung
+   teks "VERIFIKASI SOAL UJIAN" dulu (bukan cari teks nama di SELURUH
+   dokumen) — nama "Dedik Romahadi, ST., M.Sc" juga muncul di cell
+   "Nama Dosen" pada tabel info exam di awal dokumen, false-positive
+   match kalau tidak discope duluan.
+6. **Follow-up dosen: perbesar TTD Imam lagi** (setelah disamakan
+   lebarnya dgn Dedik di poin sebelumnya) — di-resize LANGSUNG di gambar
+   yang sudah tertanam (bukan hapus+tempel ulang): cari `wp:inline`
+   dalam run cell "Ketua Program Studi", cocokkan ke elemen
+   `InlineShape` yang sama via `shape._inline is target_inline`
+   (identity check, python-docx tidak expose lookup langsung by
+   element), lalu set `shape.width`/`shape.height` (keduanya, jaga
+   aspect ratio asli). Lebar akhir 5,0cm (dari 3,0cm) msh AMAN krn
+   aspect Imam jauh lebih landai (0,466) drpd Dedik (0,889) — di lebar
+   5,0cm tinggi Imam (2,33cm) msh di bawah tinggi Dedik di 3,0cm
+   (2,67cm) yg menentukan row height, jadi TIDAK memicu ulang bug
+   overflow row/page-split di poin 2. `vAlign=bottom` (poin 5) otomatis
+   ikut menjaga kedua nama tetap sejajar walau TTD Imam kini jauh lebih
+   besar dari TTD Dedik.
 
 ---
 
