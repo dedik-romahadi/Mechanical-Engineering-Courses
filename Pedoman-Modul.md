@@ -9564,6 +9564,39 @@ hilang, tabel jam SAP cuma 3 kolom bukan 4, dst.) — bukan sekadar
     dosen minta verifikasi ulang thd sumber acuan HARUS dijawab via
     cross-check terprogram thd file live, bukan diasumsikan benar cuma
     krn sudah "terlihat lengkap" secara visual.
+13. **Tanda tangan Otorisasi/Pengesahan** — dosen kirim 3 gambar tanda
+    tangan (masing-masing dgn caption/pesan penanda: tanpa caption =
+    Dosen Pengemban RPS, "TTD Koordinator Mata Kuliah / Kelompok Bidang
+    Ilmu", "TTD Ketua Program Studi") via paste gambar inline (BUKAN
+    upload file dgn path eksplisit spt file docx sebelumnya). GOTCHA
+    krusial: gambar paste-inline TIDAK muncul di filesystem manapun yang
+    terjangkau Bash/Read (`find` di seluruh disk nihil) — cuma ada
+    sbg base64 tertanam langsung di transcript sesi JSONL
+    (`~/.claude/projects/.../<session-id>.jsonl`), dengan 2 bentuk
+    berbeda: pesan pertama muncul sbg entry `type:"user"` normal
+    (`.message.content[0].source.data`), sedangkan pesan susulan yang
+    tiba SAAT turn masih berjalan (mid-turn) muncul sbg entry terpisah
+    `type:"attachment"` dgn `.attachment.prompt[0].source.data` — WAJIB
+    dicocokkan ke caption teksnya sendiri (`.message.content[1].text`
+    atau `.attachment.prompt[1].text`) utk memastikan urutan ekstraksi
+    benar, JANGAN asumsikan urutan attachment di JSONL = urutan
+    kedatangan pesan (sempat salah pasang sekali sebelum verifikasi
+    ulang via re-Read tiap PNG hasil ekstrak). Base64 didecode via
+    Python langsung ke file PNG di scratchpad, lalu ditempel via
+    `Run.add_picture(path, width=Cm(N))` python-docx ke paragraf
+    kosong (existing blank spacer paragraph) tepat di atas baris nama
+    tercetak di masing-masing kolom Otorisasi. GOTCHA python-docx kedua:
+    `Table(tbl_element, None)` (parent=None, dipakai di seluruh script
+    ini utk edit teks murni krn tidak butuh resolusi part) GAGAL total
+    utk `add_picture` (`AttributeError: 'NoneType' object has no
+    attribute 'part'`, krn add_picture butuh jalan ke atas cari package
+    part utk registrasi image relationship) — fix: re-fetch objek Table
+    yang di-parent dgn benar via `Document.tables[i]` (elemen XML
+    dasarnya sama persis, cuma wrapper Python-nya beda, jadi aman
+    dipakai belakangan setelah semua edit teks sebelumnya selesai).
+    Lebar gambar diskalakan mengikuti lebar kolom (3,2/3,0/2,6 cm utk
+    Dosen/Koordinator/Ketua Prodi) supaya proporsional, tidak
+    mendominasi blok tanda tangan. Page count tetap 15.
 
 ---
 
