@@ -9618,6 +9618,49 @@ hilang, tabel jam SAP cuma 3 kolom bukan 4, dst.) — bukan sekadar
     Dosen (~2,8cm), tetap dicek muat di lebar kolom aslinya (kolom
     Koordinator ~7,2cm, Ketua Prodi ~5,7cm — masih longgar).
 
+### 40.20 Unduhan-Gabungan/ — PDF Gabungan Modul, Exam, RPS per Mata Kuliah (BARU di v21, Jul 2026)
+
+Dosen minta link download gabungan Modul + Exam + RPS per mata kuliah
+(3 link per MK) berbasis GitHub (bukan file attachment Claude yang
+sifatnya sementara per-sesi) — supaya link-nya persisten dan bisa
+dibagikan. Folder baru `Unduhan-Gabungan/` (flat, root repo) berisi 9
+file PDF turunan (regenerated, bukan sumber — jangan diedit langsung,
+edit sumbernya lalu build ulang):
+
+| File | Isi | Sumber |
+|---|---|---|
+| `Modul-Gabungan-<Course>.pdf` | 14 modul digabung urut 1→14 | `<Course>/Modul-Word/Modul-N-*.pdf` (bukan `Modul/` HTML-export — dosen eksplisit minta dari Modul-Word) |
+| `Exam-Gabungan-<Course>.pdf` | UTS lalu UAS digabung | `<Course>/Exam/UTS_*.pdf` + `UAS_*.pdf` |
+| `RPS-<Course>.pdf` | RPS course tsb, disalin apa adanya | `<Course>/Attributes/RPS *.pdf` |
+
+1. **Urutan modul WAJIB numerik, bukan lexicographic** — sort file by
+   nama akan salah urut (`Modul-10` sebelum `Modul-2`); di-parse
+   nomornya via regex (`Modul-(\d+)-`) baru di-sort, plus assert
+   `set(nomor) == {1..14}` sebelum merge sbg guard rail anti file
+   modul hilang/dobel.
+2. **Kompresi WAJIB krn constraint dosen "tiap file ≤5MB"** — hasil
+   merge 14 modul mentah 15-18MB (chart/gambar matplotlib per modul).
+   Ghostscript `-dPDFSETTINGS=/screen` (72dpi) sempat masih >5MB utk
+   file terbesar (338 halaman Math4); custom downsample
+   `-dColorImageResolution=75 -dGrayImageResolution=75
+   -dColorImageDownsampleType=/Bicubic -dColorImageFilter=/DCTEncode`
+   (75dpi, bukan preset) memberi margin lebih (3,2-4,1MB per file
+   modul-gabungan) — diverifikasi visual (render halaman berisi chart)
+   TIDAK terlihat penurunan kualitas krn chart garis (bukan foto)
+   kompres bersih di resolusi rendah; page count & isi teks tidak
+   berubah (Ghostscript downsampling cuma menyentuh gambar raster
+   tertanam, bukan teks/font). File Exam & RPS tidak perlu dikompres
+   (sudah <1,2MB tanpa treatment apa pun).
+3. **Link GitHub** = `https://raw.githubusercontent.com/dedik-romahadi/
+   Mechanical-Engineering-Courses/main/Unduhan-Gabungan/<filename>`
+   (raw content, bukan blob view) — WAJIB ke branch `main` (bukan
+   branch kerja sementara) supaya link persisten setelah PR merge.
+4. File ini akan JADI STALE kalau modul/exam/RPS sumber direvisi lagi
+   (tidak ada mekanisme auto-rebuild) — kalau ada perubahan pada modul
+   Word/exam/RPS course manapun di kemudian hari, WAJIB regenerate +
+   commit ulang file `Unduhan-Gabungan/` yang relevan, jangan biarkan
+   link publik menunjuk ke versi lama yang sudah tidak sinkron.
+
 ---
 
 *Pedoman v21 — Juli 2026 (Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT).*
