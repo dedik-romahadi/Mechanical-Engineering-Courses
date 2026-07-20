@@ -9320,6 +9320,66 @@ JADI LEBIH RUSAK drpd sebelum disentuh — mismatch antar lokasi):
      sesi ini TIDAK py akses Firestore utk mengecek/migrasi data ini,
      jadi dosen HARUS verifikasi manual.
 
+### 40.17 Keputusan Dosen: Opto DIKEMBALIKAN ke Skema CPMK1-5 Lama — RPS PDF yang Disesuaikan, Bukan Sistem (BARU di v21, Jul 2026)
+
+Pembalikan penuh atas §40.14 dan §40.16. Dosen mengirim 6 screenshot
+tabel Dokumen-OBE.html (CPL×CPMK, CPL, Sub-CPMK, Asesmen/bobot,
+CPMK×Sub-CPMK, Prosentase komponen) yang menunjukkan skema **CPMK1-5
+(3/3/3/3/2) lama** sebagai acuan yang benar, dengan instruksi "Update
+semuanya mengikuti ini". Berbeda dari §40.14/§40.16 (RPS PDF =
+otoritatif, sistem menyesuaikan), keputusan final: **skema lama yang
+otoritatif, RPS PDF-lah yang diedit supaya mengikuti sistem** — bukan
+sebaliknya.
+
+1. **6 lokasi live-system** (persis sama 6 lokasi §40.16, arah
+   sebaliknya) dikembalikan via `git show <commit-sebelum-#652>:<file>`
+   lalu di-diff-verify byte-exact terhadap versi pre-#650/#652 — BUKAN
+   re-derivasi manual dari reverse-map (risiko salah ketik terlalu
+   tinggi untuk sistem grading live): `Asesmen-Optimalisasi-dan-
+   Otomasi.json`, `functions/index.js` (`OBE_EXAM_CONFIG`, `OBE_MAP`/
+   `OBE_TUGAS_COLS`, `EXAM_CONFIG` dead-code), `Dokumen-OBE.html` (7
+   struktur data), `UTS.html`/`UAS.html` (doc panel). Reverse-map
+   (baru→lama): 1.1/1.2/1.3 tetap; 1.4→2.1; 2.1→2.2; 2.2→2.3; 2.3→3.1;
+   2.4→3.2; 3.1→3.3; 3.2→4.1; 3.3→4.2; 3.4→4.3; 4.1→5.1; 4.2→5.2 (persis
+   kebalikan tabel §40.16).
+2. **14 modul Word** dikembalikan via script Python raw-XML string
+   replace pada `word/document.xml` tiap docx (bukan `git checkout`
+   binary lama — itu akan menghapus fix duplikasi preview-box §40.14
+   yang legitimate) — verifikasi pra-replace: tiap modul cuma py 1 kode
+   Sub-CPMK + 1 sitasi CPMK unik (aman utk global replace), PDF
+   diregenerasi via LibreOffice utk 11 modul yang kodenya berubah
+   (Modul-1/2/3 tetap krn kode 1.1/1.2/1.3 sama persis di kedua skema).
+3. **RPS PDF diedit, BUKAN sistem** — pendekatan hybrid krn PDF tidak
+   py sumber `.docx`: (a) tabel mingguan "Sub-CPMK sebagai Kemampuan
+   Akhir" (hal. 8-10) — struktur baris/kolom TIDAK berubah (14 sub-item
+   di kedua skema, cuma regrouping), jadi diedit in-place via PyMuPDF
+   redact+reinsert per-span (font/size/origin dibaca dari teks asli,
+   HANYA 2 span per minggu yang disentuh: kode "Sub-CPMK X.Y." +
+   sitasi "(CPMK Z)", fidelity visual 100% utk sisa konten); (b) tabel
+   CPL/CPMK/Sub-CPMK/Peta-CPL/Komponen-Penilaian (hal. 6-7) — jumlah
+   baris CPMK BERUBAH (4→5) shg tak bisa in-place, dibangun ulang via
+   python-docx (landscape Letter, shading header `#DAE9F8`, Times New
+   Roman 9pt, cocok gaya asli) lalu di-export PDF & disambung
+   (`fitz.insert_pdf`) menggantikan 2 halaman asli — hasil 5 halaman
+   (bukan 2, krn cell padding python-docx lebih longgar dari template
+   Word asli), nomor halaman footer selanjutnya (tabel mingguan +
+   Catatan) direnumber via teknik redaksi yang sama (8/9/10→11/12/13)
+   supaya urutan tetap kontinu. Scope PERUBAHAN RPS dibatasi ke
+   tabel CPMK/Sub-CPMK/CPL/bobot saja — konten "Materi Pembelajaran"
+   generik di SAP table (hal. 2-4) & deskripsi MK TIDAK disentuh
+   (mismatch dgn topik riil modul yang sudah dibangun, di luar scope
+   permintaan ini, masih terbuka untuk keputusan dosen terpisah).
+4. **Verifikasi akhir**: query terprogram thd ke-6 lokasi live-system +
+   14 modul Word mengonfirmasi bijeksi bersih CPMK1-5 (3/3/3/3/2), Σ
+   bobot 100% di semua struktur, kode identik di semua lokasi.
+5. **KRITIS — tindak lanjut manual dosen (kebalikan §40.16 poin 9)**:
+   kalau `firebase deploy --only functions` SUDAH dijalankan dosen utk
+   men-deploy §40.16 (skema baru CPMK1-4) ke live sebelum sesi ini,
+   maka WAJIB deploy ULANG sekarang supaya live kembali ke skema lama —
+   sesi ini TIDAK py Firebase CLI/kredensial. Kalau ada OBE rekap yang
+   SUDAH di-publish dgn kode skema baru di antara kedua deploy, WAJIB
+   `recomputeAllObeScores`/republish lagi setelah deploy ulang ini.
+
 ---
 
 *Pedoman v21 — Juli 2026 (Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT).*
