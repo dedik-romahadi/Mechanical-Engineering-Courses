@@ -9537,6 +9537,17 @@ hilang, tabel jam SAP cuma 3 kolom bukan 4, dst.) — bukan sekadar
     (15 halaman, naik dari 13 krn konten riil lebih panjang dari teks
     generik lama). PDF lama TIDAK diedit lagi — `.docx` dosen jadi
     satu-satunya source of truth, `.pdf` cuma export.
+11. **Follow-up dosen**: baris header tabel mingguan detail (3-baris:
+    label gabungan/sub-label Indikator-Kriteria&Bentuk-dst/nomor kolom
+    (1)-(8)) terpisah oleh page break — baris pertama sendirian di
+    bawah satu halaman, sisanya + data pindah ke halaman berikutnya.
+    Root cause: Word/LO cuma menghindari break antar-baris kalau
+    paragraf tepat sebelum titik break py `w:keepNext`; default tidak
+    ada. Fix: tambah `<w:keepNext/>` ke SEMUA paragraf di 3 baris
+    header (rantai 0→1→2→baris data pertama memaksa seluruh blok
+    header pindah bersama sbg 1 unit) — perhatikan urutan child
+    `w:pPr` sesuai skema (keepNext segera setelah `pStyle` kalau ada,
+    bukan selalu index 0). Page count tetap 15, tidak ada halaman baru.
 
 ---
 
