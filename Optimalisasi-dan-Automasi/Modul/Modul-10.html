@@ -3652,12 +3652,29 @@ function voteForum(n, opt, idx) {
 // ── EXPORT TUGAS PDF ──
 // ── COPY CODE ──
 function cpC(btn){
-  const pre = btn.closest('.code-wrap').querySelector('pre');
+  const wrap = btn.closest('.code-wrap, .sp-cb');
+  const pre = wrap ? wrap.querySelector('pre') : null;
   if(!pre) return;
-  navigator.clipboard.writeText(pre.textContent).then(()=>{
-    btn.textContent='✅ Copied!';
-    setTimeout(()=>btn.textContent='📋 Copy',2000);
-  }).catch(()=>{btn.textContent='❌ Error';});
+  const text = pre.textContent;
+  const showOk  = () => { btn.textContent='✅ Copied!'; setTimeout(()=>btn.textContent='📋 Copy',2000); };
+  const showErr = () => { btn.textContent='❌ Error';   setTimeout(()=>btn.textContent='📋 Copy',2000); };
+  if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(showOk).catch(()=>_cpCFallback(text, showOk, showErr));
+  } else {
+    _cpCFallback(text, showOk, showErr);
+  }
+}
+function _cpCFallback(text, showOk, showErr){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;padding:0;border:0;outline:0;background:transparent;color:transparent;z-index:-1';
+  ta.setAttribute('readonly', '');
+  document.body.appendChild(ta);
+  ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+  if (ok) showOk(); else showErr();
 }
 
 // ── EXPORT TUGAS PDF ──
