@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Pembelajaran — PDD-UKTPT · SERDOS 2026</title>
+<meta name="description" content="Video Pembelajaran PDD-UKTPT, Bidang Pengajaran, Optimalisasi dan Automasi (SERDOS 2026) — Dedik Romahadi, ST., M.Sc.">
+<style>
+  :root{
+    --bg:#0f172a; --panel:#111827; --card:#1a2333; --border:#2a3550;
+    --text:#e8edf7; --muted:#9aa7c2; --accent:#4f8dfd; --accent2:#38d0b8; --amber:#f5a623;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f3f5fb; --panel:#ffffff; --card:#ffffff; --border:#dfe4f0;
+      --text:#1a2233; --muted:#5b6a8c; --accent:#2f6fed; --accent2:#0ea394; --amber:#b8730a;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.5;
+  }
+  header{ padding:2.5rem 1.5rem 1.25rem; text-align:center; max-width:900px; margin:0 auto; }
+  .kicker{ font-size:.78rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--accent2); }
+  h1{ font-size:1.5rem; margin:.5rem 0 .3rem; }
+  .author{ color:var(--muted); font-size:.85rem; margin:0; }
+  main{ max-width:900px; margin:0 auto; padding:0 1.25rem 3rem; }
+
+  .player-card{
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:1rem; margin-bottom:1rem;
+  }
+  .video-frame{
+    position:relative; width:100%; padding-top:56.25%; border-radius:10px; overflow:hidden;
+    background:#000;
+  }
+  .video-frame iframe, .video-frame video{
+    position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
+  }
+
+  .switcher{
+    display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; margin-top:.9rem;
+    padding-top:.9rem; border-top:1px solid var(--border);
+  }
+  .switcher .label{ font-size:.82rem; color:var(--muted); margin-right:.2rem; }
+  button.src-btn{
+    font:inherit; font-size:.82rem; font-weight:600; cursor:pointer;
+    padding:.5rem .9rem; border-radius:8px; border:1px solid var(--border);
+    background:transparent; color:var(--text); transition:border-color .15s, background .15s;
+  }
+  button.src-btn.active{ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 14%, transparent); }
+  button.src-btn:not(.active):hover{ border-color:var(--accent2); }
+
+  .note{
+    font-size:.8rem; color:var(--muted); margin:.7rem 0 0; line-height:1.6;
+  }
+  .note b{ color:var(--amber); }
+  .hint{ display:none; }
+  .hint.show{ display:block; }
+
+  footer{ max-width:900px; margin:0 auto; padding:0 1.5rem 3rem; color:var(--muted); font-size:.8rem; text-align:center; }
+  footer a{ color:var(--accent2); }
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Video Pembelajaran · PDD-UKTPT · SERDOS 2026</div>
+  <h1>Bidang Pengajaran · Optimalisasi dan Automasi</h1>
+  <p class="author">Dedik Romahadi, S.T., M.Sc. · NIDN 0306029106 · Program Studi Teknik Mesin, Fakultas Teknik, Universitas Mercu Buana</p>
+</header>
+<main>
+
+  <div class="player-card">
+    <div class="video-frame" id="frame">
+      <iframe id="yt-player"
+        src="https://www.youtube.com/embed/awB8TnlfFsM"
+        title="Video Pembelajaran PDD-UKTPT"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen></iframe>
+    </div>
+
+    <div class="switcher">
+      <span class="label">Sumber video:</span>
+      <button class="src-btn active" id="btn-yt" onclick="useYouTube()">▶ YouTube</button>
+      <button class="src-btn" id="btn-gh" onclick="useGitHub()">🐙 Cadangan (GitHub)</button>
+    </div>
+
+    <p class="note" id="note-yt">Video utama diputar langsung dari YouTube. Kalau YouTube tidak bisa diakses/diblokir, klik <b>Cadangan (GitHub)</b> di atas — video yang sama akan diputar langsung dari repo ini, tanpa perlu diunduh dulu.</p>
+    <p class="note hint" id="note-gh">Memutar dari cadangan GitHub (±282MB) — mungkin perlu beberapa detik untuk mulai buffering tergantung koneksi. Bisa di-<i>seek</i> langsung tanpa menunggu unduhan penuh selesai.</p>
+  </div>
+
+</main>
+<footer>
+  Cadangan video di-hosting via <a href="https://github.com/dedik-romahadi/Mechanical-Engineering-Courses/releases/tag/video-pdd-uktpt" target="_blank" rel="noopener">GitHub Release</a> pada repo <a href="https://github.com/dedik-romahadi/Mechanical-Engineering-Courses" target="_blank" rel="noopener">Mechanical-Engineering-Courses</a>.
+</footer>
+
+<script>
+  const GH_VIDEO_URL = "https://github.com/dedik-romahadi/Mechanical-Engineering-Courses/releases/download/video-pdd-uktpt/PDD-UKTPT.PENGAJARAN._.SERDOS.2026._.UNIVERSITAS.MERCU.BUANA._.DEDIK.ROMAHADI.ST.M.SC._.0306029106.mp4";
+  const frame = document.getElementById('frame');
+  const btnYt = document.getElementById('btn-yt');
+  const btnGh = document.getElementById('btn-gh');
+  const noteYt = document.getElementById('note-yt');
+  const noteGh = document.getElementById('note-gh');
+
+  function useYouTube(){
+    frame.innerHTML = '<iframe id="yt-player" src="https://www.youtube.com/embed/awB8TnlfFsM" title="Video Pembelajaran PDD-UKTPT" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>';
+    btnYt.classList.add('active'); btnGh.classList.remove('active');
+    noteYt.classList.remove('hint'); noteYt.classList.remove('show');
+    noteGh.classList.add('hint'); noteGh.classList.remove('show');
+  }
+  function useGitHub(){
+    frame.innerHTML = '<video id="gh-player" controls preload="metadata" src="' + GH_VIDEO_URL + '"></video>';
+    btnGh.classList.add('active'); btnYt.classList.remove('active');
+    noteGh.classList.remove('hint'); noteGh.classList.add('show');
+    noteYt.classList.add('hint'); noteYt.classList.remove('show');
+  }
+</script>
+</body>
+</html>
