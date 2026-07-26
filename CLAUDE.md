@@ -82,6 +82,12 @@ Script Python di `/tmp/` pakai pattern read → `src.replace(OLD, NEW)` → writ
 - Merge: via GitHub MCP tool `mcp__github__merge_pull_request` (squash default).
 - Repo: `dedik-romahadi/mechanical-engineering-courses`.
 
+### Hosting: GitHub Pages (root-scoped) — ⚠️ BACA SEBELUM UTAK-ATIK DEPLOY
+- **Frontend LMS live di GitHub Pages**, bukan Firebase. `firebase.json` TIDAK punya key `hosting` — Firebase hanya backend (RTDB + Firestore + Functions).
+- Pages Source = **"GitHub Actions"**, via `.github/workflows/deploy-slides.yml` yang mem-publish **SELURUH root repo** (`rsync . _site/`). Jadi tiap path di repo bisa diakses di `https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/<path>`.
+- **JANGAN ubah Source ke "Deploy from a branch"** (mis. `/docs`) — semua path di luar folder itu langsung 404: 42 modul, 6 exam, dan **`STUDENTS_JSON_URL` (roster login mahasiswa)** yang di-fetch dari Pages. Pernah terjadi, lihat `Pedoman-Modul.md` §40.21b.
+- Deploy **otomatis** tiap ada commit masuk `main` (merge PR / upload web UI). Tidak perlu lagi minta dosen klik Run workflow manual (§40.25). Trigger manual tetap tersedia untuk re-deploy tanpa commit baru.
+
 ### Cloud Functions kunci (di `functions/index.js`)
 | Function | Role | Aksi |
 |----------|------|------|
