@@ -84,7 +84,7 @@ const EXAM_CONFIG = {
   },
   "math4-uas": {
     bobot:   {"3.1":20,"4.1":2,"4.2":3,"5.1":5},
-    mapping: {"3.1":[41,42,43,44,45],"4.1":Array.from({length:12},(_,i)=>i+1),"4.2":Array.from({length:18},(_,i)=>i+13),"5.1":[34,35,36,37,38,39,40]},
+    mapping: {"3.1":[41,42,43,44,45],"4.1":Array.from({length:13},(_,i)=>i+1),"4.2":Array.from({length:17},(_,i)=>i+14),"5.1":Array.from({length:10},(_,i)=>i+31)},
   },
 };
 
