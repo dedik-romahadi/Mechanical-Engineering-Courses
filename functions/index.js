@@ -76,7 +76,7 @@ const EXAM_CONFIG = {
   },
   "optoauto-uas": {
     bobot:   {"3.1":4,"3.2":3,"3.3":3,"4.1":3,"4.2":3,"4.3":4},
-    mapping: {"3.1":[34,35,36,37,38,39,40],"3.2":[1,2,3,4,5,6,7,31],"3.3":[8,9,10,11,12,13,14,32],"4.1":[15,16,17,18,19,20,21,22,33],"4.2":[23,24,25,26,27,28,29,30],"4.3":[41,42,43,44,45]},
+    mapping: {"3.1":[8,26,27,28,39],"3.2":[1,2,11,12,13,31,32,41],"3.3":[3,4,14,15,16,33,42],"4.1":[5,17,18,19,34,35,43],"4.2":[6,20,21,22,36,37],"4.3":[7,23,24,25,38]},
   },
   "math4-uts": {
     bobot:   {"1.1":5,"1.2":6,"2.1":5,"2.2":10,"2.3":5},
@@ -136,7 +136,15 @@ const OBE_EXAM_CONFIG = {
   },
   "optoauto-uas": {
     bobot:   {"3.1":4,"3.2":3,"3.3":3,"4.1":3,"4.2":3,"4.3":4},
-    mapping: {"3.1":Array.from({length:10},(_,i)=>i+31),"3.2":[1,2,3,4,5,6,7],"3.3":[8,9,10,11,12,13,14],"4.1":[15,16,17,18,19,20,21,22],"4.2":[23,24,25,26,27,28,29,30],"4.3":[41,42,43,44,45]},
+    // Mapping per Q# derived dari tag `modul:` riil tiap soal di UAS.html
+    // (bukan rentang datar) — lihat Pedoman §40.27/§40.28. Sub-CPMK 3.1
+    // (Pertemuan 7, FFT/PSD/bearing-fault) diisi 5 soal BARU (tf8,mc16-18,c9)
+    // krn bank lama tidak py soal bertopik itu sama sekali. Q9,10,29,30,40,44,45
+    // (LogReg/RF-SVM, modul13/14) SENGAJA tidak dipetakan ke Sub-CPMK manapun —
+    // per RPS resmi itu Sub-CPMK 5.1/5.2 berstatus "Bentuk: Tugas", bukan UAS;
+    // soal tetap tampil & bisa dijawab (feedback benar/salah), tapi poinnya
+    // di-set 0 di EXAM_QID_POINTS supaya Σ exam tetap persis 100.
+    mapping: {"3.1":[8,26,27,28,39],"3.2":[1,2,11,12,13,31,32,41],"3.3":[3,4,14,15,16,33,42],"4.1":[5,17,18,19,34,35,43],"4.2":[6,20,21,22,36,37],"4.3":[7,23,24,25,38]},
   },
   "getaran-mekanik-uts": {
     bobot:   {"1.1":5,"1.2":4,"1.3":2,"2.1":3,"2.2":3,"3.1":5,"3.2":3},
