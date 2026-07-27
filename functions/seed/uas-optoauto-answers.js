@@ -71,7 +71,7 @@ const TF = [
 
   { qId: "tf8", type: "tf", points: 1, parametric: false,
     answer: true,
-    explain: "Modul 13 — Sigmoid → P(y=1|x). Softmax: exp(zᵢ)/Σexp(zⱼ) untuk multi-class." },
+    explain: "Modul 7 — Prinsip utama pre-FFT: (1) buang DC offset, (2) window function (Hann/Hamming/Blackman) menekan spectral leakage. Tanpa ini, magnitude spectrum bisa bias/menyesatkan." },
 
   { qId: "tf9", type: "tf", points: 1, parametric: true,
     compute: (N) => {
@@ -190,22 +190,22 @@ const MC = [
 
   { qId: "mc16", type: "mc", points: 1, parametric: false,
     correctIdx: 1,
-    explain: "Cross-entropy / log-loss optimal untuk classification (probabilistic interpretation). MSE untuk regression." },
+    explain: "Modul 7 — Δf=fs/N, perbesar N menurunkan Δf (resolusi lebih tajam), syarat sinyal tetap stasioner. Naikkan fs tanpa ubah N justru memperbesar Δf (resolusi memburuk). Zero-padding cuma interpolasi spektral, bukan resolusi sejati tambahan." },
 
   { qId: "mc17", type: "mc", points: 1, parametric: true,
     compute: (N) => {
-      const z = -1 + (N % 10) * 0.4;
-      const p = 1 / (1 + Math.exp(-z));
-      const cls = p > 0.5 ? 1 : 0;
+      const fr = 20 + (N % 10) * 0.8;
+      const dOverD = 7.94 / 39;
+      const BPFO = 4.5 * (1 - dOverD) * fr;
       return {
-        correctIdx: cls,
-        explain: `σ(${z.toFixed(2)}) = ${p.toFixed(3)} ${p > 0.5 ? "> 0.5 → class 1" : "≤ 0.5 → class 0"}`,
+        correctIdx: 0,
+        explain: `BPFO = (n/2)·fr·(1-(d/D)cosα) = 4.5·${fr.toFixed(1)}·${(1 - dOverD).toFixed(4)} = <b>${BPFO.toFixed(1)} Hz</b>`,
       };
     } },
 
   { qId: "mc18", type: "mc", points: 1, parametric: false,
-    correctIdx: 2,
-    explain: "Multi-class mutually exclusive: softmax 5 outputs, sum = 1. Independent multi-label: sigmoid per output." },
+    correctIdx: 1,
+    explain: "Modul 7 — Bearing fault impact termodulasi pada resonansi struktural (5-20kHz). Envelope (Hilbert transform) mendemodulasi carrier ini, FFT envelope menampilkan peak BPFO/BPFI/BSF jauh lebih bersih drpd FFT raw signal. Teknik standar industri (SKF Multilog, Bently Nevada)." },
 
   { qId: "mc19", type: "mc", points: 1, parametric: false,
     correctIdx: 2,
@@ -327,13 +327,14 @@ const COMP_EZ = [
       };
     } },
 
-  { qId: "c9", type: "comp", points: 2, parametric: true, tolerance: 0.001,
+  { qId: "c9", type: "comp", points: 2, parametric: true, tolerance: 0.01,
     compute: (N) => {
-      const z = -1 + N * 0.05;
-      const p = 1 / (1 + Math.exp(-z));
+      const fftN = 4096 + 1024 * (N % 5);
+      const fs = 25600;
+      const df = fs / fftN;
       return {
-        expected: parseFloat(p.toFixed(4)),
-        explain: `σ(z) = 1/(1+e^(-z)) = 1/(1+e^(${(-z).toFixed(2)})) = <b>${p.toFixed(4)}</b>`,
+        expected: parseFloat(df.toFixed(3)),
+        explain: `Δf = fs/N = 25600/${fftN} = <b>${df.toFixed(3)} Hz</b>`,
       };
     } },
 
