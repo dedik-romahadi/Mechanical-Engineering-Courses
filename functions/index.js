@@ -840,6 +840,115 @@ exports.resetExamAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// getExamQuestions — callable function (HTTPS). Server-gated question delivery.
+//
+// Kunci jawaban SUDAH TIDAK PERNAH ada di client (lihat komentar baris 34) —
+// tapi TEKS SOAL sendiri dulu ter-embed statis di UAS.html (window.UAS_TF dst.)
+// sehingga bisa dibaca siapa pun via View Source/DevTools SEBELUM jadwal exam
+// dibuka (mahasiswa tidak bisa submit lebih awal — sudah digate di
+// checkExamAnswer — tapi soal tetap bisa DIBACA lebih awal). Fungsi ini menutup
+// celah itu: soal HANYA dikirim setelah PIN+jadwal (mahasiswa) atau admin
+// password (dosen, bypass jadwal — utk preview/monitoring) terverifikasi
+// server-side. Lihat Pedoman §40.29.
+//
+// Bank soal (TIDAK berisi correctIdx/answer/expected — cuma text/options/hint)
+// ada di functions/questions/uas-<slug>-questions.js, hasil ekstraksi VERBATIM
+// dari UAS.html supaya dijamin identik dgn yang dulu ada di client.
+//
+// Request:  { examId, nim?, pinHash?, adminPwHash? }
+//   - Mahasiswa: nim + pinHash wajib; jadwal harus isOpen (evalSchedule, sama
+//     persis window yg dipakai checkExamAnswer utk submit).
+//   - Dosen: adminPwHash wajib (bypass jadwal).
+// Response: { examId, N, tf:[...], mc:[...], compEz:[...], compHard:[...] }
+//   Soal parametric SUDAH di-evaluate server-side pakai N (dari NIM mahasiswa,
+//   atau N=0 utk dosen) — client tidak pernah menerima source compute() mentah,
+//   cuma hasil akhir text/options/hint yang sudah personalized.
+// ─────────────────────────────────────────────────────────────────────────────
+const QUESTION_BANKS = {
+  "getaran-mekanik-uas": require("./questions/uas-getaran-questions"),
+  "optoauto-uas": require("./questions/uas-optoauto-questions"),
+  "math4-uas": require("./questions/uas-math4-questions"),
+};
+
+function _renderQuestionSet(bank, N) {
+  const render = (arr) => arr.map((q) => {
+    const data = q.parametric
+      ? q.compute(N)
+      : { text: q.text, options: q.options, hint: q.hint, diagram: q.diagram };
+    return {
+      id: q.id,
+      modul: q.modul,
+      parametric: !!q.parametric,
+      text: data.text,
+      options: data.options,
+      hint: data.hint,
+      diagram: data.diagram,
+    };
+  });
+  return {
+    tf: render(bank.UAS_TF),
+    mc: render(bank.UAS_MC),
+    compEz: render(bank.UAS_COMP_EZ),
+    compHard: render(bank.UAS_COMP_HARD),
+  };
+}
+
+exports.getExamQuestions = onCall(async (request) => {
+  const { examId, nim, pinHash, adminPwHash } = request.data || {};
+  if (!examId || typeof examId !== "string") {
+    throw new HttpsError("invalid-argument", "examId wajib diisi");
+  }
+  const bank = QUESTION_BANKS[examId];
+  const cfg = EXAM_CONFIG[examId];
+  if (!bank || !cfg) {
+    throw new HttpsError("not-found", `Bank soal belum tersedia utk exam: ${examId}`);
+  }
+
+  const rtdb = getDatabase();
+
+  // ── Jalur DOSEN: admin password, bypass jadwal (preview/monitoring) ──
+  if (adminPwHash) {
+    if (typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
+      throw new HttpsError("permission-denied", "Admin password salah");
+    }
+    return { examId, N: 0, ..._renderQuestionSet(bank, 0) };
+  }
+
+  // ── Jalur MAHASISWA: PIN + jadwal WAJIB terbuka (sama dgn checkExamAnswer) ──
+  if (!nim || !/^[0-9]{1,20}$/.test(nim)) {
+    throw new HttpsError("invalid-argument", "nim wajib angka");
+  }
+  if (!pinHash || typeof pinHash !== "string" || !/^[0-9a-f]{64}$/.test(pinHash)) {
+    throw new HttpsError("invalid-argument", "pinHash tidak valid");
+  }
+  const nimKey = sanitizeKey(nim);
+  if (!/^[0-9A-Z_]{1,20}$/.test(nimKey)) {
+    throw new HttpsError("invalid-argument", "Invalid NIM format");
+  }
+  const pinSnap = await rtdb.ref(`pins/mhs_${nimKey}`).get();
+  if (!pinSnap.exists()) {
+    throw new HttpsError("unauthenticated", "PIN belum terdaftar — login ulang");
+  }
+  const storedPin = pinSnap.val();
+  if (!storedPin || storedPin.pinHash !== pinHash) {
+    throw new HttpsError("unauthenticated", "Kredensial tidak valid");
+  }
+
+  const sched = await evalSchedule(rtdb, cfg.schedulePath, cfg.lateMultiplierValue);
+  if (!sched.isOpen) {
+    const msg = sched.reason === "before-start"
+      ? "Akses UAS belum dibuka — tunggu waktu mulai"
+      : sched.reason === "after-deadline"
+        ? "Batas waktu UAS sudah lewat"
+        : "Jadwal UAS belum dikonfigurasi";
+    throw new HttpsError("failed-precondition", msg);
+  }
+
+  const N = deriveN(nim);
+  return { examId, N, ..._renderQuestionSet(bank, N) };
+});
+
 // ═════════════════════════════════════════════════════════════════════════════
 // MODUL VALIDATION — Phase 3 untuk Modul Pertemuan (formative, with reveal)
 // ═════════════════════════════════════════════════════════════════════════════
