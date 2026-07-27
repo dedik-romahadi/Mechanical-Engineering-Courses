@@ -895,58 +895,68 @@ function _renderQuestionSet(bank, N) {
 }
 
 exports.getExamQuestions = onCall(async (request) => {
-  const { examId, nim, pinHash, adminPwHash } = request.data || {};
-  if (!examId || typeof examId !== "string") {
-    throw new HttpsError("invalid-argument", "examId wajib diisi");
-  }
-  const bank = QUESTION_BANKS[examId];
-  const cfg = EXAM_CONFIG[examId];
-  if (!bank || !cfg) {
-    throw new HttpsError("not-found", `Bank soal belum tersedia utk exam: ${examId}`);
-  }
-
-  const rtdb = getDatabase();
-
-  // ── Jalur DOSEN: admin password, bypass jadwal (preview/monitoring) ──
-  if (adminPwHash) {
-    if (typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
-      throw new HttpsError("permission-denied", "Admin password salah");
+  try {
+    const { examId, nim, pinHash, adminPwHash } = request.data || {};
+    if (!examId || typeof examId !== "string") {
+      throw new HttpsError("invalid-argument", "examId wajib diisi");
     }
-    return { examId, N: 0, ..._renderQuestionSet(bank, 0) };
-  }
+    const bank = QUESTION_BANKS[examId];
+    const cfg = EXAM_CONFIG[examId];
+    if (!bank || !cfg) {
+      throw new HttpsError("not-found", `Bank soal belum tersedia utk exam: ${examId}`);
+    }
 
-  // ── Jalur MAHASISWA: PIN + jadwal WAJIB terbuka (sama dgn checkExamAnswer) ──
-  if (!nim || !/^[0-9]{1,20}$/.test(nim)) {
-    throw new HttpsError("invalid-argument", "nim wajib angka");
-  }
-  if (!pinHash || typeof pinHash !== "string" || !/^[0-9a-f]{64}$/.test(pinHash)) {
-    throw new HttpsError("invalid-argument", "pinHash tidak valid");
-  }
-  const nimKey = sanitizeKey(nim);
-  if (!/^[0-9A-Z_]{1,20}$/.test(nimKey)) {
-    throw new HttpsError("invalid-argument", "Invalid NIM format");
-  }
-  const pinSnap = await rtdb.ref(`pins/mhs_${nimKey}`).get();
-  if (!pinSnap.exists()) {
-    throw new HttpsError("unauthenticated", "PIN belum terdaftar — login ulang");
-  }
-  const storedPin = pinSnap.val();
-  if (!storedPin || storedPin.pinHash !== pinHash) {
-    throw new HttpsError("unauthenticated", "Kredensial tidak valid");
-  }
+    const rtdb = getDatabase();
 
-  const sched = await evalSchedule(rtdb, cfg.schedulePath, cfg.lateMultiplierValue);
-  if (!sched.isOpen) {
-    const msg = sched.reason === "before-start"
-      ? "Akses UAS belum dibuka — tunggu waktu mulai"
-      : sched.reason === "after-deadline"
-        ? "Batas waktu UAS sudah lewat"
-        : "Jadwal UAS belum dikonfigurasi";
-    throw new HttpsError("failed-precondition", msg);
-  }
+    // ── Jalur DOSEN: admin password, bypass jadwal (preview/monitoring) ──
+    if (adminPwHash) {
+      if (typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
+        throw new HttpsError("permission-denied", "Admin password salah");
+      }
+      return { examId, N: 0, ..._renderQuestionSet(bank, 0) };
+    }
 
-  const N = deriveN(nim);
-  return { examId, N, ..._renderQuestionSet(bank, N) };
+    // ── Jalur MAHASISWA: PIN + jadwal WAJIB terbuka (sama dgn checkExamAnswer) ──
+    if (!nim || !/^[0-9]{1,20}$/.test(nim)) {
+      throw new HttpsError("invalid-argument", "nim wajib angka");
+    }
+    if (!pinHash || typeof pinHash !== "string" || !/^[0-9a-f]{64}$/.test(pinHash)) {
+      throw new HttpsError("invalid-argument", "pinHash tidak valid");
+    }
+    const nimKey = sanitizeKey(nim);
+    if (!/^[0-9A-Z_]{1,20}$/.test(nimKey)) {
+      throw new HttpsError("invalid-argument", "Invalid NIM format");
+    }
+    const pinSnap = await rtdb.ref(`pins/mhs_${nimKey}`).get();
+    if (!pinSnap.exists()) {
+      throw new HttpsError("unauthenticated", "PIN belum terdaftar — login ulang");
+    }
+    const storedPin = pinSnap.val();
+    if (!storedPin || storedPin.pinHash !== pinHash) {
+      throw new HttpsError("unauthenticated", "Kredensial tidak valid");
+    }
+
+    const sched = await evalSchedule(rtdb, cfg.schedulePath, cfg.lateMultiplierValue);
+    if (!sched.isOpen) {
+      const msg = sched.reason === "before-start"
+        ? "Akses UAS belum dibuka — tunggu waktu mulai"
+        : sched.reason === "after-deadline"
+          ? "Batas waktu UAS sudah lewat"
+          : "Jadwal UAS belum dikonfigurasi";
+      throw new HttpsError("failed-precondition", msg);
+    }
+
+    const N = deriveN(nim);
+    return { examId, N, ..._renderQuestionSet(bank, N) };
+  } catch (err) {
+    if (err instanceof HttpsError) throw err;
+    // Exception TIDAK terduga (bug/RTDB/dsb) — tanpa try/catch ini, Firebase
+    // menggenericize jadi "internal" polos ke client (demi keamanan default),
+    // shg tidak actionable. Log detail ke Cloud Logging + kirim pesan spesifik
+    // ke client supaya bisa didiagnosis tanpa akses Console.
+    console.error("[getExamQuestions] Unexpected error:", err);
+    throw new HttpsError("internal", `Gagal memuat soal (server): ${err && err.message ? err.message : String(err)}`);
+  }
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
