@@ -1333,13 +1333,13 @@ Semua file Exam memiliki **friction layer** untuk membatasi mahasiswa pakai AI s
 
 | # | Layer | Mechanism |
 |---|-------|-----------|
-| 1 | Disable text selection | CSS `user-select:none` di body, allow di textarea/input |
+| 1 | Disable text selection/copy | CSS `user-select:none` di body; area jawaban tetap selectable untuk editing, tetapi event `copy`/`cut` selalu diblokir |
 | 2 | Watermark NIM+Nama | SVG repeating diagonal, opacity 0.08, mix-blend-mode:difference |
 | 3 | Notice indicator | Pill "🔒 Mode Ujian Aktif" top-right corner |
 | 4 | Disable klik kanan | `contextmenu` preventDefault + toast warning |
-| 5 | Disable shortcuts | F12, Ctrl+Shift+I/J/C, Ctrl+U/P/S, PrintScreen detect |
-| 6 | Tab visibility tracking | `visibilitychange` count + warning toast saat kembali |
-| 7 | Screen capture detect | Proxy `navigator.mediaDevices.getDisplayMedia` |
+| 5 | Disable shortcuts | F12, Ctrl+Shift+I/J/C, Ctrl+U/P/S, Ctrl/Cmd+C/X, PrintScreen |
+| 6 | Tab visibility tracking | `visibilitychange` count + warning toast saat kembali; **tidak memburamkan halaman** |
+| 7 | Screen capture deterrent | Tolak `navigator.mediaDevices.getDisplayMedia`; PrintScreen memicu capture shield + overwrite clipboard *best-effort* |
 | 8 | Print blocked | `@media print` hide body + replace text |
 
 **Implementasi:**
@@ -1348,16 +1348,21 @@ Semua file Exam memiliki **friction layer** untuk membatasi mahasiswa pakai AI s
 - LK key per course: `<course>_identity_uts` (misal `optoauto_identity_uts`, `math4_identity_uts`, `getaran_mekanik_identity_uts`)
 - Detection: localStorage polling 1.5s + `storage` event (cross-tab + same-tab)
 
-**Eksklusi penting (textarea/input):** Ctrl+A/C/V tetap bekerja di area input agar mahasiswa bisa edit kode normal. Klik kanan di textarea juga di-allow untuk paste support.
+**Eksklusi penting (textarea/input):** pemilihan teks, Ctrl+A, pengetikan, dan paste tetap bekerja agar mahasiswa bisa mengedit jawaban. **Copy/cut tetap diblokir**, termasuk dari textarea/input. Klik kanan di textarea tetap diizinkan untuk paste support.
+
+> **Batasan platform:** browser tidak dapat menjamin pemblokiran screenshot yang dilakukan oleh OS, kamera fisik, atau aplikasi eksternal. Capture shield, overwrite clipboard, penolakan `getDisplayMedia`, dan watermark NIM+nama adalah proteksi *best-effort* serta deterrent; watermark identitas tetap menjadi lapisan audit utama.
 
 **Trade-off eksplisit:**
 
 ✅ Yang dicegah:
-- Copy soal text via mouse selection / Ctrl+C
-- Klik kanan → "Copy text"
+- Copy/cut melalui keyboard, menu konteks, dan event clipboard
+- Drag konten keluar halaman
 - View source / DevTools shortcut
 - Print to PDF
-- Screen recording browser-based (warned)
+- Screen sharing/recording yang meminta `getDisplayMedia` melalui halaman
+
+⚠️ Proteksi *best-effort*:
+- PrintScreen memicu capture shield dan percobaan overwrite clipboard; efektivitasnya bergantung pada browser/OS
 
 ❌ Yang TIDAK dicegah:
 - Foto layar dengan kamera HP/tablet (watermark deter via NIM visible di foto)
@@ -1369,11 +1374,11 @@ Semua file Exam memiliki **friction layer** untuk membatasi mahasiswa pakai AI s
 
 Aturan §9.5 berlaku untuk:
 - `Engineering-Mathematics/Exam/UTS.html`
-- `Engineering-Mathematics/Exam/UAS.html` (saat dibuat)
+- `Engineering-Mathematics/Exam/UAS.html`
 - `Optimalisasi-dan-Automasi/Exam/UTS.html`
-- `Optimalisasi-dan-Automasi/Exam/UAS.html` (saat dibuat)
+- `Optimalisasi-dan-Automasi/Exam/UAS.html`
 - `Getaran-Mekanik/Exam/UTS.html`
-- `Getaran-Mekanik/Exam/UAS.html` (saat dibuat)
+- `Getaran-Mekanik/Exam/UAS.html`
 
 File modul (`Modul-N.html`), forum, dan tugas regular **tidak** terpengaruh — tetap pakai v8.
 

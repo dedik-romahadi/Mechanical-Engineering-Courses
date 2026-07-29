@@ -621,9 +621,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 }
 
 /* ─── FRICTION LAYER (anti-AI deterrent — student only) ──────────────── */
-/* Disable text selection di seluruh body; allow di textarea/input agar
-   mahasiswa tetap bisa edit kode dan input jawaban. Watermark NIM+nama
-   diagonal sebagai deterrent screenshot. */
+/* Disable text selection di seluruh body. Area jawaban tetap selectable
+   agar mahasiswa bisa mengedit kode/input, tetapi copy/cut diblokir oleh JS.
+   Watermark NIM+nama diagonal menjadi deterrent screenshot. */
 body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;}
 textarea,input,select,option,
 .code-textarea,.v-input,[contenteditable="true"]{
@@ -631,9 +631,6 @@ textarea,input,select,option,
   -ms-user-select:text!important;user-select:text!important;
 }
 img,video,svg{-webkit-user-drag:none;user-drag:none;}
-body.friction-blurred{filter:blur(12px);transition:filter .3s ease;}
-body.friction-blurred #frictionNotice,
-body.friction-blurred #frictionToast{filter:none;}
 #frictionWatermark{
   position:fixed;inset:0;pointer-events:none;z-index:999998;
   opacity:.08;mix-blend-mode:difference;user-select:none;
@@ -657,10 +654,19 @@ body.friction-blurred #frictionToast{filter:none;}
   letter-spacing:.5px;z-index:99997;pointer-events:none;display:none;
 }
 #frictionNotice.active{display:block;}
+#frictionCaptureShield{
+  position:fixed;inset:0;z-index:1000000;display:none;
+  align-items:center;justify-content:center;flex-direction:column;gap:10px;
+  background:#020617;color:#fff;text-align:center;padding:24px;
+  font-family:'JetBrains Mono',monospace;pointer-events:none;
+}
+#frictionCaptureShield.active{display:flex;}
+#frictionCaptureShield strong{font-size:clamp(18px,3vw,30px);}
+#frictionCaptureShield span{font-size:13px;color:#cbd5e1;}
 @media print {
   body > * { display: none !important; }
   body::after {
-    content: "🔒 Mode Ujian — Print/Screenshot dinonaktifkan. Aktivitas terdeteksi & tercatat.";
+    content: "🔒 Mode Ujian — Print dinonaktifkan.";
     display: block; font-size: 18pt; color: #000; padding: 40px;
   }
 }
@@ -8012,16 +8018,19 @@ setInterval(()=>{renderVisitors(latestVisitors);},30000);
       n.id = 'frictionNotice';
       n.classList.add('active');
       n.textContent = '🔒 Mode Ujian Aktif';
-      n.title = 'Tab leave, screen capture, dan aktivitas tercatat.';
+      n.title = 'Perpindahan tab dipantau; copy/cut, print, dan screen capture dibatasi.';
       document.body.appendChild(n);
     }
   }
 
   function onCopy(e){
     if (!isStudent()) return;
-    if (e.target.closest('textarea, input, [contenteditable="true"]')) return;
     e.preventDefault();
-    showToast('🔒 Copy teks soal dinonaktifkan.');
+    e.stopImmediatePropagation();
+    if (e.clipboardData) e.clipboardData.setData('text/plain', '');
+    showToast(e.type === 'cut'
+      ? '🔒 Cut dinonaktifkan saat ujian.'
+      : '🔒 Copy dinonaktifkan saat ujian.');
   }
 
   function onContextMenu(e){
@@ -8029,6 +8038,12 @@ setInterval(()=>{renderVisitors(latestVisitors);},30000);
     if (e.target.closest('textarea, input, [contenteditable="true"]')) return;
     e.preventDefault();
     showToast('🔒 Klik kanan dinonaktifkan saat ujian.');
+  }
+
+  function onDragStart(e){
+    if (!isStudent()) return;
+    e.preventDefault();
+    showToast('🔒 Drag konten dinonaktifkan saat ujian.');
   }
 
   function onKeyDown(e){
@@ -8053,15 +8068,14 @@ setInterval(()=>{renderVisitors(latestVisitors);},30000);
       showToast('🔒 Select all dinonaktifkan.');
       return;
     }
-    // Ctrl+C blocker untuk teks soal (allow di textarea/input)
-    if ((e.ctrlKey || e.metaKey) && k === 'c'){
-      if (e.target.closest('textarea, input, [contenteditable="true"]')) return;
-      // Don't preventDefault — let user-select:none CSS handle it
-      // Just show toast as deterrent feedback
-      const sel = window.getSelection ? String(window.getSelection()) : '';
-      if (sel.trim().length > 3) {
-        showToast('🔒 Copy teks soal dinonaktifkan.');
-      }
+    // Ctrl/Cmd+C dan Ctrl/Cmd+X diblokir termasuk di area jawaban.
+    if ((e.ctrlKey || e.metaKey) && (k === 'c' || k === 'x')){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      showToast(k === 'x'
+        ? '🔒 Cut dinonaktifkan saat ujian.'
+        : '🔒 Copy dinonaktifkan saat ujian.');
+      return;
     }
     // Ctrl+P (print) / Ctrl+S (save page)
     if ((e.ctrlKey || e.metaKey) && (k === 'p' || k === 's')){
@@ -8069,30 +8083,50 @@ setInterval(()=>{renderVisitors(latestVisitors);},30000);
       showToast('🔒 Print / Save page dinonaktifkan.');
       return;
     }
-    // PrintScreen — best-effort (browser support terbatas)
-    if (e.key === 'PrintScreen'){
-      showToast('🔒 PrintScreen terdeteksi. Aktivitas tercatat.');
-    }
   }
 
   let tabLeaveCount = 0;
-  let _blurTimer = null;
   function onVisibility(){
     if (!isStudent()) return;
     if (document.hidden){
       tabLeaveCount++;
-      // Blur halaman setelah 200ms (prevent false trigger Alt+Tab cepat).
-      // Screenshot via OS-level capture saat tab hidden akan tertangkap blur.
-      _blurTimer = setTimeout(() => {
-        document.body.classList.add('friction-blurred');
-      }, 200);
     } else {
-      clearTimeout(_blurTimer);
-      document.body.classList.remove('friction-blurred');
       if (tabLeaveCount > 0){
-        showToast('⚠ Anda meninggalkan tab '+tabLeaveCount+'×. Tercatat di sistem.');
+        showToast('⚠ Perpindahan tab terdeteksi '+tabLeaveCount+'×.');
       }
     }
+  }
+
+  function showCaptureShield(){
+    let shield = document.getElementById('frictionCaptureShield');
+    if (!shield){
+      shield = document.createElement('div');
+      shield.id = 'frictionCaptureShield';
+      shield.setAttribute('aria-live', 'assertive');
+      shield.innerHTML = '<strong>🔒 Tangkapan layar dinonaktifkan</strong>'
+        + '<span>Konten ujian dilindungi dan memiliki watermark identitas.</span>';
+      document.body.appendChild(shield);
+    }
+    shield.classList.add('active');
+    clearTimeout(shield._timer);
+    shield._timer = setTimeout(() => shield.classList.remove('active'), 1600);
+  }
+
+  function clearScreenshotClipboard(){
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText('Tangkapan layar ujian dinonaktifkan.').catch(()=>{});
+      }
+    } catch (_) {}
+  }
+
+  function onPrintScreen(e){
+    if (!isStudent() || e.key !== 'PrintScreen') return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    showCaptureShield();
+    clearScreenshotClipboard();
+    showToast('🔒 Percobaan tangkapan layar diblokir.');
   }
 
   function patchScreenCapture(){
@@ -8100,7 +8134,12 @@ setInterval(()=>{renderVisitors(latestVisitors);},30000);
     const orig = navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices);
     navigator.mediaDevices.getDisplayMedia = function(){
       if (isStudent()){
-        showToast('🔒 Screen recording terdeteksi. Aktivitas tercatat.');
+        showCaptureShield();
+        showToast('🔒 Screen sharing/recording diblokir saat ujian.');
+        const err = typeof DOMException === 'function'
+          ? new DOMException('Screen capture dinonaktifkan saat ujian.', 'NotAllowedError')
+          : new Error('Screen capture dinonaktifkan saat ujian.');
+        return Promise.reject(err);
       }
       return orig.apply(navigator.mediaDevices, arguments);
     };
@@ -8109,7 +8148,11 @@ setInterval(()=>{renderVisitors(latestVisitors);},30000);
   function init(){
     document.addEventListener('contextmenu', onContextMenu, { capture: true });
     document.addEventListener('copy', onCopy, { capture: true });
+    document.addEventListener('cut', onCopy, { capture: true });
+    document.addEventListener('dragstart', onDragStart, { capture: true });
     document.addEventListener('keydown', onKeyDown, { capture: true });
+    document.addEventListener('keydown', onPrintScreen, { capture: true });
+    document.addEventListener('keyup', onPrintScreen, { capture: true });
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('storage', renderWatermark);
     window.addEventListener('friction:render', renderWatermark);
