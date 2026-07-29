@@ -90,7 +90,7 @@ async function _recordAdminLoginFailure(ref, now) {
   return result.snapshot.val() || {};
 }
 
-exports.createAdminSession = onCall({ secrets: [ADMIN_PASSWORD_HASH] }, async (request) => {
+exports.createAdminSession = onCall({ region: "asia-southeast1", secrets: [ADMIN_PASSWORD_HASH] }, async (request) => {
   const password = request.data && request.data.password;
   if (typeof password !== "string" || password.length < 8 || password.length > 256) {
     throw new HttpsError("invalid-argument", "Password admin tidak valid");
