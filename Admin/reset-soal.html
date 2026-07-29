@@ -39,6 +39,12 @@
   .qchip{padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:#020a18;
     font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;user-select:none}
   .qchip.on{background:rgba(0,229,255,.12);border-color:var(--cyan);color:var(--cyan)}
+  .all-questions{display:flex;align-items:center;gap:10px;margin:8px 0 4px;padding:10px 12px;
+    border:1px solid var(--border);border-radius:9px;background:#020a18;cursor:pointer;user-select:none}
+  .all-questions:hover{border-color:var(--cyan)}
+  .all-questions input{width:18px;height:18px;margin:0;accent-color:var(--cyan);cursor:pointer}
+  .all-questions span{font-size:13px;font-weight:700;color:#9fb0d0}
+  .all-questions small{margin-left:auto;color:var(--muted);font-family:'JetBrains Mono',monospace}
 </style>
 </head>
 <body>
@@ -78,6 +84,11 @@
     <div class="hint">Isi NIM untuk 1 mahasiswa, atau <b>biarkan kosong</b> untuk reset soal terpilih ke <b>semua mahasiswa</b>.</div>
 
     <label>Pilih Soal yang Direset</label>
+    <label class="all-questions" for="allQuestions">
+      <input id="allQuestions" type="checkbox">
+      <span>Semua Soal</span>
+      <small id="allQuestionsCount">25 soal</small>
+    </label>
     <div class="qchips" id="qchips"></div>
     <div class="hint">Klik untuk pilih/batal. Atau ketik manual di bawah (pisah koma).</div>
     <input id="qManual" placeholder="mis. c1,c5,c8,c15,mc3" autocomplete="off" style="margin-top:8px">
@@ -134,6 +145,8 @@ const unitLabelEl = document.getElementById('unitLabel');
 const targetIdLabelEl = document.getElementById('targetIdLabel');
 const qchipsEl = document.getElementById('qchips');
 const qManualEl= document.getElementById('qManual');
+const allQuestionsEl = document.getElementById('allQuestions');
+const allQuestionsCountEl = document.getElementById('allQuestionsCount');
 const selected = new Set();
 
 function buildModulOptions(){
@@ -168,11 +181,32 @@ function buildChips(){
   currentQIds().forEach(q=>{
     const c=document.createElement('div');
     c.className='qchip'; c.textContent=q;
-    c.onclick=()=>{ c.classList.toggle('on'); c.classList.contains('on')?selected.add(q):selected.delete(q); syncManual(); };
+    c.onclick=()=>{
+      c.classList.toggle('on');
+      c.classList.contains('on')?selected.add(q):selected.delete(q);
+      syncManual();
+      syncAllQuestionsState();
+    };
     qchipsEl.appendChild(c);
   });
+  syncAllQuestionsState();
 }
 function syncManual(){ qManualEl.value = Array.from(selected).join(','); }
+function syncAllQuestionsState(){
+  const ids=currentQIds();
+  const selectedCount=ids.filter(q=>selected.has(q)).length;
+  const onlyKnownIds=selected.size===selectedCount;
+  allQuestionsEl.checked=selectedCount===ids.length && onlyKnownIds;
+  allQuestionsEl.indeterminate=selectedCount>0 && !allQuestionsEl.checked;
+  allQuestionsCountEl.textContent=`${ids.length} soal`;
+}
+function setAllQuestions(checked){
+  selected.clear();
+  if(checked) currentQIds().forEach(q=>selected.add(q));
+  document.querySelectorAll('.qchip').forEach(c=>c.classList.toggle('on',checked));
+  syncManual();
+  syncAllQuestionsState();
+}
 function refreshTarget(){
   const isExam = assessmentTypeEl.value === 'exam';
   unitLabelEl.textContent = isExam ? 'Exam' : 'Modul';
@@ -191,6 +225,7 @@ function switchAssessment(){
 assessmentTypeEl.onchange = switchAssessment;
 courseEl.onchange = refreshTarget;
 modulEl.onchange  = refreshTarget;
+allQuestionsEl.onchange = ()=>setAllQuestions(allQuestionsEl.checked);
 qManualEl.oninput = ()=>{
   // sync chips dari manual input
   const set = new Set(qManualEl.value.split(',').map(s=>s.trim()).filter(Boolean));
@@ -199,6 +234,7 @@ qManualEl.oninput = ()=>{
   document.querySelectorAll('.qchip').forEach(c=>{
     if(set.has(c.textContent)) c.classList.add('on'); else c.classList.remove('on');
   });
+  syncAllQuestionsState();
 };
 
 buildModulOptions();
@@ -220,7 +256,9 @@ window.doReset = async function(){
   if(!allStudents && !/^[0-9]{1,20}$/.test(nim)){ showErr('NIM harus angka, atau kosongkan untuk SEMUA mahasiswa.'); return; }
   if(qIds.length===0){ showErr('Pilih minimal 1 soal.'); return; }
   if(!pw){ showErr('Password admin wajib diisi.'); return; }
-  if(allStudents && !confirm(`Reset soal [${qIds.join(', ')}] di ${targetId} untuk SEMUA mahasiswa?\n\nIni menghapus jawaban & poin soal tersebut untuk semua mahasiswa yang sudah mengerjakannya. Mereka harus submit ulang. Lanjutkan?`)){ return; }
+  const allQuestionsSelected = qIds.length === currentQIds().length && currentQIds().every(q=>qIds.includes(q));
+  const questionSummary = allQuestionsSelected ? `SEMUA ${qIds.length} SOAL` : `soal [${qIds.join(', ')}]`;
+  if(allStudents && !confirm(`Reset ${questionSummary} di ${targetId} untuk SEMUA mahasiswa?\n\nIni menghapus jawaban & poin soal tersebut untuk semua mahasiswa yang sudah mengerjakannya. Mereka harus submit ulang. Lanjutkan?`)){ return; }
 
   btn.disabled=true; btn.textContent='Memproses...';
   try{
