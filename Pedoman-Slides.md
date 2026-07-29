@@ -1,6 +1,6 @@
 # Pedoman-Slides.md — Panduan Pembuatan Slide Slidev
 
-Dokumen ini adalah quick-start untuk Claude sesi baru yang mengerjakan slide Slidev di repo ini. Baca sebelum menyentuh file apapun di `*/Slides/`.
+Dokumen ini adalah quick-start untuk sesi Codex yang mengerjakan slide Slidev di repo ini. Baca sebelum menyentuh file apa pun di `*/Slides/`.
 
 ---
 
@@ -331,7 +331,7 @@ Deploy ke GitHub Pages: jalankan workflow `Deploy Slides ke GitHub Pages` dari t
 
 ## 12. Git Workflow
 
-- Branch: `claude/<feature-slug>` (lihat instruksi per sesi).
+- Branch: `Codex/<feature-slug>` (lihat instruksi per task).
 - Setelah edit: `git checkout -B <branch> main` → `git add` → `git commit` → `git push --force-with-lease -u origin <branch>`.
 - Merge via `mcp__github__create_pull_request` + `mcp__github__merge_pull_request` (squash).
 - Selalu sync main lokal setelah merge: `git checkout main && git pull origin main`.
