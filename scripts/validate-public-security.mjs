@@ -140,6 +140,23 @@ for (const required of [
   if (!resetQuestionPage.includes(required)) throw new Error(`Admin/reset-soal.html missing exam reset control: ${required}`);
 }
 
+for (const course of courseRoots) {
+  for (let modulNo = 1; modulNo <= 14; modulNo += 1) {
+    const relative = `${course}/Modul/Modul-${modulNo}.html`;
+    const modul = fs.readFileSync(path.join(root, relative), "utf8");
+    for (const required of [
+      "window._hidePreviewAssessmentTabs = function()",
+      "['tab-tugas', 'tab-forum', 'page-tugas', 'page-forum']",
+      "el.style.setProperty('display', 'none', 'important')",
+      "if (window._previewMode && (tab === 'tugas' || tab === 'forum')) tab = 'modul'",
+      "window._hidePreviewAssessmentTabs()",
+      "soal dan diskusi hanya tersedia setelah login",
+    ]) {
+      if (!modul.includes(required)) throw new Error(`${relative}: preview assessment hiding missing ${required}`);
+    }
+  }
+}
+
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");
 if (/rsync -a \\\r?\n\s+--exclude='.git'/.test(workflow)) throw new Error("Pages workflow still copies repository root");
 for (const required of ["Allowlist frontend publik", "Tolak artefak sensitif", "_site/functions", "*answers.js", "*questions.js"]) {
