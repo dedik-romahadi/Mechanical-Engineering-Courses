@@ -12,7 +12,7 @@
 >
 > **v20 (Juni 2026) — Content fixes + KaTeX/Animasi/Export anti-patterns:** Sesi perbaikan konten + pelajaran reusable. **Answer-key Getaran 10–14:** blok MC modal-analysis ter-copy salah → di-derive ulang per modul; 75 penjelasan Comp boilerplate ditulis ulang; 3 kunci numerik salah (modul-10 c2 Den Hartog pangkat-tiga `√(3μ/(8(1+μ)³))` + c5, modul-11 c7) + 2 soal rapuh (modul-12 c13 raw-vs-excess kurtosis, modul-13 c9 cepstrum) diperbaiki — tiap kunci diverifikasi compute (numpy/scipy). **`resetModulQuestion` all-students di-hardening** (512MiB, paralel ber-batch, `errorsSample`, client timeout 540s). **6 anti-pattern reusable — detail di §25.12–25.16 + §36.11:** KaTeX di `<option>`/teks-JS-dinamis, `ℒ⁻^1` double-superscript, slider animasi mati/ter-normalisasi, mis-seed MC antar-modul, bulk callable "internal" = instance mati, export judul tanpa `color`. §38.7 callable table + §25.8/§36.10 checklist di-update. PR references: #401–#409.
 >
-> **v19 (Juni 2026) — Role picker + Penalty 0.7 + Schedule defaults:** §39 BARU — login Modul + Exam pakai **role chooser overlay** duluan (`roleChooserOverlay` z-index 100002), bukan branch-by-name. Mahasiswa form **NIM + PIN inline** (no Nama input — auto-lookup dari `masterStudents`); listener `vNama` HARUS dihapus atau TypeError blok semua handler downstream. Dosen modal streamline: tombol "Atur Jadwal" inline, 1× password input + 1× klik "Simpan Jadwal & Masuk" sekaligus login. Animasi `initLoginAnimation(canvasId, particlesId)` refactor dari IIFE → function dipanggil 3× untuk picker+visitor+dosen. **WIB timezone enforcement global** (`timeZone:'Asia/Jakarta'` di semua `toLocale*`); exam pakai helper `_nowPlusMinAsWibString`/`_wibStringToDate` utk `<input type=datetime-local>`. **Schedule defaults baru**: Modul 7 hari + due +6 hari 23:59 WIB; Exam 180 menit + due +180m WIB + extension 120 menit. **Penalti terlambat 0.8 → 0.7 (20% → 30%)** untuk semua asesmen — `_getLateMultiplier() return 0.7` (PR #284); §9.2, §9.5.5, §15.4a + tabel poin (50×0.7=**35 poin** maks) sudah di-update. §38.7 callable table diperluas dengan `recomputeExamPoints`, `checkExamAnswer`, `resetExamAttempts`, `resetModulQuestion`, `rescaleModulLatePenalty`, `analyzeModulData`. §7.1–7.3 deprecated note — alur live ada di §39. CLAUDE.md baru di root utk orientasi sesi Claude. PR references: #370–#386 (login flow), #284 (penalty), #359–#363 (OBE scoring 1:1:2:4 mapping), #354 (recomputeExamPoints).
+> **v19 (Juni 2026) — Role picker + Penalty 0.7 + Schedule defaults:** §39 BARU — login Modul + Exam pakai **role chooser overlay** duluan (`roleChooserOverlay` z-index 100002), bukan branch-by-name. Mahasiswa form **NIM + PIN inline** (no Nama input — auto-lookup dari `masterStudents`); listener `vNama` HARUS dihapus atau TypeError blok semua handler downstream. Dosen modal streamline: tombol "Atur Jadwal" inline, 1× password input + 1× klik "Simpan Jadwal & Masuk" sekaligus login. Animasi `initLoginAnimation(canvasId, particlesId)` refactor dari IIFE → function dipanggil 3× untuk picker+visitor+dosen. **WIB timezone enforcement global** (`timeZone:'Asia/Jakarta'` di semua `toLocale*`); exam pakai helper `_nowPlusMinAsWibString`/`_wibStringToDate` utk `<input type=datetime-local>`. **Schedule defaults baru**: Modul 7 hari + due +6 hari 23:59 WIB; Exam 180 menit + due +180m WIB + extension 120 menit. **Penalti terlambat 0.8 → 0.7 (20% → 30%)** untuk semua asesmen — `_getLateMultiplier() return 0.7` (PR #284); §9.2, §9.5.5, §15.4a + tabel poin (50×0.7=**35 poin** maks) sudah di-update. §38.7 callable table diperluas dengan `recomputeExamPoints`, `checkExamAnswer`, `resetExamAttempts`, `resetModulQuestion`, `rescaleModulLatePenalty`, `analyzeModulData`. §7.1–7.3 deprecated note — alur live ada di §39. `AGENTS.md` baru di root utk orientasi sesi Codex. PR references: #370–#386 (login flow), #284 (penalty), #359–#363 (OBE scoring 1:1:2:4 mapping), #354 (recomputeExamPoints).
 >
 > **v18.5 (Mei 2026) — Phase 3 rollout Math UAS + COMPLETE 6/6:** Final exam migration. EXAM_CONFIG tambah entry `math4-uas`. Seed file `functions/seed/uas-math4-answers.js` (45 soal, 24 parametric, MC tidak shuffle). Client UAS.html full migration + hint compliance. Bonus latent bug fixes: (1) 15 comp entries pakai `question:` → renamed ke `text:` (mirror UAS Getaran/Optoauto bug); (2) wrap `${data.hint}` interpolation dgn conditional fallback (comp entries tidak punya hint); (3) **DIVERGENCE FIX di 2 soal Comp**: c2 (Inverse Operator) dan c7 (Partial Fraction) pakai `(N%4)+2` → a∈{2,3,4,5}; ketika a=b=5 menghasilkan 1/0=Infinity, server validation fail untuk 25% NIM. Fix: ubah ke `(N%3)+2` → a∈{2,3,4}, selalu well-defined. **MILESTONE**: Phase 3 rollout 6/6 exams selesai (Getaran UTS/UAS + Optoauto UTS/UAS + Math UTS/UAS). PR #241.
 
@@ -6660,17 +6660,17 @@ Untuk implementasi automasi, gunakan stack berikut:
 
 ---
 
-## 34. Strategi Mitigasi `API Stream Idle Timeout` (BARU di v14)
+## 34. Strategi Mitigasi Operasi Agent yang Terputus (BARU di v14)
 
 ### 34.1 Konteks
 
-Saat AI assistant (Claude Code) melakukan refactor besar pada satu modul HTML/JS (mis. menulis ulang 4 fungsi animasi canvas atau mengganti 1500+ baris JS), seringkali muncul error:
+Saat coding agent (Codex) melakukan refactor besar pada satu modul HTML/JS (mis. menulis ulang 4 fungsi animasi canvas atau mengganti 1500+ baris JS), operasi dapat terputus atau mengalami timeout:
 
 ```
-API Error: Stream idle timeout - partial response received
+Tool execution interrupted or timed out
 ```
 
-Penyebab: koneksi streaming antara client (Claude Code) dan API Anthropic terputus karena (1) respons terlalu panjang tanpa jeda token, (2) tool call dengan parameter Edit/Write berukuran besar (50KB+) yang butuh waktu lama untuk di-format, (3) latency jaringan atau congestion server. **Akibatnya:** generasi respons cut off di tengah jalan, tool call yang sedang diformat tetapi belum selesai dieksekusi **hilang seluruhnya**, kerja terbuang.
+Penyebab umum: koneksi streaming antara client coding agent dan layanan model terputus karena (1) respons terlalu panjang tanpa jeda token, (2) operasi edit berukuran besar (50KB+) yang butuh waktu lama untuk diproses, atau (3) latensi jaringan maupun congestion server. **Akibatnya:** respons dapat berhenti di tengah jalan dan operasi yang belum selesai dieksekusi **hilang seluruhnya**, sehingga pekerjaan perlu diulang.
 
 ### 34.2 Symptom Umum (Indikator Masalah)
 
@@ -6730,7 +6730,7 @@ Untuk replacement blok > 1000 baris JS yang sering timeout sebagai single Edit:
 
 ```bash
 # 1. Tulis kode baru ke file terpisah (lebih cepat dari Edit besar)
-Write: /tmp/new-anim-block.js  ← 1500 lines
+Buat: /tmp/new-anim-block.js  ← 1500 lines
 
 # 2. Splice via Bash dengan sed/python
 python3 -c "
@@ -6750,11 +6750,11 @@ with open('Modul-N.html', 'w') as f: f.writelines(lines)
 **Sebelum mulai pekerjaan besar, deteksi dini:**
 
 1. **Estimasi size** — kalau replacement > 500 baris atau > 30KB, langsung pecah jadi 3+ chunks
-2. **Sediakan `claude/<task-name>` branch terpisah** — jangan kerja langsung di `main` agar revert mudah
-3. **Set TodoWrite dengan granularitas commit** — tiap todo = 1 commit (bukan 1 fungsi besar)
+2. **Sediakan `Codex/<task-name>` branch terpisah** — jangan kerja langsung di `main` agar revert mudah
+3. **Susun rencana kerja dengan granularitas commit** — tiap langkah = 1 commit (bukan 1 fungsi besar)
 4. **Push `git push -u origin <branch>` setelah commit pertama** — establish remote tracking lebih awal
 
-**Saat mengetik prompt panjang ke Claude Code, hindari:**
+**Saat mengetik prompt panjang ke Codex, hindari:**
 - ❌ "Write 4 animations: gradient descent, Newton, multi-modal, KKT — all in one go"
 - ✅ "Write Animasi 1 only: gradient descent on contour. Setelah selesai, kita commit lalu lanjut animasi 2."
 
@@ -6779,7 +6779,7 @@ git push -u origin <branch>
 # 4. Lalu lanjut dari titik commit terakhir
 ```
 
-**Aturan emas:** **JANGAN BIARKAN WORKING TREE DIRTY > 10 MENIT.** Stop-hook akan firing terus, dan kalau tiba-tiba laptop hibernate / battery die, semua perubahan in-memory hilang.
+**Aturan emas:** **JANGAN BIARKAN WORKING TREE DIRTY terlalu lama.** Simpan checkpoint yang konsisten; jika laptop hibernate atau kehilangan daya, perubahan yang belum tersimpan dapat hilang.
 
 ### 34.6 Anti-Pattern: Yang HARUS Dihindari
 
@@ -6788,16 +6788,16 @@ git push -u origin <branch>
 | Single Edit dengan 2000+ baris old_string + 2000+ new_string | 90%+ timeout rate | Pecah jadi 4–8 Edit kecil |
 | Refactor 4 animasi sekaligus dalam 1 Edit | Kalau timeout, semua hilang | 1 commit per animasi |
 | Tidak push setelah 5+ commit lokal | Risk hilang kalau git error | Push tiap 3–5 commit |
-| Edit file 100KB+ tanpa branch terpisah | Sulit revert kalau ada masalah | Selalu branch `claude/*` |
-| Lupa update TodoWrite saat commit incremental | Lost progress tracking | Update tiap todo selesai |
-| Ignore stop-hook warning | Hook trigger berulang, working tree polluted | Commit/push/revert sesuai konteks |
+| Edit file 100KB+ tanpa branch terpisah | Sulit revert kalau ada masalah | Selalu branch `Codex/*` |
+| Lupa memperbarui rencana saat commit incremental | Lost progress tracking | Update tiap langkah selesai |
+| Mengabaikan status working tree | Perubahan menumpuk dan sulit diaudit | Commit/push/revert sesuai konteks |
 
 ### 34.7 Checklist Pre-Flight (Sebelum Refactor Besar)
 
 Sebelum mulai refactor JS canvas atau replacement blok besar:
 
-- [ ] **Branch terpisah** sudah dibuat (`git checkout -b claude/<task>`)
-- [ ] **TodoWrite** sudah di-set dengan 1 todo per chunk planned
+- [ ] **Branch terpisah** sudah dibuat (`git checkout -b Codex/<task>`)
+- [ ] **Rencana kerja** sudah disusun dengan 1 langkah per chunk
 - [ ] **Estimasi size** sudah dihitung — < 30KB per Edit?
 - [ ] **Push** awal `git push -u origin <branch>` sudah dilakukan untuk establish tracking
 - [ ] Mengetahui **point-of-no-return**: kalau Edit ke-3 dari 5 timeout, apakah commit 1–2 sudah aman? (harus: ya)
@@ -6808,7 +6808,7 @@ Sebelum mulai refactor JS canvas atau replacement blok besar:
 **Kasus:** Refactor 8 fungsi canvas animation (4 di Modul-8, 4 di Modul-9) — total ~1700 baris JS baru, masing-masing 200–400 baris.
 
 **Yang berhasil:**
-- ✅ Branch terpisah `claude/fix-animations` dari awal
+- ✅ Branch terpisah `Codex/fix-animations` dari awal
 - ✅ HTML panel update sebagai commit pertama (ringan, ≤ 7KB)
 - ✅ 1 commit per animasi (8 commit kerja inti)
 - ✅ Push tiap 4 commit sebagai checkpoint
@@ -8277,7 +8277,7 @@ template `Template Modul - Kurikulum 2025.pptx` (13 slide, 13.33×7.5 in):
 Simpan hasil sebagai **`.pptx`** (instruksi slide 1). Dosen disarankan
 mengembangkan PPT jadi materi multimedia (opsional).
 
-### 40.3 Workflow Pembuatan (untuk sesi Claude)
+### 40.3 Workflow Pembuatan (untuk sesi Codex)
 
 1. **Copy template** dari `Template-Modul-Word-dan-PPT/` — jangan menimpa file
    template asli.
@@ -9462,8 +9462,8 @@ BEDA dari file asli dosen (logo UMB asli hilang, sudut dekoratif
 hilang, tabel jam SAP cuma 3 kolom bukan 4, dst.) — bukan sekadar
 "mirip", harus file dosen sendiri yang diedit.
 
-1. **File dasar yang benar**: bukan file yang dosen upload balik ke
-   Claude (itu ternyata cuma salinan hasil §40.18 yang dikirim balik
+1. **File dasar yang benar**: bukan salinan yang dosen unggah kembali
+   lewat sesi asisten AI (itu ternyata cuma hasil §40.18 yang dikirim balik
    sbg bukti "ini salah") — melainkan file ASLI yang dosen upload
    SENDIRI ke repo sebelum sesi §40.18 (commit `182eb05`, 145.020
    byte, 5 tabel bersarang, logo UMB asli). Diambil ulang via
@@ -9571,8 +9571,8 @@ hilang, tabel jam SAP cuma 3 kolom bukan 4, dst.) — bukan sekadar
     upload file dgn path eksplisit spt file docx sebelumnya). GOTCHA
     krusial: gambar paste-inline TIDAK muncul di filesystem manapun yang
     terjangkau Bash/Read (`find` di seluruh disk nihil) — cuma ada
-    sbg base64 tertanam langsung di transcript sesi JSONL
-    (`~/.claude/projects/.../<session-id>.jsonl`), dengan 2 bentuk
+    sbg base64 tertanam langsung di transkrip sesi JSONL lokal yang
+    digunakan saat itu (lokasinya bergantung pada client), dengan 2 bentuk
     berbeda: pesan pertama muncul sbg entry `type:"user"` normal
     (`.message.content[0].source.data`), sedangkan pesan susulan yang
     tiba SAAT turn masih berjalan (mid-turn) muncul sbg entry terpisah
@@ -9621,7 +9621,7 @@ hilang, tabel jam SAP cuma 3 kolom bukan 4, dst.) — bukan sekadar
 ### 40.20 Unduhan-Gabungan/ — PDF Gabungan Modul, Exam, RPS per Mata Kuliah (BARU di v21, Jul 2026)
 
 Dosen minta link download gabungan Modul + Exam + RPS per mata kuliah
-(3 link per MK) berbasis GitHub (bukan file attachment Claude yang
+(3 link per MK) berbasis GitHub (bukan file attachment percakapan yang
 sifatnya sementara per-sesi) — supaya link-nya persisten dan bisa
 dibagikan. Folder baru `Unduhan-Gabungan/` (flat, root repo) berisi 9
 file PDF turunan (regenerated, bukan sumber — jangan diedit langsung,
@@ -9665,7 +9665,7 @@ edit sumbernya lalu build ulang):
 
 Follow-up §40.20: dosen minta preview PDF standalone (tanpa tampilan
 UI github.com di sekitarnya), tapi tetap "berbasis GitHub saja" (bukan
-link attachment Claude). Dua opsi GitHub-native yang ada sebelum ini
+link attachment percakapan). Dua opsi GitHub-native yang ada sebelum ini
 TIDAK memenuhi:
 
 - `raw.githubusercontent.com/...` — dicek via `curl -I`, GitHub set
@@ -9953,7 +9953,7 @@ Fix: tambah trigger `push: branches: [main]`, `workflow_dispatch:`
 tetap dipertahankan (utk re-deploy tanpa commit baru).
 
 1. Alasan asli "manual saja" sudah tidak berlaku sejak alur kerja
-   pindah ke branch + PR: pengembangan di `claude/*`, `main` hanya
+   pindah ke branch + PR: pengembangan di `Codex/*`, `main` hanya
    menerima hasil merge yang sudah di-review. Jadi tiap commit di
    `main` memang layak tayang.
 2. **Merge via GitHub App token TETAP memicu `push` workflow** —
