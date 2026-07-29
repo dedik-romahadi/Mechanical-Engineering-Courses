@@ -31,7 +31,7 @@ LMS multi-course untuk **S1 Teknik Mesin Universitas Mercu Buana** (Dosen: Dedik
 └── OBE/              Dokumen-OBE.html (1 file, gabung Silabus + Penilaian)
 ```
 
-Plus root: `Admin/` (tools dosen: rescale-deadline, recompute-obe-score, reset-soal, verify-export-code), `functions/` (Cloud Functions Node), `Template-Modul-Word-dan-PPT/` (template resmi BOP utk modul Word+PPT — lihat Pedoman §40), `Pedoman-Modul.md`, `database.rules.json`, `firestore.rules`.
+Plus root: `Admin/` (tools dosen: rescale-deadline, recompute-obe-score, reset-soal, verify-export-code), `Template-Modul-Word-dan-PPT/` (template resmi BOP utk modul Word+PPT — lihat Pedoman §40), dan `Pedoman-Modul.md`. Cloud Functions, rules, bank soal, dan seed berada di repositori privat `dedik-romahadi/Mechanical-Engineering-Courses-Backend`; jangan menyalinnya kembali ke repo publik ini.
 
 Total file HTML utama: **42 modul + 6 exam + 3 OBE = 51 file**.
 
@@ -84,11 +84,11 @@ Script Python di `/tmp/` pakai pattern read → `src.replace(OLD, NEW)` → writ
 
 ### Hosting: GitHub Pages (root-scoped) — ⚠️ BACA SEBELUM UTAK-ATIK DEPLOY
 - **Frontend LMS live di GitHub Pages**, bukan Firebase. `firebase.json` TIDAK punya key `hosting` — Firebase hanya backend (RTDB + Firestore + Functions).
-- Pages Source = **"GitHub Actions"**, via `.github/workflows/deploy-slides.yml` yang mem-publish **SELURUH root repo** (`rsync . _site/`). Jadi tiap path di repo bisa diakses di `https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/<path>`.
+- Pages Source = **"GitHub Actions"**, via `.github/workflows/deploy-slides.yml` dengan **allowlist frontend**. Backend, workflow, pedoman, seed, dan bank soal tidak boleh masuk artefak `_site`.
 - **JANGAN ubah Source ke "Deploy from a branch"** (mis. `/docs`) — semua path di luar folder itu langsung 404: 42 modul, 6 exam, dan **`STUDENTS_JSON_URL` (roster login mahasiswa)** yang di-fetch dari Pages. Pernah terjadi, lihat `Pedoman-Modul.md` §40.21b.
 - Deploy **otomatis** tiap ada commit masuk `main` (merge PR / upload web UI). Tidak perlu lagi minta dosen klik Run workflow manual (§40.25). Trigger manual tetap tersedia untuk re-deploy tanpa commit baru.
 
-### Cloud Functions kunci (di `functions/index.js`)
+### Cloud Functions kunci (repo privat `Mechanical-Engineering-Courses-Backend/functions/index.js`)
 | Function | Role | Aksi |
 |----------|------|------|
 | `checkExamAnswer` | mahasiswa (PIN) | Server-side validation UTS/UAS, lock 1× answer |
@@ -123,4 +123,4 @@ EXAM_CONFIG di functions/index.js wajib punya entry per examId: `getaran-mekanik
 - `Pedoman-Modul.md` §39 (Role Picker — BARU di v19; §39.10 Ganti Peran + chip + PIN re-verify)
 - `Pedoman-Modul.md` §15.5 (ekstraksi jawaban komputasi — WAJIB sebelum ubah grading), §36.12 (Kode Verifikasi Export), §25.19–25.20 (bug PERMISSION_DENIED stale-set & EXAM_CONFIG fields — v21)
 - `Pedoman-Modul.md` §40 (Modul Word & PPT — template BOP)
-- `functions/DEPLOY.md` (deploy Cloud Functions + Export Verification Code + catatan restorasi EXAM_CONFIG)
+- README dan `functions/DEPLOY.md` di repositori privat `Mechanical-Engineering-Courses-Backend` untuk deployment Cloud Functions, secrets, rules, dan seed

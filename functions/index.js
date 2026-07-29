@@ -38,11 +38,88 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
 const { getDatabase } = require("firebase-admin/database");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const crypto = require("crypto");
 
 initializeApp();
+
+// Admin authentication is server-authoritative. The password hash lives in
+// Secret Manager and is only used once to mint a Firebase custom token with an
+// `admin` claim. Every privileged callable then validates request.auth; no
+// replayable password hash is accepted from browser payloads.
+const ADMIN_PASSWORD_HASH = defineSecret("ADMIN_PASSWORD_HASH");
+const ADMIN_UID = "mechanical-courses-admin";
+const ADMIN_SESSION_MAX_AGE_SECONDS = 2 * 60 * 60;
+const ADMIN_LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const ADMIN_LOGIN_MAX_FAILURES = 5;
+
+function _isAdminRequest(request) {
+  const token = request.auth && request.auth.token;
+  if (!token || token.admin !== true) return false;
+  const authTime = Number(token.auth_time || 0);
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  return authTime > 0 && nowSeconds - authTime <= ADMIN_SESSION_MAX_AGE_SECONDS;
+}
+
+function _requireAdmin(request) {
+  if (!_isAdminRequest(request)) {
+    throw new HttpsError("permission-denied", "Sesi admin tidak valid atau sudah kedaluwarsa");
+  }
+}
+
+function _adminRateKey(request) {
+  const forwarded = String(request.rawRequest?.headers?.["x-forwarded-for"] || "");
+  const ip = forwarded.split(",")[0].trim() || request.rawRequest?.ip || "unknown";
+  return crypto.createHash("sha256").update(String(ip)).digest("hex");
+}
+
+async function _recordAdminLoginFailure(ref, now) {
+  const result = await ref.transaction((current) => {
+    const value = current && typeof current === "object" ? current : {};
+    const inWindow = Number(value.windowStartedAt || 0) > now - ADMIN_LOGIN_WINDOW_MS;
+    const failures = (inWindow ? Number(value.failures || 0) : 0) + 1;
+    return {
+      windowStartedAt: inWindow ? Number(value.windowStartedAt) : now,
+      failures,
+      lockedUntil: failures >= ADMIN_LOGIN_MAX_FAILURES ? now + ADMIN_LOGIN_WINDOW_MS : 0,
+      updatedAt: now,
+    };
+  });
+  return result.snapshot.val() || {};
+}
+
+exports.createAdminSession = onCall({ secrets: [ADMIN_PASSWORD_HASH] }, async (request) => {
+  const password = request.data && request.data.password;
+  if (typeof password !== "string" || password.length < 8 || password.length > 256) {
+    throw new HttpsError("invalid-argument", "Password admin tidak valid");
+  }
+
+  const now = Date.now();
+  const rateRef = getDatabase().ref(`security/adminLoginAttempts/${_adminRateKey(request)}`);
+  const rateSnap = await rateRef.get();
+  const rate = rateSnap.val() || {};
+  if (Number(rate.lockedUntil || 0) > now) {
+    throw new HttpsError("resource-exhausted", "Terlalu banyak percobaan. Coba lagi 15 menit kemudian");
+  }
+
+  const expectedHex = String(ADMIN_PASSWORD_HASH.value() || "").trim().toLowerCase();
+  if (!/^[0-9a-f]{64}$/.test(expectedHex)) {
+    console.error("[createAdminSession] ADMIN_PASSWORD_HASH is missing or malformed");
+    throw new HttpsError("failed-precondition", "Konfigurasi autentikasi admin belum siap");
+  }
+  const actual = crypto.createHash("sha256").update(password, "utf8").digest();
+  const expected = Buffer.from(expectedHex, "hex");
+  if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) {
+    await _recordAdminLoginFailure(rateRef, now);
+    throw new HttpsError("permission-denied", "Password admin salah");
+  }
+
+  await rateRef.remove();
+  const token = await getAuth().createCustomToken(ADMIN_UID, { admin: true });
+  return { token, expiresInSeconds: ADMIN_SESSION_MAX_AGE_SECONDS };
+});
 
 setGlobalOptions({
   region: "asia-southeast1",
@@ -786,16 +863,13 @@ exports.checkExamAnswer = onCall(async (request) => {
 // terkunci 'alreadyAnswered' untuk soal yang pernah dicoba. Reset ini melengkapi
 // supaya benar-benar fresh.
 //
-// Auth: admin password hash (SHA-256) — sama dgn ADMIN_PW_HASH di client.
-// TODO: pindah ke env var (firebase functions config) supaya hash tidak hardcoded.
+// Auth: Firebase ID token dengan custom claim `admin: true`.
 //
-// Request: { examId: 'getaran-mekanik-uts', adminPwHash: '<sha256-hex>' }
+// Request: { examId: 'getaran-mekanik-uts' }
 // Response: { deleted: <int>, students: <int> }
 // ─────────────────────────────────────────────────────────────────────────────
-const ADMIN_PW_HASH = "57ae60d11a0de7b13b9c77c4664dc951afe403952b46c3b4f95a8bc0eb8a0470";
-
 exports.resetExamAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
-  const { examId, adminPwHash } = request.data || {};
+  const { examId } = request.data || {};
 
   if (!examId || typeof examId !== "string") {
     throw new HttpsError("invalid-argument", "examId wajib diisi");
@@ -803,9 +877,7 @@ exports.resetExamAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
   if (!EXAM_CONFIG[examId]) {
     throw new HttpsError("invalid-argument", `examId '${examId}' tidak dikonfigurasi`);
   }
-  if (!adminPwHash || typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
-    throw new HttpsError("permission-denied", "Admin password salah atau tidak disertakan");
-  }
+  _requireAdmin(request);
 
   const fs = getFirestore();
   try {
@@ -856,10 +928,10 @@ exports.resetExamAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
 // ada di functions/questions/uas-<slug>-questions.js, hasil ekstraksi VERBATIM
 // dari UAS.html supaya dijamin identik dgn yang dulu ada di client.
 //
-// Request:  { examId, nim?, pinHash?, adminPwHash? }
+// Request:  { examId, nim?, pinHash? }; dosen dikenali dari request.auth.
 //   - Mahasiswa: nim + pinHash wajib; jadwal harus isOpen (evalSchedule, sama
 //     persis window yg dipakai checkExamAnswer utk submit).
-//   - Dosen: adminPwHash wajib (bypass jadwal).
+//   - Dosen: Firebase ID token ber-claim admin (bypass jadwal).
 // Response: { examId, N, tf:[...], mc:[...], compEz:[...], compHard:[...] }
 //   Soal parametric SUDAH di-evaluate server-side pakai N (dari NIM mahasiswa,
 //   atau N=0 utk dosen) — client tidak pernah menerima source compute() mentah,
@@ -896,7 +968,7 @@ function _renderQuestionSet(bank, N) {
 
 exports.getExamQuestions = onCall(async (request) => {
   try {
-    const { examId, nim, pinHash, adminPwHash } = request.data || {};
+    const { examId, nim, pinHash } = request.data || {};
     if (!examId || typeof examId !== "string") {
       throw new HttpsError("invalid-argument", "examId wajib diisi");
     }
@@ -908,11 +980,8 @@ exports.getExamQuestions = onCall(async (request) => {
 
     const rtdb = getDatabase();
 
-    // ── Jalur DOSEN: admin password, bypass jadwal (preview/monitoring) ──
-    if (adminPwHash) {
-      if (typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
-        throw new HttpsError("permission-denied", "Admin password salah");
-      }
+    // ── Jalur DOSEN: Firebase Auth admin claim, bypass jadwal ──
+    if (_isAdminRequest(request)) {
       return { examId, N: 0, ..._renderQuestionSet(bank, 0) };
     }
 
@@ -1320,13 +1389,11 @@ exports.generateExportCode = onCall({ secrets: [EXPORT_CODE_SECRET] }, async (re
 // sama. Kalau file diedit (poin/nim/timestamp berubah), kode tidak akan
 // cocok lagi -- HMAC dihitung ulang dari field yg di-submit, bukan dibaca
 // dari storage manapun.
-// Request: { adminPwHash, modulId, nim, points, generatedAt, code }
+// Request: { modulId, nim, points, generatedAt, code }
 // Response: { valid, currentPoints }
 exports.verifyExportCode = onCall({ secrets: [EXPORT_CODE_SECRET] }, async (request) => {
-  const { adminPwHash, modulId, examId, nim, points, generatedAt, code } = request.data || {};
-  if (!adminPwHash || adminPwHash !== ADMIN_PW_HASH) {
-    throw new HttpsError("permission-denied", "Admin password salah");
-  }
+  const { modulId, examId, nim, points, generatedAt, code } = request.data || {};
+  _requireAdmin(request);
   const id = (typeof modulId === "string" && modulId) || (typeof examId === "string" && examId) || "";
   if (!id || !nim || points === undefined || points === null || !generatedAt || !code) {
     throw new HttpsError("invalid-argument", "modulId|examId/nim/points/generatedAt/code wajib diisi");
@@ -1353,17 +1420,15 @@ exports.verifyExportCode = onCall({ secrets: [EXPORT_CODE_SECRET] }, async (requ
 
 // ─────────────────────────────────────────────────────────────────────────────
 // resetModulAttempts — admin callable, hapus modulAttempts utk satu modul.
-// Request: { modulId, adminPwHash }
+// Request: { modulId }
 // Response: { deleted, students }
 // ─────────────────────────────────────────────────────────────────────────────
 exports.resetModulAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
-  const { modulId, adminPwHash } = request.data || {};
+  const { modulId } = request.data || {};
   if (!modulId || !MODUL_CONFIG[modulId]) {
     throw new HttpsError("invalid-argument", `modulId '${modulId}' tidak dikonfigurasi`);
   }
-  if (!adminPwHash || adminPwHash !== ADMIN_PW_HASH) {
-    throw new HttpsError("permission-denied", "Admin password salah");
-  }
+  _requireAdmin(request);
 
   const fs = getFirestore();
   try {
@@ -1409,12 +1474,12 @@ exports.resetModulAttempts = onCall({ timeoutSeconds: 60 }, async (request) => {
 //
 // Setelah reset, mahasiswa bisa submit ulang → di-skor fresh dgn kunci terbaru.
 //
-// Request: { modulId, nim?, qIds:[...], adminPwHash }   (nim kosong = semua mhs)
+// Request: { modulId, nim?, qIds:[...] }   (nim kosong = semua mhs)
 // Response (single): { modulId, nim, allStudents:false, perQuestion, pointsBefore, pointsAfter, markersRemoved }
 // Response (all):    { modulId, allStudents:true, studentsScanned, studentsAffected, totalMarkersRemoved, perStudent }
 // ─────────────────────────────────────────────────────────────────────────────
 exports.resetModulQuestion = onCall({ timeoutSeconds: 540, memory: "512MiB" }, async (request) => {
-  const { modulId, nim, qIds, adminPwHash } = request.data || {};
+  const { modulId, nim, qIds } = request.data || {};
 
   if (!modulId || !MODUL_CONFIG[modulId]) {
     throw new HttpsError("invalid-argument", `modulId '${modulId}' tidak dikonfigurasi`);
@@ -1435,9 +1500,7 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 540, memory: "512MiB" }, a
       throw new HttpsError("invalid-argument", `qId '${q}' tidak valid`);
     }
   }
-  if (!adminPwHash || typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
-    throw new HttpsError("permission-denied", "Admin password salah");
-  }
+  _requireAdmin(request);
 
   const cfg = MODUL_CONFIG[modulId];
   const fs = getFirestore();
@@ -1602,7 +1665,7 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 540, memory: "512MiB" }, a
 //   Marker di scoredQuestions ikut ditukar bila berubah; points RTDB disesuaikan.
 //   Idempoten — hanya menyentuh attempt yang outcome-nya berubah.
 //
-// Request:  { modulId, adminPwHash, nims?:[...], newEnd? }
+// Request:  { modulId, nims?:[...], newEnd? }
 //   newEnd  — ISO datetime opsional. Jika diisi → tulis ke schedule end DULU
 //             (sekalian atur jadwal), lalu rescale terhadapnya. Jika kosong →
 //             pakai end yang sudah ada di schedule.
@@ -1612,14 +1675,12 @@ exports.resetModulQuestion = onCall({ timeoutSeconds: 540, memory: "512MiB" }, a
 //                              oldScoreDelta, newScoreDelta }] }] }
 // ─────────────────────────────────────────────────────────────────────────────
 exports.rescaleModulLatePenalty = onCall({ timeoutSeconds: 300 }, async (request) => {
-  const { modulId, adminPwHash, nims, newEnd } = request.data || {};
+  const { modulId, nims, newEnd } = request.data || {};
 
   if (!modulId || !MODUL_CONFIG[modulId]) {
     throw new HttpsError("invalid-argument", `modulId '${modulId}' tidak dikonfigurasi`);
   }
-  if (!adminPwHash || typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
-    throw new HttpsError("permission-denied", "Admin password salah");
-  }
+  _requireAdmin(request);
   if (nims !== undefined && nims !== null && !Array.isArray(nims)) {
     throw new HttpsError("invalid-argument", "nims harus array (atau dikosongkan)");
   }
@@ -1810,18 +1871,16 @@ exports.rescaleModulLatePenalty = onCall({ timeoutSeconds: 300 }, async (request
 // Jadi fungsi ini hanya mengumpulkan: answer key comp (answer/tolerance) +
 // tiap mahasiswa (scoredQuestions + codes tersimpan). Browser yang re-run & nilai.
 //
-// Request:  { modulId, adminPwHash }
+// Request:  { modulId }
 // Response: { modulId, answers:{ qId:{answer,tolerance,allowPartial,partialPoints,points} },
 //             students:[{ nimKey, nim, nama, points, scoredQuestions, codes:{qId:code} }] }
 // ─────────────────────────────────────────────────────────────────────────────
 exports.analyzeModulData = onCall({ timeoutSeconds: 120 }, async (request) => {
-  const { modulId, adminPwHash } = request.data || {};
+  const { modulId } = request.data || {};
   if (!modulId || !MODUL_CONFIG[modulId]) {
     throw new HttpsError("invalid-argument", `modulId '${modulId}' tidak dikonfigurasi`);
   }
-  if (!adminPwHash || typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
-    throw new HttpsError("permission-denied", "Admin password salah");
-  }
+  _requireAdmin(request);
 
   const cfg = MODUL_CONFIG[modulId];
   const fs = getFirestore();
@@ -1879,16 +1938,14 @@ exports.analyzeModulData = onCall({ timeoutSeconds: 120 }, async (request) => {
 // getMyObeNilai (PIN-gated).
 //
 // Request: {
-//   adminPwHash, courseId,
+//   courseId (Firebase admin claim required),
 //   scores: { "<nim>": { pre:88, TGS:{"1.3":80,...}, UTS:{"1.1":75,...}, UAS:{"3.1":70,...} } }
 // }
 // Response: { courseId, students, written, skipped }
 // ─────────────────────────────────────────────────────────────────────────────
 exports.publishObeNilai = onCall({ timeoutSeconds: 60 }, async (request) => {
-  const { adminPwHash, courseId, scores } = request.data || {};
-  if (!adminPwHash || typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
-    throw new HttpsError("permission-denied", "Admin password salah");
-  }
+  const { courseId, scores } = request.data || {};
+  _requireAdmin(request);
   if (!courseId || typeof courseId !== "string" || !/^[a-z0-9_-]{1,40}$/.test(courseId)) {
     throw new HttpsError("invalid-argument", "courseId wajib (alfanumerik/dash/underscore)");
   }
@@ -1984,14 +2041,12 @@ exports.getMyObeNilai = onCall(async (request) => {
 // untuk satu course (obeNilai/{courseId}/students/*). Mahasiswa tidak lagi bisa
 // melihat nilai setelah ini. Tidak menyentuh localStorage dosen.
 //
-// Request:  { adminPwHash, courseId }
+// Request:  { courseId }
 // Response: { courseId, deleted }
 // ─────────────────────────────────────────────────────────────────────────────
 exports.deleteObeNilai = onCall({ timeoutSeconds: 60 }, async (request) => {
-  const { adminPwHash, courseId } = request.data || {};
-  if (!adminPwHash || typeof adminPwHash !== "string" || adminPwHash !== ADMIN_PW_HASH) {
-    throw new HttpsError("permission-denied", "Admin password salah");
-  }
+  const { courseId } = request.data || {};
+  _requireAdmin(request);
   if (!courseId || typeof courseId !== "string" || !/^[a-z0-9_-]{1,40}$/.test(courseId)) {
     throw new HttpsError("invalid-argument", "courseId wajib (alfanumerik/dash/underscore)");
   }
@@ -2014,14 +2069,12 @@ exports.deleteObeNilai = onCall({ timeoutSeconds: 60 }, async (request) => {
 // perubahan mapping/bobot di OBE_EXAM_CONFIG.
 // Hapus juga visitor.obeScore (legacy) bila ada.
 //
-// Request:  { adminPwHash, examId }
+// Request:  { examId }
 // Response: { examId, processed, updated, skipped }
 // ─────────────────────────────────────────────────────────────────────────────
 exports.recomputeExamPoints = onCall({ timeoutSeconds: 300 }, async (request) => {
-  const { adminPwHash, examId } = request.data || {};
-  if (!adminPwHash || adminPwHash !== ADMIN_PW_HASH) {
-    throw new HttpsError("permission-denied", "Admin password salah");
-  }
+  const { examId } = request.data || {};
+  _requireAdmin(request);
   if (!examId || typeof examId !== "string") {
     throw new HttpsError("invalid-argument", "examId wajib");
   }
@@ -2072,7 +2125,7 @@ exports.recomputeExamPoints = onCall({ timeoutSeconds: 300 }, async (request) =>
 //     3.1←Q1-9, 3.2←Q10-16, 3.3←Q17-23, 4.1←Q24-30, 4.2←Q31-36, 4.3←Q37-45
 //   Nilai Sub-CPMK exam = Σ poin diperoleh / Σ poin maks (grup) × 100.
 //
-// Request: { adminPwHash, courseId, nims:[...] }
+// Request: { courseId, nims:[...] }
 // Response: { courseId, scores: { nim: { TGS:{sub:val}, UTS:{...}, UAS:{...} } }, missing }
 // ─────────────────────────────────────────────────────────────────────────────
 const OBE_EXAM_ORDER = (prefixComp) => [
@@ -2126,10 +2179,8 @@ function _defaultObeMapping(){
 }
 
 exports.computeObeScores = onCall({ timeoutSeconds: 300 }, async (request) => {
-  const { adminPwHash, courseId, nims, mapping } = request.data || {};
-  if (!adminPwHash || adminPwHash !== ADMIN_PW_HASH) {
-    throw new HttpsError("permission-denied", "Admin password salah");
-  }
+  const { courseId, nims, mapping } = request.data || {};
+  _requireAdmin(request);
   if (!OBE_COURSE_EXAMS[courseId]) {
     throw new HttpsError(
       "invalid-argument",

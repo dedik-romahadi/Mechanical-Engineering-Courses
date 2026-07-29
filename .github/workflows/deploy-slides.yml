@@ -40,6 +40,9 @@ jobs:
             Optimalisasi-dan-Automasi/Slides/package-lock.json
             PDD-UKTPT/Slides/package-lock.json
 
+      - name: Validasi keamanan frontend
+        run: node scripts/validate-public-security.mjs
+
       # ──────────────────────────────────────────────────────────────────
       # Opsi A — isolasi build per mata kuliah.
       # Tiap deck di-install & di-build dengan continue-on-error, lalu pada
@@ -92,15 +95,17 @@ jobs:
       - name: Siapkan direktori Pages
         run: |
           mkdir -p _site
-          # Copy seluruh repo kecuali .git, node_modules, dan direktori sumber Slides
-          rsync -a \
-            --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='_site' \
-            --exclude='Getaran-Mekanik/Slides/' \
-            --exclude='Optimalisasi-dan-Automasi/Slides/' \
-            --exclude='PDD-UKTPT/Slides/' \
-            . _site/
+          # Allowlist frontend publik. Jangan pernah kembali menyalin root repo:
+          # backend, bank soal, seed, workflow, dan pedoman bukan artefak web.
+          rsync -a Engineering-Mathematics/ _site/Engineering-Mathematics/
+          rsync -a --exclude='Slides/' Getaran-Mekanik/ _site/Getaran-Mekanik/
+          rsync -a --exclude='Slides/' Optimalisasi-dan-Automasi/ _site/Optimalisasi-dan-Automasi/
+          rsync -a --exclude='Slides/' PDD-UKTPT/ _site/PDD-UKTPT/
+          rsync -a Admin/ _site/Admin/
+          rsync -a Images/ _site/Images/
+          rsync -a Template-Modul-Word-dan-PPT/ _site/Template-Modul-Word-dan-PPT/
+          rsync -a Unduhan-Gabungan/ _site/Unduhan-Gabungan/
+          cp simulasi-export-tugas.html _site/
 
           # Hanya salin deck yang BERHASIL build (cek index.html hasil slidev).
           built=0
@@ -137,6 +142,33 @@ jobs:
             exit 1
           fi
           echo "Deck disertakan ke Pages: $built"
+
+      - name: Tolak artefak sensitif
+        shell: bash
+        run: |
+          set -euo pipefail
+          forbidden=0
+          for path in \
+            _site/functions \
+            _site/.git \
+            _site/.github \
+            _site/firebase.json \
+            _site/database.rules.json \
+            _site/firestore.rules; do
+            if [ -e "$path" ]; then
+              echo "::error::Artefak sensitif ditemukan: $path"
+              forbidden=1
+            fi
+          done
+          if grep -RIlE 'ADMIN_PW_HASH|adminPwHash|FIREBASE_SA_KEY|BEGIN PRIVATE KEY' _site; then
+            echo "::error::Pola kredensial atau autentikasi lama ditemukan di artefak Pages."
+            forbidden=1
+          fi
+          if find _site -type f \( -iname '*answers.js' -o -iname '*questions.js' -o -iname '*service-account*.json' \) -print | grep -q .; then
+            echo "::error::Bank soal, kunci jawaban, atau service-account ditemukan di artefak Pages."
+            forbidden=1
+          fi
+          test "$forbidden" -eq 0
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
