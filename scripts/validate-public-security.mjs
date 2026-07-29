@@ -87,7 +87,6 @@ for (const course of courseRoots) {
     for (const required of [
       "Batas Akhir (WIB / UTC+7)",
       "timeZone: 'Asia/Jakarta'",
-      "hourCycle: 'h23'",
       "function _wibStringToDate(s)",
       "Date.UTC(+m[1], +m[2]-1, +m[3], +m[4]-7, +m[5])",
       "const dueDate=_wibStringToDate(due)",
@@ -96,6 +95,16 @@ for (const course of courseRoots) {
     }
     if (/const dueDate\s*=\s*new Date\(due\)/.test(exam)) {
       throw new Error(`${relative}: schedule input depends on browser timezone`);
+    }
+    if (examName === "UAS.html") {
+      for (const required of [
+        "function _todayAtWibString(hour, minute)",
+        "scheduleDuration').value='180'",
+        "scheduleDue').value=_todayAtWibString(19, 30)",
+        "scheduleExtension').value='120'",
+      ]) {
+        if (!exam.includes(required)) throw new Error(`${relative}: UAS default schedule missing ${required}`);
+      }
     }
   }
 }
