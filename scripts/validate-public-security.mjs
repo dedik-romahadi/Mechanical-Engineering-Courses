@@ -98,6 +98,7 @@ for (const course of courseRoots) {
     }
     if (examName === "UAS.html") {
       for (const required of [
+        ">Atur Jadwal UAS</h2>",
         "function _todayAtWibString(hour, minute)",
         "scheduleDuration').value='180'",
         "scheduleDue').value=_todayAtWibString(19, 30)",
