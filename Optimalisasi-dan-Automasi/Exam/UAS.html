@@ -6374,12 +6374,30 @@ async function _verifyAdminPw(input) {
     await setPersistence(_auth, browserSessionPersistence);
     await signInWithCustomToken(_auth, token);
     window._lastAdminAuthError = '';
+    window._lastAdminAuthCode = '';
+    window._lastAdminAuthDetails = null;
     return true;
   } catch(e) {
     window._lastAdminAuthError = e && e.message ? e.message : String(e);
+    window._lastAdminAuthCode = e && e.code ? String(e.code) : '';
+    window._lastAdminAuthDetails = e && e.details ? e.details : null;
     console.error('[Auth] Server authentication failed:', e);
     return false;
   }
+}
+
+function _adminAuthErrorText() {
+  const code = String(window._lastAdminAuthCode || '');
+  const raw = String(window._lastAdminAuthError || '');
+  if (code.includes('resource-exhausted')) {
+    const match = raw.match(/Terlalu banyak percobaan, coba lagi dalam \d+ detik/i);
+    const seconds = Number(window._lastAdminAuthDetails && window._lastAdminAuthDetails.remainingSeconds);
+    return '\u26a0 ' + (match ? match[0] : `Terlalu banyak percobaan, coba lagi dalam ${Number.isFinite(seconds) ? Math.max(1, Math.ceil(seconds)) : 60} detik`);
+  }
+  if (code.includes('permission-denied')) return '\u26a0 Password admin salah.';
+  if (code.includes('invalid-argument')) return '\u26a0 Password admin harus terdiri dari 8–256 karakter.';
+  if (code.includes('failed-precondition')) return '\u26a0 Konfigurasi autentikasi admin belum siap.';
+  return '\u26a0 Login admin gagal. Periksa koneksi lalu coba kembali.';
 }
 // ═══════════════════════════════════════════════════════
 // STUDENT PIN SYSTEM (6-digit, SHA-256 hashed)
@@ -6689,7 +6707,7 @@ async function submitDosenLogin() {
     if (errEl) { errEl.textContent = 'Memverifikasi...'; errEl.style.display = 'block'; errEl.style.color = '#9ca3af'; }
     const ok = await _verifyAdminPw(pw);
     if (!ok) {
-      if (errEl) { errEl.textContent = '\u26a0 Password admin salah.'; errEl.style.display = 'block'; errEl.style.color = ''; }
+      if (errEl) { errEl.textContent = _adminAuthErrorText(); errEl.style.display = 'block'; errEl.style.color = ''; }
       pwEl.value = '';
       setTimeout(() => pwEl.focus(), 50);
       return;
@@ -6859,7 +6877,7 @@ function hideResetModal(){document.getElementById('resetOverlay').classList.add(
 async function confirmReset(){
   const errEl = document.getElementById('resetError');
   const ok = await _verifyAdminPw(document.getElementById('resetPw').value);
-  if(!ok){errEl.textContent='\u26a0 Password salah.';errEl.style.display='block';return;}
+  if(!ok){errEl.textContent=_adminAuthErrorText();errEl.style.display='block';return;}
   errEl.style.display='none';
   // Disable button to prevent double-click
   const btns = document.querySelectorAll('#resetOverlay button');
@@ -7029,7 +7047,7 @@ async function saveSchedule(){
     ? window._pendingDosenPw
     : document.getElementById('schedulePw').value;
   const ok = await _verifyAdminPw(pw);
-  if(!ok){errEl.textContent='\u26a0 Password salah.';errEl.style.display='block';return;}
+  if(!ok){errEl.textContent=_adminAuthErrorText();errEl.style.display='block';return;}
   const dur=parseInt(document.getElementById('scheduleDuration').value), due=document.getElementById('scheduleDue').value;
   const ext=parseInt(document.getElementById('scheduleExtension').value)||0;
   if(!dur||dur<1){errEl.textContent='\u26a0 Durasi harus diisi (minimal 1 menit).';errEl.style.display='block';return;}
