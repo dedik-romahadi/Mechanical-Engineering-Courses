@@ -151,8 +151,12 @@ for (const course of courseRoots) {
       "if (window._previewMode && (tab === 'tugas' || tab === 'forum')) tab = 'modul'",
       "window._hidePreviewAssessmentTabs()",
       "soal dan diskusi hanya tersedia setelah login",
+      ">🚪 Log Out</button>",
     ]) {
-      if (!modul.includes(required)) throw new Error(`${relative}: preview assessment hiding missing ${required}`);
+      if (!modul.includes(required)) throw new Error(`${relative}: module contract missing ${required}`);
+    }
+    if (modul.includes(">🔄 Ganti Peran</button>")) {
+      throw new Error(`${relative}: legacy Ganti Peran label must be Log Out`);
     }
   }
 }
