@@ -776,7 +776,7 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 
 <div id="scrollProgress"></div>
 <div id="previewModeBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:100001;background:linear-gradient(135deg,#7c4dff,#5e35b1);color:#fff;padding:10px 16px;font-size:.82rem;text-align:center;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.3);">
-  <span>👁️ <strong>Mode Preview</strong> — Anda masuk tanpa login. Semua soal <strong>tidak interaktif</strong> (jawaban benar/salah &amp; poin dinonaktifkan).</span>
+  <span>👁️ <strong>Mode Preview</strong> — Anda masuk tanpa login. Tab <strong>Tugas</strong> dan <strong>Forum</strong> disembunyikan; soal dan diskusi hanya tersedia setelah login.</span>
   <button onclick="exitPreviewMode()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.45);color:#fff;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:.78rem;font-weight:600;">Keluar Preview</button>
 </div>
 <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
@@ -3206,6 +3206,7 @@ document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
 
 // ── TAB SWITCHING ──
 function switchTab(tab) {
+  if (window._previewMode && (tab === 'tugas' || tab === 'forum')) tab = 'modul';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + tab).classList.add('active');
@@ -8393,9 +8394,20 @@ window.choseDosen = function() {
 
 // ═══ Preview Mode (Pedoman §39.11) — akses tanpa login; soal non-interaktif, poin nonaktif ═══
 window._previewMode = false;
+window._hidePreviewAssessmentTabs = function() {
+  ['tab-tugas', 'tab-forum', 'page-tugas', 'page-forum'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.setProperty('display', 'none', 'important');
+    el.setAttribute('aria-hidden', 'true');
+  });
+  const activeRestricted = document.querySelector('#page-tugas.active, #page-forum.active');
+  if (activeRestricted && typeof switchTab === 'function') switchTab('modul');
+};
 window.enterPreviewMode = async function() {
   await signOut(_auth).catch(() => {});
   window._previewMode = true;
+  window._hidePreviewAssessmentTabs();
   const rc = document.getElementById('roleChooserOverlay');
   if (rc) rc.classList.add('hidden');
   const vo = document.getElementById('visitorOverlay');

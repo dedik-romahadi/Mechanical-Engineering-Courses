@@ -8141,15 +8141,21 @@ lagi (fatal di komputer lab bergantian). Tiga pelengkap, semua di 42 file Modul:
 Tombol **`👁️ Mode Preview (Tanpa Login)`** di `roleChooserOverlay`, di bawah
 tombol Mahasiswa/Dosen, di semua 48 file (42 Modul + 6 Exam). Tujuan: dosen
 atau pihak lain (BOP, reviewer kurikulum) bisa lihat isi soal tanpa perlu NIM
-+ PIN, TANPA bisa mengungkap kunci jawaban atau mempengaruhi poin.
++ PIN, TANPA bisa mengungkap kunci jawaban atau mempengaruhi poin. Khusus 42
+halaman Modul, tab Tugas dan Forum disembunyikan total saat preview sehingga
+soal serta diskusi hanya tersedia setelah login.
 
 **Arsitektur** — flag global `window._previewMode` + satu guard function yang
 dipanggil di baris PERTAMA tiap handler jawaban:
 
 ```js
 window._previewMode = false;
+window._hidePreviewAssessmentTabs = function() {
+  // hide tab-tugas, tab-forum, page-tugas, dan page-forum dengan !important
+};
 window.enterPreviewMode = function() {
   window._previewMode = true;
+  window._hidePreviewAssessmentTabs();
   // sembunyikan roleChooserOverlay + visitorOverlay + dosenLoginOverlay,
   // tampilkan banner ungu permanen di top viewport (previewModeBanner)
 };
@@ -8166,8 +8172,10 @@ Dipasang sebagai `if (window._previewGuard(qId)) return;` di baris pertama:
 PERTAMA — sebelum cek `_firebaseStateLoaded`, sebelum cek jadwal, sebelum
 apa pun — **tidak ada request ke `checkModulAnswer`/`checkExamAnswer`
 callable sama sekali** saat preview; kunci jawaban di server tidak pernah
-diminta, apalagi diungkap. Soal tetap tampil (mahasiswa/reviewer bisa baca
-teks soal, opsi, kode Python starter) tapi memilih opsi / klik "Periksa" /
+diminta, apalagi diungkap. Pada **Modul**, tombol dan halaman Tugas/Forum
+disembunyikan dengan `display:none!important`; `switchTab()` juga mengalihkan
+permintaan programatis ke `tugas`/`forum` kembali ke `modul`. Pada **Exam**,
+soal tetap tampil tetapi non-interaktif; memilih opsi / klik "Periksa" /
 "Run & Check" hanya menampilkan pesan info, tidak submit apa pun.
 
 `exportTugasHtml()` punya guard terpisah (`window._previewExportGuard()`,
