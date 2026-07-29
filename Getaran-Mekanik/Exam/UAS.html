@@ -5091,7 +5091,7 @@ initLoginAnimation('dosenWaveCanvas',   'dosenParticles');
 <!-- ── FIREBASE + VISITOR SYSTEM (identik dengan Modul-1) ── -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getDatabase, ref, get, set, remove, onValue, update } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+import { getDatabase, ref, get, set, remove, onValue, onDisconnect, update } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
 import { getAuth, signInWithCustomToken, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
@@ -5114,6 +5114,9 @@ const PERTEMUAN = 'uas';
 const RELATED_MODULES = [];   // UAS standalone, no related modules
 const SCHEDULE_PATH = `settings/getaran_mekanik/${PERTEMUAN}/schedule`;
 const LOCAL_IDENTITY = `getaran_mekanik_identity_${MODULE_ID}`;
+const PRESENCE_PATH = `presence/getaran_mekanik/${MODULE_ID}`;
+const HEARTBEAT_MS = 20000;
+const ONLINE_THRESHOLD_MS = 45000;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PHASE 3 — SERVER-SIDE EXAM VALIDATION
@@ -5265,6 +5268,10 @@ window._ensureUASQuestionsLoaded = _ensureUASQuestionsLoaded;
 
 let panelOpen = false;
 let currentSchedule = null;
+let onlinePresence = {};
+let _currentPresenceRef = null;
+let _heartbeatTimer = null;
+let _presenceUnsubscribe = null;
 const VISIT_COOLDOWN = 3600000;
 
 function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
@@ -5274,6 +5281,9 @@ function saveIdentity(v){
   if (typeof window._ensureUASQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
     setTimeout(() => window._ensureUASQuestionsLoaded(), 50);
   }
+  if (v && v.role === 'student' && v.nim) {
+    try { _initPresence(); } catch(e) { console.warn('[Presence] init failed:', e); }
+  }
 }
 
 // Tombol Logout navbar — clear identity + PIN session lalu reload, supaya
@@ -5281,6 +5291,7 @@ function saveIdentity(v){
 // force-logout schedule-gate; lihat Pedoman §40.30).
 window._logoutUAS = async function() {
   if (!confirm('Keluar dari sesi ujian ini dan kembali ke halaman login?')) return;
+  try { _cleanupPresence(); } catch(e) {}
   try { localStorage.removeItem(LOCAL_IDENTITY); } catch(e) {}
   await signOut(_auth).catch(() => {});
   try { sessionStorage.removeItem(_PIN_SESSION_KEY); } catch(e) {}
@@ -5482,6 +5493,17 @@ function initVisitor(){
     const data = snapshot.val();
     latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
   });
+
+  // Pantau heartbeat mahasiswa agar panel FAB hanya menampilkan yang online.
+  if (!_presenceUnsubscribe) {
+    _presenceUnsubscribe = onValue(ref(db, PRESENCE_PATH), (snap) => {
+      onlinePresence = snap.val() || {};
+      renderVisitors(latestVisitors || []);
+    });
+    // Snapshot presence tidak berubah ketika entri basi gagal dihapus. Render
+    // berkala memastikan stale guard 45 detik tetap mengeluarkannya dari panel.
+    setInterval(() => renderVisitors(latestVisitors || []), 30000);
+  }
 }
 
 // ─── Schedule-gated access control (Pedoman §9.5) ───
@@ -5509,6 +5531,7 @@ function _handleScheduleReady() {
     // ─── Schedule HILANG → force-logout SEMUA user ───
     // Clear identity SEMUA role (symmetric, tidak ada privilege bypass)
     try { localStorage.removeItem(LOCAL_IDENTITY); } catch(e) {}
+    try { _cleanupPresence(); } catch(e) {}
 
     // Tampilkan overlay (paksa) + banner warning
     if (overlay) overlay.classList.remove('hidden');
@@ -5611,6 +5634,9 @@ function _handleScheduleReady() {
       // UAS: fetch+render soal (server-gated) FIRST sebelum _loadScoredQuestions agar DOM ready
       if (typeof window._ensureUASQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
         window._ensureUASQuestionsLoaded();
+      }
+      if (!_isDosen && me.role === 'student' && me.nim) {
+        try { _initPresence(); } catch(e) { console.warn('[Presence] init failed:', e); }
       }
       setTimeout(function(){ if(typeof window._loadScoredQuestions==='function') window._loadScoredQuestions(); }, 500);
       // Proactive PIN session check — kalau identity di localStorage tapi sessionStorage
@@ -5968,21 +5994,41 @@ function renderVisitors(visitors){
   // Mahasiswa yang akses di zona 24h tapi 0 poin statusnya "Belum" (jadwal aktif) atau "Bolos" (selesai).
   const lateCount=visited.filter(v=>(v.points||0)>0 && isLate(v.timestamp)).length;
   const schedExpired=currentSchedule&&currentSchedule.end&&new Date().getTime()>new Date(currentSchedule.end).getTime();
-  document.getElementById('fabCount').textContent=visited.length;
+  // Panel ringkas hanya menampilkan mahasiswa dengan heartbeat aktif. Tabel
+  // hasil di bawah tetap menampilkan seluruh roster untuk kebutuhan penilaian.
+  const nowMs = Date.now();
+  const onlineNims = new Set(
+    Object.values(onlinePresence || {})
+      .filter(p => p && p.nim && p.lastSeen && (nowMs - p.lastSeen) < ONLINE_THRESHOLD_MS && p.role !== 'dosen')
+      .map(p => p.nim)
+  );
+  const onlineVisited = visited.filter(v => onlineNims.has(v.nim));
+  const presenceByNim = {};
+  for (const key in onlinePresence) {
+    const presence = onlinePresence[key];
+    if (presence && presence.nim) presenceByNim[presence.nim] = presence;
+  }
+
+  document.getElementById('fabCount').textContent=onlineVisited.length;
   updateLeaderboard(visitors, schedExpired);
-  document.getElementById('vpBadge').textContent=visited.length+' orang';
+  document.getElementById('vpBadge').textContent=onlineVisited.length+' online';
   const statLateEl=document.getElementById('statLate'); if(statLateEl) statLateEl.textContent=lateCount;
   const listEl=document.getElementById('vpList'), tableEl=document.getElementById('visitorTableBody');
-  if(!visited.length){listEl.innerHTML='<div class="vp-empty">Belum ada data.</div>';}
+  if(!onlineVisited.length){listEl.innerHTML='<div class="vp-empty">Belum ada mahasiswa online.</div>';}
   else{
-    listEl.innerHTML=visited.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(v=>{
+    listEl.innerHTML=onlineVisited.sort((a,b)=>{
+      const lastA=(presenceByNim[a.nim]||{}).lastSeen||0;
+      const lastB=(presenceByNim[b.nim]||{}).lastSeen||0;
+      return lastB!==lastA ? lastB-lastA : new Date(b.timestamp)-new Date(a.timestamp);
+    }).map(v=>{
       const ini=v.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       const dt=new Date(v.timestamp), ts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short', timeZone:'Asia/Jakarta'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit', timeZone:'Asia/Jakarta'});
       // Badge "Terlambat" di panel hanya diberikan jika mahasiswa juga sudah dapat poin
       // (konsisten dengan status label di tab Hasil — lihat §17.3 Pedoman).
       const late=((v.points||0)>0) && isLate(v.timestamp);
       const lBadge=late?'<span style="color:#fb7185;font-size:.65rem;font-weight:600;margin-left:4px;">\u23f0 Terlambat</span>':'';
-      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
+      const onlineDot='<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#00e09e;box-shadow:0 0 6px rgba(0,224,158,.65);margin-right:6px;vertical-align:middle;"></span>';
+      return `<div class="vp-item" style="${late?'background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);':''}"><div class="vp-avatar student" style="${late?'background:rgba(251,113,133,.12);color:#fb7185;':''}">${ini}</div><div class="vp-info"><div class="vp-name">${onlineDot}${escH(v.nama)}${lBadge}</div><div class="vp-nim">${escH(v.nim)}</div></div><div class="vp-time"><div>${ts}</div><div style="font-size:.6rem;color:#94a3b8;text-align:right;">${v.visitCount||1}x kunjungan</div></div></div>`;
     }).join('');
   }
   if(!masterStudents.length){
@@ -6030,6 +6076,47 @@ function renderVisitors(visitors){
 function togglePanel(){panelOpen=!panelOpen;document.getElementById('visitorPanel').classList.toggle('open',panelOpen);}
 document.addEventListener('click',function(e){const p=document.getElementById('visitorPanel'),f=document.getElementById('visitorFab');if(panelOpen&&!p.contains(e.target)&&!f.contains(e.target)){panelOpen=false;p.classList.remove('open');}});
 function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+// Presence UAS: heartbeat 20 detik, stale guard 45 detik, dan cleanup saat
+// koneksi/tab ditutup. Hanya mahasiswa yang menulis data presence.
+function _initPresence() {
+  const me = getIdentity();
+  if (!me || me.role !== 'student' || !me.nim) return;
+  const userKey = sanitizeKey('mhs_' + me.nim);
+  const newPath = PRESENCE_PATH + '/' + userKey;
+  if (_currentPresenceRef && _currentPresenceRef.toString().endsWith(newPath)) {
+    _writeHeartbeat();
+    return;
+  }
+  if (_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
+  _currentPresenceRef = ref(db, newPath);
+  onDisconnect(_currentPresenceRef).remove().catch(err => console.warn('[Presence] onDisconnect setup failed:', err && err.message));
+  _writeHeartbeat();
+  _heartbeatTimer = setInterval(_writeHeartbeat, HEARTBEAT_MS);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) _writeHeartbeat(); });
+}
+
+function _writeHeartbeat() {
+  if (!_currentPresenceRef) return;
+  const me = getIdentity();
+  if (!me || me.role !== 'student' || !me.nim) return;
+  set(_currentPresenceRef, {
+    nama: (me.nama || '').slice(0, 80),
+    nim: me.nim,
+    lastSeen: Date.now(),
+    role: 'student'
+  }).catch(err => console.warn('[Presence] heartbeat write failed:', err && err.message));
+}
+
+function _cleanupPresence() {
+  if (_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
+  if (_currentPresenceRef) {
+    const presenceRef = _currentPresenceRef;
+    _currentPresenceRef = null;
+    remove(presenceRef).catch(() => {});
+  }
+}
+window.addEventListener('beforeunload', _cleanupPresence);
 
 // ═══════════════════════════════════════════════════════
 // ADMIN PASSWORD VERIFICATION (hashed, not plaintext)
