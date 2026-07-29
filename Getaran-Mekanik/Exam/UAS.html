@@ -1753,7 +1753,8 @@ const MC_HINTS = {};
 
 // ── Helper: ambil 2 digit terakhir NIM sebagai integer ──
 function getN() {
-  const me = (typeof getIdentity === 'function') ? getIdentity() : null;
+  if (Number.isInteger(window._uasServerN)) return window._uasServerN;
+  const me = (typeof window.getIdentity === 'function') ? window.getIdentity() : null;
   if (!me || !me.nim) return 0;
   const s = String(me.nim).replace(/\D/g, '');
   if (s.length < 2) return 0;
@@ -5258,6 +5259,7 @@ async function _ensureUASQuestionsLoaded() {
     }
     const result = await _getExamQuestionsCallable(payload);
     const d = result.data || {};
+    window._uasServerN = Number.isInteger(d.N) ? d.N : null;
     window.UAS_TF = d.tf || [];
     window.UAS_MC = d.mc || [];
     window.UAS_COMP_EZ = d.compEz || [];
@@ -5285,6 +5287,7 @@ let _presenceUnsubscribe = null;
 const VISIT_COOLDOWN = 3600000;
 
 function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
+window.getIdentity = getIdentity;
 function saveIdentity(v){
   localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));
   // UAS: fetch+render soal (server-gated) setelah identity tersimpan
