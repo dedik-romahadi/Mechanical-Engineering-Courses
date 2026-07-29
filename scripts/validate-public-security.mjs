@@ -80,6 +80,24 @@ for (const course of courseRoots) {
   if (/document\.body\.style\.(?:filter|opacity)|classList\.(?:add|toggle)\(['"](?:blur|blurred)/.test(uas)) {
     throw new Error(`${course}: tab switch must not blur or hide the exam page`);
   }
+
+  for (const examName of ["UTS.html", "UAS.html"]) {
+    const exam = fs.readFileSync(path.join(root, course, "Exam", examName), "utf8");
+    const relative = `${course}/Exam/${examName}`;
+    for (const required of [
+      "Batas Akhir (WIB / UTC+7)",
+      "timeZone: 'Asia/Jakarta'",
+      "hourCycle: 'h23'",
+      "function _wibStringToDate(s)",
+      "Date.UTC(+m[1], +m[2]-1, +m[3], +m[4]-7, +m[5])",
+      "const dueDate=_wibStringToDate(due)",
+    ]) {
+      if (!exam.includes(required)) throw new Error(`${relative}: WIB lock missing ${required}`);
+    }
+    if (/const dueDate\s*=\s*new Date\(due\)/.test(exam)) {
+      throw new Error(`${relative}: schedule input depends on browser timezone`);
+    }
+  }
 }
 
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");
