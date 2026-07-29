@@ -87,6 +87,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+import { getAuth, signInWithCustomToken, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
@@ -100,14 +101,17 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const functions = getFunctions(app, 'asia-southeast1');
+const auth = getAuth(app);
+const createAdminSession = httpsCallable(functions, 'createAdminSession');
+async function authenticateAdmin(password){
+  const result = await createAdminSession({ password });
+  if(!result.data || !result.data.token) throw new Error('Token sesi admin tidak diterima');
+  await setPersistence(auth, browserSessionPersistence);
+  await signInWithCustomToken(auth, result.data.token);
+}
 // timeout 9 menit (default callable 70s terlalu pendek utk reset SEMUA mahasiswa).
 const resetModulQuestion = httpsCallable(functions, 'resetModulQuestion', { timeout: 540000 });
 
-// ── SHA-256 hex (untuk hash password admin sebelum kirim) ──
-async function sha256Hex(s){
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
 
 // ── Daftar qId standar per modul (10 MC + 10 Comp EZ + 5 Comp Hard) ──
 const ALL_QIDS = [
@@ -175,8 +179,8 @@ window.doReset = async function(){
 
   btn.disabled=true; btn.textContent='Memproses...';
   try{
-    const adminPwHash = await sha256Hex(pw);
-    const r = await resetModulQuestion({ modulId, nim, qIds, adminPwHash });
+    await authenticateAdmin(pw);
+    const r = await resetModulQuestion({ modulId, nim, qIds });
     const d = r.data;
     let lines;
     if(d.allStudents){

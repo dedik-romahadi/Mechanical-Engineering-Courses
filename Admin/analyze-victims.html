@@ -93,6 +93,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+import { getAuth, signInWithCustomToken, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
@@ -106,13 +107,17 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const functions = getFunctions(app, 'asia-southeast1');
+const auth = getAuth(app);
+const createAdminSession = httpsCallable(functions, 'createAdminSession');
+async function authenticateAdmin(password){
+  const result = await createAdminSession({ password });
+  if(!result.data || !result.data.token) throw new Error('Token sesi admin tidak diterima');
+  await setPersistence(auth, browserSessionPersistence);
+  await signInWithCustomToken(auth, result.data.token);
+}
 const analyzeModulData    = httpsCallable(functions, 'analyzeModulData', { timeout: 120000 });
 const resetModulQuestion  = httpsCallable(functions, 'resetModulQuestion');
 
-async function sha256Hex(s){
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
 
 // ── Number parsing — sama persis dengan client modul parseNumbers ──
 const NUM_RE = /-?\d+\.?\d*(?:[eE][+-]?\d+)?/g;
@@ -181,7 +186,6 @@ buildModul(); modulEl.value=8; refreshId();
 
 let _victims = {};   // nim -> [qId]
 let _modulId = '';
-let _pwHash  = '';
 
 window.doAnalyze = async function(){
   clearErr(); $('resultCard').style.display='none'; $('okbox').classList.remove('show');
@@ -192,9 +196,9 @@ window.doAnalyze = async function(){
 
   const btn=$('btn'); btn.disabled=true; btn.textContent='Memproses...';
   try{
-    _pwHash = await sha256Hex(pw); _modulId = modulId;
+    await authenticateAdmin(pw); _modulId = modulId;
     setStatus('⬇️ Mengambil data dari server...');
-    const res = await analyzeModulData({ modulId, adminPwHash: _pwHash });
+    const res = await analyzeModulData({ modulId });
     const { answers, students } = res.data;
     if(!students.length){ setStatus(''); showErr('Tidak ada mahasiswa dengan jawaban comp untuk modul ini.'); btn.disabled=false; btn.textContent='Jalankan Analisis'; return; }
 
@@ -266,7 +270,7 @@ window.doResetVictims = async function(){
   const lines=[]; let fail=0;
   for(const nim of nims){
     try{
-      const r = await resetModulQuestion({ modulId:_modulId, nim, qIds:_victims[nim], adminPwHash:_pwHash });
+      const r = await resetModulQuestion({ modulId:_modulId, nim, qIds:_victims[nim] });
       const d=r.data;
       lines.push(`✅ ${nim}: ${_victims[nim].join(',')} — poin ${d.pointsBefore}→${d.pointsAfter}`);
     }catch(e){ fail++; lines.push(`❌ ${nim}: ${e.message||e}`); }

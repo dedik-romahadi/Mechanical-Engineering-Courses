@@ -89,6 +89,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+import { getAuth, signInWithCustomToken, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
@@ -102,12 +103,16 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const functions = getFunctions(app, 'asia-southeast1');
+const auth = getAuth(app);
+const createAdminSession = httpsCallable(functions, 'createAdminSession');
+async function authenticateAdmin(password){
+  const result = await createAdminSession({ password });
+  if(!result.data || !result.data.token) throw new Error('Token sesi admin tidak diterima');
+  await setPersistence(auth, browserSessionPersistence);
+  await signInWithCustomToken(auth, result.data.token);
+}
 const verifyExportCode = httpsCallable(functions, 'verifyExportCode');
 
-async function sha256Hex(s){
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
 
 const courseEl = document.getElementById('course');
 const modulEl  = document.getElementById('modul');
@@ -154,8 +159,8 @@ window.doVerify = async function(){
 
   btn.disabled=true; btn.textContent='Memverifikasi...';
   try{
-    const adminPwHash = await sha256Hex(pw);
-    const r = await verifyExportCode({ adminPwHash, modulId, nim, points: Number(points), generatedAt, code });
+    await authenticateAdmin(pw);
+    const r = await verifyExportCode({ modulId, nim, points: Number(points), generatedAt, code });
     const d = r.data;
     if(d.valid){
       const lines = [`✅ KODE VALID — file export ini ASLI (tidak diedit).`, ''];

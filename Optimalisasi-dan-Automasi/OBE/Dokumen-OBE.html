@@ -981,7 +981,7 @@ window.computeFromSystem = async function(){
   try {
     const fn = await getFb();
     const r = await fn._call('computeObeScores', {
-      adminPwHash: sess.adminPwHash, courseId: COURSE_ID,
+      courseId: COURSE_ID,
       nims: STUDENTS.map(s=>s.nim), mapping: loadMapping()
     });
     const scores = r.data.scores || {};
@@ -1014,11 +1014,12 @@ renderMapping();
 const COURSE_ID = 'optoauto';
 
 // Firebase (untuk callable + PIN check)
-let _fbApp = null, _fbFunctions = null;
+let _fbApp = null, _fbFunctions = null, _fbAuth = null, _fbAuthMod = null;
 async function getFb(){
   if(_fbFunctions) return _fbFunctions;
   const appMod = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js');
   const fnMod  = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js');
+  _fbAuthMod = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js');
   _fbApp = appMod.initializeApp({
     apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
     authDomain: "getaran-mekanik.firebaseapp.com",
@@ -1029,8 +1030,16 @@ async function getFb(){
     appId: "1:430886299733:web:0edecd5d4adf73e7440cdc"
   });
   _fbFunctions = fnMod.getFunctions(_fbApp, 'asia-southeast1');
+  _fbAuth = _fbAuthMod.getAuth(_fbApp);
   _fbFunctions._call = (name, data) => fnMod.httpsCallable(_fbFunctions, name)(data);
   return _fbFunctions;
+}
+async function authenticateAdmin(password){
+  const fn = await getFb();
+  const result = await fn._call('createAdminSession', { password });
+  if(!result.data || !result.data.token) throw new Error('Token sesi admin tidak diterima');
+  await _fbAuthMod.setPersistence(_fbAuth, _fbAuthMod.browserSessionPersistence);
+  await _fbAuthMod.signInWithCustomToken(_fbAuth, result.data.token);
 }
 async function sha256Hex(s){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
@@ -1108,12 +1117,14 @@ window.submitDosen = async function(){
   const err = document.getElementById('loginErr');
   if(!pw){ err.textContent='Password wajib'; err.style.display='block'; return; }
   err.style.display='none';
-  const hash = await sha256Hex(pw);
-  // Sanity check: try publish with empty scores to validate password (akan throw kalau salah)
-  // Lebih aman: simpan dulu hash di session, validasi nanti saat publish.
-  // Untuk UX langsung, set dulu lalu validasi via getMyObeNilai bukan opsi (PIN-gated).
-  // Kita pakai approach: simpan hash, klik Publish baru ketahuan salah.
-  setSession({ role:'dosen', adminPwHash: hash });
+  try {
+    await authenticateAdmin(pw);
+  } catch(e) {
+    err.textContent = e && e.message ? e.message : String(e);
+    err.style.display = 'block';
+    return;
+  }
+  setSession({ role:'dosen' });
   closeModal(); updateRoleUI();
   toast('✅ Login dosen — buka tab Penilaian untuk edit');
   switchMode('nilai');
@@ -1142,8 +1153,9 @@ window.submitMahasiswa = async function(){
   if(!/^\d{4,8}$/.test(pin)){ err.textContent='PIN harus 4-8 digit angka'; err.style.display='block'; return; }
   err.style.display='none';
   try {
-    const pinHash = await sha256Hex(pin);
     const fn = await getFb();
+    await _fbAuthMod.signOut(_fbAuth).catch(() => {});
+    const pinHash = await sha256Hex(pin);
     const r = await fn._call('getMyObeNilai', { courseId: COURSE_ID, nim, pinHash });
     setSession({ role:'mahasiswa', nim, pinHash, nama: r.data.nama, data: r.data });
     closeModal(); updateRoleUI();
@@ -1156,9 +1168,10 @@ window.submitMahasiswa = async function(){
   }
 };
 
-window.logout = function(){
+window.logout = async function(){
   if(!confirm('Logout dari halaman ini?')) return;
   clearSession();
+  if (_fbAuth) await _fbAuthMod.signOut(_fbAuth).catch(() => {});
   // refresh ke silabus + restore dosen view defaultnya
   location.reload();
 };
@@ -1275,7 +1288,7 @@ window.publishToFirestore = async function(){
   try {
     const fn = await getFb();
     const r = await fn._call('publishObeNilai', {
-      adminPwHash: sess.adminPwHash, courseId: COURSE_ID, scores: payload
+      courseId: COURSE_ID, scores: payload
     });
     toast(`✅ Publish OK — ${r.data.written} mahasiswa`);
   } catch(e){
@@ -1290,7 +1303,8 @@ window.deleteObeFromFirestore = async function(){
   if(!confirm('⚠️ HAPUS semua nilai OBE yang sudah dipublish dari server?\n\nMahasiswa tidak akan bisa melihat nilai lagi sampai Bapak Publish ulang. Tindakan ini tidak bisa dibatalkan.\n\n(Nilai lokal di browser ini TIDAK terhapus — pakai "Reset Lokal" untuk itu.)')) return;
   try {
     const fn = await getFb();
-    const r = await fn._call('deleteObeNilai', { adminPwHash: sess.adminPwHash, courseId: COURSE_ID });
+    const r = await fn._call('deleteObeNilai', {
+      courseId: COURSE_ID });
     toast(`🗑️ Terhapus dari server — ${r.data.deleted} mahasiswa`);
   } catch(e){
     toast(`❌ ${e.message || e}`);

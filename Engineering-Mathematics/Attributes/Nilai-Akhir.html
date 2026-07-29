@@ -526,6 +526,8 @@ window.addEventListener('resize', () => { if(students.length) render(); });
 // ═══ FIREBASE VISITOR SYSTEM ═══
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+import { getAuth, signInWithCustomToken, setPersistence, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 const MODULE_ID = 'nilai-akhir';
 const DB_PATH = `visitors/math4/${MODULE_ID}`;
@@ -548,6 +550,15 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const functions = getFunctions(app, 'asia-southeast1');
+const auth = getAuth(app);
+const createAdminSession = httpsCallable(functions, 'createAdminSession');
+async function authenticateAdmin(password){
+  const result=await createAdminSession({password});
+  if(!result.data||!result.data.token)throw new Error('Token sesi admin tidak diterima');
+  await setPersistence(auth,inMemoryPersistence);
+  await signInWithCustomToken(auth,result.data.token);
+}
 const db = getDatabase(app);
 
 function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
@@ -672,11 +683,13 @@ document.addEventListener('click',function(e){const p=document.getElementById('v
 
 function showResetModal(){document.getElementById('resetOverlay').classList.remove('hidden');document.getElementById('resetPw').value='';document.getElementById('resetError').style.display='none';setTimeout(()=>document.getElementById('resetPw').focus(),100);}
 function hideResetModal(){document.getElementById('resetOverlay').classList.add('hidden');}
-function confirmReset(){
-  if(document.getElementById('resetPw').value!=='TeknikMesin0602'){document.getElementById('resetError').style.display='block';return;}
-  remove(ref(db,DB_PATH));localStorage.removeItem(LOCAL_IDENTITY);
-  RELATED_MODULES.forEach(mid=>{remove(ref(db,'visitors/math4/'+mid));localStorage.removeItem('math4_identity_'+mid);});
-  hideResetModal();document.getElementById('visitorOverlay').classList.remove('hidden');document.getElementById('visitorFab').style.display='none';
+async function confirmReset(){
+  const err=document.getElementById('resetError');
+  try{await authenticateAdmin(document.getElementById('resetPw').value);}catch(e){err.style.display='block';err.textContent='⚠ '+(e&&e.message?e.message:'Password salah.');return;}
+  await Promise.all([remove(ref(db,DB_PATH)), ...RELATED_MODULES.map(mid=>remove(ref(db,'visitors/math4/'+mid)))]);
+  localStorage.removeItem(LOCAL_IDENTITY);
+  RELATED_MODULES.forEach(mid=>localStorage.removeItem('math4_identity_'+mid));
+  location.reload();
 }
 
 document.getElementById('resetPw').addEventListener('keydown',function(e){if(e.key==='Enter')confirmReset();});

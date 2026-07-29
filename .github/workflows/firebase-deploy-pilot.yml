@@ -1,4 +1,4 @@
-name: Firebase Deploy Exam (multi-course)
+name: Deploy Private Firebase Backend
 
 # Manual trigger workflow untuk deploy Firestore rules, RTDB rules, Cloud
 # Functions, dan seed exam answer keys. Support multi-course/multi-exam via
@@ -26,7 +26,7 @@ name: Firebase Deploy Exam (multi-course)
 #    Name: EXPORT_CODE_SECRET_VALUE
 #    Value: string acak panjang, mis. hasil `openssl rand -hex 32`
 #    Lalu jalankan workflow ini SEKALI dgn input `set_export_secret=true` (boleh
-#    barengan dgn deploy_functions=true) — lihat functions/DEPLOY.md.
+#    barengan dgn deploy_functions=true) — lihat panduan repo backend privat.
 #
 # Catatan: semua exam (Getaran, Optoauto, Math) deploy ke SATU Firebase project
 # yang sama (`getaran-mekanik`). Multi-tenancy via Firestore path prefix
@@ -85,7 +85,11 @@ on:
         type: boolean
         default: false
       set_export_secret:
-        description: '⚠ SEKALI SAJA: push GitHub secret EXPORT_CODE_SECRET_VALUE ke Firebase Secret Manager (wajib sebelum deploy_functions pertama kali setelah fitur kode verifikasi export ditambahkan — lihat functions/DEPLOY.md § Export Verification Code)'
+        description: 'Push EXPORT_CODE_SECRET_VALUE ke Firebase Secret Manager (lihat panduan repo backend privat)'
+        type: boolean
+        default: false
+      set_admin_secret:
+        description: 'Push ADMIN_PASSWORD_HASH_VALUE ke Firebase Secret Manager'
         type: boolean
         default: false
 
@@ -202,6 +206,19 @@ jobs:
             exit 1
           fi
           printf '%s' "${{ secrets.EXPORT_CODE_SECRET_VALUE }}" | firebase functions:secrets:set EXPORT_CODE_SECRET --project getaran-mekanik --data-file=- --force
+
+      - name: Step 3c — Set ADMIN_PASSWORD_HASH di Firebase Secret Manager
+        if: ${{ inputs.set_admin_secret }}
+        run: |
+          if [ -z "${{ secrets.ADMIN_PASSWORD_HASH_VALUE }}" ]; then
+            echo "❌ GitHub secret ADMIN_PASSWORD_HASH_VALUE belum di-set. Nilainya harus SHA-256 hex sepanjang 64 karakter."
+            exit 1
+          fi
+          if ! printf '%s' "${{ secrets.ADMIN_PASSWORD_HASH_VALUE }}" | grep -Eq '^[0-9a-fA-F]{64}$'; then
+            echo "❌ ADMIN_PASSWORD_HASH_VALUE harus berupa SHA-256 hex sepanjang 64 karakter."
+            exit 1
+          fi
+          printf '%s' "${{ secrets.ADMIN_PASSWORD_HASH_VALUE }}" | firebase functions:secrets:set ADMIN_PASSWORD_HASH --project getaran-mekanik --data-file=- --force
 
       - name: Step 4 — Deploy Cloud Functions
         if: ${{ inputs.deploy_functions }}
