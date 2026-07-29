@@ -5,6 +5,25 @@ import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
 const courseRoots = ["Engineering-Mathematics", "Getaran-Mekanik", "Optimalisasi-dan-Automasi"];
+const forbiddenBackendArtifacts = [
+  "functions",
+  ".firebaserc",
+  "firebase.json",
+  "database.rules.json",
+  "firestore.rules",
+  "firestore.indexes.json",
+  path.join(".github", "workflows", "firebase-deploy-pilot.yml"),
+];
+for (const artifact of forbiddenBackendArtifacts) {
+  const full = path.join(root, artifact);
+  const containsFiles = (dir) => fs.readdirSync(dir, { withFileTypes: true })
+    .some((entry) => entry.isFile() || (entry.isDirectory() && containsFiles(path.join(dir, entry.name))));
+  const present = fs.existsSync(full)
+    && (!fs.statSync(full).isDirectory() || containsFiles(full));
+  if (present) {
+    throw new Error(`Backend artifact must stay in the private repository: ${artifact}`);
+  }
+}
 const htmlFiles = [];
 function collectHtml(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
