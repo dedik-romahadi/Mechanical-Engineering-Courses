@@ -81,6 +81,16 @@ for (const course of courseRoots) {
     throw new Error(`${course}: tab switch must not blur or hide the exam page`);
   }
 
+  if (course === "Getaran-Mekanik") {
+    for (const required of [
+      "Number.isInteger(window._uasServerN)",
+      "window._uasServerN = Number.isInteger(d.N) ? d.N : null",
+      "window.getIdentity = getIdentity",
+    ]) {
+      if (!uas.includes(required)) throw new Error(`${course}: UAS NIM parameter binding missing ${required}`);
+    }
+  }
+
   for (const examName of ["UTS.html", "UAS.html"]) {
     const exam = fs.readFileSync(path.join(root, course, "Exam", examName), "utf8");
     const relative = `${course}/Exam/${examName}`;
