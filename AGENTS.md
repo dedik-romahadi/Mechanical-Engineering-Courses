@@ -98,6 +98,7 @@ Script Python di `/tmp/` pakai pattern read → `src.replace(OLD, NEW)` → writ
 | `computeObeScores` | dosen | Auto-compute TGS/UTS/UAS dari poin → ke localStorage |
 | `recomputeAllObeScores` | dosen | Recompute massal (per examId) |
 | `resetExamAttempts` | dosen | Hapus Firestore examAttempts + RTDB visitor (saat Reset) |
+| `resetExamQuestion` | dosen | Reset soal UTS/UAS tertentu untuk 1 atau semua mahasiswa |
 
 EXAM_CONFIG di functions/index.js wajib punya entry per examId: `getaran-mekanik-uts`, `getaran-mekanik-uas`, `optoauto-uts`, `optoauto-uas`, `math4-uts`, `math4-uas`.
 
