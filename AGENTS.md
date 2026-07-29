@@ -1,6 +1,6 @@
-# CLAUDE.md — Orientation untuk Sesi Baru
+# AGENTS.md — Orientasi untuk Sesi Baru
 
-Quick-start untuk Claude session di repo ini. **Untuk detail apa pun, rujuk ke `Pedoman-Modul.md` (~8300 baris, v21)** — ini cuma peta.
+Quick-start untuk sesi Codex di repo ini. **Untuk detail apa pun, rujuk ke `Pedoman-Modul.md` (v21)** — ini cuma peta.
 
 > 📄 **Membuat modul Word/PPT setoran BOP?** Baca dulu **`Pedoman-Modul.md` §40** — WAJIB mulai dari file template di `Template-Modul-Word-dan-PPT/` (cover/footer/heading dilarang diubah), isi minimal 10 halaman/slide, Daftar Pustaka APA ≥5 jurnal internasional ber-link.
 >
@@ -76,9 +76,9 @@ Total file HTML utama: **42 modul + 6 exam + 3 OBE = 51 file**.
 Script Python di `/tmp/` pakai pattern read → `src.replace(OLD, NEW)` → write. Lihat contoh `/tmp/exam_role_picker.py`, `/tmp/dosen_streamline.py`. **Modul HTML mungkin binary mode** untuk grep (UTF-8 + emoji); pakai `grep -a` atau Python.
 
 ### Git workflow
-- Branch development: `claude/<feature-slug>` (auto-set per session, lihat instructions).
+- Branch development: `Codex/<feature-slug>` (atur per task sesuai perubahan yang dikerjakan).
 - Push: `git push -u origin <branch>` (retry up to 4× dgn exponential backoff kalau network fail).
-- Buat PR HANYA kalau user minta eksplisit.
+- Setelah perubahan selesai dan verifikasi lulus: commit, push branch, buat PR siap ditinjau, lalu squash-merge ke `main` tanpa menunggu instruksi tambahan.
 - Merge: via GitHub MCP tool `mcp__github__merge_pull_request` (squash default).
 - Repo: `dedik-romahadi/mechanical-engineering-courses`.
 
