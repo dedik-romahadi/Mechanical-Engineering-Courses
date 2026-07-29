@@ -100,6 +100,8 @@ for (const course of courseRoots) {
       for (const required of [
         ">Atur Jadwal UAS</h2>",
         "function _todayAtWibString(hour, minute)",
+        "function _hasEditableUasSchedule(schedule)",
+        "if(_hasEditableUasSchedule(currentSchedule))",
         "scheduleDuration').value='180'",
         "scheduleDue').value=_todayAtWibString(19, 30)",
         "scheduleExtension').value='120'",
