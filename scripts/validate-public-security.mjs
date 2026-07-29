@@ -132,6 +132,10 @@ for (const required of [
   "examId: targetId",
   "currentQIds()",
   "courseEl.value === 'optoauto' && modulEl.value === 'uts'",
+  "id=\"allQuestions\"",
+  "function setAllQuestions(checked)",
+  "allQuestionsEl.indeterminate",
+  "SEMUA ${qIds.length} SOAL",
 ]) {
   if (!resetQuestionPage.includes(required)) throw new Error(`Admin/reset-soal.html missing exam reset control: ${required}`);
 }
