@@ -3646,7 +3646,7 @@ alamat yang sama memicu lockout 15 menit.
 - Login admin wajib memanggil `createAdminSession({password})`, dilanjutkan
   `signInWithCustomToken`.
 - Jadwal RTDB hanya dapat ditulis saat `auth.token.admin === true`.
-- Saat memilih Mahasiswa, Preview, Ganti Peran, atau Logout, panggil
+- Saat memilih Mahasiswa, Preview, Log Out, atau Logout Exam, panggil
   `signOut(auth)` agar hak admin tidak diwariskan ke pengguna berikutnya.
 - Persistensi admin dibatasi ke sesi tab/browser, bukan penyimpanan permanen.
 
@@ -8110,17 +8110,18 @@ Exam: input `scheduleDuration` adalah **menit**, calc `startDate = dueDate - dur
 - **§12** Animasi constellation + electric charges — implementation detail per layer, `initLoginAnimation` body tetap sama
 - **§15.4a** Late multiplier 0.7 — sudah di-update
 
-### 39.10 Ganti Peran + Chip Identitas Dinamis + Auto PIN Re-verify (BARU di v21)
+### 39.10 Log Out + Chip Identitas Dinamis + Auto PIN Re-verify (BARU di v21)
 
 Auto-login dari localStorage (per-modul) semula tidak punya jalan keluar via UI
 — begitu satu browser login (mhs ATAU dosen), role picker tak pernah muncul
 lagi (fatal di komputer lab bergantian). Tiga pelengkap, semua di 42 file Modul:
 
-1. **Tombol `🔄 Ganti Peran`** di navbar (`.nav-switch-role`, hidden di
+1. **Tombol `🚪 Log Out`** di navbar (`.nav-switch-role`, hidden di
    ≤700px): `window._switchRole()` → confirm → `localStorage.removeItem(
    LOCAL_IDENTITY)` → reload → role picker muncul lagi. Aman utk Modul (state
    jawaban di server); Exam TIDAK diberi tombol ini (sesi ujian terkunci —
-   keputusan terpisah). PR #613–#614.
+   keputusan terpisah). Nama handler/class lama dipertahankan untuk kompatibilitas.
+   Label dan tooltip diseragamkan menjadi tindakan keluar sesi. PR #613–#614.
 
 2. **Chip nama navbar dinamis** (`id="navIdentityChip"`, di-update dari
    `_applyRoleVisibility()`): dosen → `👨‍🏫 DEDIK ROMAHADI`, mahasiswa →

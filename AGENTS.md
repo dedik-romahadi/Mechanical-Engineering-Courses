@@ -121,7 +121,7 @@ EXAM_CONFIG di functions/index.js wajib punya entry per examId: `getaran-mekanik
 - `Pedoman-Modul.md` §§7, 8, 9, 9.5 (login, PIN, schedule modul, schedule exam)
 - `Pedoman-Modul.md` §13 (Firebase paths + rules)
 - `Pedoman-Modul.md` §38 (Dokumen OBE)
-- `Pedoman-Modul.md` §39 (Role Picker — BARU di v19; §39.10 Ganti Peran + chip + PIN re-verify)
+- `Pedoman-Modul.md` §39 (Role Picker — BARU di v19; §39.10 Log Out + chip + PIN re-verify)
 - `Pedoman-Modul.md` §15.5 (ekstraksi jawaban komputasi — WAJIB sebelum ubah grading), §36.12 (Kode Verifikasi Export), §25.19–25.20 (bug PERMISSION_DENIED stale-set & EXAM_CONFIG fields — v21)
 - `Pedoman-Modul.md` §40 (Modul Word & PPT — template BOP)
 - README dan `functions/DEPLOY.md` di repositori privat `Mechanical-Engineering-Courses-Backend` untuk deployment Cloud Functions, secrets, rules, dan seed
