@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Reset Soal per Mahasiswa | Mechanical Engineering Courses</title>
+<title>Admin — Reset Soal Modul & Exam | Mechanical Engineering Courses</title>
 <style>
   :root{
     --bg:#060a10; --surface:#0d1520; --border:#1a2840; --cyan:#00e5ff;
@@ -43,8 +43,8 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>🔧 Reset Soal per Mahasiswa</h1>
-  <div class="sub">Admin-only. Reset presisi 1+ soal untuk <b>1 mahasiswa</b> (isi NIM) atau <b>semua mahasiswa</b> (kosongkan NIM). Anti double-count; mahasiswa bisa submit ulang setelah di-reset.</div>
+  <h1>🔧 Reset Soal Modul &amp; Exam</h1>
+  <div class="sub">Admin-only. Reset presisi 1+ soal Modul, UTS, atau UAS untuk <b>1 mahasiswa</b> (isi NIM) atau <b>semua mahasiswa</b> (kosongkan NIM). Anti double-count; mahasiswa bisa submit ulang setelah di-reset.</div>
 
   <div class="warn">
     ⚠ Tool ini menghapus jawaban tersimpan & mengurangi poin sesuai soal yang dipilih. Pastikan NIM &amp; soal benar.
@@ -52,7 +52,13 @@
   </div>
 
   <div class="card">
-    <label>Mata Kuliah &amp; Modul</label>
+    <label>Jenis Asesmen</label>
+    <select id="assessmentType">
+      <option value="modul">Modul</option>
+      <option value="exam">Exam (UTS/UAS)</option>
+    </select>
+
+    <label>Mata Kuliah &amp; <span id="unitLabel">Modul</span></label>
     <div class="row">
       <div>
         <select id="course">
@@ -65,7 +71,7 @@
         <select id="modul"></select>
       </div>
     </div>
-    <div class="hint">modulId: <span id="modulId" style="color:var(--cyan)">getaran-mekanik-modul-8</span></div>
+    <div class="hint"><span id="targetIdLabel">modulId</span>: <span id="modulId" style="color:var(--cyan)">getaran-mekanik-modul-8</span></div>
 
     <label>NIM Mahasiswa <span style="color:var(--muted);font-weight:400">— kosongkan = SEMUA mahasiswa</span></label>
     <input id="nim" inputmode="numeric" placeholder="mis. 41323120009 (kosong = semua)" autocomplete="off">
@@ -111,33 +117,55 @@ async function authenticateAdmin(password){
 }
 // timeout 9 menit (default callable 70s terlalu pendek utk reset SEMUA mahasiswa).
 const resetModulQuestion = httpsCallable(functions, 'resetModulQuestion', { timeout: 540000 });
+const resetExamQuestion = httpsCallable(functions, 'resetExamQuestion', { timeout: 540000 });
 
 
 // ── Daftar qId standar per modul (10 MC + 10 Comp EZ + 5 Comp Hard) ──
-const ALL_QIDS = [
+const MODUL_QIDS = [
   ...Array.from({length:10},(_,i)=>`mc${i+1}`),
   ...Array.from({length:15},(_,i)=>`c${i+1}`),
 ];
 
+const assessmentTypeEl = document.getElementById('assessmentType');
 const courseEl = document.getElementById('course');
 const modulEl  = document.getElementById('modul');
 const modulIdEl= document.getElementById('modulId');
+const unitLabelEl = document.getElementById('unitLabel');
+const targetIdLabelEl = document.getElementById('targetIdLabel');
 const qchipsEl = document.getElementById('qchips');
 const qManualEl= document.getElementById('qManual');
 const selected = new Set();
 
 function buildModulOptions(){
   modulEl.innerHTML = '';
-  for(let n=1;n<=14;n++){
-    const o = document.createElement('option');
-    o.value = n; o.textContent = `Modul ${n}`;
-    modulEl.appendChild(o);
+  if(assessmentTypeEl.value === 'exam'){
+    [['uts','UTS'],['uas','UAS']].forEach(([value,label])=>{
+      const o=document.createElement('option'); o.value=value; o.textContent=label; modulEl.appendChild(o);
+    });
+  }else{
+    for(let n=1;n<=14;n++){
+      const o = document.createElement('option');
+      o.value = n; o.textContent = `Modul ${n}`;
+      modulEl.appendChild(o);
+    }
   }
+}
+function currentQIds(){
+  if(assessmentTypeEl.value !== 'exam') return MODUL_QIDS;
+  const comp = courseEl.value === 'optoauto' && modulEl.value === 'uts'
+    ? [...Array.from({length:10},(_,i)=>`ce${i+1}`), ...Array.from({length:5},(_,i)=>`ch${i+1}`)]
+    : Array.from({length:15},(_,i)=>`c${i+1}`);
+  return [
+    ...Array.from({length:10},(_,i)=>`tf${i+1}`),
+    ...Array.from({length:20},(_,i)=>`mc${i+1}`),
+    ...comp,
+  ];
 }
 function buildChips(){
   qchipsEl.innerHTML='';
   selected.clear();
-  ALL_QIDS.forEach(q=>{
+  qManualEl.value='';
+  currentQIds().forEach(q=>{
     const c=document.createElement('div');
     c.className='qchip'; c.textContent=q;
     c.onclick=()=>{ c.classList.toggle('on'); c.classList.contains('on')?selected.add(q):selected.delete(q); syncManual(); };
@@ -145,28 +173,45 @@ function buildChips(){
   });
 }
 function syncManual(){ qManualEl.value = Array.from(selected).join(','); }
-function refreshModulId(){ modulIdEl.textContent = `${courseEl.value}-modul-${modulEl.value}`; }
+function refreshTarget(){
+  const isExam = assessmentTypeEl.value === 'exam';
+  unitLabelEl.textContent = isExam ? 'Exam' : 'Modul';
+  targetIdLabelEl.textContent = isExam ? 'examId' : 'modulId';
+  modulIdEl.textContent = isExam
+    ? `${courseEl.value}-${modulEl.value}`
+    : `${courseEl.value}-modul-${modulEl.value}`;
+  buildChips();
+}
+function switchAssessment(){
+  buildModulOptions();
+  if(assessmentTypeEl.value === 'modul') modulEl.value = 8;
+  refreshTarget();
+}
 
-courseEl.onchange = refreshModulId;
-modulEl.onchange  = refreshModulId;
+assessmentTypeEl.onchange = switchAssessment;
+courseEl.onchange = refreshTarget;
+modulEl.onchange  = refreshTarget;
 qManualEl.oninput = ()=>{
   // sync chips dari manual input
   const set = new Set(qManualEl.value.split(',').map(s=>s.trim()).filter(Boolean));
+  selected.clear();
+  set.forEach(q=>selected.add(q));
   document.querySelectorAll('.qchip').forEach(c=>{
     if(set.has(c.textContent)) c.classList.add('on'); else c.classList.remove('on');
   });
 };
 
-buildModulOptions(); buildChips(); refreshModulId();
+buildModulOptions();
 // default ke modul 8 (kasus yang sering)
-modulEl.value = 8; refreshModulId();
+modulEl.value = 8; refreshTarget();
 
 window.doReset = async function(){
   const btn = document.getElementById('btn');
   const res = document.getElementById('result');
   res.className='result'; res.removeAttribute('style');
 
-  const modulId = modulIdEl.textContent;
+  const targetId = modulIdEl.textContent;
+  const isExam = assessmentTypeEl.value === 'exam';
   const nim = document.getElementById('nim').value.trim();
   const qIds = qManualEl.value.split(',').map(s=>s.trim()).filter(Boolean);
   const pw  = document.getElementById('pw').value;
@@ -175,23 +220,26 @@ window.doReset = async function(){
   if(!allStudents && !/^[0-9]{1,20}$/.test(nim)){ showErr('NIM harus angka, atau kosongkan untuk SEMUA mahasiswa.'); return; }
   if(qIds.length===0){ showErr('Pilih minimal 1 soal.'); return; }
   if(!pw){ showErr('Password admin wajib diisi.'); return; }
-  if(allStudents && !confirm(`Reset soal [${qIds.join(', ')}] di ${modulId} untuk SEMUA mahasiswa?\n\nIni menghapus jawaban & poin soal tsb untuk semua mahasiswa yang sudah mengerjakannya. Mereka harus submit ulang. Lanjutkan?`)){ return; }
+  if(allStudents && !confirm(`Reset soal [${qIds.join(', ')}] di ${targetId} untuk SEMUA mahasiswa?\n\nIni menghapus jawaban & poin soal tersebut untuk semua mahasiswa yang sudah mengerjakannya. Mereka harus submit ulang. Lanjutkan?`)){ return; }
 
   btn.disabled=true; btn.textContent='Memproses...';
   try{
     await authenticateAdmin(pw);
-    const r = await resetModulQuestion({ modulId, nim, qIds });
+    const r = isExam
+      ? await resetExamQuestion({ examId: targetId, nim, qIds })
+      : await resetModulQuestion({ modulId: targetId, nim, qIds });
     const d = r.data;
+    const resultId = d.examId || d.modulId;
     let lines;
     if(d.allStudents){
-      lines = [`✅ Reset SEMUA mahasiswa — ${d.modulId}`,''];
+      lines = [`✅ Reset SEMUA mahasiswa — ${resultId}`,''];
       lines.push(`Soal direset: ${qIds.join(', ')}`);
-      lines.push(`Mahasiswa terdampak: ${d.studentsAffected} (dari ${d.studentsScanned} yang punya attempt di modul ini)`);
+      lines.push(`Mahasiswa terdampak: ${d.studentsAffected} (dari ${d.studentsScanned} yang punya attempt di asesmen ini)`);
       lines.push(`Total marker dihapus: ${d.totalMarkersRemoved}`,'');
       if(d.perStudent && d.perStudent.length){
         lines.push('Mahasiswa terdampak:');
         d.perStudent.forEach(s=>{
-          lines.push(`  ${String(s.nimKey).replace(/^mhs_/,'').padEnd(14)} −${s.markersRemoved} marker, poin ${s.pointsBefore}→${s.pointsAfter}`);
+          lines.push(`  ${String(s.nimKey).replace(/^mhs_/,'').padEnd(14)} −${s.markersRemoved} marker, poin ${fmtPoint(s.pointsBefore)}→${fmtPoint(s.pointsAfter)}`);
         });
       } else {
         lines.push('(Tidak ada mahasiswa yang punya attempt untuk soal tsb — tidak ada yang di-reset.)');
@@ -202,12 +250,12 @@ window.doReset = async function(){
       }
       lines.push('','Semua mahasiswa tsb sekarang bisa submit ulang soal ini.');
     } else {
-      lines = [`✅ Reset selesai untuk NIM ${d.nim} — ${d.modulId}`,''];
-      lines.push(`Poin: ${d.pointsBefore} → ${d.pointsAfter}`);
+      lines = [`✅ Reset selesai untuk NIM ${d.nim} — ${resultId}`,''];
+      lines.push(`Poin: ${fmtPoint(d.pointsBefore)} → ${fmtPoint(d.pointsAfter)}`);
       lines.push(`Marker dihapus: ${d.markersRemoved.length}`,'');
       lines.push('Detail per soal:');
       d.perQuestion.forEach(q=>{
-        lines.push(`  ${q.qId.padEnd(5)} ${q.found?('reset (−'+q.scoreDelta+' poin, marker '+q.marker+')'):'tidak ada attempt (dilewati)'}`);
+        lines.push(`  ${q.qId.padEnd(5)} ${q.found?('reset (−'+fmtPoint(q.scoreDelta)+' poin, marker '+q.marker+')'):'tidak ada attempt (dilewati)'}`);
       });
       lines.push('','Mahasiswa sekarang bisa submit ulang soal tsb.');
     }
@@ -218,6 +266,11 @@ window.doReset = async function(){
     btn.disabled=false; btn.textContent='Reset Soal Terpilih';
   }
 };
+function fmtPoint(value){
+  const n=Number(value);
+  if(!Number.isFinite(n)) return '—';
+  return n.toLocaleString('id-ID',{maximumFractionDigits:2});
+}
 function showErr(msg){ const res=document.getElementById('result'); res.className='result err'; res.style.display='block'; res.textContent='❌ '+msg; }
 </script>
 </body>

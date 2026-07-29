@@ -125,6 +125,17 @@ for (const course of courseRoots) {
   }
 }
 
+const resetQuestionPage = fs.readFileSync(path.join(root, "Admin", "reset-soal.html"), "utf8");
+for (const required of [
+  "Exam (UTS/UAS)",
+  "resetExamQuestion",
+  "examId: targetId",
+  "currentQIds()",
+  "courseEl.value === 'optoauto' && modulEl.value === 'uts'",
+]) {
+  if (!resetQuestionPage.includes(required)) throw new Error(`Admin/reset-soal.html missing exam reset control: ${required}`);
+}
+
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");
 if (/rsync -a \\\r?\n\s+--exclude='.git'/.test(workflow)) throw new Error("Pages workflow still copies repository root");
 for (const required of ["Allowlist frontend publik", "Tolak artefak sensitif", "_site/functions", "*answers.js", "*questions.js"]) {
