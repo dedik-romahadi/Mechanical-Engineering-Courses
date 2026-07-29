@@ -6288,6 +6288,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/fireba
 import { getDatabase, ref, get, set, remove, onValue, push, onDisconnect, serverTimestamp, query, limitToLast, update } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+import { getAuth, signInWithCustomToken, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 const firebaseConfig = {
   apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
   authDomain: "getaran-mekanik.firebaseapp.com",
@@ -6325,6 +6326,8 @@ const MODUL_ID = 'optoauto-modul-8';   // ID untuk callable (beda dari MODULE_ID
 window.MODUL_ID = MODUL_ID;
 
 const _functions = getFunctions(app, 'asia-southeast1');
+const _auth = getAuth(app);
+const _createAdminSessionCallable = httpsCallable(_functions, 'createAdminSession');
 const _checkModulAnswerCallable = httpsCallable(_functions, 'checkModulAnswer');
 const _generateExportCodeCallable = httpsCallable(_functions, 'generateExportCode');
 window._generateExportCodeCallable = _generateExportCodeCallable;
@@ -6405,9 +6408,10 @@ function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY
 // begitu satu browser pernah login (mhs ATAU dosen), role picker tidak pernah tampil
 // lagi di kunjungan berikutnya. Tombol ini clear identity + reload supaya role picker
 // muncul lagi (mis. komputer lab yang dipakai bergantian mahasiswa & dosen).
-window._switchRole = function() {
+window._switchRole = async function() {
   if (!confirm('Keluar dari sesi saat ini dan kembali ke pilihan peran (Mahasiswa/Dosen)?')) return;
   try { localStorage.removeItem(LOCAL_IDENTITY); } catch(e) {}
+  await signOut(_auth).catch(() => {});
   location.reload();
 };
 function saveIdentity(v){
@@ -7218,7 +7222,6 @@ function escH(s){const d=document.createElement('div');d.textContent=s;return d.
 // (mis. via https://emn178.github.io/online-tools/sha256.html),
 // ganti string hash di bawah.
 // ═══════════════════════════════════════════════════════
-const ADMIN_PW_HASH = '57ae60d11a0de7b13b9c77c4664dc951afe403952b46c3b4f95a8bc0eb8a0470';
 
 async function _sha256Hex(s) {
   const buf = new TextEncoder().encode(s);
@@ -7230,10 +7233,16 @@ async function _sha256Hex(s) {
 async function _verifyAdminPw(input) {
   if (!input) return false;
   try {
-    const hash = await _sha256Hex(input);
-    return hash === ADMIN_PW_HASH;
+    const result = await _createAdminSessionCallable({ password: input });
+    const token = result && result.data && result.data.token;
+    if (!token) throw new Error('Token sesi admin tidak diterima');
+    await setPersistence(_auth, browserSessionPersistence);
+    await signInWithCustomToken(_auth, token);
+    window._lastAdminAuthError = '';
+    return true;
   } catch(e) {
-    console.error('[Auth] SHA-256 failed:', e);
+    window._lastAdminAuthError = e && e.message ? e.message : String(e);
+    console.error('[Auth] Server authentication failed:', e);
     return false;
   }
 }
@@ -7600,7 +7609,8 @@ window.openScheduleFromDosen = function() {
 
 
 // ═══ Role Chooser handlers (OBE-style upfront picker) ═══
-window.choseMahasiswa = function() {
+window.choseMahasiswa = async function() {
+  await signOut(_auth).catch(() => {});
   const rc = document.getElementById('roleChooserOverlay');
   if (rc) rc.classList.add('hidden');
   const vo = document.getElementById('visitorOverlay');
@@ -7630,7 +7640,8 @@ window.choseDosen = function() {
 
 // ═══ Preview Mode (Pedoman §39.11) — akses tanpa login; soal non-interaktif, poin nonaktif ═══
 window._previewMode = false;
-window.enterPreviewMode = function() {
+window.enterPreviewMode = async function() {
+  await signOut(_auth).catch(() => {});
   window._previewMode = true;
   const rc = document.getElementById('roleChooserOverlay');
   if (rc) rc.classList.add('hidden');
@@ -7720,9 +7731,8 @@ async function confirmReset(){
     // Tanpa ini, mahasiswa tetap ke-lock 'alreadyAnswered' di server-side untuk soal
     // yg pernah dicoba sebelum reset - meskipun RTDB visitor sudah di-clear.
     try {
-      const adminHash = await _sha256Hex(document.getElementById('resetPw').value);
       const resetCallable = httpsCallable(_functions, 'resetModulAttempts');
-      const result = await resetCallable({ modulId: MODUL_ID, adminPwHash: adminHash });
+      const result = await resetCallable({ modulId: MODUL_ID });
       console.log('[Reset] Firestore modulAttempts cleared:', result.data);
     } catch (fsErr) {
       // Kalau Firestore reset gagal, JANGAN lanjut RTDB delete - biar state konsisten.

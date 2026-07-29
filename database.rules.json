@@ -29,10 +29,11 @@
         "$module": {
           ".validate": "$module.matches(/^[a-z0-9_-]{1,40}$/)",
           ".read": true,
+          ".write": "auth != null && auth.token.admin === true",
           "$visitorKey": {
             ".validate": "$visitorKey.matches(/^mhs_[0-9A-Z]{1,20}$/) || $visitorKey === 'dosen'",
             ".read": true,
-            ".write": "!data.exists() || !newData.exists() || (newData.child('nim').val() === data.child('nim').val() && newData.child('nama').val() === data.child('nama').val() && newData.child('role').val() === data.child('role').val() && newData.child('timestamp').val() === data.child('timestamp').val() && (!newData.hasChild('points') || !data.hasChild('points') || (newData.child('points').val() >= data.child('points').val() && newData.child('points').val() <= data.child('points').val() + 4)) && (!newData.hasChild('visitCount') || !data.hasChild('visitCount') || (newData.child('visitCount').val() >= data.child('visitCount').val() && newData.child('visitCount').val() <= data.child('visitCount').val() + 1)))",
+            ".write": "(!data.exists() && (!newData.hasChild('points') || newData.child('points').val() === 0) && (!newData.hasChild('scoredQuestions') || newData.child('scoredQuestions').val() === '')) || (newData.exists() && newData.child('nim').val() === data.child('nim').val() && newData.child('nama').val() === data.child('nama').val() && newData.child('role').val() === data.child('role').val() && newData.child('timestamp').val() === data.child('timestamp').val() && newData.child('points').val() === data.child('points').val() && newData.child('scoredQuestions').val() === data.child('scoredQuestions').val() && newData.child('pointTimestamp').val() === data.child('pointTimestamp').val() && newData.child('consolationAwarded').val() === data.child('consolationAwarded').val() && (!newData.hasChild('visitCount') || !data.hasChild('visitCount') || (newData.child('visitCount').val() >= data.child('visitCount').val() && newData.child('visitCount').val() <= data.child('visitCount').val() + 1)))",
             "nama": {
               ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 80"
             },
@@ -89,7 +90,7 @@
         "$pertemuan": {
           ".validate": "$pertemuan.matches(/^[a-z0-9_-]{1,40}$/)",
           "schedule": {
-            ".write": true,
+            ".write": "auth != null && auth.token.admin === true",
             "start": {
               ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 40"
             },
