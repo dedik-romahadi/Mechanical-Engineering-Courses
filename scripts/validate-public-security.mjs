@@ -182,7 +182,41 @@ for (const course of courseRoots) {
     if (exam.includes("vpBadge').textContent=visited.length+' orang'")) {
       throw new Error(`${relative}: exam panel still counts historical visitors`);
     }
+
+    for (const required of [
+      "function formatPoints(pts)",
+      "Math.round((value + Number.EPSILON) * 100) / 100",
+      "window.formatPoints = formatPoints",
+      "set('scoreDetail',   formatPoints(total) + ' / 100 poin')",
+      "formatPoints(res.scoreDelta)",
+      "formatPoints(exportPoints)",
+      "formatPoints(d.pts)",
+      "formatPoints(pts)",
+    ]) {
+      if (!exam.includes(required)) throw new Error(`${relative}: point display formatter missing ${required}`);
+    }
+    for (const forbidden of [
+      /\+ res\.scoreDelta \+/,
+      /\+ compScores\[qId\] \+/,
+      /Poin \(server\): <strong>\$\{exportPoints\}/,
+      /\$\{d\.pts\}<\/span>/,
+      /Math\.round\(d\.pts\s*\*\s*100\)/,
+      /Math\.round\(total\s*\*\s*100\)/,
+    ]) {
+      if (forbidden.test(exam)) throw new Error(`${relative}: raw point display remains: ${forbidden}`);
+    }
   }
+}
+
+const formatPointsForValidation = (pts) => {
+  const value = Number(pts);
+  if (!Number.isFinite(value)) return "0";
+  const rounded = Math.round((value + Number.EPSILON) * 100) / 100;
+  return String(Object.is(rounded, -0) ? 0 : rounded);
+};
+for (const [input, expected] of [[95.52861952861952, "95.53"], [9.6, "9.6"], [9, "9"], [-0.0001, "0"], [NaN, "0"]]) {
+  const actual = formatPointsForValidation(input);
+  if (actual !== expected) throw new Error(`Point formatter regression: ${String(input)} -> ${actual}, expected ${expected}`);
 }
 
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");

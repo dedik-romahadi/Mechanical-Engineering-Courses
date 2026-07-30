@@ -1697,6 +1697,16 @@ function pointsToScore(pts) {
 }
 window.pointsToScore = pointsToScore;
 
+// Format tampilan poin tanpa mengubah nilai mentah: maksimal 2 desimal dan
+// tanpa nol ekor (95.50 -> 95.5, 9.00 -> 9).
+function formatPoints(pts) {
+  const value = Number(pts);
+  if (!Number.isFinite(value)) return '0';
+  const rounded = Math.round((value + Number.EPSILON) * 100) / 100;
+  return String(Object.is(rounded, -0) ? 0 : rounded);
+}
+window.formatPoints = formatPoints;
+
 // Helper: deteksi apakah qId termasuk Comp Hard. Optoauto pakai prefix
 // `ch<N>` utk Hard dan `ce<N>` utk Easy/Medium (beda dengan Getaran yang
 // pakai c1..c15 dengan c11..c15 sebagai Hard).
@@ -3252,7 +3262,7 @@ function _applyServerExamResult(qId, res, type, sub, fb) {
     if (fb) {
       if (res.healed === true) {
         fb.className = 'feedback correct';
-        fb.textContent = '✅ Poin Anda dari submission sebelumnya BARU SAJA TERPULIHKAN (+' + delta + ' poin). Sebelumnya tercatat 0 karena bug sinkronisasi — sudah diperbaiki. TIDAK ADA KESEMPATAN ULANG.';
+        fb.textContent = '✅ Poin Anda dari submission sebelumnya BARU SAJA TERPULIHKAN (+' + formatPoints(delta) + ' poin). Sebelumnya tercatat 0 karena bug sinkronisasi — sudah diperbaiki. TIDAK ADA KESEMPATAN ULANG.';
       } else if (status === 'correct') {
         fb.className = 'feedback correct';
         fb.textContent = '🔒 Soal ini sudah Anda jawab BENAR sebelumnya — poin sudah tercatat dari attempt pertama. TIDAK ADA KESEMPATAN ULANG.';
@@ -3295,10 +3305,10 @@ function _applyServerExamResult(qId, res, type, sub, fb) {
   if (fb) {
     if (status === 'correct') {
       fb.className = 'feedback correct';
-      fb.textContent = '✅ Jawaban diterima. +' + delta + ' poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
+      fb.textContent = '✅ Jawaban diterima. +' + formatPoints(delta) + ' poin tercatat. Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
     } else if (status === 'partial') {
       fb.className = 'feedback warn';
-      fb.textContent = '△ Partial credit +' + delta + ' poin (upaya tercatat). Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
+      fb.textContent = '△ Partial credit +' + formatPoints(delta) + ' poin (upaya tercatat). Soal TERKUNCI PERMANEN — tidak ada kesempatan ulang.';
     } else {
       fb.className = 'feedback wrong';
       fb.textContent = '🔒 Jawaban telah dikunci. TIDAK ADA KESEMPATAN ULANG. (UTS murni — jawaban benar tidak ditampilkan)';
@@ -3313,7 +3323,7 @@ function _applyServerExamResult(qId, res, type, sub, fb) {
       sub.style.borderColor = 'rgba(0,224,158,.4)';
       sub.style.color = 'var(--green)';
     } else if (status === 'partial') {
-      sub.textContent = '△ Usaha (+' + delta + ') · Terkunci';
+      sub.textContent = '△ Usaha (+' + formatPoints(delta) + ') · Terkunci';
       sub.style.borderColor = 'rgba(251,191,36,.4)';
       sub.style.color = 'var(--amber)';
     } else {
@@ -3455,7 +3465,7 @@ function renderUTSQuestions() {
             ${data.text}
             <span class="tf-tag ${isParam ? 'tf-tag-nim' : 'tf-tag-theory'}">${isParam ? 'NIM-based' : 'Teori'} · Modul ${q.modul}</span>
           </div>
-          <div class="tf-pts">${getQPoints("tf"+num, 1).toFixed(2)} poin</div>
+          <div class="tf-pts">${formatPoints(getQPoints("tf"+num, 1))} poin</div>
         </div>
         ${data.diagram || ''}
         <div class="tf-options" id="tfopts-${q.id}">
@@ -3498,7 +3508,7 @@ function renderUTSQuestions() {
             ${data.text}
             <span class="tf-tag ${isParam ? 'tf-tag-nim' : 'tf-tag-theory'}" style="margin-left:8px">${isParam ? 'NIM-based' : 'Teori'} · Modul ${q.modul}</span>
           </div>
-          <div class="mc-pts">${getQPoints("mc"+num, 1).toFixed(2)} poin</div>
+          <div class="mc-pts">${formatPoints(getQPoints("mc"+num, 1))} poin</div>
         </div>
         ${data.diagram || ''}
         <div class="radio-group" id="rg-${q.id}">${optsHtml}</div>
@@ -3558,7 +3568,7 @@ function renderUTSQuestions() {
 function _buildCompCard(q, num, data, sectionLetter, isHard) {
   const card = document.createElement('div');
   card.className = 'comp-card reveal' + (isHard ? ' comp-hard' : '');
-  const points = getQPoints(q.id, isHard ? 4 : 2).toFixed(2);
+  const points = formatPoints(getQPoints(q.id, isHard ? 4 : 2));
   const partialNote = isHard ? '<span style="color:var(--pink);font-size:11px;margin-left:6px">+1 partial jika kode terisi</span>' : '';
   card.innerHTML = `
     <div class="comp-header">
@@ -3834,7 +3844,7 @@ async function runAndCheck(qId, difficulty) {
         fb.textContent = '✅ Sudah dijawab benar — poin telah tercatat. TIDAK ADA KESEMPATAN ULANG.';
       } else if (compScores[qId] > 0) {
         fb.className = 'feedback warn';
-        fb.textContent = '△ Partial credit sudah tercatat (+' + compScores[qId] + ' poin). TIDAK ADA KESEMPATAN ULANG.';
+        fb.textContent = '△ Partial credit sudah tercatat (+' + formatPoints(compScores[qId]) + ' poin). TIDAK ADA KESEMPATAN ULANG.';
       } else {
         fb.className = 'feedback wrong';
         fb.textContent = '🔒 Sudah dijawab sebelumnya — soal TERKUNCI PERMANEN. TIDAK ADA KESEMPATAN ULANG.';
@@ -3940,14 +3950,14 @@ async function runAndCheck(qId, difficulty) {
       if (fb) {
         if (res.correct) {
           fb.textContent = stepDiag
-            ? '✅ Semua langkah benar (' + stepDiag + '). +' + res.scoreDelta + ' poin tercatat. Soal TERKUNCI PERMANEN.'
-            : '✅ Kode berjalan tanpa error & output benar! +' + res.scoreDelta + ' poin tercatat. Soal TERKUNCI PERMANEN.';
+            ? '✅ Semua langkah benar (' + stepDiag + '). +' + formatPoints(res.scoreDelta) + ' poin tercatat. Soal TERKUNCI PERMANEN.'
+            : '✅ Kode berjalan tanpa error & output benar! +' + formatPoints(res.scoreDelta) + ' poin tercatat. Soal TERKUNCI PERMANEN.';
         } else if (res.status === 'partial') {
           fb.textContent = errMsg
-            ? '🔒 Kode error — soal dikunci. +' + res.scoreDelta + ' poin untuk upaya Hard (kode non-kosong). TIDAK ADA KESEMPATAN ULANG.'
+            ? '🔒 Kode error — soal dikunci. +' + formatPoints(res.scoreDelta) + ' poin untuk upaya Hard (kode non-kosong). TIDAK ADA KESEMPATAN ULANG.'
             : (stepDiag
-                ? '🔒 Tidak semua langkah match (' + stepDiag + '). Final answer saja tidak cukup. +' + res.scoreDelta + ' poin upaya Hard. TIDAK ADA KESEMPATAN ULANG.'
-                : '🔒 Output tidak match expected — soal dikunci. +' + res.scoreDelta + ' poin untuk upaya Hard. TIDAK ADA KESEMPATAN ULANG.');
+                ? '🔒 Tidak semua langkah match (' + stepDiag + '). Final answer saja tidak cukup. +' + formatPoints(res.scoreDelta) + ' poin upaya Hard. TIDAK ADA KESEMPATAN ULANG.'
+                : '🔒 Output tidak match expected — soal dikunci. +' + formatPoints(res.scoreDelta) + ' poin untuk upaya Hard. TIDAK ADA KESEMPATAN ULANG.');
         } else {
           const outPreview = (output || '(kosong)').trim().slice(0, 100);
           fb.textContent = errMsg
@@ -3960,7 +3970,7 @@ async function runAndCheck(qId, difficulty) {
       // Override button text utk comp (lebih spesifik dari helper default)
       if (btn) {
         if (res.correct) btn.textContent = '✓ Selesai · Terkunci';
-        else if (res.status === 'partial') btn.textContent = '△ Usaha (+' + res.scoreDelta + ') · Terkunci';
+        else if (res.status === 'partial') btn.textContent = '△ Usaha (+' + formatPoints(res.scoreDelta) + ') · Terkunci';
         else btn.textContent = '✗ Terkunci';
       }
     } catch (err) {
@@ -3998,11 +4008,11 @@ function updateScore() {
 
   const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
   set('scoreDisplay',  nilai);
-  set('scoreDetail',   (Math.round(total*100)/100) + ' / 100 poin');
-  set('scoreTF',       tf);
-  set('scoreMC',       mc);
-  set('scoreCompEz',   ezComp);
-  set('scoreCompHard', hardComp);
+  set('scoreDetail',   formatPoints(total) + ' / 100 poin');
+  set('scoreTF',       formatPoints(tf));
+  set('scoreMC',       formatPoints(mc));
+  set('scoreCompEz',   formatPoints(ezComp));
+  set('scoreCompHard', formatPoints(hardComp));
   const fill = document.getElementById('scoreFill');
   if (fill) fill.style.width = nilai + '%';
 }
@@ -4582,7 +4592,7 @@ async function exportTugasHtml() {
   <div style="margin:0 36px 20px;padding:12px 18px;border-radius:12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.18);font-size:11.5px;color:#475569;display:flex;flex-wrap:wrap;gap:5px 22px;align-items:center;">
     <span style="font-weight:700;color:#7c3aed;">🔐 Kode Verifikasi</span>
     <span>Kode: <strong style="font-family:'JetBrains Mono',monospace;letter-spacing:.5px;color:#1e293b;">${esc(exportCode)}</strong></span>
-    <span>Poin (server): <strong>${exportPoints}</strong></span>
+    <span>Poin (server): <strong>${formatPoints(exportPoints)}</strong></span>
     <span>Dibuat: <strong style="font-family:'JetBrains Mono',monospace;">${esc(exportGeneratedAt)}</strong></span>
     <span style="color:#94a3b8;font-size:10.5px;">— cocokkan via Admin/verify-export-code.html kalau diragukan.</span>
   </div>
@@ -4616,7 +4626,7 @@ async function exportTugasHtml() {
         <td>A${String(d.no).padStart(2,'0')}</td>
         <td><span class="badge-modul">M${d.modul}</span><span class="badge-type ${d.type==='Teori'?'theory':'nim'}">${d.type}</span>${esc(d.title)}</td>
         <td><span class="${d.pts?'correct':(d.selected.includes('Belum')?'':'wrong')}" style="font-size:.78rem">${esc(d.selected)}</span></td>
-        <td><span class="pts ${d.pts?'pts-correct':(d.selected.includes('Belum')?'':'pts-wrong')}">${d.pts}</span></td>
+        <td><span class="pts ${d.pts?'pts-correct':(d.selected.includes('Belum')?'':'pts-wrong')}">${formatPoints(d.pts)}</span></td>
       </tr>`).join('')}
     </tbody>
   </table>
@@ -4630,7 +4640,7 @@ async function exportTugasHtml() {
         <td>B${String(d.no).padStart(2,'0')}</td>
         <td><span class="badge-modul">M${d.modul}</span><span class="badge-type ${d.type==='Teori'?'theory':'nim'}">${d.type}</span>${esc(d.title)}</td>
         <td><span class="${d.pts?'correct':(d.selected.includes('Belum')?'':'wrong')}" style="font-size:.78rem">${esc(d.selected)}</span></td>
-        <td><span class="pts ${d.pts?'pts-correct':(d.selected.includes('Belum')?'':'pts-wrong')}">${d.pts}</span></td>
+        <td><span class="pts ${d.pts?'pts-correct':(d.selected.includes('Belum')?'':'pts-wrong')}">${formatPoints(d.pts)}</span></td>
       </tr>`).join('')}
     </tbody>
   </table>
@@ -4644,7 +4654,7 @@ async function exportTugasHtml() {
         <td>C${String(d.no).padStart(2,'0')}</td>
         <td style="font-size:.78rem;color:#475569"><span class="badge-modul">M${d.modul}</span>${esc(d.title)}</td>
         <td style="font-family:monospace;font-size:.72rem;background:#fff7ed;padding:6px 8px;border-radius:4px;white-space:pre-wrap;word-break:break-word;white-space:pre-wrap">${esc(d.code||'(belum diisi)')}</td>
-        <td><span class="pts ${d.pts?'pts-correct':'pts-wrong'}">${d.pts}</span></td>
+        <td><span class="pts ${d.pts?'pts-correct':'pts-wrong'}">${formatPoints(d.pts)}</span></td>
       </tr>`).join('')}
     </tbody>
   </table>
@@ -4662,7 +4672,7 @@ async function exportTugasHtml() {
           <td>D${String(d.no).padStart(2,'0')}</td>
           <td style="font-size:.78rem;color:#475569"><span class="badge-modul">M${d.modul}</span>${esc(d.title)}</td>
           <td style="font-family:monospace;font-size:.72rem;background:#fdf2f8;padding:6px 8px;border-radius:4px;white-space:pre-wrap;word-break:break-word;white-space:pre-wrap">${esc(d.code||'(belum diisi)')}</td>
-          <td class="pts" style="color:${ptsColor}">${(Math.round(d.pts*100)/100)}${d.pts>0&&d.pts<=1?' (partial)':''}</td>
+          <td class="pts" style="color:${ptsColor}">${formatPoints(d.pts)}${d.pts>0&&d.pts<=1?' (partial)':''}</td>
         </tr>`;
       }).join('')}
     </tbody>
@@ -4700,7 +4710,7 @@ async function exportTugasHtml() {
         <div class="footer-tag">UTS — Optimalisasi &amp; Otomasi</div>
         <div class="footer-pulse"><span class="fp-dot"></span> Lembar jawaban tervalidasi otomatis</div>
       </div>
-      <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(168,85,247,.12);text-align:center;font-size:.7rem;color:#94a3b8">Konversi nilai: ${total} poin / ${SCORE_CONFIG.TOTAL} maks × 100 = <strong>${nilai}</strong> · Parameter NIM N = ${N}</div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(168,85,247,.12);text-align:center;font-size:.7rem;color:#94a3b8">Konversi nilai: ${formatPoints(total)} poin / ${formatPoints(SCORE_CONFIG.TOTAL)} maks × 100 = <strong>${nilai}</strong> · Parameter NIM N = ${N}</div>
     </div>
   </div>
 </div>
@@ -6406,7 +6416,7 @@ function updateLeaderboard(visitors, schedExpired){
   // Top Akses — ONLY students with points > 0 qualify, then sort by visitCount desc, then earliest timestamp
   const akses=[...visited].filter(v=>(v.points||0)>0&&!isLate(v.timestamp)).sort((a,b)=>{const d=(b.visitCount||1)-(a.visitCount||1);return d!==0?d:new Date(a.timestamp)-new Date(b.timestamp);});
   const medalR=['🥇','🥈','🥉'];
-  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=pointsToScore(pts);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+pts+'</div></div>';}
+  function renderCardSkor(v,idx){const pts=v.points||0;const nilai=pointsToScore(pts);return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="font-size:1rem;flex-shrink:0;">'+medalR[idx]+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(0,224,158,.12);color:#00e09e;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap;">'+formatPoints(pts)+'</div></div>';}
   function renderCardAkses(v,idx){const vc=v.visitCount||1;return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;'+(idx<2?'border-bottom:1px solid rgba(255,255,255,.05);':'')+'"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,.15);color:#fbbf24;font-size:.65rem;font-weight:800;flex-shrink:0;">'+(idx+1)+'</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(v.nama)+'</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">'+escH(v.nim)+'</div></div><div style="background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;flex-shrink:0;">'+vc+'x</div></div>';}
   rajinEl.innerHTML=topSkor.length?topSkor.slice(0,3).map((v,i)=>renderCardSkor(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
   santaiEl.innerHTML=akses.length?akses.slice(0,3).map((v,i)=>renderCardAkses(v,i)).join(''):'<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>';
@@ -6928,10 +6938,10 @@ function renderVisitors(visitors){
             <div style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:14px;padding:18px;text-align:center">
               <div style="font-family:'JetBrains Mono',monospace;font-size:2.4rem;font-weight:800;color:#a855f7;line-height:1">${nilai}</div>
               <div style="font-size:.66rem;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:.12em;margin-top:8px">Nilai (0–100)</div>
-              <div style="font-size:.7rem;color:#94a3b8;margin-top:4px">${pts} / 70 poin</div>
+              <div style="font-size:.7rem;color:#94a3b8;margin-top:4px">${formatPoints(pts)} / 70 poin</div>
             </div>
             <div style="background:rgba(0,224,158,.08);border:1px solid rgba(0,224,158,.25);border-radius:14px;padding:18px;text-align:center">
-              <div style="font-family:'JetBrains Mono',monospace;font-size:2.4rem;font-weight:800;color:#00e09e;line-height:1">${pts}</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:2.4rem;font-weight:800;color:#00e09e;line-height:1">${formatPoints(pts)}</div>
               <div style="font-size:.66rem;font-weight:700;color:#00e09e;text-transform:uppercase;letter-spacing:.12em;margin-top:8px">Total Poin</div>
               <div style="font-size:.7rem;color:#94a3b8;margin-top:4px">dari maks 70</div>
             </div>
@@ -7048,7 +7058,7 @@ function renderVisitors(visitors){
     else{statusCol='<span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(0,224,158,.1);color:#00e09e;border:1px solid rgba(0,224,158,.25);">\u2705 Tepat Waktu</span>';}
     const vcDisplay=vc?vc+'x':'<span style="color:#475569;">—</span>';
     const nilai=pointsToScore(pts);
-    const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+pts+'</span>':'<span style="color:#475569;">0</span>';
+    const ptsDisplay=pts?'<span style="color:#00e09e;font-weight:800;">'+formatPoints(pts)+'</span>':'<span style="color:#475569;">0</span>';
     const tsColor=bolos?'#ef4444':late?'#fb7185':hasPoints?'#64748b':(hasVisit?'#94a3b8':'#475569');
     const absenClass=(!hasPoints)?' absen':'';
     return `<div class="vt-row${absenClass}" style="${rowBg}"><div class="vt-num" style="color:${tsColor};">${i+1}</div><div style="flex:2;display:flex;align-items:center;gap:12px;"><div class="vt-avatar" style="${ac}">${ini}</div><div><div class="vt-name" style="${nameColor}">${escH(nama)}</div></div></div><div style="flex:1;font-size:.8rem;color:${hasVisit?'#94a3b8':'#475569'};font-family:monospace;">${s.nim}</div><div style="flex:1;text-align:center;"><span class="vt-status">${statusCol}</span></div><div style="flex:0.5;text-align:center;font-size:.85rem;">${ptsDisplay}</div><div class="vt-visit" style="flex:0.6;text-align:center;font-size:.82rem;font-weight:700;color:#94a3b8;">${vcDisplay}</div><div style="flex:1;text-align:right;font-size:.78rem;color:${tsColor};">${ts}</div></div>`;

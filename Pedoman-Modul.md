@@ -10394,6 +10394,26 @@ pengunjung. Ketentuannya:
 5. Semua enam exam wajib memuat `PRESENCE_PATH`, heartbeat, stale guard, dan
    pesan `Belum ada mahasiswa online.`; validator publik menjaga kontrak ini.
 
+### 40.33 Format Tampilan Poin Maksimal Dua Desimal pada Seluruh Exam (BARU di v22, Jul 2026)
+
+Seluruh enam halaman exam (UTS/UAS × tiga mata kuliah) wajib memakai helper
+`formatPoints()` untuk setiap angka poin yang ditampilkan kepada mahasiswa atau
+dosen. Ketentuannya:
+
+1. Angka ditampilkan maksimal dua digit di belakang koma tanpa nol tambahan;
+   contoh `95.528619...` menjadi `95.53`, sedangkan `9.6` tetap `9.6` dan `9`
+   tetap `9`.
+2. Pembulatan hanya berlaku pada tampilan. Nilai mentah dari server/RTDB,
+   perhitungan skor, dan data yang disimpan tidak boleh dipotong atau diubah.
+3. Cakupan meliputi badge poin soal, feedback poin jawaban, panel nilai dan
+   rinciannya, leaderboard, kartu hasil pribadi, tabel mahasiswa, serta laporan
+   HTML ekspor.
+4. Nilai tidak valid dan negatif nol dinormalisasi menjadi `0` agar tidak muncul
+   sebagai `NaN`, `Infinity`, atau `-0` pada antarmuka.
+5. Validator publik wajib memastikan helper dan pemakaiannya tersedia pada enam
+   exam serta menolak pola tampilan poin mentah yang pernah menyebabkan pecahan
+   panjang muncul kembali.
+
 ---
 
 *Pedoman v21 — Juli 2026 (Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT).*
