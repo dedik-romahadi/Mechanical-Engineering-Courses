@@ -3117,6 +3117,18 @@ async function exportTugasHtml() {
     exportPoints = _r.data.points;
     exportNilai = _r.data.nilai;
     exportGeneratedAt = _r.data.generatedAt;
+    const officialDeltas = _r.data.scoreDeltas;
+    if (officialDeltas && typeof officialDeltas === 'object') {
+      Object.keys(officialDeltas).forEach(qId => {
+        const delta = Number(officialDeltas[qId]);
+        if (!Number.isFinite(delta)) return;
+        if (/^tf\d+$/.test(qId)) tfScores[qId] = delta;
+        else if (/^mc\d+$/.test(qId)) mcScores[qId] = delta;
+        else compScores[qId] = delta;
+      });
+      if (_cachedFirebaseData) _cachedFirebaseData.scoreDeltas = officialDeltas;
+      updateScore();
+    }
   } catch (err) {
     alert('Gagal membuat kode verifikasi (' + (err.message || 'error') + '). Pastikan Anda login dengan PIN, lalu coba Export lagi.');
     if (_exportBtn) { _exportBtn.disabled = false; _exportBtn.textContent = _exportBtnLabel; }
@@ -7202,6 +7214,10 @@ window._cachedFirebaseData = () => _cachedFirebaseData;
 // Idempotent — aman dipanggil berulang.
 function _applyUASVisualState(data) {
   if (!data) return;
+  const restoredDelta = (qId, fallback) => {
+    const delta = Number(data.scoreDeltas && data.scoreDeltas[qId]);
+    return Number.isFinite(delta) ? delta : fallback;
+  };
   // ── Restore code Komputasi dari Firebase codes/ ──
   if (data.codes && typeof data.codes === 'object') {
     Object.keys(data.codes).forEach(qId => {
@@ -7249,7 +7265,7 @@ function _applyUASVisualState(data) {
 
     // ── Restore TF correct answers (UAS Bagian A) ──
     if (/^tf\d+$/.test(qId)) {
-      if (!tfAnswered[qId]) { tfAnswered[qId] = true; tfScores[qId] = getQPoints(qId, SCORE_CONFIG.TF_POINT); }
+      if (!tfAnswered[qId]) { tfAnswered[qId] = true; tfScores[qId] = restoredDelta(qId, getQPoints(qId, SCORE_CONFIG.TF_POINT)); }
       const opts = document.getElementById('tfopts-' + qId);
       if (opts) opts.querySelectorAll('.tf-option').forEach(o => { o.style.pointerEvents='none'; o.style.opacity='.6'; });
       const sub = document.getElementById('sub-' + qId);
@@ -7278,7 +7294,7 @@ function _applyUASVisualState(data) {
 
     // ── Restore MC correct answers ──
     else if (/^mc\d+$/.test(qId)) {
-      if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = getQPoints(qId, SCORE_CONFIG.MC_POINT); }
+      if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = restoredDelta(qId, getQPoints(qId, SCORE_CONFIG.MC_POINT)); }
       const rg = document.getElementById('rg-' + qId);
       if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
       const sub = document.getElementById('sub-' + qId);
@@ -7311,7 +7327,7 @@ function _applyUASVisualState(data) {
       const baseId = qId.replace('_comp_partial','');
       if (!compAnswered[baseId]) {
         compAnswered[baseId] = true;
-        compScores[baseId]   = 1;   // partial = 1 poin
+        compScores[baseId]   = restoredDelta(baseId, 1);
       }
       const sub = document.getElementById('sub-' + baseId);
       if (sub) { sub.disabled=true; sub.textContent='△ Usaha (+1 poin) · Terkunci'; sub.style.borderColor='rgba(251,191,36,.4)'; sub.style.color='var(--amber)'; sub.classList.remove('running'); }
@@ -7342,9 +7358,9 @@ function _applyUASVisualState(data) {
     // ── Restore comp correct answers (_comp suffix tanpa _used/_partial) ──
     else if (qId.endsWith('_comp')) {
       const baseId = qId.replace(/_comp$/,'');
-      const restoredPts = getQPoints(baseId, window._isHardComp(baseId)
+      const restoredPts = restoredDelta(baseId, getQPoints(baseId, window._isHardComp(baseId)
         ? SCORE_CONFIG.COMP_HARD_POINT
-        : SCORE_CONFIG.COMP_EZ_POINT);
+        : SCORE_CONFIG.COMP_EZ_POINT));
       if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=restoredPts; }
       const sub=document.getElementById('sub-'+baseId);
       if(sub){ sub.disabled=true; sub.textContent='✓ Selesai · Terkunci'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; sub.classList.remove('running'); }

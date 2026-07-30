@@ -2854,7 +2854,8 @@ async function _awardCompPoint(qId, point){
 > ⚠️ **Update v21:** snippet di bawah historis (konsep breakdown 3 sub-score).
 > Sejak PR #625–#626, `exportTugasHtml()` **async** dan `total`/`nilai` yang
 > di-embed berasal dari **server** (`generateExportCode`), BUKAN dihitung dari
-> state lokal — lihat §36.12. Breakdown per-kategori tetap dari state lokal.
+> state lokal — lihat §36.12. Breakdown per-kategori dipulihkan dari
+> `scoreDeltas` resmi per soal agar penalti terlambat tetap identik dengan server.
 
 Template export harus include breakdown 3 sub-score:
 
@@ -7518,14 +7519,18 @@ Berlaku di SEMUA 48 file (42 Modul + 6 Exam). PR #625–#627.
 2. Server baca poin RESMI dari RTDB visitor, bulatkan **2 desimal** (poin exam
    float — angka yang di-embed & yang diketik dosen saat verifikasi harus
    identik), hitung `code = HMAC-SHA256(SECRET, id|nim|points|generatedAt)`
-   → format `XXXX-XXXX-XXXX`, return `{code, points, nilai, generatedAt}`.
+   → format `XXXX-XXXX-XXXX`, return
+   `{code, points, nilai, generatedAt, scoreDeltas}`. Untuk exam,
+   `scoreDeltas` dihitung dari ledger Firestore per soal dan sudah mencakup
+   `lateMultiplier`; server juga menyimpannya ke RTDB untuk restorasi setelah refresh.
 3. Kotak "🔐 Kode Verifikasi" (kode + Poin server + waktu dibuat) di-render di
    bawah `.meta`, **dan banner ⭐ NILAI + total poin di-override dgn nilai
    SERVER** (`exportPoints`/`exportNilai`) — bukan dihitung dari
    `mcScores`/`compScores` lokal. Tanpa override ini mahasiswa cukup edit
    banner besar & membiarkan kotak kecil utuh → kode tetap "valid" (celah yang
-   ditutup PR #626). Breakdown per-kategori & tabel per-soal tetap dari state
-   lokal (trade-off disengaja — server tidak expose breakdown granular).
+   ditutup PR #626). Untuk exam, breakdown per-kategori dan tabel per-soal
+   diselaraskan dari `scoreDeltas` server sebelum HTML dibangun; fallback bobot
+   lokal hanya dipakai untuk data lama yang belum mempunyai rincian tersebut.
 4. Verifikasi dosen: `Admin/verify-export-code.html` (pilih course + Modul
    1-14/UTS/UAS, salin 4 nilai persis dari file + password admin). Field apa
    pun yang diedit → kode tidak cocok. `currentPoints` ikut ditampilkan

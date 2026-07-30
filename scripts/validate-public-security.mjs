@@ -195,6 +195,17 @@ for (const course of courseRoots) {
     ]) {
       if (!exam.includes(required)) throw new Error(`${relative}: point display formatter missing ${required}`);
     }
+    for (const required of [
+      "const restoredDelta = (qId, fallback) =>",
+      "data.scoreDeltas && data.scoreDeltas[qId]",
+      "tfScores[qId] = restoredDelta(qId, getQPoints(qId, SCORE_CONFIG.TF_POINT))",
+      "mcScores[qId] = restoredDelta(qId, getQPoints(qId, SCORE_CONFIG.MC_POINT))",
+      "compScores[baseId]   = restoredDelta(baseId, 1)",
+      "const officialDeltas = _r.data.scoreDeltas",
+      "_cachedFirebaseData.scoreDeltas = officialDeltas",
+    ]) {
+      if (!exam.includes(required)) throw new Error(`${relative}: official per-question score restoration missing ${required}`);
+    }
     for (const forbidden of [
       /\+ res\.scoreDelta \+/,
       /\+ compScores\[qId\] \+/,
