@@ -1650,10 +1650,10 @@ const SCORE_CONFIG = {
   COMP_HARD_POINT: 4,
   CONSOLATION_THRESHOLD: 30,   // 10 TF + 20 MC + 10 Comp + 5 Hard = 45 soal; threshold 30 attempt
   CONSOLATION_POINT:     1,
-  get TF_TOTAL()       { return this.TF_COUNT * this.TF_POINT; },           // 10
-  get MC_TOTAL()       { return this.MC_COUNT * this.MC_POINT; },           // 20
-  get COMP_EZ_TOTAL()  { return this.COMP_EZ_COUNT * this.COMP_EZ_POINT; }, // 20
-  get COMP_HARD_TOTAL(){ return this.COMP_HARD_COUNT * this.COMP_HARD_POINT; }, // 20
+  get TF_TOTAL()       { return SECTION_TOTALS.TF; },
+  get MC_TOTAL()       { return SECTION_TOTALS.MC; },
+  get COMP_EZ_TOTAL()  { return SECTION_TOTALS.E; },
+  get COMP_HARD_TOTAL(){ return SECTION_TOTALS.H; },
   get TOTAL()          { return 100; }   // Σ poin per soal proporsional bobot Sub-CPMK OBE = 100
 };
 window.SCORE_CONFIG = SCORE_CONFIG;
@@ -3391,16 +3391,16 @@ async function exportTugasHtml() {
     <div style="flex:1">
       <div class="score-bar-wrap" style="margin-bottom:8px"><div class="score-bar-fill" style="width:${nilai}%"><div class="bar-particle bp1"></div><div class="bar-particle bp2"></div><div class="bar-particle bp3"></div><div class="bar-particle bp4"></div></div><div class="bar-score-chip" style="left:calc(${nilai}% - 30px)">${nilai}%</div></div>
       <div class="score-detail" style="margin-top:8px">
-        <span class="score-mini">A·TF: <strong>${tf}/${SCORE_CONFIG.TF_TOTAL}</strong></span>
-        <span class="score-mini">B·PG: <strong>${mc}/${SCORE_CONFIG.MC_TOTAL}</strong></span>
-        <span class="score-mini">C·Komp E/M: <strong>${compEz}/${SCORE_CONFIG.COMP_EZ_TOTAL}</strong></span>
-        <span class="score-mini">D·Komp Hard: <strong>${compHard}/${SCORE_CONFIG.COMP_HARD_TOTAL}</strong></span>
+        <span class="score-mini">A·TF: <strong>${formatPoints(tf)}/${SCORE_CONFIG.TF_TOTAL}</strong></span>
+        <span class="score-mini">B·PG: <strong>${formatPoints(mc)}/${SCORE_CONFIG.MC_TOTAL}</strong></span>
+        <span class="score-mini">C·Komp E/M: <strong>${formatPoints(compEz)}/${SCORE_CONFIG.COMP_EZ_TOTAL}</strong></span>
+        <span class="score-mini">D·Komp Hard: <strong>${formatPoints(compHard)}/${SCORE_CONFIG.COMP_HARD_TOTAL}</strong></span>
       </div>
     </div>
   </div>
 
   <!-- BAGIAN A: TF -->
-  <div class="section-head sh-tf"><h2><span class="anim-icon icon-wiggle" style="color:#a855f7">🅐</span><span>Bagian A — True / False (${tf}/${SCORE_CONFIG.TF_TOTAL} poin)</span></h2></div>
+  <div class="section-head sh-tf"><h2><span class="anim-icon icon-wiggle" style="color:#a855f7">🅐</span><span>Bagian A — True / False (${formatPoints(tf)}/${SCORE_CONFIG.TF_TOTAL} poin)</span></h2></div>
   <table>
     <thead><tr><th style="width:42px">No</th><th>Pernyataan</th><th style="width:160px">Jawaban</th><th style="width:55px;text-align:center">Poin</th></tr></thead>
     <tbody>
@@ -3414,7 +3414,7 @@ async function exportTugasHtml() {
   </table>
 
   <!-- BAGIAN B: MC -->
-  <div class="section-head sh-mc"><h2><span class="anim-icon icon-wiggle" style="color:#a855f7">🅑</span><span>Bagian B — Pilihan Ganda (${mc}/${SCORE_CONFIG.MC_TOTAL} poin)</span></h2></div>
+  <div class="section-head sh-mc"><h2><span class="anim-icon icon-wiggle" style="color:#a855f7">🅑</span><span>Bagian B — Pilihan Ganda (${formatPoints(mc)}/${SCORE_CONFIG.MC_TOTAL} poin)</span></h2></div>
   <table>
     <thead><tr><th style="width:42px">No</th><th>Soal</th><th style="width:200px">Jawaban</th><th style="width:55px;text-align:center">Poin</th></tr></thead>
     <tbody>
@@ -3428,7 +3428,7 @@ async function exportTugasHtml() {
   </table>
 
   <!-- BAGIAN C: Komp E/M -->
-  <div class="section-head sh-ez"><h2><span class="anim-icon icon-pulse" style="color:#22d3ee">🅒</span><span>Bagian C — Komputasi Sedang (${compEz}/${SCORE_CONFIG.COMP_EZ_TOTAL} poin)</span></h2></div>
+  <div class="section-head sh-ez"><h2><span class="anim-icon icon-pulse" style="color:#22d3ee">🅒</span><span>Bagian C — Komputasi Sedang (${formatPoints(compEz)}/${SCORE_CONFIG.COMP_EZ_TOTAL} poin)</span></h2></div>
   <table>
     <thead><tr><th style="width:42px">No</th><th style="width:30%">Soal (Singkat)</th><th style="width:55%">Kode Python</th><th style="width:55px;text-align:center">Poin</th></tr></thead>
     <tbody>
@@ -3442,7 +3442,7 @@ async function exportTugasHtml() {
   </table>
 
   <!-- BAGIAN D: Komp Hard -->
-  <div class="section-head sh-hard"><h2><span class="anim-icon icon-float" style="color:#ec4899">🅓</span><span>Bagian D — Komputasi Hard (${compHard}/${SCORE_CONFIG.COMP_HARD_TOTAL} poin)</span></h2></div>
+  <div class="section-head sh-hard"><h2><span class="anim-icon icon-float" style="color:#ec4899">🅓</span><span>Bagian D — Komputasi Hard (${formatPoints(compHard)}/${SCORE_CONFIG.COMP_HARD_TOTAL} poin)</span></h2></div>
   <table>
     <thead><tr><th style="width:42px">No</th><th style="width:30%">Soal (Singkat)</th><th style="width:55%">Kode Python</th><th style="width:55px;text-align:center">Poin</th></tr></thead>
     <tbody>
@@ -7074,7 +7074,7 @@ function _applyUASVisualState(data) {
 
     // ── Restore TF correct answers (UAS Bagian A) ──
     if (/^tf\d+$/.test(qId)) {
-      if (!tfAnswered[qId]) { tfAnswered[qId] = true; tfScores[qId] = 1; }
+      if (!tfAnswered[qId]) { tfAnswered[qId] = true; tfScores[qId] = getQPoints(qId, SCORE_CONFIG.TF_POINT); }
       const opts = document.getElementById('tfopts-' + qId);
       if (opts) opts.querySelectorAll('.tf-option').forEach(o => { o.style.pointerEvents='none'; o.style.opacity='.6'; });
       const sub = document.getElementById('sub-' + qId);
@@ -7103,7 +7103,7 @@ function _applyUASVisualState(data) {
 
     // ── Restore MC correct answers ──
     else if (/^mc\d+$/.test(qId)) {
-      if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = 1; }
+      if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = getQPoints(qId, SCORE_CONFIG.MC_POINT); }
       const rg = document.getElementById('rg-' + qId);
       if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
       const sub = document.getElementById('sub-' + qId);
@@ -7167,9 +7167,9 @@ function _applyUASVisualState(data) {
     // ── Restore comp correct answers (_comp suffix tanpa _used/_partial) ──
     else if (qId.endsWith('_comp')) {
       const baseId = qId.replace(/_comp$/,'');
-      const restoredPts = window._isHardComp(baseId)
+      const restoredPts = getQPoints(baseId, window._isHardComp(baseId)
         ? SCORE_CONFIG.COMP_HARD_POINT
-        : SCORE_CONFIG.COMP_EZ_POINT;
+        : SCORE_CONFIG.COMP_EZ_POINT);
       if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=restoredPts; }
       const sub=document.getElementById('sub-'+baseId);
       if(sub){ sub.disabled=true; sub.textContent='✓ Selesai · Terkunci'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; sub.classList.remove('running'); }

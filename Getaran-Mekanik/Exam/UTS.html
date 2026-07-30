@@ -1652,10 +1652,10 @@ const SCORE_CONFIG = {
   COMP_HARD_POINT: 4,
   CONSOLATION_THRESHOLD: 30,   // 10 TF + 20 MC + 10 Comp + 5 Hard = 45 soal; threshold 30 attempt
   CONSOLATION_POINT:     1,
-  get TF_TOTAL()       { return this.TF_COUNT * this.TF_POINT; },           // 10
-  get MC_TOTAL()       { return this.MC_COUNT * this.MC_POINT; },           // 20
-  get COMP_EZ_TOTAL()  { return this.COMP_EZ_COUNT * this.COMP_EZ_POINT; }, // 20
-  get COMP_HARD_TOTAL(){ return this.COMP_HARD_COUNT * this.COMP_HARD_POINT; }, // 20
+  get TF_TOTAL()       { return SECTION_TOTALS.TF; },
+  get MC_TOTAL()       { return SECTION_TOTALS.MC; },
+  get COMP_EZ_TOTAL()  { return SECTION_TOTALS.E; },
+  get COMP_HARD_TOTAL(){ return SECTION_TOTALS.H; },
   get TOTAL()          { return 100; }   // Σ poin per soal proporsional bobot Sub-CPMK OBE = 100
 };
 window.SCORE_CONFIG = SCORE_CONFIG;
@@ -7966,7 +7966,7 @@ function _applyUTSVisualState(data) {
 
     // ── Restore TF correct answers (UTS Bagian A) ──
     if (/^tf\d+$/.test(qId)) {
-      if (!tfAnswered[qId]) { tfAnswered[qId] = true; tfScores[qId] = 1; }
+      if (!tfAnswered[qId]) { tfAnswered[qId] = true; tfScores[qId] = getQPoints(qId, SCORE_CONFIG.TF_POINT); }
       const opts = document.getElementById('tfopts-' + qId);
       if (opts) opts.querySelectorAll('.tf-option').forEach(o => { o.style.pointerEvents='none'; o.style.opacity='.6'; });
       const sub = document.getElementById('sub-' + qId);
@@ -7995,7 +7995,7 @@ function _applyUTSVisualState(data) {
 
     // ── Restore MC correct answers ──
     else if (/^mc\d+$/.test(qId)) {
-      if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = 1; }
+      if (!mcAnswered[qId]) { mcAnswered[qId] = true; mcScores[qId] = getQPoints(qId, SCORE_CONFIG.MC_POINT); }
       const rg = document.getElementById('rg-' + qId);
       if (rg) { rg.dataset.locked='true'; rg.querySelectorAll('.radio-option').forEach(o=>{o.style.pointerEvents='none';o.style.opacity='.6';}); }
       const sub = document.getElementById('sub-' + qId);
@@ -8059,9 +8059,9 @@ function _applyUTSVisualState(data) {
     // ── Restore comp correct answers (_comp suffix tanpa _used/_partial) ──
     else if (qId.endsWith('_comp')) {
       const baseId = qId.replace(/_comp$/,'');
-      const restoredPts = window._isHardComp(baseId)
+      const restoredPts = getQPoints(baseId, window._isHardComp(baseId)
         ? SCORE_CONFIG.COMP_HARD_POINT
-        : SCORE_CONFIG.COMP_EZ_POINT;
+        : SCORE_CONFIG.COMP_EZ_POINT);
       if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=restoredPts; }
       const sub=document.getElementById('sub-'+baseId);
       if(sub){ sub.disabled=true; sub.textContent='✓ Selesai · Terkunci'; sub.style.background='rgba(0,224,158,.1)'; sub.style.borderColor='rgba(0,224,158,.4)'; sub.style.color='var(--green)'; sub.classList.remove('running'); }
