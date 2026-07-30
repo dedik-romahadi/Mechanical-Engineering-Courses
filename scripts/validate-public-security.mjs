@@ -161,6 +161,30 @@ for (const course of courseRoots) {
   }
 }
 
+for (const course of courseRoots) {
+  for (const examName of ["UTS.html", "UAS.html"]) {
+    const relative = `${course}/Exam/${examName}`;
+    const exam = fs.readFileSync(path.join(root, relative), "utf8");
+    for (const required of [
+      "onDisconnect",
+      "const PRESENCE_PATH = `presence/",
+      "const HEARTBEAT_MS = 20000",
+      "const ONLINE_THRESHOLD_MS = 45000",
+      "onlinePresence = snap.val() || {}",
+      "const onlineVisited = visited.filter",
+      "onlineVisited.length+' online'",
+      "Belum ada mahasiswa online.",
+      "window.addEventListener('beforeunload', _cleanupPresence)",
+      "<h3>👥 Mahasiswa Online</h3>",
+    ]) {
+      if (!exam.includes(required)) throw new Error(`${relative}: online-only exam panel missing ${required}`);
+    }
+    if (exam.includes("vpBadge').textContent=visited.length+' orang'")) {
+      throw new Error(`${relative}: exam panel still counts historical visitors`);
+    }
+  }
+}
+
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");
 if (/rsync -a \\\r?\n\s+--exclude='.git'/.test(workflow)) throw new Error("Pages workflow still copies repository root");
 for (const required of ["Allowlist frontend publik", "Tolak artefak sensitif", "_site/functions", "*answers.js", "*questions.js"]) {
