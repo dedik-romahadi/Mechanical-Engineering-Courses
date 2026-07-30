@@ -10376,6 +10376,24 @@ memisahkan seluruh backend dari repositori publik:
 6. UAS harus tetap tertutup sampai secret baru, Functions, rules, dan seed v2
    berhasil di-deploy dari backend privat serta smoke test produksi lulus.
 
+### 40.32 Panel Mahasiswa Online pada Seluruh Exam (BARU di v22, Jul 2026)
+
+Panel ringkas **Mahasiswa** pada keenam halaman exam (UTS/UAS × tiga mata
+kuliah) hanya menampilkan mahasiswa yang sedang online, bukan seluruh riwayat
+pengunjung. Ketentuannya:
+
+1. Mahasiswa menulis heartbeat ke `presence/<course>/<exam>/mhs_<NIM>` setiap
+   20 detik. Dosen tidak ditulis ke presence untuk menjaga privasi.
+2. Entry dianggap online jika `lastSeen` berumur kurang dari 45 detik;
+   `onDisconnect().remove()` dan cleanup saat logout/tab ditutup menghapus entry
+   lebih cepat jika koneksi berakhir normal.
+3. Badge FAB dan header panel memakai jumlah `onlineVisited`, menampilkan teks
+   `<jumlah> online`, serta daftar diurutkan dari heartbeat terbaru.
+4. **Tabel tab Hasil tetap menampilkan seluruh roster dan nilai.** Filter online
+   hanya berlaku pada panel ringkas, sehingga monitoring nilai/absen tidak hilang.
+5. Semua enam exam wajib memuat `PRESENCE_PATH`, heartbeat, stale guard, dan
+   pesan `Belum ada mahasiswa online.`; validator publik menjaga kontrak ini.
+
 ---
 
 *Pedoman v21 — Juli 2026 (Grading multi-kandidat + Kode Verifikasi Export + Restorasi EXAM_CONFIG + Modul Word/PPT).*
