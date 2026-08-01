@@ -7731,6 +7731,7 @@ Mode Penilaian (perlu login — 2 alur)
 | PRE awal per NIM | `DEFAULT_PRE` (inline di HTML) | Fallback sblm dosen upload .xls SIA |
 | PRE override real-time | `localStorage['opto-obe-pre-override-v1']` | Hasil upload .xls SIA per browser dosen |
 | Nilai TGS/UTS/UAS terisi (draft) | `localStorage[LS_KEY]` | Tidak ter-sync antar perangkat dosen |
+| Mapping Tugas/UTS/UAS | Firestore `obeMappings/{courseId}` | Disimpan via callable admin; cache browser memakai key per-course `obe-mapping-{courseId}-v2` |
 | Nilai yang **dipublish** | Firestore `obeNilai/{courseId}/students/{nimKey}` | Single source untuk mahasiswa, lintas perangkat |
 
 ### 38.3 Konstanta yang Wajib Diubah saat Clone per Course
@@ -7839,6 +7840,8 @@ Catatan: formula Excel asli (`IF(AND(J>=79.95, J<=100), "A", ...)`) punya gap ro
 | `getMyObeNilai`   | mahasiswa (PIN-gated) | Fetch nilai 1 mahasiswa berdasarkan NIM + pinHash. PIN dicek di RTDB `pins/{nimKey}`. |
 | `deleteObeNilai`  | dosen (admin pw hash) | Hapus semua dokumen `obeNilai/{courseId}/students/*` (listDocuments + batch chunk 400). Tidak menyentuh localStorage dosen. |
 | `computeObeScores`| dosen (admin pw hash) | Auto-compute nilai TGS dari poin modul + UTS/UAS dari per-soal exam (mapping di OBE_MAP). Output ke localStorage → dosen review → Publish manual. |
+| `getObeMapping` | dosen (admin token) | Ambil mapping Tugas/UTS/UAS untuk satu `courseId` dari Firestore agar editor konsisten lintas perangkat. |
+| `saveObeMapping` | dosen (admin token) | Validasi dan simpan mapping per course ke `obeMappings/{courseId}` dengan server timestamp. |
 | `recomputeExamPoints` | dosen (admin pw hash) | Batch recompute poin per soal exam dari mapping OBE_EXAM_CONFIG. Dipanggil dari `Admin/recompute-obe-score.html`. Dipakai saat bobot soal per tipe (1:1:2:4) berubah atau mapping Sub-CPMK direvisi. (BARU v19) |
 | `checkExamAnswer` | mahasiswa (PIN-gated) | Server-side validation jawaban UTS/UAS. Lookup answer key di Firestore `examAnswers/<examId>/qs/<qId>`, evaluate, write attempt ke `examAttempts` (idempotency), transaksi RTDB visitor (points + scoredQuestions). Lihat §27 + v18 changelog. |
 | `resetExamAttempts` | dosen (admin pw hash) | Hapus semua `examAttempts/<examId>/students/*` Firestore. Dipanggil sebagai bagian dari Reset Total di exam (sebelum hapus RTDB visitor). Lihat §20. |
