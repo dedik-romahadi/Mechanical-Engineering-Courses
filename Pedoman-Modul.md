@@ -169,8 +169,10 @@ ID, slug, path, localStorage key, konfigurasi backend, seed, dan OBE mapping har
 Halaman modul dan exam membuka pemilih peran sebelum akses penilaian:
 
 - **Mahasiswa:** NIM dan PIN; nama diambil dari roster.
-- **Dosen:** password admin, kemudian dapat mengatur jadwal dan masuk.
+- **Dosen:** password admin, kemudian dapat mengatur jadwal atau masuk untuk meninjau soal exam.
 - **Mode Preview:** akses tanpa identitas untuk melihat struktur halaman, tanpa penilaian.
+
+Pada seluruh UTS dan UAS, login dosen otomatis membuka tab **Soal Ujian** dalam mode hanya-baca. UTS dirender dari definisi yang sudah ada di halaman; UAS mengambil teks soal melalui `getExamQuestions` memakai sesi Firebase dengan claim admin sehingga dapat ditinjau tanpa menunggu jadwal mahasiswa. Mode dosen tidak boleh mengirim jawaban, membuat attempt, menambah poin, atau membuat export mahasiswa.
 
 Tombol perpindahan sesi bernama **Log Out**, bukan “Ganti Peran”. Logout menghapus identitas lokal, sesi PIN, presence, dan sesi Firebase Auth yang relevan, lalu mengembalikan pengguna ke pemilih peran.
 
@@ -392,6 +394,7 @@ Getaran, Matematika, dan Opto UAS memakai `c1`–`c15`. Opto UTS memakai `ce1`�
 - Validasi semua tipe soal berjalan melalui `checkExamAnswer`.
 - Kunci jawaban berada di Firestore `examAnswers`, tidak di HTML.
 - Setiap soal one-shot dan dikunci oleh ledger Firestore.
+- Akun dosen dapat meninjau seluruh soal dalam mode hanya-baca; handler jawaban dan export mahasiswa tetap diblokir.
 - Exam bersifat sumatif: jawaban benar tidak ditampilkan kepada mahasiswa.
 - Komputasi menjalankan kode dengan Pyodide, lalu mengirim kandidat output dan potongan kode ke server.
 - Toleransi numerik dan variasi per NIM ditentukan kunci server.
