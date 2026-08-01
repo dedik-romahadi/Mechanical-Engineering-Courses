@@ -106,6 +106,29 @@ for (const course of courseRoots) {
     if (/const dueDate\s*=\s*new Date\(due\)/.test(exam)) {
       throw new Error(`${relative}: schedule input depends on browser timezone`);
     }
+    for (const required of [
+      "Masuk &amp; Lihat Soal",
+      "window._dosenQuestionView = false",
+      "window._activateDosenQuestionView = _activateDosenQuestionView",
+      "window.switchTab('uts')",
+      "setTimeout(() => window._activateDosenQuestionView(), 50)",
+      "setTimeout(() => window._activateDosenQuestionView(), 100)",
+      "DOSEN · SOAL HANYA-BACA",
+      "const isDosenView = !!(me && me.role === 'dosen')",
+      "Mode Dosen — soal hanya-baca; jawaban dan poin tidak dicatat.",
+      "Mode Dosen — Export HTML mahasiswa dinonaktifkan.",
+    ]) {
+      if (!exam.includes(required)) throw new Error(`${relative}: lecturer question view missing ${required}`);
+    }
+    const lecturerLoader = examName === "UAS.html"
+      ? "await window._ensureUASQuestionsLoaded()"
+      : "window.renderUTSQuestions()";
+    if (!exam.includes(lecturerLoader)) {
+      throw new Error(`${relative}: lecturer question loader missing ${lecturerLoader}`);
+    }
+    if (examName === "UAS.html" && !exam.includes("await _auth.authStateReady()")) {
+      throw new Error(`${relative}: lecturer UAS view does not wait for restored admin auth`);
+    }
     if (examName === "UAS.html") {
       for (const required of [
         ">Atur Jadwal UAS</h2>",

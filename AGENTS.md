@@ -40,7 +40,7 @@ Total file HTML utama: **42 modul + 6 exam + 3 OBE = 51 file**.
 ### Login (terbaru, sejak PR #370-#386 — Mei/Juni 2026)
 - **Role picker overlay** muncul DULUAN (`#roleChooserOverlay` z-index 100002) — pilih Mahasiswa vs Dosen.
 - **Mahasiswa**: input **NIM + PIN 6 digit inline** (no Nama input — auto-lookup dari `masterStudents`). PIN global di RTDB `pins/mhs_<NIM>` (lintas-course).
-- **Dosen**: modal password admin + tombol "🕐 Atur Jadwal" inline. Mode upfront → 1× input pw, 1× klik "Simpan Jadwal & Masuk" sekaligus login.
+- **Dosen**: modal password admin + tombol "🕐 Atur Jadwal" inline. Login membuka tab Soal Ujian dalam mode hanya-baca; UAS memuat soal melalui sesi admin. Mode upfront → 1× input pw, 1× klik "Simpan Jadwal & Masuk" sekaligus login.
 - Cancel dosen modal → kembali ke role picker.
 - Animasi electric di-share via `initLoginAnimation(canvasId, particlesId)` dipanggil 3× (picker + visitor + dosen overlay).
 

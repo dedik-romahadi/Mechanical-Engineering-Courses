@@ -796,7 +796,7 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
     <p class="sub">Masukkan password admin untuk melanjutkan sebagai dosen.</p>
     <p class="v-error" id="dosenLoginError"></p>
     <input type="password" class="v-input" id="dosenLoginPw" placeholder="Password admin" autocomplete="off">
-    <button class="v-btn-primary" id="dosenLoginBtn" onclick="submitDosenLogin()">Masuk sebagai Dosen</button>
+    <button class="v-btn-primary" id="dosenLoginBtn" onclick="submitDosenLogin()">Masuk &amp; Lihat Soal</button>
     <button class="v-btn-cancel" id="dosenLoginScheduleBtn" onclick="openScheduleFromDosen()" style="margin-top:8px;background:rgba(255,179,0,.12);border-color:rgba(255,179,0,.35);color:#ffb300;">🕐 Atur Jadwal</button>
     <button class="v-btn-cancel" onclick="cancelDosenLogin()" style="margin-top:8px;">Batal</button>
   </div>
@@ -5300,10 +5300,33 @@ const VISIT_COOLDOWN = 3600000;
 
 function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
 window.getIdentity = getIdentity;
+
+window._dosenQuestionView = false;
+async function _activateDosenQuestionView() {
+  const me = getIdentity();
+  if (!me || me.role !== 'dosen') return;
+  window._dosenQuestionView = true;
+  const chip = document.getElementById('navIdentityChip');
+  if (chip) {
+    chip.textContent = '👨‍🏫 DOSEN · SOAL HANYA-BACA';
+    chip.title = 'Mode dosen: soal dapat ditinjau, tetapi jawaban dan poin dinonaktifkan';
+  }
+  if (typeof window.switchTab === 'function') window.switchTab('uts');
+  if (_auth && typeof _auth.authStateReady === 'function') await _auth.authStateReady();
+  if (typeof window._ensureUASQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
+    await window._ensureUASQuestionsLoaded();
+  }
+  if (typeof window._updateUASAccessGate === 'function') window._updateUASAccessGate();
+}
+window._activateDosenQuestionView = _activateDosenQuestionView;
+
 function saveIdentity(v){
   localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));
-  // UAS: fetch+render soal (server-gated) setelah identity tersimpan
-  if (typeof window._ensureUASQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
+  // Dosen masuk langsung ke tab soal dalam mode hanya-baca. UAS tetap
+  // mengambil teks soal lewat callable admin tanpa mengubah gate jadwal mahasiswa.
+  if (v && v.role === 'dosen') {
+    setTimeout(() => window._activateDosenQuestionView(), 50);
+  } else if (typeof window._ensureUASQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
     setTimeout(() => window._ensureUASQuestionsLoaded(), 50);
   }
   if (v && v.role === 'student' && v.nim) {
@@ -6623,14 +6646,25 @@ window.exitPreviewMode = function() {
 // Guard dipanggil di baris pertama tiap handler jawaban (selectMC/checkMC/selectTF/
 // checkTF/runAndCheck) — soal tetap TERLIHAT tapi tidak bisa dijawab/dinilai saat preview.
 window._previewGuard = function(qId) {
-  if (!window._previewMode) return false;
+  const me = (typeof getIdentity === 'function') ? getIdentity() : null;
+  const isDosenView = !!(me && me.role === 'dosen');
+  if (!window._previewMode && !isDosenView) return false;
   const fb = document.getElementById('fb-' + qId);
-  if (fb) { fb.className = 'feedback warn'; fb.textContent = '👁️ Mode Preview — soal tidak interaktif. Login untuk mengerjakan sungguhan.'; }
+  if (fb) {
+    fb.className = 'feedback warn';
+    fb.textContent = isDosenView
+      ? '👨‍🏫 Mode Dosen — soal hanya-baca; jawaban dan poin tidak dicatat.'
+      : '👁️ Mode Preview — soal tidak interaktif. Login untuk mengerjakan sungguhan.';
+  }
   return true;
 };
 window._previewExportGuard = function() {
-  if (!window._previewMode) return false;
-  alert('👁️ Mode Preview — Export HTML dinonaktifkan (poin tidak berlaku tanpa login).');
+  const me = (typeof getIdentity === 'function') ? getIdentity() : null;
+  const isDosenView = !!(me && me.role === 'dosen');
+  if (!window._previewMode && !isDosenView) return false;
+  alert(isDosenView
+    ? '👨‍🏫 Mode Dosen — Export HTML mahasiswa dinonaktifkan.'
+    : '👁️ Mode Preview — Export HTML dinonaktifkan (poin tidak berlaku tanpa login).');
   return true;
 };
 // Dosen → Atur Jadwal: capture password sekali, reuse di schedule modal
@@ -7428,7 +7462,9 @@ initVisitor();
 // (no-op kalau PIN session belum siap — akan di-retry oleh _setSessionPinHash).
 if (typeof getIdentity === 'function') {
   const _me = getIdentity();
-  if (_me && _me.nim && typeof window._ensureUASQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
+  if (_me && _me.role === 'dosen' && typeof window._activateDosenQuestionView === 'function') {
+    setTimeout(() => window._activateDosenQuestionView(), 100);
+  } else if (_me && _me.nim && typeof window._ensureUASQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
     setTimeout(() => window._ensureUASQuestionsLoaded(), 100);
   }
 }
