@@ -1,8 +1,8 @@
 # AGENTS.md — Orientasi untuk Sesi Baru
 
-Quick-start untuk sesi Codex di repo ini. **Untuk detail apa pun, rujuk ke `Pedoman-Modul.md` (v21)** — ini cuma peta.
+Quick-start untuk sesi Codex di repo ini. **Untuk detail apa pun, rujuk ke `Pedoman-Modul.md`** — ini cuma peta.
 
-> 📄 **Membuat modul Word/PPT setoran BOP?** Baca dulu **`Pedoman-Modul.md` §40** — WAJIB mulai dari file template di `Template-Modul-Word-dan-PPT/` (cover/footer/heading dilarang diubah), isi minimal 10 halaman/slide, Daftar Pustaka APA ≥5 jurnal internasional ber-link.
+> 📄 **Membuat modul Word/PPT setoran BOP?** Baca dulu **`Pedoman-Modul.md` §15** — WAJIB mulai dari file template di `Template-Modul-Word-dan-PPT/` (cover/footer/heading dilarang diubah), isi minimal 10 halaman/slide, Daftar Pustaka APA ≥5 jurnal internasional ber-link.
 >
 > 🎞️ **Mengerjakan slide Slidev?** Baca dulu **`Pedoman-Slides.md`** (struktur deck, komponen, CSS classes, layout, transisi, git workflow slide). Termasuk: penyesuaian per-slide `.slidev-page-N` + **GOTCHA renumber saat sisip/hapus slide** (§14), notch kamera (§15), webcam terkunci (§16), slide kuis interaktif (§17).
 
@@ -31,7 +31,7 @@ LMS multi-course untuk **S1 Teknik Mesin Universitas Mercu Buana** (Dosen: Dedik
 └── OBE/              Dokumen-OBE.html (1 file, gabung Silabus + Penilaian)
 ```
 
-Plus root: `Admin/` (tools dosen: rescale-deadline, recompute-obe-score, reset-soal, verify-export-code), `Template-Modul-Word-dan-PPT/` (template resmi BOP utk modul Word+PPT — lihat Pedoman §40), dan `Pedoman-Modul.md`. Cloud Functions, rules, bank soal, dan seed berada di repositori privat `dedik-romahadi/Mechanical-Engineering-Courses-Backend`; jangan menyalinnya kembali ke repo publik ini.
+Plus root: `Admin/` (tools dosen: rescale-deadline, recompute-obe-score, reset-soal, verify-export-code), `Template-Modul-Word-dan-PPT/` (template resmi BOP utk modul Word+PPT — lihat Pedoman §15), dan `Pedoman-Modul.md`. Cloud Functions, rules, bank soal, dan seed berada di repositori privat `dedik-romahadi/Mechanical-Engineering-Courses-Backend`; jangan menyalinnya kembali ke repo publik ini.
 
 Total file HTML utama: **42 modul + 6 exam + 3 OBE = 51 file**.
 
@@ -52,7 +52,7 @@ Total file HTML utama: **42 modul + 6 exam + 3 OBE = 51 file**.
 | Konteks | Durasi default | Batas akhir default | Perpanjangan |
 |---------|---------------|---------------------|--------------|
 | **Modul** | 7 **hari** | +6 hari WIB 23:59 | n/a |
-| **Exam (UTS/UAS)** | 180 **menit** | now + 180 menit WIB | **120 menit** |
+| **Exam (UTS/UAS)** | 180 **menit** | lihat keadaan aktual per halaman di Pedoman §5.3 | **120 menit** |
 
 ⚠️ Modul pakai HARI, Exam pakai MENIT. Gampang ke-mix.
 
@@ -85,8 +85,8 @@ Script Python di `/tmp/` pakai pattern read → `src.replace(OLD, NEW)` → writ
 ### Hosting: GitHub Pages (root-scoped) — ⚠️ BACA SEBELUM UTAK-ATIK DEPLOY
 - **Frontend LMS live di GitHub Pages**, bukan Firebase. `firebase.json` TIDAK punya key `hosting` — Firebase hanya backend (RTDB + Firestore + Functions).
 - Pages Source = **"GitHub Actions"**, via `.github/workflows/deploy-slides.yml` dengan **allowlist frontend**. Backend, workflow, pedoman, seed, dan bank soal tidak boleh masuk artefak `_site`.
-- **JANGAN ubah Source ke "Deploy from a branch"** (mis. `/docs`) — semua path di luar folder itu langsung 404: 42 modul, 6 exam, dan **`STUDENTS_JSON_URL` (roster login mahasiswa)** yang di-fetch dari Pages. Pernah terjadi, lihat `Pedoman-Modul.md` §40.21b.
-- Deploy **otomatis** tiap ada commit masuk `main` (merge PR / upload web UI). Tidak perlu lagi minta dosen klik Run workflow manual (§40.25). Trigger manual tetap tersedia untuk re-deploy tanpa commit baru.
+- **JANGAN ubah Source ke "Deploy from a branch"** (mis. `/docs`) — semua path di luar folder itu langsung 404: 42 modul, 6 exam, dan **`STUDENTS_JSON_URL` (roster login mahasiswa)** yang di-fetch dari Pages. Lihat `Pedoman-Modul.md` §1.1.
+- Deploy **otomatis** tiap ada commit masuk `main` (merge PR / upload web UI). Trigger manual tetap tersedia untuk re-deploy tanpa commit baru.
 
 ### Cloud Functions kunci (repo privat `Mechanical-Engineering-Courses-Backend/functions/index.js`)
 | Function | Role | Aksi |
@@ -96,8 +96,9 @@ Script Python di `/tmp/` pakai pattern read → `src.replace(OLD, NEW)` → writ
 | `getMyObeNilai` | mahasiswa (PIN) | Fetch nilai sendiri |
 | `deleteObeNilai` | dosen | Hapus nilai OBE Firestore |
 | `computeObeScores` | dosen | Auto-compute TGS/UTS/UAS dari poin → ke localStorage |
-| `recomputeAllObeScores` | dosen | Recompute massal (per examId) |
-| `resetExamAttempts` | dosen | Hapus Firestore examAttempts + RTDB visitor (saat Reset) |
+| `getObeMapping` / `saveObeMapping` | dosen | Sinkron mapping OBE per course lintas perangkat |
+| `recomputeExamPoints` | dosen | Recompute poin satu exam dari ledger dan mapping OBE |
+| `resetExamAttempts` | dosen | Hapus ledger Firestore examAttempts; reset penuh menghapus RTDB secara terpisah |
 | `resetExamQuestion` | dosen | Reset soal UTS/UAS tertentu untuk 1 atau semua mahasiswa |
 
 EXAM_CONFIG di functions/index.js wajib punya entry per examId: `getaran-mekanik-uts`, `getaran-mekanik-uas`, `optoauto-uts`, `optoauto-uas`, `math4-uts`, `math4-uas`.
@@ -118,10 +119,9 @@ EXAM_CONFIG di functions/index.js wajib punya entry per examId: `getaran-mekanik
 
 ## Dokumen wajib baca sebelum perubahan besar
 
-- `Pedoman-Modul.md` §§7, 8, 9, 9.5 (login, PIN, schedule modul, schedule exam)
-- `Pedoman-Modul.md` §13 (Firebase paths + rules)
-- `Pedoman-Modul.md` §38 (Dokumen OBE)
-- `Pedoman-Modul.md` §39 (Role Picker — BARU di v19; §39.10 Log Out + chip + PIN re-verify)
-- `Pedoman-Modul.md` §15.5 (ekstraksi jawaban komputasi — WAJIB sebelum ubah grading), §36.12 (Kode Verifikasi Export), §25.19–25.20 (bug PERMISSION_DENIED stale-set & EXAM_CONFIG fields — v21)
-- `Pedoman-Modul.md` §40 (Modul Word & PPT — template BOP)
+- `Pedoman-Modul.md` §§3–5 (ID/path, login, PIN, jadwal, dan WIB)
+- `Pedoman-Modul.md` §§6–8 (modul, exam, sumber nilai, dan friction UAS)
+- `Pedoman-Modul.md` §§9–11 (Firebase, callable, reset, dan Admin)
+- `Pedoman-Modul.md` §§12–13 (OBE serta kode verifikasi export)
+- `Pedoman-Modul.md` §§14–17 (keamanan, template Word/PPT, prosedur perubahan, dan validasi)
 - README dan `functions/DEPLOY.md` di repositori privat `Mechanical-Engineering-Courses-Backend` untuk deployment Cloud Functions, secrets, rules, dan seed
