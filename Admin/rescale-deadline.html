@@ -100,6 +100,27 @@
     </div>
     <div class="hint">Klik input untuk picker, atau pilih preset. Waktu lokal browser Anda (asumsi WIB). Kosongkan = pakai deadline yang sudah ada.</div>
 
+    <div id="extWrap" style="display:none">
+      <label>Perpanjangan Waktu (menit) — khusus ujian</label>
+      <input id="newExtension" type="number" min="0" max="1440" step="5" placeholder="mis. 120 — kosongkan = pakai perpanjangan yang sudah ada">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
+        <button type="button" class="preset" onclick="setExt(0)">Tanpa perpanjangan</button>
+        <button type="button" class="preset" onclick="setExt(60)">60 menit</button>
+        <button type="button" class="preset" onclick="setExt(120)">120 menit</button>
+        <button type="button" class="preset" onclick="setExt(180)">180 menit</button>
+      </div>
+      <div class="hint">Submit masih diterima sampai <b>deadline + perpanjangan</b>, tetapi poinnya dikali 0,7. Untuk ujian susulan yang dinilai penuh, atur <b>Deadline Baru</b> mencakup seluruh waktu pengerjaan dan biarkan perpanjangan sebagai cadangan.</div>
+    </div>
+
+    <div id="susulanNote" class="warn" style="display:none;margin-top:14px">
+      🎓 <b>Ujian susulan:</b> jadwal ujian bersifat <b>global per ujian</b> — sistem tidak punya jadwal per mahasiswa.
+      Karena itu <b>kolom NIM di bawah TIDAK membuka ujian hanya untuk mahasiswa tertentu</b>; ia hanya membatasi cakupan hitung ulang penalti.
+      Untuk membuka jendela susulan, <b>kosongkan NIM</b> lalu isi Deadline Baru — jendela terbuka untuk semua.
+      <br><br>
+      Yang membatasi dampaknya: <b>tiap soal hanya bisa dijawab sekali</b>. Mahasiswa yang sudah menjawab tetap terkunci; yang bisa mengerjakan hanyalah soal yang memang belum pernah dijawab — persis kondisi peserta susulan.
+      Risiko yang tersisa: mahasiswa yang dulu <i>mengosongkan</i> sebagian soal bisa mengisinya sekarang.
+    </div>
+
     <label>NIM Mahasiswa (opsional)</label>
     <textarea id="nims" placeholder="Kosongkan = SEMUA mahasiswa di modul ini.&#10;Atau isi NIM dipisah koma/baris, mis: 41323110022, 41323120009"></textarea>
     <div class="hint">Kosong = proses semua mahasiswa. Isi untuk batasi ke NIM tertentu.</div>
@@ -172,6 +193,8 @@ function refreshTarget(){
   targetLabelEl.textContent = exam ? 'Ujian' : 'Modul';
   idKindLabelEl.textContent = exam ? 'examId' : 'modulId';
   examNoteEl.style.display  = exam ? '' : 'none';
+  document.getElementById('extWrap').style.display     = exam ? '' : 'none';
+  document.getElementById('susulanNote').style.display = exam ? '' : 'none';
   modulIdEl.textContent = currentTargetId();
   // Teks tombol ikut menyebut sasaran supaya tidak salah klik.
   document.getElementById('btnDiag').textContent =
@@ -204,6 +227,31 @@ function refreshPreview(){
 newEndEl.addEventListener('input', refreshPreview);
 newEndEl.addEventListener('change', refreshPreview);
 
+window.setExt = function(minutes){
+  document.getElementById('newExtension').value = String(minutes);
+};
+
+// datetime-local diinterpretasi sbg WIB (UTC+7) eksplisit — tidak tergantung
+// timezone browser dosen. Format input: "2025-12-25T23:59".
+function wibLocalToIso(v){
+  const [d, t] = v.split('T');
+  const [y, mo, da] = d.split('-').map(Number);
+  const [h, mi] = t.split(':').map(Number);
+  return new Date(Date.UTC(y, mo-1, da, h - 7, mi || 0)).toISOString();
+}
+
+// Bagian payload yang sama untuk "Hitung Ulang" maupun "Diagnose".
+function scheduleFields(){
+  const out = {};
+  const newEndLocal = document.getElementById('newEnd').value;
+  if(newEndLocal) out.newEnd = wibLocalToIso(newEndLocal);
+  if(isExam()){
+    const ext = document.getElementById('newExtension').value.trim();
+    if(ext !== '') out.newExtension = Number(ext);
+  }
+  return out;
+}
+
 window.setPreset = function(daysOffset, hour, minute){
   const d = new Date();
   d.setDate(d.getDate() + daysOffset);
@@ -222,7 +270,6 @@ window.doRescale = async function(){
   const exam = isExam();
   const nims = document.getElementById('nims').value
     .split(/[,\s]+/).map(s=>s.trim()).filter(Boolean);
-  const newEndLocal = document.getElementById('newEnd').value;
   const pw = document.getElementById('pw').value;
 
   if(nims.some(n=>!/^[0-9]{1,20}$/.test(n))){ showErr('Ada NIM yang bukan angka.'); return; }
@@ -231,23 +278,16 @@ window.doRescale = async function(){
   btn.disabled=true; btn.textContent='Memproses...';
   try{
     await authenticateAdmin(pw);
-    const payload = exam ? { examId: targetId } : { modulId: targetId };
+    const payload = Object.assign(
+      exam ? { examId: targetId } : { modulId: targetId },
+      scheduleFields());
     if(nims.length>0) payload.nims = nims;
-    // datetime-local diinterpretasi sbg WIB (UTC+7) eksplisit — tidak tergantung
-    // timezone browser dosen. Format input: "2025-12-25T23:59".
-    if(newEndLocal){
-      const [d, t] = newEndLocal.split('T');
-      const [y, mo, da] = d.split('-').map(Number);
-      const [h, mi] = t.split(':').map(Number);
-      // WIB = UTC+7 → kurangi 7 jam supaya jadi UTC
-      payload.newEnd = new Date(Date.UTC(y, mo-1, da, h - 7, mi || 0)).toISOString();
-    }
     console.log('[rescale] payload:', payload);
     const r = exam ? await rescaleExamLatePenalty(payload) : await rescaleModulLatePenalty(payload);
     const d = r.data;
     const jenis = exam ? 'ujian' : 'modul';
     let lines = [`✅ Rescale selesai — ${d.examId || d.modulId}`, `Deadline acuan: ${d.scheduleEnd}`];
-    if(exam && d.extensionMinutes) lines.push(`Perpanjangan tercatat: ${d.extensionMinutes} menit`);
+    if(exam) lines.push(`Perpanjangan berlaku: ${d.extensionMinutes || 0} menit`);
     lines.push(
       d.scheduleUnchanged
         ? `📌 Jadwal ${jenis} (global) TIDAK diubah — deadline di atas cuma acuan lokal utk NIM yang di-scope.`
@@ -298,13 +338,9 @@ window.doDiagnose = async function(){
   btn.disabled=true; btn.textContent='Memeriksa...';
   try{
     await authenticateAdmin(pw);
-    const payload = exam ? { examId: targetId, dryRun: true } : { modulId: targetId, dryRun: true };
-    if(newEndLocal){
-      const [dd, tt] = newEndLocal.split('T');
-      const [y, mo, da] = dd.split('-').map(Number);
-      const [h, mi] = tt.split(':').map(Number);
-      payload.newEnd = new Date(Date.UTC(y, mo-1, da, h - 7, mi || 0)).toISOString();
-    }
+    const payload = Object.assign(
+      exam ? { examId: targetId, dryRun: true } : { modulId: targetId, dryRun: true },
+      scheduleFields());
     const r = exam ? await rescaleExamLatePenalty(payload) : await rescaleModulLatePenalty(payload);
     const d = r.data;
     const fmtId = (iso) => {
@@ -322,7 +358,7 @@ window.doDiagnose = async function(){
       `  UTC: ${d.scheduleEnd}`,
       `  WIB: ${fmtId(d.scheduleEnd)}`,
     ];
-    if(exam && d.extensionMinutes) lines.push(`  Perpanjangan: ${d.extensionMinutes} menit`);
+    if(exam) lines.push(`  Perpanjangan: ${d.extensionMinutes || 0} menit`);
     lines.push(
       ``,
       `Mahasiswa di ${koleksi}: ${d.totalStudents} mahasiswa yg attempt-nya butuh adjustment`,
