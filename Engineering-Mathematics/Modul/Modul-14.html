@@ -10495,10 +10495,10 @@ body.friction-blurred #frictionToast{filter:none;}
     var moduleName = sanitizeName(o.moduleName, "ini");
     var studentName = sanitizeName(o.studentName, "");
     if (studentName) {
-      return "Halo, " + studentName + "! Selamat datang di modul " + moduleName + ". " +
-        "Saya siap membantu informasi sistem perkuliahan pada modul ini. " + SCOPE_SENTENCE;
+      return "Halo, " + studentName + "! Selamat datang di " + moduleName + ". " +
+        "Saya siap membantu informasi sistem perkuliahan pada halaman ini. " + SCOPE_SENTENCE;
     }
-    return "Halo! Selamat datang di modul " + moduleName + ". " + SCOPE_SENTENCE;
+    return "Halo! Selamat datang di " + moduleName + ". " + SCOPE_SENTENCE;
   }
 
   function suggestedQuestions() {
@@ -10569,9 +10569,22 @@ body.friction-blurred #frictionToast{filter:none;}
     ],
   };
 
-  /** moduleId → { courseId, nomor, pertemuan, nama } atau null. */
+  var COURSE_NAMES = {
+    "getaran-mekanik": "Getaran Mekanik",
+    "math4": "Matematika 4",
+    "optoauto": "Optimalisasi dan Otomasi",
+  };
+
+  /** moduleId/examId → { courseId, nomor, pertemuan, nama, jenis? } atau null. */
   function parseModuleId(moduleId) {
-    var m = /^(getaran-mekanik|math4|optoauto)-modul-(\d{1,2})$/.exec(String(moduleId || ""));
+    var id = String(moduleId || "");
+    // Halaman ujian: <course>-uts | <course>-uas (nama identik dengan registry backend).
+    var e = /^(getaran-mekanik|math4|optoauto)-(uts|uas)$/.exec(id);
+    if (e) {
+      var label = e[2] === "uts" ? "Ujian Tengah Semester (UTS)" : "Ujian Akhir Semester (UAS)";
+      return { courseId: e[1], nomor: null, pertemuan: null, jenis: e[2], nama: label + " " + COURSE_NAMES[e[1]] };
+    }
+    var m = /^(getaran-mekanik|math4|optoauto)-modul-(\d{1,2})$/.exec(id);
     if (!m) return null;
     var courseId = m[1];
     var nomor = parseInt(m[2], 10);
@@ -10710,6 +10723,12 @@ body.friction-blurred #frictionToast{filter:none;}
     ".vp-ai-clear{background:none;border:1px solid rgba(255,255,255,.12);color:#64748b;border-radius:8px;padding:4px 10px;font-size:.68rem;cursor:pointer;font-family:inherit;min-height:26px}",
     ".vp-ai-clear:hover{color:#e2e8f0;border-color:rgba(255,255,255,.25)}",
     ".vp-ai-typing{align-self:flex-start;color:#64748b;font-size:.74rem;padding:4px 2px}",
+    /* Komposer milik asisten — hanya dipasang di halaman ujian (panel tanpa chat kelas). */
+    ".vp-ai-input{display:flex;gap:8px;padding:0 14px 12px}",
+    ".vp-ai-input textarea{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#e2e8f0;font-family:inherit;font-size:.8rem;line-height:1.4;padding:8px 10px;resize:none;min-height:38px;max-height:90px}",
+    ".vp-ai-input textarea:focus{outline:none;border-color:rgba(6,214,160,.5)}",
+    ".vp-ai-send{background:rgba(6,214,160,.18);border:1px solid rgba(6,214,160,.4);color:#06d6a0;border-radius:10px;padding:0 14px;cursor:pointer;font-size:1rem;min-height:38px;font-family:inherit}",
+    ".vp-ai-send:hover{background:rgba(6,214,160,.3)}",
     /* Ikon asisten bergerak: goyang ringan terus-menerus, lebih cepat saat
        tab aktif / sedang mengetik. Dimatikan bila pengguna minta reduksi gerak. */
     ".vp-ai-bot{display:inline-block;animation:vpAiBob 2.8s ease-in-out infinite;transform-origin:60% 85%}",
@@ -10740,6 +10759,7 @@ body.friction-blurred #frictionToast{filter:none;}
     messages: [],      // {role, content, kind} — kind: 'text' | 'warn'
     busy: false,
     lastSentAt: 0,
+    examUi: false,   // true bila panel halaman ujian (tanpa chat kelas)
     doc: null,
     win: null,
   };
@@ -10815,16 +10835,22 @@ body.friction-blurred #frictionToast{filter:none;}
     state.mode = mode === "ai" ? "ai" : "kelas";
     var kelasBtn = el("vpModeKelas");
     var aiBtn = el("vpModeAi");
-    var kelasList = el("vpChatList");
+    // Halaman modul: daftar chat kelas. Halaman ujian: daftar mahasiswa online.
+    var kelasList = el("vpChatList") || el("vpList");
     var aiList = el("vpAiList");
     var toolbar = el("vpAiToolbar");
     var input = el("vpChatInput");
+    var ownComposer = el("vpAiComposer");
 
     if (kelasBtn) kelasBtn.classList.toggle("active", state.mode === "kelas");
     if (aiBtn) aiBtn.classList.toggle("active", state.mode === "ai");
-    if (kelasList) kelasList.style.display = state.mode === "kelas" ? "flex" : "none";
+    if (kelasList) {
+      // "" mengembalikan display bawaan elemen (vpList ujian bukan flex).
+      kelasList.style.display = state.mode === "kelas" ? (state.examUi ? "" : "flex") : "none";
+    }
     if (aiList) aiList.style.display = state.mode === "ai" ? "flex" : "none";
     if (toolbar) toolbar.style.display = state.mode === "ai" ? "flex" : "none";
+    if (ownComposer) ownComposer.style.display = state.mode === "ai" ? "flex" : "none";
     if (input) {
       input.placeholder = state.mode === "ai"
         ? "Tanya soal jadwal, tugas, nilai… (Enter=kirim)"
@@ -10932,34 +10958,18 @@ body.friction-blurred #frictionToast{filter:none;}
     persist();
   }
 
-  /** Sisipkan pemilih mode + daftar asisten ke dalam PANEL YANG SUDAH ADA. */
-  function mountUi() {
-    var panel = el("visitorPanel");
-    var chatWrap = state.doc.querySelector(".vp-chat");
-    var chatList = el("vpChatList");
-    if (!panel || !chatWrap || !chatList) return false;
-    if (el("vpAiList")) return true;   // sudah terpasang — jangan gandakan
+  function makeButton(id, cls, label, onClick) {
+    var btn = state.doc.createElement("button");
+    btn.type = "button";
+    btn.id = id;
+    btn.className = cls;
+    btn.textContent = label;
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
 
-    injectStyle(state.doc);
-
-    function makeButton(id, cls, label, onClick) {
-      var btn = state.doc.createElement("button");
-      btn.type = "button";
-      btn.id = id;
-      btn.className = cls;
-      btn.textContent = label;
-      btn.addEventListener("click", onClick);
-      return btn;
-    }
-
-    var tabs = state.doc.createElement("div");
-    tabs.className = "vp-mode-tabs";
-    tabs.appendChild(makeButton("vpModeKelas", "vp-mode-tab active", "👥 Kelas", function () { setMode("kelas"); }));
-    var aiTab = makeButton("vpModeAi", "vp-mode-tab", "", function () { setMode("ai"); });
-    aiTab.innerHTML = BOT_ICON_HTML + " Asisten Dosen";
-    tabs.appendChild(aiTab);
-    chatWrap.parentNode.insertBefore(tabs, chatWrap);
-
+  /** Daftar pesan asisten + delegasi klik chip. Dipakai kedua jenis halaman. */
+  function makeAiList() {
     var aiList = state.doc.createElement("div");
     aiList.className = "vp-ai-list";
     aiList.id = "vpAiList";
@@ -10978,16 +10988,101 @@ body.friction-blurred #frictionToast{filter:none;}
       if (typeof ev.stopPropagation === "function") ev.stopPropagation();
       ask(q);
     });
-    chatList.parentNode.insertBefore(aiList, chatList.nextSibling);
+    return aiList;
+  }
 
+  function makeToolbar() {
     var toolbar = state.doc.createElement("div");
     toolbar.className = "vp-ai-toolbar";
     toolbar.id = "vpAiToolbar";
     toolbar.style.display = "none";
     toolbar.appendChild(makeButton("vpAiClear", "vp-ai-clear", "🗑️ Hapus percakapan", resetConversation));
-    aiList.parentNode.insertBefore(toolbar, aiList.nextSibling);
+    return toolbar;
+  }
 
+  function makeModeTabs(kelasLabel) {
+    var tabs = state.doc.createElement("div");
+    tabs.className = "vp-mode-tabs";
+    tabs.appendChild(makeButton("vpModeKelas", "vp-mode-tab active", kelasLabel, function () { setMode("kelas"); }));
+    var aiTab = makeButton("vpModeAi", "vp-mode-tab", "", function () { setMode("ai"); });
+    aiTab.innerHTML = BOT_ICON_HTML + " Asisten Dosen";
+    tabs.appendChild(aiTab);
+    return tabs;
+  }
+
+  /** Halaman MODUL: panel punya chat kelas + komposer bersama. */
+  function mountModulUi(chatWrap, chatList) {
+    var tabs = makeModeTabs("👥 Kelas");
+    chatWrap.parentNode.insertBefore(tabs, chatWrap);
+
+    var aiList = makeAiList();
+    chatList.parentNode.insertBefore(aiList, chatList.nextSibling);
+    aiList.parentNode.insertBefore(makeToolbar(), aiList.nextSibling);
     return true;
+  }
+
+  /**
+   * Halaman UJIAN: panel hanya berisi daftar mahasiswa online — tidak ada chat
+   * kelas maupun komposer. Asisten membawa komposer mininya sendiri.
+   */
+  function mountExamUi(onlineList) {
+    state.examUi = true;
+
+    var tabs = makeModeTabs("👥 Online");
+    onlineList.parentNode.insertBefore(tabs, onlineList);
+
+    var aiList = makeAiList();
+    onlineList.parentNode.insertBefore(aiList, onlineList.nextSibling);
+    aiList.parentNode.insertBefore(makeToolbar(), aiList.nextSibling);
+
+    var composer = state.doc.createElement("div");
+    composer.className = "vp-ai-input";
+    composer.id = "vpAiComposer";
+    composer.style.display = "none";
+    var input = state.doc.createElement("textarea");
+    input.id = "vpAiInput";
+    input.placeholder = "Tanya soal jadwal, aturan ujian, nilai… (Enter=kirim)";
+    input.addEventListener("keydown", function (e) {
+      if (e && e.key === "Enter" && !e.shiftKey) {
+        if (typeof e.preventDefault === "function") e.preventDefault();
+        askFromOwnComposer();
+      }
+    });
+    composer.appendChild(input);
+    composer.appendChild(makeButton("vpAiSend", "vp-ai-send", "➤", askFromOwnComposer));
+    var toolbar = el("vpAiToolbar");
+    toolbar.parentNode.insertBefore(composer, toolbar.nextSibling);
+    return true;
+  }
+
+  function askFromOwnComposer() {
+    var input = el("vpAiInput");
+    if (!input) return;
+    var text = String(input.value || "").trim();
+    if (!text) return;
+    input.value = "";
+    ask(text);
+  }
+
+  /** Sisipkan pemilih mode + daftar asisten ke dalam PANEL YANG SUDAH ADA. */
+  function mountUi() {
+    var panel = el("visitorPanel");
+    if (!panel) return false;
+    if (el("vpAiList")) return true;   // sudah terpasang — jangan gandakan
+
+    var chatWrap = state.doc.querySelector(".vp-chat");
+    var chatList = el("vpChatList");
+    var onlineList = el("vpList");
+
+    if (chatWrap && chatList) {
+      injectStyle(state.doc);
+      return mountModulUi(chatWrap, chatList);
+    }
+    if (onlineList) {
+      injectStyle(state.doc);
+      return mountExamUi(onlineList);
+    }
+    return false;
   }
 
   /**
@@ -11040,10 +11135,13 @@ body.friction-blurred #frictionToast{filter:none;}
 
     state.moduleId = opts.moduleId || state.win.MODUL_ID || null;
     state.moduleName = resolveModuleName(state.moduleId) || opts.moduleName || null;
-    if (!state.moduleId || !state.moduleName) return false;  // halaman non-modul
+    if (!state.moduleId || !state.moduleName) return false;  // bukan halaman modul/ujian
 
+    state.examUi = false;
     if (!mountUi()) return false;
-    wrapComposer();
+    // Halaman ujian memakai komposer milik asisten sendiri — komposer bersama
+    // (sendChat/onChatKey) hanya ada di halaman modul.
+    if (!state.examUi) wrapComposer();
     state.busy = false;
     state.lastSentAt = 0;   // halaman modul baru → throttle antispam dimulai bersih
 
