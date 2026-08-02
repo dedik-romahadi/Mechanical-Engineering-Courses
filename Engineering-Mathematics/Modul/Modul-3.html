@@ -7072,6 +7072,13 @@ const _checkModulAnswerCallable = httpsCallable(_functions, 'checkModulAnswer');
 const _generateExportCodeCallable = httpsCallable(_functions, 'generateExportCode');
 window._generateExportCodeCallable = _generateExportCodeCallable;
 
+  /* AI-CHAT-AGENT bridge v1 */
+  // Jembatan untuk AI agent di menu chat: skrip agent adalah script klasik,
+  // jadi helper & callable-nya diekspos dari modul ES ini.
+  window.getIdentity = getIdentity;
+  window._aiChatCallable = httpsCallable(_functions, 'aiChat');
+  window._moduleChatContextCallable = httpsCallable(_functions, 'getModuleChatContext');
+
 // PIN hash session-scope (set saat login berhasil, dipakai utk auth ke callable).
 const _PIN_SESSION_KEY = `${COURSE_ID}_${MODULE_ID}_pinhash`;
 window._sessionPinHash = null;
@@ -10297,5 +10304,605 @@ body.friction-blurred #frictionToast{filter:none;}
 })();
 </script>
 
+<!-- AI-CHAT-AGENT:BEGIN v1 — dihasilkan oleh repo backend frontend-integration/apply-ai-chat.js -->
+<script>
+/* eslint-disable max-len */
+/**
+ * AI agent untuk menu chat modul — sisi frontend.
+ *
+ * ── PRINSIP INTEGRASI ───────────────────────────────────────────────────────
+ * Skrip ini TIDAK membuat menu chat baru. Ia menempel pada panel chat yang
+ * SUDAH ADA di setiap halaman modul:
+ *     tombol   #visitorFab          (tetap satu-satunya tombol chat)
+ *     panel    #visitorPanel        (tetap satu-satunya panel chat)
+ *     daftar   #vpChatList          (chat kelas, tidak diubah perilakunya)
+ *     komposer #vpChatInput / #vpChatSend  (dipakai bersama kedua mode)
+ *
+ * Yang ditambahkan hanya sebuah pemilih mode di dalam panel yang sama
+ * ("👥 Kelas" ↔ "🤖 Asisten") dan satu daftar pesan asisten (#vpAiList) yang
+ * bersebelahan dengan #vpChatList. Chat kelas lama tetap berjalan apa adanya:
+ * listener RTDB, render, presence, dan pengiriman pesannya tidak disentuh.
+ *
+ * ── SAPAAN OTOMATIS ─────────────────────────────────────────────────────────
+ * Sapaan dibuat dari template deterministik di file ini (fungsi buildGreeting),
+ * bukan dari model. Karena itu sapaan: muncul seketika saat modul dibuka, tidak
+ * memakai kuota inferensi, dan tetap tampil walau backend/AI sedang mati.
+ *
+ * ── RIWAYAT ─────────────────────────────────────────────────────────────────
+ * Riwayat disimpan per modul di sessionStorage dengan kunci yang memuat
+ * moduleId, dibatasi jumlahnya, dan tidak pernah dicampur antar modul.
+ *
+ * Skrip ini di-inline ke tiap Modul-N.html oleh
+ * frontend-integration/apply-ai-chat.js (idempoten, ditandai marker).
+ */
+
+(function (root, factory) {
+  "use strict";
+  var api = factory();
+  if (typeof module === "object" && module.exports) module.exports = api;   // untuk pengujian Node
+  if (root) root.ModulAiAgent = api;
+  if (root && root.document) api.autoInit();
+}(typeof window !== "undefined" ? window : null, function () {
+  "use strict";
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 1. Template deterministik (harus identik dengan functions/chat/greeting.js)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  var AI_UNAVAILABLE_MESSAGE =
+    "Layanan asisten sedang tidak tersedia. Anda tetap dapat membuka RPS, silabus, jadwal, dan informasi penilaian melalui tautan pada modul ini.";
+
+  var SCOPE_SENTENCE =
+    "Saya dapat membantu Anda mengenai silabus, RPS, jadwal, presensi, tugas, ujian, dan perhitungan nilai pada modul ini. Saya tidak dapat menjelaskan materi atau menyelesaikan soal perkuliahan.";
+
+  var LOGIN_REQUIRED_MESSAGE =
+    "Masuk terlebih dahulu untuk bertanya kepada asisten. Sapaan dan tautan resmi di atas tetap dapat Anda baca.";
+
+  function sanitizeName(value, fallback) {
+    var raw = typeof value === "string" ? value : "";
+    var cleaned = raw.replace(/[<>]/g, " ").replace(/\s+/g, " ").trim();
+    return cleaned || fallback;
+  }
+
+  function buildGreeting(opts) {
+    var o = opts || {};
+    var moduleName = sanitizeName(o.moduleName, "ini");
+    var studentName = sanitizeName(o.studentName, "");
+    if (studentName) {
+      return "Halo, " + studentName + "! Selamat datang di modul " + moduleName + ". " +
+        "Saya siap membantu informasi sistem perkuliahan pada modul ini. " + SCOPE_SENTENCE;
+    }
+    return "Halo! Selamat datang di modul " + moduleName + ". " + SCOPE_SENTENCE;
+  }
+
+  function suggestedQuestions() {
+    return [
+      "Berapa bobot UTS pada modul ini?",
+      "Kapan tugas berikutnya dikumpulkan?",
+      "Berapa batas maksimal ketidakhadiran?",
+      "Di mana saya dapat membuka RPS?",
+      "Bagaimana nilai akhir dihitung?",
+    ];
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 2. Nama modul — salinan registry backend (functions/chat/module-registry.js)
+  //    Dijaga identik oleh scripts/validate-ai-chat.js.
+  //    Disimpan lokal supaya sapaan tidak perlu jaringan sama sekali.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  var MODULE_TOPICS = {
+    "getaran-mekanik": [
+      "Konsep Dasar Getaran",
+      "Sistem Getaran & Klasifikasi",
+      "Getaran Bebas Teredam",
+      "Getaran Paksa",
+      "Resonansi, DMF & Transmissibility",
+      "Eksitasi Base Motion & Rotating Unbalance",
+      "Frekuensi Pribadi Sistem 2 DoF",
+      "Sistem 2 DoF: Persamaan Gerak & Matriks",
+      "Analisis Modal — Natural Frequency & Mode Shape",
+      "Vibration Absorber & Isolasi Getaran",
+      "Transformasi Fourier — Teori & Implementasi FFT",
+      "Indikator Getaran Time-Domain — RMS, Crest, Kurtosis & ISO 10816",
+      "Diagnosis Spektrum Frekuensi — Order Tracking & Envelope Analysis",
+      "Condition Monitoring & Diagnosis Kerusakan Mesin Industri",
+    ],
+    "math4": [
+      "Pengenalan Persamaan Diferensial",
+      "PD Variabel Terpisah",
+      "PD Homogen & Eksak",
+      "PD Linier Orde N",
+      "Persamaan Diferensial Linier Orde N",
+      "Persamaan Euler-Cauchy Homogen",
+      "Persamaan Euler-Cauchy Orde Tinggi Homogen",
+      "PD Non-Homogen: Solusi Khusus & Umum",
+      "Metode Reduksi Orde & Invers Operator",
+      "Transformasi Laplace",
+      "Penerapan Laplace pada PD",
+      "Fungsi Tangga Satuan (Heaviside)",
+      "Metode Jumlahan Pecahan Parsial",
+      "Deret Fourier: Fungsi Periodik",
+    ],
+    "optoauto": [
+      "Pengantar Time Series Data",
+      "Filter & Smoothing Time Series",
+      "Visualisasi & Akuisisi Pipeline",
+      "Preprocessing Dasar: Pembersihan Data Time Series",
+      "Preprocessing Lanjutan: Transformasi & Dekomposisi",
+      "Ekstraksi Fitur Domain Waktu",
+      "Ekstraksi Fitur Domain Frekuensi",
+      "Optimasi Linear: Linear Programming (LP)",
+      "Optimasi Non-Linear: Gradient & Constraint Handling",
+      "Optimasi Berbasis ANOVA: Analisis Faktor & Eksperimen",
+      "Otomatisasi Monitoring: Sensor, Akuisisi & ISO 10816",
+      "Otomatisasi Monitoring: Tier Alarm, FSM & ANSI/ISA 18.2",
+      "Otomatisasi Prediktif: Supervised Learning & Logistic Regression",
+      "Otomatisasi Prediktif: Random Forest, SVM & Hyperparameter Tuning",
+    ],
+  };
+
+  /** moduleId → { courseId, nomor, pertemuan, nama } atau null. */
+  function parseModuleId(moduleId) {
+    var m = /^(getaran-mekanik|math4|optoauto)-modul-(\d{1,2})$/.exec(String(moduleId || ""));
+    if (!m) return null;
+    var courseId = m[1];
+    var nomor = parseInt(m[2], 10);
+    if (!(nomor >= 1 && nomor <= 14)) return null;
+    var pertemuan = nomor <= 7 ? nomor : nomor + 1;   // Pertemuan 8 = UTS, dilewati
+    return {
+      courseId: courseId,
+      nomor: nomor,
+      pertemuan: pertemuan,
+      nama: "Pertemuan " + pertemuan + " — " + MODULE_TOPICS[courseId][nomor - 1],
+    };
+  }
+
+  /** Nama modul aktif dari MODUL_ID halaman. Tanpa jaringan. */
+  function resolveModuleName(moduleId) {
+    var parsed = parseModuleId(moduleId);
+    return parsed ? parsed.nama : null;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 3. Riwayat per modul
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  var HISTORY_PREFIX = "modulAiChat:v1:";
+  var HISTORY_MAX = 8;           // 4 giliran tanya-jawab (selaras batas backend)
+  var HISTORY_MAX_CHARS = 1200;
+
+  function historyKey(moduleId) {
+    return HISTORY_PREFIX + String(moduleId || "unknown");
+  }
+
+  function trimHistory(list) {
+    var out = [];
+    var arr = Array.isArray(list) ? list : [];
+    for (var i = 0; i < arr.length; i++) {
+      var item = arr[i];
+      if (!item || typeof item !== "object") continue;
+      var role = item.role === "assistant" ? "assistant" : item.role === "user" ? "user" : null;
+      var content = typeof item.content === "string" ? item.content.trim() : "";
+      if (!role || !content) continue;
+      out.push({ role: role, content: content.slice(0, HISTORY_MAX_CHARS) });
+    }
+    return out.slice(-HISTORY_MAX);
+  }
+
+  function storage() {
+    try {
+      var w = state.win || (typeof window !== "undefined" ? window : null);
+      var s = w && w.sessionStorage;
+      if (!s && typeof sessionStorage !== "undefined") s = sessionStorage;
+      return s || null;
+    } catch (e) { return null; }
+  }
+
+  function loadHistory(moduleId) {
+    var s = storage();
+    if (!s) return [];
+    try { return trimHistory(JSON.parse(s.getItem(historyKey(moduleId)) || "[]")); }
+    catch (e) { return []; }
+  }
+
+  function saveHistory(moduleId, list) {
+    var s = storage();
+    if (!s) return;
+    try { s.setItem(historyKey(moduleId), JSON.stringify(trimHistory(list))); }
+    catch (e) { /* kuota penuh / mode privat — riwayat cukup di memori */ }
+  }
+
+  function clearHistory(moduleId) {
+    var s = storage();
+    if (!s) return;
+    try { s.removeItem(historyKey(moduleId)); } catch (e) { /* abaikan */ }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 4. Util render
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Escape murni (tanpa DOM) supaya perilakunya sama di browser dan di Node.
+  function escapeHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  // Balasan model dirender sebagai TEKS (di-escape), lalu URL http(s) yang sudah
+  // di-escape diubah jadi tautan. Tidak ada HTML dari data yang tidak tervalidasi.
+  function renderMessageHtml(text) {
+    var safe = escapeHtml(text).replace(/\n/g, "<br>");
+    return safe.replace(/https?:\/\/[^\s<]+/g, function (url) {
+      var trimmed = url.replace(/[.,;)]+$/, "");
+      var tail = url.slice(trimmed.length);
+      return '<a href="' + trimmed + '" target="_blank" rel="noopener noreferrer">' + trimmed + "</a>" + tail;
+    });
+  }
+
+  var STYLE_ID = "vp-ai-style";
+  var CSS = [
+    /* Pemilih mode — memakai token warna panel chat yang sudah ada. */
+    ".vp-mode-tabs{display:flex;gap:6px;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.15)}",
+    ".vp-mode-tab{flex:1;padding:6px 10px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#94a3b8;font-size:.74rem;font-weight:700;cursor:pointer;transition:all .18s;font-family:inherit;min-height:32px}",
+    ".vp-mode-tab:hover:not(.active){background:rgba(255,255,255,.08);color:#e2e8f0}",
+    ".vp-mode-tab.active{background:rgba(6,214,160,.18);border-color:rgba(6,214,160,.45);color:#06d6a0}",
+    /* Daftar pesan asisten — mengikuti gaya .vp-chat-list yang sudah ada. */
+    ".vp-ai-list{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-height:200px}",
+    ".vp-ai-msg{max-width:88%;padding:8px 11px;border-radius:12px;font-size:.8rem;line-height:1.45;word-wrap:break-word;overflow-wrap:break-word}",
+    ".vp-ai-msg.bot{align-self:flex-start;background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.28);border-bottom-left-radius:3px;color:#e2e8f0}",
+    ".vp-ai-msg.own{align-self:flex-end;background:rgba(6,214,160,.18);border:1px solid rgba(6,214,160,.3);border-bottom-right-radius:3px;color:#e6fffb}",
+    ".vp-ai-msg.warn{align-self:stretch;background:rgba(251,191,36,.10);border:1px solid rgba(251,191,36,.3);color:#fef3c7;max-width:100%}",
+    ".vp-ai-msg a{color:#22d3ee;text-decoration:underline;word-break:break-all}",
+    ".vp-ai-role{font-size:.66rem;font-weight:700;color:#94a3b8;margin-bottom:3px;letter-spacing:.02em}",
+    ".vp-ai-suggest{display:flex;flex-wrap:wrap;gap:6px;padding:2px 0 4px}",
+    ".vp-ai-chip{padding:5px 10px;border-radius:999px;border:1px solid rgba(34,211,238,.32);background:rgba(34,211,238,.08);color:#a5f3fc;font-size:.7rem;cursor:pointer;font-family:inherit;transition:all .18s;text-align:left;min-height:28px}",
+    ".vp-ai-chip:hover{background:rgba(34,211,238,.18);border-color:rgba(34,211,238,.6)}",
+    ".vp-ai-toolbar{display:flex;justify-content:flex-end;padding:0 14px 8px}",
+    ".vp-ai-clear{background:none;border:1px solid rgba(255,255,255,.12);color:#64748b;border-radius:8px;padding:4px 10px;font-size:.68rem;cursor:pointer;font-family:inherit;min-height:26px}",
+    ".vp-ai-clear:hover{color:#e2e8f0;border-color:rgba(255,255,255,.25)}",
+    ".vp-ai-typing{align-self:flex-start;color:#64748b;font-size:.74rem;padding:4px 2px}",
+    /* Responsif: di layar sempit label mode dipendekkan & chip boleh melebar. */
+    "@media(max-width:480px){.vp-mode-tabs{padding:7px 10px}.vp-mode-tab{font-size:.68rem;padding:6px 6px}.vp-ai-list{padding:10px}.vp-ai-msg{max-width:94%}.vp-ai-chip{flex:1 1 100%}}",
+  ].join("");
+
+  function injectStyle(doc) {
+    if (!doc || doc.getElementById(STYLE_ID)) return;
+    var style = doc.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = CSS;
+    (doc.head || doc.body || doc.documentElement).appendChild(style);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 5. Controller
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  var state = {
+    mounted: false,
+    moduleId: null,
+    moduleName: null,
+    mode: "kelas",
+    messages: [],      // {role, content, kind} — kind: 'text' | 'warn'
+    busy: false,
+    lastSentAt: 0,
+    doc: null,
+    win: null,
+  };
+
+  function el(id) { return state.doc ? state.doc.getElementById(id) : null; }
+
+  function currentIdentity() {
+    try {
+      var fn = state.win && state.win.getIdentity;
+      return typeof fn === "function" ? (fn() || null) : null;
+    } catch (e) { return null; }
+  }
+
+  function canAsk() {
+    var me = currentIdentity();
+    return !!(me && (me.role === "student" || me.role === "dosen"));
+  }
+
+  function pushMessage(role, content, kind) {
+    state.messages.push({ role: role, content: content, kind: kind || "text" });
+    if (state.messages.length > HISTORY_MAX + 6) {
+      state.messages = state.messages.slice(-(HISTORY_MAX + 6));
+    }
+  }
+
+  /** Riwayat yang dikirim ke backend: hanya modul aktif, hanya teks percakapan. */
+  function historyForRequest() {
+    return trimHistory(state.messages
+      .filter(function (m) { return m.kind !== "warn"; })
+      .map(function (m) { return { role: m.role, content: m.content }; }));
+  }
+
+  function persist() {
+    saveHistory(state.moduleId, historyForRequest());
+  }
+
+  function renderAi() {
+    var list = el("vpAiList");
+    if (!list) return;
+    var html = state.messages.map(function (m) {
+      if (m.role === "user") {
+        return '<div class="vp-ai-msg own">' + renderMessageHtml(m.content) + "</div>";
+      }
+      var cls = m.kind === "warn" ? "vp-ai-msg warn" : "vp-ai-msg bot";
+      return '<div class="' + cls + '"><div class="vp-ai-role">🤖 Asisten Modul</div>' +
+        renderMessageHtml(m.content) + "</div>";
+    }).join("");
+
+    // Contoh pertanyaan hanya ditampilkan sebelum mahasiswa bertanya.
+    var asked = state.messages.some(function (m) { return m.role === "user"; });
+    if (!asked) {
+      html += '<div class="vp-ai-suggest">' + suggestedQuestions().map(function (q) {
+        return '<button type="button" class="vp-ai-chip" data-q="' + escapeHtml(q) + '">' + escapeHtml(q) + "</button>";
+      }).join("") + "</div>";
+    }
+    if (state.busy) html += '<div class="vp-ai-typing">Asisten sedang mengetik…</div>';
+    if (!canAsk()) {
+      html += '<div class="vp-ai-msg warn">' + escapeHtml(LOGIN_REQUIRED_MESSAGE) + "</div>";
+    }
+    list.innerHTML = html;
+    list.scrollTop = list.scrollHeight;
+    // Klik chip ditangani lewat delegasi di #vpAiList (dipasang sekali di
+    // mountUi), jadi render ulang tidak pernah menumpuk listener.
+  }
+
+  function setMode(mode) {
+    state.mode = mode === "ai" ? "ai" : "kelas";
+    var kelasBtn = el("vpModeKelas");
+    var aiBtn = el("vpModeAi");
+    var kelasList = el("vpChatList");
+    var aiList = el("vpAiList");
+    var toolbar = el("vpAiToolbar");
+    var input = el("vpChatInput");
+
+    if (kelasBtn) kelasBtn.classList.toggle("active", state.mode === "kelas");
+    if (aiBtn) aiBtn.classList.toggle("active", state.mode === "ai");
+    if (kelasList) kelasList.style.display = state.mode === "kelas" ? "flex" : "none";
+    if (aiList) aiList.style.display = state.mode === "ai" ? "flex" : "none";
+    if (toolbar) toolbar.style.display = state.mode === "ai" ? "flex" : "none";
+    if (input) {
+      input.placeholder = state.mode === "ai"
+        ? "Tanya soal jadwal, tugas, nilai… (Enter=kirim)"
+        : "Tulis pesan... (Enter=kirim)";
+    }
+    // Judul panel (.vp-header h3) SENGAJA tidak disentuh: renderChat() bawaan
+    // menulis ulang judul itu setiap kali ada pesan RTDB baru, jadi mengubahnya
+    // di sini hanya akan berkedip-kedip. Mode aktif sudah jelas dari tab.
+    if (state.mode === "ai") renderAi();
+  }
+
+  function callable(name) {
+    var fn = state.win && state.win[name];
+    return typeof fn === "function" ? fn : null;
+  }
+
+  async function ask(text) {
+    var message = String(text || "").trim();
+    if (!message || state.busy) return;
+    if (!canAsk()) { renderAi(); return; }
+    var now = Date.now();
+    if (now - state.lastSentAt < 1500) return;
+    state.lastSentAt = now;
+
+    var history = historyForRequest();
+    pushMessage("user", message.slice(0, 600));
+    state.busy = true;
+    renderAi();
+
+    var send = callable("_aiChatCallable");
+    if (!send) {
+      state.busy = false;
+      pushMessage("assistant", AI_UNAVAILABLE_MESSAGE, "warn");
+      renderAi();
+      persist();
+      return;
+    }
+
+    var me = currentIdentity() || {};
+    var payload = {
+      moduleId: state.moduleId,
+      message: message.slice(0, 600),
+      history: history,
+    };
+    if (me.nim) payload.nim = me.nim;
+    if (state.win && state.win._sessionPinHash) payload.pinHash = state.win._sessionPinHash;
+
+    try {
+      var res = await send(payload);
+      var data = (res && res.data) || {};
+      var reply = typeof data.reply === "string" && data.reply.trim()
+        ? data.reply.trim()
+        : AI_UNAVAILABLE_MESSAGE;
+      pushMessage("assistant", reply, data.available === false ? "warn" : "text");
+    } catch (err) {
+      // Tidak pernah menampilkan error teknis, stack trace, atau konfigurasi.
+      pushMessage("assistant", AI_UNAVAILABLE_MESSAGE, "warn");
+    } finally {
+      state.busy = false;
+      renderAi();
+      persist();
+    }
+  }
+
+  function resetConversation() {
+    clearHistory(state.moduleId);
+    state.messages = [];
+    pushMessage("assistant", buildGreeting({
+      moduleName: state.moduleName,
+      studentName: (currentIdentity() || {}).nama,
+    }));
+    renderAi();
+    persist();
+  }
+
+  /** Sisipkan pemilih mode + daftar asisten ke dalam PANEL YANG SUDAH ADA. */
+  function mountUi() {
+    var panel = el("visitorPanel");
+    var chatWrap = state.doc.querySelector(".vp-chat");
+    var chatList = el("vpChatList");
+    if (!panel || !chatWrap || !chatList) return false;
+    if (el("vpAiList")) return true;   // sudah terpasang — jangan gandakan
+
+    injectStyle(state.doc);
+
+    function makeButton(id, cls, label, onClick) {
+      var btn = state.doc.createElement("button");
+      btn.type = "button";
+      btn.id = id;
+      btn.className = cls;
+      btn.textContent = label;
+      btn.addEventListener("click", onClick);
+      return btn;
+    }
+
+    var tabs = state.doc.createElement("div");
+    tabs.className = "vp-mode-tabs";
+    tabs.appendChild(makeButton("vpModeKelas", "vp-mode-tab active", "👥 Kelas", function () { setMode("kelas"); }));
+    tabs.appendChild(makeButton("vpModeAi", "vp-mode-tab", "🤖 Asisten", function () { setMode("ai"); }));
+    chatWrap.parentNode.insertBefore(tabs, chatWrap);
+
+    var aiList = state.doc.createElement("div");
+    aiList.className = "vp-ai-list";
+    aiList.id = "vpAiList";
+    aiList.style.display = "none";
+    // Delegasi klik untuk chip contoh pertanyaan — dipasang sekali saja.
+    aiList.addEventListener("click", function (ev) {
+      var target = ev && (ev.target || ev.srcElement);
+      if (!target || !target.getAttribute) return;
+      var q = target.getAttribute("data-q");
+      if (q) ask(q);
+    });
+    chatList.parentNode.insertBefore(aiList, chatList.nextSibling);
+
+    var toolbar = state.doc.createElement("div");
+    toolbar.className = "vp-ai-toolbar";
+    toolbar.id = "vpAiToolbar";
+    toolbar.style.display = "none";
+    toolbar.appendChild(makeButton("vpAiClear", "vp-ai-clear", "🗑️ Hapus percakapan", resetConversation));
+    aiList.parentNode.insertBefore(toolbar, aiList.nextSibling);
+
+    return true;
+  }
+
+  /**
+   * Bungkus fungsi komposer yang sudah ada. Mode "kelas" diteruskan apa adanya
+   * ke implementasi lama, sehingga chat kelas tidak berubah perilakunya.
+   */
+  function wrapComposer() {
+    var w = state.win;
+    if (!w || w.__aiComposerWrapped) return;
+    w.__aiComposerWrapped = true;
+
+    var originalSend = w.sendChat;
+    w.sendChat = function () {
+      if (state.mode !== "ai") {
+        if (typeof originalSend === "function") return originalSend.apply(this, arguments);
+        return undefined;
+      }
+      var input = el("vpChatInput");
+      if (!input) return undefined;
+      var text = String(input.value || "").trim();
+      if (!text) return undefined;
+      input.value = "";
+      if (input.style) input.style.height = "auto";
+      if (typeof w.onChatInput === "function") w.onChatInput();
+      ask(text);
+      return undefined;
+    };
+
+    var originalKey = w.onChatKey;
+    w.onChatKey = function (e) {
+      if (state.mode === "ai" && e && e.key === "Enter" && !e.shiftKey) {
+        if (typeof e.preventDefault === "function") e.preventDefault();
+        w.sendChat();
+        return undefined;
+      }
+      if (typeof originalKey === "function") return originalKey.apply(this, arguments);
+      return undefined;
+    };
+  }
+
+  /**
+   * Inisialisasi: pasang UI, pulihkan riwayat modul ini, lalu SELALU tampilkan
+   * sapaan baru (menandai modul dibuka kembali). Tidak ada panggilan model.
+   */
+  function init(options) {
+    var opts = options || {};
+    state.win = opts.window || (typeof window !== "undefined" ? window : null);
+    state.doc = opts.document || (state.win && state.win.document) || null;
+    if (!state.win || !state.doc) return false;
+
+    state.moduleId = opts.moduleId || state.win.MODUL_ID || null;
+    state.moduleName = resolveModuleName(state.moduleId) || opts.moduleName || null;
+    if (!state.moduleId || !state.moduleName) return false;  // halaman non-modul
+
+    if (!mountUi()) return false;
+    wrapComposer();
+    state.busy = false;
+    state.lastSentAt = 0;   // halaman modul baru → throttle antispam dimulai bersih
+
+    // Riwayat modul ini saja — kunci penyimpanan memuat moduleId.
+    state.messages = loadHistory(state.moduleId).map(function (m) {
+      return { role: m.role, content: m.content, kind: "text" };
+    });
+    // Sapaan baru tiap kali modul dibuka, termasuk saat riwayat dipulihkan.
+    pushMessage("assistant", buildGreeting({
+      moduleName: state.moduleName,
+      studentName: (currentIdentity() || {}).nama,
+    }));
+    persist();
+
+    state.mounted = true;
+    setMode("kelas");
+    renderAi();          // sapaan sudah siap sebelum tab Asisten dibuka
+    return true;
+  }
+
+  function autoInit() {
+    var w = typeof window !== "undefined" ? window : null;
+    if (!w || !w.document) return;
+    var start = function () { try { init({}); } catch (e) { /* jangan pernah merusak halaman modul */ } };
+    if (w.document.readyState === "loading") {
+      w.document.addEventListener("DOMContentLoaded", function () { w.setTimeout(start, 0); });
+    } else {
+      w.setTimeout(start, 0);
+    }
+  }
+
+  return {
+    // API publik
+    init: init,
+    autoInit: autoInit,
+    ask: ask,
+    setMode: setMode,
+    resetConversation: resetConversation,
+    getState: function () { return state; },
+    // Helper murni — dipakai langsung oleh scripts/validate-ai-chat.js
+    buildGreeting: buildGreeting,
+    suggestedQuestions: suggestedQuestions,
+    resolveModuleName: resolveModuleName,
+    parseModuleId: parseModuleId,
+    historyKey: historyKey,
+    trimHistory: trimHistory,
+    escapeHtml: escapeHtml,
+    renderMessageHtml: renderMessageHtml,
+    MODULE_TOPICS: MODULE_TOPICS,
+    AI_UNAVAILABLE_MESSAGE: AI_UNAVAILABLE_MESSAGE,
+    SCOPE_SENTENCE: SCOPE_SENTENCE,
+    HISTORY_PREFIX: HISTORY_PREFIX,
+    CSS: CSS,
+  };
+}));
+</script>
+<!-- AI-CHAT-AGENT:END v1 -->
 </body>
 </html>
