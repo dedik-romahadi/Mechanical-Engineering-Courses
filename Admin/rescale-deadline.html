@@ -277,6 +277,22 @@ window.doRescale = async function(){
   if(nims.some(n=>!/^[0-9]{1,20}$/.test(n))){ showErr('Ada NIM yang bukan angka.'); return; }
   if(!pw){ showErr('Password admin wajib diisi.'); return; }
 
+  // Jebakan paling mudah terjadi: dosen mengisi NIM + deadline baru untuk
+  // membuka ujian susulan, padahal NIM terisi berarti jadwal global TIDAK
+  // ditulis — mahasiswa tetap terkunci. Cegat di sini, jangan biarkan
+  // hasilnya "berhasil" padahal tujuannya tidak tercapai.
+  const sched = scheduleFields();
+  if(nims.length > 0 && (sched.newEnd || sched.newExtension !== undefined)){
+    const lanjut = confirm(
+      'PERHATIAN — kolom NIM terisi.\n\n' +
+      'Jadwal ' + (exam ? 'ujian' : 'modul') + ' (global) TIDAK akan diubah, jadi mahasiswa TETAP TIDAK BISA mengerjakan. ' +
+      'Deadline/perpanjangan yang Anda isi hanya dipakai sebagai acuan hitung ulang poin untuk NIM tersebut.\n\n' +
+      'Untuk benar-benar MEMBUKA jendela ujian (susulan): kosongkan kolom NIM, lalu jalankan lagi.\n\n' +
+      'Lanjutkan hitung ulang poin saja untuk NIM tersebut?'
+    );
+    if(!lanjut) return;
+  }
+
   btn.disabled=true; btn.textContent='Memproses...';
   try{
     await authenticateAdmin(pw);
@@ -290,11 +306,15 @@ window.doRescale = async function(){
     const jenis = exam ? 'ujian' : 'modul';
     let lines = [`✅ Rescale selesai — ${d.examId || d.modulId}`, `Deadline acuan: ${d.scheduleEnd}`];
     if(exam) lines.push(`Perpanjangan berlaku: ${d.extensionMinutes || 0} menit`);
-    lines.push(
-      d.scheduleUnchanged
-        ? `📌 Jadwal ${jenis} (global) TIDAK diubah — deadline di atas cuma acuan lokal utk NIM yang di-scope.`
-        : `📌 Jadwal ${jenis} (global) DIUBAH ke deadline di atas — berlaku utk SEMUA mahasiswa ${jenis} ini.`,
-      '');
+    if(d.scheduleUnchanged){
+      lines.push(`⚠ Jadwal ${jenis} (global) TIDAK diubah — deadline di atas hanya acuan hitung ulang utk NIM yang di-scope.`);
+      if(nims.length > 0){
+        lines.push(`   Mahasiswa TETAP TIDAK BISA mengerjakan. Untuk membuka jendela ${jenis}: kosongkan kolom NIM lalu jalankan lagi.`);
+      }
+    } else {
+      lines.push(`✅ Jadwal ${jenis} (global) DIUBAH ke deadline di atas — berlaku utk SEMUA mahasiswa ${jenis} ini.`);
+    }
+    lines.push('');
     lines.push(`Mahasiswa berubah: ${d.totalStudents} · attempt disesuaikan: ${d.totalAdjusted}`);
     if(exam && d.beyondExtension){
       lines.push(`⚠ ${d.beyondExtension} attempt jatuh SETELAH deadline + perpanjangan → ujian sudah ditutup, poinnya menjadi 0.`);
