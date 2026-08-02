@@ -10275,8 +10275,11 @@ body.friction-blurred #frictionToast{filter:none;}
  * memakai kuota inferensi, dan tetap tampil walau backend/AI sedang mati.
  *
  * ── RIWAYAT ─────────────────────────────────────────────────────────────────
- * Riwayat disimpan per modul di sessionStorage dengan kunci yang memuat
- * moduleId, dibatasi jumlahnya, dan tidak pernah dicampur antar modul.
+ * Riwayat disimpan di localStorage dengan kunci per modul DAN per NIM:
+ * bertahan saat halaman dimuat ulang atau dibuka di tab baru, tidak pernah
+ * tercampur antar modul, dan tidak terlihat oleh mahasiswa lain pada
+ * perangkat yang sama. Jumlah yang disimpan dibatasi (STORE_MAX); yang
+ * dikirim ke backend lebih ketat lagi (HISTORY_MAX).
  *
  * Skrip ini di-inline ke tiap Modul-N.html oleh
  * frontend-integration/apply-ai-chat.js (idempoten, ditandai marker).
@@ -10418,15 +10421,20 @@ body.friction-blurred #frictionToast{filter:none;}
   // 3. Riwayat per modul
   // ═══════════════════════════════════════════════════════════════════════════
 
-  var HISTORY_PREFIX = "modulAiChat:v1:";
-  var HISTORY_MAX = 8;           // 4 giliran tanya-jawab (selaras batas backend)
+  var HISTORY_PREFIX = "modulAiChat:v2:";
+  var HISTORY_MAX = 8;           // dikirim ke backend (selaras batas backend)
   var HISTORY_MAX_CHARS = 1200;
+  var STORE_MAX = 40;            // disimpan & ditampilkan ulang di perangkat ini
 
+  // Kunci memuat moduleId DAN NIM: di komputer bersama (lab), mahasiswa lain
+  // yang login tidak melihat percakapan pemilik sebelumnya.
   function historyKey(moduleId) {
-    return HISTORY_PREFIX + String(moduleId || "unknown");
+    var me = currentIdentity() || {};
+    var nim = me.nim ? String(me.nim) : "tamu";
+    return HISTORY_PREFIX + String(moduleId || "unknown") + ":" + nim;
   }
 
-  function trimHistory(list) {
+  function cleanHistory(list, max) {
     var out = [];
     var arr = Array.isArray(list) ? list : [];
     for (var i = 0; i < arr.length; i++) {
@@ -10437,29 +10445,33 @@ body.friction-blurred #frictionToast{filter:none;}
       if (!role || !content) continue;
       out.push({ role: role, content: content.slice(0, HISTORY_MAX_CHARS) });
     }
-    return out.slice(-HISTORY_MAX);
+    return out.slice(-max);
   }
 
+  function trimHistory(list) { return cleanHistory(list, HISTORY_MAX); }
+
+  // localStorage lebih dulu: riwayat bertahan saat halaman dimuat ulang, tab
+  // ditutup, atau modul dibuka dari tautan LMS di tab baru. sessionStorage
+  // hanya cadangan saat localStorage diblokir (mode privat tertentu).
   function storage() {
-    try {
-      var w = state.win || (typeof window !== "undefined" ? window : null);
-      var s = w && w.sessionStorage;
-      if (!s && typeof sessionStorage !== "undefined") s = sessionStorage;
-      return s || null;
-    } catch (e) { return null; }
+    var w = state.win || (typeof window !== "undefined" ? window : null);
+    if (!w) return null;
+    try { if (w.localStorage) return w.localStorage; } catch (e) { /* diblokir */ }
+    try { if (w.sessionStorage) return w.sessionStorage; } catch (e) { /* diblokir */ }
+    return null;
   }
 
   function loadHistory(moduleId) {
     var s = storage();
     if (!s) return [];
-    try { return trimHistory(JSON.parse(s.getItem(historyKey(moduleId)) || "[]")); }
+    try { return cleanHistory(JSON.parse(s.getItem(historyKey(moduleId)) || "[]"), STORE_MAX); }
     catch (e) { return []; }
   }
 
   function saveHistory(moduleId, list) {
     var s = storage();
     if (!s) return;
-    try { s.setItem(historyKey(moduleId), JSON.stringify(trimHistory(list))); }
+    try { s.setItem(historyKey(moduleId), JSON.stringify(cleanHistory(list, STORE_MAX))); }
     catch (e) { /* kuota penuh / mode privat — riwayat cukup di memori */ }
   }
 
@@ -10579,15 +10591,21 @@ body.friction-blurred #frictionToast{filter:none;}
     }
   }
 
-  /** Riwayat yang dikirim ke backend: hanya modul aktif, hanya teks percakapan. */
-  function historyForRequest() {
-    return trimHistory(state.messages
-      .filter(function (m) { return m.kind !== "warn"; })
-      .map(function (m) { return { role: m.role, content: m.content }; }));
+  /** Percakapan murni: tanpa peringatan (warn) dan tanpa sapaan (info). */
+  function conversationOnly() {
+    return state.messages
+      .filter(function (m) { return m.kind === "text"; })
+      .map(function (m) { return { role: m.role, content: m.content }; });
   }
 
+  /** Riwayat yang dikirim ke backend: hanya modul aktif, maksimal 8 pesan. */
+  function historyForRequest() {
+    return trimHistory(conversationOnly());
+  }
+
+  /** Yang disimpan lebih panjang (STORE_MAX) supaya riwayat tampil utuh lagi. */
   function persist() {
-    saveHistory(state.moduleId, historyForRequest());
+    saveHistory(state.moduleId, conversationOnly());
   }
 
   function renderAi() {
@@ -10730,10 +10748,12 @@ body.friction-blurred #frictionToast{filter:none;}
   function resetConversation() {
     clearHistory(state.moduleId);
     state.messages = [];
+    // kind "info": tampil sebagai gelembung bot biasa, tetapi TIDAK ikut
+    // disimpan ke riwayat maupun dikirim ke backend — sapaan tidak menumpuk.
     pushMessage("assistant", buildGreeting({
       moduleName: state.moduleName,
       studentName: (currentIdentity() || {}).nama,
-    }));
+    }), "info");
     renderAi();
     persist();
   }
@@ -10858,10 +10878,12 @@ body.friction-blurred #frictionToast{filter:none;}
       return { role: m.role, content: m.content, kind: "text" };
     });
     // Sapaan baru tiap kali modul dibuka, termasuk saat riwayat dipulihkan.
+    // kind "info": tampil sebagai gelembung bot biasa, tetapi TIDAK ikut
+    // disimpan ke riwayat maupun dikirim ke backend — sapaan tidak menumpuk.
     pushMessage("assistant", buildGreeting({
       moduleName: state.moduleName,
       studentName: (currentIdentity() || {}).nama,
-    }));
+    }), "info");
     persist();
 
     state.mounted = true;
