@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perkuliahan Teknik Mesin — Universitas Mercu Buana</title>
+<meta name="description" content="Repositori perkuliahan S1 Teknik Mesin Universitas Mercu Buana: modul interaktif, ujian, silabus OBE, dan nilai — Getaran Mekanik, Matematika 4, Optimalisasi dan Otomasi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060a10; --surface:#0d1520; --card:#0b121d; --border:#1a2840;
+  --text:#cdd6e8; --muted:#8296b4; --cyan:#22d3ee; --emerald:#06d6a0; --sky:#38bdf8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scrollbar-color:var(--border) var(--bg)}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'Source Sans 3',sans-serif; line-height:1.6;
+  min-height:100vh; overflow-x:hidden;
+}
+::selection{background:rgba(34,211,238,.28)}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:4px}
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:999px}
+
+/* Latar bercahaya lembut, gaya halaman modul */
+.glow{position:fixed;border-radius:50%;filter:blur(120px);opacity:.16;pointer-events:none;z-index:0}
+.glow.g1{width:520px;height:520px;background:var(--cyan);top:-180px;left:-140px}
+.glow.g2{width:460px;height:460px;background:var(--emerald);bottom:-160px;right:-120px}
+@media (prefers-reduced-motion:no-preference){
+  .glow{animation:drift 18s ease-in-out infinite alternate}
+  .glow.g2{animation-delay:-9s}
+  @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(60px,40px) scale(1.12)}}
+  main{animation:rise .6s ease-out}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+}
+
+main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:56px 20px 40px}
+
+/* ── Hero ── */
+.hero{text-align:center;margin-bottom:48px}
+.hero .kicker{
+  display:inline-block;font-size:.78rem;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--cyan);border:1px solid rgba(34,211,238,.35);
+  background:rgba(34,211,238,.08);border-radius:999px;padding:6px 16px;margin-bottom:18px;
+}
+.hero h1{
+  font-family:'Playfair Display',serif;font-weight:900;
+  font-size:clamp(2rem,5.5vw,3.4rem);line-height:1.15;letter-spacing:.01em;
+  background:linear-gradient(100deg,#e8eefb 20%,var(--cyan) 60%,var(--emerald) 95%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:14px;
+}
+.hero p{color:var(--muted);max-width:620px;margin:0 auto}
+.hero .dosen{margin-top:10px;font-size:.92rem;color:var(--text)}
+.hero .dosen b{color:#e8eefb}
+
+/* ── Kartu mata kuliah ── */
+.courses{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.course{
+  background:linear-gradient(180deg,var(--surface),var(--card));
+  border:1px solid var(--border);border-radius:18px;padding:24px 22px 20px;
+  display:flex;flex-direction:column;gap:14px;
+  transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;
+}
+.course:hover{transform:translateY(-4px);box-shadow:0 18px 48px rgba(0,0,0,.45)}
+.course.c-gm:hover{border-color:rgba(34,211,238,.55)}
+.course.c-em:hover{border-color:rgba(56,189,248,.55)}
+.course.c-oa:hover{border-color:rgba(6,214,160,.55)}
+.course h2{font-family:'Playfair Display',serif;font-size:1.32rem;line-height:1.3}
+.c-gm h2{color:var(--cyan)} .c-em h2{color:var(--sky)} .c-oa h2{color:var(--emerald)}
+.course .meta{font-size:.8rem;color:var(--muted)}
+.course .meta span{white-space:nowrap}
+.course .meta span+span::before{content:"·";margin:0 7px;color:var(--border)}
+
+.label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+.moduls{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.moduls a{
+  display:flex;align-items:center;justify-content:center;min-height:34px;
+  border:1px solid var(--border);border-radius:9px;background:rgba(255,255,255,.03);
+  color:var(--text);text-decoration:none;font-weight:600;font-size:.86rem;
+  transition:all .18s ease;
+}
+.c-gm .moduls a:hover{background:rgba(34,211,238,.14);border-color:rgba(34,211,238,.6);color:var(--cyan)}
+.c-em .moduls a:hover{background:rgba(56,189,248,.14);border-color:rgba(56,189,248,.6);color:var(--sky)}
+.c-oa .moduls a:hover{background:rgba(6,214,160,.14);border-color:rgba(6,214,160,.6);color:var(--emerald)}
+
+.links{display:flex;flex-wrap:wrap;gap:7px}
+.links a{
+  font-size:.78rem;font-weight:600;color:var(--text);text-decoration:none;
+  border:1px solid var(--border);border-radius:999px;padding:5px 12px;
+  background:rgba(255,255,255,.03);transition:all .18s ease;
+}
+.links a:hover{border-color:rgba(34,211,238,.6);color:var(--cyan);background:rgba(34,211,238,.08)}
+.links a.exam{border-color:rgba(251,191,36,.35);color:#fcd34d}
+.links a.exam:hover{border-color:rgba(251,191,36,.7);background:rgba(251,191,36,.08);color:#fde68a}
+
+footer{
+  position:relative;z-index:1;text-align:center;color:var(--muted);
+  font-size:.8rem;padding:26px 16px 34px;border-top:1px solid var(--border);margin-top:52px;
+}
+footer b{color:var(--text)}
+
+@media (max-width:520px){
+  main{padding-top:40px}
+  .moduls{grid-template-columns:repeat(7,1fr)}
+  .moduls a{min-height:30px;font-size:.78rem}
+}
+</style>
+</head>
+<body>
+<div class="glow g1" aria-hidden="true"></div>
+<div class="glow g2" aria-hidden="true"></div>
+
+<main>
+  <header class="hero">
+    <span class="kicker">S1 Teknik Mesin · Fakultas Teknik</span>
+    <h1>Repositori Perkuliahan<br>Teknik Mesin</h1>
+    <p>Modul interaktif, ujian daring, silabus OBE, dan nilai — Universitas Mercu Buana, Semester Genap 2025/2026.</p>
+    <p class="dosen">Dosen pengampu: <b>Dedik Romahadi, ST., M.Sc</b></p>
+  </header>
+
+  <section class="courses" aria-label="Daftar mata kuliah">
+
+    <article class="course c-gm">
+      <div>
+        <h2>Getaran Mekanik</h2>
+        <p class="meta"><span>W132500020</span><span>2 SKS</span><span>14 pertemuan</span></p>
+      </div>
+      <div>
+        <p class="label">Modul Pertemuan</p>
+        <nav class="moduls" aria-label="Modul Getaran Mekanik">
+          <a href="Getaran-Mekanik/Modul/Modul-1.html" title="Konsep Dasar Getaran">1</a>
+          <a href="Getaran-Mekanik/Modul/Modul-2.html" title="Sistem Getaran &amp; Klasifikasi">2</a>
+          <a href="Getaran-Mekanik/Modul/Modul-3.html" title="Getaran Bebas Teredam">3</a>
+          <a href="Getaran-Mekanik/Modul/Modul-4.html" title="Getaran Paksa">4</a>
+          <a href="Getaran-Mekanik/Modul/Modul-5.html" title="Resonansi, DMF &amp; Transmissibility">5</a>
+          <a href="Getaran-Mekanik/Modul/Modul-6.html" title="Eksitasi Base Motion &amp; Rotating Unbalance">6</a>
+          <a href="Getaran-Mekanik/Modul/Modul-7.html" title="Frekuensi Pribadi Sistem 2 DoF">7</a>
+          <a href="Getaran-Mekanik/Modul/Modul-8.html" title="Sistem 2 DoF: Persamaan Gerak &amp; Matriks">8</a>
+          <a href="Getaran-Mekanik/Modul/Modul-9.html" title="Analisis Modal — Natural Frequency &amp; Mode Shape">9</a>
+          <a href="Getaran-Mekanik/Modul/Modul-10.html" title="Vibration Absorber &amp; Isolasi Getaran">10</a>
+          <a href="Getaran-Mekanik/Modul/Modul-11.html" title="Transformasi Fourier — Teori &amp; Implementasi FFT">11</a>
+          <a href="Getaran-Mekanik/Modul/Modul-12.html" title="Indikator Getaran Time-Domain — RMS, Crest, Kurtosis &amp; ISO 10816">12</a>
+          <a href="Getaran-Mekanik/Modul/Modul-13.html" title="Diagnosis Spektrum Frekuensi — Order Tracking &amp; Envelope Analysis">13</a>
+          <a href="Getaran-Mekanik/Modul/Modul-14.html" title="Condition Monitoring &amp; Diagnosis Kerusakan Mesin Industri">14</a>
+        </nav>
+      </div>
+      <div>
+        <p class="label">Ujian &amp; Dokumen</p>
+        <p class="links">
+          <a class="exam" href="Getaran-Mekanik/Exam/UTS.html">UTS</a>
+          <a class="exam" href="Getaran-Mekanik/Exam/UAS.html">UAS</a>
+          <a href="Getaran-Mekanik/Attributes/Introdcution.html">Pengantar</a>
+          <a href="Getaran-Mekanik/OBE/Dokumen-OBE.html">Silabus / OBE</a>
+          <a href="Getaran-Mekanik/Attributes/Nilai-Akhir.html">Nilai Akhir</a>
+          <a href="Unduhan-Gabungan/RPS-Getaran-Mekanik.pdf">RPS (PDF)</a>
+          <a href="Unduhan-Gabungan/Modul-Gabungan-Getaran-Mekanik.pdf">Modul Gabungan</a>
+        </p>
+      </div>
+    </article>
+
+    <article class="course c-em">
+      <div>
+        <h2>Matematika 4</h2>
+        <p class="meta"><span>Teknik Mesin</span><span>14 pertemuan</span></p>
+      </div>
+      <div>
+        <p class="label">Modul Pertemuan</p>
+        <nav class="moduls" aria-label="Modul Matematika 4">
+          <a href="Engineering-Mathematics/Modul/Modul-1.html" title="Pengenalan Persamaan Diferensial">1</a>
+          <a href="Engineering-Mathematics/Modul/Modul-2.html" title="PD Variabel Terpisah">2</a>
+          <a href="Engineering-Mathematics/Modul/Modul-3.html" title="PD Homogen &amp; Eksak">3</a>
+          <a href="Engineering-Mathematics/Modul/Modul-4.html" title="PD Linier Orde N">4</a>
+          <a href="Engineering-Mathematics/Modul/Modul-5.html" title="Persamaan Diferensial Linier Orde N">5</a>
+          <a href="Engineering-Mathematics/Modul/Modul-6.html" title="Persamaan Euler-Cauchy Homogen">6</a>
+          <a href="Engineering-Mathematics/Modul/Modul-7.html" title="Persamaan Euler-Cauchy Orde Tinggi Homogen">7</a>
+          <a href="Engineering-Mathematics/Modul/Modul-8.html" title="PD Non-Homogen: Solusi Khusus &amp; Umum">8</a>
+          <a href="Engineering-Mathematics/Modul/Modul-9.html" title="Metode Reduksi Orde &amp; Invers Operator">9</a>
+          <a href="Engineering-Mathematics/Modul/Modul-10.html" title="Transformasi Laplace">10</a>
+          <a href="Engineering-Mathematics/Modul/Modul-11.html" title="Penerapan Laplace pada PD">11</a>
+          <a href="Engineering-Mathematics/Modul/Modul-12.html" title="Fungsi Tangga Satuan (Heaviside)">12</a>
+          <a href="Engineering-Mathematics/Modul/Modul-13.html" title="Metode Jumlahan Pecahan Parsial">13</a>
+          <a href="Engineering-Mathematics/Modul/Modul-14.html" title="Deret Fourier: Fungsi Periodik">14</a>
+        </nav>
+      </div>
+      <div>
+        <p class="label">Ujian &amp; Dokumen</p>
+        <p class="links">
+          <a class="exam" href="Engineering-Mathematics/Exam/UTS.html">UTS</a>
+          <a class="exam" href="Engineering-Mathematics/Exam/UAS.html">UAS</a>
+          <a href="Engineering-Mathematics/Attributes/Introduction.html">Pengantar</a>
+          <a href="Engineering-Mathematics/OBE/Dokumen-OBE.html">Silabus / OBE</a>
+          <a href="Engineering-Mathematics/Attributes/Nilai-Akhir.html">Nilai Akhir</a>
+          <a href="Engineering-Mathematics/Attributes/Pembagian-Kelompok.html">Kelompok</a>
+          <a href="Engineering-Mathematics/Attributes/Setup-Python.html">Setup Python</a>
+          <a href="Unduhan-Gabungan/RPS-Matematika-4.pdf">RPS (PDF)</a>
+          <a href="Unduhan-Gabungan/Modul-Gabungan-Matematika-4.pdf">Modul Gabungan</a>
+        </p>
+      </div>
+    </article>
+
+    <article class="course c-oa">
+      <div>
+        <h2>Optimalisasi dan Otomasi</h2>
+        <p class="meta"><span>Teknik Mesin</span><span>14 pertemuan</span></p>
+      </div>
+      <div>
+        <p class="label">Modul Pertemuan</p>
+        <nav class="moduls" aria-label="Modul Optimalisasi dan Otomasi">
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-1.html" title="Pengantar Time Series Data">1</a>
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-2.html" title="Filter &amp; Smoothing Time Series">2</a>
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-3.html" title="Visualisasi &amp; Akuisisi Pipeline">3</a>
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-4.html" title="Preprocessing Dasar: Pembersihan Data Time Series">4</a>
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-5.html" title="Preprocessing Lanjutan: Transformasi &amp; Dekomposisi">5</a>
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-6.html" title="Ekstraksi Fitur Domain Waktu">6</a>
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-7.html" title="Ekstraksi Fitur Domain Frekuensi">7</a>
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-8.html" title="Optimasi Linear: Linear Programming (LP)">8</a>
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-9.html" title="Optimasi Non-Linear: Gradient &amp; Constraint Handling">9</a>
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-10.html" title="Optimasi Berbasis ANOVA: Analisis Faktor &amp; Eksperimen">10</a>
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-11.html" title="Otomatisasi Monitoring: Sensor, Akuisisi &amp; ISO 10816">11</a>
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-12.html" title="Otomatisasi Monitoring: Tier Alarm, FSM &amp; ANSI/ISA 18.2">12</a>
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-13.html" title="Otomatisasi Prediktif: Supervised Learning &amp; Logistic Regression">13</a>
+          <a href="Optimalisasi-dan-Automasi/Modul/Modul-14.html" title="Otomatisasi Prediktif: Random Forest, SVM &amp; Hyperparameter Tuning">14</a>
+        </nav>
+      </div>
+      <div>
+        <p class="label">Ujian &amp; Dokumen</p>
+        <p class="links">
+          <a class="exam" href="Optimalisasi-dan-Automasi/Exam/UTS.html">UTS</a>
+          <a class="exam" href="Optimalisasi-dan-Automasi/Exam/UAS.html">UAS</a>
+          <a href="Optimalisasi-dan-Automasi/Attributes/Introduction.html">Pengantar</a>
+          <a href="Optimalisasi-dan-Automasi/OBE/Dokumen-OBE.html">Silabus / OBE</a>
+          <a href="Optimalisasi-dan-Automasi/Attributes/Nilai-Akhir.html">Nilai Akhir</a>
+          <a href="Optimalisasi-dan-Automasi/Attributes/Pembagian-Kelompok.html">Kelompok</a>
+          <a href="Optimalisasi-dan-Automasi/Attributes/Setup-Python.html">Setup Python</a>
+          <a href="Unduhan-Gabungan/RPS-Optimalisasi-dan-Otomasi.pdf">RPS (PDF)</a>
+          <a href="Unduhan-Gabungan/Modul-Gabungan-Optimalisasi-dan-Otomasi.pdf">Modul Gabungan</a>
+        </p>
+      </div>
+    </article>
+
+  </section>
+</main>
+
+<footer>
+  <b>Universitas Mercu Buana</b> · Fakultas Teknik · Program Studi S1 Teknik Mesin<br>
+  Tahun Akademik 2025/2026 · Dedik Romahadi, ST., M.Sc
+</footer>
+</body>
+</html>
