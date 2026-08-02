@@ -6437,6 +6437,14 @@ function _applyRoleVisibility() {
   const isDosen = !!(me && me.role === 'dosen' && me.nama && me.nama.toLowerCase() === 'dedik romahadi');
   const isStudent = !!(me && me.nim && me.role !== 'dosen');
 
+  // Chip identitas navbar — ikut identity yang login (idiom sama dengan UAS &
+  // Modul). Tanpa ini teks navbar tetap "DEDIK ROMAHADI" untuk siapa pun.
+  // Teks khusus mode preview / tinjauan soal dosen tidak ditimpa.
+  const navChip = document.getElementById('navIdentityChip');
+  if (navChip && !window._previewMode && !window._dosenQuestionView) {
+    navChip.textContent = (me && me.nama) ? (isDosen ? '👨‍🏫 ' : '🎓 ') + me.nama.toUpperCase() : '👋 TAMU';
+  }
+
   const resetBtn = document.getElementById('resetBtnHasil');
   if (resetBtn) resetBtn.style.display = isDosen ? 'flex' : 'none';
 
