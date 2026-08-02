@@ -3562,7 +3562,7 @@ window._applyModulServerResult = _applyModulServerResult;
 
 // PHASE 3 — Error handler standar untuk callable.
 function _handleModulServerError(err, qId, fb) {
-  const code = (err && err.code) || 'unknown';
+  const code = String((err && err.code) || 'unknown').replace(/^functions\//, '');  // SDK memberi 'functions/<code>'; tanpa normalisasi ini semua cabang spesifik di bawah tidak pernah cocok
   let msg;
   if      (code === 'failed-precondition') msg = '🔒 ' + (err.message || 'Akses modul ditutup.');
   else if (code === 'unauthenticated')     msg = '⚠ ' + (err.message || 'PIN expired — login ulang.');
