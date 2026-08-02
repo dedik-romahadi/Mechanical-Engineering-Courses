@@ -44,19 +44,27 @@
 <body>
 <div class="wrap">
   <h1>⏱️ Rescale Penalti Keterlambatan</h1>
-  <div class="sub">Admin-only. Hitung ulang poin yang terlanjur kena penalti telat (×0.7) sesuai <b>deadline terbaru</b>. Tidak perlu mahasiswa submit ulang.</div>
+  <div class="sub">Admin-only. Hitung ulang poin yang terlanjur kena penalti telat (×0.7) sesuai <b>deadline terbaru</b>, untuk <b>Modul (Tugas)</b> maupun <b>Ujian (UTS/UAS)</b>. Tidak perlu mahasiswa submit ulang.</div>
 
   <div class="warn">
     ⚠ Isi <b>Deadline Baru</b> di bawah untuk atur jadwal + rescale sekaligus (atau kosongkan kalau deadline sudah diubah via Atur Jadwal).
     Tool menghitung ulang tiap attempt terhadap deadline acuan: jika waktu submit asli kini ≤ deadline → poin penuh; soal Hard yang dulu telat (0) bisa jadi <b>partial</b>. Aman dipanggil berulang (idempoten).
     <br><br>
-    📌 <b>NIM diisi</b> → Deadline Baru HANYA jadi acuan hitung ulang utk NIM tsb, jadwal modul (global) <b>TIDAK ikut berubah</b> — mahasiswa lain tidak terpengaruh.
-    <b>NIM dikosongkan</b> → Deadline Baru mengubah jadwal modul utk SEMUA mahasiswa (dipakai utk perpanjangan deadline satu kelas).
+    📌 <b>NIM diisi</b> → Deadline Baru HANYA jadi acuan hitung ulang utk NIM tsb, jadwal (global) <b>TIDAK ikut berubah</b> — mahasiswa lain tidak terpengaruh.
+    <b>NIM dikosongkan</b> → Deadline Baru mengubah jadwal utk SEMUA mahasiswa (dipakai utk perpanjangan deadline satu kelas).
+    <br><br>
+    🔍 Klik <b>Diagnose</b> lebih dulu: itu <b>dry-run</b> yang hanya melaporkan rencana perubahan — tidak ada attempt, poin, atau jadwal yang ditulis. Isi Deadline Baru sebelum Diagnose untuk mempratinjau dampaknya.
   </div>
 
   <div class="card">
-    <label>Mata Kuliah &amp; Modul</label>
+    <label>Jenis Halaman</label>
     <div class="row">
+      <div>
+        <select id="kind">
+          <option value="modul">Modul (Tugas)</option>
+          <option value="exam">Ujian (UTS / UAS)</option>
+        </select>
+      </div>
       <div>
         <select id="course">
           <option value="getaran-mekanik">Getaran Mekanik</option>
@@ -64,11 +72,20 @@
           <option value="optoauto">Optimalisasi &amp; Automasi</option>
         </select>
       </div>
-      <div>
-        <select id="modul"></select>
-      </div>
     </div>
-    <div class="hint">modulId: <span id="modulId" style="color:var(--cyan)">getaran-mekanik-modul-8</span></div>
+
+    <label id="targetLabel">Modul</label>
+    <div class="row">
+      <div><select id="modul"></select></div>
+      <div><select id="exam" style="display:none">
+        <option value="uts">UTS</option>
+        <option value="uas">UAS</option>
+      </select></div>
+    </div>
+    <div class="hint"><span id="idKindLabel">modulId</span>: <span id="modulId" style="color:var(--cyan)">getaran-mekanik-modul-8</span></div>
+    <div class="hint" id="examNote" style="display:none;color:#ffb300">
+      Ujian memakai bobot Sub-CPMK (total 100 poin) dan punya masa perpanjangan. Attempt yang jatuh setelah <i>deadline + perpanjangan</i> tetap dihitung terlambat dan akan dilaporkan terpisah.
+    </div>
 
     <label>Deadline Baru (opsional)</label>
     <input id="newEnd" type="datetime-local" style="color-scheme:dark">
@@ -122,11 +139,18 @@ async function authenticateAdmin(password){
   await signInWithCustomToken(auth, result.data.token);
 }
 const rescaleModulLatePenalty = httpsCallable(functions, 'rescaleModulLatePenalty');
+const rescaleExamLatePenalty  = httpsCallable(functions, 'rescaleExamLatePenalty');
 
-
+const kindEl   = document.getElementById('kind');
 const courseEl = document.getElementById('course');
 const modulEl  = document.getElementById('modul');
+const examEl   = document.getElementById('exam');
 const modulIdEl= document.getElementById('modulId');
+const targetLabelEl = document.getElementById('targetLabel');
+const idKindLabelEl = document.getElementById('idKindLabel');
+const examNoteEl    = document.getElementById('examNote');
+
+function isExam(){ return kindEl.value === 'exam'; }
 
 function buildModulOptions(){
   modulEl.innerHTML='';
@@ -136,10 +160,28 @@ function buildModulOptions(){
     modulEl.appendChild(o);
   }
 }
-function refreshModulId(){ modulIdEl.textContent = `${courseEl.value}-modul-${modulEl.value}`; }
-courseEl.onchange = refreshModulId;
-modulEl.onchange  = refreshModulId;
-buildModulOptions(); modulEl.value = 8; refreshModulId();
+function currentTargetId(){
+  return isExam()
+    ? `${courseEl.value}-${examEl.value}`
+    : `${courseEl.value}-modul-${modulEl.value}`;
+}
+function refreshTarget(){
+  const exam = isExam();
+  modulEl.style.display = exam ? 'none' : '';
+  examEl.style.display  = exam ? '' : 'none';
+  targetLabelEl.textContent = exam ? 'Ujian' : 'Modul';
+  idKindLabelEl.textContent = exam ? 'examId' : 'modulId';
+  examNoteEl.style.display  = exam ? '' : 'none';
+  modulIdEl.textContent = currentTargetId();
+  // Teks tombol ikut menyebut sasaran supaya tidak salah klik.
+  document.getElementById('btnDiag').textContent =
+    exam ? '🔍 Diagnose Ujian (tanpa mengubah data)' : '🔍 Diagnose Modul (tanpa mengubah data)';
+}
+kindEl.onchange   = refreshTarget;
+courseEl.onchange = refreshTarget;
+modulEl.onchange  = refreshTarget;
+examEl.onchange   = refreshTarget;
+buildModulOptions(); modulEl.value = 8; refreshTarget();
 
 // ── Deadline picker — preview dd-mm-yyyy hh:mm WIB + presets ──
 const newEndEl = document.getElementById('newEnd');
@@ -176,7 +218,8 @@ window.doRescale = async function(){
   const res = document.getElementById('result');
   res.className='result'; res.removeAttribute('style');
 
-  const modulId = modulIdEl.textContent;
+  const targetId = currentTargetId();
+  const exam = isExam();
   const nims = document.getElementById('nims').value
     .split(/[,\s]+/).map(s=>s.trim()).filter(Boolean);
   const newEndLocal = document.getElementById('newEnd').value;
@@ -188,7 +231,7 @@ window.doRescale = async function(){
   btn.disabled=true; btn.textContent='Memproses...';
   try{
     await authenticateAdmin(pw);
-    const payload = { modulId };
+    const payload = exam ? { examId: targetId } : { modulId: targetId };
     if(nims.length>0) payload.nims = nims;
     // datetime-local diinterpretasi sbg WIB (UTC+7) eksplisit — tidak tergantung
     // timezone browser dosen. Format input: "2025-12-25T23:59".
@@ -200,14 +243,21 @@ window.doRescale = async function(){
       payload.newEnd = new Date(Date.UTC(y, mo-1, da, h - 7, mi || 0)).toISOString();
     }
     console.log('[rescale] payload:', payload);
-    const r = await rescaleModulLatePenalty(payload);
+    const r = exam ? await rescaleExamLatePenalty(payload) : await rescaleModulLatePenalty(payload);
     const d = r.data;
-    let lines = [`✅ Rescale selesai — ${d.modulId}`, `Deadline acuan: ${d.scheduleEnd}`,
+    const jenis = exam ? 'ujian' : 'modul';
+    let lines = [`✅ Rescale selesai — ${d.examId || d.modulId}`, `Deadline acuan: ${d.scheduleEnd}`];
+    if(exam && d.extensionMinutes) lines.push(`Perpanjangan tercatat: ${d.extensionMinutes} menit`);
+    lines.push(
       d.scheduleUnchanged
-        ? '📌 Jadwal modul (global) TIDAK diubah — deadline di atas cuma acuan lokal utk NIM yang di-scope.'
-        : '📌 Jadwal modul (global) DIUBAH ke deadline di atas — berlaku utk SEMUA mahasiswa modul ini.',
-      ''];
-    lines.push(`Mahasiswa berubah: ${d.totalStudents} · attempt disesuaikan: ${d.totalAdjusted}`,'');
+        ? `📌 Jadwal ${jenis} (global) TIDAK diubah — deadline di atas cuma acuan lokal utk NIM yang di-scope.`
+        : `📌 Jadwal ${jenis} (global) DIUBAH ke deadline di atas — berlaku utk SEMUA mahasiswa ${jenis} ini.`,
+      '');
+    lines.push(`Mahasiswa berubah: ${d.totalStudents} · attempt disesuaikan: ${d.totalAdjusted}`);
+    if(exam && d.beyondExtension){
+      lines.push(`⚠ ${d.beyondExtension} attempt tercatat SETELAH deadline + perpanjangan — tetap dihitung terlambat (×0.7). Periksa bila ini tidak diharapkan.`);
+    }
+    lines.push('');
     if(d.students.length === 0){
       lines.push('(Tidak ada poin yang perlu disesuaikan — semua sudah sesuai deadline ini.)');
     } else {
@@ -224,28 +274,38 @@ window.doRescale = async function(){
     console.error('[rescale] error:', e);
     const code = e.code ? ` [${e.code}]` : '';
     const detail = e.details ? `\nDetail: ${JSON.stringify(e.details)}` : '';
-    showErr(`Gagal: ${e.message || e}${code}${detail}\n\nModul: ${modulId}\nCek console browser (F12) utk log lengkap.`);
+    showErr(`Gagal: ${e.message || e}${code}${detail}\n\nSasaran: ${targetId}\nCek console browser (F12) utk log lengkap.`);
   }finally{
     btn.disabled=false; btn.textContent='Hitung Ulang Penalti';
   }
 };
 function showErr(msg){ const res=document.getElementById('result'); res.className='result err'; res.style.display='block'; res.textContent='❌ '+msg; }
 
-// Diagnose: panggil rescale tanpa newEnd (= pakai schedule existing),
-// tanpa modify apa-apa. Hasil: berapa siswa & attempt akan diproses.
+// Diagnose: dryRun SEJATI — server menghitung rencana perubahan tanpa menulis
+// attempt, poin, maupun schedule.end. (Versi lama memanggil jalur tulis biasa
+// padahal mengklaim tidak mengubah apa pun.)
+// Deadline Baru ikut dikirim bila diisi, supaya dosen bisa mempratinjau dampak
+// deadline yang direncanakan sebelum benar-benar menerapkannya.
 window.doDiagnose = async function(){
   const btn = document.getElementById('btnDiag');
   const res = document.getElementById('result');
   res.className='result';
-  const modulId = modulIdEl.textContent;
+  const targetId = currentTargetId();
+  const exam = isExam();
+  const newEndLocal = document.getElementById('newEnd').value;
   const pw = document.getElementById('pw').value;
   if(!pw){ showErr('Password admin wajib diisi.'); return; }
   btn.disabled=true; btn.textContent='Memeriksa...';
   try{
     await authenticateAdmin(pw);
-    // Call dengan nims:[] + tanpa newEnd → server cek schedule + iterate.
-    // Karena nims kosong tapi listDocuments() akan list semua → hasil = realistic count.
-    const r = await rescaleModulLatePenalty({ modulId });
+    const payload = exam ? { examId: targetId, dryRun: true } : { modulId: targetId, dryRun: true };
+    if(newEndLocal){
+      const [dd, tt] = newEndLocal.split('T');
+      const [y, mo, da] = dd.split('-').map(Number);
+      const [h, mi] = tt.split(':').map(Number);
+      payload.newEnd = new Date(Date.UTC(y, mo-1, da, h - 7, mi || 0)).toISOString();
+    }
+    const r = exam ? await rescaleExamLatePenalty(payload) : await rescaleModulLatePenalty(payload);
     const d = r.data;
     const fmtId = (iso) => {
       try {
@@ -254,29 +314,34 @@ window.doDiagnose = async function(){
         return `${String(wib.getUTCDate()).padStart(2,'0')}-${String(wib.getUTCMonth()+1).padStart(2,'0')}-${wib.getUTCFullYear()} ${String(wib.getUTCHours()).padStart(2,'0')}:${String(wib.getUTCMinutes()).padStart(2,'0')} WIB`;
       } catch { return iso; }
     };
+    const koleksi = exam ? 'examAttempts' : 'modulAttempts';
     let lines = [
-      `🔍 Diagnose — ${d.modulId}`,
+      `🔍 Diagnose (dry-run — tidak ada data yang diubah) — ${d.examId || d.modulId}`,
       ``,
-      `Deadline yg tersimpan di RTDB:`,
+      newEndLocal ? `Deadline yang DIPRATINJAU (belum disimpan):` : `Deadline yg tersimpan di RTDB:`,
       `  UTC: ${d.scheduleEnd}`,
       `  WIB: ${fmtId(d.scheduleEnd)}`,
-      ``,
-      `Mahasiswa di modulAttempts: ${d.totalStudents} mahasiswa yg attempt-nya butuh adjustment`,
-      `Total attempt yg perlu di-rescale (vs deadline ini): ${d.totalAdjusted}`,
-      ``,
     ];
+    if(exam && d.extensionMinutes) lines.push(`  Perpanjangan: ${d.extensionMinutes} menit`);
+    lines.push(
+      ``,
+      `Mahasiswa di ${koleksi}: ${d.totalStudents} mahasiswa yg attempt-nya butuh adjustment`,
+      `Total attempt yg perlu di-rescale (vs deadline ini): ${d.totalAdjusted}`,
+    );
+    if(exam && d.beyondExtension){
+      lines.push(`⚠ ${d.beyondExtension} attempt tercatat setelah deadline + perpanjangan.`);
+    }
+    lines.push(``);
     if(d.totalStudents === 0 && d.totalAdjusted === 0){
       lines.push('⚠ KENAPA 0?');
-      lines.push('  (a) Belum ada mahasiswa submit jawaban modul ini, ATAU');
+      lines.push(`  (a) Belum ada mahasiswa submit jawaban ${exam ? 'ujian' : 'modul'} ini, ATAU`);
       lines.push('  (b) Semua attempt sudah sesuai deadline ini (tidak ada yg penalti).');
       lines.push('');
       lines.push('Kalau Bapak ingin rescale terhadap deadline BARU:');
       lines.push('  → Isi field "Deadline Baru" di atas dengan tanggal+jam target');
-      lines.push('  → klik "Hitung Ulang Penalti"');
-      lines.push('');
-      lines.push('Kalau memang belum ada submission, callable hanya update field');
-      lines.push('schedule.end di RTDB — tidak ada penalti utk di-rescale.');
+      lines.push('  → klik Diagnose lagi untuk pratinjau, lalu "Hitung Ulang Penalti"');
     } else {
+      lines.push('Perkiraan perubahan (klik "Hitung Ulang Penalti" untuk menerapkan):');
       d.students.forEach(s=>{
         lines.push(`• ${s.nimKey.replace(/^mhs_/,'')}  poin: ${s.pointsBefore} → ${s.pointsAfter}`);
       });
@@ -286,7 +351,7 @@ window.doDiagnose = async function(){
     console.error('[diagnose] error:', e);
     showErr('Diagnose gagal: '+(e.message||e)+(e.code?` [${e.code}]`:''));
   }finally{
-    btn.disabled=false; btn.textContent='🔍 Diagnose Modul (cek data dulu)';
+    btn.disabled=false; refreshTarget();   // pulihkan label sesuai sasaran aktif
   }
 };
 </script>
