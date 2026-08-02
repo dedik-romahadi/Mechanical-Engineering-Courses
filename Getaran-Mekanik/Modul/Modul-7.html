@@ -9837,7 +9837,14 @@ body.friction-blurred #frictionToast{filter:none;}
       var target = ev && (ev.target || ev.srcElement);
       if (!target || !target.getAttribute) return;
       var q = target.getAttribute("data-q");
-      if (q) ask(q);
+      if (!q) return;
+      // ask() → renderAi() melepas chip dari DOM sebelum event ini tiba di
+      // document. Penutup "klik di luar panel" halaman memakai
+      // p.contains(e.target); target yang sudah terlepas dianggap "di luar",
+      // panelnya pun tertutup. Klik chip adalah interaksi DI DALAM panel —
+      // hentikan di sini supaya panel hanya tertutup saat memang disengaja.
+      if (typeof ev.stopPropagation === "function") ev.stopPropagation();
+      ask(q);
     });
     chatList.parentNode.insertBefore(aiList, chatList.nextSibling);
 
