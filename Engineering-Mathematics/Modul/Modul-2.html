@@ -10279,6 +10279,9 @@ body.friction-blurred #frictionToast{filter:none;}
   var LOGIN_REQUIRED_MESSAGE =
     "Masuk terlebih dahulu untuk bertanya kepada asisten. Sapaan dan tautan resmi di atas tetap dapat Anda baca.";
 
+  var SESSION_EXPIRED_MESSAGE =
+    "Sesi login Anda tidak lagi berlaku. Silakan login ulang pada halaman modul ini, lalu ajukan kembali pertanyaannya.";
+
   function sanitizeName(value, fallback) {
     var raw = typeof value === "string" ? value : "";
     var cleaned = raw.replace(/[<>]/g, " ").replace(/\s+/g, " ").trim();
@@ -10606,6 +10609,31 @@ body.friction-blurred #frictionToast{filter:none;}
     return typeof fn === "function" ? fn : null;
   }
 
+  /** Kode error callable, tanpa prefix SDK: "functions/unauthenticated" → "unauthenticated". */
+  function callableErrorCode(err) {
+    var code = err && typeof err.code === "string" ? err.code : "";
+    var slash = code.lastIndexOf("/");
+    return slash >= 0 ? code.slice(slash + 1) : code;
+  }
+
+  /**
+   * Pesan untuk kegagalan panggilan callable. Hanya dua kode yang dibedakan:
+   *   unauthenticated  — sesi kedaluwarsa/ditolak; mahasiswa bisa login ulang.
+   *   invalid-argument — pesan backend memang ditulis untuk pengguna
+   *                      (mis. batas panjang pesan) dan aman ditampilkan.
+   * Selain itu (jaringan putus, jembatan hilang, error internal) tetap satu
+   * pesan umum — detail teknis tidak pernah sampai ke UI.
+   */
+  function messageForError(err) {
+    var code = callableErrorCode(err);
+    if (code === "unauthenticated") return SESSION_EXPIRED_MESSAGE;
+    if (code === "invalid-argument") {
+      var backendMessage = err && typeof err.message === "string" ? err.message.trim() : "";
+      if (backendMessage) return backendMessage.slice(0, 300);
+    }
+    return AI_UNAVAILABLE_MESSAGE;
+  }
+
   async function ask(text) {
     var message = String(text || "").trim();
     if (!message || state.busy) return;
@@ -10646,7 +10674,7 @@ body.friction-blurred #frictionToast{filter:none;}
       pushMessage("assistant", reply, data.available === false ? "warn" : "text");
     } catch (err) {
       // Tidak pernah menampilkan error teknis, stack trace, atau konfigurasi.
-      pushMessage("assistant", AI_UNAVAILABLE_MESSAGE, "warn");
+      pushMessage("assistant", messageForError(err), "warn");
     } finally {
       state.busy = false;
       renderAi();
