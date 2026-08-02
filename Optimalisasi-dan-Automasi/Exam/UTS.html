@@ -3429,7 +3429,7 @@ function _applyServerExamResult(qId, res, type, sub, fb) {
 
 // ─── PHASE 3 helpers — render error dari server ──────────────────────────────
 function _handleServerExamError(err, qId, fb) {
-  const code = (err && err.code) || 'unknown';
+  const code = String((err && err.code) || 'unknown').replace(/^functions\//, '');  // SDK memberi 'functions/<code>'; tanpa normalisasi ini semua cabang spesifik di bawah tidak pernah cocok
   let msg;
   if (code === 'failed-precondition') {
     msg = '🔒 ' + (err.message || 'Akses ujian ditutup oleh server.');
