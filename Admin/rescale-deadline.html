@@ -50,7 +50,8 @@
     ⚠ Isi <b>Deadline Baru</b> di bawah untuk atur jadwal + rescale sekaligus (atau kosongkan kalau deadline sudah diubah via Atur Jadwal).
     Tool menghitung ulang tiap attempt terhadap deadline acuan: jika waktu submit asli kini ≤ deadline → poin penuh; soal Hard yang dulu telat (0) bisa jadi <b>partial</b>. Aman dipanggil berulang (idempoten).
     <br><br>
-    📌 <b>NIM diisi</b> → Deadline Baru HANYA jadi acuan hitung ulang utk NIM tsb, jadwal (global) <b>TIDAK ikut berubah</b> — mahasiswa lain tidak terpengaruh.
+    📌 <b>NIM diisi</b> → pada <b>Ujian</b>: jendela dibuka hanya untuk NIM tsb (ujian susulan), jadwal global tidak bergeser.
+    Pada <b>Modul</b>: Deadline Baru hanya jadi acuan hitung ulang, jadwal tidak diubah.
     <b>NIM dikosongkan</b> → Deadline Baru mengubah jadwal utk SEMUA mahasiswa (dipakai utk perpanjangan deadline satu kelas).
     <br><br>
     🔍 Klik <b>Diagnose</b> lebih dulu: itu <b>dry-run</b> yang hanya melaporkan rencana perubahan — tidak ada attempt, poin, atau jadwal yang ditulis. Isi Deadline Baru sebelum Diagnose untuk mempratinjau dampaknya.
@@ -115,12 +116,13 @@
     </div>
 
     <div id="susulanNote" class="warn" style="display:none;margin-top:14px">
-      🎓 <b>Ujian susulan:</b> jadwal ujian bersifat <b>global per ujian</b> — sistem tidak punya jadwal per mahasiswa.
-      Karena itu <b>kolom NIM di bawah TIDAK membuka ujian hanya untuk mahasiswa tertentu</b>; ia hanya membatasi cakupan hitung ulang penalti.
-      Untuk membuka jendela susulan, <b>kosongkan NIM</b> lalu isi Deadline Baru — jendela terbuka untuk semua.
+      🎓 <b>Ujian susulan:</b> isi <b>kolom NIM</b> di bawah, lalu isi Deadline Baru — jendela ujian dibuka
+      <b>hanya untuk NIM tersebut</b>. Jadwal global tidak bergeser dan mahasiswa lain tidak terpengaruh.
       <br><br>
-      Yang membatasi dampaknya: <b>tiap soal hanya bisa dijawab sekali</b>. Mahasiswa yang sudah menjawab tetap terkunci; yang bisa mengerjakan hanyalah soal yang memang belum pernah dijawab — persis kondisi peserta susulan.
-      Risiko yang tersisa: mahasiswa yang dulu <i>mengosongkan</i> sebagian soal bisa mengisinya sekarang.
+      <b>NIM dikosongkan</b> = jadwal global diubah untuk <b>semua</b> mahasiswa.
+      <br><br>
+      Catatan: waktu <i>mulai</i> tidak ikut di-override, dan tiap soal tetap hanya bisa dijawab sekali —
+      mahasiswa yang sudah menjawab tetap terkunci pada soal itu.
     </div>
 
     <label>NIM Mahasiswa (opsional)</label>
@@ -277,20 +279,26 @@ window.doRescale = async function(){
   if(nims.some(n=>!/^[0-9]{1,20}$/.test(n))){ showErr('Ada NIM yang bukan angka.'); return; }
   if(!pw){ showErr('Password admin wajib diisi.'); return; }
 
-  // Jebakan paling mudah terjadi: dosen mengisi NIM + deadline baru untuk
-  // membuka ujian susulan, padahal NIM terisi berarti jadwal global TIDAK
-  // ditulis — mahasiswa tetap terkunci. Cegat di sini, jangan biarkan
-  // hasilnya "berhasil" padahal tujuannya tidak tercapai.
+  // Konfirmasi cakupan sebelum menulis jadwal — dua perilaku yang sangat
+  // berbeda, jadi jangan sampai dosen salah pilih tanpa sadar.
   const sched = scheduleFields();
-  if(nims.length > 0 && (sched.newEnd || sched.newExtension !== undefined)){
-    const lanjut = confirm(
-      'PERHATIAN — kolom NIM terisi.\n\n' +
-      'Jadwal ' + (exam ? 'ujian' : 'modul') + ' (global) TIDAK akan diubah, jadi mahasiswa TETAP TIDAK BISA mengerjakan. ' +
-      'Deadline/perpanjangan yang Anda isi hanya dipakai sebagai acuan hitung ulang poin untuk NIM tersebut.\n\n' +
-      'Untuk benar-benar MEMBUKA jendela ujian (susulan): kosongkan kolom NIM, lalu jalankan lagi.\n\n' +
-      'Lanjutkan hitung ulang poin saja untuk NIM tersebut?'
-    );
-    if(!lanjut) return;
+  if(sched.newEnd || sched.newExtension !== undefined){
+    let pesan;
+    if(exam && nims.length > 0){
+      pesan = 'UJIAN SUSULAN — jendela dibuka HANYA untuk ' + nims.length + ' NIM berikut:\n' +
+        nims.join(', ') + '\n\n' +
+        'Jadwal ujian global TIDAK berubah; mahasiswa lain tidak terpengaruh.\n\nLanjutkan?';
+    } else if(!exam && nims.length > 0){
+      pesan = 'PERHATIAN — kolom NIM terisi pada mode Modul.\n\n' +
+        'Jadwal modul (global) TIDAK akan diubah. Deadline yang Anda isi hanya dipakai sebagai ' +
+        'acuan hitung ulang poin untuk NIM tersebut.\n\n' +
+        'Untuk mengubah jadwal modul, kosongkan kolom NIM.\n\nLanjutkan hitung ulang poin saja?';
+    } else {
+      pesan = 'Jadwal ' + (exam ? 'ujian' : 'modul') + ' GLOBAL akan diubah — berlaku untuk SEMUA mahasiswa.\n\n' +
+        (exam ? 'Untuk membuka susulan bagi sebagian mahasiswa saja, isi kolom NIM.\n\n' : '') +
+        'Lanjutkan?';
+    }
+    if(!confirm(pesan)) return;
   }
 
   btn.disabled=true; btn.textContent='Memproses...';
@@ -306,11 +314,11 @@ window.doRescale = async function(){
     const jenis = exam ? 'ujian' : 'modul';
     let lines = [`✅ Rescale selesai — ${d.examId || d.modulId}`, `Deadline acuan: ${d.scheduleEnd}`];
     if(exam) lines.push(`Perpanjangan berlaku: ${d.extensionMinutes || 0} menit`);
-    if(d.scheduleUnchanged){
+    if(d.overridesWritten > 0){
+      lines.push(`🎓 Jendela ${jenis} dibuka HANYA untuk ${d.overridesWritten} NIM (ujian susulan).`);
+      lines.push(`   Jadwal global tidak berubah — mahasiswa lain tidak terpengaruh.`);
+    } else if(d.scheduleUnchanged){
       lines.push(`⚠ Jadwal ${jenis} (global) TIDAK diubah — deadline di atas hanya acuan hitung ulang utk NIM yang di-scope.`);
-      if(nims.length > 0){
-        lines.push(`   Mahasiswa TETAP TIDAK BISA mengerjakan. Untuk membuka jendela ${jenis}: kosongkan kolom NIM lalu jalankan lagi.`);
-      }
     } else {
       lines.push(`✅ Jadwal ${jenis} (global) DIUBAH ke deadline di atas — berlaku utk SEMUA mahasiswa ${jenis} ini.`);
     }
