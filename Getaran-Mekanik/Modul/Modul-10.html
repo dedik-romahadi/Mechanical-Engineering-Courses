@@ -9693,6 +9693,11 @@ body.friction-blurred #frictionToast{filter:none;}
     try {
       var res = await send(payload);
       var data = (res && res.data) || {};
+      // Jejak diagnosis untuk operator di DevTools — kategori kasar saja
+      // (quota/config/service), tanpa nama penyedia, model, atau endpoint.
+      if (data.available === false && data.aiReason) {
+        try { console.info("[asisten] lapis AI tidak menjawab — kategori:", data.aiReason); } catch (e) { /* abaikan */ }
+      }
       var reply = typeof data.reply === "string" && data.reply.trim()
         ? data.reply.trim()
         : AI_UNAVAILABLE_MESSAGE;
