@@ -46,6 +46,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(6,10,16,.92)
 .nav-tab.active{background:rgba(168,85,247,.15);border-color:rgba(168,85,247,.4);color:var(--violet)}
 .nav-tab:hover:not(.active){background:rgba(255,255,255,.05);color:var(--text)}
 .nav-badge{font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);color:var(--violet);padding:4px 10px;border-radius:20px;white-space:nowrap}
+.nav-logout{font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#fca5a5;padding:4px 9px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s}
+.nav-logout:hover{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.45)}
 @media(max-width:700px){.nav-badge{display:none}.nav-brand span:not(.pulse){display:none}}
 
 /* ── SUBNAV (second fixed bar — modul only) ── */
@@ -926,7 +928,8 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
     <button class="nav-tab active" id="tab-uts" onclick="switchTab('uts')">📝 Soal Ujian</button>
     <button class="nav-tab" id="tab-hasil" onclick="switchTab('hasil')">📊 Hasil</button>
   </div>
-  <span class="nav-badge">👨‍🏫 DEDIK ROMAHADI</span>
+  <span class="nav-badge" id="navIdentityChip">👨‍🏫 DEDIK ROMAHADI</span>
+  <button class="nav-logout" onclick="_logoutUTS()" title="Keluar dari sesi ujian &amp; kembali ke halaman login">🚪 Logout</button>
 </nav>
 
 <!-- ─── SUBNAV (UTS section anchors) ─── -->
@@ -7627,6 +7630,20 @@ document.getElementById('dosenLoginPw').addEventListener('keydown', function(e){
 });
 
 window.submitDosenLogin = submitDosenLogin;
+
+// Logout UTS — idiom sama dengan _logoutUAS() di UAS dan _switchRole() di Modul
+// (lihat Pedoman §4.1: tombol bernama "Log Out", bukan "Ganti Peran").
+// Membersihkan presence, identitas lokal, sesi Firebase, dan sesi PIN, lalu
+// reload sehingga #roleChooserOverlay tampil lagi.
+window._logoutUTS = async function() {
+  if (!confirm('Keluar dari sesi ujian ini dan kembali ke halaman login?')) return;
+  try { _cleanupPresence(); } catch(e) {}
+  try { localStorage.removeItem(LOCAL_IDENTITY); } catch(e) {}
+  await signOut(_auth).catch(() => {});
+  try { sessionStorage.removeItem(_PIN_SESSION_KEY); } catch(e) {}
+  window._sessionPinHash = null;
+  location.reload();
+};
 
 // ═══ Role Chooser handlers (OBE-style upfront picker) ═══
 window.choseMahasiswa = async function() {
