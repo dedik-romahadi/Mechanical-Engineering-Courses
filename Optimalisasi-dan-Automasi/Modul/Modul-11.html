@@ -668,6 +668,82 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
   .warn-icon{color:#92400e!important}
 }
 </style>
+<!-- MODUL-POLISH:BEGIN v1 — dihasilkan oleh repo backend frontend-integration/apply-modul-polish.js -->
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODUL-POLISH v1 — polesan mikro halaman modul (CSS saja).
+
+   Halaman modul sudah punya identitas kuat (kartu hover, scroll-reveal,
+   animasi kanvas). Blok ini HANYA menambah yang belum ada:
+
+     1. bilah progres baca di tepi atas (CSS scroll-driven; otomatis tidak
+        tampil di browser tanpa dukungan animation-timeline);
+     2. keadaan fokus keyboard yang terlihat, senada aksen course;
+     3. hover pada tab navigasi yang belum aktif;
+     4. animasi masuk halus saat berpindah tab (.page.active);
+     5. warna seleksi teks senada aksen.
+
+   Aksen mengikuti variabel halaman itu sendiri (--violet / --accent) dengan
+   fallback aman, jadi blok yang sama berlaku untuk ketiga course. Semua
+   gerak dihormati lewat prefers-reduced-motion. Tidak ada perubahan markup,
+   skrip, maupun perilaku.
+
+   Disuntik oleh frontend-integration/apply-modul-polish.js (idempoten,
+   marker MODUL-POLISH). Jangan mengedit hasil suntikan langsung.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --mp-accent: var(--violet, var(--accent, #22d3ee));
+  --mp-accent-2: var(--cyan, var(--accent2, #06d6a0));
+}
+
+/* 1. Bilah progres baca — tanpa JavaScript. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      z-index: 99999;
+      pointer-events: none;
+      transform-origin: 0 50%;
+      transform: scaleX(0);
+      background: linear-gradient(90deg, var(--mp-accent), var(--mp-accent-2));
+      animation: mpProgress linear both;
+      animation-timeline: scroll(root);
+    }
+    @keyframes mpProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  }
+}
+
+/* 2. Navigasi keyboard terlihat jelas. */
+:focus-visible {
+  outline: 2px solid var(--mp-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 3. Tab yang belum aktif memberi umpan balik saat disentuh kursor. */
+.nav-tab:hover:not(.active) {
+  color: var(--text, #cdd6e8);
+  background: rgba(255, 255, 255, .05);
+  border-color: rgba(255, 255, 255, .14);
+}
+
+/* 4. Perpindahan tab terasa halus, bukan lompatan. */
+@media (prefers-reduced-motion: no-preference) {
+  .page.active { animation: mpPageIn .35s ease-out; }
+  @keyframes mpPageIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+/* 5. Seleksi teks senada aksen course. */
+::selection { background: color-mix(in srgb, var(--mp-accent) 30%, transparent); }
+</style>
+<!-- MODUL-POLISH:END v1 -->
 </head>
 <body>
 
