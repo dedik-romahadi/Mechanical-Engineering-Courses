@@ -8948,15 +8948,21 @@ body.friction-blurred #frictionToast{filter:none;}
     });
   }
 
+  // Ikon asisten — string statis (bukan data), dianimasikan lewat CSS .vp-ai-bot.
+  var BOT_ICON_HTML = '<span class="vp-ai-bot" aria-hidden="true">🤖</span>';
+
   var STYLE_ID = "vp-ai-style";
   var CSS = [
+    /* Panel yang SUDAH ADA dipertinggi dari 520px bawaan agar lebih banyak
+       pesan terbaca; selektor ID menang atas aturan kelas bawaan halaman. */
+    "#visitorPanel{max-height:min(82vh,760px)}",
     /* Pemilih mode — memakai token warna panel chat yang sudah ada. */
     ".vp-mode-tabs{display:flex;gap:6px;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.15)}",
     ".vp-mode-tab{flex:1;padding:6px 10px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#94a3b8;font-size:.74rem;font-weight:700;cursor:pointer;transition:all .18s;font-family:inherit;min-height:32px}",
     ".vp-mode-tab:hover:not(.active){background:rgba(255,255,255,.08);color:#e2e8f0}",
     ".vp-mode-tab.active{background:rgba(6,214,160,.18);border-color:rgba(6,214,160,.45);color:#06d6a0}",
     /* Daftar pesan asisten — mengikuti gaya .vp-chat-list yang sudah ada. */
-    ".vp-ai-list{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-height:200px}",
+    ".vp-ai-list{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-height:340px}",
     ".vp-ai-msg{max-width:88%;padding:8px 11px;border-radius:12px;font-size:.8rem;line-height:1.45;word-wrap:break-word;overflow-wrap:break-word}",
     ".vp-ai-msg.bot{align-self:flex-start;background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.28);border-bottom-left-radius:3px;color:#e2e8f0}",
     ".vp-ai-msg.own{align-self:flex-end;background:rgba(6,214,160,.18);border:1px solid rgba(6,214,160,.3);border-bottom-right-radius:3px;color:#e6fffb}",
@@ -8970,8 +8976,14 @@ body.friction-blurred #frictionToast{filter:none;}
     ".vp-ai-clear{background:none;border:1px solid rgba(255,255,255,.12);color:#64748b;border-radius:8px;padding:4px 10px;font-size:.68rem;cursor:pointer;font-family:inherit;min-height:26px}",
     ".vp-ai-clear:hover{color:#e2e8f0;border-color:rgba(255,255,255,.25)}",
     ".vp-ai-typing{align-self:flex-start;color:#64748b;font-size:.74rem;padding:4px 2px}",
+    /* Ikon asisten bergerak: goyang ringan terus-menerus, lebih cepat saat
+       tab aktif / sedang mengetik. Dimatikan bila pengguna minta reduksi gerak. */
+    ".vp-ai-bot{display:inline-block;animation:vpAiBob 2.8s ease-in-out infinite;transform-origin:60% 85%}",
+    "@keyframes vpAiBob{0%,55%,100%{transform:translateY(0) rotate(0deg)}10%{transform:translateY(-2px) rotate(-10deg)}20%{transform:translateY(-3px) rotate(8deg)}30%{transform:translateY(-1px) rotate(-6deg)}40%{transform:translateY(-2px) rotate(0deg)}}",
+    ".vp-mode-tab.active .vp-ai-bot,.vp-ai-typing .vp-ai-bot{animation-duration:1.4s}",
+    "@media(prefers-reduced-motion:reduce){.vp-ai-bot{animation:none}}",
     /* Responsif: di layar sempit label mode dipendekkan & chip boleh melebar. */
-    "@media(max-width:480px){.vp-mode-tabs{padding:7px 10px}.vp-mode-tab{font-size:.68rem;padding:6px 6px}.vp-ai-list{padding:10px}.vp-ai-msg{max-width:94%}.vp-ai-chip{flex:1 1 100%}}",
+    "@media(max-width:480px){.vp-mode-tabs{padding:7px 10px}.vp-mode-tab{font-size:.68rem;padding:6px 6px}.vp-ai-list{padding:10px;min-height:240px}.vp-ai-msg{max-width:94%}.vp-ai-chip{flex:1 1 100%}}",
   ].join("");
 
   function injectStyle(doc) {
@@ -9038,7 +9050,7 @@ body.friction-blurred #frictionToast{filter:none;}
         return '<div class="vp-ai-msg own">' + renderMessageHtml(m.content) + "</div>";
       }
       var cls = m.kind === "warn" ? "vp-ai-msg warn" : "vp-ai-msg bot";
-      return '<div class="' + cls + '"><div class="vp-ai-role">🤖 Asisten Modul</div>' +
+      return '<div class="' + cls + '"><div class="vp-ai-role">' + BOT_ICON_HTML + " Asisten Dosen</div>" +
         renderMessageHtml(m.content) + "</div>";
     }).join("");
 
@@ -9049,7 +9061,7 @@ body.friction-blurred #frictionToast{filter:none;}
         return '<button type="button" class="vp-ai-chip" data-q="' + escapeHtml(q) + '">' + escapeHtml(q) + "</button>";
       }).join("") + "</div>";
     }
-    if (state.busy) html += '<div class="vp-ai-typing">Asisten sedang mengetik…</div>';
+    if (state.busy) html += '<div class="vp-ai-typing">' + BOT_ICON_HTML + " Asisten dosen sedang mengetik…</div>";
     if (!canAsk()) {
       html += '<div class="vp-ai-msg warn">' + escapeHtml(LOGIN_REQUIRED_MESSAGE) + "</div>";
     }
@@ -9196,7 +9208,9 @@ body.friction-blurred #frictionToast{filter:none;}
     var tabs = state.doc.createElement("div");
     tabs.className = "vp-mode-tabs";
     tabs.appendChild(makeButton("vpModeKelas", "vp-mode-tab active", "👥 Kelas", function () { setMode("kelas"); }));
-    tabs.appendChild(makeButton("vpModeAi", "vp-mode-tab", "🤖 Asisten", function () { setMode("ai"); }));
+    var aiTab = makeButton("vpModeAi", "vp-mode-tab", "", function () { setMode("ai"); });
+    aiTab.innerHTML = BOT_ICON_HTML + " Asisten Dosen";
+    tabs.appendChild(aiTab);
     chatWrap.parentNode.insertBefore(tabs, chatWrap);
 
     var aiList = state.doc.createElement("div");
