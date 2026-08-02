@@ -5774,6 +5774,10 @@ function _applyRoleVisibility() {
   const me = (function(){ try { return JSON.parse(localStorage.getItem(LOCAL_IDENTITY) || 'null'); } catch(e){ return null; } })();
   const isDosen = !!(me && me.role === 'dosen' && me.nama && me.nama.toLowerCase() === 'dedik romahadi');
   const isStudent = !!(me && me.nim && me.role !== 'dosen');
+  // Pantau override jadwal (ujian susulan) untuk mahasiswa yang login.
+  if (typeof window._watchScheduleOverride === 'function') {
+    window._watchScheduleOverride(isStudent && me && me.nim ? me.nim : null);
+  }
 
   const navChip = document.getElementById('navIdentityChip');
   if (navChip) navChip.textContent = (me && me.nama) ? (isDosen ? '👨‍🏫 ' : '🎓 ') + me.nama.toUpperCase() : '👋 TAMU';
@@ -5932,11 +5936,47 @@ function initVisitor(){
   //     tampilkan overlay + banner warning, sembunyikan FAB)
   // Auto-login di localStorage TIDAK DIPERCAYA SENDIRI — harus selalu ada
   // schedule valid sebelum overlay bisa di-hide. Ini gate paling awal.
-  onValue(ref(db, SCHEDULE_PATH), (snap) => {
-    currentSchedule = snap.val();
+  // ── Ujian susulan: override jadwal per mahasiswa ──────────────────────────
+  // Jendela ujian bisa dibuka untuk NIM tertentu tanpa menggeser jadwal global.
+  // Override HANYA boleh menimpa end/extension (bukan start) dan ditulis
+  // admin-only lewat callable rescaleExamLatePenalty — mahasiswa tidak bisa
+  // memperpanjang sendiri (lihat database.rules.json scheduleOverrides).
+  let _schedGlobal = null;
+  let _schedOverride = null;
+  let _schedOverrideUnsub = null;
+  let _schedOverrideNim = null;
+
+  function _mergeSchedule() {
+    let s = _schedGlobal ? Object.assign({}, _schedGlobal) : null;
+    if (s && _schedOverride) {
+      if (_schedOverride.end) s.end = _schedOverride.end;
+      if (Number.isFinite(Number(_schedOverride.extension))) s.extension = Number(_schedOverride.extension);
+      s.overridden = true;
+    }
+    currentSchedule = s;
     window.currentSchedule = currentSchedule;   // CRITICAL: expose ke regular script (untuk _countdownTick)
     _handleScheduleReady();
     updateScheduleDisplay();
+  }
+
+  // Dipanggil dari _applyRoleVisibility setiap identity berubah (login/logout).
+  window._watchScheduleOverride = function(nim) {
+    const key = nim ? String(nim) : null;
+    if (key === _schedOverrideNim) return;      // tidak ada perubahan
+    _schedOverrideNim = key;
+    if (_schedOverrideUnsub) { try { _schedOverrideUnsub(); } catch (e) {} _schedOverrideUnsub = null; }
+    _schedOverride = null;
+    if (!key) { _mergeSchedule(); return; }
+    const _p = SCHEDULE_PATH.replace(/\/schedule$/, '/scheduleOverrides/mhs_' + key);
+    _schedOverrideUnsub = onValue(ref(db, _p), (osnap) => {
+      _schedOverride = osnap.exists() ? (osnap.val() || null) : null;
+      _mergeSchedule();
+    }, () => { _schedOverride = null; _mergeSchedule(); });
+  };
+
+  onValue(ref(db, SCHEDULE_PATH), (snap) => {
+    _schedGlobal = snap.val();
+    _mergeSchedule();
     onValue(ref(db, DB_PATH), (vsnap) => {
       const data = vsnap.val();
       latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);
