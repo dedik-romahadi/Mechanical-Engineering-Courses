@@ -921,13 +921,22 @@ function mappingMatchesCourse(m){
   });
 }
 function loadMapping(){
+  let m = null;
   try {
     const current = JSON.parse(localStorage.getItem(MAP_KEY));
-    if(mappingMatchesCourse(current)) return current;
-    const legacy = JSON.parse(localStorage.getItem(LEGACY_MAP_KEY));
-    if(mappingMatchesCourse(legacy)){ saveMapping(legacy); return legacy; }
+    if(mappingMatchesCourse(current)) m = current;
+    if(!m){
+      const legacy = JSON.parse(localStorage.getItem(LEGACY_MAP_KEY));
+      if(mappingMatchesCourse(legacy)){ saveMapping(legacy); m = legacy; }
+    }
   } catch(e) { console.warn('[OBE mapping] cache tidak valid:', e); }
-  return structuredClone(DEFAULT_MAPPING);
+  if(!m) m = structuredClone(DEFAULT_MAPPING);
+  // UTS/UAS SELALU dari DEFAULT_MAPPING, yang cerminan OBE_EXAM_CONFIG server.
+  // computeObeScores mengabaikan mapping UTS/UAS kiriman client, jadi daftar
+  // basi dari cache atau database hanya akan menyesatkan kalau ditampilkan.
+  m.uts = structuredClone(DEFAULT_MAPPING.uts);
+  m.uas = structuredClone(DEFAULT_MAPPING.uas);
+  return m;
 }
 function saveMapping(m){ localStorage.setItem(MAP_KEY, JSON.stringify(m)); }
 
@@ -962,26 +971,26 @@ function qLabel(q){
 
 function renderMapping(){
   const m = loadMapping();
-  const section = (title, key, items, lo, hi, hint) => {
+  const section = (title, key, items, lo, hi, hint, readonly) => {
     const rows = items.map(([sub, _b])=>{
       const cur = (m[key] && m[key][sub]) || [];
       return `<tr>
         <td class="code">${key==='tugas'?'Kolom':'Sub-CPMK'} ${sub}</td>
         <td><input class="mapinput" data-mapkey="${key}" data-sub="${sub}" data-lo="${lo}" data-hi="${hi}"
-          value="${fmtNums(cur)}" placeholder="mis. 1-5, 8"
-          style="width:100%;padding:7px 10px;background:#020a18;border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none"></td>
+          value="${fmtNums(cur)}" placeholder="mis. 1-5, 8"${readonly?' readonly title="Ditentukan server (OBE_EXAM_CONFIG) — tidak dapat diubah dari sini"':''}
+          style="width:100%;padding:7px 10px;background:#020a18;border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none${readonly?';opacity:.55;cursor:not-allowed':''}"></td>
         <td class="num val" id="mapcnt-${key}-${sub}">${cur.length}</td>
       </tr>`;
     }).join('');
     return `<table style="margin-bottom:16px">
-      <caption>${title}</caption>
+      <caption>${title}${readonly?' <span style="font-size:11px;font-weight:400;color:var(--muted)">· hanya-baca, mengikuti server</span>':''}</caption>
       <thead><tr><th style="width:140px">${key==='tugas'?'Kolom Tugas':'Sub-CPMK'}</th><th>${hint}</th><th class="num" style="width:50px">Jml</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
   };
   document.getElementById('n5').innerHTML = `
     <div class="actbar">
-      <div class="actleft"><span>Mapping menentukan nilai tiap Sub-CPMK dihitung dari mana. Mapping tersimpan di database dan konsisten lintas perangkat.</span></div>
+      <div class="actleft"><span>Mapping <b>Tugas</b> menentukan nilai tiap Sub-CPMK dihitung dari mana; tersimpan di database dan konsisten lintas perangkat. Mapping <b>UTS/UAS</b> mengikuti OBE_EXAM_CONFIG di server — ditampilkan hanya-baca, karena poin tiap soal diturunkan dari sana dan mengubahnya di sini tidak berpengaruh.</span></div>
       <div class="actright">
         <button class="btn btn-clear" onclick="resetMapping()">↩️ Default</button>
         <button class="btn btn-import" onclick="saveMappingFromUI()">💾 Simpan Mapping</button>
@@ -989,8 +998,8 @@ function renderMapping(){
       </div>
     </div>
     ${section('Mapping TUGAS → Modul', 'tugas', FORMS.TGS.cols, 1, 14, 'Nomor Modul (1-14). Contoh: <code>1</code> atau <code>11,12</code> (rata-rata)')}
-    ${section('Mapping UTS → Soal', 'uts', FORMS.UTS.cols, 1, 45, 'Nomor soal UTS (Q1-45). Q1-10=TF, Q11-30=MC, Q31-40=comp, Q41-45=hard. Contoh: <code>1-11</code>')}
-    ${section('Mapping UAS → Soal', 'uas', FORMS.UAS.cols, 1, 45, 'Nomor soal UAS (Q1-45). Contoh: <code>1-9</code>')}
+    ${section('Mapping UTS → Soal', 'uts', FORMS.UTS.cols, 1, 45, 'Ditentukan server dari OBE_EXAM_CONFIG. Q1-10=TF, Q11-30=MC, Q31-40=comp, Q41-45=hard.', true)}
+    ${section('Mapping UAS → Soal', 'uas', FORMS.UAS.cols, 1, 45, 'Ditentukan server dari OBE_EXAM_CONFIG. Q1-10=TF, Q11-30=MC, Q31-40=comp, Q41-45=hard.', true)}
     <div class="note">
       <b>Tugas</b>: nilai kolom = rata-rata nilai modul terpilih (poin modul ÷ 50 × 100).
       <b>UTS/UAS</b>: nilai Sub-CPMK = Σ poin soal diperoleh ÷ Σ poin maks grup × 100.
