@@ -1856,1039 +1856,23 @@ function fmt(x, d) { return (typeof x === 'number') ? x.toFixed(d || 2) : String
 // ═══════════════════════════════════════════════════════════════════════════
 // Setiap helper return string SVG yang dapat di-inject ke card soal.
 // Style: dark theme, accent cyan/violet/amber/green/pink agar match dengan UI.
-const _svg = {
-  // ── 1. PD Classification box: tampilkan klasifikasi (Linier/Non, Homogen/Non, Orde N) ──
-  classification: (label, type) => {
-    const colors = {
-      linier:   ['#a855f7', 'Linier'],
-      nonlinier:['#ec4899', 'Non-Linier'],
-      homogen:  ['#0ea5e9', 'Homogen'],
-      eksak:    ['#f97316', 'Eksak'],
-      separable:['#00e09e', 'Variabel Terpisah'],
-      bernoulli:['#fbbf24', 'Bernoulli'],
-      ordeSatu: ['#a855f7', 'Orde 1'],
-      ordeDua:  ['#ec4899', 'Orde 2'],
-    };
-    const c = colors[type] || ['#94a3b8', type];
-    return `<svg viewBox="0 0 280 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:260px;height:auto;display:block;margin:0 auto">
-      <rect x="10" y="20" width="260" height="60" rx="8" fill="rgba(${c[0]==='#a855f7'?'168,85,247':c[0]==='#ec4899'?'236,72,153':c[0]==='#0ea5e9'?'14,165,233':c[0]==='#f97316'?'249,115,22':'0,224,158'},0.08)" stroke="${c[0]}" stroke-width="2"/>
-      <text x="140" y="48" fill="${c[0]}" font-size="13" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700">${label}</text>
-      <text x="140" y="68" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="'Source Sans 3',sans-serif">${c[1]}</text>
-    </svg>`;
-  },
+// Helper SVG diagram pindah ke server bersama bank soal.
 
-  // ── 2. Slope Field — visualize dy/dx = f(x,y) sebagai short arrow grid ──
-  slopeField: (slopeFn, opts) => {
-    opts = opts || {};
-    const W = 320, H = 220;
-    const xMin = opts.xMin ?? -3, xMax = opts.xMax ?? 3;
-    const yMin = opts.yMin ?? -3, yMax = opts.yMax ?? 3;
-    const cols = 12, rows = 8;
-    const dx = (xMax - xMin) / cols, dy = (yMax - yMin) / rows;
-    const sx = (W - 40) / (xMax - xMin), sy = (H - 40) / (yMax - yMin);
-    let arrows = '';
-    const len = 12;
-    for (let i = 0; i <= cols; i++) {
-      for (let j = 0; j <= rows; j++) {
-        const x = xMin + i*dx, y = yMin + j*dy;
-        let m;
-        try { m = slopeFn(x, y); } catch(e) { continue; }
-        if (!isFinite(m)) continue;
-        m = Math.max(-50, Math.min(50, m));
-        const px = 20 + (x - xMin) * sx;
-        const py = H - 20 - (y - yMin) * sy;
-        const ang = Math.atan(m);
-        const dxp = (len/2) * Math.cos(ang), dyp = (len/2) * Math.sin(ang);
-        arrows += `<line x1="${(px-dxp).toFixed(1)}" y1="${(py+dyp).toFixed(1)}" x2="${(px+dxp).toFixed(1)}" y2="${(py-dyp).toFixed(1)}" stroke="#0ea5e9" stroke-width="1.4" opacity="0.85"/>`;
-      }
-    }
-    // Optional: integral curve overlay
-    let curve = '';
-    if (opts.integralCurve) {
-      const pts = [];
-      let x = opts.integralCurve.x0 ?? 0, y = opts.integralCurve.y0 ?? 1;
-      const h = 0.02, steps = Math.floor((xMax - x) / h);
-      pts.push(`${(20+(x-xMin)*sx).toFixed(1)},${(H-20-(y-yMin)*sy).toFixed(1)}`);
-      for (let s = 0; s < steps; s++) {
-        const k1 = slopeFn(x, y);
-        const k2 = slopeFn(x+h/2, y+h/2*k1);
-        const k3 = slopeFn(x+h/2, y+h/2*k2);
-        const k4 = slopeFn(x+h, y+h*k3);
-        y = y + h/6*(k1+2*k2+2*k3+k4); x += h;
-        if (y < yMin*1.5 || y > yMax*1.5) break;
-        pts.push(`${(20+(x-xMin)*sx).toFixed(1)},${(H-20-(y-yMin)*sy).toFixed(1)}`);
-      }
-      curve = `<polyline points="${pts.join(' ')}" fill="none" stroke="#fbbf24" stroke-width="2.2"/>`;
-    }
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto">
-      <rect x="0" y="0" width="${W}" height="${H}" fill="none"/>
-      <line x1="20" y1="${H-20-sy*-yMin}" x2="${W-20}" y2="${H-20-sy*-yMin}" stroke="#475569" stroke-width="1" opacity="0.5"/>
-      <line x1="${20+sx*-xMin}" y1="20" x2="${20+sx*-xMin}" y2="${H-20}" stroke="#475569" stroke-width="1" opacity="0.5"/>
-      <text x="${W-15}" y="${H-20-sy*-yMin-4}" fill="#94a3b8" font-size="10" font-family="monospace">x</text>
-      <text x="${20+sx*-xMin+4}" y="15" fill="#94a3b8" font-size="10" font-family="monospace">y</text>
-      ${arrows}
-      ${curve}
-    </svg>`;
-  },
-
-  // ── 3. Exp Decay / Newton Cooling / RC Discharge ──
-  expDecay: (k, opts) => {
-    opts = opts || {};
-    const W = 320, H = 180, x0 = 30, y0 = 20, x1 = W-20, y1 = H-30;
-    const A = opts.A ?? 100, T = opts.T ?? 5;
-    const pts = [];
-    for (let i = 0; i <= 100; i++) {
-      const t = (i/100) * T;
-      const v = A * Math.exp(-k*t);
-      const px = x0 + (i/100) * (x1 - x0);
-      const py = y1 - (v / A) * (y1 - y0);
-      pts.push(`${px.toFixed(1)},${py.toFixed(1)}`);
-    }
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto">
-      <line x1="${x0}" y1="${y1}" x2="${x1}" y2="${y1}" stroke="#475569" stroke-width="1.2"/>
-      <line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y1}" stroke="#475569" stroke-width="1.2"/>
-      <text x="${x1+3}" y="${y1+4}" fill="#94a3b8" font-size="10" font-family="monospace">t</text>
-      <text x="${x0-15}" y="${y0+8}" fill="#94a3b8" font-size="10" font-family="monospace">y</text>
-      <polyline points="${pts.join(' ')}" fill="none" stroke="#f97316" stroke-width="2.2"/>
-      <text x="${(x0+x1)/2}" y="${y0+15}" fill="#f97316" font-size="11" text-anchor="middle" font-family="'JetBrains Mono',monospace">y = A·e^(-${k.toFixed(2)}t)</text>
-    </svg>`;
-  },
-
-  // ── 4. Logistic Growth (saturasi populasi) ──
-  logistic: (K, opts) => {
-    opts = opts || {};
-    const W = 320, H = 180, x0 = 30, y0 = 20, x1 = W-20, y1 = H-30;
-    const r = opts.r ?? 0.5, P0 = opts.P0 ?? 10, T = opts.T ?? 20;
-    const pts = [];
-    for (let i = 0; i <= 100; i++) {
-      const t = (i/100) * T;
-      const P = K / (1 + ((K - P0)/P0) * Math.exp(-r*t));
-      const px = x0 + (i/100) * (x1 - x0);
-      const py = y1 - (P / K) * (y1 - y0);
-      pts.push(`${px.toFixed(1)},${py.toFixed(1)}`);
-    }
-    // Asymptote line at K
-    const asymY = y0 + 5;
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto">
-      <line x1="${x0}" y1="${y1}" x2="${x1}" y2="${y1}" stroke="#475569" stroke-width="1.2"/>
-      <line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y1}" stroke="#475569" stroke-width="1.2"/>
-      <line x1="${x0}" y1="${asymY}" x2="${x1}" y2="${asymY}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
-      <text x="${x1-5}" y="${asymY-3}" fill="#94a3b8" font-size="9" text-anchor="end" font-family="monospace">K = ${K}</text>
-      <polyline points="${pts.join(' ')}" fill="none" stroke="#00e09e" stroke-width="2.2"/>
-      <text x="${(x0+x1)/2}" y="${y1-8}" fill="#00e09e" font-size="11" text-anchor="middle" font-family="'JetBrains Mono',monospace">P(t) — Logistic</text>
-    </svg>`;
-  },
-
-  // ── 5. Three Cases of Characteristic Roots (PD Linier Orde 2) ──
-  characteristicRoots: (caseType) => {
-    // caseType: 'realDistinct', 'realRepeated', 'complexConjugate'
-    const W = 320, H = 180, x0 = 30, y0 = 20, x1 = W-20, y1 = H-30;
-    let curveStr = '', label = '', color = '#a855f7';
-    if (caseType === 'realDistinct') {
-      // y = e^x + e^(-2x) — sum of decaying exponentials
-      const pts = [];
-      for (let i = 0; i <= 100; i++) {
-        const x = (i/100) * 4 - 2;
-        const y = Math.exp(0.5*x) + Math.exp(-x);
-        const px = x0 + (i/100) * (x1 - x0);
-        const py = y1 - Math.min(y/8, 0.95) * (y1 - y0);
-        pts.push(`${px.toFixed(1)},${py.toFixed(1)}`);
-      }
-      curveStr = `<polyline points="${pts.join(' ')}" fill="none" stroke="#a855f7" stroke-width="2.2"/>`;
-      label = 'Akar Real Berbeda — overdamped';
-      color = '#a855f7';
-    } else if (caseType === 'realRepeated') {
-      // y = (1 + x) e^(-x) — critically damped
-      const pts = [];
-      for (let i = 0; i <= 100; i++) {
-        const x = (i/100) * 6;
-        const y = (1 + x) * Math.exp(-0.5*x);
-        const px = x0 + (i/100) * (x1 - x0);
-        const py = y1 - Math.min(y/2.5, 0.95) * (y1 - y0);
-        pts.push(`${px.toFixed(1)},${py.toFixed(1)}`);
-      }
-      curveStr = `<polyline points="${pts.join(' ')}" fill="none" stroke="#fbbf24" stroke-width="2.2"/>`;
-      label = 'Akar Real Berulang — critically damped';
-      color = '#fbbf24';
-    } else if (caseType === 'complexConjugate') {
-      // y = e^(-0.3x) cos(2x) — underdamped oscillation
-      const pts = [];
-      for (let i = 0; i <= 100; i++) {
-        const x = (i/100) * 8;
-        const y = Math.exp(-0.3*x) * Math.cos(2*x);
-        const px = x0 + (i/100) * (x1 - x0);
-        const py = (y0+y1)/2 - y * 0.4 * (y1 - y0);
-        pts.push(`${px.toFixed(1)},${py.toFixed(1)}`);
-      }
-      curveStr = `<polyline points="${pts.join(' ')}" fill="none" stroke="#0ea5e9" stroke-width="2.2"/>`;
-      label = 'Akar Kompleks — underdamped (osilasi teredam)';
-      color = '#0ea5e9';
-    }
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto">
-      <line x1="${x0}" y1="${y1}" x2="${x1}" y2="${y1}" stroke="#475569" stroke-width="1.2"/>
-      <line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y1}" stroke="#475569" stroke-width="1.2"/>
-      <line x1="${x0}" y1="${(y0+y1)/2}" x2="${x1}" y2="${(y0+y1)/2}" stroke="#94a3b8" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.4"/>
-      ${curveStr}
-      <text x="${(x0+x1)/2}" y="${y0+12}" fill="${color}" font-size="10" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-weight="600">${label}</text>
-    </svg>`;
-  },
-
-  // ── 6. Newton Cooling Schematic — bola panas dalam medium ──
-  newtonCooling: (T0, Tm) => {
-    return `<svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:260px;height:auto;display:block;margin:0 auto">
-      <rect x="10" y="50" width="260" height="100" fill="rgba(14,165,233,0.06)" stroke="#0ea5e9" stroke-width="1.5" rx="6"/>
-      <text x="20" y="68" fill="#0ea5e9" font-size="11" font-family="'JetBrains Mono',monospace" font-weight="600">Medium: T_m = ${Tm}°C</text>
-      <circle cx="140" cy="110" r="32" fill="rgba(249,115,22,0.25)" stroke="#f97316" stroke-width="2.5"/>
-      <text x="140" y="116" fill="#f97316" font-size="13" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700">${T0}°C</text>
-      <path d="M118,80 q-8,-12 -3,-22" stroke="#fbbf24" stroke-width="1.5" fill="none" opacity="0.7"/>
-      <path d="M140,75 q0,-15 5,-22" stroke="#fbbf24" stroke-width="1.5" fill="none" opacity="0.7"/>
-      <path d="M162,80 q8,-12 3,-22" stroke="#fbbf24" stroke-width="1.5" fill="none" opacity="0.7"/>
-      <text x="140" y="40" fill="#fbbf24" font-size="11" text-anchor="middle" font-family="'Source Sans 3',sans-serif">heat dT/dt = -k(T - T_m)</text>
-    </svg>`;
-  },
-
-  // ── 7. Spring-Mass-Damper Schematic (untuk PD orde 2 aplikasi) ──
-  springMassDamper: (k, m, c) => {
-    return `<svg viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:280px;height:auto;display:block;margin:0 auto">
-      <defs><pattern id="hatchSMDmath" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0,6 l6,-6" stroke="#94a3b8" stroke-width="1"/></pattern></defs>
-      <rect x="20" y="10" width="280" height="10" fill="url(#hatchSMDmath)"/>
-      <line x1="20" y1="20" x2="300" y2="20" stroke="#94a3b8" stroke-width="2"/>
-      <path d="M110,20 L110,40 L95,48 L125,58 L95,68 L125,78 L95,88 L125,98 L95,108 L110,116 L110,130" stroke="#a855f7" stroke-width="2.2" fill="none"/>
-      <text x="60" y="80" fill="#a855f7" font-size="12" font-family="'JetBrains Mono',monospace" font-weight="600">k=${k}</text>
-      <line x1="210" y1="20" x2="210" y2="55" stroke="#0ea5e9" stroke-width="2.2"/>
-      <line x1="210" y1="55" x2="210" y2="100" stroke="#0ea5e9" stroke-width="2.2"/>
-      <line x1="195" y1="60" x2="225" y2="60" stroke="#0ea5e9" stroke-width="2.2"/>
-      <rect x="195" y="60" width="30" height="35" stroke="#0ea5e9" stroke-width="2.2" fill="rgba(14,165,233,0.08)"/>
-      <line x1="210" y1="95" x2="210" y2="130" stroke="#0ea5e9" stroke-width="2.2"/>
-      <text x="232" y="80" fill="#0ea5e9" font-size="12" font-family="'JetBrains Mono',monospace" font-weight="600">c=${c}</text>
-      <rect x="80" y="130" width="160" height="55" fill="#1a2332" stroke="#f97316" stroke-width="2.2" rx="3"/>
-      <text x="160" y="160" fill="#f97316" font-size="14" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="600">m = ${m} kg</text>
-      <line x1="270" y1="155" x2="270" y2="200" stroke="#00e09e" stroke-width="2"/>
-      <polygon points="265,195 275,195 270,205" fill="#00e09e"/>
-      <text x="278" y="190" fill="#00e09e" font-size="12" font-family="'JetBrains Mono',monospace">x(t)</text>
-    </svg>`;
-  },
-
-  // ── 8. Eksak check — show ∂M/∂y vs ∂N/∂x ──
-  exactCheck: (My, Nx, isExact) => {
-    const color = isExact ? '#00e09e' : '#ec4899';
-    return `<svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto">
-      <rect x="15" y="20" width="135" height="60" rx="6" fill="rgba(168,85,247,0.07)" stroke="#a855f7" stroke-width="1.5"/>
-      <text x="82" y="42" fill="#a855f7" font-size="11" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-weight="600">∂M/∂y</text>
-      <text x="82" y="65" fill="#a855f7" font-size="14" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700">${My}</text>
-      <rect x="170" y="20" width="135" height="60" rx="6" fill="rgba(14,165,233,0.07)" stroke="#0ea5e9" stroke-width="1.5"/>
-      <text x="237" y="42" fill="#0ea5e9" font-size="11" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-weight="600">∂N/∂x</text>
-      <text x="237" y="65" fill="#0ea5e9" font-size="14" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700">${Nx}</text>
-      <text x="160" y="105" fill="${color}" font-size="13" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700">${isExact ? '=  EKSAK ✓' : '≠  BUKAN EKSAK ✗'}</text>
-    </svg>`;
-  },
-
-  // ── 9. Homogen Function Test — show f(αx, αy) = α^n f(x,y) ──
-  homogenTest: (fnLabel, degree, alphaLbl) => {
-    return `<svg viewBox="0 0 320 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto">
-      <text x="160" y="35" fill="#a855f7" font-size="12" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700">f(${alphaLbl}x, ${alphaLbl}y) =</text>
-      <text x="160" y="65" fill="#fbbf24" font-size="14" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700">${alphaLbl}<tspan baseline-shift="super" font-size="11">${degree}</tspan> · f(x, y)</text>
-      <rect x="40" y="85" width="240" height="35" rx="6" fill="rgba(0,224,158,0.08)" stroke="#00e09e" stroke-width="1.5"/>
-      <text x="160" y="108" fill="#00e09e" font-size="13" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700">${fnLabel} → derajat ${degree}</text>
-    </svg>`;
-  },
-
-  // ── 10. RC Circuit (analogi PD orde 1 linier) ──
-  rcCircuit: (R, C, V) => {
-    return `<svg viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:260px;height:auto;display:block;margin:0 auto">
-      <line x1="20" y1="40" x2="20" y2="140" stroke="#94a3b8" stroke-width="2"/>
-      <line x1="14" y1="60" x2="26" y2="60" stroke="#94a3b8" stroke-width="2"/>
-      <line x1="10" y1="80" x2="30" y2="80" stroke="#94a3b8" stroke-width="3"/>
-      <line x1="14" y1="100" x2="26" y2="100" stroke="#94a3b8" stroke-width="2"/>
-      <line x1="10" y1="120" x2="30" y2="120" stroke="#94a3b8" stroke-width="3"/>
-      <text x="40" y="95" fill="#94a3b8" font-size="11" font-family="'JetBrains Mono',monospace">V=${V}V</text>
-      <line x1="20" y1="40" x2="120" y2="40" stroke="#94a3b8" stroke-width="2"/>
-      <line x1="120" y1="40" x2="120" y2="55" stroke="#94a3b8" stroke-width="2"/>
-      <rect x="105" y="55" width="30" height="40" fill="none" stroke="#a855f7" stroke-width="2"/>
-      <text x="120" y="80" fill="#a855f7" font-size="11" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700">R=${R}</text>
-      <line x1="120" y1="95" x2="120" y2="140" stroke="#94a3b8" stroke-width="2"/>
-      <line x1="120" y1="140" x2="20" y2="140" stroke="#94a3b8" stroke-width="2"/>
-      <line x1="220" y1="40" x2="220" y2="80" stroke="#94a3b8" stroke-width="2"/>
-      <line x1="120" y1="40" x2="220" y2="40" stroke="#94a3b8" stroke-width="2"/>
-      <line x1="200" y1="80" x2="240" y2="80" stroke="#0ea5e9" stroke-width="3"/>
-      <line x1="200" y1="92" x2="240" y2="92" stroke="#0ea5e9" stroke-width="3"/>
-      <text x="248" y="89" fill="#0ea5e9" font-size="11" font-family="'JetBrains Mono',monospace" font-weight="700">C=${C}</text>
-      <line x1="220" y1="92" x2="220" y2="140" stroke="#94a3b8" stroke-width="2"/>
-      <line x1="220" y1="140" x2="120" y2="140" stroke="#94a3b8" stroke-width="2"/>
-      <text x="140" y="170" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="'Source Sans 3',sans-serif">RC dV/dt + V = V_in</text>
-    </svg>`;
-  }
-};
-window._svg = _svg;
 
 // Wrapper untuk inject diagram dalam card soal (dengan label)
-function _diagram(label, svgStr) {
-  return `<div class="diagram-wrap" style="background:rgba(168,85,247,.04);border:1px solid rgba(168,85,247,.18);border-radius:10px;padding:14px 16px;margin:14px 0">
-    <div style="font-size:11px;color:#a855f7;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">📊 ${label}</div>
-    ${svgStr}
-  </div>`;
-}
-window._diagram = _diagram;
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // BAGIAN A — TRUE / FALSE (10 soal × 1 poin = 10 poin)
 // ═══════════════════════════════════════════════════════════════════════════
-const UTS_TF = [
-  {
-    id: 'tf1', modul: 1, parametric: false,
-    text: "Persamaan diferensial <code>y'' + 3y' + 2y = sin(x)</code> adalah PD <b>linier orde 2</b> dengan koefisien konstan.",
-  },
-  {
-    id: 'tf2', modul: 1, parametric: false,
-    text: "PD <code>(y')² + y = x</code> termasuk <b>linier orde 1</b> karena hanya memuat <code>y'</code> dan <code>y</code>.",
-  },
-  {
-    id: 'tf3', modul: 2, parametric: false,
-    text: "PD <code>dy/dx = xy</code> termasuk <b>variabel terpisah</b>, dengan solusi umum <code>y = C·e<sup>x²/2</sup></code>.",
-    diagram: _diagram('Slope Field y\' = xy', _svg.slopeField((x, y) => x * y, {xMin: -2.5, xMax: 2.5, yMin: -2, yMax: 2, integralCurve: {x0: 0, y0: 1}}))
-  },
-  {
-    id: 'tf4', modul: 2, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: T0 = N+50 °C, Tm = 20°C (tetap), k = 0.05/min (tetap)
-      const T0 = N + 50;             // langsung dari NIM (range 50-149)
-      const Tm = 20;                 // tetap
-      const k = 0.05;                // tetap
-      const t = 15;                  // tetap, evaluasi pada t=15 menit
-      const T = Tm + (T0 - Tm) * Math.exp(-k * t);
-      return {
-        text: `Newton Cooling: bola tembaga dengan suhu awal <b>T₀ = N + 50 = ${N} + 50 = ${T0}°C</b> didinginkan dalam medium <b>T_m = 20°C</b> (tetap). Konstanta pendinginan <b>k = 0.05/menit</b> (tetap).<br>
-               Apakah suhu pada <em>t = 15 menit</em> kurang dari <em>55°C</em>?`,
-        diagram: _diagram('Newton Cooling — bola dalam medium', _svg.newtonCooling(T0, Tm))
-      };
-    }
-  },
-  {
-    id: 'tf5', modul: 3, parametric: false,
-    text: "Fungsi <code>f(x,y) = x³ - 2xy² + y³</code> adalah <b>fungsi homogen berderajat 3</b>, sehingga PD <code>f(x,y)dx + g(x,y)dy = 0</code> dengan g juga derajat 3 dapat diselesaikan via substitusi <code>y = ux</code>.",
-    diagram: _diagram('Fungsi Homogen Derajat 3', _svg.homogenTest('x³-2xy²+y³', 3, 'α'))
-  },
-  {
-    id: 'tf6', modul: 3, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: PD eksak (a·xy + 1)dx + (x² + b)dy = 0
-      // a = N+1 (NIM), b = 5 (tetap)
-      // M_y = a·x, N_x = 2x → eksak HANYA jika a = 2
-      // Sehingga: untuk N = 1, a=2 → eksak. Untuk N lain, tidak eksak.
-      // Variasi: a = (N % 2 == 0) ? 2 : 1  → setengah eksak, setengah tidak (split balanced)
-      const a = (N % 2 === 0) ? 2 : (N % 3 === 0 ? 4 : 3);
-      const b = 5;                   // tetap
-      const M_y = a; // ∂(a*x*y + 1)/∂y = a*x → M_y koefisien x = a
-      const N_x = 2; // ∂(x² + b)/∂x = 2x → N_x koefisien x = 2
-      const isExact = (a === 2);
-      return {
-        text: `PD <code>(${a}xy + 1) dx + (x² + ${b}) dy = 0</code>. Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • Koefisien <b>a = ${a}</b> (dari NIM via formula <code>a = (N%2==0)?2:((N%3==0)?4:3)</code>)<br>
-               • Konstanta <b>b = ${b}</b> (tetap)<br>
-               Apakah PD ini <b>eksak</b> (memenuhi <code>∂M/∂y = ∂N/∂x</code>)?`,
-        diagram: _diagram(`Cek Eksak: ∂M/∂y vs ∂N/∂x`, _svg.exactCheck(`${a}x`, '2x', isExact))
-      };
-    }
-  },
-  {
-    id: 'tf7', modul: 4, parametric: false,
-    text: "PD Bernoulli <code>y' + P(x)y = Q(x)y<sup>n</sup></code> dengan <code>n ≠ 0, 1</code> dapat dilinierkan dengan substitusi <code>z = y<sup>1−n</sup></code>.",
-  },
-  {
-    id: 'tf8', modul: 4, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: PD linier orde 1: y' + P*y = Q
-      // P = (N+1)/10 (NIM, range 0.1-10)
-      // Q = 5 (tetap)
-      // Faktor integrasi μ(x) = e^(P·x); pada x = 1: μ = e^P
-      // Solusi steady-state: y_ss = Q/P
-      // Pertanyaan: apakah y_ss > 10?
-      const P = (N + 1) / 10;
-      const Q = 5;
-      const y_ss = Q / P;
-      return {
-        text: `PD linier orde 1: <code>y' + P·y = Q</code> dengan koefisien:<br>
-               • <b>P = (N+1)/10 = (${N}+1)/10 = ${P.toFixed(2)}</b><br>
-               • <b>Q = 5</b> (tetap)<br>
-               Solusi steady-state (saat <code>y' → 0</code>) adalah <code>y_ss = Q/P</code>.<br>
-               Apakah <code>y_ss > 10</code>?`,
-        diagram: _diagram('Slope Field PD Linier Orde 1', _svg.slopeField((x, y) => Q - P*y, {xMin: 0, xMax: 5, yMin: 0, yMax: y_ss * 2.5, integralCurve: {x0: 0, y0: 0}}))
-      };
-    }
-  },
-  {
-    id: 'tf9', modul: 5, parametric: false,
-    text: "PD <code>y'' + 4y' + 4y = 0</code> memiliki persamaan karakteristik <code>r² + 4r + 4 = 0</code> dengan akar real berulang <code>r = -2</code>, sehingga solusi umum: <code>y = (C₁ + C₂·x)·e<sup>-2x</sup></code>.",
-    diagram: _diagram('Akar Real Berulang — critically damped', _svg.characteristicRoots('realRepeated'))
-  },
-  {
-    id: 'tf10', modul: 5, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: PD y'' + b·y' + c·y = 0
-      // b = (N+1)/5 (NIM), c = 10 (tetap)
-      // Diskriminan = b² - 4c
-      // c = 10 fixed, b varies. b_crit = 2√c = 2√10 ≈ 6.32
-      // Crossover: b = 6.32 ≈ N+1 = 31.6 → N ≈ 30.6
-      // Range b: N=0 → 0.2 (under), N=99 → 20 (over). Crossover di N≈30
-      // Underdamped if b < 6.32 → N < 30.6 (about 31 cases)
-      // Overdamped if b > 6.32 → N > 30.6 (about 69 cases)
-      const b = (N + 1) / 5;
-      const c = 10;
-      const disc = b*b - 4*c;
-      const isUnderdamped = disc < 0;
-      let caseLabel;
-      if (disc > 0.001) caseLabel = 'realDistinct';
-      else if (disc < -0.001) caseLabel = 'complexConjugate';
-      else caseLabel = 'realRepeated';
-      return {
-        text: `PD orde 2: <code>y'' + b·y' + c·y = 0</code> dengan:<br>
-               • <b>b = (N+1)/5 = (${N}+1)/5 = ${b.toFixed(2)}</b><br>
-               • <b>c = 10</b> (tetap)<br>
-               Persamaan karakteristik: <code>r² + ${b.toFixed(2)}r + 10 = 0</code>.<br>
-               Apakah sistem <em>underdamped</em> (akar kompleks konjugat, diskriminan < 0)?`,
-        diagram: _diagram(`Tipe Solusi: ${caseLabel === 'realDistinct' ? 'Real Berbeda (overdamped)' : caseLabel === 'complexConjugate' ? 'Kompleks (underdamped)' : 'Real Berulang (critically damped)'}`, _svg.characteristicRoots(caseLabel))
-      };
-    }
-  }
-];
-
 // ═══════════════════════════════════════════════════════════════════════════
-// BAGIAN B — PILIHAN GANDA (20 soal × 1 poin = 20 poin)
-// ═══════════════════════════════════════════════════════════════════════════
-const UTS_MC = [
-  {
-    id: 'mc1', modul: 1, parametric: false,
-    text: "Berapakah <b>orde</b> dari PD <code>(d³y/dx³) - 4(dy/dx)² + y = 0</code>?",
-    options: ["1", "2", "3", "4"],
-  },
-  {
-    id: 'mc2', modul: 1, parametric: false,
-    text: "Manakah PD berikut yang termasuk <b>persamaan diferensial parsial (PDE)</b>?",
-    options: [
-      "<code>dy/dx = 3y + sin(x)</code>",
-      "<code>y'' + 2y' + y = 0</code>",
-      "<code>∂²u/∂x² = ∂u/∂t</code>",
-      "<code>(y')² + y² = 1</code>"
-    ],
-  },
-  {
-    id: 'mc3', modul: 1, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: y = e^(a·x) dengan a = (N+1)/10
-      // PD: y' - a·y = 0 → cek apakah y' = a·y memenuhi PD
-      const a = (N + 1) / 10;
-      const correct = a;             // jawaban: dy/dx = a·y, jadi a-nya yang muncul
-      const opts = [
-        { v: correct, lbl: correct.toFixed(2) },
-        { v: correct * correct, lbl: (correct * correct).toFixed(2) },     // mistake: square
-        { v: 1/correct, lbl: (1/correct).toFixed(2) },                     // mistake: invert
-        { v: -correct, lbl: (-correct).toFixed(2) }                        // mistake: sign
-      ];
-      const shuffled = shuffleSeed(opts, N + 100);
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • Diberikan fungsi <b>y = e<sup>a·x</sup></b> dengan <b>a = (N+1)/10 = ${a.toFixed(2)}</b><br>
-               Berapakah nilai <code>dy/dx</code> dibagi <code>y</code> (yaitu <code>(dy/dx)/y</code>)?`,
-        options: shuffled.map(o => o.lbl),
-      };
-    }
-  },
-  {
-    id: 'mc4', modul: 1, parametric: false,
-    text: "Solusi <b>khusus</b> (particular solution) berbeda dari solusi umum karena:",
-    options: [
-      "Solusi khusus tidak mengandung konstanta sembarang (C)",
-      "Solusi khusus berlaku hanya untuk PD non-linier",
-      "Solusi khusus selalu berbentuk eksplisit y = f(x)",
-      "Solusi khusus tidak memerlukan syarat awal (IC)"
-    ],
-  },
-  {
-    id: 'mc5', modul: 2, parametric: false,
-    text: "Manakah dari PD berikut yang <b>BUKAN</b> termasuk variabel terpisah?",
-    options: [
-      "<code>dy/dx = x²·y</code>",
-      "<code>(1+y²) dx + y(1+x²) dy = 0</code>",
-      "<code>dy/dx = (x + y)/(x - y)</code>",
-      "<code>dy/dx = sin(x)·cos(y)</code>"
-    ],
-  },
-  {
-    id: 'mc6', modul: 2, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: PD dy/dx = k·y dengan k = (N+1)/100, IC y(0) = 5
-      // Solusi: y = 5·e^(k·t)
-      // Pertanyaan: nilai y(10)
-      const k = (N + 1) / 100;
-      const y10 = 5 * Math.exp(10 * k);
-      const correct = y10;
-      const opts = [
-        { v: correct, lbl: correct.toFixed(3) },
-        { v: 5 + 10*k, lbl: (5+10*k).toFixed(3) },        // mistake: linear
-        { v: 5 * Math.exp(k), lbl: (5*Math.exp(k)).toFixed(3) },  // mistake: t=1
-        { v: 5 / Math.exp(10*k), lbl: (5/Math.exp(10*k)).toFixed(3) }  // mistake: sign
-      ];
-      const shuffled = shuffleSeed(opts, N + 200);
-      return {
-        text: `PD pertumbuhan eksponensial: <code>dy/dt = k·y</code> dengan IC <code>y(0) = 5</code>.<br>
-               • <b>k = (N+1)/100 = (${N}+1)/100 = ${k.toFixed(3)}</b><br>
-               Berapakah nilai <code>y(10)</code>?`,
-        options: shuffled.map(o => o.lbl),
-        diagram: _diagram('Pertumbuhan Eksponensial', _svg.expDecay(-k, {A: 5, T: 10}))
-      };
-    }
-  },
-  {
-    id: 'mc7', modul: 2, parametric: false,
-    text: "Pemodelan peluruhan radioaktif <code>dN/dt = -λN</code> dengan IC <code>N(0) = N₀</code>. Half-life (waktu paruh) <code>t_½</code> adalah:",
-    options: [
-      "<code>t_½ = 1/λ</code>",
-      "<code>t_½ = ln(2)/λ</code>",
-      "<code>t_½ = 2/λ</code>",
-      "<code>t_½ = λ·ln(2)</code>"
-    ],
-  },
-  {
-    id: 'mc8', modul: 2, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: PD logistic dN/dt = r·N(1 - N/K)
-      // r = 0.5 (tetap), K = (N+1)·100, N0 = 10 (tetap)
-      // Steady state = K, jadi pertanyaan: berapa K?
-      const r = 0.5;
-      const K = (N + 1) * 100;
-      const N0 = 10;
-      const correct = K;
-      const opts = [
-        { v: correct, lbl: correct.toString() },
-        { v: K/2, lbl: (K/2).toString() },       // mistake: half
-        { v: K*r, lbl: (K*r).toString() },       // mistake: K*r
-        { v: N0*K, lbl: (N0*K).toString() }      // mistake: N0*K
-      ];
-      const shuffled = shuffleSeed(opts, N + 300);
-      return {
-        text: `Model populasi logistik: <code>dN/dt = r·N·(1 - N/K)</code> dengan:<br>
-               • <b>r = 0.5</b> (tetap)<br>
-               • <b>K = (N+1)·100 = (${N}+1)·100 = ${K}</b> (kapasitas)<br>
-               • <b>N(0) = 10</b> (tetap)<br>
-               Berapakah nilai <em>steady-state</em> (saat <code>dN/dt → 0</code>)?`,
-        options: shuffled.map(o => o.lbl),
-        diagram: _diagram('Logistic Growth — saturasi di K', _svg.logistic(K, {r: r, P0: N0, T: 25}))
-      };
-    }
-  },
-  {
-    id: 'mc9', modul: 3, parametric: false,
-    text: "Substitusi yang digunakan untuk menyelesaikan PD homogen <code>dy/dx = (x²+y²)/(2xy)</code> adalah:",
-    options: [
-      "<code>z = y - x</code>",
-      "<code>y = ux</code>, sehingga <code>dy/dx = u + x·du/dx</code>",
-      "<code>z = y²</code>",
-      "<code>v = y/x²</code>"
-    ],
-  },
-  {
-    id: 'mc10', modul: 3, parametric: false,
-    text: "Untuk PD eksak <code>(2xy + 3x²) dx + (x² + 2y) dy = 0</code>, solusi umumnya adalah:",
-    options: [
-      "<code>x²y + x³ + y² = C</code>",
-      "<code>xy² + x²y + y² = C</code>",
-      "<code>x²y² + 3x³ + y² = C</code>",
-      "<code>2xy + x³ - 2y = C</code>"
-    ],
-  },
-  {
-    id: 'mc11', modul: 3, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: f(x,y) = x^a + y^a homogen derajat a
-      // a = (N % 4) + 2 → values 2,3,4,5 (each ~25 cases)
-      const a = (N % 4) + 2;
-      const correct = a;
-      const opts = [
-        { v: correct, lbl: correct.toString() },
-        { v: correct - 1, lbl: (correct - 1).toString() },
-        { v: correct + 1, lbl: (correct + 1).toString() },
-        { v: 2*correct, lbl: (2*correct).toString() }
-      ];
-      const shuffled = shuffleSeed(opts, N + 400);
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>a = (N mod 4) + 2 = ${N%4} + 2 = ${a}</b><br>
-               Berapakah <b>derajat homogenitas</b> dari fungsi <code>f(x,y) = x<sup>${a}</sup> + y<sup>${a}</sup></code>?`,
-        options: shuffled.map(o => o.lbl),
-        diagram: _diagram('Fungsi Homogen Derajat ' + a, _svg.homogenTest(`x^${a}+y^${a}`, a, 'α'))
-      };
-    }
-  },
-  {
-    id: 'mc12', modul: 3, parametric: false,
-    text: "Manakah pernyataan berikut yang <b>BENAR</b> tentang PD eksak?",
-    options: [
-      "Setiap PD homogen pasti eksak",
-      "PD <code>M dx + N dy = 0</code> eksak jika dan hanya jika <code>∂M/∂x = ∂N/∂y</code>",
-      "PD eksak selalu memiliki solusi implisit berbentuk <code>F(x,y) = C</code>",
-      "PD eksak hanya dapat diselesaikan secara numerik"
-    ],
-  },
-  {
-    id: 'mc13', modul: 4, parametric: false,
-    text: "Faktor integrasi untuk PD linier orde 1 <code>dy/dx + P(x)·y = Q(x)</code> adalah:",
-    options: [
-      "<code>μ(x) = e<sup>∫P(x) dx</sup></code>",
-      "<code>μ(x) = e<sup>∫Q(x) dx</sup></code>",
-      "<code>μ(x) = ∫P(x) dx</code>",
-      "<code>μ(x) = e<sup>-∫P(x) dx</sup></code>"
-    ],
-  },
-  {
-    id: 'mc14', modul: 4, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: PD linier y' + 2y = b dengan IC y(0)=0
-      // b = N+1
-      // Solusi: y = (b/2)(1 - e^(-2x))
-      // Steady state: y_ss = b/2
-      const b = N + 1;
-      const y_ss = b / 2;
-      const correct = y_ss;
-      const opts = [
-        { v: correct, lbl: correct.toFixed(2) },
-        { v: b, lbl: b.toFixed(2) },
-        { v: 2*b, lbl: (2*b).toFixed(2) },
-        { v: b/4, lbl: (b/4).toFixed(2) }
-      ];
-      const shuffled = shuffleSeed(opts, N + 500);
-      return {
-        text: `PD linier orde 1: <code>y' + 2y = b</code> dengan <code>y(0) = 0</code>.<br>
-               • <b>b = N + 1 = ${N} + 1 = ${b}</b><br>
-               Berapakah nilai <em>steady-state</em> <code>y_ss</code> (saat <code>x → ∞</code>)?`,
-        options: shuffled.map(o => o.lbl),
-        diagram: _diagram('Pendekatan Steady-State', _svg.expDecay(-2, {A: -y_ss, T: 3}))
-      };
-    }
-  },
-  {
-    id: 'mc15', modul: 4, parametric: false,
-    text: "Untuk menyelesaikan PD Bernoulli <code>y' + (1/x)y = x²·y³</code>, substitusi yang tepat adalah:",
-    options: [
-      "<code>z = y³</code>",
-      "<code>z = y<sup>-2</sup>, sehingga z' = -2y<sup>-3</sup>·y'</code>",
-      "<code>z = ln(y)</code>",
-      "<code>z = y/x</code>"
-    ],
-  },
-  {
-    id: 'mc16', modul: 4, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: RC Circuit dengan switch ON di t=0
-      // R = 1 kΩ (tetap), C = (N+1) µF, V_in = 10 V (tetap)
-      // Time constant τ = R·C (dalam ms = 1000·(N+1)·10^-6·10^3 = (N+1) ms)
-      // Pertanyaan: setelah berapa ms, V mencapai 63% dari V_in (yaitu 1·τ)?
-      const C_uF = N + 1;       // µF
-      const tau_ms = C_uF;      // R=1kΩ, C in µF → τ = R*C = 10^3 * (N+1)*10^-6 = (N+1)·10^-3 s = (N+1) ms
-      const correct = tau_ms;
-      const opts = [
-        { v: correct, lbl: correct.toString() },
-        { v: 2*tau_ms, lbl: (2*tau_ms).toString() },       // mistake: 2τ
-        { v: tau_ms/2, lbl: (tau_ms/2).toFixed(1) },       // mistake: τ/2
-        { v: tau_ms*0.63, lbl: (tau_ms*0.63).toFixed(2) }  // mistake: confused 63% & τ
-      ];
-      const shuffled = shuffleSeed(opts, N + 600);
-      return {
-        text: `Rangkaian RC: <b>R = 1 kΩ</b> (tetap), <b>C = N+1 = ${C_uF} µF</b>, <b>V_in = 10 V</b> (tetap), V(0) = 0.<br>
-               PD: <code>RC·dV/dt + V = V_in</code>. Setelah berapa <em>ms</em> tegangan kapasitor mencapai <em>63.2%</em> dari V_in?`,
-        options: shuffled.map(o => o.lbl + ' ms'),
-        diagram: _diagram('RC Circuit — pengisian kapasitor', _svg.rcCircuit('1kΩ', `${C_uF}µF`, 10))
-      };
-    }
-  },
-  {
-    id: 'mc17', modul: 5, parametric: false,
-    text: "Solusi umum dari PD <code>y'' - 5y' + 6y = 0</code> adalah:",
-    options: [
-      "<code>y = C₁·e^(2x) + C₂·e^(3x)</code>",
-      "<code>y = (C₁ + C₂x)·e^(5x/2)</code>",
-      "<code>y = e^(-2.5x)(C₁·cos(x) + C₂·sin(x))</code>",
-      "<code>y = C₁·e^(-2x) + C₂·e^(-3x)</code>"
-    ],
-    diagram: _diagram('Akar Real Berbeda — overdamped', _svg.characteristicRoots('realDistinct'))
-  },
-  {
-    id: 'mc18', modul: 5, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: PD y'' + (N+1)·y = 0 (osilator murni, undamped)
-      // ω = √(N+1), periode T = 2π/ω
-      const omega2 = N + 1;
-      const omega = Math.sqrt(omega2);
-      const correct = omega;
-      const opts = [
-        { v: correct, lbl: correct.toFixed(3) },
-        { v: omega2, lbl: omega2.toFixed(3) },                    // mistake: lupa sqrt
-        { v: 2*Math.PI/omega, lbl: (2*Math.PI/omega).toFixed(3) }, // mistake: kasih T bukan ω
-        { v: omega/(2*Math.PI), lbl: (omega/(2*Math.PI)).toFixed(3) }  // mistake: f bukan ω
-      ];
-      const shuffled = shuffleSeed(opts, N + 700);
-      return {
-        text: `Osilator harmonik undamped: <code>y'' + (N+1)·y = 0</code> dengan IC <code>y(0)=1, y'(0)=0</code>.<br>
-               • <b>Koefisien (N+1) = ${omega2}</b><br>
-               Berapakah frekuensi sudut <b>ω</b> (rad/s) dari osilasi?`,
-        options: shuffled.map(o => o.lbl + ' rad/s'),
-        diagram: _diagram('Osilasi Harmonik (Akar Kompleks Murni)', _svg.characteristicRoots('complexConjugate'))
-      };
-    }
-  },
-  {
-    id: 'mc19', modul: 5, parametric: false,
-    text: "Pada PD <code>y'' + 4y' + 4y = 0</code> (akar real berulang), solusi umumnya berbentuk:",
-    options: [
-      "<code>y = C₁·e^(-2x) + C₂·e^(-2x)</code>",
-      "<code>y = (C₁ + C₂·x)·e^(-2x)</code>",
-      "<code>y = C₁·cos(2x) + C₂·sin(2x)</code>",
-      "<code>y = C₁·e^(-2x) + C₂·e^(2x)</code>"
-    ],
-    diagram: _diagram('Akar Real Berulang', _svg.characteristicRoots('realRepeated'))
-  },
-  {
-    id: 'mc20', modul: 5, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: y'' + 2·b·y' + 100y = 0
-      // b = (N+1)/10 (NIM); ω_n² = 100 → ω_n = 10
-      // ζ = b/ω_n = (N+1)/100
-      // Crossover ζ=1 di N=99
-      // Underdamped if ζ<1 → N < 99 (always except N=99 critical)
-      // Critical at N=99
-      // For better balance: use damping ratio question with ranges
-      // ζ < 0.5 (light) vs 0.5 ≤ ζ < 1 (moderate) → split at N=49
-      const b = (N + 1) / 10;
-      const omega_n = 10;
-      const zeta = b / omega_n;
-      // 4 categories based on ζ
-      let actualCat;
-      if (zeta < 0.3) actualCat = 0;
-      else if (zeta < 0.7) actualCat = 1;
-      else if (zeta < 1.0) actualCat = 2;
-      else actualCat = 3;
-      const correct = actualCat;
-      // Don't shuffle — keep options in fixed order so explanation is clear
-      return {
-        text: `PD getaran teredam: <code>y'' + 2b·y' + 100y = 0</code> (ω_n = 10).<br>
-               • <b>b = (N+1)/10 = (${N}+1)/10 = ${b.toFixed(2)}</b><br>
-               • <b>Damping ratio ζ = b/ω_n = ${zeta.toFixed(3)}</b><br>
-               Berdasarkan nilai ζ, tipe redaman sistem ini adalah:`,
-        options: [
-          "Light damping (ζ < 0.3)",
-          "Moderate damping (0.3 ≤ ζ < 0.7)",
-          "Heavy underdamped (0.7 ≤ ζ < 1.0)",
-          "Overdamped/Critical (ζ ≥ 1.0)"
-        ],
-        diagram: _diagram('Tipe Damping berdasarkan ζ', _svg.characteristicRoots(zeta < 1 ? 'complexConjugate' : (zeta > 1 ? 'realDistinct' : 'realRepeated')))
-      };
-    }
-  }
-];
-
-// ═══════════════════════════════════════════════════════════════════════════
-// BAGIAN C — KOMPUTASI EASY/MEDIUM (10 soal × 2 poin = 20 poin)
-// ═══════════════════════════════════════════════════════════════════════════
-const UTS_COMP_EZ = [
-  {
-    id: 'c1', modul: 1,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: cek orde PD: y^(n+1) + 2y' = sin(x)
-      // Orde PD = (N % 5) + 1 → range 1-5
-      const orde = (N % 5) + 1;
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>n = (N mod 5) + 1 = ${N%5} + 1 = ${orde}</b><br>
-               Hitung dan cetak <b>orde</b> dari PD <code>(d<sup>${orde}</sup>y/dx<sup>${orde}</sup>) - 3·(dy/dx)² + y = sin(x)</code>.`,
-        hint: `# N = ${N} (dari NIM Anda)\n# PD: (d^${orde}y/dx^${orde}) - 3(dy/dx)^2 + y = sin(x)\n# TODO: tentukan orde PD, lalu print(orde)`,
-      };
-    }
-  },
-  {
-    id: 'c2', modul: 1,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: a = (N+1)/10 langsung dari NIM
-      // Verifikasi y = e^(a*x) memenuhi y' - a*y = 0 → output: y'(0) = a (karena e^0 = 1)
-      const a = (N + 1) / 10;
-      return {
-        text: `Diberikan fungsi <code>y = e<sup>a·x</sup></code> dengan:<br>
-               • <b>a = (N+1)/10 = (${N}+1)/10 = ${a.toFixed(2)}</b><br>
-               Hitung nilai turunan pertama <code>dy/dx</code> di titik <code>x = 0</code>. Karena <code>y(0) = e⁰ = 1</code>, hasilnya adalah <code>a · 1 = a</code>.`,
-        hint: `import sympy as sp\n# N = ${N} (dari NIM Anda)\na = ${a}    # = (N+1)/10\n# TODO: definisikan y = e^(a*x); hitung turunannya; evaluasi di x=0; print(hasil)`,
-      };
-    }
-  },
-  {
-    id: 'c3', modul: 2,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: k = (N+1)/100, IC y(0)=5
-      // y(t) = 5·e^(k·t); compute y(5)
-      const k = (N + 1) / 100;
-      const y5 = 5 * Math.exp(5 * k);
-      return {
-        text: `Pertumbuhan eksponensial: <code>dy/dt = k·y</code>, IC <code>y(0) = 5</code>.<br>
-               • <b>k = (N+1)/100 = ${k.toFixed(3)}</b><br>
-               Hitung nilai <code>y(5)</code> dengan rumus <code>y = 5·e<sup>k·t</sup></code>.`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nk = ${k}    # = (N+1)/100\n# TODO: hitung y(5) dari pertumbuhan eksponensial, lalu print(y)`,
-        diagram: _diagram('Pertumbuhan Eksponensial', _svg.expDecay(-k, {A: 5, T: 5}))
-      };
-    }
-  },
-  {
-    id: 'c4', modul: 2,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: T0 = N+50, Tm=20 (tetap), k=0.1 (tetap), t=10 (tetap)
-      const T0 = N + 50;
-      const Tm = 20;
-      const k = 0.1;
-      const t = 10;
-      const T = Tm + (T0 - Tm) * Math.exp(-k * t);
-      return {
-        text: `Newton Cooling: <code>dT/dt = -k(T - T_m)</code>.<br>
-               • <b>T₀ = N + 50 = ${T0}°C</b><br>
-               • <b>T_m = 20°C</b> (tetap)<br>
-               • <b>k = 0.1 /menit</b> (tetap)<br>
-               Hitung suhu pada <b>t = 10 menit</b>. Rumus: <code>T(t) = T_m + (T₀ - T_m)·e<sup>-k·t</sup></code>`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nT0 = ${T0}    # = N + 50\nTm = 20     # tetap\nk = 0.1     # tetap\nt = 10      # tetap\n# TODO: hitung T(t) dengan rumus Newton Cooling, lalu print(T)`,
-        diagram: _diagram('Newton Cooling', _svg.newtonCooling(T0, Tm))
-      };
-    }
-  },
-  {
-    id: 'c5', modul: 3,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: solusi PD homogen y' = (x²+y²)/(2xy) → x² - y² = K·x
-      // IC y(1) = a dengan a = (N % 3) + 2 → values 2, 3, 4
-      // K = 1 - a²
-      // Pertanyaan: nilai K
-      const a = (N % 3) + 2;
-      const K = 1 - a*a;
-      return {
-        text: `PD Homogen: <code>y' = (x² + y²)/(2xy)</code>.<br>
-               • <b>IC: y(1) = (N mod 3) + 2 = ${N%3} + 2 = ${a}</b><br>
-               Solusi umum: <code>x² - y² = K·x</code>. Hitung nilai <b>K</b> dari IC ini.`,
-        hint: `# N = ${N} (dari NIM Anda)\na = ${a}    # = (N % 3) + 2 (IC y(1)=a)\n# TODO: substitusi IC ke solusi umum x² - y² = K·x → hitung K, lalu print(K)`,
-      };
-    }
-  },
-  {
-    id: 'c6', modul: 3,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: M = a·xy + b, N = x² + 2y dengan a=2, b varies
-      // Untuk eksak: M_y = a·x, N_x = 2x → eksak hanya jika a=2
-      // Jadi a=2 (tetap), output adalah selisih (M_y - N_x) yang harus = 0
-      // Ini selalu 0 → output expected = 0 (verifikasi eksak)
-      const a = 2;
-      const b = N + 1;
-      return {
-        text: `Cek eksak PD: <code>M(x,y) dx + N(x,y) dy = 0</code> dengan:<br>
-               • <b>M = ${a}xy + ${b}</b> (b = N+1 = ${b})<br>
-               • <b>N = x² + 2y</b><br>
-               Hitung <b>(∂M/∂y) − (∂N/∂x)</b>. Jika = 0, PD eksak.`,
-        hint: `import sympy as sp\nx, y = sp.symbols('x y')\n# N = ${N} (dari NIM Anda)\n# M = 2xy + (N+1), N = x² + 2y\n# TODO: hitung (∂M/∂y - ∂N/∂x), lalu print(selisih)   # harus 0 jika eksak`,
-        diagram: _diagram('Cek Eksak: ∂M/∂y vs ∂N/∂x', _svg.exactCheck(`${a}x`, '2x', true))
-      };
-    }
-  },
-  {
-    id: 'c7', modul: 4,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: PD y' + 2y = b dengan b=N+1
-      // Solusi: y = (b/2) + C·e^(-2x) dengan IC y(0)=0 → C = -b/2
-      // y(x) = (b/2)(1 - e^(-2x))
-      // Hitung y(1) (dalam steady-state seharusnya b/2)
-      const b = N + 1;
-      const y1 = (b/2) * (1 - Math.exp(-2));
-      return {
-        text: `PD linier orde 1: <code>dy/dx + 2y = b</code>, IC <code>y(0) = 0</code>.<br>
-               • <b>b = N + 1 = ${b}</b><br>
-               Hitung nilai <code>y(1)</code>. Rumus solusi: <code>y(x) = (b/2)·(1 − e<sup>-2x</sup>)</code>.`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nb = ${b}    # = N+1\n# TODO: hitung y(1) dari solusi y(x) = (b/2)(1 − e^(-2x)), lalu print(y)`,
-        diagram: _diagram('Pendekatan Steady-State', _svg.expDecay(-2, {A: -y1, T: 3}))
-      };
-    }
-  },
-  {
-    id: 'c8', modul: 4,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: PD Bernoulli y' + Py = Qy^n
-      // n = (N % 4) + 2 → values 2, 3, 4, 5
-      // Substitusi z = y^(1-n) → exponent = 1 - n
-      const n = (N % 4) + 2;
-      const exponent = 1 - n;
-      return {
-        text: `PD Bernoulli: <code>y' + P(x)·y = Q(x)·y<sup>n</sup></code>.<br>
-               • <b>n = (N mod 4) + 2 = ${N%4} + 2 = ${n}</b><br>
-               Untuk linierisasi, gunakan substitusi <code>z = y<sup>(1-n)</sup></code>.<br>
-               Hitung nilai <b>eksponen (1-n)</b>.`,
-        hint: `# N = ${N} (dari NIM Anda)\nn = ${n}    # = (N % 4) + 2\n# TODO: hitung eksponen substitusi Bernoulli (1 - n), lalu print(exponent)`,
-      };
-    }
-  },
-  {
-    id: 'c9', modul: 5,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: y'' + b·y' + 6y = 0 dengan b = (N+1) (NIM)
-      // Karakteristik: r² + b·r + 6 = 0 → diskriminan = b² - 24
-      // r1·r2 = 6 (selalu, dari Vieta)
-      // r1 + r2 = -b
-      // Pertanyaan: hitung jumlah akar (r1 + r2) = -b
-      const b = N + 1;
-      const sumOfRoots = -b;
-      return {
-        text: `Persamaan karakteristik PD orde 2: <code>r² + b·r + 6 = 0</code>.<br>
-               • <b>b = N + 1 = ${b}</b><br>
-               Hitung <b>jumlah kedua akar</b> (r₁ + r₂) menggunakan Vieta's formula.`,
-        hint: `# N = ${N} (dari NIM Anda)\nb = ${b}    # = N+1\n# TODO: hitung jumlah akar r² + b·r + 6 = 0 via Vieta's, lalu print(sum_roots)`,
-      };
-    }
-  },
-  {
-    id: 'c10', modul: 5,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: y'' + (N+1)·y = 0 → ω² = N+1, ω = sqrt(N+1)
-      const omega2 = N + 1;
-      const omega = Math.sqrt(omega2);
-      return {
-        text: `Osilator harmonik: <code>y'' + (N+1)·y = 0</code>.<br>
-               • <b>(N+1) = ${omega2}</b><br>
-               Hitung <b>frekuensi sudut ω</b> (rad/s) dengan rumus <code>ω = √(N+1)</code>.`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\n# Koefisien PD: y'' + (N+1)·y = 0\n# TODO: hitung frekuensi sudut ω = √(N+1), lalu print(omega)`,
-        diagram: _diagram('Osilator Harmonik (Akar Kompleks Murni)', _svg.characteristicRoots('complexConjugate'))
-      };
-    }
-  }
-];
-
-// ═══════════════════════════════════════════════════════════════════════════
-// BAGIAN D — KOMPUTASI HARD (5 soal × 4 poin = 20 poin)
-// ═══════════════════════════════════════════════════════════════════════════
-const UTS_COMP_HARD = [
-  {
-    id: 'c11', modul: 2,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: PD dy/dx = x·y, IC y(0) = a, dimana a = (N+1)/10
-      // Solusi: y = a·e^(x²/2)
-      // Hitung y(2) = a·e^2
-      const a = (N + 1) / 10;
-      const y2 = a * Math.exp(2);  // x²/2 = 2 saat x=2
-      return {
-        text: `Selesaikan PD <em>variabel terpisah</em> via SymPy:<br>
-               <code>dy/dx = x·y</code> dengan IC <code>y(0) = a</code>.<br>
-               • <b>a = (N+1)/10 = ${a.toFixed(2)}</b><br>
-               Hitung dan cetak nilai <b>y(2)</b>.`,
-        hint: `import sympy as sp\n# N = ${N} (dari NIM Anda)\na = ${a}    # = (N+1)/10 (IC y(0)=a)\n# TODO: definisikan PD dy/dx = x·y, solve via sp.dsolve dgn IC, lalu evaluasi y(2) & print(val)`,
-        diagram: _diagram('Slope Field y\' = xy', _svg.slopeField((x, y) => x * y, {xMin: -2, xMax: 2.5, yMin: -1, yMax: 6, integralCurve: {x0: 0, y0: a}}))
-      };
-    }
-  },
-  {
-    id: 'c12', modul: 3,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: PD eksak (2xy + a) dx + (x² + b) dy = 0
-      // a = N+1 (NIM), b = 5 (tetap)
-      // F = x²y + a·x + b·y (dari integrasi)
-      // Cek eksak: M_y = 2x = N_x ✓
-      // Hitung F(2, 3) = 4·3 + a·2 + b·3 = 12 + 2a + 3b = 12 + 2(N+1) + 15 = 27 + 2(N+1) = 29 + 2N
-      const a = N + 1;
-      const b = 5;
-      const F23 = 4*3 + a*2 + b*3;  // = 12 + 2a + 15 = 27 + 2a = 27 + 2(N+1) = 29 + 2N
-      return {
-        text: `Selesaikan PD <em>eksak</em>:<br>
-               <code>(2xy + a) dx + (x² + b) dy = 0</code> dengan:<br>
-               • <b>a = N + 1 = ${a}</b><br>
-               • <b>b = 5</b> (tetap)<br>
-               Verifikasi eksak (∂M/∂y = ∂N/∂x), rekonstruksi <code>F(x,y)</code>, lalu hitung <b>F(2, 3)</b>.`,
-        hint: `import sympy as sp\n# N = ${N} (dari NIM Anda)\na = ${a}    # = N + 1\nb = ${b}    # tetap\n# TODO: verifikasi M_y == N_x (eksak); rekonstruksi F(x,y); evaluasi F(2,3) lalu print(val)`,
-      };
-    }
-  },
-  {
-    id: 'c13', modul: 4,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: PD y' + 2y = b·e^(-x) dengan IC y(0) = 0
-      // b = (N+1)/10 (NIM)
-      // Solusi via faktor integrasi μ = e^(2x):
-      // (e^(2x) y)' = b·e^x → e^(2x) y = b·e^x + C → y = b·e^(-x) + C·e^(-2x)
-      // IC y(0) = 0: 0 = b + C → C = -b → y = b(e^(-x) - e^(-2x))
-      // Hitung y(1) = b(e^(-1) - e^(-2))
-      const b = (N + 1) / 10;
-      const y1 = b * (Math.exp(-1) - Math.exp(-2));
-      return {
-        text: `PD linier orde 1 via SymPy:<br>
-               <code>y' + 2y = b·e<sup>-x</sup></code> dengan IC <code>y(0) = 0</code>.<br>
-               • <b>b = (N+1)/10 = ${b.toFixed(2)}</b><br>
-               Selesaikan dan hitung nilai <b>y(1)</b>.`,
-        hint: `import sympy as sp\n# N = ${N} (dari NIM Anda)\nb = ${b}    # = (N+1)/10\n# TODO: solve PD y' + 2y = b·e^(-x), IC y(0)=0 via sp.dsolve, evaluasi y(1) & print(val)`,
-      };
-    }
-  },
-  {
-    id: 'c14', modul: 5,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: y'' + 2*y' + (N+1)·y = 0, IC y(0)=1, y'(0)=0
-      // Karakteristik: r² + 2r + (N+1) = 0 → r = -1 ± sqrt(1-(N+1)) = -1 ± sqrt(-N)
-      // For N > 0: complex roots r = -1 ± i·sqrt(N)
-      // Solution: y = e^(-t)(A·cos(sqrt(N)·t) + B·sin(sqrt(N)·t))
-      // IC y(0) = 1 → A = 1; y'(0) = -A + B·sqrt(N) = 0 → B = 1/sqrt(N)
-      // For N=0: r = -1, -1 (repeated) → y = (1+t)e^(-t); y(2) = 3e^(-2)
-      // Compute y(2)
-      let y2;
-      if (N === 0) {
-        y2 = (1 + 2) * Math.exp(-2);  // = 3·e^-2
-      } else {
-        const sqrtN = Math.sqrt(N);
-        y2 = Math.exp(-2) * (Math.cos(sqrtN * 2) + (1/sqrtN) * Math.sin(sqrtN * 2));
-      }
-      return {
-        text: `PD orde 2 via SymPy:<br>
-               <code>y'' + 2y' + (N+1)·y = 0</code> dengan IC <code>y(0)=1, y'(0)=0</code>.<br>
-               • <b>(N+1) = ${N+1}</b><br>
-               Selesaikan dan hitung nilai <b>y(2)</b>.`,
-        hint: `import sympy as sp\n# N = ${N} (dari NIM Anda)\n# PD: y'' + 2y' + (N+1)·y = 0, IC y(0)=1, y'(0)=0\n# TODO: solve via sp.dsolve dgn IC, evaluasi y(2), lalu print(val)`,
-        diagram: _diagram('Solusi PD Orde 2 (decay + osilasi)', _svg.characteristicRoots(N === 0 ? 'realRepeated' : 'complexConjugate'))
-      };
-    }
-  },
-  {
-    id: 'c15', modul: 5,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m·x'' + c·x' + k·x = 0
-      // m = 1 (tetap), k = 100 (tetap), c = (N+1)/10 (NIM)
-      // ω_n = √(k/m) = 10 rad/s
-      // ζ = c/(2√(km)) = (N+1)/(10·20) = (N+1)/200 → range 0.005-0.5 (always underdamped)
-      // ω_d = ω_n · sqrt(1 - ζ²)
-      // IC: x(0) = 0.1, x'(0) = 0
-      // Solution: x(t) = e^(-ζω_n·t) · (A·cos(ω_d·t) + B·sin(ω_d·t))
-      // A = x(0) = 0.1, B = (ζω_n·A + 0)/ω_d = ζω_n·0.1/ω_d
-      // Compute x(0.5)
-      const m = 1;
-      const k = 100;
-      const c = (N + 1) / 10;
-      const wn = Math.sqrt(k / m);
-      const zeta = c / (2 * Math.sqrt(k * m));
-      const wd = wn * Math.sqrt(1 - zeta * zeta);
-      const A = 0.1;
-      const B = (zeta * wn * A) / wd;
-      const t_eval = 0.5;
-      const x_t = Math.exp(-zeta * wn * t_eval) * (A * Math.cos(wd * t_eval) + B * Math.sin(wd * t_eval));
-      return {
-        text: `Sistem getaran teredam: <code>m·x'' + c·x' + k·x = 0</code><br>
-               • <b>m = 1 kg</b>, <b>k = 100 N/m</b> (tetap)<br>
-               • <b>c = (N+1)/10 = ${c.toFixed(2)} Ns/m</b><br>
-               • IC: <b>x(0) = 0.1 m</b>, <b>x'(0) = 0</b><br>
-               Selesaikan PD ini (analitik atau numerik via RK4/SciPy) dan hitung <b>x(0.5)</b>.`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\n# m·x'' + c·x' + k·x = 0; m=1, k=100, c=(N+1)/10\n# IC: x(0)=0.1, x'(0)=0\n# TODO: solve PD (analitik atau numerik via solve_ivp), evaluasi x(0.5), lalu print(x_t)`,
-        diagram: _diagram('Sistem Getaran Teredam', _svg.springMassDamper(k, m, c.toFixed(2)))
-      };
-    }
-  }
-];
-
-// Expose globally
-window.UTS_TF = UTS_TF;
-window.UTS_MC = UTS_MC;
-window.UTS_COMP_EZ = UTS_COMP_EZ;
-window.UTS_COMP_HARD = UTS_COMP_HARD;
+// Bank soal TIDAK di-embed statis di sini lagi — celah keamanan: teks soal
+// bisa dibaca via View Source/DevTools sebelum jadwal UTS dibuka (submit
+// jawaban sendiri sudah lama server-only, tapi teks soal dulu belum). Sekarang
+// window.UTS_TF/MC/COMP_EZ/COMP_HARD di-isi oleh _ensureUTSQuestionsLoaded()
+// via callable getExamQuestions (server-gated PIN+jadwal / admin), dipanggil
+// setelah login berhasil. Definisi soal + helper SVG pindah ke repo backend:
+// functions/exams/uts-<course>-bank.js. Lihat Pedoman §40.29.
 window.shuffleSeed = shuffleSeed;
 
 
@@ -3082,7 +2066,7 @@ function renderUTSQuestions() {
   if (tfContainer) {
     tfContainer.innerHTML = '';
     window.UTS_TF.forEach((q, i) => {
-      const data = q.parametric ? q.compute(N) : { text: q.text };
+      const data = q;   // sudah ter-render server (getExamQuestions)
       const num = i + 1;
       const isParam = q.parametric;
       const card = document.createElement('div');
@@ -3118,7 +2102,7 @@ function renderUTSQuestions() {
   if (mcContainer) {
     mcContainer.innerHTML = '';
     window.UTS_MC.forEach((q, i) => {
-      const data = q.parametric ? q.compute(N) : { text: q.text, options: q.options };
+      const data = q;   // sudah ter-render server (getExamQuestions)
       const num = i + 1;
       const isParam = q.parametric;
       const card = document.createElement('div');
@@ -3154,7 +2138,7 @@ function renderUTSQuestions() {
   if (compEzContainer) {
     compEzContainer.innerHTML = '';
     window.UTS_COMP_EZ.forEach((q, i) => {
-      const data = q.compute(N);
+      const data = q;   // sudah ter-render server (getExamQuestions)
       const num = i + 1;
       const card = _buildCompCard(q, num, data, 'C', false);
       compEzContainer.appendChild(card);
@@ -3166,7 +2150,7 @@ function renderUTSQuestions() {
   if (compHardContainer) {
     compHardContainer.innerHTML = '';
     window.UTS_COMP_HARD.forEach((q, i) => {
-      const data = q.compute(N);
+      const data = q;   // sudah ter-render server (getExamQuestions)
       const num = i + 1;
       const card = _buildCompCard(q, num, data, 'D', true);
       compHardContainer.appendChild(card);
@@ -3824,7 +2808,7 @@ async function exportTugasHtml() {
 
   // ── Collect TF data ──
   const tfData = (window.UTS_TF || []).map((q, i) => {
-    const data = q.parametric ? q.compute(N) : { text: q.text, answer: q.answer };
+    const data = q;   // sudah ter-render server; jawaban TIDAK pernah dikirim
     const id = q.id;
     const opts = document.getElementById('tfopts-' + id);
     const sel = opts?.querySelector('.tf-option.selected');
@@ -3851,7 +2835,7 @@ async function exportTugasHtml() {
 
   // ── Collect MC data ──
   const mcData = (window.UTS_MC || []).map((q, i) => {
-    const data = q.parametric ? q.compute(N) : { text: q.text, options: q.options, correctIdx: q.correctIdx };
+    const data = q;   // sudah ter-render server; kunci TIDAK pernah dikirim
     const id = q.id;
     const rg = document.getElementById('rg-' + id);
     const sel = rg?.querySelector('.radio-option.selected');
@@ -3878,7 +2862,7 @@ async function exportTugasHtml() {
 
   // ── Collect Comp E/M data ──
   const compEzData = (window.UTS_COMP_EZ || []).map((q, i) => {
-    const data = q.compute(N);
+    const data = q;   // sudah ter-render server (getExamQuestions)
     const id = q.id;
     const ta = document.getElementById('code-' + id);
     return {
@@ -3892,7 +2876,7 @@ async function exportTugasHtml() {
 
   // ── Collect Comp Hard data ──
   const compHardData = (window.UTS_COMP_HARD || []).map((q, i) => {
-    const data = q.compute(N);
+    const data = q;   // sudah ter-render server (getExamQuestions)
     const id = q.id;
     const ta = document.getElementById('code-' + id);
     return {
@@ -5844,6 +4828,9 @@ window._generateExportCodeCallable = _generateExportCodeCallable;
   window.getIdentity = getIdentity;
   window._aiChatCallable = httpsCallable(_functions, 'aiChat');
   window._moduleChatContextCallable = httpsCallable(_functions, 'getModuleChatContext');
+// Server-gated question fetch (Pedoman §40.29) — teks soal HANYA dikirim
+// setelah PIN+jadwal (mahasiswa) atau sesi admin (dosen) terverifikasi.
+const _getExamQuestionsCallable = httpsCallable(_functions, 'getExamQuestions');
 
 // PIN hash session-scope (set saat login berhasil, dipakai utk auth ke callable).
 // Disimpan di sessionStorage (bukan localStorage) supaya:
@@ -5855,12 +4842,66 @@ try {
   const stored = sessionStorage.getItem(_PIN_SESSION_KEY);
   if (stored && /^[0-9a-f]{64}$/.test(stored)) window._sessionPinHash = stored;
 } catch (e) { /* sessionStorage tidak available di beberapa context */ }
+// ═══════════════════════════════════════════════════════════════════════════
+// SERVER-GATED QUESTION FETCH (Pedoman §40.29)
+// Teks soal (bukan kunci jawaban — itu sudah lama server-only) HANYA dikirim
+// setelah PIN+jadwal (mahasiswa) atau sesi admin (dosen) terverifikasi lewat
+// callable getExamQuestions. Idempoten & self-guarding — aman dipanggil
+// berkali-kali dari banyak titik.
+// ═══════════════════════════════════════════════════════════════════════════
+function _showUTSLoadState(html) {
+  const c = document.getElementById('container-tf');
+  if (c) c.innerHTML = html;
+  ['container-mc', 'container-comp-ez', 'container-comp-hard'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+}
+
+async function _ensureUTSQuestionsLoaded() {
+  if ((typeof _utsRendered !== 'undefined' && _utsRendered) || window._utsRenderedFlag || window._utsQuestionsLoading) return;
+  const me = getIdentity();
+  if (!me) return;
+  const isDosenNow = me.role === 'dosen';
+  if (!isDosenNow && (!me.nim || !window._sessionPinHash)) return;   // tunggu PIN session siap
+
+  window._utsQuestionsLoading = true;
+  _showUTSLoadState('<div style="padding:28px 20px;text-align:center;color:var(--muted);font-family:JetBrains Mono,monospace;font-size:13px">Memuat soal UTS...</div>');
+  try {
+    const payload = { examId: EXAM_ID };
+    if (!isDosenNow) {
+      payload.nim = me.nim;
+      payload.pinHash = window._sessionPinHash;
+    }
+    const result = await _getExamQuestionsCallable(payload);
+    const d = result.data || {};
+    window._utsServerN = Number.isInteger(d.N) ? d.N : null;
+    window.UTS_TF = d.tf || [];
+    window.UTS_MC = d.mc || [];
+    window.UTS_COMP_EZ = d.compEz || [];
+    window.UTS_COMP_HARD = d.compHard || [];
+    if (typeof window.renderUTSQuestions === 'function') {
+      window.renderUTSQuestions();
+      window._utsRenderedFlag = true;
+    }
+  } catch (err) {
+    console.error('[UTS] Gagal memuat soal:', err);
+    const msg = (err && err.message) ? err.message : 'Gagal memuat soal. Coba refresh halaman.';
+    _showUTSLoadState('<div style="padding:24px 20px;text-align:center;color:var(--pink);font-family:JetBrains Mono,monospace;font-size:13px;background:rgba(236,72,153,.06);border:1px solid rgba(236,72,153,.25);border-radius:12px">Soal terkunci: ' + msg + '</div>');
+  } finally {
+    window._utsQuestionsLoading = false;
+  }
+}
+window._ensureUTSQuestionsLoaded = _ensureUTSQuestionsLoaded;
+
 function _setSessionPinHash(hash) {
   window._sessionPinHash = hash || null;
   try {
     if (hash) sessionStorage.setItem(_PIN_SESSION_KEY, hash);
     else sessionStorage.removeItem(_PIN_SESSION_KEY);
   } catch (e) {}
+  // Sesi PIN baru siap -> soal bisa diambil dari server.
+  if (hash && typeof window._ensureUTSQuestionsLoaded === 'function') window._ensureUTSQuestionsLoaded();
 }
 window._setSessionPinHash = _setSessionPinHash;
 
@@ -6053,9 +5094,9 @@ async function _activateDosenQuestionView() {
     chip.title = 'Mode dosen: soal dapat ditinjau, tetapi jawaban dan poin dinonaktifkan';
   }
   if (typeof window.switchTab === 'function') window.switchTab('uts');
-  if (typeof window.renderUTSQuestions === 'function' && !window._utsRenderedFlag) {
-    window.renderUTSQuestions();
-    window._utsRenderedFlag = true;
+  if (_auth && typeof _auth.authStateReady === 'function') await _auth.authStateReady();
+  if (typeof window._ensureUTSQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
+    await window._ensureUTSQuestionsLoaded();
   }
   if (typeof window._updateUTSAccessGate === 'function') window._updateUTSAccessGate();
 }
@@ -6066,10 +5107,11 @@ function saveIdentity(v){
   // Dosen masuk langsung ke tab soal dalam mode hanya-baca.
   if (v && v.role === 'dosen') {
     setTimeout(() => window._activateDosenQuestionView(), 50);
-  } else if (typeof window.renderUTSQuestions === 'function' && !window._utsRenderedFlag) {
+  } else if (typeof window._ensureUTSQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
+    // Soal diambil dari server dulu; renderer dipanggil di dalam loader.
     setTimeout(() => {
-      try { window.renderUTSQuestions(); window._utsRenderedFlag = true; }
-      catch(e) { console.error('renderUTSQuestions error:', e); }
+      try { window._ensureUTSQuestionsLoaded(); }
+      catch(e) { console.error('_ensureUTSQuestionsLoaded error:', e); }
     }, 50);
   }
   if (v && v.role === 'student' && v.nim) {
@@ -6444,6 +5486,10 @@ function _handleScheduleReady() {
         })();
       }
       _applyRoleVisibility();
+      // Jaring aman: identity & sesi PIN sudah ada dari kunjungan sebelumnya.
+      if (typeof window._ensureUTSQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
+        setTimeout(() => window._ensureUTSQuestionsLoaded(), 100);
+      }
       // UTS: Render questions FIRST sebelum _loadScoredQuestions agar DOM ready
       if (typeof window.renderUTSQuestions === 'function' && !window._utsRenderedFlag) {
         try { window.renderUTSQuestions(); window._utsRenderedFlag = true; }
