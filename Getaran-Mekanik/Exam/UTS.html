@@ -1868,990 +1868,23 @@ function fmt(x, d) { return (typeof x === 'number') ? x.toFixed(d || 2) : String
 // ═══════════════════════════════════════════════════════════════════════════
 // Setiap helper return string SVG yang dapat di-inject ke card soal.
 // Style: dark theme, accent cyan/violet/amber/green/pink agar match dengan UI.
-const _svg = {
-  // ── Spring-Mass schematic (tanpa damper) ──
-  springMass: (k, m, opts) => {
-    opts = opts || {};
-    return `<svg viewBox="0 0 280 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:240px;height:auto;display:block;margin:0 auto">
-      <defs><pattern id="hatchSM" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0,6 l6,-6" stroke="#94a3b8" stroke-width="1"/></pattern></defs>
-      <rect x="20" y="10" width="240" height="10" fill="url(#hatchSM)"/>
-      <line x1="20" y1="20" x2="260" y2="20" stroke="#94a3b8" stroke-width="2"/>
-      <path d="M140,20 L140,40 L125,48 L155,58 L125,68 L155,78 L125,88 L155,98 L125,108 L140,116 L140,130" stroke="#a855f7" stroke-width="2.2" fill="none"/>
-      <text x="165" y="78" fill="#a855f7" font-size="13" font-family="'JetBrains Mono',monospace" font-weight="600">k = ${k}</text>
-      <text x="165" y="94" fill="#a855f7" font-size="10" font-family="'JetBrains Mono',monospace">N/m</text>
-      <rect x="90" y="130" width="100" height="55" fill="#1a2332" stroke="#f97316" stroke-width="2.2" rx="3"/>
-      <text x="140" y="160" fill="#f97316" font-size="14" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="600">m = ${m}</text>
-      <text x="140" y="176" fill="#f97316" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">kg</text>
-      <line x1="220" y1="155" x2="220" y2="200" stroke="#00e09e" stroke-width="2"/>
-      <polygon points="215,195 225,195 220,205" fill="#00e09e"/>
-      <text x="228" y="190" fill="#00e09e" font-size="12" font-family="'JetBrains Mono',monospace">x(t)</text>
-    </svg>`;
-  },
+// Helper SVG diagram pindah ke server bersama bank soal.
 
-  // ── Spring-Mass-Damper schematic (dengan damper paralel) ──
-  springMassDamper: (k, m, c, opts) => {
-    opts = opts || {};
-    const force = opts.force;   // jika ada, tampilkan arrow F(t) di bawah
-    return `<svg viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:280px;height:auto;display:block;margin:0 auto">
-      <defs><pattern id="hatchSMD" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0,6 l6,-6" stroke="#94a3b8" stroke-width="1"/></pattern></defs>
-      <rect x="20" y="10" width="280" height="10" fill="url(#hatchSMD)"/>
-      <line x1="20" y1="20" x2="300" y2="20" stroke="#94a3b8" stroke-width="2"/>
-      <path d="M110,20 L110,40 L95,48 L125,58 L95,68 L125,78 L95,88 L125,98 L95,108 L110,116 L110,130" stroke="#a855f7" stroke-width="2.2" fill="none"/>
-      <text x="60" y="80" fill="#a855f7" font-size="12" font-family="'JetBrains Mono',monospace" font-weight="600">k=${k}</text>
-      <line x1="210" y1="20" x2="210" y2="55" stroke="#0ea5e9" stroke-width="2.2"/>
-      <line x1="210" y1="55" x2="210" y2="100" stroke="#0ea5e9" stroke-width="2.2"/>
-      <line x1="195" y1="60" x2="225" y2="60" stroke="#0ea5e9" stroke-width="2.2"/>
-      <rect x="195" y="60" width="30" height="35" stroke="#0ea5e9" stroke-width="2.2" fill="rgba(14,165,233,0.08)"/>
-      <line x1="210" y1="95" x2="210" y2="130" stroke="#0ea5e9" stroke-width="2.2"/>
-      <text x="232" y="80" fill="#0ea5e9" font-size="12" font-family="'JetBrains Mono',monospace" font-weight="600">c=${c}</text>
-      <rect x="80" y="130" width="160" height="55" fill="#1a2332" stroke="#f97316" stroke-width="2.2" rx="3"/>
-      <text x="160" y="160" fill="#f97316" font-size="14" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="600">m = ${m} kg</text>
-      ${force ? `<line x1="160" y1="195" x2="160" y2="225" stroke="#ec4899" stroke-width="2.5"/><polygon points="155,220 165,220 160,228" fill="#ec4899"/><text x="170" y="215" fill="#ec4899" font-size="12" font-family="'JetBrains Mono',monospace" font-weight="600">F(t)=${force}</text>` : `<line x1="270" y1="155" x2="270" y2="200" stroke="#00e09e" stroke-width="2"/><polygon points="265,195 275,195 270,205" fill="#00e09e"/><text x="278" y="190" fill="#00e09e" font-size="12" font-family="'JetBrains Mono',monospace">x(t)</text>`}
-    </svg>`;
-  },
-
-  // ── Decaying oscillation (free damped vibration) dengan peak markers opsional ──
-  decay: (opts) => {
-    opts = opts || {};
-    const zeta = opts.zeta || 0.05, wn = opts.wn || 6;
-    const W = 320, H = 180, midY = 90, ampMax = 60;
-    const pts = [];
-    for (let i = 0; i <= 100; i++) {
-      const t = (i/100) * 8;   // t: 0..8
-      const x = 60 + (i/100) * 250;
-      const wd = wn * Math.sqrt(1 - zeta*zeta);
-      const y = midY - ampMax * Math.exp(-zeta*wn*t) * Math.cos(wd*t);
-      pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
-    }
-    // Envelope (atas + bawah)
-    const envU = [], envL = [];
-    for (let i = 0; i <= 100; i++) {
-      const t = (i/100) * 8;
-      const x = 60 + (i/100) * 250;
-      const env = ampMax * Math.exp(-zeta*wn*t);
-      envU.push(`${x.toFixed(1)},${(midY - env).toFixed(1)}`);
-      envL.push(`${x.toFixed(1)},${(midY + env).toFixed(1)}`);
-    }
-    // Peak markers (jika diminta)
-    let peakDots = '';
-    if (opts.markPeaks) {
-      const wd = wn * Math.sqrt(1-zeta*zeta);
-      const Td = 2*Math.PI/wd;
-      for (let n = 0; n < (opts.markPeaks || 2); n++) {
-        const t = n * Td;
-        if (t > 8) break;
-        const x = 60 + (t/8) * 250;
-        const y = midY - ampMax * Math.exp(-zeta*wn*t);
-        peakDots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="#f97316" stroke="#fff" stroke-width="1"/>
-        <text x="${x.toFixed(1)}" y="${(y-8).toFixed(1)}" fill="#f97316" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">x${n+1}</text>`;
-      }
-    }
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:340px;height:auto;display:block;margin:0 auto">
-      <line x1="60" y1="${midY}" x2="${W-10}" y2="${midY}" stroke="#475569" stroke-width="1"/>
-      <line x1="60" y1="20" x2="60" y2="${H-20}" stroke="#475569" stroke-width="1"/>
-      <text x="35" y="${midY+4}" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">0</text>
-      <text x="${W-15}" y="${midY+15}" fill="#94a3b8" font-size="10" font-family="'JetBrains Mono',monospace">t</text>
-      <text x="50" y="30" fill="#94a3b8" font-size="10" text-anchor="end" font-family="'JetBrains Mono',monospace">x(t)</text>
-      <polyline points="${envU.join(' ')}" stroke="#a855f7" stroke-width="1" fill="none" stroke-dasharray="3,3" opacity="0.6"/>
-      <polyline points="${envL.join(' ')}" stroke="#a855f7" stroke-width="1" fill="none" stroke-dasharray="3,3" opacity="0.6"/>
-      <polyline points="${pts.join(' ')}" stroke="#0ea5e9" stroke-width="2" fill="none"/>
-      ${peakDots}
-      <text x="${W-10}" y="${H-5}" fill="#a855f7" font-size="9" text-anchor="end" font-family="'JetBrains Mono',monospace">envelope: e^(-ζωₙt)</text>
-    </svg>`;
-  },
-
-  // ── DMF curve (DMF vs r) untuk berbagai ζ ──
-  dmfCurve: (opts) => {
-    opts = opts || {};
-    const zetaList = opts.zetas || [0.05, 0.1, 0.2, 0.5];
-    const colors = ['#ec4899', '#f97316', '#00e09e', '#a855f7'];
-    const W = 320, H = 200, x0 = 50, y0 = 170, xMax = 300, yMax = 20;
-    const rMax = 3, dmfMax = 5;
-    const xScale = (r) => x0 + (r/rMax) * (xMax - x0);
-    const yScale = (d) => y0 - (Math.min(d, dmfMax)/dmfMax) * (y0 - yMax);
-    let curves = '';
-    let highlightR = opts.highlightR;
-    let highlightZeta = opts.highlightZeta;
-    zetaList.forEach((z, i) => {
-      const pts = [];
-      for (let j = 0; j <= 200; j++) {
-        const r = (j/200) * rMax;
-        const dmf = 1 / Math.sqrt(Math.pow(1-r*r, 2) + Math.pow(2*z*r, 2));
-        pts.push(`${xScale(r).toFixed(1)},${yScale(dmf).toFixed(1)}`);
-      }
-      curves += `<polyline points="${pts.join(' ')}" stroke="${colors[i%4]}" stroke-width="2" fill="none"/>
-      <text x="${xMax+3}" y="${yScale(1/(2*z*Math.sqrt(1-z*z))).toFixed(1)}" fill="${colors[i%4]}" font-size="9" font-family="'JetBrains Mono',monospace">ζ=${z}</text>`;
-    });
-    let marker = '';
-    if (highlightR != null && highlightZeta != null) {
-      const dmfH = 1 / Math.sqrt(Math.pow(1-highlightR*highlightR, 2) + Math.pow(2*highlightZeta*highlightR, 2));
-      marker = `<circle cx="${xScale(highlightR).toFixed(1)}" cy="${yScale(dmfH).toFixed(1)}" r="5" fill="#fbbf24" stroke="#fff" stroke-width="1.5"/>
-      <line x1="${xScale(highlightR).toFixed(1)}" y1="${y0}" x2="${xScale(highlightR).toFixed(1)}" y2="${yScale(dmfH).toFixed(1)}" stroke="#fbbf24" stroke-width="1" stroke-dasharray="2,2"/>
-      <text x="${xScale(highlightR).toFixed(1)}" y="${y0+12}" fill="#fbbf24" font-size="9" text-anchor="middle" font-family="'JetBrains Mono',monospace">r=${highlightR.toFixed(2)}</text>`;
-    }
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:340px;height:auto;display:block;margin:0 auto">
-      <line x1="${x0}" y1="${y0}" x2="${xMax}" y2="${y0}" stroke="#475569" stroke-width="1"/>
-      <line x1="${x0}" y1="${y0}" x2="${x0}" y2="${yMax}" stroke="#475569" stroke-width="1"/>
-      <line x1="${xScale(1)}" y1="${y0}" x2="${xScale(1)}" y2="${yMax}" stroke="#64748b" stroke-width="1" stroke-dasharray="3,3"/>
-      <text x="${xScale(1)}" y="${y0+12}" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">r=1</text>
-      <text x="${xMax}" y="${y0+12}" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace">${rMax}</text>
-      <text x="${x0-5}" y="${y0+4}" fill="#94a3b8" font-size="10" text-anchor="end" font-family="'JetBrains Mono',monospace">0</text>
-      <text x="${x0-5}" y="${yMax+10}" fill="#94a3b8" font-size="10" text-anchor="end" font-family="'JetBrains Mono',monospace">DMF</text>
-      <text x="${xMax-5}" y="${y0-5}" fill="#94a3b8" font-size="9" text-anchor="end" font-family="'JetBrains Mono',monospace">r = ω/ωₙ</text>
-      ${curves}
-      ${marker}
-    </svg>`;
-  },
-
-  // ── Transmissibility curve (TR vs r) ──
-  trCurve: (opts) => {
-    opts = opts || {};
-    const zeta = opts.zeta || 0.1;
-    const target = opts.target;
-    const W = 320, H = 200, x0 = 50, y0 = 170, xMax = 300, yMax = 20;
-    const rMax = 5, trMax = 4;
-    const xScale = (r) => x0 + (r/rMax) * (xMax - x0);
-    const yScale = (t) => y0 - (Math.min(t, trMax)/trMax) * (y0 - yMax);
-    const pts = [];
-    for (let j = 0; j <= 200; j++) {
-      const r = (j/200) * rMax;
-      const num = 1 + Math.pow(2*zeta*r, 2);
-      const den = Math.pow(1-r*r, 2) + Math.pow(2*zeta*r, 2);
-      const tr = Math.sqrt(num/den);
-      pts.push(`${xScale(r).toFixed(1)},${yScale(tr).toFixed(1)}`);
-    }
-    let targetLine = '';
-    if (target != null) {
-      targetLine = `<line x1="${x0}" y1="${yScale(target).toFixed(1)}" x2="${xMax}" y2="${yScale(target).toFixed(1)}" stroke="#00e09e" stroke-width="1.5" stroke-dasharray="4,3"/>
-      <text x="${xMax-3}" y="${(yScale(target)-3).toFixed(1)}" fill="#00e09e" font-size="9" text-anchor="end" font-family="'JetBrains Mono',monospace">T_R=${target}</text>`;
-    }
-    // Mark r=√2 (crossover where isolation begins)
-    const xR2 = xScale(Math.sqrt(2));
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:340px;height:auto;display:block;margin:0 auto">
-      <line x1="${x0}" y1="${y0}" x2="${xMax}" y2="${y0}" stroke="#475569" stroke-width="1"/>
-      <line x1="${x0}" y1="${y0}" x2="${x0}" y2="${yMax}" stroke="#475569" stroke-width="1"/>
-      <line x1="${xR2}" y1="${y0}" x2="${xR2}" y2="${yMax}" stroke="#64748b" stroke-width="1" stroke-dasharray="2,2"/>
-      <text x="${xR2}" y="${y0+12}" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="'JetBrains Mono',monospace">r=√2</text>
-      <text x="${x0-5}" y="${yMax+10}" fill="#94a3b8" font-size="10" text-anchor="end" font-family="'JetBrains Mono',monospace">T_R</text>
-      <text x="${xMax-5}" y="${y0-5}" fill="#94a3b8" font-size="9" text-anchor="end" font-family="'JetBrains Mono',monospace">r = ω/ωₙ</text>
-      <polyline points="${pts.join(' ')}" stroke="#a855f7" stroke-width="2.2" fill="none"/>
-      ${targetLine}
-      <text x="${xMax-3}" y="${yMax+10}" fill="#a855f7" font-size="10" text-anchor="end" font-family="'JetBrains Mono',monospace">ζ=${zeta}</text>
-    </svg>`;
-  },
-
-  // ── Harmonic motion: x(t), v(t), a(t) plot bersamaan ──
-  harmonicMotion: () => {
-    const W = 340, H = 180, midY = 90;
-    const xPts = [], vPts = [], aPts = [];
-    for (let i = 0; i <= 100; i++) {
-      const t = (i/100) * 4*Math.PI;   // 2 periods
-      const x = 50 + (i/100) * 270;
-      xPts.push(`${x.toFixed(1)},${(midY - 30*Math.sin(t)).toFixed(1)}`);
-      vPts.push(`${x.toFixed(1)},${(midY - 30*Math.cos(t)).toFixed(1)}`);
-      aPts.push(`${x.toFixed(1)},${(midY + 30*Math.sin(t)).toFixed(1)}`);
-    }
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:340px;height:auto;display:block;margin:0 auto">
-      <line x1="50" y1="${midY}" x2="${W-10}" y2="${midY}" stroke="#475569" stroke-width="1"/>
-      <line x1="50" y1="20" x2="50" y2="${H-20}" stroke="#475569" stroke-width="1"/>
-      <text x="${W-15}" y="${midY+15}" fill="#94a3b8" font-size="10" font-family="'JetBrains Mono',monospace">t</text>
-      <polyline points="${xPts.join(' ')}" stroke="#0ea5e9" stroke-width="2" fill="none"/>
-      <polyline points="${vPts.join(' ')}" stroke="#00e09e" stroke-width="2" fill="none" stroke-dasharray="4,3"/>
-      <polyline points="${aPts.join(' ')}" stroke="#ec4899" stroke-width="2" fill="none" stroke-dasharray="2,2"/>
-      <text x="60" y="35" fill="#0ea5e9" font-size="10" font-family="'JetBrains Mono',monospace" font-weight="600">x(t) = A·sin(ωt)</text>
-      <text x="60" y="50" fill="#00e09e" font-size="10" font-family="'JetBrains Mono',monospace">v(t) = Aω·cos(ωt)</text>
-      <text x="60" y="65" fill="#ec4899" font-size="10" font-family="'JetBrains Mono',monospace">a(t) = -Aω²·sin(ωt)</text>
-    </svg>`;
-  },
-
-  // ── 3 Regimes damping comparison: under (ζ<1), critical (ζ=1), over (ζ>1) ──
-  threeRegimes: (highlight) => {
-    // highlight: 'under' | 'critical' | 'over' | null
-    const W = 340, H = 180, midY = 90, ampMax = 60;
-    const drawCurve = (zeta, color, dash, opacity) => {
-      const pts = [];
-      const wn = 5;
-      for (let i = 0; i <= 100; i++) {
-        const t = (i/100) * 6;
-        const x = 50 + (i/100) * 270;
-        let y;
-        if (zeta < 1) {
-          const wd = wn * Math.sqrt(1-zeta*zeta);
-          y = midY - ampMax * Math.exp(-zeta*wn*t) * Math.cos(wd*t);
-        } else if (zeta === 1) {
-          y = midY - ampMax * (1 + wn*t) * Math.exp(-wn*t);
-        } else {
-          const r1 = -zeta*wn + wn*Math.sqrt(zeta*zeta-1);
-          const r2 = -zeta*wn - wn*Math.sqrt(zeta*zeta-1);
-          const A = (r2 + 0) / (r2 - r1);
-          const B = -(r1 + 0) / (r2 - r1);
-          y = midY - ampMax * (A*Math.exp(r1*t) + B*Math.exp(r2*t));
-        }
-        pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
-      }
-      return `<polyline points="${pts.join(' ')}" stroke="${color}" stroke-width="${opacity===1?'2.5':'1.8'}" fill="none" ${dash?'stroke-dasharray="'+dash+'"':''} opacity="${opacity}"/>`;
-    };
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:340px;height:auto;display:block;margin:0 auto">
-      <line x1="50" y1="${midY}" x2="${W-10}" y2="${midY}" stroke="#475569" stroke-width="1"/>
-      <line x1="50" y1="20" x2="50" y2="${H-20}" stroke="#475569" stroke-width="1"/>
-      <text x="40" y="30" fill="#94a3b8" font-size="10" text-anchor="end" font-family="'JetBrains Mono',monospace">x(t)</text>
-      <text x="${W-15}" y="${midY+15}" fill="#94a3b8" font-size="10" font-family="'JetBrains Mono',monospace">t</text>
-      ${drawCurve(0.1, '#0ea5e9', null, highlight==='under'?1:0.45)}
-      ${drawCurve(1.0, '#00e09e', '4,3', highlight==='critical'?1:0.45)}
-      ${drawCurve(1.8, '#ec4899', '2,2', highlight==='over'?1:0.45)}
-      <text x="60" y="${H-25}" fill="#0ea5e9" font-size="10" font-family="'JetBrains Mono',monospace" font-weight="${highlight==='under'?'700':'400'}">— ζ&lt;1 underdamped</text>
-      <text x="180" y="${H-25}" fill="#00e09e" font-size="10" font-family="'JetBrains Mono',monospace" font-weight="${highlight==='critical'?'700':'400'}">- - ζ=1 critical</text>
-      <text x="60" y="${H-10}" fill="#ec4899" font-size="10" font-family="'JetBrains Mono',monospace" font-weight="${highlight==='over'?'700':'400'}">·· ζ&gt;1 overdamped</text>
-    </svg>`;
-  },
-
-  // ── Time signal + FFT spectrum ──
-  fftSpec: (f1, f2) => {    const W = 340, H = 180;
-    // Left: time domain (t: 0..0.5)
-    const timePts = [];
-    for (let i = 0; i <= 100; i++) {
-      const t = (i/100) * 0.5;
-      const x = 25 + (i/100) * 130;
-      const v = 1.0*Math.sin(2*Math.PI*f1*t) + 0.3*Math.sin(2*Math.PI*f2*t);
-      const y = 90 - v * 30;
-      timePts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
-    }
-    // Right: FFT spectrum (f: 0..50 Hz, dua peaks pada f1 dan f2)
-    const fMax = 50;
-    const xR = 195, xRmax = 320;
-    const xS = (f) => xR + (f/fMax)*(xRmax-xR);
-    const f1x = xS(f1), f2x = xS(f2);
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:360px;height:auto;display:block;margin:0 auto">
-      <text x="90" y="15" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="600">Sinyal x(t)</text>
-      <line x1="25" y1="90" x2="155" y2="90" stroke="#475569" stroke-width="1"/>
-      <line x1="25" y1="30" x2="25" y2="150" stroke="#475569" stroke-width="1"/>
-      <text x="155" y="105" fill="#94a3b8" font-size="9" text-anchor="end" font-family="'JetBrains Mono',monospace">t (s)</text>
-      <polyline points="${timePts.join(' ')}" stroke="#0ea5e9" stroke-width="1.5" fill="none"/>
-      <text x="265" y="15" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="600">FFT |X(f)|</text>
-      <line x1="${xR}" y1="140" x2="${xRmax}" y2="140" stroke="#475569" stroke-width="1"/>
-      <line x1="${xR}" y1="30" x2="${xR}" y2="140" stroke="#475569" stroke-width="1"/>
-      <text x="${xRmax}" y="155" fill="#94a3b8" font-size="9" text-anchor="end" font-family="'JetBrains Mono',monospace">f (Hz)</text>
-      <line x1="${f1x.toFixed(1)}" y1="140" x2="${f1x.toFixed(1)}" y2="50" stroke="#ec4899" stroke-width="3"/>
-      <text x="${f1x.toFixed(1)}" y="45" fill="#ec4899" font-size="10" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="600">f₁=${f1.toFixed(1)}</text>
-      <line x1="${f2x.toFixed(1)}" y1="140" x2="${f2x.toFixed(1)}" y2="105" stroke="#a855f7" stroke-width="3"/>
-      <text x="${f2x.toFixed(1)}" y="100" fill="#a855f7" font-size="9" text-anchor="middle" font-family="'JetBrains Mono',monospace">f₂=${f2.toFixed(1)}</text>
-      <text x="${(xR+xRmax)/2}" y="${H-5}" fill="#fbbf24" font-size="9" text-anchor="middle" font-family="'JetBrains Mono',monospace">f₁ dominan (amplitudo lebih besar)</text>
-    </svg>`;
-  }
-};
 
 // Wrapper untuk inject diagram dalam card soal (dengan label)
-function _diagram(label, svgStr) {
-  return `<div class="diagram-wrap" style="background:rgba(168,85,247,.04);border:1px solid rgba(168,85,247,.18);border-radius:10px;padding:14px 16px;margin:14px 0">
-    <div style="font-size:11px;color:#a855f7;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">📊 ${label}</div>
-    ${svgStr}
-  </div>`;
-}
-window._svg = _svg;
-window._diagram = _diagram;
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // BAGIAN A — TRUE / FALSE (10 soal × 1 poin = 10 poin)
 // ═══════════════════════════════════════════════════════════════════════════
-const UTS_TF = [
-  // ── MODUL 1 ──
-  {
-    id: 'tf1', modul: 1, parametric: false,
-    text: "Getaran mesin adalah gerakan osilasi (bolak-balik) komponen mesin di sekitar posisi keseimbangan, dan amplitudonya selalu menjadi indikator kondisi mesin."
-  },
-  {
-    id: 'tf2', modul: 1, parametric: false,
-    text: "Untuk monitoring frekuensi tinggi (>1 kHz) seperti bearing fault, parameter <b>kecepatan (mm/s)</b> lebih sesuai daripada percepatan (m/s²)."
-  },
-  // ── MODUL 2 ──
-  {
-    id: 'tf3', modul: 2, parametric: false,
-    text: "Pada sistem getaran linier, gaya pegas berbanding lurus dengan <b>perpindahan</b>, sedangkan gaya peredam viskos berbanding lurus dengan <b>kecepatan</b>.",
-    diagram: _diagram('Sistem SDOF — pegas k, peredam c, massa m', _svg.springMassDamper('k', 'm', 'c'))
-  },
-  {
-    id: 'tf4', modul: 2, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m = N+1, k = 1000 (tetap)
-      const m = N + 1;                // langsung dari NIM: m = N+1 kg (range 1-100)
-      const k = 1000;                 // konstan untuk semua mahasiswa
-      return {
-        text: `Sistem getaran SDOF undamped. Berdasarkan NIM Anda, <b>N = ${N}</b> (2 digit terakhir):<br>
-               • <b>m = N + 1 = ${N} + 1 = ${m} kg</b><br>
-               • <b>k = 1000 N/m</b> (tetap, sama untuk semua mahasiswa)<br>
-               Apakah periode natural <em>T &gt; 1.5 detik</em>?`,
-        diagram: _diagram('Sistem Pegas-Massa Bebas — cek T = 2π·√(m/k)', _svg.springMass(k, m))
-      };
-    }
-  },
-  // ── MODUL 3 ──
-  {
-    id: 'tf5', modul: 3, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=5 (tetap), k=125 (tetap), c=N+1 (NIM)
-      // c_crit = 2√(km) = 2√(625) = 50 → ζ = (N+1)/50
-      // Crossover ζ=1 di N=49 → balanced split: 49 underdamped, 51 overdamped
-      const c = N + 1;                // langsung dari NIM: c = N+1 Ns/m
-      const zeta = c / 50;            // c_crit = 2√(km) = 50
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 5 kg</b> (tetap)<br>
-               • <b>k = 125 N/m</b> (tetap)<br>
-               • <b>c = N + 1 = ${N} + 1 = ${c} Ns/m</b><br>
-               Apakah sistem ini berada dalam regim <em>underdamped</em> (ζ &lt; 1)?`,
-        diagram: _diagram('Tiga Regim Damping — bandingkan respons ζ<1, ζ=1, ζ>1', _svg.threeRegimes(zeta < 1 ? 'under' : (zeta > 1 ? 'over' : 'critical')))
-      };
-    }
-  },
-  {
-    id: 'tf6', modul: 3, parametric: false,
-    text: "<em>Logarithmic decrement</em> (δ) adalah metode standar untuk identifikasi rasio redaman ζ dari respons getaran bebas teredam dengan mengukur rasio amplitudo dua puncak berurutan.",
-    diagram: _diagram('Log Decrement — ukur rasio amplitudo puncak berurutan', _svg.decay({zeta: 0.08, wn: 5, markPeaks: 4}))
-  },
-  // ── MODUL 4 ──
-  {
-    id: 'tf7', modul: 4, parametric: false,
-    text: "Pada kondisi resonansi (r = ω/ωₙ = 1) sistem dengan damping (ζ &gt; 0), respons amplitudo membesar tanpa batas (tak terhingga).",
-    diagram: _diagram('DMF puncak finite untuk ζ>0 (lihat semua kurva tidak ke ∞)', _svg.dmfCurve({zetas: [0.05, 0.1, 0.2, 0.5], highlightR: 1.0, highlightZeta: 0.1}))
-  },
-  {
-    id: 'tf8', modul: 4, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=1 (tetap), k=2500 (tetap), ω = N+1 (NIM)
-      // ω_n = √(2500) = 50 rad/s → r = (N+1)/50
-      // Crossover r=1 di N=49 → balanced split
-      const omega = N + 1;            // langsung dari NIM: ω = N+1 rad/s
-      const r = omega / 50;           // ωₙ = √(k/m) = 50 rad/s
-      return {
-        text: `Sistem getaran paksa. Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 1 kg</b> (tetap)<br>
-               • <b>k = 2500 N/m</b> (tetap)<br>
-               • <b>ω = N + 1 = ${N} + 1 = ${omega} rad/s</b> (eksitasi)<br>
-               Apakah frequency ratio <em>r = ω/ωₙ &gt; 1</em> (di atas resonansi)?`,
-        diagram: _diagram('Posisi r mahasiswa pada kurva DMF', _svg.dmfCurve({zetas: [0.1, 0.2], highlightR: r, highlightZeta: 0.1}))
-      };
-    }
-  },
-  // ── MODUL 5 ──
-  {
-    id: 'tf9', modul: 5, parametric: false,
-    text: "<b>Q-factor</b> (Quality factor) yang lebih tinggi menunjukkan damping yang <em>lebih besar</em> pada sistem resonansi.",
-    diagram: _diagram('Q-Factor — semakin kecil ζ, semakin tajam peak DMF', _svg.dmfCurve({zetas: [0.02, 0.1, 0.3], highlightR: 1.0, highlightZeta: 0.02}))
-  },
-  {
-    id: 'tf10', modul: 5, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: r = 0.5 + 0.025·N (langsung dari NIM), ζ = 0.05 tetap
-      // Crossover r=√2 di N≈37 → balanced split
-      const zeta = 0.05;              // tetap
-      const r = 0.5 + 0.025 * N;       // langsung dari NIM
-      return {
-        text: `Sistem isolasi getaran. Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>ζ = 0.05</b> (tetap, damping rendah)<br>
-               • <b>r = 0.5 + 0.025·N = 0.5 + 0.025·${N} = ${r.toFixed(3)}</b><br>
-               Apakah transmisibilitas <em>T<sub>R</sub> &lt; 1</em> (isolasi efektif)?`,
-        diagram: _diagram('Transmissibility T_R — isolasi hanya jika r > √2', _svg.trCurve({zeta: zeta, target: 1.0}))
-      };
-    }
-  },
-];
-
 // ═══════════════════════════════════════════════════════════════════════════
-// BAGIAN B — PILIHAN GANDA (20 soal × 1 poin = 20 poin)
-// ═══════════════════════════════════════════════════════════════════════════
-// Setiap MC: 4 opsi, correctIdx menandai jawaban benar
-// Untuk parametric MC, opsi di-shuffle dengan seed N agar urutan stabil per NIM
-const UTS_MC = [
-  // ── MODUL 1: Konsep Dasar (4 soal) ──
-  {
-    id: 'mc1', modul: 1, parametric: false,
-    text: "Berikut yang <b>BUKAN</b> merupakan parameter standar pengukuran getaran adalah:",
-    options: ["Perpindahan (mm)", "Kecepatan (mm/s)", "Percepatan (m/s²)", "Tekanan (Pa)"]
-  },
-  {
-    id: 'mc2', modul: 1, parametric: false,
-    text: "Pada getaran harmonik sederhana <code>x(t) = A·sin(ωt)</code>, hubungan antara percepatan maksimum a<sub>max</sub> dan amplitudo perpindahan A adalah:",
-    options: ["a<sub>max</sub> = A·ω", "a<sub>max</sub> = A·ω²", "a<sub>max</sub> = A/ω", "a<sub>max</sub> = A·ω³"],
-    diagram: _diagram('Hubungan x(t), v(t), a(t) pada gerakan harmonik', _svg.harmonicMotion())
-  },
-  {
-    id: 'mc3', modul: 1, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: rpm = (N+1)·30 → range 30-3000 RPM
-      const rpm = (N + 1) * 30;        // langsung dari NIM
-      const omega = 2 * Math.PI * (rpm / 60);
-      const opts = [
-        { lbl: omega.toFixed(2) },
-        { lbl: (rpm / 60).toFixed(2) },        // mistake: lupa 2π
-        { lbl: (2 * rpm).toFixed(2) },         // mistake: lupa /60
-        { lbl: (omega / 2).toFixed(2) }        // mistake: setengah
-      ];
-      const shuffled = shuffleSeed(opts, N);
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>RPM = (N + 1) × 30 = (${N} + 1) × 30 = ${rpm} RPM</b><br>
-               Frekuensi sudut motor ω (rad/s) adalah:`,
-        options: shuffled.map(o => o.lbl + ' rad/s')
-      };
-    }
-  },
-  {
-    id: 'mc4', modul: 1, parametric: false,
-    text: "Peredam massa (<em>tuned mass damper</em>) berukuran 660 ton di puncak gedung Taipei 101 berfungsi untuk:",
-    options: ["Meredam getaran akibat angin & gempa", "Menambah massa total agar gedung lebih kokoh", "Memberikan dukungan struktural utama", "Sebagai cadangan generator listrik"]
-  },
-
-  // ── MODUL 2: Sistem Massa-Pegas-Peredam (4 soal) ──
-  {
-    id: 'mc5', modul: 2, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=1 (tetap), k=N+1 langsung dari NIM
-      const m = 1;                    // tetap
-      const k = N + 1;                // langsung dari NIM: k = N+1 N/m (range 1-100)
-      const wn = Math.sqrt(k / m);
-      const opts = [
-        { lbl: wn.toFixed(2) },
-        { lbl: (wn * 1.15).toFixed(2) },
-        { lbl: (wn / 1.15).toFixed(2) },
-        { lbl: Math.sqrt(m / k).toFixed(4) }    // common mistake: invert
-      ];
-      const shuffled = shuffleSeed(opts, N + 5);
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 1 kg</b> (tetap)<br>
-               • <b>k = N + 1 = ${N} + 1 = ${k} N/m</b><br>
-               Frekuensi natural ωₙ adalah:`,
-        options: shuffled.map(o => o.lbl + ' rad/s'),
-        diagram: _diagram('Sistem Pegas-Massa — cari ωₙ = √(k/m)', _svg.springMass(k, m))
-      };
-    }
-  },
-  {
-    id: 'mc6', modul: 2, parametric: false,
-    text: "Persamaan gerak SDOF dengan eksitasi paksa harmonik adalah:",
-    options: ["mẍ + kx = 0", "mẍ + cẋ + kx = 0", "mẍ + cẋ + kx = F₀sin(ωt)", "mẍ = F₀sin(ωt)"]
-  },
-  {
-    id: 'mc7', modul: 2, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=N+1 langsung dari NIM, k=1000 (tetap)
-      const m = N + 1;                // langsung dari NIM
-      const k = 1000;                 // tetap
-      const T = 2 * Math.PI * Math.sqrt(m / k);
-      const opts = [
-        { lbl: T.toFixed(4) },
-        { lbl: (1/Math.sqrt(k/m)).toFixed(4) },                          // mistake: tanpa 2π
-        { lbl: (2*Math.PI*Math.sqrt(k/m)).toFixed(4) },                  // mistake: invert
-        { lbl: (Math.PI*Math.sqrt(m/k)).toFixed(4) }                     // mistake: π not 2π
-      ];
-      const shuffled = shuffleSeed(opts, N + 7);
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = N + 1 = ${N} + 1 = ${m} kg</b><br>
-               • <b>k = 1000 N/m</b> (tetap)<br>
-               Periode natural T (detik) adalah:`,
-        options: shuffled.map(o => o.lbl + ' s'),
-        diagram: _diagram('Sistem Pegas-Massa — cari T = 2π·√(m/k)', _svg.springMass(k, m))
-      };
-    }
-  },
-  {
-    id: 'mc8', modul: 2, parametric: false,
-    text: "Pada sistem dengan <b>2 derajat kebebasan</b> (2-DOF), berapa banyak frekuensi natural yang dimiliki sistem?",
-    options: ["1", "2", "3", "Tergantung damping"]
-  },
-
-  // ── MODUL 3: Damped Free Vibration (4 soal) ──
-  {
-    id: 'mc9', modul: 3, parametric: false,
-    text: "Sistem getaran teredam dengan <b>ζ = 1</b> berada dalam kondisi:",
-    options: ["Underdamped (osilasi mengecil)", "Critically damped (kembali tercepat tanpa overshoot)", "Overdamped (kembali lambat tanpa osilasi)", "Undamped (osilasi konstan)"],
-    diagram: _diagram('Tiga Regim Damping — mana respons ζ=1?', _svg.threeRegimes(null))
-  },
-  {
-    id: 'mc10', modul: 3, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=N+1 langsung dari NIM
-      // c_crit = 2√(km) = 2√100 = 20 → ζ = (N+1)/20
-      const m = 1;                    // tetap
-      const k = 100;                  // tetap
-      const c = N + 1;                // langsung dari NIM
-      const zeta = c / 20;
-      const opts = [
-        { lbl: zeta.toFixed(4) },
-        { lbl: (c/Math.sqrt(m*k)).toFixed(4) },     // mistake: lupa /2
-        { lbl: (c/(2*m*k)).toFixed(6) },             // mistake: tanpa sqrt
-        { lbl: (c/(2*Math.sqrt(k/m))).toFixed(4) }   // mistake: invert
-      ];
-      const shuffled = shuffleSeed(opts, N + 10);
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 1 kg</b> (tetap)<br>
-               • <b>k = 100 N/m</b> (tetap)<br>
-               • <b>c = N + 1 = ${N} + 1 = ${c} Ns/m</b><br>
-               Rasio redaman ζ adalah:`,
-        options: shuffled.map(o => o.lbl),
-        diagram: _diagram('Sistem Massa-Pegas-Peredam — cari rasio redaman ζ', _svg.springMassDamper(k, m, c))
-      };
-    }
-  },
-  {
-    id: 'mc11', modul: 3, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=(N+1)/10 langsung dari NIM
-      // ω_n = 10 rad/s, c_crit = 20, ζ = (N+1)/200 — selalu underdamped
-      const m = 1;                    // tetap
-      const k = 100;                  // tetap → ω_n = 10
-      const c = (N + 1) / 10;          // langsung dari NIM (range 0.1 - 10)
-      const wn = Math.sqrt(k / m);
-      const zeta = c / (2 * Math.sqrt(m * k));
-      const wd = wn * Math.sqrt(1 - zeta * zeta);
-      // Bug fix May 2026: distractor sebelumnya {ωₙ, ωₙ(1-ζ²), ωₙ√(1+ζ²)}
-      // SEMUA converge ke ωₙ saat ζ→0. Untuk NIM dgn N=0..3 (ζ=0.005..0.02),
-      // ke-4 opsi collapse ke "10.000 rad/s" — mahasiswa lihat 4 opsi identik.
-      // Redesign distractor agar tetap pedagogis tapi numerik distinct di semua N.
-      const opts = [
-        { lbl: wd.toFixed(4) },
-        { lbl: wn.toFixed(4) },                                       // mistake: lupa koreksi damping
-        { lbl: (wn*(1-zeta)).toFixed(4) },                            // mistake: linear approx bukan √
-        { lbl: (wn/Math.sqrt(1-zeta*zeta)).toFixed(4) }               // mistake: bagi bukan kali
-      ];
-      const shuffled = shuffleSeed(opts, N + 11);
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 1 kg</b> (tetap)<br>
-               • <b>k = 100 N/m</b> (tetap) → ωₙ = 10 rad/s<br>
-               • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
-               Frekuensi natural teredam ω_d (rad/s) adalah:`,
-        options: shuffled.map(o => o.lbl + ' rad/s'),
-        diagram: _diagram('Underdamped Decay — frekuensi ω_d vs envelope', _svg.decay({zeta: zeta, wn: wn}))
-      };
-    }
-  },
-  {
-    id: 'mc12', modul: 3, parametric: false,
-    text: "Pada underdamped vibration, hubungan antara <b>logarithmic decrement δ</b> dan rasio redaman ζ untuk damping rendah (ζ &lt;&lt; 1) dapat didekati dengan:",
-    options: ["δ ≈ 2πζ", "δ ≈ ζ²", "δ ≈ ζ/2π", "δ ≈ √ζ"]
-  },
-
-  // ── MODUL 4: Forced Vibration & DMF (4 soal) ──
-  {
-    id: 'mc13', modul: 4, parametric: false,
-    text: "Pada kondisi resonansi (r = 1) sistem dengan damping ratio ζ, nilai <b>Dynamic Magnification Factor (DMF)</b> adalah:",
-    options: ["DMF = 1/(2ζ)", "DMF = 2ζ", "DMF = 1/ζ", "DMF → ∞"],
-    diagram: _diagram('Nilai DMF tepat di resonansi r=1', _svg.dmfCurve({zetas: [0.05, 0.1, 0.2, 0.5], highlightR: 1.0, highlightZeta: 0.1}))
-  },
-  {
-    id: 'mc14', modul: 4, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: r = (N+1)/50 langsung dari NIM, ζ = 0.1 tetap
-      const r = (N + 1) / 50;          // langsung dari NIM (range 0.02 - 2.0)
-      const zeta = 0.1;                // tetap
-      const DMF = 1 / Math.sqrt(Math.pow(1 - r * r, 2) + Math.pow(2 * zeta * r, 2));
-      const opts = [
-        { lbl: DMF.toFixed(3) },
-        { lbl: (1/Math.abs(1-r*r)).toFixed(3) },                                                 // mistake: lupa damping
-        { lbl: (1/(2*zeta)).toFixed(3) },                                                         // mistake: assume r=1
-        { lbl: (1/Math.sqrt(Math.pow(1-r,2)+Math.pow(2*zeta*r,2))).toFixed(3) }                  // mistake: (1-r) bukan (1-r²)
-      ];
-      const shuffled = shuffleSeed(opts, N + 14);
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>r = (N + 1) / 50 = (${N} + 1) / 50 = ${r.toFixed(3)}</b><br>
-               • <b>ζ = 0.1</b> (tetap)<br>
-               Dynamic Magnification Factor (DMF) adalah:`,
-        options: shuffled.map(o => o.lbl),
-        diagram: _diagram('Cari DMF pada r dan ζ mahasiswa', _svg.dmfCurve({zetas: [zeta, 0.1, 0.3], highlightR: r, highlightZeta: zeta}))
-      };
-    }
-  },
-  {
-    id: 'mc15', modul: 4, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: F0 = (N+1)·10 langsung dari NIM, m=10, k=10000, ζ=0.1 tetap
-      const m = 10;                   // tetap
-      const k = 10000;                // tetap
-      const F0 = (N + 1) * 10;         // langsung dari NIM (range 10-1000 N)
-      const wn = Math.sqrt(k / m);    // = √1000 ≈ 31.62 rad/s
-      const zeta = 0.1;                // tetap
-      const X_st = F0 / k;             // static deflection
-      const X_res_mm = (X_st / (2 * zeta)) * 1000;  // amplitude pada resonansi (mm)
-      const opts = [
-        { lbl: X_res_mm.toFixed(3) },
-        { lbl: (X_st*1000).toFixed(3) },                                    // mistake: lupa amplifikasi
-        { lbl: (F0/wn/1000).toFixed(5) },                                   // wrong formula
-        { lbl: (F0/k*(1/zeta)*1000).toFixed(3) }                            // mistake: 1/ζ bukan 1/(2ζ)
-      ];
-      const shuffled = shuffleSeed(opts, N + 15);
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 10 kg</b> (tetap), <b>k = 10000 N/m</b> (tetap), <b>ζ = 0.1</b> (tetap)<br>
-               • <b>F₀ = (N + 1) × 10 = (${N} + 1) × 10 = ${F0} N</b><br>
-               Sistem dieksitasi tepat pada frekuensi natural (resonansi). Amplitudo steady-state X (mm) adalah:`,
-        options: shuffled.map(o => o.lbl + ' mm'),
-        diagram: _diagram('Sistem Forced — eksitasi tepat di resonansi', _svg.springMassDamper(k, m, 'c', {force: 'F₀=' + F0 + 'N'}))
-      };
-    }
-  },
-  {
-    id: 'mc16', modul: 4, parametric: false,
-    text: "Cara <b>terbaik</b> menghindari resonansi pada mesin rotasi yang harus tetap beroperasi pada frekuensi tertentu adalah:",
-    options: ["Tambah massa untuk menggeser ωₙ jauh dari ω", "Naikkan damping ratio ζ", "Geser frekuensi natural ωₙ jauh dari ω operasi (tuning)", "Semua jawaban di atas dapat membantu, namun tuning ωₙ adalah pendekatan utama"]
-  },
-
-  // ── MODUL 5: Resonansi & Transmissibility (4 soal) ──
-  {
-    id: 'mc17', modul: 5, parametric: false,
-    text: "Pada kurva DMF vs r untuk berbagai damping ratio ζ, lokasi puncak resonansi terjadi pada r:",
-    options: ["r = 1 (selalu, untuk semua ζ)", "r = √(1 - 2ζ²) (sedikit di bawah 1)", "r = √(1 + 2ζ²) (sedikit di atas 1)", "r = 1/(2ζ)"],
-    diagram: _diagram('Lokasi peak DMF — bandingkan dengan r=1', _svg.dmfCurve({zetas: [0.1, 0.3, 0.5], highlightR: 1.0, highlightZeta: 0.1}))
-  },
-  {
-    id: 'mc18', modul: 5, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: ζ = (N+1)/200 langsung dari NIM (range 0.005 - 0.5)
-      const zeta = (N + 1) / 200;       // langsung dari NIM
-      const Q = 1 / (2 * zeta);
-      const opts = [
-        { lbl: Q.toFixed(2) },
-        { lbl: (1/zeta).toFixed(2) },                          // mistake: lupa /2
-        { lbl: (2*zeta).toFixed(4) },                           // mistake: invert
-        { lbl: (1/(zeta*zeta)).toFixed(2) }                     // mistake: ζ²
-      ];
-      const shuffled = shuffleSeed(opts, N + 18);
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>ζ = (N + 1) / 200 = (${N} + 1) / 200 = ${zeta.toFixed(3)}</b><br>
-               Sistem resonansi dengan damping ratio ζ tersebut. Quality factor Q adalah:`,
-        options: shuffled.map(o => o.lbl),
-        diagram: _diagram('Q = nilai DMF di puncak resonansi', _svg.dmfCurve({zetas: [zeta, 0.1, 0.3], highlightR: 1.0, highlightZeta: zeta}))
-      };
-    }
-  },
-  {
-    id: 'mc19', modul: 5, parametric: true,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: r = 1.5 + 0.04·N langsung dari NIM (range 1.5-5.46), ζ = 0.05 tetap
-      const r = 1.5 + 0.04 * N;        // langsung dari NIM
-      const zeta = 0.05;                // tetap
-      const TR = Math.sqrt((1 + Math.pow(2*zeta*r, 2)) / (Math.pow(1-r*r, 2) + Math.pow(2*zeta*r, 2)));
-      const opts = [
-        { lbl: TR.toFixed(4) },
-        { lbl: (1/Math.abs(1-r*r)).toFixed(4) },  // approx (lupa numerator)
-        { lbl: (1/(r*r-1)).toFixed(4) },           // simpler approx
-        { lbl: (1/r).toFixed(4) }                   // wrong
-      ];
-      const shuffled = shuffleSeed(opts, N + 19);
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>r = 1.5 + 0.04·N = 1.5 + 0.04·${N} = ${r.toFixed(3)}</b><br>
-               • <b>ζ = 0.05</b> (tetap, damping rendah)<br>
-               Untuk isolator getaran tersebut, nilai transmisibilitas T<sub>R</sub> adalah:`,
-        options: shuffled.map(o => o.lbl),
-        diagram: _diagram('Transmissibility T_R pada r mahasiswa', _svg.trCurve({zeta: zeta}))
-      };
-    }
-  },
-  {
-    id: 'mc20', modul: 5, parametric: false,
-    text: "Untuk desain isolator getaran yang efektif (T<sub>R</sub> &lt; 1), syarat minimum frekuensi rasio adalah:",
-    options: ["r &gt; 1", "r &gt; √2 ≈ 1.414", "r &gt; 2", "r &gt; π"],
-    diagram: _diagram('T_R curve — isolasi efektif (T_R<1) hanya jika r > √2', _svg.trCurve({zeta: 0.1, target: 1.0}))
-  },
-];
-
-// ═══════════════════════════════════════════════════════════════════════════
-// BAGIAN C — KOMPUTASI EASY/MEDIUM (10 soal × 2 poin = 20 poin)
-// ═══════════════════════════════════════════════════════════════════════════
-// Setiap soal: 5-15 baris kode Python. Hint berisi kerangka kode lengkap.
-// IDs: c1 - c10
-const UTS_COMP_EZ = [
-  // ── C1: Modul 1 — Frekuensi sudut dari RPM ──
-  {
-    id: 'c1', modul: 1,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: rpm = (N+1)·30 langsung dari NIM
-      const rpm = (N + 1) * 30;        // langsung dari NIM (range 30-3000 RPM)
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b> (2 digit terakhir):<br>
-               • <b>RPM = (N + 1) × 30 = (${N} + 1) × 30 = ${rpm} RPM</b><br>
-               Hitung <b>frekuensi sudut motor ω</b> (rad/s) dengan rumus ω = 2π·(RPM/60).`,
-        hint: `import numpy as np\n# N = ${N} (dari 2 digit terakhir NIM Anda)\nrpm = ${rpm}  # = (N+1) * 30\n# TODO: hitung omega, lalu print(omega)`
-      };
-    }
-  },
-  // ── C2: Modul 2 — Frekuensi natural ωₙ ──
-  {
-    id: 'c2', modul: 2,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=1 (tetap), k=(N+1)·10 langsung dari NIM
-      const m = 1;                     // tetap
-      const k = (N + 1) * 10;          // langsung dari NIM (range 10-1000 N/m)
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 1 kg</b> (tetap)<br>
-               • <b>k = (N + 1) × 10 = (${N} + 1) × 10 = ${k} N/m</b><br>
-               Hitung <b>frekuensi natural ωₙ</b> (rad/s). Rumus: ωₙ = √(k/m).`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = ${k}        # = (N+1) * 10\n# TODO: hitung wn, lalu print(wn)`,
-        diagram: _diagram('Sistem Pegas-Massa Bebas', _svg.springMass(k, m))
-      };
-    }
-  },
-  // ── C3: Modul 2 — Frekuensi natural f_n (Hz) ──
-  {
-    id: 'c3', modul: 2,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=1 (tetap), k=(N+1)·40 langsung dari NIM
-      const m = 1;                     // tetap
-      const k = (N + 1) * 40;          // langsung dari NIM (range 40-4000 N/m)
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 1 kg</b> (tetap)<br>
-               • <b>k = (N + 1) × 40 = (${N} + 1) × 40 = ${k} N/m</b><br>
-               Hitung <b>frekuensi natural f<sub>n</sub></b> dalam <b>Hz</b>. Rumus: f<sub>n</sub> = (1/2π)·√(k/m).`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = ${k}        # = (N+1) * 40\n# TODO: hitung fn, lalu print(fn)`,
-        diagram: _diagram('Sistem Pegas-Massa (cari frekuensi natural Hz)', _svg.springMass(k, m))
-      };
-    }
-  },
-  // ── C4: Modul 3 — Damping ratio ζ ──
-  {
-    id: 'c4', modul: 3,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=N+1 langsung dari NIM
-      const m = 1;                     // tetap
-      const k = 100;                   // tetap → c_crit = 2√(km) = 20
-      const c = N + 1;                 // langsung dari NIM (range 1-100)
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 1 kg</b> (tetap)<br>
-               • <b>k = 100 N/m</b> (tetap)<br>
-               • <b>c = N + 1 = ${N} + 1 = ${c} Ns/m</b><br>
-               Hitung <b>rasio redaman ζ</b> (dimensionless). Rumus: ζ = c/(2√(km)).`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = 100          # tetap\nc = ${c}            # = N+1\n# TODO: hitung zeta, lalu print(zeta)`,
-        diagram: _diagram('Sistem Massa-Pegas-Peredam (cari rasio redaman ζ)', _svg.springMassDamper(k, m, c))
-      };
-    }
-  },
-  // ── C5: Modul 3 — Damped natural frequency ω_d (MULTI-STEP) ──
-  {
-    id: 'c5', modul: 3,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=1, k=100, c=(N+1)/10 langsung dari NIM
-      // ζ = (N+1)/200 → range 0.005-0.5, selalu underdamped
-      const c = (N + 1) / 10;          // langsung dari NIM (range 0.1-10)
-      const zeta = c / 20;             // ωₙ=10, 2√(km)=20
-      const wn = 10;
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 1 kg</b> (tetap), <b>k = 100 N/m</b> (tetap) → ωₙ = 10 rad/s<br>
-               • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
-               Hitung <b>frekuensi natural teredam ω<sub>d</sub></b> (rad/s). Rumus: ω<sub>d</sub> = ωₙ·√(1−ζ²).
-               <div style="margin-top:8px;padding:8px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:6px;color:var(--violet);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 3 nilai berurutan: <b>ωₙ → ζ → ω_d</b>. Final answer saja tidak cukup.</div>`,
-        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# WAJIB print BERURUTAN: wn → zeta → wd\n# PENTING: pakai print(value) langsung — JANGAN round() / format .Nf (jaga presisi)\n# TODO: hitung wn, lalu print(wn)       # langkah 1\n# TODO: hitung zeta, lalu print(zeta)   # langkah 2\n# TODO: hitung wd, lalu print(wd)       # final`,
-        diagram: _diagram('Underdamped — Frekuensi natural teredam ωd < ωn', _svg.decay({zeta: zeta, wn: wn}))
-      };
-    }
-  },
-  // ── C6: Modul 3 — Logarithmic decrement δ ──
-  {
-    id: 'c6', modul: 3,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: x1=0.1 (tetap), x2 = 0.1·exp(-(N+1)/100) — rasio dari NIM
-      const x1 = 0.1;                  // tetap (m)
-      const ratio = Math.exp(-(N + 1) / 100);  // rasio x2/x1, range 0.367 - 0.990
-      const x2 = x1 * ratio;
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>. Pada eksperimen getaran bebas teredam, dua puncak amplitudo berurutan diukur:<br>
-               • <b>x₁ = 0.1 m</b> (tetap)<br>
-               • <b>x₂ = x₁ · exp(−(N+1)/100) = 0.1 · exp(−${N+1}/100) = ${x2.toFixed(4)} m</b><br>
-               Hitung <b>logarithmic decrement δ</b>. Rumus: δ = ln(x₁/x₂).`,
-        hint: `import numpy as np\n# N = ${N}\nx1 = 0.1                  # tetap (amplitudo siklus pertama)\nx2 = ${x2.toFixed(4)}              # tetap (amplitudo siklus berikutnya — diberikan)\n# TODO: hitung delta, lalu print(delta)`,
-        diagram: _diagram('Logarithmic Decrement — δ = ln(x₁/x₂)', _svg.decay({zeta: 0.08, wn: 5, markPeaks: 3}))
-      };
-    }
-  },
-  // ── C7: Modul 4 — DMF pada r tertentu ──
-  {
-    id: 'c7', modul: 4,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: r = (N+1)/50 langsung dari NIM, ζ = 0.1 tetap
-      const r = (N + 1) / 50;          // langsung dari NIM (range 0.02 - 2.0)
-      const zeta = 0.1;                 // tetap
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>r = (N + 1) / 50 = (${N} + 1) / 50 = ${r.toFixed(3)}</b><br>
-               • <b>ζ = 0.1</b> (tetap)<br>
-               Hitung <b>Dynamic Magnification Factor (DMF)</b>. Rumus: DMF = 1/√((1−r²)² + (2ζr)²).`,
-        hint: `import numpy as np\n# N = ${N}\nr = ${r.toFixed(3)}        # = (N+1)/50\nzeta = 0.1                # tetap\n# TODO: hitung DMF, lalu print(DMF)`,
-        diagram: _diagram('Dynamic Magnification Factor — kurva DMF vs r', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2, 0.7], highlightR: r, highlightZeta: zeta}))
-      };
-    }
-  },
-  // ── C8: Modul 4 — Steady-state amplitude X (MULTI-STEP) ──
-  {
-    id: 'c8', modul: 4,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: F0 = (N+1)·10 langsung dari NIM; m,k,c,ω semua tetap
-      const m = 10;                    // tetap
-      const c = 50;                     // tetap
-      const k = 10000;                  // tetap → ω_n = √1000 ≈ 31.6
-      const F0 = (N + 1) * 10;          // langsung dari NIM (range 10-1000 N)
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 10 kg, c = 50 Ns/m, k = 10000 N/m, ω = 20 rad/s</b> (semua tetap)<br>
-               • <b>F₀ = (N + 1) × 10 = (${N} + 1) × 10 = ${F0} N</b><br>
-               Sistem dieksitasi gaya harmonik F(t) = F₀·sin(ωt). Hitung <b>amplitudo steady-state X</b> dalam <b>mm</b>. Rumus: X = F₀/√((k−mω²)² + (cω)²).
-               <div style="margin-top:8px;padding:8px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:6px;color:var(--violet);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>X dalam meter → X dalam mm</b>.</div>`,
-        hint: `import numpy as np\n# N = ${N}\nm = 10           # tetap\nc = 50           # tetap\nk = 10000        # tetap\nF0 = ${F0}         # = (N+1) * 10\nomega = 20       # tetap\n# WAJIB print BERURUTAN: X (meter) → X (mm)\n# PENTING: pakai print(value) langsung — JANGAN round() / format .Nf (jaga presisi)\n# TODO: hitung X dalam meter, lalu print(X)        # langkah 1: amplitudo dalam meter\n# TODO: konversi ke mm, lalu print(X_mm)           # final: amplitudo dalam mm`,
-        diagram: _diagram('Forced Vibration — Cari amplitudo steady-state X', _svg.springMassDamper(k, m, c, {force: 'F₀sin(ωt)'}))
-      };
-    }
-  },
-  // ── C9: Modul 5 — Q-factor (MULTI-STEP) ──
-  {
-    id: 'c9', modul: 5,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=(N+1)/10 langsung dari NIM
-      const c = (N + 1) / 10;          // langsung dari NIM (range 0.1-10)
-      const zeta = c / 20;             // ωₙ=10, 2√(km)=20
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 1 kg, k = 100 N/m</b> (tetap)<br>
-               • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
-               Hitung <b>Quality factor Q</b>. Rumus: Q = 1/(2ζ), dengan ζ = c/(2√(km)).
-               <div style="margin-top:8px;padding:8px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);border-radius:6px;color:var(--violet);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>ζ → Q</b>.</div>`,
-        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# WAJIB print BERURUTAN: zeta → Q\n# PENTING: pakai print(value) langsung — JANGAN round() / format .Nf (jaga presisi)\n# TODO: hitung zeta, lalu print(zeta)    # langkah 1\n# TODO: hitung Q, lalu print(Q)          # final`,
-        diagram: _diagram('Q-Factor = nilai DMF di puncak resonansi (r≈1)', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2], highlightR: 1.0, highlightZeta: zeta}))
-      };
-    }
-  },
-  // ── C10: Modul 5 — Transmissibility ──
-  {
-    id: 'c10', modul: 5,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: r = 1.6 + 0.04·N langsung dari NIM (range 1.6-5.56), ζ = 0.05 tetap
-      const r = 1.6 + 0.04 * N;        // langsung dari NIM (semua > √2)
-      const zeta = 0.05;                // tetap
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>r = 1.6 + 0.04·N = 1.6 + 0.04·${N} = ${r.toFixed(3)}</b><br>
-               • <b>ζ = 0.05</b> (tetap, damping rendah)<br>
-               Hitung <b>transmisibilitas T<sub>R</sub></b> untuk sistem isolasi tersebut. Rumus: T<sub>R</sub> = √((1+(2ζr)²) / ((1−r²)² + (2ζr)²)).`,
-        hint: `import numpy as np\n# N = ${N}\nr = ${r.toFixed(3)}            # = 1.6 + 0.04*N\nzeta = 0.05            # tetap\n# TODO: hitung TR, lalu print(TR)`,
-        diagram: _diagram('Transmissibility T_R vs r — Isolasi efektif r > √2', _svg.trCurve({zeta: zeta}))
-      };
-    }
-  },
-];
-
-// ═══════════════════════════════════════════════════════════════════════════
-// BAGIAN D — KOMPUTASI HARD (5 soal × 4 poin = 20 poin)
-// ═══════════════════════════════════════════════════════════════════════════
-// Setiap soal: 20-50+ baris kode. Algoritma lengkap.
-// IDs: c11 - c15
-// Partial credit +1 poin jika kode di-submit (non-empty) tapi output salah/error.
-const UTS_COMP_HARD = [
-  // ── C11: Modul 2/3 — RK4 untuk getaran bebas teredam ──
-  {
-    id: 'c11', modul: 3,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=(N+1)/10 langsung dari NIM
-      // ζ = (N+1)/200 → range 0.005-0.5, selalu underdamped
-      const c = (N + 1) / 10;          // langsung dari NIM (range 0.1-10 Ns/m)
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 1 kg</b> (tetap)<br>
-               • <b>k = 100 N/m</b> (tetap) → ωₙ = 10 rad/s<br>
-               • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
-               Implementasikan integrator <b>Runge-Kutta orde-4 (RK4)</b> untuk menyelesaikan sistem getaran bebas teredam <code>mẍ + cẋ + kx = 0</code>. Kondisi awal: <b>x(0) = 0.1 m, ẋ(0) = 0</b>. Step <b>h = 0.001 s</b>, durasi <b>t = 0..3 s</b>. Laporkan <b>nilai puncak amplitudo positif PERTAMA setelah simpangan x melewati nol</b> (yaitu peak positif kedua, dalam meter).
-               <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 3 nilai berurutan: <b>ζ → ωₙ → peak amplitude</b>. Final answer saja tidak cukup.</div>`,
-        hint: `import numpy as np\n# N = ${N} (dari NIM Anda)\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# WAJIB print BERURUTAN: zeta → wn → peak\n# PENTING: pakai print(value) langsung — JANGAN round() / format .Nf (jaga presisi)\n# TODO: hitung zeta, lalu print(zeta)         # langkah 1\n# TODO: hitung wn, lalu print(wn)             # langkah 2\n# TODO: implementasikan integrator + peak detection, lalu print(peak_x)   # final`,
-        diagram: _diagram('Sistem Massa-Pegas-Peredam (free vibration, x₀=0.1)', _svg.springMassDamper(100, 1, c.toFixed(1)))
-      };
-    }
-  },
-  // ── C12: Modul 3 — Identifikasi ζ via logarithmic decrement (MULTI-STEP) ──
-  {
-    id: 'c12', modul: 3,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: zeta_true = (N+1)/200 langsung dari NIM, wn = 10 tetap
-      const zeta_true = (N + 1) / 200;          // langsung dari NIM (range 0.005-0.5)
-      const wn = 10;                             // tetap (rad/s)
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>ζ_true = (N + 1) / 200 = (${N} + 1) / 200 = ${zeta_true.toFixed(4)}</b> (rasio redaman sebenarnya)<br>
-               • <b>ωₙ = 10 rad/s</b> (tetap)<br>
-               Identifikasi <b>rasio redaman ζ</b> dari sinyal getaran bebas underdamped <code>x(t) = exp(−ζ_true·ωₙ·t)·cos(ωd·t)</code> untuk t ∈ [0, 8] dengan 4000 sampel. Lakukan <em>peak detection</em> (ambil <b>n = 5 puncak</b>), hitung <b>logarithmic decrement</b>, lalu estimasi <b>ζ</b>. Laporkan ζ_estimasi (harus mendekati ζ_true).
-               <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>δ → ζ_est</b>. Final answer saja tidak cukup.</div>`,
-        hint: `import numpy as np\nfrom scipy.signal import find_peaks\n# N = ${N} (dari NIM Anda)\nzeta_true = (${N}+1)/200    # ground-truth (untuk validasi internal)\nwn = 10                     # tetap (rad/s)\n# Parameter sinyal (sesuai text soal): t ∈ [0, 8] s, 4000 sampel\n# WAJIB print BERURUTAN: delta → zeta_est\n# PENTING: pakai print(value) langsung — JANGAN round() / format .Nf (jaga presisi)\n# TODO: generate sinyal x(t); lakukan peak detection (n=5); hitung delta; print(delta)\n# TODO: estimasi zeta_est dari delta; print(zeta_est)`,
-        diagram: _diagram('Identifikasi ζ — peak detection pada decay sinyal', _svg.decay({zeta: zeta_true, wn: wn, markPeaks: 5}))
-      };
-    }
-  },
-  // ── C13: Modul 1/4 — FFT untuk identifikasi frekuensi dominan ──
-  {
-    id: 'c13', modul: 4,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: f1 = N+1 Hz langsung dari NIM (komponen dominan), f2 = 80 Hz tetap
-      const f1 = N + 1;                  // langsung dari NIM (range 1-100 Hz, dominan)
-      const f2 = 80;                     // tetap (komponen lemah)
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>f₁ = N + 1 = ${N} + 1 = ${f1} Hz</b> (komponen dominan, A₁ = 1.0)<br>
-               • <b>f₂ = 80 Hz</b> (tetap, komponen lemah, A₂ = 0.3)<br>
-               Lakukan <b>analisis FFT</b> untuk mengidentifikasi frekuensi dominan dari sinyal getaran <code>x(t) = A₁·sin(2π·f₁·t) + A₂·sin(2π·f₂·t)</code> untuk <b>t ∈ [0, 4]</b> detik dengan <b>sampling rate 1000 Hz</b>. Hitung FFT dengan <code>numpy.fft.rfft</code>, cari frekuensi dengan magnitudo tertinggi, dan laporkan <b>frekuensi dominan dalam Hz</b>.`,
-        hint: `import numpy as np\n# N = ${N}\nf1 = ${f1}              # Hz (komponen dominan, A1 = 1.0)\nf2 = 80                # Hz (komponen lemah, A2 = 0.3)\nfs = 1000              # sampling rate, durasi 4 detik (sesuai text soal)\n# TODO: generate sinyal x(t); lakukan FFT; cari frekuensi dominan; print(f_dominan)`,
-        diagram: _diagram('FFT — sinyal time-domain & spektrum frekuensi', _svg.fftSpec(f1, f2))
-      };
-    }
-  },
-  // ── C14: Modul 4 — Sweep frekuensi untuk cari resonansi (DMF max) ──
-  {
-    id: 'c14', modul: 4,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=1 (tetap), k=100 (tetap), c=(N+1)/10 langsung dari NIM
-      // ω_n = 10, ζ = (N+1)/200 → ω_peak = 10·√(1−2ζ²)
-      const c = (N + 1) / 10;          // langsung dari NIM (range 0.1-10)
-      const zeta = c / 20;             // 2√(km) = 20
-      const r_peak = Math.sqrt(1 - 2 * zeta * zeta);
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 1 kg, k = 100 N/m</b> (tetap) → ωₙ = 10 rad/s<br>
-               • <b>c = (N + 1) / 10 = (${N} + 1) / 10 = ${c.toFixed(1)} Ns/m</b><br>
-               Cari <b>frekuensi eksitasi yang memberikan amplifikasi MAKSIMUM</b> (resonansi). Lakukan sweep ω dari 1 hingga 100 rad/s dengan step 0.01, hitung DMF(ω) untuk setiap ω, lalu laporkan <b>ω_peak (rad/s) di mana DMF mencapai maksimum</b>.
-               <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>ζ → ω_peak</b>. Final answer saja tidak cukup.</div>`,
-        hint: `import numpy as np\n# N = ${N}\nm = 1            # tetap\nk = 100          # tetap\nc = ${c.toFixed(1)}          # = (N+1)/10\n# WAJIB print BERURUTAN: zeta → omega_peak\n# PENTING: pakai print(value) langsung — JANGAN round() / format .Nf (jaga presisi)\n# TODO: hitung zeta, lalu print(zeta)                       # langkah 1\n# TODO: sweep ω ∈ [1, 100] dgn step 0.01, cari omega_peak, lalu print(omega_peak)     # final`,
-        diagram: _diagram('Sweep frekuensi — cari ω yang DMF maksimum', _svg.dmfCurve({zetas: [zeta, 0.05, 0.2], highlightR: r_peak, highlightZeta: zeta}))
-      };
-    }
-  },
-  // ── C15: Modul 5 — Desain isolator: cari k untuk T_R target ──
-  {
-    id: 'c15', modul: 5,
-    compute: (N) => {
-      // FORMULA EKSPLISIT: m=50 (tetap), ω_ex = N+1 langsung dari NIM, target T_R=0.10
-      const omega_ex = N + 1;          // langsung dari NIM (range 1-100 rad/s)
-      const TR_target = 0.10;          // target 10% transmisibilitas
-      return {
-        text: `Berdasarkan NIM Anda, <b>N = ${N}</b>:<br>
-               • <b>m = 50 kg</b> (tetap, mesin)<br>
-               • <b>ω_eksitasi = N + 1 = ${N} + 1 = ${omega_ex} rad/s</b><br>
-               • <b>T_R target = 0.10</b> (10%), <b>ζ = 0.05</b> (tetap)<br>
-               Desain isolator getaran. Tentukan <b>nilai kekakuan pegas k (N/m) MAKSIMUM</b> yang masih memenuhi syarat T<sub>R</sub> ≤ 0.10. Lakukan sweep ωₙ dari 0.01 hingga ω_eksitasi, cari ωₙ maksimum yang memenuhi, lalu konversi ke k.
-               <div style="margin-top:8px;padding:8px 10px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.3);border-radius:6px;color:var(--pink);font-size:12px"><b>⚠ MULTI-STEP:</b> wajib <code>print()</code> 2 nilai berurutan: <b>ωₙ_max → k_max</b>. Final answer saja tidak cukup.</div>`,
-        hint: `import numpy as np\n# N = ${N}\nm = 50           # tetap (mesin)\nomega_ex = ${omega_ex}      # = N+1 (eksitasi)\nTR_target = 0.10\nzeta = 0.05\n# WAJIB print BERURUTAN: best_wn → k\n# PENTING: pakai print(value) langsung — JANGAN round() / format .Nf (jaga presisi)\n# TODO: sweep ωₙ ∈ [0.01, ω_ex] dgn step 0.01, cari best_wn (ωₙ terbesar yg memenuhi T_R ≤ TR_target), lalu print(best_wn)   # langkah 1\n# TODO: hitung k dari best_wn, lalu print(k)                  # final`,
-        diagram: _diagram('Desain isolator — cari ωₙ paling besar yang T_R ≤ 0.10', _svg.trCurve({zeta: 0.05, target: TR_target}))
-      };
-    }
-  },
-];
-
-// Expose globally
-window.UTS_TF = UTS_TF;
-window.UTS_MC = UTS_MC;
-window.UTS_COMP_EZ = UTS_COMP_EZ;
-window.UTS_COMP_HARD = UTS_COMP_HARD;
+// Bank soal TIDAK di-embed statis di sini lagi — celah keamanan: teks soal
+// bisa dibaca via View Source/DevTools sebelum jadwal UTS dibuka (submit
+// jawaban sendiri sudah lama server-only, tapi teks soal dulu belum). Sekarang
+// window.UTS_TF/MC/COMP_EZ/COMP_HARD di-isi oleh _ensureUTSQuestionsLoaded()
+// via callable getExamQuestions (server-gated PIN+jadwal / admin), dipanggil
+// setelah login berhasil. Definisi soal + helper SVG pindah ke repo backend:
+// functions/exams/uts-<course>-bank.js. Lihat Pedoman §40.29.
 window.shuffleSeed = shuffleSeed;
 
 
@@ -3232,7 +2265,7 @@ function renderUTSQuestions() {
   if (tfContainer) {
     tfContainer.innerHTML = '';
     window.UTS_TF.forEach((q, i) => {
-      const data = q.parametric ? q.compute(N) : { text: q.text };
+      const data = q;   // sudah ter-render server (getExamQuestions)
       const num = i + 1;
       const isParam = q.parametric;
       const card = document.createElement('div');
@@ -3268,7 +2301,7 @@ function renderUTSQuestions() {
   if (mcContainer) {
     mcContainer.innerHTML = '';
     window.UTS_MC.forEach((q, i) => {
-      const data = q.parametric ? q.compute(N) : { text: q.text, options: q.options };
+      const data = q;   // sudah ter-render server (getExamQuestions)
       const num = i + 1;
       const isParam = q.parametric;
       const card = document.createElement('div');
@@ -3304,7 +2337,7 @@ function renderUTSQuestions() {
   if (compEzContainer) {
     compEzContainer.innerHTML = '';
     window.UTS_COMP_EZ.forEach((q, i) => {
-      const data = q.compute(N);
+      const data = q;   // sudah ter-render server (getExamQuestions)
       const num = i + 1;
       const card = _buildCompCard(q, num, data, 'C', false);
       compEzContainer.appendChild(card);
@@ -3316,7 +2349,7 @@ function renderUTSQuestions() {
   if (compHardContainer) {
     compHardContainer.innerHTML = '';
     window.UTS_COMP_HARD.forEach((q, i) => {
-      const data = q.compute(N);
+      const data = q;   // sudah ter-render server (getExamQuestions)
       const num = i + 1;
       const card = _buildCompCard(q, num, data, 'D', true);
       compHardContainer.appendChild(card);
@@ -3991,7 +3024,7 @@ async function exportTugasHtml() {
 
   // ── Collect TF data ──
   const tfData = (window.UTS_TF || []).map((q, i) => {
-    const data = q.parametric ? q.compute(N) : { text: q.text, answer: q.answer };
+    const data = q;   // sudah ter-render server; jawaban TIDAK pernah dikirim
     const id = q.id;
     const opts = document.getElementById('tfopts-' + id);
     const sel = opts?.querySelector('.tf-option.selected');
@@ -4018,7 +3051,7 @@ async function exportTugasHtml() {
 
   // ── Collect MC data ──
   const mcData = (window.UTS_MC || []).map((q, i) => {
-    const data = q.parametric ? q.compute(N) : { text: q.text, options: q.options, correctIdx: q.correctIdx };
+    const data = q;   // sudah ter-render server; kunci TIDAK pernah dikirim
     const id = q.id;
     const rg = document.getElementById('rg-' + id);
     const sel = rg?.querySelector('.radio-option.selected');
@@ -4047,7 +3080,7 @@ async function exportTugasHtml() {
   // NOTE: expected/tolerance sengaja TIDAK dikumpulkan — kunci jawaban
   // murni server-side (Firestore). Export PDF hanya berisi soal + kode user.
   const compEzData = (window.UTS_COMP_EZ || []).map((q, i) => {
-    const data = q.compute(N);
+    const data = q;   // sudah ter-render server (getExamQuestions)
     const id = q.id;
     const ta = document.getElementById('code-' + id);
     return {
@@ -4061,7 +3094,7 @@ async function exportTugasHtml() {
 
   // ── Collect Comp Hard data ──
   const compHardData = (window.UTS_COMP_HARD || []).map((q, i) => {
-    const data = q.compute(N);
+    const data = q;   // sudah ter-render server (getExamQuestions)
     const id = q.id;
     const ta = document.getElementById('code-' + id);
     return {
@@ -6011,6 +5044,9 @@ window._generateExportCodeCallable = _generateExportCodeCallable;
   window.getIdentity = getIdentity;
   window._aiChatCallable = httpsCallable(_functions, 'aiChat');
   window._moduleChatContextCallable = httpsCallable(_functions, 'getModuleChatContext');
+// Server-gated question fetch (Pedoman §40.29) — teks soal HANYA dikirim
+// setelah PIN+jadwal (mahasiswa) atau sesi admin (dosen) terverifikasi.
+const _getExamQuestionsCallable = httpsCallable(_functions, 'getExamQuestions');
 
 // PIN hash session-scope (set saat login berhasil, dipakai utk auth ke callable).
 // Disimpan di sessionStorage (bukan localStorage) supaya:
@@ -6022,12 +5058,66 @@ try {
   const stored = sessionStorage.getItem(_PIN_SESSION_KEY);
   if (stored && /^[0-9a-f]{64}$/.test(stored)) window._sessionPinHash = stored;
 } catch (e) { /* sessionStorage tidak available di beberapa context */ }
+// ═══════════════════════════════════════════════════════════════════════════
+// SERVER-GATED QUESTION FETCH (Pedoman §40.29)
+// Teks soal (bukan kunci jawaban — itu sudah lama server-only) HANYA dikirim
+// setelah PIN+jadwal (mahasiswa) atau sesi admin (dosen) terverifikasi lewat
+// callable getExamQuestions. Idempoten & self-guarding — aman dipanggil
+// berkali-kali dari banyak titik.
+// ═══════════════════════════════════════════════════════════════════════════
+function _showUTSLoadState(html) {
+  const c = document.getElementById('container-tf');
+  if (c) c.innerHTML = html;
+  ['container-mc', 'container-comp-ez', 'container-comp-hard'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+}
+
+async function _ensureUTSQuestionsLoaded() {
+  if ((typeof _utsRendered !== 'undefined' && _utsRendered) || window._utsRenderedFlag || window._utsQuestionsLoading) return;
+  const me = getIdentity();
+  if (!me) return;
+  const isDosenNow = me.role === 'dosen';
+  if (!isDosenNow && (!me.nim || !window._sessionPinHash)) return;   // tunggu PIN session siap
+
+  window._utsQuestionsLoading = true;
+  _showUTSLoadState('<div style="padding:28px 20px;text-align:center;color:var(--muted);font-family:JetBrains Mono,monospace;font-size:13px">Memuat soal UTS...</div>');
+  try {
+    const payload = { examId: EXAM_ID };
+    if (!isDosenNow) {
+      payload.nim = me.nim;
+      payload.pinHash = window._sessionPinHash;
+    }
+    const result = await _getExamQuestionsCallable(payload);
+    const d = result.data || {};
+    window._utsServerN = Number.isInteger(d.N) ? d.N : null;
+    window.UTS_TF = d.tf || [];
+    window.UTS_MC = d.mc || [];
+    window.UTS_COMP_EZ = d.compEz || [];
+    window.UTS_COMP_HARD = d.compHard || [];
+    if (typeof window.renderUTSQuestions === 'function') {
+      window.renderUTSQuestions();
+      window._utsRenderedFlag = true;
+    }
+  } catch (err) {
+    console.error('[UTS] Gagal memuat soal:', err);
+    const msg = (err && err.message) ? err.message : 'Gagal memuat soal. Coba refresh halaman.';
+    _showUTSLoadState('<div style="padding:24px 20px;text-align:center;color:var(--pink);font-family:JetBrains Mono,monospace;font-size:13px;background:rgba(236,72,153,.06);border:1px solid rgba(236,72,153,.25);border-radius:12px">Soal terkunci: ' + msg + '</div>');
+  } finally {
+    window._utsQuestionsLoading = false;
+  }
+}
+window._ensureUTSQuestionsLoaded = _ensureUTSQuestionsLoaded;
+
 function _setSessionPinHash(hash) {
   window._sessionPinHash = hash || null;
   try {
     if (hash) sessionStorage.setItem(_PIN_SESSION_KEY, hash);
     else sessionStorage.removeItem(_PIN_SESSION_KEY);
   } catch (e) {}
+  // Sesi PIN baru siap -> soal bisa diambil dari server.
+  if (hash && typeof window._ensureUTSQuestionsLoaded === 'function') window._ensureUTSQuestionsLoaded();
 }
 window._setSessionPinHash = _setSessionPinHash;
 
@@ -6106,8 +5196,9 @@ async function _activateDosenQuestionView() {
     chip.title = 'Mode dosen: soal dapat ditinjau, tetapi jawaban dan poin dinonaktifkan';
   }
   if (typeof window.switchTab === 'function') window.switchTab('uts');
-  if (typeof window.renderUTSQuestions === 'function' && !window._utsRenderedFlag) {
-    window.renderUTSQuestions();
+  if (_auth && typeof _auth.authStateReady === 'function') await _auth.authStateReady();
+  if (typeof window._ensureUTSQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
+    await window._ensureUTSQuestionsLoaded();
   }
   if (typeof window._updateUTSAccessGate === 'function') window._updateUTSAccessGate();
 }
@@ -6119,10 +5210,11 @@ function saveIdentity(v){
   // Untuk mahasiswa, _utsRenderedFlag tetap di-set di dalam renderer setelah sukses.
   if (v && v.role === 'dosen') {
     setTimeout(() => window._activateDosenQuestionView(), 50);
-  } else if (typeof window.renderUTSQuestions === 'function' && !window._utsRenderedFlag) {
+  } else if (typeof window._ensureUTSQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
+    // Soal diambil dari server dulu; renderer dipanggil di dalam loader.
     setTimeout(() => {
-      try { window.renderUTSQuestions(); }
-      catch(e) { console.error('renderUTSQuestions error:', e); }
+      try { window._ensureUTSQuestionsLoaded(); }
+      catch(e) { console.error('_ensureUTSQuestionsLoaded error:', e); }
     }, 50);
   }
   // Presence: register student heartbeat (idempotent — aman dipanggil di tiap saveIdentity)
@@ -6515,6 +5607,10 @@ function _handleScheduleReady() {
         })();
       }
       _applyRoleVisibility();
+      // Jaring aman: identity & sesi PIN sudah ada dari kunjungan sebelumnya.
+      if (typeof window._ensureUTSQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
+        setTimeout(() => window._ensureUTSQuestionsLoaded(), 100);
+      }
       // UTS: Render questions FIRST sebelum _loadScoredQuestions agar DOM ready.
       // _utsRenderedFlag di-set INSIDE renderUTSQuestions setelah render sukses
       // (BUKAN di sini) — biar guard N=0 yg return early tidak nge-lock flag.
