@@ -884,7 +884,11 @@ STUDENTS_READY.then(() => {
 // MAPPING editor (Tugas/UTS/UAS → Sub-CPMK) — database + cache per course
 // ═══════════════════════════════════════════════════════════════
 const COURSE_ID = 'getaran_mekanik';
-const MAP_KEY = `obe-mapping-${COURSE_ID}-v2`;
+// v3: mapping UTS/UAS diselaraskan ke OBE_EXAM_CONFIG server. Versi dinaikkan
+// supaya mapping v2 yang sudah ter-cache di localStorage TIDAK dipakai lagi —
+// mappingMatchesCourse() hanya memeriksa nama Sub-CPMK, bukan isi daftarnya,
+// jadi cache lama akan lolos validasi dan menang atas DEFAULT_MAPPING.
+const MAP_KEY = `obe-mapping-${COURSE_ID}-v3`;
 const LEGACY_MAP_KEY = 'opto-obe-mapping-v1';
 function rangeList(lo,hi){ const a=[]; for(let i=lo;i<=hi;i++)a.push(i); return a; }
 const DEFAULT_MAPPING = {
@@ -897,10 +901,15 @@ const DEFAULT_MAPPING = {
     "5.1":[11],
     "6.1":[12], "6.2":[13], "6.3":[14]
   },
-  // UTS Sub-CPMK → daftar nomor soal (Q1-45). Distribusi proporsional bobot (Σ=25).
-  uts: {"1.1":rangeList(34,40), "1.2":rangeList(1,8), "1.3":[9,10,11,12,31], "2.1":[13,14,15,16,17,18,32], "2.2":[19,20,21,22,23,24,33], "3.1":rangeList(41,45), "3.2":rangeList(25,30)},
-  // UAS Sub-CPMK → daftar nomor soal. Distribusi proporsional bobot (Σ=24).
-  uas: {"3.3":[1,2,3,31], "4.1":[4,5,6,7,8,32], "4.2":[9,10,11,12,13,14,33], "5.1":rangeList(15,22), "6.1":rangeList(23,30), "6.2":rangeList(34,40), "6.3":rangeList(41,45)}
+  // UTS/UAS Sub-CPMK → daftar nomor soal (Q1-45).
+  //
+  // WAJIB IDENTIK dengan OBE_EXAM_CONFIG["getaran-mekanik-uts"|"getaran-mekanik-uas"]
+  // .mapping di functions/index.js. Poin tiap soal diturunkan dari bobot Sub-CPMK
+  // versi SERVER; kalau Rekap mengelompokkan ulang soal dengan daftar yang
+  // berbeda, Σ(Sub-CPMK% × bobot)/Σbobot tidak lagi sama dengan total poin
+  // mentah dan mahasiswa melihat dua angka berbeda untuk ujian yang sama.
+  uts: {"1.1":rangeList(31,40), "1.2":rangeList(1,7), "1.3":rangeList(8,12), "2.1":rangeList(13,18), "2.2":rangeList(19,24), "3.1":rangeList(41,45), "3.2":rangeList(25,30)},
+  uas: {"3.3":[1,2,11,12,13,31,32], "4.1":[3,4,14,15,16,33,41], "4.2":[5,17,18,19,34,35], "5.1":[6,7,20,21,22,36,37,42], "6.1":[8,23,24,25,38,39,43], "6.2":[9,26,27,28,40,44], "6.3":[10,29,30,45]}
 };
 function mappingMatchesCourse(m){
   if(!m || typeof m !== 'object') return false;

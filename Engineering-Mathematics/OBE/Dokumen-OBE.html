@@ -866,7 +866,11 @@ STUDENTS_READY.then(() => {
 // MAPPING editor (Tugas/UTS/UAS → Sub-CPMK) — database + cache per course
 // ═══════════════════════════════════════════════════════════════
 const COURSE_ID = 'math4';
-const MAP_KEY = `obe-mapping-${COURSE_ID}-v2`;
+// v3: mapping UTS/UAS diselaraskan ke OBE_EXAM_CONFIG server. Versi dinaikkan
+// supaya mapping v2 yang sudah ter-cache di localStorage TIDAK dipakai lagi —
+// mappingMatchesCourse() hanya memeriksa nama Sub-CPMK, bukan isi daftarnya,
+// jadi cache lama akan lolos validasi dan menang atas DEFAULT_MAPPING.
+const MAP_KEY = `obe-mapping-${COURSE_ID}-v3`;
 const LEGACY_MAP_KEY = 'opto-obe-mapping-v1';
 function rangeList(lo,hi){ const a=[]; for(let i=lo;i<=hi;i++)a.push(i); return a; }
 const DEFAULT_MAPPING = {
@@ -878,10 +882,15 @@ const DEFAULT_MAPPING = {
     "4.1":[9,10], "4.2":[11,12],
     "5.1":[13,14]
   },
-  // UTS Sub-CPMK → daftar nomor soal (Q1-45). Distribusi proporsional bobot (Σ=31).
-  uts: {"1.1":[1,2,3,4,5,6,7,8,9,10,31], "1.2":rangeList(34,40), "2.1":[11,12,13,14,15,16,17,18,19,20,32], "2.2":rangeList(41,45), "2.3":[21,22,23,24,25,26,27,28,29,30,33]},
-  // UAS Sub-CPMK → daftar nomor soal. Distribusi proporsional bobot (Σ=30).
-  uas: {"3.1":rangeList(41,45), "4.1":rangeList(1,12), "4.2":rangeList(13,30), "5.1":rangeList(34,40)}
+  // UTS/UAS Sub-CPMK → daftar nomor soal (Q1-45).
+  //
+  // WAJIB IDENTIK dengan OBE_EXAM_CONFIG["math4-uts"|"math4-uas"].mapping di
+  // functions/index.js. Poin tiap soal diturunkan dari bobot Sub-CPMK versi
+  // SERVER; kalau Rekap mengelompokkan ulang soal dengan daftar yang berbeda,
+  // Σ(Sub-CPMK% × bobot)/Σbobot tidak lagi sama dengan total poin mentah dan
+  // mahasiswa melihat dua angka berbeda untuk ujian yang sama.
+  uts: {"1.1":rangeList(1,10), "1.2":rangeList(31,40), "2.1":rangeList(11,20), "2.2":rangeList(41,45), "2.3":rangeList(21,30)},
+  uas: {"3.1":[1,2,3,4,5,11,12,13,14,15,16,17,18,31,32,33,34,41], "4.1":[6,19,20,21,35,42], "4.2":[7,8,9,22,23,24,25,26,36,37,38,43,44], "5.1":[10,27,28,29,30,39,40,45]}
 };
 function mappingMatchesCourse(m){
   if(!m || typeof m !== 'object') return false;
