@@ -27,11 +27,15 @@ LMS multi-course untuk **S1 Teknik Mesin Universitas Mercu Buana** (Dosen: Dedik
 ├── Attributes/       students.json + Asesmen-<Course>.json (SSOT bobot)
 ├── Banner/           Halaman pengumuman pertemuan (Banner-Pertemuan-N.html)
 ├── Modul/            Modul-1.html .. Modul-14.html (14 modul, post-UTS shift sudah)
+├── Modul-Word/       Modul versi .docx + .pdf (setoran BOP)
 ├── Exam/             UTS.html + UAS.html
-└── OBE/              Dokumen-OBE.html (1 file, gabung Silabus + Penilaian)
+├── OBE/              Dokumen-OBE.html (1 file, gabung Silabus + Penilaian)
+└── Slides/           Deck Slidev — hanya Getaran & Opto (lihat Pedoman-Slides.md)
 ```
 
-Plus root: `Admin/` (tools dosen: rescale-deadline, recompute-obe-score, reset-soal, verify-export-code), `Template-Modul-Word-dan-PPT/` (template resmi BOP utk modul Word+PPT — lihat Pedoman §15), dan `Pedoman-Modul.md`. Cloud Functions, rules, bank soal, dan seed berada di repositori privat `dedik-romahadi/Mechanical-Engineering-Courses-Backend`; jangan menyalinnya kembali ke repo publik ini.
+> `Engineering-Mathematics/` juga punya `Modul-DOC/` (khusus mata kuliah itu). `PDD-UKTPT/` di root adalah portofolio Serdos 2026 — punya `Slides/` sendiri (deck ke-3), bukan mata kuliah.
+
+Plus root: `Admin/` (tools dosen: rescale-deadline, recompute-obe-score, reset-soal, verify-export-code, analyze-victims, plus helper offline `analyze-affected.py`), `Template-Modul-Word-dan-PPT/` (template resmi BOP utk modul Word+PPT — lihat Pedoman §15), `Unduhan-Gabungan/` (PDF gabungan modul/exam/RPS), `index.html` (halaman depan situs), dan `Pedoman-Modul.md`. Cloud Functions, rules, bank soal, dan seed berada di repositori privat `dedik-romahadi/Mechanical-Engineering-Courses-Backend`; jangan menyalinnya kembali ke repo publik ini.
 
 Total file HTML utama: **42 modul + 6 exam + 3 OBE = 51 file**.
 
@@ -80,7 +84,7 @@ Script Python di `/tmp/` pakai pattern read → `src.replace(OLD, NEW)` → writ
 - Push: `git push -u origin <branch>` (retry up to 4× dgn exponential backoff kalau network fail).
 - Setelah perubahan selesai dan verifikasi lulus: commit, push branch, buat PR siap ditinjau, lalu squash-merge ke `main` tanpa menunggu instruksi tambahan.
 - Merge: via GitHub MCP tool `mcp__github__merge_pull_request` (squash default).
-- Repo: `dedik-romahadi/mechanical-engineering-courses`.
+- Repo: `dedik-romahadi/Mechanical-Engineering-Courses` (⚠️ kapitalisasi persis begini — path GitHub Pages case-sensitive, dan `STUDENTS_JSON_URL` login mahasiswa di-fetch dari sana).
 
 ### Hosting: GitHub Pages (root-scoped) — ⚠️ BACA SEBELUM UTAK-ATIK DEPLOY
 - **Frontend LMS live di GitHub Pages**, bukan Firebase. `firebase.json` TIDAK punya key `hosting` — Firebase hanya backend (RTDB + Firestore + Functions).
