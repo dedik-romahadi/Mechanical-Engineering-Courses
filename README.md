@@ -1,65 +1,106 @@
-# 🚀 Mechanical Engineering Courses
+# ⚙️ Mechanical Engineering Courses
 
-[![GitHub stars](https://img.shields.io/github/stars/dedik-romahadi/Mechanical-Engineering-Courses?style=social)]
-(https://github.com/dedik-romahadi/Mechanical-Engineering-Courses)
+[![GitHub stars](https://img.shields.io/github/stars/dedik-romahadi/Mechanical-Engineering-Courses?style=social)](https://github.com/dedik-romahadi/Mechanical-Engineering-Courses)
 [![License](https://img.shields.io/github/license/dedik-romahadi/Mechanical-Engineering-Courses)](LICENSE)
 ![GitHub repo size](https://img.shields.io/github/repo-size/dedik-romahadi/Mechanical-Engineering-Courses)
 ![Last Commit](https://img.shields.io/github/last-commit/dedik-romahadi/Mechanical-Engineering-Courses)
 
-**Ultimate hub untuk materi, catatan kuliah, proyek, dan resources Teknik Mesin + topik modern** ⚙️🔥
+**Learning Management System (LMS) untuk S1 Teknik Mesin — Universitas Mercu Buana**
+Dosen pengampu: Dedik Romahadi, S.T., M.Sc.
 
-> *"Dari mekanika klasik hingga teknologi masa depan — satu repository, semua yang kamu butuhkan."*
+🔗 **Situs live:** https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/
+
+---
 
 ## 🌟 Tentang Repository Ini
 
-Selamat datang di **Mechanical Engineering Courses**!  
-Repository ini berisi kumpulan lengkap materi kuliah Teknik Mesin yang dikurasi rapi — mulai dari mata kuliah inti hingga topik interdisipliner terkini seperti Machine Learning dan Brain-Computer Interface.
+Ini bukan sekadar kumpulan materi kuliah — ini **LMS yang berjalan penuh**. Setiap modul dan ujian adalah satu halaman HTML mandiri yang menjalankan Python di browser, merender rumus matematika, mencatat kehadiran real-time, dan menilai jawaban mahasiswa lewat server.
 
-Cocok banget buat:
-- Mahasiswa Teknik Mesin (S1/S2)
-- Self-learner yang ingin mendalami rekayasa mesin
-- Dosen & praktisi yang butuh referensi cepat
+Yang bisa dilakukan mahasiswa di sini:
 
-Semua materi diorganisir dengan baik, mudah dicari, dan siap pakai!
+- Login dengan **NIM + PIN 6 digit** (PIN berlaku lintas mata kuliah)
+- Mengerjakan latihan komputasi dengan **Python langsung di browser** (tanpa install apa pun)
+- Mengerjakan **UTS/UAS online** dengan penilaian sisi-server dan jadwal terkunci WIB
+- Melihat nilai OBE dan mengunduh modul dalam format Word/PDF
 
-## 📚 Mata Kuliah Unggulan
+## 📚 Mata Kuliah Aktif
 
-| Mata Kuliah                    | Status         | Isi Utama                                      |
-|--------------------------------|----------------|------------------------------------------------|
-| Getaran Mekanik                | 🔄 On Going    | Getaran bebas, paksa, sistem multi-DOF, analisis modal |
-| Optimalisasi dan Automasi      | 🔄 On Going    | Optimasi rekayasa, algoritma, dan automasi sistem |
-| Metode Numerik                 | 📌 Planned     | Metode numerik, solusi persamaan diferensial & aljabar |
-| Engineering Mathematics        | 🔄 On Going    | Matematika lanjutan untuk teknik (kalkulus, PDE, dll) |
-| Control System                 | 📌 Planned     | Sistem kendali, PID, state-space, stabilitas |
-| Machine Learning               | 📌 Planned     | Machine Learning & AI untuk aplikasi rekayasa mesin |
-| Pemrosesan Sinyal              | 📌 Planned     | Analisis sinyal, FFT, filtering, dan pemrosesan data |
-| Brain Computer Interface       | 📌 Planned     | Antarmuka otak-komputer & aplikasi mekatronika |
-| Computer-Aided Design          | 📌 Planned     | Desain 3D SolidWorks |
-| Pemrograman Komputer           | 📌 Planned     | Python, MATLAB, dan pemrograman untuk engineering |
+| Folder | Course ID | Nama Tampil | Isi |
+|---|---|---|---|
+| `Engineering-Mathematics/` | `math4` | Matematika 4 | Persamaan diferensial, Transformasi Laplace, Deret Fourier |
+| `Getaran-Mekanik/` | `getaran_mekanik` | Getaran Mekanik | Getaran bebas & paksa, sistem 2-DoF, analisis modal, FFT/STFT |
+| `Optimalisasi-dan-Automasi/` | `optoauto` | Optimalisasi & Otomasi | Time series, ekstraksi fitur, optimasi linear/non-linear, machine learning |
 
-> Materi terus bertambah setiap minggu. Star ⭐ repo ini supaya tidak ketinggalan update!
+Masing-masing berisi **14 modul + UTS + UAS + dokumen OBE**.
+Total: **42 halaman modul · 6 halaman ujian · 3 dokumen OBE · 57 banner pertemuan**.
 
 ## 🗂️ Struktur Repository
 
-```bash
+```
 Mechanical-Engineering-Courses/
-├── 01_Getaran_Mekanik/
-├── 02_Optimalisasi_dan_Automasi/
-├── 03_Metode_Numerik/
-├── 04_Engineering_Mathematics/
-├── 05_Control_System/
-├── 06_Machine_Learning/
-├── 07_Pemrosesan_Sinyal/
-├── 08_Brain_Computer_Interface/
-├── 09_Computer_Aided_Design/
-├── 10_Pemrograman_Komputer/
-└── README.md
+├── <Mata-Kuliah>/
+│   ├── Attributes/     students.json + Asesmen-<MK>.json (SSOT bobot nilai)
+│   ├── Banner/         Halaman pengumuman per pertemuan
+│   ├── Modul/          Modul-1.html .. Modul-14.html
+│   ├── Modul-Word/     Modul versi .docx + .pdf (setoran BOP)
+│   ├── Exam/           UTS.html + UAS.html
+│   ├── OBE/            Dokumen-OBE.html (Silabus + Penilaian)
+│   └── Slides/         Deck Slidev (Getaran & Opto)
+├── Admin/              Tools dosen (rescale-deadline, reset-soal, recompute-obe-score, ...)
+├── PDD-UKTPT/          Portofolio pengajaran Serdos 2026 (slide + video + narasi)
+├── Template-Modul-Word-dan-PPT/   Template resmi BOP — jangan diubah
+├── Unduhan-Gabungan/   PDF gabungan modul, ujian, dan RPS per mata kuliah
+├── Images/             Logo dan foto
+├── scripts/            validate-public-security.mjs (gate keamanan)
+├── index.html          Halaman depan situs
+├── AGENTS.md           Peta orientasi untuk sesi agen baru
+├── Pedoman-Modul.md    📖 Spesifikasi lengkap sistem (rujukan utama)
+└── Pedoman-Slides.md   📖 Panduan deck Slidev
+```
 
+## 🏗️ Arsitektur
 
-📜 Lisensi
-Repository ini dilisensikan di bawah MIT License — bebas digunakan, dimodifikasi, dan dibagikan untuk tujuan pendidikan.
+**Frontend (repo ini, publik)** — HTML/CSS/JS murni tanpa framework dan tanpa build step. Setiap halaman berdiri sendiri.
 
-Dibuat dengan ❤️ untuk calon-calon engineer masa depan
-Kalau repository ini membantu kamu, star ⭐ dan share ke teman-temanmu!
-Ada pertanyaan, saran, atau ingin berkontribusi? Buka Issue saja.
-Let's build the future together! ⚙️🚀
+| Komponen | Teknologi |
+|---|---|
+| Runtime Python | Pyodide 0.25.1 |
+| Render matematika | KaTeX 0.16.9 |
+| Data & auth | Firebase Web SDK 12.11.0 (RTDB, Firestore, Functions, Auth) |
+| Presentasi | Slidev + Vue 3 |
+| Hosting | GitHub Pages via GitHub Actions |
+
+**Backend (repo privat terpisah)** — [`Mechanical-Engineering-Courses-Backend`](https://github.com/dedik-romahadi/Mechanical-Engineering-Courses-Backend) memegang Cloud Functions, kunci jawaban, seed soal, serta Firestore/RTDB Rules.
+
+> ⚠️ **Pemisahan ini disengaja dan ditegakkan otomatis.** `scripts/validate-public-security.mjs` dan workflow CI akan **menggagalkan build** jika `functions/`, `firebase.json`, `firestore.rules`, atau `database.rules.json` muncul di repo publik ini. Jangan pernah menyalin artefak backend ke sini — kunci jawaban ada di dalamnya.
+
+Nilai tidak pernah dihitung di sisi klien. Cloud Functions `checkModulAnswer` / `checkExamAnswer` adalah satu-satunya yang memegang kunci jawaban dan menulis poin; RTDB Rules mengunci field `points` agar klien tidak bisa mengubahnya sendiri.
+
+## 🚀 Deployment
+
+Deploy otomatis ke GitHub Pages setiap ada commit masuk `main`, lewat `.github/workflows/deploy-slides.yml`. Workflow membangun deck Slidev, lalu menyusun `_site` memakai **allowlist per-direktori** dan menolak artefak sensitif sebelum publish.
+
+> ⚠️ **Jangan ubah Pages Source dari "GitHub Actions" ke "Deploy from a branch".** Semua path di luar folder tersebut akan langsung 404 — termasuk roster login mahasiswa yang di-fetch dari Pages. Lihat `Pedoman-Modul.md` §1.1.
+
+## 🤝 Kontribusi & Pengembangan
+
+Baca dulu, berurutan:
+
+1. **`AGENTS.md`** — peta cepat, konvensi inti, dan daftar anti-pola
+2. **`Pedoman-Modul.md`** — spesifikasi lengkap (ID/path, login, PIN, jadwal WIB, scoring, Firebase, OBE, keamanan)
+3. **`Pedoman-Slides.md`** — khusus deck Slidev
+
+Sebelum commit, wajib lulus:
+
+```bash
+node scripts/validate-public-security.mjs
+```
+
+## 📜 Lisensi
+
+Dilisensikan di bawah [MIT License](LICENSE) — bebas digunakan, dimodifikasi, dan dibagikan untuk tujuan pendidikan.
+
+---
+
+Dibuat untuk mahasiswa Teknik Mesin Universitas Mercu Buana ⚙️
+Ada pertanyaan atau saran? Buka [Issue](https://github.com/dedik-romahadi/Mechanical-Engineering-Courses/issues).
