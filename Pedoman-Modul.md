@@ -1,6 +1,6 @@
 # Pedoman Sistem Modul, Exam, dan OBE
 
-> **Status:** acuan keadaan sistem saat ini, diperbarui 1 Agustus 2026
+> **Status:** acuan keadaan sistem saat ini, diperbarui 3 Agustus 2026
 >
 > **Lingkup:** LMS tiga mata kuliah S1 Teknik Mesin Universitas Mercu Buana
 >
@@ -28,11 +28,11 @@ Sistem dibagi menjadi dua repositori.
 | Komponen | Repositori | Isi | Publikasi |
 |---|---|---|---|
 | Frontend | `dedik-romahadi/Mechanical-Engineering-Courses` | Modul, exam, OBE, Attributes, Banner, Admin, template Word/PPT, workflow Pages | GitHub Pages |
-| Backend | `dedik-romahadi/Mechanical-Engineering-Courses-Backend` | Cloud Functions, RTDB Rules, Firestore Rules, bank soal UAS, seed kunci jawaban | Firebase project `getaran-mekanik` |
+| Backend | `dedik-romahadi/Mechanical-Engineering-Courses-Backend` | Cloud Functions, RTDB Rules, Firestore Rules, bank soal UTS & UAS, seed kunci jawaban | Firebase project `getaran-mekanik` |
 
 Aturan pemisahan:
 
-- Repositori frontend tidak boleh berisi `functions/`, `.firebaserc`, `firebase.json`, rules, service account, seed jawaban, kunci jawaban, atau bank soal UAS.
+- Repositori frontend tidak boleh berisi `functions/`, `.firebaserc`, `firebase.json`, rules, service account, seed jawaban, kunci jawaban, atau bank soal (UTS maupun UAS).
 - Konfigurasi Firebase Web di HTML bukan kredensial rahasia. Keamanan tetap bergantung pada Rules, validasi server, dan autentikasi.
 - Service account dan secret hanya disimpan sebagai GitHub Actions secret atau Firebase Secret Manager.
 - Firestore menolak akses langsung dari client. Akses jawaban, attempt, OBE, dan operasi admin berjalan melalui Cloud Functions dengan Admin SDK.
@@ -172,7 +172,7 @@ Halaman modul dan exam membuka pemilih peran sebelum akses penilaian:
 - **Dosen:** password admin, kemudian dapat mengatur jadwal atau masuk untuk meninjau soal exam.
 - **Mode Preview:** akses tanpa identitas untuk melihat struktur halaman, tanpa penilaian.
 
-Pada seluruh UTS dan UAS, login dosen otomatis membuka tab **Soal Ujian** dalam mode hanya-baca. UTS dirender dari definisi yang sudah ada di halaman; UAS mengambil teks soal melalui `getExamQuestions` memakai sesi Firebase dengan claim admin sehingga dapat ditinjau tanpa menunggu jadwal mahasiswa. Mode dosen tidak boleh mengirim jawaban, membuat attempt, menambah poin, atau membuat export mahasiswa.
+Pada seluruh UTS dan UAS, login dosen otomatis membuka tab **Soal Ujian** dalam mode hanya-baca. UTS maupun UAS mengambil teks soal melalui `getExamQuestions` memakai sesi Firebase dengan claim admin, sehingga dapat ditinjau tanpa menunggu jadwal mahasiswa. Mode dosen tidak boleh mengirim jawaban, membuat attempt, menambah poin, atau membuat export mahasiswa.
 
 Tombol perpindahan sesi bernama **Log Out**, bukan “Ganti Peran”. Logout menghapus identitas lokal, sesi PIN, presence, dan sesi Firebase Auth yang relevan, lalu mengembalikan pengguna ke pemilih peran.
 
@@ -187,8 +187,7 @@ Pada modul:
 Pada exam:
 
 - handler jawaban dan export tetap dinonaktifkan;
-- UTS masih dapat menampilkan teks soal yang tertanam di HTML;
-- UAS tidak menjamin teks soal tampil karena pengambilan bank soal membutuhkan sesi mahasiswa yang valid atau admin Firebase.
+- teks soal **tidak tampil**, baik UTS maupun UAS. Bank soal keduanya diambil dari server lewat `getExamQuestions`, yang mensyaratkan sesi mahasiswa valid (NIM + PIN + jadwal terbuka) atau sesi admin Firebase. Preview tidak memenuhi keduanya, sehingga panel soal menampilkan pesan terkunci.
 
 Preview bukan identitas mahasiswa dan tidak membuat record kehadiran.
 
@@ -411,12 +410,12 @@ Jangan mengambil satu digit terakhir saja. Contoh NIM berakhiran `22` harus meng
 
 | Aspek | UTS | UAS |
 |---|---|---|
-| Teks soal | masih tertanam di HTML publik | hanya berada di backend privat dan diambil dengan `getExamQuestions` |
+| Teks soal | backend privat, diambil dengan `getExamQuestions` | backend privat, diambil dengan `getExamQuestions` |
 | Kunci jawaban | server-only | server-only |
-| Gate teks soal | tidak ada; source HTML dapat dibaca | PIN + jadwal untuk mahasiswa, atau sesi admin untuk dosen |
+| Gate teks soal | PIN + jadwal (mahasiswa) atau sesi admin (dosen) | PIN + jadwal (mahasiswa) atau sesi admin (dosen) |
 | Friction anti-copy/capture | tidak diwajibkan oleh validator saat ini | aktif untuk mahasiswa |
 
-`getExamQuestions` saat ini hanya melayani tiga UAS. Response berisi teks, opsi, hint, diagram, dan nilai `N` yang sudah dirender; bukan fungsi `compute()` atau jawaban benar.
+`getExamQuestions` melayani keenam exam (tiga UTS + tiga UAS). Response berisi teks, opsi, hint, diagram, dan nilai `N` yang sudah dirender; bukan fungsi `compute()` atau jawaban benar.
 
 ### 7.5 Sumber nilai dan konsistensi
 
@@ -522,7 +521,7 @@ Daftar callable yang digunakan sistem saat ini:
 | `createAdminSession` | password admin | membuat custom token admin |
 | `checkModulAnswer` | mahasiswa + PIN | validasi satu soal modul dan catat poin |
 | `checkExamAnswer` | mahasiswa + PIN | validasi satu soal exam dan catat attempt/poin |
-| `getExamQuestions` | mahasiswa + PIN + jadwal, atau admin | mengambil bank teks soal UAS yang sudah dirender |
+| `getExamQuestions` | mahasiswa + PIN + jadwal, atau admin | mengambil bank teks soal UTS/UAS yang sudah dirender |
 | `generateExportCode` | mahasiswa + PIN | mengambil poin resmi dan membuat kode HMAC export |
 | `verifyExportCode` | admin | memverifikasi kode export |
 | `resetModulAttempts` | admin | menghapus ledger seluruh attempt satu modul |
@@ -644,15 +643,22 @@ Saat ada perbedaan antara file export dan sistem, gunakan ledger server dan alat
 
 Wajib dipertahankan:
 
-- tidak ada password admin, hash admin lama, service account, HMAC secret, kunci jawaban, seed, atau bank soal UAS di repo publik;
+- tidak ada password admin, hash admin lama, service account, HMAC secret, kunci jawaban, seed, atau bank soal (UTS maupun UAS) di repo publik;
 - kunci modul dan exam hanya di Firestore/server;
 - UAS tidak boleh kembali mempunyai array statis `UAS_TF`, `UAS_MC`, `UAS_COMP_EZ`, atau `UAS_COMP_HARD` di HTML;
+- UTS juga tidak boleh kembali mempunyai array statis `UTS_TF`, `UTS_MC`, `UTS_COMP_EZ`, atau `UTS_COMP_HARD` di HTML, termasuk helper `_svg`/`_diagram` yang menyertainya;
 - semua operasi admin memakai Firebase Auth custom token dan claim admin;
 - update RTDB dari client harus sparse dan tidak boleh menulis ulang field server-owned dari snapshot basi;
 - user input harus di-escape ketika masuk ke export, chat, atau HTML dinamis;
 - Pages workflow harus menolak artefak sensitif sebelum deploy.
 
-Teks soal UTS tetap publik karena berada di HTML. Ini bukan kebocoran kunci jawaban, tetapi harus dipahami sebagai batasan arsitektur saat ini.
+Teks soal UTS **tidak lagi publik**. Batasan arsitektur yang dulu dicatat di sini sudah ditutup: bank soal ketiga UTS dipindahkan ke repo backend (`functions/exams/uts-<course>-bank.js`) dan dilayani `getExamQuestions` di balik gerbang yang sama dengan UAS. Halaman UTS mengisi `window.UTS_TF/MC/COMP_EZ/COMP_HARD` lewat `_ensureUTSQuestionsLoaded()` setelah login berhasil.
+
+Konsekuensi yang perlu diketahui saat memelihara UTS:
+
+- teks soal, opsi, hint, dan diagram dirender di server memakai `N` mahasiswa; client menerima data jadi, bukan fungsi `compute()`. Setiap konsumen memakai `const data = q;` — jangan menghidupkan kembali `q.compute(N)` di client;
+- **invarian penilaian**: urutan opsi MC dihasilkan `shuffleSeed(opts, seed)`, sedangkan `correctIdx` yang sudah ter-seed di Firestore dihitung dengan shuffle yang sama di `functions/seed/uts-<course>-answers.js`. Bila salah satu implementasi berubah, jawaban benar akan dinilai salah tanpa gejala. Penjaganya `scripts/verify-uts-bank.js` (bagian dari `npm --prefix functions run lint`) yang membandingkan kedua sumber fungsi `shuffleSeed` secara langsung;
+- bank dan kunci masih dua berkas terpisah yang harus dijaga sinkron. Menyatukannya menjadi satu sumber kebenaran (pola `functions/exams/uas-v2.js`) memerlukan re-seed kunci Firestore, jadi belum dilakukan.
 
 ---
 
@@ -694,7 +700,7 @@ Pedoman teknis pembuatan slide Slidev berada terpisah di `Pedoman-Slides.md`.
 
 1. Pertahankan `examId`, DB path, schedule path, `OBE_ORDER`, dan seed dalam satu perubahan atomik.
 2. Jika soal berubah, perbarui teks, kunci/toleransi, mapping Sub-CPMK, `EXAM_QID_POINTS`, dan qId reset.
-3. Untuk UAS, teks soal hanya di backend bank `uas-v2`; jangan menambah bank statis ke HTML.
+3. Teks soal hanya di backend: UAS di bank `uas-v2`, UTS di `functions/exams/uts-<course>-bank.js`. Jangan menambah bank statis ke HTML. Untuk UTS, jaga `shuffleSeed` di bank identik dengan yang di berkas kunci — `scripts/verify-uts-bank.js` memeriksanya.
 4. Verifikasi `deriveN()` dan contoh NIM termasuk suffix `00`.
 5. Jalankan seed dry-run sebelum live seed.
 6. Uji nilai benar/salah/partial, refresh, scoreDeltas, export, late window, cutoff, dan reset satu soal.
@@ -782,7 +788,7 @@ Jangan menganggap perubahan selesai hanya karena halaman terbuka. Penilaian haru
 5. Server menentukan jawaban, toleransi, attempt, poin, late multiplier, dan hak admin.
 6. Firestore attempt adalah ledger; RTDB visitor adalah cache realtime, bukan pengganti ledger.
 7. Refresh tidak boleh mengubah poin atau rincian per soal.
-8. UAS mengambil teks soal dari server; UTS hanya menyembunyikan kunci, bukan teks soal.
+8. UTS dan UAS sama-sama mengambil teks soal dari server; HTML publik tidak memuat bank soal apa pun.
 9. Preview tidak menilai; preview modul tidak menampilkan Tugas dan Forum.
 10. Panel exam menampilkan mahasiswa online, bukan seluruh riwayat visitor.
 11. Poin exam ditampilkan maksimal dua desimal tanpa mengubah nilai mentah.
