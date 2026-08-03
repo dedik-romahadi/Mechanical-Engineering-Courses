@@ -646,11 +646,11 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 import { getAuth, signInWithCustomToken, setPersistence, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 const MODULE_ID = 'nilai-akhir';
-const DB_PATH = `visitors/OptoAuto/${MODULE_ID}`;
+const DB_PATH = `visitors/optoauto/${MODULE_ID}`;
 const PERTEMUAN = 'nilai-akhir';
 const RELATED_MODULES = [];
-const SCHEDULE_PATH = `settings/OptoAuto/${PERTEMUAN}/schedule`;
-const LOCAL_IDENTITY = `OptoAuto_identity_${MODULE_ID}`;
+const SCHEDULE_PATH = `settings/optoauto/${PERTEMUAN}/schedule`;
+const LOCAL_IDENTITY = `optoauto_identity_${MODULE_ID}`;
 let panelOpen = false;
 let currentSchedule = null;
 const VISIT_COOLDOWN = 3600000;
@@ -855,9 +855,9 @@ function hideResetModal(){document.getElementById('resetOverlay').classList.add(
 async function confirmReset(){
   const err=document.getElementById('resetError');
   try{await authenticateAdmin(document.getElementById('resetPw').value);}catch(e){err.style.display='block';err.textContent='⚠ '+(e&&e.message?e.message:'Password salah.');return;}
-  await Promise.all([remove(ref(db,DB_PATH)), remove(ref(db,SCHEDULE_PATH)), ...RELATED_MODULES.map(mid=>remove(ref(db,'visitors/OptoAuto/'+mid)))]);
+  await Promise.all([remove(ref(db,DB_PATH)), remove(ref(db,SCHEDULE_PATH)), ...RELATED_MODULES.map(mid=>remove(ref(db,'visitors/optoauto/'+mid)))]);
   localStorage.removeItem(LOCAL_IDENTITY);
-  RELATED_MODULES.forEach(mid=>localStorage.removeItem('OptoAuto_identity_'+mid));
+  RELATED_MODULES.forEach(mid=>localStorage.removeItem('optoauto_identity_'+mid));
   location.reload();
 }
 

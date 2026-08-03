@@ -10,8 +10,9 @@ Dokumen ini adalah quick-start untuk sesi Codex yang mengerjakan slide Slidev di
 |------|--------|-----------|----------|-----------|
 | Getaran Mekanik | `Getaran-Mekanik/Slides/` | `Analisis-Getaran-Berbasis-Fourier-Transform.md` | 3030 | `.../Getaran-Mekanik/Slides/Analisis-Getaran-Berbasis-Fourier-Transform/` |
 | Optimalisasi & Otomasi | `Optimalisasi-dan-Automasi/Slides/` | `penerapan-machine-learning.md` | 3031 | `.../Optimalisasi-dan-Automasi/Slides/penerapan-machine-learning/` |
+| PDD-UKTPT (Serdos) | `PDD-UKTPT/Slides/` | `pembukaan-pdd-uktpt-bidang-pengajaran.md` | 3032 | `.../PDD-UKTPT/Slides/pembukaan-pdd-uktpt-bidang-pengajaran/` |
 
-> Deck Opto `penerapan-machine-learning.md`: **22 slide**. Brand di SLIDE memakai **"Optimalisasi & Automasi"** (huruf A — sengaja beda dari LMS lain yang "Otomasi", atas permintaan dosen). Punya **2 sesi kuis interaktif** (§17) + **webcam terkunci** (§16). Penyesuaian per-slide via `.slidev-page-N` (§14).
+> Deck Opto `penerapan-machine-learning.md`: **23 slide**. Brand di SLIDE memakai **"Optimalisasi & Automasi"** (huruf A — sengaja beda dari LMS lain yang "Otomasi", atas permintaan dosen). Punya **2 sesi kuis interaktif** (§17) + **webcam terkunci** (§16). Penyesuaian per-slide via `.slidev-page-N` (§14).
 
 ### Struktur tiap deck
 ```
@@ -317,6 +318,7 @@ Konten langsung di sini — **tanpa H1**.
 # Dev lokal
 cd Optimalisasi-dan-Automasi/Slides && npm run dev   # → port 3031
 cd Getaran-Mekanik/Slides && npm run dev              # → port 3030
+cd PDD-UKTPT/Slides && npm run dev                    # → port 3032
 
 # Build manual
 npm run build   # output ke dist/
@@ -325,7 +327,7 @@ npm run build   # output ke dist/
 npm run export
 ```
 
-Deploy ke GitHub Pages: jalankan workflow `Deploy Slides ke GitHub Pages` dari tab Actions (manual dispatch). Workflow **selalu build ulang** dari `.md` — tidak bergantung pada `dist/` yang ter-commit.
+Deploy ke GitHub Pages: **otomatis** setiap ada commit masuk `main` (merge PR, upload via web UI, maupun push langsung) lewat workflow `Deploy Slides ke GitHub Pages`. Manual dispatch dari tab Actions tetap tersedia untuk re-deploy tanpa commit baru. Workflow **selalu build ulang** dari `.md` — tidak bergantung pada `dist/` yang ter-commit.
 
 ---
 
