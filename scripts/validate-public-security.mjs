@@ -30,7 +30,7 @@ function collectHtml(dir) {
     if (entry.name === "Slides" || entry.name === "node_modules") continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) collectHtml(full);
-    else if (entry.name.endsWith(".html")) htmlFiles.push(full);
+    else if (entry.name.endsWith(".html") || entry.name.endsWith(".htm")) htmlFiles.push(full);
   }
 }
 for (const course of courseRoots) {

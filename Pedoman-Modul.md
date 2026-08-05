@@ -96,7 +96,7 @@ Setiap course mempunyai:
 ├── Banner/           banner/pengumuman per pertemuan
 ├── Modul/            Modul-1.html sampai Modul-14.html
 ├── Exam/             UTS.html dan UAS.html
-└── OBE/              Dokumen-OBE.html
+└── OBE/              Penilaian-OBE.htm
 ```
 
 Inventaris utama saat ini:
@@ -605,7 +605,7 @@ Pada `reset-soal.html`, opsi **semua soal** harus benar-benar mengirim seluruh q
 
 ## 12. Dokumen OBE
 
-Setiap `OBE/Dokumen-OBE.html` menggabungkan dua mode:
+Setiap `OBE/Penilaian-OBE.htm` menggabungkan dua mode:
 
 - **Silabus:** dapat dibaca tanpa login; memuat bobot asesmen, relasi CPL/CPMK/Sub-CPMK, matrikulasi, dan deskripsi.
 - **Penilaian:** memerlukan login mahasiswa atau dosen.
@@ -643,7 +643,7 @@ Saat “Tarik & Hitung” dijalankan, hasil menimpa draft nilai lokal pada tab T
 
 Bobot TGS/UTS/UAS **tidak tetap 60/20/20 untuk semua course** (sempat jadi
 bug — lihat catatan di bawah). Tiap course punya `FORMS.TGS.total`,
-`FORMS.UTS.total`, `FORMS.UAS.total` sendiri di `Dokumen-OBE.html`
+`FORMS.UTS.total`, `FORMS.UAS.total` sendiri di `Penilaian-OBE.htm`
 masing-masing, ditampilkan sebagai badge `wTGS`/`wUTS`/`wUAS` dan catatan
 `totalFormulaNote` pada tab Penilaian:
 
@@ -652,10 +652,10 @@ Nilai akhir = (TGS_total/100)×TGS + (UTS_total/100)×UTS + (UAS_total/100)×UAS
 ```
 
 Bobot saat ini per course: Getaran Mekanik 51/25/24, Matematika 4 39/31/30,
-Optimalisasi & Otomasi 60/20/20. Cek `FORMS` di `Dokumen-OBE.html` course
+Optimalisasi & Otomasi 60/20/20. Cek `FORMS` di `Penilaian-OBE.htm` course
 terkait untuk angka yang berlaku — jangan asumsikan 60/20/20 berlaku umum.
 
-> **Riwayat:** sampai Agustus 2026, `Dokumen-OBE.html` Getaran Mekanik dan
+> **Riwayat:** sampai Agustus 2026, `Penilaian-OBE.htm` Getaran Mekanik dan
 > Matematika 4 salah memakai formula tetap `0,6×TGS + 0,2×UTS + 0,2×UAS`
 > (bobot milik Optimalisasi & Otomasi, tertinggal saat template disalin),
 > sehingga NA yang dipublikasikan untuk kedua course itu tidak sesuai bobot
