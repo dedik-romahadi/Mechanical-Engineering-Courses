@@ -67,8 +67,9 @@ Secret yang diperlukan:
 | `FIREBASE_SA_KEY` | seluruh JSON service account Firebase |
 | `EXPORT_CODE_SECRET_VALUE` | nilai acak panjang untuk HMAC kode export; pertahankan nilai lama jika kode lama harus tetap valid |
 | `ADMIN_PASSWORD_HASH_VALUE` | SHA-256 password admin baru, tepat 64 karakter heksadesimal; bukan password mentah |
+| `AI_API_KEY_VALUE` | API key penyedia model AI chat (mis. OpenRouter/Groq/Gemini); nama secret netral vendor |
 
-Secret runtime yang dibuat di Firebase Secret Manager adalah `EXPORT_CODE_SECRET` dan `ADMIN_PASSWORD_HASH`.
+Secret runtime yang dibuat di Firebase Secret Manager adalah `EXPORT_CODE_SECRET`, `ADMIN_PASSWORD_HASH`, dan `AI_API_KEY` (dipakai callable `aiChat`/`getModuleChatContext` — lihat §10).
 
 ---
 
@@ -91,7 +92,7 @@ Setiap course mempunyai:
 
 ```text
 <Course>/
-├── Attributes/       roster, asesmen, RPS, dan halaman pendukung
+├── Attributes/       roster, asesmen, dan halaman pendukung (RPS PDF gabungan ada di Unduhan-Gabungan/RPS-<Course>.pdf, bukan di sini)
 ├── Banner/           banner/pengumuman per pertemuan
 ├── Modul/            Modul-1.html sampai Modul-14.html
 ├── Exam/             UTS.html dan UAS.html
@@ -274,6 +275,23 @@ Tabel ini mencatat implementasi aktual, bukan menyatakan ketidakkonsistenan ters
 
 Formatter modul memakai WIB, tetapi penyimpanan due modul saat ini masih membentuk `Date` dari nilai `datetime-local` berdasarkan zona waktu browser. Operasikan pengaturan jadwal modul pada perangkat yang disetel ke WIB sampai parser modul diseragamkan dengan `_wibStringToDate` milik exam.
 
+### 5.5 Jadwal ujian susulan (override per mahasiswa)
+
+Selain jadwal global di §5.2, exam punya lapisan kedua opsional di RTDB
+`settings/<course>/<slot>/scheduleOverrides/mhs_<NIM>` (lihat §9.1). Ditulis
+admin-only lewat callable `rescaleExamLatePenalty` (parameter `nims[]` +
+`newEnd`/`newExtension`) atau UI `Admin/rescale-deadline.html`.
+
+- Override hanya boleh mengubah `end`/`extension`, **tidak pernah** `start`.
+- Jadwal global dan mahasiswa lain tidak tersentuh — ini per-NIM.
+- `UTS.html`/`UAS.html` di keenam file (3 course × 2 exam) subscribe ke path
+  ini secara real-time (`_watchScheduleOverride`/`_mergeSchedule`) dan
+  menggabungkannya di atas jadwal global.
+- `getExamQuestions` dan `checkExamAnswer` di backend mengevaluasi override
+  untuk NIM yang meminta (`evalSchedule(..., nimKey)`), jadi mahasiswa dalam
+  jendela override aktif tetap bisa mengambil soal/submit walau jadwal
+  global sudah tertutup.
+
 ---
 
 ## 6. Struktur halaman modul
@@ -406,6 +424,14 @@ Getaran, Matematika, dan Opto UAS memakai `c1`–`c15`. Opto UTS memakai `ce1`�
 
 Jangan mengambil satu digit terakhir saja. Contoh NIM berakhiran `22` harus menghasilkan `N = 22`, bukan 2 atau 0.
 
+> ⚠️ **Catatan implementasi (Agu 2026):** fallback `00` baru diterapkan di
+> `getN()` client `Getaran-Mekanik/Exam/UTS.html`. Math4 UTS, Opto UTS, dan
+> ketiga `UAS.html` masih memakai `parseInt(slice(-2),10) || 0` tanpa
+> fallback — badge `N=` yang ditampilkan ke mahasiswa bisa berbeda dari `N`
+> server untuk NIM berakhiran `00` (server via `deriveN()` tetap benar,
+> jadi penilaian tidak salah, hanya tampilan). Perlu diseragamkan di
+> keenam file exam.
+
 ### 7.4 Perbedaan UTS dan UAS
 
 | Aspek | UTS | UAS |
@@ -413,7 +439,7 @@ Jangan mengambil satu digit terakhir saja. Contoh NIM berakhiran `22` harus meng
 | Teks soal | backend privat, diambil dengan `getExamQuestions` | backend privat, diambil dengan `getExamQuestions` |
 | Kunci jawaban | server-only | server-only |
 | Gate teks soal | PIN + jadwal (mahasiswa) atau sesi admin (dosen) | PIN + jadwal (mahasiswa) atau sesi admin (dosen) |
-| Friction anti-copy/capture | tidak diwajibkan oleh validator saat ini | aktif untuk mahasiswa |
+| Friction anti-copy/capture | aktif untuk mahasiswa (identik dengan UAS) | aktif untuk mahasiswa |
 
 `getExamQuestions` melayani keenam exam (tiga UTS + tiga UAS). Response berisi teks, opsi, hint, diagram, dan nilai `N` yang sudah dirender; bukan fungsi `compute()` atau jawaban benar.
 
@@ -491,8 +517,10 @@ Jangan menulis klaim “screenshot mustahil” atau “Alt+Tab diblokir total”
 | `pins/mhs_<NIM>` | hash PIN global dan identitas dasar |
 | `visitors/<course>/<slot>/mhs_<NIM>` | kunjungan, points, marker, selection, code, link, dan score delta |
 | `settings/<course>/<slot>/schedule` | start, end, duration, due, extension |
+| `settings/<course>/<slot>/scheduleOverrides/mhs_<NIM>` | override `end`/`extension` per NIM untuk ujian susulan (§5.5); admin-only write |
 | `presence/<course>/<slot>/mhs_<NIM>` | heartbeat online |
 | `chat/<course>/<slot>/messages` | chat modul |
+| `aiChat/quota/<NIM>` | kuota rate-limit AI chat per mahasiswa; server-only (tidak ada rules node, default deny) |
 | `security/adminLoginState` | penghitung gagal dan lock login admin global |
 
 Rules harus mencegah client mengubah field server-owned seperti `points`, `scoredQuestions`, `scoreDeltas`, timestamp poin, dan konsolasi. Client boleh membuat record awal yang netral dan memperbarui field yang diizinkan. Operasi admin yang membutuhkan hak lebih tinggi dilakukan melalui callable atau token admin.
@@ -529,6 +557,7 @@ Daftar callable yang digunakan sistem saat ini:
 | `resetModulQuestion` | admin | reset soal tertentu/semua untuk satu atau semua mahasiswa |
 | `resetExamQuestion` | admin | reset soal tertentu/semua untuk satu atau semua mahasiswa |
 | `rescaleModulLatePenalty` | admin | menghitung ulang penalti modul, dapat dibatasi NIM |
+| `rescaleExamLatePenalty` | admin | menghitung ulang penalti keterlambatan exam (UTS/UAS), dapat dibatasi NIM; parameter `nims[]`+`newEnd`/`newExtension` menulis `scheduleOverrides` untuk ujian susulan (§5.5) |
 | `analyzeModulData` | admin | menganalisis data modul dan anomali grading |
 | `recomputeExamPoints` | admin | menghitung ulang total exam dari ledger |
 | `computeObeScores` | admin | menghitung TGS/UTS/UAS per Sub-CPMK |
@@ -537,6 +566,8 @@ Daftar callable yang digunakan sistem saat ini:
 | `publishObeNilai` | admin | mempublikasikan nilai OBE |
 | `getMyObeNilai` | mahasiswa + PIN | mengambil nilai OBE mahasiswa tersebut |
 | `deleteObeNilai` | admin | menghapus nilai OBE terpublikasi satu course |
+| `getModuleChatContext` | mahasiswa + PIN | bootstrap sapaan/konteks AI chat modul (deterministik, tidak memanggil model) |
+| `aiChat` | mahasiswa + PIN | tanya-jawab administratif AI per modul (resolver deterministik dulu, lalu provider LLM opsional); butuh secret `AI_API_KEY` (§1.2), rate-limit di `aiChat/quota/<NIM>` (§9.1) |
 
 Tidak ada callable `recomputeAllObeScores`. Jangan mendokumentasikan atau memanggil nama tersebut.
 
@@ -563,7 +594,7 @@ Jika penghapusan ledger gagal, jangan lanjut menghapus RTDB karena mahasiswa aka
 |---|---|
 | `reset-soal.html` | reset satu, beberapa, atau semua soal pada 42 modul dan 6 exam; target satu NIM atau semua mahasiswa |
 | `recompute-obe-score.html` | recompute poin satu exam dari mapping OBE dan ledger |
-| `rescale-deadline.html` | rescale penalti keterlambatan modul, global atau NIM tertentu |
+| `rescale-deadline.html` | rescale penalti keterlambatan modul atau exam (UTS/UAS), global atau NIM tertentu (exam via `rescaleExamLatePenalty`, §5.5/§10) |
 | `analyze-victims.html` | analisis korban/anomali grading modul dan reset terarah |
 | `verify-export-code.html` | verifikasi HMAC export modul/exam |
 | `analyze-affected.py` | helper analisis file/data lokal; bukan halaman web |
@@ -594,7 +625,7 @@ Draft nilai dan override PRE masih disimpan di localStorage browser. Draft terse
 
 Mapping Tugas/UTS/UAS memakai:
 
-- cache per course `obe-mapping-<courseId>-v2`;
+- cache per course `obe-mapping-<courseId>-v3` (dengan fallback migrasi satu kali dari key versi lama per course);
 - Firestore `obeMappings/<courseId>` melalui `getObeMapping` dan `saveObeMapping` untuk konsistensi lintas perangkat;
 - validasi rentang: modul 1–14, UTS/UAS 1–45.
 
@@ -610,13 +641,28 @@ Saat “Tarik & Hitung” dijalankan, hasil menimpa draft nilai lokal pada tab T
 
 ### 12.3 Perhitungan
 
-Semua course saat ini memakai:
+Bobot TGS/UTS/UAS **tidak tetap 60/20/20 untuk semua course** (sempat jadi
+bug — lihat catatan di bawah). Tiap course punya `FORMS.TGS.total`,
+`FORMS.UTS.total`, `FORMS.UAS.total` sendiri di `Dokumen-OBE.html`
+masing-masing, ditampilkan sebagai badge `wTGS`/`wUTS`/`wUAS` dan catatan
+`totalFormulaNote` pada tab Penilaian:
 
 ```text
-Nilai akhir = 0,60 × TGS + 0,20 × UTS + 0,20 × UAS
+Nilai akhir = (TGS_total/100)×TGS + (UTS_total/100)×UTS + (UAS_total/100)×UAS
 ```
 
-Nilai tiap komponen dihitung dari nilai Sub-CPMK dan bobot pada course bersangkutan. PRE ditampilkan dan dapat dipublish, tetapi tidak termasuk rumus 60/20/20 tersebut.
+Bobot saat ini per course: Getaran Mekanik 51/25/24, Matematika 4 39/31/30,
+Optimalisasi & Otomasi 60/20/20. Cek `FORMS` di `Dokumen-OBE.html` course
+terkait untuk angka yang berlaku — jangan asumsikan 60/20/20 berlaku umum.
+
+> **Riwayat:** sampai Agustus 2026, `Dokumen-OBE.html` Getaran Mekanik dan
+> Matematika 4 salah memakai formula tetap `0,6×TGS + 0,2×UTS + 0,2×UAS`
+> (bobot milik Optimalisasi & Otomasi, tertinggal saat template disalin),
+> sehingga NA yang dipublikasikan untuk kedua course itu tidak sesuai bobot
+> resminya. Sudah diperbaiki dengan menurunkan formula dari `FORMS` secara
+> dinamis di ketiga file, supaya tidak berulang.
+
+Nilai tiap komponen dihitung dari nilai Sub-CPMK dan bobot pada course bersangkutan. PRE ditampilkan dan dapat dipublish, tetapi tidak termasuk rumus di atas.
 
 Mapping OBE frontend, `OBE_EXAM_CONFIG`, `OBE_ORDER`, dan asesmen JSON harus tetap sinkron. Setelah mapping atau bobot exam berubah, jalankan recompute sebelum mengandalkan total lama.
 
@@ -652,13 +698,15 @@ Wajib dipertahankan:
 - user input harus di-escape ketika masuk ke export, chat, atau HTML dinamis;
 - Pages workflow harus menolak artefak sensitif sebelum deploy.
 
-Teks soal UTS **tidak lagi publik**. Batasan arsitektur yang dulu dicatat di sini sudah ditutup: bank soal ketiga UTS dipindahkan ke repo backend (`functions/exams/uts-<course>-bank.js`) dan dilayani `getExamQuestions` di balik gerbang yang sama dengan UAS. Halaman UTS mengisi `window.UTS_TF/MC/COMP_EZ/COMP_HARD` lewat `_ensureUTSQuestionsLoaded()` setelah login berhasil.
+Teks soal UTS **tidak lagi publik**. Batasan arsitektur yang dulu dicatat di sini sudah ditutup: bank soal ketiga UTS dipindahkan ke repo backend dan dilayani `getExamQuestions` di balik gerbang yang sama dengan UAS. Halaman UTS mengisi `window.UTS_TF/MC/COMP_EZ/COMP_HARD` lewat `_ensureUTSQuestionsLoaded()` setelah login berhasil.
+
+Bank yang **benar-benar dilayani** (dipasang di `QUESTION_BANKS` backend) adalah `functions/exams/uts-<course>-v2.js` — bukan `uts-<course>-bank.js`. Sejak penyatuan bank+kunci teks (satu `build(N)` untuk teks dan kunci), `uts-<course>-bank.js` lama masih ada tapi hanya sebagai sumber helper SVG/`shuffleSeed` yang dipakai `v2.js`, dan sebagai pembanding di `scripts/verify-uts-unified.js`. Jalur kunci penilaian tidak berubah: tetap `functions/seed/uts-<course>-answers.js`, ter-seed ke Firestore.
 
 Konsekuensi yang perlu diketahui saat memelihara UTS:
 
 - teks soal, opsi, hint, dan diagram dirender di server memakai `N` mahasiswa; client menerima data jadi, bukan fungsi `compute()`. Setiap konsumen memakai `const data = q;` — jangan menghidupkan kembali `q.compute(N)` di client;
-- **invarian penilaian**: urutan opsi MC dihasilkan `shuffleSeed(opts, seed)`, sedangkan `correctIdx` yang sudah ter-seed di Firestore dihitung dengan shuffle yang sama di `functions/seed/uts-<course>-answers.js`. Bila salah satu implementasi berubah, jawaban benar akan dinilai salah tanpa gejala. Penjaganya `scripts/verify-uts-bank.js` (bagian dari `npm --prefix functions run lint`) yang membandingkan kedua sumber fungsi `shuffleSeed` secara langsung;
-- bank dan kunci masih dua berkas terpisah yang harus dijaga sinkron. Menyatukannya menjadi satu sumber kebenaran (pola `functions/exams/uas-v2.js`) memerlukan re-seed kunci Firestore, jadi belum dilakukan.
+- **invarian penilaian**: urutan opsi MC dihasilkan `shuffleSeed(opts, seed)` di `uts-<course>-v2.js` (bank yang benar-benar dilayani), sedangkan `correctIdx` yang sudah ter-seed di Firestore dihitung dengan shuffle yang sama di `functions/seed/uts-<course>-answers.js`. Bila salah satu implementasi berubah, jawaban benar akan dinilai salah tanpa gejala. Penjaganya `scripts/verify-uts-bank.js` — jalankan manual lewat `node scripts/verify-uts-bank.js [examId ...]`, **BUKAN** cuma `npm --prefix functions run lint`: lint hanya menjalankan `node --check` (pemeriksaan sintaks) atas berkas ini, tidak mengeksekusi perbandingannya. `npm test` juga tidak memanggilnya (lihat §17.2). Jalankan skrip ini secara eksplisit setelah mengubah bank atau kunci UTS;
+- migrasi ke `v2.js` sudah dibuktikan tidak mengubah output yang dikirim ke client: `scripts/verify-uts-unified.js` (juga manual-only, sama seperti di atas) membandingkan tampilan+kunci+metadata `v2.js` vs `bank.js` lama untuk N=0..99.
 
 ---
 
@@ -700,7 +748,7 @@ Pedoman teknis pembuatan slide Slidev berada terpisah di `Pedoman-Slides.md`.
 
 1. Pertahankan `examId`, DB path, schedule path, `OBE_ORDER`, dan seed dalam satu perubahan atomik.
 2. Jika soal berubah, perbarui teks, kunci/toleransi, mapping Sub-CPMK, `EXAM_QID_POINTS`, dan qId reset.
-3. Teks soal hanya di backend: UAS di bank `uas-v2`, UTS di `functions/exams/uts-<course>-bank.js`. Jangan menambah bank statis ke HTML. Untuk UTS, jaga `shuffleSeed` di bank identik dengan yang di berkas kunci — `scripts/verify-uts-bank.js` memeriksanya.
+3. Teks soal hanya di backend: UAS di bank `uas-v2`, UTS di `functions/exams/uts-<course>-v2.js` (yang benar-benar dilayani `QUESTION_BANKS`; `uts-<course>-bank.js` cuma sumber helper lama, bukan jalur serving — lihat §14). Jangan menambah bank statis ke HTML. Untuk UTS, jaga `shuffleSeed` di bank identik dengan yang di berkas kunci — jalankan manual `node scripts/verify-uts-bank.js` (bukan `npm run lint`, yang cuma syntax-check).
 4. Verifikasi `deriveN()` dan contoh NIM termasuk suffix `00`.
 5. Jalankan seed dry-run sebelum live seed.
 6. Uji nilai benar/salah/partial, refresh, scoreDeltas, export, late window, cutoff, dan reset satu soal.
@@ -715,10 +763,10 @@ Pedoman teknis pembuatan slide Slidev berada terpisah di `Pedoman-Slides.md`.
 
 ### 16.4 Git dan rilis
 
-- Kerjakan pada branch `Codex/<fitur>`.
+- Kerjakan pada branch bernama singkat, deskriptif kebab-case (mis. `exam-window-rules`, `fix-obe-final-grade-weights`). Prefiks `Codex/<fitur>` masih kadang dipakai tapi bukan konvensi dominan pada PR terbaru.
 - Stage hanya file yang termasuk scope; jangan mengambil perubahan lokal lain.
 - Jalankan validasi sebelum commit.
-- Setelah perubahan benar, merge ke `main` dan push; jangan meninggalkan perubahan yang sudah fix hanya di branch.
+- Buka Pull Request dari branch fitur ke `main`, tunggu CI (`security-validation.yml`) hijau, lalu squash-merge (`gh pr merge --squash` atau tombol "Squash and merge") — ini jalur mayoritas saat ini. Jangan meninggalkan perubahan yang sudah fix hanya di branch.
 - Frontend akan memicu Pages otomatis setelah masuk `main`.
 - Jika backend berubah, jalankan deployment Firebase manual yang relevan setelah merge backend.
 
