@@ -337,15 +337,15 @@ h1, h2, h3 {
         <thead><tr>
           <th>No</th><th>NIM &amp; Nama</th>
           <th class="num">PRE<br><span style="color:#9be7f5;font-size:10px">0%</span></th>
-          <th class="num">TGS<br><span style="color:#9be7f5;font-size:10px">60%</span></th>
-          <th class="num">UTS<br><span style="color:#9be7f5;font-size:10px">20%</span></th>
-          <th class="num">UAS<br><span style="color:#9be7f5;font-size:10px">20%</span></th>
+          <th class="num">TGS<br><span id="wTGS" style="color:#9be7f5;font-size:10px">39%</span></th>
+          <th class="num">UTS<br><span id="wUTS" style="color:#9be7f5;font-size:10px">31%</span></th>
+          <th class="num">UAS<br><span id="wUAS" style="color:#9be7f5;font-size:10px">30%</span></th>
           <th class="num">TOTAL</th>
           <th class="num">NH</th>
         </tr></thead>
         <tbody id="n1body"></tbody>
       </table>
-      <div class="note">TOTAL = TGS·0.6 + UTS·0.2 + UAS·0.2  ·  Tiap komponen = Σ(Sub-CPMK × bobot%)/total bobot komponen × 100  ·  Data auto-sync dari tab isi nilai.</div>
+      <div class="note" id="totalFormulaNote">TOTAL = TGS·0.39 + UTS·0.31 + UAS·0.30  ·  Tiap komponen = Σ(Sub-CPMK × bobot%)/total bobot komponen × 100  ·  Data auto-sync dari tab isi nilai.</div>
     </div>
 
     <!-- TGS / UTS / UAS panels dibangun via JS karena identik strukturnya -->
@@ -450,6 +450,16 @@ const FORMS = {
   UTS: { label:"UTS",    total:31, cols:[["1.1",5],["1.2",6],["2.1",5],["2.2",10],["2.3",5]] },
   UAS: { label:"UAS",    total:30, cols:[["3.1",20],["4.1",2],["4.2",3],["5.1",5]] }
 };
+// Badge %/catatan TOTAL diisi dari FORMS (bukan angka hardcode) — mencegah
+// drift seperti yang sempat terjadi saat template disalin antar mata kuliah.
+(function(){
+  const el = id => document.getElementById(id);
+  if (el('wTGS')) el('wTGS').textContent = FORMS.TGS.total + '%';
+  if (el('wUTS')) el('wUTS').textContent = FORMS.UTS.total + '%';
+  if (el('wUAS')) el('wUAS').textContent = FORMS.UAS.total + '%';
+  const note = el('totalFormulaNote');
+  if (note) note.textContent = `TOTAL = TGS·${(FORMS.TGS.total/100).toFixed(2)} + UTS·${(FORMS.UTS.total/100).toFixed(2)} + UAS·${(FORMS.UAS.total/100).toFixed(2)}  ·  Tiap komponen = Σ(Sub-CPMK × bobot%)/total bobot komponen × 100  ·  Data auto-sync dari tab isi nilai.`;
+})();
 
 // ═══════════════════════════════════════════════════════════════
 // RENDER — Silabus tabs
@@ -606,7 +616,7 @@ function renderRekap(){
     const tgs = computeFormScore('TGS', st.nim);
     const uts = computeFormScore('UTS', st.nim);
     const uas = computeFormScore('UAS', st.nim);
-    const na = tgs*0.6 + uts*0.2 + uas*0.2;
+    const na = tgs*(FORMS.TGS.total/100) + uts*(FORMS.UTS.total/100) + uas*(FORMS.UAS.total/100);
     if(tgs>0 || uts>0 || uas>0) filled++;
     const naColor = na>=70 ? 'color:#7dffb0' : na>=55 ? 'color:#fcd34d' : 'color:#fca5a5';
     const nh = toNH(na);
@@ -1307,7 +1317,7 @@ function renderMahasiswaView(){
   // Rebuild Rekap utk mahasiswa (1 baris)
   const tbody = document.getElementById('n1body');
   const tgs = mhsRowTotal('TGS'), uts = mhsRowTotal('UTS'), uas = mhsRowTotal('UAS');
-  const na = tgs*0.6 + uts*0.2 + uas*0.2;
+  const na = tgs*(FORMS.TGS.total/100) + uts*(FORMS.UTS.total/100) + uas*(FORMS.UAS.total/100);
   const naColor = na>=70 ? 'color:#7dffb0' : na>=55 ? 'color:#fcd34d' : 'color:#fca5a5';
   const nh = toNH(na);
   const me = STUDENTS.find(s=>s.nim === myNim);
