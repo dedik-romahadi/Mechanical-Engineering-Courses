@@ -101,7 +101,7 @@ def find_visitors(data, modul_id):
     # Mapping sederhana (sesuai _segmentsForModul):
     parts = modul_id.rsplit('-modul-', 1)
     course_id, n = parts[0], int(parts[1])
-    course_slug = {'math4':'math4','getaran-mekanik':'getaran_mekanik','optoauto':'optoauto'}[course_id]
+    course_slug = {'math4':'math4','getaran-mekanik':'getaran_mekanik','optoauto':'optoauto','sistem_kendali_cerdas':'sistem_kendali_cerdas'}[course_id]
     seg = ('modul-%d' % n) if course_id == 'math4' else ('pertemuan-%d' % (n if n <= 7 else n+1))
 
     # Coba beberapa kemungkinan struktur export:

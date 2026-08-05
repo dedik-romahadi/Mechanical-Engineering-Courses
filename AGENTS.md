@@ -29,7 +29,7 @@ LMS multi-course untuk **S1 Teknik Mesin Universitas Mercu Buana** (Dosen: Dedik
 ├── Modul/            Modul-1.html .. Modul-14.html (14 modul, post-UTS shift sudah)
 ├── Modul-Word/       Modul versi .docx + .pdf (setoran BOP)
 ├── Exam/             UTS.html + UAS.html
-├── OBE/              Dokumen-OBE.html (1 file, gabung Silabus + Penilaian)
+├── OBE/              Penilaian-OBE.htm (1 file, gabung Silabus + Penilaian)
 └── Slides/           Deck Slidev — hanya Getaran & Opto (lihat Pedoman-Slides.md)
 ```
 
@@ -110,7 +110,7 @@ EXAM_CONFIG di functions/index.js wajib punya entry per examId: `getaran-mekanik
 ### Reference Implementation
 - **Modul**: `Getaran-Mekanik/Modul/Modul-1.html` (reference penuh, semua pattern terkini)
 - **Exam**: `Optimalisasi-dan-Automasi/Exam/UTS.html`
-- **OBE**: `Optimalisasi-dan-Automasi/OBE/Dokumen-OBE.html`
+- **OBE**: `Optimalisasi-dan-Automasi/OBE/Penilaian-OBE.htm`
 
 ## Anti-pola yang sering muncul
 

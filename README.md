@@ -44,7 +44,7 @@ Mechanical-Engineering-Courses/
 │   ├── Modul/          Modul-1.html .. Modul-14.html
 │   ├── Modul-Word/     Modul versi .docx + .pdf (setoran BOP)
 │   ├── Exam/           UTS.html + UAS.html
-│   ├── OBE/            Dokumen-OBE.html (Silabus + Penilaian)
+│   ├── OBE/            Penilaian-OBE.htm (Silabus + Penilaian)
 │   └── Slides/         Deck Slidev (Getaran & Opto)
 ├── Admin/              Tools dosen (rescale-deadline, reset-soal, recompute-obe-score, ...)
 ├── PDD-UKTPT/          Portofolio pengajaran Serdos 2026 (slide + video + narasi)
