@@ -317,6 +317,8 @@ Ketentuan konten dan UI:
 - hormati `prefers-reduced-motion` jika menambah animasi baru;
 - jangan mengunci aturan visual ke ukuran per piksel di dokumen ini; ikuti komponen yang sudah digunakan course bersangkutan.
 
+Khusus Sistem Kendali Cerdas, modul kelipatan tiga (Modul 3, 6, 9, dan 12) berjenis TMV. Buat ruang melalui aktivitas **Google Meet™ for Moodle** pada menu LMS, lalu pasang tautannya sebagai tombol pada kolom kanan banner pertemuan. Tautan halaman modul juga cukup tersedia pada tombol banner dan tidak perlu dibuat ulang sebagai resource URL terpisah di LMS.
+
 ### 6.1 Tugas modul
 
 Struktur universal:
