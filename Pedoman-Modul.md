@@ -247,7 +247,7 @@ Jadwal disimpan sebagai:
 - Batas akhir default: enam hari setelah modal dibuka, pukul 23.59 WIB.
 - `start = end - duration`.
 - Sebelum `start`, akses penilaian ditolak.
-- Setelah `end`, modul tetap dapat dikerjakan tanpa batas akhir tambahan, tetapi poin dikalikan 0,7.
+- Setelah `end`, modul tetap dapat dikerjakan tanpa batas akhir tambahan. Pengali terlambat mengikuti konfigurasi mata kuliah: Sistem Kendali Cerdas memakai 0,65 (potongan 35%).
 - Mengubah jadwal tidak menghapus visitor, attempt, jawaban, atau poin.
 
 ### 5.2 Exam
@@ -256,9 +256,11 @@ Jadwal disimpan sebagai:
 - Perpanjangan default: 120 menit.
 - `start = end - duration`.
 - Sebelum `start`, akses dan submit ditolak.
-- Pada `(end, end + extension]`, submit masih diterima dengan pengali 0,7.
+- Pada `(end, end + extension]`, submit masih diterima. Pengali terlambat mengikuti konfigurasi mata kuliah: Sistem Kendali Cerdas memakai 0,65 (potongan 35%).
 - Setelah `end + extension`, submit diblokir.
 - Mengubah jadwal tidak mereset data mahasiswa.
+
+> **Rollout penalti 35%:** aturan baru diterapkan pada Sistem Kendali Cerdas. Optimalisasi & Otomasi, Matematika 4, dan Getaran Mekanik tetap memakai pengali 0,7 (potongan 30%) sampai proses penilaian yang sedang berjalan selesai. Jangan mengubah konfigurasi ketiga mata kuliah tersebut selama masa transisi.
 
 ### 5.3 Default modal exam yang benar-benar ada saat ini
 
@@ -334,7 +336,7 @@ Perilaku penilaian:
 - komputasi dinilai dengan nilai target dan toleransi pada server;
 - kandidat numerik dapat berasal dari jawaban utama, angka pertama/terakhir output, dan kandidat per baris `print()`;
 - soal Hard dapat memberi partial credit jika dikonfigurasi dan dikerjakan sebelum terlambat;
-- poin terlambat dikalikan 0,7;
+- poin terlambat ditentukan backend per mata kuliah: Sistem Kendali Cerdas dikalikan 0,65 (potongan 35%); Optimalisasi & Otomasi, Matematika 4, dan Getaran Mekanik sementara tetap 0,7 (potongan 30%);
 - konsolasi satu poin ditentukan backend. Jangan memakai konstanta threshold client sebagai sumber kebenaran.
 
 Poin tampilan modul 0–50 dikonversi menjadi nilai 0–100 untuk headline. Poin mentah tetap dipakai untuk penyimpanan dan OBE.
@@ -416,7 +418,7 @@ Getaran, Matematika, dan Opto UAS memakai `c1`–`c15`. Opto UTS memakai `ce1`�
 - Komputasi menjalankan kode dengan Pyodide, lalu mengirim kandidat output dan potongan kode ke server.
 - Toleransi numerik dan variasi per NIM ditentukan kunci server.
 - Comp Hard dapat memberi satu poin partial jika dikonfigurasi dan tidak terlambat.
-- Pengali terlambat 0,7 diterapkan server; client tidak boleh menentukan multiplier sendiri.
+- Pengali terlambat diterapkan server sesuai konfigurasi mata kuliah; Sistem Kendali Cerdas memakai 0,65 (potongan 35%), sedangkan Optimalisasi & Otomasi, Matematika 4, dan Getaran Mekanik sementara tetap 0,7 (potongan 30%). Client tidak boleh menjadi sumber kebenaran multiplier.
 
 ### 7.3 Parameter NIM
 
@@ -817,7 +819,7 @@ Sebelum live seed, gunakan opsi `dry_run_seed` pada workflow atau perintah seed 
 | Preview | tidak membuat identity/attempt/poin; Tugas dan Forum modul tersembunyi |
 | Mahasiswa | roster, PIN, schedule gate, satu attempt, restore setelah refresh |
 | Dosen | login, pesan lock, atur jadwal, logout, sesi kedaluwarsa |
-| Modul | 25 soal, total 50, late 0,7, export lengkap, Forum/chat |
+| Modul | 25 soal, total 50, late sesuai konfigurasi (Sisken 0,65; Opto/Math4/Getaran sementara 0,7), export lengkap, Forum/chat |
 | Exam | 45 soal, total 100, format poin, late/cutoff, online-only, export resmi |
 | UAS | soal tidak ada di source publik, fetch setelah gate, friction tidak memburamkan halaman |
 | Reset | Firestore dan RTDB konsisten; PIN tidak terhapus; poin soal lain tetap |
