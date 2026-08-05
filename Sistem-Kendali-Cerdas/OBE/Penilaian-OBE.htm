@@ -3,80 +3,84 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dokumen OBE — Optimalisasi &amp; Automasi | Teknik Mesin UMB</title>
+<title>Penilaian OBE — Sistem Kendali Cerdas | Teknik Mesin UMB</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   :root{
-    --bg:#070b14; --panel:#0d1626; --panel2:#101c30; --border:#1c2c45;
-    --head:#1d6a8e; --head2:#176d8a; --rowA:#0f1a2c; --rowB:#13243b;
-    --cyan:#22d3ee; --teal:#2dd4bf; --amber:#fbbf24; --text:#dbe5f3; --muted:#8aa0bf;
+    --bg:#050814; --panel:#0c1427; --panel2:#111d35; --border:#263858;
+    --head:#176b91; --head2:#174e78; --rowA:#0c172b; --rowB:#12223b;
+    --cyan:#38d9f5; --teal:#34d6b1; --amber:#ffd166; --text:#e8eef9; --muted:#9aabc6;
     --ok:#34d399; --warn:#f59e0b; --bad:#f87171;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+  body{background:
+       radial-gradient(circle at 12% 0%,rgba(56,217,245,.10),transparent 34%),
+       radial-gradient(circle at 92% 8%,rgba(129,140,248,.11),transparent 32%),
+       var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
        line-height:1.55;padding:20px;display:flex;justify-content:center}
   .wrap{width:100%;max-width:1280px}
 
   /* ── Header ── */
-  .doc-head{background:linear-gradient(135deg,#0d1f33,#0a1626);border:1px solid var(--border);
+  .doc-head{background:linear-gradient(135deg,rgba(15,39,68,.98),rgba(12,20,39,.98));border:1px solid #2d466d;
     border-radius:16px;padding:22px 26px;margin-bottom:14px;position:relative;overflow:hidden}
   .doc-head::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;
-    background:linear-gradient(90deg,#22d3ee,#2dd4bf,#fbbf24,#6366f1)}
+    background:linear-gradient(90deg,#38d9f5,#34d6b1,#ffd166,#818cf8)}
   .doc-eyebrow{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);font-weight:700;font-family:'JetBrains Mono',monospace}
   .doc-title{font-size:24px;font-weight:800;margin:6px 0 4px;color:#f1f5f9;letter-spacing:-.3px}
   .doc-sub{font-size:13.5px;color:var(--muted)}
   .doc-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
   .chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
-    background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.2);color:#9be7f5;
+    background:rgba(56,217,245,.08);border:1px solid rgba(56,217,245,.28);color:#b8f2fb;
     padding:5px 11px;border-radius:8px}
 
   /* ── Mode switch ── */
-  .modebar{display:flex;gap:0;margin-bottom:14px;background:var(--panel);border:1px solid var(--border);
+  .modebar{display:flex;gap:0;margin-bottom:14px;background:rgba(12,20,39,.92);border:1px solid var(--border);
     border-radius:12px;padding:5px;width:fit-content}
   .modebtn{padding:10px 22px;border-radius:8px;border:none;background:transparent;color:var(--muted);
     font-size:13.5px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:all .15s;
     font-family:inherit;display:inline-flex;align-items:center;gap:7px}
   .modebtn:hover{color:var(--text)}
-  .modebtn.active{background:linear-gradient(135deg,var(--head),var(--head2));color:#fff;
-    box-shadow:0 2px 12px rgba(29,106,142,.4)}
+  .modebtn.active{background:linear-gradient(135deg,#1683ad,#24569a);color:#fff;
+    box-shadow:0 4px 18px rgba(34,153,202,.30)}
 
   /* ── Tabs ── */
   .tabbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
-  .tab{padding:9px 14px;border-radius:9px 9px 0 0;border:1px solid var(--border);border-bottom:none;
+  .tab{padding:10px 14px;border-radius:9px;border:1px solid var(--border);
     background:var(--panel);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;
     transition:all .15s;white-space:nowrap;user-select:none}
   .tab:hover{color:var(--text);background:var(--panel2)}
-  .tab.active{background:var(--head);color:#fff;font-weight:800;border-color:var(--head);
-    box-shadow:0 -2px 10px rgba(29,106,142,.4)}
+  .tab.active{background:linear-gradient(135deg,#187ea6,#225b9b);color:#fff;font-weight:800;border-color:#35b9dc;
+    box-shadow:0 5px 16px rgba(24,126,166,.28)}
 
   /* ── Panel ── */
   .mode{display:none}
   .mode.active{display:block}
-  .panel{display:none;background:var(--panel);border:1px solid var(--border);border-radius:0 14px 14px 14px;
-    padding:16px;overflow-x:auto}
+  .panel{display:none;background:linear-gradient(145deg,rgba(14,24,45,.98),rgba(9,16,31,.98));border:1px solid var(--border);border-radius:14px;
+    padding:16px;overflow-x:auto;box-shadow:0 16px 44px rgba(0,0,0,.20)}
   .panel.active{display:block;animation:fade .25s ease}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
   /* ── Table ── */
-  table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:620px}
-  caption{caption-side:top;background:var(--head);color:#fff;font-weight:800;font-size:13.5px;
-    padding:11px;border-radius:8px 8px 0 0;letter-spacing:.3px}
-  thead th{background:var(--head2);color:#eaf6fb;font-weight:700;font-size:11.5px;padding:10px;
-    text-align:left;border-bottom:2px solid rgba(255,255,255,.08);vertical-align:middle;white-space:nowrap}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:620px}
+  caption{caption-side:top;background:linear-gradient(90deg,#176b91,#24559b);color:#fff;font-weight:800;font-size:14px;
+    padding:13px;border-radius:9px 9px 0 0;letter-spacing:.3px;border:1px solid #338fb5;border-bottom:0}
+  thead th{background:#123d64;color:#eefaff;font-weight:700;font-size:11.5px;padding:11px 10px;
+    text-align:left;border-top:1px solid #285d82;border-bottom:2px solid #2e7496;vertical-align:middle;white-space:nowrap}
   thead th.num,tbody td.num{text-align:center}
   thead th.subhdr{font-weight:600;background:rgba(29,106,142,.5);color:#aedaee;font-size:10px}
-  tbody td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text)}
+  tbody td{padding:9px 10px;border-bottom:1px solid #233552;vertical-align:top;color:var(--text)}
   tbody tr:nth-child(odd) td{background:var(--rowA)}
   tbody tr:nth-child(even) td{background:var(--rowB)}
+  tbody tr:hover td{background:#19304f}
   tbody td.code{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--cyan);white-space:nowrap;font-size:11.5px}
   tbody td.desc{color:#b8c6dc;max-width:430px}
-  tbody td.zero{color:#3c4a63}
+  tbody td.zero{color:#64748b}
   tbody td.val{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text)}
   tbody td.sum{font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--amber)}
   tbody td.nim{font-family:'JetBrains Mono',monospace;color:#e8b4b4;font-weight:700;font-size:11.5px}
   tbody td.nama{color:#e8b4b4;font-weight:600;font-size:11.5px}
-  tfoot td{background:var(--head);color:#fff;font-weight:800;padding:11px;font-family:'JetBrains Mono',monospace;
-    border-top:2px solid rgba(255,255,255,.1);font-size:11.5px}
+  tfoot td{background:linear-gradient(90deg,#155d83,#205890);color:#fff;font-weight:800;padding:12px 10px;font-family:'JetBrains Mono',monospace;
+    border-top:2px solid #39b8d8;font-size:11.5px}
   tfoot td.num{text-align:center}
 
   /* ── Inputs ── */
@@ -181,7 +185,7 @@ h1, h2, h3 {
 
   <!-- ═══════ HEADER ═══════ -->
   <div class="doc-head">
-    <div class="doc-eyebrow">Dokumen OBE</div>
+    <div class="doc-eyebrow">Penilaian OBE</div>
     <div class="doc-title">Sistem Kendali Cerdas</div>
     <div class="doc-sub">Silabus (CPL/CPMK/Sub-CPMK + matrikulasi) &amp; Penilaian Mahasiswa</div>
     <div class="doc-meta">
@@ -224,10 +228,10 @@ h1, h2, h3 {
         <thead><tr><th>Subyek</th><th>Nama Singkat</th><th class="num">Prosentase</th></tr></thead>
         <tbody>
           <tr><td>PROSENTASE PRESENSI</td><td class="code">PRE</td><td class="num zero">0 %</td></tr>
-          <tr><td>PROSENTASE TUGAS</td><td class="code">TGS</td><td class="num val">51 %</td></tr>
+          <tr><td>PROSENTASE TUGAS</td><td class="code">TGS</td><td class="num val">48 %</td></tr>
           <tr><td>PROSENTASE PRAKTIKUM</td><td class="code">PRAK</td><td class="num zero">0 %</td></tr>
-          <tr><td>PROSENTASE UTS</td><td class="code">UTS</td><td class="num val">25 %</td></tr>
-          <tr><td>PROSENTASE UAS</td><td class="code">UAS</td><td class="num val">24 %</td></tr>
+          <tr><td>PROSENTASE UTS</td><td class="code">UTS</td><td class="num val">22 %</td></tr>
+          <tr><td>PROSENTASE UAS</td><td class="code">UAS</td><td class="num val">30 %</td></tr>
         </tbody>
         <tfoot><tr><td colspan="2">Σ Bobot</td><td class="num">100 %</td></tr></tfoot>
       </table>
@@ -244,7 +248,7 @@ h1, h2, h3 {
         <tbody id="s2body"></tbody>
         <tfoot><tr>
           <td colspan="2" style="text-align:right">Σ Bobot</td>
-          <td class="num">0 %</td><td class="num">51 %</td><td class="num">25 %</td><td class="num">24 %</td><td class="num">100 %</td>
+          <td class="num">0 %</td><td class="num">48 %</td><td class="num">22 %</td><td class="num">30 %</td><td class="num">100 %</td>
         </tr></tfoot>
       </table>
     </div>
@@ -260,7 +264,7 @@ h1, h2, h3 {
         <tbody id="s3body"></tbody>
         <tfoot><tr>
           <td colspan="2" style="text-align:right">Σ Bobot</td>
-          <td class="num">21 %</td><td class="num">16 %</td><td class="num">20 %</td><td class="num">14 %</td><td class="num">8 %</td><td class="num">21 %</td><td class="num">100 %</td>
+          <td class="num">14 %</td><td class="num">16 %</td><td class="num">20 %</td><td class="num">21 %</td><td class="num">29 %</td><td class="num">100 %</td>
         </tr></tfoot>
       </table>
     </div>
@@ -276,7 +280,7 @@ h1, h2, h3 {
         <tbody id="s4body"></tbody>
         <tfoot><tr>
           <td colspan="2" style="text-align:right">Σ Bobot</td>
-          <td class="num">21 %</td><td class="num">50 %</td><td class="num">29 %</td><td class="num">100 %</td>
+          <td class="num">14 %</td><td class="num">36 %</td><td class="num">21 %</td><td class="num">29 %</td><td class="num">100 %</td>
         </tr></tfoot>
       </table>
     </div>
@@ -356,7 +360,7 @@ h1, h2, h3 {
   </div>
 
   <div class="foot">
-    <span>📐 Sistem Kendali Cerdas · Dokumen OBE (Silabus + Penilaian)</span>
+    <span>📐 Sistem Kendali Cerdas · Penilaian OBE (Silabus + Penilaian)</span>
   </div>
 </div>
 
@@ -372,7 +376,7 @@ const SUBCPMK = {
   "3.1":"Sistem Simulasi Komputasi", "3.2":"Rancang sistem kontrol sederhana via komputer",
   "3.3":"Baca grafik keluaran untuk analisis respons", "4.1":"Karakteristik respon sistem umpan balik",
   "4.2":"Analisis & rancang kontrol PID", "4.3":"Aturan Mason & grafik aliran sinyal (state)",
-  "5.1":"Metode Kontrol Cerdas (Intelligent) â€” overview", "5.2":"Sistem kontrol Artificial Neural Network",
+  "5.1":"Metode Kontrol Cerdas (Intelligent) — overview", "5.2":"Sistem kontrol Artificial Neural Network",
   "5.3":"Sistem kontrol Logika Fuzzy", "5.4":"Sistem kontrol Algoritma Genetika (GA)"
 };
 const CPMK = {
