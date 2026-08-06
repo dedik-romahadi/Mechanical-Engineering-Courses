@@ -19,6 +19,7 @@ for (let n = 1; n <= 14; n += 1) {
     [html.includes("Asesmen Teknis") && html.includes("Implementasi Python"), "technical assignment panel"],
     [html.includes('id="visitorTableBody" style="max-height:min(72vh,820px);overflow-y:auto;"'), "tall responsive student list"],
     [(html.match(/<span class="nav-brand">/g) || []).length === 1 && html.includes(`<span>SISKENCERDAS // M${n}</span></span>`), "clean module navigation brand"],
+    [html.includes("overflow-y:auto!important;overscroll-behavior:contain"), "scroll-safe login overlays"],
   ];
   for (const [ok, label] of checks) if (!ok) failures.push(`Modul-${n}: ${label}`);
 
