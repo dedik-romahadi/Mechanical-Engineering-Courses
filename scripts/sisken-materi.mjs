@@ -313,6 +313,309 @@ export const MATERI = {
       "Pencoretan pole dengan zero tidak dilakukan pada daerah tidak stabil",
     ],
   },
+
+  5: {
+    deep: [
+      {
+        head: "Simulasi Sebagai Eksperimen, Bukan Sekadar Gambar",
+        body: [
+          "Simulasi yang berguna dirancang seperti eksperimen: ada pertanyaan yang hendak dijawab, ada besaran yang divariasikan, ada besaran yang dijaga tetap, dan ada kriteria untuk menyatakan hasilnya bermakna. Tanpa pertanyaan yang jelas, simulasi hanya menghasilkan kurva yang enak dipandang namun tidak menuntun keputusan apa pun.",
+          "Setiap eksperimen simulasi perlu menyebutkan enam hal: model beserta asumsinya, nilai seluruh parameter, kondisi awal, jenis masukan uji, solver dan langkah waktu, serta metrik yang akan dibandingkan. Enam hal itu pula yang memungkinkan orang lain mengulang hasil dan memperoleh angka yang sama.",
+          "Masukan uji dipilih sesuai sifat yang ingin diperiksa. Step menguji respons terhadap perubahan mendadak dan memperlihatkan overshoot serta waktu menetap. Ramp menguji kemampuan mengikuti target yang bergerak dan memperlihatkan error kecepatan. Sinus pada beberapa frekuensi memperlihatkan bandwidth dan penguatan. Impuls memperlihatkan respons alami sistem secara langsung.",
+          "Membandingkan hasil simulasi dengan data pengukuran menuntut kehati-hatian pada titik kerja. Model linier hanya berlaku di sekitar titik kerja tempat ia diturunkan, sehingga membandingkan simulasi pada beban ringan dengan pengukuran pada beban penuh akan memberi selisih yang tampak seperti kesalahan model padahal hanya perbedaan kondisi.",
+        ],
+        formula: "eksperimen = {model, parameter, kondisi awal, masukan, solver, metrik}",
+      },
+      {
+        head: "Ruang Keadaan dan Fungsi Transfer: Dua Sudut Pandang",
+        body: [
+          "Model ruang keadaan menyatakan sistem sebagai sekumpulan persamaan diferensial orde satu yang saling terkait, dengan vektor keadaan sebagai ingatan sistem. Bentuk ini menampung sistem banyak masukan dan banyak keluaran secara alami, sedangkan fungsi transfer pada dasarnya menggambarkan satu pasangan masukan-keluaran.",
+          "Perbedaan yang lebih mendasar adalah bahwa ruang keadaan menampakkan seluruh dinamika internal, termasuk yang tidak terlihat dari keluaran. Dua sistem dapat memiliki fungsi transfer identik namun ruang keadaan berbeda; yang satu bisa memiliki mode internal tidak stabil yang tersembunyi, dan perbedaan itu menentukan apakah sistem aman dipakai.",
+          "Perpindahan antar keduanya bersifat searah tanpa kehilangan pada satu arah dan berisiko kehilangan pada arah lain. Dari ruang keadaan ke fungsi transfer selalu dapat dilakukan dengan rumus baku. Dari fungsi transfer ke ruang keadaan menghasilkan realisasi yang tidak tunggal, dan realisasi minimum hanya memuat bagian yang terkendali sekaligus teramati.",
+          "Untuk keperluan simulasi, bentuk ruang keadaan biasanya lebih disukai karena solver numerik bekerja langsung atas sistem persamaan orde satu. Integrasi dilakukan atas vektor keadaan, dan keluaran dihitung dari keadaan tersebut pada setiap langkah.",
+        ],
+        formula: "x' = A*x + B*u,  y = C*x + D*u   |   G(s) = C*(sI - A)^-1*B + D",
+      },
+      {
+        head: "Solver Numerik dan Perangkap Kekakuan",
+        body: [
+          "Solver numerik memperkirakan penyelesaian dengan melangkah maju dalam waktu. Metode Euler maju paling sederhana namun paling tidak akurat dan paling mudah kehilangan kestabilan numerik. Runge-Kutta orde empat memberi ketepatan jauh lebih baik untuk biaya hitung yang masih wajar, dan menjadi pilihan baku pada banyak persoalan kontrol.",
+          "Kekakuan muncul ketika sistem memuat mode yang lajunya berbeda jauh, misalnya dinamika listrik dalam milidetik bersama dinamika termal dalam menit. Solver eksplisit terpaksa memakai langkah sekecil mode tercepat meskipun yang menarik hanya mode lambat, sehingga simulasi menjadi sangat lambat. Solver implisit dirancang untuk keadaan ini dan tetap stabil pada langkah besar.",
+          "Langkah waktu yang terlalu besar tidak selalu memberi hasil yang tampak salah. Bahayanya justru pada hasil yang terlihat masuk akal namun keliru, misalnya osilasi yang teredam padahal sistem sebenarnya tidak stabil. Karena itu pemeriksaan wajib dilakukan dengan mengulang simulasi pada langkah setengahnya; bila hasilnya berubah bermakna, langkah semula terlalu besar.",
+          "Pada simulasi controller digital, langkah waktu solver harus dibedakan dari waktu cacah controller. Plant berjalan kontinu sedangkan controller memperbarui keluarannya secara berkala, dan pemodelan yang menyamakan keduanya akan menyembunyikan pengaruh waktu cacah terhadap kestabilan.",
+        ],
+        formula: "dt <= 0,1 * tau_tercepat   |   kekakuan = tau_lambat/tau_cepat >> 1",
+      },
+      {
+        head: "Validasi Model Terhadap Data Nyata",
+        body: [
+          "Model belum berguna sebelum dibandingkan dengan perilaku perangkat sesungguhnya. Prosedur yang lazim memisahkan data menjadi bagian untuk identifikasi dan bagian untuk pengujian. Model disetel memakai bagian pertama, lalu dinilai memakai bagian kedua yang belum pernah dilihat.",
+          "Model yang cocok sempurna pada data identifikasi namun buruk pada data pengujian merupakan gejala terlalu banyak parameter. Menambah parameter selalu memperbaiki kecocokan pada data yang dipakai menyetelnya, dan perbaikan itu menyesatkan. Kriteria pemilihan model yang baik memberi hukuman terhadap jumlah parameter agar kecenderungan tersebut terkendali.",
+          "Metrik kecocokan perlu dipilih sesuai kepentingan. Galat kuadrat rata-rata memberi bobot besar pada penyimpangan besar dan cocok bila lonjakan berbahaya. Galat mutlak rata-rata lebih tahan terhadap pencilan. Untuk keperluan kontrol, kecocokan pada rentang frekuensi kerja controller jauh lebih penting daripada kecocokan rata-rata di seluruh rentang.",
+          "Perbedaan yang tersisa antara model dan perangkat bukan kegagalan melainkan informasi. Selisih itu perlu dinyatakan sebagai rentang ketidakpastian, dan controller dirancang agar tetap memenuhi spesifikasi di seluruh rentang tersebut, bukan hanya pada nilai nominalnya.",
+        ],
+        formula: "RMSE = sqrt(mean((y_ukur - y_model)^2))   |   pisahkan data latih dan data uji",
+      },
+      {
+        head: "Dari Simulasi ke Perangkat Keras Secara Bertahap",
+        body: [
+          "Pengujian bertahap mengurangi risiko dengan menambahkan satu unsur nyata pada satu waktu. Tahap pertama menjalankan seluruhnya di komputer. Tahap berikutnya menjalankan controller pada perangkat sasaran yang sesungguhnya sementara plant masih berupa model, sehingga pengaruh waktu cacah, aritmetika terbatas, dan jeda perhitungan mulai terlihat.",
+          "Tahap selanjutnya memakai plant nyata dengan pengaman tambahan berupa pembatasan keluaran, batas darurat, dan kemampuan mengembalikan kendali ke operator seketika. Setiap tahap memiliki kriteria lulus sendiri, dan kegagalan pada satu tahap mengembalikan pekerjaan ke tahap sebelumnya alih-alih dipaksakan maju.",
+          "Perbedaan yang paling sering mengejutkan pada peralihan ke perangkat keras adalah derau pengukuran. Sinyal yang bersih di simulasi menjadi bergetar di lapangan, dan aksi turunan yang tampak menguntungkan di komputer dapat membuat actuator bergetar terus-menerus. Penapis pada jalur turunan hampir selalu diperlukan.",
+          "Catatan pengujian setiap tahap merupakan bagian dari hasil kerja, bukan pelengkap. Ketika sistem bermasalah di kemudian hari, catatan itulah yang memungkinkan pembedaan antara masalah baru dan perilaku yang sejak awal memang sudah ada namun belum pernah menjadi persoalan.",
+        ],
+        formula: "simulasi murni -> controller nyata + plant model -> plant nyata terbatas -> operasi",
+      },
+    ],
+    derivation: {
+      head: "Menurunkan Ruang Keadaan Sistem Massa-Pegas-Peredam",
+      intro: "Penurunan berikut memperlihatkan cara mengubah satu persamaan orde dua menjadi dua persamaan orde satu yang siap diintegrasikan solver numerik.",
+      steps: [
+        ["Hukum Newton", "m*x'' + b*x' + k*x = F(t)", "Jumlah gaya pada massa sama dengan massa dikali percepatan."],
+        ["Pilih variabel keadaan", "x1 = x (posisi),  x2 = x' (kecepatan)", "Dipilih besaran yang menyimpan energi: potensial pada pegas, kinetik pada massa."],
+        ["Persamaan pertama", "x1' = x2", "Definisi langsung: turunan posisi adalah kecepatan."],
+        ["Persamaan kedua", "x2' = (F - b*x2 - k*x1)/m", "Diperoleh dengan menyelesaikan hukum Newton terhadap percepatan."],
+        ["Susun bentuk matriks", "A = [[0, 1], [-k/m, -b/m]],  B = [[0], [1/m]]", "Keluaran posisi memberi C = [1, 0] dan D = [0]."],
+        ["Periksa lewat pole", "det(sI - A) = s^2 + (b/m)*s + k/m", "Polinomial karakteristik sama dengan penyebut fungsi transfernya, sebagaimana seharusnya."],
+      ],
+      closing: "Bentuk ini siap diserahkan ke solver numerik karena hanya memuat turunan pertama. Dari sini pula terbaca bahwa rasio redaman adalah b dibagi dua akar km, dan frekuensi alami adalah akar k per m.",
+    },
+    worked: {
+      head: "Contoh Terhitung: Memilih Langkah Waktu Simulasi",
+      given: [
+        "Sistem massa-pegas-peredam dengan m = 2 kg, b = 12 N.s/m, k = 50 N/m",
+        "Simulasi memakai solver langkah tetap",
+      ],
+      steps: [
+        ["Hitung frekuensi alami", "wn = sqrt(k/m) = sqrt(50/2) = 5 rad/s", "Menentukan skala waktu dasar sistem."],
+        ["Hitung rasio redaman", "z = b/(2*sqrt(k*m)) = 12/(2*sqrt(100)) = 0,6", "Nilai di antara nol dan satu, jadi respons berosilasi teredam."],
+        ["Cari pole", "s = -z*wn +/- j*wn*sqrt(1-z^2) = -3 +/- j4", "Bagian nyata -3 memberi konstanta waktu peluruhan 1/3 detik."],
+        ["Tentukan mode tercepat", "tau_tercepat = 1/3 = 0,333 s", "Hanya ada satu pasangan pole sehingga inilah skala tercepat."],
+        ["Pilih langkah waktu", "dt <= 0,1 * 0,333 = 0,033 s", "Diambil dt = 0,01 s untuk margin, sekitar sepertiga batas."],
+        ["Verifikasi", "ulangi pada dt = 0,005 s", "Bila puncak overshoot dan waktu menetap tidak berubah bermakna, dt = 0,01 s memadai."],
+      ],
+      answer: "Langkah waktu 0,01 detik memadai dan terbukti lewat pengulangan pada setengahnya. Bila kemudian ditambahkan dinamika actuator dengan konstanta waktu 5 milidetik, sistem menjadi kaku dan langkah harus turun ke 0,0005 detik atau solver diganti ke jenis implisit.",
+    },
+    pitfalls: [
+      ["Menyimpulkan dari satu simulasi tanpa memeriksa langkah waktu", "Hasil yang salah karena langkah terlalu besar sering tetap terlihat wajar. Pengulangan pada setengah langkah adalah pemeriksaan termurah yang tersedia."],
+      ["Menilai model dari data yang dipakai menyetelnya", "Kecocokan pada data identifikasi selalu membaik saat parameter ditambah. Hanya data uji yang belum pernah dilihat yang memberi penilaian jujur."],
+      ["Menyamakan langkah solver dengan waktu cacah controller", "Plant berjalan kontinu, controller memperbarui berkala. Menyamakannya menyembunyikan pengaruh waktu cacah terhadap kestabilan."],
+      ["Mengabaikan mode internal saat memakai fungsi transfer", "Dua sistem berfungsi transfer sama dapat berbeda keamanannya bila salah satunya menyimpan mode tidak stabil yang tidak teramati."],
+      ["Membandingkan simulasi dan pengukuran pada titik kerja berbeda", "Selisihnya akan tampak seperti kesalahan model padahal hanya akibat linearisasi di titik yang berlainan."],
+    ],
+    checklist: [
+      "Pertanyaan yang hendak dijawab simulasi dinyatakan lebih dulu",
+      "Seluruh parameter, kondisi awal, dan asumsi tercatat",
+      "Masukan uji dipilih sesuai sifat yang diperiksa",
+      "Langkah waktu diverifikasi dengan pengulangan pada setengahnya",
+      "Kekakuan sistem diperiksa sebelum memilih solver",
+      "Model diuji pada data yang tidak dipakai menyetelnya",
+      "Ketidakpastian model dinyatakan sebagai rentang, bukan diabaikan",
+      "Rencana pengujian bertahap ke perangkat keras sudah disusun",
+    ],
+  },
+
+  6: {
+    deep: [
+      {
+        head: "Mengapa Controller Digital Berbeda dari Rancangan Kontinu",
+        body: [
+          "Controller yang berjalan di komputer tidak mengamati sinyal secara terus-menerus. Ia mencuplik keluaran pada selang tetap, menghitung, lalu menahan keluarannya sampai cuplikan berikutnya. Tiga kegiatan itu memasukkan sifat yang tidak ada pada rancangan kontinu, dan mengabaikannya adalah sumber kegagalan yang paling sering terjadi pada penerapan pertama.",
+          "Penahanan orde nol membuat sinyal kendali berbentuk tangga. Terhadap plant, tangga tersebut setara dengan tundaan rata-rata sebesar setengah waktu cacah. Tundaan mengurangi margin fase, dan margin fase yang menipis berarti sistem lebih dekat ke ambang ketidakstabilan meskipun penguatannya tidak diubah sama sekali.",
+          "Pemilihan waktu cacah karena itu bukan urusan kenyamanan perangkat, melainkan bagian dari perancangan kontrol. Aturan praktis yang lazim menuntut sekitar dua puluh sampai empat puluh cuplikan sepanjang waktu naik sistem tertutup. Terlalu jarang membuat sistem tidak stabil; terlalu rapat memboroskan sumber daya dan memperkuat derau pada aksi turunan.",
+          "Selain waktu cacah, aritmetika terbatas ikut berperan. Bilangan pecahan terbatas menimbulkan pembulatan yang dapat menumpuk pada aksi integral, dan pada perangkat kecil dengan bilangan bulat berskala, pemilihan skala menentukan apakah controller masih berperilaku seperti rancangannya.",
+        ],
+        formula: "penahanan orde nol ~ tundaan T/2   |   20 sampai 40 cuplikan per waktu naik",
+      },
+      {
+        head: "Diskretisasi: Menerjemahkan Rancangan ke Kode",
+        body: [
+          "Controller yang dirancang di domain kontinu harus diterjemahkan menjadi persamaan beda sebelum dapat dijalankan. Beberapa cara tersedia, dan pilihan di antaranya memengaruhi ketepatan serta kestabilan hasil terjemahan.",
+          "Metode beda mundur sederhana dan selalu memetakan sistem stabil menjadi stabil, namun ketepatannya menurun pada frekuensi tinggi. Metode trapesium, yang juga dikenal sebagai transformasi bilinear, memberi ketepatan lebih baik dan tetap menjaga kestabilan, dengan konsekuensi terjadinya pergeseran frekuensi yang perlu dikoreksi bila titik frekuensi tertentu harus dipertahankan.",
+          "Untuk aksi integral, terjemahan yang lazim menambahkan hasil kali error dengan waktu cacah pada akumulator. Untuk aksi turunan, terjemahan yang lazim membagi selisih dua cuplikan dengan waktu cacah, dan bentuk mentah ini hampir selalu tidak dapat dipakai langsung karena memperkuat derau secara berlebihan.",
+          "Alternatif yang lebih baik adalah merancang langsung di domain diskret. Model plant diubah lebih dahulu menjadi bentuk diskret yang memperhitungkan penahanan orde nol, lalu controller dirancang atas model itu. Cara ini menghindari kekeliruan akibat terjemahan dan memperlihatkan pengaruh waktu cacah sejak awal perancangan.",
+        ],
+        formula: "integral: I += Ki*e*T   |   turunan: D = Kd*(e - e_lalu)/T, wajib ditapis",
+      },
+      {
+        head: "Anti-Windup dan Perpindahan Mode",
+        body: [
+          "Ketika actuator mencapai batasnya, keluaran controller tidak lagi berpengaruh pada plant. Aksi integral yang tetap menumpuk selama keadaan itu akan membesar tanpa guna, dan ketika error akhirnya berbalik tanda, akumulator yang telanjur besar harus dikosongkan lebih dahulu sebelum keluaran turun. Akibatnya keluaran melewati setpoint jauh dan lama.",
+          "Penanggulangan paling sederhana adalah menghentikan penumpukan ketika keluaran sedang mentok dan error masih mendorong ke arah yang sama. Cara yang lebih halus mengumpanbalikkan selisih antara keluaran yang diminta dan keluaran yang benar-benar terjadi ke akumulator, sehingga akumulator menyesuaikan diri secara mulus alih-alih dibekukan.",
+          "Persoalan serupa muncul pada perpindahan antara mode manual dan otomatis. Bila akumulator tidak disiapkan, perpindahan ke otomatis menimbulkan lompatan keluaran yang mengejutkan. Perpindahan tanpa lompatan dicapai dengan menyiapkan akumulator agar keluaran controller pada saat perpindahan sama persis dengan keluaran manual terakhir.",
+          "Struktur pengaman ini bukan tambahan opsional. Pada sistem nyata, actuator mentok adalah kejadian biasa, bukan pengecualian, dan perpindahan mode terjadi setiap kali operator mengambil alih. Controller yang tidak menanganinya akan berperilaku baik di simulasi dan mengecewakan di lapangan.",
+        ],
+        formula: "anti-windup: I += Ki*e*T hanya bila tidak mentok, atau I += Kt*(u_nyata - u_minta)",
+      },
+      {
+        head: "Waktu Nyata, Penjadwalan, dan Keandalan",
+        body: [
+          "Controller digital harus menyelesaikan perhitungannya sebelum cuplikan berikutnya tiba. Yang menentukan bukan waktu hitung rata-rata melainkan waktu hitung terburuk, karena satu keterlambatan saja dapat menggeser perilaku sistem. Karena itu tugas kontrol biasanya diberi prioritas tertinggi dan dijauhkan dari kegiatan yang waktunya tidak dapat diperkirakan.",
+          "Ketidakteraturan selang cuplikan sama merusaknya dengan tundaan. Selang yang berubah-ubah membuat aksi integral dan turunan salah menghitung, karena keduanya bergantung langsung pada waktu cacah. Bila selang tidak dapat dijamin tetap, waktu sesungguhnya harus diukur dan dipakai pada perhitungan alih-alih memakai nilai nominal.",
+          "Keandalan menuntut penanganan kejadian tidak normal secara eksplisit: sensor yang tidak memberi data, nilai di luar rentang wajar, dan komunikasi terputus. Controller harus memiliki perilaku yang ditetapkan untuk setiap keadaan tersebut, umumnya berupa penahanan keluaran terakhir yang aman disertai pemberitahuan, bukan melanjutkan perhitungan atas data yang tidak sahih.",
+          "Watchdog melengkapi pengaman dengan memaksa sistem ke keadaan aman bila putaran kendali berhenti berjalan. Perangkat ini bekerja di luar jalur perhitungan utama, tepat karena kegagalan jalur utama itulah yang harus diantisipasi.",
+        ],
+        formula: "waktu hitung terburuk < T   |   jitter kecil, atau ukur dt sesungguhnya",
+      },
+      {
+        head: "Verifikasi Kode Kontrol Sebelum Menyentuh Mesin",
+        body: [
+          "Kode kontrol perlu diuji dengan cara yang sama ketatnya dengan perangkat lunak lain. Fungsi perhitungan controller sebaiknya dipisahkan dari kode yang berurusan dengan perangkat, sehingga dapat diuji sendiri dengan masukan yang ditentukan dan keluaran yang dapat diperiksa.",
+          "Pengujian yang paling berharga justru pada keadaan tepi: error nol, error sangat besar, keluaran mentok di kedua arah, waktu cacah berubah, dan perpindahan mode. Keadaan inilah yang jarang muncul di simulasi normal namun sering muncul di lapangan.",
+          "Menjalankan kode controller yang sesungguhnya terhadap model plant memberi keyakinan yang jauh lebih besar daripada menjalankan model controller. Cara ini menangkap kekeliruan penerjemahan, kesalahan satuan, dan masalah pembulatan yang tidak akan pernah muncul bila controller ikut disimulasikan sebagai rumus.",
+          "Setiap parameter yang dapat diubah operator perlu dibatasi rentangnya di dalam kode. Batas itu melindungi sistem dari nilai yang keliru dimasukkan, dan biayanya hanya beberapa baris dibandingkan kerusakan yang mungkin ditimbulkan.",
+        ],
+        formula: "pisahkan hitung dari perangkat keras   |   uji keadaan tepi, bukan hanya keadaan normal",
+      },
+    ],
+    derivation: {
+      head: "Menurunkan Bentuk Diskret PID untuk Diprogram",
+      intro: "Penurunan berikut mengubah PID kontinu menjadi persamaan beda yang langsung dapat ditulis menjadi kode.",
+      steps: [
+        ["PID kontinu", "u(t) = Kp*e + Ki*integral(e dt) + Kd*de/dt", "Tiga aksi bekerja atas error yang sama."],
+        ["Dekati integral", "integral(e dt) ~ sum(e_k * T)", "Luas di bawah kurva didekati sebagai jumlah persegi selebar T."],
+        ["Dekati turunan", "de/dt ~ (e_k - e_(k-1))/T", "Selisih dua cuplikan berurutan dibagi selang waktunya."],
+        ["Bentuk posisi", "u_k = Kp*e_k + Ki*T*sum(e) + Kd*(e_k - e_(k-1))/T", "Menghitung keluaran secara mutlak; memerlukan penanganan windup tersendiri."],
+        ["Bentuk kenaikan", "du = Kp*(e_k - e_(k-1)) + Ki*T*e_k + Kd*(e_k - 2*e_(k-1) + e_(k-2))/T", "Diperoleh dengan mengurangkan u_(k-1) dari u_k."],
+        ["Keluaran akhir", "u_k = u_(k-1) + du", "Bentuk kenaikan menangani windup secara alami karena pembatasan pada u_k langsung menghentikan penumpukan."],
+      ],
+      closing: "Bentuk kenaikan lebih disukai pada penerapan industri karena perpindahan mode menjadi mulus dengan sendirinya dan pembatasan keluaran sekaligus berperan sebagai anti-windup. Aksi turunan pada kedua bentuk tetap memerlukan penapis agar derau sensor tidak diperkuat.",
+    },
+    worked: {
+      head: "Contoh Terhitung: Memilih Waktu Cacah",
+      given: [
+        "Sistem tertutup dirancang memiliki waktu naik sekitar 0,4 detik",
+        "Sensor menghasilkan derau yang cukup berarti pada frekuensi tinggi",
+      ],
+      steps: [
+        ["Terapkan aturan cuplikan", "T = t_r/30 = 0,4/30", "Diambil tiga puluh cuplikan sepanjang waktu naik, di tengah rentang anjuran."],
+        ["Hitung waktu cacah", "T = 0,0133 s", "Dibulatkan ke nilai yang mudah dijadwalkan, yaitu 0,01 detik atau 100 hertz."],
+        ["Perkirakan tundaan tambahan", "T/2 = 0,005 s", "Penahanan orde nol setara tundaan setengah waktu cacah."],
+        ["Ubah menjadi susut fase", "fase = wc * T/2, dengan wc ~ 2/t_r = 5 rad/s", "Diperoleh 0,025 radian atau sekitar 1,4 derajat."],
+        ["Nilai dampaknya", "margin fase berkurang sekitar 1,4 derajat", "Masih kecil terhadap margin fase rancangan yang umumnya 45 sampai 60 derajat."],
+      ],
+      answer: "Waktu cacah 0,01 detik memadai: cukup rapat sehingga susut fase akibat penahanan hanya sekitar 1,4 derajat, dan tidak terlalu rapat sehingga aksi turunan tidak memperkuat derau secara berlebihan. Penapis turunan dengan frekuensi potong sekitar sepuluh kali bandwidth tertutup dapat ditambahkan tanpa mengganggu kinerja.",
+    },
+    pitfalls: [
+      ["Memakai penguatan rancangan kontinu tanpa memeriksa waktu cacah", "Tundaan akibat penahanan mengurangi margin fase. Sistem yang stabil di atas kertas dapat berosilasi saat diprogram."],
+      ["Menerapkan aksi turunan tanpa penapis", "Selisih dua cuplikan memperkuat derau sensor. Actuator akan bergetar terus-menerus dan cepat aus."],
+      ["Melupakan anti-windup", "Actuator mentok adalah kejadian biasa. Tanpa penanganan, keluaran melewati setpoint jauh melebihi perkiraan simulasi."],
+      ["Membiarkan selang cuplikan tidak teratur", "Aksi integral dan turunan bergantung langsung pada T. Selang yang berubah membuat keduanya salah hitung."],
+      ["Menguji hanya keadaan normal", "Kekeliruan paling mahal muncul pada keadaan tepi: error besar, keluaran mentok, dan perpindahan mode."],
+    ],
+    checklist: [
+      "Waktu cacah dipilih dari waktu naik target, bukan dari kemudahan perangkat",
+      "Susut fase akibat penahanan orde nol diperhitungkan",
+      "Aksi turunan dilengkapi penapis dan pembatasan penguatan",
+      "Anti-windup diterapkan dan diuji pada keadaan mentok",
+      "Perpindahan manual ke otomatis diuji bebas lompatan",
+      "Waktu hitung terburuk diukur dan lebih kecil daripada waktu cacah",
+      "Perilaku saat sensor gagal atau data tidak sahih ditetapkan eksplisit",
+      "Kode controller yang sesungguhnya diuji terhadap model plant",
+    ],
+  },
+
+  7: {
+    deep: [
+      {
+        head: "Membaca Grafik Sebagai Bukti, Bukan Hiasan",
+        body: [
+          "Grafik respons adalah bukti utama yang dipakai untuk menyatakan sebuah sistem memenuhi atau tidak memenuhi spesifikasi. Karena itu membacanya perlu dilakukan secara terstruktur, bukan dengan kesan sekilas. Urutan yang membantu adalah memeriksa nilai akhir, lalu kecepatan menuju nilai itu, lalu perilaku di sekitar nilai itu, dan terakhir sinyal kendali yang menghasilkannya.",
+          "Nilai akhir menjawab apakah sistem menuju sasaran. Selisih yang tersisa terhadap setpoint adalah error tunak, dan keberadaannya menunjukkan sesuatu tentang struktur controller, bukan tentang penyetelan. Error tunak yang tetap ada terhadap masukan step menandakan tidak adanya aksi integral pada loop.",
+          "Kecepatan dibaca dari waktu naik dan waktu menetap. Keduanya berbeda dan sering tertukar: waktu naik mengukur seberapa cepat sistem menempuh sebagian besar perubahan, sedangkan waktu menetap mengukur kapan sistem berhenti bergerak berarti di dalam pita toleransi. Sistem dapat naik cepat namun lama menetap bila osilasinya berkepanjangan.",
+          "Sinyal kendali sering tidak ditampilkan padahal ia menentukan apakah hasil tersebut dapat diwujudkan. Respons keluaran yang tampak sangat baik namun menuntut sinyal kendali di luar kemampuan actuator adalah hasil yang menyesatkan. Grafik respons tanpa grafik sinyal kendali adalah bukti yang belum lengkap.",
+        ],
+        formula: "urutan baca: nilai akhir -> kecepatan -> osilasi -> sinyal kendali",
+      },
+      {
+        head: "Menyimpulkan Parameter Sistem dari Bentuk Kurva",
+        body: [
+          "Bentuk kurva memuat informasi kuantitatif yang dapat ditarik tanpa mengetahui model sistemnya lebih dahulu. Respons step yang naik mulus tanpa melewati nilai akhir menunjukkan sistem teredam lebih atau berorde satu. Respons yang melewati nilai akhir lalu berayun menunjukkan sepasang pole kompleks dengan rasio redaman di antara nol dan satu.",
+          "Besar overshoot langsung memberi rasio redaman melalui hubungan baku, dan jarak antarpuncak memberi frekuensi teredam. Dari kedua besaran itu frekuensi alami dapat dihitung, sehingga sepasang pole dominan sistem dapat diperkirakan hanya dari satu grafik respons step.",
+          "Untuk sistem yang naik mulus, gain statik diperoleh dari perbandingan perubahan keluaran terhadap perubahan masukan, dan konstanta waktu dari waktu mencapai 63,2 persen perubahan akhir. Bila keluaran tidak segera bergerak setelah masukan berubah, jeda tersebut adalah dead time yang harus dicatat terpisah karena pengaruhnya terhadap kestabilan sangat besar.",
+          "Perkiraan semacam ini sengaja bersifat kasar dan justru berguna karena kekasarannya. Ia memberi angka awal yang masuk akal untuk memulai penyetelan, dan lebih penting lagi memberi dasar untuk menilai apakah hasil identifikasi yang lebih rumit masuk akal atau tidak.",
+        ],
+        formula: "z dari M_p   |   wd = 2*pi/periode   |   wn = wd/sqrt(1-z^2)",
+      },
+      {
+        head: "Membedakan Sumber Masalah dari Pola Respons",
+        body: [
+          "Pola respons yang bermasalah memiliki tanda khas yang menunjuk ke penyebab berbeda, dan mengenalinya menghemat banyak waktu penelusuran. Osilasi yang amplitudonya tetap menunjukkan sistem berada tepat di ambang kestabilan, umumnya karena penguatan terlalu besar atau tundaan lebih besar daripada yang diperkirakan.",
+          "Osilasi yang membesar menunjukkan ketidakstabilan yang sesungguhnya dan menuntut penurunan penguatan segera. Sebaliknya, respons yang sangat lambat dan tidak pernah mencapai setpoint menunjukkan penguatan terlalu kecil atau adanya pembatasan pada actuator yang belum disadari.",
+          "Keluaran yang bergerak berlawanan arah pada saat awal sebelum akhirnya menuju setpoint menandakan zero fase non-minimum. Gejala ini tidak dapat dihilangkan dengan penyetelan dan membatasi seberapa agresif sistem boleh dikendalikan; memaksakan penguatan besar justru mempercepat hilangnya kestabilan.",
+          "Keluaran yang tampak bergetar rapat dengan amplitudo kecil biasanya bukan masalah kestabilan melainkan derau pengukuran yang diperkuat aksi turunan. Membedakan keduanya penting karena penanganannya berlawanan: yang pertama menuntut penurunan penguatan, yang kedua menuntut penapisan.",
+        ],
+        formula: "amplitudo tetap: ambang stabil | membesar: tidak stabil | awal berlawanan: zero kanan",
+      },
+      {
+        head: "Respons Terhadap Gangguan dan Terhadap Setpoint",
+        body: [
+          "Dua jenis pengujian menjawab pertanyaan berbeda dan tidak dapat saling menggantikan. Perubahan setpoint menguji kemampuan mengikuti perintah, sedangkan gangguan menguji kemampuan menolak pengaruh luar. Sistem dapat sangat baik pada satu hal dan buruk pada hal lain.",
+          "Perbedaan itu berakar pada struktur. Fungsi transfer dari setpoint ke keluaran berbeda dari fungsi transfer gangguan ke keluaran, meskipun keduanya memiliki penyebut yang sama. Karena pembilangnya berbeda, bentuk responsnya pun berbeda, dan penyetelan yang mengoptimalkan salah satunya belum tentu memperbaiki yang lain.",
+          "Pada penerapan proses, penolakan gangguan biasanya lebih penting karena setpoint jarang berubah sedangkan gangguan datang terus-menerus. Pada penerapan gerak seperti robot dan mesin perkakas, pengikutan lintasan biasanya lebih penting. Menentukan mana yang diutamakan adalah keputusan yang harus diambil sebelum penyetelan dimulai.",
+          "Struktur dua derajat kebebasan memungkinkan keduanya disetel terpisah. Jalur umpan balik disetel untuk penolakan gangguan dan kestabilan, sementara jalur setpoint diberi penapis atau bobot tersendiri untuk membentuk respons pengikutan tanpa mengubah sifat loop.",
+        ],
+        formula: "T_r = G*C/(1+G*C*H)   |   T_d = G/(1+G*C*H)   |   penyebut sama, pembilang berbeda",
+      },
+      {
+        head: "Menyusun Laporan Respons yang Dapat Diverifikasi",
+        body: [
+          "Laporan yang baik memungkinkan orang lain menilai kesimpulan tanpa harus mempercayai penulisnya. Itu berarti setiap grafik disertai keterangan kondisi pengambilan: nilai setpoint, besar gangguan yang diberikan, parameter controller yang berlaku, dan kondisi operasi plant.",
+          "Sumbu harus berlabel lengkap dengan satuan, dan skala dipilih agar tidak menyesatkan. Skala yang terlalu lebar menyembunyikan osilasi kecil yang berarti; skala yang terlalu sempit membesar-besarkan derau yang sebenarnya tidak penting. Menampilkan pita toleransi sebagai garis bantu memudahkan pembacaan waktu menetap.",
+          "Angka hasil pembacaan sebaiknya dicantumkan di samping grafik, bukan dibiarkan dibaca sendiri oleh pembaca. Overshoot dalam persen, waktu naik dan waktu menetap dalam detik, dan error tunak dalam satuan besaran yang dikendalikan. Angka tersebut kemudian dibandingkan langsung dengan spesifikasi yang disepakati di awal.",
+          "Kesimpulan harus dinyatakan sebagai pemenuhan atau ketidakpemenuhan terhadap spesifikasi, disertai alasan bila tidak terpenuhi. Kalimat seperti responsnya sudah bagus tidak memiliki nilai teknis; kalimat seperti overshoot 8 persen memenuhi batas 10 persen sedangkan waktu menetap 3,2 detik melampaui batas 2 detik memiliki nilai teknis.",
+        ],
+        formula: "grafik + kondisi + angka terbaca + perbandingan spesifikasi = bukti lengkap",
+      },
+    ],
+    derivation: {
+      head: "Menurunkan Rasio Redaman dari Overshoot Terukur",
+      intro: "Penurunan berikut menunjukkan cara memperoleh parameter sistem langsung dari grafik respons step, tanpa mengetahui model sebelumnya.",
+      steps: [
+        ["Respons step orde dua", "y(t) = 1 - exp(-z*wn*t)*(cos(wd*t) + (z/sqrt(1-z^2))*sin(wd*t))", "Bentuk baku dengan wd = wn*sqrt(1-z^2)."],
+        ["Cari puncak pertama", "dy/dt = 0 pada t_p = pi/wd", "Turunan bernilai nol pertama kali setelah t = 0 pada setengah periode teredam."],
+        ["Nilai pada puncak", "y(t_p) = 1 + exp(-z*pi/sqrt(1-z^2))", "Substitusi t_p ke persamaan respons."],
+        ["Definisi overshoot", "M_p = exp(-z*pi/sqrt(1-z^2))", "Selisih puncak terhadap nilai akhir, dinyatakan relatif."],
+        ["Balik hubungannya", "z = -ln(M_p)/sqrt(pi^2 + ln(M_p)^2)", "Overshoot terukur langsung memberi rasio redaman."],
+        ["Lengkapi dengan periode", "wd = 2*pi/T_osilasi,  wn = wd/sqrt(1-z^2)", "Jarak antarpuncak pada grafik memberi frekuensi teredam."],
+      ],
+      closing: "Dengan dua besaran yang terbaca langsung dari grafik, yaitu overshoot dan jarak antarpuncak, sepasang pole dominan sistem dapat diperkirakan tanpa satu pun percobaan tambahan. Perkiraan ini menjadi titik awal yang jauh lebih baik daripada menebak.",
+    },
+    worked: {
+      head: "Contoh Terhitung: Membaca Parameter dari Grafik Respons",
+      given: [
+        "Respons step satuan mencapai puncak 1,25 pada detik ke-0,60",
+        "Puncak kedua terjadi pada detik ke-1,80",
+        "Nilai akhir keluaran adalah 1,00",
+      ],
+      steps: [
+        ["Hitung overshoot", "M_p = (1,25 - 1,00)/1,00 = 0,25", "Overshoot 25 persen terhadap nilai akhir."],
+        ["Hitung rasio redaman", "z = -ln(0,25)/sqrt(pi^2 + ln(0,25)^2)", "ln(0,25) = -1,3863 sehingga z = 1,3863/sqrt(9,8696+1,9218) = 1,3863/3,4340 = 0,404"],
+        ["Baca periode osilasi", "T_osilasi = 1,80 - 0,60 = 1,20 s", "Jarak antara dua puncak berurutan."],
+        ["Hitung frekuensi teredam", "wd = 2*pi/1,20 = 5,236 rad/s", "Frekuensi osilasi yang teramati."],
+        ["Hitung frekuensi alami", "wn = 5,236/sqrt(1-0,404^2) = 5,236/0,9148 = 5,724 rad/s", "Mengembalikan wd ke frekuensi tanpa redaman."],
+        ["Perkirakan waktu menetap", "t_s ~ 4/(z*wn) = 4/(0,404*5,724) = 1,73 s", "Kriteria pita dua persen."],
+      ],
+      answer: "Sistem memiliki pole dominan di s = -2,31 plus minus j5,24 dengan rasio redaman 0,404. Overshoot 25 persen tergolong besar untuk sebagian besar penerapan; menurunkannya ke 10 persen menuntut rasio redaman naik ke 0,591, yang dapat dicapai dengan menurunkan penguatan atau menambahkan aksi turunan.",
+    },
+    pitfalls: [
+      ["Menilai respons tanpa melihat sinyal kendali", "Respons yang tampak sempurna bisa saja menuntut aksi kontrol di luar kemampuan actuator, sehingga tidak akan pernah terwujud."],
+      ["Menukar waktu naik dengan waktu menetap", "Keduanya mengukur hal berbeda. Sistem dapat naik cepat namun lama menetap bila osilasinya berkepanjangan."],
+      ["Mengira semua getaran adalah ketidakstabilan", "Getaran rapat beramplitudo kecil biasanya derau yang diperkuat aksi turunan; penanganannya penapisan, bukan penurunan penguatan."],
+      ["Menguji hanya perubahan setpoint", "Penolakan gangguan memiliki fungsi transfer yang berbeda. Sistem yang baik mengikuti perintah bisa buruk menolak gangguan."],
+      ["Memilih skala sumbu yang menyesatkan", "Skala terlalu lebar menyembunyikan osilasi berarti, terlalu sempit membesar-besarkan derau yang tidak penting."],
+    ],
+    checklist: [
+      "Nilai akhir dan error tunak dibaca lebih dahulu",
+      "Waktu naik dan waktu menetap dibedakan dan dicatat terpisah",
+      "Overshoot dihitung terhadap nilai akhir, bukan terhadap setpoint bila keduanya berbeda",
+      "Sinyal kendali ditampilkan bersama respons keluaran",
+      "Pengujian mencakup perubahan setpoint dan pemberian gangguan",
+      "Sumbu berlabel lengkap dengan satuan dan pita toleransi ditampilkan",
+      "Angka hasil pembacaan dibandingkan langsung dengan spesifikasi",
+      "Kesimpulan dinyatakan sebagai terpenuhi atau tidak, disertai alasan",
+    ],
+  },
 };
 
 export default MATERI;
