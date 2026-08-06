@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { MATERI } from "./sisken-materi.mjs";
+
 const root = path.resolve(import.meta.dirname, "..");
 const moduleDir = path.join(root, "Sistem-Kendali-Cerdas", "Modul");
 
@@ -183,6 +185,22 @@ const css = `
 .sisken-task{margin:36px auto;max-width:1060px;padding:clamp(22px,4vw,42px);border:1px solid #22334d;border-radius:18px;background:linear-gradient(145deg,#0c1624,#08111d)}.sisken-task h2{font:800 clamp(30px,5vw,50px) 'Playfair Display',serif;color:#f4f7ff}.sisken-task>p{color:#9eacc3;font-size:17px;line-height:1.7}.sisken-task .sisken-card{border-top:3px solid var(--cyan)}.sisken-task-note{margin-top:20px;padding:14px 16px;border:1px solid rgba(0,230,118,.25);border-radius:11px;background:rgba(0,230,118,.06);color:#b8efd0}
 html,body{height:auto!important;min-height:100%!important;overflow-y:auto!important}.visitor-overlay{overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;align-items:flex-start!important;padding:clamp(14px,4vh,42px) 12px;box-sizing:border-box}.visitor-overlay>.visitor-modal{margin:auto;flex:none}
 @media(max-width:700px){.sisken-rich{padding-top:28px}.sisken-tabs{margin-top:24px}.sisken-anim-box canvas{height:240px}}
+.sisken-prose{max-width:1000px;margin:0 0 34px}
+.sisken-prose h3{font:800 21px/1.35 'Playfair Display',serif;color:#e8eefc;margin:26px 0 10px}
+.sisken-prose p{font-size:16px;line-height:1.85;color:#9eacc5;margin:0 0 13px}
+.sisken-derive{margin:26px 0 34px;padding:22px;border:1px solid #1b2b42;border-radius:14px;background:rgba(0,229,255,.04)}
+.sisken-derive ol{margin:16px 0 0;padding:0;list-style:none;counter-reset:drv}
+.sisken-derive li{counter-increment:drv;position:relative;padding:0 0 16px 42px;margin-bottom:14px;border-bottom:1px solid rgba(27,43,66,.7)}
+.sisken-derive li:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+.sisken-derive li::before{content:counter(drv);position:absolute;left:0;top:0;width:27px;height:27px;border-radius:50%;background:rgba(0,229,255,.14);color:var(--cyan);font:700 12px 'JetBrains Mono',monospace;display:grid;place-items:center}
+.sisken-derive .lbl{display:block;font-weight:700;color:#dce6f7;margin-bottom:6px}
+.sisken-derive .note{display:block;margin-top:7px;font-size:14px;line-height:1.7;color:#8b9ab4}
+.sisken-pitfall{border-left:3px solid #ff6b6b;background:rgba(255,107,107,.06);padding:15px 17px;border-radius:0 11px 11px 0;margin-bottom:12px}
+.sisken-pitfall strong{display:block;color:#ffb4b4;margin-bottom:5px;font-size:15px}
+.sisken-pitfall span{font-size:15px;line-height:1.75;color:#9eacc5}
+.sisken-check{margin:18px 0 0;padding:0;list-style:none}
+.sisken-check li{position:relative;padding:0 0 9px 28px;font-size:15px;line-height:1.7;color:#9eacc5}
+.sisken-check li::before{content:'✓';position:absolute;left:0;color:var(--cyan);font-weight:700}
 @media(prefers-reduced-motion:reduce){.sisken-pane.active{animation:none}}
 /* SISKENCERDAS-RICH-CONTENT:END */`;
 
@@ -192,6 +210,40 @@ function esc(value) {
 
 function cards(items, className = "") {
   return `<div class="sisken-grid ${className}">${items.map(([h, p, f]) => `<article class="sisken-card"><h3>${h}</h3><p>${p}</p>${f ? `<div class="sisken-formula">${f}</div>` : ""}</article>`).join("")}</div>`;
+}
+
+// Materi mendalam bersifat opsional: modul yang belum punya entri di
+// sisken-materi.mjs tetap dirender dengan kartu konsep dan alur seperti semula.
+function materiMendalam(n) {
+  const d = MATERI[n];
+  if (!d) return "";
+  const bagian = (d.deep || []).map((s) => `<section class="sisken-prose"><h3>${s.head}</h3>${s.body.map((p) => `<p>${p}</p>`).join("")}${s.formula ? `<div class="sisken-formula">${esc(s.formula)}</div>` : ""}</section>`).join("");
+
+  const turunan = d.derivation
+    ? `<h2 class="sisken-section-head" style="margin-top:34px">${d.derivation.head}</h2>`
+      + `<p class="sisken-lead" style="font-size:16px">${d.derivation.intro}</p>`
+      + `<div class="sisken-derive"><ol>${d.derivation.steps.map(([lbl, ex, note]) => `<li><span class="lbl">${lbl}</span><div class="sisken-formula" style="margin-top:0">${esc(ex)}</div><span class="note">${note}</span></li>`).join("")}</ol></div>`
+      + `<p class="sisken-lead" style="font-size:16px">${d.derivation.closing}</p>`
+    : "";
+
+  const contoh = d.worked
+    ? `<h2 class="sisken-section-head" style="margin-top:34px">${d.worked.head}</h2>`
+      + `<div class="sisken-code-note">Diketahui: ${d.worked.given.join(" · ")}</div>`
+      + `<div class="sisken-derive"><ol>${d.worked.steps.map(([lbl, ex, note]) => `<li><span class="lbl">${lbl}</span><div class="sisken-formula" style="margin-top:0">${esc(ex)}</div><span class="note">${note}</span></li>`).join("")}</ol></div>`
+      + `<p class="sisken-lead" style="font-size:16px"><strong style="color:#dce6f7">Jawaban.</strong> ${d.worked.answer}</p>`
+    : "";
+
+  const jebakan = d.pitfalls
+    ? `<h2 class="sisken-section-head" style="margin-top:34px">Salah Kaprah yang Sering Terjadi</h2>`
+      + d.pitfalls.map(([h, p]) => `<div class="sisken-pitfall"><strong>${h}</strong><span>${p}</span></div>`).join("")
+    : "";
+
+  const periksa = d.checklist
+    ? `<h2 class="sisken-section-head" style="margin-top:34px">Daftar Periksa Sebelum Lanjut</h2>`
+      + `<ul class="sisken-check">${d.checklist.map((c) => `<li>${c}</li>`).join("")}</ul>`
+    : "";
+
+  return bagian + turunan + contoh + jebakan + periksa;
 }
 
 function richModule(m, index) {
@@ -204,7 +256,7 @@ function richModule(m, index) {
     <div class="sisken-tabs" role="tablist" aria-label="Bagian materi Modul ${n}">
       ${[["materi","Materi Inti"],["analogi","Analogi"],["animasi","Animasi"],["industri","Penerapan Industri"],["python","Python"],["referensi","Referensi"]].map(([id,label],i)=>`<button class="sisken-tab${i===0?" active":""}" role="tab" aria-selected="${i===0}" onclick="openSiskenPane(${n},'${id}',this)">${label}</button>`).join("")}
     </div>
-    <div class="sisken-pane active" data-sisken-pane="${n}-materi"><h2 class="sisken-section-head">Konsep yang Wajib Dikuasai</h2>${cards(m.concepts)}<h2 class="sisken-section-head" style="margin-top:30px">Alur Berpikir Engineer</h2><div class="sisken-flow">${m.steps.map(s=>`<div>${s}</div>`).join("")}</div></div>
+    <div class="sisken-pane active" data-sisken-pane="${n}-materi"><h2 class="sisken-section-head">Konsep yang Wajib Dikuasai</h2>${cards(m.concepts)}<h2 class="sisken-section-head" style="margin-top:30px">Alur Berpikir Engineer</h2><div class="sisken-flow">${m.steps.map(s=>`<div>${s}</div>`).join("")}</div>${materiMendalam(n)}</div>
     <div class="sisken-pane" data-sisken-pane="${n}-analogi"><h2 class="sisken-section-head">Analogi untuk Membangun Intuisi</h2><div class="sisken-analogy">${cards(m.analogies)}</div></div>
     <div class="sisken-pane" data-sisken-pane="${n}-animasi"><h2 class="sisken-section-head">Animasi Respons Loop Tertutup</h2><p class="sisken-lead" style="font-size:15px;margin-bottom:14px">Geser parameter untuk mengamati perubahan kecepatan, overshoot, dan error. Visual ini menjadi jembatan antara konsep ${m.title.toLowerCase()} dan respons waktu.</p><div class="sisken-anim-box"><div class="sisken-controls"><label>Agresivitas controller <span id="siskenGainValue${n}">1.5</span></label><input id="siskenGain${n}" type="range" min="0.2" max="5" step="0.1" value="1.5" oninput="drawSiskenAnimation(${n})"><button class="sisken-run" onclick="toggleSiskenAnimation(${n})">▶ Jalankan Animasi</button></div><canvas id="siskenCanvas${n}" width="1000" height="360" aria-label="Animasi respons kontrol Modul ${n}"></canvas></div></div>
     <div class="sisken-pane" data-sisken-pane="${n}-industri"><h2 class="sisken-section-head">Penerapan pada Sistem Industri</h2>${cards(m.industries,"sisken-industry")}</div>
