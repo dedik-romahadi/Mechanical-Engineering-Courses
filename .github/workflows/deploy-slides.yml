@@ -97,10 +97,17 @@ jobs:
           mkdir -p _site
           # Allowlist frontend publik. Jangan pernah kembali menyalin root repo:
           # backend, bank soal, seed, workflow, dan pedoman bukan artefak web.
-          rsync -a Engineering-Mathematics/ _site/Engineering-Mathematics/
-          rsync -a --exclude='Slides/' Getaran-Mekanik/ _site/Getaran-Mekanik/
-          rsync -a --exclude='Slides/' Optimalisasi-dan-Automasi/ _site/Optimalisasi-dan-Automasi/
-          rsync -a Sistem-Kendali-Cerdas/ _site/Sistem-Kendali-Cerdas/
+          #
+          # Modul-Word/*.docx TIDAK ikut ke Pages: halaman modul hanya
+          # menautkan PDF-nya (MODUL_PDF_URL), sedangkan .docx adalah berkas
+          # sumber yang tidak pernah ditautkan dari situs. Ikutnya .docx
+          # (±148 MB) membuat artifact melewati ambang yang bisa dibongkar
+          # Pages dalam batas keras 10 menit actions/deploy-pages, sehingga
+          # deploy gagal berulang di deployment_queued/in_progress.
+          rsync -a --exclude='Modul-Word/*.docx' Engineering-Mathematics/ _site/Engineering-Mathematics/
+          rsync -a --exclude='Slides/' --exclude='Modul-Word/*.docx' Getaran-Mekanik/ _site/Getaran-Mekanik/
+          rsync -a --exclude='Slides/' --exclude='Modul-Word/*.docx' Optimalisasi-dan-Automasi/ _site/Optimalisasi-dan-Automasi/
+          rsync -a --exclude='Modul-Word/*.docx' Sistem-Kendali-Cerdas/ _site/Sistem-Kendali-Cerdas/
           rsync -a --exclude='Slides/' PDD-UKTPT/ _site/PDD-UKTPT/
           rsync -a Admin/ _site/Admin/
           rsync -a Images/ _site/Images/
