@@ -242,8 +242,19 @@ window.drawSiskenAnimation=function(n,phase){
 window.toggleSiskenAnimation=function(n){var state=window._siskenAnim[n]||{running:false,start:0};state.running=!state.running;state.start=performance.now();window._siskenAnim[n]=state;if(!state.running)return;(function tick(now){if(!state.running)return;drawSiskenAnimation(n,(now-state.start)/6000);requestAnimationFrame(tick)})(performance.now())};
 </script>`;
 
+// Modul 1 ditulis tangan mengikuti Modul 1 Getaran Mekanik dan JAUH lebih dalam
+// daripada keluaran generator ini (6.469 kata vs ~1.430). Menjalankan generator
+// atas Modul 1 akan menimpanya dan menghapus sembilan seksi materi, panel
+// animasi, serta halaman tugas 25 soal yang qId-nya terikat bank soal Firestore.
+// Karena itu Modul 1 sengaja dilewati; entri datanya tetap disimpan sebagai
+// rujukan gaya. validate-sisken-modules.mjs menguji Modul 1 dengan aturan
+// terpisah, jadi pelanggaran pengaman ini akan ketahuan di sana.
+const LEWATI = new Set([1]);
+
 for (const [index, m] of modules.entries()) {
-  const file = path.join(moduleDir, `Modul-${index + 1}.html`);
+  const nomor = index + 1;
+  if (LEWATI.has(nomor)) continue;
+  const file = path.join(moduleDir, `Modul-${nomor}.html`);
   let html = fs.readFileSync(file, "utf8");
   html = html.replace(/<script id="sisken-rich-runtime">[\s\S]*?<\/script>/g, "");
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>Modul ${index + 1} — ${m.title} | Sistem Kendali Cerdas</title>`);
@@ -256,4 +267,7 @@ for (const [index, m] of modules.entries()) {
   fs.writeFileSync(file, html, "utf8");
 }
 
-console.log(`Enriched ${modules.length} Sistem Kendali Cerdas modules.`);
+console.log(
+  `Enriched ${modules.length - LEWATI.size} Sistem Kendali Cerdas modules `
+  + `(Modul ${[...LEWATI].join(", ")} dilewati: ditulis tangan).`,
+);
