@@ -13,10 +13,12 @@ on:
   # tanpa perlu bikin commit baru.
   workflow_dispatch:
 
+# contents: write dibutuhkan untuk push hasil build ke branch gh-pages.
+# Mode deploy artifact (pages: write + id-token) ditinggalkan karena
+# actions/deploy-pages punya batas keras 10 menit yang berulang kali terlampaui
+# — lihat komentar di langkah "Publikasikan ke branch gh-pages".
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
@@ -181,22 +183,32 @@ jobs:
           fi
           test "$forbidden" -eq 0
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '_site'
-
-  deploy:
-    name: Deploy ke GitHub Pages
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      # ──────────────────────────────────────────────────────────────────
+      # Publikasi lewat branch gh-pages, BUKAN actions/deploy-pages.
+      # Jalur artifact (upload-pages-artifact + deploy-pages) punya batas
+      # keras 10 menit; pada 2026-08-06 backend Pages membongkar artifact
+      # situs ini (140-295 MB) lebih lama dari itu sehingga 8 deploy
+      # berturut-turut gagal di deployment_queued/in_progress meski build
+      # selalu sukses. Push branch tidak melewati API deployment tersebut;
+      # Pages membangun dari branch dengan penjadwal miliknya sendiri.
+      # Sumber Pages di Settings harus disetel ke branch gh-pages (root).
+      # ──────────────────────────────────────────────────────────────────
+      - name: Publikasikan ke branch gh-pages
+        run: |
+          cd _site
+          # .nojekyll wajib: tanpa ini Pages menjalankan Jekyll atas seluruh
+          # situs — lambat dan bisa mengubah/menghilangkan berkas.
+          touch .nojekyll
+          git init -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Deploy ${GITHUB_SHA}"
+          # Force push satu commit tunggal: riwayat gh-pages tidak perlu
+          # dipertahankan, dan ini mencegah branch membengkak dari deploy
+          # ratusan MB yang berulang.
+          git push --force \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
