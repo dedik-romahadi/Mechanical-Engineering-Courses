@@ -30,6 +30,14 @@ for (let n = 1; n <= 14; n += 1) {
     [html.includes('id="visitorTableBody" style="max-height:min(72vh,820px);overflow-y:auto;"'), "tall responsive student list"],
     [(html.match(/<span class="nav-brand">/g) || []).length === 1 && html.includes(`<span>SISKENCERDAS // M${n}</span></span>`), "clean module navigation brand"],
     [html.includes("overflow-y:auto!important;overscroll-behavior:contain"), "scroll-safe login overlays"],
+    // Repo ini publik. Penilaian sisken sepenuhnya di server (checkModulAnswer),
+    // jadi kunci jawaban tidak boleh ikut ke HTML. runAndCheck harus dipanggil
+    // dengan qId saja — bentuk lama runAndCheck('c1', 2.6, 0.005) milik modul
+    // Getaran membocorkan jawaban beserta toleransinya.
+    // Argumen kedua yang sah hanyalah label kesulitan ('easy'/'hard'); argumen
+    // berupa angka berarti jawaban dan toleransi ikut terkirim ke peramban.
+    [!/runAndCheck\('[^']+'\s*,\s*-?[\d.]/.test(html), "runAndCheck tanpa kunci jawaban"],
+    [!/(MC_HINTS|COMP_HINTS)\s*=/.test(html), "tanpa tabel kunci jawaban di HTML"],
     [/\.cards\{[^}]*margin:16px 0 24px[^}]*\}/.test(html), "jarak di bawah .cards"],
     [/\.tbl-wrap\{[^}]*margin:16px 0 24px[^}]*\}/.test(html), "jarak di bawah .tbl-wrap"],
     [!html.includes("\u0000"), "tanpa token placeholder yang belum dipulihkan"],
@@ -51,7 +59,13 @@ for (let n = 1; n <= 14; n += 1) {
       [(html.match(/class="code-wrap/g) || []).length === 1, "one visible Python code panel"],
       [html.includes("class=\"code-dots\"") && html.includes("class=\"code-copy\""), "reference code-panel design"],
       [(html.match(/id="sisken-rich-runtime"/g) || []).length === 1, "one runtime"],
-      [html.includes("Asesmen Teknis") && html.includes("Implementasi Python"), "technical assignment panel"],
+      // Halaman tugas ada dalam dua keadaan sah: panel generik (belum ada soal)
+      // atau 25 soal sungguhan yang dibangun dari repo backend.
+      [
+        (html.includes("Asesmen Teknis") && html.includes("Implementasi Python"))
+        || ((html.match(/id="rg-mc\d+"/g) || []).length === 10 && (html.match(/onclick="runAndCheck\('c\d+'[^"]*\)"/g) || []).length === 15),
+        "technical assignment panel atau 25 soal lengkap",
+      ],
     );
   }
 

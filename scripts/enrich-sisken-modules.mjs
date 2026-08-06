@@ -313,7 +313,15 @@ for (const [index, m] of modules.entries()) {
   html = html.replace(/^[ \t]*<span class="nav-brand">[^\r\n]*$/m, `  <span class="nav-brand"><span class="pulse"></span><span>SISKENCERDAS // M${index + 1}</span></span>`);
   html = html.replace(/id="visitorTableBody" style="max-height:[^;\"]+;overflow-y:auto;"/g, 'id="visitorTableBody" style="max-height:min(72vh,820px);overflow-y:auto;"');
   html = html.replace(/<div class="page active" id="page-modul">[\s\S]*?<\/div>\s*<!-- end page-modul -->/, `<div class="page active" id="page-modul">${richModule(m, index)}\n</div><!-- end page-modul -->`);
-  html = html.replace(/<div class="page" id="page-tugas">[\s\S]*?<\/div>\s*<!-- end page-tugas -->/, `<div class="page" id="page-tugas">${taskPanel(m, index)}\n</div><!-- end page-tugas -->`);
+  // Halaman tugas yang sudah berisi soal sungguhan dibangun dari repo backend
+  // (build-sisken-tugas.js), tempat kunci jawabannya berada. Repo ini publik
+  // sehingga tidak boleh memuat kunci. Panel generik di bawah hanya dipakai
+  // selama modul belum punya soal; menimpanya akan menghapus 25 soal yang
+  // qId-nya terikat Firestore.
+  const sudahAdaSoal = /id="rg-mc1"/.test(html);
+  if (!sudahAdaSoal) {
+    html = html.replace(/<div class="page" id="page-tugas">[\s\S]*?<\/div>\s*<!-- end page-tugas -->/, `<div class="page" id="page-tugas">${taskPanel(m, index)}\n</div><!-- end page-tugas -->`);
+  }
   html = html.replace(/\/\* SISKENCERDAS-RICH-CONTENT:START \*\/[\s\S]*?\/\* SISKENCERDAS-RICH-CONTENT:END \*\//, css.trim());
   if (!html.includes("SISKENCERDAS-RICH-CONTENT:START")) html = html.replace("</head>", `<style>${css}</style>\n</head>`);
   fs.writeFileSync(file, html, "utf8");
