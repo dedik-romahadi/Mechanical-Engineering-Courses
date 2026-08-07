@@ -2337,12 +2337,12 @@ akar = np.<span class="fn">roots</span>([<span class="nm">1</span>, a1, a0])
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q"><strong>Perancangan gain dari spesifikasi error.</strong> Untuk plant dengan gain \(K = 2\) dan controller proporsional \(K_p\), tentukan <strong>nilai \(K_p\) minimum</strong> agar error tunak terhadap step satuan tidak melebihi <strong>5 %</strong>. Turunkan dari \(e_{ss} = 1/(1+K_pK) \le 0{,}05\), lalu cetak \(K_p\) minimumnya.</div>
+        <div class="comp-q"><strong>Dari gain ke suhu nyata.</strong> Oven bersetpoint <strong>180 °C</strong> dikendalikan proporsional dengan \(K_p = 4\) pada plant bergain \(K = 2\). Hitung <strong>suhu tunak</strong> yang benar-benar dicapai oven, dalam °C.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Susun ulang pertidaksamaan: \(1/(1+2K_p) \le 0{,}05 \Rightarrow 1+2K_p \ge 20\). Selesaikan untuk \(K_p\), lalu verifikasi dengan menghitung ulang \(e_{ss}\) pada nilai tersebut.</div>
+      <div class="comp-hint">💡 Langkahnya: (1) hitung gain loop \(L = K_pK\). (2) hitung gain tertutup \(T = L/(1+L)\). (3) kalikan dengan setpoint. Perhatikan hasilnya <em>di bawah</em> setpoint — itulah wujud fisik error tunak.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">Kp minimum</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">suhu tunak (°C)</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="10" placeholder="Paste kode Python perancangan Kp dari Jupyter Notebook di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c11')"></textarea>
         <div class="stdout-box" id="stdout-c11"></div>
       </div>
@@ -2354,10 +2354,10 @@ akar = np.<span class="fn">roots</span>([<span class="nm">1</span>, a1, a0])
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q"><strong>Perancangan gain dari spesifikasi kecepatan.</strong> Plant memiliki \(K = 2\) dan \(\tau = 3\) s. Tentukan <strong>\(K_p\) minimum</strong> agar konstanta waktu loop tertutup \(\tau_{cl} = \tau/(1+K_pK)\) tidak lebih dari <strong>0,25 detik</strong>. Cetak \(K_p\) minimumnya.</div>
+        <div class="comp-q"><strong>Merancang gain dari target suhu.</strong> Manajemen menuntut suhu tunak minimal <strong>175 °C</strong> untuk setpoint 180 °C. Tentukan <strong>\(K_p\) minimum</strong> yang memenuhinya.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Syaratnya \(3/(1+2K_p) \le 0{,}25\), sehingga \(1+2K_p \ge 12\). Bandingkan hasilnya dengan C11 — spesifikasi mana yang lebih menuntut?</div>
+      <div class="comp-hint">💡 Langkahnya: (1) hitung rasio \(T = 175/180\). (2) balik hubungan \(T = L/(1+L)\) menjadi \(L = T/(1-T)\). (3) peroleh \(K_p = L/K\). Bandingkan besarnya dengan \(K_p = 4\) semula.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">Kp minimum</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="10" placeholder="Paste kode Python perancangan Kp dari Jupyter Notebook di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -2371,12 +2371,12 @@ akar = np.<span class="fn">roots</span>([<span class="nm">1</span>, a1, a0])
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C13</div>
-        <div class="comp-q"><strong>Overshoot sistem orde dua.</strong> Untuk sistem orde dua dengan rasio redaman \(\zeta = 0{,}5\), hitung <strong>persen overshoot maksimum</strong> menggunakan \(M_p = e^{-\pi\zeta/\sqrt{1-\zeta^2}} \times 100\,\%\). Cetak nilainya dalam persen.</div>
+        <div class="comp-q"><strong>Harga kecepatan dari gain besar.</strong> Dengan \(K_p\) hasil C12 dan plant \(\tau = 3\) s, hitung <strong>waktu menetap</strong> loop tertutup pada pita dua persen, dalam detik.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Gunakan <code>np.exp</code>, <code>np.pi</code>, dan <code>np.sqrt</code>. Jangan lupa dikalikan 100 agar hasilnya dalam persen.</div>
+      <div class="comp-hint">💡 Langkahnya: (1) hitung \(L\) dari \(K_p\) hasil C12. (2) hitung \(\tau_{cl} = \tau/(1+L)\). (3) \(t_s = 4\tau_{cl}\). Perhatikan gain besar memperbaiki error <em>sekaligus</em> mempercepat sistem.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">Mp (%)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">t_s (detik)</strong></span></div>
         <textarea class="code-textarea" id="code-c13" rows="10" placeholder="Paste kode Python overshoot dari Jupyter Notebook di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c13')"></textarea>
         <div class="stdout-box" id="stdout-c13"></div>
       </div>
@@ -2388,12 +2388,12 @@ akar = np.<span class="fn">roots</span>([<span class="nm">1</span>, a1, a0])
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C14</div>
-        <div class="comp-q"><strong>Inversi spesifikasi overshoot.</strong> Kebalikan dari C13: jika overshoot maksimum yang diizinkan adalah <strong>10 %</strong> (\(M_p = 0{,}10\)), hitung <strong>rasio redaman \(\zeta\) minimum</strong> yang diperlukan menggunakan \(\zeta = \dfrac{-\ln M_p}{\sqrt{\pi^2 + \ln^2 M_p}}\).</div>
+        <div class="comp-q"><strong>Dari persamaan karakteristik ke overshoot.</strong> Sebuah loop tertutup memiliki persamaan karakteristik \(s^2 + 2s + 4 = 0\). Hitung <strong>persen overshoot</strong> responsnya.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Perhatikan \(M_p\) dipakai sebagai pecahan (0,10), bukan persen. Gunakan <code>np.log</code> — hasilnya negatif, dan tanda minus di depan membuat \(\zeta\) positif.</div>
+      <div class="comp-hint">💡 Langkahnya: (1) bandingkan dengan bentuk baku \(s^2 + 2\zeta\omega_n s + \omega_n^2\) untuk memperoleh \(\omega_n\). (2) peroleh \(\zeta\) dari koefisien suku \(s\). (3) hitung \(M_p = e^{-\pi\zeta/\sqrt{1-\zeta^2}}\). (4) kalikan 100.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">zeta minimum</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">Mp dalam persen</strong></span></div>
         <textarea class="code-textarea" id="code-c14" rows="10" placeholder="Paste kode Python inversi overshoot dari Jupyter Notebook di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c14')"></textarea>
         <div class="stdout-box" id="stdout-c14"></div>
       </div>
@@ -2405,12 +2405,12 @@ akar = np.<span class="fn">roots</span>([<span class="nm">1</span>, a1, a0])
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q"><strong>Identifikasi parameter dari persamaan karakteristik.</strong> Sebuah sistem loop tertutup memiliki persamaan karakteristik \(s^2 + 2s + 4 = 0\). Dengan membandingkannya terhadap bentuk baku \(s^2 + 2\zeta\omega_n s + \omega_n^2 = 0\), hitung <strong>frekuensi natural \(\omega_n\)</strong> dalam rad/s.</div>
+        <div class="comp-q"><strong>Dua ukuran waktu yang berbeda.</strong> Untuk sistem \(s^2 + 2s + 4 = 0\) yang sama, hitung <strong>selisih</strong> antara waktu menetap pita dua persen dan waktu puncak, dalam detik.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Suku konstanta pada bentuk baku adalah \(\omega_n^2\), sehingga \(\omega_n = \sqrt{4}\). Sebagai latihan tambahan, coba juga hitung \(\zeta\) dari suku tengah \(2\zeta\omega_n = 2\).</div>
+      <div class="comp-hint">💡 Langkahnya: (1) peroleh \(\omega_n\) dan \(\zeta\). (2) hitung \(\omega_d = \omega_n\sqrt{1-\zeta^2}\). (3) \(t_p = \pi/\omega_d\). (4) \(t_s = 4/(\zeta\omega_n)\). (5) ambil selisihnya. Renungkan mengapa keduanya berbeda jauh.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">omega_n (rad/s)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">selisih t_s - t_p (detik)</strong></span></div>
         <textarea class="code-textarea" id="code-c15" rows="10" placeholder="Paste kode Python identifikasi parameter dari Jupyter Notebook di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c15')"></textarea>
         <div class="stdout-box" id="stdout-c15"></div>
       </div>
