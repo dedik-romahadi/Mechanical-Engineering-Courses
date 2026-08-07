@@ -64,6 +64,28 @@ const KATA_MATEMATIKA = new Set([
   "tau", "pi", "inf", "wn", "wd", "zeta", "integral",
 ]);
 
+// Ruas yang tetap berupa kalimat tidak melewati KaTeX, jadi lambangnya ditulis
+// memakai huruf Yunani langsung. Tanpa ini, "zeta mengatur bentuk" akan tampil
+// apa adanya sebagai kata "zeta" di samping rumus yang sudah memakai ζ.
+const LAMBANG_PROSA = [
+  [/(?<![A-Za-z0-9_])zeta(?![A-Za-z0-9_])/g, "ζ"],
+  [/(?<![A-Za-z0-9_])omega(?![A-Za-z0-9_])/g, "ω"],
+  [/(?<![A-Za-z0-9_])wn(?![A-Za-z0-9_])/g, "ωₙ"],
+  [/(?<![A-Za-z0-9_])wd(?![A-Za-z0-9_])/g, "ωd"],
+  [/(?<![A-Za-z0-9_])tau(?![A-Za-z0-9_])/g, "τ"],
+  [/(?<![A-Za-z0-9_])pi(?![A-Za-z0-9_])/g, "π"],
+  [/(?<![A-Za-z0-9_])mu(?![A-Za-z0-9_])/g, "μ"],
+  [/(?<![A-Za-z0-9_])Delta(?![A-Za-z0-9_])/g, "Δ"],
+  [/(?<![A-Za-z0-9_])M_p(?![A-Za-z0-9_])/g, "Mₚ"],
+  [/(?<![A-Za-z0-9_])e_ss(?![A-Za-z0-9_])/g, "eₛₛ"],
+];
+
+function teksProsa(teks, esc) {
+  let hasil = esc(teks);
+  for (const [pola, ganti] of LAMBANG_PROSA) hasil = hasil.replace(pola, ganti);
+  return hasil;
+}
+
 // Nama fungsi yang tidak punya perintah LaTeX sendiri ditulis tegak supaya
 // tidak terbaca sebagai perkalian antarhuruf.
 const FUNGSI_TEGAK = ["mean", "std", "rms", "var", "cov", "sat", "sign", "round"];
@@ -305,9 +327,9 @@ export function rumusLatex(teks, esc) {
     // keterangannya tetap teks — kalau seluruh ruas dianggap kalimat, justru
     // persamaannya yang ikut tampil mentah.
     const [rumus, sisa] = pisahRumusDanKeterangan(inti);
-    const depan = awalan ? esc(awalan) + " " : "";
-    if (!rumus) return depan + esc(inti);
-    const ekor = sisa ? " " + esc(sisa) : "";
+    const depan = awalan ? teksProsa(awalan, esc) + " " : "";
+    if (!rumus) return depan + teksProsa(inti, esc);
+    const ekor = sisa ? " " + teksProsa(sisa, esc) : "";
     return depan + "\\(" + tokenLatex(rumus) + "\\)" + ekor;
   }).filter(Boolean).join(pemisah);
 }
