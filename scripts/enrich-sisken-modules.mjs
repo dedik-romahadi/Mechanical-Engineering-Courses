@@ -175,6 +175,17 @@ const modules = [
 
 const css = `
 /* SISKENCERDAS-RICH-CONTENT:START */
+/* ── KETERBACAAN:START — teks isi halaman modul ─────────────────────────────
+   Warna bawaan .section-desc dan paragraf kartu memakai var(--muted) #4a6080,
+   yang di atas latar #060a10 hanya berkontras 3,09:1 — di bawah ambang WCAG AA
+   4,5:1 untuk teks biasa. Dinaikkan ke #a8b8d4 (9,9:1) supaya nyaman dibaca,
+   sementara label dan keterangan sekunder tetap redup agar hierarkinya jelas. */
+#page-modul .section-desc,
+#page-modul .card p,
+#page-modul .tbl-wrap td{color:#a8b8d4}
+#page-modul .formula-desc{color:#9aabc6}
+#page-modul .card h3{color:#eef3fb}
+/* ── KETERBACAAN:END ── */
 /* Tombol geser bilah bagian. Bilahnya melebihi lebar layar karena jumlah
    bagiannya banyak, sedangkan batang gulirnya sengaja disembunyikan. */
 /* Halaman modul panjangnya sekitar 20.000 piksel dengan sembilan belas bagian.
@@ -287,7 +298,7 @@ function forumPage(n) {
 
   const jajak = d.jajak.map((p, i) => {
     const k = i + 1;
-    const opts = p.opts.map((o, j) => `<div class="p-opt" onclick="siskenForumVote(${k},this,${j})"><div class="p-circle"></div>${esc(o)}</div>`).join("");
+    const opts = p.opts.map((o, j) => `<div class="p-opt" onclick="voteForum(${k},this,${j})"><div class="p-circle"></div>${esc(o)}</div>`).join("");
     // Bentuknya mengikuti Modul 1: blok .poll yang menempel pada kartu diskusi.
     return `<div class="poll">
       <div class="poll-q">QUICK CHECK — ${esc(p.q)}</div>
@@ -314,7 +325,7 @@ function forumPage(n) {
   <div class="fq-inner">
     <p style="color:var(--muted);font-size:14px;margin-bottom:14px">${esc(q.petunjuk)}</p>
     ${jajak[i] || ""}
-    <textarea class="fq-textarea" id="ans-fq${k}" placeholder="Tulis jawaban diskusi Anda di sini (minimal 30 kata)…" oninput="siskenForumReady()"></textarea>
+    <textarea class="fq-textarea" id="ans-fq${k}" placeholder="Tulis jawaban diskusi Anda di sini (minimal 30 kata)…" oninput="checkForumReady()"></textarea>
     <div id="wc-fq${k}" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right">0 / min 30 kata</div>
   </div>
 </div>
@@ -324,8 +335,7 @@ function forumPage(n) {
   const pa = d.jajak.map((p, i) => `${i + 1}:'${ahash(`${i + 1}_${p.jawab}`)}'`).join(",");
   const judulEsc = d.diskusi.map((q) => q.q.replaceAll("'", "\\'"));
 
-  const markup = `<div class="hero" data-tab="forum" style="min-height:48vh">
-<div class="hero-content">
+  const markup = `${heroForum}<div class="hero-content">
 <div class="hero-eyebrow"><div class="pulse-dot"></div>${esc(d.eyebrow)}</div>
 <h1 class="hero-title" style="font-size:clamp(34px,5vw,56px)">${esc(d.judul)}</h1>
 <p class="hero-sub">${esc(d.ringkas)}</p>
@@ -341,91 +351,28 @@ ${d.narasi.map((p) => `<p style="margin-top:12px">${p}</p>`).join("")}
 <div class="section-label reveal" style="margin-top:34px">Pertanyaan Diskusi</div>
 <h2 class="section-title reveal" style="margin-bottom:28px">Diskusikan<br>Tiga Hal Ini</h2>
 ${diskusi}
-<div class="forum-submit-panel" style="padding:20px 24px;margin-top:28px;text-align:center">
-<div style="font-size:15px;color:#dce6f7;margin-bottom:6px">Salin jawaban Anda lalu tempel ke Forum Fast Learning</div>
-<div id="forumWordDetail" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:12px">0 + 0 + 0 kata</div>
-<div class="forum-progress"><div class="forum-fill" id="forumWordFill" style="width:0%"></div></div>
-<button class="btn-export-forum" id="btn-copy-forum" onclick="siskenForumCopy()" disabled style="margin-top:14px">📋 Salin HTML Forum</button>
-<div id="copy-forum-msg" style="font-size:12px;margin-top:9px;color:var(--muted)">Isi ketiga jawaban minimal 30 kata untuk mengaktifkan tombol.</div>
-</div>
-</div>`;
+${panelForum}
+`;
 
   // Runtime ditulis sebagai <script> klasik supaya terjangkau atribut onclick
   // dan dapat memanggil getIdentityLocal() yang juga berada di skrip klasik.
+  // Runtime forum memakai skrip Modul 1 apa adanya supaya perilakunya sama
+  // persis: penghitung kata per jawaban, status jajak, bilah kemajuan, dan
+  // penyusun HTML yang ditempel ke Forum FAST Learning. Yang khusus per modul
+  // hanya kunci jajak, nomor pertemuan, judul, serta teks pertanyaannya.
+  const isiBangun = bangunForum
+    .replaceAll("__PERTEMUAN__", String(pert))
+    .replaceAll("__JUDUL__", esc(d.judul))
+    .replace("__Q1__", esc(d.diskusi[0].q)).replace("__Q2__", esc(d.diskusi[1].q)).replace("__Q3__", esc(d.diskusi[2].q))
+    .replace("__H1__", esc(d.diskusi[0].petunjuk)).replace("__H2__", esc(d.diskusi[1].petunjuk)).replace("__H3__", esc(d.diskusi[2].petunjuk));
+
   const runtime = `<script id="sisken-forum-runtime">
-var _SF_PA = {${pa}};
-var _SF_Q = ['${judulEsc.join("','")}'];
-var _SF_MIN = 30;
-function _sfHash(s){var h=5381;s+='mEKsP9k4tQ2';for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}
-function _sfWords(t){return (t||'').trim().split(/\\s+/).filter(function(w){return w.length>0}).length;}
-function siskenForumVote(n,el,idx){
-  var box=document.getElementById('fp'+n); if(!box||box.dataset.done)return; box.dataset.done='1';
-  var benar=(_sfHash(n+'_'+idx)===_SF_PA[n]);
-  box.querySelectorAll('.p-opt').forEach(function(o){o.style.pointerEvents='none'});
-  el.style.borderColor=benar?'var(--green)':'var(--pink)';
-  var c=el.querySelector('.p-circle'); if(c)c.style.background=benar?'var(--green)':'var(--pink)';
-  var fb=document.getElementById('fp'+n+(benar?'r':'w')); if(fb)fb.classList.add('show');
-}
-function siskenForumReady(){
-  var total=0,siap=0,rinci=[];
-  for(var i=1;i<=3;i++){
-    var el=document.getElementById('ans-fq'+i); var w=_sfWords(el?el.value:'');
-    total+=w; rinci.push(w); if(w>=_SF_MIN)siap++;
-    var ind=document.getElementById('wc-fq'+i);
-    if(ind){ind.textContent=w+' / min '+_SF_MIN+' kata';ind.style.color=w>=_SF_MIN?'var(--green)':(w>0?'var(--amber)':'var(--muted)');}
-  }
-  var det=document.getElementById('forumWordDetail'); if(det)det.textContent=rinci.join(' + ')+' kata';
-  var fill=document.getElementById('forumWordFill'); if(fill)fill.style.width=Math.min(100,Math.round(siap/3*100))+'%';
-  var btn=document.getElementById('btn-copy-forum'); var msg=document.getElementById('copy-forum-msg');
-  if(btn){btn.disabled=(siap<3);}
-  if(msg&&siap>=3){msg.style.color='var(--green)';msg.textContent='Ketiga jawaban sudah memenuhi syarat.';}
-  else if(msg){msg.style.color='var(--muted)';msg.textContent='Isi ketiga jawaban minimal '+_SF_MIN+' kata untuk mengaktifkan tombol.';}
-}
-function _sfBuild(){
-  var id=(typeof getIdentityLocal==='function')?getIdentityLocal():null;
-  var nama=id&&id.nama?id.nama:'Mahasiswa', nim=id&&id.nim?id.nim:'-';
-  var d=new Date(),p=function(x){return String(x).padStart(2,'0')};
-  var wkt=d.getDate()+'-'+(d.getMonth()+1)+'-'+d.getFullYear()+', '+p(d.getHours())+':'+p(d.getMinutes());
-  var esc=function(s){return (s||'(Belum diisi)').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\n/g,'<br>')};
-  var blok='';
-  for(var i=1;i<=3;i++){
-    var el=document.getElementById('ans-fq'+i);
-    blok+='<tr><td style="padding:16px 26px;border-top:1px solid #e2e8f0">'
-      +'<div style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:8px">'
-      +'<span style="display:inline-block;background:#0891b2;color:#fff;padding:3px 11px;border-radius:6px;font-size:13px;margin-right:8px">'+i+'</span>'+_SF_Q[i-1]+'</div>'
-      +'<div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;padding:13px 15px;font-size:.9rem;color:#1e293b;line-height:1.75">'+esc(el?el.value:'')+'</div></td></tr>';
-  }
-  return '<div style="font-family:Segoe UI,Arial,sans-serif;max-width:720px;margin:0 auto;color:#1e293b">'
-    +'<table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#0a1628;border-radius:12px 12px 0 0">'
-    +'<tr><td style="padding:20px 26px">'
-    +'<div style="font-size:1.25rem;font-weight:800;color:#22d3ee;margin-bottom:4px">Forum Diskusi &mdash; Pertemuan ${pert}</div>'
-    +'<div style="font-size:.82rem;color:#94a3b8">${esc(d.judul)} &middot; Sistem Kendali Cerdas &middot; S1 Teknik Mesin UMB</div>'
-    +'<div style="font-size:.8rem;color:#22d3ee;margin-top:2px">Dosen: Dedik Romahadi</div></td></tr></table>'
-    +'<table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#f1f5f9;border-left:4px solid #22d3ee">'
-    +'<tr><td style="padding:13px 26px;font-size:14px;line-height:1.9">'
-    +'<strong>Nama</strong> : '+nama+'<br><strong>NIM</strong> : '+nim+'<br><strong>Waktu</strong> : '+wkt
-    +'</td></tr></table>'
-    +'<table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#fff">'+blok+'</table>'
-    +'<table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#0a1628;border-radius:0 0 12px 12px">'
-    +'<tr><td style="padding:13px 26px;text-align:center;font-size:.72rem;color:#94a3b8">Forum Pertemuan ${pert} &mdash; Sistem Kendali Cerdas &middot; 2025/2026</td></tr></table></div>';
-}
-function siskenForumCopy(){
-  var msg=document.getElementById('copy-forum-msg');
-  var html;
-  try{ html=_sfBuild(); }catch(e){ if(msg){msg.style.color='var(--pink)';msg.textContent='Gagal menyusun HTML: '+e.message;} return; }
-  var selesai=function(){ if(msg){msg.style.color='var(--green)';msg.textContent='✅ HTML tersalin. Tempel ke Forum Fast Learning memakai mode HTML.';} };
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(html).then(selesai).catch(function(){_sfFallback(html,selesai,msg)});
-  }else{ _sfFallback(html,selesai,msg); }
-}
-function _sfFallback(html,ok,msg){
-  var ta=document.createElement('textarea'); ta.value=html;
-  ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select();
-  try{ document.execCommand('copy'); ok(); }
-  catch(e){ if(msg){msg.style.color='var(--amber)';msg.textContent='Salin otomatis diblokir peramban. Tekan Ctrl+C setelah teks tersorot.';} }
-  finally{ setTimeout(function(){ta.remove()},400); }
-}
-document.addEventListener('DOMContentLoaded', siskenForumReady);
+function _ah(s){var h=5381;s=s+'mEKsP9k4tQ2';for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}
+window._ah = _ah;
+window._pa = {${pa}};
+${skripForum}
+${isiBangun}
+document.addEventListener('DOMContentLoaded', function(){ if (typeof checkForumReady === 'function') checkForumReady(); });
 </script>`;
 
   // Halaman Forum Modul 1 ditutup footer yang sama seperti halaman lainnya.
@@ -442,6 +389,10 @@ document.addEventListener('DOMContentLoaded', siskenForumReady);
 // — seluruhnya sudah bergaya lewat blok <head> yang dimiliki semua modul, jadi
 // yang perlu disalin hanya cangkang hero-nya (SVG gelombang, skema, rumus).
 const heroShell = fs.readFileSync(path.join(import.meta.dirname, "sisken-hero-shell.html"), "utf8");
+const heroForum = fs.readFileSync(path.join(import.meta.dirname, "sisken-hero-forum.html"), "utf8");
+const panelForum = fs.readFileSync(path.join(import.meta.dirname, "sisken-forum-panel.html"), "utf8");
+const skripForum = fs.readFileSync(path.join(import.meta.dirname, "sisken-forum-script.js"), "utf8");
+const bangunForum = fs.readFileSync(path.join(import.meta.dirname, "sisken-forum-build.js"), "utf8");
 
 const IKON = ["🎯", "⚙️", "🔁", "📐", "🧭", "🧪", "📊", "🛠️", "🧠", "⚡", "🔍", "📌"];
 

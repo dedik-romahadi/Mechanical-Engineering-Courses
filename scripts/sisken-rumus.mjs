@@ -32,6 +32,13 @@ const SIMBOL = [
   [/\btan\b/g, "\\tan"],
   [/\blim\b/g, "\\lim"],
   [/\bsum\b/g, "\\sum"],
+  [/\bmu\b/g, "\\mu"],
+  [/\balpha\b/g, "\\alpha"],
+  [/\bbeta\b/g, "\\beta"],
+  [/\btheta\b/g, "\\theta"],
+  // sqrt bersarang tidak tertangkap pola berkurung di tokenLatex, jadi kata
+  // sisanya tetap diubah menjadi perintah supaya tampil sebagai tanda akar.
+  [/\bsqrt\b/g, "\\sqrt"],
 ];
 
 const PENGGANTI = [
@@ -98,6 +105,39 @@ function tokenLatex(teks) {
   return t.replace(/\s{2,}/g, " ").trim();
 }
 
+// Sebuah kata dianggap kata biasa bila panjangnya empat huruf atau lebih dan
+// bukan lambang matematika yang memang ditulis dengan huruf.
+function kataBiasa(token) {
+  // Harus murni huruf. Token seperti Y(s)/U(s), Ki*e*T, atau tau_tercepat
+  // memuat tanda hitung, jadi bagian dari persamaan meskipun berhuruf banyak.
+  const cocok = token.match(/^([A-Za-z]{4,})[.,;:]?$/);
+  return !!cocok && !KATA_MATEMATIKA.has(cocok[1].toLowerCase());
+}
+
+/**
+ * Pisahkan ruas menjadi [bagian persamaan, bagian keterangan].
+ * Penelusuran berhenti pada dua kata biasa berturut-turut, karena di situlah
+ * persamaan biasanya sudah selesai dan kalimat penjelas dimulai.
+ */
+function pisahRumusDanKeterangan(teks) {
+  const token = teks.split(/\s+/);
+  let batas = token.length;
+  let beruntun = 0;
+  for (let i = 0; i < token.length; i += 1) {
+    if (kataBiasa(token[i])) {
+      beruntun += 1;
+      if (beruntun === 2) { batas = i - 1; break; }
+    } else {
+      beruntun = 0;
+    }
+  }
+  const kepala = token.slice(0, batas).join(" ").replace(/[,;:]$/, "").trim();
+  const ekor = token.slice(batas).join(" ").trim();
+  // Kepala baru layak disusun bila benar-benar mengandung tanda hitung.
+  const layak = /[=^_]|[A-Za-z0-9)]\s*\/\s*[A-Za-z0-9(]|\+=|\bsqrt\b|\bexp\b|\bintegral\b/.test(kepala);
+  return layak ? [kepala, ekor] : ["", teks];
+}
+
 function terlihatKalimat(teks) {
   const kata = (teks.match(/[A-Za-z]{4,}/g) || [])
     .filter((w) => !KATA_MATEMATIKA.has(w.toLowerCase()));
@@ -121,7 +161,14 @@ export function rumusLatex(teks, esc) {
     const pakaiAwalan = cocok && terlihatKalimat(cocok[1]);
     const awalan = pakaiAwalan ? cocok[1] : "";
     const inti = pakaiAwalan ? cocok[2] : bersih;
-    if (terlihatKalimat(inti)) return esc(bersih);
-    return (awalan ? esc(awalan) + " " : "") + "\\(" + tokenLatex(inti) + "\\)";
+    // Banyak ruas berbentuk "persamaan lalu keterangan", mis.
+    // "G(s) = Y(s)/U(s) pada kondisi awal nol". Bagian persamaannya disusun,
+    // keterangannya tetap teks — kalau seluruh ruas dianggap kalimat, justru
+    // persamaannya yang ikut tampil mentah.
+    const [rumus, sisa] = pisahRumusDanKeterangan(inti);
+    const depan = awalan ? esc(awalan) + " " : "";
+    if (!rumus) return depan + esc(inti);
+    const ekor = sisa ? " " + esc(sisa) : "";
+    return depan + "\\(" + tokenLatex(rumus) + "\\)" + ekor;
   }).filter(Boolean).join(pemisah);
 }
