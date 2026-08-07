@@ -235,6 +235,27 @@ body{
 .subnav-geser{background:linear-gradient(90deg,rgba(7,11,22,.97),rgba(7,11,22,.72));color:#a78bfa}
 .subnav-geser.kanan{background:linear-gradient(270deg,rgba(7,11,22,.97),rgba(7,11,22,.72))}
 /* ── TEMA-OBE:END ── */
+
+/* ── LEBAR-LENTUR:START — paragraf mengikuti lebar jendela ──────────────────
+   Bawaannya .section dikunci 1100px dan .section-desc dikunci 680px, sehingga
+   pada layar lebar teksnya menumpuk di kolom sempit dengan ruang kosong luas
+   di kanan-kiri. Kini keduanya melar mengikuti jendela; jarak tepi yang ikut
+   melar (clamp) menjaga teks tidak menempel ke sisi layar. */
+.section{max-width:none;padding:80px clamp(18px,4.5vw,72px)}
+#page-modul .section-desc,
+#page-modul .hero-sub,
+#page-modul .card p,
+#page-modul .tip-box,
+#page-modul .info-box,
+#page-modul .formula-desc{max-width:none}
+#page-modul .cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr))}
+#page-modul .tbl-wrap{max-width:none;overflow-x:auto}
+/* Pada layar sangat sempit, jarak tepi dikecilkan supaya baris tidak terlalu
+   pendek dan kata tidak terpenggal berlebihan. */
+@media (max-width:560px){
+  .section{padding:56px 16px}
+}
+/* ── LEBAR-LENTUR:END ── */
 /* Tombol geser bilah bagian. Bilahnya melebihi lebar layar karena jumlah
    bagiannya banyak, sedangkan batang gulirnya sengaja disembunyikan. */
 /* Halaman modul panjangnya sekitar 20.000 piksel dengan sembilan belas bagian.
