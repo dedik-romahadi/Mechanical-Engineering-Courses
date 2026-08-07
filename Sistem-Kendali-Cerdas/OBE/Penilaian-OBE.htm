@@ -1490,9 +1490,10 @@ function renderMahasiswaView(){
   document.querySelectorAll('.actbar .actright').forEach(b=>{
     b.style.display = 'none';
   });
-  // Sembunyikan tab Mapping (dosen-only)
-  const mapTab = document.querySelector('[data-tabgroup="nilai"] .tab[data-tab="n5"]');
-  if(mapTab) mapTab.style.display = 'none';
+  // Mapping boleh dilihat mahasiswa, tetapi hanya-baca: seluruh kolom
+  // isiannya dinonaktifkan. Tombol simpan/hitungnya sudah ikut tersembunyi
+  // lewat .actbar .actright, dan server tetap menolak penyimpanan non-dosen.
+  document.querySelectorAll('.mapinput').forEach(inp => { inp.disabled = true; });
 }
 
 // Publish ke Firestore (dosen)
