@@ -519,7 +519,7 @@ body.obe-theme {
         </tr></thead>
         <tbody id="n1body"></tbody>
       </table>
-      <div class="note" id="totalFormulaNote">TOTAL = TGS·0.51 + UTS·0.25 + UAS·0.24  ·  Tiap komponen = Σ(Sub-CPMK × bobot%)/total bobot komponen × 100  ·  Data auto-sync dari tab isi nilai.</div>
+      <div class="note" id="totalFormulaNote">TOTAL = TGS·0.51 + UTS·0.25 + UAS·0.24  ·  Tiap komponen = Σ(Sub-CPMK × bobot%)/total bobot komponen × 100<span class="dosen-only">  ·  Data auto-sync dari tab isi nilai.</span></div>
     </div>
 
     <!-- TGS / UTS / UAS panels dibangun via JS karena identik strukturnya -->
@@ -619,7 +619,7 @@ const FORMS = {
   if (el('wUTS')) el('wUTS').textContent = FORMS.UTS.total + '%';
   if (el('wUAS')) el('wUAS').textContent = FORMS.UAS.total + '%';
   const note = el('totalFormulaNote');
-  if (note) note.textContent = `TOTAL = TGS·${(FORMS.TGS.total/100).toFixed(2)} + UTS·${(FORMS.UTS.total/100).toFixed(2)} + UAS·${(FORMS.UAS.total/100).toFixed(2)}  ·  Tiap komponen = Σ(Sub-CPMK × bobot%)/total bobot komponen × 100  ·  Data auto-sync dari tab isi nilai.`;
+  if (note) note.innerHTML = `TOTAL = TGS·${(FORMS.TGS.total/100).toFixed(2)} + UTS·${(FORMS.UTS.total/100).toFixed(2)} + UAS·${(FORMS.UAS.total/100).toFixed(2)}  ·  Tiap komponen = Σ(Sub-CPMK × bobot%)/total bobot komponen × 100<span class="dosen-only">  ·  Data auto-sync dari tab isi nilai.</span>`;
 })();
 
 // ═══════════════════════════════════════════════════════════════
@@ -726,7 +726,7 @@ function renderForm(formKey, panelId){
         }).join('')}
       </tbody>
     </table>
-    <div class="note">Tiap input = nilai mentah Sub-CPMK 0–100. <b>Nilai ${form.label}</b> = Σ(nilai × bobot%)/100. Data tersimpan otomatis di browser (localStorage).</div>
+    <div class="note">Tiap input = nilai mentah Sub-CPMK 0–100. <b>Nilai ${form.label}</b> = Σ(nilai × bobot%)/100. <span class="dosen-only">Data tersimpan otomatis di browser (localStorage).</span></div>
   `;
   document.getElementById(panelId).innerHTML = html;
 }
@@ -815,7 +815,7 @@ document.addEventListener('input', e=>{
   // Rekap tab kalau aktif
   if(document.getElementById('mode-nilai').classList.contains('active')){
     const activeTab = document.querySelector('[data-tabgroup="nilai"] .tab.active');
-    if(activeTab && activeTab.dataset.tab === 'n1') renderRekap();
+    if(activeTab && activeTab.dataset.tab === 'n1') refreshRekap();
   }
 });
 
@@ -1014,7 +1014,7 @@ document.addEventListener('click', e=>{
   mode.querySelectorAll(':scope > .panel').forEach(p=>p.classList.remove('active'));
   tab.classList.add('active');
   document.getElementById(tab.dataset.tab).classList.add('active');
-  if(tab.dataset.tab === 'n1') renderRekap();
+  if(tab.dataset.tab === 'n1') refreshRekap();
 });
 
 function toast(msg){
@@ -1122,13 +1122,13 @@ function renderMapping(){
     }).join('');
     return `<table style="margin-bottom:16px">
       <caption>${title}${readonly?' <span style="font-size:11px;font-weight:400;color:var(--muted)">· hanya-baca, mengikuti server</span>':''}</caption>
-      <thead><tr><th style="width:140px">Sub-CPMK</th><th>${hint}</th><th class="num" style="width:50px">Jml</th></tr></thead>
+      <thead><tr><th style="width:140px">Sub-CPMK</th><th><span class="dosen-only">${hint}</span></th><th class="num" style="width:50px">Jml</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
   };
   document.getElementById('n5').innerHTML = `
     <div class="actbar">
-      <div class="actleft"><span>Mapping <b>Tugas</b> menentukan nilai tiap Sub-CPMK dihitung dari mana; tersimpan di database dan konsisten lintas perangkat. Mapping <b>UTS/UAS</b> mengikuti OBE_EXAM_CONFIG di server — ditampilkan hanya-baca, karena poin tiap soal diturunkan dari sana dan mengubahnya di sini tidak berpengaruh.</span></div>
+      <div class="actleft"><span class="dosen-only">Mapping <b>Tugas</b> menentukan nilai tiap Sub-CPMK dihitung dari mana; tersimpan di database dan konsisten lintas perangkat. Mapping <b>UTS/UAS</b> mengikuti OBE_EXAM_CONFIG di server — ditampilkan hanya-baca, karena poin tiap soal diturunkan dari sana dan mengubahnya di sini tidak berpengaruh.</span></div>
       <div class="actright">
         <button class="btn btn-clear" onclick="resetMapping()">↩️ Default</button>
         <button class="btn btn-import" onclick="saveMappingFromUI()">💾 Simpan Mapping</button>
@@ -1141,7 +1141,7 @@ function renderMapping(){
     <div class="note">
       <b>Tugas</b>: nilai Sub-CPMK = rata-rata nilai modul terpilih (poin modul ÷ 50 × 100).
       <b>UTS/UAS</b>: nilai Sub-CPMK = Σ poin soal diperoleh ÷ Σ poin maks grup × 100.
-      Hasil ditulis ke tab Isi Nilai (localStorage). Klik <b>Publish</b> di Rekap utk kirim ke mahasiswa.
+      <span class="dosen-only">Hasil ditulis ke tab Isi Nilai (localStorage). Klik <b>Publish</b> di Rekap utk kirim ke mahasiswa.</span>
     </div>`;
   // live count update
   document.querySelectorAll('.mapinput').forEach(inp=>{
@@ -1421,6 +1421,12 @@ document.querySelector('.modebtn[data-mode="nilai"]').addEventListener('click', 
 }, true);
 
 // Mahasiswa view: hanya tampilkan baris dia, isi tabs disabled
+function refreshRekap(){
+  renderRekap();
+  const sess = getSession();
+  if(sess && sess.role === 'mahasiswa') renderMahasiswaView();
+}
+
 function renderMahasiswaView(){
   const sess = getSession();
   if(!sess || sess.role !== 'mahasiswa') return;
@@ -1480,6 +1486,7 @@ function renderMahasiswaView(){
   </tr>`;
   document.getElementById('recapStat').textContent = data.empty ? 'Nilai belum di-publish dosen' : (data.publishedAt ? `Update terakhir: ${new Date(data.publishedAt).toLocaleString('id-ID')}` : 'Tersinkron');
   // Sembunyikan tombol export/import/paste utk mahasiswa
+  document.querySelectorAll('.dosen-only').forEach(el => { el.style.display = 'none'; });
   document.querySelectorAll('.actbar .actright').forEach(b=>{
     b.style.display = 'none';
   });
