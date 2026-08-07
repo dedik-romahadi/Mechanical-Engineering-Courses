@@ -5072,6 +5072,23 @@ const _functions = getFunctions(app, 'asia-southeast1');
 const _auth = getAuth(app);
 const _createAdminSessionCallable = httpsCallable(_functions, 'createAdminSession');
 const _checkExamAnswerCallable = httpsCallable(_functions, 'checkExamAnswer');
+const _verifyPinCallable = httpsCallable(_functions, 'verifyPin');
+window._callVerifyPin = async (nim, pinHash) => {
+  const payload = { nim: String(nim) };
+  if (pinHash) payload.pinHash = pinHash;
+  const r = await _verifyPinCallable(payload);
+  return (r && r.data) || { exists: false, valid: false };
+};
+// Bentuk objek kompatibel dgn kode lama (yg dulu baca pins/ langsung):
+// .pinHash == inputHash HANYA saat server bilang valid, sehingga
+// perbandingan existingPin.pinHash === inputHash tetap benar tanpa
+// hash asli pernah menyentuh browser.
+window._pinAuthObj = async (nim, inputHash) => {
+  const r = await window._callVerifyPin(nim, inputHash);
+  if (!r.exists) return null;
+  if (inputHash) return { pinHash: r.valid ? inputHash : '\u0000nomatch' };
+  return { pinHash: '\u0001exists' };
+};
 const _generateExportCodeCallable = httpsCallable(_functions, 'generateExportCode');
 window._generateExportCodeCallable = _generateExportCodeCallable;
 
@@ -5705,8 +5722,7 @@ function _handleScheduleReady() {
         (async () => {
           const _key = sanitizeKey('mhs_' + me.nim);
           try {
-            const pinSnap = await get(ref(db, 'pins/' + _key));
-            let existingPin = pinSnap.exists() ? pinSnap.val() : null;
+            let existingPin = await window._pinAuthObj(me.nim);
             if ((!existingPin || !existingPin.pinHash) && typeof _tryMigrateLegacyPin === 'function') {
               existingPin = await _tryMigrateLegacyPin(me.nim, me.nama);
             }
@@ -5834,8 +5850,7 @@ async function submitVisitor(){
     const inputHash = await _sha256Hex(pin);
 
     // Cek pins/<key> GLOBAL
-    const pinSnap = await get(ref(db, 'pins/' + key));
-    let existingPin = pinSnap.exists() ? pinSnap.val() : null;
+    let existingPin = await window._pinAuthObj(nim, inputHash);
     if((!existingPin || !existingPin.pinHash) && typeof _tryMigrateLegacyPin === 'function'){
       existingPin = await _tryMigrateLegacyPin(nim, nama);
     }
@@ -6334,11 +6349,11 @@ async function _promptPinReentry(reason) {
 
   try {
     const key = sanitizeKey('mhs_' + me.nim);
-    const [pinSnap, visSnap] = await Promise.all([
-      get(ref(db, 'pins/' + key)),
+    const [pinChk, visSnap] = await Promise.all([
+      window._callVerifyPin(me.nim),
       get(ref(db, DB_PATH + '/' + key))
     ]);
-    const existingPin = pinSnap.exists() ? pinSnap.val() : null;
+    const existingPin = pinChk.exists ? { pinHash: '\u0001exists' } : null;
     const existingVisitor = visSnap.exists() ? visSnap.val() : null;
 
     if (!existingPin || !existingPin.pinHash) {
@@ -6481,7 +6496,7 @@ async function submitPinVerify() {
     const { existingPin, existingVisitor, nama, nim, nowISO, schedOpen, isReentry } = _pinFlow;
 
     // ─── Verifikasi PIN dari GLOBAL pins/ ───
-    if (!existingPin || inputHash !== existingPin.pinHash) {
+    if (!(await window._callVerifyPin(nim, inputHash)).valid) {
       errEl.textContent = '\u26a0 PIN salah. Coba lagi atau hubungi dosen jika lupa.';
       errEl.style.display = 'block';
       btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; btn.textContent = 'Verifikasi & Masuk';
