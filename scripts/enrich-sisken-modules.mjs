@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { MATERI } from "./sisken-materi.mjs";
 import { FORUM } from "./sisken-forum.mjs";
+import { PUSTAKA } from "./sisken-pustaka.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const moduleDir = path.join(root, "Sistem-Kendali-Cerdas", "Modul");
@@ -498,6 +499,42 @@ function blokRumus(label, rumus, keterangan = "") {
   </div>`;
 }
 
+// Kartu pustaka mengikuti Modul 1: nomor rujukan berwarna bergantian, kutipan
+// lengkap, lalu satu baris keterangan bab dan alasan relevansinya.
+const WARNA_PUSTAKA = [
+  ["14,165,233", "var(--cyan)"],
+  ["249,115,22", "var(--amber)"],
+  ["168,85,247", "var(--violet)"],
+  ["0,224,158", "var(--green)"],
+  ["236,72,153", "var(--pink)"],
+];
+
+function daftarPustaka(n, m) {
+  const d = PUSTAKA[n];
+  if (!d) {
+    // Modul tanpa data pustaka rinci tetap menampilkan judul ringkasnya.
+    return m.refs.map((r) => `  <div class="info-box reveal">📚 ${r}</div>`).join("\n");
+  }
+  const kartu = d.ref.map(([kutipan, catatan], i) => {
+    const [rgb, warna] = WARNA_PUSTAKA[i % WARNA_PUSTAKA.length];
+    return `    <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(${rgb},.05);border:1px solid rgba(${rgb},.15);border-left:3px solid ${warna};border-radius:10px;align-items:flex-start">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:${warna};flex-shrink:0;min-width:32px">[${i + 1}]</span>
+      <div style="font-size:14px;line-height:1.7">
+        ${kutipan}
+        <br><span style="color:var(--muted);font-size:13px">${catatan}</span>
+      </div>
+    </div>`;
+  }).join("\n");
+
+  return `  <p class="section-desc reveal">${d.intro}</p>
+  <div class="reveal" style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
+${kartu}
+  </div>
+  <div class="info-box reveal" style="margin-top:22px">
+    <strong>🔗 Sumber Daring Pendukung:</strong> ${d.daring}
+  </div>`;
+}
+
 function tabel(judul, kepala, baris) {
   return `  <div class="tbl-wrap reveal">
     <table>
@@ -642,8 +679,7 @@ function richModule(m, index) {
     + "\n" + panelKode("Cell 2 — Sapuan Parameter: memilih gain dari gambar, bukan dari tebakan", KODE_SAPUAN)
     + "\n" + panelKode("Cell 3 — Mengukur Indikator Kinerja dari Data Respons", KODE_INDIKATOR));
 
-  const referensi = bagian(nomor++, "Referensi Utama",
-    m.refs.map((r) => `  <div class="info-box reveal">📚 ${r}</div>`).join("\n"));
+  const referensi = bagian(nomor++, "Daftar Pustaka", daftarPustaka(n, m));
 
   const footer = `<footer>
   <p>© 2026 · <a href="#">Dedik Romahadi</a> · Modul ${n} — ${m.title} · Sistem Kendali Cerdas · S1 Teknik Mesin · Universitas Mercu Buana</p>
