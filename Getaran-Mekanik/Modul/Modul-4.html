@@ -6643,7 +6643,7 @@ async function submitVisitor(){
   const schedOpen = now <= new Date(currentSchedule.end).getTime();
   const key = sanitizeKey('mhs_' + nim);
 
-  if(submitBtn){ submitBtn.disabled=true; submitBtn.style.opacity='.6'; submitBtn.style.cursor='wait'; submitBtn.textContent='Memverifikasi...'; }
+  if(submitBtn){ submitBtn.disabled=true; submitBtn.dataset.labelAsli = submitBtn.dataset.labelAsli || submitBtn.textContent; submitBtn.style.opacity='.6'; submitBtn.style.cursor='wait'; submitBtn.textContent='Memverifikasi...'; }
 
   try {
     const inputHash = await _sha256Hex(pin);
@@ -6667,15 +6667,31 @@ async function submitVisitor(){
         return;
       }
     } else {
-      // Setup baru — validate PIN tidak lemah (gunakan _isWeakPin jika ada)
+      // Setup baru — PIN belum pernah dibuat: minta konfirmasi lewat modal
       if(typeof _isWeakPin === 'function' && _isWeakPin(pin)){
         err.textContent='⚠ PIN terlalu lemah. Hindari 123456, 111111, dst.';
         err.style.display='block';
         if(submitBtn){ submitBtn.disabled=false; submitBtn.style.opacity='1'; submitBtn.style.cursor='pointer'; submitBtn.textContent='Masuk →'; }
         return;
       }
-      // Write new PIN ke pins/ global
-      await set(ref(db, 'pins/' + key), { pinHash: inputHash, nama, nim, createdAt: nowISO });
+      // Ambil visitor record lama (kalau ada) supaya poin tidak hilang saat PIN dibuat
+      const visSnapAwal = await get(ref(db, DB_PATH + '/' + key));
+      _pinFlow = {
+        nama, nim, nowISO,
+        existingPin: null,
+        existingVisitor: visSnapAwal.exists() ? visSnapAwal.val() : null,
+        schedOpen
+      };
+      if(submitBtn){ submitBtn.disabled=false; submitBtn.style.opacity='1'; submitBtn.style.cursor='pointer'; submitBtn.textContent = submitBtn.dataset.labelAsli || submitBtn.textContent; }
+      _showPinSetup(nama);
+      const subSetup = document.getElementById('pinSetupSubtitle');
+      if(subSetup) subSetup.textContent = 'Hai ' + nama + '! Ini login pertama Anda, jadi PIN 6 digit tadi akan disimpan sebagai kredensial. Ketik ulang PIN yang sama di kolom konfirmasi supaya tidak ada salah ketik. PIN ini berlaku untuk semua mata kuliah.';
+      const setupIsi1 = document.getElementById('pinSetupInput1');
+      if(setupIsi1) setupIsi1.value = pin;
+      const setupIsi2 = document.getElementById('pinSetupInput2');
+      if(setupIsi2) setTimeout(function(){ setupIsi2.focus(); }, 140);
+      if(typeof pinEl !== 'undefined' && pinEl) pinEl.value='';
+      return;
     }
 
     // Set session PIN hash utk callable server
@@ -7191,7 +7207,7 @@ async function submitPinSetup() {
   try {
     const pinHash = await _sha256Hex(p1);
     _setSessionPinHash(pinHash);   // PHASE 3: simpan utk callable server-side
-    const { nama, nim, nowISO, schedOpen } = _pinFlow;
+    const { nama, nim, nowISO, schedOpen, existingVisitor } = _pinFlow;
     const key = sanitizeKey('mhs_' + nim);
 
     // ─── Arsitektur Global PIN: Write ke 2 tempat terpisah ───
@@ -7210,14 +7226,21 @@ async function submitPinSetup() {
 
       // (b) Visitor record di course/module CURRENT (tanpa pinHash!)
       // Bug fix: include points: 0 dari awal (lihat catatan submitPinVerify)
-      const visitorRec = {
-        nama, nim, role: 'student',
-        timestamp: nowISO,
-        lastVisit: nowISO,
-        visitCount: 1,
-        points: 0,
-        scoredQuestions: ''
-      };
+      let visitorRec = existingVisitor
+        ? Object.assign({}, existingVisitor, {
+            nama, nim, role: 'student',
+            lastVisit: nowISO,
+            visitCount: (existingVisitor.visitCount || 1) + 1
+          })
+        : {
+            nama, nim, role: 'student',
+            timestamp: nowISO,
+            lastVisit: nowISO,
+            visitCount: 1,
+            points: 0,
+            scoredQuestions: ''
+          };
+      if(typeof _stripLegacyPinFields === 'function') visitorRec = _stripLegacyPinFields(visitorRec);
       saveIdentity(visitorRec);
       await set(ref(db, DB_PATH + '/' + key), visitorRec);
     }
