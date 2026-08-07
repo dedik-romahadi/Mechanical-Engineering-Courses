@@ -19,7 +19,11 @@ const PENANDA_STRUKTUR = [
   ["code-wrap", "panel kode"],
   ["data-tab=", "tab konten"],
 ];
-const hitung = (teks, jarum) => teks.split(jarum).length - 1;
+// Penanda dihitung pada markup saja. Blok gaya juga menyebut nama kelas
+// seperti .anim-panel dan .code-wrap, sehingga ikut terhitung dan membuat
+// perbandingan terhadap modul acuan meleset begitu ada aturan gaya baru.
+const tanpaGaya = (teks) => teks.replace(/<style[\s\S]*?<\/style>/g, "");
+const hitung = (teks, jarum) => tanpaGaya(teks).split(jarum).length - 1;
 
 for (let n = 1; n <= 14; n += 1) {
   const file = path.join(root, "Sistem-Kendali-Cerdas", "Modul", `Modul-${n}.html`);
