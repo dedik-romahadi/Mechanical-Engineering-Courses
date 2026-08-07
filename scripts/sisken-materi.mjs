@@ -486,6 +486,46 @@ export const MATERI = {
         ],
         formula: "simulasi murni -> controller nyata + plant model -> plant nyata terbatas -> operasi",
       },
+      {
+        head: "Mengidentifikasi Parameter dari Uji yang Sederhana",
+        body: [
+          "Model tanpa angka tidak berguna, dan angka itu paling murah diperoleh dari uji step pada titik kerja normal. Katup atau masukan lain diubah sedikit, keluarannya direkam, lalu tiga parameter ditarik dari kurva yang terbentuk.",
+          "Gain statik diperoleh dari perbandingan perubahan keluaran terhadap perubahan masukan setelah keduanya menetap. Perubahan yang dipakai harus cukup besar untuk terbaca di atas derau, namun cukup kecil agar sistem tetap berada di daerah yang linier. Kedua tuntutan itu saling berlawanan, dan menyeimbangkannya adalah bagian dari keterampilan.",
+          "Konstanta waktu diperoleh dari waktu mencapai 63,2 persen perubahan akhir, dihitung sejak keluaran mulai bergerak. Dead time diperoleh dari jeda antara saat masukan diubah dan saat keluaran mulai bergerak. Membedakan keduanya menuntut kecermatan, karena derau membuat titik mulai bergerak menjadi kabur.",
+          "Uji sebaiknya diulang beberapa kali, ke arah naik maupun turun. Bila hasilnya berbeda bermakna antara arah naik dan turun, sistem memiliki histeresis atau daerah mati yang perlu dimodelkan tersendiri; bila hasilnya berbeda antarpengulangan, derau atau gangguan luar terlalu besar sehingga uji perlu dirancang ulang.",
+        ],
+        formula: "uji step: K dari perbandingan akhir, tau dari 63,2 persen, L dari jeda awal",
+      },
+      {
+        head: "Linearisasi: Menjinakkan Nonlinieritas di Titik Kerja",
+        body: [
+          "Sebagian besar proses bersifat nonlinier, sementara hampir seluruh perkakas analisis mengandaikan linearitas. Jembatan di antara keduanya adalah linearisasi, yaitu mengganti hubungan nonlinier dengan garis singgungnya di titik kerja.",
+          "Secara matematis, fungsi nonlinier diuraikan di sekitar titik kerja dan hanya suku orde pertamanya yang dipertahankan. Turunan parsial terhadap tiap variabel menjadi koefisien model linier yang dihasilkan. Karena itu model linier selalu berbicara tentang simpangan dari titik kerja, bukan tentang nilai mutlak.",
+          "Kekeliruan yang sering terjadi adalah lupa bahwa variabelnya kini simpangan. Setpoint nol pada model linier berarti sistem berada tepat di titik kerja, bukan bahwa temperaturnya nol derajat. Menukar keduanya menghasilkan kesimpulan yang tampak masuk akal namun sepenuhnya keliru.",
+          "Jangkauan keberlakuannya perlu dinyatakan. Untuk hubungan yang lengkungannya landai, model linier dapat sahih pada rentang lebar; untuk hubungan yang tajam, rentangnya sempit. Menguji seberapa jauh model masih memadai dilakukan dengan membandingkan keluarannya terhadap model nonlinier penuh pada beberapa jarak dari titik kerja.",
+        ],
+        formula: "dx' = A*dx + B*du dengan A dan B turunan parsial di titik kerja",
+      },
+      {
+        head: "Memodelkan Gangguan dan Derau",
+        body: [
+          "Model yang hanya memuat hubungan masukan-keluaran belum memadai untuk menilai rancangan kendali, karena sebagian besar pekerjaan controller justru menghadapi hal yang tidak dikehendaki: gangguan beban dan derau pengukuran.",
+          "Gangguan beban umumnya berfrekuensi rendah dan masuk di sisi masukan plant. Pemodelan yang lazim memakai step atau ramp untuk mewakili perubahan beban, ditambah komponen acak berfrekuensi rendah bila bebannya memang berfluktuasi. Yang penting bukan meniru bentuk sesungguhnya melainkan mewakili rentang frekuensinya.",
+          "Derau pengukuran berperilaku berlawanan: berfrekuensi tinggi dan masuk di jalur umpan balik. Pemodelan yang memadai cukup berupa komponen acak dengan simpangan baku sebesar derau sensor yang sebenarnya, yang dapat diukur langsung dengan merekam pembacaan saat proses diam.",
+          "Membedakan keduanya menentukan cara menanganinya. Gangguan berfrekuensi rendah ditolak dengan menaikkan gain loop pada frekuensi rendah, sementara derau berfrekuensi tinggi ditangani dengan menurunkan gain pada frekuensi tinggi. Karena keduanya berada di rentang berbeda, keduanya dapat ditangani sekaligus — dan itulah yang membuat pemodelan keduanya berguna.",
+        ],
+        formula: "gangguan: frekuensi rendah di masukan plant | derau: frekuensi tinggi di umpan balik",
+      },
+      {
+        head: "Menyimpan Hasil agar Dapat Diulang Orang Lain",
+        body: [
+          "Simulasi yang tidak dapat diulang tidak dapat diperiksa, dan yang tidak dapat diperiksa tidak layak menjadi dasar keputusan. Karena itu penyimpanan hasil merupakan bagian dari pekerjaan, bukan tambahan setelahnya.",
+          "Yang wajib tersimpan bersama grafik adalah versi kode, seluruh nilai parameter, kondisi awal, jenis solver, langkah waktu, dan definisi masukan uji. Enam hal itu cukup bagi orang lain memperoleh angka yang sama, dan tanpa salah satunya pengulangan menjadi tebak-tebakan.",
+          "Praktik yang membantu adalah menyimpan parameter di berkas terpisah dari kode, bukan menuliskannya di tengah program. Dengan begitu satu berkas parameter dapat disimpan berdampingan dengan hasilnya, dan perbedaan antarpercobaan terbaca langsung tanpa membandingkan kode.",
+          "Penamaan yang tertib melengkapinya. Menyertakan tanggal dan pokok perubahan pada nama berkas hasil membuat riwayat percobaan terbaca berbulan-bulan kemudian, ketika ingatan tentang alasan tiap percobaan sudah lama hilang.",
+        ],
+        formula: "simpan: versi kode, parameter, kondisi awal, solver, dt, masukan uji",
+      },
     ],
     derivation: {
       head: "Menurunkan Ruang Keadaan Sistem Massa-Pegas-Peredam",
@@ -587,6 +627,46 @@ export const MATERI = {
         ],
         formula: "pisahkan hitung dari perangkat keras   |   uji keadaan tepi, bukan hanya keadaan normal",
       },
+      {
+        head: "Aliasing: Komponen yang Menyamar Setelah Dicuplik",
+        body: [
+          "Pencuplikan tidak hanya memperlambat pengamatan; ia juga dapat mengubah komponen berfrekuensi tinggi menjadi komponen berfrekuensi rendah palsu. Gejala inilah yang disebut aliasing, dan begitu terjadi, tidak ada perangkat lunak yang dapat memulihkannya.",
+          "Batas yang menentukan adalah setengah frekuensi cuplikan. Komponen di bawah batas itu terekam apa adanya; komponen di atasnya muncul kembali sebagai frekuensi lain yang lebih rendah dan tidak dapat dibedakan dari sinyal asli. Karena tidak dapat dibedakan, ia akan diperlakukan controller sebagai gangguan sungguhan dan ditanggapi.",
+          "Pencegahannya harus dilakukan sebelum pencuplikan, yaitu dengan penapis analog yang meredam komponen di atas batas tersebut. Penapis digital sesudahnya tidak menolong sama sekali, karena kerusakan sudah terjadi saat sinyal diubah menjadi cuplikan.",
+          "Pada praktiknya, banyak proses lambat yang derau frekuensi tingginya kecil sehingga persoalan ini jarang muncul. Namun pada sistem gerak dengan getaran mekanis, atau pada pengukuran arus dan tegangan, aliasing menjadi penyebab yang nyata dan mudah terlewat karena gejalanya menyerupai gangguan proses biasa.",
+        ],
+        formula: "batas = setengah frekuensi cuplikan   |   penapis harus analog, sebelum pencuplikan",
+      },
+      {
+        head: "Aritmetika Terbatas dan Pemilihan Skala",
+        body: [
+          "Perhitungan di perangkat sasaran tidak pernah persis. Bilangan pecahan memiliki jumlah angka berarti yang terbatas, dan pada perangkat kecil perhitungan sering dilakukan dengan bilangan bulat berskala demi kecepatan.",
+          "Akibat yang paling sering muncul berkaitan dengan aksi integral. Bila tambahan per cacah jauh lebih kecil daripada resolusi bilangan yang dipakai, tambahan itu hilang akibat pembulatan dan akumulator tidak pernah bertambah. Gejalanya khas: error tunak yang tidak pernah hilang meskipun aksi integral tampak aktif.",
+          "Pemilihan skala menjadi penentu pada aritmetika bilangan bulat. Skala yang terlalu kecil membuat resolusi kasar sehingga pembulatan merusak; skala yang terlalu besar membuat perhitungan meluap pada nilai ekstrem. Keduanya menghasilkan perilaku yang sulit dilacak karena hanya muncul pada keadaan tertentu.",
+          "Cara memeriksanya sederhana: jalankan controller dengan error yang sangat kecil dan amati apakah akumulator benar-benar bertambah, lalu jalankan dengan error terbesar yang mungkin dan amati apakah ada nilai yang meluap. Kedua uji itu murah dan menangkap sebagian besar persoalan aritmetika.",
+        ],
+        formula: "uji akumulator pada error terkecil dan terbesar yang mungkin",
+      },
+      {
+        head: "Menyusun Program Loop Kendali",
+        body: [
+          "Struktur program yang tertib membuat perilaku controller mudah diperiksa dan mudah diubah. Urutan yang lazim dalam satu cacah: baca sensor, periksa keabsahan data, hitung error, hitung keluaran controller, batasi keluaran, kirim ke actuator, lalu perbarui keadaan internal.",
+          "Menempatkan pembatasan keluaran sebelum pengiriman dan sebelum pembaruan akumulator bukan urutan sembarang. Justru urutan itulah yang memungkinkan anti-windup bekerja, karena akumulator dapat disesuaikan berdasarkan selisih antara keluaran yang diminta dan yang benar-benar dikirim.",
+          "Pemeriksaan keabsahan data perlu dilakukan sebelum perhitungan, bukan sesudah. Nilai sensor di luar rentang wajar atau yang tidak berubah sama sekali selama beberapa cacah menandakan kegagalan, dan controller harus memiliki perilaku yang ditetapkan untuk keadaan itu alih-alih menghitung atas data yang tidak sahih.",
+          "Memisahkan fungsi perhitungan dari kode yang berurusan dengan perangkat membuat pengujian jauh lebih mudah. Fungsi perhitungan dapat dijalankan dengan masukan yang ditentukan dan keluarannya diperiksa, tanpa memerlukan perangkat sasaran sama sekali.",
+        ],
+        formula: "baca -> periksa -> hitung -> batasi -> kirim -> perbarui akumulator",
+      },
+      {
+        head: "Menelusuri Masalah Controller Digital di Lapangan",
+        body: [
+          "Ketika controller digital berperilaku aneh, penelusuran yang tertib jauh lebih cepat daripada mengubah parameter secara coba-coba. Urutan yang membantu bergerak dari yang paling mudah dipastikan menuju yang paling sulit.",
+          "Pemeriksaan pertama adalah keteraturan waktu cacah. Merekam selang antarcacah selama beberapa menit menampakkan apakah penjadwalnya tertib. Selang yang berubah-ubah menjelaskan banyak gejala sekaligus, karena aksi integral dan turunan sama-sama bergantung padanya.",
+          "Pemeriksaan kedua adalah sinyal kendali. Keluaran yang lama bertahan di batas menunjuk ke kejenuhan dan penumpukan integral; keluaran yang bergetar rapat menunjuk ke derau yang diperkuat aksi turunan. Kedua gejala itu terlihat jelas pada grafik sinyal kendali dan hampir tidak terlihat pada grafik keluaran proses.",
+          "Pemeriksaan ketiga adalah perbandingan terhadap simulasi memakai kode yang sama. Bila perilaku di perangkat menyimpang jauh dari simulasi yang memakai kode identik, selisihnya berasal dari hal yang tidak ada di simulasi: waktu cacah, aritmetika, derau, atau perangkat. Menyempitkan penyebab dengan cara ini jauh lebih cepat daripada menebak.",
+        ],
+        formula: "telusuri: keteraturan cacah -> sinyal kendali -> banding dengan simulasi",
+      },
     ],
     derivation: {
       head: "Menurunkan Bentuk Diskret PID untuk Diprogram",
@@ -686,6 +766,46 @@ export const MATERI = {
           "Kesimpulan harus dinyatakan sebagai pemenuhan atau ketidakpemenuhan terhadap spesifikasi, disertai alasan bila tidak terpenuhi. Kalimat seperti responsnya sudah bagus tidak memiliki nilai teknis; kalimat seperti overshoot 8 persen memenuhi batas 10 persen sedangkan waktu menetap 3,2 detik melampaui batas 2 detik memiliki nilai teknis.",
         ],
         formula: "grafik + kondisi + angka terbaca + perbandingan spesifikasi = bukti lengkap",
+      },
+      {
+        head: "Melakukan Uji Bump dengan Benar",
+        body: [
+          "Uji bump, yaitu memberi perubahan kecil pada masukan lalu merekam tanggapannya, merupakan sumber sebagian besar grafik yang dianalisis. Karena itu kualitas kesimpulan dibatasi kualitas ujinya, dan uji yang dilakukan sembarangan menghasilkan angka yang tampak meyakinkan namun keliru.",
+          "Besar perubahan perlu dipilih hati-hati. Terlalu kecil membuat tanggapannya tenggelam dalam derau sehingga parameter yang ditarik tidak dapat dipercaya. Terlalu besar membawa sistem keluar dari daerah linier sehingga parameternya berlaku untuk daerah yang berbeda dari yang dimaksud.",
+          "Keadaan awal harus mantap. Uji yang dimulai saat sistem masih bergerak akibat gangguan sebelumnya menghasilkan kurva campuran yang tidak mewakili apa pun. Menunggu sampai keluaran benar-benar diam beberapa kali konstanta waktu adalah syarat yang sering dilanggar karena tergesa.",
+          "Pengulangan ke dua arah melengkapinya. Perbedaan bermakna antara tanggapan naik dan turun menandakan histeresis, daerah mati, atau nonlinieritas lain yang perlu dicatat. Bila tidak diperiksa, sifat itu akan muncul belakangan sebagai perilaku yang tidak dapat dijelaskan.",
+        ],
+        formula: "cukup besar untuk di atas derau, cukup kecil agar tetap linier, dan ulangi dua arah",
+      },
+      {
+        head: "Membaca Grafik Sinyal Kendali",
+        body: [
+          "Grafik sinyal kendali sering lebih informatif daripada grafik keluaran, namun paling sering tidak direkam. Ia menampakkan apa yang sesungguhnya diminta controller kepada perangkat, dan dari situ banyak persoalan terbaca langsung.",
+          "Keluaran yang menyentuh batas lalu bertahan di sana menandakan kejenuhan. Bila keadaan itu berlangsung lama pada controller berintegral, penumpukan hampir pasti terjadi dan lonjakan yang menyusul dapat diperkirakan sebelum terlihat pada keluaran proses.",
+          "Getaran rapat pada sinyal kendali menandakan derau yang diperkuat, umumnya oleh aksi turunan. Yang penting diperhatikan, getaran ini kerap tidak tampak sama sekali pada grafik keluaran proses karena plant menapisnya, padahal actuator sudah bekerja terus-menerus dan aus lebih cepat.",
+          "Bentuk sinyal kendali pada saat awal juga bermakna. Lonjakan tajam menandakan aksi turunan yang bekerja atas perubahan setpoint, yang dapat dihilangkan dengan menghitung turunan dari keluaran terukur. Melihat gejalanya di grafik jauh lebih cepat daripada menduganya dari perilaku keluaran.",
+        ],
+        formula: "menyentuh batas: kejenuhan | getaran rapat: derau | lonjakan awal: turunan atas setpoint",
+      },
+      {
+        head: "Jejak Waktu Panjang dan Pemburukan Bertahap",
+        body: [
+          "Grafik pendek menampakkan perilaku transien, sedangkan grafik panjang menampakkan sesuatu yang berbeda: apakah sistem memburuk perlahan. Keduanya menjawab pertanyaan berlainan dan keduanya diperlukan.",
+          "Yang dicari pada jejak panjang bukan bentuk kurva melainkan kecenderungan. Simpangan baku keluaran terhadap setpoint yang membesar dari bulan ke bulan menandakan pemburukan, meskipun setiap grafik pendeknya terlihat wajar. Demikian pula rata-rata bukaan katup yang terus merambat naik menandakan pengotoran atau keausan.",
+          "Cara termurah memperolehnya adalah meringkas data yang sudah terekam menjadi beberapa angka per hari, misalnya simpangan baku error, rata-rata dan simpangan baku sinyal kendali, serta banyaknya kejadian actuator mentok. Empat angka itu ringan disimpan bertahun-tahun dan sudah cukup menampakkan sebagian besar pemburukan.",
+          "Nilai sesungguhnya baru muncul bila ada pembanding. Karena itu ringkasan pertama sebaiknya diambil segera setelah serah terima, saat sistem masih dalam keadaan terbaiknya, dan disimpan sebagai acuan. Tanpa acuan itu, pertanyaan apakah sistem sekarang lebih buruk daripada dulu tidak dapat dijawab dengan angka.",
+        ],
+        formula: "ringkas harian: sigma error, rata-rata dan sigma u, jumlah kejadian mentok",
+      },
+      {
+        head: "Kesalahan Pengukuran yang Menyamar Sebagai Masalah Kendali",
+        body: [
+          "Tidak semua gejala pada grafik berasal dari controller. Sebagian berasal dari jalur pengukuran, dan menanganinya sebagai persoalan kendali menghabiskan waktu tanpa menyelesaikan apa pun.",
+          "Pergeseran kalibrasi menghasilkan gejala yang khas: keluaran tampak mantap tepat di setpoint menurut sistem, sementara pengukuran independen menunjukkan selisih tetap. Karena umpan balik bekerja terhadap yang diukur, sistem akan mempertahankan kekeliruan itu dengan setia, dan menaikkan penguatan justru memperkuatnya.",
+          "Pembacaan yang membeku juga sering disalahartikan. Keluaran yang benar-benar datar sempurna selama beberapa menit patut dicurigai, karena proses nyata selalu memiliki riak kecil. Datar sempurna lebih sering berarti sensor atau jalur datanya berhenti memperbarui daripada berarti kendali yang sangat baik.",
+          "Kuantisasi pada konverter menghasilkan gejala berupa keluaran yang melompat antara beberapa nilai tetap. Bila resolusinya kasar dibanding toleransi yang dituntut, controller akan terus bereaksi terhadap lompatan itu, dan gejalanya menyerupai osilasi meskipun sebabnya sepenuhnya di sisi pengukuran.",
+        ],
+        formula: "datar sempurna: curigai sensor beku | selisih tetap: curigai kalibrasi",
       },
     ],
     derivation: {
