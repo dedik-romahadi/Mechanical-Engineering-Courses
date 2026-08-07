@@ -393,7 +393,11 @@ function _sfFallback(html,ok,msg){
 document.addEventListener('DOMContentLoaded', siskenForumReady);
 </script>`;
 
-  return markup + runtime;
+  // Halaman Forum Modul 1 ditutup footer yang sama seperti halaman lainnya.
+  const footerForum = `<footer>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Forum ${n} — ${d.judul} · Sistem Kendali Cerdas · S1 Teknik Mesin · Universitas Mercu Buana</p>
+</footer>`;
+  return markup + footerForum + runtime;
 }
 
 // ── Cetakan desain diambil apa adanya dari Modul 1 ───────────────────────────

@@ -52,7 +52,10 @@ for (let n = 1; n <= 14; n += 1) {
     }
   } else {
     checks.push(
-      [!html.match(/Tugas Pertemuan|10 soal pilihan/gi), "no legacy assessment copy"],
+      // Frasa "Tugas Pertemuan" dan "10 soal pilihan ganda" dahulu dianggap
+      // sisa salinan lama. Sejak halaman Tugas mengikuti Modul 1, keduanya
+      // justru ada di sana, jadi yang diperiksa kini strukturnya.
+      [/<div class="hero" data-tab="tugas">/.test(html), "hero halaman Tugas seperti Modul 1"],
       // Sejak modul 2-14 memakai tata letak Modul 1, yang diperiksa adalah
       // kosakata desainnya: hero, bagian bernomor, dan tidak adanya halaman
       // yang khusus milik Modul 1.
