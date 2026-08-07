@@ -67,11 +67,11 @@ for (let n = 1; n <= 14; n += 1) {
         const blok = html.match(/<div class="page active" id="page-modul">[\s\S]*?<!-- end page-modul -->/);
         if (!blok) return false;
         const pemisah = (blok[0].match(/<hr class="divider">/g) || []).length;
-        const bagian = (blok[0].match(/<div class="section">/g) || []).length;
+        const bagian = (blok[0].match(/<div class="section" id="m-\d+">/g) || []).length;
         return pemisah === bagian && pemisah >= 10;
       })(), "tiap bagian didahului pemisah"],
       [(html.match(/<footer>/g) || []).length >= 1, "footer seperti Modul 1"],
-      [(html.match(/class="code-wrap/g) || []).length === 1, "one visible Python code panel"],
+      [(html.match(/class="code-wrap/g) || []).length === 3, "tiga panel kode Python"],
       [html.includes("class=\"code-dots\"") && html.includes("class=\"code-copy\""), "reference code-panel design"],
       [(html.match(/id="sisken-rich-runtime"/g) || []).length === 1, "one runtime"],
       // Halaman tugas ada dalam dua keadaan sah: panel generik (belum ada soal)
