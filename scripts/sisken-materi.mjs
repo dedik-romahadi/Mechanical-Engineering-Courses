@@ -923,6 +923,422 @@ export const MATERI = {
       "Pada sistem rumit, hasilnya dibandingkan dengan reduksi blok atau perhitungan numerik",
     ],
   },
+
+  11: {
+    deep: [
+      {
+        head: "Kapan Kontrol Klasik Kehabisan Jawaban",
+        body: [
+          "Kontrol klasik bekerja sangat baik ketika tiga syarat terpenuhi: sistem dapat didekati linier di sekitar titik kerja, parameternya cukup stabil terhadap waktu, dan model yang memadai dapat diperoleh dengan biaya wajar. Sebagian besar loop di industri memenuhi ketiganya, dan pada kasus itu PID yang disetel baik sulit dikalahkan.",
+          "Kesulitan muncul ketika salah satu syarat runtuh. Ada proses yang sangat nonlinier sehingga satu himpunan parameter tidak berlaku di seluruh rentang operasi. Ada proses yang sifatnya berubah terhadap waktu karena keausan, pengotoran, atau perubahan bahan baku. Ada pula proses yang modelnya secara teori dapat disusun namun terlalu mahal atau terlalu lama untuk diidentifikasi.",
+          "Metode kontrol cerdas menjawab keadaan itu dengan cara berbeda-beda. Logika fuzzy memindahkan pengetahuan operator berpengalaman menjadi aturan yang dapat dieksekusi tanpa memerlukan model matematis. Jaringan saraf tiruan mempelajari hubungan masukan-keluaran langsung dari data. Algoritma evolusioner mencari parameter terbaik pada ruang pencarian yang rumit tanpa memerlukan turunan.",
+          "Yang perlu ditegaskan sejak awal: metode ini bukan pengganti universal. Memakai jaringan saraf pada proses yang sebenarnya linier dan modelnya mudah diperoleh hanya menambah kerumitan, memperbesar kebutuhan data, dan menghilangkan jaminan kestabilan yang sebenarnya sudah tersedia gratis lewat analisis klasik.",
+        ],
+        formula: "syarat klasik: linier di titik kerja + parameter stabil + model terjangkau",
+      },
+      {
+        head: "Tiga Keluarga dan Watak Masing-Masing",
+        body: [
+          "Logika fuzzy bekerja dari pengetahuan, bukan dari data. Aturannya ditulis manusia dalam bentuk pernyataan jika-maka memakai istilah samar seperti panas, sedang, dan dingin. Kekuatannya terletak pada keterbacaan: setiap keputusan dapat ditelusuri ke aturan tertentu, sehingga mudah diaudit dan mudah diperbaiki bersama operator.",
+          "Jaringan saraf bekerja dari data, bukan dari pengetahuan. Ia menyesuaikan bobot sambungan sampai keluarannya mendekati data pelatihan. Kekuatannya adalah kemampuan menangkap hubungan nonlinier yang rumit tanpa perlu dirumuskan. Kelemahannya adalah sifatnya yang gelap: sulit menjelaskan mengapa suatu keluaran dihasilkan, dan ekstrapolasi di luar rentang data pelatihan tidak punya jaminan sama sekali.",
+          "Algoritma evolusioner bukan pengendali melainkan pencari. Ia tidak menggantikan controller, melainkan mencarikan parameter terbaik untuk controller yang sudah ada, termasuk parameter PID maupun parameter fungsi keanggotaan fuzzy. Kekuatannya adalah kemampuan bekerja pada fungsi tujuan yang tidak dapat diturunkan dan memiliki banyak minimum lokal.",
+          "Ketiganya kerap dipakai bersama alih-alih bersaing. Susunan yang lazim memakai algoritma evolusioner untuk menyetel controller fuzzy, atau memakai jaringan saraf untuk memperkirakan besaran yang tidak terukur lalu menyerahkan pengendaliannya kepada PID biasa.",
+        ],
+        formula: "fuzzy: dari pengetahuan | ANN: dari data | evolusioner: pencari parameter",
+      },
+      {
+        head: "Lapisan Keselamatan Tetap Klasik",
+        body: [
+          "Apa pun metode cerdas yang dipakai, lapisan keselamatan hampir selalu tetap memakai logika klasik yang sederhana dan dapat diverifikasi. Alasannya bukan konservatisme melainkan sifat jaminannya: perilaku pembatas keras dan interlock dapat dibuktikan lengkap, sedangkan perilaku jaringan saraf di luar rentang data pelatihan tidak.",
+          "Susunan yang lazim menempatkan metode cerdas di lapisan pengoptimalan, sementara lapisan di bawahnya tetap berupa loop klasik yang terbukti stabil. Bila lapisan cerdas gagal atau memberi keluaran di luar batas wajar, sistem kembali ke perilaku klasik yang aman tanpa menghentikan proses.",
+          "Mekanisme pengenalan kondisi di luar cakupan menjadi wajib pada sistem berbasis data. Model harus mampu menyatakan bahwa masukan saat ini berada jauh dari data yang pernah dipelajarinya, dan pada keadaan itu kendali dikembalikan ke logika cadangan alih-alih memaksakan tebakan.",
+          "Konsekuensinya pada rancangan cukup besar. Sistem kontrol cerdas yang layak dipasang bukan hanya memuat model cerdasnya, melainkan juga mekanisme pemantauan, batas, dan jalur mundur — dan bagian terakhir inilah yang sering terlupakan pada penerapan pertama.",
+        ],
+        formula: "cerdas di lapisan optimasi, klasik di lapisan keselamatan dan cadangan",
+      },
+      {
+        head: "Memilih Metode dengan Jujur",
+        body: [
+          "Pemilihan metode sebaiknya dimulai dari pertanyaan yang tidak nyaman: apakah persoalan ini benar-benar tidak dapat diselesaikan kontrol klasik. Banyak kegagalan loop yang dianggap menuntut metode cerdas ternyata berasal dari sensor yang salah tempat, dead time yang tidak disadari, atau anti-windup yang tidak ada.",
+          "Bila persoalannya memang nonlinier dan pengetahuan operator tersedia namun model tidak, fuzzy adalah pilihan yang wajar. Bila data historis berlimpah dan hubungan yang dicari rumit namun tidak perlu dijelaskan secara terbuka, jaringan saraf masuk akal. Bila strukturnya sudah tepat namun parameternya sulit dicari, algoritma evolusioner tepat sasaran.",
+          "Biaya pemeliharaan sering menjadi penentu yang terlupakan. Controller fuzzy dapat dirawat teknisi pabrik karena aturannya terbaca. Model berbasis data menuntut pengumpulan data ulang dan pelatihan ulang setiap kali proses berubah, dan menuntut orang yang mampu melakukannya.",
+          "Terakhir, setiap metode cerdas menuntut cara pengujian sendiri. Kestabilan tidak lagi dapat dibuktikan sekadar lewat letak pole, sehingga pengujian bergeser ke pengujian menyeluruh atas rentang operasi, pengujian keadaan tepi, dan pemantauan berkelanjutan setelah pemasangan.",
+        ],
+        formula: "urutan bertanya: benarkah klasik gagal -> pengetahuan atau data -> biaya rawat",
+      },
+      {
+        head: "Ukuran Keberhasilan yang Tidak Berubah",
+        body: [
+          "Meskipun metodenya berbeda, ukuran keberhasilannya tetap sama seperti pada kontrol klasik. Keluaran harus mengikuti sasaran dalam toleransi yang disepakati, gangguan harus ditolak dalam waktu yang ditetapkan, aksi kontrol harus berada dalam kemampuan actuator, dan sistem harus tetap aman pada seluruh kondisi yang mungkin terjadi.",
+          "Karena itu spesifikasi tetap harus ditulis dalam angka sebelum metode dipilih. Menyatakan bahwa sistem akan memakai jaringan saraf tidak menjawab satu pun pertanyaan tentang overshoot, waktu menetap, maupun error tunak yang dituntut.",
+          "Perbandingan yang jujur menuntut pembanding yang jujur pula. Kinerja metode cerdas harus dibandingkan dengan PID yang disetel dengan sungguh-sungguh, bukan dengan PID yang sengaja disetel buruk. Banyak klaim keunggulan yang menguap begitu pembandingnya diperbaiki.",
+          "Pengujian akhir tetap dilakukan pada perangkat, bertahap, dengan jalan keluar yang siap. Sifat cerdas suatu metode tidak mengurangi kebutuhan itu sedikit pun; kalau ada, justru menambahnya karena perilakunya lebih sulit diperkirakan dari analisis semata.",
+        ],
+        formula: "spesifikasi ditulis sebelum metode dipilih, bukan sesudahnya",
+      },
+    ],
+    derivation: {
+      head: "Menurunkan Kapan Penjadwalan Gain Sudah Memadai",
+      intro: "Sebelum melompat ke metode cerdas, banyak persoalan nonlinier dapat diselesaikan penjadwalan gain. Penurunan berikut menunjukkan syaratnya.",
+      steps: [
+        ["Sistem nonlinier umum", "x' = f(x, u)", "Belum dapat dianalisis dengan perkakas linier."],
+        ["Pilih titik kerja", "(x0, u0) dengan f(x0, u0) = 0", "Titik setimbang tempat sistem biasa beroperasi."],
+        ["Linearisasi di sekitarnya", "dx' = A*dx + B*du", "A dan B adalah turunan parsial f terhadap x dan u di titik itu."],
+        ["Ulangi untuk beberapa titik", "A(p), B(p) untuk p = p1, p2, ...", "p adalah besaran terukur yang mencirikan titik kerja, misalnya laju alir."],
+        ["Rancang controller per titik", "C(p) dari spesifikasi yang sama", "Tiap titik memberi satu himpunan parameter."],
+        ["Jadwalkan berdasarkan p", "parameter dipilih dari p yang terukur saat itu", "Peralihan dibuat mulus agar tidak menimbulkan lompatan keluaran."],
+      ],
+      closing: "Penjadwalan gain memadai bila titik kerja berubah jauh lebih lambat daripada dinamika loop dan besaran penjadwalnya dapat diukur. Bila kedua syarat itu tidak terpenuhi — misalnya nonlinieritas berubah cepat atau penjadwalnya tidak terukur — barulah metode cerdas memberi keuntungan nyata.",
+    },
+    worked: {
+      head: "Contoh Terhitung: Menilai Kelayakan Sebelum Memilih Metode",
+      given: [
+        "Reaktor dengan gain proses yang berubah dari 1,5 sampai 6,0 tergantung laju umpan",
+        "Laju umpan terukur dan berubah lambat, dengan konstanta waktu perubahan sekitar 30 menit",
+        "Dinamika loop temperatur memiliki konstanta waktu sekitar 40 detik",
+      ],
+      steps: [
+        ["Hitung rasio perubahan gain", "6,0/1,5 = 4", "Gain berubah empat kali lipat di seluruh rentang operasi."],
+        ["Nilai dampaknya pada gain loop", "L berubah empat kali pula", "Penyetelan yang pas di satu ujung akan terlalu agresif atau terlalu lamban di ujung lain."],
+        ["Bandingkan skala waktu", "1800 detik berbanding 40 detik = 45", "Titik kerja berubah 45 kali lebih lambat daripada dinamika loop."],
+        ["Periksa keterukuran penjadwal", "laju umpan terukur", "Syarat kedua penjadwalan gain terpenuhi."],
+        ["Simpulkan kelayakan", "penjadwalan gain memadai", "Kedua syarat terpenuhi, sehingga metode klasik masih mencukupi."],
+        ["Perkirakan biaya alternatif", "ANN menuntut data seluruh rentang + pelatihan ulang", "Biaya pemeliharaannya jauh lebih besar tanpa keuntungan kinerja yang jelas."],
+      ],
+      answer: "Kasus ini tidak menuntut metode cerdas. Nonlinieritasnya terwakili satu besaran terukur yang berubah jauh lebih lambat daripada loop, sehingga penjadwalan gain menyelesaikannya dengan perkakas yang seluruhnya dapat diverifikasi. Memilih jaringan saraf di sini menambah kebutuhan data, menghilangkan keterbacaan, dan memindahkan beban pemeliharaan ke pihak yang mungkin tidak tersedia di pabrik.",
+    },
+    pitfalls: [
+      ["Memakai metode cerdas untuk menutupi kesalahan dasar", "Sensor salah tempat, dead time tak disadari, dan anti-windup yang tidak ada tetap menjadi masalah berapa pun cerdasnya lapisan di atasnya."],
+      ["Membandingkan dengan PID yang sengaja disetel buruk", "Banyak klaim keunggulan menguap begitu pembandingnya diperbaiki dengan sungguh-sungguh."],
+      ["Melupakan biaya pemeliharaan", "Model berbasis data menuntut pengumpulan dan pelatihan ulang setiap kali proses berubah, beserta orang yang mampu melakukannya."],
+      ["Menaruh metode cerdas di lapisan keselamatan", "Perilaku pembatas keras dapat dibuktikan lengkap; perilaku model berbasis data di luar rentang pelatihan tidak."],
+      ["Menulis spesifikasi setelah metode dipilih", "Menyebut nama metode tidak menjawab satu pun pertanyaan tentang overshoot, waktu menetap, maupun error tunak."],
+    ],
+    checklist: [
+      "Kemungkinan penyebab dasar sudah disingkirkan sebelum metode cerdas dipertimbangkan",
+      "Spesifikasi ditulis dalam angka sebelum metode dipilih",
+      "Ketersediaan pengetahuan operator dan data historis dinilai terpisah",
+      "Kelayakan penjadwalan gain diperiksa lebih dahulu",
+      "Lapisan keselamatan tetap memakai logika klasik yang dapat diverifikasi",
+      "Mekanisme pengenalan kondisi di luar cakupan dan jalur mundur dirancang",
+      "Pembanding PID disetel dengan sungguh-sungguh sebelum perbandingan dibuat",
+      "Biaya pemeliharaan jangka panjang dinilai, bukan hanya kinerja awal",
+    ],
+  },
+
+  12: {
+    deep: [
+      {
+        head: "Neuron Buatan dan Alasan Nonlinieritas Diperlukan",
+        body: [
+          "Satu neuron buatan melakukan dua hal berurutan. Pertama ia menghitung jumlah berbobot seluruh masukannya ditambah satu suku bias. Kedua ia melewatkan hasil itu melalui fungsi aktivasi yang bersifat nonlinier.",
+          "Bagian kedua itulah yang menentukan segalanya. Tanpa fungsi aktivasi nonlinier, susunan berlapis berapa pun banyaknya tetap setara dengan satu transformasi linier tunggal, karena gabungan transformasi linier tetaplah linier. Kedalaman jaringan menjadi tidak berarti sama sekali.",
+          "Pilihan fungsi aktivasi memengaruhi pelatihan. Fungsi sigmoid dan tangen hiperbolik menghasilkan keluaran terbatas namun turunannya mengecil pada nilai masukan besar, sehingga sinyal pelatihan meredup pada jaringan dalam. Fungsi rectified linear mempertahankan turunan pada sisi positif dan karena itu banyak dipakai pada jaringan berlapis banyak.",
+          "Untuk keperluan kontrol, sifat keluaran menjadi pertimbangan tersendiri. Keluaran yang terbatas secara alami memberi lapisan pengaman tambahan, sedangkan keluaran tak terbatas menuntut pembatasan eksplisit sebelum diteruskan ke actuator.",
+        ],
+        formula: "y = f(sum(w_i*x_i) + b)   |   tanpa f nonlinier, kedalaman tidak berarti",
+      },
+      {
+        head: "Pelatihan sebagai Persoalan Pengoptimalan",
+        body: [
+          "Melatih jaringan berarti mencari bobot yang meminimumkan selisih antara keluaran jaringan dan keluaran yang dikehendaki pada data pelatihan. Selisih itu dirangkum dalam satu bilangan yang disebut fungsi kerugian, umumnya berupa galat kuadrat rata-rata untuk persoalan regresi.",
+          "Pencariannya dilakukan bertahap dengan menuruni gradien. Perambatan balik menghitung turunan fungsi kerugian terhadap setiap bobot secara efisien dengan menerapkan aturan rantai dari lapisan keluaran mundur ke lapisan masukan, lalu setiap bobot digeser berlawanan arah gradiennya.",
+          "Besar langkah penggeseran, yang disebut laju pembelajaran, menentukan perilaku pelatihan. Terlalu besar membuat proses melompati minimum dan berayun atau bahkan menyimpang. Terlalu kecil membuat pelatihan sangat lambat dan mudah terjebak di daerah datar.",
+          "Perlu disadari bahwa permukaan fungsi kerugian jaringan saraf tidak cembung, sehingga tidak ada jaminan minimum yang ditemukan adalah minimum global. Praktik yang lazim menjalankan pelatihan beberapa kali dengan bobot awal berbeda dan memilih hasil terbaik menurut data pengujian.",
+        ],
+        formula: "w := w - eta * dL/dw   |   permukaan tidak cembung, minimum global tidak dijamin",
+      },
+      {
+        head: "Menghindari Hafalan: Pemisahan Data dan Pengaturan",
+        body: [
+          "Bahaya terbesar pada model berbasis data adalah menghafal derau alih-alih menangkap hubungan. Gejalanya khas: kerugian pada data pelatihan terus mengecil sementara kerugian pada data pengujian berhenti membaik lalu memburuk.",
+          "Pencegahannya dimulai dari pemisahan data yang tertib menjadi tiga bagian: data pelatihan untuk menyesuaikan bobot, data validasi untuk memilih arsitektur dan menghentikan pelatihan, dan data pengujian yang hanya dipakai sekali di akhir untuk menilai secara jujur.",
+          "Penghentian dini memanfaatkan data validasi secara langsung: pelatihan dihentikan ketika kerugian validasi berhenti membaik meskipun kerugian pelatihan masih menurun. Cara ini sederhana dan sangat efektif.",
+          "Pengaturan lain menambahkan hukuman terhadap bobot besar pada fungsi kerugian, sehingga jaringan cenderung memilih penjelasan yang lebih sederhana. Pada data yang terbatas, jaringan kecil yang diatur baik hampir selalu mengungguli jaringan besar yang dibiarkan bebas.",
+        ],
+        formula: "pisahkan latih / validasi / uji   |   hentikan saat kerugian validasi berbalik naik",
+      },
+      {
+        head: "Peran Jaringan Saraf di Dalam Sistem Kontrol",
+        body: [
+          "Jaringan saraf jarang dipasang sebagai pengganti langsung controller. Peran yang paling sering dan paling aman adalah sebagai penaksir besaran yang tidak terukur, misalnya memperkirakan komposisi produk dari temperatur dan tekanan yang murah diukur. Keluarannya lalu diserahkan ke loop klasik yang tetap memegang kendali.",
+          "Peran kedua adalah sebagai model plant untuk keperluan perancangan atau prediksi. Model berbasis data dipakai menggantikan model fisik yang sulit disusun, lalu controller dirancang atau dioptimalkan terhadap model itu.",
+          "Peran ketiga, yang paling jarang dan paling menuntut kehati-hatian, adalah sebagai controller langsung. Jaringan dilatih meniru controller yang sudah ada atau meniru operator berpengalaman. Karena keluarannya langsung menggerakkan actuator, pembatasan keras dan pemantauan menjadi mutlak.",
+          "Pada seluruh peran itu, batas keberlakuan model harus dinyatakan eksplisit. Jaringan hanya dapat dipercaya di dalam rentang yang terwakili data pelatihannya, sehingga sistem harus mampu mengenali masukan di luar rentang tersebut dan bertindak konservatif ketika itu terjadi.",
+        ],
+        formula: "peran teraman: penaksir besaran tak terukur, kendali tetap di loop klasik",
+      },
+      {
+        head: "Praktik Penerapan yang Sering Menentukan Keberhasilan",
+        body: [
+          "Penskalaan masukan hampir selalu diperlukan. Bila satu masukan bersatuan ribuan dan lainnya bersatuan satuan, gradien terhadap keduanya berbeda ordenya sehingga pelatihan menjadi lambat dan tidak seimbang. Penskalaan ke rentang yang sebanding menyelesaikan persoalan ini dengan biaya hampir nol.",
+          "Pemilihan masukan lebih menentukan daripada arsitektur. Menambah lapisan pada masukan yang tidak informatif tidak akan memperbaiki apa pun, sedangkan menambahkan satu masukan yang benar-benar berhubungan sering memperbaiki hasil secara dramatis.",
+          "Data pelatihan harus mewakili seluruh rentang operasi, termasuk keadaan yang jarang terjadi. Data yang seluruhnya diambil pada operasi normal menghasilkan model yang gagal justru pada saat paling dibutuhkan, yaitu ketika proses menyimpang.",
+          "Terakhir, model yang dipasang harus dipantau terus-menerus. Proses berubah, dan model yang dilatih setahun lalu dapat menjadi tidak sahih tanpa memberi tanda apa pun. Pemantauan selisih antara perkiraan dan pengukuran acuan adalah cara termurah mendeteksinya.",
+        ],
+        formula: "skala masukan, pilih masukan yang tepat, wakili seluruh rentang, pantau terus",
+      },
+    ],
+    derivation: {
+      head: "Menurunkan Perambatan Balik pada Satu Neuron",
+      intro: "Penurunan berikut memperlihatkan asal-usul aturan pembaruan bobot pada kasus paling sederhana, agar tidak diperlakukan sebagai rumus ajaib.",
+      steps: [
+        ["Keluaran neuron", "z = w*x + b,  y = f(z)", "Dua tahap: penjumlahan berbobot lalu aktivasi."],
+        ["Fungsi kerugian", "L = 0,5*(y - t)^2", "Setengah galat kuadrat; faktor setengah dipakai agar turunannya rapi."],
+        ["Turunan terhadap keluaran", "dL/dy = y - t", "Selisih antara keluaran jaringan dan target."],
+        ["Turunan aktivasi", "dy/dz = f'(z)", "Bergantung fungsi aktivasi yang dipakai."],
+        ["Turunan terhadap masukan bersih", "dL/dz = (y - t)*f'(z)", "Aturan rantai tahap pertama; besaran ini disebut galat lokal."],
+        ["Turunan terhadap bobot", "dL/dw = (y - t)*f'(z)*x", "Aturan rantai tahap kedua, karena dz/dw = x."],
+        ["Aturan pembaruan", "w := w - eta*(y - t)*f'(z)*x", "Bobot digeser berlawanan arah gradien sebesar laju pembelajaran."],
+      ],
+      closing: "Perhatikan kemunculan f'(z) pada rumus akhir. Bila fungsi aktivasi jenuh, misalnya sigmoid pada masukan besar, turunannya mendekati nol sehingga bobot hampir tidak bergerak meskipun galatnya besar. Inilah asal masalah gradien yang meredup, dan alasan fungsi rectified linear banyak dipakai pada jaringan dalam.",
+    },
+    worked: {
+      head: "Contoh Terhitung: Satu Langkah Pembaruan Bobot",
+      given: [
+        "Satu neuron dengan masukan x = 2,0 ; bobot w = 0,5 ; bias b = 0,1",
+        "Fungsi aktivasi sigmoid, f(z) = 1/(1 + exp(-z)) dengan f'(z) = f(z)*(1 - f(z))",
+        "Target t = 0,0 dan laju pembelajaran eta = 0,5",
+      ],
+      steps: [
+        ["Hitung masukan bersih", "z = 0,5*2,0 + 0,1 = 1,1", "Penjumlahan berbobot ditambah bias."],
+        ["Hitung keluaran", "y = 1/(1 + exp(-1,1)) = 0,750260", "exp(-1,1) = 0,332871 sehingga y = 1/1,332871."],
+        ["Hitung galat", "y - t = 0,750260", "Target nol sehingga galatnya sama dengan keluaran."],
+        ["Hitung turunan aktivasi", "f'(z) = 0,750260*(1 - 0,750260) = 0,187370", "Memakai sifat khas sigmoid."],
+        ["Hitung galat lokal", "dL/dz = 0,750260*0,187370 = 0,140597", "Perkalian galat dengan turunan aktivasi."],
+        ["Hitung gradien bobot", "dL/dw = 0,140597*2,0 = 0,281194", "Dikalikan masukan."],
+        ["Perbarui bobot", "w := 0,5 - 0,5*0,281194 = 0,359403", "Bobot bergeser turun karena keluaran terlalu tinggi."],
+      ],
+      answer: "Bobot baru 0,359403. Perhatikan bahwa meskipun galatnya cukup besar yaitu 0,75, pergeseran bobotnya hanya sekitar 0,14 karena turunan sigmoid di titik itu hanya 0,187. Bila z jauh lebih besar, misalnya 5, turunannya turun menjadi sekitar 0,0066 dan bobot praktis berhenti bergerak — persis gejala gradien meredup yang membuat pelatihan jaringan dalam bersigmoid menjadi sulit.",
+    },
+    pitfalls: [
+      ["Memakai jaringan saraf pada persoalan yang linier dan modelnya mudah diperoleh", "Kerumitan bertambah, data dibutuhkan, dan jaminan kestabilan dari analisis klasik justru hilang."],
+      ["Menilai model dari data yang dipakai melatihnya", "Kerugian pelatihan selalu membaik saat kapasitas ditambah. Hanya data uji yang belum pernah dilihat yang memberi penilaian jujur."],
+      ["Melatih hanya dengan data operasi normal", "Model akan gagal justru pada saat paling dibutuhkan, yaitu ketika proses menyimpang."],
+      ["Melupakan penskalaan masukan", "Masukan yang ordenya berbeda jauh membuat pelatihan lambat dan tidak seimbang, padahal biayanya hampir nol untuk diperbaiki."],
+      ["Memasang keluaran jaringan langsung ke actuator tanpa pembatasan", "Di luar rentang data pelatihan, keluarannya tidak punya jaminan apa pun. Pembatas keras dan pemantauan mutlak diperlukan."],
+    ],
+    checklist: [
+      "Kelayakan pendekatan klasik sudah dinilai lebih dahulu",
+      "Masukan dipilih berdasarkan hubungan fisik, bukan sekadar ketersediaan",
+      "Data dipisah menjadi latih, validasi, dan uji dengan tertib",
+      "Masukan diskalakan ke rentang yang sebanding",
+      "Penghentian dini atau pengaturan lain diterapkan terhadap hafalan",
+      "Rentang keberlakuan model dinyatakan eksplisit",
+      "Mekanisme pengenalan masukan di luar cakupan tersedia",
+      "Keluaran dibatasi keras sebelum diteruskan ke actuator",
+      "Pemantauan berkelanjutan disiapkan untuk mendeteksi model yang menua",
+    ],
+  },
+
+  13: {
+    deep: [
+      {
+        head: "Keanggotaan Bertingkat dan Alasannya",
+        body: [
+          "Himpunan klasik memaksa keputusan biner: sebuah nilai termasuk atau tidak termasuk. Pada besaran fisik yang berubah mulus, pemaksaan itu menimbulkan perilaku yang aneh di sekitar batas, karena perubahan sangat kecil dapat membalikkan keputusan sepenuhnya.",
+          "Himpunan fuzzy melunakkan batas itu dengan derajat keanggotaan bernilai antara nol dan satu. Sebuah temperatur dapat termasuk himpunan hangat dengan derajat 0,7 dan sekaligus termasuk himpunan panas dengan derajat 0,3. Perubahan kecil pada temperatur menghasilkan perubahan kecil pada derajat keanggotaan, bukan lompatan.",
+          "Perlu ditegaskan bahwa derajat keanggotaan bukan peluang. Peluang menyatakan ketidakpastian tentang kejadian yang sebenarnya pasti, sedangkan derajat keanggotaan menyatakan seberapa cocok sebuah nilai dengan istilah yang memang samar batasnya. Menyamakan keduanya sumber kekeliruan yang sering terjadi.",
+          "Bentuk fungsi keanggotaan yang paling banyak dipakai adalah segitiga dan trapesium, semata karena murah dihitung dan mudah dijelaskan kepada operator. Bentuk yang lebih halus jarang memberi perbaikan berarti pada penerapan kontrol.",
+        ],
+        formula: "mu(x) di antara 0 dan 1   |   derajat keanggotaan bukan peluang",
+      },
+      {
+        head: "Basis Aturan sebagai Pengetahuan yang Dieksekusi",
+        body: [
+          "Inti controller fuzzy adalah kumpulan aturan berbentuk jika-maka yang ditulis dalam istilah samar. Sebuah aturan berbunyi jika error positif besar dan laju error mendekati nol, maka keluaran dinaikkan besar. Aturan seperti ini dapat ditulis bersama operator berpengalaman tanpa satu persamaan pun.",
+          "Masukan yang lazim adalah error dan laju perubahan error, meniru cara manusia mengendalikan: melihat seberapa jauh dari sasaran dan ke mana arah geraknya. Dengan tujuh istilah untuk masing-masing, basis aturan lengkap berisi empat puluh sembilan aturan yang dapat disusun sebagai tabel.",
+          "Struktur tabel itu memiliki pola yang bermakna. Diagonalnya biasanya berisi keluaran nol karena error dan lajunya saling meniadakan, sementara sudut-sudutnya berisi aksi paling kuat. Pola ini membuat pemeriksaan kelengkapan menjadi mudah secara visual.",
+          "Kelengkapan dan konsistensi wajib diperiksa. Basis aturan harus mencakup seluruh kombinasi yang mungkin agar tidak ada keadaan yang tidak menghasilkan keluaran, dan tidak boleh memuat dua aturan yang memberi kesimpulan berlawanan untuk kondisi yang sama.",
+        ],
+        formula: "jika error = A dan d(error) = B maka keluaran = C   |   7 x 7 = 49 aturan",
+      },
+      {
+        head: "Tiga Tahap Pemrosesan",
+        body: [
+          "Tahap pertama, fuzzifikasi, mengubah nilai terukur menjadi derajat keanggotaan pada setiap himpunan masukan. Satu nilai temperatur menghasilkan beberapa derajat sekaligus, umumnya dua yang tidak nol bila fungsi keanggotaannya bertumpang tindih secara wajar.",
+          "Tahap kedua, inferensi, menerapkan seluruh aturan. Kekuatan setiap aturan dihitung dari derajat keanggotaan bagian jika-nya, umumnya memakai operasi minimum untuk hubungan dan. Kekuatan itu lalu memotong atau menskalakan himpunan keluaran aturan yang bersangkutan, dan seluruh hasilnya digabungkan.",
+          "Tahap ketiga, defuzzifikasi, mengubah himpunan keluaran gabungan menjadi satu bilangan yang dapat dikirim ke actuator. Metode pusat massa paling banyak dipakai karena menghasilkan keluaran yang berubah mulus terhadap masukan.",
+          "Tumpang tindih fungsi keanggotaan menentukan kemulusan keluaran. Tumpang tindih yang terlalu kecil membuat keluaran melompat saat berpindah antaraturan, sedangkan yang terlalu besar membuat aksi kontrol menjadi lemah karena terlalu banyak aturan aktif bersamaan dan saling menetralkan.",
+        ],
+        formula: "fuzzifikasi -> inferensi (min untuk dan) -> defuzzifikasi (pusat massa)",
+      },
+      {
+        head: "Hubungannya dengan PID dan Kapan Ia Menang",
+        body: [
+          "Controller fuzzy dengan masukan error dan laju error pada dasarnya menjalankan peran serupa PD, dan bila akumulasi error ditambahkan sebagai masukan ketiga, perannya menyerupai PID. Perbedaannya terletak pada hubungan masukan dan keluaran yang tidak harus linier.",
+          "Kebebasan itulah keuntungannya. Aksi kontrol dapat dibuat lembut di sekitar setpoint untuk menghindari getaran akibat derau, sekaligus sangat agresif saat error besar untuk mempercepat pemulihan. Satu himpunan parameter PID tidak dapat melakukan keduanya sekaligus.",
+          "Karena itu fuzzy paling unggul pada proses yang nonlinier atau yang tuntutan perilakunya berbeda di daerah operasi berbeda. Pada proses yang benar-benar linier dan modelnya tersedia, PID yang disetel baik biasanya setara atau lebih baik dengan kerumitan jauh lebih kecil.",
+          "Keunggulan lain yang sering menentukan di lapangan adalah keterbacaan. Setiap keputusan dapat ditelusuri ke aturan tertentu, sehingga teknisi pabrik dapat memahami, memeriksa, dan memperbaiki perilakunya tanpa memerlukan latar belakang pemodelan yang dalam.",
+        ],
+        formula: "fuzzy(e, de) ~ PD nonlinier   |   unggul saat perilaku harus berbeda per daerah",
+      },
+      {
+        head: "Penyetelan dan Pengujian Controller Fuzzy",
+        body: [
+          "Penyetelan fuzzy dilakukan pada tiga tempat: rentang semesta pembicaraan tiap masukan dan keluaran, bentuk serta letak fungsi keanggotaan, dan isi basis aturan. Praktik yang tertib menetapkan rentang lebih dahulu dari data operasi, lalu menyusun aturan, dan baru terakhir menghaluskan fungsi keanggotaan.",
+          "Faktor penskalaan pada masukan dan keluaran berperan mirip penguatan pada PID. Menaikkan penskalaan error setara menaikkan aksi proporsional, dan menaikkan penskalaan laju error setara menaikkan aksi turunan. Menyadari kesetaraan ini membuat penyetelan awal jauh lebih terarah.",
+          "Karena hubungan masukan-keluarannya nonlinier, kestabilan tidak dapat dinilai sekadar dari letak pole. Pengujian bergeser ke penelusuran menyeluruh atas rentang operasi, termasuk memetakan permukaan kendali untuk memastikan tidak ada daerah dengan aksi yang berlawanan dari yang diharapkan.",
+          "Pemeriksaan permukaan kendali itu murah dan sangat berguna. Permukaan yang bergelombang tidak wajar atau memiliki daerah datar yang luas menandakan basis aturan atau fungsi keanggotaan yang perlu diperbaiki, dan gejalanya terlihat jauh sebelum controller menyentuh perangkat.",
+        ],
+        formula: "penskalaan error ~ Kp   |   penskalaan laju error ~ Kd   |   periksa permukaan kendali",
+      },
+    ],
+    derivation: {
+      head: "Menurunkan Keluaran Fuzzy Lengkap dari Dua Aturan Aktif",
+      intro: "Penurunan berikut menelusuri satu siklus penuh dari nilai terukur sampai keluaran actuator, agar ketiga tahapnya tidak menjadi kotak hitam.",
+      steps: [
+        ["Nilai terukur", "error e = 2,0 pada semesta -10 sampai 10", "Satu bilangan tegas dari sensor."],
+        ["Fuzzifikasi", "mu(Nol) = 0,6 ; mu(Positif Kecil) = 0,4", "Dua himpunan aktif karena fungsi keanggotaannya bertumpang tindih."],
+        ["Kekuatan aturan pertama", "Jika e Nol maka u Nol; kekuatan 0,6", "Hanya satu masukan sehingga kekuatannya sama dengan derajat keanggotaan."],
+        ["Kekuatan aturan kedua", "Jika e Positif Kecil maka u Positif Kecil; kekuatan 0,4", "Aturan kedua ikut aktif dengan kekuatan lebih rendah."],
+        ["Wakil himpunan keluaran", "u Nol berpusat di 0 ; u Positif Kecil berpusat di 5", "Dipakai pusat masing-masing himpunan keluaran."],
+        ["Defuzzifikasi berbobot", "u = (0,6*0 + 0,4*5)/(0,6 + 0,4)", "Rata-rata berbobot kekuatan aturan."],
+        ["Hasil akhir", "u = 2,0/1,0 = 2,0", "Satu bilangan tegas siap dikirim ke actuator."],
+      ],
+      closing: "Perhatikan penyebutnya berupa jumlah seluruh kekuatan aturan. Bila basis aturan tidak lengkap sehingga pada suatu keadaan tidak ada aturan yang aktif, penyebutnya menjadi nol dan keluarannya tidak terdefinisi — inilah alasan pemeriksaan kelengkapan bersifat wajib, bukan anjuran.",
+    },
+    worked: {
+      head: "Contoh Terhitung: Keluaran pada Dua Masukan",
+      given: [
+        "Error e = 3,0 dengan mu(Nol) = 0,4 dan mu(Positif Kecil) = 0,6",
+        "Laju error de = -1,0 dengan mu(Nol) = 0,7 dan mu(Negatif Kecil) = 0,3",
+        "Aturan memakai operasi minimum untuk hubungan dan; pusat keluaran: Nol = 0, Positif Kecil = 5, Negatif Kecil = -5",
+      ],
+      steps: [
+        ["Aturan 1", "e Nol dan de Nol -> u Nol; kekuatan min(0,4 ; 0,7) = 0,4", "Operasi minimum mengambil yang terlemah."],
+        ["Aturan 2", "e PK dan de Nol -> u PK; kekuatan min(0,6 ; 0,7) = 0,6", "Aturan terkuat pada keadaan ini."],
+        ["Aturan 3", "e Nol dan de NK -> u NK; kekuatan min(0,4 ; 0,3) = 0,3", "Laju error negatif menarik keluaran ke bawah."],
+        ["Aturan 4", "e PK dan de NK -> u Nol; kekuatan min(0,6 ; 0,3) = 0,3", "Kedua pengaruh saling meniadakan."],
+        ["Hitung pembilang", "0,4*0 + 0,6*5 + 0,3*(-5) + 0,3*0 = 1,5", "Jumlah kekuatan dikali pusat keluarannya."],
+        ["Hitung penyebut", "0,4 + 0,6 + 0,3 + 0,3 = 1,6", "Jumlah seluruh kekuatan aturan."],
+        ["Defuzzifikasi", "u = 1,5/1,6 = 0,9375", "Rata-rata berbobot."],
+      ],
+      answer: "Keluaran 0,9375. Perhatikan bahwa meskipun error cukup besar dan condong ke Positif Kecil, keluarannya jauh lebih kecil daripada pusat himpunan Positif Kecil yang bernilai 5. Penyebabnya laju error yang negatif: sistem sudah bergerak menuju setpoint, sehingga aturan-aturan yang mengandung Negatif Kecil menahan aksi. Inilah wujud aksi turunan pada controller fuzzy, muncul dari basis aturan tanpa satu pun rumus turunan.",
+    },
+    pitfalls: [
+      ["Menyamakan derajat keanggotaan dengan peluang", "Keduanya menjawab pertanyaan berbeda: peluang tentang ketidakpastian kejadian, keanggotaan tentang kecocokan dengan istilah yang batasnya memang samar."],
+      ["Membiarkan basis aturan tidak lengkap", "Bila pada suatu keadaan tidak ada aturan aktif, penyebut defuzzifikasi menjadi nol dan keluarannya tidak terdefinisi."],
+      ["Tumpang tindih fungsi keanggotaan yang terlalu kecil", "Keluaran melompat saat berpindah antaraturan, menghasilkan aksi kontrol yang tersentak."],
+      ["Tumpang tindih yang terlalu besar", "Terlalu banyak aturan aktif bersamaan dan saling menetralkan, sehingga aksi kontrol menjadi lemah."],
+      ["Menilai kestabilan dari letak pole", "Hubungan masukan-keluarannya nonlinier. Pengujian harus menelusuri seluruh rentang operasi dan memetakan permukaan kendali."],
+    ],
+    checklist: [
+      "Rentang semesta pembicaraan ditetapkan dari data operasi nyata",
+      "Basis aturan diperiksa kelengkapannya untuk seluruh kombinasi masukan",
+      "Konsistensi antaraturan diperiksa, tidak ada kesimpulan berlawanan",
+      "Tumpang tindih fungsi keanggotaan diperiksa tidak terlalu kecil maupun terlalu besar",
+      "Faktor penskalaan disetel dengan menyadari kesetaraannya terhadap Kp dan Kd",
+      "Permukaan kendali dipetakan dan diperiksa kewajarannya",
+      "Pengujian menelusuri seluruh rentang operasi, bukan hanya di sekitar setpoint",
+      "Aturan ditinjau bersama operator yang memahami prosesnya",
+    ],
+  },
+
+  14: {
+    deep: [
+      {
+        head: "Ketika Pencarian Berbasis Turunan Tidak Dapat Dipakai",
+        body: [
+          "Metode pengoptimalan klasik bekerja dengan mengikuti gradien menuruni permukaan fungsi tujuan. Cara ini sangat efisien, namun menuntut tiga hal: fungsi tujuannya dapat diturunkan, turunannya dapat dihitung dengan biaya wajar, dan permukaannya tidak memiliki terlalu banyak minimum lokal.",
+          "Pada penyetelan controller, ketiga syarat itu sering runtuh sekaligus. Fungsi tujuan biasanya berupa hasil simulasi, misalnya integral galat mutlak terhadap waktu, yang tidak memiliki bentuk analitik sehingga turunannya tidak tersedia. Kehadiran kejenuhan actuator dan pembatasan lain membuat permukaannya patah-patah.",
+          "Algoritma genetika tidak memerlukan turunan sama sekali. Ia hanya memerlukan kemampuan menilai seberapa baik sebuah kandidat, sehingga fungsi tujuan boleh berupa apa saja, termasuk hasil simulasi penuh dengan seluruh nonlinieritasnya.",
+          "Harganya adalah jumlah penilaian yang jauh lebih banyak. Bila satu penilaian menuntut simulasi yang lama, biaya totalnya bisa menjadi penghalang, sehingga perancangan fungsi tujuan yang murah dihitung menjadi bagian penting dari pekerjaan.",
+        ],
+        formula: "GA hanya perlu menilai, tidak perlu menurunkan   |   harganya: banyak penilaian",
+      },
+      {
+        head: "Empat Operator dan Peran Masing-Masing",
+        body: [
+          "Seleksi menentukan kandidat mana yang berpeluang menurunkan sifatnya. Metode turnamen paling banyak dipakai karena sederhana dan tekanan seleksinya mudah diatur lewat ukuran turnamen. Tekanan yang terlalu besar membuat populasi cepat seragam dan pencarian berhenti dini.",
+          "Persilangan menggabungkan dua kandidat menjadi keturunan baru. Operator inilah yang bertanggung jawab menggabungkan bagian-bagian baik dari dua penyelesaian berbeda, dan menjadi pembeda utama algoritma genetika dari pencarian acak biasa.",
+          "Mutasi mengubah sedikit nilai secara acak. Perannya menjaga keragaman dan membuka kembali daerah pencarian yang sudah ditinggalkan populasi. Laju yang terlalu kecil membuat pencarian terjebak, sedangkan yang terlalu besar mengubahnya menjadi pencarian acak yang tidak terarah.",
+          "Elitisme menyalin beberapa kandidat terbaik langsung ke generasi berikutnya tanpa perubahan. Tanpa ini, penyelesaian terbaik yang sudah ditemukan dapat hilang akibat persilangan atau mutasi, sehingga kualitas terbaik dapat menurun antargenerasi — hal yang seharusnya tidak pernah terjadi.",
+        ],
+        formula: "seleksi -> persilangan -> mutasi -> elitisme, berulang tiap generasi",
+      },
+      {
+        head: "Merancang Fungsi Tujuan yang Jujur",
+        body: [
+          "Fungsi tujuan adalah tempat seluruh keinginan perancang dinyatakan, dan algoritma akan mengejarnya secara harfiah termasuk celahnya. Fungsi tujuan yang hanya menghukum galat akan menghasilkan penyetelan yang sangat agresif dengan sinyal kendali di luar kemampuan actuator, karena aspek itu tidak pernah dihukum.",
+          "Karena itu fungsi tujuan pada penyetelan controller umumnya menggabungkan beberapa suku: ukuran galat terhadap waktu, hukuman terhadap besar aksi kontrol, dan hukuman terhadap overshoot yang melewati batas. Bobot antarsuku menyatakan prioritas perancang secara eksplisit.",
+          "Ukuran galat yang dipilih memengaruhi hasil. Integral galat kuadrat menghukum penyimpangan besar jauh lebih keras sehingga menghasilkan respons agresif. Integral galat mutlak dikali waktu menghukum galat yang bertahan lama, sehingga cenderung menghasilkan penetapan yang cepat tanpa terlalu mengejar puncak awal.",
+          "Batasan keras sebaiknya ditangani terpisah dari bobot. Kandidat yang membuat sistem tidak stabil atau melanggar batas keselamatan lebih baik langsung diberi nilai sangat buruk, alih-alih sekadar dihukum, agar tidak pernah terpilih meskipun unggul pada aspek lain.",
+        ],
+        formula: "J = w1*ITAE + w2*integral(u^2) + w3*penalti overshoot   |   pelanggaran keras: tolak",
+      },
+      {
+        head: "Membaca Perilaku Pencarian",
+        body: [
+          "Grafik nilai terbaik terhadap generasi memberi banyak informasi. Penurunan yang cepat lalu mendatar menunjukkan pencarian sudah menemukan daerah yang baik; bila mendatarnya terjadi sangat dini, biasanya keragaman populasi habis terlalu cepat akibat tekanan seleksi yang berlebihan.",
+          "Memantau keragaman populasi sama pentingnya dengan memantau nilai terbaik. Populasi yang seluruh anggotanya hampir sama tidak akan menghasilkan perbaikan lagi berapa pun generasi ditambahkan, karena persilangan antaranggota yang identik tidak menghasilkan apa pun yang baru.",
+          "Karena algoritma ini bersifat acak, satu kali jalan tidak membuktikan apa-apa. Praktik yang benar menjalankannya beberapa kali dengan benih acak berbeda, lalu melaporkan sebaran hasilnya, bukan hanya hasil terbaik yang kebetulan diperoleh.",
+          "Perlu diingat pula bahwa hasil terbaik menurut fungsi tujuan belum tentu terbaik menurut kebutuhan sesungguhnya. Kandidat pemenang wajib diperiksa ulang lewat simulasi penuh dan pengujian keadaan tepi sebelum dianggap layak.",
+        ],
+        formula: "pantau nilai terbaik DAN keragaman   |   jalankan beberapa kali, laporkan sebarannya",
+      },
+      {
+        head: "Menempatkan Algoritma Genetika pada Alur Perancangan",
+        body: [
+          "Algoritma genetika bukan pengganti pemahaman sistem. Ia bekerja paling baik ketika struktur controller sudah ditetapkan dengan benar dan yang tersisa hanyalah mencari nilai parameternya. Memakainya untuk menutupi struktur yang keliru hanya menghasilkan penyetelan terbaik dari pilihan yang buruk.",
+          "Penggunaan yang lazim mencakup penyetelan parameter PID pada plant yang nonlinier, pencarian letak dan bentuk fungsi keanggotaan pada controller fuzzy, serta penentuan bobot antartujuan yang saling bertentangan.",
+          "Karena penilaiannya berbasis simulasi, kualitas hasil dibatasi kualitas model. Model yang tidak memuat kejenuhan actuator akan menghasilkan penyetelan yang tampak unggul di komputer dan mengecewakan di lapangan — persoalan yang sama dengan simulasi pada umumnya, hanya diperbesar karena algoritma mengejar celah model secara sistematis.",
+          "Karena itu langkah akhir tetap sama seperti metode lain: nilai hasil pencarian diperlakukan sebagai titik awal, diperiksa terhadap batas actuator dan derau, lalu diuji bertahap pada perangkat dengan jalan keluar yang siap.",
+        ],
+        formula: "struktur ditetapkan lebih dahulu, GA mencari parameternya",
+      },
+    ],
+    derivation: {
+      head: "Menurunkan Satu Generasi Lengkap",
+      intro: "Penurunan berikut menelusuri satu generasi pada populasi kecil, agar keempat operator terlihat bekerja berurutan.",
+      steps: [
+        ["Populasi awal", "empat kandidat dengan nilai tujuan J = 12 ; 8 ; 20 ; 15", "Nilai lebih kecil berarti lebih baik."],
+        ["Ubah menjadi kebugaran", "F = 1/J = 0,0833 ; 0,125 ; 0,05 ; 0,0667", "Dibalik karena persoalannya meminimumkan."],
+        ["Seleksi turnamen ukuran dua", "adu acak berpasangan, ambil yang lebih bugar", "Kandidat berkebugaran 0,125 paling sering terpilih."],
+        ["Persilangan aritmetik", "anak = a*induk1 + (1-a)*induk2", "Dengan a acak antara nol dan satu untuk parameter bernilai nyata."],
+        ["Mutasi", "tambahkan derau acak kecil pada sebagian gen", "Laju mutasi menentukan berapa banyak gen yang tersentuh."],
+        ["Elitisme", "salin kandidat terbaik apa adanya", "Menjamin nilai terbaik tidak pernah memburuk antargenerasi."],
+        ["Bentuk generasi baru", "gabungkan elite dan keturunan sampai ukuran populasi terpenuhi", "Siklus berulang sampai kriteria berhenti terpenuhi."],
+      ],
+      closing: "Perhatikan urutannya bukan kebetulan. Elitisme diterapkan terakhir justru agar melindungi kandidat terbaik dari kerusakan akibat persilangan dan mutasi yang baru saja terjadi. Tanpa langkah itu, grafik nilai terbaik terhadap generasi dapat naik-turun, padahal seharusnya tidak pernah memburuk.",
+    },
+    worked: {
+      head: "Contoh Terhitung: Seleksi dan Persilangan",
+      given: [
+        "Empat kandidat parameter Kp dengan nilai 2,0 ; 5,0 ; 8,0 ; 11,0",
+        "Nilai fungsi tujuan berturut-turut J = 40 ; 12 ; 18 ; 55 (lebih kecil lebih baik)",
+        "Persilangan aritmetik dengan a = 0,3 ; elitisme menyalin satu kandidat terbaik",
+      ],
+      steps: [
+        ["Urutkan menurut J", "5,0 (12) ; 8,0 (18) ; 2,0 (40) ; 11,0 (55)", "Kandidat Kp = 5,0 paling baik."],
+        ["Tentukan elite", "Kp = 5,0 disalin apa adanya", "Elitisme menjamin nilai terbaik bertahan."],
+        ["Turnamen pertama", "adu 5,0 melawan 11,0 -> menang 5,0", "J = 12 lebih kecil daripada 55."],
+        ["Turnamen kedua", "adu 8,0 melawan 2,0 -> menang 8,0", "J = 18 lebih kecil daripada 40."],
+        ["Persilangan aritmetik", "anak = 0,3*5,0 + 0,7*8,0", "Memakai kedua pemenang turnamen sebagai induk."],
+        ["Hitung anak", "= 1,5 + 5,6 = 7,1", "Nilai berada di antara kedua induknya."],
+        ["Mutasi anak", "7,1 + 0,4 = 7,5", "Derau acak kecil ditambahkan untuk menjaga keragaman."],
+      ],
+      answer: "Generasi berikutnya memuat elite Kp = 5,0 dan keturunan Kp = 7,5, ditambah kandidat lain hasil turnamen berikutnya. Perhatikan bahwa persilangan aritmetik hanya menghasilkan nilai di antara kedua induknya, sehingga populasi cenderung menyusut ke satu titik. Mutasi itulah satu-satunya operator yang dapat membawa pencarian keluar dari rentang yang sudah ada — dan karena itu menolkan laju mutasi hampir selalu membuat pencarian berhenti dini.",
+    },
+    pitfalls: [
+      ["Memakai algoritma genetika untuk menutupi struktur controller yang keliru", "Hasilnya hanya penyetelan terbaik dari pilihan yang buruk. Struktur harus ditetapkan lebih dahulu."],
+      ["Menyusun fungsi tujuan yang hanya menghukum galat", "Algoritma akan mengejarnya secara harfiah dan menghasilkan penyetelan agresif dengan sinyal kendali di luar kemampuan actuator."],
+      ["Melupakan elitisme", "Penyelesaian terbaik dapat hilang akibat persilangan atau mutasi, sehingga kualitas terbaik memburuk antargenerasi."],
+      ["Menolkan laju mutasi", "Persilangan aritmetik hanya menghasilkan nilai di antara induknya, sehingga populasi menyusut ke satu titik dan pencarian berhenti dini."],
+      ["Melaporkan satu kali jalan sebagai bukti", "Algoritma ini bersifat acak. Beberapa kali jalan dengan benih berbeda beserta sebaran hasilnya jauh lebih jujur."],
+    ],
+    checklist: [
+      "Struktur controller ditetapkan sebelum pencarian parameter dimulai",
+      "Fungsi tujuan memuat suku galat, usaha kontrol, dan hukuman pelanggaran batas",
+      "Pelanggaran batas keras ditolak langsung, bukan sekadar dihukum",
+      "Ukuran populasi, laju persilangan, dan laju mutasi dicatat",
+      "Elitisme diterapkan agar nilai terbaik tidak pernah memburuk",
+      "Keragaman populasi dipantau bersama nilai terbaik",
+      "Pencarian dijalankan beberapa kali dengan benih berbeda",
+      "Kandidat pemenang diperiksa ulang lewat simulasi penuh dan pengujian keadaan tepi",
+      "Model yang dipakai menilai sudah memuat kejenuhan actuator",
+    ],
+  },
 };
 
 export default MATERI;
