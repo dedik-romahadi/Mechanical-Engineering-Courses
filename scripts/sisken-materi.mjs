@@ -616,6 +616,313 @@ export const MATERI = {
       "Kesimpulan dinyatakan sebagai terpenuhi atau tidak, disertai alasan",
     ],
   },
+
+  8: {
+    deep: [
+      {
+        head: "Empat Besaran yang Merangkum Seluruh Respons",
+        body: [
+          "Respons sistem umpan balik terhadap perubahan setpoint dapat dirangkum oleh empat besaran yang saling melengkapi. Waktu naik menyatakan seberapa cepat keluaran menempuh sebagian besar perubahan, umumnya dari sepuluh sampai sembilan puluh persen. Waktu puncak menyatakan kapan keluaran mencapai nilai tertingginya. Overshoot menyatakan seberapa jauh keluaran melewati nilai akhirnya. Waktu menetap menyatakan kapan keluaran berhenti bergerak berarti di dalam pita toleransi.",
+          "Keempatnya bukan besaran bebas. Pada model orde dua baku, seluruhnya ditentukan hanya oleh dua parameter, yaitu rasio redaman dan frekuensi alami. Karena itu menuntut perbaikan pada satu besaran selalu berarti perubahan pada yang lain, dan hubungan itu dapat dihitung sebelum satu percobaan pun dilakukan.",
+          "Rasio redaman menentukan bentuk respons. Nilai nol memberi osilasi yang tidak pernah mereda. Nilai di antara nol dan satu memberi osilasi teredam dengan overshoot. Nilai satu memberi respons tercepat yang masih tanpa overshoot, disebut teredam kritis. Nilai lebih dari satu memberi respons tanpa osilasi namun lebih lambat, disebut teredam lebih.",
+          "Frekuensi alami menentukan skala waktu. Menaikkannya mempercepat seluruh peristiwa secara proporsional tanpa mengubah bentuk responsnya sama sekali. Inilah sebabnya perancangan sering dipisah menjadi dua langkah: menetapkan rasio redaman dari batas overshoot, lalu menetapkan frekuensi alami dari tuntutan kecepatan.",
+        ],
+        formula: "T(s) = wn^2/(s^2 + 2*z*wn*s + wn^2)   |   z mengatur bentuk, wn mengatur kecepatan",
+      },
+      {
+        head: "Tipe Sistem dan Error Tunak",
+        body: [
+          "Error tunak tidak ditentukan oleh penyetelan melainkan oleh struktur. Yang menentukan adalah jumlah integrator pada lintasan terbuka, yang disebut tipe sistem. Sistem tipe nol tidak memiliki integrator, tipe satu memiliki satu, dan seterusnya.",
+          "Sistem tipe nol menyisakan error tetap terhadap masukan step, dan errornya mengecil bila gain dinaikkan namun tidak pernah menjadi nol. Terhadap masukan ramp, sistem tipe nol bahkan gagal total karena errornya membesar tanpa batas. Sistem tipe satu menghapus error terhadap step sepenuhnya dan menyisakan error tetap terhadap ramp.",
+          "Kesimpulan praktisnya tegas. Bila spesifikasi menuntut error nol terhadap perubahan setpoint yang bersifat step, controller wajib memuat aksi integral; tidak ada nilai penguatan proporsional yang dapat menggantikannya. Sebaliknya, bila sistem harus mengikuti target yang bergerak dengan laju tetap, satu integrator saja tidak cukup untuk menghapus error.",
+          "Konstanta error memberi cara ringkas menghitungnya. Konstanta posisi diperoleh dari limit gain lintasan terbuka saat s menuju nol, dan error terhadap step sama dengan satu dibagi satu ditambah konstanta itu. Konstanta kecepatan diperoleh dari limit s dikali gain lintasan terbuka, dan error terhadap ramp sama dengan kebalikannya.",
+        ],
+        formula: "tipe 0: e_step = 1/(1+Kp)   |   tipe 1: e_step = 0, e_ramp = 1/Kv",
+      },
+      {
+        head: "Menolak Gangguan Berbeda dari Mengikuti Setpoint",
+        body: [
+          "Sistem umpan balik menghadapi dua tuntutan yang tidak sama. Yang pertama adalah mengikuti perintah, yang kedua adalah menolak pengaruh luar. Keduanya memiliki fungsi transfer berbeda meskipun penyebutnya sama, sehingga bentuk responsnya pun berbeda.",
+          "Perbedaan itu berakar pada letak masuknya sinyal. Setpoint masuk di depan controller sehingga dilewatkan seluruh lintasan maju. Gangguan beban umumnya masuk di sisi masukan plant sehingga hanya dilewatkan plant, tidak melewati controller. Akibatnya pembilang kedua fungsi transfer berbeda.",
+          "Konsekuensinya nyata di lapangan. Penyetelan yang memberi pengikutan setpoint mulus dapat memberi penolakan gangguan yang lambat, dan sebaliknya. Karena itu pengujian harus mencakup keduanya: satu percobaan mengubah setpoint, satu percobaan lagi memberi gangguan buatan pada beban.",
+          "Struktur dua derajat kebebasan memungkinkan keduanya disetel terpisah. Jalur umpan balik disetel untuk penolakan gangguan dan kestabilan, sementara jalur setpoint diberi penapis atau pembobotan tersendiri untuk membentuk respons pengikutan tanpa mengubah sifat loop.",
+        ],
+        formula: "T_r = GC/(1+GCH)   |   T_d = G/(1+GCH)   |   penyebut sama, pembilang berbeda",
+      },
+      {
+        head: "Margin Kestabilan sebagai Ukuran Jarak Aman",
+        body: [
+          "Menyatakan sistem stabil saja tidak memadai. Yang perlu diketahui adalah seberapa jauh sistem dari batas ketidakstabilan, karena parameter plant selalu berubah akibat keausan, suhu, dan beban. Ukuran jarak itu disebut margin.",
+          "Margin penguatan menyatakan berapa kali penguatan boleh dinaikkan sebelum sistem kehilangan kestabilan, diukur pada frekuensi saat fase mencapai seratus delapan puluh derajat. Margin fase menyatakan berapa banyak tambahan susut fase yang masih dapat ditoleransi, diukur pada frekuensi saat besar gain sama dengan satu.",
+          "Nilai yang lazim dituntut pada penerapan industri adalah margin fase empat puluh lima sampai enam puluh derajat dan margin penguatan sekitar dua kali. Margin fase juga berhubungan erat dengan rasio redaman: aturan kasar yang sering dipakai menyatakan rasio redaman kira-kira sama dengan margin fase dalam derajat dibagi seratus.",
+          "Dead time adalah pemakan margin fase yang paling sering diabaikan. Susut fase yang ditimbulkannya membesar sebanding dengan frekuensi, sehingga sistem yang tampak aman pada frekuensi rendah dapat kehabisan margin begitu penguatan dinaikkan dan frekuensi kerja bergeser ke atas.",
+        ],
+        formula: "z kira-kira PM/100   |   fase dead time = -w*L, membesar terhadap frekuensi",
+      },
+      {
+        head: "Membaca Umpan Balik sebagai Pertukaran, Bukan Perbaikan Gratis",
+        body: [
+          "Umpan balik memberi banyak hal sekaligus: error yang mengecil, respons yang lebih cepat, dan kepekaan terhadap perubahan plant yang menurun. Semuanya membaik seiring naiknya gain loop, sehingga menaikkan penguatan tampak seperti perbaikan tanpa biaya.",
+          "Biayanya muncul di tempat lain. Gain yang tinggi memperbesar aksi kontrol sehingga actuator lebih cepat jenuh. Ia juga memperkuat derau sensor, karena derau dilewatkan lintasan yang sama dengan sinyal. Dan ia mendekatkan sistem ke batas kestabilan karena margin fase menipis.",
+          "Terdapat pula batasan yang bersifat mendasar, bukan sekadar praktis. Penekanan sensitivitas pada satu rentang frekuensi harus dibayar dengan penguatan pada rentang frekuensi lain; sensitivitas tidak dapat ditekan di semua frekuensi sekaligus. Kesadaran ini mengubah cara merancang: yang dikejar bukan gain setinggi mungkin, melainkan penempatan penekanan pada rentang tempat gangguan sesungguhnya berada.",
+          "Karena itu perancangan yang matang selalu menyebutkan di mana batasnya. Sampai berapa gain boleh naik sebelum actuator jenuh pada perubahan setpoint terbesar yang diperkirakan, dan sampai berapa sebelum derau sensor membuat actuator bergetar terus-menerus. Kedua angka itu, bukan selera, yang menentukan penyetelan akhir.",
+        ],
+        formula: "S + T = 1 selalu   |   menekan S pada satu rentang berarti membesarkan di rentang lain",
+      },
+    ],
+    derivation: {
+      head: "Menurunkan Error Tunak dari Tipe Sistem",
+      intro: "Penurunan berikut menunjukkan mengapa aksi integral, bukan besar penguatan, yang menentukan apakah error terhadap step dapat dihapus.",
+      steps: [
+        ["Error dalam domain-s", "E(s) = R(s)/(1 + L(s))", "L adalah gain lintasan terbuka, yaitu hasil kali controller, plant, dan sensor."],
+        ["Masukan step satuan", "R(s) = 1/s", "Transformasi step bertinggi satu."],
+        ["Terapkan teorema nilai akhir", "e_ss = lim s->0 s*E(s) = lim s->0 1/(1 + L(s))", "Suku s saling menghapus dengan penyebut R(s)."],
+        ["Kasus tipe nol", "L(0) = Kp berhingga  =>  e_ss = 1/(1+Kp)", "Error mengecil saat Kp naik namun tidak pernah nol."],
+        ["Kasus tipe satu", "L(s) = K/s * G'(s)  =>  L(0) tak hingga", "Integrator membuat gain lintasan terbuka membesar tanpa batas saat s menuju nol."],
+        ["Hasil tipe satu", "e_ss = 1/(1 + tak hingga) = 0", "Error terhadap step terhapus sepenuhnya, berapa pun nilai K."],
+      ],
+      closing: "Kesimpulannya bersifat struktural: yang menghapus error terhadap step adalah keberadaan integrator, bukan besarnya penguatan. Menaikkan Kp pada sistem tipe nol hanya mengecilkan error sambil memperbesar risiko kejenuhan dan penurunan margin.",
+    },
+    worked: {
+      head: "Contoh Terhitung: Membandingkan Dua Struktur Controller",
+      given: [
+        "Plant G(s) = 4/(s + 2) dengan umpan balik satuan",
+        "Rancangan A memakai controller proporsional Kp = 6",
+        "Rancangan B memakai controller integral murni Ki/s dengan Ki = 6",
+      ],
+      steps: [
+        ["Gain lintasan terbuka A", "L_A(s) = 24/(s+2), L_A(0) = 12", "Sistem tipe nol karena tidak ada integrator."],
+        ["Error tunak A", "e_ss = 1/(1+12) = 0,0769", "Menyisakan 7,69 persen terhadap step satuan."],
+        ["Pole tertutup A", "s + 2 + 24 = 0  =>  s = -26", "Sangat cepat, konstanta waktu 1/26 detik."],
+        ["Gain lintasan terbuka B", "L_B(s) = 24/(s*(s+2))", "Sistem tipe satu karena memuat satu integrator."],
+        ["Error tunak B", "e_ss = 0", "Integrator menghapus error terhadap step sepenuhnya."],
+        ["Pole tertutup B", "s^2 + 2s + 24 = 0  =>  s = -1 +/- j4,796", "Muncul osilasi yang tidak ada pada rancangan A."],
+        ["Rasio redaman B", "z = 2/(2*sqrt(24)) = 0,204", "Overshoot sekitar 51 persen — sangat besar."],
+      ],
+      answer: "Rancangan A cepat dan tanpa osilasi namun menyisakan error 7,69 persen. Rancangan B menghapus error sepenuhnya namun berosilasi hebat dan jauh lebih lambat. Keduanya menunjukkan bahwa integral tidak gratis: ia menambah satu pole di titik asal yang menggeser pole tertutup ke arah yang kurang teredam. Inilah alasan aksi integral hampir selalu dipadukan dengan proporsional dan turunan, bukan dipakai sendiri.",
+    },
+    pitfalls: [
+      ["Mengira error tunak dapat dihapus dengan menaikkan penguatan", "Pada sistem tipe nol, error hanya mengecil dan tidak pernah nol. Yang menghapusnya adalah aksi integral, dan itu keputusan struktur bukan penyetelan."],
+      ["Menguji hanya perubahan setpoint", "Penolakan gangguan memiliki pembilang berbeda. Sistem yang mulus mengikuti perintah bisa lambat menolak gangguan beban."],
+      ["Menyatakan sistem stabil tanpa menyebut marginnya", "Parameter plant selalu berubah. Tanpa margin, tidak ada jaminan sistem tetap stabil setelah beberapa bulan beroperasi."],
+      ["Melupakan bahwa dead time memakan margin fase", "Susut fasenya membesar terhadap frekuensi, sehingga menaikkan penguatan justru mempercepat habisnya margin."],
+      ["Mengejar gain setinggi mungkin", "Error dan kecepatan memang membaik, tetapi actuator lebih cepat jenuh, derau sensor menguat, dan jarak ke batas kestabilan menyempit."],
+    ],
+    checklist: [
+      "Rasio redaman ditetapkan dari batas overshoot sebelum kecepatan diatur",
+      "Tipe sistem diperiksa untuk menentukan apakah aksi integral diperlukan",
+      "Konstanta error dihitung dan dibandingkan dengan spesifikasi",
+      "Pengujian mencakup perubahan setpoint dan pemberian gangguan",
+      "Margin fase dan margin penguatan dihitung, bukan hanya kestabilannya",
+      "Dead time diperhitungkan sebagai pemakan margin fase",
+      "Batas penguatan ditetapkan dari kejenuhan actuator dan penguatan derau",
+    ],
+  },
+
+  9: {
+    deep: [
+      {
+        head: "Tiga Aksi, Tiga Pertanyaan Berbeda",
+        body: [
+          "Controller PID menjumlahkan tiga aksi yang bekerja atas error yang sama namun menjawab pertanyaan berbeda. Aksi proporsional menjawab seberapa besar error saat ini. Aksi integral menjawab seberapa lama error itu bertahan. Aksi turunan menjawab ke arah mana error sedang bergerak.",
+          "Aksi proporsional memberi respons segera yang sebanding dengan error. Menaikkannya mempercepat sistem dan mengecilkan error tunak, namun memperbesar overshoot dan mendekatkan sistem ke batas kestabilan. Aksi ini sendirian tidak dapat menghapus error tunak pada plant tanpa integrator.",
+          "Aksi integral mengakumulasi error terhadap waktu, sehingga selama masih ada error sekecil apa pun, keluarannya terus bertambah. Sifat inilah yang menghapus error tunak. Harganya adalah tambahan satu pole di titik asal yang menurunkan redaman dan memperlambat sistem, ditambah risiko penumpukan saat actuator jenuh.",
+          "Aksi turunan bereaksi terhadap laju perubahan error, sehingga ia mulai menahan sebelum keluaran melewati setpoint. Aksi ini menambah redaman dan memungkinkan penguatan proporsional yang lebih besar dipakai dengan aman. Kelemahannya ia memperkuat derau, sehingga hampir selalu memerlukan penapis.",
+        ],
+        formula: "u = Kp*e + Ki*integral(e) + Kd*de/dt   |   sekarang, masa lalu, dan arah",
+      },
+      {
+        head: "Bentuk Baku dan Arti Fisik Parameternya",
+        body: [
+          "Selain bentuk penjumlahan tiga gain, PID sering dinyatakan dalam bentuk baku yang memakai waktu integral dan waktu turunan. Bentuk ini lebih disukai di dunia proses karena kedua parameternya bersatuan waktu sehingga dapat dibandingkan langsung dengan dinamika plant.",
+          "Waktu integral menyatakan berapa lama aksi integral memerlukan waktu untuk menyumbang sebesar sumbangan aksi proporsional pada error tetap. Nilai yang kecil berarti aksi integral agresif. Aturan kasar yang lazim menetapkannya sebanding dengan konstanta waktu dominan plant.",
+          "Waktu turunan menyatakan seberapa jauh ke depan controller memperkirakan gerak error. Nilai yang terlalu besar membuat controller bereaksi berlebihan terhadap perubahan kecil, dan bersama derau sensor menghasilkan getaran pada actuator. Praktik yang lazim menetapkannya sekitar seperempat waktu integral.",
+          "Perlu diperhatikan bahwa mengubah penguatan proporsional pada bentuk baku ikut mengubah kekuatan aksi integral dan turunan, karena keduanya dikalikan penguatan yang sama. Pada bentuk penjumlahan tiga gain, ketiganya bebas satu sama lain. Kekeliruan menyamakan kedua bentuk adalah sumber kebingungan yang sering terjadi saat memindahkan parameter antarperangkat.",
+        ],
+        formula: "u = Kp*(e + (1/Ti)*integral(e) + Td*de/dt)   |   Ti dan Td bersatuan detik",
+      },
+      {
+        head: "Penyetelan: Dari Aturan Praktis ke Penyetelan Berbasis Model",
+        body: [
+          "Metode Ziegler-Nichols memberi titik awal dari dua percobaan sederhana. Cara pertama menaikkan penguatan proporsional sampai sistem berosilasi dengan amplitudo tetap, lalu mencatat penguatan kritis dan periode osilasinya. Cara kedua memakai respons step lintasan terbuka untuk menaksir gain, konstanta waktu, dan dead time.",
+          "Yang perlu disadari, aturan ini dirancang untuk mengejar peredaman seperempat amplitudo, yang menghasilkan respons cukup agresif dengan overshoot sekitar dua puluh sampai lima puluh persen. Untuk banyak penerapan modern hasil itu terlalu berayun, sehingga aturan ini lebih tepat dipakai sebagai titik awal daripada nilai akhir.",
+          "Penyetelan berbasis model bekerja dari arah berlawanan. Spesifikasi diterjemahkan menjadi letak pole yang dituju, lalu parameter controller dihitung agar pole loop tertutup mendarat di sana. Cara ini menuntut model yang cukup baik, namun memberi kendali langsung atas overshoot dan waktu menetap.",
+          "Apa pun metodenya, penyetelan tidak berhenti di simulasi. Nilai hasil hitungan dipakai sebagai titik awal, lalu diperiksa di perangkat dengan menaikkan agresivitas bertahap sambil mengamati sinyal kendali. Yang menghentikan proses bukan grafik yang indah, melainkan tercapainya spesifikasi tanpa menjenuhkan actuator dan tanpa memperkuat derau berlebihan.",
+        ],
+        formula: "Ziegler-Nichols: Kp = 0,6*Ku, Ti = 0,5*Tu, Td = 0,125*Tu",
+      },
+      {
+        head: "Anti-Windup dan Pembatasan yang Wajib Ada",
+        body: [
+          "Ketika actuator mencapai batasnya, keluaran controller tidak lagi memengaruhi plant. Aksi integral yang tetap menumpuk selama itu akan membesar tanpa guna, dan ketika error akhirnya berbalik tanda, akumulator yang telanjur besar harus dikosongkan lebih dahulu sebelum keluaran turun. Akibatnya keluaran melewati setpoint jauh dan lama.",
+          "Gejalanya khas dan mudah dikenali: overshoot yang jauh lebih besar daripada perkiraan simulasi, terutama setelah perubahan setpoint yang besar, disertai keluaran yang bertahan mentok cukup lama. Bila gejala ini muncul, memeriksa anti-windup jauh lebih tepat daripada menurunkan penguatan.",
+          "Penanganan paling sederhana menghentikan penumpukan ketika keluaran sedang mentok dan error masih mendorong ke arah yang sama. Cara yang lebih halus mengumpanbalikkan selisih antara keluaran yang diminta dan yang benar-benar terjadi ke akumulator, sehingga akumulator menyesuaikan diri secara mulus alih-alih dibekukan.",
+          "Selain kejenuhan, laju perubahan actuator juga sering terbatas. Katup memerlukan waktu untuk bergerak, dan motor memiliki batas percepatan. Pembatasan laju ini menimbulkan gejala serupa dan perlu dimodelkan bila dinamikanya sebanding dengan dinamika loop.",
+        ],
+        formula: "anti-windup: I += Kt*(u_nyata - u_minta)*T bersama pembatasan keluaran",
+      },
+      {
+        head: "Varian Struktur yang Sering Diperlukan",
+        body: [
+          "PID dasar sering perlu disesuaikan agar berperilaku baik di lapangan. Salah satu penyesuaian yang paling umum adalah menghitung aksi turunan dari keluaran terukur, bukan dari error. Dengan cara ini, perubahan setpoint yang mendadak tidak lagi menghasilkan lonjakan turunan yang besar, sementara kemampuan meredam tetap terjaga.",
+          "Pembobotan setpoint pada aksi proporsional bekerja dengan semangat serupa. Aksi proporsional dihitung dari selisih antara setpoint berbobot dan keluaran, sehingga respons terhadap perubahan setpoint dapat dilunakkan tanpa mengubah sifat penolakan gangguan maupun kestabilan loop.",
+          "Untuk proses berdead-time besar, struktur prediktor memisahkan pengaruh tundaan dari perhitungan umpan balik dengan memakai model plant. Sistem menjadi jauh lebih agresif secara aman, namun kinerjanya kini bergantung pada ketepatan model. Bila model meleset, keunggulannya cepat hilang.",
+          "Pada sistem dengan besaran cepat di dalam besaran lambat, struktur bersarang biasanya lebih efektif daripada satu PID tunggal yang disetel sangat agresif. Loop dalam menekan gangguan di dekat sumbernya dan menyederhanakan penyetelan, karena tiap loop dapat disetel bergiliran dari dalam ke luar.",
+        ],
+        formula: "turunan dari keluaran: D = -Kd*dy/dt   |   bobot setpoint: P = Kp*(b*r - y)",
+      },
+    ],
+    derivation: {
+      head: "Menurunkan Parameter PI dari Letak Pole yang Dituju",
+      intro: "Penurunan berikut menunjukkan cara menghitung parameter controller langsung dari spesifikasi, bukan lewat coba-coba.",
+      steps: [
+        ["Plant dan controller", "G = K/(tau*s+1),  C = Kp + Ki/s", "Dipilih PI karena spesifikasi menuntut error tunak nol terhadap step."],
+        ["Gain lintasan terbuka", "L = (Kp*s + Ki)*K/(s*(tau*s+1))", "Controller disatukan menjadi satu pecahan."],
+        ["Persamaan karakteristik", "tau*s^2 + (1 + K*Kp)*s + K*Ki = 0", "Diperoleh dari 1 + L = 0 lalu dikalikan penyebutnya."],
+        ["Bentuk baku orde dua", "s^2 + (1+K*Kp)/tau * s + K*Ki/tau = 0", "Seluruh persamaan dibagi tau."],
+        ["Cocokkan suku konstanta", "wn^2 = K*Ki/tau  =>  Ki = tau*wn^2/K", "Frekuensi alami menentukan Ki."],
+        ["Cocokkan koefisien s", "2*z*wn = (1 + K*Kp)/tau  =>  Kp = (2*z*wn*tau - 1)/K", "Rasio redaman menentukan Kp."],
+      ],
+      closing: "Kedua parameter kini diperoleh langsung dari z dan wn, yang sendiri diturunkan dari batas overshoot dan waktu menetap. Perhatikan Kp dapat bernilai negatif bila wn yang diminta terlalu kecil — pertanda spesifikasinya sendiri tidak masuk akal untuk plant tersebut.",
+    },
+    worked: {
+      head: "Contoh Terhitung: Merancang PI dari Spesifikasi",
+      given: [
+        "Plant G(s) = 2/(5s + 1), yaitu K = 2 dan tau = 5 detik",
+        "Spesifikasi: overshoot maksimum 10 persen dan waktu menetap maksimum 4 detik pada pita dua persen",
+      ],
+      steps: [
+        ["Rasio redaman dari overshoot", "z = -ln(0,10)/sqrt(pi^2 + ln(0,10)^2) = 0,5912", "Batas overshoot menetapkan z."],
+        ["Frekuensi alami dari waktu menetap", "wn = 4/(z*t_s) = 4/(0,5912*4) = 1,6917", "Tuntutan kecepatan menetapkan wn."],
+        ["Hitung Ki", "Ki = tau*wn^2/K = 5*2,8619/2 = 7,1547", "Memakai hasil pencocokan suku konstanta."],
+        ["Hitung Kp", "Kp = (2*z*wn*tau - 1)/K = (2*0,5912*1,6917*5 - 1)/2", "Memakai hasil pencocokan koefisien s."],
+        ["Selesaikan Kp", "= (10,0 - 1)/2 = 4,5", "Perhatikan 2*z*wn = 4/t_s = 1, sehingga 2*z*wn*tau = 5."],
+        ["Periksa waktu integral", "Ti = Kp/Ki = 4,5/7,1547 = 0,629 s", "Jauh lebih kecil daripada tau = 5 s, artinya aksi integral memang agresif."],
+      ],
+      answer: "Diperoleh Kp = 4,5 dan Ki = 7,1547. Nilai ini titik awal, bukan nilai akhir: sebelum dipakai, sinyal kendali pada saat awal harus diperiksa terhadap batas actuator, dan aksi integral yang agresif menuntut anti-windup yang benar-benar bekerja.",
+    },
+    pitfalls: [
+      ["Menambah aksi integral tanpa anti-windup", "Actuator mentok adalah kejadian biasa. Tanpa penanganan, keluaran melewati setpoint jauh melebihi perkiraan simulasi."],
+      ["Memakai aksi turunan tanpa penapis", "Selisih memperkuat derau sensor sehingga actuator bergetar terus-menerus dan cepat aus."],
+      ["Menyamakan bentuk baku dengan bentuk tiga gain", "Pada bentuk baku, mengubah Kp ikut mengubah kekuatan integral dan turunan. Memindahkan parameter antarperangkat tanpa memeriksa bentuknya menghasilkan perilaku yang jauh berbeda."],
+      ["Memperlakukan Ziegler-Nichols sebagai nilai akhir", "Aturan itu mengejar peredaman seperempat amplitudo yang menghasilkan overshoot dua puluh sampai lima puluh persen — terlalu agresif untuk banyak penerapan."],
+      ["Menghitung turunan dari error saat setpoint berubah mendadak", "Lonjakan turunan yang besar mengagetkan actuator. Menghitungnya dari keluaran terukur menghilangkan gejala itu tanpa mengurangi kemampuan meredam."],
+    ],
+    checklist: [
+      "Kebutuhan aksi integral ditentukan dari tipe sistem, bukan dari selera",
+      "Bentuk PID yang dipakai perangkat diperiksa sebelum memindahkan parameter",
+      "Parameter awal diturunkan dari spesifikasi lewat z dan wn, bukan coba-coba",
+      "Anti-windup diterapkan dan diuji pada keadaan actuator mentok",
+      "Aksi turunan dilengkapi penapis dan dihitung dari keluaran bila setpoint sering berubah",
+      "Sinyal kendali diperiksa terhadap batas actuator sebelum penerapan",
+      "Penyetelan akhir diverifikasi lewat pengujian setpoint dan gangguan",
+    ],
+  },
+
+  10: {
+    deep: [
+      {
+        head: "Ketika Reduksi Blok Menjadi Tidak Praktis",
+        body: [
+          "Reduksi diagram blok bekerja baik selama loop-loopnya bersarang rapi. Kesulitan muncul ketika loop saling bersilangan sehingga tidak ada loop dalam yang berdiri sendiri, atau ketika terdapat banyak lintasan maju dari masukan ke keluaran.",
+          "Dalam keadaan itu titik cabang dan titik penjumlahan harus dipindahkan lebih dahulu, dan setiap pemindahan menyisipkan blok tambahan sekaligus membuka peluang kekeliruan tanda. Pada sistem dengan empat atau lima loop bersilangan, proses ini menjadi panjang dan sulit diperiksa.",
+          "Aturan Mason menyelesaikan persoalan yang sama dalam satu langkah. Hasilnya diperoleh langsung dari daftar lintasan maju dan daftar loop, tanpa manipulasi bertahap sama sekali. Karena tidak ada langkah antara, tidak ada pula tempat bagi kekeliruan tanda untuk menyelinap.",
+          "Keduanya harus memberi jawaban yang sama. Karena itu praktik yang baik memakai salah satunya untuk memeriksa yang lain pada sistem yang cukup rumit, terutama ketika hasilnya akan dipakai sebagai dasar perancangan.",
+        ],
+        formula: "reduksi blok: bertahap dan rawan tanda   |   Mason: sekali hitung dari daftar",
+      },
+      {
+        head: "Kosakata Grafik Aliran Sinyal",
+        body: [
+          "Grafik aliran sinyal menyatakan sistem sebagai simpul dan cabang berarah. Simpul mewakili sinyal, sedangkan cabang mewakili perkalian dengan suatu fungsi transfer. Sinyal pada sebuah simpul adalah jumlah seluruh cabang yang masuk ke simpul itu.",
+          "Lintasan maju adalah jalur dari simpul masukan ke simpul keluaran yang tidak melewati simpul mana pun lebih dari sekali. Gain lintasan maju adalah hasil kali seluruh gain cabang di sepanjang jalur itu.",
+          "Loop adalah jalur tertutup yang berawal dan berakhir pada simpul yang sama tanpa melewati simpul lain lebih dari sekali. Gain loop adalah hasil kali gain cabang di sepanjang loop tersebut, dan tandanya mengikuti tanda pada titik penjumlahan yang dilewatinya.",
+          "Dua loop disebut tidak bersentuhan bila keduanya tidak berbagi satu simpul pun. Pengertian ini menjadi kunci karena determinan grafik memuat suku-suku hasil kali loop yang tidak bersentuhan, dan justru bagian inilah yang paling sering keliru saat pertama kali dipelajari.",
+        ],
+        formula: "simpul = sinyal, cabang = fungsi transfer, loop = jalur tertutup",
+      },
+      {
+        head: "Determinan Grafik dan Maknanya",
+        body: [
+          "Determinan grafik disusun sebagai satu dikurangi jumlah seluruh gain loop, ditambah jumlah hasil kali pasangan loop yang tidak bersentuhan, dikurangi jumlah hasil kali tripel loop yang tidak bersentuhan, dan seterusnya berganti tanda.",
+          "Bentuk berganti tanda ini bukan kebetulan. Ia muncul dari prinsip inklusi dan eksklusi: bila seluruh gain loop dijumlahkan begitu saja, pengaruh loop yang dapat aktif bersamaan terhitung ganda, sehingga harus dikurangkan kembali.",
+          "Determinan grafik ternyata sama persis dengan penyebut fungsi transfer, yaitu persamaan karakteristik sistem. Karena itu kestabilan dapat dinilai langsung dari determinan tanpa menyelesaikan seluruh rumus Mason, dan ini sering menjadi jalan tercepat pada sistem yang rumit.",
+          "Untuk setiap lintasan maju terdapat kofaktor tersendiri, yaitu determinan yang dihitung ulang dengan menghapus seluruh loop yang bersentuhan dengan lintasan tersebut. Bila seluruh loop bersentuhan dengan sebuah lintasan, kofaktornya bernilai satu.",
+        ],
+        formula: "Delta = 1 - sum(L_i) + sum(L_i*L_j tak bersentuhan) - sum(tripel) + ...",
+      },
+      {
+        head: "Menerapkan Rumus Mason Secara Sistematis",
+        body: [
+          "Penerapan yang tertib mengikuti urutan tetap. Mulai dengan menggambar grafik aliran sinyal dari diagram blok, menandai setiap sinyal sebagai simpul. Lalu daftarkan seluruh lintasan maju beserta gainnya, dan seluruh loop beserta gainnya.",
+          "Berikutnya tentukan pasangan loop mana yang tidak bersentuhan. Langkah inilah yang paling sering dilewati, dan melewatkannya menghasilkan determinan yang keliru sehingga seluruh jawaban ikut salah.",
+          "Setelah determinan disusun, hitung kofaktor untuk setiap lintasan maju. Kemudian gabungkan seluruhnya: jumlahkan hasil kali gain lintasan dengan kofaktornya, lalu bagi dengan determinan.",
+          "Hasilnya wajib diperiksa dengan dua uji murah. Pertama, evaluasi pada s sama dengan nol dan bandingkan dengan gain arus searah yang diharapkan secara fisik. Kedua, periksa apakah satuan keluaran terhadap masukan masuk akal. Kedua uji ini menangkap sebagian besar kekeliruan aritmetika.",
+        ],
+        formula: "T = (1/Delta) * sum(P_k * Delta_k)",
+      },
+      {
+        head: "Batas Penerapan dan Hubungannya dengan Ruang Keadaan",
+        body: [
+          "Aturan Mason berlaku untuk sistem linier waktu-invarian yang dapat digambarkan sebagai grafik aliran sinyal. Ia tidak berlaku untuk sistem nonlinier maupun sistem yang parameternya berubah terhadap waktu, dan tidak menangkap dinamika internal yang tidak terhubung ke masukan maupun keluaran.",
+          "Batas terakhir itu sama dengan batas fungsi transfer pada umumnya. Grafik aliran sinyal menggambarkan hubungan masukan dan keluaran; keadaan internal yang tidak terkendali atau tidak teramati tidak akan muncul, meskipun tetap ada dan tetap dapat membahayakan.",
+          "Sebaliknya, grafik aliran sinyal berguna sebagai jembatan menuju ruang keadaan. Setiap simpul integrator pada grafik berhubungan dengan satu variabel keadaan, sehingga grafik dapat dibaca langsung menjadi persamaan keadaan tanpa melewati fungsi transfer sama sekali.",
+          "Pada praktik modern, perhitungan simbolik dan numerik banyak menggantikan penerapan tangan. Nilai aturan Mason karena itu bergeser: bukan sebagai alat hitung utama, melainkan sebagai cara memahami dari mana persamaan karakteristik berasal dan mengapa loop yang saling bersentuhan berperilaku berbeda dari yang tidak.",
+        ],
+        formula: "Delta = penyebut fungsi transfer = persamaan karakteristik",
+      },
+    ],
+    derivation: {
+      head: "Menurunkan Fungsi Transfer Umpan Balik Baku dengan Mason",
+      intro: "Penurunan berikut menerapkan rumus Mason pada susunan paling sederhana, agar hasilnya dapat dibandingkan langsung dengan rumus umpan balik yang sudah dikenal.",
+      steps: [
+        ["Gambar grafiknya", "R -> E -> Y dengan cabang balik dari Y ke E", "Simpul E adalah error, cabang maju bergain G, cabang balik bergain -H."],
+        ["Daftarkan lintasan maju", "P1 = G", "Hanya ada satu lintasan dari R ke Y."],
+        ["Daftarkan loop", "L1 = -G*H", "Satu-satunya loop, bertanda negatif karena umpan baliknya negatif."],
+        ["Periksa loop tak bersentuhan", "tidak ada", "Hanya ada satu loop, sehingga tidak ada pasangan."],
+        ["Susun determinan", "Delta = 1 - (-G*H) = 1 + G*H", "Inilah persamaan karakteristik yang sudah dikenal."],
+        ["Hitung kofaktor lintasan", "Delta_1 = 1", "Loop L1 bersentuhan dengan lintasan P1, sehingga dihapus seluruhnya."],
+        ["Terapkan rumus Mason", "T = P1*Delta_1/Delta = G/(1 + G*H)", "Hasilnya sama persis dengan rumus umpan balik baku."],
+      ],
+      closing: "Kesesuaian ini menunjukkan rumus umpan balik yang biasa dipakai sebenarnya kasus khusus aturan Mason. Keunggulan Mason baru terasa ketika lintasan maju lebih dari satu atau loop saling bersilangan, keadaan yang membuat reduksi bertahap menjadi berbelit.",
+    },
+    worked: {
+      head: "Contoh Terhitung: Dua Loop yang Tidak Bersentuhan",
+      given: [
+        "Lintasan maju tunggal dengan gain P1 = G1*G2*G3",
+        "Loop pertama L1 = -G1*H1 berada di bagian awal lintasan",
+        "Loop kedua L2 = -G3*H2 berada di bagian akhir lintasan",
+        "Kedua loop tidak berbagi simpul mana pun",
+      ],
+      steps: [
+        ["Jumlahkan gain loop", "sum L = -G1*H1 - G3*H2", "Kedua loop bertanda negatif karena umpan baliknya negatif."],
+        ["Periksa persentuhan", "L1 dan L2 tidak bersentuhan", "Keduanya berada di bagian berbeda pada lintasan dan tidak berbagi simpul."],
+        ["Hitung hasil kali pasangan", "L1*L2 = G1*H1*G3*H2", "Perkalian dua bilangan negatif menghasilkan positif."],
+        ["Susun determinan", "Delta = 1 + G1*H1 + G3*H2 + G1*H1*G3*H2", "Suku terakhir inilah yang paling sering terlupakan."],
+        ["Faktorkan determinan", "Delta = (1 + G1*H1)*(1 + G3*H2)", "Bentuk terfaktor ini muncul justru karena kedua loop tidak bersentuhan."],
+        ["Hitung kofaktor", "Delta_1 = 1", "Kedua loop bersentuhan dengan lintasan maju, sehingga seluruhnya dihapus."],
+        ["Susun hasil akhir", "T = G1*G2*G3/((1+G1*H1)*(1+G3*H2))", "Hasilnya berupa perkalian dua faktor umpan balik yang terpisah."],
+      ],
+      answer: "Bentuk terfaktor pada penyebut mengandung makna fisik: karena kedua loop tidak berinteraksi, sistem berperilaku seperti dua subsistem berumpan balik yang dipasang seri. Bila suku hasil kali loop terlupakan, penyebutnya menjadi 1 + G1*H1 + G3*H2 yang tidak dapat difaktorkan, dan letak pole yang dihitung akan meleset — kekeliruan yang tidak akan terdeteksi oleh pemeriksaan gain arus searah sederhana.",
+    },
+    pitfalls: [
+      ["Melupakan suku hasil kali loop yang tidak bersentuhan", "Inilah kekeliruan paling umum. Determinannya menjadi salah sehingga seluruh jawaban ikut salah, dan gejalanya tidak selalu tampak pada pemeriksaan gain arus searah."],
+      ["Salah menentukan tanda gain loop", "Tanda mengikuti titik penjumlahan yang dilewati. Satu kekeliruan tanda dapat memindahkan pole ke sebelah kanan dan membalikkan kesimpulan kestabilan."],
+      ["Menganggap lintasan boleh melewati simpul dua kali", "Baik lintasan maju maupun loop tidak boleh melewati simpul yang sama lebih dari sekali; melanggarnya menghasilkan daftar yang tidak sah."],
+      ["Memakai kofaktor yang sama untuk semua lintasan", "Setiap lintasan memiliki kofaktornya sendiri, dihitung dengan menghapus loop yang bersentuhan dengan lintasan itu saja."],
+      ["Mengira Mason menangkap seluruh dinamika sistem", "Sama seperti fungsi transfer, keadaan internal yang tidak terkendali atau tidak teramati tidak muncul sama sekali."],
+    ],
+    checklist: [
+      "Grafik aliran sinyal digambar lengkap dengan seluruh simpul sinyal",
+      "Seluruh lintasan maju didaftar beserta gainnya",
+      "Seluruh loop didaftar beserta tanda gainnya",
+      "Pasangan loop yang tidak bersentuhan diperiksa satu per satu",
+      "Determinan disusun dengan tanda berganti sesuai inklusi dan eksklusi",
+      "Kofaktor dihitung tersendiri untuk setiap lintasan maju",
+      "Hasil diperiksa lewat gain arus searah dan kelayakan satuan",
+      "Pada sistem rumit, hasilnya dibandingkan dengan reduksi blok atau perhitungan numerik",
+    ],
+  },
 };
 
 export default MATERI;
