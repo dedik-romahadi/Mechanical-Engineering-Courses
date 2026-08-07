@@ -715,6 +715,134 @@ export const FORUM = {
       },
     ],
   },
+
+  13: {
+    judul: "Aturan yang Saling Meniadakan",
+    eyebrow: "Forum Diskusi · Pertemuan 13 · Logika Fuzzy",
+    ringkas: "Controller fuzzy hasil lokakarya bersama operator justru bergerak lamban dan tersentak. Bedah basis aturannya.",
+    narasi: [
+      "Sebuah pabrik menyusun controller fuzzy untuk kendali ketebalan lembaran, dengan basis aturan ditulis bersama tiga operator senior. Semua pihak puas dengan aturannya karena terbaca dan masuk akal.",
+      "Di lapangan hasilnya mengecewakan. Saat error besar, aksi kontrolnya <strong style=\"color:var(--pink)\">terasa lemah</strong> sehingga pemulihan lambat. Sebaliknya pada beberapa titik operasi tertentu keluaran <strong>melompat tiba-tiba</strong> meskipun masukannya berubah sedikit saja.",
+      "Pemeriksaan menemukan dua hal. Fungsi keanggotaan masukan dibuat <strong style=\"color:var(--amber)\">sangat lebar</strong> sehingga pada hampir setiap titik kerja ada lima sampai enam aturan aktif bersamaan, sebagian dengan kesimpulan berlawanan. Sementara pada rentang lain, dua himpunan bersebelahan justru <strong>nyaris tidak bertumpang tindih</strong>.",
+    ],
+    chip: ["Aturan aktif: 5-6 sekaligus", "Tumpang tindih: sangat lebar", "Sebagian rentang: nyaris tanpa tumpang tindih", "Permukaan kendali: belum dipetakan"],
+    jajak: [
+      {
+        q: "Aksi kontrol yang terasa lemah saat error besar paling mungkin disebabkan oleh...",
+        opts: [
+          "Terlalu banyak aturan aktif bersamaan dengan kesimpulan berlawanan sehingga saling menetralkan pada defuzzifikasi",
+          "Jumlah aturan yang terlalu sedikit",
+          "Pusat himpunan keluaran yang terlalu besar",
+          "Operasi minimum yang keliru dipakai",
+        ],
+        jawab: 0,
+        benar: "Tepat. Defuzzifikasi rata-rata berbobot menjumlahkan seluruh sumbangan; aturan yang menarik ke arah berlawanan mengecilkan pembilang sementara penyebutnya tetap membesar, sehingga keluarannya menyusut.",
+        salah: "Perhatikan gejalanya muncul justru saat banyak aturan aktif. Menambah aturan atau memperbesar pusat keluaran tidak menyentuh sebabnya.",
+      },
+      {
+        q: "Keluaran yang melompat meskipun masukan berubah sedikit menandakan...",
+        opts: [
+          "Operasi minimum harus diganti perkalian",
+          "Tumpang tindih yang terlalu kecil sehingga perpindahan antaraturan tidak mulus",
+          "Basis aturan yang tidak konsisten",
+          "Defuzzifikasi yang salah metode",
+        ],
+        jawab: 1,
+        benar: "Tepat. Bila dua himpunan bersebelahan nyaris tidak bertumpang tindih, keanggotaan berpindah hampir seketika dari satu aturan ke aturan lain, dan keluarannya ikut melompat.",
+        salah: "Gejala melompat berkaitan dengan bagaimana keanggotaan berpindah antarhimpunan, bukan dengan metode inferensi atau defuzzifikasinya.",
+      },
+      {
+        q: "Pemeriksaan yang paling murah dan paling cepat menampakkan kedua persoalan ini adalah...",
+        opts: [
+          "Menjalankan controller di perangkat selama seminggu",
+          "Menambah jumlah istilah pada tiap masukan",
+          "Memetakan permukaan kendali terhadap kedua masukan",
+          "Mengganti seluruh fungsi keanggotaan menjadi trapesium",
+        ],
+        jawab: 2,
+        benar: "Tepat. Permukaan yang datar luas menandakan aksi yang saling menetralkan, sedangkan tebing tajam menandakan tumpang tindih yang terlalu kecil. Keduanya terlihat sekaligus, jauh sebelum controller menyentuh perangkat.",
+        salah: "Menjalankan di perangkat mahal dan lambat, sedangkan mengubah himpunan tanpa mengetahui bentuk permukaannya berarti menebak. Pemetaan permukaan menampakkan kedua gejala sekaligus.",
+      },
+    ],
+    diskusi: [
+      {
+        q: "Jelaskan secara perhitungan mengapa aturan yang berlawanan melemahkan aksi kontrol",
+        petunjuk: "1) Tuliskan rumus defuzzifikasi rata-rata berbobot. 2) Susun contoh dengan dua aturan berlawanan aktif dan hitung keluarannya. 3) Bandingkan dengan keadaan hanya satu aturan aktif. 4) Jelaskan peran penyebut yang tetap membesar meskipun pembilang saling meniadakan.",
+      },
+      {
+        q: "Tentukan tumpang tindih yang wajar beserta alasannya",
+        petunjuk: "1) Jelaskan akibat tumpang tindih yang terlalu kecil pada kemulusan keluaran. 2) Jelaskan akibat yang terlalu besar pada kekuatan aksi. 3) Usulkan pedoman praktis, misalnya berapa banyak himpunan yang boleh aktif serentak. 4) Jelaskan cara memeriksanya tanpa menyentuh perangkat.",
+      },
+      {
+        q: "Susun prosedur peninjauan basis aturan bersama operator",
+        petunjuk: "1) Tentukan cara memeriksa kelengkapan seluruh kombinasi masukan. 2) Tentukan cara memeriksa konsistensi antaraturan. 3) Tentukan bagaimana permukaan kendali dipakai sebagai bahan diskusi dengan operator. 4) Tentukan kriteria kapan basis aturan dinyatakan siap diuji di perangkat.",
+      },
+    ],
+  },
+
+  14: {
+    judul: "Pencarian yang Menemukan Celah Model",
+    eyebrow: "Forum Diskusi · Pertemuan 14 · Algoritma Genetika",
+    ringkas: "Algoritma menemukan parameter dengan nilai tujuan terbaik yang pernah dicapai, dan hasilnya tidak dapat dipakai. Cari sebabnya.",
+    narasi: [
+      "Tim memakai algoritma genetika untuk menyetel PID sebuah loop posisi. Fungsi tujuannya <strong>integral galat mutlak dikali waktu</strong> yang dihitung dari simulasi, dan pencarian dijalankan 60 generasi dengan populasi 40.",
+      "Hasilnya mengesankan di layar: nilai tujuan turun jauh di bawah seluruh penyetelan manual yang pernah dicoba, dan grafik responsnya nyaris tanpa galat. Namun ketika parameter itu dipasang, sistem <strong style=\"color:var(--pink)\">bergetar keras</strong> dan segera dimatikan operator.",
+      "Peninjauan menemukan parameter pemenang memiliki <strong style=\"color:var(--amber)\">Kd sangat besar</strong>, dan model simulasi yang dipakai menilai <strong>tidak memuat batas actuator maupun derau sensor</strong>. Di dalam model, aksi turunan sebesar itu memang menghasilkan galat yang mendekati nol.",
+    ],
+    chip: ["Populasi 40, 60 generasi", "Fungsi tujuan: ITAE saja", "Model: tanpa batas actuator", "Kd pemenang: sangat besar"],
+    jajak: [
+      {
+        q: "Penyebab pokok kegagalan ini adalah...",
+        opts: [
+          "Jumlah generasi terlalu sedikit",
+          "Fungsi tujuan hanya menghukum galat, sehingga usaha kontrol dan penguatan derau tidak pernah dinilai",
+          "Ukuran populasi terlalu kecil",
+          "Laju mutasi terlalu besar",
+        ],
+        jawab: 1,
+        benar: "Tepat. Algoritma mengejar fungsi tujuan secara harfiah termasuk celahnya. Aspek yang tidak dihukum akan diabaikan sepenuhnya, dan di sini yang tidak dihukum justru yang merusak perangkat.",
+        salah: "Menambah generasi atau populasi hanya membuat algoritma menemukan celah yang sama dengan lebih baik. Persoalannya pada apa yang dinilai, bukan pada seberapa keras mencarinya.",
+      },
+      {
+        q: "Model yang tidak memuat batas actuator berakibat algoritma...",
+        opts: [
+          "Gagal konvergen",
+          "Menemukan penyelesaian yang lebih konservatif",
+          "Secara sistematis mengejar celah model itu, karena di dalam model aksi tak terbatas memang memberi galat terkecil",
+          "Menghasilkan hasil yang sama dengan penyetelan manual",
+        ],
+        jawab: 2,
+        benar: "Tepat, dan inilah yang membuat pencarian otomatis lebih berbahaya daripada penyetelan tangan: manusia biasanya berhenti pada nilai yang terasa wajar, sedangkan algoritma tidak punya rasa itu.",
+        salah: "Justru sebaliknya. Karena di dalam model tidak ada yang menghukum aksi besar, algoritma akan terus mendorong ke arah itu selama nilai tujuannya membaik.",
+      },
+      {
+        q: "Perbaikan yang paling tepat didahulukan adalah...",
+        opts: [
+          "Memperbaiki fungsi tujuan dan model, lalu mengulang pencarian",
+          "Menurunkan Kd pemenang secara manual sampai getarannya hilang",
+          "Menambah jumlah generasi",
+          "Mengganti algoritma dengan metode berbasis gradien",
+        ],
+        jawab: 0,
+        benar: "Tepat. Menurunkan Kd secara manual memang menghilangkan gejala, tetapi hasil pencarian berikutnya akan mengulangi kesalahan yang sama karena kriteria penilaiannya belum diperbaiki.",
+        salah: "Menambal hasil satu kali jalan tidak memperbaiki proses yang menghasilkannya. Selama fungsi tujuan dan modelnya belum menghukum aksi berlebihan, pencarian berikutnya akan menemukan celah yang sama.",
+      },
+    ],
+    diskusi: [
+      {
+        q: "Susun ulang fungsi tujuan yang seharusnya dipakai beserta alasan tiap sukunya",
+        petunjuk: "1) Sebutkan suku galat yang dipakai dan alasan memilihnya. 2) Tambahkan suku usaha kontrol beserta cara menghitungnya. 3) Tambahkan penanganan pelanggaran batas keras dan jelaskan mengapa berbeda dari sekadar hukuman berbobot. 4) Jelaskan cara menentukan bobot antarsuku.",
+      },
+      {
+        q: "Tentukan perbaikan model yang wajib dilakukan sebelum pencarian diulang",
+        petunjuk: "1) Sebutkan unsur nonlinier yang wajib dimodelkan beserta alasannya. 2) Jelaskan cara memodelkan derau sensor dan pengaruhnya pada aksi turunan. 3) Tentukan cara memverifikasi model sudah cukup mewakili. 4) Jelaskan hubungan antara kualitas model dan kualitas hasil pencarian.",
+      },
+      {
+        q: "Rancang prosedur pelaporan hasil pencarian yang layak dipercaya",
+        petunjuk: "1) Tentukan berapa kali pencarian dijalankan dan mengapa satu kali tidak memadai. 2) Tentukan apa yang dilaporkan selain nilai terbaik. 3) Tentukan pemeriksaan yang wajib dilalui kandidat pemenang sebelum dipasang. 4) Tentukan bukti yang harus menyertai laporan agar dapat diverifikasi orang lain.",
+      },
+    ],
+  },
 };
 
 export default FORUM;
