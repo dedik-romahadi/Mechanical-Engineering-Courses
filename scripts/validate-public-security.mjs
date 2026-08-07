@@ -67,7 +67,7 @@ try {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
-if (authPages !== 63) throw new Error(`Expected 63 admin-auth pages (48 Modul/Exam + 7 Attributes + 3 OBE + 5 Admin), got ${authPages}`);
+if (authPages !== 56) throw new Error(`Expected 56 admin-auth pages (48 Modul/Exam + 3 OBE + 5 Admin), got ${authPages}`);
 for (const course of courseRoots) {
   const uas = fs.readFileSync(path.join(root, course, "Exam", "UAS.html"), "utf8");
   if (/const UAS_(TF|MC|COMP_EZ|COMP_HARD)\s*=\s*\[/.test(uas)) throw new Error(`${course}: static UAS bank returned to HTML`);
