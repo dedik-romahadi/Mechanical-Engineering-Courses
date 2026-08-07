@@ -172,6 +172,22 @@ const modules = [
 
 const css = `
 /* SISKENCERDAS-RICH-CONTENT:START */
+/* Tombol geser bilah bagian. Bilahnya melebihi lebar layar karena jumlah
+   bagiannya banyak, sedangkan batang gulirnya sengaja disembunyikan. */
+/* Halaman modul panjangnya sekitar 20.000 piksel dengan sembilan belas bagian.
+   Bagian yang belum terlihat dilewati perhitungan tata letaknya supaya guliran
+   tetap ringan; tinggi perkiraan diberikan agar batang gulir tidak melompat. */
+#page-modul > .section{content-visibility:auto;contain-intrinsic-size:auto 900px;scroll-margin-top:112px}
+.subnav-geser{position:fixed;top:60px;z-index:100;height:40px;width:30px;border:0;cursor:pointer;
+  background:linear-gradient(90deg,rgba(4,8,16,.97),rgba(4,8,16,.72));color:var(--violet);
+  font:700 20px/1 'JetBrains Mono',monospace;display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(16px);transition:color .2s,opacity .2s}
+.subnav-geser.kiri{left:0}
+.subnav-geser.kanan{right:0;background:linear-gradient(270deg,rgba(4,8,16,.97),rgba(4,8,16,.72))}
+.subnav-geser:hover{color:#fff}
+.subnav-geser.tampil{display:flex}
+.subnav-geser[disabled]{opacity:.25;cursor:default}
+.subnav-bar.show ~ .subnav-geser{display:flex}
 .sisken-placeholder{max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;text-align:left!important}
 .sisken-rich{min-height:calc(100vh - 100px);padding:48px clamp(18px,4vw,64px) 80px;background:radial-gradient(circle at 85% 5%,rgba(0,229,255,.08),transparent 30%),radial-gradient(circle at 15% 15%,rgba(124,77,255,.1),transparent 28%)}
 .sisken-rich *{box-sizing:border-box}.sisken-kicker{font:700 11px 'JetBrains Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--cyan)}
@@ -269,20 +285,36 @@ function forumPage(n) {
   const jajak = d.jajak.map((p, i) => {
     const k = i + 1;
     const opts = p.opts.map((o, j) => `<div class="p-opt" onclick="siskenForumVote(${k},this,${j})"><div class="p-circle"></div>${esc(o)}</div>`).join("");
-    return `<div class="fq-card reveal" style="margin-bottom:22px">
-<h3 style="font-size:17px;color:#e8eefc;margin:0 0 14px">${esc(p.q)}</h3>
-<div id="fp${k}">${opts}</div>
-<div class="p-fb r" id="fp${k}r">✅ ${esc(p.benar)}</div>
-<div class="p-fb w" id="fp${k}w">❌ ${esc(p.salah)}</div>
-</div>`;
-  }).join("");
+    // Bentuknya mengikuti Modul 1: blok .poll yang menempel pada kartu diskusi.
+    return `<div class="poll">
+      <div class="poll-q">QUICK CHECK — ${esc(p.q)}</div>
+      <div class="poll-opts" id="fp${k}">${opts}</div>
+      <div class="p-fb r" id="fp${k}r">✅ ${esc(p.benar)}</div>
+      <div class="p-fb w" id="fp${k}w">❌ ${esc(p.salah)}</div>
+    </div>`;
+  });
 
   const diskusi = d.diskusi.map((q, i) => {
     const k = i + 1;
-    return `<div class="fq-card reveal" style="margin-bottom:22px">
-<h3 style="font-size:17px;color:#e8eefc;margin:0 0 10px"><span style="display:inline-block;background:var(--cyan);color:#04121c;padding:2px 10px;border-radius:6px;font:700 13px 'JetBrains Mono',monospace;margin-right:9px">${k}</span>${esc(q.q)}</h3>
-<textarea class="fq-textarea" id="ans-fq${k}" placeholder="Tulis jawaban diskusi Anda di sini (minimal 30 kata)…&#10;&#10;Petunjuk: ${esc(q.petunjuk).replaceAll('"', "&quot;")}" oninput="siskenForumReady()"></textarea>
-<div id="wc-fq${k}" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right">0 / min 30 kata</div>
+    // Kartu diskusi mengikuti Modul 1: kepala yang dapat dilipat (nomor, judul,
+    // panah) dan badan yang berisi petunjuk beserta kolom jawaban. Halaman
+    // forum jadi jauh lebih pendek sehingga gulirannya ringan.
+    const rona = ["14,165,233", "249,115,22", "168,85,247"][i % 3];
+    const warna = ["var(--cyan)", "var(--amber)", "var(--violet)"][i % 3];
+    return `<div class="fq-card reveal" id="fq${k}">
+<div class="fq-head" onclick="toggleFQ('fq${k}')">
+  <div class="fq-num" style="background:rgba(${rona},.1);border:1px solid rgba(${rona},.2);color:${warna}">${String(k).padStart(2, "0")}</div>
+  <h3>${esc(q.q)}</h3>
+  <span class="fq-arrow">›</span>
+</div>
+<div class="fq-body">
+  <div class="fq-inner">
+    <p style="color:var(--muted);font-size:14px;margin-bottom:14px">${esc(q.petunjuk)}</p>
+    ${jajak[i] || ""}
+    <textarea class="fq-textarea" id="ans-fq${k}" placeholder="Tulis jawaban diskusi Anda di sini (minimal 30 kata)…" oninput="siskenForumReady()"></textarea>
+    <div id="wc-fq${k}" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right">0 / min 30 kata</div>
+  </div>
+</div>
 </div>`;
   }).join("");
 
@@ -303,9 +335,8 @@ function forumPage(n) {
 ${d.narasi.map((p) => `<p style="margin-top:12px">${p}</p>`).join("")}
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">${chip}</div>
 </div>
-<h2 class="section-title reveal" style="margin-top:34px">Periksa Pemahaman</h2>
-${jajak}
-<h2 class="section-title reveal" style="margin-top:34px">Pertanyaan Diskusi</h2>
+<div class="section-label reveal" style="margin-top:34px">Pertanyaan Diskusi</div>
+<h2 class="section-title reveal" style="margin-bottom:28px">Diskusikan<br>Tiga Hal Ini</h2>
 ${diskusi}
 <div class="forum-submit-panel" style="padding:20px 24px;margin-top:28px;text-align:center">
 <div style="font-size:15px;color:#dce6f7;margin-bottom:6px">Salin jawaban Anda lalu tempel ke Forum Fast Learning</div>
@@ -558,6 +589,40 @@ function panelAnimasi(idKanvas, judul, kendali) {
   </div>`;
 }
 
+// Penyorotan sintaks Python memakai kelas yang sama seperti Modul 1:
+// kw (kata kunci), cm (komentar), st (teks), nm (angka), fn (nama fungsi).
+const KATA_KUNCI = ["import", "from", "as", "def", "return", "for", "in", "while", "if",
+  "elif", "else", "and", "or", "not", "None", "True", "False", "lambda", "with", "try",
+  "except", "finally", "class", "print", "break", "continue", "pass", "global", "is"];
+
+function sorotPython(kode) {
+  const simpan = [];
+  // Penanda memakai huruf besar di antara dua karakter kendali. Sengaja tanpa
+  // angka: penanda milik komentar dan teks akan ikut tersorot sebagai bilangan
+  // pada langkah berikutnya kalau memuat angka, sehingga pemulihannya gagal.
+  const titip = (html) => {
+    let sisa = simpan.push(html);
+    let huruf = "";
+    while (sisa > 0) { huruf = String.fromCharCode(65 + ((sisa - 1) % 26)) + huruf; sisa = Math.floor((sisa - 1) / 26); }
+    return "\u0001" + huruf + "\u0002";
+  };
+
+  let out = esc(kode);
+  // Urutannya penting: komentar dan teks diamankan lebih dulu supaya isinya
+  // tidak ikut disorot sebagai kata kunci, angka, atau nama fungsi.
+  out = out.replace(/#[^\n]*/g, (m) => titip('<span class="cm">' + m + "</span>"));
+  out = out.replace(/(['"])(?:(?!\1)[^\n])*\1/g, (m) => titip('<span class="st">' + m + "</span>"));
+  out = out.replace(/\b\d+(?:\.\d+)?(?:[eE][-+]?\d+)?\b/g, (m) => titip('<span class="nm">' + m + "</span>"));
+  out = out.replace(/\b([A-Za-z_]\w*)(?=\s*\()/g, (m) => (KATA_KUNCI.includes(m) ? m : titip('<span class="fn">' + m + "</span>")));
+  out = out.replace(new RegExp("\\b(" + KATA_KUNCI.join("|") + ")\\b", "g"), (m) => titip('<span class="kw">' + m + "</span>"));
+
+  return out.replace(/\u0001([A-Z]+)\u0002/g, (_, huruf) => {
+    let idx = 0;
+    for (const c of huruf) idx = idx * 26 + (c.charCodeAt(0) - 64);
+    return simpan[idx - 1];
+  });
+}
+
 function panelKode(label, kode) {
   return `  <div class="code-wrap reveal">
     <div class="code-header">
@@ -566,7 +631,7 @@ function panelKode(label, kode) {
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
-    <pre>${esc(kode)}</pre>
+    <pre>${sorotPython(kode)}</pre>
   </div>`;
 }
 
@@ -757,7 +822,30 @@ window.drawSiskenBode=function(n){
   x.fillStyle='#ffb300';x.font='17px JetBrains Mono';x.fillText('batas -3 dB (lebar pita)',pad+10,y3-10);
   x.fillStyle='#8da1bf';x.font='19px JetBrains Mono';x.fillText('frekuensi \\u2192',w-230,h-16);x.fillText('|T| dB',12,36);
 };
+window.geserSubnav=function(arah){
+  var bar=document.getElementById('modulSubnav'); if(!bar) return;
+  bar.scrollBy({left:arah*Math.max(180,bar.clientWidth*0.6),behavior:'smooth'});
+};
+function _perbaruiPanahSubnav(){
+  var bar=document.getElementById('modulSubnav');
+  var kiri=document.getElementById('subnavKiri'), kanan=document.getElementById('subnavKanan');
+  if(!bar||!kiri||!kanan) return;
+  var meluber=bar.scrollWidth>bar.clientWidth+4;
+  var tampak=bar.classList.contains('show');
+  [kiri,kanan].forEach(function(b){ b.classList.toggle('tampil', meluber&&tampak); });
+  kiri.disabled=bar.scrollLeft<=2;
+  kanan.disabled=bar.scrollLeft>=bar.scrollWidth-bar.clientWidth-2;
+}
 document.addEventListener('DOMContentLoaded',function(){
+  var bar=document.getElementById('modulSubnav');
+  if(bar){
+    bar.addEventListener('scroll',_perbaruiPanahSubnav,{passive:true});
+    window.addEventListener('resize',_perbaruiPanahSubnav,{passive:true});
+    // Kelas .show dipasang skrip lain saat halaman digulir, jadi keadaannya diamati.
+    new MutationObserver(_perbaruiPanahSubnav).observe(bar,{attributes:true,attributeFilter:['class']});
+    setTimeout(_perbaruiPanahSubnav,300);
+  }
+
   // Ketiganya digambar sejak halaman dimuat. Dahulu animasi pertama baru
   // digambar saat tab "Animasi" dibuka; tab itu sudah tidak ada.
   document.querySelectorAll('[id^="siskenGain"]').forEach(function(el){var m=el.id.match(/^siskenGain(\\d+)$/);if(m)drawSiskenAnimation(m[1])});
@@ -789,9 +877,14 @@ for (const [index, m] of modules.entries()) {
   // Bilah tautan di bawah nav dibangun ulang dari bagian yang benar-benar ada.
   // Sebelumnya isinya masih menunjuk ke anchor halaman lama sehingga seluruh
   // tautannya tidak menuju ke mana-mana.
+  // Bagiannya banyak sehingga bilahnya melebihi lebar layar. Dua tombol panah
+  // ditambahkan supaya tautan yang tersembunyi tetap dapat dijangkau tanpa
+  // mengandalkan gulir mendatar yang batang gulirnya memang disembunyikan.
   const tautanSubnav = daftarBagian.map(([id, label]) => `<a href="#${id}">${label}</a>`).join("");
   html = html.replace(/<div id="modulSubnav" class="subnav-bar show">[\s\S]*?<\/div>/,
-    `<div id="modulSubnav" class="subnav-bar show">${tautanSubnav}</div>`);
+    `<button class="subnav-geser kiri" id="subnavKiri" onclick="geserSubnav(-1)" aria-label="Geser tab ke kiri">‹</button>`
+    + `<div id="modulSubnav" class="subnav-bar show">${tautanSubnav}</div>`
+    + `<button class="subnav-geser kanan" id="subnavKanan" onclick="geserSubnav(1)" aria-label="Geser tab ke kanan">›</button>`);
   // Halaman tugas yang sudah berisi soal sungguhan dibangun dari repo backend
   // (build-sisken-tugas.js), tempat kunci jawabannya berada. Repo ini publik
   // sehingga tidak boleh memuat kunci. Panel generik di bawah hanya dipakai
