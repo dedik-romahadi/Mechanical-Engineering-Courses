@@ -11,32 +11,32 @@
 
 const SIMBOL = [
   // Penguatan dan waktu tala ditulis bersubskrip seperti pada Modul 1.
-  [/\bKp\b/g, "K_p"], [/\bKi\b/g, "K_i"], [/\bKd\b/g, "K_d"], [/\bKu\b/g, "K_u"],
-  [/\bKt\b/g, "K_t"], [/\bTi\b/g, "T_i"], [/\bTd\b/g, "T_d"], [/\bTu\b/g, "T_u"],
-  [/\bMp\b/g, "M_p"], [/\bess\b/g, "e_{ss}"],
+  [/(?<![A-Za-z0-9\\])Kp(?![A-Za-z0-9])/g, "K_p"], [/(?<![A-Za-z0-9\\])Ki(?![A-Za-z0-9])/g, "K_i"], [/(?<![A-Za-z0-9\\])Kd(?![A-Za-z0-9])/g, "K_d"], [/(?<![A-Za-z0-9\\])Ku(?![A-Za-z0-9])/g, "K_u"],
+  [/(?<![A-Za-z0-9\\])Kt(?![A-Za-z0-9])/g, "K_t"], [/(?<![A-Za-z0-9\\])Ti(?![A-Za-z0-9])/g, "T_i"], [/(?<![A-Za-z0-9\\])Td(?![A-Za-z0-9])/g, "T_d"], [/(?<![A-Za-z0-9\\])Tu(?![A-Za-z0-9])/g, "T_u"],
+  [/(?<![A-Za-z0-9\\])Mp(?![A-Za-z0-9])/g, "M_p"], [/(?<![A-Za-z0-9\\])ess(?![A-Za-z0-9])/g, "e_{ss}"],
   [/\btau_cl\b/g, "\\tau_{cl}"],
-  [/\bwn\b/g, "\\omega_n"],
-  [/\bwd\b/g, "\\omega_d"],
-  [/\bomega\b/g, "\\omega"],
-  [/\btau\b/g, "\\tau"],
-  [/\bpi\b/g, "\\pi"],
-  [/\bzeta\b/g, "\\zeta"],
-  [/\bDelta\b/g, "\\Delta"],
-  [/\bSigma\b/g, "\\Sigma"],
-  [/\binf\b/g, "\\infty"],
-  [/\bdet\b/g, "\\det"],
-  [/\bln\b/g, "\\ln"],
-  [/\blog10\b/g, "\\log_{10}"],
-  [/\blog\b/g, "\\log"],
-  [/\bsin\b/g, "\\sin"],
-  [/\bcos\b/g, "\\cos"],
-  [/\btan\b/g, "\\tan"],
-  [/\blim\b/g, "\\lim"],
-  [/\bsum\b/g, "\\sum"],
-  [/\bmu\b/g, "\\mu"],
-  [/\balpha\b/g, "\\alpha"],
-  [/\bbeta\b/g, "\\beta"],
-  [/\btheta\b/g, "\\theta"],
+  [/(?<![A-Za-z0-9\\])wn(?![A-Za-z0-9])/g, "\\omega_n"],
+  [/(?<![A-Za-z0-9\\])wd(?![A-Za-z0-9])/g, "\\omega_d"],
+  [/(?<![A-Za-z0-9\\])omega(?![A-Za-z0-9])/g, "\\omega"],
+  [/(?<![A-Za-z0-9\\])tau(?![A-Za-z0-9])/g, "\\tau"],
+  [/(?<![A-Za-z0-9\\])pi(?![A-Za-z0-9])/g, "\\pi"],
+  [/(?<![A-Za-z0-9\\])zeta(?![A-Za-z0-9])/g, "\\zeta"],
+  [/(?<![A-Za-z0-9\\])Delta(?![A-Za-z0-9])/g, "\\Delta"],
+  [/(?<![A-Za-z0-9\\])Sigma(?![A-Za-z0-9])/g, "\\Sigma"],
+  [/(?<![A-Za-z0-9\\])inf(?![A-Za-z0-9])/g, "\\infty"],
+  [/(?<![A-Za-z0-9\\])det(?![A-Za-z0-9])/g, "\\det"],
+  [/(?<![A-Za-z0-9\\])ln(?![A-Za-z0-9])/g, "\\ln"],
+  [/(?<![A-Za-z0-9\\])log10(?![A-Za-z0-9])/g, "\\log_{10}"],
+  [/(?<![A-Za-z0-9\\])log(?![A-Za-z0-9])/g, "\\log"],
+  [/(?<![A-Za-z0-9\\])sin(?![A-Za-z0-9])/g, "\\sin"],
+  [/(?<![A-Za-z0-9\\])cos(?![A-Za-z0-9])/g, "\\cos"],
+  [/(?<![A-Za-z0-9\\])tan(?![A-Za-z0-9])/g, "\\tan"],
+  [/(?<![A-Za-z0-9\\])lim(?![A-Za-z0-9])/g, "\\lim"],
+  [/(?<![A-Za-z0-9\\])sum(?![A-Za-z0-9])/g, "\\sum"],
+  [/(?<![A-Za-z0-9\\])mu(?![A-Za-z0-9])/g, "\\mu"],
+  [/(?<![A-Za-z0-9\\])alpha(?![A-Za-z0-9])/g, "\\alpha"],
+  [/(?<![A-Za-z0-9\\])beta(?![A-Za-z0-9])/g, "\\beta"],
+  [/(?<![A-Za-z0-9\\])theta(?![A-Za-z0-9])/g, "\\theta"],
   // Sisa kata sqrt/exp yang tidak berkurung tetap diubah menjadi perintah.
   // Lookbehind mencegah \sqrt hasil pengubahan sebelumnya tergandakan
   // menjadi \\sqrt, yang membuat KaTeX menolak seluruh ekspresi.
@@ -61,8 +61,12 @@ const PENGGANTI = [
 // Kata yang tampak seperti kata Indonesia tetapi sebenarnya lambang matematika.
 const KATA_MATEMATIKA = new Set([
   "exp", "sqrt", "sin", "cos", "tan", "ln", "log", "det", "lim", "sum", "max", "min",
-  "tau", "pi", "inf", "wn", "wd", "zeta", "integral", "impuls", "pole", "zero",
+  "tau", "pi", "inf", "wn", "wd", "zeta", "integral",
 ]);
+
+// Nama fungsi yang tidak punya perintah LaTeX sendiri ditulis tegak supaya
+// tidak terbaca sebagai perkalian antarhuruf.
+const FUNGSI_TEGAK = ["mean", "std", "rms", "var", "cov", "sat", "sign", "round"];
 
 /** Kembalikan indeks kurung tutup yang berpasangan dengan kurung buka di `i`. */
 function pasanganKurung(t, i) {
@@ -137,6 +141,64 @@ function pecahanBerkurung(t) {
   return hasil;
 }
 
+/** Akhir operand yang dimulai pada indeks `mulai`. */
+function akhirOperand(t, mulai) {
+  let i = mulai;
+  const ambilKurawal = () => {
+    let dalam = 0;
+    for (; i < t.length; i += 1) {
+      if (t[i] === "{") dalam += 1;
+      else if (t[i] === "}") { dalam -= 1; if (dalam === 0) { i += 1; return; } }
+    }
+  };
+  if (t[i] === "\\") {
+    i += 1;
+    while (i < t.length && /[A-Za-z]/.test(t[i])) i += 1;
+    // Perintah berargumen seperti \sqrt{...} membawa kurawalnya.
+    if (t[i] === "{") ambilKurawal();
+  }
+  else if (t[i] === "(") { const p = pasanganKurung(t, i); return p < 0 ? -1 : p + 1; }
+  else { while (i < t.length && /[A-Za-z0-9.,]/.test(t[i])) i += 1; }
+  // Subskrip atau pangkat yang menempel ikut terbawa.
+  while (i < t.length && (t[i] === "_" || t[i] === "^")) {
+    i += 1;
+    if (t[i] === "{") {
+      let dalam = 0;
+      for (; i < t.length; i += 1) {
+        if (t[i] === "{") dalam += 1;
+        else if (t[i] === "}") { dalam -= 1; if (dalam === 0) { i += 1; break; } }
+      }
+    } else { while (i < t.length && /[A-Za-z0-9]/.test(t[i])) i += 1; }
+  }
+  return i;
+}
+
+/**
+ * Ubah garis miring sederhana `a/b` menjadi \frac, mengikuti cara Modul 1
+ * menuliskan pecahan. Hanya dijalankan ketika kedua ruasnya berupa satu
+ * operand utuh, supaya urutan operasi tidak berubah.
+ */
+function pecahanSederhana(t) {
+  let hasil = t;
+  let mulaiCari = 0;
+  for (let putaran = 0; putaran < 20; putaran += 1) {
+    const k = hasil.indexOf("/", mulaiCari);
+    if (k < 0) break;
+    const awal = awalOperand(hasil, k);
+    const akhir = akhirOperand(hasil, k + 1);
+    const atas = hasil.slice(awal, k);
+    const bawah = akhir < 0 ? "" : hasil.slice(k + 1, akhir);
+    // Kedua ruas harus satu operand utuh tanpa tanda tambah, kurang, atau
+    // spasi — kalau tidak, urutan operasinya bisa berubah arti.
+    const layak = Boolean(atas) && Boolean(bawah)
+      && !/[+\-\s]/.test(atas) && !/[+\-\s]/.test(bawah) && !atas.endsWith("\\");
+    if (!layak) { mulaiCari = k + 1; continue; }
+    hasil = `${hasil.slice(0, awal)}\\frac{${atas}}{${bawah}}${hasil.slice(akhir)}`;
+    mulaiCari = awal + 6 + atas.length + bawah.length;
+  }
+  return hasil;
+}
+
 function tokenLatex(teks) {
   // Kurung kurawal yang memang ada di teks asal (mis. "L{f*g}" atau himpunan
   // "{t_r, t_s}") diamankan lebih dulu. Kalau tidak, kurawal yang nanti
@@ -148,6 +210,9 @@ function tokenLatex(teks) {
   t = t.replace(/\b([A-Za-z])_ddot\b/g, "\\ddot{$1}");
   t = fungsiBerkurung(t, "exp", (isi) => `e^{${isi}}`);
   t = fungsiBerkurung(t, "sqrt", (isi) => `\\sqrt{${isi}}`);
+  for (const nama of FUNGSI_TEGAK) {
+    t = fungsiBerkurung(t, nama, (isi) => `\\operatorname{${nama}}(${isi})`);
+  }
   t = t.replace(/\bintegral_0\^inf\b/g, "\\int_0^{\\infty}");
   t = t.replace(/\bintegral\b/g, "\\int");
   t = t.replace(/\bL\u0001/g, "\\mathcal{L}\u0001");
@@ -165,6 +230,7 @@ function tokenLatex(teks) {
   t = t.replace(/\bd([A-Za-z])\s*\/\s*d([A-Za-z])\b/g, "\\frac{d$1}{d$2}");
   t = t.replace(/\s+\/\s*\(/g, "/(");
   t = pecahanBerkurung(t);
+  t = pecahanSederhana(t);
 
   // Kata biasa yang menyelip di antara lambang (mis. "pada", "pole") ditulis
   // tegak lewat \text{} supaya tidak tampil sebagai perkalian antarhuruf.
