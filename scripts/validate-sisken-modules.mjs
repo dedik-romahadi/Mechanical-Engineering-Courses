@@ -54,8 +54,11 @@ for (let n = 1; n <= 14; n += 1) {
     checks.push(
       [!html.match(/Tugas Pertemuan|10 soal pilihan/gi), "no legacy assessment copy"],
       // Sejak modul 2-14 memakai tata letak Modul 1, yang diperiksa adalah
-      // kosakata desainnya: hero, bagian bernomor, dan berkas gaya acuan.
-      [html.includes("SISKEN-DESAIN-MODUL1:START"), "gaya desain Modul 1 terpasang"],
+      // kosakata desainnya: hero, bagian bernomor, dan tidak adanya halaman
+      // yang khusus milik Modul 1.
+      [!/id="(tab|page)-(setup|kelompok)"/.test(html), "tanpa tab Setup Python dan Pembagian Kelompok"],
+      [(html.match(/<style[^>]*>/g) || []).some((_, i, a) => a.length >= 4)
+        && /:root\s*\{[^}]*--bg:/.test(html), "blok gaya utama utuh"],
       [html.includes('<div class="hero" data-tab="modul">'), "hero seperti Modul 1"],
       [(html.match(/<div class="section-label reveal">Bagian \d\d<\/div>/g) || []).length >= 10, "bagian bernomor minimal 10"],
       [(() => {

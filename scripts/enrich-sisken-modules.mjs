@@ -397,12 +397,11 @@ document.addEventListener('DOMContentLoaded', siskenForumReady);
 }
 
 // ── Cetakan desain diambil apa adanya dari Modul 1 ───────────────────────────
-// Modul 1 ditulis tangan dan menjadi acuan tampilan seluruh modul. Berkas gaya
-// dan cangkang hero-nya disalin ke scripts/ lewat perintah pemeliharaan, lalu
-// dibaca di sini supaya modul 2-14 memakai kosakata desain yang sama persis:
-// hero, hr.divider, div.section (section-label, section-title, section-desc),
-// formula-block, cards, tbl-wrap, tip-box, info-box, anim-panel, code-wrap.
-const desainCss = fs.readFileSync(path.join(import.meta.dirname, "sisken-desain-modul1.css"), "utf8");
+// Modul 1 ditulis tangan dan menjadi acuan tampilan seluruh modul. Kosakata
+// desainnya — hero, hr.divider, div.section (section-label, section-title,
+// section-desc), formula-block, cards, tip-box, info-box, anim-panel, code-wrap
+// — seluruhnya sudah bergaya lewat blok <head> yang dimiliki semua modul, jadi
+// yang perlu disalin hanya cangkang hero-nya (SVG gelombang, skema, rumus).
 const heroShell = fs.readFileSync(path.join(import.meta.dirname, "sisken-hero-shell.html"), "utf8");
 
 const IKON = ["🎯", "⚙️", "🔁", "📐", "🧭", "🧪", "📊", "🛠️", "🧠", "⚡", "🔍", "📌"];
@@ -629,12 +628,32 @@ for (const [index, m] of modules.entries()) {
   html = html.replace(/\/\* SISKENCERDAS-RICH-CONTENT:START \*\/[\s\S]*?\/\* SISKENCERDAS-RICH-CONTENT:END \*\//, css.trim());
   if (!html.includes("SISKENCERDAS-RICH-CONTENT:START")) html = html.replace("</head>", `<style>${css}</style>\n</head>`);
 
-  // Gaya desain Modul 1 dipasang di posisi yang sama seperti pada Modul 1,
-  // yaitu setelah blok gaya terakhir di <head>, supaya urutan penimpaannya
-  // ikut sama. Ditandai agar penjalanan ulang menggantikan, bukan menumpuk.
-  const blokDesain = `<style>/* SISKEN-DESAIN-MODUL1:START — disalin dari Modul-1.html, jangan disunting di sini */${desainCss}/* SISKEN-DESAIN-MODUL1:END */</style>`;
-  const reDesain = /<style>\/\* SISKEN-DESAIN-MODUL1:START[\s\S]*?SISKEN-DESAIN-MODUL1:END \*\/<\/style>/;
-  html = reDesain.test(html) ? html.replace(reDesain, blokDesain) : html.replace("</head>", `${blokDesain}\n</head>`);
+  // Gaya halaman sudah tersedia di blok utama <head> yang dimiliki semua modul
+  // (memuat .hero, .section-title, .card, .formula-block, .tip-box, .anim-panel).
+  // Percobaan sebelumnya menyuntikkan blok gaya lain dari Modul 1; blok itu
+  // ternyata milik dokumen ekspor Tugas dan membuat latar halaman menjadi
+  // terang. Sisa penyuntikan itu dibuang bila masih ada.
+  html = html.replace(/<style>\/\* SISKEN-DESAIN-MODUL1:START[\s\S]*?SISKEN-DESAIN-MODUL1:END \*\/<\/style>\n?/, "");
+
+  // Setup Python dan Pembagian Kelompok hanya ada di Modul 1. Pada modul 2-14
+  // tombol nav, halaman, dan blok gayanya dibuang seluruhnya supaya tidak ada
+  // tab yang menuju halaman kosong.
+  for (const nama of ["setup", "kelompok"]) {
+    html = html.replace(new RegExp(`\\s*<button class="nav-tab" id="tab-${nama}"[\\s\\S]*?</button>`), "");
+    html = html.replace(new RegExp(`\\s*<div class="page[^"]*" id="page-${nama}">[\\s\\S]*?<!-- end page-${nama} -->`), "");
+  }
+  // Blok gaya keduanya dibuang dengan menyaring per blok, bukan lewat pola
+  // rentang: blok gaya utama juga menyebut #page-setup sehingga pola rentang
+  // sempat ikut menelannya.
+  html = html.replace(/<style[^>]*>[\s\S]*?<\/style>/g, (blok) => {
+    const isi = blok.slice(0, 400);
+    const milikSetup = /CSS variables scoped untuk Setup Python|^\s*#page-setup\s*\{/m.test(isi);
+    const milikKelompok = /^\s*#page-kelompok\s*\{/m.test(isi);
+    return (milikSetup || milikKelompok) ? "" : blok;
+  });
+  // Komentar penanda kedua halaman itu ikut dibuang supaya tidak menyisakan
+  // judul bagian yang isinya sudah tidak ada.
+  html = html.replace(/\s*<!--\s*═+\s*PAGE: (SETUP PYTHON|PEMBAGIAN KELOMPOK)[\s\S]*?-->/g, "");
   fs.writeFileSync(file, html, "utf8");
 }
 
