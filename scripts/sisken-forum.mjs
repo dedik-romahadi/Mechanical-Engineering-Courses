@@ -400,6 +400,193 @@ export const FORUM = {
       },
     ],
   },
+
+  8: {
+    judul: "Lolos Uji Setpoint, Gagal di Lapangan",
+    eyebrow: "Forum Diskusi · Pertemuan 8 · Karakteristik Respons Umpan Balik",
+    ringkas: "Sebuah loop lolos seluruh pengujian serah terima lalu bermasalah pada minggu pertama produksi. Yang diuji ternyata bukan yang dibutuhkan.",
+    narasi: [
+      "Kendali tekanan sebuah jalur uap diserahterimakan setelah lolos pengujian lengkap. Prosedurnya jelas: setpoint diubah dari 4 bar ke 5 bar, dan responsnya diukur. Hasilnya bagus — overshoot 6 persen, waktu menetap 12 detik, tanpa error tunak karena controller memakai aksi integral.",
+      "Minggu pertama produksi, operator melapor tekanan <strong style=\"color:var(--pink)\">turun sampai 4,3 bar selama hampir satu menit</strong> setiap kali mesin pengguna uap dinyalakan, lalu perlahan kembali. Setpoint tidak pernah diubah sama sekali selama kejadian itu.",
+      "Tim yang memasang berkeras sistem sudah sesuai spesifikasi, dan secara tertulis mereka benar: dokumen serah terima hanya memuat <strong style=\"color:var(--amber)\">angka untuk perubahan setpoint</strong>. Tidak ada satu pun angka yang mengatur seberapa dalam tekanan boleh turun akibat perubahan beban, maupun berapa lama ia boleh pulih.",
+    ],
+    chip: ["Setpoint: 5 bar", "Penurunan: sampai 4,3 bar", "Lama pulih: ~60 detik", "Spesifikasi gangguan: tidak ada"],
+    jajak: [
+      {
+        q: "Alasan teknis sistem dapat lolos uji setpoint namun buruk menolak gangguan adalah...",
+        opts: [
+          "Sensor hanya akurat pada satu rentang tekanan",
+          "Fungsi transfer setpoint dan fungsi transfer gangguan memiliki pembilang berbeda meskipun penyebutnya sama",
+          "Aksi integral hanya bekerja pada perubahan setpoint",
+          "Gangguan selalu lebih besar daripada perubahan setpoint",
+        ],
+        jawab: 1,
+        benar: "Tepat. Setpoint dilewatkan seluruh lintasan maju, sedangkan gangguan beban hanya dilewatkan plant tanpa melewati controller. Karena pembilangnya berbeda, bentuk responsnya pun berbeda meskipun pole-nya sama.",
+        salah: "Perhatikan letak masuknya kedua sinyal pada diagram blok. Keduanya berbagi penyebut yang sama, tetapi tidak berbagi pembilang — dan pembilang itulah yang membentuk responsnya.",
+      },
+      {
+        q: "Dokumen serah terima yang hanya memuat angka untuk perubahan setpoint berakibat...",
+        opts: [
+          "Tidak ada, karena penolakan gangguan otomatis mengikuti",
+          "Hanya menyulitkan pembuatan laporan",
+          "Tidak ada dasar untuk menyatakan sistem gagal, meskipun operasinya jelas terganggu",
+          "Sistem menjadi tidak stabil",
+        ],
+        jawab: 2,
+        benar: "Tepat, dan inilah inti persoalannya. Perselisihan ini tidak dapat diselesaikan secara teknis karena kriteria yang diperdebatkan memang tidak pernah disepakati di awal.",
+        salah: "Penolakan gangguan tidak otomatis mengikuti pengikutan setpoint. Tanpa angka yang disepakati, tidak ada dasar menyatakan sistem memenuhi maupun tidak memenuhi.",
+      },
+      {
+        q: "Untuk memperbaiki penolakan gangguan tanpa mengubah kestabilan loop, pendekatan yang paling tepat adalah...",
+        opts: [
+          "Struktur dua derajat kebebasan, yaitu menyetel jalur umpan balik untuk gangguan dan memberi penapis tersendiri pada jalur setpoint",
+          "Menaikkan setpoint agar tekanan tidak pernah turun di bawah batas",
+          "Mengganti sensor dengan yang lebih cepat",
+          "Menghapus aksi integral",
+        ],
+        jawab: 0,
+        benar: "Tepat. Dengan struktur ini, jalur umpan balik dapat dibuat lebih agresif demi penolakan gangguan, sementara respons terhadap perubahan setpoint dilunakkan terpisah tanpa mengubah sifat loop.",
+        salah: "Menaikkan setpoint hanya menyembunyikan gejala dan memboroskan energi. Mengganti sensor belum tentu menyentuh persoalan, dan menghapus aksi integral justru mengembalikan error tunak.",
+      },
+    ],
+    diskusi: [
+      {
+        q: "Susun spesifikasi penolakan gangguan yang seharusnya ada pada dokumen serah terima",
+        petunjuk: "1) Tentukan besar gangguan uji beserta cara memberikannya. 2) Tentukan batas penyimpangan puncak yang diizinkan dalam satuan bar. 3) Tentukan batas waktu pemulihan. 4) Jelaskan mengapa ketiganya tidak dapat disimpulkan dari spesifikasi setpoint.",
+      },
+      {
+        q: "Jelaskan secara struktur mengapa kedua tuntutan itu tidak dapat dipenuhi satu penyetelan tunggal",
+        petunjuk: "1) Tuliskan kedua fungsi transfer dan tunjukkan bagian mana yang berbeda. 2) Jelaskan pengaruh menaikkan gain terhadap masing-masing. 3) Sebutkan apa yang memburuk bila loop disetel hanya untuk gangguan. 4) Jelaskan bagaimana struktur dua derajat kebebasan memisahkan keduanya.",
+      },
+      {
+        q: "Rancang prosedur pengujian serah terima yang lebih lengkap untuk loop semacam ini",
+        petunjuk: "1) Sebutkan pengujian apa saja yang harus dilakukan beserta urutannya. 2) Tentukan besaran yang wajib direkam pada tiap pengujian, termasuk sinyal kendali. 3) Tentukan kriteria lulus dalam angka bersatuan. 4) Jelaskan bagaimana prosedur ini akan menangkap persoalan yang lolos pada kasus di atas.",
+      },
+    ],
+  },
+
+  9: {
+    judul: "Aturan Praktis yang Diterapkan Tanpa Memeriksa",
+    eyebrow: "Forum Diskusi · Pertemuan 9 · Analisis dan Perancangan PID",
+    ringkas: "Penyetelan Ziegler-Nichols dipakai apa adanya dan menghasilkan lonjakan yang merusak. Telusuri di mana aturan itu tidak lagi berlaku.",
+    narasi: [
+      "Seorang teknisi menyetel kendali aliran memakai metode Ziegler-Nichols. Uji penguatan kritis memberi <strong style=\"color:var(--cyan)\">Ku = 8</strong> dengan periode osilasi <strong>Tu = 2 detik</strong>, dan tabel PID diterapkan apa adanya: Kp = 4,8 ; Ti = 1,0 detik ; Td = 0,25 detik.",
+      "Pada perubahan setpoint kecil, hasilnya memuaskan. Namun ketika operator menaikkan setpoint <strong style=\"color:var(--amber)\">tiga satuan sekaligus</strong>, katup langsung membuka penuh dan bertahan di sana cukup lama, lalu aliran <strong style=\"color:var(--pink)\">melonjak jauh melewati sasaran</strong> sebelum akhirnya turun. Kejadian itu berulang setiap kali perubahan setpoint besar dilakukan.",
+      "Pemeriksaan menemukan actuator hanya mampu mengeluarkan <strong>5 satuan</strong>, sementara aksi proporsional saja pada saat awal sudah menuntut 4,8 dikali 3. Program controller tidak memuat penanganan apa pun untuk keadaan actuator mentok.",
+    ],
+    chip: ["Ku / Tu: 8 / 2 s", "Kp ZN: 4,8", "Batas actuator: 5 satuan", "Perubahan setpoint: 3 satuan"],
+    jajak: [
+      {
+        q: "Keluaran aksi proporsional pada saat awal untuk perubahan setpoint 3 satuan adalah...",
+        opts: ["1,6 satuan", "4,8 satuan", "14,4 satuan sehingga actuator jenuh hampir tiga kali batasnya", "5 satuan, tepat di batas"],
+        jawab: 2,
+        benar: "Tepat. Pada saat awal seluruh perubahan setpoint menjadi error, sehingga u(0) = 4,8 x 3 = 14,4 sementara batasnya hanya 5. Aksi integral dan turunan bahkan belum diperhitungkan.",
+        salah: "Pada saat awal seluruh perubahan setpoint menjadi error, sehingga aksi proporsional bernilai Kp dikali besar perubahan itu, bukan Kp saja.",
+      },
+      {
+        q: "Lonjakan yang jauh melewati sasaran setelah katup lama mentok paling tepat dijelaskan sebagai...",
+        opts: [
+          "Penumpukan aksi integral selama actuator jenuh",
+          "Derau sensor yang diperkuat aksi turunan",
+          "Kesalahan kalibrasi sensor aliran",
+          "Sistem yang memang tidak stabil",
+        ],
+        jawab: 0,
+        benar: "Tepat. Selama mentok, keluaran controller tidak lagi memengaruhi plant namun akumulator terus bertambah. Ketika error akhirnya berbalik, akumulator yang telanjur besar harus dikosongkan lebih dahulu sebelum keluaran turun.",
+        salah: "Cirinya khas: lonjakan besar yang muncul setelah keluaran lama bertahan mentok, dan hanya pada perubahan setpoint besar. Derau menghasilkan getaran rapat, bukan lonjakan tunggal.",
+      },
+      {
+        q: "Langkah perbaikan yang paling tepat didahulukan adalah...",
+        opts: [
+          "Menurunkan Kp sampai lonjakan hilang",
+          "Menerapkan anti-windup dan pembatasan keluaran, lalu meninjau ulang penyetelan",
+          "Mengganti actuator dengan yang lebih besar",
+          "Menghapus aksi turunan",
+        ],
+        jawab: 1,
+        benar: "Tepat. Menurunkan Kp memang mengurangi gejala, tetapi mengorbankan kinerja pada seluruh keadaan lain demi menutupi satu keadaan yang seharusnya ditangani anti-windup.",
+        salah: "Gejalanya berasal dari penumpukan integral saat jenuh, bukan dari Kp yang terlalu besar secara umum. Menangani sebabnya lebih tepat daripada menurunkan kinerja di semua keadaan.",
+      },
+    ],
+    diskusi: [
+      {
+        q: "Hitung dan bandingkan penyetelan Ziegler-Nichols dengan penyetelan berbasis spesifikasi untuk kasus ini",
+        petunjuk: "1) Hitung Kp, Ti, dan Td menurut Ziegler-Nichols dari Ku dan Tu. 2) Tetapkan spesifikasi overshoot dan waktu menetap yang wajar lalu turunkan z dan wn. 3) Hitung parameter dari letak pole yang dituju. 4) Bandingkan kedua himpunan parameter dan jelaskan mana yang lebih agresif pada tiap aksinya.",
+      },
+      {
+        q: "Jelaskan mekanisme penumpukan integral pada kasus ini beserta cara mengujinya",
+        petunjuk: "1) Uraikan apa yang terjadi pada akumulator selama katup mentok. 2) Jelaskan mengapa keluaran baru turun setelah akumulator berkurang. 3) Usulkan skema anti-windup beserta cara kerjanya. 4) Rancang pengujian yang membuktikan anti-windup itu benar-benar bekerja.",
+      },
+      {
+        q: "Tentukan batas penerapan aturan praktis semacam Ziegler-Nichols",
+        petunjuk: "1) Sebutkan sasaran yang dikejar aturan itu dan overshoot yang menyertainya. 2) Sebutkan keadaan ketika aturan itu tidak layak dipakai apa adanya. 3) Jelaskan pemeriksaan apa yang wajib dilakukan sebelum parameter hasil tabel dipasang. 4) Simpulkan cara memakainya yang bertanggung jawab.",
+      },
+    ],
+  },
+
+  10: {
+    judul: "Dua Jawaban untuk Satu Diagram",
+    eyebrow: "Forum Diskusi · Pertemuan 10 · Aturan Mason",
+    ringkas: "Reduksi blok dan aturan Mason memberi penyebut berbeda untuk sistem yang sama. Temukan mana yang keliru dan mengapa tidak ketahuan.",
+    narasi: [
+      "Sebuah sistem kendali dengan dua loop umpan balik yang letaknya berjauhan pada lintasan maju dianalisis dua orang. Yang pertama memakai reduksi diagram blok bertahap dan memperoleh penyebut <strong style=\"color:var(--cyan)\">(1 + G1H1)(1 + G3H2)</strong>. Yang kedua memakai aturan Mason dan memperoleh <strong style=\"color:var(--pink)\">1 + G1H1 + G3H2</strong>.",
+      "Keduanya memeriksa hasil masing-masing dengan menghitung gain arus searah, dan angkanya <strong>berbeda tipis</strong> sehingga sempat dianggap kesalahan pembulatan. Karena tenggat mendesak, hasil yang kedua dipakai untuk menentukan letak pole dan menyetel controller.",
+      "Setelah dipasang, sistem berperilaku lebih berayun daripada perkiraan. Peninjauan ulang menemukan bahwa kedua loop <strong style=\"color:var(--amber)\">tidak berbagi satu simpul pun</strong>, dan orang kedua tidak memeriksa hal itu sama sekali saat menyusun determinannya.",
+    ],
+    chip: ["Loop 1: -G1H1", "Loop 2: -G3H2", "Berbagi simpul: tidak", "Suku hasil kali loop: terlupakan"],
+    jajak: [
+      {
+        q: "Determinan grafik yang benar untuk dua loop yang tidak bersentuhan adalah...",
+        opts: [
+          "1 + G1H1 + G3H2",
+          "1 + G1H1 + G3H2 + G1H1G3H2",
+          "1 - G1H1 - G3H2",
+          "1 + G1H1G3H2",
+        ],
+        jawab: 1,
+        benar: "Tepat, dan bentuk itu dapat difaktorkan menjadi (1 + G1H1)(1 + G3H2) — persis hasil reduksi blok. Suku hasil kali loop muncul justru karena kedua loop tidak berbagi simpul.",
+        salah: "Determinan memuat suku hasil kali untuk setiap pasangan loop yang tidak bersentuhan. Melupakannya adalah kekeliruan paling umum pada penerapan aturan Mason.",
+      },
+      {
+        q: "Alasan pemeriksaan gain arus searah tidak menangkap kekeliruan ini adalah...",
+        opts: [
+          "Gain arus searah tidak bergantung pada penyebut",
+          "Selisihnya kecil sehingga mudah dikira pembulatan, padahal letak pole sudah bergeser jauh",
+          "Kedua penyebut memberi gain arus searah yang persis sama",
+          "Pemeriksaan itu hanya berlaku untuk sistem orde satu",
+        ],
+        jawab: 1,
+        benar: "Tepat. Suku hasil kali loop sering kecil pada s = 0 sehingga selisih gainnya tipis, tetapi pengaruhnya terhadap koefisien polinomial — dan karena itu terhadap letak akar — jauh lebih besar.",
+        salah: "Gain arus searah memang bergantung pada penyebut, dan kedua penyebut memberi nilai berbeda. Persoalannya selisih itu terlalu kecil untuk memicu kecurigaan.",
+      },
+      {
+        q: "Makna fisik bentuk penyebut yang terfaktor adalah...",
+        opts: [
+          "Sistem berperilaku seperti dua subsistem berumpan balik yang dipasang seri karena kedua loop tidak berinteraksi",
+          "Sistem memiliki dua masukan terpisah",
+          "Salah satu loop dapat diabaikan",
+          "Sistem selalu stabil",
+        ],
+        jawab: 0,
+        benar: "Tepat. Karena kedua loop tidak berbagi simpul, keduanya tidak saling memengaruhi, dan penyebutnya terpisah menjadi dua faktor yang masing-masing menyerupai umpan balik tunggal.",
+        salah: "Bentuk terfaktor muncul karena kedua loop tidak berinteraksi, bukan karena salah satunya dapat diabaikan maupun karena sistemnya punya dua masukan.",
+      },
+    ],
+    diskusi: [
+      {
+        q: "Susun determinan yang benar langkah demi langkah dan tunjukkan kesetaraannya dengan hasil reduksi blok",
+        petunjuk: "1) Daftarkan seluruh loop beserta tanda gainnya. 2) Periksa pasangan mana yang tidak bersentuhan dan jelaskan dasarnya. 3) Susun determinan lengkap dengan tanda berganti. 4) Faktorkan hasilnya dan bandingkan dengan penyebut hasil reduksi blok.",
+      },
+      {
+        q: "Jelaskan mengapa kekeliruan ini lolos dari pemeriksaan yang dilakukan",
+        petunjuk: "1) Hitung gain arus searah kedua versi dan tunjukkan selisihnya kecil. 2) Bandingkan koefisien polinomial kedua versi. 3) Jelaskan mengapa selisih koefisien berdampak besar pada letak akar. 4) Usulkan pemeriksaan tambahan yang akan menangkapnya.",
+      },
+      {
+        q: "Susun daftar periksa penerapan aturan Mason yang layak dipakai tim",
+        petunjuk: "1) Urutkan langkah dari menggambar grafik sampai memperoleh hasil. 2) Sebutkan langkah mana yang paling sering dilewati beserta akibatnya. 3) Tentukan pemeriksaan silang yang wajib dilakukan. 4) Jelaskan kapan sebaiknya memakai Mason dan kapan reduksi blok sudah memadai.",
+      },
+    ],
+  },
 };
 
 export default FORUM;
