@@ -1125,7 +1125,135 @@ window.toggleSiskenAnimation=function(n){var state=window._siskenAnim[n]||{runni
 ═══════════════════════════════════════════════════════════ -->
 
 
-<div class="page" id="page-forum"><div class="hero" data-tab="forum" style="min-height:48vh"><div class="hero-content"><div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Pertemuan 6 · Sistem Kendali Cerdas</div><h1 class="hero-title"><span class="hl-cyan">Diskusi</span><br><em>Rancang Kontrol Digital</em></h1><p class="hero-sub">Jawab tiga pertanyaan secara argumentatif, minimal 30 kata per jawaban, lalu salin HTML ke Forum LMS.</p></div></div><div class="section"><div class="forum-submit-panel"><div id="forumPGStat">PG: 0/10</div><div id="forumPGTotal">0</div><div id="forumQ1Stat">Q1 belum siap</div><div id="forumQ2Stat">Q2 belum siap</div><div id="forumQ3Stat">Q3 belum siap</div><div id="forumWordTotal">0</div><div id="forumWordDetail">0 + 0 + 0 kata</div><div class="score-progress"><div class="score-fill" id="forumWordFill"></div></div><button class="btn-export-forum" id="btn-copy-forum" onclick="copyForumHtml()" disabled>📋 Copy HTML Forum</button><div id="forum-blocked-msg"></div><div id="copy-forum-msg"></div></div><div class="fq-card reveal"><div class="fq-num">Q1</div><h3>Jelaskan peran Plant model dan Controller dalam satu aplikasi teknik mesin yang Anda pilih.</h3><textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis jawaban minimal 30 kata..." oninput="checkForumReady()"></textarea><div id="wc-fq1" class="word-count">0 kata</div></div><div class="fq-card reveal"><div class="fq-num">Q2</div><h3>Analisis risiko kesalahan asumsi atau data ketika menerapkan Rancang Kontrol Digital. Bagaimana cara memverifikasinya?</h3><textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis jawaban minimal 30 kata..." oninput="checkForumReady()"></textarea><div id="wc-fq2" class="word-count">0 kata</div></div><div class="fq-card reveal"><div class="fq-num">Q3</div><h3>Bandingkan dua alternatif penyelesaian untuk masalah Rancang Kontrol Digital dan berikan alasan teknis atas pilihan Anda.</h3><textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis jawaban minimal 30 kata..." oninput="checkForumReady()"></textarea><div id="wc-fq3" class="word-count">0 kata</div></div><div id="forum-html-output" style="display:none"><textarea id="forum-html-textarea" style="width:100%;min-height:180px"></textarea><button onclick="copyForumHtmlManual()">Salin dari kolom</button></div></div><footer><p>© 2026 · Forum Pertemuan 6 · Sistem Kendali Cerdas · S1 Teknik Mesin UMB</p></footer></div><!-- end page-forum -->
+<div class="page" id="page-forum">
+<div class="hero" data-tab="forum" style="min-height:48vh">
+<div class="hero-content">
+<div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 6 · Perancangan Kontrol lewat Komputer</div>
+<h1 class="hero-title" style="font-size:clamp(34px,5vw,56px)">Controller yang Berubah Perilaku Setelah Diprogram</h1>
+<p class="hero-sub">Rancangan kontinu yang sudah terbukti baik justru berosilasi setelah dipindahkan ke mikrokontroler. Cari sebabnya.</p>
+</div>
+</div>
+<div class="section">
+<h2 class="section-title reveal">Controller yang Berubah Perilaku Setelah Diprogram</h2>
+<div class="forum-scenario reveal">
+<div class="scenario-label">📋 KASUS INDUSTRI</div>
+<p style="margin-top:12px">Kendali suhu sebuah tungku dirancang di domain kontinu dan disimulasikan dengan hasil sangat baik: overshoot 6 persen, waktu menetap 40 detik, error tunak nol karena memakai aksi integral. Parameter controller kemudian diprogram apa adanya ke mikrokontroler.</p><p style="margin-top:12px">Di lapangan, suhu <strong style="color:var(--pink)">berayun terus tanpa pernah menetap</strong>, dan katup gas terdengar bergetar cepat. Operator juga melaporkan bahwa setiap kali sistem dipindahkan dari mode manual ke otomatis, keluaran <strong>melompat tiba-tiba</strong> sebelum kembali turun.</p><p style="margin-top:12px">Pemeriksaan program menemukan tiga hal. Waktu cacah ditetapkan <strong style="color:var(--amber)">2 detik</strong> karena dianggap sudah cukup cepat untuk proses termal. Aksi turunan dihitung sebagai selisih dua cuplikan dibagi waktu cacah, tanpa penapis. Dan akumulator integral tidak pernah disiapkan saat perpindahan mode.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px"><div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Waktu cacah: 2 s</div><div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Waktu naik target: 18 s</div><div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Aksi turunan: tanpa penapis</div><div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Perpindahan mode: tanpa persiapan</div></div>
+</div>
+<h2 class="section-title reveal" style="margin-top:34px">Periksa Pemahaman</h2>
+<div class="fq-card reveal" style="margin-bottom:22px">
+<h3 style="font-size:17px;color:#e8eefc;margin:0 0 14px">Waktu cacah 2 detik terhadap waktu naik target 18 detik memberi sekitar sembilan cuplikan sepanjang waktu naik. Menurut aturan praktis, ini...</h3>
+<div id="fp1"><div class="p-opt" onclick="siskenForumVote(1,this,0)"><div class="p-circle"></div>Sudah memadai karena lebih dari lima cuplikan</div><div class="p-opt" onclick="siskenForumVote(1,this,1)"><div class="p-circle"></div>Terlalu jarang; anjurannya dua puluh sampai empat puluh cuplikan sepanjang waktu naik</div><div class="p-opt" onclick="siskenForumVote(1,this,2)"><div class="p-circle"></div>Terlalu rapat sehingga memboroskan sumber daya</div><div class="p-opt" onclick="siskenForumVote(1,this,3)"><div class="p-circle"></div>Tidak berhubungan dengan kestabilan sama sekali</div></div>
+<div class="p-fb r" id="fp1r">✅ Tepat. Penahanan orde nol setara tundaan setengah waktu cacah, yaitu 1 detik di sini. Tundaan itu memangkas margin fase dan mendekatkan sistem ke ambang ketidakstabilan meskipun penguatannya tidak diubah.</div>
+<div class="p-fb w" id="fp1w">❌ Jumlah cuplikan yang terlalu sedikit menimbulkan tundaan efektif yang besar. Anjuran dua puluh sampai empat puluh cuplikan justru ada untuk menjaga margin fase.</div>
+</div><div class="fq-card reveal" style="margin-bottom:22px">
+<h3 style="font-size:17px;color:#e8eefc;margin:0 0 14px">Katup yang bergetar cepat paling mungkin disebabkan oleh...</h3>
+<div id="fp2"><div class="p-opt" onclick="siskenForumVote(2,this,0)"><div class="p-circle"></div>Aksi integral yang terlalu besar</div><div class="p-opt" onclick="siskenForumVote(2,this,1)"><div class="p-circle"></div>Setpoint yang berubah terlalu sering</div><div class="p-opt" onclick="siskenForumVote(2,this,2)"><div class="p-circle"></div>Aksi turunan tanpa penapis yang memperkuat derau sensor</div><div class="p-opt" onclick="siskenForumVote(2,this,3)"><div class="p-circle"></div>Gain proporsional yang terlalu kecil</div></div>
+<div class="p-fb r" id="fp2r">✅ Tepat. Selisih dua cuplikan memperkuat komponen frekuensi tinggi, dan derau sensor adalah komponen frekuensi tinggi. Getaran rapat beramplitudo kecil adalah tanda khasnya, bukan tanda ketidakstabilan loop.</div>
+<div class="p-fb w" id="fp2w">❌ Perhatikan cirinya: getaran rapat dan cepat, bukan ayunan besar. Aksi integral yang berlebihan menghasilkan ayunan lambat, bukan getaran cepat pada actuator.</div>
+</div><div class="fq-card reveal" style="margin-bottom:22px">
+<h3 style="font-size:17px;color:#e8eefc;margin:0 0 14px">Lompatan keluaran saat perpindahan dari manual ke otomatis menunjukkan bahwa...</h3>
+<div id="fp3"><div class="p-opt" onclick="siskenForumVote(3,this,0)"><div class="p-circle"></div>Akumulator integral tidak disiapkan agar keluaran controller sama dengan keluaran manual terakhir</div><div class="p-opt" onclick="siskenForumVote(3,this,1)"><div class="p-circle"></div>Sensor gagal membaca pada saat perpindahan</div><div class="p-opt" onclick="siskenForumVote(3,this,2)"><div class="p-circle"></div>Waktu cacah terlalu cepat untuk mode manual</div><div class="p-opt" onclick="siskenForumVote(3,this,3)"><div class="p-circle"></div>Gain proporsional harus dinolkan saat mode manual</div></div>
+<div class="p-fb r" id="fp3r">✅ Tepat. Perpindahan tanpa lompatan dicapai dengan menyiapkan akumulator sehingga keluaran controller pada saat perpindahan persis sama dengan keluaran manual terakhir. Tanpa itu, keluaran melompat ke nilai yang dihitung dari akumulator yang belum sesuai.</div>
+<div class="p-fb w" id="fp3w">❌ Persoalannya bukan pada sensor maupun waktu cacah, melainkan pada keadaan awal akumulator integral saat mode berpindah.</div>
+</div>
+<h2 class="section-title reveal" style="margin-top:34px">Pertanyaan Diskusi</h2>
+<div class="fq-card reveal" style="margin-bottom:22px">
+<h3 style="font-size:17px;color:#e8eefc;margin:0 0 10px"><span style="display:inline-block;background:var(--cyan);color:#04121c;padding:2px 10px;border-radius:6px;font:700 13px 'JetBrains Mono',monospace;margin-right:9px">1</span>Tentukan waktu cacah yang seharusnya dipakai beserta perhitungannya, dan jelaskan akibatnya terhadap margin fase</h3>
+<textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis jawaban diskusi Anda di sini (minimal 30 kata)…&#10;&#10;Petunjuk: 1) Pakai aturan dua puluh sampai empat puluh cuplikan sepanjang waktu naik dan hitung rentang waktu cacah yang sah. 2) Hitung tundaan setara penahanan orde nol. 3) Ubah tundaan itu menjadi susut fase pada frekuensi kerja. 4) Bandingkan dengan susut fase pada waktu cacah 2 detik." oninput="siskenForumReady()"></textarea>
+<div id="wc-fq1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right">0 / min 30 kata</div>
+</div><div class="fq-card reveal" style="margin-bottom:22px">
+<h3 style="font-size:17px;color:#e8eefc;margin:0 0 10px"><span style="display:inline-block;background:var(--cyan);color:#04121c;padding:2px 10px;border-radius:6px;font:700 13px 'JetBrains Mono',monospace;margin-right:9px">2</span>Rancang penanganan aksi turunan agar tidak lagi menggetarkan katup</h3>
+<textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis jawaban diskusi Anda di sini (minimal 30 kata)…&#10;&#10;Petunjuk: 1) Jelaskan mengapa selisih dua cuplikan memperkuat derau. 2) Usulkan penapis beserta letak frekuensi potongnya relatif terhadap bandwidth tertutup. 3) Sebutkan pembatasan penguatan turunan yang lazim dipakai. 4) Jelaskan apa yang hilang dan apa yang didapat setelah penapisan." oninput="siskenForumReady()"></textarea>
+<div id="wc-fq2" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right">0 / min 30 kata</div>
+</div><div class="fq-card reveal" style="margin-bottom:22px">
+<h3 style="font-size:17px;color:#e8eefc;margin:0 0 10px"><span style="display:inline-block;background:var(--cyan);color:#04121c;padding:2px 10px;border-radius:6px;font:700 13px 'JetBrains Mono',monospace;margin-right:9px">3</span>Susun daftar pemeriksaan penerapan digital yang seharusnya dilalui sebelum controller ini dipasang</h3>
+<textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis jawaban diskusi Anda di sini (minimal 30 kata)…&#10;&#10;Petunjuk: 1) Sebutkan pemeriksaan terkait waktu cacah dan keteraturannya. 2) Sebutkan pemeriksaan anti-windup beserta cara mengujinya. 3) Sebutkan pemeriksaan perpindahan mode tanpa lompatan. 4) Sebutkan keadaan tepi yang wajib diuji, misalnya sensor gagal dan keluaran mentok." oninput="siskenForumReady()"></textarea>
+<div id="wc-fq3" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right">0 / min 30 kata</div>
+</div>
+<div class="forum-submit-panel" style="padding:20px 24px;margin-top:28px;text-align:center">
+<div style="font-size:15px;color:#dce6f7;margin-bottom:6px">Salin jawaban Anda lalu tempel ke Forum Fast Learning</div>
+<div id="forumWordDetail" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:12px">0 + 0 + 0 kata</div>
+<div class="forum-progress"><div class="forum-fill" id="forumWordFill" style="width:0%"></div></div>
+<button class="btn-export-forum" id="btn-copy-forum" onclick="siskenForumCopy()" disabled style="margin-top:14px">📋 Salin HTML Forum</button>
+<div id="copy-forum-msg" style="font-size:12px;margin-top:9px;color:var(--muted)">Isi ketiga jawaban minimal 30 kata untuk mengaktifkan tombol.</div>
+</div>
+</div><script id="sisken-forum-runtime">
+var _SF_PA = {1:'1vcm311',2:'qcan6f',3:'fm86uu'};
+var _SF_Q = ['Tentukan waktu cacah yang seharusnya dipakai beserta perhitungannya, dan jelaskan akibatnya terhadap margin fase','Rancang penanganan aksi turunan agar tidak lagi menggetarkan katup','Susun daftar pemeriksaan penerapan digital yang seharusnya dilalui sebelum controller ini dipasang'];
+var _SF_MIN = 30;
+function _sfHash(s){var h=5381;s+='mEKsP9k4tQ2';for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}
+function _sfWords(t){return (t||'').trim().split(/\s+/).filter(function(w){return w.length>0}).length;}
+function siskenForumVote(n,el,idx){
+  var box=document.getElementById('fp'+n); if(!box||box.dataset.done)return; box.dataset.done='1';
+  var benar=(_sfHash(n+'_'+idx)===_SF_PA[n]);
+  box.querySelectorAll('.p-opt').forEach(function(o){o.style.pointerEvents='none'});
+  el.style.borderColor=benar?'var(--green)':'var(--pink)';
+  var c=el.querySelector('.p-circle'); if(c)c.style.background=benar?'var(--green)':'var(--pink)';
+  var fb=document.getElementById('fp'+n+(benar?'r':'w')); if(fb)fb.classList.add('show');
+}
+function siskenForumReady(){
+  var total=0,siap=0,rinci=[];
+  for(var i=1;i<=3;i++){
+    var el=document.getElementById('ans-fq'+i); var w=_sfWords(el?el.value:'');
+    total+=w; rinci.push(w); if(w>=_SF_MIN)siap++;
+    var ind=document.getElementById('wc-fq'+i);
+    if(ind){ind.textContent=w+' / min '+_SF_MIN+' kata';ind.style.color=w>=_SF_MIN?'var(--green)':(w>0?'var(--amber)':'var(--muted)');}
+  }
+  var det=document.getElementById('forumWordDetail'); if(det)det.textContent=rinci.join(' + ')+' kata';
+  var fill=document.getElementById('forumWordFill'); if(fill)fill.style.width=Math.min(100,Math.round(siap/3*100))+'%';
+  var btn=document.getElementById('btn-copy-forum'); var msg=document.getElementById('copy-forum-msg');
+  if(btn){btn.disabled=(siap<3);}
+  if(msg&&siap>=3){msg.style.color='var(--green)';msg.textContent='Ketiga jawaban sudah memenuhi syarat.';}
+  else if(msg){msg.style.color='var(--muted)';msg.textContent='Isi ketiga jawaban minimal '+_SF_MIN+' kata untuk mengaktifkan tombol.';}
+}
+function _sfBuild(){
+  var id=(typeof getIdentityLocal==='function')?getIdentityLocal():null;
+  var nama=id&&id.nama?id.nama:'Mahasiswa', nim=id&&id.nim?id.nim:'-';
+  var d=new Date(),p=function(x){return String(x).padStart(2,'0')};
+  var wkt=d.getDate()+'-'+(d.getMonth()+1)+'-'+d.getFullYear()+', '+p(d.getHours())+':'+p(d.getMinutes());
+  var esc=function(s){return (s||'(Belum diisi)').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')};
+  var blok='';
+  for(var i=1;i<=3;i++){
+    var el=document.getElementById('ans-fq'+i);
+    blok+='<tr><td style="padding:16px 26px;border-top:1px solid #e2e8f0">'
+      +'<div style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:8px">'
+      +'<span style="display:inline-block;background:#0891b2;color:#fff;padding:3px 11px;border-radius:6px;font-size:13px;margin-right:8px">'+i+'</span>'+_SF_Q[i-1]+'</div>'
+      +'<div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;padding:13px 15px;font-size:.9rem;color:#1e293b;line-height:1.75">'+esc(el?el.value:'')+'</div></td></tr>';
+  }
+  return '<div style="font-family:Segoe UI,Arial,sans-serif;max-width:720px;margin:0 auto;color:#1e293b">'
+    +'<table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#0a1628;border-radius:12px 12px 0 0">'
+    +'<tr><td style="padding:20px 26px">'
+    +'<div style="font-size:1.25rem;font-weight:800;color:#22d3ee;margin-bottom:4px">Forum Diskusi &mdash; Pertemuan 6</div>'
+    +'<div style="font-size:.82rem;color:#94a3b8">Controller yang Berubah Perilaku Setelah Diprogram &middot; Sistem Kendali Cerdas &middot; S1 Teknik Mesin UMB</div>'
+    +'<div style="font-size:.8rem;color:#22d3ee;margin-top:2px">Dosen: Dedik Romahadi</div></td></tr></table>'
+    +'<table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#f1f5f9;border-left:4px solid #22d3ee">'
+    +'<tr><td style="padding:13px 26px;font-size:14px;line-height:1.9">'
+    +'<strong>Nama</strong> : '+nama+'<br><strong>NIM</strong> : '+nim+'<br><strong>Waktu</strong> : '+wkt
+    +'</td></tr></table>'
+    +'<table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#fff">'+blok+'</table>'
+    +'<table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#0a1628;border-radius:0 0 12px 12px">'
+    +'<tr><td style="padding:13px 26px;text-align:center;font-size:.72rem;color:#94a3b8">Forum Pertemuan 6 &mdash; Sistem Kendali Cerdas &middot; 2025/2026</td></tr></table></div>';
+}
+function siskenForumCopy(){
+  var msg=document.getElementById('copy-forum-msg');
+  var html;
+  try{ html=_sfBuild(); }catch(e){ if(msg){msg.style.color='var(--pink)';msg.textContent='Gagal menyusun HTML: '+e.message;} return; }
+  var selesai=function(){ if(msg){msg.style.color='var(--green)';msg.textContent='✅ HTML tersalin. Tempel ke Forum Fast Learning memakai mode HTML.';} };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(html).then(selesai).catch(function(){_sfFallback(html,selesai,msg)});
+  }else{ _sfFallback(html,selesai,msg); }
+}
+function _sfFallback(html,ok,msg){
+  var ta=document.createElement('textarea'); ta.value=html;
+  ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); ok(); }
+  catch(e){ if(msg){msg.style.color='var(--amber)';msg.textContent='Salin otomatis diblokir peramban. Tekan Ctrl+C setelah teks tersorot.';} }
+  finally{ setTimeout(function(){ta.remove()},400); }
+}
+document.addEventListener('DOMContentLoaded', siskenForumReady);
+</script>
+</div><!-- end page-forum -->
 
 <!-- ═══════════════════════════════════════════════════════════
      PAGE: SETUP PYTHON
