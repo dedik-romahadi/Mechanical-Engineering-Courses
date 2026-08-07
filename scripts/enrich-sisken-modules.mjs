@@ -4,6 +4,9 @@ import path from "node:path";
 import { MATERI } from "./sisken-materi.mjs";
 import { FORUM } from "./sisken-forum.mjs";
 import { PUSTAKA } from "./sisken-pustaka.mjs";
+import { rumusLatex as _rumusLatex } from "./sisken-rumus.mjs";
+
+const rumusLatex = (teks) => _rumusLatex(teks, esc);
 
 const root = path.resolve(import.meta.dirname, "..");
 const moduleDir = path.join(root, "Sistem-Kendali-Cerdas", "Modul");
@@ -62,7 +65,7 @@ const modules = [
     title: "Pemodelan dan Simulasi Sistem Kontrol",
     sub: "Sub-CPMK 3.1 — Menyusun eksperimen simulasi, memilih solver, dan memvalidasi model",
     intro: "Simulasi memungkinkan pengujian skenario normal, ekstrem, dan gagal sebelum controller menyentuh plant nyata. Hasilnya hanya dapat dipercaya jika model, parameter, kondisi awal, solver, dan metrik validasi dinyatakan dengan jelas.",
-    concepts: [["Model state-space", "Keadaan menyimpan informasi minimum yang diperlukan untuk memprediksi evolusi sistem.", "x_dot=Ax+Bu"], ["Diskretisasi", "Sampling terlalu lambat menghilangkan dinamika; terlalu cepat menambah beban komputasi dan noise.", "T_s << 1/bandwidth"], ["Solver numerik", "Euler sederhana tetapi kurang akurat; Runge–Kutta memberi kompromi baik untuk banyak ODE nonstiff.", "x[k+1]=x[k]+T_sf(x,u)"], ["Validasi", "Bandingkan model dan data nyata menggunakan residual, RMSE, serta pola error.", "RMSE=sqrt(mean(e²))"]],
+    concepts: [["Model state-space", "Keadaan menyimpan informasi minimum yang diperlukan untuk memprediksi evolusi sistem.", "x_dot=Ax+Bu"], ["Diskretisasi", "Sampling terlalu lambat menghilangkan dinamika; terlalu cepat menambah beban komputasi dan noise.", "T_s << 1/bandwidth"], ["Solver numerik", "Euler sederhana tetapi kurang akurat; Runge–Kutta memberi kompromi baik untuk banyak ODE nonstiff.", "x[k+1] = x[k] + T_s*f(x,u)"], ["Validasi", "Bandingkan model dan data nyata menggunakan residual, RMSE, serta pola error.", "RMSE=sqrt(mean(e²))"]],
     steps: ["Definisikan model dan parameter", "Pilih input, kondisi awal, dan horizon", "Jalankan solver serta simpan metrik", "Bandingkan dengan data dan revisi model"],
     analogies: [["Crash test virtual", "Ribuan varian dapat disaring sebelum prototipe fisik diuji."], ["Ramalan cuaca", "Model perlu data awal dan selalu mengandung ketidakpastian."], ["Peta digital", "Model yang lebih detail belum tentu lebih berguna jika tujuan hanya memilih rute tercepat."]],
     industries: [["Digital twin", "Model aset diperbarui data sensor untuk monitoring dan prediksi."], ["Hardware-in-the-loop", "Controller nyata diuji terhadap plant virtual real-time."], ["Process simulator", "Operator berlatih start-up, trip, dan recovery tanpa risiko produksi."]],
@@ -73,7 +76,7 @@ const modules = [
     title: "Perancangan Kontrol melalui Komputer",
     sub: "Sub-CPMK 3.2 — Merancang alur kontrol digital dari sampling hingga perintah actuator",
     intro: "Controller digital bekerja dalam siklus deterministik: membaca sensor, memfilter, menghitung error, menjalankan algoritma, menerapkan limit keselamatan, mengirim perintah, dan mencatat data. Timing dan saturasi sama pentingnya dengan persamaan kontrol.",
-    concepts: [["Sampling", "Frekuensi sampling harus cukup tinggi terhadap bandwidth kontrol dan konsisten untuk menjaga fase.", "f_s ≥ 10–20 f_bw"], ["Kontrol diskrit", "Integral dan derivative diaproksimasi dari sampel; pilihan metode memengaruhi stabilitas.", "I[k]=I[k-1]+K_iT_se[k]"], ["Saturasi", "Actuator memiliki batas posisi, kecepatan, arus, dan temperatur.", "u_min≤u≤u_max"], ["Anti-windup", "Integrator dihentikan atau dikoreksi ketika output controller jenuh.", "I_aw=I+K_aw(u_sat-u)"]],
+    concepts: [["Sampling", "Frekuensi sampling harus cukup tinggi terhadap bandwidth kontrol dan konsisten untuk menjaga fase.", "f_s ≥ 10–20 f_bw"], ["Kontrol diskrit", "Integral dan derivative diaproksimasi dari sampel; pilihan metode memengaruhi stabilitas.", "I[k] = I[k-1] + Ki*T_s*e[k]"], ["Saturasi", "Actuator memiliki batas posisi, kecepatan, arus, dan temperatur.", "u_min≤u≤u_max"], ["Anti-windup", "Integrator dihentikan atau dikoreksi ketika output controller jenuh.", "I_aw=I+K_aw(u_sat-u)"]],
     steps: ["Pilih sample time dan task priority", "Kalibrasi serta filter sensor", "Hitung controller dengan limit", "Log timestamp, error, output, dan alarm"],
     analogies: [["Metronom", "Loop digital harus berdetak konsisten; jitter mengubah respons seperti tempo musik yang tidak stabil."], ["Gelas penuh", "Integrator terus menambah isi saat actuator sudah penuh; anti-windup mencegah tumpahan."], ["Petugas lalu lintas", "Scheduler menentukan tugas mana yang diproses lebih dahulu saat sumber daya terbatas."]],
     industries: [["PLC", "Scan cycle membaca input, mengeksekusi program, lalu memperbarui output."], ["Embedded motor control", "Interrupt timer menjamin perhitungan arus dan kecepatan tepat waktu."], ["DCS", "Loop process berjalan periodik dengan alarm, historian, dan fail-safe."]],
@@ -106,7 +109,7 @@ const modules = [
     title: "Analisis dan Perancangan Kontrol PID",
     sub: "Sub-CPMK 4.2 — Memahami aksi P, I, D dan melakukan tuning PID yang aman",
     intro: "PID tetap menjadi controller industri paling luas karena transparan, murah, dan efektif. P memperkuat koreksi saat ini, I menghapus bias masa lalu, dan D mengantisipasi perubahan—tetapi derivative harus difilter dan integral perlu anti-windup.",
-    concepts: [["Proporsional", "Meningkatkan respons terhadap error saat ini; gain terlalu tinggi menurunkan robustness.", "u_P=K_pe"], ["Integral", "Mengakumulasi error sehingga offset tunak hilang, namun dapat memperlambat dan menyebabkan windup.", "u_I=K_i∫e dt"], ["Derivatif", "Merespons laju perubahan untuk menambah redaman; sensitif terhadap noise.", "u_D=K_d de/dt"], ["Tuning", "Ziegler–Nichols, IMC, relay, dan optimization adalah titik awal yang harus divalidasi terhadap batas plant.", "K_p,T_i,T_d" ]],
+    concepts: [["Proporsional", "Meningkatkan respons terhadap error saat ini; gain terlalu tinggi menurunkan robustness.", "u_P = Kp*e"], ["Integral", "Mengakumulasi error sehingga offset tunak hilang, namun dapat memperlambat dan menyebabkan windup.", "u_I=K_i∫e dt"], ["Derivatif", "Merespons laju perubahan untuk menambah redaman; sensitif terhadap noise.", "u_D=K_d de/dt"], ["Tuning", "Ziegler–Nichols, IMC, relay, dan optimization adalah titik awal yang harus divalidasi terhadap batas plant.", "K_p,T_i,T_d" ]],
     steps: ["Identifikasi dinamika dan batas actuator", "Mulai P lalu tambahkan I", "Tambahkan D terfilter bila diperlukan", "Uji setpoint, disturbance, noise, dan saturasi"],
     analogies: [["Mengisi gelas", "P melihat selisih saat ini, I mengingat kekurangan, D memperlambat saat mendekati penuh."], ["Mengemudi", "P melihat jarak dari jalur, D melihat seberapa cepat mobil menyimpang."], ["Menabung target", "Integral mengakumulasi kekurangan kecil hingga tindakan cukup untuk menghapus offset."]],
     industries: [["Flow control", "PI umum dipakai karena sensor flow cepat dan derivative mudah memperkuat noise."], ["Furnace", "PID temperatur harus menangani dead time serta limit heater."], ["Motion control", "Cascade current–velocity–position memanfaatkan bandwidth berbeda."]],
@@ -117,7 +120,7 @@ const modules = [
     title: "Aturan Mason dan Grafik Aliran Sinyal",
     sub: "Sub-CPMK 4.3 — Menghitung gain total dari lintasan maju dan loop menggunakan Mason's Gain Formula",
     intro: "Signal-flow graph menampilkan hubungan antarvariabel sebagai node dan branch gain. Mason's Gain Formula menghitung transfer total tanpa mereduksi diagram blok satu per satu, terutama saat terdapat banyak loop yang saling bersinggungan.",
-    concepts: [["Forward path", "Lintasan dari input ke output yang tidak melewati node lebih dari sekali.", "P_k=produk branch"], ["Loop", "Lintasan tertutup yang kembali ke node awal tanpa mengulang node lain.", "L_i=produk branch loop"], ["Non-touching loops", "Dua loop tidak bersentuhan jika tidak berbagi node.", "L_iL_j"], ["Mason", "Delta menggabungkan loop tunggal, pasangan, tripel non-touching secara inklusi–eksklusi.", "T=ΣP_kΔ_k/Δ" ]],
+    concepts: [["Forward path", "Lintasan dari input ke output yang tidak melewati node lebih dari sekali.", "P_k=produk branch"], ["Loop", "Lintasan tertutup yang kembali ke node awal tanpa mengulang node lain.", "L_i=produk branch loop"], ["Non-touching loops", "Dua loop tidak bersentuhan jika tidak berbagi node.", "L_i*L_j"], ["Mason", "Delta menggabungkan loop tunggal, pasangan, tripel non-touching secara inklusi–eksklusi.", "T=ΣP_kΔ_k/Δ" ]],
     steps: ["Daftar seluruh forward path", "Daftar loop individual", "Cari pasangan loop non-touching", "Hitung Δ, Δk, lalu T"],
     analogies: [["Rute logistik", "Forward path adalah rute asal–tujuan; loop adalah kendaraan yang kembali ke titik sebelumnya."], ["Arus informasi organisasi", "Cabang menggambarkan pengaruh satu bagian terhadap bagian lain."], ["Jaringan listrik", "Beberapa lintasan dan loop berkontribusi simultan pada respons total."]],
     industries: [["Control architecture", "Mason membantu menganalisis loop silang pada sistem multivariabel sederhana."], ["Mechatronics", "Interaksi sensor–controller–actuator dapat dipetakan sebagai graph."], ["Communication system", "Gain lintasan dan feedback receiver dianalisis tanpa reduksi panjang."]],
@@ -150,7 +153,7 @@ const modules = [
     title: "Sistem Kontrol Logika Fuzzy",
     sub: "Sub-CPMK 5.3 — Merancang variabel linguistik, membership function, rule base, inferensi, dan defuzzifikasi",
     intro: "Fuzzy control memetakan istilah seperti 'error besar positif' dan 'perubahan cepat' menjadi aksi kontrol numerik. Kekuatan utamanya adalah interpretabilitas dan kemampuan menangkap heuristik operator tanpa model plant presisi.",
-    concepts: [["Fuzzifikasi", "Input crisp diubah menjadi derajat keanggotaan 0–1 pada beberapa himpunan linguistik.", "μ_A(x)∈[0,1]"], ["Rule base", "Aturan IF–THEN menghubungkan kondisi error dan delta-error dengan aksi.", "IF e=P AND de=N THEN u=PM"], ["Inferensi", "Operator AND/OR dan implication menggabungkan kekuatan aturan.", "α=min(μ_e,μ_de)"], ["Defuzzifikasi", "Output fuzzy diubah menjadi nilai actuator, misalnya centroid atau weighted average.", "u*=Σα_iz_i/Σα_i" ]],
+    concepts: [["Fuzzifikasi", "Input crisp diubah menjadi derajat keanggotaan 0–1 pada beberapa himpunan linguistik.", "μ_A(x)∈[0,1]"], ["Rule base", "Aturan IF–THEN menghubungkan kondisi error dan delta-error dengan aksi.", "IF e=P AND de=N THEN u=PM"], ["Inferensi", "Operator AND/OR dan implication menggabungkan kekuatan aturan.", "α=min(μ_e,μ_de)"], ["Defuzzifikasi", "Output fuzzy diubah menjadi nilai actuator, misalnya centroid atau weighted average.", "u = (Σ α_i*z_i)/(Σ α_i)" ]],
     steps: ["Tentukan rentang dan scaling input", "Rancang membership function overlap", "Susun rule table lengkap", "Uji surface, saturasi, dan noise"],
     analogies: [["Bahasa sehari-hari", "Kata 'agak panas' tidak biner; memiliki derajat yang berubah halus."], ["Mengatur keran", "Aksi tidak hanya ON/OFF, tetapi sedikit, sedang, atau banyak berdasarkan kondisi."], ["Operator senior", "Rule base merekam keputusan yang biasanya tersimpan sebagai intuisi."]],
     industries: [["Crane", "Fuzzy meredam swing berdasarkan sudut dan kecepatan ayun."], ["Air conditioning", "Mengatur compressor dan fan dari error suhu serta kelembapan."], ["Water level", "Valve diatur halus berdasarkan level dan laju perubahan."]],
@@ -526,7 +529,7 @@ function paragraf(teks) {
 function blokRumus(label, rumus, keterangan = "") {
   return `  <div class="formula-block reveal">
     <div class="formula-label">${esc(label)}</div>
-    <div class="formula-main">${esc(rumus)}</div>${keterangan ? `\n    <div class="formula-desc">${keterangan}</div>` : ""}
+    <div class="formula-main">${rumusLatex(rumus)}</div>${keterangan ? `\n    <div class="formula-desc">${keterangan}</div>` : ""}
   </div>`;
 }
 
@@ -566,6 +569,11 @@ ${kartu}
   </div>`;
 }
 
+// ── Rumus: ASCII menjadi LaTeX ───────────────────────────────────────────────
+// Kolom rumus pada data materi ditulis apa adanya (mis. "T(s) = wn^2/(s^2 + ...)").
+// Modul 1 menampilkannya sebagai matematika tersusun lewat KaTeX, jadi ruas yang
+// memang persamaan diubah ke LaTeX dan dibungkus \( \). Ruas yang sebenarnya
+// kalimat biasa dibiarkan sebagai teks supaya tidak berubah menjadi rumus palsu.
 function tabel(judul, kepala, baris) {
   return `  <div class="tbl-wrap reveal">
     <table>
@@ -640,7 +648,7 @@ function kartu(items) {
     <div class="card">
       <div class="card-icon">${IKON[i % IKON.length]}</div>
       <h3>${h}</h3>
-      <p>${p}</p>${f ? `\n      <div class="formula">${f}</div>` : ""}
+      <p>${p}</p>${f ? `\n      <div class="formula">${rumusLatex(f)}</div>` : ""}
     </div>`).join("")}
   </div>`;
 }
@@ -657,12 +665,12 @@ function bagianMateri(n, mulai) {
   });
 
   if (d.derivation) {
-    const langkah = d.derivation.steps.map(([lbl, ex, note]) => [lbl, note, esc(ex)]);
+    const langkah = d.derivation.steps.map(([lbl, ex, note]) => [lbl, note, ex]);
     potongan.push(bagian(nomor++, d.derivation.head,
       paragraf([d.derivation.intro]) + "\n" + kartu(langkah) + "\n" + paragraf([d.derivation.closing])));
   }
   if (d.worked) {
-    const langkah = d.worked.steps.map(([lbl, ex, note]) => [lbl, note, esc(ex)]);
+    const langkah = d.worked.steps.map(([lbl, ex, note]) => [lbl, note, ex]);
     potongan.push(bagian(nomor++, d.worked.head,
       `  <div class="info-box reveal"><strong>Diketahui:</strong> ${d.worked.given.join(" &nbsp;·&nbsp; ")}</div>\n`
       + kartu(langkah) + `\n  <div class="tip-box reveal">✅ <strong>Jawaban.</strong> ${d.worked.answer}</div>`));
@@ -709,7 +717,7 @@ function richModule(m, index) {
     + `\n  <div class="tip-box reveal">🧭 <strong>Alur berpikir engineer:</strong> ${m.steps.join(" &nbsp;→&nbsp; ")}</div>\n`
     + tabel("Tabel 1. Ringkasan konsep inti beserta bentuk matematisnya.",
       ["Konsep", "Bentuk / Rumus", "Yang perlu diingat"],
-      m.concepts.map(([h, p, f]) => [h, f ? `<code>${esc(f)}</code>` : "—", p])));
+      m.concepts.map(([h, p, f]) => [h, f ? rumusLatex(f) : "—", p])));
 
   const mendalam = bagianMateri(n, nomor);
   nomor = mendalam.berikut;
