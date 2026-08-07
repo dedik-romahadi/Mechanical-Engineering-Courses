@@ -909,6 +909,46 @@ export const MATERI = {
         ],
         formula: "S + T = 1 selalu   |   menekan S pada satu rentang berarti membesarkan di rentang lain",
       },
+      {
+        head: "Pole Dominan dan Kapan Pendekatannya Sah",
+        body: [
+          "Sistem nyata hampir selalu berorde lebih tinggi daripada dua, sementara seluruh rumus baku overshoot dan waktu menetap diturunkan untuk orde dua. Jembatan antara keduanya adalah gagasan pole dominan: bila sepasang pole jauh lebih lambat daripada yang lain, responsnya dapat didekati oleh pasangan itu saja.",
+          "Aturan praktis yang lazim menyatakan pendekatan ini sahih bila pole lain berada setidaknya lima kali lebih jauh dari sumbu imajiner. Pada jarak itu, mode yang bersangkutan sudah meluruh hampir sepenuhnya sebelum mode dominan sempat bergerak jauh, sehingga sumbangannya terhadap bentuk respons kecil.",
+          "Yang membatalkan pendekatan ini bukan hanya pole yang berdekatan, melainkan juga zero. Zero yang letaknya dekat dengan pole dominan mengubah bobot mode secara berarti, sehingga overshoot yang dihitung dari rumus baku dapat meleset jauh meskipun letak pole-nya sudah benar.",
+          "Karena itu pendekatan pole dominan sebaiknya diperlakukan sebagai alat memperkirakan, bukan sebagai kebenaran. Angka yang diperoleh darinya menjadi titik awal yang baik, lalu diperiksa lewat simulasi penuh yang memuat seluruh pole dan zero sebelum dipakai sebagai dasar keputusan.",
+        ],
+        formula: "sahih bila pole lain >= 5 kali lebih jauh, dan tidak ada zero dekat pole dominan",
+      },
+      {
+        head: "Menilai Kestabilan Tanpa Mencari Akar",
+        body: [
+          "Menentukan apakah seluruh akar polinomial berada di sebelah kiri sumbu imajiner tidak selalu menuntut pencarian akarnya. Terdapat kriteria yang bekerja langsung dari koefisien, dan itu sangat berguna ketika salah satu koefisien masih berupa parameter yang dicari.",
+          "Syarat perlu yang paling mudah diperiksa: seluruh koefisien harus ada dan bertanda sama. Bila ada koefisien yang hilang atau bertanda berbeda, sistem pasti tidak stabil, dan pemeriksaan sesingkat itu sudah menyingkirkan banyak kandidat rancangan.",
+          "Syarat itu perlu namun belum cukup. Untuk polinomial berorde tiga atau lebih, diperlukan pemeriksaan lanjutan yang menyusun tabel dari koefisien; banyaknya perubahan tanda pada kolom pertama sama dengan banyaknya akar di sebelah kanan sumbu imajiner.",
+          "Manfaat terbesarnya muncul pada perancangan. Dengan membiarkan penguatan tetap sebagai simbol, kriteria ini memberi rentang penguatan yang membuat sistem tetap stabil, sekaligus nilai penguatan tepat pada batasnya. Nilai batas itu berguna sebagai titik awal penyetelan dan sebagai pembanding terhadap hasil uji penguatan kritis.",
+        ],
+        formula: "syarat perlu: seluruh koefisien ada dan setanda; belum cukup untuk orde >= 3",
+      },
+      {
+        head: "Bandwidth dan Artinya bagi Kecepatan",
+        body: [
+          "Bandwidth loop tertutup menyatakan sampai frekuensi berapa sistem masih mampu mengikuti perubahan setpoint dengan cukup setia. Ia menjadi ukuran kecepatan yang bekerja di domain frekuensi, melengkapi waktu naik dan waktu menetap yang bekerja di domain waktu.",
+          "Hubungan keduanya cukup erat sehingga dapat saling diperkirakan. Sistem yang bandwidth-nya lebar bergerak cepat di domain waktu, dan aturan kasar menghubungkan hasil kali bandwidth dengan waktu naik pada nilai yang hampir tetap. Karena itu menuntut waktu naik separuh berarti menuntut bandwidth dua kali lipat.",
+          "Yang perlu disadari, bandwidth yang lebar tidak gratis. Ia menuntut gain loop yang besar pada rentang frekuensi lebih luas, sehingga derau sensor yang berada di rentang itu ikut diteruskan ke actuator. Inilah alasan sistem yang sangat cepat hampir selalu menuntut sensor yang bersih.",
+          "Bandwidth juga dibatasi oleh dinamika yang tidak dimodelkan. Setiap sistem memiliki mode berfrekuensi tinggi yang diabaikan saat pemodelan, dan menaikkan bandwidth mendekati mode itu membangunkannya. Karena itu batas praktis bandwidth ditentukan oleh frekuensi tempat model plant tidak lagi dapat dipercaya, bukan oleh keinginan perancang.",
+        ],
+        formula: "bandwidth lebar = cepat, tetapi meneruskan lebih banyak derau",
+      },
+      {
+        head: "Urutan Merancang yang Menghindari Jalan Buntu",
+        body: [
+          "Perancangan yang tertib mengikuti urutan tertentu bukan karena kebiasaan, melainkan karena urutan itu menghindari pekerjaan yang harus diulang. Keputusan yang mengunci banyak hal diambil lebih dahulu, keputusan yang mudah diubah diambil belakangan.",
+          "Langkah pertama menetapkan struktur: apakah aksi integral diperlukan, apakah loop bersarang, apakah feedforward tersedia. Keputusan ini ditentukan tipe sistem yang dituntut dan besaran apa saja yang terukur, bukan oleh selera, dan mengubahnya belakangan berarti mengulang hampir seluruh pekerjaan.",
+          "Langkah kedua menerjemahkan spesifikasi menjadi sasaran yang dapat dihitung, yaitu rasio redaman dari batas overshoot dan frekuensi alami dari tuntutan kecepatan. Baru setelah itu parameter dihitung agar pole loop tertutup mendarat di sekitar sasaran.",
+          "Langkah terakhir memeriksa apa yang tidak muncul pada perhitungan: apakah sinyal kendali berada dalam kemampuan actuator pada perubahan setpoint terbesar yang diperkirakan, apakah derau sensor diperkuat berlebihan, dan apakah margin masih memadai bila parameter plant bergeser. Ketiga pemeriksaan itulah yang menentukan apakah rancangan benar-benar dapat dipasang.",
+        ],
+        formula: "struktur -> sasaran pole -> parameter -> periksa actuator, derau, dan margin",
+      },
     ],
     derivation: {
       head: "Menurunkan Error Tunak dari Tipe Sistem",
@@ -1011,6 +1051,46 @@ export const MATERI = {
         ],
         formula: "turunan dari keluaran: D = -Kd*dy/dt   |   bobot setpoint: P = Kp*(b*r - y)",
       },
+      {
+        head: "Menyetel di Lapangan dengan Urutan yang Aman",
+        body: [
+          "Penyetelan di perangkat menuntut urutan yang berbeda dari perancangan di atas kertas, karena setiap langkah membawa risiko nyata. Prinsipnya bergerak dari yang paling aman menuju yang paling agresif, dengan jalan keluar yang selalu siap.",
+          "Mulai dengan aksi proporsional saja, aksi integral dan turunan dinolkan. Naikkan penguatan bertahap sambil mengamati respons terhadap perubahan setpoint kecil, sampai muncul osilasi ringan yang mereda. Catat nilai itu; ia menjadi acuan untuk seluruh langkah berikutnya.",
+          "Baru kemudian aksi integral ditambahkan, dimulai dari waktu integral yang besar lalu diperkecil bertahap. Waktu integral yang terlalu kecil akan menampakkan diri sebagai ayunan lambat yang berkepanjangan, dan itulah tanda untuk mundur satu langkah.",
+          "Aksi turunan ditambahkan terakhir, dan hanya bila diperlukan. Ia dinaikkan sampai peredaman membaik namun berhenti sebelum actuator mulai bergetar. Bila getaran muncul sebelum peredaman terasa membaik, penapisnya yang perlu diperbaiki, bukan penguatannya yang diturunkan.",
+        ],
+        formula: "P dulu -> tambahkan I dari Ti besar -> tambahkan D terakhir bila perlu",
+      },
+      {
+        head: "Loop Bersarang: Menyetel dari Dalam ke Luar",
+        body: [
+          "Ketika besaran cepat berada di dalam besaran lambat, struktur bersarang hampir selalu mengungguli satu PID tunggal. Contohnya arus di dalam kecepatan, kecepatan di dalam posisi, atau aliran di dalam temperatur.",
+          "Keunggulannya berasal dari dua hal. Loop dalam menekan gangguan di dekat sumbernya sebelum sempat memengaruhi besaran luar, dan loop dalam juga meratakan nonlinieritas actuator sehingga loop luar menghadapi perilaku yang lebih sederhana.",
+          "Penyetelannya dilakukan bergiliran dari dalam ke luar. Loop dalam disetel lebih dahulu dengan loop luar dalam mode manual, dan disetel agar jauh lebih cepat daripada loop luar, umumnya lima sampai sepuluh kali. Setelah loop dalam mantap, barulah loop luar disetel dengan memperlakukan loop dalam sebagai penguat sederhana.",
+          "Kesalahan yang paling sering terjadi adalah menyetel keduanya bersamaan atau menyetel loop luar lebih dahulu. Keduanya menghasilkan interaksi yang membingungkan, karena perubahan pada satu loop mengubah perilaku yang sedang diamati pada loop lain.",
+        ],
+        formula: "loop dalam >= 5 kali lebih cepat, disetel lebih dahulu dengan loop luar manual",
+      },
+      {
+        head: "PID pada Proses Berdead-Time Besar",
+        body: [
+          "Dead time adalah lawan paling berat bagi PID. Selama jeda itu, controller tidak menerima kabar apa pun tentang akibat tindakannya, sehingga ia cenderung bertindak berlebihan dan baru menyadarinya setelah terlambat.",
+          "Akibatnya terhadap penyetelan bersifat mendasar. Semakin besar perbandingan dead time terhadap konstanta waktu, semakin kecil penguatan yang masih aman. Pada perbandingan di atas satu, PID biasa hanya dapat disetel sangat lamban, dan kinerjanya terbatas berapa pun keterampilan penyetelnya.",
+          "Langkah pertama yang benar bukan menyetel melainkan memeriksa apakah dead time-nya dapat dikurangi. Memindahkan sensor lebih dekat ke titik yang dikendalikan, memperpendek jalur perpipaan, atau mempercepat pencuplikan sering memberi perbaikan yang jauh melampaui hasil penyetelan mana pun.",
+          "Bila dead time memang tidak dapat dikurangi, struktur prediktor memakai model plant untuk memperkirakan akibat tindakan sebelum akibat itu terukur. Sistem menjadi jauh lebih agresif secara aman, dengan syarat modelnya cukup tepat — dan bila model meleset, keunggulannya cepat hilang.",
+        ],
+        formula: "L/tau besar => penguatan aman mengecil; kurangi L dulu sebelum menyetel",
+      },
+      {
+        head: "Mengenali Ketika PID Bukan Jawabannya",
+        body: [
+          "PID menyelesaikan sebagian besar persoalan kendali di industri, namun ada keadaan tempat ia bukan pilihan yang tepat, dan mengenalinya lebih awal menghemat banyak waktu.",
+          "Keadaan pertama adalah sistem yang tuntutan perilakunya berbeda di daerah operasi berbeda. Satu himpunan parameter tidak dapat sekaligus lembut di sekitar setpoint dan agresif saat error besar; yang dibutuhkan adalah penjadwalan gain atau controller yang hubungannya tidak linier.",
+          "Keadaan kedua adalah sistem dengan banyak masukan dan keluaran yang saling berinteraksi kuat. Menyetel beberapa PID terpisah pada sistem semacam itu menghasilkan loop yang saling mengganggu, dan penanganannya menuntut perancangan yang memandang seluruh sistem sekaligus.",
+          "Keadaan ketiga adalah sistem dengan batasan yang harus dihormati secara eksplisit, misalnya tekanan yang tidak boleh terlampaui sambil tetap mengejar hasil maksimum. PID tidak memiliki cara menyatakan batasan; yang dibutuhkan adalah metode yang mengoptimalkan sambil memperhitungkan batas itu secara langsung.",
+        ],
+        formula: "perilaku beda per daerah, interaksi antarloop kuat, atau batasan eksplisit",
+      },
     ],
     derivation: {
       head: "Menurunkan Parameter PI dari Letak Pole yang Dituju",
@@ -1110,6 +1190,46 @@ export const MATERI = {
           "Pada praktik modern, perhitungan simbolik dan numerik banyak menggantikan penerapan tangan. Nilai aturan Mason karena itu bergeser: bukan sebagai alat hitung utama, melainkan sebagai cara memahami dari mana persamaan karakteristik berasal dan mengapa loop yang saling bersentuhan berperilaku berbeda dari yang tidak.",
         ],
         formula: "Delta = penyebut fungsi transfer = persamaan karakteristik",
+      },
+      {
+        head: "Menggambar Grafik dari Diagram Blok",
+        body: [
+          "Penerapan aturan Mason dimulai dari penerjemahan diagram blok menjadi grafik aliran sinyal, dan sebagian besar kekeliruan lahir di langkah ini, bukan di perhitungannya.",
+          "Aturannya sederhana. Setiap sinyal pada diagram menjadi satu simpul, termasuk sinyal antara yang biasanya tidak diberi nama. Setiap blok menjadi satu cabang berarah dengan gain sama dengan fungsi transfer blok itu. Titik penjumlahan tidak menjadi cabang melainkan menjadi simpul tempat beberapa cabang bertemu.",
+          "Tanda pada titik penjumlahan diterjemahkan menjadi tanda gain cabang yang masuk. Cabang umpan balik negatif karena itu bergain negatif, dan melewatkan tanda ini adalah kekeliruan yang paling sering terjadi sekaligus paling merusak, karena membalikkan kesimpulan kestabilan.",
+          "Titik cabang, tempat satu sinyal dipakai lebih dari satu tujuan, tidak memerlukan perlakuan khusus. Pada grafik aliran sinyal, satu simpul memang boleh memiliki beberapa cabang keluar, dan justru inilah yang membuat grafik lebih ringkas daripada diagram bloknya.",
+        ],
+        formula: "sinyal -> simpul, blok -> cabang, tanda penjumlahan -> tanda gain cabang",
+      },
+      {
+        head: "Loop Bersarang, Bersilangan, dan Berdiri Sendiri",
+        body: [
+          "Hubungan antarloop menentukan bentuk determinan, sehingga membedakan ketiga keadaan ini menjadi keterampilan yang menentukan ketepatan hasil.",
+          "Loop yang berdiri sendiri tidak berbagi simpul dengan loop mana pun. Pasangan semacam ini menyumbang suku hasil kali pada determinan, dan bila seluruh loop berdiri sendiri, determinannya terfaktor menjadi perkalian faktor-faktor umpan balik yang terpisah.",
+          "Loop bersarang berbagi sebagian simpul dengan loop yang melingkupinya, sehingga keduanya bersentuhan dan tidak menyumbang suku hasil kali. Inilah keadaan yang paling sering ditemui pada struktur kendali bertingkat, dan determinannya tetap berupa satu dikurangi jumlah gain loop.",
+          "Loop bersilangan berbagi sebagian simpul tanpa yang satu melingkupi yang lain. Keadaan inilah yang membuat reduksi diagram blok menjadi berbelit karena tidak ada loop dalam yang dapat diselesaikan lebih dahulu, sementara aturan Mason menanganinya tanpa perlakuan khusus sama sekali.",
+        ],
+        formula: "berdiri sendiri: menyumbang hasil kali | bersarang dan bersilangan: tidak",
+      },
+      {
+        head: "Menilai Kestabilan Langsung dari Determinan",
+        body: [
+          "Karena determinan grafik sama dengan penyebut fungsi transfer, kestabilan dapat dinilai tanpa menyelesaikan seluruh rumus Mason. Ini sering menjadi jalan tercepat pada sistem berlintasan banyak, karena pembilangnya tidak diperlukan sama sekali.",
+          "Langkahnya menyusun determinan, mengalikannya dengan penyebut seluruh blok agar berbentuk polinomial, lalu memeriksa letak akarnya. Pada tahap pemeriksaan, kriteria berbasis koefisien lebih praktis daripada mencari akar, terutama bila salah satu gain masih berupa parameter.",
+          "Cara ini juga memberi jawaban yang sering dibutuhkan langsung: rentang penguatan yang membuat sistem tetap stabil. Dengan membiarkan penguatan sebagai simbol di dalam gain loop, determinan menghasilkan polinomial berparameter, dan syarat kestabilannya menjadi pertidaksamaan terhadap parameter itu.",
+          "Perlu diingat bahwa determinan tidak berubah bergantung lintasan mana yang ditinjau. Karena itu kestabilan sistem sama untuk seluruh pasangan masukan dan keluaran, dan hanya bentuk responsnya yang berbeda — kesimpulan yang sama dengan yang diperoleh lewat superposisi pada diagram blok.",
+        ],
+        formula: "Delta = 0 adalah persamaan karakteristik; pembilang tidak diperlukan",
+      },
+      {
+        head: "Memeriksa Hasil dengan Perhitungan Numerik",
+        body: [
+          "Penerapan aturan Mason dengan tangan pada sistem rumit rawan kekeliruan, sementara memeriksanya secara numerik murah dan cepat. Praktik yang baik memakai keduanya: tangan untuk memahami, numerik untuk memastikan.",
+          "Cara memeriksa yang paling langsung adalah memberi nilai angka pada seluruh gain, lalu menghitung fungsi transfer dengan perangkat lunak simbolik atau numerik dan membandingkannya dengan hasil tangan. Bila keduanya berbeda, kekeliruan hampir selalu berada pada daftar loop atau pada suku hasil kali yang terlewat.",
+          "Pemeriksaan yang lebih menyeluruh membandingkan pada beberapa nilai frekuensi, bukan hanya pada s sama dengan nol. Kesesuaian pada frekuensi nol saja tidak menjamin apa pun, karena kekeliruan pada suku berorde tinggi tidak tampak di sana — persis kelemahan yang membuat kekeliruan suku hasil kali loop mudah lolos.",
+          "Cara terakhir, dan sering paling meyakinkan, adalah menyimulasikan diagram bloknya secara langsung lalu membandingkan responsnya dengan respons yang dihitung dari fungsi transfer hasil Mason. Keduanya harus berimpit; bila tidak, selisihnya menunjuk tepat ke bagian mana yang keliru diterjemahkan.",
+        ],
+        formula: "banding pada beberapa frekuensi, bukan hanya pada s = 0",
       },
     ],
     derivation: {
