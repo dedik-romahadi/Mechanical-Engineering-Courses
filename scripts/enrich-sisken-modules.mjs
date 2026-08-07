@@ -236,6 +236,41 @@ body{
 .subnav-geser.kanan{background:linear-gradient(270deg,rgba(7,11,22,.97),rgba(7,11,22,.72))}
 /* ── TEMA-OBE:END ── */
 
+/* ── DAFTAR-PERIKSA:START — daftar periksa yang dapat dicentang ────────────── */
+#page-modul .sisken-periksa{
+  background:linear-gradient(145deg,rgba(8,15,30,.99),rgba(5,9,18,.99));
+  border:1px solid #243653;border-radius:14px;padding:20px 22px;margin:16px 0 24px;
+  box-shadow:0 14px 38px rgba(0,0,0,.26)}
+#page-modul .sisken-periksa-kepala{display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+#page-modul .sisken-periksa-judul{font:600 13px 'JetBrains Mono',monospace;color:#a78bfa;letter-spacing:.6px;text-transform:uppercase}
+#page-modul .sisken-periksa-hitung{font:700 15px 'JetBrains Mono',monospace;color:#67e8f9}
+#page-modul .sisken-periksa-bar{height:6px;border-radius:99px;background:#0b1628;margin:12px 0 16px;overflow:hidden}
+#page-modul .sisken-periksa-isi{height:100%;border-radius:99px;width:0;
+  background:linear-gradient(90deg,#8b5cf6,#67e8f9 60%,#5eead4);transition:width .35s ease}
+#page-modul .sisken-periksa-daftar{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+#page-modul .sisken-periksa-butir{
+  display:flex;gap:14px;align-items:flex-start;cursor:pointer;user-select:none;
+  padding:13px 16px;border-radius:11px;border:1px solid #243653;background:#070e1c;
+  transition:border-color .2s,background .2s,transform .15s}
+#page-modul .sisken-periksa-butir:hover{border-color:#38577e;background:#0b1628;transform:translateX(3px)}
+#page-modul .sisken-periksa-butir:focus-visible{outline:2px solid #67e8f9;outline-offset:2px}
+#page-modul .sisken-periksa-kotak{
+  flex:0 0 auto;width:24px;height:24px;border-radius:7px;border:1.5px solid #38577e;
+  display:flex;align-items:center;justify-content:center;color:transparent;
+  font-size:14px;font-weight:800;transition:all .2s}
+#page-modul .sisken-periksa-teks{font-size:15px;line-height:1.65;color:#a8b8d4}
+#page-modul .sisken-periksa-butir.dicentang{border-color:rgba(94,234,212,.45);background:rgba(94,234,212,.06)}
+#page-modul .sisken-periksa-butir.dicentang .sisken-periksa-kotak{
+  background:linear-gradient(135deg,#5eead4,#67e8f9);border-color:#5eead4;color:#04121c}
+#page-modul .sisken-periksa-butir.dicentang .sisken-periksa-teks{color:#d7e5f6}
+#page-modul .sisken-periksa-pesan{margin-top:14px;font-size:13.5px;color:#aebbd0}
+#page-modul .sisken-periksa-pesan.tuntas{color:#5eead4;font-weight:600}
+@media (prefers-reduced-motion: reduce){
+  #page-modul .sisken-periksa-butir,#page-modul .sisken-periksa-isi{transition:none}
+  #page-modul .sisken-periksa-butir:hover{transform:none}
+}
+/* ── DAFTAR-PERIKSA:END ── */
+
 /* ── LEBAR-LENTUR:START — paragraf mengikuti lebar jendela ──────────────────
    Bawaannya .section dikunci 1100px dan .section-desc dikunci 680px, sehingga
    pada layar lebar teksnya menumpuk di kolom sempit dengan ruang kosong luas
@@ -467,6 +502,7 @@ document.addEventListener('DOMContentLoaded', function(){ if (typeof checkForumR
 // — seluruhnya sudah bergaya lewat blok <head> yang dimiliki semua modul, jadi
 // yang perlu disalin hanya cangkang hero-nya (SVG gelombang, skema, rumus).
 const heroShell = fs.readFileSync(path.join(import.meta.dirname, "sisken-hero-shell.html"), "utf8");
+const hitungMundur = fs.readFileSync(path.join(import.meta.dirname, "sisken-countdown.html"), "utf8");
 const heroForum = fs.readFileSync(path.join(import.meta.dirname, "sisken-hero-forum.html"), "utf8");
 const panelForum = fs.readFileSync(path.join(import.meta.dirname, "sisken-forum-panel.html"), "utf8");
 const skripForum = fs.readFileSync(path.join(import.meta.dirname, "sisken-forum-script.js"), "utf8");
@@ -620,7 +656,7 @@ function panelAnimasi(idKanvas, judul, kendali) {
       <span class="anim-title">${judul}</span>
     </div>
     <div class="anim-body">
-      <canvas id="${idKanvas}" width="1000" height="330" aria-label="${judul}"></canvas>
+      <canvas id="${idKanvas}" width="1000" height="400" aria-label="${judul}"></canvas>
       <div class="ctrl-row">${kendali}</div>
     </div>
   </div>`;
@@ -684,33 +720,85 @@ function kartu(items) {
 
 // Materi mendalam dipetakan ke kosakata Modul 1: tiap bagian menjadi satu
 // div.section, rumus ringkasnya menjadi formula-block.
+// Sembilan bagian pendalaman dahulu berdiri sendiri-sendiri sehingga satu
+// halaman memuat dua puluh bagian. Kini dikelompokkan bertiga menurut
+// urutannya — fondasi, penerapan, lalu pendalaman — dengan judul aslinya
+// tetap tampil sebagai sub-judul di dalam kelompok.
+const KELOMPOK_MATERI = [
+  ["Fondasi: Konsep yang Menopang Sisanya", 0, 3],
+  ["Penerapan: Dari Konsep ke Perhitungan", 3, 6],
+  ["Pendalaman: Hal yang Menentukan di Lapangan", 6, 9],
+];
+
+// Daftar periksa dibuat dapat dicentang. Kemajuannya tersimpan di peramban
+// masing-masing mahasiswa, jadi tanda centang tidak hilang ketika halaman
+// dimuat ulang. Ini catatan pribadi, bukan penilaian — tidak dikirim ke server.
+function daftarPeriksa(n, butir) {
+  const baris = butir.map((c, i) => `    <li class="sisken-periksa-butir" data-butir="${i}" onclick="siskenCentang(${n},${i})" tabindex="0"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();siskenCentang(${n},${i});}"
+        role="checkbox" aria-checked="false">
+      <span class="sisken-periksa-kotak" aria-hidden="true">✓</span>
+      <span class="sisken-periksa-teks">${c}</span>
+    </li>`).join("\n");
+  return `  <div class="sisken-periksa reveal" id="periksa-${n}">
+    <div class="sisken-periksa-kepala">
+      <span class="sisken-periksa-judul">Centang setiap butir yang sudah Anda kuasai</span>
+      <span class="sisken-periksa-hitung" id="periksa-hitung-${n}">0 / ${butir.length}</span>
+    </div>
+    <div class="sisken-periksa-bar"><div class="sisken-periksa-isi" id="periksa-bar-${n}" style="width:0%"></div></div>
+    <ul class="sisken-periksa-daftar">
+${baris}
+    </ul>
+    <div class="sisken-periksa-pesan" id="periksa-pesan-${n}">Belum ada yang dicentang. Mulailah dari butir pertama.</div>
+  </div>`;
+}
+
+function subBagian(judul, isi) {
+  return `  <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">${judul}</h3>\n${isi}`;
+}
+
 function bagianMateri(n, mulai) {
   const d = MATERI[n];
   if (!d) return { html: "", berikut: mulai };
   let nomor = mulai;
-  const potongan = (d.deep || []).map((s) => {
-    const isi = paragraf(s.body) + (s.formula ? `\n${blokRumus("Inti bagian ini", s.formula)}` : "");
-    return bagian(nomor++, s.head, isi);
-  });
+  const dalam = d.deep || [];
+  const potongan = KELOMPOK_MATERI.map(([judul, awal, akhir]) => {
+    const isi = dalam.slice(awal, akhir).map((s) => subBagian(
+      s.head,
+      paragraf(s.body) + (s.formula ? `\n${blokRumus("Inti bagian ini", s.formula)}` : ""),
+    )).join("\n");
+    return isi ? bagian(nomor++, judul, isi) : "";
+  }).filter(Boolean);
 
-  if (d.derivation) {
-    const langkah = d.derivation.steps.map(([lbl, ex, note]) => [lbl, note, ex]);
-    potongan.push(bagian(nomor++, d.derivation.head,
-      paragraf([d.derivation.intro]) + "\n" + kartu(langkah) + "\n" + paragraf([d.derivation.closing])));
+  // Penurunan rumus dan contoh terselesaikan digabung: keduanya perhitungan
+  // yang dibaca berurutan.
+  if (d.derivation || d.worked) {
+    let isi = "";
+    if (d.derivation) {
+      const langkah = d.derivation.steps.map(([lbl, ex, note]) => [lbl, note, ex]);
+      isi += subBagian(d.derivation.head,
+        paragraf([d.derivation.intro]) + "\n" + kartu(langkah) + "\n" + paragraf([d.derivation.closing]));
+    }
+    if (d.worked) {
+      const langkah = d.worked.steps.map(([lbl, ex, note]) => [lbl, note, ex]);
+      isi += "\n" + subBagian(d.worked.head,
+        `  <div class="info-box reveal"><strong>Diketahui:</strong> ${d.worked.given.join(" &nbsp;·&nbsp; ")}</div>\n`
+        + kartu(langkah) + `\n  <div class="tip-box reveal">✅ <strong>Jawaban.</strong> ${d.worked.answer}</div>`);
+    }
+    potongan.push(bagian(nomor++, "Penurunan Rumus dan Contoh Terselesaikan", isi));
   }
-  if (d.worked) {
-    const langkah = d.worked.steps.map(([lbl, ex, note]) => [lbl, note, ex]);
-    potongan.push(bagian(nomor++, d.worked.head,
-      `  <div class="info-box reveal"><strong>Diketahui:</strong> ${d.worked.given.join(" &nbsp;·&nbsp; ")}</div>\n`
-      + kartu(langkah) + `\n  <div class="tip-box reveal">✅ <strong>Jawaban.</strong> ${d.worked.answer}</div>`));
-  }
-  if (d.pitfalls && d.pitfalls.length) {
-    potongan.push(bagian(nomor++, "Salah Kaprah yang Sering Terjadi",
-      kartu(d.pitfalls.map(([h, p]) => [h, p]))));
-  }
-  if (d.checklist && d.checklist.length) {
-    potongan.push(bagian(nomor++, "Daftar Periksa Sebelum Lanjut",
-      d.checklist.map((c) => `  <div class="tip-box reveal">☑ ${c}</div>`).join("\n")));
+
+  // Salah kaprah dan daftar periksa digabung: keduanya alat memeriksa diri
+  // sebelum melanjutkan.
+  if ((d.pitfalls && d.pitfalls.length) || (d.checklist && d.checklist.length)) {
+    let isi = "";
+    if (d.pitfalls && d.pitfalls.length) {
+      isi += subBagian("Salah Kaprah yang Sering Terjadi", kartu(d.pitfalls.map(([h, p]) => [h, p])));
+    }
+    if (d.checklist && d.checklist.length) {
+      isi += "\n" + subBagian("Daftar Periksa Sebelum Lanjut", daftarPeriksa(n, d.checklist));
+    }
+    potongan.push(bagian(nomor++, "Periksa Diri Sebelum Lanjut", isi));
   }
   return { html: potongan.join("\n"), berikut: nomor };
 }
@@ -743,15 +831,18 @@ function richModule(m, index) {
   let nomor = 1;
   // Peta kemajuan dipasang paling depan supaya mahasiswa tahu posisinya dan
   // berapa modul lagi yang tersisa sebelum mulai membaca.
-  const peta = bagian(nomor++, "Posisi Anda di Mata Kuliah Ini",
+  // Peta kemajuan dan hitung mundur berada pada satu bagian yang sama, seperti
+  // pada Modul 1: mahasiswa langsung tahu posisinya dan sisa waktunya.
+  const peta = bagian(nomor++, "Posisi Anda dan Sisa Waktu",
     paragraf([`Modul ${n} adalah satu dari empat belas modul. Setiap modul menambah satu lapis pada kerangka yang sama, jadi bagian yang terasa sulit di modul lanjut hampir selalu berakar pada modul sebelumnya.`])
     + `\n  <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--violet)"></div>
       <span class="anim-title">Peta Kemajuan — Modul ${n} dari 14</span>
     </div>
-    <div class="anim-body"><canvas id="siskenPetaCanvas${n}" width="1000" height="200" aria-label="Peta kemajuan modul"></canvas></div>
-  </div>`);
+    <div class="anim-body"><canvas id="siskenPetaCanvas${n}" width="1000" height="210" aria-label="Peta kemajuan modul"></canvas></div>
+  </div>\n`
+    + hitungMundur.replaceAll("__PERTEMUAN__", String(p)));
 
   const konsep = bagian(nomor++, "Konsep yang Wajib Dikuasai",
     paragraf([m.sub]) + "\n" + kartu(m.concepts)
@@ -763,8 +854,10 @@ function richModule(m, index) {
   const mendalam = bagianMateri(n, nomor);
   nomor = mendalam.berikut;
 
-  const analogi = bagian(nomor++, "Analogi untuk Membangun Intuisi", kartu(m.analogies));
-  const industri = bagian(nomor++, "Penerapan pada Sistem Industri", kartu(m.industries));
+  const analogi = bagian(nomor++, "Analogi dan Penerapan Nyata",
+    subBagian("Analogi untuk Membangun Intuisi", kartu(m.analogies))
+    + "\n" + subBagian("Penerapan pada Sistem Industri", kartu(m.industries)));
+  const industri = "";
 
   // Tiga animasi yang berlaku untuk seluruh pokok bahasan kendali: respons
   // waktu, pengaruh redaman, dan tanggapan frekuensi.
@@ -832,34 +925,56 @@ window.drawSiskenAnimation=function(n,phase){
   ctx.fillStyle='#aebbd0';ctx.font='20px JetBrains Mono';ctx.fillText('waktu →',w-170,h-18);ctx.fillText('y(t)',12,38);ctx.fillStyle='#fbbf24';ctx.fillText('setpoint',w-165,h-pad-(h-2*pad)*.7-12);
 };
 window.toggleSiskenAnimation=function(n){var state=window._siskenAnim[n]||{running:false,start:0};state.running=!state.running;state.start=performance.now();window._siskenAnim[n]=state;if(!state.running)return;(function tick(now){if(!state.running)return;drawSiskenAnimation(n,(now-state.start)/6000);requestAnimationFrame(tick)})(performance.now())};
-function _siskenSiapkan(id,pad){var c=document.getElementById(id);if(!c)return null;var x=c.getContext('2d'),w=c.width,h=c.height;
-  x.clearRect(0,0,w,h);x.fillStyle='#070b16';x.fillRect(0,0,w,h);x.strokeStyle='#243653';x.lineWidth=1;
-  for(var i=0;i<=10;i++){var px=pad+i*(w-2*pad)/10;x.beginPath();x.moveTo(px,pad);x.lineTo(px,h-pad);x.stroke()}
-  for(var j=0;j<=5;j++){var py=pad+j*(h-2*pad)/5;x.beginPath();x.moveTo(pad,py);x.lineTo(w-pad,py);x.stroke()}
-  return {ctx:x,w:w,h:h,pad:pad};
+// Bidang gambar dipisahkan dari jalur keterangan: batas atas menyisakan pita
+// untuk legenda dan batas bawah untuk nama sumbu, sehingga tulisan tidak pernah
+// menimpa kurva. Semua penggambar memakai batas ini, bukan angka lepas.
+function _siskenSiapkan(id,pad,pitaAtas,pitaBawah){
+  var c=document.getElementById(id);if(!c)return null;
+  var x=c.getContext('2d'),w=c.width,h=c.height;
+  var atas=pad+(pitaAtas||0), bawah=h-pad-(pitaBawah||0);
+  x.clearRect(0,0,w,h);x.fillStyle='#070b16';x.fillRect(0,0,w,h);
+  x.strokeStyle='#243653';x.lineWidth=1;
+  for(var i=0;i<=10;i++){var px=pad+i*(w-2*pad)/10;x.beginPath();x.moveTo(px,atas);x.lineTo(px,bawah);x.stroke()}
+  for(var j=0;j<=5;j++){var py=atas+j*(bawah-atas)/5;x.beginPath();x.moveTo(pad,py);x.lineTo(w-pad,py);x.stroke()}
+  return {ctx:x,w:w,h:h,pad:pad,atas:atas,bawah:bawah,tinggi:bawah-atas,lebar:w-2*pad};
+}
+// Legenda digambar berjajar pada pita atas, jaraknya dihitung dari lebar teks
+// supaya antar-butir tidak berhimpit.
+function _siskenLegenda(x,butir,kiri,y){
+  x.font='17px JetBrains Mono';
+  var maju=kiri;
+  butir.forEach(function(b){
+    x.fillStyle=b[1];x.fillRect(maju,y-9,16,4);
+    x.fillStyle='#cfdaec';x.fillText(b[0],maju+24,y);
+    maju+=24+x.measureText(b[0]).width+34;
+  });
 }
 window.drawSiskenDamping=function(n){
-  var s=_siskenSiapkan('siskenDampCanvas'+n,52);var sl=document.getElementById('siskenDamp'+n);if(!s||!sl)return;
+  var s=_siskenSiapkan('siskenDampCanvas'+n,52,34,26);var sl=document.getElementById('siskenDamp'+n);if(!s||!sl)return;
   var z=Number(sl.value),wn=1.6;document.getElementById('siskenDampValue'+n).textContent=z.toFixed(2);
-  var x=s.ctx,w=s.w,h=s.h,pad=s.pad,dasar=h-pad,tinggi=(h-2*pad)*0.72;
-  x.setLineDash([9,7]);x.strokeStyle='#fbbf24';x.beginPath();x.moveTo(pad,dasar-tinggi);x.lineTo(w-pad,dasar-tinggi);x.stroke();x.setLineDash([]);
+  var x=s.ctx,w=s.w,pad=s.pad,dasar=s.bawah,tinggi=s.tinggi*0.86;
+  x.setLineDash([9,7]);x.strokeStyle='#fbbf24';x.lineWidth=2;
+  x.beginPath();x.moveTo(pad,dasar-tinggi);x.lineTo(w-pad,dasar-tinggi);x.stroke();x.setLineDash([]);
   x.strokeStyle='#67e8f9';x.lineWidth=3;x.beginPath();
   for(var k=0;k<700;k++){var t=10*k/699,y;
     if(z<1){var wd=wn*Math.sqrt(1-z*z);y=1-Math.exp(-z*wn*t)*(Math.cos(wd*t)+(z/Math.sqrt(1-z*z))*Math.sin(wd*t));}
     else{y=1-(1+wn*t)*Math.exp(-wn*t);}
-    var px=pad+k*(w-2*pad)/699,py=dasar-tinggi*y;if(k===0)x.moveTo(px,py);else x.lineTo(px,py)}
+    var px=pad+k*s.lebar/699,py=dasar-tinggi*y;if(k===0)x.moveTo(px,py);else x.lineTo(px,py)}
   x.stroke();
+  _siskenLegenda(x,[['keluaran y(t)','#67e8f9'],['setpoint','#fbbf24']],pad,s.atas-13);
   var label=z<1?'kurang teredam — ada lonjakan':(z>1.02?'lebih teredam — lambat tanpa lonjakan':'teredam kritis');
-  x.fillStyle='#aebbd0';x.font='19px JetBrains Mono';x.fillText('waktu \\u2192',w-190,h-16);x.fillText('y(t)',12,36);
-  x.fillStyle=z<1?'#ec4899':'#5eead4';x.fillText(label,pad+10,pad+26);
+  x.font='17px JetBrains Mono';x.textAlign='right';
+  x.fillStyle=z<1?'#ec4899':'#5eead4';x.fillText(label,w-pad,s.atas-13);
+  x.fillStyle='#aebbd0';x.fillText('waktu →',w-pad,s.h-13);
+  x.textAlign='left';x.fillText('y(t)',pad,s.h-13);
 };
 window.drawSiskenIndikator=function(n){
-  var s=_siskenSiapkan('siskenIndikatorCanvas'+n,58);if(!s)return;
-  var x=s.ctx,w=s.w,h=s.h,pad=s.pad,K=2.0,tau=3.0;
+  var s=_siskenSiapkan('siskenIndikatorCanvas'+n,58,40,30);if(!s)return;
+  var x=s.ctx,w=s.w,pad=s.pad,K=2.0,tau=3.0;
   var kpMin=0.5,kpMaks=25,eBatas=0.05,tsBatas=2.0;
-  function px(kp){return pad+(kp-kpMin)/(kpMaks-kpMin)*(w-2*pad)}
-  function pyE(e){return h-pad-(e/0.6)*(h-2*pad)}
-  function pyT(t){return h-pad-(t/6.0)*(h-2*pad)}
+  function px(kp){return pad+(kp-kpMin)/(kpMaks-kpMin)*s.lebar}
+  function pyE(e){return s.bawah-(e/0.6)*s.tinggi}
+  function pyT(t){return s.bawah-(t/6.0)*s.tinggi}
   x.strokeStyle='#67e8f9';x.lineWidth=3;x.beginPath();
   for(var i=0;i<=200;i++){var kp=kpMin+(kpMaks-kpMin)*i/200,e=1/(1+kp*K);
     if(i===0)x.moveTo(px(kp),pyE(e));else x.lineTo(px(kp),pyE(e))}
@@ -873,57 +988,87 @@ window.drawSiskenIndikator=function(n){
   x.strokeStyle='#ec4899';x.beginPath();x.moveTo(pad,pyT(tsBatas));x.lineTo(w-pad,pyT(tsBatas));x.stroke();
   x.setLineDash([]);
   var kpLayak=Math.max((1/eBatas-1)/K,(4*tau/tsBatas-1)/K);
-  x.strokeStyle='#a78bfa';x.lineWidth=2;x.beginPath();x.moveTo(px(kpLayak),pad);x.lineTo(px(kpLayak),h-pad);x.stroke();
-  x.font='18px JetBrains Mono';
-  x.fillStyle='#aebbd0';x.fillText('gain controller Kp \\u2192',w-260,h-16);
-  x.fillStyle='#67e8f9';x.fillText('error tunak',pad+12,pad+26);
-  x.fillStyle='#5eead4';x.fillText('waktu menetap',pad+12,pad+50);
-  x.fillStyle='#fbbf24';x.fillText('batas error 5%',w-240,pyE(eBatas)-10);
-  x.fillStyle='#ec4899';x.fillText('batas 2 detik',w-240,pyT(tsBatas)-10);
-  x.fillStyle='#c4b5fd';x.fillText('Kp minimum \\u2248 '+kpLayak.toFixed(1),px(kpLayak)+10,pad+80);
+  x.strokeStyle='#a78bfa';x.lineWidth=2;x.beginPath();x.moveTo(px(kpLayak),s.atas);x.lineTo(px(kpLayak),s.bawah);x.stroke();
+  _siskenLegenda(x,[['error tunak','#67e8f9'],['waktu menetap','#5eead4'],['batas error 5%','#fbbf24'],['batas 2 detik','#ec4899']],pad,s.atas-14);
+  x.font='17px JetBrains Mono';x.fillStyle='#c4b5fd';x.textAlign='center';
+  x.fillText('Kp minimum ≈ '+kpLayak.toFixed(1),Math.min(Math.max(px(kpLayak),pad+130),w-pad-130),s.h-13);
+  x.textAlign='left';x.fillStyle='#aebbd0';x.fillText('gain Kp →',pad,s.h-13);
 };
 window.drawSiskenPeta=function(n){
-  var s=_siskenSiapkan('siskenPetaCanvas'+n,40);if(!s)return;
+  var s=_siskenSiapkan('siskenPetaCanvas'+n,40,0,0);if(!s)return;
   var x=s.ctx,w=s.w,h=s.h,pad=s.pad,total=14,nomor=Number(n);
-  var lebar=(w-2*pad)/total, y=h/2-30;
+  x.clearRect(0,0,w,h);x.fillStyle='#070b16';x.fillRect(0,0,w,h);
+  var lebar=s.lebar/total, y=66;
+  x.font='17px JetBrains Mono';x.fillStyle='#aebbd0';
+  x.textAlign='left';x.fillText('Modul 1',pad,40);
+  x.textAlign='right';x.fillText('Modul 14',w-pad,40);
   for(var i=1;i<=total;i++){
-    var kiri=pad+(i-1)*lebar+4, ini=(i===nomor), lewat=(i<nomor);
+    var kiri=pad+(i-1)*lebar+5, ini=(i===nomor), lewat=(i<nomor);
     x.fillStyle=ini?'#8b5cf6':(lewat?'#0d3b4a':'#0b1628');
     x.strokeStyle=ini?'#67e8f9':'#243653';x.lineWidth=ini?2.5:1;
     x.beginPath();
-    if(x.roundRect)x.roundRect(kiri,y,lebar-8,54,10);else x.rect(kiri,y,lebar-8,54);
+    if(x.roundRect)x.roundRect(kiri,y,lebar-10,56,10);else x.rect(kiri,y,lebar-10,56);
     x.fill();x.stroke();
     x.fillStyle=ini?'#ffffff':(lewat?'#9fd8e6':'#6d7f9c');
     x.font=(ini?'bold ':'')+'20px JetBrains Mono';
-    x.textAlign='center';x.fillText(String(i),kiri+(lebar-8)/2,y+36);
+    x.textAlign='center';x.fillText(String(i),kiri+(lebar-10)/2,y+37);
   }
-  x.font='17px JetBrains Mono';x.fillStyle='#aebbd0';
-  x.textAlign='left';x.fillText('Modul 1',pad,y-14);
-  x.textAlign='right';x.fillText('Modul 14',w-pad,y-14);
   x.textAlign='center';x.fillStyle='#c4b5fd';x.font='bold 19px JetBrains Mono';
-  x.fillText('Anda di Modul '+nomor+' \\u2014 tersisa '+(total-nomor)+' modul menuju tuntas',w/2,h-24);
+  x.fillText('Anda di Modul '+nomor+' — tersisa '+(total-nomor)+' modul menuju tuntas',w/2,h-20);
   x.textAlign='left';
 };
 window.drawSiskenBode=function(n){
-  var s=_siskenSiapkan('siskenBodeCanvas'+n,52);var sl=document.getElementById('siskenBode'+n);if(!s||!sl)return;
+  var s=_siskenSiapkan('siskenBodeCanvas'+n,52,34,26);var sl=document.getElementById('siskenBode'+n);if(!s||!sl)return;
   var L=Number(sl.value);document.getElementById('siskenBodeValue'+n).textContent=L.toFixed(1);
-  var x=s.ctx,w=s.w,h=s.h,pad=s.pad,tau=3.0;
-  // |T(jw)| untuk plant orde satu dengan gain loop L
+  var x=s.ctx,w=s.w,pad=s.pad,tau=3.0,minDb=-42,maxDb=6;
+  function py(db){return s.atas+(maxDb-db)/(maxDb-minDb)*s.tinggi}
   x.strokeStyle='#67e8f9';x.lineWidth=3;x.beginPath();
-  var minDb=-42,maxDb=6;
   for(var k=0;k<700;k++){
     var lw=-2+4*k/699,om=Math.pow(10,lw);
     var mag=L/Math.sqrt(Math.pow(1+L,2)+Math.pow(om*tau,2));
     var db=20*Math.log10(Math.max(mag,1e-6));
-    var px=pad+k*(w-2*pad)/699,py=pad+(maxDb-db)/(maxDb-minDb)*(h-2*pad);
-    if(k===0)x.moveTo(px,py);else x.lineTo(px,py)}
+    var pxv=pad+k*s.lebar/699;
+    if(k===0)x.moveTo(pxv,py(db));else x.lineTo(pxv,py(db))}
   x.stroke();
   var db3=20*Math.log10(L/(1+L))-3;
-  var y3=pad+(maxDb-db3)/(maxDb-minDb)*(h-2*pad);
-  x.setLineDash([8,6]);x.strokeStyle='#fbbf24';x.beginPath();x.moveTo(pad,y3);x.lineTo(w-pad,y3);x.stroke();x.setLineDash([]);
-  x.fillStyle='#fbbf24';x.font='17px JetBrains Mono';x.fillText('batas -3 dB (lebar pita)',pad+10,y3-10);
-  x.fillStyle='#aebbd0';x.font='19px JetBrains Mono';x.fillText('frekuensi \\u2192',w-230,h-16);x.fillText('|T| dB',12,36);
+  x.setLineDash([8,6]);x.lineWidth=2;x.strokeStyle='#fbbf24';
+  x.beginPath();x.moveTo(pad,py(db3));x.lineTo(w-pad,py(db3));x.stroke();x.setLineDash([]);
+  _siskenLegenda(x,[['magnitudo |T|','#67e8f9'],['batas -3 dB (lebar pita)','#fbbf24']],pad,s.atas-13);
+  x.font='17px JetBrains Mono';x.fillStyle='#aebbd0';
+  x.textAlign='right';x.fillText('frekuensi →',w-pad,s.h-13);
+  x.textAlign='left';x.fillText('|T| dB',pad,s.h-13);
 };
+window.siskenCentang=function(n,i){
+  var akar=document.getElementById('periksa-'+n); if(!akar) return;
+  var butir=akar.querySelectorAll('.sisken-periksa-butir')[i]; if(!butir) return;
+  var aktif=!butir.classList.contains('dicentang');
+  butir.classList.toggle('dicentang',aktif);
+  butir.setAttribute('aria-checked',String(aktif));
+  _siskenSimpanPeriksa(n); _siskenPerbaruiPeriksa(n);
+};
+function _siskenKunciPeriksa(n){ return 'sisken-periksa-modul-'+n; }
+function _siskenSimpanPeriksa(n){
+  var akar=document.getElementById('periksa-'+n); if(!akar) return;
+  var pilih=[];
+  akar.querySelectorAll('.sisken-periksa-butir').forEach(function(b,i){ if(b.classList.contains('dicentang')) pilih.push(i); });
+  try{ localStorage.setItem(_siskenKunciPeriksa(n), JSON.stringify(pilih)); }catch(e){}
+}
+function _siskenPerbaruiPeriksa(n){
+  var akar=document.getElementById('periksa-'+n); if(!akar) return;
+  var semua=akar.querySelectorAll('.sisken-periksa-butir');
+  var jadi=akar.querySelectorAll('.sisken-periksa-butir.dicentang').length;
+  var hitung=document.getElementById('periksa-hitung-'+n);
+  var bar=document.getElementById('periksa-bar-'+n);
+  var pesan=document.getElementById('periksa-pesan-'+n);
+  if(hitung) hitung.textContent=jadi+' / '+semua.length;
+  if(bar) bar.style.width=(semua.length?Math.round(jadi/semua.length*100):0)+'%';
+  if(pesan){
+    pesan.classList.toggle('tuntas',jadi===semua.length&&semua.length>0);
+    if(jadi===0) pesan.textContent='Belum ada yang dicentang. Mulailah dari butir pertama.';
+    else if(jadi===semua.length) pesan.textContent='Seluruh butir tercentang. Anda siap melanjutkan ke modul berikutnya.';
+    else pesan.textContent='Tersisa '+(semua.length-jadi)+' butir. Tinjau kembali bagian yang bersangkutan sebelum melanjutkan.';
+  }
+}
 window.geserSubnav=function(arah){
   var bar=document.getElementById('modulSubnav'); if(!bar) return;
   bar.scrollBy({left:arah*Math.max(180,bar.clientWidth*0.6),behavior:'smooth'});
@@ -937,6 +1082,19 @@ function _perbaruiPanahSubnav(){
   [kiri,kanan].forEach(function(b){ b.classList.toggle('tampil', meluber&&tampak); });
   kiri.disabled=bar.scrollLeft<=2;
   kanan.disabled=bar.scrollLeft>=bar.scrollWidth-bar.clientWidth-2;
+}
+function _siskenMuatPeriksa(){
+  document.querySelectorAll('.sisken-periksa').forEach(function(akar){
+    var n=akar.id.replace('periksa-','');
+    var pilih=[];
+    try{ pilih=JSON.parse(localStorage.getItem(_siskenKunciPeriksa(n))||'[]')||[]; }catch(e){}
+    akar.querySelectorAll('.sisken-periksa-butir').forEach(function(b,i){
+      var aktif=pilih.indexOf(i)>=0;
+      b.classList.toggle('dicentang',aktif);
+      b.setAttribute('aria-checked',String(aktif));
+    });
+    _siskenPerbaruiPeriksa(n);
+  });
 }
 document.addEventListener('DOMContentLoaded',function(){
   var bar=document.getElementById('modulSubnav');
@@ -955,6 +1113,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.querySelectorAll('[id^="siskenBode"]').forEach(function(el){var m=el.id.match(/^siskenBode(\\d+)$/);if(m)drawSiskenBode(m[1])});
   document.querySelectorAll('[id^="siskenIndikatorCanvas"]').forEach(function(el){var m=el.id.match(/(\\d+)$/);if(m)drawSiskenIndikator(m[1])});
   document.querySelectorAll('[id^="siskenPetaCanvas"]').forEach(function(el){var m=el.id.match(/(\\d+)$/);if(m)drawSiskenPeta(m[1])});
+  _siskenMuatPeriksa();
 });
 </script>`;
 
