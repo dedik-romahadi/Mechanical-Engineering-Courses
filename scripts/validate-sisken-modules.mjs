@@ -53,9 +53,21 @@ for (let n = 1; n <= 14; n += 1) {
   } else {
     checks.push(
       [!html.match(/Tugas Pertemuan|10 soal pilihan/gi), "no legacy assessment copy"],
-      [html.includes(`id="sisken-module-${n}"`), "rich module root"],
-      [(html.match(/class="sisken-tab(?: active)?"/g) || []).length === 6, "six content tabs"],
-      [(html.match(/data-sisken-pane=/g) || []).length === 6, "six content panes"],
+      // Sejak modul 2-14 memakai tata letak Modul 1, yang diperiksa adalah
+      // kosakata desainnya: hero, bagian bernomor, dan berkas gaya acuan.
+      [html.includes("SISKEN-DESAIN-MODUL1:START"), "gaya desain Modul 1 terpasang"],
+      [html.includes('<div class="hero" data-tab="modul">'), "hero seperti Modul 1"],
+      [(html.match(/<div class="section-label reveal">Bagian \d\d<\/div>/g) || []).length >= 10, "bagian bernomor minimal 10"],
+      [(() => {
+        // Dihitung hanya di dalam halaman modul; halaman lain pada berkas yang
+        // sama juga memakai kelas .section untuk keperluannya sendiri.
+        const blok = html.match(/<div class="page active" id="page-modul">[\s\S]*?<!-- end page-modul -->/);
+        if (!blok) return false;
+        const pemisah = (blok[0].match(/<hr class="divider">/g) || []).length;
+        const bagian = (blok[0].match(/<div class="section">/g) || []).length;
+        return pemisah === bagian && pemisah >= 10;
+      })(), "tiap bagian didahului pemisah"],
+      [(html.match(/<footer>/g) || []).length >= 1, "footer seperti Modul 1"],
       [(html.match(/class="code-wrap/g) || []).length === 1, "one visible Python code panel"],
       [html.includes("class=\"code-dots\"") && html.includes("class=\"code-copy\""), "reference code-panel design"],
       [(html.match(/id="sisken-rich-runtime"/g) || []).length === 1, "one runtime"],

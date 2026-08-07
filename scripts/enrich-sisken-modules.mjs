@@ -396,23 +396,155 @@ document.addEventListener('DOMContentLoaded', siskenForumReady);
   return markup + runtime;
 }
 
+// ── Cetakan desain diambil apa adanya dari Modul 1 ───────────────────────────
+// Modul 1 ditulis tangan dan menjadi acuan tampilan seluruh modul. Berkas gaya
+// dan cangkang hero-nya disalin ke scripts/ lewat perintah pemeliharaan, lalu
+// dibaca di sini supaya modul 2-14 memakai kosakata desain yang sama persis:
+// hero, hr.divider, div.section (section-label, section-title, section-desc),
+// formula-block, cards, tbl-wrap, tip-box, info-box, anim-panel, code-wrap.
+const desainCss = fs.readFileSync(path.join(import.meta.dirname, "sisken-desain-modul1.css"), "utf8");
+const heroShell = fs.readFileSync(path.join(import.meta.dirname, "sisken-hero-shell.html"), "utf8");
+
+const IKON = ["🎯", "⚙️", "🔁", "📐", "🧭", "🧪", "📊", "🛠️", "🧠", "⚡", "🔍", "📌"];
+
+function bagian(nomor, judul, isi) {
+  return `<hr class="divider">
+<div class="section">
+  <div class="section-label reveal">Bagian ${String(nomor).padStart(2, "0")}</div>
+  <h2 class="section-title reveal">${judul}</h2>
+${isi}
+</div>`;
+}
+
+function paragraf(teks) {
+  return teks.map((t) => `  <p class="section-desc reveal">${t}</p>`).join("\n");
+}
+
+function blokRumus(label, rumus, keterangan = "") {
+  return `  <div class="formula-block reveal">
+    <div class="formula-label">${esc(label)}</div>
+    <div class="formula-main">${esc(rumus)}</div>${keterangan ? `\n    <div class="formula-desc">${keterangan}</div>` : ""}
+  </div>`;
+}
+
+function kartu(items) {
+  return `  <div class="cards reveal">${items.map(([h, p, f], i) => `
+    <div class="card">
+      <div class="card-icon">${IKON[i % IKON.length]}</div>
+      <h3>${h}</h3>
+      <p>${p}</p>${f ? `\n      <div class="formula">${f}</div>` : ""}
+    </div>`).join("")}
+  </div>`;
+}
+
+// Materi mendalam dipetakan ke kosakata Modul 1: tiap bagian menjadi satu
+// div.section, rumus ringkasnya menjadi formula-block.
+function bagianMateri(n, mulai) {
+  const d = MATERI[n];
+  if (!d) return { html: "", berikut: mulai };
+  let nomor = mulai;
+  const potongan = (d.deep || []).map((s) => {
+    const isi = paragraf(s.body) + (s.formula ? `\n${blokRumus("Inti bagian ini", s.formula)}` : "");
+    return bagian(nomor++, s.head, isi);
+  });
+
+  if (d.derivation) {
+    const langkah = d.derivation.steps.map(([lbl, ex, note]) => [lbl, note, esc(ex)]);
+    potongan.push(bagian(nomor++, d.derivation.head,
+      paragraf([d.derivation.intro]) + "\n" + kartu(langkah) + "\n" + paragraf([d.derivation.closing])));
+  }
+  if (d.worked) {
+    const langkah = d.worked.steps.map(([lbl, ex, note]) => [lbl, note, esc(ex)]);
+    potongan.push(bagian(nomor++, d.worked.head,
+      `  <div class="info-box reveal"><strong>Diketahui:</strong> ${d.worked.given.join(" &nbsp;·&nbsp; ")}</div>\n`
+      + kartu(langkah) + `\n  <div class="tip-box reveal">✅ <strong>Jawaban.</strong> ${d.worked.answer}</div>`));
+  }
+  if (d.pitfalls && d.pitfalls.length) {
+    potongan.push(bagian(nomor++, "Salah Kaprah yang Sering Terjadi",
+      kartu(d.pitfalls.map(([h, p]) => [h, p]))));
+  }
+  if (d.checklist && d.checklist.length) {
+    potongan.push(bagian(nomor++, "Daftar Periksa Sebelum Lanjut",
+      d.checklist.map((c) => `  <div class="tip-box reveal">☑ ${c}</div>`).join("\n")));
+  }
+  return { html: potongan.join("\n"), berikut: nomor };
+}
+
 function richModule(m, index) {
   const n = index + 1;
   const p = n <= 7 ? n : n + 1;
-  return `<div class="sisken-placeholder"><section class="sisken-rich" id="sisken-module-${n}">
-    <div class="sisken-kicker">Sistem Kendali Cerdas · Modul ${n} · Pertemuan ${p}</div>
-    <h1 class="sisken-title">${m.title.replace(/ (\S+)$/, " <em>$1</em>")}</h1>
-    <p class="sisken-lead">${m.intro}</p><div class="sisken-sub">${m.sub}</div>
-    <div class="sisken-tabs" role="tablist" aria-label="Bagian materi Modul ${n}">
-      ${[["materi","Materi Inti"],["analogi","Analogi"],["animasi","Animasi"],["industri","Penerapan Industri"],["python","Python"],["referensi","Referensi"]].map(([id,label],i)=>`<button class="sisken-tab${i===0?" active":""}" role="tab" aria-selected="${i===0}" onclick="openSiskenPane(${n},'${id}',this)">${label}</button>`).join("")}
+  const kata = m.title.split(" ");
+  const judulHero = kata.length >= 3
+    ? `<span class="hl-cyan">${kata.slice(0, Math.ceil(kata.length / 3)).join(" ")}</span><br>\n      <em>${kata.slice(Math.ceil(kata.length / 3), -1).join(" ")}</em><br>\n      <span class="hl-amber">${kata[kata.length - 1]}</span>`
+    : `<span class="hl-cyan">${m.title}</span>`;
+
+  const jumlahBagian = (MATERI[n] ? MATERI[n].deep.length : 0) + 4;
+  const hero = `${heroShell}<div class="hero-content">
+    <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan ${p} &nbsp;·&nbsp; Sistem Kendali Cerdas &nbsp;·&nbsp; 2025/2026</div>
+    <h1 class="hero-title">
+      ${judulHero}
+    </h1>
+    <p class="hero-sub">${m.intro}</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">${jumlahBagian}</div><div class="stat-lbl">Bagian Materi</div></div>
+      <div class="stat"><div class="stat-num">1</div><div class="stat-lbl">Animasi</div></div>
+      <div class="stat"><div class="stat-num">1</div><div class="stat-lbl">Cell Python</div></div>
+      <div class="stat"><div class="stat-num">50</div><div class="stat-lbl">Poin Tugas</div></div>
     </div>
-    <div class="sisken-pane active" data-sisken-pane="${n}-materi"><h2 class="sisken-section-head">Konsep yang Wajib Dikuasai</h2>${cards(m.concepts)}<h2 class="sisken-section-head" style="margin-top:30px">Alur Berpikir Engineer</h2><div class="sisken-flow">${m.steps.map(s=>`<div>${s}</div>`).join("")}</div>${materiMendalam(n)}</div>
-    <div class="sisken-pane" data-sisken-pane="${n}-analogi"><h2 class="sisken-section-head">Analogi untuk Membangun Intuisi</h2><div class="sisken-analogy">${cards(m.analogies)}</div></div>
-    <div class="sisken-pane" data-sisken-pane="${n}-animasi"><h2 class="sisken-section-head">Animasi Respons Loop Tertutup</h2><p class="sisken-lead" style="font-size:15px;margin-bottom:14px">Geser parameter untuk mengamati perubahan kecepatan, overshoot, dan error. Visual ini menjadi jembatan antara konsep ${m.title.toLowerCase()} dan respons waktu.</p><div class="sisken-anim-box"><div class="sisken-controls"><label>Agresivitas controller <span id="siskenGainValue${n}">1.5</span></label><input id="siskenGain${n}" type="range" min="0.2" max="5" step="0.1" value="1.5" oninput="drawSiskenAnimation(${n})"><button class="sisken-run" onclick="toggleSiskenAnimation(${n})">▶ Jalankan Animasi</button></div><canvas id="siskenCanvas${n}" width="1000" height="360" aria-label="Animasi respons kontrol Modul ${n}"></canvas></div></div>
-    <div class="sisken-pane" data-sisken-pane="${n}-industri"><h2 class="sisken-section-head">Penerapan pada Sistem Industri</h2>${cards(m.industries,"sisken-industry")}</div>
-    <div class="sisken-pane" data-sisken-pane="${n}-python"><h2 class="sisken-section-head">Implementasi Python Siap Salin</h2><div class="sisken-code-note">Salin satu cell lengkap ke Jupyter Notebook atau VS Code. Jalankan tanpa perubahan terlebih dahulu, kemudian ubah parameter untuk eksperimen.</div><div class="code-wrap reveal visible"><div class="code-header"><div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div><span class="code-label">Cell 1 — ${m.title}</span><span class="code-lang">Python</span><button class="code-copy" onclick="cpC(this)">📋 Copy</button></div><pre>${esc(m.code)}</pre></div></div>
-    <div class="sisken-pane" data-sisken-pane="${n}-referensi"><h2 class="sisken-section-head">Referensi Utama</h2><ol class="sisken-ref-list">${m.refs.map(r=>`<li>${r}</li>`).join("")}</ol></div>
-  </section>${runtime}</div>`;
+  </div>
+</div>`;
+
+  let nomor = 1;
+  const konsep = bagian(nomor++, "Konsep yang Wajib Dikuasai",
+    paragraf([m.sub]) + "\n" + kartu(m.concepts)
+    + `\n  <div class="tip-box reveal">🧭 <strong>Alur berpikir engineer:</strong> ${m.steps.join(" &nbsp;→&nbsp; ")}</div>`);
+
+  const mendalam = bagianMateri(n, nomor);
+  nomor = mendalam.berikut;
+
+  const analogi = bagian(nomor++, "Analogi untuk Membangun Intuisi", kartu(m.analogies));
+  const industri = bagian(nomor++, "Penerapan pada Sistem Industri", kartu(m.industries));
+
+  const animasi = bagian(nomor++, "Animasi Respons Loop Tertutup",
+    paragraf([`Geser parameter untuk mengamati perubahan kecepatan, overshoot, dan error. Visual ini menjadi jembatan antara konsep ${m.title.toLowerCase()} dan respons waktu.`])
+    + `\n  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--cyan)"></div>
+      <span class="anim-title">Animasi 1 — Respons Step Loop Tertutup</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="siskenCanvas${n}" width="1000" height="360" aria-label="Animasi respons kontrol Modul ${n}"></canvas>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <label>Agresivitas controller — <span class="ctrl-val" id="siskenGainValue${n}">1.5</span></label>
+          <input id="siskenGain${n}" type="range" min="0.2" max="5" step="0.1" value="1.5" oninput="drawSiskenAnimation(${n})">
+        </div>
+        <button class="btn-anim" onclick="toggleSiskenAnimation(${n})">▶ Jalankan Animasi</button>
+      </div>
+    </div>
+  </div>`);
+
+  const python = bagian(nomor++, "Implementasi Python Siap Salin",
+    paragraf(["Salin satu cell lengkap ke Jupyter Notebook atau VS Code. Jalankan tanpa perubahan terlebih dahulu, kemudian ubah parameter untuk eksperimen."])
+    + `\n  <div class="code-wrap reveal">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">Cell 1 — ${m.title}</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre>${esc(m.code)}</pre>
+  </div>`);
+
+  const referensi = bagian(nomor++, "Referensi Utama",
+    m.refs.map((r) => `  <div class="info-box reveal">📚 ${r}</div>`).join("\n"));
+
+  const footer = `<footer>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Modul ${n} — ${m.title} · Sistem Kendali Cerdas · S1 Teknik Mesin · Universitas Mercu Buana</p>
+</footer>`;
+
+  return [hero, konsep, mendalam.html, analogi, industri, animasi, python, referensi, footer]
+    .filter(Boolean).join("\n") + runtime;
 }
 
 function taskPanel(m, index) {
@@ -496,6 +628,13 @@ for (const [index, m] of modules.entries()) {
 
   html = html.replace(/\/\* SISKENCERDAS-RICH-CONTENT:START \*\/[\s\S]*?\/\* SISKENCERDAS-RICH-CONTENT:END \*\//, css.trim());
   if (!html.includes("SISKENCERDAS-RICH-CONTENT:START")) html = html.replace("</head>", `<style>${css}</style>\n</head>`);
+
+  // Gaya desain Modul 1 dipasang di posisi yang sama seperti pada Modul 1,
+  // yaitu setelah blok gaya terakhir di <head>, supaya urutan penimpaannya
+  // ikut sama. Ditandai agar penjalanan ulang menggantikan, bukan menumpuk.
+  const blokDesain = `<style>/* SISKEN-DESAIN-MODUL1:START — disalin dari Modul-1.html, jangan disunting di sini */${desainCss}/* SISKEN-DESAIN-MODUL1:END */</style>`;
+  const reDesain = /<style>\/\* SISKEN-DESAIN-MODUL1:START[\s\S]*?SISKEN-DESAIN-MODUL1:END \*\/<\/style>/;
+  html = reDesain.test(html) ? html.replace(reDesain, blokDesain) : html.replace("</head>", `${blokDesain}\n</head>`);
   fs.writeFileSync(file, html, "utf8");
 }
 
