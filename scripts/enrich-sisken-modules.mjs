@@ -406,13 +406,81 @@ const heroShell = fs.readFileSync(path.join(import.meta.dirname, "sisken-hero-sh
 
 const IKON = ["🎯", "⚙️", "🔁", "📐", "🧭", "🧪", "📊", "🛠️", "🧠", "⚡", "🔍", "📌"];
 
+// Dua cell tambahan yang berlaku untuk seluruh modul: menyapu parameter lalu
+// membaca indikator kinerja dari data respons. Keduanya dipakai berulang di
+// tugas komputasi, jadi sengaja ditulis sekali dan dipakai di semua modul.
+const KODE_SAPUAN = `import numpy as np
+import matplotlib.pyplot as plt
+
+# Plant orde satu G(s)=K/(tau*s+1) dengan controller proporsional Kp.
+K, tau = 2.0, 3.0
+Kp_uji = np.linspace(0.5, 25, 200)
+
+L = Kp_uji * K                 # gain loop
+e_ss = 1.0 / (1.0 + L)         # error tunak terhadap step satuan
+tau_cl = tau / (1.0 + L)       # konstanta waktu lingkar tertutup
+t_s = 4.0 * tau_cl             # waktu menetap pita dua persen
+
+batas_error, batas_ts = 0.05, 2.0
+layak = (e_ss <= batas_error) & (t_s <= batas_ts)
+print(f"Kp terkecil yang memenuhi kedua batas: {Kp_uji[layak][0]:.2f}")
+
+fig, ax = plt.subplots(1, 2, figsize=(11, 4))
+ax[0].plot(Kp_uji, e_ss); ax[0].axhline(batas_error, ls='--', color='r')
+ax[0].set_xlabel('Kp'); ax[0].set_ylabel('error tunak'); ax[0].grid(alpha=.3)
+ax[1].plot(Kp_uji, t_s); ax[1].axhline(batas_ts, ls='--', color='r')
+ax[1].set_xlabel('Kp'); ax[1].set_ylabel('waktu menetap (s)'); ax[1].grid(alpha=.3)
+plt.tight_layout(); plt.show()`;
+
+const KODE_INDIKATOR = `import numpy as np
+
+def indikator(t, y, setpoint=1.0, pita=0.02):
+    """Baca overshoot, waktu naik, waktu menetap, dan error tunak dari data."""
+    y = np.asarray(y, dtype=float)
+    akhir = y[-1]
+    overshoot = max(0.0, (y.max() - setpoint) / setpoint * 100.0)
+
+    i10 = np.argmax(y >= 0.1 * setpoint)
+    i90 = np.argmax(y >= 0.9 * setpoint)
+    t_naik = t[i90] - t[i10]
+
+    di_luar = np.abs(y - setpoint) > pita * setpoint
+    t_menetap = t[len(y) - 1 - np.argmax(di_luar[::-1])] if di_luar.any() else 0.0
+
+    return {
+        'overshoot_persen': overshoot,
+        'waktu_naik_s': t_naik,
+        'waktu_menetap_s': t_menetap,
+        'error_tunak': setpoint - akhir,
+    }
+
+# Contoh pemakaian pada respons orde dua.
+zeta, wn = 0.5, 2.0
+t = np.linspace(0, 10, 1200)
+wd = wn * np.sqrt(1 - zeta ** 2)
+y = 1 - np.exp(-zeta * wn * t) * (np.cos(wd * t) + (zeta / np.sqrt(1 - zeta ** 2)) * np.sin(wd * t))
+for nama, nilai in indikator(t, y).items():
+    print(f"{nama:>18}: {nilai:.4f}")`;
+
+// Setiap bagian diberi id supaya bilah tautan di bawah nav (subnav-bar) bisa
+// meloncat ke sana. Judul pendeknya dikumpulkan untuk membangun bilah itu.
+const daftarBagian = [];
+
 function bagian(nomor, judul, isi) {
+  const id = `m-${nomor}`;
+  daftarBagian.push([id, judulPendek(judul)]);
   return `<hr class="divider">
-<div class="section">
+<div class="section" id="${id}">
   <div class="section-label reveal">Bagian ${String(nomor).padStart(2, "0")}</div>
   <h2 class="section-title reveal">${judul}</h2>
 ${isi}
 </div>`;
+}
+
+function judulPendek(judul) {
+  const bersih = String(judul).replace(/<[^>]+>/g, "").replace(/[:—–].*$/, "").trim();
+  const kata = bersih.split(/\s+/);
+  return kata.length <= 3 ? bersih : kata.slice(0, 3).join(" ");
 }
 
 function paragraf(teks) {
@@ -423,6 +491,41 @@ function blokRumus(label, rumus, keterangan = "") {
   return `  <div class="formula-block reveal">
     <div class="formula-label">${esc(label)}</div>
     <div class="formula-main">${esc(rumus)}</div>${keterangan ? `\n    <div class="formula-desc">${keterangan}</div>` : ""}
+  </div>`;
+}
+
+function tabel(judul, kepala, baris) {
+  return `  <div class="tbl-wrap reveal">
+    <table>
+      <caption style="caption-side:top;text-align:left;padding:0 0 10px;color:var(--muted);font-size:13px">${judul}</caption>
+      <thead><tr>${kepala.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
+      <tbody>${baris.map((b) => `<tr>${b.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody>
+    </table>
+  </div>`;
+}
+
+function panelAnimasi(idKanvas, judul, kendali) {
+  return `  <div class="anim-panel reveal">
+    <div class="anim-header">
+      <div class="anim-dot" style="background:var(--cyan)"></div>
+      <span class="anim-title">${judul}</span>
+    </div>
+    <div class="anim-body">
+      <canvas id="${idKanvas}" width="1000" height="330" aria-label="${judul}"></canvas>
+      <div class="ctrl-row">${kendali}</div>
+    </div>
+  </div>`;
+}
+
+function panelKode(label, kode) {
+  return `  <div class="code-wrap reveal">
+    <div class="code-header">
+      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+      <span class="code-label">${label}</span>
+      <span class="code-lang">Python</span>
+      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
+    </div>
+    <pre>${esc(kode)}</pre>
   </div>`;
 }
 
@@ -472,6 +575,7 @@ function bagianMateri(n, mulai) {
 function richModule(m, index) {
   const n = index + 1;
   const p = n <= 7 ? n : n + 1;
+  daftarBagian.length = 0;
   const kata = m.title.split(" ");
   const judulHero = kata.length >= 3
     ? `<span class="hl-cyan">${kata.slice(0, Math.ceil(kata.length / 3)).join(" ")}</span><br>\n      <em>${kata.slice(Math.ceil(kata.length / 3), -1).join(" ")}</em><br>\n      <span class="hl-amber">${kata[kata.length - 1]}</span>`
@@ -496,7 +600,10 @@ function richModule(m, index) {
   let nomor = 1;
   const konsep = bagian(nomor++, "Konsep yang Wajib Dikuasai",
     paragraf([m.sub]) + "\n" + kartu(m.concepts)
-    + `\n  <div class="tip-box reveal">🧭 <strong>Alur berpikir engineer:</strong> ${m.steps.join(" &nbsp;→&nbsp; ")}</div>`);
+    + `\n  <div class="tip-box reveal">🧭 <strong>Alur berpikir engineer:</strong> ${m.steps.join(" &nbsp;→&nbsp; ")}</div>\n`
+    + tabel("Tabel 1. Ringkasan konsep inti beserta bentuk matematisnya.",
+      ["Konsep", "Bentuk / Rumus", "Yang perlu diingat"],
+      m.concepts.map(([h, p, f]) => [h, f ? `<code>${esc(f)}</code>` : "—", p])));
 
   const mendalam = bagianMateri(n, nomor);
   nomor = mendalam.berikut;
@@ -504,36 +611,32 @@ function richModule(m, index) {
   const analogi = bagian(nomor++, "Analogi untuk Membangun Intuisi", kartu(m.analogies));
   const industri = bagian(nomor++, "Penerapan pada Sistem Industri", kartu(m.industries));
 
-  const animasi = bagian(nomor++, "Animasi Respons Loop Tertutup",
-    paragraf([`Geser parameter untuk mengamati perubahan kecepatan, overshoot, dan error. Visual ini menjadi jembatan antara konsep ${m.title.toLowerCase()} dan respons waktu.`])
-    + `\n  <div class="anim-panel reveal">
-    <div class="anim-header">
-      <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Respons Step Loop Tertutup</span>
-    </div>
-    <div class="anim-body">
-      <canvas id="siskenCanvas${n}" width="1000" height="360" aria-label="Animasi respons kontrol Modul ${n}"></canvas>
-      <div class="ctrl-row">
-        <div class="ctrl-group">
+  // Tiga animasi yang berlaku untuk seluruh pokok bahasan kendali: respons
+  // waktu, pengaruh redaman, dan tanggapan frekuensi.
+  const animasi = bagian(nomor++, "Animasi Respons dan Karakteristik Sistem",
+    paragraf([`Geser parameter untuk mengamati perubahan kecepatan, overshoot, dan error. Visual ini menjadi jembatan antara konsep ${m.title.toLowerCase()} dan perilaku sistem yang sebenarnya.`])
+    + "\n" + panelAnimasi(`siskenCanvas${n}`, "Animasi 1 — Respons Step Loop Tertutup",
+      `<div class="ctrl-group">
           <label>Agresivitas controller — <span class="ctrl-val" id="siskenGainValue${n}">1.5</span></label>
           <input id="siskenGain${n}" type="range" min="0.2" max="5" step="0.1" value="1.5" oninput="drawSiskenAnimation(${n})">
         </div>
-        <button class="btn-anim" onclick="toggleSiskenAnimation(${n})">▶ Jalankan Animasi</button>
-      </div>
-    </div>
-  </div>`);
+        <button class="btn-anim" onclick="toggleSiskenAnimation(${n})">▶ Jalankan Animasi</button>`)
+    + "\n" + panelAnimasi(`siskenDampCanvas${n}`, "Animasi 2 — Pengaruh Rasio Redaman terhadap Bentuk Respons",
+      `<div class="ctrl-group">
+          <label>Rasio redaman ζ — <span class="ctrl-val" id="siskenDampValue${n}">0.50</span></label>
+          <input id="siskenDamp${n}" type="range" min="0.1" max="1.4" step="0.05" value="0.5" oninput="drawSiskenDamping(${n})">
+        </div>`)
+    + "\n" + panelAnimasi(`siskenBodeCanvas${n}`, "Animasi 3 — Tanggapan Frekuensi dan Lebar Pita",
+      `<div class="ctrl-group">
+          <label>Gain loop L — <span class="ctrl-val" id="siskenBodeValue${n}">8.0</span></label>
+          <input id="siskenBode${n}" type="range" min="0.5" max="40" step="0.5" value="8" oninput="drawSiskenBode(${n})">
+        </div>`));
 
   const python = bagian(nomor++, "Implementasi Python Siap Salin",
     paragraf(["Salin satu cell lengkap ke Jupyter Notebook atau VS Code. Jalankan tanpa perubahan terlebih dahulu, kemudian ubah parameter untuk eksperimen."])
-    + `\n  <div class="code-wrap reveal">
-    <div class="code-header">
-      <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 1 — ${m.title}</span>
-      <span class="code-lang">Python</span>
-      <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
-    </div>
-    <pre>${esc(m.code)}</pre>
-  </div>`);
+    + "\n" + panelKode(`Cell 1 — ${m.title}`, m.code)
+    + "\n" + panelKode("Cell 2 — Sapuan Parameter: memilih gain dari gambar, bukan dari tebakan", KODE_SAPUAN)
+    + "\n" + panelKode("Cell 3 — Mengukur Indikator Kinerja dari Data Respons", KODE_INDIKATOR));
 
   const referensi = bagian(nomor++, "Referensi Utama",
     m.refs.map((r) => `  <div class="info-box reveal">📚 ${r}</div>`).join("\n"));
@@ -573,6 +676,54 @@ window.drawSiskenAnimation=function(n,phase){
   ctx.fillStyle='#8da1bf';ctx.font='20px JetBrains Mono';ctx.fillText('waktu →',w-170,h-18);ctx.fillText('y(t)',12,38);ctx.fillStyle='#ffb300';ctx.fillText('setpoint',w-165,h-pad-(h-2*pad)*.7-12);
 };
 window.toggleSiskenAnimation=function(n){var state=window._siskenAnim[n]||{running:false,start:0};state.running=!state.running;state.start=performance.now();window._siskenAnim[n]=state;if(!state.running)return;(function tick(now){if(!state.running)return;drawSiskenAnimation(n,(now-state.start)/6000);requestAnimationFrame(tick)})(performance.now())};
+function _siskenSiapkan(id,pad){var c=document.getElementById(id);if(!c)return null;var x=c.getContext('2d'),w=c.width,h=c.height;
+  x.clearRect(0,0,w,h);x.fillStyle='#050b13';x.fillRect(0,0,w,h);x.strokeStyle='#14243a';x.lineWidth=1;
+  for(var i=0;i<=10;i++){var px=pad+i*(w-2*pad)/10;x.beginPath();x.moveTo(px,pad);x.lineTo(px,h-pad);x.stroke()}
+  for(var j=0;j<=5;j++){var py=pad+j*(h-2*pad)/5;x.beginPath();x.moveTo(pad,py);x.lineTo(w-pad,py);x.stroke()}
+  return {ctx:x,w:w,h:h,pad:pad};
+}
+window.drawSiskenDamping=function(n){
+  var s=_siskenSiapkan('siskenDampCanvas'+n,52);var sl=document.getElementById('siskenDamp'+n);if(!s||!sl)return;
+  var z=Number(sl.value),wn=1.6;document.getElementById('siskenDampValue'+n).textContent=z.toFixed(2);
+  var x=s.ctx,w=s.w,h=s.h,pad=s.pad,dasar=h-pad,tinggi=(h-2*pad)*0.72;
+  x.setLineDash([9,7]);x.strokeStyle='#ffb300';x.beginPath();x.moveTo(pad,dasar-tinggi);x.lineTo(w-pad,dasar-tinggi);x.stroke();x.setLineDash([]);
+  x.strokeStyle='#00e5ff';x.lineWidth=3;x.beginPath();
+  for(var k=0;k<700;k++){var t=10*k/699,y;
+    if(z<1){var wd=wn*Math.sqrt(1-z*z);y=1-Math.exp(-z*wn*t)*(Math.cos(wd*t)+(z/Math.sqrt(1-z*z))*Math.sin(wd*t));}
+    else{y=1-(1+wn*t)*Math.exp(-wn*t);}
+    var px=pad+k*(w-2*pad)/699,py=dasar-tinggi*y;if(k===0)x.moveTo(px,py);else x.lineTo(px,py)}
+  x.stroke();
+  var label=z<1?'kurang teredam — ada lonjakan':(z>1.02?'lebih teredam — lambat tanpa lonjakan':'teredam kritis');
+  x.fillStyle='#8da1bf';x.font='19px JetBrains Mono';x.fillText('waktu \\u2192',w-190,h-16);x.fillText('y(t)',12,36);
+  x.fillStyle=z<1?'#ff4081':'#00e09e';x.fillText(label,pad+10,pad+26);
+};
+window.drawSiskenBode=function(n){
+  var s=_siskenSiapkan('siskenBodeCanvas'+n,52);var sl=document.getElementById('siskenBode'+n);if(!s||!sl)return;
+  var L=Number(sl.value);document.getElementById('siskenBodeValue'+n).textContent=L.toFixed(1);
+  var x=s.ctx,w=s.w,h=s.h,pad=s.pad,tau=3.0;
+  // |T(jw)| untuk plant orde satu dengan gain loop L
+  x.strokeStyle='#00e5ff';x.lineWidth=3;x.beginPath();
+  var minDb=-42,maxDb=6;
+  for(var k=0;k<700;k++){
+    var lw=-2+4*k/699,om=Math.pow(10,lw);
+    var mag=L/Math.sqrt(Math.pow(1+L,2)+Math.pow(om*tau,2));
+    var db=20*Math.log10(Math.max(mag,1e-6));
+    var px=pad+k*(w-2*pad)/699,py=pad+(maxDb-db)/(maxDb-minDb)*(h-2*pad);
+    if(k===0)x.moveTo(px,py);else x.lineTo(px,py)}
+  x.stroke();
+  var db3=20*Math.log10(L/(1+L))-3;
+  var y3=pad+(maxDb-db3)/(maxDb-minDb)*(h-2*pad);
+  x.setLineDash([8,6]);x.strokeStyle='#ffb300';x.beginPath();x.moveTo(pad,y3);x.lineTo(w-pad,y3);x.stroke();x.setLineDash([]);
+  x.fillStyle='#ffb300';x.font='17px JetBrains Mono';x.fillText('batas -3 dB (lebar pita)',pad+10,y3-10);
+  x.fillStyle='#8da1bf';x.font='19px JetBrains Mono';x.fillText('frekuensi \\u2192',w-230,h-16);x.fillText('|T| dB',12,36);
+};
+document.addEventListener('DOMContentLoaded',function(){
+  // Ketiganya digambar sejak halaman dimuat. Dahulu animasi pertama baru
+  // digambar saat tab "Animasi" dibuka; tab itu sudah tidak ada.
+  document.querySelectorAll('[id^="siskenGain"]').forEach(function(el){var m=el.id.match(/^siskenGain(\\d+)$/);if(m)drawSiskenAnimation(m[1])});
+  document.querySelectorAll('[id^="siskenDamp"]').forEach(function(el){var m=el.id.match(/^siskenDamp(\\d+)$/);if(m)drawSiskenDamping(m[1])});
+  document.querySelectorAll('[id^="siskenBode"]').forEach(function(el){var m=el.id.match(/^siskenBode(\\d+)$/);if(m)drawSiskenBode(m[1])});
+});
 </script>`;
 
 // Modul 1 ditulis tangan mengikuti Modul 1 Getaran Mekanik dan JAUH lebih dalam
@@ -594,6 +745,13 @@ for (const [index, m] of modules.entries()) {
   html = html.replace(/^[ \t]*<span class="nav-brand">[^\r\n]*$/m, `  <span class="nav-brand"><span class="pulse"></span><span>SISKENCERDAS // M${index + 1}</span></span>`);
   html = html.replace(/id="visitorTableBody" style="max-height:[^;\"]+;overflow-y:auto;"/g, 'id="visitorTableBody" style="max-height:min(72vh,820px);overflow-y:auto;"');
   html = html.replace(/<div class="page active" id="page-modul">[\s\S]*?<\/div>\s*<!-- end page-modul -->/, `<div class="page active" id="page-modul">${richModule(m, index)}\n</div><!-- end page-modul -->`);
+
+  // Bilah tautan di bawah nav dibangun ulang dari bagian yang benar-benar ada.
+  // Sebelumnya isinya masih menunjuk ke anchor halaman lama sehingga seluruh
+  // tautannya tidak menuju ke mana-mana.
+  const tautanSubnav = daftarBagian.map(([id, label]) => `<a href="#${id}">${label}</a>`).join("");
+  html = html.replace(/<div id="modulSubnav" class="subnav-bar show">[\s\S]*?<\/div>/,
+    `<div id="modulSubnav" class="subnav-bar show">${tautanSubnav}</div>`);
   // Halaman tugas yang sudah berisi soal sungguhan dibangun dari repo backend
   // (build-sisken-tugas.js), tempat kunci jawabannya berada. Repo ini publik
   // sehingga tidak boleh memuat kunci. Panel generik di bawah hanya dipakai
