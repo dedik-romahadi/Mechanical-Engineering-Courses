@@ -484,6 +484,16 @@ for (const [index, m] of modules.entries()) {
   if (!sudahAdaSoal) {
     html = html.replace(/<div class="page" id="page-tugas">[\s\S]*?<\/div>\s*<!-- end page-tugas -->/, `<div class="page" id="page-tugas">${taskPanel(m, index)}\n</div><!-- end page-tugas -->`);
   }
+  // Tombol "Unduh PDF" menunjuk ke berkas Word yang sudah dirender ke PDF di
+  // Modul-Word. Nama berkasnya dibentuk dari judul modul dengan aturan yang
+  // sama seperti pembangun berkas Word, lalu hanya dipasang bila berkasnya
+  // memang ada supaya tombolnya tidak pernah menunjuk ke alamat kosong.
+  const namaPdf = `Modul-${nomor}-${m.title.replace(/[^A-Za-z0-9 ]/g, "").trim().replace(/\s+/g, "-")}.pdf`;
+  if (fs.existsSync(path.join(root, "Sistem-Kendali-Cerdas", "Modul-Word", namaPdf))) {
+    html = html.replace(/const MODUL_PDF_URL = '[^']*';/, `const MODUL_PDF_URL = '../Modul-Word/${namaPdf}';`);
+    html = html.replace(/const MODUL_PDF_FILENAME = '[^']*';/, `const MODUL_PDF_FILENAME = '${namaPdf}';`);
+  }
+
   html = html.replace(/\/\* SISKENCERDAS-RICH-CONTENT:START \*\/[\s\S]*?\/\* SISKENCERDAS-RICH-CONTENT:END \*\//, css.trim());
   if (!html.includes("SISKENCERDAS-RICH-CONTENT:START")) html = html.replace("</head>", `<style>${css}</style>\n</head>`);
   fs.writeFileSync(file, html, "utf8");
