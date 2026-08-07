@@ -69,6 +69,46 @@ export const MATERI = {
         ],
         formula: "verifikasi: dibuat dengan benar   |   validasi: yang benar yang dibuat",
       },
+      {
+        head: "Analisis Bahaya Mendahului Analisis Kinerja",
+        body: [
+          "Sebelum satu pun parameter dihitung, perancang perlu menjawab pertanyaan yang berbeda dari pertanyaan kinerja: apa yang dapat berjalan salah, seberapa parah akibatnya, dan seberapa mungkin terjadi. Jawaban ketiganya menentukan berapa banyak lapisan perlindungan yang dibutuhkan, dan lapisan itu harus dirancang sebelum loop kendalinya, bukan sesudah.",
+          "Cara yang lazim menelusuri setiap besaran proses dan menanyakan apa akibatnya bila besaran itu terlalu tinggi, terlalu rendah, tidak berubah sama sekali, atau berubah terlalu cepat. Keempat pertanyaan itu sederhana namun secara mengejutkan efektif menemukan mode kegagalan yang tidak terpikir saat merancang kinerja.",
+          "Hasil analisis diterjemahkan menjadi lapisan yang saling bebas. Lapisan pertama adalah loop kendali normal yang menjaga proses di titik kerja. Lapisan kedua berupa alarm yang memberi tahu operator sebelum batas terlampaui. Lapisan ketiga berupa interlock yang bertindak sendiri tanpa menunggu operator. Lapisan terakhir berupa pengaman fisik seperti katup pelepas tekanan yang bekerja tanpa listrik maupun perangkat lunak.",
+          "Kemandirian antarlapisan itulah yang memberi nilai. Bila alarm memakai sensor yang sama dengan loop kendali, kegagalan satu sensor melumpuhkan keduanya sekaligus. Karena itu lapisan perlindungan yang berbeda sedapat mungkin memakai sensor, jalur sinyal, dan sumber daya yang berbeda pula.",
+        ],
+        formula: "lapisan: kendali -> alarm -> interlock -> pengaman fisik, saling bebas",
+      },
+      {
+        head: "Memilih Sensor dan Actuator Mengunci Batas Kinerja",
+        body: [
+          "Keputusan yang paling menentukan kinerja akhir justru diambil paling awal, yaitu saat memilih sensor dan actuator. Setelah keduanya terpasang, tidak ada penyetelan yang dapat melampaui batas yang mereka tetapkan, dan mengganti keduanya jauh lebih mahal daripada mengubah parameter.",
+          "Pada sensor, tiga sifat perlu dinilai bersama. Rentang menentukan apakah seluruh keadaan operasi terbaca. Resolusi menentukan perubahan terkecil yang dapat dibedakan dari derau. Dan kecepatan menentukan seberapa segera perubahan terbaca, yang pada praktiknya sering lebih menentukan daripada ketelitian. Sensor yang sangat teliti namun lambat hampir selalu kalah oleh sensor yang cukup teliti namun cepat.",
+          "Letak pemasangan sama pentingnya dengan spesifikasi perangkatnya. Sensor yang dipasang jauh dari titik yang sebenarnya ingin dikendalikan menciptakan dead time, dan dead time memakan margin fase yang tidak dapat dikembalikan penyetelan. Banyak loop bermasalah yang penyebabnya semata letak sensor demi kemudahan perawatan.",
+          "Pada actuator, yang perlu dinilai bukan hanya besar keluaran maksimum melainkan juga laju perubahan maksimum dan perilakunya di sekitar nol. Katup yang lambat bergerak menimbulkan gejala mirip dead time, sedangkan katup dengan daerah mati di sekitar posisi tertutup membuat kendali halus di beban rendah menjadi mustahil.",
+        ],
+        formula: "kecepatan sensor sering lebih menentukan daripada ketelitiannya",
+      },
+      {
+        head: "Dokumentasi yang Benar-Benar Dipakai Orang Lain",
+        body: [
+          "Dokumen perancangan yang berguna ditulis untuk orang yang akan menghadapi sistem ini setahun kemudian tanpa pernah ikut merancangnya. Ukuran keberhasilannya sederhana: apakah orang itu dapat memahami mengapa setiap keputusan diambil, bukan sekadar apa yang diputuskan.",
+          "Karena itu alasan lebih penting daripada nilai. Mencatat bahwa penguatan proporsional bernilai empat hampir tidak berguna; mencatat bahwa nilainya dibatasi empat karena pada nilai lebih tinggi katup jenuh saat perubahan setpoint terbesar yang diperkirakan jauh lebih berguna, karena orang berikutnya tahu apa yang harus diperiksa ulang bila keadaan berubah.",
+          "Rekaman pengujian merupakan bagian dari dokumen, bukan lampiran. Grafik respons terhadap perubahan setpoint dan terhadap gangguan, beserta kondisi pengambilannya, menjadi acuan pembanding ketika kelak sistem dicurigai memburuk. Tanpa acuan itu, pertanyaan apakah sistem sekarang lebih buruk daripada dulu tidak dapat dijawab.",
+          "Penyimpangan yang diterima juga harus tercatat beserta alasannya. Sistem yang tidak memenuhi satu spesifikasi namun diterima karena alasan tertentu perlu dinyatakan terbuka; menyembunyikannya membuat orang berikutnya menghabiskan waktu mengejar sesuatu yang sebenarnya sudah diketahui dan disepakati.",
+        ],
+        formula: "catat alasan, bukan hanya nilai   |   rekaman uji = acuan pembanding kelak",
+      },
+      {
+        head: "Mengelola Perubahan Setelah Sistem Berjalan",
+        body: [
+          "Sistem kendali jarang berakhir pada saat serah terima. Kapasitas dinaikkan, bahan baku berganti, perangkat diganti karena aus, dan setiap perubahan itu berpotensi menggeser dinamika yang mendasari perancangan semula.",
+          "Persoalannya, perubahan semacam itu hampir selalu dilakukan tanpa meninjau ulang loop kendalinya. Penggantian katup dengan ukuran berbeda mengubah gain proses; penambahan kapasitas mengubah konstanta waktu; perubahan bahan baku mengubah keduanya. Parameter yang tepat sebelum perubahan menjadi tidak tepat sesudahnya, dan gejalanya sering muncul berbulan-bulan kemudian dalam bentuk yang sulit dilacak.",
+          "Prosedur pengelolaan perubahan yang sederhana sudah sangat membantu. Setiap perubahan pada perangkat proses disertai pertanyaan apakah ia mengubah gain, konstanta waktu, atau dead time loop yang bersangkutan. Bila salah satunya berubah, loop itu masuk daftar yang harus diuji ulang, dan hasilnya dibandingkan dengan rekaman pengujian serah terima.",
+          "Pemantauan berkala melengkapi prosedur itu. Membandingkan respons loop terhadap gangguan rutin dari waktu ke waktu menampakkan pemburukan bertahap jauh sebelum operator mengeluh, dan biayanya hampir tidak ada karena datanya sudah terekam sistem.",
+        ],
+        formula: "tiap perubahan perangkat: periksa apakah K, tau, atau L bergeser",
+      },
     ],
     derivation: {
       head: "Menurunkan Spesifikasi Orde Dua Menjadi Target Pole",
@@ -168,6 +208,46 @@ export const MATERI = {
         ],
         formula: "pole -a  =>  exp(-a*t), tau = 1/a   |   pole -a +/- jb  =>  exp(-a*t)*cos(b*t)",
       },
+      {
+        head: "Menurunkan Fungsi Transfer Pertama dari Persamaan Fisik",
+        body: [
+          "Langkah yang paling sering ditemui di lapangan bukan menyelesaikan persamaan diferensial melainkan menurunkan fungsi transfer dari hukum fisika yang berlaku. Urutannya tetap: tuliskan hukum keseimbangan, nyatakan dalam besaran yang diukur dan dikendalikan, transformasikan tiap suku, lalu susun rasio keluaran terhadap masukan.",
+          "Pada sistem termal, hukum yang dipakai adalah keseimbangan energi: laju perubahan energi tersimpan sama dengan energi masuk dikurangi energi keluar. Kapasitas panas menjadi penyimpan energi tunggal, sehingga hasilnya berorde satu dengan konstanta waktu berupa hasil bagi kapasitas terhadap koefisien perpindahan panas.",
+          "Pada rangkaian listrik, hukum Kirchhoff memberi bentuk yang serupa. Kapasitor dan induktor masing-masing menyumbang satu penyimpan energi, sehingga rangkaian dengan keduanya menghasilkan sistem orde dua yang matematikanya identik dengan sistem massa-pegas-peredam. Kesamaan bentuk inilah yang membuat pemahaman satu sistem dapat dipindahkan ke sistem lain.",
+          "Yang perlu dijaga adalah kejelasan tentang apa yang dianggap masukan dan apa yang dianggap keluaran, karena fungsi transfer selalu didefinisikan terhadap pasangan tertentu. Sistem yang sama dapat memiliki beberapa fungsi transfer berbeda tergantung pasangan mana yang ditinjau, dan menukar keduanya tanpa sadar adalah kekeliruan yang sering terjadi.",
+        ],
+        formula: "termal: C*dT/dt = q_in - h*(T - T_amb)  =>  G(s) = K/(tau*s + 1)",
+      },
+      {
+        head: "Respons Impuls dan Makna Konvolusi",
+        body: [
+          "Respons impuls adalah keluaran sistem terhadap masukan yang sangat singkat namun berenergi tertentu. Transformasi impuls satuan bernilai satu, sehingga transformasi respons impuls sama persis dengan fungsi transfernya. Kesetaraan itu membuat respons impuls menjadi sidik jari sistem di domain waktu.",
+          "Karena masukan sembarang dapat dipandang sebagai rangkaian impuls yang beruntun, keluaran terhadap masukan itu adalah jumlah tanggapan atas seluruh impuls tersebut. Penjumlahan itulah yang secara matematis disebut konvolusi, dan itu pula yang membuat konvolusi terasa merepotkan di domain waktu.",
+          "Di domain-s, seluruh kerumitan itu runtuh menjadi perkalian sederhana. Inilah keuntungan yang paling banyak dipakai dalam praktik: menghitung respons terhadap masukan rumit cukup dengan mengalikan fungsi transfer dengan transformasi masukannya, lalu menginverskan hasilnya.",
+          "Secara praktis, respons impuls murni sulit diperoleh karena impuls sejati tidak dapat dibangkitkan perangkat nyata. Karena itu di lapangan orang memakai uji step, lalu menurunkan respons impuls sebagai turunan responsnya bila memang diperlukan.",
+        ],
+        formula: "L{impuls} = 1  =>  L{respons impuls} = G(s)   |   konvolusi <-> perkalian",
+      },
+      {
+        head: "Teorema Nilai Awal dan Pemeriksaan Cepat",
+        body: [
+          "Selain teorema nilai akhir, terdapat pasangannya yang menghitung nilai pada saat awal. Nilai keluaran tepat setelah masukan diberikan diperoleh dari limit s dikali transformasinya saat s menuju tak hingga. Teorema ini berguna sebagai pemeriksaan murah terhadap hasil aljabar.",
+          "Pemakaiannya sederhana namun sering menyingkap kekeliruan. Bila hasil hitung memberi nilai awal yang tidak sesuai dengan kondisi awal yang dipakai, pasti ada kesalahan di suatu tempat, dan menemukannya sekarang jauh lebih murah daripada setelah controller dipasang.",
+          "Teorema ini juga menjelaskan makna selisih orde antara pembilang dan penyebut. Sistem yang penyebutnya berorde jauh lebih tinggi memberi nilai awal nol, artinya keluaran tidak melompat seketika. Sistem yang selisih ordenya nol justru melompat pada saat awal, dan lompatan itu berasal dari jalur langsung dari masukan ke keluaran.",
+          "Pasangan kedua teorema memberi cara ringkas menggambarkan respons tanpa menghitung seluruhnya: nilai awal dari satu teorema, nilai akhir dari teorema lain, dan bentuk peralihan dari letak pole. Ketiganya sudah cukup untuk memperkirakan grafik responsnya secara kasar.",
+        ],
+        formula: "y(0+) = lim s->inf s*Y(s)   |   y(inf) = lim s->0 s*Y(s)",
+      },
+      {
+        head: "Batas Keberlakuan dan Kekeliruan yang Menyertainya",
+        body: [
+          "Seluruh perkakas Laplace bersandar pada dua andaian: sistemnya linier dan parameternya tidak berubah terhadap waktu. Kedua andaian itu jarang benar-benar terpenuhi pada sistem nyata, dan menyadari batasnya sama pentingnya dengan menguasai perhitungannya.",
+          "Linearitas biasanya hanya berlaku di sekitar titik kerja. Ketika sistem bergerak jauh dari titik itu, misalnya karena perubahan setpoint besar atau kejenuhan actuator, kesimpulan yang diperoleh dari fungsi transfer perlu diperiksa ulang. Gejalanya khas: perilaku yang sesuai perhitungan pada perubahan kecil namun menyimpang pada perubahan besar.",
+          "Ketidakberubahan terhadap waktu juga sering terlanggar. Pengotoran pada penukar panas, keausan pada bantalan, dan perubahan bahan baku semuanya menggeser parameter. Karena itu perancangan yang matang menyatakan rentang ketidakpastian parameter dan memastikan spesifikasi tetap terpenuhi di seluruh rentang itu.",
+          "Kekeliruan yang paling sering muncul justru bukan pada perhitungannya melainkan pada penafsirannya: memperlakukan hasil analisis linier sebagai kebenaran mutlak. Hasil itu perkiraan yang sangat berguna, dan kegunaannya bertahan selama batas keberlakuannya diingat.",
+        ],
+        formula: "linier di sekitar titik kerja + parameter tetap = syarat berlakunya seluruh analisis",
+      },
     ],
     derivation: {
       head: "Menurunkan Respons Step Sistem Orde Satu",
@@ -266,6 +346,46 @@ export const MATERI = {
           "Karena itu perancangan yang matang tidak mengejar gain setinggi mungkin, melainkan menempatkan penekanan sensitivitas pada rentang frekuensi tempat gangguan sesungguhnya berada, sambil menjaga jarak aman terhadap kestabilan pada frekuensi tempat model plant sudah tidak dapat dipercaya.",
         ],
         formula: "S = 1/(1 + G*H)   |   dT/T = S * dG/G",
+      },
+      {
+        head: "Superposisi pada Sistem Banyak Masukan",
+        body: [
+          "Sistem kendali nyata jarang hanya memiliki satu masukan. Selain setpoint, terdapat gangguan beban, derau sensor, dan kadang masukan feedforward. Karena sistemnya linier, pengaruh masing-masing dapat dihitung terpisah lalu dijumlahkan, dan sifat inilah yang disebut superposisi.",
+          "Cara menerapkannya tertib: nolkan seluruh masukan kecuali satu, hitung fungsi transfer dari masukan yang tersisa ke keluaran, lalu ulangi untuk masukan berikutnya. Keluaran total adalah jumlah seluruh sumbangan itu.",
+          "Yang menarik, seluruh fungsi transfer tersebut berbagi penyebut yang sama, yaitu satu ditambah gain loop. Karena itu letak pole, kestabilan, dan kecepatan dasar sistem tidak bergantung pada masukan mana yang ditinjau. Yang berbeda hanyalah pembilangnya, dan pembilang itulah yang membentuk besar serta bentuk sumbangan masing-masing.",
+          "Konsekuensi praktisnya penting: memperbaiki kestabilan memperbaiki seluruh tanggapan sekaligus, tetapi memperbaiki tanggapan terhadap satu masukan tidak otomatis memperbaiki yang lain. Itulah dasar mengapa pengujian setpoint dan pengujian gangguan tidak dapat saling menggantikan.",
+        ],
+        formula: "Y = T_r*R + T_d*D + T_n*N   |   penyebut sama, pembilang berbeda",
+      },
+      {
+        head: "Zero: Dari Mana Datangnya dan Apa Akibatnya",
+        body: [
+          "Zero pada fungsi transfer bukan hiasan matematis melainkan jejak struktur fisik. Ia muncul ketika terdapat lebih dari satu jalur dari masukan ke keluaran, dan jalur-jalur itu saling menguatkan atau saling meniadakan pada frekuensi tertentu.",
+          "Contoh yang paling mudah dibayangkan adalah sistem dengan jalur cepat berkapasitas kecil dan jalur lambat berkapasitas besar. Bila keduanya berlawanan tanda, pada saat awal jalur cepat mendominasi sehingga keluaran bergerak ke satu arah, lalu jalur lambat mengambil alih dan membalikkannya. Inilah wujud fisik zero di sebelah kanan sumbu imajiner.",
+          "Akibatnya terhadap perancangan bersifat mendasar. Sistem semacam itu tidak dapat dikendalikan secepat yang diinginkan, karena menaikkan penguatan memperbesar gerakan awal yang salah arah dan mempercepat hilangnya kestabilan. Batas ini tidak dapat dihapus penyetelan maupun controller yang lebih rumit.",
+          "Zero di sebelah kiri sumbu imajiner tidak menimbulkan gejala itu, namun tetap mengubah bentuk respons dengan menaikkan overshoot dan mempercepat kenaikan awal. Karena itu memperkirakan respons hanya dari letak pole tanpa memperhatikan zero sering meleset, terutama bila zero-nya dekat dengan pole dominan.",
+        ],
+        formula: "zero muncul dari beberapa jalur; zero kanan = gerak awal berlawanan arah",
+      },
+      {
+        head: "Dari Diagram Blok ke Kode Simulasi",
+        body: [
+          "Diagram blok yang sudah benar dapat diterjemahkan langsung menjadi kode simulasi tanpa melewati fungsi transfer sama sekali. Caranya menetapkan satu variabel keadaan untuk setiap integrator pada diagram, lalu menuliskan persamaan turunan tiap keadaan dari sinyal yang masuk ke integrator itu.",
+          "Cara ini punya dua keunggulan. Pertama, nonlinieritas seperti kejenuhan actuator dan daerah mati dapat disisipkan tepat di tempatnya pada diagram, sesuatu yang tidak mungkin dilakukan pada fungsi transfer. Kedua, seluruh sinyal antara tetap dapat diamati, sehingga sinyal kendali dan keluaran tiap blok dapat direkam untuk pemeriksaan.",
+          "Urutan perhitungan dalam satu langkah waktu perlu diperhatikan. Sinyal harus dihitung mengikuti arah aliran pada diagram: error lebih dahulu, lalu keluaran controller, lalu masukan plant, baru turunan keadaan. Menghitung dengan urutan sembarang menimbulkan keterlambatan satu langkah yang tidak ada pada sistem sesungguhnya.",
+          "Pemeriksaan hasilnya sederhana namun efektif. Jalankan simulasi tanpa nonlinieritas apa pun lalu bandingkan responsnya dengan hasil analitik dari fungsi transfer; keduanya harus berimpit. Setelah itu barulah nonlinieritas dinyalakan satu per satu, sehingga bila perilakunya berubah, penyebabnya jelas.",
+        ],
+        formula: "satu integrator = satu variabel keadaan   |   hitung mengikuti arah aliran sinyal",
+      },
+      {
+        head: "Pemeriksaan Akhir Sebelum Hasil Reduksi Dipakai",
+        body: [
+          "Hasil reduksi diagram blok kerap dipakai sebagai dasar seluruh perancangan berikutnya, sehingga kekeliruan di sini menjalar ke mana-mana. Beberapa pemeriksaan murah dapat menangkap sebagian besar kesalahan sebelum hal itu terjadi.",
+          "Pemeriksaan pertama adalah gain arus searah. Evaluasi hasil pada s sama dengan nol, lalu bandingkan dengan perkiraan fisik: bila seluruh masukan tetap, berapa keluaran yang seharusnya. Angka yang jauh berbeda menandakan kekeliruan tanda atau blok yang terlewat.",
+          "Pemeriksaan kedua adalah kelayakan satuan. Fungsi transfer dari bukaan katup ke temperatur harus bersatuan derajat per persen bukaan; bila hasil reduksi memberi satuan lain, ada blok yang salah tempat. Pemeriksaan ini sering terlupakan justru karena terasa terlalu sederhana.",
+          "Pemeriksaan ketiga adalah orde. Jumlah pole hasil reduksi harus sama dengan jumlah penyimpan energi bebas pada sistem. Bila hasilnya lebih sedikit, kemungkinan terjadi pencoretan pole dengan zero yang perlu diperiksa keabsahannya; bila lebih banyak, ada blok yang terhitung ganda.",
+        ],
+        formula: "periksa: gain arus searah, kelayakan satuan, dan jumlah pole terhadap penyimpan energi",
       },
     ],
     derivation: {
