@@ -587,6 +587,134 @@ export const FORUM = {
       },
     ],
   },
+
+  11: {
+    judul: "Proyek Kecerdasan Buatan yang Salah Sasaran",
+    eyebrow: "Forum Diskusi · Pertemuan 11 · Ikhtisar Metode Kontrol Cerdas",
+    ringkas: "Sebuah pabrik menganggarkan proyek machine learning untuk loop yang bermasalah. Nilai apakah anggaran itu menjawab persoalan yang sebenarnya.",
+    narasi: [
+      "Sebuah loop kendali temperatur pengering dilaporkan tidak pernah stabil. Manajemen menyetujui usulan mengganti controller dengan model berbasis <strong style=\"color:var(--amber)\">machine learning</strong>, lengkap dengan anggaran pengumpulan data selama enam bulan dan tenaga ahli dari luar.",
+      "Sebelum proyek berjalan, seorang engineer muda memeriksa loopnya. Ia menemukan tiga hal. Termokopel dipasang <strong style=\"color:var(--pink)\">di saluran keluar</strong>, tiga meter dari zona pemanas, sehingga perubahan baru terbaca sekitar 70 detik kemudian. Katup gas sering mentok terbuka penuh selama pemanasan awal, sementara program controller tidak memuat penanganan apa pun untuk keadaan itu. Dan parameter controller ternyata <strong>tidak pernah diubah</strong> sejak dipasang delapan tahun lalu, padahal kapasitas pengering sudah dinaikkan dua kali.",
+      "Tim proyek berpendapat temuan itu tidak mengubah rencana, karena model berbasis data justru akan belajar menangani semua ketidaksempurnaan tersebut.",
+    ],
+    chip: ["Jeda sensor: ~70 detik", "Katup: sering mentok", "Anti-windup: tidak ada", "Penyetelan terakhir: 8 tahun lalu"],
+    jajak: [
+      {
+        q: "Pendapat tim proyek bahwa model berbasis data akan belajar menangani ketidaksempurnaan itu...",
+        opts: [
+          "Benar, karena model dilatih dari data nyata termasuk ketidaksempurnaannya",
+          "Keliru, karena jeda sensor dan kejenuhan actuator adalah batasan fisik yang tetap ada berapa pun cerdasnya controller",
+          "Benar, asalkan datanya cukup banyak",
+          "Keliru, karena model berbasis data tidak dapat menangani sistem nonlinier",
+        ],
+        jawab: 1,
+        benar: "Tepat. Jeda 70 detik tidak dapat dihapus algoritma mana pun; ia menentukan batas seberapa cepat loop boleh dikendalikan. Kejenuhan actuator juga batas fisik, bukan pola yang bisa dipelajari.",
+        salah: "Model berbasis data memang belajar dari kenyataan, tetapi belajar bukan berarti mengatasi. Jeda sensor dan batas actuator tetap membatasi kinerja setinggi apa pun kecerdasan controllernya.",
+      },
+      {
+        q: "Urutan penanganan yang paling bertanggung jawab adalah...",
+        opts: [
+          "Pindahkan sensor, tambahkan anti-windup, setel ulang, lalu nilai ulang apakah masih perlu metode cerdas",
+          "Jalankan proyek machine learning sesuai rencana lalu perbaiki sensor belakangan",
+          "Ganti katup dengan yang lebih besar",
+          "Naikkan penguatan controller sampai respons terasa cepat",
+        ],
+        jawab: 0,
+        benar: "Tepat. Ketiga temuan itu murah diperbaiki dibanding anggaran proyek, dan sebagian besar kasus semacam ini selesai di sini. Penilaian ulang setelah perbaikan barulah dasar yang jujur untuk memutuskan.",
+        salah: "Menjalankan proyek besar di atas persoalan dasar yang belum diperbaiki berarti membayar mahal untuk menutupi hal yang murah diselesaikan.",
+      },
+      {
+        q: "Seandainya setelah semua perbaikan loop masih bermasalah karena gain berubah jauh terhadap laju umpan yang terukur, pendekatan yang paling tepat adalah...",
+        opts: [
+          "Jaringan saraf, karena hubungannya nonlinier",
+          "Penjadwalan gain, karena penjadwalnya terukur dan berubah lambat",
+          "Logika fuzzy, karena operator berpengalaman",
+          "Algoritma genetika, karena parameternya banyak",
+        ],
+        jawab: 1,
+        benar: "Tepat. Bila nonlinieritas terwakili satu besaran terukur yang berubah jauh lebih lambat daripada loop, penjadwalan gain menyelesaikannya dengan perkakas yang seluruhnya dapat diverifikasi.",
+        salah: "Kedua syarat penjadwalan gain terpenuhi di sini, yaitu penjadwal terukur dan berubah lambat. Memilih metode yang lebih rumit tanpa keuntungan yang jelas menambah biaya pemeliharaan tanpa alasan.",
+      },
+    ],
+    diskusi: [
+      {
+        q: "Susun urutan pemeriksaan yang seharusnya dilakukan sebelum menyetujui proyek semacam ini",
+        petunjuk: "1) Daftarkan pemeriksaan dasar yang murah beserta gejala yang dicarinya. 2) Tentukan bukti apa yang harus direkam pada tiap pemeriksaan. 3) Tetapkan kriteria kapan pendekatan klasik dinyatakan benar-benar gagal. 4) Jelaskan mengapa urutan ini menghemat biaya sekaligus menghasilkan keputusan yang lebih jujur.",
+      },
+      {
+        q: "Jelaskan mengapa jeda sensor 70 detik membatasi kinerja berapa pun metode yang dipakai",
+        petunjuk: "1) Uraikan pengaruh dead time terhadap fase pada frekuensi kerja. 2) Kaitkan dengan margin kestabilan dan batas penguatan. 3) Jelaskan mengapa ini batasan fisik, bukan persoalan algoritma. 4) Sebutkan penanganan yang benar-benar menyentuh sebabnya.",
+      },
+      {
+        q: "Bandingkan biaya pemeliharaan jangka panjang ketiga pilihan: perbaikan klasik, penjadwalan gain, dan model berbasis data",
+        petunjuk: "1) Sebutkan siapa yang mampu merawat masing-masing di lingkungan pabrik. 2) Sebutkan apa yang harus dilakukan setiap kali proses berubah. 3) Sebutkan risiko bila orang yang menguasainya tidak lagi tersedia. 4) Berikan rekomendasi beserta alasannya.",
+      },
+    ],
+  },
+
+  12: {
+    judul: "Model yang Percaya Diri di Tempat yang Salah",
+    eyebrow: "Forum Diskusi · Pertemuan 12 · Jaringan Saraf Tiruan",
+    ringkas: "Penaksir berbasis jaringan saraf bekerja sangat baik selama setahun, lalu memberi angka yang meyakinkan namun keliru saat paling dibutuhkan.",
+    narasi: [
+      "Sebuah kilang memakai jaringan saraf untuk menaksir <strong>kemurnian produk</strong> dari temperatur, tekanan, dan laju alir yang murah diukur, menggantikan analisis laboratorium yang memakan waktu dua jam. Selama setahun hasilnya sangat baik, dengan selisih rata-rata di bawah 0,3 persen terhadap hasil laboratorium.",
+      "Suatu hari terjadi gangguan pada umpan sehingga komposisinya berubah jauh di luar kebiasaan. Selama gangguan itu, penaksir tetap melaporkan kemurnian <strong style=\"color:var(--green)\">99,2 persen</strong> dengan tampilan yang sama meyakinkannya seperti hari-hari biasa. Hasil laboratorium yang keluar dua jam kemudian menunjukkan kemurnian sebenarnya <strong style=\"color:var(--pink)\">96,4 persen</strong>, jauh di bawah batas jual.",
+      "Peninjauan menemukan data pelatihan seluruhnya diambil pada <strong style=\"color:var(--amber)\">operasi normal</strong> selama tiga bulan. Model tidak pernah melihat keadaan seperti saat gangguan, dan tidak ada mekanisme apa pun yang memberi tahu bahwa masukannya berada di luar rentang yang pernah dipelajari.",
+    ],
+    chip: ["Taksiran: 99,2 %", "Sebenarnya: 96,4 %", "Data latih: operasi normal saja", "Peringatan luar cakupan: tidak ada"],
+    jajak: [
+      {
+        q: "Penyebab pokok kegagalan ini adalah...",
+        opts: [
+          "Arsitektur jaringan yang terlalu kecil",
+          "Laju pembelajaran yang keliru saat pelatihan",
+          "Data pelatihan tidak mewakili keadaan yang jarang terjadi, dan model tidak mengenali masukan di luar cakupannya",
+          "Sensor temperatur yang rusak",
+        ],
+        jawab: 2,
+        benar: "Tepat. Model hanya dapat dipercaya di dalam rentang yang terwakili data pelatihannya. Data yang seluruhnya diambil pada operasi normal menghasilkan model yang gagal justru pada saat paling dibutuhkan.",
+        salah: "Arsitektur dan laju pembelajaran memengaruhi kualitas pelatihan, tetapi tidak dapat menciptakan pengetahuan tentang keadaan yang tidak pernah ada di data.",
+      },
+      {
+        q: "Model tetap tampil meyakinkan saat keliru karena...",
+        opts: [
+          "Jaringan saraf selalu memberi keluaran untuk masukan apa pun, tanpa menyatakan seberapa jauh masukan itu dari data pelatihannya",
+          "Keluarannya sengaja dibulatkan",
+          "Tampilan operator tidak menampilkan angka desimal",
+          "Sensor memberi data yang salah",
+        ],
+        jawab: 0,
+        benar: "Tepat. Inilah sifat yang membuat model berbasis data berbahaya bila dipakai tanpa pengaman: ekstrapolasi menghasilkan angka yang bentuknya wajar namun tidak memiliki jaminan apa pun.",
+        salah: "Persoalannya bukan pada penyajian angka, melainkan pada tidak adanya mekanisme yang menyatakan bahwa masukan saat itu berada di luar wilayah yang pernah dipelajari model.",
+      },
+      {
+        q: "Pengaman yang paling tepat ditambahkan adalah...",
+        opts: [
+          "Melatih ulang model setiap minggu",
+          "Mekanisme pengenalan masukan di luar cakupan yang mengembalikan kendali ke logika cadangan",
+          "Menambah jumlah lapisan jaringan",
+          "Mengganti fungsi aktivasi",
+        ],
+        jawab: 1,
+        benar: "Tepat. Model harus mampu menyatakan bahwa masukan saat ini jauh dari data yang pernah dipelajarinya, dan pada keadaan itu kendali dikembalikan ke logika cadangan alih-alih memaksakan tebakan.",
+        salah: "Menambah kapasitas atau melatih lebih sering tidak menyelesaikan persoalan pokoknya, yaitu tidak adanya mekanisme yang mengenali kapan model sedang berada di luar wilayah yang dikuasainya.",
+      },
+    ],
+    diskusi: [
+      {
+        q: "Rancang strategi pengumpulan data yang seharusnya dipakai sejak awal",
+        petunjuk: "1) Tentukan keadaan operasi apa saja yang wajib terwakili, termasuk yang jarang terjadi. 2) Jelaskan cara memperoleh data pada keadaan yang jarang tanpa membahayakan proses. 3) Tentukan pemisahan data latih, validasi, dan uji. 4) Tentukan kriteria kapan data dinyatakan cukup mewakili.",
+      },
+      {
+        q: "Rancang mekanisme pengenalan kondisi di luar cakupan beserta tindakan yang menyertainya",
+        petunjuk: "1) Usulkan cara mengukur seberapa jauh masukan saat ini dari data pelatihan. 2) Tentukan ambang yang memicu peringatan. 3) Tentukan tindakan sistem saat ambang terlampaui. 4) Jelaskan mengapa tindakan itu harus konservatif, bukan sekadar memberi peringatan.",
+      },
+      {
+        q: "Susun prosedur pemantauan model setelah dipasang",
+        petunjuk: "1) Tentukan besaran acuan yang dipakai membandingkan taksiran model. 2) Tentukan seberapa sering pembandingan dilakukan. 3) Tentukan gejala yang menandakan model mulai menua. 4) Tentukan kriteria kapan model wajib dilatih ulang atau ditarik dari pemakaian.",
+      },
+    ],
+  },
 };
 
 export default FORUM;
