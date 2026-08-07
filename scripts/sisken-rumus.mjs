@@ -13,6 +13,7 @@ const SIMBOL = [
   // Penguatan dan waktu tala ditulis bersubskrip seperti pada Modul 1.
   [/\bKp\b/g, "K_p"], [/\bKi\b/g, "K_i"], [/\bKd\b/g, "K_d"], [/\bKu\b/g, "K_u"],
   [/\bKt\b/g, "K_t"], [/\bTi\b/g, "T_i"], [/\bTd\b/g, "T_d"], [/\bTu\b/g, "T_u"],
+  [/\bMp\b/g, "M_p"], [/\bess\b/g, "e_{ss}"],
   [/\btau_cl\b/g, "\\tau_{cl}"],
   [/\bwn\b/g, "\\omega_n"],
   [/\bwd\b/g, "\\omega_d"],
@@ -36,9 +37,10 @@ const SIMBOL = [
   [/\balpha\b/g, "\\alpha"],
   [/\bbeta\b/g, "\\beta"],
   [/\btheta\b/g, "\\theta"],
-  // sqrt bersarang tidak tertangkap pola berkurung di tokenLatex, jadi kata
-  // sisanya tetap diubah menjadi perintah supaya tampil sebagai tanda akar.
-  [/\bsqrt\b/g, "\\sqrt"],
+  // Sisa kata sqrt/exp yang tidak berkurung tetap diubah menjadi perintah.
+  // Lookbehind mencegah \sqrt hasil pengubahan sebelumnya tergandakan
+  // menjadi \\sqrt, yang membuat KaTeX menolak seluruh ekspresi.
+  [/(?<!\\)\bsqrt\b/g, "\\sqrt"],
 ];
 
 const PENGGANTI = [
@@ -62,6 +64,79 @@ const KATA_MATEMATIKA = new Set([
   "tau", "pi", "inf", "wn", "wd", "zeta", "integral", "impuls", "pole", "zero",
 ]);
 
+/** Kembalikan indeks kurung tutup yang berpasangan dengan kurung buka di `i`. */
+function pasanganKurung(t, i) {
+  let dalam = 0;
+  for (let j = i; j < t.length; j += 1) {
+    if (t[j] === "(") dalam += 1;
+    else if (t[j] === ")") { dalam -= 1; if (dalam === 0) return j; }
+  }
+  return -1;
+}
+
+/**
+ * Ubah `nama(...)` menjadi bentuk LaTeX, termasuk ketika isinya masih memuat
+ * kurung lagi seperti exp(-pi*z/sqrt(1-z^2)). Pola regex biasa gagal di situ
+ * karena ia berhenti pada kurung tutup yang pertama ditemui.
+ */
+function fungsiBerkurung(t, nama, bungkus) {
+  let hasil = "";
+  let i = 0;
+  for (;;) {
+    const k = t.indexOf(`${nama}(`, i);
+    if (k < 0) return hasil + t.slice(i);
+    // Harus berdiri sebagai kata sendiri, bukan ekor pengenal lain.
+    if (k > 0 && /[A-Za-z0-9_\\]/.test(t[k - 1])) {
+      hasil += t.slice(i, k + nama.length + 1);
+      i = k + nama.length + 1;
+      continue;
+    }
+    const tutup = pasanganKurung(t, k + nama.length);
+    if (tutup < 0) return hasil + t.slice(i);
+    hasil += t.slice(i, k) + bungkus(t.slice(k + nama.length + 1, tutup));
+    i = tutup + 1;
+  }
+}
+
+/** Awal operand yang berakhir tepat sebelum indeks `akhir`. */
+function awalOperand(t, akhir) {
+  const bukaPasangan = (kanan, buka, tutup) => {
+    let dalam = 0;
+    for (let j = kanan; j >= 0; j -= 1) {
+      if (t[j] === tutup) dalam += 1;
+      else if (t[j] === buka) { dalam -= 1; if (dalam === 0) return j; }
+    }
+    return -1;
+  };
+  let i = akhir;
+  if (t[i - 1] === "}") { const b = bukaPasangan(i - 1, "{", "}"); if (b < 0) return i; i = b; }
+  else if (t[i - 1] === ")") { const b = bukaPasangan(i - 1, "(", ")"); if (b < 0) return i; i = b; }
+  while (i > 0 && /[A-Za-z0-9_.\\]/.test(t[i - 1])) i -= 1;
+  // Pangkat dan subskrip menempel pada basisnya, jadi basisnya ikut diambil.
+  if (i > 0 && (t[i - 1] === "^" || t[i - 1] === "_")) return awalOperand(t, i - 1);
+  return i;
+}
+
+/**
+ * Ubah `pembilang/(penyebut)` menjadi \frac. Pembilang diambil utuh beserta
+ * pangkatnya — tanpa ini, wn^2/(...) terbaca sebagai wn pangkat pecahan.
+ */
+function pecahanBerkurung(t) {
+  let hasil = t;
+  for (let putaran = 0; putaran < 12; putaran += 1) {
+    const k = hasil.indexOf("/(");
+    if (k < 0) break;
+    const tutup = pasanganKurung(hasil, k + 1);
+    if (tutup < 0) break;
+    const mulai = awalOperand(hasil, k);
+    const pembilang = hasil.slice(mulai, k).trim();
+    const penyebut = hasil.slice(k + 2, tutup).trim();
+    if (!pembilang) break;
+    hasil = `${hasil.slice(0, mulai)}\\frac{${pembilang}}{${penyebut}}${hasil.slice(tutup + 1)}`;
+  }
+  return hasil;
+}
+
 function tokenLatex(teks) {
   // Kurung kurawal yang memang ada di teks asal (mis. "L{f*g}" atau himpunan
   // "{t_r, t_s}") diamankan lebih dulu. Kalau tidak, kurawal yang nanti
@@ -71,8 +146,8 @@ function tokenLatex(teks) {
   // Notasi turunan waktu pada model ruang keadaan: x_dot menjadi titik di atas.
   t = t.replace(/\b([A-Za-z])_dot\b/g, "\\dot{$1}");
   t = t.replace(/\b([A-Za-z])_ddot\b/g, "\\ddot{$1}");
-  t = t.replace(/\bexp\(([^()]*)\)/g, "e^{$1}");
-  t = t.replace(/\bsqrt\(([^()]*)\)/g, "\\sqrt{$1}");
+  t = fungsiBerkurung(t, "exp", (isi) => `e^{${isi}}`);
+  t = fungsiBerkurung(t, "sqrt", (isi) => `\\sqrt{${isi}}`);
   t = t.replace(/\bintegral_0\^inf\b/g, "\\int_0^{\\infty}");
   t = t.replace(/\bintegral\b/g, "\\int");
   t = t.replace(/\bL\u0001/g, "\\mathcal{L}\u0001");
@@ -86,12 +161,10 @@ function tokenLatex(teks) {
   t = t.replace(/\^\(([^()]*)\)/g, "^{$1}");
   t = t.replace(/\^(-?[A-Za-z0-9]{2,})/g, "^{$1}");
 
-  // Pecahan: hanya bentuk yang ruasnya jelas, supaya tidak salah membaca.
-  t = t.replace(/\(([^()]+)\)\s*\/\s*\(([^()]+)\)/g, "\\frac{$1}{$2}");
+  // Pecahan.
   t = t.replace(/\bd([A-Za-z])\s*\/\s*d([A-Za-z])\b/g, "\\frac{d$1}{d$2}");
-  // Pembilang sengaja tidak boleh memuat kurawal: kalau boleh, pasangan
-  // kurawal hasil pengubahan pangkat ikut terbelah menjadi pecahan yang salah.
-  t = t.replace(/([A-Za-z0-9_.]+)\s*\/\s*\(([^()]+)\)/g, "\\frac{$1}{$2}");
+  t = t.replace(/\s+\/\s*\(/g, "/(");
+  t = pecahanBerkurung(t);
 
   // Kata biasa yang menyelip di antara lambang (mis. "pada", "pole") ditulis
   // tegak lewat \text{} supaya tidak tampil sebagai perkalian antarhuruf.

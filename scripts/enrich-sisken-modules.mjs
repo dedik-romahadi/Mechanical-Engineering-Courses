@@ -250,6 +250,14 @@ body{
 #page-modul .formula-desc{max-width:none}
 #page-modul .cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr))}
 #page-modul .tbl-wrap{max-width:none;overflow-x:auto}
+/* Panel rumus di dalam kartu tadinya inline-block sehingga lebarnya mengikuti
+   panjang rumus dan tampak tidak sejajar dengan kartunya. Kini selebar kartu,
+   rata tengah, dan bergulir sendiri bila rumusnya panjang. */
+#page-modul .card{display:flex;flex-direction:column}
+#page-modul .card .formula{
+  display:block;width:100%;box-sizing:border-box;margin-top:auto;
+  text-align:center;overflow-x:auto;overflow-y:hidden}
+#page-modul .formula-block{overflow-x:auto}
 /* Pada layar sangat sempit, jarak tepi dikecilkan supaya baris tidak terlalu
    pendek dan kata tidak terpenggal berlebihan. */
 @media (max-width:560px){
