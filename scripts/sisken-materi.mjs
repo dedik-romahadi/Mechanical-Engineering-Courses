@@ -1336,6 +1336,46 @@ export const MATERI = {
         ],
         formula: "spesifikasi ditulis sebelum metode dipilih, bukan sesudahnya",
       },
+      {
+        head: "Penjadwalan Gain sebagai Batas Bawah",
+        body: [
+          "Sebelum metode cerdas dipertimbangkan, ada satu pendekatan klasik yang menangani nonlinieritas dan sering terlupakan: penjadwalan gain. Karena seluruhnya dapat diverifikasi dengan perkakas biasa, ia layak menjadi pembanding wajib.",
+          "Gagasannya sederhana. Sistem dilinearisasi pada beberapa titik kerja, controller dirancang untuk masing-masing, lalu parameter dipilih berdasarkan besaran terukur yang mencirikan titik kerja saat itu. Nonlinieritas ditangani dengan mengganti parameter, bukan dengan mengganti jenis controller.",
+          "Dua syarat menentukan kelayakannya. Besaran penjadwal harus terukur, dan titik kerja harus berubah jauh lebih lambat daripada dinamika loop. Bila keduanya terpenuhi, penjadwalan gain menyelesaikan persoalan dengan perkakas yang jaminannya lengkap dan biaya pemeliharaannya rendah.",
+          "Perhatian utama pada penerapannya adalah kemulusan peralihan. Perpindahan parameter yang mendadak menimbulkan lompatan keluaran, sehingga peralihan dibuat bertahap dan akumulator integral disiapkan agar keluaran tidak berubah seketika — persoalan yang sama dengan perpindahan mode manual ke otomatis.",
+        ],
+        formula: "syarat: penjadwal terukur + titik kerja berubah jauh lebih lambat daripada loop",
+      },
+      {
+        head: "Menggabungkan Metode: Susunan yang Lazim",
+        body: [
+          "Ketiga keluarga metode cerdas lebih sering dipakai bersama daripada bersaing, dan susunan gabungannya mengikuti pola yang berulang di banyak penerapan.",
+          "Susunan pertama memakai algoritma evolusioner untuk menyetel controller fuzzy. Manusia menulis basis aturan berdasarkan pengetahuan, lalu algoritma mencari letak dan lebar fungsi keanggotaan yang memberi kinerja terbaik. Keterbacaan tetap terjaga karena aturannya tidak berubah, sementara penyetelan yang melelahkan diserahkan ke mesin.",
+          "Susunan kedua memakai jaringan saraf sebagai penaksir besaran yang tidak terukur, lalu menyerahkan pengendaliannya kepada PID biasa. Jaminan kestabilan dari analisis klasik tetap berlaku pada loop kendalinya, sementara jaringan hanya menggantikan alat ukur yang mahal atau lambat.",
+          "Susunan ketiga menempatkan metode cerdas di lapisan pengoptimalan yang menentukan setpoint, sementara loop di bawahnya tetap klasik. Bila lapisan atas gagal atau memberi nilai di luar batas wajar, setpoint dikunci pada nilai aman terakhir dan proses tetap berjalan.",
+        ],
+        formula: "evolusioner menyetel fuzzy | ANN menaksir, PID mengendalikan | cerdas di lapisan setpoint",
+      },
+      {
+        head: "Menguji Sistem yang Tidak Punya Jaminan Analitik",
+        body: [
+          "Kestabilan sistem linier dapat dibuktikan dari letak pole, dan pembuktian itu berlaku untuk seluruh masukan. Metode cerdas umumnya tidak memiliki jaminan setara, sehingga beban pembuktian berpindah ke pengujian.",
+          "Karena itu pengujian bergeser dari membuktikan menjadi menelusuri. Ruang operasi dipetakan secara menyeluruh, bukan diuji pada beberapa titik saja, dan yang dicari adalah daerah tempat perilakunya menyimpang dari yang diharapkan. Pemetaan permukaan kendali pada controller fuzzy adalah contoh yang paling langsung.",
+          "Pengujian keadaan tepi menjadi wajib, bukan pelengkap. Masukan pada batas rentang, kombinasi yang jarang terjadi bersamaan, perubahan yang sangat cepat, dan keadaan setelah kegagalan sensor semuanya perlu dicoba, karena justru di sanalah metode berbasis data dan berbasis aturan paling mungkin berperilaku aneh.",
+          "Pemantauan setelah pemasangan melengkapi pengujian, dan pada sistem cerdas ia tidak opsional. Karena perilakunya tidak dapat dijamin dari analisis, satu-satunya cara mengetahui sistem masih bekerja sebagaimana mestinya adalah terus mengamatinya dan membandingkannya dengan acuan.",
+        ],
+        formula: "beban pindah dari pembuktian ke penelusuran menyeluruh dan pemantauan",
+      },
+      {
+        head: "Menyiapkan Organisasi, Bukan Hanya Sistem",
+        body: [
+          "Kegagalan penerapan metode cerdas di industri lebih sering berasal dari kesiapan organisasi daripada dari metodenya. Sistem yang tidak dapat dirawat akan ditinggalkan, betapapun baik kinerjanya saat dipasang.",
+          "Pertanyaan yang perlu dijawab sebelum memutuskan cukup lugas: siapa yang akan merawatnya, keterampilan apa yang dibutuhkan, dan apakah orang itu akan tetap ada tiga tahun lagi. Controller fuzzy dapat dirawat teknisi pabrik karena aturannya terbaca; model berbasis data menuntut orang yang mampu mengumpulkan data dan melatih ulang.",
+          "Ketergantungan pada satu orang merupakan risiko yang nyata. Sistem yang hanya dipahami perancangnya akan menjadi kotak hitam begitu orang itu pindah, dan pada titik itu pilihan yang tersisa biasanya mengembalikannya ke controller klasik.",
+          "Karena itu keputusan yang bertanggung jawab menimbang kinerja bersama biaya pemeliharaan jangka panjang. Perbaikan kinerja sepuluh persen yang menuntut keahlian yang tidak tersedia di pabrik sering kalah bermanfaat dibanding perbaikan lima persen yang dapat dirawat siapa saja.",
+        ],
+        formula: "nilai kinerja bersama biaya rawat, ketersediaan keterampilan, dan risiko ketergantungan",
+      },
     ],
     derivation: {
       head: "Menurunkan Kapan Penjadwalan Gain Sudah Memadai",
@@ -1437,6 +1477,46 @@ export const MATERI = {
           "Terakhir, model yang dipasang harus dipantau terus-menerus. Proses berubah, dan model yang dilatih setahun lalu dapat menjadi tidak sahih tanpa memberi tanda apa pun. Pemantauan selisih antara perkiraan dan pengukuran acuan adalah cara termurah mendeteksinya.",
         ],
         formula: "skala masukan, pilih masukan yang tepat, wakili seluruh rentang, pantau terus",
+      },
+      {
+        head: "Memilih Arsitektur yang Cukup, Bukan yang Besar",
+        body: [
+          "Godaan terbesar saat merancang jaringan adalah membuatnya besar. Pada persoalan kontrol, godaan itu hampir selalu keliru, karena data yang tersedia terbatas sementara kapasitas yang berlebih justru mempermudah hafalan.",
+          "Aturan praktis yang berguna menyatakan jumlah bobot sebaiknya jauh lebih kecil daripada jumlah contoh data. Bila jumlahnya sebanding, jaringan memiliki cukup kebebasan untuk menghafal setiap contoh beserta deraunya, dan kegagalannya baru terlihat pada data uji.",
+          "Untuk penaksiran besaran proses, jaringan dengan satu lapisan tersembunyi berisi beberapa neuron sering sudah memadai. Menambah lapisan baru memberi keuntungan ketika hubungan yang dipelajari benar-benar berlapis, misalnya pada pengolahan citra, dan jarang pada hubungan antarbesaran proses yang jumlahnya sedikit.",
+          "Cara memilihnya bukan menebak melainkan mencoba secara tertib. Beberapa ukuran dicoba, masing-masing dinilai memakai data validasi, lalu dipilih ukuran terkecil yang kinerjanya sudah mendekati yang terbaik. Ukuran terkecil dipilih karena lebih murah dirawat, lebih cepat dihitung, dan lebih tahan terhadap perubahan.",
+        ],
+        formula: "jumlah bobot << jumlah contoh   |   pilih terkecil yang kinerjanya sudah memadai",
+      },
+      {
+        head: "Menyiapkan Data: Bagian yang Paling Menentukan",
+        body: [
+          "Pada penerapan nyata, sebagian besar waktu habis untuk menyiapkan data, bukan untuk melatih jaringan. Bagian ini pula yang paling menentukan hasil, dan mengabaikannya tidak dapat ditebus arsitektur secanggih apa pun.",
+          "Langkah pertama membersihkan data dari kejadian yang tidak mewakili proses normal maupun gangguan yang ingin dipelajari: periode kalibrasi, saat proses berhenti, dan pembacaan yang jelas keliru. Menyertakannya mengajarkan jaringan hubungan yang tidak ada.",
+          "Langkah kedua menyelaraskan waktu. Bila keluaran yang ingin ditaksir baru terukur beberapa menit setelah masukannya, pasangan data harus digeser sesuai jeda itu. Melewatkan penyelarasan menghasilkan model yang mempelajari hubungan yang tergeser, dan gejalanya sulit dikenali karena modelnya tetap tampak bekerja.",
+          "Langkah ketiga memastikan seluruh rentang operasi terwakili, termasuk keadaan yang jarang. Karena keadaan jarang secara alami sedikit datanya, kadang perlu dilakukan percobaan terencana untuk memperolehnya — dan percobaan itu jauh lebih murah daripada kegagalan model saat keadaan tersebut benar-benar terjadi.",
+        ],
+        formula: "bersihkan -> selaraskan waktu -> pastikan seluruh rentang terwakili",
+      },
+      {
+        head: "Merancang Penaksir Besaran Tak Terukur",
+        body: [
+          "Peran jaringan saraf yang paling banyak memberi manfaat dengan risiko paling kecil adalah menaksir besaran yang mahal atau lambat diukur, dari besaran yang murah dan cepat. Rancangannya memiliki bagian yang jelas.",
+          "Bagian pertama memilih masukan berdasarkan hubungan fisik, bukan berdasarkan ketersediaan. Besaran yang secara fisik memang memengaruhi keluaran jauh lebih berguna daripada besaran yang kebetulan berkorelasi pada data historis, karena korelasi kebetulan runtuh begitu kondisi berubah.",
+          "Bagian kedua menetapkan acuan kebenaran. Hasil laboratorium atau alat ukur acuan menjadi target pelatihan sekaligus pembanding saat model sudah berjalan. Tanpa acuan yang terus tersedia, pemantauan menjadi mustahil dan model akan menua tanpa diketahui.",
+          "Bagian ketiga menyiapkan perilaku saat model tidak dapat dipercaya. Ketika masukan berada di luar rentang data pelatihan, sistem sebaiknya menyatakan taksirannya tidak sahih dan beralih ke acuan yang lebih lambat namun dapat dipercaya, alih-alih menyajikan angka yang tampak meyakinkan.",
+        ],
+        formula: "masukan dari hubungan fisik + acuan kebenaran + perilaku saat di luar cakupan",
+      },
+      {
+        head: "Memantau Model yang Menua",
+        body: [
+          "Model berbasis data memiliki sifat yang tidak dimiliki controller klasik: ia menua. Proses berubah, perangkat aus, bahan baku berganti, dan model yang dilatih setahun lalu perlahan menjadi tidak sahih tanpa memberi tanda apa pun.",
+          "Cara termurah mendeteksinya adalah membandingkan taksiran model dengan acuan kebenaran secara berkala, lalu mengamati kecenderungan selisihnya. Selisih rata-rata yang merambat naik menandakan pergeseran, sementara sebaran selisih yang melebar menandakan model kehilangan ketepatan.",
+          "Pemantauan kedua mengamati masukan, bukan keluaran. Bila sebaran masukan bergeser jauh dari sebaran data pelatihan, model bekerja pada wilayah yang tidak dikuasainya meskipun keluarannya belum terlihat keliru. Peringatan dini semacam ini muncul lebih awal daripada peringatan berbasis selisih.",
+          "Ambang untuk melatih ulang sebaiknya ditetapkan sejak awal, bukan diputuskan saat masalah muncul. Menetapkannya di awal memaksa perancang memikirkan siapa yang akan melakukannya dan dengan data apa — pertanyaan yang justru sering baru disadari setelah model terlanjur menua.",
+        ],
+        formula: "pantau selisih terhadap acuan DAN pergeseran sebaran masukan",
       },
     ],
     derivation: {
@@ -1543,6 +1623,46 @@ export const MATERI = {
         ],
         formula: "penskalaan error ~ Kp   |   penskalaan laju error ~ Kd   |   periksa permukaan kendali",
       },
+      {
+        head: "Menetapkan Semesta Pembicaraan dan Faktor Penskalaan",
+        body: [
+          "Sebelum satu aturan pun ditulis, rentang setiap masukan dan keluaran perlu ditetapkan. Rentang inilah yang disebut semesta pembicaraan, dan menetapkannya sembarangan membuat seluruh penyetelan berikutnya berjalan di atas dasar yang salah.",
+          "Rentang masukan diambil dari data operasi nyata, bukan dari perkiraan. Untuk error, rentangnya kira-kira sebesar simpangan terbesar yang wajar terjadi; untuk laju error, sebesar laju perubahan tercepat yang pernah teramati. Rentang yang terlalu lebar membuat sebagian besar keadaan terkumpul di sekitar nol sehingga aksi kontrolnya lemah.",
+          "Praktik yang memudahkan adalah menormalkan seluruh semesta menjadi rentang baku, misalnya minus satu sampai satu, lalu menempatkan seluruh penyesuaian pada faktor penskalaan di luar blok fuzzy. Dengan begitu basis aturan tetap berlaku meskipun rentang fisiknya berubah, dan penyetelan cukup dilakukan pada tiga angka.",
+          "Ketiga faktor itu berperan mirip parameter PID: penskalaan error seperti penguatan proporsional, penskalaan laju error seperti aksi turunan, dan penskalaan keluaran seperti penguatan menyeluruh. Kesetaraan ini membuat penyetelan awal dapat dimulai dari nilai PID yang sudah diketahui.",
+        ],
+        formula: "normalkan semesta ke -1..1, pindahkan seluruh penyetelan ke tiga faktor penskalaan",
+      },
+      {
+        head: "Dua Bentuk Inferensi dan Kapan Memilihnya",
+        body: [
+          "Terdapat dua bentuk inferensi yang banyak dipakai, dan perbedaannya terletak pada bagian kesimpulan aturan. Pada bentuk pertama, kesimpulan berupa himpunan fuzzy yang kemudian digabung dan didefuzzifikasi. Pada bentuk kedua, kesimpulan berupa bilangan atau fungsi linier dari masukannya.",
+          "Bentuk pertama lebih mudah dijelaskan kepada operator karena seluruhnya berbicara dalam istilah samar, dari masukan sampai keluaran. Ia juga lebih fleksibel karena bentuk himpunan keluaran dapat diatur. Harganya adalah perhitungan yang lebih berat, terutama pada tahap defuzzifikasi.",
+          "Bentuk kedua jauh lebih ringan dihitung karena keluarannya sudah berupa bilangan sehingga defuzzifikasi menjadi sekadar rata-rata berbobot. Bentuk ini juga lebih mudah dianalisis dan lebih cocok bila parameter aturannya akan dicari secara otomatis.",
+          "Pemilihannya mengikuti kebutuhan. Bila keterbacaan bagi operator menjadi pertimbangan utama, bentuk pertama lebih tepat. Bila controller berjalan di perangkat kecil atau parameternya akan dioptimalkan mesin, bentuk kedua lebih praktis. Keduanya menghasilkan perilaku yang serupa bila dirancang dengan cermat.",
+        ],
+        formula: "kesimpulan berupa himpunan: terbaca | kesimpulan berupa bilangan: ringan dan mudah dioptimalkan",
+      },
+      {
+        head: "Menambahkan Aksi Integral pada Controller Fuzzy",
+        body: [
+          "Controller fuzzy dengan masukan error dan laju error berperilaku seperti PD, sehingga ia mewarisi kelemahan PD: error tunak tidak terhapus pada plant tanpa integrator. Menambahkan aksi integral menuntut keputusan tentang caranya.",
+          "Cara pertama menambahkan akumulasi error sebagai masukan ketiga. Cara ini mempertahankan seluruh keputusan di dalam basis aturan, namun jumlah aturan membengkak karena setiap istilah tambahan mengalikan ukuran tabel. Dengan tujuh istilah per masukan, tiga masukan berarti lebih dari tiga ratus aturan.",
+          "Cara kedua, yang jauh lebih banyak dipakai, memperlakukan keluaran fuzzy sebagai perubahan keluaran alih-alih keluaran itu sendiri, lalu mengakumulasinya di luar blok fuzzy. Aksi integral muncul dari akumulasi itu, sementara basis aturan tetap dua masukan sehingga ukurannya terkendali dan tetap terbaca.",
+          "Cara kedua juga membawa manfaat sampingan yang sama seperti PID bentuk kenaikan: pembatasan pada keluaran akhir sekaligus berperan sebagai anti-windup, dan perpindahan mode menjadi mulus dengan sendirinya. Karena itu bentuk ini menjadi pilihan baku pada penerapan industri.",
+        ],
+        formula: "keluaran fuzzy = perubahan keluaran, lalu diakumulasi di luar blok",
+      },
+      {
+        head: "Menuliskan Aturan Bersama Operator",
+        body: [
+          "Keunggulan pokok fuzzy terletak pada kemampuannya memindahkan pengetahuan operator menjadi aturan yang dapat dieksekusi. Karena itu proses penulisannya sama pentingnya dengan hasilnya, dan melewatkan operator berarti membuang keunggulan itu.",
+          "Cara yang efektif tidak meminta operator menuliskan aturan langsung, melainkan menanyakan apa yang mereka lakukan pada keadaan tertentu. Pertanyaan seperti apa yang Anda lakukan bila suhu sedikit di bawah sasaran dan masih turun jauh lebih mudah dijawab daripada permintaan merumuskan aturan.",
+          "Jawaban itu kemudian diterjemahkan menjadi baris pada tabel aturan, dan tabelnya dikembalikan kepada operator untuk diperiksa. Bentuk tabel memudahkan mereka melihat pola: diagonal yang berisi aksi nol, sudut yang berisi aksi terkuat, dan kotak kosong yang berarti keadaan itu belum terjawab.",
+          "Perbedaan pendapat antaroperator justru berharga. Bila dua operator berpengalaman menangani keadaan yang sama secara berbeda, biasanya ada pertimbangan yang belum tertangkap, misalnya perbedaan bahan baku atau kondisi perangkat. Menggali perbedaan itu sering memperbaiki pemahaman proses melampaui kebutuhan controllernya sendiri.",
+        ],
+        formula: "tanyakan tindakan pada keadaan, bukan minta rumuskan aturan; lalu periksa lewat tabel",
+      },
     ],
     derivation: {
       head: "Menurunkan Keluaran Fuzzy Lengkap dari Dua Aturan Aktif",
@@ -1646,6 +1766,46 @@ export const MATERI = {
           "Karena itu langkah akhir tetap sama seperti metode lain: nilai hasil pencarian diperlakukan sebagai titik awal, diperiksa terhadap batas actuator dan derau, lalu diuji bertahap pada perangkat dengan jalan keluar yang siap.",
         ],
         formula: "struktur ditetapkan lebih dahulu, GA mencari parameternya",
+      },
+      {
+        head: "Merancang Fungsi Kebugaran yang Jujur",
+        body: [
+          "Algoritma genetik akan memaksimalkan apa pun yang dituliskan pada fungsi kebugaran, termasuk hal yang tidak dimaksudkan. Karena itu merancang fungsi kebugaran adalah pekerjaan yang paling menentukan sekaligus paling mudah dilakukan secara keliru.",
+          "Kekeliruan yang lazim adalah menuliskan satu ukuran saja, misalnya jumlah kuadrat error. Optimasi terhadap ukuran tunggal itu menghasilkan controller yang cepat namun menuntut aksi kendali sangat besar, karena tidak ada satu pun suku yang menghukum pemborosan aktuator.",
+          "Perbaikannya menambahkan suku untuk setiap hal yang benar-benar dipedulikan: besar aksi kendali, lonjakan, dan pelanggaran batas. Bobot antarsuku menyatakan pertukaran yang dianggap wajar, dan menetapkannya memaksa perancang menyatakan pertimbangan yang biasanya hanya tersimpan sebagai kebiasaan.",
+          "Cara memeriksa kejujuran fungsi kebugaran cukup sederhana: jalankan optimasinya, lalu amati pemenangnya. Bila pemenangnya melakukan sesuatu yang secara teknis bernilai baik namun jelas tidak diinginkan, yang salah adalah fungsi kebugarannya, bukan algoritmanya.",
+        ],
+        formula: "J = w1*integral e^2 + w2*integral u^2 + w3*lonjakan + denda pelanggaran batas",
+      },
+      {
+        head: "Menyetel Ukuran Populasi, Laju Mutasi, dan Elitisme",
+        body: [
+          "Tiga parameter memengaruhi perilaku pencarian lebih daripada yang lain, dan ketiganya berhubungan dengan pertukaran yang sama: seberapa lebar ruang dijelajahi dibanding seberapa cepat hasil terbaik dimanfaatkan.",
+          "Populasi yang besar menjaga keberagaman sehingga pencarian tidak cepat terjebak, namun setiap generasi menjadi mahal karena setiap individu harus dievaluasi. Pada persoalan kontrol dengan sedikit parameter, populasi beberapa puluh individu umumnya memadai, dan menambahnya lebih jauh jarang sepadan.",
+          "Laju mutasi yang terlalu kecil membuat populasi cepat seragam lalu pencarian berhenti maju; yang terlalu besar mengubah pencarian menjadi acak sehingga hasil baik tidak sempat diwariskan. Nilai di sekitar beberapa persen per gen menjadi titik awal yang wajar, dan menaikkannya sementara berguna saat populasi terlihat mandek.",
+          "Elitisme menyalin beberapa individu terbaik apa adanya ke generasi berikutnya. Tanpa itu, solusi terbaik dapat hilang karena crossover dan mutasi, sehingga kebugaran terbaik justru dapat memburuk antargenerasi. Menyalin satu sampai dua individu sudah cukup; menyalin terlalu banyak membuat populasi cepat seragam.",
+        ],
+        formula: "populasi puluhan | mutasi beberapa persen | elitisme 1-2 individu",
+      },
+      {
+        head: "Menangani Kendala dan Solusi yang Tidak Sahih",
+        body: [
+          "Persoalan kontrol hampir selalu memiliki kendala: penguatan harus positif, aksi kendali terbatas, sistem harus stabil. Algoritma genetik tidak mengenal kendala dengan sendirinya, sehingga penanganannya harus dirancang.",
+          "Cara pertama membatasi rentang setiap gen sehingga individu yang tidak sahih tidak pernah tercipta. Cara ini paling aman dan paling murah, dan cocok untuk kendala sederhana seperti batas bawah dan batas atas parameter.",
+          "Cara kedua memberi denda pada fungsi kebugaran ketika kendala dilanggar. Cara ini diperlukan untuk kendala yang baru diketahui setelah simulasi, misalnya ketidakstabilan atau aktuator yang jenuh. Besar dendanya perlu cukup untuk membuat pelanggaran selalu kalah, namun tidak begitu besar sampai seluruh wilayah di dekat batas menjadi datar dan kehilangan arah perbaikan.",
+          "Cara ketiga memperbaiki individu yang tidak sahih menjadi sahih terdekat sebelum dievaluasi. Cara ini menjaga seluruh populasi tetap berguna, namun menambah pekerjaan dan dapat mengurangi keberagaman bila banyak individu diperbaiki ke titik yang sama.",
+        ],
+        formula: "batasi rentang gen -> denda bertingkat -> perbaikan, sesuai jenis kendala",
+      },
+      {
+        head: "Dari Hasil Optimasi ke Sistem yang Berjalan",
+        body: [
+          "Parameter terbaik menurut simulasi belum tentu parameter yang layak dipasang. Jarak antara keduanya perlu dijembatani secara sadar, dan melewatkan langkah ini adalah penyebab paling umum kekecewaan terhadap hasil optimasi.",
+          "Pemeriksaan pertama menguji ketegaran. Parameter proses diubah sedikit di sekitar nilai nominalnya, lalu controller hasil optimasi diuji ulang. Bila kinerjanya jatuh tajam, hasilnya terlalu menempel pada model dan perlu dioptimasi ulang terhadap sekumpulan model, bukan satu model.",
+          "Pemeriksaan kedua membandingkan hasil optimasi dengan penyetelan manual yang baik. Bila selisihnya kecil, biaya dan risiko optimasi mungkin tidak sepadan, dan itu tetap merupakan temuan yang berguna. Bila selisihnya besar, ada baiknya dipahami dari mana keunggulannya berasal sebelum dipercaya.",
+          "Pemasangan sebaiknya bertahap: jalankan berdampingan tanpa kewenangan mengubah aktuator, bandingkan keluarannya dengan controller yang berjalan, baru serahkan kendali setelah perilakunya dipahami. Bertahap seperti ini mengubah kejutan menjadi pengamatan yang murah.",
+        ],
+        formula: "uji ketegaran -> bandingkan dengan penyetelan manual -> jalankan berdampingan -> serahkan kendali",
       },
     ],
     derivation: {
