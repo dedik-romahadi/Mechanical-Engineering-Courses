@@ -78,7 +78,7 @@ for (let n = 1; n <= 14; n += 1) {
       [!/id="(tab|page)-(setup|kelompok)"/.test(html), "tanpa tab Setup Python dan Pembagian Kelompok"],
       [(html.match(/<style[^>]*>/g) || []).some((_, i, a) => a.length >= 4)
         && /:root\s*\{[^}]*--bg:/.test(html), "blok gaya utama utuh"],
-      [html.includes('<div class="hero" data-tab="modul">'), "hero seperti Modul 1"],
+      [/<div class="hero(?: [^"]+)?" data-tab="modul">/.test(html), "hero seperti Modul 1"],
       [(html.match(/<div class="section-label reveal">Bagian \d\d<\/div>/g) || []).length >= 10, "bagian bernomor minimal 10"],
       [(() => {
         // Dihitung hanya di dalam halaman modul; halaman lain pada berkas yang
@@ -117,6 +117,21 @@ for (let n = 1; n <= 14; n += 1) {
       }
       checks.push([kurang.length === 0, `tombol Periksa Jawaban PG hilang/salah urutan: ${kurang.join(", ")}`]);
     }
+  }
+
+  if (n === 2) {
+    checks.push(
+      [html.includes('<body class="modern-academic-pilot">'), "pilot modern academic aktif hanya melalui kelas body"],
+      [(html.match(/id="modern-academic-pilot"/g) || []).length === 1, "satu blok gaya pilot modern academic"],
+      [(html.match(/id="modern-academic-pilot-runtime"/g) || []).length === 1, "satu runtime pilot modern academic"],
+      [html.includes('class="hero academic-hero"') && html.includes('class="academic-roadmap"'), "hero dan alur belajar pilot"],
+      [html.includes('id="readingPosition"') && html.includes("link.classList.toggle('is-current', current)"), "indikator dan navigasi bagian aktif"],
+      [html.includes("@media screen{") && html.includes("@media screen and (max-width:700px)") && html.includes("@media(prefers-reduced-motion:reduce)"), "gaya pilot responsif, screen-only, dan reduced-motion"],
+      [html.includes("#page-modul .section{--chapter-accent:#22d3ee") && html.includes("#page-modul .academic-hero .hero-content"), "chapter card dan panel hero pilot"],
+    );
+    const pilotRuntime = html.match(/<script id="modern-academic-pilot-runtime">([\s\S]*?)<\/script>/)?.[1];
+    try { new vm.Script(pilotRuntime || "", { filename: "Modul-2:modern-academic-pilot-runtime" }); }
+    catch (error) { checks.push([false, `runtime pilot modern academic â€” ${error.message}`]); }
   }
 
   checks.push(
