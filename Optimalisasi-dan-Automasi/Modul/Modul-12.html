@@ -6836,9 +6836,14 @@ function _applyRoleVisibility() {
   // Tombol Export PDF — aktif utk siapa pun yang sudah login (mahasiswa ATAU dosen).
   const exportBtn = document.getElementById('navExportPdf');
   if (exportBtn) {
-    const loggedIn = !!(me && me.nama);
+    // Mode Preview dihitung sbg BELUM login. Identity lama tetap tersimpan di
+    // localStorage ketika pengunjung memilih preview lewat "Ganti Peran", jadi
+    // tanpa syarat ini tombol tetap aktif dan modul bisa diunduh tanpa login.
+    const loggedIn = !!(me && me.nama) && !window._previewMode;
     exportBtn.disabled = !loggedIn;
-    exportBtn.title = loggedIn ? 'Unduh modul ini sbg PDF' : 'Login terlebih dahulu utk mengunduh modul PDF';
+    exportBtn.title = window._previewMode
+      ? '\ud83d\udc41\ufe0f Mode Preview \u2014 login terlebih dahulu utk mengunduh modul PDF'
+      : (loggedIn ? 'Unduh modul ini sbg PDF' : 'Login terlebih dahulu utk mengunduh modul PDF');
   }
 
   // PEDOMAN §9.5/§17.6 — scheduleMissingDosen banner: dosen sudah login tapi jadwal belum diatur
@@ -6854,6 +6859,10 @@ window._applyRoleVisibility = _applyRoleVisibility;
 const MODUL_PDF_URL = '../Modul-Word/Modul-12-Tier-Alarm-FSM-dan-ANSI-ISA-18-2.pdf';
 const MODUL_PDF_FILENAME = 'Modul-12-Tier-Alarm-FSM-dan-ANSI-ISA-18-2.pdf';
 window.exportModulPdf = function() {
+  if (window._previewMode) {
+    alert('\ud83d\udc41\ufe0f Mode Preview \u2014 Export PDF dinonaktifkan. Login terlebih dahulu.');
+    return;
+  }
   const btn = document.getElementById('navExportPdf');
   if (btn && btn.disabled) return;
   const a = document.createElement('a');
@@ -8057,6 +8066,13 @@ window.enterPreviewMode = async function() {
   await signOut(_auth).catch(() => {});
   window._previewMode = true;
   window._hidePreviewAssessmentTabs();
+  // _applyRoleVisibility tidak dipanggil ulang saat masuk preview, jadi tombol
+  // Export PDF yang terlanjur aktif harus dinonaktifkan di sini juga.
+  const _pmExportBtn = document.getElementById('navExportPdf');
+  if (_pmExportBtn) {
+    _pmExportBtn.disabled = true;
+    _pmExportBtn.title = '\ud83d\udc41\ufe0f Mode Preview \u2014 login terlebih dahulu utk mengunduh modul PDF';
+  }
   const rc = document.getElementById('roleChooserOverlay');
   if (rc) rc.classList.add('hidden');
   const vo = document.getElementById('visitorOverlay');

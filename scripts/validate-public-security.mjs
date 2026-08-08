@@ -253,6 +253,33 @@ for (const [input, expected] of [[95.52861952861952, "95.53"], [9.6, "9.6"], [9,
   if (actual !== expected) throw new Error(`Point formatter regression: ${String(input)} -> ${actual}, expected ${expected}`);
 }
 
+// Mode Preview memberi akses tanpa login, jadi tombol Export PDF modul harus mati
+// di sana. Dulu tidak: identity lama tetap tersimpan di localStorage ketika
+// pengunjung memilih preview lewat "Ganti Peran", sehingga _applyRoleVisibility
+// menilainya "sudah login" dan modul bisa diunduh tanpa login sama sekali.
+// Sengaja memindai SEMUA course (termasuk Sistem-Kendali-Cerdas, yang tidak masuk
+// courseRoots di atas) supaya ke-56 halaman modul ikut terjaga.
+const modulPages = fs.readdirSync(root, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(root, entry.name, "Modul")))
+  .flatMap((entry) => fs.readdirSync(path.join(root, entry.name, "Modul"))
+    .filter((file) => /^Modul-\d+\.html$/.test(file))
+    .map((file) => path.join(entry.name, "Modul", file)));
+let previewGuarded = 0;
+for (const relative of modulPages) {
+  const page = fs.readFileSync(path.join(root, relative), "utf8");
+  if (!page.includes("navExportPdf")) continue;
+  if (!page.includes("_previewMode")) throw new Error(`${relative}: export button without preview mode`);
+  for (const [needle, label] of [
+    ["const loggedIn = !!(me && me.nama) && !window._previewMode;", "preview tidak dihitung sbg belum-login di _applyRoleVisibility"],
+    ["_pmExportBtn.disabled = true;", "enterPreviewMode tidak mematikan tombol Export PDF"],
+    ["if (window._previewMode) {\n    alert(", "exportModulPdf tanpa penjaga preview"],
+  ]) {
+    if (!page.includes(needle)) throw new Error(`${relative}: ${label}`);
+  }
+  previewGuarded += 1;
+}
+if (previewGuarded !== 56) throw new Error(`Expected 56 modul pages with a guarded export button, found ${previewGuarded}`);
+
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");
 if (/rsync -a \\\r?\n\s+--exclude='.git'/.test(workflow)) throw new Error("Pages workflow still copies repository root");
 for (const required of ["Allowlist frontend publik", "Tolak artefak sensitif", "_site/functions", "*answers.js", "*questions.js"]) {
