@@ -24,6 +24,14 @@ const PENANDA_STRUKTUR = [
 // perbandingan terhadap modul acuan meleset begitu ada aturan gaya baru.
 const tanpaGaya = (teks) => teks.replace(/<style[\s\S]*?<\/style>/g, "");
 const hitung = (teks, jarum) => tanpaGaya(teks).split(jarum).length - 1;
+const ringkasSpasi = (teks) => teks.replace(/\s+/g, " ").trim();
+const antara = (teks, awal, akhir) => {
+  const mulai = teks.indexOf(awal);
+  const selesai = mulai < 0 ? -1 : teks.indexOf(akhir, mulai + awal.length);
+  return mulai < 0 || selesai < 0 ? null : teks.slice(mulai, selesai);
+};
+const acuanPanelHtml = fs.readFileSync(REFERENSI, "utf8");
+const acuanPerilakuPanel = ringkasSpasi(antara(acuanPanelHtml, "function checkExportReady()", "// ── EXPORT TUGAS HTML ──") || "");
 
 for (let n = 1; n <= 14; n += 1) {
   const file = path.join(root, "Sistem-Kendali-Cerdas", "Modul", `Modul-${n}.html`);
@@ -111,16 +119,64 @@ for (let n = 1; n <= 14; n += 1) {
     }
   }
 
-  if (n === 3) {
-    checks.push(
-      [(html.match(/id="text-c(?:1[0-5]|[1-9])"/g) || []).length === 15, "15 wadah teks soal parametrik"],
-      [(html.match(/id="hint-c(?:1[0-5]|[1-9])"/g) || []).length === 15, "15 wadah hint parametrik"],
-      [(html.match(/id="input-c(?:1[0-5]|[1-9])"/g) || []).length === 15, "15 wadah label output parametrik"],
-      [html.includes("httpsCallable(_functions, 'getModulQuestions')"), "callable getModulQuestions"],
-      [html.includes("text.textContent = question.text") && !html.includes("text.innerHTML = question.text"), "render teks server dengan textContent"],
-      [!html.includes("Parameter acuan.</strong>"), "parameter numerik lama tidak statis di HTML"],
-      [(html.match(/Masuk untuk memuat soal parametrik C(?:1[0-5]|[1-9])/g) || []).length === 15, "placeholder terkunci untuk seluruh komputasi"],
-    );
+  checks.push(
+    [(html.match(/id="text-c(?:1[0-5]|[1-9])"/g) || []).length === 15, "15 wadah teks soal parametrik"],
+    [(html.match(/id="hint-c(?:1[0-5]|[1-9])"/g) || []).length === 15, "15 wadah hint parametrik"],
+    [(html.match(/id="input-c(?:1[0-5]|[1-9])"/g) || []).length === 15, "15 wadah label output parametrik"],
+    [html.includes("httpsCallable(_functions, 'getModulQuestions')"), "callable getModulQuestions"],
+    [html.includes("window._loadParametricModulQuestions = _loadParametricModulQuestions"), "loader soal parametrik"],
+    [html.includes("text.textContent = question.text") && !html.includes("text.innerHTML = question.text"), "render teks server dengan textContent"],
+    [!html.includes("Parameter acuan.</strong>"), "parameter numerik tugas lama tidak statis di HTML"],
+    [(html.match(/Masuk untuk memuat soal parametrik C(?:1[0-5]|[1-9])/g) || []).length === 15, "placeholder terkunci untuk seluruh komputasi"],
+    [(html.match(/id="parametric-modul-note"/g) || []).length === 1, "catatan soal parametrik"],
+    [(html.match(/placeholder="Tulis atau paste kode Python Anda, lalu print\(\) hanya nilai akhir yang diminta server\."/g) || []).length === 15, "placeholder kode generik"],
+    [!html.includes("Parameter Sistem Referensi (dipakai soal C1–C10)"), "tanpa kotak parameter tugas statis lama"],
+    [["scoreDisplay", "scoreDetail", "scoreFill", "scoreMC", "scoreCompEz", "scoreCompHard", "btn-score-export", "export-blocked-msg"].every((id) => html.includes(`id="${id}"`)), "komponen panel skor/export lengkap"],
+    [/<button class="btn-export" id="btn-score-export" onclick="exportTugasHtml\(\)" disabled/.test(html), "Export HTML terkunci sampai tugas lengkap"],
+    [["gdrive-link", "gdrive-feedback", "lateAccessBanner"].every((id) => html.includes(`id="${id}"`)), "prasyarat Google Drive dan banner jadwal tersedia"],
+    [ringkasSpasi(antara(html, "function checkExportReady()", "// ── EXPORT TUGAS HTML ──") || "") === acuanPerilakuPanel, "perilaku panel skor/export tetap sama dengan Getaran Modul 1"],
+  );
+
+  // Uji perilaku panel dengan DOM minimal: keadaan awal harus menampilkan
+  // rincian 10/10/5 + Drive dan mengunci Export; setelah seluruh prasyarat
+  // dipenuhi tombol harus aktif. Ini menjaga perilaku, bukan sekadar markup.
+  {
+    const panelCode = antara(html, "function checkExportReady()", "// ── EXPORT TUGAS HTML ──");
+    const elements = {
+      "gdrive-link": { value: "", style: {} },
+      "gdrive-feedback": { textContent: "", style: {} },
+      "btn-score-export": { disabled: false, style: {} },
+      "export-blocked-msg": { textContent: "", style: {} },
+    };
+    const sandbox = {
+      SCORE_CONFIG: { MC_COUNT: 10, COMP_EZ_COUNT: 10, COMP_HARD_COUNT: 5 },
+      mcAnswered: {},
+      compAnswered: {},
+      document: { getElementById: (id) => elements[id] || null },
+      _saveDraft: () => {},
+      window: {},
+    };
+    try {
+      vm.createContext(sandbox);
+      new vm.Script(panelCode, { filename: `Modul-${n}:score-panel` }).runInContext(sandbox);
+      sandbox.checkExportReady();
+      const blocked = elements["export-blocked-msg"].textContent;
+      checks.push(
+        [elements["btn-score-export"].disabled === true, "Export terkunci pada keadaan awal"],
+        [blocked.includes("10 soal pilihan ganda belum dijawab") && blocked.includes("10 soal komputasi belum diisi") && blocked.includes("5 soal komputasi Hard belum diisi") && blocked.includes("Link Google Drive belum diisi"), "panel merinci seluruh prasyarat yang belum lengkap"],
+      );
+
+      for (let k = 1; k <= 10; k += 1) sandbox.mcAnswered[`mc${k}`] = true;
+      for (let k = 1; k <= 15; k += 1) sandbox.compAnswered[`c${k}`] = true;
+      elements["gdrive-link"].value = "https://drive.google.com/drive/folders/contoh";
+      sandbox.checkExportReady();
+      checks.push(
+        [elements["btn-score-export"].disabled === false && elements["btn-score-export"].style.opacity === "1", "Export aktif setelah seluruh tugas dan Drive lengkap"],
+        [elements["export-blocked-msg"].textContent === "", "pesan penghalang hilang setelah tugas lengkap"],
+      );
+    } catch (error) {
+      checks.push([false, `uji perilaku panel gagal dijalankan: ${error.message}`]);
+    }
   }
 
   // Angka pada hero harus cocok dengan isi halaman. Ketiganya pernah salah di
