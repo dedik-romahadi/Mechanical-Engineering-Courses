@@ -307,6 +307,21 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 /* Score tracker */
 /* Score tracker — Pedoman §35 cinematic design (text-readable) */
 .score-bar{position:sticky;top:64px;z-index:90;background:rgba(15,23,42,.55);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1.5px solid rgba(168,85,247,.4);border-radius:24px;padding:26px 30px;margin-bottom:48px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;box-shadow:0 8px 32px rgba(168,85,247,.15),inset 0 1px 0 rgba(255,255,255,.08);overflow:hidden;transform-style:preserve-3d;perspective:1000px;transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .5s}
+/* Score tracker compact - informasi dan perilaku tetap utuh */
+.score-bar-compact{border-radius:18px;padding:14px 20px;margin-bottom:32px;gap:14px}
+.score-bar-compact::after{border-radius:18px}
+.score-bar-compact .score-value{min-width:56px!important}
+.score-bar-compact #scoreDisplay{font-size:32px!important}
+.score-bar-compact .score-info{min-width:150px;padding-bottom:2px}
+.score-bar-compact .score-title{font-size:10px;letter-spacing:2px;margin-bottom:1px}
+.score-bar-compact .score-progress{height:5px;margin-top:3px}
+.score-bar-compact .score-breakdown{font-size:10px!important;min-width:132px!important;line-height:1.45}
+.score-bar-compact .btn-export{padding:9px 16px;min-height:38px;font-size:10px!important;gap:7px;border-radius:10px}
+.score-bar-compact .score-export-guide{padding-top:7px!important;margin-top:0!important;gap:7px!important}
+.score-bar-compact .score-export-icon{font-size:14px!important;line-height:1.25!important}
+.score-bar-compact .score-export-copy{font-size:11px!important;line-height:1.35!important}
+.score-bar-compact #export-blocked-msg{font-size:10.5px!important;line-height:1.3}
+@media(max-width:700px){.score-bar-compact{padding:12px 14px;gap:10px}.score-bar-compact .score-breakdown{text-align:left!important;min-width:120px!important}.score-bar-compact .btn-export{padding:8px 12px}}
 .score-bar:hover{transform:perspective(1000px) rotateX(1.5deg) rotateY(-.5deg) translateZ(6px);box-shadow:0 20px 48px rgba(168,85,247,.28),0 0 0 1px rgba(168,85,247,.4) inset}
 .score-bar::before{content:'';position:absolute;inset:-50%;background:radial-gradient(circle at 20% 30%,rgba(168,85,247,.30),transparent 30%),radial-gradient(circle at 80% 70%,rgba(8,191,232,.25),transparent 30%),radial-gradient(circle at 50% 50%,rgba(255,179,0,.18),transparent 35%),radial-gradient(circle at 90% 20%,rgba(0,224,158,.20),transparent 25%);filter:blur(40px);animation:meshFloat 16s ease-in-out infinite;pointer-events:none;z-index:-2}
 @keyframes meshFloat{0%,100%{transform:translate(0,0) rotate(0deg) scale(1)}25%{transform:translate(30px,-20px) rotate(90deg) scale(1.05)}50%{transform:translate(-15px,25px) rotate(180deg) scale(.95)}75%{transform:translate(-25px,-15px) rotate(270deg) scale(1.02)}}
@@ -2120,8 +2135,8 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="section">
 
   <!-- SCORE BAR -->
-  <div class="score-bar">
-    <div style="text-align:center;min-width:70px">
+  <div class="score-bar score-bar-compact">
+    <div class="score-value" style="text-align:center;min-width:70px">
       <div class="score-num" id="scoreDisplay" style="font-size:38px;line-height:1">0</div>
       <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px">Nilai (0–100)</div>
     </div>
@@ -2130,15 +2145,15 @@ document.addEventListener('DOMContentLoaded',function(){
       <div style="font-size:13px;color:var(--text);margin-top:2px" id="scoreDetail">0 / 50 poin</div>
       <div class="score-progress"><div class="score-fill" id="scoreFill"></div></div>
     </div>
-    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-align:right;min-width:150px">
+    <div class="score-breakdown" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-align:right;min-width:150px">
       <div>PG: <span id="scoreMC" style="color:var(--cyan)">0</span>/10 poin</div>
       <div>Komp E/M: <span id="scoreCompEz" style="color:var(--amber)">0</span>/20 poin</div>
       <div>Komp Hard: <span id="scoreCompHard" style="color:var(--pink)">0</span>/20 poin</div>
     </div>
     <button class="btn-export" id="btn-score-export" onclick="exportTugasHtml()" disabled style="opacity:.4;cursor:not-allowed;font-size:11px">📄 Export HTML</button>
-    <div style="flex-basis:100%;border-top:1px solid var(--border);padding-top:14px;margin-top:4px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
-      <span style="font-size:18px;flex-shrink:0;line-height:1.4">📤</span>
-      <div style="flex:1;min-width:240px;font-size:13px;color:var(--muted);line-height:1.55">Isi semua jawaban dan link Google Drive, lalu klik <strong style="color:var(--violet)">📄 Export HTML</strong> di atas untuk mengunduh file HTML pengumpulan tugas.</div>
+    <div class="score-export-guide" style="flex-basis:100%;border-top:1px solid var(--border);padding-top:14px;margin-top:4px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <span class="score-export-icon" style="font-size:18px;flex-shrink:0;line-height:1.4">📤</span>
+      <div class="score-export-copy" style="flex:1;min-width:240px;font-size:13px;color:var(--muted);line-height:1.55">Isi semua jawaban dan link Google Drive, lalu klik <strong style="color:var(--violet)">📄 Export HTML</strong> di atas untuk mengunduh file HTML pengumpulan tugas.</div>
       <div id="export-blocked-msg" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);text-align:center;flex-basis:100%"></div>
     </div>
   </div>
