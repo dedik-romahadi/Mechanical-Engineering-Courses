@@ -2131,6 +2131,40 @@ document.addEventListener('DOMContentLoaded',function(){
 </div>
 </div>
 <div class="section">
+
+  <!-- SCORE BAR -->
+  <div class="score-bar">
+    <div style="text-align:center;min-width:70px">
+      <div class="score-num" id="scoreDisplay" style="font-size:38px;line-height:1">0</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px">Nilai (0–100)</div>
+    </div>
+    <div class="score-info">
+      <div class="score-title">Skor Sementara</div>
+      <div style="font-size:13px;color:var(--text);margin-top:2px" id="scoreDetail">0 / 50 poin</div>
+      <div class="score-progress"><div class="score-fill" id="scoreFill"></div></div>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-align:right;min-width:150px">
+      <div>PG: <span id="scoreMC" style="color:var(--cyan)">0</span>/10 poin</div>
+      <div>Komp E/M: <span id="scoreCompEz" style="color:var(--amber)">0</span>/20 poin</div>
+      <div>Komp Hard: <span id="scoreCompHard" style="color:var(--pink)">0</span>/20 poin</div>
+    </div>
+    <button class="btn-export" id="btn-score-export" onclick="exportTugasHtml()" disabled style="opacity:.4;cursor:not-allowed;font-size:11px">📄 Export HTML</button>
+    <div style="flex-basis:100%;border-top:1px solid var(--border);padding-top:14px;margin-top:4px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <span style="font-size:18px;flex-shrink:0;line-height:1.4">📤</span>
+      <div style="flex:1;min-width:240px;font-size:13px;color:var(--muted);line-height:1.55">Isi semua jawaban dan link Google Drive, lalu klik <strong style="color:var(--violet)">📄 Export HTML</strong> di atas untuk mengunduh file HTML pengumpulan tugas.</div>
+      <div id="export-blocked-msg" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);text-align:center;flex-basis:100%"></div>
+    </div>
+  </div>
+
+  <!-- LATE ACCESS BANNER — hidden by default, shown by _updateLateBanner() when schedule closed -->
+  <div id="lateAccessBanner" style="display:none;background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(251,113,133,.08));border:1px solid rgba(239,68,68,.35);border-left:5px solid #ef4444;border-radius:14px;padding:18px 24px;margin-bottom:28px;align-items:flex-start;gap:14px;">
+    <span style="font-size:24px;flex-shrink:0">⏰</span>
+    <div>
+      <div style="font-weight:800;color:#f87171;font-size:15px;margin-bottom:4px;letter-spacing:.5px">Akses di Luar Jadwal Perkuliahan</div>
+      <p style="font-size:13.5px;color:#fecaca;margin:0;line-height:1.65;">Anda dapat tetap membuka dan melihat materi, namun <strong style="color:#fff">poin dan kehadiran tidak akan dicatat</strong>. Pengerjaan soal di halaman ini tidak akan disimpan. Silakan hubungi dosen jika ada kebutuhan khusus.</p>
+    </div>
+  </div>
+
 <div class="q-section">
 <div class="q-type-badge badge-mc">🅐 BAGIAN A — Pilihan Ganda · 10 Soal · @1 Poin</div>
 <div class="mc-card reveal">
@@ -2286,20 +2320,20 @@ document.addEventListener('DOMContentLoaded',function(){
 </div>
 <div class="q-section">
 <div class="q-type-badge badge-comp">🅑 BAGIAN B — Komputasi · 15 Soal · 10 soal @2 poin, 5 soal @4 poin</div>
-<div class="ref-params">
-<strong style="color:var(--cyan)">Parameter acuan.</strong> <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">e / de = 2,0 / -1,5</code> &nbsp;·&nbsp; <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">puncak MF = -5 ; 0 ; 5</code> &nbsp;·&nbsp; <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">pusat keluaran = -4 ; 0 ; 4</code> &nbsp;·&nbsp; <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">operasi dan = minimum</code>
-<span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Controller fuzzy dua masukan: error e dan laju error de. Semesta keduanya -10 sampai 10 dengan tiga himpunan segitiga: Negatif Kecil berpuncak -5, Nol berpuncak 0, dan Positif Kecil berpuncak 5, masing-masing bernilai nol pada jarak 5 dari puncaknya. Himpunan keluaran berpusat NK = -4, Nol = 0, PK = 4. Operasi minimum dipakai untuk hubungan dan, dan defuzzifikasi memakai rata-rata berbobot pusat. Titik kerja: e = 2,0 dan de = -1,5.</span>
+<div class="ref-params" id="parametric-modul-note">
+<strong style="color:var(--cyan)">Soal parametrik per NIM.</strong>
+<span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Masuk sebagai mahasiswa untuk memuat angka milik Anda. Teks soal dirakit server dan tidak disimpan di halaman publik.</span>
 </div>
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C1</div>
-<div class="comp-q">Hitung <strong>derajat keanggotaan</strong> error terhadap himpunan Nol.</div>
+<div class="comp-q" id="text-c1">🔒 Masuk untuk memuat soal parametrik C1.</div>
 <div class="comp-pts">2 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) hitung jarak e dari puncak himpunan Nol, yaitu |2,0 - 0|. 2) bagi jarak itu dengan lebar 5. 3) derajat = 1 dikurangi hasilnya.</div>
+<div class="comp-hint" id="hint-c1">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">mu_Nol(e)</strong></span></div>
-<textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c1')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c1" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c1" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c1')"></textarea>
 <div class="stdout-box" id="stdout-c1"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c1" onclick="runAndCheck('c1')">▶ Run &amp; Validasi</button>
@@ -2308,13 +2342,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C2</div>
-<div class="comp-q">Hitung <strong>derajat keanggotaan</strong> error terhadap himpunan Positif Kecil.</div>
+<div class="comp-q" id="text-c2">🔒 Masuk untuk memuat soal parametrik C2.</div>
 <div class="comp-pts">2 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) hitung jarak e dari puncak PK, yaitu |2,0 - 5|. 2) bagi dengan lebar 5. 3) derajat = 1 dikurangi hasilnya.</div>
+<div class="comp-hint" id="hint-c2">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">mu_PK(e)</strong></span></div>
-<textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c2')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c2" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c2" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c2')"></textarea>
 <div class="stdout-box" id="stdout-c2"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c2" onclick="runAndCheck('c2')">▶ Run &amp; Validasi</button>
@@ -2323,13 +2357,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C3</div>
-<div class="comp-q">Hitung <strong>derajat keanggotaan</strong> laju error terhadap himpunan Nol.</div>
+<div class="comp-q" id="text-c3">🔒 Masuk untuk memuat soal parametrik C3.</div>
 <div class="comp-pts">2 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) hitung jarak de dari puncak Nol, yaitu |-1,5 - 0|. 2) bagi dengan lebar 5. 3) derajat = 1 dikurangi hasilnya.</div>
+<div class="comp-hint" id="hint-c3">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">mu_Nol(de)</strong></span></div>
-<textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c3')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c3" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c3" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c3')"></textarea>
 <div class="stdout-box" id="stdout-c3"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c3" onclick="runAndCheck('c3')">▶ Run &amp; Validasi</button>
@@ -2338,13 +2372,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C4</div>
-<div class="comp-q">Hitung <strong>derajat keanggotaan</strong> laju error terhadap himpunan Negatif Kecil.</div>
+<div class="comp-q" id="text-c4">🔒 Masuk untuk memuat soal parametrik C4.</div>
 <div class="comp-pts">2 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) hitung jarak de dari puncak NK, yaitu |-1,5 + 5|. 2) bagi dengan lebar 5. 3) derajat = 1 dikurangi hasilnya.</div>
+<div class="comp-hint" id="hint-c4">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">mu_NK(de)</strong></span></div>
-<textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c4')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c4" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c4" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c4')"></textarea>
 <div class="stdout-box" id="stdout-c4"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c4" onclick="runAndCheck('c4')">▶ Run &amp; Validasi</button>
@@ -2353,13 +2387,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C5</div>
-<div class="comp-q">Hitung <strong>kekuatan aturan pertama</strong>: jika e Nol dan de Nol maka u Nol.</div>
+<div class="comp-q" id="text-c5">🔒 Masuk untuk memuat soal parametrik C5.</div>
 <div class="comp-pts">2 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) peroleh derajat e terhadap Nol. 2) peroleh derajat de terhadap Nol. 3) ambil yang terkecil karena hubungannya dan.</div>
+<div class="comp-hint" id="hint-c5">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">kekuatan R1</strong></span></div>
-<textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c5')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c5" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c5" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c5')"></textarea>
 <div class="stdout-box" id="stdout-c5"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c5" onclick="runAndCheck('c5')">▶ Run &amp; Validasi</button>
@@ -2368,13 +2402,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C6</div>
-<div class="comp-q">Hitung <strong>kekuatan aturan kedua</strong>: jika e PK dan de Nol maka u PK.</div>
+<div class="comp-q" id="text-c6">🔒 Masuk untuk memuat soal parametrik C6.</div>
 <div class="comp-pts">2 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) peroleh derajat e terhadap PK. 2) peroleh derajat de terhadap Nol. 3) ambil yang terkecil.</div>
+<div class="comp-hint" id="hint-c6">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">kekuatan R2</strong></span></div>
-<textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c6')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c6" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c6" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c6')"></textarea>
 <div class="stdout-box" id="stdout-c6"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c6" onclick="runAndCheck('c6')">▶ Run &amp; Validasi</button>
@@ -2383,13 +2417,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C7</div>
-<div class="comp-q">Hitung <strong>kekuatan aturan ketiga</strong>: jika e Nol dan de NK maka u NK.</div>
+<div class="comp-q" id="text-c7">🔒 Masuk untuk memuat soal parametrik C7.</div>
 <div class="comp-pts">2 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) peroleh derajat e terhadap Nol. 2) peroleh derajat de terhadap NK. 3) ambil yang terkecil.</div>
+<div class="comp-hint" id="hint-c7">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">kekuatan R3</strong></span></div>
-<textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c7')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c7" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c7" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c7')"></textarea>
 <div class="stdout-box" id="stdout-c7"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c7" onclick="runAndCheck('c7')">▶ Run &amp; Validasi</button>
@@ -2398,13 +2432,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C8</div>
-<div class="comp-q">Hitung <strong>kekuatan aturan keempat</strong>: jika e PK dan de NK maka u Nol.</div>
+<div class="comp-q" id="text-c8">🔒 Masuk untuk memuat soal parametrik C8.</div>
 <div class="comp-pts">2 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) peroleh derajat e terhadap PK. 2) peroleh derajat de terhadap NK. 3) ambil yang terkecil.</div>
+<div class="comp-hint" id="hint-c8">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">kekuatan R4</strong></span></div>
-<textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c8')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c8" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c8" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c8')"></textarea>
 <div class="stdout-box" id="stdout-c8"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c8" onclick="runAndCheck('c8')">▶ Run &amp; Validasi</button>
@@ -2413,13 +2447,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C9</div>
-<div class="comp-q">Hitung <strong>jumlah seluruh kekuatan aturan</strong>, yaitu penyebut defuzzifikasi.</div>
+<div class="comp-q" id="text-c9">🔒 Masuk untuk memuat soal parametrik C9.</div>
 <div class="comp-pts">2 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) hitung kekuatan keempat aturan. 2) jumlahkan seluruhnya. 3) periksa hasilnya tidak nol agar defuzzifikasi terdefinisi.</div>
+<div class="comp-hint" id="hint-c9">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">penyebut</strong></span></div>
-<textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c9')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c9" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c9" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c9')"></textarea>
 <div class="stdout-box" id="stdout-c9"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c9" onclick="runAndCheck('c9')">▶ Run &amp; Validasi</button>
@@ -2428,13 +2462,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C10</div>
-<div class="comp-q">Hitung <strong>pembilang defuzzifikasi</strong>, yaitu jumlah kekuatan dikali pusat keluarannya.</div>
+<div class="comp-q" id="text-c10">🔒 Masuk untuk memuat soal parametrik C10.</div>
 <div class="comp-pts">2 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) kalikan kekuatan tiap aturan dengan pusat himpunan keluarannya. 2) perhatikan pusat Nol bernilai nol sehingga dua aturan tidak menyumbang. 3) jumlahkan seluruhnya.</div>
+<div class="comp-hint" id="hint-c10">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">pembilang</strong></span></div>
-<textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c10')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c10" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c10" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c10')"></textarea>
 <div class="stdout-box" id="stdout-c10"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c10" onclick="runAndCheck('c10')">▶ Run &amp; Validasi</button>
@@ -2443,13 +2477,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C11</div>
-<div class="comp-q">Hitung <strong>keluaran controller</strong> pada titik kerja acuan.</div>
+<div class="comp-q" id="text-c11">🔒 Masuk untuk memuat soal parametrik C11.</div>
 <div class="comp-pts">4 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) hitung derajat keanggotaan kedua masukan. 2) hitung kekuatan keempat aturan dengan operasi minimum. 3) kalikan tiap kekuatan dengan pusat keluarannya. 4) jumlahkan menjadi pembilang. 5) jumlahkan seluruh kekuatan menjadi penyebut. 6) bagi pembilang dengan penyebut.</div>
+<div class="comp-hint" id="hint-c11">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">u</strong></span></div>
-<textarea class="code-textarea" id="code-c11" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c11')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c11" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c11" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c11')"></textarea>
 <div class="stdout-box" id="stdout-c11"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c11" onclick="runAndCheck('c11', 'hard')">▶ Run &amp; Validasi</button>
@@ -2458,13 +2492,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C12</div>
-<div class="comp-q">Sebuah basis aturan memakai <strong>tujuh istilah</strong> untuk masing-masing dari dua masukan. Hitung jumlah aturan pada basis yang lengkap.</div>
+<div class="comp-q" id="text-c12">🔒 Masuk untuk memuat soal parametrik C12.</div>
 <div class="comp-pts">4 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) hitung banyaknya istilah masukan pertama. 2) hitung banyaknya istilah masukan kedua. 3) kenali basis lengkap mencakup seluruh kombinasi. 4) kalikan keduanya. 5) bandingkan dengan empat aturan yang aktif pada titik kerja acuan. 6) simpulkan mengapa hanya sedikit aturan aktif sekaligus.</div>
+<div class="comp-hint" id="hint-c12">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">jumlah aturan</strong></span></div>
-<textarea class="code-textarea" id="code-c12" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c12')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c12" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c12" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c12')"></textarea>
 <div class="stdout-box" id="stdout-c12"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c12" onclick="runAndCheck('c12', 'hard')">▶ Run &amp; Validasi</button>
@@ -2473,13 +2507,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C13</div>
-<div class="comp-q">Faktor penskalaan masukan error <strong>dinaikkan dua kali</strong> sehingga error efektif menjadi 4,0. Hitung keluaran controller yang baru.</div>
+<div class="comp-q" id="text-c13">🔒 Masuk untuk memuat soal parametrik C13.</div>
 <div class="comp-pts">4 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) hitung derajat keanggotaan error efektif terhadap Nol dan PK. 2) pertahankan derajat laju error seperti semula. 3) hitung kekuatan keempat aturan. 4) hitung pembilang. 5) hitung penyebut. 6) bagi keduanya.</div>
+<div class="comp-hint" id="hint-c13">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">u baru</strong></span></div>
-<textarea class="code-textarea" id="code-c13" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c13')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c13" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c13" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c13')"></textarea>
 <div class="stdout-box" id="stdout-c13"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c13" onclick="runAndCheck('c13', 'hard')">▶ Run &amp; Validasi</button>
@@ -2488,13 +2522,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C14</div>
-<div class="comp-q">Hitung <strong>rasio</strong> keluaran setelah penskalaan dinaikkan terhadap keluaran semula.</div>
+<div class="comp-q" id="text-c14">🔒 Masuk untuk memuat soal parametrik C14.</div>
 <div class="comp-pts">4 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) hitung keluaran pada titik kerja acuan. 2) hitung derajat keanggotaan pada error efektif 4,0. 3) hitung kekuatan aturan yang baru. 4) hitung keluaran baru. 5) bagi keluaran baru dengan keluaran lama. 6) bandingkan dengan faktor penskalaan yang hanya dua kali.</div>
+<div class="comp-hint" id="hint-c14">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">rasio</strong></span></div>
-<textarea class="code-textarea" id="code-c14" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c14')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c14" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c14" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c14')"></textarea>
 <div class="stdout-box" id="stdout-c14"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c14" onclick="runAndCheck('c14', 'hard')">▶ Run &amp; Validasi</button>
@@ -2503,13 +2537,13 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="comp-card reveal">
 <div class="comp-header">
 <div class="comp-num">C15</div>
-<div class="comp-q">Pada titik kerja yang sama, sistem <strong>berhenti bergerak</strong> sehingga laju error menjadi nol. Hitung keluaran controller.</div>
+<div class="comp-q" id="text-c15">🔒 Masuk untuk memuat soal parametrik C15.</div>
 <div class="comp-pts">4 poin</div>
 </div>
-<div class="comp-hint">💡 Langkah: 1) hitung derajat laju error terhadap Nol saat de = 0. 2) hitung derajatnya terhadap NK dan PK. 3) pertahankan derajat error seperti semula. 4) hitung kekuatan keempat aturan. 5) hitung pembilang dan penyebut. 6) bagi keduanya lalu bandingkan dengan keluaran acuan.</div>
+<div class="comp-hint" id="hint-c15">💡 Hint akan dimuat bersama soal.</div>
 <div class="comp-code-wrap">
-<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">u saat de = 0</strong></span></div>
-<textarea class="code-textarea" id="code-c15" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c15')"></textarea>
+<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c15" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>
+<textarea class="code-textarea" id="code-c15" placeholder="Tulis atau paste kode Python Anda, lalu print() hanya nilai akhir yang diminta server." oninput="onCodeInput('c15')"></textarea>
 <div class="stdout-box" id="stdout-c15"></div>
 </div>
 <button class="comp-submit run-btn" id="sub-c15" onclick="runAndCheck('c15', 'hard')">▶ Run &amp; Validasi</button>
@@ -2517,6 +2551,25 @@ document.addEventListener('DOMContentLoaded',function(){
 </div>
 </div>
 <div class="tip-box reveal">✓ Total 50 poin. Penilaian objektif dijalankan di server; kunci jawaban tidak pernah dikirim ke peramban.</div>
+
+  <!-- GOOGLE DRIVE LINK -->
+  <div style="background:var(--surface);border:1px solid rgba(0,224,158,.25);border-radius:16px;padding:24px 28px;margin-top:8px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <span style="font-size:22px">🔗</span>
+      <div>
+        <div style="font-weight:700;color:var(--green);font-size:15px">Link Google Drive — File Jawaban (.ipynb)</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px">Tempel link Google Drive yang berisi file Jupyter Notebook (<code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">.ipynb</code>) — mencakup <strong style="color:var(--text)">kode Python implementasi</strong> seperti yang dijelaskan di Modul (Bagian 08) dan <strong style="color:var(--text)">jawaban lengkap seluruh soal tugas</strong>. Pastikan aksesnya <em>Anyone with the link</em>.</div>
+      </div>
+    </div>
+    <input
+      id="gdrive-link"
+      type="url"
+      placeholder="https://drive.google.com/drive/folders/..."
+      oninput="checkExportReady()"
+      style="width:100%;padding:13px 16px;background:#020a18;border:1px solid rgba(0,224,158,.3);border-radius:10px;color:var(--green);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:border-color .2s"
+    >
+    <div id="gdrive-feedback" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-top:8px"></div>
+  </div>
 </div><!-- end section -->
 <footer>
 <p>© 2026 · <a href="#">Dedik Romahadi</a> · Tugas 13 — Sistem Kontrol Logika Fuzzy · Sistem Kendali Cerdas · S1 Teknik Mesin · Universitas Mercu Buana</p>
@@ -5548,6 +5601,7 @@ const _functions = getFunctions(app, 'asia-southeast1');
 const _auth = getAuth(app);
 const _createAdminSessionCallable = httpsCallable(_functions, 'createAdminSession');
 const _checkModulAnswerCallable = httpsCallable(_functions, 'checkModulAnswer');
+const _getModulQuestionsCallable = httpsCallable(_functions, 'getModulQuestions');
 const _verifyPinCallable = httpsCallable(_functions, 'verifyPin');
 window._callVerifyPin = async (nim, pinHash) => {
   const payload = { nim: String(nim) };
@@ -5634,6 +5688,48 @@ async function _callCheckModulAnswer(qId, userAnswer, codeText, userAnswers, lin
   }
 }
 window._callCheckModulAnswer = _callCheckModulAnswer;
+let _parametricQuestionKey = null;
+async function _loadParametricModulQuestions() {
+  const me = getIdentity();
+  if (!me || !['student', 'dosen'].includes(me.role)) return false;
+  const key = me.role + '|' + (me.nim || 'admin');
+  if (_parametricQuestionKey === key) return true;
+  const payload = { modulId: MODUL_ID };
+  if (me.role === 'student') {
+    if (!me.nim || !window._sessionPinHash) return false;
+    payload.nim = me.nim;
+    payload.pinHash = window._sessionPinHash;
+  }
+  try {
+    const result = await _getModulQuestionsCallable(payload);
+    const data = result && result.data;
+    const questions = data && Array.isArray(data.comp) ? data.comp : [];
+    if (questions.length !== 15) throw new Error('Server tidak mengembalikan 15 soal.');
+    for (const question of questions) {
+      if (!/^c(?:1[0-5]|[1-9])$/.test(question.id)) throw new Error('qId soal tidak valid.');
+      const text = document.getElementById('text-' + question.id);
+      const hint = document.getElementById('hint-' + question.id);
+      const input = document.getElementById('input-' + question.id);
+      if (!text || !hint || !input) throw new Error('Wadah soal tidak lengkap: ' + question.id);
+      text.textContent = question.text || '';
+      hint.textContent = '💡 ' + (question.hint || 'Kerjakan dengan Python dan tampilkan hasil akhir.');
+      input.textContent = question.inputLabel || 'print() hasil akhir';
+    }
+    const note = document.getElementById('parametric-modul-note');
+    if (note) note.setAttribute('data-loaded-n', String(data.N));
+    _parametricQuestionKey = key;
+    return true;
+  } catch (error) {
+    for (let n = 1; n <= 15; n += 1) {
+      const text = document.getElementById('text-c' + n);
+      if (text) text.textContent = '⚠ Soal belum dapat dimuat: ' + (error.message || error);
+    }
+    console.error('[getModulQuestions]', error);
+    return false;
+  }
+}
+window._loadParametricModulQuestions = _loadParametricModulQuestions;
+
 const CHAT_LIMIT = 50; // last N messages
 const HEARTBEAT_MS = 20000; // 20s heartbeat
 const ONLINE_THRESHOLD_MS = 45000; // offline if no heartbeat in 45s
@@ -5659,6 +5755,7 @@ window._switchRole = async function() {
 function saveIdentity(v){
   localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(v));
   if (v && v.role === 'student') setTimeout(() => window.shuffleMCOptions && window.shuffleMCOptions(), 0);
+  if (v && ['student', 'dosen'].includes(v.role)) setTimeout(() => window._loadParametricModulQuestions && window._loadParametricModulQuestions(), 0);
   // PEDOMAN v5 §24.4 — Re-render chat UI setelah identity berubah
   // (sehingga chat input ter-enable tanpa perlu refresh halaman)
   try { if (typeof renderChat === 'function') renderChat(); } catch(e) {}
@@ -7511,6 +7608,7 @@ window.shuffleMCOptions = shuffleMCOptions;
 // 2. Auto-login mahasiswa returning
 // 3. Restore state dari Firebase setelah PIN flow + Firebase ready
 if (typeof shuffleMCOptions === 'function') shuffleMCOptions();
+if (typeof window._loadParametricModulQuestions === 'function') window._loadParametricModulQuestions();
 initVisitor();
 // Init Chat listener (always — even guests/dosen can see messages)
 initChat();
