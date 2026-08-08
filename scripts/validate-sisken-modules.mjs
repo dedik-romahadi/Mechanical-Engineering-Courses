@@ -71,7 +71,7 @@ for (let n = 1; n <= 14; n += 1) {
       // Frasa "Tugas Pertemuan" dan "10 soal pilihan ganda" dahulu dianggap
       // sisa salinan lama. Sejak halaman Tugas mengikuti Modul 1, keduanya
       // justru ada di sana, jadi yang diperiksa kini strukturnya.
-      [/<div class="hero" data-tab="tugas">/.test(html), "hero halaman Tugas seperti Modul 1"],
+      [/<div class="hero" data-tab="tugas"(?:\s[^>]*)?>/.test(html), "hero halaman Tugas seperti Modul 1"],
       // Sejak modul 2-14 memakai tata letak Modul 1, yang diperiksa adalah
       // kosakata desainnya: hero, bagian bernomor, dan tidak adanya halaman
       // yang khusus milik Modul 1.
@@ -132,6 +132,9 @@ for (let n = 1; n <= 14; n += 1) {
     [(html.match(/placeholder="Tulis atau paste kode Python Anda, lalu print\(\) hanya nilai akhir yang diminta server\."/g) || []).length === 15, "placeholder kode generik"],
     [!html.includes("Parameter Sistem Referensi (dipakai soal C1–C10)"), "tanpa kotak parameter tugas statis lama"],
     [["scoreDisplay", "scoreDetail", "scoreFill", "scoreMC", "scoreCompEz", "scoreCompHard", "btn-score-export", "export-blocked-msg"].every((id) => html.includes(`id="${id}"`)), "komponen panel skor/export lengkap"],
+    [html.includes('<div class="hero" data-tab="tugas" style="min-height:60vh">'), "hero Tugas 60vh agar panel langsung terlihat seperti mata kuliah lain"],
+    [html.includes("const scoreBar = document.querySelector('#page-tugas .score-bar')") && html.includes("window.scrollTo({ top, behavior: 'auto' })"), "tab Tugas langsung menggulir ke panel skor"],
+    [html.includes("body{overflow-x:clip!important;overflow-y:visible!important}") && /\.score-bar\{position:sticky;top:64px;/.test(html), "panel sticky memakai viewport scroll utama"],
     [/<button class="btn-export" id="btn-score-export" onclick="exportTugasHtml\(\)" disabled/.test(html), "Export HTML terkunci sampai tugas lengkap"],
     [["gdrive-link", "gdrive-feedback", "lateAccessBanner"].every((id) => html.includes(`id="${id}"`)), "prasyarat Google Drive dan banner jadwal tersedia"],
     [ringkasSpasi(antara(html, "function checkExportReady()", "// ── EXPORT TUGAS HTML ──") || "") === acuanPerilakuPanel, "perilaku panel skor/export tetap sama dengan Getaran Modul 1"],

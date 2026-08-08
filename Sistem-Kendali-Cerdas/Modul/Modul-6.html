@@ -904,7 +904,7 @@ body{
 .sisken-anim-box{padding:20px;border:1px solid rgba(0,229,255,.25);border-radius:16px;background:#07111d}.sisken-anim-box canvas{width:100%;height:310px;display:block;background:#050b13;border-radius:11px;border:1px solid #15263c}.sisken-controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:15px 0}.sisken-controls label{color:#9eb0ca;font:600 12px 'JetBrains Mono',monospace}.sisken-controls input{accent-color:var(--cyan);width:min(320px,70vw)}.sisken-run{padding:9px 14px;border-radius:9px;border:1px solid var(--cyan);background:rgba(0,229,255,.12);color:var(--cyan);font:700 11px 'JetBrains Mono',monospace;cursor:pointer}
 .sisken-rich .code-wrap{margin:16px 0}.sisken-code-note{padding:13px 15px;border:1px solid rgba(124,77,255,.22);border-radius:11px;background:rgba(124,77,255,.06);color:#aebbd0;margin-bottom:14px}.sisken-ref-list{display:grid;gap:10px;counter-reset:refs}.sisken-ref-list li{list-style:none;counter-increment:refs;padding:14px 16px 14px 54px;position:relative;border:1px solid #1b2b42;border-radius:11px;background:#0a131f;color:#aab7cc}.sisken-ref-list li:before{content:counter(refs);position:absolute;left:15px;top:11px;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:rgba(0,229,255,.1);color:var(--cyan);font:700 11px 'JetBrains Mono',monospace}
 .sisken-task{margin:36px auto;max-width:1060px;padding:clamp(22px,4vw,42px);border:1px solid #22334d;border-radius:18px;background:linear-gradient(145deg,#0c1624,#08111d)}.sisken-task h2{font:800 clamp(30px,5vw,50px) 'Playfair Display',serif;color:#f4f7ff}.sisken-task>p{color:#9eacc3;font-size:17px;line-height:1.7}.sisken-task .sisken-card{border-top:3px solid var(--cyan)}.sisken-task-note{margin-top:20px;padding:14px 16px;border:1px solid rgba(0,230,118,.25);border-radius:11px;background:rgba(0,230,118,.06);color:#b8efd0}
-html,body{height:auto!important;min-height:100%!important;overflow-y:auto!important}.visitor-overlay{overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;align-items:flex-start!important;padding:clamp(14px,4vh,42px) 12px;box-sizing:border-box}.visitor-overlay>.visitor-modal{margin:auto;flex:none}
+html,body{height:auto!important;min-height:100%!important;overflow-y:auto!important}body{overflow-x:clip!important;overflow-y:visible!important}.visitor-overlay{overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;align-items:flex-start!important;padding:clamp(14px,4vh,42px) 12px;box-sizing:border-box}.visitor-overlay>.visitor-modal{margin:auto;flex:none}
 @media(max-width:700px){.sisken-rich{padding-top:28px}.sisken-tabs{margin-top:24px}.sisken-anim-box canvas{height:240px}}
 .sisken-prose{max-width:1000px;margin:0 0 34px}
 .sisken-prose h3{font:800 21px/1.35 'Playfair Display',serif;color:#e8eefc;margin:26px 0 10px}
@@ -2084,7 +2084,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 <div class="page" id="page-tugas">
-<div class="hero" data-tab="tugas">
+<div class="hero" data-tab="tugas" style="min-height:60vh">
   <div class="hero-waves">
     <svg viewBox="0 0 1440 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
       <path class="wave-trace w1" d="" fill="none" stroke="rgba(124,77,255,.12)" stroke-width="1.5"/>
@@ -3187,7 +3187,13 @@ function switchTab(tab) {
   // Show subnav only for modul tab
   const sub = document.getElementById('modulSubnav');
   if (sub) sub.classList.toggle('show', tab === 'modul');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (tab === 'tugas') {
+    const scoreBar = document.querySelector('#page-tugas .score-bar');
+    const top = scoreBar ? window.scrollY + scoreBar.getBoundingClientRect().top - 72 : 0;
+    window.scrollTo({ top, behavior: 'auto' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
   document.querySelectorAll('#page-' + tab + ' .reveal').forEach(el => {
     el.classList.remove('visible');
     setTimeout(() => revealObs.observe(el), 50);

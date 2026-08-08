@@ -34,6 +34,36 @@ function removeLegacyTaskParameters(source, moduleNumber) {
   return source.replace(legacyBox, "\n");
 }
 
+function ensureVisibleTaskPanel(source, moduleNumber) {
+  const standard = '<div class="hero" data-tab="tugas" style="min-height:60vh">';
+  if (source.includes(standard)) return source;
+  const legacy = '<div class="hero" data-tab="tugas">';
+  if (count(source, legacy) !== 1) throw new Error(`Modul-${moduleNumber}: hero halaman Tugas tidak unik`);
+  return source.replace(legacy, standard);
+}
+
+function ensureTaskPanelEntryScroll(source, moduleNumber) {
+  const standard = `  if (tab === 'tugas') {
+    const scoreBar = document.querySelector('#page-tugas .score-bar');
+    const top = scoreBar ? window.scrollY + scoreBar.getBoundingClientRect().top - 72 : 0;
+    window.scrollTo({ top, behavior: 'auto' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }`;
+  if (source.includes(standard)) return source;
+  const legacy = "  window.scrollTo({ top: 0, behavior: 'smooth' });";
+  if (count(source, legacy) !== 1) throw new Error(`Modul-${moduleNumber}: perilaku scroll tab tidak unik`);
+  return source.replace(legacy, standard);
+}
+
+function ensureStickyBodyScroll(source, moduleNumber) {
+  const standard = "body{overflow-x:clip!important;overflow-y:visible!important}";
+  if (source.includes(standard)) return source;
+  const anchor = "html,body{height:auto!important;min-height:100%!important;overflow-y:auto!important}";
+  if (count(source, anchor) !== 1) throw new Error(`Modul-${moduleNumber}: aturan scroll global tidak unik`);
+  return source.replace(anchor, `${anchor}${standard}`);
+}
+
 function ensureStandardTaskPanels(source, moduleNumber) {
   const pageStart = source.indexOf('<div class="page" id="page-tugas">');
   const pageEnd = pageStart < 0 ? -1 : source.indexOf("<!-- end page-tugas -->", pageStart);
@@ -123,7 +153,16 @@ for (let moduleNumber = 1; moduleNumber <= 14; moduleNumber += 1) {
       original.includes("window._loadParametricModulQuestions = _loadParametricModulQuestions"),
     ];
     if (required.every(Boolean)) {
-      let normalized = ensureStandardTaskPanels(removeLegacyTaskParameters(original, moduleNumber), moduleNumber);
+      let normalized = ensureStickyBodyScroll(
+        ensureTaskPanelEntryScroll(
+          ensureVisibleTaskPanel(
+            ensureStandardTaskPanels(removeLegacyTaskParameters(original, moduleNumber), moduleNumber),
+            moduleNumber,
+          ),
+          moduleNumber,
+        ),
+        moduleNumber,
+      );
       for (let n = 1; n <= 15; n += 1) {
         const textarea = new RegExp(`(<textarea class="code-textarea" id="code-c${n}"[^>]*?)placeholder="[^"]*"([^>]*>)`);
         if (count(normalized, textarea) !== 1) throw new Error(`Modul-${moduleNumber}: textarea c${n} tidak unik`);
@@ -142,7 +181,16 @@ for (let moduleNumber = 1; moduleNumber <= 14; moduleNumber += 1) {
     throw new Error(`Modul-${moduleNumber}: migrasi lama tidak lengkap; berkas dilewati utuh`);
   }
 
-  let html = ensureStandardTaskPanels(removeLegacyTaskParameters(original, moduleNumber), moduleNumber);
+  let html = ensureStickyBodyScroll(
+    ensureTaskPanelEntryScroll(
+      ensureVisibleTaskPanel(
+        ensureStandardTaskPanels(removeLegacyTaskParameters(original, moduleNumber), moduleNumber),
+        moduleNumber,
+      ),
+      moduleNumber,
+    ),
+    moduleNumber,
+  );
   const problems = [];
   const replaceOnce = (before, after, label) => {
     const matches = count(html, before);
