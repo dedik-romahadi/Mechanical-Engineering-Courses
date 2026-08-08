@@ -64,6 +64,45 @@ function ensureStickyBodyScroll(source, moduleNumber) {
   return source.replace(anchor, `${anchor}${standard}`);
 }
 
+function ensureCompactScorePanel(source, moduleNumber) {
+  const compactRules = `/* Score tracker compact - informasi dan perilaku tetap utuh */
+.score-bar-compact{border-radius:18px;padding:14px 20px;margin-bottom:32px;gap:14px}
+.score-bar-compact::after{border-radius:18px}
+.score-bar-compact .score-value{min-width:56px!important}
+.score-bar-compact #scoreDisplay{font-size:32px!important}
+.score-bar-compact .score-info{min-width:150px;padding-bottom:2px}
+.score-bar-compact .score-title{font-size:10px;letter-spacing:2px;margin-bottom:1px}
+.score-bar-compact .score-progress{height:5px;margin-top:3px}
+.score-bar-compact .score-breakdown{font-size:10px!important;min-width:132px!important;line-height:1.45}
+.score-bar-compact .btn-export{padding:9px 16px;min-height:38px;font-size:10px!important;gap:7px;border-radius:10px}
+.score-bar-compact .score-export-guide{padding-top:7px!important;margin-top:0!important;gap:7px!important}
+.score-bar-compact .score-export-icon{font-size:14px!important;line-height:1.25!important}
+.score-bar-compact .score-export-copy{font-size:11px!important;line-height:1.35!important}
+.score-bar-compact #export-blocked-msg{font-size:10.5px!important;line-height:1.3}
+@media(max-width:700px){.score-bar-compact{padding:12px 14px;gap:10px}.score-bar-compact .score-breakdown{text-align:left!important;min-width:120px!important}.score-bar-compact .btn-export{padding:8px 12px}}`;
+  source = source.replace("/* Score tracker compact â€” informasi dan perilaku tetap utuh */", "/* Score tracker compact - informasi dan perilaku tetap utuh */");
+  if (!source.includes(compactRules)) {
+    const anchor = ".score-bar:hover{";
+    if (count(source, anchor) !== 1) throw new Error(`Modul-${moduleNumber}: lokasi gaya panel skor tidak unik`);
+    source = source.replace(anchor, `${compactRules}\n${anchor}`);
+  }
+
+  const classUpdates = [
+    ['<div class="score-bar">', '<div class="score-bar score-bar-compact">'],
+    ['<div style="text-align:center;min-width:70px">', '<div class="score-value" style="text-align:center;min-width:70px">'],
+    ['<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted);text-align:right;min-width:150px">', '<div class="score-breakdown" style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted);text-align:right;min-width:150px">'],
+    ['<div style="flex-basis:100%;border-top:1px solid var(--border);padding-top:14px;margin-top:4px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">', '<div class="score-export-guide" style="flex-basis:100%;border-top:1px solid var(--border);padding-top:14px;margin-top:4px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">'],
+    ['<span style="font-size:18px;flex-shrink:0;line-height:1.4">', '<span class="score-export-icon" style="font-size:18px;flex-shrink:0;line-height:1.4">'],
+    ['<div style="flex:1;min-width:240px;font-size:13px;color:var(--muted);line-height:1.55">Isi semua jawaban', '<div class="score-export-copy" style="flex:1;min-width:240px;font-size:13px;color:var(--muted);line-height:1.55">Isi semua jawaban'],
+  ];
+  for (const [legacy, compact] of classUpdates) {
+    if (source.includes(compact)) continue;
+    if (count(source, legacy) !== 1) throw new Error(`Modul-${moduleNumber}: elemen compact panel skor tidak unik`);
+    source = source.replace(legacy, compact);
+  }
+  return source;
+}
+
 function ensureStandardTaskPanels(source, moduleNumber) {
   const pageStart = source.indexOf('<div class="page" id="page-tugas">');
   const pageEnd = pageStart < 0 ? -1 : source.indexOf("<!-- end page-tugas -->", pageStart);
@@ -153,10 +192,13 @@ for (let moduleNumber = 1; moduleNumber <= 14; moduleNumber += 1) {
       original.includes("window._loadParametricModulQuestions = _loadParametricModulQuestions"),
     ];
     if (required.every(Boolean)) {
-      let normalized = ensureStickyBodyScroll(
-        ensureTaskPanelEntryScroll(
-          ensureVisibleTaskPanel(
-            ensureStandardTaskPanels(removeLegacyTaskParameters(original, moduleNumber), moduleNumber),
+      let normalized = ensureCompactScorePanel(
+        ensureStickyBodyScroll(
+          ensureTaskPanelEntryScroll(
+            ensureVisibleTaskPanel(
+              ensureStandardTaskPanels(removeLegacyTaskParameters(original, moduleNumber), moduleNumber),
+              moduleNumber,
+            ),
             moduleNumber,
           ),
           moduleNumber,
@@ -181,10 +223,13 @@ for (let moduleNumber = 1; moduleNumber <= 14; moduleNumber += 1) {
     throw new Error(`Modul-${moduleNumber}: migrasi lama tidak lengkap; berkas dilewati utuh`);
   }
 
-  let html = ensureStickyBodyScroll(
-    ensureTaskPanelEntryScroll(
-      ensureVisibleTaskPanel(
-        ensureStandardTaskPanels(removeLegacyTaskParameters(original, moduleNumber), moduleNumber),
+  let html = ensureCompactScorePanel(
+    ensureStickyBodyScroll(
+      ensureTaskPanelEntryScroll(
+        ensureVisibleTaskPanel(
+          ensureStandardTaskPanels(removeLegacyTaskParameters(original, moduleNumber), moduleNumber),
+          moduleNumber,
+        ),
         moduleNumber,
       ),
       moduleNumber,
