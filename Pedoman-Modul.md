@@ -1,8 +1,8 @@
 # Pedoman Sistem Modul, Exam, dan OBE
 
-> **Status:** acuan keadaan sistem saat ini, diperbarui 3 Agustus 2026
+> **Status:** acuan keadaan sistem saat ini, diperbarui 8 Agustus 2026
 >
-> **Lingkup:** LMS tiga mata kuliah S1 Teknik Mesin Universitas Mercu Buana
+> **Lingkup:** LMS empat mata kuliah S1 Teknik Mesin Universitas Mercu Buana
 >
 > **Dosen pengampu:** Dedik Romahadi
 >
@@ -40,13 +40,18 @@ Aturan pemisahan:
 
 ### 1.1 Hosting frontend
 
-GitHub Pages menggunakan `.github/workflows/deploy-slides.yml` dengan sumber **GitHub Actions** dan allowlist frontend. Workflow berjalan otomatis ketika perubahan masuk ke `main` dan juga dapat dijalankan manual.
+GitHub Pages menggunakan `.github/workflows/deploy-slides.yml` dengan allowlist frontend. Workflow berjalan otomatis ketika perubahan masuk ke `main` dan juga dapat dijalankan manual.
+
+Publikasi memakai **push ke branch `gh-pages`** (`build_type: legacy`), **bukan** `actions/deploy-pages`. Alasannya tercatat di komentar workflow: `actions/deploy-pages` punya batas keras 10 menit yang berulang kali terlampaui oleh jumlah berkas situs ini. Karena itu workflow butuh izin `contents: write` untuk mendorong hasil build ke `gh-pages`.
 
 Jangan:
 
-- mengubah Pages menjadi “Deploy from a branch” atau memindahkan situs ke `/docs`;
-- menyalin seluruh root repositori ke artefak `_site`;
+- mengembalikan publikasi ke `actions/deploy-pages` (batas 10 menit akan terlampaui lagi);
+- memindahkan situs ke `/docs`;
+- menyalin seluruh root repositori ke artefak situs;
 - memasukkan backend, seed, bank soal, atau secret ke artefak Pages.
+
+Berkas `.docx` di `Modul-Word/` sengaja tidak ikut dipublikasikan; hanya hasil render `.pdf` yang disertakan.
 
 Path roster mahasiswa di halaman live bergantung pada struktur root Pages. Perubahan strategi hosting dapat memutus login seluruh mata kuliah.
 
@@ -80,6 +85,9 @@ Secret runtime yang dibuat di Firebase Secret Manager adalah `EXPORT_CODE_SECRET
 | `Engineering-Mathematics/` | `math4` | `math4` | Matematika 4 / Engineering Mathematics |
 | `Getaran-Mekanik/` | `getaran_mekanik` | `getaran-mekanik` | Getaran Mekanik |
 | `Optimalisasi-dan-Automasi/` | `optoauto` | `optoauto` | Optimalisasi & Otomasi |
+| `Sistem-Kendali-Cerdas/` | `sistem_kendali_cerdas` | `sisken` | Sistem Kendali Cerdas |
+
+Perhatikan Sistem Kendali Cerdas memakai **dua penamaan berbeda** yang keduanya benar dan tidak boleh disamakan: course id/path Firebase `sistem_kendali_cerdas` (dengan garis bawah), tetapi prefix exam `sisken` (`sisken-uts`, `sisken-uas`). Nama berkas kunci modul juga memakai bentuk panjang: `functions/seed/modul/sistem_kendali_cerdas-modul-N-answers.js`.
 
 Khusus course Optimalisasi:
 
@@ -101,11 +109,13 @@ Setiap course mempunyai:
 
 Inventaris utama saat ini:
 
-- 42 modul: 14 per course;
-- 6 exam: UTS dan UAS per course;
-- 3 halaman OBE;
-- total 51 halaman HTML inti;
+- 56 modul: 14 per course;
+- 8 exam: UTS dan UAS per course;
+- 4 halaman OBE;
+- total 68 halaman HTML inti;
 - 5 halaman Admin HTML dan satu helper analisis Python.
+
+Halaman standalone lama di `Attributes/` (`Nilai-Akhir.html`, `Pembagian-Kelompok.html`, `Setup-Python.html`) **sudah dihapus** dari Matematika 4, Getaran Mekanik, dan Optimalisasi. Halaman itu memakai login lama (nama + NIM, tanpa PIN) dan fungsinya sudah ada di dalam halaman modul. Tautannya di `index.html` ikut dihapus. Jangan membuatnya kembali; jika perlu, tambahkan sebagai tab di halaman modul supaya ikut gerbang PIN.
 
 Sumber data course yang harus dipertahankan:
 
@@ -114,6 +124,7 @@ Sumber data course yang harus dipertahankan:
 | Matematika 4 | `Attributes/Asesmen-Matematika-4.json` |
 | Getaran Mekanik | `Attributes/Asesmen-Getaran-Mekanik.json` |
 | Optimalisasi & Otomasi | `Attributes/Asesmen-Optimalisasi-dan-Otomasi.json` |
+| Sistem Kendali Cerdas | `Attributes/Asesmen-Sistem-Kendali-Cerdas.json` |
 
 Roster login mahasiswa selalu berasal dari `Attributes/students.json` masing-masing course. Nama mahasiswa tidak diketik bebas ketika login.
 
@@ -128,7 +139,9 @@ Modul 1–7  → Pertemuan 1–7
 Modul 8–14 → Pertemuan 9–15
 ```
 
-Rumusnya: `P = N` untuk `N <= 7`, dan `P = N + 1` untuk `N >= 8`.
+Rumusnya: `P = N` untuk `N <= 7`, dan `P = N + 1` untuk `N >= 8`. Rumus ini dipakai `_segmentsForModul()` di backend untuk **keempat** course, termasuk Sistem Kendali Cerdas.
+
+> **Ketidakcocokan yang diketahui (Sistem Kendali Cerdas).** Label pertemuan di LMS Moodle Sisken memakai `P = N` sampai akhir, karena Modul 7 dan UTS digabung pada Pertemuan 7 dan jadwalnya tiga pertemuan per minggu (Kamis/Jumat/Sabtu) sehingga totalnya 15 pertemuan. Akibatnya untuk `N >= 8` label LMS ("Pertemuan 8 · Modul 8") berbeda dari path Firebase (`pertemuan-9`). Path Firebase tetap konsisten dengan backend sehingga penilaian tidak terpengaruh — yang berbeda hanya angka yang dibaca mahasiswa. Halaman modul Sisken juga masih tidak seragam sendiri: mis. Modul 8 menulis "Pertemuan 9" pada hero/hitung mundur/tugas tetapi "Pertemuan 8" pada bagian Forum, dan instruksi forum masih menyebut "Forum Pertemuan 1". Perbaikan label ini belum dikerjakan; jangan menganggap salah satu angka sebagai acuan sebelum diputuskan.
 
 ### 3.1 ID callable modul
 
@@ -137,6 +150,7 @@ Rumusnya: `P = N` untuk `N <= 7`, dan `P = N + 1` untuk `N >= 8`.
 | Matematika 4 | `math4-modul-N` |
 | Getaran Mekanik | `getaran-mekanik-modul-N` |
 | Optimalisasi & Otomasi | `optoauto-modul-N` |
+| Sistem Kendali Cerdas | `sistem_kendali_cerdas-modul-N` |
 
 ### 3.2 Path modul
 
@@ -145,8 +159,9 @@ Rumusnya: `P = N` untuk `N <= 7`, dan `P = N + 1` untuk `N >= 8`.
 | Matematika 4 | `visitors/math4/modul-N` | `settings/math4/pertemuan-P/schedule` | `presence/math4/modul-N` | `chat/math4/modul-N/messages` |
 | Getaran | `visitors/getaran_mekanik/pertemuan-P` | `settings/getaran_mekanik/pertemuan-P/schedule` | `presence/getaran_mekanik/pertemuan-P` | `chat/getaran_mekanik/pertemuan-P/messages` |
 | Optoauto | `visitors/optoauto/pertemuan-P` | `settings/optoauto/pertemuan-P/schedule` | `presence/optoauto/pertemuan-P` | `chat/optoauto/pertemuan-P/messages` |
+| Sisken | `visitors/sistem_kendali_cerdas/pertemuan-P` | `settings/sistem_kendali_cerdas/pertemuan-P/schedule` | `presence/sistem_kendali_cerdas/pertemuan-P` | `chat/sistem_kendali_cerdas/pertemuan-P/messages` |
 
-Untuk Matematika, visitor memakai `modul-N` sedangkan jadwal memakai `pertemuan-P`. Perbedaan ini disengaja dan sudah ditangani oleh backend.
+Untuk Matematika, visitor memakai `modul-N` sedangkan jadwal memakai `pertemuan-P`. Perbedaan ini disengaja dan sudah ditangani oleh backend. Tiga course lain memakai `pertemuan-P` untuk keduanya.
 
 ### 3.3 ID dan path exam
 
@@ -158,6 +173,8 @@ Untuk Matematika, visitor memakai `modul-N` sedangkan jadwal memakai `pertemuan-
 | `getaran-mekanik-uas` | `visitors/getaran_mekanik/uas` | `settings/getaran_mekanik/uas/schedule` | `presence/getaran_mekanik/uas` |
 | `optoauto-uts` | `visitors/optoauto/uts` | `settings/optoauto/uts/schedule` | `presence/optoauto/uts` |
 | `optoauto-uas` | `visitors/optoauto/uas` | `settings/optoauto/uas/schedule` | `presence/optoauto/uas` |
+| `sisken-uts` | `visitors/sistem_kendali_cerdas/uts` | `settings/sistem_kendali_cerdas/uts/schedule` | `presence/sistem_kendali_cerdas/uts` |
+| `sisken-uas` | `visitors/sistem_kendali_cerdas/uas` | `settings/sistem_kendali_cerdas/uas/schedule` | `presence/sistem_kendali_cerdas/uas` |
 
 ID, slug, path, localStorage key, konfigurasi backend, seed, dan OBE mapping harus berubah bersama. Jangan menyalin prefix course asal saat membuat halaman baru.
 
@@ -201,6 +218,18 @@ Preview bukan identitas mahasiswa dan tidak membuat record kehadiran.
 - Reset modul atau exam tidak menghapus PIN global.
 - Halaman OBE masih menerima 4–8 digit untuk kompatibilitas; PIN baru tetap harus mengikuti standar 6 digit.
 - Session PIN berada di `sessionStorage`; jika sesi hilang tetapi identitas lokal masih ada, halaman meminta PIN kembali sebelum submit.
+
+**Node `pins/` tertutup dari klien.** Aturan RTDB `pins/` tidak lagi punya `.read`. Sebelumnya `.read: true`, sehingga siapa pun tanpa login dapat membaca seluruh NIM, nama, dan hash PIN; karena PIN hanya 6 digit dan di-hash SHA-256 tanpa garam, seluruh ruang 10⁶ dapat dihitung offline dalam hitungan detik dan mahasiswa dapat diimpersonasi. Aturan `.write` dipertahankan agar setup PIN pertama kali tetap jalan.
+
+Konsekuensi yang wajib dipatuhi:
+
+- klien **tidak boleh** membaca `pins/` lagi. Verifikasi PIN memakai callable **`verifyPin({nim, pinHash?}) → {exists, valid}`**, yang tidak pernah mengembalikan hash tersimpan dan punya lockout per-NIM (10 kegagalan / 60 detik);
+- halaman memakai helper `window._callVerifyPin()` dan `window._pinAuthObj()`; jangan menghidupkan kembali `get(ref(db, 'pins/' + key))` di klien;
+- callable bernilai (`checkModulAnswer`, `checkExamAnswer`, `getExamQuestions`, `generateExportCode`, `getMyObeNilai`) tetap memverifikasi `pinHash` sendiri di server — tidak berubah.
+
+**Urutan deploy wajib** bila menyentuh alur ini (salah urutan memutus login seluruh mahasiswa): (1) deploy Cloud Functions supaya `verifyPin` ada; (2) merge frontend agar halaman memakainya; (3) baru deploy RTDB Rules yang menutup `pins/`.
+
+**Login pertama memakai modal konfirmasi.** Ketika NIM belum punya PIN, `submitVisitor()` tidak lagi menulis `pins/` langsung. Ia mengisi `_pinFlow`, membuka modal "Buat PIN Keamanan" dengan PIN yang baru diketik terisi di kolom pertama dan fokus di kolom konfirmasi, lalu `submitPinSetup()` yang menuliskannya. Tidak ada penulisan ke Firebase sebelum konfirmasi cocok. `submitPinSetup()` juga menggabungkan visitor record lama bila ada, sehingga poin dan `scoredQuestions` mahasiswa lama tidak tereset saat PIN dibuat.
 
 ### 4.4 Autentikasi admin
 
@@ -298,14 +327,15 @@ admin-only lewat callable `rescaleExamLatePenalty` (parameter `nims[]` +
 
 ## 6. Struktur halaman modul
 
-Modul adalah satu file HTML mandiri yang memuat UI, konten, animasi, Pyodide, dan integrasi Firebase. Tab yang dipakai adalah:
+Modul adalah satu file HTML mandiri yang memuat UI, konten, animasi, Pyodide, dan integrasi Firebase. Susunan tab **berbeda per course** dan tidak ada aturan "harus enam tab":
 
-1. Setup Python;
-2. Pembagian Kelompok;
-3. Modul;
-4. Tugas;
-5. Forum;
-6. Hasil.
+| Course | Tab |
+|---|---|
+| Matematika 4, Getaran Mekanik, Optimalisasi | Setup Python · Pembagian Kelompok · Modul · Tugas · Forum · Hasil (6 tab) |
+| Sistem Kendali Cerdas — Modul 1 | Setup Python · Pembagian Kelompok · Modul · Tugas · Forum · Hasil (6 tab) |
+| Sistem Kendali Cerdas — Modul 2–14 | Modul · Tugas · Forum · Hasil (4 tab) |
+
+Setup Python dan Pembagian Kelompok hanya ada di Modul 1 tiap course; pada Sisken Modul 2–14 tombol nav, halaman, dan blok gayanya dibuang oleh generator supaya tidak ada tab yang menuju halaman kosong. Jangan "memperbaiki" ketidaksamaan ini dengan menambahkan tab kosong.
 
 Ketentuan konten dan UI:
 
@@ -330,6 +360,12 @@ Struktur universal:
 | Komputasi Hard | 5 | 4 | 20 |
 | **Total** | **25** |  | **50** |
 
+Markup wajib per soal (pernah rusak, jadi ditulis eksplisit):
+
+- setiap soal pilihan ganda butuh **tiga** elemen dengan urutan ini: grup radio `id="rg-mcN"`, lalu tombol `<button class="mc-submit" id="sub-mcN" onclick="checkMC('mcN')" disabled>Periksa Jawaban</button>`, lalu kotak umpan balik `id="fb-mcN"`;
+- tombol `sub-mcN` **tidak boleh hilang**: `selectMC()` diakhiri `document.getElementById('sub-' + qId).disabled = false`, sehingga elemen yang tidak ada membuat handler klik melempar `TypeError` di tengah jalan dan pilihan ganda tampak "tidak bisa dipilih". Ini pernah terjadi pada seluruh Sisken Modul 2–14 dan membuat 10 poin PG per modul tak terjangkau;
+- penjaganya ada di `scripts/validate-sisken-modules.mjs` — ia memeriksa keberadaan tombol per soal **dan** urutannya. Pemeriksa lama hanya menghitung jumlah grup radio sehingga hilangnya seluruh tombol lolos tanpa keluhan.
+
 Perilaku penilaian:
 
 - jawaban dikirim ke `checkModulAnswer`; kunci berada di Firestore `modulAnswers` dan tidak ada di client;
@@ -337,7 +373,7 @@ Perilaku penilaian:
 - modul bersifat formatif: server boleh mengembalikan jawaban benar dan penjelasan setelah attempt;
 - komputasi dinilai dengan nilai target dan toleransi pada server;
 - kandidat numerik dapat berasal dari jawaban utama, angka pertama/terakhir output, dan kandidat per baris `print()`;
-- soal Hard dapat memberi partial credit jika dikonfigurasi dan dikerjakan sebelum terlambat;
+- soal Hard dapat memberi partial credit jika dikonfigurasi dan dikerjakan sebelum terlambat. Besarnya diambil dari `partialPoints` pada kunci Firestore: **Sistem Kendali Cerdas 0,5 poin** (seluruh 14 modul), tiga course lain 1 poin. Angka ini juga muncul sebagai teks yang dibaca mahasiswa di pengantar Bagian C, jadi ubah keduanya bersama;
 - poin terlambat ditentukan backend per mata kuliah: Sistem Kendali Cerdas dikalikan 0,65 (potongan 35%); Optimalisasi & Otomasi, Matematika 4, dan Getaran Mekanik sementara tetap 0,7 (potongan 30%);
 - konsolasi satu poin ditentukan backend. Jangan memakai konstanta threshold client sebagai sumber kebenaran.
 
@@ -399,6 +435,16 @@ Bobot tipe 1:1:2:4 digunakan untuk membagi bobot di dalam Sub-CPMK. Nilai tiap s
 
 Jumlah nilai exam adalah 100. Soal yang sengaja tidak dipetakan dapat bernilai nol walaupun tetap bisa dijawab.
 
+**Dua sumber angka yang mudah tertukar.** Definisi bank soal (`functions/exams/*-v2.js`) memberi tiap soal field `points` mengikuti bobot tipe 1/1/2/4, sehingga Σ`points` sebuah exam = **70**. Angka 70 itu **bukan** nilai yang diberikan ke mahasiswa: `checkExamAnswer` menimpanya dengan `_examQPoints(examId, qId)` yang dihitung dari bobot Sub-CPMK OBE sehingga **Σ = 100**. Jadi:
+
+- Σ`points` bank = 70 → dipakai untuk seed/SUMMARY, pemeriksa struktur, dan pembagian bobot di dalam Sub-CPMK;
+- Σ`_examQPoints` = 100 → yang benar-benar masuk ledger dan nilai mahasiswa;
+- `cfg.totalPoints` exam = 100, dan `nilai = round(points / 100 × 100)`.
+
+Contoh nyata (`sisken-uts`, bobot Sub-CPMK 4/10/4/4, Σ=22): Sub-CPMK 1.1 memegang 8 soal × 2,273 = 18,18 poin; 1.2 21 soal × 2,165 = 45,45; 2.1 dan 2.2 masing-masing 8 soal × 2,273 = 18,18. Totalnya 100.
+
+**Partial credit exam saat ini dipatok 1 poin.** `checkExamAnswer` menetapkan `outcome.points = 1` untuk status `partial` dan **mengabaikan `partialPoints`** pada kunci. Karena itu memasang `partialPoints: 0,5` pada bank exam **tidak berpengaruh** pada nilai — berbeda dari modul, yang memang membaca `partialPoints`. Bila kebijakan 0,5 ingin berlaku juga di exam, `checkExamAnswer` (dan jalur `recomputeExamPoints`) harus diubah lebih dulu; jangan mengandalkan nilai di bank saja.
+
 ### 7.1 ID soal
 
 Urutan konseptual adalah Q1–Q45:
@@ -445,7 +491,29 @@ Jangan mengambil satu digit terakhir saja. Contoh NIM berakhiran `22` harus meng
 | Gate teks soal | PIN + jadwal (mahasiswa) atau sesi admin (dosen) | PIN + jadwal (mahasiswa) atau sesi admin (dosen) |
 | Friction anti-copy/capture | aktif untuk mahasiswa (identik dengan UAS) | aktif untuk mahasiswa |
 
-`getExamQuestions` melayani keenam exam (tiga UTS + tiga UAS). Response berisi teks, opsi, hint, diagram, dan nilai `N` yang sudah dirender; bukan fungsi `compute()` atau jawaban benar.
+`getExamQuestions` melayani kedelapan exam (empat UTS + empat UAS). Response berisi teks, opsi, hint, diagram, dan nilai `N` yang sudah dirender; bukan fungsi `compute()` atau jawaban benar.
+
+Status bank per exam saat ini:
+
+| Exam | Bank | Catatan |
+|---|---|---|
+| `getaran-mekanik-uts` / `-uas` | ditulis | 45 soal |
+| `math4-uts` / `-uas` | ditulis | 45 soal |
+| `optoauto-uts` / `-uas` | ditulis | 45 soal |
+| `sisken-uts` | ditulis | 45 soal, cakupan Modul 1–4 (Sub-CPMK 1.1, 1.2, 2.1, 2.2) |
+| `sisken-uas` | ditulis | 45 soal, cakupan Modul 8–14 (Sub-CPMK 4.1–4.3, 5.1–5.4) |
+
+Cakupan exam Sisken **tidak** mengikuti urutan pertemuan, melainkan matriks OBE di SIA: UTS 22% hanya menilai Sub-CPMK 1.1/1.2/2.1/2.2, dan UAS 30% menilai 4.1–4.3/5.1–5.4. Sub-CPMK 3.1–3.3 (Modul 5–7) dinilai **hanya lewat Tugas**. Menulis soal Modul 5–7 di UTS akan membuat jawabannya dihitung sebagai nilai Sub-CPMK lain, karena pemetaan OBE berbasis **posisi** soal (1–45), bukan topiknya.
+
+Blueprint posisi → Sub-CPMK untuk Sisken (harus sama dengan `OBE_EXAM_CONFIG` backend dan mapping halaman Penilaian-OBE):
+
+```text
+sisken-uts   1.1 → 1-8    1.2 → 9-29   2.1 → 30-37  2.2 → 38-45
+sisken-uas   4.1 → 1-9    4.2 → 10-17  4.3 → 18-25  5.1 → 26-28
+             5.2 → 29-34  5.3 → 35-40  5.4 → 41-45
+```
+
+Urutan posisi mengikuti `OBE_EXAM_ORDER`: `tf1..tf10`, `mc1..mc20`, `c1..c10`, `c11..c15`.
 
 ### 7.5 Sumber nilai dan konsistensi
 
@@ -700,7 +768,19 @@ Wajib dipertahankan:
 - semua operasi admin memakai Firebase Auth custom token dan claim admin;
 - update RTDB dari client harus sparse dan tidak boleh menulis ulang field server-owned dari snapshot basi;
 - user input harus di-escape ketika masuk ke export, chat, atau HTML dinamis;
-- Pages workflow harus menolak artefak sensitif sebelum deploy.
+- Pages workflow harus menolak artefak sensitif sebelum deploy;
+- node RTDB `pins/` tidak boleh dibuka kembali untuk dibaca klien (lihat §4.3);
+- seed **menolak** menulis kunci bank yang masih placeholder ke Firestore. `seed-firestore.js` mendeteksi status placeholder dari teks bank dan membatalkan live seed dengan pesan jelas; pelolos `--allow-placeholder` hanya untuk keadaan yang disengaja. Ini menutup jalur yang dulu membuat `--all-exam` menuliskan kunci dummy `sisken-uas` ke produksi tanpa gejala.
+
+### 14.1 Kunci exam lama bocor di riwayat Git (tidak dapat ditarik kembali)
+
+Repo frontend bersifat publik dan **riwayatnya tetap publik** meski berkasnya sudah dihapus. Commit sekitar April–20 Mei 2026 pernah meng-*embed* `correctIdx` + `explain` di HTML exam. Perbandingan teks eksak terhadap bank server menemukan **54 soal MC/TF yang kuncinya bocor DAN masih dipakai** (UTS Getaran 17, Math 18, Opto 19; UAS ketiganya 0 karena soalnya sudah ditulis ulang; Sisken 0 karena lahir server-side).
+
+Aturan yang mengikuti dari kejadian itu:
+
+- menulis ulang riwayat Git **tidak** menyembuhkan kebocoran — salinan publik sudah dapat di-*clone*/*fork*/ter-*cache*. Perbaikan yang benar adalah **rotasi soal**, bukan menghapus jejak;
+- ke-54 soal itu **sudah dirotasi** (soal dan jawabannya diganti, lalu di-seed ulang), sehingga kunci di riwayat tidak lagi memetakan ke ujian yang berjalan;
+- karena itu jangan pernah menaruh kunci, `correctIdx`, `explain`, `expected`, atau `tolerance` di repo publik meski "sementara" — satu commit sudah cukup untuk membocorkannya permanen.
 
 Teks soal UTS **tidak lagi publik**. Batasan arsitektur yang dulu dicatat di sini sudah ditutup: bank soal ketiga UTS dipindahkan ke repo backend dan dilayani `getExamQuestions` di balik gerbang yang sama dengan UAS. Halaman UTS mengisi `window.UTS_TF/MC/COMP_EZ/COMP_HARD` lewat `_ensureUTSQuestionsLoaded()` setelah login berhasil.
 
@@ -784,14 +864,19 @@ Dari root `Mechanical-Engineering-Courses`:
 
 ```powershell
 node scripts/validate-public-security.mjs
+node scripts/validate-sisken-modules.mjs
 git diff --check
 ```
+
+`validate-sisken-modules.mjs` memeriksa struktur 14 modul Sisken, termasuk keberadaan dan urutan tombol `sub-mcN` per soal pilihan ganda (§6.1). Jalankan setiap kali menyentuh halaman modul Sisken.
 
 Validator publik saat ini memeriksa antara lain:
 
 - artefak backend tidak berada di repo publik;
 - sintaks inline script seluruh HTML;
-- 63 halaman yang memakai autentikasi admin;
+- 56 halaman yang memakai autentikasi admin (48 Modul/Exam + 3 OBE + 5 Admin; turun dari 63 setelah 7 halaman `Attributes/` lama dihapus — angka ini dipatok di validator, jadi perbarui bersama bila jumlah halaman berubah);
+
+> **Cakupan validator ini belum penuh.** `courseRoots` di `validate-public-security.mjs` masih hanya berisi Matematika 4, Getaran Mekanik, dan Optimalisasi. Folder `Sistem-Kendali-Cerdas/` **tidak dipindai**, sehingga halaman Sisken tidak ikut diperiksa untuk sintaks inline script maupun artefak sensitif. Untuk sementara andalkan `validate-sisken-modules.mjs` bagi modul Sisken, dan ingat bahwa exam serta OBE Sisken belum tercakup penjaga otomatis mana pun di sisi frontend.
 - UAS server-gated dan friction layer;
 - WIB exam;
 - preview modul dan label Log Out;
@@ -814,6 +899,20 @@ npm.cmd test
 
 Sebelum live seed, gunakan opsi `dry_run_seed` pada workflow atau perintah seed dengan `--dry-run`.
 
+Penjaga bank soal yang **harus dijalankan manual** (semuanya di luar `lint`/`test`; `lint` hanya `node --check`):
+
+| Skrip | Memeriksa |
+|---|---|
+| `node scripts/verify-uts-bank.js` | invarian shuffle MC vs `correctIdx` ter-seed, N=0..99 (Getaran/Math4/Opto) |
+| `node scripts/verify-uts-unified.js` | tampilan+kunci `v2.js` vs bank/kunci legacy; untuk bank tanpa legacy (Sisken) memeriksa struktur, kebocoran kunci, opsi MC unik, konsistensi `expectedSteps`, dan menolak bank setengah jadi |
+| `node scripts/verify-uts-seed-payload.js` | payload seed identik dengan kunci lama (re-seed = no-op) |
+| `node scripts/verify-sisken-uts.js` | **menghitung ulang matematika tiap soal UTS Sisken** dari rumusnya untuk N=0..99 |
+| `node scripts/verify-sisken-uas.js` | idem untuk UAS Sisken, plus poin per Sub-CPMK cocok dengan pemetaan OBE |
+
+Dua penjaga terakhir adalah satu-satunya yang menangkap kekeliruan `correctIdx` menunjuk opsi yang salah dan **opsi MC kembar** (kunci ambigu) — kelas bug yang tidak terlihat dari struktur. Bank tanpa berkas kunci legacy tidak dapat diperiksa `verify-uts-bank.js`, jadi jangan menganggap bank Sisken sudah teruji hanya karena skrip itu hijau.
+
+Bila menulis soal pada bank yang sebelumnya placeholder, ingat bahwa penjaga yang **mewajibkan** teks placeholder harus diinversi lebih dulu; ini pernah membuat `validate-backend.js` dan `verify-uts-unified.js` gagal begitu soal ditulis. Keduanya sekarang mendeteksi sendiri keadaan bank.
+
 ### 17.3 Uji manual minimum
 
 | Area | Pemeriksaan |
@@ -821,7 +920,7 @@ Sebelum live seed, gunakan opsi `dry_run_seed` pada workflow atau perintah seed 
 | Preview | tidak membuat identity/attempt/poin; Tugas dan Forum modul tersembunyi |
 | Mahasiswa | roster, PIN, schedule gate, satu attempt, restore setelah refresh |
 | Dosen | login, pesan lock, atur jadwal, logout, sesi kedaluwarsa |
-| Modul | 25 soal, total 50, late sesuai konfigurasi (Sisken 0,65; Opto/Math4/Getaran sementara 0,7), export lengkap, Forum/chat |
+| Modul | 25 soal, total 50, PG dapat dipilih dan tombol Periksa aktif, late sesuai konfigurasi (Sisken 0,65; Opto/Math4/Getaran sementara 0,7), partial Hard (Sisken 0,5), export lengkap, Forum/chat |
 | Exam | 45 soal, total 100, format poin, late/cutoff, online-only, export resmi |
 | UAS | soal tidak ada di source publik, fetch setelah gate, friction tidak memburamkan halaman |
 | Reset | Firestore dan RTDB konsisten; PIN tidak terhapus; poin soal lain tetap |
@@ -848,3 +947,9 @@ Jangan menganggap perubahan selesai hanya karena halaman terbuka. Penilaian haru
 13. Atur Jadwal tidak boleh menghapus data. Reset adalah operasi terpisah dan eksplisit.
 14. Export HTML bukan sumber nilai resmi; kode HMAC hanya alat verifikasi.
 15. Setiap perubahan yang sudah tervalidasi harus masuk `main`; deployment backend tetap langkah manual terpisah.
+16. Node `pins/` tertutup dari klien. Verifikasi PIN hanya lewat callable `verifyPin`; jangan membaca `pins/` dari browser.
+17. Kunci jawaban tidak pernah masuk repo publik — sekali ter-commit, kebocorannya permanen di riwayat Git dan hanya dapat ditutup dengan merotasi soal.
+18. Bank soal yang masih placeholder tidak boleh di-live-seed; kunci dummy di produksi menilai mahasiswa secara ngawur tanpa gejala.
+19. Angka poin bank exam (Σ=70) bukan nilai mahasiswa; yang diberikan adalah `_examQPoints` (Σ=100). Partial credit exam saat ini dipatok 1 poin dan mengabaikan `partialPoints`.
+20. Setiap soal pilihan ganda wajib punya tombol `sub-mcN`-nya sendiri; tanpa itu `selectMC()` melempar dan PG tidak dapat dipilih.
+21. Publikasi Pages memakai push ke branch `gh-pages`; jangan kembali ke `actions/deploy-pages`.
