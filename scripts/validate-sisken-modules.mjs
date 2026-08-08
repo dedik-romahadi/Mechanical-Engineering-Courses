@@ -57,6 +57,9 @@ for (let n = 1; n <= 14; n += 1) {
     [/\.cards\{[^}]*margin:16px 0 24px[^}]*\}/.test(html), "jarak di bawah .cards"],
     [/\.tbl-wrap\{[^}]*margin:16px 0 24px[^}]*\}/.test(html), "jarak di bawah .tbl-wrap"],
     [!html.includes("\u0000"), "tanpa token placeholder yang belum dipulihkan"],
+    [(html.match(/id="sisken-formula-hover"/g) || []).length === 1, "satu blok hover kartu formula"],
+    [(html.match(/class="formula-block reveal"/g) || []).length >= 5 && html.includes("#page-modul .formula-block:hover{transform:translate3d(5px,-5px,0)"), "seluruh kartu formula memiliki efek hover"],
+    [html.includes("#page-modul .formula-block:hover::before{background-position:-40% 0;opacity:1}"), "kilau hover formula tidak memperlebar area scroll"],
   ];
 
   if (n === 1) {
