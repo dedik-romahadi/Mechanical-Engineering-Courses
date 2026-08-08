@@ -382,6 +382,9 @@ Markup wajib per soal (pernah rusak, jadi ditulis eksplisit):
 Perilaku penilaian:
 
 - jawaban dikirim ke `checkModulAnswer`; kunci berada di Firestore `modulAnswers` dan tidak ada di client;
+- pada 14 modul Sisken, urutan empat opsi PG diacak deterministik per NIM. Markup tidak membawa huruf kanonik; client mengirim huruf posisi yang terlihat dengan `mcOrderVersion: 1`, lalu server merekonstruksi permutasi memakai `shuffleSeed` dari bank exam dan memetakannya ke huruf kanonik. Payload tanpa versi tetap diperlakukan sebagai huruf kanonik agar frontend lama aman selama deployment bertahap;
+- batas perlindungan shuffle PG harus disebutkan jujur: teks opsi masih berada di HTML publik sehingga mahasiswa teknis dapat menghitung ulang permutasi. Mekanisme ini mematikan penyebaran kunci huruf universal, tetapi bukan penghalang kriptografis;
+- Sisken Modul 3 adalah pilot komputasi parametrik per NIM. Teks `c1`–`c15` tidak lagi statis di HTML; setelah login ia diambil melalui `getModulQuestions`, sedangkan kunci/toleransi/`explain` tetap di backend privat. Sumber tunggalnya `functions/modules/sisken-modul-3-v2.js`, dan verifikasinya `scripts/verify-sisken-modul-3.js` untuk N=0..99;
 - satu `qId` hanya dapat dicoba sekali sampai direset;
 - modul bersifat formatif: server boleh mengembalikan jawaban benar dan penjelasan setelah attempt;
 - komputasi dinilai dengan nilai target dan toleransi pada server;
@@ -645,6 +648,7 @@ Daftar callable yang digunakan sistem saat ini:
 | `checkModulAnswer` | mahasiswa + PIN | validasi satu soal modul dan catat poin |
 | `checkExamAnswer` | mahasiswa + PIN | validasi satu soal exam dan catat attempt/poin |
 | `getExamQuestions` | mahasiswa + PIN + jadwal, atau admin | mengambil bank teks soal UTS/UAS yang sudah dirender |
+| `getModulQuestions` | mahasiswa + PIN + jadwal, atau admin | mengambil teks `c1`–`c15` Sisken Modul 3 yang sudah dirender per NIM |
 | `generateExportCode` | mahasiswa + PIN | mengambil poin resmi dan membuat kode HMAC export |
 | `verifyExportCode` | admin | memverifikasi kode export |
 | `resetModulAttempts` | admin | menghapus ledger seluruh attempt satu modul |
@@ -786,6 +790,8 @@ Wajib dipertahankan:
 
 - tidak ada password admin, hash admin lama, service account, HMAC secret, kunci jawaban, seed, atau bank soal (UTS maupun UAS) di repo publik;
 - kunci modul dan exam hanya di Firestore/server;
+- teks komputasi parametrik Sisken Modul 3 tidak boleh kembali ditulis statis ke HTML publik; halaman hanya boleh memiliki wadah terkunci dan merender response `getModulQuestions` dengan `textContent`;
+- markup opsi PG Sisken tidak boleh kembali membawa argumen huruf kanonik pada `selectMC`; penjaganya ada di `validate-sisken-modules.mjs`;
 - UAS tidak boleh kembali mempunyai array statis `UAS_TF`, `UAS_MC`, `UAS_COMP_EZ`, atau `UAS_COMP_HARD` di HTML;
 - UTS juga tidak boleh kembali mempunyai array statis `UTS_TF`, `UTS_MC`, `UTS_COMP_EZ`, atau `UTS_COMP_HARD` di HTML, termasuk helper `_svg`/`_diagram` yang menyertainya;
 - semua operasi admin memakai Firebase Auth custom token dan claim admin;

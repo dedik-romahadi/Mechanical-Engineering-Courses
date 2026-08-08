@@ -42,6 +42,10 @@ for (let n = 1; n <= 14; n += 1) {
     // berupa angka berarti jawaban dan toleransi ikut terkirim ke peramban.
     [!/runAndCheck\('[^']+'\s*,\s*-?[\d.]/.test(html), "runAndCheck tanpa kunci jawaban"],
     [!/(MC_HINTS|COMP_HINTS)\s*=/.test(html), "tanpa tabel kunci jawaban di HTML"],
+    [!/selectMC\('[^']+',this,'[A-D]'\)/.test(html), "onclick PG tidak membawa huruf kanonik"],
+    [html.includes("payload.mcOrderVersion = 1"), "payload PG menandai urutan opsi v1"],
+    [html.includes("function _shuffleModulOptions(arr, seed)") && !html.includes("function shuffleMCOptions() { /* no-op"), "shuffle opsi PG aktif"],
+    [html.includes("N + modulNum * 101 + qNum * 17"), "formula seed shuffle PG sinkron"],
     [/\.cards\{[^}]*margin:16px 0 24px[^}]*\}/.test(html), "jarak di bawah .cards"],
     [/\.tbl-wrap\{[^}]*margin:16px 0 24px[^}]*\}/.test(html), "jarak di bawah .tbl-wrap"],
     [!html.includes("\u0000"), "tanpa token placeholder yang belum dipulihkan"],
@@ -105,6 +109,18 @@ for (let n = 1; n <= 14; n += 1) {
       }
       checks.push([kurang.length === 0, `tombol Periksa Jawaban PG hilang/salah urutan: ${kurang.join(", ")}`]);
     }
+  }
+
+  if (n === 3) {
+    checks.push(
+      [(html.match(/id="text-c(?:1[0-5]|[1-9])"/g) || []).length === 15, "15 wadah teks soal parametrik"],
+      [(html.match(/id="hint-c(?:1[0-5]|[1-9])"/g) || []).length === 15, "15 wadah hint parametrik"],
+      [(html.match(/id="input-c(?:1[0-5]|[1-9])"/g) || []).length === 15, "15 wadah label output parametrik"],
+      [html.includes("httpsCallable(_functions, 'getModulQuestions')"), "callable getModulQuestions"],
+      [html.includes("text.textContent = question.text") && !html.includes("text.innerHTML = question.text"), "render teks server dengan textContent"],
+      [!html.includes("Parameter acuan.</strong>"), "parameter numerik lama tidak statis di HTML"],
+      [(html.match(/Masuk untuk memuat soal parametrik C(?:1[0-5]|[1-9])/g) || []).length === 15, "placeholder terkunci untuk seluruh komputasi"],
+    );
   }
 
   // Angka pada hero harus cocok dengan isi halaman. Ketiganya pernah salah di
