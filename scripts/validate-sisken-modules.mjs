@@ -107,6 +107,33 @@ for (let n = 1; n <= 14; n += 1) {
     }
   }
 
+  // Angka pada hero harus cocok dengan isi halaman. Ketiganya pernah salah di
+  // seluruh Modul 2-14 (tertulis 13/1/1 padahal 11/3/3) tanpa satu pun
+  // pemeriksa mengeluh. Berlaku juga untuk Modul 1 yang ditulis tangan.
+  {
+    const markup = tanpaGaya(html);
+    const teks = markup.replace(/<[^>]+>/g, " ");
+    const klaim = (label) => {
+      const m = teks.match(new RegExp(`(\\d+)\\s+${label}`));
+      return m ? Number(m[1]) : null;
+    };
+    // "Bagian NN" = label bagian yang benar-benar tampil pada halaman modul.
+    const bagianTampil = new Set(markup.match(/Bagian (\d{2})\b/g) || []).size;
+    // Judul animasi ditulis dua kali (anim-title + aria-label kanvas) — kunci
+    // ke .anim-title supaya tidak terhitung dobel.
+    const animasi = (markup.match(/class="anim-title">Animasi \d+/g) || []).length;
+    const python = (markup.match(/class="code-wrap/g) || []).length;
+    for (const [label, klaimnya, nyata] of [
+      ["Bagian Materi", klaim("Bagian Materi"), bagianTampil],
+      ["Animasi", klaim("Animasi"), animasi],
+      ["Cell Python", klaim("Cell Python"), python],
+    ]) {
+      if (klaimnya !== null) {
+        checks.push([klaimnya === nyata, `hero "${label}": tertulis ${klaimnya}, isi sebenarnya ${nyata}`]);
+      }
+    }
+  }
+
   for (const [ok, label] of checks) if (!ok) failures.push(`Modul-${n}: ${label}`);
 
   const runtime = html.match(/<script id="sisken-rich-runtime">([\s\S]*?)<\/script>/)?.[1];
