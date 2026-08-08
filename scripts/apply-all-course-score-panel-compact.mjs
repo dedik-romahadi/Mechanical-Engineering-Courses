@@ -10,19 +10,37 @@ const courseRoots = [
 
 const compactRules = `/* Score tracker compact - informasi dan perilaku tetap utuh */
 .score-bar-compact{border-radius:18px;padding:14px 20px;margin-bottom:32px;gap:14px}
+.score-bar-compact{background:linear-gradient(135deg,rgba(42,25,74,.96),rgba(12,43,68,.96));border-color:rgba(192,132,252,.72);box-shadow:0 12px 36px rgba(3,7,18,.48),0 0 0 1px rgba(34,211,238,.18) inset}
 .score-bar-compact::after{border-radius:18px}
 .score-bar-compact .score-value{min-width:56px!important}
-.score-bar-compact #scoreDisplay{font-size:32px!important}
+.score-bar-compact #scoreDisplay{font-size:34px!important}
+.score-bar-compact .score-value>div:last-child{font-size:10px!important;letter-spacing:1.2px!important}
 .score-bar-compact .score-info{min-width:150px;padding-bottom:2px}
-.score-bar-compact .score-title{font-size:10px;letter-spacing:2px;margin-bottom:1px}
+.score-bar-compact .score-title{font-size:11px;letter-spacing:2px;margin-bottom:1px}
 .score-bar-compact .score-progress{height:5px;margin-top:3px}
-.score-bar-compact .score-breakdown{font-size:10px!important;min-width:132px!important;line-height:1.45}
-.score-bar-compact .btn-export{padding:9px 16px;min-height:38px;font-size:10px!important;gap:7px;border-radius:10px}
+.score-bar-compact .score-breakdown{font-size:11px!important;min-width:132px!important;line-height:1.45}
+.score-bar-compact .btn-export{padding:9px 16px;min-height:38px;font-size:11px!important;gap:7px;border-radius:10px}
 .score-bar-compact .score-export-guide{padding-top:7px!important;margin-top:0!important;gap:7px!important}
 .score-bar-compact .score-export-icon{font-size:14px!important;line-height:1.25!important}
-.score-bar-compact .score-export-copy{font-size:11px!important;line-height:1.35!important}
-.score-bar-compact #export-blocked-msg{font-size:10.5px!important;line-height:1.3}
+.score-bar-compact .score-export-copy{font-size:12px!important;line-height:1.35!important}
+.score-bar-compact #export-blocked-msg{font-size:11.5px!important;line-height:1.3}
 @media(max-width:700px){.score-bar-compact{padding:12px 14px;gap:10px}.score-bar-compact .score-breakdown{text-align:left!important;min-width:120px!important}.score-bar-compact .btn-export{padding:8px 12px}}`;
+
+function enlargeCompactPanelText(source) {
+  let updated = source
+    .replace(".score-bar-compact #scoreDisplay{font-size:32px!important}", ".score-bar-compact #scoreDisplay{font-size:34px!important}\n.score-bar-compact .score-value>div:last-child{font-size:10px!important;letter-spacing:1.2px!important}")
+    .replace(".score-bar-compact .score-title{font-size:10px;letter-spacing:2px;margin-bottom:1px}", ".score-bar-compact .score-title{font-size:11px;letter-spacing:2px;margin-bottom:1px}")
+    .replace(".score-bar-compact .score-breakdown{font-size:10px!important;min-width:132px!important;line-height:1.45}", ".score-bar-compact .score-breakdown{font-size:11px!important;min-width:132px!important;line-height:1.45}")
+    .replace(".score-bar-compact .btn-export{padding:9px 16px;min-height:38px;font-size:10px!important;gap:7px;border-radius:10px}", ".score-bar-compact .btn-export{padding:9px 16px;min-height:38px;font-size:11px!important;gap:7px;border-radius:10px}")
+    .replace(".score-bar-compact .score-export-copy{font-size:11px!important;line-height:1.35!important}", ".score-bar-compact .score-export-copy{font-size:12px!important;line-height:1.35!important}")
+    .replace(".score-bar-compact #export-blocked-msg{font-size:10.5px!important;line-height:1.3}", ".score-bar-compact #export-blocked-msg{font-size:11.5px!important;line-height:1.3}");
+  const colorRules = ".score-bar-compact{background:linear-gradient(135deg,rgba(42,25,74,.96),rgba(12,43,68,.96));border-color:rgba(192,132,252,.72);box-shadow:0 12px 36px rgba(3,7,18,.48),0 0 0 1px rgba(34,211,238,.18) inset}";
+  if (!updated.includes(colorRules)) {
+    const geometryRules = ".score-bar-compact{border-radius:18px;padding:14px 20px;margin-bottom:32px;gap:14px}";
+    updated = updated.replace(geometryRules, `${geometryRules}\n${colorRules}`);
+  }
+  return updated;
+}
 
 function count(source, pattern) {
   if (typeof pattern === "string") return source.split(pattern).length - 1;
@@ -41,7 +59,7 @@ function compactPanel(source, fileLabel) {
   const panelEnd = panelStart < 0 ? -1 : source.indexOf("  <!-- LATE ACCESS", panelStart);
   if (panelStart < 0 || panelEnd < 0) throw new Error(`${fileLabel}: batas panel skor tidak ditemukan`);
 
-  let prefix = source.slice(0, panelStart);
+  let prefix = enlargeCompactPanelText(source.slice(0, panelStart));
   let panel = source.slice(panelStart, panelEnd);
   const suffix = source.slice(panelEnd);
 
