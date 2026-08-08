@@ -405,7 +405,8 @@ function ahash(s) {
 function forumPage(n) {
   const d = FORUM[n];
   if (!d) return null;
-  const pert = n <= 7 ? n : n + 1;
+  // Sama seperti hero: nomor pertemuan Sisken = nomor modul.
+  const pert = n;
 
   const chip = d.chip.map((c) => `<div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">${esc(c)}</div>`).join("");
 
@@ -464,7 +465,7 @@ ${d.narasi.map((p) => `<p style="margin-top:12px">${p}</p>`).join("")}
 <div class="section-label reveal" style="margin-top:34px">Pertanyaan Diskusi</div>
 <h2 class="section-title reveal" style="margin-bottom:28px">Diskusikan<br>Tiga Hal Ini</h2>
 ${diskusi}
-${panelForum}
+${panelForum.replaceAll("__PERTEMUAN__", String(pert))}
 `;
 
   // Runtime ditulis sebagai <script> klasik supaya terjangkau atribut onclick
@@ -805,28 +806,45 @@ function bagianMateri(n, mulai) {
 
 function richModule(m, index) {
   const n = index + 1;
-  const p = n <= 7 ? n : n + 1;
+  // Nomor pertemuan Sisken = nomor modul. Modul 7 dan UTS digabung pada
+  // Pertemuan 7 dan jadwalnya tiga pertemuan per minggu, sehingga totalnya 15
+  // pertemuan dan TIDAK ada pergeseran +1 setelah UTS. Ini yang tampil ke
+  // mahasiswa dan harus cocok dengan label di Moodle. Path Firebase tetap
+  // memakai rumus lamanya (pertemuan-N+1) lewat MODULE_ID — jangan disamakan.
+  const p = n;
   daftarBagian.length = 0;
   const kata = m.title.split(" ");
   const judulHero = kata.length >= 3
     ? `<span class="hl-cyan">${kata.slice(0, Math.ceil(kata.length / 3)).join(" ")}</span><br>\n      <em>${kata.slice(Math.ceil(kata.length / 3), -1).join(" ")}</em><br>\n      <span class="hl-amber">${kata[kata.length - 1]}</span>`
     : `<span class="hl-cyan">${m.title}</span>`;
 
-  const jumlahBagian = (MATERI[n] ? MATERI[n].deep.length : 0) + 4;
-  const hero = `${heroShell}<div class="hero-content">
+  // Angka pada hero DIHITUNG dari isi yang benar-benar dihasilkan, bukan dari
+  // rumus terpisah. Versi lama memakai `MATERI[n].deep.length + 4` yang menjadi
+  // basi begitu bagian-bagian materi digabung (9 + 4 = 13 padahal yang terbit
+  // 11 bagian), dan mematok "1 Animasi"/"1 Cell Python" padahal ada 3 dan 3.
+  // Karena hero dirakit setelah seluruh bagian dibuat, angkanya tidak dapat
+  // menyimpang lagi.
+  const buatHero = (bagianTerbit, isiSeluruhBagian) => {
+    // Hitung judul yang TAMPIL saja. Tiap panel menulis labelnya dua kali —
+    // sekali di .anim-title dan sekali di aria-label kanvas — sehingga pola
+    // polos "Animasi N —" menghasilkan angka dua kali lipat.
+    const jumlahAnimasi = (isiSeluruhBagian.match(/class="anim-title">Animasi \d+ —/g) || []).length;
+    const jumlahPython = (isiSeluruhBagian.match(/class="code-wrap/g) || []).length;
+    return `${heroShell}<div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan ${p} &nbsp;·&nbsp; Sistem Kendali Cerdas &nbsp;·&nbsp; 2025/2026</div>
     <h1 class="hero-title">
       ${judulHero}
     </h1>
     <p class="hero-sub">${m.intro}</p>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-num">${jumlahBagian}</div><div class="stat-lbl">Bagian Materi</div></div>
-      <div class="stat"><div class="stat-num">1</div><div class="stat-lbl">Animasi</div></div>
-      <div class="stat"><div class="stat-num">1</div><div class="stat-lbl">Cell Python</div></div>
+      <div class="stat"><div class="stat-num">${bagianTerbit}</div><div class="stat-lbl">Bagian Materi</div></div>
+      <div class="stat"><div class="stat-num">${jumlahAnimasi}</div><div class="stat-lbl">Animasi</div></div>
+      <div class="stat"><div class="stat-num">${jumlahPython}</div><div class="stat-lbl">Cell Python</div></div>
       <div class="stat"><div class="stat-num">50</div><div class="stat-lbl">Poin Tugas</div></div>
     </div>
   </div>
 </div>`;
+  };
 
   let nomor = 1;
   // Peta kemajuan dipasang paling depan supaya mahasiswa tahu posisinya dan
@@ -894,8 +912,11 @@ function richModule(m, index) {
   <p>© 2026 · <a href="#">Dedik Romahadi</a> · Modul ${n} — ${m.title} · Sistem Kendali Cerdas · S1 Teknik Mesin · Universitas Mercu Buana</p>
 </footer>`;
 
-  return [hero, peta, konsep, mendalam.html, analogi, industri, animasi, python, referensi, footer]
-    .filter(Boolean).join("\n") + runtime;
+  const isiBagian = [peta, konsep, mendalam.html, analogi, industri, animasi, python, referensi]
+    .filter(Boolean).join("\n");
+  const hero = buatHero(daftarBagian.length, isiBagian);
+
+  return [hero, isiBagian, footer].filter(Boolean).join("\n") + runtime;
 }
 
 function taskPanel(m, index) {
