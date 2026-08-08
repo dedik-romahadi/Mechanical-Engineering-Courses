@@ -57,7 +57,7 @@ for (let n = 1; n <= 14; n += 1) {
     [/\.cards\{[^}]*margin:16px 0 24px[^}]*\}/.test(html), "jarak di bawah .cards"],
     [/\.tbl-wrap\{[^}]*margin:16px 0 24px[^}]*\}/.test(html), "jarak di bawah .tbl-wrap"],
     [!html.includes("\u0000"), "tanpa token placeholder yang belum dipulihkan"],
-    [(html.match(/id="sisken-formula-hover"/g) || []).length === 1, "satu blok hover kartu formula"],
+    [(html.match(/id="modern-academic-design"/g) || []).length === 1, "satu blok desain modern academic bersama"],
     [(html.match(/class="formula-block reveal"/g) || []).length >= 5 && html.includes("#page-modul .formula-block:hover{transform:translate3d(5px,-5px,0)"), "seluruh kartu formula memiliki efek hover"],
     [html.includes("#page-modul .formula-block:hover::before{background-position:-40% 0;opacity:1}"), "kilau hover formula tidak memperlebar area scroll"],
   ];
@@ -81,7 +81,7 @@ for (let n = 1; n <= 14; n += 1) {
       [!/id="(tab|page)-(setup|kelompok)"/.test(html), "tanpa tab Setup Python dan Pembagian Kelompok"],
       [(html.match(/<style[^>]*>/g) || []).some((_, i, a) => a.length >= 4)
         && /:root\s*\{[^}]*--bg:/.test(html), "blok gaya utama utuh"],
-      [/<div class="hero(?: [^"]+)?" data-tab="modul">/.test(html), "hero seperti Modul 1"],
+      [/<div class="hero(?: [^"]+)?" data-tab="modul"[^>]*>/.test(html), "hero seperti Modul 1"],
       [(html.match(/<div class="section-label reveal">Bagian \d\d<\/div>/g) || []).length >= 10, "bagian bernomor minimal 10"],
       [(() => {
         // Dihitung hanya di dalam halaman modul; halaman lain pada berkas yang
@@ -124,24 +124,24 @@ for (let n = 1; n <= 14; n += 1) {
 
   if (n === 2) {
     checks.push(
-      [html.includes('<body class="modern-academic-pilot">'), "pilot modern academic aktif hanya melalui kelas body"],
-      [(html.match(/id="modern-academic-pilot"/g) || []).length === 1, "satu blok gaya pilot modern academic"],
-      [(html.match(/id="modern-academic-pilot-runtime"/g) || []).length === 1, "satu runtime pilot modern academic"],
-      [html.includes('class="hero academic-hero"') && html.includes('class="academic-roadmap"'), "hero dan alur belajar pilot"],
+      [html.includes('<body class="modern-academic-design">'), "desain modern academic bersama aktif melalui kelas body"],
+      [(html.match(/id="modern-academic-design"/g) || []).length === 1, "satu blok gaya modern academic bersama"],
+      [(html.match(/id="modern-academic-runtime"/g) || []).length === 1, "satu runtime modern academic bersama"],
+      [html.includes('class="hero academic-hero"') && html.includes('class="academic-roadmap"'), "hero dan alur belajar modern academic"],
       [html.includes('id="readingPosition"') && html.includes("link.classList.toggle('is-current', current)"), "indikator dan navigasi bagian aktif"],
-      [html.includes("@media screen{") && html.includes("@media screen and (max-width:700px)") && html.includes("@media(prefers-reduced-motion:reduce)"), "gaya pilot responsif, screen-only, dan reduced-motion"],
+      [html.includes("@media screen{") && html.includes("@media screen and (max-width:700px)") && html.includes("@media(prefers-reduced-motion:reduce)"), "gaya bersama responsif, screen-only, dan reduced-motion"],
       [html.includes("#page-modul .section{--chapter-accent:#22d3ee") && html.includes("#page-modul .academic-hero .hero-content"), "chapter card dan panel hero pilot"],
       [html.includes("#page-modul .section-desc{width:100%;max-width:none"), "paragraf materi mengikuti lebar kontainer tanpa batas karakter"],
       [html.includes("#page-modul .formula-block .formula-main{font-size:clamp(16px,1.5vw,18px)") && html.includes("#page-modul .card .formula{font-size:14.5px;color:#eee7ff"), "persamaan materi lebih besar dan berkontras tinggi"],
-      [(html.match(/id="modern-academic-motion"/g) || []).length === 1 && html.includes("motionTaskCardScan") && html.includes("motionChapterScan"), "lapisan animasi Modul dan Tugas"],
+      [html.includes("motionTaskHeroArrive") && html.includes("motionChapterScan"), "lapisan animasi Modul dan Tugas"],
       [html.includes("entry.target.classList.toggle('is-in-view', entry.isIntersecting)") && html.includes("@media(prefers-reduced-motion:reduce)"), "animasi bab mengikuti viewport dan menghormati reduced-motion"],
       [html.includes("#page-modul .formula-block::after{content:'';position:absolute;inset:0;") && html.includes("@keyframes motionFormulaSweep{0%,26%{background-position:140% 0"), "kilau persamaan tidak memperlebar area scroll"],
       [html.includes('<caption class="table-caption"><span class="anim-dot" aria-hidden="true"></span><span class="anim-title">Tabel 1 —') && html.includes("#page-modul .tbl-wrap .table-caption{caption-side:top"), "caption tabel mengikuti format grafik dan animasi"],
-      [(html.match(/class="reference-card"/g) || []).length === 5 && html.includes("@media screen{\n  #page-modul .reference-card:hover{transform:translate3d(5px,-5px,0)"), "setiap kartu daftar pustaka memiliki efek hover tanpa pembatas jenis pointer"],
+      [(html.match(/class="reference-card"/g) || []).length === 5 && html.includes("#page-modul .reference-card:hover{transform:translate3d(5px,-5px,0)"), "setiap kartu daftar pustaka memiliki efek hover tanpa pembatas jenis pointer"],
     );
-    const pilotRuntime = html.match(/<script id="modern-academic-pilot-runtime">([\s\S]*?)<\/script>/)?.[1];
-    try { new vm.Script(pilotRuntime || "", { filename: "Modul-2:modern-academic-pilot-runtime" }); }
-    catch (error) { checks.push([false, `runtime pilot modern academic â€” ${error.message}`]); }
+    const pilotRuntime = html.match(/<script id="modern-academic-runtime">([\s\S]*?)<\/script>/)?.[1];
+    try { new vm.Script(pilotRuntime || "", { filename: "Modul-2:modern-academic-runtime" }); }
+    catch (error) { checks.push([false, `runtime modern academic â€” ${error.message}`]); }
   }
 
   checks.push(
@@ -158,7 +158,7 @@ for (let n = 1; n <= 14; n += 1) {
     [!html.includes("Parameter Sistem Referensi (dipakai soal C1–C10)"), "tanpa kotak parameter tugas statis lama"],
     [["scoreDisplay", "scoreDetail", "scoreFill", "scoreMC", "scoreCompEz", "scoreCompHard", "btn-score-export", "export-blocked-msg"].every((id) => html.includes(`id="${id}"`)), "komponen panel skor/export lengkap"],
     [html.includes('<div class="hero" data-tab="tugas" style="min-height:60vh">'), "hero Tugas 60vh agar panel langsung terlihat seperti mata kuliah lain"],
-    [html.includes("const scoreBar = document.querySelector('#page-tugas .score-bar')") && html.includes("window.scrollTo({ top, behavior: 'auto' })"), "tab Tugas langsung menggulir ke panel skor"],
+    [!html.includes("const scoreBar = document.querySelector('#page-tugas .score-bar')") && html.includes("window.scrollTo({ top: 0, behavior: 'smooth' })"), "tab Tugas kembali ke hero/top halaman"],
     [html.includes("body{overflow-x:clip!important;overflow-y:visible!important}") && /\.score-bar\{position:sticky;top:64px;/.test(html), "panel sticky memakai viewport scroll utama"],
     [html.includes('class="score-bar score-bar-compact"') && html.includes(".score-bar-compact{border-radius:18px;padding:14px 20px;margin-bottom:32px;gap:14px}"), "panel skor memakai geometri compact"],
     [html.includes(".score-bar-compact{background:linear-gradient(135deg,rgba(42,25,74,.96),rgba(12,43,68,.96));border-color:rgba(192,132,252,.72)"), "warna panel skor kontras dengan latar"],
