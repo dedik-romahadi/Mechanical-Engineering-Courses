@@ -360,6 +360,8 @@ Ketentuan konten dan UI:
 - hormati `prefers-reduced-motion` jika menambah animasi baru;
 - jangan mengunci aturan visual ke ukuran per piksel di dokumen ini; ikuti komponen yang sudah digunakan course bersangkutan.
 
+**Pilot modern academic.** Modul 2 Sistem Kendali Cerdas menjadi pilot penyegaran visual sebelum diterapkan lintas modul. Pilot memakai hero kaca dengan alur belajar tiga tahap, chapter card beraksen per bagian, indikator posisi membaca, penanda bagian aktif pada subnav, tipografi materi yang lebih lapang, dan respons ponsel khusus. Seluruh aturan dibatasi ke `#page-modul` serta `@media screen`, menghormati `prefers-reduced-motion`, dan tidak mengubah halaman Tugas, penilaian, login, maupun output cetak. `validate-sisken-modules.mjs` menjaga marker dan sintaks runtime pilot ini.
+
 Khusus Sistem Kendali Cerdas, modul kelipatan tiga (Modul 3, 6, 9, dan 12) berjenis TMV. Buat ruang melalui aktivitas **Google Meet™ for Moodle** pada menu LMS, lalu pasang tautannya sebagai tombol pada kolom kanan banner pertemuan. Tautan halaman modul juga cukup tersedia pada tombol banner dan tidak perlu dibuat ulang sebagai resource URL terpisah di LMS.
 
 ### 6.1 Tugas modul
