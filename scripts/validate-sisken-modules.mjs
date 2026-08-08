@@ -133,6 +133,7 @@ for (let n = 1; n <= 14; n += 1) {
       [(html.match(/id="modern-academic-motion"/g) || []).length === 1 && html.includes("motionTaskCardScan") && html.includes("motionChapterScan"), "lapisan animasi Modul dan Tugas"],
       [html.includes("entry.target.classList.toggle('is-in-view', entry.isIntersecting)") && html.includes("@media(prefers-reduced-motion:reduce)"), "animasi bab mengikuti viewport dan menghormati reduced-motion"],
       [html.includes("#page-modul .formula-block::after{content:'';position:absolute;inset:0;") && html.includes("@keyframes motionFormulaSweep{0%,26%{background-position:140% 0"), "kilau persamaan tidak memperlebar area scroll"],
+      [html.includes('<caption class="table-caption"><span class="anim-dot" aria-hidden="true"></span><span class="anim-title">Tabel 1 —') && html.includes("#page-modul .tbl-wrap .table-caption{caption-side:top"), "caption tabel mengikuti format grafik dan animasi"],
     );
     const pilotRuntime = html.match(/<script id="modern-academic-pilot-runtime">([\s\S]*?)<\/script>/)?.[1];
     try { new vm.Script(pilotRuntime || "", { filename: "Modul-2:modern-academic-pilot-runtime" }); }
