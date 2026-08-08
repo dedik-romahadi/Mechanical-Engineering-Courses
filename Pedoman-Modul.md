@@ -141,7 +141,16 @@ Modul 8–14 → Pertemuan 9–15
 
 Rumusnya: `P = N` untuk `N <= 7`, dan `P = N + 1` untuk `N >= 8`. Rumus ini dipakai `_segmentsForModul()` di backend untuk **keempat** course, termasuk Sistem Kendali Cerdas.
 
-> **Ketidakcocokan yang diketahui (Sistem Kendali Cerdas).** Label pertemuan di LMS Moodle Sisken memakai `P = N` sampai akhir, karena Modul 7 dan UTS digabung pada Pertemuan 7 dan jadwalnya tiga pertemuan per minggu (Kamis/Jumat/Sabtu) sehingga totalnya 15 pertemuan. Akibatnya untuk `N >= 8` label LMS ("Pertemuan 8 · Modul 8") berbeda dari path Firebase (`pertemuan-9`). Path Firebase tetap konsisten dengan backend sehingga penilaian tidak terpengaruh — yang berbeda hanya angka yang dibaca mahasiswa. Halaman modul Sisken juga masih tidak seragam sendiri: mis. Modul 8 menulis "Pertemuan 9" pada hero/hitung mundur/tugas tetapi "Pertemuan 8" pada bagian Forum, dan instruksi forum masih menyebut "Forum Pertemuan 1". Perbaikan label ini belum dikerjakan; jangan menganggap salah satu angka sebagai acuan sebelum diputuskan.
+> **Sistem Kendali Cerdas: nomor yang TAMPIL berbeda dari nomor pada PATH — dan itu disengaja.**
+>
+> | | Aturan | Contoh Modul 8 |
+> |---|---|---|
+> | Angka yang dibaca mahasiswa (hero, hitung mundur, Tugas, Forum, Hasil, footer, label Moodle) | `P = N` | "Pertemuan 8" |
+> | Path Firebase (`MODULE_ID`, visitor, jadwal, presence, chat) | `P = N` untuk `N ≤ 7`, `P = N + 1` untuk `N ≥ 8` | `pertemuan-9` |
+>
+> Sisken memakai `P = N` pada tampilan karena Modul 7 dan UTS digabung pada Pertemuan 7 dan jadwalnya tiga pertemuan per minggu (Kamis/Jumat/Sabtu), sehingga totalnya 15 pertemuan tanpa pergeseran setelah UTS. Path Firebase tetap memakai rumus lama supaya jadwal, visitor record, dan poin yang sudah tersimpan tidak berpindah tempat.
+>
+> Karena itu: **jangan "menyeragamkan" keduanya.** Mengubah teks tampilan aman; mengubah `MODULE_ID` atau path akan memutus jadwal dan menghilangkan poin mahasiswa dari path lama. Saat menyunting halaman Sisken secara massal, lindungi pola `pertemuan-N` lebih dulu sebelum mengganti teks "Pertemuan N".
 
 ### 3.1 ID callable modul
 
@@ -336,6 +345,10 @@ Modul adalah satu file HTML mandiri yang memuat UI, konten, animasi, Pyodide, da
 | Sistem Kendali Cerdas — Modul 2–14 | Modul · Tugas · Forum · Hasil (4 tab) |
 
 Setup Python dan Pembagian Kelompok hanya ada di Modul 1 tiap course; pada Sisken Modul 2–14 tombol nav, halaman, dan blok gayanya dibuang oleh generator supaya tidak ada tab yang menuju halaman kosong. Jangan "memperbaiki" ketidaksamaan ini dengan menambahkan tab kosong.
+
+**Angka pada hero harus dihitung dari isi, bukan dipatok.** Statistik hero (Bagian Materi, Animasi, Cell Python) pernah salah di seluruh Sisken Modul 2–14 — tertulis 13/1/1 padahal isinya 11/3/3 — karena jumlah bagian memakai rumus terpisah (`deep.length + 4`) yang basi setelah bagian materi digabung, sementara dua angka lain dipatok. Sekarang hero dirakit setelah seluruh bagian dibuat dan angkanya diturunkan dari keluaran (`daftarBagian.length`, jumlah `.anim-title` berjudul "Animasi N", jumlah `.code-wrap`). Bila menambah atau menggabung bagian, jangan menuliskan angka barunya secara manual di hero.
+
+Catatan penghitungan: judul animasi ditulis dua kali per panel (`.anim-title` dan `aria-label` kanvas), jadi pola pencocokan harus mengunci ke `.anim-title` agar tidak terhitung dobel. Modul 1 tiap course ditulis tangan dan dilewati generator, sehingga angka heronya diperiksa manual.
 
 Ketentuan konten dan UI:
 
