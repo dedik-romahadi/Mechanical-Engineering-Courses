@@ -89,6 +89,22 @@ for (let n = 1; n <= 14; n += 1) {
         "technical assignment panel atau 25 soal lengkap",
       ],
     );
+
+    // Setiap soal PG WAJIB punya tombol kirimnya sendiri. Pemeriksaan di atas
+    // hanya menghitung grup radio, sehingga modul 2-14 sempat lolos padahal
+    // seluruh <button id="sub-mcN"> hilang: selectMC() melempar TypeError di
+    // baris getElementById('sub-'+qId).disabled sehingga PG tidak bisa dipilih
+    // dan 10 poin per modul tak terjangkau. Urutannya juga diperiksa —
+    // grup radio, lalu tombol, lalu kotak umpan balik.
+    if ((html.match(/id="rg-mc\d+"/g) || []).length === 10) {
+      const kurang = [];
+      for (let k = 1; k <= 10; k += 1) {
+        const adaTombol = new RegExp(`id="sub-mc${k}"[^>]*onclick="checkMC\\('mc${k}'\\)"`).test(html);
+        const urutBenar = new RegExp(`id="rg-mc${k}"[\\s\\S]{0,4000}?id="sub-mc${k}"[\\s\\S]{0,300}?id="fb-mc${k}"`).test(html);
+        if (!adaTombol || !urutBenar) kurang.push(`mc${k}${adaTombol ? " (urutan)" : ""}`);
+      }
+      checks.push([kurang.length === 0, `tombol Periksa Jawaban PG hilang/salah urutan: ${kurang.join(", ")}`]);
+    }
   }
 
   for (const [ok, label] of checks) if (!ok) failures.push(`Modul-${n}: ${label}`);
