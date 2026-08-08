@@ -130,6 +130,8 @@ for (let n = 1; n <= 14; n += 1) {
       [html.includes("#page-modul .section{--chapter-accent:#22d3ee") && html.includes("#page-modul .academic-hero .hero-content"), "chapter card dan panel hero pilot"],
       [html.includes("#page-modul .section-desc{width:100%;max-width:none"), "paragraf materi mengikuti lebar kontainer tanpa batas karakter"],
       [html.includes("#page-modul .formula-block .formula-main{font-size:clamp(16px,1.5vw,18px)") && html.includes("#page-modul .card .formula{font-size:14.5px;color:#eee7ff"), "persamaan materi lebih besar dan berkontras tinggi"],
+      [(html.match(/id="modern-academic-motion"/g) || []).length === 1 && html.includes("motionTaskCardScan") && html.includes("motionChapterScan"), "lapisan animasi Modul dan Tugas"],
+      [html.includes("entry.target.classList.toggle('is-in-view', entry.isIntersecting)") && html.includes("@media(prefers-reduced-motion:reduce)"), "animasi bab mengikuti viewport dan menghormati reduced-motion"],
     );
     const pilotRuntime = html.match(/<script id="modern-academic-pilot-runtime">([\s\S]*?)<\/script>/)?.[1];
     try { new vm.Script(pilotRuntime || "", { filename: "Modul-2:modern-academic-pilot-runtime" }); }
