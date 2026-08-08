@@ -441,9 +441,19 @@ Jumlah nilai exam adalah 100. Soal yang sengaja tidak dipetakan dapat bernilai n
 - Σ`_examQPoints` = 100 → yang benar-benar masuk ledger dan nilai mahasiswa;
 - `cfg.totalPoints` exam = 100, dan `nilai = round(points / 100 × 100)`.
 
-Contoh nyata (`sisken-uts`, bobot Sub-CPMK 4/10/4/4, Σ=22): Sub-CPMK 1.1 memegang 8 soal × 2,273 = 18,18 poin; 1.2 21 soal × 2,165 = 45,45; 2.1 dan 2.2 masing-masing 8 soal × 2,273 = 18,18. Totalnya 100.
+Di dalam satu Sub-CPMK, porsinya masih dibagi lagi menurut bobot tipe soal (1/1/2/4) lewat `_qTypeWeightByIdx`, sehingga soal dengan tipe berbeda pada Sub-CPMK yang sama **tidak** bernilai sama. Contoh nyata `sisken-uts` (bobot Sub-CPMK 4/10/4/4, Σ=22):
 
-**Partial credit exam saat ini dipatok 1 poin.** `checkExamAnswer` menetapkan `outcome.points = 1` untuk status `partial` dan **mengabaikan `partialPoints`** pada kunci. Karena itu memasang `partialPoints: 0,5` pada bank exam **tidak berpengaruh** pada nilai — berbeda dari modul, yang memang membaca `partialPoints`. Bila kebijakan 0,5 ingin berlaku juga di exam, `checkExamAnswer` (dan jalur `recomputeExamPoints`) harus diubah lebih dulu; jangan mengandalkan nilai di bank saja.
+| Sub-CPMK | Isi | Subtotal | Poin per soal |
+|---|---|---:|---|
+| 1.1 | 8 TF | 18,18 | 2,273 |
+| 1.2 | 2 TF + 19 MC | 45,45 | 2,165 |
+| 2.1 | 1 MC + 7 komputasi (bobot 2) | 18,18 | MC 1,212 · komputasi 2,424 |
+| 2.2 | 3 komputasi (2) + 5 Hard (4) | 18,18 | komputasi 1,399 · Hard 2,797 |
+| | | **100,00** | |
+
+**Partial credit exam membaca `partialPoints` dari kunci** (Sisken 0,5; tiga course lain 1). Sebelumnya `checkExamAnswer` mematoknya 1 dan mengabaikan `partialPoints`, sehingga kebijakan per-course tidak pernah berlaku di exam; sekarang hanya status `correct` yang ditimpa bobot OBE. Jalur `recomputeExamPoints` memakai aturan yang sama — bila salah satunya kembali mematok 1, rescale akan menimpa poin partial yang sudah benar.
+
+**Partial credit tetap hanya diberikan sebelum deadline.** Begitu masuk fase perpanjangan (exam) atau fase terlambat (modul), `computeOutcome` mengembalikan status `wrong` bernilai 0 — bukan partial yang dipotong. Yang dikenai potongan keterlambatan (Sisken 0,65; course lain 0,7) adalah **jawaban benar**. Contoh Sisken `c15`: benar tepat waktu 2,797 poin; benar saat perpanjangan 2,797 × 0,65 = 1,818; kode disubmit tetapi salah → 0,5 bila tepat waktu, dan 0 bila sudah masuk perpanjangan.
 
 ### 7.1 ID soal
 
@@ -950,6 +960,6 @@ Jangan menganggap perubahan selesai hanya karena halaman terbuka. Penilaian haru
 16. Node `pins/` tertutup dari klien. Verifikasi PIN hanya lewat callable `verifyPin`; jangan membaca `pins/` dari browser.
 17. Kunci jawaban tidak pernah masuk repo publik — sekali ter-commit, kebocorannya permanen di riwayat Git dan hanya dapat ditutup dengan merotasi soal.
 18. Bank soal yang masih placeholder tidak boleh di-live-seed; kunci dummy di produksi menilai mahasiswa secara ngawur tanpa gejala.
-19. Angka poin bank exam (Σ=70) bukan nilai mahasiswa; yang diberikan adalah `_examQPoints` (Σ=100). Partial credit exam saat ini dipatok 1 poin dan mengabaikan `partialPoints`.
+19. Angka poin bank exam (Σ=70) bukan nilai mahasiswa; yang diberikan adalah `_examQPoints` (Σ=100), dan hanya status `correct` yang ditimpa bobot itu. Partial credit membaca `partialPoints` kunci (Sisken 0,5) dan hanya berlaku sebelum deadline; setelah itu 0, bukan partial yang dipotong.
 20. Setiap soal pilihan ganda wajib punya tombol `sub-mcN`-nya sendiri; tanpa itu `selectMC()` melempar dan PG tidak dapat dipilih.
 21. Publikasi Pages memakai push ke branch `gh-pages`; jangan kembali ke `actions/deploy-pages`.
