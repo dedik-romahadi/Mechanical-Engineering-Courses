@@ -128,6 +128,7 @@ for (let n = 1; n <= 14; n += 1) {
       [html.includes('id="readingPosition"') && html.includes("link.classList.toggle('is-current', current)"), "indikator dan navigasi bagian aktif"],
       [html.includes("@media screen{") && html.includes("@media screen and (max-width:700px)") && html.includes("@media(prefers-reduced-motion:reduce)"), "gaya pilot responsif, screen-only, dan reduced-motion"],
       [html.includes("#page-modul .section{--chapter-accent:#22d3ee") && html.includes("#page-modul .academic-hero .hero-content"), "chapter card dan panel hero pilot"],
+      [html.includes("#page-modul .section-desc{width:100%;max-width:none"), "paragraf materi mengikuti lebar kontainer tanpa batas karakter"],
     );
     const pilotRuntime = html.match(/<script id="modern-academic-pilot-runtime">([\s\S]*?)<\/script>/)?.[1];
     try { new vm.Script(pilotRuntime || "", { filename: "Modul-2:modern-academic-pilot-runtime" }); }
