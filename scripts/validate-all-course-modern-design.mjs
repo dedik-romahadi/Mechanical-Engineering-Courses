@@ -38,6 +38,8 @@ for (const course of courses) {
       [runtime.includes("const equationHeaderPattern = /(?:persamaan|rumus|formula|\\beom\\b)/i") && runtime.includes("header.classList.add('equation-column')"), "deteksi semantik kolom persamaan"],
       [!runtime.includes("--equation-column-width"), "runtime tidak memaksakan persentase kolom persamaan"],
       [runtime.includes("title.textContent = 'Tabel ' + String(tableIndex + 1) + ' — ' + sectionTitle"), "caption tabel otomatis dan konsisten"],
+      [runtime.includes("caption.removeAttribute('style')"), "runtime membersihkan style inline caption lama"],
+      [!/<caption\b[^>]*\sstyle=/.test(markup), "caption materi tanpa style inline yang mengalahkan tema"],
       [runtime.includes("requestAnimationFrame(() => window.scrollTo({top:0, behavior:'smooth'}))"), "klik tab kembali ke hero"],
       [!html.includes("const scoreBar = document.querySelector('#page-tugas .score-bar')"), "Tugas tidak melompat ke panel skor"],
       [!html.includes('id="modern-academic-pilot"') && !html.includes('id="modern-academic-motion"') && !html.includes('id="sisken-formula-hover"'), "tanpa style rollout lama"],

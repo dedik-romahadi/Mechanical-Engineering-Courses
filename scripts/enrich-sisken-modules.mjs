@@ -643,7 +643,7 @@ ${kartu}
 function tabel(judul, kepala, baris) {
   return `  <div class="tbl-wrap reveal">
     <table>
-      <caption style="caption-side:top;text-align:left;padding:0 0 10px;color:var(--muted);font-size:13px">${judul}</caption>
+      <caption class="table-caption"><span class="anim-dot" aria-hidden="true"></span><span class="anim-title">${judul}</span></caption>
       <thead><tr>${kepala.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
       <tbody>${baris.map((b) => `<tr>${b.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody>
     </table>
@@ -865,7 +865,7 @@ function richModule(m, index) {
   const konsep = bagian(nomor++, "Konsep yang Wajib Dikuasai",
     paragraf([m.sub]) + "\n" + kartu(m.concepts)
     + `\n  <div class="tip-box reveal">🧭 <strong>Alur berpikir engineer:</strong> ${m.steps.join(" &nbsp;→&nbsp; ")}</div>\n`
-    + tabel("Tabel 1. Ringkasan konsep inti beserta bentuk matematisnya.",
+    + tabel("Tabel 1 — Ringkasan konsep inti beserta bentuk matematisnya",
       ["Konsep", "Bentuk / Rumus", "Yang perlu diingat"],
       m.concepts.map(([h, p, f]) => [h, f ? rumusLatex(f) : "—", p])));
 
