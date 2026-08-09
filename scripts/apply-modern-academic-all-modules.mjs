@@ -98,6 +98,7 @@ const style = `<style id="modern-academic-design">
   #modulSubnav a.is-current{color:#e0f2fe;background:linear-gradient(180deg,rgba(34,211,238,.1),rgba(168,85,247,.08))}
   #modulSubnav a.is-current::after{transform:scaleX(1);background:linear-gradient(90deg,#22d3ee,#a855f7)}
   #page-modul .reference-card{--reference-accent:var(--cyan);position:relative;overflow:hidden;isolation:isolate;outline:1px solid transparent;outline-offset:-1px;transition:transform .38s cubic-bezier(.2,.8,.2,1),box-shadow .38s ease,outline-color .3s ease,filter .3s ease}
+  #page-modul ol:has(>li.reference-card){padding-left:0!important;list-style-position:inside}#page-modul li.reference-card{margin:0 0 12px;padding:16px 20px;border:1px solid rgba(148,163,184,.16);border-left:3px solid var(--reference-accent);border-radius:12px;background:linear-gradient(145deg,rgba(17,31,52,.8),rgba(11,18,34,.9))}
   #page-modul .reference-card:nth-child(2){--reference-accent:var(--amber)}#page-modul .reference-card:nth-child(3){--reference-accent:var(--violet)}#page-modul .reference-card:nth-child(4){--reference-accent:var(--green)}#page-modul .reference-card:nth-child(5){--reference-accent:var(--pink)}
   #page-modul .reference-card>*{position:relative;z-index:2}#page-modul .reference-card::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(105deg,transparent 34%,rgba(255,255,255,.15) 47%,rgba(103,232,249,.2) 53%,transparent 66%);background-size:240% 100%;background-position:140% 0;opacity:0;transition:background-position .72s cubic-bezier(.2,.8,.2,1),opacity .34s ease;pointer-events:none}
   #page-modul .reference-card::after{content:'';position:absolute;inset:0;z-index:1;background:radial-gradient(circle at 12% 20%,rgba(103,232,249,.14),transparent 43%);opacity:0;transform:scale(.82);transition:opacity .38s ease,transform .48s ease;pointer-events:none}
@@ -201,6 +202,17 @@ const runtime = `<script id="modern-academic-runtime">
     });
   });
 
+  const referenceSections = new Set([
+    ...page.querySelectorAll('#m-pustaka'),
+    ...[...page.querySelectorAll('.section-title')]
+      .filter(title => /daftar pustaka/i.test(title.textContent || ''))
+      .map(title => title.closest('.section'))
+      .filter(Boolean),
+  ]);
+  referenceSections.forEach(section => section
+    .querySelectorAll('div[style*="display:flex"][style*="border-left"],ol>li')
+    .forEach(card => card.classList.add('reference-card')));
+
   let position = document.getElementById('readingPosition');
   if (!position) {
     position = document.createElement('div');
@@ -250,6 +262,24 @@ const removeBlock = (html, tag, id) => html.replace(
   "",
 );
 
+const markReferenceCards = (html) => {
+  const pustakaId = html.search(/<div\b[^>]*\bid="m-pustaka"[^>]*>/i);
+  const heading = html.search(/<h2\b[^>]*>\s*Daftar Pustaka\s*<\/h2>/i);
+  const anchor = pustakaId >= 0 ? pustakaId : heading;
+  if (anchor < 0) return html;
+  const sectionStart = html.lastIndexOf('<div class="section', anchor);
+  const footerStart = html.indexOf("<footer", anchor);
+  const pageEnd = html.indexOf("<!-- end page-modul -->", anchor);
+  const candidates = [footerStart, pageEnd].filter((position) => position >= 0);
+  const sectionEnd = candidates.length ? Math.min(...candidates) : -1;
+  if (sectionStart < 0 || sectionEnd < 0) return html;
+  const block = html.slice(sectionStart, sectionEnd).replace(
+    /<div(?=[^>]*\bstyle="[^"]*display:flex)(?=[^>]*\bstyle="[^"]*border-left\s*:)(?![^>]*\bclass=)([^>]*)>/gi,
+    '<div class="reference-card"$1>',
+  ).replace(/<li(?![^>]*\bclass=)([^>]*)>/gi, '<li class="reference-card"$1>');
+  return html.slice(0, sectionStart) + block + html.slice(sectionEnd);
+};
+
 let changedFiles = 0;
 let totalSections = 0;
 for (const course of courseRoots) {
@@ -276,6 +306,7 @@ for (const course of courseRoots) {
       next.add("modern-academic-design");
       return `<body class="${[...next].join(" ")}">`;
     });
+    html = markReferenceCards(html);
 
     const heroPattern = /<div class="hero(?: academic-hero)?" data-tab="modul"(?: data-module-number="\d+")?([^>]*)>/;
     if (!heroPattern.test(html)) throw new Error(`${course} Modul ${moduleNumber}: hero Modul tidak ditemukan`);

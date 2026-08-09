@@ -36,6 +36,8 @@ const acuanPerilakuPanel = ringkasSpasi(antara(acuanPanelHtml, "function checkEx
 for (let n = 1; n <= 14; n += 1) {
   const file = path.join(root, "Sistem-Kendali-Cerdas", "Modul", `Modul-${n}.html`);
   const html = fs.readFileSync(file, "utf8");
+  const exportEndMarker = n === 1 ? "// ── FORUM READY CHECK" : "// ── PREPROCESSING ANIMATION HELPERS";
+  const exportCode = antara(html, "async function exportTugasHtml()", exportEndMarker) || "";
 
   const checks = [
     [!html.match(/pengalaman pribadi/gi), "no personal assessment copy"],
@@ -62,6 +64,11 @@ for (let n = 1; n <= 14; n += 1) {
     [html.includes("#page-modul .formula-block:hover::before{background-position:-40% 0;opacity:1}"), "kilau hover formula tidak memperlebar area scroll"],
     [!/<caption\b[^>]*\sstyle=/.test(html), "caption tabel tanpa style inline lama"],
     [html.includes("caption.removeAttribute('style')"), "runtime menetralkan style inline caption"],
+    [(html.match(/class="reference-card"/g) || []).length === 5, "lima kartu daftar pustaka memiliki penanda hover"],
+    [html.includes("card.classList.add('reference-card')"), "runtime memulihkan penanda hover pustaka lama"],
+    [exportCode.includes("const html = `<!DOCTYPE html>") && exportCode.includes("new Blob([html], { type: 'text/html;charset=utf-8' })") && exportCode.includes("URL.createObjectURL(blob)"), "Export HTML membangun dokumen dan Blob unduhan"],
+    [exportCode.includes(`a.download = 'Tugas${n}_' + nim + '_SistemKendaliCerdas.html'`), "nama file Export HTML sesuai nomor tugas"],
+    [exportCode.includes("document.body.appendChild(a)") && exportCode.includes("a.remove()") && exportCode.includes("setTimeout(() => URL.revokeObjectURL(url), 1000)"), "download dipicu melalui anchor DOM dan URL dibersihkan setelah aman"],
   ];
 
   if (n === 1) {
@@ -142,7 +149,7 @@ for (let n = 1; n <= 14; n += 1) {
       [html.includes("table.classList.add('academic-data-table')") && html.includes("header.classList.add('equation-column')") && html.includes(".equation-column{width:1%;min-width:180px;overflow-wrap:normal;white-space:nowrap;word-break:normal}"), "format tabel seragam dan kolom rumus mengikuti lebar intrinsik"],
       [html.includes(".table-caption{caption-side:top;box-sizing:border-box;height:50px;max-height:50px") && !html.includes("table.academic-data-table th.equation-column{"), "caption setinggi Modul 2 dan header rumus berukuran normal"],
       [html.includes(".academic-table-wrap{--table-caption-indent:24px;") && (html.match(/padding:0 var\(--table-caption-indent\)/g) || []).length === 2, "indentasi caption mengikuti Modul 1 dan 2 pada semua ukuran layar"],
-      [(html.match(/class="reference-card"/g) || []).length === 5 && html.includes("#page-modul .reference-card:hover{transform:translate3d(5px,-5px,0)"), "setiap kartu daftar pustaka memiliki efek hover tanpa pembatas jenis pointer"],
+      [html.includes("#page-modul .reference-card:hover{transform:translate3d(5px,-5px,0)"), "setiap kartu daftar pustaka memiliki efek hover tanpa pembatas jenis pointer"],
     );
     const pilotRuntime = html.match(/<script id="modern-academic-runtime">([\s\S]*?)<\/script>/)?.[1];
     try { new vm.Script(pilotRuntime || "", { filename: "Modul-2:modern-academic-runtime" }); }

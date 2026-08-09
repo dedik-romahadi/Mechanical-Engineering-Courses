@@ -5,6 +5,7 @@ import { MATERI } from "./sisken-materi.mjs";
 import { FORUM } from "./sisken-forum.mjs";
 import { PUSTAKA } from "./sisken-pustaka.mjs";
 import { rumusLatex as _rumusLatex } from "./sisken-rumus.mjs";
+import { normalizeSiskenExportHtml } from "./sisken-export-html.mjs";
 
 const rumusLatex = (teks) => _rumusLatex(teks, esc);
 
@@ -617,7 +618,7 @@ function daftarPustaka(n, m) {
   }
   const kartu = d.ref.map(([kutipan, catatan], i) => {
     const [rgb, warna] = WARNA_PUSTAKA[i % WARNA_PUSTAKA.length];
-    return `    <div style="display:flex;gap:16px;padding:18px 22px;background:rgba(${rgb},.05);border:1px solid rgba(${rgb},.15);border-left:3px solid ${warna};border-radius:10px;align-items:flex-start">
+    return `    <div class="reference-card" style="display:flex;gap:16px;padding:18px 22px;background:rgba(${rgb},.05);border:1px solid rgba(${rgb},.15);border-left:3px solid ${warna};border-radius:10px;align-items:flex-start">
       <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:${warna};flex-shrink:0;min-width:32px">[${i + 1}]</span>
       <div style="font-size:14px;line-height:1.7">
         ${kutipan}
@@ -1229,6 +1230,7 @@ for (const [index, m] of modules.entries()) {
   // Komentar penanda kedua halaman itu ikut dibuang supaya tidak menyisakan
   // judul bagian yang isinya sudah tidak ada.
   html = html.replace(/\s*<!--\s*═+\s*PAGE: (SETUP PYTHON|PEMBAGIAN KELOMPOK)[\s\S]*?-->/g, "");
+  html = normalizeSiskenExportHtml(html, nomor, m.title);
   fs.writeFileSync(file, html, "utf8");
 }
 
