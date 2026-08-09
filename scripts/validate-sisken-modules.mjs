@@ -139,6 +139,7 @@ for (let n = 1; n <= 14; n += 1) {
       [html.includes('<caption class="table-caption"><span class="anim-dot" aria-hidden="true"></span><span class="anim-title">Tabel 1 —') && html.includes("#page-modul .tbl-wrap table.academic-data-table .table-caption{caption-side:top"), "caption tabel mengikuti format grafik dan animasi"],
       [html.includes("table.classList.add('academic-data-table')") && html.includes("header.classList.add('equation-column')") && html.includes(".equation-column{width:1%;min-width:180px;overflow-wrap:normal;white-space:nowrap;word-break:normal}"), "format tabel seragam dan kolom rumus mengikuti lebar intrinsik"],
       [html.includes(".table-caption{caption-side:top;box-sizing:border-box;height:50px;max-height:50px") && !html.includes("table.academic-data-table th.equation-column{"), "caption setinggi Modul 2 dan header rumus berukuran normal"],
+      [html.includes(".academic-table-wrap{--table-caption-indent:24px;") && (html.match(/padding:0 var\(--table-caption-indent\)/g) || []).length === 2, "indentasi caption mengikuti Modul 1 dan 2 pada semua ukuran layar"],
       [(html.match(/class="reference-card"/g) || []).length === 5 && html.includes("#page-modul .reference-card:hover{transform:translate3d(5px,-5px,0)"), "setiap kartu daftar pustaka memiliki efek hover tanpa pembatas jenis pointer"],
     );
     const pilotRuntime = html.match(/<script id="modern-academic-runtime">([\s\S]*?)<\/script>/)?.[1];
