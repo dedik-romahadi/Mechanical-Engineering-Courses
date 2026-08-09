@@ -136,7 +136,8 @@ for (let n = 1; n <= 14; n += 1) {
       [html.includes("motionTaskHeroArrive") && html.includes("motionChapterScan"), "lapisan animasi Modul dan Tugas"],
       [html.includes("entry.target.classList.toggle('is-in-view', entry.isIntersecting)") && html.includes("@media(prefers-reduced-motion:reduce)"), "animasi bab mengikuti viewport dan menghormati reduced-motion"],
       [html.includes("#page-modul .formula-block::after{content:'';position:absolute;inset:0;") && html.includes("@keyframes motionFormulaSweep{0%,26%{background-position:140% 0"), "kilau persamaan tidak memperlebar area scroll"],
-      [html.includes('<caption class="table-caption"><span class="anim-dot" aria-hidden="true"></span><span class="anim-title">Tabel 1 —') && html.includes("#page-modul .tbl-wrap .table-caption{caption-side:top"), "caption tabel mengikuti format grafik dan animasi"],
+      [html.includes('<caption class="table-caption"><span class="anim-dot" aria-hidden="true"></span><span class="anim-title">Tabel 1 —') && html.includes("#page-modul .tbl-wrap table.academic-data-table .table-caption{caption-side:top"), "caption tabel mengikuti format grafik dan animasi"],
+      [html.includes("table.classList.add('academic-data-table')") && html.includes("header.classList.add('equation-column')") && html.includes("headers.length <= 3 ? '42%'"), "format tabel seragam dan kolom rumus tiga kolom diperlebar"],
       [(html.match(/class="reference-card"/g) || []).length === 5 && html.includes("#page-modul .reference-card:hover{transform:translate3d(5px,-5px,0)"), "setiap kartu daftar pustaka memiliki efek hover tanpa pembatas jenis pointer"],
     );
     const pilotRuntime = html.match(/<script id="modern-academic-runtime">([\s\S]*?)<\/script>/)?.[1];
