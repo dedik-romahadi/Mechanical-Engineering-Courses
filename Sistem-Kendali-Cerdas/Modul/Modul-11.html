@@ -2885,7 +2885,7 @@ document.addEventListener('DOMContentLoaded',function(){
 </footer><script id="sisken-forum-runtime">
 function _ah(s){var h=5381;s=s+'mEKsP9k4tQ2';for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}
 window._ah = _ah;
-window._pa = {1:'1vcm311',2:'1y7hzit',3:'t76jo7'};
+window._forumPollAnswerHashes = {1:'1vcm311',2:'1y7hzit',3:'t76jo7'};
 const FORUM_MIN_WORDS = 30;
 
 function countWords(str) {
@@ -3055,6 +3055,66 @@ function copyForumHtmlManual() {
     _execCopyFallback(ta, msg);
   }
 }
+
+// Clipboard API dapat ditolak oleh pengaturan browser/LMS. Jalur fallback
+// selalu memakai textarea output yang memang boleh dipilih oleh friction layer,
+// sehingga mahasiswa tetap mendapat kode HTML dan petunjuk salin manual.
+function _execCopyFallback(ta, msg) {
+  let copied = false;
+  try { copied = document.execCommand('copy'); } catch(e) {
+    console.warn('[Forum] execCommand copy failed:', e);
+  }
+  if (copied) {
+    if (msg) {
+      msg.style.color = 'var(--green)';
+      msg.textContent = '✅ Tersalin via fallback! Paste sekarang di Fast Learning.';
+    }
+    return true;
+  }
+  if (msg) {
+    msg.style.color = 'var(--amber)';
+    msg.textContent = '⚠ Auto-copy diblokir browser. Kode sudah dipilih; tekan Ctrl+C (Cmd+C di Mac).';
+  }
+  return false;
+}
+
+function _showCopySuccess(btn, msg) {
+  if (btn) {
+    btn.textContent = '✅ Tersalin!';
+    btn.style.background = 'rgba(0,224,158,.2)';
+    setTimeout(() => {
+      btn.textContent = '📋 Copy Forum (kode HTML)';
+      btn.style.background = '';
+    }, 3000);
+  }
+  if (msg) {
+    msg.style.color = 'var(--green)';
+    msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum → klik </> HTML → paste.';
+  }
+}
+
+function fallbackCopy(text, btn, msg) {
+  const ta = document.getElementById('forum-html-textarea');
+  if (!ta) {
+    if (msg) {
+      msg.style.color = 'var(--pink, #ef4444)';
+      msg.textContent = '❌ Kotak kode HTML tidak ditemukan. Muat ulang halaman lalu coba lagi.';
+    }
+    return false;
+  }
+  if (ta.value !== text) ta.value = text;
+  selectForumHtmlAll();
+  const copied = _execCopyFallback(ta, msg);
+  if (copied) _showCopySuccess(btn, msg);
+  return copied;
+}
+
+window._populateForumOutput = _populateForumOutput;
+window.selectForumHtmlAll = selectForumHtmlAll;
+window.copyForumHtmlManual = copyForumHtmlManual;
+window._execCopyFallback = _execCopyFallback;
+window._showCopySuccess = _showCopySuccess;
+window.fallbackCopy = fallbackCopy;
 function buildForumHtml() {
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4133,7 +4193,7 @@ function toggleFQ(id) {
   card.classList.toggle('open');
 }
 function voteForum(n, opt, idx) {
-  const correct = (_ah(n+'_'+idx) === window._pa[n]);
+  const correct = (_ah(n+'_'+idx) === (window._forumPollAnswerHashes || {})[n]);
   const p = document.getElementById('fp' + n);
   if (p.dataset.done) return;
   p.dataset.done = '1';

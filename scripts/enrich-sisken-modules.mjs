@@ -6,6 +6,7 @@ import { FORUM } from "./sisken-forum.mjs";
 import { PUSTAKA } from "./sisken-pustaka.mjs";
 import { rumusLatex as _rumusLatex } from "./sisken-rumus.mjs";
 import { normalizeSiskenExportHtml } from "./sisken-export-html.mjs";
+import { normalizeSiskenForumRuntime } from "./sisken-forum-runtime.mjs";
 
 const rumusLatex = (teks) => _rumusLatex(teks, esc);
 
@@ -484,7 +485,7 @@ ${panelForum.replaceAll("__PERTEMUAN__", String(pert))}
   const runtime = `<script id="sisken-forum-runtime">
 function _ah(s){var h=5381;s=s+'mEKsP9k4tQ2';for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}
 window._ah = _ah;
-window._pa = {${pa}};
+window._forumPollAnswerHashes = {${pa}};
 ${skripForum}
 ${isiBangun}
 document.addEventListener('DOMContentLoaded', function(){ if (typeof checkForumReady === 'function') checkForumReady(); });
@@ -1187,6 +1188,14 @@ for (const [index, m] of modules.entries()) {
     }
   }
 
+  // Kunci jajak forum memakai namespace khusus. Nama global window._pa juga
+  // pernah dipakai skrip legacy di bagian bawah halaman dan menimpa kunci
+  // Modul 2-14 (bahkan tidak mempunyai entri soal 3).
+  html = html.replace(
+    "const correct = (_ah(n+'_'+idx) === window._pa[n]);",
+    "const correct = (_ah(n+'_'+idx) === (window._forumPollAnswerHashes || {})[n]);",
+  );
+
   const sudahAdaSoal = /id="rg-mc1"/.test(html);
   if (!sudahAdaSoal) {
     html = html.replace(/<div class="page" id="page-tugas">[\s\S]*?<\/div>\s*<!-- end page-tugas -->/, `<div class="page" id="page-tugas">${taskPanel(m, index)}\n</div><!-- end page-tugas -->`);
@@ -1231,6 +1240,7 @@ for (const [index, m] of modules.entries()) {
   // judul bagian yang isinya sudah tidak ada.
   html = html.replace(/\s*<!--\s*═+\s*PAGE: (SETUP PYTHON|PEMBAGIAN KELOMPOK)[\s\S]*?-->/g, "");
   html = normalizeSiskenExportHtml(html, nomor, m.title);
+  html = normalizeSiskenForumRuntime(html, nomor);
   fs.writeFileSync(file, html, "utf8");
 }
 

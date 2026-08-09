@@ -902,11 +902,14 @@ Dari root `Mechanical-Engineering-Courses`:
 node scripts/validate-public-security.mjs
 node scripts/validate-all-course-score-panels.mjs
 node scripts/validate-sisken-modules.mjs
+node scripts/validate-sisken-forum.mjs
 node scripts/validate-all-course-modern-design.mjs
 git diff --check
 ```
 
 `validate-sisken-modules.mjs` memeriksa struktur 14 modul Sisken, termasuk keberadaan dan urutan tombol `sub-mcN` per soal pilihan ganda (§6.1). Jalankan setiap kali menyentuh halaman modul Sisken.
+
+`validate-sisken-forum.mjs` menjalankan seluruh 156 kombinasi opsi jajak forum Modul 2–14 (13 modul × 3 PG × 4 opsi), lalu mengeksekusi jalur Clipboard API dan fallback `execCommand`. Kunci jajak wajib memakai `window._forumPollAnswerHashes`; jangan kembali memakai nama global generik `window._pa`, karena skrip legacy lain pernah menimpanya dan membuat soal ketiga selalu salah. Runtime hasil generator dinormalisasi oleh `scripts/sisken-forum-runtime.mjs`.
 
 Validator publik saat ini memeriksa antara lain:
 
