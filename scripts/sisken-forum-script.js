@@ -167,3 +167,63 @@ function copyForumHtmlManual() {
     _execCopyFallback(ta, msg);
   }
 }
+
+// Clipboard API dapat ditolak oleh pengaturan browser/LMS. Jalur fallback
+// selalu memakai textarea output yang memang boleh dipilih oleh friction layer,
+// sehingga mahasiswa tetap mendapat kode HTML dan petunjuk salin manual.
+function _execCopyFallback(ta, msg) {
+  let copied = false;
+  try { copied = document.execCommand('copy'); } catch(e) {
+    console.warn('[Forum] execCommand copy failed:', e);
+  }
+  if (copied) {
+    if (msg) {
+      msg.style.color = 'var(--green)';
+      msg.textContent = '✅ Tersalin via fallback! Paste sekarang di Fast Learning.';
+    }
+    return true;
+  }
+  if (msg) {
+    msg.style.color = 'var(--amber)';
+    msg.textContent = '⚠ Auto-copy diblokir browser. Kode sudah dipilih; tekan Ctrl+C (Cmd+C di Mac).';
+  }
+  return false;
+}
+
+function _showCopySuccess(btn, msg) {
+  if (btn) {
+    btn.textContent = '✅ Tersalin!';
+    btn.style.background = 'rgba(0,224,158,.2)';
+    setTimeout(() => {
+      btn.textContent = '📋 Copy Forum (kode HTML)';
+      btn.style.background = '';
+    }, 3000);
+  }
+  if (msg) {
+    msg.style.color = 'var(--green)';
+    msg.textContent = '✅ Kode HTML sudah tersalin. Buka Fast Learning → Forum → klik </> HTML → paste.';
+  }
+}
+
+function fallbackCopy(text, btn, msg) {
+  const ta = document.getElementById('forum-html-textarea');
+  if (!ta) {
+    if (msg) {
+      msg.style.color = 'var(--pink, #ef4444)';
+      msg.textContent = '❌ Kotak kode HTML tidak ditemukan. Muat ulang halaman lalu coba lagi.';
+    }
+    return false;
+  }
+  if (ta.value !== text) ta.value = text;
+  selectForumHtmlAll();
+  const copied = _execCopyFallback(ta, msg);
+  if (copied) _showCopySuccess(btn, msg);
+  return copied;
+}
+
+window._populateForumOutput = _populateForumOutput;
+window.selectForumHtmlAll = selectForumHtmlAll;
+window.copyForumHtmlManual = copyForumHtmlManual;
+window._execCopyFallback = _execCopyFallback;
+window._showCopySuccess = _showCopySuccess;
+window.fallbackCopy = fallbackCopy;
