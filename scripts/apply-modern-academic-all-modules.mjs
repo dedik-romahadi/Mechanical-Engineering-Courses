@@ -190,6 +190,7 @@ const runtime = `<script id="modern-academic-runtime">
       title.textContent = currentTitle;
       caption.append(dot, title);
     }
+    caption.removeAttribute('style');
     caption.classList.add('table-caption');
 
     headers.forEach((header, columnIndex) => {
@@ -257,6 +258,14 @@ for (const course of courseRoots) {
     const original = fs.readFileSync(file, "utf8");
     const eol = original.includes("\r\n") ? "\r\n" : "\n";
     let html = original;
+
+    html = html.replace(
+      /<caption style="caption-side:top;text-align:left;padding:0 0 10px;color:var\(--muted\);font-size:13px">([^<]*)<\/caption>/g,
+      (_, rawTitle) => {
+        const title = rawTitle.trim().replace(/^Tabel\s+(\d+)\.\s*/i, "Tabel $1 — ").replace(/\.$/, "");
+        return `<caption class="table-caption"><span class="anim-dot" aria-hidden="true"></span><span class="anim-title">${title}</span></caption>`;
+      },
+    );
 
     for (const id of ["modern-academic-design", "modern-academic-pilot", "modern-academic-motion", "sisken-formula-hover"]) html = removeBlock(html, "style", id);
     for (const id of ["modern-academic-runtime", "modern-academic-pilot-runtime"]) html = removeBlock(html, "script", id);

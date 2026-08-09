@@ -60,6 +60,8 @@ for (let n = 1; n <= 14; n += 1) {
     [(html.match(/id="modern-academic-design"/g) || []).length === 1, "satu blok desain modern academic bersama"],
     [(html.match(/class="formula-block reveal"/g) || []).length >= 5 && html.includes("#page-modul .formula-block:hover{transform:translate3d(5px,-5px,0)"), "seluruh kartu formula memiliki efek hover"],
     [html.includes("#page-modul .formula-block:hover::before{background-position:-40% 0;opacity:1}"), "kilau hover formula tidak memperlebar area scroll"],
+    [!/<caption\b[^>]*\sstyle=/.test(html), "caption tabel tanpa style inline lama"],
+    [html.includes("caption.removeAttribute('style')"), "runtime menetralkan style inline caption"],
   ];
 
   if (n === 1) {
