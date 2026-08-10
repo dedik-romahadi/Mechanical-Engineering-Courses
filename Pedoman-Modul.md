@@ -446,6 +446,48 @@ File HTML lokal tetap dapat diedit oleh pemilik file. Kode HMAC tidak mencegah e
 
 Tab Hasil membaca record visitor untuk statistik, aktivitas, dan skor. Presence realtime terpisah dari riwayat kunjungan. Jangan menyimpulkan “online” hanya dari `lastVisit`.
 
+### 6.7 Tutor AI berbasis sumber
+
+Mode **Asisten** pada panel Chat Kelas tersedia di 56 halaman modul dan 8
+halaman UTS/UAS. Implementasinya bukan fine-tuning model dengan bank soal,
+melainkan tiga lapis di backend privat:
+
+1. resolver deterministik untuk jadwal, RPS, penilaian, dan data administratif;
+2. retrieval dari `functions/chat/knowledge-base.json` yang terisolasi per mata
+   kuliah dan mengembalikan sumber resmi;
+3. model opsional yang hanya merangkai penjelasan dari hasil retrieval.
+
+Indeks dibangun dari area materi `#page-modul` sebelum `#page-tugas`, JSON
+asesmen kurikulum, dan pemetaan default Modul–Sub-CPMK pada halaman OBE. Area
+Tugas/Forum/Hasil, halaman ujian, bank soal, pembahasan, kunci jawaban, roster,
+dan data pribadi tidak boleh ikut dibaca generator. Indeks hasil build tetap di
+repo backend privat; jangan menyalinnya ke frontend.
+
+Setiap jawaban materi harus membawa sitasi yang cocok dengan sumber retrieval.
+Jawaban model tanpa sitasi, dengan sitasi rekaan, menyebut mata kuliah lain,
+atau mengklaim kunci/hasil akhir asesmen harus diganti fallback retrieval yang
+aman. Pertanyaan konsep, rumus, contoh umum, dan kode pembelajaran boleh
+dilayani; permintaan jawaban soal tertentu atau kode siap-submit ditolak sebelum
+retrieval/model.
+
+Untuk mahasiswa, tutor materi dinonaktifkan selama jendela UTS/UAS mata kuliah
+aktif, termasuk `scheduleOverrides` per NIM. Informasi administratif tetap dapat
+dijawab. Jika model tidak tersedia atau kuotanya habis, resolver dan jawaban
+retrieval ekstraktif bersitasi tetap berjalan.
+
+Setelah materi, asesmen kurikulum, atau mapping OBE berubah, bangun ulang indeks
+dari root backend lalu jalankan seluruh tes backend:
+
+```powershell
+node scripts/build-ai-knowledge.js ..\Mechanical-Engineering-Courses
+Set-Location functions
+npm.cmd test
+```
+
+Skrip `frontend-integration/apply-ai-chat.js` di backend adalah sumber blok UI
+agent. Jalankan ulang penerapnya untuk memperbarui seluruh halaman; jangan
+mengedit 64 salinan inline secara manual.
+
 ---
 
 ## 7. Struktur dan penilaian exam
@@ -696,7 +738,7 @@ Daftar callable yang digunakan sistem saat ini:
 | `getMyObeNilai` | mahasiswa + PIN | mengambil nilai OBE mahasiswa tersebut |
 | `deleteObeNilai` | admin | menghapus nilai OBE terpublikasi satu course |
 | `getModuleChatContext` | mahasiswa + PIN | bootstrap sapaan/konteks AI chat modul (deterministik, tidak memanggil model) |
-| `aiChat` | mahasiswa + PIN | tanya-jawab administratif AI per modul (resolver deterministik dulu, lalu provider LLM opsional); butuh secret `AI_API_KEY` (§1.2), rate-limit di `aiChat/quota/<NIM>` (§9.1) |
+| `aiChat` | mahasiswa + PIN | asisten administratif + tutor retrieval bersitasi untuk mata kuliah aktif; model generatif opsional memakai `AI_API_KEY`, dengan rate-limit model di `aiChat/quota/<NIM>` (§6.7, §9.1) |
 
 Tidak ada callable `recomputeAllObeScores`. Jangan mendokumentasikan atau memanggil nama tersebut.
 
@@ -830,6 +872,8 @@ Wajib dipertahankan:
 - Pages workflow harus menolak artefak sensitif sebelum deploy;
 - node RTDB `pins/` tidak boleh dibuka kembali untuk dibaca klien (lihat §4.3);
 - seed **menolak** menulis kunci bank yang masih placeholder ke Firestore. `seed-firestore.js` mendeteksi status placeholder dari teks bank dan membatalkan live seed dengan pesan jelas; pelolos `--allow-placeholder` hanya untuk keadaan yang disengaja. Ini menutup jalur yang dulu membuat `--all-exam` menuliskan kunci dummy `sisken-uas` ke produksi tanpa gejala.
+- basis pengetahuan tutor tetap di backend privat dan hanya dibangun dari sumber allowlist §6.7; validator harus menolak marker kunci, bank soal, kredensial, atau data pribadi;
+- frontend tidak boleh menerima kutipan internal retrieval, system prompt, nama provider/model, endpoint, atau secret; respons hanya membawa jawaban, URL sumber resmi, metadata sitasi minimum, dan status kasar;
 
 ### 14.1 Kunci exam lama bocor di riwayat Git (tidak dapat ditarik kembali)
 
@@ -949,6 +993,7 @@ Dari root backend:
 
 ```powershell
 node scripts/validate-backend.js
+node scripts/validate-ai-knowledge.js
 Set-Location functions
 npm.cmd run lint
 npm.cmd test
@@ -979,6 +1024,7 @@ Bila menulis soal pada bank yang sebelumnya placeholder, ingat bahwa penjaga yan
 | Dosen | login, pesan lock, atur jadwal, logout, sesi kedaluwarsa |
 | Modul | 25 soal, total 50, PG dapat dipilih dan tombol Periksa aktif, late sesuai konfigurasi (Sisken 0,65; Opto/Math4/Getaran sementara 0,7), partial Hard (Sisken 0,5), export lengkap, Forum/chat |
 | Exam | 45 soal, total 100, format poin, late/cutoff, online-only, export resmi |
+| Tutor AI | konsep modul aktif dijawab dengan sitasi; pertanyaan lintas MK dan jawaban langsung asesmen ditolak; saat UTS/UAS aktif materi terkunci tetapi jadwal/aturan tetap terjawab; tanpa model retrieval tetap berfungsi |
 | UAS | soal tidak ada di source publik, fetch setelah gate, friction tidak memburamkan halaman |
 | Reset | Firestore dan RTDB konsisten; PIN tidak terhapus; poin soal lain tetap |
 | OBE | mapping per course, compute, draft lokal, publish, tampilan satu mahasiswa |
@@ -1010,3 +1056,4 @@ Jangan menganggap perubahan selesai hanya karena halaman terbuka. Penilaian haru
 19. Angka poin bank exam (Σ=70) bukan nilai mahasiswa; yang diberikan adalah `_examQPoints` (Σ=100), dan hanya status `correct` yang ditimpa bobot itu. Partial credit membaca `partialPoints` kunci (Sisken 0,5) dan hanya berlaku sebelum deadline; setelah itu 0, bukan partial yang dipotong.
 20. Setiap soal pilihan ganda wajib punya tombol `sub-mcN`-nya sendiri; tanpa itu `selectMC()` melempar dan PG tidak dapat dipilih.
 21. Publikasi Pages memakai push ke branch `gh-pages`; jangan kembali ke `actions/deploy-pages`.
+22. Tutor AI hanya memakai retrieval sumber allowlist mata kuliah aktif; bank/kunci tidak masuk indeks, sitasi wajib, dan mode materi terkunci selama ujian mahasiswa aktif.
