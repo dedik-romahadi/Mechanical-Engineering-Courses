@@ -263,21 +263,20 @@ Ketentuan saat ini:
 
 ## 5. Jadwal dan WIB
 
-Semua label dan tampilan waktu ditujukan untuk WIB. Gunakan `timeZone: 'Asia/Jakarta'` pada formatting. Nilai deadline harus diparse sebagai WIB dengan `_wibStringToDate`, bukan `new Date(due)` yang mengikuti zona waktu browser.
+Semua label dan tampilan waktu ditujukan untuk WIB. Formatting wajib memakai
+`timeZone: 'Asia/Jakarta'`; jangan membiarkan zona waktu perangkat mengubah
+deadline. Arti field jadwal adalah:
 
-Jadwal disimpan sebagai:
+| Field | Format | Modul | Exam |
+|---|---|---|---|
+| `start` | ISO UTC | awal jendela yang diturunkan dari `due` dan `duration` | awal jendela |
+| `end` | ISO UTC | batas akhir yang diturunkan dari `due` | batas akhir |
+| `due` | `YYYY-MM-DDTHH:MM` tanpa offset | waktu dinding WIB dan sumber kebenaran deadline | nilai kompatibilitas yang diparse sebagai WIB saat jadwal disimpan |
+| `duration` | angka | hari | menit |
+| `extension` | angka menit | tidak dipakai | perpanjangan setelah `end`; boleh tidak ditulis jika nol |
 
-```json
-{
-  "start": "ISO UTC",
-  "end": "ISO UTC",
-  "duration": 180,
-  "due": "YYYY-MM-DDTHH:MM",
-  "extension": 120
-}
-```
-
-`extension` hanya dipakai exam dan boleh tidak ditulis jika nol.
+String `due` bukan waktu lokal browser. Parse dengan `_wibStringToDate`, bukan
+`new Date(due)`, lalu simpan waktu absolut pada `start`/`end` sebagai ISO UTC.
 
 ### 5.1 Modul
 
@@ -313,7 +312,21 @@ Tabel ini mencatat implementasi aktual, bukan menyatakan ketidakkonsistenan ters
 
 ### 5.4 Zona waktu modul
 
-Seluruh 56 modul memakai editor deadline berupa tanggal dan jam `HH:mm` 24 jam. Jam diperlakukan eksplisit sebagai WIB (UTC+7), lalu `start` dan `end` disimpan sebagai ISO UTC; zona waktu perangkat dosen tidak boleh menggeser nilainya. Contoh: input `22:00` disimpan sebagai `15:00Z` pada tanggal yang sama dan selalu ditampilkan sebagai `22:00 WIB`. Field `due` tetap memakai `YYYY-MM-DDTHH:MM` agar jadwal lama kompatibel.
+Seluruh 56 modul memakai editor deadline berupa field tanggal dan field teks jam
+`HH:mm` 24 jam. Input `10:00 PM` tidak dipakai; nilai ekuivalennya adalah
+`22:00`. Alur simpan membaca keduanya melalui `_readScheduleDueWib`, memvalidasi
+jam, lalu `_wibStringToDate` mengonversi WIB (UTC+7) ke ISO UTC. Contoh:
+`2026-08-10 22:00 WIB` menjadi `2026-08-10T15:00:00.000Z` dan ditampilkan lagi
+sebagai `22:00 WIB` oleh `_formatWibDateTime` (`hourCycle: 'h23'`).
+
+Untuk kompatibilitas data lama, `due` yang valid selalu menjadi sumber kebenaran
+deadline modul. `_normalizeModuleScheduleWib` di frontend dan
+`_moduleDueWibToMillis` di backend membangun ulang `end` dari `due`, kemudian
+`start` dari `duration`. Dengan demikian record lama yang memiliki `end` bergeser
+satu jam langsung ditampilkan dan dinilai pada waktu yang benar, tanpa migrasi
+RTDB dan tanpa mengubah attempt, jawaban, atau poin mahasiswa. Jika `due` hilang
+atau tidak valid, sistem baru memakai ISO `start`/`end` yang tersimpan sebagai
+fallback.
 
 ### 5.5 Jadwal ujian susulan (override per mahasiswa)
 
@@ -446,47 +459,71 @@ File HTML lokal tetap dapat diedit oleh pemilik file. Kode HMAC tidak mencegah e
 
 Tab Hasil membaca record visitor untuk statistik, aktivitas, dan skor. Presence realtime terpisah dari riwayat kunjungan. Jangan menyimpulkan “online” hanya dari `lastVisit`.
 
-### 6.7 Tutor AI berbasis sumber
+### 6.7 Sistem Agen AI berbasis sumber
 
-Mode **Asisten** pada panel Chat Kelas tersedia di 56 halaman modul dan 8
-halaman UTS/UAS. Implementasinya bukan fine-tuning model dengan bank soal,
-melainkan tiga lapis di backend privat:
+Mode **Asisten Dosen** memakai panel Chat Kelas yang sama pada 56 halaman modul
+dan 8 halaman UTS/UAS. Ini bukan model yang dilatih ulang dengan seluruh data
+kampus. Sistem memakai retrieval-augmented generation (RAG) dari sumber privat
+yang diizinkan, dengan tiga lapis:
 
-1. resolver deterministik untuk jadwal, RPS, penilaian, dan data administratif;
-2. retrieval dari `functions/chat/knowledge-base.json` yang terisolasi per mata
-   kuliah dan mengembalikan sumber resmi;
-3. model opsional yang hanya merangkai penjelasan dari hasil retrieval.
+| Lapis | Implementasi | Peran dan perilaku gagal |
+|---|---|---|
+| Administratif | `chat/resolver.js` | menjawab jadwal, RPS, penilaian, dan aturan dari registry serta RTDB secara deterministik |
+| Retrieval | `chat/retriever.js` + `knowledge-base.json` | mengambil materi/kurikulum mata kuliah aktif dan menghasilkan jawaban ekstraktif bersitasi |
+| Model | `chat/provider.js` | opsional; hanya merangkai potongan retrieval, bukan menjadi sumber fakta |
 
-Indeks dibangun dari area materi `#page-modul` sebelum `#page-tugas`, JSON
-asesmen kurikulum, dan pemetaan default Modul–Sub-CPMK pada halaman OBE. Area
-Tugas/Forum/Hasil, halaman ujian, bank soal, pembahasan, kunci jawaban, roster,
-dan data pribadi tidak boleh ikut dibaca generator. Indeks hasil build tetap di
-repo backend privat; jangan menyalinnya ke frontend.
+Callable `getModuleChatContext` menyiapkan konteks awal tanpa model, sedangkan
+`aiChat` mengorkestrasi ketiga lapis. Browser hanya mengirim `moduleId`, pesan,
+dan riwayat terbatas. Backend memverifikasi `moduleId` terhadap allowlist 64
+halaman, menyusun ulang metadata dari registry, dan membaca jadwal aktual dari
+RTDB; metadata buatan browser diabaikan. NIM, nama akun, dan hash PIN hanya
+dipakai untuk autentikasi/kuota dan tidak dikirim ke penyedia model. Sebelum
+request keluar, `chat/privacy.js` menyunting NIM, email, nomor telepon, dan token
+panjang, lalu assertion membatalkan panggilan bila identitas akun masih terdeteksi.
 
-Setiap jawaban materi harus membawa sitasi yang cocok dengan sumber retrieval.
-Jawaban model tanpa sitasi, dengan sitasi rekaan, menyebut mata kuliah lain,
-atau mengklaim kunci/hasil akhir asesmen harus diganti fallback retrieval yang
-aman. Pertanyaan konsep, rumus, contoh umum, dan kode pembelajaran boleh
-dilayani; permintaan jawaban soal tertentu atau kode siap-submit ditolak sebelum
-retrieval/model.
+Indeks privat dibangun hanya dari area materi `#page-modul` sebelum
+`#page-tugas`, JSON asesmen kurikulum, dan mapping default Modul–Sub-CPMK pada
+halaman OBE. Area Tugas/Forum/Hasil, halaman ujian, bank soal, pembahasan, kunci
+jawaban, roster, dan data pribadi tidak boleh masuk generator atau indeks.
+`knowledge-base.json` tetap berada di repo backend privat dan tidak boleh
+disalin ke frontend.
 
-Untuk mahasiswa, tutor materi dinonaktifkan selama jendela UTS/UAS mata kuliah
-aktif, termasuk `scheduleOverrides` per NIM. Informasi administratif tetap dapat
-dijawab. Jika model tidak tersedia atau kuotanya habis, resolver dan jawaban
-retrieval ekstraktif bersitasi tetap berjalan.
+Jawaban materi wajib memakai sitasi yang ada pada hasil retrieval serta tetap
+terisolasi pada mata kuliah aktif. Jawaban tanpa sitasi valid, sitasi rekaan,
+sumber lintas mata kuliah, atau klaim kunci/hasil akhir asesmen diganti dengan
+fallback retrieval yang aman. Pertanyaan konsep, rumus, contoh umum, dan kode
+pembelajaran boleh dilayani; permintaan jawaban soal tertentu atau kode
+siap-submit ditolak sebelum retrieval/model. Untuk mahasiswa, tutor materi
+terkunci selama jendela UTS/UAS aktif, termasuk `scheduleOverrides` per NIM,
+tetapi bantuan administratif tetap tersedia.
 
-Setelah materi, asesmen kurikulum, atau mapping OBE berubah, bangun ulang indeks
-dari root backend lalu jalankan seluruh tes backend:
+Lapis model dapat dimatikan dengan `AI_PROVIDER=none`; resolver dan retrieval
+tetap berfungsi. Kuota internal model adalah 8 pertanyaan per mahasiswa per jam.
+Respons penyedia `429`/`402` menjeda lapis model melalui
+`aiChat/freeTier/state` selama 5, lalu 15, lalu 60 menit jika berulang; satu
+respons sukses menolkan tangga dan strike kedaluwarsa setelah dua jam. Pilihan
+provider/endpoint/model yang non-rahasia berada di `functions/.env`, sedangkan
+`AI_API_KEY` wajib berada di Firebase Secret Manager.
+
+Setelah materi, asesmen kurikulum, atau mapping OBE berubah, bangun dan validasi
+ulang indeks dari root backend, lalu jalankan pemeriksaan backend:
 
 ```powershell
 node scripts/build-ai-knowledge.js ..\Mechanical-Engineering-Courses
+node scripts/validate-ai-knowledge.js
 Set-Location functions
+npm.cmd run lint
 npm.cmd test
 ```
 
-Skrip `frontend-integration/apply-ai-chat.js` di backend adalah sumber blok UI
-agent. Jalankan ulang penerapnya untuk memperbarui seluruh halaman; jangan
-mengedit 64 salinan inline secara manual.
+Sumber integrasi UI berada di `frontend-integration/` pada repo backend. Hanya
+jika blok UI/agent berubah, terapkan dan periksa generator ke seluruh 64 halaman;
+jangan mengedit salinan inline satu per satu:
+
+```powershell
+node frontend-integration/apply-ai-chat.js ..\Mechanical-Engineering-Courses
+node frontend-integration/apply-ai-chat.js ..\Mechanical-Engineering-Courses --check
+```
 
 ---
 
@@ -981,7 +1018,7 @@ Validator khusus melengkapi pemeriksaan publik tersebut:
 
 | Validator | Cakupan khusus |
 |---|---|
-| `validate-all-course-modern-design.mjs` | Marker, runtime, tabel, kartu pustaka, perilaku tab, dan sintaks pada seluruh 56 modul. |
+| `validate-all-course-modern-design.mjs` | Marker, runtime, tabel, kartu pustaka, perilaku tab, editor deadline `HH:mm` 24 jam, normalisasi WIB, dan sintaks pada seluruh 56 modul. |
 | `validate-all-course-score-panels.mjs` | Panel skor compact pada 42 modul Matematika 4, Getaran Mekanik, dan Optimalisasi & Otomasi. |
 | `validate-sisken-modules.mjs` | Struktur dan perilaku 14 modul Sisken, termasuk urutan tombol pilihan ganda, panel skor, serta kompatibilitas generator. |
 | `validate-sisken-forum.mjs` | Seluruh 156 kombinasi jajak Forum Modul 2–14 beserta Clipboard API dan fallback `execCommand`. |
@@ -1021,10 +1058,10 @@ Bila menulis soal pada bank yang sebelumnya placeholder, ingat bahwa penjaga yan
 |---|---|
 | Preview | tidak membuat identity/attempt/poin; Tugas dan Forum modul tersembunyi |
 | Mahasiswa | roster, PIN, schedule gate, satu attempt, restore setelah refresh |
-| Dosen | login, pesan lock, atur jadwal, logout, sesi kedaluwarsa |
+| Dosen | login, pesan lock, atur jadwal dengan jam 24 jam, tampilan deadline WIB yang sama pada perangkat beda zona waktu, logout, sesi kedaluwarsa |
 | Modul | 25 soal, total 50, PG dapat dipilih dan tombol Periksa aktif, late sesuai konfigurasi (Sisken 0,65; Opto/Math4/Getaran sementara 0,7), partial Hard (Sisken 0,5), export lengkap, Forum/chat |
 | Exam | 45 soal, total 100, format poin, late/cutoff, online-only, export resmi |
-| Tutor AI | konsep modul aktif dijawab dengan sitasi; pertanyaan lintas MK dan jawaban langsung asesmen ditolak; saat UTS/UAS aktif materi terkunci tetapi jadwal/aturan tetap terjawab; tanpa model retrieval tetap berfungsi |
+| Agen AI | konsep modul aktif dijawab dengan sitasi; pertanyaan lintas MK dan jawaban langsung asesmen ditolak; data pribadi disunting; saat UTS/UAS aktif materi terkunci tetapi jadwal/aturan tetap terjawab; mode `AI_PROVIDER=none` dan simulasi kuota tetap menghasilkan fallback retrieval |
 | UAS | soal tidak ada di source publik, fetch setelah gate, friction tidak memburamkan halaman |
 | Reset | Firestore dan RTDB konsisten; PIN tidak terhapus; poin soal lain tetap |
 | OBE | mapping per course, compute, draft lokal, publish, tampilan satu mahasiswa |
@@ -1036,7 +1073,7 @@ Jangan menganggap perubahan selesai hanya karena halaman terbuka. Penilaian haru
 ## 18. Ringkasan aturan yang tidak boleh dilanggar
 
 1. Backend, kunci jawaban, bank soal UAS, service account, dan secret tetap privat.
-2. Semua waktu operasional adalah WIB; exam wajib memakai parser WIB eksplisit.
+2. Semua waktu operasional adalah WIB; modul dan exam wajib memakai parser WIB eksplisit, dan `due` yang valid menjadi acuan deadline modul.
 3. PIN bersifat global; reset asesmen tidak menghapus PIN.
 4. Modul bernilai maksimum 50; exam bernilai maksimum 100.
 5. Server menentukan jawaban, toleransi, attempt, poin, late multiplier, dan hak admin.
@@ -1056,4 +1093,4 @@ Jangan menganggap perubahan selesai hanya karena halaman terbuka. Penilaian haru
 19. Angka poin bank exam (Σ=70) bukan nilai mahasiswa; yang diberikan adalah `_examQPoints` (Σ=100), dan hanya status `correct` yang ditimpa bobot itu. Partial credit membaca `partialPoints` kunci (Sisken 0,5) dan hanya berlaku sebelum deadline; setelah itu 0, bukan partial yang dipotong.
 20. Setiap soal pilihan ganda wajib punya tombol `sub-mcN`-nya sendiri; tanpa itu `selectMC()` melempar dan PG tidak dapat dipilih.
 21. Publikasi Pages memakai push ke branch `gh-pages`; jangan kembali ke `actions/deploy-pages`.
-22. Tutor AI hanya memakai retrieval sumber allowlist mata kuliah aktif; bank/kunci tidak masuk indeks, sitasi wajib, dan mode materi terkunci selama ujian mahasiswa aktif.
+22. Agen AI hanya memakai resolver dan retrieval privat dari allowlist mata kuliah aktif; model bersifat opsional, bank/kunci tidak masuk indeks, sitasi wajib, dan tutor materi terkunci selama ujian mahasiswa aktif.
