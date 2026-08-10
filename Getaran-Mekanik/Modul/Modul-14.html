@@ -9648,10 +9648,10 @@ body.friction-blurred #frictionToast{filter:none;}
   // ═══════════════════════════════════════════════════════════════════════════
 
   var AI_UNAVAILABLE_MESSAGE =
-    "Layanan asisten sedang tidak tersedia. Anda tetap dapat membuka RPS, silabus, jadwal, dan informasi penilaian melalui tautan pada modul ini.";
+    "Layanan model sedang tidak tersedia. Saya tetap dapat mencari potongan materi resmi serta menjawab RPS, jadwal, dan informasi penilaian dari sumber lokal.";
 
   var SCOPE_SENTENCE =
-    "Saya dapat membantu Anda mengenai silabus, RPS, jadwal, presensi, tugas, ujian, dan perhitungan nilai pada modul ini. Saya tidak dapat menjelaskan materi atau menyelesaikan soal perkuliahan.";
+    "Saya dapat menjelaskan materi berdasarkan sumber resmi, menunjukkan hubungan CPL/CPMK/Sub-CPMK, serta membantu informasi RPS, jadwal, tugas, ujian, dan nilai. Saya tidak memberikan kunci atau jawaban langsung asesmen.";
 
   var LOGIN_REQUIRED_MESSAGE =
     "Masuk terlebih dahulu untuk bertanya kepada asisten. Sapaan dan tautan resmi di atas tetap dapat Anda baca.";
@@ -9678,11 +9678,11 @@ body.friction-blurred #frictionToast{filter:none;}
 
   function suggestedQuestions() {
     return [
-      "Berapa bobot UTS pada modul ini?",
+      "Jelaskan konsep utama pada modul ini.",
+      "Apa hubungan modul ini dengan Sub-CPMK?",
+      "Tunjukkan rumus penting dan sumbernya.",
+      "Berikan contoh penerapan konsep pada modul ini.",
       "Kapan tugas berikutnya dikumpulkan?",
-      "Kapan jadwal UTS dan UAS?",
-      "Apa syarat tombol Export aktif?",
-      "Di mana saya dapat membuka RPS?",
       "Bagaimana nilai akhir dihitung?",
     ];
   }
@@ -9742,24 +9742,42 @@ body.friction-blurred #frictionToast{filter:none;}
       "Otomatisasi Prediktif: Supervised Learning & Logistic Regression",
       "Otomatisasi Prediktif: Random Forest, SVM & Hyperparameter Tuning",
     ],
+    "sistem_kendali_cerdas": [
+      "Definisi, sejarah, konfigurasi sistem kontrol",
+      "Proses perancangan sistem kontrol",
+      "Perhitungan Transformasi Laplace",
+      "Perhitungan Fungsi Transfer",
+      "Sistem Simulasi Komputasi",
+      "Rancang sistem kontrol sederhana via komputer",
+      "Baca grafik keluaran untuk analisis respons",
+      "Karakteristik respon sistem umpan balik",
+      "Analisis & rancang kontrol PID",
+      "Aturan Mason & grafik aliran sinyal (state)",
+      "Metode Kontrol Cerdas (Intelligent) — overview",
+      "Sistem kontrol Artificial Neural Network",
+      "Sistem kontrol Logika Fuzzy",
+      "Sistem kontrol Algoritma Genetika (GA)",
+    ],
   };
 
   var COURSE_NAMES = {
     "getaran-mekanik": "Getaran Mekanik",
     "math4": "Matematika 4",
     "optoauto": "Optimalisasi dan Otomasi",
+    "sistem_kendali_cerdas": "Sistem Kendali Cerdas",
   };
 
   /** moduleId/examId → { courseId, nomor, pertemuan, nama, jenis? } atau null. */
   function parseModuleId(moduleId) {
     var id = String(moduleId || "");
     // Halaman ujian: <course>-uts | <course>-uas (nama identik dengan registry backend).
-    var e = /^(getaran-mekanik|math4|optoauto)-(uts|uas)$/.exec(id);
+    var e = /^(getaran-mekanik|math4|optoauto|sisken)-(uts|uas)$/.exec(id);
     if (e) {
       var label = e[2] === "uts" ? "Ujian Tengah Semester (UTS)" : "Ujian Akhir Semester (UAS)";
-      return { courseId: e[1], nomor: null, pertemuan: null, jenis: e[2], nama: label + " " + COURSE_NAMES[e[1]] };
+      var examCourseId = e[1] === "sisken" ? "sistem_kendali_cerdas" : e[1];
+      return { courseId: examCourseId, nomor: null, pertemuan: null, jenis: e[2], nama: label + " " + COURSE_NAMES[examCourseId] };
     }
-    var m = /^(getaran-mekanik|math4|optoauto)-modul-(\d{1,2})$/.exec(id);
+    var m = /^(getaran-mekanik|math4|optoauto|sistem_kendali_cerdas)-modul-(\d{1,2})$/.exec(id);
     if (!m) return null;
     var courseId = m[1];
     var nomor = parseInt(m[2], 10);
@@ -10028,7 +10046,7 @@ body.friction-blurred #frictionToast{filter:none;}
     if (ownComposer) ownComposer.style.display = state.mode === "ai" ? "flex" : "none";
     if (input) {
       input.placeholder = state.mode === "ai"
-        ? "Tanya soal jadwal, tugas, nilai… (Enter=kirim)"
+        ? "Tanya materi, CPMK, jadwal, atau nilai… (Enter=kirim)"
         : "Tulis pesan... (Enter=kirim)";
     }
     // Judul panel (.vp-header h3) SENGAJA tidak disentuh: renderChat() bawaan
