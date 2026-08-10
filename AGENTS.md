@@ -51,6 +51,7 @@ Total file HTML utama: **42 modul + 6 exam + 3 OBE = 51 file**.
 ### Waktu (WIB-locked)
 - **Semua tampilan jam pakai `timeZone: 'Asia/Jakarta'`** di `toLocaleString/toLocaleDateString`.
 - Exam helper: `_nowPlusMinAsWibString(min)` + `_wibStringToDate(s)` — force WIB interpretation regardless dosen browser tz.
+- Modul memakai editor tanggal + jam `HH:mm` 24 jam dan `_wibStringToDate(value)`; zona waktu browser tidak boleh memengaruhi deadline.
 
 ### Schedule Defaults
 | Konteks | Durasi default | Batas akhir default | Perpanjangan |
@@ -117,7 +118,7 @@ EXAM_CONFIG di functions/index.js wajib punya entry per examId: `getaran-mekanik
 1. **Branch by nama "Dedik Romahadi"** — sudah OBSOLETE. Login flow sekarang via role picker.
 2. **`vNama` input** — sudah dihapus. Form Mahasiswa hanya `vNim` + `vPin`. Kalau ada listener ke `vNama` → `TypeError` runtime (lihat fix PR #378).
 3. **Default schedule menit di modul** — modul pakai HARI. Cek tipe konversi (`dur*86400000` vs `dur*60000`).
-4. **`new Date(due)` di exam saveSchedule** — pakai `_wibStringToDate(due)` untuk WIB-lock.
+4. **`new Date(due)` di saveSchedule** — pakai `_wibStringToDate(due)` untuk WIB-lock pada modul maupun exam.
 5. **Penalti 0.8/20%** — sudah 0.7/30%. Update tulisan di banner/help text.
 6. **PIN per-modul** — sudah global (`pins/mhs_<NIM>`). Reset modul tidak boleh hapus PIN.
 
