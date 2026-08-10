@@ -45,6 +45,13 @@ for (const course of courses) {
       [!/<caption\b[^>]*\sstyle=/.test(markup), "caption materi tanpa style inline yang mengalahkan tema"],
       [runtime.includes("requestAnimationFrame(() => window.scrollTo({top:0, behavior:'smooth'}))"), "klik tab kembali ke hero"],
       [!html.includes("const scoreBar = document.querySelector('#page-tugas .score-bar')"), "Tugas tidak melompat ke panel skor"],
+      [html.includes('id="scheduleDueDate"') && html.includes('id="scheduleDueTime"'), "editor deadline memisahkan tanggal dan jam"],
+      [html.includes("Format 24 jam WIB (UTC+7), contoh 22:00."), "petunjuk deadline 24 jam WIB"],
+      [html.includes("function _wibStringToDate(value)") && html.includes("Date.UTC(+match[1], +match[2]-1, +match[3], +match[4]-7, +match[5])"), "deadline diparse eksplisit sebagai WIB"],
+      [html.includes("function _normalizeModuleScheduleWib(schedule)") && html.includes("currentSchedule = _normalizeModuleScheduleWib(snap.val());"), "jadwal lama dinormalisasi dari due WIB"],
+      [html.includes("const dur=parseInt(document.getElementById('scheduleDuration').value), due=_readScheduleDueWib();"), "penyimpanan membaca editor deadline WIB"],
+      [html.includes("hourCycle:'h23', timeZone:'Asia/Jakarta'") && html.includes("return dateText+' '+timeText+' WIB';"), "tampilan deadline memakai 24 jam dan label WIB"],
+      [!html.includes('type="datetime-local" class="v-input" id="scheduleDue"') && !/const dueDate\s*=\s*new Date\(due\)/.test(html), "deadline tidak bergantung pada locale atau zona waktu browser"],
       [!html.includes('id="modern-academic-pilot"') && !html.includes('id="modern-academic-motion"') && !html.includes('id="sisken-formula-hover"'), "tanpa style rollout lama"],
     ];
     for (const [ok, message] of checks) if (!ok) failures.push(`${label}: ${message}`);
@@ -56,6 +63,19 @@ for (const course of courses) {
 }
 
 if (files !== 56) failures.push(`jumlah modul ${files}, seharusnya 56`);
+
+const parseWibForValidation = (value) => {
+  const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})T((?:[01]\d|2[0-3])):([0-5]\d)$/);
+  if (!match) return new Date(NaN);
+  return new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4] - 7, +match[5]));
+};
+const tenPmWib = parseWibForValidation("2026-08-10T22:00");
+if (tenPmWib.toISOString() !== "2026-08-10T15:00:00.000Z") {
+  failures.push(`parser WIB 22:00 menghasilkan ${tenPmWib.toISOString()}, seharusnya 15:00 UTC`);
+}
+for (const invalid of ["2026-08-10T10:00 PM", "2026-08-10T24:00", "2026-08-10T22:60", ""]) {
+  if (Number.isFinite(parseWibForValidation(invalid).getTime())) failures.push(`parser WIB menerima waktu tidak valid: ${invalid}`);
+}
 if (failures.length) {
   console.error(`Modern academic validation failed (${failures.length}):`);
   failures.forEach(failure => console.error(`- ${failure}`));

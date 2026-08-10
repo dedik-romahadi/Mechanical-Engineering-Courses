@@ -263,7 +263,7 @@ Ketentuan saat ini:
 
 ## 5. Jadwal dan WIB
 
-Semua label dan tampilan waktu ditujukan untuk WIB. Gunakan `timeZone: 'Asia/Jakarta'` pada formatting. Pada exam, nilai `datetime-local` harus diparse sebagai WIB dengan `_wibStringToDate`, bukan `new Date(due)`.
+Semua label dan tampilan waktu ditujukan untuk WIB. Gunakan `timeZone: 'Asia/Jakarta'` pada formatting. Nilai deadline harus diparse sebagai WIB dengan `_wibStringToDate`, bukan `new Date(due)` yang mengikuti zona waktu browser.
 
 Jadwal disimpan sebagai:
 
@@ -311,9 +311,9 @@ Jadwal disimpan sebagai:
 
 Tabel ini mencatat implementasi aktual, bukan menyatakan ketidakkonsistenan tersebut sebagai desain ideal. Jika default UTS diseragamkan, ubah keempat halaman UTS, pemeriksa otomatis, dan bagian ini dalam commit yang sama.
 
-### 5.4 Batasan zona waktu modul
+### 5.4 Zona waktu modul
 
-Formatter modul memakai WIB, tetapi penyimpanan due modul saat ini masih membentuk `Date` dari nilai `datetime-local` berdasarkan zona waktu browser. Operasikan pengaturan jadwal modul pada perangkat yang disetel ke WIB sampai parser modul diseragamkan dengan `_wibStringToDate` milik exam.
+Seluruh 56 modul memakai editor deadline berupa tanggal dan jam `HH:mm` 24 jam. Jam diperlakukan eksplisit sebagai WIB (UTC+7), lalu `start` dan `end` disimpan sebagai ISO UTC; zona waktu perangkat dosen tidak boleh menggeser nilainya. Contoh: input `22:00` disimpan sebagai `15:00Z` pada tanggal yang sama dan selalu ditampilkan sebagai `22:00 WIB`. Field `due` tetap memakai `YYYY-MM-DDTHH:MM` agar jadwal lama kompatibel.
 
 ### 5.5 Jadwal ujian susulan (override per mahasiswa)
 
