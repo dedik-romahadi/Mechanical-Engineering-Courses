@@ -1,6 +1,6 @@
 # Pedoman Sistem Modul, Exam, dan OBE
 
-> **Status:** acuan keadaan sistem saat ini, diperbarui 8 Agustus 2026
+> **Status:** acuan keadaan sistem saat ini, diperbarui 10 Agustus 2026
 >
 > **Lingkup:** LMS empat mata kuliah S1 Teknik Mesin Universitas Mercu Buana
 >
@@ -309,7 +309,7 @@ Jadwal disimpan sebagai:
 | UTS Matematika | waktu WIB sekarang + 180 menit | Atur Jadwal Perkuliahan |
 | UTS Optimalisasi | waktu WIB sekarang + 180 menit | Atur Jadwal Perkuliahan |
 
-Tabel ini mencatat implementasi aktual, bukan menyatakan ketidakkonsistenan tersebut sebagai desain ideal. Jika UTS diseragamkan, ubah ketiga course, pemeriksa otomatis, dan bagian ini dalam commit yang sama.
+Tabel ini mencatat implementasi aktual, bukan menyatakan ketidakkonsistenan tersebut sebagai desain ideal. Jika default UTS diseragamkan, ubah keempat halaman UTS, pemeriksa otomatis, dan bagian ini dalam commit yang sama.
 
 ### 5.4 Batasan zona waktu modul
 
@@ -324,7 +324,7 @@ admin-only lewat callable `rescaleExamLatePenalty` (parameter `nims[]` +
 
 - Override hanya boleh mengubah `end`/`extension`, **tidak pernah** `start`.
 - Jadwal global dan mahasiswa lain tidak tersentuh — ini per-NIM.
-- `UTS.html`/`UAS.html` di keenam file (3 course × 2 exam) subscribe ke path
+- Kedelapan halaman `UTS.html`/`UAS.html` (4 course × 2 exam) subscribe ke path
   ini secara real-time (`_watchScheduleOverride`/`_mergeSchedule`) dan
   menggabungkannya di atas jadwal global.
 - `getExamQuestions` dan `checkExamAnswer` di backend mengevaluasi override
@@ -357,16 +357,28 @@ Ketentuan konten dan UI:
 - rumus statis dan dinamis dirender dengan KaTeX setelah elemen tersedia;
 - kode komputasi berjalan di browser melalui Pyodide; paket tambahan dimuat sesuai kebutuhan;
 - halaman harus tetap responsif dan usable pada layar laptop maupun ponsel;
-- hormati `prefers-reduced-motion` jika menambah animasi baru;
-- jangan mengunci aturan visual ke ukuran per piksel di dokumen ini; ikuti komponen yang sudah digunakan course bersangkutan.
+- gunakan komponen bersama; jangan menambahkan override visual per modul jika kebutuhannya berlaku lintas mata kuliah.
 
-**Modern academic lintas mata kuliah.** Desain yang dipilotkan pada Modul 2 Sistem Kendali Cerdas kini dipakai oleh seluruh 56 modul pada empat mata kuliah. Lapisan bersama memakai hero kaca dengan alur belajar tiga tahap, chapter card beraksen per bagian, indikator posisi membaca, penanda bagian aktif pada subnav, tipografi materi yang lapang, formula berkontras tinggi, animasi halaman Tugas, dan respons ponsel khusus. Tabel materi di dalam `.tbl-wrap` dinormalisasi menjadi komponen `academic-data-table`: caption bernomor mengikuti format grafik/animasi, semua caption memiliki tinggi tetap 50 px seperti Modul 2 (judul panjang tetap satu baris dengan elipsis), dan indentasi kiri dikunci 24 px seperti Modul 1–2 pada desktop maupun ponsel; header dan zebra row seragam, serta hover baris memakai aksen bagian. Caption materi tidak boleh membawa `style` inline karena akan mengalahkan komponen bersama; runtime menghapus atribut lama sebagai fallback, sedangkan generator Sisken harus langsung menghasilkan `.table-caption` dengan `.anim-dot` dan `.anim-title`. Kolom dengan header **Persamaan**, **Rumus**, **Formula**, atau **EOM** ditandai otomatis, memakai lebar intrinsik minimum 180 px, dan tidak membungkus satu persamaan; lebarnya hanya bertambah bila isi persamaan memang memerlukan ruang. Header kolom persamaan tidak memiliki pembesaran atau warna khusus sehingga ukurannya sama persis dengan header lain. Di ponsel tabel tetap berada di dalam horizontal scroll milik wrapper, bukan memperlebar halaman. Seluruh aturan dibatasi ke `#page-modul`/`#page-tugas` serta `@media screen`, menghormati `prefers-reduced-motion`, dan tidak mengubah penilaian, login, path Firebase, atau output cetak. Setiap tab utama selalu menggulir kembali ke hero/top halaman; tab Tugas tidak melompat langsung ke panel skor. `validate-all-course-modern-design.mjs` menjaga marker, runtime, tabel, perilaku tab, dan sintaks pada seluruh 56 file; `validate-sisken-modules.mjs` tetap menjaga struktur khusus Sisken.
+### 6.1 Sistem desain modul
 
-**Kartu Daftar Pustaka.** Setiap kartu di bagian Daftar Pustaka wajib memakai `.reference-card` agar efek angkat, outline beraksen, dan kilau saat cursor berada di atasnya bekerja. Normalizer menambahkan kelas ini secara statis pada seluruh 56 modul; runtime memulihkan markup lama sebagai fallback, dan generator Sisken wajib menghasilkan kelasnya secara langsung.
+Seluruh 56 modul memakai satu sistem **modern academic**. Keseragaman berarti komponen, interaksi, dan hierarki visualnya sama; isi, jumlah bagian, jumlah tab, dan aksen course tetap boleh berbeda. Lapisan ini ditandai oleh `body.modern-academic-design`, `<style id="modern-academic-design">`, dan `<script id="modern-academic-runtime">`. Jangan menerapkannya pada halaman exam.
+
+| Area | Aturan desain saat ini |
+|---|---|
+| Hero dan navigasi | Hero kaca menampilkan alur belajar tiga tahap. Progress bar, indikator posisi membaca, dan penanda subnav mengikuti bagian aktif. Klik tab utama selalu kembali ke hero/top halaman; tab Tugas tidak langsung melompat ke panel skor. |
+| Materi | Setiap bagian memakai chapter card dan aksen sendiri. Paragraf `.section-desc` mengikuti lebar jendela tanpa batas `max-width`. Kartu `.card`, formula, dan elemen sejenis memberi umpan balik hover. |
+| Formula | `.formula-block` memakai ukuran dan kontras lebih tinggi, efek kilau tanpa membuat halaman melebar, serta hover angkat. KaTeX mewarisi warna komponen. |
+| Tabel | Tabel dalam `.tbl-wrap` memakai `academic-data-table`. Caption bernomor menggunakan `.table-caption > .anim-dot + .anim-title`, tinggi 50 px, indentasi 24 px, dan elipsis untuk judul panjang. Caption tidak boleh membawa `style` inline. Header, zebra row, dan hover baris seragam. |
+| Kolom persamaan | Header **Persamaan**, **Rumus**, **Formula**, atau **EOM** ditandai otomatis. Kolom memakai lebar intrinsik minimum 180 px dan tidak membungkus satu persamaan; headernya tetap berukuran sama dengan header lain. Pada layar sempit, scroll horizontal hanya berada di wrapper tabel. |
+| Daftar pustaka | Setiap item memakai `.reference-card` sehingga hover angkat, outline beraksen, dan kilau berlaku konsisten. |
+| Tugas | Hero Tugas memakai animasi masuk dan tinggi `60vh`. Panel `.score-bar.score-bar-compact` tetap terlihat dengan `position: sticky; top: 64px`, permukaan ungu–biru yang kontras, geometri ringkas, teks terbaca, dan adaptasi layar kecil tanpa menyembunyikan rincian. |
+| Aksesibilitas dan batas scope | Animasi menghormati `prefers-reduced-motion`. Aturan dibatasi ke `#page-modul`/`#page-tugas` dan `@media screen`; jangan mengubah login, penilaian, path Firebase, atau output cetak. |
+
+Sumber penerapan lintas course adalah `scripts/apply-modern-academic-all-modules.mjs`. Markup hasil normalisasi harus sudah menyimpan kelas tabel dan daftar pustaka secara statis; runtime hanya memulihkan markup lama sebagai fallback. Generator Sisken wajib menghasilkan struktur yang sama secara langsung. Cakupan pemeriksanya dirangkum di §17.1.
 
 Khusus Sistem Kendali Cerdas, modul kelipatan tiga (Modul 3, 6, 9, dan 12) berjenis TMV. Buat ruang melalui aktivitas **Google Meet™ for Moodle** pada menu LMS, lalu pasang tautannya sebagai tombol pada kolom kanan banner pertemuan. Tautan halaman modul juga cukup tersedia pada tombol banner dan tidak perlu dibuat ulang sebagai resource URL terpisah di LMS.
 
-### 6.1 Tugas modul
+### 6.2 Tugas modul
 
 Struktur universal:
 
@@ -389,7 +401,6 @@ Perilaku penilaian:
 - pada 14 modul Sisken, urutan empat opsi PG diacak deterministik per NIM. Markup tidak membawa huruf kanonik; client mengirim huruf posisi yang terlihat dengan `mcOrderVersion: 1`, lalu server merekonstruksi permutasi memakai `shuffleSeed` dari bank exam dan memetakannya ke huruf kanonik. Payload tanpa versi tetap diperlakukan sebagai huruf kanonik agar frontend lama aman selama deployment bertahap;
 - batas perlindungan shuffle PG harus disebutkan jujur: teks opsi masih berada di HTML publik sehingga mahasiswa teknis dapat menghitung ulang permutasi. Mekanisme ini mematikan penyebaran kunci huruf universal, tetapi bukan penghalang kriptografis;
 - seluruh Modul 1–14 Sisken memakai komputasi parametrik per NIM. Teks `c1`–`c15` tidak lagi statis di HTML; setelah login ia diambil melalui `getModulQuestions`, sedangkan kunci/toleransi/`explain` tetap di backend privat. Registry bersama berada di `functions/modules/sisken-modul-all-v2.js`; Modul 3 mempertahankan bank pilotnya, sedangkan modul lain memakai tiga skenario topikal dengan parameter fisik berbeda serta nilai kalibrasi varian yang dinyatakan pada teks. Verifikasi `scripts/verify-sisken-all-modules.js` menjalankan 14 × 15 × 100 varian dan menolak toleransi yang saling menerima;
-- panel Skor Sementara dan Export HTML pada seluruh 56 modul di empat mata kuliah memakai geometri compact: padding `14px 20px`, gap `14px`, tombol setinggi minimum `38px`, serta teks yang tetap terbaca (angka utama `34px`, judul/rincian/tombol `11px`, petunjuk `12px`, dan status `11.5px`). Permukaan gradasi ungu–biru pekat, border violet, dan bayangan gelap memisahkan panel dengan jelas dari latar halaman tanpa mengubah warna semantik status. Pada layar sempit geometri menyesuaikan lagi tanpa menyembunyikan informasi. Panel tetap `sticky` pada `top:64px` dan mempertahankan rincian 10 PG + 10 komputasi E/M + 5 komputasi Hard, pesan kelengkapan, kolom Google Drive, penyimpanan draft, serta tombol Export yang baru aktif setelah seluruh prasyarat lengkap. Hero Tugas setinggi `60vh`; ketika tab Tugas dibuka halaman kembali ke hero/top, bukan langsung ke panel skor. Khusus Sisken, `body` memakai `overflow-x:clip` dan `overflow-y:visible`, sedangkan overlay login tetap menggulir di kontainernya sendiri. `validate-all-course-score-panels.mjs` menjaga 42 modul Matematika 4, Getaran Mekanik, dan Optimalisasi & Otomasi; `validate-sisken-modules.mjs` menjaga 14 modul Sisken sekaligus membandingkan logika panel dengan Modul 1 Getaran Mekanik dan menjalankan transisi terkunci → aktif pada DOM uji;
 - satu `qId` hanya dapat dicoba sekali sampai direset;
 - modul bersifat formatif: server boleh mengembalikan jawaban benar dan penjelasan setelah attempt;
 - komputasi dinilai dengan nilai target dan toleransi pada server;
@@ -400,7 +411,7 @@ Perilaku penilaian:
 
 Poin tampilan modul 0–50 dikonversi menjadi nilai 0–100 untuk headline. Poin mentah tetap dipakai untuk penyimpanan dan OBE.
 
-### 6.2 Penyimpanan dan refresh modul
+### 6.3 Penyimpanan dan refresh modul
 
 - Attempt resmi disimpan di Firestore `modulAttempts/<modulId>/students/<nimKey>/qs/<qId>`.
 - Ringkasan cepat disimpan pada record visitor RTDB: poin, marker soal, selection, code, dan timestamp.
@@ -408,7 +419,7 @@ Poin tampilan modul 0–50 dikonversi menjadi nilai 0–100 untuk headline. Poin
 - Setelah refresh, halaman memuat marker dan data tersimpan sebelum mengizinkan interaksi.
 - Jika attempt Firestore ada tetapi transaksi RTDB sebelumnya gagal, submit ulang pada soal terkunci dapat menjalankan self-heal tanpa memberi poin ganda.
 
-### 6.3 Export tugas
+### 6.4 Export tugas
 
 Export tugas baru aktif jika:
 
@@ -422,15 +433,16 @@ Pada Sisken Modul 2–14, `scripts/sisken-export-html.mjs` menyalin ekor alur ex
 
 File HTML lokal tetap dapat diedit oleh pemilik file. Kode HMAC tidak mencegah edit; kode itu mendeteksi ketidaksesuaian ketika diperiksa melalui `Admin/verify-export-code.html`.
 
-### 6.4 Forum dan chat
+### 6.5 Forum dan chat
 
 - Tab Forum berisi pertanyaan diskusi dan alat salin HTML untuk LMS.
 - HTML yang disalin harus menggunakan struktur yang stabil untuk editor LMS: style inline dan layout tabel lebih aman daripada layout CSS kompleks.
+- Kunci jawaban jajak Forum Sisken disimpan pada `window._forumPollAnswerHashes`; jangan memakai nama global generik yang dapat tertimpa skrip lain. Generator menormalkan runtime melalui `scripts/sisken-forum-runtime.mjs`.
 - Chat realtime memakai RTDB `chat/<course>/<module>/messages`.
 - Pesan baru dibatasi Rules, termasuk panjang teks maksimum 500 karakter.
 - Preview tidak menampilkan Forum.
 
-### 6.5 Hasil dan presence modul
+### 6.6 Hasil dan presence modul
 
 Tab Hasil membaca record visitor untuk statistik, aktivitas, dan skor. Presence realtime terpisah dari riwayat kunjungan. Jangan menyimpulkan “online” hanya dari `lastVisit`.
 
@@ -478,7 +490,18 @@ Di dalam satu Sub-CPMK, porsinya masih dibagi lagi menurut bobot tipe soal (1/1/
 
 **Partial credit tetap hanya diberikan sebelum deadline.** Begitu masuk fase perpanjangan (exam) atau fase terlambat (modul), `computeOutcome` mengembalikan status `wrong` bernilai 0 — bukan partial yang dipotong. Yang dikenai potongan keterlambatan (Sisken 0,65; course lain 0,7) adalah **jawaban benar**. Contoh Sisken `c15`: benar tepat waktu 2,797 poin; benar saat perpanjangan 2,797 × 0,65 = 1,818; kode disubmit tetapi salah → 0,5 bila tepat waktu, dan 0 bila sudah masuk perpanjangan.
 
-### 7.1 ID soal
+### 7.1 Sistem desain exam
+
+Kedelapan halaman exam memakai satu keluarga desain exam yang terpisah dari sistem desain modul. Keempat UTS berbagi stylesheet utama yang sama, demikian pula keempat UAS. Perbedaan konten, identitas course, jadwal, dan status UTS/UAS diperbolehkan; struktur visual dan perilaku komponen lintas course harus tetap setara.
+
+- hero menyajikan identitas exam, status jadwal, timer, dan ringkasan progres;
+- panel skor `.score-bar` selalu terlihat secara sticky selama pengerjaan dan menjadi pusat progres, rincian poin, serta export;
+- pemilih peran, login, friction layer mahasiswa, state sebelum/dalam/setelah jadwal, dan halaman Hasil harus mempertahankan hierarki visual yang sama;
+- friction dan pembatasan interaksi hanya berlaku untuk mahasiswa, bukan mode dosen;
+- perubahan desain exam harus diterapkan ke seluruh empat course untuk jenis exam yang sama, tanpa menyalin marker atau runtime `modern-academic-design` milik modul;
+- perubahan visual tidak boleh mengubah gate PIN/jadwal, penilaian server, ledger attempt, presence, atau export.
+
+### 7.2 ID soal
 
 Urutan konseptual adalah Q1–Q45:
 
@@ -489,7 +512,7 @@ Urutan konseptual adalah Q1–Q45:
 
 Getaran, Matematika, dan Opto UAS memakai `c1`–`c15`. Opto UTS memakai `ce1`–`ce10` untuk Easy/Medium dan `ch1`–`ch5` untuk Hard. Reset, mapping OBE, urutan backend, dan frontend harus memahami pengecualian ini.
 
-### 7.2 Aturan submit
+### 7.3 Aturan submit
 
 - Validasi semua tipe soal berjalan melalui `checkExamAnswer`.
 - Kunci jawaban berada di Firestore `examAnswers`, tidak di HTML.
@@ -501,21 +524,21 @@ Getaran, Matematika, dan Opto UAS memakai `c1`–`c15`. Opto UTS memakai `ce1`�
 - Comp Hard dapat memberi satu poin partial jika dikonfigurasi dan tidak terlambat.
 - Pengali terlambat diterapkan server sesuai konfigurasi mata kuliah; Sistem Kendali Cerdas memakai 0,65 (potongan 35%), sedangkan Optimalisasi & Otomasi, Matematika 4, dan Getaran Mekanik sementara tetap 0,7 (potongan 30%). Client tidak boleh menjadi sumber kebenaran multiplier.
 
-### 7.3 Parameter NIM
+### 7.4 Parameter NIM
 
 `N` diambil dari dua digit terakhir NIM. Jika dua digit terakhir adalah `00`, dipakai dua digit sebelumnya. Logika client, renderer bank soal, dan `deriveN()` backend harus selalu identik.
 
 Jangan mengambil satu digit terakhir saja. Contoh NIM berakhiran `22` harus menghasilkan `N = 22`, bukan 2 atau 0.
 
 > ⚠️ **Catatan implementasi (Agu 2026):** fallback `00` baru diterapkan di
-> `getN()` client `Getaran-Mekanik/Exam/UTS.html`. Math4 UTS, Opto UTS, dan
-> ketiga `UAS.html` masih memakai `parseInt(slice(-2),10) || 0` tanpa
+> `getN()` client UTS Getaran Mekanik dan Sistem Kendali Cerdas. Math4 UTS,
+> Opto UTS, dan keempat `UAS.html` masih memakai `parseInt(slice(-2),10) || 0` tanpa
 > fallback — badge `N=` yang ditampilkan ke mahasiswa bisa berbeda dari `N`
 > server untuk NIM berakhiran `00` (server via `deriveN()` tetap benar,
 > jadi penilaian tidak salah, hanya tampilan). Perlu diseragamkan di
 > keenam file exam.
 
-### 7.4 Perbedaan UTS dan UAS
+### 7.5 Perbedaan UTS dan UAS
 
 | Aspek | UTS | UAS |
 |---|---|---|
@@ -548,7 +571,7 @@ sisken-uas   4.1 → 1-9    4.2 → 10-17  4.3 → 18-25  5.1 → 26-28
 
 Urutan posisi mengikuti `OBE_EXAM_ORDER`: `tf1..tf10`, `mc1..mc20`, `c1..c10`, `c11..c15`.
 
-### 7.5 Sumber nilai dan konsistensi
+### 7.6 Sumber nilai dan konsistensi
 
 Sumber data exam mempunyai fungsi berbeda:
 
@@ -570,13 +593,13 @@ Ketentuan:
 
 Dengan alur ini, poin dan jawaban yang sudah tercatat tetap tersedia setelah refresh. localStorage bukan satu-satunya tempat penyimpanan nilai.
 
-### 7.6 Export exam
+### 7.7 Export exam
 
 Export UTS/UAS bersifat lenient: dapat dibuat setelah minimal satu soal telah dijawab dan link Google Drive valid. Export harus menyatakan jika masih ada soal yang belum dikerjakan.
 
 Poin pada export berasal dari server, bukan penjumlahan DOM. Kode verifikasi memakai ID exam, NIM, poin yang dinormalisasi, dan waktu pembuatan.
 
-### 7.7 Mahasiswa online
+### 7.8 Mahasiswa online
 
 Semua exam hanya menampilkan mahasiswa yang sedang online:
 
@@ -698,7 +721,7 @@ Jika penghapusan ledger gagal, jangan lanjut menghapus RTDB karena mahasiswa aka
 
 | Halaman | Kegunaan |
 |---|---|
-| `reset-soal.html` | reset satu, beberapa, atau semua soal pada 42 modul dan 6 exam; target satu NIM atau semua mahasiswa |
+| `reset-soal.html` | reset satu, beberapa, atau semua soal pada 56 modul dan 8 exam; target satu NIM atau semua mahasiswa |
 | `recompute-obe-score.html` | recompute poin satu exam dari mapping OBE dan ledger |
 | `rescale-deadline.html` | rescale penalti keterlambatan modul atau exam (UTS/UAS), global atau NIM tertentu (exam via `rescaleExamLatePenalty`, §5.5/§10) |
 | `analyze-victims.html` | analisis korban/anomali grading modul dan reset terarah |
@@ -903,29 +926,22 @@ node scripts/validate-public-security.mjs
 node scripts/validate-all-course-score-panels.mjs
 node scripts/validate-sisken-modules.mjs
 node scripts/validate-sisken-forum.mjs
+node scripts/validate-sisken-export-html.mjs
 node scripts/validate-all-course-modern-design.mjs
 git diff --check
 ```
 
-`validate-sisken-modules.mjs` memeriksa struktur 14 modul Sisken, termasuk keberadaan dan urutan tombol `sub-mcN` per soal pilihan ganda (§6.1). Jalankan setiap kali menyentuh halaman modul Sisken.
+`validate-public-security.mjs` memindai seluruh HTML dalam allowlist Pages pada empat course. Ia menjaga artefak sensitif, sintaks inline script, 56 halaman berautentikasi admin (48 Modul/Exam + 3 OBE + 5 Admin), gate dan friction exam, WIB, preview modul, reset, presence, format poin, pemulihan `scoreDeltas`, serta keamanan publikasi. Jumlah halaman autentikasi dipatok di validator; perbarui bersama bila inventaris berubah.
 
-`validate-sisken-forum.mjs` menjalankan seluruh 156 kombinasi opsi jajak forum Modul 2–14 (13 modul × 3 PG × 4 opsi), lalu mengeksekusi jalur Clipboard API dan fallback `execCommand`. Kunci jajak wajib memakai `window._forumPollAnswerHashes`; jangan kembali memakai nama global generik `window._pa`, karena skrip legacy lain pernah menimpanya dan membuat soal ketiga selalu salah. Runtime hasil generator dinormalisasi oleh `scripts/sisken-forum-runtime.mjs`.
+Validator khusus melengkapi pemeriksaan publik tersebut:
 
-Validator publik saat ini memeriksa antara lain:
-
-- artefak backend tidak berada di repo publik;
-- sintaks inline script seluruh HTML;
-- 56 halaman yang memakai autentikasi admin (48 Modul/Exam + 3 OBE + 5 Admin; turun dari 63 setelah 7 halaman `Attributes/` lama dihapus — angka ini dipatok di validator, jadi perbarui bersama bila jumlah halaman berubah);
-
-> **Cakupan validator ini belum penuh.** `courseRoots` di `validate-public-security.mjs` masih hanya berisi Matematika 4, Getaran Mekanik, dan Optimalisasi. Folder `Sistem-Kendali-Cerdas/` **tidak dipindai**, sehingga halaman Sisken tidak ikut diperiksa untuk sintaks inline script maupun artefak sensitif. Untuk sementara andalkan `validate-sisken-modules.mjs` bagi modul Sisken, dan ingat bahwa exam serta OBE Sisken belum tercakup penjaga otomatis mana pun di sisi frontend.
-- UAS server-gated dan friction layer;
-- WIB exam;
-- preview modul dan label Log Out;
-- reset soal modul/exam termasuk opsi semua soal;
-- presence online-only semua exam;
-- format poin maksimal dua desimal;
-- pemulihan `scoreDeltas` resmi;
-- allowlist dan gate keamanan Pages.
+| Validator | Cakupan khusus |
+|---|---|
+| `validate-all-course-modern-design.mjs` | Marker, runtime, tabel, kartu pustaka, perilaku tab, dan sintaks pada seluruh 56 modul. |
+| `validate-all-course-score-panels.mjs` | Panel skor compact pada 42 modul Matematika 4, Getaran Mekanik, dan Optimalisasi & Otomasi. |
+| `validate-sisken-modules.mjs` | Struktur dan perilaku 14 modul Sisken, termasuk urutan tombol pilihan ganda, panel skor, serta kompatibilitas generator. |
+| `validate-sisken-forum.mjs` | Seluruh 156 kombinasi jajak Forum Modul 2–14 beserta Clipboard API dan fallback `execCommand`. |
+| `validate-sisken-export-html.mjs` | Jalur export HTML Tugas pada seluruh modul Sisken. |
 
 ### 17.2 Backend privat
 
