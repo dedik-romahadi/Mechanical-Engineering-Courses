@@ -292,7 +292,7 @@ x.strokeStyle='#ec4899';x.lineWidth=3;
 x.beginPath();x.moveTo(px-7,oy-7);x.lineTo(px+7,oy+7);x.moveTo(px+7,oy-7);x.lineTo(px-7,oy+7);x.stroke();
 x.font='16px JetBrains Mono';x.fillStyle='#f9a8d4';
 x.fillText('pole '+pole.toFixed(2),Math.max(s.pad,px-40),oy+30);
-x.fillStyle='#9fb2cc';x.fillText('sumbu nyata σ',s.pad,s.atas-13);
+x.fillStyle='#9fb2cc';x.fillText('σ',s.pad+lebarKiri-16,oy-10);
 var skY={x:function(t){return s.pad+s.lebar*0.44+t/6*(s.lebar*0.56)},y:function(f){return s.bawah-f/1.1*s.tinggi}};
 var pts=[];for(var i=0;i<=400;i++){var t=6*i/400;pts.push([t,yss*(1-Math.exp(pole*t))])}
 x.setLineDash([9,7]);x.strokeStyle='#fbbf24';x.lineWidth=2;
@@ -432,9 +432,7 @@ for(var j=0;j<24;j++){
   _siskenKurva(x,sk,function(t){return _siskenStep2(d[0],d[1],t)},0,8,warna,(j===sorot||j===terbaik)?3.2:1.2);
 }
 _siskenLegenda(x,[['kandidat disorot','#67e8f9'],['tercepat yang lolos','#fbbf24'],['lolos spesifikasi','#5eead4']],s.pad,s.atas-13);
-x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
-x.fillText(lolos+' dari 24 kandidat memenuhi batas lonjakan '+v.toFixed(0)+'% · kandidat #'+(sorot+1)+': K='+data[sorot][3].toFixed(1)+', lonjakan '+data[sorot][2].toFixed(0)+'%',s.pad,s.h-13);
-x.textAlign='right';x.fillText('waktu →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+_siskenBawah(x,s,lolos+' dari 24 kandidat memenuhi batas '+v.toFixed(0)+'% · kandidat #'+(sorot+1)+': K='+data[sorot][3].toFixed(1)+', lonjakan '+data[sorot][2].toFixed(0)+'%','waktu →');`,
       },
       {
         judul: "Animasi 2 — Periode Cuplik: Kendali Hanya Bertindak Tiap Ts",
@@ -479,7 +477,7 @@ else{var im=Math.sqrt(v-1);polea=[-2,im];poleb=[-2,-im];}
 x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
 x.fillText('(s+1)(s+3)+K = 0 → pole: '+(v<=1?(polea[0].toFixed(2)+' dan '+poleb[0].toFixed(2)):('-2 ± j'+polea[1].toFixed(2))),s.pad,s.h-13);
 x.fillStyle='#5eead4';x.textAlign='right';
-x.fillText('semua K menjaga pole di kiri — sistem ini stabil terus; tidak semuanya seberuntung ini',s.w-s.pad,s.atas-13);x.textAlign='left';
+x.fillText('pole tetap di kiri utk semua K — tak semua sistem seberuntung ini',s.w-s.pad,s.bawah-14);x.textAlign='left';
 x.fillStyle='#9fb2cc';x.fillText('σ',s.w-s.pad-16,oy-8);x.fillText('jω',ox+8,s.atas+16);
 _siskenLegenda(x,[['lintasan pole','rgba(103,232,249,.85)'],['pole pada K ini','#ec4899']],s.pad,s.atas-13);`,
       },
@@ -548,9 +546,7 @@ x.beginPath();x.moveTo(bx-7,sk.y(akhir)-8);x.lineTo(bx,sk.y(akhir));x.lineTo(bx+
 x.font='17px JetBrains Mono';x.fillStyle='#f9a8d4';
 x.fillText('e_ss = '+(100*ess).toFixed(1)+'%',bx-150,(sk.y(1)+sk.y(akhir))/2+6);
 _siskenLegenda(x,[['keluaran','#67e8f9'],['setpoint','#fbbf24'],['nilai akhir','#5eead4']],s.pad,s.atas-13);
-x.fillStyle='#9fb2cc';
-x.fillText('sistem tipe-0: e_ss = 1/(1+K) — menaikkan K menyempitkan celah, tidak pernah menutupnya',s.pad,s.h-13);
-x.textAlign='right';x.fillText('waktu →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+_siskenBawah(x,s,'sistem tipe-0: e_ss = 1/(1+K) — menaikkan K menyempitkan celah, tak pernah menutupnya','waktu →');`,
       },
       {
         judul: "Animasi 3 — Orde Satu atau Orde Dua? Kenali dari Bentuknya",
@@ -564,9 +560,7 @@ _siskenTitik(x,sk.x(tau),sk.y(0.632),6,'#fbbf24');
 x.font='16px JetBrains Mono';x.fillStyle='#fde68a';
 x.fillText('63% di t = τ',sk.x(tau)+10,sk.y(0.632)+22);
 _siskenLegenda(x,[['orde dua (ζ digeser)','#67e8f9'],['orde satu, τ=0.8','#fbbf24']],s.pad,s.atas-13);
-x.fillStyle='#9fb2cc';x.font='17px JetBrains Mono';
-x.fillText(v<1?'ada lonjakan & osilasi → pasti orde dua kurang teredam':'ζ ≥ 1: tanpa lonjakan — bentuknya mirip orde satu, bedakan lewat landainya awal kurva',s.pad,s.h-13);
-x.textAlign='right';x.fillText('waktu →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+_siskenBawah(x,s,v<1?'ada lonjakan & osilasi → pasti orde dua kurang teredam':'ζ ≥ 1: tanpa lonjakan — mirip orde satu; bedakan dari landai awal kurva','waktu →');`,
       },
     ],
     grafikIntro: "Kurva hafalan praktis: lonjakan hanya bergantung pada ζ. Sekali ζ terbaca dari lonjakan, seluruh indikator lain menyusul dari rumus — inilah alasan Mp selalu dibaca lebih dulu.",
@@ -696,9 +690,7 @@ _siskenJalur(x,sk,ty,'#67e8f9',3.2);
 var idx=Math.floor((((phase||0)%1)+1)%1*(ty.length-1));
 _siskenTitik(x,sk.x(ty[idx][0]),sk.y(ty[idx][1]),6,'#a78bfa');
 _siskenLegenda(x,[['keluaran y','#67e8f9'],['suku P/6','#fbbf24'],['suku I/6','#5eead4'],['suku D/6','#ec4899']],s.pad,s.atas-13);
-x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
-x.fillText('P memikul awal, I mengambil alih beban tunak, D hanya bicara saat e berubah (Kp=4, Kd=0.6)',s.pad,s.h-13);
-x.textAlign='right';x.fillText('waktu →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+_siskenBawah(x,s,'P memikul awal, I mengambil alih beban tunak, D hanya bicara saat e berubah (Kp=4, Kd=0.6)','waktu →');`,
       },
       {
         judul: "Animasi 2 — Aksi Integral Menghapus Error Tunak",
@@ -715,9 +707,7 @@ _siskenJalur(x,sk,pOnly,'rgba(103,132,168,.6)',2);
 _siskenJalur(x,sk,dgn,'#67e8f9',3);
 var akhir=dgn[dgn.length-1][1], celah=1-akhir;
 _siskenLegenda(x,[['P saja (Kp=3)','rgba(103,132,168,.95)'],['PI dengan Ki ini','#67e8f9'],['setpoint','#fbbf24']],s.pad,s.atas-13);
-x.font='17px JetBrains Mono';x.fillStyle=celah<0.02?'#5eead4':'#9fb2cc';
-x.fillText('gangguan tetap −0.4 di masukan plant · sisa error: '+(100*celah).toFixed(1)+'%'+(celah<0.02?' — integral menutupnya sampai nol':' — P saja berhenti di '+(100*(1-pOnly[pOnly.length-1][1])).toFixed(0)+'%'),s.pad,s.h-13);
-x.textAlign='right';x.fillText('waktu →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+_siskenBawah(x,s,'gangguan tetap −0.4 · sisa error: '+(100*celah).toFixed(1)+'%'+(celah<0.02?' — integral menutupnya sampai nol':' — P saja berhenti di '+(100*(1-pOnly[pOnly.length-1][1])).toFixed(0)+'%'),'waktu →',celah<0.02?'#5eead4':'#9fb2cc');`,
       },
       {
         judul: "Animasi 3 — Aksi Derivatif Meredam Lonjakan",
@@ -735,9 +725,7 @@ var tanpa=sim(0), dgn=sim(v);
 _siskenJalur(x,sk,tanpa.pts,'rgba(103,132,168,.6)',2);
 _siskenJalur(x,sk,dgn.pts,'#67e8f9',3);
 _siskenLegenda(x,[['tanpa D','rgba(103,132,168,.95)'],['dengan Kd ini','#67e8f9'],['setpoint','#fbbf24']],s.pad,s.atas-13);
-x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
-x.fillText('plant 1/(s(s+1)), Kp=8 · lonjakan: '+(100*(tanpa.puncak-1)).toFixed(0)+'% → '+(100*Math.max(0,dgn.puncak-1)).toFixed(0)+'%'+(v>1.8?' — Kd berlebihan mulai melambatkan sistem':''),s.pad,s.h-13);
-x.textAlign='right';x.fillText('waktu →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+_siskenBawah(x,s,'plant 1/(s(s+1)), Kp=8 · lonjakan: '+(100*(tanpa.puncak-1)).toFixed(0)+'% → '+(100*Math.max(0,dgn.puncak-1)).toFixed(0)+'%'+(v>1.8?' — Kd berlebih mulai melambatkan':''),'waktu →');`,
       },
     ],
     grafikIntro: "Peta hafalan tuning manual: arah pengaruh menaikkan tiap gain terhadap empat sifat respons. Ini pegangan awal sebelum menyetel, bukan hukum mutlak — interaksi antar suku tetap harus diperiksa lewat simulasi.",
@@ -918,9 +906,7 @@ _siskenJalur(x,sk,cerdas,'#67e8f9',3);
 var idx=Math.floor((((phase||0)%1)+1)%1*(tetap.length-1));
 _siskenTitik(x,sk.x(tetap[idx][0]),sk.y(Math.max(0,Math.min(1.9,tetap[idx][1]))),6,'#f9a8d4');
 _siskenLegenda(x,[['gain tetap K=6','#ec4899'],['gain dijadwalkan','#67e8f9'],['setpoint','#fbbf24']],s.pad,s.atas-13);
-x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
-x.fillText('gain plant membesar bersama y (β='+v.toFixed(2)+') — penyetelan di titik kerja rendah tidak berlaku di titik kerja tinggi',s.pad,s.h-13);
-x.textAlign='right';x.fillText('waktu →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+_siskenBawah(x,s,'gain plant membesar bersama y (β='+v.toFixed(2)+') — setelan titik kerja rendah tak berlaku di titik tinggi','waktu →');`,
       },
       {
         judul: "Animasi 2 — Peta Keluarga Metode Kendali",
@@ -940,9 +926,8 @@ for(var i=0;i<metode.length;i++){
 var kandidat=[];
 for(var j=0;j<metode.length;j++)if(metode[j][2]>=v)kandidat.push(metode[j][0]);
 x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
-x.fillText('kandidat untuk tingkat ini: '+kandidat.join(', ')+' — pilih yang paling sederhana yang masih sanggup',s.pad,s.h-13);
 x.fillText('jangkauan ketaklinieran ↑',s.pad,s.atas-13);
-x.textAlign='right';x.fillText('kebutuhan data & komputasi →',s.w-s.pad,s.h-13+0);x.textAlign='left';`,
+_siskenBawah(x,s,'kandidat utk tingkat ini: '+kandidat.join(', '),'kebutuhan data →');`,
       },
       {
         judul: "Animasi 3 — Adaptasi Gain Secara Daring",
@@ -962,9 +947,7 @@ x.beginPath();x.moveTo(sk.x(5),s.atas);x.lineTo(sk.x(5),s.bawah);x.stroke();x.se
 _siskenJalur(x,sk,tk,'#a78bfa',2);
 _siskenJalur(x,sk,ty,'#67e8f9',3);
 _siskenLegenda(x,[['keluaran y','#67e8f9'],['gain K/7 (adaptif)','#a78bfa'],['plant melemah di t=5','#f97316']],s.pad,s.atas-13);
-x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
-x.fillText(v<0.05?'γ=0: gain diam — setelah plant melemah, keluaran turun dan tidak pernah pulih':'plant kehilangan 55% gain di t=5; pengendali menaikkan K sendiri untuk menebusnya'+(v>1.4?' — γ terlalu besar mulai berosilasi':''),s.pad,s.h-13);
-x.textAlign='right';x.fillText('waktu →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+_siskenBawah(x,s,v<0.05?'γ=0: gain diam — keluaran turun dan tak pernah pulih':'plant melemah di t=5; K dinaikkan sendiri utk menebusnya'+(v>1.4?' — γ terlalu besar: berosilasi':''),'waktu →');`,
       },
     ],
     grafikIntro: "Ringkasan empat metode yang dibedah pada Modul 12–14. Tidak ada pemenang mutlak: kolom-kolom inilah yang dipertimbangkan setiap kali memilih pendekatan untuk satu masalah nyata.",
@@ -1058,9 +1041,7 @@ _siskenKurva(x,sk,function(t){return Math.tanh(v*t)},-3,3,'#67e8f9',3);
 _siskenKurva(x,sk,function(t){return 2/(1+Math.exp(-v*t))-1},-3,3,'#5eead4',2.5);
 _siskenKurva(x,sk,function(t){return Math.max(-1.25,Math.min(1.25,Math.max(0,v*t)/2))},-3,3,'#fbbf24',2);
 _siskenLegenda(x,[['tanh(kx)','#67e8f9'],['sigmoid (skala ±1)','#5eead4'],['ReLU/2','#fbbf24']],s.pad,s.atas-13);
-x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
-x.fillText(v<1.2?'k kecil: hampir linier — jaringan berperilaku seperti gain biasa':'k besar: cepat jenuh — di wilayah datar, gradien nyaris nol dan belajar melambat',s.pad,s.h-13);
-x.textAlign='right';x.fillText('masukan x →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+_siskenBawah(x,s,v<1.2?'k kecil: hampir linier — jaringan berperilaku seperti gain biasa':'k besar: cepat jenuh — gradien nyaris nol, belajar melambat','masukan x →');`,
       },
       {
         judul: "Animasi 3 — Pelatihan Menurunkan Galat — Jika Laju Belajar Tepat",
@@ -1168,9 +1149,7 @@ x.beginPath();x.moveTo(sk.x(e),s.atas);x.lineTo(sk.x(e),s.bawah);x.stroke();x.se
 for(var j=0;j<3;j++){
   if(mu[j]>0.01)_siskenTitik(x,sk.x(e),sk.y(mu[j]),6,him[j][4]);
 }
-x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
-x.fillText('e = '+e.toFixed(2)+' → μN = '+mu[0].toFixed(2)+' · μZ = '+mu[1].toFixed(2)+' · μP = '+mu[2].toFixed(2)+' — satu angka, beberapa keanggotaan sekaligus',s.pad,s.h-13);
-x.textAlign='right';x.fillText('error e →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+_siskenBawah(x,s,'e = '+e.toFixed(2)+' → μN = '+mu[0].toFixed(2)+' · μZ = '+mu[1].toFixed(2)+' · μP = '+mu[2].toFixed(2),'error e →');`,
       },
       {
         judul: "Animasi 2 — Inferensi Min–Maks: Dari Derajat ke Bentuk Keluaran",
@@ -1190,9 +1169,7 @@ for(var j=0;j<3;j++){
 }
 x.font='16px JetBrains Mono';x.fillStyle='#9fb2cc';
 x.fillText('aturan: e Positif → u Negatif · e Nol → u Nol · e Negatif → u Positif (regulator)',s.pad,s.atas-13);
-x.font='17px JetBrains Mono';
-x.fillText('tiap aturan DIPOTONG di derajat pemicunya (min), lalu semua potongan DIGABUNG (max) menjadi bentuk teal',s.pad,s.h-13);
-x.textAlign='right';x.fillText('keluaran u →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+_siskenBawah(x,s,'aturan DIPOTONG di derajatnya (min), gabungan potongan (max) → bentuk teal','keluaran u →');`,
       },
       {
         judul: "Animasi 3 — Defuzzifikasi Titik Berat dan Permukaan Kendali",
@@ -1281,9 +1258,7 @@ x.font='15px JetBrains Mono';x.fillStyle='#9fb2cc';x.textAlign='center';
 x.fillText('puncak lokal',sk.x(2.2),sk.y(0.62)-14);
 x.fillText('puncak global',sk.x(7),sk.y(1.02)-14);x.textAlign='left';
 _siskenLegenda(x,[['lanskap fitness','#67e8f9'],['populasi','#fbbf24'],['terbaik','#ec4899']],s.pad,s.atas-13);
-x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
-x.fillText('generasi '+gen+' · fitness terbaik '+_m14Fitness(terbaik).toFixed(3)+(v<0.04?' — tanpa mutasi, populasi bisa macet di puncak lokal':(v>0.45?' — mutasi terlalu besar: populasi tercerai-berai':'')),s.pad,s.h-13);
-x.textAlign='right';x.fillText('parameter rancangan x →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+_siskenBawah(x,s,'generasi '+gen+' · fitness terbaik '+_m14Fitness(terbaik).toFixed(3)+(v<0.04?' — tanpa mutasi: bisa macet di puncak lokal':(v>0.45?' — mutasi besar: populasi tercerai-berai':'')),'parameter x →');`,
       },
       {
         judul: "Animasi 2 — Persilangan dan Mutasi pada Kromosom",
@@ -1354,9 +1329,7 @@ var skKanan={x:function(g2){return s.pad+s.lebar*0.54+g2/19*(s.lebar*0.46)},y:fu
 var ptsJ=[];for(var j2=0;j2<jejak.length;j2++)ptsJ.push([j2,jejak[j2]]);
 _siskenJalur(x,skKanan,ptsJ,'#5eead4',2.5);
 _siskenLegenda(x,[['respons gain terbaik','#67e8f9'],['fitness terbaik per generasi','#5eead4']],s.pad,s.atas-13);
-x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
-x.fillText('GA memilih Kp='+terbaik[0].toFixed(1)+', Ki='+terbaik[1].toFixed(1)+' — penalti besar → GA memilih rancangan yang lebih kalem',s.pad,s.h-13);
-x.textAlign='right';x.fillText('generasi →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+_siskenBawah(x,s,'GA memilih Kp='+terbaik[0].toFixed(1)+', Ki='+terbaik[1].toFixed(1)+' — penalti besar → rancangan lebih kalem','generasi →');`,
       },
     ],
     grafikIntro: "Kurva konvergensi dari pendakian lanskap pada animasi pertama (mutasi 0,15): fitness terbaik menanjak cepat lalu mendatar, sedangkan rata-rata populasi mengekor di bawahnya. Jarak keduanya adalah keragaman yang tersisa.",
