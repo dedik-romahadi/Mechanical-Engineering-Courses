@@ -221,7 +221,10 @@ function pecahanSederhana(t) {
   return hasil;
 }
 
-function tokenLatex(teks) {
+// Diekspor supaya chip notasi pada penjelasan persamaan (enrich) memakai
+// konverter YANG SAMA dengan persamaannya — format identik karena konstruksi,
+// bukan karena disiplin menulis.
+export function tokenLatex(teks) {
   // Kurung kurawal yang memang ada di teks asal (mis. "L{f*g}" atau himpunan
   // "{t_r, t_s}") diamankan lebih dulu. Kalau tidak, kurawal yang nanti
   // dihasilkan sendiri oleh pengubahan pangkat dan pecahan ikut terlolos.
