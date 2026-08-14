@@ -4,6 +4,9 @@ import vm from "node:vm";
 
 const root = path.resolve(import.meta.dirname, "..");
 const failures = [];
+// [nomorModul, inti judul tanpa awalan "Animasi k — "] — diisi per modul,
+// diperiksa keunikannya lintas modul setelah loop.
+const judulAnimasiSemua = [];
 
 // Modul 1 ditulis tangan mengikuti Modul 1 Getaran Mekanik, bukan hasil
 // generator sisken-rich. Jadi strukturnya diuji dengan membandingkan langsung
@@ -252,12 +255,43 @@ for (let n = 1; n <= 14; n += 1) {
     }
   }
 
+  // Animasi wajib MILIK modul itu. Dahulu ketiga belas modul memakai tiga
+  // animasi yang sama (respons step, redaman, Bode) apa pun topiknya — respons
+  // step sampai tampil di modul Logika Fuzzy. Judul dikumpulkan lintas modul
+  // (termasuk Modul 1 yang ditulis tangan) dan diperiksa setelah loop.
+  {
+    const judul = [...tanpaGaya(html).matchAll(/class="anim-title">((?:Animasi|Grafik) \d+ — [^<]*)</g)]
+      .map((m2) => m2[1].trim());
+    const animasiSaja = judul.filter((j) => j.startsWith("Animasi"));
+    if (n >= 2) {
+      checks.push([animasiSaja.length === 3, `jumlah panel Animasi ${animasiSaja.length}, seharusnya 3`]);
+      checks.push([judul.filter((j) => j.startsWith("Grafik 1")).length === 1, "panel Grafik 1 hilang"]);
+      const runtimeIni = html.match(/<script id="sisken-rich-runtime">([\s\S]*?)<\/script>/)?.[1] || "";
+      for (const fn of ["drawSiskenAnim1", "drawSiskenAnim2", "drawSiskenAnim3", "drawSiskenGrafik"]) {
+        checks.push([runtimeIni.includes(`window.${fn}=function`), `runtime tanpa ${fn}`]);
+      }
+    }
+    for (const j of animasiSaja) judulAnimasiSemua.push([n, j.replace(/^Animasi \d+ — /, "")]);
+  }
+
   for (const [ok, label] of checks) if (!ok) failures.push(`Modul-${n}: ${label}`);
 
   const runtime = html.match(/<script id="sisken-rich-runtime">([\s\S]*?)<\/script>/)?.[1];
   if (runtime) {
     try { new vm.Script(runtime, { filename: `Modul-${n}:sisken-rich-runtime` }); }
     catch (error) { failures.push(`Modul-${n}: runtime syntax — ${error.message}`); }
+  }
+}
+
+// Keunikan judul animasi lintas modul: satu judul hanya boleh muncul di satu
+// modul. Duplikat berarti animasi generik kembali dicap ke banyak modul.
+{
+  const pemilik = new Map();
+  for (const [n, inti] of judulAnimasiSemua) {
+    if (pemilik.has(inti) && pemilik.get(inti) !== n) {
+      failures.push(`Judul animasi "${inti}" dipakai Modul ${pemilik.get(inti)} DAN Modul ${n} — animasi harus milik satu modul`);
+    }
+    pemilik.set(inti, n);
   }
 }
 
