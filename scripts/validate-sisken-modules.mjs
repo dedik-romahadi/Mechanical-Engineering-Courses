@@ -270,6 +270,13 @@ for (let n = 1; n <= 14; n += 1) {
       for (const fn of ["drawSiskenAnim1", "drawSiskenAnim2", "drawSiskenAnim3", "drawSiskenGrafik"]) {
         checks.push([runtimeIni.includes(`window.${fn}=function`), `runtime tanpa ${fn}`]);
       }
+      // Tiap panel (3 animasi + 1 grafik) wajib diikuti kotak "Cara Membaca"
+      // berisi legenda notasi variabelnya — mengikuti pola Modul 1. Panel
+      // tanpa penjelasan pernah tayang bisu selama satu rilis penuh.
+      const kotakCara = (tanpaGaya(html).match(/class="tip-box reveal anim-jelas"/g) || []).length;
+      const legendaVar = (tanpaGaya(html).match(/class="anim-var"/g) || []).length;
+      checks.push([kotakCara === 4, `kotak Cara Membaca ${kotakCara}, seharusnya 4 (satu per panel animasi/grafik)`]);
+      checks.push([legendaVar >= 8, `legenda notasi variabel hanya ${legendaVar}, minimal 8`]);
     }
     for (const j of animasiSaja) judulAnimasiSemua.push([n, j.replace(/^Animasi \d+ — /, "")]);
   }
