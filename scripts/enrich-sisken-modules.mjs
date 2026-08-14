@@ -7,6 +7,7 @@ import { PUSTAKA } from "./sisken-pustaka.mjs";
 import { rumusLatex as _rumusLatex } from "./sisken-rumus.mjs";
 import { normalizeSiskenExportHtml } from "./sisken-export-html.mjs";
 import { normalizeSiskenForumRuntime } from "./sisken-forum-runtime.mjs";
+import { ANIMASI_MODUL } from "./sisken-animasi.mjs";
 
 const rumusLatex = (teks) => _rumusLatex(teks, esc);
 
@@ -879,28 +880,27 @@ function richModule(m, index) {
     + "\n" + subBagian("Penerapan pada Sistem Industri", kartu(m.industries)));
   const industri = "";
 
-  // Tiga animasi yang berlaku untuk seluruh pokok bahasan kendali: respons
-  // waktu, pengaruh redaman, dan tanggapan frekuensi.
+  // Animasi PER MODUL dari sisken-animasi.mjs. Dahulu ketiga belas modul
+  // memakai tiga animasi yang sama apa pun topiknya — respons step tampil
+  // sampai di modul Logika Fuzzy. Setiap modul kini wajib punya entri sendiri;
+  // absennya entri adalah kesalahan fatal, bukan alasan memakai animasi generik.
+  const spekAnimasi = ANIMASI_MODUL[n];
+  if (!spekAnimasi) throw new Error(`Modul ${n}: tidak ada entri di sisken-animasi.mjs`);
+  const panelSpek = spekAnimasi.panel.map((p, i) => {
+    const slot = i + 1;
+    const kendali = `<div class="ctrl-group">
+          <label>${p.label} — <span class="ctrl-val" id="siskenAnim${slot}Nilai${n}">${p.nilai.toFixed(p.des)}</span></label>
+          <input id="siskenAnim${slot}Geser${n}" type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${p.nilai}" oninput="drawSiskenAnim${slot}(${n})">
+        </div>`
+      + (slot === 1 ? `
+        <button class="btn-anim" onclick="toggleSiskenAnimation(${n})">▶ Jalankan Animasi</button>` : "");
+    return panelAnimasi(`siskenAnim${slot}Canvas${n}`, p.judul, kendali);
+  }).join("\n");
   const animasi = bagian(nomor++, "Animasi Respons dan Karakteristik Sistem",
-    paragraf([`Geser parameter untuk mengamati perubahan kecepatan, overshoot, dan error. Visual ini menjadi jembatan antara konsep ${m.title.toLowerCase()} dan perilaku sistem yang sebenarnya.`])
-    + "\n" + panelAnimasi(`siskenCanvas${n}`, "Animasi 1 — Respons Step Loop Tertutup",
-      `<div class="ctrl-group">
-          <label>Agresivitas controller — <span class="ctrl-val" id="siskenGainValue${n}">1.5</span></label>
-          <input id="siskenGain${n}" type="range" min="0.2" max="5" step="0.1" value="1.5" oninput="drawSiskenAnimation(${n})">
-        </div>
-        <button class="btn-anim" onclick="toggleSiskenAnimation(${n})">▶ Jalankan Animasi</button>`)
-    + "\n" + panelAnimasi(`siskenDampCanvas${n}`, "Animasi 2 — Pengaruh Rasio Redaman terhadap Bentuk Respons",
-      `<div class="ctrl-group">
-          <label>Rasio redaman ζ — <span class="ctrl-val" id="siskenDampValue${n}">0.50</span></label>
-          <input id="siskenDamp${n}" type="range" min="0.1" max="1.4" step="0.05" value="0.5" oninput="drawSiskenDamping(${n})">
-        </div>`)
-    + "\n" + panelAnimasi(`siskenBodeCanvas${n}`, "Animasi 3 — Tanggapan Frekuensi dan Lebar Pita",
-      `<div class="ctrl-group">
-          <label>Gain loop L — <span class="ctrl-val" id="siskenBodeValue${n}">8.0</span></label>
-          <input id="siskenBode${n}" type="range" min="0.5" max="40" step="0.5" value="8" oninput="drawSiskenBode(${n})">
-        </div>`)
-    + "\n" + paragraf(["Grafik berikut memakai parameter acuan tugas modul ini. Dua kurvanya menunjukkan bahwa menaikkan gain memperbaiki error tunak sekaligus mempercepat sistem — tetapi hanya sampai batas yang ditetapkan kestabilan dan kemampuan actuator."])
-    + "\n" + panelAnimasi(`siskenIndikatorCanvas${n}`, "Grafik 1 — Indikator Kinerja terhadap Gain, beserta Garis Spesifikasi", ""));
+    paragraf([spekAnimasi.intro])
+    + "\n" + panelSpek
+    + "\n" + paragraf([spekAnimasi.grafikIntro])
+    + "\n" + panelAnimasi(`siskenGrafikCanvas${n}`, spekAnimasi.grafik.judul, ""));
 
   const python = bagian(nomor++, "Implementasi Python Siap Salin",
     paragraf(["Salin satu cell lengkap ke Jupyter Notebook atau VS Code. Jalankan tanpa perubahan terlebih dahulu, kemudian ubah parameter untuk eksperimen."])
@@ -918,7 +918,7 @@ function richModule(m, index) {
     .filter(Boolean).join("\n");
   const hero = buatHero(daftarBagian.length, isiBagian);
 
-  return [hero, isiBagian, footer].filter(Boolean).join("\n") + runtime;
+  return [hero, isiBagian, footer].filter(Boolean).join("\n") + bangunRuntime(n);
 }
 
 function taskPanel(m, index) {
@@ -926,28 +926,15 @@ function taskPanel(m, index) {
   return `<div class="sisken-placeholder"><section class="sisken-task"><div class="sisken-kicker">Tugas Modul ${n} · Asesmen Teknis</div><h2>${m.title}</h2><p>Tugas difokuskan sepenuhnya pada bukti analisis teknik yang dapat diverifikasi: model, perhitungan, kode, grafik, dan interpretasi hasil.</p><div class="sisken-grid" style="margin-top:24px"><article class="sisken-card"><h3>1 · Analisis Sistem</h3><p>Identifikasi input, output, gangguan, constraint, dan metrik kinerja untuk kasus yang diberikan.</p></article><article class="sisken-card"><h3>2 · Implementasi Python</h3><p>Gunakan panel kode pada tab Python sebagai titik awal. Ubah parameter, jalankan, dan dokumentasikan output.</p></article><article class="sisken-card"><h3>3 · Interpretasi Teknik</h3><p>Jelaskan hubungan parameter dengan stabilitas, respons, robustness, atau kualitas keputusan controller.</p></article></div><div class="sisken-task-note">✓ Penilaian objektif dan komputasi dijalankan melalui mekanisme server. Setiap kesimpulan harus didukung hasil hitung atau keluaran program.</div></section></div>`;
 }
 
-const runtime = `<script id="sisken-rich-runtime">
+const runtimeAwal = `<script id="sisken-rich-runtime">
 window.openSiskenPane=function(n,id,button){
   var root=document.getElementById('sisken-module-'+n); if(!root)return;
   root.querySelectorAll('.sisken-pane').forEach(function(p){p.classList.toggle('active',p.dataset.siskenPane===n+'-'+id)});
   root.querySelectorAll('.sisken-tab').forEach(function(b){var active=b===button;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active))});
-  if(id==='animasi')requestAnimationFrame(function(){drawSiskenAnimation(n)});
+  if(id==='animasi')requestAnimationFrame(function(){drawSiskenAnim1(n)});
 };
 window._siskenAnim={};
-window.drawSiskenAnimation=function(n,phase){
-  var canvas=document.getElementById('siskenCanvas'+n), slider=document.getElementById('siskenGain'+n);if(!canvas||!slider)return;
-  var ctx=canvas.getContext('2d'),g=Number(slider.value),w=canvas.width,h=canvas.height,pad=58;document.getElementById('siskenGainValue'+n).textContent=g.toFixed(1);
-  ctx.clearRect(0,0,w,h);ctx.fillStyle='#070b16';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#243653';ctx.lineWidth=1;
-  for(var i=0;i<=10;i++){var x=pad+i*(w-2*pad)/10;ctx.beginPath();ctx.moveTo(x,pad);ctx.lineTo(x,h-pad);ctx.stroke()}
-  for(var j=0;j<=5;j++){var y=pad+j*(h-2*pad)/5;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(w-pad,y);ctx.stroke()}
-  var z=Math.max(.18,1.05-.14*g),wn=.7+g*.65,wd=wn*Math.sqrt(Math.max(.02,1-z*z));
-  ctx.setLineDash([9,7]);ctx.strokeStyle='#fbbf24';ctx.beginPath();ctx.moveTo(pad,h-pad-(h-2*pad)*.7);ctx.lineTo(w-pad,h-pad-(h-2*pad)*.7);ctx.stroke();ctx.setLineDash([]);
-  ctx.strokeStyle='#67e8f9';ctx.lineWidth=3;ctx.beginPath();var points=[];
-  for(var k=0;k<650;k++){var t=8*k/649;var resp=1-Math.exp(-z*wn*t)*(Math.cos(wd*t)+(z/Math.sqrt(Math.max(.02,1-z*z)))*Math.sin(wd*t));var px=pad+k*(w-2*pad)/649,py=h-pad-(h-2*pad)*.7*resp;points.push([px,py]);if(k===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)}ctx.stroke();
-  var idx=Math.floor((((phase||0)%1)+1)%1*(points.length-1)),pt=points[idx];ctx.fillStyle='#ec4899';ctx.beginPath();ctx.arc(pt[0],pt[1],7,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#aebbd0';ctx.font='20px JetBrains Mono';ctx.fillText('waktu →',w-170,h-18);ctx.fillText('y(t)',12,38);ctx.fillStyle='#fbbf24';ctx.fillText('setpoint',w-165,h-pad-(h-2*pad)*.7-12);
-};
-window.toggleSiskenAnimation=function(n){var state=window._siskenAnim[n]||{running:false,start:0};state.running=!state.running;state.start=performance.now();window._siskenAnim[n]=state;if(!state.running)return;(function tick(now){if(!state.running)return;drawSiskenAnimation(n,(now-state.start)/6000);requestAnimationFrame(tick)})(performance.now())};
+window.toggleSiskenAnimation=function(n){var state=window._siskenAnim[n]||{running:false,start:0};state.running=!state.running;state.start=performance.now();window._siskenAnim[n]=state;if(!state.running)return;(function tick(now){if(!state.running)return;drawSiskenAnim1(n,(now-state.start)/6000);requestAnimationFrame(tick)})(performance.now())};
 // Bidang gambar dipisahkan dari jalur keterangan: batas atas menyisakan pita
 // untuk legenda dan batas bawah untuk nama sumbu, sehingga tulisan tidak pernah
 // menimpa kurva. Semua penggambar memakai batas ini, bukan angka lepas.
@@ -972,51 +959,53 @@ function _siskenLegenda(x,butir,kiri,y){
     maju+=24+x.measureText(b[0]).width+34;
   });
 }
-window.drawSiskenDamping=function(n){
-  var s=_siskenSiapkan('siskenDampCanvas'+n,52,34,26);var sl=document.getElementById('siskenDamp'+n);if(!s||!sl)return;
-  var z=Number(sl.value),wn=1.6;document.getElementById('siskenDampValue'+n).textContent=z.toFixed(2);
-  var x=s.ctx,w=s.w,pad=s.pad,dasar=s.bawah,tinggi=s.tinggi*0.86;
-  x.setLineDash([9,7]);x.strokeStyle='#fbbf24';x.lineWidth=2;
-  x.beginPath();x.moveTo(pad,dasar-tinggi);x.lineTo(w-pad,dasar-tinggi);x.stroke();x.setLineDash([]);
-  x.strokeStyle='#67e8f9';x.lineWidth=3;x.beginPath();
-  for(var k=0;k<700;k++){var t=10*k/699,y;
-    if(z<1){var wd=wn*Math.sqrt(1-z*z);y=1-Math.exp(-z*wn*t)*(Math.cos(wd*t)+(z/Math.sqrt(1-z*z))*Math.sin(wd*t));}
-    else{y=1-(1+wn*t)*Math.exp(-wn*t);}
-    var px=pad+k*s.lebar/699,py=dasar-tinggi*y;if(k===0)x.moveTo(px,py);else x.lineTo(px,py)}
-  x.stroke();
-  _siskenLegenda(x,[['keluaran y(t)','#67e8f9'],['setpoint','#fbbf24']],pad,s.atas-13);
-  var label=z<1?'kurang teredam — ada lonjakan':(z>1.02?'lebih teredam — lambat tanpa lonjakan':'teredam kritis');
-  x.font='17px JetBrains Mono';x.textAlign='right';
-  x.fillStyle=z<1?'#ec4899':'#5eead4';x.fillText(label,w-pad,s.atas-13);
-  x.fillStyle='#aebbd0';x.fillText('waktu →',w-pad,s.h-13);
-  x.textAlign='left';x.fillText('y(t)',pad,s.h-13);
-};
-window.drawSiskenIndikator=function(n){
-  var s=_siskenSiapkan('siskenIndikatorCanvas'+n,58,40,30);if(!s)return;
-  var x=s.ctx,w=s.w,pad=s.pad,K=2.0,tau=3.0;
-  var kpMin=0.5,kpMaks=25,eBatas=0.05,tsBatas=2.0;
-  function px(kp){return pad+(kp-kpMin)/(kpMaks-kpMin)*s.lebar}
-  function pyE(e){return s.bawah-(e/0.6)*s.tinggi}
-  function pyT(t){return s.bawah-(t/6.0)*s.tinggi}
-  x.strokeStyle='#67e8f9';x.lineWidth=3;x.beginPath();
-  for(var i=0;i<=200;i++){var kp=kpMin+(kpMaks-kpMin)*i/200,e=1/(1+kp*K);
-    if(i===0)x.moveTo(px(kp),pyE(e));else x.lineTo(px(kp),pyE(e))}
-  x.stroke();
-  x.strokeStyle='#5eead4';x.beginPath();
-  for(var j=0;j<=200;j++){var kq=kpMin+(kpMaks-kpMin)*j/200,ts=4*tau/(1+kq*K);
-    if(j===0)x.moveTo(px(kq),pyT(ts));else x.lineTo(px(kq),pyT(ts))}
-  x.stroke();
-  x.setLineDash([8,6]);x.lineWidth=2;
-  x.strokeStyle='#fbbf24';x.beginPath();x.moveTo(pad,pyE(eBatas));x.lineTo(w-pad,pyE(eBatas));x.stroke();
-  x.strokeStyle='#ec4899';x.beginPath();x.moveTo(pad,pyT(tsBatas));x.lineTo(w-pad,pyT(tsBatas));x.stroke();
-  x.setLineDash([]);
-  var kpLayak=Math.max((1/eBatas-1)/K,(4*tau/tsBatas-1)/K);
-  x.strokeStyle='#a78bfa';x.lineWidth=2;x.beginPath();x.moveTo(px(kpLayak),s.atas);x.lineTo(px(kpLayak),s.bawah);x.stroke();
-  _siskenLegenda(x,[['error tunak','#67e8f9'],['waktu menetap','#5eead4'],['batas error 5%','#fbbf24'],['batas 2 detik','#ec4899']],pad,s.atas-14);
-  x.font='17px JetBrains Mono';x.fillStyle='#c4b5fd';x.textAlign='center';
-  x.fillText('Kp minimum ≈ '+kpLayak.toFixed(1),Math.min(Math.max(px(kpLayak),pad+130),w-pad-130),s.h-13);
-  x.textAlign='left';x.fillStyle='#aebbd0';x.fillText('gain Kp →',pad,s.h-13);
-};
+// ── Helper gambar bersama untuk animasi per-modul (sisken-animasi.mjs) ──
+// _siskenSkala memetakan koordinat data ke piksel bidang gambar; _siskenJalur
+// dan _siskenKurva menggambar polyline/fungsi dengannya. Badan fungsi gambar
+// per-modul mengandalkan kelima helper ini, jadi ubah dengan hati-hati.
+function _siskenSkala(s,x0,x1,y0,y1){
+  return {x:function(v2){return s.pad+(v2-x0)/(x1-x0)*s.lebar},
+          y:function(v2){return s.bawah-(v2-y0)/(y1-y0)*s.tinggi}};
+}
+function _siskenJalur(x,sk,pts,warna,tebal,putus){
+  x.strokeStyle=warna;x.lineWidth=tebal||3;
+  if(putus)x.setLineDash(putus);
+  x.beginPath();
+  for(var i=0;i<pts.length;i++){var px=sk.x(pts[i][0]),py=sk.y(pts[i][1]);if(i===0)x.moveTo(px,py);else x.lineTo(px,py)}
+  x.stroke();x.setLineDash([]);
+}
+function _siskenKurva(x,sk,f,x0,x1,warna,tebal,putus){
+  var pts=[];for(var i=0;i<=400;i++){var t=x0+(x1-x0)*i/400;pts.push([t,f(t)])}
+  _siskenJalur(x,sk,pts,warna,tebal,putus);
+}
+function _siskenTitik(x,px,py,r,warna){
+  x.fillStyle=warna;x.beginPath();x.arc(px,py,r,0,Math.PI*2);x.fill();
+}
+function _siskenGarisDatar(x,s,py,warna){
+  x.setLineDash([9,7]);x.strokeStyle=warna;x.lineWidth=2;
+  x.beginPath();x.moveTo(s.pad,py);x.lineTo(s.w-s.pad,py);x.stroke();x.setLineDash([]);
+}
+// Membaca slider slot & memutakhirkan label nilainya. null berarti panel tidak
+// ada di halaman ini — pemanggil wajib berhenti.
+function _siskenNilai(awalan,n,des){
+  var sl=document.getElementById(awalan+'Geser'+n); if(!sl)return null;
+  var v=Number(sl.value);
+  var lab=document.getElementById(awalan+'Nilai'+n); if(lab)lab.textContent=v.toFixed(des);
+  return v;
+}
+function _siskenStep2(z,wn,t){
+  if(z<1){var wd=wn*Math.sqrt(1-z*z);return 1-Math.exp(-z*wn*t)*(Math.cos(wd*t)+(z/Math.sqrt(1-z*z))*Math.sin(wd*t));}
+  return 1-(1+wn*t)*Math.exp(-wn*t);
+}
+// LCG deterministik — animasi GA (Modul 14) harus menggambar populasi yang
+// SAMA setiap kali digambar ulang, kalau tidak slider terasa acak.
+function _siskenAcak(benih){var s2=benih>>>0;return function(){s2=(s2*1664525+1013904223)>>>0;return s2/4294967296}}
+`;
+
+// Bagian runtime SETELAH fungsi gambar per-modul: peta kemajuan, checklist,
+// subnav, dan boot. Dipisah dari runtimeAwal supaya bangunRuntime(n) dapat
+// menyisipkan fungsi gambar milik modul itu di antara keduanya.
+const runtimeAkhir = `
 window.drawSiskenPeta=function(n){
   var s=_siskenSiapkan('siskenPetaCanvas'+n,40,0,0);if(!s)return;
   var x=s.ctx,w=s.w,h=s.h,pad=s.pad,total=14,nomor=Number(n);
@@ -1039,27 +1028,6 @@ window.drawSiskenPeta=function(n){
   x.textAlign='center';x.fillStyle='#c4b5fd';x.font='bold 19px JetBrains Mono';
   x.fillText('Anda di Modul '+nomor+' — tersisa '+(total-nomor)+' modul menuju tuntas',w/2,h-20);
   x.textAlign='left';
-};
-window.drawSiskenBode=function(n){
-  var s=_siskenSiapkan('siskenBodeCanvas'+n,52,34,26);var sl=document.getElementById('siskenBode'+n);if(!s||!sl)return;
-  var L=Number(sl.value);document.getElementById('siskenBodeValue'+n).textContent=L.toFixed(1);
-  var x=s.ctx,w=s.w,pad=s.pad,tau=3.0,minDb=-42,maxDb=6;
-  function py(db){return s.atas+(maxDb-db)/(maxDb-minDb)*s.tinggi}
-  x.strokeStyle='#67e8f9';x.lineWidth=3;x.beginPath();
-  for(var k=0;k<700;k++){
-    var lw=-2+4*k/699,om=Math.pow(10,lw);
-    var mag=L/Math.sqrt(Math.pow(1+L,2)+Math.pow(om*tau,2));
-    var db=20*Math.log10(Math.max(mag,1e-6));
-    var pxv=pad+k*s.lebar/699;
-    if(k===0)x.moveTo(pxv,py(db));else x.lineTo(pxv,py(db))}
-  x.stroke();
-  var db3=20*Math.log10(L/(1+L))-3;
-  x.setLineDash([8,6]);x.lineWidth=2;x.strokeStyle='#fbbf24';
-  x.beginPath();x.moveTo(pad,py(db3));x.lineTo(w-pad,py(db3));x.stroke();x.setLineDash([]);
-  _siskenLegenda(x,[['magnitudo |T|','#67e8f9'],['batas -3 dB (lebar pita)','#fbbf24']],pad,s.atas-13);
-  x.font='17px JetBrains Mono';x.fillStyle='#aebbd0';
-  x.textAlign='right';x.fillText('frekuensi →',w-pad,s.h-13);
-  x.textAlign='left';x.fillText('|T| dB',pad,s.h-13);
 };
 window.siskenCentang=function(n,i){
   var akar=document.getElementById('periksa-'+n); if(!akar) return;
@@ -1129,16 +1097,35 @@ document.addEventListener('DOMContentLoaded',function(){
     setTimeout(_perbaruiPanahSubnav,300);
   }
 
-  // Ketiganya digambar sejak halaman dimuat. Dahulu animasi pertama baru
+  // Keempatnya digambar sejak halaman dimuat. Dahulu animasi pertama baru
   // digambar saat tab "Animasi" dibuka; tab itu sudah tidak ada.
-  document.querySelectorAll('[id^="siskenGain"]').forEach(function(el){var m=el.id.match(/^siskenGain(\\d+)$/);if(m)drawSiskenAnimation(m[1])});
-  document.querySelectorAll('[id^="siskenDamp"]').forEach(function(el){var m=el.id.match(/^siskenDamp(\\d+)$/);if(m)drawSiskenDamping(m[1])});
-  document.querySelectorAll('[id^="siskenBode"]').forEach(function(el){var m=el.id.match(/^siskenBode(\\d+)$/);if(m)drawSiskenBode(m[1])});
-  document.querySelectorAll('[id^="siskenIndikatorCanvas"]').forEach(function(el){var m=el.id.match(/(\\d+)$/);if(m)drawSiskenIndikator(m[1])});
+  document.querySelectorAll('[id^="siskenAnim1Geser"]').forEach(function(el){var m=el.id.match(/(\\d+)$/);if(m)drawSiskenAnim1(m[1])});
+  document.querySelectorAll('[id^="siskenAnim2Geser"]').forEach(function(el){var m=el.id.match(/(\\d+)$/);if(m)drawSiskenAnim2(m[1])});
+  document.querySelectorAll('[id^="siskenAnim3Geser"]').forEach(function(el){var m=el.id.match(/(\\d+)$/);if(m)drawSiskenAnim3(m[1])});
+  document.querySelectorAll('[id^="siskenGrafikCanvas"]').forEach(function(el){var m=el.id.match(/(\\d+)$/);if(m)drawSiskenGrafik(m[1])});
   document.querySelectorAll('[id^="siskenPetaCanvas"]').forEach(function(el){var m=el.id.match(/(\\d+)$/);if(m)drawSiskenPeta(m[1])});
   _siskenMuatPeriksa();
 });
 </script>`;
+
+// Merakit runtime untuk SATU modul: bagian bersama + fungsi gambar milik modul
+// itu saja (dari sisken-animasi.mjs). Tiap halaman berdiri sendiri, jadi kode
+// gambar modul lain tidak ikut terkirim.
+function bangunRuntime(n) {
+  const spek = ANIMASI_MODUL[n];
+  if (!spek) throw new Error(`Modul ${n}: tidak ada entri di sisken-animasi.mjs`);
+  const gambarPanel = spek.panel.map((p, i) => {
+    const slot = i + 1;
+    return `window.drawSiskenAnim${slot}=function(n,phase){\n`
+      + `  var v=_siskenNilai('siskenAnim${slot}',n,${p.des}); if(v===null)return;\n`
+      + `${p.gambar}\n};`;
+  }).join("\n");
+  const gambarGrafik = `window.drawSiskenGrafik=function(n){\n${spek.grafik.gambar}\n};`;
+  return runtimeAwal
+    + (spek.bantu ? `\n${spek.bantu}` : "")
+    + `\n${gambarPanel}\n${gambarGrafik}`
+    + runtimeAkhir;
+}
 
 // Modul 1 ditulis tangan mengikuti Modul 1 Getaran Mekanik dan JAUH lebih dalam
 // daripada keluaran generator ini (6.469 kata vs ~1.430). Menjalankan generator
