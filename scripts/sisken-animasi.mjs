@@ -1379,3 +1379,167 @@ x.textAlign='right';x.fillText('generasi →',s.w-s.pad,s.h-13);x.textAlign='lef
     },
   },
 };
+
+// ── Penjelasan tiap panel: cara membaca + arti setiap notasi variabel ────────
+// Dipisah dari ANIMASI_MODUL supaya badan fungsi gambar tetap ringkas dibaca.
+// Strukturnya sejajar: panel[i] menjelaskan ANIMASI_MODUL[n].panel[i], grafik
+// menjelaskan grafiknya. Entri yang hilang membuat enrich GAGAL FATAL, jadi
+// panel baru tidak mungkin tayang tanpa penjelasan.
+export const PENJELASAN_ANIMASI = {
+  2: {
+    panel: [
+      { apa: "Tiap kurva adalah satu percobaan rancangan dengan gain berbeda; komputer menaikkan gain langkah demi langkah sampai lonjakan menabrak batas yang Anda setel (garis merah muda). Kurva teal adalah rancangan terakhir yang masih lolos.",
+        variabel: [["K", "gain controller: seberapa kuat controller mengoreksi error — makin besar makin cepat, tapi makin melonjak"], ["Mp (lonjakan)", "jarak puncak kurva di atas setpoint, dihitung % dari nilai akhir"], ["setpoint", "nilai sasaran yang ingin dicapai keluaran (garis kuning)"]] },
+      { apa: "Aktuator nyata punya batas tenaga. Saat sinyal kendali (ungu) menabrak batas, ia terpotong rata — dan keluaran (cyan) naik lebih lambat dari yang diminta gain.",
+        variabel: [["u", "sinyal kendali: perintah controller ke aktuator (di grafik dibagi 5 agar sekanvas)"], ["|u|maks", "batas fisik aktuator, mis. bukaan katup penuh atau arus motor maksimum"], ["y(t)", "keluaran sistem pada waktu t"]] },
+      { apa: "Wilayah arsir teal adalah semua pasangan (Kp, Kd) yang memenuhi dua spesifikasi sekaligus. Geser Kp dan lihat berapa Kd minimum yang dituntutnya — titik cyan selalu menempel tepi wilayah.",
+        variabel: [["Kp", "gain proporsional: koreksi sebanding besar error"], ["Kd", "gain derivatif: rem yang menahan laju perubahan"], ["1/s²", "model plant dua kali integrasi (gaya→percepatan→posisi), mis. massa yang didorong"]] },
+    ],
+    grafik: { apa: "Membetulkan kesalahan di tahap spesifikasi hanya mengubah dokumen; membetulkannya setelah produksi berarti menarik barang. Itulah alasan siklus simulasi dijalankan tuntas sebelum perangkat keras dibuat.",
+      variabel: [["×", "biaya relatif memperbaiki kesalahan, dibanding memperbaikinya di tahap spesifikasi (1×)"]] },
+  },
+  3: {
+    panel: [
+      { apa: "Kiri: sinyal yang meluruh sambil berosilasi. Kanan: ringkasan Laplace-nya — cukup dua tanda ×. Geser a dan lihat pole berpindah; bentuk sinyal dan letak pole selalu berpasangan.",
+        variabel: [["f(t)", "sinyal dalam domain waktu"], ["a", "laju peluruhan: makin besar, makin cepat sinyal mengecil"], ["pole", "akar penyebut fungsi transfer — 'alamat' perilaku sinyal di bidang-s, ditandai ×"], ["σ", "sumbu nyata bidang-s: seberapa cepat meluruh"], ["jω", "sumbu khayal: frekuensi osilasi (di sini 4 rad/s)"]] },
+      { apa: "Satu-satunya penentu nasib sinyal adalah letak pole-nya. Di kiri sumbu tegak amplitudo meluruh (stabil), di kanan meledak (tak stabil), tepat di sumbu berosilasi selamanya.",
+        variabel: [["σ", "bagian nyata pole yang sedang Anda geser"], ["e^(σt)", "amplop amplitudo: menyusut bila σ negatif, tumbuh bila positif"], ["cos 3t", "osilasi 3 rad/s yang dibungkus amplop itu"]] },
+      { apa: "Nilai akhir keluaran bisa dihitung tanpa menunggu kurva mendatar: substitusikan s→0 pada s·Y(s). Garis kuning (ramalan teorema) dan ujung kurva (simulasi) selalu bertemu.",
+        variabel: [["G(s) = K/(s+2)", "fungsi transfer plant"], ["K", "gain plant"], ["s", "peubah Laplace"], ["y(∞)", "nilai keluaran setelah lama sekali — nilai tunak"]] },
+    ],
+    grafik: { apa: "Tiga sinyal uji yang paling sering dipakai beserta pasangan Laplace-nya. Hampir semua pembacaan tabel transformasi pada tugas berangkat dari ketiganya.",
+      variabel: [["δ(t)", "impuls: sentakan sesaat berenergi satu"], ["u(t)", "step: nilai 1 menyala dan bertahan"], ["t·u(t)", "ramp: naik linier terhadap waktu"], ["1/s, 1/s²", "pasangan Laplace-nya — tiap integrasi menambah satu pembagi s"]] },
+  },
+  4: {
+    panel: [
+      { apa: "Diagram blok disederhanakan dua langkah: blok seri dikalikan, lalu loop ditutup dengan G/(1+GH). Angka kanan-atas membuktikan gain ekivalen tidak pernah berubah — yang berubah hanya bentuk gambarnya.",
+        variabel: [["G1, G2", "gain blok yang tersusun seri"], ["H", "gain jalur umpan balik"], ["T", "fungsi transfer ekivalen: satu blok pengganti seluruh diagram"]] },
+      { apa: "Zero tidak mengubah nilai akhir, tapi menyuntikkan turunan di awal respons. Makin dekat zero ke titik asal (z₀ kecil), makin besar suntikan itu — lonjakan membengkak.",
+        variabel: [["z₀", "posisi zero: akar pembilang fungsi transfer"], ["y'(t)", "laju perubahan keluaran"], ["y_zero(t) = y(t) + y'(t)/z₀", "respons setelah zero ditambahkan"]] },
+      { apa: "Menutup loop menggeser pole ke kiri: plant yang sama menjadi lebih cepat. Harganya terlihat di nilai akhir — K/(1+K) selalu sedikit di bawah sasaran.",
+        variabel: [["K", "gain loop yang Anda geser"], ["pole", "di sini −(1+K)/2: makin kiri makin cepat"], ["σ", "sumbu nyata tempat pole itu bergeser"], ["τ_tutup = 2/(1+K)", "konstanta waktu setelah loop ditutup"], ["y(∞) = K/(1+K)", "nilai akhir yang tidak pernah tepat 1"]] },
+    ],
+    grafik: { apa: "Blok yang sama, tiga susunan, tiga gain ekivalen. Umpan balik justru MENURUNKAN gain — itulah harga yang dibayar untuk kecepatan dan ketahanan yang dibedah di Modul 8.",
+      variabel: [["seri", "gain dikalikan: G1·G2"], ["paralel", "gain dijumlahkan: G1+G2"], ["umpan balik", "G/(1+G·H) dengan G = G1·G2"]] },
+  },
+  5: {
+    panel: [
+      { apa: "Kiri: massa ditarik pegas dan ditahan peredam, bergerak mengikuti kurva di kanan. Naikkan c dan lihat osilasi memudar sampai hilang sama sekali begitu ζ melewati 1.",
+        variabel: [["m", "massa (1 kg)"], ["k", "kekakuan pegas (4 N/m)"], ["c", "koefisien redaman: gesekan yang membuang energi osilasi"], ["ζ = c/4", "rasio redaman: di bawah 1 berosilasi, 1 ke atas tidak"], ["x(t)", "posisi massa terhadap waktu"]] },
+      { apa: "Euler menyusuri kurva selangkah demi selangkah sebesar h. Langkah kecil menempel solusi eksak; melewati h = 2τ tiap langkah justru MEMPERBESAR galat — plant-nya benar, simulasinya yang meledak.",
+        variabel: [["h", "langkah waktu integrasi: jarak antar titik hitung"], ["τ", "konstanta waktu plant (1 s)"], ["|1−h/τ|", "faktor pengali galat per langkah: aman selama di bawah 1"]] },
+      { apa: "Titik kuning adalah data ukur yang bernoise. Geser τ sampai kurva model menempel data; RMSE adalah jarak rata-rata model ke data — tugas identifikasi adalah membuatnya sekecil mungkin.",
+        variabel: [["τ", "konstanta waktu model yang sedang dicoba"], ["RMSE", "akar rata-rata kuadrat galat: 0 berarti model menembus semua titik data"]] },
+    ],
+    grafik: { apa: "RMSE dihitung untuk semua kandidat τ sekaligus. Lembahnya jatuh di τ ≈ 2 — persis nilai yang dipakai membangkitkan data. Identifikasi parameter adalah mencari lembah kurva ini.",
+      variabel: [["sumbu datar", "kandidat nilai τ yang diuji"], ["sumbu tegak", "RMSE model dengan τ itu terhadap data ukur"]] },
+  },
+  6: {
+    panel: [
+      { apa: "24 kandidat gain diuji serentak: yang memenuhi batas lonjakan diberi warna teal, dan yang tercepat di antaranya disorot kuning. Beginilah komputer memilih gain — bukan menebak, tapi menyaring.",
+        variabel: [["K", "gain kandidat yang sedang diuji"], ["Mp", "lonjakan tiap kandidat, % di atas nilai akhir"], ["batas lonjakan", "spesifikasi yang Anda setel (garis merah muda)"]] },
+      { apa: "Kendali digital hanya bertindak setiap Ts detik; di antaranya sinyal ditahan rata (tangga ungu). Ts kecil nyaris kontinu; Ts besar membuat kendali selalu terlambat sampai akhirnya berdering.",
+        variabel: [["Ts", "periode cuplik: jeda antar eksekusi kode kendali"], ["ZOH", "tahan-orde-nol: nilai u dibekukan sampai cuplikan berikutnya"], ["K·Ts", "indikator kasar keamanan: nyaman jauh di bawah 1, bahaya mendekati 2"]] },
+      { apa: "Root locus adalah jejak pole loop tertutup saat K dinaikkan dari nol: dua pole saling mendekat di sumbu nyata, bertemu, lalu berbelok tegak — tetap stabil, tapi mulai berosilasi.",
+        variabel: [["K", "gain loop"], ["pole", "akar persamaan (s+1)(s+3)+K = 0, ditandai ×"], ["σ, jω", "sumbu nyata dan khayal bidang-s"]] },
+    ],
+    grafik: { apa: "Dua syarat implementasi digital dalam satu bidang: kurva merah muda plafon kestabilan, garis kuning lantai akurasi. Rancangan yang sehat memilih titik di dalam wilayah arsir.",
+      variabel: [["Ts", "periode cuplik"], ["K = 2/Ts", "plafon: gain di atas kurva ini membuat loop digital tak stabil"], ["K minimum", "lantai: gain di bawah garis ini menyisakan error tunak terlalu besar"]] },
+  },
+  7: {
+    panel: [
+      { apa: "Empat angka baku dibaca langsung dari satu kurva: kapan naik, kapan memuncak, seberapa jauh melewati sasaran, kapan menetap. Geser ζ dan lihat keempatnya bergerak bersama.",
+        variabel: [["tr", "waktu naik: dari 10% ke 90% nilai akhir"], ["tp", "waktu mencapai puncak pertama"], ["Mp", "lonjakan: % puncak di atas nilai akhir"], ["ts", "waktu menetap: masuk dan bertahan di pita ±2%"], ["ζ", "rasio redaman yang membentuk semuanya"]] },
+      { apa: "Error tunak adalah celah permanen antara garis kuning (sasaran) dan teal (nilai akhir) — diukur dengan kurung merah muda. Menaikkan K menyempitkannya, tapi pada sistem tipe-0 celah itu tidak pernah tertutup.",
+        variabel: [["e_ss = 1/(1+K)", "error tunak: sisa selisih setelah semuanya tenang"], ["K", "gain loop"], ["tipe-0", "sistem tanpa integrator di loop-nya — sumber celah permanen ini"]] },
+      { apa: "Ciri pembeda yang bisa dilihat mata: orde satu tidak pernah melewati sasarannya dan menempuh 63% jalan tepat pada t = τ; orde dua kurang teredam selalu melonjak dulu sebelum menetap.",
+        variabel: [["τ", "konstanta waktu kurva orde satu"], ["63%", "nilai baku 1−e⁻¹ yang dicapai orde satu pada t = τ"], ["ζ", "rasio redaman kurva orde dua yang Anda geser"]] },
+    ],
+    grafik: { apa: "Lonjakan HANYA ditentukan ζ, tidak peduli cepat-lambatnya sistem. Karena itu Mp selalu dibaca lebih dulu: dari Mp diperoleh ζ, dan dari ζ indikator lain menyusul lewat rumus.",
+      variabel: [["Mp = e^(−πζ/√(1−ζ²))", "rumus lonjakan sebagai fungsi redaman"], ["ζ", "rasio redaman"]] },
+  },
+  8: {
+    panel: [
+      { apa: "Menaikkan gain membuat keluaran mengejar setpoint lebih cepat — sekaligus melewatinya lebih jauh. Titik merah muda menyusuri kurva ketika animasi dijalankan.",
+        variabel: [["gain", "agresivitas controller yang Anda geser"], ["ζ", "rasio redaman hasil gain itu (tertulis di bawah kurva)"], ["ωn", "frekuensi alami (rad/s): tempo dasar sistem"], ["y(t)", "keluaran sistem"]] },
+      { apa: "Satu parameter membentuk seluruh kurva: ζ di bawah 1 berosilasi (makin kecil makin liar), tepat 1 tercepat tanpa lonjakan, di atas 1 aman tapi lamban.",
+        variabel: [["ζ", "rasio redaman: perbandingan redaman aktual terhadap redaman kritis"], ["ωn", "frekuensi alami (di sini 1,6 rad/s)"]] },
+      { apa: "Kurva menunjukkan seberapa setia sistem mengikuti perintah pada tiap frekuensi: di kiri (perintah lambat) diikuti penuh, melewati garis −3 dB kesetiaannya rontok. Gain besar memperluas jangkauan itu.",
+        variabel: [["L", "gain loop"], ["|T| dB", "perbandingan amplitudo keluaran/perintah dalam desibel: 0 dB berarti diikuti penuh"], ["lebar pita", "frekuensi tempat kurva memotong −3 dB — batas kemampuan mengikuti"]] },
+    ],
+    grafik: { apa: "Dua kurva kinerja dibaca bersama garis spesifikasinya: error tunak harus di bawah garis kuning, waktu menetap di bawah garis merah muda. Garis ungu menandai Kp terkecil yang memenuhi keduanya.",
+      variabel: [["Kp", "gain controller pada sumbu datar"], ["error tunak", "sisa selisih permanen terhadap sasaran"], ["waktu menetap", "lamanya sistem mencapai pita ±2%"]] },
+  },
+  9: {
+    panel: [
+      { apa: "Keluaran (cyan) adalah kerja tiga suku sekaligus: P memikul beban saat error masih besar, I mengambil alih beban tunak, dan D hanya bersuara ketika error berubah cepat.",
+        variabel: [["e", "error: sasaran dikurangi keluaran"], ["Kp, Ki, Kd", "gain suku P, I, dan D"], ["suku P = Kp·e", "koreksi sebanding error saat ini"], ["suku I = Ki·∫e dt", "akumulasi seluruh error yang pernah ada"], ["suku D = Kd·de/dt", "rem terhadap laju perubahan error (ketiga suku dibagi 6 agar sekanvas)"]] },
+      { apa: "Gangguan tetap menekan keluaran, dan controller P menyisakan offset permanen — ia butuh error agar menghasilkan sinyal. Suku I mengakumulasi error itu terus-menerus sampai celahnya tertutup habis.",
+        variabel: [["Ki", "gain integral yang Anda geser"], ["gangguan", "beban tetap −0,4 yang menekan masukan plant"], ["offset", "sisa error yang tidak akan pernah dihapus oleh P sendirian"]] },
+      { apa: "Tanpa D plant ini melonjak jauh. Menaikkan Kd menambahkan rem yang menahan laju keluaran sehingga lonjakan menyusut; berlebihan sedikit, sistem berubah jadi lamban.",
+        variabel: [["Kd", "gain derivatif yang Anda geser"], ["1/(s(s+1))", "plant ber-integrator: gampang melonjak"], ["Mp", "lonjakan yang sedang dipadamkan (angka di bawah kurva)"]] },
+    ],
+    grafik: { apa: "Peta hafalan sebelum menyetel: baris adalah gain yang dinaikkan, kolom akibatnya. Hijau menguntungkan, merah muda harga yang harus dibayar, tanda ~ pengaruh kecil.",
+      variabel: [["Kp / Ki / Kd", "tiga gain PID"], ["kestabilan", "jarak sistem dari mulai berosilasi liar"]] },
+  },
+  10: {
+    panel: [
+      { apa: "Sinyal punya dua rute dari R ke Y: rute panjang melewati semua blok, dan lompatan langsung G3. Nilai satu jalur = hasil kali semua gain di sepanjang rutenya; titik kuning menyusurinya saat animasi berjalan.",
+        variabel: [["P1, P2", "gain jalur maju: hasil kali gain sepanjang rute"], ["G1…G3", "gain tiap cabang grafik"], ["Δk", "determinan sisa jalur k: dihitung dari bagian grafik yang TIDAK disentuh jalur itu"]] },
+      { apa: "Loop adalah rute yang kembali ke simpul asalnya lewat cabang umpan balik. Kedua loop di sini berbagi simpul B — bersentuhan — sehingga suku hasil-kali L1·L2 gugur dari Δ.",
+        variabel: [["L1, L2", "gain tiap loop (negatif karena umpan baliknya negatif)"], ["−H1, −H2", "gain cabang umpan balik"], ["bersentuhan", "dua loop berbagi minimal satu simpul"]] },
+      { apa: "Rumus Mason dirakit bertahap: kumpulkan semua loop menjadi Δ, nilai tiap jalur dengan Δk-nya, jumlahkan, lalu bagi. Hasil akhirnya satu angka — fungsi transfer keseluruhan.",
+        variabel: [["Δ = 1 − ΣL", "determinan grafik (suku L1·L2 gugur karena kedua loop bersentuhan)"], ["Δk", "Δ yang dihitung tanpa loop yang disentuh jalur k"], ["T = ΣPkΔk / Δ", "fungsi transfer total dari R ke Y"]] },
+    ],
+    grafik: { apa: "Dua rute perhitungan — aturan Mason dan reduksi blok bertahap — wajib bertemu di angka yang sama. Bila tidak, yang keliru hampir selalu suku sentuhan antar-loop.",
+      variabel: [["T", "fungsi transfer total: 4,77 lewat kedua metode"]] },
+  },
+  11: {
+    panel: [
+      { apa: "Gain plant ikut membesar bersama titik kerja, sehingga penyetelan yang pas di titik rendah menjadi terlalu agresif di titik tinggi — kurva merah muda mulai berdering. Kurva cyan menjadwalkan gain-nya mengikuti keadaan dan tetap tenang.",
+        variabel: [["β", "kekuatan ketaklinieran: seberapa cepat gain plant membesar bersama keluaran"], ["K", "gain controller: tetap 6 pada kurva merah muda"], ["gain dijadwalkan", "K dibagi faktor yang sama dengan pembesaran plant, sehingga hasil kalinya konstan"]] },
+      { apa: "Peta pemilihan metode: makin ke kanan makin lapar data dan komputasi, makin ke atas makin sanggup menangani ketaklinieran. Garis cyan adalah tingkat kesulitan masalah Anda — kandidatnya semua metode di atas garis; pilih yang paling kiri.",
+        variabel: [["sumbu datar", "kebutuhan data dan beban komputasi metode"], ["sumbu tegak", "jangkauan ketaklinieran yang mampu ditangani"]] },
+      { apa: "Pada t = 5 plant kehilangan lebih dari separuh tenaganya (garis jingga). Pengendali adaptif menaikkan gain-nya sendiri (ungu) sampai keluaran pulih; γ kecil pulih lamban, γ berlebihan membuat gain ikut berosilasi.",
+        variabel: [["γ", "laju adaptasi: seberapa cepat gain dikoreksi oleh error"], ["K(t)", "gain yang berubah sendiri sepanjang waktu (dibagi 7 agar sekanvas)"], ["gangguan", "gain plant anjlok dari 1 ke 0,45 pada t = 5"]] },
+    ],
+    grafik: { apa: "Empat metode dibaca per kolom kebutuhannya. Tidak ada juara umum: PID paling murah tapi menuntut model dan plant jinak; ANN paling sanggup tapi lapar data dan sulit dijelaskan.",
+      variabel: [["butuh model?", "perlu persamaan plant sebelum merancang"], ["butuh data?", "perlu contoh pasangan masukan-keluaran"], ["mudah ditafsir?", "perilakunya dapat dijelaskan dan diaudit"], ["beban hitung", "daya komputasi saat beroperasi"]] },
+  },
+  12: {
+    panel: [
+      { apa: "Sinyal masuk dari kiri, tiap simpul tersembunyi menimbangnya dengan bobot lalu melewatkannya ke tanh, dan hasilnya dijumlah menjadi sinyal kendali. Tebal garis menunjukkan besar bobot; biru positif, merah muda negatif.",
+        variabel: [["e", "error yang menjadi masukan pertama"], ["de", "laju perubahan error, masukan kedua"], ["w (bobot)", "kekuatan tiap sambungan — inilah yang dipelajari saat pelatihan"], ["tanh", "fungsi aktivasi yang memberi ketaklinieran"], ["u", "sinyal kendali keluaran jaringan"]] },
+      { apa: "Tanpa fungsi aktivasi, jaringan sedalam apa pun cuma gain linier. Kemiringan k menentukan wataknya: kecil nyaris linier, besar cepat jenuh — dan di wilayah jenuh gradien nyaris nol sehingga belajar melambat.",
+        variabel: [["k", "kemiringan fungsi aktivasi yang Anda geser"], ["tanh / sigmoid", "kurva jenuh halus yang mengunci keluaran di ±1"], ["ReLU", "lurus di kanan nol, mati total di kirinya"], ["jenuh", "wilayah datar tempat perubahan masukan hampir tak mengubah keluaran"]] },
+      { apa: "Kiri: model belajar menempatkan garis di tengah data. Kanan: galat tiap epoch. η yang pas menurunkan galat dengan mulus; η terlalu besar membuat tiap langkah melompati lembah — galat justru meledak.",
+        variabel: [["η", "laju belajar: ukuran langkah koreksi bobot tiap epoch"], ["epoch", "satu putaran belajar atas seluruh data"], ["galat (loss)", "rata-rata kuadrat selisih keluaran model terhadap data"], ["w, b", "kemiringan dan geseran garis yang sedang dipelajari"]] },
+    ],
+    grafik: { apa: "ANN duduk di kursi pengendali, bukan menggantikan plant: masukannya error dan turunannya, keluarannya sinyal kendali. Kursinya sama dengan PID — isinya yang dipelajari dari data.",
+      variabel: [["r", "setpoint yang diminta"], ["e, de", "error dan laju perubahannya, masukan jaringan"], ["u", "sinyal kendali keluaran jaringan"], ["y", "keluaran plant yang diumpanbalikkan"]] },
+  },
+  13: {
+    panel: [
+      { apa: "Satu angka error boleh menjadi anggota beberapa himpunan sekaligus — itulah fuzzifikasi. Jarum kuning memotong ketiga kurva; tinggi tiap potongan adalah derajat keanggotaannya.",
+        variabel: [["e", "error masukan yang sedang difuzzifikasi"], ["μ", "derajat keanggotaan 0–1: seberapa pantas e disebut anggota himpunan itu"], ["N / Z / P", "himpunan Negatif, Nol (Zero), dan Positif"]] },
+      { apa: "Tiap aturan dipotong setinggi derajat pemicunya (operasi min), lalu semua potongan digabungkan (operasi max) menjadi satu bentuk teal — pendapat kolektif seluruh aturan tentang u.",
+        variabel: [["min", "pemotongan: aturan tidak boleh bersuara melebihi derajat pemicunya"], ["max", "penggabungan pendapat antar aturan"], ["u", "kandidat sinyal kendali pada sumbu datar"]] },
+      { apa: "Bentuk gabungan diringkas menjadi satu angka lewat titik beratnya. Ulangi untuk semua nilai e — lahirlah kurva permukaan kendali di kanan; lebar himpunan w mengatur landai-curamnya.",
+        variabel: [["u*", "keluaran akhir: titik berat (centroid) bentuk gabungan"], ["w", "lebar himpunan keanggotaan yang Anda geser"], ["permukaan kendali", "peta lengkap dari setiap e ke u*-nya"]] },
+    ],
+    grafik: { apa: "Dibanding garis lurus u = −e, permukaan fuzzy melandai di ujung: aksi kendalinya jenuh secara halus. Pada kendali linier, perilaku ini harus ditambahkan lewat saturator terpisah.",
+      variabel: [["u*(e)", "permukaan kendali fuzzy hasil defuzzifikasi"], ["u = −e", "pembanding: kendali linier bergain 1"]] },
+  },
+  14: {
+    panel: [
+      { apa: "Titik kuning adalah kandidat rancangan; ketinggiannya adalah mutunya. Tiap generasi kandidat unggul dipilih dan disilangkan sehingga populasi merayap mendaki. Tanpa mutasi bisa macet di bukit kecil; mutasi berlebihan membubarkan pendakian.",
+        variabel: [["fitness", "skor mutu kandidat — makin tinggi makin baik"], ["x", "parameter rancangan yang sedang dicari"], ["laju mutasi", "peluang seorang anak diberi perubahan acak"], ["generasi", "satu putaran seleksi → persilangan → mutasi"]] },
+      { apa: "Dua induk dipotong di titik yang sama lalu ekornya dipertukarkan — dua anak mewarisi campuran keduanya. Satu bit pada Anak 2 dibalik paksa (merah muda): mutasi, sumber keragaman di luar warisan induk.",
+        variabel: [["kromosom", "untai bit yang menyandikan satu kandidat rancangan"], ["titik potong", "posisi pertukaran ekor antar induk (garis kuning)"], ["mutasi", "pembalikan satu bit secara acak"]] },
+      { apa: "GA menyetel gain dengan menyimulasikan tiap kandidat lalu menilai responsnya. Menaikkan bobot penalti membuat lonjakan lebih mahal — GA bergeser memilih pasangan gain yang lebih kalem.",
+        variabel: [["Kp, Ki", "pasangan gain PID yang dicari GA"], ["ISE", "integral kuadrat error: ukuran keseluruhan penyimpangan respons, makin kecil makin baik"], ["penalti lonjakan", "hukuman tambahan bila respons melewati setpoint"], ["fitness", "kebalikan total hukuman — yang dimaksimalkan GA"]] },
+    ],
+    grafik: { apa: "Kurva cyan (terbaik) menanjak cepat lalu mendatar; kuning (rata-rata) mengekor di bawahnya. Jarak keduanya adalah keragaman yang tersisa — begitu keduanya menempel, populasi sudah seragam dan pencarian selesai.",
+      variabel: [["fitness terbaik", "skor kandidat teratas pada tiap generasi"], ["rata-rata populasi", "skor tengah seluruh kandidat — pengukur keragaman yang tersisa"]] },
+  },
+};
