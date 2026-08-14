@@ -7,7 +7,7 @@ import { PUSTAKA } from "./sisken-pustaka.mjs";
 import { rumusLatex as _rumusLatex } from "./sisken-rumus.mjs";
 import { normalizeSiskenExportHtml } from "./sisken-export-html.mjs";
 import { normalizeSiskenForumRuntime } from "./sisken-forum-runtime.mjs";
-import { ANIMASI_MODUL } from "./sisken-animasi.mjs";
+import { ANIMASI_MODUL, PENJELASAN_ANIMASI } from "./sisken-animasi.mjs";
 
 const rumusLatex = (teks) => _rumusLatex(teks, esc);
 
@@ -350,6 +350,11 @@ html,body{height:auto!important;min-height:100%!important;overflow-y:auto!import
 .sisken-check li{position:relative;padding:0 0 9px 28px;font-size:15px;line-height:1.7;color:#9eacc5}
 .sisken-check li::before{content:'✓';position:absolute;left:0;color:var(--cyan);font-weight:700}
 @media(prefers-reduced-motion:reduce){.sisken-pane.active{animation:none}}
+/* Kotak "Cara Membaca" + legenda notasi di bawah tiap panel animasi/grafik */
+.anim-jelas{margin-top:-4px}
+.anim-var-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.anim-var{display:inline-flex;align-items:baseline;gap:8px;padding:6px 11px;border:1px solid rgba(0,229,255,.18);border-radius:9px;background:rgba(0,229,255,.05);font-size:12.5px;line-height:1.55;color:var(--muted);max-width:100%}
+.anim-var code{font-family:'JetBrains Mono',monospace;color:var(--cyan);font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0}
 /* SISKENCERDAS-RICH-CONTENT:END */`;
 
 function esc(value) {
@@ -886,6 +891,21 @@ function richModule(m, index) {
   // absennya entri adalah kesalahan fatal, bukan alasan memakai animasi generik.
   const spekAnimasi = ANIMASI_MODUL[n];
   if (!spekAnimasi) throw new Error(`Modul ${n}: tidak ada entri di sisken-animasi.mjs`);
+  // Penjelasan wajib ada untuk TIAP panel — mengikuti pola "📊 Cara Membaca"
+  // Modul 1. Panel tanpa penjelasan menghentikan generator, bukan tayang bisu.
+  const penjelasan = PENJELASAN_ANIMASI[n];
+  if (!penjelasan || penjelasan.panel.length !== spekAnimasi.panel.length || !penjelasan.grafik) {
+    throw new Error(`Modul ${n}: PENJELASAN_ANIMASI tidak lengkap (butuh ${spekAnimasi.panel.length} panel + grafik)`);
+  }
+  const kotakJelas = (j) => {
+    if (!j.apa || !j.variabel?.length) throw new Error(`Modul ${n}: penjelasan panel kosong`);
+    const daftar = j.variabel.map(([notasi, arti]) =>
+      `<span class="anim-var"><code>${notasi}</code><span>${arti}</span></span>`).join("");
+    return `  <div class="tip-box reveal anim-jelas">
+    <strong>📊 Cara Membaca:</strong> ${j.apa}
+    <div class="anim-var-list" aria-label="Arti tiap notasi">${daftar}</div>
+  </div>`;
+  };
   const panelSpek = spekAnimasi.panel.map((p, i) => {
     const slot = i + 1;
     const kendali = `<div class="ctrl-group">
@@ -894,13 +914,15 @@ function richModule(m, index) {
         </div>`
       + (slot === 1 ? `
         <button class="btn-anim" onclick="toggleSiskenAnimation(${n})">▶ Jalankan Animasi</button>` : "");
-    return panelAnimasi(`siskenAnim${slot}Canvas${n}`, p.judul, kendali);
+    return panelAnimasi(`siskenAnim${slot}Canvas${n}`, p.judul, kendali)
+      + "\n" + kotakJelas(penjelasan.panel[i]);
   }).join("\n");
   const animasi = bagian(nomor++, "Animasi Respons dan Karakteristik Sistem",
     paragraf([spekAnimasi.intro])
     + "\n" + panelSpek
     + "\n" + paragraf([spekAnimasi.grafikIntro])
-    + "\n" + panelAnimasi(`siskenGrafikCanvas${n}`, spekAnimasi.grafik.judul, ""));
+    + "\n" + panelAnimasi(`siskenGrafikCanvas${n}`, spekAnimasi.grafik.judul, "")
+    + "\n" + kotakJelas(penjelasan.grafik));
 
   const python = bagian(nomor++, "Implementasi Python Siap Salin",
     paragraf(["Salin satu cell lengkap ke Jupyter Notebook atau VS Code. Jalankan tanpa perubahan terlebih dahulu, kemudian ubah parameter untuk eksperimen."])
