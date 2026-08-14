@@ -270,6 +270,12 @@ for (let n = 1; n <= 14; n += 1) {
       for (const fn of ["drawSiskenAnim1", "drawSiskenAnim2", "drawSiskenAnim3", "drawSiskenGrafik"]) {
         checks.push([runtimeIni.includes(`window.${fn}=function`), `runtime tanpa ${fn}`]);
       }
+      // Keterangan pada kanvas tidak boleh terpotong tepi: _siskenSiapkan wajib
+      // memasang fillText yang menyusut otomatis, dan regex ukuran fontnya
+      // wajib utuh (\d) — pernah tergerus menjadi 'd' oleh escape template
+      // literal sehingga penyusutan mati dan teks dipotong diam-diam.
+      checks.push([runtimeIni.includes("_siskenPasangTeksPas(c,x)"), "runtime tanpa fillText anti-terpotong"]);
+      checks.push([runtimeIni.includes("fontAsli.match(/(\\d+(?:\\.\\d+)?)px/)"), "regex ukuran font tergerus escape template"]);
       // Tiap panel (3 animasi + 1 grafik) wajib diikuti kotak "Cara Membaca"
       // berisi legenda notasi variabelnya — mengikuti pola Modul 1. Panel
       // tanpa penjelasan pernah tayang bisu selama satu rilis penuh.
