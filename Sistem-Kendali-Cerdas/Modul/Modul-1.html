@@ -914,6 +914,14 @@ body{
   .section{padding:56px 16px}
 }
 /* ── LEBAR-LENTUR:END ── */</style>
+<style id="rumus-nomor-m1">
+.formula-main{position:relative;padding-right:60px}
+.formula-number{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--cyan);opacity:.85}
+.rumus-jelas{margin-top:14px}
+.rumus-jelas .anim-var-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.rumus-jelas .anim-var{display:inline-flex;align-items:baseline;gap:8px;padding:6px 11px;border:1px solid rgba(0,229,255,.18);border-radius:9px;background:rgba(0,229,255,.05);font-size:12.5px;line-height:1.55;color:var(--muted);max-width:100%}
+.rumus-notasi{font-size:13px;color:var(--cyan);white-space:nowrap;flex-shrink:0}
+</style>
 
 <style id="modern-academic-design">
 /* Desain modern academic lintas 56 modul. Screen-only agar cetak/export stabil. */
@@ -1393,8 +1401,12 @@ body{
 
   <div class="formula-block reveal">
     <div class="formula-label">Definisi Error — Besaran yang Dikejar Semua Sistem Kontrol</div>
-    <div class="formula-main">\(e(t) = r(t) - y(t)\)</div>
+    <div class="formula-main">\(e(t) = r(t) - y(t)\)<span class="formula-number">(1)</span></div>
     <div class="formula-desc">\(r(t)\) = referensi/setpoint (nilai yang diinginkan) &nbsp;·&nbsp; \(y(t)\) = keluaran aktual yang terukur &nbsp;·&nbsp; \(e(t)\) = error. Seluruh pekerjaan controller adalah mengecilkan \(e(t)\) tanpa membuat sistem menjadi tidak stabil.</div>
+  </div>
+  <div class="tip-box reveal rumus-jelas">
+    <strong>📐 Persamaan (1)</strong> — titik nol seluruh ilmu kendali: error adalah selisih antara yang diinginkan dan yang terjadi. Semua controller, dari termostat sampai autopilot, hidup hanya untuk membuat angka ini menuju nol.
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var"><span class="rumus-notasi">\(e(t)\)</span><span>error pada waktu t — bahan baku keputusan controller</span></span><span class="anim-var"><span class="rumus-notasi">\(r(t)\)</span><span>setpoint: nilai yang diinginkan (reference)</span></span><span class="anim-var"><span class="rumus-notasi">\(y(t)\)</span><span>keluaran terukur sistem saat itu</span></span></div>
   </div>
 
   <div class="cards reveal">
@@ -1454,8 +1466,12 @@ body{
 
   <div class="formula-block reveal">
     <div class="formula-label">Rantai Sinyal Loop Tertutup</div>
-    <div class="formula-main">\(r \to \Sigma \to e \to C(s) \to u \to G(s) \to y \to H(s) \to \Sigma\)</div>
+    <div class="formula-main">\(r \to \Sigma \to e \to C(s) \to u \to G(s) \to y \to H(s) \to \Sigma\)<span class="formula-number">(2)</span></div>
     <div class="formula-desc">Sinyal mengalir dari setpoint, dibandingkan di komparator, diproses controller menjadi sinyal kendali \(u\), dieksekusi aktuator pada plant, lalu keluarannya diukur sensor dan dikembalikan ke komparator. Lingkaran ini berulang terus-menerus — pada sistem digital, ribuan kali per detik.</div>
+  </div>
+  <div class="tip-box reveal rumus-jelas">
+    <strong>📐 Persamaan (2)</strong> — peta perjalanan sinyal satu putaran penuh: perintah dibandingkan di titik penjumlah, selisihnya diolah controller menjadi sinyal kendali, plant meresponsnya, sensor membacanya, dan hasil bacaan kembali ke titik penjumlah — lingkaran tertutup yang berputar terus-menerus.
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var"><span class="rumus-notasi">\(r\)</span><span>setpoint yang diminta</span></span><span class="anim-var"><span class="rumus-notasi">\(\Sigma\)</span><span>titik penjumlah: tempat setpoint dan umpan balik dibandingkan</span></span><span class="anim-var"><span class="rumus-notasi">\(e\)</span><span>error hasil perbandingan</span></span><span class="anim-var"><span class="rumus-notasi">\(C(s)\)</span><span>controller: pengolah error menjadi keputusan</span></span><span class="anim-var"><span class="rumus-notasi">\(u\)</span><span>sinyal kendali menuju aktuator</span></span><span class="anim-var"><span class="rumus-notasi">\(G(s)\)</span><span>plant: sistem fisik yang dikendalikan</span></span><span class="anim-var"><span class="rumus-notasi">\(y\)</span><span>keluaran plant</span></span><span class="anim-var"><span class="rumus-notasi">\(H(s)\)</span><span>sensor pada jalur umpan balik</span></span></div>
   </div>
 
   <div class="cards reveal">
@@ -1558,8 +1574,12 @@ body{
 
   <div class="formula-block reveal">
     <div class="formula-label">Mengapa Umpan Balik Negatif Menekan Error</div>
-    <div class="formula-main">\(e_{ss} = \frac{1}{1+L}, \quad L = K_p \cdot K\)</div>
+    <div class="formula-main">\(e_{ss} = \frac{1}{1+L}, \quad L = K_p \cdot K\)<span class="formula-number">(3)</span></div>
     <div class="formula-desc">Untuk plant orde satu dengan controller proporsional, error tunak terhadap masukan step berbanding terbalik dengan \((1+L)\). Memperbesar gain loop \(L\) menekan error — tetapi tidak bisa tanpa batas, karena gain berlebihan memicu osilasi dan ketidakstabilan pada sistem berorde lebih tinggi, serta memperbesar tuntutan pada aktuator.</div>
+  </div>
+  <div class="tip-box reveal rumus-jelas">
+    <strong>📐 Persamaan (3)</strong> — alasan kuantitatif umpan balik negatif dipakai: sisa error tunak berbanding terbalik dengan satu-plus-gain-loop. Gain loop 9 menyisakan error 10%; gain loop 99 menyisakan 1%. Memperbesar \(L\) menekan error — tetapi tidak pernah menghapusnya sampai nol.
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var"><span class="rumus-notasi">\(e_{ss}\)</span><span>error tunak: sisa selisih setelah semuanya tenang</span></span><span class="anim-var"><span class="rumus-notasi">\(L\)</span><span>gain loop: hasil kali seluruh gain sekeliling lingkaran</span></span><span class="anim-var"><span class="rumus-notasi">\(K_p\)</span><span>gain controller proporsional</span></span><span class="anim-var"><span class="rumus-notasi">\(K\)</span><span>gain plant</span></span></div>
   </div>
 
   <div class="info-box reveal">
@@ -1576,8 +1596,12 @@ body{
 
   <div class="formula-block reveal">
     <div class="formula-label">Gain Loop dan Fungsi Alih Loop Tertutup</div>
-    <div class="formula-main">\(L = K_p \cdot K, \qquad T = \frac{L}{1+L}\)</div>
+    <div class="formula-main">\(L = K_p \cdot K, \qquad T = \frac{L}{1+L}\)<span class="formula-number">(4)</span></div>
     <div class="formula-desc">Dengan \(K_p = 4\) dan \(K = 2\): \(L = 8\), sehingga gain loop tertutup \(T = 8/9 \approx 0{,}8889\). Artinya untuk setpoint 1 satuan, keluaran tunak hanya mencapai \(0{,}8889\) — selisihnya adalah error tunak.</div>
+  </div>
+  <div class="tip-box reveal rumus-jelas">
+    <strong>📐 Persamaan (4)</strong> — dua besaran ringkasan loop: gain loop \(L\) mengukur seberapa kuat lingkaran memperkuat sinyal, dan fungsi alih loop tertutup \(T\) selalu bernilai di bawah satu — mendekati satu bila \(L\) besar. Keluaran mengejar setpoint, tapi selalu kurang sedikit.
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var"><span class="rumus-notasi">\(L\)</span><span>gain loop</span></span><span class="anim-var"><span class="rumus-notasi">\(T\)</span><span>fungsi alih loop tertutup: perbandingan keluaran akhir terhadap setpoint</span></span><span class="anim-var"><span class="rumus-notasi">\(K_p\)</span><span>gain controller</span></span><span class="anim-var"><span class="rumus-notasi">\(K\)</span><span>gain plant</span></span></div>
   </div>
 
   <div class="cards reveal">
@@ -1609,8 +1633,12 @@ body{
 
   <div class="formula-block reveal">
     <div class="formula-label">Respons Step Loop Tertutup terhadap Waktu</div>
-    <div class="formula-main">\(y(t) = \frac{L}{1+L}\left(1 - e^{-t/\tau_{cl}}\right)\)</div>
+    <div class="formula-main">\(y(t) = \frac{L}{1+L}\left(1 - e^{-t/\tau_{cl}}\right)\)<span class="formula-number">(5)</span></div>
     <div class="formula-desc">Kurva naik eksponensial menuju nilai tunak \(L/(1+L)\). Pada \(t = 1\) s dengan \(\tau_{cl} = 1/3\) s, eksponennya \(-3\), sehingga \(y(1) = (8/9)(1-e^{-3}) \approx 0{,}8446\) — sudah sangat dekat dengan nilai akhirnya.</div>
+  </div>
+  <div class="tip-box reveal rumus-jelas">
+    <strong>📐 Persamaan (5)</strong> — respons lengkap loop tertutup terhadap perintah step: keluaran memanjat secara eksponensial menuju nilai akhir \(\frac{L}{1+L}\). Konstanta waktu tertutupnya menyusut saat \(L\) naik — umpan balik membuat sistem yang sama menjadi lebih cepat.
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var"><span class="rumus-notasi">\(y(t)\)</span><span>keluaran sistem pada waktu t</span></span><span class="anim-var"><span class="rumus-notasi">\(L\)</span><span>gain loop</span></span><span class="anim-var"><span class="rumus-notasi">\(\tau_{cl}\)</span><span>konstanta waktu loop tertutup: 63% jalan ditempuh dalam satu \(\tau_{cl}\)</span></span><span class="anim-var"><span class="rumus-notasi">\(e^{-t/\tau_{cl}}\)</span><span>peluruhan eksponensial yang mengikis sisa jarak ke nilai akhir</span></span></div>
   </div>
 
   <div class="tbl-wrap reveal">
