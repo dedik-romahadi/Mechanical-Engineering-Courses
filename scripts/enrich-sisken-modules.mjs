@@ -4,7 +4,8 @@ import path from "node:path";
 import { MATERI } from "./sisken-materi.mjs";
 import { FORUM } from "./sisken-forum.mjs";
 import { PUSTAKA } from "./sisken-pustaka.mjs";
-import { rumusLatex as _rumusLatex } from "./sisken-rumus.mjs";
+import { rumusLatex as _rumusLatex, tokenLatex } from "./sisken-rumus.mjs";
+import { PENJELASAN_RUMUS } from "./sisken-rumus-jelas.mjs";
 import { normalizeSiskenExportHtml } from "./sisken-export-html.mjs";
 import { normalizeSiskenForumRuntime } from "./sisken-forum-runtime.mjs";
 import { ANIMASI_MODUL, PENJELASAN_ANIMASI } from "./sisken-animasi.mjs";
@@ -350,6 +351,11 @@ html,body{height:auto!important;min-height:100%!important;overflow-y:auto!import
 .sisken-check li{position:relative;padding:0 0 9px 28px;font-size:15px;line-height:1.7;color:#9eacc5}
 .sisken-check li::before{content:'✓';position:absolute;left:0;color:var(--cyan);font-weight:700}
 @media(prefers-reduced-motion:reduce){.sisken-pane.active{animation:none}}
+/* Nomor persamaan (kanan blok, konvensi buku teks) + chip notasi penjelasan */
+.formula-main{position:relative;padding-right:60px}
+.formula-number{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--cyan);opacity:.85}
+.rumus-jelas{margin-top:-6px}
+.rumus-notasi{font-size:13px;color:var(--cyan);white-space:nowrap;flex-shrink:0}
 /* Kotak "Cara Membaca" + legenda notasi di bawah tiap panel animasi/grafik */
 .anim-jelas{margin-top:-4px}
 .anim-var-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
@@ -600,10 +606,44 @@ function paragraf(teks) {
   return teks.map((t) => `  <p class="section-desc reveal">${t}</p>`).join("\n");
 }
 
+// Nomor persamaan berjalan per halaman; di-reset di awal richModule. Hanya
+// blok yang benar-benar matematis (keluaran rumusLatex memuat KaTeX) yang
+// dinomori — blok prosa panduan bukan persamaan.
+let nomorPersamaan = 0;
+
+// {{token}} pada teks penjelasan dirender lewat tokenLatex yang SAMA dengan
+// persamaannya, sehingga notasi di penjelasan identik dengan di persamaan.
+function siapkanTeksRumus(teks) {
+  return String(teks).replace(/\{\{([^}]+)\}\}/g, (_, t) => `\\(${tokenLatex(t.trim())}\\)`);
+}
+
 function blokRumus(label, rumus, keterangan = "") {
+  const isi = rumusLatex(rumus);
+  const matematis = isi.includes("\\(");
+  if (!matematis) {
+    return `  <div class="formula-block reveal">
+    <div class="formula-label">${esc(label)}</div>
+    <div class="formula-main">${isi}</div>${keterangan ? `\n    <div class="formula-desc">${keterangan}</div>` : ""}
+  </div>`;
+  }
+  nomorPersamaan += 1;
+  const nomor = nomorPersamaan;
+  // Setiap persamaan bernomor WAJIB punya penjelasan rinci + arti tiap
+  // notasi. Tanpa entri, generator berhenti — persamaan tidak boleh tayang
+  // tanpa penjelasan.
+  const j = PENJELASAN_RUMUS[rumus];
+  if (!j || !j.apa || !j.variabel?.length) {
+    throw new Error(`Persamaan tanpa penjelasan di sisken-rumus-jelas.mjs:\n  "${rumus}"`);
+  }
+  const chips = j.variabel.map(([token, arti]) =>
+    `<span class="anim-var"><span class="rumus-notasi">\\(${tokenLatex(token)}\\)</span><span>${siapkanTeksRumus(esc(arti))}</span></span>`).join("");
   return `  <div class="formula-block reveal">
     <div class="formula-label">${esc(label)}</div>
-    <div class="formula-main">${rumusLatex(rumus)}</div>${keterangan ? `\n    <div class="formula-desc">${keterangan}</div>` : ""}
+    <div class="formula-main">${isi}<span class="formula-number">(${nomor})</span></div>${keterangan ? `\n    <div class="formula-desc">${keterangan}</div>` : ""}
+  </div>
+  <div class="tip-box reveal rumus-jelas">
+    <strong>📐 Persamaan (${nomor})</strong> — ${siapkanTeksRumus(esc(j.apa))}
+    <div class="anim-var-list" aria-label="Arti tiap notasi">${chips}</div>
   </div>`;
 }
 
@@ -821,6 +861,7 @@ function richModule(m, index) {
   // memakai rumus lamanya (pertemuan-N+1) lewat MODULE_ID — jangan disamakan.
   const p = n;
   daftarBagian.length = 0;
+  nomorPersamaan = 0;
   const kata = m.title.split(" ");
   const judulHero = kata.length >= 3
     ? `<span class="hl-cyan">${kata.slice(0, Math.ceil(kata.length / 3)).join(" ")}</span><br>\n      <em>${kata.slice(Math.ceil(kata.length / 3), -1).join(" ")}</em><br>\n      <span class="hl-amber">${kata[kata.length - 1]}</span>`

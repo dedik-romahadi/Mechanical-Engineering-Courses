@@ -2,6 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 
+import { MATERI } from "./sisken-materi.mjs";
+import { rumusLatex, tokenLatex } from "./sisken-rumus.mjs";
+import { PENJELASAN_RUMUS } from "./sisken-rumus-jelas.mjs";
+
 const root = path.resolve(import.meta.dirname, "..");
 const failures = [];
 // [nomorModul, inti judul tanpa awalan "Animasi k — "] — diisi per modul,
@@ -288,12 +292,67 @@ for (let n = 1; n <= 14; n += 1) {
     for (const j of animasiSaja) judulAnimasiSemua.push([n, j.replace(/^Animasi \d+ — /, "")]);
   }
 
+  // Persamaan bernomor pada HALAMAN: nomornya urut 1..N tanpa lubang, dan tiap
+  // nomor punya kotak "Persamaan (k)" pasangannya. Berlaku juga utk Modul 1.
+  {
+    const markup2 = tanpaGaya(html);
+    const nomor = [...markup2.matchAll(/class="formula-number">\((\d+)\)/g)].map((m2) => Number(m2[1]));
+    const kotak = [...markup2.matchAll(/Persamaan \((\d+)\)<\/strong>/g)].map((m2) => Number(m2[1]));
+    const urut = nomor.every((v, i) => v === i + 1);
+    // Jumlah yang DIHARAPKAN dihitung dari sumbernya: materi (modul 2-14,
+    // pengklasifikasi sama dengan generator) atau 5 utk Modul 1 yang ditulis
+    // tangan. Modul tanpa persamaan matematis (mis. Modul 11) sah bernomor nol.
+    const escY = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const harap = n === 1 ? 5
+      : (MATERI[n]?.deep || []).filter((d) => d.formula && rumusLatex(d.formula, escY).includes("\\(")).length;
+    checks.push([nomor.length === harap, `persamaan bernomor ${nomor.length}, seharusnya ${harap}`]);
+    checks.push([urut, `nomor persamaan tidak urut 1..N: ${nomor.join(",")}`]);
+    checks.push([JSON.stringify(kotak) === JSON.stringify(nomor),
+      `kotak penjelasan (${kotak.join(",")}) tidak berpasangan dgn nomor (${nomor.join(",")})`]);
+  }
+
   for (const [ok, label] of checks) if (!ok) failures.push(`Modul-${n}: ${label}`);
 
   const runtime = html.match(/<script id="sisken-rich-runtime">([\s\S]*?)<\/script>/)?.[1];
   if (runtime) {
     try { new vm.Script(runtime, { filename: `Modul-${n}:sisken-rich-runtime` }); }
     catch (error) { failures.push(`Modul-${n}: runtime syntax — ${error.message}`); }
+  }
+}
+
+// ── Persamaan bernomor: kelengkapan data ─────────────────────────────────────
+// Setiap persamaan matematis di materi wajib punya penjelasan, dan setiap
+// notasi yang tampil pada persamaan wajib punya chip artinya. Diperiksa dari
+// DATA (bukan halaman) supaya pesan galatnya menunjuk rumus yang bermasalah.
+{
+  const escX = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  // Perintah LaTeX struktural — bukan notasi yang butuh penjelasan.
+  const STRUKTUR = new Set(["frac", "sqrt", "left", "right", "cdot", "quad", "qquad",
+    "to", "sum", "int", "lim", "infty", "Rightarrow", "Leftrightarrow", "leftrightarrow",
+    "pm", "mp", "gg", "ll", "approx", "sim", "le", "ge", "ne", "text", "mathrm",
+    "dots", "ldots", "cdots", "times", "min", "max", "log", "exp", "cos", "sin",
+    "operatorname"]);   // pembungkus nama operator; namanya sendiri tampil sbg kata
+  for (const [n, mod] of Object.entries(MATERI)) {
+    for (const d of (mod.deep || [])) {
+      if (!d.formula) continue;
+      const latex = rumusLatex(d.formula, escX);
+      if (!latex.includes("\\(")) continue;   // prosa: tidak dinomori
+      const j = PENJELASAN_RUMUS[d.formula];
+      if (!j || !j.apa || !j.variabel?.length) {
+        failures.push(`Modul ${n}: persamaan tanpa penjelasan: "${d.formula.slice(0, 60)}"`);
+        continue;
+      }
+      // Notasi = perintah LaTeX non-struktural pada bagian matematisnya.
+      const mat = [...latex.matchAll(/\\\((.+?)\\\)/g)].map((m2) => m2[1]).join(" ");
+      const perintah = [...new Set([...mat.matchAll(/\\([a-zA-Z]+)/g)].map((m2) => m2[1]))]
+        .filter((p) => !STRUKTUR.has(p));
+      const tersedia = j.variabel.map(([tok]) => tokenLatex(tok)).join(" ") + " " + j.apa;
+      for (const p of perintah) {
+        if (!tersedia.includes(`\\${p}`)) {
+          failures.push(`Modul ${n}: notasi \\${p} pada "${d.formula.slice(0, 45)}" tanpa penjelasan`);
+        }
+      }
+    }
   }
 }
 
