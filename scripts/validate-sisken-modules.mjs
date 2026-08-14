@@ -275,6 +275,7 @@ for (let n = 1; n <= 14; n += 1) {
       // wajib utuh (\d) — pernah tergerus menjadi 'd' oleh escape template
       // literal sehingga penyusutan mati dan teks dipotong diam-diam.
       checks.push([runtimeIni.includes("_siskenPasangTeksPas(c,x)"), "runtime tanpa fillText anti-terpotong"]);
+      checks.push([runtimeIni.includes("function _siskenBawah("), "runtime tanpa helper baris-bawah anti-tumpang-tindih"]);
       checks.push([runtimeIni.includes("fontAsli.match(/(\\d+(?:\\.\\d+)?)px/)"), "regex ukuran font tergerus escape template"]);
       // Tiap panel (3 animasi + 1 grafik) wajib diikuti kotak "Cara Membaca"
       // berisi legenda notasi variabelnya — mengikuti pola Modul 1. Panel
