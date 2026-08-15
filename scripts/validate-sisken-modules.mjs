@@ -285,7 +285,8 @@ for (let n = 1; n <= 14; n += 1) {
       // berisi legenda notasi variabelnya — mengikuti pola Modul 1. Panel
       // tanpa penjelasan pernah tayang bisu selama satu rilis penuh.
       const kotakCara = (tanpaGaya(html).match(/class="tip-box reveal anim-jelas"/g) || []).length;
-      const legendaVar = (tanpaGaya(html).match(/class="anim-var"/g) || []).length;
+      // Chip boleh membawa kelas varian warna (nw0..nw4) di belakang nama dasarnya.
+      const legendaVar = (tanpaGaya(html).match(/class="anim-var[" ]/g) || []).length;
       checks.push([kotakCara === 4, `kotak Cara Membaca ${kotakCara}, seharusnya 4 (satu per panel animasi/grafik)`]);
       checks.push([legendaVar >= 8, `legenda notasi variabel hanya ${legendaVar}, minimal 8`]);
     }
