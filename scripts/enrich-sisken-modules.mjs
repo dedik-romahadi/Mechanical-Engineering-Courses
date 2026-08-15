@@ -4,8 +4,8 @@ import path from "node:path";
 import { MATERI } from "./sisken-materi.mjs";
 import { FORUM } from "./sisken-forum.mjs";
 import { PUSTAKA } from "./sisken-pustaka.mjs";
-import { rumusLatex as _rumusLatex, tokenLatex } from "./sisken-rumus.mjs";
-import { PENJELASAN_RUMUS } from "./sisken-rumus-jelas.mjs";
+import { rumusLatex as _rumusLatex, tokenLatex, tokenNotasi } from "./sisken-rumus.mjs";
+import { PENJELASAN_RUMUS, NOTASI_KAMUS } from "./sisken-rumus-jelas.mjs";
 import { normalizeSiskenExportHtml } from "./sisken-export-html.mjs";
 import { normalizeSiskenForumRuntime } from "./sisken-forum-runtime.mjs";
 import { ANIMASI_MODUL, PENJELASAN_ANIMASI } from "./sisken-animasi.mjs";
@@ -606,6 +606,35 @@ function paragraf(teks) {
   return teks.map((t) => `  <p class="section-desc reveal">${t}</p>`).join("\n");
 }
 
+// Nama multi-huruf pada kamus menjadi "nama dikenal" pengekstrak token,
+// supaya RMSE tidak terpecah menjadi R, M, S, E.
+const NAMA_DIKENAL = new Set(Object.keys(NOTASI_KAMUS)
+  .filter((k) => k.length > 1 && !k.startsWith("\\") && !k.includes("_")));
+
+// Legenda arti notasi untuk sekumpulan rumus kartu/tabel: token diekstrak
+// dengan pengekstrak yang sama, artinya diambil dari NOTASI_KAMUS. Token tanpa
+// arti menghentikan generator — notasi tidak boleh tayang tanpa penjelasan.
+function legendaNotasi(daftarRumus) {
+  const urutan = [];
+  const sudah = new Set();
+  for (const f of daftarRumus) {
+    if (!f) continue;
+    for (const tk of tokenNotasi(f, NAMA_DIKENAL)) {
+      if (!sudah.has(tk)) { sudah.add(tk); urutan.push([tk, f]); }
+    }
+  }
+  if (!urutan.length) return "";
+  const chips = urutan.map(([tk, asal]) => {
+    const arti = NOTASI_KAMUS[tk];
+    if (!arti) throw new Error(`Notasi tanpa arti di NOTASI_KAMUS: "${tk}" (dari rumus: ${asal.slice(0, 60)})`);
+    const latexTok = tk === "ᵀ" ? "{}^{T}" : tk;
+    return `<span class="anim-var"><span class="rumus-notasi">\\(${latexTok}\\)</span><span>${esc(arti)}</span></span>`;
+  }).join("");
+  return `\n  <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
+    <div class="anim-var-list" aria-label="Arti tiap notasi">${chips}</div>
+  </div>`;
+}
+
 // Nomor persamaan berjalan per halaman; di-reset di awal richModule. Hanya
 // blok yang benar-benar matematis (keluaran rumusLatex memuat KaTeX) yang
 // dinomori — blok prosa panduan bukan persamaan.
@@ -620,9 +649,12 @@ function siapkanTeksRumus(teks) {
 function blokRumus(label, rumus, keterangan = "") {
   const isi = rumusLatex(rumus);
   const matematis = isi.includes("\\(");
+  // Label kosong tidak dirender — label pengisi "Inti bagian ini" dibuang
+  // atas permintaan dosen; persamaannya berbicara sendiri lewat nomor dan
+  // kotak penjelasannya.
+  const barisLabel = label ? `\n    <div class="formula-label">${esc(label)}</div>` : "";
   if (!matematis) {
-    return `  <div class="formula-block reveal">
-    <div class="formula-label">${esc(label)}</div>
+    return `  <div class="formula-block reveal">${barisLabel}
     <div class="formula-main">${isi}</div>${keterangan ? `\n    <div class="formula-desc">${keterangan}</div>` : ""}
   </div>`;
   }
@@ -637,8 +669,7 @@ function blokRumus(label, rumus, keterangan = "") {
   }
   const chips = j.variabel.map(([token, arti]) =>
     `<span class="anim-var"><span class="rumus-notasi">\\(${tokenLatex(token)}\\)</span><span>${siapkanTeksRumus(esc(arti))}</span></span>`).join("");
-  return `  <div class="formula-block reveal">
-    <div class="formula-label">${esc(label)}</div>
+  return `  <div class="formula-block reveal">${barisLabel}
     <div class="formula-main">${isi}<span class="formula-number">(${nomor})</span></div>${keterangan ? `\n    <div class="formula-desc">${keterangan}</div>` : ""}
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -814,7 +845,7 @@ function bagianMateri(n, mulai) {
   const potongan = KELOMPOK_MATERI.map(([judul, awal, akhir]) => {
     const isi = dalam.slice(awal, akhir).map((s) => subBagian(
       s.head,
-      paragraf(s.body) + (s.formula ? `\n${blokRumus("Inti bagian ini", s.formula)}` : ""),
+      paragraf(s.body) + (s.formula ? `\n${blokRumus("", s.formula)}` : ""),
     )).join("\n");
     return isi ? bagian(nomor++, judul, isi) : "";
   }).filter(Boolean);
@@ -826,13 +857,15 @@ function bagianMateri(n, mulai) {
     if (d.derivation) {
       const langkah = d.derivation.steps.map(([lbl, ex, note]) => [lbl, note, ex]);
       isi += subBagian(d.derivation.head,
-        paragraf([d.derivation.intro]) + "\n" + kartu(langkah) + "\n" + paragraf([d.derivation.closing]));
+        paragraf([d.derivation.intro]) + "\n" + kartu(langkah)
+        + legendaNotasi(d.derivation.steps.map((x) => x[1])) + "\n" + paragraf([d.derivation.closing]));
     }
     if (d.worked) {
       const langkah = d.worked.steps.map(([lbl, ex, note]) => [lbl, note, ex]);
       isi += "\n" + subBagian(d.worked.head,
         `  <div class="info-box reveal"><strong>Diketahui:</strong> ${d.worked.given.join(" &nbsp;·&nbsp; ")}</div>\n`
-        + kartu(langkah) + `\n  <div class="tip-box reveal">✅ <strong>Jawaban.</strong> ${d.worked.answer}</div>`);
+        + kartu(langkah) + legendaNotasi(d.worked.steps.map((x) => x[1]))
+        + `\n  <div class="tip-box reveal">✅ <strong>Jawaban.</strong> ${d.worked.answer}</div>`);
     }
     potongan.push(bagian(nomor++, "Penurunan Rumus dan Contoh Terselesaikan", isi));
   }
@@ -916,7 +949,8 @@ function richModule(m, index) {
     + `\n  <div class="tip-box reveal">🧭 <strong>Alur berpikir engineer:</strong> ${m.steps.join(" &nbsp;→&nbsp; ")}</div>\n`
     + tabel("Tabel 1 — Ringkasan konsep inti beserta bentuk matematisnya",
       ["Konsep", "Bentuk / Rumus", "Yang perlu diingat"],
-      m.concepts.map(([h, p, f]) => [h, f ? rumusLatex(f) : "—", p])));
+      m.concepts.map(([h, p, f]) => [h, f ? rumusLatex(f) : "—", p]))
+    + legendaNotasi(m.concepts.map((c) => c[2])));
 
   const mendalam = bagianMateri(n, nomor);
   nomor = mendalam.berikut;

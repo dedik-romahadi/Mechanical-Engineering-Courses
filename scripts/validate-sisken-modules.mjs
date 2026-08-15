@@ -309,6 +309,16 @@ for (let n = 1; n <= 14; n += 1) {
     checks.push([urut, `nomor persamaan tidak urut 1..N: ${nomor.join(",")}`]);
     checks.push([JSON.stringify(kotak) === JSON.stringify(nomor),
       `kotak penjelasan (${kotak.join(",")}) tidak berpasangan dgn nomor (${nomor.join(",")})`]);
+    // Legenda "Arti notasi" untuk persamaan kartu/tabel: satu di bagian konsep
+    // plus satu per blok penurunan/contoh yang ada di materi modul itu.
+    if (n >= 2) {
+      const legenda = (markup2.match(/Arti notasi:/g) || []).length;
+      // Penurunan & contoh selalu berlegenda; legenda konsep hanya ada bila
+      // rumus konsep modul itu memang matematis (Modul 11 sah tanpanya).
+      const harapDW = (MATERI[n]?.derivation ? 1 : 0) + (MATERI[n]?.worked ? 1 : 0);
+      checks.push([legenda === harapDW || legenda === harapDW + 1,
+        `legenda Arti notasi ${legenda}, seharusnya ${harapDW} atau ${harapDW + 1}`]);
+    }
   }
 
   for (const [ok, label] of checks) if (!ok) failures.push(`Modul-${n}: ${label}`);
