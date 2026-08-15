@@ -282,7 +282,7 @@ for (let moduleNumber = 1; moduleNumber <= 14; moduleNumber += 1) {
     let changed = block;
     changed = changed.replace(/<div class="comp-q">[\s\S]*?<\/div>/, `<div class="comp-q" id="text-c${n}">🔒 Masuk untuk memuat soal parametrik C${n}.</div>`);
     changed = changed.replace(/<div class="comp-hint">[\s\S]*?<\/div>/, `<div class="comp-hint" id="hint-c${n}">💡 Hint akan dimuat bersama soal.</div>`);
-    changed = changed.replace(/<div class="input-label">[\s\S]*?<\/div>/, `<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span id="input-c${n}" style="color:var(--muted);font-size:10px">output akan ditentukan server</span></div>`);
+    changed = changed.replace(/<div class="input-label">[\s\S]*?<\/div>/, `<div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook <span id="input-c${n}" style="color:var(--muted);font-size:10px">(output akan ditentukan server)</span></div>`);
     if (!changed.includes(`id="text-c${n}"`) || !changed.includes(`id="hint-c${n}"`) || !changed.includes(`id="input-c${n}"`)) {
       problems.push(`anchor isi c${n} tidak lengkap`);
       continue;
