@@ -104,7 +104,7 @@ const modules = [
     intro: "Feedback membentuk persamaan karakteristik baru. Lokasi pole closed-loop menentukan stabilitas dan kecepatan, sedangkan loop gain mengatur tracking, penolakan gangguan, noise, dan robustness. Semua manfaat feedback mempunyai trade-off.",
     concepts: [["Pole dominan", "Pole paling dekat sumbu imajiner biasanya menguasai transien yang tampak.", "s=-ζω_n±jω_n√(1-ζ²)"], ["Sensitivitas", "Sensitivity kecil memperbaiki tracking dan disturbance rejection pada frekuensi terkait.", "S=1/(1+L)"], ["Complementary sensitivity", "T menjelaskan tracking dan transmisi noise pada loop.", "T=L/(1+L), S+T=1"], ["Robustness", "Margin gain dan fase memberi ukuran jarak terhadap ketidakstabilan akibat ketidakpastian.", "PM, GM" ]],
     steps: ["Bentuk loop transfer L(s)", "Hitung pole closed-loop", "Evaluasi S dan T lintas frekuensi", "Periksa margin dan variasi parameter"],
-    analogies: [["Mikrofon dan speaker", "Gain tinggi memperkuat suara tetapi dapat memicu feedback melengking."], ["Koreksi berulang", "Semakin kuat koreksi, error turun—hingga keterlambatan membuat koreksi berlebihan."], ["Suspensi kendaraan", "Redaman rendah nyaman pada gangguan kecil tetapi dapat berosilasi lama."]],
+    analogies: [["Mikrofon dan speaker", "Gain tinggi memperkuat suara tetapi dapat memicu feedback melengking."], ["Koreksi berulang", "Semakin kuat koreksi, error turun, sampai keterlambatan membuat koreksi berlebihan."], ["Suspensi kendaraan", "Redaman rendah nyaman pada gangguan kecil tetapi dapat berosilasi lama."]],
     industries: [["Autopilot", "Margin fase melindungi kestabilan dari delay sensor dan actuator."], ["Power converter", "Loop arus cepat berada di dalam loop tegangan yang lebih lambat."], ["Web tension", "Feedback menjaga tegangan material saat diameter roll berubah."]],
     code: `import numpy as np\nfrom scipy import signal\n\n# L(s)=K/(s(s+2)), unity feedback\nfor K in [1, 4, 10, 20]:\n    den_cl = [1, 2, K]\n    poles = np.roots(den_cl)\n    wn = np.sqrt(K); zeta = 1/wn\n    print(f"K={K:>2}: poles={poles}, wn={wn:.3f}, zeta={zeta:.3f}")\n    sys = signal.TransferFunction([K], den_cl)\n    t, y = signal.step(sys)\n    print(f"    peak={y.max():.3f}, final={y[-1]:.3f}")`,
     refs: ["Åström & Murray — Feedback Systems", "Skogestad & Postlethwaite — Multivariable Feedback Control", "Nise — Control Systems Engineering", "Franklin, Powell & Emami-Naeini — Feedback Control"],
@@ -112,7 +112,7 @@ const modules = [
   {
     title: "Analisis dan Perancangan Kontrol PID",
     sub: "Sub-CPMK 4.2 — Memahami aksi P, I, D dan melakukan tuning PID yang aman",
-    intro: "PID tetap menjadi controller industri paling luas karena transparan, murah, dan efektif. P memperkuat koreksi saat ini, I menghapus bias masa lalu, dan D mengantisipasi perubahan—tetapi derivative harus difilter dan integral perlu anti-windup.",
+    intro: "PID tetap menjadi controller industri paling luas karena transparan, murah, dan efektif. P memperkuat koreksi saat ini, I menghapus bias masa lalu, dan D mengantisipasi perubahan, tetapi derivative harus difilter dan integral perlu anti-windup.",
     concepts: [["Proporsional", "Meningkatkan respons terhadap error saat ini; gain terlalu tinggi menurunkan robustness.", "u_P = Kp*e"], ["Integral", "Mengakumulasi error sehingga offset tunak hilang, namun dapat memperlambat dan menyebabkan windup.", "u_I=K_i∫e dt"], ["Derivatif", "Merespons laju perubahan untuk menambah redaman; sensitif terhadap noise.", "u_D=K_d de/dt"], ["Tuning", "Ziegler–Nichols, IMC, relay, dan optimization adalah titik awal yang harus divalidasi terhadap batas plant.", "K_p,T_i,T_d" ]],
     steps: ["Identifikasi dinamika dan batas actuator", "Mulai P lalu tambahkan I", "Tambahkan D terfilter bila diperlukan", "Uji setpoint, disturbance, noise, dan saturasi"],
     analogies: [["Mengisi gelas", "P melihat selisih saat ini, I mengingat kekurangan, D memperlambat saat mendekati penuh."], ["Mengemudi", "P melihat jarak dari jalur, D melihat seberapa cepat mobil menyimpang."], ["Menabung target", "Integral mengakumulasi kekurangan kecil hingga tindakan cukup untuk menghapus offset."]],
@@ -1202,7 +1202,7 @@ window.drawSiskenPeta=function(n){
     x.textAlign='center';x.fillText(String(i),kiri+(lebar-10)/2,y+37);
   }
   x.textAlign='center';x.fillStyle='#c4b5fd';x.font='bold 19px JetBrains Mono';
-  x.fillText('Anda di Modul '+nomor+' — tersisa '+(total-nomor)+' modul menuju tuntas',w/2,h-20);
+  x.fillText('Anda di Modul '+nomor+', masih tersisa '+(total-nomor)+' modul menuju tuntas',w/2,h-20);
   x.textAlign='left';
 };
 window.siskenCentang=function(n,i){

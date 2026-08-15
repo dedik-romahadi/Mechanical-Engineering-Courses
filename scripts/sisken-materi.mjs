@@ -3,7 +3,7 @@
 // Dipisah dari enrich-sisken-modules.mjs supaya generator tetap terbaca:
 // generator mengurus struktur dan HTML, berkas ini mengurus isi.
 //
-// Modul 1 TIDAK ada di sini — modul itu ditulis tangan mengikuti Modul 1
+// Modul 1 TIDAK ada di sini karena modul itu ditulis tangan mengikuti Modul 1
 // Getaran Mekanik dan dilewati generator (lihat LEWATI di generator).
 //
 // Bentuk tiap entri:
@@ -33,7 +33,7 @@ export const MATERI = {
         head: "Model: Cukup Akurat, Bukan Selengkap Mungkin",
         body: [
           "Model bukan tiruan sempurna plant, melainkan alat untuk menjawab pertanyaan tertentu. Model yang tepat adalah model paling sederhana yang masih menangkap dinamika di rentang frekuensi kerja controller. Menambah detail di luar rentang itu tidak membuat desain lebih baik; ia hanya membuat perhitungan lebih lambat dan parameter lebih sulit diidentifikasi.",
-          "Untuk sebagian besar proses termal, fluida, dan mekanik lambat, model orde satu ditambah dead time sudah memadai. Tiga parameternya — gain statik, konstanta waktu, dan dead time — dapat diperoleh dari satu uji step yang dijalankan pada titik kerja normal. Gain diperoleh dari perbandingan perubahan keluaran terhadap perubahan masukan, konstanta waktu dari waktu mencapai 63,2 persen perubahan akhir, dan dead time dari jeda sebelum keluaran mulai bergerak.",
+          "Untuk sebagian besar proses termal, fluida, dan mekanik lambat, model orde satu ditambah dead time sudah memadai. Tiga parameternya, yaitu gain statik, konstanta waktu, dan dead time, dapat diperoleh dari satu uji step yang dijalankan pada titik kerja normal. Gain diperoleh dari perbandingan perubahan keluaran terhadap perubahan masukan, konstanta waktu dari waktu mencapai 63,2 persen perubahan akhir, dan dead time dari jeda sebelum keluaran mulai bergerak.",
           "Sistem mekanik dengan massa, redaman, dan kekakuan menuntut model orde dua karena ia menyimpan energi dalam dua bentuk sekaligus, yaitu kinetik dan potensial. Kemampuan menyimpan energi dalam dua bentuk itulah yang memungkinkan osilasi, dan osilasi tidak akan pernah muncul pada model orde satu betapapun parameternya diubah. Salah memilih orde model berarti salah memperkirakan seluruh karakter respons.",
           "Ketika fisika terlalu rumit atau parameternya tidak terjangkau, model berbasis data menjadi pilihan. Konsekuensinya harus disadari: model semacam itu hanya berlaku pada rentang operasi yang terwakili di data pelatihan. Di luar rentang tersebut ekstrapolasinya tidak punya jaminan apa pun, sehingga sistem harus dilengkapi mekanisme yang mengenali kondisi di luar cakupan dan mengembalikan kendali ke logika yang aman.",
         ],
@@ -512,7 +512,7 @@ export const MATERI = {
           "Model yang hanya memuat hubungan masukan-keluaran belum memadai untuk menilai rancangan kendali, karena sebagian besar pekerjaan controller justru menghadapi hal yang tidak dikehendaki: gangguan beban dan derau pengukuran.",
           "Gangguan beban umumnya berfrekuensi rendah dan masuk di sisi masukan plant. Pemodelan yang lazim memakai step atau ramp untuk mewakili perubahan beban, ditambah komponen acak berfrekuensi rendah bila bebannya memang berfluktuasi. Yang penting bukan meniru bentuk sesungguhnya melainkan mewakili rentang frekuensinya.",
           "Derau pengukuran berperilaku berlawanan: berfrekuensi tinggi dan masuk di jalur umpan balik. Pemodelan yang memadai cukup berupa komponen acak dengan simpangan baku sebesar derau sensor yang sebenarnya, yang dapat diukur langsung dengan merekam pembacaan saat proses diam.",
-          "Membedakan keduanya menentukan cara menanganinya. Gangguan berfrekuensi rendah ditolak dengan menaikkan gain loop pada frekuensi rendah, sementara derau berfrekuensi tinggi ditangani dengan menurunkan gain pada frekuensi tinggi. Karena keduanya berada di rentang berbeda, keduanya dapat ditangani sekaligus — dan itulah yang membuat pemodelan keduanya berguna.",
+          "Membedakan keduanya menentukan cara menanganinya. Gangguan berfrekuensi rendah ditolak dengan menaikkan gain loop pada frekuensi rendah, sementara derau berfrekuensi tinggi ditangani dengan menurunkan gain pada frekuensi tinggi. Karena keduanya berada di rentang berbeda, keduanya dapat ditangani sekaligus; itulah yang membuat pemodelan keduanya berguna.",
         ],
         formula: "gangguan: frekuensi rendah di masukan plant | derau: frekuensi tinggi di umpan balik",
       },
@@ -977,7 +977,7 @@ export const MATERI = {
         ["Gain lintasan terbuka B", "L_B(s) = 24/(s*(s+2))", "Sistem tipe satu karena memuat satu integrator."],
         ["Error tunak B", "e_ss = 0", "Integrator menghapus error terhadap step sepenuhnya."],
         ["Pole tertutup B", "s^2 + 2s + 24 = 0  =>  s = -1 +/- j4,796", "Muncul osilasi yang tidak ada pada rancangan A."],
-        ["Rasio redaman B", "zeta = 2/(2*sqrt(24)) = 0,204", "Overshoot sekitar 51 persen — sangat besar."],
+        ["Rasio redaman B", "zeta = 2/(2*sqrt(24)) = 0,204", "Overshoot sekitar 51 persen, tergolong sangat besar."],
       ],
       answer: "Rancangan A cepat dan tanpa osilasi namun menyisakan error 7,69 persen. Rancangan B menghapus error sepenuhnya namun berosilasi hebat dan jauh lebih lambat. Keduanya menunjukkan bahwa integral tidak gratis: ia menambah satu pole di titik asal yang menggeser pole tertutup ke arah yang kurang teredam. Inilah alasan aksi integral hampir selalu dipadukan dengan proporsional dan turunan, bukan dipakai sendiri.",
     },
@@ -1077,7 +1077,7 @@ export const MATERI = {
           "Dead time adalah lawan paling berat bagi PID. Selama jeda itu, controller tidak menerima kabar apa pun tentang akibat tindakannya, sehingga ia cenderung bertindak berlebihan dan baru menyadarinya setelah terlambat.",
           "Akibatnya terhadap penyetelan bersifat mendasar. Semakin besar perbandingan dead time terhadap konstanta waktu, semakin kecil penguatan yang masih aman. Pada perbandingan di atas satu, PID biasa hanya dapat disetel sangat lamban, dan kinerjanya terbatas berapa pun keterampilan penyetelnya.",
           "Langkah pertama yang benar bukan menyetel melainkan memeriksa apakah dead time-nya dapat dikurangi. Memindahkan sensor lebih dekat ke titik yang dikendalikan, memperpendek jalur perpipaan, atau mempercepat pencuplikan sering memberi perbaikan yang jauh melampaui hasil penyetelan mana pun.",
-          "Bila dead time memang tidak dapat dikurangi, struktur prediktor memakai model plant untuk memperkirakan akibat tindakan sebelum akibat itu terukur. Sistem menjadi jauh lebih agresif secara aman, dengan syarat modelnya cukup tepat — dan bila model meleset, keunggulannya cepat hilang.",
+          "Bila dead time memang tidak dapat dikurangi, struktur prediktor memakai model plant untuk memperkirakan akibat tindakan sebelum akibat itu terukur. Sistem menjadi jauh lebih agresif secara aman, dengan syarat modelnya cukup tepat, sebab bila model meleset, keunggulannya cepat hilang.",
         ],
         formula: "L/tau besar => penguatan aman mengecil; kurangi L dulu sebelum menyetel",
       },
@@ -1103,7 +1103,7 @@ export const MATERI = {
         ["Cocokkan suku konstanta", "wn^2 = K*Ki/tau  =>  Ki = tau*wn^2/K", "Frekuensi alami menentukan Ki."],
         ["Cocokkan koefisien s", "2*zeta*wn = (1 + K*Kp)/tau  =>  Kp = (2*zeta*wn*tau - 1)/K", "Rasio redaman menentukan Kp."],
       ],
-      closing: "Kedua parameter kini diperoleh langsung dari z dan wn, yang sendiri diturunkan dari batas overshoot dan waktu menetap. Perhatikan Kp dapat bernilai negatif bila wn yang diminta terlalu kecil — pertanda spesifikasinya sendiri tidak masuk akal untuk plant tersebut.",
+      closing: "Kedua parameter kini diperoleh langsung dari z dan wn, yang sendiri diturunkan dari batas overshoot dan waktu menetap. Perhatikan Kp dapat bernilai negatif bila wn yang diminta terlalu kecil, pertanda spesifikasinya sendiri tidak masuk akal untuk plant tersebut.",
     },
     worked: {
       head: "Contoh Terhitung: Merancang PI dari Spesifikasi",
@@ -1125,7 +1125,7 @@ export const MATERI = {
       ["Menambah aksi integral tanpa anti-windup", "Actuator mentok adalah kejadian biasa. Tanpa penanganan, keluaran melewati setpoint jauh melebihi perkiraan simulasi."],
       ["Memakai aksi turunan tanpa penapis", "Selisih memperkuat derau sensor sehingga actuator bergetar terus-menerus dan cepat aus."],
       ["Menyamakan bentuk baku dengan bentuk tiga gain", "Pada bentuk baku, mengubah Kp ikut mengubah kekuatan integral dan turunan. Memindahkan parameter antarperangkat tanpa memeriksa bentuknya menghasilkan perilaku yang jauh berbeda."],
-      ["Memperlakukan Ziegler-Nichols sebagai nilai akhir", "Aturan itu mengejar peredaman seperempat amplitudo yang menghasilkan overshoot dua puluh sampai lima puluh persen — terlalu agresif untuk banyak penerapan."],
+      ["Memperlakukan Ziegler-Nichols sebagai nilai akhir", "Aturan itu mengejar peredaman seperempat amplitudo yang menghasilkan overshoot dua puluh sampai lima puluh persen, jelas terlalu agresif untuk banyak penerapan."],
       ["Menghitung turunan dari error saat setpoint berubah mendadak", "Lonjakan turunan yang besar mengagetkan actuator. Menghitungnya dari keluaran terukur menghilangkan gejala itu tanpa mengurangi kemampuan meredam."],
     ],
     checklist: [
@@ -1217,7 +1217,7 @@ export const MATERI = {
           "Karena determinan grafik sama dengan penyebut fungsi transfer, kestabilan dapat dinilai tanpa menyelesaikan seluruh rumus Mason. Ini sering menjadi jalan tercepat pada sistem berlintasan banyak, karena pembilangnya tidak diperlukan sama sekali.",
           "Langkahnya menyusun determinan, mengalikannya dengan penyebut seluruh blok agar berbentuk polinomial, lalu memeriksa letak akarnya. Pada tahap pemeriksaan, kriteria berbasis koefisien lebih praktis daripada mencari akar, terutama bila salah satu gain masih berupa parameter.",
           "Cara ini juga memberi jawaban yang sering dibutuhkan langsung: rentang penguatan yang membuat sistem tetap stabil. Dengan membiarkan penguatan sebagai simbol di dalam gain loop, determinan menghasilkan polinomial berparameter, dan syarat kestabilannya menjadi pertidaksamaan terhadap parameter itu.",
-          "Perlu diingat bahwa determinan tidak berubah bergantung lintasan mana yang ditinjau. Karena itu kestabilan sistem sama untuk seluruh pasangan masukan dan keluaran, dan hanya bentuk responsnya yang berbeda — kesimpulan yang sama dengan yang diperoleh lewat superposisi pada diagram blok.",
+          "Perlu diingat bahwa determinan tidak berubah bergantung lintasan mana yang ditinjau. Karena itu kestabilan sistem sama untuk seluruh pasangan masukan dan keluaran, dan hanya bentuk responsnya yang berbeda, yakni kesimpulan yang sama dengan yang diperoleh lewat superposisi pada diagram blok.",
         ],
         formula: "Delta = 0 adalah persamaan karakteristik; pembilang tidak diperlukan",
       },
@@ -1226,7 +1226,7 @@ export const MATERI = {
         body: [
           "Penerapan aturan Mason dengan tangan pada sistem rumit rawan kekeliruan, sementara memeriksanya secara numerik murah dan cepat. Praktik yang baik memakai keduanya: tangan untuk memahami, numerik untuk memastikan.",
           "Cara memeriksa yang paling langsung adalah memberi nilai angka pada seluruh gain, lalu menghitung fungsi transfer dengan perangkat lunak simbolik atau numerik dan membandingkannya dengan hasil tangan. Bila keduanya berbeda, kekeliruan hampir selalu berada pada daftar loop atau pada suku hasil kali yang terlewat.",
-          "Pemeriksaan yang lebih menyeluruh membandingkan pada beberapa nilai frekuensi, bukan hanya pada s sama dengan nol. Kesesuaian pada frekuensi nol saja tidak menjamin apa pun, karena kekeliruan pada suku berorde tinggi tidak tampak di sana — persis kelemahan yang membuat kekeliruan suku hasil kali loop mudah lolos.",
+          "Pemeriksaan yang lebih menyeluruh membandingkan pada beberapa nilai frekuensi, bukan hanya pada s sama dengan nol. Kesesuaian pada frekuensi nol saja tidak menjamin apa pun, karena kekeliruan pada suku berorde tinggi tidak tampak di sana; persis itulah kelemahan yang membuat kekeliruan suku hasil kali loop mudah lolos.",
           "Cara terakhir, dan sering paling meyakinkan, adalah menyimulasikan diagram bloknya secara langsung lalu membandingkan responsnya dengan respons yang dihitung dari fungsi transfer hasil Mason. Keduanya harus berimpit; bila tidak, selisihnya menunjuk tepat ke bagian mana yang keliru diterjemahkan.",
         ],
         formula: "banding pada beberapa frekuensi, bukan hanya pada s = 0",
@@ -1263,7 +1263,7 @@ export const MATERI = {
         ["Hitung kofaktor", "Delta_1 = 1", "Kedua loop bersentuhan dengan lintasan maju, sehingga seluruhnya dihapus."],
         ["Susun hasil akhir", "T = G1*G2*G3/((1+G1*H1)*(1+G3*H2))", "Hasilnya berupa perkalian dua faktor umpan balik yang terpisah."],
       ],
-      answer: "Bentuk terfaktor pada penyebut mengandung makna fisik: karena kedua loop tidak berinteraksi, sistem berperilaku seperti dua subsistem berumpan balik yang dipasang seri. Bila suku hasil kali loop terlupakan, penyebutnya menjadi 1 + G1*H1 + G3*H2 yang tidak dapat difaktorkan, dan letak pole yang dihitung akan meleset — kekeliruan yang tidak akan terdeteksi oleh pemeriksaan gain arus searah sederhana.",
+      answer: "Bentuk terfaktor pada penyebut mengandung makna fisik: karena kedua loop tidak berinteraksi, sistem berperilaku seperti dua subsistem berumpan balik yang dipasang seri. Bila suku hasil kali loop terlupakan, penyebutnya menjadi 1 + G1*H1 + G3*H2 yang tidak dapat difaktorkan, dan letak pole yang dihitung akan meleset, sebuah kekeliruan yang tidak akan terdeteksi oleh pemeriksaan gain arus searah sederhana.",
     },
     pitfalls: [
       ["Melupakan suku hasil kali loop yang tidak bersentuhan", "Inilah kekeliruan paling umum. Determinannya menjadi salah sehingga seluruh jawaban ikut salah, dan gejalanya tidak selalu tampak pada pemeriksaan gain arus searah."],
@@ -1312,7 +1312,7 @@ export const MATERI = {
           "Apa pun metode cerdas yang dipakai, lapisan keselamatan hampir selalu tetap memakai logika klasik yang sederhana dan dapat diverifikasi. Alasannya bukan konservatisme melainkan sifat jaminannya: perilaku pembatas keras dan interlock dapat dibuktikan lengkap, sedangkan perilaku jaringan saraf di luar rentang data pelatihan tidak.",
           "Susunan yang lazim menempatkan metode cerdas di lapisan pengoptimalan, sementara lapisan di bawahnya tetap berupa loop klasik yang terbukti stabil. Bila lapisan cerdas gagal atau memberi keluaran di luar batas wajar, sistem kembali ke perilaku klasik yang aman tanpa menghentikan proses.",
           "Mekanisme pengenalan kondisi di luar cakupan menjadi wajib pada sistem berbasis data. Model harus mampu menyatakan bahwa masukan saat ini berada jauh dari data yang pernah dipelajarinya, dan pada keadaan itu kendali dikembalikan ke logika cadangan alih-alih memaksakan tebakan.",
-          "Konsekuensinya pada rancangan cukup besar. Sistem kontrol cerdas yang layak dipasang bukan hanya memuat model cerdasnya, melainkan juga mekanisme pemantauan, batas, dan jalur mundur — dan bagian terakhir inilah yang sering terlupakan pada penerapan pertama.",
+          "Konsekuensinya pada rancangan cukup besar. Sistem kontrol cerdas yang layak dipasang bukan hanya memuat model cerdasnya, melainkan juga mekanisme pemantauan, batas, dan jalur mundur; bagian terakhir inilah yang sering terlupakan pada penerapan pertama.",
         ],
         formula: "cerdas di lapisan optimasi, klasik di lapisan keselamatan dan cadangan",
       },
@@ -1342,7 +1342,7 @@ export const MATERI = {
           "Sebelum metode cerdas dipertimbangkan, ada satu pendekatan klasik yang menangani nonlinieritas dan sering terlupakan: penjadwalan gain. Karena seluruhnya dapat diverifikasi dengan perkakas biasa, ia layak menjadi pembanding wajib.",
           "Gagasannya sederhana. Sistem dilinearisasi pada beberapa titik kerja, controller dirancang untuk masing-masing, lalu parameter dipilih berdasarkan besaran terukur yang mencirikan titik kerja saat itu. Nonlinieritas ditangani dengan mengganti parameter, bukan dengan mengganti jenis controller.",
           "Dua syarat menentukan kelayakannya. Besaran penjadwal harus terukur, dan titik kerja harus berubah jauh lebih lambat daripada dinamika loop. Bila keduanya terpenuhi, penjadwalan gain menyelesaikan persoalan dengan perkakas yang jaminannya lengkap dan biaya pemeliharaannya rendah.",
-          "Perhatian utama pada penerapannya adalah kemulusan peralihan. Perpindahan parameter yang mendadak menimbulkan lompatan keluaran, sehingga peralihan dibuat bertahap dan akumulator integral disiapkan agar keluaran tidak berubah seketika — persoalan yang sama dengan perpindahan mode manual ke otomatis.",
+          "Perhatian utama pada penerapannya adalah kemulusan peralihan. Perpindahan parameter yang mendadak menimbulkan lompatan keluaran, sehingga peralihan dibuat bertahap dan akumulator integral disiapkan agar keluaran tidak berubah seketika, persoalan yang sama dengan perpindahan mode manual ke otomatis.",
         ],
         formula: "syarat: penjadwal terukur + titik kerja berubah jauh lebih lambat daripada loop",
       },
@@ -1388,7 +1388,7 @@ export const MATERI = {
         ["Rancang controller per titik", "C(p) dari spesifikasi yang sama", "Tiap titik memberi satu himpunan parameter."],
         ["Jadwalkan berdasarkan p", "parameter dipilih dari p yang terukur saat itu", "Peralihan dibuat mulus agar tidak menimbulkan lompatan keluaran."],
       ],
-      closing: "Penjadwalan gain memadai bila titik kerja berubah jauh lebih lambat daripada dinamika loop dan besaran penjadwalnya dapat diukur. Bila kedua syarat itu tidak terpenuhi — misalnya nonlinieritas berubah cepat atau penjadwalnya tidak terukur — barulah metode cerdas memberi keuntungan nyata.",
+      closing: "Penjadwalan gain memadai bila titik kerja berubah jauh lebih lambat daripada dinamika loop dan besaran penjadwalnya dapat diukur. Bila kedua syarat itu tidak terpenuhi, misalnya nonlinieritas berubah cepat atau penjadwalnya tidak terukur, barulah metode cerdas memberi keuntungan nyata.",
     },
     worked: {
       head: "Contoh Terhitung: Menilai Kelayakan Sebelum Memilih Metode",
@@ -1494,7 +1494,7 @@ export const MATERI = {
           "Pada penerapan nyata, sebagian besar waktu habis untuk menyiapkan data, bukan untuk melatih jaringan. Bagian ini pula yang paling menentukan hasil, dan mengabaikannya tidak dapat ditebus arsitektur secanggih apa pun.",
           "Langkah pertama membersihkan data dari kejadian yang tidak mewakili proses normal maupun gangguan yang ingin dipelajari: periode kalibrasi, saat proses berhenti, dan pembacaan yang jelas keliru. Menyertakannya mengajarkan jaringan hubungan yang tidak ada.",
           "Langkah kedua menyelaraskan waktu. Bila keluaran yang ingin ditaksir baru terukur beberapa menit setelah masukannya, pasangan data harus digeser sesuai jeda itu. Melewatkan penyelarasan menghasilkan model yang mempelajari hubungan yang tergeser, dan gejalanya sulit dikenali karena modelnya tetap tampak bekerja.",
-          "Langkah ketiga memastikan seluruh rentang operasi terwakili, termasuk keadaan yang jarang. Karena keadaan jarang secara alami sedikit datanya, kadang perlu dilakukan percobaan terencana untuk memperolehnya — dan percobaan itu jauh lebih murah daripada kegagalan model saat keadaan tersebut benar-benar terjadi.",
+          "Langkah ketiga memastikan seluruh rentang operasi terwakili, termasuk keadaan yang jarang. Karena keadaan jarang secara alami sedikit datanya, kadang perlu dilakukan percobaan terencana untuk memperolehnya, dan percobaan itu jauh lebih murah daripada kegagalan model saat keadaan tersebut benar-benar terjadi.",
         ],
         formula: "bersihkan -> selaraskan waktu -> pastikan seluruh rentang terwakili",
       },
@@ -1514,7 +1514,7 @@ export const MATERI = {
           "Model berbasis data memiliki sifat yang tidak dimiliki controller klasik: ia menua. Proses berubah, perangkat aus, bahan baku berganti, dan model yang dilatih setahun lalu perlahan menjadi tidak sahih tanpa memberi tanda apa pun.",
           "Cara termurah mendeteksinya adalah membandingkan taksiran model dengan acuan kebenaran secara berkala, lalu mengamati kecenderungan selisihnya. Selisih rata-rata yang merambat naik menandakan pergeseran, sementara sebaran selisih yang melebar menandakan model kehilangan ketepatan.",
           "Pemantauan kedua mengamati masukan, bukan keluaran. Bila sebaran masukan bergeser jauh dari sebaran data pelatihan, model bekerja pada wilayah yang tidak dikuasainya meskipun keluarannya belum terlihat keliru. Peringatan dini semacam ini muncul lebih awal daripada peringatan berbasis selisih.",
-          "Ambang untuk melatih ulang sebaiknya ditetapkan sejak awal, bukan diputuskan saat masalah muncul. Menetapkannya di awal memaksa perancang memikirkan siapa yang akan melakukannya dan dengan data apa — pertanyaan yang justru sering baru disadari setelah model terlanjur menua.",
+          "Ambang untuk melatih ulang sebaiknya ditetapkan sejak awal, bukan diputuskan saat masalah muncul. Menetapkannya di awal memaksa perancang memikirkan siapa yang akan melakukannya dan dengan data apa, pertanyaan yang justru sering baru disadari setelah model terlanjur menua.",
         ],
         formula: "pantau selisih terhadap acuan DAN pergeseran sebaran masukan",
       },
@@ -1549,7 +1549,7 @@ export const MATERI = {
         ["Hitung gradien bobot", "dL/dw = 0,140597*2,0 = 0,281194", "Dikalikan masukan."],
         ["Perbarui bobot", "w := 0,5 - 0,5*0,281194 = 0,359403", "Bobot bergeser turun karena keluaran terlalu tinggi."],
       ],
-      answer: "Bobot baru 0,359403. Perhatikan bahwa meskipun galatnya cukup besar yaitu 0,75, pergeseran bobotnya hanya sekitar 0,14 karena turunan sigmoid di titik itu hanya 0,187. Bila z jauh lebih besar, misalnya 5, turunannya turun menjadi sekitar 0,0066 dan bobot praktis berhenti bergerak — persis gejala gradien meredup yang membuat pelatihan jaringan dalam bersigmoid menjadi sulit.",
+      answer: "Bobot baru 0,359403. Perhatikan bahwa meskipun galatnya cukup besar yaitu 0,75, pergeseran bobotnya hanya sekitar 0,14 karena turunan sigmoid di titik itu hanya 0,187. Bila z jauh lebih besar, misalnya 5, turunannya turun menjadi sekitar 0,0066 dan bobot praktis berhenti bergerak; persis itulah gejala gradien meredup yang membuat pelatihan jaringan dalam bersigmoid menjadi sulit.",
     },
     pitfalls: [
       ["Memakai jaringan saraf pada persoalan yang linier dan modelnya mudah diperoleh", "Kerumitan bertambah, data dibutuhkan, dan jaminan kestabilan dari analisis klasik justru hilang."],
@@ -1676,7 +1676,7 @@ export const MATERI = {
         ["Defuzzifikasi berbobot", "u = (0,6*0 + 0,4*5)/(0,6 + 0,4)", "Rata-rata berbobot kekuatan aturan."],
         ["Hasil akhir", "u = 2,0/1,0 = 2,0", "Satu bilangan tegas siap dikirim ke actuator."],
       ],
-      closing: "Perhatikan penyebutnya berupa jumlah seluruh kekuatan aturan. Bila basis aturan tidak lengkap sehingga pada suatu keadaan tidak ada aturan yang aktif, penyebutnya menjadi nol dan keluarannya tidak terdefinisi — inilah alasan pemeriksaan kelengkapan bersifat wajib, bukan anjuran.",
+      closing: "Perhatikan penyebutnya berupa jumlah seluruh kekuatan aturan. Bila basis aturan tidak lengkap sehingga pada suatu keadaan tidak ada aturan yang aktif, penyebutnya menjadi nol dan keluarannya tidak terdefinisi; inilah alasan pemeriksaan kelengkapan bersifat wajib, bukan anjuran.",
     },
     worked: {
       head: "Contoh Terhitung: Keluaran pada Dua Masukan",
@@ -1733,7 +1733,7 @@ export const MATERI = {
           "Seleksi menentukan kandidat mana yang berpeluang menurunkan sifatnya. Metode turnamen paling banyak dipakai karena sederhana dan tekanan seleksinya mudah diatur lewat ukuran turnamen. Tekanan yang terlalu besar membuat populasi cepat seragam dan pencarian berhenti dini.",
           "Persilangan menggabungkan dua kandidat menjadi keturunan baru. Operator inilah yang bertanggung jawab menggabungkan bagian-bagian baik dari dua penyelesaian berbeda, dan menjadi pembeda utama algoritma genetika dari pencarian acak biasa.",
           "Mutasi mengubah sedikit nilai secara acak. Perannya menjaga keragaman dan membuka kembali daerah pencarian yang sudah ditinggalkan populasi. Laju yang terlalu kecil membuat pencarian terjebak, sedangkan yang terlalu besar mengubahnya menjadi pencarian acak yang tidak terarah.",
-          "Elitisme menyalin beberapa kandidat terbaik langsung ke generasi berikutnya tanpa perubahan. Tanpa ini, penyelesaian terbaik yang sudah ditemukan dapat hilang akibat persilangan atau mutasi, sehingga kualitas terbaik dapat menurun antargenerasi — hal yang seharusnya tidak pernah terjadi.",
+          "Elitisme menyalin beberapa kandidat terbaik langsung ke generasi berikutnya tanpa perubahan. Tanpa ini, penyelesaian terbaik yang sudah ditemukan dapat hilang akibat persilangan atau mutasi, sehingga kualitas terbaik dapat menurun antargenerasi, hal yang seharusnya tidak pernah terjadi.",
         ],
         formula: "seleksi -> persilangan -> mutasi -> elitisme, berulang tiap generasi",
       },
@@ -1762,7 +1762,7 @@ export const MATERI = {
         body: [
           "Algoritma genetika bukan pengganti pemahaman sistem. Ia bekerja paling baik ketika struktur controller sudah ditetapkan dengan benar dan yang tersisa hanyalah mencari nilai parameternya. Memakainya untuk menutupi struktur yang keliru hanya menghasilkan penyetelan terbaik dari pilihan yang buruk.",
           "Penggunaan yang lazim mencakup penyetelan parameter PID pada plant yang nonlinier, pencarian letak dan bentuk fungsi keanggotaan pada controller fuzzy, serta penentuan bobot antartujuan yang saling bertentangan.",
-          "Karena penilaiannya berbasis simulasi, kualitas hasil dibatasi kualitas model. Model yang tidak memuat kejenuhan actuator akan menghasilkan penyetelan yang tampak unggul di komputer dan mengecewakan di lapangan — persoalan yang sama dengan simulasi pada umumnya, hanya diperbesar karena algoritma mengejar celah model secara sistematis.",
+          "Karena penilaiannya berbasis simulasi, kualitas hasil dibatasi kualitas model. Model yang tidak memuat kejenuhan actuator akan menghasilkan penyetelan yang tampak unggul di komputer dan mengecewakan di lapangan, persoalan yang sama dengan simulasi pada umumnya, hanya diperbesar karena algoritma mengejar celah model secara sistematis.",
           "Karena itu langkah akhir tetap sama seperti metode lain: nilai hasil pencarian diperlakukan sebagai titik awal, diperiksa terhadap batas actuator dan derau, lalu diuji bertahap pada perangkat dengan jalan keluar yang siap.",
         ],
         formula: "struktur ditetapkan lebih dahulu, GA mencari parameternya",
@@ -1838,7 +1838,7 @@ export const MATERI = {
         ["Hitung anak", "= 1,5 + 5,6 = 7,1", "Nilai berada di antara kedua induknya."],
         ["Mutasi anak", "7,1 + 0,4 = 7,5", "Derau acak kecil ditambahkan untuk menjaga keragaman."],
       ],
-      answer: "Generasi berikutnya memuat elite Kp = 5,0 dan keturunan Kp = 7,5, ditambah kandidat lain hasil turnamen berikutnya. Perhatikan bahwa persilangan aritmetik hanya menghasilkan nilai di antara kedua induknya, sehingga populasi cenderung menyusut ke satu titik. Mutasi itulah satu-satunya operator yang dapat membawa pencarian keluar dari rentang yang sudah ada — dan karena itu menolkan laju mutasi hampir selalu membuat pencarian berhenti dini.",
+      answer: "Generasi berikutnya memuat elite Kp = 5,0 dan keturunan Kp = 7,5, ditambah kandidat lain hasil turnamen berikutnya. Perhatikan bahwa persilangan aritmetik hanya menghasilkan nilai di antara kedua induknya, sehingga populasi cenderung menyusut ke satu titik. Mutasi itulah satu-satunya operator yang dapat membawa pencarian keluar dari rentang yang sudah ada, dan karena itu menolkan laju mutasi hampir selalu membuat pencarian berhenti dini.",
     },
     pitfalls: [
       ["Memakai algoritma genetika untuk menutupi struktur controller yang keliru", "Hasilnya hanya penyetelan terbaik dari pilihan yang buruk. Struktur harus ditetapkan lebih dahulu."],

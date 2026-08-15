@@ -1,6 +1,6 @@
 // Data forum diskusi Modul 2-14 Sistem Kendali Cerdas.
 //
-// Modul 1 tidak ada di sini — halaman forumnya ditulis tangan dan dilewati
+// Modul 1 tidak ada di sini karena halaman forumnya ditulis tangan dan dilewati
 // generator (lihat LEWATI di enrich-sisken-modules.mjs).
 //
 // Tiap entri:
@@ -49,7 +49,7 @@ export const FORUM = {
           "Sistem menjadi loop terbuka yang justru lebih stabil",
         ],
         jawab: 2,
-        benar: "Tepat. Saat actuator mentok, keluaran controller tidak lagi berpengaruh. Aksi integral yang terus menumpuk selama itu akan membuat keluaran melewati setpoint jauh melebihi perkiraan — persis 12 derajat yang dilaporkan operator.",
+        benar: "Tepat. Saat actuator mentok, keluaran controller tidak lagi berpengaruh. Aksi integral yang terus menumpuk selama itu akan membuat keluaran melewati setpoint jauh melebihi perkiraan; persis itulah 12 derajat yang dilaporkan operator.",
         salah: "Perhatikan bahwa saat mentok, perubahan keluaran controller tidak lagi mengubah apa pun pada plant. Loop terputus secara efektif, dan itu bukan keadaan yang lebih cepat maupun lebih stabil.",
       },
       {
@@ -68,7 +68,7 @@ export const FORUM = {
     diskusi: [
       {
         q: "Susun spesifikasi terukur yang seharusnya disepakati di awal proyek ini",
-        petunjuk: "(1) Nyatakan overshoot, waktu menetap, dan error tunak dalam angka bersatuan. (2) Sebutkan batas actuator dan rentang sensor. (3) Tentukan kondisi operasi mana yang dipakai sebagai acuan pengujian — beban ringan atau beban penuh?",
+        petunjuk: "(1) Nyatakan overshoot, waktu menetap, dan error tunak dalam angka bersatuan. (2) Sebutkan batas actuator dan rentang sensor. (3) Tentukan kondisi operasi mana yang dipakai sebagai acuan pengujian: beban ringan atau beban penuh?",
       },
       {
         q: "Jelaskan mengapa sistem bekerja mulus saat beban ringan namun gagal saat produksi penuh",
@@ -229,7 +229,7 @@ export const FORUM = {
           "Terlalu kecil sehingga simulasi boros waktu komputasi",
         ],
         jawab: 1,
-        benar: "Tepat. Dengan aturan itu, dt seharusnya di bawah 0,002 detik — dua puluh lima kali lebih kecil daripada yang dipakai. Pada langkah sebesar itu mode tercepat praktis tidak terwakili sama sekali.",
+        benar: "Tepat. Dengan aturan itu, dt seharusnya di bawah 0,002 detik, alias dua puluh lima kali lebih kecil daripada yang dipakai. Pada langkah sebesar itu mode tercepat praktis tidak terwakili sama sekali.",
         salah: "Yang menjadi acuan bukan waktu menetap melainkan konstanta waktu tercepat, dan aturannya dt di bawah sepersepuluhnya. Runge-Kutta memang lebih teliti, tetapi tetap tidak menyelamatkan langkah yang terlalu besar.",
       },
       {
@@ -242,7 +242,7 @@ export const FORUM = {
         ],
         jawab: 2,
         benar: "Tepat. Respons yang tampak sempurna ternyata menuntut aksi kontrol di luar kemampuan perangkat. Di lapangan actuator mentok, loop praktis terputus, dan perilakunya menyimpang jauh dari simulasi.",
-        salah: "Tanpa batas, simulasi memberi actuator kemampuan tak terbatas — itu membuat hasilnya terlalu bagus, bukan terlalu buruk. Justru inilah sumber hentakan yang merusak kopling.",
+        salah: "Tanpa batas, simulasi memberi actuator kemampuan tak terbatas, dan itu membuat hasilnya terlalu bagus, bukan terlalu buruk. Justru inilah sumber hentakan yang merusak kopling.",
       },
       {
         q: "Bukti apa yang paling menentukan seandainya sejak awal ikut direkam pada laporan simulasi?",
@@ -369,7 +369,7 @@ export const FORUM = {
           "Jumlah botol yang diproduksi per jam",
         ],
         jawab: 0,
-        benar: "Tepat. Angka tanpa pembanding tidak bermakna. Ayunan 0,4 mm bisa sepenuhnya dapat diterima atau sama sekali tidak, bergantung pada toleransi yang disepakati — dan justru itulah yang tidak tercatat.",
+        benar: "Tepat. Angka tanpa pembanding tidak bermakna. Ayunan 0,4 mm bisa sepenuhnya dapat diterima atau sama sekali tidak, bergantung pada toleransi yang disepakati; justru itulah yang tidak tercatat.",
         salah: "Tanpa toleransi yang disepakati, tidak ada dasar untuk menyatakan sistem memenuhi atau tidak memenuhi. Informasi lain tidak menjawab pertanyaan itu.",
       },
       {
@@ -406,7 +406,7 @@ export const FORUM = {
     eyebrow: "Forum Diskusi · Pertemuan 8 · Karakteristik Respons Umpan Balik",
     ringkas: "Sebuah loop lolos seluruh pengujian serah terima lalu bermasalah pada minggu pertama produksi. Yang diuji ternyata bukan yang dibutuhkan.",
     narasi: [
-      "Kendali tekanan sebuah jalur uap diserahterimakan setelah lolos pengujian lengkap. Prosedurnya jelas: setpoint diubah dari 4 bar ke 5 bar, dan responsnya diukur. Hasilnya bagus — overshoot 6 persen, waktu menetap 12 detik, tanpa error tunak karena controller memakai aksi integral.",
+      "Kendali tekanan sebuah jalur uap diserahterimakan setelah lolos pengujian lengkap. Prosedurnya jelas: setpoint diubah dari 4 bar ke 5 bar, dan responsnya diukur. Hasilnya bagus, yakni overshoot 6 persen, waktu menetap 12 detik, tanpa error tunak karena controller memakai aksi integral.",
       "Minggu pertama produksi, operator melapor tekanan <strong style=\"color:var(--pink)\">turun sampai 4,3 bar selama hampir satu menit</strong> setiap kali mesin pengguna uap dinyalakan, lalu perlahan kembali. Setpoint tidak pernah diubah sama sekali selama kejadian itu.",
       "Tim yang memasang berkeras sistem sudah sesuai spesifikasi, dan secara tertulis mereka benar: dokumen serah terima hanya memuat <strong style=\"color:var(--amber)\">angka untuk perubahan setpoint</strong>. Tidak ada satu pun angka yang mengatur seberapa dalam tekanan boleh turun akibat perubahan beban, maupun berapa lama ia boleh pulih.",
     ],
@@ -422,7 +422,7 @@ export const FORUM = {
         ],
         jawab: 1,
         benar: "Tepat. Setpoint dilewatkan seluruh lintasan maju, sedangkan gangguan beban hanya dilewatkan plant tanpa melewati controller. Karena pembilangnya berbeda, bentuk responsnya pun berbeda meskipun pole-nya sama.",
-        salah: "Perhatikan letak masuknya kedua sinyal pada diagram blok. Keduanya berbagi penyebut yang sama, tetapi tidak berbagi pembilang — dan pembilang itulah yang membentuk responsnya.",
+        salah: "Perhatikan letak masuknya kedua sinyal pada diagram blok. Keduanya berbagi penyebut yang sama, tetapi tidak berbagi pembilang, padahal pembilang itulah yang membentuk responsnya.",
       },
       {
         q: "Dokumen serah terima yang hanya memuat angka untuk perubahan setpoint berakibat...",
@@ -544,7 +544,7 @@ export const FORUM = {
           "1 + G1H1G3H2",
         ],
         jawab: 1,
-        benar: "Tepat, dan bentuk itu dapat difaktorkan menjadi (1 + G1H1)(1 + G3H2) — persis hasil reduksi blok. Suku hasil kali loop muncul justru karena kedua loop tidak berbagi simpul.",
+        benar: "Tepat, dan bentuk itu dapat difaktorkan menjadi (1 + G1H1)(1 + G3H2), persis hasil reduksi blok. Suku hasil kali loop muncul justru karena kedua loop tidak berbagi simpul.",
         salah: "Determinan memuat suku hasil kali untuk setiap pasangan loop yang tidak bersentuhan. Melupakannya adalah kekeliruan paling umum pada penerapan aturan Mason.",
       },
       {
@@ -556,7 +556,7 @@ export const FORUM = {
           "Pemeriksaan itu hanya berlaku untuk sistem orde satu",
         ],
         jawab: 1,
-        benar: "Tepat. Suku hasil kali loop sering kecil pada s = 0 sehingga selisih gainnya tipis, tetapi pengaruhnya terhadap koefisien polinomial — dan karena itu terhadap letak akar — jauh lebih besar.",
+        benar: "Tepat. Suku hasil kali loop sering kecil pada s = 0 sehingga selisih gainnya tipis, tetapi pengaruhnya terhadap koefisien polinomial, dan karena itu terhadap letak akar, jauh lebih besar.",
         salah: "Gain arus searah memang bergantung pada penyebut, dan kedua penyebut memberi nilai berbeda. Persoalannya selisih itu terlalu kecil untuk memicu kecurigaan.",
       },
       {
