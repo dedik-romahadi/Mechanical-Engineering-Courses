@@ -5,6 +5,84 @@
 // apa      : 1-3 kalimat bahasa sehari-hari; {{token}} dirender tokenLatex
 //            sehingga notasinya identik dengan di persamaan (hasil KaTeX).
 // variabel : [token ASCII utk tokenLatex, arti] utk SETIAP notasi persamaan.
+// ── Kamus notasi GLOBAL untuk legenda kartu & tabel ──────────────────────────
+// Persamaan pada kartu konsep, Tabel 1, dan kartu langkah penurunan tidak
+// dinomori satu-satu; notasinya dijelaskan lewat SATU legenda per bagian yang
+// dirakit otomatis: token diekstrak tokenNotasi() lalu dicari artinya di sini.
+// Token tanpa entri = generator GAGAL FATAL. Kunci multi-huruf otomatis menjadi
+// "nama dikenal" pengekstrak (RMSE tidak dipecah jadi R,M,S,E).
+export const NOTASI_KAMUS = {
+  // sinyal & waktu
+  "e": "error: setpoint dikurangi keluaran", "t": "waktu", "r": "setpoint (perintah)",
+  "y": "keluaran sistem", "u": "sinyal kendali", "d": "awalan diferensial: perubahan kecil",
+  "de": "perubahan kecil error", "dt": "selang waktu kecil", "y'": "laju perubahan keluaran",
+  "x'": "turunan pertama x terhadap waktu", "x''": "turunan kedua x (percepatan)",
+  "f'": "turunan fungsi f", "G'": "plant yang parameternya sudah bergeser",
+  "t_r": "waktu naik 10%→90%", "t_s": "waktu menetap (pita ±2%)", "t_p": "waktu puncak",
+  "t_{90}": "saat keluaran mencapai 90%", "t_{10}": "saat keluaran mencapai 10%",
+  "T_{osilasi}": "periode satu ayunan osilasi",
+  // domain-s & fungsi transfer
+  "s": "peubah Laplace", "\\mathcal": "operator transformasi Laplace",
+  "L": "gain loop (atau lambang transformasi Laplace pada L{ })",
+  "F": "transformasi Laplace dari f(t)", "X": "transformasi Laplace dari x(t)",
+  "Y": "keluaran dalam domain-s", "U": "masukan dalam domain-s",
+  "E": "error dalam domain-s", "G": "fungsi transfer plant", "H": "fungsi transfer sensor",
+  "C": "fungsi transfer controller", "T": "fungsi transfer loop tertutup",
+  "S": "fungsi sensitivitas", "G_{eq}": "fungsi transfer ekivalen",
+  "A_i": "residu mode ke-i", "p_i": "pole ke-i", "p": "parameter atau pole",
+  "Re": "bagian nyata bilangan kompleks", "j": "satuan khayal √(−1)",
+  "\\det": "determinan matriks",
+  // orde dua & margin
+  "\\zeta": "rasio redaman", "ζ": "rasio redaman", "\\omega_n": "frekuensi alami (rad/s)",
+  "ω_n": "frekuensi alami (rad/s)", "\\omega_d": "frekuensi osilasi teredam (rad/s)",
+  "\\pi": "konstanta lingkaran 3,14159…", "M_p": "lonjakan maksimum (%)",
+  "e_{ss}": "error tunak", "y_{peak}": "nilai puncak keluaran", "y_{ss}": "nilai tunak keluaran",
+  "\\tau": "konstanta waktu", "\\tau_{tercepat}": "konstanta waktu terkecil sistem",
+  "\\tau_{cl}": "konstanta waktu loop tertutup",
+  "K": "gain", "wc": "frekuensi silang (rad/s)", "wd": "frekuensi teredam (rad/s)",
+  "wn": "frekuensi alami (rad/s)", "n": "indeks atau orde", "fase": "sudut fase (derajat/radian)",
+  // ruang keadaan & model
+  "x": "keadaan (atau posisi)", "A": "matriks dinamika (atau gain jalur)",
+  "B": "matriks masukan", "m": "massa", "b": "koefisien redaman (atau bias neuron)",
+  "k": "kekakuan pegas (atau indeks cuplikan)", "M": "massa (atau label matriks)",
+  // digital
+  "T_s": "periode cuplik", "f_s": "frekuensi cuplik", "f_{bw}": "lebar pita sistem",
+  "bandwidth": "lebar pita: batas frekuensi yang masih diikuti",
+  "e_k": "error pada cuplikan ke-k", "e_{k-1}": "error satu cuplikan sebelumnya",
+  "e_{k-2}": "error dua cuplikan sebelumnya", "u_k": "sinyal kendali cuplikan ke-k",
+  "u_{k-1}": "sinyal kendali cuplikan sebelumnya",
+  // PID & pembatasan
+  "K_p": "gain proporsional", "K_i": "gain integral", "K_d": "gain derivatif",
+  "T_i": "waktu integral (detik)", "T_d": "waktu derivatif (detik)",
+  "u_P": "suku P: koreksi kini", "u_I": "suku I: akumulasi error", "u_D": "suku D: rem perubahan",
+  "I": "akumulator integral", "I_{aw}": "akumulator setelah anti-windup",
+  "K_{aw}": "gain anti-windup", "u_{sat}": "sinyal kendali setelah dibatasi",
+  "u_{min}": "batas bawah aktuator", "u_{max}": "batas atas aktuator",
+  // Mason
+  "P_k": "gain jalur maju ke-k", "L_i": "gain loop ke-i", "L_j": "gain loop ke-j",
+  "L_A": "gain loop A", "L_B": "gain loop B", "\\Delta": "determinan grafik",
+  "Δ": "determinan grafik", "\\Delta_1": "determinan sisa jalur 1", "Δ_k": "determinan sisa jalur k",
+  // cerdas: ANN / fuzzy / GA
+  "Kecerdasan": "pemetaan cerdas (fuzzy/ANN) pengganti rumus tetap",
+  "data": "contoh pengukuran yang dipelajari", "uji": "hasil pengujian", "asumsi": "anggapan model",
+  "f": "fungsi (aktivasi pada ANN)", "f_W": "jaringan dengan kumpulan bobot W",
+  "w": "bobot neuron", "z": "penjumlah neuron sebelum aktivasi", "a": "keluaran aktivasi neuron",
+  "ᵀ": "transpose vektor/matriks", "φ": "fungsi aktivasi", "λ": "bobot regularisasi",
+  "J": "fungsi tujuan/kebugaran", "R": "suku regularisasi (atau setpoint domain-s)",
+  "MSE": "rata-rata kuadrat galat", "RMSE": "akar rata-rata kuadrat galat",
+  "ITAE": "integral |error| berbobot waktu",
+  "u_{baseline}": "sinyal kendali dasar (PID)", "u_{NN}": "koreksi tambahan dari jaringan",
+  "\\mu": "derajat keanggotaan fuzzy 0–1", "μ_A": "derajat keanggotaan pada himpunan A",
+  "μ_e": "derajat keanggotaan error", "μ_{de}": "derajat keanggotaan laju error",
+  "α": "derajat pemicu aturan", "α_i": "derajat pemicu aturan ke-i",
+  "z_i": "keluaran singleton aturan ke-i", "P": "label fuzzy Positif", "N": "label fuzzy Negatif",
+  "PM": "label fuzzy Positif Menengah", "Nol": "label fuzzy Nol",
+  "Positif": "label fuzzy Positif", "Kecil": "pengecil label fuzzy (mis. Positif Kecil)",
+  "i": "indeks penjumlahan",
+  "θ": "vektor parameter yang dicari (mis. [Kp, Ki, Kd])",
+  "σ": "simpangan baku langkah mutasi",
+};
+
 export const PENJELASAN_RUMUS = {
 
   // ── Modul 2 ──────────────────────────────────────────────
