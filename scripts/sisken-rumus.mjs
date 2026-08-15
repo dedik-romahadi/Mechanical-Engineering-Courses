@@ -313,6 +313,70 @@ function terlihatKalimat(teks) {
  * Kembalikan potongan HTML: ruas persamaan sudah dibungkus \( \) untuk KaTeX,
  * ruas kalimat tetap sebagai teks yang sudah diamankan.
  */
+// Perintah LaTeX struktural yang bukan notasi (tidak butuh penjelasan arti).
+const STRUKTUR_LATEX = new Set(["frac", "sqrt", "left", "right", "cdot", "quad",
+  "qquad", "to", "sum", "int", "lim", "infty", "Rightarrow", "Leftrightarrow",
+  "leftrightarrow", "pm", "mp", "gg", "ll", "approx", "sim", "le", "ge", "ne",
+  "neq", "text", "mathrm", "operatorname", "dots", "ldots", "cdots", "times",
+  "min", "max", "log", "ln", "exp", "cos", "sin", "dot", "underbrace", "overline"]);
+
+/**
+ * Ekstrak token NOTASI dari sebuah rumus ASCII: perintah LaTeX non-struktural
+ * (\zeta, \tau, ...) plus pengenal (RMSE, e_{ss}, K, x'). Dipakai perakit
+ * legenda notasi kartu/tabel dan auditnya — satu pengekstrak untuk keduanya
+ * supaya legenda dan audit mustahil berbeda pendapat.
+ */
+export function tokenNotasi(rumusAscii, namaDikenal = new Set()) {
+  // Hanya segmen yang benar-benar TAMPIL sebagai matematika; ekor prosa pada
+  // ruas ("... lalu ulangi pada dt/2") tidak menghasilkan token.
+  const rendered = rumusLatex(rumusAscii, (x) => String(x));
+  const latex = [...rendered.matchAll(/\\\((.+?)\\\)/g)].map((m) => m[1]).join(" ");
+  return ekstrakNotasiLatex(latex, namaDikenal);
+}
+
+// Inti pengekstrak, menerima LaTeX langsung — dipakai tokenNotasi (rumus ASCII
+// generator) dan halaman tulisan tangan yang rumusnya sudah berupa LaTeX.
+export function ekstrakNotasiLatex(latex, namaDikenal = new Set()) {
+  const hasil = [];
+  const sudah = new Set();
+  const tambah = (t) => { if (t && !sudah.has(t)) { sudah.add(t); hasil.push(t); } };
+  // Bagian \text{...} adalah prosa di dalam matematika — bukan notasi.
+  let t = latex.replace(/\\(?:text|operatorname|mathrm)\{[^{}]*\}/g, " ");
+  // 1) Perintah non-struktural, beserta subskrip yang menempel (\tau_{cl}).
+  t = t.replace(/\\([a-zA-Z]+)(_\{[^{}]*\}|_[A-Za-z0-9])?/g, (m, nama, sub) => {
+    if (!STRUKTUR_LATEX.has(nama)) tambah(`\\${nama}${sub || ""}`);
+    return " ";
+  });
+  // 2) Pengenal BERSUBSKRIP diambil utuh lebih dulu — isi kurawalnya bagian
+  //    dari nama (e_{ss}, t_{90}), bukan token tersendiri.
+  t = t.replace(/([A-Za-z]+)(_\{[^{}]*\}|_[A-Za-z0-9])/g, (m) => { tambah(m); return " "; });
+  // 3) Huruf beraksen turunan (x', x'').
+  t = t.replace(/[A-Za-z]'{1,2}/g, (m) => { tambah(m); return " "; });
+  // 4) Huruf Yunani literal pada data (φ, α, μ_e, λ) beserta subskripnya,
+  //    dan tanda transpose ᵀ. Σ literal adalah operator jumlah — struktural.
+  t = t.replace(/[Α-ωᵀᵀᵀ](?:_\{[^{}]*\}|_[A-Za-z0-9])?/g, (m) => {
+    if (m !== "Σ") tambah(m);
+    return " ";
+  });
+  // 5) Deretan huruf: kata Indonesia penyambung di dalam matematika diabaikan;
+  //    nama yang dikenal kamus (RMSE, Re, uji) diambil utuh; selain itu deretan
+  //    seperti "Ax" adalah perkalian — dipecah per huruf.
+  const ABAIKAN = new Set(["tak", "hingga", "dengan", "pada", "dan", "atau",
+    "lalu", "bila", "untuk", "semua", "dgn", "thd", "per",
+    // sintaks aturan & operator literal — bukan notasi yang butuh arti
+    // (dibandingkan setelah toLowerCase, jadi ditulis huruf kecil)
+    "if", "and", "then", "min", "max"]);
+  t = t.replace(/[A-Za-z]{2,}/g, (run) => {
+    if (ABAIKAN.has(run.toLowerCase())) return " ";
+    if (namaDikenal.has(run)) tambah(run);
+    else for (const ch of run) tambah(ch);
+    return " ";
+  });
+  // 6) Huruf tunggal tersisa.
+  t = t.replace(/[A-Za-z]/g, (ch) => { tambah(ch); return " "; });
+  return hasil;
+}
+
 export function rumusLatex(teks, esc) {
   const pemisah = ' <span style="color:var(--muted)">&nbsp;|&nbsp;</span> ';
   // Pemisah antarruas pada data ditulis dengan spasi di kedua sisi. Batang
