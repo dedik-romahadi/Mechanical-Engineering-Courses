@@ -636,7 +636,10 @@ function legendaNotasi(daftarRumus) {
   const chips = urutan.map(([tk, asal]) => {
     const arti = NOTASI_KAMUS[tk];
     if (!arti) throw new Error(`Notasi tanpa arti di NOTASI_KAMUS: "${tk}" (dari rumus: ${asal.slice(0, 60)})`);
-    const latexTok = tk === "ᵀ" ? "{}^{T}" : tk;
+    // Perintah yang WAJIB berargumen tidak boleh tampil telanjang — KaTeX
+    // menolaknya dan menampilkan teks mentah merah (\sqrt, \mathcal).
+    const TAMPIL = { "ᵀ": "{}^{T}", "\\mathcal": "\\mathcal{L}", "\\sqrt": "\\sqrt{x}", "\\frac": "\\frac{a}{b}" };
+    const latexTok = TAMPIL[tk] || tk;
     return `<span class="anim-var"><span class="rumus-notasi">\\(${latexTok}\\)</span><span>${esc(arti)}</span></span>`;
   }).join("");
   return `\n  <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>

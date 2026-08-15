@@ -343,7 +343,7 @@ export const PENJELASAN_RUMUS = {
       ["y_ukur", "data pengukuran dari plant sungguhan"],
       ["y_model", "keluaran model pada masukan yang sama"],
       ["mean", "rata-rata atas seluruh titik data"],
-      ["sqrt", "akar kuadrat"],
+      ["sqrt(x)", "akar kuadrat"],
     ],
   },
   // [Linearisasi: Menjinakkan Nonlinieritas di Titik Kerja]
