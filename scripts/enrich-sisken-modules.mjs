@@ -359,14 +359,21 @@ html,body{height:auto!important;min-height:100%!important;overflow-y:auto!import
 .rumus-jelas{margin-top:-6px;font-size:16.5px;line-height:1.65}
 .anim-jelas{margin-top:-4px;font-size:16.5px;line-height:1.65}
 .anim-var-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
-.anim-var{display:inline-flex;align-items:center;gap:10px;padding:9px 14px;border:1px solid rgba(0,229,255,.22);border-radius:12px;background:linear-gradient(180deg,rgba(0,229,255,.07),rgba(0,229,255,.02));font-size:16.5px;line-height:1.55;color:var(--text);max-width:100%;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,opacity .18s ease}
-.rumus-notasi,.anim-var code{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:#9ff6ff;background:rgba(0,229,255,.14);border:1px solid rgba(0,229,255,.38);border-radius:8px;padding:3px 10px;white-space:nowrap;flex-shrink:0}
+.anim-var{--na:0,229,255;--nt:#9ff6ff;display:inline-flex;align-items:center;gap:10px;padding:9px 14px;border:1px solid rgba(var(--na),.22);border-radius:12px;background:linear-gradient(180deg,rgba(var(--na),.07),rgba(var(--na),.02));font-size:16.5px;line-height:1.55;color:var(--text);max-width:100%;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,opacity .18s ease}
+/* Lima varian warna bersiklus, mengikuti palet penyorot kode Python halaman
+   ini (kw violet, fn sky, st hijau, nm oranye) plus cyan situs — atas
+   permintaan dosen agar panel notasi berwarna-warni seperti kode. */
+.anim-var.nw1{--na:168,85,247;--nt:#dcbcff}
+.anim-var.nw2{--na:0,224,158;--nt:#8dffd8}
+.anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
+.anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
+.rumus-notasi,.anim-var code{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap;flex-shrink:0}
 /* Interaksi sorotan: chip yang disentuh terangkat & menyala, saudaranya
    meredup — membantu mata mengunci satu notasi di antara banyak chip. */
 @media(hover:hover){
   .anim-var-list:hover .anim-var:not(:hover){opacity:.4}
-  .anim-var:hover{transform:translateY(-2px);border-color:rgba(0,229,255,.7);box-shadow:0 6px 18px rgba(0,229,255,.18)}
-  .anim-var:hover .rumus-notasi,.anim-var:hover code{background:rgba(0,229,255,.26);color:#d9fbff;border-color:rgba(0,229,255,.7)}
+  .anim-var:hover{transform:translateY(-2px);border-color:rgba(var(--na),.7);box-shadow:0 6px 18px rgba(var(--na),.18)}
+  .anim-var:hover .rumus-notasi,.anim-var:hover code{background:rgba(var(--na),.28);color:#f2fdff;border-color:rgba(var(--na),.75)}
 }
 .anim-var:active{transform:scale(.985)}
 @media(prefers-reduced-motion:reduce){.anim-var{transition:none}.anim-var:hover{transform:none}}
@@ -633,14 +640,14 @@ function legendaNotasi(daftarRumus) {
     }
   }
   if (!urutan.length) return "";
-  const chips = urutan.map(([tk, asal]) => {
+  const chips = urutan.map(([tk, asal], iw) => {
     const arti = NOTASI_KAMUS[tk];
     if (!arti) throw new Error(`Notasi tanpa arti di NOTASI_KAMUS: "${tk}" (dari rumus: ${asal.slice(0, 60)})`);
     // Perintah yang WAJIB berargumen tidak boleh tampil telanjang — KaTeX
     // menolaknya dan menampilkan teks mentah merah (\sqrt, \mathcal).
     const TAMPIL = { "ᵀ": "{}^{T}", "\\mathcal": "\\mathcal{L}", "\\sqrt": "\\sqrt{x}", "\\frac": "\\frac{a}{b}" };
     const latexTok = TAMPIL[tk] || tk;
-    return `<span class="anim-var"><span class="rumus-notasi">\\(${latexTok}\\)</span><span>${esc(arti)}</span></span>`;
+    return `<span class="anim-var nw${iw % 5}"><span class="rumus-notasi">\\(${latexTok}\\)</span><span>${esc(arti)}</span></span>`;
   }).join("");
   return `\n  <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
     <div class="anim-var-list" aria-label="Arti tiap notasi">${chips}</div>
@@ -679,8 +686,8 @@ function blokRumus(label, rumus, keterangan = "") {
   if (!j || !j.apa || !j.variabel?.length) {
     throw new Error(`Persamaan tanpa penjelasan di sisken-rumus-jelas.mjs:\n  "${rumus}"`);
   }
-  const chips = j.variabel.map(([token, arti]) =>
-    `<span class="anim-var"><span class="rumus-notasi">\\(${tokenLatex(token)}\\)</span><span>${siapkanTeksRumus(esc(arti))}</span></span>`).join("");
+  const chips = j.variabel.map(([token, arti], iw) =>
+    `<span class="anim-var nw${iw % 5}"><span class="rumus-notasi">\\(${tokenLatex(token)}\\)</span><span>${siapkanTeksRumus(esc(arti))}</span></span>`).join("");
   return `  <div class="formula-block reveal">${barisLabel}
     <div class="formula-main">${isi}<span class="formula-number">(${nomor})</span></div>${keterangan ? `\n    <div class="formula-desc">${keterangan}</div>` : ""}
   </div>
@@ -986,8 +993,8 @@ function richModule(m, index) {
   }
   const kotakJelas = (j) => {
     if (!j.apa || !j.variabel?.length) throw new Error(`Modul ${n}: penjelasan panel kosong`);
-    const daftar = j.variabel.map(([notasi, arti]) =>
-      `<span class="anim-var"><code>${notasi}</code><span>${arti}</span></span>`).join("");
+    const daftar = j.variabel.map(([notasi, arti], iw) =>
+      `<span class="anim-var nw${iw % 5}"><code>${notasi}</code><span>${arti}</span></span>`).join("");
     return `  <div class="tip-box reveal anim-jelas">
     <strong>📊 Cara Membaca:</strong> ${j.apa}
     <div class="anim-var-list" aria-label="Arti tiap notasi">${daftar}</div>
