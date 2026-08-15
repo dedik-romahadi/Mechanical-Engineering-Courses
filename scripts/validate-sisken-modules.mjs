@@ -292,6 +292,14 @@ for (let n = 1; n <= 14; n += 1) {
     for (const j of animasiSaja) judulAnimasiSemua.push([n, j.replace(/^Animasi \d+ — /, "")]);
   }
 
+  // Chip notasi tidak boleh memuat perintah KaTeX telanjang yang wajib
+  // berargumen — KaTeX menolaknya dan menampilkan teks mentah merah. Pernah
+  // terjadi pada \sqrt (chip RMSE) dan \mathcal (kamus legenda).
+  {
+    const telanjang = tanpaGaya(html).match(/rumus-notasi">\\\((\\(?:sqrt|mathcal|frac|overline|underbrace))\s*\\\)/g);
+    checks.push([!telanjang, `chip notasi dengan perintah telanjang: ${(telanjang || []).join(", ").slice(0, 80)}`]);
+  }
+
   // Persamaan bernomor pada HALAMAN: nomornya urut 1..N tanpa lubang, dan tiap
   // nomor punya kotak "Persamaan (k)" pasangannya. Berlaku juga utk Modul 1.
   {
