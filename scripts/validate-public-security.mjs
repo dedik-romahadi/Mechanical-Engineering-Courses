@@ -115,8 +115,8 @@ for (const course of courseRoots) {
       "setTimeout(() => window._activateDosenQuestionView(), 100)",
       "DOSEN · SOAL HANYA-BACA",
       "const isDosenView = !!(me && me.role === 'dosen')",
-      "Mode Dosen — soal hanya-baca; jawaban dan poin tidak dicatat.",
-      "Mode Dosen — Export HTML mahasiswa dinonaktifkan.",
+      "Mode Dosen: soal hanya-baca; jawaban dan poin tidak dicatat.",
+      "Mode Dosen: Export HTML mahasiswa dinonaktifkan.",
     ]) {
       if (!exam.includes(required)) throw new Error(`${relative}: lecturer question view missing ${required}`);
     }
