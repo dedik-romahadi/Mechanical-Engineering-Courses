@@ -20,7 +20,9 @@ const TETAP_KECIL = new Set(["scipy", "eig", "tanh", "sigmoid", "dt", "de", "exp
  */
 export function kapitalAwal(t) {
   const s = String(t);
-  const kata = s.match(/^([a-zà-ÿ][a-zà-ÿ-]{2,})\b/);
+  // Istilah bertanda hubung/en dash ("on–off") dihitung satu kata supaya ikut
+  // dikapitalkan; ambang tiga huruf menjaga lambang pendek tetap huruf kecil.
+  const kata = s.match(/^([a-zà-ÿ][a-zà-ÿ–-]{2,})\b/);
   if (!kata || TETAP_KECIL.has(kata[1])) return s;
   return s.charAt(0).toUpperCase() + s.slice(1);
 }

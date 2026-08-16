@@ -70,6 +70,12 @@ html = html.replace(/Cara Membaca Animasi(?: Ini| \d+)?:/g, () => {
 
 // Setiap teks panel persamaan dan chip notasi diawali huruf kapital
 // (idempoten: kapitalAwal tidak mengubah teks yang sudah kapital/lambang).
+// Sel yang dibuka "\(" adalah LaTeX — polanya menuntut huruf kecil di awal,
+// sehingga lambang seperti \(e_{ss}\) tidak ikut dikapitalkan.
+for (const kelas of ["formula", "formula-main", "formula-label"]) {
+  const pola = new RegExp(`(class="${kelas}">\\s*)([a-zà-ÿ][^<]*)`, "g");
+  html = html.replace(pola, (m, awal, isi) => awal + kapitalAwal(isi));
+}
 html = html.replace(/(Persamaan \(\d+\)<\/strong> — )([a-zà-ÿ][^<]*)/g, (m, awal, isi) => awal + kapitalAwal(isi));
 html = html.replace(/(<span class="rumus-notasi">[^<]*(?:<[^>]+>[^<]*)*?<\/span><span>)([a-zà-ÿ][^<]*)/g, (m, awal, isi) => awal + kapitalAwal(isi));
 html = html.replace(/(<span class="anim-var[^"]*"><code>[^<]*<\/code><span>)([a-zà-ÿ][^<]*)/g, (m, awal, isi) => awal + kapitalAwal(isi));
