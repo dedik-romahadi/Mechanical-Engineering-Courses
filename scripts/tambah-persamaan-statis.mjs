@@ -80,7 +80,12 @@ function prosesBerkas(berkas, daftar) {
       if (dalam === 0) break;
     }
     if (!t) throw new Error(`${path.basename(berkas)}: blok rumus tanpa penutup`);
-    blok.push({ mulai: m.index, akhir: t.index + t[0].length });
+    // Hanya blok BERLABEL yang dinomori. Blok tanpa label adalah kotak
+    // "Penyelesaian Langkah-demi-Langkah" di dalam contoh terselesaikan;
+    // memberinya nomor persamaan justru mengaburkan persamaan konsepnya.
+    const akhir = t.index + t[0].length;
+    if (!/<div class="label">/.test(html.slice(m.index, akhir))) continue;
+    blok.push({ mulai: m.index, akhir });
   }
   if (blok.length !== daftar.length) {
     throw new Error(`${path.basename(berkas)}: ${blok.length} blok rumus, tetapi datanya ${daftar.length} entri`);
