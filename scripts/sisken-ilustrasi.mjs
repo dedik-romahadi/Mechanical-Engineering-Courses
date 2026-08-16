@@ -367,14 +367,18 @@ function gSinyal(p) {
 }
 
 function gBanding(p) {
-  const h = 250;
+  // Jalur bawah dipisah tegas: tepi kotak panel (h-52), baris catatan
+  // (h-34), lalu label sumbu X (h-10) — dulu catatan memotong tepi kotak
+  // dan menempel pada label sumbu.
+  const h = 262;
   const lebar = (W - 44 - 2 * 20) / 2;
   let g = latar(h);
-  const yPanel0 = 40; const yPanel1 = h - 46;
+  const rectY = 12;
+  const y0 = 44; const y1 = h - 64;
+  const rectBawah = y1 + 12;
   [[30, p.kiri], [30 + lebar + 20, p.kanan]].forEach(([ox, sisi]) => {
     const x0 = ox + 14; const x1 = ox + lebar - 12;
-    const y0 = yPanel0 + 10; const y1 = yPanel1 - 10;
-    g += `<rect x="${ox}" y="${yPanel0 - 22}" width="${lebar}" height="${yPanel1 - yPanel0 + 22 + 10}" rx="12" fill="${C.panel}" stroke="${C.grid}"/>`;
+    g += `<rect x="${ox}" y="${rectY}" width="${lebar}" height="${rectBawah - rectY}" rx="12" fill="${C.panel}" stroke="${C.grid}"/>`;
     for (let i = 1; i <= 4; i += 1) {
       const px = x0 + (i * (x1 - x0)) / 5;
       g += `<line x1="${px}" y1="${y0}" x2="${px}" y2="${y1}" stroke="${C.grid}" stroke-width="0.7"/>`;
@@ -388,11 +392,11 @@ function gBanding(p) {
       const warna = k.warna || [C.cyan, C.oranye][i % 2];
       g += jalurKurva(mini, ambilPts(k.preset || k.pts), warna, { tebal: 2.3, putus: k.putus, isi: i === 0 && !k.putus });
     });
-    g += teks(ox + lebar / 2, yPanel0 - 6, sisi.judul, { anchor: "middle", size: 12.5, fill: C.teks, weight: 700 });
-    if (sisi.catat) g += teks(ox + lebar / 2, h - 30, sisi.catat, { anchor: "middle", size: 11.3, fill: C.muted });
+    g += teks(ox + lebar / 2, rectY + 18, sisi.judul, { anchor: "middle", size: 12.5, fill: C.teks, weight: 700 });
+    if (sisi.catat) g += teks(ox + lebar / 2, h - 34, sisi.catat, { anchor: "middle", size: 11.3, fill: C.muted });
   });
-  g += teks(W / 2, h - 8, p.sumbuX || "Waktu", { anchor: "middle", size: 12, fill: C.teks });
-  g += `<g transform="rotate(-90 13 ${(yPanel0 + yPanel1) / 2})">${teks(13, (yPanel0 + yPanel1) / 2 + 4, p.sumbuY || "Keluaran", { anchor: "middle", size: 12, fill: C.teks })}</g>`;
+  g += teks(W / 2, h - 10, p.sumbuX || "Waktu", { anchor: "middle", size: 12, fill: C.teks });
+  g += `<g transform="rotate(-90 13 ${(y0 + y1) / 2})">${teks(13, (y0 + y1) / 2 + 4, p.sumbuY || "Keluaran", { anchor: "middle", size: 12, fill: C.teks })}</g>`;
   return { g, h };
 }
 
