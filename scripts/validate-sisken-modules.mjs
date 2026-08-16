@@ -85,6 +85,14 @@ for (let n = 1; n <= 14; n += 1) {
       const harus = hitung(acuan, jarum);
       checks.push([ada === harus, `${label}: ${ada} penanda, Modul 1 Getaran punya ${harus}`]);
     }
+    // Ilustrasi badan Modul 1 (disisipkan tambah-ilustrasi-modul1.mjs):
+    // enam gambar berurut plus rujukan nomornya di paragraf pembuka.
+    const markGbr1 = tanpaGaya(html);
+    const nomorFig1 = [...markGbr1.matchAll(/<figure class="ilustrasi[^>]*>[\s\S]*?<strong>Gambar (\d+)<\/strong>/g)].map((m2) => Number(m2[1]));
+    checks.push([nomorFig1.length === 6, `ilustrasi Modul 1 ${nomorFig1.length}, seharusnya 6`]);
+    checks.push([nomorFig1.every((v, i2) => v === i2 + 1), `nomor ilustrasi Modul 1 tidak urut 1..6: ${nomorFig1.join(",")}`]);
+    const rujukGbr1 = (markGbr1.match(/Gambar \d+ mengilustrasikan|diperlihatkan pada Gambar \d+|ilustrasinya pada Gambar \d+|Gambar \d+ merangkum/g) || []).length;
+    checks.push([rujukGbr1 >= 6, `rujukan nomor gambar Modul 1 ${rujukGbr1}, seharusnya >= 6`]);
   } else {
     checks.push(
       // Frasa "Tugas Pertemuan" dan "10 soal pilihan ganda" dahulu dianggap
