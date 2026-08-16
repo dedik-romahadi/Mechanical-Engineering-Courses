@@ -10,7 +10,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { renderIlustrasi, CSS_ILUSTRASI } from "./sisken-ilustrasi.mjs";
+import { renderIlustrasi, CSS_ILUSTRASI, kapitalAwal } from "./sisken-ilustrasi.mjs";
 import { GAMBAR_MODUL } from "./sisken-ilustrasi-data.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -67,6 +67,12 @@ html = html.replace(/Cara Membaca Animasi(?: Ini| \d+)?:/g, () => {
   urutAnim += 1;
   return `Cara Membaca Animasi ${urutAnim}:`;
 });
+
+// Setiap teks panel persamaan dan chip notasi diawali huruf kapital
+// (idempoten: kapitalAwal tidak mengubah teks yang sudah kapital/lambang).
+html = html.replace(/(Persamaan \(\d+\)<\/strong> — )([a-zà-ÿ][^<]*)/g, (m, awal, isi) => awal + kapitalAwal(isi));
+html = html.replace(/(<span class="rumus-notasi">[^<]*(?:<[^>]+>[^<]*)*?<\/span><span>)([a-zà-ÿ][^<]*)/g, (m, awal, isi) => awal + kapitalAwal(isi));
+html = html.replace(/(<span class="anim-var[^"]*"><code>[^<]*<\/code><span>)([a-zà-ÿ][^<]*)/g, (m, awal, isi) => awal + kapitalAwal(isi));
 
 fs.writeFileSync(target, html);
 console.log(`Modul-1: 6 ilustrasi tersisip, ${urutAnim} kotak animasi dinomori.`);
