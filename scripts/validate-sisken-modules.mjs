@@ -269,7 +269,18 @@ for (let n = 1; n <= 14; n += 1) {
     const animasiSaja = judul.filter((j) => j.startsWith("Animasi"));
     if (n >= 2) {
       checks.push([animasiSaja.length === 3, `jumlah panel Animasi ${animasiSaja.length}, seharusnya 3`]);
-      checks.push([judul.filter((j) => j.startsWith("Gambar 1")).length === 1, "panel Gambar 1 hilang"]);
+      checks.push([judul.filter((j) => /^Gambar \d+ /.test(j)).length === 1, "panel Gambar hilang"]);
+      // Ilustrasi badan penjelasan: satu per sub-bagian materi (9), bernomor
+      // urut 1..9, panel kanvas melanjutkan deret (Gambar 10), dan badan
+      // merujuk nomornya. Sub-bagian tanpa gambar pernah tayang bisu — kini
+      // fatal di generator DAN tertangkap di sini.
+      const markGbr = tanpaGaya(html);
+      const nomorFig = [...markGbr.matchAll(/<figure class="ilustrasi[^>]*>[\s\S]*?<strong>Gambar (\d+)<\/strong>/g)].map((m2) => Number(m2[1]));
+      checks.push([nomorFig.length === 9, `ilustrasi badan ${nomorFig.length}, seharusnya 9`]);
+      checks.push([nomorFig.every((v, i) => v === i + 1), `nomor ilustrasi tidak urut 1..9: ${nomorFig.join(",")}`]);
+      checks.push([judul.some((j) => j.startsWith("Gambar 10 ")), "panel kanvas tidak bernomor Gambar 10"]);
+      const rujukGbr = (markGbr.match(/Gambar \d+ mengilustrasikan|diperlihatkan pada Gambar \d+|ilustrasinya pada Gambar \d+|Gambar \d+ merangkum/g) || []).length;
+      checks.push([rujukGbr >= 10, `rujukan nomor gambar ${rujukGbr}, seharusnya >= 10`]);
       const runtimeIni = html.match(/<script id="sisken-rich-runtime">([\s\S]*?)<\/script>/)?.[1] || "";
       for (const fn of ["drawSiskenAnim1", "drawSiskenAnim2", "drawSiskenAnim3", "drawSiskenGrafik"]) {
         checks.push([runtimeIni.includes(`window.${fn}=function`), `runtime tanpa ${fn}`]);
