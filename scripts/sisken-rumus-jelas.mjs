@@ -69,6 +69,7 @@ export const NOTASI_KAMUS = {
   "w": "bobot neuron", "z": "penjumlah neuron sebelum aktivasi", "a": "keluaran aktivasi neuron",
   "ᵀ": "transpose vektor/matriks", "φ": "fungsi aktivasi", "λ": "bobot regularisasi",
   "η": "laju belajar: besar langkah tiap pembaruan bobot",
+  "\\eta": "laju belajar: besar langkah tiap pembaruan bobot",
   "W": "matriks bobot jaringan yang sedang dilatih",
   "J": "fungsi tujuan/kebugaran", "R": "suku regularisasi (atau setpoint domain-s)",
   "MSE": "rata-rata kuadrat galat", "RMSE": "akar rata-rata kuadrat galat",
@@ -154,7 +155,7 @@ export const PENJELASAN_RUMUS = {
   "L{x'} = sX(s) - x(0)   |   L{x''} = s^2*X(s) - s*x(0) - x'(0)   |   L{f(t-L)} = exp(-Ls)*F(s)": {
     apa: "tiga sifat yang membuat persamaan diferensial berubah menjadi aljabar: setiap turunan waktu menjadi perkalian dengan {{s}} (kondisi awal ikut terbawa sebagai suku pengurang), dan penundaan sebesar {{L}} menjadi faktor {{exp(-Ls)}}.",
     variabel: [
-      ["L{x}", "operator transformasi Laplace: 'terjemahkan sinyal di kurungnya ke domain-s'"],
+      ["L{x'}", "operator transformasi Laplace: 'terjemahkan sinyal di kurungnya ke domain-s'"],
       ["x'", "turunan pertama sinyal terhadap waktu"],
       ["x''", "turunan kedua (percepatan)"],
       ["X(s)", "transformasi Laplace dari x(t)"],
@@ -210,7 +211,7 @@ export const PENJELASAN_RUMUS = {
   "L{impuls} = 1  =>  L{respons impuls} = G(s)   |   konvolusi <-> perkalian": {
     apa: "alasan respons impuls istimewa: transformasi impuls adalah 1, sehingga respons sistem terhadap impuls LANGSUNG memperlihatkan {{G(s)}} itu sendiri, yakni sidik jari lengkap sistem dalam satu ketukan. Dan karena konvolusi ↔ perkalian, respons terhadap masukan apa pun tinggal perkalian di domain-s.",
     variabel: [
-      ["L{x}", "operator transformasi Laplace"],
+      ["L{impuls}", "operator transformasi Laplace"],
       ["impuls", "sentakan sesaat berenergi satu (delta Dirac)"],
       ["G(s)", "fungsi transfer sistem"],
       ["konvolusi", "cara domain waktu menggabungkan masukan dengan ingatan sistem"],
@@ -418,23 +419,23 @@ export const PENJELASAN_RUMUS = {
     ],
   },
   // [Aliasing: Komponen yang Menyamar Setelah Di-sampling]
-  "batas = setengah frekuensi sampling   |   penapis harus analog, sebelum sampling": {
+  "f_N = f_s/2   |   penapis harus analog, sebelum sampling": {
     apa: "batas Nyquist dan konsekuensi praktisnya: komponen sinyal di atas setengah frekuensi sampling tidak hilang saat di-sampling, melainkan MENYAMAR sebagai frekuensi rendah palsu yang tak bisa dibedakan lagi. Karena penyamaran terjadi PADA saat sampling, penapis pencegahnya wajib analog dan dipasang sebelum ADC; menapis sesudahnya sudah terlambat selamanya.",
     variabel: [
-      ["batas", "frekuensi Nyquist: sinyal tertinggi yang masih terwakili jujur"],
+      ["f_N", "frekuensi Nyquist (batas): sinyal tertinggi yang masih terwakili jujur"],
       ["f_s", "frekuensi sampling: berapa kali per detik sinyal dibaca"],
     ],
   },
 
   // ── Modul 7 ──────────────────────────────────────────────
   // [Menyimpulkan Parameter Sistem dari Bentuk Kurva]
-  "zeta dari M_p   |   wd = 2*pi/periode   |   wn = wd/sqrt(1-zeta^2)": {
+  "M_p -> zeta   |   wd = 2*pi/T   |   wn = wd/sqrt(1-zeta^2)": {
     apa: "resep identifikasi dari satu kurva step: baca lonjakan → dapat {{zeta}}; ukur jarak antar puncak osilasi → dapat {{wd}}; gabungkan keduanya → dapat {{wn}}. Tiga pengukuran penggaris ini memberi model orde dua lengkap tanpa satu pun persamaan diferensial diselesaikan.",
     variabel: [
       ["zeta", "rasio redaman, disimpulkan dari besarnya lonjakan"],
       ["M_p", "lonjakan maksimum, % di atas nilai akhir"],
       ["wd", "frekuensi osilasi teredam yang terlihat di kurva (rad/s)"],
-      ["periode", "jarak waktu antara dua puncak berurutan"],
+      ["T", "periode osilasi: jarak waktu antara dua puncak berurutan"],
       ["pi", "konstanta lingkaran 3,14159…"],
       
       ["wn", "frekuensi alami: tempo dasar sistem seandainya tanpa redaman"],
@@ -732,7 +733,7 @@ export const PENJELASAN_RUMUS = {
     ],
   },
   // [Basis Aturan sebagai Pengetahuan yang Dieksekusi]
-  "jika error = A dan d(error) = B maka keluaran = C   |   7 x 7 = 49 aturan": {
+  "aturan: error = A, d(error) = B -> keluaran = C   |   7 x 7 = 49 aturan": {
     apa: "bentuk baku satu aturan fuzzy: sepasang kondisi kata-kata (error dan laju perubahannya) memetakan ke satu keluaran kata-kata. Hitungan kanannya konsekuensi kombinatorik: 7 tingkat untuk tiap masukan berarti 49 sel aturan yang semuanya harus terisi dan konsisten; itulah alasan praktisi sering cukup memakai 5, bahkan 3 tingkat.",
     variabel: [
       ["error", "selisih setpoint terhadap keluaran"],
