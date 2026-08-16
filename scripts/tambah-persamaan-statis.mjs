@@ -18,7 +18,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { kapitalAwal } from "./sisken-rumus.mjs";
-import { PERSAMAAN_STATIS } from "./persamaan-statis-data.mjs";
+import { PERSAMAAN_STATIS, ATURAN_BLOK } from "./persamaan-statis-data.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -62,7 +62,30 @@ function kotakJelas(spec, nomor) {
   </div>`;
 }
 
-function prosesBerkas(berkas, daftar) {
+/**
+ * Penentu blok mana yang dihitung sebagai persamaan konsep. Markup halaman
+ * berbeda antar mata kuliah, jadi aturannya dinyatakan eksplisit di data:
+ *
+ * - "label-polos": hanya blok berlabel `<div class="label">` tanpa atribut.
+ *   Dipakai Getaran dan Matematika 4, yang halamannya juga memuat blok
+ *   contoh terselesaikan berlabel bergaya ("Contoh 5.1", "Penyelesaian ...")
+ *   yang bukan persamaan konsep.
+ * - "semua-berlabel": setiap blok berlabel, kecuali kotak langkah. Dipakai
+ *   Optimalisasi & Otomasi yang seluruh blok rumusnya memang persamaan
+ *   konsep, hanya labelnya ditulis dengan atribut gaya.
+ */
+function pembuatPenentu(aturan) {
+  if (aturan === "semua-berlabel") {
+    return (isi) => {
+      const lab = isi.match(/class="label"[^>]*>([\s\S]*?)<\/div>/);
+      if (!lab) return false;
+      return !/Langkah-demi-Langkah/.test(lab[1].replace(/<[^>]*>/g, ""));
+    };
+  }
+  return (isi) => /<div class="label">/.test(isi);
+}
+
+function prosesBerkas(berkas, daftar, konsep) {
   let html = fs.readFileSync(berkas, "utf8");
   html = html.replace(RX_KOTAK, "").replace(RX_RUJUKAN, "").replace(RX_NOMOR, "");
 
@@ -80,11 +103,8 @@ function prosesBerkas(berkas, daftar) {
       if (dalam === 0) break;
     }
     if (!t) throw new Error(`${path.basename(berkas)}: blok rumus tanpa penutup`);
-    // Hanya blok BERLABEL yang dinomori. Blok tanpa label adalah kotak
-    // "Penyelesaian Langkah-demi-Langkah" di dalam contoh terselesaikan;
-    // memberinya nomor persamaan justru mengaburkan persamaan konsepnya.
     const akhir = t.index + t[0].length;
-    if (!/<div class="label">/.test(html.slice(m.index, akhir))) continue;
+    if (!konsep(html.slice(m.index, akhir))) continue;
     blok.push({ mulai: m.index, akhir });
   }
   if (blok.length !== daftar.length) {
@@ -134,7 +154,7 @@ for (const [kursus, modul] of Object.entries(PERSAMAAN_STATIS)) {
   for (const [nomor, daftar] of Object.entries(modul)) {
     const berkas = path.join(root, kursus, "Modul", `Modul-${nomor}.html`);
     if (!fs.existsSync(berkas)) throw new Error(`Berkas tidak ada: ${berkas}`);
-    perKursus += prosesBerkas(berkas, daftar);
+    perKursus += prosesBerkas(berkas, daftar, pembuatPenentu(ATURAN_BLOK[kursus]));
   }
   total += perKursus;
   console.log(`${kursus}: ${perKursus} persamaan bernomor pada ${Object.keys(modul).length} modul`);
