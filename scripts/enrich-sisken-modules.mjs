@@ -5,6 +5,8 @@ import { MATERI } from "./sisken-materi.mjs";
 import { FORUM } from "./sisken-forum.mjs";
 import { PUSTAKA } from "./sisken-pustaka.mjs";
 import { rumusLatex as _rumusLatex, tokenLatex, tokenNotasi, adaPersamaanInti } from "./sisken-rumus.mjs";
+import { renderIlustrasi, CSS_ILUSTRASI } from "./sisken-ilustrasi.mjs";
+import { GAMBAR_MODUL } from "./sisken-ilustrasi-data.mjs";
 import { PENJELASAN_RUMUS, NOTASI_KAMUS } from "./sisken-rumus-jelas.mjs";
 import { normalizeSiskenExportHtml } from "./sisken-export-html.mjs";
 import { normalizeSiskenForumRuntime } from "./sisken-forum-runtime.mjs";
@@ -179,6 +181,7 @@ const modules = [
 
 const css = `
 /* SISKENCERDAS-RICH-CONTENT:START */
+${CSS_ILUSTRASI}
 /* ── KETERBACAAN:START — teks isi halaman modul ─────────────────────────────
    Warna bawaan .section-desc dan paragraf kartu memakai var(--muted) #4a6080,
    yang di atas latar #060a10 hanya berkontras 3,09:1 — di bawah ambang WCAG AA
@@ -675,6 +678,29 @@ function legendaNotasi(daftarRumus) {
 // dinomori — blok prosa panduan bukan persamaan.
 let nomorPersamaan = 0;
 
+// Nomor gambar berjalan per halaman: ilustrasi badan mengambil nomor sesuai
+// urutan tampil, dan panel kanvas statis mengambil nomor berikutnya setelah
+// seluruh ilustrasi badan (bagian materi tampil lebih dahulu di halaman).
+let nomorGambar = 0;
+
+// Badan sub-bagian merujuk gambarnya dengan menyebut nomor — frasa dirotasi
+// supaya tidak monoton di halaman yang sama.
+const FRASA_GAMBAR = [
+  (k) => `Gambar ${k} mengilustrasikan gagasan ini.`,
+  (k) => `Skemanya diperlihatkan pada Gambar ${k}.`,
+  (k) => `Perhatikan ilustrasinya pada Gambar ${k}.`,
+  (k) => `Gambar ${k} merangkum alurnya secara visual.`,
+];
+function sisipkanIlustrasi(badan, spec, k) {
+  const frasa = FRASA_GAMBAR[(k - 1) % FRASA_GAMBAR.length](k);
+  const gambar = renderIlustrasi(spec, k);
+  // Rujukan menempel di ujung paragraf pertama; gambarnya tampil tepat
+  // sesudah paragraf itu sehingga "Gambar k" selalu dekat dengan rujukannya.
+  const tutupPertama = badan.indexOf("</p>");
+  if (tutupPertama < 0) return `${badan}\n${gambar}`;
+  return `${badan.slice(0, tutupPertama)} ${frasa}</p>\n${gambar}${badan.slice(tutupPertama + 4)}`;
+}
+
 // {{token}} pada teks penjelasan dirender lewat tokenLatex yang SAMA dengan
 // persamaannya, sehingga notasi di penjelasan identik dengan di persamaan.
 function siapkanTeksRumus(teks) {
@@ -916,8 +942,15 @@ function bagianMateri(n, mulai) {
   let nomor = mulai;
   const dalam = d.deep || [];
   const potongan = KELOMPOK_MATERI.map(([judul, awal, akhir]) => {
-    const isi = dalam.slice(awal, akhir).map((s) => {
+    const isi = dalam.slice(awal, akhir).map((s, idx) => {
       let badan = paragraf(s.body);
+      // Setiap badan penjelasan WAJIB punya ilustrasi bernomor. Tanpa entri
+      // di sisken-ilustrasi-data.mjs, generator berhenti — sub-bagian tidak
+      // boleh tayang tanpa gambarnya.
+      const spec = (GAMBAR_MODUL[n] || [])[awal + idx];
+      if (!spec) throw new Error(`Modul ${n}: sub-bagian ${awal + idx} ("${s.head.slice(0, 40)}") tanpa ilustrasi di sisken-ilustrasi-data.mjs`);
+      nomorGambar += 1;
+      badan = sisipkanIlustrasi(badan, spec, nomorGambar);
       let rumusHtml = "";
       if (s.formula) {
         // Nomor yang AKAN dipakai blokRumus adalah penghitung berikutnya;
@@ -975,6 +1008,7 @@ function richModule(m, index) {
   const p = n;
   daftarBagian.length = 0;
   nomorPersamaan = 0;
+  nomorGambar = 0;
   const kata = m.title.split(" ");
   const judulHero = kata.length >= 3
     ? `<span class="hl-cyan">${kata.slice(0, Math.ceil(kata.length / 3)).join(" ")}</span><br>\n      <em>${kata.slice(Math.ceil(kata.length / 3), -1).join(" ")}</em><br>\n      <span class="hl-amber">${kata[kata.length - 1]}</span>`
@@ -1052,12 +1086,12 @@ function richModule(m, index) {
   if (!penjelasan || penjelasan.panel.length !== spekAnimasi.panel.length || !penjelasan.grafik) {
     throw new Error(`Modul ${n}: PENJELASAN_ANIMASI tidak lengkap (butuh ${spekAnimasi.panel.length} panel + grafik)`);
   }
-  const kotakJelas = (j) => {
+  const kotakJelas = (j, labelPanel) => {
     if (!j.apa || !j.variabel?.length) throw new Error(`Modul ${n}: penjelasan panel kosong`);
     const daftar = j.variabel.map(([notasi, arti], iw) =>
       `<span class="anim-var nw${iw % 5}"><code>${notasi}</code><span>${arti}</span></span>`).join("");
     return `  <div class="tip-box reveal anim-jelas">
-    <strong>📊 Cara Membaca:</strong> ${j.apa}
+    <strong>📊 Cara Membaca ${labelPanel || "Animasi Ini"}:</strong> ${j.apa}
     <div class="anim-var-list" aria-label="Arti tiap notasi">${daftar}</div>
   </div>`;
   };
@@ -1070,14 +1104,20 @@ function richModule(m, index) {
       + (slot === 1 ? `
         <button class="btn-anim" onclick="toggleSiskenAnimation(${n})">▶ Jalankan Animasi</button>` : "");
     return panelAnimasi(`siskenAnim${slot}Canvas${n}`, p.judul, kendali)
-      + "\n" + kotakJelas(penjelasan.panel[i]);
+      + "\n" + kotakJelas(penjelasan.panel[i], `Animasi ${slot}`);
   }).join("\n");
+  // Panel kanvas statis ikut deret nomor gambar halaman: seluruh ilustrasi
+  // badan tampil lebih dahulu, jadi panel mengambil nomor berikutnya, dan
+  // paragraf pengantarnya menyebut nomor itu.
+  nomorGambar += 1;
+  const nomorPanel = nomorGambar;
+  const judulPanel = spekAnimasi.grafik.judul.replace(/^Gambar \d+/, `Gambar ${nomorPanel}`);
   const animasi = bagian(nomor++, "Animasi Respons dan Karakteristik Sistem",
     paragraf([spekAnimasi.intro])
     + "\n" + panelSpek
-    + "\n" + paragraf([spekAnimasi.grafikIntro])
-    + "\n" + panelAnimasi(`siskenGrafikCanvas${n}`, spekAnimasi.grafik.judul, "")
-    + "\n" + kotakJelas(penjelasan.grafik));
+    + "\n" + paragraf([`${spekAnimasi.grafikIntro} Sajian statisnya diperlihatkan pada Gambar ${nomorPanel} di bawah.`])
+    + "\n" + panelAnimasi(`siskenGrafikCanvas${n}`, judulPanel, "")
+    + "\n" + kotakJelas(penjelasan.grafik, `Gambar ${nomorPanel}`));
 
   const python = bagian(nomor++, "Implementasi Python Siap Salin",
     paragraf(["Salin satu cell lengkap ke Jupyter Notebook atau VS Code. Jalankan tanpa perubahan terlebih dahulu, kemudian ubah parameter untuk eksperimen."])
