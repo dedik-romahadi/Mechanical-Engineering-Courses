@@ -62,7 +62,7 @@ export const MATERI = {
       {
         head: "Implementasi dan Validasi: Dari Angka ke Perangkat",
         body: [
-          "Perpindahan dari simulasi ke perangkat nyata memunculkan persoalan yang tidak ada di komputer: derau pengukuran, resolusi konverter, jeda komunikasi, dan waktu cacah yang tidak sepenuhnya seragam. Aksi turunan paling terpengaruh karena ia memperkuat komponen frekuensi tinggi, sehingga hampir selalu memerlukan penapis dan pembatasan penguatan.",
+          "Perpindahan dari simulasi ke perangkat nyata memunculkan persoalan yang tidak ada di komputer: derau pengukuran, resolusi konverter, jeda komunikasi, dan waktu sampling yang tidak sepenuhnya seragam. Aksi turunan paling terpengaruh karena ia memperkuat komponen frekuensi tinggi, sehingga hampir selalu memerlukan penapis dan pembatasan penguatan.",
           "Commissioning dilakukan bertahap dan selalu dengan jalan keluar yang siap. Urutan yang lazim adalah menguji sensor dan actuator secara terpisah, menjalankan loop dalam mode manual, menutup loop dengan penguatan konservatif, lalu menaikkan kinerja sedikit demi sedikit sambil mengamati sinyal kendali. Menutup loop langsung pada penguatan hasil simulasi adalah cara tercepat merusak perangkat.",
           "Validasi menjawab pertanyaan yang berbeda dari verifikasi. Verifikasi menanyakan apakah sistem dibangun sesuai rancangan; validasi menanyakan apakah sistem yang dibangun benar-benar memenuhi kebutuhan operasi. Sistem bisa lolos verifikasi sepenuhnya namun gagal validasi, misalnya ketika spesifikasi awal ternyata tidak mencerminkan cara operator sebenarnya menjalankan mesin.",
           "Dokumen serah terima yang baik memuat bukti, bukan klaim. Rekaman respons terhadap perubahan setpoint dan gangguan, nilai akhir parameter controller, hasil uji interlock, serta catatan penyimpangan yang diterima beserta alasannya. Berkas inilah yang dipakai ketika sistem bermasalah setahun kemudian dan tidak ada seorang pun yang masih mengingat alasan setiap keputusan.",
@@ -462,7 +462,7 @@ export const MATERI = {
           "Solver numerik memperkirakan penyelesaian dengan melangkah maju dalam waktu. Metode Euler maju paling sederhana namun paling tidak akurat dan paling mudah kehilangan kestabilan numerik. Runge-Kutta orde empat memberi ketepatan jauh lebih baik untuk biaya hitung yang masih wajar, dan menjadi pilihan baku pada banyak persoalan kontrol.",
           "Kekakuan muncul ketika sistem memuat mode yang lajunya berbeda jauh, misalnya dinamika listrik dalam milidetik bersama dinamika termal dalam menit. Solver eksplisit terpaksa memakai langkah sekecil mode tercepat meskipun yang menarik hanya mode lambat, sehingga simulasi menjadi sangat lambat. Solver implisit dirancang untuk keadaan ini dan tetap stabil pada langkah besar.",
           "Langkah waktu yang terlalu besar tidak selalu memberi hasil yang tampak salah. Bahayanya justru pada hasil yang terlihat masuk akal namun keliru, misalnya osilasi yang teredam padahal sistem sebenarnya tidak stabil. Karena itu pemeriksaan wajib dilakukan dengan mengulang simulasi pada langkah setengahnya; bila hasilnya berubah bermakna, langkah semula terlalu besar.",
-          "Pada simulasi controller digital, langkah waktu solver harus dibedakan dari waktu cacah controller. Plant berjalan kontinu sedangkan controller memperbarui keluarannya secara berkala, dan pemodelan yang menyamakan keduanya akan menyembunyikan pengaruh waktu cacah terhadap kestabilan.",
+          "Pada simulasi controller digital, langkah waktu solver harus dibedakan dari waktu sampling controller. Plant berjalan kontinu sedangkan controller memperbarui keluarannya secara berkala, dan pemodelan yang menyamakan keduanya akan menyembunyikan pengaruh waktu sampling terhadap kestabilan.",
         ],
         formula: "dt <= 0,1 * tau_tercepat   |   kekakuan = tau_lambat/tau_cepat >> 1",
       },
@@ -479,7 +479,7 @@ export const MATERI = {
       {
         head: "Dari Simulasi ke Perangkat Keras Secara Bertahap",
         body: [
-          "Pengujian bertahap mengurangi risiko dengan menambahkan satu unsur nyata pada satu waktu. Tahap pertama menjalankan seluruhnya di komputer. Tahap berikutnya menjalankan controller pada perangkat sasaran yang sesungguhnya sementara plant masih berupa model, sehingga pengaruh waktu cacah, aritmetika terbatas, dan jeda perhitungan mulai terlihat.",
+          "Pengujian bertahap mengurangi risiko dengan menambahkan satu unsur nyata pada satu waktu. Tahap pertama menjalankan seluruhnya di komputer. Tahap berikutnya menjalankan controller pada perangkat sasaran yang sesungguhnya sementara plant masih berupa model, sehingga pengaruh waktu sampling, aritmetika terbatas, dan jeda perhitungan mulai terlihat.",
           "Tahap selanjutnya memakai plant nyata dengan pengaman tambahan berupa pembatasan keluaran, batas darurat, dan kemampuan mengembalikan kendali ke operator seketika. Setiap tahap memiliki kriteria lulus sendiri, dan kegagalan pada satu tahap mengembalikan pekerjaan ke tahap sebelumnya alih-alih dipaksakan maju.",
           "Perbedaan yang paling sering mengejutkan pada peralihan ke perangkat keras adalah derau pengukuran. Sinyal yang bersih di simulasi menjadi bergetar di lapangan, dan aksi turunan yang tampak menguntungkan di komputer dapat membuat actuator bergetar terus-menerus. Penapis pada jalur turunan hampir selalu diperlukan.",
           "Catatan pengujian setiap tahap merupakan bagian dari hasil kerja, bukan pelengkap. Ketika sistem bermasalah di kemudian hari, catatan itulah yang memungkinkan pembedaan antara masalah baru dan perilaku yang sejak awal memang sudah ada namun belum pernah menjadi persoalan.",
@@ -559,7 +559,7 @@ export const MATERI = {
     pitfalls: [
       ["Menyimpulkan dari satu simulasi tanpa memeriksa langkah waktu", "Hasil yang salah karena langkah terlalu besar sering tetap terlihat wajar. Pengulangan pada setengah langkah adalah pemeriksaan termurah yang tersedia."],
       ["Menilai model dari data yang dipakai menyetelnya", "Kecocokan pada data identifikasi selalu membaik saat parameter ditambah. Hanya data uji yang belum pernah dilihat yang memberi penilaian jujur."],
-      ["Menyamakan langkah solver dengan waktu cacah controller", "Plant berjalan kontinu, controller memperbarui berkala. Menyamakannya menyembunyikan pengaruh waktu cacah terhadap kestabilan."],
+      ["Menyamakan langkah solver dengan waktu sampling controller", "Plant berjalan kontinu, controller memperbarui berkala. Menyamakannya menyembunyikan pengaruh waktu sampling terhadap kestabilan."],
       ["Mengabaikan mode internal saat memakai fungsi transfer", "Dua sistem berfungsi transfer sama dapat berbeda keamanannya bila salah satunya menyimpan mode tidak stabil yang tidak teramati."],
       ["Membandingkan simulasi dan pengukuran pada titik kerja berbeda", "Selisihnya akan tampak seperti kesalahan model padahal hanya akibat linearisasi di titik yang berlainan."],
     ],
@@ -581,9 +581,9 @@ export const MATERI = {
         head: "Mengapa Controller Digital Berbeda dari Rancangan Kontinu",
         body: [
           "Controller yang berjalan di komputer tidak mengamati sinyal secara terus-menerus. Ia mengambil sampel dari keluaran pada selang tetap, menghitung, lalu menahan keluarannya sampai sampel berikutnya. Tiga kegiatan itu memasukkan sifat yang tidak ada pada rancangan kontinu, dan mengabaikannya adalah sumber kegagalan yang paling sering terjadi pada penerapan pertama.",
-          "Penahanan orde nol membuat sinyal kendali berbentuk tangga. Terhadap plant, tangga tersebut setara dengan tundaan rata-rata sebesar setengah waktu cacah. Tundaan mengurangi margin fase, dan margin fase yang menipis berarti sistem lebih dekat ke ambang ketidakstabilan meskipun penguatannya tidak diubah sama sekali.",
-          "Pemilihan waktu cacah karena itu bukan urusan kenyamanan perangkat, melainkan bagian dari perancangan kontrol. Aturan praktis yang lazim menuntut sekitar dua puluh sampai empat puluh sampel sepanjang waktu naik sistem tertutup. Terlalu jarang membuat sistem tidak stabil; terlalu rapat memboroskan sumber daya dan memperkuat derau pada aksi turunan.",
-          "Selain waktu cacah, aritmetika terbatas ikut berperan. Bilangan pecahan terbatas menimbulkan pembulatan yang dapat menumpuk pada aksi integral, dan pada perangkat kecil dengan bilangan bulat berskala, pemilihan skala menentukan apakah controller masih berperilaku seperti rancangannya.",
+          "Penahanan orde nol membuat sinyal kendali berbentuk tangga. Terhadap plant, tangga tersebut setara dengan tundaan rata-rata sebesar setengah waktu sampling. Tundaan mengurangi margin fase, dan margin fase yang menipis berarti sistem lebih dekat ke ambang ketidakstabilan meskipun penguatannya tidak diubah sama sekali.",
+          "Pemilihan waktu sampling karena itu bukan urusan kenyamanan perangkat, melainkan bagian dari perancangan kontrol. Aturan praktis yang lazim menuntut sekitar dua puluh sampai empat puluh sampel sepanjang waktu naik sistem tertutup. Terlalu jarang membuat sistem tidak stabil; terlalu rapat memboroskan sumber daya dan memperkuat derau pada aksi turunan.",
+          "Selain waktu sampling, aritmetika terbatas ikut berperan. Bilangan pecahan terbatas menimbulkan pembulatan yang dapat menumpuk pada aksi integral, dan pada perangkat kecil dengan bilangan bulat berskala, pemilihan skala menentukan apakah controller masih berperilaku seperti rancangannya.",
         ],
         formula: "penahanan orde nol ~ tundaan T/2   |   20 sampai 40 sampel per waktu naik",
       },
@@ -592,8 +592,8 @@ export const MATERI = {
         body: [
           "Controller yang dirancang di domain kontinu harus diterjemahkan menjadi persamaan beda sebelum dapat dijalankan. Beberapa cara tersedia, dan pilihan di antaranya memengaruhi ketepatan serta kestabilan hasil terjemahan.",
           "Metode beda mundur sederhana dan selalu memetakan sistem stabil menjadi stabil, namun ketepatannya menurun pada frekuensi tinggi. Metode trapesium, yang juga dikenal sebagai transformasi bilinear, memberi ketepatan lebih baik dan tetap menjaga kestabilan, dengan konsekuensi terjadinya pergeseran frekuensi yang perlu dikoreksi bila titik frekuensi tertentu harus dipertahankan.",
-          "Untuk aksi integral, terjemahan yang lazim menambahkan hasil kali error dengan waktu cacah pada akumulator. Untuk aksi turunan, terjemahan yang lazim membagi selisih dua sampel dengan waktu cacah, dan bentuk mentah ini hampir selalu tidak dapat dipakai langsung karena memperkuat derau secara berlebihan.",
-          "Alternatif yang lebih baik adalah merancang langsung di domain diskret. Model plant diubah lebih dahulu menjadi bentuk diskret yang memperhitungkan penahanan orde nol, lalu controller dirancang atas model itu. Cara ini menghindari kekeliruan akibat terjemahan dan memperlihatkan pengaruh waktu cacah sejak awal perancangan.",
+          "Untuk aksi integral, terjemahan yang lazim menambahkan hasil kali error dengan waktu sampling pada akumulator. Untuk aksi turunan, terjemahan yang lazim membagi selisih dua sampel dengan waktu sampling, dan bentuk mentah ini hampir selalu tidak dapat dipakai langsung karena memperkuat derau secara berlebihan.",
+          "Alternatif yang lebih baik adalah merancang langsung di domain diskret. Model plant diubah lebih dahulu menjadi bentuk diskret yang memperhitungkan penahanan orde nol, lalu controller dirancang atas model itu. Cara ini menghindari kekeliruan akibat terjemahan dan memperlihatkan pengaruh waktu sampling sejak awal perancangan.",
         ],
         formula: "integral: I += Ki*e*T   |   turunan: D = Kd*(e - e_lalu)/T, wajib ditapis",
       },
@@ -611,7 +611,7 @@ export const MATERI = {
         head: "Waktu Nyata, Penjadwalan, dan Keandalan",
         body: [
           "Controller digital harus menyelesaikan perhitungannya sebelum sampel berikutnya tiba. Yang menentukan bukan waktu hitung rata-rata melainkan waktu hitung terburuk, karena satu keterlambatan saja dapat menggeser perilaku sistem. Karena itu tugas kontrol biasanya diberi prioritas tertinggi dan dijauhkan dari kegiatan yang waktunya tidak dapat diperkirakan.",
-          "Ketidakteraturan selang sampling sama merusaknya dengan tundaan. Selang yang berubah-ubah membuat aksi integral dan turunan salah menghitung, karena keduanya bergantung langsung pada waktu cacah. Bila selang tidak dapat dijamin tetap, waktu sesungguhnya harus diukur dan dipakai pada perhitungan alih-alih memakai nilai nominal.",
+          "Ketidakteraturan selang sampling sama merusaknya dengan tundaan. Selang yang berubah-ubah membuat aksi integral dan turunan salah menghitung, karena keduanya bergantung langsung pada waktu sampling. Bila selang tidak dapat dijamin tetap, waktu sesungguhnya harus diukur dan dipakai pada perhitungan alih-alih memakai nilai nominal.",
           "Keandalan menuntut penanganan kejadian tidak normal secara eksplisit: sensor yang tidak memberi data, nilai di luar rentang wajar, dan komunikasi terputus. Controller harus memiliki perilaku yang ditetapkan untuk setiap keadaan tersebut, umumnya berupa penahanan keluaran terakhir yang aman disertai pemberitahuan, bukan melanjutkan perhitungan atas data yang tidak sahih.",
           "Watchdog melengkapi pengaman dengan memaksa sistem ke keadaan aman bila putaran kendali berhenti berjalan. Perangkat ini bekerja di luar jalur perhitungan utama, tepat karena kegagalan jalur utama itulah yang harus diantisipasi.",
         ],
@@ -621,7 +621,7 @@ export const MATERI = {
         head: "Verifikasi Kode Kontrol Sebelum Menyentuh Mesin",
         body: [
           "Kode kontrol perlu diuji dengan cara yang sama ketatnya dengan perangkat lunak lain. Fungsi perhitungan controller sebaiknya dipisahkan dari kode yang berurusan dengan perangkat, sehingga dapat diuji sendiri dengan masukan yang ditentukan dan keluaran yang dapat diperiksa.",
-          "Pengujian yang paling berharga justru pada keadaan tepi: error nol, error sangat besar, keluaran mentok di kedua arah, waktu cacah berubah, dan perpindahan mode. Keadaan inilah yang jarang muncul di simulasi normal namun sering muncul di lapangan.",
+          "Pengujian yang paling berharga justru pada keadaan tepi: error nol, error sangat besar, keluaran mentok di kedua arah, waktu sampling berubah, dan perpindahan mode. Keadaan inilah yang jarang muncul di simulasi normal namun sering muncul di lapangan.",
           "Menjalankan kode controller yang sesungguhnya terhadap model plant memberi keyakinan yang jauh lebih besar daripada menjalankan model controller. Cara ini menangkap kekeliruan penerjemahan, kesalahan satuan, dan masalah pembulatan yang tidak akan pernah muncul bila controller ikut disimulasikan sebagai rumus.",
           "Setiap parameter yang dapat diubah operator perlu dibatasi rentangnya di dalam kode. Batas itu melindungi sistem dari nilai yang keliru dimasukkan, dan biayanya hanya beberapa baris dibandingkan kerusakan yang mungkin ditimbulkan.",
         ],
@@ -641,7 +641,7 @@ export const MATERI = {
         head: "Aritmetika Terbatas dan Pemilihan Skala",
         body: [
           "Perhitungan di perangkat sasaran tidak pernah persis. Bilangan pecahan memiliki jumlah angka berarti yang terbatas, dan pada perangkat kecil perhitungan sering dilakukan dengan bilangan bulat berskala demi kecepatan.",
-          "Akibat yang paling sering muncul berkaitan dengan aksi integral. Bila tambahan per cacah jauh lebih kecil daripada resolusi bilangan yang dipakai, tambahan itu hilang akibat pembulatan dan akumulator tidak pernah bertambah. Gejalanya khas: error tunak yang tidak pernah hilang meskipun aksi integral tampak aktif.",
+          "Akibat yang paling sering muncul berkaitan dengan aksi integral. Bila tambahan per langkah sampling jauh lebih kecil daripada resolusi bilangan yang dipakai, tambahan itu hilang akibat pembulatan dan akumulator tidak pernah bertambah. Gejalanya khas: error tunak yang tidak pernah hilang meskipun aksi integral tampak aktif.",
           "Pemilihan skala menjadi penentu pada aritmetika bilangan bulat. Skala yang terlalu kecil membuat resolusi kasar sehingga pembulatan merusak; skala yang terlalu besar membuat perhitungan meluap pada nilai ekstrem. Keduanya menghasilkan perilaku yang sulit dilacak karena hanya muncul pada keadaan tertentu.",
           "Cara memeriksanya sederhana: jalankan controller dengan error yang sangat kecil dan amati apakah akumulator benar-benar bertambah, lalu jalankan dengan error terbesar yang mungkin dan amati apakah ada nilai yang meluap. Kedua uji itu murah dan menangkap sebagian besar persoalan aritmetika.",
         ],
@@ -650,9 +650,9 @@ export const MATERI = {
       {
         head: "Menyusun Program Loop Kendali",
         body: [
-          "Struktur program yang tertib membuat perilaku controller mudah diperiksa dan mudah diubah. Urutan yang lazim dalam satu cacah: baca sensor, periksa keabsahan data, hitung error, hitung keluaran controller, batasi keluaran, kirim ke actuator, lalu perbarui keadaan internal.",
+          "Struktur program yang tertib membuat perilaku controller mudah diperiksa dan mudah diubah. Urutan yang lazim dalam satu langkah sampling: baca sensor, periksa keabsahan data, hitung error, hitung keluaran controller, batasi keluaran, kirim ke actuator, lalu perbarui keadaan internal.",
           "Menempatkan pembatasan keluaran sebelum pengiriman dan sebelum pembaruan akumulator bukan urutan sembarang. Justru urutan itulah yang memungkinkan anti-windup bekerja, karena akumulator dapat disesuaikan berdasarkan selisih antara keluaran yang diminta dan yang benar-benar dikirim.",
-          "Pemeriksaan keabsahan data perlu dilakukan sebelum perhitungan, bukan sesudah. Nilai sensor di luar rentang wajar atau yang tidak berubah sama sekali selama beberapa cacah menandakan kegagalan, dan controller harus memiliki perilaku yang ditetapkan untuk keadaan itu alih-alih menghitung atas data yang tidak sahih.",
+          "Pemeriksaan keabsahan data perlu dilakukan sebelum perhitungan, bukan sesudah. Nilai sensor di luar rentang wajar atau yang tidak berubah sama sekali selama beberapa langkah sampling menandakan kegagalan, dan controller harus memiliki perilaku yang ditetapkan untuk keadaan itu alih-alih menghitung atas data yang tidak sahih.",
           "Memisahkan fungsi perhitungan dari kode yang berurusan dengan perangkat membuat pengujian jauh lebih mudah. Fungsi perhitungan dapat dijalankan dengan masukan yang ditentukan dan keluarannya diperiksa, tanpa memerlukan perangkat sasaran sama sekali.",
         ],
         formula: "baca -> periksa -> hitung -> batasi -> kirim -> perbarui akumulator",
@@ -661,11 +661,11 @@ export const MATERI = {
         head: "Menelusuri Masalah Controller Digital di Lapangan",
         body: [
           "Ketika controller digital berperilaku aneh, penelusuran yang tertib jauh lebih cepat daripada mengubah parameter secara coba-coba. Urutan yang membantu bergerak dari yang paling mudah dipastikan menuju yang paling sulit.",
-          "Pemeriksaan pertama adalah keteraturan waktu cacah. Merekam selang antarcacah selama beberapa menit menampakkan apakah penjadwalnya tertib. Selang yang berubah-ubah menjelaskan banyak gejala sekaligus, karena aksi integral dan turunan sama-sama bergantung padanya.",
+          "Pemeriksaan pertama adalah keteraturan waktu sampling. Merekam selang antar-sampling selama beberapa menit menampakkan apakah penjadwalnya tertib. Selang yang berubah-ubah menjelaskan banyak gejala sekaligus, karena aksi integral dan turunan sama-sama bergantung padanya.",
           "Pemeriksaan kedua adalah sinyal kendali. Keluaran yang lama bertahan di batas menunjuk ke kejenuhan dan penumpukan integral; keluaran yang bergetar rapat menunjuk ke derau yang diperkuat aksi turunan. Kedua gejala itu terlihat jelas pada grafik sinyal kendali dan hampir tidak terlihat pada grafik keluaran proses.",
-          "Pemeriksaan ketiga adalah perbandingan terhadap simulasi memakai kode yang sama. Bila perilaku di perangkat menyimpang jauh dari simulasi yang memakai kode identik, selisihnya berasal dari hal yang tidak ada di simulasi: waktu cacah, aritmetika, derau, atau perangkat. Menyempitkan penyebab dengan cara ini jauh lebih cepat daripada menebak.",
+          "Pemeriksaan ketiga adalah perbandingan terhadap simulasi memakai kode yang sama. Bila perilaku di perangkat menyimpang jauh dari simulasi yang memakai kode identik, selisihnya berasal dari hal yang tidak ada di simulasi: waktu sampling, aritmetika, derau, atau perangkat. Menyempitkan penyebab dengan cara ini jauh lebih cepat daripada menebak.",
         ],
-        formula: "telusuri: keteraturan cacah -> sinyal kendali -> banding dengan simulasi",
+        formula: "telusuri: keteraturan sampling -> sinyal kendali -> banding dengan simulasi",
       },
     ],
     derivation: {
@@ -682,34 +682,34 @@ export const MATERI = {
       closing: "Bentuk kenaikan lebih disukai pada penerapan industri karena perpindahan mode menjadi mulus dengan sendirinya dan pembatasan keluaran sekaligus berperan sebagai anti-windup. Aksi turunan pada kedua bentuk tetap memerlukan penapis agar derau sensor tidak diperkuat.",
     },
     worked: {
-      head: "Contoh Terhitung: Memilih Waktu Cacah",
+      head: "Contoh Terhitung: Memilih Waktu Sampling",
       given: [
         "Sistem tertutup dirancang memiliki waktu naik sekitar 0,4 detik",
         "Sensor menghasilkan derau yang cukup berarti pada frekuensi tinggi",
       ],
       steps: [
         ["Terapkan aturan sampling", "T = t_r/30 = 0,4/30", "Diambil tiga puluh sampel sepanjang waktu naik, di tengah rentang anjuran."],
-        ["Hitung waktu cacah", "T = 0,0133 s", "Dibulatkan ke nilai yang mudah dijadwalkan, yaitu 0,01 detik atau 100 hertz."],
-        ["Perkirakan tundaan tambahan", "T/2 = 0,005 s", "Penahanan orde nol setara tundaan setengah waktu cacah."],
+        ["Hitung waktu sampling", "T = 0,0133 s", "Dibulatkan ke nilai yang mudah dijadwalkan, yaitu 0,01 detik atau 100 hertz."],
+        ["Perkirakan tundaan tambahan", "T/2 = 0,005 s", "Penahanan orde nol setara tundaan setengah waktu sampling."],
         ["Ubah menjadi susut fase", "fase = wc * T/2, dengan wc ~ 2/t_r = 5 rad/s", "Diperoleh 0,025 radian atau sekitar 1,4 derajat."],
         ["Nilai dampaknya", "margin fase berkurang sekitar 1,4 derajat", "Masih kecil terhadap margin fase rancangan yang umumnya 45 sampai 60 derajat."],
       ],
-      answer: "Waktu cacah 0,01 detik memadai: cukup rapat sehingga susut fase akibat penahanan hanya sekitar 1,4 derajat, dan tidak terlalu rapat sehingga aksi turunan tidak memperkuat derau secara berlebihan. Penapis turunan dengan frekuensi potong sekitar sepuluh kali bandwidth tertutup dapat ditambahkan tanpa mengganggu kinerja.",
+      answer: "Waktu sampling 0,01 detik memadai: cukup rapat sehingga susut fase akibat penahanan hanya sekitar 1,4 derajat, dan tidak terlalu rapat sehingga aksi turunan tidak memperkuat derau secara berlebihan. Penapis turunan dengan frekuensi potong sekitar sepuluh kali bandwidth tertutup dapat ditambahkan tanpa mengganggu kinerja.",
     },
     pitfalls: [
-      ["Memakai penguatan rancangan kontinu tanpa memeriksa waktu cacah", "Tundaan akibat penahanan mengurangi margin fase. Sistem yang stabil di atas kertas dapat berosilasi saat diprogram."],
+      ["Memakai penguatan rancangan kontinu tanpa memeriksa waktu sampling", "Tundaan akibat penahanan mengurangi margin fase. Sistem yang stabil di atas kertas dapat berosilasi saat diprogram."],
       ["Menerapkan aksi turunan tanpa penapis", "Selisih dua sampel memperkuat derau sensor. Actuator akan bergetar terus-menerus dan cepat aus."],
       ["Melupakan anti-windup", "Actuator mentok adalah kejadian biasa. Tanpa penanganan, keluaran melewati setpoint jauh melebihi perkiraan simulasi."],
       ["Membiarkan selang sampling tidak teratur", "Aksi integral dan turunan bergantung langsung pada T. Selang yang berubah membuat keduanya salah hitung."],
       ["Menguji hanya keadaan normal", "Kekeliruan paling mahal muncul pada keadaan tepi: error besar, keluaran mentok, dan perpindahan mode."],
     ],
     checklist: [
-      "Waktu cacah dipilih dari waktu naik target, bukan dari kemudahan perangkat",
+      "Waktu sampling dipilih dari waktu naik target, bukan dari kemudahan perangkat",
       "Susut fase akibat penahanan orde nol diperhitungkan",
       "Aksi turunan dilengkapi penapis dan pembatasan penguatan",
       "Anti-windup diterapkan dan diuji pada keadaan mentok",
       "Perpindahan manual ke otomatis diuji bebas lompatan",
-      "Waktu hitung terburuk diukur dan lebih kecil daripada waktu cacah",
+      "Waktu hitung terburuk diukur dan lebih kecil daripada waktu sampling",
       "Perilaku saat sensor gagal atau data tidak sahih ditetapkan eksplisit",
       "Kode controller yang sesungguhnya diuji terhadap model plant",
     ],

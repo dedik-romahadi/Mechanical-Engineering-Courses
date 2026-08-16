@@ -280,12 +280,12 @@ export const FORUM = {
     narasi: [
       "Kendali suhu sebuah tungku dirancang di domain kontinu dan disimulasikan dengan hasil sangat baik: overshoot 6 persen, waktu menetap 40 detik, error tunak nol karena memakai aksi integral. Parameter controller kemudian diprogram apa adanya ke mikrokontroler.",
       "Di lapangan, suhu <strong style=\"color:var(--pink)\">berayun terus tanpa pernah menetap</strong>, dan katup gas terdengar bergetar cepat. Operator juga melaporkan bahwa setiap kali sistem dipindahkan dari mode manual ke otomatis, keluaran <strong>melompat tiba-tiba</strong> sebelum kembali turun.",
-      "Pemeriksaan program menemukan tiga hal. Waktu cacah ditetapkan <strong style=\"color:var(--amber)\">2 detik</strong> karena dianggap sudah cukup cepat untuk proses termal. Aksi turunan dihitung sebagai selisih dua sampel dibagi waktu cacah, tanpa penapis. Dan akumulator integral tidak pernah disiapkan saat perpindahan mode.",
+      "Pemeriksaan program menemukan tiga hal. Waktu sampling ditetapkan <strong style=\"color:var(--amber)\">2 detik</strong> karena dianggap sudah cukup cepat untuk proses termal. Aksi turunan dihitung sebagai selisih dua sampel dibagi waktu sampling, tanpa penapis. Dan akumulator integral tidak pernah disiapkan saat perpindahan mode.",
     ],
-    chip: ["Waktu cacah: 2 s", "Waktu naik target: 18 s", "Aksi turunan: tanpa penapis", "Perpindahan mode: tanpa persiapan"],
+    chip: ["Waktu sampling: 2 s", "Waktu naik target: 18 s", "Aksi turunan: tanpa penapis", "Perpindahan mode: tanpa persiapan"],
     jajak: [
       {
-        q: "Waktu cacah 2 detik terhadap waktu naik target 18 detik memberi sekitar sembilan sampel sepanjang waktu naik. Menurut aturan praktis, ini...",
+        q: "Waktu sampling 2 detik terhadap waktu naik target 18 detik memberi sekitar sembilan sampel sepanjang waktu naik. Menurut aturan praktis, ini...",
         opts: [
           "Sudah memadai karena lebih dari lima sampel",
           "Terlalu jarang; anjurannya dua puluh sampai empat puluh sampel sepanjang waktu naik",
@@ -293,7 +293,7 @@ export const FORUM = {
           "Tidak berhubungan dengan kestabilan sama sekali",
         ],
         jawab: 1,
-        benar: "Tepat. Penahanan orde nol setara tundaan setengah waktu cacah, yaitu 1 detik di sini. Tundaan itu memangkas margin fase dan mendekatkan sistem ke ambang ketidakstabilan meskipun penguatannya tidak diubah.",
+        benar: "Tepat. Penahanan orde nol setara tundaan setengah waktu sampling, yaitu 1 detik di sini. Tundaan itu memangkas margin fase dan mendekatkan sistem ke ambang ketidakstabilan meskipun penguatannya tidak diubah.",
         salah: "Jumlah sampel yang terlalu sedikit menimbulkan tundaan efektif yang besar. Anjuran dua puluh sampai empat puluh sampel justru ada untuk menjaga margin fase.",
       },
       {
@@ -313,18 +313,18 @@ export const FORUM = {
         opts: [
           "Akumulator integral tidak disiapkan agar keluaran controller sama dengan keluaran manual terakhir",
           "Sensor gagal membaca pada saat perpindahan",
-          "Waktu cacah terlalu cepat untuk mode manual",
+          "Waktu sampling terlalu cepat untuk mode manual",
           "Gain proporsional harus dinolkan saat mode manual",
         ],
         jawab: 0,
         benar: "Tepat. Perpindahan tanpa lompatan dicapai dengan menyiapkan akumulator sehingga keluaran controller pada saat perpindahan persis sama dengan keluaran manual terakhir. Tanpa itu, keluaran melompat ke nilai yang dihitung dari akumulator yang belum sesuai.",
-        salah: "Persoalannya bukan pada sensor maupun waktu cacah, melainkan pada keadaan awal akumulator integral saat mode berpindah.",
+        salah: "Persoalannya bukan pada sensor maupun waktu sampling, melainkan pada keadaan awal akumulator integral saat mode berpindah.",
       },
     ],
     diskusi: [
       {
-        q: "Tentukan waktu cacah yang seharusnya dipakai beserta perhitungannya, dan jelaskan akibatnya terhadap margin fase",
-        petunjuk: "1) Pakai aturan dua puluh sampai empat puluh sampel sepanjang waktu naik dan hitung rentang waktu cacah yang sah. 2) Hitung tundaan setara penahanan orde nol. 3) Ubah tundaan itu menjadi susut fase pada frekuensi kerja. 4) Bandingkan dengan susut fase pada waktu cacah 2 detik.",
+        q: "Tentukan waktu sampling yang seharusnya dipakai beserta perhitungannya, dan jelaskan akibatnya terhadap margin fase",
+        petunjuk: "1) Pakai aturan dua puluh sampai empat puluh sampel sepanjang waktu naik dan hitung rentang waktu sampling yang sah. 2) Hitung tundaan setara penahanan orde nol. 3) Ubah tundaan itu menjadi susut fase pada frekuensi kerja. 4) Bandingkan dengan susut fase pada waktu sampling 2 detik.",
       },
       {
         q: "Rancang penanganan aksi turunan agar tidak lagi menggetarkan katup",
@@ -332,7 +332,7 @@ export const FORUM = {
       },
       {
         q: "Susun daftar pemeriksaan penerapan digital yang seharusnya dilalui sebelum controller ini dipasang",
-        petunjuk: "1) Sebutkan pemeriksaan terkait waktu cacah dan keteraturannya. 2) Sebutkan pemeriksaan anti-windup beserta cara mengujinya. 3) Sebutkan pemeriksaan perpindahan mode tanpa lompatan. 4) Sebutkan keadaan tepi yang wajib diuji, misalnya sensor gagal dan keluaran mentok.",
+        petunjuk: "1) Sebutkan pemeriksaan terkait waktu sampling dan keteraturannya. 2) Sebutkan pemeriksaan anti-windup beserta cara mengujinya. 3) Sebutkan pemeriksaan perpindahan mode tanpa lompatan. 4) Sebutkan keadaan tepi yang wajib diuji, misalnya sensor gagal dan keluaran mentok.",
       },
     ],
   },
