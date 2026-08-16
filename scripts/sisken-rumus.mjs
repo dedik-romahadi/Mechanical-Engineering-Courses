@@ -9,6 +9,22 @@
  * supaya tidak berubah menjadi rumus palsu.
  */
 
+// Kata yang memang ditulis kecil (lambang, nama alat) tidak dikapitalkan.
+const TETAP_KECIL = new Set(["scipy", "eig", "tanh", "sigmoid", "dt", "de", "exp",
+  "ln", "log", "rms", "ipynb", "fuzzy"]);
+
+/**
+ * Huruf pertama teks tampilan menjadi kapital; lambang matematika dibiarkan.
+ * Sumber tunggal untuk seluruh generator: dipakai panel rumus, chip notasi,
+ * kotak penjelasan, dan mesin ilustrasi — supaya aturannya mustahil berbeda.
+ */
+export function kapitalAwal(t) {
+  const s = String(t);
+  const kata = s.match(/^([a-zà-ÿ][a-zà-ÿ-]{2,})\b/);
+  if (!kata || TETAP_KECIL.has(kata[1])) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 const SIMBOL = [
   // Penguatan dan waktu tala ditulis bersubskrip seperti pada Modul 1.
   [/(?<![A-Za-z0-9\\])Kp(?![A-Za-z0-9])/g, "K_p"], [/(?<![A-Za-z0-9\\])Ki(?![A-Za-z0-9])/g, "K_i"], [/(?<![A-Za-z0-9\\])Kd(?![A-Za-z0-9])/g, "K_d"], [/(?<![A-Za-z0-9\\])Ku(?![A-Za-z0-9])/g, "K_u"],
@@ -486,6 +502,20 @@ export function adaPersamaanInti(teks) {
   });
 }
 
+/**
+ * Kapitalkan awal sebuah ruas yang sudah dirender. Ruas yang dibuka kata biasa
+ * ditangani kapitalAwal; ruas yang dibuka kata tegak di dalam matematika
+ * (mis. \(\text{simpul} = ...\)) dikapitalkan di dalam \text{} itu sendiri.
+ */
+function kapitalRuas(html) {
+  const diMath = html.match(/^\\\(\\text\{([a-zà-ÿ])/);
+  if (diMath) {
+    const i = html.indexOf(diMath[1], 8);
+    return html.slice(0, i) + diMath[1].toUpperCase() + html.slice(i + 1);
+  }
+  return kapitalAwal(html);
+}
+
 export function rumusLatex(teks, esc) {
   const pemisah = ' <span style="color:var(--muted)">&nbsp;|&nbsp;</span> ';
   // Pemisah antarruas pada data ditulis dengan spasi di kedua sisi. Batang
@@ -511,8 +541,10 @@ export function rumusLatex(teks, esc) {
     // Keterangan dan ruas kalimat tetap prosa, tetapi potongan matematika di
     // dalamnya (mis. "atau I += Kt*(u_nyata - u_minta)") dirender KaTeX agar
     // tidak ada notasi tampil mentah.
-    if (!rumus) return depan + prosaBerlambang(inti, esc);
+    if (!rumus) return kapitalRuas(depan + prosaBerlambang(inti, esc));
     const ekor = sisa ? " " + prosaBerlambang(sisa, esc) : "";
-    return depan + "\\(" + tokenLatex(rumus) + "\\)" + ekor;
+    // kapitalAwal hanya menyentuh ruas yang DIMULAI kata biasa; ruas yang
+    // dibuka \( atau tag HTML tidak cocok polanya, jadi aman dilewatkan.
+    return kapitalRuas(depan + "\\(" + tokenLatex(rumus) + "\\)" + ekor);
   }).filter(Boolean).join(pemisah);
 }

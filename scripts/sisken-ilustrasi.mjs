@@ -12,6 +12,9 @@
  * tumpang-tindih), setiap bidang kurva berlabel sumbu X dan Y, dan setiap
  * teks tampilan diawali huruf kapital lewat kapitalAwal().
  */
+import { kapitalAwal } from "./sisken-rumus.mjs";
+
+export { kapitalAwal };
 
 const W = 660;
 const C = {
@@ -22,17 +25,8 @@ const C = {
 
 const esc = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-// Kata yang memang ditulis kecil (lambang, nama alat) tidak dikapitalkan.
-const TETAP_KECIL = new Set(["scipy", "eig", "tanh", "sigmoid", "dt", "de", "exp",
-  "ln", "log", "rms", "ipynb", "fuzzy"]);
-
-/** Huruf pertama teks tampilan menjadi kapital; lambang matematika dibiarkan. */
-export function kapitalAwal(t) {
-  const s = String(t);
-  const kata = s.match(/^([a-zà-ÿ][a-zà-ÿ-]{2,})\b/);
-  if (!kata || TETAP_KECIL.has(kata[1])) return s;
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
+// Aturan kapitalisasi dipakai bersama panel rumus dan chip notasi; definisinya
+// tinggal di sisken-rumus.mjs supaya hanya ada satu daftar pengecualian.
 const K = kapitalAwal;
 
 function teks(x, y, t, o = {}) {
