@@ -828,14 +828,14 @@ function tabel(judul, kepala, baris) {
   </div>`;
 }
 
-function panelAnimasi(idKanvas, judul, kendali) {
+function panelAnimasi(idKanvas, judul, kendali, tinggi = 400) {
   return `  <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
       <span class="anim-title">${judul}</span>
     </div>
     <div class="anim-body">
-      <canvas id="${idKanvas}" width="1000" height="400" aria-label="${judul}"></canvas>
+      <canvas id="${idKanvas}" width="1000" height="${tinggi}" aria-label="${judul}"></canvas>
       <div class="ctrl-row">${kendali}</div>
     </div>
   </div>`;
@@ -1116,7 +1116,7 @@ function richModule(m, index) {
     paragraf([spekAnimasi.intro])
     + "\n" + panelSpek
     + "\n" + paragraf([`${spekAnimasi.grafikIntro} Sajian statisnya diperlihatkan pada Gambar ${nomorPanel} di bawah.`])
-    + "\n" + panelAnimasi(`siskenGrafikCanvas${n}`, judulPanel, "")
+    + "\n" + panelAnimasi(`siskenGrafikCanvas${n}`, judulPanel, "", 300)
     + "\n" + kotakJelas(penjelasan.grafik, `Gambar ${nomorPanel}`));
 
   const python = bagian(nomor++, "Implementasi Python Siap Salin",
