@@ -357,7 +357,7 @@ html,body{height:auto!important;min-height:100%!important;overflow-y:auto!import
 /* Nomor persamaan (kanan blok, konvensi buku teks) + chip notasi penjelasan.
    Ukuran teks chip mengikuti paragraf (.section-desc = 16px) atas permintaan
    dosen; notasi tampil sebagai pil menyala supaya langsung terbaca. */
-.formula-main{position:relative;padding-right:60px;margin:12px 0 10px}
+.formula-main{position:relative;padding-right:60px;margin:8px 0 6px}
 .formula-number{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--cyan);opacity:.85}
 .rumus-jelas{margin-top:-6px;font-size:16.5px;line-height:1.65}
 .anim-jelas{margin-top:-4px;font-size:16.5px;line-height:1.65}
