@@ -665,8 +665,46 @@ function siapkanTeksRumus(teks) {
   return String(teks).replace(/\{\{([^}]+)\}\}/g, (_, t) => `\\(${tokenLatex(t.trim())}\\)`);
 }
 
+// Persamaan panjang tidak boleh patah di sembarang titik saat lebar layar
+// terbatas. Lanjutan dipenggal di pemisah alami: segmen "|" dahulu, lalu
+// SATU koma terdekat titik tengah (di luar KaTeX dan tag) agar dua barisnya
+// seimbang. Baris tanpa pemisah alami dibiarkan melipat sendiri.
+const AMBANG_PECAH = 64;
+function panjangPolos(html) {
+  return html
+    .replace(/<[^>]*>/g, "")
+    .replace(/\\[a-zA-Z]+/g, "x")
+    .replace(/[{}]/g, "")
+    .replace(/\\[()]/g, "").length;
+}
+function pecahDiKomaTengah(baris) {
+  const posisi = [];
+  let math = false;
+  let tag = false;
+  for (let i = 0; i < baris.length; i += 1) {
+    const dua = baris.slice(i, i + 2);
+    if (!tag && dua === "\\(") math = true;
+    if (!tag && dua === "\\)") math = false;
+    if (baris[i] === "<") tag = true;
+    if (baris[i] === ">") tag = false;
+    if (!math && !tag && dua === ", ") posisi.push(i);
+  }
+  if (!posisi.length) return baris;
+  const tengah = baris.length / 2;
+  const pilih = posisi.reduce((a, b) => (Math.abs(b - tengah) < Math.abs(a - tengah) ? b : a));
+  return `${baris.slice(0, pilih + 1)}<br>${baris.slice(pilih + 2)}`;
+}
+function pecahBaris(html) {
+  if (panjangPolos(html) <= AMBANG_PECAH) return html;
+  const PIPA = / ?<span style="color:var\(--muted\)">&nbsp;\|&nbsp;<\/span> ?/g;
+  return html
+    .split(PIPA)
+    .map((b) => (panjangPolos(b) > AMBANG_PECAH ? pecahDiKomaTengah(b) : b))
+    .join("<br>");
+}
+
 function blokRumus(label, rumus, keterangan = "") {
-  const isi = rumusLatex(rumus);
+  const isi = pecahBaris(rumusLatex(rumus));
   const matematis = isi.includes("\\(");
   // Label kosong tidak dirender — label pengisi "Inti bagian ini" dibuang
   // atas permintaan dosen; persamaannya berbicara sendiri lewat nomor dan
