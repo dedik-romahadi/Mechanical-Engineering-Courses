@@ -410,7 +410,7 @@ x.textAlign='right';x.fillText('kandidat τ →',s.w-s.pad,s.h-13);x.textAlign='
 
   // ── Modul 6 — Perancangan Kontrol melalui Komputer ─────────────────────────
   6: {
-    intro: "Komputer memungkinkan ratusan kandidat rancangan diuji sebelum satu pun perangkat dibuat. Animasi berikut memperlihatkan sapuan gain massal, efek periode cuplik ketika kendali menjadi kode, dan lintasan pole saat gain dinaikkan.",
+    intro: "Komputer memungkinkan ratusan kandidat rancangan diuji sebelum satu pun perangkat dibuat. Animasi berikut memperlihatkan sapuan gain massal, efek periode sampling ketika kendali menjadi kode, dan lintasan pole saat gain dinaikkan.",
     panel: [
       {
         judul: "Animasi 1 — Menyapu Puluhan Kandidat Gain Sekaligus",
@@ -435,8 +435,8 @@ _siskenLegenda(x,[['kandidat disorot','#67e8f9'],['tercepat yang lolos','#fbbf24
 _siskenBawah(x,s,lolos+' dari 24 kandidat memenuhi batas '+v.toFixed(0)+'% · kandidat #'+(sorot+1)+': K='+data[sorot][3].toFixed(1)+', lonjakan '+data[sorot][2].toFixed(0)+'%','waktu →');`,
       },
       {
-        judul: "Animasi 2 — Periode Cuplik: Kendali Hanya Bertindak Tiap Ts",
-        label: "Periode cuplik Ts (s)", min: 0.02, max: 0.9, step: 0.02, nilai: 0.2, des: 2,
+        judul: "Animasi 2 — Periode Sampling: Kendali Hanya Bertindak Tiap Ts",
+        label: "Periode sampling Ts (s)", min: 0.02, max: 0.9, step: 0.02, nilai: 0.2, des: 2,
         gambar: `var s=_siskenSiapkan('siskenAnim2Canvas'+n,58,36,26); if(!s)return;
 var x=s.ctx, sk=_siskenSkala(s,0,6,-0.4,2.3);
 _siskenGarisDatar(x,s,sk.y(1),'#fbbf24');
@@ -451,7 +451,7 @@ _siskenJalur(x,sk,ty,'#67e8f9',3);
 var kasar=4*v;
 _siskenLegenda(x,[['y(t) kendali digital','#67e8f9'],['u/5 (tangga ZOH)','#a78bfa'],['acuan kontinu','rgba(103,132,168,.9)']],s.pad,s.atas-13);
 x.font='17px JetBrains Mono';x.fillStyle=kasar<1?'#9fb2cc':'#f9a8d4';
-x.fillText('K·Ts = '+kasar.toFixed(2)+(kasar<1?', artinya cuplikan cukup rapat, perilaku ≈ kontinu':(kasar<2?', tandanya mulai berdering karena kendali selalu terlambat':', artinya melewati batas sehingga loop digital tak stabil')),s.pad,s.h-13);
+x.fillText('K·Ts = '+kasar.toFixed(2)+(kasar<1?', artinya sampel cukup rapat, perilaku ≈ kontinu':(kasar<2?', tandanya mulai berdering karena kendali selalu terlambat':', artinya melewati batas sehingga loop digital tak stabil')),s.pad,s.h-13);
 x.textAlign='right';x.fillText('waktu →',s.w-s.pad,s.h-13);x.textAlign='left';`,
       },
       {
@@ -482,7 +482,7 @@ x.fillStyle='#9fb2cc';x.fillText('σ',s.w-s.pad-16,oy-8);x.fillText('jω',ox+8,s
 _siskenLegenda(x,[['lintasan pole','rgba(103,232,249,.85)'],['pole pada K ini','#ec4899']],s.pad,s.atas-13);`,
       },
     ],
-    grafikIntro: "Dua sumbu keputusan implementasi digital: periode cuplik Ts dan gain K. Wilayah arsir memenuhi dua-duanya, yakni cukup cepat menuruti spesifikasi error, cukup lambat agar loop digital tetap stabil.",
+    grafikIntro: "Dua sumbu keputusan implementasi digital: periode sampling Ts dan gain K. Wilayah arsir memenuhi dua-duanya, yakni cukup cepat menuruti spesifikasi error, cukup lambat agar loop digital tetap stabil.",
     grafik: {
       judul: "Grafik 1 — Wilayah Layak pada Bidang (Ts, K)",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
@@ -498,7 +498,7 @@ _siskenGarisDatar(x,s,sk.y(3),'#fbbf24');
 _siskenLegenda(x,[['batas kestabilan K=2/Ts','#ec4899'],['K minimum utk error','#fbbf24'],['wilayah layak','#5eead4']],s.pad,s.atas-14);
 x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
 x.fillText('K ↑',s.pad,s.atas+18);
-x.textAlign='right';x.fillText('periode cuplik Ts →',s.w-s.pad,s.h-13);x.textAlign='left';`,
+x.textAlign='right';x.fillText('periode sampling Ts →',s.w-s.pad,s.h-13);x.textAlign='left';`,
     },
   },
 
@@ -1412,12 +1412,12 @@ export const PENJELASAN_ANIMASI = {
       { apa: "24 kandidat gain diuji serentak: yang memenuhi batas lonjakan diberi warna teal, dan yang tercepat di antaranya disorot kuning. Beginilah komputer memilih gain: bukan menebak, melainkan menyaring.",
         variabel: [["K", "gain kandidat yang sedang diuji"], ["Mp", "lonjakan tiap kandidat, % di atas nilai akhir"], ["batas lonjakan", "spesifikasi yang Anda setel (garis merah muda)"]] },
       { apa: "Kendali digital hanya bertindak setiap Ts detik; di antaranya sinyal ditahan rata (tangga ungu). Ts kecil nyaris kontinu; Ts besar membuat kendali selalu terlambat sampai akhirnya berdering.",
-        variabel: [["Ts", "periode cuplik: jeda antar eksekusi kode kendali"], ["ZOH", "tahan-orde-nol: nilai u dibekukan sampai cuplikan berikutnya"], ["K·Ts", "indikator kasar keamanan: nyaman jauh di bawah 1, bahaya mendekati 2"]] },
+        variabel: [["Ts", "periode sampling: jeda antar eksekusi kode kendali"], ["ZOH", "tahan-orde-nol: nilai u dibekukan sampai sampel berikutnya"], ["K·Ts", "indikator kasar keamanan: nyaman jauh di bawah 1, bahaya mendekati 2"]] },
       { apa: "Root locus adalah jejak pole loop tertutup saat K dinaikkan dari nol: dua pole saling mendekat di sumbu nyata, bertemu, lalu berbelok tegak; hasilnya tetap stabil, tapi mulai berosilasi.",
         variabel: [["K", "gain loop"], ["pole", "akar persamaan (s+1)(s+3)+K = 0, ditandai ×"], ["σ, jω", "sumbu nyata dan khayal bidang-s"]] },
     ],
     grafik: { apa: "Dua syarat implementasi digital dalam satu bidang: kurva merah muda plafon kestabilan, garis kuning lantai akurasi. Rancangan yang sehat memilih titik di dalam wilayah arsir.",
-      variabel: [["Ts", "periode cuplik"], ["K = 2/Ts", "plafon: gain di atas kurva ini membuat loop digital tak stabil"], ["K minimum", "lantai: gain di bawah garis ini menyisakan error tunak terlalu besar"]] },
+      variabel: [["Ts", "periode sampling"], ["K = 2/Ts", "plafon: gain di atas kurva ini membuat loop digital tak stabil"], ["K minimum", "lantai: gain di bawah garis ini menyisakan error tunak terlalu besar"]] },
   },
   7: {
     panel: [

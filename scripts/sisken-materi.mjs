@@ -580,19 +580,19 @@ export const MATERI = {
       {
         head: "Mengapa Controller Digital Berbeda dari Rancangan Kontinu",
         body: [
-          "Controller yang berjalan di komputer tidak mengamati sinyal secara terus-menerus. Ia mencuplik keluaran pada selang tetap, menghitung, lalu menahan keluarannya sampai cuplikan berikutnya. Tiga kegiatan itu memasukkan sifat yang tidak ada pada rancangan kontinu, dan mengabaikannya adalah sumber kegagalan yang paling sering terjadi pada penerapan pertama.",
+          "Controller yang berjalan di komputer tidak mengamati sinyal secara terus-menerus. Ia mengambil sampel dari keluaran pada selang tetap, menghitung, lalu menahan keluarannya sampai sampel berikutnya. Tiga kegiatan itu memasukkan sifat yang tidak ada pada rancangan kontinu, dan mengabaikannya adalah sumber kegagalan yang paling sering terjadi pada penerapan pertama.",
           "Penahanan orde nol membuat sinyal kendali berbentuk tangga. Terhadap plant, tangga tersebut setara dengan tundaan rata-rata sebesar setengah waktu cacah. Tundaan mengurangi margin fase, dan margin fase yang menipis berarti sistem lebih dekat ke ambang ketidakstabilan meskipun penguatannya tidak diubah sama sekali.",
-          "Pemilihan waktu cacah karena itu bukan urusan kenyamanan perangkat, melainkan bagian dari perancangan kontrol. Aturan praktis yang lazim menuntut sekitar dua puluh sampai empat puluh cuplikan sepanjang waktu naik sistem tertutup. Terlalu jarang membuat sistem tidak stabil; terlalu rapat memboroskan sumber daya dan memperkuat derau pada aksi turunan.",
+          "Pemilihan waktu cacah karena itu bukan urusan kenyamanan perangkat, melainkan bagian dari perancangan kontrol. Aturan praktis yang lazim menuntut sekitar dua puluh sampai empat puluh sampel sepanjang waktu naik sistem tertutup. Terlalu jarang membuat sistem tidak stabil; terlalu rapat memboroskan sumber daya dan memperkuat derau pada aksi turunan.",
           "Selain waktu cacah, aritmetika terbatas ikut berperan. Bilangan pecahan terbatas menimbulkan pembulatan yang dapat menumpuk pada aksi integral, dan pada perangkat kecil dengan bilangan bulat berskala, pemilihan skala menentukan apakah controller masih berperilaku seperti rancangannya.",
         ],
-        formula: "penahanan orde nol ~ tundaan T/2   |   20 sampai 40 cuplikan per waktu naik",
+        formula: "penahanan orde nol ~ tundaan T/2   |   20 sampai 40 sampel per waktu naik",
       },
       {
         head: "Diskretisasi: Menerjemahkan Rancangan ke Kode",
         body: [
           "Controller yang dirancang di domain kontinu harus diterjemahkan menjadi persamaan beda sebelum dapat dijalankan. Beberapa cara tersedia, dan pilihan di antaranya memengaruhi ketepatan serta kestabilan hasil terjemahan.",
           "Metode beda mundur sederhana dan selalu memetakan sistem stabil menjadi stabil, namun ketepatannya menurun pada frekuensi tinggi. Metode trapesium, yang juga dikenal sebagai transformasi bilinear, memberi ketepatan lebih baik dan tetap menjaga kestabilan, dengan konsekuensi terjadinya pergeseran frekuensi yang perlu dikoreksi bila titik frekuensi tertentu harus dipertahankan.",
-          "Untuk aksi integral, terjemahan yang lazim menambahkan hasil kali error dengan waktu cacah pada akumulator. Untuk aksi turunan, terjemahan yang lazim membagi selisih dua cuplikan dengan waktu cacah, dan bentuk mentah ini hampir selalu tidak dapat dipakai langsung karena memperkuat derau secara berlebihan.",
+          "Untuk aksi integral, terjemahan yang lazim menambahkan hasil kali error dengan waktu cacah pada akumulator. Untuk aksi turunan, terjemahan yang lazim membagi selisih dua sampel dengan waktu cacah, dan bentuk mentah ini hampir selalu tidak dapat dipakai langsung karena memperkuat derau secara berlebihan.",
           "Alternatif yang lebih baik adalah merancang langsung di domain diskret. Model plant diubah lebih dahulu menjadi bentuk diskret yang memperhitungkan penahanan orde nol, lalu controller dirancang atas model itu. Cara ini menghindari kekeliruan akibat terjemahan dan memperlihatkan pengaruh waktu cacah sejak awal perancangan.",
         ],
         formula: "integral: I += Ki*e*T   |   turunan: D = Kd*(e - e_lalu)/T, wajib ditapis",
@@ -610,8 +610,8 @@ export const MATERI = {
       {
         head: "Waktu Nyata, Penjadwalan, dan Keandalan",
         body: [
-          "Controller digital harus menyelesaikan perhitungannya sebelum cuplikan berikutnya tiba. Yang menentukan bukan waktu hitung rata-rata melainkan waktu hitung terburuk, karena satu keterlambatan saja dapat menggeser perilaku sistem. Karena itu tugas kontrol biasanya diberi prioritas tertinggi dan dijauhkan dari kegiatan yang waktunya tidak dapat diperkirakan.",
-          "Ketidakteraturan selang cuplikan sama merusaknya dengan tundaan. Selang yang berubah-ubah membuat aksi integral dan turunan salah menghitung, karena keduanya bergantung langsung pada waktu cacah. Bila selang tidak dapat dijamin tetap, waktu sesungguhnya harus diukur dan dipakai pada perhitungan alih-alih memakai nilai nominal.",
+          "Controller digital harus menyelesaikan perhitungannya sebelum sampel berikutnya tiba. Yang menentukan bukan waktu hitung rata-rata melainkan waktu hitung terburuk, karena satu keterlambatan saja dapat menggeser perilaku sistem. Karena itu tugas kontrol biasanya diberi prioritas tertinggi dan dijauhkan dari kegiatan yang waktunya tidak dapat diperkirakan.",
+          "Ketidakteraturan selang sampling sama merusaknya dengan tundaan. Selang yang berubah-ubah membuat aksi integral dan turunan salah menghitung, karena keduanya bergantung langsung pada waktu cacah. Bila selang tidak dapat dijamin tetap, waktu sesungguhnya harus diukur dan dipakai pada perhitungan alih-alih memakai nilai nominal.",
           "Keandalan menuntut penanganan kejadian tidak normal secara eksplisit: sensor yang tidak memberi data, nilai di luar rentang wajar, dan komunikasi terputus. Controller harus memiliki perilaku yang ditetapkan untuk setiap keadaan tersebut, umumnya berupa penahanan keluaran terakhir yang aman disertai pemberitahuan, bukan melanjutkan perhitungan atas data yang tidak sahih.",
           "Watchdog melengkapi pengaman dengan memaksa sistem ke keadaan aman bila putaran kendali berhenti berjalan. Perangkat ini bekerja di luar jalur perhitungan utama, tepat karena kegagalan jalur utama itulah yang harus diantisipasi.",
         ],
@@ -628,14 +628,14 @@ export const MATERI = {
         formula: "pisahkan hitung dari perangkat keras   |   uji keadaan tepi, bukan hanya keadaan normal",
       },
       {
-        head: "Aliasing: Komponen yang Menyamar Setelah Dicuplik",
+        head: "Aliasing: Komponen yang Menyamar Setelah Di-sampling",
         body: [
-          "Pencuplikan tidak hanya memperlambat pengamatan; ia juga dapat mengubah komponen berfrekuensi tinggi menjadi komponen berfrekuensi rendah palsu. Gejala inilah yang disebut aliasing, dan begitu terjadi, tidak ada perangkat lunak yang dapat memulihkannya.",
-          "Batas yang menentukan adalah setengah frekuensi cuplikan. Komponen di bawah batas itu terekam apa adanya; komponen di atasnya muncul kembali sebagai frekuensi lain yang lebih rendah dan tidak dapat dibedakan dari sinyal asli. Karena tidak dapat dibedakan, ia akan diperlakukan controller sebagai gangguan sungguhan dan ditanggapi.",
-          "Pencegahannya harus dilakukan sebelum pencuplikan, yaitu dengan penapis analog yang meredam komponen di atas batas tersebut. Penapis digital sesudahnya tidak menolong sama sekali, karena kerusakan sudah terjadi saat sinyal diubah menjadi cuplikan.",
+          "Sampling tidak hanya memperlambat pengamatan; ia juga dapat mengubah komponen berfrekuensi tinggi menjadi komponen berfrekuensi rendah palsu. Gejala inilah yang disebut aliasing, dan begitu terjadi, tidak ada perangkat lunak yang dapat memulihkannya.",
+          "Batas yang menentukan adalah setengah frekuensi sampling. Komponen di bawah batas itu terekam apa adanya; komponen di atasnya muncul kembali sebagai frekuensi lain yang lebih rendah dan tidak dapat dibedakan dari sinyal asli. Karena tidak dapat dibedakan, ia akan diperlakukan controller sebagai gangguan sungguhan dan ditanggapi.",
+          "Pencegahannya harus dilakukan sebelum sampling, yaitu dengan penapis analog yang meredam komponen di atas batas tersebut. Penapis digital sesudahnya tidak menolong sama sekali, karena kerusakan sudah terjadi saat sinyal diubah menjadi sampel.",
           "Pada praktiknya, banyak proses lambat yang derau frekuensi tingginya kecil sehingga persoalan ini jarang muncul. Namun pada sistem gerak dengan getaran mekanis, atau pada pengukuran arus dan tegangan, aliasing menjadi penyebab yang nyata dan mudah terlewat karena gejalanya menyerupai gangguan proses biasa.",
         ],
-        formula: "batas = setengah frekuensi cuplikan   |   penapis harus analog, sebelum pencuplikan",
+        formula: "batas = setengah frekuensi sampling   |   penapis harus analog, sebelum sampling",
       },
       {
         head: "Aritmetika Terbatas dan Pemilihan Skala",
@@ -674,7 +674,7 @@ export const MATERI = {
       steps: [
         ["PID kontinu", "u(t) = Kp*e + Ki*integral(e dt) + Kd*de/dt", "Tiga aksi bekerja atas error yang sama."],
         ["Dekati integral", "integral(e dt) ~ sum(e_k * T)", "Luas di bawah kurva didekati sebagai jumlah persegi selebar T."],
-        ["Dekati turunan", "de/dt ~ (e_k - e_(k-1))/T", "Selisih dua cuplikan berurutan dibagi selang waktunya."],
+        ["Dekati turunan", "de/dt ~ (e_k - e_(k-1))/T", "Selisih dua sampel berurutan dibagi selang waktunya."],
         ["Bentuk posisi", "u_k = Kp*e_k + Ki*T*sum(e) + Kd*(e_k - e_(k-1))/T", "Menghitung keluaran secara mutlak; memerlukan penanganan windup tersendiri."],
         ["Bentuk kenaikan", "du = Kp*(e_k - e_(k-1)) + Ki*T*e_k + Kd*(e_k - 2*e_(k-1) + e_(k-2))/T", "Diperoleh dengan mengurangkan u_(k-1) dari u_k."],
         ["Keluaran akhir", "u_k = u_(k-1) + du", "Bentuk kenaikan menangani windup secara alami karena pembatasan pada u_k langsung menghentikan penumpukan."],
@@ -688,7 +688,7 @@ export const MATERI = {
         "Sensor menghasilkan derau yang cukup berarti pada frekuensi tinggi",
       ],
       steps: [
-        ["Terapkan aturan cuplikan", "T = t_r/30 = 0,4/30", "Diambil tiga puluh cuplikan sepanjang waktu naik, di tengah rentang anjuran."],
+        ["Terapkan aturan sampling", "T = t_r/30 = 0,4/30", "Diambil tiga puluh sampel sepanjang waktu naik, di tengah rentang anjuran."],
         ["Hitung waktu cacah", "T = 0,0133 s", "Dibulatkan ke nilai yang mudah dijadwalkan, yaitu 0,01 detik atau 100 hertz."],
         ["Perkirakan tundaan tambahan", "T/2 = 0,005 s", "Penahanan orde nol setara tundaan setengah waktu cacah."],
         ["Ubah menjadi susut fase", "fase = wc * T/2, dengan wc ~ 2/t_r = 5 rad/s", "Diperoleh 0,025 radian atau sekitar 1,4 derajat."],
@@ -698,9 +698,9 @@ export const MATERI = {
     },
     pitfalls: [
       ["Memakai penguatan rancangan kontinu tanpa memeriksa waktu cacah", "Tundaan akibat penahanan mengurangi margin fase. Sistem yang stabil di atas kertas dapat berosilasi saat diprogram."],
-      ["Menerapkan aksi turunan tanpa penapis", "Selisih dua cuplikan memperkuat derau sensor. Actuator akan bergetar terus-menerus dan cepat aus."],
+      ["Menerapkan aksi turunan tanpa penapis", "Selisih dua sampel memperkuat derau sensor. Actuator akan bergetar terus-menerus dan cepat aus."],
       ["Melupakan anti-windup", "Actuator mentok adalah kejadian biasa. Tanpa penanganan, keluaran melewati setpoint jauh melebihi perkiraan simulasi."],
-      ["Membiarkan selang cuplikan tidak teratur", "Aksi integral dan turunan bergantung langsung pada T. Selang yang berubah membuat keduanya salah hitung."],
+      ["Membiarkan selang sampling tidak teratur", "Aksi integral dan turunan bergantung langsung pada T. Selang yang berubah membuat keduanya salah hitung."],
       ["Menguji hanya keadaan normal", "Kekeliruan paling mahal muncul pada keadaan tepi: error besar, keluaran mentok, dan perpindahan mode."],
     ],
     checklist: [
@@ -1076,7 +1076,7 @@ export const MATERI = {
         body: [
           "Dead time adalah lawan paling berat bagi PID. Selama jeda itu, controller tidak menerima kabar apa pun tentang akibat tindakannya, sehingga ia cenderung bertindak berlebihan dan baru menyadarinya setelah terlambat.",
           "Akibatnya terhadap penyetelan bersifat mendasar. Semakin besar perbandingan dead time terhadap konstanta waktu, semakin kecil penguatan yang masih aman. Pada perbandingan di atas satu, PID biasa hanya dapat disetel sangat lamban, dan kinerjanya terbatas berapa pun keterampilan penyetelnya.",
-          "Langkah pertama yang benar bukan menyetel melainkan memeriksa apakah dead time-nya dapat dikurangi. Memindahkan sensor lebih dekat ke titik yang dikendalikan, memperpendek jalur perpipaan, atau mempercepat pencuplikan sering memberi perbaikan yang jauh melampaui hasil penyetelan mana pun.",
+          "Langkah pertama yang benar bukan menyetel melainkan memeriksa apakah dead time-nya dapat dikurangi. Memindahkan sensor lebih dekat ke titik yang dikendalikan, memperpendek jalur perpipaan, atau mempercepat sampling sering memberi perbaikan yang jauh melampaui hasil penyetelan mana pun.",
           "Bila dead time memang tidak dapat dikurangi, struktur prediktor memakai model plant untuk memperkirakan akibat tindakan sebelum akibat itu terukur. Sistem menjadi jauh lebih agresif secara aman, dengan syarat modelnya cukup tepat, sebab bila model meleset, keunggulannya cepat hilang.",
         ],
         formula: "L/tau besar => penguatan aman mengecil; kurangi L dulu sebelum menyetel",

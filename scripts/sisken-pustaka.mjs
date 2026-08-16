@@ -92,7 +92,7 @@ export const PUSTAKA = {
     ref: [
       [B.ljung, "Bab 1-6 menyajikan identifikasi sistem dari data uji; dasar penentuan gain statik, konstanta waktu, dan dead time."],
       [B.seborg, "Bab 5-7 memuat pemodelan proses dan uji step di lapangan; contohnya dekat dengan praktik industri."],
-      [B.franklin, "Bab 3 dan 8 menjelaskan pengaruh pencuplikan dan langkah waktu terhadap kesahihan hasil simulasi."],
+      [B.franklin, "Bab 3 dan 8 menjelaskan pengaruh sampling dan langkah waktu terhadap kesahihan hasil simulasi."],
       [B.harris, "Makalah NumPy; pustaka yang dipakai seluruh soal komputasi mata kuliah ini."],
       [B.virtanen, "Makalah SciPy; berguna ketika model mulai memerlukan pengintegral yang lebih baik daripada Euler."],
     ],
@@ -109,7 +109,7 @@ export const PUSTAKA = {
     ],
   },
   7: {
-    intro: "Rujukan untuk membaca grafik respons: membedakan gangguan dari perubahan setpoint, mengenali pola kegagalan, dan mewaspadai jebakan pencuplikan.",
+    intro: "Rujukan untuk membaca grafik respons: membedakan gangguan dari perubahan setpoint, mengenali pola kegagalan, dan mewaspadai jebakan sampling.",
     daring: DARING.numerik,
     ref: [
       [B.nise, "Bab 4 mengupas Time Response; anatomi kurva respons beserta seluruh indikator yang dibaca darinya."],

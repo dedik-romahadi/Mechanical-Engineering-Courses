@@ -44,13 +44,13 @@ export const NOTASI_KAMUS = {
   // ruang keadaan & model
   "x": "keadaan (atau posisi)", "A": "matriks dinamika (atau gain jalur)",
   "B": "matriks masukan", "m": "massa", "b": "koefisien redaman (atau bias neuron)",
-  "k": "kekakuan pegas (atau indeks cuplikan)", "M": "massa (atau label matriks)",
+  "k": "kekakuan pegas (atau indeks sampel)", "M": "massa (atau label matriks)",
   // digital
-  "T_s": "periode cuplik", "f_s": "frekuensi cuplik", "f_{bw}": "lebar pita sistem",
+  "T_s": "periode sampling", "f_s": "frekuensi sampling", "f_{bw}": "lebar pita sistem",
   "bandwidth": "lebar pita: batas frekuensi yang masih diikuti",
-  "e_k": "error pada cuplikan ke-k", "e_{k-1}": "error satu cuplikan sebelumnya",
-  "e_{k-2}": "error dua cuplikan sebelumnya", "u_k": "sinyal kendali cuplikan ke-k",
-  "u_{k-1}": "sinyal kendali cuplikan sebelumnya",
+  "e_k": "error pada sampel ke-k", "e_{k-1}": "error satu sampel sebelumnya",
+  "e_{k-2}": "error dua sampel sebelumnya", "u_k": "sinyal kendali sampel ke-k",
+  "u_{k-1}": "sinyal kendali sampel sebelumnya",
   // PID & pembatasan
   "K_p": "gain proporsional", "K_i": "gain integral", "K_d": "gain derivatif",
   "T_i": "waktu integral (detik)", "T_d": "waktu derivatif (detik)",
@@ -369,22 +369,22 @@ export const PENJELASAN_RUMUS = {
 
   // ── Modul 6 ──────────────────────────────────────────────
   // [Mengapa Controller Digital Berbeda dari Rancangan Kontinu]
-  "penahanan orde nol ~ tundaan T/2   |   20 sampai 40 cuplikan per waktu naik": {
-    apa: "dua angka praktis implementasi digital: menahan sinyal rata antar-cuplikan (ZOH) berperilaku seperti menambah waktu mati setengah periode cuplik, akibatnya margin fase termakan; dan agar rancangan kontinu tetap sah, waktu naik sistem harus memuat 20–40 cuplikan.",
+  "penahanan orde nol ~ tundaan T/2   |   20 sampai 40 sampel per waktu naik": {
+    apa: "dua angka praktis implementasi digital: menahan sinyal rata antar-sampel (ZOH) berperilaku seperti menambah waktu mati setengah periode sampling, akibatnya margin fase termakan; dan agar rancangan kontinu tetap sah, waktu naik sistem harus memuat 20–40 sampel.",
     variabel: [
-      ["T", "periode cuplik: jeda antar eksekusi kode kendali"],
+      ["T", "periode sampling: jeda antar eksekusi kode kendali"],
       ["T/2", "tundaan efektif yang disumbangkan penahanan orde nol"],
     ],
   },
   // [Diskretisasi: Menerjemahkan Rancangan ke Kode]
   "integral: I += Ki*e*T   |   turunan: D = Kd*(e - e_lalu)/T, wajib ditapis": {
-    apa: "PID versi kode: integral menjadi penjumlah berjalan (luas persegi tiap langkah), turunan menjadi selisih dua cuplikan dibagi {{T}}. Peringatan di ekornya serius, sebab selisih beda-hingga memperkuat derau, jadi suku turunan wajib melewati tapis lolos-rendah sebelum dipakai.",
+    apa: "PID versi kode: integral menjadi penjumlah berjalan (luas persegi tiap langkah), turunan menjadi selisih dua sampel dibagi {{T}}. Peringatan di ekornya serius, sebab selisih beda-hingga memperkuat derau, jadi suku turunan wajib melewati tapis lolos-rendah sebelum dipakai.",
     variabel: [
       ["I", "akumulator suku integral"],
       ["Ki", "gain integral"],
-      ["e", "error pada cuplikan ini"],
-      ["e_lalu", "error pada cuplikan sebelumnya"],
-      ["T", "periode cuplik"],
+      ["e", "error pada sampel ini"],
+      ["e_lalu", "error pada sampel sebelumnya"],
+      ["T", "periode sampling"],
       ["D", "suku derivatif hasil beda-hingga"],
       ["Kd", "gain derivatif"],
     ],
@@ -398,14 +398,14 @@ export const PENJELASAN_RUMUS = {
       ["Kt", "gain anti-windup: seberapa cepat akumulator dikuras"],
       ["u_nyata", "sinyal kendali yang benar-benar keluar (sudah terpotong batas)"],
       ["u_minta", "sinyal kendali yang diminta perhitungan PID"],
-      ["T", "periode cuplik"],
+      ["T", "periode sampling"],
     ],
   },
   // [Waktu Nyata, Penjadwalan, dan Keandalan]
   "waktu hitung terburuk < T   |   jitter kecil, atau ukur dt sesungguhnya": {
-    apa: "syarat waktu-nyata yang tidak bisa ditawar: perhitungan kendali TERLAMA harus selesai sebelum cuplikan berikutnya datang, karena rata-rata cepat tidak menolong bila sesekali telat. Bila jadwal eksekusi bergetar (jitter), ukur selang waktu sebenarnya dan pakai itu dalam rumus, jangan mengasumsikan T ideal.",
+    apa: "syarat waktu-nyata yang tidak bisa ditawar: perhitungan kendali TERLAMA harus selesai sebelum sampel berikutnya datang, karena rata-rata cepat tidak menolong bila sesekali telat. Bila jadwal eksekusi bergetar (jitter), ukur selang waktu sebenarnya dan pakai itu dalam rumus, jangan mengasumsikan T ideal.",
     variabel: [
-      ["T", "periode cuplik yang dijanjikan"],
+      ["T", "periode sampling yang dijanjikan"],
       ["jitter", "getaran jadwal: selisih waktu eksekusi nyata dari jadwal idealnya"],
       ["dt", "selang waktu antar eksekusi yang sesungguhnya terukur"],
     ],
@@ -417,12 +417,12 @@ export const PENJELASAN_RUMUS = {
       ["keadaan tepi", "kombinasi masukan paling ekstrem yang masih mungkin terjadi"],
     ],
   },
-  // [Aliasing: Komponen yang Menyamar Setelah Dicuplik]
-  "batas = setengah frekuensi cuplikan   |   penapis harus analog, sebelum pencuplikan": {
-    apa: "batas Nyquist dan konsekuensi praktisnya: komponen sinyal di atas setengah frekuensi cuplik tidak hilang saat dicuplik, melainkan MENYAMAR sebagai frekuensi rendah palsu yang tak bisa dibedakan lagi. Karena penyamaran terjadi PADA saat pencuplikan, penapis pencegahnya wajib analog dan dipasang sebelum ADC; menapis sesudahnya sudah terlambat selamanya.",
+  // [Aliasing: Komponen yang Menyamar Setelah Di-sampling]
+  "batas = setengah frekuensi sampling   |   penapis harus analog, sebelum sampling": {
+    apa: "batas Nyquist dan konsekuensi praktisnya: komponen sinyal di atas setengah frekuensi sampling tidak hilang saat di-sampling, melainkan MENYAMAR sebagai frekuensi rendah palsu yang tak bisa dibedakan lagi. Karena penyamaran terjadi PADA saat sampling, penapis pencegahnya wajib analog dan dipasang sebelum ADC; menapis sesudahnya sudah terlambat selamanya.",
     variabel: [
       ["batas", "frekuensi Nyquist: sinyal tertinggi yang masih terwakili jujur"],
-      ["frekuensi cuplikan", "berapa kali per detik sinyal dibaca"],
+      ["frekuensi sampling", "berapa kali per detik sinyal dibaca"],
     ],
   },
 
@@ -572,7 +572,7 @@ export const PENJELASAN_RUMUS = {
       ["Kt", "gain anti-windup: laju pengurasan akumulator saat jenuh"],
       ["u_nyata", "sinyal yang benar-benar keluar (sudah dibatasi)"],
       ["u_minta", "sinyal yang diminta perhitungan PID"],
-      ["T", "periode cuplik"],
+      ["T", "periode sampling"],
     ],
   },
   // [Varian Struktur yang Sering Diperlukan]
