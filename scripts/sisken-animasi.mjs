@@ -1417,7 +1417,7 @@ export const PENJELASAN_ANIMASI = {
         variabel: [["K", "gain loop"], ["pole", "akar persamaan (s+1)(s+3)+K = 0, ditandai ×"], ["σ, jω", "sumbu nyata dan khayal bidang-s"]] },
     ],
     grafik: { apa: "Dua syarat implementasi digital dalam satu bidang: kurva merah muda plafon kestabilan, garis kuning lantai akurasi. Rancangan yang sehat memilih titik di dalam wilayah arsir.",
-      variabel: [["Ts", "periode sampling"], ["K = 2/Ts", "plafon: gain di atas kurva ini membuat loop digital tak stabil"], ["K minimum", "lantai: gain di bawah garis ini menyisakan error tunak terlalu besar"]] },
+      variabel: [["Ts", "periode sampling"], ["K = 2/Ts", "plafon: gain di atas kurva ini membuat loop digital tak stabil"], ["K_min", "K minimum (lantai): gain di bawah garis ini menyisakan error tunak terlalu besar"]] },
   },
   7: {
     panel: [
@@ -1438,10 +1438,10 @@ export const PENJELASAN_ANIMASI = {
       { apa: "Satu parameter membentuk seluruh kurva: ζ di bawah 1 berosilasi (makin kecil makin liar), tepat 1 tercepat tanpa lonjakan, di atas 1 aman tapi lamban.",
         variabel: [["ζ", "rasio redaman: perbandingan redaman aktual terhadap redaman kritis"], ["ωn", "frekuensi alami (di sini 1,6 rad/s)"]] },
       { apa: "Kurva menunjukkan seberapa setia sistem mengikuti perintah pada tiap frekuensi: di kiri (perintah lambat) diikuti penuh, melewati garis −3 dB kesetiaannya rontok. Gain besar memperluas jangkauan itu.",
-        variabel: [["L", "gain loop"], ["|T| dB", "perbandingan amplitudo keluaran/perintah dalam desibel: 0 dB berarti diikuti penuh"], ["lebar pita", "frekuensi tempat kurva memotong −3 dB alias batas kemampuan mengikuti"]] },
+        variabel: [["L", "gain loop"], ["|T| dB", "perbandingan amplitudo keluaran/perintah dalam desibel: 0 dB berarti diikuti penuh"], ["f_bw", "lebar pita: frekuensi tempat kurva memotong −3 dB alias batas kemampuan mengikuti"]] },
     ],
     grafik: { apa: "Dua kurva kinerja dibaca bersama garis spesifikasinya: error tunak harus di bawah garis kuning, waktu menetap di bawah garis merah muda. Garis ungu menandai Kp terkecil yang memenuhi keduanya.",
-      variabel: [["Kp", "gain controller pada sumbu datar"], ["error tunak", "sisa selisih permanen terhadap sasaran"], ["waktu menetap", "lamanya sistem mencapai pita ±2%"]] },
+      variabel: [["Kp", "gain controller pada sumbu datar"], ["e_ss", "error tunak: sisa selisih permanen terhadap sasaran"], ["t_s", "waktu menetap: lamanya sistem mencapai pita ±2%"]] },
   },
   9: {
     panel: [

@@ -328,6 +328,13 @@ export function tokenLatex(teks) {
     KATA_MATEMATIKA.has(kata.toLowerCase()) ? cocok : `${depan}\\text{${kata}}`
   ));
 
+  // Frasa kata beruntun digabung dalam satu \text supaya spasinya terjaga —
+  // mode matematika menelan spasi antarperintah, sehingga "frekuensi sampling"
+  // pernah tampil menyatu sebagai "frekuensisampling".
+  for (let ulang = 0; ulang < 6; ulang += 1) {
+    t = t.replace(/\\text\{([^{}]*)\} +\\text\{([^{}]*)\}/g, "\\text{$1 $2}");
+  }
+
   // Kurawal asal dikembalikan dalam bentuk yang dikenali KaTeX.
   t = t.replace(/\u0001/g, "\\{").replace(/\u0002/g, "\\}");
   t = t.replace(/\\mathcal\{L\}/g, "\\mathcal{L}");
