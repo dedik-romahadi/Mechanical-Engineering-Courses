@@ -4,7 +4,7 @@ import path from "node:path";
 import { MATERI } from "./sisken-materi.mjs";
 import { FORUM } from "./sisken-forum.mjs";
 import { PUSTAKA } from "./sisken-pustaka.mjs";
-import { rumusLatex as _rumusLatex, tokenLatex, tokenNotasi } from "./sisken-rumus.mjs";
+import { rumusLatex as _rumusLatex, tokenLatex, tokenNotasi, adaPersamaanInti } from "./sisken-rumus.mjs";
 import { PENJELASAN_RUMUS, NOTASI_KAMUS } from "./sisken-rumus-jelas.mjs";
 import { normalizeSiskenExportHtml } from "./sisken-export-html.mjs";
 import { normalizeSiskenForumRuntime } from "./sisken-forum-runtime.mjs";
@@ -705,7 +705,7 @@ function pecahBaris(html) {
 
 function blokRumus(label, rumus, keterangan = "") {
   const isi = pecahBaris(rumusLatex(rumus));
-  const matematis = isi.includes("\\(");
+  const matematis = adaPersamaanInti(rumus);
   // Label kosong tidak dirender — label pengisi "Inti bagian ini" dibuang
   // atas permintaan dosen; persamaannya berbicara sendiri lewat nomor dan
   // kotak penjelasannya.
