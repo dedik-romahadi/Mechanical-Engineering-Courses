@@ -144,13 +144,30 @@ function jalurKurva(b, pts, warna, o = {}) {
 
 /* ── jenis-jenis diagram ────────────────────────────────────────────── */
 
+/**
+ * Warna baku tiap kurva pada satu bidang plot, menghindari warna yang sudah
+ * dipesan spesifikasi.
+ *
+ * Pemetaan lugas berdasarkan indeks pernah membuat dua kurva pada satu bidang
+ * tampil sama persis: kurva pertama meminta oranye secara eksplisit, lalu
+ * kurva kedua kebagian oranye pula karena kebetulan menempati indeks palet
+ * yang sama. Legendanya jadi memuat dua entri yang tak terbedakan.
+ */
+function warnaOtomatis(kurva, palet) {
+  const dipesan = new Set(kurva.map((k) => k.warna).filter(Boolean));
+  const sisa = palet.filter((w) => !dipesan.has(w));
+  let n = 0;
+  return kurva.map((k) => (k.warna ? k.warna : sisa[n++ % sisa.length] || palet[0]));
+}
+
 function gKurva(p) {
   const h = 252;
   const b = bidang(48, 34, 18, 34, h);
   let g = b.g;
   const legenda = [];
+  const bakuWarna = warnaOtomatis(p.kurva || [], [C.cyan, C.oranye, C.hijau, C.violet]);
   (p.kurva || []).forEach((k, i) => {
-    const warna = k.warna || [C.cyan, C.oranye, C.hijau, C.violet][i % 4];
+    const warna = k.warna || bakuWarna[i];
     g += jalurKurva(b, ambilPts(k.preset || k.pts), warna, { putus: k.putus, isi: i === 0 && !k.putus });
     if (k.label) legenda.push([K(k.label), warna, k.putus]);
   });
@@ -382,8 +399,10 @@ function gBanding(p) {
     g += panah(x0, y1, x1 + 6, y1, C.muted, { tebal: 1.2 });
     g += panah(x0, y1, x0, y0 - 6, C.muted, { tebal: 1.2 });
     const mini = { U: (u) => x0 + u * (x1 - x0), V: (v) => y1 - v * (y1 - y0) };
-    (sisi.kurva || [{ preset: sisi.preset, warna: sisi.warna }]).forEach((k, i) => {
-      const warna = k.warna || [C.cyan, C.oranye][i % 2];
+    const daftar = sisi.kurva || [{ preset: sisi.preset, warna: sisi.warna }];
+    const bakuSisi = warnaOtomatis(daftar, [C.cyan, C.oranye]);
+    daftar.forEach((k, i) => {
+      const warna = k.warna || bakuSisi[i];
       g += jalurKurva(mini, ambilPts(k.preset || k.pts), warna, { tebal: 2.3, putus: k.putus, isi: i === 0 && !k.putus });
     });
     g += teks(ox + lebar / 2, rectY + 18, sisi.judul, { anchor: "middle", size: 12.5, fill: C.teks, weight: 700 });
