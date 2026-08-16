@@ -280,9 +280,9 @@ export const FORUM = {
     narasi: [
       "Kendali suhu sebuah tungku dirancang di domain kontinu dan disimulasikan dengan hasil sangat baik: overshoot 6 persen, waktu menetap 40 detik, error tunak nol karena memakai aksi integral. Parameter controller kemudian diprogram apa adanya ke mikrokontroler.",
       "Di lapangan, suhu <strong style=\"color:var(--pink)\">berayun terus tanpa pernah menetap</strong>, dan katup gas terdengar bergetar cepat. Operator juga melaporkan bahwa setiap kali sistem dipindahkan dari mode manual ke otomatis, keluaran <strong>melompat tiba-tiba</strong> sebelum kembali turun.",
-      "Pemeriksaan program menemukan tiga hal. Waktu sampling ditetapkan <strong style=\"color:var(--amber)\">2 detik</strong> karena dianggap sudah cukup cepat untuk proses termal. Aksi turunan dihitung sebagai selisih dua sampel dibagi waktu sampling, tanpa penapis. Dan akumulator integral tidak pernah disiapkan saat perpindahan mode.",
+      "Pemeriksaan program menemukan tiga hal. Waktu sampling ditetapkan <strong style=\"color:var(--amber)\">2 detik</strong> karena dianggap sudah cukup cepat untuk proses termal. Aksi turunan dihitung sebagai selisih dua sampel dibagi waktu sampling, tanpa filter. Dan akumulator integral tidak pernah disiapkan saat perpindahan mode.",
     ],
-    chip: ["Waktu sampling: 2 s", "Waktu naik target: 18 s", "Aksi turunan: tanpa penapis", "Perpindahan mode: tanpa persiapan"],
+    chip: ["Waktu sampling: 2 s", "Waktu naik target: 18 s", "Aksi turunan: tanpa filter", "Perpindahan mode: tanpa persiapan"],
     jajak: [
       {
         q: "Waktu sampling 2 detik terhadap waktu naik target 18 detik memberi sekitar sembilan sampel sepanjang waktu naik. Menurut aturan praktis, ini...",
@@ -301,7 +301,7 @@ export const FORUM = {
         opts: [
           "Aksi integral yang terlalu besar",
           "Setpoint yang berubah terlalu sering",
-          "Aksi turunan tanpa penapis yang memperkuat derau sensor",
+          "Aksi turunan tanpa filter yang memperkuat derau sensor",
           "Gain proporsional yang terlalu kecil",
         ],
         jawab: 2,
@@ -328,7 +328,7 @@ export const FORUM = {
       },
       {
         q: "Rancang penanganan aksi turunan agar tidak lagi menggetarkan katup",
-        petunjuk: "1) Jelaskan mengapa selisih dua sampel memperkuat derau. 2) Usulkan penapis beserta letak frekuensi potongnya relatif terhadap bandwidth tertutup. 3) Sebutkan pembatasan penguatan turunan yang lazim dipakai. 4) Jelaskan apa yang hilang dan apa yang didapat setelah penapisan.",
+        petunjuk: "1) Jelaskan mengapa selisih dua sampel memperkuat derau. 2) Usulkan filter beserta letak frekuensi potongnya relatif terhadap bandwidth tertutup. 3) Sebutkan pembatasan penguatan turunan yang lazim dipakai. 4) Jelaskan apa yang hilang dan apa yang didapat setelah pemfilteran.",
       },
       {
         q: "Susun daftar pemeriksaan penerapan digital yang seharusnya dilalui sebelum controller ini dipasang",
@@ -381,7 +381,7 @@ export const FORUM = {
           "Setpoint yang berubah-ubah",
         ],
         jawab: 1,
-        benar: "Tepat, dan membedakan keduanya penting karena penanganannya berlawanan: yang pertama menuntut penurunan penguatan, yang kedua menuntut penapisan. Amplitudo yang tetap, bukan membesar, menunjukkan sistem belum benar-benar tidak stabil.",
+        benar: "Tepat, dan membedakan keduanya penting karena penanganannya berlawanan: yang pertama menuntut penurunan penguatan, yang kedua menuntut pemfilteran. Amplitudo yang tetap, bukan membesar, menunjukkan sistem belum benar-benar tidak stabil.",
         salah: "Amplitudo yang tetap dan tidak membesar menunjukkan sistem belum tidak stabil. Menurunkan penguatan drastis tanpa memastikan penyebabnya justru dapat memperlambat sistem tanpa menyelesaikan masalah.",
       },
     ],
@@ -439,7 +439,7 @@ export const FORUM = {
       {
         q: "Untuk memperbaiki penolakan gangguan tanpa mengubah kestabilan loop, pendekatan yang paling tepat adalah...",
         opts: [
-          "Struktur dua derajat kebebasan, yaitu menyetel jalur umpan balik untuk gangguan dan memberi penapis tersendiri pada jalur setpoint",
+          "Struktur dua derajat kebebasan, yaitu menyetel jalur umpan balik untuk gangguan dan memberi filter tersendiri pada jalur setpoint",
           "Menaikkan setpoint agar tekanan tidak pernah turun di bawah batas",
           "Mengganti sensor dengan yang lebih cepat",
           "Menghapus aksi integral",

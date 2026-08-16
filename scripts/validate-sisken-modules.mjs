@@ -264,12 +264,12 @@ for (let n = 1; n <= 14; n += 1) {
   // step sampai tampil di modul Logika Fuzzy. Judul dikumpulkan lintas modul
   // (termasuk Modul 1 yang ditulis tangan) dan diperiksa setelah loop.
   {
-    const judul = [...tanpaGaya(html).matchAll(/class="anim-title">((?:Animasi|Grafik) \d+ — [^<]*)</g)]
+    const judul = [...tanpaGaya(html).matchAll(/class="anim-title">((?:Animasi|Gambar) \d+ — [^<]*)</g)]
       .map((m2) => m2[1].trim());
     const animasiSaja = judul.filter((j) => j.startsWith("Animasi"));
     if (n >= 2) {
       checks.push([animasiSaja.length === 3, `jumlah panel Animasi ${animasiSaja.length}, seharusnya 3`]);
-      checks.push([judul.filter((j) => j.startsWith("Grafik 1")).length === 1, "panel Grafik 1 hilang"]);
+      checks.push([judul.filter((j) => j.startsWith("Gambar 1")).length === 1, "panel Gambar 1 hilang"]);
       const runtimeIni = html.match(/<script id="sisken-rich-runtime">([\s\S]*?)<\/script>/)?.[1] || "";
       for (const fn of ["drawSiskenAnim1", "drawSiskenAnim2", "drawSiskenAnim3", "drawSiskenGrafik"]) {
         checks.push([runtimeIni.includes(`window.${fn}=function`), `runtime tanpa ${fn}`]);
