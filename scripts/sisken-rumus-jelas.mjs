@@ -68,6 +68,8 @@ export const NOTASI_KAMUS = {
   "f": "fungsi (aktivasi pada ANN)", "f_W": "jaringan dengan kumpulan bobot W",
   "w": "bobot neuron", "z": "penjumlah neuron sebelum aktivasi", "a": "keluaran aktivasi neuron",
   "ᵀ": "transpose vektor/matriks", "φ": "fungsi aktivasi", "λ": "bobot regularisasi",
+  "η": "laju belajar: besar langkah tiap pembaruan bobot",
+  "W": "matriks bobot jaringan yang sedang dilatih",
   "J": "fungsi tujuan/kebugaran", "R": "suku regularisasi (atau setpoint domain-s)",
   "MSE": "rata-rata kuadrat galat", "RMSE": "akar rata-rata kuadrat galat",
   "ITAE": "integral |error| berbobot waktu",

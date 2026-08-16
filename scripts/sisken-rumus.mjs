@@ -81,9 +81,72 @@ const LAMBANG_PROSA = [
 ];
 
 function teksProsa(teks, esc) {
-  let hasil = esc(teks);
+  // Panah dan pertidaksamaan ASCII pada kalimat ditulis dengan glyph aslinya.
+  // Dilakukan sebelum esc supaya polanya tidak berubah menjadi entitas HTML.
+  let hasil = String(teks)
+    .replace(/<=>/g, "⇔").replace(/<->/g, "↔")
+    .replace(/->/g, "→").replace(/=>/g, "⇒")
+    .replace(/<=/g, "≤").replace(/>=/g, "≥").replace(/\+\/-/g, "±");
+  hasil = esc(hasil);
   for (const [pola, ganti] of LAMBANG_PROSA) hasil = hasil.replace(pola, ganti);
   return hasil;
+}
+
+// Kata yang merupakan lambang matematika walau berdiri sendiri di tengah
+// kalimat keterangan — dirender KaTeX agar tidak tampil mentah seperti "Kt".
+const LAMBANG_KATA = new Set(["Kp", "Ki", "Kd", "Ku", "Kt", "Ti", "Td", "Tu",
+  "Mp", "ess", "wn", "wd", "tau", "zeta", "omega", "pi", "mu", "alpha", "beta",
+  "theta", "Delta", "dt", "dx", "dy"]);
+
+function tokenMatematis(tok) {
+  const inti = tok.replace(/[.,;:]+$/, "");
+  if (!inti) return false;
+  if (LAMBANG_KATA.has(inti)) return true;
+  if (/^[A-Za-z]$/.test(inti)) return true;                    // huruf tunggal: I, K, L
+  if (/[_^]/.test(inti)) return true;                          // u_nyata, s^2
+  if (/^[-+*/=<>()]+$|^\+=$|^->$/.test(inti)) return true;     // operator murni
+  if (/[=*/^]|->|\+=/.test(inti) && /[A-Za-z0-9)]/.test(inti)) return true; // Kt*(u_nyata
+  return false;
+}
+
+/**
+ * Keterangan di samping/di belakang persamaan sering masih menyimpan potongan
+ * matematika ("atau I += Kt*(u_nyata - u_minta)"). Deretan token matematis
+ * dibungkus \( \) lewat tokenLatex yang SAMA dengan persamaan utamanya;
+ * kata biasa tetap prosa. Deretan yang hanya berisi operator (mis. "->" di
+ * antara dua kata) dibiarkan sebagai teks agar panah kalimat tidak berubah
+ * menjadi rumus palsu.
+ */
+function prosaBerlambang(teks, esc) {
+  const token = String(teks).trim().split(/\s+/).filter(Boolean);
+  const keluar = [];
+  let run = [];
+  const tuang = () => {
+    if (!run.length) return;
+    const gabung = run.join(" ");
+    // Deretan tanpa operand (hanya "->" atau "-" di antara kata) tetap teks.
+    const adaOperand = /[A-Za-z0-9]/.test(gabung.replace(/[-+*/=<>()^_.,;:\s]+/g, ""));
+    if (!adaOperand) {
+      keluar.push(teksProsa(gabung, esc));
+    } else {
+      const ekorTanda = gabung.match(/[.,;:]+$/)?.[0] ?? "";
+      const inti = ekorTanda ? gabung.slice(0, -ekorTanda.length) : gabung;
+      keluar.push(`\\(${tokenLatex(inti)}\\)${esc(ekorTanda)}`);
+    }
+    run = [];
+  };
+  for (const tok of token) {
+    if (tokenMatematis(tok)) {
+      run.push(tok);
+      // Tanda baca di ujung token menutup deretan — "mentok," berhenti di koma.
+      if (/[.,;:]$/.test(tok)) tuang();
+    } else {
+      tuang();
+      keluar.push(teksProsa(tok, esc));
+    }
+  }
+  tuang();
+  return keluar.join(" ");
 }
 
 // Nama fungsi yang tidak punya perintah LaTeX sendiri ditulis tegak supaya
@@ -257,9 +320,11 @@ export function tokenLatex(teks) {
   t = pecahanBerkurung(t);
   t = pecahanSederhana(t);
 
-  // Kata biasa yang menyelip di antara lambang (mis. "pada", "pole") ditulis
+  // Kata biasa yang menyelip di antara lambang (mis. "pada", "uji") ditulis
   // tegak lewat \text{} supaya tidak tampil sebagai perkalian antarhuruf.
-  t = t.replace(/(^|[^\\A-Za-z_{])([A-Za-z]{4,})(?![A-Za-z}])/g, (cocok, depan, kata) => (
+  // Ambang tiga huruf: kata Indonesia pendek ("uji", "dan") pun bukan
+  // perkalian; lambang tiga huruf yang sah sudah tersaring KATA_MATEMATIKA.
+  t = t.replace(/(^|[^\\A-Za-z_{])([A-Za-z]{3,})(?![A-Za-z}])/g, (cocok, depan, kata) => (
     KATA_MATEMATIKA.has(kata.toLowerCase()) ? cocok : `${depan}\\text{${kata}}`
   ));
 
@@ -295,8 +360,17 @@ function pisahRumusDanKeterangan(teks) {
       beruntun = 0;
     }
   }
-  const kepala = token.slice(0, batas).join(" ").replace(/[,;:]$/, "").trim();
-  const ekor = token.slice(batas).join(" ").trim();
+  let kepala = token.slice(0, batas).join(" ").trim();
+  const sisaToken = token.slice(batas);
+  // Kurung yang terbuka di kepala harus dibawa sampai penutupnya — tanpa ini,
+  // "eksperimen = {model, parameter, ...}" terpotong di tengah himpunan.
+  const hitung = (s, c) => s.split(c).length - 1;
+  while (sisaToken.length
+      && (hitung(kepala, "{") > hitung(kepala, "}") || hitung(kepala, "(") > hitung(kepala, ")"))) {
+    kepala += ` ${sisaToken.shift()}`;
+  }
+  kepala = kepala.replace(/[,;:]$/, "");
+  const ekor = sisaToken.join(" ").trim();
   // Kepala baru layak disusun bila benar-benar mengandung tanda hitung.
   const layak = /[=^_]|[A-Za-z0-9)]\s*\/\s*[A-Za-z0-9(]|\+=|\bsqrt\b|\bexp\b|\bintegral\b/.test(kepala);
   return layak ? [kepala, ekor] : ["", teks];
@@ -377,6 +451,25 @@ export function ekstrakNotasiLatex(latex, namaDikenal = new Set()) {
   return hasil;
 }
 
+/**
+ * Benar-tidaknya sebuah kolom rumus memuat PERSAMAAN (bukan sekadar lambang
+ * yang menyelip di kalimat panduan). Dipakai enrich untuk memutuskan blok mana
+ * yang dinomori dan validator untuk menuntut penjelasan — satu penentu untuk
+ * keduanya supaya mustahil berbeda pendapat. Tanpa ini, kalimat panduan yang
+ * kini merender lambangnya lewat KaTeX ikut tertagih nomor persamaan.
+ */
+export function adaPersamaanInti(teks) {
+  return String(teks).split(/\s+\|\s+/).some((ruas) => {
+    const bersih = ruas.trim();
+    if (!bersih) return false;
+    const cocok = bersih.match(/^([^:]{2,42}:)\s*(.+)$/);
+    const labelSatuKata = cocok && /^[a-z][a-z-]*:$/.test(cocok[1].trim());
+    const pakaiAwalan = cocok && (labelSatuKata || terlihatKalimat(cocok[1]));
+    const inti = pakaiAwalan ? cocok[2] : bersih;
+    return pisahRumusDanKeterangan(inti)[0] !== "";
+  });
+}
+
 export function rumusLatex(teks, esc) {
   const pemisah = ' <span style="color:var(--muted)">&nbsp;|&nbsp;</span> ';
   // Pemisah antarruas pada data ditulis dengan spasi di kedua sisi. Batang
@@ -386,7 +479,10 @@ export function rumusLatex(teks, esc) {
     if (!bersih) return "";
     // Awalan penjelas seperti "Ziegler-Nichols:" atau "termal:" tetap teks.
     const cocok = bersih.match(/^([^:]{2,42}:)\s*(.+)$/);
-    const pakaiAwalan = cocok && terlihatKalimat(cocok[1]);
+    // Satu kata huruf kecil bertitik-dua ("integral:", "termal:") adalah label
+    // penjelas, bukan bagian rumus — tanpa ini "integral:" berubah menjadi ∫.
+    const labelSatuKata = cocok && /^[a-z][a-z-]*:$/.test(cocok[1].trim());
+    const pakaiAwalan = cocok && (labelSatuKata || terlihatKalimat(cocok[1]));
     const awalan = pakaiAwalan ? cocok[1] : "";
     const inti = pakaiAwalan ? cocok[2] : bersih;
     // Banyak ruas berbentuk "persamaan lalu keterangan", mis.
@@ -395,8 +491,11 @@ export function rumusLatex(teks, esc) {
     // persamaannya yang ikut tampil mentah.
     const [rumus, sisa] = pisahRumusDanKeterangan(inti);
     const depan = awalan ? teksProsa(awalan, esc) + " " : "";
-    if (!rumus) return depan + teksProsa(inti, esc);
-    const ekor = sisa ? " " + teksProsa(sisa, esc) : "";
+    // Keterangan dan ruas kalimat tetap prosa, tetapi potongan matematika di
+    // dalamnya (mis. "atau I += Kt*(u_nyata - u_minta)") dirender KaTeX agar
+    // tidak ada notasi tampil mentah.
+    if (!rumus) return depan + prosaBerlambang(inti, esc);
+    const ekor = sisa ? " " + prosaBerlambang(sisa, esc) : "";
     return depan + "\\(" + tokenLatex(rumus) + "\\)" + ekor;
   }).filter(Boolean).join(pemisah);
 }

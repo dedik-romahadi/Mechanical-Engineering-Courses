@@ -3,7 +3,7 @@ import path from "node:path";
 import vm from "node:vm";
 
 import { MATERI } from "./sisken-materi.mjs";
-import { rumusLatex, tokenLatex } from "./sisken-rumus.mjs";
+import { rumusLatex, tokenLatex, adaPersamaanInti } from "./sisken-rumus.mjs";
 import { PENJELASAN_RUMUS } from "./sisken-rumus-jelas.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
@@ -311,9 +311,8 @@ for (let n = 1; n <= 14; n += 1) {
     // Jumlah yang DIHARAPKAN dihitung dari sumbernya: materi (modul 2-14,
     // pengklasifikasi sama dengan generator) atau 5 utk Modul 1 yang ditulis
     // tangan. Modul tanpa persamaan matematis (mis. Modul 11) sah bernomor nol.
-    const escY = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const harap = n === 1 ? 5
-      : (MATERI[n]?.deep || []).filter((d) => d.formula && rumusLatex(d.formula, escY).includes("\\(")).length;
+      : (MATERI[n]?.deep || []).filter((d) => d.formula && adaPersamaanInti(d.formula)).length;
     checks.push([nomor.length === harap, `persamaan bernomor ${nomor.length}, seharusnya ${harap}`]);
     checks.push([urut, `nomor persamaan tidak urut 1..N: ${nomor.join(",")}`]);
     checks.push([JSON.stringify(kotak) === JSON.stringify(nomor),
@@ -355,7 +354,7 @@ for (let n = 1; n <= 14; n += 1) {
     for (const d of (mod.deep || [])) {
       if (!d.formula) continue;
       const latex = rumusLatex(d.formula, escX);
-      if (!latex.includes("\\(")) continue;   // prosa: tidak dinomori
+      if (!adaPersamaanInti(d.formula)) continue;   // prosa: tidak dinomori
       const j = PENJELASAN_RUMUS[d.formula];
       if (!j || !j.apa || !j.variabel?.length) {
         failures.push(`Modul ${n}: persamaan tanpa penjelasan: "${d.formula.slice(0, 60)}"`);
