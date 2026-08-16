@@ -162,7 +162,13 @@ function gKurva(p) {
   });
   (p.garisY || []).forEach((t) => {
     g += garis(b.x0, b.V(t.v), b.x1, b.V(t.v), t.warna || C.muted, { putus: "4 4", tebal: 1.1 });
-    if (t.label) g += teks(b.x1 - 4, b.V(t.v) - 5, t.label, { anchor: "end", size: 11, fill: t.warna || C.muted, weight: 600 });
+    // Label garis acuan di KIRI atas garis: kurva step menanjak dan menumpuk
+    // di kanan, sehingga sisi kiri hampir selalu kosong. Spesifikasi boleh
+    // memaksa ke kanan (posisi: "kanan") bila sisi kiri terpakai legend.
+    if (t.label) {
+      const kanan = t.posisi === "kanan";
+      g += teks(kanan ? b.x1 - 6 : b.x0 + 8, b.V(t.v) - 5, t.label, { anchor: kanan ? "end" : "start", size: 11, fill: t.warna || C.muted, weight: 600 });
+    }
   });
   (p.anotasi || []).forEach((a) => {
     g += teks(b.U(a.u), b.V(a.v), a.teks, { size: 11.5, fill: a.warna || C.teks, anchor: a.anchor || "start" });
@@ -175,8 +181,8 @@ function gKurva(p) {
 function gBlok(p) {
   const kotak = p.kotak || ["C(s)", "G(s)"];
   const umpan = p.umpan !== undefined ? p.umpan : "H(s)";
-  const h = (umpan ? 196 : 130) + (p.catat ? 24 : 0);
-  const y = 38; const tinggi = 44;
+  const h = (umpan ? 152 : 96) + (p.catat ? 24 : 0);
+  const y = 22; const tinggi = 44;
   const nK = kotak.length;
   // Label masukan yang panjang ("Proses") butuh margin kiri lebih lebar agar
   // tidak menimpa lingkaran penjumlah maupun terpotong tepi kanvas.
@@ -227,29 +233,70 @@ function gAlur(p) {
   const langkah = p.langkah || [];
   const duaBaris = langkah.length > 4;
   const tinggi = 46;
-  const h = (duaBaris ? 24 + 2 * tinggi + 56 : 22 + tinggi + 22) + (p.catat ? 26 : 0);
+  const selaBaris = 40;
+  const h = (duaBaris ? 16 + 2 * tinggi + selaBaris + 16 : 16 + tinggi + 16) + (p.catat ? 26 : 0);
   let g = latar(h);
   const perBaris = Math.ceil(langkah.length / (duaBaris ? 2 : 1));
   const baris = [langkah.slice(0, perBaris), langkah.slice(perBaris)].filter((b) => b.length);
   const warna = [C.cyan, C.biru, C.violet, C.oranye, C.hijau, C.kuning];
-  baris.forEach((brs, bi) => {
+  // Tata letak dihitung dahulu supaya garis penghubung antarbaris dapat
+  // dirutekan dari KOTAK terakhir baris atas ke KOTAK pertama baris bawah,
+  // bukan dari tepi kanvas yang kosong.
+  const posisi = baris.map((brs, bi) => {
     const total = brs.length;
-    const lebar = Math.min(158, (W - 56 - (total - 1) * 38) / total);
-    const y = duaBaris ? 20 + bi * (tinggi + 52) : 20;
-    let x = (W - (total * lebar + (total - 1) * 38)) / 2;
+    const lebar = Math.min(158, (W - 76 - (total - 1) * 38) / total);
+    const y = 16 + bi * (tinggi + selaBaris);
+    const x0 = (W - (total * lebar + (total - 1) * 38)) / 2;
+    return { y, lebar, xs: brs.map((_, i) => x0 + i * (lebar + 38)) };
+  });
+  baris.forEach((brs, bi) => {
+    const { y, lebar, xs } = posisi[bi];
     brs.forEach((t, i) => {
       const idx = bi * perBaris + i;
       const isi = typeof t === "string" ? t : t.t;
-      g += kotakLabel(x, y, lebar, tinggi, isi, (typeof t === "object" && t.warna) || warna[idx % 6], { size: 12.5 });
-      if (i < total - 1) g += panah(x + lebar, y + tinggi / 2, x + lebar + 38, y + tinggi / 2, C.muted);
-      x += lebar + 38;
+      // Label yang lebih lebar dari kotak dipenggal menjadi dua baris di
+      // spasi terdekat tengah; ukuran huruf baru menyusut bila masih kurang.
+      // Label yang meluber pernah menabrak panah penghubung di sebelahnya.
+      const wKotak = (typeof t === "object" && t.warna) || warna[idx % 6];
+      const butuh = String(isi).length * 6.7;
+      if (butuh > lebar - 14 && String(isi).includes(" ")) {
+        const kata = String(isi).split(" ");
+        let baris1 = kata[0]; let baris2 = kata.slice(1).join(" ");
+        let terbaik = Infinity;
+        for (let k = 1; k < kata.length; k += 1) {
+          const atas2 = kata.slice(0, k).join(" "); const bawah2 = kata.slice(k).join(" ");
+          const beda = Math.abs(atas2.length - bawah2.length);
+          if (beda < terbaik) { terbaik = beda; baris1 = atas2; baris2 = bawah2; }
+        }
+        const terpanjang = Math.max(baris1.length, baris2.length) * 6.2;
+        const uk2 = terpanjang > lebar - 12 ? Math.max(9, 11.5 * ((lebar - 12) / terpanjang)) : 11.5;
+        g += `<rect x="${xs[i]}" y="${y}" width="${lebar}" height="${tinggi}" rx="9" fill="${C.panel}" stroke="${wKotak}" stroke-width="1.6"/>`
+          + teks(xs[i] + lebar / 2, y + tinggi / 2 - 3, baris1, { anchor: "middle", size: uk2, fill: C.teks, weight: 600 })
+          + teks(xs[i] + lebar / 2, y + tinggi / 2 + 12, baris2, { anchor: "middle", size: uk2, fill: C.teks, weight: 600 });
+      } else {
+        const ukuran = butuh > lebar - 14 ? Math.max(9.5, 12.5 * ((lebar - 14) / butuh)) : 12.5;
+        g += kotakLabel(xs[i], y, lebar, tinggi, isi, wKotak, { size: ukuran });
+      }
+      if (i < brs.length - 1) g += panah(xs[i] + lebar, y + tinggi / 2, xs[i] + lebar + 38, y + tinggi / 2, C.muted);
     });
-    if (bi === 0 && baris.length === 2) {
-      const xu = W - 30;
-      g += garis(xu, y + tinggi, xu, y + tinggi + 40, C.muted);
-      g += panah(xu, y + tinggi + 40, 34, y + tinggi + 40, C.muted);
-    }
   });
+  if (baris.length === 2) {
+    // Serpentin: keluar dari sisi kanan kotak terakhir baris atas, memutar di
+    // sela antarbaris, lalu masuk ke sisi kiri kotak pertama baris bawah.
+    const a = posisi[0]; const b2 = posisi[1];
+    const keluarX = a.xs[a.xs.length - 1] + a.lebar;
+    const keluarY = a.y + tinggi / 2;
+    const belokX = Math.min(W - 18, keluarX + 24);
+    const tengahY = a.y + tinggi + selaBaris / 2;
+    const masukX = b2.xs[0];
+    const masukY = b2.y + tinggi / 2;
+    const belokKiriX = Math.max(18, masukX - 24);
+    g += garis(keluarX, keluarY, belokX, keluarY, C.muted);
+    g += garis(belokX, keluarY, belokX, tengahY, C.muted);
+    g += garis(belokX, tengahY, belokKiriX, tengahY, C.muted);
+    g += garis(belokKiriX, tengahY, belokKiriX, masukY, C.muted);
+    g += panah(belokKiriX, masukY, masukX, masukY, C.muted);
+  }
   if (p.catat) g += teks(W / 2, h - 12, p.catat, { anchor: "middle", size: 12, fill: C.muted });
   return { g, h };
 }
@@ -423,8 +470,11 @@ function gFuzzy(p) {
   });
   if (p.uContoh !== undefined) {
     g += garis(b.U(p.uContoh), b.y0, b.U(p.uContoh), b.y1, C.kuning, { putus: "4 4", tebal: 1.5 });
-    const kanan = p.uContoh > 0.6;
-    g += teks(b.U(p.uContoh) + (kanan ? -6 : 6), b.y1 - 8, p.labelContoh || "Nilai terukur", { size: 11, fill: C.kuning, anchor: kanan ? "end" : "start" });
+    // Label tumbuh ke KANAN garis di dekat sumbu bawah: kaki segitiga di
+    // kanan garis contoh berada tinggi di atas pita teks, sehingga teks
+    // tidak berpotongan dengan sisi keanggotaan mana pun.
+    const kanan = p.uContoh > 0.72;
+    g += teks(b.U(p.uContoh) + (kanan ? -7 : 7), b.y1 - 8, p.labelContoh || "Nilai terukur", { size: 11, fill: C.kuning, anchor: kanan ? "end" : "start" });
   }
   g += labelSumbu(b, p.sumbuX || "Nilai masukan", "Keanggotaan");
   return { g, h };
@@ -456,9 +506,9 @@ function gPopulasi(p) {
 }
 
 function gPolezero(p) {
-  const h = 224 + (p.catat ? 22 : 0);
+  const h = 206 + (p.catat ? 22 : 0);
   let g = latar(h);
-  const cx = W * 0.58; const cy = 104;
+  const cx = W * 0.58; const cy = 102;
   const sk = 32;
   g += `<rect x="0" y="${cy - 92}" width="${cx}" height="184" fill="${C.hijau}" fill-opacity="0.07"/>`;
   g += panah(30, cy, W - 26, cy, C.muted, { tebal: 1.3 });
@@ -466,15 +516,21 @@ function gPolezero(p) {
   g += teks(W - 28, cy + 16, "Re(s)", { size: 12, anchor: "end", mono: true, fill: C.teks });
   g += teks(cx + 8, cy - 80, "Im(s)", { size: 12, mono: true, fill: C.teks });
   g += teks(cx / 2, cy + 84, p.labelKiri || "Wilayah stabil", { anchor: "middle", size: 12, fill: C.hijau, weight: 700 });
+  // Label titik tumbuh MENJAUHI sumbu imajiner supaya tidak menyeberanginya:
+  // titik di kiri sumbu berlabel ke kiri, titik di kanan berlabel ke kanan.
+  // Elemen keempat "bawah" menaruh label di bawah titik — dipakai saat dua
+  // titik seaxis sama-sama berlabel supaya labelnya tidak saling menimpa.
+  const labelTitik = (x, y, isi, warna, kiri, bawah) =>
+    teks(x + (kiri ? -10 : 10), bawah ? y + 17 : y - 8, isi, { size: 11, fill: warna, anchor: kiri ? "end" : "start" });
   (p.pole || []).forEach((pt) => {
     const x = cx + pt[0] * sk; const y = cy - pt[1] * sk;
     g += `<path d="M${x - 6},${y - 6} L${x + 6},${y + 6} M${x - 6},${y + 6} L${x + 6},${y - 6}" stroke="${C.merah}" stroke-width="2.6"/>`;
-    if (pt[2]) g += teks(x + 9, y - 7, pt[2], { size: 11, fill: C.merah });
+    if (pt[2]) g += labelTitik(x, y, pt[2], C.merah, pt[0] < 0, pt[3] === "bawah");
   });
   (p.zero || []).forEach((pt) => {
     const x = cx + pt[0] * sk; const y = cy - pt[1] * sk;
     g += `<circle cx="${x}" cy="${y}" r="6" fill="none" stroke="${C.cyan}" stroke-width="2.4"/>`;
-    if (pt[2]) g += teks(x + 9, y - 7, pt[2], { size: 11, fill: C.cyan });
+    if (pt[2]) g += labelTitik(x, y, pt[2], C.cyan, pt[0] < 0, pt[3] === "bawah");
   });
   g += barisLegenda(34, 16, [["× pole", C.merah], ["○ zero", C.cyan]]);
   if (p.catat) g += teks(W / 2, h - 10, p.catat, { anchor: "middle", size: 12, fill: C.muted });
@@ -499,9 +555,9 @@ function gTangga(p) {
 }
 
 function gTimeline(p) {
-  const h = 196 + (p.catat ? 22 : 0);
+  const h = 140 + (p.catat ? 22 : 0);
   let g = latar(h);
-  const y = 92;
+  const y = 64;
   // Jalur kanan selebar 92px dipesan untuk judul sumbu — titik kejadian tidak
   // pernah masuk ke sana, jadi label tidak mungkin bertabrakan.
   const xAkhir = W - 96;
@@ -511,9 +567,11 @@ function gTimeline(p) {
     const x = 56 + t.u * (xAkhir - 104);
     const atas = i % 2 === 0;
     g += `<circle cx="${x}" cy="${y}" r="6" fill="${t.warna || C.cyan}" stroke="${C.bg}" stroke-width="1.6"/>`;
-    g += garis(x, y, x, atas ? y - 32 : y + 32, t.warna || C.cyan, { tebal: 1.2 });
-    g += teks(x, atas ? y - 40 : y + 48, t.label, { anchor: "middle", size: 11.6, fill: C.teks, weight: 600 });
-    if (t.sub) g += teks(x, atas ? y - 26 : y + 62, t.sub, { anchor: "middle", size: 10.6, fill: C.muted });
+    // Batang pendek berhenti SEBELUM jalur teks: sub dekat sumbu, label di
+    // luarnya — batang tidak pernah menembus keduanya.
+    g += garis(x, y, x, atas ? y - 14 : y + 14, t.warna || C.cyan, { tebal: 1.2 });
+    g += teks(x, atas ? y - 36 : y + 44, t.label, { anchor: "middle", size: 11.6, fill: C.teks, weight: 600 });
+    if (t.sub) g += teks(x, atas ? y - 22 : y + 30, t.sub, { anchor: "middle", size: 10.6, fill: C.muted });
   });
   if (p.catat) g += teks(W / 2, h - 10, p.catat, { anchor: "middle", size: 12, fill: C.muted });
   return { g, h };
