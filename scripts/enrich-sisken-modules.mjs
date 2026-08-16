@@ -5,7 +5,7 @@ import { MATERI } from "./sisken-materi.mjs";
 import { FORUM } from "./sisken-forum.mjs";
 import { PUSTAKA } from "./sisken-pustaka.mjs";
 import { rumusLatex as _rumusLatex, tokenLatex, tokenNotasi, adaPersamaanInti } from "./sisken-rumus.mjs";
-import { renderIlustrasi, CSS_ILUSTRASI } from "./sisken-ilustrasi.mjs";
+import { renderIlustrasi, CSS_ILUSTRASI, kapitalAwal } from "./sisken-ilustrasi.mjs";
 import { GAMBAR_MODUL } from "./sisken-ilustrasi-data.mjs";
 import { PENJELASAN_RUMUS, NOTASI_KAMUS } from "./sisken-rumus-jelas.mjs";
 import { normalizeSiskenExportHtml } from "./sisken-export-html.mjs";
@@ -666,7 +666,7 @@ function legendaNotasi(daftarRumus) {
     // menolaknya dan menampilkan teks mentah merah (\sqrt, \mathcal).
     const TAMPIL = { "ᵀ": "{}^{T}", "\\mathcal": "\\mathcal{L}", "\\sqrt": "\\sqrt{x}", "\\frac": "\\frac{a}{b}" };
     const latexTok = TAMPIL[tk] || tk;
-    return `<span class="anim-var nw${iw % 5}"><span class="rumus-notasi">\\(${latexTok}\\)</span><span>${esc(arti)}</span></span>`;
+    return `<span class="anim-var nw${iw % 5}"><span class="rumus-notasi">\\(${latexTok}\\)</span><span>${esc(kapitalAwal(arti))}</span></span>`;
   }).join("");
   return `\n  <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
     <div class="anim-var-list" aria-label="Arti tiap notasi">${chips}</div>
@@ -767,12 +767,12 @@ function blokRumus(label, rumus, keterangan = "") {
     throw new Error(`Persamaan tanpa penjelasan di sisken-rumus-jelas.mjs:\n  "${rumus}"`);
   }
   const chips = j.variabel.map(([token, arti], iw) =>
-    `<span class="anim-var nw${iw % 5}"><span class="rumus-notasi">\\(${tokenLatex(token)}\\)</span><span>${siapkanTeksRumus(esc(arti))}</span></span>`).join("");
+    `<span class="anim-var nw${iw % 5}"><span class="rumus-notasi">\\(${tokenLatex(token)}\\)</span><span>${siapkanTeksRumus(esc(kapitalAwal(arti)))}</span></span>`).join("");
   return `  <div class="formula-block reveal">${barisLabel}
     <div class="formula-main">${isi}<span class="formula-number">(${nomor})</span></div>${keterangan ? `\n    <div class="formula-desc">${keterangan}</div>` : ""}
   </div>
   <div class="tip-box reveal rumus-jelas">
-    <strong>📐 Persamaan (${nomor})</strong> — ${siapkanTeksRumus(esc(j.apa))}
+    <strong>📐 Persamaan (${nomor})</strong> — ${siapkanTeksRumus(esc(kapitalAwal(j.apa)))}
     <div class="anim-var-list" aria-label="Arti tiap notasi">${chips}</div>
   </div>`;
 }
@@ -1089,9 +1089,9 @@ function richModule(m, index) {
   const kotakJelas = (j, labelPanel) => {
     if (!j.apa || !j.variabel?.length) throw new Error(`Modul ${n}: penjelasan panel kosong`);
     const daftar = j.variabel.map(([notasi, arti], iw) =>
-      `<span class="anim-var nw${iw % 5}"><code>${notasi}</code><span>${arti}</span></span>`).join("");
+      `<span class="anim-var nw${iw % 5}"><code>${notasi}</code><span>${kapitalAwal(arti)}</span></span>`).join("");
     return `  <div class="tip-box reveal anim-jelas">
-    <strong>📊 Cara Membaca ${labelPanel || "Animasi Ini"}:</strong> ${j.apa}
+    <strong>📊 Cara Membaca ${labelPanel || "Animasi Ini"}:</strong> ${kapitalAwal(j.apa)}
     <div class="anim-var-list" aria-label="Arti tiap notasi">${daftar}</div>
   </div>`;
   };
