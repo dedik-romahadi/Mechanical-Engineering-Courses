@@ -622,6 +622,22 @@ function paragraf(teks) {
   return teks.map((t) => `  <p class="section-desc reveal">${t}</p>`).join("\n");
 }
 
+// Badan penjelasan sebuah bagian ber-persamaan wajib MENYEBUT nomor
+// persamaannya supaya pembaca tahu rumus mana yang sedang dibicarakan.
+// Kalimat rujukan ditambahkan di ujung paragraf terakhir sebelum blok rumus;
+// frasanya dirotasi menurut nomor agar tidak monoton dalam satu halaman.
+const FRASA_RUJUK = [
+  (k) => `Hubungan ini dirangkum dalam Persamaan (${k}) di bawah.`,
+  (k) => `Bentuk ringkasnya dituliskan pada Persamaan (${k}).`,
+  (k) => `Persamaan (${k}) di bawah memadatkan aturan tersebut.`,
+  (k) => `Rangkuman kuantitatifnya tertulis pada Persamaan (${k}).`,
+];
+function rujukPersamaan(badan, k) {
+  const frasa = FRASA_RUJUK[(k - 1) % FRASA_RUJUK.length](k);
+  const ganti = badan.replace(/<\/p>\s*$/, ` ${frasa}</p>`);
+  return ganti !== badan ? ganti : `${badan}\n  <p class="section-desc reveal">${frasa}</p>`;
+}
+
 // Nama multi-huruf pada kamus menjadi "nama dikenal" pengekstrak token,
 // supaya RMSE tidak terpecah menjadi R, M, S, E.
 const NAMA_DIKENAL = new Set(Object.keys(NOTASI_KAMUS)
@@ -900,10 +916,17 @@ function bagianMateri(n, mulai) {
   let nomor = mulai;
   const dalam = d.deep || [];
   const potongan = KELOMPOK_MATERI.map(([judul, awal, akhir]) => {
-    const isi = dalam.slice(awal, akhir).map((s) => subBagian(
-      s.head,
-      paragraf(s.body) + (s.formula ? `\n${blokRumus("", s.formula)}` : ""),
-    )).join("\n");
+    const isi = dalam.slice(awal, akhir).map((s) => {
+      let badan = paragraf(s.body);
+      let rumusHtml = "";
+      if (s.formula) {
+        // Nomor yang AKAN dipakai blokRumus adalah penghitung berikutnya;
+        // rujukan disisipkan sebelum blok dirender agar badan menyebutnya.
+        if (adaPersamaanInti(s.formula)) badan = rujukPersamaan(badan, nomorPersamaan + 1);
+        rumusHtml = `\n${blokRumus("", s.formula)}`;
+      }
+      return subBagian(s.head, badan + rumusHtml);
+    }).join("\n");
     return isi ? bagian(nomor++, judul, isi) : "";
   }).filter(Boolean);
 
