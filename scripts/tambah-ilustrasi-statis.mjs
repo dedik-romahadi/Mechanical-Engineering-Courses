@@ -29,7 +29,11 @@ const FRASA = [
   (k) => `Perhatikan ilustrasinya pada Gambar ${k}.`,
   (k) => `Gambar ${k} merangkum alurnya secara visual.`,
 ];
-const RX_RUJUKAN = / (?:Gambar \d+ mengilustrasikan gagasan ini\.|Skemanya diperlihatkan pada Gambar \d+\.|Perhatikan ilustrasinya pada Gambar \d+\.|Gambar \d+ merangkum alurnya secara visual\.)(?=<\/p>)/g;
+// Tanpa jangkar penutup paragraf: skrip persamaan menambahkan kalimatnya
+// SESUDAH kalimat gambar, sehingga kalimat gambar tak lagi menempel pada
+// </p>. Menuntut jangkar itu membuat kalimat lama luput dibuang lalu
+// ditambahkan lagi, dan rujukannya tampil dua kali.
+const RX_RUJUKAN = / (?:Gambar \d+ mengilustrasikan gagasan ini\.|Skemanya diperlihatkan pada Gambar \d+\.|Perhatikan ilustrasinya pada Gambar \d+\.|Gambar \d+ merangkum alurnya secara visual\.)/g;
 const RX_BLOK = /\n?<!-- ILUSTRASI-STATIS:\d+:START -->[\s\S]*?<!-- ILUSTRASI-STATIS:\d+:END -->/g;
 
 /** Posisi akhir `</p>` paragraf pembuka bagian yang judulnya memuat `kunci`. */

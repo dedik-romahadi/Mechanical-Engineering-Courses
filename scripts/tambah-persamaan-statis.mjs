@@ -45,7 +45,10 @@ const FRASA = [
   (k) => `Persamaan (${k}) di bawah memadatkan aturan tersebut.`,
   (k) => `Rangkuman kuantitatifnya tertulis pada Persamaan (${k}).`,
 ];
-const RX_RUJUKAN = / (?:Hubungan ini dirangkum dalam Persamaan \(\d+\) di bawah\.|Bentuk ringkasnya dituliskan pada Persamaan \(\d+\)\.|Persamaan \(\d+\) di bawah memadatkan aturan tersebut\.|Rangkuman kuantitatifnya tertulis pada Persamaan \(\d+\)\.)(?=<\/p>)/g;
+// Jangkar penutup paragraf sengaja tidak dipakai; lihat alasannya pada
+// tambah-ilustrasi-statis.mjs. Urutan kedua skrip tidak boleh menentukan
+// apakah kalimat lama terbuang.
+const RX_RUJUKAN = / (?:Hubungan ini dirangkum dalam Persamaan \(\d+\) di bawah\.|Bentuk ringkasnya dituliskan pada Persamaan \(\d+\)\.|Persamaan \(\d+\) di bawah memadatkan aturan tersebut\.|Rangkuman kuantitatifnya tertulis pada Persamaan \(\d+\)\.)/g;
 const RX_KOTAK = /\n?<!-- PERSAMAAN-STATIS:\d+:START -->[\s\S]*?<!-- PERSAMAAN-STATIS:\d+:END -->/g;
 const RX_NOMOR = /<span class="formula-number">\(\d+\)<\/span>/g;
 
