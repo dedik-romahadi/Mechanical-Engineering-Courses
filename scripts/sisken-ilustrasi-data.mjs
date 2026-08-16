@@ -6,6 +6,29 @@
  */
 
 export const GAMBAR_MODUL = {
+  // Modul 1 ditulis tangan (generator melewatinya): entri ini dipakai
+  // scripts/tambah-ilustrasi-modul1.mjs yang menyisipkan gambar secara
+  // idempoten ke enam bagian penjelasannya.
+  "1": [
+    { jenis: "kurva", judul: "Tugas satu kalimat sistem kontrol",
+      caption: "Gangguan menjatuhkan keluaran dari tujuannya; umpan balik mengukur selisihnya dan mengembalikan keluaran ke setpoint tanpa campur tangan manusia.",
+      p: { sumbuX: "waktu", sumbuY: "keluaran", kurva: [{ preset: "lembah", label: "keluaran y(t)" }], garisY: [{ v: 0.9, label: "setpoint", warna: "#00e09e" }], anotasi: [{ u: 0.18, v: 0.4, teks: "gangguan datang", warna: "#ef4444" }, { u: 0.62, v: 0.55, teks: "umpan balik memulihkan", warna: "#22d3ee" }] } },
+    { jenis: "blok", judul: "Empat komponen dalam satu loop",
+      caption: "Controller menghitung dari error, aktuator melaksanakan secara fisik, plant merespons, dan sensor melaporkan kembali ke penjumlah; empat peran ini adalah kosakata seluruh mata kuliah.",
+      p: { kotak: ["Controller", "Aktuator", "Plant"], umpan: "Sensor", masuk: "r", keluar: "y", catat: "e = r − y dihitung di penjumlah bertanda minus" } },
+    { jenis: "banding", judul: "Watak loop terbuka dan loop tertutup",
+      caption: "Loop terbuka menjalankan resep tanpa pernah memeriksa hasil sehingga gangguan menggeser keluaran diam-diam; loop tertutup mengukur dan mengoreksi sehingga keluaran pulih.",
+      p: { kiri: { judul: "Loop terbuka", preset: "step-tunak-kurang", warna: "#f97316", catat: "gangguan menggeser hasil, tak ada yang tahu" }, kanan: { judul: "Loop tertutup", preset: "lembah", warna: "#00e09e", catat: "gangguan terukur, lalu dikoreksi" } } },
+    { jenis: "kurva", judul: "Umpan balik mempercepat dan merapatkan respons",
+      caption: "Sistem yang sama menjadi lebih gesit setelah loop ditutup: konstanta waktunya menyusut menjadi τ/(1+L) dan keluarannya merapat ke setpoint dengan sisa error 1/(1+L).",
+      p: { sumbuX: "waktu", sumbuY: "keluaran", kurva: [{ preset: "step-lambat", label: "loop terbuka (τ)", warna: "#f97316" }, { preset: "step-mulus", label: "loop tertutup (τ/(1+L))" }], garisY: [{ v: 0.95, label: "setpoint", warna: "#00e09e" }] } },
+    { jenis: "alur", judul: "Loop umpan balik yang Anda jalankan tiap hari",
+      caption: "Saat menyetel keran air panas, mata menjadi sensor, otak menjadi controller, tangan menjadi aktuator, dan air menjadi plant; umpan balik bekerja bahkan tanpa disadari.",
+      p: { langkah: [{ t: "Mata = sensor", warna: "#00e09e" }, { t: "Otak = controller", warna: "#22d3ee" }, { t: "Tangan = aktuator", warna: "#a855f7" }, { t: "Air panas = plant", warna: "#f97316" }], catat: "loop yang sama persis dengan diagram formalnya" } },
+    { jenis: "blok", judul: "Loop suhu oven konveyor sebagai wakil industri",
+      caption: "Studi kasus pabrik makanan pada modul ini adalah loop tertutup lengkap: sensor suhu melapor, PID menghitung, elemen pemanas melaksanakan, dan oven merespons dengan kelambanannya.",
+      p: { kotak: ["PID", "Elemen pemanas", "Oven"], umpan: "Sensor suhu", masuk: "r", keluar: "T", catat: "kelambanan termal membuat on-off bergelombang; lihat Animasi 5" } },
+  ],
   "2": [
     { jenis: "kurva", judul: "Spesifikasi digambar sebagai pita batas pada respons",
       caption: "Keinginan kualitatif menjadi angka: lonjakan tidak boleh melewati pita atas, dan kurva harus masuk pita ±2% sebelum tenggat waktu.",
