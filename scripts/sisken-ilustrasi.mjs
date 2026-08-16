@@ -603,6 +603,6 @@ export function renderIlustrasi(spec, nomor) {
 export const CSS_ILUSTRASI = `
 .ilustrasi{margin:18px 0 14px;padding:12px 14px 10px;background:#0a101f;border:1px solid #243653;border-radius:14px}
 .ilustrasi svg{width:100%;height:auto;display:block;border-radius:8px}
-.ilustrasi figcaption{margin-top:9px;font-size:13.5px;color:var(--muted);line-height:1.7}
+.ilustrasi figcaption{margin-top:9px;font-size:15px;color:var(--muted);line-height:1.72}
 .ilustrasi figcaption strong{color:var(--cyan)}
 `;
