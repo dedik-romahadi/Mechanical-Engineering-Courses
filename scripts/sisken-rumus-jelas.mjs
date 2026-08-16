@@ -378,8 +378,8 @@ export const PENJELASAN_RUMUS = {
     ],
   },
   // [Diskretisasi: Menerjemahkan Rancangan ke Kode]
-  "integral: I += Ki*e*T   |   turunan: D = Kd*(e - e_lalu)/T, wajib ditapis": {
-    apa: "PID versi kode: integral menjadi penjumlah berjalan (luas persegi tiap langkah), turunan menjadi selisih dua sampel dibagi {{T}}. Peringatan di ekornya serius, sebab selisih beda-hingga memperkuat derau, jadi suku turunan wajib melewati tapis lolos-rendah sebelum dipakai.",
+  "integral: I += Ki*e*T   |   turunan: D = Kd*(e - e_lalu)/T, wajib difilter": {
+    apa: "PID versi kode: integral menjadi penjumlah berjalan (luas persegi tiap langkah), turunan menjadi selisih dua sampel dibagi {{T}}. Peringatan di ekornya serius, sebab selisih beda-hingga memperkuat derau, jadi suku turunan wajib melewati filter lolos-rendah sebelum dipakai.",
     variabel: [
       ["I", "akumulator suku integral"],
       ["Ki", "gain integral"],
@@ -419,8 +419,8 @@ export const PENJELASAN_RUMUS = {
     ],
   },
   // [Aliasing: Komponen yang Menyamar Setelah Di-sampling]
-  "f_N = f_s/2   |   penapis harus analog, sebelum sampling": {
-    apa: "batas Nyquist dan konsekuensi praktisnya: komponen sinyal di atas setengah frekuensi sampling tidak hilang saat di-sampling, melainkan MENYAMAR sebagai frekuensi rendah palsu yang tak bisa dibedakan lagi. Karena penyamaran terjadi PADA saat sampling, penapis pencegahnya wajib analog dan dipasang sebelum ADC; menapis sesudahnya sudah terlambat selamanya.",
+  "f_N = f_s/2   |   filter harus analog, sebelum sampling": {
+    apa: "batas Nyquist dan konsekuensi praktisnya: komponen sinyal di atas setengah frekuensi sampling tidak hilang saat di-sampling, melainkan MENYAMAR sebagai frekuensi rendah palsu yang tak bisa dibedakan lagi. Karena penyamaran terjadi PADA saat sampling, filter pencegahnya wajib analog dan dipasang sebelum ADC; memfilter sesudahnya sudah terlambat selamanya.",
     variabel: [
       ["f_N", "frekuensi Nyquist (batas): sinyal tertinggi yang masih terwakili jujur"],
       ["f_s", "frekuensi sampling: berapa kali per detik sinyal dibaca"],

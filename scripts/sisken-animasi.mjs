@@ -9,7 +9,7 @@
 // Kontrak dengan enrich-sisken-modules.mjs:
 // - `panel` berisi TEPAT tiga entri (Animasi 1-3). Judul wajib berawalan
 //   "Animasi k — " karena hero dan validator menghitung pola itu.
-// - `grafik` satu entri statis berjudul "Grafik 1 — ...", tanpa slider.
+// - `grafik` satu entri statis berjudul "Gambar 1 — ...", tanpa slider.
 // - `gambar` adalah BADAN fungsi runtime (ES5, tanpa backtick dan tanpa
 //   `${`). Variabel yang tersedia: n (nomor modul), v (nilai slider, null
 //   pada grafik), phase (fase animasi tombol ▶, bisa undefined), serta
@@ -92,7 +92,7 @@ x.textAlign='right';x.fillText('Kp →',s.w-s.pad,s.h-13);x.textAlign='left';x.f
     ],
     grafikIntro: "Semakin akhir sebuah kesalahan rancangan ditemukan, semakin mahal memperbaikinya. Itulah alasan siklus spesifikasi–simulasi–revisi pada modul ini dijalankan tuntas sebelum perangkat keras dibuat.",
     grafik: {
-      judul: "Grafik 1 — Biaya Revisi Membengkak di Tahap Akhir",
+      judul: "Gambar 1 — Biaya Revisi Membengkak di Tahap Akhir",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
 var x=s.ctx, tahap=[['Spesifikasi',1],['Model',3],['Simulasi',10],['Prototipe',30],['Produksi',100]];
 var lebar=s.lebar/tahap.length;
@@ -173,7 +173,7 @@ x.textAlign='right';x.fillText('waktu →',s.w-s.pad,s.h-13);x.textAlign='left';
     ],
     grafikIntro: "Tiga sinyal uji baku dan pasangan Laplace-nya. Ketiganya adalah kosakata dasar setiap kali tabel transformasi dibuka pada perhitungan tugas.",
     grafik: {
-      judul: "Grafik 1 — Tiga Pasangan Transformasi Paling Sering Dipakai",
+      judul: "Gambar 1 — Tiga Pasangan Transformasi Paling Sering Dipakai",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
 var x=s.ctx, kolom=s.lebar/3;
 function panel(i,nama,rumus,gambarkan){
@@ -305,7 +305,7 @@ x.fillText('plant 1/(2s+1), loop K: makin besar K, pole makin kiri → makin cep
     ],
     grafikIntro: "Dengan blok yang sama (G₁ = 2, G₂ = 3, H = 0,5), susunanlah yang menentukan gain ekivalen. Umpan balik menukar gain mentah menjadi kecepatan dan ketahanan, tema yang kembali dibedah di Modul 8.",
     grafik: {
-      judul: "Grafik 1 — Gain Ekivalen: Seri, Paralel, dan Umpan Balik",
+      judul: "Gambar 1 — Gain Ekivalen: Seri, Paralel, dan Umpan Balik",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
 var x=s.ctx, susun=[['Seri  G1·G2',6,'#67e8f9'],['Paralel  G1+G2',5,'#5eead4'],['Umpan balik  G/(1+GH)',1.5,'#fbbf24']];
 var lebar=s.lebar/susun.length;
@@ -391,7 +391,7 @@ x.textAlign='right';x.fillText('waktu →',s.w-s.pad,s.h-13);x.textAlign='left';
     ],
     grafikIntro: "Kurva galat dari animasi ketiga, dihitung untuk semua kandidat τ sekaligus: identifikasi parameter adalah mencari lembah kurva ini. Lembahnya jatuh di τ ≈ 2, tepat nilai yang dipakai membangkitkan data.",
     grafik: {
-      judul: "Grafik 1 — Galat RMSE terhadap Pilihan τ: Lembah di Parameter Benar",
+      judul: "Gambar 1 — Galat RMSE terhadap Pilihan τ: Lembah di Parameter Benar",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
 var x=s.ctx, sk=_siskenSkala(s,0.5,4,0,0.45);
 var data=[];for(var i=1;i<=14;i++){var t=i*0.5;data.push([t,1-Math.exp(-t/2)+0.04*Math.sin(7.3*i+1.7)])}
@@ -484,7 +484,7 @@ _siskenLegenda(x,[['lintasan pole','rgba(103,232,249,.85)'],['pole pada K ini','
     ],
     grafikIntro: "Dua sumbu keputusan implementasi digital: periode sampling Ts dan gain K. Wilayah arsir memenuhi dua-duanya, yakni cukup cepat menuruti spesifikasi error, cukup lambat agar loop digital tetap stabil.",
     grafik: {
-      judul: "Grafik 1 — Wilayah Layak pada Bidang (Ts, K)",
+      judul: "Gambar 1 — Wilayah Layak pada Bidang (Ts, K)",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
 var x=s.ctx, sk=_siskenSkala(s,0.05,0.9,0,20);
 function atap(ts){return Math.min(20,2/ts)}
@@ -565,7 +565,7 @@ _siskenBawah(x,s,v<1?'ada lonjakan & osilasi → pasti orde dua kurang teredam':
     ],
     grafikIntro: "Kurva hafalan praktis: lonjakan hanya bergantung pada ζ. Sekali ζ terbaca dari lonjakan, seluruh indikator lain menyusul dari rumus; inilah alasan Mp selalu dibaca lebih dulu.",
     grafik: {
-      judul: "Grafik 1 — Kurva Baku: Lonjakan Mp sebagai Fungsi ζ",
+      judul: "Gambar 1 — Kurva Baku: Lonjakan Mp sebagai Fungsi ζ",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
 var x=s.ctx, sk=_siskenSkala(s,0,1,0,90);
 function mp(z){return 100*Math.exp(-Math.PI*z/Math.sqrt(1-z*z))}
@@ -641,7 +641,7 @@ x.textAlign='left';x.fillText('|T| dB',s.pad,s.h-13);`,
     ],
     grafikIntro: "Grafik berikut memakai parameter acuan tugas modul ini. Dua kurvanya menunjukkan bahwa menaikkan gain memperbaiki error tunak sekaligus mempercepat sistem, tetapi hanya sampai batas yang ditetapkan kestabilan dan kemampuan actuator.",
     grafik: {
-      judul: "Grafik 1 — Indikator Kinerja terhadap Gain, beserta Garis Spesifikasi",
+      judul: "Gambar 1 — Indikator Kinerja terhadap Gain, beserta Garis Spesifikasi",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
 var x=s.ctx, K=2.0, tau=3.0;
 var kpMin=0.5, kpMaks=25, eBatas=0.05, tsBatas=2.0;
@@ -730,7 +730,7 @@ _siskenBawah(x,s,'plant 1/(s(s+1)), Kp=8 · lonjakan: '+(100*(tanpa.puncak-1)).t
     ],
     grafikIntro: "Peta hafalan tuning manual: arah pengaruh menaikkan tiap gain terhadap empat sifat respons. Ini pegangan awal sebelum menyetel, bukan hukum mutlak, karena interaksi antar suku tetap harus diperiksa lewat simulasi.",
     grafik: {
-      judul: "Grafik 1 — Arah Pengaruh Menaikkan Kp, Ki, Kd",
+      judul: "Gambar 1 — Arah Pengaruh Menaikkan Kp, Ki, Kd",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
 var x=s.ctx;
 var kolom=['Kecepatan','Lonjakan','Error tunak','Kestabilan'];
@@ -861,7 +861,7 @@ x.fillText(langkah<4?'geser slider untuk membuka langkah berikutnya':'selesai: f
     ],
     grafikIntro: "Cek silang yang wajib dilakukan: Mason dan reduksi blok bertahap adalah dua rute menuju angka yang sama. Kalau keduanya tidak bertemu, salah satu perhitungan pasti keliru, biasanya pada suku sentuhan loop-nya.",
     grafik: {
-      judul: "Grafik 1 — Mason dan Reduksi Blok Memberi Hasil yang Sama",
+      judul: "Gambar 1 — Mason dan Reduksi Blok Memberi Hasil yang Sama",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
 var x=s.ctx, metode=[['Aturan Mason',4.77,'#67e8f9'],['Reduksi blok bertahap',4.77,'#5eead4']];
 var lebar=s.lebar/metode.length;
@@ -952,7 +952,7 @@ _siskenBawah(x,s,v<0.05?'γ=0: gain diam, keluaran turun dan tak pernah pulih':'
     ],
     grafikIntro: "Ringkasan empat metode yang dibedah pada Modul 12–14. Tidak ada pemenang mutlak: kolom-kolom inilah yang dipertimbangkan setiap kali memilih pendekatan untuk satu masalah nyata.",
     grafik: {
-      judul: "Grafik 1 — Matriks Pemilihan Metode Kendali Cerdas",
+      judul: "Gambar 1 — Matriks Pemilihan Metode Kendali Cerdas",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
 var x=s.ctx;
 var kolom=['Butuh model?','Butuh data?','Mudah ditafsir?','Beban hitung'];
@@ -1075,7 +1075,7 @@ x.textAlign='right';x.fillText('epoch →',s.w-s.pad,s.h-13);x.textAlign='left';
     ],
     grafikIntro: "Posisi jaringan di dalam loop kendali: ANN menggantikan kotak pengendali, bukan plant. Masukannya sinyal error (dan turunannya), keluarannya sinyal kendali, yakni struktur yang sama seperti PID, isinya yang dipelajari dari data.",
     grafik: {
-      judul: "Grafik 1 — Arsitektur Kendali Berbasis ANN di Dalam Loop",
+      judul: "Gambar 1 — Arsitektur Kendali Berbasis ANN di Dalam Loop",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
 var x=s.ctx, tengah=s.atas+s.tinggi*0.42;
 function kotak(cx,lebar,label,warna){
@@ -1199,7 +1199,7 @@ _siskenLegenda(x,[['bentuk gabungan','#5eead4'],['permukaan kendali','#67e8f9'],
     ],
     grafikIntro: "Permukaan kendali fuzzy dibandingkan dengan kendali linier u = −e. Kurva fuzzy melandai di ujung karena aksi kendalinya jenuh secara halus, perilaku yang pada kendali linier harus ditambahkan lewat saturator terpisah.",
     grafik: {
-      judul: "Grafik 1 — Permukaan Kendali Fuzzy vs Kendali Linier",
+      judul: "Gambar 1 — Permukaan Kendali Fuzzy vs Kendali Linier",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
 var x=s.ctx, w=0.6, sk=_siskenSkala(s,-1,1,-1,1);
 x.strokeStyle='#3b5170';x.lineWidth=1;
@@ -1334,7 +1334,7 @@ _siskenBawah(x,s,'GA memilih Kp='+terbaik[0].toFixed(1)+', Ki='+terbaik[1].toFix
     ],
     grafikIntro: "Kurva konvergensi dari pendakian lanskap pada animasi pertama (mutasi 0,15): fitness terbaik menanjak cepat lalu mendatar, sedangkan rata-rata populasi mengekor di bawahnya. Jarak keduanya adalah keragaman yang tersisa.",
     grafik: {
-      judul: "Grafik 1 — Kurva Konvergensi: Terbaik vs Rata-rata Populasi",
+      judul: "Gambar 1 — Kurva Konvergensi: Terbaik vs Rata-rata Populasi",
       gambar: `var s=_siskenSiapkan('siskenGrafikCanvas'+n,58,40,30); if(!s)return;
 var x=s.ctx, sk=_siskenSkala(s,0,30,0,1.25);
 var ptsTerbaik=[], ptsRata=[];
