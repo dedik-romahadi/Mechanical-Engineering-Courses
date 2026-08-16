@@ -280,21 +280,21 @@ export const FORUM = {
     narasi: [
       "Kendali suhu sebuah tungku dirancang di domain kontinu dan disimulasikan dengan hasil sangat baik: overshoot 6 persen, waktu menetap 40 detik, error tunak nol karena memakai aksi integral. Parameter controller kemudian diprogram apa adanya ke mikrokontroler.",
       "Di lapangan, suhu <strong style=\"color:var(--pink)\">berayun terus tanpa pernah menetap</strong>, dan katup gas terdengar bergetar cepat. Operator juga melaporkan bahwa setiap kali sistem dipindahkan dari mode manual ke otomatis, keluaran <strong>melompat tiba-tiba</strong> sebelum kembali turun.",
-      "Pemeriksaan program menemukan tiga hal. Waktu cacah ditetapkan <strong style=\"color:var(--amber)\">2 detik</strong> karena dianggap sudah cukup cepat untuk proses termal. Aksi turunan dihitung sebagai selisih dua cuplikan dibagi waktu cacah, tanpa penapis. Dan akumulator integral tidak pernah disiapkan saat perpindahan mode.",
+      "Pemeriksaan program menemukan tiga hal. Waktu cacah ditetapkan <strong style=\"color:var(--amber)\">2 detik</strong> karena dianggap sudah cukup cepat untuk proses termal. Aksi turunan dihitung sebagai selisih dua sampel dibagi waktu cacah, tanpa penapis. Dan akumulator integral tidak pernah disiapkan saat perpindahan mode.",
     ],
     chip: ["Waktu cacah: 2 s", "Waktu naik target: 18 s", "Aksi turunan: tanpa penapis", "Perpindahan mode: tanpa persiapan"],
     jajak: [
       {
-        q: "Waktu cacah 2 detik terhadap waktu naik target 18 detik memberi sekitar sembilan cuplikan sepanjang waktu naik. Menurut aturan praktis, ini...",
+        q: "Waktu cacah 2 detik terhadap waktu naik target 18 detik memberi sekitar sembilan sampel sepanjang waktu naik. Menurut aturan praktis, ini...",
         opts: [
-          "Sudah memadai karena lebih dari lima cuplikan",
-          "Terlalu jarang; anjurannya dua puluh sampai empat puluh cuplikan sepanjang waktu naik",
+          "Sudah memadai karena lebih dari lima sampel",
+          "Terlalu jarang; anjurannya dua puluh sampai empat puluh sampel sepanjang waktu naik",
           "Terlalu rapat sehingga memboroskan sumber daya",
           "Tidak berhubungan dengan kestabilan sama sekali",
         ],
         jawab: 1,
         benar: "Tepat. Penahanan orde nol setara tundaan setengah waktu cacah, yaitu 1 detik di sini. Tundaan itu memangkas margin fase dan mendekatkan sistem ke ambang ketidakstabilan meskipun penguatannya tidak diubah.",
-        salah: "Jumlah cuplikan yang terlalu sedikit menimbulkan tundaan efektif yang besar. Anjuran dua puluh sampai empat puluh cuplikan justru ada untuk menjaga margin fase.",
+        salah: "Jumlah sampel yang terlalu sedikit menimbulkan tundaan efektif yang besar. Anjuran dua puluh sampai empat puluh sampel justru ada untuk menjaga margin fase.",
       },
       {
         q: "Katup yang bergetar cepat paling mungkin disebabkan oleh...",
@@ -305,7 +305,7 @@ export const FORUM = {
           "Gain proporsional yang terlalu kecil",
         ],
         jawab: 2,
-        benar: "Tepat. Selisih dua cuplikan memperkuat komponen frekuensi tinggi, dan derau sensor adalah komponen frekuensi tinggi. Getaran rapat beramplitudo kecil adalah tanda khasnya, bukan tanda ketidakstabilan loop.",
+        benar: "Tepat. Selisih dua sampel memperkuat komponen frekuensi tinggi, dan derau sensor adalah komponen frekuensi tinggi. Getaran rapat beramplitudo kecil adalah tanda khasnya, bukan tanda ketidakstabilan loop.",
         salah: "Perhatikan cirinya: getaran rapat dan cepat, bukan ayunan besar. Aksi integral yang berlebihan menghasilkan ayunan lambat, bukan getaran cepat pada actuator.",
       },
       {
@@ -324,11 +324,11 @@ export const FORUM = {
     diskusi: [
       {
         q: "Tentukan waktu cacah yang seharusnya dipakai beserta perhitungannya, dan jelaskan akibatnya terhadap margin fase",
-        petunjuk: "1) Pakai aturan dua puluh sampai empat puluh cuplikan sepanjang waktu naik dan hitung rentang waktu cacah yang sah. 2) Hitung tundaan setara penahanan orde nol. 3) Ubah tundaan itu menjadi susut fase pada frekuensi kerja. 4) Bandingkan dengan susut fase pada waktu cacah 2 detik.",
+        petunjuk: "1) Pakai aturan dua puluh sampai empat puluh sampel sepanjang waktu naik dan hitung rentang waktu cacah yang sah. 2) Hitung tundaan setara penahanan orde nol. 3) Ubah tundaan itu menjadi susut fase pada frekuensi kerja. 4) Bandingkan dengan susut fase pada waktu cacah 2 detik.",
       },
       {
         q: "Rancang penanganan aksi turunan agar tidak lagi menggetarkan katup",
-        petunjuk: "1) Jelaskan mengapa selisih dua cuplikan memperkuat derau. 2) Usulkan penapis beserta letak frekuensi potongnya relatif terhadap bandwidth tertutup. 3) Sebutkan pembatasan penguatan turunan yang lazim dipakai. 4) Jelaskan apa yang hilang dan apa yang didapat setelah penapisan.",
+        petunjuk: "1) Jelaskan mengapa selisih dua sampel memperkuat derau. 2) Usulkan penapis beserta letak frekuensi potongnya relatif terhadap bandwidth tertutup. 3) Sebutkan pembatasan penguatan turunan yang lazim dipakai. 4) Jelaskan apa yang hilang dan apa yang didapat setelah penapisan.",
       },
       {
         q: "Susun daftar pemeriksaan penerapan digital yang seharusnya dilalui sebelum controller ini dipasang",
