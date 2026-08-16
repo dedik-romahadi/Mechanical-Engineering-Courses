@@ -635,7 +635,7 @@ export const MATERI = {
           "Pencegahannya harus dilakukan sebelum sampling, yaitu dengan penapis analog yang meredam komponen di atas batas tersebut. Penapis digital sesudahnya tidak menolong sama sekali, karena kerusakan sudah terjadi saat sinyal diubah menjadi sampel.",
           "Pada praktiknya, banyak proses lambat yang derau frekuensi tingginya kecil sehingga persoalan ini jarang muncul. Namun pada sistem gerak dengan getaran mekanis, atau pada pengukuran arus dan tegangan, aliasing menjadi penyebab yang nyata dan mudah terlewat karena gejalanya menyerupai gangguan proses biasa.",
         ],
-        formula: "batas = setengah frekuensi sampling   |   penapis harus analog, sebelum sampling",
+        formula: "f_N = f_s/2   |   penapis harus analog, sebelum sampling",
       },
       {
         head: "Aritmetika Terbatas dan Pemilihan Skala",
@@ -735,7 +735,7 @@ export const MATERI = {
           "Untuk sistem yang naik mulus, gain statik diperoleh dari perbandingan perubahan keluaran terhadap perubahan masukan, dan konstanta waktu dari waktu mencapai 63,2 persen perubahan akhir. Bila keluaran tidak segera bergerak setelah masukan berubah, jeda tersebut adalah dead time yang harus dicatat terpisah karena pengaruhnya terhadap kestabilan sangat besar.",
           "Perkiraan semacam ini sengaja bersifat kasar dan justru berguna karena kekasarannya. Ia memberi angka awal yang masuk akal untuk memulai penyetelan, dan lebih penting lagi memberi dasar untuk menilai apakah hasil identifikasi yang lebih rumit masuk akal atau tidak.",
         ],
-        formula: "zeta dari M_p   |   wd = 2*pi/periode   |   wn = wd/sqrt(1-zeta^2)",
+        formula: "M_p -> zeta   |   wd = 2*pi/T   |   wn = wd/sqrt(1-zeta^2)",
       },
       {
         head: "Membedakan Sumber Masalah dari Pola Respons",
@@ -1591,7 +1591,7 @@ export const MATERI = {
           "Struktur tabel itu memiliki pola yang bermakna. Diagonalnya biasanya berisi keluaran nol karena error dan lajunya saling meniadakan, sementara sudut-sudutnya berisi aksi paling kuat. Pola ini membuat pemeriksaan kelengkapan menjadi mudah secara visual.",
           "Kelengkapan dan konsistensi wajib diperiksa. Basis aturan harus mencakup seluruh kombinasi yang mungkin agar tidak ada keadaan yang tidak menghasilkan keluaran, dan tidak boleh memuat dua aturan yang memberi kesimpulan berlawanan untuk kondisi yang sama.",
         ],
-        formula: "jika error = A dan d(error) = B maka keluaran = C   |   7 x 7 = 49 aturan",
+        formula: "aturan: error = A, d(error) = B -> keluaran = C   |   7 x 7 = 49 aturan",
       },
       {
         head: "Tiga Tahap Pemrosesan",

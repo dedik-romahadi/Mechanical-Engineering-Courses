@@ -37,6 +37,8 @@ const SIMBOL = [
   [/(?<![A-Za-z0-9\\])alpha(?![A-Za-z0-9])/g, "\\alpha"],
   [/(?<![A-Za-z0-9\\])beta(?![A-Za-z0-9])/g, "\\beta"],
   [/(?<![A-Za-z0-9\\])theta(?![A-Za-z0-9])/g, "\\theta"],
+  // eta HARUS setelah beta/theta/zeta agar tidak memakan ekor kata itu.
+  [/(?<![A-Za-z0-9\\])eta(?![A-Za-z0-9])/g, "\\eta"],
   // Sisa kata sqrt/exp yang tidak berkurung tetap diubah menjadi perintah.
   // Lookbehind mencegah \sqrt hasil pengubahan sebelumnya tergandakan
   // menjadi \\sqrt, yang membuat KaTeX menolak seluruh ekspresi.
@@ -73,6 +75,7 @@ const LAMBANG_PROSA = [
   [/(?<![A-Za-z0-9_])wn(?![A-Za-z0-9_])/g, "ωₙ"],
   [/(?<![A-Za-z0-9_])wd(?![A-Za-z0-9_])/g, "ωd"],
   [/(?<![A-Za-z0-9_])tau(?![A-Za-z0-9_])/g, "τ"],
+  [/(?<![A-Za-z0-9_])eta(?![A-Za-z0-9_])/g, "η"],
   [/(?<![A-Za-z0-9_])pi(?![A-Za-z0-9_])/g, "π"],
   [/(?<![A-Za-z0-9_])mu(?![A-Za-z0-9_])/g, "μ"],
   [/(?<![A-Za-z0-9_])Delta(?![A-Za-z0-9_])/g, "Δ"],
@@ -243,7 +246,12 @@ function akhirOperand(t, mulai) {
     if (t[i] === "{") ambilKurawal();
   }
   else if (t[i] === "(") { const p = pasanganKurung(t, i); return p < 0 ? -1 : p + 1; }
-  else { while (i < t.length && /[A-Za-z0-9.,]/.test(t[i])) i += 1; }
+  else {
+    while (i < t.length && /[A-Za-z0-9.,]/.test(t[i])) i += 1;
+    // Argumen fungsi menempel pada namanya: Y(s)/U(s) harus mengambil "U(s)"
+    // utuh sebagai penyebut, bukan "U" saja yang menyisakan "(s)" di luar.
+    if (t[i] === "(") { const p = pasanganKurung(t, i); if (p >= 0) i = p + 1; }
+  }
   // Subskrip atau pangkat yang menempel ikut terbawa.
   while (i < t.length && (t[i] === "_" || t[i] === "^")) {
     i += 1;
@@ -470,8 +478,9 @@ export function adaPersamaanInti(teks) {
     const bersih = ruas.trim();
     if (!bersih) return false;
     const cocok = bersih.match(/^([^:]{2,42}:)\s*(.+)$/);
-    const labelSatuKata = cocok && /^[a-z][a-z-]*:$/.test(cocok[1].trim());
-    const pakaiAwalan = cocok && (labelSatuKata || terlihatKalimat(cocok[1]));
+    // Titik-dua milik operator := bukan label ("w := w - ..." jangan terbelah).
+    const labelSatuKata = cocok && /^[a-z][a-z-]*:$/.test(cocok[1].trim()) && !cocok[2].startsWith("=");
+    const pakaiAwalan = cocok && (labelSatuKata || (terlihatKalimat(cocok[1]) && !cocok[2].startsWith("=")));
     const inti = pakaiAwalan ? cocok[2] : bersih;
     return pisahRumusDanKeterangan(inti)[0] !== "";
   });
@@ -488,8 +497,9 @@ export function rumusLatex(teks, esc) {
     const cocok = bersih.match(/^([^:]{2,42}:)\s*(.+)$/);
     // Satu kata huruf kecil bertitik-dua ("integral:", "termal:") adalah label
     // penjelas, bukan bagian rumus — tanpa ini "integral:" berubah menjadi ∫.
-    const labelSatuKata = cocok && /^[a-z][a-z-]*:$/.test(cocok[1].trim());
-    const pakaiAwalan = cocok && (labelSatuKata || terlihatKalimat(cocok[1]));
+    // Titik-dua milik operator := bukan label ("w := w - ..." jangan terbelah).
+    const labelSatuKata = cocok && /^[a-z][a-z-]*:$/.test(cocok[1].trim()) && !cocok[2].startsWith("=");
+    const pakaiAwalan = cocok && (labelSatuKata || (terlihatKalimat(cocok[1]) && !cocok[2].startsWith("=")));
     const awalan = pakaiAwalan ? cocok[1] : "";
     const inti = pakaiAwalan ? cocok[2] : bersih;
     // Banyak ruas berbentuk "persamaan lalu keterangan", mis.
