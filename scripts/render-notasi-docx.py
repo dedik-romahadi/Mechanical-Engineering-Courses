@@ -49,7 +49,21 @@ KODE_SPAN = re.compile(
     r"|\b[A-Za-z_][A-Za-z0-9_]*\.(?:py|ipynb|csv|json|txt|html)\b"
     r"|\b(?:import|def|lambda x|self)\b[^.;]*"
     r"|\*\*|==|!=(?==)|\bnp\.[A-Za-z_]+|\bsp\.[A-Za-z_]+|\bplt\.[A-Za-z_]+"
+    # Pemanggilan metode pada objek apa pun ("F.subs(s,5)", "pfd.subs(...)")
+    # dan fungsi pustaka yang ditulis tanpa awalan ("randn(N)"). Keduanya
+    # muncul di baris HINT dan tetap harus dibaca sebagai kode.
+    r"|\b[A-Za-z_]\w*\.(?:subs|diff|inv|evalf|simplify|dsolve|expand|factor"
+    r"|apply|fit|predict|ewm|rolling|mean|std|sum|max|min|reshape|astype)\b"
+    r"|\b(?:randn|rand|arange|linspace|zeros|ones|seed|dsolve|simplify)\("
 )
+
+# Penanda pada berkas ujian yang bentuknya menyerupai notasi berindeks tetapi
+# sebenarnya label: nomor soal ("P5", "C13"), kode capaian ("Sub CPMK 1.1",
+# "CPL 2"), dan penanda bobot. Tanpa pagar ini "Dari sistem P5" berubah menjadi
+# "Dari sistem P₅" dan penomoran soalnya jadi kacau.
+LABEL_UJIAN = re.compile(
+    r"\b[PC]\d{1,2}\b|\bSub[- ]CPMK\s*\d+(?:\.\d+)?\b|\bCPL\s*\d+\b"
+    r"|\bP\d{1,2}\b|\bBagian\s+[A-Z]\b")
 
 # Nama yang jelas milik dunia kode meski tidak dipanen dari HTML.
 KODE_TAMBAHAN = {
@@ -143,7 +157,7 @@ def render_isi(frag):
     return frag
 
 
-def sunting_paragraf(teks, kode_set):
+def sunting_paragraf(teks, kode_set, ujian=False):
     """Daftar (mulai, akhir, [(potongan, gaya)]) untuk satu teks paragraf.
 
     `gaya` bernilai None, "sub", atau "sup". Rentang yang tumpang tindih
@@ -160,6 +174,9 @@ def sunting_paragraf(teks, kode_set):
 
     for m in KODE_SPAN.finditer(teks):
         tandai(m.start(), m.end())
+    if ujian:
+        for m in LABEL_UJIAN.finditer(teks):
+            tandai(m.start(), m.end())
     # Daftar identifier kode hanya diberlakukan pada paragraf yang memang
     # berbicara tentang kode. Nama variabel Python di modul ini sengaja
     # meniru notasinya (omega_n, zeta_opt, m_a), jadi memberlakukannya di
@@ -261,8 +278,17 @@ def sunting_paragraf(teks, kode_set):
         for m in re.finditer(re.escape(lama), teks):
             tambah(m.start(), m.end(), [(baru, None)])
     # Bintang sebagai kali, hanya di antara notasi.
-    for m in re.finditer(rf"(?<=[{NOTASI}\)\]])\s*\*\s*(?=[{NOTASI}\(\[])", teks):
-        tambah(m.start(), m.end(), [("·", None)])
+    # Spasi wajib setangkup. "Z* optimal" memakai bintang sebagai penanda nilai
+    # optimum, bukan perkalian, dan spasinya hanya di satu sisi.
+    #
+    # Paragraf bermuatan kode dilewati sama sekali: di sana bintang jauh lebih
+    # sering menjadi operator Python ("np.random.randn(100)*0.1") yang akan
+    # rusak bila diganti lambang kali.
+    if not berkode:
+        for m in re.finditer(rf"(?<=[{NOTASI}\)\]])(\s*)\*(\s*)(?=[{NOTASI}\(\[])", teks):
+            if bool(m.group(1)) != bool(m.group(2)):
+                continue
+            tambah(m.start(), m.end(), [("·", None)])
     # Titik sebagai tanda kali ("3.mu", "zeta.r", "2 . m_a"). Syarat sisi kiri
     # diperiksa di Python, bukan lewat lookbehind: nama Yunani panjangnya
     # berbeda-beda, dan lookbehind Python menuntut lebar tetap.
@@ -273,7 +299,10 @@ def sunting_paragraf(teks, kode_set):
     # terbaca sebagai perkalian.
     KIRI_SAH = re.compile(rf"(?:\)|[0-9{LAMBANG_YUNANI}]|(?<![A-Za-zà-ÿ])[A-Za-z]{{1,2}}"
                           rf"|(?:{'|'.join(sorted(YUNANI, key=len, reverse=True))}))$")
-    for m in re.finditer(r"\s*\.\s*", teks):
+    # Paragraf bermuatan kode dilewati: di sana titik adalah akses atribut
+    # Python ("y(t).diff(t).subs(t,0)"), dan menggantinya dengan lambang kali
+    # membuat kode yang disalin mahasiswa tidak bisa dijalankan.
+    for m in (() if berkode else re.finditer(r"\s*\.\s*", teks)):
         rapat = m.group(0) == "."
         kanan = teks[m.end():m.end() + 2]
         # Bentuk berspasi wajib berspasi di KEDUA sisi. Tanpa syarat itu, titik
@@ -386,7 +415,7 @@ def rakit_ulang(p, sunting_untuk):
     return len(sunting)
 
 
-def proses(path: Path, kode_set, tulis: bool) -> int:
+def proses(path: Path, kode_set, tulis: bool, ujian: bool = False) -> int:
     with zipfile.ZipFile(path) as z:
         isi = {n: z.read(n) for n in z.namelist()}
         urutan = z.namelist()
@@ -397,7 +426,7 @@ def proses(path: Path, kode_set, tulis: bool) -> int:
         root = etree.fromstring(isi[nama])
         n = 0
         for p in root.iter(NS + "p"):
-            n += rakit_ulang(p, lambda t: sunting_paragraf(t, kode_set))
+            n += rakit_ulang(p, lambda t: sunting_paragraf(t, kode_set, ujian))
         if n:
             isi[nama] = etree.tostring(root, xml_declaration=True,
                                        encoding="UTF-8", standalone=True)
@@ -420,12 +449,17 @@ def proses(path: Path, kode_set, tulis: bool) -> int:
 def main() -> None:
     periksa = "--periksa" in sys.argv
     pilihan = [Path(a).resolve() for a in sys.argv[1:] if a.endswith(".docx")]
-    berkas = pilihan or sorted(AKAR.glob("*/Modul-Word/*.docx"))
+    # Berkas ujian punya pagar tambahan, jadi dipilih lewat saklar tersendiri
+    # agar tidak ikut terproses bersama modul tanpa disengaja.
+    if "--ujian" in sys.argv:
+        berkas = pilihan or sorted(AKAR.glob("*/Exam/*.docx"))
+    else:
+        berkas = pilihan or sorted(AKAR.glob("*/Modul-Word/*.docx"))
     kode_set = panen_identifier_kode()
     print(f"{len(kode_set)} identifier kode dilindungi.")
     diubah = notasi = 0
     for p in berkas:
-        n = proses(p, kode_set, tulis=not periksa)
+        n = proses(p, kode_set, tulis=not periksa, ujian=p.parent.name == "Exam")
         if n:
             diubah += 1
             notasi += n
