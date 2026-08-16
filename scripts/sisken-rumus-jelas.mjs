@@ -422,7 +422,7 @@ export const PENJELASAN_RUMUS = {
     apa: "batas Nyquist dan konsekuensi praktisnya: komponen sinyal di atas setengah frekuensi sampling tidak hilang saat di-sampling, melainkan MENYAMAR sebagai frekuensi rendah palsu yang tak bisa dibedakan lagi. Karena penyamaran terjadi PADA saat sampling, penapis pencegahnya wajib analog dan dipasang sebelum ADC; menapis sesudahnya sudah terlambat selamanya.",
     variabel: [
       ["batas", "frekuensi Nyquist: sinyal tertinggi yang masih terwakili jujur"],
-      ["frekuensi sampling", "berapa kali per detik sinyal dibaca"],
+      ["f_s", "frekuensi sampling: berapa kali per detik sinyal dibaca"],
     ],
   },
 
