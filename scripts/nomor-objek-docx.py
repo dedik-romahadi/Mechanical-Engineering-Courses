@@ -82,7 +82,22 @@ FRASA_TABEL = [
     "Tabel {n} menyajikan hasilnya secara berdampingan.",
 ]
 
-RX_SUDAH_NOMOR = re.compile(r"\(\d+\)\s*$")
+def sudah_bernomor(p):
+    """Paragraf ini sudah punya nomor persamaan yang dipasang skrip ini?
+
+    Diperiksa dari strukturnya — run terakhir berisi tab lalu "(N)" — bukan
+    dari teksnya. Pemeriksaan berbasis teks pernah dipakai dan keliru: rumus
+    yang memang berakhir "f(0)" atau "y'(0)" dikira sudah bernomor, lalu
+    dilewati sehingga urutan nomornya berlubang.
+    """
+    run = [r for r in p.iter(NS + "r")]
+    if not run:
+        return False
+    akhir = run[-1]
+    if akhir.find(NS + "tab") is None:
+        return False
+    t = akhir.find(NS + "t")
+    return t is not None and re.fullmatch(r"\(\d+\)", (t.text or "").strip()) is not None
 
 
 def teks_paragraf(p):
@@ -140,6 +155,80 @@ def tambah_teks(p, tambahan):
     return True
 
 
+# Urutan anak pPr ditetapkan skema Word; tabs wajib mendahului kelompok ini.
+SESUDAH_TABS = {"suppressAutoHyphens", "kinsoku", "wordWrap", "overflowPunct",
+                "topLinePunct", "autoSpaceDE", "autoSpaceDN", "bidi",
+                "adjustRightInd", "snapToGrid", "spacing", "ind",
+                "contextualSpacing", "mirrorIndents", "suppressOverlap", "jc",
+                "textDirection", "textAlignment", "outlineLvl", "rPr"}
+
+
+def lebar_kolom(body):
+    """Lebar kolom teks dalam twip: ukuran halaman dikurangi kedua marginnya."""
+    sect = body.find(NS + "sectPr")
+    sz = sect.find(NS + "pgSz") if sect is not None else None
+    mar = sect.find(NS + "pgMar") if sect is not None else None
+    if sz is None or mar is None:
+        return 8787
+    return int(sz.get(NS + "w")) - int(mar.get(NS + "left")) - int(mar.get(NS + "right"))
+
+
+def pasang_nomor(p, nomor, kolom):
+    """Beri nomor persamaan dengan nomornya rata kanan pada margin.
+
+    Dipakai resep baku Word: perataan tengah dilepas, lalu dipasang dua
+    perhentian tab — tab tengah di pertengahan kolom dan tab kanan tepat di
+    margin kanan. Rumus diletakkan sesudah tab pertama sehingga tetap tampak
+    di tengah, dan nomornya sesudah tab kedua sehingga rapat ke margin.
+
+    Menaruh nomor lewat spasi tidak dipakai: letaknya ikut bergeser mengikuti
+    panjang rumus, jadi nomor antar-persamaan tidak pernah sejajar.
+    """
+    run = [r for r in p.iter(NS + "r") if r.find(NS + "t") is not None]
+    if not run:
+        return False
+    ppr = p.find(NS + "pPr")
+    if ppr is None:
+        ppr = etree.Element(NS + "pPr")
+        p.insert(0, ppr)
+    for lama in ppr.findall(NS + "tabs"):
+        ppr.remove(lama)
+    tabs = etree.Element(NS + "tabs")
+    for jenis, pos in (("center", kolom // 2), ("right", kolom)):
+        t = etree.SubElement(tabs, NS + "tab")
+        t.set(NS + "val", jenis)
+        t.set(NS + "pos", str(pos))
+    sisip = len(ppr)
+    for i, anak in enumerate(ppr):
+        if etree.QName(anak).localname in SESUDAH_TABS:
+            sisip = i
+            break
+    ppr.insert(sisip, tabs)
+    # Perataan tengah dilepas: tab tidak berperilaku tetap di dalam paragraf
+    # yang sudah rata tengah, dan tab tengah sudah menggantikan perannya.
+    for jc in ppr.findall(NS + "jc"):
+        ppr.remove(jc)
+
+    def salin(sumber, teks=None):
+        baru = etree.fromstring(etree.tostring(sumber))
+        for anak in baru.findall(NS + "t") + baru.findall(NS + "tab"):
+            baru.remove(anak)
+        rpr = baru.find(NS + "rPr")
+        if rpr is not None:
+            for va in rpr.findall(NS + "vertAlign"):
+                rpr.remove(va)
+        etree.SubElement(baru, NS + "tab")
+        if teks is not None:
+            tt = etree.SubElement(baru, NS + "t")
+            tt.text = teks
+            tt.set(XMLSPACE, "preserve")
+        return baru
+
+    run[0].addprevious(salin(run[0]))
+    run[-1].addnext(salin(run[-1], f"({nomor})"))
+    return True
+
+
 def paragraf_penjelas(par, teks, batas, nomor_lain):
     """Paragraf prosa terdekat DI ATAS `batas` yang layak memuat rujukan."""
     # Rumus kerap muncul beruntun, sehingga paragraf prosanya bisa terletak
@@ -189,10 +278,11 @@ def proses(path: Path, tulis: bool):
     n_nomor = n_rujuk = 0
 
     # --- 1. Nomori persamaan display, lalu rujuk nomornya.
+    kolom = lebar_kolom(body)
     persamaan = [i for i, p in enumerate(par) if rumus(p, teks[i])]
     for urut, i in enumerate(persamaan, start=1):
-        if not RX_SUDAH_NOMOR.search(teks[i].strip()):
-            if tambah_teks(par[i], f"   ({urut})"):
+        if not sudah_bernomor(par[i]):
+            if pasang_nomor(par[i], urut, kolom):
                 n_nomor += 1
         if any(f"Persamaan ({urut})" in t for t in teks):
             continue
