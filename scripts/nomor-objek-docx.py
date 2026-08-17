@@ -17,10 +17,15 @@ Skrip ini melengkapi ketiganya:
   3. Nomor gambar dan tabel yang belum pernah dirujuk ikut disebutkan pada
      paragraf penjelasan terdekat.
 
-MEMBEDAKAN RUMUS DARI KALIMAT. Tidak semua paragraf rata tengah ber-"=" itu
-rumus; ada juga kalimat seperti "bandwidth lebar = cepat, tetapi meneruskan
-lebih banyak derau". Paragraf dianggap rumus hanya bila memuat lambang
-matematis DAN miskin kata penghubung bahasa Indonesia.
+MEMBEDAKAN RUMUS DARI KALIMAT. Penentunya bukan tebakan atas kata-katanya,
+melainkan gaya yang dipakai dokumen itu sendiri: baris rumus selalu ditulis
+rata tengah dengan warna biru tua 305496, sedangkan prosa tidak pernah
+memakai warna itu. Menebak lewat kata pernah dicoba dan rapuh — "e(t) = r(t)
+- y(t)" lolos karena tanda minusnya bukan hubung biasa, dan "r -> Sigma -> e
+-> C(s)" lolos karena tak memuat tanda sama dengan.
+
+Gaya saja belum cukup: sebagian sorotan bergaya sama hanyalah kalimat
+("laju umpan terukur"), jadi baris itu juga wajib memuat tanda matematis.
 
 Idempoten: nomor dan kalimat rujukan yang sudah ada tidak digandakan.
 
@@ -41,19 +46,17 @@ W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 NS = f"{{{W}}}"
 XMLSPACE = "{http://www.w3.org/XML/1998/namespace}space"
 
-# Kata penghubung dan kata kerja yang menandai kalimat biasa, bukan rumus.
-KATA_KALIMAT = {
-    "yang", "dan", "atau", "tetapi", "tidak", "bila", "pada", "dari", "untuk",
-    "dengan", "lebih", "kali", "jauh", "tiap", "sudah", "akan", "adalah",
-    "karena", "sehingga", "menjadi", "maka", "agar", "hanya", "juga", "dapat",
-    "harus", "saat", "setiap", "semua", "banyak", "lain", "sama", "selalu",
-    "berarti", "memakai", "tanpa", "masih", "namun", "supaya", "ketika",
-    "artinya", "sebagai", "antara", "dalam", "kedua", "yaitu", "meski",
-}
+# Warna yang dipakai dokumen untuk baris rumus. Prosa memakai warna otomatis
+# atau abu-abu, jadi warna ini menjadi penanda yang tegas.
+WARNA_RUMUS = "305496"
 
-# Lambang yang hanya muncul pada rumus.
-RX_LAMBANG = re.compile(r"[0-9√∫Σ∏±≤≥≠⇔⇒→∞·×÷^_αβγδεζηθκλμπρστφχψωΓΔΘΛΞΠΣΦΨΩ]")
-RX_RELASI = re.compile(r"[=⇔⇒≈≤≥<>]")
+# Tanda yang membuat sebuah baris menjadi rumus, bukan sekadar sorotan.
+# Tanda panah ikut dihitung: rantai "r -> Sigma -> e -> C(s)" juga sebuah
+# pernyataan matematis, bukan kalimat.
+RX_MATEMATIS = re.compile(
+    r"[=→⇒⇔↔≈≤≥±×÷√∫Σ∏∂∞−‖]"
+    r"|[A-Za-z]\([A-Za-z0-9]\)"
+    r"|(?:max|min|log|ln|sin|cos|tan|exp)\(")
 
 RX_CAPTION = re.compile(r"^(Gambar|Tabel|Grafik|Diagram)\s+\d+\s*[.:]")
 RX_KODE = re.compile(r"\b(?:np|sp|pd|plt|df)\.|import |\bdef |\.py\b|\.ipynb\b|\*\*")
@@ -91,17 +94,28 @@ def rata_tengah(p):
     return jc is not None and jc.get(NS + "val") == "center"
 
 
+def bergaya_rumus(p):
+    """Seluruh teks paragraf memakai warna baris rumus dokumen ini?"""
+    warna = set()
+    for r in p.iter(NS + "r"):
+        if r.find(NS + "t") is None:
+            continue
+        rpr = r.find(NS + "rPr")
+        c = rpr.find(NS + "color") if rpr is not None else None
+        warna.add(c.get(NS + "val") if c is not None else "auto")
+    return warna == {WARNA_RUMUS}
+
+
 def rumus(p, teks):
     """Paragraf ini persamaan display, bukan kalimat biasa atau caption?"""
     t = teks.strip()
-    if not t or len(t) > 200 or not rata_tengah(p):
+    if not t or len(t) > 220 or not rata_tengah(p):
         return False
     if RX_CAPTION.match(t) or RX_KODE.search(t):
         return False
-    if not RX_RELASI.search(t) or not RX_LAMBANG.search(t):
+    if not bergaya_rumus(p):
         return False
-    kata = re.findall(r"[A-Za-zà-ÿ]{3,}", t.lower())
-    return sum(1 for k in kata if k in KATA_KALIMAT) < 3
+    return bool(RX_MATEMATIS.search(t))
 
 
 def tambah_teks(p, tambahan):
