@@ -223,7 +223,8 @@ for (const course of courseRoots) {
       "data.scoreDeltas && data.scoreDeltas[qId]",
       "tfScores[qId] = restoredDelta(qId, getQPoints(qId, SCORE_CONFIG.TF_POINT))",
       "mcScores[qId] = restoredDelta(qId, getQPoints(qId, SCORE_CONFIG.MC_POINT))",
-      "compScores[baseId]   = restoredDelta(baseId, 1)",
+      "const partialPts = restoredDelta(baseId, 0.5)",
+      "compScores[baseId]   = partialPts",
       "const officialDeltas = _r.data.scoreDeltas",
       "_cachedFirebaseData.scoreDeltas = officialDeltas",
     ]) {
