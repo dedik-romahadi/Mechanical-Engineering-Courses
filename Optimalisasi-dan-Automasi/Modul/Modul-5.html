@@ -8083,7 +8083,8 @@ window._loadScoredQuestions = function() {
     }
     // Nilai per soal RESMI dari server (RTDB scoreDeltas) — dipakai saat
     // memulihkan tampilan setelah refresh supaya angka tidak dipatok di client.
-    // Fallback 0,5 = kebijakan partial credit saat ini.
+    // Fallback 1 = nilai partial historis mata kuliah ini (sebelum kebijakan 0,5);
+    // attempt baru selalu membawa scoreDeltas sendiri dari server.
     const restoredDelta = (qId, fallback) => {
       const d = Number(data.scoreDeltas && data.scoreDeltas[qId]);
       return Number.isFinite(d) ? d : fallback;
@@ -8131,13 +8132,13 @@ window._loadScoredQuestions = function() {
       else if (qId.endsWith('_comp_partial')) {
         const baseId = qId.replace('_comp_partial','');
         compAnswered[baseId] = true;
-        compScores[baseId]   = restoredDelta(baseId, 0.5);
+        compScores[baseId]   = restoredDelta(baseId, 1);
         const sub = document.getElementById('sub-' + baseId);
-        if (sub) { sub.disabled=true; sub.textContent='\u25b3 Usaha (+' + _fmtPts(restoredDelta(baseId, 0.5)) + ')'; sub.style.borderColor='rgba(255,179,0,.4)'; sub.style.color='var(--amber)'; sub.classList.remove('running'); }
+        if (sub) { sub.disabled=true; sub.textContent='\u25b3 Usaha (+' + _fmtPts(restoredDelta(baseId, 1)) + ')'; sub.style.borderColor='rgba(255,179,0,.4)'; sub.style.color='var(--amber)'; sub.classList.remove('running'); }
         const ta = document.getElementById('code-' + baseId);
         if (ta) { ta.disabled=true; ta.style.borderColor='rgba(255,179,0,.3)'; ta.style.opacity='.75'; }
         const fb = document.getElementById('fb-' + baseId);
-        if (fb && !fb.classList.contains('correct')) { fb.className='feedback warn'; fb.textContent='\u25b3 Partial credit tercatat (+' + _fmtPts(restoredDelta(baseId, 0.5)) + ' poin), dan soal Hard terkunci.'; }
+        if (fb && !fb.classList.contains('correct')) { fb.className='feedback warn'; fb.textContent='\u25b3 Partial credit tercatat (+' + _fmtPts(restoredDelta(baseId, 1)) + ' poin), dan soal Hard terkunci.'; }
       }
 
       // ── Restore comp wrong/error (Easy/Medium 0 poin — _comp_used suffix) ──
