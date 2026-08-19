@@ -181,6 +181,20 @@ for (const course of courseRoots) {
     if (modul.includes(">🔄 Ganti Peran</button>")) {
       throw new Error(`${relative}: legacy Ganti Peran label must be Log Out`);
     }
+    // Poin partial dipulihkan dari server (RTDB scoreDeltas), bukan dipatok
+    // di client. Fallback terikat sejarah course: 1 untuk tiga course lama,
+    // 0,5 untuk Sistem Kendali Cerdas.
+    for (const required of [
+      "const restoredDelta = (qId, fallback) =>",
+      "data.scoreDeltas && data.scoreDeltas[qId]",
+    ]) {
+      if (!modul.includes(required)) {
+        throw new Error(`${relative}: official per-question score restoration missing ${required}`);
+      }
+    }
+    if (!/compScores\[baseId\]\s*=\s*restoredDelta\(baseId, (?:0\.5|1)\);/.test(modul)) {
+      throw new Error(`${relative}: fallback partial credit harus 0.5 atau 1`);
+    }
   }
 }
 
@@ -223,12 +237,17 @@ for (const course of courseRoots) {
       "data.scoreDeltas && data.scoreDeltas[qId]",
       "tfScores[qId] = restoredDelta(qId, getQPoints(qId, SCORE_CONFIG.TF_POINT))",
       "mcScores[qId] = restoredDelta(qId, getQPoints(qId, SCORE_CONFIG.MC_POINT))",
-      "const partialPts = restoredDelta(baseId, 0.5)",
+      "const partialPts = restoredDelta(baseId, ",
       "compScores[baseId]   = partialPts",
       "const officialDeltas = _r.data.scoreDeltas",
       "_cachedFirebaseData.scoreDeltas = officialDeltas",
     ]) {
       if (!exam.includes(required)) throw new Error(`${relative}: official per-question score restoration missing ${required}`);
+    }
+    // Fallback partial credit terikat sejarah tiap course: 1 untuk tiga course
+    // lama, 0,5 untuk Sistem Kendali Cerdas. Nilai lain = salah tampil.
+    if (!/const partialPts = restoredDelta\(baseId, (?:0\.5|1)\);/.test(exam)) {
+      throw new Error(`${relative}: fallback partial credit harus 0.5 atau 1`);
     }
     for (const forbidden of [
       /\+ res\.scoreDelta \+/,
