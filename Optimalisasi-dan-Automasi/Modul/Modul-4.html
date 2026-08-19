@@ -3607,7 +3607,7 @@ async function runAndCheck(qId, difficulty) {
   }
 }
 
-// Lock Hard comp with partial credit +1 (Pedoman §15.3e)
+// Lock Hard comp with partial credit (besarnya dari server; Pedoman §15.3e)
 function _lockCompPartial(qId, msg) {
   const btn = document.getElementById('sub-' + qId);
   const fb  = document.getElementById('fb-' + qId);
@@ -7188,6 +7188,13 @@ window._loadScoredQuestions = function() {
   get(ref(db, DB_PATH + '/' + key)).then(snap => {
     if (!snap.exists()) { _markLoaded(); return; }
     const data = snap.val();
+    // Nilai per soal RESMI dari server (RTDB scoreDeltas) — dipakai saat
+    // memulihkan tampilan setelah refresh supaya angka tidak dipatok di client.
+    // Fallback 0,5 = kebijakan partial credit saat ini.
+    const restoredDelta = (qId, fallback) => {
+      const d = Number(data.scoreDeltas && data.scoreDeltas[qId]);
+      return Number.isFinite(d) ? d : fallback;
+    };
     const scored = (data.scoredQuestions || '').split(',').filter(Boolean);
     // ── Restore code Komputasi dari Firebase (Pedoman §15.4c — primary storage) ──
     // Fire FIRST karena textarea state tidak terikat ke scoredQuestions processing
@@ -7279,13 +7286,13 @@ window._loadScoredQuestions = function() {
       // ── Restore comp partial credit (_comp_partial suffix) — Hard only, +1 poin ──
       if (qId.endsWith('_comp_partial')) {
         const baseId = qId.replace('_comp_partial','');
-        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=1; }
+        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=restoredDelta(baseId, 0.5); }
         const sub=document.getElementById('sub-'+baseId);
         if(sub){ sub.disabled=true; sub.textContent='△ Tersubmit'; sub.style.borderColor='rgba(255,179,0,.3)'; sub.style.color='var(--amber)'; sub.classList.remove('running'); }
         const ta=document.getElementById('code-'+baseId);
         if(ta){ ta.disabled=true; ta.style.borderColor='rgba(255,179,0,.25)'; ta.style.opacity='.7'; }
         const fb=document.getElementById('fb-'+baseId);
-        if(fb&&!fb.classList.contains('correct')){fb.className='feedback partial';fb.textContent='△ Sudah disubmit sebelumnya, partial credit +1 tercatat. Tidak ada kesempatan ulang.';}
+        if(fb&&!fb.classList.contains('correct')){fb.className='feedback partial';fb.textContent='△ Sudah disubmit sebelumnya, partial credit +' + _fmtPts(restoredDelta(baseId, 0.5)) + ' tercatat. Tidak ada kesempatan ulang.';}
       }
     });
     updateScore();
