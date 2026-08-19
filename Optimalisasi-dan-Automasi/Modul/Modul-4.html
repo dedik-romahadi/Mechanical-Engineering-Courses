@@ -7190,7 +7190,8 @@ window._loadScoredQuestions = function() {
     const data = snap.val();
     // Nilai per soal RESMI dari server (RTDB scoreDeltas) — dipakai saat
     // memulihkan tampilan setelah refresh supaya angka tidak dipatok di client.
-    // Fallback 0,5 = kebijakan partial credit saat ini.
+    // Fallback 1 = nilai partial historis mata kuliah ini (sebelum kebijakan 0,5);
+    // attempt baru selalu membawa scoreDeltas sendiri dari server.
     const restoredDelta = (qId, fallback) => {
       const d = Number(data.scoreDeltas && data.scoreDeltas[qId]);
       return Number.isFinite(d) ? d : fallback;
@@ -7286,13 +7287,13 @@ window._loadScoredQuestions = function() {
       // ── Restore comp partial credit (_comp_partial suffix) — Hard only, +1 poin ──
       if (qId.endsWith('_comp_partial')) {
         const baseId = qId.replace('_comp_partial','');
-        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=restoredDelta(baseId, 0.5); }
+        if (!compAnswered[baseId]) { compAnswered[baseId]=true; compScores[baseId]=restoredDelta(baseId, 1); }
         const sub=document.getElementById('sub-'+baseId);
         if(sub){ sub.disabled=true; sub.textContent='△ Tersubmit'; sub.style.borderColor='rgba(255,179,0,.3)'; sub.style.color='var(--amber)'; sub.classList.remove('running'); }
         const ta=document.getElementById('code-'+baseId);
         if(ta){ ta.disabled=true; ta.style.borderColor='rgba(255,179,0,.25)'; ta.style.opacity='.7'; }
         const fb=document.getElementById('fb-'+baseId);
-        if(fb&&!fb.classList.contains('correct')){fb.className='feedback partial';fb.textContent='△ Sudah disubmit sebelumnya, partial credit +' + _fmtPts(restoredDelta(baseId, 0.5)) + ' tercatat. Tidak ada kesempatan ulang.';}
+        if(fb&&!fb.classList.contains('correct')){fb.className='feedback partial';fb.textContent='△ Sudah disubmit sebelumnya, partial credit +' + _fmtPts(restoredDelta(baseId, 1)) + ' tercatat. Tidak ada kesempatan ulang.';}
       }
     });
     updateScore();
