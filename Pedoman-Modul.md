@@ -293,11 +293,11 @@ String `due` bukan waktu lokal browser. Parse dengan `_wibStringToDate`, bukan
 - Perpanjangan default: 120 menit.
 - `start = end - duration`.
 - Sebelum `start`, akses dan submit ditolak.
-- Pada `(end, end + extension]`, submit masih diterima. Pengali terlambat mengikuti konfigurasi mata kuliah: Sistem Kendali Cerdas memakai 0,65 (potongan 35%).
+- Pada `(end, end + extension]`, submit masih diterima dengan pengali terlambat 0,65 (potongan 35%), seragam di semua mata kuliah.
 - Setelah `end + extension`, submit diblokir.
 - Mengubah jadwal tidak mereset data mahasiswa.
 
-> **Rollout penalti 35%:** aturan baru diterapkan pada Sistem Kendali Cerdas. Optimalisasi & Otomasi, Matematika 4, dan Getaran Mekanik tetap memakai pengali 0,7 (potongan 30%) sampai proses penilaian yang sedang berjalan selesai. Jangan mengubah konfigurasi ketiga mata kuliah tersebut selama masa transisi.
+> **Penalti 35% seragam:** seluruh mata kuliah memakai pengali 0,65 (potongan 35%). Rollout bertahap yang sempat menahan Optimalisasi & Otomasi, Matematika 4, dan Getaran Mekanik di 0,7 sudah berakhir. Attempt yang terlanjur dinilai dengan pengali lama tetap bernilai seperti saat itu dan tidak dihitung ulang, sebab pengali diterapkan pada saat submit lalu disimpan.
 
 ### 5.3 Default modal exam yang benar-benar ada saat ini
 
@@ -419,7 +419,7 @@ Perilaku penilaian:
 - komputasi dinilai dengan nilai target dan toleransi pada server;
 - kandidat numerik dapat berasal dari jawaban utama, angka pertama/terakhir output, dan kandidat per baris `print()`;
 - soal Hard dapat memberi partial credit jika dikonfigurasi dan dikerjakan sebelum terlambat. Besarnya diambil dari `partialPoints` pada kunci Firestore: **0,5 poin, seragam di semua mata kuliah**. Attempt yang dinilai sebelum kebijakan ini berlaku tetap bernilai 1 di tiga course lama dan tidak dihitung ulang. Angka ini juga muncul sebagai teks yang dibaca mahasiswa di pengantar Bagian C, jadi ubah keduanya bersama;
-- poin terlambat ditentukan backend per mata kuliah: Sistem Kendali Cerdas dikalikan 0,65 (potongan 35%); Optimalisasi & Otomasi, Matematika 4, dan Getaran Mekanik sementara tetap 0,7 (potongan 30%);
+- poin terlambat ditentukan backend dan kini seragam: dikalikan 0,65 (potongan 35%) di semua mata kuliah;
 - konsolasi satu poin (berbeda dari partial credit) ditentukan backend. Jangan memakai konstanta threshold client sebagai sumber kebenaran.
 
 Poin tampilan modul 0–50 dikonversi menjadi nilai 0–100 untuk headline. Poin mentah tetap dipakai untuk penyimpanan dan OBE.
@@ -571,7 +571,7 @@ Di dalam satu Sub-CPMK, porsinya masih dibagi lagi menurut bobot tipe soal (1/1/
 
 **Partial credit exam membaca `partialPoints` dari kunci** (kini 0,5 seragam di semua course). Sebelumnya `checkExamAnswer` mematoknya 1 dan mengabaikan `partialPoints`, sehingga kebijakan per-course tidak pernah berlaku di exam; sekarang hanya status `correct` yang ditimpa bobot OBE. Jalur `recomputeExamPoints` memakai aturan yang sama — bila salah satunya kembali mematok 1, rescale akan menimpa poin partial yang sudah benar.
 
-**Partial credit tetap hanya diberikan sebelum deadline.** Begitu masuk fase perpanjangan (exam) atau fase terlambat (modul), `computeOutcome` mengembalikan status `wrong` bernilai 0 — bukan partial yang dipotong. Yang dikenai potongan keterlambatan (Sisken 0,65; course lain 0,7) adalah **jawaban benar**. Contoh Sisken UTS `c15`: benar tepat waktu 2,797 poin; benar saat perpanjangan 2,797 × 0,65 = 1,818; kode disubmit tetapi salah → 0,5 bila tepat waktu, dan 0 bila sudah masuk perpanjangan.
+**Partial credit tetap hanya diberikan sebelum deadline.** Begitu masuk fase perpanjangan (exam) atau fase terlambat (modul), `computeOutcome` mengembalikan status `wrong` bernilai 0 — bukan partial yang dipotong. Yang dikenai potongan keterlambatan (0,65 di semua course) adalah **jawaban benar**. Contoh Sisken UTS `c15`: benar tepat waktu 2,797 poin; benar saat perpanjangan 2,797 × 0,65 = 1,818; kode disubmit tetapi salah → 0,5 bila tepat waktu, dan 0 bila sudah masuk perpanjangan.
 
 ### 7.1 Sistem desain exam
 
@@ -605,7 +605,7 @@ Getaran, Matematika, dan Opto UAS memakai `c1`–`c15`. Opto UTS memakai `ce1`�
 - Komputasi menjalankan kode dengan Pyodide, lalu mengirim kandidat output dan potongan kode ke server.
 - Toleransi numerik dan variasi per NIM ditentukan kunci server.
 - Comp Hard dapat memberi 0,5 poin partial jika dikonfigurasi dan tidak terlambat.
-- Pengali terlambat diterapkan server sesuai konfigurasi mata kuliah; Sistem Kendali Cerdas memakai 0,65 (potongan 35%), sedangkan Optimalisasi & Otomasi, Matematika 4, dan Getaran Mekanik sementara tetap 0,7 (potongan 30%). Client tidak boleh menjadi sumber kebenaran multiplier.
+- Pengali terlambat diterapkan server dan seragam di semua mata kuliah: 0,65 (potongan 35%). Client tidak boleh menjadi sumber kebenaran multiplier.
 
 ### 7.4 Parameter NIM
 
