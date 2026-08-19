@@ -62,7 +62,9 @@ Total file HTML utama: **42 modul + 6 exam + 3 OBE = 51 file**.
 ⚠️ Modul pakai HARI, Exam pakai MENIT. Gampang ke-mix.
 
 ### Penalti Terlambat
-- `_getLateMultiplier()` return **0.7** (30% penalty), bukan 0.8. Per PR #284.
+- Pengali terlambat **0.65** (potongan 35%), seragam untuk semua mata kuliah sejak backend PR #25. Rollout bertahap yang sempat menahan Getaran/Math4/Opto di 0.7 sudah berakhir.
+- Sumber kebenarannya server (`cfg.lateMultiplierValue`); client tidak boleh memakai konstanta sendiri.
+- Attempt yang terlanjur dinilai dengan pengali lama tidak dihitung ulang — pengali diterapkan saat submit lalu disimpan.
 - Exam: setelah `end + extension` → submit diblokir (beda dari modul yang allow indefinitely).
 
 ### PIN Global
@@ -81,6 +83,11 @@ Total file HTML utama: **42 modul + 6 exam + 3 OBE = 51 file**.
 Script Python di `/tmp/` pakai pattern read → `src.replace(OLD, NEW)` → write. Lihat contoh `/tmp/exam_role_picker.py`, `/tmp/dosen_streamline.py`. **Modul HTML mungkin binary mode** untuk grep (UTF-8 + emoji); pakai `grep -a` atau Python.
 
 ### Git workflow
+- **Sinkronkan dengan remote SEBELUM menyunting** — bukan saat hendak push. Repo ini dikerjakan dari lebih dari satu mesin dan lebih dari satu agen, jadi salinan lokal sering tertinggal tanpa tanda apa pun:
+  ```bash
+  git fetch origin && git log --oneline HEAD..origin/main
+  ```
+  Kosong → lanjut. Ada isinya → `git pull --ff-only` dulu. Terlanjur menyunting → `git stash` → `git pull --ff-only` → `git stash pop`, lalu periksa bentrokan dan ulangi verifikasi. Berlaku juga untuk repo backend bila tugasnya menyentuh keduanya. (19 Agu 2026: lokal pernah tertinggal 8 commit di sini + 2 di backend; suntingan harus diulang dari basis yang benar.)
 - Branch development: `Codex/<feature-slug>` (atur per task sesuai perubahan yang dikerjakan).
 - Push: `git push -u origin <branch>` (retry up to 4× dgn exponential backoff kalau network fail).
 - Setelah perubahan selesai dan verifikasi lulus: commit, push branch, buat PR siap ditinjau, lalu squash-merge ke `main` tanpa menunggu instruksi tambahan.
