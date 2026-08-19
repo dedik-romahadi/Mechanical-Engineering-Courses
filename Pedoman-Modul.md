@@ -418,9 +418,9 @@ Perilaku penilaian:
 - modul bersifat formatif: server boleh mengembalikan jawaban benar dan penjelasan setelah attempt;
 - komputasi dinilai dengan nilai target dan toleransi pada server;
 - kandidat numerik dapat berasal dari jawaban utama, angka pertama/terakhir output, dan kandidat per baris `print()`;
-- soal Hard dapat memberi partial credit jika dikonfigurasi dan dikerjakan sebelum terlambat. Besarnya diambil dari `partialPoints` pada kunci Firestore: **Sistem Kendali Cerdas 0,5 poin** (seluruh 14 modul), tiga course lain 1 poin. Angka ini juga muncul sebagai teks yang dibaca mahasiswa di pengantar Bagian C, jadi ubah keduanya bersama;
+- soal Hard dapat memberi partial credit jika dikonfigurasi dan dikerjakan sebelum terlambat. Besarnya diambil dari `partialPoints` pada kunci Firestore: **0,5 poin, seragam di semua mata kuliah**. Attempt yang dinilai sebelum kebijakan ini berlaku tetap bernilai 1 di tiga course lama dan tidak dihitung ulang. Angka ini juga muncul sebagai teks yang dibaca mahasiswa di pengantar Bagian C, jadi ubah keduanya bersama;
 - poin terlambat ditentukan backend per mata kuliah: Sistem Kendali Cerdas dikalikan 0,65 (potongan 35%); Optimalisasi & Otomasi, Matematika 4, dan Getaran Mekanik sementara tetap 0,7 (potongan 30%);
-- konsolasi satu poin ditentukan backend. Jangan memakai konstanta threshold client sebagai sumber kebenaran.
+- konsolasi satu poin (berbeda dari partial credit) ditentukan backend. Jangan memakai konstanta threshold client sebagai sumber kebenaran.
 
 Poin tampilan modul 0–50 dikonversi menjadi nilai 0–100 untuk headline. Poin mentah tetap dipakai untuk penyimpanan dan OBE.
 
@@ -569,9 +569,9 @@ Di dalam satu Sub-CPMK, porsinya masih dibagi lagi menurut bobot tipe soal (1/1/
 | 2.2 | 3 komputasi (2) + 5 Hard (4) | 18,18 | komputasi 1,399 · Hard 2,797 |
 | | | **100,00** | |
 
-**Partial credit exam membaca `partialPoints` dari kunci** (Sisken 0,5; tiga course lain 1). Sebelumnya `checkExamAnswer` mematoknya 1 dan mengabaikan `partialPoints`, sehingga kebijakan per-course tidak pernah berlaku di exam; sekarang hanya status `correct` yang ditimpa bobot OBE. Jalur `recomputeExamPoints` memakai aturan yang sama — bila salah satunya kembali mematok 1, rescale akan menimpa poin partial yang sudah benar.
+**Partial credit exam membaca `partialPoints` dari kunci** (kini 0,5 seragam di semua course). Sebelumnya `checkExamAnswer` mematoknya 1 dan mengabaikan `partialPoints`, sehingga kebijakan per-course tidak pernah berlaku di exam; sekarang hanya status `correct` yang ditimpa bobot OBE. Jalur `recomputeExamPoints` memakai aturan yang sama — bila salah satunya kembali mematok 1, rescale akan menimpa poin partial yang sudah benar.
 
-**Partial credit tetap hanya diberikan sebelum deadline.** Begitu masuk fase perpanjangan (exam) atau fase terlambat (modul), `computeOutcome` mengembalikan status `wrong` bernilai 0 — bukan partial yang dipotong. Yang dikenai potongan keterlambatan (Sisken 0,65; course lain 0,7) adalah **jawaban benar**. Contoh Sisken `c15`: benar tepat waktu 2,797 poin; benar saat perpanjangan 2,797 × 0,65 = 1,818; kode disubmit tetapi salah → 0,5 bila tepat waktu, dan 0 bila sudah masuk perpanjangan.
+**Partial credit tetap hanya diberikan sebelum deadline.** Begitu masuk fase perpanjangan (exam) atau fase terlambat (modul), `computeOutcome` mengembalikan status `wrong` bernilai 0 — bukan partial yang dipotong. Yang dikenai potongan keterlambatan (Sisken 0,65; course lain 0,7) adalah **jawaban benar**. Contoh Sisken UTS `c15`: benar tepat waktu 2,797 poin; benar saat perpanjangan 2,797 × 0,65 = 1,818; kode disubmit tetapi salah → 0,5 bila tepat waktu, dan 0 bila sudah masuk perpanjangan.
 
 ### 7.1 Sistem desain exam
 
@@ -604,7 +604,7 @@ Getaran, Matematika, dan Opto UAS memakai `c1`–`c15`. Opto UTS memakai `ce1`�
 - Exam bersifat sumatif: jawaban benar tidak ditampilkan kepada mahasiswa.
 - Komputasi menjalankan kode dengan Pyodide, lalu mengirim kandidat output dan potongan kode ke server.
 - Toleransi numerik dan variasi per NIM ditentukan kunci server.
-- Comp Hard dapat memberi satu poin partial jika dikonfigurasi dan tidak terlambat.
+- Comp Hard dapat memberi 0,5 poin partial jika dikonfigurasi dan tidak terlambat.
 - Pengali terlambat diterapkan server sesuai konfigurasi mata kuliah; Sistem Kendali Cerdas memakai 0,65 (potongan 35%), sedangkan Optimalisasi & Otomasi, Matematika 4, dan Getaran Mekanik sementara tetap 0,7 (potongan 30%). Client tidak boleh menjadi sumber kebenaran multiplier.
 
 ### 7.4 Parameter NIM
@@ -668,6 +668,7 @@ Sumber data exam mempunyai fungsi berbeda:
 Ketentuan:
 
 - refresh harus memulihkan nilai per soal dari `scoreDeltas`, bukan menghitung ulang dari bobot default;
+- bila `scoreDeltas` tidak ada — modul baru mulai menulisnya, dan exam baru menulisnya sejak 30 Juli 2026 — helper `restoredDelta(qId, fallback)` memakai nilai partial historis mata kuliah itu: **1** untuk Getaran Mekanik, Matematika 4, dan Optimalisasi & Otomasi; **0,5** untuk Sistem Kendali Cerdas. Fallback lain akan ditolak `validate-public-security.mjs`;
 - tab Soal Ujian, tab Hasil, leaderboard, dan export harus mengacu pada total yang sama;
 - `generateExportCode` menghitung ulang nilai exam dari ledger Firestore, mengembalikan `scoreDeltas` resmi, dan memperbaiki cache RTDB jika drift;
 - `recomputeExamPoints` dapat menghitung ulang seluruh mahasiswa pada satu exam setelah perubahan mapping/bobot;
@@ -1063,7 +1064,7 @@ Bila menulis soal pada bank yang sebelumnya placeholder, ingat bahwa penjaga yan
 | Preview | tidak membuat identity/attempt/poin; Tugas dan Forum modul tersembunyi |
 | Mahasiswa | roster, PIN, schedule gate, satu attempt, restore setelah refresh |
 | Dosen | login, pesan lock, atur jadwal dengan jam 24 jam, tampilan deadline WIB yang sama pada perangkat beda zona waktu, logout, sesi kedaluwarsa |
-| Modul | 25 soal, total 50, PG dapat dipilih dan tombol Periksa aktif, late sesuai konfigurasi (Sisken 0,65; Opto/Math4/Getaran sementara 0,7), partial Hard (Sisken 0,5), export lengkap, Forum/chat |
+| Modul | 25 soal, total 50, PG dapat dipilih dan tombol Periksa aktif, late sesuai konfigurasi (Sisken 0,65; Opto/Math4/Getaran sementara 0,7), partial Hard 0,5 (semua course), export lengkap, Forum/chat |
 | Exam | 45 soal, total 100, format poin, late/cutoff, online-only, export resmi |
 | Agen AI | konsep modul aktif dijawab dengan sitasi; pertanyaan lintas MK dan jawaban langsung asesmen ditolak; data pribadi disunting; saat UTS/UAS aktif materi terkunci tetapi jadwal/aturan tetap terjawab; mode `AI_PROVIDER=none` dan simulasi kuota tetap menghasilkan fallback retrieval |
 | UAS | soal tidak ada di source publik, fetch setelah gate, friction tidak memburamkan halaman |
@@ -1094,7 +1095,7 @@ Jangan menganggap perubahan selesai hanya karena halaman terbuka. Penilaian haru
 16. Node `pins/` tertutup dari klien. Verifikasi PIN hanya lewat callable `verifyPin`; jangan membaca `pins/` dari browser.
 17. Kunci jawaban tidak pernah masuk repo publik — sekali ter-commit, kebocorannya permanen di riwayat Git dan hanya dapat ditutup dengan merotasi soal.
 18. Bank soal yang masih placeholder tidak boleh di-live-seed; kunci dummy di produksi menilai mahasiswa secara ngawur tanpa gejala.
-19. Angka poin bank exam (Σ=70) bukan nilai mahasiswa; yang diberikan adalah `_examQPoints` (Σ=100), dan hanya status `correct` yang ditimpa bobot itu. Partial credit membaca `partialPoints` kunci (Sisken 0,5) dan hanya berlaku sebelum deadline; setelah itu 0, bukan partial yang dipotong.
+19. Angka poin bank exam (Σ=70) bukan nilai mahasiswa; yang diberikan adalah `_examQPoints` (Σ=100), dan hanya status `correct` yang ditimpa bobot itu. Partial credit membaca `partialPoints` kunci (0,5 seragam) dan hanya berlaku sebelum deadline; setelah itu 0, bukan partial yang dipotong.
 20. Setiap soal pilihan ganda wajib punya tombol `sub-mcN`-nya sendiri; tanpa itu `selectMC()` melempar dan PG tidak dapat dipilih.
 21. Publikasi Pages memakai push ke branch `gh-pages`; jangan kembali ke `actions/deploy-pages`.
 22. Agen AI hanya memakai resolver dan retrieval privat dari allowlist mata kuliah aktif; model bersifat opsional, bank/kunci tidak masuk indeks, sitasi wajib, dan tutor materi terkunci selama ujian mahasiswa aktif.
