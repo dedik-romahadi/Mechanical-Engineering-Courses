@@ -929,6 +929,8 @@ Aturan yang mengikuti dari kejadian itu:
 
 Teks soal UTS **tidak lagi publik**. Batasan arsitektur yang dulu dicatat di sini sudah ditutup: bank soal ketiga UTS dipindahkan ke repo backend dan dilayani `getExamQuestions` di balik gerbang yang sama dengan UAS. Halaman UTS mengisi `window.UTS_TF/MC/COMP_EZ/COMP_HARD` lewat `_ensureUTSQuestionsLoaded()` setelah login berhasil.
 
+**Naskah ujian resmi (format BOP) juga tidak boleh ada di repo ini.** Berkas `<Mata-Kuliah>/Exam/UTS_*.pdf`, `UAS_*.docx`, dan `Unduhan-Gabungan/Exam-Gabungan-*.pdf` dulu tersimpan di sini dan dapat diunduh siapa pun tanpa autentikasi — `deploy-slides.yml` menyalin `<course>/` utuh dan seluruh `Unduhan-Gabungan/`, sedangkan repositori ini sendiri publik. Dokumen itu berkepala "SOAL INI BERSIFAT RAHASIA — HARUS DIKEMBALIKAN". Semuanya sudah dipindahkan ke `naskah-ujian/` di repo backend, dan `validate-public-security.mjs` menolak build bila muncul kembali. Yang tetap publik hanya `Modul-Gabungan-*.pdf` dan `RPS-*.pdf`; `gabung-pdf-modul.py` tidak lagi merakit Exam-Gabungan.
+
 Bank yang **benar-benar dilayani** (dipasang di `QUESTION_BANKS` backend) adalah `functions/exams/uts-<course>-v2.js` — bukan `uts-<course>-bank.js`. Sejak penyatuan bank+kunci teks (satu `build(N)` untuk teks dan kunci), `uts-<course>-bank.js` lama masih ada tapi hanya sebagai sumber helper SVG/`shuffleSeed` yang dipakai `v2.js`, dan sebagai pembanding di `scripts/verify-uts-unified.js`. Jalur kunci penilaian tidak berubah: tetap `functions/seed/uts-<course>-answers.js`, ter-seed ke Firestore.
 
 Konsekuensi yang perlu diketahui saat memelihara UTS:
