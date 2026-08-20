@@ -40,6 +40,40 @@ for (const name of fs.readdirSync(path.join(root, "Admin"))) {
   if (name.endsWith(".html")) htmlFiles.push(path.join(root, "Admin", name));
 }
 
+// Berkas yang di-gitignore tidak pernah ikut ter-deploy: _site disusun dari isi
+// repositori, bukan dari isi folder kerja. Yang muncul di sini adalah salinan
+// konflik OneDrive ("<nama>-<NAMA-PC>.html") — snapshot lama yang isinya sudah
+// basi. Memindainya hanya membuat pemeriksaan gagal di mesin lokal sementara CI
+// tetap hijau, jadi berkas seperti itu dilewati. Tetap dilaporkan supaya tidak
+// menumpuk diam-diam.
+function pisahkanTerabaikan(files) {
+  if (!files.length) return { dipakai: files, diabaikan: [] };
+  // git check-ignore menolak path absolut bergaya Windows ("fatal: Invalid
+  // path '/c'"), jadi kirim path relatif repo dengan pemisah garis miring.
+  const relatif = files.map((f) => path.relative(root, f).split(path.sep).join("/"));
+  const hasil = spawnSync("git", ["check-ignore", "--stdin"], {
+    cwd: root, input: relatif.join("\n"), encoding: "utf8",
+  });
+  // status 0 = ada yang terabaikan, 1 = tidak ada. Selain itu git tidak dapat
+  // menjawab (bukan repo, git tak terpasang) — jangan sampai itu melemahkan
+  // pemeriksaan, jadi seluruh berkas tetap dipindai.
+  if (hasil.status !== 0 && hasil.status !== 1) return { dipakai: files, diabaikan: [] };
+  const terabaikan = new Set((hasil.stdout || "").split("\n")
+    .map((baris) => baris.trim()).filter(Boolean)
+    .map((baris) => path.resolve(root, baris)));
+  return {
+    dipakai: files.filter((f) => !terabaikan.has(path.resolve(f))),
+    diabaikan: files.filter((f) => terabaikan.has(path.resolve(f))),
+  };
+}
+const { dipakai, diabaikan } = pisahkanTerabaikan(htmlFiles);
+if (diabaikan.length) {
+  console.warn(`Peringatan: ${diabaikan.length} berkas HTML dilewati karena di-gitignore dan tidak pernah ter-deploy:`);
+  for (const f of diabaikan) console.warn(`  ${path.relative(root, f)}`);
+}
+htmlFiles.length = 0;
+htmlFiles.push(...dipakai);
+
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "mec-security-"));
 let authPages = 0;
 let checkedScripts = 0;
