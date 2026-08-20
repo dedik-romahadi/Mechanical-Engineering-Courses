@@ -10,10 +10,16 @@ rangkaian mentah 14 modul berukuran ±20 MB, terlalu berat sebagai satu unduhan
 mahasiswa. Sasarannya ±100 dpi, cukup tajam dibaca di layar tetapi jauh lebih
 ringan; berkas per modul di Modul-Word tetap beresolusi penuh untuk dicetak.
 
+Berkas gabungan yang belum ada tidak dibuat diam-diam: mata kuliah baru harus
+diminta secara tegas lewat --buat-baru, supaya unduhan baru tidak muncul di
+situs hanya karena skrip ini kebetulan dijalankan.
+
 Pakai:
     python scripts/gabung-pdf-modul.py
+    python scripts/gabung-pdf-modul.py --buat-baru
 """
 import re
+import sys
 from pathlib import Path
 
 import fitz  # PyMuPDF
@@ -70,6 +76,7 @@ def rakit(sumber, keluaran, satuan):
 
 
 def main() -> None:
+    buat_baru = "--buat-baru" in sys.argv[1:]
     for direktori, nama in KURSUS:
         rakit(sorted((AKAR / direktori / "Exam").glob("*.pdf"), key=urutan_ujian),
               TUJUAN / f"Exam-Gabungan-{nama}.pdf", "berkas ujian")
@@ -81,10 +88,11 @@ def main() -> None:
             continue
         # Hanya merakit berkas yang memang sudah disediakan sebelumnya; mata
         # kuliah tanpa unduhan gabungan tidak dibuatkan yang baru diam-diam.
-        if not keluaran.exists():
-            print(f"  {nama}: belum punya berkas gabungan, dilewati")
+        if not keluaran.exists() and not buat_baru:
+            print(f"  {nama}: belum punya berkas gabungan, dilewati "
+                  f"(pakai --buat-baru bila memang ingin dibuat)")
             continue
-        lama_kb = keluaran.stat().st_size // 1024
+        lama_kb = keluaran.stat().st_size // 1024 if keluaran.exists() else 0
         doc = fitz.open()
         for p in sumber:
             with fitz.open(p) as s:
