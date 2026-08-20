@@ -24,6 +24,30 @@ for (const artifact of forbiddenBackendArtifacts) {
     throw new Error(`Backend artifact must stay in the private repository: ${artifact}`);
   }
 }
+// Naskah ujian resmi (format BOP) berkepala "SOAL INI BERSIFAT RAHASIA — HARUS
+// DIKEMBALIKAN" dan memuat soal lengkap. Berkas itu pernah tersimpan di sini,
+// di <Mata-Kuliah>/Exam/ dan Unduhan-Gabungan/Exam-Gabungan-*.pdf, sehingga
+// dapat diunduh siapa pun tanpa autentikasi. Tempatnya sekarang di repo
+// backend yang privat. Unduhan gabungan modul dan RPS tetap boleh publik —
+// yang dilarang hanya naskah ujiannya.
+for (const course of courseRoots) {
+  const examDir = path.join(root, course, "Exam");
+  if (!fs.existsSync(examDir)) continue;
+  for (const name of fs.readdirSync(examDir)) {
+    if (/\.(pdf|docx?)$/i.test(name)) {
+      throw new Error(`${course}/Exam/${name}: naskah ujian harus tetap di repositori privat`);
+    }
+  }
+}
+const unduhan = path.join(root, "Unduhan-Gabungan");
+if (fs.existsSync(unduhan)) {
+  for (const name of fs.readdirSync(unduhan)) {
+    if (/^Exam-Gabungan-/i.test(name)) {
+      throw new Error(`Unduhan-Gabungan/${name}: naskah ujian harus tetap di repositori privat`);
+    }
+  }
+}
+
 const htmlFiles = [];
 function collectHtml(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
