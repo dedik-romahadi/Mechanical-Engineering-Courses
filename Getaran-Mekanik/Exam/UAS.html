@@ -2615,6 +2615,18 @@ function _applyServerExamResult(qId, res, type, sub, fb) {
     } catch(e) {}
   }
 
+  // Akun simulasi: server tidak menyimpan jawaban, soal dibuka kembali.
+  if (res.simulasi === true) {
+    if (type === 'tf') delete tfAnswered[qId];
+    if (type === 'mc') delete mcAnswered[qId];
+    if (type === 'comp') delete compAnswered[qId];
+    if (res.marker) _answeredQ.delete(res.marker);
+    const rgSim = document.getElementById('rg-' + qId);
+    if (rgSim) { delete rgSim.dataset.locked; rgSim.querySelectorAll('.radio-option').forEach(o => { o.style.pointerEvents = ''; o.style.opacity = ''; }); }
+    if (sub) { sub.disabled = false; sub.textContent = '🔁 Simulasi — coba lagi'; sub.style.background = ''; sub.style.borderColor = ''; sub.style.color = ''; sub.classList.remove('running'); }
+    if (typeof updateScore === 'function') updateScore();
+    return;
+  }
   if (typeof updateScore === 'function') updateScore();
   if (typeof checkExportReady === 'function') checkExportReady();
 }
