@@ -36,16 +36,18 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // Wajah SVG. Tiga lapisan volume: bola bergradien radial (terang di kiri-atas,
 // gelap di tepi kanan-bawah), cincin tepi gelap tipis agar bolanya "terangkat"
 // dari latar, lalu sorotan spekular putih yang memberi kesan kilap.
-// Tiap status punya warna bola sendiri supaya bedanya terbaca sekilas, bukan
-// hanya dari ekspresi: emas untuk benar, kuning-jingga untuk sebagian, biru
-// keabuan untuk salah. Lapisannya: bola bergradien radial, cincin tepi gelap,
+// Semua bola berwarna kuning; status dibedakan dari ekspresi (senyum+jempol,
+// berpikir, menangis dengan air mata biru), bukan dari warna bola.
+// Lapisannya: bola bergradien radial, cincin tepi gelap,
 // kilap spekular, DAN pantulan cahaya lingkungan di bawah (rim light) supaya
 // bolanya tidak terlihat "ditempel" — itulah yang membuatnya tampak 3D.
 function wajah(jenis) {
   const warna = {
     senang: ["#fff7b3", "#ffd43b", "#e09a00", "#6b4300", "#ffb300"],
     pikir: ["#fff3c4", "#ffc857", "#e08a00", "#6b4300", "#ff9f1c"],
-    sedih: ["#e3f2ff", "#a9cdee", "#5c8fc2", "#21405e", "#7fb3e6"],
+    // Sedih juga kuning (permintaan dosen, 22 Agu 2026) — bedanya dari
+    // ekspresi dan air mata biru, bukan dari warna bola.
+    sedih: ["#fff7b3", "#ffd43b", "#e09a00", "#6b4300", "#ffb300"],
   }[jenis];
   const [terang, tengah, gelap, garis, rim] = warna;
   const id = `ej-${jenis}`;
@@ -62,7 +64,8 @@ function wajah(jenis) {
       + `<path d="M27 30 Q36 25 45 31" stroke="${garis}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M55 27 Q64 18 73 25" stroke="${garis}" stroke-width="4" fill="none" stroke-linecap="round"/>`,
     sedih: `<g transform="translate(36 43)"><g><ellipse rx="5.5" ry="7" fill="${garis}"/><circle cx="-1.8" cy="-2.5" r="1.8" fill="#fff"/>${kedip}</g></g>`
       + `<g transform="translate(64 43)"><g><ellipse rx="5.5" ry="7" fill="${garis}"/><circle cx="-1.8" cy="-2.5" r="1.8" fill="#fff"/>${kedip}</g></g>`
-      + `<path d="M26 31 L44 36" stroke="${garis}" stroke-width="4" stroke-linecap="round"/><path d="M74 31 L56 36" stroke="${garis}" stroke-width="4" stroke-linecap="round"/>`,
+      // Alis sedih: ujung DALAM terangkat (bukan turun — itu alis marah).
+      + `<path d="M26 35 Q35 33 44 28" stroke="${garis}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M74 35 Q65 33 56 28" stroke="${garis}" stroke-width="4" fill="none" stroke-linecap="round"/>`,
   }[jenis];
 
   // Mulut "bernapas": bentuknya bergerak halus lewat SMIL pada atribut d.
@@ -72,17 +75,18 @@ function wajah(jenis) {
       + `<path d="M40 57 Q50 62 60 57" fill="#fff" opacity=".9"/>`,
     pikir: `<path fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"><animate attributeName="d" values="M34 66 Q50 60 66 68;M34 67 Q50 62 66 66;M34 66 Q50 60 66 68" dur="2.2s" repeatCount="indefinite"/></path>`
       + `<circle cx="76" cy="76" r="7" fill="${tengah}" stroke="${gelap}" stroke-width="2"/>`,
-    // Menangis: mulut terbuka bergetar, plus air mata mengalir dari KEDUA mata
-    // (dua tetes per mata, bergantian) — bukan satu tetes kecil seperti sebelumnya.
-    sedih: `<path fill="#3a1c00" stroke="${garis}" stroke-width="3" stroke-linejoin="round"><animate attributeName="d" values="M38 70 Q50 60 62 70 Q50 80 38 70;M37 71 Q50 59 63 71 Q50 82 37 71;M38 70 Q50 60 62 70 Q50 80 38 70" dur=".7s" repeatCount="indefinite"/></path>`
-      + `<path d="M42 70 Q50 64 58 70" fill="#ff8a80" opacity=".85"/>`
+    // Menangis sedih (bukan marah): mulut cemberut melengkung ke bawah yang
+    // bergetar halus, bibir bawah merah muda, plus air mata mengalir dari KEDUA
+    // mata (dua tetes per mata, bergantian) dan genangan di dasar bola.
+    sedih: `<path fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"><animate attributeName="d" values="M36 76 Q50 62 64 76;M36 77 Q50 64 64 77;M36 76 Q50 62 64 76" dur=".8s" repeatCount="indefinite"/></path>`
+      + `<path d="M43 73 Q50 68 57 73" fill="#ff8a80" opacity=".7"/>`
       + ["32", "40", "60", "68"].map((x, i) =>
         `<ellipse cx="${x}" cy="50" rx="3.5" ry="6" fill="#4fc3f7" stroke="#1e88e5" stroke-width=".8">`
         + `<animate attributeName="cy" values="48;80" dur="1.1s" begin="${(i * 0.28).toFixed(2)}s" repeatCount="indefinite"/>`
         + `<animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.15;.7;1" dur="1.1s" begin="${(i * 0.28).toFixed(2)}s" repeatCount="indefinite"/>`
         + `</ellipse>`).join("")
       // genangan air mata di dasar bola
-      + `<ellipse cx="50" cy="93" rx="14" ry="3" fill="#4fc3f7" opacity=".45"><animate attributeName="rx" values="10;16;10" dur="1.4s" repeatCount="indefinite"/></ellipse>`,
+      + `<ellipse cx="50" cy="93" rx="14" ry="3" fill="#2196f3" opacity=".6"><animate attributeName="rx" values="10;16;10" dur="1.4s" repeatCount="indefinite"/></ellipse>`,
   }[jenis];
 
   const pipi = jenis === "senang"
@@ -100,9 +104,9 @@ function wajah(jenis) {
   // "pop" lalu mengangguk kecil. Digambar bersih (bukan emoji font) supaya
   // warnanya serasi dengan bola dan sama di semua perangkat.
   const jempol = jenis === "senang"
-    ? `<g class="ej-jempol" transform="translate(78 70)">`
+    ? `<g class="ej-jempol" transform="translate(79 74)">`
       + `<animateTransform attributeName="transform" type="translate" additive="sum" values="0 14;0 -3;0 0" keyTimes="0;.6;1" dur=".5s" begin=".35s" fill="freeze"/>`
-      + `<g><animateTransform attributeName="transform" type="rotate" values="-8;8;-8" dur="1.1s" begin=".9s" repeatCount="3"/>`
+      + `<g transform="scale(1.9)"><g><animateTransform attributeName="transform" type="rotate" values="-8;8;-8" dur="1.1s" begin=".9s" repeatCount="3"/>`
       // kepalan
       + `<rect x="-9" y="-2" width="16" height="15" rx="5" fill="${tengah}" stroke="${garis}" stroke-width="2.2"/>`
       // garis jari
@@ -111,7 +115,7 @@ function wajah(jenis) {
       + `<path d="M-2 -2 C-2 -8 -1 -14 3 -14 C7 -14 8 -9 7 -4 L7 -2" fill="${tengah}" stroke="${garis}" stroke-width="2.2" stroke-linejoin="round"/>`
       // kilap kecil di jempol
       + `<ellipse cx="2.5" cy="-9" rx="2" ry="3" fill="#fff" opacity=".55"/>`
-      + `</g></g>`
+      + `</g></g></g>`
     : "";
 
   return `<svg viewBox="0 0 100 112" width="72" height="81" aria-hidden="true">`
