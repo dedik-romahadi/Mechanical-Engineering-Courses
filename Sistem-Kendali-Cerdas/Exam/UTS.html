@@ -962,10 +962,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   }
   window.bunyikanUI = bunyikanUI;
   document.addEventListener('click', function (ev) {
-    var el = ev.target && ev.target.closest && ev.target.closest('.radio-option,.tf-option,button,[role="button"]');
+    // .subnav-bar a = sub-tab bagian modul (tautan #m-N), diminta ikut berbunyi.
+    var el = ev.target && ev.target.closest && ev.target.closest('.radio-option,.tf-option,button,[role="button"],.subnav-bar a,#modulSubnav a');
     if (!el || el.classList.contains('ej-tombol-bisu')) return;
     if (el.disabled || el.getAttribute('aria-disabled') === 'true') return;
-    if (el.tagName !== 'BUTTON' && el.getAttribute('role') !== 'button' && getComputedStyle(el).pointerEvents === 'none') return;
+    if (el.tagName !== 'BUTTON' && el.tagName !== 'A' && el.getAttribute('role') !== 'button' && getComputedStyle(el).pointerEvents === 'none') return;
     bunyikanUI(el.matches('.radio-option,.tf-option') ? 'pilih' : 'tombol');
   }, true);
   document.addEventListener('change', function (ev) {
