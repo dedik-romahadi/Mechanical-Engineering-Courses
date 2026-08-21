@@ -51,6 +51,16 @@ const HB_LAMA = "  if (!me || me.role !== 'student' || !me.nim) return;\n";
 const HB_BARU = "  if (!me || me.role !== 'student' || !me.nim || isSimulasiNim(me.nim)) return;\n";
 // 3. record pengunjung saat login: bungkus set/update ke DB_PATH.
 const RX_TULIS_VISITOR = /^(\s*)await (set|update)\(ref\(db, DB_PATH \+ '\/' \+ key\), (visitorRec|patch|freshRec)\);$/gm;
+// 4. Tabel roster di tab Hasil dirender dari masterStudents (roster), bukan dari
+//    visitors, jadi saringan papan hasil tidak menyentuhnya — akun simulasi
+//    tetap tampil sebagai baris "Belum". Disaring SEBELUM .map agar nomor
+//    urutnya tetap rapat. Pemakai masterStudents di jalur login (find/some)
+//    sengaja tidak disentuh: itulah yang membuat akun simulasi bisa masuk.
+const ROSTER_LAMA = "tableEl.innerHTML=masterStudents.map((s,i)=>{";
+const ROSTER_BARU = "tableEl.innerHTML=masterStudents.filter(s=>!isSimulasiNim(s.nim)).map((s,i)=>{";
+// 5. Penyebut ringkasan kehadiran ikut dikecualikan supaya "hadir/total" jujur.
+const TOTAL_LAMA = "  const totalMhs = masterStudents.length;\n";
+const TOTAL_BARU = "  const totalMhs = masterStudents.filter(s=>!isSimulasiNim(s.nim)).length;\n";
 
 function proses(berkas) {
   let html = fs.readFileSync(berkas, "utf8");
@@ -70,6 +80,8 @@ function proses(berkas) {
     return `${indent}if (!isSimulasiNim(nim)) await ${op}(ref(db, DB_PATH + '/' + key), ${rec});`;
   });
   if (tulis) catatan.push(`tulis-visitor×${tulis}`);
+  if (html.includes(ROSTER_LAMA)) { html = html.split(ROSTER_LAMA).join(ROSTER_BARU); catatan.push("roster"); }
+  if (html.includes(TOTAL_LAMA)) { html = html.split(TOTAL_LAMA).join(TOTAL_BARU); catatan.push("totalMhs"); }
 
   if (html === awal) return null;
   // Penjaga: definisi harus ada bila ada pemakai.

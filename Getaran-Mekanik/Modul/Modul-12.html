@@ -7674,7 +7674,7 @@ function updateLeaderboard(visitors, schedExpired){
   //   deadline tidak menghasilkan evidence of engagement — secara pedagogis
   //   setara dengan yang tidak pernah akses. Total = Hadir + Belum + Absen
   //   (non-overlapping).
-  const totalMhs = masterStudents.length;
+  const totalMhs = masterStudents.filter(s=>!isSimulasiNim(s.nim)).length;
   const schedEnded = !!schedExpired;
   let hadir = 0, absen = 0;
   for(const s of masterStudents){
@@ -8293,7 +8293,7 @@ function renderVisitors(visitors){
     return;
   }
   function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
-  tableEl.innerHTML=masterStudents.map((s,i)=>{
+  tableEl.innerHTML=masterStudents.filter(s=>!isSimulasiNim(s.nim)).map((s,i)=>{
     const v=visitMap[s.nim], nama=toTitle(s.nama), ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     // ─── Status Logic (Pedoman-Modul §17.3) ───
     // Dua pilar: (1) label "Tepat Waktu"/"Terlambat" BUTUH poin > 0;

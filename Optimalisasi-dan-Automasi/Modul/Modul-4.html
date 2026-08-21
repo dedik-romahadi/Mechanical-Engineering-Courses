@@ -6439,7 +6439,7 @@ function updateLeaderboard(visitors, schedExpired){
   //             (2) PERNAH akses tapi 0 poin + jadwal selesai.
   //             Status "Belum" (jadwal masih aktif, belum dapat poin) TIDAK
   //             dihitung Absen — mahasiswa masih punya kesempatan.
-  const totalMhs = masterStudents.length;
+  const totalMhs = masterStudents.filter(s=>!isSimulasiNim(s.nim)).length;
   const schedEnded = !!schedExpired;
   let hadir = 0, absen = 0;
   for(const s of masterStudents){
@@ -6982,7 +6982,7 @@ function renderVisitors(visitors){
     return;
   }
   function toTitle(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
-  tableEl.innerHTML=masterStudents.map((s,i)=>{
+  tableEl.innerHTML=masterStudents.filter(s=>!isSimulasiNim(s.nim)).map((s,i)=>{
     const v=visitMap[s.nim], nama=toTitle(s.nama), ini=nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     // Status rule (Optoauto custom):
     //   • Bolos       : tidak punya poin + jadwal sudah berakhir
