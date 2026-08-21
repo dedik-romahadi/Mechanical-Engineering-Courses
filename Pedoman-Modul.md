@@ -1094,6 +1094,8 @@ Bila menulis soal pada bank yang sebelumnya placeholder, ingat bahwa penjaga yan
 | Reset | Firestore dan RTDB konsisten; PIN tidak terhapus; poin soal lain tetap |
 | OBE | mapping per course, compute, draft lokal, publish, tampilan satu mahasiswa |
 
+**Animasi CSS tidak bisa diverifikasi dari panel browser yang tidak ditampilkan.** Saat panel pratinjau tersembunyi, `document.hidden` bernilai `true` dan `document.timeline.currentTime` berhenti sama sekali: setiap animasi terbaca `running` tetapi `currentTime`-nya tetap 0 dan elemen beku di keyframe 0%. Efek perayaan jawaban pernah tampak "tidak muncul" (opacity 0, skala 0,3) hanya karena ini — kodenya benar. Ukur keadaan akhirnya dengan memaksa `anim.currentTime` ke akhir durasi lewat Web Animations API, atau tampilkan panelnya; jangan menyimpulkan cacat CSS dari pengukuran pada tab yang `hidden`.
+
 Jangan menganggap perubahan selesai hanya karena halaman terbuka. Penilaian harus diuji sampai ke ledger, refresh, export, dan reset.
 
 ---
