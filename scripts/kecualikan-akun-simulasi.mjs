@@ -14,6 +14,9 @@
  *      set()/update() ke DB_PATH bila NIM-nya simulasi, tetapi tetap
  *      menyimpan identitas lokal sehingga halaman berfungsi penuh.
  *
+ *   4. Setelah server menilai (respons simulasi:true), soal dibuka kembali
+ *      supaya bisa dicoba ulang — server memang tidak menyimpannya.
+ *
  * Daftar NIM harus sama dengan SIM_NIMS di backend.
  *
  * Idempoten: tiap sisipan dikenali dari bentuk akhirnya.
@@ -62,6 +65,60 @@ const ROSTER_BARU = "tableEl.innerHTML=masterStudents.filter(s=>!isSimulasiNim(s
 const TOTAL_LAMA = "  const totalMhs = masterStudents.length;\n";
 const TOTAL_BARU = "  const totalMhs = masterStudents.filter(s=>!isSimulasiNim(s.nim)).length;\n";
 
+// 6. Setelah dinilai, halaman mengunci soal secara lokal (tombol disabled,
+//    opsi tidak bisa diklik). Server menandai respons akun simulasi dengan
+//    simulasi:true dan tidak menyimpannya, jadi soal dibuka kembali agar bisa
+//    dicoba ulang tanpa refresh. Umpan balik/emoji tetap ditampilkan.
+const MODUL_KUNCI_LAMA = `  if (sub) sub.disabled = true;
+  if (typeof updateScore === 'function') updateScore();
+  if (typeof checkExportReady === 'function') checkExportReady();
+}
+window._applyModulServerResult = _applyModulServerResult;`;
+const MODUL_KUNCI_BARU = `  // Akun simulasi: server tidak menyimpan jawaban, soal dibuka kembali.
+  if (res.simulasi === true) {
+    if (type === 'mc') delete mcAnswered[qId];
+    if (type === 'comp') delete compAnswered[qId];
+    if (res.marker) _answeredQ.delete(res.marker);
+    if (rg) { delete rg.dataset.locked; rg.querySelectorAll('.radio-option').forEach(o => { o.style.pointerEvents = ''; o.style.opacity = ''; }); }
+    if (sub) sub.disabled = false;
+    if (typeof updateScore === 'function') updateScore();
+    return;
+  }
+  if (sub) sub.disabled = true;
+  if (typeof updateScore === 'function') updateScore();
+  if (typeof checkExportReady === 'function') checkExportReady();
+}
+window._applyModulServerResult = _applyModulServerResult;`;
+// Sebagian halaman Exam menyisipkan satu baris komentar sebelum
+// _handleServerExamError; baris itu dipertahankan (grup $1).
+const RX_EXAM_KUNCI = new RegExp(
+  [
+    "^  if \\(typeof updateScore === 'function'\\) updateScore\\(\\);",
+    "  if \\(typeof checkExportReady === 'function'\\) checkExportReady\\(\\);",
+    "\\}",
+    "",
+    "((?:\\/\\/[^\\n]*\\n)?)function _handleServerExamError\\(",
+  ].join("\\n"),
+  "m",
+);
+const EXAM_KUNCI_BARU = `  // Akun simulasi: server tidak menyimpan jawaban, soal dibuka kembali.
+  if (res.simulasi === true) {
+    if (type === 'tf') delete tfAnswered[qId];
+    if (type === 'mc') delete mcAnswered[qId];
+    if (type === 'comp') delete compAnswered[qId];
+    if (res.marker) _answeredQ.delete(res.marker);
+    const rgSim = document.getElementById('rg-' + qId);
+    if (rgSim) { delete rgSim.dataset.locked; rgSim.querySelectorAll('.radio-option').forEach(o => { o.style.pointerEvents = ''; o.style.opacity = ''; }); }
+    if (sub) { sub.disabled = false; sub.textContent = '🔁 Simulasi — coba lagi'; sub.style.background = ''; sub.style.borderColor = ''; sub.style.color = ''; sub.classList.remove('running'); }
+    if (typeof updateScore === 'function') updateScore();
+    return;
+  }
+  if (typeof updateScore === 'function') updateScore();
+  if (typeof checkExportReady === 'function') checkExportReady();
+}
+
+$1function _handleServerExamError(`;
+
 function proses(berkas) {
   let html = fs.readFileSync(berkas, "utf8");
   const awal = html;
@@ -82,6 +139,8 @@ function proses(berkas) {
   if (tulis) catatan.push(`tulis-visitor×${tulis}`);
   if (html.includes(ROSTER_LAMA)) { html = html.split(ROSTER_LAMA).join(ROSTER_BARU); catatan.push("roster"); }
   if (html.includes(TOTAL_LAMA)) { html = html.split(TOTAL_LAMA).join(TOTAL_BARU); catatan.push("totalMhs"); }
+  if (!html.includes("res.simulasi === true") && html.includes(MODUL_KUNCI_LAMA)) { html = html.split(MODUL_KUNCI_LAMA).join(MODUL_KUNCI_BARU); catatan.push("buka-ulang-modul"); }
+  if (!html.includes("res.simulasi === true") && RX_EXAM_KUNCI.test(html)) { html = html.replace(RX_EXAM_KUNCI, EXAM_KUNCI_BARU); catatan.push("buka-ulang-exam"); }
 
   if (html === awal) return null;
   // Penjaga: definisi harus ada bila ada pemakai.

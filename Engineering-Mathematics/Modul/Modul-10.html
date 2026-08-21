@@ -4103,6 +4103,16 @@ function _applyModulServerResult(qId, res, type, sub, fb, rg) {
     });
   }
 
+  // Akun simulasi: server tidak menyimpan jawaban, soal dibuka kembali.
+  if (res.simulasi === true) {
+    if (type === 'mc') delete mcAnswered[qId];
+    if (type === 'comp') delete compAnswered[qId];
+    if (res.marker) _answeredQ.delete(res.marker);
+    if (rg) { delete rg.dataset.locked; rg.querySelectorAll('.radio-option').forEach(o => { o.style.pointerEvents = ''; o.style.opacity = ''; }); }
+    if (sub) sub.disabled = false;
+    if (typeof updateScore === 'function') updateScore();
+    return;
+  }
   if (sub) sub.disabled = true;
   if (typeof updateScore === 'function') updateScore();
   if (typeof checkExportReady === 'function') checkExportReady();
