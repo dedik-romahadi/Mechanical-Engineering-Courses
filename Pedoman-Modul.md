@@ -284,7 +284,7 @@ String `due` bukan waktu lokal browser. Parse dengan `_wibStringToDate`, bukan
 - Batas akhir default: enam hari setelah modal dibuka, pukul 23.59 WIB.
 - `start = end - duration`.
 - Sebelum `start`, akses penilaian ditolak.
-- Setelah `end`, modul tetap dapat dikerjakan tanpa batas akhir tambahan. Pengali terlambat mengikuti konfigurasi mata kuliah: Sistem Kendali Cerdas memakai 0,65 (potongan 35%).
+- Setelah `end`, modul tetap dapat dikerjakan tanpa batas akhir tambahan, dengan pengali terlambat 0,65 (potongan 35%) — seragam di semua mata kuliah, sama seperti exam.
 - Mengubah jadwal tidak menghapus visitor, attempt, jawaban, atau poin.
 
 ### 5.2 Exam
@@ -569,6 +569,16 @@ Di dalam satu Sub-CPMK, porsinya masih dibagi lagi menurut bobot tipe soal (1/1/
 | 2.2 | 3 komputasi (2) + 5 Hard (4) | 18,18 | komputasi 1,399 · Hard 2,797 |
 | | | **100,00** | |
 
+**Tabel poin di halaman hanya untuk tampilan, dan wajib dibangkitkan.** Tiap `UTS.html`/`UAS.html` memuat `EXAM_QID_POINTS`, dipakai menghitung penyebut tiap bagian (`SECTION_TOTALS` → "Bagian A — True/False (x/y poin)") dan skor berjalan selama ujian. Angka poin per soal yang tampil di lembar jawaban berasal dari `scoreDelta` server, bukan dari tabel ini, dan nilai resmi tidak pernah menyentuhnya.
+
+Tabel itu **tidak boleh disunting tangan**. Jalankan `node scripts/bangkitkan-poin-soal-exam.js` di repo backend; ia memuat `_examQPoints` dan `OBE_ORDER` langsung dari `functions/index.js` sehingga halaman dan penilai mustahil menyimpang. Mode `--periksa` membandingkan tanpa menulis dan keluar dengan kode bukan nol bila ada yang menyimpang.
+
+> Penyuntingan manual pernah membuat halaman UTS dan UAS Sistem Kendali Cerdas memakai tabel milik Getaran — seluruh 45 soal berbeda dari poin yang diberikan server. Karena kedua tabel sama-sama berjumlah 100, nilai sempurna tetap cocok dan selisihnya baru tampak pada penyebut per bagian: peserta bernilai 100 tertulis memperoleh 22,51 dari 20,80 poin di Bagian A. Ketiga UTS lama (Getaran, Math4, Opto) juga tertinggal karena tabelnya masuk 9 Juni 2026 sedangkan pembobotan OBE baru berlaku akhir Juli. Seluruhnya sudah disamakan 21 Agustus 2026 tanpa menilai ulang hasil tersimpan; konsekuensinya poin per soal yang kini tampil pada hasil ujian Mei tidak menjumlah tepat ke total tersimpan peserta.
+
+**Warna panel jawaban dihitung dari rasio, bukan ambang mutlak.** Lembar jawaban menandai tiap soal benar penuh (hijau), sebagian (oranye), atau salah (merah) dengan membandingkan poin yang diperoleh terhadap poin maksimum soal ITU SENDIRI, yang diambil dari `EXAM_QID_POINTS`. Ambang tetap seperti "poin > 1 berarti benar" adalah peninggalan skema lama saat poin per soal masih 1/2/4; sejak poin mengikuti bobot Sub-CPMK, ambang itu salah menggolongkan di kedua arah — soal bernilai 1,212 yang dijawab benar tampak sebagian, sedangkan Hard bernilai 2,797 yang hanya dapat partial 0,5 tampak benar. Keempat tabel (TF, PG, komputasi dasar, komputasi lanjut) wajib memakai penggolong yang sama; pernah ada masa ketiganya menganggap setiap poin bukan nol sebagai benar penuh sehingga partial credit tidak pernah terlihat.
+
+**Seed pengocokan opsi MC wajib berbeda tiap soal.** `shuffleSeed(opts, seed)` dengan `seed = N` saja menghasilkan permutasi yang identik untuk seluruh soal; karena opsi benar lazim ditulis paling pertama, satu mahasiswa akan melihat SELURUH kunci di huruf yang sama dan menjawab satu huruf terus memberi nilai penuh bagian pilihan ganda. Bedakan seednya per soal — mis. lewat sidik isi opsi seperti `uas-sisken-v2.js` — dan jangan mengandalkan sebaran kunci gabungan lintas `N` sebagai bukti sehat: sebaran itu tetap tampak seimbang justru ketika cacatnya ada, sebab hurufnya berpindah antar-`N`. Yang benar memeriksa satu `N` pada satu waktu.
+
 **Partial credit exam membaca `partialPoints` dari kunci** (kini 0,5 seragam di semua course). Sebelumnya `checkExamAnswer` mematoknya 1 dan mengabaikan `partialPoints`, sehingga kebijakan per-course tidak pernah berlaku di exam; sekarang hanya status `correct` yang ditimpa bobot OBE. Jalur `recomputeExamPoints` memakai aturan yang sama — bila salah satunya kembali mematok 1, rescale akan menimpa poin partial yang sudah benar.
 
 **Partial credit tetap hanya diberikan sebelum deadline.** Begitu masuk fase perpanjangan (exam) atau fase terlambat (modul), `computeOutcome` mengembalikan status `wrong` bernilai 0 — bukan partial yang dipotong. Yang dikenai potongan keterlambatan (0,65 di semua course) adalah **jawaban benar**. Contoh Sisken UTS `c15`: benar tepat waktu 2,797 poin; benar saat perpanjangan 2,797 × 0,65 = 1,818; kode disubmit tetapi salah → 0,5 bila tepat waktu, dan 0 bila sudah masuk perpanjangan.
@@ -613,13 +623,22 @@ Getaran, Matematika, dan Opto UAS memakai `c1`–`c15`. Opto UTS memakai `ce1`�
 
 Jangan mengambil satu digit terakhir saja. Contoh NIM berakhiran `22` harus menghasilkan `N = 22`, bukan 2 atau 0.
 
-> ⚠️ **Catatan implementasi (Agu 2026):** fallback `00` baru diterapkan di
-> `getN()` client UTS Getaran Mekanik dan Sistem Kendali Cerdas. Math4 UTS,
-> Opto UTS, dan keempat `UAS.html` masih memakai `parseInt(slice(-2),10) || 0` tanpa
-> fallback — badge `N=` yang ditampilkan ke mahasiswa bisa berbeda dari `N`
-> server untuk NIM berakhiran `00` (server via `deriveN()` tetap benar,
-> jadi penilaian tidak salah, hanya tampilan). Perlu diseragamkan di
-> keenam file exam.
+> ⚠️ **Catatan implementasi (diperiksa ulang 21 Agu 2026):** tidak ada satu pun
+> halaman exam yang memiliki fallback `00` pada penurunan `N` sisi client —
+> catatan sebelumnya yang menyebut UTS Getaran dan Sisken sudah memilikinya
+> keliru. Keadaan sebenarnya:
+>
+> | Halaman | Sumber `N` di client | Aman untuk NIM berakhiran `00`? |
+> |---|---|---|
+> | UAS Getaran, UAS Sisken | `window._uasServerN` bila tersedia | ya, mengikuti server |
+> | Keempat `UTS.html` | turunan lokal; `window._utsServerN` disimpan tetapi tidak dipakai `getN()` | tidak |
+> | UAS Math4, UAS Opto | turunan lokal | tidak |
+>
+> Dampaknya tampilan saja: badge `N=` bisa berbeda dari `N` server, sedangkan
+> penilaian tetap benar karena server memakai `deriveN()` sendiri. Perbaikan
+> yang paling bersih bukan menambah fallback di enam tempat, melainkan
+> mengikuti pola UAS Getaran/Sisken — pakai `N` yang sudah dikirim server
+> (`_utsServerN`/`_uasServerN`) dan jadikan turunan lokal sekadar cadangan.
 
 ### 7.5 Perbedaan UTS dan UAS
 
@@ -978,11 +997,12 @@ Pedoman teknis pembuatan slide Slidev berada terpisah di `Pedoman-Slides.md`.
 ### 16.2 Mengubah exam
 
 1. Pertahankan `examId`, DB path, schedule path, `OBE_ORDER`, dan seed dalam satu perubahan atomik.
-2. Jika soal berubah, perbarui teks, kunci/toleransi, mapping Sub-CPMK, `EXAM_QID_POINTS`, dan qId reset.
-3. Teks soal hanya di backend: UAS di bank `uas-v2`, UTS di `functions/exams/uts-<course>-v2.js` (yang benar-benar dilayani `QUESTION_BANKS`; `uts-<course>-bank.js` cuma sumber helper lama, bukan jalur serving — lihat §14). Jangan menambah bank statis ke HTML. Untuk UTS, jaga `shuffleSeed` di bank identik dengan yang di berkas kunci — jalankan manual `node scripts/verify-uts-bank.js` (bukan `npm run lint`, yang cuma syntax-check).
-4. Verifikasi `deriveN()` dan contoh NIM termasuk suffix `00`.
-5. Jalankan seed dry-run sebelum live seed.
-6. Uji nilai benar/salah/partial, refresh, scoreDeltas, export, late window, cutoff, dan reset satu soal.
+2. Jika soal berubah, perbarui teks, kunci/toleransi, mapping Sub-CPMK, dan qId reset. `EXAM_QID_POINTS` **dibangkitkan**, bukan disunting: jalankan `node scripts/bangkitkan-poin-soal-exam.js` di backend setiap kali `OBE_EXAM_CONFIG` atau `OBE_ORDER` berubah.
+3. Teks soal hanya di backend: UAS di bank `uas-v2`, UTS di `functions/exams/uts-<course>-v2.js` (yang benar-benar dilayani `QUESTION_BANKS`; `uts-<course>-bank.js` cuma sumber helper lama, bukan jalur serving — lihat §14). Jangan menambah bank statis ke HTML. Untuk UTS, jaga `shuffleSeed` di bank identik dengan yang di berkas kunci — jalankan manual `node scripts/verify-uts-bank.js` (bukan `npm run lint`, yang cuma syntax-check). Saat menambah atau menulis ulang soal MC, pastikan seed pengocokannya berbeda tiap soal (lihat §7); penjaganya ada di `verify-sisken-uas.js`.
+4. Ubah nama berkas ekspor jawaban agar menyebut mata kuliahnya (`UTS_<MataKuliah>_<nim>.html`). Halaman exam lazim disalin dari course lain, dan nama ini ikut tersalin tanpa gejala apa pun sampai mahasiswa mengunduh berkasnya — halaman Sisken sempat menghasilkan `UTS_GetaranMekanik_<nim>.html`.
+5. Verifikasi `deriveN()` dan contoh NIM termasuk suffix `00`.
+6. Jalankan seed dry-run sebelum live seed.
+7. Uji nilai benar/salah/partial, refresh, scoreDeltas, export, late window, cutoff, dan reset satu soal.
 
 ### 16.3 Mengubah OBE
 
@@ -1053,9 +1073,10 @@ Penjaga bank soal yang **harus dijalankan manual** (semuanya di luar `lint`/`tes
 | `node scripts/verify-uts-unified.js` | tampilan+kunci `v2.js` vs bank/kunci legacy; untuk bank tanpa legacy (Sisken) memeriksa struktur, kebocoran kunci, opsi MC unik, konsistensi `expectedSteps`, dan menolak bank setengah jadi |
 | `node scripts/verify-uts-seed-payload.js` | payload seed identik dengan kunci lama (re-seed = no-op) |
 | `node scripts/verify-sisken-uts.js` | **menghitung ulang matematika tiap soal UTS Sisken** dari rumusnya untuk N=0..99 |
-| `node scripts/verify-sisken-uas.js` | idem untuk UAS Sisken, plus poin per Sub-CPMK cocok dengan pemetaan OBE |
+| `node scripts/verify-sisken-uas.js` | idem untuk UAS Sisken, plus poin per Sub-CPMK cocok dengan pemetaan OBE, dan **sebaran kunci MC per satu `N`** — menolak bila ≥70% kunci berkumpul di satu posisi |
+| `node scripts/bangkitkan-poin-soal-exam.js --periksa` | `EXAM_QID_POINTS` tiap halaman ujian identik dengan `_examQPoints` server (keluar bukan nol bila menyimpang) |
 
-Dua penjaga terakhir adalah satu-satunya yang menangkap kekeliruan `correctIdx` menunjuk opsi yang salah dan **opsi MC kembar** (kunci ambigu) — kelas bug yang tidak terlihat dari struktur. Bank tanpa berkas kunci legacy tidak dapat diperiksa `verify-uts-bank.js`, jadi jangan menganggap bank Sisken sudah teruji hanya karena skrip itu hijau.
+`verify-sisken-uts.js` dan `verify-sisken-uas.js` adalah satu-satunya yang menangkap kekeliruan `correctIdx` menunjuk opsi yang salah dan **opsi MC kembar** (kunci ambigu) — kelas bug yang tidak terlihat dari struktur. Yang terakhir juga memeriksa sebaran kunci **di dalam satu `N`**; pemeriksaan sebaran gabungan lintas `N` yang dipakai sebelumnya justru meloloskan cacat seed seragam, sebab gabungannya tetap tampak rata (523/513/485/479) ketika tiap mahasiswa sebenarnya melihat seluruh kunci di satu huruf. Bank tanpa berkas kunci legacy tidak dapat diperiksa `verify-uts-bank.js`, jadi jangan menganggap bank Sisken sudah teruji hanya karena skrip itu hijau.
 
 Bila menulis soal pada bank yang sebelumnya placeholder, ingat bahwa penjaga yang **mewajibkan** teks placeholder harus diinversi lebih dulu; ini pernah membuat `validate-backend.js` dan `verify-uts-unified.js` gagal begitu soal ditulis. Keduanya sekarang mendeteksi sendiri keadaan bank.
 
@@ -1066,7 +1087,7 @@ Bila menulis soal pada bank yang sebelumnya placeholder, ingat bahwa penjaga yan
 | Preview | tidak membuat identity/attempt/poin; Tugas dan Forum modul tersembunyi |
 | Mahasiswa | roster, PIN, schedule gate, satu attempt, restore setelah refresh |
 | Dosen | login, pesan lock, atur jadwal dengan jam 24 jam, tampilan deadline WIB yang sama pada perangkat beda zona waktu, logout, sesi kedaluwarsa |
-| Modul | 25 soal, total 50, PG dapat dipilih dan tombol Periksa aktif, late sesuai konfigurasi (Sisken 0,65; Opto/Math4/Getaran sementara 0,7), partial Hard 0,5 (semua course), export lengkap, Forum/chat |
+| Modul | 25 soal, total 50, PG dapat dipilih dan tombol Periksa aktif, late 0,65 (seragam semua course), partial Hard 0,5 (semua course), export lengkap, Forum/chat |
 | Exam | 45 soal, total 100, format poin, late/cutoff, online-only, export resmi |
 | Agen AI | konsep modul aktif dijawab dengan sitasi; pertanyaan lintas MK dan jawaban langsung asesmen ditolak; data pribadi disunting; saat UTS/UAS aktif materi terkunci tetapi jadwal/aturan tetap terjawab; mode `AI_PROVIDER=none` dan simulasi kuota tetap menghasilkan fallback retrieval |
 | UAS | soal tidak ada di source publik, fetch setelah gate, friction tidak memburamkan halaman |
@@ -1101,3 +1122,5 @@ Jangan menganggap perubahan selesai hanya karena halaman terbuka. Penilaian haru
 20. Setiap soal pilihan ganda wajib punya tombol `sub-mcN`-nya sendiri; tanpa itu `selectMC()` melempar dan PG tidak dapat dipilih.
 21. Publikasi Pages memakai push ke branch `gh-pages`; jangan kembali ke `actions/deploy-pages`.
 22. Agen AI hanya memakai resolver dan retrieval privat dari allowlist mata kuliah aktif; model bersifat opsional, bank/kunci tidak masuk indeks, sitasi wajib, dan tutor materi terkunci selama ujian mahasiswa aktif.
+23. Seed pengocokan opsi MC wajib berbeda tiap soal. Seed seragam membuat seluruh kunci jatuh di satu huruf bagi tiap mahasiswa, sehingga menjawab satu huruf terus memberi nilai penuh bagian pilihan ganda.
+24. `EXAM_QID_POINTS` di halaman ujian dibangkitkan dari `_examQPoints` server, tidak pernah disunting tangan. Tabel itu hanya penyebut tampilan; poin per soal dan nilai resmi tetap datang dari server.
