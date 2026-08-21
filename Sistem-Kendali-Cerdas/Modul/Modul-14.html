@@ -1163,6 +1163,60 @@ html,body{height:auto!important;min-height:100%!important;overflow-y:auto!import
   #page-modul .card,#page-modul .formula-block,#page-modul .formula-block::before,#page-modul .formula-block .formula-label,#page-modul .formula-block .formula-main,.reading-position{transition:none!important}#page-modul .formula-block:hover{transform:none!important}
 }
 </style>
+<!-- EFEK-MEMUAT:START v1 -->
+<style>
+/* Pemutar kecil di dalam tombol yang sedang menunggu jaringan. Memakai
+   currentColor supaya otomatis serasi dengan tombol mana pun. */
+@keyframes efekMemuatPutar { to { transform: rotate(360deg); } }
+.tombol-memuat { cursor: wait !important; opacity: .72; }
+.tombol-memuat .efek-memuat-putaran {
+  display: inline-block; width: 1em; height: 1em; margin-right: .5em;
+  vertical-align: -.15em; border: 2px solid currentColor;
+  border-right-color: transparent; border-radius: 50%;
+  animation: efekMemuatPutar .7s linear infinite;
+}
+/* Sebagian aksi menonaktifkan SEKELOMPOK tombol sekaligus (overlay reset dan
+   atur jadwal) tanpa satu tombol pemicu yang bisa dikenali seragam. Untuk itu
+   pemutarnya digambar lewat ::before pada tombol utama saja, sehingga innerHTML
+   tidak perlu disentuh dan pemulihannya cukup melepas kelasnya. */
+.kelompok-memuat.v-btn-primary::before {
+  content: ''; display: inline-block; width: 1em; height: 1em; margin-right: .5em;
+  vertical-align: -.15em; border: 2px solid currentColor;
+  border-right-color: transparent; border-radius: 50%;
+  animation: efekMemuatPutar .7s linear infinite;
+}
+/* Hormati pengguna yang meminta gerak dikurangi: pemutarnya tetap ada sebagai
+   penanda keadaan, hanya jauh lebih lambat. */
+@media (prefers-reduced-motion: reduce) {
+  .tombol-memuat .efek-memuat-putaran,
+  .kelompok-memuat.v-btn-primary::before { animation-duration: 2.4s; }
+}
+</style>
+<script>
+/** Tandai tombol sedang menunggu: pemutar + label + nonaktif. */
+window.mulaiMuat = function (el, label) {
+  if (!el) return;
+  if (el.dataset.labelAsli === undefined) el.dataset.labelAsli = el.textContent;
+  el.disabled = true;
+  el.setAttribute('aria-busy', 'true');
+  el.classList.add('tombol-memuat');
+  el.innerHTML = '<span class="efek-memuat-putaran" aria-hidden="true"></span>'
+    + String(label == null ? el.dataset.labelAsli : label);
+};
+/** Kembalikan tombol ke keadaan semula. Argumen label opsional. */
+window.selesaiMuat = function (el, label) {
+  if (!el) return;
+  el.disabled = false;
+  el.removeAttribute('aria-busy');
+  el.classList.remove('tombol-memuat');
+  el.style.opacity = '1';
+  el.style.cursor = 'pointer';
+  el.textContent = String(label == null
+    ? (el.dataset.labelAsli === undefined ? el.textContent : el.dataset.labelAsli)
+    : label);
+};
+</script>
+<!-- EFEK-MEMUAT:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -7205,7 +7259,7 @@ async function submitVisitor(){
   const schedOpen = now <= new Date(currentSchedule.end).getTime();
   const key = sanitizeKey('mhs_' + nim);
 
-  if(submitBtn){ submitBtn.disabled=true; submitBtn.dataset.labelAsli = submitBtn.dataset.labelAsli || submitBtn.textContent; submitBtn.style.opacity='.6'; submitBtn.style.cursor='wait'; submitBtn.textContent='Memverifikasi...'; }
+  if(submitBtn){ mulaiMuat(submitBtn, 'Memverifikasi...'); }
 
   try {
     const inputHash = await _sha256Hex(pin);
@@ -7223,7 +7277,7 @@ async function submitVisitor(){
       if(existingPin.pinHash !== inputHash){
         err.textContent='⚠ PIN salah. Coba lagi atau hubungi dosen jika lupa.';
         err.style.display='block';
-        if(submitBtn){ submitBtn.disabled=false; submitBtn.style.opacity='1'; submitBtn.style.cursor='pointer'; submitBtn.textContent='Masuk →'; }
+        if(submitBtn){ selesaiMuat(submitBtn, 'Masuk →'); }
         if(pinEl) pinEl.value='';
         return;
       }
@@ -7232,7 +7286,7 @@ async function submitVisitor(){
       if(typeof _isWeakPin === 'function' && _isWeakPin(pin)){
         err.textContent='⚠ PIN terlalu lemah. Hindari 123456, 111111, dst.';
         err.style.display='block';
-        if(submitBtn){ submitBtn.disabled=false; submitBtn.style.opacity='1'; submitBtn.style.cursor='pointer'; submitBtn.textContent='Masuk →'; }
+        if(submitBtn){ selesaiMuat(submitBtn, 'Masuk →'); }
         return;
       }
       // Ambil visitor record lama (kalau ada) supaya poin tidak hilang saat PIN dibuat
@@ -7243,7 +7297,7 @@ async function submitVisitor(){
         existingVisitor: visSnapAwal.exists() ? visSnapAwal.val() : null,
         schedOpen
       };
-      if(submitBtn){ submitBtn.disabled=false; submitBtn.style.opacity='1'; submitBtn.style.cursor='pointer'; submitBtn.textContent = submitBtn.dataset.labelAsli || submitBtn.textContent; }
+      if(submitBtn){ selesaiMuat(submitBtn); }
       _showPinSetup(nama);
       const subSetup = document.getElementById('pinSetupSubtitle');
       if(subSetup) subSetup.textContent = 'Hai ' + nama + '! Ini login pertama Anda, jadi PIN 6 digit tadi akan disimpan sebagai kredensial. Ketik ulang PIN yang sama di kolom konfirmasi supaya tidak ada salah ketik. PIN ini berlaku untuk semua mata kuliah.';
@@ -7305,7 +7359,7 @@ async function submitVisitor(){
   } catch(e){
     err.textContent='⚠ Gagal verifikasi: ' + (e.message || e);
     err.style.display='block';
-    if(submitBtn){ submitBtn.disabled=false; submitBtn.style.opacity='1'; submitBtn.style.cursor='pointer'; submitBtn.textContent='Masuk →'; }
+    if(submitBtn){ selesaiMuat(submitBtn, 'Masuk →'); }
     console.error('[Mahasiswa Login] Failed:', e);
   }
 }
@@ -7764,7 +7818,7 @@ async function submitPinSetup() {
     return;
   }
   errEl.style.display = 'none';
-  btn.disabled = true; btn.style.opacity = '.6'; btn.style.cursor = 'wait'; btn.textContent = 'Menyimpan...';
+  mulaiMuat(btn, 'Menyimpan...');
 
   try {
     const pinHash = await _sha256Hex(p1);
@@ -7818,7 +7872,7 @@ async function submitPinSetup() {
   } catch(e) {
     errEl.textContent = '\u274c Gagal menyimpan PIN: ' + (e && e.message ? e.message : e);
     errEl.style.display = 'block';
-    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; btn.textContent = 'Simpan PIN & Masuk';
+    selesaiMuat(btn, 'Simpan PIN & Masuk');
     console.error('[PIN Setup] Save failed:', e);
   }
 }
@@ -7832,7 +7886,7 @@ async function submitPinVerify() {
     errEl.textContent = '\u26a0 PIN harus 6 digit angka.'; errEl.style.display = 'block'; return;
   }
   errEl.style.display = 'none';
-  btn.disabled = true; btn.style.opacity = '.6'; btn.style.cursor = 'wait'; btn.textContent = 'Memverifikasi...';
+  mulaiMuat(btn, 'Memverifikasi...');
 
   try {
     const inputHash = await _sha256Hex(pin);
@@ -7842,7 +7896,7 @@ async function submitPinVerify() {
     if (!(await window._callVerifyPin(nim, inputHash)).valid) {
       errEl.textContent = '\u26a0 PIN salah. Coba lagi atau hubungi dosen jika lupa.';
       errEl.style.display = 'block';
-      btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; btn.textContent = 'Verifikasi & Masuk';
+      selesaiMuat(btn, 'Verifikasi & Masuk');
       document.getElementById('pinInputField').value = '';
       document.getElementById('pinInputField').focus();
       return;
@@ -7930,7 +7984,7 @@ async function submitPinVerify() {
   } catch(e) {
     errEl.textContent = '\u274c Gagal verifikasi PIN: ' + (e && e.message ? e.message : e);
     errEl.style.display = 'block';
-    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; btn.textContent = 'Verifikasi & Masuk';
+    selesaiMuat(btn, 'Verifikasi & Masuk');
     console.error('[PIN Verify] Failed:', e);
   }
 }
@@ -8177,7 +8231,7 @@ async function confirmReset(){
   errEl.style.display='none';
   // Disable button to prevent double-click
   const btns = document.querySelectorAll('#resetOverlay button');
-  btns.forEach(b=>{b.disabled=true;b.style.opacity='.5';b.style.cursor='wait';});
+  btns.forEach(b=>{b.disabled=true;b.style.opacity='.5';b.style.cursor='wait';b.classList.add('kelompok-memuat');});
   // ─── Race Condition Fix (Apr 2026) ───
   // Bug lama: Promise.all parallel + remove(SCHEDULE_PATH) selesai duluan →
   // onValue listener fire → _handleScheduleReady() force-logout → ganggu
@@ -8201,7 +8255,7 @@ async function confirmReset(){
       // Kalau Firestore reset gagal, JANGAN lanjut RTDB delete — biar state konsisten.
       // Dosen bisa retry. Common causes: function belum di-deploy, network, auth.
       window._resetInProgress = false;
-      btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
+      btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';b.classList.remove('kelompok-memuat');});
       const msg = fsErr && fsErr.message ? fsErr.message : String(fsErr);
       errEl.textContent = '❌ Gagal reset Firestore: ' + msg + '. Cloud Function "resetModulAttempts" mungkin belum di-deploy. Reset RTDB dibatalkan utk konsistensi.';
       errEl.style.display = 'block';
@@ -8249,13 +8303,13 @@ async function confirmReset(){
     await remove(ref(db, SCHEDULE_PATH));
 
     // STEP 5: Hard reload untuk guarantee clean state
-    btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
+    btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';b.classList.remove('kelompok-memuat');});
     hideResetModal();
     _showResetToast('\u2705 Data pertemuan berhasil dihapus. Halaman akan di-reload...');
     setTimeout(() => { window.location.reload(); }, 1500);
   } catch (err) {
     window._resetInProgress = false;
-    btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
+    btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';b.classList.remove('kelompok-memuat');});
     errEl.textContent='\u274c Gagal hapus data: ' + (err && err.message ? err.message : err) + '. Cek koneksi atau Firebase Security Rules.';
     errEl.style.display='block';
     console.error('[Reset] Firebase remove failed:', err);
@@ -8377,7 +8431,7 @@ async function saveSchedule(){
   errEl.style.display='none';
   const startDate=new Date(dueDate.getTime()-dur*24*60*60*1000);
   const btns = document.querySelectorAll('#scheduleOverlay button');
-  btns.forEach(b=>{b.disabled=true;b.style.opacity='.5';b.style.cursor='wait';});
+  btns.forEach(b=>{b.disabled=true;b.style.opacity='.5';b.style.cursor='wait';b.classList.add('kelompok-memuat');});
 
   // ─── PENTING: saveSchedule HANYA write ke SCHEDULE_PATH (Pedoman §9) ───
   // TIDAK menghapus visitor data dan TIDAK mengusik localStorage identity.
@@ -8391,7 +8445,7 @@ async function saveSchedule(){
     duration: dur,
     due: due
   }).then(() => {
-    btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
+    btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';b.classList.remove('kelompok-memuat');});
     // Setelah save jadwal, kalau ini dari dosen upfront flow — sekaligus login dosen
     if (window._scheduleFromDosenLogin) {
       window._scheduleFromDosenLogin = false;
@@ -8413,7 +8467,7 @@ async function saveSchedule(){
       _showResetToast('\u2705 Jadwal berhasil disimpan. Data mahasiswa tetap aman.');
     }
   }).catch(err => {
-    btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
+    btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';b.classList.remove('kelompok-memuat');});
     errEl.textContent='\u274c Gagal simpan jadwal: ' + (err && err.message ? err.message : err);
     errEl.style.display='block';
     console.error('[Schedule] Firebase write failed:', err);
