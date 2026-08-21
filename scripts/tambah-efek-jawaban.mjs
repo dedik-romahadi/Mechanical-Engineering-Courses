@@ -42,101 +42,121 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // Lapisannya: bola bergradien radial, cincin tepi gelap,
 // kilap spekular, DAN pantulan cahaya lingkungan di bawah (rim light) supaya
 // bolanya tidak terlihat "ditempel" — itulah yang membuatnya tampak 3D.
-// Palet bola: semua kuning; "pikir" sedikit lebih jingga.
+// Palet bola bergaya stiker klasik (acuan gambar dosen, 22 Agu 2026): kuning
+// terang di pusat → emas → jingga pekat di tepi, garis tepi cokelat tua tebal.
+// [terang, tengah, gelap, garis, rim]
 const PALET = {
-  senang: ["#fff7b3", "#ffd43b", "#e09a00", "#6b4300", "#ffb300"],
-  pikir: ["#fff3c4", "#ffc857", "#e08a00", "#6b4300", "#ff9f1c"],
-  sedih: ["#fff7b3", "#ffd43b", "#e09a00", "#6b4300", "#ffb300"],
+  senang: ["#fff9c4", "#ffd21f", "#f07c00", "#4a2a00", "#ffb300"],
+  pikir: ["#fff6c8", "#ffc928", "#ee7a00", "#4a2a00", "#ffa000"],
+  sedih: ["#fff9c4", "#ffd21f", "#f07c00", "#4a2a00", "#ffb300"],
 };
+const PUPIL = "#111";
 
 // Mata berkedip lewat SMIL: skala-Y mengecil sesaat tiap ~3 detik.
 const KEDIP = `<animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1 1;1 .08;1 1;1 1" keyTimes="0;.9;.93;.96;1" dur="3.2s" repeatCount="indefinite"/>`;
-const bolaMata = (x, y, garis, rx = 5.5, ry = 7, geserPupil = 0) =>
-  `<g transform="translate(${x} ${y})"><g><ellipse rx="${rx}" ry="${ry}" fill="${garis}"/><circle cx="${-1.8 + geserPupil}" cy="-2.5" r="1.8" fill="#fff"/>${KEDIP}</g></g>`;
+// Mata putih besar berpupil hitam — ciri utama set acuan.
+const mataPutih = (x, y, garis, geserPupil = 0, r = 10, ry = r * 1.15) =>
+  `<g transform="translate(${x} ${y})"><g><ellipse rx="${r}" ry="${ry}" fill="#fff" stroke="${garis}" stroke-width="2.2"/>`
+  + `<circle cx="${geserPupil}" cy="${ry * 0.18}" r="${r * 0.5}" fill="${PUPIL}"/><circle cx="${geserPupil - r * 0.18}" cy="${ry * 0.18 - r * 0.2}" r="${r * 0.17}" fill="#fff"/>${KEDIP}</g></g>`;
+// Mata tertawa: lengkung tertutup tebal.
 const mataSenyum = (x, y, garis) =>
-  `<g transform="translate(${x} ${y})"><g><path d="M-8 0 Q0 -10 8 0" fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"/>${KEDIP}</g></g>`;
+  `<g transform="translate(${x} ${y})"><g><path d="M-9 2 Q0 -10 9 2" fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"/>${KEDIP}</g></g>`;
+// Mata terpejam (kedip / menangis keras): lengkung ke bawah.
 const mataTutup = (x, y, garis) =>
-  `<path d="M${x - 8} ${y} Q${x} ${y + 6} ${x + 8} ${y}" fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"/>`;
-const alis = (d, garis) => `<path d="${d}" stroke="${garis}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
-const mataPutih = (x, y, garis, geserPupil = 0, r = 8) =>
-  `<g transform="translate(${x} ${y})"><g><circle r="${r}" fill="#fff" stroke="${garis}" stroke-width="1.5"/><circle cx="${geserPupil}" cy="1" r="${r * 0.5}" fill="${garis}"/><circle cx="${geserPupil - 1.3}" cy="-.5" r="1.4" fill="#fff"/>${KEDIP}</g></g>`;
+  `<path d="M${x - 9} ${y} Q${x} ${y + 8} ${x + 9} ${y}" fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"/>`;
+const alis = (d, garis, lebar = 4.5) => `<path d="${d}" stroke="${garis}" stroke-width="${lebar}" fill="none" stroke-linecap="round"/>`;
 const hati = (x, y) =>
-  `<g transform="translate(${x} ${y})"><path d="M0 5 C-9 -3 -9 -12 -1 -10 C0 -9 0 -8 0 -7 C0 -8 0 -9 1 -10 C9 -12 9 -3 0 5 Z" fill="#ff1744" stroke="#b71c1c" stroke-width="1.2" transform="scale(1.3)"><animateTransform attributeName="transform" type="scale" values="1.3;1.5;1.3" dur=".7s" repeatCount="indefinite"/></path></g>`;
-const tetes = (x, y0, y1, delay, warna = "#4fc3f7", garis = "#1e88e5") =>
-  `<ellipse cx="${x}" cy="${y0}" rx="3.5" ry="6" fill="${warna}" stroke="${garis}" stroke-width=".8">`
+  `<g transform="translate(${x} ${y})"><path d="M0 6 C-11 -3 -11 -14 -1.5 -12 C0 -11 0 -9 0 -8 C0 -9 0 -11 1.5 -12 C11 -14 11 -3 0 6 Z" fill="#ff1744" stroke="#8e0000" stroke-width="1.6" transform="scale(1.35)">`
+  + `<animateTransform attributeName="transform" type="scale" values="1.35;1.55;1.35" dur=".7s" repeatCount="indefinite"/></path><ellipse cx="-5" cy="-10" rx="2.2" ry="1.4" fill="#fff" opacity=".7" transform="rotate(-30)"/></g>`;
+// Air mata: tetes biru besar bergaris tepi biru tua, jatuh berulang.
+const tetes = (x, y0, y1, delay, rx = 4, ry = 6.5) =>
+  `<ellipse cx="${x}" cy="${y0}" rx="${rx}" ry="${ry}" fill="#5ac8ff" stroke="#1565c0" stroke-width="1.4">`
   + `<animate attributeName="cy" values="${y0};${y1}" dur="1.1s" begin="${delay}s" repeatCount="indefinite"/>`
   + `<animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.15;.7;1" dur="1.1s" begin="${delay}s" repeatCount="indefinite"/></ellipse>`;
-const mulutBernapas = (d1, d2, fill, garis, dur = "1.4s") =>
-  `<path fill="${fill}" stroke="${garis}" stroke-width="2.5" stroke-linejoin="round"><animate attributeName="d" values="${d1};${d2};${d1}" dur="${dur}" repeatCount="indefinite"/></path>`;
-const pipiMerah = `<ellipse cx="23" cy="57" rx="8" ry="5" fill="#ff8a80" opacity=".55"/><ellipse cx="77" cy="57" rx="8" ry="5" fill="#ff8a80" opacity=".55"/>`;
+// Semburan air mata ke samping (menangis keras / tertawa sampai menangis).
+const semburan = (x, y, arah) =>
+  `<g transform="translate(${x} ${y}) scale(${arah} 1)"><path d="M0 0 C6 -2 14 2 18 10 C14 6 8 8 2 6 Z" fill="#5ac8ff" stroke="#1565c0" stroke-width="1.4">`
+  + `<animateTransform attributeName="transform" type="scale" values="1 1;1.15 1.1;1 1" dur=".8s" repeatCount="indefinite"/></path>`
+  + `<ellipse cx="20" cy="14" rx="3" ry="4" fill="#5ac8ff" stroke="#1565c0" stroke-width="1.2"><animate attributeName="cy" values="12;26" dur=".9s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur=".9s" repeatCount="indefinite"/></ellipse></g>`;
+// Mulut "bernapas" dengan garis tepi cokelat tebal.
+const mulutBernapas = (d1, d2, fill, garis, dur = "1.4s", tebal = 3) =>
+  `<path fill="${fill}" stroke="${garis}" stroke-width="${tebal}" stroke-linejoin="round"><animate attributeName="d" values="${d1};${d2};${d1}" dur="${dur}" repeatCount="indefinite"/></path>`;
+// Mulut tawa lebar: rongga merah tua, deretan gigi putih di atas, lidah merah di bawah.
+const mulutTawa = (garis, lebar = 1) =>
+  `<g transform="translate(50 60) scale(${lebar}) translate(-50 -60)">`
+  + mulutBernapas("M26 54 Q50 58 74 54 Q72 86 50 88 Q28 86 26 54 Z", "M25 53 Q50 57 75 53 Q73 89 50 91 Q27 89 25 53 Z", "#7a1010", garis, "1.4s", 3.2)
+  + `<path d="M29 56 Q50 60 71 56 L70 64 Q50 68 30 64 Z" fill="#fff"/>`
+  + `<path d="M36 78 Q50 70 64 78 Q58 88 50 88 Q42 88 36 78 Z" fill="#ff3d3d"/><path d="M50 74 V84" stroke="#c62828" stroke-width="1.2" opacity=".6"/>`
+  + `</g>`;
+const pipiMerah = `<ellipse cx="20" cy="60" rx="9" ry="5.5" fill="#ff6d4d" opacity=".55"/><ellipse cx="80" cy="60" rx="9" ry="5.5" fill="#ff6d4d" opacity=".55"/>`;
 
-// Ragam wajah. Tiap status punya beberapa varian yang dipilih acak per
-// jawaban supaya efeknya tidak monoton (permintaan dosen, 22 Agu 2026;
-// mengikuti set emoji klasik — tanpa emoji kotoran, tanpa wajah marah
-// untuk jawaban salah). Kunci: jenis (palet + animasi), mata, mulut, ekstra.
+// Ragam wajah (acuan: lembar emoji klasik yang dikirim dosen, tanpa emoji
+// kotoran, tanpa wajah marah untuk jawaban salah). Kunci: jenis (palet +
+// animasi), mata, mulut, ekstra. Dipilih acak per jawaban.
 const VARIAN = {
   // ── BENAR ──
-  tawa: { jenis: "senang", mata: g => mataSenyum(36, 42, g) + mataSenyum(64, 42, g),
-    mulut: g => mulutBernapas("M30 56 Q50 78 70 56", "M29 55 Q50 82 71 55", "#5a2d00", g)
-      + `<path d="M37 59 Q50 70 63 59" fill="#ff6b6b"/><path d="M40 57 Q50 62 60 57" fill="#fff" opacity=".9"/>`,
-    ekstra: () => pipiMerah },
-  kedip: { jenis: "senang", mata: g => mataPutih(36, 42, g, 1.5, 9) + mataTutup(64, 43, g) + alis("M26 28 Q36 22 46 28", g),
-    mulut: g => mulutBernapas("M40 60 Q50 72 60 60 Q50 66 40 60", "M39 60 Q50 75 61 60 Q50 67 39 60", "#5a2d00", g)
-      + `<path d="M44 62 Q50 67 56 62" fill="#ff6b6b"/>`,
-    ekstra: () => pipiMerah },
-  kacamata: { jenis: "senang", mata: g =>
-      `<g><rect x="20" y="34" width="26" height="15" rx="6" fill="#0b1020" stroke="${g}" stroke-width="2"/><rect x="54" y="34" width="26" height="15" rx="6" fill="#0b1020" stroke="${g}" stroke-width="2"/>`
-      + `<path d="M46 40 H54" stroke="${g}" stroke-width="3"/><path d="M20 38 H10 M80 38 H90" stroke="${g}" stroke-width="3" stroke-linecap="round"/>`
-      + `<path d="M24 37 L32 37" stroke="#fff" stroke-width="2" opacity=".6" stroke-linecap="round"/><path d="M58 37 L66 37" stroke="#fff" stroke-width="2" opacity=".6" stroke-linecap="round"/></g>`,
-    mulut: g => mulutBernapas("M30 58 Q50 80 70 58 Z", "M30 58 Q50 83 70 58 Z", "#fff", g)
-      + `<path d="M33 62 H67 M39 69 H61" stroke="${g}" stroke-width="1.4" opacity=".5"/>`,
+  tawa: { jenis: "senang", mata: g => mataSenyum(34, 36, g) + mataSenyum(66, 36, g),
+    mulut: g => mulutTawa(g), ekstra: () => "" },
+  kedip: { jenis: "senang", mata: g => mataPutih(36, 38, g, 1.5, 11, 12.5) + mataTutup(65, 40, g) + alis("M24 22 Q36 16 48 22", g),
+    mulut: g => mulutBernapas("M38 62 Q50 70 62 62 Q62 78 50 80 Q38 78 38 62 Z", "M37 62 Q50 70 63 62 Q63 81 50 83 Q37 81 37 62 Z", "#7a1010", g)
+      + `<path d="M44 72 Q50 68 56 72 Q54 78 50 78 Q46 78 44 72 Z" fill="#ff3d3d"/>`,
     ekstra: () => "" },
-  cinta: { jenis: "senang", mata: () => hati(36, 42) + hati(64, 42),
-    mulut: g => mulutBernapas("M38 60 Q50 76 62 60 Q50 64 38 60", "M37 60 Q50 79 63 60 Q50 65 37 60", "#5a2d00", g)
-      + `<path d="M43 63 Q50 69 57 63" fill="#ff6b6b"/>`,
+  kacamata: { jenis: "senang", mata: g =>
+      `<g><path d="M8 30 H92" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>`
+      + `<path d="M16 30 Q16 50 30 50 Q44 50 46 30 Z" fill="#151515" stroke="#000" stroke-width="1.5"/><path d="M54 30 Q56 50 70 50 Q84 50 84 30 Z" fill="#151515" stroke="#000" stroke-width="1.5"/>`
+      + `<path d="M20 34 L34 34" stroke="#fff" stroke-width="2.5" opacity=".55" stroke-linecap="round"/><path d="M58 34 L72 34" stroke="#fff" stroke-width="2.5" opacity=".55" stroke-linecap="round"/></g>`,
+    mulut: g => mulutBernapas("M24 60 Q50 64 76 60 Q72 82 50 84 Q28 82 24 60 Z", "M23 60 Q50 64 77 60 Q73 85 50 87 Q27 85 23 60 Z", "#fff", g, "1.4s", 3.2)
+      + `<path d="M27 66 Q50 70 73 66 M31 72 Q50 76 69 72" stroke="${g}" stroke-width="1.4" fill="none" opacity=".55"/><path d="M36 61 V80 M44 62 V83 M50 63 V84 M56 62 V83 M64 61 V80" stroke="${g}" stroke-width="1.2" opacity=".35"/>`,
+    ekstra: () => "" },
+  cinta: { jenis: "senang", mata: () => hati(34, 40) + hati(66, 40),
+    mulut: g => mulutBernapas("M36 62 Q50 66 64 62 Q62 80 50 82 Q38 80 36 62 Z", "M35 62 Q50 66 65 62 Q63 83 50 85 Q37 83 35 62 Z", "#7a1010", g)
+      + `<path d="M40 64 Q50 66 60 64 L59 69 Q50 71 41 69 Z" fill="#fff"/><path d="M42 76 Q50 70 58 76 Q55 82 50 82 Q45 82 42 76 Z" fill="#ff3d3d"/>`,
     ekstra: () => pipiMerah },
-  tawaAirMata: { jenis: "senang", mata: g => mataTutup(36, 38, g) + mataTutup(64, 38, g),
-    mulut: g => mulutBernapas("M28 54 Q50 86 72 54 Z", "M27 53 Q50 90 73 53 Z", "#5a2d00", g)
-      + `<path d="M30 56 Q50 62 70 56 Z" fill="#fff"/><path d="M36 68 Q50 80 64 68 Q50 72 36 68" fill="#ff6b6b"/>`,
-    ekstra: () => tetes(14, 46, 70, 0) + tetes(86, 46, 70, .5) + pipiMerah },
-  bangga: { jenis: "senang", mata: g => `<path d="M27 44 Q36 36 45 43" fill="none" stroke="${g}" stroke-width="4.5" stroke-linecap="round"/><path d="M55 43 Q64 36 73 44" fill="none" stroke="${g}" stroke-width="4.5" stroke-linecap="round"/>`
-      + `<path d="M24 34 Q36 29 46 34" stroke="${g}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M54 34 Q64 29 76 34" stroke="${g}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
-    mulut: g => `<path d="M36 66 Q54 76 68 62" fill="none" stroke="${g}" stroke-width="5" stroke-linecap="round"/>`,
+  tawaAirMata: { jenis: "senang", mata: g => mataTutup(34, 32, g) + mataTutup(66, 32, g)
+      + alis("M22 24 Q34 18 46 24", g, 4) + alis("M54 24 Q66 18 78 24", g, 4),
+    mulut: g => mulutTawa(g, 1.08),
+    ekstra: () => semburan(22, 36, -1) + semburan(78, 36, 1) },
+  bangga: { jenis: "senang", mata: g => `<g transform="translate(36 42)"><g><ellipse rx="11" ry="7" fill="#fff" stroke="${g}" stroke-width="2.2"/><circle cx="3" cy="-1" r="4.5" fill="${PUPIL}"/><circle cx="1.6" cy="-2.6" r="1.5" fill="#fff"/><path d="M-12 -1 Q0 -10 12 -1" fill="url(#ej-bangga-bola)" stroke="${g}" stroke-width="2.2"/>${KEDIP}</g></g>`
+      + `<g transform="translate(64 42)"><g><ellipse rx="11" ry="7" fill="#fff" stroke="${g}" stroke-width="2.2"/><circle cx="3" cy="-1" r="4.5" fill="${PUPIL}"/><circle cx="1.6" cy="-2.6" r="1.5" fill="#fff"/><path d="M-12 -1 Q0 -10 12 -1" fill="url(#ej-bangga-bola)" stroke="${g}" stroke-width="2.2"/>${KEDIP}</g></g>`
+      + alis("M22 30 Q34 24 48 31", g) + alis("M52 30 Q66 22 78 27", g),
+    mulut: g => `<path d="M34 68 Q52 78 68 62" fill="none" stroke="${g}" stroke-width="5" stroke-linecap="round"/>`,
     ekstra: () => pipiMerah },
   // ── SEBAGIAN ──
-  pikir: { jenis: "pikir", mata: g => bolaMata(36, 44, g, 5.5, 6.5) + bolaMata(64, 40, g, 5.5, 6.5)
-      + alis("M27 30 Q36 25 45 31", g) + alis("M55 27 Q64 18 73 25", g),
-    mulut: g => `<path fill="none" stroke="${g}" stroke-width="5" stroke-linecap="round"><animate attributeName="d" values="M34 66 Q50 60 66 68;M34 67 Q50 62 66 66;M34 66 Q50 60 66 68" dur="2.2s" repeatCount="indefinite"/></path>`,
-    ekstra: (t, gelap) => `<circle cx="76" cy="76" r="7" fill="${t}" stroke="${gelap}" stroke-width="2"/>` },
-  lidah: { jenis: "pikir", mata: g => mataPutih(36, 42, g, 2.5) + mataPutih(64, 42, g, -2.5)
-      + alis("M26 30 Q36 24 46 30", g) + alis("M54 30 Q64 24 74 30", g),
-    mulut: g => `<path d="M36 60 Q50 70 64 60" fill="none" stroke="${g}" stroke-width="4.5" stroke-linecap="round"/>`
-      + `<g><path d="M52 62 C52 62 62 60 64 68 C66 76 58 80 54 74 C52 70 52 66 52 62 Z" fill="#ff5252" stroke="#b71c1c" stroke-width="1.5"><animateTransform attributeName="transform" type="rotate" values="0 52 62;6 52 62;0 52 62" dur=".9s" repeatCount="indefinite"/></path></g>`,
+  pikir: { jenis: "pikir", mata: g => mataPutih(36, 44, g, 2, 9, 10) + mataPutih(64, 40, g, 2, 9, 10)
+      + alis("M24 32 Q36 26 47 33", g) + alis("M53 28 Q64 18 76 26", g),
+    mulut: g => `<path fill="none" stroke="${g}" stroke-width="5" stroke-linecap="round"><animate attributeName="d" values="M34 70 Q50 64 66 72;M34 71 Q50 66 66 70;M34 70 Q50 64 66 72" dur="2.2s" repeatCount="indefinite"/></path>`,
+    ekstra: (t, gelap) => `<circle cx="77" cy="78" r="7.5" fill="${t}" stroke="${gelap}" stroke-width="2.2"/>` },
+  lidah: { jenis: "pikir", mata: g => mataPutih(35, 40, g, 3, 10, 11.5) + mataPutih(65, 40, g, -3, 10, 11.5)
+      + alis("M22 24 Q35 18 48 26", g) + alis("M52 26 Q65 18 78 24", g),
+    mulut: g => `<path d="M32 62 Q50 74 68 62" fill="none" stroke="${g}" stroke-width="5" stroke-linecap="round"/>`
+      + `<g><path d="M50 66 C50 66 64 62 68 72 C72 84 60 90 54 82 C50 76 50 70 50 66 Z" fill="#ff3d3d" stroke="#8e0000" stroke-width="2"><animateTransform attributeName="transform" type="rotate" values="0 50 66;7 50 66;0 50 66" dur=".9s" repeatCount="indefinite"/></path><path d="M58 70 L62 80" stroke="#c62828" stroke-width="1.3" opacity=".7"/></g>`,
     ekstra: () => "" },
-  polos: { jenis: "pikir", mata: g => mataPutih(36, 42, g, 0, 9) + mataPutih(64, 42, g, 0, 9)
-      + alis("M24 30 Q36 22 48 30", g) + alis("M52 30 Q64 22 76 30", g),
-    mulut: g => `<path d="M42 66 Q50 72 58 66" fill="none" stroke="${g}" stroke-width="4" stroke-linecap="round"/>`,
+  polos: { jenis: "pikir", mata: g => mataPutih(35, 42, g, 0, 11, 12.5) + mataPutih(65, 42, g, 0, 11, 12.5)
+      + alis("M22 26 Q35 18 48 26", g) + alis("M52 26 Q65 18 78 26", g),
+    mulut: g => `<path d="M40 70 Q50 78 60 70" fill="none" stroke="${g}" stroke-width="4.5" stroke-linecap="round"/>`,
     ekstra: () => "" },
   // ── SALAH (sedih, bukan marah) ──
-  menangis: { jenis: "sedih", mata: g => bolaMata(36, 43, g) + bolaMata(64, 43, g)
-      + alis("M26 35 Q35 33 44 28", g) + alis("M74 35 Q65 33 56 28", g),
-    mulut: g => `<path fill="none" stroke="${g}" stroke-width="5" stroke-linecap="round"><animate attributeName="d" values="M36 76 Q50 62 64 76;M36 77 Q50 64 64 77;M36 76 Q50 62 64 76" dur=".8s" repeatCount="indefinite"/></path>`
-      + `<path d="M43 73 Q50 68 57 73" fill="#ff8a80" opacity=".7"/>`,
-    ekstra: () => ["32", "40", "60", "68"].map((x, i) => tetes(x, 48, 80, (i * 0.28).toFixed(2))).join("")
-      + `<ellipse cx="50" cy="93" rx="14" ry="3" fill="#2196f3" opacity=".6"><animate attributeName="rx" values="10;16;10" dur="1.4s" repeatCount="indefinite"/></ellipse>` },
-  meraung: { jenis: "sedih", mata: g => mataTutup(36, 40, g) + mataTutup(64, 40, g)
-      + alis("M24 32 Q34 28 44 32", g) + alis("M56 32 Q66 28 76 32", g),
-    mulut: g => mulutBernapas("M38 62 Q50 56 62 62 Q62 84 50 86 Q38 84 38 62 Z", "M37 61 Q50 55 63 61 Q63 87 50 89 Q37 87 37 61 Z", "#3a1c00", g, ".7s"),
-    ekstra: () => tetes(16, 44, 72, 0) + tetes(22, 44, 72, .4) + tetes(78, 44, 72, .2) + tetes(84, 44, 72, .6)
-      + `<path d="M18 46 Q22 52 16 58" fill="none" stroke="#4fc3f7" stroke-width="2.5" stroke-linecap="round" opacity=".8"/><path d="M82 46 Q78 52 84 58" fill="none" stroke="#4fc3f7" stroke-width="2.5" stroke-linecap="round" opacity=".8"/>` },
-  cemas: { jenis: "sedih", mata: g => mataPutih(36, 43, g, 0, 8) + mataPutih(64, 43, g, 0, 8)
-      + alis("M26 33 Q35 30 44 27", g) + alis("M74 33 Q65 30 56 27", g),
-    mulut: g => `<path fill="none" stroke="${g}" stroke-width="4.5" stroke-linecap="round"><animate attributeName="d" values="M36 70 Q43 64 50 70 Q57 76 64 70;M36 71 Q43 65 50 71 Q57 77 64 71;M36 70 Q43 64 50 70 Q57 76 64 70" dur="1s" repeatCount="indefinite"/></path>`,
-    ekstra: () => `<path d="M80 28 Q86 36 86 40 A6 6 0 1 1 74 40 Q74 36 80 28 Z" fill="#4fc3f7" stroke="#1e88e5" stroke-width="1"><animateTransform attributeName="transform" type="translate" values="0 0;0 4;0 0" dur="1.3s" repeatCount="indefinite"/></path>` },
-  murung: { jenis: "sedih", mata: g => `<path d="M27 44 Q36 38 45 44" fill="none" stroke="${g}" stroke-width="4.5" stroke-linecap="round"/><path d="M55 44 Q64 38 73 44" fill="none" stroke="${g}" stroke-width="4.5" stroke-linecap="round"/>`
-      + alis("M26 34 Q35 31 44 30", g) + alis("M74 34 Q65 31 56 30", g),
-    mulut: g => `<path fill="none" stroke="${g}" stroke-width="5" stroke-linecap="round"><animate attributeName="d" values="M38 72 Q50 64 62 72;M38 73 Q50 66 62 73;M38 72 Q50 64 62 72" dur="1.6s" repeatCount="indefinite"/></path>`,
-    ekstra: () => tetes(68, 52, 76, .3) },
+  menangis: { jenis: "sedih", mata: g => mataPutih(35, 42, g, 0, 9.5, 11) + mataPutih(65, 42, g, 0, 9.5, 11)
+      + alis("M22 32 Q34 30 46 24", g) + alis("M78 32 Q66 30 54 24", g),
+    mulut: g => `<path fill="none" stroke="${g}" stroke-width="5" stroke-linecap="round"><animate attributeName="d" values="M36 78 Q50 64 64 78;M36 79 Q50 66 64 79;M36 78 Q50 64 64 78" dur=".8s" repeatCount="indefinite"/></path>`
+      + `<path d="M42 75 Q50 70 58 75" fill="#ff8a80" opacity=".7"/>`,
+    ekstra: () => `<path d="M29 52 Q27 66 31 80" fill="none" stroke="#5ac8ff" stroke-width="4" stroke-linecap="round" opacity=".9"/><path d="M71 52 Q73 66 69 80" fill="none" stroke="#5ac8ff" stroke-width="4" stroke-linecap="round" opacity=".9"/>`
+      + tetes(30, 56, 86, 0) + tetes(70, 56, 86, .4)
+      + `<ellipse cx="50" cy="94" rx="15" ry="3.2" fill="#2196f3" opacity=".6"><animate attributeName="rx" values="11;17;11" dur="1.4s" repeatCount="indefinite"/></ellipse>` },
+  meraung: { jenis: "sedih", mata: g => mataTutup(34, 40, g) + mataTutup(66, 40, g)
+      + alis("M22 30 Q34 26 46 30", g) + alis("M54 30 Q66 26 78 30", g),
+    mulut: g => mulutBernapas("M36 60 Q50 54 64 60 Q66 86 50 90 Q34 86 36 60 Z", "M35 59 Q50 53 65 59 Q67 89 50 93 Q33 89 35 59 Z", "#5a0c0c", g, ".7s", 3.2)
+      + `<path d="M40 62 Q50 58 60 62 L59 67 Q50 64 41 67 Z" fill="#fff"/>`,
+    ekstra: () => semburan(22, 42, -1) + semburan(78, 42, 1) },
+  cemas: { jenis: "sedih", mata: g => mataPutih(35, 44, g, 0, 9.5, 11) + mataPutih(65, 44, g, 0, 9.5, 11)
+      + alis("M22 34 Q34 30 46 24", g) + alis("M78 34 Q66 30 54 24", g),
+    mulut: g => `<path fill="none" stroke="${g}" stroke-width="4.8" stroke-linecap="round"><animate attributeName="d" values="M34 72 Q42 64 50 72 Q58 80 66 72;M34 73 Q42 65 50 73 Q58 81 66 73;M34 72 Q42 64 50 72 Q58 80 66 72" dur="1s" repeatCount="indefinite"/></path>`,
+    ekstra: () => `<path d="M82 22 Q90 34 90 39 A8 8 0 1 1 74 39 Q74 34 82 22 Z" fill="#5ac8ff" stroke="#1565c0" stroke-width="1.4"><animateTransform attributeName="transform" type="translate" values="0 0;0 4;0 0" dur="1.3s" repeatCount="indefinite"/></path>` },
+  murung: { jenis: "sedih", mata: g => `<g transform="translate(35 44)"><g><ellipse rx="10" ry="6.5" fill="#fff" stroke="${g}" stroke-width="2.2"/><circle cx="0" cy="1" r="4" fill="${PUPIL}"/><path d="M-11 0 Q0 -9 11 0" fill="url(#ej-murung-bola)" stroke="${g}" stroke-width="2.2"/>${KEDIP}</g></g>`
+      + `<g transform="translate(65 44)"><g><ellipse rx="10" ry="6.5" fill="#fff" stroke="${g}" stroke-width="2.2"/><circle cx="0" cy="1" r="4" fill="${PUPIL}"/><path d="M-11 0 Q0 -9 11 0" fill="url(#ej-murung-bola)" stroke="${g}" stroke-width="2.2"/>${KEDIP}</g></g>`
+      + alis("M22 34 Q34 32 46 30", g) + alis("M78 34 Q66 32 54 30", g),
+    mulut: g => `<path fill="none" stroke="${g}" stroke-width="5" stroke-linecap="round"><animate attributeName="d" values="M38 74 Q50 66 62 74;M38 75 Q50 68 62 75;M38 74 Q50 66 62 74" dur="1.6s" repeatCount="indefinite"/></path>`,
+    ekstra: () => tetes(70, 54, 78, .3) },
 };
 const VARIAN_STATUS = {
   correct: ["tawa", "kedip", "kacamata", "cinta", "tawaAirMata", "bangga"],
@@ -182,9 +202,11 @@ function wajah(nama) {
     + `<circle class="ej-pancar" cx="50" cy="50" r="46" fill="none" stroke="${rim}" stroke-width="3"/>`
     + `<ellipse class="ej-bayang" cx="50" cy="104" rx="26" ry="6" fill="url(#${id}-bayang)"/>`
     + `<g class="ej-bola">`
-    + `<circle cx="50" cy="50" r="46" fill="url(#${id}-bola)" stroke="${gelap}" stroke-width="1.5"/>`
-    + `<ellipse cx="50" cy="74" rx="34" ry="16" fill="url(#${id}-rim)"/>`
-    + `<ellipse cx="33" cy="27" rx="16" ry="10" fill="url(#${id}-kilap)" transform="rotate(-25 33 27)"/>`
+    // Garis tepi cokelat tebal + kilap putih besar di kiri-atas, seperti stiker.
+    + `<circle cx="50" cy="50" r="46" fill="url(#${id}-bola)" stroke="${garis}" stroke-width="3"/>`
+    + `<ellipse cx="50" cy="76" rx="36" ry="16" fill="url(#${id}-rim)"/>`
+    + `<ellipse cx="31" cy="24" rx="15" ry="9" fill="#fff" opacity=".85" transform="rotate(-28 31 24)"/>`
+    + `<ellipse cx="30" cy="28" rx="20" ry="13" fill="url(#${id}-kilap)" transform="rotate(-28 30 28)"/>`
     + v.ekstra(tengah, gelap) + v.mata(garis) + v.mulut(garis)
     + `</g>`
     + bintang
