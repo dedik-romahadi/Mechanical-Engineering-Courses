@@ -1741,7 +1741,7 @@ window.SCORE_CONFIG = SCORE_CONFIG;
 // Helper: konversi poin (0..70) → nilai 0–100
 // Poin per soal proporsional bobot Sub-CPMK OBE (auto-injected).
 // Σ poin semua 45 soal = 100. Sinkron dgn OBE_EXAM_CONFIG di functions/index.js.
-const EXAM_QID_POINTS = {"c11":4.0, "c12":4.0, "c13":4.0, "c14":4.0, "c15":4.0, "c4":2.8571, "c5":2.8571, "c6":2.8571, "c7":2.8571, "c8":2.8571, "c9":2.8571, "c10":2.8571, "tf1":2.0, "tf2":2.0, "tf3":2.0, "tf4":2.0, "tf5":2.0, "tf6":2.0, "tf7":2.0, "tf8":2.0, "tf9":1.3333, "tf10":1.3333, "mc1":1.3333, "mc2":1.3333, "c1":2.6667, "mc3":1.5, "mc4":1.5, "mc5":1.5, "mc6":1.5, "mc7":1.5, "mc8":1.5, "c2":3.0, "mc9":1.5, "mc10":1.5, "mc11":1.5, "mc12":1.5, "mc13":1.5, "mc14":1.5, "c3":3.0, "mc15":2.0, "mc16":2.0, "mc17":2.0, "mc18":2.0, "mc19":2.0, "mc20":2.0};
+const EXAM_QID_POINTS = {"tf1":2.2727,"tf2":2.2727,"tf3":2.2727,"tf4":2.2727,"tf5":2.2727,"tf6":2.2727,"tf7":2.2727,"tf8":2.2727,"tf9":2.1645,"tf10":2.1645,"mc1":2.1645,"mc2":2.1645,"mc3":2.1645,"mc4":2.1645,"mc5":2.1645,"mc6":2.1645,"mc7":2.1645,"mc8":2.1645,"mc9":2.1645,"mc10":2.1645,"mc11":2.1645,"mc12":2.1645,"mc13":2.1645,"mc14":2.1645,"mc15":2.1645,"mc16":2.1645,"mc17":2.1645,"mc18":2.1645,"mc19":2.1645,"mc20":1.2121,"c1":2.4242,"c2":2.4242,"c3":2.4242,"c4":2.4242,"c5":2.4242,"c6":2.4242,"c7":2.4242,"c8":1.3986,"c9":1.3986,"c10":1.3986,"c11":2.7972,"c12":2.7972,"c13":2.7972,"c14":2.7972,"c15":2.7972};
 function getQPoints(qId, fallback) {
   const p = EXAM_QID_POINTS[qId];
   return (typeof p === "number") ? p : (fallback ?? 1);
@@ -1781,6 +1781,19 @@ window.pointsToScore = pointsToScore;
 
 // Format tampilan poin tanpa mengubah nilai mentah: maksimal 2 desimal dan
 // tanpa nol ekor (95.50 -> 95.5, 9.00 -> 9).
+function statusPoin(d) {
+  // Penggolongan berdasarkan RASIO terhadap poin maksimum soal itu sendiri.
+  // Ambang angka mutlak tidak bisa dipakai: sejak poin per soal mengikuti
+  // bobot Sub-CPMK OBE, satu soal bernilai 1,21 sedangkan yang lain 2,80 —
+  // sehingga "> 1" pernah menandai jawaban benar sebagai sebagian, dan
+  // sebaliknya.
+  const maks = Number(d.maks) || 0;
+  const pts = Number(d.pts) || 0;
+  if (maks <= 0) return pts > 0 ? 'correct' : 'wrong';
+  if (pts <= 0) return 'wrong';
+  return pts >= maks - 1e-6 ? 'correct' : 'partial';
+}
+
 function formatPoints(pts) {
   const value = Number(pts);
   if (!Number.isFinite(value)) return '0';
@@ -3044,7 +3057,8 @@ async function exportTugasHtml() {
       modul: q.modul,
       type: q.parametric ? 'NIM-based' : 'Teori',
       selected: answered,
-      pts: tfScores[id] || 0
+      pts: tfScores[id] || 0,
+      maks: (window.EXAM_QID_POINTS || {})[id] || 0
     };
   });
 
@@ -3071,7 +3085,8 @@ async function exportTugasHtml() {
       modul: q.modul,
       type: q.parametric ? 'NIM-based' : 'Teori',
       selected: answered,
-      pts: mcScores[id] || 0
+      pts: mcScores[id] || 0,
+      maks: (window.EXAM_QID_POINTS || {})[id] || 0
     };
   });
 
@@ -3087,7 +3102,8 @@ async function exportTugasHtml() {
       title: stripTags(data.text).slice(0, 120) + (stripTags(data.text).length > 120 ? '…' : ''),
       modul: q.modul,
       code: ta ? ta.value.trim() : '',
-      pts: compScores[id] || 0
+      pts: compScores[id] || 0,
+      maks: (window.EXAM_QID_POINTS || {})[id] || 0
     };
   });
 
@@ -3101,7 +3117,8 @@ async function exportTugasHtml() {
       title: stripTags(data.text).slice(0, 120) + (stripTags(data.text).length > 120 ? '…' : ''),
       modul: q.modul,
       code: ta ? ta.value.trim() : '',
-      pts: compScores[id] || 0
+      pts: compScores[id] || 0,
+      maks: (window.EXAM_QID_POINTS || {})[id] || 0
     };
   });
 
@@ -3387,6 +3404,20 @@ async function exportTugasHtml() {
   .wrong{color:#dc2626}
   .partial{color:#d97706;font-weight:700}
   .pts{text-align:center;font-weight:700;font-family:monospace}
+    /* Panel jawaban dibedakan warnanya: benar penuh hijau, sebagian oranye,
+       salah merah. Latar barisnya ikut diwarnai supaya terbaca sekilas tanpa
+       harus membandingkan angka poin satu per satu. */
+    tr.row-correct{background:#f0fdf4}
+    tr.row-partial{background:#fffbeb}
+    tr.row-wrong{background:#fef2f2}
+    tr.row-correct td{border-left:3px solid #22c55e}
+    tr.row-partial td{border-left:3px solid #f59e0b}
+    tr.row-wrong td{border-left:3px solid #ef4444}
+    tr.row-correct td:not(:first-child),tr.row-partial td:not(:first-child),tr.row-wrong td:not(:first-child){border-left:none}
+    .pts-correct{color:#15803d;font-weight:800}
+    .pts-partial{color:#b45309;font-weight:800}
+    .pts-wrong{color:#b91c1c;font-weight:800}
+
   .footer{padding:14px 36px;text-align:center;font-size:.72rem;color:#94a3b8;background:#f8faff;border-top:1px solid #e2e8f0}
   .nilai-akhir{padding:24px 36px;text-align:center;background:linear-gradient(135deg,#fef3c7,#fde68a);border-bottom:2px solid #fbbf24}
   .nilai-akhir .nilai-num{font-size:3rem;font-weight:800;color:#b45309;font-family:Georgia,serif}
@@ -3465,11 +3496,11 @@ async function exportTugasHtml() {
   <table>
     <thead><tr><th style="width:42px">No</th><th>Pernyataan</th><th style="width:160px">Jawaban</th><th style="width:55px;text-align:center">Poin</th></tr></thead>
     <tbody>
-      ${tfData.map(d => `<tr>
+      ${tfData.map(d => `<tr class="row-${statusPoin(d)}">
         <td>A${String(d.no).padStart(2,'0')}</td>
         <td><span class="badge-modul">M${d.modul}</span><span class="badge-type ${d.type==='Teori'?'theory':'nim'}">${d.type}</span>${esc(d.title)}</td>
         <td><span class="${d.pts?'correct':(d.selected.includes('Belum')?'':'wrong')}" style="font-size:.78rem">${esc(d.selected)}</span></td>
-        <td><span class="pts ${d.pts?'pts-correct':(d.selected.includes('Belum')?'':'pts-wrong')}">${formatPoints(d.pts)}</span></td>
+        <td><span class="pts pts-${statusPoin(d)}">${formatPoints(d.pts)}</span></td>
       </tr>`).join('')}
     </tbody>
   </table>
@@ -3479,11 +3510,11 @@ async function exportTugasHtml() {
   <table>
     <thead><tr><th style="width:42px">No</th><th>Soal</th><th style="width:200px">Jawaban</th><th style="width:55px;text-align:center">Poin</th></tr></thead>
     <tbody>
-      ${mcData.map(d => `<tr>
+      ${mcData.map(d => `<tr class="row-${statusPoin(d)}">
         <td>B${String(d.no).padStart(2,'0')}</td>
         <td><span class="badge-modul">M${d.modul}</span><span class="badge-type ${d.type==='Teori'?'theory':'nim'}">${d.type}</span>${esc(d.title)}</td>
         <td><span class="${d.pts?'correct':(d.selected.includes('Belum')?'':'wrong')}" style="font-size:.78rem">${esc(d.selected)}</span></td>
-        <td><span class="pts ${d.pts?'pts-correct':(d.selected.includes('Belum')?'':'pts-wrong')}">${formatPoints(d.pts)}</span></td>
+        <td><span class="pts pts-${statusPoin(d)}">${formatPoints(d.pts)}</span></td>
       </tr>`).join('')}
     </tbody>
   </table>
@@ -3493,11 +3524,11 @@ async function exportTugasHtml() {
   <table>
     <thead><tr><th style="width:42px">No</th><th style="width:30%">Soal (Singkat)</th><th style="width:55%">Kode Python</th><th style="width:55px;text-align:center">Poin</th></tr></thead>
     <tbody>
-      ${compEzData.map(d => `<tr>
+      ${compEzData.map(d => `<tr class="row-${statusPoin(d)}">
         <td>C${String(d.no).padStart(2,'0')}</td>
         <td style="font-size:.78rem;color:#475569"><span class="badge-modul">M${d.modul}</span>${esc(d.title)}</td>
         <td style="font-family:monospace;font-size:.72rem;background:#fff7ed;padding:6px 8px;border-radius:4px;white-space:pre-wrap;word-break:break-word;white-space:pre-wrap">${esc(d.code||'(belum diisi)')}</td>
-        <td><span class="pts ${d.pts?'pts-correct':'pts-wrong'}">${formatPoints(d.pts)}</span></td>
+        <td><span class="pts pts-${statusPoin(d)}">${formatPoints(d.pts)}</span></td>
       </tr>`).join('')}
     </tbody>
   </table>
@@ -3508,14 +3539,11 @@ async function exportTugasHtml() {
     <thead><tr><th style="width:42px">No</th><th style="width:30%">Soal (Singkat)</th><th style="width:55%">Kode Python</th><th style="width:55px;text-align:center">Poin</th></tr></thead>
     <tbody>
       ${compHardData.map(d => {
-        const ptsColor = d.pts > 1 ? '#059669'
-                       : d.pts > 0 ? '#d97706'
-                       : '#dc2626';
-        return `<tr>
+        return `<tr class="row-${statusPoin(d)}">
           <td>D${String(d.no).padStart(2,'0')}</td>
           <td style="font-size:.78rem;color:#475569"><span class="badge-modul">M${d.modul}</span>${esc(d.title)}</td>
           <td style="font-family:monospace;font-size:.72rem;background:#fdf2f8;padding:6px 8px;border-radius:4px;white-space:pre-wrap;word-break:break-word;white-space:pre-wrap">${esc(d.code||'(belum diisi)')}</td>
-          <td class="pts" style="color:${ptsColor}">${formatPoints(d.pts)}${d.pts>0&&d.pts<=1?' (partial)':''}</td>
+          <td><span class="pts pts-${statusPoin(d)}">${formatPoints(d.pts)}</span></td>
         </tr>`;
       }).join('')}
     </tbody>
@@ -3617,7 +3645,7 @@ async function exportTugasHtml() {
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href = url; a.download = 'UTS_GetaranMekanik_' + nim + '.html';
+  a.href = url; a.download = 'UTS_SistemKendaliCerdas_' + nim + '.html';
   a.click(); URL.revokeObjectURL(url);
 }
 
