@@ -36,38 +36,75 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // Wajah SVG. Tiga lapisan volume: bola bergradien radial (terang di kiri-atas,
 // gelap di tepi kanan-bawah), cincin tepi gelap tipis agar bolanya "terangkat"
 // dari latar, lalu sorotan spekular putih yang memberi kesan kilap.
+// Tiap status punya warna bola sendiri supaya bedanya terbaca sekilas, bukan
+// hanya dari ekspresi: emas untuk benar, kuning-jingga untuk sebagian, biru
+// keabuan untuk salah. Lapisannya: bola bergradien radial, cincin tepi gelap,
+// kilap spekular, DAN pantulan cahaya lingkungan di bawah (rim light) supaya
+// bolanya tidak terlihat "ditempel" — itulah yang membuatnya tampak 3D.
 function wajah(jenis) {
   const warna = {
-    senang: ["#fff3a3", "#ffd43b", "#e0a800", "#7a5200"],
-    sedih: ["#fff3a3", "#ffd43b", "#e0a800", "#7a5200"],
-    pikir: ["#fff3a3", "#ffd43b", "#e0a800", "#7a5200"],
+    senang: ["#fff7b3", "#ffd43b", "#e09a00", "#6b4300", "#ffb300"],
+    pikir: ["#fff3c4", "#ffc857", "#e08a00", "#6b4300", "#ff9f1c"],
+    sedih: ["#e3f2ff", "#a9cdee", "#5c8fc2", "#21405e", "#7fb3e6"],
   }[jenis];
-  const [terang, tengah, gelap, garis] = warna;
+  const [terang, tengah, gelap, garis, rim] = warna;
   const id = `ej-${jenis}`;
-  const mulut = {
-    senang: `<path d="M30 56 Q50 78 70 56" fill="#5a2d00"/><path d="M36 58 Q50 70 64 58" fill="#ff6b6b"/>`,
-    sedih: `<path d="M32 70 Q50 54 68 70" fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"/><ellipse cx="72" cy="44" rx="4" ry="7" fill="#4fc3f7"><animate attributeName="cy" values="40;58" dur="1.1s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.1s" repeatCount="indefinite"/></ellipse>`,
-    pikir: `<path d="M34 66 Q50 60 66 68" fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"/><circle cx="74" cy="74" r="7" fill="${tengah}" stroke="${gelap}" stroke-width="2"/>`,
-  }[jenis];
+
+  // Mata berkedip lewat SMIL: skala-Y mengecil sesaat tiap ~3 detik. Untuk
+  // senang, mata melengkung bahagia yang "mengecil" saat berkedip; untuk yang
+  // lain, bola mata yang menutup.
+  const kedip = `<animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1 1;1 .08;1 1;1 1" keyTimes="0;.9;.93;.96;1" dur="3.2s" repeatCount="indefinite"/>`;
   const mata = {
-    senang: `<path d="M28 42 Q36 32 44 42" fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"/><path d="M56 42 Q64 32 72 42" fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"/>`,
-    sedih: `<ellipse cx="36" cy="42" rx="5" ry="7" fill="${garis}"/><ellipse cx="64" cy="42" rx="5" ry="7" fill="${garis}"/><path d="M26 32 L44 36" stroke="${garis}" stroke-width="4" stroke-linecap="round"/><path d="M74 32 L56 36" stroke="${garis}" stroke-width="4" stroke-linecap="round"/>`,
-    pikir: `<ellipse cx="36" cy="44" rx="5" ry="6" fill="${garis}"/><ellipse cx="64" cy="40" rx="5" ry="6" fill="${garis}"/><path d="M28 30 Q36 26 44 32" stroke="${garis}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M56 28 Q64 20 72 26" stroke="${garis}" stroke-width="4" fill="none" stroke-linecap="round"/>`,
+    senang: `<g transform="translate(36 42)"><g><path d="M-8 0 Q0 -10 8 0" fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"/>${kedip}</g></g>`
+      + `<g transform="translate(64 42)"><g><path d="M-8 0 Q0 -10 8 0" fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"/>${kedip}</g></g>`,
+    pikir: `<g transform="translate(36 44)"><g><ellipse rx="5.5" ry="6.5" fill="${garis}"/><circle cx="-1.8" cy="-2.2" r="1.8" fill="#fff"/>${kedip}</g></g>`
+      + `<g transform="translate(64 40)"><g><ellipse rx="5.5" ry="6.5" fill="${garis}"/><circle cx="-1.8" cy="-2.2" r="1.8" fill="#fff"/>${kedip}</g></g>`
+      + `<path d="M27 30 Q36 25 45 31" stroke="${garis}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M55 27 Q64 18 73 25" stroke="${garis}" stroke-width="4" fill="none" stroke-linecap="round"/>`,
+    sedih: `<g transform="translate(36 43)"><g><ellipse rx="5.5" ry="7" fill="${garis}"/><circle cx="-1.8" cy="-2.5" r="1.8" fill="#fff"/>${kedip}</g></g>`
+      + `<g transform="translate(64 43)"><g><ellipse rx="5.5" ry="7" fill="${garis}"/><circle cx="-1.8" cy="-2.5" r="1.8" fill="#fff"/>${kedip}</g></g>`
+      + `<path d="M26 31 L44 36" stroke="${garis}" stroke-width="4" stroke-linecap="round"/><path d="M74 31 L56 36" stroke="${garis}" stroke-width="4" stroke-linecap="round"/>`,
   }[jenis];
+
+  // Mulut "bernapas": bentuknya bergerak halus lewat SMIL pada atribut d.
+  const mulut = {
+    senang: `<path fill="#5a2d00"><animate attributeName="d" values="M30 56 Q50 78 70 56;M29 55 Q50 82 71 55;M30 56 Q50 78 70 56" dur="1.4s" repeatCount="indefinite"/></path>`
+      + `<path d="M37 59 Q50 70 63 59" fill="#ff6b6b"/>`
+      + `<path d="M40 57 Q50 62 60 57" fill="#fff" opacity=".9"/>`,
+    pikir: `<path fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"><animate attributeName="d" values="M34 66 Q50 60 66 68;M34 67 Q50 62 66 66;M34 66 Q50 60 66 68" dur="2.2s" repeatCount="indefinite"/></path>`
+      + `<circle cx="76" cy="76" r="7" fill="${tengah}" stroke="${gelap}" stroke-width="2"/>`,
+    sedih: `<path fill="none" stroke="${garis}" stroke-width="5" stroke-linecap="round"><animate attributeName="d" values="M32 70 Q50 54 68 70;M32 71 Q50 57 68 71;M32 70 Q50 54 68 70" dur="1.8s" repeatCount="indefinite"/></path>`
+      + `<ellipse cx="72" cy="46" rx="4" ry="7" fill="#4fc3f7"><animate attributeName="cy" values="42;62" dur="1.1s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.1s" repeatCount="indefinite"/></ellipse>`,
+  }[jenis];
+
   const pipi = jenis === "senang"
-    ? `<ellipse cx="24" cy="56" rx="8" ry="5" fill="#ff8a80" opacity=".55"/><ellipse cx="76" cy="56" rx="8" ry="5" fill="#ff8a80" opacity=".55"/>` : "";
+    ? `<ellipse cx="23" cy="57" rx="8" ry="5" fill="#ff8a80" opacity=".55"/><ellipse cx="77" cy="57" rx="8" ry="5" fill="#ff8a80" opacity=".55"/>` : "";
+
+  // Bintang berkilau hanya untuk benar: empat bintang kecil berkedip bergantian.
+  const bintang = jenis === "senang"
+    ? [[8, 18, 0], [92, 24, .35], [12, 86, .7], [90, 80, 1.05]].map(([x, y, d]) =>
+      `<path transform="translate(${x} ${y})" d="M0 -6 L1.6 -1.6 L6 0 L1.6 1.6 L0 6 L-1.6 1.6 L-6 0 L-1.6 -1.6 Z" fill="#fff">`
+      + `<animate attributeName="opacity" values="0;1;0" dur="1.4s" begin="${d}s" repeatCount="indefinite"/>`
+      + `<animateTransform attributeName="transform" type="scale" additive="sum" values=".4;1.2;.4" dur="1.4s" begin="${d}s" repeatCount="indefinite"/></path>`).join("")
+    : "";
+
   return `<svg viewBox="0 0 100 112" width="72" height="81" aria-hidden="true">`
     + `<defs>`
-    + `<radialGradient id="${id}-bola" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="${terang}"/><stop offset=".55" stop-color="${tengah}"/><stop offset="1" stop-color="${gelap}"/></radialGradient>`
+    + `<radialGradient id="${id}-bola" cx="36%" cy="30%" r="72%"><stop offset="0" stop-color="${terang}"/><stop offset=".5" stop-color="${tengah}"/><stop offset="1" stop-color="${gelap}"/></radialGradient>`
     + `<radialGradient id="${id}-kilap" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>`
+    + `<radialGradient id="${id}-rim" cx="50%" cy="100%" r="55%"><stop offset="0" stop-color="${rim}" stop-opacity=".75"/><stop offset="1" stop-color="${rim}" stop-opacity="0"/></radialGradient>`
     + `<radialGradient id="${id}-bayang" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>`
     + `</defs>`
+    // Cincin pancar: gelombang yang melebar dari belakang bola saat muncul.
+    + `<circle class="ej-pancar" cx="50" cy="50" r="46" fill="none" stroke="${rim}" stroke-width="3"/>`
     + `<ellipse class="ej-bayang" cx="50" cy="104" rx="26" ry="6" fill="url(#${id}-bayang)"/>`
     + `<g class="ej-bola">`
     + `<circle cx="50" cy="50" r="46" fill="url(#${id}-bola)" stroke="${gelap}" stroke-width="1.5"/>`
-    + `<ellipse cx="34" cy="28" rx="16" ry="10" fill="url(#${id}-kilap)" transform="rotate(-25 34 28)"/>`
+    + `<ellipse cx="50" cy="74" rx="34" ry="16" fill="url(#${id}-rim)"/>`
+    + `<ellipse cx="33" cy="27" rx="16" ry="10" fill="url(#${id}-kilap)" transform="rotate(-25 33 27)"/>`
     + pipi + mata + mulut
-    + `</g></svg>`;
+    + `</g>`
+    + bintang
+    + `</svg>`;
 }
 
 const BLOK = `<!-- EFEK-JAWABAN:START v1 -->
@@ -96,6 +133,9 @@ const BLOK = `<!-- EFEK-JAWABAN:START v1 -->
 .ej-senang .ej-bayang{transform-box:fill-box;transform-origin:center;animation:ejBayangPantul .55s ease-in-out .6s 3}
 .ej-sedih .ej-bola{transform-box:fill-box;transform-origin:50% 90%;animation:ejGoyang .5s ease-in-out .6s 3}
 .ej-pikir .ej-bola{transform-box:fill-box;transform-origin:center;animation:ejGoyang 1.1s ease-in-out .6s 2}
+/* Cincin pancar: melebar dan memudar dari belakang bola, dua kali saat muncul. */
+@keyframes ejPancar{0%{transform:scale(.9);opacity:.9}100%{transform:scale(1.9);opacity:0}}
+.ej-pancar{transform-box:fill-box;transform-origin:center;opacity:0;animation:ejPancar 1.1s ease-out .15s 2}
 .ej-denyut-benar{animation:ejDenyutHijau .9s ease-out;border-radius:inherit}
 .ej-denyut-salah{animation:ejDenyutMerah .7s ease-out;border-radius:inherit}
 .ej-konfeti{position:absolute;left:50%;top:-20px;width:8px;height:8px;border-radius:2px;pointer-events:none;z-index:4;animation:ejKonfeti 1s cubic-bezier(.2,.8,.4,1) forwards}
@@ -110,7 +150,7 @@ const BLOK = `<!-- EFEK-JAWABAN:START v1 -->
 @media (prefers-reduced-motion:reduce){
   .ej-panggung{animation:none;opacity:1;transform:translate(-50%,-100%)}
   .ej-isi{animation:ejLenyap .4s ease-in 2.4s forwards}
-  .ej-senang .ej-bola,.ej-senang .ej-bayang,.ej-sedih .ej-bola,.ej-pikir .ej-bola{animation:none}
+  .ej-senang .ej-bola,.ej-senang .ej-bayang,.ej-sedih .ej-bola,.ej-pikir .ej-bola,.ej-pancar{animation:none}
   .ej-denyut-benar,.ej-denyut-salah{animation:none}
   .ej-konfeti{display:none}
 }
