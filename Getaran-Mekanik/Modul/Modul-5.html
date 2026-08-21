@@ -1151,7 +1151,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     try { localStorage.setItem(KUNCI_BISU, nilai ? '1' : '0'); } catch (e) {}
     document.querySelectorAll('.ej-tombol-bisu').forEach(function (b) {
       b.setAttribute('aria-pressed', nilai ? 'true' : 'false');
-      b.title = nilai ? 'Suara jawaban: mati (klik untuk nyalakan)' : 'Suara jawaban: nyala (klik untuk matikan)';
+      b.title = nilai ? 'Suara efek (jawaban & tombol): mati — klik untuk nyalakan' : 'Suara efek (jawaban & tombol): nyala — klik untuk matikan';
       b.textContent = nilai ? '🔇' : '🔊';
     });
   };
@@ -1164,6 +1164,36 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     document.body.appendChild(b);
     window.setBisuSuara(bisu());
   }
+  /* ── Suara antarmuka (permintaan dosen, 22 Agu 2026) ────────────────────
+     Bunyi pendek saat menekan tombol, memilih opsi jawaban (pilihan ganda
+     .radio-option, benar/salah .tf-option), dan mencentang kotak/radio.
+     Satu listener terdelegasi di document (fase capture) supaya berlaku juga
+     untuk elemen yang dirender belakangan. Mengikuti tombol bisu yang sama.
+     Tombol yang disabled tidak berbunyi — tidak ada aksi, tidak ada suara. */
+  var SUARA_UI = {
+    tombol: function (ctx, t) { nada(ctx, 880, t, 0.05, 0.07); },
+    pilih:  function (ctx, t) { nada(ctx, 660, t, 0.05, 0.08, 'triangle'); nada(ctx, 990, t + 0.045, 0.07, 0.08, 'triangle'); },
+    centang: function (ctx, t) { nada(ctx, 1320, t, 0.035, 0.07, 'square'); }
+  };
+  function bunyikanUI(jenis) {
+    if (bisu() || !SUARA_UI[jenis]) return;
+    var ctx = ambilCtx(); if (!ctx) return;
+    var jalankan = function () { try { SUARA_UI[jenis](ctx, ctx.currentTime + 0.005); } catch (e) {} };
+    if (ctx.state === 'suspended' && ctx.resume) ctx.resume().then(jalankan, function () {}); else jalankan();
+  }
+  window.bunyikanUI = bunyikanUI;
+  document.addEventListener('click', function (ev) {
+    var el = ev.target && ev.target.closest && ev.target.closest('.radio-option,.tf-option,button,[role="button"]');
+    if (!el || el.classList.contains('ej-tombol-bisu')) return;
+    if (el.disabled || el.getAttribute('aria-disabled') === 'true') return;
+    if (el.tagName !== 'BUTTON' && el.getAttribute('role') !== 'button' && getComputedStyle(el).pointerEvents === 'none') return;
+    bunyikanUI(el.matches('.radio-option,.tf-option') ? 'pilih' : 'tombol');
+  }, true);
+  document.addEventListener('change', function (ev) {
+    var el = ev.target;
+    if (el && el.tagName === 'INPUT' && (el.type === 'checkbox' || el.type === 'radio')) bunyikanUI('centang');
+  }, true);
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pasangTombolBisu); else pasangTombolBisu();
 
   /**
