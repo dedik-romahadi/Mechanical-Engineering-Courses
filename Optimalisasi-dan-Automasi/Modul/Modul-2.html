@@ -6711,11 +6711,16 @@ function fetchMasterStudents(retries){
   });
 }
 
+// NIM akun simulasi dosen — harus sama dengan SIM_NIMS di backend. Jawaban
+// akun ini dinilai server tetapi tidak disimpan; di klien ia disaring dari
+// papan hasil dan tidak menulis record pengunjung maupun heartbeat.
+const SIM_NIMS = new Set(["41399999901"]);
+const isSimulasiNim = (nim) => SIM_NIMS.has(String(nim || ''));
 function updateLeaderboard(visitors, schedExpired){
   const rajinEl=document.getElementById('rajinList'), santaiEl=document.getElementById('santaiList');
   if(!rajinEl)return;
   if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;return;}
-  const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
+  const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest'&&!isSimulasiNim(v.nim));
   const visitMap={};
   mhs.forEach(v=>{const k=v.nim;if(!visitMap[k])visitMap[k]=v;});
   const visited=Object.values(visitMap);
@@ -7028,9 +7033,9 @@ async function submitVisitor(){
           const patch = { visitCount: visitorRec.visitCount, lastVisit: visitorRec.lastVisit };
           if(Object.prototype.hasOwnProperty.call(existingVisitor, 'pinHash')) patch.pinHash = null;
           if(Object.prototype.hasOwnProperty.call(existingVisitor, 'pinSetAt')) patch.pinSetAt = null;
-          await update(ref(db, DB_PATH + '/' + key), patch);
+          if (!isSimulasiNim(nim)) await update(ref(db, DB_PATH + '/' + key), patch);
         } else {
-          await set(ref(db, DB_PATH + '/' + key), visitorRec);
+          if (!isSimulasiNim(nim)) await set(ref(db, DB_PATH + '/' + key), visitorRec);
         }
       } catch(writeErr){
         console.error('[Mahasiswa Login] visitor write failed:', writeErr && writeErr.code, writeErr && writeErr.message);
@@ -7171,7 +7176,7 @@ function initPresence() {
 function _writeHeartbeat() {
   if (!_currentPresenceRef) return;
   const me = getIdentity();
-  if (!me || me.role !== 'student' || !me.nim) return;
+  if (!me || me.role !== 'student' || !me.nim || isSimulasiNim(me.nim)) return;
   const activeTab = document.querySelector('.nav-tab.active');
   const tabName = activeTab ? (activeTab.id.replace('tab-','')) : 'modul';
   set(_currentPresenceRef, {
@@ -7339,7 +7344,7 @@ function sendChat() {
 
 function renderVisitors(visitors){
   const visitMap={};
-  for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
+  for(const v of visitors){if(v.role==='dosen'||v.role==='guest'||isSimulasiNim(v.nim))continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
   const visited=Object.values(visitMap);
   // Per Pedoman §17.3: label "Terlambat" butuh points > 0 (bukan hanya timestamp di zona 24h).
   // Mahasiswa yang akses di zona 24h tapi 0 poin statusnya "Belum" (jadwal aktif) atau "Bolos" (selesai).
@@ -7551,7 +7556,7 @@ async function submitPinSetup() {
           };
       if(typeof _stripLegacyPinFields === 'function') visitorRec = _stripLegacyPinFields(visitorRec);
       saveIdentity(visitorRec);
-      await set(ref(db, DB_PATH + '/' + key), visitorRec);
+      if (!isSimulasiNim(nim)) await set(ref(db, DB_PATH + '/' + key), visitorRec);
     }
 
     _hidePinModals();
@@ -7632,9 +7637,9 @@ async function submitPinVerify() {
           const patch = { visitCount: visitorRec.visitCount, lastVisit: visitorRec.lastVisit };
           if (Object.prototype.hasOwnProperty.call(existingVisitor, 'pinHash')) patch.pinHash = null;
           if (Object.prototype.hasOwnProperty.call(existingVisitor, 'pinSetAt')) patch.pinSetAt = null;
-          await update(ref(db, DB_PATH + '/' + key), patch);
+          if (!isSimulasiNim(nim)) await update(ref(db, DB_PATH + '/' + key), patch);
         } else {
-          await set(ref(db, DB_PATH + '/' + key), visitorRec);
+          if (!isSimulasiNim(nim)) await set(ref(db, DB_PATH + '/' + key), visitorRec);
         }
       } catch (writeErr) {
         console.error('[PIN Verify] Visitor write failed:', writeErr && writeErr.code, writeErr && writeErr.message);
@@ -7649,7 +7654,7 @@ async function submitPinVerify() {
             scoredQuestions: typeof existingVisitor.scoredQuestions === 'string' ? existingVisitor.scoredQuestions : ''
           };
           try {
-            await set(ref(db, DB_PATH + '/' + key), freshRec);
+            if (!isSimulasiNim(nim)) await set(ref(db, DB_PATH + '/' + key), freshRec);
             console.log('[PIN Verify] Recovered via fresh set()');
           } catch (e2) {
             console.error('[PIN Verify] Recovery failed:', e2 && e2.code, e2 && e2.message);
@@ -8974,7 +8979,6 @@ textarea,input,select,option,
   -ms-user-select:text!important;user-select:text!important;
 }
 img,video,svg{-webkit-user-drag:none;user-drag:none;}
-body.friction-blurred{filter:blur(12px);transition:filter .3s ease;}
 /* Cetak lewat menu browser diblokir: seluruh halaman dikosongkan saat print
    dan diganti satu baris pemberitahuan. Ctrl+P sudah dicegat onKeyDown; ini
    menutup jalur menu, ekstensi, dan "Simpan sebagai PDF". */
@@ -8982,7 +8986,6 @@ body.friction-blurred{filter:blur(12px);transition:filter .3s ease;}
   body > *{display:none !important;}
   body::before{content:"Halaman ini tidak dapat dicetak atau disimpan sebagai PDF.";display:block;padding:40px;font:16px/1.5 sans-serif;color:#000;}
 }
-body.friction-blurred #frictionToast{filter:none;}
 #frictionToast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
   background:rgba(239,68,68,.95);color:#fff;padding:12px 20px;
@@ -9107,19 +9110,11 @@ body.friction-blurred #frictionToast{filter:none;}
   }
 
   let tabLeaveCount = 0;
-  let _blurTimer = null;
   function onVisibility(){
     if (!isStudent()) return;
     if (document.hidden){
       tabLeaveCount++;
-      // Blur halaman setelah 200ms (prevent false trigger Alt+Tab cepat).
-      // Screenshot via OS-level capture saat tab hidden akan tertangkap blur.
-      _blurTimer = setTimeout(() => {
-        document.body.classList.add('friction-blurred');
-      }, 200);
     } else {
-      clearTimeout(_blurTimer);
-      document.body.classList.remove('friction-blurred');
       if (tabLeaveCount > 0){
         showToast('⚠ Anda meninggalkan tab '+tabLeaveCount+'×. Tercatat di sistem.');
       }
@@ -9142,18 +9137,6 @@ body.friction-blurred #frictionToast{filter:none;}
     document.addEventListener('copy', onCopy, { capture: true });
     document.addEventListener('keydown', onKeyDown, { capture: true });
     document.addEventListener('visibilitychange', onVisibility);
-    // Kehilangan fokus jendela (Alt+Tab, Snipping Tool) tidak mengubah
-    // visibilitas dokumen, jadi dipantau terpisah. Ditunda 250 ms supaya
-    // fokus yang berpindah sebentar ke dialog browser tidak memicu.
-    let _fokusTimer = null;
-    window.addEventListener('blur', () => {
-      if (!isStudent()) return;
-      _fokusTimer = setTimeout(() => document.body.classList.add('friction-blurred'), 250);
-    });
-    window.addEventListener('focus', () => {
-      clearTimeout(_fokusTimer);
-      document.body.classList.remove('friction-blurred');
-    });
     window.addEventListener('beforeprint', () => {
       if (isStudent()) showToast('🔒 Mencetak halaman dinonaktifkan.');
     });

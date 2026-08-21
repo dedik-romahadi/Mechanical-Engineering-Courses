@@ -119,25 +119,39 @@ function proses(berkas) {
 
   // 3. Blokir cetak (semua halaman)
   if (!html.includes("@media print{\n  body > *{display:none !important;}")) {
-    const jangkar = "body.friction-blurred{filter:blur(12px);transition:filter .3s ease;}\n";
-    if (html.includes(jangkar)) { html = html.replace(jangkar, jangkar + CSS_CETAK); catatan.push("css-cetak"); }
-    else if (isExam) {
-      // Exam tidak punya aturan blur (dilarang); sisipkan sebelum </style> milik blok friction.
-      const idx = html.indexOf("#frictionToast{");
-      const tutup = idx >= 0 ? html.indexOf("</style>", idx) : -1;
-      if (tutup >= 0) { html = html.slice(0, tutup) + CSS_CETAK + html.slice(tutup); catatan.push("css-cetak"); }
-    }
+    // Disisipkan sebelum </style> milik blok friction (ditandai #frictionToast),
+    // sama untuk modul dan exam — jangkar lama pada aturan blur sudah tidak
+    // ada karena pengaburan dicabut.
+    const idx = html.indexOf("#frictionToast{");
+    const tutup = idx >= 0 ? html.indexOf("</style>", idx) : -1;
+    if (tutup >= 0) { html = html.slice(0, tutup) + CSS_CETAK + html.slice(tutup); catatan.push("css-cetak"); }
   }
   if (!html.includes("addEventListener('beforeprint'")) {
     const jangkar = "    document.addEventListener('visibilitychange', onVisibility);\n";
     if (html.includes(jangkar)) { html = html.replace(jangkar, jangkar + JS_CETAK); catatan.push("js-cetak"); }
   }
 
-  // 4. Kabur saat jendela kehilangan fokus — MODUL SAJA (validator melarang di exam)
-  if (!isExam && !html.includes("window.addEventListener('blur'")) {
-    const jangkar = "    document.addEventListener('visibilitychange', onVisibility);\n";
-    if (html.includes(jangkar)) { html = html.replace(jangkar, jangkar + JS_BLUR_JENDELA); catatan.push("js-blur-jendela"); }
+  // 4. TIDAK ADA pengaburan sama sekali — dicabut atas permintaan dosen.
+  //    Mahasiswa harus bolak-balik ke VS Code saat mengerjakan soal komputasi;
+  //    halaman yang mengabur tiap kali jendela atau tab berpindah justru
+  //    menghalangi pekerjaan, bukan kecurangan. Yang dicabut: handler
+  //    blur/focus jendela (sempat ditambahkan), cabang blur di onVisibility
+  //    (lama), dan CSS body.friction-blurred. Penghitung perpindahan tab dan
+  //    toastnya tetap ada — itu pencatat, bukan penghalang.
+  if (html.includes("window.addEventListener('blur'")) {
+    html = html.replace(JS_BLUR_JENDELA, ""); catatan.push("cabut-blur-jendela");
   }
+  const RX_BLUR_VISIBILITY = /      \/\/ Blur halaman setelah 200ms[^\n]*\n      \/\/ Screenshot via OS-level capture[^\n]*\n      _blurTimer = setTimeout\(\(\) => \{\n        document\.body\.classList\.add\('friction-blurred'\);\n      \}, 200\);\n/;
+  if (RX_BLUR_VISIBILITY.test(html)) { html = html.replace(RX_BLUR_VISIBILITY, ""); catatan.push("cabut-blur-tab"); }
+  const RX_UNBLUR_VISIBILITY = /      clearTimeout\(_blurTimer\);\n      document\.body\.classList\.remove\('friction-blurred'\);\n/;
+  if (RX_UNBLUR_VISIBILITY.test(html)) { html = html.replace(RX_UNBLUR_VISIBILITY, ""); catatan.push("cabut-unblur-tab"); }
+  if (html.includes("  let _blurTimer = null;\n")) { html = html.replace("  let _blurTimer = null;\n", ""); catatan.push("cabut-var-blur"); }
+  // Dua aturan CSS blur tidak selalu bersebelahan (aturan cetak pernah
+  // disisipkan di antaranya), jadi masing-masing dibuang sendiri.
+  const RX_CSS_BLUR = /body\.friction-blurred\{filter:blur\(12px\);transition:filter \.3s ease;\}\n/;
+  if (RX_CSS_BLUR.test(html)) { html = html.replace(RX_CSS_BLUR, ""); catatan.push("cabut-css-blur"); }
+  const RX_CSS_BLUR_TOAST = /body\.friction-blurred #frictionToast\{filter:none;\}\n/;
+  if (RX_CSS_BLUR_TOAST.test(html)) { html = html.replace(RX_CSS_BLUR_TOAST, ""); catatan.push("cabut-css-blur-toast"); }
 
   if (html === awal) return null;
   return { html, catatan };
