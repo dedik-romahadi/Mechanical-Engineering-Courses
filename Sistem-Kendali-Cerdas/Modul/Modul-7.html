@@ -1163,7 +1163,7 @@ html,body{height:auto!important;min-height:100%!important;overflow-y:auto!import
   #page-modul .card,#page-modul .formula-block,#page-modul .formula-block::before,#page-modul .formula-block .formula-label,#page-modul .formula-block .formula-main,.reading-position{transition:none!important}#page-modul .formula-block:hover{transform:none!important}
 }
 </style>
-<!-- EFEK-MEMUAT:START v1 -->
+<!-- EFEK-MEMUAT:START v2 -->
 <style>
 /* Pemutar kecil di dalam tombol yang sedang menunggu jaringan. Memakai
    currentColor supaya otomatis serasi dengan tombol mana pun. */
@@ -1215,8 +1215,21 @@ window.selesaiMuat = function (el, label) {
     ? (el.dataset.labelAsli === undefined ? el.textContent : el.dataset.labelAsli)
     : label);
 };
+/**
+ * Bungkus aksi async dari atribut onclick tanpa menyentuh isi fungsinya.
+ *
+ * Sebagian handler punya banyak return dini untuk galat validasi. Menyisipkan
+ * pemulihan di tiap cabang itu rapuh — satu cabang terlewat berarti tombolnya
+ * mati selamanya. Blok finally menutup seluruh cabang sekaligus, termasuk saat
+ * handler melempar.
+ */
+window.jalankanDenganMuat = async function (el, label, fn) {
+  if (typeof fn !== 'function') return;
+  window.mulaiMuat(el, label);
+  try { return await fn(); } finally { window.selesaiMuat(el); }
+};
 </script>
-<!-- EFEK-MEMUAT:END v1 -->
+<!-- EFEK-MEMUAT:END v2 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1341,7 +1354,7 @@ window.selesaiMuat = function (el, label) {
     <p class="sub">Masukkan password admin untuk melanjutkan sebagai dosen.</p>
     <p class="v-error" id="dosenLoginError"></p>
     <input type="password" class="v-input" id="dosenLoginPw" placeholder="Password admin" autocomplete="off">
-    <button class="v-btn-primary" id="dosenLoginBtn" onclick="submitDosenLogin()">Masuk sebagai Dosen</button>
+    <button class="v-btn-primary" id="dosenLoginBtn" onclick="jalankanDenganMuat(this,'Memverifikasi...',submitDosenLogin)">Masuk sebagai Dosen</button>
     <button class="v-btn-cancel" id="dosenLoginScheduleBtn" onclick="openScheduleFromDosen()" style="margin-top:8px;background:rgba(255,179,0,.12);border-color:rgba(255,179,0,.35);color:#ffb300;">🕐 Atur Jadwal</button>
     <button class="v-btn-cancel" onclick="cancelDosenLogin()" style="margin-top:8px;">Batal</button>
   </div>
@@ -1369,7 +1382,7 @@ window.selesaiMuat = function (el, label) {
         <div id="scheduleDueHelp" style="margin-top:5px;color:#94a3b8;font-size:.68rem;line-height:1.35;">Format 24 jam WIB (UTC+7), contoh 22:00.</div>
       </div>
     </div>
-    <button class="v-btn-primary" onclick="saveSchedule()">💾 Simpan Jadwal</button>
+    <button class="v-btn-primary" onclick="jalankanDenganMuat(this,'Menyimpan...',saveSchedule)">💾 Simpan Jadwal</button>
     <button class="v-btn-cancel" onclick="hideScheduleModal()">Batal</button>
   </div>
 </div>
