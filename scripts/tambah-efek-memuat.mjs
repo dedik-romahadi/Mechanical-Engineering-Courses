@@ -27,7 +27,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-const BLOK = `<!-- EFEK-MEMUAT:START v1 -->
+const BLOK = `<!-- EFEK-MEMUAT:START v2 -->
 <style>
 /* Pemutar kecil di dalam tombol yang sedang menunggu jaringan. Memakai
    currentColor supaya otomatis serasi dengan tombol mana pun. */
@@ -79,8 +79,21 @@ window.selesaiMuat = function (el, label) {
     ? (el.dataset.labelAsli === undefined ? el.textContent : el.dataset.labelAsli)
     : label);
 };
+/**
+ * Bungkus aksi async dari atribut onclick tanpa menyentuh isi fungsinya.
+ *
+ * Sebagian handler punya banyak return dini untuk galat validasi. Menyisipkan
+ * pemulihan di tiap cabang itu rapuh — satu cabang terlewat berarti tombolnya
+ * mati selamanya. Blok finally menutup seluruh cabang sekaligus, termasuk saat
+ * handler melempar.
+ */
+window.jalankanDenganMuat = async function (el, label, fn) {
+  if (typeof fn !== 'function') return;
+  window.mulaiMuat(el, label);
+  try { return await fn(); } finally { window.selesaiMuat(el); }
+};
 </script>
-<!-- EFEK-MEMUAT:END v1 -->
+<!-- EFEK-MEMUAT:END v2 -->
 `;
 
 // Titik "mulai menunggu" versi lama. Nama variabelnya bebas, tetapi urutan
@@ -94,6 +107,14 @@ const RX_SELESAI = /(\w+)\.disabled\s*=\s*false;\s*\1\.style\.opacity\s*=\s*'1';
 // Cukup ditambahi kelas; pemutarnya digambar CSS pada tombol utama.
 const RX_KELOMPOK_MATI = /btns\.forEach\(b=>\{b\.disabled=true;b\.style\.opacity='\.5';b\.style\.cursor='wait';\}\);/g;
 const RX_KELOMPOK_HIDUP = /btns\.forEach\(b=>\{b\.disabled=false;b\.style\.opacity='1';b\.style\.cursor='pointer';\}\);/g;
+
+// Handler async yang dipanggil tombol tetapi sama sekali tidak menyentuh
+// tombolnya. Dibungkus di TITIK PANGGIL supaya isi fungsinya — beserta seluruh
+// `return` dini untuk galat validasi — tidak perlu diubah sama sekali.
+const BUNGKUS = [
+  ["submitDosenLogin", "Memverifikasi..."],
+  ["saveSchedule", "Menyimpan..."],
+];
 
 function proses(berkas) {
   let html = fs.readFileSync(berkas, "utf8");
@@ -110,6 +131,13 @@ function proses(berkas) {
     return bawaan.test(bersih) ? `selesaiMuat(${v});` : `selesaiMuat(${v}, ${bersih});`;
   });
 
+  let bungkus = 0;
+  for (const [fn, label] of BUNGKUS) {
+    const rx = new RegExp(`onclick="${fn}\\(\\s*\\)"`, "g");
+    html = html.replace(rx, () => { bungkus += 1;
+      return `onclick="jalankanDenganMuat(this,'${label}',${fn})"`; });
+  }
+
   let kelompok = 0;
   html = html.replace(RX_KELOMPOK_MATI, () => { kelompok += 1;
     return "btns.forEach(b=>{b.disabled=true;b.style.opacity='.5';b.style.cursor='wait';b.classList.add('kelompok-memuat');});"; });
@@ -121,12 +149,12 @@ function proses(berkas) {
   // perbaikan CSS berikutnya — persis yang terjadi saat pemutar kelompok
   // ditambahkan dan aturannya tidak pernah sampai ke halaman.
   html = html.replace(/<!-- EFEK-MEMUAT:START[\s\S]*?<!-- EFEK-MEMUAT:END[^>]*-->\n?/, "");
-  if (mulai || selesai || kelompok || /mulaiMuat\(|kelompok-memuat/.test(html)) {
+  if (mulai || selesai || kelompok || bungkus || /mulaiMuat\(|kelompok-memuat|jalankanDenganMuat/.test(html)) {
     if (!html.includes("</head>")) throw new Error(`${path.basename(berkas)}: tidak ada </head>`);
     html = html.replace("</head>", `${BLOK}</head>`);
   }
   if (html === awal) return null;
-  return { html, mulai, selesai, kelompok };
+  return { html, mulai, selesai, kelompok, bungkus };
 }
 
 const periksa = process.argv.includes("--periksa");
@@ -153,11 +181,12 @@ let n = 0;
 let tm = 0;
 let ts = 0;
 let tk = 0;
+let tb = 0;
 for (const f of kumpulkan(["Exam", "Modul"])) {
   const hasil = proses(f);
   if (!hasil) continue;
-  n += 1; tm += hasil.mulai; ts += hasil.selesai; tk += hasil.kelompok;
+  n += 1; tm += hasil.mulai; ts += hasil.selesai; tk += hasil.kelompok; tb += hasil.bungkus;
   if (!periksa) fs.writeFileSync(f, hasil.html);
 }
 console.log(`${n} halaman ${periksa ? "akan diperbarui" : "diperbarui"}: `
-  + `${tm} titik mulai-muat, ${ts} titik selesai-muat, ${tk} kelompok tombol.`);
+  + `${tm} titik mulai-muat, ${ts} titik selesai-muat, ${tk} kelompok tombol, ${tb} handler dibungkus.`);
