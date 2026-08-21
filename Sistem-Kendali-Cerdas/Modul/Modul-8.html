@@ -1259,6 +1259,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 .ej-denyut-benar{animation:ejDenyutHijau .9s ease-out;border-radius:inherit}
 .ej-denyut-salah{animation:ejDenyutMerah .7s ease-out;border-radius:inherit}
 .ej-konfeti{position:absolute;left:50%;top:-20px;width:8px;height:8px;border-radius:2px;pointer-events:none;z-index:4;animation:ejKonfeti 1s cubic-bezier(.2,.8,.4,1) forwards}
+/* Tombol bisu: kecil, menempel di pojok kanan-bawah, di atas konten tetapi di
+   bawah overlay login (z-index overlay halaman 100000+). */
+.ej-tombol-bisu{position:fixed;right:14px;bottom:14px;z-index:9000;width:40px;height:40px;border-radius:50%;border:1px solid rgba(148,163,184,.35);background:rgba(15,23,42,.82);color:#fff;font-size:18px;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.28);backdrop-filter:blur(6px);transition:transform .15s ease,opacity .2s ease;opacity:.85}
+.ej-tombol-bisu:hover{transform:scale(1.08);opacity:1}
+.ej-tombol-bisu[aria-pressed="true"]{opacity:.55}
 @media (prefers-reduced-motion:reduce){
   .ej-panggung{animation:none;opacity:1;transform:translate(-50%,-100%)}
   .ej-isi{animation:ejLenyap .4s ease-in 2.4s forwards}
@@ -1278,12 +1283,75 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   var WARNA_KONFETI = ['#00e09e','#ffd43b','#4fc3f7','#ff6b6b','#a855f7'];
   var diam = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ── Efek suara ─────────────────────────────────────────────────────────
+     Disintesis lewat Web Audio API, bukan berkas audio: tanpa unduhan, tanpa
+     aset yang perlu di-deploy, tanpa urusan lisensi. AudioContext dibuat malas
+     pada perayaan pertama — selalu SESUDAH gestur kirim, sehingga tidak kena
+     blokir autoplay browser. Volume rendah dan nadanya singkat; untuk salah
+     dipilih dua nada turun yang lembut, bukan bunyi keras yang mempermalukan
+     di ruang kelas. Tombol bisu tersimpan di localStorage supaya mahasiswa di
+     tempat umum bisa mematikannya sekali untuk semua halaman. */
+  var KUNCI_BISU = 'lms_suara_bisu';
+  var ctxAudio = null;
+  function bisu() { try { return localStorage.getItem(KUNCI_BISU) === '1'; } catch (e) { return false; } }
+  function ambilCtx() {
+    if (ctxAudio) return ctxAudio;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    try { ctxAudio = new AC(); } catch (e) { return null; }
+    return ctxAudio;
+  }
+  // Satu nada: osilator sinus + envelope ADSR sederhana, lewat gain supaya
+  // tidak ada "klik" di awal/akhir.
+  function nada(ctx, freq, mulai, durasi, vol, jenis) {
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = jenis || 'sine'; o.frequency.setValueAtTime(freq, mulai);
+    g.gain.setValueAtTime(0.0001, mulai);
+    g.gain.exponentialRampToValueAtTime(vol, mulai + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, mulai + durasi);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(mulai); o.stop(mulai + durasi + 0.02);
+  }
+  var SUARA = {
+    // "ding" naik: C6 → E6, khas nada berhasil
+    correct: function (ctx, t) { nada(ctx, 1046.5, t, 0.14, 0.16); nada(ctx, 1318.5, t + 0.11, 0.22, 0.18); },
+    // satu nada netral pendek
+    partial: function (ctx, t) { nada(ctx, 784.0, t, 0.16, 0.13, 'triangle'); },
+    // dua nada turun yang lembut
+    wrong:   function (ctx, t) { nada(ctx, 392.0, t, 0.14, 0.12, 'triangle'); nada(ctx, 311.1, t + 0.13, 0.22, 0.12, 'triangle'); }
+  };
+  window.bunyikanJawaban = function (status) {
+    if (bisu() || !SUARA[status]) return;
+    var ctx = ambilCtx(); if (!ctx) return;
+    var jalankan = function () { try { SUARA[status](ctx, ctx.currentTime + 0.01); } catch (e) {} };
+    if (ctx.state === 'suspended' && ctx.resume) ctx.resume().then(jalankan, function () {}); else jalankan();
+  };
+  window.setBisuSuara = function (nilai) {
+    try { localStorage.setItem(KUNCI_BISU, nilai ? '1' : '0'); } catch (e) {}
+    document.querySelectorAll('.ej-tombol-bisu').forEach(function (b) {
+      b.setAttribute('aria-pressed', nilai ? 'true' : 'false');
+      b.title = nilai ? 'Suara jawaban: mati (klik untuk nyalakan)' : 'Suara jawaban: nyala (klik untuk matikan)';
+      b.textContent = nilai ? '🔇' : '🔊';
+    });
+  };
+  // Tombol bisu kecil di pojok kanan-bawah; dipasang sekali saat halaman siap.
+  function pasangTombolBisu() {
+    if (document.querySelector('.ej-tombol-bisu')) return;
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'ej-tombol-bisu'; b.setAttribute('aria-label', 'Suara efek jawaban');
+    b.addEventListener('click', function () { window.setBisuSuara(!bisu()); if (!bisu()) window.bunyikanJawaban('partial'); });
+    document.body.appendChild(b);
+    window.setBisuSuara(bisu());
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pasangTombolBisu); else pasangTombolBisu();
+
   /**
    * Rayakan hasil di atas kotak umpan balik. `status`: correct|partial|wrong.
    * Aman dipanggil berkali-kali: perayaan sebelumnya pada kotak yang sama dibuang.
    */
   window.rayakanJawaban = function (fb, status) {
     if (!fb || !WAJAH[status]) return;
+    window.bunyikanJawaban(status);
     var lama = fb.querySelector('.ej-panggung');
     if (lama) lama.remove();
     var p = document.createElement('div');
