@@ -5485,11 +5485,16 @@ function fetchMasterStudents(retries){
   });
 }
 
+// NIM akun simulasi dosen — harus sama dengan SIM_NIMS di backend. Jawaban
+// akun ini dinilai server tetapi tidak disimpan; di klien ia disaring dari
+// papan hasil dan tidak menulis record pengunjung maupun heartbeat.
+const SIM_NIMS = new Set(["41399999901"]);
+const isSimulasiNim = (nim) => SIM_NIMS.has(String(nim || ''));
 function updateLeaderboard(visitors, schedExpired){
   const rajinEl=document.getElementById('rajinList'), santaiEl=document.getElementById('santaiList');
   if(!rajinEl)return;
   if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;return;}
-  const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest');
+  const mhs=visitors.filter(v=>v.role!=='dosen'&&v.role!=='guest'&&!isSimulasiNim(v.nim));
   const visitMap={};
   mhs.forEach(v=>{const k=v.nim;if(!visitMap[k])visitMap[k]=v;});
   const visited=Object.values(visitMap);
@@ -5914,7 +5919,7 @@ async function submitVisitor(){
       visitorRec = { nama, nim, role:'student', timestamp:nowISO, lastVisit:nowISO, visitCount:1, points:0, scoredQuestions:'' };
       saveIdentity(visitorRec);
       try {
-        await set(ref(db, DB_PATH + '/' + key), visitorRec);
+        if (!isSimulasiNim(nim)) await set(ref(db, DB_PATH + '/' + key), visitorRec);
       } catch(writeErr){
         console.error('[Exam Login] visitor write failed:', writeErr && writeErr.code, writeErr && writeErr.message);
       }
@@ -6000,7 +6005,7 @@ function _stripLegacyPinFields(rec) {
 
 function renderVisitors(visitors){
   const visitMap={};
-  for(const v of visitors){if(v.role==='dosen'||v.role==='guest')continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
+  for(const v of visitors){if(v.role==='dosen'||v.role==='guest'||isSimulasiNim(v.nim))continue;if(!visitMap[v.nim])visitMap[v.nim]=v;}
   const visited=Object.values(visitMap);
 
   // ═══════════════════════════════════════════════════════════
@@ -6203,7 +6208,7 @@ function escH(s){const d=document.createElement('div');d.textContent=s;return d.
 // koneksi/tab ditutup. Hanya mahasiswa yang menulis data presence.
 function _initPresence() {
   const me = getIdentity();
-  if (!me || me.role !== 'student' || !me.nim) return;
+  if (!me || me.role !== 'student' || !me.nim || isSimulasiNim(me.nim)) return;
   const userKey = sanitizeKey('mhs_' + me.nim);
   const newPath = PRESENCE_PATH + '/' + userKey;
   if (_currentPresenceRef && _currentPresenceRef.toString().endsWith(newPath)) {
@@ -6221,7 +6226,7 @@ function _initPresence() {
 function _writeHeartbeat() {
   if (!_currentPresenceRef) return;
   const me = getIdentity();
-  if (!me || me.role !== 'student' || !me.nim) return;
+  if (!me || me.role !== 'student' || !me.nim || isSimulasiNim(me.nim)) return;
   set(_currentPresenceRef, {
     nama: (me.nama || '').slice(0, 80),
     nim: me.nim,
@@ -6446,7 +6451,7 @@ async function submitPinSetup() {
           };
       if(typeof _stripLegacyPinFields === 'function') visitorRec = _stripLegacyPinFields(visitorRec);
       saveIdentity(visitorRec);
-      await set(ref(db, DB_PATH + '/' + key), visitorRec);
+      if (!isSimulasiNim(nim)) await set(ref(db, DB_PATH + '/' + key), visitorRec);
     }
 
     _hidePinModals();
@@ -6531,7 +6536,7 @@ async function submitPinVerify() {
       // First-time login + schedule open: create new visitor record di RTDB.
       // Client write allowed karena record belum ada (rules: ".write": "!data.exists() || ...").
       saveIdentity(visitorRec);
-      await set(ref(db, DB_PATH + '/' + key), visitorRec);
+      if (!isSimulasiNim(nim)) await set(ref(db, DB_PATH + '/' + key), visitorRec);
     } else {
       // First-time login tapi di luar jadwal: identity local only, skip Firebase.
       saveIdentity({ nama, nim, role: 'student', timestamp: existingVisitor ? existingVisitor.timestamp : nowISO });
