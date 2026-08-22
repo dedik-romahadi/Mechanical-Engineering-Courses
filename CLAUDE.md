@@ -65,11 +65,13 @@ lain per area ada di `Pedoman-Modul.md` §17.1.
 - Repo: `dedik-romahadi/Mechanical-Engineering-Courses` — kapitalisasi persis
   begini; path GitHub Pages case-sensitive, dan `STUDENTS_JSON_URL` (roster
   login mahasiswa) di-fetch dari sana.
-- Deploy Pages **otomatis** setiap commit masuk `main` (workflow
-  `deploy-slides.yml` dengan allowlist frontend; tunggu run-nya sukses, lalu
-  cek halaman live dengan `curl` bila perlu). Jangan pernah mengubah Source
-  Pages ke "Deploy from a branch" — semua path di luar folder itu langsung 404.
-  Lihat `Pedoman-Modul.md` §1.1.
+- Deploy Pages **otomatis** setiap commit masuk `main` lewat workflow
+  `deploy-slides.yml` (allowlist frontend + build deck Slidev), yang
+  **mem-push hasilnya ke branch `gh-pages`**; Pages membangun dari branch itu
+  (Source: `gh-pages`, root). Jangan kembalikan ke `actions/deploy-pages`
+  (batas keras 10 menit berulang kali terlampaui) dan jangan pindahkan situs
+  ke `/docs`. Tunggu run-nya sukses, lalu cek halaman live dengan `curl`
+  (CDN butuh ±1–3 menit). Lihat `Pedoman-Modul.md` §1.1.
 - Backend tidak ikut rilis otomatis; deploy-nya manual dan sesempit mungkin
   (lihat `CLAUDE.md` di repo backend).
 
