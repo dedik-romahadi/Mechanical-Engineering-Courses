@@ -10178,6 +10178,8 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   var kotak = Array.prototype.slice.call(document.querySelectorAll('.pm-centang'));
   var total = kotak.length;
   var centang = 0;          // jumlah bagian yang sudah dicentang (berurutan)
+  var KUNCI_BEBAS = 'pm_centang_bebas_' + String(window.MODUL_ID || location.pathname);
+  function muatBebas() { try { var v = parseInt(localStorage.getItem(KUNCI_BEBAS), 10); return Number.isFinite(v) ? Math.max(0, Math.min(total, v)) : 0; } catch (e) { return 0; } }
   var bebas = true;         // dosen/preview/simulasi: tidak digerbang, tidak disimpan
   var sibuk = false;
 
@@ -10200,7 +10202,10 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
       el.classList.toggle('pm-nonaktif', !selesai && !giliran);
       if (st) st.textContent = selesai ? '✓ dipahami' : (giliran ? 'bagian ' + (i + 1) + ' dari ' + total : 'selesaikan bagian sebelumnya');
     });
-    kunciTab(!bebas && centang < total);
+    // Tab Tugas/Forum/Hasil terkunci untuk SEMUA peran sampai centang lengkap
+    // (permintaan dosen, 22 Agu 2026). Mode bebas diingat di localStorage.
+    kunciTab(centang < total);
+    if (bebas) { try { localStorage.setItem(KUNCI_BEBAS, String(centang)); } catch (e) {} }
   }
   function kunciTab(kunci) {
     TAB_TERKUNCI.forEach(function (t) {
@@ -10214,7 +10219,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   var switchAsli = window.switchTab;
   if (typeof switchAsli === 'function') {
     window.switchTab = function (tab) {
-      if (!bebas && centang < total && TAB_TERKUNCI.indexOf(tab) >= 0) {
+      if (centang < total && TAB_TERKUNCI.indexOf(tab) >= 0) {
         toast('🔒 Tab ' + tab.charAt(0).toUpperCase() + tab.slice(1) + ' terbuka setelah semua bagian materi dicentang (' + centang + '/' + total + ').');
         return;
       }
@@ -10274,7 +10279,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 
   var forumDimuat = false;
   function muatProgres() {
-    if (!mhsAktif()) { bebas = true; render(); return; }
+    if (!mhsAktif()) { bebas = true; centang = muatBebas(); render(); return; }
     var d = dasar();
     if (!d.pinHash) { bebas = false; render(); return; }   // sesi PIN belum ada: tetap terkunci sampai login ulang
     bebas = false; render();
@@ -10327,6 +10332,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     };
   }
 
+  centang = muatBebas();
   render();
 })();
 </script>
