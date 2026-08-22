@@ -259,6 +259,21 @@ Ketentuan saat ini:
 - pembatasan tidak menggunakan alamat IP;
 - provider Email/Password tidak diperlukan karena login memakai custom token.
 
+### 4.5 Akun simulasi mahasiswa
+
+Untuk menguji alur mahasiswa tanpa mengotori data, ada satu akun uji: NIM `41399999901`, nama roster "SIMULASI MAHASISWA", terdaftar di `students.json` keempat course. PIN-nya hanya tersimpan sebagai hash di `pins/` dan **tidak ditulis di repo mana pun**. Daftar NIM-nya harus sama di dua tempat: `SIM_NIMS` di backend `functions/index.js` dan di `scripts/kecualikan-akun-simulasi.mjs` (disuntikkan ke 64 halaman modul/exam).
+
+| Aspek | Perilaku akun simulasi |
+|---|---|
+| Login | Seperti mahasiswa (NIM + PIN), bukan password admin |
+| Jawaban tugas/ujian | Dinilai server (umpan balik, emoji, suara tetap muncul) tetapi **tidak disimpan**: tanpa ledger Firestore, tanpa poin RTDB; idempotensi/self-heal dilewati sehingga soal bisa dijawab ulang tanpa batas (respons membawa `simulasi:true`, halaman membuka kembali soal) |
+| Record pengunjung, heartbeat, presence | Tidak ditulis |
+| Papan hasil, roster tab Hasil, hitungan hadir/total, OBE | Disaring — tidak pernah tampil atau terhitung |
+| Progres materi (§6.7) | **Persis mahasiswa**: centang tersimpan dan divalidasi server, tab terkunci, forum tersimpan; satu-satunya beda: boleh membatalkan centang terakhir (`setModulCentang` dengan `batal:true`, hanya untuk `SIM_NIMS`) supaya uji bisa diulang |
+| Gerbang antar-modul | Selalu lolos, karena ia tidak punya ledger tugas sehingga "modul lengkap" tak pernah terpenuhi |
+
+Saat membersihkan sisa data akun ini di Firestore, ingat kunci dokumen modul memakai prefiks: `modulAttempts/<id>/students/mhs_<nim>` (exam: `examAttempts/<id>/students/<nim>`).
+
 ---
 
 ## 5. Jadwal dan WIB
@@ -378,13 +393,16 @@ Seluruh 56 modul memakai satu sistem **modern academic**. Keseragaman berarti ko
 
 | Area | Aturan desain saat ini |
 |---|---|
-| Hero dan navigasi | Hero kaca menampilkan alur belajar tiga tahap. Progress bar, indikator posisi membaca, dan penanda subnav mengikuti bagian aktif. Klik tab utama selalu kembali ke hero/top halaman; tab Tugas tidak langsung melompat ke panel skor. |
+| Hero dan navigasi | Hero kaca menampilkan alur belajar tiga tahap (`.academic-roadmap`): judul tahap 17 px, keterangan 13,5 px, lencana nomor 42 px, anak panah 28 px (diperbesar 22 Agu 2026 atas permintaan dosen). Progress bar, indikator posisi membaca, dan penanda subnav mengikuti bagian aktif. Klik tab utama selalu kembali ke hero/top halaman; tab Tugas tidak langsung melompat ke panel skor. |
 | Materi | Setiap bagian memakai chapter card dan aksen sendiri. Paragraf `.section-desc` mengikuti lebar jendela tanpa batas `max-width`. Kartu `.card`, formula, dan elemen sejenis memberi umpan balik hover. |
-| Formula | `.formula-block` memakai ukuran dan kontras lebih tinggi, efek kilau tanpa membuat halaman melebar, serta hover angkat. KaTeX mewarisi warna komponen. |
+| Formula | `.formula-block` memakai ukuran dan kontras lebih tinggi, efek kilau tanpa membuat halaman melebar, serta hover angkat; padding vertikalnya 7 px agar ruang di atas/bawah persamaan rapat (margin `.formula-main` Sisken 4/3 px, Modul 1 Sisken 6/5 px). Persamaan bertumpuk (dipisah `<br>` di panel bernomor, hanya Sisken) diberi jarak antar baris lewat `.formula-main br+span{margin-top:.8em}` — selektornya menyasar **pembungkus** yang dibuat KaTeX auto-render, bukan `.katex` (yang tidak pernah menjadi saudara langsung `<br>`). KaTeX mewarisi warna komponen. |
 | Tabel | Tabel dalam `.tbl-wrap` memakai `academic-data-table`. Caption bernomor menggunakan `.table-caption > .anim-dot + .anim-title`, tinggi 50 px, indentasi 24 px, dan elipsis untuk judul panjang. Caption tidak boleh membawa `style` inline. Header, zebra row, dan hover baris seragam. |
 | Kolom persamaan | Header **Persamaan**, **Rumus**, **Formula**, atau **EOM** ditandai otomatis. Kolom memakai lebar intrinsik minimum 180 px dan tidak membungkus satu persamaan; headernya tetap berukuran sama dengan header lain. Pada layar sempit, scroll horizontal hanya berada di wrapper tabel. |
 | Daftar pustaka | Setiap item memakai `.reference-card` sehingga hover angkat, outline beraksen, dan kilau berlaku konsisten. |
 | Tugas | Hero Tugas memakai animasi masuk dan tinggi `60vh`. Panel `.score-bar.score-bar-compact` tetap terlihat dengan `position: sticky; top: 64px`, permukaan ungu–biru yang kontras, geometri ringkas, teks terbaca, dan adaptasi layar kecil tanpa menyembunyikan rincian. |
+| Umpan balik jawaban | Setiap jawaban yang dinilai memunculkan emoji SVG 3D bergaya stiker di atas kotak umpan balik (`scripts/tambah-efek-jawaban.mjs`, penanda `EFEK-JAWABAN`): 13 varian dipilih acak per status — benar 6 (semua berjempol), sebagian 3, salah 4 (menangis/cemas/murung, **tanpa wajah marah**, tanpa emoji kotoran); semua bola kuning. Disertai suara sintesis Web Audio (benar/sebagian/salah) dan suara antarmuka untuk klik tombol, pemilihan opsi jawaban, kotak centang, dan sub-tab modul; tombol bisu 🔊 di kiri tombol chat (`right:92px; bottom:32px`) tersimpan di localStorage. Efek hanya pada jawaban baru (jalur alreadyAnswered/healed tidak memicu). |
+| Efek memuat | Tombol login/PIN/jadwal dan tombol "Masuk sebagai Dosen" menampilkan spinner selama menunggu server (`scripts/tambah-efek-memuat.mjs`, penanda `EFEK-MEMUAT`, helper `jalankanDenganMuat`). |
+| Overlay login | Lapisan partikel/rumus melayang (`#overlayParticles`, `#pickerParticles`) wajib berkelas `overlay-anim-particles` (absolute, inset 0, `overflow:hidden`). Tanpa itu, pada overlay yang bisa di-scroll (modul Sisken) partikel memperbesar area scroll dan scrollbar muncul-hilang terus (`scripts/kunci-lapisan-animasi-login.mjs`, plus `scrollbar-gutter:stable`). |
 | Aksesibilitas dan batas scope | Animasi menghormati `prefers-reduced-motion`. Aturan dibatasi ke `#page-modul`/`#page-tugas` dan `@media screen`; jangan mengubah login, penilaian, path Firebase, atau output cetak. |
 
 Sumber penerapan lintas course adalah `scripts/apply-modern-academic-all-modules.mjs`. Markup hasil normalisasi harus sudah menyimpan kelas tabel dan daftar pustaka secara statis; runtime hanya memulihkan markup lama sebagai fallback. Generator Sisken wajib menghasilkan struktur yang sama secara langsung. Cakupan pemeriksanya dirangkum di §17.1.
@@ -467,13 +485,13 @@ Tab Hasil membaca record visitor untuk statistik, aktivitas, dan skor. Presence 
 
 Berlaku di keempat course sejak 22 Agustus 2026 (permintaan dosen). Diterapkan oleh `scripts/tambah-progres-modul.mjs` (idempoten, penanda `PROGRES-MODUL`) dan empat callable di §10.
 
-- Di akhir setiap bagian materi (`div.section`, kecuali "Daftar Pustaka") ada kotak centang pernyataan *"Saya sudah mempelajari dan memahami bagian ini"*. Hanya kotak berikutnya yang aktif: centang harus urut dari bagian pertama dan tidak dapat dibatalkan. Server (`setModulCentang`) menolak indeks yang tidak urut lewat transaksi Firestore.
+- Di akhir setiap bagian materi (`div.section`, kecuali "Daftar Pustaka" dan bagian orientasi "Posisi Anda dan Sisa Waktu" di Sisken) ada kotak centang pernyataan *"Saya sudah mempelajari dan memahami bagian ini — [judul bagian]"* (teks 17 px, panel gradien hijau–sian dengan lencana status). Hanya kotak giliran yang aktif — **untuk semua peran**: centang harus urut dari bagian pertama, satu per satu, dan bagi mahasiswa tidak dapat dibatalkan. Injector membuang kotak lama lalu menyisipkan ulang, jadi perubahan pengecualian/teks cukup dengan menjalankannya kembali. Server (`setModulCentang`) menolak indeks yang tidak urut lewat transaksi Firestore.
 - Tab **Tugas, Forum, dan Hasil terkunci** sampai semua kotak dicentang; `switchTab` dibungkus sehingga tab terkunci tidak bisa dibuka lewat jalur lain.
 - **Modul dianggap lengkap** bila centang penuh **dan** semua soal tugas sudah dicoba **dan** forum selesai (tiga jawaban masing-masing ≥ 30 kata; `FORUM_MIN_WORDS` di halaman harus sama dengan `FORUM_MIN_KATA` di backend).
 - **Gerbang login**: saat masuk modul *n* > 1, `checkModulAccess` memeriksa modul *n*−1. Bila belum lengkap, halaman ditutup overlay kunci yang merinci apa yang kurang dan menautkan ke modul sebelumnya. Modul 1 selalu terbuka. UTS/UAS tidak digerbang.
 - **Transisi (keputusan dosen, opsi 1a)**: modul yang tugasnya sudah selesai dengan semua attempt bertanggal sebelum `PROGRES_MULAI` (22 Agu 2026 12:00 UTC) dianggap lengkap meski tanpa centang/forum, supaya mahasiswa yang sudah berjalan tidak terkunci di modul 1.
 - Setelah tenggat, modul tetap bisa dikerjakan dengan status terlambat (modul tidak punya batas atas), jadi gerbang ini tidak pernah mengunci permanen.
-- Dosen, Mode Preview, dan akun simulasi tidak digerbang: kotak bisa dicentang bebas dan tidak disimpan.
+- **Dosen dan Mode Preview** tidak digerbang: tab tetap terbuka, kotak dicentang berurutan secara lokal (diingat di localStorage per modul, boleh membatalkan yang terakhir) dan tidak disimpan ke server. **Akun simulasi** diperlakukan persis mahasiswa (lihat §4.5), kecuali boleh membatalkan centang terakhir dan selalu lolos gerbang antar-modul.
 - Blok lama "Daftar Periksa Sebelum Lanjut" (centang lokal Sisken, `siskenCentang`) sudah dihapus; kartu "Salah Kaprah" di bagian yang sama dipertahankan.
 
 ### 6.8 Sistem Agen AI berbasis sumber
@@ -1063,6 +1081,8 @@ git diff --check
 
 `validate-public-security.mjs` memindai seluruh HTML dalam allowlist Pages pada empat course. Ia menjaga artefak sensitif, sintaks inline script, 56 halaman berautentikasi admin (48 Modul/Exam + 3 OBE + 5 Admin), gate dan friction exam, WIB, preview modul, reset, presence, format poin, pemulihan `scoreDeltas`, serta keamanan publikasi. Jumlah halaman autentikasi dipatok di validator; perbarui bersama bila inventaris berubah.
 
+Skrip penyuntik lintas halaman (semua idempoten lewat penanda; jalankan `--periksa` dulu) yang wajib dijalankan ulang setelah regenerasi modul: `tambah-efek-memuat.mjs`, `tambah-efek-jawaban.mjs`, `ubah-friction.mjs`, `kecualikan-akun-simulasi.mjs`, `kunci-lapisan-animasi-login.mjs`, dan `tambah-progres-modul.mjs` (modul saja). Aturan CSS lintas course yang ditulis langsung di halaman (ukuran roadmap, padding panel persamaan, jarak `br+span`) juga sudah ada di generator `apply-modern-academic-all-modules.mjs` dan `enrich-sisken-modules.mjs`.
+
 Validator khusus melengkapi pemeriksaan publik tersebut:
 
 | Validator | Cakupan khusus |
@@ -1113,6 +1133,9 @@ Bila menulis soal pada bank yang sebelumnya placeholder, ingat bahwa penjaga yan
 | Exam | 45 soal, total 100, format poin, late/cutoff, online-only, export resmi |
 | Agen AI | konsep modul aktif dijawab dengan sitasi; pertanyaan lintas MK dan jawaban langsung asesmen ditolak; data pribadi disunting; saat UTS/UAS aktif materi terkunci tetapi jadwal/aturan tetap terjawab; mode `AI_PROVIDER=none` dan simulasi kuota tetap menghasilkan fallback retrieval |
 | UAS | soal tidak ada di source publik, fetch setelah gate, friction tidak memburamkan halaman |
+| Progres modul | kotak centang hanya giliran yang aktif, lompat ditolak server; tab Tugas/Forum/Hasil terkunci sampai lengkap; login modul *n* ditolak bila modul *n*−1 belum lengkap (overlay kunci dengan rincian); forum terpulihkan setelah login |
+| Akun simulasi | bisa menjawab ulang; tidak ada ledger/poin/record pengunjung; tidak tampil di papan hasil/roster; progres tersimpan dan boleh membatalkan centang terakhir |
+| Efek jawaban | emoji dan suara hanya pada jawaban baru; tombol bisu berlaku untuk suara jawaban dan antarmuka; overlay login tidak memunculkan scrollbar berkedip |
 | Reset | Firestore dan RTDB konsisten; PIN tidak terhapus; poin soal lain tetap |
 | OBE | mapping per course, compute, draft lokal, publish, tampilan satu mahasiswa |
 
