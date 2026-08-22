@@ -428,7 +428,7 @@ Poin tampilan modul 0–50 dikonversi menjadi nilai 0–100 untuk headline. Poin
 
 - Attempt resmi disimpan di Firestore `modulAttempts/<modulId>/students/<nimKey>/qs/<qId>`.
 - Ringkasan cepat disimpan pada record visitor RTDB: poin, marker soal, selection, code, dan timestamp.
-- Draft yang belum disubmit, seperti kode, link Drive, dan teks Forum, disimpan per NIM di localStorage.
+- Draft yang belum disubmit, seperti kode dan link Drive, disimpan per NIM di localStorage. Teks Forum juga disimpan di localStorage sebagai draft, tetapi salinan resminya ada di server (`saveModulForum`, lihat §6.8) dan dipulihkan saat login.
 - Setelah refresh, halaman memuat marker dan data tersimpan sebelum mengizinkan interaksi.
 - Jika attempt Firestore ada tetapi transaksi RTDB sebelumnya gagal, submit ulang pada soal terkunci dapat menjalankan self-heal tanpa memberi poin ganda.
 
@@ -463,7 +463,20 @@ File HTML lokal tetap dapat diedit oleh pemilik file. Kode HMAC tidak mencegah e
 
 Tab Hasil membaca record visitor untuk statistik, aktivitas, dan skor. Presence realtime terpisah dari riwayat kunjungan. Jangan menyimpulkan “online” hanya dari `lastVisit`.
 
-### 6.7 Sistem Agen AI berbasis sumber
+### 6.7 Progres materi berurutan dan gerbang antar-modul
+
+Berlaku di keempat course sejak 22 Agustus 2026 (permintaan dosen). Diterapkan oleh `scripts/tambah-progres-modul.mjs` (idempoten, penanda `PROGRES-MODUL`) dan empat callable di §10.
+
+- Di akhir setiap bagian materi (`div.section`, kecuali "Daftar Pustaka") ada kotak centang pernyataan *"Saya sudah mempelajari dan memahami bagian ini"*. Hanya kotak berikutnya yang aktif: centang harus urut dari bagian pertama dan tidak dapat dibatalkan. Server (`setModulCentang`) menolak indeks yang tidak urut lewat transaksi Firestore.
+- Tab **Tugas, Forum, dan Hasil terkunci** sampai semua kotak dicentang; `switchTab` dibungkus sehingga tab terkunci tidak bisa dibuka lewat jalur lain.
+- **Modul dianggap lengkap** bila centang penuh **dan** semua soal tugas sudah dicoba **dan** forum selesai (tiga jawaban masing-masing ≥ 30 kata; `FORUM_MIN_WORDS` di halaman harus sama dengan `FORUM_MIN_KATA` di backend).
+- **Gerbang login**: saat masuk modul *n* > 1, `checkModulAccess` memeriksa modul *n*−1. Bila belum lengkap, halaman ditutup overlay kunci yang merinci apa yang kurang dan menautkan ke modul sebelumnya. Modul 1 selalu terbuka. UTS/UAS tidak digerbang.
+- **Transisi (keputusan dosen, opsi 1a)**: modul yang tugasnya sudah selesai dengan semua attempt bertanggal sebelum `PROGRES_MULAI` (22 Agu 2026 12:00 UTC) dianggap lengkap meski tanpa centang/forum, supaya mahasiswa yang sudah berjalan tidak terkunci di modul 1.
+- Setelah tenggat, modul tetap bisa dikerjakan dengan status terlambat (modul tidak punya batas atas), jadi gerbang ini tidak pernah mengunci permanen.
+- Dosen, Mode Preview, dan akun simulasi tidak digerbang: kotak bisa dicentang bebas dan tidak disimpan.
+- Blok lama "Daftar Periksa Sebelum Lanjut" (centang lokal Sisken, `siskenCentang`) sudah dihapus; kartu "Salah Kaprah" di bagian yang sama dipertahankan.
+
+### 6.8 Sistem Agen AI berbasis sumber
 
 Mode **Asisten Dosen** memakai panel Chat Kelas yang sama pada 56 halaman modul
 dan 8 halaman UTS/UAS. Ini bukan model yang dilatih ulang dengan seluruh data
@@ -770,6 +783,7 @@ Rules harus mencegah client mengubah field server-owned seperti `points`, `score
 | `modulAttempts/<modulId>/students/<nimKey>/qs/<qId>` | ledger attempt modul |
 | `obeNilai/<courseId>/students/<nimKey>` | nilai OBE yang dipublish |
 | `obeMappings/<courseId>` | mapping Tugas/UTS/UAS per course |
+| `progresModul/<modulId>/students/<nimKey>` | progres materi: `centang`, `total`, `forum{fq1..3}`, `forumSelesai`, `updatedAt` (§6.7) |
 
 Firestore Rules menolak semua akses client langsung. Jangan melonggarkan rules untuk memudahkan debugging.
 
@@ -801,9 +815,13 @@ Daftar callable yang digunakan sistem saat ini:
 | `saveObeMapping` | admin | memvalidasi dan menyimpan mapping OBE satu course |
 | `publishObeNilai` | admin | mempublikasikan nilai OBE |
 | `getMyObeNilai` | mahasiswa + PIN | mengambil nilai OBE mahasiswa tersebut |
+| `getModulProgress` | mahasiswa + PIN | progres centang/forum/tugas modul ini + hasil gerbang akses |
+| `checkModulAccess` | mahasiswa + PIN | boleh masuk modul ini? (modul sebelumnya lengkap) |
+| `setModulCentang` | mahasiswa + PIN | mencentang bagian materi ke-*i*; ditolak bila tidak urut |
+| `saveModulForum` | mahasiswa + PIN | menyimpan tiga jawaban forum; `forumSelesai` bila masing-masing ≥ 30 kata |
 | `deleteObeNilai` | admin | menghapus nilai OBE terpublikasi satu course |
 | `getModuleChatContext` | mahasiswa + PIN | bootstrap sapaan/konteks AI chat modul (deterministik, tidak memanggil model) |
-| `aiChat` | mahasiswa + PIN | asisten administratif + tutor retrieval bersitasi untuk mata kuliah aktif; model generatif opsional memakai `AI_API_KEY`, dengan rate-limit model di `aiChat/quota/<NIM>` (§6.7, §9.1) |
+| `aiChat` | mahasiswa + PIN | asisten administratif + tutor retrieval bersitasi untuk mata kuliah aktif; model generatif opsional memakai `AI_API_KEY`, dengan rate-limit model di `aiChat/quota/<NIM>` (§6.8, §9.1) |
 
 Tidak ada callable `recomputeAllObeScores`. Jangan mendokumentasikan atau memanggil nama tersebut.
 
@@ -937,7 +955,7 @@ Wajib dipertahankan:
 - Pages workflow harus menolak artefak sensitif sebelum deploy;
 - node RTDB `pins/` tidak boleh dibuka kembali untuk dibaca klien (lihat §4.3);
 - seed **menolak** menulis kunci bank yang masih placeholder ke Firestore. `seed-firestore.js` mendeteksi status placeholder dari teks bank dan membatalkan live seed dengan pesan jelas; pelolos `--allow-placeholder` hanya untuk keadaan yang disengaja. Ini menutup jalur yang dulu membuat `--all-exam` menuliskan kunci dummy `sisken-uas` ke produksi tanpa gejala.
-- basis pengetahuan tutor tetap di backend privat dan hanya dibangun dari sumber allowlist §6.7; validator harus menolak marker kunci, bank soal, kredensial, atau data pribadi;
+- basis pengetahuan tutor tetap di backend privat dan hanya dibangun dari sumber allowlist §6.8; validator harus menolak marker kunci, bank soal, kredensial, atau data pribadi;
 - frontend tidak boleh menerima kutipan internal retrieval, system prompt, nama provider/model, endpoint, atau secret; respons hanya membawa jawaban, URL sumber resmi, metadata sitasi minimum, dan status kasar;
 
 ### 14.1 Kunci exam lama bocor di riwayat Git (tidak dapat ditarik kembali)

@@ -1625,6 +1625,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="tip-box reveal">
     💡 <strong>Best Practice Alarm Management:</strong> (1) <em>Mulai dengan rationalization</em>, review semua alarm: apakah actionable? Apakah unique? Apakah priority benar? Hapus duplikat &amp; non-actionable. (2) <em>Tier dengan jelas</em>, operator harus tahu di Warning vs Alert vs Critical, action berbeda. (3) <em>Alarm rate target</em>: ≤ 1/10 min steady, ≤ 10/10 min post-disturbance. Kalau lebih = ada masalah. (4) <em>Time-based escalation</em>, Warning persist &gt; 5 menit → auto-escalate ke Alert. (5) <em>Alarm shelving</em>, operator boleh silence specific alarm untuk window terbatas (1–8 jam, mis. selama known maintenance). Otomatis re-enable. (6) <em>Suppression rules</em>, kalau parent alarm trigger (mis. "low oil pressure"), suppress child alarm yang correlated (mis. "high bearing temperature"). (7) <em>Periodic alarm rate review</em>, bulanan/quarterly. Alarm yang trigger > 100×/tahun tanpa actionable harus dihapus atau di-tune. (8) <em>Operator training</em>, alarm management hanya bekerja kalau operator paham filosofi tier escalation.
   </div>
+
+  <label class="pm-centang" data-pm="0"><input type="checkbox" disabled aria-describedby="pm-status-0"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Mengapa Tier Alarm + FSM:Production-Grade Alarm Management Architecture</b>.</span><em class="pm-status" id="pm-status-0"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 02 — TIER ALARM ARCHITECTURE ═══ -->
@@ -1716,6 +1718,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <code>&nbsp;&nbsp;&nbsp;&nbsp;else: return 'D', 'pink'</code><br>
     Untuk multi-feature alert: <code>pandas.DataFrame</code> dengan kolom rms, peak, kurt, lalu <code>df['alert'] = (df.rms &gt; 2.8) | (df.peak &gt; 8) | (df.kurt &gt; 4)</code>. Library lengkap: <strong>vibration-toolbox</strong>, <strong>tslearn</strong> (time series), <strong>OpenIndustrial</strong> (industrial monitoring framework).
   </div>
+
+  <label class="pm-centang" data-pm="1"><input type="checkbox" disabled aria-describedby="pm-status-1"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Tier Alarm Architecture:4-Level Escalation dari Normal hingga Critical</b>.</span><em class="pm-status" id="pm-status-1"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 03 — FINITE STATE MACHINE ═══ -->
@@ -1810,6 +1814,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return self.state</code><br>
     Untuk tier alarm, extend ke 3 instance (warn/alert/crit) atau 1 class dengan list threshold. Frameworks production: <strong>OpenSCADA</strong>, <strong>Ignition</strong>, <strong>WinCC</strong>.
   </div>
+
+  <label class="pm-centang" data-pm="2"><input type="checkbox" disabled aria-describedby="pm-status-2"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Finite State Machine (FSM):Memory + Transition Logic untuk Production Monitoring</b>.</span><em class="pm-status" id="pm-status-2"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 04 — DEBOUNCING + PERSISTENCE + ANSI/ISA 18.2 ═══ -->
@@ -1900,6 +1906,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <p>(1) <strong>State explosion</strong>, kombinasi state dengan banyak feature (mis. RMS × peak × kurt × suhu) cepat tidak terkelola. Solusi: <em>composite state</em> atau hierarchical FSM (HFSM). (2) <strong>Race condition</strong>, sample baru tiba saat transition belum selesai. Pakai mutex / atomic update. (3) <strong>Stuck state</strong>, kalau exit condition tidak pernah tercapai (mis. \(T_{\text{off}}\) terlalu rendah), state stuck selamanya. Tambah escape route via timeout. (4) <strong>Debounce N terlalu besar</strong>, latency deteksi naik, alarm critical bisa terlambat. Trade-off: low N untuk critical (≤ 2), high N untuk warning (5–10). (5) <strong>Lupa heartbeat</strong>, sensor mati silent → output frozen → FSM tetap "NORMAL". Watchdog timer wajib. (6) <strong>Audit log overflow</strong>, high-frequency transitions bisa fill disk. Pakai log rotation, ringkasan (N events/min), atau database time-series (InfluxDB) yang punya retention policy. (7) <strong>State machine tanpa diagram</strong>, kode lama tanpa visualisasi sulit di-debug. Selalu maintain state diagram (graphviz) yang sinkron dengan code.</p>
     </div>
   </div>
+
+  <label class="pm-centang" data-pm="3"><input type="checkbox" disabled aria-describedby="pm-status-3"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Debouncing, Persistence &amp;amp; ANSI/ISA 18.2:Filter Noise &amp;amp; Industrial Alarm Management Standard</b>.</span><em class="pm-status" id="pm-status-3"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 05 — ANALOGI RULE-BASED MONITORING ═══ -->
@@ -1948,6 +1956,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="tip-box reveal">
     💡 <strong>Pola yang Sama di Semua Analogi:</strong> Rule-based monitoring bekerja karena <em>kombinasi 3 elemen</em>: (1) <strong>threshold dengan referensi jelas</strong> (suhu setpoint, fuel level, smoke ppm, HR bpm, CPU%, RMS vibrasi); (2) <strong>noise filtering</strong> (hysteresis untuk thermostats, debouncing untuk smoke alarm, minimum duration untuk medical alarm); (3) <strong>graceful escalation</strong> (multi-tier dari informasi → urgent → critical). Insight bagi engineer: <em>setiap monitoring system yang sukses pasti punya 3 elemen ini</em>. Kalau Anda merancang monitoring tanpa hysteresis, tanpa debouncing, tanpa tier, siap-siap operator complaint dengan alarm flood. Tetapi <strong>rule-based punya batas</strong>: jika ada 50 fitur dan 100 mode kegagalan, manual rule tidak scalable. Saatnya pindah ke ML (Pertemuan 14) — tetapi <em>baseline rule-based</em> selalu layak dipertahankan sebagai safety net.
   </div>
+
+  <label class="pm-centang" data-pm="4"><input type="checkbox" disabled aria-describedby="pm-status-4"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>AnalogiRule-Based Monitoring di Sehari-hari</b>.</span><em class="pm-status" id="pm-status-4"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 06 — ANIMASI INTERAKTIF ═══ -->
@@ -2088,6 +2098,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     </div>
   </div>
 
+
+  <label class="pm-centang" data-pm="5"><input type="checkbox" disabled aria-describedby="pm-status-5"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Animasi InteraktifTier Alarm, FSM, Debouncing &amp;amp; ANSI/ISA 18.2 Alarm Flood</b>.</span><em class="pm-status" id="pm-status-5"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 07 — APLIKASI MONITORING DI INDUSTRI ═══ -->
@@ -2142,6 +2154,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <p>(1) <strong>Threshold ditebak tanpa referensi</strong>; selalu cite ISO/API/datasheet. Kalau pakai empirical baseline (μ + 3σ), dokumentasikan periode &amp; sample size. (2) <strong>Lupa hysteresis</strong>, hampir setiap newcomer engineer membangun rule tanpa hysteresis, lalu komplain "alert spam". Hysteresis = mandatory. (3) <strong>Single feature monitoring</strong>, RMS saja sering miss bearing fault (kurtosis lebih sensitif). Pakai multi-feature minimum 2 (RMS + peak atau RMS + kurtosis). (4) <strong>Tidak ada sensor health check</strong>, heartbeat &amp; range validation (sensor reading di luar physically possible range = sensor failure, bukan reading valid). (5) <strong>Alarm flood ignored</strong>, ANSI/ISA 18.2 limit ≤ 1 alarm/10 min/operator. Lebih dari itu, operator alarm fatigue → ignore semua alarm. (6) <strong>Tidak ada alarm rationalization</strong>, review periodik (6–12 bulan): alarm yang tidak pernah actionable harus dihapus. (7) <strong>Threshold tidak adaptif drift</strong>, komponen mesin baru beda dari aged. Re-tune threshold setelah 6 bulan operational atau setelah major maintenance. Modern best practice: <em>rule-based core</em> + <em>adaptive threshold</em> via ML (Pertemuan 14).</p>
     </div>
   </div>
+
+  <label class="pm-centang" data-pm="6"><input type="checkbox" disabled aria-describedby="pm-status-6"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Aplikasi Rule-Based Monitoring diIndustri 4.0 &amp;amp; IoT Manufaktur</b>.</span><em class="pm-status" id="pm-status-6"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 08 — PYTHON RULE-BASED MONITORING ═══ -->
@@ -2646,6 +2660,8 @@ result = <span class="fn">run_monitoring_pipeline</span>(rms_demo, timestamps=ts
 <span class="fn">print</span>(<span class="st">f"   Pakai untuk pompa, motor, fan, kompressor, gearbox, selama ada sensor RMS."</span>)
 <span class="fn">print</span>(<span class="st">f"   Production: tambahkan MQTT client, database TimescaleDB, dashboard Streamlit/Grafana."</span>)</pre>
   </div>
+
+  <label class="pm-centang" data-pm="7"><input type="checkbox" disabled aria-describedby="pm-status-7"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Implementasi PythonRule-Based Monitoring di Jupyter Notebook</b>.</span><em class="pm-status" id="pm-status-7"></em></label>
 </div>
 
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
@@ -10522,5 +10538,198 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
   }, true);
 })();
 </script>
+<!-- PROGRES-MODUL: awal -->
+<style>
+.pm-centang{display:flex;align-items:flex-start;gap:12px;margin:28px 0 6px;padding:14px 16px;border:1px solid rgba(0,224,158,.28);border-radius:12px;background:rgba(0,224,158,.05);color:#c9d6ea;font-size:14px;line-height:1.55;cursor:pointer;transition:border-color .2s,background .2s}
+.pm-centang input{width:20px;height:20px;margin-top:2px;accent-color:#00e09e;flex:none;cursor:pointer}
+.pm-centang input:disabled{cursor:not-allowed}
+.pm-centang.pm-selesai{border-color:rgba(0,224,158,.55);background:rgba(0,224,158,.10)}
+.pm-centang.pm-selesai .pm-teks{color:#e9fff6}
+.pm-centang.pm-nonaktif{opacity:.55;cursor:not-allowed}
+.pm-centang .pm-status{margin-left:auto;flex:none;font:600 11px 'JetBrains Mono',monospace;color:#7fd9b8;font-style:normal;white-space:nowrap}
+.nav-tab.pm-terkunci{opacity:.45;cursor:not-allowed;position:relative}
+.nav-tab.pm-terkunci::after{content:' 🔒';font-size:10px}
+.pm-kunci-modal{max-width:520px!important;text-align:left!important}
+.pm-kunci-modal h2{text-align:center}
+.pm-kunci-modal ul{list-style:none;padding:0;margin:14px 0 18px;display:grid;gap:8px}
+.pm-kunci-modal li{padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);font-size:.9rem;color:#cbd5e1}
+.pm-kunci-modal li.ok{border-color:rgba(0,224,158,.35);color:#9ff3d2}
+.pm-kunci-modal li.kurang{border-color:rgba(251,113,133,.35);color:#fecdd3}
+.pm-toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:9500;background:rgba(15,23,42,.95);border:1px solid rgba(148,163,184,.35);color:#e2e8f0;padding:10px 16px;border-radius:10px;font-size:.85rem;box-shadow:0 12px 32px rgba(0,0,0,.45);opacity:0;transition:opacity .25s;pointer-events:none;max-width:min(92vw,520px);text-align:center}
+.pm-toast.tampil{opacity:1}
+</style>
+<script type="module">
+import { getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+(function () {
+  var SIM_NIMS = new Set(['41399999901']);
+  var TAB_TERKUNCI = ['tugas', 'forum', 'hasil'];
+  var fx = null;
+  function panggil(nama, data) {
+    if (!fx) fx = getFunctions(getApp(), 'asia-southeast1');
+    return httpsCallable(fx, nama)(data).then(function (r) { return (r && r.data) || {}; });
+  }
+  function identitas() { try { return typeof getIdentityLocal === 'function' ? getIdentityLocal() : null; } catch (e) { return null; } }
+  // Hanya mahasiswa sungguhan yang digerbang.
+  function mhsAktif() {
+    var me = identitas();
+    return !!(me && me.role === 'student' && me.nim && !SIM_NIMS.has(String(me.nim)) && !window._previewMode);
+  }
+  function dasar() {
+    var me = identitas();
+    return { modulId: window.MODUL_ID, nim: me && String(me.nim), pinHash: window._sessionPinHash };
+  }
+  var nomorModul = (function () { var m = /-modul-(\d+)$/.exec(String(window.MODUL_ID || '')); return m ? Number(m[1]) : 1; })();
+
+  var kotak = Array.prototype.slice.call(document.querySelectorAll('.pm-centang'));
+  var total = kotak.length;
+  var centang = 0;          // jumlah bagian yang sudah dicentang (berurutan)
+  var bebas = true;         // dosen/preview/simulasi: tidak digerbang, tidak disimpan
+  var sibuk = false;
+
+  var toastEl = null, toastTimer = null;
+  function toast(pesan, lama) {
+    if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'pm-toast'; document.body.appendChild(toastEl); }
+    toastEl.textContent = pesan; toastEl.classList.add('tampil');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { toastEl.classList.remove('tampil'); }, lama || 3200);
+  }
+
+  function render() {
+    kotak.forEach(function (el, i) {
+      var cb = el.querySelector('input'), st = el.querySelector('.pm-status');
+      var selesai = i < centang, giliran = i === centang;
+      cb.checked = selesai;
+      cb.disabled = !bebas && !giliran;
+      el.classList.toggle('pm-selesai', selesai);
+      el.classList.toggle('pm-nonaktif', !bebas && !selesai && !giliran);
+      if (st) st.textContent = selesai ? '✓ dipahami' : (giliran ? 'bagian ' + (i + 1) + ' dari ' + total : 'selesaikan bagian sebelumnya');
+    });
+    kunciTab(!bebas && centang < total);
+  }
+  function kunciTab(kunci) {
+    TAB_TERKUNCI.forEach(function (t) {
+      var b = document.getElementById('tab-' + t); if (!b) return;
+      b.classList.toggle('pm-terkunci', kunci);
+      b.setAttribute('aria-disabled', kunci ? 'true' : 'false');
+      b.title = kunci ? 'Centang semua bagian materi dulu (' + centang + '/' + total + ')' : '';
+    });
+  }
+  // switchTab adalah fungsi global klasik; dibungkus agar tab terkunci tidak bisa dibuka lewat cara lain.
+  var switchAsli = window.switchTab;
+  if (typeof switchAsli === 'function') {
+    window.switchTab = function (tab) {
+      if (!bebas && centang < total && TAB_TERKUNCI.indexOf(tab) >= 0) {
+        toast('🔒 Tab ' + tab.charAt(0).toUpperCase() + tab.slice(1) + ' terbuka setelah semua bagian materi dicentang (' + centang + '/' + total + ').');
+        return;
+      }
+      return switchAsli.apply(this, arguments);
+    };
+  }
+
+  kotak.forEach(function (el, i) {
+    el.querySelector('input').addEventListener('change', function (ev) {
+      var cb = ev.target;
+      if (bebas) { if (cb.checked) centang = Math.max(centang, i + 1); else centang = Math.min(centang, i); render(); return; }
+      if (!cb.checked) { cb.checked = true; return; }           // tidak bisa dibatalkan
+      if (i !== centang || sibuk) { cb.checked = i < centang; return; }
+      sibuk = true; cb.disabled = true;
+      var d = dasar(); d.index = i; d.total = total;
+      panggil('setModulCentang', d).then(function (r) {
+        centang = Number(r.centang) || (i + 1);
+        render();
+        if (centang >= total) toast('🎉 Semua bagian materi sudah dipahami. Tab Tugas, Forum, dan Hasil kini terbuka.', 4500);
+        else { var next = kotak[centang]; if (next) next.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      }).catch(function (e) {
+        cb.checked = false;
+        toast('⚠ ' + ((e && e.message) || 'Gagal menyimpan centang. Coba lagi.'));
+        if (/login ulang/i.test(String(e && e.message))) window._sessionPinHash = null;
+      }).finally(function () { sibuk = false; render(); });
+    });
+  });
+
+  // Overlay kunci bila modul sebelumnya belum lengkap.
+  function tampilkanKunci(pras) {
+    var ov = document.createElement('div');
+    ov.className = 'visitor-overlay'; ov.style.zIndex = '100001';
+    var n = pras.n;
+    var baris = function (ok, teks) { return '<li class="' + (ok ? 'ok' : 'kurang') + '">' + (ok ? '✅ ' : '❌ ') + teks + '</li>'; };
+    ov.innerHTML = '<div class="visitor-modal pm-kunci-modal">'
+      + '<div style="font-size:2.6rem;text-align:center;margin-bottom:8px">🔒</div>'
+      + '<h2>Modul ' + nomorModul + ' belum bisa dibuka</h2>'
+      + '<p class="sub" style="text-align:center">Selesaikan <strong>Modul ' + n + '</strong> lebih dulu. Materi dipelajari berurutan.</p>'
+      + '<ul>'
+      + baris(pras.centangLengkap, 'Centang pemahaman materi Modul ' + n + ': ' + pras.centang + ' / ' + (pras.total || '?') + ' bagian')
+      + baris(pras.tugasSelesai, 'Tugas Modul ' + n + ': ' + pras.soalDicoba + ' / ' + pras.totalSoal + ' soal dikerjakan')
+      + baris(pras.forumSelesai, 'Forum Modul ' + n + ': 3 jawaban diskusi (≥ 30 kata)')
+      + '</ul>'
+      + '<a class="v-btn-primary" style="display:block;text-decoration:none;text-align:center" href="Modul-' + n + '.html">📖 Buka Modul ' + n + ' →</a>'
+      + '<button class="v-btn-cancel" type="button" id="pmKeluar">🚪 Keluar</button>'
+      + '</div>';
+    document.body.appendChild(ov);
+    var fab = document.getElementById('visitorFab'); if (fab) fab.style.display = 'none';
+    ov.querySelector('#pmKeluar').addEventListener('click', function () {
+      if (typeof window._switchRole === 'function') window._switchRole(); else location.reload();
+    });
+  }
+
+  var forumDimuat = false;
+  function muatProgres() {
+    if (!mhsAktif()) { bebas = true; render(); return; }
+    var d = dasar();
+    if (!d.pinHash) { bebas = false; render(); return; }   // sesi PIN belum ada: tetap terkunci sampai login ulang
+    bebas = false; render();
+    panggil('getModulProgress', d).then(function (p) {
+      if (p.akses && p.akses.boleh === false && p.akses.prasyarat) { tampilkanKunci(p.akses.prasyarat); return; }
+      centang = Math.min(total, Number(p.centang) || 0);
+      render();
+      if (!forumDimuat && p.forum) {
+        forumDimuat = true;
+        ['fq1', 'fq2', 'fq3'].forEach(function (id) {
+          var ta = document.getElementById('ans-' + id);
+          if (ta && !ta.value && typeof p.forum[id] === 'string' && p.forum[id]) ta.value = p.forum[id];
+        });
+        if (typeof window.checkForumReady === 'function') try { window.checkForumReady(); } catch (e) {}
+      }
+    }).catch(function (e) {
+      console.warn('[progres-modul] gagal memuat progres:', e && e.message);
+      toast('⚠ Gagal memuat progres materi: ' + ((e && e.message) || 'koneksi'));
+    });
+  }
+  // _loadScoredQuestions dipanggil di ketiga jalur login (PIN baru, verifikasi PIN,
+  // auto-login); dibungkus supaya progres ikut dimuat tanpa menyentuh jalur itu.
+  var loadAsli = window._loadScoredQuestions;
+  window._loadScoredQuestions = function () {
+    try { muatProgres(); } catch (e) { console.warn('[progres-modul]', e); }
+    return typeof loadAsli === 'function' ? loadAsli.apply(this, arguments) : undefined;
+  };
+
+  // Forum → server (debounce), hanya mahasiswa sungguhan.
+  var forumTimer = null, forumTerakhir = '';
+  function simpanForum() {
+    if (!mhsAktif()) return;
+    var j = {};
+    ['fq1', 'fq2', 'fq3'].forEach(function (id) { var ta = document.getElementById('ans-' + id); j[id] = ta ? ta.value : ''; });
+    var kunci = JSON.stringify(j);
+    if (kunci === forumTerakhir) return;
+    var d = dasar(); if (!d.pinHash) return;
+    d.jawaban = j;
+    panggil('saveModulForum', d).then(function (r) {
+      forumTerakhir = kunci;
+      if (r.forumSelesai) toast('💾 Jawaban forum tersimpan di server — forum modul ini selesai.');
+    }).catch(function (e) { console.warn('[progres-modul] forum:', e && e.message); });
+  }
+  var forumAsli = window.checkForumReady;
+  if (typeof forumAsli === 'function') {
+    window.checkForumReady = function () {
+      var r = forumAsli.apply(this, arguments);
+      clearTimeout(forumTimer); forumTimer = setTimeout(simpanForum, 1500);
+      return r;
+    };
+  }
+
+  render();
+})();
+</script>
+<!-- PROGRES-MODUL: akhir -->
 </body>
 </html>
