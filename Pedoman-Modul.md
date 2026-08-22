@@ -274,6 +274,15 @@ Untuk menguji alur mahasiswa tanpa mengotori data, ada satu akun uji: NIM `41399
 
 Saat membersihkan sisa data akun ini di Firestore, ingat kunci dokumen modul memakai prefiks: `modulAttempts/<id>/students/mhs_<nim>` (exam: `examAttempts/<id>/students/<nim>`).
 
+**Cara pakai (dosen):**
+
+- Masuk lewat tombol 🎓 Mahasiswa dengan NIM di atas dan PIN yang dipegang dosen (PIN disimpan di luar repo). Sesi ini mengalami semua gerbang persis mahasiswa: kotak centang berurutan, tab terkunci, forum tersimpan, umpan balik jawaban lengkap.
+- Mengulang uji soal: cukup jawab lagi — soal tidak pernah terkunci untuk akun ini. Mengulang uji centang: batalkan kotak terakhir satu per satu (hanya akun ini yang bisa). Mengulang dari nol: hapus dokumen `progresModul/<modulId>/students/mhs_41399999901` dengan admin SDK.
+- Di tab Hasil akun ini melihat papan peringkat dan roster mahasiswa lain, tetapi **tidak melihat dirinya sendiri** (tidak ada record pengunjung). Bilah poin di tab Tugas menunjukkan poin lokal sesi itu saja dan hilang saat muat ulang.
+- Gerbang antar-modul tidak bisa diuji dengan akun ini (selalu lolos); lapis servernya diuji lewat data mahasiswa nyata (lihat §6.7).
+
+**Mengganti nama atau PIN:** nama ada di empat `students.json` **dan** di RTDB `pins/mhs_41399999901.nama` (perbarui keduanya; `pins/` hanya bisa ditulis admin SDK karena write-once untuk klien). Mengganti PIN: hapus node `pins/mhs_41399999901`, lalu login sekali dengan PIN baru (alur "Buat PIN" akan menulis hash baru). Jangan pernah menuliskan PIN-nya di repo, commit, atau dokumen ini.
+
 ---
 
 ## 5. Jadwal dan WIB
@@ -479,7 +488,7 @@ File HTML lokal tetap dapat diedit oleh pemilik file. Kode HMAC tidak mencegah e
 
 ### 6.6 Hasil dan presence modul
 
-Tab Hasil membaca record visitor untuk statistik, aktivitas, dan skor. Presence realtime terpisah dari riwayat kunjungan. Jangan menyimpulkan “online” hanya dari `lastVisit`.
+Tab Hasil membaca record visitor untuk statistik, aktivitas, dan skor. Presence realtime terpisah dari riwayat kunjungan. Jangan menyimpulkan “online” hanya dari `lastVisit`. Akun simulasi (§4.5) disaring dari papan peringkat, tabel roster, dan penyebut hadir/total oleh `scripts/kecualikan-akun-simulasi.mjs`; bila menulis fungsi render baru di tab Hasil, saring lagi dengan `isSimulasiNim(nim)`.
 
 ### 6.7 Progres materi berurutan dan gerbang antar-modul
 
@@ -781,7 +790,7 @@ Jangan menulis klaim “screenshot mustahil” atau “Alt+Tab diblokir total”
 | Path | Isi |
 |---|---|
 | `pins/mhs_<NIM>` | hash PIN global dan identitas dasar |
-| `visitors/<course>/<slot>/mhs_<NIM>` | kunjungan, points, marker, selection, code, link, dan score delta |
+| `visitors/<course>/<slot>/mhs_<NIM>` | kunjungan, points, marker, selection, code, link, dan score delta — tidak pernah ditulis untuk akun simulasi (§4.5) |
 | `settings/<course>/<slot>/schedule` | start, end, duration, due, extension |
 | `settings/<course>/<slot>/scheduleOverrides/mhs_<NIM>` | override `end`/`extension` per NIM untuk ujian susulan (§5.5); admin-only write |
 | `presence/<course>/<slot>/mhs_<NIM>` | heartbeat online |
@@ -835,7 +844,7 @@ Daftar callable yang digunakan sistem saat ini:
 | `getMyObeNilai` | mahasiswa + PIN | mengambil nilai OBE mahasiswa tersebut |
 | `getModulProgress` | mahasiswa + PIN | progres centang/forum/tugas modul ini + hasil gerbang akses |
 | `checkModulAccess` | mahasiswa + PIN | boleh masuk modul ini? (modul sebelumnya lengkap) |
-| `setModulCentang` | mahasiswa + PIN | mencentang bagian materi ke-*i*; ditolak bila tidak urut |
+| `setModulCentang` | mahasiswa + PIN | mencentang bagian materi ke-*i*; ditolak bila tidak urut. Parameter `batal:true` membatalkan centang terakhir dan hanya diterima untuk akun simulasi (`SIM_NIMS`) |
 | `saveModulForum` | mahasiswa + PIN | menyimpan tiga jawaban forum; `forumSelesai` bila masing-masing ≥ 30 kata |
 | `deleteObeNilai` | admin | menghapus nilai OBE terpublikasi satu course |
 | `getModuleChatContext` | mahasiswa + PIN | bootstrap sapaan/konteks AI chat modul (deterministik, tidak memanggil model) |
