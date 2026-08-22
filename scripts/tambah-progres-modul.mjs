@@ -50,7 +50,7 @@ const RX_SISKEN_CENTANG_JS = /\nwindow\.siskenCentang=function\(n,i\)\{[\s\S]*?\
 const RX_SECTION_AWAL = /<div class="section" id="(m-[a-z0-9-]+)">/g;
 function judulBagian(html) {
   const m = /<h2 class="section-title[^"]*"[^>]*>([\s\S]*?)<\/h2>/.exec(html);
-  return m ? m[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim() : "";
+  return m ? m[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").replace(/\s*:\s*/g, ": ").trim() : "";
 }
 // Cari indeks penutup </div> yang seimbang untuk div yang dibuka di `mulai`.
 function akhirDiv(html, mulai) {
@@ -74,13 +74,18 @@ function kotakCentang(i, judul) {
 // 3. CSS + runtime.
 const BLOK = `${PENANDA_AWAL}
 <style>
-.pm-centang{display:flex;align-items:flex-start;gap:12px;margin:28px 0 6px;padding:14px 16px;border:1px solid rgba(0,224,158,.28);border-radius:12px;background:rgba(0,224,158,.05);color:#c9d6ea;font-size:14px;line-height:1.55;cursor:pointer;transition:border-color .2s,background .2s}
-.pm-centang input{width:20px;height:20px;margin-top:2px;accent-color:#00e09e;flex:none;cursor:pointer}
+.pm-centang{display:flex;align-items:center;gap:16px;margin:32px 0 8px;padding:18px 22px;border:2px solid rgba(0,224,158,.45);border-radius:16px;background:linear-gradient(135deg,rgba(0,224,158,.14),rgba(34,211,238,.10));box-shadow:0 0 0 1px rgba(0,224,158,.12),0 10px 30px rgba(0,0,0,.28);color:#eaf2ff;font-size:17px;line-height:1.55;cursor:pointer;transition:border-color .2s,background .2s,box-shadow .2s}
+.pm-centang:hover{border-color:rgba(0,224,158,.75);box-shadow:0 0 0 1px rgba(0,224,158,.25),0 12px 34px rgba(0,224,158,.18)}
+.pm-centang input{width:26px;height:26px;margin:0;accent-color:#00e09e;flex:none;cursor:pointer}
 .pm-centang input:disabled{cursor:not-allowed}
-.pm-centang.pm-selesai{border-color:rgba(0,224,158,.55);background:rgba(0,224,158,.10)}
-.pm-centang.pm-selesai .pm-teks{color:#e9fff6}
-.pm-centang.pm-nonaktif{opacity:.55;cursor:not-allowed}
-.pm-centang .pm-status{margin-left:auto;flex:none;font:600 11px 'JetBrains Mono',monospace;color:#7fd9b8;font-style:normal;white-space:nowrap}
+.pm-centang .pm-teks b{color:#7ff5cf;font-weight:800}
+.pm-centang.pm-selesai{border-color:#00e09e;background:linear-gradient(135deg,rgba(0,224,158,.26),rgba(34,211,238,.16));box-shadow:0 0 0 1px rgba(0,224,158,.35),0 10px 30px rgba(0,224,158,.18)}
+.pm-centang.pm-selesai .pm-teks{color:#ffffff}
+.pm-centang.pm-nonaktif{opacity:.5;cursor:not-allowed;border-style:dashed;background:rgba(148,163,184,.06);box-shadow:none}
+.pm-centang .pm-status{margin-left:auto;flex:none;font:700 12px 'JetBrains Mono',monospace;font-style:normal;white-space:nowrap;padding:6px 12px;border-radius:999px;background:rgba(0,224,158,.16);color:#9ff3d2;border:1px solid rgba(0,224,158,.35)}
+.pm-centang.pm-selesai .pm-status{background:#00e09e;color:#04261b;border-color:#00e09e}
+.pm-centang.pm-nonaktif .pm-status{background:rgba(148,163,184,.12);color:#94a3b8;border-color:rgba(148,163,184,.3)}
+@media(max-width:640px){.pm-centang{flex-wrap:wrap;font-size:15.5px;padding:16px}.pm-centang .pm-status{margin-left:42px}}
 .nav-tab.pm-terkunci{opacity:.45;cursor:not-allowed;position:relative}
 .nav-tab.pm-terkunci::after{content:' 🔒';font-size:10px}
 .pm-kunci-modal{max-width:520px!important;text-align:left!important}
@@ -274,7 +279,10 @@ function proses(berkas) {
   if (RX_DAFTAR_PERIKSA.test(html)) { html = html.replace(RX_DAFTAR_PERIKSA, ""); catatan.push("hapus-daftar-periksa"); }
   if (RX_SISKEN_CENTANG_JS.test(html)) { html = html.replace(RX_SISKEN_CENTANG_JS, ""); catatan.push("hapus-siskenCentang"); }
 
-  if (!html.includes('class="pm-centang"')) {
+  {
+    // Kotak lama dibuang dulu supaya teks/pengecualian/indeks selalu mengikuti skrip ini.
+    const RX_KOTAK_LAMA = /\n  <label class="pm-centang"[\s\S]*?<\/label>\n/g;
+    html = html.replace(RX_KOTAK_LAMA, "");
     // Sisipkan dari belakang supaya indeks awal tidak bergeser.
     const bagian = [];
     let m;
@@ -283,7 +291,9 @@ function proses(berkas) {
       const tutup = akhirDiv(html, m.index);
       if (tutup < 0) throw new Error(`${path.basename(berkas)}: penutup bagian ${m[1]} tidak ditemukan`);
       const judul = judulBagian(html.slice(m.index, tutup));
-      if (/daftar pustaka/i.test(judul)) continue;
+      // Dikecualikan: Daftar Pustaka, dan bagian orientasi "Posisi Anda dan Sisa
+      // Waktu" (Sisken, bagian 01) — bukan materi (permintaan dosen, 22 Agu 2026).
+      if (/daftar pustaka|posisi anda/i.test(judul)) continue;
       bagian.push({ id: m[1], tutup, judul });
     }
     if (bagian.length < 3) throw new Error(`${path.basename(berkas)}: hanya ${bagian.length} bagian materi terdeteksi`);
