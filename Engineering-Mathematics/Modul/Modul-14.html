@@ -12070,11 +12070,13 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     return httpsCallable(fx, nama)(data).then(function (r) { return (r && r.data) || {}; });
   }
   function identitas() { try { return typeof getIdentityLocal === 'function' ? getIdentityLocal() : null; } catch (e) { return null; } }
-  // Hanya mahasiswa sungguhan yang digerbang.
+  // Mahasiswa dan akun simulasi digerbang (simulasi = persis mahasiswa, kecuali
+  // boleh membatalkan centang terakhir untuk uji ulang). Dosen & preview bebas.
   function mhsAktif() {
     var me = identitas();
-    return !!(me && me.role === 'student' && me.nim && !SIM_NIMS.has(String(me.nim)) && !window._previewMode);
+    return !!(me && me.role === 'student' && me.nim && !window._previewMode);
   }
+  function akunSimulasi() { var me = identitas(); return !!(me && SIM_NIMS.has(String(me.nim))); }
   function dasar() {
     var me = identitas();
     return { modulId: window.MODUL_ID, nim: me && String(me.nim), pinHash: window._sessionPinHash };
@@ -12103,14 +12105,15 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
       cb.checked = selesai;
       // Berurutan untuk SEMUA peran: hanya kotak giliran yang aktif. Pada mode
       // bebas (dosen/preview/simulasi) kotak terakhir boleh dibatalkan untuk uji coba.
-      cb.disabled = bebas ? !(giliran || i === centang - 1) : !giliran;
+      cb.disabled = (bebas || akunSimulasi()) ? !(giliran || i === centang - 1) : !giliran;
       el.classList.toggle('pm-selesai', selesai);
       el.classList.toggle('pm-nonaktif', !selesai && !giliran);
       if (st) st.textContent = selesai ? '✓ dipahami' : (giliran ? 'bagian ' + (i + 1) + ' dari ' + total : 'selesaikan bagian sebelumnya');
     });
-    // Tab Tugas/Forum/Hasil terkunci untuk SEMUA peran sampai centang lengkap
-    // (permintaan dosen, 22 Agu 2026). Mode bebas diingat di localStorage.
-    kunciTab(centang < total);
+    // Tab Tugas/Forum/Hasil terkunci untuk mahasiswa & akun simulasi sampai
+    // centang lengkap; dosen/preview (mode bebas) tidak dikunci. Mode bebas
+    // diingat di localStorage.
+    kunciTab(!bebas && centang < total);
     if (bebas) { try { localStorage.setItem(KUNCI_BEBAS, String(centang)); } catch (e) {} }
   }
   function kunciTab(kunci) {
@@ -12125,7 +12128,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   var switchAsli = window.switchTab;
   if (typeof switchAsli === 'function') {
     window.switchTab = function (tab) {
-      if (centang < total && TAB_TERKUNCI.indexOf(tab) >= 0) {
+      if (!bebas && centang < total && TAB_TERKUNCI.indexOf(tab) >= 0) {
         toast('🔒 Tab ' + tab.charAt(0).toUpperCase() + tab.slice(1) + ' terbuka setelah semua bagian materi dicentang (' + centang + '/' + total + ').');
         return;
       }
@@ -12141,7 +12144,16 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         else if (!cb.checked && i === centang - 1) centang = i;
         render(); return;
       }
-      if (!cb.checked) { cb.checked = true; return; }           // tidak bisa dibatalkan
+      if (!cb.checked) {
+        // Mahasiswa tidak bisa membatalkan; akun simulasi boleh membatalkan yang terakhir (server memvalidasi).
+        if (!(akunSimulasi() && i === centang - 1) || sibuk) { cb.checked = true; return; }
+        sibuk = true; cb.disabled = true;
+        var db = dasar(); db.index = i; db.total = total; db.batal = true;
+        panggil('setModulCentang', db).then(function (r) { centang = Number(r.centang) || i; })
+          .catch(function (e) { cb.checked = true; toast('⚠ ' + ((e && e.message) || 'Gagal membatalkan centang.')); })
+          .finally(function () { sibuk = false; render(); });
+        return;
+      }
       if (i !== centang || sibuk) { cb.checked = i < centang; return; }
       sibuk = true; cb.disabled = true;
       var d = dasar(); d.index = i; d.total = total;
