@@ -1625,6 +1625,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="tip-box reveal">
     💡 <strong>Prinsip Utama:</strong> Sebelum pakai ANOVA: (1) <em>Cek asumsi</em>, normality (Shapiro-Wilk test), homoscedasticity / equal variance (Levene's test), independence antar-trial. (2) <em>Replicate</em> — minimal n=3 ulangan per kombinasi level untuk estimasi noise. (3) <em>Randomize</em> urutan eksperimen untuk hindari bias temporal (alat memanas, operator lelah). (4) <em>Set \(\alpha\)</em> di awal (biasanya 0.05), jangan ubah setelah lihat data (p-hacking). (5) Kalau ANOVA signifikan, lakukan <strong>post-hoc test</strong> (Tukey HSD) untuk mengidentifikasi level mana yang berbeda. (6) Untuk faktor <em>banyak (≥ 5)</em>, pakai <strong>fractional factorial</strong> atau <strong>Taguchi orthogonal arrays</strong> agar jumlah trial tetap manageable.
   </div>
+
+  <label class="pm-centang" data-pm="0"><input type="checkbox" disabled aria-describedby="pm-status-0"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Mengapa ANOVA:Saat Optimasi Harus Dibuktikan Lewat Eksperimen Berisik</b>.</span><em class="pm-status" id="pm-status-0"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 02 — ANOVA CORE (F-TEST, SUM OF SQUARES) ═══ -->
@@ -1709,6 +1711,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="tip-box reveal">
     💡 <strong>Implementasi <code>scipy.stats.f_oneway</code>:</strong> One-liner dalam Python: <code>from scipy.stats import f_oneway; F, p = f_oneway(group1, group2, group3)</code>. <strong>statsmodels</strong> memberikan tabel ANOVA lengkap: <code>import statsmodels.api as sm; from statsmodels.formula.api import ols; model = ols('y ~ C(faktor)', data=df).fit(); table = sm.stats.anova_lm(model, typ=2); print(table)</code>. Untuk effect size dan power analysis: <strong>pingouin</strong> (<code>pg.anova</code> + <code>pg.power_anova</code>). Visualisasi efek: <strong>seaborn.pointplot(x='faktor', y='y', data=df)</strong> + boxplot.
   </div>
+
+  <label class="pm-centang" data-pm="1"><input type="checkbox" disabled aria-describedby="pm-status-1"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>ANOVA Core:Partisi Varians, F-Statistic &amp;amp; p-Value</b>.</span><em class="pm-status" id="pm-status-1"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 03 — PARTICLE SWARM OPTIMIZATION ═══ -->
@@ -1797,6 +1801,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="tip-box reveal">
     💡 <strong>Implementasi statsmodels (workflow lengkap one-way ANOVA):</strong> <code>import pandas as pd; import statsmodels.api as sm; from statsmodels.formula.api import ols; from statsmodels.stats.multicomp import pairwise_tukeyhsd; df = pd.DataFrame({'arus': [100]*4 + [150]*4 + [200]*4, 'strength': [...]}); model = ols('strength ~ C(arus)', data=df).fit(); print(sm.stats.anova_lm(model, typ=2)); print(pairwise_tukeyhsd(df.strength, df.arus, alpha=0.05))</code>. Sangat ekspresif. Alternatif quick: <code>scipy.stats.f_oneway(g1, g2, g3) → (F, p)</code>. Untuk effect size langsung: <code>pingouin.anova(data=df, dv='strength', between='arus', detailed=True)</code>.
   </div>
+
+  <label class="pm-centang" data-pm="2"><input type="checkbox" disabled aria-describedby="pm-status-2"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>One-Way ANOVA Workflow:Dari Desain Eksperimen ke Pemilihan Level Optimum</b>.</span><em class="pm-status" id="pm-status-2"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 04 — TWO-WAY ANOVA & FAKTORIAL DESIGN ═══ -->
@@ -1887,6 +1893,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <p>(1) <strong>Multiple comparisons</strong>, saat banyak ANOVA dijalankan paralel, family-wise error rate naik. Bonferroni atau Tukey HSD wajib. (2) <strong>Asumsi normality runtuh</strong>, solusi: transformasi (log, Box-Cox) atau Kruskal-Wallis non-parametric. (3) <strong>Asumsi equal variance runtuh</strong>, lalu pakai Welch's ANOVA atau Games-Howell post-hoc. (4) <strong>Sample size tidak balance</strong> — ANOVA Type I/II/III SS bisa beda hasil; rule: balanced design hindari masalah. (5) <strong>p-value ≠ effect size</strong> — p kecil tapi η² kecil (mis. 0.01) artinya signifikan tapi tidak praktis. Reporting WAJIB menyertakan effect size. (6) <strong>Korelasi antar trial</strong> — kalau urutan trial berkorelasi (mis. operator lelah), independence runtuh; pakai randomized block design atau repeated-measures ANOVA. (7) <strong>Faktor terabaikan (lurking variable)</strong> — contoh: humiditas tidak dikontrol, mempengaruhi hasil. Catat semua kondisi.</p>
     </div>
   </div>
+
+  <label class="pm-centang" data-pm="3"><input type="checkbox" disabled aria-describedby="pm-status-3"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Two-Way ANOVA &amp;amp; Faktorial Design:Dua Faktor, Efek Utama &amp;amp; Interaksi</b>.</span><em class="pm-status" id="pm-status-3"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 05 — ANALOGI ANOVA ═══ -->
@@ -1935,6 +1943,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="tip-box reveal">
     💡 <strong>Pola yang Sama di Semua Analogi:</strong> ANOVA bekerja karena <em>partisi varians antara sumber sistematik (efek faktor) vs noise (random variation)</em>. Setiap kali Anda bertanya "<em>apakah perbedaan ini real?</em>", Anda implisit melakukan ANOVA. Trade-off klasik <strong style="color:var(--cyan)">sensitivity vs specificity</strong>: α terlalu kecil (0.001) → false negative, lewat efek nyata; α terlalu besar (0.10) → false positive, klaim efek dari noise. Insight bagi engineer: <em>jangan klaim efek dari satu trial</em>; replikasi minimal n=3, randomize urutan, kontrol noise variables (suhu, operator, batch material). Tetapi <strong>signifikan ≠ besar</strong>, efek kecil yang signifikan secara statistik bisa <em>tidak praktis</em> di engineering. Selalu laporkan effect size (η² atau Cohen's d) bersama p-value.
   </div>
+
+  <label class="pm-centang" data-pm="4"><input type="checkbox" disabled aria-describedby="pm-status-4"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>AnalogiANOVA di Lab, Pabrik &amp;amp; Sehari-hari</b>.</span><em class="pm-status" id="pm-status-4"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 06 — ANIMASI INTERAKTIF ═══ -->
@@ -2075,6 +2085,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     </div>
   </div>
 
+
+  <label class="pm-centang" data-pm="5"><input type="checkbox" disabled aria-describedby="pm-status-5"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Animasi InteraktifVisualisasi Konsep ANOVA &amp;amp; F-Distribution</b>.</span><em class="pm-status" id="pm-status-5"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 07 — APLIKASI ANOVA DI TEKNIK MESIN ═══ -->
@@ -2129,6 +2141,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <p>(1) <strong>p-hacking</strong>, jangan ubah α atau hipotesis setelah lihat data. Pre-register protokol eksperimen + analisis sebelum data collection. (2) <strong>Asumsi runtuh tetap dipakai</strong>, kalau Shapiro p &lt; 0.05 (tidak normal), pakai Kruskal-Wallis non-parametric atau transformasi data (log, Box-Cox). Kalau Levene p &lt; 0.05 (variance tidak sama), pakai Welch's ANOVA. (3) <strong>Lupa post-hoc</strong> — ANOVA hanya bilang "ada efek"; tanpa Tukey HSD/Bonferroni, Anda tidak tahu pasangan mana yang berbeda. (4) <strong>Mengabaikan effect size</strong> — p-value bergantung pada sample size; effect kecil dengan n besar bisa signifikan tapi tidak praktis. Selalu laporkan η² atau ω². (5) <strong>Lurking variables</strong> — faktor tidak terukur (humiditas, suhu ruang, operator) bisa confound hasil. Catat semua kondisi eksperimen. (6) <strong>Tidak randomize</strong> — urutan trial sequential bisa terkontaminasi temporal effect (mesin memanas, operator lelah). Pakai random permutation. (7) <strong>Sample size kurang</strong> — power analysis sebelum eksperimen wajib. Untuk efek sedang (Cohen's d = 0.5), one-way ANOVA k=3 butuh n ≈ 28/grup untuk power 0.80.</p>
     </div>
   </div>
+
+  <label class="pm-centang" data-pm="6"><input type="checkbox" disabled aria-describedby="pm-status-6"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Aplikasi ANOVA diTeknik Mesin &amp;amp; Manufaktur</b>.</span><em class="pm-status" id="pm-status-6"></em></label>
 </div>
 
 <!-- ═══ BAGIAN 08 — PYTHON ANOVA ═══ -->
@@ -2513,6 +2527,8 @@ result = <span class="fn">run_anova_workflow</span>(df_demo, <span class="st">'t
 <span class="fn">print</span>(<span class="st">f"\n💡 Lesson: workflow ini reusable untuk eksperimen apapun, passing DataFrame + nama kolom."</span>)
 <span class="fn">print</span>(<span class="st">f"   Expand ke two-way: ganti scipy.stats.f_oneway dengan statsmodels.formula.api.ols + anova_lm"</span>)</pre>
   </div>
+
+  <label class="pm-centang" data-pm="7"><input type="checkbox" disabled aria-describedby="pm-status-7"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Implementasi PythonANOVA &amp;amp; Faktorial Design di Jupyter Notebook</b>.</span><em class="pm-status" id="pm-status-7"></em></label>
 </div>
 
 <!-- ═══ DAFTAR PUSTAKA ═══ -->
@@ -10322,5 +10338,198 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
   }, true);
 })();
 </script>
+<!-- PROGRES-MODUL: awal -->
+<style>
+.pm-centang{display:flex;align-items:flex-start;gap:12px;margin:28px 0 6px;padding:14px 16px;border:1px solid rgba(0,224,158,.28);border-radius:12px;background:rgba(0,224,158,.05);color:#c9d6ea;font-size:14px;line-height:1.55;cursor:pointer;transition:border-color .2s,background .2s}
+.pm-centang input{width:20px;height:20px;margin-top:2px;accent-color:#00e09e;flex:none;cursor:pointer}
+.pm-centang input:disabled{cursor:not-allowed}
+.pm-centang.pm-selesai{border-color:rgba(0,224,158,.55);background:rgba(0,224,158,.10)}
+.pm-centang.pm-selesai .pm-teks{color:#e9fff6}
+.pm-centang.pm-nonaktif{opacity:.55;cursor:not-allowed}
+.pm-centang .pm-status{margin-left:auto;flex:none;font:600 11px 'JetBrains Mono',monospace;color:#7fd9b8;font-style:normal;white-space:nowrap}
+.nav-tab.pm-terkunci{opacity:.45;cursor:not-allowed;position:relative}
+.nav-tab.pm-terkunci::after{content:' 🔒';font-size:10px}
+.pm-kunci-modal{max-width:520px!important;text-align:left!important}
+.pm-kunci-modal h2{text-align:center}
+.pm-kunci-modal ul{list-style:none;padding:0;margin:14px 0 18px;display:grid;gap:8px}
+.pm-kunci-modal li{padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);font-size:.9rem;color:#cbd5e1}
+.pm-kunci-modal li.ok{border-color:rgba(0,224,158,.35);color:#9ff3d2}
+.pm-kunci-modal li.kurang{border-color:rgba(251,113,133,.35);color:#fecdd3}
+.pm-toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:9500;background:rgba(15,23,42,.95);border:1px solid rgba(148,163,184,.35);color:#e2e8f0;padding:10px 16px;border-radius:10px;font-size:.85rem;box-shadow:0 12px 32px rgba(0,0,0,.45);opacity:0;transition:opacity .25s;pointer-events:none;max-width:min(92vw,520px);text-align:center}
+.pm-toast.tampil{opacity:1}
+</style>
+<script type="module">
+import { getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+(function () {
+  var SIM_NIMS = new Set(['41399999901']);
+  var TAB_TERKUNCI = ['tugas', 'forum', 'hasil'];
+  var fx = null;
+  function panggil(nama, data) {
+    if (!fx) fx = getFunctions(getApp(), 'asia-southeast1');
+    return httpsCallable(fx, nama)(data).then(function (r) { return (r && r.data) || {}; });
+  }
+  function identitas() { try { return typeof getIdentityLocal === 'function' ? getIdentityLocal() : null; } catch (e) { return null; } }
+  // Hanya mahasiswa sungguhan yang digerbang.
+  function mhsAktif() {
+    var me = identitas();
+    return !!(me && me.role === 'student' && me.nim && !SIM_NIMS.has(String(me.nim)) && !window._previewMode);
+  }
+  function dasar() {
+    var me = identitas();
+    return { modulId: window.MODUL_ID, nim: me && String(me.nim), pinHash: window._sessionPinHash };
+  }
+  var nomorModul = (function () { var m = /-modul-(\d+)$/.exec(String(window.MODUL_ID || '')); return m ? Number(m[1]) : 1; })();
+
+  var kotak = Array.prototype.slice.call(document.querySelectorAll('.pm-centang'));
+  var total = kotak.length;
+  var centang = 0;          // jumlah bagian yang sudah dicentang (berurutan)
+  var bebas = true;         // dosen/preview/simulasi: tidak digerbang, tidak disimpan
+  var sibuk = false;
+
+  var toastEl = null, toastTimer = null;
+  function toast(pesan, lama) {
+    if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'pm-toast'; document.body.appendChild(toastEl); }
+    toastEl.textContent = pesan; toastEl.classList.add('tampil');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { toastEl.classList.remove('tampil'); }, lama || 3200);
+  }
+
+  function render() {
+    kotak.forEach(function (el, i) {
+      var cb = el.querySelector('input'), st = el.querySelector('.pm-status');
+      var selesai = i < centang, giliran = i === centang;
+      cb.checked = selesai;
+      cb.disabled = !bebas && !giliran;
+      el.classList.toggle('pm-selesai', selesai);
+      el.classList.toggle('pm-nonaktif', !bebas && !selesai && !giliran);
+      if (st) st.textContent = selesai ? '✓ dipahami' : (giliran ? 'bagian ' + (i + 1) + ' dari ' + total : 'selesaikan bagian sebelumnya');
+    });
+    kunciTab(!bebas && centang < total);
+  }
+  function kunciTab(kunci) {
+    TAB_TERKUNCI.forEach(function (t) {
+      var b = document.getElementById('tab-' + t); if (!b) return;
+      b.classList.toggle('pm-terkunci', kunci);
+      b.setAttribute('aria-disabled', kunci ? 'true' : 'false');
+      b.title = kunci ? 'Centang semua bagian materi dulu (' + centang + '/' + total + ')' : '';
+    });
+  }
+  // switchTab adalah fungsi global klasik; dibungkus agar tab terkunci tidak bisa dibuka lewat cara lain.
+  var switchAsli = window.switchTab;
+  if (typeof switchAsli === 'function') {
+    window.switchTab = function (tab) {
+      if (!bebas && centang < total && TAB_TERKUNCI.indexOf(tab) >= 0) {
+        toast('🔒 Tab ' + tab.charAt(0).toUpperCase() + tab.slice(1) + ' terbuka setelah semua bagian materi dicentang (' + centang + '/' + total + ').');
+        return;
+      }
+      return switchAsli.apply(this, arguments);
+    };
+  }
+
+  kotak.forEach(function (el, i) {
+    el.querySelector('input').addEventListener('change', function (ev) {
+      var cb = ev.target;
+      if (bebas) { if (cb.checked) centang = Math.max(centang, i + 1); else centang = Math.min(centang, i); render(); return; }
+      if (!cb.checked) { cb.checked = true; return; }           // tidak bisa dibatalkan
+      if (i !== centang || sibuk) { cb.checked = i < centang; return; }
+      sibuk = true; cb.disabled = true;
+      var d = dasar(); d.index = i; d.total = total;
+      panggil('setModulCentang', d).then(function (r) {
+        centang = Number(r.centang) || (i + 1);
+        render();
+        if (centang >= total) toast('🎉 Semua bagian materi sudah dipahami. Tab Tugas, Forum, dan Hasil kini terbuka.', 4500);
+        else { var next = kotak[centang]; if (next) next.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      }).catch(function (e) {
+        cb.checked = false;
+        toast('⚠ ' + ((e && e.message) || 'Gagal menyimpan centang. Coba lagi.'));
+        if (/login ulang/i.test(String(e && e.message))) window._sessionPinHash = null;
+      }).finally(function () { sibuk = false; render(); });
+    });
+  });
+
+  // Overlay kunci bila modul sebelumnya belum lengkap.
+  function tampilkanKunci(pras) {
+    var ov = document.createElement('div');
+    ov.className = 'visitor-overlay'; ov.style.zIndex = '100001';
+    var n = pras.n;
+    var baris = function (ok, teks) { return '<li class="' + (ok ? 'ok' : 'kurang') + '">' + (ok ? '✅ ' : '❌ ') + teks + '</li>'; };
+    ov.innerHTML = '<div class="visitor-modal pm-kunci-modal">'
+      + '<div style="font-size:2.6rem;text-align:center;margin-bottom:8px">🔒</div>'
+      + '<h2>Modul ' + nomorModul + ' belum bisa dibuka</h2>'
+      + '<p class="sub" style="text-align:center">Selesaikan <strong>Modul ' + n + '</strong> lebih dulu. Materi dipelajari berurutan.</p>'
+      + '<ul>'
+      + baris(pras.centangLengkap, 'Centang pemahaman materi Modul ' + n + ': ' + pras.centang + ' / ' + (pras.total || '?') + ' bagian')
+      + baris(pras.tugasSelesai, 'Tugas Modul ' + n + ': ' + pras.soalDicoba + ' / ' + pras.totalSoal + ' soal dikerjakan')
+      + baris(pras.forumSelesai, 'Forum Modul ' + n + ': 3 jawaban diskusi (≥ 30 kata)')
+      + '</ul>'
+      + '<a class="v-btn-primary" style="display:block;text-decoration:none;text-align:center" href="Modul-' + n + '.html">📖 Buka Modul ' + n + ' →</a>'
+      + '<button class="v-btn-cancel" type="button" id="pmKeluar">🚪 Keluar</button>'
+      + '</div>';
+    document.body.appendChild(ov);
+    var fab = document.getElementById('visitorFab'); if (fab) fab.style.display = 'none';
+    ov.querySelector('#pmKeluar').addEventListener('click', function () {
+      if (typeof window._switchRole === 'function') window._switchRole(); else location.reload();
+    });
+  }
+
+  var forumDimuat = false;
+  function muatProgres() {
+    if (!mhsAktif()) { bebas = true; render(); return; }
+    var d = dasar();
+    if (!d.pinHash) { bebas = false; render(); return; }   // sesi PIN belum ada: tetap terkunci sampai login ulang
+    bebas = false; render();
+    panggil('getModulProgress', d).then(function (p) {
+      if (p.akses && p.akses.boleh === false && p.akses.prasyarat) { tampilkanKunci(p.akses.prasyarat); return; }
+      centang = Math.min(total, Number(p.centang) || 0);
+      render();
+      if (!forumDimuat && p.forum) {
+        forumDimuat = true;
+        ['fq1', 'fq2', 'fq3'].forEach(function (id) {
+          var ta = document.getElementById('ans-' + id);
+          if (ta && !ta.value && typeof p.forum[id] === 'string' && p.forum[id]) ta.value = p.forum[id];
+        });
+        if (typeof window.checkForumReady === 'function') try { window.checkForumReady(); } catch (e) {}
+      }
+    }).catch(function (e) {
+      console.warn('[progres-modul] gagal memuat progres:', e && e.message);
+      toast('⚠ Gagal memuat progres materi: ' + ((e && e.message) || 'koneksi'));
+    });
+  }
+  // _loadScoredQuestions dipanggil di ketiga jalur login (PIN baru, verifikasi PIN,
+  // auto-login); dibungkus supaya progres ikut dimuat tanpa menyentuh jalur itu.
+  var loadAsli = window._loadScoredQuestions;
+  window._loadScoredQuestions = function () {
+    try { muatProgres(); } catch (e) { console.warn('[progres-modul]', e); }
+    return typeof loadAsli === 'function' ? loadAsli.apply(this, arguments) : undefined;
+  };
+
+  // Forum → server (debounce), hanya mahasiswa sungguhan.
+  var forumTimer = null, forumTerakhir = '';
+  function simpanForum() {
+    if (!mhsAktif()) return;
+    var j = {};
+    ['fq1', 'fq2', 'fq3'].forEach(function (id) { var ta = document.getElementById('ans-' + id); j[id] = ta ? ta.value : ''; });
+    var kunci = JSON.stringify(j);
+    if (kunci === forumTerakhir) return;
+    var d = dasar(); if (!d.pinHash) return;
+    d.jawaban = j;
+    panggil('saveModulForum', d).then(function (r) {
+      forumTerakhir = kunci;
+      if (r.forumSelesai) toast('💾 Jawaban forum tersimpan di server — forum modul ini selesai.');
+    }).catch(function (e) { console.warn('[progres-modul] forum:', e && e.message); });
+  }
+  var forumAsli = window.checkForumReady;
+  if (typeof forumAsli === 'function') {
+    window.checkForumReady = function () {
+      var r = forumAsli.apply(this, arguments);
+      clearTimeout(forumTimer); forumTimer = setTimeout(simpanForum, 1500);
+      return r;
+    };
+  }
+
+  render();
+})();
+</script>
+<!-- PROGRES-MODUL: akhir -->
 </body>
 </html>
