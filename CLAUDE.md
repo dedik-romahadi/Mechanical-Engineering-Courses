@@ -130,9 +130,26 @@ repo publik ini.
   admin. PIN global di RTDB `pins/mhs_<NIM>` (hash SHA-256, lintas course);
   klien tidak boleh membaca `pins/` — verifikasi lewat callable `verifyPin`.
   Reset modul/exam tidak menghapus PIN. Rincian: Pedoman §4.
-- **Akun simulasi** NIM `41399999901` ("SIMULASI MAHASISWA"): jawaban dinilai
-  tetapi tidak disimpan, tidak tampil di papan hasil; progres materi persis
-  mahasiswa. PIN-nya tidak boleh ditulis di repo. Rincian: Pedoman §4.5.
+- **Akun simulasi** NIM `41399999901` ("SIMULASI MAHASISWA") — akun uji
+  dosen untuk menjalani alur mahasiswa tanpa mengotori data:
+  - masuk lewat tombol 🎓 Mahasiswa dengan NIM itu + PIN yang dipegang dosen;
+    **PIN tidak boleh ditulis di repo, commit, atau dokumen mana pun**;
+  - jawaban tugas/ujian dinilai server (umpan balik, emoji, suara tetap
+    muncul) tetapi **tidak disimpan** — tanpa ledger, tanpa poin RTDB, tanpa
+    record pengunjung/heartbeat; soal bisa dijawab ulang tanpa batas;
+  - disaring dari papan peringkat, roster tab Hasil, hadir/total, dan OBE
+    (fungsi render baru di tab Hasil wajib memakai `isSimulasiNim(nim)`);
+  - **progres materi persis mahasiswa** (centang tersimpan & divalidasi
+    server, tab terkunci, forum tersimpan) kecuali boleh membatalkan centang
+    terakhir (`setModulCentang` dengan `batal:true`) dan selalu lolos gerbang
+    antar-modul — gerbang itu tidak bisa diuji dengan akun ini;
+  - daftar NIM-nya harus sama di dua tempat: `SIM_NIMS` di backend
+    `functions/index.js` dan `scripts/kecualikan-akun-simulasi.mjs` di sini
+    (disuntikkan ke 64 halaman); nama ada di empat `students.json` **dan**
+    RTDB `pins/mhs_41399999901.nama`;
+  - saat membersihkan sisa datanya, kunci Firestore modul memakai prefiks
+    `mhs_` (`modulAttempts/<id>/students/mhs_<nim>`), exam tidak.
+  Cara pakai dan pemeliharaan lengkap: Pedoman §4.5.
 - **Waktu WIB-locked.** Semua tampilan jam memakai `timeZone: 'Asia/Jakarta'`;
   deadline diparse dengan `_wibStringToDate`, bukan `new Date(...)`.
 - **Jadwal.** Modul memakai **hari** (default 7 hari, deadline +6 hari
