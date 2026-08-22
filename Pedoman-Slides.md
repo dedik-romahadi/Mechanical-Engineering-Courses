@@ -14,6 +14,8 @@ Dokumen ini adalah quick-start untuk sesi Codex yang mengerjakan slide Slidev di
 
 > Deck Opto `penerapan-machine-learning.md`: **23 slide**. Brand di SLIDE memakai **"Optimalisasi & Automasi"** (huruf A — sengaja beda dari LMS lain yang "Otomasi", atas permintaan dosen). Punya **2 sesi kuis interaktif** (§17) + **webcam terkunci** (§16). Penyesuaian per-slide via `.slidev-page-N` (§14).
 
+> Hanya tiga deck ini yang ada. Sistem Kendali Cerdas dan Matematika Teknik 4 **tidak punya** folder `Slides/`; materi kuliahnya memakai halaman modul HTML dan `Modul-Word/`. `PDD-UKTPT/` bukan mata kuliah (portofolio Serdos) — jangan ditiru strukturnya untuk course.
+
 ### Struktur tiap deck
 ```
 <Course>/Slides/
@@ -327,16 +329,28 @@ npm run build   # output ke dist/
 npm run export
 ```
 
-Deploy ke GitHub Pages: **otomatis** setiap ada commit masuk `main` (merge PR, upload via web UI, maupun push langsung) lewat workflow `Deploy Slides ke GitHub Pages`. Manual dispatch dari tab Actions tetap tersedia untuk re-deploy tanpa commit baru. Workflow **selalu build ulang** dari `.md` — tidak bergantung pada `dist/` yang ter-commit.
+Deploy ke GitHub Pages: **otomatis** setiap ada commit masuk `main` (merge PR, upload via web UI, maupun push langsung) lewat workflow `Deploy Slides ke GitHub Pages` (`.github/workflows/deploy-slides.yml`); dispatch manual dari tab Actions tetap tersedia untuk re-deploy tanpa commit baru.
+
+Cara kerjanya (sama dengan hosting LMS, lihat `Pedoman-Modul.md` §1.1):
+
+- workflow membangun ketiga deck dengan `npx slidev build --base <path>` lalu **hanya menyalin deck yang berhasil build** (dicek dari `dist/index.html`) ke artefak situs bersama allowlist frontend LMS;
+- publikasi memakai **push ke branch `gh-pages`** (Pages Source: branch `gh-pages`, root), **bukan** `actions/deploy-pages` — jalur artefak itu punya batas keras 10 menit yang berulang kali terlampaui oleh ukuran situs;
+- satu deck yang gagal build tidak menggagalkan deck lain maupun LMS, tetapi deck itu tidak diperbarui di situs — periksa log langkah build-nya;
+- `dist/` tidak pernah di-commit; workflow membangunnya ulang setiap kali.
+
+Setelah run sukses, halaman live biasanya baru berubah ±1–3 menit (CDN); cek dengan `curl` bila perlu.
 
 ---
 
 ## 12. Git Workflow
 
-- Branch: `Codex/<feature-slug>` (lihat instruksi per task).
-- Setelah edit: `git checkout -B <branch> main` → `git add` → `git commit` → `git push --force-with-lease -u origin <branch>`.
-- Merge via `mcp__github__create_pull_request` + `mcp__github__merge_pull_request` (squash).
-- Selalu sync main lokal setelah merge: `git checkout main && git pull origin main`.
+Sama dengan aturan repo di `CLAUDE.md` (bagian A):
+
+- **Sinkronkan dulu** sebelum menyunting: `git fetch origin && git log --oneline HEAD..origin/main`; ada commit → `git pull --ff-only`.
+- Cabang kerja per tugas (`feat/…`, `fix/…`, `docs/…`, atau `codex/…`), push dengan `git push -u origin <cabang>`.
+- Sebelum PR: `node scripts/validate-public-security.mjs` wajib hijau (deck ikut dipindai sebagai bagian situs publik).
+- Buat PR, tunggu check `validate` hijau, lalu **squash-merge** ke `main`; deploy Pages berjalan otomatis (lihat §11).
+- Sesudah merge: `git checkout main && git pull --ff-only`.
 
 ---
 
