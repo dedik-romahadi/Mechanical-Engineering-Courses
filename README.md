@@ -53,7 +53,7 @@ Mechanical-Engineering-Courses/
 ├── Images/             Logo dan foto
 ├── scripts/            validate-public-security.mjs (gate keamanan)
 ├── index.html          Halaman depan situs
-├── AGENTS.md           Peta orientasi untuk sesi agen baru
+├── CLAUDE.md           Aturan awal sesi + peta orientasi repo (menggantikan AGENTS.md)
 ├── Pedoman-Modul.md    📖 Spesifikasi lengkap sistem (rujukan utama)
 └── Pedoman-Slides.md   📖 Panduan deck Slidev
 ```
@@ -86,7 +86,7 @@ Deploy otomatis ke GitHub Pages setiap ada commit masuk `main`, lewat `.github/w
 
 Baca dulu, berurutan:
 
-1. **`AGENTS.md`** — peta cepat, konvensi inti, dan daftar anti-pola
+1. **`CLAUDE.md`** — aturan sebelum mulai, peta cepat, konvensi inti, dan anti-pola
 2. **`Pedoman-Modul.md`** — spesifikasi lengkap (ID/path, login, PIN, jadwal WIB, scoring, Firebase, OBE, keamanan)
 3. **`Pedoman-Slides.md`** — khusus deck Slidev
 
