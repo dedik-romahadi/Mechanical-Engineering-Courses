@@ -10422,9 +10422,11 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
       var cb = el.querySelector('input'), st = el.querySelector('.pm-status');
       var selesai = i < centang, giliran = i === centang;
       cb.checked = selesai;
-      cb.disabled = !bebas && !giliran;
+      // Berurutan untuk SEMUA peran: hanya kotak giliran yang aktif. Pada mode
+      // bebas (dosen/preview/simulasi) kotak terakhir boleh dibatalkan untuk uji coba.
+      cb.disabled = bebas ? !(giliran || i === centang - 1) : !giliran;
       el.classList.toggle('pm-selesai', selesai);
-      el.classList.toggle('pm-nonaktif', !bebas && !selesai && !giliran);
+      el.classList.toggle('pm-nonaktif', !selesai && !giliran);
       if (st) st.textContent = selesai ? '✓ dipahami' : (giliran ? 'bagian ' + (i + 1) + ' dari ' + total : 'selesaikan bagian sebelumnya');
     });
     kunciTab(!bebas && centang < total);
@@ -10452,7 +10454,11 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   kotak.forEach(function (el, i) {
     el.querySelector('input').addEventListener('change', function (ev) {
       var cb = ev.target;
-      if (bebas) { if (cb.checked) centang = Math.max(centang, i + 1); else centang = Math.min(centang, i); render(); return; }
+      if (bebas) {
+        if (cb.checked && i === centang) centang = i + 1;
+        else if (!cb.checked && i === centang - 1) centang = i;
+        render(); return;
+      }
       if (!cb.checked) { cb.checked = true; return; }           // tidak bisa dibatalkan
       if (i !== centang || sibuk) { cb.checked = i < centang; return; }
       sibuk = true; cb.disabled = true;
