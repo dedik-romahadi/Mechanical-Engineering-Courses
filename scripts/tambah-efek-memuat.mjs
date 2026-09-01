@@ -177,6 +177,80 @@ function kumpulkan(pola) {
   return out.sort();
 }
 
+// --- Pemilih peran halaman OBE ----------------------------------------------
+// Kasus berbeda dari tombol di Exam/Modul: modalnya diganti seluruhnya, jadi
+// pemutar pada tombol (mulaiMuat/selesaiMuat) tidak punya tempat. Yang dipakai
+// bentuk titik-titik seperti modal login Modul (.loading-students).
+//
+// Bukan hiasan: getFb() mengimpor tiga modul Firebase dari jaringan. Sebelum
+// ini impor itu baru jalan saat tombol "Masuk" ditekan, sehingga jeda pertama
+// terjadi tanpa umpan balik apa pun. Sekarang dipanaskan tepat setelah peran
+// dipilih, dengan indikator yang bergerak.
+const OBE_CSS_JANGKAR =
+  "  .btn-import{background:rgba(34,211,238,.15);color:var(--cyan);border:1px solid rgba(34,211,238,.3)}";
+const OBE_CSS_BARU = OBE_CSS_JANGKAR + `
+  /* Efek loading pemilih peran — bentuknya disamakan dengan modal login
+     halaman Modul (.loading-students/.loading-dot di sana). */
+  .loading-students{display:flex;align-items:center;justify-content:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8;min-height:26px;transition:all .3s}
+  .loading-dot{width:6px;height:6px;border-radius:50%;animation:ldot .8s ease-in-out infinite;flex-shrink:0}
+  .loading-dot:nth-child(1){background:#06d6a0}
+  .loading-dot:nth-child(2){background:#fbbf24;animation-delay:.16s}
+  .loading-dot:nth-child(3){background:#a855f7;animation-delay:.32s}
+  @keyframes ldot{0%,80%,100%{transform:scale(.55);opacity:.35}40%{transform:scale(1.1);opacity:1}}`;
+
+const OBE_HELPER_JANGKAR = "window.loginAsDosen = async function(){";
+const OBE_HELPER = `// Efek loading pemilih peran — bentuknya disamakan dengan modal login di
+// halaman Modul. Bukan sekadar hiasan: getFb() mengimpor tiga modul Firebase
+// dari jaringan, dan tanpa ini jeda itu baru terasa setelah tombol "Masuk"
+// ditekan, tanpa umpan balik apa pun.
+function _modalMemuatLogin(judul, teks){
+  showModal(\`
+    <h3 style="margin:0 0 6px;font-size:18px">\${judul}</h3>
+    <div class="loading-students" style="margin:20px 0 8px">
+      <div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>
+      <span>\${teks}</span>
+    </div>
+  \`);
+}
+async function _siapkanLogin(jugaRoster){
+  // Kegagalan di sini sengaja tidak memblokir: formulirnya tetap ditampilkan
+  // dan getFb() dicoba ulang saat submit, di mana galatnya punya tempat tampil.
+  try {
+    await Promise.all(jugaRoster ? [getFb(), STUDENTS_READY] : [getFb()]);
+  } catch(e){ console.error('[login] gagal menyiapkan koneksi:', e); }
+}
+
+`;
+const OBE_TITIK = [
+  [
+    "window.loginAsDosen = async function(){\n  showModal(`",
+    "window.loginAsDosen = async function(){\n"
+      + "  _modalMemuatLogin('\u{1F468}‍\u{1F3EB} Login Dosen', 'Menyiapkan koneksi…');\n"
+      + "  await _siapkanLogin(false);\n  showModal(`",
+  ],
+  [
+    "window.loginAsMahasiswa = async function(){\n  showModal(`",
+    "window.loginAsMahasiswa = async function(){\n"
+      + "  _modalMemuatLogin('\u{1F393} Login Mahasiswa', 'Memuat data mahasiswa…');\n"
+      + "  await _siapkanLogin(true);\n  showModal(`",
+  ],
+];
+
+function prosesObe(berkas) {
+  let html = fs.readFileSync(berkas, "utf8");
+  if (html.includes("_modalMemuatLogin")) return null;
+  const nama = path.relative(root, berkas);
+  if (!html.includes(OBE_CSS_JANGKAR)) throw new Error(`${nama}: jangkar CSS .btn-import tidak ada`);
+  if (!html.includes(OBE_HELPER_JANGKAR)) throw new Error(`${nama}: loginAsDosen tidak ada`);
+  html = html.replace(OBE_CSS_JANGKAR, OBE_CSS_BARU)
+             .replace(OBE_HELPER_JANGKAR, OBE_HELPER + OBE_HELPER_JANGKAR);
+  for (const [lama, baru] of OBE_TITIK) {
+    if (!html.includes(lama)) throw new Error(`${nama}: titik login tidak cocok`);
+    html = html.replace(lama, baru);
+  }
+  return html;
+}
+
 let n = 0;
 let tm = 0;
 let ts = 0;
@@ -188,5 +262,16 @@ for (const f of kumpulkan(["Exam", "Modul"])) {
   n += 1; tm += hasil.mulai; ts += hasil.selesai; tk += hasil.kelompok; tb += hasil.bungkus;
   if (!periksa) fs.writeFileSync(f, hasil.html);
 }
+let nObe = 0;
+for (const kursus of fs.readdirSync(root, { withFileTypes: true })) {
+  if (!kursus.isDirectory()) continue;
+  const p = path.join(root, kursus.name, "OBE", "Penilaian-OBE.htm");
+  if (!fs.existsSync(p)) continue;
+  const html = prosesObe(p);
+  if (!html) continue;
+  nObe += 1;
+  if (!periksa) fs.writeFileSync(p, html);
+}
 console.log(`${n} halaman ${periksa ? "akan diperbarui" : "diperbarui"}: `
   + `${tm} titik mulai-muat, ${ts} titik selesai-muat, ${tk} kelompok tombol, ${tb} handler dibungkus.`);
+console.log(`${nObe} halaman OBE ${periksa ? "akan diberi" : "diberi"} efek loading pemilih peran.`);

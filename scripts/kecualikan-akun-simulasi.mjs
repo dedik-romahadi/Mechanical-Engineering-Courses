@@ -19,12 +19,12 @@
  *
  * Daftar NIM harus sama dengan SIM_NIMS di backend.
  *
- * CAKUPAN: hanya <Kursus>/Exam/*.html dan <Kursus>/Modul/*.html. Halaman
- * <Kursus>/OBE/Penilaian-OBE.htm TIDAK tersentuh — beda folder, beda
- * ekstensi, dan tidak punya jangkar updateLeaderboard. Halaman itu memuat
- * roster sendiri dari Attributes/students.json, jadi saringannya ditulis
- * inline di loadStudents(). Bila menambah halaman OBE baru, salin saringan
- * itu — skrip ini tidak akan melakukannya untukmu.
+ * CAKUPAN: <Kursus>/Exam/*.html, <Kursus>/Modul/*.html, dan sejak 1 September
+ * 2026 juga <Kursus>/OBE/Penilaian-OBE.htm. Halaman OBE ditangani terpisah
+ * (fungsi prosesObe di bawah) karena bentuknya berbeda: beda ekstensi, tidak
+ * punya jangkar updateLeaderboard, dan rosternya di-fetch sendiri ke STUDENTS.
+ * Sebelumnya halaman OBE sama sekali tidak tersentuh, sehingga akun simulasi
+ * tampil sebagai mahasiswa biasa di keempat halaman penilaian.
  *
  * Idempoten: tiap sisipan dikenali dari bentuk akhirnya.
  *
@@ -157,6 +157,41 @@ function proses(berkas) {
   return { html, catatan };
 }
 
+// --- Halaman OBE ------------------------------------------------------------
+// Bentuknya berbeda dari Exam/Modul: tidak ada updateLeaderboard maupun record
+// pengunjung, dan rosternya di-fetch sendiri dari Attributes/students.json ke
+// dalam STUDENTS. Satu saringan di loadStudents() menutup semuanya karena
+// seluruh form penilaian, rekap, ekspor, dan hitungan mahasiswa turun dari
+// sana. Jalur login sengaja tidak disentuh — verifikasinya lewat callable
+// getMyObeNilai, bukan dicocokkan ke STUDENTS, jadi akun simulasi tetap bisa
+// masuk. Kedua pemakai STUDENTS.find sudah defensif (getPre mengembalikan 0,
+// baris rekap memakai (me && me.nama) || sess.nama).
+const OBE_DEF_LAMA = "let STUDENTS = [];\nconst DEFAULT_PRE = {";
+const OBE_DEF_BARU = `let STUDENTS = [];
+// NIM akun simulasi dosen — harus sama dengan SIM_NIMS di backend
+// functions/index.js dan skrip ini. Akun ini disaring dari OBE seperti dari
+// papan hasil dan roster tab Hasil.
+const SIM_NIMS = new Set(${JSON.stringify(SIM_NIMS)});
+const isSimulasiNim = (nim) => SIM_NIMS.has(String(nim || ''));
+const DEFAULT_PRE = {`;
+const OBE_MAP_LAMA =
+  "    STUDENTS = arr.map(s => ({ nim:String(s.nim), nama:s.nama," +
+  " pre: DEFAULT_PRE[String(s.nim)] ?? 0 }));";
+const OBE_MAP_BARU = `    // Disaring di sumbernya: seluruh form penilaian, rekap, dan ekspor
+    // diturunkan dari STUDENTS, jadi satu saringan di sini menutup semuanya.
+    STUDENTS = arr.filter(s => !isSimulasiNim(s.nim))
+                  .map(s => ({ nim:String(s.nim), nama:s.nama, pre: DEFAULT_PRE[String(s.nim)] ?? 0 }));`;
+
+function prosesObe(berkas) {
+  let html = fs.readFileSync(berkas, "utf8");
+  if (html.includes("const isSimulasiNim")) return null;
+  if (!html.includes(OBE_DEF_LAMA) || !html.includes(OBE_MAP_LAMA)) {
+    throw new Error(`${path.relative(root, berkas)}: jangkar loadStudents tidak cocok`);
+  }
+  html = html.replace(OBE_DEF_LAMA, OBE_DEF_BARU).replace(OBE_MAP_LAMA, OBE_MAP_BARU);
+  return { html, catatan: ["obe-roster"] };
+}
+
 const berkas = [];
 for (const kursus of fs.readdirSync(root, { withFileTypes: true })) {
   if (!kursus.isDirectory()) continue;
@@ -166,10 +201,23 @@ for (const kursus of fs.readdirSync(root, { withFileTypes: true })) {
     for (const f of fs.readdirSync(dir)) if (f.endsWith(".html")) berkas.push(path.join(dir, f));
   }
 }
+const berkasObe = [];
+for (const kursus of fs.readdirSync(root, { withFileTypes: true })) {
+  if (!kursus.isDirectory()) continue;
+  const p = path.join(root, kursus.name, "OBE", "Penilaian-OBE.htm");
+  if (fs.existsSync(p)) berkasObe.push(p);
+}
 let n = 0;
 const rekap = {};
 for (const f of berkas.sort()) {
   const h = proses(f);
+  if (!h) continue;
+  n += 1;
+  for (const c of h.catatan) rekap[c] = (rekap[c] || 0) + 1;
+  if (!periksa) fs.writeFileSync(f, h.html);
+}
+for (const f of berkasObe.sort()) {
+  const h = prosesObe(f);
   if (!h) continue;
   n += 1;
   for (const c of h.catatan) rekap[c] = (rekap[c] || 0) + 1;
