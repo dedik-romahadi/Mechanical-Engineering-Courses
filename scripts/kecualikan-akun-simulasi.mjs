@@ -19,6 +19,13 @@
  *
  * Daftar NIM harus sama dengan SIM_NIMS di backend.
  *
+ * CAKUPAN: hanya <Kursus>/Exam/*.html dan <Kursus>/Modul/*.html. Halaman
+ * <Kursus>/OBE/Penilaian-OBE.htm TIDAK tersentuh — beda folder, beda
+ * ekstensi, dan tidak punya jangkar updateLeaderboard. Halaman itu memuat
+ * roster sendiri dari Attributes/students.json, jadi saringannya ditulis
+ * inline di loadStudents(). Bila menambah halaman OBE baru, salin saringan
+ * itu — skrip ini tidak akan melakukannya untukmu.
+ *
  * Idempoten: tiap sisipan dikenali dari bentuk akhirnya.
  *
  * Pakai:
