@@ -261,7 +261,7 @@ Ketentuan saat ini:
 
 ### 4.5 Akun simulasi mahasiswa
 
-Untuk menguji alur mahasiswa tanpa mengotori data, ada satu akun uji: NIM `41399999901`, nama roster "SIMULASI MAHASISWA", terdaftar di `students.json` keempat course. PIN-nya hanya tersimpan sebagai hash di `pins/` dan **tidak ditulis di repo mana pun**. Daftar NIM-nya harus sama di dua tempat: `SIM_NIMS` di backend `functions/index.js` dan di `scripts/kecualikan-akun-simulasi.mjs` (disuntikkan ke 64 halaman modul/exam).
+Untuk menguji alur mahasiswa tanpa mengotori data, ada satu akun uji: NIM `41399999901`, nama roster "SIMULASI MAHASISWA", terdaftar di `students.json` keempat course. PIN-nya hanya tersimpan sebagai hash di `pins/` dan **tidak ditulis di repo mana pun**. Daftar NIM-nya harus sama di dua tempat: `SIM_NIMS` di backend `functions/index.js` dan di `scripts/kecualikan-akun-simulasi.mjs` (disuntikkan ke 64 halaman modul/exam dan 4 halaman OBE).
 
 | Aspek | Perilaku akun simulasi |
 |---|---|
@@ -488,7 +488,7 @@ File HTML lokal tetap dapat diedit oleh pemilik file. Kode HMAC tidak mencegah e
 
 ### 6.6 Hasil dan presence modul
 
-Tab Hasil membaca record visitor untuk statistik, aktivitas, dan skor. Presence realtime terpisah dari riwayat kunjungan. Jangan menyimpulkan “online” hanya dari `lastVisit`. Akun simulasi (§4.5) disaring dari papan peringkat, tabel roster, dan penyebut hadir/total oleh `scripts/kecualikan-akun-simulasi.mjs`; bila menulis fungsi render baru di tab Hasil, saring lagi dengan `isSimulasiNim(nim)`.
+Tab Hasil membaca record visitor untuk statistik, aktivitas, dan skor. Presence realtime terpisah dari riwayat kunjungan. Jangan menyimpulkan “online” hanya dari `lastVisit`. Akun simulasi (§4.5) disaring dari papan peringkat, tabel roster, penyebut hadir/total, dan roster halaman OBE oleh `scripts/kecualikan-akun-simulasi.mjs`; bila menulis fungsi render baru di tab Hasil, saring lagi dengan `isSimulasiNim(nim)`.
 
 ### 6.7 Progres materi berurutan dan gerbang antar-modul
 
@@ -1090,7 +1090,7 @@ git diff --check
 
 `validate-public-security.mjs` memindai seluruh HTML dalam allowlist Pages pada empat course. Ia menjaga artefak sensitif, sintaks inline script, 56 halaman berautentikasi admin (48 Modul/Exam + 3 OBE + 5 Admin), gate dan friction exam, WIB, preview modul, reset, presence, format poin, pemulihan `scoreDeltas`, serta keamanan publikasi. Jumlah halaman autentikasi dipatok di validator; perbarui bersama bila inventaris berubah.
 
-Skrip penyuntik lintas halaman (semua idempoten lewat penanda; jalankan `--periksa` dulu) yang wajib dijalankan ulang setelah regenerasi modul: `tambah-efek-memuat.mjs`, `tambah-efek-jawaban.mjs`, `ubah-friction.mjs`, `kecualikan-akun-simulasi.mjs`, `kunci-lapisan-animasi-login.mjs`, dan `tambah-progres-modul.mjs` (modul saja). Aturan CSS lintas course yang ditulis langsung di halaman (ukuran roadmap, padding panel persamaan, jarak `br+span`) juga sudah ada di generator `apply-modern-academic-all-modules.mjs` dan `enrich-sisken-modules.mjs`.
+Skrip penyuntik lintas halaman (semua idempoten lewat penanda; jalankan `--periksa` dulu) yang wajib dijalankan ulang setelah regenerasi modul: `tambah-efek-memuat.mjs`, `tambah-efek-jawaban.mjs`, `ubah-friction.mjs`, `kecualikan-akun-simulasi.mjs`, `kunci-lapisan-animasi-login.mjs`, dan `tambah-progres-modul.mjs` (modul saja). Dua di antaranya juga menyentuh `<Course>/OBE/Penilaian-OBE.htm` sejak 1 September 2026: `kecualikan-akun-simulasi.mjs` (menyaring akun simulasi dari roster `STUDENTS`) dan `tambah-efek-memuat.mjs` (efek loading pemilih peran). Keduanya memakai jalur terpisah `prosesObe()` karena halaman OBE beda ekstensi dan tidak punya jangkar `updateLeaderboard`. **Catatan:** `tambah-efek-memuat.mjs` belum benar-benar idempoten untuk Exam/Modul — tiap jalan ia memindahkan blok `EFEK-MEMUAT` (64 berkas, 67 baris berpindah, nol perubahan isi), jadi periksa `git status` sesudahnya dan kembalikan berkas yang hanya bergeser. Aturan CSS lintas course yang ditulis langsung di halaman (ukuran roadmap, padding panel persamaan, jarak `br+span`) juga sudah ada di generator `apply-modern-academic-all-modules.mjs` dan `enrich-sisken-modules.mjs`.
 
 Validator khusus melengkapi pemeriksaan publik tersebut:
 
