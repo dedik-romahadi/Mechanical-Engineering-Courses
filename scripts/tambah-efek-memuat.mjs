@@ -144,14 +144,31 @@ function proses(berkas) {
   html = html.replace(RX_KELOMPOK_HIDUP, () =>
     "btns.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';b.classList.remove('kelompok-memuat');});");
 
-  // Blok lama DIBUANG lebih dahulu, bukan dilewati: kalau hanya dilewati,
-  // halaman yang sudah menerima versi sebelumnya tidak akan pernah mendapat
-  // perbaikan CSS berikutnya — persis yang terjadi saat pemutar kelompok
-  // ditambahkan dan aturannya tidak pernah sampai ke halaman.
-  html = html.replace(/<!-- EFEK-MEMUAT:START[\s\S]*?<!-- EFEK-MEMUAT:END[^>]*-->\n?/, "");
-  if (mulai || selesai || kelompok || bungkus || /mulaiMuat\(|kelompok-memuat|jalankanDenganMuat/.test(html)) {
+  // Isi blok lama selalu DITIMPA, bukan dilewati: kalau hanya dilewati, halaman
+  // yang sudah menerima versi sebelumnya tidak akan pernah mendapat perbaikan
+  // CSS berikutnya — persis yang terjadi saat pemutar kelompok ditambahkan dan
+  // aturannya tidak pernah sampai ke halaman.
+  //
+  // Tetapi POSISINYA dipertahankan. Versi lama membuang blok lalu menyisipkan
+  // ulang tepat sebelum </head>, dan tambah-efek-jawaban.mjs melakukan hal yang
+  // sama untuk bloknya sendiri. Keduanya jadi berebut tempat terakhir: jalankan
+  // skrip ini, 64 halaman "berubah" (blok pindah ke bawah blok JAWABAN, nol
+  // perubahan isi); jalankan skrip itu, 64 halaman berubah lagi (pindah balik).
+  // Siklus dua langkah yang tidak pernah selesai. Dengan mengganti di tempat,
+  // urutan yang sudah ada tetap dan kedua skrip benar-benar idempoten apa pun
+  // urutan menjalankannya.
+  const RX_BLOK = /<!-- EFEK-MEMUAT:START[\s\S]*?<!-- EFEK-MEMUAT:END[^>]*-->\n?/;
+  const adaBlok = RX_BLOK.test(html);
+  // Uji kebutuhan dilakukan pada teks TANPA blok: blok itu sendiri memuat
+  // "kelompok-memuat" di CSS-nya, jadi mengujinya utuh selalu bernilai benar.
+  const tanpaBlok = html.replace(RX_BLOK, "");
+  const perluBlok = mulai || selesai || kelompok || bungkus
+    || /mulaiMuat\(|kelompok-memuat|jalankanDenganMuat/.test(tanpaBlok);
+  if (adaBlok) {
+    html = html.replace(RX_BLOK, () => (perluBlok ? BLOK : ""));
+  } else if (perluBlok) {
     if (!html.includes("</head>")) throw new Error(`${path.basename(berkas)}: tidak ada </head>`);
-    html = html.replace("</head>", `${BLOK}</head>`);
+    html = html.replace("</head>", () => `${BLOK}</head>`);
   }
   if (html === awal) return null;
   return { html, mulai, selesai, kelompok, bungkus };
