@@ -595,6 +595,13 @@ const T4 = {
 // PRE default per NIM disimpan di sini sbg fallback; dosen bisa override
 // real-time lewat tombol "📥 Update PRE dari .xls SIA".
 let STUDENTS = [];
+// NIM akun simulasi dosen — harus sama dengan SIM_NIMS di backend
+// functions/index.js dan scripts/kecualikan-akun-simulasi.mjs. Akun ini
+// disaring dari OBE seperti dari papan hasil dan roster tab Hasil; skrip
+// penyaring itu hanya menyisir Exam/ dan Modul/ berekstensi .html, sehingga
+// halaman OBE harus menyaringnya sendiri.
+const SIM_NIMS = new Set(["41399999901"]);
+const isSimulasiNim = (nim) => SIM_NIMS.has(String(nim || ''));
 const DEFAULT_PRE = {
   "41321120054":88,"41321120057":88,"41322010021":88,"41322010029":75,
   "41322110039":88,"41322110067":88,"41322110080":88,"41322110087":88,
@@ -609,7 +616,10 @@ async function loadStudents(){
     const res = await fetch('../Attributes/students.json', { cache:'no-cache' });
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
     const arr = await res.json();
-    STUDENTS = arr.map(s => ({ nim:String(s.nim), nama:s.nama, pre: DEFAULT_PRE[String(s.nim)] ?? 0 }));
+    // Disaring di sumbernya: seluruh form penilaian, rekap, dan ekspor
+    // diturunkan dari STUDENTS, jadi satu saringan di sini menutup semuanya.
+    STUDENTS = arr.filter(s => !isSimulasiNim(s.nim))
+                  .map(s => ({ nim:String(s.nim), nama:s.nama, pre: DEFAULT_PRE[String(s.nim)] ?? 0 }));
   } catch(e){
     console.error('[loadStudents] gagal fetch students.json:', e);
     if(typeof toast === 'function') toast('⚠️ Gagal muat daftar mahasiswa');
