@@ -102,6 +102,14 @@
   .btn-export{background:linear-gradient(135deg,var(--ok),#10b981);color:#04140b}
   .btn-clear{background:rgba(248,113,113,.15);color:#fca5a5;border:1px solid rgba(248,113,113,.3)}
   .btn-import{background:rgba(34,211,238,.15);color:var(--cyan);border:1px solid rgba(34,211,238,.3)}
+  /* Efek loading pemilih peran — bentuknya disamakan dengan modal login
+     halaman Modul (.loading-students/.loading-dot di sana). */
+  .loading-students{display:flex;align-items:center;justify-content:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8;min-height:26px;transition:all .3s}
+  .loading-dot{width:6px;height:6px;border-radius:50%;animation:ldot .8s ease-in-out infinite;flex-shrink:0}
+  .loading-dot:nth-child(1){background:#06d6a0}
+  .loading-dot:nth-child(2){background:#fbbf24;animation-delay:.16s}
+  .loading-dot:nth-child(3){background:#a855f7;animation-delay:.32s}
+  @keyframes ldot{0%,80%,100%{transform:scale(.55);opacity:.35}40%{transform:scale(1.1);opacity:1}}
   .btn:hover{filter:brightness(1.1)}
 
   /* ── Footer ── */
@@ -1360,7 +1368,30 @@ function showLoginPicker(){
   `);
 }
 
+// Efek loading pemilih peran — bentuknya disamakan dengan modal login di
+// halaman Modul. Bukan sekadar hiasan: getFb() mengimpor tiga modul Firebase
+// dari jaringan, dan tanpa ini jeda itu baru terasa setelah tombol "Masuk"
+// ditekan, tanpa umpan balik apa pun.
+function _modalMemuatLogin(judul, teks){
+  showModal(`
+    <h3 style="margin:0 0 6px;font-size:18px">${judul}</h3>
+    <div class="loading-students" style="margin:20px 0 8px">
+      <div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>
+      <span>${teks}</span>
+    </div>
+  `);
+}
+async function _siapkanLogin(jugaRoster){
+  // Kegagalan di sini sengaja tidak memblokir: formulirnya tetap ditampilkan
+  // dan getFb() dicoba ulang saat submit, di mana galatnya punya tempat tampil.
+  try {
+    await Promise.all(jugaRoster ? [getFb(), STUDENTS_READY] : [getFb()]);
+  } catch(e){ console.error('[login] gagal menyiapkan koneksi:', e); }
+}
+
 window.loginAsDosen = async function(){
+  _modalMemuatLogin('👨‍🏫 Login Dosen', 'Menyiapkan koneksi…');
+  await _siapkanLogin(false);
   showModal(`
     <h3 style="margin:0 0 6px;font-size:18px">👨‍🏫 Login Dosen</h3>
     <p style="font-size:13px;color:#8aa0bf;margin-bottom:14px">Masukkan password admin untuk akses penuh editing & publish.</p>
@@ -1394,6 +1425,8 @@ window.submitDosen = async function(){
 };
 
 window.loginAsMahasiswa = async function(){
+  _modalMemuatLogin('🎓 Login Mahasiswa', 'Memuat data mahasiswa…');
+  await _siapkanLogin(true);
   showModal(`
     <h3 style="margin:0 0 6px;font-size:18px">🎓 Login Mahasiswa</h3>
     <p style="font-size:13px;color:#8aa0bf;margin-bottom:14px">Masukkan NIM &amp; PIN (PIN sama dgn yg dipakai di pertemuan).</p>

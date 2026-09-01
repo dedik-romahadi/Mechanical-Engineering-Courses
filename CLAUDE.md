@@ -145,7 +145,7 @@ repo publik ini.
     antar-modul — gerbang itu tidak bisa diuji dengan akun ini;
   - daftar NIM-nya harus sama di dua tempat: `SIM_NIMS` di backend
     `functions/index.js` dan `scripts/kecualikan-akun-simulasi.mjs` di sini
-    (disuntikkan ke 64 halaman); nama ada di empat `students.json` **dan**
+    (disuntikkan ke 64 halaman modul/exam + 4 halaman OBE); nama ada di empat `students.json` **dan**
     RTDB `pins/mhs_41399999901.nama`;
   - saat membersihkan sisa datanya, kunci Firestore modul memakai prefiks
     `mhs_` (`modulAttempts/<id>/students/mhs_<nim>`), exam tidak.
