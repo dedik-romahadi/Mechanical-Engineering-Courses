@@ -461,7 +461,22 @@ function proses(berkas) {
   // baris kosong pemisah `}\n\n  if (sub) {` di exam ikut hilang — RX_EXAM
   // tak cocok lagi, sisip=0, dan kedelapan exam tak pernah diperbarui lagi.
   html = html.replace(/^[ \t]*if \((?:fb && )?typeof rayakanJawaban === 'function'\) rayakanJawaban\(fb, status\);\n/gm, "");
-  html = html.replace(/<!-- EFEK-JAWABAN:START[\s\S]*?<!-- EFEK-JAWABAN:END[^>]*-->\n?/, "");
+  // Blok lama diganti PENANDA, bukan dibuang, supaya posisinya bisa dipakai
+  // ulang. Versi lama membuangnya lalu menyisipkan ulang tepat sebelum
+  // </head> — sama seperti tambah-efek-memuat.mjs untuk bloknya sendiri —
+  // sehingga keduanya berebut tempat terakhir dan saling memindahkan blok
+  // lawannya tiap kali dijalankan (siklus dua langkah, 64 berkas per langkah,
+  // nol perubahan isi). Dengan mempertahankan posisi, urutan yang sudah ada
+  // tetap dan kedua skrip idempoten apa pun urutan menjalankannya.
+  //
+  // Penandanya dipasang SEBELUM penyisipan pemanggilan supaya isi blok tidak
+  // ikut terbaca oleh RX_MODUL/RX_EXAM, persis seperti pembuangan versi lama.
+  // Berbentuk komentar HTML supaya, andai pun tertinggal karena bug,
+  // halaman tetap sah - meski penjaga di bawah sudah menolak keadaan itu.
+  const PENANDA = "<!--EFEK-JAWABAN:PENANDA-POSISI-->\n";
+  const RX_BLOK = /<!-- EFEK-JAWABAN:START[\s\S]*?<!-- EFEK-JAWABAN:END[^>]*-->\n?/;
+  const adaBlok = RX_BLOK.test(html);
+  html = html.replace(RX_BLOK, () => PENANDA);
 
   let sisip = 0;
   // Kedua regex menangkap (sebelum)(sesudah); pemanggilan diselipkan di
@@ -470,8 +485,13 @@ function proses(berkas) {
     html = html.replace(rx, (m, sebelum, sesudah) => { sisip += 1; return sebelum + PANGGIL + sesudah; });
   }
   if (!sisip) return null;
-  if (!html.includes("</head>")) throw new Error(`${path.basename(berkas)}: tidak ada </head>`);
-  html = html.replace("</head>", `${BLOK}</head>`);
+  if (adaBlok) {
+    html = html.replace(PENANDA, () => BLOK);
+  } else {
+    if (!html.includes("</head>")) throw new Error(`${path.basename(berkas)}: tidak ada </head>`);
+    html = html.replace("</head>", () => `${BLOK}</head>`);
+  }
+  if (html.includes(PENANDA)) throw new Error(`${path.basename(berkas)}: penanda blok tertinggal`);
   return html === awal ? null : { html, sisip };
 }
 
