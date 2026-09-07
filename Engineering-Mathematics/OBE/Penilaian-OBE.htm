@@ -357,6 +357,73 @@ body.obe-theme {
 }
 </style>
 <!-- DESIGN-POLISH:END v1 -->
+<!-- EFEK-MEMUAT:START v2 -->
+<style>
+/* Pemutar kecil di dalam tombol yang sedang menunggu jaringan. Memakai
+   currentColor supaya otomatis serasi dengan tombol mana pun. */
+@keyframes efekMemuatPutar { to { transform: rotate(360deg); } }
+.tombol-memuat { cursor: wait !important; opacity: .72; }
+.tombol-memuat .efek-memuat-putaran {
+  display: inline-block; width: 1em; height: 1em; margin-right: .5em;
+  vertical-align: -.15em; border: 2px solid currentColor;
+  border-right-color: transparent; border-radius: 50%;
+  animation: efekMemuatPutar .7s linear infinite;
+}
+/* Sebagian aksi menonaktifkan SEKELOMPOK tombol sekaligus (overlay reset dan
+   atur jadwal) tanpa satu tombol pemicu yang bisa dikenali seragam. Untuk itu
+   pemutarnya digambar lewat ::before pada tombol utama saja, sehingga innerHTML
+   tidak perlu disentuh dan pemulihannya cukup melepas kelasnya. */
+.kelompok-memuat.v-btn-primary::before {
+  content: ''; display: inline-block; width: 1em; height: 1em; margin-right: .5em;
+  vertical-align: -.15em; border: 2px solid currentColor;
+  border-right-color: transparent; border-radius: 50%;
+  animation: efekMemuatPutar .7s linear infinite;
+}
+/* Hormati pengguna yang meminta gerak dikurangi: pemutarnya tetap ada sebagai
+   penanda keadaan, hanya jauh lebih lambat. */
+@media (prefers-reduced-motion: reduce) {
+  .tombol-memuat .efek-memuat-putaran,
+  .kelompok-memuat.v-btn-primary::before { animation-duration: 2.4s; }
+}
+</style>
+<script>
+/** Tandai tombol sedang menunggu: pemutar + label + nonaktif. */
+window.mulaiMuat = function (el, label) {
+  if (!el) return;
+  if (el.dataset.labelAsli === undefined) el.dataset.labelAsli = el.textContent;
+  el.disabled = true;
+  el.setAttribute('aria-busy', 'true');
+  el.classList.add('tombol-memuat');
+  el.innerHTML = '<span class="efek-memuat-putaran" aria-hidden="true"></span>'
+    + String(label == null ? el.dataset.labelAsli : label);
+};
+/** Kembalikan tombol ke keadaan semula. Argumen label opsional. */
+window.selesaiMuat = function (el, label) {
+  if (!el) return;
+  el.disabled = false;
+  el.removeAttribute('aria-busy');
+  el.classList.remove('tombol-memuat');
+  el.style.opacity = '1';
+  el.style.cursor = 'pointer';
+  el.textContent = String(label == null
+    ? (el.dataset.labelAsli === undefined ? el.textContent : el.dataset.labelAsli)
+    : label);
+};
+/**
+ * Bungkus aksi async dari atribut onclick tanpa menyentuh isi fungsinya.
+ *
+ * Sebagian handler punya banyak return dini untuk galat validasi. Menyisipkan
+ * pemulihan di tiap cabang itu rapuh — satu cabang terlewat berarti tombolnya
+ * mati selamanya. Blok finally menutup seluruh cabang sekaligus, termasuk saat
+ * handler melempar.
+ */
+window.jalankanDenganMuat = async function (el, label, fn) {
+  if (typeof fn !== 'function') return;
+  window.mulaiMuat(el, label);
+  try { return await fn(); } finally { window.selesaiMuat(el); }
+};
+</script>
+<!-- EFEK-MEMUAT:END v2 -->
 </head>
 <body class="obe-theme">
 <div class="wrap">
@@ -383,7 +450,7 @@ body.obe-theme {
     <button class="modebtn" data-mode="nilai">✏️ Penilaian</button>
     <span style="flex:1"></span>
     <span id="roleChip" class="chip" style="margin-left:auto">🔓 Belum login</span>
-    <button class="modebtn" id="logoutBtn" onclick="logout()" style="display:none;background:rgba(248,113,113,.15);color:#fca5a5">Logout</button>
+    <button class="modebtn" id="logoutBtn" onclick="jalankanDenganMuat(this,'Keluar…',()=>logout())" style="display:none;background:rgba(248,113,113,.15);color:#fca5a5">Logout</button>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════
@@ -509,9 +576,9 @@ body.obe-theme {
         <div class="actright" id="rekapActsDosen" style="display:none">
           <button class="btn btn-export" onclick="document.getElementById('preXlsInput').click()">📥 Update PRE dari .xls SIA</button>
           <input type="file" id="preXlsInput" accept=".xls,.xlsx" style="display:none" onchange="importPreFromXls(event)">
-          <button class="btn btn-import" onclick="publishToFirestore()">☁️ Publish ke Firestore</button>
+          <button class="btn btn-import" onclick="jalankanDenganMuat(this,'Mempublikasikan…',()=>publishToFirestore())">☁️ Publish ke Firestore</button>
           <button class="btn btn-clear" onclick="clearAllScores()">🗑️ Reset Lokal</button>
-          <button class="btn btn-clear" onclick="deleteObeFromFirestore()">❌ Hapus dari Server</button>
+          <button class="btn btn-clear" onclick="jalankanDenganMuat(this,'Menghapus…',()=>deleteObeFromFirestore())">❌ Hapus dari Server</button>
         </div>
       </div>
       <table>
@@ -1175,9 +1242,9 @@ function renderMapping(){
     <div class="actbar">
       <div class="actleft"><span class="dosen-only">Mapping <b>Tugas</b> menentukan nilai tiap Sub-CPMK dihitung dari mana; tersimpan di database dan konsisten lintas perangkat. Mapping <b>UTS/UAS</b> mengikuti OBE_EXAM_CONFIG di server — ditampilkan hanya-baca, karena poin tiap soal diturunkan dari sana dan mengubahnya di sini tidak berpengaruh.</span></div>
       <div class="actright">
-        <button class="btn btn-clear" onclick="resetMapping()">↩️ Default</button>
-        <button class="btn btn-import" onclick="saveMappingFromUI()">💾 Simpan Mapping</button>
-        <button class="btn btn-export" onclick="computeFromSystem()">⚡ Tarik &amp; Hitung Nilai</button>
+        <button class="btn btn-clear" onclick="jalankanDenganMuat(this,'Mengembalikan…',()=>resetMapping())">↩️ Default</button>
+        <button class="btn btn-import" onclick="jalankanDenganMuat(this,'Menyimpan…',()=>saveMappingFromUI())">💾 Simpan Mapping</button>
+        <button class="btn btn-export" onclick="jalankanDenganMuat(this,'Menghitung…',()=>computeFromSystem())">⚡ Tarik &amp; Hitung Nilai</button>
       </div>
     </div>
     ${section('Mapping TUGAS → Modul', 'tugas', FORMS.TGS.cols, 1, 14, 'Nomor Modul (1-14). Contoh: <code>1</code> atau <code>11,12</code> (rata-rata)')}
@@ -1398,7 +1465,7 @@ window.loginAsDosen = async function(){
     <p style="font-size:13px;color:#8aa0bf;margin-bottom:14px">Masukkan password admin untuk akses penuh editing & publish.</p>
     <input id="pwInput" type="password" placeholder="Password admin" autocomplete="off"
       style="width:100%;padding:11px;background:#020a18;border:1px solid #1c2c45;border-radius:9px;color:#dbe5f3;font-size:14px;margin-bottom:12px;outline:none">
-    <button class="btn btn-export" style="width:100%;padding:11px" onclick="submitDosen()">Masuk</button>
+    <button class="btn btn-export" style="width:100%;padding:11px" onclick="jalankanDenganMuat(this,'Memverifikasi…',()=>submitDosen())">Masuk</button>
     <div id="loginErr" style="display:none;margin-top:10px;padding:8px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.3);border-radius:7px;color:#fca5a5;font-size:12px"></div>
     <div style="text-align:center;margin-top:10px"><a href="#" onclick="showLoginPicker();return false" style="color:#22d3ee;font-size:12px">← Pilih peran lain</a></div>
   `);
@@ -1435,7 +1502,7 @@ window.loginAsMahasiswa = async function(){
       style="width:100%;padding:11px;background:#020a18;border:1px solid #1c2c45;border-radius:9px;color:#dbe5f3;font-size:14px;margin-bottom:10px;outline:none;font-family:'JetBrains Mono',monospace">
     <input id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="PIN 6 digit" autocomplete="off"
       style="width:100%;padding:11px;background:#020a18;border:1px solid #1c2c45;border-radius:9px;color:#dbe5f3;font-size:14px;margin-bottom:12px;outline:none;font-family:'JetBrains Mono',monospace">
-    <button class="btn btn-import" style="width:100%;padding:11px" onclick="submitMahasiswa()">Masuk</button>
+    <button class="btn btn-import" style="width:100%;padding:11px" onclick="jalankanDenganMuat(this,'Memverifikasi…',()=>submitMahasiswa())">Masuk</button>
     <div id="loginErr" style="display:none;margin-top:10px;padding:8px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.3);border-radius:7px;color:#fca5a5;font-size:12px"></div>
     <div style="text-align:center;margin-top:10px"><a href="#" onclick="showLoginPicker();return false" style="color:#22d3ee;font-size:12px">← Pilih peran lain</a></div>
   `);

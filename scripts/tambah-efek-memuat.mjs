@@ -253,19 +253,73 @@ const OBE_TITIK = [
   ],
 ];
 
+// --- Tombol OBE yang menunggu jaringan --------------------------------------
+// Kedelapan handler ini async dan menunggu callable/Firestore, tetapi tidak
+// satu pun memberi umpan balik pada tombolnya — hanya toast() setelah selesai.
+// Pada koneksi lambat tombolnya tampak tidak bereaksi, dan aksi seperti Publish
+// atau Hapus dari Server mudah tertekan dua kali.
+//
+// Dibungkus `jalankanDenganMuat` dari blok bersama, bukan disunting isi
+// fungsinya: handler-handler ini penuh return dini (cek sesi, confirm()
+// dibatalkan, validasi gagal), dan blok finally di pembungkus itu menutup
+// seluruh cabang sekaligus — termasuk saat handler melempar.
+const OBE_TOMBOL = [
+  ["submitDosen", "Memverifikasi…"],
+  ["submitMahasiswa", "Memverifikasi…"],
+  ["saveMappingFromUI", "Menyimpan…"],
+  ["resetMapping", "Mengembalikan…"],
+  ["computeFromSystem", "Menghitung…"],
+  ["publishToFirestore", "Mempublikasikan…"],
+  ["deleteObeFromFirestore", "Menghapus…"],
+  ["logout", "Keluar…"],
+];
+
 function prosesObe(berkas) {
   let html = fs.readFileSync(berkas, "utf8");
-  if (html.includes("_modalMemuatLogin")) return null;
+  const awal = html;
   const nama = path.relative(root, berkas);
-  if (!html.includes(OBE_CSS_JANGKAR)) throw new Error(`${nama}: jangkar CSS .btn-import tidak ada`);
-  if (!html.includes(OBE_HELPER_JANGKAR)) throw new Error(`${nama}: loginAsDosen tidak ada`);
-  html = html.replace(OBE_CSS_JANGKAR, OBE_CSS_BARU)
-             .replace(OBE_HELPER_JANGKAR, OBE_HELPER + OBE_HELPER_JANGKAR);
-  for (const [lama, baru] of OBE_TITIK) {
-    if (!html.includes(lama)) throw new Error(`${nama}: titik login tidak cocok`);
-    html = html.replace(lama, baru);
+  const catatan = [];
+
+  // 1. Pemilih peran (modal diganti seluruhnya → titik-titik, bukan pemutar).
+  if (!html.includes("_modalMemuatLogin")) {
+    if (!html.includes(OBE_CSS_JANGKAR)) throw new Error(`${nama}: jangkar CSS .btn-import tidak ada`);
+    if (!html.includes(OBE_HELPER_JANGKAR)) throw new Error(`${nama}: loginAsDosen tidak ada`);
+    html = html.replace(OBE_CSS_JANGKAR, OBE_CSS_BARU)
+               .replace(OBE_HELPER_JANGKAR, OBE_HELPER + OBE_HELPER_JANGKAR);
+    for (const [lama, baru] of OBE_TITIK) {
+      if (!html.includes(lama)) throw new Error(`${nama}: titik login tidak cocok`);
+      html = html.replace(lama, baru);
+    }
+    catatan.push("pemilih-peran");
   }
-  return html;
+
+  // 2. Bungkus onclick tombol yang menunggu jaringan.
+  let bungkus = 0;
+  for (const [fn, label] of OBE_TOMBOL) {
+    const lama = `onclick="${fn}()"`;
+    if (!html.includes(lama)) continue;                 // sudah dibungkus
+    html = html.split(lama).join(
+      `onclick="jalankanDenganMuat(this,'${label}',()=>${fn}())"`);
+    bungkus += 1;
+  }
+  if (bungkus) catatan.push(`tombol×${bungkus}`);
+
+  // 3. Blok bersama (CSS pemutar + mulaiMuat/selesaiMuat/jalankanDenganMuat).
+  //    Diganti DI TEMPAT bila sudah ada — alasan yang sama seperti di proses():
+  //    membuang lalu menyisipkan ulang sebelum </head> membuat blok ini berebut
+  //    posisi dengan penyuntik lain yang bermain di tempat yang sama.
+  const RX_BLOK_OBE = /<!-- EFEK-MEMUAT:START[\s\S]*?<!-- EFEK-MEMUAT:END[^>]*-->\n?/;
+  const adaBlok = RX_BLOK_OBE.test(html);
+  if (adaBlok) {
+    html = html.replace(RX_BLOK_OBE, () => BLOK);
+  } else {
+    if (!html.includes("</head>")) throw new Error(`${nama}: tidak ada </head>`);
+    html = html.replace("</head>", () => `${BLOK}</head>`);
+    catatan.push("blok-bersama");
+  }
+
+  if (html === awal) return null;
+  return { html, catatan };
 }
 
 let n = 0;
@@ -280,15 +334,17 @@ for (const f of kumpulkan(["Exam", "Modul"])) {
   if (!periksa) fs.writeFileSync(f, hasil.html);
 }
 let nObe = 0;
+const rekapObe = {};
 for (const kursus of fs.readdirSync(root, { withFileTypes: true })) {
   if (!kursus.isDirectory()) continue;
   const p = path.join(root, kursus.name, "OBE", "Penilaian-OBE.htm");
   if (!fs.existsSync(p)) continue;
-  const html = prosesObe(p);
-  if (!html) continue;
+  const hasil = prosesObe(p);
+  if (!hasil) continue;
   nObe += 1;
-  if (!periksa) fs.writeFileSync(p, html);
+  for (const c of hasil.catatan) rekapObe[c] = (rekapObe[c] || 0) + 1;
+  if (!periksa) fs.writeFileSync(p, hasil.html);
 }
 console.log(`${n} halaman ${periksa ? "akan diperbarui" : "diperbarui"}: `
   + `${tm} titik mulai-muat, ${ts} titik selesai-muat, ${tk} kelompok tombol, ${tb} handler dibungkus.`);
-console.log(`${nObe} halaman OBE ${periksa ? "akan diberi" : "diberi"} efek loading pemilih peran.`);
+console.log(`${nObe} halaman OBE ${periksa ? "akan diperbarui" : "diperbarui"}: ${JSON.stringify(rekapObe)}`);
