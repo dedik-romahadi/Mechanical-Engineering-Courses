@@ -13,12 +13,12 @@
  * `#visitorTableBody` di seluruh halaman Exam menjadi `min(72vh,820px)`.
  * Hanya angka itu yang disentuh; `overflow-y:auto` dan sisa style dibiarkan.
  *
- * CAKUPAN: <Kursus>/Exam/*.html saja.
+ * CAKUPAN: <Kursus>/Exam/*.html dan <Kursus>/Modul/*.html — seluruh 64 halaman.
  *
- * Halaman Modul sengaja TIDAK disentuh. Saat ini hanya 14 modul Sistem Kendali
- * Cerdas yang sudah memakai nilai responsif; 42 modul mata kuliah lain masih
- * 420px. Menyeragamkannya adalah keputusan tersendiri — kalau nanti diputuskan
- * seragam, tambahkan "Modul" ke daftar SUB di bawah dan jalankan ulang.
+ * Awalnya hanya Exam (5 September 2026), karena saat itu hanya 14 modul Sistem
+ * Kendali Cerdas yang responsif dan 42 modul mata kuliah lain masih 420px.
+ * Modul menyusul pada 7 September 2026 atas keputusan dosen, sehingga tab Hasil
+ * kini seragam di seluruh mata kuliah dan seluruh jenis halaman.
  *
  * Idempoten: berkas yang nilainya sudah TINGGI dilewati, dan pencocokannya
  * memakai nilai lama yang eksplisit sehingga tidak pernah menumpuk.
@@ -34,7 +34,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const periksa = process.argv.includes("--periksa");
 
-const SUB = ["Exam"];
+const SUB = ["Exam", "Modul"];
 const LAMA = 'id="visitorTableBody" style="max-height:420px;';
 const TINGGI = 'id="visitorTableBody" style="max-height:min(72vh,820px);';
 
