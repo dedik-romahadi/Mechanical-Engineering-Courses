@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Verifikasi Kode Export | Mechanical Engineering Courses</title>
+<style>
+  :root{
+    --bg:#060a10; --surface:#0d1520; --border:#1a2840; --cyan:#00e5ff;
+    --green:#00e676; --amber:#ffb300; --pink:#ff4081; --text:#cdd6e8; --muted:#6b7da0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+       line-height:1.6;padding:24px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:680px}
+  h1{font-size:22px;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:18px}
+  label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px;color:#9fb0d0}
+  label:first-child{margin-top:0}
+  input,select,textarea{width:100%;padding:11px 13px;background:#020a18;border:1px solid var(--border);
+    border-radius:9px;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+  input:focus,select:focus,textarea:focus{border-color:var(--cyan)}
+  input[data-mono]{font-family:'JetBrains Mono',monospace}
+  .hint{font-size:12px;color:var(--muted);margin-top:5px}
+  .row{display:flex;gap:12px}
+  .row>div{flex:1}
+  button{width:100%;margin-top:20px;padding:13px;border:none;border-radius:10px;
+    background:linear-gradient(135deg,var(--green),#00b894);color:#04140b;font-weight:800;
+    font-size:15px;cursor:pointer;letter-spacing:.3px}
+  button:disabled{opacity:.5;cursor:wait}
+  .warn{background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.3);border-radius:10px;
+    padding:12px 14px;font-size:13px;color:#ffd27a;margin-bottom:18px}
+  .result{margin-top:18px;padding:16px;border-radius:10px;font-size:13.5px;display:none;white-space:pre-wrap;
+    font-family:'JetBrains Mono',monospace}
+  .result.ok{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.3);color:#7dffb0;display:block}
+  .result.bad{background:rgba(255,64,129,.07);border:1px solid rgba(255,64,129,.35);color:#ff9bbd;display:block}
+  .result.err{background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.3);color:#ffd27a;display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔐 Verifikasi Kode Export</h1>
+  <div class="sub">Admin-only. Cocokkan kode verifikasi yang tertera di file "Export HTML" mahasiswa (Modul 1-14 maupun UTS/UAS) terhadap poin resmi di server saat kode itu dibuat.</div>
+
+  <div class="warn">
+    ⚠ File export HTML dibuat 100% di browser mahasiswa dan bisa diedit manual (skor, kode, dsb).
+    Kode verifikasi TIDAK mencegah edit — tapi kalau field apa pun (poin/NIM/waktu dibuat) diubah,
+    kode ini otomatis tidak cocok lagi. Salin ke-4 nilai di bawah <b>persis</b> seperti yang tertera
+    di bagian "🔐 Kode Verifikasi" pada file export.
+  </div>
+
+  <div class="card">
+    <label>Mata Kuliah &amp; Modul/Exam</label>
+    <div class="row">
+      <div>
+        <select id="course">
+          <option value="getaran-mekanik">Getaran Mekanik</option>
+          <option value="math4">Matematika 4</option>
+          <option value="optoauto">Optimalisasi &amp; Automasi</option>
+          <option value="sistem_kendali_cerdas">Sistem Kendali Cerdas</option>
+        </select>
+      </div>
+      <div>
+        <select id="modul"></select>
+      </div>
+    </div>
+    <div class="hint">id: <span id="modulId" style="color:var(--cyan)">getaran-mekanik-modul-4</span></div>
+
+    <label>NIM Mahasiswa</label>
+    <input id="nim" inputmode="numeric" placeholder="mis. 41324120032" autocomplete="off">
+
+    <label>Poin (server) — dari file export</label>
+    <input id="points" inputmode="decimal" placeholder="mis. 38 (Modul) atau 78.67 (Exam — boleh desimal, salin persis)" autocomplete="off">
+
+    <label>Dibuat — dari file export (persis, termasuk huruf T/Z)</label>
+    <input id="generatedAt" data-mono placeholder="mis. 2026-07-14T16:20:00.000Z" autocomplete="off">
+
+    <label>Kode — dari file export</label>
+    <input id="code" data-mono placeholder="mis. A798-020C-466F" autocomplete="off" style="text-transform:uppercase">
+
+    <label>Password Admin (Dosen)</label>
+    <input id="pw" type="password" placeholder="Password admin" autocomplete="off">
+
+    <button id="btn" onclick="doVerify()">Verifikasi Kode</button>
+    <div class="result" id="result"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+import { getAuth, signInWithCustomToken, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+  authDomain: "getaran-mekanik.firebaseapp.com",
+  databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "getaran-mekanik",
+  storageBucket: "getaran-mekanik.firebasestorage.app",
+  messagingSenderId: "430886299733",
+  appId: "1:430886299733:web:0edecd5d4adf73e7440cdc",
+  measurementId: "G-NBMYLXXF18"
+};
+const app = initializeApp(firebaseConfig);
+const functions = getFunctions(app, 'asia-southeast1');
+const auth = getAuth(app);
+const createAdminSession = httpsCallable(functions, 'createAdminSession');
+async function authenticateAdmin(password){
+  const result = await createAdminSession({ password });
+  if(!result.data || !result.data.token) throw new Error('Token sesi admin tidak diterima');
+  await setPersistence(auth, browserSessionPersistence);
+  await signInWithCustomToken(auth, result.data.token);
+}
+const verifyExportCode = httpsCallable(functions, 'verifyExportCode');
+
+
+const courseEl = document.getElementById('course');
+const modulEl  = document.getElementById('modul');
+const modulIdEl= document.getElementById('modulId');
+
+function buildModulOptions(){
+  modulEl.innerHTML = '';
+  for(let n=1;n<=14;n++){
+    const o = document.createElement('option');
+    o.value = n; o.textContent = `Modul ${n}`;
+    modulEl.appendChild(o);
+  }
+  const uts = document.createElement('option'); uts.value = 'uts'; uts.textContent = 'UTS';
+  const uas = document.createElement('option'); uas.value = 'uas'; uas.textContent = 'UAS';
+  modulEl.appendChild(uts); modulEl.appendChild(uas);
+}
+function refreshModulId(){
+  const v = modulEl.value;
+  modulIdEl.textContent = (v === 'uts' || v === 'uas')
+    ? `${courseEl.value === 'sistem_kendali_cerdas' ? 'sisken' : courseEl.value}-${v}`
+    : `${courseEl.value}-modul-${v}`;
+}
+courseEl.onchange = refreshModulId;
+modulEl.onchange  = refreshModulId;
+buildModulOptions(); modulEl.value = 4; refreshModulId();
+
+window.doVerify = async function(){
+  const btn = document.getElementById('btn');
+  const res = document.getElementById('result');
+  res.className='result'; res.removeAttribute('style');
+
+  const modulId = modulIdEl.textContent;
+  const nim = document.getElementById('nim').value.trim();
+  const points = document.getElementById('points').value.trim();
+  const generatedAt = document.getElementById('generatedAt').value.trim();
+  const code = document.getElementById('code').value.trim();
+  const pw = document.getElementById('pw').value;
+
+  if(!/^[0-9]{1,20}$/.test(nim)){ showMsg('err','NIM harus angka.'); return; }
+  if(points === '' || isNaN(Number(points))){ showMsg('err','Poin harus angka (salin dari file export).'); return; }
+  if(!generatedAt){ showMsg('err','"Dibuat" wajib diisi (salin persis dari file export).'); return; }
+  if(!code){ showMsg('err','Kode wajib diisi (salin dari file export).'); return; }
+  if(!pw){ showMsg('err','Password admin wajib diisi.'); return; }
+
+  btn.disabled=true; btn.textContent='Memverifikasi...';
+  try{
+    await authenticateAdmin(pw);
+    const r = await verifyExportCode({ modulId, nim, points: Number(points), generatedAt, code });
+    const d = r.data;
+    if(d.valid){
+      const lines = [`✅ KODE VALID — file export ini ASLI (tidak diedit).`, ''];
+      lines.push(`Modul: ${modulId}`);
+      lines.push(`NIM: ${nim}`);
+      lines.push(`Poin saat export dibuat: ${points}`);
+      if(d.currentPoints !== null && d.currentPoints !== undefined){
+        lines.push(`Poin TERKINI di server: ${d.currentPoints}` + (Number(d.currentPoints) !== Number(points) ? '  (beda dari file — wajar kalau mahasiswa lanjut mengerjakan setelah export dibuat, bukan tanda kecurangan)' : '  (sama persis)'));
+      }
+      res.className='result ok'; res.style.display='block'; res.textContent=lines.join('\n');
+    } else {
+      res.className='result bad'; res.style.display='block';
+      res.textContent = `❌ KODE TIDAK COCOK\n\nSalah satu dari NIM/Poin/Dibuat/Kode tidak sesuai dengan yang server pernah generate — kemungkinan file sudah diedit, atau salah satu field di atas salah ketik (cek lagi persis dari file export, termasuk huruf besar/kecil & format tanggal).`;
+    }
+  }catch(e){
+    showMsg('err', 'Gagal: '+(e.message||e)+(e.code?` [${e.code}]`:''));
+  }finally{
+    btn.disabled=false; btn.textContent='Verifikasi Kode';
+  }
+};
+function showMsg(cls, msg){ const res=document.getElementById('result'); res.className='result '+cls; res.style.display='block'; res.textContent=(cls==='err'?'⚠ ':'')+msg; }
+</script>
+</body>
+</html>
