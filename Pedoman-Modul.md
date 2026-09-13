@@ -86,6 +86,7 @@ Secret runtime yang dibuat di Firebase Secret Manager adalah `EXPORT_CODE_SECRET
 | `Getaran-Mekanik/` | `getaran_mekanik` | `getaran-mekanik` | Getaran Mekanik |
 | `Optimalisasi-dan-Automasi/` | `optoauto` | `optoauto` | Optimalisasi & Otomasi |
 | `Sistem-Kendali-Cerdas/` | `sistem_kendali_cerdas` | `sisken` | Sistem Kendali Cerdas |
+| `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | — (belum ada exam) | Pemodelan Computer Aided Design (CAD) |
 
 Perhatikan Sistem Kendali Cerdas memakai **dua penamaan berbeda** yang keduanya benar dan tidak boleh disamakan: course id/path Firebase `sistem_kendali_cerdas` (dengan garis bawah), tetapi prefix exam `sisken` (`sisken-uts`, `sisken-uas`). Nama berkas kunci modul juga memakai bentuk panjang: `functions/seed/modul/sistem_kendali_cerdas-modul-N-answers.js`.
 
@@ -95,6 +96,14 @@ Khusus course Optimalisasi:
 - `Attributes/Asesmen-Optimalisasi-dan-Otomasi.json` dan judul LMS memakai **Otomasi**;
 - deck Slidev tertentu memakai “Optimalisasi & Automasi” secara sengaja;
 - jangan membuat path `Optimization-Automation`.
+
+**Pemodelan Computer Aided Design (CAD) — Tahap 1 (13 September 2026).** Mata kuliah semester 2 ini ditambahkan bertahap atas keputusan dosen. Yang sudah ada: `Attributes/Asesmen-Pemodelan-Computer-Aided-Design.json` (bobot dari SIA), `Attributes/students.json` (masih `[]`), `OBE/Penilaian-OBE.htm`, `Unduhan-Gabungan/RPS-Pemodelan-Computer-Aided-Design.pdf`, kartu di `index.html`, dan baris `rsync` di `deploy-slides.yml`. Yang **sengaja belum** dibuat: Banner, Modul, Modul-Word, Exam, dan bentuk Tugas (masih diputuskan dosen).
+
+- **Bobot mengikuti SIA** (TGS 55%, UTS 22%, UAS 23%), bukan komponen penilaian RPS (UTS 50%/UAS 50%, bobot mingguan Σ92%) yang tidak konsisten dengan SIA.
+- `kode_mk` `W132100008` diambil dari RPS dan kemungkinan kode kurikulum lama; `kelas_sia` dan `jadwal` masih `null` sampai kelas dibuka.
+- Backend hanya menambahkan `pemodelan_cad` ke `OBE_MAPPING_COURSES` agar mapping OBE bisa disimpan. `computeObeScores` menolak course ini dengan pesan jelas karena belum ada di `OBE_COURSE_EXAMS`.
+- `validate-public-security.mjs` memindai halaman OBE-nya lewat `obeOnlyRoots` (bukan `courseRoots`, yang mewajibkan `Exam/UTS.html` dan `Exam/UAS.html`); hitungan halaman ber-autentikasi menjadi 74.
+- Saat modul dan ujian dibuat: pindahkan ke `courseRoots` dan daftar di `validate-all-course-modern-design.mjs` (serta sesuaikan hitungan 56/74), tambahkan ke `_MODUL_COURSES`, `EXAM_CONFIG`, `OBE_EXAM_CONFIG`, `OBE_COURSE_EXAMS`, keempat daftar course di `database.rules.json`, registry dan basis pengetahuan chat, lima alat `Admin/`, isi `DEFAULT_MAPPING` UTS/UAS di halaman OBE, lalu isi roster.
 
 Setiap course mempunyai:
 
@@ -111,8 +120,8 @@ Inventaris utama saat ini:
 
 - 56 modul: 14 per course;
 - 8 exam: UTS dan UAS per course;
-- 4 halaman OBE;
-- total 68 halaman HTML inti;
+- 5 halaman OBE (termasuk Pemodelan CAD yang belum punya modul/exam);
+- total 69 halaman HTML inti;
 - 5 halaman Admin HTML dan satu helper analisis Python.
 
 Halaman standalone lama di `Attributes/` (`Nilai-Akhir.html`, `Pembagian-Kelompok.html`, `Setup-Python.html`) **sudah dihapus** dari Matematika 4, Getaran Mekanik, dan Optimalisasi. Halaman itu memakai login lama (nama + NIM, tanpa PIN) dan fungsinya sudah ada di dalam halaman modul. Tautannya di `index.html` ikut dihapus. Jangan membuatnya kembali; jika perlu, tambahkan sebagai tab di halaman modul supaya ikut gerbang PIN.
@@ -125,6 +134,7 @@ Sumber data course yang harus dipertahankan:
 | Getaran Mekanik | `Attributes/Asesmen-Getaran-Mekanik.json` |
 | Optimalisasi & Otomasi | `Attributes/Asesmen-Optimalisasi-dan-Otomasi.json` |
 | Sistem Kendali Cerdas | `Attributes/Asesmen-Sistem-Kendali-Cerdas.json` |
+| Pemodelan Computer Aided Design (CAD) | `Attributes/Asesmen-Pemodelan-Computer-Aided-Design.json` |
 
 Roster login mahasiswa selalu berasal dari `Attributes/students.json` masing-masing course. Nama mahasiswa tidak diketik bebas ketika login.
 
