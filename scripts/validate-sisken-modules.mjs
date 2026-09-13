@@ -168,7 +168,7 @@ for (let n = 1; n <= 14; n += 1) {
     );
     const pilotRuntime = html.match(/<script id="modern-academic-runtime">([\s\S]*?)<\/script>/)?.[1];
     try { new vm.Script(pilotRuntime || "", { filename: "Modul-2:modern-academic-runtime" }); }
-    catch (error) { checks.push([false, `runtime modern academic â€” ${error.message}`]); }
+    catch (error) { checks.push([false, `runtime modern academic — ${error.message}`]); }
   }
 
   checks.push(
