@@ -84,7 +84,7 @@ lain per area ada di `Pedoman-Modul.md` §17.1.
 LMS multi-course untuk **S1 Teknik Mesin Universitas Mercu Buana** (dosen:
 Dedik Romahadi). Satu berkas HTML mandiri per modul/exam; Firebase RTDB +
 Firestore + Cloud Functions di belakang (repo privat). Empat mata kuliah aktif,
-ditambah dua yang sedang disiapkan:
+ditambah dua yang sedang disiapkan bertahap:
 
 | Folder | Course ID | Slug callable modul | Singkatan |
 |---|---|---|---|
@@ -93,7 +93,7 @@ ditambah dua yang sedang disiapkan:
 | `Optimalisasi-dan-Automasi/` | `optoauto` | `optoauto-modul-N` | Opto |
 | `Sistem-Kendali-Cerdas/` | `sistem_kendali_cerdas` | `sistem_kendali_cerdas-modul-N` | Sisken |
 | `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | — (belum ada modul) | CAD |
-| `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | — (belum ada modul) | TTL |
+| `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | `teknik_tenaga_listrik-modul-N` (terbit: Modul 1) | TTL |
 
 > ⚠️ **Ejaan Opto (mudah salah saat scripting):** folder `Optimalisasi-dan-Automasi/`
 > (**Automasi**, huruf A) tetapi berkas asesmennya
@@ -102,10 +102,12 @@ ditambah dua yang sedang disiapkan:
 > `Optimalisasi-dan-Automasi`. Pengecualian: deck slide Opto memakai brand
 > "Optimalisasi & Automasi" (huruf A) atas permintaan dosen — jangan "diperbaiki".
 
-Total berkas HTML utama: **56 modul + 8 exam + 6 OBE**. Pemodelan CAD dan Teknik Tenaga Listrik baru
-sampai Tahap 1 (Silabus/OBE + RPS): belum masuk `_MODUL_COURSES` maupun
-`OBE_COURSE_EXAMS` di backend, dan dipindai validator lewat `obeOnlyRoots`,
-bukan `courseRoots`. Rincian dan daftar langkah lanjutannya: Pedoman §2.
+Total berkas HTML utama: **57 modul + 8 exam + 6 OBE**. Pemodelan CAD baru
+sampai Tahap 1 (Silabus/OBE + RPS). Teknik Tenaga Listrik dibangun modul demi
+modul: Modul 1 sudah terbit dan terdaftar di `_MODUL_COURSES` backend lewat
+`moduls: [1]`, tetapi belum punya exam, sehingga validator keamanan tetap
+memindainya lewat `obeOnlyRoots`, bukan `courseRoots`. Rincian dan langkah
+lanjutannya: Pedoman §2.
 
 ### B.2 Struktur per-course
 
@@ -151,7 +153,7 @@ repo publik ini.
     antar-modul — gerbang itu tidak bisa diuji dengan akun ini;
   - daftar NIM-nya harus sama di dua tempat: `SIM_NIMS` di backend
     `functions/index.js` dan `scripts/kecualikan-akun-simulasi.mjs` di sini
-    (disuntikkan ke 64 halaman modul/exam + 4 halaman OBE); nama ada di empat `students.json` **dan**
+    (disuntikkan ke 65 halaman modul/exam + 4 halaman OBE); nama ada di lima `students.json` **dan**
     RTDB `pins/mhs_41399999901.nama`;
   - saat membersihkan sisa datanya, kunci Firestore modul memakai prefiks
     `mhs_` (`modulAttempts/<id>/students/mhs_<nim>`), exam tidak.

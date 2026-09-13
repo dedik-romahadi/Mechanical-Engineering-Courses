@@ -103,15 +103,19 @@ Khusus course Optimalisasi:
 - **Bobot mengikuti SIA** (TGS 55%, UTS 22%, UAS 23%), bukan komponen penilaian RPS (UTS 50%/UAS 50%, bobot mingguan Σ92%) yang tidak konsisten dengan SIA.
 - `kode_mk` `W132100008` diambil dari RPS dan kemungkinan kode kurikulum lama; `kelas_sia` dan `jadwal` masih `null` sampai kelas dibuka.
 - Backend hanya menambahkan `pemodelan_cad` ke `OBE_MAPPING_COURSES` agar mapping OBE bisa disimpan. `computeObeScores` menolak course ini dengan pesan jelas karena belum ada di `OBE_COURSE_EXAMS`.
-- `validate-public-security.mjs` memindai halaman OBE-nya lewat `obeOnlyRoots` (bukan `courseRoots`, yang mewajibkan `Exam/UTS.html` dan `Exam/UAS.html`); hitungan halaman ber-autentikasi menjadi 74 (75 setelah Teknik Tenaga Listrik ditambahkan).
+- `validate-public-security.mjs` memindai halaman OBE-nya lewat `obeOnlyRoots` (bukan `courseRoots`, yang mewajibkan `Exam/UTS.html` dan `Exam/UAS.html`); hitungan halaman ber-autentikasi menjadi 74 (75 setelah OBE Teknik Tenaga Listrik, 76 setelah Modul 1-nya terbit).
 - Saat modul dan ujian dibuat: pindahkan ke `courseRoots` dan daftar di `validate-all-course-modern-design.mjs` (serta sesuaikan hitungan modul dan halaman ber-autentikasi), tambahkan ke `_MODUL_COURSES`, `EXAM_CONFIG`, `OBE_EXAM_CONFIG`, `OBE_COURSE_EXAMS`, keempat daftar course di `database.rules.json`, registry dan basis pengetahuan chat, lima alat `Admin/`, isi `DEFAULT_MAPPING` UTS/UAS di halaman OBE, lalu isi roster.
 
-**Teknik Tenaga Listrik — Tahap 1 (13 September 2026).** Mata kuliah semester 5 (kelas SIA 354290, `W132500023`, `2A51362F`, Sabtu 12:00–13:40), ditambahkan dengan pola yang sama seperti Pemodelan CAD: `Attributes/Asesmen-Teknik-Tenaga-Listrik.json`, `Attributes/students.json` (20 mahasiswa dari presensi SIA), `OBE/Penilaian-OBE.htm`, `Unduhan-Gabungan/RPS-Teknik-Tenaga-Listrik.pdf`, kartu di `index.html`, baris `rsync`, `obeOnlyRoots`, dan `teknik_tenaga_listrik` di `OBE_MAPPING_COURSES`. Modul, Exam, dan bentuk Tugas belum dibuat.
+**Teknik Tenaga Listrik — Tahap 1 (13 September 2026).** Mata kuliah semester 5 (kelas SIA 354290, `W132500023`, `2A51362F`, Sabtu 12:00–13:40), ditambahkan dengan pola yang sama seperti Pemodelan CAD: `Attributes/Asesmen-Teknik-Tenaga-Listrik.json`, `Attributes/students.json` (20 mahasiswa dari presensi SIA), `OBE/Penilaian-OBE.htm`, `Unduhan-Gabungan/RPS-Teknik-Tenaga-Listrik.pdf`, kartu di `index.html`, baris `rsync`, `obeOnlyRoots`, dan `teknik_tenaga_listrik` di `OBE_MAPPING_COURSES`. Sejak 14 September 2026 modulnya dibangun satu per satu atas permintaan dosen (modul berikutnya menunggu persetujuan modul sebelumnya): **Modul 1 sudah terbit**; Modul 2–14, Exam, Banner, dan Modul-Word menyusul.
 
 - **RPS sudah diselaraskan dengan SIA (14 September 2026).** RPS Juni 2025 memakai 6 CPMK dan 13 Sub-CPMK dengan rumusan lain serta bobot 60/20/20. `Unduhan-Gabungan/RPS-Teknik-Tenaga-Listrik.pdf` kini disusun ulang dari `Asesmen-Teknik-Tenaga-Listrik.json`: 7 CPMK, 14 Sub-CPMK, TGS 43%/UTS 25%/UAS 32%, CPL2/CPL5/CPL6 = 21/57/22 (CPL2 ← CPMK 1; CPL5 ← CPMK 2–5; CPL6 ← CPMK 6–7). Tata letaknya mengikuti RPS lama (sampul, Satuan Acara Perkuliahan, RPS, catatan); pengembang dan pengesah RPS tetap, dengan catatan revisi. Bila bobot di SIA berubah, RPS harus disusun ulang bersama berkas asesmen.
 - Halaman OBE-nya merender jumlah kolom CPMK (7) dan CPL secara dinamis; templat lama mengunci 5 CPMK dan 4 CPL.
 - Pemetaan Modul N → Sub-CPMK ke-N ditetapkan di RPS revisi: Modul 1–7 minggu 1–7, UTS minggu 8, Modul 8–14 minggu 9–15, UAS minggu 16. Cakupan ujian SIA cocok dengan urutan ini (UTS Sub-CPMK 1.1–3.1, UAS 3.2–7.2).
-- Roster belum memuat akun simulasi (`41399999901`); tambahkan saat modul dibuat, seperti empat mata kuliah aktif.
+- Roster memuat akun simulasi (`41399999901`) sejak Modul 1 terbit.
+- **Modul 1 — Konsep Dasar Sistem Tenaga Listrik (Sub-CPMK 1.1)** dibangun dari kerangka Sisken Modul 1 (6 tab, 9 bagian materi, 6 gambar, 5 animasi, 4 cell Python) dengan skrip sekali pakai, sehingga semua lapisan injektor sudah ada; `tambah-progres-modul.mjs` menyisipkan 9 kotak centang. Tugas memakai struktur universal 25 soal/50 poin: 10 PG diacak per NIM (`mcOrderVersion: 1`) dan 15 komputasi parametrik per NIM dari `functions/modules/ttl-modul-all-v2.js` (satu berkas bank untuk seluruh modul TTL, modul ditambah lewat `register()`); kunci PG di `functions/seed/modul/teknik_tenaga_listrik-modul-N-answers.js`, penjaganya `scripts/verify-ttl-modules.js`.
+- Backend hanya mendaftarkan modul yang sudah terbit lewat `moduls: [1]` pada entri `_MODUL_COURSES`. Modul yang belum terdaftar ditolak callable progres dan gerbang antar-modul meloloskan modul sesudahnya, jadi setiap modul baru wajib ditambahkan di sana bersama bank, seed (`seed_scope=modul:custom`), dan halamannya, dengan urutan deploy backend lebih dulu.
+- Validator: TTL tetap di `obeOnlyRoots` validator keamanan (belum ada Exam); `validate-all-course-modern-design.mjs` memeriksanya lewat `moduleCount` (sekarang 1). Hitungan: 57 modul dengan tombol ekspor terjaga dan 76 halaman ber-autentikasi admin.
+- Belum terdaftar di agen AI (registry chat dan basis pengetahuan backend) maupun lima alat `Admin/`. Halaman sudah membawa daftar topik TTL di widget chat, tetapi `aiChat` menolak moduleId-nya sampai registry backend diperbarui. Versi PDF modul belum ada, sehingga tombol Export PDF memberi tahu alih-alih mengunduh.
 
 Setiap course mempunyai:
 
@@ -126,10 +130,10 @@ Setiap course mempunyai:
 
 Inventaris utama saat ini:
 
-- 56 modul: 14 per course;
+- 57 modul: 14 per course aktif + Modul 1 Teknik Tenaga Listrik;
 - 8 exam: UTS dan UAS per course;
-- 6 halaman OBE (termasuk Pemodelan CAD dan Teknik Tenaga Listrik yang belum punya modul/exam);
-- total 70 halaman HTML inti;
+- 6 halaman OBE (termasuk Pemodelan CAD dan Teknik Tenaga Listrik yang belum punya exam);
+- total 71 halaman HTML inti;
 - 5 halaman Admin HTML dan satu helper analisis Python.
 
 Halaman standalone lama di `Attributes/` (`Nilai-Akhir.html`, `Pembagian-Kelompok.html`, `Setup-Python.html`) **sudah dihapus** dari Matematika 4, Getaran Mekanik, dan Optimalisasi. Halaman itu memakai login lama (nama + NIM, tanpa PIN) dan fungsinya sudah ada di dalam halaman modul. Tautannya di `index.html` ikut dihapus. Jangan membuatnya kembali; jika perlu, tambahkan sebagai tab di halaman modul supaya ikut gerbang PIN.
@@ -179,6 +183,7 @@ Rumusnya: `P = N` untuk `N <= 7`, dan `P = N + 1` untuk `N >= 8`. Rumus ini dipa
 | Getaran Mekanik | `getaran-mekanik-modul-N` |
 | Optimalisasi & Otomasi | `optoauto-modul-N` |
 | Sistem Kendali Cerdas | `sistem_kendali_cerdas-modul-N` |
+| Teknik Tenaga Listrik | `teknik_tenaga_listrik-modul-N` (terbit: N = 1) |
 
 ### 3.2 Path modul
 
@@ -188,8 +193,9 @@ Rumusnya: `P = N` untuk `N <= 7`, dan `P = N + 1` untuk `N >= 8`. Rumus ini dipa
 | Getaran | `visitors/getaran_mekanik/pertemuan-P` | `settings/getaran_mekanik/pertemuan-P/schedule` | `presence/getaran_mekanik/pertemuan-P` | `chat/getaran_mekanik/pertemuan-P/messages` |
 | Optoauto | `visitors/optoauto/pertemuan-P` | `settings/optoauto/pertemuan-P/schedule` | `presence/optoauto/pertemuan-P` | `chat/optoauto/pertemuan-P/messages` |
 | Sisken | `visitors/sistem_kendali_cerdas/pertemuan-P` | `settings/sistem_kendali_cerdas/pertemuan-P/schedule` | `presence/sistem_kendali_cerdas/pertemuan-P` | `chat/sistem_kendali_cerdas/pertemuan-P/messages` |
+| TTL | `visitors/teknik_tenaga_listrik/pertemuan-P` | `settings/teknik_tenaga_listrik/pertemuan-P/schedule` | `presence/teknik_tenaga_listrik/pertemuan-P` | `chat/teknik_tenaga_listrik/pertemuan-P/messages` |
 
-Untuk Matematika, visitor memakai `modul-N` sedangkan jadwal memakai `pertemuan-P`. Perbedaan ini disengaja dan sudah ditangani oleh backend. Tiga course lain memakai `pertemuan-P` untuk keduanya.
+Untuk Matematika, visitor memakai `modul-N` sedangkan jadwal memakai `pertemuan-P`. Perbedaan ini disengaja dan sudah ditangani oleh backend. Course lain memakai `pertemuan-P` untuk keduanya.
 
 ### 3.3 ID dan path exam
 
@@ -280,7 +286,7 @@ Ketentuan saat ini:
 
 ### 4.5 Akun simulasi mahasiswa
 
-Untuk menguji alur mahasiswa tanpa mengotori data, ada satu akun uji: NIM `41399999901`, nama roster "SIMULASI MAHASISWA", terdaftar di `students.json` keempat course. PIN-nya hanya tersimpan sebagai hash di `pins/` dan **tidak ditulis di repo mana pun**. Daftar NIM-nya harus sama di dua tempat: `SIM_NIMS` di backend `functions/index.js` dan di `scripts/kecualikan-akun-simulasi.mjs` (disuntikkan ke 64 halaman modul/exam dan 4 halaman OBE).
+Untuk menguji alur mahasiswa tanpa mengotori data, ada satu akun uji: NIM `41399999901`, nama roster "SIMULASI MAHASISWA", terdaftar di `students.json` empat course aktif dan Teknik Tenaga Listrik. PIN-nya hanya tersimpan sebagai hash di `pins/` dan **tidak ditulis di repo mana pun**. Daftar NIM-nya harus sama di dua tempat: `SIM_NIMS` di backend `functions/index.js` dan di `scripts/kecualikan-akun-simulasi.mjs` (disuntikkan ke 65 halaman modul/exam dan 4 halaman OBE).
 
 | Aspek | Perilaku akun simulasi |
 |---|---|
@@ -300,7 +306,7 @@ Saat membersihkan sisa data akun ini di Firestore, ingat kunci dokumen modul mem
 - Di tab Hasil akun ini melihat papan peringkat dan roster mahasiswa lain, tetapi **tidak melihat dirinya sendiri** (tidak ada record pengunjung). Bilah poin di tab Tugas menunjukkan poin lokal sesi itu saja dan hilang saat muat ulang.
 - Gerbang antar-modul tidak bisa diuji dengan akun ini (selalu lolos); lapis servernya diuji lewat data mahasiswa nyata (lihat §6.7).
 
-**Mengganti nama atau PIN:** nama ada di empat `students.json` **dan** di RTDB `pins/mhs_41399999901.nama` (perbarui keduanya; `pins/` hanya bisa ditulis admin SDK karena write-once untuk klien). Mengganti PIN: hapus node `pins/mhs_41399999901`, lalu login sekali dengan PIN baru (alur "Buat PIN" akan menulis hash baru). Jangan pernah menuliskan PIN-nya di repo, commit, atau dokumen ini.
+**Mengganti nama atau PIN:** nama ada di lima `students.json` **dan** di RTDB `pins/mhs_41399999901.nama` (perbarui keduanya; `pins/` hanya bisa ditulis admin SDK karena write-once untuk klien). Mengganti PIN: hapus node `pins/mhs_41399999901`, lalu login sekali dengan PIN baru (alur "Buat PIN" akan menulis hash baru). Jangan pernah menuliskan PIN-nya di repo, commit, atau dokumen ini.
 
 ---
 
@@ -355,7 +361,7 @@ Tabel ini mencatat implementasi aktual, bukan menyatakan ketidakkonsistenan ters
 
 ### 5.4 Zona waktu modul
 
-Seluruh 56 modul memakai editor deadline berupa field tanggal dan field teks jam
+Seluruh 57 modul memakai editor deadline berupa field tanggal dan field teks jam
 `HH:mm` 24 jam. Input `10:00 PM` tidak dipakai; nilai ekuivalennya adalah
 `22:00`. Alur simpan membaca keduanya melalui `_readScheduleDueWib`, memvalidasi
 jam, lalu `_wibStringToDate` mengonversi WIB (UTC+7) ke ISO UTC. Contoh:
@@ -399,6 +405,7 @@ Modul adalah satu file HTML mandiri yang memuat UI, konten, animasi, Pyodide, da
 | Matematika 4, Getaran Mekanik, Optimalisasi | Setup Python · Pembagian Kelompok · Modul · Tugas · Forum · Hasil (6 tab) |
 | Sistem Kendali Cerdas — Modul 1 | Setup Python · Pembagian Kelompok · Modul · Tugas · Forum · Hasil (6 tab) |
 | Sistem Kendali Cerdas — Modul 2–14 | Modul · Tugas · Forum · Hasil (4 tab) |
+| Teknik Tenaga Listrik — Modul 1 | Setup Python · Pembagian Kelompok · Modul · Tugas · Forum · Hasil (6 tab) |
 
 Setup Python dan Pembagian Kelompok hanya ada di Modul 1 tiap course; pada Sisken Modul 2–14 tombol nav, halaman, dan blok gayanya dibuang oleh generator supaya tidak ada tab yang menuju halaman kosong. Jangan "memperbaiki" ketidaksamaan ini dengan menambahkan tab kosong.
 
@@ -417,7 +424,7 @@ Ketentuan konten dan UI:
 
 ### 6.1 Sistem desain modul
 
-Seluruh 56 modul memakai satu sistem **modern academic**. Keseragaman berarti komponen, interaksi, dan hierarki visualnya sama; isi, jumlah bagian, jumlah tab, dan aksen course tetap boleh berbeda. Lapisan ini ditandai oleh `body.modern-academic-design`, `<style id="modern-academic-design">`, dan `<script id="modern-academic-runtime">`. Jangan menerapkannya pada halaman exam.
+Seluruh 57 modul memakai satu sistem **modern academic**. Keseragaman berarti komponen, interaksi, dan hierarki visualnya sama; isi, jumlah bagian, jumlah tab, dan aksen course tetap boleh berbeda. Lapisan ini ditandai oleh `body.modern-academic-design`, `<style id="modern-academic-design">`, dan `<script id="modern-academic-runtime">`. Jangan menerapkannya pada halaman exam.
 
 | Area | Aturan desain saat ini |
 |---|---|
@@ -457,7 +464,7 @@ Markup wajib per soal (pernah rusak, jadi ditulis eksplisit):
 Perilaku penilaian:
 
 - jawaban dikirim ke `checkModulAnswer`; kunci berada di Firestore `modulAnswers` dan tidak ada di client;
-- pada 14 modul Sisken, urutan empat opsi PG diacak deterministik per NIM. Markup tidak membawa huruf kanonik; client mengirim huruf posisi yang terlihat dengan `mcOrderVersion: 1`, lalu server merekonstruksi permutasi memakai `shuffleSeed` dari bank exam dan memetakannya ke huruf kanonik. Payload tanpa versi tetap diperlakukan sebagai huruf kanonik agar frontend lama aman selama deployment bertahap;
+- pada 14 modul Sisken dan modul Teknik Tenaga Listrik, urutan empat opsi PG diacak deterministik per NIM. Markup tidak membawa huruf kanonik; client mengirim huruf posisi yang terlihat dengan `mcOrderVersion: 1`, lalu server merekonstruksi permutasi memakai `shuffleSeed` dari bank exam dan memetakannya ke huruf kanonik. Payload tanpa versi tetap diperlakukan sebagai huruf kanonik agar frontend lama aman selama deployment bertahap;
 - batas perlindungan shuffle PG harus disebutkan jujur: teks opsi masih berada di HTML publik sehingga mahasiswa teknis dapat menghitung ulang permutasi. Mekanisme ini mematikan penyebaran kunci huruf universal, tetapi bukan penghalang kriptografis;
 - seluruh Modul 1–14 Sisken memakai komputasi parametrik per NIM. Teks `c1`–`c15` tidak lagi statis di HTML; setelah login ia diambil melalui `getModulQuestions`, sedangkan kunci/toleransi/`explain` tetap di backend privat. Registry bersama berada di `functions/modules/sisken-modul-all-v2.js`; Modul 3 mempertahankan bank pilotnya, sedangkan modul lain memakai tiga skenario topikal dengan parameter fisik berbeda serta nilai kalibrasi varian yang dinyatakan pada teks. Verifikasi `scripts/verify-sisken-all-modules.js` menjalankan 14 × 15 × 100 varian dan menolak toleransi yang saling menerima;
 - satu `qId` hanya dapat dicoba sekali sampai direset;
@@ -511,7 +518,7 @@ Tab Hasil membaca record visitor untuk statistik, aktivitas, dan skor. Presence 
 
 ### 6.7 Progres materi berurutan dan gerbang antar-modul
 
-Berlaku di keempat course sejak 22 Agustus 2026 (permintaan dosen). Diterapkan oleh `scripts/tambah-progres-modul.mjs` (idempoten, penanda `PROGRES-MODUL`) dan empat callable di §10.
+Berlaku di keempat course sejak 22 Agustus 2026 (permintaan dosen), dan di Teknik Tenaga Listrik sejak Modul 1 terbit. Diterapkan oleh `scripts/tambah-progres-modul.mjs` (idempoten, penanda `PROGRES-MODUL`) dan empat callable di §10.
 
 - Di akhir setiap bagian materi (`div.section`, kecuali "Daftar Pustaka" dan bagian orientasi "Posisi Anda dan Sisa Waktu" di Sisken) ada kotak centang pernyataan *"Saya sudah mempelajari dan memahami bagian ini — [judul bagian]"* (teks 17 px, panel gradien hijau–sian dengan lencana status). Hanya kotak giliran yang aktif — **untuk semua peran**: centang harus urut dari bagian pertama, satu per satu, dan bagi mahasiswa tidak dapat dibatalkan. Injector membuang kotak lama lalu menyisipkan ulang, jadi perubahan pengecualian/teks cukup dengan menjalankannya kembali. Server (`setModulCentang`) menolak indeks yang tidak urut lewat transaksi Firestore.
 - Tab **Tugas, Forum, dan Hasil terkunci** sampai semua kotak dicentang; `switchTab` dibungkus sehingga tab terkunci tidak bisa dibuka lewat jalur lain.
@@ -1109,7 +1116,7 @@ node scripts/validate-all-course-modern-design.mjs
 git diff --check
 ```
 
-`validate-public-security.mjs` memindai seluruh HTML dalam allowlist Pages pada empat course. Ia menjaga artefak sensitif, sintaks inline script, 56 halaman berautentikasi admin (48 Modul/Exam + 3 OBE + 5 Admin), gate dan friction exam, WIB, preview modul, reset, presence, format poin, pemulihan `scoreDeltas`, serta keamanan publikasi. Jumlah halaman autentikasi dipatok di validator; perbarui bersama bila inventaris berubah.
+`validate-public-security.mjs` memindai seluruh HTML dalam allowlist Pages pada empat course aktif serta folder Pemodelan CAD dan Teknik Tenaga Listrik. Ia menjaga artefak sensitif, sintaks inline script, 76 halaman berautentikasi admin (65 Modul/Exam + 6 OBE + 5 Admin), gate dan friction exam, WIB, preview modul, reset, presence, format poin, pemulihan `scoreDeltas`, serta keamanan publikasi. Jumlah halaman autentikasi dipatok di validator; perbarui bersama bila inventaris berubah.
 
 Skrip penyuntik lintas halaman (semua idempoten lewat penanda; jalankan `--periksa` dulu) yang wajib dijalankan ulang setelah regenerasi modul: `tambah-efek-memuat.mjs`, `tambah-efek-jawaban.mjs`, `ubah-friction.mjs`, `kecualikan-akun-simulasi.mjs`, `kunci-lapisan-animasi-login.mjs`, dan `tambah-progres-modul.mjs` (modul saja). Dua di antaranya juga menyentuh `<Course>/OBE/Penilaian-OBE.htm` sejak 1 September 2026: `kecualikan-akun-simulasi.mjs` (menyaring akun simulasi dari roster `STUDENTS`) dan `tambah-efek-memuat.mjs` (efek loading pemilih peran). Keduanya memakai jalur terpisah `prosesObe()` karena halaman OBE beda ekstensi dan tidak punya jangkar `updateLeaderboard`. **Posisi blok dipertahankan (diperbaiki 1 September 2026).** `tambah-efek-memuat.mjs` dan `tambah-efek-jawaban.mjs` sama-sama menaruh satu blok `<style>` di `<head>`. Dulu keduanya membuang bloknya lalu menyisipkan ulang tepat sebelum `</head>`, sehingga berebut tempat terakhir: menjalankan yang satu memindahkan blok yang lain ke bawah — 64 berkas berubah, 67 baris bergeser, nol perubahan isi — lalu menjalankan yang lain memindahkannya balik. Siklus dua langkah yang tidak pernah selesai dan mengotori setiap diff. Sekarang keduanya **mengganti blok di tempat** bila sudah ada, dan hanya menyisip sebelum `</head>` bila blok itu memang belum ada. Isinya tetap ditimpa tiap jalan (perbaikan CSS tetap sampai), tetapi urutannya tidak lagi berubah. Diuji: empat putaran bergantian, keduanya melaporkan 0 halaman. `tinggikan-daftar-hasil.mjs` (modul + exam) menyamakan tinggi wadah roster tab Hasil `#visitorTableBody`: `max-height:420px` tetap → `min(72vh,820px)` responsif, sehingga daftar ikut tinggi layar tetapi berhenti di 820px. Ditambahkan 5 September 2026 untuk 8 halaman Exam, diperluas 7 September 2026 ke 56 modul — kini seragam di seluruh 64 halaman. Aturan CSS lintas course yang ditulis langsung di halaman (ukuran roadmap, padding panel persamaan, jarak `br+span`) juga sudah ada di generator `apply-modern-academic-all-modules.mjs` dan `enrich-sisken-modules.mjs`.
 
@@ -1117,7 +1124,7 @@ Validator khusus melengkapi pemeriksaan publik tersebut:
 
 | Validator | Cakupan khusus |
 |---|---|
-| `validate-all-course-modern-design.mjs` | Marker, runtime, tabel, kartu pustaka, perilaku tab, editor deadline `HH:mm` 24 jam, normalisasi WIB, dan sintaks pada seluruh 56 modul. |
+| `validate-all-course-modern-design.mjs` | Marker, runtime, tabel, kartu pustaka, perilaku tab, editor deadline `HH:mm` 24 jam, normalisasi WIB, dan sintaks pada seluruh 57 modul (Teknik Tenaga Listrik sebatas modul yang sudah terbit). |
 | `validate-all-course-score-panels.mjs` | Panel skor compact pada 42 modul Matematika 4, Getaran Mekanik, dan Optimalisasi & Otomasi. |
 | `validate-sisken-modules.mjs` | Struktur dan perilaku 14 modul Sisken, termasuk urutan tombol pilihan ganda, panel skor, serta kompatibilitas generator. |
 | `validate-sisken-forum.mjs` | Seluruh 156 kombinasi jajak Forum Modul 2–14 beserta Clipboard API dan fallback `execCommand`. |
