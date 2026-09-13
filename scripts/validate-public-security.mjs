@@ -57,7 +57,12 @@ function collectHtml(dir) {
     else if (entry.name.endsWith(".html") || entry.name.endsWith(".htm")) htmlFiles.push(full);
   }
 }
-for (const course of courseRoots) {
+// Mata kuliah yang sejauh ini baru punya halaman Silabus/OBE (belum ada Modul
+// dan Exam). Halamannya tetap dipindai sintaks dan autentikasinya, tetapi tidak
+// dimasukkan ke courseRoots karena pemeriksaan di bawah mewajibkan Exam/UTS.html
+// dan Exam/UAS.html. Pindahkan ke courseRoots begitu modul dan ujiannya ada.
+const obeOnlyRoots = ["Pemodelan-Computer-Aided-Design"];
+for (const course of [...courseRoots, ...obeOnlyRoots]) {
   collectHtml(path.join(root, course));
 }
 for (const name of fs.readdirSync(path.join(root, "Admin"))) {
@@ -125,7 +130,7 @@ try {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
-if (authPages !== 73) throw new Error(`Expected 73 admin-auth pages (64 Modul/Exam + 4 OBE + 5 Admin), got ${authPages}`);
+if (authPages !== 74) throw new Error(`Expected 74 admin-auth pages (64 Modul/Exam + 5 OBE + 5 Admin), got ${authPages}`);
 for (const course of courseRoots) {
   const uas = fs.readFileSync(path.join(root, course, "Exam", "UAS.html"), "utf8");
   if (/const UAS_(TF|MC|COMP_EZ|COMP_HARD)\s*=\s*\[/.test(uas)) throw new Error(`${course}: static UAS bank returned to HTML`);
