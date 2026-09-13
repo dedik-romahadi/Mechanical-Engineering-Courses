@@ -32,9 +32,10 @@ Yang bisa dilakukan mahasiswa di sini:
 | `Getaran-Mekanik/` | `getaran_mekanik` | Getaran Mekanik | Getaran bebas & paksa, sistem 2-DoF, analisis modal, FFT/STFT |
 | `Optimalisasi-dan-Automasi/` | `optoauto` | Optimalisasi & Otomasi | Time series, ekstraksi fitur, optimasi linear/non-linear, machine learning |
 | `Sistem-Kendali-Cerdas/` | `sistem_kendali_cerdas` | Sistem Kendali Cerdas | Fungsi transfer, respons sistem umpan balik, PID, logika fuzzy, jaringan saraf tiruan, algoritma genetika |
+| `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | Pemodelan Computer Aided Design (CAD) | Pengantar CAD, penggambaran 2D dan pemodelan 3D, simulasi dan analisis kinerja komponen, perakitan, desain berkelanjutan dan optimasi — *sedang disiapkan* |
 
-Masing-masing berisi **14 modul + UTS + UAS + dokumen OBE**, lengkap dengan versi Word/PDF tiap modul.
-Total: **56 halaman modul · 8 halaman ujian · 4 dokumen OBE · 72 banner pertemuan**.
+Empat mata kuliah pertama masing-masing berisi **14 modul + UTS + UAS + dokumen OBE**, lengkap dengan versi Word/PDF tiap modul. Pemodelan CAD sedang disiapkan bertahap: saat ini baru **Silabus/OBE dan RPS**; modul dan ujiannya menyusul.
+Total: **56 halaman modul · 8 halaman ujian · 5 dokumen OBE · 72 banner pertemuan**.
 
 ## 🗂️ Struktur Repository
 
