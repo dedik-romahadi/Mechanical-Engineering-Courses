@@ -84,7 +84,7 @@ lain per area ada di `Pedoman-Modul.md` §17.1.
 LMS multi-course untuk **S1 Teknik Mesin Universitas Mercu Buana** (dosen:
 Dedik Romahadi). Satu berkas HTML mandiri per modul/exam; Firebase RTDB +
 Firestore + Cloud Functions di belakang (repo privat). Empat mata kuliah aktif,
-ditambah satu yang sedang disiapkan:
+ditambah dua yang sedang disiapkan:
 
 | Folder | Course ID | Slug callable modul | Singkatan |
 |---|---|---|---|
@@ -93,6 +93,7 @@ ditambah satu yang sedang disiapkan:
 | `Optimalisasi-dan-Automasi/` | `optoauto` | `optoauto-modul-N` | Opto |
 | `Sistem-Kendali-Cerdas/` | `sistem_kendali_cerdas` | `sistem_kendali_cerdas-modul-N` | Sisken |
 | `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | — (belum ada modul) | CAD |
+| `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | — (belum ada modul) | TTL |
 
 > ⚠️ **Ejaan Opto (mudah salah saat scripting):** folder `Optimalisasi-dan-Automasi/`
 > (**Automasi**, huruf A) tetapi berkas asesmennya
@@ -101,7 +102,7 @@ ditambah satu yang sedang disiapkan:
 > `Optimalisasi-dan-Automasi`. Pengecualian: deck slide Opto memakai brand
 > "Optimalisasi & Automasi" (huruf A) atas permintaan dosen — jangan "diperbaiki".
 
-Total berkas HTML utama: **56 modul + 8 exam + 5 OBE**. Pemodelan CAD baru
+Total berkas HTML utama: **56 modul + 8 exam + 6 OBE**. Pemodelan CAD dan Teknik Tenaga Listrik baru
 sampai Tahap 1 (Silabus/OBE + RPS): belum masuk `_MODUL_COURSES` maupun
 `OBE_COURSE_EXAMS` di backend, dan dipindai validator lewat `obeOnlyRoots`,
 bukan `courseRoots`. Rincian dan daftar langkah lanjutannya: Pedoman §2.
