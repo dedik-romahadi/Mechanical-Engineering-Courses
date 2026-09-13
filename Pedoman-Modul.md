@@ -810,6 +810,8 @@ Jangan menulis klaim “screenshot mustahil” atau “Alt+Tab diblokir total”
 
 Rules harus mencegah client mengubah field server-owned seperti `points`, `scoredQuestions`, `scoreDeltas`, timestamp poin, dan konsolasi. Client boleh membuat record awal yang netral dan memperbarui field yang diizinkan. Operasi admin yang membutuhkan hak lebih tinggi dilakukan melalui callable atau token admin.
 
+**Batas penjagaan `scoreDeltas` (sejak backend #44, 5 September 2026).** `scoreDeltas` berupa objek, sehingga tidak boleh dibandingkan dengan `===` di `.write` induk: di aturan RTDB hasilnya selalu false dan mengunci login mahasiswa yang sudah menjawab. Imutabilitasnya dijaga per entri di `scoreDeltas/$qId` (nilai yang sudah ada tidak bisa diubah), dan record baru dari klien tidak boleh membawa `scoreDeltas`; `validate-backend.js` menjaga ketiga hal itu, termasuk mencegah pembanding objek kembali. Batas yang disadari: `.validate` tidak berjalan saat penghapusan, dan entri untuk soal yang belum dijawab masih bisa ditambahkan klien. Dampaknya hanya tampilan poin per soal setelah refresh — `points` tetap terkunci, sedangkan kode ekspor, OBE, dan `recomputeExamPoints` memakai ledger Firestore. Karena itu **jangan pernah memakai `scoreDeltas` RTDB sebagai sumber nilai resmi**.
+
 ### 9.2 Firestore
 
 | Path | Isi |
