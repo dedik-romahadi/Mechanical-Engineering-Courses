@@ -108,9 +108,9 @@ Khusus course Optimalisasi:
 
 **Teknik Tenaga Listrik — Tahap 1 (13 September 2026).** Mata kuliah semester 5 (kelas SIA 354290, `W132500023`, `2A51362F`, Sabtu 12:00–13:40), ditambahkan dengan pola yang sama seperti Pemodelan CAD: `Attributes/Asesmen-Teknik-Tenaga-Listrik.json`, `Attributes/students.json` (20 mahasiswa dari presensi SIA), `OBE/Penilaian-OBE.htm`, `Unduhan-Gabungan/RPS-Teknik-Tenaga-Listrik.pdf`, kartu di `index.html`, baris `rsync`, `obeOnlyRoots`, dan `teknik_tenaga_listrik` di `OBE_MAPPING_COURSES`. Modul, Exam, dan bentuk Tugas belum dibuat.
 
-- **SIA dan RPS berbeda struktur, bukan hanya bobot.** SIA: 7 CPMK, 14 Sub-CPMK, TGS 43%/UTS 25%/UAS 32%, CPL2/CPL5/CPL6 = 21/57/22. RPS (Juni 2025): 6 CPMK dan 13 Sub-CPMK dengan rumusan lain, 60/20/20. Data LMS mengikuti SIA; RPS PDF yang terbit belum diselaraskan.
+- **RPS sudah diselaraskan dengan SIA (14 September 2026).** RPS Juni 2025 memakai 6 CPMK dan 13 Sub-CPMK dengan rumusan lain serta bobot 60/20/20. `Unduhan-Gabungan/RPS-Teknik-Tenaga-Listrik.pdf` kini disusun ulang dari `Asesmen-Teknik-Tenaga-Listrik.json`: 7 CPMK, 14 Sub-CPMK, TGS 43%/UTS 25%/UAS 32%, CPL2/CPL5/CPL6 = 21/57/22 (CPL2 ← CPMK 1; CPL5 ← CPMK 2–5; CPL6 ← CPMK 6–7). Tata letaknya mengikuti RPS lama (sampul, Satuan Acara Perkuliahan, RPS, catatan); pengembang dan pengesah RPS tetap, dengan catatan revisi. Bila bobot di SIA berubah, RPS harus disusun ulang bersama berkas asesmen.
 - Halaman OBE-nya merender jumlah kolom CPMK (7) dan CPL secara dinamis; templat lama mengunci 5 CPMK dan 4 CPL.
-- Pemetaan Modul N → Sub-CPMK ke-N adalah asumsi, karena rencana mingguan RPS mengikuti struktur lama. Konfirmasi dosen sebelum modul dibuat.
+- Pemetaan Modul N → Sub-CPMK ke-N ditetapkan di RPS revisi: Modul 1–7 minggu 1–7, UTS minggu 8, Modul 8–14 minggu 9–15, UAS minggu 16. Cakupan ujian SIA cocok dengan urutan ini (UTS Sub-CPMK 1.1–3.1, UAS 3.2–7.2).
 - Roster belum memuat akun simulasi (`41399999901`); tambahkan saat modul dibuat, seperti empat mata kuliah aktif.
 
 Setiap course mempunyai:
