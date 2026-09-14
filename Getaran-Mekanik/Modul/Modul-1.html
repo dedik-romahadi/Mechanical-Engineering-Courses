@@ -3868,7 +3868,11 @@ function _pkPesanGagal(err) {
 }
 function renderGroups() {
   _pkAmbilRoster(STUDENTS_JSON)
-    .then(data => {
+    .then(semua => {
+      // Akun simulasi dosen tidak ikut dibagi ke kelompok (kecualikan-akun-simulasi.mjs).
+      const data = Array.isArray(semua) && typeof window.isSimulasiNim === 'function'
+        ? semua.filter(s => !window.isSimulasiNim(s && s.nim))
+        : semua;
       if (!Array.isArray(data) || data.length === 0) throw new Error('Empty student list');
       const s1 = Math.ceil(data.length / 3);
       const s2 = Math.ceil((data.length - s1) / 2);
@@ -7431,6 +7435,7 @@ function fetchMasterStudents(retries){
 // papan hasil dan tidak menulis record pengunjung maupun heartbeat.
 const SIM_NIMS = new Set(["41399999901"]);
 const isSimulasiNim = (nim) => SIM_NIMS.has(String(nim || ''));
+window.isSimulasiNim = isSimulasiNim;   // dipakai renderGroups (skrip klasik)
 function updateLeaderboard(visitors, schedExpired){
   const rajinEl=document.getElementById('rajinList'), santaiEl=document.getElementById('santaiList');
   if(!rajinEl)return;
