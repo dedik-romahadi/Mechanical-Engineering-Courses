@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Analisis Korban Bug Grading | Mechanical Engineering Courses</title>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+<style>
+  :root{
+    --bg:#060a10; --surface:#0d1520; --border:#1a2840; --cyan:#00e5ff;
+    --green:#00e676; --amber:#ffb300; --pink:#ff4081; --text:#cdd6e8; --muted:#6b7da0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+       line-height:1.6;padding:24px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:860px}
+  h1{font-size:22px;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:18px}
+  label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px;color:#9fb0d0}
+  label:first-child{margin-top:0}
+  input,select{width:100%;padding:11px 13px;background:#020a18;border:1px solid var(--border);
+    border-radius:9px;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+  input:focus,select:focus{border-color:var(--cyan)}
+  .hint{font-size:12px;color:var(--muted);margin-top:5px}
+  .row{display:flex;gap:12px}
+  .row>div{flex:1}
+  button{width:100%;margin-top:18px;padding:13px;border:none;border-radius:10px;
+    background:linear-gradient(135deg,var(--cyan),#00a3bf);color:#04140b;font-weight:800;
+    font-size:15px;cursor:pointer;letter-spacing:.3px}
+  button.reset{background:linear-gradient(135deg,var(--green),#00b894)}
+  button:disabled{opacity:.5;cursor:wait}
+  .status{margin-top:14px;font-size:13px;color:var(--amber);display:none;white-space:pre-wrap;
+    font-family:'JetBrains Mono',monospace}
+  .status.show{display:block}
+  .err{margin-top:14px;padding:14px;border-radius:10px;font-size:13.5px;display:none;white-space:pre-wrap;
+    font-family:'JetBrains Mono',monospace;background:rgba(255,64,129,.07);border:1px solid rgba(255,64,129,.35);color:#ff9bbd}
+  .err.show{display:block}
+  table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12.5px;
+    font-family:'JetBrains Mono',monospace}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)}
+  th{color:#9fb0d0;font-weight:700}
+  tr.victim td{color:#7dffb0}
+  tr.wrong td{color:var(--muted)}
+  tr.weird td{color:var(--amber)}
+  .badge{display:inline-block;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:700}
+  .b-victim{background:rgba(0,230,118,.15);color:#7dffb0}
+  .b-wrong{background:rgba(107,125,160,.15);color:var(--muted)}
+  .b-weird{background:rgba(255,179,0,.12);color:#ffd27a}
+  .summary{margin-top:18px;padding:16px;border-radius:10px;background:rgba(0,229,255,.06);
+    border:1px solid rgba(0,229,255,.25);font-size:13.5px;font-family:'JetBrains Mono',monospace;white-space:pre-wrap;display:none}
+  .summary.show{display:block}
+  .okbox{margin-top:14px;padding:14px;border-radius:10px;font-size:13px;display:none;white-space:pre-wrap;
+    font-family:'JetBrains Mono',monospace;background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.3);color:#7dffb0}
+  .okbox.show{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔬 Analisis Korban Bug Grading</h1>
+  <div class="sub">Admin-only. Re-run kode Python tiap mahasiswa di browser (Pyodide), bandingkan logika lama (angka pertama) vs baru (angka terakhir). Flag yang dulu salah padahal jawaban benar.</div>
+
+  <div class="card">
+    <label>Mata Kuliah &amp; Modul</label>
+    <div class="row">
+      <div>
+        <select id="course">
+          <option value="getaran-mekanik">Getaran Mekanik</option>
+          <option value="math4">Matematika 4</option>
+          <option value="optoauto">Optimalisasi &amp; Automasi</option>
+          <option value="sistem_kendali_cerdas">Sistem Kendali Cerdas</option>
+        </select>
+      </div>
+      <div><select id="modul"></select></div>
+    </div>
+    <div class="hint">modulId: <span id="modulId" style="color:var(--cyan)">getaran-mekanik-modul-8</span></div>
+
+    <label>Password Admin (Dosen)</label>
+    <input id="pw" type="password" placeholder="Password admin" autocomplete="off">
+
+    <button id="btn" onclick="doAnalyze()">Jalankan Analisis</button>
+    <div class="status" id="status"></div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card" id="resultCard" style="display:none">
+    <div class="summary" id="summary"></div>
+    <button class="reset" id="resetBtn" onclick="doResetVictims()" style="display:none">Reset Semua Korban Bug</button>
+    <div class="okbox" id="okbox"></div>
+    <div style="overflow-x:auto"><table id="tbl"></table></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+import { getAuth, signInWithCustomToken, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+  authDomain: "getaran-mekanik.firebaseapp.com",
+  databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "getaran-mekanik",
+  storageBucket: "getaran-mekanik.firebasestorage.app",
+  messagingSenderId: "430886299733",
+  appId: "1:430886299733:web:0edecd5d4adf73e7440cdc",
+  measurementId: "G-NBMYLXXF18"
+};
+const app = initializeApp(firebaseConfig);
+const functions = getFunctions(app, 'asia-southeast1');
+const auth = getAuth(app);
+const createAdminSession = httpsCallable(functions, 'createAdminSession');
+async function authenticateAdmin(password){
+  const result = await createAdminSession({ password });
+  if(!result.data || !result.data.token) throw new Error('Token sesi admin tidak diterima');
+  await setPersistence(auth, browserSessionPersistence);
+  await signInWithCustomToken(auth, result.data.token);
+}
+const analyzeModulData    = httpsCallable(functions, 'analyzeModulData', { timeout: 120000 });
+const resetModulQuestion  = httpsCallable(functions, 'resetModulQuestion');
+
+
+// ── Number parsing — sama persis dengan client modul parseNumbers ──
+const NUM_RE = /-?\d+\.?\d*(?:[eE][+-]?\d+)?/g;
+function parseNumbers(str){ return (String(str).match(NUM_RE)||[]).map(Number).filter(n=>isFinite(n)); }
+
+// ── Pyodide singleton ──
+let _py = null;
+const _loaded = new Set(['numpy']);
+async function getPyodide(){
+  if(_py) return _py;
+  setStatus('📦 Memuat Python (Pyodide)... sekali saja, ~10–20 detik');
+  const pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/' });
+  await pyodide.loadPackage('numpy');
+  await pyodide.runPythonAsync(`
+import sys, io
+class _Capture:
+    def __init__(self): self.buf = io.StringIO()
+    def write(self, s): self.buf.write(s)
+    def flush(self): pass
+    def getvalue(self): return self.buf.getvalue()
+    def reset(self): self.buf = io.StringIO()
+_cap = _Capture()
+`);
+  _py = pyodide;
+  return pyodide;
+}
+const PKG = [
+  { name:'scipy',  re:/(?:^|[\n;])\s*(?:from\s+scipy(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?scipy(?:\s|,|\.|$))/m },
+  { name:'sympy',  re:/(?:^|[\n;])\s*(?:from\s+sympy(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?sympy(?:\s|,|$))/m },
+  { name:'pandas', re:/(?:^|[\n;])\s*(?:from\s+pandas(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?pandas(?:\s|,|$))/m },
+];
+async function ensurePkgs(code){
+  const need = PKG.filter(p=>p.re.test(code) && !_loaded.has(p.name)).map(p=>p.name);
+  if(need.length===0) return;
+  setStatus('📦 Memuat package: '+need.join(', ')+'...');
+  await _py.loadPackage(need);
+  need.forEach(p=>_loaded.add(p));
+}
+async function runCode(code){
+  const pyodide = await getPyodide();
+  try{ await ensurePkgs(code); }catch(e){ return '__PKGFAIL__ '+(e.message||e); }
+  await pyodide.runPythonAsync('_cap.reset(); sys.stdout = _cap');
+  let err=null;
+  try{ await pyodide.runPythonAsync(code); }
+  catch(e){ err = String(e.message||e).replace(/^PythonError:\s*/,''); }
+  await pyodide.runPythonAsync('sys.stdout = sys.__stdout__');
+  const out = await pyodide.runPythonAsync('_cap.getvalue()');
+  return err ? (out + '\n__ERR__ ' + err.slice(0,200)) : out;
+}
+
+// ── Eval logic — mirror server ──
+function evalOld(nums,t,tol){ return nums.length>0 && Math.abs(nums[0]-t)<=tol; }
+function evalNew(nums,t,tol){ if(!nums.length) return false; return [nums[nums.length-1],nums[0]].some(v=>Math.abs(v-t)<=tol); }
+
+// ── UI helpers ──
+const $ = id => document.getElementById(id);
+function setStatus(msg){ const s=$('status'); if(msg){ s.textContent=msg; s.classList.add('show'); } else s.classList.remove('show'); }
+function showErr(msg){ const e=$('err'); e.textContent='❌ '+msg; e.classList.add('show'); }
+function clearErr(){ $('err').classList.remove('show'); }
+
+const courseEl=$('course'), modulEl=$('modul'), modulIdEl=$('modulId');
+function buildModul(){ modulEl.innerHTML=''; for(let n=1;n<=14;n++){ const o=document.createElement('option'); o.value=n; o.textContent='Modul '+n; modulEl.appendChild(o);} }
+function refreshId(){ modulIdEl.textContent = courseEl.value+'-modul-'+modulEl.value; }
+courseEl.onchange=refreshId; modulEl.onchange=refreshId;
+buildModul(); modulEl.value=8; refreshId();
+
+let _victims = {};   // nim -> [qId]
+let _modulId = '';
+
+window.doAnalyze = async function(){
+  clearErr(); $('resultCard').style.display='none'; $('okbox').classList.remove('show');
+  $('summary').classList.remove('show'); $('resetBtn').style.display='none';
+  const modulId = modulIdEl.textContent;
+  const pw = $('pw').value;
+  if(!pw){ showErr('Password admin wajib diisi.'); return; }
+
+  const btn=$('btn'); btn.disabled=true; btn.textContent='Memproses...';
+  try{
+    await authenticateAdmin(pw); _modulId = modulId;
+    setStatus('⬇️ Mengambil data dari server...');
+    const res = await analyzeModulData({ modulId });
+    const { answers, students } = res.data;
+    if(!students.length){ setStatus(''); showErr('Tidak ada mahasiswa dengan jawaban comp untuk modul ini.'); btn.disabled=false; btn.textContent='Jalankan Analisis'; return; }
+
+    await getPyodide();  // preload
+    const rows = []; _victims = {};
+    let done=0;
+    for(const st of students){
+      const markers = st.scoredQuestions.split(',').filter(Boolean);
+      for(const mk of markers){
+        const m = mk.match(/^(c\d+)_comp_(used|partial)$/);
+        if(!m) continue;
+        const qId = m[1];
+        const ans = answers[qId];
+        if(!ans) continue;
+        const code = st.codes[qId];
+        done++;
+        setStatus(`⚙️ Menjalankan kode... ${done} soal (mhs ${st.nim}, ${qId})`);
+        if(!code){ rows.push({nim:st.nim,qId,target:ans.answer,info:'(tidak ada code)',status:'skip'}); continue; }
+        const out = await runCode(code);
+        if(out.startsWith('__PKGFAIL__')){ rows.push({nim:st.nim,qId,target:ans.answer,info:'pkg gagal',status:'runfail'}); continue; }
+        const nums = parseNumbers(out);
+        const oldOk = evalOld(nums,ans.answer,ans.tolerance);
+        const newOk = evalNew(nums,ans.answer,ans.tolerance);
+        const lf = nums.length ? `last=${nums[nums.length-1]}, first=${nums[0]}` : '(tak ada angka)';
+        let status;
+        if(!oldOk && newOk){ status='victim'; (_victims[st.nim]=_victims[st.nim]||[]).push(qId); }
+        else if(oldOk && newOk) status='weird';
+        else status='wrong';
+        rows.push({nim:st.nim,qId,target:ans.answer,info:lf,status});
+      }
+    }
+    setStatus('');
+    renderResults(rows);
+  }catch(e){
+    setStatus(''); showErr('Gagal: '+(e.message||e)+(e.code?` [${e.code}]`:''));
+  }finally{
+    btn.disabled=false; btn.textContent='Jalankan Analisis';
+  }
+};
+
+function renderResults(rows){
+  $('resultCard').style.display='block';
+  const cls={victim:'victim',weird:'weird',wrong:'wrong',skip:'wrong',runfail:'weird'};
+  const badge={victim:'<span class="badge b-victim">KORBAN → RESET</span>',
+    weird:'<span class="badge b-weird">sudah benar (cek)</span>',
+    wrong:'<span class="badge b-wrong">memang salah</span>',
+    skip:'<span class="badge b-wrong">skip</span>',
+    runfail:'<span class="badge b-weird">run-fail</span>'};
+  let html='<tr><th>NIM</th><th>qId</th><th>target</th><th>output→nums</th><th>status</th></tr>';
+  for(const r of rows){
+    html+=`<tr class="${cls[r.status]}"><td>${r.nim}</td><td>${r.qId}</td><td>${r.target}</td><td>${r.info}</td><td>${badge[r.status]}</td></tr>`;
+  }
+  $('tbl').innerHTML=html;
+
+  const nims=Object.keys(_victims);
+  let s = `RINGKASAN — korban bug (perlu reset): ${nims.length} mahasiswa\n\n`;
+  if(!nims.length) s+='  (tidak ada korban bug terdeteksi 🎉)';
+  else for(const nim of nims.sort()) s+=`  ${nim}  →  ${_victims[nim].sort().join(', ')}\n`;
+  const sm=$('summary'); sm.textContent=s; sm.classList.add('show');
+  $('resetBtn').style.display = nims.length ? 'block' : 'none';
+}
+
+window.doResetVictims = async function(){
+  const nims=Object.keys(_victims);
+  if(!nims.length) return;
+  if(!confirm(`Reset ${nims.length} mahasiswa? Ini menghapus jawaban lama & poin terkait soal korban bug, lalu mahasiswa bisa submit ulang.`)) return;
+  const btn=$('resetBtn'); btn.disabled=true; btn.textContent='Mereset...';
+  const ok=$('okbox'); ok.classList.remove('show');
+  const lines=[]; let fail=0;
+  for(const nim of nims){
+    try{
+      const r = await resetModulQuestion({ modulId:_modulId, nim, qIds:_victims[nim] });
+      const d=r.data;
+      lines.push(`✅ ${nim}: ${_victims[nim].join(',')} — poin ${d.pointsBefore}→${d.pointsAfter}`);
+    }catch(e){ fail++; lines.push(`❌ ${nim}: ${e.message||e}`); }
+  }
+  lines.unshift(`Selesai. Berhasil ${nims.length-fail}/${nims.length} mahasiswa.\n`);
+  lines.push('\nMahasiswa sekarang bisa submit ulang soal tsb (di-grade dgn server #316).');
+  ok.textContent=lines.join('\n'); ok.classList.add('show');
+  btn.disabled=false; btn.textContent='Reset Semua Korban Bug';
+};
+</script>
+</body>
+</html>

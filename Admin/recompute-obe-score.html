@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Recompute Exam Points (poin OBE) | Mechanical Engineering Courses</title>
+<style>
+  :root{
+    --bg:#060a10; --surface:#0d1520; --border:#1a2840; --cyan:#00e5ff;
+    --green:#00e676; --amber:#ffb300; --pink:#ff4081; --text:#cdd6e8; --muted:#6b7da0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+       line-height:1.6;padding:24px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:680px}
+  h1{font-size:22px;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:18px}
+  label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px;color:#9fb0d0}
+  label:first-child{margin-top:0}
+  input,select{width:100%;padding:11px 13px;background:#020a18;border:1px solid var(--border);
+    border-radius:9px;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+  input:focus,select:focus{border-color:var(--cyan)}
+  .hint{font-size:12px;color:var(--muted);margin-top:5px}
+  .row{display:flex;gap:12px}
+  .row>div{flex:1}
+  button{width:100%;margin-top:20px;padding:13px;border:none;border-radius:10px;
+    background:linear-gradient(135deg,var(--cyan),#00b8d4);color:#02141a;font-weight:800;
+    font-size:15px;cursor:pointer;letter-spacing:.3px}
+  button:disabled{opacity:.5;cursor:wait}
+  .info{background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.25);border-radius:10px;
+    padding:12px 14px;font-size:13px;color:#a6efff;margin-bottom:18px}
+  .info b{color:var(--cyan)}
+  .result{margin-top:18px;padding:16px;border-radius:10px;font-size:13.5px;display:none;white-space:pre-wrap;
+    font-family:'JetBrains Mono',monospace}
+  .result.ok{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.3);color:#7dffb0;display:block}
+  .result.err{background:rgba(255,64,129,.07);border:1px solid rgba(255,64,129,.35);color:#ff9bbd;display:block}
+  .result.progress{background:rgba(255,179,0,.07);border:1px solid rgba(255,179,0,.3);color:#ffd27a;display:block}
+  details{margin-top:14px;background:#020a18;border:1px solid var(--border);border-radius:9px;padding:10px 14px}
+  summary{cursor:pointer;font-size:13px;color:#9fb0d0;font-weight:600}
+  details p,details li{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+  details ul{padding-left:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔄 Recompute Exam Points (poin OBE)</h1>
+  <div class="sub">Admin-only. Recompute <code style="color:var(--cyan);font-family:monospace">visitor.points</code> untuk SEMUA mahasiswa di satu exam, pakai skema poin proporsional bobot Sub-CPMK (Σ = 100).</div>
+
+  <div class="info">
+    <b>Kapan dipakai:</b> (1) migrasi data lama (visitor.points masih skala /70), (2) refresh setelah ubah mapping / bobot di <code>OBE_EXAM_CONFIG</code>, atau (3) perbaiki inkonsistensi attempts.
+    Aman dipanggil berulang — idempotent. Field <code>visitor.obeScore</code> (legacy) juga dibersihkan.
+  </div>
+
+  <div class="card">
+    <label>Mata Kuliah</label>
+    <select id="course">
+      <option value="getaran-mekanik">Getaran Mekanik</option>
+      <option value="math4">Matematika 4</option>
+      <option value="optoauto">Optimalisasi &amp; Automasi</option>
+      <option value="sistem_kendali_cerdas">Sistem Kendali Cerdas</option>
+    </select>
+
+    <label>Exam</label>
+    <select id="exam">
+      <option value="uts">UTS</option>
+      <option value="uas">UAS</option>
+    </select>
+    <div class="hint">examId: <span id="examId" style="color:var(--cyan);font-family:monospace">getaran-mekanik-uts</span></div>
+
+    <label>Password Admin (Dosen)</label>
+    <input id="pw" type="password" placeholder="Password admin" autocomplete="off">
+
+    <button id="btn" onclick="doRecompute()">Recompute Exam Points</button>
+    <div class="result" id="result"></div>
+
+    <details>
+      <summary>Bagaimana cara kerjanya?</summary>
+      <ul>
+        <li>List semua mahasiswa yang punya record di <code>visitors/&lt;course&gt;/&lt;exam&gt;</code> (RTDB).</li>
+        <li>Per mahasiswa: baca attempts dari Firestore <code>examAttempts/&lt;examId&gt;/students/&lt;nim&gt;/qs/*</code>.</li>
+        <li>Hitung Σ poin = jumlah <code>scoreDelta</code> per soal correct (poin per soal = bobot Sub-CPMK / Σ bobot × 100 / jumlah soal).</li>
+        <li>Stamp ke <code>visitor.points</code> (skala 0-100, di-cap pada <code>cfg.totalPoints</code>).</li>
+        <li>Tab Hasil exam HTML pakai <code>v.points</code> langsung (= nilai 0-100).</li>
+        <li>Mapping & bobot di-define di <code>OBE_EXAM_CONFIG</code> server-side, sinkron dgn <code>DEFAULT_MAPPING</code> + <code>FORMS</code> di Dokumen OBE HTML.</li>
+      </ul>
+    </details>
+
+    <details style="margin-top:10px">
+      <summary>Bobot Sub-CPMK per exam (referensi)</summary>
+      <div id="bobotReference"></div>
+    </details>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+import { getAuth, signInWithCustomToken, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+  authDomain: "getaran-mekanik.firebaseapp.com",
+  databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "getaran-mekanik",
+  storageBucket: "getaran-mekanik.firebasestorage.app",
+  messagingSenderId: "430886299733",
+  appId: "1:430886299733:web:0edecd5d4adf73e7440cdc",
+  measurementId: "G-NBMYLXXF18"
+};
+const app = initializeApp(firebaseConfig);
+const functions = getFunctions(app, 'asia-southeast1');
+const auth = getAuth(app);
+const createAdminSession = httpsCallable(functions, 'createAdminSession');
+async function authenticateAdmin(password){
+  const result = await createAdminSession({ password });
+  if(!result.data || !result.data.token) throw new Error('Token sesi admin tidak diterima');
+  await setPersistence(auth, browserSessionPersistence);
+  await signInWithCustomToken(auth, result.data.token);
+}
+const recomputeExamPoints = httpsCallable(functions, 'recomputeExamPoints');
+
+
+const courseEl = document.getElementById('course');
+const examEl   = document.getElementById('exam');
+const examIdEl = document.getElementById('examId');
+
+function refreshExamId(){ examIdEl.textContent = `${courseEl.value === 'sistem_kendali_cerdas' ? 'sisken' : courseEl.value}-${examEl.value}`; }
+courseEl.onchange = refreshExamId;
+examEl.onchange   = refreshExamId;
+refreshExamId();
+
+// ── Referensi bobot Sub-CPMK per exam (mirror OBE_EXAM_CONFIG di functions/index.js) ──
+const OBE_REF = [
+  { id:"optoauto-uts",         label:"Optimalisasi & Automasi · UTS", total:20,
+    rows:[["1.1",5,"Q1-11"],["1.2",5,"Q12-22"],["1.3",4,"Q23-31"],["2.2",3,"Q32-38"],["2.3",3,"Q39-45"]] },
+  { id:"optoauto-uas",         label:"Optimalisasi & Automasi · UAS", total:20,
+    rows:[["3.1",4,"Q1-9"],["3.2",3,"Q10-16"],["3.3",3,"Q17-23"],["4.1",3,"Q24-30"],["4.2",3,"Q31-36"],["4.3",4,"Q37-45"]] },
+  { id:"getaran-mekanik-uts",  label:"Getaran Mekanik · UTS", total:25,
+    rows:[["1.1",5,"Q1-9"],["1.2",4,"Q10-16"],["1.3",2,"Q17-20"],["2.1",3,"Q21-26"],["2.2",3,"Q27-31"],["3.1",5,"Q32-40"],["3.2",3,"Q41-45"]] },
+  { id:"getaran-mekanik-uas",  label:"Getaran Mekanik · UAS", total:24,
+    rows:[["3.3",2,"Q1-4"],["4.1",3,"Q5-10"],["4.2",3,"Q11-16"],["5.1",4,"Q17-24"],["6.1",4,"Q25-31"],["6.2",4,"Q32-38"],["6.3",4,"Q39-45"]] },
+  { id:"math4-uts",            label:"Matematika 4 · UTS", total:31,
+    rows:[["1.1",5,"Q1-7"],["1.2",6,"Q8-16"],["2.1",5,"Q17-23"],["2.2",10,"Q24-38"],["2.3",5,"Q39-45"]] },
+  { id:"math4-uas",            label:"Matematika 4 · UAS", total:30,
+    rows:[["3.1",20,"Q1-30"],["4.1",2,"Q31-33"],["4.2",3,"Q34-38"],["5.1",5,"Q39-45"]] },
+  { id:"sisken-uts",           label:"Sistem Kendali Cerdas · UTS", total:22,
+    rows:[["1.1",4,"Q1-8"],["1.2",10,"Q9-29"],["2.1",4,"Q30-37"],["2.2",4,"Q38-45"]] },
+  { id:"sisken-uas",           label:"Sistem Kendali Cerdas · UAS", total:30,
+    rows:[["4.1",6,"Q1-9"],["4.2",5,"Q10-17"],["4.3",5,"Q18-25"],["5.1",2,"Q26-28"],["5.2",4,"Q29-34"],["5.3",4,"Q35-40"],["5.4",4,"Q41-45"]] },
+];
+function renderBobotReference(){
+  const wrap = document.getElementById('bobotReference');
+  wrap.innerHTML = OBE_REF.map(ex => {
+    const rows = ex.rows.map(([sub,b,q]) =>
+      `<tr><td style="padding:3px 8px">${sub}</td><td align="right" style="padding:3px 8px">${b}%</td><td align="right" style="padding:3px 8px;color:var(--muted)">${q}</td></tr>`
+    ).join('');
+    return `
+      <div style="margin-top:14px">
+        <div style="font-weight:600;color:var(--cyan);font-size:13px;margin-bottom:4px">${ex.label} <span style="color:var(--muted);font-weight:400;font-family:monospace">(${ex.id})</span></div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:4px">Total bobot Σ <b>${ex.total}%</b> dari nilai akhir mata kuliah</div>
+        <table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:12px;background:#020a18;border-radius:6px;overflow:hidden">
+          <thead><tr style="background:rgba(0,229,255,.08);color:#a6efff"><th align="left" style="padding:5px 8px">Sub-CPMK</th><th align="right" style="padding:5px 8px">Bobot</th><th align="right" style="padding:5px 8px">Soal</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }).join('');
+}
+renderBobotReference();
+
+window.doRecompute = async function(){
+  const btn = document.getElementById('btn');
+  const res = document.getElementById('result');
+  res.className='result';
+
+  const examId = examIdEl.textContent;
+  const pw     = document.getElementById('pw').value;
+
+  if(!pw){ showErr('Password admin wajib diisi.'); return; }
+
+  btn.disabled=true; btn.textContent='Memproses...';
+  res.className='result progress'; res.textContent=`⏳ Memproses recompute untuk ${examId} — mungkin butuh 30s–2 menit tergantung jumlah mahasiswa...`;
+
+  try{
+    await authenticateAdmin(pw);
+    const r = await recomputeExamPoints({ examId });
+    const d = r.data;
+    const lines = [
+      `✅ Recompute selesai — ${d.examId}`,
+      '',
+      `Diproses:  ${d.processed} mahasiswa`,
+      `Di-update: ${d.updated} (visitor.points ter-stamp ulang dgn skema 100-poin)`,
+      `Di-skip:   ${d.skipped} (belum ada attempt / nimKey invalid)`,
+      '',
+      'Tab Hasil exam HTML sekarang menampilkan nilai 0-100 langsung.',
+      'Refresh halaman exam untuk lihat perubahan.'
+    ];
+    res.className='result ok'; res.textContent=lines.join('\n');
+  }catch(e){
+    showErr('Gagal: '+(e.message||e)+(e.code?` [${e.code}]`:''));
+  }finally{
+    btn.disabled=false; btn.textContent='Recompute OBE Score';
+  }
+};
+
+function showErr(msg){
+  const res=document.getElementById('result');
+  res.className='result err'; res.textContent='❌ '+msg;
+}
+</script>
+</body>
+</html>
