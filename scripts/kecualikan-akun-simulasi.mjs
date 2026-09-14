@@ -16,6 +16,7 @@
  *
  *   4. Setelah server menilai (respons simulasi:true), soal dibuka kembali
  *      supaya bisa dicoba ulang — server memang tidak menyimpannya.
+ *   5. Tab Pembagian Kelompok (Modul 1) tidak memasukkan akun ini ke kelompok.
  *
  * Daftar NIM harus sama dengan SIM_NIMS di backend.
  *
@@ -126,6 +127,36 @@ const EXAM_KUNCI_BARU = `  // Akun simulasi: server tidak menyimpan jawaban, soa
 
 $1function _handleServerExamError(`;
 
+// 7. Tab Pembagian Kelompok (Modul 1 tiap course) membagi seluruh roster ke
+//    kelompok, sehingga akun simulasi ikut menjadi anggota. renderGroups() ada
+//    di skrip klasik, sedangkan isSimulasiNim didefinisikan di skrip module
+//    (tidak terlihat dari skrip klasik), jadi definisi diekspos ke window lalu
+//    roster disaring sebelum dibagi. Tab ini baru dirender saat diklik, yakni
+//    setelah skrip module (defer) selesai berjalan.
+const EKSPOR_LAMA = "const isSimulasiNim = (nim) => SIM_NIMS.has(String(nim || ''));\n";
+const EKSPOR_BARU = EKSPOR_LAMA + "window.isSimulasiNim = isSimulasiNim;   // dipakai renderGroups (skrip klasik)\n";
+const KELOMPOK_LAMA = "    .then(data => {\n      if (!Array.isArray(data) || data.length === 0) throw new Error('Empty student list');\n";
+const KELOMPOK_BARU = `    .then(semua => {
+      // Akun simulasi dosen tidak ikut dibagi ke kelompok (kecualikan-akun-simulasi.mjs).
+      const data = Array.isArray(semua) && typeof window.isSimulasiNim === 'function'
+        ? semua.filter(s => !window.isSimulasiNim(s && s.nim))
+        : semua;
+      if (!Array.isArray(data) || data.length === 0) throw new Error('Empty student list');
+`;
+
+function prosesKelompok(html, catatan) {
+  // Hanya halaman yang benar-benar punya tab Pembagian Kelompok; Exam dan Sisken
+  // Modul 2–14 masih membawa salinan renderGroups() yang tidak pernah dipanggil.
+  if (!html.includes('id="page-kelompok"') || !html.includes("function renderGroups() {") ||
+      html.includes("semua.filter(s => !window.isSimulasiNim")) return html;
+  const nLama = html.split(KELOMPOK_LAMA).length - 1;
+  if (nLama !== 1 || html.split(EKSPOR_LAMA).length - 1 !== 1) {
+    throw new Error("renderGroups/definisi isSimulasiNim tidak ditemukan tepat sekali");
+  }
+  catatan.push("kelompok");
+  return html.replace(EKSPOR_LAMA, EKSPOR_BARU).replace(KELOMPOK_LAMA, KELOMPOK_BARU);
+}
+
 function proses(berkas) {
   let html = fs.readFileSync(berkas, "utf8");
   const awal = html;
@@ -148,6 +179,8 @@ function proses(berkas) {
   if (html.includes(TOTAL_LAMA)) { html = html.split(TOTAL_LAMA).join(TOTAL_BARU); catatan.push("totalMhs"); }
   if (!html.includes("res.simulasi === true") && html.includes(MODUL_KUNCI_LAMA)) { html = html.split(MODUL_KUNCI_LAMA).join(MODUL_KUNCI_BARU); catatan.push("buka-ulang-modul"); }
   if (!html.includes("res.simulasi === true") && RX_EXAM_KUNCI.test(html)) { html = html.replace(RX_EXAM_KUNCI, EXAM_KUNCI_BARU); catatan.push("buka-ulang-exam"); }
+  try { html = prosesKelompok(html, catatan); }
+  catch (e) { throw new Error(`${path.relative(root, berkas)}: ${e.message}`); }
 
   if (html === awal) return null;
   // Penjaga: definisi harus ada bila ada pemakai.

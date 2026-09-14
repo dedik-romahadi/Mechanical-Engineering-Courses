@@ -145,7 +145,8 @@ repo publik ini.
   - jawaban tugas/ujian dinilai server (umpan balik, emoji, suara tetap
     muncul) tetapi **tidak disimpan** — tanpa ledger, tanpa poin RTDB, tanpa
     record pengunjung/heartbeat; soal bisa dijawab ulang tanpa batas;
-  - disaring dari papan peringkat, roster tab Hasil, hadir/total, dan OBE
+  - disaring dari papan peringkat, roster tab Hasil, hadir/total, pembagian
+    kelompok (Modul 1), dan OBE
     (fungsi render baru di tab Hasil wajib memakai `isSimulasiNim(nim)`);
   - **progres materi persis mahasiswa** (centang tersimpan & divalidasi
     server, tab terkunci, forum tersimpan) kecuali boleh membatalkan centang
