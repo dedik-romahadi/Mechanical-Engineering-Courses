@@ -3995,9 +3995,29 @@ document.addEventListener('DOMContentLoaded', () => {
 // renders .group-card dengan .member-item untuk setiap anggota.
 const STUDENTS_JSON = '../Attributes/students.json';
 function _pkTitleCase(s) { return (s || '').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()); }
+// ── KELOMPOK-TANGGUH: roster kelompok dimuat dengan cek HTTP dan percobaan ulang ──
+function _pkAmbilRoster(sumber, ke) {
+  ke = ke || 0;
+  const url = sumber + (ke ? (sumber.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now() : '');
+  return fetch(url, { cache: 'no-store' })
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .catch(err => {
+      if (ke >= 2) throw err;
+      return new Promise(res => setTimeout(res, 800 * (ke + 1))).then(() => _pkAmbilRoster(sumber, ke + 1));
+    });
+}
+function _pkPesanGagal(err) {
+  const lokal = location.protocol === 'file:';
+  const sebab = lokal
+    ? 'Halaman dibuka dari berkas lokal, sehingga browser memblokir pembacaan daftar mahasiswa. Buka modul lewat situs kuliah (https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/).'
+    : 'Periksa koneksi internet, lalu klik Coba lagi.';
+  return '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#fb7185">⚠ Gagal memuat data mahasiswa. ' + sebab +
+    '<div style="margin-top:8px;font-size:12px;color:#94a3b8;font-family:\'JetBrains Mono\',monospace">' + String((err && err.message) || err).replace(/</g, '&lt;') + '</div>' +
+    (lokal ? '' : '<button type="button" onclick="renderGroups._loaded=true;renderGroups()" style="margin-top:14px;padding:8px 18px;border-radius:8px;border:1px solid rgba(251,113,133,.5);background:rgba(251,113,133,.12);color:#fda4af;cursor:pointer;font-weight:600">↻ Coba lagi</button>') +
+    '</div>';
+}
 function renderGroups() {
-  fetch(STUDENTS_JSON, { cache: 'no-store' })
-    .then(r => r.json())
+  _pkAmbilRoster(STUDENTS_JSON)
     .then(data => {
       if (!Array.isArray(data) || data.length === 0) throw new Error('Empty student list');
       const s1 = Math.ceil(data.length / 3);
@@ -4038,7 +4058,7 @@ function renderGroups() {
     .catch(err => {
       console.error('[Kelompok] Failed to load students:', err);
       const c = document.getElementById('groupsContainer');
-      if (c) c.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#fb7185">⚠ Gagal memuat data mahasiswa. Periksa koneksi internet atau coba refresh halaman.</div>';
+      if (c) c.innerHTML = _pkPesanGagal(err);
       const heroSub = document.getElementById('heroSub');
       if (heroSub) heroSub.textContent = 'Gagal memuat daftar mahasiswa, silakan coba refresh halaman.';
       renderGroups._loaded = false; // allow retry on next tab switch
