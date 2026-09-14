@@ -293,7 +293,7 @@ Untuk menguji alur mahasiswa tanpa mengotori data, ada satu akun uji: NIM `41399
 | Login | Seperti mahasiswa (NIM + PIN), bukan password admin |
 | Jawaban tugas/ujian | Dinilai server (umpan balik, emoji, suara tetap muncul) tetapi **tidak disimpan**: tanpa ledger Firestore, tanpa poin RTDB; idempotensi/self-heal dilewati sehingga soal bisa dijawab ulang tanpa batas (respons membawa `simulasi:true`, halaman membuka kembali soal) |
 | Record pengunjung, heartbeat, presence | Tidak ditulis |
-| Papan hasil, roster tab Hasil, hitungan hadir/total, OBE | Disaring — tidak pernah tampil atau terhitung |
+| Papan hasil, roster tab Hasil, hitungan hadir/total, pembagian kelompok (Modul 1), OBE | Disaring — tidak pernah tampil atau terhitung |
 | Progres materi (§6.7) | **Persis mahasiswa**: centang tersimpan dan divalidasi server, tab terkunci, forum tersimpan; satu-satunya beda: boleh membatalkan centang terakhir (`setModulCentang` dengan `batal:true`, hanya untuk `SIM_NIMS`) supaya uji bisa diulang |
 | Gerbang antar-modul | Selalu lolos, karena ia tidak punya ledger tugas sehingga "modul lengkap" tak pernah terpenuhi |
 
@@ -514,7 +514,7 @@ File HTML lokal tetap dapat diedit oleh pemilik file. Kode HMAC tidak mencegah e
 
 ### 6.6 Hasil dan presence modul
 
-Tab Hasil membaca record visitor untuk statistik, aktivitas, dan skor. Presence realtime terpisah dari riwayat kunjungan. Jangan menyimpulkan “online” hanya dari `lastVisit`. Akun simulasi (§4.5) disaring dari papan peringkat, tabel roster, penyebut hadir/total, dan roster halaman OBE oleh `scripts/kecualikan-akun-simulasi.mjs`; bila menulis fungsi render baru di tab Hasil, saring lagi dengan `isSimulasiNim(nim)`.
+Tab Hasil membaca record visitor untuk statistik, aktivitas, dan skor. Presence realtime terpisah dari riwayat kunjungan. Jangan menyimpulkan “online” hanya dari `lastVisit`. Akun simulasi (§4.5) disaring dari papan peringkat, tabel roster, penyebut hadir/total, pembagian kelompok di Modul 1 (sejak 14 September 2026; `renderGroups()` di skrip klasik memakai `window.isSimulasiNim` yang diekspos dari skrip module), dan roster halaman OBE oleh `scripts/kecualikan-akun-simulasi.mjs`; bila menulis fungsi render baru di tab Hasil, saring lagi dengan `isSimulasiNim(nim)`.
 
 ### 6.7 Progres materi berurutan dan gerbang antar-modul
 
