@@ -91,8 +91,10 @@ const RENCANA = [
     ind: ["Ketepatan menyusun dan menyelesaikan persamaan mesh/nodal serta ekuivalen Thevenin–Norton", "Ketepatan menghitung arus dan daya tiap sumber, termasuk tanda arus dan arus sirkulasi"],
     pustaka: "[Pustaka Utama 1, 3; Pendukung 6, 7, 8]" },
   { bk: 14, materi: "Daya pada Jaringan Listrik AC",
-    bt: ["Fasor dan impedansi", "Daya aktif (P), reaktif (Q), dan semu (S)", "Faktor daya, segitiga daya, dan daya kompleks", "Sistem tiga fasa seimbang"],
-    ind: ["Ketepatan menghitung S, P, Q, dan faktor daya", "Ketepatan menghitung tegangan, arus, dan daya sistem tiga fasa"] },
+    // Mengikuti Modul 5 yang terbit (19 September 2026).
+    bt: ["Sinusoid, nilai rms, fasor, dan impedansi R-L-C", "Daya aktif, reaktif, semu, faktor daya, dan daya kompleks", "Perbaikan faktor daya; sistem tiga fasa seimbang Y dan Δ"],
+    ind: ["Ketepatan menghitung impedansi, S, P, Q, faktor daya, dan kapasitor perbaikannya", "Ketepatan menghitung tegangan, arus, dan daya sistem tiga fasa"],
+    pustaka: "[Pustaka Utama 1, 4; Pendukung 5, 7, 8]" },
   { bk: 14, materi: "Aliran Daya dan Transien pada Saluran Transmisi serta Kompensasi Reaktif",
     bt: ["Model saluran pendek, menengah, dan panjang", "Regulasi tegangan dan efisiensi saluran", "Kompensasi reaktif seri dan shunt", "Transien saluran (gelombang berjalan)"],
     ind: ["Ketepatan menghitung aliran daya, regulasi tegangan, dan efisiensi saluran", "Ketepatan menentukan kebutuhan kompensasi reaktif"] },
