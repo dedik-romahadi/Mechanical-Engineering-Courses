@@ -10,6 +10,7 @@
 //      Submit Hasil Copy Forum; UTS/UAS — Submit Hasil Export pada pekan ujian.
 //      Google Meet™ for Moodle dibuat terpisah lewat UI (room URL dibuat plugin).
 //   3. Idempoten: aktivitas yang namanya sudah ada di section itu dilewati.
+//   Catatan: situs mewajibkan deskripsi aktivitas minimal 100 karakter.
 //
 // Pemakaian di konsol:
 //   const s = document.createElement('script'); s.src = RAW + 'scripts/ttl-lms-poster.js'; document.head.append(s);
@@ -79,6 +80,10 @@
       if (v === null || v === undefined) continue;
       (Array.isArray(v) ? v : [v]).forEach((x) => fd.append(k, String(x)));
     }
+    // Moodle memproses form hanya bila nama tombol submit ikut terkirim
+    // (modedit: submitbutton2 = "Save and return to course"; editsection: submitbutton).
+    const submitName = /editsection\.php/.test(abs) ? "submitbutton" : "submitbutton2";
+    if (!fd.has(submitName)) fd.append(submitName, "1");
     const action = new URL(form.getAttribute("action") || abs, abs).href;
     const res = await fetch(action, { method: "POST", credentials: "same-origin", body: fd, redirect: "follow" });
     const text = await res.text();
