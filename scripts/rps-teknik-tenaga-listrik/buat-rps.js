@@ -81,8 +81,10 @@ const RENCANA = [
     ind: ["Ketepatan menjelaskan fungsi dan spesifikasi komponen dari papan namanya", "Ketepatan menghitung arus nominal, efisiensi trafo, arus hubung singkat/rating PMT, dan pembagian beban trafo paralel"],
     pustaka: "[Pustaka Utama 4; Pendukung 1, 2, 5, 6]" },
   { bk: 14, materi: "Daya pada Jaringan Listrik DC dengan Satu Sumber Tegangan",
-    bt: ["Hukum Ohm dan hukum Kirchhoff", "Rangkaian seri–paralel", "Daya, energi, dan efisiensi", "Transfer daya maksimum"],
-    ind: ["Ketepatan menerapkan hukum Ohm dan Kirchhoff pada jaringan DC satu sumber", "Ketepatan menghitung daya, rugi, dan efisiensi"] },
+    // Mengikuti Modul 3 yang terbit (19 September 2026).
+    bt: ["Hukum Ohm, daya, dan energi; seri–paralel; hukum Kirchhoff", "Rugi dan efisiensi penyaluran; sumber nyata dan transfer daya maksimum", "Jatuh tegangan dan pemilihan penampang kabel DC"],
+    ind: ["Ketepatan menerapkan hukum Ohm dan Kirchhoff pada jaringan DC satu sumber", "Ketepatan menghitung daya, rugi, efisiensi, transfer daya maksimum, dan penampang kabel"],
+    pustaka: "[Pustaka Utama 1, 4; Pendukung 5, 7, 8]" },
   { bk: 14, materi: "Daya pada Jaringan Listrik DC dengan Dua atau Lebih Sumber Tegangan",
     bt: ["Analisis mesh dan nodal", "Teorema superposisi", "Teorema Thevenin dan Norton", "Pembagian beban pada sumber paralel"],
     ind: ["Ketepatan menyusun dan menyelesaikan persamaan mesh/nodal", "Ketepatan menghitung arus dan daya tiap sumber"] },
@@ -277,6 +279,8 @@ const PUSTAKA_PENDUKUNG = [
   "Grainger, J. J., & Stevenson, W. D. (1994). Power System Analysis. McGraw-Hill.",
   "von Meier, A. (2006). Electric Power Systems: A Conceptual Introduction. Wiley-IEEE Press.",
   "Chapman, S. J. (2012). Electric Machinery Fundamentals (5th ed.). McGraw-Hill.",
+  "Alexander, C. K., & Sadiku, M. N. O. (2021). Fundamentals of Electric Circuits (7th ed.). McGraw-Hill.",
+  "Boylestad, R. L. (2016). Introductory Circuit Analysis (13th ed.). Pearson.",
 ];
 const infoTabel = table([2000, 12400], [
   [judulKiri("Deskripsi Singkat Mata Kuliah"), cell(deskripsi, 12400, { align: AlignmentType.JUSTIFIED })],
@@ -310,7 +314,7 @@ const rmBaris = MINGGU.map((m) => {
     cell(bentuk, W_RM[3], { valign: VerticalAlign.TOP }),
     cell([para("Kuliah, diskusi, latihan soal"), para("PB 2 × 50 mnt; PT 2 × 60 mnt; KM 2 × 60 mnt", { size: 16, before: 30 })], W_RM[4], { valign: VerticalAlign.TOP }),
     cell([para(`LMS fastlearning: modul interaktif ${n}, tugas, dan forum daring`)], W_RM[5], { valign: VerticalAlign.TOP }),
-    cell([bullet(r.materi), para(r.pustaka || `[Pustaka Utama 1–4; Pendukung 1–6]`, { size: 16, before: 40 })], W_RM[6], { valign: VerticalAlign.TOP }),
+    cell([bullet(r.materi), para(r.pustaka || `[Pustaka Utama 1–4; Pendukung 1–8]`, { size: 16, before: 40 })], W_RM[6], { valign: VerticalAlign.TOP }),
     cell(String(s.total), W_RM[7], { align: c, bold: true }),
   ];
 });
