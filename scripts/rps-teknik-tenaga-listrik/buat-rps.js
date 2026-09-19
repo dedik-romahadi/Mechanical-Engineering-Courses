@@ -127,17 +127,19 @@ const RENCANA = [
     pustaka: "[Pustaka Utama 2, 3, 4; Pendukung 3, 5]" },
   { bk: 18, materi: "Aliran Daya, Peralatan, dan Pengembangan Sistem Distribusi",
     // Mengikuti Modul 12 yang terbit (20 September 2026).
-    bt: ["Aliran daya penyulang radial (backward/forward sweep)", "Arus hubung singkat dan gangguan tanah (NGR)", "Fuse, recloser, sectionalizer, relai IDMT, dan koordinasinya", "Peramalan beban majemuk dan pengembangan jaringan"],
-    ind: ["Ketepatan menghitung aliran daya, arus gangguan, dan koordinasi relai", "Ketepatan meramal beban dan menentukan tahun pengembangan"],
+    bt: ["Aliran daya penyulang radial (sweep)", "Arus hubung singkat dan gangguan tanah", "Fuse, recloser, relai IDMT, dan koordinasinya", "Peramalan beban dan pengembangan jaringan"],
+    ind: ["Ketepatan menghitung arus gangguan dan koordinasi relai", "Ketepatan meramal beban dan tahun pengembangan"],
     pustaka: "[Pustaka Utama 2, 4; Pendukung 3, 4]" },
   { bk: 14, materi: "Metode Single Line Diagram",
     // Mengikuti Modul 13 yang terbit (20 September 2026).
-    bt: ["Simbol dan kaidah single line diagram", "Sistem per unit: besaran dasar dan konversi dasar", "Diagram impedansi dan reaktansi", "Reduksi Thevenin: arus dan daya hubung singkat"],
-    ind: ["Ketepatan menyusun SLD dan mengonversi data peralatan ke per unit", "Ketepatan menghitung arus hubung singkat dari diagram reaktansi"],
+    bt: ["Simbol dan kaidah single line diagram", "Sistem per unit dan konversi dasar", "Diagram impedansi dan reaktansi", "Reduksi Thevenin: arus hubung singkat"],
+    ind: ["Ketepatan menyusun SLD dan mengonversi ke per unit", "Ketepatan menghitung arus hubung singkat dari diagram reaktansi"],
     pustaka: "[Pustaka Utama 2, 3, 4; Pendukung 3, 4]" },
   { bk: 14, materi: "Metode Analisis Aliran Daya (Load Flow)",
-    bt: ["Klasifikasi bus", "Matriks admitansi Ybus", "Persamaan aliran daya", "Metode Gauss–Seidel dan pengenalan Newton–Raphson"],
-    ind: ["Ketepatan menyusun Ybus dan persamaan aliran daya", "Ketepatan menjalankan iterasi Gauss–Seidel"] },
+    // Mengikuti Modul 14 yang terbit (20 September 2026).
+    bt: ["Klasifikasi bus dan matriks Y_bus", "Persamaan aliran daya", "Gauss–Seidel dan Newton–Raphson", "Aliran daya DC dan pembacaan hasil"],
+    ind: ["Ketepatan menyusun Y_bus dan persamaan aliran daya", "Ketepatan menjalankan iterasi dan membaca hasilnya"],
+    pustaka: "[Pustaka Utama 2, 4; Pendukung 3, 4, 5]" },
 ];
 if (RENCANA.length !== SUB.length) throw new Error("RENCANA harus 14 baris");
 const UTS_SUB = SUB.filter((s) => s.bobot.uts > 0).map((s) => s.kode.replace("Sub-CPMK ", ""));
