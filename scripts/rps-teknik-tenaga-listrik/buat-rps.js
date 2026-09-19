@@ -72,12 +72,14 @@ const BK = { 5: "BK5", 14: "BK14", 18: "BK18" };
 const RENCANA = [
   { bk: 5, materi: "Konsep-Konsep Dasar Sistem/Teknik Tenaga Listrik (STL)",
     // Mengikuti Modul 1 yang terbit (14 September 2026): sembilan bagian materi dan tugas C1–C15.
-    bt: ["Kontrak kuliah", "Pengertian, peran, dan bagian-bagian sistem tenaga listrik", "Tingkat tegangan dan efisiensi berantai", "Energi, daya satu dan tiga fasa, faktor daya", "Arus dan rugi saluran: alasan transmisi bertegangan tinggi", "Pembangkit, generator sinkron, dan frekuensi", "Kurva beban, faktor beban, dan faktor kapasitas", "Tren perkembangan (EBT, smart grid)"],
-    ind: ["Ketepatan menjelaskan pengertian, bagian-bagian, tingkat tegangan, dan peran sistem tenaga listrik", "Ketepatan menghitung energi, daya satu dan tiga fasa, arus dan rugi saluran, efisiensi berantai, frekuensi dan torsi generator, serta faktor beban dan faktor kapasitas"],
+    bt: ["Kontrak kuliah; pengertian, peran, bagian, dan tingkat tegangan sistem tenaga listrik", "Energi, daya satu dan tiga fasa, faktor daya, arus dan rugi saluran", "Pembangkit, generator sinkron, frekuensi; kurva beban, faktor beban dan kapasitas", "Tren perkembangan (EBT, smart grid)"],
+    ind: ["Ketepatan menjelaskan pengertian, bagian-bagian, tingkat tegangan, dan peran sistem tenaga listrik", "Ketepatan menghitung energi, daya, arus dan rugi saluran, efisiensi berantai, frekuensi dan torsi generator, faktor beban dan faktor kapasitas"],
     pustaka: "[Pustaka Utama 4; Pendukung 1, 3, 4, 5]" },
   { bk: 5, materi: "Komponen-Komponen Sistem/Teknik Tenaga Listrik",
-    bt: ["Generator, transformator daya, dan saluran", "Gardu induk, rel (busbar), dan pemutus tenaga (PMT)", "Spesifikasi (rating kVA/MVA, tegangan, efisiensi) dan fungsi tiap komponen"],
-    ind: ["Ketepatan menjelaskan fungsi dan spesifikasi komponen sistem tenaga listrik", "Ketepatan menghitung rating dan efisiensi komponen"] },
+    // Mengikuti Modul 2 yang terbit (19 September 2026).
+    bt: ["Generator sinkron dan transformator: rating, rasio, rugi, efisiensi, Z%", "Saluran (ACSR, isolator) dan gardu induk (rel, PMT, PMS, CT/PT, arester)", "Komponen distribusi, trafo paralel, dan papan nama"],
+    ind: ["Ketepatan menjelaskan fungsi dan spesifikasi komponen dari papan namanya", "Ketepatan menghitung arus nominal, efisiensi trafo, arus hubung singkat/rating PMT, dan pembagian beban trafo paralel"],
+    pustaka: "[Pustaka Utama 4; Pendukung 1, 2, 5, 6]" },
   { bk: 14, materi: "Daya pada Jaringan Listrik DC dengan Satu Sumber Tegangan",
     bt: ["Hukum Ohm dan hukum Kirchhoff", "Rangkaian seri–paralel", "Daya, energi, dan efisiensi", "Transfer daya maksimum"],
     ind: ["Ketepatan menerapkan hukum Ohm dan Kirchhoff pada jaringan DC satu sumber", "Ketepatan menghitung daya, rugi, dan efisiensi"] },
@@ -274,6 +276,7 @@ const PUSTAKA_PENDUKUNG = [
   "Saadat, H. (1999). Power System Analysis (International ed.). McGraw-Hill.",
   "Grainger, J. J., & Stevenson, W. D. (1994). Power System Analysis. McGraw-Hill.",
   "von Meier, A. (2006). Electric Power Systems: A Conceptual Introduction. Wiley-IEEE Press.",
+  "Chapman, S. J. (2012). Electric Machinery Fundamentals (5th ed.). McGraw-Hill.",
 ];
 const infoTabel = table([2000, 12400], [
   [judulKiri("Deskripsi Singkat Mata Kuliah"), cell(deskripsi, 12400, { align: AlignmentType.JUSTIFIED })],
@@ -307,7 +310,7 @@ const rmBaris = MINGGU.map((m) => {
     cell(bentuk, W_RM[3], { valign: VerticalAlign.TOP }),
     cell([para("Kuliah, diskusi, latihan soal"), para("PB 2 × 50 mnt; PT 2 × 60 mnt; KM 2 × 60 mnt", { size: 16, before: 30 })], W_RM[4], { valign: VerticalAlign.TOP }),
     cell([para(`LMS fastlearning: modul interaktif ${n}, tugas, dan forum daring`)], W_RM[5], { valign: VerticalAlign.TOP }),
-    cell([bullet(r.materi), para(r.pustaka || `[Pustaka Utama 1–4; Pendukung 1–5]`, { size: 16, before: 40 })], W_RM[6], { valign: VerticalAlign.TOP }),
+    cell([bullet(r.materi), para(r.pustaka || `[Pustaka Utama 1–4; Pendukung 1–6]`, { size: 16, before: 40 })], W_RM[6], { valign: VerticalAlign.TOP }),
     cell(String(s.total), W_RM[7], { align: c, bold: true }),
   ];
 });
@@ -329,7 +332,7 @@ const CATATAN = [
 ];
 
 const jarak = () => para("", { after: 100 });
-const landscape = { page: { size: { width: 12240, height: 15840, orientation: PageOrientation.LANDSCAPE }, margin: { top: 720, bottom: 720, left: 720, right: 720 } } };
+const landscape = { page: { size: { width: 12240, height: 15840, orientation: PageOrientation.LANDSCAPE }, margin: { top: 600, bottom: 600, left: 720, right: 720 } } };
 const doc = new Document({
   creator: "Dedik Romahadi", title: "RPS Teknik Tenaga Listrik (revisi September 2026)",
   styles: { default: { document: { run: { font: FONT, size: 18 } } } },
@@ -341,7 +344,7 @@ const doc = new Document({
     { properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1000, bottom: 800, left: 1300, right: 1300 } } }, children: sampul },
     { properties: { ...landscape, page: { ...landscape.page, pageNumbers: { start: 1 } } }, footers: { default: footer }, children: sap },
     { properties: landscape, footers: { default: footer }, children: [identitas, jarak(), cplTabel, jarak(), cpmkTabel, jarak(), subTabel, jarak(), petaTabel, jarak(), kpTabel, jarak(), infoTabel] },
-    { properties: landscape, footers: { default: footer }, children: [rencanaMingguan, para("Catatan:", { bold: true, before: 120, after: 40 }), ...daftarNomor(CATATAN, { align: AlignmentType.JUSTIFIED, size: 15 })] },
+    { properties: landscape, footers: { default: footer }, children: [rencanaMingguan, para("Catatan:", { bold: true, before: 60, after: 20 }), ...daftarNomor(CATATAN, { align: AlignmentType.JUSTIFIED, size: 14 })] },
   ],
 });
 Packer.toBuffer(doc).then((b) => { fs.writeFileSync(OUT, b); console.log("ditulis", OUT, b.length, "bita; total jam", totalJam, "; UTS", UTS_SUB.join(","), "; UAS", UAS_SUB.join(",")); });
