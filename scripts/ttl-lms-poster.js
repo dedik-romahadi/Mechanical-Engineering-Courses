@@ -5,16 +5,20 @@
 // Apa yang dilakukan (pola Getaran/Opto/Math, desain Sisken):
 //   1. Menamai tiap section pekan dan menaruh banner (Teknik-Tenaga-Listrik/Banner/*.html)
 //      sebagai ringkasan section — banner diambil dari GitHub (raw) pada cabang BRANCH.
-//   2. Membuat aktivitas per pertemuan lewat form "Add an activity" (bukan Duplicate):
-//      Attendance (pekan TMV/TMK), Tugas Modul N — Submit Hasil Export, Forum Modul N —
-//      Submit Hasil Copy Forum; UTS/UAS — Submit Hasil Export pada pekan ujian.
-//      Google Meet™ for Moodle dibuat terpisah lewat UI (room URL dibuat plugin).
+//   2. Membuat aktivitas lewat form "Add an activity" (bukan Duplicate) HANYA untuk
+//      pertemuan yang disebut di `only` — kebijakan dosen: Attendance, Tugas, dan Forum
+//      diberikan sesuai minggunya, bukan disiapkan sekaligus. Attendance (pekan TMV/TMK),
+//      Tugas Modul N — Submit Hasil Export, Forum Modul N — Submit Hasil Copy Forum;
+//      UTS/UAS — Submit Hasil Export pada pekan ujian.
+//      Google Meet™ for Moodle dibuat terpisah lewat UI form pada pekannya (room dibuat plugin).
 //   3. Idempoten: aktivitas yang namanya sudah ada di section itu dilewati.
 //   Catatan: situs mewajibkan deskripsi aktivitas minimal 100 karakter.
 //
 // Pemakaian di konsol:
 //   const s = document.createElement('script'); s.src = RAW + 'scripts/ttl-lms-poster.js'; document.head.append(s);
-//   await ttlPoster.run({ sections: true, activities: true, only: [1, 2] });   // only = nomor pertemuan (opsional)
+//   await ttlPoster.run({ sections: true });                              // banner + nama semua section
+//   await ttlPoster.run({ sections: true, activities: true, only: [2] });  // pekan ke-2: banner + aktivitasnya
+//   `activities: true` tanpa `only` ditolak supaya aktivitas tidak dibuat serentak.
 
 (function () {
   const COURSE = 5923;
@@ -184,8 +188,9 @@
     });
   }
 
-  async function run({ sections = true, activities = true, only = null, dry = false } = {}) {
+  async function run({ sections = true, activities = false, only = null, dry = false } = {}) {
     const log = [];
+    if (activities && !only) throw new Error("activities:true membutuhkan only:[nomor pertemuan] — aktivitas dibuat per pekan");
     const cur = await existing();
     for (const k of PLAN) {
       if (only && !only.includes(k.p)) continue;

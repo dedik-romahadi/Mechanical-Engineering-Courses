@@ -7,8 +7,12 @@
 // banner di ringkasan section, Google Meet + Attendance pada pekan TMV/TMK,
 // Tugas + Forum pada tiap modul, UTS/UAS pada pekannya sendiri).
 //
+// Kebijakan dosen (19 Sep 2026): Google Meet, Attendance, Tugas, dan Forum dibuat
+// PADA PEKANNYA lewat form "Add an activity" di LMS (Google Meet wajib lewat UI form
+// agar room dibuat plugin). Banner boleh dipasang lebih dulu, tetapi tombol Meet dan
+// tombol modul tampil nonaktif sampai pekannya tiba dan tautannya ada.
 // Jalankan ulang setiap kali: modul baru terbit (tambahkan ke PUBLISHED),
-// Google Meet pekan TMV dibuat (isi MEET_CMID), atau jadwal berubah.
+// Google Meet pekan TMV dibuat (isi MEET_URL), atau jadwal berubah.
 //   node scripts/ttl-banner.mjs
 // Keluaran: Teknik-Tenaga-Listrik/Banner/*.html (100% inline style, tanpa JS).
 
@@ -19,13 +23,14 @@ import { fileURLToPath } from "node:url";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "Teknik-Tenaga-Listrik", "Banner");
 const BASE = "https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Teknik-Tenaga-Listrik";
-const LMS = "https://fast.mercubuana.ac.id";
 
 // ---------- konfigurasi yang berubah dari pekan ke pekan ----------
 export const PUBLISHED = [1]; // nomor modul yang halamannya sudah terbit
 export const EXAM_PUBLISHED = { UTS: false, UAS: false };
-// cmid aktivitas Google Meet™ for Moodle per pertemuan TMV (diisi setelah dibuat di LMS)
-export const MEET_CMID = { 1: 75867, 3: 75871, 5: 75872, 7: 75873, 11: 75874, 13: 75875 };
+// Tautan room Google Meet per pertemuan TMV — diisi PADA PEKANNYA setelah aktivitas
+// Google Meet™ for Moodle dibuat lewat UI form LMS (room dibuat otomatis oleh plugin).
+// Pertemuan yang belum ada di sini memakai tombol nonaktif "Google Meet belum dibuka".
+export const MEET_URL = { 1: "https://meet.google.com/kpn-jaex-kxg" };
 export const RUANG = "B-304-2";
 export const JAM = "12:00–13:40 WIB";
 
@@ -157,8 +162,8 @@ export function bannerPertemuan(k) {
     : btnMati("&#128214;", `Modul ${m.n} terbit<br>menjelang pertemuan`, 12);
   let tombolKedua = "";
   if (k.tipe === "TMV") {
-    tombolKedua = MEET_CMID[k.p]
-      ? btnAktif(`${LMS}/mod/googlemeet/view.php?id=${MEET_CMID[k.p]}`, "&#127909;", "Masuk Google Meet TMV", GAYA_MEET)
+    tombolKedua = MEET_URL[k.p]
+      ? btnAktif(MEET_URL[k.p], "&#127909;", "Masuk Google Meet Hari Ini", GAYA_MEET)
       : btnMati("&#127909;", "Google Meet belum dibuka");
   } else if (k.tipe === "TMK") {
     tombolKedua = `<div style="margin-top:9px;padding:11px 14px;border-radius:12px;background:#14321f;border:1px solid #2f7a4a;color:#a7f3d0;font-size:11.5px;font-weight:800;line-height:1.4;">&#127979; Tatap muka di ruang ${RUANG}<br><span style="font-weight:600;color:#d1fae5;">Sabtu, ${JAM}</span></div>`;
