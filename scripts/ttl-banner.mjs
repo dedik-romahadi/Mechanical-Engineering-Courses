@@ -31,6 +31,7 @@ export const EXAM_PUBLISHED = { UTS: false, UAS: false };
 // Google Meet™ for Moodle dibuat lewat UI form LMS (room dibuat otomatis oleh plugin).
 // Pertemuan yang belum ada di sini memakai tombol nonaktif "Google Meet belum dibuka".
 export const MEET_URL = { 1: "https://meet.google.com/kpn-jaex-kxg" };
+export const WA_URL = "https://chat.whatsapp.com/ELpExbiM33dBebdXJMzYFx"; // grup WhatsApp kelas 2F
 export const RUANG = "B-304-2";
 export const JAM = "12:00–13:40 WIB";
 
@@ -420,7 +421,8 @@ export function bannerIntroduction() {
         </td>
         <td width="180" style="padding:8px 10px;border-left:1px solid rgba(255,255,255,.06);text-align:center;">
           <a href="${BASE}/OBE/Penilaian-OBE.htm" target="_blank" style="display:inline-block;width:165px;box-sizing:border-box;padding:8px 11px;border-radius:9px;text-decoration:none;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-size:11px;font-weight:800;box-shadow:0 5px 15px rgba(37,99,235,.25);">Silabus &amp; Penilaian OBE &rarr;</a>
-          <a href="https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Unduhan-Gabungan/RPS-Teknik-Tenaga-Listrik.pdf" target="_blank" rel="noopener noreferrer" style="display:inline-block;width:165px;box-sizing:border-box;margin-top:5px;padding:8px 11px;border-radius:9px;text-decoration:none;background:linear-gradient(135deg,#16a34a,#0d9488);color:#fff;font-size:11px;font-weight:800;box-shadow:0 5px 15px rgba(22,163,74,.24);">RPS (PDF) &rarr;</a>
+          <a href="${WA_URL}" target="_blank" rel="noopener noreferrer" style="display:inline-block;width:165px;box-sizing:border-box;margin-top:5px;padding:8px 11px;border-radius:9px;text-decoration:none;background:linear-gradient(135deg,#16a34a,#0d9488);color:#fff;font-size:11px;font-weight:800;box-shadow:0 5px 15px rgba(22,163,74,.24);">&#128172; Grup WhatsApp &rarr;</a>
+          <a href="https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Unduhan-Gabungan/RPS-Teknik-Tenaga-Listrik.pdf" target="_blank" rel="noopener noreferrer" style="display:inline-block;width:165px;box-sizing:border-box;margin-top:5px;padding:8px 11px;border-radius:9px;text-decoration:none;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#e2e8f0;font-size:11px;font-weight:800;">RPS (PDF) &rarr;</a>
         </td>
       </tr>
     </table>
