@@ -86,8 +86,10 @@ const RENCANA = [
     ind: ["Ketepatan menerapkan hukum Ohm dan Kirchhoff pada jaringan DC satu sumber", "Ketepatan menghitung daya, rugi, efisiensi, transfer daya maksimum, dan penampang kabel"],
     pustaka: "[Pustaka Utama 1, 4; Pendukung 5, 7, 8]" },
   { bk: 14, materi: "Daya pada Jaringan Listrik DC dengan Dua atau Lebih Sumber Tegangan",
-    bt: ["Analisis mesh dan nodal", "Teorema superposisi", "Teorema Thevenin dan Norton", "Pembagian beban pada sumber paralel"],
-    ind: ["Ketepatan menyusun dan menyelesaikan persamaan mesh/nodal", "Ketepatan menghitung arus dan daya tiap sumber"] },
+    // Mengikuti Modul 4 yang terbit (19 September 2026).
+    bt: ["Dua ggl dalam satu loop; analisis mesh dan nodal", "Teorema superposisi, Thevenin, dan Norton", "Sumber paralel: pembagian beban dan arus sirkulasi"],
+    ind: ["Ketepatan menyusun dan menyelesaikan persamaan mesh/nodal serta ekuivalen Thevenin–Norton", "Ketepatan menghitung arus dan daya tiap sumber, termasuk tanda arus dan arus sirkulasi"],
+    pustaka: "[Pustaka Utama 1, 3; Pendukung 6, 7, 8]" },
   { bk: 14, materi: "Daya pada Jaringan Listrik AC",
     bt: ["Fasor dan impedansi", "Daya aktif (P), reaktif (Q), dan semu (S)", "Faktor daya, segitiga daya, dan daya kompleks", "Sistem tiga fasa seimbang"],
     ind: ["Ketepatan menghitung S, P, Q, dan faktor daya", "Ketepatan menghitung tegangan, arus, dan daya sistem tiga fasa"] },
