@@ -95,6 +95,11 @@ ditambah dua yang sedang disiapkan bertahap:
 | `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | — (belum ada modul) | CAD |
 | `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | `teknik_tenaga_listrik-modul-N` (terbit: Modul 1) | TTL |
 
+> Kelas LMS TTL (FAST Learning course id 5923, kelas 2F Sabtu 12:00–13:40) sudah
+> tertata: banner seluruh semester dibuat `scripts/ttl-banner.mjs` dan dipasang oleh
+> `scripts/ttl-lms-poster.js`; Google Meet/Attendance/Tugas/Forum dibuat **pada
+> pekannya** (Google Meet lewat UI form). Rutinitas mingguan: Pedoman §2.
+
 > ⚠️ **Ejaan Opto (mudah salah saat scripting):** folder `Optimalisasi-dan-Automasi/`
 > (**Automasi**, huruf A) tetapi berkas asesmennya
 > `Asesmen-Optimalisasi-dan-Otomasi.json` (**Otomasi**, huruf O). Judul tampil
