@@ -111,8 +111,10 @@ const RENCANA = [
     ind: ["Ketepatan menjelaskan jenis dan konstruksi saluran transmisi serta menghitung andongan dan isolator", "Ketepatan menghitung rugi daya pada berbagai tingkat tegangan dan tegangan kritis korona"],
     pustaka: "[Pustaka Utama 2, 3; Pendukung 1, 4, 5]" },
   { bk: 14, materi: "Pemodelan Saluran Transmisi",
-    bt: ["Parameter R, L, dan C saluran (GMR/GMD)", "Model nominal-π", "Konstanta ABCD", "Impedansi karakteristik saluran panjang"],
-    ind: ["Ketepatan menghitung parameter R, L, dan C saluran", "Ketepatan menerapkan model nominal-π dan konstanta ABCD"] },
+    // Mengikuti Modul 9 yang terbit (19 September 2026).
+    bt: ["Parameter R, L, dan C saluran dari geometri (GMD/GMR, transposisi, konduktor berkas)", "Model nominal-π, konstanta ABCD, dan kaskade elemen sistem", "Saluran panjang: konstanta propagasi, impedansi karakteristik, π-ekuivalen, SIL, dan profil tegangan"],
+    ind: ["Ketepatan menghitung parameter R, L, dan C saluran dari geometri", "Ketepatan menerapkan model nominal-π, konstanta ABCD, dan model saluran panjang"],
+    pustaka: "[Pustaka Utama 2, 4; Pendukung 1, 3, 4]" },
   { bk: 14, materi: "Kompensasi dalam Sistem Distribusi",
     bt: ["Kapasitor bank dan perbaikan faktor daya", "Pengurangan rugi daya dan jatuh tegangan", "Penempatan dan ukuran kompensator", "Regulator tegangan"],
     ind: ["Ketepatan menghitung kebutuhan kVAR untuk perbaikan faktor daya", "Ketepatan menghitung penurunan rugi dan jatuh tegangan"] },
