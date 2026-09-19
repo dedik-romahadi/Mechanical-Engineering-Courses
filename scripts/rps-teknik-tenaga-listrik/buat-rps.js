@@ -96,8 +96,10 @@ const RENCANA = [
     ind: ["Ketepatan menghitung impedansi, S, P, Q, faktor daya, dan kapasitor perbaikannya", "Ketepatan menghitung tegangan, arus, dan daya sistem tiga fasa"],
     pustaka: "[Pustaka Utama 1, 4; Pendukung 5, 7, 8]" },
   { bk: 14, materi: "Aliran Daya dan Transien pada Saluran Transmisi serta Kompensasi Reaktif",
-    bt: ["Model saluran pendek, menengah, dan panjang", "Regulasi tegangan dan efisiensi saluran", "Kompensasi reaktif seri dan shunt", "Transien saluran (gelombang berjalan)"],
-    ind: ["Ketepatan menghitung aliran daya, regulasi tegangan, dan efisiensi saluran", "Ketepatan menentukan kebutuhan kompensasi reaktif"] },
+    // Mengikuti Modul 6 yang terbit (19 September 2026).
+    bt: ["Model saluran pendek, menengah (nominal-π, ABCD), dan panjang; aliran daya dan jatuh tegangan", "Regulasi tegangan dan efisiensi; kompensasi shunt (Ferranti, SIL) dan seri (kurva P–δ)", "Transien gelombang berjalan: impedansi surja, pantulan, dan transmisi"],
+    ind: ["Ketepatan menghitung tegangan kirim, regulasi, dan efisiensi saluran", "Ketepatan menentukan kompensasi reaktif dan tegangan surja yang diteruskan"],
+    pustaka: "[Pustaka Utama 4; Pendukung 1, 3, 4, 5]" },
   { bk: 14, materi: "Reaktansi dan Impedansi di Sistem Tenaga Listrik",
     bt: ["Reaktansi generator dan transformator", "Impedansi ekuivalen dan transformasi star–delta", "Sistem per unit (PU)", "MVA hubung singkat"],
     ind: ["Ketepatan menghitung impedansi ekuivalen dan besaran per unit", "Ketepatan menghitung MVA hubung singkat"] },
