@@ -116,8 +116,10 @@ const RENCANA = [
     ind: ["Ketepatan menghitung parameter R, L, dan C saluran dari geometri", "Ketepatan menerapkan model nominal-π, konstanta ABCD, dan model saluran panjang"],
     pustaka: "[Pustaka Utama 2, 4; Pendukung 1, 3, 4]" },
   { bk: 14, materi: "Kompensasi dalam Sistem Distribusi",
-    bt: ["Kapasitor bank dan perbaikan faktor daya", "Pengurangan rugi daya dan jatuh tegangan", "Penempatan dan ukuran kompensator", "Regulator tegangan"],
-    ind: ["Ketepatan menghitung kebutuhan kVAR untuk perbaikan faktor daya", "Ketepatan menghitung penurunan rugi dan jatuh tegangan"] },
+    // Mengikuti Modul 10 yang terbit (20 September 2026).
+    bt: ["Kapasitor shunt: kVAR, arus, rugi, kapasitas terbebas", "Jatuh dan kenaikan tegangan oleh kapasitor", "Aturan dua-pertiga; kapasitor tetap dan switched", "Regulator tegangan bertingkat dan LDC"],
+    ind: ["Ketepatan menghitung kVAR, arus, rugi, dan tegangan penyulang", "Ketepatan menentukan letak kapasitor dan tingkat regulator"],
+    pustaka: "[Pustaka Utama 2, 3, 4; Pendukung 3, 4, 5]" },
   { bk: 14, materi: "Konsep dan Teori Dasar Sistem Distribusi Tenaga Listrik",
     bt: ["Konfigurasi radial, loop, spindle, dan mesh", "Jaringan tegangan menengah dan rendah", "Gardu distribusi", "Jatuh tegangan dan rugi pada penyulang"],
     ind: ["Ketepatan menjelaskan konfigurasi sistem distribusi", "Ketepatan menghitung jatuh tegangan dan rugi penyulang"] },
