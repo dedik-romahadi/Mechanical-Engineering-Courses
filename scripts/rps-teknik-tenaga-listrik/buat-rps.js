@@ -101,8 +101,10 @@ const RENCANA = [
     ind: ["Ketepatan menghitung tegangan kirim, regulasi, dan efisiensi saluran", "Ketepatan menentukan kompensasi reaktif dan tegangan surja yang diteruskan"],
     pustaka: "[Pustaka Utama 4; Pendukung 1, 3, 4, 5]" },
   { bk: 14, materi: "Reaktansi dan Impedansi di Sistem Tenaga Listrik",
-    bt: ["Reaktansi generator dan transformator", "Impedansi ekuivalen dan transformasi star–delta", "Sistem per unit (PU)", "MVA hubung singkat"],
-    ind: ["Ketepatan menghitung impedansi ekuivalen dan besaran per unit", "Ketepatan menghitung MVA hubung singkat"] },
+    // Mengikuti Modul 7 yang terbit (19 September 2026).
+    bt: ["Reaktansi generator (subtransien, transien, sinkron) dan impedansi transformator", "Sistem per unit: basis, konversi basis, transformasi Y–Δ, dan reduksi jaringan", "MVA dan arus hubung singkat; kapasitas pemutus dan start motor"],
+    ind: ["Ketepatan menghitung besaran per unit dan impedansi ekuivalen", "Ketepatan menghitung MVA dan arus hubung singkat"],
+    pustaka: "[Pustaka Utama 4; Pendukung 2, 3, 4, 6]" },
   { bk: 14, materi: "Sistem Tenaga Listrik Saluran Transmisi",
     bt: ["Klasifikasi saluran (SUTT, SUTET, SKTT)", "Konstruksi menara, konduktor, dan isolator", "Korona", "Pemilihan tingkat tegangan dan rugi transmisi"],
     ind: ["Ketepatan menjelaskan jenis dan konstruksi saluran transmisi", "Ketepatan menghitung rugi daya pada berbagai tingkat tegangan"] },
