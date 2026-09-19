@@ -36,6 +36,8 @@ export const JAM = "12:00–13:40 WIB";
 
 // ---------- kalender perkuliahan Fast Learning, kelas 2F Sabtu Reguler 2 ----------
 // tipe: TMV = tatap muka virtual, DARING = daring/asinkron, TMK = tatap muka kelas
+// (keputusan dosen 19 Sep 2026: P9 dan P15 yang di kalender Fast Learning bertipe TMK
+//  dijalankan sebagai TMV, jadi tidak ada pekan TMK)
 export const KALENDER = [
   { p: 1, tipe: "TMV", tgl: "2026-09-19", modul: 1 },
   { p: 2, tipe: "DARING", tgl: "2026-09-26", modul: 2 },
@@ -45,13 +47,13 @@ export const KALENDER = [
   { p: 6, tipe: "DARING", tgl: "2026-10-24", modul: 6 },
   { p: 7, tipe: "TMV", tgl: "2026-10-31", modul: 7 },
   { p: 8, tipe: "UTS", tgl: "2026-11-07", akhir: "2026-11-20" },
-  { p: 9, tipe: "TMK", tgl: "2026-11-21", modul: 8 },
+  { p: 9, tipe: "TMV", tgl: "2026-11-21", modul: 8 },
   { p: 10, tipe: "DARING", tgl: "2026-11-28", modul: 9 },
   { p: 11, tipe: "TMV", tgl: "2026-12-05", modul: 10 },
   { p: 12, tipe: "DARING", tgl: "2026-12-12", modul: 11 },
   { p: 13, tipe: "TMV", tgl: "2026-12-19", modul: 12 },
   { p: 14, tipe: "DARING", tgl: "2026-12-26", modul: 13 },
-  { p: 15, tipe: "TMK", tgl: "2027-01-02", modul: 14 },
+  { p: 15, tipe: "TMV", tgl: "2027-01-02", modul: 14 },
   { p: 16, tipe: "UAS", tgl: "2027-01-09", akhir: "2027-01-22" },
 ];
 
@@ -330,7 +332,7 @@ export function bannerIntroduction() {
     <div style="margin-top:19px;font-size:11px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-family:monospace;">Pelaksanaan Perkuliahan</div>
     <div style="background:#0a1730;border:1px solid #27447d;border-radius:15px;padding:17px 18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.025);">
       <div style="font-size:12px;color:#e0e7ff;line-height:1.65;margin-bottom:13px;">
-        Perkuliahan mengikuti <strong style="color:#67e8f9;">Kalender Perkuliahan Fast Learning Semester Ganjil 2026/2027</strong> untuk kode kelas <strong style="color:#fff;">2F &mdash; Kelas Sabtu Reguler 2</strong>: satu modul setiap pekan pada hari <strong style="color:#fff;">Sabtu, ${JAM}</strong>, mulai <strong style="color:#fff;">${fmtPanjang(KALENDER[0].tgl)}</strong>. Pertemuan TMV berlangsung lewat Google Meet, pertemuan Daring dikerjakan mandiri lewat halaman modul, dan pertemuan TMK berlangsung di ruang <strong style="color:#fff;">${RUANG}</strong>. Tugas dan Forum tiap modul ditutup <strong style="color:#fcd34d;">Jumat berikutnya pukul 23:59 WIB</strong>.
+        Perkuliahan mengikuti <strong style="color:#67e8f9;">Kalender Perkuliahan Fast Learning Semester Ganjil 2026/2027</strong> untuk kode kelas <strong style="color:#fff;">2F &mdash; Kelas Sabtu Reguler 2</strong>: satu modul setiap pekan pada hari <strong style="color:#fff;">Sabtu, ${JAM}</strong>, mulai <strong style="color:#fff;">${fmtPanjang(KALENDER[0].tgl)}</strong>. Pertemuan TMV berlangsung lewat Google Meet (termasuk Pertemuan 9 dan 15 yang di kalender tertulis TMK), pertemuan Daring dikerjakan mandiri lewat halaman modul. Tugas dan Forum tiap modul ditutup <strong style="color:#fcd34d;">Jumat berikutnya pukul 23:59 WIB</strong>.
       </div>
       <table width="100%" cellpadding="0" cellspacing="7" border="0" style="table-layout:fixed;">
         <tr>
@@ -342,7 +344,7 @@ export function bannerIntroduction() {
           <td width="25%" valign="top" style="background:#121d3d;border:1px solid #3730a3;border-radius:11px;padding:12px 13px;">
             <div style="font-size:9px;color:#a5b4fc;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">Pola Mingguan</div>
             <div style="font-size:12px;font-weight:900;color:#f8fafc;">1 Modul / Pekan</div>
-            <div style="font-size:11px;color:#c7d2fe;margin-top:3px;">6 TMV &bull; 6 Daring &bull; 2 TMK</div>
+            <div style="font-size:11px;color:#c7d2fe;margin-top:3px;">${KALENDER.filter((k) => k.tipe === "TMV").length} TMV &bull; ${KALENDER.filter((k) => k.tipe === "DARING").length} Daring</div>
           </td>
           <td width="25%" valign="top" style="background:#27163e;border:1px solid #6b21a8;border-radius:11px;padding:12px 13px;">
             <div style="font-size:9px;color:#d8b4fe;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">UTS</div>
@@ -369,7 +371,7 @@ export function bannerIntroduction() {
         </td>
       </tr>
     </table>
-    <div style="margin-top:8px;font-size:10px;color:#94a3b8;line-height:1.6;"><strong style="color:#fcd58a;">TMV</strong> = Tatap Muka Virtual (Google Meet) &nbsp;&bull;&nbsp; <strong style="color:#8ce8ff;">DARING</strong> = pembelajaran daring mandiri lewat halaman modul &nbsp;&bull;&nbsp; <strong style="color:#a7f3d0;">TMK</strong> = Tatap Muka Kelas di ruang ${RUANG} &nbsp;&bull;&nbsp; tanggal UTS/UAS mengikuti web SIA.</div>
+    <div style="margin-top:8px;font-size:10px;color:#94a3b8;line-height:1.6;"><strong style="color:#fcd58a;">TMV</strong> = Tatap Muka Virtual (Google Meet) &nbsp;&bull;&nbsp; <strong style="color:#8ce8ff;">DARING</strong> = pembelajaran daring mandiri lewat halaman modul &nbsp;&bull;&nbsp; tanggal UTS/UAS mengikuti web SIA.</div>
 
     <div style="margin-top:19px;font-size:11px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-family:monospace;">Status Kehadiran &amp; Aturan Penilaian</div>
     <table width="100%" cellpadding="0" cellspacing="8" border="0" style="table-layout:fixed;">
