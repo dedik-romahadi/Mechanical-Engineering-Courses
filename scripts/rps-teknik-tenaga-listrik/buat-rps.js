@@ -121,8 +121,10 @@ const RENCANA = [
     ind: ["Ketepatan menghitung kVAR, arus, rugi, dan tegangan penyulang", "Ketepatan menentukan letak kapasitor dan tingkat regulator"],
     pustaka: "[Pustaka Utama 2, 3, 4; Pendukung 3, 4, 5]" },
   { bk: 14, materi: "Konsep dan Teori Dasar Sistem Distribusi Tenaga Listrik",
-    bt: ["Konfigurasi radial, loop, spindle, dan mesh", "Jaringan tegangan menengah dan rendah", "Gardu distribusi", "Jatuh tegangan dan rugi pada penyulang"],
-    ind: ["Ketepatan menjelaskan konfigurasi sistem distribusi", "Ketepatan menghitung jatuh tegangan dan rugi penyulang"] },
+    // Mengikuti Modul 11 yang terbit (20 September 2026).
+    bt: ["Struktur JTM 20 kV, gardu distribusi, dan JTR 380/220 V", "Faktor kebutuhan, keragaman, beban, dan rugi", "Konfigurasi radial, loop, spindle; SAIFI/SAIDI", "Jatuh tegangan dan rugi penyulang dan JTR"],
+    ind: ["Ketepatan menghitung faktor beban dan memilih trafo gardu", "Ketepatan menghitung jatuh tegangan, rugi, dan indeks keandalan"],
+    pustaka: "[Pustaka Utama 2, 3, 4; Pendukung 3, 5]" },
   { bk: 18, materi: "Aliran Daya, Peralatan, dan Pengembangan Sistem Distribusi",
     bt: ["Peralatan proteksi: fuse, recloser, relai arus lebih, PMT", "Arus gangguan dan koordinasi proteksi", "Peramalan beban dan pengembangan jaringan"],
     ind: ["Ketepatan menjelaskan fungsi dan koordinasi peralatan proteksi", "Ketepatan menghitung arus gangguan dan pertumbuhan beban"] },
