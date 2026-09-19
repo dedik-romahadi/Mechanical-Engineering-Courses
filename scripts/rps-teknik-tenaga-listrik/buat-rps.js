@@ -126,8 +126,10 @@ const RENCANA = [
     ind: ["Ketepatan menghitung faktor beban dan memilih trafo gardu", "Ketepatan menghitung jatuh tegangan, rugi, dan indeks keandalan"],
     pustaka: "[Pustaka Utama 2, 3, 4; Pendukung 3, 5]" },
   { bk: 18, materi: "Aliran Daya, Peralatan, dan Pengembangan Sistem Distribusi",
-    bt: ["Peralatan proteksi: fuse, recloser, relai arus lebih, PMT", "Arus gangguan dan koordinasi proteksi", "Peramalan beban dan pengembangan jaringan"],
-    ind: ["Ketepatan menjelaskan fungsi dan koordinasi peralatan proteksi", "Ketepatan menghitung arus gangguan dan pertumbuhan beban"] },
+    // Mengikuti Modul 12 yang terbit (20 September 2026).
+    bt: ["Aliran daya penyulang radial (backward/forward sweep)", "Arus hubung singkat dan gangguan tanah (NGR)", "Fuse, recloser, sectionalizer, relai IDMT, dan koordinasinya", "Peramalan beban majemuk dan pengembangan jaringan"],
+    ind: ["Ketepatan menghitung aliran daya, arus gangguan, dan koordinasi relai", "Ketepatan meramal beban dan menentukan tahun pengembangan"],
+    pustaka: "[Pustaka Utama 2, 4; Pendukung 3, 4]" },
   { bk: 14, materi: "Metode Single Line Diagram",
     bt: ["Simbol dan kaidah single line diagram", "Diagram impedansi dan reaktansi", "Penyusunan diagram per unit dari data peralatan"],
     ind: ["Ketepatan menyusun single line diagram", "Ketepatan mengubah data peralatan menjadi diagram impedansi per unit"] },
