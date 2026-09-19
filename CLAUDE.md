@@ -107,11 +107,12 @@ ditambah dua yang sedang disiapkan bertahap:
 > `Optimalisasi-dan-Automasi`. Pengecualian: deck slide Opto memakai brand
 > "Optimalisasi & Automasi" (huruf A) atas permintaan dosen — jangan "diperbaiki".
 
-Total berkas HTML utama: **62 modul + 8 exam + 6 OBE**. Pemodelan CAD baru
+Total berkas HTML utama: **62 modul + 9 exam + 6 OBE**. Pemodelan CAD baru
 sampai Tahap 1 (Silabus/OBE + RPS). Teknik Tenaga Listrik dibangun modul demi
 modul: Modul 1–6 sudah terbit (generator `scripts/ttl-modul/bangun.py`) dan terdaftar
-di `_MODUL_COURSES` backend lewat `moduls: [1, 2, 3, 4, 5, 6]`, tetapi belum punya exam, sehingga validator keamanan tetap
-memindainya lewat `obeOnlyRoots`, bukan `courseRoots`. Rincian dan langkah
+di `_MODUL_COURSES` backend lewat `moduls: [1, 2, 3, 4, 5, 6]`; UTS-nya (`teknik-tenaga-listrik-uts`) sudah terbit, UAS belum,
+sehingga validator keamanan tetap memindainya lewat `obeOnlyRoots` (yang `courseRoots`
+mensyaratkan UTS dan UAS sekaligus). Rincian dan langkah
 lanjutannya: Pedoman §2.
 
 ### B.2 Struktur per-course
