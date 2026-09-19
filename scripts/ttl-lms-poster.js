@@ -18,7 +18,10 @@
 //   const s = document.createElement('script'); s.src = RAW + 'scripts/ttl-lms-poster.js'; document.head.append(s);
 //   await ttlPoster.run({ sections: true });                              // banner + nama semua section
 //   await ttlPoster.run({ sections: true, activities: true, only: [2] });  // pekan ke-2: banner + aktivitasnya
+//   await ttlPoster.run({ activities: true, only: [3], forum: false });    // pekan tanpa forum LMS
 //   `activities: true` tanpa `only` ditolak supaya aktivitas tidak dibuat serentak.
+//   Catatan dosen 19 Sep 2026: pada Pertemuan 1 tidak ada forum LMS (form Forum FAST
+//   mengembalikan halaman form tanpa pesan); gunakan `forum: false` untuk pekan seperti itu.
 
 (function () {
   const COURSE = 5923;
@@ -188,7 +191,7 @@
     });
   }
 
-  async function run({ sections = true, activities = false, only = null, dry = false } = {}) {
+  async function run({ sections = true, activities = false, only = null, dry = false, forum = true } = {}) {
     const log = [];
     if (activities && !only) throw new Error("activities:true membutuhkan only:[nomor pertemuan] — aktivitas dibuat per pekan");
     const cur = await existing();
@@ -201,7 +204,7 @@
         if (activities && k.modul) {
           if ((k.tipe === "TMV" || k.tipe === "TMK") && !has("attendance", `Attendance Pertemuan ${k.p} — ${k.tipe}`)) { if (!dry) await addAttendance(k); log.push(`+attendance P${k.p}`); }
           if (!has("assign", `Tugas Modul ${k.modul} — Submit Hasil Export`)) { if (!dry) await addAssign(k); log.push(`+assign M${k.modul}`); }
-          if (!has("forum", `Forum Modul ${k.modul} — Submit Hasil Copy Forum`)) { if (!dry) await addForum(k); log.push(`+forum M${k.modul}`); }
+          if (forum && !has("forum", `Forum Modul ${k.modul} — Submit Hasil Copy Forum`)) { if (!dry) await addForum(k); log.push(`+forum M${k.modul}`); }
         }
         if (activities && (k.tipe === "UTS" || k.tipe === "UAS") && !has("assign", `${k.tipe} — Submit Hasil Export`)) { if (!dry) await addExamAssign(k); log.push(`+assign ${k.tipe}`); }
       } catch (e) {
