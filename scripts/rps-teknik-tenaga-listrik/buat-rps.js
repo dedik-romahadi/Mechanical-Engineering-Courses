@@ -131,8 +131,10 @@ const RENCANA = [
     ind: ["Ketepatan menghitung aliran daya, arus gangguan, dan koordinasi relai", "Ketepatan meramal beban dan menentukan tahun pengembangan"],
     pustaka: "[Pustaka Utama 2, 4; Pendukung 3, 4]" },
   { bk: 14, materi: "Metode Single Line Diagram",
-    bt: ["Simbol dan kaidah single line diagram", "Diagram impedansi dan reaktansi", "Penyusunan diagram per unit dari data peralatan"],
-    ind: ["Ketepatan menyusun single line diagram", "Ketepatan mengubah data peralatan menjadi diagram impedansi per unit"] },
+    // Mengikuti Modul 13 yang terbit (20 September 2026).
+    bt: ["Simbol dan kaidah single line diagram", "Sistem per unit: besaran dasar dan konversi dasar", "Diagram impedansi dan reaktansi", "Reduksi Thevenin: arus dan daya hubung singkat"],
+    ind: ["Ketepatan menyusun SLD dan mengonversi data peralatan ke per unit", "Ketepatan menghitung arus hubung singkat dari diagram reaktansi"],
+    pustaka: "[Pustaka Utama 2, 3, 4; Pendukung 3, 4]" },
   { bk: 14, materi: "Metode Analisis Aliran Daya (Load Flow)",
     bt: ["Klasifikasi bus", "Matriks admitansi Ybus", "Persamaan aliran daya", "Metode Gauss–Seidel dan pengenalan Newton–Raphson"],
     ind: ["Ketepatan menyusun Ybus dan persamaan aliran daya", "Ketepatan menjalankan iterasi Gauss–Seidel"] },
