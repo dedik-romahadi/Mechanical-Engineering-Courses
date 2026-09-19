@@ -5,7 +5,7 @@ import vm from "node:vm";
 const root = path.resolve(import.meta.dirname, "..");
 const courses = ["Engineering-Mathematics", "Getaran-Mekanik", "Optimalisasi-dan-Automasi", "Sistem-Kendali-Cerdas", "Teknik-Tenaga-Listrik"];
 // Course yang dibangun bertahap hanya diperiksa sampai modul yang sudah terbit.
-const moduleCount = { "Teknik-Tenaga-Listrik": 10 };
+const moduleCount = { "Teknik-Tenaga-Listrik": 11 };
 const failures = [];
 let files = 0;
 let sections = 0;
@@ -64,7 +64,7 @@ for (const course of courses) {
   }
 }
 
-if (files !== 66) failures.push(`jumlah modul ${files}, seharusnya 66`);
+if (files !== 67) failures.push(`jumlah modul ${files}, seharusnya 67`);
 
 const parseWibForValidation = (value) => {
   const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})T((?:[01]\d|2[0-3])):([0-5]\d)$/);
