@@ -25,7 +25,7 @@ const OUT = join(ROOT, "Teknik-Tenaga-Listrik", "Banner");
 const BASE = "https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Teknik-Tenaga-Listrik";
 
 // ---------- konfigurasi yang berubah dari pekan ke pekan ----------
-export const PUBLISHED = [1, 2, 3]; // nomor modul yang halamannya sudah terbit
+export const PUBLISHED = [1, 2, 3, 4]; // nomor modul yang halamannya sudah terbit
 export const EXAM_PUBLISHED = { UTS: false, UAS: false };
 // Tautan room Google Meet per pertemuan TMV — diisi PADA PEKANNYA setelah aktivitas
 // Google Meet™ for Moodle dibuat lewat UI form LMS (room dibuat otomatis oleh plugin).
