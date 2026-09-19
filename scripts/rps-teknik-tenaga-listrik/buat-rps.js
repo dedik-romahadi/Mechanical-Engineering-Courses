@@ -106,8 +106,10 @@ const RENCANA = [
     ind: ["Ketepatan menghitung besaran per unit dan impedansi ekuivalen", "Ketepatan menghitung MVA dan arus hubung singkat"],
     pustaka: "[Pustaka Utama 4; Pendukung 2, 3, 4, 6]" },
   { bk: 14, materi: "Sistem Tenaga Listrik Saluran Transmisi",
-    bt: ["Klasifikasi saluran (SUTT, SUTET, SKTT)", "Konstruksi menara, konduktor, dan isolator", "Korona", "Pemilihan tingkat tegangan dan rugi transmisi"],
-    ind: ["Ketepatan menjelaskan jenis dan konstruksi saluran transmisi", "Ketepatan menghitung rugi daya pada berbagai tingkat tegangan"] },
+    // Mengikuti Modul 8 yang terbit (19 September 2026).
+    bt: ["Klasifikasi saluran (SUTT, SUTET, SKTT); konduktor ACSR, resistansi, dan ampacity", "Menara, kawat tanah, dan isolator (distribusi tegangan rentengan); andongan dan jarak bebas", "Korona (Peek) dan pemilihan tingkat tegangan dari rugi transmisi"],
+    ind: ["Ketepatan menjelaskan jenis dan konstruksi saluran transmisi serta menghitung andongan dan isolator", "Ketepatan menghitung rugi daya pada berbagai tingkat tegangan dan tegangan kritis korona"],
+    pustaka: "[Pustaka Utama 2, 3; Pendukung 1, 4, 5]" },
   { bk: 14, materi: "Pemodelan Saluran Transmisi",
     bt: ["Parameter R, L, dan C saluran (GMR/GMD)", "Model nominal-π", "Konstanta ABCD", "Impedansi karakteristik saluran panjang"],
     ind: ["Ketepatan menghitung parameter R, L, dan C saluran", "Ketepatan menerapkan model nominal-π dan konstanta ABCD"] },
