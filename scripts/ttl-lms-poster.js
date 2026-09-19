@@ -61,7 +61,8 @@
 
   // ---------- form helper: GET form, isi ulang semua field, timpa, POST ----------
   async function mform(url, overrides, { expectRedirect = true } = {}) {
-    const html = await (await fetch(url, { credentials: "same-origin" })).text();
+    const abs = new URL(url, location.origin).href;
+    const html = await (await fetch(abs, { credentials: "same-origin" })).text();
     const doc = new DOMParser().parseFromString(html, "text/html");
     const form = [...doc.querySelectorAll("form")].find((f) => f.querySelector("[name=sesskey]"));
     if (!form) throw new Error("form tidak ditemukan: " + url);
@@ -78,7 +79,7 @@
       if (v === null || v === undefined) continue;
       (Array.isArray(v) ? v : [v]).forEach((x) => fd.append(k, String(x)));
     }
-    const action = new URL(form.getAttribute("action") || url, url).href;
+    const action = new URL(form.getAttribute("action") || abs, abs).href;
     const res = await fetch(action, { method: "POST", credentials: "same-origin", body: fd, redirect: "follow" });
     const text = await res.text();
     const back = /modedit\.php|editsection\.php/.test(res.url);
