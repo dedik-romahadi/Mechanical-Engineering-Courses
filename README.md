@@ -33,10 +33,10 @@ Yang bisa dilakukan mahasiswa di sini:
 | `Optimalisasi-dan-Automasi/` | `optoauto` | Optimalisasi & Otomasi | Time series, ekstraksi fitur, optimasi linear/non-linear, machine learning |
 | `Sistem-Kendali-Cerdas/` | `sistem_kendali_cerdas` | Sistem Kendali Cerdas | Fungsi transfer, respons sistem umpan balik, PID, logika fuzzy, jaringan saraf tiruan, algoritma genetika |
 | `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | Pemodelan Computer Aided Design (CAD) | Pengantar CAD, penggambaran 2D dan pemodelan 3D, simulasi dan analisis kinerja komponen, perakitan, desain berkelanjutan dan optimasi — *sedang disiapkan* |
-| `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | Teknik Tenaga Listrik | Daya pada jaringan DC dan AC, saluran transmisi, sistem distribusi, proteksi, single line diagram dan load flow — *bertahap: Modul 1–2 sudah terbit* |
+| `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | Teknik Tenaga Listrik | Daya pada jaringan DC dan AC, saluran transmisi, sistem distribusi, proteksi, single line diagram dan load flow — *bertahap: Modul 1–3 sudah terbit* |
 
-Empat mata kuliah pertama masing-masing berisi **14 modul + UTS + UAS + dokumen OBE**, lengkap dengan versi Word/PDF tiap modul. Pemodelan CAD dan Teknik Tenaga Listrik disiapkan bertahap: Pemodelan CAD baru memiliki **Silabus/OBE dan RPS**, sedangkan Teknik Tenaga Listrik sudah menerbitkan **Modul 1–2**; modul lain dan ujiannya menyusul.
-Total: **58 halaman modul · 8 halaman ujian · 6 dokumen OBE · 72 banner pertemuan**.
+Empat mata kuliah pertama masing-masing berisi **14 modul + UTS + UAS + dokumen OBE**, lengkap dengan versi Word/PDF tiap modul. Pemodelan CAD dan Teknik Tenaga Listrik disiapkan bertahap: Pemodelan CAD baru memiliki **Silabus/OBE dan RPS**, sedangkan Teknik Tenaga Listrik sudah menerbitkan **Modul 1–3**; modul lain dan ujiannya menyusul.
+Total: **59 halaman modul · 8 halaman ujian · 6 dokumen OBE · 72 banner pertemuan**.
 
 ## 🗂️ Struktur Repository
 
