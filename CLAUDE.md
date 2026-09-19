@@ -93,7 +93,7 @@ ditambah dua yang sedang disiapkan bertahap:
 | `Optimalisasi-dan-Automasi/` | `optoauto` | `optoauto-modul-N` | Opto |
 | `Sistem-Kendali-Cerdas/` | `sistem_kendali_cerdas` | `sistem_kendali_cerdas-modul-N` | Sisken |
 | `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | — (belum ada modul) | CAD |
-| `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | `teknik_tenaga_listrik-modul-N` (terbit: Modul 1–3) | TTL |
+| `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | `teknik_tenaga_listrik-modul-N` (terbit: Modul 1–4) | TTL |
 
 > Kelas LMS TTL (FAST Learning course id 5923, kelas 2F Sabtu 12:00–13:40) sudah
 > tertata: banner seluruh semester dibuat `scripts/ttl-banner.mjs` dan dipasang oleh
@@ -107,10 +107,10 @@ ditambah dua yang sedang disiapkan bertahap:
 > `Optimalisasi-dan-Automasi`. Pengecualian: deck slide Opto memakai brand
 > "Optimalisasi & Automasi" (huruf A) atas permintaan dosen — jangan "diperbaiki".
 
-Total berkas HTML utama: **59 modul + 8 exam + 6 OBE**. Pemodelan CAD baru
+Total berkas HTML utama: **60 modul + 8 exam + 6 OBE**. Pemodelan CAD baru
 sampai Tahap 1 (Silabus/OBE + RPS). Teknik Tenaga Listrik dibangun modul demi
-modul: Modul 1–3 sudah terbit (generator `scripts/ttl-modul/bangun.py`) dan terdaftar
-di `_MODUL_COURSES` backend lewat `moduls: [1, 2, 3]`, tetapi belum punya exam, sehingga validator keamanan tetap
+modul: Modul 1–4 sudah terbit (generator `scripts/ttl-modul/bangun.py`) dan terdaftar
+di `_MODUL_COURSES` backend lewat `moduls: [1, 2, 3, 4]`, tetapi belum punya exam, sehingga validator keamanan tetap
 memindainya lewat `obeOnlyRoots`, bukan `courseRoots`. Rincian dan langkah
 lanjutannya: Pedoman §2.
 
@@ -159,7 +159,7 @@ repo publik ini.
     antar-modul — gerbang itu tidak bisa diuji dengan akun ini;
   - daftar NIM-nya harus sama di dua tempat: `SIM_NIMS` di backend
     `functions/index.js` dan `scripts/kecualikan-akun-simulasi.mjs` di sini
-    (disuntikkan ke 67 halaman modul/exam + 4 halaman OBE); nama ada di lima `students.json` **dan**
+    (disuntikkan ke 68 halaman modul/exam + 4 halaman OBE); nama ada di lima `students.json` **dan**
     RTDB `pins/mhs_41399999901.nama`;
   - saat membersihkan sisa datanya, kunci Firestore modul memakai prefiks
     `mhs_` (`modulAttempts/<id>/students/mhs_<nim>`), exam tidak.
