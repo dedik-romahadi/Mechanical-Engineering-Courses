@@ -10,8 +10,9 @@
 # Yang diganti dari kerangka: identitas (judul, nomor modul/pertemuan, kunci
 # localStorage, MODUL_ID, nama berkas ekspor), subnav, hero, seluruh materi, hero dan
 # PG tugas, label tugas pemodelan (ekspor), halaman forum beserta salinan LMS dan
-# kanvasnya, skrip animasi, dan jajak forum. Tab Setup FreeCAD dibuang (hanya ada di
-# Modul 1). Kartu tugas T1–T5 tetap (teksnya dirakit server per NIM). Skrip ini juga
+# kanvasnya, skrip animasi, jajak forum, dan gambar acuan tiap kartu tugas. Tab Setup
+# FreeCAD dan Setup Python dibuang (hanya ada di Modul 1). Kartu tugas T1–T5 tetap
+# (teksnya dirakit server per NIM). Skrip ini juga
 # menautkan modul di beranda, menaikkan hitungan validator, mendaftarkan modul di
 # Admin/berkas-tugas.html, dan menyelaraskan catatan CLAUDE.md/Pedoman.
 import importlib
@@ -130,6 +131,10 @@ s = s[:i] + materi + "\n" + s[j:]
 i = s.index('<div class="hero" data-tab="tugas" style="min-height:60vh">')
 j = s.index('\n\n<div class="section">', i)
 s = s[:i] + K.TUGAS_HERO + s[j:]
+# gambar acuan tiap kartu tugas (simbolik; angka dimuat per NIM) diganti milik modul ini
+from tugas_gambar import tugas_gambar_html  # noqa: E402
+for k_, g_ in enumerate(tugas_gambar_html(N), 1):
+    ganti_re(rf'<div class="tugas-gambar" id="gambar-c{k_}">[\s\S]*?<div class="tugas-gambar-ket">[^<]*</div>\s*</div>', lambda m, g_=g_: g_)
 i = s.index("  <!-- ─── PILIHAN GANDA ─── -->")
 j = s.index("  <!-- ─── TUGAS PEMODELAN (BERKAS FREECAD) ─── -->", i)
 s = s[:i] + K.mc_block(K.MC) + "\n" + s[j:]
@@ -180,19 +185,21 @@ j = s.index("</script>", i) + len("</script>")
 js = (SCR / "animasi" / "dasar.js").read_text(encoding="utf-8") + "\n" + (SCR / "animasi" / f"modul-{N}.js").read_text(encoding="utf-8")
 s = s[:i] + f'<script id="cad-modul-{N}-animations">\n' + js + "</script>" + s[j:]
 
-# ── 7. Tab Setup FreeCAD dibuang (hanya Modul 1) ──
+# ── 7. Tab Setup FreeCAD dan Setup Python dibuang (hanya Modul 1) ──
 ganti_re(r'\s*<button class="nav-tab" id="tab-setup"[\s\S]*?</button>', "")
 ganti_re(r'\s*<div class="page[^"]*" id="page-setup">[\s\S]*?<!-- end page-setup -->', "")
+ganti_re(r'\s*<button class="nav-tab" id="tab-python"[\s\S]*?</button>', "")
+ganti_re(r'\s*<div class="page[^"]*" id="page-python">[\s\S]*?<!-- end page-python -->', "")
 
 
 def saring_style(m):
     isi = m.group(0)[:400]
-    return "" if re.search(r"CSS variables scoped untuk Setup Python|^\s*#page-setup\s*\{", isi, re.M) else m.group(0)
+    return "" if re.search(r"CSS variables scoped untuk Setup Python|Salinan CSS Setup untuk tab Setup Python|^\s*#page-(?:setup|python)\s*\{", isi, re.M) else m.group(0)
 
 
 s = re.sub(r"<style[^>]*>[\s\S]*?</style>", saring_style, s)
 s = re.sub(r"\s*<!--\s*═+\s*PAGE: SETUP PYTHON[\s\S]*?-->", "", s)
-assert 'id="page-setup"' not in s
+assert 'id="page-setup"' not in s and 'id="page-python"' not in s
 
 TUJUAN.write_text(s, encoding="utf-8", newline="")
 print(f"Modul-{N} CAD ditulis: {len(s)} karakter; bagian {n_bagian}, animasi {n_animasi}; pertemuan {P}; hash jajak {hash_baru}")

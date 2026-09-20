@@ -10,7 +10,7 @@ import sys
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
-                     mc_block, pm_ref, svg, t, tabel)
+                     mc_block, pm_ref, svg, t, tabel, teks2)
 
 NOMOR = 4
 JUDUL = "Dimensi, Anotasi, dan Format Gambar Teknik"
@@ -31,7 +31,7 @@ N_CH, T_CH = 4, 0.2
 
 
 # ─────────────────────────── gambar ───────────────────────────
-def _dim(x1, y1, x2, y2, teks, warna, ofs, size=10):
+def _dim(x1, y1, x2, y2, teks, warna, ofs, size=10, lab=1.35, dy=3.5):
     dx, dy = x2 - x1, y2 - y1
     L = math.hypot(dx, dy) or 1
     nx, ny = -dy / L * ofs, dx / L * ofs
@@ -41,11 +41,11 @@ def _dim(x1, y1, x2, y2, teks, warna, ofs, size=10):
     out += f'<line x1="{x1 + nx:.1f}" y1="{y1 + ny:.1f}" x2="{x2 + nx:.1f}" y2="{y2 + ny:.1f}" stroke="{warna}" stroke-width="1"/>'
     for px, py, s in ((x1 + nx, y1 + ny, 1), (x2 + nx, y2 + ny, -1)):
         out += f'<polygon points="{px:.1f},{py:.1f} {px + s * ux * 8 - uy * 3:.1f},{py + s * uy * 8 + ux * 3:.1f} {px + s * ux * 8 + uy * 3:.1f},{py + s * uy * 8 - ux * 3:.1f}" fill="{warna}"/>'
-    mx, my = (x1 + x2) / 2 + nx * 1.35, (y1 + y2) / 2 + ny * 1.35
+    mx, my = (x1 + x2) / 2 + nx * lab, (y1 + y2) / 2 + ny * lab
     ang = math.degrees(math.atan2(dy, dx))
     if ang > 90 or ang < -90:
         ang += 180
-    out += f'<text x="{mx:.1f}" y="{my + 3.5:.1f}" text-anchor="middle" font-size="{size}" fill="{warna}" font-family="\'JetBrains Mono\',monospace" transform="rotate({ang:.1f} {mx:.1f} {my:.1f})">{teks}</text>'
+    out += f'<text x="{mx:.1f}" y="{my + dy:.1f}" text-anchor="middle" font-size="{size}" fill="{warna}" font-family="\'JetBrains Mono\',monospace" transform="rotate({ang:.1f} {mx:.1f} {my:.1f})">{teks}</text>'
     return out
 
 
@@ -65,24 +65,24 @@ def gambar1():
     b += _dim(X(0), Y(bb), X(0), Y(0), str(bb), "#00e09e", 30)
     b += _dim(X(0), Y(bb), X(a / 2), Y(bb), f"{a // 2}", "#00e09e", -26)
     b += _dim(X(a), Y(bb - c), X(a - c), Y(bb), f"C{c}", "#f59e0b", -16, 9)
-    ang = -math.pi / 4
+    ang = math.pi / 4
     b += f'<line x1="{X(a / 2) + d / 2 * s * math.cos(ang):.1f}" y1="{Y(bb / 2) + d / 2 * s * math.sin(ang):.1f}" x2="{X(a / 2) + (d / 2 * s + 34) * math.cos(ang):.1f}" y2="{Y(bb / 2) + (d / 2 * s + 34) * math.sin(ang):.1f}" stroke="#a855f7" stroke-width="1"/>'
     b += t(X(a / 2) + (d / 2 * s + 40) * math.cos(ang), Y(bb / 2) + (d / 2 * s + 40) * math.sin(ang) + 4, f"⌀{d} tembus", 10.5, "#a855f7", "start")
     rr = c * s * 0.9
     b += f'<path d="M {X(a) - rr:.1f} {Y(bb - c):.1f} A {rr} {rr} 0 0 1 {X(a) - rr * 0.707:.1f} {Y(bb - c) - rr * 0.707:.1f}" fill="none" stroke="#ec4899" stroke-width="1.2"/>'
     b += t(X(a) - rr * 1.9, Y(bb - c) - rr * 0.9, "45°", 10, "#ec4899")
-    b += t(490, 60, "Satu gambar kerja memuat:", 11.5, TX, "start", "600")
-    for i, (kk, v) in enumerate([("hijau", "dimensi linear (ukuran & posisi)"), ("kuning", "dimensi aligned pada sisi miring"), ("ungu", "diameter ⌀ dengan leader"), ("merah muda", "dimensi angular 45°"), ("merah", "garis sumbu lubang (layer Sumbu)")]):
-        b += t(490, 84 + i * 20, f"• {kk}: {v}", 10.5, AX, "start")
-    b += t(340, 244, f"Pelat {a} × {bb}, chamfer C{c}, lubang ⌀{d}: luas bersih {ind(LUAS_CHAMFER, 2)} mm² — angka yang diperiksa server pada Tugas 5", 11, AX)
-    return svg(680, 256, b, "Gambar 1 — Gambar kerja 2D beranotasi lengkap")
+    b += t(462, 60, "Satu gambar kerja memuat:", 11.5, TX, "start", "600")
+    for i, (kk, v) in enumerate([("hijau", "linear (ukuran & posisi)"), ("kuning", "aligned sisi miring"), ("ungu", "diameter ⌀ + leader"), ("merah muda", "angular 45°"), ("merah", "sumbu lubang (layer Sumbu)")]):
+        b += t(462, 84 + i * 20, f"• {kk}: {v}", 10.5, AX, "start")
+    b += teks2(340, 268, f"Pelat {a} × {bb}, chamfer C{c}, lubang ⌀{d}: luas bersih {ind(LUAS_CHAMFER, 2)} mm² — angka yang diperiksa server pada Tugas 5", 11, AX, maks=70)
+    return svg(680, 294, b, "Gambar 1 — Gambar kerja 2D beranotasi lengkap")
 
 
 def gambar2():
     b = ""
     s = 1.55
     for k, (judul, mode, warna) in enumerate([("Dimensi berantai (chain)", "chain", "#f59e0b"), ("Dimensi baseline (dari satu acuan)", "base", "#00e09e")]):
-        ox, oy = 40, 96 + k * 120
+        ox, oy = 40, 84 + k * 100
         X = lambda x, ox=ox: ox + x * s
         Y = lambda y, oy=oy: oy - y * s
         b += t(ox, oy - 62, judul, 11.5, warna, "start", "600")
@@ -91,14 +91,14 @@ def gambar2():
             b += f'<circle cx="{X(i * 30)}" cy="{Y(10)}" r="{4 * s}" fill="#0a101f" stroke="#22d3ee" stroke-width="1.4"/>'
         if mode == "chain":
             for i in range(N_CH):
-                b += _dim(X(i * 30), Y(20), X((i + 1) * 30), Y(20), f"30±{T_CH}", warna, 14, 9)
+                b += _dim(X(i * 30), Y(0), X((i + 1) * 30), Y(0), f"30±{T_CH}", warna, 16, 9, 1.0, -3)
             b += t(X(N_CH * 30) + 14, Y(10) + 4, f"keseluruhan ±{N_CH * T_CH:.1f}", 10.5, "#ef4444", "start")
         else:
             for i in range(1, N_CH + 1):
-                b += _dim(X(0), Y(20), X(i * 30), Y(20), f"{i * 30}±{T_CH}", warna, 8 + i * 9, 8.5)
+                b += _dim(X(0), Y(0), X(i * 30), Y(0), f"{i * 30}±{T_CH}", warna, 10 + i * 12, 8.5, 1.0, -3)
             b += t(X(N_CH * 30) + 14, Y(10) + 4, f"tiap fitur ±{T_CH}", 10.5, "#00e09e", "start")
-    b += t(340, 258, "Baseline dipakai bila posisi tiap fitur penting (lubang baut); chain bila jarak antar-fitur yang penting (alur bertingkat)", 11, AX)
-    return svg(680, 270, b, "Gambar 2 — Dimensi berantai menumpuk toleransi, baseline tidak")
+    b += teks2(340, 266, "Baseline dipakai bila posisi tiap fitur penting (lubang baut); chain bila jarak antar-fitur yang penting (alur bertingkat)", 11, AX, maks=70)
+    return svg(680, 292, b, "Gambar 2 — Dimensi berantai menumpuk toleransi, baseline tidak")
 
 
 def gambar3():
@@ -109,10 +109,10 @@ def gambar3():
     b += f'<path d="M {cx} {cy} L {cx + R} {cy} A {R} {R} 0 0 0 {cx + R * math.cos(th):.1f} {cy - R * math.sin(th):.1f} Z" fill="rgba(34,211,238,.14)" stroke="#22d3ee" stroke-width="2"/>'
     am = th / 2
     b += f'<line x1="{cx}" y1="{cy}" x2="{cx + R * math.cos(am):.1f}" y2="{cy - R * math.sin(am):.1f}" stroke="#f97316" stroke-width="1"/>'
-    b += t(cx + R * 0.55 * math.cos(am) + 6, cy - R * 0.55 * math.sin(am) - 4, f"R{R_S}", 10.5, "#f97316", "start")
+    b += t(cx + R * math.cos(am) + 6, cy - R * math.sin(am) + 4, f"R{R_S}", 10.5, "#f97316", "start")
     ra = 30
     b += f'<path d="M {cx + ra} {cy} A {ra} {ra} 0 0 0 {cx + ra * math.cos(th):.1f} {cy - ra * math.sin(th):.1f}" fill="none" stroke="#ec4899" stroke-width="1.2"/>'
-    b += t(cx + ra * 1.2, cy - ra * 0.5, f"{TH_S}°", 10.5, "#ec4899", "start")
+    b += t(cx + ra * 1.25, cy - ra * 0.32, f"{TH_S}°", 10.5, "#ec4899", "start")
     b += t(cx + 10, cy + 40, f"sektor: ½·R²·θ = {ind(LUAS_SEKTOR, 2)} mm²", 10.5, TX, "start")
     # slot
     ox, oy, s = 400, 128, 2.6
@@ -123,27 +123,28 @@ def gambar3():
     b += f'<line x1="{ox + L_SL * s}" y1="{oy}" x2="{ox + L_SL * s + r * s * math.cos(-0.7):.1f}" y2="{oy + r * s * math.sin(-0.7):.1f}" stroke="#f97316" stroke-width="1"/>'
     b += t(ox + L_SL * s + r * s * math.cos(-0.7) + 4, oy + r * s * math.sin(-0.7) - 4, f"R{r:g}", 10.5, "#f97316", "start")
     b += t(ox + L_SL * s / 2, oy + r * s + 44, f"slot: 2·r·L + π·r² = {ind(LUAS_SLOT, 2)} mm²", 10.5, TX)
-    b += t(340, 258, "Busur tidak penuh didimensi dengan R; lingkaran penuh dengan ⌀; sudut dengan °; slot dengan jarak pusat dan panjang total", 11, AX)
-    return svg(680, 270, b, "Gambar 3 — Radius, sudut, dan slot pada sektor dan alur obround")
+    b += teks2(340, 258, "Busur tidak penuh didimensi dengan R; lingkaran penuh dengan ⌀; sudut dengan °; slot dengan jarak pusat dan panjang total", 11, AX, maks=70)
+    return svg(680, 284, b, "Gambar 3 — Radius, sudut, dan slot pada sektor dan alur obround")
 
 
 def gambar4():
     b = ""
-    items = [("Draft Text", "teks bebas beberapa baris di satu titik; tanpa panah", "#22d3ee", 40),
-             ("Draft Label", "teks + garis penunjuk (leader) berpanah ke titik/objek target; jenis Custom, Name, Length, Area, Position…", "#00e09e", 118),
-             ("Draft ShapeString", "teks sebagai geometri (wire) dari font TrueType: bisa dipotong, diekstrusi, atau diukir", "#a855f7", 196)]
+    items = [("Draft Text", ["teks bebas beberapa baris di satu titik;", "tanpa panah"], "#22d3ee", 40),
+             ("Draft Label", ["teks + garis penunjuk (leader) berpanah ke", "titik/objek target; jenis Custom, Name,", "Length, Area, Position…"], "#00e09e", 118),
+             ("Draft ShapeString", ["teks sebagai geometri (wire) dari font", "TrueType: bisa dipotong, diekstrusi,", "atau diukir"], "#a855f7", 196)]
     for nama, ket, c, y in items:
         b += f'<rect x="24" y="{y - 22}" width="150" height="44" rx="8" fill="rgba(255,255,255,.03)" stroke="{c}" stroke-width="1.4"/>'
         b += t(99, y + 4, nama, 11.5, c, "middle", "600")
-        b += t(190, y - 2, ket[:62], 10, TX, "start")
-        b += t(190, y + 14, ket[62:], 10, TX, "start")
+        y0 = y - 2 - (len(ket) - 2) * 7
+        for k, baris in enumerate(ket):
+            b += t(190, y0 + k * 14, baris, 10, TX, "start")
     # contoh label
     b += f'<rect x="470" y="150" width="120" height="50" fill="rgba(34,211,238,.10)" stroke="#22d3ee" stroke-width="1.6"/>'
     b += f'<line x1="590" y1="150" x2="575" y2="165" stroke="#22d3ee" stroke-width="1.6"/>'
     b += f'<polyline points="583,158 620,110 660,110" fill="none" stroke="#00e09e" stroke-width="1"/>'
     b += f'<polygon points="583,158 592,152 590,161" fill="#00e09e"/>'
     b += t(660, 104, "C15 × 45°", 11, "#00e09e", "end", "600")
-    b += t(600, 224, "Label dengan leader ke sisi chamfer", 10, AX, "middle")
+    b += t(565, 224, "Label dengan leader ke sisi chamfer", 10, AX, "middle")
     b += t(340, 254, "Teks menjelaskan yang tidak tergambar: jumlah lubang, pengerjaan, bahan, toleransi umum, dan catatan produksi", 11, AX)
     return svg(680, 266, b, "Gambar 4 — Tiga alat teks dan anotasi Draft")
 
@@ -157,7 +158,7 @@ def gambar5():
     b += f'<circle cx="195" cy="105" r="16" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/>'
     b += _dim(120, 150, 270, 150, "120", "#00e09e", 18, 9)
     b += _dim(120, 60, 120, 150, "70", "#00e09e", -18, 9)
-    b += t(195, 170, "View (skala 1:2)", 9.5, AX)
+    b += t(195, 190, "View (skala 1:2)", 9.5, AX)
     # title block
     b += f'<rect x="210" y="195" width="170" height="45" fill="rgba(255,255,255,.03)" stroke="#94a3b8" stroke-width="1"/>'
     b += f'<line x1="210" y1="210" x2="380" y2="210" stroke="#94a3b8" stroke-width=".8"/><line x1="210" y1="225" x2="380" y2="225" stroke="#94a3b8" stroke-width=".8"/>'
@@ -194,8 +195,8 @@ def gambar6():
         xm = (xs[i] + xs[i + 1]) / 2
         b += _dim(X(xs[i + 1]), Y(h), X(xs[i + 1]), Y(0), str(h), "#00e09e", -(14 + (2 - i) * 0), 9)
     b += t(X(xs[3]) + 20, Y(H_P[1]) + 4, f"luas = Σ lᵢ·hᵢ = {ind(LUAS_PROFIL, 0)} mm²", 10.5, TX, "start")
-    b += t(340, 244, "Setengah profil poros bertingkat: panjang tingkat berantai (kuning), tinggi tiap tingkat vertikal (hijau), sumbu sebagai garis rantai merah", 11, AX)
-    return svg(680, 256, b, "Gambar 6 — Pendimensian setengah profil poros bertingkat")
+    b += teks2(340, 288, "Setengah profil poros bertingkat: panjang tingkat berantai (kuning), tinggi tiap tingkat vertikal (hijau), sumbu sebagai garis rantai merah", 11, AX, maks=70)
+    return svg(680, 314, b, "Gambar 6 — Pendimensian setengah profil poros bertingkat")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────

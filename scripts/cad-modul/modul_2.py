@@ -10,7 +10,7 @@ import sys
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
-                     mc_block, pm_ref, svg, t, tabel)
+                     mc_block, pm_ref, svg, t, tabel, teks2)
 
 NOMOR = 2
 JUDUL = "Drafting dan Penyuntingan 2D"
@@ -34,19 +34,19 @@ SUDUT_T = math.degrees(math.atan2(H_T, S_T))
 # ─────────────────────────── gambar ───────────────────────────
 def gambar1():
     b = ""
-    w, h = 132, 56
-    tahap = [("Konstruksi", "garis, lingkaran, acuan", "#22d3ee"), ("Penyuntingan", "trim · extend · offset", "#f97316"),
+    w, h = 150, 56
+    tahap = [("Konstruksi", "garis & acuan", "#22d3ee"), ("Penyuntingan", "trim · extend · offset", "#f97316"),
              ("Pola & salinan", "array · mirror · clone", "#a855f7"), ("Anotasi", "dimensi, teks, layer", "#00e09e")]
-    xs = [16, 178, 340, 502]
+    xs = [10, 180, 350, 520]
     for (a, s, c), x in zip(tahap, xs):
-        b += box(x, 40, w, h, [a, s], c)
+        b += box(x, 40, w, h, [a, s], c, 11.5)
     for i in range(3):
         b += arrow(xs[i] + w, 68, xs[i + 1], 68)
-    b += f'<path d="M {xs[3] + 66} 120 Q 330 168 {xs[0] + 66} 120" fill="none" stroke="#ef4444" stroke-width="1.6" stroke-dasharray="6 4"/>'
-    b += arrow(xs[0] + 68, 122, xs[0] + 66, 97, "#ef4444")
-    b += t(330, 158, "revisi: geometri konstruksi diubah, hasil sunting dan dimensi mengikuti", 11.5, "#ef4444")
-    b += t(330, 198, "Gambar 2D yang rapi lahir dari kontur kasar yang dipangkas, digeser, dan disalin secara sistematis", 12, AX)
-    return svg(660, 212, b, "Gambar 1 — Alur drafting 2D di Draft Workbench")
+    b += f'<path d="M {xs[3] + 75} 120 Q 340 168 {xs[0] + 75} 120" fill="none" stroke="#ef4444" stroke-width="1.6" stroke-dasharray="6 4"/>'
+    b += arrow(xs[0] + 77, 122, xs[0] + 75, 97, "#ef4444")
+    b += t(340, 158, "revisi: geometri konstruksi diubah, hasil sunting dan dimensi mengikuti", 11.5, "#ef4444")
+    b += t(340, 198, "Gambar 2D yang rapi lahir dari kontur kasar yang dipangkas, digeser, dan disalin secara sistematis", 11.5, AX)
+    return svg(680, 212, b, "Gambar 1 — Alur drafting 2D di Draft Workbench")
 
 
 def gambar2():
@@ -71,7 +71,7 @@ def gambar2():
             b += t(cx + 6, cy - h / 2 + 3, "h", 10, "#a855f7", "start")
         for px in (cx - c, cx + c):
             b += f'<circle cx="{px:.1f}" cy="{y}" r="3.5" fill="#00e09e"/>'
-        b += t(cx + 120, cy + 90, "Extend bekerja sebaliknya: ujung ditarik sampai objek batas", 9.5, AX, "end")
+    b += t(340, 228, "Extend bekerja sebaliknya: ujung garis ditarik sampai objek batas terdekat", 10.5, AX)
     return svg(680, 240, b, "Gambar 2 — Trimex memotong garis pada perpotongan dengan objek batas")
 
 
@@ -90,14 +90,14 @@ def gambar3():
     b += t(X(a / 2), Y(bb / 2) + 4, f"{a} × {bb}", 11.5, TX)
     b += arrow(X(a), Y(bb / 2), X(a + tt), Y(bb / 2), "#f59e0b", 1.6)
     b += t(X(a + tt) + 6, Y(bb / 2) + 4, f"t = {tt}", 10.5, "#f59e0b", "start")
-    b += t(300, 40, "Offset luar, sudut lancip (Draft Offset polyline):", 11, "#f59e0b", "start")
-    b += t(300, 58, f"A = (a + 2t)(b + 2t) = {ind(LUAS_OFS_LANCIP, 0)} mm²", 11, TX, "start")
-    b += t(300, 86, "Offset luar, sudut membulat (Part makeOffset2D):", 11, "#ec4899", "start")
-    b += t(300, 104, f"A = ab + 2t(a + b) + πt² = {ind(LUAS_OFS_BULAT, 2)} mm²", 11, TX, "start")
-    b += t(300, 132, "Offset dalam:", 11, "#a855f7", "start")
-    b += t(300, 150, f"A = (a − 2t)(b − 2t) = {ind((A_C - 2 * T_C) * (B_C - 2 * T_C), 0)} mm²", 11, TX, "start")
-    b += t(340, 236, "Setiap sisi kontur baru berjarak tegak lurus t dari kontur asal; sudutnya lancip atau membulat tergantung alat", 11, AX)
-    return svg(680, 248, b, "Gambar 3 — Offset kontur ke luar dan ke dalam")
+    b += t(345, 40, "Offset luar, sudut lancip (Draft Offset):", 11, "#f59e0b", "start")
+    b += t(345, 58, f"A = (a + 2t)(b + 2t) = {ind(LUAS_OFS_LANCIP, 0)} mm²", 11, TX, "start")
+    b += t(345, 86, "Offset luar, sudut membulat (makeOffset2D):", 11, "#ec4899", "start")
+    b += t(345, 104, f"A = ab + 2t(a + b) + πt² = {ind(LUAS_OFS_BULAT, 2)} mm²", 11, TX, "start")
+    b += t(345, 132, "Offset dalam:", 11, "#a855f7", "start")
+    b += t(345, 150, f"A = (a − 2t)(b − 2t) = {ind((A_C - 2 * T_C) * (B_C - 2 * T_C), 0)} mm²", 11, TX, "start")
+    b += t(340, 248, "Setiap sisi kontur baru berjarak tegak lurus t dari kontur asal; sudutnya lancip atau membulat tergantung alat", 11, AX)
+    return svg(680, 260, b, "Gambar 3 — Offset kontur ke luar dan ke dalam")
 
 
 def gambar4():
@@ -128,8 +128,8 @@ def gambar4():
     b += f'<line x1="{pts[0][0]:.1f}" y1="{pts[0][1]:.1f}" x2="{pts[1][0]:.1f}" y2="{pts[1][1]:.1f}" stroke="#00e09e" stroke-width="1.4"/>'
     b += t(cx + 62, cy - 40, f"2R·sin(π/n) = {ind(JARAK_AR, 3)}", 10, "#00e09e", "start")
     b += t(cx, cy + 4, "360°/n", 10, "#f59e0b")
-    b += t(340, 236, "Array adalah satu objek parametrik: mengubah jumlah atau interval memperbarui seluruh salinan", 11, AX)
-    return svg(680, 248, b, "Gambar 4 — Pola salinan: OrthoArray dan PolarArray")
+    b += t(340, 252, "Array adalah satu objek parametrik: mengubah jumlah atau interval memperbarui seluruh salinan", 11, AX)
+    return svg(680, 264, b, "Gambar 4 — Pola salinan: OrthoArray dan PolarArray")
 
 
 def gambar5():
@@ -143,13 +143,13 @@ def gambar5():
         b += t(400, y + 50, ket, 10, AX, "start")
         b += f'<rect x="560" y="{y + 24}" width="14" height="14" rx="3" fill="{c}" fill-opacity=".25" stroke="{c}"/>'
         b += t(600, y + 35, "👁" if i < 4 else "—", 11, c if i < 4 else AX, "start")
-    b += t(220, 246, "Satu objek hanya berada di satu layer; layer menetapkan warna, tebal, dan gaya garis semua anggotanya", 11, AX)
-    return svg(680, 256, b, "Gambar 5 — Susunan layer gambar kerja 2D")
+    b += teks2(340, 262, "Satu objek hanya berada di satu layer; layer menetapkan warna, tebal, dan gaya garis semua anggotanya", 11, AX, maks=70)
+    return svg(680, 288, b, "Gambar 5 — Susunan layer gambar kerja 2D")
 
 
 def gambar6():
     b = ""
-    x1, x2, yb = 90, 330, 150
+    x1, x2, yb = 60, 260, 150
     b += f'<line x1="{x1}" y1="{yb}" x2="{x2}" y2="{yb}" stroke="#22d3ee" stroke-width="2.4"/>'
     b += f'<line x1="{x1}" y1="{yb}" x2="{x1}" y2="{yb + 6}" stroke="#22d3ee" stroke-width="2.4"/><line x1="{x2}" y1="{yb}" x2="{x2}" y2="{yb + 6}" stroke="#22d3ee" stroke-width="2.4"/>'
     yd = yb - 60
@@ -157,11 +157,11 @@ def gambar6():
     b += f'<line x1="{x1}" y1="{yd}" x2="{x2}" y2="{yd}" stroke="#00e09e" stroke-width="1"/>'
     b += f'<polygon points="{x1},{yd} {x1 + 12},{yd - 4} {x1 + 12},{yd + 4}" fill="#00e09e"/><polygon points="{x2},{yd} {x2 - 12},{yd - 4} {x2 - 12},{yd + 4}" fill="#00e09e"/>'
     b += t((x1 + x2) / 2, yd - 8, "140", 13, "#00e09e", "middle", "700")
-    for x, y, s in [(60, yd - 20, "garis perpanjangan (ExtLines)"), (400, yd + 4, "garis dimensi + panah (ArrowType, ArrowSize)"), (400, yd - 22, "teks nilai (FontSize, Decimals, ShowUnit)"), (400, yb + 4, "geometri yang diukur (objek acuan)")]:
-        b += t(x, y, s, 10.5, AX if x > 100 else "#00e09e", "start")
-    b += f'<line x1="{x1 - 6}" y1="{yd - 16}" x2="{x1}" y2="{yd - 8}" stroke="#00e09e" stroke-width=".8"/>'
+    for x, y, s in [(30, yd - 30, "garis perpanjangan (ExtLines)"), (290, yd + 4, "garis dimensi + panah (ArrowType, ArrowSize)"), (290, yd - 22, "teks nilai (FontSize, Decimals, ShowUnit)"), (290, yb + 4, "geometri yang diukur (objek acuan)")]:
+        b += t(x, y, s, 10, AX if x > 100 else "#00e09e", "start")
+    b += f'<line x1="{x1 - 6}" y1="{yd - 26}" x2="{x1}" y2="{yd - 8}" stroke="#00e09e" stroke-width=".8"/>'
     # angular
-    cx, cy = 560, 150
+    cx, cy = 612, 150
     b += f'<line x1="{cx - 80}" y1="{cy}" x2="{cx}" y2="{cy}" stroke="#22d3ee" stroke-width="2"/>'
     th = math.radians(SUDUT_T)
     b += f'<line x1="{cx}" y1="{cy}" x2="{cx - 80 * math.cos(th):.1f}" y2="{cy - 80 * math.sin(th):.1f}" stroke="#22d3ee" stroke-width="2"/>'
@@ -169,8 +169,8 @@ def gambar6():
     b += f'<path d="M {cx - rr} {cy} A {rr} {rr} 0 0 0 {cx - rr * math.cos(th):.1f} {cy - rr * math.sin(th):.1f}" fill="none" stroke="#a855f7" stroke-width="1.2"/>'
     b += t(cx - 52, cy - 22, f"{ind(SUDUT_T, 3)}°", 11, "#a855f7", "middle", "700")
     b += t(cx - 40, cy + 28, "angular: dua garis, satu busur", 10, AX)
-    b += t(340, 240, "Dimensi terikat ke geometri: nilai diperbarui saat titik acuannya bergeser; gaya diatur lewat properti atau preferensi Draft", 11, AX)
-    return svg(680, 252, b, "Gambar 6 — Anatomi Draft Dimension linear dan angular")
+    b += teks2(340, 240, "Dimensi terikat ke geometri: nilai diperbarui saat titik acuannya bergeser; gaya diatur lewat properti atau preferensi Draft", 11, AX, maks=70)
+    return svg(680, 266, b, "Gambar 6 — Anatomi Draft Dimension linear dan angular")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────

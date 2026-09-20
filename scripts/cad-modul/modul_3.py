@@ -10,7 +10,7 @@ import sys
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
-                     mc_block, pm_ref, svg, t, tabel)
+                     mc_block, pm_ref, svg, t, tabel, teks2)
 
 NOMOR = 3
 JUDUL = "Bentuk Dasar 2D, Pengukuran, dan Transformasi Objek"
@@ -40,11 +40,11 @@ XMIN_R = -B_R * math.sin(math.radians(TH_R))
 def gambar1():
     b = ""
     alat = [("Line", "2 titik"), ("Wire", "≥ 3 titik, Close"), ("Rectangle", "2 sudut"), ("Circle", "pusat + radius"),
-            ("Arc", "pusat, radius, 2 sudut"), ("Polygon", "pusat, n, radius"), ("Ellipse", "2 sudut kotak"), ("Point", "1 koordinat")]
+            ("Arc", "pusat, r, sudut"), ("Polygon", "pusat, n, R"), ("Ellipse", "kotak pembatas"), ("Point", "1 koordinat")]
     for i, (nama, masuk) in enumerate(alat):
-        x = 16 + i * 82
-        b += f'<rect x="{x}" y="22" width="72" height="118" rx="10" fill="#0e1628" stroke="#243653" stroke-width="1.2"/>'
-        cx, cy = x + 36, 62
+        x = 6 + i * 84
+        b += f'<rect x="{x}" y="22" width="80" height="118" rx="10" fill="#0e1628" stroke="#243653" stroke-width="1.2"/>'
+        cx, cy = x + 40, 62
         c = ["#22d3ee", "#22d3ee", "#22d3ee", "#f59e0b", "#f59e0b", "#a855f7", "#a855f7", "#00e09e"][i]
         if nama == "Line":
             b += f'<line x1="{cx - 22}" y1="{cy + 16}" x2="{cx + 22}" y2="{cy - 16}" stroke="{c}" stroke-width="2.2"/>'
@@ -64,7 +64,7 @@ def gambar1():
         else:
             b += f'<circle cx="{cx}" cy="{cy}" r="3.5" fill="{c}"/><line x1="{cx - 10}" y1="{cy}" x2="{cx + 10}" y2="{cy}" stroke="{c}" stroke-width="1"/><line x1="{cx}" y1="{cy - 10}" x2="{cx}" y2="{cy + 10}" stroke="{c}" stroke-width="1"/>'
         b += t(cx, 108, nama, 11, TX, "middle", "600")
-        b += t(cx, 126, masuk, 9, AX)
+        b += t(cx, 126, masuk, 8.5, AX)
     b += t(340, 168, "Semua bentuk dasar Draft lahir dari titik-titik yang diketik atau di-snap pada bidang kerja aktif", 11.5, AX)
     return svg(680, 180, b, "Gambar 1 — Bentuk dasar Draft Workbench dan masukan yang dimintanya")
 
@@ -105,11 +105,11 @@ def gambar3():
     b += f'<rect x="{X(0)}" y="{Y(bb)}" width="{a * s}" height="{bb * s}" fill="rgba(34,211,238,.16)" stroke="#22d3ee" stroke-width="2"/>'
     b += f'<rect x="{X(DX_C)}" y="{Y(bb + DY_C)}" width="{a * s}" height="{bb * s}" fill="rgba(0,224,158,.10)" stroke="#00e09e" stroke-width="1.6" stroke-dasharray="6 4"/>'
     b += arrow(X(0), Y(0), X(DX_C), Y(DY_C), "#00e09e", 1.8)
-    b += t(X(DX_C / 2) + 10, Y(DY_C / 2) - 6, f"v = ({DX_C}, {DY_C}), |v| = {ind(PINDAH_C, 3)}", 10.5, "#00e09e", "start")
-    b += t(X(a / 2), Y(bb / 2) + 4, "Placement.Base (0, 0, 0)", 10, TX)
-    b += t(X(DX_C + a / 2), Y(DY_C + bb / 2) + 4, f"Placement.Base ({DX_C}, {DY_C}, 0)", 10, "#00e09e")
-    b += t(340, 236, "Koordinat global diukur dari titik asal dokumen; koordinat relatif (Relative) diukur dari titik yang terakhir diklik", 11, AX)
-    return svg(680, 248, b, "Gambar 3 — Placement.Base dan vektor pindah Draft Move")
+    b += t(X(0) + 16, 26, f"Placement.Base bergeser v = ({DX_C}, {DY_C}) → |v| = √({DX_C}² + {DY_C}²) = {ind(PINDAH_C, 3)} mm", 11, "#00e09e", "start", "600")
+    b += t(X(a) - 6, Y(9) + 4, "Base (0, 0, 0)", 10, TX, "end")
+    b += t(X(DX_C + a / 2), Y(DY_C + bb / 2) + 4, f"Base ({DX_C}, {DY_C}, 0)", 10, "#00e09e")
+    b += teks2(340, 238, "Koordinat global diukur dari titik asal dokumen; koordinat relatif (Relative) diukur dari titik yang terakhir diklik", 11, AX, maks=70)
+    return svg(680, 264, b, "Gambar 3 — Placement.Base dan vektor pindah Draft Move")
 
 
 def gambar4():
@@ -126,8 +126,8 @@ def gambar4():
     baris = ["obj.Shape.Length", "obj.Shape.Area", "obj.Shape.CenterOfMass", "obj.Shape.BoundBox.YMax", "v.distToShape(edge)[0]", "u.getAngle(v)  # radian"]
     for i, s_ in enumerate(baris):
         b += t(432, 74 + i * 24, ">>> " + s_, 9.6, "#00e09e" if i < 4 else "#f59e0b", "start")
-    b += t(340, 246, "Std Measure untuk pemeriksaan cepat di layar; Python console untuk angka berpresisi penuh dan besaran yang tidak ada di GUI", 11, AX)
-    return svg(680, 258, b, "Gambar 4 — Mode Std Measure dan padanannya di Python console")
+    b += teks2(340, 246, "Std Measure untuk pemeriksaan cepat di layar; Python console untuk angka berpresisi penuh dan besaran yang tidak ada di GUI", 11, AX, maks=70)
+    return svg(680, 272, b, "Gambar 4 — Mode Std Measure dan padanannya di Python console")
 
 
 def gambar5():
@@ -143,7 +143,7 @@ def gambar5():
         if judul == "Move":
             b += f'<rect x="{X(60)}" y="{Y(30 + 60)}" width="{80 * s}" height="{30 * s}" fill="none" stroke="{c}" stroke-width="1.6" stroke-dasharray="5 3"/>'
             b += arrow(X(0), Y(0), X(60), Y(60), c, 1.6)
-            b += t(X(20), Y(70), "titik acuan → tujuan", 9.5, c, "start")
+            b += t(X(0), Y(0) + 22, "titik acuan → tujuan", 9.5, c, "start")
         elif judul == "Rotate":
             th = math.radians(35)
             pts = [(0, 0), (80, 0), (80, 30), (0, 30)]
@@ -157,8 +157,8 @@ def gambar5():
             b += t(X(6), Y(56), "k = 1,6 → luas × 2,56", 9.5, c, "start")
             b += t(X(0) - 4, Y(0) + 12, "pusat", 9.5, c, "start")
         b += f'<circle cx="{X(0)}" cy="{Y(0)}" r="3" fill="#e2e8f0"/>'
-    b += t(340, 226, "Ketiganya meminta titik acuan/pusat lebih dulu; opsi Copy menyalin alih-alih memindahkan objek asal", 11, AX)
-    return svg(680, 238, b, "Gambar 5 — Tiga transformasi Draft: Move, Rotate, dan Scale")
+    b += t(340, 238, "Ketiganya meminta titik acuan/pusat lebih dulu; opsi Copy menyalin alih-alih memindahkan objek asal", 11, AX)
+    return svg(680, 250, b, "Gambar 5 — Tiga transformasi Draft: Move, Rotate, dan Scale")
 
 
 def gambar6():
@@ -173,25 +173,29 @@ def gambar6():
         b += f'<line x1="{X(p[0])}" y1="{Y(p[1])}" x2="{X(q[0])}" y2="{Y(q[1])}" stroke="rgba(148,163,184,.4)" stroke-width="1" stroke-dasharray="3 3"/>'
     b += f'<circle cx="{X(G_T[0])}" cy="{Y(G_T[1])}" r="5" fill="#00e09e" stroke="#fff" stroke-width="1.2"/>'
     b += f'<line x1="{X(C_T)}" y1="{Y(H_T)}" x2="{X(G_T[0])}" y2="{Y(G_T[1])}" stroke="#00e09e" stroke-width="1.6"/>'
-    b += t(X(G_T[0]) + 10, Y(G_T[1]) + 14, f"G ({ind(G_T[0], 3)}, {ind(G_T[1], 3)})", 10.5, "#00e09e", "start")
-    b += t(X((C_T + G_T[0]) / 2) + 8, Y((H_T + G_T[1]) / 2), f"CG = {ind(CG_T, 3)}", 10.5, "#00e09e", "start")
+    b += f'<line x1="{X(G_T[0])}" y1="{Y(G_T[1])}" x2="{X(96)}" y2="{Y(44)}" stroke="#00e09e" stroke-width=".8" stroke-dasharray="3 2"/>'
+    b += t(X(98), Y(44) + 4, f"G ({ind(G_T[0], 3)}, {ind(G_T[1], 3)})", 10.5, "#00e09e", "start")
     bx, by = C_T - A_T, H_T
     tt = ((0 - A_T) * bx) / (bx * bx + by * by)
     F = (A_T + tt * bx, tt * by)
     b += f'<line x1="{X(0)}" y1="{Y(0)}" x2="{X(F[0])}" y2="{Y(F[1])}" stroke="#f59e0b" stroke-width="1.6"/>'
-    b += t(X(F[0] / 2) - 6, Y(F[1] / 2) - 8, f"d(A, BC) = {ind(DABC_T, 3)}", 10.5, "#f59e0b", "end")
+    b += t(X(29), Y(30) + 4, "d", 11, "#f59e0b", "middle", "700")
     rr = 26
     thB = math.atan2(H_T, A_T - C_T)
     b += f'<path d="M {X(A_T) - rr} {Y(0)} A {rr} {rr} 0 0 0 {X(A_T) - rr * math.cos(thB):.1f} {Y(0) - rr * math.sin(thB):.1f}" fill="none" stroke="#a855f7" stroke-width="1.2"/>'
-    b += t(X(A_T) - rr * 1.9, Y(0) - rr * 0.55, f"∠B = {ind(SUDUT_B, 3)}°", 10.5, "#a855f7", "end")
+    b += t(X(A_T) - rr - 8, Y(0) - 8, "∠B", 10.5, "#a855f7", "end", "700")
     b += t(X(0) - 10, Y(0) + 12, "A (0, 0)", 10, TX, "start")
     b += t(X(A_T) + 4, Y(0) + 12, f"B ({A_T}, 0)", 10, TX, "start")
     b += t(X(C_T), Y(H_T) - 8, f"C ({C_T}, {H_T})", 10, TX)
-    b += t(470, 60, "Titik berat G = rata-rata tiga titik sudut;", 11, TX, "start")
-    b += t(470, 78, "median-median berpotongan di G.", 11, TX, "start")
-    b += t(470, 106, "Jarak titik ke garis = |a·h| / |BC|", 11, TX, "start")
-    b += t(470, 124, "(kaki tegak lurus, Std Measure Distance).", 11, TX, "start")
-    b += t(470, 152, "Sudut B = arctan(h / (a − c)).", 11, TX, "start")
+    b += t(440, 40, "Titik berat G = rata-rata tiga", 10.5, TX, "start")
+    b += t(440, 56, "titik sudut; ketiga median", 10.5, TX, "start")
+    b += t(440, 72, "berpotongan di G.", 10.5, TX, "start")
+    b += t(440, 90, f"CG = {ind(CG_T, 3)} mm", 10.5, "#00e09e", "start", "600")
+    b += t(440, 116, "Jarak A ke garis BC = |a·h| / |BC|", 10.5, TX, "start")
+    b += t(440, 132, "(kaki tegak lurus d; Measure Distance).", 10.5, TX, "start")
+    b += t(440, 150, f"d(A, BC) = {ind(DABC_T, 3)} mm", 10.5, "#f59e0b", "start", "600")
+    b += t(440, 176, "Sudut B = arctan(h / (a − c))", 10.5, TX, "start")
+    b += t(440, 194, f"∠B = {ind(SUDUT_B, 3)}°", 10.5, "#a855f7", "start", "600")
     return svg(680, 240, b, "Gambar 6 — Titik berat, jarak titik–garis, dan sudut pada segitiga")
 
 
