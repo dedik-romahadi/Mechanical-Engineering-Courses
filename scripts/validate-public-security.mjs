@@ -4,7 +4,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
-const courseRoots = ["Engineering-Mathematics", "Getaran-Mekanik", "Optimalisasi-dan-Automasi", "Sistem-Kendali-Cerdas"];
+const courseRoots = ["Engineering-Mathematics", "Getaran-Mekanik", "Optimalisasi-dan-Automasi", "Sistem-Kendali-Cerdas", "Teknik-Tenaga-Listrik"];
 const forbiddenBackendArtifacts = [
   "functions",
   ".firebaserc",
@@ -61,7 +61,7 @@ function collectHtml(dir) {
 // dan Exam). Halamannya tetap dipindai sintaks dan autentikasinya, tetapi tidak
 // dimasukkan ke courseRoots karena pemeriksaan di bawah mewajibkan Exam/UTS.html
 // dan Exam/UAS.html. Pindahkan ke courseRoots begitu modul dan ujiannya ada.
-const obeOnlyRoots = ["Pemodelan-Computer-Aided-Design", "Teknik-Tenaga-Listrik"];
+const obeOnlyRoots = ["Pemodelan-Computer-Aided-Design"];
 for (const course of [...courseRoots, ...obeOnlyRoots]) {
   collectHtml(path.join(root, course));
 }
@@ -130,7 +130,7 @@ try {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
-if (authPages !== 90) throw new Error(`Expected 90 admin-auth pages (79 Modul/Exam + 6 OBE + 5 Admin), got ${authPages}`);
+if (authPages !== 91) throw new Error(`Expected 91 admin-auth pages (80 Modul/Exam + 6 OBE + 5 Admin), got ${authPages}`);
 for (const course of courseRoots) {
   const uas = fs.readFileSync(path.join(root, course, "Exam", "UAS.html"), "utf8");
   if (/const UAS_(TF|MC|COMP_EZ|COMP_HARD)\s*=\s*\[/.test(uas)) throw new Error(`${course}: static UAS bank returned to HTML`);
