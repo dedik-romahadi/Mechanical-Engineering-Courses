@@ -19,6 +19,7 @@ import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
+from pustaka import nama_berkas_word  # noqa: E402
 REPO = SCR.parent.parent
 N = int(sys.argv[1])
 assert N >= 2, "Modul 1 dibangun oleh bangun-modul-1-dari-sisken.py"
@@ -86,6 +87,10 @@ ganti("'teknik_tenaga_listrik_identity_pertemuan-1'", f"'teknik_tenaga_listrik_i
 ganti("'Tugas1_' + nim + '_TeknikTenagaListrik.html'", f"'Tugas{N}_' + nim + '_TeknikTenagaListrik.html'")
 ganti("Versi Word/PDF Modul 1 Teknik Tenaga Listrik belum dibuat", f"Versi Word/PDF Modul {N} Teknik Tenaga Listrik belum dibuat")
 ganti("alert('Versi PDF Modul 1 Teknik Tenaga Listrik belum tersedia.", f"alert('Versi PDF Modul {N} Teknik Tenaga Listrik belum tersedia.")
+# Tautan Modul-Word/PDF mengikuti nama berkas modul ini (buat-modul-word.py; injektor pasang-tautan-pdf.py).
+_pdf = nama_berkas_word(N, K.JUDUL) + ".pdf"
+ganti_re(r"const MODUL_PDF_URL = '[^']*';", f"const MODUL_PDF_URL = '../Modul-Word/{_pdf}';")
+ganti_re(r"const MODUL_PDF_FILENAME = '[^']*';", f"const MODUL_PDF_FILENAME = '{_pdf}';")
 # Tab Hasil, ekspor tugas, dan salinan forum LMS: nomor pertemuan/tugas/forum generik.
 for a, b in [("Pertemuan 1 &nbsp;·&nbsp; Hasil &amp; Kehadiran", f"Pertemuan {P} &nbsp;·&nbsp; Hasil &amp; Kehadiran"),
              ("yang telah mengakses Pertemuan 1.", f"yang telah mengakses Pertemuan {P}."),

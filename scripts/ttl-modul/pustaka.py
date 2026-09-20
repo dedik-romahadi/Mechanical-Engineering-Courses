@@ -274,3 +274,12 @@ def mc_block(MC):
 '''
     out += "  </div>\n"
     return out
+
+
+def nama_berkas_word(nomor, judul):
+    """Nama berkas Modul-Word tanpa ekstensi: Modul-N-Judul-Dengan-Tanda-Hubung."""
+    import re
+    import unicodedata
+    s = unicodedata.normalize("NFKD", judul).encode("ascii", "ignore").decode()
+    s = re.sub(r"[^A-Za-z0-9]+", "-", s).strip("-")
+    return f"Modul-{nomor}-{s}"

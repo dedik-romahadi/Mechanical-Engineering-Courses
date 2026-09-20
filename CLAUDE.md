@@ -109,7 +109,8 @@ ditambah dua yang sedang disiapkan bertahap:
 
 Total berkas HTML utama: **70 modul + 10 exam + 6 OBE**. Pemodelan CAD baru
 sampai Tahap 1 (Silabus/OBE + RPS). Teknik Tenaga Listrik dibangun modul demi
-modul: Modul 1–14 sudah terbit (generator `scripts/ttl-modul/bangun.py`) dan terdaftar
+modul: Modul 1–14 sudah terbit (generator `scripts/ttl-modul/bangun.py`; Word/PDF-nya
+dari `scripts/ttl-modul/buat-modul-word.py`) dan terdaftar
 di `_MODUL_COURSES` backend lewat `moduls: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]`; UTS (`teknik-tenaga-listrik-uts`) dan UAS
 (`teknik-tenaga-listrik-uas`) sudah terbit, sehingga validator keamanan memindainya
 lewat `courseRoots` seperti course lain. Rincian: Pedoman §2.
