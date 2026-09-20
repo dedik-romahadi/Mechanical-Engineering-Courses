@@ -105,6 +105,8 @@ ganti('<div>Komp E/M: <span id="scoreCompEz" style="color:var(--amber)">0</span>
 ganti('<div>Komp Hard: <span id="scoreCompHard" style="color:var(--pink)">0</span>/20 poin</div>',
       '<div>Tugas 4–5: <span id="scoreCompHard" style="color:var(--pink)">0</span>/22 poin</div>')
 ganti("Isi semua jawaban dan link Google Drive, lalu klik", "Jawab semua soal dan kirim kelima tugas pemodelan, lalu klik")
+ganti("parts.push(emptyCompEz.length + ' soal komputasi belum diisi');", "parts.push(emptyCompEz.length + ' tugas pemodelan T1–T3 belum dikirim');")
+ganti("parts.push(emptyCompHard.length + ' soal komputasi Hard belum diisi');", "parts.push(emptyCompHard.length + ' tugas pemodelan T4–T5 belum dikirim');")
 
 # ── 4. Forum ──
 i = s.index('<div class="page" id="page-forum">')
