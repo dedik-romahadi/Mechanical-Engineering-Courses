@@ -26,7 +26,7 @@ const BASE = "https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Te
 
 // ---------- konfigurasi yang berubah dari pekan ke pekan ----------
 export const PUBLISHED = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; // nomor modul yang halamannya sudah terbit
-export const EXAM_PUBLISHED = { UTS: true, UAS: false };
+export const EXAM_PUBLISHED = { UTS: true, UAS: true };
 // Tautan room Google Meet per pertemuan TMV — diisi PADA PEKANNYA setelah aktivitas
 // Google Meet™ for Moodle dibuat lewat UI form LMS (room dibuat otomatis oleh plugin).
 // Pertemuan yang belum ada di sini memakai tombol nonaktif "Google Meet belum dibuka".
@@ -182,8 +182,8 @@ export function bannerUjian(k) {
   const warna = uts
     ? { bg: "#150e0a", bd: "#6b4326", fg: "#f6ece1", bar: "linear-gradient(90deg,#f59e0b,#fb923c 45%,#ef4444)", inner: "#1d130d", label: "#fbbf24", teks: "#e3d5c6", muted: "#bda389", kuat: "#fde68a", kartu: "#241810", kartuBd: "#5a3a1f", btn: "linear-gradient(135deg,#d97706,#f59e0b)", btnFg: "#1a1004", foot: "#140d09", footBd: "#3f2a1a", footFg: "#a98f76", bayang: "rgba(23,10,2,.34)" }
     : { bg: "#160a10", bd: "#703049", fg: "#f8e9f0", bar: "linear-gradient(90deg,#e11d48,#fb7185 45%,#f59e0b)", inner: "#1f0e18", label: "#fb7185", teks: "#ecd6e0", muted: "#c39fb2", kuat: "#fbcfe8", kartu: "#2a1220", kartuBd: "#6b2a45", btn: "linear-gradient(135deg,#be123c,#fb7185)", btnFg: "#fff", foot: "#150911", footBd: "#431f31", footFg: "#b08fa0", bayang: "rgba(25,4,15,.34)" };
-  const cakupanModul = uts ? "Modul 1–4 dan 6" : "Modul 8–14";
-  const cakupanSub = uts ? "Sub-CPMK 1.1, 1.2, 1.3, 2.1, dan 3.1 (sesuai matriks UTS di SIA; Modul 5 dan 7 dinilai lewat Tugas)" : "Sub-CPMK 4.1, 4.2, 5.1, 5.2, 6.1, 7.1, dan 7.2";
+  const cakupanModul = uts ? "Modul 1–4 dan 6" : "Modul 7–9 dan 11–14";
+  const cakupanSub = uts ? "Sub-CPMK 1.1, 1.2, 1.3, 2.1, dan 3.1 (sesuai matriks UTS di SIA; Modul 5 dan 7 dinilai lewat Tugas)" : "Sub-CPMK 3.2, 4.1, 4.2, 5.2, 6.1, 7.1, dan 7.2 (sesuai matriks UAS di SIA; Modul 10 dinilai lewat Tugas)";
   const bobot = uts ? "25%" : "32%";
   const terbit = EXAM_PUBLISHED[k.tipe];
   const tombol = terbit

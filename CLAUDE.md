@@ -107,13 +107,12 @@ ditambah dua yang sedang disiapkan bertahap:
 > `Optimalisasi-dan-Automasi`. Pengecualian: deck slide Opto memakai brand
 > "Optimalisasi & Automasi" (huruf A) atas permintaan dosen — jangan "diperbaiki".
 
-Total berkas HTML utama: **70 modul + 9 exam + 6 OBE**. Pemodelan CAD baru
+Total berkas HTML utama: **70 modul + 10 exam + 6 OBE**. Pemodelan CAD baru
 sampai Tahap 1 (Silabus/OBE + RPS). Teknik Tenaga Listrik dibangun modul demi
 modul: Modul 1–14 sudah terbit (generator `scripts/ttl-modul/bangun.py`) dan terdaftar
-di `_MODUL_COURSES` backend lewat `moduls: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]`; UTS-nya (`teknik-tenaga-listrik-uts`) sudah terbit, UAS belum,
-sehingga validator keamanan tetap memindainya lewat `obeOnlyRoots` (yang `courseRoots`
-mensyaratkan UTS dan UAS sekaligus). Rincian dan langkah
-lanjutannya: Pedoman §2.
+di `_MODUL_COURSES` backend lewat `moduls: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]`; UTS (`teknik-tenaga-listrik-uts`) dan UAS
+(`teknik-tenaga-listrik-uas`) sudah terbit, sehingga validator keamanan memindainya
+lewat `courseRoots` seperti course lain. Rincian: Pedoman §2.
 
 ### B.2 Struktur per-course
 
@@ -160,7 +159,7 @@ repo publik ini.
     antar-modul — gerbang itu tidak bisa diuji dengan akun ini;
   - daftar NIM-nya harus sama di dua tempat: `SIM_NIMS` di backend
     `functions/index.js` dan `scripts/kecualikan-akun-simulasi.mjs` di sini
-    (disuntikkan ke 79 halaman modul/exam + 4 halaman OBE); nama ada di lima `students.json` **dan**
+    (disuntikkan ke 80 halaman modul/exam + 4 halaman OBE); nama ada di lima `students.json` **dan**
     RTDB `pins/mhs_41399999901.nama`;
   - saat membersihkan sisa datanya, kunci Firestore modul memakai prefiks
     `mhs_` (`modulAttempts/<id>/students/mhs_<nim>`), exam tidak.
