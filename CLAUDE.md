@@ -92,7 +92,7 @@ ditambah dua yang sedang disiapkan bertahap:
 | `Getaran-Mekanik/` | `getaran_mekanik` | `getaran-mekanik-modul-N` | Getaran |
 | `Optimalisasi-dan-Automasi/` | `optoauto` | `optoauto-modul-N` | Opto |
 | `Sistem-Kendali-Cerdas/` | `sistem_kendali_cerdas` | `sistem_kendali_cerdas-modul-N` | Sisken |
-| `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | `pemodelan_cad-modul-N` (terbit: Modul 1–11; tugas berkas FreeCAD) | CAD |
+| `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | `pemodelan_cad-modul-N` (terbit: Modul 1–14; tugas berkas FreeCAD) | CAD |
 | `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | `teknik_tenaga_listrik-modul-N` (terbit: Modul 1–14) | TTL |
 
 > Kelas LMS TTL (FAST Learning course id 5923, kelas 2F Sabtu 12:00–13:40) sudah
@@ -113,7 +113,7 @@ ditambah dua yang sedang disiapkan bertahap:
 > `Optimalisasi-dan-Automasi`. Pengecualian: deck slide Opto memakai brand
 > "Optimalisasi & Automasi" (huruf A) atas permintaan dosen — jangan "diperbaiki".
 
-Total berkas HTML utama: **81 modul + 10 exam + 6 OBE**. Pemodelan CAD: Modul 1–11
+Total berkas HTML utama: **84 modul + 10 exam + 6 OBE**. Pemodelan CAD: Modul 1–14
 terbit (FreeCAD 1.0; 10 PG + 5 tugas unggah berkas `.FCStd` + angka bacaan, generator
 `scripts/cad-modul/bangun-modul-1.py`; berkas dosen di `Admin/berkas-tugas.html`),
 UTS/UAS belum. Teknik Tenaga Listrik dibangun modul demi
