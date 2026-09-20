@@ -491,6 +491,10 @@ def _m5():
 
 
 def tugas_gambar(N):
+    """Lima SVG gambar acuan tugas modul N. Modul 1-5 di berkas ini; Modul 6 dst di tugas_gambar_N.py (fungsi gambar())."""
+    if N >= 6:
+        import importlib
+        return importlib.import_module(f"tugas_gambar_{N}").gambar()
     return {1: _m1, 2: _m2, 3: _m3, 4: _m4, 5: _m5}[N]()
 
 
