@@ -243,8 +243,10 @@ v.write_text(t_, encoding="utf-8", newline="")
 
 v = REPO / "scripts" / "validate-public-security.mjs"
 t_ = v.read_text(encoding="utf-8")
+# 82 = 70 modul course lain + 10 exam course lain + 2 exam Pemodelan CAD;
+# ditambah nomor modul CAD terakhir, 6 OBE, dan 6 Admin.
 t_, c = re.subn(r"if \(authPages !== \d+\) throw new Error\(`Expected \d+ admin-auth pages \(\d+ Modul/Exam \+ 6 OBE \+ 6 Admin\), got \$\{authPages\}`\);",
-                f"if (authPages !== {80 + max(terbit) + 12}) throw new Error(`Expected {80 + max(terbit) + 12} admin-auth pages ({80 + max(terbit)} Modul/Exam + 6 OBE + 6 Admin), got ${{authPages}}`);", t_)
+                f"if (authPages !== {82 + max(terbit) + 12}) throw new Error(`Expected {82 + max(terbit) + 12} admin-auth pages ({82 + max(terbit)} Modul/Exam + 6 OBE + 6 Admin), got ${{authPages}}`);", t_)
 assert c == 1
 t_, c = re.subn(r"if \(previewGuarded !== \d+\) throw new Error\(`Expected \d+ modul pages with a guarded export button, found \$\{previewGuarded\}`\);",
                 f"if (previewGuarded !== {total}) throw new Error(`Expected {total} modul pages with a guarded export button, found ${{previewGuarded}}`);", t_)
@@ -265,10 +267,10 @@ t_ = pd.read_text(encoding="utf-8")
 t_, c = re.subn(r"- \d+ modul: 14 per course aktif \+ Modul 1–14 Teknik Tenaga Listrik \+ Modul 1(?:–\d+)? Pemodelan CAD;",
                 f"- {total} modul: 14 per course aktif + Modul 1–14 Teknik Tenaga Listrik + Modul 1–{max(terbit)} Pemodelan CAD;", t_)
 assert c == 1, "inventaris modul di Pedoman"
-t_, c = re.subn(r"\d+ halaman berautentikasi admin \(\d+ Modul/Exam \+ 6 OBE \+ 6 Admin\)", f"{80 + max(terbit) + 12} halaman berautentikasi admin ({80 + max(terbit)} Modul/Exam + 6 OBE + 6 Admin)", t_)
+t_, c = re.subn(r"\d+ halaman berautentikasi admin \(\d+ Modul/Exam \+ 6 OBE \+ 6 Admin\)", f"{82 + max(terbit) + 12} halaman berautentikasi admin ({82 + max(terbit)} Modul/Exam + 6 OBE + 6 Admin)", t_)
 assert c == 1, "hitungan autentikasi di Pedoman"
 t_, c = re.subn(r"Hitungan: \d+ modul dengan tombol ekspor terjaga dan \d+ halaman ber-autentikasi \(\d+ Modul/Exam \+ 6 OBE \+ 6 Admin\)\.",
-                f"Hitungan: {total} modul dengan tombol ekspor terjaga dan {80 + max(terbit) + 12} halaman ber-autentikasi ({80 + max(terbit)} Modul/Exam + 6 OBE + 6 Admin).", t_)
+                f"Hitungan: {total} modul dengan tombol ekspor terjaga dan {82 + max(terbit) + 12} halaman ber-autentikasi ({82 + max(terbit)} Modul/Exam + 6 OBE + 6 Admin).", t_)
 assert c == 1, "hitungan CAD di Pedoman"
 pd.write_text(t_, encoding="utf-8", newline="")
 print(f"beranda, Admin, validator, dan dokumen diperbarui (modul CAD terbit: {terbit})")

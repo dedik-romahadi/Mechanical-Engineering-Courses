@@ -118,15 +118,35 @@ const modulEl  = document.getElementById('modul');
 const modulIdEl= document.getElementById('modulId');
 // Modul CAD yang sudah terbit (samakan dengan `moduls` di _MODUL_COURSES backend).
 const MODUL_TERBIT = { pemodelan_cad: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] };
+// Ujian yang juga memakai tugas unggah berkas. examId memakai tanda hubung
+// sedangkan slug course memakai garis bawah, jadi pemetaannya ditulis eksplisit.
+const UJIAN_BERKAS = { pemodelan_cad: [['uts', 'UTS'], ['uas', 'UAS']] };
+const PREFIX_UJIAN = { pemodelan_cad: 'pemodelan-cad' };
 function buildModulOptions(){
   modulEl.innerHTML = '';
   for (const n of MODUL_TERBIT[courseEl.value] || []) {
     const o = document.createElement('option');
-    o.value = n; o.textContent = `Modul ${n}`;
+    o.value = `modul-${n}`; o.textContent = `Modul ${n}`;
+    modulEl.appendChild(o);
+  }
+  for (const [nilai, label] of UJIAN_BERKAS[courseEl.value] || []) {
+    const o = document.createElement('option');
+    o.value = `ujian-${nilai}`; o.textContent = label;
     modulEl.appendChild(o);
   }
 }
-function refreshModulId(){ modulIdEl.textContent = `${courseEl.value}-modul-${modulEl.value}`; }
+// Kembalikan { modulId } untuk modul atau { examId } untuk ujian — callable
+// backend menerima salah satu, bukan keduanya.
+function targetBerkas(){
+  const v = modulEl.value || '';
+  if (v.startsWith('ujian-')) {
+    const prefix = PREFIX_UJIAN[courseEl.value] || courseEl.value;
+    return { examId: `${prefix}-${v.slice(6)}` };
+  }
+  return { modulId: `${courseEl.value}-${v}` };
+}
+function idBerkas(){ const t = targetBerkas(); return t.examId || t.modulId; }
+function refreshModulId(){ modulIdEl.textContent = idBerkas(); }
 courseEl.onchange = () => { buildModulOptions(); refreshModulId(); };
 modulEl.onchange  = refreshModulId;
 buildModulOptions(); refreshModulId();
@@ -146,13 +166,14 @@ window.muatDaftar = async function(){
   const res = document.getElementById('result');
   const wrap = document.getElementById('tabelWrap');
   res.className = 'result'; res.removeAttribute('style'); wrap.innerHTML = '';
-  const modulId = modulIdEl.textContent;
+  const target = targetBerkas();
+  const modulId = idBerkas();
   const pw = document.getElementById('pw').value;
   if(!pw){ showMsg('err','Password admin wajib diisi.'); return; }
   btn.disabled = true; btn.textContent = 'Memuat...';
   try{
     await authenticateAdmin(pw);
-    const r = await daftarBerkasTugas({ modulId, sertakanSimulasi: document.getElementById('sim').checked });
+    const r = await daftarBerkasTugas({ ...target, sertakanSimulasi: document.getElementById('sim').checked });
     const rows = (r.data && r.data.berkas) || [];
     _barisTerakhir = rows;
     if (!rows.length) { showMsg('ok', `Belum ada berkas terunggah untuk ${modulId}.`); return; }
@@ -183,12 +204,13 @@ window.muatDaftar = async function(){
 
 window.unduh = async function(i){
   const x = _barisTerakhir[i]; if (!x) return;
-  const modulId = modulIdEl.textContent;
+  const target = targetBerkas();
+  const modulId = idBerkas();
   const tombol = document.querySelectorAll('button.mini')[i];
   if (tombol) { tombol.disabled = true; tombol.textContent = '⏳'; }
   try {
     await authenticateAdmin(document.getElementById('pw').value);
-    const r = await unduhBerkasTugas({ modulId, qId: x.qId, nim: String(x.nim) });
+    const r = await unduhBerkasTugas({ ...target, qId: x.qId, nim: String(x.nim) });
     const d = r.data || {};
     const bin = atob(d.dataBase64 || '');
     const bytes = new Uint8Array(bin.length);
