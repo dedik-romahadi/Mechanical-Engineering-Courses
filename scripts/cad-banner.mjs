@@ -136,6 +136,12 @@ export const fmtPanjang = (iso) => { const d = tgl(iso); return `${HARI[d.getUTC
 export const fmtPendek = (iso) => { const d = tgl(iso); return `${d.getUTCDate()} ${BULAN_PENDEK[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 export const plusHari = (iso, n) => { const d = tgl(iso); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 export const deadlineIso = (iso) => plusHari(iso, 6); // konvensi modul: +6 hari, 23:59 WIB (Senin berikutnya)
+// ---------- gerbang pekan: tombol modul aktif hanya bila pekannya sudah tiba ----------
+// (permintaan dosen 20 Sep 2026, sama dengan LMS TTL) — dihitung saat generator dijalankan,
+// dalam WIB; timpa untuk uji: HARI_INI=2026-09-22 node scripts/cad-banner.mjs
+export const HARI_INI = process.env.HARI_INI || new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
+export const sudahTiba = (iso) => iso <= HARI_INI;
+
 export const rentang = (a, b) => { const da = tgl(a), db = tgl(b); const sameM = da.getUTCMonth() === db.getUTCMonth(); return sameM ? `${da.getUTCDate()}–${db.getUTCDate()} ${BULAN[db.getUTCMonth()]} ${db.getUTCFullYear()}` : `${da.getUTCDate()} ${BULAN[da.getUTCMonth()]} – ${db.getUTCDate()} ${BULAN[db.getUTCMonth()]} ${db.getUTCFullYear()}`; };
 
 export const TIPE = {
@@ -169,9 +175,12 @@ export function bannerPertemuan(k) {
   const alur = k.tipe === "TMV"
     ? "1. Ikuti TMV lewat Google Meet<br>2. Baca materi dan contoh FreeCAD<br>3. Kerjakan 10 PG (10 poin)<br>4. Buat 5 tugas pemodelan, unggah .FCStd + angka bacaan (40 poin)<br>5. Jawab 3 diskusi Forum<br>6. Export HTML dan submit di LMS"
     : "1. Baca materi dan contoh FreeCAD<br>2. Kerjakan 10 PG (10 poin)<br>3. Buat 5 tugas pemodelan, unggah .FCStd + angka bacaan (40 poin)<br>4. Jawab 3 diskusi Forum<br>5. Export HTML dan submit di LMS";
-  const tombolModul = terbit
+  const tiba = sudahTiba(tglTampil);
+  const tombolModul = terbit && tiba
     ? btnAktif(`${BASE}/Modul/Modul-${m.n}.html`, "&#128214;", `Buka Modul, Tugas,<br>dan Forum ${m.n} &rarr;`, GAYA_MODUL)
-    : btnMati("&#128214;", `Modul ${m.n} terbit<br>menjelang pertemuan`, 7);
+    : terbit
+      ? btnMati("&#128214;", `Modul ${m.n} dibuka<br>${fmtPanjang(tglTampil)}`, 7)
+      : btnMati("&#128214;", `Modul ${m.n} terbit<br>menjelang pertemuan`, 7);
   let tombolKedua = "";
   if (k.tipe === "TMV") {
     tombolKedua = MEET_URL[k.p]
