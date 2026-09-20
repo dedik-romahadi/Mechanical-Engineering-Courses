@@ -1136,10 +1136,11 @@ const DEFAULT_MAPPING = {
   // Tugas: Sub-CPMK → nomor Modul, mengikuti urutan minggu RPS (Modul N = pertemuan
   // tanpa minggu UTS/UAS). Modulnya sendiri belum dibuat (Tahap 1).
   tugas: {"1.1":[1],"1.2":[2],"2.1":[3],"2.2":[4],"2.3":[5],"2.4":[6],"2.5":[7],"3.1":[8],"3.2":[9],"3.3":[10],"4.1":[11],"4.2":[12],"5.1":[13],"5.2":[14]},
-  // UTS/UAS: belum ada soal. Isi daftar nomor soal (Q1-45) setelah ujian dibuat,
-  // dan WAJIB identik dengan OBE_EXAM_CONFIG di backend saat itu.
-  uts: {"2.1":[],"2.2":[],"2.3":[],"2.4":[],"2.5":[]},
-  uas: {"3.1":[],"3.2":[],"3.3":[],"4.1":[],"4.2":[]}
+  // UTS/UAS: WAJIB identik dengan OBE_EXAM_CONFIG di backend. Pemodelan CAD tidak
+  // memakai bentuk 45 soal seperti course lain: UTS 30 soal (Q1-20 pilihan ganda,
+  // Q21-30 tugas unggah model) dan UAS 31 soal (tambahan Q31 tugas rakitan).
+  uts: {"2.1":[1,2,3,4,21,22],"2.2":[5,6,7,8,23,24],"2.3":[9,10,11,12,25,26],"2.4":[13,14,15,16,27,28],"2.5":[17,18,19,20,29,30]},
+  uas: {"3.1":[1,2,3,4,5,21,22],"3.2":[6,7,8,9,10,23,24],"3.3":[11,12,13,14,25,26,27],"4.1":[15,16,28,31],"4.2":[17,18,19,20,29,30]}
 };
 function mappingMatchesCourse(m){
   if(!m || typeof m !== 'object') return false;
@@ -1228,8 +1229,8 @@ function renderMapping(){
       </div>
     </div>
     ${section('Mapping TUGAS → Modul', 'tugas', FORMS.TGS.cols, 1, 14, 'Nomor Modul (1-14). Contoh: <code>1</code> atau <code>11,12</code> (rata-rata)')}
-    ${section('Mapping UTS → Soal', 'uts', FORMS.UTS.cols, 1, 45, 'Ditentukan server dari OBE_EXAM_CONFIG. Q1-10=TF, Q11-30=MC, Q31-40=comp, Q41-45=hard.', true)}
-    ${section('Mapping UAS → Soal', 'uas', FORMS.UAS.cols, 1, 45, 'Ditentukan server dari OBE_EXAM_CONFIG. Q1-10=TF, Q11-30=MC, Q31-40=comp, Q41-45=hard.', true)}
+    ${section('Mapping UTS → Soal', 'uts', FORMS.UTS.cols, 1, 30, 'Ditentukan server dari OBE_EXAM_CONFIG. UTS: Q1-20=pilihan ganda, Q21-30=tugas unggah model. UAS: tambahan Q31=tugas rakitan.', true)}
+    ${section('Mapping UAS → Soal', 'uas', FORMS.UAS.cols, 1, 31, 'Ditentukan server dari OBE_EXAM_CONFIG. UTS: Q1-20=pilihan ganda, Q21-30=tugas unggah model. UAS: tambahan Q31=tugas rakitan.', true)}
     <div class="note">
       <b>Tugas</b>: nilai Sub-CPMK = rata-rata nilai modul terpilih (poin modul ÷ 50 × 100).
       <b>UTS/UAS</b>: nilai Sub-CPMK = Σ poin soal diperoleh ÷ Σ poin maks grup × 100.

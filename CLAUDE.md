@@ -92,7 +92,7 @@ ditambah dua yang sedang disiapkan bertahap:
 | `Getaran-Mekanik/` | `getaran_mekanik` | `getaran-mekanik-modul-N` | Getaran |
 | `Optimalisasi-dan-Automasi/` | `optoauto` | `optoauto-modul-N` | Opto |
 | `Sistem-Kendali-Cerdas/` | `sistem_kendali_cerdas` | `sistem_kendali_cerdas-modul-N` | Sisken |
-| `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | `pemodelan_cad-modul-N` (terbit: Modul 1–14; tugas berkas FreeCAD) | CAD |
+| `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | `pemodelan_cad-modul-N` (Modul 1–14; tugas berkas FreeCAD). Exam: `pemodelan-cad-uts`/`-uas` — **tanda hubung**, tidak seperti slug modulnya | CAD |
 | `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | `teknik_tenaga_listrik-modul-N` (terbit: Modul 1–14) | TTL |
 
 > Kelas LMS TTL (FAST Learning course id 5923, kelas 2F Sabtu 12:00–13:40) sudah
@@ -113,10 +113,12 @@ ditambah dua yang sedang disiapkan bertahap:
 > `Optimalisasi-dan-Automasi`. Pengecualian: deck slide Opto memakai brand
 > "Optimalisasi & Automasi" (huruf A) atas permintaan dosen — jangan "diperbaiki".
 
-Total berkas HTML utama: **84 modul + 10 exam + 6 OBE**. Pemodelan CAD: Modul 1–14
-terbit (FreeCAD 1.0; 10 PG + 5 tugas unggah berkas `.FCStd` + angka bacaan, generator
-`scripts/cad-modul/bangun-modul-1.py`; berkas dosen di `Admin/berkas-tugas.html`),
-UTS/UAS belum. Teknik Tenaga Listrik dibangun modul demi
+Total berkas HTML utama: **84 modul + 12 exam + 6 OBE**. Pemodelan CAD: Modul 1–14 terbit (FreeCAD 1.0; 10 PG + 5 tugas unggah berkas
+`.FCStd` + angka bacaan, generator `scripts/cad-modul/bangun-modul-1.py`; berkas dosen
+di `Admin/berkas-tugas.html`), **UTS dan UAS terbit 20 September 2026** dengan bentuk
+sendiri: UTS 30 soal (20 PG + 10 tugas unggah model), UAS 31 soal (20 PG + 10 sub-model
+komponen kompresor KT-40 + 1 tugas rakitan). Tanpa soal benar-salah dan tanpa Pyodide;
+generatornya `scripts/cad-exam/bangun.py uts|uas` dengan pemeriksa `periksa_exam.py`. Teknik Tenaga Listrik dibangun modul demi
 modul: Modul 1–14 sudah terbit (generator `scripts/ttl-modul/bangun.py`; Word/PDF-nya
 dari `scripts/ttl-modul/buat-modul-word.py`) dan terdaftar
 di `_MODUL_COURSES` backend lewat `moduls: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]`; UTS (`teknik-tenaga-listrik-uts`) dan UAS

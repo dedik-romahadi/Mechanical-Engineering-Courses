@@ -4,7 +4,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
-const courseRoots = ["Engineering-Mathematics", "Getaran-Mekanik", "Optimalisasi-dan-Automasi", "Sistem-Kendali-Cerdas", "Teknik-Tenaga-Listrik"];
+const courseRoots = ["Engineering-Mathematics", "Getaran-Mekanik", "Optimalisasi-dan-Automasi", "Sistem-Kendali-Cerdas", "Teknik-Tenaga-Listrik", "Pemodelan-Computer-Aided-Design"];
 const forbiddenBackendArtifacts = [
   "functions",
   ".firebaserc",
@@ -61,7 +61,9 @@ function collectHtml(dir) {
 // dan Exam). Halamannya tetap dipindai sintaks dan autentikasinya, tetapi tidak
 // dimasukkan ke courseRoots karena pemeriksaan di bawah mewajibkan Exam/UTS.html
 // dan Exam/UAS.html. Pindahkan ke courseRoots begitu modul dan ujiannya ada.
-const obeOnlyRoots = ["Pemodelan-Computer-Aided-Design"];
+// Pemodelan CAD pindah ke courseRoots pada 20 September 2026 setelah Modul 1-14
+// dan UTS/UAS-nya terbit; daftar ini sengaja dibiarkan ada untuk course berikutnya.
+const obeOnlyRoots = [];
 for (const course of [...courseRoots, ...obeOnlyRoots]) {
   collectHtml(path.join(root, course));
 }
@@ -130,7 +132,7 @@ try {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
-if (authPages !== 106) throw new Error(`Expected 106 admin-auth pages (94 Modul/Exam + 6 OBE + 6 Admin), got ${authPages}`);
+if (authPages !== 108) throw new Error(`Expected 108 admin-auth pages (96 Modul/Exam + 6 OBE + 6 Admin), got ${authPages}`);
 for (const course of courseRoots) {
   const uas = fs.readFileSync(path.join(root, course, "Exam", "UAS.html"), "utf8");
   if (/const UAS_(TF|MC|COMP_EZ|COMP_HARD)\s*=\s*\[/.test(uas)) throw new Error(`${course}: static UAS bank returned to HTML`);
@@ -295,10 +297,14 @@ for (const course of courseRoots) {
     ]) {
       if (!exam.includes(required)) throw new Error(`${relative}: point display formatter missing ${required}`);
     }
+    // UTS/UAS Pemodelan CAD tidak memakai soal benar-salah sama sekali (20 PG +
+    // tugas unggah model), jadi mesin skor TF memang tidak ada di halamannya.
+    // Syarat TF hanya ditagih pada ujian yang benar-benar punya bagian itu.
+    const punyaTF = exam.includes("SCORE_CONFIG.TF_POINT");
     for (const required of [
       "const restoredDelta = (qId, fallback) =>",
       "data.scoreDeltas && data.scoreDeltas[qId]",
-      "tfScores[qId] = restoredDelta(qId, getQPoints(qId, SCORE_CONFIG.TF_POINT))",
+      ...(punyaTF ? ["tfScores[qId] = restoredDelta(qId, getQPoints(qId, SCORE_CONFIG.TF_POINT))"] : []),
       "mcScores[qId] = restoredDelta(qId, getQPoints(qId, SCORE_CONFIG.MC_POINT))",
       "const partialPts = restoredDelta(baseId, ",
       "compScores[baseId]   = partialPts",
