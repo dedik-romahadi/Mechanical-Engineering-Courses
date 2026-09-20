@@ -205,8 +205,12 @@ export function bannerUjian(k) {
 export function bannerUjianLanjutan(k) {
   const uts = k.tipe === "UTS";
   const bg = uts ? "#1d130d" : "#1f0e18", bd = uts ? "#6b4326" : "#703049", label = uts ? "#fbbf24" : "#fb7185", fg = uts ? "#e3d5c6" : "#ecd6e0";
+  // kalimat "Perkuliahan Pertemuan P+1 dimulai kembali" hanya bila masih ada pertemuan sesudah masa ujian
+  // (UTS → Pertemuan 9); sesudah UAS tidak ada Pertemuan 17 (permintaan dosen 20 Sep 2026).
+  const berikut = KALENDER.find((x) => x.p === k.p + 1);
+  const lanjut = berikut ? ` Perkuliahan Pertemuan ${k.p + 1} dimulai kembali <strong style="color:#fff;">${fmtPanjang(plusHari(k.akhir, 1))}</strong>.` : "";
   return `<!-- Banner pekan lanjutan ${k.tipe} Pemodelan CAD; dibuat oleh scripts/cad-banner.mjs -->
-<div style="background:${bg};font-family:'Segoe UI',Arial,sans-serif;border-radius:12px;border:1px solid ${bd};padding:8px 14px;color:${fg};font-size:11.5px;line-height:1.5;"><strong style="color:${label};letter-spacing:1.2px;font-size:10.5px;">MASA ${k.tipe} BERLANJUT</strong><br>Pekan kedua masa ${k.tipe} (${rentang(plusHari(k.tgl, 7), k.akhir)}). Hari dan jam ujian mengikuti jadwal resmi di web SIA; tautan ujian ada pada banner ${k.tipe} di pekan sebelumnya. Perkuliahan Pertemuan ${k.p + 1} dimulai kembali <strong style="color:#fff;">${fmtPanjang(plusHari(k.akhir, 1))}</strong>.</div>
+<div style="background:${bg};font-family:'Segoe UI',Arial,sans-serif;border-radius:12px;border:1px solid ${bd};padding:8px 14px;color:${fg};font-size:11.5px;line-height:1.5;"><strong style="color:${label};letter-spacing:1.2px;font-size:10.5px;">MASA ${k.tipe} BERLANJUT</strong><br>Pekan kedua masa ${k.tipe} (${rentang(plusHari(k.tgl, 7), k.akhir)}). Hari dan jam ujian mengikuti jadwal resmi di web SIA; tautan ujian ada pada banner ${k.tipe} di pekan sebelumnya.${lanjut}</div>
 `;
 }
 
