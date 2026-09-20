@@ -8460,7 +8460,7 @@ html,body{height:auto!important;min-height:100%!important;overflow-y:auto!import
     ],
     "pemodelan_cad": [
       "Pengenalan FreeCAD dan Menggambar 2D",
-      "Drafting dan Penyuntingan 2D: Trim, Extend, Offset, Layer, Dimensi",
+      "Drafting dan Penyuntingan 2D",
       "Bentuk Dasar 2D, Pengukuran, dan Transformasi Objek",
       "Dimensi, Anotasi, dan Format Gambar Teknik",
       "Pemodelan 3D Berbasis Sketsa: Extrude, Revolve, Sweep",
@@ -8482,17 +8482,17 @@ html,body{height:auto!important;min-height:100%!important;overflow-y:auto!import
     "optoauto": "Optimalisasi dan Otomasi",
     "sistem_kendali_cerdas": "Sistem Kendali Cerdas",
     "teknik_tenaga_listrik": "Teknik Tenaga Listrik",
-    "pemodelan_cad": "Pemodelan CAD",
+    "pemodelan_cad": "Pemodelan Computer Aided Design (CAD)",
   };
 
   /** moduleId/examId → { courseId, nomor, pertemuan, nama, jenis? } atau null. */
   function parseModuleId(moduleId) {
     var id = String(moduleId || "");
     // Halaman ujian: <course>-uts | <course>-uas (nama identik dengan registry backend).
-    var e = /^(getaran-mekanik|math4|optoauto|sisken)-(uts|uas)$/.exec(id);
+    var e = /^(getaran-mekanik|math4|optoauto|sisken|teknik-tenaga-listrik|pemodelan-cad)-(uts|uas)$/.exec(id);
     if (e) {
       var label = e[2] === "uts" ? "Ujian Tengah Semester (UTS)" : "Ujian Akhir Semester (UAS)";
-      var examCourseId = e[1] === "sisken" ? "sistem_kendali_cerdas" : e[1];
+      var examCourseId = e[1] === "sisken" ? "sistem_kendali_cerdas" : e[1] === "teknik-tenaga-listrik" ? "teknik_tenaga_listrik" : e[1] === "pemodelan-cad" ? "pemodelan_cad" : e[1];
       return { courseId: examCourseId, nomor: null, pertemuan: null, jenis: e[2], nama: label + " " + COURSE_NAMES[examCourseId] };
     }
     var m = /^(getaran-mekanik|math4|optoauto|sistem_kendali_cerdas|teknik_tenaga_listrik|pemodelan_cad)-modul-(\d{1,2})$/.exec(id);
