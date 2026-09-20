@@ -44,7 +44,8 @@ from xml.sax.saxutils import escape
 
 AKAR = Path(__file__).resolve().parent.parent
 COURSES = ["Getaran-Mekanik", "Engineering-Mathematics",
-           "Optimalisasi-dan-Automasi", "Sistem-Kendali-Cerdas"]
+           "Optimalisasi-dan-Automasi", "Sistem-Kendali-Cerdas",
+           "Teknik-Tenaga-Listrik"]
 
 AKSEN = "1F7A55"      # hijau tua untuk aksen kiri dan label
 GARIS = "BFE3D0"      # hijau muda untuk sisi tipis
