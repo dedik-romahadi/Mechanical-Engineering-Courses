@@ -10,7 +10,8 @@ import sys
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
-                     mc_block, pm_ref, svg, t, tabel)
+                     mc_block, pm_ref, svg, t, tabel, teks2)
+from tugas_gambar import tugas_gambar_html  # noqa: E402
 
 NOMOR = 1
 JUDUL = "Pengenalan FreeCAD dan Menggambar 2D"
@@ -36,13 +37,13 @@ YB_L = (A1_L * T_L / 2 + A2_L * (H_L + T_L) / 2) / (A1_L + A2_L)
 # ─────────────────────────── gambar ───────────────────────────
 def gambar1():
     b = ""
-    w, h = 118, 54
-    tahap = [("Kebutuhan", "spesifikasi produk", "#f97316"), ("Konsep", "sketsa ide", "#a855f7"),
-             ("Model CAD", "parametrik, .FCStd", "#22d3ee"), ("Turunan", "gambar kerja · CAM · CAE", "#0ea5e9"),
-             ("Produksi", "pemesinan, las, cetak", "#00e09e")]
-    xs = [16, 146, 276, 406, 536]
+    w, h = 120, 54
+    tahap = [("Kebutuhan", "spesifikasi", "#f97316"), ("Konsep", "sketsa ide", "#a855f7"),
+             ("Model CAD", "parametrik, FCStd", "#22d3ee"), ("Turunan", "gambar, CAM, CAE", "#0ea5e9"),
+             ("Produksi", "mesin, las, cetak", "#00e09e")]
+    xs = [12, 144, 276, 408, 540]
     for (a, s, c), x in zip(tahap, xs):
-        b += box(x, 40, w, h, [a, s], c)
+        b += box(x, 40, w, h, [a, s], c, 11.5)
     for i in range(4):
         b += arrow(xs[i] + w, 67, xs[i + 1], 67)
     b += f'<path d="M {xs[3] + 60} 120 Q 335 170 {xs[1] + 60} 120" fill="none" stroke="#ef4444" stroke-width="1.6" stroke-dasharray="6 4"/>'
@@ -126,35 +127,35 @@ def gambar4():
     b += poly([_iso(0, 0, 0), _iso(0, L, 0), _iso(0, L, L), _iso(0, 0, L)], "rgba(168,85,247,.10)", "#a855f7")
     a, bb = 60, 36
     b += poly([_iso(12, 12, 0), _iso(12 + a, 12, 0), _iso(12 + a, 12 + bb, 0), _iso(12, 12 + bb, 0)], "rgba(0,224,158,.35)", "#00e09e")
-    for v, c, n in [((130, 0, 0), "#ef4444", "X"), ((0, 130, 0), "#22c55e", "Y"), ((0, 0, 120), "#3b82f6", "Z")]:
+    for v, c, n in [((130, 0, 0), "#ef4444", "X"), ((0, 130, 0), "#22c55e", "Y"), ((0, 0, 92), "#3b82f6", "Z")]:
         x2, y2 = _iso(*v)
         x1, y1 = _iso(0, 0, 0)
         b += arrow(x1, y1, x2, y2, c, 1.8)
         b += t(x2 + (8 if n != "Y" else -10), y2 + (4 if n != "Z" else -6), n, 12, c, "middle", "700")
-    tx, ty = _iso(L, L, 0)
-    b += t(tx + 8, ty + 4, "Top (XY)", 11, "#22d3ee", "start")
+    tx, ty = _iso(L, 0, 0)
+    b += t(tx + 10, ty + 18, "Top (XY)", 11, "#22d3ee", "start")
     tx, ty = _iso(L, 0, L)
     b += t(tx + 8, ty, "Front (XZ)", 11, "#f97316", "start")
     tx, ty = _iso(0, L, L)
     b += t(tx - 8, ty, "Side (YZ)", 11, "#a855f7", "end")
-    tx, ty = _iso(12, 12, 0)
-    b += t(tx - 6, ty + 14, "(12, 12) pada Top", 10, "#00e09e", "end")
-    b += t(330, 268, "Koordinat (u, v) yang diketik di Draft ditafsirkan pada bidang kerja aktif; Placement menyimpan posisi dan rotasinya di ruang global", 11, AX)
-    return svg(660, 280, b, "Gambar 4 — Sistem koordinat global dan tiga bidang kerja Draft")
+    tx, ty = _iso(12 + a, 12 + bb, 0)
+    b += t(tx + 8, ty + 12, "(12, 12) pada Top", 10, "#00e09e", "start")
+    b += teks2(330, 288, "Koordinat (u, v) yang diketik di Draft ditafsirkan pada bidang kerja aktif; Placement menyimpan posisi dan rotasinya di ruang global", 11, AX)
+    return svg(660, 314, b, "Gambar 4 — Sistem koordinat global dan tiga bidang kerja Draft")
 
 
 def gambar5():
     b = ""
     b += f'<rect x="24" y="24" width="250" height="196" rx="10" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/>'
     b += t(149, 46, "Latihan1.FCStd  (arsip ZIP)", 12, TX, "middle", "600")
-    isi = [("Document.xml", "objek, properti, ekspresi"), ("GuiDocument.xml", "warna, visibilitas, kamera"),
-           ("PartShape.brp", "geometri BREP tiap objek"), ("Rectangle.brp · Cut.brp", "…"), ("thumbnails/Thumbnail.png", "pratinjau"),
-           ("Latihan1.FCBak", "cadangan otomatis (di luar arsip)")]
+    isi = [("Document.xml", "objek & properti"), ("GuiDocument.xml", "tampilan, kamera"),
+           ("PartShape.brp", "geometri BREP"), ("Rectangle.brp · Cut.brp", "…"), ("thumbnails/Thumbnail.png", "pratinjau"),
+           ("Latihan1.FCBak", "cadangan (luar arsip)")]
     for i, (n, k) in enumerate(isi):
         y = 68 + i * 24
         c = "#f59e0b" if i == 5 else ("#22d3ee" if i < 2 else AX)
         b += t(40, y, ("📄 " if i < 5 else "🗂 ") + n, 10.5, c, "start")
-        b += t(258, y, k, 9, AX, "end")
+        b += t(266, y, k, 9, AX, "end")
     b += f'<rect x="326" y="24" width="316" height="196" rx="10" fill="#0e1628" stroke="#00e09e" stroke-width="1.6"/>'
     b += t(484, 46, "Alur menyimpan yang aman", 12, TX, "middle", "600")
     langkah = ["Ctrl+S — simpan .FCStd (sumber tunggal)", "Save As — nama baru bila ganti versi", "Save a Copy — salinan tanpa memindah dokumen",
@@ -180,9 +181,9 @@ def gambar6():
     b += f'<rect x="{X(0)}" y="{Y(T_L)}" width="{W_L * s}" height="{T_L * s}" fill="rgba(249,115,22,.18)" stroke="#f97316" stroke-dasharray="5 3"/>'
     b += f'<rect x="{X(0)}" y="{Y(H_L)}" width="{T_L * s}" height="{(H_L - T_L) * s}" fill="rgba(168,85,247,.18)" stroke="#a855f7" stroke-dasharray="5 3"/>'
     b += f'<circle cx="{X(W_L / 2)}" cy="{Y(T_L / 2)}" r="4" fill="#f97316"/>'
-    b += t(X(W_L / 2) + 8, Y(T_L / 2) + 4, f"A₁ = {ind(A1_L, 0)} mm², x̄₁ = {ind(W_L / 2, 1)}", 10.5, "#f97316", "start")
+    b += t(X(W_L / 2) + 8, Y(T_L / 2) + 4, f"A₁ = {ind(A1_L, 0)} mm²", 10, "#f97316", "start")
     b += f'<circle cx="{X(T_L / 2)}" cy="{Y((H_L + T_L) / 2)}" r="4" fill="#a855f7"/>'
-    b += t(X(T_L / 2) + 10, Y((H_L + T_L) / 2) + 4, f"A₂ = {ind(A2_L, 0)} mm², x̄₂ = {ind(T_L / 2, 1)}", 10.5, "#a855f7", "start")
+    b += t(X(T_L) + 8, Y((H_L + T_L) / 2) + 4, f"A₂ = {ind(A2_L, 0)} mm²", 10.5, "#a855f7", "start")
     b += f'<circle cx="{X(XB_L)}" cy="{Y(YB_L)}" r="5.5" fill="#00e09e" stroke="#fff" stroke-width="1.2"/>'
     b += t(X(XB_L) + 10, Y(YB_L) - 8, f"titik berat ({ind(XB_L, 2)}, {ind(YB_L, 2)})", 11, "#00e09e", "start", "600")
     b += t(X(W_L / 2), oy + 16, f"W = {W_L} mm", 10.5, AX)
@@ -192,6 +193,7 @@ def gambar6():
     b += t(450, 78, "Vector (x, y, z) titik berat face;", 11, TX, "start")
     b += t(450, 96, "untuk face datar, itu sama dengan", 11, TX, "start")
     b += t(450, 114, "rata-rata luas Persamaan (5).", 11, TX, "start")
+    b += t(450, 132, f"x̄₁ = {ind(W_L / 2, 0)}; x̄₂ = {ind(T_L / 2, 1)} (pusat bagian)", 10.5, AX, "start")
     b += t(450, 150, f"x̄ = ({ind(A1_L, 0)}·{ind(W_L / 2, 0)} + {ind(A2_L, 0)}·{ind(T_L / 2, 1)})", 10.5, AX, "start")
     b += t(450, 168, f"     / ({ind(A1_L, 0)} + {ind(A2_L, 0)}) = {ind(XB_L, 3)} mm", 10.5, "#00e09e", "start")
     return svg(670, 250, b, "Gambar 6 — Titik berat profil L sebagai gabungan dua persegi panjang")
@@ -639,8 +641,10 @@ def tugas_block():
 <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Masuk sebagai mahasiswa untuk memuat dimensi milik Anda. Teks tugas dirakit server dan tidak disimpan di halaman publik.</span>
 </div>
 '''
+    gambar_html = tugas_gambar_html(NOMOR)
     for i, (label, poin) in enumerate(zip(TUGAS_LABELS, TUGAS_POIN), 1):
         qid = f"c{i}"
+        gambar = gambar_html[i - 1]
         hard = " comp-hard" if poin > 6 else ""
         out += f'''
     <!-- TUGAS {i} -->
@@ -651,6 +655,7 @@ def tugas_block():
         <div class="comp-pts">{poin} poin</div>
       </div>
       <div class="comp-hint" id="hint-{qid}">💡 Petunjuk akan dimuat bersama tugas.</div>
+      {gambar}
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">FreeCAD</span> Berkas model <span id="berkas-syarat-{qid}" style="color:var(--muted);font-size:10px">(.FCStd, maks 8 MB)</span></div>
         <div class="berkas-row">

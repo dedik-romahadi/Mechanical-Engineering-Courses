@@ -2,7 +2,8 @@
 # Teknik-Tenaga-Listrik/Modul/Modul-1.html (halaman modul terlengkap yang sudah
 # memuat semua lapisan injektor), lalu mengganti identitas, konten, tugas
 # (kartu unggah berkas FreeCAD + angka bacaan menggantikan editor Python),
-# forum, animasi, halaman Setup (FreeCAD), ekspor, dan registry chat.
+# forum, animasi, halaman Setup (FreeCAD + Setup Python), gambar acuan tiap kartu
+# tugas (tugas_gambar.py), ekspor, dan registry chat.
 #
 # Pakai (dari root repo):  python scripts/cad-modul/bangun-modul-1.py
 # Lalu jalankan injektor progres (kotak centang) dan validator:
@@ -18,6 +19,7 @@ import sys
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 import modul_1 as K  # noqa: E402
+from setup_python import SETUP_PYTHON_PAGE  # noqa: E402
 
 REPO = SCR.parent.parent
 SUMBER = REPO / "Teknik-Tenaga-Listrik" / "Modul" / "Modul-1.html"
@@ -435,6 +437,15 @@ s = s[:i] + '<script id="cad-modul-1-animations">\n' + js + "</script>" + s[j:]
 
 # ── 7. Halaman Setup → FreeCAD; tab Pembagian Kelompok dibuang; Pyodide dibuang ──
 potong('<div class="page" id="page-setup">', "</div><!-- end page-setup -->", K.SETUP_PAGE)
+# ── 7a. Tab Setup Python (Miniconda + VS Code + freecadcmd) mendampingi Setup FreeCAD ──
+ganti('<button class="nav-tab" id="tab-setup" onclick="switchTab(\'setup\')">🧊 Setup FreeCAD</button>',
+      '<button class="nav-tab" id="tab-setup" onclick="switchTab(\'setup\')">🧊 Setup FreeCAD</button>\n    <button class="nav-tab" id="tab-python" onclick="switchTab(\'python\')">🐍 Setup Python</button>')
+ganti("</div><!-- end page-setup -->", "</div><!-- end page-setup -->\n\n" + SETUP_PYTHON_PAGE)
+m_css = re.search(r"<style>\n/\* CSS variables scoped untuk Setup Python tab \*/\n#page-setup \{[\s\S]*?</style>", s)
+assert m_css, "blok CSS Setup tidak ditemukan"
+css_py = "\n<style>\n/* Salinan CSS Setup untuk tab Setup Python (#page-python) */" + m_css.group(0)[len("<style>\n/* CSS variables scoped untuk Setup Python tab */"):].replace("#page-setup", "#page-python")
+s = s[:m_css.end()] + css_py + s[m_css.end():]
+ganti(".page#page-setup,.page#page-kelompok,.score-bar .btn-export,", ".page#page-setup,.page#page-python,.page#page-kelompok,.score-bar .btn-export,")
 ganti_re(r'\s*<button class="nav-tab" id="tab-kelompok"[\s\S]*?</button>', "")
 ganti_re(r'\s*<div class="page[^"]*" id="page-kelompok">[\s\S]*?<!-- end page-kelompok -->', "")
 
@@ -451,6 +462,10 @@ ganti('<script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></
 s, n_pyo = re.subn(r'\n(?:<!-- Pyodide Status Bar -->\n)?<div id="pyodide-status">\s*<div id="pyodide-dot"></div>\s*<span id="pyodide-status-text">[^<]*</span>\s*</div>\n', "\n", s)
 assert n_pyo >= 1, n_pyo
 assert 'id="pyodide-status"' not in s
+# Pemanasan Pyodide (skrip TTL) dibuang: halaman CAD tidak memuat pyodide.js, jadi
+# panggilan getPyodide() hanya menghasilkan galat konsol "loadPyodide is not defined".
+ganti("    setTimeout(() => getPyodide().catch(err => console.error('[Modul] Pyodide preload failed:', err)), 500);\n", "")
+ganti_re(r"\n// Warm-up: load Pyodide as soon as tugas tab is opened\ndocument\.addEventListener\('DOMContentLoaded', \(\) => \{\n  // Pre-load silently after small delay\n  setTimeout\(\(\) => \{\n    if \(document\.getElementById\('page-tugas'\)\?\.classList\.contains\('active'\)\) getPyodide\(\);\n  \}, 2000\);\n\}\);\n", "\n")
 ganti('<span class="score-mini">Komp E/M: <strong>', '<span class="score-mini">Tugas 1–3: <strong>')
 ganti('<span class="score-mini">Komp Hard: <strong>', '<span class="score-mini">Tugas 4–5: <strong>')
 CSS_TUGAS = '''<style id="cad-tugas-style">
@@ -465,6 +480,9 @@ CSS_TUGAS = '''<style id="cad-tugas-style">
 .nilai-input{width:100%;margin-top:8px;background:#020a18;border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:14px;color:#e2e8f0;outline:none;transition:border-color .2s}
 .nilai-input:focus{border-color:rgba(249,115,22,.5)}
 .nilai-input:disabled{opacity:.6}
+.tugas-gambar{margin:12px 0 4px}
+.tugas-gambar svg{width:100%;max-width:560px;height:auto;display:block;margin:0 auto;border-radius:10px;border:1px solid var(--border)}
+.tugas-gambar-ket{font-size:11.5px;color:var(--muted);text-align:center;margin-top:6px;line-height:1.5}
 </style>
 </head>'''
 ganti("</style>\n</head>", "</style>\n" + CSS_TUGAS)
@@ -572,8 +590,8 @@ for lama, baru in [('const courses = ["Engineering-Mathematics", "Getaran-Mekani
                    ("if (files !== 70) failures.push(`jumlah modul ${files}, seharusnya 70`);", "if (files !== 71) failures.push(`jumlah modul ${files}, seharusnya 71`);")]:
     if lama in t_:
         t_ = t_.replace(lama, baru)
-    else:
-        assert baru in t_, lama[:60]
+    else:  # sudah dimigrasi (bangun.py menaikkan hitungannya untuk modul berikutnya)
+        assert baru in t_ or re.search(r'"Pemodelan-Computer-Aided-Design": \d+', t_), lama[:60]
 v.write_text(t_, encoding="utf-8", newline="")
 
 v = REPO / "scripts" / "validate-public-security.mjs"
@@ -584,7 +602,7 @@ for lama, baru in [("if (authPages !== 91) throw new Error(`Expected 91 admin-au
                     "if (previewGuarded !== 71) throw new Error(`Expected 71 modul pages with a guarded export button, found ${previewGuarded}`);")]:
     if lama in t_:
         t_ = t_.replace(lama, baru)
-    else:
-        assert baru in t_, lama[:60]
+    else:  # sudah dimigrasi
+        assert baru in t_ or re.search(r"\(\d+ Modul/Exam \+ 6 OBE \+ 6 Admin\)", t_), lama[:60]
 v.write_text(t_, encoding="utf-8", newline="")
 print("validator diperbarui")
