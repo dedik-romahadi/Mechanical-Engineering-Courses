@@ -100,6 +100,12 @@ ditambah dua yang sedang disiapkan bertahap:
 > `scripts/ttl-lms-poster.js`; Google Meet/Attendance/Tugas/Forum dibuat **pada
 > pekannya** (Google Meet lewat UI form). Rutinitas mingguan: Pedoman §2.
 
+> Kelas LMS Pemodelan CAD (FAST Learning course id 4601, kelas Reguler 2 Selasa
+> 19:30–22:00, SIA 2A2132FF) memakai pola yang sama: `scripts/cad-banner.mjs` →
+> `Pemodelan-Computer-Aided-Design/Banner/`, dipasang `scripts/cad-lms-poster.js`
+> (`cadPoster.run`). Kalender: TMV pekan ganjil, Daring pekan genap (SE Tipe
+> Perkuliahan Gasal 2026/2027), P1 = Selasa 15 September 2026. Rincian: Pedoman §2.
+
 > ⚠️ **Ejaan Opto (mudah salah saat scripting):** folder `Optimalisasi-dan-Automasi/`
 > (**Automasi**, huruf A) tetapi berkas asesmennya
 > `Asesmen-Optimalisasi-dan-Otomasi.json` (**Otomasi**, huruf O). Judul tampil
