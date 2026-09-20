@@ -37,6 +37,20 @@ def t(x, y, s, size=12, fill=TX, anchor="middle", weight="", fam=SANS):
     return f'<text x="{x:.1f}" y="{y:.1f}" text-anchor="{anchor}" font-size="{size}" fill="{fill}"{w} font-family="{fam}">{s}</text>'
 
 
+def teks2(x, y, s, size=11, fill=AX, anchor="middle", maks=92, jarak=14):
+    """Teks panjang dipecah otomatis pada spasi menjadi beberapa baris (≤ maks karakter)."""
+    kata, baris, kini = s.split(" "), [], ""
+    for k in kata:
+        if kini and len(kini) + 1 + len(k) > maks:
+            baris.append(kini)
+            kini = k
+        else:
+            kini = (kini + " " + k).strip()
+    if kini:
+        baris.append(kini)
+    return "".join(t(x, y + i * jarak, b, size, fill, anchor) for i, b in enumerate(baris))
+
+
 def arrow(x1, y1, x2, y2, color=AX, w=1.6):
     ang = math.atan2(y2 - y1, x2 - x1)
     bx, by = x2 - 9 * math.cos(ang), y2 - 9 * math.sin(ang)
