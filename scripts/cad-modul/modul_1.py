@@ -390,12 +390,12 @@ def materi():
                  ["Rectangle", "Dua sudut berlawanan, atau sudut + Length/Height", "Rectangle: <em>Length</em>, <em>Height</em>, <em>Area</em>, <em>Make Face</em>"],
                  ["Circle", "Pusat + radius", "Circle: <em>Radius</em>, <em>Area</em>; sudut awal/akhir 0–360°"],
                  ["Arc", "Pusat, radius, sudut awal, sudut akhir", "Circle dengan <em>FirstAngle</em>/<em>LastAngle</em>; panjang lewat Shape.Length"],
-                 ["Polygon", "Pusat, jumlah sisi, radius (circumscribed/inscribed)", "Polygon: <em>FacesNumber</em>, <em>Radius</em>, <em>Area</em>"],
+                 ["Polygon", "Pusat, jumlah sisi, radius; DrawMode <em>inscribed</em> (bawaan: titik sudut pada lingkaran) atau <em>circumscribed</em> (sisi menyinggung lingkaran)", "Polygon: <em>FacesNumber</em>, <em>Radius</em>, <em>Area</em>"],
                  ["Ellipse / B-spline / Bézier", "Sumbu / titik kendali", "Kurva halus untuk kontur bebas"],
                  ["Move · Rotate · Scale · Offset · Trimex", "Pilih objek, lalu titik acuan", "Menyunting objek yang sudah ada (dibahas Modul 2–3)"]])
     isi += formula(2, "Luas Poligon Beraturan", r"A = \tfrac{1}{2}\, n\, R^{2} \sin\!\left(\tfrac{2\pi}{n}\right)",
                    r"\(n\) = jumlah sisi &nbsp;·&nbsp; \(R\) = radius lingkaran luar (circumscribed) &nbsp;·&nbsp; \(A\) = luas (mm²). Contoh heksagon \(R = 40\) mm: \(A = " + ind(POLI_CONTOH, 2) + r"\) mm².",
-                   "Poligon beraturan adalah n segitiga sama kaki dengan dua sisi R dan sudut puncak 2π/n. Draft memakai radius <em>circumscribed</em> sebagai bawaan; bila Anda memilih <em>inscribed</em>, angka Area yang dibaca akan lebih kecil dari rumus ini.",
+                   "Poligon beraturan adalah n segitiga sama kaki dengan dua sisi R dan sudut puncak 2π/n. Draft Polygon memakai DrawMode <em>inscribed</em> sebagai bawaan (titik-titik sudut tepat pada lingkaran radius R), sesuai rumus ini; bila DrawMode diubah ke <em>circumscribed</em>, sisi poligon menyinggung lingkaran dan luasnya lebih besar, n·R²·tan(π/n).",
                    [("A", "Luas poligon (mm²)"), ("n", "Jumlah sisi"), ("R", "Radius lingkaran luar (mm)")])
     isi += formula(3, "Panjang Busur Lingkaran", r"s = r\,\theta, \qquad \theta \text{ dalam radian}",
                    r"\(r\) = radius busur &nbsp;·&nbsp; \(\theta\) = sudut pusat. Contoh \(r = " + str(R_BUSUR) + r"\) mm, \(\theta = " + str(TH_BUSUR) + r"^\circ = " + ind(math.radians(TH_BUSUR), 4) + r"\) rad: \(s = " + ind(BUSUR_CONTOH, 3) + r"\) mm.",
