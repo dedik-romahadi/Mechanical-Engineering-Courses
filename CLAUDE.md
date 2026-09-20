@@ -92,7 +92,7 @@ ditambah dua yang sedang disiapkan bertahap:
 | `Getaran-Mekanik/` | `getaran_mekanik` | `getaran-mekanik-modul-N` | Getaran |
 | `Optimalisasi-dan-Automasi/` | `optoauto` | `optoauto-modul-N` | Opto |
 | `Sistem-Kendali-Cerdas/` | `sistem_kendali_cerdas` | `sistem_kendali_cerdas-modul-N` | Sisken |
-| `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | — (belum ada modul) | CAD |
+| `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | `pemodelan_cad-modul-N` (terbit: Modul 1; tugas berkas FreeCAD) | CAD |
 | `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | `teknik_tenaga_listrik-modul-N` (terbit: Modul 1–14) | TTL |
 
 > Kelas LMS TTL (FAST Learning course id 5923, kelas 2F Sabtu 12:00–13:40) sudah
@@ -107,8 +107,10 @@ ditambah dua yang sedang disiapkan bertahap:
 > `Optimalisasi-dan-Automasi`. Pengecualian: deck slide Opto memakai brand
 > "Optimalisasi & Automasi" (huruf A) atas permintaan dosen — jangan "diperbaiki".
 
-Total berkas HTML utama: **70 modul + 10 exam + 6 OBE**. Pemodelan CAD baru
-sampai Tahap 1 (Silabus/OBE + RPS). Teknik Tenaga Listrik dibangun modul demi
+Total berkas HTML utama: **71 modul + 10 exam + 6 OBE**. Pemodelan CAD: Modul 1
+terbit (FreeCAD 1.0; 10 PG + 5 tugas unggah berkas `.FCStd` + angka bacaan, generator
+`scripts/cad-modul/bangun-modul-1.py`; berkas dosen di `Admin/berkas-tugas.html`),
+UTS/UAS belum. Teknik Tenaga Listrik dibangun modul demi
 modul: Modul 1–14 sudah terbit (generator `scripts/ttl-modul/bangun.py`; Word/PDF-nya
 dari `scripts/ttl-modul/buat-modul-word.py`) dan terdaftar
 di `_MODUL_COURSES` backend lewat `moduls: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]`; UTS (`teknik-tenaga-listrik-uts`) dan UAS
@@ -129,7 +131,7 @@ lewat `courseRoots` seperti course lain. Rincian: Pedoman §2.
 ```
 
 Root: `Admin/` (alat dosen: rescale-deadline, recompute-obe-score, reset-soal,
-verify-export-code, analyze-victims), `Template-Modul-Word-dan-PPT/` (template
+verify-export-code, analyze-victims, berkas-tugas), `Template-Modul-Word-dan-PPT/` (template
 resmi BOP — Pedoman §15), `Unduhan-Gabungan/` (PDF gabungan), `PDD-UKTPT/`
 (portofolio Serdos, bukan mata kuliah), `scripts/` (generator, injector,
 validator), `index.html`, `Pedoman-Modul.md`, `Pedoman-Slides.md`.

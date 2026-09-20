@@ -130,7 +130,7 @@ try {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
-if (authPages !== 91) throw new Error(`Expected 91 admin-auth pages (80 Modul/Exam + 6 OBE + 5 Admin), got ${authPages}`);
+if (authPages !== 93) throw new Error(`Expected 93 admin-auth pages (81 Modul/Exam + 6 OBE + 6 Admin), got ${authPages}`);
 for (const course of courseRoots) {
   const uas = fs.readFileSync(path.join(root, course, "Exam", "UAS.html"), "utf8");
   if (/const UAS_(TF|MC|COMP_EZ|COMP_HARD)\s*=\s*\[/.test(uas)) throw new Error(`${course}: static UAS bank returned to HTML`);
@@ -361,7 +361,7 @@ for (const relative of modulPages) {
   }
   previewGuarded += 1;
 }
-if (previewGuarded !== 70) throw new Error(`Expected 70 modul pages with a guarded export button, found ${previewGuarded}`);
+if (previewGuarded !== 71) throw new Error(`Expected 71 modul pages with a guarded export button, found ${previewGuarded}`);
 
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");
 if (/rsync -a \\\r?\n\s+--exclude='.git'/.test(workflow)) throw new Error("Pages workflow still copies repository root");
