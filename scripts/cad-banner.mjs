@@ -38,7 +38,7 @@ export const EXAM_PUBLISHED = { UTS: false, UAS: false };
 // Tautan room Google Meet per pertemuan TMV — diisi PADA PEKANNYA setelah aktivitas
 // Google Meet™ for Moodle dibuat lewat UI form LMS (room dibuat otomatis oleh plugin).
 // Pertemuan yang belum ada di sini memakai tombol nonaktif "Google Meet belum dibuka".
-export const MEET_URL = {};
+export const MEET_URL = { 1: "https://meet.google.com/nbb-etyg-pho" };
 export const WA_URL = null; // grup WhatsApp kelas — isi bila sudah dibuat; null = tombol tidak ditampilkan
 export const HARI_KULIAH = "Selasa";
 export const JAM = "19:30–22:00 WIB";
@@ -46,7 +46,9 @@ export const JAM = "19:30–22:00 WIB";
 // ---------- kalender perkuliahan Fast Learning, kelas Reguler 2 Selasa ----------
 // tipe: TMV = tatap muka virtual, DARING = daring/asinkron (forum & kuis)
 export const KALENDER = [
-  { p: 1, tipe: "TMV", tgl: "2026-09-15", modul: 1 },
+  // Pertemuan 1: TMV dilaksanakan Minggu malam 20 Sep 2026 20:00–22:00 (keputusan dosen 20 Sep 2026);
+  // `aktual` menimpa tanggal/jam yang ditampilkan dan dasar deadline (+6 hari), tgl kalender tetap tercatat.
+  { p: 1, tipe: "TMV", tgl: "2026-09-15", modul: 1, aktual: { tgl: "2026-09-20", jam: "20:00–22:00 WIB" } },
   { p: 2, tipe: "DARING", tgl: "2026-09-22", modul: 2 },
   { p: 3, tipe: "TMV", tgl: "2026-09-29", modul: 3 },
   { p: 4, tipe: "DARING", tgl: "2026-10-06", modul: 4 },
@@ -159,8 +161,11 @@ const GAYA_MEET = "margin-top:6px;padding:8px 10px;border-radius:10px;background
 export function bannerPertemuan(k) {
   const m = MODUL.find((x) => x.n === k.modul);
   const t = TIPE[k.tipe];
-  const dl = deadlineIso(k.tgl);
+  const tglTampil = k.aktual?.tgl ?? k.tgl;
+  const jamTampil = k.aktual?.jam ?? JAM;
+  const dl = deadlineIso(tglTampil);
   const terbit = PUBLISHED.includes(m.n);
+  const catatanPindah = k.aktual ? `<br>&#128204; Dipindah dari jadwal kalender <strong style="color:#fff;">${fmtPanjang(k.tgl)}</strong>` : "";
   const alur = k.tipe === "TMV"
     ? "1. Ikuti TMV lewat Google Meet<br>2. Baca materi dan contoh FreeCAD<br>3. Kerjakan 10 PG (10 poin)<br>4. Buat 5 tugas pemodelan, unggah .FCStd + angka bacaan (40 poin)<br>5. Jawab 3 diskusi Forum<br>6. Export HTML dan submit di LMS"
     : "1. Baca materi dan contoh FreeCAD<br>2. Kerjakan 10 PG (10 poin)<br>3. Buat 5 tugas pemodelan, unggah .FCStd + angka bacaan (40 poin)<br>4. Jawab 3 diskusi Forum<br>5. Export HTML dan submit di LMS";
@@ -174,7 +179,7 @@ export function bannerPertemuan(k) {
       : btnMati("&#127909;", "Google Meet belum dibuka");
   }
   return `<!-- Banner Pertemuan ${k.p} / Modul ${m.n} Pemodelan CAD — LMS compatible, inline styles; dibuat oleh scripts/cad-banner.mjs -->
-${WRAP_OPEN}<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation"><tr><td valign="top" style="padding-right:14px;"><div style="margin-bottom:7px;">${pill(`PERTEMUAN ${k.p}`, "#12304a", "#287da0", "#8ce8ff")}${pill(`SUB-CPMK ${m.sub}`, "#28184c", "#6336a5", "#d8b4fe", "margin-left:5px;")}${pill(t.label, t.bg, t.bd, t.fg, "margin-left:5px;")}</div><h2 style="margin:0 0 5px;color:#ffffff;font-size:20px;line-height:1.2;letter-spacing:-.3px;">${m.judul}</h2><p style="margin:0 0 7px;color:#c4d3ea;font-size:12.5px;line-height:1.5;">${m.desk}</p><div style="margin-bottom:5px;">${m.chips.map(chip).join("")}</div><div style="display:block;padding:5px 10px;border-radius:8px;background:#0b172a;border:1px solid #26395c;font-size:10.5px;line-height:1.5;color:#d6e2f5;">&#128197; <strong style="color:#fff;">${fmtPanjang(k.tgl)}</strong> &middot; ${JAM} &middot; ${t.nama}<br>&#9203; Deadline Tugas &amp; Forum: <strong style="color:#fcd34d;">${fmtPanjang(dl)}, 23:59 WIB</strong></div></td><td width="212" valign="top" style="text-align:center;"><div style="background:#0b172a;border:1px solid #26395c;border-radius:12px;padding:9px 11px;text-align:left;"><div style="font-size:10px;font-weight:800;color:#93c5fd;letter-spacing:1px;margin-bottom:5px;">ALUR PEMBELAJARAN</div><div style="font-size:10.5px;line-height:1.5;color:#d6e2f5;">${alur}</div><div style="height:1px;background:#26395c;margin:7px 0;"></div><div style="font-size:9.5px;line-height:1.5;color:#f8c77b;"><strong>&#9200; Aturan terlambat:</strong><br>Setelah deadline, poin setiap soal dipotong <strong>35%</strong>.</div></div>${tombolModul}${tombolKedua}</td></tr></table></div>${FOOTER()}
+${WRAP_OPEN}<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation"><tr><td valign="top" style="padding-right:14px;"><div style="margin-bottom:7px;">${pill(`PERTEMUAN ${k.p}`, "#12304a", "#287da0", "#8ce8ff")}${pill(`SUB-CPMK ${m.sub}`, "#28184c", "#6336a5", "#d8b4fe", "margin-left:5px;")}${pill(t.label, t.bg, t.bd, t.fg, "margin-left:5px;")}</div><h2 style="margin:0 0 5px;color:#ffffff;font-size:20px;line-height:1.2;letter-spacing:-.3px;">${m.judul}</h2><p style="margin:0 0 7px;color:#c4d3ea;font-size:12.5px;line-height:1.5;">${m.desk}</p><div style="margin-bottom:5px;">${m.chips.map(chip).join("")}</div><div style="display:block;padding:5px 10px;border-radius:8px;background:#0b172a;border:1px solid #26395c;font-size:10.5px;line-height:1.5;color:#d6e2f5;">&#128197; <strong style="color:#fff;">${fmtPanjang(tglTampil)}</strong> &middot; ${jamTampil} &middot; ${t.nama}${catatanPindah}<br>&#9203; Deadline Tugas &amp; Forum: <strong style="color:#fcd34d;">${fmtPanjang(dl)}, 23:59 WIB</strong></div></td><td width="212" valign="top" style="text-align:center;"><div style="background:#0b172a;border:1px solid #26395c;border-radius:12px;padding:9px 11px;text-align:left;"><div style="font-size:10px;font-weight:800;color:#93c5fd;letter-spacing:1px;margin-bottom:5px;">ALUR PEMBELAJARAN</div><div style="font-size:10.5px;line-height:1.5;color:#d6e2f5;">${alur}</div><div style="height:1px;background:#26395c;margin:7px 0;"></div><div style="font-size:9.5px;line-height:1.5;color:#f8c77b;"><strong>&#9200; Aturan terlambat:</strong><br>Setelah deadline, poin setiap soal dipotong <strong>35%</strong>.</div></div>${tombolModul}${tombolKedua}</td></tr></table></div>${FOOTER()}
 `;
 }
 
@@ -211,9 +216,10 @@ export function bannerIntroduction() {
   const baris = (k) => {
     const [bg, bd, fg] = tipeWarna[k.tipe];
     const isi = k.modul ? `Modul ${k.modul}` : "jadwal sesuai web SIA";
-    const tanggal = k.akhir ? rentang(k.tgl, k.akhir) : fmtPendek(k.tgl);
+    const tanggal = k.akhir ? rentang(k.tgl, k.akhir) : k.aktual ? `${fmtPendek(k.aktual.tgl)}*` : fmtPendek(k.tgl);
     return `<tr><td style="padding:2px 5px;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;color:#e2e8f0;font-weight:800;">${k.p}</td><td style="padding:2px 5px;border-bottom:1px solid rgba(255,255,255,.06);"><span style="display:inline-block;min-width:52px;text-align:center;padding:2px 7px;border-radius:6px;background:${bg};border:1px solid ${bd};color:${fg};font-size:9.5px;font-weight:800;letter-spacing:.6px;">${k.tipe}</span></td><td style="padding:2px 5px;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;color:#cbd5e1;white-space:nowrap;">${tanggal}</td><td style="padding:2px 5px;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;color:#94a3b8;">${isi}</td></tr>`;
   };
+  const pindah = KALENDER.filter((k) => k.aktual).map((k) => `* Pertemuan ${k.p} dilaksanakan ${fmtPanjang(k.aktual.tgl)}, ${k.aktual.jam} (jadwal kalender: ${fmtPanjang(k.tgl)}).`).join(" ");
   const kiri = KALENDER.slice(0, 8).map(baris).join("");
   const kanan = KALENDER.slice(8).map(baris).join("");
   const outline = (arr) => arr.map((m) => `<strong style="color:#fff;">${String(m.n).padStart(2, "0")}.</strong> ${m.judulPolos}<br>`).join("");
@@ -345,8 +351,8 @@ export function bannerIntroduction() {
         <tr>
           <td width="25%" valign="top" style="background:#0d2940;border:1px solid #155e75;border-radius:9px;padding:8px 10px;">
             <div style="font-size:9px;color:#67e8f9;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">Mulai Perkuliahan</div>
-            <div style="font-size:12px;font-weight:900;color:#f8fafc;">${fmtPanjang(KALENDER[0].tgl)}</div>
-            <div style="font-size:11px;color:#bae6fd;margin-top:3px;">Pertemuan 1 &bull; TMV &bull; ${JAM}</div>
+            <div style="font-size:12px;font-weight:900;color:#f8fafc;">${fmtPanjang(KALENDER[0].aktual?.tgl ?? KALENDER[0].tgl)}</div>
+            <div style="font-size:11px;color:#bae6fd;margin-top:3px;">Pertemuan 1 &bull; TMV &bull; ${KALENDER[0].aktual?.jam ?? JAM}</div>
           </td>
           <td width="25%" valign="top" style="background:#121d3d;border:1px solid #3730a3;border-radius:9px;padding:8px 10px;">
             <div style="font-size:9px;color:#a5b4fc;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">Pola Mingguan</div>
@@ -378,7 +384,7 @@ export function bannerIntroduction() {
         </td>
       </tr>
     </table>
-    <div style="margin-top:5px;font-size:9.5px;color:#94a3b8;line-height:1.5;"><strong style="color:#fcd58a;">TMV</strong> = Tatap Muka Virtual (Google Meet) &nbsp;&bull;&nbsp; <strong style="color:#8ce8ff;">DARING</strong> = pembelajaran daring mandiri lewat halaman modul &nbsp;&bull;&nbsp; tanggal UTS/UAS mengikuti web SIA.</div>
+    <div style="margin-top:5px;font-size:9.5px;color:#94a3b8;line-height:1.5;"><strong style="color:#fcd58a;">TMV</strong> = Tatap Muka Virtual (Google Meet) &nbsp;&bull;&nbsp; <strong style="color:#8ce8ff;">DARING</strong> = pembelajaran daring mandiri lewat halaman modul &nbsp;&bull;&nbsp; tanggal UTS/UAS mengikuti web SIA.${pindah ? " " + pindah : ""}</div>
 
     <div style="margin-top:10px;font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;font-family:monospace;">Status Kehadiran &amp; Aturan Penilaian</div>
     <table width="100%" cellpadding="0" cellspacing="5" border="0" style="table-layout:fixed;">
@@ -444,7 +450,7 @@ export function bannerIntroduction() {
 // ---------- nama section LMS (gaya Sisken/TTL) ----------
 export function namaSection(k) {
   if (k.tipe === "UTS" || k.tipe === "UAS") return `Pertemuan ${k.p} · ${k.tipe} · ${rentang(k.tgl, k.akhir)} · jadwal sesuai SIA`;
-  return `Pertemuan ${k.p} · ${fmtPanjang(k.tgl)} · Modul ${k.modul} · ${TIPE[k.tipe].nama}`;
+  return `Pertemuan ${k.p} · ${fmtPanjang(k.aktual?.tgl ?? k.tgl)} · Modul ${k.modul} · ${TIPE[k.tipe].nama}`;
 }
 export const namaSectionLanjutan = (k) => `Pekan ${k.tipe} lanjutan · ${rentang(plusHari(k.tgl, 7), k.akhir)}`;
 

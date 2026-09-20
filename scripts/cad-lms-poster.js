@@ -33,7 +33,7 @@
   // section number (urutan pekan) -> section id Moodle, pertemuan, tipe, tanggal Selasa, modul
   const PLAN = [
     { sec: 0, id: 75890, p: 0, tipe: "INTRO", nama: null, banner: "Banner-Introduction.html" },
-    { sec: 1, id: 75891, p: 1, tipe: "TMV", tgl: "2026-09-15", modul: 1, judul: "Pengenalan FreeCAD dan Menggambar 2D" },
+    { sec: 1, id: 75891, p: 1, tipe: "TMV", tgl: "2026-09-15", modul: 1, judul: "Pengenalan FreeCAD dan Menggambar 2D", aktual: { tgl: "2026-09-20", jam: "20:00–22:00 WIB" } }, // TMV P1 dipindah ke Minggu malam (dosen, 20 Sep 2026)
     { sec: 2, id: 75892, p: 2, tipe: "DARING", tgl: "2026-09-22", modul: 2, judul: "Drafting dan Penyuntingan 2D: Trimex, Offset, Array, Layer, Dimensi" },
     { sec: 3, id: 75893, p: 3, tipe: "TMV", tgl: "2026-09-29", modul: 3, judul: "Bentuk Dasar 2D, Pengukuran, dan Transformasi Objek" },
     { sec: 4, id: 75894, p: 4, tipe: "DARING", tgl: "2026-10-06", modul: 4, judul: "Dimensi, Anotasi, dan Format Gambar Teknik" },
@@ -60,11 +60,13 @@
   const panjang = (iso) => { const x = d(iso); return `${HARI[x.getUTCDay()]}, ${x.getUTCDate()} ${BULAN[x.getUTCMonth()]} ${x.getUTCFullYear()}`; };
   const rentang = (a, b) => { const x = d(a), y = d(b); return x.getUTCMonth() === y.getUTCMonth() ? `${x.getUTCDate()}–${y.getUTCDate()} ${BULAN[y.getUTCMonth()]} ${y.getUTCFullYear()}` : `${x.getUTCDate()} ${BULAN[x.getUTCMonth()]} – ${y.getUTCDate()} ${BULAN[y.getUTCMonth()]} ${y.getUTCFullYear()}`; };
   const TIPE_NAMA = { TMV: "Tatap Muka Virtual", DARING: "Daring" };
+  const tglK = (k) => (k.aktual && k.aktual.tgl) || k.tgl;          // tanggal pelaksanaan (aktual menimpa kalender)
+  const jamK = (k) => (k.aktual && k.aktual.jam) || "19:30–22:00 WIB";
 
   const namaSection = (k) => {
     if (k.tipe === "UTS" || k.tipe === "UAS") return `Pertemuan ${k.p} · ${k.tipe} · ${rentang(k.tgl, k.akhir)} · jadwal sesuai SIA`;
     if (k.tipe === "UTS2" || k.tipe === "UAS2") return `Pekan ${k.tipe.slice(0, 3)} lanjutan · ${rentang(k.tgl, k.akhir)}`;
-    return `Pertemuan ${k.p} · ${panjang(k.tgl)} · Modul ${k.modul} · ${TIPE_NAMA[k.tipe]}`;
+    return `Pertemuan ${k.p} · ${panjang(tglK(k))} · Modul ${k.modul} · ${TIPE_NAMA[k.tipe]}`;
   };
   const bannerFile = (k) => k.banner || (k.modul ? `Banner-Pertemuan-${k.p}.html` : k.tipe.endsWith("2") ? `Banner-${k.tipe.slice(0, 3)}-Lanjutan.html` : `Banner-${k.tipe}.html`);
 
@@ -141,14 +143,14 @@
   async function addAttendance(k) {
     return mform(add("attendance", k.sec), {
       name: `Attendance Pertemuan ${k.p} — ${k.tipe}`,
-      "introeditor[text]": `<p>Kehadiran Pertemuan ${k.p} — ${panjang(k.tgl)}, pukul 19:30–22:00 WIB (TMV melalui Google Meet). Modul ${k.modul}: ${k.judul}.</p>`,
+      "introeditor[text]": `<p>Kehadiran Pertemuan ${k.p} — ${panjang(tglK(k))}, pukul ${jamK(k)} (TMV melalui Google Meet). Modul ${k.modul}: ${k.judul}.</p>`,
       "introeditor[format]": 1,
       "grade[modgrade_type]": "point", "grade[modgrade_point]": 100,
     });
   }
 
   async function addAssign(k) {
-    const due = plus(k.tgl, 6);
+    const due = plus(tglK(k), 6);
     return mform(add("assign", k.sec), {
       name: `Tugas Modul ${k.modul} — Submit Hasil Export`,
       "introeditor[text]": `<p>Unggah satu file HTML (.html) hasil export tugas Modul ${k.modul} (${k.judul}). Berkas .FCStd tiap tugas pemodelan diunggah di halaman modul, bukan di sini. Pastikan file dapat dibuka dan memuat jawaban serta bukti proses pengerjaan. Deadline: ${panjang(due)}, 23:59 WIB — sesudah itu poin setiap soal dipotong 35%.</p>`,
@@ -179,7 +181,7 @@
   }
 
   async function addForum(k) {
-    const due = plus(k.tgl, 6);
+    const due = plus(tglK(k), 6);
     return mform(add("forum", k.sec), {
       name: `Forum Modul ${k.modul} — Submit Hasil Copy Forum`,
       "introeditor[text]": `<p>Gunakan forum ini untuk mengirim hasil diskusi Modul ${k.modul}. Di halaman modul, isi seluruh pertanyaan diskusi lalu klik tombol <strong>Copy Forum (kode HTML)</strong> — kode jawaban Anda otomatis tersalin. Buat satu posting di forum ini: pada editor, klik tombol <strong>&lt;/&gt; HTML</strong> untuk beralih ke mode HTML, kemudian paste kode tersebut. Tidak perlu melampirkan file. Deadline: ${panjang(due)}, 23:59 WIB.</p>`,
