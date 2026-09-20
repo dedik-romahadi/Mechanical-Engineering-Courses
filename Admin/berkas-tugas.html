@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Berkas Tugas Pemodelan CAD | Mechanical Engineering Courses</title>
+<style>
+  :root{
+    --bg:#060a10; --surface:#0d1520; --border:#1a2840; --cyan:#00e5ff;
+    --green:#00e676; --amber:#ffb300; --pink:#ff4081; --text:#cdd6e8; --muted:#6b7da0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+       line-height:1.6;padding:24px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:1040px}
+  h1{font-size:22px;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:18px}
+  label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px;color:#9fb0d0}
+  label:first-child{margin-top:0}
+  input,select{width:100%;padding:11px 13px;background:#020a18;border:1px solid var(--border);
+    border-radius:9px;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+  input:focus,select:focus{border-color:var(--cyan)}
+  .hint{font-size:12px;color:var(--muted);margin-top:5px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:160px}
+  button{width:100%;margin-top:20px;padding:13px;border:none;border-radius:10px;
+    background:linear-gradient(135deg,var(--green),#00b894);color:#04140b;font-weight:800;
+    font-size:15px;cursor:pointer;letter-spacing:.3px}
+  button:disabled{opacity:.5;cursor:wait}
+  button.mini{width:auto;margin:0;padding:6px 12px;font-size:12px;font-weight:700;border-radius:8px;
+    background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.4);color:var(--cyan)}
+  button.mini:hover:not(:disabled){background:rgba(0,229,255,.22)}
+  .warn{background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.3);border-radius:10px;
+    padding:12px 14px;font-size:13px;color:#ffd27a;margin-bottom:18px}
+  .result{margin-top:18px;padding:16px;border-radius:10px;font-size:13.5px;display:none;white-space:pre-wrap;
+    font-family:'JetBrains Mono',monospace}
+  .result.ok{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.3);color:#7dffb0;display:block}
+  .result.err{background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.3);color:#ffd27a;display:block}
+  .tbl{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}
+  .tbl th,.tbl td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+  .tbl th{color:#9fb0d0;font-size:12px;letter-spacing:.4px;text-transform:uppercase}
+  .tbl td.mono{font-family:'JetBrains Mono',monospace;font-size:12px}
+  .st-correct{color:var(--green);font-weight:700}
+  .st-partial{color:var(--amber);font-weight:700}
+  .st-wrong{color:var(--pink);font-weight:700}
+  .st-belum{color:var(--muted)}
+  .chk{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13px;color:#9fb0d0}
+  .chk input{width:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧊 Berkas Tugas Pemodelan CAD</h1>
+  <div class="sub">Admin-only. Daftar dan unduh berkas FreeCAD (.FCStd) yang diunggah mahasiswa pada tugas pemodelan, beserta status penilaian angka bacaannya. Berkas tersimpan di bucket privat; pengunduhan lewat callable <code>unduhBerkasTugas</code> dengan sesi admin.</div>
+
+  <div class="warn">
+    ⚠ Berkas yang diunduh adalah versi terakhir yang diunggah mahasiswa (versi lama dihapus saat diganti). Setelah tugas dinilai, berkas terkunci dan ringkasan (nama, ukuran, SHA-256) dibekukan di ledger — cocokkan SHA-256 di kolom "Berkas" dengan ringkasan pada tab Hasil bila ada keraguan.
+  </div>
+
+  <div class="card">
+    <label>Mata Kuliah &amp; Modul</label>
+    <div class="row">
+      <div>
+        <select id="course">
+          <option value="pemodelan_cad">Pemodelan CAD</option>
+        </select>
+      </div>
+      <div>
+        <select id="modul"></select>
+      </div>
+    </div>
+    <div class="hint">id: <span id="modulId" style="color:var(--cyan)">pemodelan_cad-modul-1</span></div>
+
+    <label>Password Admin (Dosen)</label>
+    <input id="pw" type="password" placeholder="Password admin" autocomplete="off">
+    <div class="chk"><input type="checkbox" id="sim"> <label for="sim" style="margin:0">Sertakan berkas akun simulasi (uji coba dosen)</label></div>
+
+    <button id="btn" onclick="muatDaftar()">Muat Daftar Berkas</button>
+    <div class="result" id="result"></div>
+    <div id="tabelWrap"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+import { getAuth, signInWithCustomToken, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+  authDomain: "getaran-mekanik.firebaseapp.com",
+  databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "getaran-mekanik",
+  storageBucket: "getaran-mekanik.firebasestorage.app",
+  messagingSenderId: "430886299733",
+  appId: "1:430886299733:web:0edecd5d4adf73e7440cdc",
+  measurementId: "G-NBMYLXXF18"
+};
+const app = initializeApp(firebaseConfig);
+const functions = getFunctions(app, 'asia-southeast1');
+const auth = getAuth(app);
+const createAdminSession = httpsCallable(functions, 'createAdminSession');
+let _adminReady = false;
+async function authenticateAdmin(password){
+  if (_adminReady && auth.currentUser) return;
+  const result = await createAdminSession({ password });
+  if(!result.data || !result.data.token) throw new Error('Token sesi admin tidak diterima');
+  await setPersistence(auth, browserSessionPersistence);
+  await signInWithCustomToken(auth, result.data.token);
+  _adminReady = true;
+}
+const daftarBerkasTugas = httpsCallable(functions, 'daftarBerkasTugas');
+const unduhBerkasTugas = httpsCallable(functions, 'unduhBerkasTugas');
+
+const courseEl = document.getElementById('course');
+const modulEl  = document.getElementById('modul');
+const modulIdEl= document.getElementById('modulId');
+// Modul CAD yang sudah terbit (samakan dengan `moduls` di _MODUL_COURSES backend).
+const MODUL_TERBIT = { pemodelan_cad: [1] };
+function buildModulOptions(){
+  modulEl.innerHTML = '';
+  for (const n of MODUL_TERBIT[courseEl.value] || []) {
+    const o = document.createElement('option');
+    o.value = n; o.textContent = `Modul ${n}`;
+    modulEl.appendChild(o);
+  }
+}
+function refreshModulId(){ modulIdEl.textContent = `${courseEl.value}-modul-${modulEl.value}`; }
+courseEl.onchange = () => { buildModulOptions(); refreshModulId(); };
+modulEl.onchange  = refreshModulId;
+buildModulOptions(); refreshModulId();
+
+const esc = (v) => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtKB = (b) => (Number(b || 0) / 1024).toFixed(1) + ' KB';
+const fmtWaktu = (iso) => {
+  const d = new Date(iso || '');
+  if (!Number.isFinite(d.getTime())) return esc(iso || '—');
+  return d.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', hourCycle: 'h23', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB';
+};
+const labelStatus = (s) => s === 'correct' ? ['✅ benar', 'st-correct'] : s === 'partial' ? ['△ partial', 'st-partial'] : s === 'wrong' ? ['✗ salah', 'st-wrong'] : ['belum dinilai', 'st-belum'];
+
+let _barisTerakhir = [];
+window.muatDaftar = async function(){
+  const btn = document.getElementById('btn');
+  const res = document.getElementById('result');
+  const wrap = document.getElementById('tabelWrap');
+  res.className = 'result'; res.removeAttribute('style'); wrap.innerHTML = '';
+  const modulId = modulIdEl.textContent;
+  const pw = document.getElementById('pw').value;
+  if(!pw){ showMsg('err','Password admin wajib diisi.'); return; }
+  btn.disabled = true; btn.textContent = 'Memuat...';
+  try{
+    await authenticateAdmin(pw);
+    const r = await daftarBerkasTugas({ modulId, sertakanSimulasi: document.getElementById('sim').checked });
+    const rows = (r.data && r.data.berkas) || [];
+    _barisTerakhir = rows;
+    if (!rows.length) { showMsg('ok', `Belum ada berkas terunggah untuk ${modulId}.`); return; }
+    const mhs = new Set(rows.map((x) => x.nim)).size;
+    showMsg('ok', `${rows.length} berkas dari ${mhs} mahasiswa · ${modulId}`);
+    let html = '<table class="tbl"><thead><tr><th>NIM</th><th>Nama</th><th>Tugas</th><th>Berkas</th><th>Diunggah</th><th>Status</th><th>Poin</th><th></th></tr></thead><tbody>';
+    rows.forEach((x, i) => {
+      const [lbl, cls] = labelStatus(x.status);
+      html += `<tr>
+        <td class="mono">${esc(x.nim)}</td>
+        <td>${esc(x.nama)}</td>
+        <td class="mono">T${esc(String(x.qId).replace(/^c/, ''))}</td>
+        <td class="mono">${esc(x.namaBerkas)}<br><span style="color:var(--muted)">${fmtKB(x.size)} · v${esc(x.versi)} · ${esc(String(x.sha256 || '').slice(0, 16))}…</span></td>
+        <td>${fmtWaktu(x.uploadedAt)}</td>
+        <td class="${cls}">${lbl}</td>
+        <td class="mono">${x.scoreDelta === null || x.scoreDelta === undefined ? '—' : esc(x.scoreDelta)}</td>
+        <td><button class="mini" onclick="unduh(${i})">⬇ Unduh</button></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  }catch(e){
+    showMsg('err', 'Gagal: '+(e.message||e)+(e.code?` [${e.code}]`:''));
+  }finally{
+    btn.disabled = false; btn.textContent = 'Muat Daftar Berkas';
+  }
+};
+
+window.unduh = async function(i){
+  const x = _barisTerakhir[i]; if (!x) return;
+  const modulId = modulIdEl.textContent;
+  const tombol = document.querySelectorAll('button.mini')[i];
+  if (tombol) { tombol.disabled = true; tombol.textContent = '⏳'; }
+  try {
+    await authenticateAdmin(document.getElementById('pw').value);
+    const r = await unduhBerkasTugas({ modulId, qId: x.qId, nim: String(x.nim) });
+    const d = r.data || {};
+    const bin = atob(d.dataBase64 || '');
+    const bytes = new Uint8Array(bin.length);
+    for (let k = 0; k < bin.length; k += 1) bytes[k] = bin.charCodeAt(k);
+    const blob = new Blob([bytes], { type: d.contentType || 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${x.nim}_${modulId}_${x.qId}_${d.namaBerkas || x.namaBerkas}`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch (e) {
+    showMsg('err', 'Gagal mengunduh: ' + (e.message || e) + (e.code ? ` [${e.code}]` : ''));
+  } finally {
+    if (tombol) { tombol.disabled = false; tombol.textContent = '⬇ Unduh'; }
+  }
+};
+function showMsg(cls, msg){ const res=document.getElementById('result'); res.className='result '+cls; res.style.display='block'; res.textContent=(cls==='err'?'⚠ ':'')+msg; }
+</script>
+</body>
+</html>
