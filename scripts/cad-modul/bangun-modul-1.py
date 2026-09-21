@@ -71,6 +71,9 @@ assert n_centang >= 5, n_centang
 JUDUL_TTL = "Konsep Dasar Sistem Tenaga Listrik"
 ganti(f"<title>Modul 1 — {JUDUL_TTL} | Teknik Tenaga Listrik</title>", f"<title>Modul 1 — {K.JUDUL} | Pemodelan CAD</title>")
 ganti("TENAGALISTRIK // M1", "PEMODELANCAD // M1")
+# Tautan Modul-Word/PDF dikosongkan lagi (kerangkanya menunjuk PDF TTL); sesudah skrip ini
+# jalan, jalankan ulang `python scripts/cad-modul/pasang-tautan-pdf.py` supaya tombol
+# "Export PDF" kembali menunjuk Modul-Word/Modul-1-*.pdf dan penandanya hilang.
 ganti_re(r"const MODUL_PDF_URL = '[^']*';", "const MODUL_PDF_URL = '';")
 ganti_re(r"const MODUL_PDF_FILENAME = '[^']*';", "const MODUL_PDF_FILENAME = '';")
 ganti('<button class="nav-tab" id="tab-setup" onclick="switchTab(\'setup\')">🐍 Setup Python</button>',

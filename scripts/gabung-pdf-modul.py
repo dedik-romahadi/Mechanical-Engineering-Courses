@@ -46,6 +46,7 @@ KURSUS = [
     ("Optimalisasi-dan-Automasi", "Optimalisasi-dan-Otomasi"),
     ("Sistem-Kendali-Cerdas", "Sistem-Kendali-Cerdas"),
     ("Teknik-Tenaga-Listrik", "Teknik-Tenaga-Listrik"),
+    ("Pemodelan-Computer-Aided-Design", "Pemodelan-Computer-Aided-Design"),
 ]
 
 

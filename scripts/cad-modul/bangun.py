@@ -88,7 +88,16 @@ ganti("const MODUL_ID = 'pemodelan_cad-modul-1';", f"const MODUL_ID = 'pemodelan
 ganti("const _PIN_SESSION_KEY = 'pemodelan_cad_modul_1_pinhash';", f"const _PIN_SESSION_KEY = 'pemodelan_cad_modul_{N}_pinhash';")
 ganti("'pemodelan_cad_identity_pertemuan-1'", f"'pemodelan_cad_identity_pertemuan-{P}'", 2)
 ganti("'Tugas1_' + nim + '_PemodelanCAD.html'", f"'Tugas{N}_' + nim + '_PemodelanCAD.html'")
-ganti("Versi Word/PDF Modul 1 Pemodelan CAD belum dibuat", f"Versi Word/PDF Modul {N} Pemodelan CAD belum dibuat")
+# Penanda Modul-Word/PDF dikembalikan ke keadaan "belum dibuat" dan tautannya dikosongkan,
+# karena PDF Modul N dibuat sesudah halaman ini jadi (dan Modul-1.html yang dipakai sebagai
+# kerangka boleh jadi sudah menunjuk PDF Modul 1). Sesudah skrip ini jalan, jalankan ulang:
+#   python scripts/cad-modul/buat-modul-word.py N
+#   python scripts/docx-ke-pdf.py Pemodelan-Computer-Aided-Design/Modul-Word/Modul-N-*.docx
+#   python scripts/cad-modul/pasang-tautan-pdf.py
+ganti_re(r"// (?:Versi Word/PDF Modul \d+ Pemodelan CAD belum dibuat|Tautan Modul-Word/PDF Modul \d+ Pemodelan CAD)[^\n]*",
+         f"// Versi Word/PDF Modul {N} Pemodelan CAD belum dibuat; tombol memberi tahu, bukan mengunduh berkas 404.")
+ganti_re(r"const MODUL_PDF_URL = '[^']*';", "const MODUL_PDF_URL = '';")
+ganti_re(r"const MODUL_PDF_FILENAME = '[^']*';", "const MODUL_PDF_FILENAME = '';")
 ganti("alert('Versi PDF Modul 1 Pemodelan CAD belum tersedia.", f"alert('Versi PDF Modul {N} Pemodelan CAD belum tersedia.")
 for a, b in [("Pertemuan 1 &nbsp;·&nbsp; Hasil &amp; Kehadiran", f"Pertemuan {P} &nbsp;·&nbsp; Hasil &amp; Kehadiran"),
              ("yang telah mengakses Pertemuan 1.", f"yang telah mengakses Pertemuan {P}."),

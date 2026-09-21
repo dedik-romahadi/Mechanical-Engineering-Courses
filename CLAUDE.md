@@ -118,7 +118,11 @@ Total berkas HTML utama: **84 modul + 12 exam + 6 OBE**. Pemodelan CAD: Modul 1â
 di `Admin/berkas-tugas.html`), **UTS dan UAS terbit 20 September 2026** dengan bentuk
 sendiri: UTS 30 soal (20 PG + 10 tugas unggah model), UAS 31 soal (20 PG + 10 sub-model
 komponen kompresor KT-40 + 1 tugas rakitan). Tanpa soal benar-salah dan tanpa Pyodide;
-generatornya `scripts/cad-exam/bangun.py uts|uas` dengan pemeriksa `periksa_exam.py`. Teknik Tenaga Listrik dibangun modul demi
+generatornya `scripts/cad-exam/bangun.py uts|uas` dengan pemeriksa `periksa_exam.py`.
+**Modul-Word/PDF CAD terbit 21 September 2026** dari `scripts/cad-modul/buat-modul-word.py`
+(tautannya dipasang `scripts/cad-modul/pasang-tautan-pdf.py`, yang wajib dijalankan ulang
+setiap kali `bangun-modul-1.py`/`bangun.py` dijalankan karena keduanya mengosongkan
+penandanya). Teknik Tenaga Listrik dibangun modul demi
 modul: Modul 1â€“14 sudah terbit (generator `scripts/ttl-modul/bangun.py`; Word/PDF-nya
 dari `scripts/ttl-modul/buat-modul-word.py`) dan terdaftar
 di `_MODUL_COURSES` backend lewat `moduls: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]`; UTS (`teknik-tenaga-listrik-uts`) dan UAS
