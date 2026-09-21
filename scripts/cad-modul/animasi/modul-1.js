@@ -163,7 +163,17 @@ function drawParametrik(){
   const k=_ttlKanvas('cvParametrik'); if(!k) return; const {ctx,W,H}=k;
   const a=_ttlNilai('sl_pm_a',150), b=_ttlNilai('sl_pm_b',70), d=_ttlNilai('sl_pm_d',16);
   _ttlTulis('v_pm_a',a.toFixed(0)); _ttlTulis('v_pm_b',b.toFixed(0)); _ttlTulis('v_pm_d',d.toFixed(0));
-  const pohonW=Math.min(190,W*0.34), padL=40, area=W-pohonW-padL-24;
+  // Lebar panel pohon mengikuti teks terpanjang yang DIUKUR, bukan dipatok: dulu dipatok
+  // 190 px sehingga baris seperti "▸ Cut (Rectangle − Circle)" (±222 px) keluar kanvas.
+  // Kanvas sempit (ponsel) memakai label ringkas; keterangannya ada di teks di bawah kanvas.
+  const ringkas=W<600;
+  const baris=ringkas
+    ? ['📄 Latihan1','  ▸ Rectangle','  ▸ Circle','  ▸ Circle001','  ▸ Cut','  ▸ Cut001']
+    : ['📄 Latihan1','  ▸ Rectangle  (Length=a, Height=b)','  ▸ Circle       (Radius=d/2 @ a/4)','  ▸ Circle001  (Radius=d/2 @ 3a/4)','  ▸ Cut          (Rectangle − Circle)','  ▸ Cut001      (Cut − Circle001)'];
+  const kaki=ringkas ? ['ubah Length →','Cut001 dihitung ulang'] : ['Tree view: ubah properti Length','→ Cut001 dihitung ulang otomatis'];
+  ctx.font="10px 'JetBrains Mono',monospace"; let lebarTeks=Math.max(...baris.map(t=>ctx.measureText(t).width));
+  ctx.font="9px 'JetBrains Mono',monospace"; lebarTeks=Math.max(lebarTeks,...kaki.map(t=>ctx.measureText(t).width));
+  const pohonW=Math.ceil(lebarTeks)+16, padL=40, area=Math.max(60,W-pohonW-padL-30);
   const sk=Math.min(area/230,(H-70)/130), ox=padL, oy=H-38;
   const X=x=>ox+x*sk, Y=y=>oy-y*sk;
   // Pelat
@@ -181,15 +191,15 @@ function drawParametrik(){
   // Pohon dokumen mini dengan sorotan bergilir
   const px=W-pohonW-6, py=16;
   ctx.fillStyle='rgba(14,22,40,.92)'; ctx.strokeStyle='rgba(148,163,184,.25)'; ctx.lineWidth=1; ctx.beginPath(); ctx.rect(px,py,pohonW,H-32); ctx.fill(); ctx.stroke();
-  const baris=['📄 Latihan1','  ▸ Rectangle  (Length=a, Height=b)','  ▸ Circle       (Radius=d/2 @ a/4)','  ▸ Circle001  (Radius=d/2 @ 3a/4)','  ▸ Cut          (Rectangle − Circle)','  ▸ Cut001      (Cut − Circle001)'];
   const sorot=1+Math.floor((_pmFrame/45)%5);
   ctx.font="10px 'JetBrains Mono',monospace";
   baris.forEach((s,i)=>{const y=py+18+i*19; if(i===sorot){ctx.fillStyle='rgba(0,224,158,.18)'; ctx.fillRect(px+4,y-12,pohonW-8,17);} ctx.fillStyle=i===0?'#e2e8f0':'rgba(203,213,225,.9)'; ctx.fillText(s,px+8,y);});
   ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font="9px 'JetBrains Mono',monospace";
-  ctx.fillText('Tree view: ubah properti Length',px+8,py+18+6*19); ctx.fillText('→ Cut001 dihitung ulang otomatis',px+8,py+30+6*19);
+  ctx.fillText(kaki[0],px+8,py+18+6*19); ctx.fillText(kaki[1],px+8,py+30+6*19);
   const luas=a*b-2*Math.PI*d*d/4;
   ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font="11px 'JetBrains Mono',monospace";
-  ctx.fillText('Cut001.Shape.Area = '+luas.toFixed(2)+' mm²',12,18);
+  if(ringkas){ctx.fillText('Cut001.Shape.Area',12,18); ctx.fillText('= '+luas.toFixed(2)+' mm²',12,33);}
+  else ctx.fillText('Cut001.Shape.Area = '+luas.toFixed(2)+' mm²',12,18);
   _ttlTulis('parametrikInfo','Luas bersih = a·b − 2·π·d²/4 = '+(a*b).toLocaleString('id-ID')+' − '+(2*Math.PI*d*d/4).toLocaleString('id-ID',{maximumFractionDigits:2})+' = '+luas.toLocaleString('id-ID',{maximumFractionDigits:2})+' mm² · posisi lubang mengikuti a karena diikat sebagai a/4 dan 3a/4');
   if(_ttlJalan('parametrik')){_pmFrame++; requestAnimationFrame(drawParametrik);}
 }
