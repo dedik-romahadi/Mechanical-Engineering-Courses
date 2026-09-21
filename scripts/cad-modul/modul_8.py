@@ -12,6 +12,7 @@ SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
+from tugas_gambar import AM, BL, CY, GN, PK, RD, _panah, dim_h, dim_v, ext  # noqa: E402
 
 NOMOR = 8
 JUDUL = "Simulasi Kinerja Komponen: Tegangan, Termal, Kinematik"
@@ -78,8 +79,14 @@ def gambar1():
     tahap = [("Geometri", "Part Box / Body", "#22d3ee"), ("Analysis", "material E, ν, ρ, k", "#f59e0b"), ("Mesh", "Gmsh tet10", "#a855f7"),
              ("Tumpuan &amp; Beban", "Fixed · Force · T", "#ec4899"), ("Solver CalculiX", ".inp → ccx → .frd", "#00e09e"), ("Hasil &amp; Validasi", "δ, σ, T, f₁ vs rumus", "#22d3ee")]
     xs = [10, 122, 234, 346, 458, 570]
+    # teks yang hampir selebar kotak 100 px (font Inter halaman modul) dipecah dua baris; gaya sama dengan box()
+    pecah = {"Tumpuan &amp; Beban": ["Tumpuan &amp;", "Beban"], "δ, σ, T, f₁ vs rumus": ["δ, σ, T, f₁", "vs rumus"]}
     for (a, s, c), x in zip(tahap, xs):
-        b += box(x, 34, w, h, [a, s], c, 11)
+        baris = [(q, True) for q in pecah.get(a, [a])] + [(q, False) for q in pecah.get(s, [s])]
+        b += box(x, 34, w, h, [], c, 11)
+        for i, (q, judul) in enumerate(baris):
+            yy = 34 + h / 2 + (i - (len(baris) - 1) / 2) * 14 + 11 / 3
+            b += t(x + w / 2, yy, q, 11, TX if judul else AX, weight="600" if judul else "")
     for i in range(5):
         b += arrow(xs[i] + w, 61, xs[i + 1], 61)
     # panah iterasi dari Hasil kembali ke Mesh
@@ -248,8 +255,8 @@ def gambar6():
     b += f'<rect x="{ox}" y="{oy}" width="{Lw}" height="{Hh}" fill="none" stroke="{TX}" stroke-width="1.2"/>'
     b += t(ox - 6, oy + Hh / 2 + 4, "T₁", 11, "#ef4444", "end", "700")
     b += t(ox + Lw + 6, oy + Hh / 2 + 4, "T₂", 11, "#3b82f6", "start", "700")
-    b += arrow(ox + 60, oy + Hh + 16, ox + Lw - 60, oy + Hh + 16, "#f59e0b", 1.6)
-    b += t(ox + Lw / 2, oy + Hh + 30, "q = k·A·ΔT/L (kalor mengalir T₁ → T₂)", 10, "#f59e0b", "middle", "600")
+    b += arrow(ox + 60, oy - 10, ox + Lw - 60, oy - 10, "#f59e0b", 1.6)
+    b += t(ox + Lw / 2, oy - 22, "q = k·A·ΔT/L (kalor mengalir T₁ → T₂)", 10, "#f59e0b", "middle", "600")
     # grafik T(x) linear
     gy = 140
     b += _garis(ox, gy, ox + Lw, gy, AX, 1) + _garis(ox, gy, ox, gy - 40, AX, 1)
@@ -272,18 +279,112 @@ def gambar6():
         dd = f' stroke-dasharray="{dash}"' if dash else ""
         b += f'<polyline points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="none" stroke="#a855f7" stroke-width="1.8"{dd}/>'
     b += t(ox + Lw / 2, my + 38, "mode 1: lentur arah tebal h, β₁ = 1,8751", 10, "#a855f7", "middle", "600")
-    b += t(452, 50, "Termal contoh:", 11, TX, "start", "600")
-    b += t(452, 68, f"batang {B_E} × {H_E} × {L_E} mm, k = {K_BAJA}", 10, AX, "start")
-    b += t(452, 84, f"ΔT = {DT_E} K → q = {ind(Q_E, 2)} W", 10.5, "#00e09e", "start")
-    b += t(452, 100, "A = b·h (m²), L (m) — satuan SI", 9.5, AX, "start")
-    b += t(452, 130, "Frekuensi contoh (kantilever):", 11, TX, "start", "600")
-    b += t(452, 148, "f_n = (β_n²/2π)·√(EI/ρA)/L²", 10.5, "#a855f7", "start")
+    b += t(432, 50, "Termal contoh:", 11, TX, "start", "600")
+    b += t(432, 68, f"batang {B_E} × {H_E} × {L_E} mm, k = {K_BAJA}", 10, AX, "start")
+    b += t(432, 84, f"ΔT = {DT_E} K → q = {ind(Q_E, 2)} W", 10.5, "#00e09e", "start")
+    b += t(432, 100, "A = b·h (m²), L (m) — satuan SI", 9.5, AX, "start")
+    b += t(432, 130, "Frekuensi contoh (kantilever):", 11, TX, "start", "600")
+    b += t(432, 148, "f_n = (β_n²/2π)·√(EI/ρA)/L²", 10.5, "#a855f7", "start")
     for i, (fn, bn) in enumerate(zip(F_MODE, BETA)):
-        b += t(452, 166 + i * 16, f"β{['₁', '₂', '₃'][i]} = {ind(bn, 4)} → f{['₁', '₂', '₃'][i]} = {ind(fn, 1)} Hz", 10, "#00e09e" if i == 0 else AX, "start")
-    b += t(452, 222, "FEM: CCX_Mode1_Results → EigenmodeFrequency", 9.5, AX, "start")
-    b += t(452, 238, "resonansi bila f putaran mesin ≈ f₁", 9.5, "#ef4444", "start")
+        b += t(432, 166 + i * 16, f"β{['₁', '₂', '₃'][i]} = {ind(bn, 4)} → f{['₁', '₂', '₃'][i]} = {ind(fn, 1)} Hz", 10, "#00e09e" if i == 0 else AX, "start")
+    b += t(432, 222, "FEM: CCX_Mode1_Results → EigenmodeFrequency", 9.5, AX, "start")
+    b += t(432, 238, "resonansi bila f putaran mesin ≈ f₁", 9.5, "#ef4444", "start")
     b += teks2(340, 276, "Termal tunak dan frekuensi memakai Analysis yang sama dengan statik; yang berubah hanya Analysis Type, constraint, dan properti material", 11, AX, maks=76)
     return svg(680, 302, b, "Gambar 6 — Hantaran kalor batang dan mode getar pertama kantilever")
+
+
+# ─────────────────────────── gambar kerja praktik terbimbing (Bagian 09) ───────────────────────────
+def _g7_garis(x1, y1, x2, y2, warna, w=1.0, dash="", op=1.0):
+    d = f' stroke-dasharray="{dash}"' if dash else ""
+    o = f' stroke-opacity="{op:g}"' if op < 1 else ""
+    return f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{warna}" stroke-width="{w:g}"{d}{o}/>'
+
+
+def _g7_kotak(x, y, w, h, stroke, fill="none", fop=1.0, sw=1.8):
+    f = f' fill-opacity="{fop:g}"' if fill != "none" and fop < 1 else ""
+    return f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" fill="{fill}"{f} stroke="{stroke}" stroke-width="{sw:g}"/>'
+
+
+def _g7_jepit(x, y0, y1):
+    """Tumpuan jepit (Fixed): garis tebal di muka x = 0 + arsir miring di sisi kiri."""
+    out = _g7_garis(x, y0, x, y1, TX, 2.2)
+    for yy in range(int(y0), int(y1), 7):
+        out += _g7_garis(x, yy + 7, x - 8, yy, AX, 0.9)
+    return out
+
+
+def _g7_suhu_hex(f):
+    """Warna pita suhu dalam hex (MuPDF): f = 1 merah panas → f = 0 biru dingin, sama dengan gambar6."""
+    r, g, bl = int(60 + 190 * f), int(80 + 40 * (1 - abs(2 * f - 1))), int(240 - 190 * f)
+    return f"#{r:02x}{g:02x}{bl:02x}"
+
+
+def gambar7():
+    b = ""
+    k = 1.8                                              # px per mm, sama untuk semua tampak
+    Lp, bp, hp = L_E * k, B_E * k, H_E * k
+
+    # ── A · statik: tampak depan (bidang XZ), Fixed di x = 0, Force di muka x = L ──
+    x0, ya = 64, 78                                      # sudut kiri-atas balok
+    b += t(20, 22, "A · STATIK — tampak depan (bidang XZ)", 11, TX, "start", "700")
+    b += _g7_kotak(x0, ya, Lp, hp, CY, CY, 0.14, 1.8)
+    b += _g7_jepit(x0, ya - 10, ya + hp + 10)
+    b += _g7_garis(x0 + Lp, ya, x0 + Lp, ya + hp, RD, 3)                          # muka x = L yang dibebani
+    b += _panah(x0 + Lp, ya - 40, x0 + Lp, ya - 2, RD, 2)
+    b += t(x0 + Lp + 8, ya - 26, f"F = {F_E} N", 11, RD, "start", "700")
+    b += t(x0 + Lp + 8, ya - 12, "arah −Z, muka x = L", 10, RD, "start", "600")
+    b += t(x0 - 12, ya - 18, "Fixed: muka x = 0", 10.5, PK, "start", "600")
+    b += ext(x0, ya + hp + 12, x0, ya + hp + 34) + ext(x0 + Lp, ya + hp + 2, x0 + Lp, ya + hp + 34) + dim_h(x0, x0 + Lp, ya + hp + 28, f"{L_E}")
+    # sumbu kecil X–Z
+    sx, sy = 22, ya + hp + 52
+    b += _panah(sx, sy, sx + 26, sy, RD, 1.2) + _panah(sx, sy, sx, sy - 26, BL, 1.2)
+    b += t(sx + 30, sy + 4, "X", 10, RD, "start", "700") + t(sx, sy - 30, "Z", 10, BL, "middle", "700")
+
+    # ── B · penampang di muka x = L (bidang YZ): lebar dan tinggi ──
+    cxb, yb = 548, ya
+    b += t(cxb, 22, "B · Muka x = L (bidang YZ)", 11, TX, "middle", "700")
+    b += _g7_kotak(cxb - bp / 2, yb, bp, hp, RD, RD, 0.18, 1.8)
+    b += _panah(cxb, yb - 40, cxb, yb + hp - 5, RD, 2)
+    b += t(cxb + 8, yb - 26, f"F = {F_E} N", 11, RD, "start", "700")
+    b += ext(cxb - bp / 2, yb + hp + 2, cxb - bp / 2, yb + hp + 34) + ext(cxb + bp / 2, yb + hp + 2, cxb + bp / 2, yb + hp + 34)
+    b += dim_h(cxb - bp / 2, cxb + bp / 2, yb + hp + 28, f"{B_E}")
+    b += ext(cxb + bp / 2 + 2, yb, cxb + bp / 2 + 28, yb) + ext(cxb + bp / 2 + 2, yb + hp, cxb + bp / 2 + 28, yb + hp)
+    b += dim_v(cxb + bp / 2 + 22, yb, yb + hp, f"{H_E}", kiri=False)
+    sx2, sy2 = cxb - bp / 2 - 40, yb + hp + 52
+    b += _panah(sx2, sy2, sx2 + 26, sy2, GN, 1.2) + _panah(sx2, sy2, sx2, sy2 - 26, BL, 1.2)
+    b += t(sx2 + 30, sy2 + 4, "Y", 10, GN, "start", "700") + t(sx2, sy2 - 30, "Z", 10, BL, "middle", "700")
+
+    # ── C · termal: suhu pada dua muka ujung, Fixed tetap ──
+    yc = 232
+    b += t(20, yc - 44, "C · TERMAL — Force diganti Temperature", 11, TX, "start", "700")
+    n = 24
+    for i in range(n):
+        b += f'<rect x="{x0 + i * Lp / n:.1f}" y="{yc:.1f}" width="{Lp / n + 0.6:.1f}" height="{hp:.1f}" fill="{_g7_suhu_hex(1 - i / (n - 1))}" stroke="none"/>'
+    b += _g7_kotak(x0, yc, Lp, hp, TX, sw=1.2)
+    b += _g7_jepit(x0, yc - 10, yc + hp + 10)
+    b += t(x0 + 4, yc - 12, f"T = {300 + DT_E} K (muka x = 0)", 10.5, RD, "start", "700")
+    b += t(x0 + Lp, yc - 12, "T = 300 K (muka x = L)", 10.5, BL, "end", "700")
+    b += _panah(x0 + 60, yc + hp + 16, x0 + 190, yc + hp + 16, TX, 1.4)            # bukan dimensi: warna netral
+    b += t(x0 + 198, yc + hp + 20, "aliran kalor", 10, TX, "start", "600")
+    b += t(x0, yc + hp + 40, "+ Initial temperature 300 K · Analysis Type thermomech (steady)", 10, AX, "start")
+
+    # ── catatan: nilai yang diketik pada langkah 1, 2, 4, 6, 7 ──
+    xn, yn = 436, 176
+    baris = [(0, f"Part Box {L_E} × {B_E} × {H_E}", CY, "600"),
+             (10, "(Length searah X)", AX, ""),
+             (0, "Material Steel-Generic:", TX, "600"),
+             (10, "E = 210000 MPa · ν = 0,30", AX, ""),              # literal, sama persis dengan teks langkah 2
+             (10, "ρ = 7850 kg/m³ · k = 50 W/(m·K)", AX, ""),
+             (0, "Mesh Gmsh: Element Order 2nd", TX, "600"),
+             (10, f"Max element size {H_E / 2:g} → 5 → 2,5", AX, ""),   # 7.5 bertitik: ikut format teks langkah 4
+             (10, "(uji sekali: Element Order 1st)", AX, ""),
+             (0, "Analysis Type (CalculiX):", TX, "600"),
+             (10, "static → thermomech (steady)", AX, ""),
+             (10, "→ frequency (Fixed saja, tanpa beban)", AX, "")]
+    for i, (dx, s_, c, w_) in enumerate(baris):
+        b += t(xn + dx, yn + i * 16, s_, 10.5, c, "start", w_)
+    b += t(660, 356, "Satuan: mm", 10.5, AM, "end", "600")
+    return svg(680, 370, b, "Gambar 7 — Gambar kerja kantilever: geometri, tumpuan, beban, suhu, dan material")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -604,8 +705,9 @@ for n, beta in enumerate([{BETA[0]}, {BETA[1]}, {BETA[2]}], 1):
                ("4", "Mesh Gmsh", f"FEM mesh from shape by Gmsh → Element Order 2nd, Max element size {H_E / 2:g} mm → Apply. Catat jumlah elemen dan simpul di properti mesh."),
                ("5", "Solver statik", "Klik ganda CalculiXCcxTools → Analysis Type static → Write .inp file → Run CalculiX; tunggu “done without error”. Show result → Displacement Magnitude; baca nilai maksimum."),
                ("6", "Validasi dan konvergensi", f"δ rumus = {ind(DELTA_E, 4)} mm, σ rumus = {ind(SIGMA_E, 1)} MPa. Hitung kesalahan relatif; ulangi dengan mesh 5 dan 2,5 mm sampai perubahan < 2%. Coba Element Order 1st sekali untuk melihat tet4 yang terlalu kaku."),
-               ("7", "Termal, frekuensi, simpan", f"Ganti beban dengan Temperature {300 + DT_E} K / 300 K + Initial temperature, Analysis Type thermomech (steady) → baca Temperature; lalu frequency (hapus constraint suhu) → f₁ ≈ {ind(F_MODE[0], 1)} Hz. Ctrl+S → <code>Latihan8_NIM.FCStd</code>.")]
-    isi = '  <div class="cards reveal">\n'
+               ("7", "Termal, frekuensi, simpan", f"Ganti beban dengan Temperature {300 + DT_E} K di muka x = 0 dan 300 K di muka x = L, + Initial temperature 300 K, Analysis Type thermomech (steady) → baca Temperature; lalu frequency (hapus constraint suhu) → f₁ ≈ {ind(F_MODE[0], 1)} Hz. Ctrl+S → <code>Latihan8_NIM.FCStd</code>.")]
+    isi = figure(7, "Gambar kerja kantilever: geometri, tumpuan, beban, suhu, dan material", f"Tampak depan (bidang XZ) dan muka x = L (bidang YZ) balok {L_E} × {B_E} × {H_E} dari langkah 1, ukuran dalam mm. Panel A dan B memperlihatkan Fixed di muka x = 0 dan F = {F_E} N arah −Z di muka x = L (langkah 3), panel C suhu kedua muka ujung untuk analisis termal (langkah 7), dan catatan kanan memuat material, mesh, serta Analysis Type yang diketik pada langkah 2 dan 4–7.", gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>

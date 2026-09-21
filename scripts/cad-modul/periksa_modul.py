@@ -1,7 +1,7 @@
 # Pemeriksa struktur konten modul CAD sebelum dibangun bangun.py: modul_N.py,
 # animasi/modul-N.js, dan tugas_gambar_N.py harus lengkap dan saling cocok
 # (9 bagian, 4 animasi dengan kanvas/slider/tombol yang ada di skrip animasi,
-# 6 gambar, 10 PG × 4 opsi, 5 label tugas, 3 pertanyaan forum × 4 opsi jajak,
+# 7 gambar — Gambar 7 = gambar kerja praktik terbimbing di bagian m-praktik —, 10 PG × 4 opsi, 5 label tugas, 3 pertanyaan forum × 4 opsi jajak,
 # 5 gambar acuan tugas) tanpa menyentuh berkas bersama (index, validator, Admin).
 #
 # Pakai:  python scripts/cad-modul/periksa_modul.py 6
@@ -41,16 +41,23 @@ def periksa(N):
     n_fig = len(re.findall(r'<figure class="ilustrasi', materi))
     cek(n_bagian == 9, f"bagian materi {n_bagian}, harus 9")
     cek(n_anim == 4, f"animasi {n_anim}, harus 4")
-    cek(n_fig == 6, f"gambar {n_fig}, harus 6")
+    cek(n_fig == 7, f"gambar {n_fig}, harus 7 (6 materi + 1 gambar kerja praktik terbimbing)")
+    # Gambar 7 = gambar kerja praktik terbimbing: harus berada di bagian m-praktik.
+    i_pr, i_pu = materi.find('id="m-praktik"'), materi.find('id="m-pustaka"')
+    cek(0 <= i_pr < materi.find("<strong>Gambar 7</strong>") < i_pu, "Gambar 7 harus berada di bagian m-praktik")
     cek('id="m-pustaka"' in materi, "bagian m-pustaka (referensi) tidak ada")
     for sid in re.findall(r'<a href="#(m-[\w-]+)"', K.SUBNAV):
         cek(f'id="{sid}"' in materi, f"tautan subnav #{sid} tidak punya bagian")
-    for g in range(1, 7):
+    for g in range(1, 8):
         fn = getattr(K, f"gambar{g}", None)
         cek(callable(fn), f"gambar{g} tidak ada")
         if callable(fn):
             svg = fn()
             cek(svg.startswith("<svg") and 'aria-label="Gambar' in svg, f"gambar{g} bukan SVG berlabel")
+            # Pengurai SVG MuPDF (dipakai buat-modul-word.py) tidak mengenal rgba(): bidangnya
+            # tercetak hitam pekat di dokumen Word. Gambar baru memakai hex + fill-opacity.
+            if g == 7:
+                cek("rgba(" not in svg, "gambar7 memakai rgba(); pakai warna hex + fill-opacity/stroke-opacity")
             for m in periksa_svg(svg):
                 gagal.append(f"gambar{g}: {m}")
 
@@ -106,7 +113,7 @@ def periksa(N):
         for g in gagal:
             print("   -", g)
         return False
-    print(f"Modul {N}: struktur OK (9 bagian, 4 animasi, 6 gambar, 10 PG, 5 tugas, 3 forum, 5 gambar tugas)")
+    print(f"Modul {N}: struktur OK (9 bagian, 4 animasi, 7 gambar, 10 PG, 5 tugas, 3 forum, 5 gambar tugas)")
     return True
 
 

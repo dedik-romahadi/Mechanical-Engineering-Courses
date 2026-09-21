@@ -12,6 +12,8 @@ SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
+from pustaka import BG  # noqa: E402
+from tugas_gambar import AM, CY, GN, GR, RD, VI, _panah, dim_h, dim_v, ext  # noqa: E402
 
 NOMOR = 11
 JUDUL = "Perakitan Komponen dan Analisis Sistem"
@@ -40,6 +42,12 @@ BETA_P = math.asin((D2_P - D1_P) / (2 * C_P))
 L_SABUK_TEPAT = 2 * math.sqrt(C_P ** 2 - ((D2_P - D1_P) / 2) ** 2) + math.pi * (D1_P + D2_P) / 2 + (D2_P - D1_P) * BETA_P
 I_SABUK = D2_P / D1_P
 N1_RPM = 1450
+# Bagian 09 — praktik terbimbing engkol-peluncur: teks langkah dan Gambar 7 memakai angka yang sama
+# (jari-jari engkol, panjang batang, dan sudut kunci memakai R_ENG, L_BAT, TH_ENG di atas)
+PR_DASAR = (200, 60, 10)                         # pelat dasar dengan alur rel searah X
+PR_TEBAL = 6                                     # tebal pelat engkol dan batang
+PR_LUBANG = 8                                    # diameter lubang sendi (dan pin)
+PR_PELUNCUR = (30, 20, 20)                       # blok peluncur
 
 
 # ─────────────────────────── gambar ───────────────────────────
@@ -82,8 +90,8 @@ def gambar1():
     b += t(60, 146, "rakitan hanya menyimpan tautan,", 10.5, AX, "start")
     b += t(60, 162, "Placement, dan joint. Mengubah", 10.5, AX, "start")
     b += t(60, 178, "Body memperbarui seluruh rakitan.", 10.5, AX, "start")
-    b += t(340, 222, "Rakitan = komponen (link) + satu acuan diam + joint yang mengurangi derajat kebebasan sampai tersisa gerak yang diinginkan", 11, AX)
-    return svg(680, 234, b, "Gambar 1 — Alur kerja Assembly Workbench 1.0 dan pohon dokumen rakitan")
+    b += teks2(340, 222, "Rakitan = komponen (link) + satu acuan diam + joint yang mengurangi derajat kebebasan sampai tersisa gerak yang diinginkan", 11, AX, maks=70)
+    return svg(680, 248, b, "Gambar 1 — Alur kerja Assembly Workbench 1.0 dan pohon dokumen rakitan")
 
 
 def gambar2():
@@ -166,9 +174,9 @@ def gambar3():
     b += t((ox + ax_) / 2 - 12, (oy + ay_) / 2 - 2, "r", 12, "#f59e0b", "end", "700")
     b += t((ax_ + bx_) / 2, (ay_ + oy) / 2 - 12, "l", 12, "#22d3ee", "middle", "700")
     b += f'<path d="M {ox + 22} {oy} A 22 22 0 0 0 {ox + 22 * math.cos(th):.1f} {oy - 22 * math.sin(th):.1f}" fill="none" stroke="#00e09e" stroke-width="1.2"/>'
-    b += t(ox + 30, oy - 12, "θ", 11, "#00e09e", "start", "700")
+    b += t(ox + 26, oy - 9, "θ", 11, "#00e09e", "start", "700")
     b += f'<path d="M {bx_ - 28} {oy} A 28 28 0 0 1 {bx_ - 28 * math.cos(math.radians(PHI_BAT)):.1f} {oy - 28 * math.sin(math.radians(PHI_BAT)):.1f}" fill="none" stroke="#ec4899" stroke-width="1.2"/>'
-    b += t(bx_ - 36, oy - 8, "φ", 11, "#ec4899", "end", "700")
+    b += t(bx_ - 33, oy - 15, "φ", 11, "#ec4899", "end", "700")
     # dimensi x
     y_dim = oy + 44
     b += _garis(ox, oy + 20, ox, y_dim + 6, "#00e09e", 0.8, "3 2") + _garis(bx_, oy + 20, bx_, y_dim + 6, "#00e09e", 0.8, "3 2")
@@ -185,7 +193,7 @@ def gambar3():
     b += t(400, 194, f"x ∈ [l − r, l + r] = [{L_BAT - R_ENG}, {L_BAT + R_ENG}]", 10.5, AX, "start")
     b += t(400, 212, f"langkah = 2r = {2 * R_ENG} mm", 10.5, AX, "start")
     b += teks2(340, 246, "Satu sudut engkol menentukan seluruh posisi mekanisme (1 DOF); solver Assembly menempatkan batang dan peluncur sesuai geometri segitiga OAB", 11, AX, maks=70)
-    return svg(680, 262, b, "Gambar 3 — Geometri engkol-peluncur: r, l, θ, dan posisi peluncur x")
+    return svg(680, 272, b, "Gambar 3 — Geometri engkol-peluncur: r, l, θ, dan posisi peluncur x")
 
 
 def gambar4():
@@ -243,7 +251,9 @@ def gambar5():
     # balloon
     for (px, py, z, no, bx_, by_) in [(a, 10, tt, "1", 300, 150), (90, 35, tt + 50, "2", 262, 56), (60, 35, tt + 40, "3", 96, 60)]:
         p = _iso(px, py, z, cx, cy, s)
-        b += _garis(p[0], p[1], bx_, by_, TX, 0.9) + _ling(p[0], p[1], 2, TX, TX, 1)
+        d = math.hypot(bx_ - p[0], by_ - p[1])
+        ex, ey = bx_ - 10 * (bx_ - p[0]) / d, by_ - 10 * (by_ - p[1]) / d          # berhenti di tepi balon r = 10
+        b += _garis(p[0], p[1], ex, ey, TX, 0.9) + _ling(p[0], p[1], 2, TX, TX, 1)
         b += _ling(bx_, by_, 10, "#0a101f", "#00e09e", 1.4) + t(bx_, by_ + 4, no, 10, "#00e09e", "middle", "700")
     # tabel BOM
     x0, y0, w_, rh = 396, 40, 268, 22
@@ -312,7 +322,8 @@ def gambar6():
     b += t(c1x, cy + r1 + 16, "⌀D₁", 10.5, "#22d3ee", "middle", "700")
     b += t(c2x, cy + r2 + 16, "⌀D₂", 10.5, "#f59e0b", "middle", "700")
     y_dim = 232
-    b += _garis(c1x, cy + 6, c1x, y_dim + 6, AX, 0.8, "3 2") + _garis(c2x, cy + 6, c2x, y_dim + 6, AX, 0.8, "3 2")
+    for xx, yl in ((c1x, cy + r1 + 16), (c2x, cy + r2 + 16)):                    # diputus di belakang label ⌀D₁/⌀D₂
+        b += _garis(xx, cy + 6, xx, yl - 13, AX, 0.8, "3 2") + _garis(xx, yl + 5, xx, y_dim + 6, AX, 0.8, "3 2")
     b += arrow(c1x, y_dim, c2x, y_dim, "#00e09e", 1.2) + arrow(c2x, y_dim, c1x, y_dim, "#00e09e", 1.2)
     b += t((c1x + c2x) / 2, y_dim - 5, "C", 10.5, "#00e09e", "middle", "700")
     b += t(505, 62, "L = 2C + π(D₁ + D₂)/2 + (D₂ − D₁)²/(4C)", 10, TX, "middle")
@@ -320,6 +331,152 @@ def gambar6():
     b += t(505, 96, f"L ≈ {ind(L_SABUK, 2)} mm, i = D₂/D₁ = {I_SABUK:g}", 10, "#00e09e", "middle")
     b += t(505, 250, "sabuk ungu = 2 busur lilit + 2 garis singgung", 10, AX, "middle")
     return svg(680, 264, b, "Gambar 6 — Pusat massa gabungan pelat dan boss serta geometri transmisi sabuk dua puli")
+
+
+# ── Gambar 7: gambar kerja praktik terbimbing (Bagian 09) ──
+# Warna hex + fill-opacity/stroke-opacity, tanpa rgba(): pengurai SVG MuPDF di generator Word
+# mencetak rgba() sebagai hitam pekat dan mengabaikan stroke-dasharray, jadi garis bantu juga
+# dibedakan lewat opasitas.
+def _lurus(x1, y1, x2, y2, warna, w=1.0, dash="", op=1.0):
+    d = f' stroke-dasharray="{dash}"' if dash else ""
+    o = f' stroke-opacity="{op:g}"' if op < 1 else ""
+    return f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{warna}" stroke-width="{w}"{d}{o}/>'
+
+
+def _bidang(pts, warna, isi=0.16, w=1.2):
+    return (f'<polygon points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="{warna}" fill-opacity="{isi:g}" '
+            f'stroke="{warna}" stroke-width="{w}"/>')
+
+
+def _bulat(cx, cy, r, warna, isi=0.0, w=1.3, isi_warna=None, dash="", op=1.0):
+    d = f' stroke-dasharray="{dash}"' if dash else ""
+    o = f' stroke-opacity="{op:g}"' if op < 1 else ""
+    return f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="{isi_warna or warna}" fill-opacity="{isi:g}" stroke="{warna}" stroke-width="{w}"{d}{o}/>'
+
+
+def _tautan(x0, y0, jarak, s, warna, r_ujung=7):
+    """Pelat penghubung (engkol/batang) tampak atas: obround + dua lubang; lubang pertama di (x0, y0).
+    Jari-jari ujung r_ujung hanya untuk gambar (lebar pelat tidak ditetapkan langkah, jadi tanpa ukuran)."""
+    R, x1 = r_ujung * s, x0 + jarak * s
+    d = f"M {x0:.1f} {y0 - R:.1f} H {x1:.1f} A {R:.1f} {R:.1f} 0 0 1 {x1:.1f} {y0 + R:.1f} H {x0:.1f} A {R:.1f} {R:.1f} 0 0 1 {x0:.1f} {y0 - R:.1f} Z"
+    out = f'<path d="{d}" fill="{warna}" fill-opacity=".18" stroke="{warna}" stroke-width="1.5"/>'
+    for xx in (x0, x1):
+        out += _bulat(xx, y0, PR_LUBANG / 2 * s, warna, 1, 1.3, isi_warna=BG)
+    return out
+
+
+def _asal(x, y):
+    """Penanda titik asal Body: sumbu X merah, sumbu Y hijau."""
+    return _panah(x, y, x + 16, y, RD, 1) + _panah(x, y, x, y - 16, GN, 1)
+
+
+def _lencana(x, y, no, warna):
+    """Lingkaran bernomor (nomor komponen = Balloon)."""
+    return (f'<circle cx="{x:.1f}" cy="{y:.1f}" r="8" fill="{BG}" stroke="{warna}" stroke-width="1.3"/>'
+            + t(x, y + 3.6, str(no), 10, warna, "middle", "700"))
+
+
+def gambar7():
+    b = ""
+    r, l, th = R_ENG, L_BAT, math.radians(TH_ENG)
+    a_, b_, tb = PR_DASAR
+    pl, pw, ph = PR_PELUNCUR
+    rl = PR_LUBANG / 2
+    # (a) Rakitan tampak atas (skema kinematik) dengan Revolute engkol dikunci pada θ
+    s, Ox, Oy = 2.0, 96, 146
+    X = lambda x: Ox + x * s  # noqa: E731
+    Y = lambda y: Oy - y * s  # noqa: E731
+    ax, ay, bx = r * math.cos(th), r * math.sin(th), X_PEL
+    b += t(200, 24, f"Rakitan tampak atas — Revolute engkol dikunci {TH_ENG}°", 11, TX, "middle", "600")
+    for yy in (-11, 11):                              # alur rel dasar (lebar tidak ditetapkan langkah)
+        b += _lurus(X(45), Y(yy), X(140), Y(yy), CY, 1.1, "6 3", 0.8)
+    for k in range(10):
+        xx = X(47) + k * 19
+        b += _lurus(xx, Y(-11) + 1, xx - 6, Y(-11) + 8, CY, 0.8, "", 0.6)
+    b += t(X(140) + 2, Y(-11) + 24, "alur rel dasar", 10, CY, "end")
+    b += _lurus(X(-32), Y(0), X(140) + 6, Y(0), RD, 0.8, "8 3 2 3", 0.8)
+    b += _bidang([(X(0), Y(0)), (X(0) - 9, Y(0) + 15), (X(0) + 9, Y(0) + 15)], AX, 0.25, 1.1)   # dasar grounded di O
+    for k in range(4):
+        b += _lurus(X(0) - 9 + k * 6, Y(0) + 15, X(0) - 14 + k * 6, Y(0) + 21, AX, 0.9)
+    b += _bulat(X(0), Y(0), r * s, AM, 0, 1, dash="4 3", op=0.55)      # lintasan pin A, posisi uji 0° dan 180°
+    for ang_, lab, dx_ in ((0, "0°", 6), (180, "180°", -6)):
+        px = X(r * math.cos(math.radians(ang_)))
+        b += _bulat(px, Y(0), 2.6, AM, 1, 1)
+        b += t(px + dx_, Y(0) + 15, lab, 10, AM, "start" if dx_ > 0 else "end", "600")
+    b += f'<rect x="{X(bx - pl / 2):.1f}" y="{Y(pw / 2):.1f}" width="{pl * s:.1f}" height="{pw * s:.1f}" rx="2" fill="{VI}" fill-opacity=".26" stroke="{VI}" stroke-width="1.6"/>'
+    b += _panah(X(bx) - 20, Y(pw / 2) - 9, X(bx) + 22, Y(pw / 2) - 9, VI, 1.1) + _panah(X(bx) + 20, Y(pw / 2) - 9, X(bx) - 22, Y(pw / 2) - 9, VI, 1.1)
+    b += _lurus(X(ax), Y(ay), X(bx), Y(0), CY, 6)
+    b += _lurus(X(0), Y(0), X(ax), Y(ay), AM, 7)
+    for (px, py) in [(0, 0), (ax, ay), (bx, 0)]:                       # lubang ⌀8 digambar berskala
+        b += _bulat(X(px), Y(py), rl * s, TX, 1, 1.4, isi_warna=BG)
+    b += t(X(0) - 12, Y(0) - 8, "O", 11, TX, "end", "700")
+    b += t(X(ax) - 13, Y(ay) - 12, "A", 11, TX, "end", "700")
+    b += t(X(bx + pl / 2) + 6, Y(pw / 2) - 8, "B", 11, TX, "start", "700")
+    b += f'<path d="M {X(0) + 28:.1f} {Y(0):.1f} A 28 28 0 0 0 {X(0) + 28 * math.cos(th):.1f} {Y(0) - 28 * math.sin(th):.1f}" fill="none" stroke="{GR}" stroke-width="1.3"/>'
+    b += t(X(0) + 38 * math.cos(th / 2) + 2, Y(0) - 38 * math.sin(th / 2) + 5, f"{TH_ENG}°", 11, GR, "middle", "700")
+    b += t(X(ax / 2) - 9, Y(ay / 2) - 4, f"r = {r}", 11, AM, "end", "700")
+    b += t(X((ax + bx) / 2), Y(ay / 2) - 12, f"l = {l}", 11, CY, "middle", "700")
+    yd = Y(-pw / 2) + 28
+    b += ext(X(0), Y(0) + 24, X(0), yd + 6, GR) + ext(X(bx), Y(-pw / 2) + 3, X(bx), yd + 6, GR)
+    b += dim_h(X(0), X(bx), yd, f"x = {ind(X_PEL, 3)}", GR)
+    # (b) Hubungan rakitan per langkah
+    xn, yy = 404, 44
+    baris = [("Joint (langkah 2–4)", TX, True),
+             ("dasar: Toggle grounded (acuan diam)", AX, False),
+             ("O: Revolute engkol ↔ lubang poros dasar", AX, False),
+             ("A: Revolute engkol ↔ batang", AX, False),
+             ("B: Revolute batang ↔ lubang peluncur", AX, False),
+             ("Slider: muka bawah peluncur ↔ alur rel", AX, False),
+             ("sisa derajat kebebasan F = 1", GR, False),
+             ("Kunci dan ukur (langkah 5)", TX, True),
+             (f"Angle Min = Angle Max = {TH_ENG}°", AX, False),
+             (f"Std Measure O → B: x = {ind(X_PEL, 3)}", GR, False),
+             ("Uji (langkah 6–7)", TX, True),
+             ("θ = 0° dan 180°: Common batang–dasar = 0", AX, False),
+             (f"pin ⌀{PR_LUBANG} ↔ lubang peluncur: kelonggaran", AX, False),
+             ("BOM + Balloon 1–4 = nomor komponen", AX, False)]
+    for teks, warna, judul in baris:
+        if judul and yy > 44:
+            yy += 5
+        b += t(xn, yy, teks, 11 if judul else 10.5, warna, "start", "600" if judul else "")
+        yy += 14.5
+    # (c) Komponen tampak atas; lubang pertama tiap Body di titik asalnya
+    ytj, yk, sk = 268, 306, 1.6
+    sd, dx0 = 0.72, 34
+    Xd = lambda x: dx0 + (x + 40) * sd  # noqa: E731   (O digambar 40 dari ujung kiri: letaknya tidak ditetapkan langkah)
+    b += _lencana(26, ytj - 4, 1, CY) + t(40, ytj, f"Dasar, tebal {tb}", 10.5, CY, "start", "600")
+    b += f'<rect x="{Xd(-40):.1f}" y="{yk - b_ / 2 * sd:.1f}" width="{a_ * sd:.1f}" height="{b_ * sd:.1f}" fill="{CY}" fill-opacity=".10" stroke="{CY}" stroke-width="1.4"/>'
+    for yy2 in (-11, 11):
+        b += _lurus(Xd(45), yk - yy2 * sd, Xd(160), yk - yy2 * sd, CY, 1, "5 3", 0.8)
+    b += _bulat(Xd(0), yk, rl * sd + 0.5, CY, 1, 1.2, isi_warna=BG) + _asal(Xd(0), yk)
+    b += t(Xd(0) + 4, yk + b_ / 2 * sd - 4, "O", 10, TX, "start", "700")
+    b += ext(Xd(-40), yk + b_ / 2 * sd + 3, Xd(-40), yk + 46) + ext(Xd(160), yk + b_ / 2 * sd + 3, Xd(160), yk + 46)
+    b += dim_h(Xd(-40), Xd(160), yk + 40, f"{a_}")
+    b += ext(Xd(160) + 3, yk - b_ / 2 * sd, Xd(160) + 20, yk - b_ / 2 * sd) + ext(Xd(160) + 3, yk + b_ / 2 * sd, Xd(160) + 20, yk + b_ / 2 * sd)
+    b += dim_v(Xd(160) + 14, yk - b_ / 2 * sd, yk + b_ / 2 * sd, f"{b_}", kiri=False)
+    ex = 256
+    b += _lencana(ex - 20, ytj - 4, 2, AM) + t(ex - 6, ytj, f"Engkol, tebal {PR_TEBAL}", 10.5, AM, "start", "600")
+    b += _tautan(ex, yk, r, sk, AM) + _asal(ex, yk)
+    b += t(ex + r * sk / 2 + 8, yk - 21, f"2 × ⌀{PR_LUBANG}", 10, AM, "middle", "600")
+    b += ext(ex, yk + 8, ex, yk + 36) + ext(ex + r * sk, yk + 8, ex + r * sk, yk + 36)
+    b += dim_h(ex, ex + r * sk, yk + 30, f"{r}")
+    bx0 = 362
+    b += _lencana(bx0 - 4, ytj - 4, 3, CY) + t(bx0 + 10, ytj, f"Batang, tebal {PR_TEBAL}", 10.5, CY, "start", "600")
+    b += _tautan(bx0, yk, l, sk, CY) + _asal(bx0, yk)
+    b += t(bx0 + l * sk / 2, yk - 21, f"2 × ⌀{PR_LUBANG}", 10, CY, "middle", "600")
+    b += ext(bx0, yk + 8, bx0, yk + 36) + ext(bx0 + l * sk, yk + 8, bx0 + l * sk, yk + 36)
+    b += dim_h(bx0, bx0 + l * sk, yk + 30, f"{l}")
+    px0 = 590
+    b += _lencana(px0 - 62, ytj - 4, 4, VI) + t(px0 - 48, ytj, f"Peluncur, tinggi {ph}", 10.5, VI, "start", "600")
+    b += f'<rect x="{px0 - pl / 2 * sk:.1f}" y="{yk - pw / 2 * sk:.1f}" width="{pl * sk:.1f}" height="{pw * sk:.1f}" rx="2" fill="{VI}" fill-opacity=".22" stroke="{VI}" stroke-width="1.5"/>'
+    b += _bulat(px0, yk, rl * sk, VI, 1, 1.3, isi_warna=BG) + _asal(px0, yk)
+    b += t(px0 - pl / 2 * sk - 4, yk + 4, f"⌀{PR_LUBANG}", 10, VI, "end", "600")
+    b += ext(px0 - pl / 2 * sk, yk + pw / 2 * sk + 3, px0 - pl / 2 * sk, yk + 42) + ext(px0 + pl / 2 * sk, yk + pw / 2 * sk + 3, px0 + pl / 2 * sk, yk + 42)
+    b += dim_h(px0 - pl / 2 * sk, px0 + pl / 2 * sk, yk + 36, f"{pl}")
+    b += ext(px0 + pl / 2 * sk + 3, yk - pw / 2 * sk, px0 + pl / 2 * sk + 20, yk - pw / 2 * sk) + ext(px0 + pl / 2 * sk + 3, yk + pw / 2 * sk, px0 + pl / 2 * sk + 20, yk + pw / 2 * sk)
+    b += dim_v(px0 + pl / 2 * sk + 14, yk - pw / 2 * sk, yk + pw / 2 * sk, f"{pw}", kiri=False)
+    b += t(660, 364, "Satuan: mm", 10, AX, "end")
+    return svg(680, 380, b, "Gambar 7 — Rakitan engkol-peluncur: komponen, joint, dan ukuran yang dipakai langkah")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -628,14 +785,20 @@ print(f"Sudut lilit puli kecil = {{180 - 2*math.degrees(beta):.2f}} deg (>= 120 
     m += bagian(8, "m-python", "Python Console:<br>Link, Placement, dan Pemeriksaan Rakitan", "Cell pertama membangun rakitan pelat–pin lewat App::Link dan Placement lalu membaca volume total dan pusat massa; cell kedua menghitung x(θ) dan menggerakkan engkol-peluncur; cell ketiga memeriksa kelonggaran, interferensi, dan panjang sabuk.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Komponen", "Buat empat Body di satu dokumen: dasar (pelat 200 × 60 × 10 dengan alur rel), engkol (pelat tebal 6 dengan dua lubang ⌀8 berjarak 25), batang (pelat tebal 6 dengan dua lubang ⌀8 berjarak 90), peluncur (blok 30 × 20 × 20 berlubang ⌀8). Pusat lubang pertama tiap komponen di titik asalnya."),
+    langkah = [("1", "Komponen", f"Buat empat Body di satu dokumen: dasar (pelat {' × '.join(map(str, PR_DASAR))} dengan alur rel), engkol (pelat tebal {PR_TEBAL} dengan dua lubang ⌀{PR_LUBANG} berjarak {R_ENG}), batang (pelat tebal {PR_TEBAL} dengan dua lubang ⌀{PR_LUBANG} berjarak {L_BAT}), peluncur (blok {' × '.join(map(str, PR_PELUNCUR))} berlubang ⌀{PR_LUBANG}). Pusat lubang pertama tiap komponen di titik asalnya."),
                ("2", "Rakitan dan acuan", "Assembly → Create Assembly. Insert Link keempat Body. Klik kanan link dasar → Toggle grounded. Move part untuk menjauhkan komponen agar mudah dipilih."),
                ("3", "Joint engkol", "Create Joint → Revolute: klik lubang engkol pertama lalu lubang poros pada dasar (titik asal). Engkol kini berputar bebas: coba seret dengan Move part."),
                ("4", "Joint batang dan peluncur", "Revolute lubang engkol kedua ↔ lubang batang pertama; Revolute lubang batang kedua ↔ lubang peluncur; Slider muka bawah peluncur ↔ alur rel dasar (sumbu X). Solve: seret engkol, peluncur bergerak bolak-balik (F = 1)."),
-               ("5", "Kunci dan ukur", "Pada Revolute engkol–dasar aktifkan Angle Min = Angle Max = 60° → solve. Std Measure Distance titik asal → pusat lubang peluncur; bandingkan dengan Persamaan (2): " + ind(X_PEL, 3) + " mm untuk r = 25, l = 90."),
-               ("6", "Clearance dan tabrakan", "Buka kunci sudut, seret engkol ke 0° dan 180°; Part Common antara batang dan dasar harus bervolume nol. Std Measure Distance pin ⌀8 terhadap lubang peluncur memberi kelonggaran radial."),
+               ("5", "Kunci dan ukur", f"Pada Revolute engkol–dasar aktifkan Angle Min = Angle Max = {TH_ENG}° → solve. Std Measure Distance titik asal → pusat lubang peluncur; bandingkan dengan Persamaan (2): {ind(X_PEL, 3)} mm untuk r = {R_ENG}, l = {L_BAT}."),
+               ("6", "Clearance dan tabrakan", f"Buka kunci sudut, seret engkol ke 0° dan 180°; Part Common antara batang dan dasar harus bervolume nol. Std Measure Distance pin ⌀{PR_LUBANG} terhadap lubang peluncur memberi kelonggaran radial."),
                ("7", "BOM, massa, simpan", "Assembly → Bill of Materials; TechDraw: Insert View pada Assembly + Balloon 1–4 + Spreadsheet View BOM. Python: makeCompound seluruh link → Volume dan CenterOfMass. Ctrl+S → <code>Latihan11_NIM.FCStd</code>.")]
-    isi = '  <div class="cards reveal">\n'
+    isi = figure(7, "Gambar kerja rakitan engkol-peluncur: komponen, joint, dan ukuran yang dipakai langkah",
+                 f"Satuan mm. Atas: skema rakitan tampak atas dengan Revolute engkol–dasar dikunci {TH_ENG}° (langkah 5); O, A, dan B adalah pusat lubang ⌀{PR_LUBANG} "
+                 f"yang disambung Revolute (langkah 3–4), peluncur bergeser pada alur rel sumbu X (Slider), sehingga jarak O → B = x = {ind(X_PEL, 3)} untuk r = {R_ENG} dan l = {L_BAT}; "
+                 "titik 0° dan 180° pada lintasan pin A adalah posisi uji tabrakan langkah 6. Bawah: keempat Body langkah 1 bernomor seperti Balloon 1–4, "
+                 "dengan panah merah-hijau di titik asal Body (pusat lubang pertama). Langkah tidak menetapkan letak lubang poros pada pelat dasar, ukuran alur rel, "
+                 "dan lebar pelat engkol/batang, jadi bagian itu digambar tanpa ukuran.", gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>

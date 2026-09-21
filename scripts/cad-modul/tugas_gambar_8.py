@@ -4,12 +4,19 @@
 # varian per NIM tidak digambar. Dipakai tugas_gambar.tugas_gambar(8) / periksa_*.py.
 import math
 import pathlib
+import re
 import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from tugas_gambar import (AM, AX, BL, CY, GN, GR, PK, RD, TX, VI, _panah, catatan, dim_h, dim_v, ext, gambar_tugas,  # noqa: E402,F401
                           iso, lingkar3d, poli, sumbu2d, sumbu3d, t)
+
+
+def _geser(bag, teks, dx, dy):
+    """Geser <text> berisi tepat `teks` (keluaran helper bersama, mis. sumbu3d) sejauh (dx, dy)."""
+    return re.sub(rf'<text x="([\d.\-]+)" y="([\d.\-]+)"([^>]*)>{re.escape(teks)}</text>',
+                  lambda m: f'<text x="{float(m.group(1)) + dx:.1f}" y="{float(m.group(2)) + dy:.1f}"{m.group(3)}>{teks}</text>', bag, count=1)
 
 
 def _dinding(x, y0, y1):
@@ -37,7 +44,7 @@ def gambar():
     a, b, h = 240, 48, 26
     dasar = [iso(x, y, 0, cx, cy, s) for x, y in [(0, 0), (a, 0), (a, b), (0, b)]]
     atas = [iso(x, y, h, cx, cy, s) for x, y in [(0, 0), (a, 0), (a, b), (0, b)]]
-    body = sumbu3d(46, 214, 0.5, 40)
+    body = _geser(sumbu3d(46, 214, 0.5, 40), "Y", -2, 0)  # label Y lepas dari kepala panah Z
     for i, j in [(0, 1), (1, 2), (2, 3), (3, 0)]:
         body += poli([dasar[i], dasar[j], atas[j], atas[i]], "rgba(34,211,238,.10)", "rgba(34,211,238,.6)", 1.1)
     body += poli(atas, "rgba(34,211,238,.22)", CY, 1.8)
@@ -49,11 +56,11 @@ def gambar():
     body += _panah(q0[0], q0[1], q1[0], q1[1], RD, 1.6)
     body += t(q0[0] + 6, q0[1] + 6, "F (−Z)", 10.5, RD, "start", "700")
     p = iso(a / 2, -10, 0, cx, cy, s)
-    body += t(p[0], p[1] + 14, "L (searah X)", 10, AM, "middle", "600")
+    body += t(p[0] + 2, p[1] + 16, "L (searah X)", 10, AM, "middle", "600")
     p = iso(a + 8, b / 2, 0, cx, cy, s)
     body += t(p[0] + 4, p[1] + 10, "b", 11, AM, "start", "600")
     p = iso(a + 6, 0, h / 2, cx, cy, s)
-    body += t(p[0] + 4, p[1] + 2, "h", 11, AM, "start", "600")
+    body += t(p[0] + 6, p[1] + 2, "h", 11, AM, "start", "600")
     body += catatan(["Part Box L × b × h (Length = X)", "Analysis: baja E, ν, ρ = 7850", "Mesh Gmsh orde 2, Fixed x = 0", "Force F (−Z) di ujung, solver", "  CalculiX static → CCX_Results", "baca: m = 7,85×10⁻³ × V (g)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 1 — kantilever L × b × h dengan Analysis statik dan bacaan massa"))
 
@@ -72,7 +79,7 @@ def gambar():
     body += dim_h(ox, ox + Lw, oy + Hh + dpx + 24, "L", atas=False)
     body += ext(ox, oy + Hh + dpx, ox, oy + Hh + dpx + 32) + ext(ox + Lw, oy + Hh + dpx, ox + Lw, oy + Hh + dpx + 32)
     body += dim_v(ox - 16, oy, oy + Hh, "h = 10")
-    body += t(ox + 10, oy - 16, "x = 0", 9.5, AX, "start") + t(ox + Lw / 2, oy + Hh + 14, "b = 20 (tegak lurus bidang)", 9.5, AX, "middle")
+    body += t(ox + 10, oy - 16, "x = 0", 9.5, AX, "start") + t(ox + Lw / 2 - 6, oy + Hh + 32, "b = 20 (tegak lurus bidang)", 9.5, AX, "middle")
     body += t(ox + 8, oy + Hh + dpx + 4, "σ maks", 9.5, AM, "start", "600")
     body += catatan(["Box L × 20 × 10 mm (Length = X)", "Fixed muka x = 0; Force F (−Z)", "  di muka ujung bebas x = L", "Mesh Gmsh orde 2 ≤ 2,5 mm", "δ = F·L³/(3·E·I), I = b·h³/12", "E = 210000 MPa; baca: δ (mm)", "bandingkan: DisplacementLengths"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 2 — kantilever L × 20 × 10 dan defleksi teoretis δ"))
@@ -86,7 +93,7 @@ def gambar():
     for i in range(5):
         xx = ox + 30 + i * 36
         body += _garis(xx, oy + 4, xx, oy + Hh - 4, "rgba(0,224,158,.5)", 0.8, "2 2")
-    body += t(ox + Lw / 2, oy + Hh / 2 + 4, "σ = F/A seragam", 10, GR, "middle", "600")
+    body += t(ox + Lw / 2, oy - 6, "σ = F/A seragam", 10, GR, "middle", "600")  # di atas batang: tidak dicoret garis penanda σ
     body += dim_h(ox, ox + Lw, oy - 22, "L") + ext(ox, oy, ox, oy - 30) + ext(ox + Lw, oy, ox + Lw, oy - 30)
     body += t(ox + 10, oy + Hh + 18, "x = 0 (Fixed)", 9.5, PK, "start", "600") + t(ox + Lw - 4, oy + Hh + 18, "x = L", 9.5, AX, "end")
     # penampang
@@ -132,7 +139,7 @@ def gambar():
         dd = f' stroke-dasharray="{dash}"' if dash else ""
         body += f'<polyline points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="none" stroke="{VI}" stroke-width="2.4"{dd}/>'
     body += _garis(ox + Lw + 12, oy - 40, ox + Lw + 12, oy + 40, GR, 1, "3 2")
-    body += t(ox + Lw + 18, oy + 4, "mode 1", 10, VI, "start", "600")
+    body += t(ox + Lw + 6, oy - 46, "mode 1", 10, VI, "end", "600")  # di ujung atas bentuk mode, jauh dari kolom catatan
     body += dim_h(ox, ox + Lw, oy + 62, "L", atas=False) + ext(ox, oy + 40, ox, oy + 70) + ext(ox + Lw, oy + 40, ox + Lw, oy + 70)
     body += t(ox + 10, oy - 50, "Fixed x = 0, tanpa beban", 9.5, PK, "start", "600")
     body += t(ox + Lw / 2, oy + 90, "penampang 20 × h (h searah getar)", 9.5, AX, "middle")

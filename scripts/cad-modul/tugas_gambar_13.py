@@ -3,11 +3,18 @@
 # varian tiap NIM dimuat server. Dipakai bangun.py lewat tugas_gambar.tugas_gambar(13).
 import math
 import pathlib
+import re
 import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from tugas_gambar import gambar_tugas, catatan, dim_h, dim_v, ext, sumbu2d, sumbu3d, iso, lingkar3d, poli, _panah, CY, AM, GR, VI, PK, RD, GN, BL, AX, TX, t  # noqa: E402,F401
+
+
+def _geser(bag, teks, dx, dy):
+    """Geser <text> berisi tepat `teks` (keluaran helper bersama, mis. sumbu3d) sejauh (dx, dy)."""
+    return re.sub(rf'<text x="([\d.\-]+)" y="([\d.\-]+)"([^>]*)>{re.escape(teks)}</text>',
+                  lambda m: f'<text x="{float(m.group(1)) + dx:.1f}" y="{float(m.group(2)) + dy:.1f}"{m.group(3)}>{teks}</text>', bag, count=1)
 
 
 def _silinder(cx0, cy0, z0, z1, r, cx, cy, s, isi, garis, n=32):
@@ -39,7 +46,7 @@ def gambar():
     a, b, tt, d = 150, 95, 18, 36
     dasar = [iso(x, y, 0, cx, cy, s) for x, y in [(0, 0), (a, 0), (a, b), (0, b)]]
     atas = [iso(x, y, tt, cx, cy, s) for x, y in [(0, 0), (a, 0), (a, b), (0, b)]]
-    body = sumbu3d(cx, cy, s, 40)
+    body = _geser(_geser(sumbu3d(cx, cy, s, 40), "Y", 6, -8), "X", -2, -2)  # label sumbu lepas dari rusuk pelat
     for i, j in [(0, 1), (1, 2), (2, 3), (3, 0)]:
         body += poli([dasar[i], dasar[j], atas[j], atas[i]], "rgba(34,211,238,.10)", "rgba(34,211,238,.6)", 1.1)
     body += poli(atas, "rgba(34,211,238,.22)", CY, 1.8)
@@ -49,7 +56,7 @@ def gambar():
     p = iso(a / 2, -4, 0, cx, cy, s)
     body += t(p[0] - 6, p[1] + 18, "a", 11.5, CY, "middle", "700")
     p = iso(a + 4, b / 2, 0, cx, cy, s)
-    body += t(p[0] + 12, p[1] + 12, "b", 11.5, CY, "start", "700")
+    body += t(p[0] + 24, p[1] + 12, "b", 11.5, CY, "start", "700")  # lepas dari rusuk kanan pelat
     p = iso(0, b, tt / 2, cx, cy, s)
     body += t(p[0] - 10, p[1] + 4, "t", 11.5, CY, "end", "700")
     body += catatan(["Body: Sketch XY a × b (sudut", "  kiri-bawah di titik asal)", "  → Pad t mm", "Sketch muka atas: ⌀d di pusat", "  → Pocket Through all", "baca: massa aluminium (g)"], 330, 40)
@@ -58,7 +65,7 @@ def gambar():
     # ── T2 — tabung aluminium ⌀D/⌀d × L (energi terkandung) ──────────────────
     cx, cy, s = 128, 196, 1.05
     D, di, L = 62, 44, 120
-    body = sumbu3d(cx, cy, s, 34)
+    body = sumbu3d(cx + 80, cy, s, 30)  # triad sumbu di luar tabung (label tidak menimpa garis faset)
     body += _silinder(0, 0, 0, L, D / 2, cx, cy, s, "rgba(34,211,238,.20)", CY)
     body += poli(lingkar3d(0, 0, L, di / 2, cx, cy, s), "#0a101f", AM, 1.6)
     p = iso(D / 2, 0, L, cx, cy, s)
@@ -87,8 +94,8 @@ def gambar():
     body += t(X(a3 * 0.62), Z(c3 * 0.62), "serpihan", 10, RD, "middle", "600")
     body += t(X(a3 * 0.7), Z(t3 / 2) + 4, "t", 11, CY, "middle", "700")
     body += t(X(t3 / 2), Z(c3 * 0.78), "t", 11, CY, "middle", "700")
-    body += ext(X(0), Z(0) + 4, X(0), oy + 28) + ext(X(a3), Z(0) + 4, X(a3), oy + 28)
-    body += dim_h(X(0), X(a3), oy + 22, "a", AM, atas=False)
+    body += ext(X(0), Z(0) + 4, X(0), oy + 22) + ext(X(a3), Z(0) + 4, X(a3), oy + 22)
+    body += dim_h(X(0), X(a3), oy + 16, "a", AM, atas=False)  # >= 6 px dari tepi bawah
     body += dim_v(X(a3) + 22, Z(c3), Z(0), "c", AM, kiri=False)
     body += t(X(a3 / 2), 30, "profil L pada bidang XZ, di-Pad sedalam b", 10, AX, "middle")
     body += catatan(["Body: Sketch XZ profil L enam", "  titik (lebar a, tinggi c,", "  tebal kaki t) → Pad b (arah Y)", "Pembanding: Part → Box a × b × c", "U = 100·V_braket/V_billet", "baca: U (%, 3 desimal)"], 330, 40)
@@ -117,7 +124,7 @@ def gambar():
     a5, b5, t5, c5, hc5 = 165, 110, 16, 62, 52
     dasar = [iso(x, y, 0, cx, cy, s5) for x, y in [(0, 0), (a5, 0), (a5, b5), (0, b5)]]
     atas = [iso(x, y, t5, cx, cy, s5) for x, y in [(0, 0), (a5, 0), (a5, b5), (0, b5)]]
-    body = sumbu3d(cx, cy, s5, 40)
+    body = _geser(_geser(_geser(sumbu3d(cx, cy, s5, 40), "Y", 4, -6), "X", 6, 10), "Z", 0, 2)  # label sumbu lepas dari rusuk
     for i, j in [(0, 1), (1, 2), (2, 3), (3, 0)]:
         body += poli([dasar[i], dasar[j], atas[j], atas[i]], "rgba(34,211,238,.10)", "rgba(34,211,238,.6)", 1.1)
     body += poli(atas, "rgba(34,211,238,.22)", CY, 1.8)
@@ -132,10 +139,10 @@ def gambar():
     p = iso(a5 / 2, -4, 0, cx, cy, s5)
     body += t(p[0] - 6, p[1] + 18, "a", 11.5, CY, "middle", "700")
     p = iso(a5 + 4, b5 / 2, 0, cx, cy, s5)
-    body += t(p[0] + 12, p[1] + 12, "b", 11.5, CY, "start", "700")
+    body += t(p[0] + 24, p[1] + 12, "b", 11.5, CY, "start", "700")  # lepas dari rusuk kanan pelat
     p = iso(0, b5, t5 / 2, cx, cy, s5)
     body += t(p[0] - 10, p[1] + 4, "t", 11.5, CY, "end", "700")
-    body += t(cx - 10, 224, "pelat baja (ρ_st, f_st) + blok aluminium (ρ_al, f_al)", 9.5, AX, "middle")
+    body += t(cx, 224, "pelat baja (ρ_st, f_st) + blok aluminium (ρ_al, f_al)", 9.5, AX, "middle")
     body += catatan(["Body pelat: Sketch XY a × b", "  → Pad t (baja)", "Body blok: Sketch muka atas,", "  persegi c × c di pusat pelat", "  → Pad h_c (aluminium)", "Spreadsheet: Σ fᵢ·ρᵢ·Vᵢ", "baca: jejak CO₂ total (kg)"], 330, 34)
     out.append(gambar_tugas(body, "Tugas 5 — rakitan pelat baja dan blok aluminium: jejak CO₂ total", h=246))
     return out
