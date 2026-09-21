@@ -11,7 +11,7 @@ SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
-from tugas_gambar import tugas_gambar_html  # noqa: E402
+from tugas_gambar import AM, CY, GN, RD, _panah, dim_h, dim_v, ext, tugas_gambar_html  # noqa: E402
 
 NOMOR = 1
 JUDUL = "Pengenalan FreeCAD dan Menggambar 2D"
@@ -89,7 +89,7 @@ def gambar2():
     b += t(30, 252, ">>> App.ActiveDocument.Cut.Shape.Area", 9.5, "#00e09e", "start")
     b += t(30, 265, f"{LUAS_BERSIH_CONTOH:.2f}      ← Python console (View → Panels → Python console)", 9.5, AX, "start")
     b += t(335, 292, "Status bar: koordinat kursor, mode navigasi, dan pratinjau perintah", 11, AX)
-    return svg(670, 300, b, "Gambar 2 — Tata letak jendela FreeCAD 1.0")
+    return svg(670, 304, b, "Gambar 2 — Tata letak jendela FreeCAD 1.0")
 
 
 def gambar3():
@@ -132,14 +132,14 @@ def gambar4():
         x1, y1 = _iso(0, 0, 0)
         b += arrow(x1, y1, x2, y2, c, 1.8)
         b += t(x2 + (8 if n != "Y" else -10), y2 + (4 if n != "Z" else -6), n, 12, c, "middle", "700")
-    tx, ty = _iso(L, 0, 0)
-    b += t(tx + 10, ty + 18, "Top (XY)", 11, "#22d3ee", "start")
+    tx, ty = _iso(L, 0, 0)                     # di bawah sudut kanan bidang Top, di antara tepi bidang dan sumbu X
+    b += t(tx - 12, ty + 30, "Top (XY)", 11, "#22d3ee", "start")
     tx, ty = _iso(L, 0, L)
     b += t(tx + 8, ty, "Front (XZ)", 11, "#f97316", "start")
     tx, ty = _iso(0, L, L)
     b += t(tx - 8, ty, "Side (YZ)", 11, "#a855f7", "end")
-    tx, ty = _iso(12 + a, 12 + bb, 0)
-    b += t(tx + 8, ty + 12, "(12, 12) pada Top", 10, "#00e09e", "start")
+    tx, ty = _iso(12 + a, 12 + bb, 0)          # label di bawah persegi hijau, di dalam bidang Top (bebas dari tepi bidang)
+    b += t(_iso(0, 0, 0)[0], ty + 12, "(12, 12) pada Top", 10, "#00e09e", "middle")
     b += teks2(330, 288, "Koordinat (u, v) yang diketik di Draft ditafsirkan pada bidang kerja aktif; Placement menyimpan posisi dan rotasinya di ruang global", 11, AX)
     return svg(660, 314, b, "Gambar 4 — Sistem koordinat global dan tiga bidang kerja Draft")
 
@@ -197,6 +197,72 @@ def gambar6():
     b += t(450, 150, f"x̄ = ({ind(A1_L, 0)}·{ind(W_L / 2, 0)} + {ind(A2_L, 0)}·{ind(T_L / 2, 1)})", 10.5, AX, "start")
     b += t(450, 168, f"     / ({ind(A1_L, 0)} + {ind(A2_L, 0)}) = {ind(XB_L, 3)} mm", 10.5, "#00e09e", "start")
     return svg(670, 250, b, "Gambar 6 — Titik berat profil L sebagai gabungan dua persegi panjang")
+
+
+def _putus(pts, pola=(8, 3, 2, 3)):
+    """Garis sumbu (rantai) sebagai potongan-potongan path nyata di sepanjang polyline pts.
+
+    MuPDF (generator Modul-Word) mengabaikan stroke-dasharray sehingga garis rantai
+    tercetak utuh; potongan manual ini tetap putus-putus di peramban maupun di Word.
+    """
+    d, k, sisa = [], 0, pola[0]
+    for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
+        L, pos = math.hypot(x2 - x1, y2 - y1), 0.0
+        while L - pos > 1e-6:
+            step = min(sisa, L - pos)
+            if k % 2 == 0:
+                a, c = pos / L, (pos + step) / L
+                d.append(f"M {x1 + (x2 - x1) * a:.1f} {y1 + (y2 - y1) * a:.1f} L {x1 + (x2 - x1) * c:.1f} {y1 + (y2 - y1) * c:.1f}")
+            pos += step
+            sisa -= step
+            if sisa <= 1e-6:
+                k = (k + 1) % len(pola)
+                sisa = pola[k]
+    return " ".join(d)
+
+
+def gambar7():
+    """Gambar kerja praktik terbimbing (bagian 09): pelat berlubang, pandangan atas bidang Top (XY).
+
+    Ukuran memakai konstanta yang sama dengan teks langkah 3–4 (A_CONTOH, B_CONTOH, D_CONTOH),
+    termasuk bentuk tulisannya (pusat A/4 dan 3A/4, radius D/2), jadi gambar dan langkah tidak
+    dapat berbeda angka.
+    """
+    s, ox, oy = 3.6, 120, 272                   # skala px/mm; titik asal (0, 0) = sudut kiri-bawah pelat
+    X = lambda x: ox + x * s
+    Y = lambda y: oy - y * s
+    rp = D_CONTOH / 2 * s                       # jari-jari lubang (px)
+    lubang = [(A_CONTOH // 4, B_CONTOH // 2), (3 * A_CONTOH // 4, B_CONTOH // 2)]
+    (x1, yl), (x2, _) = lubang
+    b = f'<rect x="{X(0):.1f}" y="{Y(B_CONTOH):.1f}" width="{A_CONTOH * s:.1f}" height="{B_CONTOH * s:.1f}" fill="{CY}" fill-opacity=".12" stroke="{CY}" stroke-width="2"/>'
+    for cx, cy in lubang:
+        b += f'<circle cx="{X(cx):.1f}" cy="{Y(cy):.1f}" r="{rp:.1f}" fill="#0a101f" stroke="{CY}" stroke-width="2"/>'
+        sumbu = _putus([(X(cx) - rp - 6, Y(cy)), (X(cx) + rp + 6, Y(cy))]) + " " + _putus([(X(cx), Y(cy) - rp - 5), (X(cx), Y(cy) + rp + 6)])
+        b += f'<path d="{sumbu}" fill="none" stroke="{RD}" stroke-width=".8"/>'
+        b += t(X(cx), Y(cy) - rp - 13, f"({cx}, {cy})", 10.5, CY, "middle", "600")
+    # ukuran pelat (langkah 3)
+    b += ext(X(0), Y(B_CONTOH) - 4, X(0), Y(B_CONTOH) - 30) + ext(X(A_CONTOH), Y(B_CONTOH) - 4, X(A_CONTOH), Y(B_CONTOH) - 30)
+    b += dim_h(X(0), X(A_CONTOH), Y(B_CONTOH) - 24, f"{A_CONTOH}")
+    b += ext(X(A_CONTOH) + 4, Y(B_CONTOH), X(A_CONTOH) + 32, Y(B_CONTOH)) + ext(X(A_CONTOH) + 4, Y(0), X(A_CONTOH) + 32, Y(0))
+    b += dim_v(X(A_CONTOH) + 26, Y(B_CONTOH), Y(0), f"{B_CONTOH}", kiri=False)
+    # pusat lubang diukur dari titik asal (langkah 4)
+    b += ext(X(0), Y(0) + 4, X(0), Y(0) + 62)
+    b += ext(X(x1), Y(yl) + rp + 7, X(x1), Y(0) + 36) + ext(X(x2), Y(yl) + rp + 7, X(x2), Y(0) + 62)
+    b += dim_h(X(0), X(x1), Y(0) + 30, f"{x1}") + dim_h(X(0), X(x2), Y(0) + 56, f"{x2}")
+    b += ext(X(x1) - rp - 7, Y(yl), X(0) - 32, Y(yl)) + ext(X(0) - 4, Y(0), X(0) - 32, Y(0))
+    b += dim_v(X(0) - 26, Y(yl), Y(0), f"{yl}")
+    # radius lubang: garis penunjuk 45° ke tepi lubang kanan, berlaku untuk kedua lubang
+    ca = math.cos(math.radians(45))
+    px, py = X(x2) + rp * ca, Y(yl) - rp * ca
+    qx, qy = X(x2) + (rp + 24) * ca, Y(yl) - (rp + 24) * ca
+    b += _panah(qx, qy, px, py, AM, 1) + f'<line x1="{qx:.1f}" y1="{qy:.1f}" x2="{qx + 12:.1f}" y2="{qy:.1f}" stroke="{AM}" stroke-width="1"/>'
+    b += t(qx + 16, qy + 4, f"2× R{D_CONTOH / 2:g}", 11, AM, "start", "600")
+    # titik asal dan arah sumbu (langkah 3: sudut pertama 0, 0, 0)
+    b += _panah(X(0), Y(0), X(0) + 40, Y(0), RD, 1.6) + _panah(X(0), Y(0), X(0), Y(0) - 40, GN, 1.6)
+    b += t(X(0) + 44, Y(0) - 6, "X", 11, RD, "start", "700") + t(X(0) + 7, Y(0) - 42, "Y", 11, GN, "start", "700")
+    b += f'<circle cx="{X(0):.1f}" cy="{Y(0):.1f}" r="3" fill="{TX}"/>' + t(X(0) - 8, Y(0) + 17, "(0, 0)", 10.5, TX, "end", "600")
+    b += t(664, 22, "Satuan: mm", 10.5, AX, "end") + t(664, 334, "Pandangan atas, bidang Top (XY)", 10.5, AX, "end")
+    return svg(680, 346, b, f"Gambar 7 — Gambar kerja pelat {A_CONTOH} × {B_CONTOH} dengan dua lubang")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -494,7 +560,8 @@ for o in doc.Objects:                                     # semua objek pada poh
                ("5", "Buang lubang", "Pindah ke workbench <strong>Part</strong>. Pilih Rectangle, Ctrl+klik Circle → Part → Boolean → Cut. Pilih Cut, Ctrl+klik Circle001 → Cut lagi. Hasil: Cut001."),
                ("6", "Baca luas", f"Buka Python console: <code>App.ActiveDocument.Cut001.Shape.Area</code> → {ind(LUAS_BERSIH_CONTOH, 2)} mm². Bandingkan dengan Persamaan (4)."),
                ("7", "Simpan dan periksa", "Ctrl+S → <code>Latihan1_NIM.FCStd</code>. Buka berkas dengan pengarsip ZIP dan pastikan ada Document.xml. Berkas seperti inilah yang diunggah pada tab Tugas.")]
-    isi = '  <div class="cards reveal">\n'
+    isi = figure(7, "Benda kerja praktik terbimbing: pelat berlubang", "Pandangan atas pada bidang Top (XY), satuan mm. Sudut kiri-bawah pelat berada di titik asal (0, 0); ukuran pelat diketik pada langkah 3, pusat dan radius kedua lubang pada langkah 4, lalu kedua lubang dibuang dengan Cut pada langkah 5.", gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>

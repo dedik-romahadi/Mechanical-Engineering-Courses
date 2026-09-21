@@ -11,6 +11,7 @@ SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
+from tugas_gambar import AM, CY, GN, RD, _panah, dim_h, dim_v, ext  # noqa: E402
 
 NOMOR = 4
 JUDUL = "Dimensi, Anotasi, dan Format Gambar Teknik"
@@ -32,18 +33,20 @@ N_CH, T_CH = 4, 0.2
 
 # ─────────────────────────── gambar ───────────────────────────
 def _dim(x1, y1, x2, y2, teks, warna, ofs, size=10, lab=1.35, dy=3.5):
-    dx, dy = x2 - x1, y2 - y1
-    L = math.hypot(dx, dy) or 1
-    nx, ny = -dy / L * ofs, dx / L * ofs
-    ux, uy = dx / L, dy / L
+    # dy = geser garis dasar teks (sebelum diputar); selisih titik dimensi memakai vx, vy agar dy tidak tertimpa
+    # (dulu tertimpa: label dimensi tegak/miring bergeser sejauh panjang dimensinya, "70" Gambar 1 keluar kanvas).
+    vx, vy = x2 - x1, y2 - y1
+    L = math.hypot(vx, vy) or 1
+    nx, ny = -vy / L * ofs, vx / L * ofs
+    ux, uy = vx / L, vy / L
     out = f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x1 + nx * 1.15:.1f}" y2="{y1 + ny * 1.15:.1f}" stroke="{warna}" stroke-width="1"/>'
     out += f'<line x1="{x2:.1f}" y1="{y2:.1f}" x2="{x2 + nx * 1.15:.1f}" y2="{y2 + ny * 1.15:.1f}" stroke="{warna}" stroke-width="1"/>'
     out += f'<line x1="{x1 + nx:.1f}" y1="{y1 + ny:.1f}" x2="{x2 + nx:.1f}" y2="{y2 + ny:.1f}" stroke="{warna}" stroke-width="1"/>'
     for px, py, s in ((x1 + nx, y1 + ny, 1), (x2 + nx, y2 + ny, -1)):
         out += f'<polygon points="{px:.1f},{py:.1f} {px + s * ux * 8 - uy * 3:.1f},{py + s * uy * 8 + ux * 3:.1f} {px + s * ux * 8 + uy * 3:.1f},{py + s * uy * 8 - ux * 3:.1f}" fill="{warna}"/>'
     mx, my = (x1 + x2) / 2 + nx * lab, (y1 + y2) / 2 + ny * lab
-    ang = math.degrees(math.atan2(dy, dx))
-    if ang > 90 or ang < -90:
+    ang = math.degrees(math.atan2(vy, vx))
+    if ang >= 90 or ang < -90:            # teks tegak dibaca dari kanan (ISO 129), bukan dari kiri
         ang += 180
     out += f'<text x="{mx:.1f}" y="{my + dy:.1f}" text-anchor="middle" font-size="{size}" fill="{warna}" font-family="\'JetBrains Mono\',monospace" transform="rotate({ang:.1f} {mx:.1f} {my:.1f})">{teks}</text>'
     return out
@@ -64,13 +67,13 @@ def gambar1():
     b += _dim(X(0), Y(0), X(a), Y(0), str(a), "#00e09e", 26)
     b += _dim(X(0), Y(bb), X(0), Y(0), str(bb), "#00e09e", 30)
     b += _dim(X(0), Y(bb), X(a / 2), Y(bb), f"{a // 2}", "#00e09e", -26)
-    b += _dim(X(a), Y(bb - c), X(a - c), Y(bb), f"C{c}", "#f59e0b", -16, 9)
+    b += _dim(X(a), Y(bb - c), X(a - c), Y(bb), f"C{c}", "#f59e0b", 16, 9, 1.65)    # aligned di luar kontur
     ang = math.pi / 4
     b += f'<line x1="{X(a / 2) + d / 2 * s * math.cos(ang):.1f}" y1="{Y(bb / 2) + d / 2 * s * math.sin(ang):.1f}" x2="{X(a / 2) + (d / 2 * s + 34) * math.cos(ang):.1f}" y2="{Y(bb / 2) + (d / 2 * s + 34) * math.sin(ang):.1f}" stroke="#a855f7" stroke-width="1"/>'
     b += t(X(a / 2) + (d / 2 * s + 40) * math.cos(ang), Y(bb / 2) + (d / 2 * s + 40) * math.sin(ang) + 4, f"⌀{d} tembus", 10.5, "#a855f7", "start")
     rr = c * s * 0.9
     b += f'<path d="M {X(a) - rr:.1f} {Y(bb - c):.1f} A {rr} {rr} 0 0 1 {X(a) - rr * 0.707:.1f} {Y(bb - c) - rr * 0.707:.1f}" fill="none" stroke="#ec4899" stroke-width="1.2"/>'
-    b += t(X(a) - rr * 1.9, Y(bb - c) - rr * 0.9, "45°", 10, "#ec4899")
+    b += t(X(a) - rr * 1.36, Y(bb - c) - rr * 0.44, "45°", 10, "#ec4899")            # di dalam pelat, di luar busur
     b += t(462, 60, "Satu gambar kerja memuat:", 11.5, TX, "start", "600")
     for i, (kk, v) in enumerate([("hijau", "linear (ukuran & posisi)"), ("kuning", "aligned sisi miring"), ("ungu", "diameter ⌀ + leader"), ("merah muda", "angular 45°"), ("merah", "sumbu lubang (layer Sumbu)")]):
         b += t(462, 84 + i * 20, f"• {kk}: {v}", 10.5, AX, "start")
@@ -119,7 +122,7 @@ def gambar3():
     r = D_SL / 2
     b += f'<path d="M {ox} {oy - r * s} H {ox + L_SL * s} A {r * s} {r * s} 0 0 1 {ox + L_SL * s} {oy + r * s} H {ox} A {r * s} {r * s} 0 0 1 {ox} {oy - r * s} Z" fill="rgba(0,224,158,.12)" stroke="#00e09e" stroke-width="2"/>'
     b += _dim(ox, oy, ox + L_SL * s, oy, str(L_SL), "#f59e0b", -(r * s + 22), 9.5)
-    b += _dim(ox - r * s, oy + r * s, ox + (L_SL + r) * s, oy + r * s, str(L_SL + D_SL), "#f59e0b", 20, 9.5)
+    b += _dim(ox - r * s, oy + r * s, ox + (L_SL + r) * s, oy + r * s, str(L_SL + D_SL), "#f59e0b", 20, 9.5, 1.3)
     b += f'<line x1="{ox + L_SL * s}" y1="{oy}" x2="{ox + L_SL * s + r * s * math.cos(-0.7):.1f}" y2="{oy + r * s * math.sin(-0.7):.1f}" stroke="#f97316" stroke-width="1"/>'
     b += t(ox + L_SL * s + r * s * math.cos(-0.7) + 4, oy + r * s * math.sin(-0.7) - 4, f"R{r:g}", 10.5, "#f97316", "start")
     b += t(ox + L_SL * s / 2, oy + r * s + 44, f"slot: 2·r·L + π·r² = {ind(LUAS_SLOT, 2)} mm²", 10.5, TX)
@@ -156,8 +159,8 @@ def gambar5():
     # view
     b += f'<rect x="120" y="60" width="150" height="90" fill="rgba(34,211,238,.10)" stroke="#22d3ee" stroke-width="1.6"/>'
     b += f'<circle cx="195" cy="105" r="16" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/>'
-    b += _dim(120, 150, 270, 150, "120", "#00e09e", 18, 9)
-    b += _dim(120, 60, 120, 150, "70", "#00e09e", -18, 9)
+    b += _dim(120, 150, 270, 150, "120", "#00e09e", 18, 9, 1.3)
+    b += _dim(120, 60, 120, 150, "70", "#00e09e", 18, 9)                              # di kiri view, bukan di dalamnya
     b += t(195, 190, "View (skala 1:2)", 9.5, AX)
     # title block
     b += f'<rect x="210" y="195" width="170" height="45" fill="rgba(255,255,255,.03)" stroke="#94a3b8" stroke-width="1"/>'
@@ -179,7 +182,7 @@ def gambar5():
 def gambar6():
     b = ""
     s = 2.4
-    ox, oy = 70, 200
+    ox, oy = 150, 90                      # digeser ke kanan-atas: dulu separuh atas kanvas kosong dan gambar menepi kiri
     X = lambda x: ox + x * s
     Y = lambda y: oy - y * s
     xs = [0]
@@ -190,13 +193,107 @@ def gambar6():
     b += f'<line x1="{X(-6)}" y1="{Y(0)}" x2="{X(xs[3] + 6)}" y2="{Y(0)}" stroke="#ef4444" stroke-width=".9" stroke-dasharray="10 3 2 3"/>'
     for i, l in enumerate(L_P):
         b += _dim(X(xs[i]), Y(0), X(xs[i + 1]), Y(0), str(l), "#f59e0b", 26, 9.5)
-    b += _dim(X(0), Y(0), X(xs[3]), Y(0), str(xs[3]), "#f59e0b", 48, 9.5)
+    b += _dim(X(0), Y(0), X(xs[3]), Y(0), str(xs[3]), "#f59e0b", 48, 9.5, 1.19)     # label sejarak label berantai dari garisnya
     for i, h in enumerate(H_P):
         xm = (xs[i] + xs[i + 1]) / 2
-        b += _dim(X(xs[i + 1]), Y(h), X(xs[i + 1]), Y(0), str(h), "#00e09e", -(14 + (2 - i) * 0), 9)
+        b += _dim(X(xs[i + 1]), Y(h), X(xs[i + 1]), Y(0), str(h), "#00e09e", -(14 + (2 - i) * 0), 9, 1.55)     # label tegak tidak menempel garis
     b += t(X(xs[3]) + 20, Y(H_P[1]) + 4, f"luas = Σ lᵢ·hᵢ = {ind(LUAS_PROFIL, 0)} mm²", 10.5, TX, "start")
-    b += teks2(340, 288, "Setengah profil poros bertingkat: panjang tingkat berantai (kuning), tinggi tiap tingkat vertikal (hijau), sumbu sebagai garis rantai merah", 11, AX, maks=70)
-    return svg(680, 314, b, "Gambar 6 — Pendimensian setengah profil poros bertingkat")
+    b += teks2(340, 178, "Setengah profil poros bertingkat: panjang tingkat berantai (kuning), tinggi tiap tingkat vertikal (hijau), sumbu sebagai garis rantai merah", 11, AX, maks=70)
+    return svg(680, 204, b, "Gambar 6 — Pendimensian setengah profil poros bertingkat")
+
+
+def _kepala(xt, yt, ux, uy, warna=AM):
+    """Kepala panah dimensi (panjang 7, lebar 6) berujung di (xt, yt), menunjuk searah vektor satuan (ux, uy)."""
+    bx, by = xt - 7 * ux, yt - 7 * uy
+    return f'<polygon points="{xt:.1f},{yt:.1f} {bx - 3 * uy:.1f},{by + 3 * ux:.1f} {bx + 3 * uy:.1f},{by - 3 * ux:.1f}" fill="{warna}"/>'
+
+
+def _putus(x1, y1, x2, y2, pola, gaya):
+    """Garis putus/rantai sebagai segmen eksplisit dalam satu <path>. Pengurai SVG MuPDF (generator Word)
+    mengabaikan stroke-dasharray, sehingga garis sumbu Dashdot akan tercetak utuh."""
+    L = math.hypot(x2 - x1, y2 - y1)
+    ux, uy = (x2 - x1) / L, (y2 - y1) / L
+    d, pos, i = "", 0.0, 0
+    while pos < L - 0.2:
+        seg = pola[i % len(pola)]
+        if i % 2 == 0:
+            e = min(pos + seg, L)
+            d += f"M{x1 + ux * pos:.1f} {y1 + uy * pos:.1f}L{x1 + ux * e:.1f} {y1 + uy * e:.1f}"
+        pos += seg
+        i += 1
+    return f'<path d="{d}" fill="none" {gaya}/>'
+
+
+def gambar7():
+    """Gambar kerja target praktik terbimbing (Bagian 09): semua angka memakai konstanta yang sama dengan teks langkah 2–4."""
+    b = ""
+    s = 2.4                                   # px per mm
+    ox, oy = 104, 258                         # titik asal (0, 0) = sudut kiri-bawah pelat
+    X = lambda x: ox + x * s
+    Y = lambda y: oy - y * s
+    a, bb, c, d = A_C, B_C, C_C, D_C
+    hx, hy = A_C // 2, B_C // 2               # pusat lubang, sama dengan langkah 2
+    r = d / 2 * s
+    b += t(X(0), 30, "Tampak Top (XY)", 11, AX, "start", "600")
+    b += t(660, 30, "Satuan: mm", 11, TX, "end", "600")
+    # layer Kontur: pelat berchamfer + lubang (hasil Cut)
+    pts = [(0, 0), (a, 0), (a, bb - c), (a - c, bb), (0, bb)]
+    b += '<polygon points="' + " ".join(f"{X(x):.1f},{Y(y):.1f}" for x, y in pts) + f'" fill="{CY}" fill-opacity=".12" stroke="{CY}" stroke-width="2"/>'
+    cx, cy = X(hx), Y(hy)
+    b += f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="#0a101f" stroke="{CY}" stroke-width="2"/>'
+    # layer Sumbu: dua garis sumbu lubang, gaya Dashdot
+    ps = r + 12
+    rantai = f'stroke="{RD}" stroke-width=".9"'
+    b += _putus(cx - ps, cy, cx + ps, cy, (8, 3, 2, 3), rantai) + _putus(cx, cy - ps, cx, cy + ps, (8, 3, 2, 3), rantai)
+    # titik asal dan arah sumbu
+    b += f'<circle cx="{X(0):.1f}" cy="{Y(0):.1f}" r="3" fill="{TX}"/>' + t(X(0) - 6, Y(0) + 15, "(0, 0)", 10, TX, "end", "600")
+    b += _panah(22, 312, 50, 312, RD, 1.4) + _panah(22, 312, 22, 284, GN, 1.4)
+    b += t(55, 316, "X", 10, RD, "start", "700") + t(22, 278, "Y", 10, GN, "middle", "700")
+    # layer Dimensi — bawah: baseline dari x = 0 (posisi lubang, lalu panjang)
+    y1, y2 = Y(0) + 22, Y(0) + 46
+    b += ext(X(0), Y(0) + 3, X(0), y2 + 6) + ext(X(a), Y(0) + 3, X(a), y2 + 6) + ext(cx, cy + ps + 2, cx, y1 + 6)
+    b += dim_h(X(0), cx, y1, str(hx)) + dim_h(X(0), X(a), y2, str(a))
+    # kiri: baseline dari y = 0 (posisi lubang, lalu lebar)
+    x1, x2 = X(0) - 20, X(0) - 50
+    b += ext(X(0) - 3, Y(0), x2 - 6, Y(0)) + ext(X(0) - 3, Y(bb), x2 - 6, Y(bb)) + ext(cx - ps - 2, cy, x1 - 6, cy)
+    b += dim_v(x1, cy, Y(0), str(hy)) + dim_v(x2, Y(bb), Y(0), str(bb))
+    # dua kaki chamfer: mendatar di atas, tegak di kanan
+    xa, xb, ya, yb = X(a - c), X(a), Y(bb), Y(bb - c)
+    yk, xk = ya - 24, xb + 22
+    b += ext(xa, ya - 3, xa, yk - 6) + ext(xb, yb - 3, xb, yk - 6) + dim_h(xa, xb, yk, str(c))
+    b += ext(xb + 3, yb, xk + 6, yb) + ext(xa + 3, ya, xk + 6, ya) + dim_v(xk, ya, yb, str(c), kiri=False)
+    # angular 45° antara sisi atas dan perpanjangan chamfer (sektor 45° di luar pelat)
+    ra = 30
+    b += ext(xa, ya, xa - 38 * math.cos(math.pi / 4), ya - 38 * math.sin(math.pi / 4))
+    p0 = (xa - ra, ya)
+    p1 = (xa - ra * math.cos(math.pi / 4), ya - ra * math.sin(math.pi / 4))
+    b += f'<path d="M {p0[0]:.1f} {p0[1]:.1f} A {ra} {ra} 0 0 1 {p1[0]:.1f} {p1[1]:.1f}" fill="none" stroke="{AM}" stroke-width="1"/>'
+    b += _kepala(p0[0], p0[1], 0, 1) + _kepala(p1[0], p1[1], math.cos(math.pi / 4), -math.sin(math.pi / 4))
+    b += t(xa - 44, ya - 14, "45°", 11, AM, "middle", "600")
+    # diameter lubang
+    ang = math.radians(35)
+    q0 = (cx - r * math.cos(ang), cy + r * math.sin(ang))
+    q1 = (cx + r * math.cos(ang), cy - r * math.sin(ang))
+    q2 = (cx + (r + 26) * math.cos(ang), cy - (r + 26) * math.sin(ang))
+    b += f'<line x1="{q0[0]:.1f}" y1="{q0[1]:.1f}" x2="{q2[0]:.1f}" y2="{q2[1]:.1f}" stroke="{AM}" stroke-width="1"/>'
+    b += f'<line x1="{q2[0]:.1f}" y1="{q2[1]:.1f}" x2="{q2[0] + 10:.1f}" y2="{q2[1]:.1f}" stroke="{AM}" stroke-width="1"/>'
+    b += _kepala(q0[0], q0[1], -math.cos(ang), math.sin(ang)) + _kepala(q1[0], q1[1], math.cos(ang), -math.sin(ang))
+    b += t(q2[0] + 14, q2[1] + 4, f"⌀{d}", 11, AM, "start", "600")
+    # Draft Label berpanah ke sisi chamfer (langkah 4)
+    pl = (xa + 0.4 * (xb - xa), ya + 0.4 * (yb - ya))
+    ujung = (pl[0] + 70, pl[1] - 69)
+    b += _panah(ujung[0], ujung[1], pl[0], pl[1], AM, 1) + f'<line x1="{ujung[0]:.1f}" y1="{ujung[1]:.1f}" x2="{ujung[0] + 12:.1f}" y2="{ujung[1]:.1f}" stroke="{AM}" stroke-width="1"/>'
+    b += t(ujung[0] + 16, ujung[1] + 4, f"C{c} × 45°", 11, AM, "start", "600")
+    # Draft Text dua baris (langkah 4): isinya ditulis mahasiswa
+    b += t(430, 232, "Bahan: …", 11, AM, "start") + t(430, 250, "Toleransi umum: …", 11, AM, "start")
+    # legenda layer
+    lx, ly = 470, 96
+    b += t(lx, ly - 22, "Layer:", 11, TX, "start", "600")
+    for i, (nama, warna, pola) in enumerate([("Kontur", CY, (26, 0)), ("Sumbu (Dashdot)", RD, (8, 3, 2, 3)), ("Dimensi (+ Label, Text)", AM, (26, 0))]):
+        yy = ly + i * 20
+        b += _putus(lx, yy - 4, lx + 26, yy - 4, pola, f'stroke="{warna}" stroke-width="2"')
+        b += t(lx + 34, yy, nama, 10.5, AX, "start")
+    return svg(680, 332, b, "Gambar 7 — Gambar kerja pelat berpinggul untuk praktik terbimbing")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -481,7 +578,10 @@ print(f"Pelat chamfer = {{bersih.Area:.2f}} mm^2 (rumus {{{A_C}*{B_C}-{C_C}**2/2
                ("5", "Periksa angka", f"Python console: App.ActiveDocument.Cut.Shape.Area → {ind(LUAS_CHAMFER, 2)} mm². Sembunyikan layer Dimensi (Spasi) dan pastikan kontur tetap bersih."),
                ("6", "Lembar TechDraw", "TechDraw → Page Default; pilih objek Cut → Insert View; Scale 1:1; isi kepala gambar (judul, bahan, skala, nama); tambahkan TechDraw Length dimension untuk membandingkan dengan Draft Dimension."),
                ("7", "Simpan dan ekspor", "Ctrl+S → <code>Latihan4_NIM.FCStd</code>; TechDraw → Export page as PDF sebagai latihan (PDF tidak diunggah, .FCStd yang diunggah).")]
-    isi = '  <div class="cards reveal">\n'
+    isi = figure(7, "Gambar kerja target praktik: pelat berpinggul berlubang",
+                 f"Satuan mm; tampak Top (XY) dengan titik asal (0, 0) di sudut kiri-bawah pelat. Kontur {A_C} × {B_C}, chamfer C{C_C}, dan lubang ⌀{D_C} di ({A_C // 2}, {B_C // 2}) dibuat pada langkah 2; dimensi {A_C}, {B_C}, baseline {A_C // 2} dan {B_C // 2}, ⌀{D_C}, dua kaki {C_C}, dan sudut 45° pada langkah 3; Label “C{C_C} × 45°” dan Draft Text dua baris (bahan, toleransi umum) pada langkah 4.",
+                 gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>

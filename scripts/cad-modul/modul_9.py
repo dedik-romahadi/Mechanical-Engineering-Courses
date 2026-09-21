@@ -12,6 +12,8 @@ SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
+from pustaka import BG  # noqa: E402
+from tugas_gambar import AM, CY, GN, PK, RD, VI, _panah, dim_h, dim_v, ext  # noqa: E402
 
 NOMOR = 9
 JUDUL = "Evaluasi Hasil Simulasi dan Analisis Kekuatan"
@@ -102,7 +104,7 @@ def gambar1():
     for i, s_ in enumerate(["Displacement (vektor, panjang)", "von Mises, Principal maks/min", "Max shear, Strain", "Temperature (analisis termal)", "Buckling factor (analisis tekuk)"]):
         b += t(440, 130 + i * 16, s_, 10, AX, "start")
     b += teks2(340, 222, "Alur baca: solve → objek hasil → pilih besaran → kontur dan min/maks → bandingkan dengan rumus, SF, dan batas", 11, AX, maks=92)
-    return svg(680, 240, b, "Gambar 1 — Alur membaca hasil FEM: objek hasil, kontur, min/maks, pembanding analitis")
+    return svg(680, 248, b, "Gambar 1 — Alur membaca hasil FEM: objek hasil, kontur, min/maks, pembanding analitis")
 
 
 def gambar2():
@@ -152,7 +154,7 @@ def gambar3():
     b += f'<polyline points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="none" stroke="#22d3ee" stroke-width="3"/>'
     b += arrow(xb, 30, xb, ya - 2, "#ef4444", 2) + t(xb + 8, 44, "F", 11, "#ef4444", "start", "700")
     b += arrow(xb + 14, ya, xb + 14, ya + 30, "#00e09e", 1.4) + t(xb + 20, ya + 20, "δ", 11, "#00e09e", "start", "700")
-    b += t(xa, 46, "kantilever, beban ujung", 10.5, "#22d3ee", "start", "600")
+    b += t(xa - 10, 46, "kantilever, beban ujung", 10.5, "#22d3ee", "start", "600")
     b += t(150, 124, "δ_maks = F·L³/(3·E·I) di ujung bebas", 10.5, "#22d3ee")
     # (b) tumpuan sederhana
     xa, xb, yb = 50, 250, 190
@@ -163,7 +165,7 @@ def gambar3():
     b += f'<polyline points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="none" stroke="#f59e0b" stroke-width="3"/>'
     b += arrow(150, 150, 150, yb - 2, "#ef4444", 2) + t(158, 164, "F", 11, "#ef4444", "start", "700")
     b += arrow(150 + 14, yb, 150 + 14, yb + 30, "#00e09e", 1.4) + t(170, yb + 20, "δ", 11, "#00e09e", "start", "700")
-    b += t(xa, 166, "tumpuan sederhana", 10.5, "#f59e0b", "start", "600")
+    b += t(xa - 10, 166, "tumpuan sederhana", 10.5, "#f59e0b", "start", "600")
     b += t(150, 244, "δ_maks = F·L³/(48·E·I) di tengah bentang", 10.5, "#f59e0b")
     b += t(452, 50, "Contoh:", 11, TX, "start", "600")
     b += t(452, 68, f"kantilever {F_C} N, L {L_C}, {B_C} × {H_C}", 10, AX, "start")
@@ -228,7 +230,7 @@ def gambar5():
     b += f'<polyline points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="none" stroke="#22d3ee" stroke-width="1.6"/>'
     for (x, y), s, n, k in zip(pts, KONV_SIG, KONV_N, range(4)):
         b += f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4" fill="#22d3ee"/>'
-        b += t(x, y + (18 if k == 3 else -8), ind(s, 1), 9, TX)
+        b += t(x, y + (18 if k >= 2 else -8), ind(s, 1), 9, TX)
         b += t(x, 176, ind(n, 0), 9.5, AX)
     b += t(500, 192, "jumlah elemen (skala log)", 10, AX) + t(gx0, 40, "σ_maks (MPa)", 10, AX, "start")
     b += teks2(340, 228, "Menghaluskan mesh (h-refinement) memperbanyak elemen ~ (1/h)³; tegangan maksimum mendekati nilai analitis dari bawah", 11, AX, maks=70)
@@ -242,7 +244,8 @@ def gambar6():
     b += f'<rect x="{px0}" y="{py0}" width="{px1 - px0}" height="{py1 - py0}" fill="rgba(34,211,238,.12)" stroke="#22d3ee" stroke-width="1.8"/>'
     b += f'<circle cx="{cx}" cy="{cy}" r="{rr}" fill="#0a101f" stroke="#a855f7" stroke-width="1.8"/>'
     b += t(cx, cy + 4, "⌀d", 10, "#a855f7", "middle", "600")
-    b += f'<line x1="{cx}" y1="{py0}" x2="{cx}" y2="{py1}" stroke="{AX}" stroke-width=".8" stroke-dasharray="4 3"/>'
+    for ya, yb in ((py0, cy - 10), (cy + 10, py1)):                               # diputus di belakang label ⌀d
+        b += f'<line x1="{cx}" y1="{ya}" x2="{cx}" y2="{yb}" stroke="{AX}" stroke-width=".8" stroke-dasharray="4 3"/>'
     # distribusi tegangan Kirsch pada penampang bersih (ligamen atas dan bawah)
     for tanda in (-1, 1):
         pts = [(cx, cy + tanda * rr)]
@@ -267,6 +270,102 @@ def gambar6():
     b += t(452, 194, "Kt turun saat d/W membesar", 10, AX, "start")
     b += teks2(340, 244, "Lubang memusatkan tegangan pada tepinya: σ_maks = Kt·σ_nom dengan σ_nom dihitung pada penampang bersih (W − d)·t", 11, AX, maks=70)
     return svg(680, 270, b, "Gambar 6 — Pelat berlubang tarik: konsentrasi tegangan di tepi lubang dan tegangan nominal")
+
+
+# ─────────────────────────── gambar kerja praktik terbimbing (Bagian 09) ───────────────────────────
+def _g7_garis(x1, y1, x2, y2, warna, w=1.0, dash="", op=1.0):
+    d = f' stroke-dasharray="{dash}"' if dash else ""
+    o = f' stroke-opacity="{op:g}"' if op < 1 else ""
+    return f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{warna}" stroke-width="{w:g}"{d}{o}/>'
+
+
+def _g7_kotak(x, y, w, h, stroke, fill="none", fop=1.0, sw=1.8):
+    f = f' fill-opacity="{fop:g}"' if fill != "none" and fop < 1 else ""
+    return f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" fill="{fill}"{f} stroke="{stroke}" stroke-width="{sw:g}"/>'
+
+
+def _g7_jepit(x, y0, y1):
+    """Tumpuan jepit (Fixed): garis tebal di muka x = 0 + arsir miring di sisi kiri."""
+    out = _g7_garis(x, y0, x, y1, TX, 2.2)
+    for yy in range(int(y0), int(y1), 7):
+        out += _g7_garis(x, yy + 7, x - 8, yy, AX, 0.9)
+    return out
+
+
+def _g7_tebal(x, y1, y2, label):
+    """Dimensi tegak untuk jarak kecil (y1 < y2): panah dari luar menunjuk ke dalam, label di kiri garis."""
+    out = _g7_garis(x, y1 - 16, x, y2 + 16, AM, 1)
+    out += f'<polygon points="{x:.1f},{y1:.1f} {x - 3:.1f},{y1 - 7:.1f} {x + 3:.1f},{y1 - 7:.1f}" fill="{AM}"/>'
+    out += f'<polygon points="{x:.1f},{y2:.1f} {x - 3:.1f},{y2 + 7:.1f} {x + 3:.1f},{y2 + 7:.1f}" fill="{AM}"/>'
+    return out + t(x - 10, (y1 + y2) / 2 + 4, label, 11, AM, "end", "600")
+
+
+def gambar7():
+    b = ""
+    k = 2.0                                              # px per mm, sama untuk kedua tampak
+    L, XL = 180, 90                                      # panjang pelat dan x pusat lubang: angka literal langkah 1 dan 3
+    Lp, Wp, rp = L * k, W_P * k, D_P / 2 * k
+    x0, yA = 70, 58                                      # sudut kiri-atas pelat di tampak atas; origin di kiri-bawah
+    yO = yA + Wp                                         # garis y = 0
+    hx, hy = x0 + XL * k, yO - (W_P // 2) * k            # pusat lubang (90, 30)
+
+    # ── A · tampak atas (bidang XY) dengan tumpuan dan beban ──
+    b += t(20, 22, "A · TAMPAK ATAS (bidang XY)", 11, TX, "start", "700")
+    b += _g7_kotak(x0, yA, Lp, Wp, CY, CY, 0.14, 1.8)
+    b += f'<circle cx="{hx:.1f}" cy="{hy:.1f}" r="{rp:.1f}" fill="{BG}" stroke="{VI}" stroke-width="1.8"/>'
+    b += _g7_garis(hx - rp - 10, hy, hx + 66, hy, AX, 0.8, "8 3 2 3")            # sumbu lubang, juga garis bantu 30
+    b += _g7_garis(hx, hy - rp - 10, hx, yO + 28, AX, 0.8, "8 3 2 3")            # sumbu lubang, juga garis bantu 90
+    b += _g7_jepit(x0, yA - 10, yO + 10)
+    b += t(x0 - 8, yA - 16, "Fixed: muka x = 0", 10.5, PK, "start", "600")
+    b += _g7_garis(x0 + Lp, yA, x0 + Lp, yO, RD, 3)                              # muka x = 180 yang ditarik
+    b += _panah(x0 + Lp + 2, hy, x0 + Lp + 58, hy, RD, 2.2)
+    b += t(x0 + Lp + 8, hy - 12, f"F = {F_P} N", 11, RD, "start", "700")
+    b += t(x0 + Lp + 8, hy + 20, "arah +X (tarik)", 10, RD, "start", "600")
+    b += t(x0 + Lp + 8, hy + 34, f"muka x = {L}", 10, RD, "start", "600")
+    # dimensi: 90 dan 180 di bawah, 60 di kiri, 30 di dalam pelat, ⌀15 penunjuk
+    b += ext(x0, yO + 12, x0, yO + 54) + dim_h(x0, hx, yO + 22, f"{XL}")
+    b += ext(x0 + Lp, yO + 2, x0 + Lp, yO + 54) + dim_h(x0, x0 + Lp, yO + 48, f"{L}")
+    b += ext(x0 - 4, yA, x0 - 36, yA) + ext(x0 - 4, yO, x0 - 36, yO) + dim_v(x0 - 30, yA, yO, f"{W_P}")
+    b += dim_v(hx + 60, hy, yO, f"{W_P // 2}", kiri=False)
+    a = math.radians(135)
+    tx_, ty_ = hx + rp * math.cos(a), hy - rp * math.sin(a)
+    b += _panah(hx - 44, yA + 16, tx_, ty_, AM, 1) + _g7_garis(hx - 44, yA + 16, hx - 56, yA + 16, AM, 1)
+    b += t(hx - 60, yA + 20, f"⌀{D_P}", 11, AM, "end", "600")
+    b += t(hx - 8, hy + rp + 16, "Pocket Through all", 10, VI, "end", "600")
+    # titik asal sketsa (sudut kiri-bawah pelat) dan sumbu X–Y kecil di pojok kiri-bawah
+    b += f'<circle cx="{x0}" cy="{yO:.1f}" r="2.6" fill="{TX}"/>' + t(x0 - 6, yO + 16, "(0, 0)", 10, TX, "end")
+    sx, sy = 24, yO + 64
+    b += _panah(sx, sy, sx + 26, sy, RD, 1.2) + _panah(sx, sy, sx, sy - 26, GN, 1.2)
+    b += t(sx + 30, sy + 4, "X", 10, RD, "start", "700") + t(sx, sy - 30, "Y", 10, GN, "middle", "700")
+
+    # ── B · tampak depan (bidang XZ): tebal Pad ──
+    yB = yO + 110
+    tp = T_P * k
+    b += t(20, yB - 24, "B · TAMPAK DEPAN (bidang XZ)", 11, TX, "start", "700")
+    b += _g7_kotak(x0, yB, Lp, tp, CY, CY, 0.14, 1.6)
+    for xx in (hx - rp, hx + rp):                                                 # lubang tembus: garis tersembunyi
+        b += _g7_garis(xx, yB, xx, yB + tp, VI, 1, "3 2")
+    b += _g7_garis(hx, yB - 8, hx, yB + tp + 8, AX, 0.8, "8 3 2 3")
+    b += ext(x0 - 2, yB, x0 - 30, yB) + ext(x0 - 2, yB + tp, x0 - 30, yB + tp)
+    b += _g7_tebal(x0 - 22, yB, yB + tp, f"{T_P}")
+
+    # ── catatan: nilai yang diketik pada langkah 2, 4, 6, 7 ──
+    xn, yn = 470, 182
+    baris = [(0, "Material Steel:", TX, "600"),
+             (10, f"E = {E_ST} MPa · ν = {NU_ST}", AX, ""),              # ν bertitik: ikut format teks langkah 2
+             (0, "Mesh Gmsh:", TX, "600"),
+             (10, "Element order 2 · Max size 4", AX, ""),
+             (0, "Solver CalculiX Standard", TX, "600"),
+             (0, "Konvergensi:", TX, "600"),
+             (10, "MeshRegion 1 pada muka silinder", AX, ""),
+             (10, "lubang, atau Max size 2 global;", AX, ""),
+             (10, "perubahan σ_maks &lt; 5 %", AX, ""),
+             (0, "Spreadsheet:", TX, "600"),
+             (10, f"SF = {SIG_Y}/σ_vm,maks", AX, "")]
+    for i, (dx, s_, c, w_) in enumerate(baris):
+        b += t(xn + dx, yn + i * 16, s_, 10.5, c, "start", w_)
+    b += t(660, 358, "Satuan: mm", 10.5, AM, "end", "600")
+    return svg(680, 372, b, "Gambar 7 — Gambar kerja pelat berlubang tarik: geometri, tumpuan, beban, dan mesh")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -565,7 +664,8 @@ for (h0, n0, s0, u0), (h1, n1, s1, u1) in zip(hasil, hasil[1:]):
                ("5", "Membaca hasil", f"Klik dua kali CCX_Results → von Mises: catat maksimum dan lokasinya (tepi lubang, sisi atas/bawah). Bandingkan dengan Kt·σ_nom = {ind(SIG_MAKS_P, 2)} MPa; hitung e. Baca juga Displacement maks."),
                ("6", "Konvergensi", "Tambahkan FEM MeshRegion 1 mm pada muka silinder lubang (atau Max size 2 mm global), mesh ulang, solve ulang. Perubahan σ_maks harus < 5 %; bila belum, haluskan sekali lagi. Isi tabel analitis vs FEM."),
                ("7", "Kesimpulan dan simpan", f"SF = {SIG_Y}/σ_vm,maks; tuliskan σ_maks analitis, FEM, e, SF pada Spreadsheet di dokumen. Ctrl+S → <code>Latihan9_NIM.FCStd</code> (hasil ikut tersimpan bila objek hasil tidak dihapus).")]
-    isi = '  <div class="cards reveal">\n'
+    isi = figure(7, "Gambar kerja pelat berlubang tarik: geometri, tumpuan, beban, dan mesh", f"Tampak atas dan tampak depan pelat dari langkah 1, ukuran dalam mm: panjang dan lebar pelat, tebal Pad {T_P}, lubang ⌀{D_P}, dan posisi pusat lubang dari titik asal (0, 0). Fixed di muka x = 0 dan F = {F_P} N arah +X di muka ujung lainnya sesuai langkah 3; catatan kanan memuat material, mesh, konvergensi, dan SF yang diketik pada langkah 2, 4, 6, dan 7.", gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>

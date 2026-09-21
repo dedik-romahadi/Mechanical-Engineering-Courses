@@ -12,6 +12,8 @@ SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
+from pustaka import BG  # noqa: E402
+from tugas_gambar import AM, CY, GN, GR, PK, RD, VI, _panah, dim_h, dim_v, ext  # noqa: E402
 
 NOMOR = 7
 JUDUL = "Proyek Gabungan 2D dan 3D, Blok, dan Sub-Assembly"
@@ -70,8 +72,14 @@ def gambar1():
     tahap = [("Bentuk induk", "Pad · Extrude · Loft", "#22d3ee"), ("Fitur tambahan", "Pocket · Pad · Sweep", "#f59e0b"), ("Pola", "Linear · Polar · Mirror", "#a855f7"),
              ("Dressing", "Fillet · Shell · Draft", "#ec4899"), ("Blok & rakitan", "Link · Clone · Placement", "#00e09e")]
     xs = [10, 142, 274, 406, 538]
+    # subjudul yang hampir selebar kotak 124 px dipecah dua baris; gaya sama dengan box()
+    pecah = {"Link · Clone · Placement": ["Link · Clone ·", "Placement"]}
     for (a, s, c), x in zip(tahap, xs):
-        b += box(x, 36, w, h, [a, s], c, 11.5)
+        baris = [(a, True)] + [(q, False) for q in pecah.get(s, [s])]
+        b += box(x, 36, w, h, [], c, 11.5)
+        for i, (q, judul) in enumerate(baris):
+            yy = 36 + h / 2 + (i - (len(baris) - 1) / 2) * 14.5 + 11.5 / 3
+            b += t(x + w / 2, yy, q, 11.5, TX if judul else AX, weight="600" if judul else "")
     for i in range(4):
         b += arrow(xs[i] + w, 63, xs[i + 1], 63)
     b += t(340, 118, "Pohon proyek braket flens:", 11, TX, "start", "600")
@@ -87,7 +95,7 @@ def gambar1():
 
 def gambar2():
     b = ""
-    cx, cy, s = 150, 215, 2.6
+    cx, cy, s = 150, 203, 2.6
     W, H, tt, L = W_L, H_L, T_L, L_EX
     prof = [(0, 0), (W, 0), (W, tt), (tt, tt), (tt, H), (0, H)]
     bawah = [_iso(x, y, 0, cx, cy, s) for x, y in prof]
@@ -97,8 +105,8 @@ def gambar2():
         b += _poli([bawah[i], bawah[j], atas[j], atas[i]], "rgba(34,211,238,.10)", "rgba(34,211,238,.6)", 1.1)
     b += _poli(atas, "rgba(34,211,238,.22)", "#22d3ee", 1.8)
     b += _poli(bawah, "rgba(245,158,11,.14)", "#f59e0b", 1.6, "5 3")
-    p = _iso(W / 2, -4, 0, cx, cy, s)
-    b += t(p[0], p[1] + 18, f"Draft Wire L: W = {W}, H = {H}, t = {tt} (bidang XY)", 10.5, "#f59e0b")
+    p = _iso(W / 2, -4, 0, cx, cy, s)             # label di bawah titik terendah profil (sudut asal, y = cy)
+    b += t(p[0], cy + 15, f"Draft Wire L: W = {W}, H = {H}, t = {tt} (bidang XY)", 10.5, "#f59e0b")
     p = _iso(W, 0, L / 2, cx, cy, s)
     b += t(p[0] + 10, p[1] + 4, f"Part Extrude L = {L} (arah Z)", 10.5, "#22d3ee", "start")
     b += t(452, 56, "Part Extrude:", 11, "#22d3ee", "start", "600")
@@ -109,7 +117,7 @@ def gambar2():
     b += t(452, 170, f"= {ind(V_L, 1)} mm³", 10.5, "#00e09e", "start")
     b += t(452, 200, "Boolean: Cut · Fuse · Common", 10, AX, "start")
     b += teks2(340, 246, "Kontur 2D dari Draft (Make Face) ditebalkan Part Extrude menjadi solid; hasilnya bebas dipadukan lewat Boolean dengan solid lain", 11, AX, maks=70)
-    return svg(680, 266, b, "Gambar 2 — Profil L dari Draft Wire ditebalkan Part Extrude sepanjang L")
+    return svg(680, 272, b, "Gambar 2 — Profil L dari Draft Wire ditebalkan Part Extrude sepanjang L")
 
 
 def gambar3():
@@ -118,18 +126,21 @@ def gambar3():
     R, r0, rb, rbc = D_F / 2 * k, D0_F / 2 * k, DB_F / 2 * k, DBC_F / 2 * k
     b += f'<circle cx="{cx}" cy="{cy}" r="{R:.1f}" fill="rgba(34,211,238,.14)" stroke="#22d3ee" stroke-width="2"/>'
     b += f'<circle cx="{cx}" cy="{cy}" r="{r0:.1f}" fill="#0a101f" stroke="#22d3ee" stroke-width="1.6"/>'
-    b += f'<circle cx="{cx}" cy="{cy}" r="{rbc:.1f}" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="5 4"/>'
+    # lingkaran baut (garis sumbu) diputus pada sudut 15°–42°, di belakang label 360°/n (celah ±7 px dari teks)
+    g0, g1 = math.radians(15), math.radians(42)
+    b += (f'<path d="M {cx + rbc * math.cos(g1):.1f} {cy - rbc * math.sin(g1):.1f} A {rbc:.1f} {rbc:.1f} 0 1 0 '
+          f'{cx + rbc * math.cos(g0):.1f} {cy - rbc * math.sin(g0):.1f}" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="5 4"/>')
     for i in range(N_F):
         ang = 2 * math.pi * i / N_F
         px, py = cx + rbc * math.cos(ang), cy - rbc * math.sin(ang)
         b += f'<circle cx="{px:.1f}" cy="{py:.1f}" r="{rb:.1f}" fill="#0a101f" stroke="{"#00e09e" if i == 0 else "#a855f7"}" stroke-width="1.6"/>'
     a1 = 2 * math.pi / N_F
     b += f'<path d="M {cx + 40} {cy} A 40 40 0 0 0 {cx + 40 * math.cos(a1):.1f} {cy - 40 * math.sin(a1):.1f}" fill="none" stroke="#ec4899" stroke-width="1.2"/>'
-    b += t(cx + 50, cy - 24, "360°/n", 10, "#ec4899", "start", "600")
+    b += t(cx + 44, cy - 24, "360°/n", 10, "#ec4899", "start", "600")     # di celah lingkaran baut, bebas dari tepi flens
     b += t(cx, cy - R - 8, "⌀D (Pad h)", 10.5, "#22d3ee")
     b += t(cx, cy + 4, "⌀d₀", 10, "#22d3ee")
-    b += t(cx + rbc + rb + 6, cy + 4, "n × ⌀d_b (induk hijau)", 10, "#00e09e", "start")
-    b += t(cx, cy + rbc + 20, "lingkaran baut ⌀D_bc", 10, "#f59e0b")
+    b += t(cx + R + 8, cy + 4, "n × ⌀d_b (induk hijau)", 10, "#00e09e", "start")      # di luar tepi flens, sebaris lubang induk
+    b += t(cx, cy + rbc + 12, "lingkaran baut ⌀D_bc", 10, "#f59e0b")                  # di antara lingkaran baut dan tepi flens
     b += t(440, 50, "Pocket + PolarPattern:", 11, "#a855f7", "start", "600")
     b += t(440, 68, "Axis Z · Angle 360° · Occurrences n", 10, AX, "start")
     b += t(440, 98, "V = h·(π/4)(D² − d₀² − n·d_b²)", 11, TX, "start")
@@ -138,12 +149,12 @@ def gambar3():
     b += t(440, 164, "D_bc = (D + d₀)/2 pada contoh", 10, AX, "start")
     b += t(440, 194, "Occurrences 6 → 8: semua lubang ikut", 10, AX, "start")
     b += teks2(340, 258, "Satu lubang induk disketsa pada lingkaran baut, lalu PolarPattern menyalinnya n kali; mengubah n atau D_bc memperbarui seluruh pola", 11, AX, maks=70)
-    return svg(680, 276, b, "Gambar 3 — Flens cakram: lubang pusat dan pola polar n lubang baut")
+    return svg(680, 284, b, "Gambar 3 — Flens cakram: lubang pusat dan pola polar n lubang baut")
 
 
 def gambar4():
     b = ""
-    cx, cy, s = 170, 200, 2.4
+    cx, cy, s = 170, 184, 2.4
     a1, b1, a2, b2, h = A1, B1, A2, B2, H_LO
     r1 = [(-a1 / 2, -b1 / 2), (a1 / 2, -b1 / 2), (a1 / 2, b1 / 2), (-a1 / 2, b1 / 2)]
     r2 = [(-a2 / 2, -b2 / 2), (a2 / 2, -b2 / 2), (a2 / 2, b2 / 2), (-a2 / 2, b2 / 2)]
@@ -160,12 +171,12 @@ def gambar4():
     b += _poli(tengah, "none", "#ec4899", 1.2, "4 3")
     z0, z1 = _iso(0, 0, -6, cx, cy, s), _iso(0, 0, h + 14, cx, cy, s)
     b += f'<line x1="{z0[0]:.1f}" y1="{z0[1]:.1f}" x2="{z1[0]:.1f}" y2="{z1[1]:.1f}" stroke="#ef4444" stroke-width="1" stroke-dasharray="8 3 2 3"/>'
-    p = _iso(0, -b1 / 2 - 3, 0, cx, cy, s)
-    b += t(p[0], p[1] + 18, "Sketch a₁ × b₁ (z = 0), sepusat", 10.5, "#f59e0b")
-    p = _iso(0, 0, h, cx, cy, s)
-    b += t(p[0] - 30, p[1] - 30, "Sketch a₂ × b₂ (z = h)", 10.5, "#22d3ee")
-    p = _iso(am / 2, 0, zm, cx, cy, s)
-    b += t(p[0] + 12, p[1] + 4, "penampang z: a(z) × b(z)", 10, "#ec4899", "start")
+    p = _iso(0, -b1 / 2 - 3, 0, cx, cy, s)       # di bawah sudut terendah alas (bebas dari rusuk dan sketsa)
+    b += t(p[0], max(q[1] for q in bawah) + 15, "Sketch a₁ × b₁ (z = 0), sepusat", 10.5, "#f59e0b")
+    p = _iso(0, 0, h, cx, cy, s)                 # di atas ujung sumbu Z
+    b += t(p[0] - 30, p[1] - 36, "Sketch a₂ × b₂ (z = h)", 10.5, "#22d3ee")
+    p = _iso(am / 2, 0, zm, cx, cy, s)           # kanan rusuk depan-kanan
+    b += t(p[0] + 18, p[1] + 4, "penampang z: a(z) × b(z)", 10, "#ec4899", "start")
     p = _iso(a1 / 2, -b1 / 2, 0, cx, cy, s)
     q = _iso(a2 / 2, -b2 / 2, h, cx, cy, s)
     b += t((p[0] + q[0]) / 2 + 14, (p[1] + q[1]) / 2 + 26, "rusuk lurus (ruled)", 10, AX, "start")
@@ -177,7 +188,7 @@ def gambar4():
     b += t(440, 164, "Δa = a₂ − a₁, Δb = b₂ − b₁ (negatif bila mengecil)", 9.5, AX, "start")
     b += t(440, 182, "loft halus (B-spline) ≠ ruled", 10, AX, "start")
     b += teks2(340, 250, "Loft ruled menghubungkan titik seiring dua profil dengan rusuk lurus; penampangnya berubah linear terhadap z, volumenya integral a(z)·b(z)", 11, AX, maks=72)
-    return svg(680, 268, b, "Gambar 4 — Loft ruled antara dua persegi panjang sepusat pada z = 0 dan z = h")
+    return svg(680, 276, b, "Gambar 4 — Loft ruled antara dua persegi panjang sepusat pada z = 0 dan z = h")
 
 
 def gambar5():
@@ -212,7 +223,7 @@ def gambar5():
     b += t(440, 182, f"Draft α = {ALPHA}°: sisi menyusut {ind(SUSUT, 2)} mm", 10, AX, "start")
     b += t(440, 200, "Pad Taper angle = Draft saat Pad", 10, AX, "start")
     b += teks2(340, 246, "Thickness membuang muka pilihan dan menyisakan dinding setebal t; Draft memiringkan muka sebesar α agar produk cetakan mudah dilepas", 11, AX, maks=70)
-    return svg(680, 262, b, "Gambar 5 — Penampang cangkang Thickness dan muka tirus Draft")
+    return svg(680, 272, b, "Gambar 5 — Penampang cangkang Thickness dan muka tirus Draft")
 
 
 def gambar6():
@@ -230,8 +241,8 @@ def gambar6():
     b += t(p[0] - dB / 2 * s - 8, p[1] - 6, "Body Boss ⌀d_B × h_B", 10, "#f59e0b", "end")
     p = _iso(3 * a / 4, bb / 2, tt + k * hB, cx, cy, s)
     b += t(p[0] + 4, p[1] - 22, "Clone: Scale k → ⌀k·d_B × k·h_B", 10, "#00e09e")
-    p = _iso(a / 2, -3, 0, cx, cy, s)
-    b += t(p[0], p[1] + 18, "Pelat a × b × t (Pad)", 10.5, "#22d3ee")
+    p = _iso(a / 2, -3, 0, cx, cy, s)             # di bawah rusuk bawah-depan pelat
+    b += t(p[0] + 4, p[1] + 26, "Pelat a × b × t (Pad)", 10.5, "#22d3ee")
     b += t(440, 50, "Draft Clone + Part Union:", 11, "#00e09e", "start", "600")
     b += t(440, 68, "Clone mengikuti asal; Scale (k, k, k)", 10, AX, "start")
     b += t(440, 98, "V_clone = k³·V_boss", 11, TX, "start")
@@ -241,7 +252,131 @@ def gambar6():
     b += t(440, 182, "Placement: (a/4, b/2, t) · (3a/4, b/2, t)", 10, AX, "start")
     b += t(440, 200, "Union tidak menambah volume tumpang tindih", 9.5, AX, "start")
     b += teks2(340, 252, "Boss dibuat sekali lalu dipakai ulang sebagai Link (identik) atau Clone (boleh berskala); Union menyatukan ketiganya menjadi satu solid", 11, AX, maks=70)
-    return svg(680, 268, b, "Gambar 6 — Pelat, boss, dan Draft Clone berskala k disatukan Part Union")
+    return svg(680, 278, b, "Gambar 6 — Pelat, boss, dan Draft Clone berskala k disatukan Part Union")
+
+
+# ─────────────────────────── gambar kerja praktik terbimbing (Bagian 09) ───────────────────────────
+def _g7_garis(x1, y1, x2, y2, warna, w=1.0, dash="", op=1.0):
+    d = f' stroke-dasharray="{dash}"' if dash else ""
+    o = f' stroke-opacity="{op:g}"' if op < 1 else ""
+    return f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{warna}" stroke-width="{w:g}"{d}{o}/>'
+
+
+def _g7_bulat(cx, cy, r, stroke, fill="none", fop=1.0, w=1.6, dash=""):
+    f = f' fill-opacity="{fop:g}"' if fill != "none" and fop < 1 else ""
+    d = f' stroke-dasharray="{dash}"' if dash else ""
+    return f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="{fill}"{f} stroke="{stroke}" stroke-width="{w:g}"{d}/>'
+
+
+def _g7_kepala(x, y, sudut, warna):
+    """Kepala panah dimensi (7 × 3, sama dengan dim_h) berujung di (x, y) menunjuk arah `sudut` (radian, layar)."""
+    bx, by = x - 7 * math.cos(sudut), y - 7 * math.sin(sudut)
+    px, py = 3 * math.sin(sudut), -3 * math.cos(sudut)
+    return f'<polygon points="{x:.1f},{y:.1f} {bx + px:.1f},{by + py:.1f} {bx - px:.1f},{by - py:.1f}" fill="{warna}"/>'
+
+
+def _g7_tunjuk(xt, yt, xs, ys, xe, label, warna=AM, ukuran=11, tebal="600"):
+    """Garis penunjuk: panah di (xt, yt) ← siku (xs, ys) ← bahu mendatar dari xe; label di ujung bahu."""
+    kanan = xe >= xs
+    out = _g7_garis(xs, ys, xe, ys, warna, 1) + _panah(xs, ys, xt, yt, warna, 1)
+    return out + t(xe + (4 if kanan else -4), ys + 4, label, ukuran, warna, "start" if kanan else "end", tebal)
+
+
+def gambar7():
+    b = ""
+    # ── tampak atas (bidang XY): cakram, lubang pusat, pola lubang baut, dan posisi boss ──
+    cx, cy, k = 178, 190, 2.0
+    R, r0, rbc, rb, rB = D_F / 2 * k, D0_F / 2 * k, DBC_F / 2 * k, DB_F / 2 * k, DB_C / 2 * k
+
+    def pol(r, a):
+        return cx + r * math.cos(math.radians(a)), cy - r * math.sin(math.radians(a))
+
+    b += t(cx, 26, "TAMPAK ATAS (bidang XY)", 11, TX, "middle", "700")
+    b += _g7_bulat(cx, cy, R, CY, CY, 0.12, 2)
+    b += _g7_bulat(cx, cy, r0, CY, BG, 1, 1.6)
+    b += _g7_bulat(cx, cy, rbc, AX, w=0.8, dash="8 3 2 3")                       # lingkaran baut (garis sumbu)
+    b += _g7_garis(cx - R - 12, cy, cx + R + 24, cy, AX, 0.8, "8 3 2 3")         # sumbu X lewat origin
+    b += _g7_garis(cx, cy - R - 12, cx, cy + R + 34, AX, 0.8, "8 3 2 3")         # sumbu Y (juga garis bantu dimensi 29)
+    for a in (30, 150, 270):                                                     # garis sumbu radial ke tiap boss
+        p = pol(R + 24 if a == 30 else rbc, a)
+        b += _g7_garis(cx, cy, p[0], p[1], AX, 0.8, "8 3 2 3")
+    for i in range(N_F):                                                         # 6 lubang baut; induk di sudut 0°
+        p = pol(rbc, 360 * i / N_F)
+        b += _g7_bulat(p[0], p[1], rb, GR if i == 0 else VI, BG, 1, 1.6)
+    for a in (30, 150, 270):                                                     # Boss (Body) 30°, Link 150° dan 270°
+        p = pol(rbc, a)
+        b += _g7_bulat(p[0], p[1], rB, PK, PK, 0.22, 1.8)
+    b += f'<circle cx="{cx}" cy="{cy}" r="2.2" fill="{TX}"/>'
+    # sudut boss induk: busur 0° → 30° di luar cakram
+    ra = R + 14
+    p0, p1 = pol(ra, 0), pol(ra, 30)
+    b += f'<path d="M {p0[0]:.1f} {p0[1]:.1f} A {ra:.1f} {ra:.1f} 0 0 0 {p1[0]:.1f} {p1[1]:.1f}" fill="none" stroke="{AM}" stroke-width="1"/>'
+    a1 = math.radians(30)                               # ujung 30°: panah searah putaran berlawanan jarum jam
+    b += _g7_kepala(p0[0], p0[1], math.pi / 2, AM) + _g7_kepala(p1[0], p1[1], math.atan2(-math.cos(a1), -math.sin(a1)), AM)
+    pl = pol(ra + 12, 15)
+    b += t(pl[0] + 2, pl[1] + 4, "30°", 11, AM, "start", "600")
+    # label boss dan link
+    p = pol(R + 24, 30)
+    b += t(p[0] + 4, p[1] - 4, "Boss (Body)", 10.5, PK, "start", "600")
+    p = pol(rbc + rB, 150)
+    q = pol(R + 22, 150)
+    b += _g7_tunjuk(p[0], p[1], q[0], q[1], q[0] - 10, "Link 150°", PK, 10.5)
+    c270, q = pol(rbc, 270), (cx - 58, cy + R + 16)
+    u = math.hypot(q[0] - c270[0], q[1] - c270[1])                              # ujung panah tepat di tepi boss 270°
+    p = (c270[0] + rB * (q[0] - c270[0]) / u, c270[1] + rB * (q[1] - c270[1]) / u)
+    b += _g7_tunjuk(p[0], p[1], q[0], q[1], q[0] - 10, "Link 270°", PK, 10.5)
+    # diameter lubang pusat dan lubang baut (penunjuk)
+    p = pol(r0, 205)
+    q = pol(R + 16, 205)
+    b += _g7_tunjuk(p[0], p[1], q[0], q[1], q[0] - 10, f"⌀{D0_F}")
+    p = pol(rbc, 0)
+    p = (p[0] + rb * math.cos(math.radians(-40)), p[1] - rb * math.sin(math.radians(-40)))
+    q = pol(R + 18, -22)
+    b += _g7_tunjuk(p[0], p[1], q[0], q[1], q[0] + 10, f"{N_F}× ⌀{DB_F}")
+    b += t(q[0] + 14, q[1] + 19, f"induk ({ind(DBC_F / 2, 0)}, 0)", 10, GR, "start", "600")
+    # posisi lubang induk dari origin: 29 = D_bc/2
+    xi = pol(rbc, 0)[0]
+    yd = cy + R + 26
+    b += ext(xi, cy + rb + 2, xi, yd + 8) + dim_h(cx, xi, yd, ind(DBC_F / 2, 0))
+    # sumbu koordinat kecil (diturunkan agar label X tidak menempel di bawah label Link 270°)
+    ax0, ay0 = 30, cy + R + 46
+    b += _panah(ax0, ay0, ax0 + 28, ay0, RD, 1.2) + _panah(ax0, ay0, ax0, ay0 - 28, GN, 1.2)
+    b += t(ax0 + 32, ay0 + 4, "X", 10, RD, "start", "700") + t(ax0, ay0 - 32, "Y", 10, GN, "middle", "700")
+
+    # ── tampak depan (bidang XZ): tebal flens dan tinggi boss ──
+    ox, oy = 500, 132                                   # titik asal (x = 0, z = 0) di tengah alas flens
+    W2, hF, hB, wB = D_F / 2 * k, H_F * k, HB_C * k, DB_C / 2 * k
+    b += t(ox, 26, "TAMPAK DEPAN (bidang XZ)", 11, TX, "middle", "700")
+    b += f'<rect x="{ox - W2:.1f}" y="{oy - hF:.1f}" width="{2 * W2:.1f}" height="{hF:.1f}" fill="{CY}" fill-opacity="0.12" stroke="{CY}" stroke-width="2"/>'
+    xs_boss = [DBC_F / 2 * math.cos(math.radians(a)) * k for a in (150, 270, 30)]
+    for xb in xs_boss:
+        b += f'<rect x="{ox + xb - wB:.1f}" y="{oy - hF - hB:.1f}" width="{2 * wB:.1f}" height="{hB:.1f}" fill="{PK}" fill-opacity="0.22" stroke="{PK}" stroke-width="1.8"/>'
+    b += _g7_garis(ox, oy - hF - hB - 6, ox, oy + 5, AX, 0.8, "8 3 2 3")       # sumbu Z; bebas dari label ⌀14 dan ⌀90
+    # dimensi: ⌀90 di bawah, ⌀14 di atas boss tengah, 10 + 10 berantai di kanan
+    b += ext(ox - W2, oy + 2, ox - W2, oy + 30) + ext(ox + W2, oy + 2, ox + W2, oy + 30) + dim_h(ox - W2, ox + W2, oy + 24, f"⌀{D_F}")
+    yb = oy - hF - hB
+    b += ext(ox - wB, yb - 2, ox - wB, yb - 22) + ext(ox + wB, yb - 2, ox + wB, yb - 22) + dim_h(ox - wB, ox + wB, yb - 14, f"⌀{DB_C}")
+    xk = ox + W2 + 20
+    xbk = ox + xs_boss[2] + wB
+    b += ext(ox + W2 + 2, oy, xk + 6, oy) + ext(ox + W2 + 2, oy - hF, xk + 6, oy - hF) + ext(xbk + 2, yb, xk + 6, yb)
+    b += dim_v(xk, oy - hF, oy, f"{H_F}", kiri=False) + dim_v(xk, yb, oy - hF, f"{HB_C}", kiri=False)
+
+    # ── catatan parameter yang diketik ──
+    x0, y0 = 384, 190
+    baris = [(0, f"Lubang ⌀{DB_F}: Pocket Through all, lalu", VI, "600"),        # (indentasi, teks, warna, tebal)
+             (12, "PolarPattern Axis Base Z · Angle 360°", AX, ""),
+             (12, f"Occurrences {N_F} (lubang induk hijau)", AX, ""),
+             (0, "Boss (Body): Placement Base =", PK, "600"),
+             (12, f"(D_bc/2·cos 30°, D_bc/2·sin 30°, {H_F})", AX, ""),
+             (12, f"D_bc/2 = {ind(DBC_F / 2, 0)} (jari-jari lingkaran baut)", AX, ""),
+             (0, "Link ×2: Placement sudut 150° dan 270°", PK, "600"),
+             (0, "Part Braket: Rotation Axis (1,0,0), 90°", CY, "600"),
+             (0, "Baja ρ = 7,85 g/cm³", AX, ""),
+             (0, "Sudut dari sumbu +X, berlawanan jarum jam", AX, "")]
+    for i, (dx, s_, c, w_) in enumerate(baris):
+        b += t(x0 + dx, y0 + i * 16, s_, 10.5, c, "start", w_)
+    b += t(662, 354, "Satuan: mm", 10.5, AM, "end", "600")     # tebal 600 melebar ±0,7 px ke kanan titik jangkar
+    return svg(680, 368, b, "Gambar 7 — Gambar kerja braket flens: cakram berlubang, pola lubang baut, dan boss")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -582,7 +717,8 @@ print(f"Posisi global boss = {{boss.getGlobalPlacement().Base}}  (Placement Part
                ("5", "Link boss ×2", "Pilih Body Boss → Std LinkMake dua kali; beri Placement pada sudut 150° dan 270° (ekspresi cos/sin) sehingga tiga boss berselang-seling dengan enam lubang baut. Ubah diameter sketsa boss → ketiga boss ikut berubah."),
                ("6", "Part container dan rakitan", "Std Part “Braket” → seret Flens, Boss, dan dua Link ke dalamnya. Ubah Placement Part: Rotation Axis (1,0,0) Angle 90° sehingga flens berdiri tegak. Part → Boolean → Union (Flens + Boss + Link) → volume total = flens + 3 × boss."),
                ("7", "Periksa dan simpan", "Boolean Common Boss–Flens harus kosong (tidak menembus); Std Measure Distance antar boss = D_bc·sin 60°. Hitung massa baja (ρ = 7,85 g/cm³) dari Fusion.Shape.Volume/1000; Ctrl+S → <code>Latihan7_NIM.FCStd</code>.")]
-    isi = '  <div class="cards reveal">\n'
+    isi = figure(7, "Gambar kerja braket flens: cakram, pola lubang baut, dan boss", f"Tampak atas dan tampak depan benda yang dibangun pada praktik ini, semua ukuran dalam mm: cakram ⌀{D_F} × {H_F} dengan lubang pusat ⌀{D0_F} (langkah 1–2), {N_F} lubang ⌀{DB_F} berpola polar dengan lubang induk di ({ind(DBC_F / 2, 0)}, 0) (langkah 3), dan tiga boss ⌀{DB_C} × {HB_C} di lingkaran baut (langkah 4–5). Catatan kanan bawah merangkum nilai PolarPattern, Placement, rotasi Part, dan massa jenis yang diketik pada langkah 3–7.", gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>

@@ -11,6 +11,7 @@ SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
+from tugas_gambar import AM, BL, CY, GN, RD, _panah, dim_h, dim_v, ext, iso  # noqa: E402
 
 NOMOR = 5
 JUDUL = "Pemodelan 3D Berbasis Sketsa: Extrude, Revolve, Sweep"
@@ -31,6 +32,9 @@ D1, D2, L1, L2, C_CH = 24, 36, 30, 45, 2.5
 V_POROS = math.pi * (D1 / 2) ** 2 * L1 + math.pi * (D2 / 2) ** 2 * L2
 V_CHAMFER = math.pi * C_CH ** 2 * (D2 / 2 - C_CH / 3)
 RHO_BAJA = 7.85
+# Praktik terbimbing (Bagian 09): braket L. Teks langkah dan gambar7 memakai konstanta yang sama.
+BR_A, BR_B, BR_T = 80, 60, 12                            # profil L: panjang kaki mendatar, tinggi kaki tegak, tebal
+BR_L, BR_D, BR_R, BR_C = 40, 9, 6, 2                     # Pad, ⌀ dua lubang, fillet dalam R, chamfer luar
 
 
 # ─────────────────────────── gambar ───────────────────────────
@@ -218,6 +222,119 @@ def gambar6():
     b += t(450, 182, f"π·c²·(R₂ − c/3) = {ind(V_CHAMFER, 2)} mm³", 10.5, "#00e09e", "start")
     b += teks2(340, 258, "Poros bertingkat dibuat sekali putar; chamfer ujung membuang cincin bersayap segitiga yang volumenya dihitung teorema Pappus", 11, AX, maks=70)
     return svg(680, 284, b, "Gambar 6 — Poros bertingkat: Revolution setengah profil dan chamfer ujung")
+
+
+def _kepala(xt, yt, ux, uy, warna=AM):
+    """Kepala panah dimensi (panjang 7, lebar 6) berujung di (xt, yt), menunjuk searah vektor satuan (ux, uy)."""
+    bx, by = xt - 7 * ux, yt - 7 * uy
+    return f'<polygon points="{xt:.1f},{yt:.1f} {bx - 3 * uy:.1f},{by + 3 * ux:.1f} {bx + 3 * uy:.1f},{by - 3 * ux:.1f}" fill="{warna}"/>'
+
+
+def _profil_braket():
+    """Profil L braket setelah Fillet dan Chamfer: segmen ('L', x, y) garis / ('A', x, y) busur fillet, dalam mm, mulai di (0, 0)."""
+    a, bb, tt, r, c = BR_A, BR_B, BR_T, BR_R, BR_C
+    return [("L", a - c, 0), ("L", a, c), ("L", a, tt), ("L", tt + r, tt), ("A", tt, tt + r), ("L", tt, bb), ("L", c, bb), ("L", 0, bb - c)]
+
+
+def gambar7():
+    """Braket L target praktik terbimbing (Bagian 09): profil berdimensi penuh + isometrik untuk Pad dan lubang.
+    Semua angka memakai konstanta BR_* yang juga dipakai teks langkah 1-5."""
+    b = ""
+    a, bb, tt, r, c, L, d = BR_A, BR_B, BR_T, BR_R, BR_C, BR_L, BR_D
+    # ── kiri: profil pada bidang sketsa XY (Pad searah +Z) ──
+    s = 2.6
+    ox, oy = 80, 262
+    X = lambda x: ox + x * s
+    Y = lambda y: oy - y * s
+    b += t(X(0), 30, "Profil pada bidang XY", 11, AX, "start", "600")
+    jalur = f"M {X(0):.1f} {Y(0):.1f}"
+    for jenis, x, y in _profil_braket():
+        jalur += f" L {X(x):.1f} {Y(y):.1f}" if jenis == "L" else f" A {r * s:.1f} {r * s:.1f} 0 0 1 {X(x):.1f} {Y(y):.1f}"
+    b += f'<path d="{jalur} Z" fill="{CY}" fill-opacity=".12" stroke="{CY}" stroke-width="2"/>'
+    b += f'<circle cx="{X(0):.1f}" cy="{Y(0):.1f}" r="3" fill="{TX}"/>' + t(X(0) - 6, Y(0) + 15, "(0, 0)", 10, TX, "end", "600")
+    b += _panah(22, 330, 50, 330, RD, 1.4) + _panah(22, 330, 22, 302, GN, 1.4)
+    b += t(55, 334, "X", 10, RD, "start", "700") + t(22, 296, "Y", 10, GN, "middle", "700")
+    # dimensi keseluruhan (bawah dan kiri); garis bantu berhenti 3 px sebelum sudut maya chamfer
+    yd = Y(0) + 34
+    b += ext(X(0), Y(0) + 3, X(0), yd + 6) + ext(X(a), Y(0) + 3, X(a), yd + 6) + dim_h(X(0), X(a), yd, str(a))
+    xd = X(0) - 26
+    b += ext(X(0) - 3, Y(0), xd - 6, Y(0)) + ext(X(0) - 3, Y(bb), xd - 6, Y(bb)) + dim_v(xd, Y(bb), Y(0), str(bb))
+    # tebal kedua kaki: kaki tegak di atas, kaki mendatar di kanan
+    yt = Y(bb) - 22
+    b += ext(X(0), Y(bb) - 3, X(0), yt - 6) + ext(X(tt), Y(bb) - 3, X(tt), yt - 6) + dim_h(X(0), X(tt), yt, str(tt))
+    xt = X(a) + 22
+    b += ext(X(a) + 3, Y(tt), xt + 6, Y(tt)) + ext(X(a) + 3, Y(0), xt + 6, Y(0)) + dim_v(xt, Y(tt), Y(0), str(tt), kiri=False)
+    # R: garis penunjuk melalui pusat busur fillet ke titik tengah busur
+    pcx, pcy = X(tt + r), Y(tt + r)
+    u = math.sqrt(0.5)
+    pa = (pcx - r * s * u, pcy + r * s * u)
+    ek = (pcx + 22, pcy - 22)
+    b += _panah(ek[0], ek[1], pa[0], pa[1], AM, 1) + f'<line x1="{ek[0]:.1f}" y1="{ek[1]:.1f}" x2="{ek[0] + 10:.1f}" y2="{ek[1]:.1f}" stroke="{AM}" stroke-width="1"/>'
+    b += t(ek[0] + 14, ek[1] + 4, f"R{r}", 11, AM, "start", "600")
+    # C pada dua rusuk luar ujung kaki: penunjuk tegak lurus chamfer, lewat celah sudut maya
+    for (mx, my), (vx, vy), anchor in [((a - c / 2, c / 2), (1, 1), "start"), ((c / 2, bb - c / 2), (-1, -1), "end")]:
+        p0 = (X(mx), Y(my))
+        p1 = (p0[0] + 22 * vx, p0[1] + 22 * vy)
+        b += _panah(p1[0], p1[1], p0[0], p0[1], AM, 1) + f'<line x1="{p1[0]:.1f}" y1="{p1[1]:.1f}" x2="{p1[0] + 10 * vx:.1f}" y2="{p1[1]:.1f}" stroke="{AM}" stroke-width="1"/>'
+        b += t(p1[0] + 14 * vx, p1[1] + 4, f"C{c}", 11, AM, anchor, "600")
+    # ── kanan: isometrik (Y ke atas, Pad searah +Z mendekati pembaca) ──
+    si, cx, cy = 2.3, 480, 190
+    P = lambda x, y, z: iso(-z, -x, y, cx, cy, si)
+    b += t(380, 30, "Isometrik (setelah langkah 2–5)", 11, AX, "start", "600")
+    b += t(660, 30, "Satuan: mm", 11, TX, "end", "600")
+    kont, fillet = [(0.0, 0.0)], set()
+    for jenis, x, y in _profil_braket():
+        if jenis == "L":
+            kont.append((x, y))
+        else:
+            for k in range(1, 9):
+                ang = math.radians(270 - 90 * k / 8)
+                fillet.add(len(kont) - 1)          # segmen kont[i] → kont[i + 1] adalah faset busur fillet
+                kont.append((tt + r + r * math.cos(ang), tt + r + r * math.sin(ang)))
+    # muka samping yang menghadap pembaca (normal ke +X/+Y): chamfer bawah, ujung kaki, atas kaki mendatar, fillet, sisi dalam dan atas kaki tegak
+    for i in range(len(kont)):
+        (x0, y0), (x1, y1) = kont[i], kont[(i + 1) % len(kont)]
+        nx, ny = y1 - y0, -(x1 - x0)
+        if 0.723 * nx + 0.469 * ny > 1e-6:
+            muka = [P(x0, y0, 0), P(x1, y1, 0), P(x1, y1, L), P(x0, y0, L)]
+            garis = 'stroke="none"' if i in fillet else f'stroke="{CY}" stroke-opacity=".7" stroke-width="1"'
+            b += '<polygon points="' + " ".join(f"{px:.1f},{py:.1f}" for px, py in muka) + f'" fill="{CY}" fill-opacity=".10" {garis}/>'
+    busur = [P(*kont[i], 0) for i in sorted(fillet)] + [P(*kont[max(fillet) + 1], 0)]
+    b += '<polyline points="' + " ".join(f"{px:.1f},{py:.1f}" for px, py in busur) + f'" fill="none" stroke="{CY}" stroke-opacity=".7" stroke-width="1"/>'
+    # dua lubang tembus pada muka atas kaki mendatar (y = tebal). Posisinya hanya ilustrasi:
+    # langkah 3 tidak memberi angka posisi, jadi gambar tidak mendimensinya.
+    lubang = [(49, 10), (49, 30)]
+    for hx, hz in lubang:
+        el = [P(hx + d / 2 * math.cos(k / 36 * 2 * math.pi), tt, hz + d / 2 * math.sin(k / 36 * 2 * math.pi)) for k in range(36)]
+        b += '<polygon points="' + " ".join(f"{px:.1f},{py:.1f}" for px, py in el) + f'" fill="#0a101f" stroke="{CY}" stroke-width="1.2"/>'
+    depan = [P(x, y, L) for x, y in kont]
+    b += '<polygon points="' + " ".join(f"{px:.1f},{py:.1f}" for px, py in depan) + f'" fill="{CY}" fill-opacity=".22" stroke="{CY}" stroke-width="1.6"/>'
+    # dimensi Pad sepanjang rusuk atas kaki tegak, digeser 12 mm ke +Y
+    e = 12
+    q0, q1 = P(tt, bb, 0), P(tt, bb, L)
+    r0, r1 = P(tt, bb + e, 0), P(tt, bb + e, L)
+    b += ext(q0[0], q0[1] - 3, r0[0], r0[1] - 6) + ext(q1[0], q1[1] - 3, r1[0], r1[1] - 6)
+    ux, uy = (r1[0] - r0[0]), (r1[1] - r0[1])
+    n_ = math.hypot(ux, uy)
+    ux, uy = ux / n_, uy / n_
+    b += f'<line x1="{r0[0]:.1f}" y1="{r0[1]:.1f}" x2="{r1[0]:.1f}" y2="{r1[1]:.1f}" stroke="{AM}" stroke-width="1"/>'
+    b += _kepala(r0[0], r0[1], -ux, -uy) + _kepala(r1[0], r1[1], ux, uy)
+    b += t((r0[0] + r1[0]) / 2 + 4, (r0[1] + r1[1]) / 2 - 10, str(L), 11, AM, "middle", "600")
+    # label lubang
+    h0 = P(lubang[0][0], tt, lubang[0][1])
+    tip = (h0[0] + 6, h0[1] - 4)
+    ek = (tip[0] + 22, tip[1] - 52)
+    b += _panah(ek[0], ek[1], tip[0], tip[1], AM, 1) + f'<line x1="{ek[0]:.1f}" y1="{ek[1]:.1f}" x2="{ek[0] + 10:.1f}" y2="{ek[1]:.1f}" stroke="{AM}" stroke-width="1"/>'
+    b += t(ek[0] + 14, ek[1] + 4, f"2 × ⌀{d} tembus", 11, AM, "start", "600")
+    # arah sumbu isometrik
+    o = (612, 300)
+    for (vx, vy, vz), warna, nama in [((1, 0, 0), RD, "X"), ((0, 1, 0), GN, "Y"), ((0, 0, 1), BL, "Z")]:
+        p = P(12 * vx, 12 * vy, 12 * vz)
+        q = P(0, 0, 0)
+        ex_, ey_ = o[0] + (p[0] - q[0]), o[1] + (p[1] - q[1])
+        b += _panah(o[0], o[1], ex_, ey_, warna, 1.4)
+        b += t(ex_ + (6 if ex_ >= o[0] else -6), ey_ + (12 if ey_ > o[1] + 2 else -3), nama, 10, warna, "start" if ex_ >= o[0] else "end", "700")
+    return svg(680, 350, b, "Gambar 7 — Braket L tiga dimensi untuk praktik terbimbing")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -501,14 +618,17 @@ Part.show(akhir, "PorosChamfer")''', "Python (FreeCAD)")
     m += bagian(8, "m-python", "Python Console:<br>Membangun dan Memeriksa Solid", "Cell pertama membangun Body, sketsa terkonstrain, Pad, dan Pocket lewat API Part Design; dua cell berikutnya memeriksa rumus Revolution, Pipe, Fillet, dan Chamfer dengan Part API, lalu menghitung massa.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Body dan sketsa dasar", "Part Design → Create body → Create sketch → XY. Gambar profil L braket: polyline 6 titik (80 × 60, tebal 12), konstrain coincident, H/V, jangkar ke origin, dimensi sampai Fully constrained. Close."),
-               ("2", "Pad", "Pad Length 40 mm. Baca Body.Shape.Volume di Python console dan bandingkan dengan luas profil × 40."),
-               ("3", "Lubang", "Klik muka atas kaki mendatar → Create sketch → dua lingkaran ⌀9 (konstrain Diameter, posisi dari tepi) → Pocket Through all. Volume berkurang 2 × π·4,5² × 12."),
-               ("4", "Fillet dalam", "Pilih rusuk dalam siku L (satu rusuk sepanjang 40 mm) → Fillet R6. Volume bertambah? Tidak: fillet dalam justru menambah bahan; hitung selisihnya lewat Shape.Volume."),
-               ("5", "Chamfer luar", "Pilih dua rusuk luar ujung kaki → Chamfer 2 mm. Periksa pohon fitur: Sketch, Pad, Sketch001, Pocket, Fillet, Chamfer; Tip = Chamfer."),
-               ("6", "Ubah parameter", "Buka Sketch, ubah tebal 12 → 15, Close, recompute: semua fitur mengikuti tanpa dibuat ulang. Kembalikan ke 12."),
+    langkah = [("1", "Body dan sketsa dasar", f"Part Design → Create body → Create sketch → XY. Gambar profil L braket: polyline 6 titik ({BR_A} × {BR_B}, tebal {BR_T}), konstrain coincident, H/V, jangkar ke origin, dimensi sampai Fully constrained. Close."),
+               ("2", "Pad", f"Pad Length {BR_L} mm. Baca Body.Shape.Volume di Python console dan bandingkan dengan luas profil × {BR_L}."),
+               ("3", "Lubang", f"Klik muka atas kaki mendatar → Create sketch → dua lingkaran ⌀{BR_D} (konstrain Diameter, posisi dari tepi) → Pocket Through all. Volume berkurang 2 × π·{ind(BR_D / 2, 1)}² × {BR_T}."),
+               ("4", "Fillet dalam", f"Pilih rusuk dalam siku L (satu rusuk sepanjang {BR_L} mm) → Fillet R{BR_R}. Volume bertambah? Ya: fillet dalam mengisi sudut dalam dengan bahan; hitung selisihnya lewat Shape.Volume."),
+               ("5", "Chamfer luar", f"Pilih dua rusuk luar ujung kaki → Chamfer {BR_C} mm. Periksa pohon fitur: Sketch, Pad, Sketch001, Pocket, Fillet, Chamfer; Tip = Chamfer."),
+               ("6", "Ubah parameter", f"Buka Sketch, ubah tebal {BR_T} → 15, Close, recompute: semua fitur mengikuti tanpa dibuat ulang. Kembalikan ke {BR_T}."),
                ("7", "Massa dan simpan", "Hitung massa aluminium (ρ = 2,70 g/cm³) dari Volume/1000; V lalu F; Ctrl+S → <code>Latihan5_NIM.FCStd</code>.")]
-    isi = '  <div class="cards reveal">\n'
+    isi = figure(7, "Target praktik: braket L tiga dimensi",
+                 f"Satuan mm. Kiri: profil pada bidang XY dengan titik asal (0, 0) di sudut luar siku, yaitu polyline 6 titik {BR_A} × {BR_B} tebal {BR_T} (langkah 1) setelah fillet dalam R{BR_R} (langkah 4) dan chamfer C{BR_C} pada dua rusuk luar ujung kaki (langkah 5). Kanan: isometrik setelah Pad {BR_L} (langkah 2) dan dua lubang ⌀{BR_D} tembus di muka atas kaki mendatar (langkah 3).",
+                 gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>

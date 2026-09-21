@@ -181,7 +181,7 @@ def _m2():
     body += f'<line x1="{cx0 - c:.1f}" y1="{cy0 - hh}" x2="{cx0 + c:.1f}" y2="{cy0 - hh}" stroke="{GR}" stroke-width="2.6"/>'
     body += f'<circle cx="{cx0}" cy="{cy0}" r="2.5" fill="{TX}"/>' + t(cx0 + 5, cy0 + 13, "(0, 0)", 9, AX, "start")
     body += dim_v(cx0 + 4, cy0 - hh, cy0, "h", kiri=False)
-    body += f'<line x1="{cx0}" y1="{cy0}" x2="{cx0 - r * 0.7:.1f}" y2="{cy0 + r * 0.714:.1f}" stroke="{AM}" stroke-width="1"/>' + t(cx0 - r * 0.4, cy0 + r * 0.55, "r", 11, AM, "end", "600")
+    body += f'<line x1="{cx0}" y1="{cy0}" x2="{cx0 - r * 0.7:.1f}" y2="{cy0 + r * 0.714:.1f}" stroke="{AM}" stroke-width="1"/>' + t(cx0 - r * 0.4 + 2, cy0 + r * 0.55 + 2, "r", 11, AM, "end", "600")
     body += t(cx0, cy0 - hh - 8, "ruas tersisa (tali busur)", 9.5, GR, "middle")
     body += t(cx0 - 125, cy0 - hh + 14, "dipotong", 8.5, RD, "start") + t(cx0 + 125, cy0 - hh + 14, "dipotong", 8.5, RD, "end")
     body += catatan(["Circle r, pusat (0, 0)", "Line mendatar y = h dari x = −80…80", "Draft Trimex: potong kedua ujung", "  di perpotongan dengan lingkaran", "baca: Shape.Length ruas tersisa"], 320)
@@ -194,7 +194,7 @@ def _m2():
         body += f'<circle cx="{px:.1f}" cy="{py:.1f}" r="{d / 2}" fill="#0a101f" stroke="{GR if k == 0 else CY}" stroke-width="2"/>'
     p0 = (cx0 + R, cy0)
     p1 = (cx0 + R * math.cos(2 * math.pi / n), cy0 - R * math.sin(2 * math.pi / n))
-    body += f'<line x1="{p0[0]}" y1="{p0[1]}" x2="{p1[0]:.1f}" y2="{p1[1]:.1f}" stroke="{PK}" stroke-width="1.6"/>' + t(p1[0] + 10, p1[1] - 4, "jarak tetangga", 9.5, PK, "start", "600")
+    body += f'<line x1="{p0[0]}" y1="{p0[1]}" x2="{p1[0]:.1f}" y2="{p1[1]:.1f}" stroke="{PK}" stroke-width="1.6"/>' + t(p1[0] + 14, p1[1] - 4, "jarak tetangga", 9.5, PK, "start", "600")
     body += f'<line x1="{cx0}" y1="{cy0}" x2="{cx0 + R}" y2="{cy0}" stroke="{AM}" stroke-width="1"/>' + t(cx0 + R / 2, cy0 - 6, "R", 11, AM, "middle", "600")
     body += f'<circle cx="{cx0}" cy="{cy0}" r="2.5" fill="{TX}"/>' + t(cx0 - 5, cy0 + 14, "(0, 0)", 9, AX, "end")
     body += t(cx0 + R + d / 2 + 4, cy0 + 14, "⌀d (induk)", 9.5, GR, "start")
@@ -278,7 +278,7 @@ def _m3():
     body += f'<circle cx="{G[0]:.1f}" cy="{G[1]:.1f}" r="{r}" fill="rgba(245,158,11,.2)" stroke="{AM}" stroke-width="2"/>'
     body += f'<circle cx="{G[0]:.1f}" cy="{G[1]:.1f}" r="3" fill="{GR}"/>' + t(G[0], G[1] + r + 12, "G = titik berat", 9.5, GR, "middle", "600")
     body += f'<line x1="{C[0]}" y1="{C[1]}" x2="{G[0]:.1f}" y2="{G[1]:.1f}" stroke="{GR}" stroke-width="1.4" stroke-dasharray="4 3"/>'
-    body += t(B[0] + 6, B[1] + 14, "B (a, 0)", 9.5, AX, "end") + t(C[0], C[1] - 8, "C (c, h)", 9.5, AX, "middle") + t(A[0] - 4, A[1] + 26, "A", 9.5, AX, "end")
+    body += t(B[0] + 6, B[1] + 14, "B (a, 0)", 9.5, AX, "end") + t(C[0], C[1] - 8, "C (c, h)", 9.5, AX, "middle") + t(A[0] + 6, A[1] + 26, "A", 9.5, AX, "end")
     body += t(G[0] + r + 4, G[1] - 4, "r", 10.5, AM, "start", "600")
     body += catatan(["Draft Wire A–B–C tertutup, Make Face", "Circle radius r berpusat TEPAT di G", "  (Shape.CenterOfMass / rata-rata", "  A, B, C; atau Draft Point + snap)", "baca: jarak C ke pusat lingkaran"], 310, 40)
     out.append(gambar_tugas(body, "Tugas 4 — lingkaran di titik berat segitiga"))
@@ -296,7 +296,7 @@ def _m3():
     body += t(xmin - 24, ymax + 4, "YMax", 11, GR, "end", "600")  # di ujung kiri garis, jauh dari kolom catatan
     body += f'<path d="M {ox + 50} {oy} A 50 50 0 0 0 {ox + 50 * math.cos(rad):.1f} {oy - 50 * math.sin(rad):.1f}" fill="none" stroke="{PK}" stroke-width="1.3"/>' + t(ox + 56, oy - 14, "θ", 12, PK, "start", "700")
     body += t(ox + a / 2 + 40, oy + 28, "posisi semula a × b (putus)", 9.5, AX, "middle")
-    body += catatan(["Rectangle a × b di (0, 0), Make Face", "Draft Rotate TANPA Copy:", "  pusat (0, 0), rotasi θ", "  (sudut kiri-bawah tetap)", "baca: Shape.BoundBox.YMax", "  = a·sin θ + b·cos θ"], 330, 40)
+    body += catatan(["Rectangle a × b di (0, 0), Make Face", "Draft Rotate TANPA Copy:", "  pusat (0, 0), rotasi θ", "  (sudut kiri-bawah tetap)", "baca: Shape.BoundBox.YMax", "  = a·sin θ + b·cos θ"], 322, 40)  # pita x 293..330 kosong
     out.append(gambar_tugas(body, "Tugas 5 — persegi panjang diputar θ dan kotak pembatasnya", h=240))
     return out
 
@@ -325,21 +325,24 @@ def _m4():
     ex, ey = cx0 + r * math.cos(math.radians(th)), cy0 - r * math.sin(math.radians(th))
     body = f'<path d="M {cx0} {cy0} L {cx0 + r} {cy0} A {r} {r} 0 0 0 {ex:.1f} {ey:.1f} Z" fill="rgba(34,211,238,.16)" stroke="{CY}" stroke-width="2"/>'
     am = math.radians(th / 2)
-    body += f'<line x1="{cx0}" y1="{cy0}" x2="{cx0 + r * math.cos(am):.1f}" y2="{cy0 - r * math.sin(am):.1f}" stroke="{AM}" stroke-width="1"/>' + t(cx0 + r * math.cos(am) + 4, cy0 - r * math.sin(am) + 16, "R (dimensi radius)", 10, AM, "start", "600")
+    body += f'<line x1="{cx0}" y1="{cy0}" x2="{cx0 + r * math.cos(am):.1f}" y2="{cy0 - r * math.sin(am):.1f}" stroke="{AM}" stroke-width="1"/>' + t(cx0 + r * math.cos(am) + 8, cy0 - r * math.sin(am) + 14, "R (dimensi radius)", 10, AM, "start", "600")
     body += f'<path d="M {cx0 + 44} {cy0} A 44 44 0 0 0 {cx0 + 44 * math.cos(math.radians(th)):.1f} {cy0 - 44 * math.sin(math.radians(th)):.1f}" fill="none" stroke="{PK}" stroke-width="1.4"/>' + t(cx0 + 52, cy0 - 14, "θ (angular)", 10.5, PK, "start", "700")
     body += f'<circle cx="{cx0}" cy="{cy0}" r="2.5" fill="{TX}"/>' + t(cx0 - 4, cy0 + 14, "(0, 0)", 9, AX, "end")
     body += catatan(["Draft Arc r, 0°…θ, pusat (0, 0)", "+ 2 Line radial → Upgrade → face", "Dimensi RADIUS pada busur (R…)", "Dimensi ANGULAR dua garis radial", "baca: Area sektor = ½·r²·θ"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 2 — sektor lingkaran dengan dimensi R dan angular"))
     # T3 pelat tiga lubang baseline
-    ox, oy, a, b, d = 60, 176, 230, 120, 18
+    ox, oy, a, b, d = 60, 170, 230, 120, 18
     L1, L2, L3 = (ox + 35, oy - 35), (ox + 120, oy - 95), (ox + 205, oy - 95)
-    body = sumbu2d(ox, oy, 24, 24)
+    # sumbu kecil seperti sumbu2d(ox, oy, 24, 24), tetapi label Y di kanan ujung panah: di kirinya ada kepala panah dimensi y₁
+    body = (_panah(ox, oy, ox + 24, oy, RD, 1.2) + _panah(ox, oy, ox, oy - 24, GN, 1.2)
+            + t(ox + 30, oy + 13, "X", 10, RD, "start", "700") + t(ox + 4, oy - 30, "Y", 10, GN, "start", "700")
+            + f'<circle cx="{ox}" cy="{oy}" r="2.5" fill="{TX}"/>' + t(ox - 4, oy + 14, "(0, 0)", 9, AX, "end"))
     body += f'<rect x="{ox}" y="{oy - b}" width="{a}" height="{b}" fill="rgba(34,211,238,.16)" stroke="{CY}" stroke-width="2"/>'
     for (px, py), lab in zip([L1, L2, L3], ["L1", "L2", "L3"]):
         body += f'<circle cx="{px}" cy="{py}" r="{d / 2}" fill="#0a101f" stroke="{CY}" stroke-width="2"/>' + t(px, py - d / 2 - 4, lab, 9, AX, "middle")
     body += f'<line x1="{L1[0]}" y1="{L1[1]}" x2="{L3[0]}" y2="{L3[1]}" stroke="{GR}" stroke-width="1.4" stroke-dasharray="4 3"/>' + t((L1[0] + L3[0]) / 2 + 8, (L1[1] + L3[1]) / 2 + 12, "jarak L1–L3", 10, GR, "start", "600")
-    body += dim_h(ox, L1[0], oy + 16, "x₁", atas=False) + dim_h(ox, L2[0], oy + 30, "x₂", atas=False) + dim_h(ox, L3[0], oy + 44, "x₃", atas=False)
-    body += dim_v(ox - 14, L1[1], oy, "y₁") + dim_v(ox - 28, L3[1], oy, "y₃")
+    body += dim_h(ox, L1[0], oy + 20, "x₁", atas=False) + dim_h(ox, L2[0], oy + 38, "x₂", atas=False) + dim_h(ox, L3[0], oy + 56, "x₃", atas=False)
+    body += dim_v(ox - 14, L1[1], oy, "y₁") + dim_v(ox - 34, L3[1], oy, "y₃")
     body += t(ox + a - 6, oy - 8, "3 × ⌀d tembus", 9.5, VI, "end", "600")
     body += catatan(["Rectangle + 3 Circle ⌀d", "  (L1, L2, L3)", "Dimensi BASELINE X dan Y", "  dari sudut kiri-bawah; ⌀d", "Draft Text “3 × ⌀d tembus”", "baca: jarak pusat L1 ke L3"], 334, 36)
     out.append(gambar_tugas(body, "Tugas 3 — pelat tiga lubang dengan dimensi baseline dan teks", h=250))
@@ -350,7 +353,7 @@ def _m4():
     body += f'<rect x="{ox}" y="{oy - r}" width="{L}" height="{d}" fill="none" stroke="rgba(148,163,184,.35)" stroke-width="1" stroke-dasharray="4 3"/>'
     for px in (ox, ox + L):
         body += f'<circle cx="{px}" cy="{oy}" r="{r}" fill="none" stroke="rgba(148,163,184,.35)" stroke-width="1" stroke-dasharray="4 3"/>' + f'<circle cx="{px}" cy="{oy}" r="2.5" fill="{TX}"/>'
-    body += t(ox - 6, oy + 14, "(0, 0)", 9, AX, "end")
+    body += t(ox - 2, oy + 12, "(0, 0)", 9, AX, "end")  # di antara lingkaran putus dan tepi persegi putus
     body += dim_h(ox, ox + L, oy - r - 16, "L") + dim_h(ox - r, ox + L + r, oy + r + 24, "L + d", atas=False)
     body += f'<line x1="{ox + L}" y1="{oy}" x2="{ox + L + r * math.cos(0.6):.1f}" y2="{oy + r * math.sin(0.6):.1f}" stroke="{AM}" stroke-width="1"/>' + t(ox + L + r * math.cos(0.6) + 4, oy + r * math.sin(0.6) + 8, "R = d/2", 10.5, AM, "start", "600")
     body += catatan(["Rectangle L × d (sumbu y = 0)", "+ 2 Circle ⌀d di (0,0) & (L,0)", "Part → Boolean → Union (Fuse)", "Dimensi L, L + d, R;", "  AnnotationStyle “ISO-A4”", "baca: Area slot"], 334, 40)
@@ -375,18 +378,24 @@ def _m4():
 # ═══════════════════════════ Modul 5 ═══════════════════════════
 def _m5():
     out = []
+
+    def geser(bag, teks, dx, dy):
+        """Geser <text> berisi tepat `teks` (keluaran sumbu3d) sejauh (dx, dy) tanpa mengubah helpernya."""
+        return re.sub(rf'<text x="([\d.\-]+)" y="([\d.\-]+)"([^>]*)>{re.escape(teks)}</text>',
+                      lambda m: f'<text x="{float(m.group(1)) + dx:.1f}" y="{float(m.group(2)) + dy:.1f}"{m.group(3)}>{teks}</text>', bag, count=1)
+
     # T1 balok Pad
     cx, cy, s = 150, 180, 1.1
     a, b, h = 120, 80, 60
     dasar = [iso(x, y, 0, cx, cy, s) for x, y in [(0, 0), (a, 0), (a, b), (0, b)]]
     atas = [iso(x, y, h, cx, cy, s) for x, y in [(0, 0), (a, 0), (a, b), (0, b)]]
-    body = sumbu3d(cx, cy, s, 50)
+    body = geser(geser(sumbu3d(cx, cy, s, 50), "X", -2, -2), "Z", 0, 10)  # label sumbu lepas dari rusuk balok
     for i, j in [(0, 1), (1, 2), (2, 3), (3, 0)]:
         body += poli([dasar[i], dasar[j], atas[j], atas[i]], "rgba(34,211,238,.10)", "rgba(34,211,238,.6)", 1.1)
     body += poli(atas, "rgba(34,211,238,.22)", CY, 1.8)
     body += poli(dasar, "rgba(245,158,11,.14)", AM, 1.4, "5 3")
     p = iso(a / 2, -6, 0, cx, cy, s)
-    body += t(p[0], p[1] + 14, "Sketch XY: a × b", 10, AM, "middle", "600")
+    body += t(p[0] + 4, p[1] + 18, "Sketch XY: a × b", 10, AM, "middle", "600")  # di bawah panah sumbu X
     p = iso(a, 0, h / 2, cx, cy, s)
     body += t(p[0] + 8, p[1] + 4, "Pad h", 11, CY, "start", "600")
     p = iso(a / 2, 0, 0, cx, cy, s)
@@ -405,14 +414,14 @@ def _m5():
     body += poli(lingkar3d(0, 0, h, ro, cx, cy, s), "rgba(34,211,238,.2)", CY, 1.4) + poli(lingkar3d(0, 0, h, ri, cx, cy, s), "#0a101f", CY, 1.2)
     prof = [iso(x, 0, z, cx, cy, s) for x, z in [(ri, 0), (ro, 0), (ro, h), (ri, h)]]
     body += poli(prof, "rgba(245,158,11,.35)", AM, 2)
-    z0, z1 = iso(0, 0, -10, cx, cy, s), iso(0, 0, h + 18, cx, cy, s)
+    z0, z1 = iso(0, 0, -10, cx, cy, s), iso(0, 0, h + 34, cx, cy, s)  # ujung sumbu di atas bibir atas bus
     body += f'<line x1="{z0[0]:.1f}" y1="{z0[1]:.1f}" x2="{z1[0]:.1f}" y2="{z1[1]:.1f}" stroke="{RD}" stroke-width="1.2" stroke-dasharray="8 3 2 3"/>' + t(z1[0] + 6, z1[1], "sumbu Z", 9.5, RD, "start")
     p = iso(ro + 4, 0, h / 2, cx, cy, s)
-    body += t(p[0] + 6, p[1] - 16, "profil XZ", 10, AM, "start", "600")
+    body += t(p[0] + 10, p[1] - 16, "profil XZ", 10, AM, "start", "600")
     p = iso(ri, 0, 0, cx, cy, s); q = iso(ro, 0, 0, cx, cy, s)
-    body += t(p[0], p[1] + 16, "rᵢ", 10.5, AM, "middle", "600") + t(q[0] + 8, q[1] + 16, "rₒ", 10.5, AM, "middle", "600")
+    body += t(p[0] - 2, p[1] + 16, "rᵢ", 10.5, AM, "middle", "600") + t(q[0] + 18, q[1] + 16, "rₒ", 10.5, AM, "middle", "600")
     p = iso(ro, 0, h, cx, cy, s); q = iso(ro, 0, 0, cx, cy, s)
-    body += t((iso(ri, 0, h / 2, cx, cy, s)[0] + iso(ro, 0, h / 2, cx, cy, s)[0]) / 2, (p[1] + q[1]) / 2 + 4, "h", 11, TX, "middle", "700")
+    body += t((iso(ri, 0, h / 2, cx, cy, s)[0] + iso(ro, 0, h / 2, cx, cy, s)[0]) / 2 - 6, (p[1] + q[1]) / 2 - 4, "h", 11, TX, "middle", "700")
     body += catatan(["Body → Sketch (XZ): persegi panjang", "  rᵢ…rₒ × h (tidak memotong sumbu)", "Revolution 360° terhadap sumbu Z", "baca: Volume = π(rₒ² − rᵢ²)·h"], 316, 40)
     out.append(gambar_tugas(body, "Tugas 2 — bus berongga dari Revolution"))
     # T3 siku pipa
@@ -436,7 +445,7 @@ def _m5():
     body += f'<circle cx="{o[0]:.1f}" cy="{o[1]:.1f}" r="2.5" fill="{TX}"/>' + t(o[0] - 5, o[1] + 12, "(0, 0)", 9, AX, "end")
     body += t(e1[0] + r * s + 6, e1[1] + 4, "profil ⌀2r (XY)", 10, AM, "start", "600")
     p = iso(R * 0.72, 0, R * 0.72, cx, cy, s)
-    body += t(p[0] + 8, p[1] - 8, "lintasan busur (XZ)", 10, PK, "start", "600")
+    body += t(p[0] + 12, p[1] - 14, "lintasan busur (XZ)", 10, PK, "start", "600")
     body += catatan(["Sketch lintasan (XZ): busur ¼", "  lingkaran radius R, pusat (0,0),", "  dari (R,0) ke (0,R)", "Sketch profil (XY): Circle r di (R, 0)", "Additive Pipe", "  (profil sepanjang busur)", "baca: Volume = πr² × (πR/2)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 3 — siku pipa dari Additive Pipe", h=240))
     # T4 balok berlubang + fillet
@@ -454,7 +463,7 @@ def _m5():
                 pts.append(iso(ccx + f * math.cos(ang), ccy + f * math.sin(ang), z, cx, cy, s))
         return pts
     bawah, atas = kont(0), kont(h)
-    body = sumbu3d(cx, cy, s, 46)
+    body = geser(geser(sumbu3d(cx, cy, s, 46), "Z", -6, -12), "X", -2, -2)  # label sumbu lepas dari rusuk fillet
     for i in range(len(bawah)):
         j = (i + 1) % len(bawah)
         body += poli([bawah[i], bawah[j], atas[j], atas[i]], "rgba(34,211,238,.08)", "rgba(34,211,238,.45)", 0.7)
@@ -463,10 +472,10 @@ def _m5():
     p = iso(a / 2, b / 2, h, cx, cy, s)
     body += f'<line x1="{p[0]:.1f}" y1="{p[1]:.1f}" x2="{p[0] - 40:.1f}" y2="52" stroke="{VI}" stroke-width=".8" stroke-dasharray="3 2"/>' + t(p[0] - 44, 56, "Pocket ⌀d", 10, VI, "end", "600")
     p = iso(a, 0, h / 2, cx, cy, s)
-    body += t(p[0] + 10, p[1] + 4, "Fillet f (rusuk vertikal)", 10, GR, "start", "600")
+    body += t(p[0] + 10, p[1] + 20, "Fillet f (rusuk vertikal)", 10, GR, "start", "600")  # di bawah kolom catatan
     p = iso(a / 2, -4, 0, cx, cy, s)
-    body += t(p[0], p[1] + 16, "Sketch XY: a × b → Pad h", 10, AM, "middle", "600")
-    body += catatan(["Sketch (XY) a × b → Pad h", "Sketch di muka atas: Circle ⌀d", "  di (a/2, b/2) → Pocket Through all", "Fillet radius f pada 4 rusuk VERTIKAL", "baca: Body.Shape.Volume"], 330, 40)
+    body += t(p[0] + 4, p[1] + 26, "Sketch XY: a × b → Pad h", 10, AM, "middle", "600")  # di bawah panah sumbu X
+    body += catatan(["Sketch (XY) a × b → Pad h", "Sketch di muka atas: Circle ⌀d", "  di (a/2, b/2) → Pocket Through all", "Fillet radius f pada 4 rusuk VERTIKAL", "baca: Body.Shape.Volume"], 318, 40)  # pita x 270..330 kosong
     out.append(gambar_tugas(body, "Tugas 4 — balok berlubang dengan fillet rusuk vertikal", h=236))
     # T5 poros bertingkat + chamfer
     cx, cy, s = 130, 205, 1.0
@@ -480,7 +489,7 @@ def _m5():
     body += poli(lingkar3d(0, 0, L1 + L2, R2 - c, cx, cy, s), "rgba(34,211,238,.25)", PK, 1.6)
     prof = [iso(x, 0, z, cx, cy, s) for x, z in [(0, 0), (R1, 0), (R1, L1), (R2, L1), (R2, L1 + L2 - c), (R2 - c, L1 + L2), (0, L1 + L2)]]
     body += poli(prof, "rgba(245,158,11,.30)", AM, 2)
-    z0, z1 = iso(0, 0, -10, cx, cy, s), iso(0, 0, L1 + L2 + 16, cx, cy, s)
+    z0, z1 = iso(0, 0, -10, cx, cy, s), iso(0, 0, L1 + L2 + 20, cx, cy, s)
     body += f'<line x1="{z0[0]:.1f}" y1="{z0[1]:.1f}" x2="{z1[0]:.1f}" y2="{z1[1]:.1f}" stroke="{RD}" stroke-width="1.2" stroke-dasharray="8 3 2 3"/>' + t(z1[0] - 6, z1[1], "sumbu Z", 9.5, RD, "end")
     p = iso(R2 + 2, 0, L1 + L2 - c / 2, cx, cy, s)
     body += t(p[0] + 8, p[1] - 4, "Chamfer c × 45°", 10, PK, "start", "600")

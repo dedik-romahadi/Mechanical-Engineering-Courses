@@ -3,12 +3,19 @@
 # angka varian dimuat per NIM. Dipakai tugas_gambar.tugas_gambar(6) → gambar().
 import math
 import pathlib
+import re
 import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from tugas_gambar import (AM, AX, BL, CY, GN, GR, PK, RD, TX, VI, _panah, catatan, dim_h, dim_v, ext, gambar_tugas, iso,  # noqa: E402,F401
                           lingkar3d, poli, sumbu2d, sumbu3d, t)
+
+
+def _geser(bag, teks, dx, dy):
+    """Geser <text> berisi tepat `teks` (keluaran helper bersama, mis. sumbu3d) sejauh (dx, dy)."""
+    return re.sub(rf'<text x="([\d.\-]+)" y="([\d.\-]+)"([^>]*)>{re.escape(teks)}</text>',
+                  lambda m: f'<text x="{float(m.group(1)) + dx:.1f}" y="{float(m.group(2)) + dy:.1f}"{m.group(3)}>{teks}</text>', bag, count=1)
 
 
 def _garis(x1, y1, x2, y2, warna, w=1, dash=""):
@@ -39,18 +46,18 @@ def gambar():
     a, b, H, hn = 130, 70, 80, 26
     prof = [(0, 0), (a, 0), (a, H - hn), (a / 2, H - hn), (a / 2, H), (0, H)]
     body, F0, F1 = _prisma(prof, b, cx, cy, s, "rgba(245,158,11,.22)", AM)
-    body += sumbu3d(cx - 8, cy + 26, 0.8, 30)
+    body += _geser(sumbu3d(cx - 8, cy + 26, 0.8, 30), "Z", -2, -8)  # label Z lepas dari rusuk prisma
     p = iso(a / 2, 0, 0, cx, cy, s)
     body += t(p[0] + 6, p[1] + 16, "a", 11, AM, "middle", "600")
     p = iso(0, 0, H / 2, cx, cy, s)
-    body += t(p[0] - 8, p[1] + 4, "H", 11, AM, "end", "600")
+    body += t(p[0] - 6, p[1] + 12, "H", 11, AM, "end", "600")
     p = iso(a, 0, H - hn / 2, cx, cy, s)
     body += t(p[0] + 8, p[1] + 4, "hₙ", 11, PK, "start", "600")
     p = iso(3 * a / 4, 0, H - hn, cx, cy, s)
     body += t(p[0] + 2, p[1] - 6, "a/2", 10, PK, "middle", "600")
     p = iso(a, b / 2, 0, cx, cy, s)
-    body += t(p[0] + 10, p[1] + 6, "b", 11, AM, "start", "600")
-    body += t(150, 222, "muka depan = bidang sketsa XZ (kuning)", 9.5, AM, "middle")
+    body += t(p[0] + 12, p[1] + 4, "b", 11, AM, "start", "600")
+    body += t(150, 230, "muka depan = bidang sketsa XZ (kuning)", 9.5, AM, "middle")  # di bawah triad sumbu
     body += catatan(["Sketch (XZ) profil bertakik 6 titik", "  → Pad b (takik tembus kedalaman)", "TechDraw: Page + Projection Group", "  Front / Top / Right, skala 1:2", "baca: luas muka depan (XZ)", "  = a·H − (a/2)·hₙ"], 330, 36)
     out.append(gambar_tugas(body, "Tugas 1 — balok bertakik dengan tiga pandangan TechDraw dan luas muka depan", h=240))
 
@@ -70,11 +77,11 @@ def gambar():
     body += f'<circle cx="{o[0]:.1f}" cy="{o[1]:.1f}" r="3" fill="{PK}"/><circle cx="{q[0]:.1f}" cy="{q[1]:.1f}" r="3" fill="{PK}"/>'
     body += t(o[0] + 8, o[1] + 14, "(0, 0, 0)", 9, PK, "start")
     body += t(q[0] + 8, q[1] - 4, "(a, b, c)", 9, PK, "start")
-    body += t((o[0] + q[0]) / 2 - 12, (o[1] + q[1]) / 2 - 2, "d", 12, PK, "end", "700")
+    body += t((o[0] + q[0]) / 2 - 12, (o[1] + q[1]) / 2 - 6, "d", 12, PK, "end", "700")
     p = iso(a / 2, 0, 0, cx, cy, s)
     body += t(p[0] + 4, p[1] + 16, "a", 11, AM, "middle", "600")
     p = iso(a, b / 2, 0, cx, cy, s)
-    body += t(p[0] + 10, p[1] + 6, "b", 11, AM, "start", "600")
+    body += t(p[0] + 12, p[1] + 4, "b", 11, AM, "start", "600")
     p = iso(0, 0, c / 2, cx, cy, s)
     body += t(p[0] - 8, p[1] + 4, "c", 11, AM, "end", "600")
     body += sumbu3d(cx - 60, cy + 24, 0.8, 30)
@@ -100,7 +107,7 @@ def gambar():
     body += t(mb[0] - 10, mb[1] + 4, "b", 11, CY, "end", "600")
     body += ext(x0, y1, x0, y1 + 26) + ext(x1, y1, x1, y1 + 26) + dim_h(x0, x1, y1 + 20, "XLength", atas=False)
     body += ext(x1, y0, x1 + 28, y0) + ext(x1, y1, x1 + 28, y1) + dim_v(x1 + 22, y0, y1, "YLength", kiri=False)
-    body += t(ox + a * 0.55, oy + 13, "posisi semula (putus)", 9, AX, "middle")
+    body += t(ox + a / 2, oy + 13, "posisi semula (putus)", 9, AX, "middle")  # lepas dari garis bantu XLength kanan
     body += catatan(["Sketch (XY) a × b → Pad c", "Body → Placement: Axis (0, 0, 1),", "  Angle θ (putar terhadap Z)", "baca: Shape.BoundBox.XLength", "  = a·cosθ + b·sinθ", "  (kotak sejajar sumbu global)"], 330, 36)
     out.append(gambar_tugas(body, "Tugas 3 — balok diputar θ terhadap Z dan kotak pembatasnya (tampak atas)", h=246))
 
@@ -129,7 +136,7 @@ def gambar():
     p = iso(a, b / 2, h, cx, cy, s)
     body += t(p[0] + 8, p[1] - 8, "b", 11, AM, "start", "600")
     p = iso(a / 2, b / 2, h, cx, cy, s)
-    body += t(p[0] + 18, p[1] - 6, "⌀d", 10.5, VI, "start", "600")
+    body += t(p[0] + 16, p[1] + 6, "⌀d", 10.5, VI, "start", "600")  # di bawah garis potong A-A, di tengah celah elips–rusuk
     body += t(130, 224, "bidang potong A-A pada y = b/2 (merah muda)", 9.5, PK, "middle")
     body += catatan(["Sketch (XY) a × b → Pad h", "Circle ⌀d di (a/2, b/2) → Pocket", "  Through all (lubang tembus)", "TechDraw: Top → Section View A-A", "  bidang y = b/2 (pusat lubang)", "baca: luas potongan = h·(a − d)"], 330, 36)
     out.append(gambar_tugas(body, "Tugas 4 — balok berlubang dengan Section View A-A dan luas potongan", h=240))
@@ -150,13 +157,13 @@ def gambar():
     p = iso(a / 2, 0, 0, cx, cy, s)
     body += t(p[0] + 4, p[1] + 16, "a", 11, AM, "middle", "600")
     p = iso(0, 0, h1 / 2, cx, cy, s)
-    body += t(p[0] - 8, p[1] + 4, "h₁", 11, AM, "end", "600")
+    body += t(p[0] - 12, p[1] - 4, "h₁", 11, AM, "end", "600")
     p = iso(a, 0, h2 / 2, cx, cy, s)
     body += t(p[0] + 8, p[1] + 4, "h₂", 11, AM, "start", "600")
     p = iso(a, b / 2, 0, cx, cy, s)
-    body += t(p[0] + 6, p[1] + 14, "b", 11, AM, "start", "600")
-    body += t(120, 222, "muka miring (kuning) = b × L, L = panjang sebenarnya", 9.5, AM, "middle")
-    body += catatan(["Sketch (XZ) trapesium (0,0)→(a,0)", "  →(a,h₂)→(0,h₁) → Pad b", "TechDraw: Front + pandangan bantu", "  (Direction ⟂ muka miring)", "baca: luas muka miring = b·L", "  L = √(a² + (h₁ − h₂)²)"], 330, 36)
+    body += t(p[0] - 4, p[1] + 14, "b", 11, AM, "start", "600")
+    body += t(140, 222, "muka miring (kuning) = b × L, L = panjang sebenarnya", 9.5, AM, "middle")
+    body += catatan(["Sketch (XZ) trapesium (0,0)→(a,0)", "  →(a,h₂)→(0,h₁) → Pad b", "TechDraw: Front +", "  pandangan bantu", "  (Direction ⟂ muka miring)", "baca: luas muka miring = b·L", "  L = √(a² + (h₁ − h₂)²)"], 330, 36)
     out.append(gambar_tugas(body, "Tugas 5 — baji dengan pandangan bantu dan luas sebenarnya muka miring", h=240))
     return out
 

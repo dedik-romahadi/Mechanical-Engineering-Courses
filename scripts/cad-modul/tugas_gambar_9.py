@@ -38,11 +38,21 @@ def _kantilever(F_lab, L_lab, h_lab, b_lab, warna_kontur=True):
     return body
 
 
+def _dim_v_lab(x, y1, y2, label, y_lab, warna=AM):
+    """Dimensi tegak seperti dim_v (label di kiri garis), tetapi label pada ketinggian y_lab —
+    dipakai bila tengah garis dimensi sudah terpakai panah gaya."""
+    out = f'<line x1="{x:.1f}" y1="{y1:.1f}" x2="{x:.1f}" y2="{y2:.1f}" stroke="{warna}" stroke-width="1"/>'
+    out += f'<polygon points="{x:.1f},{y1:.1f} {x - 3:.1f},{y1 + 7:.1f} {x + 3:.1f},{y1 + 7:.1f}" fill="{warna}"/>'
+    out += f'<polygon points="{x:.1f},{y2:.1f} {x - 3:.1f},{y2 - 7:.1f} {x + 3:.1f},{y2 - 7:.1f}" fill="{warna}"/>'
+    return out + t(x - 6, y_lab, label, 11, warna, "end", "600")
+
+
 def gambar():
     out = []
     # T1 kantilever b × 20, σ_maks teoretis
     body = _kantilever("F", "L", "h = 20", "b")
-    body += catatan(["Body: Sketch YZ b × h → Pad L (searah X)", "FEM: Fixed muka x = 0, Force F (−Z)", "  di muka ujung, mesh Gmsh orde 2, solve", "baca: σ_maks = 6·F·L/(b·h²) (teoretis)", "  bandingkan von Mises FEM di jepitan"], 330, 40)
+    body += catatan(["Body: Sketch YZ b × h", "  → Pad L (searah X)", "FEM: Fixed muka x = 0,", "  Force F (−Z) di muka ujung,", "  mesh Gmsh orde 2, solve",
+                     "baca: σ_maks = 6·F·L/(b·h²)", "  (teoretis), bandingkan", "  von Mises FEM di jepitan"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 1 — kantilever b × 20 berbeban ujung: tegangan lentur maksimum vs von Mises FEM"))
     # T2 kantilever S235, SF
     body = _kantilever("F", "L", "h", "b = 20")
@@ -60,19 +70,20 @@ def gambar():
     pts = [(xa + (xb - xa) * k / 40, yb + 8 + 28 * math.sin(math.pi * k / 40)) for k in range(41)]
     body += f'<polyline points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="none" stroke="{GR}" stroke-width="2" stroke-dasharray="6 4"/>'
     body += _panah((xa + xb) / 2, 50, (xa + xb) / 2, yb - 10, RD, 2) + t((xa + xb) / 2 + 8, 68, "F", 12, RD, "start", "700")
-    body += _panah((xa + xb) / 2 + 30, yb + 8, (xa + xb) / 2 + 30, yb + 36, GR, 1.2) + t((xa + xb) / 2 + 36, yb + 30, "δ", 11, GR, "start", "700")
+    body += _panah((xa + xb) / 2 + 30, yb + 8, (xa + xb) / 2 + 30, yb + 36, GR, 1.2) + t((xa + xb) / 2 + 36, yb + 28, "δ", 11, GR, "start", "700")
     body += ext(xa, yb + 26, xa, yb + 62) + ext(xb, yb + 26, xb, yb + 62) + dim_h(xa, xb, yb + 54, "L", atas=False)
     body += t(xa, 36, "sendi", 9.5, AX, "middle") + t(xb, 36, "rol (z = 0, x bebas)", 9.5, AX, "middle")
-    body += t(xa + 4, yb - 16, "rusuk tengah muka atas (sketsa dibagi di L/2)", 9, AX, "start")
-    body += t(xa + 4, 200, "penampang b × h = 30 × 20 (tetap)", 9.5, AM, "start", "600")
-    body += catatan(["Sketch XZ L × h, garis atas 2 ruas", "  → Pad b; Displacement pada rusuk", "  bawah kedua ujung, Force F di", "  rusuk tengah muka atas, solve", "baca: δ = F·L³/(48·E·I), I = b·h³/12", "  bandingkan Displacement FEM & L/250"], 330, 40)
+    # dua baris di kiri panah F (satu baris akan dicoret garis panah)
+    body += t((xa + xb) / 2 - 6, yb - 29, "rusuk tengah muka atas", 9, AX, "end") + t((xa + xb) / 2 - 6, yb - 16, "(sketsa dibagi di L/2)", 9, AX, "end")
+    body += t(xa + 4, 203, "penampang b × h = 30 × 20 (tetap)", 9.5, AM, "start", "600")
+    body += catatan(["Sketch XZ L × h, garis atas 2 ruas", "  → Pad b; Displacement pada rusuk", "  bawah kedua ujung, Force F di", "  rusuk tengah muka atas, solve", "baca: δ = F·L³/(48·E·I), I = b·h³/12", "  bandingkan Displacement FEM", "  dan L/250"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 3 — balok tumpuan sederhana beban tengah: defleksi vs batas L/250", h=236))
     # T4 pelat berlubang tarik
     px0, px1, py0, py1 = 90, 270, 70, 160
     cx, cy, rr = (px0 + px1) / 2, (py0 + py1) / 2, 20
     body = f'<rect x="{px0}" y="{py0}" width="{px1 - px0}" height="{py1 - py0}" fill="rgba(34,211,238,.16)" stroke="{CY}" stroke-width="1.8"/>'
     body += f'<circle cx="{cx}" cy="{cy}" r="{rr}" fill="#0a101f" stroke="{VI}" stroke-width="1.8"/>'
-    body += t(cx, cy + 4, "⌀d", 10.5, VI, "middle", "600")
+    body += t(cx - 8, cy + 4, "⌀d", 10.5, VI, "middle", "600")  # di kiri garis sumbu lubang
     body += f'<line x1="{cx}" y1="{py0}" x2="{cx}" y2="{py1}" stroke="{AX}" stroke-width=".8" stroke-dasharray="4 3"/>'
     for tanda in (-1, 1):
         pts = [(cx, cy + tanda * rr)]
@@ -82,13 +93,14 @@ def gambar():
             pts.append((cx + 26 * s, cy + tanda * rho))
         pts.append((cx, cy + tanda * (cy - py0)))
         body += f'<polygon points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="rgba(239,68,68,.35)" stroke="{RD}" stroke-width="1.2"/>'
-    body += _panah(px0, cy, 44, cy, AM, 2) + t(38, cy + 4, "F", 12, AM, "end", "700")
-    body += _panah(px1, cy, 316, cy, AM, 2) + t(322, cy + 4, "F", 12, AM, "start", "700")
-    body += ext(px0, py0, 70, py0) + ext(px0, py1, 70, py1) + dim_v(76, py0, py1, "W = 60")
+    # label F di bawah batang panah: ujung kanan terlalu dekat kolom catatan (x = 330)
+    body += _panah(px0, cy, 44, cy, AM, 2) + t(60, cy + 19, "F", 12, AM, "middle", "700")
+    body += _panah(px1, cy, 316, cy, AM, 2) + t(300, cy + 19, "F", 12, AM, "middle", "700")
+    body += ext(px0, py0, 70, py0) + ext(px0, py1, 70, py1) + _dim_v_lab(76, py0, py1, "W = 60", (py0 + cy) / 2 + 4)  # label di atas panah F kiri
     body += ext(px0, py1, px0, py1 + 30) + ext(px1, py1, px1, py1 + 30) + dim_h(px0, px1, py1 + 22, "180", atas=False)
     body += t(cx, py0 - 12, "σ_maks = Kt·σ_nom di tepi lubang", 10, RD, "middle", "600")
     body += t(cx, 218, "tebal t = 5 (tetap) · lubang di pusat pelat", 9.5, AX, "middle")
-    body += catatan(["Pad 60 × 180 × 5, Pocket ⌀d di pusat", "FEM: Fixed x = 0, Force F (+X) di", "  x = 180, mesh ≈ 1 mm di lubang", "Kt = 3,00 − 3,13r + 3,66r² − 1,53r³,", "  r = d/W; σ_nom = F/((W − d)·t)", "baca: σ_maks = Kt·σ_nom (teoretis)"], 330, 40)
+    body += catatan(["Pad 60 × 180 × 5,", "  Pocket ⌀d di pusat", "FEM: Fixed x = 0, Force F (+X) di", "  x = 180, mesh ≈ 1 mm di lubang", "Kt = 3,00 − 3,13r + 3,66r² − 1,53r³,", "  r = d/W; σ_nom = F/((W − d)·t)", "baca: σ_maks = Kt·σ_nom (teoretis)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 4 — pelat berlubang tarik: konsentrasi tegangan Kt·σ_nom vs von Mises FEM", h=236))
     # T5 kolom sendi–sendi, tekuk Euler
     cx, yt, yb = 120, 50, 200
@@ -107,7 +119,7 @@ def gambar():
     body += f'<rect x="{sx}" y="{sy}" width="44" height="22" fill="rgba(34,211,238,.16)" stroke="{CY}" stroke-width="1.5"/>'
     body += dim_h(sx, sx + 44, sy - 8, "b = 20") + dim_v(sx + 52, sy, sy + 22, "h", kiri=False)
     body += t(sx + 22, sy + 40, "penampang (I = 20·h³/12)", 9, AX, "middle")
-    body += catatan(["Sketch XY 20 × h → Pad L (searah Z)", "FEM: SolverCalculiX, Analysis type", "  Buckling; Displacement sendi pada", "  rusuk bawah/atas; Force 1000 N (−Z)", "baca: P_cr = π²·E·I/L² (Euler)", "  bandingkan buckling factor × 1000 N"], 330, 40)
+    body += catatan(["Sketch XY 20 × h → Pad L (searah Z)", "FEM: SolverCalculiX, Analysis type", "  Buckling; Displacement sendi pada", "  rusuk bawah/atas; Force 1000 N (−Z)", "baca: P_cr = π²·E·I/L² (Euler)", "  bandingkan buckling factor × 1000 N"], 316, 40)  # pita x 280..330 kosong
     out.append(gambar_tugas(body, "Tugas 5 — kolom sendi–sendi 20 × h: beban kritis Euler vs CalculiX Buckling", h=240))
     return out
 

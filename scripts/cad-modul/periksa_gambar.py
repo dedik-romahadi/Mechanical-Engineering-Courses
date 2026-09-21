@@ -1,8 +1,9 @@
 # Pemeriksa tata letak gambar SVG modul CAD: menaksir lebar teks (0,55 × ukuran font per
 # karakter; monospace 0,62) lalu melaporkan teks yang saling menimpa, keluar kanvas, atau
 # melebihi kotak (rect) tempat ia berada. Dipakai sebelum PR agar gambar materi dan gambar
-# acuan tugas tidak berantakan (keluhan dosen 20 Sep 2026). Pemeriksaan bbox nyata tetap
-# dilakukan di browser (getBBox) untuk hasil akhir.
+# acuan tugas tidak berantakan (keluhan dosen 20 Sep 2026). INI HANYA TAKSIRAN CEPAT: ia
+# meloloskan banyak cacat nyata (garis mencoret label, teks terpotong tepi). Pemeriksa yang
+# berlaku adalah periksa_gambar_chrome.py --semua (dan --inter), yang mengukur di Chrome.
 #
 # Pakai:  python scripts/cad-modul/periksa_gambar.py 6 7      (modul_N.gambar1..6 + gambar tugas)
 import importlib

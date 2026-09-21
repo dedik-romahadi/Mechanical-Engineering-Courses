@@ -10,8 +10,9 @@ import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
-from pustaka import (AX, TX, anim_panel, arrow, bagian, box, cards, figure, formula, fq, ind, kode, kotak,  # noqa: E402
+from pustaka import (AX, BG, TX, anim_panel, arrow, bagian, box, cards, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
+from tugas_gambar import AM, BL, CY, GN, GR, PK, RD, _panah, dim_h, dim_v, ext, iso  # noqa: E402
 
 NOMOR = 13
 JUDUL = "Prinsip Desain Berkelanjutan dalam CAD"
@@ -92,6 +93,11 @@ V_SHELL = V_SOLID - V_CAV
 M_SOLID, M_SHELL = RHO_ST * V_SOLID, RHO_ST * V_SHELL
 HEMAT_CG = 100 * (1 - V_SHELL / V_SOLID)
 
+# Bagian 09 — praktik terbimbing: tebal dinding yang disapu (langkah 4) dan massa jenis baja yang
+# diketik (langkah 2). Dipakai teks langkah dan Gambar 7 sekaligus agar keduanya tidak menyimpang.
+T_SAPU = (8, 6, 5, 4, 3)                          # mm
+RHO_ST_TEKS = f"{ind(RHO_ST * 1e3, 2)} × 10⁻³"     # g/mm³
+
 
 # ─────────────────────────── gambar ───────────────────────────
 def _poli(pts, fill, stroke, w=1.4, dash=""):
@@ -147,7 +153,7 @@ def gambar2():
     b += t(20, 222, "b × h_i", 10, AX, "start")
     sc = 1.5
     for i, (nama, E, rho, ee, f, c) in enumerate(MAT):
-        cx = 160 + i * 120
+        cx = 138 + i * 118
         hh = H_BM_I[i] * sc
         b += f'<rect x="{cx - B_BM * sc / 2:.1f}" y="{250 - hh:.1f}" width="{B_BM * sc:.1f}" height="{hh:.1f}" fill="rgba(148,163,184,.10)" stroke="{c}" stroke-width="1.4"/>'
         b += t(cx, 266, f"{nama.split()[0][:4]} {ind(H_BM_I[i], 1)}", 9.5, c, "middle")
@@ -222,7 +228,7 @@ def gambar5():
     b += t(20, 176, f"Pelat baja {A_JK} × {B_JK} × {T_JK} mm: V = {ind(V_JK_ST, 0)} mm³ → m = {ind(M_JK_ST, 3)} kg → E = {ind(E_JK_ST, 1)} MJ · CO₂ = {ind(CO2_JK_ST, 3)} kg", 10.5, AX, "start")
     b += t(20, 196, f"Blok aluminium {C_JK} × {C_JK} × {H_JK} mm: V = {ind(V_JK_AL, 0)} mm³ → m = {ind(M_JK_AL, 3)} kg → E = {ind(E_JK_AL, 1)} MJ · CO₂ = {ind(CO2_JK_AL, 3)} kg", 10.5, AX, "start")
     b += t(20, 218, f"TOTAL rakitan: m = {ind(M_JK, 3)} kg · E = {ind(E_JK, 1)} MJ · jejak = {ind(CO2_JK, 3)} kg CO₂", 11, "#00e09e", "start", "600")
-    b += teks2(340, 246, "Satu model CAD memberi tiga angka lingkungan sekaligus karena semuanya berangkat dari volume tiap Body", 11, AX, maks=76)
+    b += teks2(340, 242, "Satu model CAD memberi tiga angka lingkungan sekaligus karena semuanya berangkat dari volume tiap Body", 11, AX, maks=76)
     return svg(680, 268, b, "Gambar 5 — Alur jejak material: dari Shape.Volume ke massa, energi terkandung, dan CO₂")
 
 
@@ -238,8 +244,8 @@ def gambar6():
     b += t(x2 + aw / 2, yb - hh + 22, "muka atas dibuang", 10, "#00e09e", "middle")
     b += arrow(200, 150, 290, 150, "#f59e0b", 1.4)
     b += t(245, 140, "Thickness t", 10, "#f59e0b", "middle", "600")
-    b += arrow(x1, 206, x1 + aw, 206, "#f59e0b", 1.1) + arrow(x1 + aw, 206, x1, 206, "#f59e0b", 1.1)
-    b += t(x1 + aw / 2, 201, "a", 11, "#f59e0b", "middle", "600")
+    b += arrow(x1, 212, x1 + aw, 212, "#f59e0b", 1.1) + arrow(x1 + aw, 212, x1, 212, "#f59e0b", 1.1)
+    b += t(x1 + aw / 2, 207, "a", 11, "#f59e0b", "middle", "600")
     b += arrow(30, yb, 30, yb - hh, "#f59e0b", 1.1) + arrow(30, yb - hh, 30, yb, "#f59e0b", 1.1)
     b += t(24, yb - hh / 2 + 4, "h", 11, "#f59e0b", "end", "600")
     b += arrow(268, 220, x2 + tw / 2, 178, "#00e09e", 1.2)
@@ -252,7 +258,113 @@ def gambar6():
     b += t(470, 158, f"massa = {ind(M_SHELL, 2)} g", 10.5, "#00e09e", "start", "600")
     b += t(470, 176, f"hemat {ind(HEMAT_CG, 1)} % massa", 10.5, "#f59e0b", "start")
     b += teks2(340, 250, "Cangkang membuang bahan di daerah bertegangan rendah: dimensi luar tetap, massa dan jejak turun tajam", 11, AX, maks=76)
-    return svg(680, 272, b, "Gambar 6 — Penampang housing pejal dibandingkan cangkang hasil Thickness")
+    return svg(680, 278, b, "Gambar 6 — Penampang housing pejal dibandingkan cangkang hasil Thickness")
+
+
+# Gambar 7 — gambar kerja praktik terbimbing (Bagian 09): isometrik benda jadi, penampang
+# tengah, dan catatan besaran. Semua angka berasal dari konstanta yang juga dipakai teks langkah.
+def _campur(warna, p):
+    """Warna hex pekat = latar BG dicampur warna dengan porsi p. Dipakai untuk bidang yang harus menutupi
+    garis di belakangnya: rgba() tidak dikenal MuPDF (tercetak hitam) dan bidang tembus pandang tidak menutupi."""
+    a = [int(BG[k:k + 2], 16) for k in (1, 3, 5)]
+    c = [int(warna[k:k + 2], 16) for k in (1, 3, 5)]
+    return "#" + "".join(f"{round(x + p * (y - x)):02x}" for x, y in zip(a, c))
+
+
+def _dim_miring(p1, p2, warna=AM):
+    """Garis dimensi sejajar tepi miring pada pandangan isometrik, berpanah di kedua ujung."""
+    mx, my = (p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2
+    return _panah(mx, my, p1[0], p1[1], warna, 1) + _panah(mx, my, p2[0], p2[1], warna, 1)
+
+
+def _sumbu_iso(ox, oy, L=24):
+    """Penunjuk arah sumbu X, Y, Z pandangan isometrik (huruf 10 px), terpisah dari benda."""
+    out = ""
+    for v, c, n, dx, dy, anc in [((L, 0, 0), RD, "X", 5, 4, "start"), ((0, L, 0), GN, "Y", -4, 0, "end"), ((0, 0, L), BL, "Z", 0, -5, "middle")]:
+        p = iso(*v, ox, oy, 1)
+        out += _panah(ox, oy, p[0], p[1], c, 1.2) + t(p[0] + dx, p[1] + dy, n, 10, c, anc, "700")
+    return out
+
+
+def gambar7():
+    a, b_, h, tw = A_CG, B_CG, H_CG, T_CG
+    cx, cy, s = 132, 252, 1.05
+
+    def P(x, y, z):
+        return iso(x, y, z, cx, cy, s)
+
+    def cincin(z, d=0):
+        return [P(d, d, z), P(a - d, d, z), P(a - d, b_ - d, z), P(d, b_ - d, z)]
+
+    out = t(20, 24, "Isometrik — housing setelah Thickness", 11, TX, "start", "600")
+    out += t(664, 24, "Satuan: mm", 10.5, AX, "end")
+    # dinding dalam yang tampak lewat bukaan (sisi x = a − t dan y = b − t) digambar lebih dulu,
+    # lalu bibir atas dan muka luar depan menutupi bagian yang tersembunyi
+    out += _poli([P(a - tw, tw, tw), P(a - tw, b_ - tw, tw), P(a - tw, b_ - tw, h), P(a - tw, tw, h)], _campur(CY, .06), CY, .8)
+    out += _poli([P(tw, b_ - tw, tw), P(a - tw, b_ - tw, tw), P(a - tw, b_ - tw, h), P(tw, b_ - tw, h)], _campur(CY, .10), CY, .8)
+    d = " ".join("M " + " L ".join(f"{x:.1f} {y:.1f}" for x, y in r) + " Z" for r in (cincin(h), cincin(h, tw)))
+    out += f'<path d="{d}" fill="{_campur(CY, .42)}" fill-rule="evenodd" stroke="{CY}" stroke-width="1.4"/>'
+    out += _poli([P(0, 0, 0), P(a, 0, 0), P(a, 0, h), P(0, 0, h)], _campur(CY, .25), CY, 1.8)
+    out += _poli([P(0, 0, 0), P(0, b_, 0), P(0, b_, h), P(0, 0, h)], _campur(CY, .16), CY, 1.8)
+    # titik asal = sudut kiri-bawah sketsa XY (langkah 1)
+    o = P(0, 0, 0)
+    out += f'<circle cx="{o[0]:.1f}" cy="{o[1]:.1f}" r="3" fill="{TX}"/>'
+    out += _garis(o[0], o[1] + 4, o[0], o[1] + 24, AX, .8, "3 2") + t(o[0], o[1] + 36, "titik asal", 10, AX, "middle")
+    # dimensi keseluruhan: a sepanjang X, b sepanjang Y (sketsa XY), h tinggi Pad sepanjang Z
+    k = 34
+    out += ext(*P(0, -3, 0), *P(0, -k - 5, 0)) + ext(*P(a, -3, 0), *P(a, -k - 5, 0)) + _dim_miring(P(0, -k, 0), P(a, -k, 0))
+    q = P(a / 2, -k, 0)
+    out += t(q[0] - 3, q[1] - 5, f"{a}", 11, AM, "middle", "600")
+    out += ext(*P(-3, 0, 0), *P(-k - 5, 0, 0)) + ext(*P(-3, b_, 0), *P(-k - 5, b_, 0)) + _dim_miring(P(-k, 0, 0), P(-k, b_, 0))
+    q = P(-k, b_ / 2, 0)
+    out += t(q[0] + 6, q[1] - 3, f"{b_}", 11, AM, "start", "600")
+    out += ext(*P(a + 3, 0, 0), *P(a + 30, 0, 0)) + ext(*P(a + 3, 0, h), *P(a + 30, 0, h))
+    q0, q1 = P(a + 24, 0, 0), P(a + 24, 0, h)
+    out += _dim_miring(q1, q0) + t(q0[0] + 6, (q0[1] + q1[1]) / 2 + 4, f"{h}", 11, AM, "start", "600")
+    out += _sumbu_iso(40, 326)
+
+    # ── penampang tengah sejajar XZ: bentuk U, dinding dan dasar setebal t, atas terbuka ──
+    x0, yb, s2 = 396, 180, 1.3
+
+    def X(x):
+        return x0 + x * s2
+
+    def Z(z):
+        return yb - z * s2
+
+    out += t(X(a / 2), 42, "Penampang tengah, sejajar bidang XZ", 11, TX, "middle", "600")
+    u = [(0, h), (tw, h), (tw, tw), (a - tw, tw), (a - tw, h), (a, h), (a, 0), (0, 0)]
+    out += _poli([(X(x), Z(z)) for x, z in u], _campur(GR, .24), GR, 1.6)
+    out += _garis(X(tw), Z(h), X(a - tw), Z(h), AX, .8, "5 4")
+    out += t(X(a / 2), Z(h) - 7, "muka atas dibuang", 10, GR, "middle", "600")
+    out += t(X(a / 2), Z(h / 2) + 4, "dinding dan dasar = t_dinding", 10, GR, "middle")
+    # a dan h
+    out += ext(X(0), Z(0) + 3, X(0), Z(0) + 31) + ext(X(a), Z(0) + 3, X(a), Z(0) + 31) + dim_h(X(0), X(a), Z(0) + 25, f"{a}")
+    out += ext(X(a) + 3, Z(h), X(a) + 29, Z(h)) + ext(X(a) + 3, Z(0), X(a) + 29, Z(0)) + dim_v(X(a) + 23, Z(h), Z(0), f"{h}", kiri=False)
+    # tebal dinding: panah dari luar karena celahnya sempit
+    yd = Z(h) - 15
+    out += ext(X(0), Z(h) - 3, X(0), yd - 6) + ext(X(tw), Z(h) - 3, X(tw), yd - 6)
+    out += _garis(X(0), yd, X(tw), yd, AM, 1) + _panah(X(0) - 22, yd, X(0), yd, AM) + _panah(X(tw) + 22, yd, X(tw), yd, AM)
+    out += t(X(0) - 26, yd + 4, f"{tw}", 11, AM, "end", "600")
+    # tebal dasar
+    xf = X(a * 0.86)
+    out += _panah(xf, Z(tw) - 24, xf, Z(tw), AM) + _panah(xf, Z(0) + 15, xf, Z(0), AM)
+    out += t(xf - 5, Z(tw) - 12, f"{tw}", 11, AM, "end", "600")
+
+    # ── catatan: besaran yang diketik pada langkah, persis seperti teks langkah ──
+    y0 = 234
+    baris = [("Catatan untuk langkah 1–6", CY, "600"),
+             (f"Spreadsheet Jejak: rho_st, f_st, t_dinding = {tw}", TX, ""),
+             (f"baja: massa (g) = {RHO_ST_TEKS} × V", TX, ""),
+             (f"massa pejal (garis dasar) = {ind(M_SOLID, 0)} g", TX, ""),
+             ("Thickness: =Jejak.t_dinding, Skin, ke dalam", TX, ""),
+             ("sapuan t_dinding: " + ", ".join(str(v) for v in T_SAPU), PK, "600"),
+             ("V_body = Body.Shape.Volume", TX, ""),
+             ("co2 = f_st * rho_st * V_body", TX, ""),
+             ("alternatif: aluminium, tinggi dari Pers. (2)", AX, "")]
+    for i, (s_, c, w) in enumerate(baris):
+        out += t(384, y0 + i * 15.5, s_, 11 if i == 0 else 10.5, c, "start", w)
+    return svg(680, 370, out, "Gambar 7 — Gambar kerja housing baja yang dijadikan cangkang Thickness")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -539,13 +651,19 @@ for nama, E, rho in [("Baja", {E_ST}, 7.85e-3), ("Aluminium", {E_AL}, 2.70e-3), 
 
     # 09 — Praktik terbimbing
     langkah = [("1", "Body housing dan Spreadsheet", f"Buat Body: Sketch XY persegi panjang {A_CG} × {B_CG} (sudut kiri-bawah di titik asal, fully constrained) → Pad {H_CG} mm. Tambahkan Spreadsheet bernama <code>Jejak</code>, isi alias <code>rho_st</code>, <code>f_st</code>, <code>t_dinding</code> = {T_CG}."),
-               ("2", "Massa pejal sebagai garis dasar", f"Di Python console: <code>Body.Shape.Volume</code> lalu massa = 7,85 × 10⁻³ × V. Catat sebagai baris pertama tabel iterasi ({ind(M_SOLID, 0)} g untuk ukuran contoh). Tanpa garis dasar, penghematan tidak dapat diklaim."),
+               ("2", "Massa pejal sebagai garis dasar", f"Di Python console: <code>Body.Shape.Volume</code> lalu massa = {RHO_ST_TEKS} × V. Catat sebagai baris pertama tabel iterasi ({ind(M_SOLID, 0)} g untuk ukuran contoh). Tanpa garis dasar, penghematan tidak dapat diklaim."),
                ("3", "Cangkang dengan Thickness", "Pilih muka ATAS → Part Design → Thickness, Thickness diikat ekspresi <code>=Jejak.t_dinding</code>, Mode Skin, arah ke dalam. Baca volume dan massa baru; bandingkan dengan Persamaan (5)."),
-               ("4", "Sapuan tebal dinding", "Ubah <code>t_dinding</code> menjadi 8, 6, 5, 4, lalu 3 mm dan catat massanya tiap kali. Perhatikan kapan penghematan mulai melandai dan kapan Thickness mulai gagal."),
+               ("4", "Sapuan tebal dinding", f"Ubah <code>t_dinding</code> menjadi {', '.join(str(v) for v in T_SAPU[:-1])}, lalu {T_SAPU[-1]} mm dan catat massanya tiap kali. Perhatikan kapan penghematan mulai melandai dan kapan Thickness mulai gagal."),
                ("5", "Neraca jejak", f"Tambahkan sel <code>V_body</code> = <code>=Body.Shape.Volume</code> dan <code>co2</code> = <code>=f_st * rho_st * V_body</code>. Ubah satu dimensi sketsa dan pastikan angka jejak ikut berubah tanpa mengetik ulang apa pun."),
                ("6", "Alternatif material", f"Duplikat baris tabel untuk aluminium: tinggi penampang disesuaikan agar kekakuan sama (Persamaan 2), ρ dan f diganti. Bandingkan massa dan jejaknya — perhatikan bahwa massa turun tetapi jejak dapat naik."),
                ("7", "Dokumentasi dan simpan", "Tulis kesimpulan satu paragraf pada sel catatan Spreadsheet: alternatif terpilih, penghematan massa, penghematan jejak, dan batas yang dijaga. Ctrl+S → <code>Latihan13_NIM.FCStd</code>.")]
-    isi = '  <div class="cards reveal">\n'
+    isi = figure(7, "Gambar kerja housing baja yang dijadikan cangkang Thickness",
+                 f"Ukuran dalam mm, massa dalam gram. Isometrik di kiri adalah benda jadi: sketsa XY {A_CG} × {B_CG} dengan sudut "
+                 f"kiri-bawah di titik asal, lalu Pad {H_CG} (langkah 1). Penampang di kanan menunjukkan dinding dan dasar setebal "
+                 f"<code>t_dinding</code> = {T_CG} hasil Thickness dengan muka atas dibuang (langkah 3); tebal inilah yang disapu "
+                 f"{', '.join(str(v) for v in T_SAPU)} mm pada langkah 4. Catatan memuat massa jenis, massa pejal {ind(M_SOLID, 0)} g, "
+                 "dan ekspresi Spreadsheet yang diketik pada langkah 1–6.", gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>

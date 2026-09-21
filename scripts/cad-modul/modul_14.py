@@ -9,8 +9,9 @@ import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
-from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
+from pustaka import (AX, BG, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
+from tugas_gambar import AM, BL, CY, GN, PK, RD, VI, _panah, dim_h, dim_v, ext  # noqa: E402
 
 NOMOR = 14
 JUDUL = "Optimasi Desain untuk Efisiensi dan Lingkungan"
@@ -91,6 +92,14 @@ SKOR_C = [1, -1, -1, 0, -1]                 # aluminium pejal terhadap datum
 TOTAL_B = sum(w * s for (_, w), s in zip(BOBOT, SKOR_B))
 TOTAL_C = sum(w * s for (_, w), s in zip(BOBOT, SKOR_C))
 
+# Bagian 09 — praktik terbimbing lengan braket: batas dan sapuan variabel tinggi h, toleransi sapuan,
+# angka aluminium, dan bobot kriteria. Dipakai teks langkah dan Gambar 7 sekaligus agar tidak menyimpang.
+H_MAKS = 90                                  # batas atas h karena ruang pasang (langkah 1), mm
+H_SAPU = (30, H_MAKS)                        # rentang sapuan h sampai batas ruang pasang (langkah 4), mm
+TOL_SAPU = 0.5                               # selisih sapuan vs sel h yang masih wajar, % (langkah 4)
+TEKS_AL = f"E {ind(E_AL, 0)}, ρ {ind(RHO_AL * 1e9, 0)}, f {ind(FE_AL, 1)}"   # aluminium, ρ ditulis kg/m³ (langkah 5)
+TEKS_BOBOT = " / ".join(ind(w, 2) for _, w in BOBOT)                        # bobot kriteria (langkah 6)
+
 
 # ─────────────────────────── gambar ───────────────────────────
 def gambar1():
@@ -110,9 +119,9 @@ def gambar1():
     b += arrow(360, 134, 328, 156, AX, 1.2)
     b += f'<circle cx="292" cy="150" r="5" fill="#f59e0b"/>'
     b += t(286, 144, "x*", 11, "#f59e0b", "end", "700")
-    b += t(300, 112, "g₁(x) = 0", 10, "#ec4899", "start", "600")
+    b += t(288, 102, "g₁(x) = 0", 10, "#ec4899", "start", "600")
     b += t(400, 150, "g₂(x) = 0", 10, "#ec4899", "end", "600")
-    b += t(378, 100, "f menurun", 10, AX, "middle")
+    b += t(390, 88, "f menurun", 10, AX, "middle")
     b += t(362, 196, "ruang layak", 10, "#00e09e", "middle", "600")
     b += t(440, 52, "Bentuk baku (Persamaan 1):", 11, "#22d3ee", "start", "600")
     b += t(440, 70, "minimumkan f(x)", 11, TX, "start")
@@ -143,7 +152,7 @@ def gambar2():
     b += '<path d="M 296 74 V 182 A 44 14 0 0 0 384 182 V 74 Z" fill="rgba(34,211,238,.14)" stroke="#22d3ee" stroke-width="2"/>'
     b += '<ellipse cx="340" cy="74" rx="44" ry="14" fill="rgba(34,211,238,.28)" stroke="#22d3ee" stroke-width="2"/>'
     b += f'<line x1="340" y1="74" x2="384" y2="74" stroke="#f59e0b" stroke-width="1"/>'
-    b += t(362, 66, "r", 10.5, "#f59e0b", "middle", "700")
+    b += t(362, 71, "r", 10.5, "#f59e0b", "middle", "700")
     b += f'<line x1="396" y1="74" x2="396" y2="182" stroke="#f59e0b" stroke-width="1"/>'
     b += t(402, 132, "h = 2r", 10.5, "#f59e0b", "start", "600")
     b += t(340, 206, "Sketch XY ⌀2r → Pad h", 9.5, AX, "middle")
@@ -174,7 +183,7 @@ def gambar3():
     b += f'<line x1="52" y1="220" x2="410" y2="220" stroke="{AX}" stroke-width="1.2"/>'
     for v in (0, 1, 2, 3):
         b += f'<line x1="52" y1="{Y(v):.1f}" x2="56" y2="{Y(v):.1f}" stroke="{AX}" stroke-width="1"/>'
-        b += t(50, Y(v) + 4, str(v), 10, AX, "end")
+        b += t(48, Y(v) + 4, str(v), 10, AX, "end")
     for tt in (30, 40, 50, 60, 70):
         b += f'<line x1="{X(tt):.1f}" y1="220" x2="{X(tt):.1f}" y2="225" stroke="{AX}" stroke-width="1"/>'
         b += t(X(tt), 236, str(tt), 10, AX, "middle")
@@ -187,7 +196,7 @@ def gambar3():
         b += f'<line x1="{xx:.1f}" y1="60" x2="{xx:.1f}" y2="220" stroke="{c}" stroke-width="1" stroke-dasharray="5 3"/>'
     b += t(X(T_SIGMA), 54, f"t_σ = {ind(T_SIGMA, 2)}", 10, "#22d3ee", "middle", "600")
     b += t(X(T_DELTA), 54, f"t_δ = {ind(T_DELTA, 2)}", 10, "#00e09e", "middle", "600")
-    b += t(140, 92, "tidak layak", 10, "#ef4444", "middle", "600")
+    b += t(180, 90, "tidak layak", 10, "#ef4444", "middle", "600")
     b += t(170, 116, "δ/δ_izin", 10, "#00e09e", "middle", "600")
     b += t(200, 200, "σ/σ_izin", 10, "#22d3ee", "middle", "600")
     b += t(320, 158, "kendala terpenuhi (≤ 1)", 10, AX, "middle")
@@ -217,7 +226,7 @@ def gambar4():
     b += f'<line x1="56" y1="220" x2="406" y2="220" stroke="{AX}" stroke-width="1.2"/>'
     for a_ in (30000, 40000, 50000, 60000):
         b += f'<line x1="56" y1="{Y(a_):.1f}" x2="60" y2="{Y(a_):.1f}" stroke="{AX}" stroke-width="1"/>'
-        b += t(54, Y(a_) + 4, ind(a_, 0), 10, AX, "end")
+        b += t(52, Y(a_) + 4, ind(a_, 0), 10, AX, "end")
     for r_ in (20, 40, 60, 80):
         b += f'<line x1="{X(r_):.1f}" y1="220" x2="{X(r_):.1f}" y2="225" stroke="{AX}" stroke-width="1"/>'
         b += t(X(r_), 236, str(r_), 10, AX, "middle")
@@ -227,7 +236,7 @@ def gambar4():
     b += f'<line x1="{xr:.1f}" y1="{yr:.1f}" x2="{xr:.1f}" y2="220" stroke="#00e09e" stroke-width="1" stroke-dasharray="5 3"/>'
     b += f'<line x1="60" y1="{yr:.1f}" x2="{xr:.1f}" y2="{yr:.1f}" stroke="#00e09e" stroke-width="1" stroke-dasharray="5 3"/>'
     b += f'<circle cx="{xr:.1f}" cy="{yr:.1f}" r="5" fill="#00e09e"/>'
-    b += t(204, 190, f"A* = {ind(A_OPT, 0)} mm²", 10, "#00e09e", "start", "600")
+    b += t(xr, yr - 16, f"A* = {ind(A_OPT, 0)} mm²", 10, "#00e09e", "middle", "600")
     b += t(xr, 252, f"r* = {ind(R_OPT, 2)} mm", 10, "#f59e0b", "middle", "600")
     b += t(300, 96, "A(r) = 2πr² + 2V₀/r", 10.5, TX, "middle", "600")
     b += t(300, 118, "h* = 2r*", 10, "#f59e0b", "middle", "600")
@@ -239,7 +248,7 @@ def gambar4():
     b += t(452, 146, f"r* = {ind(R_OPT, 2)} mm, h* = {ind(H_OPT, 2)} mm", 10.5, AX, "start")
     b += t(452, 164, f"A* = {ind(A_OPT, 2)} mm²", 10.5, "#00e09e", "start")
     b += t(452, 182, "tinggi = diameter: kaleng ideal", 10.5, "#ec4899", "start")
-    b += teks2(340, 266, "Kurva tujuan datar di sekitar optimum: menyimpang sedikit dari r* hampir tidak menaikkan luas", 11, AX, maks=98)
+    b += teks2(340, 268, "Kurva tujuan datar di sekitar optimum: menyimpang sedikit dari r* hampir tidak menaikkan luas", 11, AX, maks=98)
     return svg(680, 280, b, "Gambar 4 — Kaleng tertutup dengan luas permukaan minimum pada volume tetap")
 
 
@@ -271,7 +280,7 @@ def gambar5():
     b += t(452, 132, "Bobot dijumlahkan = 1,00", 10.5, AX, "start")
     b += t(452, 150, "Pemenang: B (baja berusuk)", 10.5, "#00e09e", "start")
     b += t(452, 168, "C ringan tetapi CO₂ 3× lipat", 10.5, "#ec4899", "start")
-    b += teks2(340, 258, "Alternatif dinilai terhadap satu datum agar perbandingan adil; bobot ditetapkan sebelum angka dilihat", 11, AX, maks=96)
+    b += teks2(340, 254, "Alternatif dinilai terhadap satu datum agar perbandingan adil; bobot ditetapkan sebelum angka dilihat", 11, AX, maks=96)
     return svg(680, 280, b, "Gambar 5 — Matriks keputusan berbobot untuk tiga alternatif lengan braket")
 
 
@@ -304,6 +313,98 @@ def gambar6():
     b += t(452, 172, f"baja {ind(CO2_R_AL / CO2_R_ST, 2)}× lebih rendah", 10.5, "#00e09e", "start")
     b += teks2(340, 252, "Lebih ringan belum tentu lebih hijau: faktor emisi per kg mengalahkan penghematan massa", 11, AX, maks=96)
     return svg(680, 280, b, "Gambar 6 — Jejak CO₂ baja versus aluminium pada kekakuan lentur yang sama")
+
+
+# Gambar 7 — gambar kerja praktik terbimbing (Bagian 09): pandangan depan lengan kantilever,
+# penampang Sketch YZ dengan batas ruang pasang, dan catatan besaran. Angka berasal dari konstanta
+# yang juga dipakai teks langkah.
+def _campur(warna, p):
+    """Warna hex pekat = latar BG dicampur warna dengan porsi p (pengganti rgba yang tidak dikenal MuPDF)."""
+    a = [int(BG[k:k + 2], 16) for k in (1, 3, 5)]
+    c = [int(warna[k:k + 2], 16) for k in (1, 3, 5)]
+    return "#" + "".join(f"{round(x + p * (y - x)):02x}" for x, y in zip(a, c))
+
+
+def _garis(x1, y1, x2, y2, warna, w=1.2, dash=""):
+    d = f' stroke-dasharray="{dash}"' if dash else ""
+    return f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{warna}" stroke-width="{w}"{d}/>'
+
+
+def _jepit(x, y1, y2):
+    """Tumpuan jepit: garis tegak dengan arsiran di sisi kiri."""
+    out = _garis(x, y1, x, y2, AX, 1.8)
+    for yy in range(int(y1), int(y2) - 4, 9):
+        out += _garis(x, yy, x - 8, yy + 8, AX, 1)
+    return out
+
+
+def _sumbu2(ox, oy, h_, v_, L=26):
+    """Penunjuk arah dua sumbu pandangan ortografis (mendatar h_, tegak v_), huruf 10 px."""
+    warna = {"X": RD, "Y": GN, "Z": BL}
+    return (_panah(ox, oy, ox + L, oy, warna[h_], 1.2) + _panah(ox, oy, ox, oy - L, warna[v_], 1.2)
+            + t(ox + L + 4, oy + 4, h_, 10, warna[h_], "start", "700") + t(ox, oy - L - 5, v_, 10, warna[v_], "middle", "700"))
+
+
+def gambar7():
+    out = t(20, 24, "Pandangan depan (bidang XZ): lengan kantilever", 11, TX, "start", "600")
+    out += t(664, 24, "Satuan: mm", 10.5, AX, "end")
+    # ── pandangan depan: jepit pada bidang sketsa, beban F di ujung bebas ──
+    s = 0.5
+    x0, yt = 52, 92
+    x1, yb = x0 + L_R * s, yt + H_R_ST * s           # tinggi digambar = datum baja, tanpa angka (h dihitung langkah 3)
+    dl = 34                                           # lendutan ujung digambar diperbesar agar ujungnya lepas dari balok
+    out += _jepit(x0, yt - 22, yb + 22) + t(x0 - 4, yt - 30, "jepit", 10, AX, "middle")
+    out += f'<rect x="{x0}" y="{yt:.1f}" width="{x1 - x0:.1f}" height="{yb - yt:.1f}" fill="{_campur(CY, .20)}" stroke="{CY}" stroke-width="1.8"/>'
+    w = [(x0 + k / 40 * (x1 - x0), dl * (k / 40) ** 2 * (3 - k / 40) / 2) for k in range(41)]
+    for y_ in (yt, yb):
+        out += f'<polyline points="{" ".join(f"{x:.1f},{y_ + v:.1f}" for x, v in w)}" fill="none" stroke="{VI}" stroke-width="1.3" stroke-dasharray="5 3"/>'
+    out += _garis(x1, yt + dl, x1, yb + dl, VI, 1.3, "5 3")
+    out += t(x0 + 18, yb + 30, "lendutan (digambar diperbesar)", 10, VI, "start")
+    out += _panah(x1 - 4, yt - 40, x1 - 4, yt - 2, AM, 1.6) + t(x1 - 12, yt - 30, f"F = {ind(F_R, 0)} N", 11, AM, "end", "700")
+    # h dan δ di ujung bebas (rantai dimensi); δ diukur antara sisi bawah sebelum dan sesudah melendut
+    xd = x1 + 16
+    out += ext(x1 + 3, yt, xd + 6, yt) + ext(x1 + 3, yb, xd + 6, yb) + ext(x1 + 3, yb + dl, xd + 6, yb + dl)
+    out += dim_v(xd, yt, yb, "h", kiri=False) + dim_v(xd, yb, yb + dl, f"δ ≤ {ind(D_R, 1)}", kiri=False)
+    yL = yb + dl + 30
+    out += ext(x0, yb + 26, x0, yL + 6) + ext(x1, yb + dl + 4, x1, yL + 6) + dim_h(x0, x1, yL, f"L = {L_R}")
+    out += _sumbu2(18, yL + 30, "X", "Z")
+    out += t((x0 + x1) / 2, yL + 26, "Pad =Spreadsheet.L dari bidang Sketch YZ", 10, AX, "middle")
+
+    # ── penampang = Sketch YZ: b × h di dalam ruang pasang h ≤ H_MAKS ──
+    s2 = 0.95
+    xa, ya = 536, 184
+    xb = xa + B_R * s2
+    yh, ym = ya - H_R_ST * s2, ya - H_MAKS * s2
+    out += t((xa + xb) / 2 - 18, 48, "Sketch YZ: penampang b × h", 11, TX, "middle", "600")
+    out += f'<rect x="{xa}" y="{ym:.1f}" width="{xb - xa:.1f}" height="{ya - ym:.1f}" fill="none" stroke="{AX}" stroke-width="1" stroke-dasharray="5 4"/>'
+    out += f'<rect x="{xa}" y="{yh:.1f}" width="{xb - xa:.1f}" height="{ya - yh:.1f}" fill="{_campur(CY, .22)}" stroke="{CY}" stroke-width="1.8"/>'
+    out += t((xa + xb) / 2, ym + 16, "ruang pasang", 10, AX, "middle")
+    out += ext(xa - 3, ym, xa - 22, ym) + ext(xa - 3, ya, xa - 22, ya) + dim_v(xa - 16, ym, ya, f"h ≤ {H_MAKS}", kiri=True)
+    out += ext(xb + 3, yh, xb + 20, yh) + ext(xb + 3, ya, xb + 20, ya) + dim_v(xb + 14, yh, ya, "h", kiri=False)
+    out += ext(xa, ya + 3, xa, ya + 28) + ext(xb, ya + 3, xb, ya + 28) + dim_h(xa, xb, ya + 22, f"b = {B_R}")
+    out += t((xa + xb) / 2 - 22, ya + 44, f"variabel desain h: sapu {H_SAPU[0]} … {H_SAPU[1]}", 10.5, PK, "middle", "600")
+
+    # ── catatan: besaran yang diketik pada langkah, persis seperti teks langkah ──
+    y0 = 252
+    kiri = [("Rumusan dan model (langkah 1–3)", CY, "600"),
+            ("tujuan: minimumkan massa dan jejak CO₂", TX, ""),
+            ("variabel desain: material dan tinggi h", PK, ""),
+            (f"kendala: δ ≤ {ind(D_R, 1)} pada F = {ind(F_R, 0)} N", TX, ""),
+            ("alias: F, L, b, d_izin, E, rho, f_co2", TX, ""),
+            ("konstrain =Spreadsheet.b dan =Spreadsheet.h", TX, ""),
+            ("sel h = (4*F*L^3/(E*b*d_izin))^(1/3)", TX, ""),
+            ("massa = rho × Volume, CO2 = f_co2 × massa", TX, "")]
+    kanan = [("Sapuan dan alternatif (langkah 4–6)", CY, "600"),
+             (f"sapu h {H_SAPU[0]} … {H_SAPU[1]}; selisih > {ind(TOL_SAPU, 1)} % = satuan salah", TX, ""),
+             ("A baja pejal: datum (iterasi 0)", TX, ""),
+             (f"B baja berusuk: massa {FAKTOR_RUSUK * 100:.0f} % pelat pejal, I setara", TX, ""),
+             (f"C aluminium: {TEKS_AL}", TX, ""),
+             (f"bobot {TEKS_BOBOT}", TX, ""),
+             ("nilai −1, 0, +1 terhadap datum baja pejal", TX, "")]
+    for x_, kol in ((20, kiri), (352, kanan)):
+        for i, (s_, c, w_) in enumerate(kol):
+            out += t(x_, y0 + i * 15.5, s_, 11 if i == 0 else 10.5, c, "start", w_)
+    return svg(680, 372, out, "Gambar 7 — Gambar kerja lengan braket kantilever dengan variabel desain h")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -588,14 +689,20 @@ Part.show(tabung, "TabungKakuSama")''', "Python (FreeCAD)")
     m += bagian(8, "m-python", "Python Console:<br>Spreadsheet, Sapuan Parameter, dan Pembanding", "Cell pertama membangun Spreadsheet beralias untuk kaleng lewat API dan membaca luasnya; cell kedua menyapu tebal pelat terhadap dua kendala dan menunjuk kendala aktif; cell ketiga membandingkan tabung dengan poros pejal serta jejak CO₂ dua material pada kekakuan sama.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Rumuskan masalahnya", "Tulis di lembar pertama Spreadsheet: fungsi tujuan (massa dan jejak CO₂ lengan braket), variabel desain (material dan tinggi h), kendala (δ ≤ 1,5 mm pada F = 4.000 N, L = 700 mm, b = 100 mm), serta batas variabel (h ≤ 90 mm karena ruang pasang). Beri alias F, L, b, d_izin, E, rho, f_co2."),
+    langkah = [("1", "Rumuskan masalahnya", f"Tulis di lembar pertama Spreadsheet: fungsi tujuan (massa dan jejak CO₂ lengan braket), variabel desain (material dan tinggi h), kendala (δ ≤ {ind(D_R, 1)} mm pada F = {ind(F_R, 0)} N, L = {L_R} mm, b = {B_R} mm), serta batas variabel (h ≤ {H_MAKS} mm karena ruang pasang). Beri alias F, L, b, d_izin, E, rho, f_co2."),
                ("2", "Bangun model parametrik", "Body baru: Sketch YZ persegi panjang b × h dengan kedua konstrain terikat ekspresi <code>=Spreadsheet.b</code> dan <code>=Spreadsheet.h</code>, lalu Pad <code>=Spreadsheet.L</code>. Pastikan sketsa fully constrained dan nilai konstrain berwarna biru."),
                ("3", "Hitung tinggi dari kendala", "Tambahkan sel <code>h = (4*F*L^3/(E*b*d_izin))^(1/3)</code>. Ctrl+R, lalu catat h, Shape.Volume, massa = rho × Volume, dan CO2 = f_co2 × massa untuk baja sebagai iterasi 0 (datum)."),
-               ("4", "Sapu parameter", "Jalankan cell kedua Bagian 08 dengan angka kasus ini untuk menyapu h dari 30 sampai 90 mm; tandai h terkecil yang masih memenuhi δ ≤ 1,5 mm dan cocokkan dengan nilai sel h. Selisih di atas 0,5 % berarti ada satuan yang salah."),
-               ("5", "Bandingkan alternatif", "Kolom kedua Spreadsheet: aluminium (E 70.000, ρ 2.700, f 12,0). Kolom ketiga: baja berusuk dengan massa 60 % pelat pejal pada I setara. Hitung h, massa, dan CO₂ ketiganya berdampingan."),
-               ("6", "Matriks keputusan", "Lembar kedua: lima kriteria dengan bobot 0,25 / 0,25 / 0,20 / 0,15 / 0,15, nilai −1, 0, +1 terhadap datum baja pejal, lalu skor berbobot Persamaan (6). Tulis satu kalimat alasan untuk setiap tanda − yang diberikan."),
+               ("4", "Sapu parameter", f"Jalankan cell kedua Bagian 08 dengan angka kasus ini untuk menyapu h dari {H_SAPU[0]} sampai {H_SAPU[1]} mm; tandai h terkecil yang masih memenuhi δ ≤ {ind(D_R, 1)} mm dan cocokkan dengan nilai sel h. Selisih di atas {ind(TOL_SAPU, 1)} % berarti ada satuan yang salah."),
+               ("5", "Bandingkan alternatif", f"Kolom kedua Spreadsheet: aluminium ({TEKS_AL}). Kolom ketiga: baja berusuk dengan massa {FAKTOR_RUSUK * 100:.0f} % pelat pejal pada I setara. Hitung h, massa, dan CO₂ ketiganya berdampingan."),
+               ("6", "Matriks keputusan", f"Lembar kedua: lima kriteria dengan bobot {TEKS_BOBOT}, nilai −1, 0, +1 terhadap datum baja pejal, lalu skor berbobot Persamaan (6). Tulis satu kalimat alasan untuk setiap tanda − yang diberikan."),
                ("7", "Dokumentasikan dan simpan", "TechDraw: Page + tiga pandangan desain pemenang, dimensi pada h dan b, catatan berisi massa, jejak CO₂, dan faktor emisi yang dipakai. Ctrl+S → <code>Latihan14_NIM.FCStd</code>.")]
-    isi = '  <div class="cards reveal">\n'
+    isi = figure(7, "Gambar kerja lengan braket kantilever dengan variabel desain h",
+                 f"Ukuran dalam mm, gaya dalam N. Lengan pejal b × h × L dijepit pada bidang Sketch YZ dan memikul "
+                 f"F = {ind(F_R, 0)} N di ujung bebas dengan kendala lendutan ujung δ ≤ {ind(D_R, 1)} (langkah 1); penampangnya "
+                 f"adalah sketsa b × h pada langkah 2. Tinggi h adalah variabel desain: dihitung dari kendala pada langkah 3, "
+                 f"disapu {H_SAPU[0]}–{H_SAPU[1]} pada langkah 4, dan dibatasi ruang pasang h ≤ {H_MAKS}. Catatan memuat alias, rumus, "
+                 "dan angka alternatif yang diketik pada langkah 1–6.", gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>

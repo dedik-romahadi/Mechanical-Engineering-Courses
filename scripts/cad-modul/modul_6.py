@@ -13,6 +13,7 @@ SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
+from tugas_gambar import AM, BL, CY, GN, GR, PK, RD, _panah, dim_h, dim_v, ext  # noqa: E402
 
 NOMOR = 6
 JUDUL = "Sudut Pandang, Proyeksi, dan Manajemen Tampilan 3D"
@@ -37,6 +38,9 @@ L_MIRING = math.sqrt(A_W ** 2 + (H1_W - H2_W) ** 2)      # 94,868
 A_MIRING = B_W * L_MIRING                                # 4743,42
 H_OBJ, F_CAM, D_DEKAT, D_JAUH = 80, 80, 200, 260         # kamera perspektif: h' = h·f/D
 H_DEKAT, H_JAUH = H_OBJ * F_CAM / D_DEKAT, H_OBJ * F_CAM / D_JAUH
+# Praktik terbimbing (Bagian 09): balok bertingkat berlubang. Teks langkah dan gambar7 memakai konstanta yang sama.
+BT_A, BT_H, BT_NA, BT_NH = 120, 80, 60, 30              # profil tangga XZ: lebar, tinggi, anak tangga lebar × tinggi (dibuang di kanan-atas)
+BT_B, BT_D, BT_SKALA = 60, 20, "1:2"                     # Pad (kedalaman), ⌀ lubang tembus di muka atas tingkat rendah, skala lembar
 
 
 # ─────────────────────────── gambar ───────────────────────────
@@ -125,9 +129,10 @@ def gambar2():
             b += _garis(x, y, 123, y, warna, 0.8, "4 3")
     b += _garis(120, 95, 120, 175, "#00e09e", 4)
     b += t(112, 139, "h′ = h", 10.5, "#00e09e", "end", "600")
-    b += t(26, 118, "garis proyeksi", 9.5, AX, "start")
-    b += t(26, 132, "sejajar sumbu", 9.5, AX, "start")
-    b += t(26, 146, "pandang", 9.5, AX, "start")
+    # keterangan garis proyeksi di antara kedua garis proyeksi (dulu di kiri bidang gambar, menempel "h′ = h")
+    b += t(172, 126, "garis proyeksi", 9.5, AX, "middle")
+    b += t(172, 140, "sejajar sumbu", 9.5, AX, "middle")
+    b += t(172, 154, "pandang", 9.5, AX, "middle")
     b += t(160, 232, "ukuran tampak tidak bergantung jarak", 10, AX, "middle")
     # panel tengah pemisah
     b += _garis(330, 40, 330, 240, GRID, 1)
@@ -163,7 +168,7 @@ def gambar2():
 def _tiga_pandangan(px, py, metode, sk):
     """Tiga pandangan balok bertakik (skala sk) pada panel dengan sudut kiri-atas (px, py); metode 0 = sudut pertama, 1 = sudut ketiga."""
     a, bb, H, hn = A_T * sk, B_T * sk, H_T * sk, HN_T * sk
-    jarak = 16
+    jarak = 22                                # dulu 16: label pandangan terjepit 3 px dari pandangan berikutnya
     out = ""
     if metode:
         atas_y, depan_y = py + 18, py + 18 + bb + jarak
@@ -207,9 +212,9 @@ def gambar3():
     b += _tiga_pandangan(20, 40, 0, 0.55)
     b += _tiga_pandangan(370, 40, 1, 0.55)
     b += _simbol_iso(232, 110, 0)
-    b += _simbol_iso(590, 110, 1)
+    b += _simbol_iso(606, 110, 1)                # dulu lingkarannya 2 px dari pandangan Kanan
     b += t(246, 138, "simbol", 9, AX, "middle")
-    b += t(590, 138, "simbol", 9, AX, "middle")
+    b += t(606, 138, "simbol", 9, AX, "middle")
     b += t(165, 222, "Atas di BAWAH Depan · Kanan di KIRI Depan", 10, AX, "middle")
     b += t(515, 222, "Atas di ATAS Depan · Kanan di KANAN Depan", 10, AX, "middle")
     b += t(165, 240, "Eropa, Indonesia (SNI), ISO bawaan", 9.5, AX, "middle")
@@ -243,7 +248,7 @@ def gambar4():
     ma = ((dasar[0][0] + dasar[1][0]) / 2, (dasar[0][1] + dasar[1][1]) / 2)
     mb = ((dasar[0][0] + dasar[3][0]) / 2, (dasar[0][1] + dasar[3][1]) / 2)
     mc = ((dasar[1][0] + atas[1][0]) / 2, (dasar[1][1] + atas[1][1]) / 2)
-    b += t(ma[0] + 10, ma[1] + 14, f"a = {a}", 10.5, "#22d3ee", "middle", "600")
+    b += t(ma[0] + 18, ma[1] + 14, f"a = {a}", 10.5, "#22d3ee", "middle", "600")     # geser kanan: bebas dari busur 30°
     b += t(mb[0] - 16, mb[1] - 6, f"b = {bb}", 10.5, "#22d3ee", "end", "600")
     b += t(mc[0] + 8, mc[1] + 4, f"c = {c}", 10.5, "#22d3ee", "start", "600")
     b += t(440, 50, "Isometrik sejati:", 11, "#f59e0b", "start", "600")
@@ -257,7 +262,7 @@ def gambar4():
     b += t(440, 216, "Std Measure Distance: dua sudut berlawanan", 10, AX, "start")
     b += t(440, 232, "Python: Shape.BoundBox.DiagonalLength", 10, AX, "start")
     b += teks2(340, 262, "Proyeksi isometrik memandang balok sepanjang diagonal ruangnya; ketiga rusuk memendek dengan faktor yang sama sehingga ukuran tetap dapat dibandingkan", 11, AX, maks=76)
-    return svg(680, 282, b, "Gambar 4 — Proyeksi isometrik balok, faktor pemendekan, dan diagonal ruang")
+    return svg(680, 286, b, "Gambar 4 — Proyeksi isometrik balok, faktor pemendekan, dan diagonal ruang")
 
 
 def gambar5():
@@ -285,16 +290,17 @@ def gambar5():
         b += _arsir(x0, oy2, w, h, "rgba(0,224,158,.7)")
     b += t(ox2 + a / 2, oy2 - 12, "Potongan A-A", 11, "#00e09e", "middle", "600")
     b += t(ox2 - 8, oy2 + h / 2 + 4, f"h = {H_S}", 10, "#f59e0b", "end", "600")
-    b += t(ox2 + kiri + d / 2, oy2 + h / 2 + 4, "celah d", 9, "#a855f7", "middle")
-    b += t(ox2 + a / 2, oy2 + h + 22, "A = h · (a − d)", 10.5, TX, "middle")
-    b += t(ox2 + a / 2, oy2 + h + 40, f"= {H_S} × ({A_S} − {D_S}) = {ind(A_POTONG, 0)} mm²", 10.5, "#00e09e", "middle")
-    b += t(490, 178, "TechDraw Section View:", 10.5, "#ec4899", "start", "600")
-    b += t(490, 194, "pilih pandangan → Insert Section View", 9.5, AX, "start")
-    b += t(490, 208, "panah = arah pandang; muka diarsir", 9.5, AX, "start")
-    b += t(490, 228, "Python: sh.slice(App.Vector(0,1,0), b/2)", 9.5, AX, "start")
-    b += t(490, 242, "→ wire; Part.Face(w).Area", 9.5, AX, "start")
+    # "celah d" lebih lebar daripada celahnya (menempel kedua tepi arsir), jadi diletakkan tepat di bawah celah
+    b += t(ox2 + kiri + d / 2, oy2 + h + 13, "celah d", 9, "#a855f7", "middle")
+    b += t(ox2 + a / 2, oy2 + h + 28, "A = h · (a − d)", 10.5, TX, "middle")
+    b += t(ox2 + a / 2, oy2 + h + 46, f"= {H_S} × ({A_S} − {D_S}) = {ind(A_POTONG, 0)} mm²", 10.5, "#00e09e", "middle")
+    b += t(480, 178, "TechDraw Section View:", 10.5, "#ec4899", "start", "600")
+    b += t(480, 194, "pilih pandangan → Insert Section View", 9.5, AX, "start")
+    b += t(480, 208, "panah = arah pandang; muka diarsir", 9.5, AX, "start")
+    b += t(480, 228, "Python: sh.slice(App.Vector(0,1,0), b/2)", 9.5, AX, "start")
+    b += t(480, 242, "→ wire; Part.Face(w).Area", 9.5, AX, "start")
     b += teks2(340, 270, "Bidang potong melalui pusat lubang membelah penampang a × h menjadi dua bagian diarsir; luas totalnya h·(a − d), diperiksa dengan slice di Python", 11, AX, maks=76)
-    return svg(680, 290, b, "Gambar 5 — Section View A-A balok berlubang dan luas penampang potongan")
+    return svg(680, 294, b, "Gambar 5 — Section View A-A balok berlubang dan luas penampang potongan")
 
 
 def gambar6():
@@ -321,10 +327,11 @@ def gambar6():
     b += _garis(x0, y1 + 20, x1, y1 + 20, "#f59e0b", 1)
     b += _garis(x0, y1 + 14, x0, y1 + 26, "#f59e0b", 1) + _garis(x1, y1 + 14, x1, y1 + 26, "#f59e0b", 1)
     b += t((x0 + x1) / 2, y1 + 34, "XLength = a·cosθ + b·sinθ", 10.5, "#f59e0b", "middle", "600")
-    b += _garis(x1 + 18, y0, x1 + 18, y1, "#f59e0b", 1)
-    b += _garis(x1 + 12, y0, x1 + 24, y0, "#f59e0b", 1) + _garis(x1 + 12, y1, x1 + 24, y1, "#f59e0b", 1)
-    b += t(x1 + 24, (y0 + y1) / 2 + 4, "YLength", 10, "#f59e0b", "start", "600")
-    b += t(ox + s * a * 0.62, oy + 16, "posisi semula (putus)", 9, AX, "middle")
+    # YLength digeser ke kanan agar garisnya tidak berimpit dengan tepi kanan kotak posisi semula (x = ox + s·a)
+    b += _garis(x1 + 28, y0, x1 + 28, y1, "#f59e0b", 1)
+    b += _garis(x1 + 22, y0, x1 + 34, y0, "#f59e0b", 1) + _garis(x1 + 22, y1, x1 + 34, y1, "#f59e0b", 1)
+    b += t(x1 + 34, (y0 + y1) / 2 + 4, "YLength", 10, "#f59e0b", "start", "600")
+    b += t(ox + s * a * 0.54, oy + 14, "posisi semula (putus)", 9, AX, "middle")     # bebas dari tanda ujung XLength
     b += t(440, 48, "Shape.BoundBox setelah Placement:", 11, "#f59e0b", "start", "600")
     b += t(440, 66, "kotak selalu sejajar sumbu global X, Y, Z", 10, AX, "start")
     b += t(440, 82, "sehingga membesar saat benda diputar", 10, AX, "start")
@@ -336,7 +343,148 @@ def gambar6():
     b += t(440, 220, "Tampilan: properti Bounding box (tab View)", 10, AX, "start")
     b += t(440, 236, "optimalBoundingBox(): kotak ketat", 10, AX, "start")
     b += teks2(340, 274, "Kotak pembatas mengikuti sumbu global, bukan benda; alas a × b yang diputar θ menempati kotak (a·cosθ + b·sinθ) × (a·sinθ + b·cosθ)", 11, AX, maks=76)
-    return svg(680, 294, b, "Gambar 6 — Kotak pembatas (BoundBox) balok yang diputar θ terhadap sumbu Z")
+    return svg(680, 298, b, "Gambar 6 — Kotak pembatas (BoundBox) balok yang diputar θ terhadap sumbu Z")
+
+
+def _kepala(xt, yt, ux, uy, warna=AM):
+    """Kepala panah dimensi (panjang 7, lebar 6) berujung di (xt, yt), menunjuk searah vektor satuan (ux, uy)."""
+    bx, by = xt - 7 * ux, yt - 7 * uy
+    return f'<polygon points="{xt:.1f},{yt:.1f} {bx - 3 * uy:.1f},{by + 3 * ux:.1f} {bx + 3 * uy:.1f},{by - 3 * ux:.1f}" fill="{warna}"/>'
+
+
+def _arsir45(x0, y0, x1, y1, warna=GR, jarak=6):
+    """Arsiran 45° berfase global (x + y = k·jarak) yang dipotong ke persegi panjang [x0, x1] × [y0, y1]:
+    beberapa persegi panjang bersebelahan membentuk satu pola arsir yang menyambung."""
+    out = ""
+    k = math.ceil((x0 + y0) / jarak)
+    while k * jarak < x1 + y1:
+        c = k * jarak
+        xa, xb = max(x0, c - y1), min(x1, c - y0)
+        if xb - xa > 0.5:
+            out += f'<line x1="{xa:.1f}" y1="{c - xa:.1f}" x2="{xb:.1f}" y2="{c - xb:.1f}" stroke="{warna}" stroke-opacity=".75" stroke-width=".8"/>'
+        k += 1
+    return out
+
+
+def _putus(x1, y1, x2, y2, pola, gaya):
+    """Garis putus/rantai sebagai segmen eksplisit dalam satu <path>. Pengurai SVG MuPDF (generator Word)
+    mengabaikan stroke-dasharray, sehingga garis tersembunyi akan tercetak utuh seperti rusuk tampak."""
+    L = math.hypot(x2 - x1, y2 - y1)
+    ux, uy = (x2 - x1) / L, (y2 - y1) / L
+    d, pos, i = "", 0.0, 0
+    while pos < L - 0.2:
+        seg = pola[i % len(pola)]
+        if i % 2 == 0:
+            e = min(pos + seg, L)
+            d += f"M{x1 + ux * pos:.1f} {y1 + uy * pos:.1f}L{x1 + ux * e:.1f} {y1 + uy * e:.1f}"
+        pos += seg
+        i += 1
+    return f'<path d="{d}" fill="none" {gaya}/>'
+
+
+def _poli7(pts, warna=CY, isi=".10", w=1.6):
+    return '<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in pts) + f'" fill="{warna}" fill-opacity="{isi}" stroke="{warna}" stroke-width="{w}"/>'
+
+
+def gambar7():
+    """Gambar kerja target praktik terbimbing (Bagian 09): lembar A4 sudut ketiga berisi pandangan Depan, Atas, Kanan,
+    potongan A-A, dan isometrik, dengan konstanta BT_* yang juga dipakai teks langkah 1-7."""
+    b = ""
+    A, H, NA, NH, B, D = BT_A, BT_H, BT_NA, BT_NH, BT_B, BT_D
+    zr, xs = H - NH, A - NA                   # tinggi tingkat rendah, x tepi anak tangga
+    hd = B / 2                                # pusat lubang pada bidang A-A (langkah 5 & 7: slice di tengah kedalaman)
+    hx = xs + NA / 2                          # posisi X lubang hanya ilustrasi: langkah 1 tidak memberinya, jadi tidak didimensi
+    k = 1.2                                   # px per mm untuk pandangan ortografik
+    X = lambda x: 80 + x * k                  # pandangan Depan dan Atas
+    Z = lambda z: 250 - z * k                 # pandangan Depan, Kanan, dan A-A
+    DT = lambda d: 112 - d * k                # pandangan Atas: d = 0 tepi depan (dekat pandangan Depan)
+    DR = lambda d: 284 + d * k                # pandangan Kanan: d = 0 tepi kiri
+    XS = lambda x: 544 - x * k                # potongan A-A dilihat ke arah −Y: sumbu X terbalik
+    prof = [(0, 0), (A, 0), (A, zr), (xs, zr), (xs, H), (0, H)]
+    tersembunyi = ((4, 3), f'stroke="{CY}" stroke-opacity=".85" stroke-width="1"')     # garis tersembunyi
+    sumbu = ((8, 3, 2, 3), f'stroke="{RD}" stroke-width=".9"')                          # garis sumbu (rantai)
+    garis = lambda x1, y1, x2, y2, jenis: _putus(x1, y1, x2, y2, *jenis)
+    b += f'<rect x="6" y="6" width="668" height="348" fill="none" stroke="{GRID}" stroke-width="1.2"/>'
+    # ── Depan (dari −Y) ──
+    b += _poli7([(X(x), Z(z)) for x, z in prof])
+    for xx in (hx - D / 2, hx + D / 2):
+        b += garis(X(xx), Z(0), X(xx), Z(zr), tersembunyi)
+    b += garis(X(hx), Z(0) + 6, X(hx), Z(zr) - 6, sumbu)
+    b += ext(X(0), Z(0) + 3, X(0), Z(0) + 28) + ext(X(A), Z(0) + 3, X(A), Z(0) + 28) + dim_h(X(0), X(A), Z(0) + 22, str(A))
+    b += ext(X(0) - 3, Z(0), X(0) - 28, Z(0)) + ext(X(0) - 3, Z(H), X(0) - 28, Z(H)) + dim_v(X(0) - 22, Z(H), Z(0), str(H))
+    yt = Z(H) - 16
+    b += ext(X(xs), Z(H) - 3, X(xs), yt - 6) + ext(X(A), Z(zr) - 3, X(A), yt - 6) + dim_h(X(xs), X(A), yt, str(NA))
+    xr = X(A) + 18
+    b += ext(X(xs) + 3, Z(H), xr + 6, Z(H)) + ext(X(A) + 3, Z(zr), xr + 6, Z(zr)) + dim_v(xr, Z(H), Z(zr), str(NH), kiri=False)
+    b += t(X(A / 2), Z(0) + 44, "Depan (dari −Y)", 10.5, AX, "middle", "600")
+    # ── Atas (di atas Depan, sudut ketiga) ──
+    b += _poli7([(X(0), DT(0)), (X(A), DT(0)), (X(A), DT(B)), (X(0), DT(B))])
+    b += f'<line x1="{X(xs):.1f}" y1="{DT(0):.1f}" x2="{X(xs):.1f}" y2="{DT(B):.1f}" stroke="{CY}" stroke-width="1.2"/>'
+    rl = D / 2 * k
+    b += f'<circle cx="{X(hx):.1f}" cy="{DT(hd):.1f}" r="{rl:.1f}" fill="#0a101f" stroke="{CY}" stroke-width="1.6"/>'
+    b += garis(X(hx), DT(hd) - rl - 7, X(hx), DT(hd) + rl + 7, sumbu)
+    # garis potong A-A: rantai tipis, ujung tebal, panah menunjuk arah pandang (−Y = ke bawah pada pandangan Atas)
+    ya = DT(hd)
+    b += garis(X(0), ya, X(A), ya, ((10, 3, 2, 3), f'stroke="{PK}" stroke-width=".9"'))
+    for xa, xb in ((X(0) - 10, X(0)), (X(A), X(A) + 10)):
+        b += f'<line x1="{xa:.1f}" y1="{ya:.1f}" x2="{xb:.1f}" y2="{ya:.1f}" stroke="{PK}" stroke-width="2.4"/>'
+        xm = (xa + xb) / 2
+        b += _panah(xm, ya - 18, xm, ya - 2, PK, 1.4) + t(xm, ya - 24, "A", 11, PK, "middle", "700")
+    # 30: bidang A-A (= pusat lubang) dari tepi depan; 60 (kedalaman) ada di pandangan Kanan
+    xd = X(0) - 22
+    b += ext(X(0) - 3, DT(0), xd - 6, DT(0)) + ext(X(0) - 13, ya, xd - 6, ya) + dim_v(xd, ya, DT(0), f"{B // 2}")
+    # diameter lubang: garis diameter miring 60°, diteruskan ke luar tepi belakang
+    ang = math.radians(60)
+    q0 = (X(hx) - rl * math.cos(ang), ya + rl * math.sin(ang))
+    q1 = (X(hx) + rl * math.cos(ang), ya - rl * math.sin(ang))
+    q2 = (X(hx) + (ya - DT(B) + 10) / math.tan(ang), DT(B) - 10)
+    b += f'<line x1="{q0[0]:.1f}" y1="{q0[1]:.1f}" x2="{q2[0]:.1f}" y2="{q2[1]:.1f}" stroke="{AM}" stroke-width="1"/>'
+    b += f'<line x1="{q2[0]:.1f}" y1="{q2[1]:.1f}" x2="{q2[0] + 10:.1f}" y2="{q2[1]:.1f}" stroke="{AM}" stroke-width="1"/>'
+    b += _kepala(q0[0], q0[1], -math.cos(ang), math.sin(ang)) + _kepala(q1[0], q1[1], math.cos(ang), -math.sin(ang))
+    b += t(q2[0] + 14, q2[1] + 4, f"⌀{D}", 11, AM, "start", "600")
+    b += t(X(0) + 2, DT(0) + 18, "Atas", 10.5, AX, "start", "600")
+    # ── Kanan (di kanan Depan) ──
+    b += _poli7([(DR(0), Z(0)), (DR(B), Z(0)), (DR(B), Z(H)), (DR(0), Z(H))])
+    b += f'<line x1="{DR(0):.1f}" y1="{Z(zr):.1f}" x2="{DR(B):.1f}" y2="{Z(zr):.1f}" stroke="{CY}" stroke-width="1.2"/>'
+    for dd in (hd - D / 2, hd + D / 2):
+        b += garis(DR(dd), Z(0), DR(dd), Z(zr), tersembunyi)
+    b += garis(DR(hd), Z(0) + 6, DR(hd), Z(zr) - 6, sumbu)
+    b += ext(DR(0), Z(0) + 3, DR(0), Z(0) + 28) + ext(DR(B), Z(0) + 3, DR(B), Z(0) + 28) + dim_h(DR(0), DR(B), Z(0) + 22, str(B))
+    b += t(DR(B / 2), Z(0) + 44, "Kanan", 10.5, AX, "middle", "600")
+    # ── Potongan A-A (bidang y = tengah kedalaman, dilihat ke −Y) ──
+    kiri = [(XS(A), Z(0)), (XS(hx + D / 2), Z(0)), (XS(hx + D / 2), Z(zr)), (XS(A), Z(zr))]
+    kanan = [(XS(hx - D / 2), Z(0)), (XS(0), Z(0)), (XS(0), Z(H)), (XS(xs), Z(H)), (XS(xs), Z(zr)), (XS(hx - D / 2), Z(zr))]
+    b += _poli7(kiri, GR, ".10", 1.6) + _poli7(kanan, GR, ".10", 1.6)
+    b += _arsir45(XS(A), Z(zr), XS(hx + D / 2), Z(0))
+    b += _arsir45(XS(hx - D / 2), Z(zr), XS(xs), Z(0)) + _arsir45(XS(xs), Z(H), XS(0), Z(0))
+    b += garis(XS(hx), Z(0) + 6, XS(hx), Z(zr) - 6, sumbu)
+    b += t(XS(A / 2), Z(H) - 10, "A-A (dilihat ke arah −Y)", 10.5, PK, "middle", "700")
+    # ── Isometrik, Direction (1, −1, 1): Depan di kiri-bawah, Kanan di kanan ──
+    si, cx, cy = 0.8, 548, 112
+    P = lambda x, d, z: _iso(d, -x, z, cx, cy, si, 45, 35.264)
+    b += _poli7([P(0, 0, H), P(xs, 0, H), P(xs, B, H), P(0, B, H)], CY, ".22", 1.2)
+    b += _poli7([P(xs, 0, zr), P(xs, B, zr), P(xs, B, H), P(xs, 0, H)], CY, ".14", 1.2)
+    b += _poli7([P(xs, 0, zr), P(A, 0, zr), P(A, B, zr), P(xs, B, zr)], CY, ".22", 1.2)
+    el = [P(hx + D / 2 * math.cos(u / 36 * 2 * math.pi), hd + D / 2 * math.sin(u / 36 * 2 * math.pi), zr) for u in range(36)]
+    b += '<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in el) + f'" fill="#0a101f" stroke="{CY}" stroke-width="1"/>'
+    b += _poli7([P(A, 0, 0), P(A, B, 0), P(A, B, zr), P(A, 0, zr)], CY, ".14", 1.2)
+    b += _poli7([P(x, 0, z) for x, z in prof], CY, ".10", 1.2)
+    b += t(598, 28, "Isometrik (1, −1, 1)", 10.5, AX, "middle", "600")
+    o = (482, 104)
+    for (vx, vd, vz), warna, nama in [((1, 0, 0), RD, "X"), ((0, 1, 0), GN, "Y"), ((0, 0, 1), BL, "Z")]:
+        p, q = P(26 * vx, 26 * vd, 26 * vz), P(0, 0, 0)
+        e = (o[0] + (p[0] - q[0]) / si * 0.9, o[1] + (p[1] - q[1]) / si * 0.9)
+        b += _panah(o[0], o[1], e[0], e[1], warna, 1.4)
+        b += t(e[0] + (5 if vz == 0 else 0), e[1] + (12 if vx else (-4 if vz else -2)), nama, 10, warna, "start" if vz == 0 else "middle", "700")
+    # ── kepala gambar: judul, skala, satuan, simbol sudut ketiga ──
+    for x, y, w, h in [(400, 282, 160, 24), (400, 306, 80, 40), (480, 306, 80, 40), (560, 282, 104, 64)]:
+        b += f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="#0e1628" stroke="{AX}" stroke-width="1"/>'
+    b += t(480, 298, "Balok bertingkat", 11, TX, "middle", "700")
+    b += t(440, 331, f"Skala {BT_SKALA}", 10.5, TX, "middle", "600")
+    b += t(520, 331, "Satuan: mm", 10.5, TX, "middle", "600")
+    b += _simbol_iso(606, 304, 1)
+    b += t(612, 336, "Sudut ketiga", 10, AX, "middle")
+    return svg(680, 360, b, "Gambar 7 — Gambar kerja balok bertingkat untuk praktik terbimbing")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -657,14 +805,17 @@ Part.show(sh, "BalokBerlubang"); Part.show(baji, "Baji")''', "Python (FreeCAD)")
     m += bagian(8, "m-python", "Python Console:<br>Membaca Tampilan dan Geometri", "Cell pertama membaca kotak pembatas dan diagonal ruang lalu mengendalikan kamera (isometrik, Fit, perspektif); cell kedua memutar Placement dan membaca XLength serta mengatur transparansi dan warna; cell ketiga menghitung luas potongan lewat slice, luas muka depan, dan luas muka miring baji.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Model balok bertingkat berlubang", "Body → Sketch XZ: profil tangga 6 titik (120 lebar, 80 tinggi; anak tangga 60 × 30 dibuang di kanan-atas), fully constrained → Pad 60. Sketch di muka atas tingkat rendah: lingkaran ⌀20 → Pocket Through all."),
+    langkah = [("1", "Model balok bertingkat berlubang", f"Body → Sketch XZ: profil tangga 6 titik ({BT_A} lebar, {BT_H} tinggi; anak tangga {BT_NA} × {BT_NH} dibuang di kanan-atas), fully constrained → Pad {BT_B}. Sketch di muka atas tingkat rendah: lingkaran ⌀{BT_D} → Pocket Through all."),
                ("2", "Pandangan dan kamera", "Tekan 0, 1, 2, 3 lalu V, F; bandingkan V, O dan V, P dengan memutar model (Navigation cube). Simpan sudut kerja lewat View → Freeze display → Save views."),
-               ("3", "Lembar dan Projection Group", "TechDraw → Insert Page using Template (A4 Landscape ISO). Pilih Body → Insert Projection Group: Front dari arah −Y, centang Top dan Right, Projection Type Third Angle, Scale Custom 1:2. Geser grup ke tengah lembar."),
+               ("3", "Lembar dan Projection Group", f"TechDraw → Insert Page using Template (A4 Landscape ISO). Pilih Body → Insert Projection Group: Front dari arah −Y, centang Top dan Right, Projection Type Third Angle, Scale Custom {BT_SKALA}. Geser grup ke tengah lembar."),
                ("4", "Pandangan isometrik", "Pada Projection Group centang FrontTopRight (iso) atau Insert View dengan Direction (1, −1, 1). Perhatikan rusuk digambar skala penuh, bukan 0,816."),
                ("5", "Section View A-A", "Pilih pandangan Top → Insert Section View: bidang melalui pusat lubang sejajar X, arah panah ke −Y, nama A. Tambahkan Hatch pada muka potongan dan periksa bagian di balik bidang."),
                ("6", "Dimensi, simbol, ekspor", "Beri dimensi Length pada lebar dan tinggi, Diameter pada lubang; tulis metode proyeksi dan skala pada kepala gambar (simbol kerucut terpancung). Export Page as PDF."),
-               ("7", "Bacaan dan simpan", "Di Python: luas muka depan (Face.Area), BoundBox.DiagonalLength, luas potongan lewat slice pada y = 30; putar Body 25° terhadap Z dan baca XLength, lalu kembalikan ke 0°. Ctrl+S → <code>Latihan6_NIM.FCStd</code> (lembar TechDraw ikut tersimpan).")]
-    isi = '  <div class="cards reveal">\n'
+               ("7", "Bacaan dan simpan", f"Di Python: luas muka depan (Face.Area), BoundBox.DiagonalLength, luas potongan lewat slice pada bidang tengah kedalaman, y = (BoundBox.YMin + BoundBox.YMax)/2 = −{BT_B // 2} (Pad dari sketsa XZ mengarah ke −Y); putar Body 25° terhadap Z dan baca XLength, lalu kembalikan ke 0°. Ctrl+S → <code>Latihan6_NIM.FCStd</code> (lembar TechDraw ikut tersimpan).")]
+    isi = figure(7, "Gambar kerja target praktik: balok bertingkat berlubang",
+                 f"Satuan mm; lembar A4 sudut ketiga skala {BT_SKALA} (langkah 3 dan 6). Balok dari langkah 1: profil tangga {BT_A} × {BT_H} dengan anak tangga {BT_NA} × {BT_NH} dibuang di kanan-atas, Pad {BT_B}, dan lubang ⌀{BT_D} tembus di muka atas tingkat rendah. Isometrik memakai arah (1, −1, 1) (langkah 4); potongan A-A melalui pusat lubang, {BT_B // 2} dari muka depan, dilihat ke arah −Y (langkah 5) sehingga kiri-kanannya terbalik terhadap pandangan Depan.",
+                 gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>
