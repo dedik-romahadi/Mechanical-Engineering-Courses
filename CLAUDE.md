@@ -122,7 +122,10 @@ generatornya `scripts/cad-exam/bangun.py uts|uas` dengan pemeriksa `periksa_exam
 **Modul-Word/PDF CAD terbit 21 September 2026** dari `scripts/cad-modul/buat-modul-word.py`
 (tautannya dipasang `scripts/cad-modul/pasang-tautan-pdf.py`, yang wajib dijalankan ulang
 setiap kali `bangun-modul-1.py`/`bangun.py` dijalankan karena keduanya mengosongkan
-penandanya). Teknik Tenaga Listrik dibangun modul demi
+penandanya). Tiap modul CAD punya 7 gambar materi (Gambar 7 = gambar kerja praktik terbimbing);
+tata letak semua gambar SVG CAD diperiksa `scripts/cad-modul/periksa_gambar_chrome.py --semua`
+dan `--semua --inter` (getBBox nyata di Chrome) — `periksa_gambar.py` hanya menaksir dan meloloskan
+banyak cacat. Teknik Tenaga Listrik dibangun modul demi
 modul: Modul 1–14 sudah terbit (generator `scripts/ttl-modul/bangun.py`; Word/PDF-nya
 dari `scripts/ttl-modul/buat-modul-word.py`) dan terdaftar
 di `_MODUL_COURSES` backend lewat `moduls: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]`; UTS (`teknik-tenaga-listrik-uts`) dan UAS

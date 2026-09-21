@@ -11,6 +11,7 @@ SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
+from tugas_gambar import AM, CY, GN, GR, RD, _panah, ext  # noqa: E402
 
 NOMOR = 2
 JUDUL = "Drafting dan Penyuntingan 2D"
@@ -25,6 +26,8 @@ R_C, H_C = 35, 12
 CHORD_C = 2 * math.sqrt(R_C ** 2 - H_C ** 2)
 N_AR, R_AR, D_AR = 8, 50, 10
 JARAK_AR = 2 * R_AR * math.sin(math.pi / N_AR)
+R_LUAR_AR, R_POROS_AR = R_AR + 20, R_AR - 25   # praktik 09: radius kontur luar dan lubang poros flens
+L_SUMBU_AR = 100                                # praktik 09: garis konstruksi sumbu X dan Y sepanjang ±L_SUMBU_AR
 A_P, B_P, D_P, NX_P = 160, 90, 10, 4
 LUAS_P = A_P * B_P - NX_P * math.pi * D_P ** 2 / 4
 W_T, H_T, S_T = 140, 70, 40
@@ -61,8 +64,9 @@ def gambar2():
         y = cy - h
         if not potong:
             b += f'<line x1="{cx - 120}" y1="{y}" x2="{cx + 120}" y2="{y}" stroke="#f59e0b" stroke-width="2.4"/>'
-            b += t(cx - 118, y - 8, "klik di sini → ujung kiri dibuang", 9.5, "#f59e0b", "start")
-            b += t(cx + 118, y + 16, "← klik di sini → ujung kanan dibuang", 9.5, "#f59e0b", "end")
+            # label dua baris di luar lingkaran: kiri di atas ruas kiri, kanan di bawah ruas kanan
+            b += t(cx - c - 4, y - 22, "klik di sini →", 9.5, "#f59e0b", "end") + t(cx - c - 4, y - 9, "ujung kiri dibuang", 9.5, "#f59e0b", "end")
+            b += t(cx + c + 8, y + 15, "← klik di sini →", 9.5, "#f59e0b", "start") + t(cx + c + 8, y + 28, "ujung kanan dibuang", 9.5, "#f59e0b", "start")
         else:
             b += f'<line x1="{cx - 120}" y1="{y}" x2="{cx + 120}" y2="{y}" stroke="rgba(148,163,184,.3)" stroke-width="1" stroke-dasharray="4 4"/>'
             b += f'<line x1="{cx - c:.1f}" y1="{y}" x2="{cx + c:.1f}" y2="{y}" stroke="#00e09e" stroke-width="2.6"/>'
@@ -126,7 +130,7 @@ def gambar4():
         pts.append((px, py))
         b += f'<circle cx="{px:.1f}" cy="{py:.1f}" r="7" fill="#0a101f" stroke="{"#00e09e" if k < 2 else "#f59e0b"}" stroke-width="1.4"/>'
     b += f'<line x1="{pts[0][0]:.1f}" y1="{pts[0][1]:.1f}" x2="{pts[1][0]:.1f}" y2="{pts[1][1]:.1f}" stroke="#00e09e" stroke-width="1.4"/>'
-    b += t(cx + 62, cy - 40, f"2R·sin(π/n) = {ind(JARAK_AR, 3)}", 10, "#00e09e", "start")
+    b += t(cx + 62, cy - 62, f"2R·sin(π/n) = {ind(JARAK_AR, 3)}", 10, "#00e09e", "start")   # di luar lingkaran, di atas pasangan lubang hijau
     b += t(cx, cy + 4, "360°/n", 10, "#f59e0b")
     b += t(340, 252, "Array adalah satu objek parametrik: mengubah jumlah atau interval memperbarui seluruh salinan", 11, AX)
     return svg(680, 264, b, "Gambar 4 — Pola salinan: OrthoArray dan PolarArray")
@@ -171,6 +175,100 @@ def gambar6():
     b += t(cx - 40, cy + 28, "angular: dua garis, satu busur", 10, AX)
     b += teks2(340, 240, "Dimensi terikat ke geometri: nilai diperbarui saat titik acuannya bergeser; gaya diatur lewat properti atau preferensi Draft", 11, AX, maks=70)
     return svg(680, 266, b, "Gambar 6 — Anatomi Draft Dimension linear dan angular")
+
+
+def _putus(pts, pola=(8, 3, 2, 3)):
+    """Garis sumbu (rantai) sebagai potongan-potongan path nyata di sepanjang polyline pts.
+
+    MuPDF (generator Modul-Word) mengabaikan stroke-dasharray sehingga garis rantai
+    tercetak utuh; potongan manual ini tetap putus-putus di peramban maupun di Word.
+    """
+    d, k, sisa = [], 0, pola[0]
+    for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
+        L, pos = math.hypot(x2 - x1, y2 - y1), 0.0
+        while L - pos > 1e-6:
+            step = min(sisa, L - pos)
+            if k % 2 == 0:
+                a, c = pos / L, (pos + step) / L
+                d.append(f"M {x1 + (x2 - x1) * a:.1f} {y1 + (y2 - y1) * a:.1f} L {x1 + (x2 - x1) * c:.1f} {y1 + (y2 - y1) * c:.1f}")
+            pos += step
+            sisa -= step
+            if sisa <= 1e-6:
+                k = (k + 1) % len(pola)
+                sisa = pola[k]
+    return " ".join(d)
+
+
+def gambar7():
+    """Gambar kerja praktik terbimbing (bagian 09): flens pelat delapan baut, pandangan atas bidang Top (XY).
+
+    Ukuran memakai konstanta yang sama dengan teks langkah 2–4 dan 6 (R_AR, D_AR, N_AR, R_LUAR_AR,
+    R_POROS_AR, L_SUMBU_AR), jadi gambar dan langkah tidak dapat berbeda angka. Kontur luar dan
+    lubang poros diberi ukuran radius seperti yang diketik pada langkah 3.
+    """
+    s, cx, cy = 1.75, 215, 186                  # skala px/mm; titik asal (0, 0) = pusat flens
+
+    def P(r_px, sudut):                          # titik pada jari-jari r_px (px), sudut dari sumbu +X berlawanan jarum jam
+        return cx + r_px * math.cos(math.radians(sudut)), cy - r_px * math.sin(math.radians(sudut))
+    rl, rj, rp, rb, L = R_LUAR_AR * s, R_AR * s, R_POROS_AR * s, D_AR / 2 * s, L_SUMBU_AR * s
+    b = f'<circle cx="{cx}" cy="{cy}" r="{rl:.1f}" fill="{CY}" fill-opacity=".12" stroke="{CY}" stroke-width="2"/>'
+    b += f'<circle cx="{cx}" cy="{cy}" r="{rp:.1f}" fill="#0a101f" stroke="{CY}" stroke-width="2"/>'
+    for k in range(N_AR):
+        hx, hy = P(rj, 360 * k / N_AR)
+        b += f'<circle cx="{hx:.1f}" cy="{hy:.1f}" r="{rb:.1f}" fill="#0a101f" stroke="{GR if k == 0 else CY}" stroke-width="2"/>'
+    # geometri konstruksi (langkah 2): lingkaran jarak dan garis sumbu X, Y dari −L sampai +L
+    lingkar = [P(rj, 3 * k) for k in range(121)]
+    kons = _putus(lingkar) + " " + _putus([(cx - L, cy), (cx + L - 7, cy)]) + " " + _putus([(cx, cy + L), (cx, cy - L + 7)])
+    b += f'<path d="{kons}" fill="none" stroke="{AX}" stroke-width="1"/>'
+    b += _panah(cx + L - 8, cy, cx + L, cy, RD, 1.4) + _panah(cx, cy - L + 8, cx, cy - L, GN, 1.4)
+    b += t(cx + L + 7, cy + 5, "X", 11, RD, "start", "700") + t(cx + 8, cy - L + 9, "Y", 11, GN, "start", "700")
+    b += f'<line x1="{cx - L:.1f}" y1="{cy - 5}" x2="{cx - L:.1f}" y2="{cy + 5}" stroke="{AX}" stroke-width="1.2"/>'
+    b += f'<line x1="{cx - 5}" y1="{cy + L:.1f}" x2="{cx + 5}" y2="{cy + L:.1f}" stroke="{AX}" stroke-width="1.2"/>'
+    b += t(cx - L, cy - 9, f"−{L_SUMBU_AR}", 10.5, AX, "middle", "600") + t(cx + L - 4, cy - 9, f"{L_SUMBU_AR}", 10.5, AX, "middle", "600")
+    b += t(cx - 8, cy - L + 9, f"{L_SUMBU_AR}", 10.5, AX, "end", "600") + t(cx - 8, cy + L + 4, f"−{L_SUMBU_AR}", 10.5, AX, "end", "600")
+    b += f'<circle cx="{cx}" cy="{cy}" r="2.5" fill="{TX}"/>' + t(cx + 4, cy + 13, "(0, 0)", 10, TX, "start")
+
+    def jari(r_px, sudut, label):                # ukuran radius: penunjuk dari luar flens ke lingkaran, arah ke pusat
+        px, py = P(r_px, sudut)
+        qx, qy = P(rl + 22, sudut)
+        kiri = math.cos(math.radians(sudut)) < 0
+        ux = qx - 12 if kiri else qx + 12
+        return (_panah(qx, qy, px, py, AM, 1) + f'<line x1="{qx:.1f}" y1="{qy:.1f}" x2="{ux:.1f}" y2="{qy:.1f}" stroke="{AM}" stroke-width="1"/>'
+                + t(ux - 4 if kiri else ux + 4, qy + 4, label, 11, AM, "end" if kiri else "start", "600"))
+    b += jari(rl, 112.5, f"R{R_LUAR_AR}") + jari(rj, 157.5, f"R{R_AR}") + jari(rp, 202.5, f"R{R_POROS_AR}")
+    # sudut antara dua sumbu lubang bertetangga (langkah 6); sumbu lubang 0° berimpit dengan garis sumbu X
+    a1, ra = 360 / N_AR, rl + 20
+    b += ext(*P(rj + rb + 3, a1), *P(ra + 6, a1))
+    (x0, y0), (x1, y1) = P(ra, 0), P(ra, a1)
+    b += f'<path d="M {x0:.1f} {y0:.1f} A {ra:.1f} {ra:.1f} 0 0 0 {x1:.1f} {y1:.1f}" fill="none" stroke="{AM}" stroke-width="1"/>'
+    d7 = math.degrees(7 / ra)
+    for a_ujung, a_dasar in ((0, d7), (a1, a1 - d7)):
+        (tx, ty), (bx, by) = P(ra, a_ujung), P(ra, a_dasar)
+        ux, uy = 3 * math.cos(math.radians(a_dasar)), -3 * math.sin(math.radians(a_dasar))
+        b += f'<polygon points="{tx:.1f},{ty:.1f} {bx + ux:.1f},{by + uy:.1f} {bx - ux:.1f},{by - uy:.1f}" fill="{AM}"/>'
+    lx, ly = P(ra + 14, a1 / 2)
+    b += t(lx, ly + 4, f"{ind(360 / N_AR, 0)}°", 11, AM, "middle", "600")
+    # lubang baut: satu keterangan untuk seluruh pola (langkah 4)
+    hx, hy = P(rj, -a1)
+    (px, py), (qx, qy) = (hx + rb * math.cos(math.radians(-a1)), hy - rb * math.sin(math.radians(-a1))), P(rl + 26, -a1)
+    b += _panah(qx, qy, px, py, AM, 1) + f'<line x1="{qx:.1f}" y1="{qy:.1f}" x2="{qx + 14:.1f}" y2="{qy:.1f}" stroke="{AM}" stroke-width="1"/>'
+    b += t(qx + 18, qy + 4, f"{N_AR}× ⌀{D_AR} pada PCD {2 * R_AR}", 11, AM, "start", "600")
+    b += t(qx + 18, qy + 24, f"PolarArray: {N_AR} salinan, 360°, pusat (0, 0, 0)", 10.5, AX, "start")
+    # lubang induk yang disalin PolarArray
+    ix, iy = P(rj, 0)
+    b += f'<circle cx="{ix:.1f}" cy="{iy:.1f}" r="2" fill="{GR}"/>'
+    b += f'<line x1="{ix + 2:.1f}" y1="{iy + 2:.1f}" x2="{cx + rl + 6:.1f}" y2="{cy + 13:.1f}" stroke="{GR}" stroke-width="1"/>'
+    b += t(cx + rl + 9, cy + 17, f"({R_AR}, 0)", 10.5, GR, "start", "600")
+    # keterangan layer dan PolarArray
+    b += t(664, 22, "Satuan: mm", 10.5, AX, "end")
+    kx = 474
+    b += t(kx, 56, "Layer", 10.5, TX, "start", "600")
+    b += f'<line x1="{kx}" y1="{72}" x2="{kx + 28}" y2="{72}" stroke="{CY}" stroke-width="2"/>' + t(kx + 38, 76, "Kontur", 10.5, AX, "start")
+    b += f'<path d="{_putus([(kx, 92), (kx + 28, 92)], (6, 3, 2, 3))}" fill="none" stroke="{AX}" stroke-width="1"/>' + t(kx + 38, 96, "Konstruksi", 10.5, AX, "start")
+    b += f'<line x1="{kx}" y1="{112}" x2="{kx + 28}" y2="{112}" stroke="{AM}" stroke-width="1"/>'
+    b += f'<polygon points="{kx},112 {kx + 7},109 {kx + 7},115" fill="{AM}"/><polygon points="{kx + 28},112 {kx + 21},109 {kx + 21},115" fill="{AM}"/>'
+    b += t(kx + 38, 116, "Dimensi", 10.5, AX, "start")
+    return svg(680, 376, b, "Gambar 7 — Gambar kerja flens pelat delapan baut")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -464,13 +562,14 @@ print(f"Dimensi alas = {{d1.Distance:.2f}} mm, tinggi = {{d2.Distance:.2f}} mm")
 
     # 09 — Praktik terbimbing
     langkah = [("1", "Siapkan dokumen", "Ctrl+N, workbench Draft, working plane Top (XY), satuan mm. Buat layer Kontur, Dimensi, dan Konstruksi (Draft → Layer, ganti nama di properti Label)."),
-               ("2", "Acuan konstruksi", f"Nyalakan Construction mode. Draft Circle radius {R_AR} mm di titik asal sebagai lingkaran jarak (PCD {2 * R_AR}), dan dua Draft Line sumbu X dan Y sepanjang ±100 mm. Matikan Construction mode."),
-               ("3", "Kontur flens", f"Draft Circle radius {R_AR + 20} mm (kontur luar) dan radius {R_AR - 25} mm (lubang poros) di titik asal, Make Face aktif. Masukkan keduanya ke layer Kontur."),
+               ("2", "Acuan konstruksi", f"Nyalakan Construction mode. Draft Circle radius {R_AR} mm di titik asal sebagai lingkaran jarak (PCD {2 * R_AR}), dan dua Draft Line sumbu X dan Y sepanjang ±{L_SUMBU_AR} mm. Matikan Construction mode."),
+               ("3", "Kontur flens", f"Draft Circle radius {R_LUAR_AR} mm (kontur luar) dan radius {R_POROS_AR} mm (lubang poros) di titik asal, Make Face aktif. Masukkan keduanya ke layer Kontur."),
                ("4", "Lubang baut", f"Draft Circle ⌀{D_AR} berpusat di ({R_AR}, 0) memakai snap Intersection lingkaran jarak dan sumbu X. Draft → PolarArray: {N_AR} salinan, 360°, pusat (0, 0, 0)."),
                ("5", "Potong", "Part → Boolean → Cut: kontur luar − lubang poros, lalu hasilnya − Array. Sembunyikan objek antara (Spasi); periksa Shape.Area di Python console."),
                ("6", "Dimensi", f"Pada layer Dimensi: Draft Dimension diameter kontur luar dan lubang poros, radius lingkaran jarak (dari layer Konstruksi), dan angular 360°/{N_AR} = {ind(360 / N_AR, 0)}° antara dua sumbu lubang bertetangga."),
                ("7", "Simpan dan periksa", "Sembunyikan layer Konstruksi, V lalu F, Ctrl+S → <code>Latihan2_NIM.FCStd</code>. Coba File → Export → DXF dan buka kembali untuk melihat layer-nya terbawa.")]
-    isi = '  <div class="cards reveal">\n'
+    isi = figure(7, "Benda kerja praktik terbimbing: flens pelat delapan baut", "Pandangan atas pada bidang Top (XY), satuan mm. Pusat flens berada di titik asal (0, 0). Lingkaran jarak dan garis sumbu dibuat pada langkah 2, kontur luar dan lubang poros pada langkah 3 (keduanya diketik sebagai radius), lubang induk berwarna hijau dan PolarArray pada langkah 4, sedangkan sudut antarsumbu lubang adalah dimensi angular langkah 6.", gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>

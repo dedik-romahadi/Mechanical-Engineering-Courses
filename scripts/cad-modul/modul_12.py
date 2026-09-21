@@ -11,6 +11,8 @@ SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
+from pustaka import BG  # noqa: E402
+from tugas_gambar import AM, CY, GN, GR, PK, RD, VI, _panah, dim_h, dim_v, ext, iso  # noqa: E402
 
 NOMOR = 12
 JUDUL = "Identifikasi Masalah Desain dan Solusi Optimasi"
@@ -30,6 +32,7 @@ C_MAKS = (ES_LUB - EI_POR) / 1000                # 0,035 mm
 C_MIN_FIT = (EI_LUB - ES_POR) / 1000             # 0,006 mm
 LUB_MAKS, LUB_MIN = D_FIT + ES_LUB / 1000, D_FIT + EI_LUB / 1000
 POR_MAKS, POR_MIN = D_FIT + ES_POR / 1000, D_FIT + EI_POR / 1000
+H_CINCIN, L_POROS = 10, 30                       # praktik langkah 4: tebal Pad cincin dan panjang Pad poros (mm)
 # Rumah berdinding tipis (Bagian 05)
 A_H, B_H, H_H, W_H, P_H = 80, 60, 40, 4, 30
 V_BALOK = A_H * B_H * H_H
@@ -49,6 +52,7 @@ TH_KRITIS = math.degrees(math.atan2(W_L / 2, R_L))
 R_LAMA = 90                                      # lengan sebelum diperbaiki
 R_SUDUT_LAMA = math.hypot(R_LAMA, W_L / 2)
 C_MIN_LAMA = W_DIND - R_SUDUT_LAMA               # 9,20 mm
+T_LENGAN = 8                                     # praktik langkah 7: tebal lengan (mm)
 # Metrik perbaikan (Bagian 04 dan 06)
 KT_SEBELUM, KT_SESUDAH = 2.85, 1.72
 SIG_NOM = 59.0                                   # tegangan nominal bahu contoh (MPa)
@@ -103,7 +107,7 @@ def gambar1():
                             "σ_maks (MPa) · SF · defleksi δ (mm)",
                             "c_min gerak (mm) · Check Geometry"]):
         b += t(372, 142 + i * 18, s_, 10.5, AX, "start")
-    b += teks2(340, 232, "Tanpa angka, “kelihatannya rapat” bukan temuan: perbaikan baru dapat dipertanggungjawabkan bila metrik sebelum dan sesudah dibaca dari model yang sama", 11, AX, maks=74)
+    b += teks2(340, 226, "Tanpa angka, “kelihatannya rapat” bukan temuan: perbaikan baru dapat dipertanggungjawabkan bila metrik sebelum dan sesudah dibaca dari model yang sama", 11, AX, maks=74)
     return svg(680, 268, b, "Gambar 1 — Alur identifikasi masalah desain: temuan, metrik, perbaikan, verifikasi")
 
 
@@ -115,14 +119,15 @@ def gambar2():
     b += t(40, 150, "garis nol", 9.5, "#ef4444", "start")
     b += t(430, y0 + 4, "0", 10, "#ef4444", "start", "700")
     kolom = [(96, "#22d3ee", EI_LUB, ES_LUB, "lubang ⌀12 H7", "EI = 0 / ES = +18"),
-             (184, "#00e09e", EI_POR, ES_POR, "poros g6", "es = −6 / ei = −17"),
+             (184, "#00e09e", EI_POR, ES_POR, "poros g6", "ei = −17 / es = −6"),
              (272, "#f59e0b", 1, 12, "poros k6", "ei = +1 / es = +12"),
              (360, "#ef4444", 18, 29, "poros p6", "ei = +18 / es = +29")]
     for (x, c, bawah, atas, nama, dev) in kolom:
         isi = "rgba(34,211,238,.20)" if c == "#22d3ee" else ("rgba(0,224,158,.20)" if c == "#00e09e" else ("rgba(245,158,11,.20)" if c == "#f59e0b" else "rgba(239,68,68,.20)"))
         b += _kotak(x, Z(atas), 56, (atas - bawah) * sk, isi, c, 1.6)
-        b += t(x + 28, Z(atas) - 9, dev.split(" / ")[1], 9.5, c, "middle", "600")
-        b += t(x + 28, Z(bawah) + 17, dev.split(" / ")[0], 9.5, c, "middle")
+        ya = Z(atas) - 9 if Z(atas) < y0 else (y0 + Z(atas)) / 2 + 3.5   # zona di bawah garis nol: label di celah garis nol–tepi atas
+        b += t(x + 28, ya, dev.split(" / ")[1], 9.5, c, "middle", "600")
+        b += t(x + 28, Z(bawah) + 16, dev.split(" / ")[0], 9.5, c, "middle")
         b += t(x + 28, 228, nama, 10.5, c, "middle", "700")
     b += t(96 + 28, 246, "IT7", 9.5, AX, "middle")
     b += t(184 + 28, 246, "longgar", 9.5, "#00e09e", "middle")
@@ -136,7 +141,7 @@ def gambar2():
                             f"c_maks = {ind(C_MAKS, 3)} mm", f"c_min = {ind(C_MIN_FIT, 3)} mm"]):
         b += t(448, 84 + i * 19, s_, 10.5, "#00e09e" if i >= 6 else AX, "start")
     b += teks2(340, 262, "Huruf menentukan letak zona terhadap garis nol, angka menentukan lebarnya (kualitas IT); pasangan huruf-angka itulah yang menetapkan longgar, transisi, atau sesak", 11, AX, maks=76)
-    return svg(680, 292, b, "Gambar 2 — Zona toleransi lubang dan poros ISO serta jenis suaian yang dihasilkan")
+    return svg(680, 302, b, "Gambar 2 — Zona toleransi lubang dan poros ISO serta jenis suaian yang dihasilkan")
 
 
 def gambar3():
@@ -156,8 +161,8 @@ def gambar3():
     b += arrow(bx0, ay0 + ah + 40, bx0 + bw, ay0 + ah + 40, "#f59e0b", 1.1)
     b += t(bx0 + bw / 2, ay0 + ah + 56, "a₂", 11, "#f59e0b", "middle", "600")
     b += t(ax0 - 8, ay0 + ah / 2 + 4, "b", 11, "#f59e0b", "end", "600")
-    b += _garis(bx0 + ov / 2, ay0 + ah, 200, 214, "#ef4444", 0.9, "3 2")
-    b += t(204, 218, "irisan A ∩ B", 10.5, "#ef4444", "start", "600")
+    b += _garis(bx0 + ov / 2, ay0 + ah, 232, 192, "#ef4444", 0.9, "3 2")
+    b += t(236, 196, "irisan A ∩ B", 10.5, "#ef4444", "start", "600")
     # inset: irisan sebagai slab δ × b × h
     b += t(352, 74, "Part → Boolean → Common", 10.5, "#ef4444", "middle", "600")
     sx, sy = 300, 104
@@ -205,7 +210,7 @@ def gambar4():
     b += _kotak(466, 112, 180, 64, "rgba(148,163,184,.10)", AX, 1.4)
     b += _ling(486, 144, 13, "#0a101f", "#ef4444", 1.6)
     b += _ling(586, 144, 13, "#0a101f", "#00e09e", 1.6)
-    b += _garis(466, 190, 473, 190, "#ef4444", 1.2)
+    b += _garis(466, 183, 473, 183, "#ef4444", 1.2)
     b += t(480, 196, "e kecil → sobek", 10, "#ef4444", "middle", "700")
     b += t(600, 196, "e ≥ 1,5 · t", 10, "#00e09e", "middle", "700")
     b += teks2(556, 216, "Jarak tepi diukur dari tepi lubang ke tepi pelat, bukan dari pusat lubang", 9.5, AX, maks=32, jarak=13)
@@ -226,7 +231,7 @@ def gambar5():
     b += _garis(228, 96, 224, 166, AX, 0.9, "4 3")
     b += t(238, 88, "α ≈ 1°–3°", 10, "#f59e0b", "middle", "700")
     b += arrow(318, 122, 342, 108, "#00e09e", 1.1)
-    b += t(330, 150, "lepas cetakan", 9.5, "#00e09e", "middle")
+    b += t(338, 102, "lepas cetakan", 9.5, "#00e09e", "middle")
     b += teks2(pusat[1], 190, "Dinding sedikit miring agar benda lepas dari cetakan tanpa merusak muka", 9.5, AX, maks=26, jarak=13)
     b += t(pusat[2], 34, "Undercut", 11, "#ef4444", "middle", "600")
     b += _poli([(378, 166), (492, 166), (492, 96), (462, 96), (462, 124), (408, 124), (408, 96), (378, 96)], "rgba(239,68,68,.14)", "#ef4444", 1.5)
@@ -261,32 +266,253 @@ def gambar6():
     b += t(ox + W_DIND + 6, 46, "dinding", 9.5, AX, "middle")
     b += arrow(ox + R_SUDUT, oy - 26, ox + W_DIND, oy - 26, "#00e09e", 1.1)
     b += _garis(ox + R_SUDUT, oy - 20, ox + R_SUDUT, oy - 4, "#00e09e", 0.8, "3 2")
-    b += t(ox + R_SUDUT + 14, oy - 34, "c_min", 10, "#00e09e", "start", "700")
+    b += t(ox + W_DIND - 4, oy - 36, "c_min", 10, "#00e09e", "end", "700")
     b += arrow(ox, oy + 84, ox + W_DIND, oy + 84, "#f59e0b", 1.1)
     b += t(ox + W_DIND / 2, oy + 78, "W", 11, "#f59e0b", "middle", "700")
     b += t(rot(R_L / 2, W_L / 2 + 14)[0], rot(R_L / 2, W_L / 2 + 14)[1], "R", 11, "#22d3ee", "middle", "700")
     b += t(ox + 4, oy - 84, "lintasan sudut terjauh √(R² + (w/2)²)", 9.5, "#ec4899", "middle")
-    b += t(408, 44, "Metrik sebelum → sesudah", 11, TX, "start", "600")
+    b += t(396, 44, "Metrik sebelum → sesudah", 11, TX, "start", "600")
     baris = [("V_int rakitan (mm³)", ind(V_INT, 0), "0", "0", "#00e09e"),
              ("c_min lengan (mm)", ind(C_MIN_LAMA, 2), ind(C_MIN_L, 2), "≥ 15", "#00e09e"),
              ("tebal dinding (mm)", ind(W_TIPIS, 1), ind(W_H, 1), "≥ " + ind(W_MIN_PROSES, 1), "#00e09e"),
              ("jarak tepi e (mm)", ind(6.0, 1), ind(E_X, 1), "≥ " + ind(E_BATAS, 1), "#00e09e"),
              ("Kt bahu", ind(KT_SEBELUM, 2), ind(KT_SESUDAH, 2), "≤ 2,00", "#00e09e")]
-    b += t(408, 70, "metrik", 9.5, AX, "start", "700")
-    b += t(556, 70, "sblm", 9.5, "#ef4444", "middle", "700")
-    b += t(606, 70, "ssdh", 9.5, "#00e09e", "middle", "700")
-    b += t(654, 70, "batas", 9.5, AX, "middle", "700")
-    b += _garis(404, 78, 672, 78, "rgba(148,163,184,.4)", 1)
+    b += t(396, 70, "metrik", 9.5, AX, "start", "700")
+    b += t(544, 70, "sblm", 9.5, "#ef4444", "middle", "700")
+    b += t(594, 70, "ssdh", 9.5, "#00e09e", "middle", "700")
+    b += t(642, 70, "batas", 9.5, AX, "middle", "700")
+    b += _garis(392, 78, 660, 78, "rgba(148,163,184,.4)", 1)
     for i, (nama, sb, ss, bt, c) in enumerate(baris):
         yy = 100 + i * 26
-        b += t(408, yy, nama, 10, TX, "start")
-        b += t(556, yy, sb, 10, "#ef4444", "middle")
-        b += t(606, yy, ss, 10, c, "middle", "700")
-        b += t(654, yy, bt, 9.5, AX, "middle")
-        b += _garis(404, yy + 8, 672, yy + 8, "rgba(148,163,184,.18)", 0.8)
-    b += t(408, 248, "Semua metrik dibaca ulang dari berkas yang sama", 9.5, "#00e09e", "start")
+        b += t(396, yy, nama, 10, TX, "start")
+        b += t(544, yy, sb, 10, "#ef4444", "middle")
+        b += t(594, yy, ss, 10, c, "middle", "700")
+        b += t(642, yy, bt, 9.5, AX, "middle")
+        b += _garis(392, yy + 8, 660, yy + 8, "rgba(148,163,184,.18)", 0.8)
+    b += t(396, 248, "Semua metrik dibaca ulang dari berkas yang sama", 9.5, "#00e09e", "start")
     b += teks2(340, 274, "Perbaikan yang tidak diukur ulang bukan perbaikan: tiap baris tabel harus punya angka sesudah dan batas penerimaan yang disepakati", 11, AX, maks=76)
     return svg(680, 300, b, "Gambar 6 — Jarak bebas lengan berputar dan tabel metrik sebelum-sesudah perbaikan")
+
+
+# ── Gambar 7: gambar kerja praktik terbimbing (Bagian 09) ──
+# Warna hex + fill-opacity/stroke-opacity, tanpa rgba(): pengurai SVG MuPDF di generator Word
+# mencetak rgba() sebagai hitam pekat dan mengabaikan stroke-dasharray, jadi garis bantu juga
+# dibedakan lewat opasitas.
+def _lurus(x1, y1, x2, y2, warna, w=1.0, dash="", op=1.0):
+    d = f' stroke-dasharray="{dash}"' if dash else ""
+    o = f' stroke-opacity="{op:g}"' if op < 1 else ""
+    return f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{warna}" stroke-width="{w}"{d}{o}/>'
+
+
+def _bidang(pts, warna, isi=0.16, w=1.2):
+    return (f'<polygon points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="{warna}" fill-opacity="{isi:g}" '
+            f'stroke="{warna}" stroke-width="{w}"/>')
+
+
+def _titik(cx, cy, r, warna):
+    return f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="{warna}"/>'
+
+
+def _kepala(x, y, ang, warna):
+    """Kepala panah dimensi 7 × 3 px berujung di (x, y), menunjuk arah ang (rad)."""
+    bx, by = x - 7 * math.cos(ang), y - 7 * math.sin(ang)
+    px, py = 3 * math.sin(ang), -3 * math.cos(ang)
+    return f'<polygon points="{x:.1f},{y:.1f} {bx + px:.1f},{by + py:.1f} {bx - px:.1f},{by - py:.1f}" fill="{warna}"/>'
+
+
+def _dim_miring(p1, p2, label, warna=AM, geser=(0, -6), anchor="middle"):
+    """Garis dimensi sejajar p1→p2 (arah sumbu iso atau sisi yang diputar) dengan panah di kedua ujung."""
+    ang = math.atan2(p2[1] - p1[1], p2[0] - p1[0])
+    out = _lurus(*p1, *p2, warna) + _kepala(p2[0], p2[1], ang, warna) + _kepala(p1[0], p1[1], ang + math.pi, warna)
+    return out + t((p1[0] + p2[0]) / 2 + geser[0], (p1[1] + p2[1]) / 2 + geser[1], label, 11, warna, anchor, "600")
+
+
+def _kecil_h(x1, x2, y, label, warna=AM):
+    """Dimensi mendatar jarak pendek: panah di luar menunjuk ke dalam, nilai di kanan ujung garis."""
+    out = _lurus(x1 - 12, y, x2 + 12, y, warna) + _kepala(x1, y, 0, warna) + _kepala(x2, y, math.pi, warna)
+    return out + t(x2 + 18, y + 4, label, 11, warna, "start", "600")
+
+
+def _arsir(x, y, w, h, warna=AX, jarak=7):
+    """Persegi panjang berarsir 45° (potongan cincin, dinding)."""
+    out = f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" fill="{warna}" fill-opacity=".14" stroke="{warna}" stroke-width="1.2"/>'
+    k = -h
+    while k < w:
+        x1, y1, x2, y2 = x + k, y + h, x + k + h, y
+        if x1 < x:
+            y1, x1 = y + h - (x - x1), x
+        if x2 > x + w:
+            y2, x2 = y + (x2 - (x + w)), x + w
+        out += _lurus(x1, y1, x2, y2, warna, 0.7, "", 0.8)
+        k += jarak
+    return out
+
+
+def _asal(x, y):
+    """Penanda titik asal: sumbu X merah, sumbu Y hijau."""
+    return _panah(x, y, x + 15, y, RD, 1) + _panah(x, y, x, y - 15, GN, 1)
+
+
+def _judul(x, y, no, teks, warna):
+    """Judul panel dengan lingkaran bernomor 1–5 (urutan langkah praktik)."""
+    return (f'<circle cx="{x + 8:.1f}" cy="{y - 4:.1f}" r="8" fill="{BG}" stroke="{warna}" stroke-width="1.3"/>'
+            + t(x + 8, y - 0.4, str(no), 10, warna, "middle", "700") + t(x + 22, y, teks, 11, warna, "start", "600"))
+
+
+def gambar7():
+    b = ""
+
+    def _dim_h_lega(x1, x2, y, label, warna=AM):
+        """Seperti dim_h, tetapi nilai 8 px di atas garis (dim_h 5 px): ekor huruf dan koma tidak menyentuh kepala panah."""
+        return (_lurus(x1, y, x2, y, warna) + _kepala(x1, y, math.pi, warna) + _kepala(x2, y, 0, warna)
+                + t((x1 + x2) / 2, y - 8, label, 11, warna, "middle", "600"))
+
+    # (1) langkah 1–3: Box A dan Box B, tampak depan (XZ)
+    s, X0, Y0 = 1.45, 46, 104
+    X = lambda x: X0 + x * s  # noqa: E731
+    Z = lambda z: Y0 - z * s  # noqa: E731
+    xb = A1_I - DELTA_I
+    b += _judul(12, 22, 1, "Tabrakan A–B (langkah 1–3)", CY)
+    b += f'<rect x="{X(0):.1f}" y="{Z(H_I):.1f}" width="{A1_I * s:.1f}" height="{H_I * s:.1f}" fill="{CY}" fill-opacity=".14" stroke="{CY}" stroke-width="1.5"/>'
+    b += f'<rect x="{X(xb):.1f}" y="{Z(H_I):.1f}" width="{A2_I * s:.1f}" height="{H_I * s:.1f}" fill="{AM}" fill-opacity=".10" stroke="{AM}" stroke-width="1.5"/>'
+    b += f'<rect x="{X(xb):.1f}" y="{Z(H_I):.1f}" width="{DELTA_I * s:.1f}" height="{H_I * s:.1f}" fill="{RD}" fill-opacity=".55" stroke="{RD}" stroke-width="1"/>'
+    b += t(X(A1_I / 2), Z(H_I / 2) + 4, "A", 12, CY, "middle", "700") + t(X(xb + A2_I / 2), Z(H_I / 2) + 4, "B", 12, AM, "middle", "700")
+    yt = Z(H_I) - 14
+    b += ext(X(0), Z(H_I) - 3, X(0), yt - 6) + ext(X(xb), Z(H_I) - 3, X(xb), yt - 6) + ext(X(xb + A2_I), Z(H_I) - 3, X(xb + A2_I), yt - 6)
+    b += dim_h(X(0), X(xb), yt, f"x = {ind(xb, 1)}") + dim_h(X(xb), X(xb + A2_I), yt, f"{A2_I}")
+    yb1 = Y0 + 20
+    b += ext(X(0), Y0 + 3, X(0), yb1 + 6) + ext(X(A1_I), Y0 + 3, X(A1_I), yb1 + 22)
+    b += dim_h(X(0), X(A1_I), yb1, f"{A1_I}")
+    b += ext(X(xb), Y0 + 3, X(xb), yb1 + 22)
+    b += _kecil_h(X(xb), X(A1_I), yb1 + 16, f"δ = {ind(DELTA_I, 1)}", RD)
+    b += ext(X(0) - 3, Z(H_I), X(0) - 20, Z(H_I)) + ext(X(0) - 3, Z(0), X(0) - 20, Z(0))
+    b += dim_v(X(0) - 14, Z(H_I), Z(0), f"{H_I}")
+    b += t(14, 160, f"lebar arah Y = {B_I} (A dan B)", 10, AX, "start")
+    b += t(14, 175, f"Common = {ind(V_INT, 2)} mm³ = δ·b·h", 10.5, RD, "start", "600")
+    b += t(14, 190, "B digeser tepat ke ujung A (langkah 3):", 10, AX, "start")
+    b += t(14, 205, "Common 0 mm³ · distToShape 0", 10.5, GR, "start", "600")
+    # (2) langkah 4: cincin (lubang maks) dan poros (ukuran min) sesumbu, potongan melalui sumbu
+    cxp, s4 = 318, 3.2
+    b += _judul(240, 22, 2, "Fit ekstrem (langkah 4)", VI)
+    yp0, yp1 = 56, 56 + L_POROS * s4
+    yc0 = (yp0 + yp1) / 2 - H_CINCIN * s4 / 2          # letak aksial cincin tidak ditetapkan langkah: digambar di tengah
+    yc1 = yc0 + H_CINCIN * s4
+    rp, rh, ro = 17, 20, 34                            # px: celah dibesar-besarkan; ⌀ luar cincin tidak ditetapkan langkah
+    b += f'<rect x="{cxp - rp:.1f}" y="{yp0:.1f}" width="{2 * rp:.1f}" height="{yp1 - yp0:.1f}" fill="{AM}" fill-opacity=".22" stroke="{AM}" stroke-width="1.5"/>'
+    for x0_ in (cxp - ro, cxp + rh):
+        b += _arsir(x0_, yc0, ro - rh, yc1 - yc0, VI, 5)
+    b += _lurus(cxp, yp0 - 6, cxp, yp1 + 6, RD, 0.8, "8 3 2 3", 0.8)
+    b += ext(cxp - rp, yp0 - 3, cxp - rp, yp0 - 13) + ext(cxp + rp, yp0 - 3, cxp + rp, yp0 - 13)
+    b += _dim_h_lega(cxp - rp, cxp + rp, yp0 - 10, f"⌀{ind(POR_MIN, 4)} poros min")
+    b += _lurus(cxp + rh + 4, yc0 + 3, cxp + rh + 22, yc0 - 16, VI, 0.9) + _lurus(cxp + rh + 22, yc0 - 16, cxp + rh + 28, yc0 - 16, VI, 0.9)
+    b += t(cxp + rh + 31, yc0 - 22, f"⌀{ind(LUB_MAKS, 4)}", 11, VI, "start", "700")
+    b += t(cxp + rh + 31, yc0 - 7, "lubang maks", 10, VI, "start")
+    b += ext(cxp + ro + 3, yc0, cxp + ro + 20, yc0) + ext(cxp + ro + 3, yc1, cxp + ro + 20, yc1)
+    b += dim_v(cxp + ro + 14, yc0, yc1, f"{H_CINCIN}", kiri=False)
+    b += ext(cxp - rp - 3, yp0, cxp - ro - 26, yp0) + ext(cxp - rp - 3, yp1, cxp - ro - 26, yp1)
+    b += dim_v(cxp - ro - 20, yp0, yp1, f"{L_POROS}")
+    b += _lurus(cxp - (rp + rh) / 2, yc1 - 4, cxp - ro - 4, yp1 - 4, GR, 0.9)
+    b += t(240, yp1 + 19, f"celah radial {ind(C_MAKS / 2, 4)}", 10.5, GR, "start", "600")
+    b += t(240, yp1 + 34, f"c_maks = 2 × {ind(C_MAKS / 2, 4)} = {ind(C_MAKS, 4)}", 10.5, GR, "start", "600")
+    b += t(240, yp1 + 49, f"⌀{D_FIT} H7/g6 · celah digambar diperbesar", 10, AX, "start")
+    # (3) langkah 5: rumah berdinding tipis, isometrik
+    b += _judul(444, 22, 3, "Dinding tipis (langkah 5)", PK)
+    si, ci, di = 1.15, 494, 162
+    P = lambda x, y, z: iso(x, y, z, ci, di, si)  # noqa: E731
+    a, bb, h, w, p = A_H, B_H, H_H, W_H, P_H
+    b += _bidang([P(a, 0, 0), P(a, bb, 0), P(a, bb, h), P(a, 0, h)], CY, 0.08, 0.9)
+    b += _bidang([P(0, bb, 0), P(a, bb, 0), P(a, bb, h), P(0, bb, h)], CY, 0.08, 0.9)
+    b += _bidang([P(w, w, h - p), P(a - w, w, h - p), P(a - w, bb - w, h - p), P(w, bb - w, h - p)], VI, 0.22, 1)
+    b += _bidang([P(a - w, w, h - p), P(a - w, bb - w, h - p), P(a - w, bb - w, h), P(a - w, w, h)], VI, 0.10, 0.9)
+    b += _bidang([P(w, bb - w, h - p), P(a - w, bb - w, h - p), P(a - w, bb - w, h), P(w, bb - w, h)], VI, 0.10, 0.9)
+    b += _bidang([P(0, 0, 0), P(a, 0, 0), P(a, 0, h), P(0, 0, h)], CY, 0.12, 1.2)
+    b += _bidang([P(0, 0, 0), P(0, bb, 0), P(0, bb, h), P(0, 0, h)], CY, 0.12, 1.2)
+    for (x0_, y0_, x1_, y1_) in [(0, 0, a, w), (0, bb - w, a, bb), (0, w, w, bb - w), (a - w, w, a, bb - w)]:
+        b += _bidang([P(x0_, y0_, h), P(x1_, y0_, h), P(x1_, y1_, h), P(x0_, y1_, h)], CY, 0.26, 1.1)
+    b += ext(*P(0, -1, 0), *P(0, -12, 0)) + ext(*P(a, -1, 0), *P(a, -12, 0))
+    b += _dim_miring(P(0, -9, 0), P(a, -9, 0), f"{a}", geser=(8, 15))
+    b += ext(*P(-1, 0, 0), *P(-12, 0, 0)) + ext(*P(-1, bb, 0), *P(-12, bb, 0))
+    b += _dim_miring(P(-9, 0, 0), P(-9, bb, 0), f"{bb}", geser=(-10, 12), anchor="end")
+    b += ext(*P(a + 1, 0, h), *P(a + 12, 0, h)) + ext(*P(a + 1, 0, 0), *P(a + 12, 0, 0))
+    b += _dim_miring(P(a + 9, 0, 0), P(a + 9, 0, h), f"{h}", geser=(7, 4), anchor="start")
+    pp = P(a / 2 + 6, bb / 2, h - p)
+    b += _lurus(pp[0], pp[1], 592, 60, VI, 0.8)
+    b += t(646, 43, f"Pocket {a - 2 * w} × {bb - 2 * w}", 10.5, VI, "end", "700")
+    b += t(646, 58, f"dalam {p}, Symmetric", 10, VI, "end")
+    pp = P(a - w / 2, bb * 0.35, h)
+    b += _lurus(pp[0], pp[1], 588, 92, PK, 0.8) + t(592, 96, f"dinding {ind(W_H, 1)}", 10.5, PK, "start", "600")
+    pp = P(a - w - 8, w + 10, h - p)
+    b += _lurus(pp[0], pp[1], 588, 144, PK, 0.8) + t(592, 148, f"dasar {ind(DASAR_H, 1)}", 10.5, PK, "start", "600")
+    b += t(546, 200, f"V solid = {ind(V_RUMAH, 2)} mm³", 10.5, GR, "middle", "600")
+    # (4) langkah 6: pelat berslot simetris terhadap origin, tampak atas
+    b += _judul(12, 228, 4, "Slot dan jarak tepi (langkah 6)", AM)
+    s6, c6x, c6y = 1.35, 128, 314
+    X6 = lambda x: c6x + x * s6  # noqa: E731
+    Y6 = lambda y: c6y - y * s6  # noqa: E731
+    A, B_, Ls, ws = A_S, B_S, LS_S, WS_S
+    b += f'<rect x="{X6(-A / 2):.1f}" y="{Y6(B_ / 2):.1f}" width="{A * s6:.1f}" height="{B_ * s6:.1f}" fill="{CY}" fill-opacity=".14" stroke="{CY}" stroke-width="1.6"/>'
+    r6 = ws / 2 * s6
+    xa, xb_ = X6(-Ls / 2), X6(Ls / 2)
+    b += (f'<path d="M {xa:.1f} {c6y - r6:.1f} H {xb_:.1f} A {r6:.1f} {r6:.1f} 0 0 1 {xb_:.1f} {c6y + r6:.1f} H {xa:.1f} A {r6:.1f} {r6:.1f} 0 0 1 {xa:.1f} {c6y - r6:.1f} Z" '
+          f'fill="{BG}" stroke="{VI}" stroke-width="1.6"/>')
+    # sumbu mendatar diputus di sekitar nilai lebar slot agar angka tidak tertimpa garis
+    b += _lurus(X6(-A / 2) - 8, c6y, c6x - 30, c6y, RD, 0.7, "8 3 2 3", 0.8) + _lurus(c6x - 4, c6y, X6(A / 2) + 8, c6y, RD, 0.7, "8 3 2 3", 0.8)
+    b += _lurus(c6x, Y6(B_ / 2) - 6, c6x, Y6(-B_ / 2) + 6, RD, 0.7, "8 3 2 3", 0.8)
+    b += _asal(c6x, c6y) + _titik(xa, c6y, 1.8, VI) + _titik(xb_, c6y, 1.8, VI)
+    y120 = Y6(B_ / 2) - 30
+    b += ext(X6(-A / 2), Y6(B_ / 2) - 3, X6(-A / 2), y120 - 6) + ext(X6(A / 2), Y6(B_ / 2) - 3, X6(A / 2), y120 - 6)
+    b += dim_h(X6(-A / 2), X6(A / 2), y120, f"{A}")
+    y64 = Y6(B_ / 2) - 12
+    b += ext(xa, c6y - 4, xa, y64 - 6, VI) + ext(xb_, c6y - 4, xb_, y64 - 6, VI)
+    b += dim_h(xa, xb_, y64, f"{Ls}", VI)
+    b += ext(X6(A / 2) + 3, Y6(B_ / 2), X6(A / 2) + 20, Y6(B_ / 2)) + ext(X6(A / 2) + 3, Y6(-B_ / 2), X6(A / 2) + 20, Y6(-B_ / 2))
+    b += dim_v(X6(A / 2) + 14, Y6(B_ / 2), Y6(-B_ / 2), f"{B_}", kiri=False)
+    b += dim_v(c6x - 28, c6y - r6, c6y + r6, f"{ws}", VI, kiri=False)
+    ye = Y6(-B_ / 2) + 16
+    b += ext(X6(-A / 2), Y6(-B_ / 2) + 3, X6(-A / 2), ye + 6, GR) + ext(X6(-Ls / 2 - ws / 2), c6y + 3, X6(-Ls / 2 - ws / 2), ye + 6, GR)
+    b += _kecil_h(X6(-A / 2), X6(-Ls / 2 - ws / 2), ye, f"e = {ind(E_X, 3)}", GR)
+    b += t(248, 268, f"tebal t = {T_S} (Pad)", 10.5, AX, "start")
+    b += t(248, 284, "slot: Pocket", 10.5, AX, "start")
+    b += t(248, 299, "Through all", 10.5, AX, "start")
+    b += t(248, 320, f"e ≥ 1,5·t = {ind(E_BATAS, 1)}", 10.5, GR, "start", "600")
+    b += t(248, 340, "simetris thd", 10, AX, "start")
+    b += t(248, 355, "origin (0, 0)", 10, AX, "start")
+    # (5) langkah 7: lengan diputar θ* terhadap sumbu Z di titik asal, dinding pada x = W
+    b += _judul(372, 228, 5, "Jarak bebas gerak (langkah 7)", GR)
+    s7, Ox, Oy = 1.45, 402, 300
+    thr = math.radians(TH_KRITIS)
+    rot = lambda x, y: (Ox + (x * math.cos(thr) - y * math.sin(thr)) * s7, Oy - (x * math.sin(thr) + y * math.cos(thr)) * s7)  # noqa: E731
+    xw = Ox + W_DIND * s7
+    b += _arsir(xw, 256, 14, 108, AX, 7)
+    b += t(xw + 7, 250, "dinding", 10, AX, "middle")
+    b += _bidang([rot(0, -W_L / 2), rot(R_L, -W_L / 2), rot(R_L, W_L / 2), rot(0, W_L / 2)], CY, 0.20, 1.6)
+    b += _lurus(Ox - 12, Oy, xw, Oy, RD, 0.7, "8 3 2 3", 0.8)
+    b += _lurus(*rot(-4, 0), *rot(R_L + 6, 0), CY, 0.7, "8 3 2 3", 0.8)
+    b += _titik(Ox, Oy, 3, TX)
+    kx, ky = rot(R_L, -W_L / 2)                        # sudut lengan terjauh, tepat pada sumbu X saat θ = θ*
+    b += _titik(kx, ky, 3.2, GR)
+    b += ext(*rot(0, W_L / 2 + 2), *rot(0, W_L / 2 + 14)) + ext(*rot(R_L, W_L / 2 + 2), *rot(R_L, W_L / 2 + 14))
+    b += _dim_miring(rot(0, W_L / 2 + 10), rot(R_L, W_L / 2 + 10), f"{R_L}", geser=(0, -7))
+    b += ext(*rot(-2, -W_L / 2), *rot(-13, -W_L / 2)) + ext(*rot(-2, W_L / 2), *rot(-13, W_L / 2))
+    b += _dim_miring(rot(-9, -W_L / 2), rot(-9, W_L / 2), f"{W_L}", geser=(-8, 4), anchor="end")
+    ra = 46
+    b += f'<path d="M {Ox + ra:.1f} {Oy:.1f} A {ra:.1f} {ra:.1f} 0 0 0 {Ox + ra * math.cos(thr):.1f} {Oy - ra * math.sin(thr):.1f}" fill="none" stroke="{PK}" stroke-width="1.4"/>'
+    b += _lurus(Ox + ra + 1, Oy - 4, Ox + ra - 4, Oy + 18, PK, 0.8)
+    b += t(Ox + ra - 26, Oy + 29, f"θ* = {ind(TH_KRITIS, 2)}°", 10.5, PK, "start", "700")
+    yc = Oy + 36
+    b += ext(kx, ky + 5, kx, yc + 6, GR) + ext(xw, Oy + 6, xw, yc + 6, GR)
+    b += _dim_h_lega(kx, xw, yc, f"{ind(C_MIN_L, 3)}", GR)
+    yw = Oy + 58
+    b += ext(Ox, Oy + 6, Ox, yw + 6) + ext(xw, yc + 8, xw, yw + 6)
+    b += dim_h(Ox, xw, yw, f"x = {W_DIND}")
+    b += t(572, 266, f"tebal lengan {T_LENGAN}", 10.5, AX, "start")
+    b += t(572, 283, "sumbu putar Z", 10.5, AX, "start")
+    b += t(572, 298, "di titik asal", 10.5, AX, "start")
+    b += t(572, 317, "Check Geometry", 10.5, AX, "start")
+    b += t(572, 332, "semua Body", 10.5, AX, "start")
+    b += t(572, 347, "bersih", 10.5, AX, "start")
+    b += t(660, 366, "Satuan: mm", 10, AX, "end")
+    return svg(680, 380, b, "Gambar 7 — Audit satu dokumen: tabrakan, fit, dinding tipis, jarak tepi, dan jarak bebas gerak")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -603,11 +829,18 @@ print(f"isValid = {rumah.isValid()}, dinding {wd} mm, dasar {h-p} mm")
     langkah = [("1", "Siapkan dua komponen", f"Buat dokumen baru. Part &rarr; Primitives &rarr; Box A berukuran {A1_I} × {B_I} × {H_I} mm di titik asal, lalu Box B berukuran {A2_I} × {B_I} × {H_I} mm dengan Placement Position x = {ind(A1_I - DELTA_I, 1)} mm sehingga B menumpang A sejauh δ = {ind(DELTA_I, 1)} mm."),
                ("2", "Ukur tabrakan", f"Pilih A dan B &rarr; Part &rarr; Boolean &rarr; Common. Baca Common.Shape.Volume (atau Std Measure Volume): {ind(V_INT, 2)} mm³, sama dengan δ·b·h. Catat sebagai nilai “sebelum”, lalu batalkan Boolean dengan Ctrl+Z."),
                ("3", "Perbaiki lalu verifikasi", "Ubah Placement Position x milik B menjadi tepat di ujung A sehingga keduanya hanya bersinggungan. Ulangi Common: volumenya harus 0 mm³, dan <code>A.distToShape(B)[0]</code> bernilai 0 karena bersentuhan. Beri jarak rakit kecil bila memang diinginkan celah."),
-               ("4", "Modelkan keadaan fit ekstrem", f"Body baru: cincin (Sketch dua lingkaran sepusat, lubang pada ukuran maksimum ⌀{ind(LUB_MAKS, 4)}) di-Pad 10 mm, dan poros pada ukuran minimum ⌀{ind(POR_MIN, 4)} di-Pad 30 mm, sesumbu. Std Measure Distance antara dua muka silinder memberi celah radial {ind(C_MAKS / 2, 4)} mm; kalikan dua menjadi c_maks = {ind(C_MAKS, 4)} mm."),
+               ("4", "Modelkan keadaan fit ekstrem", f"Body baru: cincin (Sketch dua lingkaran sepusat, lubang pada ukuran maksimum ⌀{ind(LUB_MAKS, 4)}) di-Pad {H_CINCIN} mm, dan poros pada ukuran minimum ⌀{ind(POR_MIN, 4)} di-Pad {L_POROS} mm, sesumbu. Std Measure Distance antara dua muka silinder memberi celah radial {ind(C_MAKS / 2, 4)} mm; kalikan dua menjadi c_maks = {ind(C_MAKS, 4)} mm."),
                ("5", "Rumah berdinding tipis", f"Body baru: Sketch {A_H} × {B_H} mm &rarr; Pad {H_H} mm. Pada muka atas, Sketch {A_H - 2 * W_H} × {B_H - 2 * W_H} mm yang dipusatkan dengan konstrain Symmetric &rarr; Pocket Dimension {P_H} mm. Periksa tebal dinding {ind(W_H, 1)} mm dan dasar {ind(DASAR_H, 1)} mm dengan Std Measure; volume solid harus {ind(V_RUMAH, 2)} mm³."),
                ("6", "Slot dan jarak tepi", f"Body baru: pelat {A_S} × {B_S} × {T_S} mm simetris terhadap origin &rarr; Pad. Pada muka atas gambar satu slot obround (alat Slot) dengan jarak pusat-ke-pusat {LS_S} mm dan lebar {WS_S} mm &rarr; Pocket Through all. Std Measure dari ujung busur ke tepi pendek pelat memberi e = {ind(E_X, 3)} mm, di atas batas 1,5·t = {ind(E_BATAS, 1)} mm."),
-               ("7", "Gerak, validasi, simpan", f"Body lengan {R_L} × {W_L} × 8 mm dengan sumbu putar Z di titik asal, dan dinding Part Box yang muka dalamnya di x = {W_DIND} mm. Putar Placement Angle ke θ* = {ind(TH_KRITIS, 2)}° lalu Std Measure Distance sudut lengan &rarr; muka dinding: {ind(C_MIN_L, 3)} mm. Jalankan Part &rarr; Check Geometry pada semua Body (harus bersih), lalu Ctrl+S ke <code>Latihan12_NIM.FCStd</code>.")]
-    isi = '  <div class="cards reveal">\n'
+               ("7", "Gerak, validasi, simpan", f"Body lengan {R_L} × {W_L} × {T_LENGAN} mm dengan sumbu putar Z di titik asal, dan dinding Part Box yang muka dalamnya di x = {W_DIND} mm. Putar Placement Angle ke θ* = {ind(TH_KRITIS, 2)}° lalu Std Measure Distance sudut lengan &rarr; muka dinding: {ind(C_MIN_L, 3)} mm. Jalankan Part &rarr; Check Geometry pada semua Body (harus bersih), lalu Ctrl+S ke <code>Latihan12_NIM.FCStd</code>.")]
+    isi = figure(7, "Gambar kerja audit satu dokumen: tabrakan, fit, dinding tipis, jarak tepi, dan jarak bebas gerak",
+                 f"Satuan mm; volume dalam mm³. Nomor 1–5 mengikuti langkah: (1) Box A {A1_I} × {B_I} × {H_I} dan Box B {A2_I} × {B_I} × {H_I} menumpang δ = {ind(DELTA_I, 1)} "
+                 f"sehingga Common = {ind(V_INT, 2)} mm³, lalu nol setelah B digeser ke ujung A; (2) cincin berlubang ⌀{ind(LUB_MAKS, 4)} (batas maksimum ⌀{D_FIT} H7) "
+                 f"dan poros ⌀{ind(POR_MIN, 4)} (batas minimum g6) sesumbu, celahnya digambar diperbesar; (3) rumah {A_H} × {B_H} × {H_H} dengan Pocket "
+                 f"{A_H - 2 * W_H} × {B_H - 2 * W_H} sedalam {P_H}; (4) pelat {A_S} × {B_S} × {T_S} dengan slot berjarak pusat {LS_S} dan lebar {WS_S}, serta jarak tepi e; "
+                 f"(5) lengan {R_L} × {W_L} × {T_LENGAN} diputar θ* = {ind(TH_KRITIS, 2)}° di depan dinding pada x = {W_DIND}. Diameter luar dan letak aksial cincin, "
+                 "serta ukuran Part Box dinding, tidak ditetapkan langkah, jadi digambar tanpa ukuran.", gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>

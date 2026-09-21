@@ -11,6 +11,8 @@ SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
+from pustaka import BG  # noqa: E402
+from tugas_gambar import AM, CY, GR, PK, RD, VI, _panah, dim_h, dim_v, ext, iso  # noqa: E402
 
 NOMOR = 10
 JUDUL = "Optimasi Desain Pasca-Simulasi"
@@ -82,6 +84,22 @@ H_REKT_I = (12 * I_PROFIL / B_I) ** (1 / 3)
 A_REKT_I = B_I * H_REKT_I
 H_REKT_A = A_PROFIL / B_I
 I_REKT_A = B_I * H_REKT_A ** 3 / 12
+# Bagian 09 — praktik terbimbing braket L: teks langkah dan Gambar 7 memakai angka yang sama
+PR_T, PR_R, PR_F = 8, 2, 2000                         # alias Spreadsheet iterasi 0: tebal t, fillet r, gaya F (N)
+PR_KAKI, PR_TEGAK, PR_LEBAR = 100, 80, 50             # braket L 100 × 80, lebar Pad 50
+PR_BAUT, PR_MESH = 9, 3                               # lubang baut 2 × ⌀9 di kaki; ukuran mesh Gmsh (mm)
+PR_R_ITER = (2, 6, 10)                                # langkah 3: radius fillet sudut dalam
+PR_DELTA = 0.4                                        # batas defleksi δ_maks (mm)
+PR_RUSUK, PR_RUSUK_PAD, PR_FILLET_RUSUK = 40, 5, 2    # langkah 4: kaki segitiga 40 × hr, Pad 5 simetris, fillet 2
+PR_HR_ITER = (20, 30)                                 # langkah 4: tinggi rusuk hr
+PR_D_ITER = (15, 20, 25)                              # langkah 5: diameter lubang penghemat massa d
+PR_SY_BAJA, PR_SY_AL, PR_SF = MATERIAL[0][3], MATERIAL[2][3], 2   # σ_y baja dan aluminium (MPa), SF minimum
+PR_TEBAL_AL = f"=Spreadsheet.t * pow({E_ST // E_AL}; 1/3)"        # langkah 6: tebal aluminium berkekakuan sama
+
+
+def _urut(v):
+    """Deret nilai iterasi, mis. (2, 6, 10) → '2 → 6 → 10'."""
+    return " → ".join(str(x) for x in v)
 
 
 # ─────────────────────────── gambar ───────────────────────────
@@ -138,8 +156,8 @@ def gambar2():
     b += t(162, oy - D2 + 12, "h", 10.5, "#f59e0b", "end", "600")
     b += t(xst + r + 6, oy - d2 - r - 4, "r", 11, "#ec4899", "start", "700")
     b += t(120, 66, "σ_maks = Kt·σ_nom di kaki fillet", 10.5, "#ef4444", "middle", "600")
-    b += t(30, oy + D2 + 18, "jepit", 9.5, AX, "middle")
-    b += t(235, 198, "σ_nom = 6·M/(b·d²) pada batang tipis", 10, AX, "middle")
+    b += t(30, oy + D2 + 21, "jepit", 9.5, AX, "middle")
+    b += t(274, 198, "σ_nom = 6·M/(b·d²) pada batang tipis", 10, AX, "middle")
     b += t(452, 56, "Bahu bertingkat, D/d = 1,5:", 11, "#22d3ee", "start", "600")
     b += t(452, 74, "σ_maks = Kt · σ_nom", 11, TX, "start")
     b += t(452, 92, "Kt ≈ 1 + 0,5·√(h/r)  (pendekatan)", 10.5, TX, "start")
@@ -168,15 +186,15 @@ def gambar3():
     p = _iso(a / 2, -6, 0, cx, cy, s)
     b += t(p[0], p[1] + 18, "a", 11, "#22d3ee", "middle", "700")
     p = _iso(a + 6, bb / 2, 0, cx, cy, s)
-    b += t(p[0] + 4, p[1] + 4, "b", 11, "#22d3ee", "start", "700")
+    b += t(p[0] + 8, p[1] - 2, "b", 11, "#22d3ee", "start", "700")
     p = _iso(a + 4, 0, tt / 2, cx, cy, s)
     b += t(p[0] + 6, p[1] + 4, "t", 11, "#22d3ee", "start", "700")
     p = _iso(R1 / 2, -4, tt, cx, cy, s)
-    b += t(p[0] - 6, p[1] - 4, "r₁", 10.5, "#f59e0b", "middle", "700")
+    b += t(p[0] - 8, p[1] - 6, "r₁", 10.5, "#f59e0b", "middle", "700")
     p = _iso(0, -6, tt + R2 / 2, cx, cy, s)
-    b += t(p[0] - 4, p[1], "r₂", 10.5, "#f59e0b", "end", "700")
+    b += t(p[0] - 14, p[1], "r₂", 10.5, "#f59e0b", "end", "700")
     p = _iso(0, TR / 2, tt + R2 + 4, cx, cy, s)
-    b += t(p[0] + 2, p[1] - 4, "tᵣ", 10.5, "#f59e0b", "middle", "700")
+    b += t(p[0] + 12, p[1] + 6, "tᵣ", 10.5, "#f59e0b", "middle", "700")
     b += t(440, 56, "Volume pelat berusuk:", 11, "#22d3ee", "start", "600")
     b += t(440, 74, "V = a·b·t + ½·r₁·r₂·tᵣ", 11, TX, "start")
     b += t(440, 92, f"= {ind(V_PELAT, 0)} + {ind(V_RUSUK, 0)} = {ind(V_RIB, 0)} mm³", 10.5, "#00e09e", "start")
@@ -184,7 +202,7 @@ def gambar3():
     b += t(440, 138, f"I pelat = b·t³/12 = {ind(I_PELAT, 0)} mm⁴", 10.5, AX, "start")
     b += t(440, 156, f"I pelat + rusuk = {ind(I_T, 0)} mm⁴", 10.5, AX, "start")
     b += t(440, 174, f"→ {ind(I_T / I_PELAT, 1)}× lebih kaku, volume +{ind(100 * V_RUSUK / V_PELAT, 1)} %", 10.5, "#00e09e", "start")
-    b += teks2(340, 258, "Rusuk segitiga menyatu dengan pelat dalam satu Body; volumenya hanya suku ½·r₁·r₂·tᵣ, tetapi momen inersia penampangnya melonjak", 11, AX, maks=70)
+    b += teks2(340, 254, "Rusuk segitiga menyatu dengan pelat dalam satu Body; volumenya hanya suku ½·r₁·r₂·tᵣ, tetapi momen inersia penampangnya melonjak", 11, AX, maks=70)
     return svg(680, 280, b, "Gambar 3 — Pelat berusuk: volume kecil, kekakuan besar")
 
 
@@ -199,23 +217,23 @@ def gambar4():
     b += f'<line x1="{ox + 0.25 * aw - 26}" y1="{oy - bh / 2}" x2="{ox + 0.75 * aw + 26}" y2="{oy - bh / 2}" stroke="#ef4444" stroke-width=".7" stroke-dasharray="6 2 2 2"/>'
     b += arrow(ox, oy - bh / 2, ox - 28, oy - bh / 2, "#f59e0b", 1.8) + arrow(ox + aw, oy - bh / 2, ox + aw + 28, oy - bh / 2, "#f59e0b", 1.8)
     b += t(14, oy - bh / 2 - 8, "F", 11, "#f59e0b", "middle", "700") + t(ox + aw + 30, oy - bh / 2 - 8, "F", 11, "#f59e0b", "middle", "700")
-    b += f'<line x1="{ox}" y1="{oy - bh - 22}" x2="{ox + aw}" y2="{oy - bh - 22}" stroke="#f59e0b" stroke-width="1"/>'
-    b += t(ox + aw / 2, oy - bh - 27, "a", 11, "#f59e0b", "middle", "600")
+    b += f'<line x1="{ox}" y1="{oy - bh - 16}" x2="{ox + aw}" y2="{oy - bh - 16}" stroke="#f59e0b" stroke-width="1"/>'
+    b += t(ox + aw / 2, oy - bh - 21, "a", 11, "#f59e0b", "middle", "600")
     b += f'<line x1="{ox + aw + 14}" y1="{oy - bh}" x2="{ox + aw + 14}" y2="{oy}" stroke="#f59e0b" stroke-width="1"/>'
     b += t(ox + aw + 20, oy - bh / 2 + 22, "b", 11, "#f59e0b", "start", "600")
     b += t(ox + 0.25 * aw, oy - bh / 2 - D_L / 2 * s - 6, "⌀d", 10.5, "#a855f7", "middle", "600")
     b += t(ox + 0.125 * aw, oy - 6, "a/4", 9.5, AX, "middle") + t(ox + 0.5 * aw, oy - 6, "a/2 (Overall Length, 3 lubang)", 9.5, AX, "middle")
     b += t(ox + aw / 2, oy - bh / 2 + D_L / 2 * s + 16, f"tebal t (Pad), pola LinearPattern searah X", 9.5, AX, "middle")
-    b += t(452, 52, "Massa vs tegangan (Bagian 04):", 11, "#22d3ee", "start", "600")
-    b += t(452, 70, "m = ρ·(a·b·t − 3·π·d²·t/4)", 11, TX, "start")
-    b += t(452, 88, f"penuh {ind(M_PENUH, 1)} g → 3 lubang ⌀{D_L}: {ind(M_LUBANG, 1)} g", 10.5, "#00e09e", "start")
-    b += t(452, 106, f"hemat {ind(HEMAT_PCT, 1)} % massa", 10.5, AX, "start")
-    b += t(452, 132, "Tegangan di tepi lubang:", 11, "#f59e0b", "start", "600")
-    b += t(452, 150, "σ_maks = Kt·F/((b − d)·t)", 11, TX, "start")
-    b += t(452, 168, f"Kt(d/b = {ind(D_L / B_L, 2)}) = {ind(KT_L, 2)}", 10.5, AX, "start")
-    b += t(452, 186, f"F = {ind(F_L, 0)} N: σ_nom {ind(S_NOM_L, 1)} → σ_maks {ind(S_MAKS_L, 1)} MPa", 10, "#ef4444", "start")
+    b += t(440, 52, "Massa vs tegangan (Bagian 04):", 11, "#22d3ee", "start", "600")
+    b += t(440, 70, "m = ρ·(a·b·t − 3·π·d²·t/4)", 11, TX, "start")
+    b += t(440, 88, f"penuh {ind(M_PENUH, 1)} g → 3 lubang ⌀{D_L}: {ind(M_LUBANG, 1)} g", 10.5, "#00e09e", "start")
+    b += t(440, 106, f"hemat {ind(HEMAT_PCT, 1)} % massa", 10.5, AX, "start")
+    b += t(440, 132, "Tegangan di tepi lubang:", 11, "#f59e0b", "start", "600")
+    b += t(440, 150, "σ_maks = Kt·F/((b − d)·t)", 11, TX, "start")
+    b += t(440, 168, f"Kt(d/b = {ind(D_L / B_L, 2)}) = {ind(KT_L, 2)}", 10.5, AX, "start")
+    b += t(440, 186, f"F = {ind(F_L, 0)} N: σ_nom {ind(S_NOM_L, 1)} → σ_maks {ind(S_MAKS_L, 1)} MPa", 10, "#ef4444", "start")
     b += teks2(340, 236, "Lubang menghemat massa sedikit tetapi menaikkan tegangan lokal lewat Kt; letakkan di daerah bertegangan rendah dan periksa ulang σ_maks", 11, AX, maks=70)
-    return svg(680, 258, b, "Gambar 4 — Pelat tiga lubang: massa turun, tegangan lokal naik")
+    return svg(680, 262, b, "Gambar 4 — Pelat tiga lubang: massa turun, tegangan lokal naik")
 
 
 def gambar5():
@@ -243,18 +261,18 @@ def gambar5():
     b += t(440, 176, "Tetapi periksa juga:", 11, "#ec4899", "start", "600")
     b += t(440, 194, f"σ_y, biaya/kg, ruang (h_Al = {ind(H_AL / H_M, 2)}·h)", 10, TX, "start")
     b += teks2(340, 252, f"Aluminium perlu balok {ind(100 * (H_AL / H_M - 1), 0)} % lebih tinggi tetapi massanya separuh baja; magnesium lebih ringan lagi, namun σ_y dan biaya membatasi", 11, AX, maks=70)
-    return svg(680, 270, b, "Gambar 5 — Pemilihan material untuk kekakuan lentur sama")
+    return svg(680, 278, b, "Gambar 5 — Pemilihan material untuk kekakuan lentur sama")
 
 
 def gambar6():
     b = ""
     s = 2
-    cx, cy = 110, 150
+    cx, cy = 110, 140
     B2, H2, tf, tw = B_I / 2 * s, H_I / 2 * s, TF * s, TW / 2 * s
     pts = [(-B2, -H2), (B2, -H2), (B2, -H2 + tf), (tw, -H2 + tf), (tw, H2 - tf), (B2, H2 - tf), (B2, H2), (-B2, H2), (-B2, H2 - tf), (-tw, H2 - tf), (-tw, -H2 + tf), (-B2, -H2 + tf)]
     b += _poli([(cx + x, cy + y) for x, y in pts], "rgba(34,211,238,.18)", "#22d3ee", 2)
     b += f'<line x1="{cx - B2 - 30}" y1="{cy}" x2="{cx + B2 + 22}" y2="{cy}" stroke="#ef4444" stroke-width="1" stroke-dasharray="8 3 2 3"/>'
-    b += f'<line x1="{cx}" y1="{cy - H2 - 22}" x2="{cx}" y2="{cy + H2 + 20}" stroke="#22c55e" stroke-width="1" stroke-dasharray="8 3 2 3"/>'
+    b += f'<line x1="{cx}" y1="{cy - H2 - 22}" x2="{cx}" y2="{cy + H2 + 10}" stroke="#22c55e" stroke-width="1" stroke-dasharray="8 3 2 3"/>'
     b += t(cx + B2 + 26, cy - 4, "X", 10, "#ef4444", "start", "700") + t(cx + 6, cy - H2 - 24, "Y", 10, "#22c55e", "start", "700")
     b += f'<line x1="{cx - B2}" y1="{cy - H2 - 10}" x2="{cx + B2}" y2="{cy - H2 - 10}" stroke="#f59e0b" stroke-width="1"/>'
     b += t(cx - 30, cy - H2 - 14, "B", 11, "#f59e0b", "middle", "600")
@@ -262,9 +280,9 @@ def gambar6():
     b += t(cx + B2 + 18, cy + 24, "H", 11, "#f59e0b", "start", "600")
     b += t(cx - B2 - 8, cy - H2 + tf - 2, "t_f", 10.5, "#f59e0b", "end", "600")
     b += t(cx + tw + 6, cy + 46, "t_w", 10.5, "#f59e0b", "start", "600")
-    b += t(cx, cy + H2 + 14, f"profil I: B = {B_I}, H = {H_I}, t_f = {TF}, t_w = {TW}", 10, AX, "middle")
+    b += t(cx, cy + H2 + 22, f"profil I: B = {B_I}, H = {H_I}, t_f = {TF}, t_w = {TW}", 10, AX, "middle")
     # persegi panjang ber-I sama (lebar B)
-    rx, ry = 300, 150
+    rx, ry = 300, 140
     hr = H_REKT_I * s
     b += f'<rect x="{rx - B2}" y="{ry - hr / 2:.1f}" width="{B2 * 2}" height="{hr:.1f}" fill="rgba(236,72,153,.16)" stroke="#ec4899" stroke-width="2"/>'
     b += f'<line x1="{rx - B2 - 22}" y1="{ry}" x2="{rx + B2 + 12}" y2="{ry}" stroke="#ef4444" stroke-width="1" stroke-dasharray="8 3 2 3"/>'
@@ -281,8 +299,155 @@ def gambar6():
     b += t(452, 194, f"h = {ind(H_REKT_A, 1)} → I = {ind(I_REKT_A, 0)} mm⁴", 10.5, TX, "start")
     b += t(452, 212, f"({ind(I_PROFIL / I_REKT_A, 0)}× lebih lentur daripada profil I)", 10, AX, "start")
     b += t(452, 238, "Python: Part.Face(w).MatrixOfInertia.A11", 10, "#00e09e", "start")
-    b += teks2(340, 268, "Bahan yang dijauhkan dari sumbu netral (sayap) memberi I besar dengan luas kecil; persegi panjang ber-I sama butuh luas berkali lipat", 11, AX, maks=70)
-    return svg(680, 290, b, "Gambar 6 — Penampang I versus persegi panjang dengan momen inersia sama")
+    b += teks2(340, 276, "Bahan yang dijauhkan dari sumbu netral (sayap) memberi I besar dengan luas kecil; persegi panjang ber-I sama butuh luas berkali lipat", 11, AX, maks=70)
+    return svg(680, 300, b, "Gambar 6 — Penampang I versus persegi panjang dengan momen inersia sama")
+
+
+# ── Gambar 7: gambar kerja praktik terbimbing (Bagian 09) ──
+# Warna hex + fill-opacity/stroke-opacity, tanpa rgba(): pengurai SVG MuPDF di generator Word
+# mencetak rgba() sebagai hitam pekat dan mengabaikan stroke-dasharray, jadi garis bantu dan
+# fitur "hantu" juga dibedakan lewat opasitas.
+def _lurus(x1, y1, x2, y2, warna, w=1.0, dash="", op=1.0):
+    d = f' stroke-dasharray="{dash}"' if dash else ""
+    o = f' stroke-opacity="{op:g}"' if op < 1 else ""
+    return f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{warna}" stroke-width="{w}"{d}{o}/>'
+
+
+def _bidang(pts, warna, isi=0.16, w=1.2, dash="", op=1.0, isi_warna=None):
+    d = f' stroke-dasharray="{dash}"' if dash else ""
+    o = f' stroke-opacity="{op:g}"' if op < 1 else ""
+    return (f'<polygon points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="{isi_warna or warna}" fill-opacity="{isi:g}" '
+            f'stroke="{warna}" stroke-width="{w}"{d}{o}/>')
+
+
+def _kepala(x, y, ang, warna):
+    """Kepala panah dimensi 7 × 3 px berujung di (x, y), menunjuk arah ang (rad)."""
+    bx, by = x - 7 * math.cos(ang), y - 7 * math.sin(ang)
+    px, py = 3 * math.sin(ang), -3 * math.cos(ang)
+    return f'<polygon points="{x:.1f},{y:.1f} {bx + px:.1f},{by + py:.1f} {bx - px:.1f},{by - py:.1f}" fill="{warna}"/>'
+
+
+def _dim_miring(p1, p2, label, warna=AM, geser=(0, -6), anchor="middle"):
+    """Garis dimensi sejajar p1→p2 (arah sumbu isometrik) dengan panah di kedua ujung."""
+    ang = math.atan2(p2[1] - p1[1], p2[0] - p1[0])
+    out = _lurus(*p1, *p2, warna) + _kepala(p2[0], p2[1], ang, warna) + _kepala(p1[0], p1[1], ang + math.pi, warna)
+    return out + t((p1[0] + p2[0]) / 2 + geser[0], (p1[1] + p2[1]) / 2 + geser[1], label, 11, warna, anchor, "600")
+
+
+def _dim_kecil_h(x1, x2, y, label, warna=AM):
+    """Dimensi mendatar jarak pendek: panah di luar menunjuk ke dalam, nilai di atas garis."""
+    out = _lurus(x1 - 13, y, x2 + 13, y, warna) + _kepala(x1, y, 0, warna) + _kepala(x2, y, math.pi, warna)
+    return out + t((x1 + x2) / 2, y - 7, label, 11, warna, "middle", "600")
+
+
+def _dim_kecil_v(x, y1, y2, label, warna=AM):
+    """Dimensi tegak jarak pendek (y1 < y2): panah di luar menunjuk ke dalam, nilai di kiri."""
+    out = _lurus(x, y1 - 13, x, y2 + 13, warna) + _kepala(x, y1, math.pi / 2, warna) + _kepala(x, y2, -math.pi / 2, warna)
+    return out + t(x - 6, (y1 + y2) / 2 + 4, label, 11, warna, "end", "600")
+
+
+def _lencana(x, y, no, warna):
+    """Lingkaran bernomor langkah praktik."""
+    return (f'<circle cx="{x:.1f}" cy="{y:.1f}" r="8" fill="{BG}" stroke="{warna}" stroke-width="1.3"/>'
+            + t(x, y + 3.6, str(no), 10, warna, "middle", "700"))
+
+
+def gambar7():
+    b = ""
+    T, L, H, W = PR_T, PR_KAKI, PR_TEGAK, PR_LEBAR
+    x_in = L - T                          # muka dalam kaki tegak (kaki tegak di kanan)
+    xb, zc = 26, 60                       # letak lubang di gambar: tidak ditetapkan langkah, jadi tanpa dimensi
+    dmaks, hr_m = PR_D_ITER[-1], PR_HR_ITER[-1]
+    # (a) Tampak depan: sketsa profil L (bidang XZ), fillet sudut dalam, beban dan tumpuan
+    s, X0, Y0 = 1.7, 40, 204
+    X = lambda x: X0 + x * s  # noqa: E731
+    Z = lambda z: Y0 - z * s  # noqa: E731
+    b += t(X(L / 2), 24, "Tampak depan — sketsa profil", 11, TX, "middle", "600")
+    r0 = PR_R
+    prof = (f"M {X(0):.1f} {Z(0):.1f} H {X(L):.1f} V {Z(H):.1f} H {X(x_in):.1f} V {Z(T + r0):.1f} "
+            f"A {r0 * s:.1f} {r0 * s:.1f} 0 0 1 {X(x_in - r0):.1f} {Z(T):.1f} H {X(0):.1f} Z")
+    b += f'<path d="{prof}" fill="{CY}" fill-opacity=".16" stroke="{CY}" stroke-width="1.8"/>'
+    for rr in PR_R_ITER[1:]:                                    # fillet hantu langkah 3
+        b += (f'<path d="M {X(x_in):.1f} {Z(T + rr):.1f} A {rr * s:.1f} {rr * s:.1f} 0 0 1 {X(x_in - rr):.1f} {Z(T):.1f}" '
+              f'fill="none" stroke="{PK}" stroke-width="1.3" stroke-dasharray="3 2" stroke-opacity=".8"/>')
+    b += _lurus(X(0) - 4, Z(0) + 1.5, X(L) + 4, Z(0) + 1.5, AX, 1.8)       # Fixed: muka bawah kaki berlubang
+    for k in range(int(L * s / 10) + 1):
+        b += _lurus(X(0) + k * 10, Z(0) + 2, X(0) + k * 10 - 7, Z(0) + 9, AX, 1)
+    b += t(X(L) + 8, Z(0) + 13, "Fixed", 10, AX, "start", "600")
+    b += _panah(X(x_in - 30), Z(H - 3), X(x_in), Z(H - 3), RD, 1.8)     # F di tepi atas kaki tegak
+    b += t(X(x_in - 30) - 5, Z(H - 3) + 4, f"F = {PR_F} N", 11, RD, "end", "700")
+    b += ext(X(L) + 3, Z(H), X(L) + 24, Z(H)) + ext(X(L) + 3, Z(0), X(L) + 24, Z(0))
+    b += dim_v(X(L) + 18, Z(H), Z(0), f"{H}", kiri=False)
+    b += ext(X(0), Z(0) + 12, X(0), Z(0) + 34) + ext(X(L), Z(0) + 18, X(L), Z(0) + 34)
+    b += dim_h(X(0), X(L), Z(0) + 28, f"{L}")
+    b += ext(X(x_in), Z(H) - 3, X(x_in), Z(H) - 16) + ext(X(L), Z(H) - 3, X(L), Z(H) - 16)
+    b += _dim_kecil_h(X(x_in), X(L), Z(H) - 13, f"t = {T}")
+    b += ext(X(0) - 3, Z(T), X(0) - 18, Z(T))
+    b += _dim_kecil_v(X(0) - 12, Z(T), Z(0), "t")
+    fx, fy = X(x_in - 10 + 10 * (1 - math.cos(math.pi / 4))), Z(T + 10 - 10 * math.sin(math.pi / 4))
+    b += _lurus(fx, fy, X(62), Z(40), PK, 0.9)
+    b += t(X(62) - 3, Z(40) - 5, "r = " + _urut(PR_R_ITER), 11, PK, "end", "700")
+    # (b) Sketsa rusuk pada bidang tengah, bentuk sebenarnya, di sudut dalam braket
+    sr, xc, yb = 1.7, 372, 168
+    b += t(xc - 34, 24, "Sketsa rusuk (bidang tengah)", 11, GR, "middle", "600")
+    b += _lurus(xc - PR_RUSUK * sr - 16, yb, xc, yb, CY, 1.4) + _lurus(xc, yb, xc, yb - hr_m * sr - 8, CY, 1.4)
+    for hr, op in zip(PR_HR_ITER, (0.10, 0.22)):
+        tri = [(xc - PR_RUSUK * sr, yb), (xc, yb), (xc, yb - hr * sr)]
+        b += _bidang(tri, GR, op, 1.3 if hr == hr_m else 1.0, "" if hr == hr_m else "4 3", 1 if hr == hr_m else 0.7)
+    b += ext(xc - PR_RUSUK * sr, yb + 3, xc - PR_RUSUK * sr, yb + 24) + ext(xc, yb + 3, xc, yb + 24)
+    b += dim_h(xc - PR_RUSUK * sr, xc, yb + 18, f"{PR_RUSUK}")
+    b += ext(xc + 3, yb - hr_m * sr, xc + 22, yb - hr_m * sr) + ext(xc + 3, yb, xc + 22, yb)
+    b += dim_v(xc + 16, yb - hr_m * sr, yb, "hr", kiri=False)
+    b += t(xc - 52, yb - hr_m * sr - 16, "hr = 0 → " + _urut(PR_HR_ITER), 11, GR, "middle", "700")
+    b += t(xc - 34, yb + 42, f"Pad {PR_RUSUK_PAD} simetris", 11, GR, "middle", "600")
+    # (c) Isometrik hasil Pad: lebar, lubang baut, lubang penghemat massa, rusuk
+    si, cx, cy = 1.6, 512, 240
+    P = lambda x, y, z: iso(x, y, z, cx, cy, si)  # noqa: E731
+    b += t(552, 24, "Isometrik — hasil Pad", 11, TX, "middle", "600")
+    fil = [(x_in - r0 + r0 * math.cos(a), T + r0 - r0 * math.sin(a)) for a in [k * math.pi / 16 for k in range(9)]]
+    b += _bidang([P(0, 0, 0), P(0, W, 0), P(0, W, T), P(0, 0, T)], CY, 0.10, 1.1)
+    b += _bidang([P(0, 0, T), P(x_in - r0, 0, T), P(x_in - r0, W, T), P(0, W, T)], CY, 0.20, 1.1)
+    b += _bidang([P(x_in, 0, T + r0), P(x_in, W, T + r0), P(x_in, W, H), P(x_in, 0, H)], CY, 0.12, 1.1)
+    b += _bidang([P(x_in, 0, H), P(L, 0, H), P(L, W, H), P(x_in, W, H)], CY, 0.24, 1.3)
+    for yy in (W / 4, 3 * W / 4):
+        pts = [P(xb + PR_BAUT / 2 * math.cos(a), yy + PR_BAUT / 2 * math.sin(a), T) for a in [k * math.pi / 14 for k in range(28)]]
+        b += _bidang(pts, CY, 1, 1.2, isi_warna=BG)
+    for dd in PR_D_ITER:
+        pts = [P(x_in, W / 2 + dd / 2 * math.cos(a), zc + dd / 2 * math.sin(a)) for a in [k * math.pi / 16 for k in range(32)]]
+        akhir = dd == dmaks
+        b += _bidang(pts, VI, 0.9 if akhir else 0, 1.2 if akhir else 1.0, "" if akhir else "3 2", 1 if akhir else 0.75, isi_warna=BG)
+    y1, y2 = W / 2 - PR_RUSUK_PAD / 2, W / 2 + PR_RUSUK_PAD / 2
+    b += _bidang([P(x_in - PR_RUSUK, y1, T), P(x_in - PR_RUSUK, y2, T), P(x_in, y2, T + hr_m), P(x_in, y1, T + hr_m)], GR, 0.30, 1.1)
+    b += _bidang([P(x_in - PR_RUSUK, y1, T), P(x_in, y1, T), P(x_in, y1, T + hr_m)], GR, 0.18, 1.2)
+    depan = [P(0, 0, 0), P(L, 0, 0), P(L, 0, H), P(x_in, 0, H), P(x_in, 0, T + r0)] + [P(x, 0, z) for x, z in fil] + [P(0, 0, T)]
+    b += _bidang(depan, CY, 0.22, 1.6)
+    p = P(xb, 3 * W / 4, T)
+    b += _lurus(p[0], p[1] - 4, 490, 158, AM, 0.8) + t(490, 152, f"2 × ⌀{PR_BAUT}", 11, AM, "middle", "600")
+    p = P(x_in, W / 2 + dmaks / 2 * 0.7, zc + dmaks / 2 * 0.7)
+    b += _lurus(p[0] - 1, p[1] + 2, 575, 88, VI, 0.8)
+    b += t(516, 72, "⌀d = 0 → " + _urut(PR_D_ITER), 11, VI, "middle", "700")
+    b += t(516, 86, "di daerah biru kontur", 10, VI, "middle")
+    b += ext(*P(-1, 0, 0), *P(-12, 0, 0)) + ext(*P(-1, W, 0), *P(-12, W, 0))
+    b += _dim_miring(P(-9, 0, 0), P(-9, W, 0), f"{W}", geser=(-8, 8), anchor="end")
+    # (d) catatan per langkah: angka yang diketik di Spreadsheet/FEM dan kriteria berhenti
+    kol = [(20, [(1, CY, f"Spreadsheet: t = {T}, r = {PR_R}, hr = 0, d = 0, F = {PR_F}"),
+                 (0, CY, f"massa baja = Volume × {ind(RHO_ST * 1000, 2)}×10⁻³"),
+                 (2, CY, f"Steel, mesh Gmsh {PR_MESH}; Fixed + Force F"),
+                 (3, PK, f"pilih r dengan SF = {PR_SY_BAJA}/σ_maks ≥ {PR_SF}"),
+                 (4, GR, f"rusuk bila δ_maks > {ind(PR_DELTA, 1)}; fillet {PR_FILLET_RUSUK} di rusuk–pelat")]),
+           (352, [(5, VI, f"⌀d: berhenti saat σ_maks ≈ {S_IZIN} MPa"),
+                  (0, VI, "atau massa sudah ≤ target"),
+                  (6, TX, f"Aluminium: tebal {PR_TEBAL_AL}"),
+                  (0, TX, f"periksa σ_maks ≤ {PR_SY_AL}/{PR_SF} = {PR_SY_AL // PR_SF} MPa"),
+                  (7, TX, f"pilih SF ≥ {PR_SF}, δ ≤ {ind(PR_DELTA, 1)}, massa terkecil")])]
+    for x0, baris in kol:
+        for i, (no, warna, teks) in enumerate(baris):
+            yy = 272 + i * 17 + 14
+            if no:
+                b += _lencana(x0 + 8, yy - 4, no, warna)
+            b += t(x0 + 22, yy, teks, 10.5, TX if no else AX, "start")
+    b += t(660, 364, "Satuan: mm", 10, AX, "end")
+    return svg(680, 380, b, "Gambar 7 — Braket L iteratif: ukuran awal dan parameter yang diubah tiap langkah")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -552,14 +717,20 @@ Part.show(f.extrude(V(0,0,100)), "BatangI")''', "Python (FreeCAD)")
     m += bagian(8, "m-python", "Python Console:<br>Loop Parameter dan Pemeriksaan Rumus", "Cell pertama membuat Spreadsheet beralias lewat API dan menyapu tinggi h untuk menemukan penampang minimum; cell kedua menghitung rusuk dan lubang; cell ketiga membaca momen inersia profil I dari MatrixOfInertia dan menghitung substitusi material.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Model parametrik", "Spreadsheet: alias t = 8, r = 2, hr = 0, d = 0, F = 2000. Body: braket L 100 × 80 (lebar 50) dengan Sketch tebal =Spreadsheet.t, lubang baut 2 × ⌀9 di kaki, fillet sudut dalam radius =Spreadsheet.r. Recompute, catat massa baja (Volume × 7,85×10⁻³)."),
-               ("2", "FEM iterasi 0", "FEM Workbench (Modul 8): Analysis, material Steel, mesh Gmsh 3 mm, Fixed di muka kaki berlubang, Force F pada tepi kaki tegak, solve CalculiX. Catat σ_vm,maks (di sudut dalam), δ_maks, massa pada baris iterasi 0 Spreadsheet."),
-               ("3", "Fillet daerah kritis", "Ubah r: 2 → 6 → 10; recompute dan solve ulang tiap kali. Catat σ_maks: turun mengikuti Kt (Bagian 02) tanpa perubahan massa berarti. Pilih r yang memberi SF = 250/σ_maks ≥ 2."),
-               ("4", "Rusuk untuk kekakuan", "Bila δ_maks > 0,4 mm: sketsa segitiga rusuk pada bidang tengah (kaki 40 × hr), Pad 5 mm simetris; ubah hr = 20 → 30. Catat δ turun (Bagian 03) dan σ baru di pertemuan rusuk–pelat; beri fillet 2 mm di sana."),
-               ("5", "Pengurangan massa", "Tambah lubang ⌀d di daerah biru kontur (dekat sumbu netral kaki tegak): d = 15 → 20 → 25. Berhenti saat σ_maks mendekati 125 MPa atau massa sudah ≤ target (Bagian 04)."),
-               ("6", "Alternatif material", "Duplikat dokumen; material Aluminium, tebal =Spreadsheet.t * pow(3; 1/3). Solve: δ hampir sama, massa ≈ setengah, periksa σ_maks ≤ 240/2 = 120 MPa (Bagian 05)."),
-               ("7", "Tabel iterasi dan simpan", "Lengkapi tabel iterasi (r, hr, d, material, σ, δ, massa, SF); pilih desain dengan SF ≥ 2, δ ≤ 0,4 mm, massa terkecil. Ctrl+S → <code>Latihan10_NIM.FCStd</code>.")]
-    isi = '  <div class="cards reveal">\n'
+    langkah = [("1", "Model parametrik", f"Spreadsheet: alias t = {PR_T}, r = {PR_R}, hr = 0, d = 0, F = {PR_F}. Body: braket L {PR_KAKI} × {PR_TEGAK} (lebar {PR_LEBAR}) dengan Sketch tebal =Spreadsheet.t, lubang baut 2 × ⌀{PR_BAUT} di kaki, fillet sudut dalam radius =Spreadsheet.r. Recompute, catat massa baja (Volume × {ind(RHO_ST * 1000, 2)}×10⁻³)."),
+               ("2", "FEM iterasi 0", f"FEM Workbench (Modul 8): Analysis, material Steel, mesh Gmsh {PR_MESH} mm, Fixed di muka kaki berlubang, Force F pada tepi kaki tegak, solve CalculiX. Catat σ_vm,maks (di sudut dalam), δ_maks, massa pada baris iterasi 0 Spreadsheet."),
+               ("3", "Fillet daerah kritis", f"Ubah r: {_urut(PR_R_ITER)}; recompute dan solve ulang tiap kali. Catat σ_maks: turun mengikuti Kt (Bagian 02) tanpa perubahan massa berarti. Pilih r yang memberi SF = {PR_SY_BAJA}/σ_maks ≥ {PR_SF}."),
+               ("4", "Rusuk untuk kekakuan", f"Bila δ_maks > {ind(PR_DELTA, 1)} mm: sketsa segitiga rusuk pada bidang tengah (kaki {PR_RUSUK} × hr), Pad {PR_RUSUK_PAD} mm simetris; ubah hr = {_urut(PR_HR_ITER)}. Catat δ turun (Bagian 03) dan σ baru di pertemuan rusuk–pelat; beri fillet {PR_FILLET_RUSUK} mm di sana."),
+               ("5", "Pengurangan massa", f"Tambah lubang ⌀d di daerah biru kontur (dekat sumbu netral kaki tegak): d = {_urut(PR_D_ITER)}. Berhenti saat σ_maks mendekati {S_IZIN} MPa atau massa sudah ≤ target (Bagian 04)."),
+               ("6", "Alternatif material", f"Duplikat dokumen; material Aluminium, tebal {PR_TEBAL_AL}. Solve: δ hampir sama, massa ≈ setengah, periksa σ_maks ≤ {PR_SY_AL}/{PR_SF} = {PR_SY_AL // PR_SF} MPa (Bagian 05)."),
+               ("7", "Tabel iterasi dan simpan", f"Lengkapi tabel iterasi (r, hr, d, material, σ, δ, massa, SF); pilih desain dengan SF ≥ {PR_SF}, δ ≤ {ind(PR_DELTA, 1)} mm, massa terkecil. Ctrl+S → <code>Latihan10_NIM.FCStd</code>.")]
+    isi = figure(7, "Gambar kerja braket L iteratif: ukuran awal dan parameter yang diubah tiap langkah",
+                 f"Satuan mm; gaya dalam N dan tegangan dalam MPa. Kiri: profil L yang disketsa pada langkah 1 (braket {PR_KAKI} × {PR_TEGAK}, tebal t = {PR_T}) "
+                 f"dengan fillet sudut dalam r = {PR_R} yang dinaikkan menjadi {PR_R_ITER[1]} lalu {PR_R_ITER[2]} pada langkah 3 (busur merah muda), Fixed di muka kaki berlubang, "
+                 f"dan F = {PR_F} N di tepi kaki tegak (langkah 2). Tengah: sketsa rusuk langkah 4 pada bidang tengah, kaki {PR_RUSUK} × hr dengan hr = {PR_HR_ITER[0]} lalu {PR_HR_ITER[1]}, "
+                 f"Pad {PR_RUSUK_PAD} simetris. Kanan: hasil Pad selebar {PR_LEBAR} dengan lubang baut 2 × ⌀{PR_BAUT} dan lubang ⌀d langkah 5 ({_urut(PR_D_ITER)}); "
+                 "langkah tidak menetapkan letak kedua jenis lubang itu, jadi posisinya tidak diberi ukuran. Nomor bulat di bawah merujuk nomor langkah.", gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>

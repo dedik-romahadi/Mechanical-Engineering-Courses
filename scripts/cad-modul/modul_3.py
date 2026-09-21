@@ -11,6 +11,7 @@ SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
+from tugas_gambar import AM, CY, GN, GR, PK, RD, VI, _panah, dim_h, dim_v, ext  # noqa: E402
 
 NOMOR = 3
 JUDUL = "Bentuk Dasar 2D, Pengukuran, dan Transformasi Objek"
@@ -26,6 +27,9 @@ N_H, R_H, K_H = 6, 40, 1.5
 A_IN = N_H * R_H ** 2 * math.sin(2 * math.pi / N_H) / 2
 A_CIRC = N_H * R_H ** 2 * math.tan(math.pi / N_H)
 A_SKALA = K_H ** 2 * A_IN
+W_PNL, H_PNL = 300, 200         # praktik 09: batas panel, sudut kiri-bawahnya di titik asal (0, 0)
+PX_H, PY_H = 60, 60             # praktik 09: pusat heksagon induk
+ROT_H, ROT2_H = 30, 90          # praktik 09: Rotate (Copy) induk di pusatnya sendiri; Rotate salinan pertama di (0, 0)
 A_T, C_T, H_T = 120, 40, 70
 G_T = ((A_T + C_T) / 3, H_T / 3)
 CG_T = math.hypot(C_T - G_T[0], H_T - G_T[1])
@@ -83,8 +87,8 @@ def gambar2():
         b += t(cx + 8, cy - R / 2, f"R = {R_H}", 10.5, "#f59e0b", "start")
         b += t(cx, cy + R + 26, "titik sudut pada lingkaran" if mode == "in" else "sisi menyinggung lingkaran", 10.5, AX)
         b += t(cx, cy + R + 44, f"A = {ind(A_IN, 2)} mm²" if mode == "in" else f"A = {ind(A_CIRC, 2)} mm²", 11, c, "middle", "600")
-    b += t(340, 258, f"Untuk n = {N_H} dan R = {R_H}: luas circumscribed / inscribed = 1/cos²(30°) = {ind(A_CIRC / A_IN, 4)}", 11, AX)
-    return svg(680, 270, b, "Gambar 2 — Dua DrawMode Draft Polygon pada lingkaran radius yang sama")
+    b += t(340, 266, f"Untuk n = {N_H} dan R = {R_H}: luas circumscribed / inscribed = 1/cos²(30°) = {ind(A_CIRC / A_IN, 4)}", 11, AX)
+    return svg(680, 278, b, "Gambar 2 — Dua DrawMode Draft Polygon pada lingkaran radius yang sama")
 
 
 def gambar3():
@@ -93,21 +97,38 @@ def gambar3():
     ox, oy = 70, 210
     X = lambda x: ox + x * s
     Y = lambda y: oy - y * s
+    a, bb = 100, 40
+    # Garis grid diputus di belakang dua label Base (seperti garis bantu yang diputus di belakang teks):
+    # kotak bebas (x0, y0, x1, y1) mengelilingi label (lebar ±55 px dan ±66 px) dengan kelonggaran ±6 px
+    # agar tetap bebas bila fon web Inter (sedikit lebih lebar dari fon sistem) yang dipakai.
+    l1 = (X(a) - 6, Y(9) + 4)                                  # Base (0, 0, 0): rata kanan
+    l2 = (X(DX_C + a / 2), Y(DY_C + bb / 2) + 4)               # Base (DX, DY, 0): rata tengah
+    bebas = [(l1[0] - 62, l1[1] - 11, l1[0] + 3, l1[1] + 4), (l2[0] - 39, l2[1] - 11, l2[0] + 39, l2[1] + 5)]
+
+    def ruas(a0, a1, lubang):                                  # selang [a0, a1] dikurangi selang-selang lubang
+        out, p = [], a0
+        for c0, c1 in sorted(lubang):
+            if c1 > p and c0 < a1:
+                if c0 > p:
+                    out.append((p, c0))
+                p = max(p, c1)
+        return out + ([(p, a1)] if p < a1 else [])
     for gx in range(0, 261, 20):
-        b += f'<line x1="{X(gx)}" y1="{Y(0)}" x2="{X(gx)}" y2="{Y(110)}" stroke="{GRID}" stroke-width="0.6"/>'
+        for y0, y1 in ruas(Y(110), Y(0), [(k[1], k[3]) for k in bebas if k[0] <= X(gx) <= k[2]]):
+            b += f'<line x1="{X(gx)}" y1="{y0:g}" x2="{X(gx)}" y2="{y1:g}" stroke="{GRID}" stroke-width="0.6"/>'
     for gy in range(0, 111, 20):
-        b += f'<line x1="{X(0)}" y1="{Y(gy)}" x2="{X(260)}" y2="{Y(gy)}" stroke="{GRID}" stroke-width="0.6"/>'
+        for x0, x1 in ruas(X(0), X(260), [(k[0], k[2]) for k in bebas if k[1] <= Y(gy) <= k[3]]):
+            b += f'<line x1="{x0:g}" y1="{Y(gy)}" x2="{x1:g}" y2="{Y(gy)}" stroke="{GRID}" stroke-width="0.6"/>'
     b += arrow(X(0), Y(0), X(268), Y(0), "#ef4444", 1.6)
     b += arrow(X(0), Y(0), X(0), Y(118), "#22c55e", 1.6)
     b += t(X(270), Y(0) + 4, "X", 11, "#ef4444", "start", "700")
     b += t(X(0) - 6, Y(120), "Y", 11, "#22c55e", "end", "700")
-    a, bb = 100, 40
     b += f'<rect x="{X(0)}" y="{Y(bb)}" width="{a * s}" height="{bb * s}" fill="rgba(34,211,238,.16)" stroke="#22d3ee" stroke-width="2"/>'
     b += f'<rect x="{X(DX_C)}" y="{Y(bb + DY_C)}" width="{a * s}" height="{bb * s}" fill="rgba(0,224,158,.10)" stroke="#00e09e" stroke-width="1.6" stroke-dasharray="6 4"/>'
     b += arrow(X(0), Y(0), X(DX_C), Y(DY_C), "#00e09e", 1.8)
     b += t(X(0) + 16, 26, f"Placement.Base bergeser v = ({DX_C}, {DY_C}) → |v| = √({DX_C}² + {DY_C}²) = {ind(PINDAH_C, 3)} mm", 11, "#00e09e", "start", "600")
-    b += t(X(a) - 6, Y(9) + 4, "Base (0, 0, 0)", 10, TX, "end")
-    b += t(X(DX_C + a / 2), Y(DY_C + bb / 2) + 4, f"Base ({DX_C}, {DY_C}, 0)", 10, "#00e09e")
+    b += t(*l1, "Base (0, 0, 0)", 10, TX, "end")
+    b += t(*l2, f"Base ({DX_C}, {DY_C}, 0)", 10, "#00e09e")
     b += teks2(340, 238, "Koordinat global diukur dari titik asal dokumen; koordinat relatif (Relative) diukur dari titik yang terakhir diklik", 11, AX, maks=70)
     return svg(680, 264, b, "Gambar 3 — Placement.Base dan vektor pindah Draft Move")
 
@@ -179,11 +200,11 @@ def gambar6():
     tt = ((0 - A_T) * bx) / (bx * bx + by * by)
     F = (A_T + tt * bx, tt * by)
     b += f'<line x1="{X(0)}" y1="{Y(0)}" x2="{X(F[0])}" y2="{Y(F[1])}" stroke="#f59e0b" stroke-width="1.6"/>'
-    b += t(X(29), Y(30) + 4, "d", 11, "#f59e0b", "middle", "700")
+    b += t(X(29) + 18, Y(30) - 5, "d", 11, "#f59e0b", "middle", "700")        # kanan garis d, di atas median dari B
     rr = 26
     thB = math.atan2(H_T, A_T - C_T)
     b += f'<path d="M {X(A_T) - rr} {Y(0)} A {rr} {rr} 0 0 0 {X(A_T) - rr * math.cos(thB):.1f} {Y(0) - rr * math.sin(thB):.1f}" fill="none" stroke="#a855f7" stroke-width="1.2"/>'
-    b += t(X(A_T) - rr - 8, Y(0) - 8, "∠B", 10.5, "#a855f7", "end", "700")
+    b += t(X(A_T) - rr - 28, Y(0) - 6, "∠B", 10.5, "#a855f7", "end", "700")   # di dalam sudut B, di antara AB dan median dari B
     b += t(X(0) - 10, Y(0) + 12, "A (0, 0)", 10, TX, "start")
     b += t(X(A_T) + 4, Y(0) + 12, f"B ({A_T}, 0)", 10, TX, "start")
     b += t(X(C_T), Y(H_T) - 8, f"C ({C_T}, {H_T})", 10, TX)
@@ -197,6 +218,105 @@ def gambar6():
     b += t(440, 176, "Sudut B = arctan(h / (a − c))", 10.5, TX, "start")
     b += t(440, 194, f"∠B = {ind(SUDUT_B, 3)}°", 10.5, "#a855f7", "start", "600")
     return svg(680, 240, b, "Gambar 6 — Titik berat, jarak titik–garis, dan sudut pada segitiga")
+
+
+def _putus(pts, pola=(8, 3, 2, 3)):
+    """Garis putus/rantai sebagai potongan-potongan path nyata di sepanjang polyline pts.
+
+    MuPDF (generator Modul-Word) mengabaikan stroke-dasharray sehingga garis putus-putus
+    tercetak utuh; potongan manual ini tetap putus-putus di peramban maupun di Word.
+    """
+    d, k, sisa = [], 0, pola[0]
+    for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
+        L, pos = math.hypot(x2 - x1, y2 - y1), 0.0
+        while L - pos > 1e-6:
+            step = min(sisa, L - pos)
+            if k % 2 == 0:
+                a, c = pos / L, (pos + step) / L
+                d.append(f"M {x1 + (x2 - x1) * a:.1f} {y1 + (y2 - y1) * a:.1f} L {x1 + (x2 - x1) * c:.1f} {y1 + (y2 - y1) * c:.1f}")
+            pos += step
+            sisa -= step
+            if sisa <= 1e-6:
+                k = (k + 1) % len(pola)
+                sisa = pola[k]
+    return " ".join(d)
+
+
+def gambar7():
+    """Gambar kerja praktik terbimbing (bagian 09): panel heksagon dengan tiga transformasi, pandangan atas Top (XY).
+
+    Ukuran memakai konstanta yang sama dengan teks langkah 1–5 (W_PNL, H_PNL, N_H, R_H, PX_H, PY_H,
+    DX_C, DY_C, ROT_H, ROT2_H, K_H), jadi gambar dan langkah tidak dapat berbeda angka. Orientasi
+    heksagon mengikuti Draft Polygon FreeCAD: titik sudut pertama searah sumbu +X dari pusatnya.
+    """
+    s, ox, oy = 1.3, 208, 308                   # skala px/mm; titik asal (0, 0) = sudut kiri-bawah panel
+    X = lambda x: ox + x * s
+    Y = lambda y: oy - y * s
+
+    def heks(cxw, cyw, R, rot):                  # titik sudut heksagon (px); rot = sudut titik sudut pertama (°)
+        return [(X(cxw + R * math.cos(math.radians(rot + 360 * k / N_H))), Y(cyw + R * math.sin(math.radians(rot + 360 * k / N_H)))) for k in range(N_H)]
+
+    def poli(pts, warna, isi, w=2):
+        return f'<polygon points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="{warna}" fill-opacity="{isi}" stroke="{warna}" stroke-width="{w}"/>'
+    mx, my = PX_H + DX_C, PY_H + DY_C            # pusat salinan Move
+    c2, s2 = math.cos(math.radians(ROT2_H)), math.sin(math.radians(ROT2_H))
+    gx, gy = mx * c2 - my * s2, mx * s2 + my * c2  # pusat salinan Move setelah Rotate ROT2_H° terhadap (0, 0)
+    h0, h1 = heks(PX_H, PY_H, R_H, 0), heks(mx, my, R_H, 0)
+    h2, h3, h4 = heks(PX_H, PY_H, R_H, ROT_H), heks(PX_H, PY_H, K_H * R_H, 0), heks(gx, gy, R_H, ROT2_H)
+    b = f'<rect x="{X(0):.1f}" y="{Y(H_PNL):.1f}" width="{W_PNL * s:.1f}" height="{H_PNL * s:.1f}" fill="{AX}" fill-opacity=".04" stroke="{AX}" stroke-width="1.4"/>'
+    b += poli(h3, VI, ".08", 1.8) + poli(h0, CY, ".16") + poli(h2, PK, ".08", 1.8) + poli(h1, GR, ".14")
+    b += f'<path d="{_putus(h4 + h4[:1], (7, 4))}" fill="none" stroke="{GR}" stroke-width="1.8"/>'
+    # Rotate ROT2_H° salinan Move terhadap sudut panel (0, 0): busur lintasan pusatnya (langkah 4)
+    rr, a0 = math.hypot(mx, my), math.degrees(math.atan2(my, mx))
+    busur = [(X(rr * math.cos(math.radians(a0 + ROT2_H * k / 60))), Y(rr * math.sin(math.radians(a0 + ROT2_H * k / 60)))) for k in range(61)]
+    b += f'<path d="{_putus(busur[:-3], (7, 4))}" fill="none" stroke="{GR}" stroke-width="1.2"/>' + _panah(*busur[-4], *busur[-1], GR, 1.2)
+    b += t(X(gx), Y(gy - R_H) + 18, f"hasil Rotate {ROT2_H}°", 10.5, GR, "middle", "600") + t(X(gx), Y(gy - R_H) + 33, "pusat (0, 0)", 10.5, GR, "middle")
+    # vektor Move (langkah 3) dan titik pusat
+    b += _panah(X(PX_H), Y(PY_H), X(mx) - 3, Y(my) + 2, GR, 1.2)
+    b += f'<circle cx="{X(PX_H):.1f}" cy="{Y(PY_H):.1f}" r="2.5" fill="{TX}"/><circle cx="{X(mx):.1f}" cy="{Y(my):.1f}" r="2.5" fill="{TX}"/>'
+    b += t(X(mx + R_H) + 8, Y(my) + 4, "Move (Copy)", 10.5, GR, "start", "600")
+    # ukuran panel (langkah 1)
+    b += ext(X(0), Y(0) + 4, X(0), Y(0) + 32) + ext(X(W_PNL), Y(0) + 4, X(W_PNL), Y(0) + 32)
+    b += dim_h(X(0), X(W_PNL), Y(0) + 26, f"{W_PNL}")
+    b += ext(X(W_PNL) + 4, Y(H_PNL), X(W_PNL) + 30, Y(H_PNL)) + ext(X(W_PNL) + 4, Y(0), X(W_PNL) + 30, Y(0))
+    b += dim_v(X(W_PNL) + 24, Y(H_PNL), Y(0), f"{H_PNL}", kiri=False)
+    # pusat induk dari titik asal lalu vektor Move, berantai (langkah 2–3)
+    b += ext(X(0), Y(H_PNL) - 4, X(0), Y(H_PNL) - 28) + ext(X(PX_H), Y(PY_H) - 6, X(PX_H), Y(H_PNL) - 28) + ext(X(mx), Y(my) - 6, X(mx), Y(H_PNL) - 28)
+    b += dim_h(X(0), X(PX_H), Y(H_PNL) - 22, f"{PX_H}") + dim_h(X(PX_H), X(mx), Y(H_PNL) - 22, f"{DX_C}")
+    b += ext(X(0) - 4, Y(0), X(0) - 28, Y(0)) + ext(X(PX_H) - 6, Y(PY_H), X(0) - 28, Y(PY_H)) + ext(X(mx) - 6, Y(my), X(0) - 28, Y(my))
+    b += dim_v(X(0) - 22, Y(PY_H), Y(0), f"{PY_H}") + dim_v(X(0) - 22, Y(my), Y(PY_H), f"{DY_C}")
+    # radius induk: pusat → titik sudut 240° (inscribed: titik sudut pada lingkaran R_H)
+    vx, vy = h0[4]
+    b += _panah(X(PX_H), Y(PY_H), vx, vy, AM, 1)
+    b += t(X(PX_H) + 9, (Y(PY_H) + vy) / 2 - 0.5, f"R{R_H}", 11, AM, "middle", "600")
+    # sudut Rotate (Copy): titik sudut kedua induk (av) → titik sudut padanannya pada salinan (av + ROT_H)
+    ra, av = 70 * s, 360 / N_H
+    for a_ in (av, av + ROT_H):
+        p0 = (X(PX_H + (R_H + 2) * math.cos(math.radians(a_))), Y(PY_H + (R_H + 2) * math.sin(math.radians(a_))))
+        p1 = (X(PX_H) + (ra + 6) * math.cos(math.radians(a_)), Y(PY_H) - (ra + 6) * math.sin(math.radians(a_)))
+        b += ext(*p0, *p1)
+    P = lambda r_, a_: (X(PX_H) + r_ * math.cos(math.radians(a_)), Y(PY_H) - r_ * math.sin(math.radians(a_)))
+    (x0, y0), (x1, y1) = P(ra, av), P(ra, av + ROT_H)
+    b += f'<path d="M {x0:.1f} {y0:.1f} A {ra:.1f} {ra:.1f} 0 0 0 {x1:.1f} {y1:.1f}" fill="none" stroke="{AM}" stroke-width="1"/>'
+    d7 = math.degrees(7 / ra)
+    for a_ujung, a_dasar in ((av, av + d7), (av + ROT_H, av + ROT_H - d7)):
+        (tx, ty), (bx, by) = P(ra, a_ujung), P(ra, a_dasar)
+        ux, uy = 3 * math.cos(math.radians(a_dasar)), -3 * math.sin(math.radians(a_dasar))
+        b += f'<polygon points="{tx:.1f},{ty:.1f} {bx + ux:.1f},{by + uy:.1f} {bx - ux:.1f},{by - uy:.1f}" fill="{AM}"/>'
+    lx, ly = P(ra + 13, av + ROT_H / 2)
+    b += t(lx, ly + 4, f"{ROT_H}°", 11, AM, "middle", "600")
+    # nama objek dengan garis penunjuk ke bagian yang hanya dimiliki objek itu
+    kx = X(mx) - 16
+    for (px_, py_), baris, warna, yy in ((h3[0], [f"Scale (Copy), k = {K_H}"], VI, Y(PY_H) + 10), (h2[5], ["Rotate (Copy)"], PK, Y(PY_H) + 28),
+                                         (h0[5], ["Polygon induk,", f"{N_H} sisi, inscribed"], CY, Y(PY_H) + 46)):
+        b += f'<line x1="{kx - 3:.1f}" y1="{yy - 4:.1f}" x2="{px_:.1f}" y2="{py_:.1f}" stroke="{warna}" stroke-width="1"/><circle cx="{px_:.1f}" cy="{py_:.1f}" r="2.2" fill="{warna}"/>'
+        b += "".join(t(kx, yy + 15 * i, teks, 10.5, warna, "start", "600") for i, teks in enumerate(baris))
+    # titik asal dan arah sumbu
+    b += _panah(X(0), Y(0), X(0) + 36, Y(0), RD, 1.6) + _panah(X(0), Y(0), X(0), Y(0) - 36, GN, 1.6)
+    b += t(X(0) + 40, Y(0) + 15, "X", 11, RD, "start", "700") + t(X(0) - 7, Y(0) - 32, "Y", 11, GN, "end", "700")
+    b += f'<circle cx="{X(0):.1f}" cy="{Y(0):.1f}" r="3" fill="{TX}"/>' + t(X(0) - 8, Y(0) + 17, "(0, 0)", 10.5, TX, "end", "600")
+    b += t(664, 22, "Satuan: mm", 10.5, AX, "end")
+    return svg(680, 352, b, "Gambar 7 — Gambar kerja panel heksagon dengan tiga transformasi")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -449,14 +569,15 @@ doc.recompute()''', "Python (FreeCAD)")
     m += bagian(8, "m-python", "Python Console:<br>Memeriksa Posisi dan Transformasi", "Draft.move, Draft.rotate, dan Draft.scale adalah padanan skrip dari tiga alat transformasi. Tiga cell berikut membuat bentuk dasar, mentransformasinya, dan membaca angka yang sama dengan yang diminta tugas.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Siapkan dokumen", "Ctrl+N, workbench Draft, working plane Top (XY), satuan mm. Gambar Draft Rectangle 300 × 200 mm sebagai batas panel (layer Konstruksi bila mau)."),
-               ("2", "Heksagon induk", f"Draft Polygon 6 sisi, DrawMode inscribed, radius {R_H} mm, pusat (60, 60), Make Face. Baca Area = {ind(A_IN, 2)} mm² di tab Data."),
-               ("3", "Salin dengan Move", f"Draft Move (Copy) dari pusat heksagon ke (60 + {DX_C}, 60 + {DY_C}). Std Measure Distance antara kedua pusat harus {ind(PINDAH_C, 3)} mm."),
-               ("4", "Putar salinan", "Draft Rotate (Copy) heksagon induk 30° dengan pusat di pusatnya sendiri: hasilnya heksagon “bergigi” yang tumpang tindih; lalu Rotate lagi salinan pertama 90° dengan pusat sudut panel (0, 0) dan amati Placement.Base-nya berubah."),
+    langkah = [("1", "Siapkan dokumen", f"Ctrl+N, workbench Draft, working plane Top (XY), satuan mm. Gambar Draft Rectangle {W_PNL} × {H_PNL} mm sebagai batas panel (layer Konstruksi bila mau)."),
+               ("2", "Heksagon induk", f"Draft Polygon {N_H} sisi, DrawMode inscribed, radius {R_H} mm, pusat ({PX_H}, {PY_H}), Make Face. Baca Area = {ind(A_IN, 2)} mm² di tab Data."),
+               ("3", "Salin dengan Move", f"Draft Move (Copy) dari pusat heksagon ke ({PX_H} + {DX_C}, {PY_H} + {DY_C}). Std Measure Distance antara kedua pusat harus {ind(PINDAH_C, 3)} mm."),
+               ("4", "Putar salinan", f"Draft Rotate (Copy) heksagon induk {ROT_H}° dengan pusat di pusatnya sendiri: hasilnya heksagon “bergigi” yang tumpang tindih; lalu Rotate lagi salinan pertama {ROT2_H}° dengan pusat sudut panel (0, 0) dan amati Placement.Base-nya berubah."),
                ("5", "Skala", f"Draft Scale (Copy) heksagon induk k = {K_H} dengan pusat di pusatnya. Baca Area = {ind(A_SKALA, 2)} mm² dan pastikan pusatnya tidak bergeser."),
-               ("6", "Ukur dan periksa", "Std Measure Angle antara sisi heksagon asal dan hasil rotasi 30°; Python console: BoundBox tiap objek untuk memastikan semuanya di dalam panel 300 × 200."),
+               ("6", "Ukur dan periksa", f"Std Measure Angle antara sisi heksagon asal dan hasil rotasi {ROT_H}°; Python console: BoundBox tiap objek untuk memastikan semuanya di dalam panel {W_PNL} × {H_PNL}."),
                ("7", "Simpan", "V lalu F, Ctrl+S → <code>Latihan3_NIM.FCStd</code>. Buka pohon dokumen: pastikan ada objek Rectangle, Polygon, dan salinan hasil Move/Rotate/Scale.")]
-    isi = '  <div class="cards reveal">\n'
+    isi = figure(7, "Benda kerja praktik terbimbing: panel heksagon dengan tiga transformasi", "Pandangan atas pada bidang Top (XY), satuan mm. Sudut kiri-bawah panel berada di titik asal (0, 0). Panel dibuat pada langkah 1, heksagon induk pada langkah 2 (satu titik sudutnya searah sumbu +X, seperti keluaran Draft Polygon), salinan Move pada langkah 3, salinan Rotate pada langkah 4, dan salinan Scale pada langkah 5. Heksagon bergaris putus di luar panel adalah posisi salinan Move setelah diputar terhadap titik asal (0, 0) pada langkah 4.", gambar7())
+    isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
       <div class="card-icon" style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--cyan)">{no}</div>

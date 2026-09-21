@@ -25,10 +25,10 @@ def gambar():
     body += f'<ellipse cx="{cx}" cy="{ytop}" rx="{rx}" ry="{ry}" fill="rgba(34,211,238,.28)" stroke="{CY}" stroke-width="2"/>'
     body += f'<line x1="{cx}" y1="{ytop}" x2="{cx + rx}" y2="{ytop}" stroke="{AM}" stroke-width="1"/>'
     body += f'<circle cx="{cx}" cy="{ytop}" r="2.5" fill="{TX}"/>'
-    body += t(cx + rx / 2, ytop - 8, "r", 11, AM, "middle", "700")
+    body += t(cx + rx / 2 - 12, ytop - 3, "r", 11, AM, "middle", "700")  # di antara bibir elips dan garis jari-jari
     body += ext(cx + rx, ytop, cx + rx + 34, ytop) + ext(cx + rx, ybot, cx + rx + 34, ybot)
     body += dim_v(cx + rx + 26, ytop, ybot, "h = 2r", kiri=False)
-    body += t(cx, 40, "volume V₀ ditetapkan (mm³)", 9.5, GR, "middle")
+    body += t(cx, 31, "volume V₀ ditetapkan (mm³)", 9.5, GR, "middle")  # di atas label r
     body += t(cx, 212, "luas A = 2πr² + 2πrh = 6πr²", 9.5, AX, "middle")
     body += catatan(["Spreadsheet alias:", "  V0 (mm³, angka polos)", "  r = (V0/(2*pi))^(1/3)", "  h = 2*r  (hasil optimasi)", "Sketch XY: Circle pusat (0,0),", "  Radius = Spreadsheet.r", "Pad Length = Spreadsheet.h", "baca: Shape.Area (mm²)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 1 — kaleng silinder tertutup bervolume tetap dengan luas permukaan minimum", h=240))
@@ -53,10 +53,10 @@ def gambar():
     body += f'<circle cx="225" cy="{cy}" r="41" fill="#0a101f" stroke="{GR}" stroke-width="1.8"/>'
     body += f'<line x1="50" y1="{cy}" x2="140" y2="{cy}" stroke="{RD}" stroke-width=".7" stroke-dasharray="6 2 2 2"/>'
     body += f'<line x1="165" y1="{cy}" x2="285" y2="{cy}" stroke="{RD}" stroke-width=".7" stroke-dasharray="6 2 2 2"/>'
-    body += _panah(145, cy, 166, cy, GR, 1.6) + t(155, cy - 12, "I sama", 9.5, GR, "middle", "600")
+    body += _panah(145, cy, 166, cy, GR, 1.6) + t(155, cy - 22, "I sama", 9.5, GR, "middle", "600")
     body += t(95, 176, "⌀d_s (pejal)", 10, AX, "middle", "600")
     body += t(225, 192, "⌀d_o (luar)", 10, GR, "middle", "600")
-    body += t(225, cy + 4, "⌀d_i", 10, GR, "middle", "600")
+    body += t(225, cy - 4, "⌀d_i", 10, GR, "middle", "600")  # di atas garis sumbu merah
     body += t(160, 212, "k = d_i/d_o diberikan di soal", 9.5, AM, "middle")
     body += catatan(["Spreadsheet alias d_s, k", "sel d_o = d_s/(1 − k^4)^(1/4)", "sel d_i = k*d_o", "Sketch XY: dua lingkaran", "  sepusat ⌀d_o dan ⌀d_i", "  (berekspresi) → Pad 100", "bandingkan Shape.Volume", "baca: nilai sel d_o (mm)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 3 — tabung berongga pengganti poros pejal dengan momen inersia sama", h=240))
