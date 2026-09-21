@@ -526,14 +526,20 @@ TOPIK = ["Pengenalan FreeCAD dan Menggambar 2D", "Drafting dan Penyuntingan 2D: 
          "Proyek Gabungan 2D dan 3D, Blok, dan Sub-Assembly", "Simulasi Kinerja Komponen: Tegangan, Termal, Kinematik",
          "Evaluasi Hasil Simulasi dan Analisis Kekuatan", "Optimasi Desain Pasca-Simulasi", "Perakitan Komponen dan Analisis Sistem",
          "Identifikasi Masalah Desain dan Solusi Optimasi", "Prinsip Desain Berkelanjutan dalam CAD", "Optimasi Desain untuk Efisiensi dan Lingkungan"]
-blok_topik = '    "pemodelan_cad": [\n' + "".join(f'      "{t_}",\n' for t_ in TOPIK) + "    ],\n  };\n\n  var COURSE_NAMES"
-assert chat.count("    ],\n  };\n\n  var COURSE_NAMES") == 1
-chat = chat.replace("    ],\n  };\n\n  var COURSE_NAMES", "    ],\n" + blok_topik)
-assert chat.count('    "teknik_tenaga_listrik": "Teknik Tenaga Listrik",\n  };') == 1
-chat = chat.replace('    "teknik_tenaga_listrik": "Teknik Tenaga Listrik",\n  };', '    "teknik_tenaga_listrik": "Teknik Tenaga Listrik",\n    "pemodelan_cad": "Pemodelan CAD",\n  };')
-a_ = "/^(getaran-mekanik|math4|optoauto|sistem_kendali_cerdas|teknik_tenaga_listrik)-modul-(\\d{1,2})$/"
-assert chat.count(a_) == 1
-chat = chat.replace(a_, "/^(getaran-mekanik|math4|optoauto|sistem_kendali_cerdas|teknik_tenaga_listrik|pemodelan_cad)-modul-(\\d{1,2})$/")
+# Sejak widget chat diseragamkan di 96 halaman (PR #938, dari apply-ai-chat.js di backend),
+# kerangka TTL sudah memuat CAD dan bloknya identik byte demi byte dengan halaman CAD; blok itu
+# dipakai apa adanya. Penyisipan di bawah hanya untuk kerangka lama yang belum memuat CAD —
+# dulu ia menambah kunci "pemodelan_cad" kedua lalu gagal assert.
+if '"pemodelan_cad": [' not in chat:
+    blok_topik = '    "pemodelan_cad": [\n' + "".join(f'      "{t_}",\n' for t_ in TOPIK) + "    ],\n  };\n\n  var COURSE_NAMES"
+    assert chat.count("    ],\n  };\n\n  var COURSE_NAMES") == 1
+    chat = chat.replace("    ],\n  };\n\n  var COURSE_NAMES", "    ],\n" + blok_topik)
+    assert chat.count('    "teknik_tenaga_listrik": "Teknik Tenaga Listrik",\n  };') == 1
+    chat = chat.replace('    "teknik_tenaga_listrik": "Teknik Tenaga Listrik",\n  };', '    "teknik_tenaga_listrik": "Teknik Tenaga Listrik",\n    "pemodelan_cad": "Pemodelan CAD",\n  };')
+    a_ = "/^(getaran-mekanik|math4|optoauto|sistem_kendali_cerdas|teknik_tenaga_listrik)-modul-(\\d{1,2})$/"
+    assert chat.count(a_) == 1
+    chat = chat.replace(a_, "/^(getaran-mekanik|math4|optoauto|sistem_kendali_cerdas|teknik_tenaga_listrik|pemodelan_cad)-modul-(\\d{1,2})$/")
+assert chat.count('"pemodelan_cad": [') == 1, "blok topik chat CAD harus tepat satu"
 s = s[:i] + "@@CHAT@@" + s[j:]
 SHUFFLE_ANCHOR = "const modulMatch = /^(?:sistem_kendali_cerdas|teknik_tenaga_listrik|pemodelan_cad)-modul-(\\d+)$/.exec(modulId);"
 ganti(SHUFFLE_ANCHOR, "@@SHUFFLE@@")
