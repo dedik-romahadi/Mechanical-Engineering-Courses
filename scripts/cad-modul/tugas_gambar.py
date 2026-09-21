@@ -237,10 +237,11 @@ def _m3():
     body += f'<rect x="{ox}" y="{oy - b}" width="{a}" height="{b}" fill="rgba(34,211,238,.16)" stroke="{CY}" stroke-width="2"/>'
     body += f'<rect x="{ox + dx}" y="{oy - b - dy}" width="{a}" height="{b}" fill="rgba(0,224,158,.12)" stroke="{GR}" stroke-width="1.8" stroke-dasharray="6 4"/>'
     body += _panah(ox, oy, ox + dx, oy - dy, GR, 1.6)
-    body += t(ox + dx / 2 + 12, oy - dy / 2 + 4, "jarak = √(dx² + dy²)", 10, GR, "start", "600")
+    # Label panah di pita kosong di atas kotak asal, di kiri ujung panah (bukan di dalam kotak).
+    body += t(ox + dx - 10, oy - b - 14, "jarak = √(dx² + dy²)", 10, GR, "end", "600")
     body += dim_h(ox, ox + dx, oy + 18, "dx", atas=False) + dim_v(ox + dx + a + 14, oy - b - dy, oy - dy, "dy", kiri=False)
     body += t(ox + a * 0.7, oy - b * 0.3 + 4, "a × b", 11, CY, "middle", "600") + dim_v(ox - 14, oy - b, oy, "b")
-    body += catatan(["Rectangle a × b di (0, 0)", "Draft Move, mode Copy,", "  vektor (dx, dy) relatif", "baca: jarak sudut asal ke", "  sudut salinan (Measure Distance)"], 350, 40)
+    body += catatan(["Rectangle a × b di (0, 0)", "Draft Move, mode Copy,", "  vektor (dx, dy) relatif", "baca: jarak sudut asal ke sudut", "  salinan (Measure Distance)"], 350, 40)
     out.append(gambar_tugas(body, "Tugas 1 — Move (Copy) persegi panjang"))
     # T2 rotate copy
     cx0, cy0, L, th = 90, 170, 200, 50
@@ -279,7 +280,7 @@ def _m3():
     body += f'<line x1="{C[0]}" y1="{C[1]}" x2="{G[0]:.1f}" y2="{G[1]:.1f}" stroke="{GR}" stroke-width="1.4" stroke-dasharray="4 3"/>'
     body += t(B[0] + 6, B[1] + 14, "B (a, 0)", 9.5, AX, "end") + t(C[0], C[1] - 8, "C (c, h)", 9.5, AX, "middle") + t(A[0] - 4, A[1] + 26, "A", 9.5, AX, "end")
     body += t(G[0] + r + 4, G[1] - 4, "r", 10.5, AM, "start", "600")
-    body += catatan(["Draft Wire A–B–C tertutup, Make Face", "Circle radius r berpusat TEPAT di G", "  (Shape.CenterOfMass / rata-rata", "  A, B, C; atau Draft Point + snap)", "baca: jarak C ke pusat lingkaran"], 330, 40)
+    body += catatan(["Draft Wire A–B–C tertutup, Make Face", "Circle radius r berpusat TEPAT di G", "  (Shape.CenterOfMass / rata-rata", "  A, B, C; atau Draft Point + snap)", "baca: jarak C ke pusat lingkaran"], 310, 40)
     out.append(gambar_tugas(body, "Tugas 4 — lingkaran di titik berat segitiga"))
     # T5 rotasi persegi panjang
     ox, oy, a, b, th = 100, 200, 200, 70, 30
@@ -292,10 +293,10 @@ def _m3():
     ymax = oy - (a * math.sin(rad) + b * math.cos(rad))
     xmin = ox - b * math.sin(rad)
     body += f'<line x1="{xmin - 20}" y1="{ymax:.1f}" x2="{ox + a * math.cos(rad) + 20:.1f}" y2="{ymax:.1f}" stroke="{GR}" stroke-width="1.2" stroke-dasharray="5 3"/>'
-    body += t(ox + a * math.cos(rad) + 24, ymax + 4, "YMax", 11, GR, "start", "600")
+    body += t(xmin - 24, ymax + 4, "YMax", 11, GR, "end", "600")  # di ujung kiri garis, jauh dari kolom catatan
     body += f'<path d="M {ox + 50} {oy} A 50 50 0 0 0 {ox + 50 * math.cos(rad):.1f} {oy - 50 * math.sin(rad):.1f}" fill="none" stroke="{PK}" stroke-width="1.3"/>' + t(ox + 56, oy - 14, "θ", 12, PK, "start", "700")
     body += t(ox + a / 2 + 40, oy + 28, "posisi semula a × b (putus)", 9.5, AX, "middle")
-    body += catatan(["Rectangle a × b di (0, 0), Make Face", "Draft Rotate TANPA Copy: pusat (0, 0),", "  rotasi θ (sudut kiri-bawah tetap)", "baca: Shape.BoundBox.YMax", "  = a·sin θ + b·cos θ"], 330, 40)
+    body += catatan(["Rectangle a × b di (0, 0), Make Face", "Draft Rotate TANPA Copy:", "  pusat (0, 0), rotasi θ", "  (sudut kiri-bawah tetap)", "baca: Shape.BoundBox.YMax", "  = a·sin θ + b·cos θ"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 5 — persegi panjang diputar θ dan kotak pembatasnya", h=240))
     return out
 
@@ -391,7 +392,7 @@ def _m5():
     p = iso(a / 2, 0, 0, cx, cy, s)
     q = iso(a, b / 2, 0, cx, cy, s)
     body += t(q[0] + 12, q[1] + 4, "b", 11, AM, "start", "600")
-    body += catatan(["Body → Sketch (XY) persegi panjang", "  a × b, fully constrained, sudut di (0,0)", "Pad: Length h", "baca: Body.Shape.Volume = a·b·h"], 330, 40)
+    body += catatan(["Body → Sketch (XY) persegi panjang", "  a × b, fully constrained,", "  sudut di (0, 0)", "Pad: Length h", "baca: Body.Shape.Volume = a·b·h"], 316, 40)
     out.append(gambar_tugas(body, "Tugas 1 — balok Pad a × b × h"))
     # T2 bus Revolution
     cx, cy, s = 140, 185, 1.15
@@ -412,7 +413,7 @@ def _m5():
     body += t(p[0], p[1] + 16, "rᵢ", 10.5, AM, "middle", "600") + t(q[0] + 8, q[1] + 16, "rₒ", 10.5, AM, "middle", "600")
     p = iso(ro, 0, h, cx, cy, s); q = iso(ro, 0, 0, cx, cy, s)
     body += t((iso(ri, 0, h / 2, cx, cy, s)[0] + iso(ro, 0, h / 2, cx, cy, s)[0]) / 2, (p[1] + q[1]) / 2 + 4, "h", 11, TX, "middle", "700")
-    body += catatan(["Body → Sketch (XZ): persegi panjang", "  rᵢ…rₒ × h (tidak memotong sumbu)", "Revolution 360° terhadap sumbu Z", "baca: Volume = π(rₒ² − rᵢ²)·h"], 330, 40)
+    body += catatan(["Body → Sketch (XZ): persegi panjang", "  rᵢ…rₒ × h (tidak memotong sumbu)", "Revolution 360° terhadap sumbu Z", "baca: Volume = π(rₒ² − rᵢ²)·h"], 316, 40)
     out.append(gambar_tugas(body, "Tugas 2 — bus berongga dari Revolution"))
     # T3 siku pipa
     cx, cy, s = 150, 200, 1.3
@@ -436,7 +437,7 @@ def _m5():
     body += t(e1[0] + r * s + 6, e1[1] + 4, "profil ⌀2r (XY)", 10, AM, "start", "600")
     p = iso(R * 0.72, 0, R * 0.72, cx, cy, s)
     body += t(p[0] + 8, p[1] - 8, "lintasan busur (XZ)", 10, PK, "start", "600")
-    body += catatan(["Sketch lintasan (XZ): busur ¼", "  lingkaran radius R, pusat (0,0),", "  dari (R,0) ke (0,R)", "Sketch profil (XY): Circle r di (R, 0)", "Additive Pipe (profil sepanjang busur)", "baca: Volume = πr² × (πR/2)"], 330, 40)
+    body += catatan(["Sketch lintasan (XZ): busur ¼", "  lingkaran radius R, pusat (0,0),", "  dari (R,0) ke (0,R)", "Sketch profil (XY): Circle r di (R, 0)", "Additive Pipe", "  (profil sepanjang busur)", "baca: Volume = πr² × (πR/2)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 3 — siku pipa dari Additive Pipe", h=240))
     # T4 balok berlubang + fillet
     cx, cy, s = 150, 185, 1.05
@@ -485,7 +486,7 @@ def _m5():
     body += t(p[0] + 8, p[1] - 4, "Chamfer c × 45°", 10, PK, "start", "600")
     p = iso(R1, 0, L1 / 2, cx, cy, s); q = iso(R2, 0, L1 + L2 / 2, cx, cy, s)
     body += t(p[0] + 8, p[1] + 4, "⌀d₁ × L₁", 10, AM, "start", "600") + t(q[0] + 8, q[1] + 4, "⌀d₂ × L₂", 10, AM, "start", "600")
-    body += catatan(["Sketch (XZ): setengah profil tertutup", "  menempel sumbu Z (x = 0)", "Revolution 360° → poros pejal", "Chamfer c pada rusuk ujung atas", "baca: Body.Shape.Volume"], 330, 40)
+    body += catatan(["Sketch (XZ): setengah profil tertutup", "  menempel sumbu Z (x = 0)", "Revolution 360° → poros pejal", "Chamfer c pada rusuk ujung atas", "baca: Body.Shape.Volume"], 316, 40)
     out.append(gambar_tugas(body, "Tugas 5 — poros bertingkat dari satu Revolution dengan chamfer ujung", h=250))
     return out
 

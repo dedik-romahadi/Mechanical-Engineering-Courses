@@ -237,7 +237,8 @@ adm = REPO / "Admin" / "berkas-tugas.html"
 t_ = adm.read_text(encoding="utf-8")
 m_ = re.search(r"const MODUL_TERBIT = \{ pemodelan_cad: \[([0-9, ]*)\] \};", t_)
 assert m_, "MODUL_TERBIT tidak ditemukan"
-terbit = sorted({int(x) for x in m_.group(1).split(",") if x.strip()} | {N})
+terbit_lama = {int(x) for x in m_.group(1).split(",") if x.strip()}
+terbit = sorted(terbit_lama | {N})
 t_ = t_.replace(m_.group(0), "const MODUL_TERBIT = { pemodelan_cad: [" + ", ".join(map(str, terbit)) + "] };")
 adm.write_text(t_, encoding="utf-8", newline="")
 
@@ -262,12 +263,23 @@ t_, c = re.subn(r"if \(previewGuarded !== \d+\) throw new Error\(`Expected \d+ m
 assert c == 1
 v.write_text(t_, encoding="utf-8", newline="")
 
+# Penyelarasan CLAUDE.md dan Pedoman hanya berarti saat sebuah modul PERTAMA kali
+# terbit, karena hanya saat itu hitungan modul dan halaman berubah. Pada pembangunan
+# ulang modul yang sudah terbit (mis. memperbaiki gambar) hitungannya pasti sama,
+# sedangkan pola di bawah bergantung pada susunan kalimat dokumen yang sering disunting
+# sesi lain. Tanpa penjaga ini skrip gagal assert SESUDAH halaman modul terlanjur ditulis
+# (terjadi 21 Sep 2026: pola CLAUDE.md sudah tidak cocok sejak UTS/UAS CAD terbit).
+if N in terbit_lama:
+    print(f"Modul {N} sudah terbit; CLAUDE.md dan Pedoman tidak disentuh (hitungan tidak berubah)")
+    sys.exit(0)
+
 cl = REPO / "CLAUDE.md"
 t_ = cl.read_text(encoding="utf-8")
-t_, c = re.subn(r"`pemodelan_cad-modul-N` \(terbit: Modul 1(?:–\d+)?; tugas berkas FreeCAD\)", f"`pemodelan_cad-modul-N` (terbit: Modul 1–{max(terbit)}; tugas berkas FreeCAD)", t_)
+t_, c = re.subn(r"`pemodelan_cad-modul-N` \((terbit: )?Modul 1(?:–\d+)?; tugas berkas FreeCAD\)",
+                lambda m: "`pemodelan_cad-modul-N` (" + (m.group(1) or "") + f"Modul 1–{max(terbit)}; tugas berkas FreeCAD)", t_)
 assert c == 1, "baris course CAD di CLAUDE.md"
-t_, c = re.subn(r"Total berkas HTML utama: \*\*\d+ modul \+ 10 exam \+ 6 OBE\*\*\. Pemodelan CAD: Modul 1(?:–\d+)?\nterbit",
-                f"Total berkas HTML utama: **{total} modul + 10 exam + 6 OBE**. Pemodelan CAD: Modul 1–{max(terbit)}\nterbit", t_)
+t_, c = re.subn(r"Total berkas HTML utama: \*\*\d+ modul \+ (\d+) exam \+ 6 OBE\*\*\. Pemodelan CAD: Modul 1(?:–\d+)?(\s)terbit",
+                lambda m: f"Total berkas HTML utama: **{total} modul + {m.group(1)} exam + 6 OBE**. Pemodelan CAD: Modul 1–{max(terbit)}{m.group(2)}terbit", t_)
 assert c == 1, "total berkas di CLAUDE.md"
 cl.write_text(t_, encoding="utf-8", newline="")
 
