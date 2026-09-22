@@ -83,17 +83,23 @@ def kotak_svg(x, y, w, h, c, label, sub=""):
 
 def gambar1():
     b = t(330, 20, "Rantai pasokan dari pembangkit sampai stopkontak", 12, TX, "middle", "700")
-    tahap = [("Pembangkit", "11–24 kV", "#ef4444"), ("Transmisi", "150/500 kV", "#f59e0b"), ("GI 150/20 kV", "trafo 60 MVA", "#a855f7"), ("JTM 20 kV", "penyulang", "#22d3ee"), ("Gardu distribusi", "20 kV/400 V", "#00e09e"), ("JTR 380/220 V", "jurusan", "#22d3ee"), ("Pelanggan", "SR 1/3 fasa", "#00e09e")]
+    tahap = [("Pembangkit", "11–24 kV", "#ef4444"), ("Transmisi", "150/500 kV", "#f59e0b"), ("GI 150/20 kV", "trafo 60 MVA", "#a855f7"), ("JTM 20 kV", "penyulang", "#22d3ee"), ("Gardu\ndistribusi", "20 kV/400 V", "#00e09e"), ("JTR 380/220 V", "jurusan", "#22d3ee"), ("Pelanggan", "SR 1/3 fasa", "#00e09e")]
     for i, (nama, sub, c) in enumerate(tahap):
         x = 12 + i * 92
-        b += kotak_svg(x, 40, 84, 44, c, nama, sub)
+        judul = nama.split("\n")
+        b += f'<rect x="{x}" y="36" width="84" height="54" rx="8" fill="{BOX}" stroke="{c}" stroke-width="1.6"/>'
+        for k, baris in enumerate(judul):
+            b += t(x + 42, 36 + (20 if len(judul) == 1 else 16) + 13 * k, baris, 11, c, "middle", "700")
+        b += t(x + 42, 36 + (38 if len(judul) == 1 else 46), sub, 9.5, AX)
         if i < len(tahap) - 1:
-            b += arrow(x + 84, 62, x + 92, 62, AX, 1.4)
-    b += f'<rect x="12" y="98" width="636" height="2" fill="{GRID}"/>'
-    b += t(150, 118, "SISTEM TRANSMISI (Modul 7–9)", 10.5, "#f59e0b", "middle", "700") + t(480, 118, "SISTEM DISTRIBUSI (Modul 10–12)", 10.5, "#00e09e", "middle", "700")
-    b += t(330, 140, "Distribusi primer (JTM 20 kV): GI → penyulang → gardu distribusi;  distribusi sekunder (JTR 380/220 V): gardu → jurusan → sambungan rumah", 10.5, AX)
-    b += t(330, 158, "Rugi teknis nasional ± 9 %: hampir dua pertiganya terjadi di distribusi (JTR dan trafo distribusi), karena arus besar pada tegangan rendah", 10.5, AX)
-    return svg(660, 170, b, "Gambar 1 — Kedudukan sistem distribusi dalam rantai pasokan tenaga listrik")
+            b += arrow(x + 84, 63, x + 92, 63, AX, 1.4)
+    b += f'<rect x="12" y="100" width="636" height="2" fill="{GRID}"/>'
+    b += t(150, 120, "SISTEM TRANSMISI (Modul 7–9)", 10.5, "#f59e0b", "middle", "700") + t(480, 120, "SISTEM DISTRIBUSI (Modul 10–12)", 10.5, "#00e09e", "middle", "700")
+    b += t(330, 142, "Distribusi primer (JTM 20 kV): GI → penyulang → gardu distribusi;", 10.5, AX)
+    b += t(330, 156, "distribusi sekunder (JTR 380/220 V): gardu → jurusan → sambungan rumah", 10.5, AX)
+    b += t(330, 174, "Rugi teknis nasional ± 9 %: hampir dua pertiganya terjadi di distribusi (JTR dan trafo distribusi),", 10.5, AX)
+    b += t(330, 188, "karena arus besar pada tegangan rendah", 10.5, AX)
+    return svg(660, 198, b, "Gambar 1 — Kedudukan sistem distribusi dalam rantai pasokan tenaga listrik")
 
 
 def gambar2():
@@ -114,8 +120,9 @@ def gambar2():
     b += f'<polyline points="{p2}" fill="none" stroke="#f59e0b" stroke-width="2.4"/>' + t(X(11), Y(1.0) - 8, f"komersial: F_B = {ind(lf2, 2)}", 10.5, "#f59e0b", "middle", "600")
     b += f'<line x1="{x0}" y1="{Y(lf1):.1f}" x2="{x1}" y2="{Y(lf1):.1f}" stroke="#22d3ee" stroke-width="1" stroke-dasharray="5 4"/>'
     b += f'<line x1="{x0}" y1="{Y(lf2):.1f}" x2="{x1}" y2="{Y(lf2):.1f}" stroke="#f59e0b" stroke-width="1" stroke-dasharray="5 4"/>'
-    b += t(28, 108, "P/P_maks", 10.5, AX) + t(345, 226, "Kurva beban harian ternormalisasi: puncak rumah tangga 18–20, puncak komersial 10–15; garis putus = rata-rata = faktor beban. Puncak yang tidak bersamaan → keragaman", 10.5, AX)
-    return svg(660, 236, b, "Gambar 2 — Kurva beban harian dua jenis pelanggan dan faktor bebannya")
+    b += t(x0, y1 - 8, "P/P_maks", 10.5, AX, "start") + t(345, 226, "Kurva beban harian ternormalisasi: puncak rumah tangga 18–20, puncak komersial 10–15;", 10.5, AX)
+    b += t(345, 240, "garis putus = rata-rata = faktor beban. Puncak yang tidak bersamaan → keragaman", 10.5, AX)
+    return svg(660, 250, b, "Gambar 2 — Kurva beban harian dua jenis pelanggan dan faktor bebannya")
 
 
 def gambar3():
@@ -156,32 +163,32 @@ def gambar3():
 
 
 def gambar4():
-    b = t(330, 18, "Gardu distribusi portal 20 kV/400 V (contoh 250 kVA)", 12, TX, "middle", "700")
+    b = t(330, 20, "Gardu distribusi portal 20 kV/400 V (contoh 250 kVA)", 12, TX, "middle", "700")
     b += kawat(40, 50, 220, 50, "#22d3ee", 2.4) + t(60, 42, "JTM 20 kV", 10, "#22d3ee", "start", "600")
     b += kawat(130, 50, 130, 78, "#22d3ee", 1.6) + f'<rect x="122" y="78" width="16" height="22" rx="2" fill="{BOX}" stroke="#f59e0b" stroke-width="1.6"/>' + t(150, 92, "fuse cut-out + arrester", 9.5, "#f59e0b", "start")
     b += kawat(130, 100, 130, 118, "#22d3ee", 1.6) + f'<circle cx="130" cy="136" r="18" fill="{BOX}" stroke="#a855f7" stroke-width="2"/><circle cx="130" cy="156" r="18" fill="{BOX}" stroke="#a855f7" stroke-width="2"/>' + t(160, 148, f"trafo {ind(S_TRAFO, 0)} kVA, Dyn5", 10, "#a855f7", "start", "600") + t(160, 161, "tap ±2×2,5 % (tanpa beban)", 9.5, AX, "start")
-    b += kawat(130, 174, 130, 192, "#00e09e", 1.6) + f'<rect x="60" y="192" width="140" height="18" rx="3" fill="{BOX}" stroke="#00e09e" stroke-width="1.6"/>' + t(130, 205, "PHB-TR: saklar utama + NH-fuse per jurusan", 9, "#00e09e")
+    b += kawat(130, 174, 130, 192, "#00e09e", 1.6) + f'<rect x="20" y="192" width="220" height="18" rx="3" fill="{BOX}" stroke="#00e09e" stroke-width="1.6"/>' + t(130, 205, "PHB-TR: saklar utama + NH-fuse per jurusan", 9, "#00e09e")
     for i, x in enumerate([75, 110, 145, 180]):
         b += kawat(x, 210, x, 232, "#00e09e", 1.4) + t(x, 244, f"J{i + 1}", 9.5, "#00e09e", "middle", "600")
-    b += t(130, 258, "4 jurusan JTR 380/220 V, masing-masing ≤ 63 A (NH 63 A)", 9.5, AX)
+    b += t(130, 258, "4 jurusan JTR 380/220 V,", 9.5, AX) + t(130, 270, "masing-masing ≤ 63 A (NH 63 A)", 9.5, AX)
     # tabel kecil kanan: pembebanan
     kolom = [("Beban puncak", f"{ind(P_TRAFO, 0)} kW, pf {ind(PF_TRAFO, 1)}"), ("S beban", f"{ind(S_BEBAN, 0)} kVA"), ("Pembebanan", f"{ind(PEMBEBANAN, 0)} % (sasaran 60–80 %)"), ("Arus TR", f"{ind(S_BEBAN * 1000 / (SQ3 * 400), 0)} A pada 400 V"), ("Arus TM", f"{ind(S_BEBAN * 1000 / (SQ3 * 20000), 1)} A pada 20 kV"), ("Rugi trafo", "P₀ ≈ 0,4 kW + P_k ≈ 3 kW × (0,8)²")]
     for i, (k_, v_) in enumerate(kolom):
         y = 44 + i * 34
         b += f'<rect x="300" y="{y}" width="340" height="28" rx="6" fill="{BOX}" stroke="{GRID}" stroke-width="1"/>' + t(310, y + 18, k_, 10.5, TX, "start", "600") + t(630, y + 18, v_, 10, "#22d3ee", "end")
-    return svg(660, 268, b, "Gambar 4 — Susunan gardu distribusi portal dan pembebanan trafonya")
+    return svg(660, 280, b, "Gambar 4 — Susunan gardu distribusi portal dan pembebanan trafonya")
 
 
 def gambar5():
     b = ""
-    x0, x1, y0, y1 = 60, 630, 190, 26
+    x0, x1, y0, y1 = 60, 616, 190, 26
     X = lambda p: x0 + p * (x1 - x0)
     for p in [0, 0.25, 0.5, 0.75, 1.0]:
-        b += f'<line x1="{X(p):.1f}" y1="{y1}" x2="{X(p):.1f}" y2="{y0}" stroke="{GRID}" stroke-width="0.7"/>' + t(X(p), y0 + 16, f"{p * L_PY:.1f} km", 10.5, AX)
+        b += f'<line x1="{X(p):.1f}" y1="{y1}" x2="{X(p):.1f}" y2="{y0}" stroke="{GRID}" stroke-width="0.7"/>' + t(X(p), y0 + 16, f"{ind(p * L_PY, 1)} km", 10.5, AX)
     # arus: terpusat (konstan) vs merata (linear)
     Yi = lambda v: y0 - v * 0.42 * (y0 - y1) - 0.5 * (y0 - y1)
     b += f'<line x1="{X(0):.1f}" y1="{Yi(1):.1f}" x2="{X(1):.1f}" y2="{Yi(1):.1f}" stroke="#ef4444" stroke-width="2.2" stroke-dasharray="6 4"/>' + t(X(0.5), Yi(1) - 8, f"arus terpusat di ujung: {ind(I_PY, 0)} A sepanjang saluran", 10, "#ef4444", "middle", "600")
-    b += f'<line x1="{X(0):.1f}" y1="{Yi(1):.1f}" x2="{X(1):.1f}" y2="{Yi(0):.1f}" stroke="#00e09e" stroke-width="2.4"/>' + t(X(0.7), Yi(0.3) - 10, "arus beban merata: I(x) = I(1 − x/ℓ)", 10, "#00e09e", "middle", "600")
+    b += f'<line x1="{X(0):.1f}" y1="{Yi(1):.1f}" x2="{X(1):.1f}" y2="{Yi(0):.1f}" stroke="#00e09e" stroke-width="2.4"/>' + t(X(0.55), Yi(0) - 4, "arus beban merata: I(x) = I(1 − x/ℓ)", 10, "#00e09e", "middle", "600")
     b += t(x0 - 8, Yi(1) + 4, "I", 10.5, AX, "end") + t(x0 - 8, Yi(0) + 4, "0", 10.5, AX, "end")
     # tegangan
     Yv = lambda v: y0 - v * 0.4 * (y0 - y1)
@@ -189,7 +196,7 @@ def gambar5():
     pts = " ".join(f"{X(i / 40):.1f},{Yv(1 - 0.5 * (2 * (i / 40) - (i / 40) ** 2)):.1f}" for i in range(41))
     b += f'<polyline points="{pts}" fill="none" stroke="#00e09e" stroke-width="2.4"/>'
     b += t(x0 - 8, Yv(1) + 4, "V₀", 10.5, AX, "end") + t(x0 - 8, Yv(0.5) + 4, "−½ΔV", 10.5, "#00e09e", "end") + t(x0 - 8, Yv(0) + 4, "−ΔV", 10.5, "#ef4444", "end")
-    b += t(X(0.5), Yv(0.15), "ΔV terpusat (linear)", 10, "#ef4444", "middle", "600") + t(X(0.35), Yv(0.75) + 14, "ΔV merata = ½ ΔV terpusat (parabola); rugi = ⅓", 10, "#00e09e", "middle", "600")
+    b += t(X(0.5), Yv(0.15), "ΔV terpusat (linear)", 10, "#ef4444", "middle", "600") + t(X(0.62), Yv(0.88), "ΔV merata = ½ ΔV terpusat (parabola); rugi = ⅓", 10, "#00e09e", "middle", "600")
     b += t(345, 226, f"Penyulang 20 kV {ind(L_PY, 0)} km, r = {ind(R_PY, 1)} Ω/km, arus pangkal {ind(I_PY, 0)} A: rugi terpusat {ind(RUGI_PY_TERPUSAT, 1)} kW, beban merata {ind(RUGI_PY, 1)} kW", 10.5, AX)
     return svg(660, 236, b, "Gambar 5 — Arus, tegangan, dan rugi sepanjang penyulang: beban terpusat vs tersebar merata")
 
@@ -213,9 +220,12 @@ def gambar6():
     b += f'<polyline points="{pts}" fill="none" stroke="#22d3ee" stroke-width="2.6"/>'
     for i, A in enumerate(pen):
         c = "#00e09e" if dv(A) <= 5 else "#ef4444"
-        b += f'<circle cx="{X(i):.1f}" cy="{Y(dv(A)):.1f}" r="4" fill="{c}"/>' + t(X(i), Y(dv(A)) - 10, f"{ind(dv(A), 1)} % · {ind(rugi(A), 1)} kW", 9, TX, "middle", "600")
-    b += t(28, 108, "ΔV", 10.5, AX) + t(347, 212, "mm² (aluminium)", 10.5, AX) + t(347, 230, f"JTR {ind(L_JTR * 1000, 0)} m, {ind(I_JTR, 0)} A pf {ind(PF_JTR, 1)}: penampang yang memenuhi 5 % dan rugi dayanya; penampang lebih besar menekan rugi terus tetapi biaya kabel naik", 10.5, AX)
-    return svg(660, 240, b, "Gambar 6 — Jatuh tegangan dan rugi JTR terhadap penampang penghantar")
+        akhir = i == len(pen) - 1
+        b += f'<circle cx="{X(i):.1f}" cy="{Y(dv(A)):.1f}" r="4" fill="{c}"/>' + t(X(i) - 4 if akhir else X(i) + 6, Y(dv(A)) + 16 if akhir else Y(dv(A)) - 8, f"{ind(dv(A), 1)} % · {ind(rugi(A), 1)} kW", 9, TX, "end" if akhir else "start", "600")
+    b += t(28, 108, "ΔV", 10.5, AX) + t(347, 222, "penampang (mm², aluminium)", 10.5, AX)
+    b += t(347, 240, f"JTR {ind(L_JTR * 1000, 0)} m, {ind(I_JTR, 0)} A pf {ind(PF_JTR, 1)}: penampang yang memenuhi 5 % dan rugi dayanya;", 10.5, AX)
+    b += t(347, 254, "penampang lebih besar menekan rugi terus tetapi biaya kabel naik", 10.5, AX)
+    return svg(660, 264, b, "Gambar 6 — Jatuh tegangan dan rugi JTR terhadap penampang penghantar")
 
 
 # ─────────────────────────── SUBNAV & HERO ───────────────────────────

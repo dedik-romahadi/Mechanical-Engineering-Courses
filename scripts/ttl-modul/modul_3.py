@@ -3,7 +3,7 @@
 # teks, tabel, dan gambar konsisten, dan sengaja tidak sama dengan varian soal.
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
+from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula, teks2,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel)
 
 NOMOR = 3
@@ -35,7 +35,7 @@ def p_beban(RL, E=24.0, r=1.0):
 
 # ─────────────────────────── gambar ───────────────────────────
 def gambar1():
-    b = ""
+    b = '<g transform="translate(-56,0)">'
     # sumber, kawat, resistor
     b += f'<line x1="120" y1="60" x2="120" y2="106" stroke="{AX}" stroke-width="2"/><line x1="120" y1="134" x2="120" y2="180" stroke="{AX}" stroke-width="2"/>'
     b += '<line x1="100" y1="112" x2="140" y2="112" stroke="#f59e0b" stroke-width="4"/><line x1="110" y1="128" x2="130" y2="128" stroke="#f59e0b" stroke-width="4"/>'
@@ -46,12 +46,12 @@ def gambar1():
     b += t(446, 124, "R", 14, "#22d3ee", "start", "700")
     b += arrow(200, 60, 260, 60, "#00e09e", 2.2) + t(230, 50, "I", 13, "#00e09e", "middle", "700")
     b += arrow(470, 96, 470, 144, "#a855f7", 1.8) + t(482, 124, "V = I·R", 12, "#a855f7", "start", "600")
-    b += t(270, 210, "P = V·I = I²·R = V²/R", 13, TX, "middle", "700")
+    b += t(270, 210, "P = V·I = I²·R = V²/R", 13, TX, "middle", "700") + "</g>"
     for i, (judul, isi, c) in enumerate([("Tegangan V", "beda potensial yang mendorong muatan (volt)", "#f59e0b"), ("Arus I", "laju aliran muatan (ampere)", "#00e09e"),
                                           ("Resistansi R", "hambatan terhadap aliran (ohm)", "#22d3ee"), ("Daya P", "laju energi yang diubah (watt)", "#a855f7")]):
-        y = 40 + i * 44
-        b += f'<rect x="520" y="{y}" width="130" height="36" rx="8" fill="{BOX}" stroke="{c}" stroke-width="1.4"/>'
-        b += t(528, y + 15, judul, 11.5, TX, "start", "600") + t(528, y + 29, isi, 9, AX, "start")
+        y = 22 + i * 50
+        b += f'<rect x="488" y="{y}" width="162" height="46" rx="8" fill="{BOX}" stroke="{c}" stroke-width="1.4"/>'
+        b += t(496, y + 15, judul, 11.5, TX, "start", "600") + teks2(496, y + 28, isi, 9, AX, "start", maks=28, jarak=11)
     return svg(660, 226, b, "Gambar 1 — Rangkaian DC satu sumber, satu beban")
 
 
@@ -98,18 +98,21 @@ def gambar3():
 def gambar4():
     b = ""
     x0, x1, y0, y1 = 64, 630, 206, 26
-    Imax, Pmax = 60, 40 * 60
+    Imax, Pmax = 60, 3000
     X = lambda i: x0 + i / Imax * (x1 - x0)
     Y = lambda p: y0 - p / Pmax * (y0 - y1)
-    for p in [0, 600, 1200, 1800, 2400]:
+    for p in [0, 600, 1200, 1800, 2400, 3000]:
         b += f'<line x1="{x0}" y1="{Y(p):.1f}" x2="{x1}" y2="{Y(p):.1f}" stroke="{GRID}" stroke-width="0.7"/>' + t(x0 - 8, Y(p) + 4, f"{p}", 11, AX, "end")
     for i in [0, 15, 30, 45, 60]:
         b += t(X(i), y0 + 16, f"{i} A", 11, AX)
     R = 0.12
     pts_b = " ".join(f"{X(i):.1f},{Y(48 * i):.1f}" for i in range(0, 61, 2))
     pts_r = " ".join(f"{X(i):.1f},{Y(i * i * R):.1f}" for i in range(0, 61, 2))
-    b += f'<polyline points="{pts_b}" fill="none" stroke="#00e09e" stroke-width="2.4"/>' + t(X(52), Y(48 * 52) - 10, "P_beban = 48·I", 11.5, "#00e09e", "end", "600")
-    b += f'<polyline points="{pts_r}" fill="none" stroke="#ef4444" stroke-width="2.4"/>' + t(X(58), Y(58 * 58 * R) - 10, "P_rugi = I²·R", 11.5, "#ef4444", "end", "600")
+    b += f'<polyline points="{pts_b}" fill="none" stroke="#00e09e" stroke-width="2.4"/>'
+    b += f'<polyline points="{pts_r}" fill="none" stroke="#ef4444" stroke-width="2.4"/>'
+    for k, (c, lab) in enumerate([("#00e09e", "P_beban = 48·I"), ("#ef4444", "P_rugi = I²·R")]):
+        yy = (Y(3000) + Y(2400)) / 2 + 4 + k * (Y(1800) - Y(2400))
+        b += f'<line x1="{x0 + 14}" y1="{yy - 4:.1f}" x2="{x0 + 34}" y2="{yy - 4:.1f}" stroke="{c}" stroke-width="2.4"/>' + t(x0 + 40, yy, lab, 11.5, c, "start", "600")
     b += t(28, 118, "W", 11, AX)
     b += t(347, 244, f"Beban 48 V dan saluran R = {ind(R, 2)} Ω: rugi tumbuh kuadrat, sehingga efisiensi turun saat arus naik", 12, AX)
     return svg(660, 254, b, "Gambar 4 — Daya beban dan rugi saluran terhadap arus")
@@ -117,7 +120,7 @@ def gambar4():
 
 def gambar5():
     b = ""
-    x0, x1, y0, y1 = 64, 630, 206, 26
+    x0, x1, y0, y1 = 64, 604, 206, 26
     E, r = 24.0, 1.0
     RLmax, Pmax = 5.0, E * E / (4 * r)
     X = lambda RL: x0 + RL / RLmax * (x1 - x0)
@@ -133,15 +136,15 @@ def gambar5():
     pts = " ".join(f"{X(RL):.1f},{Ye(RL / (r + RL) * 100):.1f}" for RL in [i / 100 for i in range(2, 501, 4)])
     b += f'<polyline points="{pts}" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 4"/>'
     b += f'<line x1="{X(r):.1f}" y1="{y1}" x2="{X(r):.1f}" y2="{y0}" stroke="#ec4899" stroke-width="1.3" stroke-dasharray="4 4"/>'
-    b += f'<circle cx="{X(r):.1f}" cy="{Y(Pmax):.1f}" r="5" fill="#ec4899"/>' + t(X(r) + 8, Y(Pmax) - 8, f"R_L = r: P_maks = {ind(Pmax, 0)} W, η = 50%", 11.5, "#ec4899", "start", "600")
-    b += t(X(3.6), Ye(78) - 8, "η = R_L/(r+R_L)", 11, "#f59e0b", "start", "600")
+    b += f'<circle cx="{X(r):.1f}" cy="{Y(Pmax):.1f}" r="5" fill="#ec4899"/>' + t(X(r) + 6, y1 - 8, f"R_L = r: P_maks = {ind(Pmax, 0)} W, η = 50%", 11.5, "#ec4899", "start", "600")
+    b += t(X(3.6), Ye(78) - 14, "η = R_L/(r+R_L)", 11, "#f59e0b", "start", "600")
     b += t(347, 244, f"E = {ind(E, 0)} V, r = {ind(r, 0)} Ω: daya beban (hijau) memuncak saat R_L = r, tetapi efisiensi (jingga) baru tinggi bila R_L ≫ r", 12, AX)
     return svg(660, 254, b, "Gambar 5 — Transfer daya maksimum dan efisiensi terhadap R_L")
 
 
 def gambar6():
     b = ""
-    x0, x1 = 90, 600
+    x0, x1 = 90, 540
     X = lambda m: x0 + m / L_KAB * (x1 - x0)
     for m in [0, 10, 20, 30]:
         b += f'<line x1="{X(m):.1f}" y1="30" x2="{X(m):.1f}" y2="170" stroke="{GRID}" stroke-width="0.7"/>' + t(X(m), 186, f"{m} m", 11, AX)
@@ -149,11 +152,12 @@ def gambar6():
         dv = 2 * RHO_CU * L_KAB * I_KAB / A
         Y = lambda v: 160 - (v - 42) / 7 * 120
         b += f'<line x1="{X(0)}" y1="{Y(48):.1f}" x2="{X(L_KAB):.1f}" y2="{Y(48 - dv):.1f}" stroke="{c}" stroke-width="2.6"/>'
-        b += t(X(L_KAB) + 6, Y(48 - dv) + 4, f"{A} mm²: {ind(48 - dv, 2)} V (−{ind(dv / 48 * 100, 1)}%)", 11, c, "start", "600")
+        b += t(X(L_KAB) + 8, Y(48 - dv) - 2, f"{A} mm²", 11, c, "start", "600")
+        b += t(X(L_KAB) + 8, Y(48 - dv) + 12, f"{ind(48 - dv, 2)} V (−{ind(dv / 48 * 100, 1)}%)", 11, c, "start", "600")
     for v in [42, 44, 46, 48]:
         Y = 160 - (v - 42) / 7 * 120
         b += t(x0 - 8, Y + 4, f"{v} V", 11, AX, "end")
-    b += f'<line x1="{x0}" y1="{160 - (46.56 - 42) / 7 * 120:.1f}" x2="{x1}" y2="{160 - (46.56 - 42) / 7 * 120:.1f}" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="5 4"/>' + t(x0 + 6, 160 - (46.56 - 42) / 7 * 120 - 6, "batas −3% = 46,56 V", 11, "#f59e0b", "start")
+    b += f'<line x1="{x0}" y1="{160 - (46.56 - 42) / 7 * 120:.1f}" x2="{x1}" y2="{160 - (46.56 - 42) / 7 * 120:.1f}" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="5 4"/>' + t(x1 - 6, 160 - (46.56 - 42) / 7 * 120 + 14, "batas −3% = 46,56 V", 11, "#f59e0b", "end")
     b += t(345, 212, f"Beban {ind(I_KAB, 0)} A pada 48 V, {ind(L_KAB, 0)} m: kabel 6 mm² melampaui batas jatuh tegangan 3%, kabel 16 mm² memenuhinya", 12, AX)
     return svg(660, 222, b, "Gambar 6 — Tegangan sepanjang kabel DC untuk dua penampang")
 

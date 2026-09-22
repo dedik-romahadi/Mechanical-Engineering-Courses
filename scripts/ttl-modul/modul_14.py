@@ -91,32 +91,45 @@ def bus_node(x, y, label, c, sub=""):
     return b
 
 
+def saluran(x1, y1, x2, y2, c="#22d3ee", w=2.4, r=15):
+    """Saluran antar-bus yang berhenti di tepi lingkaran bus di kedua ujungnya."""
+    L = math.hypot(x2 - x1, y2 - y1)
+    dx, dy = (x2 - x1) / L * r, (y2 - y1) / L * r
+    return kawat(round(x1 + dx, 1), round(y1 + dy, 1), round(x2 - dx, 1), round(y2 - dy, 1), c, w)
+
+
 def fmtc(z, d=3):
     return f"{ind(z.real, d)} {'−' if z.imag < 0 else '+'} j{ind(abs(z.imag), d)}"
 
 
 def gambar1():
-    b = t(330, 18, "Sistem tiga bus contoh dan jenis busnya", 12, TX, "middle", "700")
-    bx, by = [110, 330, 220], [70, 70, 170]
-    b += kawat(bx[0], by[0], bx[1], by[1], "#22d3ee", 2.4) + t(220, 60, "z₁₂ = j0,10", 10, "#22d3ee", "middle", "600")
-    b += kawat(bx[0], by[0], bx[2], by[2], "#22d3ee", 2.4) + t(140, 130, "z₁₃ = j0,25", 10, "#22d3ee", "middle", "600")
-    b += kawat(bx[1], by[1], bx[2], by[2], "#22d3ee", 2.4) + t(300, 130, "z₂₃ = j0,20", 10, "#22d3ee", "middle", "600")
-    b += f'<circle cx="60" cy="{by[0]}" r="12" fill="{BOX}" stroke="#00e09e" stroke-width="2"/>' + t(60, by[0] + 4, "G", 10, "#00e09e", "middle", "700") + kawat(72, by[0], bx[0] - 13, by[0], "#00e09e", 1.8)
-    b += bus_node(bx[0], by[0], "1", "#00e09e", "slack: |V| = 1, δ = 0") + bus_node(bx[1], by[1], "2", "#f59e0b", "PQ: 0,8 + j0,4") + bus_node(bx[2], by[2], "3", "#f59e0b", "PQ: 0,6 + j0,3")
+    b = t(330, 20, "Sistem tiga bus contoh dan jenis busnya", 12, TX, "middle", "700")
+    bx, by = [80, 300, 190], [70, 70, 170]
+    b += saluran(bx[0], by[0], bx[1], by[1]) + t(190, 60, "z₁₂ = j0,10", 10, "#22d3ee", "middle", "600")
+    b += saluran(bx[0], by[0], bx[2], by[2]) + t(126, 130, "z₁₃ = j0,25", 10, "#22d3ee", "end", "600")
+    b += saluran(bx[1], by[1], bx[2], by[2]) + t(254, 130, "z₂₃ = j0,20", 10, "#22d3ee", "start", "600")
+    b += f'<circle cx="30" cy="{by[0]}" r="12" fill="{BOX}" stroke="#00e09e" stroke-width="2"/>' + t(30, by[0] + 4, "G", 10, "#00e09e", "middle", "700") + kawat(42, by[0], bx[0] - 13, by[0], "#00e09e", 1.8)
+    b += bus_node(bx[0], by[0], "1", "#00e09e") + t(bx[0], by[0] - 22, "slack: |V| = 1, δ = 0", 9.5, AX)
+    b += bus_node(bx[1], by[1], "2", "#f59e0b") + t(bx[1] + 18, by[1] - 12, "PQ: 0,8 + j0,4", 9.5, AX, "start")
+    b += bus_node(bx[2], by[2], "3", "#f59e0b", "PQ: 0,6 + j0,3")
     b += kawat(bx[1], by[1] + 13, bx[1], by[1] + 36, "#f59e0b", 1.4) + f'<polygon points="{bx[1] - 6},{by[1] + 36} {bx[1] + 6},{by[1] + 36} {bx[1]},{by[1] + 46}" fill="#f59e0b"/>'
     b += kawat(bx[2] + 13, by[2], bx[2] + 36, by[2], "#f59e0b", 1.4) + f'<polygon points="{bx[2] + 36},{by[2] - 6} {bx[2] + 36},{by[2] + 6} {bx[2] + 46},{by[2]}" fill="#f59e0b"/>'
-    # tabel jenis bus kanan
-    baris = [("Jenis bus", "Diketahui", "Dicari", "Contoh", TX), ("Slack / swing", "|V|, δ (= 0)", "P, Q", "bus 1: GI/pembangkit acuan", "#00e09e"), ("PV / generator", "P, |V|", "Q, δ", "pembangkit ber-AVR", "#a855f7"), ("PQ / beban", "P, Q", "|V|, δ", "bus 2, 3: gardu beban", "#f59e0b")]
-    for i, (a, bb, c, d, col) in enumerate(baris):
-        y = 44 + i * 30
-        b += f'<rect x="400" y="{y}" width="248" height="26" rx="5" fill="{BOX}" stroke="{col if i else GRID}" stroke-width="1.2"/>' + t(406, y + 17, a, 9.5, col, "start", "700") + t(500, y + 17, bb, 9, TX, "start") + t(560, y + 17, c, 9, TX, "start") + t(600, y + 17, d, 8, AX, "start")
-    b += t(330, 212, "Tiap bus mempunyai 4 besaran (P, Q, |V|, δ); dua diketahui, dua dicari → sistem n bus: 2(n − 1) persamaan nonlinear (PQ: P dan Q; PV: P saja + 1 tak diketahui δ)", 10, AX)
-    b += t(330, 228, "Contoh: 3 bus dengan 2 bus PQ → 4 persamaan (P₂, Q₂, P₃, Q₃) untuk 4 tak diketahui (|V₂|, δ₂, |V₃|, δ₃)", 10, AX)
-    return svg(660, 238, b, "Gambar 1 — Sistem tiga bus contoh dan klasifikasi bus aliran daya")
+    # tabel jenis bus: judul, diketahui, dicari di baris pertama; contohnya di baris kedua
+    b += t(400, 42, "Jenis bus", 9.5, TX, "start", "700") + t(496, 42, "Diketahui", 9, AX, "start", "600") + t(580, 42, "Dicari", 9, AX, "start", "600")
+    for i, (a, bb, c, d, col) in enumerate([("Slack / swing", "|V|, δ (= 0)", "P, Q", "bus 1: GI/pembangkit acuan", "#00e09e"),
+                                             ("PV / generator", "P, |V|", "Q, δ", "pembangkit ber-AVR", "#a855f7"),
+                                             ("PQ / beban", "P, Q", "|V|, δ", "bus 2, 3: gardu beban", "#f59e0b")]):
+        y = 50 + i * 40
+        b += f'<rect x="392" y="{y}" width="256" height="36" rx="5" fill="{BOX}" stroke="{col}" stroke-width="1.2"/>'
+        b += t(400, y + 15, a, 9.5, col, "start", "700") + t(496, y + 15, bb, 9, TX, "start") + t(580, y + 15, c, 9, TX, "start") + t(400, y + 29, f"contoh: {d}", 8.5, AX, "start")
+    b += t(330, 214, "Tiap bus mempunyai 4 besaran (P, Q, |V|, δ); dua diketahui, dua dicari → sistem n bus: 2(n − 1) persamaan nonlinear", 10, AX)
+    b += t(330, 228, "(PQ: P dan Q; PV: P saja + 1 tak diketahui δ)", 10, AX)
+    b += t(330, 244, "Contoh: 3 bus dengan 2 bus PQ → 4 persamaan (P₂, Q₂, P₃, Q₃) untuk 4 tak diketahui (|V₂|, δ₂, |V₃|, δ₃)", 10, AX)
+    return svg(660, 254, b, "Gambar 1 — Sistem tiga bus contoh dan klasifikasi bus aliran daya")
 
 
 def gambar2():
-    b = t(330, 18, "Menyusun Y_bus dengan aturan inspeksi (sistem contoh, tanpa R)", 12, TX, "middle", "700")
+    b = t(330, 20, "Menyusun Y_bus dengan aturan inspeksi (sistem contoh, tanpa R)", 12, TX, "middle", "700")
     b += t(110, 48, "y₁₂ = 1/j0,10 = −j10", 10, "#22d3ee", "start", "600") + t(110, 64, "y₁₃ = 1/j0,25 = −j4", 10, "#22d3ee", "start", "600") + t(110, 80, "y₂₃ = 1/j0,20 = −j5", 10, "#22d3ee", "start", "600")
     b += t(110, 104, "Y_ii = Σ y terhubung ke bus i", 10, "#f59e0b", "start", "600") + t(110, 120, "Y_ij = −y_ij (0 bila tak terhubung)", 10, "#00e09e", "start", "600") + t(110, 136, "simetris; tanpa shunt: Σ baris = 0", 10, AX, "start")
     # matriks
@@ -128,9 +141,10 @@ def gambar2():
             col = "#f59e0b" if i == j else "#00e09e"
             b += f'<rect x="{mx + j * cw}" y="{my + i * rh}" width="{cw - 4}" height="{rh - 4}" rx="4" fill="{BOX}" stroke="{col}" stroke-width="1.2"/>' + t(mx + j * cw + cw / 2 - 2, my + i * rh + rh / 2 + 4, f"{'−' if v.imag < 0 else '+'}j{ind(abs(v.imag), 0)}", 11, col, "middle", "700")
     b += t(mx + 148, my + 118, "Y₁₁ = −j(10 + 4) = −j14; Y₂₂ = −j(10 + 5) = −j15; Y₃₃ = −j(4 + 5) = −j9", 9.5, AX)
-    b += t(330, 190, "Dengan R: y = 1/(R + jX) = (R − jX)/(R² + X²) → elemen kompleks G + jB; dengan kapasitansi saluran: tambahkan jB/2 tiap ujung ke elemen diagonal", 10, AX)
-    b += t(330, 206, "Y_bus jarang (sparse): bus hanya terhubung ke beberapa tetangga; itulah yang membuat sistem ribuan bus dapat diselesaikan", 10, AX)
-    return svg(660, 216, b, "Gambar 2 — Matriks admitansi bus sistem contoh")
+    b += t(330, 190, "Dengan R: y = 1/(R + jX) = (R − jX)/(R² + X²) → elemen kompleks G + jB;", 10, AX)
+    b += t(330, 204, "dengan kapasitansi saluran: tambahkan jB/2 tiap ujung ke elemen diagonal", 10, AX)
+    b += t(330, 220, "Y_bus jarang (sparse): bus hanya terhubung ke beberapa tetangga; itulah yang membuat sistem ribuan bus dapat diselesaikan", 10, AX)
+    return svg(660, 230, b, "Gambar 2 — Matriks admitansi bus sistem contoh")
 
 
 def gambar3():
@@ -138,21 +152,22 @@ def gambar3():
     x0, x1, y0, y1 = 64, 630, 190, 26
     X = lambda d: x0 + d / 90 * (x1 - x0)
     pmax = V1_2B * V2_2B / X_2B
-    Y = lambda p: y0 - (p + 1.2) / (pmax + 1.2) * (y0 - y1)
+    Y = lambda p: y0 - (p + 5) / (pmax + 5) * (y0 - y1)
     for d in [0, 30, 60, 90]:
         b += f'<line x1="{X(d):.1f}" y1="{y1}" x2="{X(d):.1f}" y2="{y0}" stroke="{GRID}" stroke-width="0.7"/>' + t(X(d), y0 + 16, f"{d}°", 10.5, AX)
-    for p in [-1, 0, 1, 2, 3, 4]:
-        if -1.2 <= p <= pmax:
+    for p in [-4, -2, 0, 2, 4]:
+        if -5 <= p <= pmax:
             b += f'<line x1="{x0}" y1="{Y(p):.1f}" x2="{x1}" y2="{Y(p):.1f}" stroke="{GRID if p else AX}" stroke-width="{0.7 if p else 1}"/>' + t(x0 - 8, Y(p) + 4, f"{p}", 10.5, AX, "end")
     pP = " ".join(f"{X(k):.1f},{Y(V1_2B * V2_2B * math.sin(k * DEG) / X_2B):.1f}" for k in range(91))
     pQ = " ".join(f"{X(k):.1f},{Y((V1_2B * V2_2B * math.cos(k * DEG) - V2_2B ** 2) / X_2B):.1f}" for k in range(91))
     b += f'<polyline points="{pP}" fill="none" stroke="#00e09e" stroke-width="2.6"/>' + t(X(55), Y(V1_2B * V2_2B * math.sin(55 * DEG) / X_2B) - 12, "P₁₂ = V₁V₂ sin δ/X", 10.5, "#00e09e", "middle", "600")
-    b += f'<polyline points="{pQ}" fill="none" stroke="#f59e0b" stroke-width="2.4"/>' + t(X(60), Y((V1_2B * V2_2B * math.cos(60 * DEG) - V2_2B ** 2) / X_2B) + 16, "Q₂ = (V₁V₂ cos δ − V₂²)/X", 10.5, "#f59e0b", "middle", "600")
-    b += f'<circle cx="{X(D_2B):.1f}" cy="{Y(P_2B):.1f}" r="5" fill="#00e09e"/>' + t(X(D_2B) + 8, Y(P_2B) - 6, f"δ = {ind(D_2B, 0)}°: P = {ind(P_2B, 3)}", 10, TX, "start", "600")
+    b += f'<polyline points="{pQ}" fill="none" stroke="#f59e0b" stroke-width="2.4"/>' + t(X(18), Y(-2) + 12, "Q₂ = (V₁V₂ cos δ − V₂²)/X", 10.5, "#f59e0b", "start", "600")
+    b += f'<circle cx="{X(D_2B):.1f}" cy="{Y(P_2B):.1f}" r="5" fill="#00e09e"/>' + t(X(D_2B) + 8, Y(P_2B) + 12, f"δ = {ind(D_2B, 0)}°: P = {ind(P_2B, 3)}", 10, TX, "start", "600")
     b += f'<circle cx="{X(D_2B):.1f}" cy="{Y(Q2_2B):.1f}" r="5" fill="#f59e0b"/>' + t(X(D_2B) + 8, Y(Q2_2B) + 14, f"Q₂ = {ind(Q2_2B, 3)}", 10, TX, "start", "600")
     b += f'<line x1="{X(90):.1f}" y1="{Y(pmax):.1f}" x2="{X(90):.1f}" y2="{y0}" stroke="#ef4444" stroke-width="1" stroke-dasharray="4 3"/>' + t(X(88), Y(pmax) - 6, f"P_maks = V₁V₂/X = {ind(pmax, 2)}", 9.5, "#ef4444", "end", "600")
-    b += t(28, 108, "pu", 10.5, AX) + t(347, 228, f"Dua bus, V₁ = 1, |V₂| = {ind(V2_2B, 2)}, X = {ind(X_2B, 1)} pu: P mengikuti sin δ (batas statis di 90°), Q mengikuti cos δ dan |V|²; Q₂ negatif berarti bus 2 harus memasok Q ke saluran", 10.5, AX)
-    return svg(660, 238, b, "Gambar 3 — Persamaan aliran daya dua bus: P–δ dan Q–δ")
+    b += t(x0 - 8, y1 - 8, "pu", 10.5, AX, "end") + t(347, 228, f"Dua bus, V₁ = 1, |V₂| = {ind(V2_2B, 2)}, X = {ind(X_2B, 1)} pu: P mengikuti sin δ (batas statis di 90°), Q mengikuti cos δ dan |V|²;", 10.5, AX)
+    b += t(347, 242, "Q₂ negatif berarti bus 2 harus memasok Q ke saluran", 10.5, AX)
+    return svg(660, 252, b, "Gambar 3 — Persamaan aliran daya dua bus: P–δ dan Q–δ")
 
 
 def gambar4():
@@ -172,10 +187,11 @@ def gambar4():
     b += f'<polyline points="{p2}" fill="none" stroke="#22d3ee" stroke-width="2.4"/>' + f'<polyline points="{p3}" fill="none" stroke="#f59e0b" stroke-width="2.4"/>'
     for k, v in enumerate(h):
         b += f'<circle cx="{X(k):.1f}" cy="{Y(max(vmin, v[0])):.1f}" r="3.5" fill="#22d3ee"/><circle cx="{X(k):.1f}" cy="{Y(max(vmin, v[1])):.1f}" r="3.5" fill="#f59e0b"/>'
-    b += f'<line x1="{x0}" y1="{Y(abs(V2F)):.1f}" x2="{x1}" y2="{Y(abs(V2F)):.1f}" stroke="#22d3ee" stroke-width="1" stroke-dasharray="4 3"/>' + t(x1 - 4, Y(abs(V2F)) - 5, f"|V₂| → {ind(abs(V2F), 4)}", 10, "#22d3ee", "end", "600")
+    b += f'<line x1="{x0}" y1="{Y(abs(V2F)):.1f}" x2="{x1}" y2="{Y(abs(V2F)):.1f}" stroke="#22d3ee" stroke-width="1" stroke-dasharray="4 3"/>' + t(x1 - 4, Y(abs(V2F)) - 10, f"|V₂| → {ind(abs(V2F), 4)}", 10, "#22d3ee", "end", "600")
     b += f'<line x1="{x0}" y1="{Y(abs(V3F)):.1f}" x2="{x1}" y2="{Y(abs(V3F)):.1f}" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4 3"/>' + t(x1 - 4, Y(abs(V3F)) + 14, f"|V₃| → {ind(abs(V3F), 4)}", 10, "#f59e0b", "end", "600")
-    b += t(28, 108, "pu", 10.5, AX) + t(347, 228, f"Gauss–Seidel sistem contoh dari V = 1∠0: iterasi 1 memberi |V₂| = {ind(HIST[1][0], 4)}, |V₃| = {ind(HIST[1][1], 4)}; konvergen linear ke {ind(abs(V2F), 4)} dan {ind(abs(V3F), 4)} pu dalam ± 10 iterasi", 10.5, AX)
-    return svg(660, 238, b, "Gambar 4 — Konvergensi tegangan bus pada iterasi Gauss–Seidel sistem contoh")
+    b += t(x0 - 8, y1 - 8, "pu", 10.5, AX, "end") + t(347, 228, f"Gauss–Seidel sistem contoh dari V = 1∠0: iterasi 1 memberi |V₂| = {ind(HIST[1][0], 4)}, |V₃| = {ind(HIST[1][1], 4)};", 10.5, AX)
+    b += t(347, 242, f"konvergen linear ke {ind(abs(V2F), 4)} dan {ind(abs(V3F), 4)} pu dalam ± 10 iterasi", 10.5, AX)
+    return svg(660, 252, b, "Gambar 4 — Konvergensi tegangan bus pada iterasi Gauss–Seidel sistem contoh")
 
 
 def gambar5():
@@ -196,27 +212,29 @@ def gambar5():
     b += f'<line x1="{x0}" y1="{Y(P_NR):.1f}" x2="{x1}" y2="{Y(P_NR):.1f}" stroke="#00e09e" stroke-width="1.4" stroke-dasharray="6 4"/>' + t(x0 + 6, Y(P_NR) - 6, f"P terjadwal = {ind(P_NR, 1)}", 10, "#00e09e", "start", "600")
     for k in range(len(NR) - 1):
         d, dn = NR[k], NR[k + 1]
-        b += f'<line x1="{X(d):.1f}" y1="{Y(f(d)):.1f}" x2="{X(dn):.1f}" y2="{Y(P_NR):.1f}" stroke="#f59e0b" stroke-width="1.6"/>' + f'<circle cx="{X(d):.1f}" cy="{Y(f(d)):.1f}" r="4" fill="#f59e0b"/>' + t(X(d) + (8 if k == 0 else -8), Y(f(d)) + (-8 if k == 0 else 14), f"δ⁽{k}⁾ = {ind(d, 2)}°", 9.5, "#f59e0b", "start" if k == 0 else "end", "600")
+        b += f'<line x1="{X(d):.1f}" y1="{Y(f(d)):.1f}" x2="{X(dn):.1f}" y2="{Y(P_NR):.1f}" stroke="#f59e0b" stroke-width="1.6"/>' + f'<circle cx="{X(d):.1f}" cy="{Y(f(d)):.1f}" r="4" fill="#f59e0b"/>' + (t(X(d) - 8, Y(f(d)) - 14, f"δ⁽{k}⁾ = {ind(d, 2)}°", 9.5, "#f59e0b", "end", "600") if k == 0 else t(X(NR[1]) - 8, Y(P_NR) - 8 - 14 * (k - 1), f"δ⁽{k}⁾ = {ind(d, 2)}°", 9.5, "#f59e0b", "end", "600"))
         b += f'<line x1="{X(dn):.1f}" y1="{Y(P_NR):.1f}" x2="{X(dn):.1f}" y2="{Y(f(dn)):.1f}" stroke="#f59e0b" stroke-width="1" stroke-dasharray="2 2"/>'
     b += f'<circle cx="{X(D_EXACT):.1f}" cy="{Y(P_NR):.1f}" r="5" fill="#00e09e"/>' + t(X(D_EXACT) + 8, Y(P_NR) + 14, f"solusi δ = {ind(D_EXACT, 4)}°", 10, "#00e09e", "start", "600")
-    b += t(28, 108, "pu", 10.5, AX) + t(347, 228, f"Newton–Raphson: dari δ⁽⁰⁾ = 0 garis singgung (Jacobian) menuju P terjadwal: {' → '.join(ind(d, 3) + '°' for d in NR)}; kesalahan dikuadratkan tiap langkah", 10.5, AX)
-    return svg(660, 238, b, "Gambar 5 — Iterasi Newton–Raphson pada masalah dua bus: garis singgung menuju solusi")
+    b += t(x0 - 8, y1 - 8, "pu", 10.5, AX, "end") + t(347, 228, f"Newton–Raphson: dari δ⁽⁰⁾ = 0 garis singgung (Jacobian) menuju P terjadwal: {' → '.join(ind(d, 3) + '°' for d in NR)};", 10.5, AX)
+    b += t(347, 242, f"kesalahan dikuadratkan tiap langkah", 10.5, AX)
+    return svg(660, 252, b, "Gambar 5 — Iterasi Newton–Raphson pada masalah dua bus: garis singgung menuju solusi")
 
 
 def gambar6():
-    b = t(330, 18, "Hasil aliran daya sistem contoh: tegangan bus, aliran cabang, dan daya slack", 12, TX, "middle", "700")
-    bx, by = [110, 330, 220], [70, 70, 170]
-    b += kawat(bx[0], by[0], bx[1], by[1], "#22d3ee", 2.4) + kawat(bx[0], by[0], bx[2], by[2], "#22d3ee", 2.4) + kawat(bx[1], by[1], bx[2], by[2], "#22d3ee", 2.4)
-    b += arrow(150, 58, 290, 58, "#00e09e", 1.6) + t(220, 50, f"S₁₂ = {fmtc(S12, 3)}", 9.5, "#00e09e", "middle", "600")
-    b += arrow(130, 95, 200, 150, "#00e09e", 1.6) + t(120, 130, f"S₁₃ = {fmtc(S13, 3)}", 9.5, "#00e09e", "start", "600")
-    b += arrow(310, 95, 240, 150, "#00e09e", 1.6) + t(330, 130, f"S₂₃ = {fmtc(S23, 3)}", 9.5, "#00e09e", "start", "600")
-    b += bus_node(bx[0], by[0], "1", "#00e09e", f"1,0∠0°") + bus_node(bx[1], by[1], "2", "#f59e0b", f"{ind(abs(V2F), 4)}∠{ind(cmath.phase(V2F) / DEG, 2)}°") + bus_node(bx[2], by[2], "3", "#f59e0b", f"{ind(abs(V3F), 4)}∠{ind(cmath.phase(V3F) / DEG, 2)}°")
+    b = t(330, 20, "Hasil aliran daya sistem contoh: tegangan bus, aliran cabang, dan daya slack", 12, TX, "middle", "700")
+    bx, by = [80, 300, 190], [70, 70, 170]
+    b += saluran(bx[0], by[0], bx[1], by[1]) + saluran(bx[0], by[0], bx[2], by[2]) + saluran(bx[1], by[1], bx[2], by[2])
+    b += arrow(120, 58, 260, 58, "#00e09e", 1.6) + t(190, 50, f"S₁₂ = {fmtc(S12, 3)}", 9.5, "#00e09e", "middle", "600")
+    b += arrow(96, 96, 158, 152, "#00e09e", 1.6) + t(112, 122, f"S₁₃ = {ind(S13.real, 3)}", 9.5, "#00e09e", "end", "600") + t(112, 136, f"{'−' if S13.imag < 0 else '+'} j{ind(abs(S13.imag), 3)}", 9.5, "#00e09e", "end", "600")
+    b += arrow(304, 96, 242, 152, "#00e09e", 1.6) + t(284, 136, f"S₂₃ = {fmtc(S23, 3)}", 9.5, "#00e09e", "start", "600")
+    b += bus_node(bx[0], by[0], "1", "#00e09e") + t(bx[0], by[0] - 22, "1,0∠0°", 9.5, AX) + bus_node(bx[1], by[1], "2", "#f59e0b") + t(bx[1] + 18, by[1] - 12, f"{ind(abs(V2F), 4)}∠{ind(cmath.phase(V2F) / DEG, 2)}°", 9.5, AX, "start") + bus_node(bx[2], by[2], "3", "#f59e0b", f"{ind(abs(V3F), 4)}∠{ind(cmath.phase(V3F) / DEG, 2)}°")
     kol = [("Daya slack (bus 1)", f"{fmtc(S_SLACK, 4)} pu"), ("Σ beban", f"{fmtc(S_LOAD[1] + S_LOAD[2], 2)} pu"), ("Rugi P (tanpa R)", f"{ind(S_SLACK.real - 1.4, 4)} pu"), ("Rugi Q (I²X saluran)", f"{ind(S_SLACK.imag - 0.7, 4)} pu"), ("Tegangan terendah", f"bus {2 if abs(V2F) < abs(V3F) else 3}: {ind(min(abs(V2F), abs(V3F)), 4)} pu"), ("Sudut terbesar", f"bus {2 if abs(cmath.phase(V2F)) > abs(cmath.phase(V3F)) else 3}: {ind(min(cmath.phase(V2F), cmath.phase(V3F)) / DEG, 2)}°")]
     for i, (k_, v_) in enumerate(kol):
         y = 40 + i * 28
         b += f'<rect x="400" y="{y}" width="248" height="24" rx="5" fill="{BOX}" stroke="{GRID}" stroke-width="1"/>' + t(406, y + 16, k_, 9.5, TX, "start", "600") + t(642, y + 16, v_, 9.5, "#22d3ee", "end")
-    b += t(330, 222, "Dari tegangan bus dihitung arus cabang I_ij = (V_i − V_j) y_ij, aliran S_ij = V_i I_ij*, rugi S_ij + S_ji, dan pembebanan tiap saluran; inilah keluaran yang dipakai perencana", 10, AX)
-    return svg(660, 232, b, "Gambar 6 — Keluaran aliran daya sistem contoh setelah konvergen")
+    b += t(330, 222, "Dari tegangan bus dihitung arus cabang I_ij = (V_i − V_j) y_ij, aliran S_ij = V_i I_ij*, rugi S_ij + S_ji,", 10, AX)
+    b += t(330, 236, "dan pembebanan tiap saluran; inilah keluaran yang dipakai perencana", 10, AX)
+    return svg(660, 246, b, "Gambar 6 — Keluaran aliran daya sistem contoh setelah konvergen")
 
 
 # ─────────────────────────── SUBNAV & HERO ───────────────────────────
