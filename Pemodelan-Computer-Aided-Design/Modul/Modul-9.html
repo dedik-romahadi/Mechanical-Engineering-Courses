@@ -9256,6 +9256,18 @@ function _ttlTeks(ctx,teks,x,y,maxW,opsi){
   if(baris){ctx.fillText(baris,x,yy); yy+=lh;}
   ctx.font=f; return yy;
 }
+// Label berpelat: kotak warna latar kanvas digambar di belakang teks sehingga garis yang
+// melintas di belakangnya terputus (seperti gambar teknik yang memutus garis bantu di belakang
+// angka dimensi). Pakai untuk angka dimensi di atas garis dimensinya atau label di atas kisi/kurva
+// yang tidak bisa dipindah. Pelat hanya menutupi garis yang digambar SEBELUM label.
+// opsi: {pad (bawaan 2), latar (bawaan '#050a16')}. Perataan mengikuti ctx.textAlign/textBaseline.
+function _ttlLabel(ctx,teks,x,y,opsi){
+  opsi=opsi||{};
+  const u=ctx.measureText(teks), pad=opsi.pad==null?2:opsi.pad;
+  const x0=x-u.actualBoundingBoxLeft-pad, x1=x+u.actualBoundingBoxRight+pad, y0=y-u.actualBoundingBoxAscent-pad, y1=y+u.actualBoundingBoxDescent+pad;
+  const warna=ctx.fillStyle; ctx.fillStyle=opsi.latar||'#050a16'; ctx.fillRect(x0,y0,x1-x0,y1-y0); ctx.fillStyle=warna;
+  ctx.__plat=true; ctx.fillText(teks,x,y); ctx.__plat=false;
+}
 function _ttlNilai(id,def){const el=document.getElementById(id); const v=parseFloat(el&&el.value); return Number.isFinite(v)?v:def;}
 function _ttlTulis(id,teks){const el=document.getElementById(id); if(el) el.textContent=teks;}
 function _ttlGaris(ctx,x1,y1,x2,y2,warna,lebar,putus){

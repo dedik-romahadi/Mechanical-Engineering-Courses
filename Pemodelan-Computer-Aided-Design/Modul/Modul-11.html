@@ -9248,6 +9248,18 @@ function _ttlTeks(ctx,teks,x,y,maxW,opsi){
   if(baris){ctx.fillText(baris,x,yy); yy+=lh;}
   ctx.font=f; return yy;
 }
+// Label berpelat: kotak warna latar kanvas digambar di belakang teks sehingga garis yang
+// melintas di belakangnya terputus (seperti gambar teknik yang memutus garis bantu di belakang
+// angka dimensi). Pakai untuk angka dimensi di atas garis dimensinya atau label di atas kisi/kurva
+// yang tidak bisa dipindah. Pelat hanya menutupi garis yang digambar SEBELUM label.
+// opsi: {pad (bawaan 2), latar (bawaan '#050a16')}. Perataan mengikuti ctx.textAlign/textBaseline.
+function _ttlLabel(ctx,teks,x,y,opsi){
+  opsi=opsi||{};
+  const u=ctx.measureText(teks), pad=opsi.pad==null?2:opsi.pad;
+  const x0=x-u.actualBoundingBoxLeft-pad, x1=x+u.actualBoundingBoxRight+pad, y0=y-u.actualBoundingBoxAscent-pad, y1=y+u.actualBoundingBoxDescent+pad;
+  const warna=ctx.fillStyle; ctx.fillStyle=opsi.latar||'#050a16'; ctx.fillRect(x0,y0,x1-x0,y1-y0); ctx.fillStyle=warna;
+  ctx.__plat=true; ctx.fillText(teks,x,y); ctx.__plat=false;
+}
 function _ttlNilai(id,def){const el=document.getElementById(id); const v=parseFloat(el&&el.value); return Number.isFinite(v)?v:def;}
 function _ttlTulis(id,teks){const el=document.getElementById(id); if(el) el.textContent=teks;}
 function _ttlGaris(ctx,x1,y1,x2,y2,warna,lebar,putus){
@@ -9284,7 +9296,46 @@ function _ttlMulai(){
 // ════════════════════════════════════════════════════════════
 const _C11C='#22d3ee', _C11A='#f59e0b', _C11G='#00e09e', _C11R='#ef4444', _C11V='#a855f7', _C11P='#ec4899', _C11T='rgba(226,232,240,.92)', _C11M='rgba(148,163,184,.85)';
 const _F11_9="9px 'JetBrains Mono',monospace", _F11_10="10px 'JetBrains Mono',monospace", _F11_11="11px 'JetBrains Mono',monospace";
-function _cad11Teks(ctx,s,x,y,warna,font,align){ctx.fillStyle=warna; ctx.font=font||"11px 'JetBrains Mono',monospace"; ctx.textAlign=align||'left'; ctx.fillText(s,x,y);}
+// ── Garis tercatat dan label bebas garis ─────────────────────────────────────────────
+// Selama satu bingkai, setiap garis yang di-stroke dicatat sebagai ruas (setengah tebal e, kotak pembatas, dan tanda
+// "lunak" untuk garis bantu putus-putus atau samar). Label yang menempel pada gambar ditulis SESUDAH semua garis lewat
+// _cad11Label: dipakai calon posisi pertama yang tintanya berjarak ≥ 1,5 px dari semua ruas, tidak menimpa teks lain,
+// dan di dalam kanvas. Di layar lebar calon pertama adalah posisi semula, jadi label hanya bergeser bila akan duduk di
+// atas garis. Hanya bila tak ada calon bebas, label memakai pelat _ttlLabel di calon yang sekadar menyentuh garis bantu
+// lunak (tidak pernah menutupi garis gambar utama, kecuali benar-benar tidak ada pilihan lain).
+const _G11={r:[],k:[],W:0,H:0};
+function _cad11Awal(W,H){_G11.r=[]; _G11.k=[]; _G11.W=W; _G11.H=H;}
+function _cad11Alfa(w){const m=/rgba\(([^)]*)\)/.exec(String(w)); return m?+m[1].split(',')[3]:1;}
+function _cad11Ruas(x1,y1,x2,y2,lw,lunak){_G11.r.push([x1,y1,x2,y2,(lw||1)/2,Math.min(x1,x2),Math.min(y1,y2),Math.max(x1,x2),Math.max(y1,y2),!!lunak]);}
+function _cad11RuasBusur(cx,cy,r,a0,a1,lw,lunak){const n=Math.max(8,Math.ceil(Math.abs(a1-a0)*r/5)); let px=cx+r*Math.cos(a0), py=cy+r*Math.sin(a0); for(let i=1;i<=n;i++){const a=a0+(a1-a0)*i/n, qx=cx+r*Math.cos(a), qy=cy+r*Math.sin(a); _cad11Ruas(px,py,qx,qy,lw,lunak); px=qx; py=qy;}}
+function _cad11RuasJalur(titik,lw,tutup,lunak){for(let i=1;i<titik.length;i++) _cad11Ruas(titik[i-1][0],titik[i-1][1],titik[i][0],titik[i][1],lw,lunak); if(tutup&&titik.length>2) _cad11Ruas(titik[titik.length-1][0],titik[titik.length-1][1],titik[0][0],titik[0][1],lw,lunak);}
+// Liang–Barsky: true bila ruas (x1,y1)-(x2,y2) masuk persegi [a,b]-[c,d].
+function _cad11Klip(x1,y1,x2,y2,a,b,c,d){let t0=0,t1=1; const dx=x2-x1, dy=y2-y1, p=[-dx,dx,-dy,dy], q=[x1-a,c-x1,y1-b,d-y1];
+  for(let i=0;i<4;i++){if(p[i]===0){if(q[i]<0) return false;} else {const t=q[i]/p[i]; if(p[i]<0){if(t>t1) return false; if(t>t0) t0=t;} else {if(t<t0) return false; if(t<t1) t1=t;}}} return t0<=t1;}
+// 0 = kotak k bebas garis, 1 = hanya disentuh garis bantu lunak, 2 = dilewati garis gambar.
+function _cad11Kena(k,m){let h=0; for(const s of _G11.r){const e=s[4]+m; if(s[5]>k[2]+e||s[7]<k[0]-e||s[6]>k[3]+e||s[8]<k[1]-e) continue; if(_cad11Klip(s[0],s[1],s[2],s[3],k[0]-e,k[1]-e,k[2]+e,k[3]+e)){if(!s[9]) return 2; h=1;}} return h;}
+function _cad11Tinta(ctx,s,x,y){const u=ctx.measureText(s); return [x-u.actualBoundingBoxLeft,y-u.actualBoundingBoxAscent,x+u.actualBoundingBoxRight,y+u.actualBoundingBoxDescent];}
+function _cad11Daftar(k){_G11.k.push(k);}
+function _cad11Tindih(k){return _G11.k.some(b=>Math.min(k[2],b[2])-Math.max(k[0],b[0])>-2&&Math.min(k[3],b[3])-Math.max(k[1],b[1])>-2);}
+// calon = [[x, y, align, font?], ...]. Mengembalikan kotak tinta label yang ditulis.
+function _cad11Label(ctx,s,calon,warna,font){
+  let lunak=null, cadangan=null;
+  for(const [x,y,al,f] of calon){
+    ctx.font=f||font||_F11_10; ctx.textAlign=al||'left'; const k=_cad11Tinta(ctx,s,x,y);
+    if(k[0]<2||k[1]<2||k[2]>_G11.W-2||k[3]>_G11.H-2||_cad11Tindih(k)) continue;
+    const h=_cad11Kena(k,1.5);
+    if(!h){ctx.fillStyle=warna; ctx.fillText(s,x,y); _cad11Daftar(k); return k;}
+    if(h===1&&!lunak) lunak=[x,y,al,f,k]; if(!cadangan) cadangan=[x,y,al,f,k];
+  }
+  const [x,y,al,f,k]=lunak||cadangan||[calon[0][0],calon[0][1],calon[0][2],calon[0][3],[0,0,0,0]];
+  ctx.font=f||font||_F11_10; ctx.textAlign=al||'left'; ctx.fillStyle=warna; _ttlLabel(ctx,s,x,y,{pad:1}); _cad11Daftar(k); return k;
+}
+// Calon melingkar di sekitar (x, y): cincin berjari-jari d0, d0+4, …, d1; 16 arah per cincin mulai dari arah a0
+// (radian, sumbu y ke atas) lalu bergantian ke dua sisinya. Label rata tengah, pusat tintanya di titik calon.
+function _cad11Cincin(x,y,d0,d1,a0){const c=[]; for(let d=d0;d<=d1;d+=4) for(let i=0;i<16;i++){const a=(a0||0)+(i%2?1:-1)*Math.ceil(i/2)*Math.PI/8; c.push([x+d*Math.cos(a),y-d*Math.sin(a)+3.5,'center']);} return c;}
+// Garis yang dicatat: pembungkus _ttlGaris (putus-putus atau samar = garis bantu lunak).
+function _cad11G(ctx,x1,y1,x2,y2,warna,lebar,putus){_cad11Ruas(x1,y1,x2,y2,lebar||1,(putus&&putus.length)||_cad11Alfa(warna)<=0.4); _ttlGaris(ctx,x1,y1,x2,y2,warna,lebar,putus);}
+function _cad11Teks(ctx,s,x,y,warna,font,align){ctx.fillStyle=warna; ctx.font=font||"11px 'JetBrains Mono',monospace"; ctx.textAlign=align||'left'; ctx.fillText(s,x,y); _cad11Daftar(_cad11Tinta(ctx,s,x,y));}
 // Memecah string per kata, tetapi "nama = nilai satuan", operasi seperti "a × b", "A ∩ B", "R² + x" dan panah dengan kata sesudahnya tetap satu potongan.
 function _cad11Kata(s){const o=[]; for(const t of String(s).split(/(?= )/)){const p=o[o.length-1]; if(p!==undefined&&(/^ (=|∩|×|\+|−|mm³|mm²|mm|rpm|µm|°)(?![\wÀ-ɏ])/.test(t)||/[=→∩×+−]$/.test(p))) o[o.length-1]=p+t; else o.push(t);} return o;}
 // Menulis teks agar muat dalam lebar maxW (perataan align). bagian = string (dipecah per kata) atau array potongan
@@ -9299,22 +9350,19 @@ function _cad11Muat(ctx,bagian,x,y,maxW,warna,font,align,lh){
   lh=lh||Math.round(px*1.3);
   for(let uk=px;uk>=Math.max(8,px*0.85)-1e-6;uk-=0.5){
     ctx.font=f.replace(/\d+(?:\.\d+)?px/,uk+'px');
-    if(ctx.measureText(utuh).width<=maxW){ctx.fillText(utuh,x,y); ctx.font=f; return 0;}
+    if(ctx.measureText(utuh).width<=maxW){ctx.fillText(utuh,x,y); _cad11Daftar(_cad11Tinta(ctx,utuh,x,y)); ctx.font=f; return 0;}
   }
   ctx.font=f;
   const baris=[]; let b='';
   for(const p of potong){const coba=b+p; if(b&&ctx.measureText(coba).width>maxW){baris.push(b); b=p.replace(/^ +/,'');} else b=coba;}
   if(b) baris.push(b);
   let yy=y;
-  for(const s of baris) yy=_ttlTeks(ctx,s,x,yy,maxW,{lh});
+  for(const s of baris){_cad11Daftar(_cad11Tinta(ctx,s,x,yy)); yy=_ttlTeks(ctx,s,x,yy,maxW,{lh});}
   ctx.font=f; return yy-y-lh;
 }
-// Kotak tinta teks (sama dengan yang diukur pemeriksa) dan uji bebas-tumpang terhadap daftar kotak lain.
-function _cad11Tinta(ctx,s,x,y,font,align){ctx.font=font; ctx.textAlign=align||'left'; const u=ctx.measureText(s); return [x-u.actualBoundingBoxLeft,y-u.actualBoundingBoxAscent,x+u.actualBoundingBoxRight,y+u.actualBoundingBoxDescent];}
-function _cad11Bebas(k,daftar){return daftar.every(b=>Math.min(k[2],b[2])-Math.max(k[0],b[0])<=0||Math.min(k[3],b[3])-Math.max(k[1],b[1])<=0);}
-function _cad11Lingkar(ctx,x,y,r,isi,garis,lebar,putus){ctx.setLineDash(putus||[]); ctx.beginPath(); ctx.arc(x,y,Math.max(0.1,r),0,Math.PI*2); if(isi){ctx.fillStyle=isi; ctx.fill();} if(garis){ctx.strokeStyle=garis; ctx.lineWidth=lebar||1.2; ctx.stroke();} ctx.setLineDash([]);}
-function _cad11Panah(ctx,x1,y1,x2,y2,warna){const a=Math.atan2(y2-y1,x2-x1); _ttlGaris(ctx,x1,y1,x2,y2,warna,1.2); ctx.fillStyle=warna; ctx.beginPath(); ctx.moveTo(x2,y2); ctx.lineTo(x2-7*Math.cos(a)+3.5*Math.sin(a),y2-7*Math.sin(a)-3.5*Math.cos(a)); ctx.lineTo(x2-7*Math.cos(a)-3.5*Math.sin(a),y2-7*Math.sin(a)+3.5*Math.cos(a)); ctx.closePath(); ctx.fill();}
-function _cad11Kotak(ctx,x,y,w,h,isi,garis,lebar){ctx.fillStyle=isi; ctx.fillRect(x,y,w,h); ctx.strokeStyle=garis; ctx.lineWidth=lebar||1.4; ctx.strokeRect(x,y,w,h);}
+function _cad11Lingkar(ctx,x,y,r,isi,garis,lebar,putus){if(garis) _cad11RuasBusur(x,y,Math.max(0.1,r),0,2*Math.PI,lebar||1.2,(putus&&putus.length)||_cad11Alfa(garis)<=0.4); ctx.setLineDash(putus||[]); ctx.beginPath(); ctx.arc(x,y,Math.max(0.1,r),0,Math.PI*2); if(isi){ctx.fillStyle=isi; ctx.fill();} if(garis){ctx.strokeStyle=garis; ctx.lineWidth=lebar||1.2; ctx.stroke();} ctx.setLineDash([]);}
+function _cad11Panah(ctx,x1,y1,x2,y2,warna){const a=Math.atan2(y2-y1,x2-x1); _cad11G(ctx,x1,y1,x2,y2,warna,1.2); _cad11RuasJalur([[x2,y2],[x2-7*Math.cos(a)+3.5*Math.sin(a),y2-7*Math.sin(a)-3.5*Math.cos(a)],[x2-7*Math.cos(a)-3.5*Math.sin(a),y2-7*Math.sin(a)+3.5*Math.cos(a)]],1,true); ctx.fillStyle=warna; ctx.beginPath(); ctx.moveTo(x2,y2); ctx.lineTo(x2-7*Math.cos(a)+3.5*Math.sin(a),y2-7*Math.sin(a)-3.5*Math.cos(a)); ctx.lineTo(x2-7*Math.cos(a)-3.5*Math.sin(a),y2-7*Math.sin(a)+3.5*Math.cos(a)); ctx.closePath(); ctx.fill();}
+function _cad11Kotak(ctx,x,y,w,h,isi,garis,lebar){_cad11RuasJalur([[x,y],[x+w,y],[x+w,y+h],[x,y+h]],lebar||1.4,true); ctx.fillStyle=isi; ctx.fillRect(x,y,w,h); ctx.strokeStyle=garis; ctx.lineWidth=lebar||1.4; ctx.strokeRect(x,y,w,h);}
 // Tinggi kanvas di layar sempit menurut lebarnya: tabel [[lebar batas, tinggi], ...] berurutan naik; dipakai tinggi
 // pertama yang batasnya melebihi lebar kanvas (teks dipecah makin banyak baris saat kanvas makin sempit).
 function _cad11TinggiSempit(id,tabel){const cv=document.getElementById(id), W=cv?(cv.clientWidth||cv.width):1000; const t=tabel.find(([L])=>W<L); return t?t[1]:tabel[tabel.length-1][1];}
@@ -9335,7 +9383,7 @@ let _ekFrame=0;
 function toggleEngkol(){_ttlToggle('engkol','btnEngkol',drawEngkol);}
 window.toggleEngkol=toggleEngkol;
 function drawEngkol(){
-  const k=_ttlKanvas('cvEngkol',360); if(!k) return; const {ctx,W,H}=k;
+  const k=_ttlKanvas('cvEngkol',360); if(!k) return; const {ctx,W,H}=k; _cad11Awal(W,H);
   const sempit=W<_TTL_SEMPIT;
   const r=_ttlNilai('sl_ek_r',25), l=Math.max(_ttlNilai('sl_ek_l',90),r+10), thS=_ttlNilai('sl_ek_th',60);
   _ttlTulis('v_ek_r',r.toFixed(0)); _ttlTulis('v_ek_l',l.toFixed(0)); _ttlTulis('v_ek_th',thS.toFixed(0));
@@ -9347,54 +9395,28 @@ function drawEngkol(){
   // skala: layar lebar = mekanisme di kiri; layar sempit = selebar kanvas pada pita ±104 px di bawah judul
   let sk, ox, oy;
   if(sempit){sk=Math.max(0.05,Math.min((W-28)/(l+3*r+14),36/r,2)); ox=(W-(l+3*r+14)*sk)/2+r*sk; oy=yA+52;}
-  else{sk=Math.max(0.05,Math.min((W*0.56)/(xmax+r+40),(H-80)/(2*r+40))); ox=W*0.04+(r+10)*sk; oy=H*0.52;}
+  else{sk=Math.max(0.05,Math.min((W*0.56)/(xmax+r+40),(H-80)/(2*r+40),(W*0.58)/(xmax+2*r+24))); ox=W*0.04+(r+10)*sk; oy=H*0.52;}
   const X=v=>ox+v*sk, Y=v=>oy-v*sk;
   // rel dan arsir dasar (grounded)
   const yRel=oy+12*sk;
-  _ttlGaris(ctx,X(xmin-r-8),yRel,X(xmax+r+14),yRel,'rgba(148,163,184,.6)',1.4);
-  for(let xx=X(xmin-r-8);xx<X(xmax+r+14);xx+=12) _ttlGaris(ctx,xx,yRel,xx-6,yRel+8,'rgba(148,163,184,.3)',1);
-  _ttlGaris(ctx,X(xmin-r-8),oy,X(xmax+r+14),oy,'rgba(148,163,184,.25)',1,[5,4]);
+  _cad11G(ctx,X(xmin-r-8),yRel,X(xmax+r+14),yRel,'rgba(148,163,184,.6)',1.4);
+  for(let xx=X(xmin-r-8);xx<X(xmax+r+14);xx+=12) _cad11G(ctx,xx,yRel,xx-6,yRel+8,'rgba(148,163,184,.3)',1);
+  _cad11G(ctx,X(xmin-r-8),oy,X(xmax+r+14),oy,'rgba(148,163,184,.25)',1,[5,4]);
   // batas langkah
-  [xmin,xmax].forEach(v=>_ttlGaris(ctx,X(v),oy-16*sk,X(v),yRel,'rgba(0,224,158,.35)',1,[3,3]));
+  [xmin,xmax].forEach(v=>_cad11G(ctx,X(v),oy-16*sk,X(v),yRel,'rgba(0,224,158,.35)',1,[3,3]));
   _cad11Lingkar(ctx,X(0),Y(0),r*sk,null,'rgba(245,158,11,.35)',1,[4,4]);
   const A=[X(r*Math.cos(th)),Y(r*Math.sin(th))], B=[X(x),Y(0)];
   _cad11Kotak(ctx,B[0]-12*sk,oy-10*sk,24*sk,22*sk,'rgba(168,85,247,.25)',_C11V,1.6);
-  _ttlGaris(ctx,A[0],A[1],B[0],B[1],_C11C,Math.max(3,4*sk));
-  _ttlGaris(ctx,X(0),Y(0),A[0],A[1],_C11A,Math.max(4,5*sk));
-  // Label A menghindari label dimensi x (bisa bertemu saat pin A di bawah rel): calon posisi dicoba berurutan.
-  // Layar lebar: calon pertama = posisi semula A + (7, −7); layar sempit: radial ke luar dari O.
-  const FB="bold 10px 'JetBrains Mono',monospace", FT="bold 11px 'JetBrains Mono',monospace", PIN=[4,'#0a101f','#e2e8f0',1.5];
-  ctx.font=_F11_10; const wx=ctx.measureText('x = '+x.toFixed(2)).width/2+2, cxL=(X(0)+B[0])/2, yL=yRel+17;
-  const ur=[Math.cos(th),-Math.sin(th)], up=[-Math.sin(th),-Math.cos(th)];
-  const calonA=[sempit?[A[0]+11*ur[0],A[1]+11*ur[1]]:[A[0]+10,A[1]-11],[A[0]+11*up[0],A[1]+11*up[1]],[A[0]-11*up[0],A[1]-11*up[1]],
-    [A[0]-11*ur[0],A[1]-11*ur[1]],[A[0],A[1]-14],[A[0],A[1]+16],[A[0]-14,A[1]],[A[0]+14,A[1]]];
-  const iA=Math.max(0,calonA.findIndex(([px,py])=>px+5<cxL-wx||px-5>cxL+wx||py+5<yL-9||py-5>yL+3));
-  const tulisA=()=>{if(iA===0&&!sempit) _cad11Teks(ctx,'A',A[0]+7,A[1]-7,'#e2e8f0',FB); else _cad11Teks(ctx,'A',calonA[iA][0],calonA[iA][1]+4,'#e2e8f0',FB,'center');};
-  // sudut θ; di layar sempit busurnya ikut skala dan label O, θ diletakkan menjauhi engkol agar tidak bertumpuk
+  _cad11G(ctx,A[0],A[1],B[0],B[1],_C11C,Math.max(3,4*sk));
+  _cad11G(ctx,X(0),Y(0),A[0],A[1],_C11A,Math.max(4,5*sk));
+  [[X(0),Y(0)],A,B].forEach(([px,py])=>_cad11Lingkar(ctx,px,py,4,'#0a101f','#e2e8f0',1.5));
+  // sudut θ (di layar sempit busurnya ikut skala)
   const rho=sempit?Math.min(18,0.6*r*sk):18, bis=th/2;
-  const busur=()=>{ctx.strokeStyle=_C11G; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(X(0),Y(0),rho,0,-th,true); ctx.stroke();};
-  if(sempit){
-    [[X(0),Y(0)],A,B].forEach(([px,py])=>_cad11Lingkar(ctx,px,py,...PIN)); busur(); tulisA();
-    _cad11Teks(ctx,'O',X(0)-12*Math.cos(bis),Y(0)+12*Math.sin(bis)+4,'#e2e8f0',FB,'center');
-    _cad11Teks(ctx,'θ',X(0)+(rho+8)*Math.cos(bis),Y(0)-(rho+8)*Math.sin(bis)+4,_C11G,FT,'center');
-    _cad11Teks(ctx,'B',B[0]+7,B[1]-7,'#e2e8f0',FB);
-  } else {
-    _cad11Lingkar(ctx,X(0),Y(0),...PIN); _cad11Teks(ctx,'O',X(0)+7,Y(0)-7,'#e2e8f0',FB);
-    _cad11Lingkar(ctx,A[0],A[1],...PIN); tulisA();
-    _cad11Lingkar(ctx,B[0],B[1],...PIN); _cad11Teks(ctx,'B',B[0]+7,B[1]-7,'#e2e8f0',FB);
-    busur();
-    // θ di posisi semula, kecuali menimpa label O, A, B, atau x (terjadi saat r kecil di θ ≈ 0°, atau l ≈ r di θ ≈ 180°)
-    const lain=[_cad11Tinta(ctx,'O',X(0)+7,Y(0)-7,FB,'left'),iA===0?_cad11Tinta(ctx,'A',A[0]+7,A[1]-7,FB,'left'):_cad11Tinta(ctx,'A',calonA[iA][0],calonA[iA][1]+4,FB,'center'),
-      _cad11Tinta(ctx,'B',B[0]+7,B[1]-7,FB,'left'),_cad11Tinta(ctx,'x = '+x.toFixed(2),cxL,yL,_F11_10,'center')];
-    const calonT=[[X(0)+22,Y(0)-6,'left'],[X(0)+22,Y(0)+16,'left'],[X(0)-12,Y(0)-6,'right'],[X(0)-12,Y(0)+16,'right'],[X(0)+(rho+10)*Math.cos(bis),Y(0)-(rho+10)*Math.sin(bis)+4,'center']];
-    const pT=calonT.find(([px,py,al])=>_cad11Bebas(_cad11Tinta(ctx,'θ',px,py,FT,al),lain))||calonT[0];
-    _cad11Teks(ctx,'θ',pT[0],pT[1],_C11G,FT,pT[2]);
-  }
+  ctx.strokeStyle=_C11G; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(X(0),Y(0),rho,0,-th,true); ctx.stroke(); _cad11RuasBusur(X(0),Y(0),rho,0,-th,1.2);
   // dimensi x
   const yD=yRel+22;
-  _ttlGaris(ctx,X(0),yRel+4,X(0),yD+6,_C11G,0.8,[3,2]); _ttlGaris(ctx,B[0],yRel+4,B[0],yD+6,_C11G,0.8,[3,2]);
+  _cad11G(ctx,X(0),yRel+4,X(0),yD+6,_C11G,0.8,[3,2]); _cad11G(ctx,B[0],yRel+4,B[0],yD+6,_C11G,0.8,[3,2]);
   _cad11Panah(ctx,X(0),yD,B[0],yD,_C11G); _cad11Panah(ctx,B[0],yD,X(0),yD,_C11G);
-  _cad11Teks(ctx,'x = '+x.toFixed(2),(X(0)+B[0])/2,yD-5,_C11G,_F11_10,'center');
   // kolom kanan (layar sempit: ditumpuk di bawah mekanisme): DOF dan rumus
   const tx=sempit?14:W*0.64, ty=sempit?yA+120:H*0.14, jarak=sempit?[16,16,16,16,16]:[18,20,20,18,18];
   const yAkhir=_cad11Kolom(ctx,[
@@ -9403,15 +9425,34 @@ function drawEngkol(){
     ['θ = '+thD.toFixed(0)+'°  →  φ = '+(phi*180/Math.PI).toFixed(2)+'°',_C11A,_F11_11,jarak[2]],
     ['x = r cosθ + √(l² − r² sin²θ)',_C11C,_F11_11,jarak[3]],
     ['  = '+x.toFixed(3)+' mm',_C11G,_F11_11,jarak[4]],
-    [['x ∈ ['+xmin+', '+xmax+'],',' langkah 2r = '+(2*r)],_C11M,_F11_10,0]],tx,ty,sempit?W-28:W-tx-8);
+    [['x ∈ ['+xmin+', '+xmax+'],',' langkah 2r = '+(2*r)],_C11M,_F11_10,0]],tx,ty,sempit?W-28:W-tx-8,13);
   // grafik x(θ)
   let gx=tx, gy=H-14, gw=W-12-tx, gh=H*0.34;
   if(sempit){gx=14; gw=W-28; gh=Math.max(30,Math.min(70,H-16-(yAkhir+18))); gy=yAkhir+18+gh;}
-  _ttlGaris(ctx,gx,gy,gx+gw,gy,'rgba(148,163,184,.5)',1); _ttlGaris(ctx,gx,gy,gx,gy-gh,'rgba(148,163,184,.5)',1);
-  ctx.strokeStyle=_C11C; ctx.lineWidth=1.5; ctx.beginPath();
-  for(let i=0;i<=72;i++){const tt=i/72*2*Math.PI; const xv=_cad11X(r,l,tt); const px=gx+i/72*gw, py=gy-(xv-xmin)/(2*r)*gh; i?ctx.lineTo(px,py):ctx.moveTo(px,py);} ctx.stroke();
+  _cad11G(ctx,gx,gy,gx+gw,gy,'rgba(148,163,184,.5)',1); _cad11G(ctx,gx,gy,gx,gy-gh,'rgba(148,163,184,.5)',1);
+  const kurva=[]; for(let i=0;i<=72;i++){const tt=i/72*2*Math.PI; kurva.push([gx+i/72*gw,gy-(_cad11X(r,l,tt)-xmin)/(2*r)*gh]);}
+  ctx.strokeStyle=_C11C; ctx.lineWidth=1.5; ctx.beginPath(); kurva.forEach(([px,py],i)=>i?ctx.lineTo(px,py):ctx.moveTo(px,py)); ctx.stroke(); _cad11RuasJalur(kurva,1.5);
   _cad11Lingkar(ctx,gx+thD/360*gw,gy-(x-xmin)/(2*r)*gh,4,_C11G,null);
-  _cad11Teks(ctx,'x(θ)',gx+4,gy-gh+10,_C11M,_F11_9); _cad11Teks(ctx,'0°',gx,gy+10,_C11M,_F11_9); _cad11Teks(ctx,'360°',gx+gw,gy+10,_C11M,_F11_9,'right');
+  // Label ditulis terakhir, masing-masing di calon posisi pertama yang tidak dilewati garis (di layar lebar: posisi
+  // semula lebih dulu). Nama sumbu grafik x(θ) di atas sumbunya, bukan di dalam area kurva.
+  const FB="bold 10px 'JetBrains Mono',monospace", FT="bold 11px 'JetBrains Mono',monospace";
+  const ur=[Math.cos(th),-Math.sin(th)], up=[-Math.sin(th),-Math.cos(th)];
+  const cA=[[A[0]+11*ur[0],A[1]+11*ur[1]+4,'center'],[A[0]+11*up[0],A[1]+11*up[1]+4,'center'],[A[0]-11*up[0],A[1]-11*up[1]+4,'center'],..._cad11Cincin(A[0],A[1],12,40,th)];
+  if(!sempit) cA.unshift([A[0]+7,A[1]-7,'left']);
+  _cad11Label(ctx,'A',cA,'#e2e8f0',FB);
+  const yB=oy-10*sk-6;
+  _cad11Label(ctx,'B',[[B[0],yB,'center'],[B[0]+4,yB,'left'],[B[0]-4,yB,'right'],[B[0]+12*sk+4,oy-2,'left'],[B[0]-12*sk-4,oy-2,'right'],..._cad11Cincin(B[0],yB-4,8,40,Math.PI/2)],'#e2e8f0',FB);
+  const cO=sempit?[[X(0)-12*Math.cos(bis),Y(0)+12*Math.sin(bis)+4,'center'],..._cad11Cincin(X(0),Y(0),12,44,bis+Math.PI)]
+                 :[[X(0)+7,Y(0)-7,'left'],..._cad11Cincin(X(0),Y(0),12,44,th+Math.PI)];
+  _cad11Label(ctx,'O',cO,'#e2e8f0',FB);
+  const cT=[[X(0)+(rho+8)*Math.cos(bis),Y(0)-(rho+8)*Math.sin(bis)+4,'center'],[X(0)+(rho+13)*Math.cos(bis),Y(0)-(rho+13)*Math.sin(bis)+4,'center'],..._cad11Cincin(X(0),Y(0),rho+9,rho+41,bis)];
+  if(!sempit) cT.unshift([X(0)+22,Y(0)-6,'left']);
+  _cad11Label(ctx,'θ',cT,_C11G,FT);
+  const sX='x = '+x.toFixed(2), dxB=B[0]-X(0);
+  _cad11Label(ctx,sX,[[X(0)+dxB/2,yD-5,'center'],[X(0)+dxB/2,yD+15,'center'],[X(0)+dxB*0.72,yD-5,'center'],[X(0)+dxB*0.28,yD-5,'center'],
+    [X(0)+dxB*0.72,yD+15,'center'],[X(0)+dxB*0.28,yD+15,'center'],[B[0]+10,yD+4,'left'],[X(0)-10,yD+4,'right'],..._cad11Cincin(X(0)+dxB/2,yD,12,48,-Math.PI/2)],_C11G,_F11_10);
+  _cad11Label(ctx,'x(θ)',[[gx+4,gy-gh-4,'left'],[gx+22,gy-gh-4,'left'],[gx+gw,gy-gh-4,'right'],[gx+gw/2,gy-gh-4,'center'],[gx+4,gy-gh+10,'left'],[gx+gw/2,gy-gh/2+3,'center']],_C11M,_F11_9);
+  _cad11Label(ctx,'0°',[[gx,gy+10,'left']],_C11M,_F11_9); _cad11Label(ctx,'360°',[[gx+gw,gy+10,'right']],_C11M,_F11_9);
   _ttlTulis('engkolInfo','θ = '+thD.toFixed(0)+'°: x = '+r+'·cos θ + √('+l+'² − '+r+'²·sin² θ) = '+x.toFixed(3)+' mm; kemiringan batang φ = '+(phi*180/Math.PI).toFixed(2)+'°. Titik mati luar x = '+xmax+' (θ = 0°), titik mati dalam x = '+xmin+' (θ = 180°); satu sudut engkol menentukan seluruh posisi karena F = 1.');
   if(_ttlJalan('engkol')){_ekFrame++; requestAnimationFrame(drawEngkol);}
 }
@@ -9423,7 +9464,7 @@ let _pmFrame=0;
 function togglePusatMassa(){_ttlToggle('pusatmassa','btnPusatMassa',drawPusatMassa);}
 window.togglePusatMassa=togglePusatMassa;
 function drawPusatMassa(){
-  const k=_ttlKanvas('cvPusatMassa',_cad11TinggiSempit('cvPusatMassa',[[244,400],[274,385],[298,360],[369,335],[1e9,310]])); if(!k) return; const {ctx,W,H}=k;
+  const k=_ttlKanvas('cvPusatMassa',_cad11TinggiSempit('cvPusatMassa',[[244,400],[274,385],[298,360],[369,335],[1e9,310]])); if(!k) return; const {ctx,W,H}=k; _cad11Awal(W,H);
   const sempit=W<_TTL_SEMPIT;
   const a=120, b=70, t=15;
   const xS=_ttlNilai('sl_pm_x',60), dB=_ttlNilai('sl_pm_d',30), hB=_ttlNilai('sl_pm_h',40);
@@ -9453,32 +9494,14 @@ function drawPusatMassa(){
   _cad11Lingkar(ctx,X(xB),Y(b/2),dB/2*skT,'rgba(245,158,11,.25)',_C11A,1.6);
   _cad11Lingkar(ctx,X(a/2),Y(b/2),3.5,null,_C11C,1.4); _cad11Lingkar(ctx,X(xB),Y(b/2),3.5,null,_C11A,1.4);
   _cad11Lingkar(ctx,X(xbar),Y(b/2),4.5,_C11G,'#0a101f',1.2);
-  const sXbar='x̄ = '+xbar.toFixed(2);
-  if(sempit){
-    ctx.font=_F11_10; const w2=ctx.measureText(sXbar).width/2+2;
-    _cad11Teks(ctx,sXbar,Math.min(W-14-w2,Math.max(14+w2,X(xbar))),oy+14,_C11G,_F11_10,'center');
-  } else {
-    _cad11Muat(ctx,labelAtas,X(0),Y(b)-8,W*0.48-8,_C11M,_F11_10,'left',12);
-    _cad11Teks(ctx,sXbar,X(xbar),Y(b/2)+dB/2*skT+16,_C11G,_F11_10,'center');
-  }
+  if(!sempit) _cad11Muat(ctx,labelAtas,X(0),Y(b)-8,W*0.48-8,_C11M,_F11_10,'left',12);
   // tampak samping
   const XS=v=>sx+v*skS, ZS=v=>sz-v*skS;
   _cad11Kotak(ctx,XS(0),ZS(t),a*skS,t*skS,'rgba(34,211,238,.14)',_C11C,1.6);
   _cad11Kotak(ctx,XS(xB-dB/2),ZS(t+hB),dB*skS,hB*skS,'rgba(245,158,11,.22)',_C11A,1.6);
-  [[XS(a/2),ZS(t/2),_C11C],[XS(xB),ZS(t+hB/2),_C11A]].forEach(([px,py,c])=>{_cad11Lingkar(ctx,px,py,3.5,'#0a101f',c,1.4); _ttlGaris(ctx,px-7,py,px+7,py,c,1); _ttlGaris(ctx,px,py-7,px,py+7,c,1);});
+  [[XS(a/2),ZS(t/2),_C11C],[XS(xB),ZS(t+hB/2),_C11A]].forEach(([px,py,c])=>{_cad11Lingkar(ctx,px,py,3.5,'#0a101f',c,1.4); _cad11G(ctx,px-7,py,px+7,py,c,1); _cad11G(ctx,px,py-7,px,py+7,c,1);});
   _cad11Lingkar(ctx,XS(xbar),ZS(zbar),4.5,_C11G,'#0a101f',1.2);
   _cad11Teks(ctx,'tampak samping (XZ)',XS(0),sempit?ySamping:ZS(t+hB)-10,_C11M,_F11_10);
-  _cad11Teks(ctx,'G₁',XS(0)-6,ZS(t/2)+4,_C11C,_F11_9,'right');
-  const FB="bold 10px 'JetBrains Mono',monospace";
-  if(sempit){
-    // G₂ di sisi boss yang menjauhi G, label G di sisi G yang menjauhi boss: keduanya tidak pernah bertumpuk
-    const kanan=xbar<xB;
-    _cad11Teks(ctx,'G₂',kanan?XS(xB)+dB/2*skS+5:XS(xB)-dB/2*skS-5,ZS(t+hB/2)+4,_C11A,_F11_9,kanan?'left':'right');
-    _cad11Teks(ctx,'G',kanan?XS(xbar)-8:XS(xbar)+8,ZS(zbar)-6,_C11G,FB,kanan?'right':'left');
-  } else {
-    _cad11Teks(ctx,'G₂',XS(xB)+dB/2*skS+5,ZS(t+hB/2)+4,_C11A,_F11_9);
-    _cad11Teks(ctx,'G',XS(xbar)+8,ZS(zbar)-6,_C11G,FB);
-  }
   // angka
   const V1s=V1.toLocaleString('id-ID'), jk=sempit?16:(W<640?15:18);
   _cad11Kolom(ctx,[
@@ -9486,6 +9509,17 @@ function drawPusatMassa(){
     [['x̄ = (V₁·a/2 + V₂·x_B)/(V₁ + V₂)',' = '+xbar.toFixed(3)+' mm'],_C11G,_F11_10,jk],
     [['z̄ = (V₁·t/2 + V₂·(t + h_B/2))','/(V₁ + V₂)',' = '+zbar.toFixed(3)+' mm'],_C11G,_F11_10,jk],
     [['Placement boss x_B = '+xB.toFixed(1)+' mm',' (Fixed joint + Offset)'],_C11M,_F11_10,0]],sempit?14:sx,yTeks,sempit?W-28:W-sx-8,13);
+  // Label yang menempel pada gambar ditulis terakhir di calon posisi pertama yang tidak dilewati garis.
+  const FB="bold 10px 'JetBrains Mono',monospace", kanan=xbar<xB, rS=dB/2*skS;
+  _cad11Label(ctx,'G₁',[[XS(0)-6,ZS(t/2)+4,'right'],[XS(0)-6,ZS(t/2)+12,'right'],[XS(0)-6,ZS(t)-3,'right'],..._cad11Cincin(XS(0),ZS(t/2),10,34,Math.PI)],_C11C,_F11_9);
+  const kiriB=[XS(xB)-rS-5,ZS(t+hB/2)+4,'right'], kananB=[XS(xB)+rS+5,ZS(t+hB/2)+4,'left'];
+  _cad11Label(ctx,'G₂',[...(sempit&&!kanan?[kiriB,kananB]:[kananB,kiriB]),[XS(xB),ZS(t+hB)-5,'center'],[XS(xB),ZS(t+hB)+12,'center'],
+    [XS(xB)+rS+5,ZS(t+hB)+9,'left'],[XS(xB)-rS-5,ZS(t+hB)+9,'right'],..._cad11Cincin(XS(xB),ZS(t+hB/2),rS+8,rS+44,kanan?0:Math.PI)],_C11A,_F11_9);
+  const kiriG=[XS(xbar)-8,ZS(zbar)-6,'right'], kananG=[XS(xbar)+8,ZS(zbar)-6,'left'];
+  _cad11Label(ctx,'G',[...(sempit&&kanan?[kiriG,kananG]:[kananG,kiriG]),[XS(xbar)+8,ZS(zbar)+13,'left'],[XS(xbar)-8,ZS(zbar)+13,'right'],..._cad11Cincin(XS(xbar),ZS(zbar),11,47,Math.PI/2)],_C11G,FB);
+  const sXbar='x̄ = '+xbar.toFixed(2), rT=dB/2*skT;
+  _cad11Label(ctx,sXbar,sempit?[[X(xbar),oy+14,'center'],[X(xbar)+30,oy+14,'center'],[X(xbar)-30,oy+14,'center'],..._cad11Cincin(X(xbar),oy+14,8,32,0)]
+    :[[X(xbar),Y(b/2)+rT+16,'center'],[X(xbar),Y(b/2)-rT-9,'center'],[X(xbar),oy+14,'center'],[X(xbar),Y(b)+13,'center'],..._cad11Cincin(X(xbar),Y(b/2),rT+10,rT+46,-Math.PI/2)],_C11G,_F11_10);
   _ttlTulis('pusatMassaInfo','Boss pada x_B = '+xB.toFixed(1)+' mm: x̄ = '+xbar.toFixed(3)+' mm, z̄ = '+zbar.toFixed(3)+' mm dari V₁ = '+V1+' dan V₂ = '+V2.toFixed(1)+' mm³; itulah CenterOfMass dari Part.makeCompound(Shape semua link) untuk bahan seragam.');
   if(_ttlJalan('pusatmassa')){_pmFrame++; requestAnimationFrame(drawPusatMassa);}
 }
@@ -9497,7 +9531,7 @@ let _sbFrame=0;
 function toggleSabuk(){_ttlToggle('sabuk','btnSabuk',drawSabuk);}
 window.toggleSabuk=toggleSabuk;
 function drawSabuk(){
-  const k=_ttlKanvas('cvSabuk',_cad11TinggiSempit('cvSabuk',[[224,362],[274,350],[1e9,335]])); if(!k) return; const {ctx,W,H}=k;
+  const k=_ttlKanvas('cvSabuk',_cad11TinggiSempit('cvSabuk',[[224,362],[274,350],[1e9,335]])); if(!k) return; const {ctx,W,H}=k; _cad11Awal(W,H);
   const sempit=W<_TTL_SEMPIT;
   const D1=_ttlNilai('sl_sb_d1',75), D2=Math.max(_ttlNilai('sl_sb_d2',150),D1), C=Math.max(_ttlNilai('sl_sb_c',250),(D1+D2)/2+20);
   _ttlTulis('v_sb_d1',D1.toFixed(0)); _ttlTulis('v_sb_d2',D2.toFixed(0)); _ttlTulis('v_sb_c',C.toFixed(0));
@@ -9513,26 +9547,18 @@ function drawSabuk(){
   else{sk=Math.max(0.05,Math.min((W*0.60)/(C+R1+R2+20),(H-70)/(D2+30))); c1x=W*0.04+R1*sk+10; cy=H*0.55; yD=H-16; tx=W*0.68; ty=H*0.16;}
   const c2x=c1x+C*sk;
   // sabuk (2 busur lilit + 2 garis singgung)
-  ctx.strokeStyle=_C11V; ctx.lineWidth=2.4; ctx.beginPath();
-  const n=40; let a0=Math.PI/2+beta, a1=3*Math.PI/2-beta;
-  for(let j=0;j<=n;j++){const ang=a0+(a1-a0)*j/n; const px=c1x+R1*sk*Math.cos(ang), py=cy-R1*sk*Math.sin(ang); j?ctx.lineTo(px,py):ctx.moveTo(px,py);}
+  const n=40, sabuk=[]; let a0=Math.PI/2+beta, a1=3*Math.PI/2-beta;
+  for(let j=0;j<=n;j++){const ang=a0+(a1-a0)*j/n; sabuk.push([c1x+R1*sk*Math.cos(ang),cy-R1*sk*Math.sin(ang)]);}
   a0=-Math.PI/2-beta; a1=Math.PI/2+beta;
-  for(let j=0;j<=n;j++){const ang=a0+(a1-a0)*j/n; ctx.lineTo(c2x+R2*sk*Math.cos(ang),cy-R2*sk*Math.sin(ang));}
-  ctx.closePath(); ctx.stroke();
+  for(let j=0;j<=n;j++){const ang=a0+(a1-a0)*j/n; sabuk.push([c2x+R2*sk*Math.cos(ang),cy-R2*sk*Math.sin(ang)]);}
+  ctx.strokeStyle=_C11V; ctx.lineWidth=2.4; ctx.beginPath(); sabuk.forEach(([px,py],j)=>j?ctx.lineTo(px,py):ctx.moveTo(px,py)); ctx.closePath(); ctx.stroke(); _cad11RuasJalur(sabuk,2.4,true);
   _cad11Lingkar(ctx,c1x,cy,R1*sk,'rgba(34,211,238,.15)',_C11C,1.4); _cad11Lingkar(ctx,c2x,cy,R2*sk,'rgba(245,158,11,.15)',_C11A,1.4);
   // jari-jari berputar (rasio i)
   const th1=_sbFrame*4*Math.PI/180, th2=th1/i;
-  for(let j=0;j<3;j++){const a=th1+j*2*Math.PI/3; _ttlGaris(ctx,c1x,cy,c1x+R1*sk*0.85*Math.cos(a),cy-R1*sk*0.85*Math.sin(a),'rgba(34,211,238,.6)',1.4);}
-  for(let j=0;j<3;j++){const a=th2+j*2*Math.PI/3; _ttlGaris(ctx,c2x,cy,c2x+R2*sk*0.85*Math.cos(a),cy-R2*sk*0.85*Math.sin(a),'rgba(245,158,11,.6)',1.4);}
+  for(let j=0;j<3;j++){const a=th1+j*2*Math.PI/3; _cad11G(ctx,c1x,cy,c1x+R1*sk*0.85*Math.cos(a),cy-R1*sk*0.85*Math.sin(a),'rgba(34,211,238,.6)',1.4);}
+  for(let j=0;j<3;j++){const a=th2+j*2*Math.PI/3; _cad11G(ctx,c2x,cy,c2x+R2*sk*0.85*Math.cos(a),cy-R2*sk*0.85*Math.sin(a),'rgba(245,158,11,.6)',1.4);}
   _cad11Lingkar(ctx,c1x,cy,3,'#e2e8f0',null); _cad11Lingkar(ctx,c2x,cy,3,'#e2e8f0',null);
-  // label diameter di bawah tiap puli; di layar sempit dijepit ke dalam tepi kanvas
-  ctx.font=_F11_10;
-  const jepit=(s,x)=>{if(!sempit) return x; const w=ctx.measureText(s).width/2+4; return Math.min(W-w,Math.max(w,x));};
-  const sD1='⌀D₁ = '+D1, sD2='⌀D₂ = '+D2;
-  _cad11Teks(ctx,sD1,jepit(sD1,c1x),cy+R1*sk+16,_C11C,_F11_10,'center');
-  _cad11Teks(ctx,sD2,jepit(sD2,c2x),cy+R2*sk+16,_C11A,_F11_10,'center');
   _cad11Panah(ctx,c1x,yD,c2x,yD,_C11G); _cad11Panah(ctx,c2x,yD,c1x,yD,_C11G);
-  _cad11Teks(ctx,'C = '+C,(c1x+c2x)/2,yD-5,_C11G,_F11_10,'center');
   const j=sempit?[14,16,16,16,19,15,16]:[16,20,20,20,28,18,20];
   _cad11Kolom(ctx,[
     ['L = 2C + π(D₁+D₂)/2',_C11C,_F11_11,j[0]],
@@ -9543,6 +9569,14 @@ function drawSabuk(){
     ['i = D₂/D₁ = '+i.toFixed(3),_C11A,_F11_11,j[5]],
     ['n₂ = n₁/i = '+n2.toFixed(0)+' rpm',_C11A,_F11_11,j[6]],
     [['lilit puli kecil = '+lilit.toFixed(1)+'°',lilit<120?' (< 120°!)':''],lilit<120?_C11R:_C11M,_F11_10,0]],tx,ty,sempit?W-28:W-tx-8,13);
+  // Label diameter dan jarak C ditulis terakhir, di calon pertama yang tidak dilewati sabuk, jari-jari, atau garis ukur.
+  ctx.font=_F11_10;
+  const jepit=(s,x)=>{if(!sempit) return x; const w=ctx.measureText(s).width/2+4; return Math.min(W-w,Math.max(w,x));};
+  const sD1='⌀D₁ = '+D1, sD2='⌀D₂ = '+D2, r1=R1*sk, r2=R2*sk;
+  _cad11Label(ctx,sD1,[[jepit(sD1,c1x),cy+r1+16,'center'],[jepit(sD1,c1x),cy+r1+13,'center'],[jepit(sD1,c1x),cy+r1+28,'center'],[c1x-r1*0.7-4,cy+r1*0.7+12,'right'],[c1x-r1-6,cy+4,'right'],[jepit(sD1,c1x),cy-r1-8,'center'],..._cad11Cincin(c1x,cy,r1+12,r1+52,-Math.PI/2)],_C11C,_F11_10);
+  _cad11Label(ctx,sD2,[[jepit(sD2,c2x),cy+r2+16,'center'],[jepit(sD2,c2x),cy+r2+13,'center'],[c2x+r2*0.7+4,cy+r2*0.7+12,'left'],[c2x+r2+6,cy+4,'left'],[jepit(sD2,c2x),cy+r2+28,'center'],[c2x-r2*0.7-4,cy+r2*0.7+12,'right'],[jepit(sD2,c2x),cy-r2-8,'center'],..._cad11Cincin(c2x,cy,r2+12,r2+52,-Math.PI/2)],_C11A,_F11_10);
+  const mC=(c1x+c2x)/2;
+  _cad11Label(ctx,'C = '+C,[[mC,yD-5,'center'],[mC,yD+13,'center'],[mC-40,yD-5,'center'],[mC+40,yD-5,'center'],[mC-40,yD+13,'center'],[mC+40,yD+13,'center'],..._cad11Cincin(mC,yD,10,42,Math.PI/2)],_C11G,_F11_10);
   _ttlTulis('sabukInfo','D₁ = '+D1+', D₂ = '+D2+', C = '+C+': L = 2·'+C+' + π·'+((D1+D2)/2)+' + '+((D2-D1)*(D2-D1)/(4*C)).toFixed(3)+' = '+Ldekat.toFixed(2)+' mm (panjang singgung tepat '+Ltepat.toFixed(2)+' mm, selisih '+Math.abs(Ltepat-Ldekat).toFixed(3)+' mm); rasio i = '+i.toFixed(3)+', puli besar '+n2.toFixed(0)+' rpm; sudut lilit puli kecil '+lilit.toFixed(1)+'°.');
   if(_ttlJalan('sabuk')){_sbFrame++; requestAnimationFrame(drawSabuk);}
 }
@@ -9554,7 +9588,7 @@ let _clFrame=0;
 function toggleClearance(){_ttlToggle('clearance','btnClearance',drawClearance);}
 window.toggleClearance=toggleClearance;
 function drawClearance(){
-  const k=_ttlKanvas('cvClearance',_cad11TinggiSempit('cvClearance',[[244,400],[274,385],[298,348],[1e9,335]])); if(!k) return; const {ctx,W,H}=k;
+  const k=_ttlKanvas('cvClearance',_cad11TinggiSempit('cvClearance',[[244,400],[274,385],[298,348],[1e9,335]])); if(!k) return; const {ctx,W,H}=k; _cad11Awal(W,H);
   const sempit=W<_TTL_SEMPIT;
   const D=_ttlNilai('sl_cl_D',25), dS=_ttlNilai('sl_cl_d',24.94);
   _ttlTulis('v_cl_D',D.toFixed(1).replace('.',',')); _ttlTulis('v_cl_d',dS.toFixed(2).replace('.',','));
@@ -9578,7 +9612,7 @@ function drawClearance(){
   else {_cad11Lingkar(ctx,cx,cy,rd,'rgba(245,158,11,.25)',_C11A,1.8);}
   // panah celah radial
   const ang=-0.6;
-  if(c>0){_cad11Panah(ctx,cx+rd*Math.cos(ang),cy+rd*Math.sin(ang),cx+R*Math.cos(ang),cy+R*Math.sin(ang),_C11G); _cad11Teks(ctx,'c',cx+R*Math.cos(ang)+8,cy+R*Math.sin(ang)-4,_C11G,"bold 11px 'JetBrains Mono',monospace");}
+  if(c>0) _cad11Panah(ctx,cx+rd*Math.cos(ang),cy+rd*Math.sin(ang),cx+R*Math.cos(ang),cy+R*Math.sin(ang),_C11G);
   const lL=sempit?W-24:W*0.56-16;
   _cad11Muat(ctx,'lubang ⌀D (bus, grounded)',cx,yL,lL,_C11C,_F11_10,'center');
   _cad11Muat(ctx,'poros ⌀d (Cylindrical joint)',cx,yL+13,lL,_C11A,_F11_10,'center');
@@ -9592,6 +9626,9 @@ function drawClearance(){
     [['Std Measure Distance',' dua silinder',' = '+(c>0?c.toFixed(4):'0')],_C11M,_F11_10,j[4]],
     [['Part Common volume',' = '+(c<0?'> 0 (tabrakan!)':'0')],c<0?_C11R:_C11M,_F11_10,j[5]],
     [['joint tetap terbentuk;',' tabrakan harus Anda periksa'],_C11M,_F11_10,0]],tx,ty,sempit?W-28:W-tx-8,13);
+  // label c di ujung panah celah, di calon pertama yang tidak dilewati lingkaran lubang, poros, atau tepi bus
+  if(c>0){const ux=cx+R*Math.cos(ang), uy=cy+R*Math.sin(ang);
+    _cad11Label(ctx,'c',[[ux+8,uy-4,'left'],[ux+9,uy+9,'left'],[ux+4,uy-9,'left'],[cx+(R+m/2)*Math.cos(ang),cy+(R+m/2)*Math.sin(ang)+4,'center'],..._cad11Cincin(ux,uy,10,34,-ang)],_C11G,"bold 11px 'JetBrains Mono',monospace");}
   _ttlTulis('clearanceInfo','D = '+D.toFixed(2)+', d = '+d.toFixed(3)+': c = ('+D.toFixed(2)+' − '+d.toFixed(3)+')/2 = '+c.toFixed(4)+' mm — '+(c>0?'kelonggaran (Std Measure Distance membaca angka ini)':(c<0?'interferensi: Part Common bervolume > 0, model harus dikoreksi':'pas'))+'.');
   if(_ttlJalan('clearance')){_clFrame++; requestAnimationFrame(drawClearance);}
 }

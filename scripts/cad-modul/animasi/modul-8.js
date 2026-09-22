@@ -122,13 +122,14 @@ function drawDefleksi(){
   ctx.closePath(); ctx.fillStyle='rgba(34,211,238,.18)'; ctx.fill(); ctx.strokeStyle='#22d3ee'; ctx.lineWidth=1.8; ctx.stroke();
   const tx=W*0.66, ax=X(L)-3, ay=oy+yy(L), ekor=ay-30-22*(F/Math.max(FM,1)), yD=oy+hp+yy(L)/2+4;
   _cad8Panah(ctx,ax,ekor,ax,ay-3,'#ef4444',1.8);
-  // Label F di kanan panah, diangkat bila mendekati label δ. Bila pada F penuh label itu akan menabrak kolom rumus
-  // atau tepi kanan (L panjang), label pindah ke kiri panah pada ketinggian tetap di atas garis putus-putus balok
-  // semula, jadi tidak menimpa balok, garis putus-putus, maupun "σ maks". Sisi dipilih dari lebar label pada
-  // F penuh sehingga tidak berganti selama animasi.
+  // Label F di kanan panah mengikuti ujung balok, tetapi berhenti 3 px di atas pangkal garis penanda δ (di bawah
+  // balok semula) agar tidak dilintasi garis itu, dan diangkat bila mendekati label δ. Bila pada F penuh label itu
+  // akan menabrak kolom rumus atau tepi kanan (L panjang), label pindah ke kiri panah pada ketinggian tetap di atas
+  // garis putus-putus balok semula, jadi tidak menimpa balok, garis putus-putus, maupun "σ maks". Sisi dipilih dari
+  // lebar label pada F penuh sehingga tidak berganti selama animasi.
   ctx.fillStyle='#ef4444'; ctx.font="bold 11px 'JetBrains Mono',monospace";
   const sF='F = '+F.toFixed(0)+' N', wF=ctx.measureText('F = '+FM.toFixed(0)+' N').width, batas=sempit?W-8:tx-8;
-  if(ax+6+wF<=batas){ctx.textAlign='left'; ctx.fillText(sF,ax+6,Math.min(ay-26,yD-12));}
+  if(ax+6+wF<=batas){ctx.textAlign='left'; ctx.fillText(sF,ax+6,Math.min(ay-26,yD-12,oy+hp-3));}
   else {ctx.textAlign='right'; ctx.fillText(sF,Math.max(8+wF,ax-6),oy-22);}
   ctx.textAlign='left';
   ctx.strokeStyle='#00e09e'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(X(L)+12,oy+hp); ctx.lineTo(X(L)+12,oy+hp+yy(L)); ctx.stroke();

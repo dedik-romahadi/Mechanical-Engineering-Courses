@@ -9247,6 +9247,18 @@ function _ttlTeks(ctx,teks,x,y,maxW,opsi){
   if(baris){ctx.fillText(baris,x,yy); yy+=lh;}
   ctx.font=f; return yy;
 }
+// Label berpelat: kotak warna latar kanvas digambar di belakang teks sehingga garis yang
+// melintas di belakangnya terputus (seperti gambar teknik yang memutus garis bantu di belakang
+// angka dimensi). Pakai untuk angka dimensi di atas garis dimensinya atau label di atas kisi/kurva
+// yang tidak bisa dipindah. Pelat hanya menutupi garis yang digambar SEBELUM label.
+// opsi: {pad (bawaan 2), latar (bawaan '#050a16')}. Perataan mengikuti ctx.textAlign/textBaseline.
+function _ttlLabel(ctx,teks,x,y,opsi){
+  opsi=opsi||{};
+  const u=ctx.measureText(teks), pad=opsi.pad==null?2:opsi.pad;
+  const x0=x-u.actualBoundingBoxLeft-pad, x1=x+u.actualBoundingBoxRight+pad, y0=y-u.actualBoundingBoxAscent-pad, y1=y+u.actualBoundingBoxDescent+pad;
+  const warna=ctx.fillStyle; ctx.fillStyle=opsi.latar||'#050a16'; ctx.fillRect(x0,y0,x1-x0,y1-y0); ctx.fillStyle=warna;
+  ctx.__plat=true; ctx.fillText(teks,x,y); ctx.__plat=false;
+}
 function _ttlNilai(id,def){const el=document.getElementById(id); const v=parseFloat(el&&el.value); return Number.isFinite(v)?v:def;}
 function _ttlTulis(id,teks){const el=document.getElementById(id); if(el) el.textContent=teks;}
 function _ttlGaris(ctx,x1,y1,x2,y2,warna,lebar,putus){
@@ -9377,8 +9389,9 @@ function drawKaleng() {
   ctx.font = f10; _cad14Teks(ctx, tRo, _cad14Tengah(ctx, tRo, X(rOpt), W, 6), py0 + 16, '#00e09e', f10, 'center');
   if (!sempit) {
     _cad14Teks(ctx, 'A(r) = 2πr² + 2V₀/r', px0 + 10, py1 - 14, 'rgba(148,163,184,.9)', f10);
-    _cad14Teks(ctx, tAs, px1, py1 - 14, '#00e09e', f10, 'right');
-    _cad14Teks(ctx, tA, px1, py1 + 4, '#f59e0b', f10, 'right');
+    // A* dan A di atas ujung kanan kurva (dulu A di py1 + 4 sehingga dicoret ujung kurva yang naik ke py1)
+    _cad14Teks(ctx, tAs, px1, py1 - 28, '#00e09e', f10, 'right');
+    _cad14Teks(ctx, tA, px1, py1 - 14, '#f59e0b', f10, 'right');
   }
   _ttlTulis('kalengInfo', 'V₀ = ' + _cad14Num(V0, 0) + ' mm³ → r* = ' + rOpt.toFixed(3) + ' mm, h* = 2r* = ' + hOpt.toFixed(3) + ' mm, A* = ' + aOpt.toFixed(2) + ' mm²; pada r = ' + r.toFixed(2) + ' mm tinggi menjadi ' + h.toFixed(2) + ' mm dan luasnya ' + A.toFixed(2) + ' mm² (' + (100 * (A - aOpt) / aOpt).toFixed(2) + ' % di atas minimum)');
   if (_ttlJalan('kaleng')) { _klFrame++; requestAnimationFrame(drawKaleng); }

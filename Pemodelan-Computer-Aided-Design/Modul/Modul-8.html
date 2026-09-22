@@ -9261,6 +9261,18 @@ function _ttlTeks(ctx,teks,x,y,maxW,opsi){
   if(baris){ctx.fillText(baris,x,yy); yy+=lh;}
   ctx.font=f; return yy;
 }
+// Label berpelat: kotak warna latar kanvas digambar di belakang teks sehingga garis yang
+// melintas di belakangnya terputus (seperti gambar teknik yang memutus garis bantu di belakang
+// angka dimensi). Pakai untuk angka dimensi di atas garis dimensinya atau label di atas kisi/kurva
+// yang tidak bisa dipindah. Pelat hanya menutupi garis yang digambar SEBELUM label.
+// opsi: {pad (bawaan 2), latar (bawaan '#050a16')}. Perataan mengikuti ctx.textAlign/textBaseline.
+function _ttlLabel(ctx,teks,x,y,opsi){
+  opsi=opsi||{};
+  const u=ctx.measureText(teks), pad=opsi.pad==null?2:opsi.pad;
+  const x0=x-u.actualBoundingBoxLeft-pad, x1=x+u.actualBoundingBoxRight+pad, y0=y-u.actualBoundingBoxAscent-pad, y1=y+u.actualBoundingBoxDescent+pad;
+  const warna=ctx.fillStyle; ctx.fillStyle=opsi.latar||'#050a16'; ctx.fillRect(x0,y0,x1-x0,y1-y0); ctx.fillStyle=warna;
+  ctx.__plat=true; ctx.fillText(teks,x,y); ctx.__plat=false;
+}
 function _ttlNilai(id,def){const el=document.getElementById(id); const v=parseFloat(el&&el.value); return Number.isFinite(v)?v:def;}
 function _ttlTulis(id,teks){const el=document.getElementById(id); if(el) el.textContent=teks;}
 function _ttlGaris(ctx,x1,y1,x2,y2,warna,lebar,putus){
@@ -9413,13 +9425,14 @@ function drawDefleksi(){
   ctx.closePath(); ctx.fillStyle='rgba(34,211,238,.18)'; ctx.fill(); ctx.strokeStyle='#22d3ee'; ctx.lineWidth=1.8; ctx.stroke();
   const tx=W*0.66, ax=X(L)-3, ay=oy+yy(L), ekor=ay-30-22*(F/Math.max(FM,1)), yD=oy+hp+yy(L)/2+4;
   _cad8Panah(ctx,ax,ekor,ax,ay-3,'#ef4444',1.8);
-  // Label F di kanan panah, diangkat bila mendekati label δ. Bila pada F penuh label itu akan menabrak kolom rumus
-  // atau tepi kanan (L panjang), label pindah ke kiri panah pada ketinggian tetap di atas garis putus-putus balok
-  // semula, jadi tidak menimpa balok, garis putus-putus, maupun "σ maks". Sisi dipilih dari lebar label pada
-  // F penuh sehingga tidak berganti selama animasi.
+  // Label F di kanan panah mengikuti ujung balok, tetapi berhenti 3 px di atas pangkal garis penanda δ (di bawah
+  // balok semula) agar tidak dilintasi garis itu, dan diangkat bila mendekati label δ. Bila pada F penuh label itu
+  // akan menabrak kolom rumus atau tepi kanan (L panjang), label pindah ke kiri panah pada ketinggian tetap di atas
+  // garis putus-putus balok semula, jadi tidak menimpa balok, garis putus-putus, maupun "σ maks". Sisi dipilih dari
+  // lebar label pada F penuh sehingga tidak berganti selama animasi.
   ctx.fillStyle='#ef4444'; ctx.font="bold 11px 'JetBrains Mono',monospace";
   const sF='F = '+F.toFixed(0)+' N', wF=ctx.measureText('F = '+FM.toFixed(0)+' N').width, batas=sempit?W-8:tx-8;
-  if(ax+6+wF<=batas){ctx.textAlign='left'; ctx.fillText(sF,ax+6,Math.min(ay-26,yD-12));}
+  if(ax+6+wF<=batas){ctx.textAlign='left'; ctx.fillText(sF,ax+6,Math.min(ay-26,yD-12,oy+hp-3));}
   else {ctx.textAlign='right'; ctx.fillText(sF,Math.max(8+wF,ax-6),oy-22);}
   ctx.textAlign='left';
   ctx.strokeStyle='#00e09e'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(X(L)+12,oy+hp); ctx.lineTo(X(L)+12,oy+hp+yy(L)); ctx.stroke();

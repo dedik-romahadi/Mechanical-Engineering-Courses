@@ -9206,6 +9206,18 @@ function _ttlTeks(ctx,teks,x,y,maxW,opsi){
   if(baris){ctx.fillText(baris,x,yy); yy+=lh;}
   ctx.font=f; return yy;
 }
+// Label berpelat: kotak warna latar kanvas digambar di belakang teks sehingga garis yang
+// melintas di belakangnya terputus (seperti gambar teknik yang memutus garis bantu di belakang
+// angka dimensi). Pakai untuk angka dimensi di atas garis dimensinya atau label di atas kisi/kurva
+// yang tidak bisa dipindah. Pelat hanya menutupi garis yang digambar SEBELUM label.
+// opsi: {pad (bawaan 2), latar (bawaan '#050a16')}. Perataan mengikuti ctx.textAlign/textBaseline.
+function _ttlLabel(ctx,teks,x,y,opsi){
+  opsi=opsi||{};
+  const u=ctx.measureText(teks), pad=opsi.pad==null?2:opsi.pad;
+  const x0=x-u.actualBoundingBoxLeft-pad, x1=x+u.actualBoundingBoxRight+pad, y0=y-u.actualBoundingBoxAscent-pad, y1=y+u.actualBoundingBoxDescent+pad;
+  const warna=ctx.fillStyle; ctx.fillStyle=opsi.latar||'#050a16'; ctx.fillRect(x0,y0,x1-x0,y1-y0); ctx.fillStyle=warna;
+  ctx.__plat=true; ctx.fillText(teks,x,y); ctx.__plat=false;
+}
 function _ttlNilai(id,def){const el=document.getElementById(id); const v=parseFloat(el&&el.value); return Number.isFinite(v)?v:def;}
 function _ttlTulis(id,teks){const el=document.getElementById(id); if(el) el.textContent=teks;}
 function _ttlGaris(ctx,x1,y1,x2,y2,warna,lebar,putus){
@@ -9364,8 +9376,9 @@ function drawBillet(){
   if(wSisa>1&&hSisa>1){
     _cad13Kotak(ctx,X(t),Y(c),wSisa,hSisa,'rgba(239,68,68,.20)','rgba(239,68,68,.75)',1.2);
     for(let i=0;i<14;i++){const dx=i*12; if(dx<wSisa) _ttlGaris(ctx,X(t)+dx,Y(c)+Math.min(hSisa,0),X(t)+Math.min(dx+22,wSisa),Y(c)+Math.min(22,hSisa),'rgba(239,68,68,.35)',1);}
-    // label hanya selama muat di dalam sisa bahan (arti warna merah juga tertulis di judul)
-    ctx.font=f10; if(wSisa>=ctx.measureText('serpihan').width+8&&hSisa>=20) _cad13Teks(ctx,'serpihan',X(t)+wSisa/2,Y(c)+hSisa/2,'rgba(239,68,68,.95)',f10,'center');
+    // label di bawah pita arsir (arsir mengisi 22 px teratas), hanya selama muat di dalam sisa bahan; arti warna
+    // merah juga tertulis di judul. Dulu label di tengah sisa bahan sehingga tercoret garis arsir saat bahan menipis.
+    ctx.font=f10; if(wSisa>=ctx.measureText('serpihan').width+8&&hSisa>=40) _cad13Teks(ctx,'serpihan',X(t)+wSisa/2,Y(c)+Math.max(31.5,14.6+hSisa/2),'rgba(239,68,68,.95)',f10,'center');
   }
   // profil L (produk)
   ctx.beginPath();
@@ -9425,8 +9438,11 @@ function drawJejak(){
   const garis=(f,rho,warna,lebar)=>{ctx.strokeStyle=warna; ctx.lineWidth=lebar||1.6; ctx.beginPath(); for(let i=0;i<=40;i++){const vv=i/40*vMaks, yy=gy-Math.min(gh,f*rho*vv/1000/yMaks*gh); const xx=gx+i/40*gw; i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);} ctx.stroke();};
   garis(fAl,2.70,_C13A); garis(fSt,7.85,_C13C); garis(fAlR,2.70,_C13G);
   const px=gx+V/vMaks*gw;
-  _ttlGaris(ctx,px,gy,px,gy-gh,'rgba(226,232,240,.25)',1,[4,4]);
-  [[cAl,_C13A],[cSt,_C13C],[cAlR,_C13G]].forEach(([c,w])=>{const py=gy-Math.min(gh,c/yMaks*gh); ctx.fillStyle=w; ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fill();});
+  // penanda V: garis putus dari sumbu sampai 8 px di atas titik tertinggi (dulu setinggi grafik dan mencoret
+  // legenda serta label sumbu kg CO₂ saat V kecil)
+  const titik=[[cAl,_C13A],[cSt,_C13C],[cAlR,_C13G]].map(([c,w])=>[gy-Math.min(gh,c/yMaks*gh),w]);
+  _ttlGaris(ctx,px,gy,px,Math.min(...titik.map(q=>q[0]))-8,'rgba(226,232,240,.25)',1,[4,4]);
+  titik.forEach(([py,w])=>{ctx.fillStyle=w; ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fill();});
   const legenda=[['Aluminium primer f = '+_cad13Ind(fAl,1),_C13A],['Baja f = '+_cad13Ind(fSt,1),_C13C],['Aluminium daur ulang f = '+_cad13Ind(fAlR,1),_C13G]];
   const baris=[['V = '+V.toFixed(0)+' cm³ = '+(V*1000).toFixed(0)+' mm³',_C13T,f10,0,4],
                ['baja: m = '+_cad13Ind(7.85*V/1000,3)+' kg → '+_cad13Ind(cSt,3)+' kg CO₂',_C13C,f10,22,2],
