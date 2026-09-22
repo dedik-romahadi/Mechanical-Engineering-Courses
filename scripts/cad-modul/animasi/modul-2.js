@@ -28,6 +28,25 @@ function _cad2Dim(ctx,x1,y1,x2,y2,teks,warna,ofs){
   ctx.save(); ctx.translate((x1+x2)/2+nx*1.35,(y1+y2)/2+ny*1.35); let ang=Math.atan2(dy,dx); if(ang>Math.PI/2||ang<-Math.PI/2) ang+=Math.PI; ctx.rotate(ang); ctx.fillText(teks,0,3); ctx.restore();
   ctx.textAlign='left';
 }
+// Memecah bagian-bagian teks menjadi baris selebar maksimal maxW (font ctx saat ini): bagian digabung
+// dengan pemisah sep (string, atau larik: sep[i] dipakai sebelum bagian[i]) selama masih muat.
+function _cad2Pecah(ctx,bagian,sep,maxW){
+  const baris=[]; let kini='';
+  bagian.forEach((b,i)=>{const s=Array.isArray(sep)?sep[i]:sep; const coba=kini?kini+s+b:b; if(kini&&ctx.measureText(coba).width>maxW){baris.push(kini); kini=b;} else kini=coba;});
+  if(kini) baris.push(kini);
+  return baris;
+}
+// Menulis baris-baris mulai dari y (jarak lh); baris yang tetap kepanjangan dikecilkan/dipecah _ttlTeks.
+function _cad2Baris(ctx,baris,x,y,maxW,lh){let yy=y; baris.forEach(t=>{yy=_ttlTeks(ctx,t,x,yy,maxW,{lh});}); return yy;}
+// Baris teks kepala kanvas: di layar lebar satu baris 11 px (bagian digabung dengan sep, sama persis
+// dengan teks semula); di ponsel (W < _TTL_SEMPIT) 10 px dan dipecah per bagian selebar kanvas.
+// Font ctx diatur di sini; {baris, lh} diteruskan ke _cad2Baris(ctx, baris, 12, 18, W-24, lh).
+function _cad2Kepala(ctx,W,bagian,sep){
+  const sempit=W<_TTL_SEMPIT;
+  ctx.font=sempit?"10px 'JetBrains Mono',monospace":"11px 'JetBrains Mono',monospace";
+  const baris=sempit?_cad2Pecah(ctx,bagian,sep,W-24):[bagian.map((b,i)=>i?(Array.isArray(sep)?sep[i]:sep)+b:b).join('')];
+  return {baris,lh:sempit?13:14};
+}
 
 // ════════════════════════════════════════════════════════════
 // ANIMASI 1 — Offset kontur: luas dan keliling mengikuti jarak t
@@ -37,9 +56,14 @@ function toggleOffset(){_ttlToggle('offset','btnOffset',drawOffset);}
 window.toggleOffset=toggleOffset;
 function drawOffset(){
   const k=_ttlKanvas('cvOffset'); if(!k) return; const {ctx,W,H}=k;
+  const sempit=W<_TTL_SEMPIT;
   const a=_ttlNilai('sl_of_a',100), b=_ttlNilai('sl_of_b',60), tMaks=_ttlNilai('sl_of_t',10);
   _ttlTulis('v_of_a',a.toFixed(0)); _ttlTulis('v_of_b',b.toFixed(0)); _ttlTulis('v_of_t',tMaks.toFixed(1));
   const t=_ttlJalan('offset')?tMaks*(0.5+0.5*Math.sin(_ofFrame/40)):tMaks;
+  const luar=(a+2*t)*(b+2*t), dalam=Math.max(0,(a-2*t)*(b-2*t));
+  // Teks kepala: di ponsel dipecah (rumus luar, hasilnya, luas dalam) agar tidak keluar tepi kanan.
+  const kp=_cad2Kepala(ctx,W,['Offset luar:','('+a+' + 2t) × ('+b+' + 2t)','= '+luar.toFixed(2)+' mm²','dalam: '+dalam.toFixed(2)+' mm²'],['',' ',' ',sempit?' · ':'   ·   ']);
+  const bawahKepala=18+(kp.baris.length-1)*kp.lh+4;
   const {X,Y}=_cad2Kisi(ctx,W,H,220,140,52,34,30,30);
   // kontur asal
   ctx.fillStyle='rgba(34,211,238,.12)'; ctx.strokeStyle='#22d3ee'; ctx.lineWidth=2; ctx.beginPath(); ctx.rect(X(0),Y(b),a*(X(1)-X(0)),b*(X(1)-X(0))); ctx.fill(); ctx.stroke();
@@ -48,10 +72,10 @@ function drawOffset(){
   // offset dalam (bila masih mungkin)
   if(t<Math.min(a,b)/2){ctx.strokeStyle='#a855f7'; ctx.beginPath(); ctx.rect(X(t),Y(b-t),(a-2*t)*(X(1)-X(0)),(b-2*t)*(X(1)-X(0))); ctx.stroke();}
   ctx.setLineDash([]);
-  _cad2Dim(ctx,X(a),Y(b),X(a+t),Y(b),'t = '+t.toFixed(1),'#f59e0b',-14);
-  const luar=(a+2*t)*(b+2*t), dalam=Math.max(0,(a-2*t)*(b-2*t));
-  ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font="11px 'JetBrains Mono',monospace";
-  ctx.fillText('Offset luar: ('+a+' + 2t) × ('+b+' + 2t) = '+luar.toFixed(2)+' mm²   ·   dalam: '+dalam.toFixed(2)+' mm²',12,18);
+  // Dimensi t di atas sisi atas; dipindah ke bawah sisi atas bila labelnya akan menimpa teks kepala (b besar).
+  _cad2Dim(ctx,X(a),Y(b),X(a+t),Y(b),'t = '+t.toFixed(1),'#f59e0b',Y(b)-14*1.35-9<bawahKepala?14:-14);
+  ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font=sempit?"10px 'JetBrains Mono',monospace":"11px 'JetBrains Mono',monospace";
+  _cad2Baris(ctx,kp.baris,12,18,W-24,kp.lh);
   _ttlTulis('offsetInfo','t = '+t.toFixed(2)+' mm → luas luar '+luar.toLocaleString('id-ID',{maximumFractionDigits:2})+' mm², keliling luar '+(2*(a+b)+8*t).toFixed(2)+' mm; luas dalam '+dalam.toLocaleString('id-ID',{maximumFractionDigits:2})+' mm² (sudut tetap lancip pada Draft Offset polyline)');
   if(_ttlJalan('offset')){_ofFrame++; requestAnimationFrame(drawOffset);}
 }
@@ -78,9 +102,12 @@ function drawTrim(){
   ctx.fillStyle='#00e09e'; [[-c,h],[c,h]].forEach(([px,py])=>{ctx.beginPath(); ctx.arc(X(px),Y(py),3.5,0,Math.PI*2); ctx.fill();});
   _cad2Dim(ctx,X(0),Y(0),X(0),Y(h),'h = '+h.toFixed(0),'#a855f7',-16);
   _cad2Dim(ctx,X(0),Y(0),X(c),Y(h),'r = '+r.toFixed(0),'#22d3ee',12);
-  if(fase>=2) _cad2Dim(ctx,X(-c),Y(h),X(c),Y(h),'c = '+(2*c).toFixed(3),'#00e09e',22);
-  ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font="11px 'JetBrains Mono',monospace";
-  ctx.fillText(['1. garis melintasi lingkaran','2. Trimex: ujung kiri dipotong ke perpotongan','3. Trimex: ujung kanan dipotong → tali busur'][fase],12,18);
+  // Dimensi tali busur di atas tali busur: dulu di bawahnya dan menimpa label h dan r di semua lebar.
+  if(fase>=2) _cad2Dim(ctx,X(-c),Y(h),X(c),Y(h),'c = '+(2*c).toFixed(3),'#00e09e',-22);
+  // Teks fase: di ponsel dipecah per bagian kalimat.
+  ctx.fillStyle='rgba(226,232,240,.92)';
+  const kp=_cad2Kepala(ctx,W,[['1. garis melintasi lingkaran'],['2. Trimex:','ujung kiri dipotong','ke perpotongan'],['3. Trimex:','ujung kanan dipotong','→ tali busur']][fase],' ');
+  _cad2Baris(ctx,kp.baris,12,18,W-24,kp.lh);
   _ttlTulis('trimInfo','Tali busur c = 2·√(r² − h²) = 2·√('+r+'² − '+h+'²) = '+(2*c).toFixed(3)+' mm; Trimex memotong sampai objek batas terdekat pada sisi yang diklik');
   if(_ttlJalan('trim')){_trFrame++; requestAnimationFrame(drawTrim);}
 }
@@ -92,10 +119,14 @@ let _arFrame=0;
 function toggleArray(){_ttlToggle('array','btnArray',drawArray);}
 window.toggleArray=toggleArray;
 function drawArray(){
-  const k=_ttlKanvas('cvArray'); if(!k) return; const {ctx,W,H}=k;
+  // Layar lebar: flens di kiri, keterangan di kanan. Ponsel: flens di atas dan keterangan di bawahnya
+  // (kanvas ditinggikan), karena kolom keterangan di x = 0,7W dulu keluar tepi kanan.
+  const k=_ttlKanvas('cvArray',340); if(!k) return; const {ctx,W,H}=k;
+  const sempit=W<_TTL_SEMPIT;
   const n=Math.round(_ttlNilai('sl_ar_n',8)), R=_ttlNilai('sl_ar_R',50), d=_ttlNilai('sl_ar_d',10);
   _ttlTulis('v_ar_n',String(n)); _ttlTulis('v_ar_R',R.toFixed(0)); _ttlTulis('v_ar_d',d.toFixed(0));
-  const cx=W*0.36, cy=H*0.52, sk=Math.max(0.05,Math.min(W*0.3,H*0.42)/(R+d));
+  const rPx=sempit?Math.min(W*0.42,95):Math.min(W*0.3,H*0.42);
+  const cx=sempit?W*0.5:W*0.36, cy=sempit?14+rPx:H*0.52, sk=Math.max(0.05,rPx/(R+d));
   const putar=_ttlJalan('array')?_arFrame*0.004:0;
   // flens dan lingkaran jarak (PCD)
   ctx.fillStyle='rgba(34,211,238,.08)'; ctx.strokeStyle='rgba(34,211,238,.6)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(cx,cy,(R+d)*sk,0,Math.PI*2); ctx.fill(); ctx.stroke();
@@ -106,11 +137,16 @@ function drawArray(){
   pusat.slice(0,tampil).forEach(([px,py],i)=>{ctx.fillStyle='#0a101f'; ctx.strokeStyle=i===0?'#00e09e':'#f59e0b'; ctx.lineWidth=1.8; ctx.beginPath(); ctx.arc(px,py,d/2*sk,0,Math.PI*2); ctx.fill(); ctx.stroke();});
   if(tampil>=2){const [p0,p1]=pusat; ctx.strokeStyle='#00e09e'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(p0[0],p0[1]); ctx.lineTo(p1[0],p1[1]); ctx.stroke();}
   const jarak=2*R*Math.sin(Math.PI/n);
-  ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font="11px 'JetBrains Mono',monospace"; ctx.textAlign='left';
-  const tx=W*0.7;
-  ctx.fillText('PolarArray',tx,H*0.3); ctx.fillText('n = '+n+' lubang ⌀'+d,tx,H*0.3+18); ctx.fillText('R (PCD/2) = '+R+' mm',tx,H*0.3+36);
-  ctx.fillStyle='#00e09e'; ctx.fillText('jarak tetangga',tx,H*0.3+62); ctx.fillText('2R·sin(π/n) = '+jarak.toFixed(3),tx,H*0.3+80);
-  ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('sudut pusat 360°/n = '+(360/n).toFixed(2)+'°',tx,H*0.3+104);
+  ctx.textAlign='left';
+  // Di layar lebar kolom keterangan di x = 0,7W, digeser ke kiri seperlunya bila baris terlebar akan melewati
+  // tepi kanan (lebar 520-560 dengan n kecil).
+  ctx.font="10px 'JetBrains Mono',monospace"; const wSudut=ctx.measureText('sudut pusat 360°/n = '+(360/n).toFixed(2)+'°').width;
+  ctx.font="11px 'JetBrains Mono',monospace"; const wMaks=Math.max(wSudut,...['n = '+n+' lubang ⌀'+d,'R (PCD/2) = '+R+' mm','2R·sin(π/n) = '+jarak.toFixed(3)].map(t=>ctx.measureText(t).width));
+  ctx.fillStyle='rgba(226,232,240,.92)';
+  const tx=sempit?Math.max(12,cx-rPx):Math.min(W*0.7,W-wMaks-8), ty=sempit?cy+rPx+26:H*0.3;
+  ctx.fillText('PolarArray',tx,ty); ctx.fillText('n = '+n+' lubang ⌀'+d,tx,ty+18); ctx.fillText('R (PCD/2) = '+R+' mm',tx,ty+36);
+  ctx.fillStyle='#00e09e'; ctx.fillText('jarak tetangga',tx,ty+62); ctx.fillText('2R·sin(π/n) = '+jarak.toFixed(3),tx,ty+80);
+  ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('sudut pusat 360°/n = '+(360/n).toFixed(2)+'°',tx,ty+104);
   _ttlTulis('arrayInfo','Satu lingkaran di ('+R+', 0) disalin '+n+' kali mengelilingi titik asal; jarak antar-pusat bertetangga = 2·'+R+'·sin(180°/'+n+') = '+jarak.toFixed(3)+' mm, total luas lubang '+(n*Math.PI*d*d/4).toFixed(2)+' mm²');
   if(_ttlJalan('array')){_arFrame++; requestAnimationFrame(drawArray);}
 }
@@ -131,14 +167,24 @@ function drawDimensi(){
   ctx.fillStyle='rgba(34,211,238,.12)'; ctx.strokeStyle='#22d3ee'; ctx.lineWidth=2; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(X(p[0]),Y(p[1])):ctx.moveTo(X(p[0]),Y(p[1]))); ctx.closePath(); ctx.fill(); ctx.stroke();
   _cad2Dim(ctx,X(0),Y(0),X(Wp),Y(0),Wp.toFixed(0),'#f59e0b',26);
   _cad2Dim(ctx,X(0),Y(Hp),X(0),Y(0),Hp.toFixed(0),'#f59e0b',26);
-  _cad2Dim(ctx,X(Wp),Y(0),X(Wp-s),Y(Hp),Math.hypot(s,Hp).toFixed(2),'#a855f7',-18);
+  // Dimensi aligned di dalam trapesium; bila labelnya akan turun ke bawah alas (H kecil) dan menimpa label
+  // sudut, dimensinya dipindah ke luar sisi miring (jarak 12 px agar muat di margin kanan kisi).
+  const xa=X(Wp), ya=Y(0), xb=X(Wp-s), yb=Y(Hp), La=Math.hypot(xb-xa,yb-ya)||1, tAl=Math.hypot(s,Hp).toFixed(2);
+  ctx.font="10px 'JetBrains Mono',monospace";
+  const cyDalam=(ya+yb)/2+(xb-xa)/La*(-18)*1.35, turun=ctx.measureText(tAl).width/2*Math.abs(yb-ya)/La+6*Math.abs(xb-xa)/La;
+  _cad2Dim(ctx,xa,ya,xb,yb,tAl,'#a855f7',cyDalam+turun>ya+3?12:-18);
   // dimensi angular di sudut kanan-bawah
   const th=Math.atan2(Hp,s), thDeg=th*180/Math.PI, rad=Math.min(Wp,Hp)*0.35*(X(1)-X(0));
-  ctx.strokeStyle='#00e09e'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(X(Wp),Y(0),rad,Math.PI-th,Math.PI); ctx.stroke();
+  // Busur di antara alas (arah kiri) dan sisi miring (kiri-atas); dulu tercermin ke bawah alas.
+  ctx.strokeStyle='#00e09e'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(X(Wp),Y(0),rad,Math.PI,Math.PI+th); ctx.stroke();
+  // Label sudut di bawah alas, rata kanan di kiri sudutnya: di dalam trapesium dulu menimpa label aligned
+  // (H kecil) di semua lebar.
   ctx.fillStyle='#00e09e'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='right';
-  ctx.fillText(thDeg.toFixed(3)+'°',X(Wp)-rad*1.1,Y(0)-rad*0.35); ctx.textAlign='left';
-  ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font="11px 'JetBrains Mono',monospace";
-  ctx.fillText('Draft Dimension: linear '+Wp+' & '+Hp+', aligned '+Math.hypot(s,Hp).toFixed(2)+', angular '+thDeg.toFixed(3)+'° (s = '+s.toFixed(1)+')',12,18);
+  ctx.fillText(thDeg.toFixed(3)+'°',X(Wp)-5,Y(0)+13); ctx.textAlign='left';
+  // Teks kepala: di ponsel dipecah per jenis dimensi.
+  ctx.fillStyle='rgba(226,232,240,.92)';
+  const kp=_cad2Kepala(ctx,W,['Draft Dimension:','linear '+Wp+' & '+Hp+',','aligned '+Math.hypot(s,Hp).toFixed(2)+',','angular '+thDeg.toFixed(3)+'°','(s = '+s.toFixed(1)+')'],' ');
+  _cad2Baris(ctx,kp.baris,12,18,W-24,kp.lh);
   _ttlTulis('dimensiInfo','Sudut alas–sisi miring = arctan(H/s) = arctan('+Hp+'/'+s.toFixed(1)+') = '+thDeg.toFixed(3)+'°; ketika s berubah, semua dimensi diperbarui karena terikat ke titik-titik wire (parametrik)');
   if(_ttlJalan('dimensi')){_dmFrame++; requestAnimationFrame(drawDimensi);}
 }
