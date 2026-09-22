@@ -50,14 +50,18 @@ Lalu:
     python scripts/cad-modul/pasang-tautan-pdf.py
     python scripts/gabung-pdf-modul.py --buat-baru
 """
+import base64
 import copy
 import html as htmlmod
 import importlib.util
 import json
+import math
 import re
+import struct
 import sys
 import tempfile
 import zipfile
+import zlib
 from pathlib import Path
 
 import fitz  # PyMuPDF: render SVG → PNG
@@ -547,6 +551,179 @@ def xml_aman(svg):
     return re.sub(r"<(?![A-Za-z/!?])", "&lt;", svg)
 
 
+# ─────────────────── warna SVG yang tidak dikenal MuPDF ───────────────────
+RGBA = re.compile(r"rgba\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+%?)\s*\)")
+TAG_SVG = re.compile(r'<([A-Za-z][\w:-]*)((?:\s+[\w:-]+="[^"]*")*)(\s*/?)>')
+ATRIBUT = re.compile(r'\s+([\w:-]+)="([^"]*)"')
+GRADIEN = re.compile(r'<linearGradient\b((?:\s+[\w:-]+="[^"]*")*)\s*>(.*?)</linearGradient>', re.S)
+STOP = re.compile(r'<stop\b((?:\s+[\w:-]+="[^"]*")*)\s*/?>')
+SKALA_GRADIEN = 4      # piksel PNG per unit viewBox untuk gradien yang dirasterkan
+
+
+def _angka(v, bawaan=1.0):
+    """'0.5', '.5', '50%' → 0.5; kosong → bawaan."""
+    v = (v or "").strip()
+    if not v:
+        return bawaan
+    return float(v[:-1]) / 100 if v.endswith("%") else float(v)
+
+
+def _rgba(v):
+    """'rgba(r,g,b,a)' → ('rgb(r,g,b)', a); warna lain → None."""
+    m = RGBA.fullmatch(v.strip())
+    return (f"rgb({m.group(1)},{m.group(2)},{m.group(3)})", _angka(m.group(4))) if m else None
+
+
+def _rgb_tupel(v):
+    """Warna padat SVG (#rgb, #rrggbb, rgb(), rgba()) → ((r, g, b), alpha)."""
+    v = v.strip()
+    if re.fullmatch(r"#(?:[0-9A-Fa-f]{3}){1,2}", v):
+        h = v[1:] if len(v) == 7 else "".join(c * 2 for c in v[1:])
+        return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4)), 1.0
+    m = re.fullmatch(r"rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+%?)\s*)?\)", v)
+    if m:
+        return tuple(round(float(m.group(i))) for i in (1, 2, 3)), _angka(m.group(4))
+    raise ValueError(f"warna gradien tidak dikenali: {v!r}")
+
+
+def _gradien(svg):
+    """id → (x1, y1, x2, y2, [(offset, (r, g, b), alpha), ...]) tiap linearGradient."""
+    hasil = {}
+    for m in GRADIEN.finditer(svg):
+        a = dict(ATRIBUT.findall(m.group(1)))
+        if a.get("gradientUnits", "objectBoundingBox") != "objectBoundingBox" or "gradientTransform" in a:
+            raise ValueError(f"gradien {a.get('id')}: hanya objectBoundingBox tanpa gradientTransform yang didukung")
+        stops, batas = [], 0.0
+        for isi in STOP.findall(m.group(2)):
+            sa = dict(ATRIBUT.findall(isi))
+            rgb, alpha = _rgb_tupel(sa.get("stop-color", "#000"))
+            batas = max(batas, min(1.0, _angka(sa.get("offset"), 0.0)))
+            stops.append((batas, rgb, alpha * _angka(sa.get("stop-opacity"))))
+        if stops:
+            hasil[a["id"]] = (_angka(a.get("x1"), 0.0), _angka(a.get("y1"), 0.0),
+                              _angka(a.get("x2"), 1.0), _angka(a.get("y2"), 0.0), stops)
+    return hasil
+
+
+def _warna_di(stops, t):
+    """(r, g, b, alpha) gradien pada posisi t; di luar rentang stop memakai stop ujung (pad)."""
+    if t <= stops[0][0]:
+        return (*stops[0][1], stops[0][2])
+    for (o0, c0, a0), (o1, c1, a1) in zip(stops, stops[1:]):
+        if t <= o1:
+            f = (t - o0) / (o1 - o0) if o1 > o0 else 1.0
+            return (*(c0[i] + (c1[i] - c0[i]) * f for i in range(3)), a0 + (a1 - a0) * f)
+    return (*stops[-1][1], stops[-1][2])
+
+
+def _png_rgba(lebar, tinggi, piksel):
+    """PNG RGBA 8-bit (alpha lurus) dari bytes piksel baris demi baris."""
+    def blok(jenis, isi):
+        return struct.pack(">I", len(isi)) + jenis + isi + struct.pack(">I", zlib.crc32(jenis + isi) & 0xFFFFFFFF)
+    mentah = b"".join(b"\x00" + piksel[y * lebar * 4:(y + 1) * lebar * 4] for y in range(tinggi))
+    return (b"\x89PNG\r\n\x1a\n" + blok(b"IHDR", struct.pack(">IIBBBBB", lebar, tinggi, 8, 6, 0, 0, 0))
+            + blok(b"IDAT", zlib.compress(mentah, 9)) + blok(b"IEND", b""))
+
+
+def _tag(nama, a, tutup="/"):
+    return f"<{nama}" + "".join(f' {k}="{v}"' for k, v in a.items()) + f"{tutup}>"
+
+
+def _rect_gradien(a, g):
+    """<rect> berisi linearGradient → <image> PNG ber-alpha hasil rasterisasinya.
+
+    Opasitas elemen dan sudut membulat (rx/ry) dipanggang ke kanal alpha PNG
+    karena MuPDF mengabaikan `opacity` pada <image> dan tidak mengenal clipPath.
+    Garis tepi kotak, bila ada, digambar ulang di atasnya tanpa isian.
+    """
+    x, y = _angka(a.get("x"), 0.0), _angka(a.get("y"), 0.0)
+    w, h = _angka(a.get("width"), 0.0), _angka(a.get("height"), 0.0)
+    rx = min(_angka(a.get("rx") or a.get("ry"), 0.0), w / 2)
+    ry = min(_angka(a.get("ry") or a.get("rx"), 0.0), h / 2)
+    op = _angka(a.get("opacity")) * _angka(a.get("fill-opacity"))
+    x1, y1, x2, y2, stops = g
+    dx, dy = x2 - x1, y2 - y1
+    d2 = dx * dx + dy * dy or 1.0
+    L, T = max(1, round(w * SKALA_GRADIEN)), max(1, round(h * SKALA_GRADIEN))
+    piksel = bytearray(L * T * 4)
+    for j in range(T):
+        v = (j + 0.5) / T
+        yy = v * h
+        cy = ry if yy < ry else (h - ry if yy > h - ry else None)
+        for i in range(L):
+            u = (i + 0.5) / L
+            r, g_, b, al = _warna_di(stops, ((u - x1) * dx + (v - y1) * dy) / d2)
+            tutup = 1.0
+            xx = u * w
+            cx = rx if xx < rx else (w - rx if xx > w - rx else None)
+            if cx is not None and cy is not None and rx > 0 and ry > 0:
+                jarak = math.hypot((xx - cx) / rx, (yy - cy) / ry)
+                tutup = min(1.0, max(0.0, (1.0 - jarak) * min(rx, ry) * SKALA_GRADIEN + 0.5))
+            k = (j * L + i) * 4
+            piksel[k:k + 4] = bytes((round(r), round(g_), round(b), round(255 * al * op * tutup)))
+    uri = "data:image/png;base64," + base64.b64encode(_png_rgba(L, T, bytes(piksel))).decode("ascii")
+    gambar = {"x": f"{x:g}", "y": f"{y:g}", "width": f"{w:g}", "height": f"{h:g}", "preserveAspectRatio": "none", "href": uri}
+    if "transform" in a:
+        gambar["transform"] = a["transform"]
+    hasil = _tag("image", gambar)
+    if a.get("stroke", "none") != "none":
+        hasil += _tag("rect", {k: v for k, v in dict(a, fill="none").items() if k != "fill-opacity"})
+    return hasil
+
+
+def warna_mupdf(svg):
+    """Sesuaikan warna SVG halaman modul dengan kemampuan MuPDF sebelum dirender.
+
+    MuPDF (PyMuPDF 1.28 / MuPDF 1.29) merender isian dan garis `rgba()` serta
+    isian gradien `url(#…)` sebagai HITAM, dan pada <text> mengabaikan
+    `fill-opacity` (hanya `opacity` yang dihormati). Gambar CAD memakai rgba()
+    untuk bidang transparan, arsiran, dan garis bantu (±2 100 atribut pada 134
+    dari 168 gambar) serta dua batang skala kontur bergradien di Modul 9;
+    tanpa langkah ini semuanya tercetak sebagai blok hitam di Word/PDF.
+
+    * fill/stroke/stop-color rgba(r,g,b,a) → rgb(r,g,b) + *-opacity=a
+      (dikalikan dengan *-opacity yang sudah ada);
+    * pada <text>, alpha isian dipindah ke `opacity`;
+    * <rect> berisi linearGradient → PNG ber-alpha hasil rasterisasi gradien
+      itu (lihat `_rect_gradien`); elemen lain berisi gradien → warna tengahnya.
+
+    Hanya salinan untuk Word yang diolah; halaman modul di peramban tidak berubah.
+    """
+    gradien = _gradien(svg)
+
+    def tag(m):
+        nama, isi, tutup = m.group(1), m.group(2), m.group(3)
+        if "rgba(" not in isi and "url(#" not in isi and not (nama == "text" and "fill-opacity" in isi):
+            return m.group(0)
+        a = dict(ATRIBUT.findall(isi))
+        for warna, opasitas in (("fill", "fill-opacity"), ("stroke", "stroke-opacity"), ("stop-color", "stop-opacity")):
+            r = _rgba(a.get(warna, ""))
+            if r:
+                a[warna] = r[0]
+                a[opasitas] = f"{r[1] * _angka(a.get(opasitas)):.4g}"
+        for warna, opasitas in (("fill", "fill-opacity"), ("stroke", "stroke-opacity")):
+            ref = re.fullmatch(r"url\(#([^)]+)\)", a.get(warna, "").strip())
+            if not ref:
+                continue
+            if ref.group(1) not in gradien:
+                raise ValueError(f"<{nama}> memakai {warna}=url(#{ref.group(1)}) yang bukan linearGradient")
+            g = gradien[ref.group(1)]
+            if nama == "rect" and warna == "fill":
+                return _rect_gradien(a, g)
+            r, g_, b, al = _warna_di(g[4], 0.5)
+            a[warna] = f"rgb({round(r)},{round(g_)},{round(b)})"
+            a[opasitas] = f"{al * _angka(a.get(opasitas)):.4g}"
+        if nama == "text" and "fill-opacity" in a:
+            a["opacity"] = f"{_angka(a.pop('fill-opacity')) * _angka(a.get('opacity')):.4g}"
+        return _tag(nama, a, tutup)
+
+    svg = TAG_SVG.sub(tag, svg)
+    sisa = re.search(r'="[^"]*(?:rgba\(|url\(#)[^"]*"', svg)
+    if sisa:
+        raise ValueError(f"warna SVG yang tidak dapat dirender MuPDF masih tersisa: {sisa.group(0)[:80]}")
+    return svg
+
+
 PAD_UKUR = 64          # kelebihan kanvas saat mengukur luapan isi gambar (unit viewBox)
 VIEWBOX = re.compile(r'viewBox="0 0 ([\d.]+) ([\d.]+)"')
 LATAR_SVG = re.compile(r'<rect x="0" y="0" width="[\d.]+" height="[\d.]+"')
@@ -606,11 +783,13 @@ def render_svg(svg_markup, png_path):
     bila gambar dirender tepat pada viewBox-nya. Gambar karena itu diukur dulu
     pada kanvas yang dilebihkan, lalu dirender ulang dengan viewBox dan kotak
     latar yang diperluas seperlunya saja. Gambar yang isinya sudah muat dirender
-    apa adanya, sama seperti sebelumnya.
+    apa adanya, sama seperti sebelumnya. Warna rgba() dan gradien lebih dulu
+    diubah ke bentuk yang dikenal MuPDF (`warna_mupdf`) agar tidak tercetak hitam.
     """
     svg = xml_aman(svg_markup)
     if "xmlns=" not in svg[:200]:
         svg = svg.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ', 1)
+    svg = warna_mupdf(svg)
     m = VIEWBOX.search(svg[:300])
     if m and LATAR_SVG.search(svg[:600]):
         W, H = float(m.group(1)), float(m.group(2))
