@@ -151,7 +151,7 @@ def gambar4():
     return svg(680, 272, b, "Gambar 4 — Mode Std Measure dan padanannya di Python console")
 
 
-def gambar5():
+def gambar6():
     b = ""
     s = 1.05
     for k, (judul, c) in enumerate([("Move", "#00e09e"), ("Rotate", "#f59e0b"), ("Scale", "#a855f7")]):
@@ -179,10 +179,10 @@ def gambar5():
             b += t(X(0) - 4, Y(0) + 12, "pusat", 9.5, c, "start")
         b += f'<circle cx="{X(0)}" cy="{Y(0)}" r="3" fill="#e2e8f0"/>'
     b += t(340, 238, "Ketiganya meminta titik acuan/pusat lebih dulu; opsi Copy menyalin alih-alih memindahkan objek asal", 11, AX)
-    return svg(680, 250, b, "Gambar 5 — Tiga transformasi Draft: Move, Rotate, dan Scale")
+    return svg(680, 250, b, "Gambar 6 — Tiga transformasi Draft: Move, Rotate, dan Scale")
 
 
-def gambar6():
+def gambar5():
     b = ""
     s = 1.9
     ox, oy = 60, 214
@@ -217,7 +217,7 @@ def gambar6():
     b += t(440, 150, f"d(A, BC) = {ind(DABC_T, 3)} mm", 10.5, "#f59e0b", "start", "600")
     b += t(440, 176, "Sudut B = arctan(h / (a − c))", 10.5, TX, "start")
     b += t(440, 194, f"∠B = {ind(SUDUT_B, 3)}°", 10.5, "#a855f7", "start", "600")
-    return svg(680, 240, b, "Gambar 6 — Titik berat, jarak titik–garis, dan sudut pada segitiga")
+    return svg(680, 240, b, "Gambar 5 — Titik berat, jarak titik–garis, dan sudut pada segitiga")
 
 
 def _putus(pts, pola=(8, 3, 2, 3)):
@@ -456,7 +456,7 @@ def materi():
 
     # 04 — Pengukuran
     isi = figure(4, "Mode Std Measure dan padanannya di Python console", "Std Measure (FreeCAD 1.0) menampilkan hasil ukur di jendela 3D; Python console memberi angka berpresisi penuh dan besaran seperti titik berat dan kotak pembatas.", gambar4())
-    isi += figure(6, "Titik berat, jarak titik–garis, dan sudut pada segitiga", f"Segitiga A(0,0), B({A_T},0), C({C_T},{H_T}): titik berat G, jarak CG, jarak A ke garis BC, dan sudut di B; ketiganya terukur dengan Std Measure atau Python.", gambar6())
+    isi += figure(5, "Titik berat, jarak titik–garis, dan sudut pada segitiga", f"Segitiga A(0,0), B({A_T},0), C({C_T},{H_T}): titik berat G, jarak CG, jarak A ke garis BC, dan sudut di B; ketiganya terukur dengan Std Measure atau Python.", gambar5())
     isi += formula(3, "Titik Berat Segitiga dan Jarak Titik ke Garis", r"G = \left(\tfrac{x_A + x_B + x_C}{3},\ \tfrac{y_A + y_B + y_C}{3}\right), \qquad d(A, BC) = \frac{|a\,h|}{\sqrt{(c - a)^{2} + h^{2}}}",
                    r"Untuk \(A(0,0)\), \(B(a,0)\), \(C(c,h)\). Contoh \(a = " + str(A_T) + r", c = " + str(C_T) + r", h = " + str(H_T) + r"\): \(G = (" + ind(G_T[0], 3) + ", " + ind(G_T[1], 3) + r")\), \(CG = " + ind(CG_T, 3) + r"\), \(d(A, BC) = " + ind(DABC_T, 3) + r"\) mm.",
                    "Shape.CenterOfMass face segitiga mengembalikan G; Std Measure Distance dari vertex ke edge mengembalikan jarak tegak lurus. Kedua rumus ini memeriksa apakah lingkaran pada Tugas 4 benar-benar berpusat di titik berat.",
@@ -478,7 +478,7 @@ def materi():
     m += bagian(4, "m-ukur", "Pengukuran:<br>Std Measure dan Python Console", "Memeriksa hasil gambar berarti mengukurnya. Bagian ini memetakan mode Std Measure dan padanan Python-nya, lalu memakai segitiga sebagai latihan mengukur titik berat, jarak, dan sudut.", isi, "PENGUKURAN")
 
     # 05 — Move
-    isi = figure(5, "Tiga transformasi Draft: Move, Rotate, dan Scale", "Ketiganya meminta titik acuan atau pusat, lalu vektor, sudut, atau faktor; dengan Copy aktif, objek asal tetap dan salinannya yang ditransformasi.", gambar5())
+    isi = figure(6, "Tiga transformasi Draft: Move, Rotate, dan Scale", "Ketiganya meminta titik acuan atau pusat, lalu vektor, sudut, atau faktor; dengan Copy aktif, objek asal tetap dan salinannya yang ditransformasi.", gambar6())
     isi += tabel(["Langkah Draft Move", "Masukan", "Tips"],
                  [["1. Pilih objek (boleh banyak)", "Klik / Ctrl+klik, atau pilih dulu lalu tekan Move", "Pilih di pohon dokumen agar tidak salah objek"],
                   ["2. Titik acuan", "Klik atau ketik koordinat", "Snap Endpoint pada sudut kiri-bawah"],
