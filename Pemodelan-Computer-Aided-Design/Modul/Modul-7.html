@@ -9260,6 +9260,18 @@ function _ttlTeks(ctx,teks,x,y,maxW,opsi){
   if(baris){ctx.fillText(baris,x,yy); yy+=lh;}
   ctx.font=f; return yy;
 }
+// Label berpelat: kotak warna latar kanvas digambar di belakang teks sehingga garis yang
+// melintas di belakangnya terputus (seperti gambar teknik yang memutus garis bantu di belakang
+// angka dimensi). Pakai untuk angka dimensi di atas garis dimensinya atau label di atas kisi/kurva
+// yang tidak bisa dipindah. Pelat hanya menutupi garis yang digambar SEBELUM label.
+// opsi: {pad (bawaan 2), latar (bawaan '#050a16')}. Perataan mengikuti ctx.textAlign/textBaseline.
+function _ttlLabel(ctx,teks,x,y,opsi){
+  opsi=opsi||{};
+  const u=ctx.measureText(teks), pad=opsi.pad==null?2:opsi.pad;
+  const x0=x-u.actualBoundingBoxLeft-pad, x1=x+u.actualBoundingBoxRight+pad, y0=y-u.actualBoundingBoxAscent-pad, y1=y+u.actualBoundingBoxDescent+pad;
+  const warna=ctx.fillStyle; ctx.fillStyle=opsi.latar||'#050a16'; ctx.fillRect(x0,y0,x1-x0,y1-y0); ctx.fillStyle=warna;
+  ctx.__plat=true; ctx.fillText(teks,x,y); ctx.__plat=false;
+}
 function _ttlNilai(id,def){const el=document.getElementById(id); const v=parseFloat(el&&el.value); return Number.isFinite(v)?v:def;}
 function _ttlTulis(id,teks){const el=document.getElementById(id); if(el) el.textContent=teks;}
 function _ttlGaris(ctx,x1,y1,x2,y2,warna,lebar,putus){
@@ -9304,9 +9316,84 @@ function _cad7P(p,az,el,sk,cx,cy){
   const x1=p[0]*Math.cos(a)-p[1]*Math.sin(a), y1=p[0]*Math.sin(a)+p[1]*Math.cos(a), z1=p[2];
   return [cx+sk*x1, cy-sk*(z1*Math.cos(e)+y1*Math.sin(e))];
 }
-function _cad7Sumbu(ctx,az,el,sk,cx,cy,L){
-  const O=_cad7P([0,0,0],az,el,sk,cx,cy);
-  [[[L,0,0],_C7X,'X'],[[0,L,0],_C7Y,'Y'],[[0,0,L],_C7Z,'Z']].forEach(([v,w,n])=>{const P=_cad7P(v,az,el,sk,cx,cy); ctx.strokeStyle=w; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(O[0],O[1]); ctx.lineTo(P[0],P[1]); ctx.stroke(); ctx.fillStyle=w; ctx.font="bold 10px 'JetBrains Mono',monospace"; ctx.fillText(n,P[0]+4,P[1]-3);});
+// Selubung cembung titik 2D (rantai monoton Andrew).
+function _cad7Selubung(P){
+  const p=P.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]); if(p.length<3) return p;
+  const x=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]), lo=[], up=[];
+  for(const q of p){while(lo.length>=2&&x(lo[lo.length-2],lo[lo.length-1],q)<=0) lo.pop(); lo.push(q);}
+  for(let i=p.length-1;i>=0;i--){const q=p[i]; while(up.length>=2&&x(up[up.length-2],up[up.length-1],q)<=0) up.pop(); up.push(q);}
+  lo.pop(); up.pop(); return lo.concat(up);
+}
+// Kotak [x0, y0, x1, y1] bersentuhan dengan poligon cembung S? (uji sumbu pemisah)
+function _cad7Kena(S,k){
+  const R=[[k[0],k[1]],[k[2],k[1]],[k[2],k[3]],[k[0],k[3]]];
+  const pisah=(nx,ny)=>{let a=Infinity,b=-Infinity,c=Infinity,d=-Infinity;
+    for(const p of S){const v=p[0]*nx+p[1]*ny; if(v<a) a=v; if(v>b) b=v;}
+    for(const p of R){const v=p[0]*nx+p[1]*ny; if(v<c) c=v; if(v>d) d=v;}
+    return b<c||d<a;};
+  if(pisah(1,0)||pisah(0,1)) return false;
+  for(let i=0;i<S.length;i++){const p=S[i], q=S[(i+1)%S.length]; if(pisah(q[1]-p[1],p[0]-q[0])) return false;}
+  return true;
+}
+// Tata letak sumbu X/Y/Z dari titik asal: tiap sumbu dipanjangkan (mulai panjang L) sampai hurufnya berada di luar
+// selubung proyeksi titik model pts dengan celah 2 px, jadi huruf sumbu tidak pernah dilintasi rusuk model.
+// Mengembalikan garis sumbu, letak huruf, dan kotak batas model + huruf.
+function _cad7SumbuTata(ctx,az,el,sk,cx,cy,L,pts){
+  const O=_cad7P([0,0,0],az,el,sk,cx,cy), M=pts.map(p=>_cad7P(p,az,el,sk,cx,cy)), S=_cad7Selubung(M);
+  ctx.font="bold 10px 'JetBrains Mono',monospace";
+  const sumbu=[[[L,0,0],_C7X,'X'],[[0,L,0],_C7Y,'Y'],[[0,0,L],_C7Z,'Z']].map(([v,w,n])=>{
+    const T=_cad7P(v,az,el,sk,cx,cy), u=ctx.measureText(n);
+    let dx=T[0]-O[0], dy=T[1]-O[1]; const s0=Math.hypot(dx,dy)||1; dx/=s0; dy/=s0;
+    const hx=(u.actualBoundingBoxLeft+u.actualBoundingBoxRight)/2, hy=(u.actualBoundingBoxAscent+u.actualBoundingBoxDescent)/2;
+    const jauh=3+hx*Math.abs(dx)+hy*Math.abs(dy), pusat=s=>[O[0]+dx*(s+jauh),O[1]+dy*(s+jauh)];
+    const kena=s=>{const c=pusat(s); return _cad7Kena(S,[c[0]-hx-2,c[1]-hy-2,c[0]+hx+2,c[1]+hy+2]);};
+    let s=s0; while(kena(s)&&s<s0+800) s+=4;       // selubung cembung: sekali bebas, lebih jauh tetap bebas
+    while(s-1>=s0&&!kena(s-1)) s-=1;
+    return {w,n,u,hx,hy,ujung:[O[0]+dx*s,O[1]+dy*s],C:pusat(s)};
+  });
+  let x0=Infinity, y0=Infinity, x1=-Infinity, y1=-Infinity;
+  for(const p of M){x0=Math.min(x0,p[0]); x1=Math.max(x1,p[0]); y0=Math.min(y0,p[1]); y1=Math.max(y1,p[1]);}
+  for(const a of sumbu){x0=Math.min(x0,a.C[0]-a.hx); x1=Math.max(x1,a.C[0]+a.hx); y0=Math.min(y0,a.C[1]-a.hy); y1=Math.max(y1,a.C[1]+a.hy);}
+  return {O,sumbu,kotak:[x0,y0,x1,y1]};
+}
+function _cad7Sumbu(ctx,sb){
+  ctx.font="bold 10px 'JetBrains Mono',monospace"; ctx.textAlign='left';
+  for(const a of sb.sumbu){
+    ctx.strokeStyle=a.w; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(sb.O[0],sb.O[1]); ctx.lineTo(a.ujung[0],a.ujung[1]); ctx.stroke();
+    ctx.fillStyle=a.w; ctx.fillText(a.n,a.C[0]-a.hx+a.u.actualBoundingBoxLeft,a.C[1]+a.hy-a.u.actualBoundingBoxDescent);
+  }
+}
+// Skala dan pusat agar kotak batas model + huruf sumbu berada di daerah D = [x0, y0, x1, y1]. Lebar (tengah = false):
+// titik asal tetap dan skala hanya dikecilkan bila perlu, jadi tampilan desktop tetap selama muat. Ponsel
+// (tengah = true): tata letak juga digeser ke tengah D. Mengembalikan {sk, cx, cy, sb}.
+function _cad7Pas(ctx,az,el,sk,cx,cy,L,pts,D,tengah){
+  let sb=_cad7SumbuTata(ctx,az,el,sk,cx,cy,L,pts);
+  for(let i=0;i<12;i++){
+    const k=sb.kotak;
+    if(tengah){
+      const f=Math.min(1,(D[2]-D[0])/(k[2]-k[0]),(D[3]-D[1])/(k[3]-k[1])), g=f<1?f*0.99:1, mx=(k[0]+k[2])/2, my=(k[1]+k[3])/2;
+      const ncx=(D[0]+D[2])/2+(cx-mx)*g, ncy=(D[1]+D[3])/2+(cy-my)*g;
+      if(g===1&&Math.abs(ncx-cx)<0.3&&Math.abs(ncy-cy)<0.3) break;
+      sk*=g; cx=ncx; cy=ncy;
+    } else {
+      let f=1;
+      if(k[2]>D[2]) f=Math.min(f,(D[2]-cx)/(k[2]-cx));
+      if(k[0]<D[0]) f=Math.min(f,(cx-D[0])/(cx-k[0]));
+      if(k[1]<D[1]) f=Math.min(f,(cy-D[1])/(cy-k[1]));
+      if(k[3]>D[3]) f=Math.min(f,(D[3]-cy)/(k[3]-cy));
+      if(f>=1) break;
+      sk*=Math.max(0.2,f*0.98);
+    }
+    sb=_cad7SumbuTata(ctx,az,el,sk,cx,cy,L,pts);
+  }
+  return {sk,cx,cy,sb};
+}
+// Tata letak di atas hanya bergantung pada ukuran kanvas dan slider (bukan bingkai), jadi disimpan per kanvas.
+const _c7Tata={};
+function _cad7Simpan(nama,kunci,hitung){
+  kunci+='|'+(document.fonts?document.fonts.status:'');
+  const c=_c7Tata[nama]; if(c&&c.k===kunci) return c.v;
+  const v=hitung(); _c7Tata[nama]={k:kunci,v}; return v;
 }
 function _cad7Poli3(ctx,pts,az,el,sk,cx,cy,isi,garis,lebar,putus){
   const P=pts.map(p=>_cad7P(p,az,el,sk,cx,cy));
@@ -9352,11 +9439,15 @@ function drawExtrude(){
   _ttlTulis('v_ex_w',w.toFixed(0)); _ttlTulis('v_ex_h',h.toFixed(0)); _ttlTulis('v_ex_t',t.toFixed(0)); _ttlTulis('v_ex_l',LM.toFixed(0));
   const L=_ttlJalan('extrude')?LM*(0.5+0.5*Math.sin(_c7exFrame/40-Math.PI/2)):LM;
   const az=35, el=28, Ls=Math.max(w,h)*0.45;
-  const prof=[[0,0,0],[w,0,0],[w,t,0],[t,t,0],[t,h,0],[0,h,0]], atas=prof.map(p=>[p[0],p[1],L]);
-  // Ponsel: skala dari kotak batas pada panjang penuh LM (tetap selama animasi), di bawah judul dua baris.
-  const {sk,cx,cy}=sempit?_cad7Muat([...prof,...prof.map(p=>[p[0],p[1],LM]),[Ls,0,0],[0,Ls,0],[0,0,Ls]],az,el,12,52,W-36,168)
-    :{sk:Math.max(0.05,Math.min(W*0.55,H*1.1)/(w+h+LM)*1.05),cx:W*0.30,cy:H*0.72};
-  _cad7Sumbu(ctx,az,el,sk,cx,cy,Ls);
+  const prof=[[0,0,0],[w,0,0],[w,t,0],[t,t,0],[t,h,0],[0,h,0]], atas=prof.map(p=>[p[0],p[1],L]), penuh=[...prof,...prof.map(p=>[p[0],p[1],LM])];
+  // Selubung model pada panjang penuh LM (tetap selama animasi). Ponsel: model + huruf sumbu ditengahkan di bawah
+  // judul dua baris. Lebar: titik asal dan skala semula, dikecilkan hanya bila akan masuk judul atau kolom rumus.
+  const {sk,cx,cy,sb}=_cad7Simpan('ex',[W,H,w,h,t,LM].join('|'),()=>{
+    const D=sempit?[8,44,W-8,224]:[8,30,W*0.64-10,H-6];
+    const b0=sempit?_cad7Muat(penuh,az,el,D[0]+18,D[1]+14,D[2]-D[0]-36,D[3]-D[1]-28):{sk:Math.max(0.05,Math.min(W*0.55,H*1.1)/(w+h+LM)*1.05),cx:W*0.30,cy:H*0.72};
+    return _cad7Pas(ctx,az,el,b0.sk,b0.cx,b0.cy,Ls,penuh,D,sempit);
+  });
+  _cad7Sumbu(ctx,sb);
   for(let i=0;i<6;i++){const j=(i+1)%6; _cad7Poli3(ctx,[prof[i],prof[j],atas[j],atas[i]],az,el,sk,cx,cy,'rgba(34,211,238,.10)','rgba(34,211,238,.7)',1.1);}
   _cad7Poli3(ctx,atas,az,el,sk,cx,cy,'rgba(34,211,238,.22)','#22d3ee',1.8);
   _cad7Poli3(ctx,prof,az,el,sk,cx,cy,'rgba(245,158,11,.12)','#f59e0b',1.4,[5,3]);
@@ -9389,16 +9480,28 @@ function drawPolar(){
   const db=Math.max(2,Math.min(dbM,(D-d0)/2-2,Math.PI*Dbc/n*0.8));
   _ttlTulis('v_po_n',n.toFixed(0)); _ttlTulis('v_po_D',D.toFixed(0)); _ttlTulis('v_po_d0',d0.toFixed(0)); _ttlTulis('v_po_db',db.toFixed(0)); _ttlTulis('v_po_h',h.toFixed(0));
   const tampil=_ttlJalan('polar')?Math.min(n,Math.floor((_c7poFrame/28)%(n+2))+1):n;
-  // Ponsel: cakram di tengah (jari-jari sampai ujung sumbu ≤ 88 px) di bawah judul dua baris.
-  const sk=sempit?Math.max(0.05,Math.min((W-24)/2,88)/(D/2+8)):Math.max(0.05,Math.min((W*0.52)/(D+12),(H-36)/(D+12)));
-  const cx=sempit?W/2:W*0.29, cy=sempit?134:H*0.52;
+  // Sudut antarlubang ditandai dimensi sudut di LUAR cakram: busur pada jari-jari D/2 + 6 px dari lubang induk
+  // (sudut 0) sampai lubang kedua (a₁), labelnya di luar busur pada a₁/2. Skala dijaga agar sumbu dan label itu
+  // muat di kanan (≥ 14 px sebelum kolom rumus, ≥ 8 px dari tepi kanan ponsel) dan di bawah judul. Ponsel: cakram
+  // di tengah (≤ 88 px).
+  const a1=2*Math.PI/n, th=a1/2, sSudut=(360/n).toFixed(1)+'°';
+  ctx.font="10px 'JetBrains Mono',monospace"; const wSudut=ctx.measureText(sSudut).width;
+  const tx=Math.min(W*0.62,W-250), cx=sempit?W/2:W*0.29, cy=sempit?134:H*0.52, kanan=(sempit?W-8:tx-14)-cx, atas=cy-(sempit?42:30);
+  const sk=Math.max(0.05,Math.min(sempit?Math.min((W-24)/2,88)/(D/2+8):Math.min((W*0.52)/(D+12),(H-36)/(D+12)),
+    kanan/(D/2+8),((kanan-wSudut)/Math.cos(th)-11)/(D/2),((atas-8)/Math.sin(th)-11)/(D/2)));
   const X=x=>cx+x*sk, Y=y=>cy-y*sk;
-  ctx.strokeStyle=_C7X; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(X(-D/2-8),Y(0)); ctx.lineTo(X(D/2+8),Y(0)); ctx.stroke(); ctx.strokeStyle=_C7Y; ctx.beginPath(); ctx.moveTo(X(0),Y(-D/2-8)); ctx.lineTo(X(0),Y(D/2+8)); ctx.stroke();
+  // Sumbu Y berhenti di bawah judul.
+  ctx.strokeStyle=_C7X; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(X(-D/2-8),Y(0)); ctx.lineTo(X(D/2+8),Y(0)); ctx.stroke(); ctx.strokeStyle=_C7Y; ctx.beginPath(); ctx.moveTo(X(0),Y(-D/2-8)); ctx.lineTo(X(0),Math.max(Y(D/2+8),sempit?42:28)); ctx.stroke();
   ctx.fillStyle='rgba(34,211,238,.14)'; ctx.strokeStyle='#22d3ee'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(X(0),Y(0),D/2*sk,0,Math.PI*2); ctx.fill(); ctx.stroke();
   ctx.fillStyle='#020812'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.arc(X(0),Y(0),d0/2*sk,0,Math.PI*2); ctx.fill(); ctx.stroke();
   ctx.strokeStyle='#f59e0b'; ctx.lineWidth=1; ctx.setLineDash([5,4]); ctx.beginPath(); ctx.arc(X(0),Y(0),Dbc/2*sk,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
   for(let i=0;i<tampil;i++){const a=i/n*2*Math.PI; ctx.fillStyle='#020812'; ctx.strokeStyle=i?'#a855f7':'#00e09e'; ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(X(Dbc/2*Math.cos(a)),Y(Dbc/2*Math.sin(a)),db/2*sk,0,Math.PI*2); ctx.fill(); ctx.stroke();}
-  if(n>1){const a1=2*Math.PI/n; ctx.strokeStyle='#ec4899'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(X(0),Y(0),Dbc/2*sk*0.55,-a1,0); ctx.stroke(); ctx.fillStyle='#ec4899'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='left'; ctx.fillText((360/n).toFixed(1)+'°',X(Dbc/2*0.6*Math.cos(a1/2))+4,Y(Dbc/2*0.6*Math.sin(a1/2)));}
+  if(n>1){
+    const rD=D/2*sk+6, rL=rD+5;
+    ctx.strokeStyle='#ec4899'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(X(0),Y(0),rD,-a1,0); ctx.stroke();
+    [0,a1].forEach(a=>{ctx.beginPath(); ctx.moveTo(X(0)+(rD-3)*Math.cos(a),Y(0)-(rD-3)*Math.sin(a)); ctx.lineTo(X(0)+(rD+3)*Math.cos(a),Y(0)-(rD+3)*Math.sin(a)); ctx.stroke();});
+    ctx.fillStyle='#ec4899'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='left'; ctx.fillText(sSudut,X(0)+rL*Math.cos(th),Y(0)-rL*Math.sin(th));
+  }
   const V=h*Math.PI/4*(D*D-d0*d0-n*db*db), satu=Math.PI/4*db*db*h;
   ctx.textAlign='left';
   const j1='Flens ⌀'+D+' × '+h+', lubang pusat ⌀'+d0, j2='PolarPattern '+tampil+'/'+n+' lubang ⌀'+db.toFixed(0);
@@ -9410,8 +9513,7 @@ function drawPolar(){
       [_C7ABU,_C7F10,sSatu],[_C7ABU,_C7F10,sN],[_C7ABU,_C7F10,sSud]],[0,15,18,22,16,19,14,14]);
   } else {
     ctx.fillStyle=_C7TEKS; ctx.font=_C7F11; ctx.fillText(j1+', '+j2,12,18);
-    // Tablet (570 px): kolom digeser ke kiri secukupnya agar baris terpanjang muat; desktop tetap 0,62 W.
-    const tx=Math.min(W*0.62,W-250);
+    // Kolom di tx = min(0,62 W, W − 250): tablet digeser ke kiri secukupnya agar baris terpanjang muat.
     _cad7Kolom(ctx,tx,H*0.26,W-tx-2,[['#a855f7',_C7F11,sAx+' · '+sOc],['#f59e0b',_C7F11,sDbc],['#22d3ee',_C7F11,sV],['#00e09e',_C7F11,sVn],
       [_C7ABU,_C7F10,sSatu],[_C7ABU,_C7F10,sN+' · '+sSud]],[0,20,30,20,22,20]);
   }
@@ -9433,11 +9535,15 @@ function drawLoft(){
   const s_=z/h, az_=a1+(a2-a1)*s_, bz=b1+(b2-b1)*s_;
   const az=35, el=26, Ls=Math.max(a1,b1)*0.7;
   const R=(a,b,zz)=>[[-a/2,-b/2,zz],[a/2,-b/2,zz],[a/2,b/2,zz],[-a/2,b/2,zz]];
-  const bawah=R(a1,b1,0), atas=R(a2,b2,h), tengah=R(az_,bz,z);
-  // Ponsel: skala dari kotak batas kedua profil dan sumbu, di bawah judul dua baris.
-  const {sk,cx,cy}=sempit?_cad7Muat([...bawah,...atas,[Ls,0,0],[0,Ls,0],[0,0,Ls]],az,el,12,50,W-36,162)
-    :{sk:Math.max(0.05,Math.min(W*0.5,H*1.15)/(Math.max(a1,a2)+Math.max(b1,b2)+h)*1.05),cx:W*0.30,cy:H*0.74};
-  _cad7Sumbu(ctx,az,el,sk,cx,cy,Ls);
+  const bawah=R(a1,b1,0), atas=R(a2,b2,h), tengah=R(az_,bz,z), penuh=[...bawah,...atas];
+  // Ponsel: kedua profil + huruf sumbu ditengahkan di bawah judul dua baris. Lebar: titik asal dan skala semula,
+  // dikecilkan hanya bila akan masuk judul atau kolom rumus.
+  const {sk,cx,cy,sb}=_cad7Simpan('lf',[W,H,a1,b1,a2,b2,h].join('|'),()=>{
+    const D=sempit?[8,42,W-8,214]:[8,30,Math.min(W*0.62,W-262)-10,H-6];
+    const b0=sempit?_cad7Muat(penuh,az,el,D[0]+18,D[1]+14,D[2]-D[0]-36,D[3]-D[1]-28):{sk:Math.max(0.05,Math.min(W*0.5,H*1.15)/(Math.max(a1,a2)+Math.max(b1,b2)+h)*1.05),cx:W*0.30,cy:H*0.74};
+    return _cad7Pas(ctx,az,el,b0.sk,b0.cx,b0.cy,Ls,penuh,D,sempit);
+  });
+  _cad7Sumbu(ctx,sb);
   for(let i=0;i<4;i++){const j=(i+1)%4; _cad7Poli3(ctx,[bawah[i],bawah[j],atas[j],atas[i]],az,el,sk,cx,cy,'rgba(34,211,238,.10)','rgba(34,211,238,.7)',1.1);}
   _cad7Poli3(ctx,atas,az,el,sk,cx,cy,'rgba(34,211,238,.24)','#22d3ee',1.8);
   _cad7Poli3(ctx,bawah,az,el,sk,cx,cy,'rgba(245,158,11,.12)','#f59e0b',1.4,[5,3]);
@@ -9476,11 +9582,15 @@ function drawShell(){
   _ttlTulis('v_sh_a',a.toFixed(0)); _ttlTulis('v_sh_b',b.toFixed(0)); _ttlTulis('v_sh_h',h.toFixed(0)); _ttlTulis('v_sh_t',tMax.toFixed(1).replace('.',','));
   const t=_ttlJalan('shell')?tMax*(0.55+0.45*Math.sin(_c7shFrame/40)):tMax;
   const az=35, el=28, Ls=Math.max(a,b)*0.4;
-  const luar=[[0,0,0],[a,0,0],[a,b,0],[0,b,0]], luarAtas=luar.map(p=>[p[0],p[1],h]);
-  // Ponsel: balok isometrik di atas, penampang x–z di bawahnya, lalu kolom rumus.
-  const {sk,cx,cy}=sempit?_cad7Muat([...luar,...luarAtas,[Ls,0,0],[0,Ls,0],[0,0,Ls]],az,el,12,50,W-36,112)
-    :{sk:Math.max(0.05,Math.min(W*0.36,H*1.0)/(a+b+h)*1.15),cx:W*0.20,cy:H*0.74};
-  _cad7Sumbu(ctx,az,el,sk,cx,cy,Ls);
+  const luar=[[0,0,0],[a,0,0],[a,b,0],[0,b,0]], luarAtas=luar.map(p=>[p[0],p[1],h]), penuh=[...luar,...luarAtas];
+  // Ponsel: balok isometrik + huruf sumbu di atas, penampang x–z di bawahnya, lalu kolom rumus. Lebar: titik asal
+  // dan skala semula, dikecilkan hanya bila akan masuk judul atau label h penampang.
+  const {sk,cx,cy,sb}=_cad7Simpan('sh',[W,H,a,b,h].join('|'),()=>{
+    const D=sempit?[8,42,W-8,162]:[8,30,W*0.46-20,H-6];
+    const b0=sempit?_cad7Muat(penuh,az,el,D[0]+18,D[1]+14,D[2]-D[0]-36,D[3]-D[1]-28):{sk:Math.max(0.05,Math.min(W*0.36,H*1.0)/(a+b+h)*1.15),cx:W*0.20,cy:H*0.74};
+    return _cad7Pas(ctx,az,el,b0.sk,b0.cx,b0.cy,Ls,penuh,D,sempit);
+  });
+  _cad7Sumbu(ctx,sb);
   const dalam=[[t,t,t],[a-t,t,t],[a-t,b-t,t],[t,b-t,t]], dalamAtas=dalam.map(p=>[p[0],p[1],h]);
   for(let i=0;i<4;i++){const j=(i+1)%4; _cad7Poli3(ctx,[luar[i],luar[j],luarAtas[j],luarAtas[i]],az,el,sk,cx,cy,'rgba(236,72,153,.10)','rgba(236,72,153,.7)',1.1);}
   _cad7Poli3(ctx,dalam,az,el,sk,cx,cy,'rgba(236,72,153,.06)','rgba(236,72,153,.35)',0.8);

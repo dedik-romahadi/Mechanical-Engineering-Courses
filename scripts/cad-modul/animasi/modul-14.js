@@ -100,8 +100,9 @@ function drawKaleng() {
   ctx.font = f10; _cad14Teks(ctx, tRo, _cad14Tengah(ctx, tRo, X(rOpt), W, 6), py0 + 16, '#00e09e', f10, 'center');
   if (!sempit) {
     _cad14Teks(ctx, 'A(r) = 2πr² + 2V₀/r', px0 + 10, py1 - 14, 'rgba(148,163,184,.9)', f10);
-    _cad14Teks(ctx, tAs, px1, py1 - 14, '#00e09e', f10, 'right');
-    _cad14Teks(ctx, tA, px1, py1 + 4, '#f59e0b', f10, 'right');
+    // A* dan A di atas ujung kanan kurva (dulu A di py1 + 4 sehingga dicoret ujung kurva yang naik ke py1)
+    _cad14Teks(ctx, tAs, px1, py1 - 28, '#00e09e', f10, 'right');
+    _cad14Teks(ctx, tA, px1, py1 - 14, '#f59e0b', f10, 'right');
   }
   _ttlTulis('kalengInfo', 'V₀ = ' + _cad14Num(V0, 0) + ' mm³ → r* = ' + rOpt.toFixed(3) + ' mm, h* = 2r* = ' + hOpt.toFixed(3) + ' mm, A* = ' + aOpt.toFixed(2) + ' mm²; pada r = ' + r.toFixed(2) + ' mm tinggi menjadi ' + h.toFixed(2) + ' mm dan luasnya ' + A.toFixed(2) + ' mm² (' + (100 * (A - aOpt) / aOpt).toFixed(2) + ' % di atas minimum)');
   if (_ttlJalan('kaleng')) { _klFrame++; requestAnimationFrame(drawKaleng); }

@@ -9157,6 +9157,18 @@ function _ttlTeks(ctx,teks,x,y,maxW,opsi){
   if(baris){ctx.fillText(baris,x,yy); yy+=lh;}
   ctx.font=f; return yy;
 }
+// Label berpelat: kotak warna latar kanvas digambar di belakang teks sehingga garis yang
+// melintas di belakangnya terputus (seperti gambar teknik yang memutus garis bantu di belakang
+// angka dimensi). Pakai untuk angka dimensi di atas garis dimensinya atau label di atas kisi/kurva
+// yang tidak bisa dipindah. Pelat hanya menutupi garis yang digambar SEBELUM label.
+// opsi: {pad (bawaan 2), latar (bawaan '#050a16')}. Perataan mengikuti ctx.textAlign/textBaseline.
+function _ttlLabel(ctx,teks,x,y,opsi){
+  opsi=opsi||{};
+  const u=ctx.measureText(teks), pad=opsi.pad==null?2:opsi.pad;
+  const x0=x-u.actualBoundingBoxLeft-pad, x1=x+u.actualBoundingBoxRight+pad, y0=y-u.actualBoundingBoxAscent-pad, y1=y+u.actualBoundingBoxDescent+pad;
+  const warna=ctx.fillStyle; ctx.fillStyle=opsi.latar||'#050a16'; ctx.fillRect(x0,y0,x1-x0,y1-y0); ctx.fillStyle=warna;
+  ctx.__plat=true; ctx.fillText(teks,x,y); ctx.__plat=false;
+}
 function _ttlNilai(id,def){const el=document.getElementById(id); const v=parseFloat(el&&el.value); return Number.isFinite(v)?v:def;}
 function _ttlTulis(id,teks){const el=document.getElementById(id); if(el) el.textContent=teks;}
 function _ttlGaris(ctx,x1,y1,x2,y2,warna,lebar,putus){
@@ -9201,10 +9213,19 @@ function _cad5P(p,az,el,sk,cx,cy){
   const x1=p[0]*Math.cos(a)-p[1]*Math.sin(a), y1=p[0]*Math.sin(a)+p[1]*Math.cos(a), z1=p[2];
   return [cx+sk*x1, cy-sk*(z1*Math.cos(e)+y1*Math.sin(e))];
 }
-// Label sumbu dijepit ke dalam kanvas agar tidak terpotong pada nilai slider apa pun.
-function _cad5Sumbu(ctx,az,el,sk,cx,cy,L){
-  const O=_cad5P([0,0,0],az,el,sk,cx,cy), W=ctx.canvas.width, H=ctx.canvas.height;
-  [[[L,0,0],_C5X,'X'],[[0,L,0],_C5Y,'Y'],[[0,0,L],_C5Z,'Z']].forEach(([v,w,n])=>{const P=_cad5P(v,az,el,sk,cx,cy); ctx.strokeStyle=w; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(O[0],O[1]); ctx.lineTo(P[0],P[1]); ctx.stroke(); ctx.fillStyle=w; ctx.font="bold 10px 'JetBrains Mono',monospace"; ctx.textAlign='left'; ctx.fillText(n,Math.min(Math.max(P[0]+4,4),W-11),Math.min(Math.max(P[1]-3,12),H-4));});
+// Sumbu X/Y/Z dengan panjang masing-masing L = [Lx, Ly, Lz]. Garis digambar SEBELUM benda
+// (_cad5SumbuGaris) dan label SESUDAHNYA (_cad5SumbuLabel). Panjang sumbu dipilih pemanggil agar ujungnya
+// keluar dari siluet benda, lalu label ditaruh di luar ujung itu (letak = [dx, dy, perataan] per sumbu, px)
+// sehingga tidak ada garis gambar yang melintasi huruf; posisi label juga dijepit ke dalam kanvas.
+function _cad5SumbuGaris(ctx,az,el,sk,cx,cy,L){
+  const O=_cad5P([0,0,0],az,el,sk,cx,cy);
+  [[[L[0],0,0],_C5X],[[0,L[1],0],_C5Y],[[0,0,L[2]],_C5Z]].forEach(([v,w])=>{const P=_cad5P(v,az,el,sk,cx,cy); ctx.strokeStyle=w; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(O[0],O[1]); ctx.lineTo(P[0],P[1]); ctx.stroke();});
+}
+function _cad5SumbuLabel(ctx,az,el,sk,cx,cy,L,letak){
+  const W=ctx.canvas.width, H=ctx.canvas.height;
+  ctx.font="bold 10px 'JetBrains Mono',monospace";
+  [[[L[0],0,0],_C5X,'X'],[[0,L[1],0],_C5Y,'Y'],[[0,0,L[2]],_C5Z,'Z']].forEach(([v,w,n],i)=>{const P=_cad5P(v,az,el,sk,cx,cy), [dx,dy,rata]=letak[i]; ctx.fillStyle=w; ctx.textAlign=rata; ctx.fillText(n,Math.min(Math.max(P[0]+dx,10),W-10),Math.min(Math.max(P[1]+dy,12),H-4));});
+  ctx.textAlign='left';
 }
 function _cad5Poli3(ctx,pts,az,el,sk,cx,cy,isi,garis,lebar){
   const P=pts.map(p=>_cad5P(p,az,el,sk,cx,cy));
@@ -9299,7 +9320,9 @@ function drawSketsa(){
   for(let i=0;i<4;i++){const a=pts[i],b=pts[(i+1)%4]; const putus=fase===0&&i%2? [6,4]:[]; ctx.setLineDash(putus); ctx.beginPath(); ctx.moveTo(X(a[0]),Y(a[1])); ctx.lineTo(X(b[0]),Y(b[1])); ctx.stroke();}
   ctx.setLineDash([]);
   pts.forEach(p=>{ctx.fillStyle=fase>=1?'#f59e0b':'#94a3b8'; ctx.beginPath(); ctx.arc(X(p[0]),Y(p[1]),3.5,0,Math.PI*2); ctx.fill();});
-  if(fase>=4){ctx.fillStyle='#00e09e'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText('H '+w,X(w/2),Y(0)+16); ctx.save(); ctx.translate(X(w)+14,Y(h/2)); ctx.rotate(-Math.PI/2); ctx.fillText('V '+h,0,0); ctx.restore(); ctx.textAlign='left';}
+  // Dimensi H di bawah tepi bawah; dimensi V (tegak) di kanan tepi kanan, dinaikkan bila sisi itu lebih pendek
+  // dari labelnya supaya ujung bawah label tetap di atas sumbu X (garis merah) dan tidak ditimpanya.
+  if(fase>=4){ctx.fillStyle='#00e09e'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText('H '+w,X(w/2),Y(0)+16); const lV=ctx.measureText('V '+h).width; ctx.save(); ctx.translate(X(w)+14,Math.min(Y(h/2),Y(0)-4-lV/2)); ctx.rotate(-Math.PI/2); ctx.fillText('V '+h,0,0); ctx.restore(); ctx.textAlign='left';}
   const warnaL=i=>i===fase?'#00e09e':(i<fase?'rgba(226,232,240,.8)':'rgba(148,163,184,.45)'), warnaD=i=>i===fase?'#f59e0b':'rgba(148,163,184,.5)';
   if(!sempit){
     ctx.font="11px 'JetBrains Mono',monospace"; ctx.textAlign='left';
@@ -9327,26 +9350,30 @@ function drawPad(){
   const a=_ttlNilai('sl_pd_a',80), b=_ttlNilai('sl_pd_b',50), hM=_ttlNilai('sl_pd_h',25), d=_ttlNilai('sl_pd_d',16);
   _ttlTulis('v_pd_a',a.toFixed(0)); _ttlTulis('v_pd_b',b.toFixed(0)); _ttlTulis('v_pd_h',hM.toFixed(0)); _ttlTulis('v_pd_d',d.toFixed(0));
   const h=_ttlJalan('pad')?hM*(0.5+0.5*Math.sin(_pdFrame/40-Math.PI/2)):hM;
-  const az=35, el=28, L=Math.max(a,b)*0.5;
+  const az=35, el=28, A=az*Math.PI/180, E=el*Math.PI/180;
   const V=(a*b-Math.PI*d*d/4)*h;
   const t1='V = (a·b − πd²/4)·h', t2='= '+V.toLocaleString('id-ID',{maximumFractionDigits:1})+' mm³', t3='= '+(V/1000).toFixed(3)+' cm³ → baja '+(V/1000*7.85).toFixed(1)+' g';
   // Spasi tak-terputus (\u00a0) menjaga pasangan ukuran seperti '80 × 50' tetap satu baris saat judul dipecah.
   const judulPad=hh=>['Pad '+hh.toFixed(1)+'\u00a0mm dari sketsa '+a+'\u00a0×\u00a0'+b+',','Pocket ⌀'+d+' through all'];
-  // Kotak batas balok setinggi hM (tinggi terbesar selama animasi) dan ujung sumbu, satuan model.
-  const kb=_cad5Kotak([[0,0,0],[a,0,0],[a,b,0],[0,b,0],[0,0,hM],[a,0,hM],[a,b,hM],[0,b,hM],[L,0,0],[0,L,0],[0,0,L]],az,el);
-  let sk,cx,cy,tx,ty;
+  // Sumbu X dan Y menjulur 12 px melewati pojok balok, sumbu Z 14 px di atas siluet balok setinggi hM
+  // (tinggi terbesar selama animasi), sehingga label X/Y/Z selalu di ruang kosong di luar balok.
+  const panjang=s=>[a+12/s,b+12/s,(hM*Math.cos(E)+Math.sin(E)*Math.min(b/Math.cos(A),a/Math.sin(A))+14/s)/Math.cos(E)];
+  // Kotak batas balok setinggi hM dan ujung sumbu, satuan model.
+  const kotak=Ls=>_cad5Kotak([[0,0,0],[a,0,0],[a,b,0],[0,b,0],[0,0,hM],[a,0,hM],[a,b,hM],[0,b,hM],[Ls[0],0,0],[0,Ls[1],0],[0,0,Ls[2]]],az,el);
+  let sk,cx,cy,tx,ty,Ls,kb;
   if(!sempit){
-    // Lebar: balok di kiri, rumus di kanan; skala dibatasi agar balok tidak menyentuh rumus/judul.
+    // Lebar: balok di kiri, rumus di kanan; skala dibatasi agar balok dan label sumbu tidak menyentuh rumus/judul.
     ctx.font=_F5(11); let lT=Math.max(ctx.measureText(t1).width,ctx.measureText(t2).width); ctx.font=_F5(10); lT=Math.max(lT,ctx.measureText(t3).width);
     tx=Math.min(W*0.68,W-12-lT); ty=H*0.35; cx=W*0.36; cy=H*0.68;
-    sk=Math.max(0.05,Math.min(Math.min(W*0.55,H*1.1)/(a+b+hM)*1.1,(tx-24-cx)/kb[2],(cy-30)/-kb[1]));
+    const sk0=Math.min(W*0.55,H*1.1)/(a+b+hM)*1.1;
+    sk=sk0; for(let i=0;i<3;i++){Ls=panjang(sk); kb=kotak(Ls); sk=Math.max(0.05,Math.min(sk0,(tx-26-cx)/kb[2],(cy-30)/-kb[1],(cx-16)/-kb[0]));}
   } else {
     // Sempit: judul di atas (barisnya dihitung dengan h terpanjang agar balok tidak melompat), balok di tengah, rumus di bawah.
     ctx.font=_F5(11); const nJ=_cad5Baris(ctx,judulPad(hM),W-24);
     tx=12; ty=H-50;
-    ({sk,cx,cy}=_cad5Muat(kb,14,30+14*nJ,W-24,ty-24));
+    sk=1; for(let i=0;i<3;i++){Ls=panjang(sk); kb=kotak(Ls); ({sk,cx,cy}=_cad5Muat(kb,18,30+14*nJ,W-24,ty-24));}
   }
-  _cad5Sumbu(ctx,az,el,sk,cx,cy,L);
+  _cad5SumbuGaris(ctx,az,el,sk,cx,cy,Ls);
   const ka=[[0,0,0],[a,0,0],[a,b,0],[0,b,0]], atas=ka.map(p=>[p[0],p[1],h]);
   // sisi samping
   [[0,1],[1,2],[2,3],[3,0]].forEach(([i,j])=>_cad5Poli3(ctx,[ka[i],ka[j],atas[j],atas[i]],az,el,sk,cx,cy,'rgba(34,211,238,.10)','rgba(34,211,238,.7)',1.2));
@@ -9354,6 +9381,8 @@ function drawPad(){
   // lubang (pocket) pada muka atas dan bawah
   const ling=(z)=>{const p=[]; for(let i=0;i<40;i++){const t=i/40*2*Math.PI; p.push([a/2+d/2*Math.cos(t),b/2+d/2*Math.sin(t),z]);} return p;};
   _cad5Poli3(ctx,ling(h),az,el,sk,cx,cy,'#0a101f','#f59e0b',1.4);
+  // label sumbu sesudah balok: X di kanan-bawah ujungnya, Y di kiri-bawah, Z di kanan (semuanya di luar balok)
+  _cad5SumbuLabel(ctx,az,el,sk,cx,cy,Ls,[[4,8,'left'],[-4,8,'right'],[5,4,'left']]);
   ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font="11px 'JetBrains Mono',monospace"; ctx.textAlign='left';
   const judul=judulPad(h);
   if(!sempit) ctx.fillText(judul.join(' '),12,18); else _cad5Judul(ctx,judul,12,18,W-24,14);
@@ -9376,7 +9405,7 @@ function drawRevolve(){
   const ri=_ttlNilai('sl_rv_ri',12), ro=Math.max(_ttlNilai('sl_rv_ro',24),ri+2), h=_ttlNilai('sl_rv_h',36);
   _ttlTulis('v_rv_ri',ri.toFixed(0)); _ttlTulis('v_rv_ro',ro.toFixed(0)); _ttlTulis('v_rv_h',h.toFixed(0));
   const phi=_ttlJalan('revolve')?((_rvFrame*1.5)%400>360?360:(_rvFrame*1.5)%400):360;
-  const az=35, el=24, L=ro*1.4;
+  const az=35, el=24, A=az*Math.PI/180, E=el*Math.PI/180;
   const Vpenuh=Math.PI*(ro*ro-ri*ri)*h, V=Vpenuh*phi/360;
   // Keterangan kanan/bawah: [bagian teks (dipecah di sini bila tidak muat), warna, px, jarak baris, jarak atas].
   const ket=[[['A_profil = (r_o − r_i)·h','= '+((ro-ri)*h).toFixed(1)],'#f59e0b',11,18],
@@ -9385,24 +9414,27 @@ function drawRevolve(){
              [['Pappus: 2π·ȳ·A,','ȳ = (r_i + r_o)/2 = '+((ri+ro)/2).toFixed(1)],'rgba(148,163,184,.85)',10,14,2],
              [['V('+phi.toFixed(0)+'°) = '+V.toFixed(1)],'rgba(148,163,184,.85)',10,14]];
   const judulRv=p=>['Revolution '+p.toFixed(0)+'° profil ('+ri+'…'+ro+')\u00a0×\u00a0'+h,'pada XZ terhadap sumbu Z'];
+  // Sumbu X dan Y menjulur sampai 12 px di luar garis siluet samping silinder, sumbu Z 14 px di atas pelek
+  // atas (paling tidak 1,4·r_o seperti semula), sehingga label X/Y/Z berada di ruang kosong di luar benda.
+  const panjang=s=>[Math.max(1.4*ro,(ro+12/s)/Math.cos(A)),Math.max(1.4*ro,(ro+12/s)/Math.sin(A)),Math.max(1.4*ro,h+ro*Math.tan(E)+14/(s*Math.cos(E)))];
   // Kotak batas silinder penuh (r_o, tinggi h) dan ujung sumbu, satuan model.
-  const tepi=[[L,0,0],[0,L,0],[0,0,L]]; for(let i=0;i<24;i++){const t=i*Math.PI/12, x=ro*Math.cos(t), y=ro*Math.sin(t); tepi.push([x,y,0],[x,y,h]);}
-  const kb=_cad5Kotak(tepi,az,el);
-  let sk,cx,cy,tx,ty;
+  const kotak=Ls=>{const t=[[Ls[0],0,0],[0,Ls[1],0],[0,0,Ls[2]]]; for(let i=0;i<24;i++){const q=i*Math.PI/12, x=ro*Math.cos(q), y=ro*Math.sin(q); t.push([x,y,0],[x,y,h]);} return _cad5Kotak(t,az,el);};
+  let sk,cx,cy,tx,ty,Ls,kb;
   if(!sempit){
     let lT=0; ket.forEach(([s,,px])=>{ctx.font=_F5(px); lT=Math.max(lT,ctx.measureText(s.join(' ')).width);});
     tx=Math.min(W*0.66,W-12-lT); ty=H*0.3;
-    // Skala asal dibatasi dan benda digeser seperlunya agar tidak keluar tepi atas (menimpa judul).
-    sk=Math.max(0.05,Math.min(Math.min(W*0.5,H*1.2)/(2*ro+h)*1.05,(H-46)/(kb[3]-kb[1]),(tx-34)/(kb[2]-kb[0])));
-    cx=Math.min(Math.max(W*0.34,10-sk*kb[0]),tx-24-sk*kb[2]);
+    // Skala asal dibatasi dan benda digeser seperlunya agar benda dan label sumbunya tidak keluar tepi atau menimpa judul/rumus.
+    const sk0=Math.min(W*0.5,H*1.2)/(2*ro+h)*1.05;
+    sk=sk0; for(let i=0;i<3;i++){Ls=panjang(sk); kb=kotak(Ls); sk=Math.max(0.05,Math.min(sk0,(H-46)/(kb[3]-kb[1]),(tx-44)/(kb[2]-kb[0])));}
+    cx=Math.min(Math.max(W*0.34,18-sk*kb[0]),tx-26-sk*kb[2]);
     cy=Math.min(Math.max(H*0.62,38-sk*kb[1]),H-8-sk*kb[3]);
   } else {
     // Sempit: judul (barisnya dihitung dengan sudut 360° agar benda tidak melompat), benda, lalu keterangan rata bawah.
     ctx.font=_F5(11); const nJ=_cad5Baris(ctx,judulRv(360),W-24);
     tx=12; ty=H-12-_cad5TinggiBlok(ctx,ket,W-24);
-    ({sk,cx,cy}=_cad5Muat(kb,14,30+14*nJ,W-24,ty-24));
+    sk=1; for(let i=0;i<3;i++){Ls=panjang(sk); kb=kotak(Ls); ({sk,cx,cy}=_cad5Muat(kb,18,30+14*nJ,W-24,ty-24));}
   }
-  _cad5Sumbu(ctx,az,el,sk,cx,cy,L);
+  _cad5SumbuGaris(ctx,az,el,sk,cx,cy,Ls);
   // profil pada bidang XZ
   const prof=[[ri,0,0],[ro,0,0],[ro,0,h],[ri,0,h]];
   const n=Math.max(2,Math.round(phi/6));
@@ -9413,6 +9445,8 @@ function drawRevolve(){
   }
   _cad5Poli3(ctx,prof,az,el,sk,cx,cy,'rgba(245,158,11,.25)','#f59e0b',2);
   const tEnd=phi*Math.PI/180; _cad5Poli3(ctx,prof.map(p=>rot(p,tEnd)),az,el,sk,cx,cy,'rgba(245,158,11,.15)','#f59e0b',1.4);
+  // label sumbu sesudah benda: X di kanan ujungnya, Y di kiri, Z di kanan (semuanya di luar siluet)
+  _cad5SumbuLabel(ctx,az,el,sk,cx,cy,Ls,[[5,4,'left'],[-5,4,'right'],[5,4,'left']]);
   ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font="11px 'JetBrains Mono',monospace"; ctx.textAlign='left';
   const judul=judulRv(phi);
   if(!sempit){
@@ -9451,7 +9485,7 @@ function drawFillet(){
   if(!sempit){
     let lT=0; ket.forEach(([s,,px])=>{ctx.font=_F5(px); lT=Math.max(lT,ctx.measureText(s.join(' ')).width);});
     tx=Math.min(W*0.66,W-12-lT); ty=H*0.28;
-    sk=Math.max(0.05,Math.min((W*0.55)/(a+20),(H-56)/(b+20),(tx-16-lLab-W*0.06)/a));
+    sk=Math.max(0.05,Math.min((W*0.55)/(a+20),(H-56)/(b+20),(tx-20-lLab-W*0.06)/a));
     ox=W*0.06; oy=H*0.5+b*sk/2;
   } else {
     // Sempit: judul (barisnya dihitung dengan f terbesar), penampang di tengah dengan tempat label R/C
@@ -9471,8 +9505,17 @@ function drawFillet(){
   ctx.closePath(); ctx.fill(); ctx.stroke();
   // sudut yang hilang disorot
   ctx.fillStyle='rgba(239,68,68,.35)';
-  [[0,0,1,1],[a,0,-1,1],[a,b,-1,-1],[0,b,1,-1]].forEach(([px,py,sx,sy])=>{ctx.beginPath(); ctx.moveTo(X(px),Y(py)); ctx.lineTo(X(px+sx*f),Y(py)); if(mode===0){ctx.arc(X(px+sx*f),Y(py+sy*f),f*sk,(sy>0?Math.PI/2:-Math.PI/2)*(sx>0?1:1)+(sx>0&&sy>0?0:sx<0&&sy>0?Math.PI/2:sx<0&&sy<0?Math.PI:-Math.PI/2)*0,0,true);} ctx.lineTo(X(px),Y(py+sy*f)); ctx.closePath(); ctx.fill();});
-  ctx.fillStyle='#f59e0b'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='left'; ctx.fillText((mode?'C':'R')+f.toFixed(1),Math.min(X(a-f)+6,W-4-lLab),Y(b-f)-8);
+  // Tiap sudut: pojok → titik singgung di tepi mendatar → busur fillet (seperempat lingkaran yang
+  // menghadap pojok) → titik singgung di tepi tegak. Dulu keempat sudut memakai sudut busur yang
+  // sama, sehingga hanya sudut kanan bawah yang benar dan sudut lain tergambar sebagai bulatan.
+  [[0,0,1,1],[a,0,-1,1],[a,b,-1,-1],[0,b,1,-1]].forEach(([px,py,sx,sy])=>{ctx.beginPath(); ctx.moveTo(X(px),Y(py)); ctx.lineTo(X(px+sx*f),Y(py));
+    if(mode===0){const a1=sy>0?Math.PI/2:-Math.PI/2, a2=sx>0?Math.PI:0; let d=a2-a1; while(d>Math.PI) d-=2*Math.PI; while(d<=-Math.PI) d+=2*Math.PI; ctx.arc(X(px+sx*f),Y(py+sy*f),f*sk,a1,a2,d<0);}
+    ctx.lineTo(X(px),Y(py+sy*f)); ctx.closePath(); ctx.fill();});
+  // Label R/C di ruang kosong di luar pojok kanan atas penampang asli (bukan di atas konturnya), dengan garis
+  // penunjuk dari titik tengah busur fillet / sisi chamfer yang berhenti 2 px sebelum pojok, jauh dari huruf.
+  const tgh=mode?[X(a-f/2),Y(b-f/2)]:[X(a-f)+f*sk*Math.SQRT1_2,Y(b-f)-f*sk*Math.SQRT1_2];
+  _ttlGaris(ctx,tgh[0],tgh[1],X(a)+2,Y(b)-2,'rgba(245,158,11,.75)',1);
+  ctx.fillStyle='#f59e0b'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='left'; ctx.fillText((mode?'C':'R')+f.toFixed(1),Math.min(X(a)+5,W-4-lLab),Y(b)-5);
   const judul=judulFl(f);
   if(!sempit){
     const dy=[0,22,42,70,90]; ket.forEach(([s,warna,px],i)=>{ctx.fillStyle=warna; ctx.font=_F5(px); ctx.fillText(s.join(' '),tx,ty+dy[i]);});
@@ -9481,7 +9524,10 @@ function drawFillet(){
     _cad5TulisBlok(ctx,ket,tx,ty,W-24);
     ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font=_F5(11); _cad5Judul(ctx,judul,12,18,W-24,14);
   }
-  _ttlTulis('filletInfo',(mode?'Chamfer':'Fillet')+' f = '+f.toFixed(2)+' mm pada empat rusuk vertikal membuang '+hilang.toFixed(2)+' mm² dari penampang '+(a*b)+' mm²; setiap mm tinggi Pad kehilangan volume sebesar itu — itulah suku (4 − π)·f² pada rumus Tugas 4');
+  // Info mengikuti mode: chamfer membuang 2f² (empat segitiga siku f²/2), sedangkan rumus Tugas 4 memakai fillet.
+  _ttlTulis('filletInfo',mode
+    ?'Chamfer f = '+f.toFixed(2)+' mm pada empat rusuk vertikal membuang '+hilang.toFixed(2)+' mm² (empat segitiga siku f²/2 = 2f²) dari penampang '+(a*b)+' mm²; setiap mm tinggi Pad kehilangan volume sebesar itu. Tugas 4 memakai fillet, jadi sukunya (4 − π)·f², bukan 2f²'
+    :'Fillet f = '+f.toFixed(2)+' mm pada empat rusuk vertikal membuang '+hilang.toFixed(2)+' mm² dari penampang '+(a*b)+' mm²; setiap mm tinggi Pad kehilangan volume sebesar itu — itulah suku (4 − π)·f² pada rumus Tugas 4');
   if(_ttlJalan('fillet')){_flFrame++; requestAnimationFrame(drawFillet);}
 }
 
