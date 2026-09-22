@@ -162,7 +162,11 @@ def gambar5():
         n = 6000 / p
         x = x0 + i * bw + bw * 0.18
         b += f'<rect x="{x:.1f}" y="{Y(n):.1f}" width="{bw * 0.64:.1f}" height="{y0 - Y(n):.1f}" rx="4" fill="#a855f7" fill-opacity="0.8"/>'
-        b += t(x + bw * 0.32, Y(n) - 7, f"{n:.0f}", 11.5, TX)
+        yl = Y(n) - 7
+        for g in [1000, 2000, 3000]:
+            if yl - 11 < Y(g) < yl + 3:
+                yl = Y(g) + 10 if Y(g) + 10 <= Y(n) - 4 else Y(g) - 3
+        b += t(x + bw * 0.32, yl, f"{n:.0f}", 11.5, TX)
         b += t(x + bw * 0.32, y0 + 16, f"p = {p}", 11.5, TX, weight="600")
         if lab:
             b += t(x + bw * 0.32, y0 + 31, lab, 10.5, AX)
@@ -196,7 +200,7 @@ def gambar6():
     b += f'<line x1="{x0}" y1="{Y(rata):.1f}" x2="{x1}" y2="{Y(rata):.1f}" stroke="#00e09e" stroke-width="1.3" stroke-dasharray="5 4"/>'
     b += t(x0 + 6, Y(puncak) - 6, f"puncak {puncak} MW", 11.5, "#ef4444", "start")
     b += t(x0 + 6, Y(rata) - 6, f"rata-rata {ind(rata, 2)} MW", 11.5, "#00e09e", "start")
-    b += t(X(19), Y(puncak) + 26, f"LF = {ind(rata / puncak * 100, 1)}%", 12, TX, weight="700")
+    b += t(X(12), Y(18) + 4, f"LF = {ind(rata / puncak * 100, 1)}%", 12, TX, weight="700")
     b += t(345, 242, "Pukul (jam) — beban (MW) kawasan contoh selama satu hari", 12, AX)
     return svg(660, 252, b, "Gambar 6 — Kurva beban harian dan faktor beban")
 

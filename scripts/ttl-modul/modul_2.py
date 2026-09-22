@@ -3,7 +3,7 @@
 # gambar konsisten, dan sengaja tidak sama dengan varian soal parametrik mana pun.
 import math
 
-from pustaka import (SQ3, AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula,
+from pustaka import (SQ3, AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, teks2,
                      fq, ind, kode, kotak, mc_block, notasi, pm_ref, svg, t, tabel)
 
 NOMOR = 2
@@ -73,7 +73,7 @@ def gambar2():
         b += f'<path d="M{cx},{cy} L{p0[0]:.1f},{p0[1]:.1f} A58,58 0 0 1 {p1[0]:.1f},{p1[1]:.1f} Z" fill="{warna}" fill-opacity="0.85"/>'
         b += t(cx + 40 * math.cos(i * math.pi / 2), cy + 40 * math.sin(i * math.pi / 2) + 4, lab, 12, "#fff", weight="700")
     b += f'<circle cx="{cx}" cy="{cy}" r="10" fill="#0f172a" stroke="#94a3b8" stroke-width="1.5"/>'
-    b += t(cx, 236, "stator (kumparan jangkar) dan rotor 4 kutub (kumparan medan)", 11.5, AX)
+    b += teks2(cx, 238, "stator (kumparan jangkar) dan rotor 4 kutub (kumparan medan)", 11.5, AX, maks=36)
     for i, (judul, isi, c) in enumerate([("Stator", "kumparan tiga fasa, tempat tegangan diinduksi", "#f59e0b"),
                                           ("Rotor", "kutub magnet yang diputar penggerak mula", "#ef4444"),
                                           ("Sistem eksitasi", "arus DC ke kumparan medan mengatur tegangan (AVR)", "#22d3ee"),
@@ -83,7 +83,7 @@ def gambar2():
         b += f'<rect x="352" y="{y}" width="290" height="34" rx="8" fill="{BOX}" stroke="{c}" stroke-width="1.4"/>'
         b += t(362, y + 15, judul, 12, TX, "start", "600")
         b += t(362, y + 28, isi, 10.5, AX, "start")
-    return svg(660, 248, b, "Gambar 2 — Bagian utama generator sinkron")
+    return svg(660, 262, b, "Gambar 2 — Bagian utama generator sinkron")
 
 
 def gambar3():
@@ -121,7 +121,11 @@ def gambar4():
     for i, (mm, amp, r) in enumerate(ACSR):
         x = x0 + i * bw + bw * 0.2
         b += f'<rect x="{x:.1f}" y="{Y(amp):.1f}" width="{bw * 0.6:.1f}" height="{y0 - Y(amp):.1f}" rx="4" fill="#22d3ee" fill-opacity="0.8"/>'
-        b += t(x + bw * 0.3, Y(amp) - 7, f"{amp} A", 11.5, TX)
+        yl = Y(amp) - 7
+        for g in [200, 400, 600, 800]:
+            if yl - 11 < Y(g) < yl + 3:
+                yl = Y(g) + 10 if Y(g) + 10 <= Y(amp) - 4 else Y(g) - 3
+        b += t(x + bw * 0.3, yl, f"{amp} A", 11.5, TX)
         b += t(x + bw * 0.3, y0 + 16, f"ACSR {mm} mm²", 11.5, TX, weight="600")
         b += t(x + bw * 0.3, y0 + 31, f"≈ {ind(r, 2)} Ω/km", 10.5, AX)
     b += t(26, 118, "A", 11, AX)
@@ -158,7 +162,8 @@ def gambar6():
     x0, x1 = 150, 600
     X = lambda p: x0 + min(p, 130) / 130 * (x1 - x0)
     for p in [25, 50, 75, 100, 125]:
-        b += f'<line x1="{X(p):.1f}" y1="24" x2="{X(p):.1f}" y2="152" stroke="{GRID}" stroke-width="0.7"/>'
+        for ya, yb in [(24, 36), (76, 96), (136, 152)]:
+            b += f'<line x1="{X(p):.1f}" y1="{ya}" x2="{X(p):.1f}" y2="{yb}" stroke="{GRID}" stroke-width="0.7"/>'
         b += t(X(p), 168, f"{p}%", 11, AX)
     b += f'<line x1="{X(100):.1f}" y1="20" x2="{X(100):.1f}" y2="156" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5 4"/>'
     for i, (nama, rating, beban, c) in enumerate([("T1 · 1000 kVA · Z 5%", 1000, B1, "#22d3ee"), ("T2 · 1600 kVA · Z 7%", 1600, B2, "#a855f7")]):
@@ -168,7 +173,7 @@ def gambar6():
         b += f'<rect x="{x0}" y="{y}" width="{X(p) - x0:.1f}" height="40" rx="6" fill="{"#ef4444" if p > 100 else c}" fill-opacity="0.85"/>'
         b += t(x0 - 8, y + 18, nama.split(" · ")[0], 12, TX, "end", "600")
         b += t(x0 - 8, y + 32, " · ".join(nama.split(" · ")[1:]), 10.5, AX, "end")
-        b += t(X(p) + 8 if p < 110 else X(p) - 8, y + 25, f"{ind(beban, 0)} kVA ({ind(p, 1)}%)", 11.5, "#fca5a5" if p > 100 else TX, "start" if p < 110 else "end", "600")
+        b += t(min(X(p), X(100)) - 8, y + 25, f"{ind(beban, 0)} kVA ({ind(p, 1)}%)", 11.5, TX, "end", "600")
     b += t(375, 196, f"Beban total {ind(BEBAN_PAR, 0)} kVA terbagi sebanding S/Z%: T1 lebih beban walau kapasitas gabungan 2600 kVA", 11.5, AX)
     return svg(660, 206, b, "Gambar 6 — Pembagian beban dua transformator paralel dengan impedansi berbeda")
 

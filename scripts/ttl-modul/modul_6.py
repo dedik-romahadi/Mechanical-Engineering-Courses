@@ -64,7 +64,7 @@ D1 = math.degrees(math.asin(P_OP / PM1))
 V_SURJA, Z1_S, Z2_S = 200.0, 400.0, 50.0
 RHO = (Z2_S - Z1_S) / (Z1_S + Z2_S)
 TAU = 2 * Z2_S / (Z1_S + Z2_S)
-V_CEPAT = 1 / math.sqrt(L_H * C_F) / 1000   # km/s
+V_CEPAT = 1 / math.sqrt(L_H * C_F) / 1000   # ×10³ km/s (L_H dan C_F per km, jadi 1/√LC dalam km/s)
 
 
 # ─────────────────────────── gambar ───────────────────────────
@@ -104,7 +104,7 @@ def gambar1():
         x = 500 + i * 50
         b += kawat(x, 70, x + 8, 70) + res_h(x + 8, x + 24, 70, "#22d3ee", "") + kumparan(x + 26, x + 46, 70, "#f59e0b", "") + kapasitor(x + 48, 70, 150, "#a855f7", "")
     b += kawat(646, 70, 650, 70) + kawat(500, 150, 650, 150) + f'<circle cx="500" cy="70" r="3.5" fill="#00e09e"/><circle cx="650" cy="70" r="3.5" fill="#ec4899"/>'
-    b += t(580, 176, "parameter tersebar: cosh γl, Z_c sinh γl", 11, AX)
+    b += t(575, 170, "parameter tersebar:", 11, AX) + t(575, 184, "cosh γl, Z_c sinh γl", 11, AX)
     b += t(330, 206, f"Contoh modul: 132 kV, {ind(L_KM, 0)} km, r = {ind(R_KM, 1)} Ω/km, x = {ind(X_KM, 1)} Ω/km, b = {ind(B_KM * 1e6, 0)} µS/km → R = {ind(R_L, 0)} Ω, X = {ind(X_L, 0)} Ω, B = {ind(B_L * 1e6, 0)} µS", 11.5, AX)
     return svg(660, 218, b, "Gambar 1 — Tiga model saluran transmisi menurut panjangnya")
 
@@ -120,57 +120,61 @@ def gambar2():
     b += arrow(pR[0], pR[1], pRr[0], pRr[1], "#f59e0b", 2) + t(pRr[0] + 4, pRr[1] + 14, "I·R", 10.5, "#f59e0b", "start", "600")
     b += arrow(pRr[0], pRr[1], P2(VR + Z_C * IR_C)[0], P2(VR + Z_C * IR_C)[1], "#a855f7", 2) + t(P2(VR + Z_C * IR_C)[0] + 6, P2(VR + Z_C * IR_C)[1] + 2, "j·I·X", 10.5, "#a855f7", "start", "600")
     b += arrow(ox, oy, pS[0], pS[1], "#00e09e", 2.8) + t(ox + 30, pS[1] - 10, f"V_S = {ind(abs(VS_C) / 1000, 2)} kV ∠{ind(DELTA, 1)}°", 11.5, "#00e09e", "start", "700")
-    skI = 260 / abs(VS_C) * VR / I_R * 0.4
+    skI = 260 / abs(VS_C) * VR / I_R * 0.25
     pI = (ox + IR_C.real * skI, oy - IR_C.imag * skI)
     b += arrow(ox, oy, pI[0], pI[1], "#ef4444", 2) + t(pI[0] + 6, pI[1] + 12, f"I_R = {ind(I_R, 0)} A ∠−{ind(math.degrees(PHI), 1)}°", 10.5, "#ef4444", "start", "600")
-    b += f'<path d="M {ox + 40} {oy} A 40 40 0 0 0 {ox + 40 * math.cos(math.radians(DELTA)):.1f} {oy - 40 * math.sin(math.radians(DELTA)):.1f}" fill="none" stroke="#00e09e" stroke-width="1.4"/>' + t(ox + 46, oy - 8, "δ", 11, "#00e09e", "start", "700")
+    b += f'<path d="M {ox + 110} {oy} A 110 110 0 0 0 {ox + 110 * math.cos(math.radians(DELTA)):.1f} {oy - 110 * math.sin(math.radians(DELTA)):.1f}" fill="none" stroke="#00e09e" stroke-width="1.4"/>' + t(ox + 118, oy - 5, "δ", 11, "#00e09e", "start", "700")
     for i, (judul, isi, c) in enumerate([("Jatuh tegangan", f"|V_S| − |V_R| = {ind((abs(VS_C) - VR) / 1000, 2)} kV/fasa ({ind((abs(VS_C) / VR - 1) * 100, 1)}%)", "#a855f7"), ("Sudut daya δ", f"{ind(DELTA, 1)}°: membawa P = {ind(P_LOAD, 0)} MW", "#00e09e"),
                                           ("Rugi saluran", f"3I²R = {ind(LOSS_MW, 2)} MW → η = {ind(ETA, 1)}%", "#f59e0b"), ("Pendekatan", f"ΔV ≈ I(R cos φ + X sin φ) = {ind(DV_APPROX / 1000, 2)} kV", "#22d3ee")]):
         y = 30 + i * 40
         b += f'<rect x="420" y="{y}" width="228" height="32" rx="8" fill="{BOX}" stroke="{c}" stroke-width="1.4"/>' + t(428, y + 13, judul, 11, TX, "start", "600") + t(428, y + 26, isi, 9, AX, "start")
-    b += t(330, 208, f"Saluran {ind(L_KM, 0)} km memasok {ind(P_LOAD, 0)} MW pf {ind(PF_LOAD, 1)} pada 132 kV: tegangan kirim harus {ind(VS_LL, 1)} kV (model π) agar ujung terima tetap 132 kV", 11.5, AX)
-    return svg(660, 220, b, "Gambar 2 — Diagram fasor tegangan kirim saluran berbeban induktif")
+    b += t(330, 226, f"Saluran {ind(L_KM, 0)} km memasok {ind(P_LOAD, 0)} MW pf {ind(PF_LOAD, 1)} pada 132 kV:", 11.5, AX)
+    b += t(330, 240, f"tegangan kirim harus {ind(VS_LL, 1)} kV (model π) agar ujung terima tetap 132 kV", 11.5, AX)
+    return svg(660, 250, b, "Gambar 2 — Diagram fasor tegangan kirim saluran berbeban induktif")
 
 
 def gambar3():
     b = ""
-    x0, x1, y0, y1 = 64, 630, 196, 26
-    Pmax = 120
+    x0, x1, y0, y1 = 64, 520, 196, 26
+    Pmax, vmin, vmax = 120, 120, 200
     X = lambda p: x0 + p / Pmax * (x1 - x0)
-    Y = lambda v: y0 - (v - 110) / 40 * (y0 - y1)
-    for v in [110, 120, 130, 140, 150]:
+    Y = lambda v: y0 - (v - vmin) / (vmax - vmin) * (y0 - y1)
+    for v in [120, 140, 160, 180, 200]:
         b += f'<line x1="{x0}" y1="{Y(v):.1f}" x2="{x1}" y2="{Y(v):.1f}" stroke="{GRID}" stroke-width="0.7"/>' + t(x0 - 8, Y(v) + 4, f"{v} kV", 10.5, AX, "end")
     for p in [0, 30, 60, 90, 120]:
         b += t(X(p), y0 + 16, f"{p} MW", 10.5, AX)
     for pf, c, lab in [(0.8, "#ef4444", "pf 0,8 tertinggal"), (0.9, "#f59e0b", "pf 0,9"), (1.0, "#00e09e", "pf 1,0"), (-0.9, "#22d3ee", "pf 0,9 mendahului")]:
-        pts = []
+        pts, vs = [], 0.0
         for i in range(0, 121, 4):
             pfa = abs(pf)
             I = i * 1e6 / (3 * VR * pfa) if i else 0
             ang = -math.acos(pfa) if pf > 0 else math.acos(pfa)
             vs = abs(A_C * VR + Z_C * cmath.rect(I, ang)) * SQ3 / 1000
             pts.append(f"{X(i):.1f},{Y(vs):.1f}")
-        b += f'<polyline points="{" ".join(pts)}" fill="none" stroke="{c}" stroke-width="2.2"/>' + t(x1 + 4, float(pts[-1].split(",")[1]) + 4, lab, 9.5, c, "start", "600")
-    b += f'<line x1="{x0}" y1="{Y(132):.1f}" x2="{x1}" y2="{Y(132):.1f}" stroke="#ec4899" stroke-width="1.2" stroke-dasharray="5 4"/>' + t(x0 + 6, Y(132) - 6, "V_R = 132 kV (dijaga)", 10.5, "#ec4899", "start")
-    b += t(28, 110, "V_S", 11, AX)
-    b += t(347, 234, f"Tegangan kirim yang diperlukan agar ujung terima tetap 132 kV, terhadap beban: makin buruk pf, makin curam; pf mendahului bahkan menurunkan V_S", 11.5, AX)
-    return svg(660, 244, b, "Gambar 3 — Tegangan kirim terhadap beban dan faktor daya (saluran contoh)")
+        b += f'<polyline points="{" ".join(pts)}" fill="none" stroke="{c}" stroke-width="2.2"/>'
+        b += t(x1 + 6, Y(vs) + (4 if pf > 0 else -4), lab, 10, c, "start", "600")
+    b += f'<line x1="{x0}" y1="{Y(132):.1f}" x2="{x1}" y2="{Y(132):.1f}" stroke="#ec4899" stroke-width="1.2" stroke-dasharray="5 4"/>' + t(x1 + 6, Y(132) + 14, "V_R = 132 kV (dijaga)", 10, "#ec4899", "start")
+    b += t(x0 - 8, y1 - 7, "V_S", 11, AX, "end")
+    b += t(330, 232, "Tegangan kirim yang diperlukan agar ujung terima tetap 132 kV, terhadap beban:", 11.5, AX)
+    b += t(330, 246, "makin buruk pf, makin curam; pf mendahului bahkan menurunkan V_S", 11.5, AX)
+    return svg(660, 256, b, "Gambar 3 — Tegangan kirim terhadap beban dan faktor daya (saluran contoh)")
 
 
 def gambar4():
-    b = t(165, 22, "Tanpa kompensasi", 12, "#ef4444", "middle", "700") + t(495, 22, f"Kapasitor shunt {ind(QC_SH, 1)} MVAR di ujung terima", 12, "#00e09e", "middle", "700")
-    for ox, VS_, I_, loss_, c, lab in [(40, VS_LL, I_R, LOSS_MW, "#ef4444", f"pf {ind(PF_LOAD, 2)}"), (370, VS2_LL, I_R2, LOSS2_MW, "#00e09e", f"pf {ind(PF2, 2)}")]:
-        b += kawat(ox, 80, ox + 40, 80) + res_h(ox + 40, ox + 85, 80, "#22d3ee", f"R {ind(R_L, 0)} Ω") + kawat(ox + 85, 80, ox + 100, 80) + kumparan(ox + 100, ox + 160, 80, "#f59e0b", f"X {ind(X_L, 0)} Ω") + kawat(ox + 160, 80, ox + 250, 80) + kawat(ox, 160, ox + 250, 160)
+    b = t(173, 22, "Tanpa kompensasi", 12, "#ef4444", "middle", "700") + t(487, 22, f"Kapasitor shunt {ind(QC_SH, 1)} MVAR di ujung terima", 12, "#00e09e", "middle", "700")
+    for ox, VS_, I_, loss_, c, lab in [(56, VS_LL, I_R, LOSS_MW, "#ef4444", f"pf {ind(PF_LOAD, 2)}"), (370, VS2_LL, I_R2, LOSS2_MW, "#00e09e", f"pf {ind(PF2, 2)}")]:
+        b += kawat(ox, 80, ox + 40, 80) + res_h(ox + 40, ox + 85, 80, "#22d3ee", f"R {ind(R_L, 0)} Ω") + kawat(ox + 85, 80, ox + 100, 80) + kumparan(ox + 100, ox + 160, 80, "#f59e0b", f"X {ind(X_L, 0)} Ω") + kawat(ox + 160, 80, ox + 234, 80) + kawat(ox, 160, ox + 234, 160)
         b += f'<circle cx="{ox}" cy="80" r="4" fill="#00e09e"/>' + t(ox, 66, f"V_S = {ind(VS_, 1)} kV", 10.5, "#00e09e", "middle", "700")
-        b += f'<circle cx="{ox + 250}" cy="80" r="4" fill="#ec4899"/>' + t(ox + 250, 66, "V_R = 132 kV", 10.5, "#ec4899", "middle", "700")
-        b += f'<rect x="{ox + 205}" y="100" width="22" height="40" rx="3" fill="{BOX}" stroke="#ef4444" stroke-width="2"/>' + t(ox + 216, 156, f"{ind(P_LOAD, 0)} MW, {lab}", 9.5, TX, "middle", "600")
+        b += f'<circle cx="{ox + 234}" cy="80" r="4" fill="#ec4899"/>' + t(ox + 234, 66, "V_R = 132 kV", 10.5, "#ec4899", "middle", "700")
+        b += f'<rect x="{ox + 190}" y="100" width="22" height="40" rx="3" fill="{BOX}" stroke="#ef4444" stroke-width="2"/>' + t(ox + 218, 154, f"{ind(P_LOAD, 0)} MW, {lab}", 9.5, TX, "end", "600")
         b += arrow(ox + 15, 100, ox + 15, 140, c, 1.6) + t(ox + 22, 124, f"I = {ind(I_, 0)} A", 10, c, "start", "600")
-        b += t(ox + 125, 190, f"rugi 3I²R = {ind(loss_, 2)} MW", 10.5, c, "middle", "600")
+        b += t(ox + 117, 190, f"rugi 3I²R = {ind(loss_, 2)} MW", 10.5, c, "middle", "600")
         if ox > 100:
-            b += kapasitor(ox + 240, 80, 160, "#a855f7", "")
-            b += t(ox + 246, 124, "C", 10.5, "#a855f7", "start", "700")
-    b += t(330, 216, f"Kapasitor memasok {ind(QC_SH, 1)} MVAR dari {ind(P_LOAD * math.tan(PHI), 1)} MVAR yang diminta beban: arus saluran turun {ind((1 - I_R2 / I_R) * 100, 0)}%, V_S yang diperlukan turun dari {ind(VS_LL, 1)} ke {ind(VS2_LL, 1)} kV", 11.5, AX)
-    return svg(660, 226, b, "Gambar 4 — Kompensasi shunt: kapasitor di ujung terima")
+            b += kapasitor(ox + 224, 80, 160, "#a855f7", "")
+            b += t(ox + 240, 128, "C", 10.5, "#a855f7", "start", "700")
+    b += t(330, 214, f"Kapasitor memasok {ind(QC_SH, 1)} MVAR dari {ind(P_LOAD * math.tan(PHI), 1)} MVAR yang diminta beban: arus saluran turun {ind((1 - I_R2 / I_R) * 100, 0)}%,", 11.5, AX)
+    b += t(330, 228, f"V_S yang diperlukan turun dari {ind(VS_LL, 1)} ke {ind(VS2_LL, 1)} kV", 11.5, AX)
+    return svg(660, 238, b, "Gambar 4 — Kompensasi shunt: kapasitor di ujung terima")
 
 
 def gambar5():
@@ -184,13 +188,16 @@ def gambar5():
         b += t(x0 - 8, Y(p) + 4, f"{p}", 10.5, AX, "end")
     for Pm, c, lab in [(PM0, "#94a3b8", f"tanpa kompensasi: P_maks = {ind(PM0, 0)} MW"), (PM1, "#00e09e", f"kompensasi seri {ind(K_SER * 100, 0)}%: P_maks = {ind(PM1, 0)} MW")]:
         pts = " ".join(f"{X(d):.1f},{Y(Pm * math.sin(math.radians(d))):.1f}" for d in range(0, 181, 3))
-        b += f'<polyline points="{pts}" fill="none" stroke="{c}" stroke-width="2.4"/>' + t(X(95), Y(Pm) - 8, lab, 10.5, c, "start", "600")
-    b += f'<line x1="{x0}" y1="{Y(P_OP):.1f}" x2="{x1}" y2="{Y(P_OP):.1f}" stroke="#f59e0b" stroke-width="1.4" stroke-dasharray="5 4"/>' + t(x0 + 6, Y(P_OP) - 6, f"P = {ind(P_OP, 0)} MW", 10.5, "#f59e0b", "start", "600")
+        b += f'<polyline points="{pts}" fill="none" stroke="{c}" stroke-width="2.4"/>'
+        lx = 72 if Pm == PM1 else 372
+        b += f'<line x1="{lx}" y1="13" x2="{lx + 18}" y2="13" stroke="{c}" stroke-width="2.4"/>' + t(lx + 24, 17, lab, 10.5, c, "start", "600")
+    b += f'<line x1="{x0}" y1="{Y(P_OP):.1f}" x2="{x1}" y2="{Y(P_OP):.1f}" stroke="#f59e0b" stroke-width="1.4" stroke-dasharray="5 4"/>' + t(x1 - 6, Y(P_OP) - 6, f"P = {ind(P_OP, 0)} MW", 10.5, "#f59e0b", "end", "600")
     b += f'<circle cx="{X(D0):.1f}" cy="{Y(P_OP):.1f}" r="5" fill="#94a3b8"/>' + t(X(D0) + 8, Y(P_OP) + 16, f"δ = {ind(D0, 1)}°", 10.5, "#94a3b8", "start", "600")
-    b += f'<circle cx="{X(D1):.1f}" cy="{Y(P_OP):.1f}" r="5" fill="#00e09e"/>' + t(X(D1) - 8, Y(P_OP) + 16, f"δ = {ind(D1, 1)}°", 10.5, "#00e09e", "end", "600")
+    b += f'<circle cx="{X(D1):.1f}" cy="{Y(P_OP):.1f}" r="5" fill="#00e09e"/>' + t(X(D1) - 8, Y(P_OP) - 8, f"δ = {ind(D1, 1)}°", 10.5, "#00e09e", "end", "600")
     b += t(28, 110, "MW", 11, AX)
-    b += t(347, 234, f"Saluran {ind(V_SER, 0)} kV, X = {ind(X_SER, 0)} Ω: kapasitor seri {ind(K_SER * 100, 0)}% menaikkan P_maks {ind((PM1 / PM0 - 1) * 100, 0)}% dan memperkecil sudut daya untuk beban yang sama", 11.5, AX)
-    return svg(660, 244, b, "Gambar 5 — Kurva P–δ dan kompensasi seri")
+    b += t(347, 234, f"Saluran {ind(V_SER, 0)} kV, X = {ind(X_SER, 0)} Ω: kapasitor seri {ind(K_SER * 100, 0)}% menaikkan P_maks {ind((PM1 / PM0 - 1) * 100, 0)}%", 11.5, AX)
+    b += t(347, 248, "dan memperkecil sudut daya untuk beban yang sama", 11.5, AX)
+    return svg(660, 258, b, "Gambar 5 — Kurva P–δ dan kompensasi seri")
 
 
 def gambar6():
@@ -210,9 +217,10 @@ def gambar6():
         return f'<polygon points="{" ".join(pts)}" fill="{c}" fill-opacity=".75"/>'
     b += pulsa(150, V_SURJA, 60, "#22d3ee", x0, xj) + t(150, 44, f"datang {ind(V_SURJA, 0)} kV →", 10.5, "#22d3ee", "middle", "600")
     b += pulsa(300, RHO * V_SURJA, 60, "#ef4444", x0, xj) + t(300, 200, f"← pantul ρV = {ind(RHO * V_SURJA, 1)} kV", 10.5, "#ef4444", "middle", "600")
-    b += pulsa(470, TAU * V_SURJA, 30, "#00e09e", xj, x1) + t(470, 44, f"diteruskan τV = {ind(TAU * V_SURJA, 1)} kV →", 10.5, "#00e09e", "middle", "600")
-    b += t(330, 238, f"ρ = (Z₂ − Z₁)/(Z₁ + Z₂) = {ind(RHO, 3)}, τ = 2Z₂/(Z₁ + Z₂) = {ind(TAU, 3)}; kecepatan rambat di udara ≈ {ind(V_CEPAT / 1000, 0)}×10³ km/s, di kabel sekitar separuhnya", 11.5, AX)
-    return svg(660, 248, b, "Gambar 6 — Gelombang berjalan di sambungan saluran udara ke kabel")
+    b += pulsa(470, TAU * V_SURJA, 30, "#00e09e", xj, x1) + t(505, 44, f"diteruskan τV = {ind(TAU * V_SURJA, 1)} kV →", 10.5, "#00e09e", "middle", "600")
+    b += t(330, 238, f"ρ = (Z₂ − Z₁)/(Z₁ + Z₂) = {ind(RHO, 3)}, τ = 2Z₂/(Z₁ + Z₂) = {ind(TAU, 3)};", 11.5, AX)
+    b += t(330, 252, f"kecepatan rambat di udara ≈ {ind(V_CEPAT, 0)}×10³ km/s, di kabel sekitar separuhnya", 11.5, AX)
+    return svg(660, 262, b, "Gambar 6 — Gelombang berjalan di sambungan saluran udara ke kabel")
 
 
 # ─────────────────────────── SUBNAV & HERO ───────────────────────────
@@ -439,7 +447,7 @@ def materi():
     # 06 — transien gelombang berjalan
     isi = figure(6, "Gelombang berjalan di sambungan saluran udara ke kabel", f"Surja {ind(V_SURJA, 0)} kV yang tiba dari saluran udara ({ind(Z1_S, 0)} Ω) ke kabel ({ind(Z2_S, 0)} Ω) hanya diteruskan {ind(TAU * V_SURJA, 1)} kV; sisanya dipantulkan negatif. Sebaliknya, dari kabel ke saluran udara tegangan diteruskan hampir dua kali lipat.", gambar6())
     isi += formula(9, "Gelombang Berjalan: Impedansi Surja dan Kecepatan Rambat", r"Z_c = \sqrt{\dfrac{L}{C}}, \qquad v = \dfrac{1}{\sqrt{LC}}, \qquad v_{\text{surja}}(t) = Z_c\, i_{\text{surja}}(t)",
-                   rf"Saluran udara: \(Z_c = \sqrt{{1{{,}}2\times10^{{-3}}/9{{,}}5\times10^{{-9}}}} = {ind(ZC_SURJA, 0)}\) Ω, \(v = 1/\sqrt{{LC}} \approx {ind(V_CEPAT / 1000, 0)}\times10^3\) km/s (mendekati cahaya); kabel: \(Z_c\) 30–60 Ω, \(v\) sekitar setengahnya karena isolasi berpermitivitas tinggi. Surja {ind(V_SURJA, 0)} kV membawa arus \({ind(V_SURJA, 0)}/{ind(ZC_SURJA, 0)} = {ind(V_SURJA * 1000 / ZC_SURJA, 0)}\) A.",
+                   rf"Saluran udara: \(Z_c = \sqrt{{1{{,}}2\times10^{{-3}}/9{{,}}5\times10^{{-9}}}} = {ind(ZC_SURJA, 0)}\) Ω, \(v = 1/\sqrt{{LC}} \approx {ind(V_CEPAT, 0)}\times10^3\) km/s (mendekati cahaya); kabel: \(Z_c\) 30–60 Ω, \(v\) sekitar setengahnya karena isolasi berpermitivitas tinggi. Surja {ind(V_SURJA, 0)} kV membawa arus \({ind(V_SURJA, 0)}/{ind(ZC_SURJA, 0)} = {ind(V_SURJA * 1000 / ZC_SURJA, 0)}\) A.",
                    "Petir dan pensaklaran menimbulkan perubahan dalam mikrodetik; pada skala waktu itu saluran bukan rangkaian terkumpul melainkan medium rambat. Tegangan dan arus surja merambat bersama dengan perbandingan tetap Z_c, dan sampai ada perubahan impedansi (ujung, sambungan, trafo) gelombang tidak 'tahu' apa yang ada di depannya.",
                    [("Z_c", "Impedansi surja (Ω), sama dengan impedansi karakteristik tanpa rugi"), ("v", "Kecepatan rambat (km/s)"), ("L, C", "Induktansi dan kapasitansi per satuan panjang")])
     isi += formula(10, "Pantulan dan Transmisi di Titik Diskontinuitas", r"\rho = \dfrac{Z_2 - Z_1}{Z_1 + Z_2}, \qquad \tau = 1 + \rho = \dfrac{2Z_2}{Z_1 + Z_2}, \qquad V_{pantul} = \rho V, \quad V_{teruskan} = \tau V",

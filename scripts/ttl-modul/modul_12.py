@@ -3,7 +3,7 @@
 # teks, tabel, dan gambar konsisten, dan sengaja berbeda dari varian soal.
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
+from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula, teks2,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel)
 
 NOMOR = 12
@@ -71,7 +71,7 @@ def bus(x, y, label, c):
 
 def gambar1():
     b = t(330, 18, "Aliran daya penyulang radial 4 bus: backward sweep (kuning) lalu forward sweep (cyan)", 11.5, TX, "middle", "700")
-    xs_ = [60, 200, 340, 480, 620]
+    xs_ = [56, 188, 320, 452, 584]
     beban = [0, 0.8, 0.8, 0.8, 0.8]
     r, x, V1 = 0.8, 0.7, 20.0
     Q = 0.8 * math.tan(math.acos(0.85))
@@ -93,16 +93,16 @@ def gambar1():
             b += t((xs_[k - 1] + xs_[k]) / 2, 60, f"{ind(Pf[k], 3)} MW", 9.5, "#f59e0b", "middle", "600") + t((xs_[k - 1] + xs_[k]) / 2, 86, f"rugi {ind(rugi[k] * 1000, 1)} kW", 9, "#ef4444")
             b += kawat(xs_[k], 77, xs_[k], 100, "#00e09e", 1.4) + f'<rect x="{xs_[k] - 6}" y="100" width="12" height="12" fill="#00e09e"/>' + t(xs_[k], 126, f"{ind(beban[k], 1)} MW pf 0,85", 9.5, AX)
             b += t(xs_[k], 146, f"V = {ind(V[k], 2)} kV", 10, "#22d3ee", "middle", "600")
-    b += t(60, 146, f"V = {ind(V1, 1)} kV", 10, "#22d3ee", "middle", "600")
-    b += arrow(600, 40, 100, 40, "#f59e0b", 1.6) + t(350, 34, "backward: I dan rugi tiap ruas dijumlahkan dari ujung ke GI", 9.5, "#f59e0b")
-    b += arrow(100, 170, 600, 170, "#22d3ee", 1.6) + t(350, 186, "forward: V bus dihitung dari GI ke ujung dengan aliran ruas yang baru; ulangi sampai ΔV < toleransi", 9.5, "#22d3ee")
+    b += t(xs_[0], 146, f"V = {ind(V1, 1)} kV", 10, "#22d3ee", "middle", "600")
+    b += arrow(570, 40, 80, 40, "#f59e0b", 1.6) + t(325, 34, "backward: I dan rugi tiap ruas dijumlahkan dari ujung ke GI", 9.5, "#f59e0b")
+    b += arrow(80, 170, 570, 170, "#22d3ee", 1.6) + t(325, 186, "forward: V bus dihitung dari GI ke ujung dengan aliran ruas yang baru; ulangi sampai ΔV < toleransi", 9.5, "#22d3ee")
     b += t(330, 206, f"Ruas 2 km (0,8 + j0,7 Ω) × 4, beban 0,8 MW pf 0,85 per bus: GI memasok {ind(Pf[1], 3)} MW, rugi total {ind(sum(rugi) * 1000, 1)} kW ({ind(sum(rugi) / Pf[1] * 100, 2)} %), ujung {ind(V[4], 2)} kV", 10.5, AX)
     return svg(660, 216, b, "Gambar 1 — Aliran daya penyulang radial dengan backward/forward sweep")
 
 
 def gambar2():
     b = ""
-    x0, x1, y0, y1 = 64, 630, 190, 26
+    x0, x1, y0, y1 = 64, 616, 190, 26
     L = 15.0
     X = lambda d: x0 + d / L * (x1 - x0)
     i3 = lambda d: VF / math.hypot(R_KM * d, XS + X_KM * d)
@@ -117,33 +117,38 @@ def gambar2():
     p3 = " ".join(f"{X(k / 4):.1f},{Y(i3(k / 4)):.1f}" for k in range(61))
     p1 = " ".join(f"{X(k / 4):.1f},{Y(i1(k / 4)):.1f}" for k in range(61))
     b += f'<polyline points="{p3}" fill="none" stroke="#ef4444" stroke-width="2.6"/>' + t(X(4), Y(i3(4)) - 10, f"3 fasa: {ind(i3(0), 0)} A di GI → {ind(i3(15), 0)} A di 15 km", 10, "#ef4444", "start", "600")
-    b += f'<polyline points="{p1}" fill="none" stroke="#22d3ee" stroke-width="2.4"/>' + t(X(4), Y(i1(4)) + 16, f"1 fasa–tanah (NGR {ind(NGR, 0)} Ω): {ind(i1(0), 0)} → {ind(i1(15), 0)} A", 10, "#22d3ee", "start", "600")
+    b += f'<polyline points="{p1}" fill="none" stroke="#22d3ee" stroke-width="2.4"/>' + t(X(1), Y(600) - 10, f"1 fasa–tanah (NGR {ind(NGR, 0)} Ω, garis bawah): {ind(i1(0), 0)} → {ind(i1(15), 0)} A", 10, "#22d3ee", "start", "600")
     pk = 600
     b += f'<line x1="{x0}" y1="{Y(pk):.1f}" x2="{x1}" y2="{Y(pk):.1f}" stroke="#f59e0b" stroke-width="1.4" stroke-dasharray="6 4"/>' + t(x1 - 4, Y(pk) - 6, f"pickup relai fasa {pk} A", 9.5, "#f59e0b", "end", "600")
     b += f'<circle cx="{X(L_HS):.1f}" cy="{Y(i3(L_HS)):.1f}" r="5" fill="#ef4444"/>' + t(X(L_HS), Y(i3(L_HS)) - 10, f"{ind(L_HS, 0)} km: {ind(I_SC_UJUNG, 0)} A", 9.5, TX, "middle", "600")
-    b += t(28, 108, "A", 10.5, AX) + t(347, 230, f"S_sc {ind(SSC, 0)} MVA (X_s {ind(XS, 3)} Ω), 0,4 + j0,35 Ω/km, Z₀ ≈ 3Z₁; arus gangguan tanah dibatasi NGR sehingga hampir datar dan hanya terdeteksi relai tanah (GFR) berpickup rendah", 10.5, AX)
-    return svg(660, 240, b, "Gambar 2 — Arus hubung singkat tiga fasa dan satu fasa–tanah sepanjang penyulang 20 kV")
+    b += t(x0 - 8, y1 - 8, "A", 10.5, AX, "end") + t(340, 230, f"S_sc {ind(SSC, 0)} MVA (X_s {ind(XS, 3)} Ω), 0,4 + j0,35 Ω/km, Z₀ ≈ 3Z₁; arus gangguan tanah dibatasi NGR", 10.5, AX)
+    b += t(340, 244, "sehingga hampir datar dan hanya terdeteksi relai tanah (GFR) berpickup rendah", 10.5, AX)
+    return svg(660, 254, b, "Gambar 2 — Arus hubung singkat tiga fasa dan satu fasa–tanah sepanjang penyulang 20 kV")
 
 
 def gambar3():
-    b = t(330, 18, "Peralatan proteksi dan pemisah pada penyulang 20 kV (SUTM)", 12, TX, "middle", "700")
+    b = t(330, 20, "Peralatan proteksi dan pemisah pada penyulang 20 kV (SUTM)", 12, TX, "middle", "700")
     y = 80
     b += f'<rect x="20" y="{y - 22}" width="60" height="44" rx="6" fill="{BOX}" stroke="#f59e0b" stroke-width="1.6"/>' + t(50, y - 4, "GI 20 kV", 9.5, "#f59e0b", "middle", "700") + t(50, y + 9, "OCR + GFR", 9, AX)
-    b += kawat(80, y, 620, y, "#22d3ee", 2.4)
     alat = [(110, "PMT", "#ef4444", "pemutus di GI,\ndiperintah relai"), (200, "LBS", "#94a3b8", "pemisah beban,\nmanuver seksi"), (300, "REC", "#a855f7", "recloser: buka–tutup\notomatis 2–3×"), (400, "SEC", "#22d3ee", "sectionalizer: hitung\noperasi recloser"), (500, "FCO", "#f59e0b", "fuse cut-out\ncabang/trafo"), (590, "LA", "#00e09e", "arrester\npetir")]
+    tepi = [80] + [v for x, *_ in alat for v in (x - 16, x + 16)] + [620]
+    for xa, xb in zip(tepi[0::2], tepi[1::2]):              # penyulang terputus di tiap kotak alat
+        b += kawat(xa, y, xb, y, "#22d3ee", 2.4)
     for x, nama, c, ket in alat:
         b += f'<rect x="{x - 16}" y="{y - 12}" width="32" height="24" rx="4" fill="{BOX}" stroke="{c}" stroke-width="1.8"/>' + t(x, y + 4, nama, 9.5, c, "middle", "700")
         for i, baris in enumerate(ket.split("\n")):
-            b += t(x, y + 34 + i * 12, baris, 9, AX)
+            b += t(x + 6, y + 34 + i * 12, baris, 9, AX, "start") if nama == "FCO" else t(x, y + 34 + i * 12, baris, 9, AX)
     b += kawat(500, y + 12, 500, y + 70, "#f59e0b", 1.4) + f'<circle cx="500" cy="{y + 80}" r="9" fill="{BOX}" stroke="#a855f7" stroke-width="1.6"/><circle cx="500" cy="{y + 92}" r="9" fill="{BOX}" stroke="#a855f7" stroke-width="1.6"/>' + t(524, y + 90, "trafo distribusi", 9, AX, "start")
-    b += t(330, 196, "Zona: relai GI (cadangan seluruh penyulang) → recloser (seksi tengah–ujung) → fuse cabang (satu cabang/trafo); makin ke hilir makin cepat dan makin kecil bagian yang padam", 10.5, AX)
-    b += t(330, 214, "Gangguan temporer (70–80 %): recloser membuka cepat lalu menutup; permanen: recloser lockout atau fuse lebur, sectionalizer/LBS mengisolasi seksi", 10.5, AX)
-    return svg(660, 226, b, "Gambar 3 — Peralatan proteksi dan pemisah pada penyulang dan zonanya")
+    b += t(330, 198, "Zona: relai GI (cadangan seluruh penyulang) → recloser (seksi tengah–ujung) → fuse cabang (satu cabang/trafo);", 10.5, AX)
+    b += t(330, 212, "makin ke hilir makin cepat dan makin kecil bagian yang padam", 10.5, AX)
+    b += t(330, 230, "Gangguan temporer (70–80 %): recloser membuka cepat lalu menutup; permanen: recloser lockout atau fuse lebur,", 10.5, AX)
+    b += t(330, 244, "sectionalizer/LBS mengisolasi seksi", 10.5, AX)
+    return svg(660, 254, b, "Gambar 3 — Peralatan proteksi dan pemisah pada penyulang dan zonanya")
 
 
 def gambar4():
     b = ""
-    x0, x1, y0, y1 = 64, 630, 190, 26
+    x0, x1, y0, y1 = 64, 616, 190, 26
     imin, imax, tmin, tmax = 100, 10000, 0.01, 100
     X = lambda i: x0 + math.log10(i / imin) / math.log10(imax / imin) * (x1 - x0)
     Y = lambda tt: y0 - math.log10(max(tmin, min(tmax, tt)) / tmin) / math.log10(tmax / tmin) * (y0 - y1)
@@ -168,12 +173,15 @@ def gambar4():
     tA, tB, tF = idmt(IF_K, IS_HULU, TMS_HULU), T_HILIR, fuse(IF_K)
     for tt, c in [(tA, "#ef4444"), (tB, "#00e09e"), (tF, "#f59e0b")]:
         b += f'<circle cx="{X(IF_K):.1f}" cy="{Y(tt):.1f}" r="4.5" fill="{c}"/>'
-    b += t(X(IF_K) + 8, Y(tA) - 4, f"relai GI: I_s {ind(IS_HULU, 0)} A, TMS {ind(TMS_HULU, 3)} → {ind(tA, 3)} s", 9.5, "#ef4444", "start", "600")
-    b += t(X(IF_K) + 8, Y(tB) + 12, f"recloser/relai hilir: I_s {ind(IS_HILIR, 0)} A, TMS {ind(TMS_HILIR, 2)} → {ind(tB, 3)} s", 9.5, "#00e09e", "start", "600")
-    b += t(X(IF_K) + 8, Y(tF) + 12, f"fuse 100 A: {ind(tF * 1000, 0)} ms", 9.5, "#f59e0b", "start", "600")
+    for k, (c, lab) in enumerate([("#ef4444", f"relai GI: I_s {ind(IS_HULU, 0)} A, TMS {ind(TMS_HULU, 3)} → {ind(tA, 3)} s"),
+                                  ("#00e09e", f"recloser/relai hilir: I_s {ind(IS_HILIR, 0)} A, TMS {ind(TMS_HILIR, 2)} → {ind(tB, 3)} s"),
+                                  ("#f59e0b", f"fuse 100 A: {ind(tF * 1000, 0)} ms")]):
+        yy = 150 + 14 * k                                   # kiri bawah: semua kurva berada di atas area ini
+        b += f'<line x1="{x0 + 8}" y1="{yy - 4}" x2="{x0 + 24}" y2="{yy - 4}" stroke="{c}" stroke-width="2.4"/>' + t(x0 + 30, yy, lab, 9.5, c, "start", "600")
     b += t(X(IF_K), y1 - 6, f"I_f = {ind(IF_K, 0)} A", 9.5, TX, "middle", "600")
-    b += t(28, 108, "t", 10.5, AX) + t(347, 230, f"Kurva waktu–arus (log–log): fuse < hilir < hulu pada setiap arus gangguan; selang hulu–hilir {ind(MARGIN, 1)} s pada {ind(IF_K, 0)} A dicapai dengan TMS hulu {ind(TMS_HULU, 3)}", 10.5, AX)
-    return svg(660, 240, b, "Gambar 4 — Koordinasi kurva waktu–arus fuse, relai hilir, dan relai gardu induk")
+    b += t(x0 - 8, y1 - 8, "t", 10.5, AX, "end") + t(340, 230, "Kurva waktu–arus (log–log): fuse < hilir < hulu pada setiap arus gangguan;", 10.5, AX)
+    b += t(340, 244, f"selang hulu–hilir {ind(MARGIN, 1)} s pada {ind(IF_K, 0)} A dicapai dengan TMS hulu {ind(TMS_HULU, 3)}", 10.5, AX)
+    return svg(660, 254, b, "Gambar 4 — Koordinasi kurva waktu–arus fuse, relai hilir, dan relai gardu induk")
 
 
 def gambar5():
@@ -194,7 +202,7 @@ def gambar5():
     Y = lambda v: y0 - v / ymax * (y0 - y1)
     for n in range(0, nT + 1, 4):
         b += f'<line x1="{X(n):.1f}" y1="{y1}" x2="{X(n):.1f}" y2="{y0}" stroke="{GRID}" stroke-width="0.7"/>' + t(X(n), y0 + 16, f"th {n}", 10.5, AX)
-    for v in [0, 5, 10, 15, 20]:
+    for v in [0, 5, 10, 15, 20, 25, 30]:
         if v <= ymax:
             b += t(x0 - 8, Y(v) + 4, f"{v} MVA", 10.5, AX, "end")
     pts = " ".join(f"{X(n):.1f},{Y(beban[n]):.1f}" for n in range(nT + 1))
@@ -209,14 +217,17 @@ def gambar5():
     b += f'<path d="{d2}" fill="none" stroke="#22d3ee" stroke-width="1" stroke-dasharray="4 3"/>'
     for n in tambah:
         b += f'<circle cx="{X(n):.1f}" cy="{Y(cap[n]):.1f}" r="5" fill="#f59e0b"/>' + t(X(n), Y(cap[n]) - 9, "+4 MVA", 9, "#f59e0b", "middle", "600")
-    b += t(X(14), Y(beban[14]) - 12, f"beban {ind(S0_J, 1)} MVA × 1,07ⁿ (ganda tiap {ind(T_GANDA, 1)} th)", 10, "#ef4444", "middle", "600")
-    b += t(X(3), Y(cap[0]) + 14, f"kapasitas {ind(CAP_J, 0)} MVA; batas 80 % (putus)", 10, "#22d3ee", "start", "600")
-    b += t(28, 108, "MVA", 10.5, AX) + t(347, 230, f"Tahun jenuh pertama n = ln(0,8 × {ind(CAP_J, 0)}/{ind(S0_J, 1)})/ln 1,07 = {ind(math.log(0.8 * CAP_J / S0_J) / math.log(1 + G_J), 2)}; penambahan 4 MVA bertahap pada tahun {', '.join(map(str, tambah))}", 10.5, AX)
+    for k, (c, w, putus, lab) in enumerate([("#ef4444", 2.6, "", f"beban {ind(S0_J, 1)} MVA × 1,07ⁿ (ganda tiap {ind(T_GANDA, 1)} th)"),
+                                             ("#22d3ee", 2.2, "", f"kapasitas terpasang (awal {ind(CAP_J, 0)} MVA)"),
+                                             ("#22d3ee", 1, ' stroke-dasharray="4 3"', "batas 80 % kapasitas")]):
+        yy = y1 + 14 + 14 * k                               # kiri atas: kurva dan tangga kapasitas masih rendah
+        b += f'<line x1="{x0 + 8}" y1="{yy - 4}" x2="{x0 + 26}" y2="{yy - 4}" stroke="{c}" stroke-width="{w}"{putus}/>' + t(x0 + 32, yy, lab, 10, c, "start", "600")
+    b += t(347, 230, f"Tahun jenuh pertama n = ln(0,8 × {ind(CAP_J, 0)}/{ind(S0_J, 1)})/ln 1,07 = {ind(math.log(0.8 * CAP_J / S0_J) / math.log(1 + G_J), 2)}; penambahan 4 MVA bertahap pada tahun {', '.join(map(str, tambah))}", 10.5, AX)
     return svg(660, 240, b, "Gambar 5 — Peramalan beban majemuk dan penambahan kapasitas bertahap")
 
 
 def gambar6():
-    b = t(330, 18, "Pilihan pengembangan saat penyulang/gardu jenuh", 12, TX, "middle", "700")
+    b = t(330, 20, "Pilihan pengembangan saat penyulang/gardu jenuh", 12, TX, "middle", "700")
     opsi = [("Uprating konduktor", "AAAC 70 → 150 mm²:\nkapasitas +60 %, rugi −55 %;\nbiaya sedang, tanpa lahan", "#22d3ee"),
             ("Penyulang baru", "bagi beban dua penyulang:\nkapasitas 2×, keandalan naik,\nbutuh sel 20 kV di GI", "#00e09e"),
             ("Gardu sisipan / trafo lebih besar", "JTR lebih pendek, ΔV turun;\nmurah, cepat; tidak menambah\nkapasitas penyulang", "#f59e0b"),
@@ -224,12 +235,13 @@ def gambar6():
             ("GI baru", "memotong panjang penyulang;\nsangat mahal (Rp 50–150 M),\n3–5 tahun; untuk kota tumbuh", "#ef4444")]
     for i, (judul, ket, c) in enumerate(opsi):
         x = 14 + i * 128
-        b += f'<rect x="{x}" y="34" width="120" height="150" rx="8" fill="{BOX}" stroke="{c}" stroke-width="1.6"/>' + t(x + 60, 54, judul, 10, c, "middle", "700")
-        for j, baris in enumerate(ket.split("\n")):
-            b += t(x + 60, 78 + j * 14, baris, 9, AX)
+        b += f'<rect x="{x}" y="34" width="120" height="150" rx="8" fill="{BOX}" stroke="{c}" stroke-width="1.6"/>'
+        b += teks2(x + 60, 52, judul, 9.5, c, maks=17, jarak=12, weight="700")
+        b += teks2(x + 60, 84, ket.replace("\n", " "), 9, AX, maks=20, jarak=12)
         b += t(x + 60, 170, ["Rp/kVA rendah", "Rp/kVA sedang", "Rp/kVA rendah", "Rp/kVA terendah", "Rp/kVA tinggi"][i], 9.5, c, "middle", "600")
-    b += t(330, 206, f"Biaya tahunan ekuivalen = modal × CRF; i = {ind(I_RATE * 100, 0)} %, umur {N_UMUR} th → CRF = {ind(CRF, 4)}: modal Rp 1 M setara Rp {ind(CRF * 1000, 0)} juta/tahun, dibandingkan nilai rugi dan ENS yang dihemat", 10.5, AX)
-    return svg(660, 216, b, "Gambar 6 — Lima pilihan pengembangan jaringan distribusi dan sifat biayanya")
+    b += t(330, 206, f"Biaya tahunan ekuivalen = modal × CRF; i = {ind(I_RATE * 100, 0)} %, umur {N_UMUR} th → CRF = {ind(CRF, 4)}:", 10.5, AX)
+    b += t(330, 220, f"modal Rp 1 M setara Rp {ind(CRF * 1000, 0)} juta/tahun, dibandingkan nilai rugi dan ENS yang dihemat", 10.5, AX)
+    return svg(660, 230, b, "Gambar 6 — Lima pilihan pengembangan jaringan distribusi dan sifat biayanya")
 
 
 # ─────────────────────────── SUBNAV & HERO ───────────────────────────

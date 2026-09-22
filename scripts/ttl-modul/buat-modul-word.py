@@ -731,7 +731,7 @@ def bangun(n, tmpdir):
                 cap = el.xpath("./figcaption")
                 if svg:
                     png = Path(tmpdir) / f"m{n}-g{n_gambar}.png"
-                    render_svg(svg, png, perluas_kanvas=False)
+                    render_svg(svg, png)
                     W.gambar(png)
                 if cap:
                     W.caption([(t, b, i, sk) for t, b, i, sk in rapikan_runs(runs_dari(cap[0]))])

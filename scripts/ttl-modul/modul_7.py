@@ -63,10 +63,20 @@ def kawat(x1, y1, x2, y2, c=AX, w=2):
     return f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{c}" stroke-width="{w}"/>'
 
 
-def reaktor(x1, x2, y, c, label, dy=-12):
+def reaktor(x1, x2, y, c, label, dy=-16):
     n, w = 4, (x2 - x1) / 4
     d = " ".join(f"a {w / 2:.1f} {w / 2:.1f} 0 0 1 {w:.1f} 0" for _ in range(n))
     return f'<path d="M {x1} {y} {d}" fill="none" stroke="{c}" stroke-width="2.2"/>' + t((x1 + x2) / 2, y + dy, label, 10.5, c, "middle", "600")
+
+
+def kawat_berlabel(x1, y1, x2, y2, hw, hh):
+    """Kawat lurus yang terputus di kotak label (setengah lebar hw, setengah tinggi hh) di titik tengahnya."""
+    mx, my = (x1 + x2) / 2, (y1 + y2) / 2
+    L = math.hypot(x2 - x1, y2 - y1)
+    dx, dy = (x2 - x1) / L, (y2 - y1) / L
+    sj = min(hw / abs(dx) if dx else 1e9, hh / abs(dy) if dy else 1e9)
+    return (kawat(round(x1, 1), round(y1, 1), round(mx - sj * dx, 1), round(my - sj * dy, 1))
+            + kawat(round(mx + sj * dx, 1), round(my + sj * dy, 1), round(x2, 1), round(y2, 1)))
 
 
 def rel(x, y1, y2, c, label):
@@ -86,20 +96,22 @@ def gambar1():
     for tt in [0, 0.5, 1, 1.5, 2, 2.5, 3]:
         b += f'<line x1="{X(tt):.1f}" y1="{y1}" x2="{X(tt):.1f}" y2="{y0}" stroke="{GRID}" stroke-width="0.7"/>' + t(X(tt), y0 + 16, f"{tt:g} s", 10.5, AX)
     for i, c, lab in [(1 / XG2, "#ec4899", f"I″ = 1/X″ = {ind(1 / XG2, 2)} pu"), (1 / XG1, "#f59e0b", f"I′ = 1/X′ = {ind(1 / XG1, 2)} pu"), (1 / XGS, "#00e09e", f"I = 1/X_s = {ind(1 / XGS, 2)} pu")]:
-        b += f'<line x1="{x0}" y1="{Y(i):.1f}" x2="{x1}" y2="{Y(i):.1f}" stroke="{c}" stroke-width="1.2" stroke-dasharray="5 4"/>' + t(x0 + 6, Y(i) - 5, lab, 10.5, c, "start", "600")
+        kanan = abs(i - 1 / XG1) < 1e-9
+        b += f'<line x1="{x0}" y1="{Y(i):.1f}" x2="{x1}" y2="{Y(i):.1f}" stroke="{c}" stroke-width="1.2" stroke-dasharray="5 4"/>' + t(x1 - 6 if kanan else x0 + 6, Y(i) - 5, lab, 10.5, c, "end" if kanan else "start", "600")
     env = lambda tt: (1 / XG2 - 1 / XG1) * math.exp(-tt / 0.03) + (1 / XG1 - 1 / XGS) * math.exp(-tt / 1.0) + 1 / XGS
     pts = " ".join(f"{X(i / 300 * tmax):.1f},{Y(env(i / 300 * tmax)):.1f}" for i in range(301))
     b += f'<polyline points="{pts}" fill="none" stroke="#22d3ee" stroke-width="2.6"/>'
-    b += t(X(0.12), Y(env(0.12)) - 10, "selubung arus rms", 10.5, "#22d3ee", "start", "600")
+    b += t(X(1.0), Y(env(1.0)) - 12, "selubung arus rms", 10.5, "#22d3ee", "start", "600")
     b += t(28, 112, "I (pu)", 10.5, AX)
-    b += t(347, 230, f"Generator {ind(SG, 0)} MVA/{ind(VG, 1)} kV: X″ = {ind(XG2, 2)}, X′ = {ind(XG1, 2)}, X_s = {ind(XGS, 1)} pu; T″ ≈ 0,03 s, T′ ≈ 1 s. PMT harus memutus arus yang masih dekat nilai subtransien", 11.5, AX)
-    return svg(660, 240, b, "Gambar 1 — Selubung arus hubung singkat generator: subtransien, transien, tunak")
+    b += t(347, 230, f"Generator {ind(SG, 0)} MVA/{ind(VG, 1)} kV: X″ = {ind(XG2, 2)}, X′ = {ind(XG1, 2)}, X_s = {ind(XGS, 1)} pu; T″ ≈ 0,03 s, T′ ≈ 1 s.", 11.5, AX)
+    b += t(347, 244, "PMT harus memutus arus yang masih dekat nilai subtransien", 11.5, AX)
+    return svg(660, 254, b, "Gambar 1 — Selubung arus hubung singkat generator: subtransien, transien, tunak")
 
 
 def gambar2():
     b = t(165, 22, "Uji hubung singkat trafo", 12, TX, "middle", "700")
     b += kawat(40, 70, 90, 70) + reaktor(90, 170, 70, "#a855f7", f"X_T = {ind(XT_PCT, 0)} %") + kawat(170, 70, 230, 70) + kawat(230, 70, 230, 150) + kawat(40, 150, 230, 150) + kawat(40, 70, 40, 90) + kawat(40, 130, 40, 150)
-    b += f'<circle cx="40" cy="110" r="16" fill="{BOX}" stroke="#f59e0b" stroke-width="2"/>' + t(40, 114, "V", 11, "#f59e0b", "middle", "700") + t(22, 114, f"{ind(VSC_T, 0)} kV", 10.5, "#f59e0b", "end", "600")
+    b += f'<circle cx="40" cy="110" r="16" fill="{BOX}" stroke="#f59e0b" stroke-width="2"/>' + t(40, 114, "V", 11, "#f59e0b", "middle", "700") + t(62, 114, f"{ind(VSC_T, 0)} kV", 10.5, "#f59e0b", "start", "600")
     b += arrow(110, 96, 160, 96, "#00e09e", 1.8) + t(135, 110, "I_n", 11, "#00e09e", "middle", "600")
     b += t(230, 170, "sekunder dihubung singkat", 10.5, AX, "end")
     b += t(165, 196, f"{ind(XT_PCT, 0)} % dari 150 kV sudah mengalirkan I_n", 11, TX) + t(165, 212, f"→ I_sc terminal ≈ {ind(ISC_T_N, 2)} × I_n", 11, AX)
@@ -120,13 +132,13 @@ def gambar3():
              ("Nyatakan tiap alat", f"generator {ind(XG2, 2)} pu (rating = basis); trafo {ind(XT_PCT, 0)} % @{ind(ST, 0)} MVA → {ind(XT_PU, 4)} pu\nsaluran {ind(XL_OHM, 0)} Ω/{ind(ZB_L, 0)} Ω = {ind(XL_PU, 4)} pu", "#a855f7"),
              ("Hitung, lalu kembalikan", f"X_th rel C = {ind(X_C, 4)} pu → S_sc = 100/{ind(X_C, 4)} = {ind(SSC_C, 0)} MVA\nI_sc = {ind(SSC_C, 0)}/(√3·150) = {ind(SSC_C / (SQ3 * 150), 3)} kA", "#00e09e")]
     for i, (judul, isi, c) in enumerate(kartu):
-        y = 22 + i * 52
-        b += f'<rect x="20" y="{y}" width="620" height="44" rx="8" fill="{BOX}" stroke="{c}" stroke-width="1.4"/>'
-        b += f'<circle cx="42" cy="{y + 22}" r="12" fill="{c}"/>' + t(42, y + 26, str(i + 1), 12, "#0a101f", "middle", "700")
-        b += t(64, y + 16, judul, 11.5, TX, "start", "700")
+        y = 18 + i * 55
+        b += f'<rect x="20" y="{y}" width="620" height="50" rx="8" fill="{BOX}" stroke="{c}" stroke-width="1.4"/>'
+        b += f'<circle cx="42" cy="{y + 25}" r="12" fill="{c}"/>' + t(42, y + 29, str(i + 1), 12, "#0a101f", "middle", "700")
+        b += t(64, y + 17, judul, 11.5, TX, "start", "700")
         for j, baris in enumerate(isi.split("\n")):
-            b += t(64 + (0 if j == 0 else 0), y + 16 + 13 * (j + 1) - (0 if j else 0), baris, 9.5, AX, "start")
-    return svg(660, 236, b, "Gambar 3 — Empat langkah perhitungan per unit pada sistem contoh")
+            b += t(64, y + 31 + 13 * j, baris, 9.5, AX, "start")
+    return svg(660, 242, b, "Gambar 3 — Empat langkah perhitungan per unit pada sistem contoh")
 
 
 def gambar4():
@@ -135,7 +147,7 @@ def gambar4():
     pts = [(cx, cy - r), (cx - r * 0.87, cy + r * 0.5), (cx + r * 0.87, cy + r * 0.5)]
     warna = ["#ef4444", "#f59e0b", "#22d3ee"]
     for i, ((x, y), Z, lab) in enumerate(zip(pts, [ZA, ZBB, ZC], ["a", "b", "c"])):
-        b += kawat(cx, cy, x, y)
+        b += kawat_berlabel(cx, cy, x, y, 20, 9)
         mx, my = (cx + x) / 2, (cy + y) / 2
         b += f'<rect x="{mx - 20:.1f}" y="{my - 9:.1f}" width="40" height="18" rx="3" fill="{BOX}" stroke="{warna[i]}" stroke-width="1.8"/>' + t(mx, my + 4, f"Z_{lab} {ind(Z, 0)}", 9.5, warna[i], "middle", "600")
         b += f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4.5" fill="{warna[i]}"/>' + t(x + (0 if i == 0 else (-12 if i == 1 else 12)), y - 10 if i == 0 else y + 18, lab, 12, warna[i], "middle", "700")
@@ -145,7 +157,7 @@ def gambar4():
     pts2 = [(cx2, cy - r), (cx2 - r * 0.87, cy + r * 0.5), (cx2 + r * 0.87, cy + r * 0.5)]
     for (i, j, Z, lab) in [(0, 1, ZAB, "Z_ab"), (1, 2, ZBC, "Z_bc"), (2, 0, ZCA, "Z_ca")]:
         (x1, y1), (x2, y2) = pts2[i], pts2[j]
-        b += kawat(x1, y1, x2, y2)
+        b += kawat_berlabel(x1, y1, x2, y2, 28, 9)
         mx, my = (x1 + x2) / 2, (y1 + y2) / 2
         b += f'<rect x="{mx - 28:.1f}" y="{my - 9:.1f}" width="56" height="18" rx="3" fill="{BOX}" stroke="#00e09e" stroke-width="1.8"/>' + t(mx, my + 4, f"{lab} {ind(Z, 1)}", 9.5, "#00e09e", "middle", "600")
     for i, ((x, y), lab) in enumerate(zip(pts2, ["a", "b", "c"])):
@@ -168,13 +180,14 @@ def gambar5():
     b += rel(570, y - 50, y + 50, "#22d3ee", "rel C")
     for x, X, S in [(200, X_PAR, S_B / X_PAR), (380, X_PAR_T, S_B / X_PAR_T), (570, X_PAR_T + XL_PU, S_B / (X_PAR_T + XL_PU))]:
         b += t(x, y + 66, f"X_th = {ind(X, 4)} pu", 10, TX, "middle", "600") + t(x, y + 80, f"S_sc = {ind(S, 0)} MVA", 10, "#00e09e", "middle", "600")
-    b += t(330, 206, f"Basis 100 MVA. Dua generator paralel: {ind(XG2, 2)}‖{ind(XG2B, 2)} = {ind(X_PAR, 4)} pu; tiap rel ke kanan menambah reaktansi seri sehingga MVA hubung singkat mengecil", 11, AX)
-    return svg(660, 218, b, "Gambar 5 — Diagram reaktansi per unit dan reduksi ke ekuivalen Thevenin tiap rel")
+    b += t(330, 206, f"Basis 100 MVA. Dua generator paralel: {ind(XG2, 2)}‖{ind(XG2B, 2)} = {ind(X_PAR, 4)} pu;", 11, AX)
+    b += t(330, 220, "tiap rel ke kanan menambah reaktansi seri sehingga MVA hubung singkat mengecil", 11, AX)
+    return svg(660, 230, b, "Gambar 5 — Diagram reaktansi per unit dan reduksi ke ekuivalen Thevenin tiap rel")
 
 
 def gambar6():
     b = ""
-    x0, x1, y0, y1 = 64, 630, 196, 26
+    x0, x1, y0, y1 = 64, 596, 196, 26
     X = lambda s: x0 + s / 3000 * (x1 - x0)
     Y = lambda i: y0 - i / 100 * (y0 - y1)
     for s in [0, 500, 1000, 1500, 2000, 2500, 3000]:
@@ -188,8 +201,9 @@ def gambar6():
         b += t(X(sl) - 6 if sl < 3000 else x1 + 4, Y(min(100, sl / (SQ3 * kv))) + (14 if sl < 3000 else 4), f"{kv} kV", 10.5, c, "end" if sl < 3000 else "start", "600")
     for ka in [25, 40, 63]:
         b += f'<line x1="{x0}" y1="{Y(ka):.1f}" x2="{x1}" y2="{Y(ka):.1f}" stroke="#ec4899" stroke-width="1" stroke-dasharray="4 4"/>' + t(x1 - 4, Y(ka) - 4, f"PMT {ka} kA", 9.5, "#ec4899", "end")
-    b += t(28, 110, "I_sc", 10.5, AX) + t(347, 230, "MVA hubung singkat (sumbu mendatar) → arus hubung singkat I_sc = S_sc/(√3·V) untuk empat tingkat tegangan; garis merah muda: kelas kapasitas pemutus", 11.5, AX)
-    return svg(660, 240, b, "Gambar 6 — MVA hubung singkat, arus hubung singkat, dan kapasitas pemutus")
+    b += t(28, 110, "I_sc", 10.5, AX) + t(330, 230, "MVA hubung singkat (sumbu mendatar) → arus hubung singkat I_sc = S_sc/(√3·V) untuk empat tingkat", 11.5, AX)
+    b += t(330, 244, "tegangan; garis merah muda: kelas kapasitas pemutus", 11.5, AX)
+    return svg(660, 254, b, "Gambar 6 — MVA hubung singkat, arus hubung singkat, dan kapasitas pemutus")
 
 
 # ─────────────────────────── SUBNAV & HERO ───────────────────────────

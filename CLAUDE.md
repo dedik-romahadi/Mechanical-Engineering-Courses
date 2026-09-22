@@ -128,7 +128,8 @@ dan `--semua --inter` (getBBox nyata di Chrome) — `periksa_gambar.py` hanya me
 banyak cacat. Animasi kanvas CAD diperiksa `scripts/cad-modul/periksa_animasi_chrome.py`
 (33 lebar kanvas 1000..204, termasuk ponsel 360 px = kanvas 244). Teknik Tenaga Listrik dibangun modul demi
 modul: Modul 1–14 sudah terbit (generator `scripts/ttl-modul/bangun.py`; Word/PDF-nya
-dari `scripts/ttl-modul/buat-modul-word.py`) dan terdaftar
+dari `scripts/ttl-modul/buat-modul-word.py`; gambar SVG-nya diperiksa `scripts/ttl-modul/periksa_gambar_chrome.py`
+dan `--inter`, keduanya wajib 0 cacat) dan terdaftar
 di `_MODUL_COURSES` backend lewat `moduls: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]`; UTS (`teknik-tenaga-listrik-uts`) dan UAS
 (`teknik-tenaga-listrik-uas`) sudah terbit, sehingga validator keamanan memindainya
 lewat `courseRoots` seperti course lain. Rincian: Pedoman §2.

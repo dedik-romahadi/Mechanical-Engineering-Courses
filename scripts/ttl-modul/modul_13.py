@@ -3,7 +3,7 @@
 # dan sengaja berbeda dari varian soal.
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
+from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula, teks2,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel)
 
 NOMOR = 13
@@ -93,17 +93,18 @@ def gambar1():
         b += f'<rect x="{x - 5}" y="{y - 5}" width="10" height="10" fill="{BOX}" stroke="#ef4444" stroke-width="1.5"/>'
     b += t(95, y + 16, "PMT", 8.5, "#ef4444") + t(235, y + 16, "PMT", 8.5, "#ef4444") + t(445, y + 16, "PMT", 8.5, "#ef4444")
     b += kawat(420, y + 16, 420, y + 40) + f'<polygon points="414,{y + 40} 426,{y + 40} 420,{y + 52}" fill="#ef4444"/>' + t(420, y + 64, "beban 20 MW", 9, "#ef4444")
-    b += t(330, 156, "Kaidah: satu garis per rangkaian tiga fasa; rel digambar tebal; peralatan diberi simbol baku beserta pengenalnya (MVA, kV, X %); PMT kotak, beban panah, pentanahan di netral trafo/generator", 10, AX)
-    b += t(330, 172, "SLD adalah 'peta' sistem: dasar untuk diagram impedansi, studi hubung singkat, aliran daya, dan koordinasi proteksi (Modul 12)", 10, AX)
-    return svg(660, 184, b, "Gambar 1 — Single line diagram sistem contoh dengan simbol dan pengenal peralatan")
+    b += t(330, 156, "Kaidah: satu garis per rangkaian tiga fasa; rel digambar tebal;", 10, AX)
+    b += t(330, 170, "peralatan diberi simbol baku beserta pengenalnya (MVA, kV, X %); PMT kotak, beban panah, pentanahan di netral trafo/generator", 10, AX)
+    b += t(330, 188, "SLD adalah 'peta' sistem: dasar untuk diagram impedansi, studi hubung singkat, aliran daya, dan koordinasi proteksi (Modul 12)", 10, AX)
+    return svg(660, 198, b, "Gambar 1 — Single line diagram sistem contoh dengan simbol dan pengenal peralatan")
 
 
 def gambar2():
-    b = t(330, 18, "Empat besaran dasar dan hubungan antar-tingkat tegangan", 12, TX, "middle", "700")
+    b = t(330, 20, "Empat besaran dasar dan hubungan antar-tingkat tegangan", 12, TX, "middle", "700")
     kol = [("Dipilih", "S_base = 100 MVA", "sama untuk seluruh sistem", "#f59e0b"), ("Dipilih", "V_base = 150 kV", "per tingkat tegangan; berubah mengikuti rasio trafo", "#f59e0b"), ("Turunan", f"Z_base = V²/S = {ind(ZB_HV, 0)} Ω", "per tingkat tegangan", "#22d3ee"), ("Turunan", f"I_base = S/(√3 V) = {ind(IB_HV, 1)} A", "per tingkat tegangan", "#22d3ee")]
     for i, (jenis, rumus, ket, c) in enumerate(kol):
         x = 14 + i * 160
-        b += f'<rect x="{x}" y="32" width="150" height="70" rx="8" fill="{BOX}" stroke="{c}" stroke-width="1.6"/>' + t(x + 75, 50, jenis, 9.5, c, "middle", "700") + t(x + 75, 68, rumus, 10, TX, "middle", "600") + t(x + 75, 86, ket, 8.5, AX)
+        b += f'<rect x="{x}" y="32" width="150" height="70" rx="8" fill="{BOX}" stroke="{c}" stroke-width="1.6"/>' + t(x + 75, 50, jenis, 9.5, c, "middle", "700") + t(x + 75, 68, rumus, 10, TX, "middle", "600") + teks2(x + 75, 84 if len(ket) > 30 else 86, ket, 8.5, AX, maks=30, jarak=11)
     # tiga tingkat tegangan
     tingkat = [("13,8 kV", V_B_LV, "#00e09e"), ("150 kV", V_B_HV, "#22d3ee"), ("6,6 kV", 6.6, "#f59e0b")]
     for i, (nama, v, c) in enumerate(tingkat):
@@ -114,12 +115,14 @@ def gambar2():
         if i < 2:
             b += arrow(x + 190, 149, x + 215, 149, "#a855f7", 1.6)
     b += t(145, 200, "T1: 13,8/150 → V_base × 150/13,8", 9, "#a855f7") + t(470, 200, "T2: 150/6,6 → V_base × 6,6/150", 9, "#a855f7")
-    b += t(330, 222, "Tegangan dasar ditetapkan di satu tingkat, lalu 'dipindahkan' lewat perbandingan lilitan setiap trafo; impedansi pu trafo lalu sama dari kedua sisinya sehingga trafo ideal hilang", 10, AX)
-    return svg(660, 232, b, "Gambar 2 — Besaran dasar sistem per unit dan perambatannya melewati transformator")
+    b += t(330, 222, "Tegangan dasar ditetapkan di satu tingkat, lalu 'dipindahkan' lewat perbandingan lilitan setiap trafo;", 10, AX)
+    b += t(330, 236, "impedansi pu trafo lalu sama dari kedua sisinya sehingga trafo ideal hilang", 10, AX)
+    return svg(660, 246, b, "Gambar 2 — Besaran dasar sistem per unit dan perambatannya melewati transformator")
 
 
 def gambar3():
-    b = t(330, 18, "Diagram reaktansi pada dasar 100 MVA (150 kV | 13,8 kV | 6,6 kV)", 12, TX, "middle", "700")
+    b = t(330, 20, "Diagram reaktansi pada dasar 100 MVA (150 kV | 13,8 kV | 6,6 kV)", 12, TX, "middle", "700")
+    b += '<g transform="translate(-10,0)">'
     y = 80
     b += f'<circle cx="34" cy="{y}" r="13" fill="{BOX}" stroke="#00e09e" stroke-width="2"/>' + t(34, y + 4, "E", 10, "#00e09e", "middle", "700") + t(34, y + 26, "1∠0", 9, "#00e09e")
     b += kawat(47, y, 62, y) + reaktansi(62, y, 78, f"jX_g {ind(XG, 2)}", "#00e09e") + kawat(140, y, 160, y) + rel(160, y) + t(160, y - 24, "rel 1", 9.5, TX, "middle", "600")
@@ -129,13 +132,15 @@ def gambar3():
     b += kawat(394, y, 414, y) + reaktansi(414, y, 82, f"jX_t2 {ind(xt2, 3)}", "#a855f7") + kawat(496, y, 516, y) + rel(516, y) + t(516, y - 24, "rel 4", 9.5, TX, "middle", "600")
     b += kawat(516, y, 536, y) + reaktansi(536, y, 78, f"jX_m {ind(XM, 2)}", "#f59e0b") + kawat(614, y, 628, y) + f'<circle cx="641" cy="{y}" r="13" fill="{BOX}" stroke="#f59e0b" stroke-width="2"/>' + t(641, y + 4, "E", 10, "#f59e0b", "middle", "700") + t(641, y + 26, "1∠0", 9, "#f59e0b")
     b += t(101, y + 34, f"0,18×100/60", 8.5, AX) + t(217, y + 34, "0,09×100/75", 8.5, AX) + t(335, y + 34, f"45/{ind(ZB_HV, 0)}", 8.5, AX) + t(455, y + 34, "0,08×100/30", 8.5, AX) + t(575, y + 34, "0,2×(100/4)×(6,3/6,6)²", 8.5, AX)
-    b += t(330, 140, "Dihilangkan: resistansi (≪ X), kapasitansi saluran, beban statis, dan trafo ideal (sudah terserap dalam pemilihan V_base); generator dan motor = tegangan internal seri X''", 10, AX)
-    b += t(330, 158, f"Gangguan 3φ di rel 3: dari kiri X = {ind(XTH, 2)}, dari kanan (motor) X = {ind(xt2 + XM, 3)} → X_th = {ind(XTH * (xt2 + XM) / (XTH + xt2 + XM), 4)} pu; motor menyumbang beberapa siklus pertama", 10, AX)
-    return svg(660, 170, b, "Gambar 3 — Diagram reaktansi sistem contoh setelah konversi ke dasar bersama")
+    b += '</g>'
+    b += t(330, 140, "Dihilangkan: resistansi (≪ X), kapasitansi saluran, beban statis, dan trafo ideal (sudah terserap dalam pemilihan V_base);", 10, AX)
+    b += t(330, 154, "generator dan motor = tegangan internal seri X''", 10, AX)
+    b += t(330, 170, f"Gangguan 3φ di rel 3: dari kiri X = {ind(XTH, 2)}, dari kanan (motor) X = {ind(xt2 + XM, 3)} → X_th = {ind(XTH * (xt2 + XM) / (XTH + xt2 + XM), 4)} pu; motor menyumbang beberapa siklus pertama", 10, AX)
+    return svg(660, 182, b, "Gambar 3 — Diagram reaktansi sistem contoh setelah konversi ke dasar bersama")
 
 
 def gambar4():
-    b = t(330, 18, "Reduksi Thevenin untuk gangguan di rel 3 (tanpa sumbangan motor)", 12, TX, "middle", "700")
+    b = t(330, 20, "Reduksi Thevenin untuk gangguan di rel 3 (tanpa sumbangan motor)", 12, TX, "middle", "700")
     y1, y2, y3 = 62, 118, 174
     # langkah 1: seri
     b += t(40, y1 + 4, "1", 11, "#22d3ee", "middle", "700") + f'<circle cx="70" cy="{y1}" r="11" fill="{BOX}" stroke="#00e09e" stroke-width="2"/>' + kawat(81, y1, 96, y1) + reaktansi(96, y1, 60, f"{ind(XG, 2)}", "#00e09e") + kawat(156, y1, 170, y1) + reaktansi(170, y1, 60, f"{ind(XT, 2)}", "#a855f7") + kawat(230, y1, 244, y1) + reaktansi(244, y1, 60, f"{ind(XL, 2)}", "#22d3ee") + kawat(304, y1, 330, y1) + rel(330, y1)
@@ -148,41 +153,45 @@ def gambar4():
     b += t(40, y3 + 4, "3", 11, "#22d3ee", "middle", "700")
     b += t(200, y3 + 4, f"I_base(150 kV) = 100 MVA/(√3·150 kV) = {ind(IB_HV, 1)} A", 10.5, TX, "middle", "600")
     b += t(480, y3 + 4, f"I_sc = {ind(I_SC_PU, 3)} × {ind(IB_HV, 1)} = {ind(I_SC_A, 0)} A;  S_sc = 100/{ind(XTH, 2)} = {ind(S_SC, 1)} MVA", 10.5, "#ef4444", "middle", "600")
-    b += t(330, 206, f"Gangguan di rel 2: X_th = {ind(XTH2, 2)} → I_sc = {ind(I_SC2_PU, 3)} pu = {ind(I_SC2_PU * IB_HV, 0)} A, S_sc = {ind(S_SC2, 1)} MVA; di rel 1 (13,8 kV): X_th = {ind(XG, 2)} → {ind(1 / XG, 3)} pu × {ind(IB_LV, 0)} A = {ind(IB_LV / XG / 1000, 2)} kA", 10, AX)
-    return svg(660, 216, b, "Gambar 4 — Tiga langkah studi hubung singkat: reduksi seri, arus per unit, konversi ke ampere dan MVA")
+    b += t(330, 206, f"Gangguan di rel 2: X_th = {ind(XTH2, 2)} → I_sc = {ind(I_SC2_PU, 3)} pu = {ind(I_SC2_PU * IB_HV, 0)} A, S_sc = {ind(S_SC2, 1)} MVA;", 10, AX)
+    b += t(330, 220, f"di rel 1 (13,8 kV): X_th = {ind(XG, 2)} → {ind(1 / XG, 3)} pu × {ind(IB_LV, 0)} A = {ind(IB_LV / XG / 1000, 2)} kA", 10, AX)
+    return svg(660, 230, b, "Gambar 4 — Tiga langkah studi hubung singkat: reduksi seri, arus per unit, konversi ke ampere dan MVA")
 
 
 def gambar5():
-    b = t(330, 18, "Dua jalur paralel dan sumbangan tiap sumber ke titik gangguan", 12, TX, "middle", "700")
+    b = t(330, 20, "Dua jalur paralel dan sumbangan tiap sumber ke titik gangguan", 12, TX, "middle", "700")
     y = 90
     b += f'<circle cx="60" cy="{y - 36}" r="12" fill="{BOX}" stroke="#00e09e" stroke-width="2"/>' + t(60, y - 32, "A", 10, "#00e09e", "middle", "700") + kawat(72, y - 36, 120, y - 36) + reaktansi(120, y - 36, 90, f"jX_A {ind(XA, 1)}", "#00e09e") + kawat(210, y - 36, 300, y - 36) + kawat(300, y - 36, 300, y)
     b += f'<circle cx="60" cy="{y + 36}" r="12" fill="{BOX}" stroke="#22d3ee" stroke-width="2"/>' + t(60, y + 40, "B", 10, "#22d3ee", "middle", "700") + kawat(72, y + 36, 120, y + 36) + reaktansi(120, y + 36, 90, f"jX_B {ind(XB, 1)}", "#22d3ee") + kawat(210, y + 36, 300, y + 36) + kawat(300, y + 36, 300, y)
-    b += rel(300, y, TX, 90) + f'<path d="M 306 {y} l 10 12 l -7 2 l 12 14" fill="none" stroke="#ef4444" stroke-width="2.4"/>' + t(300, y + 60, "rel gangguan", 9.5, TX, "middle", "600")
+    b += rel(300, y, TX, 90) + f'<path d="M 306 {y} l 10 12 l -7 2 l 12 14" fill="none" stroke="#ef4444" stroke-width="2.4"/>' + t(308, y + 46, "rel gangguan", 9.5, TX, "start", "600")
     b += arrow(215, y - 46, 290, y - 46, "#00e09e", 1.6) + t(252, y - 52, f"I_A = 1/{ind(XA, 1)} = {ind(1 / XA, 2)} pu", 9.5, "#00e09e") + arrow(215, y + 50, 290, y + 50, "#22d3ee", 1.6) + t(252, y + 62, f"I_B = 1/{ind(XB, 1)} = {ind(1 / XB, 3)} pu", 9.5, "#22d3ee")
     b += t(490, y - 30, f"X_th = X_A ∥ X_B = {ind(XA, 1)}×{ind(XB, 1)}/({ind(XA, 1)} + {ind(XB, 1)}) = {ind(XTH_P, 2)} pu", 10.5, TX, "middle", "600")
     b += t(490, y - 8, f"I_sc = 1/{ind(XTH_P, 2)} = {ind(I_SC_P, 3)} pu = I_A + I_B", 10.5, "#ef4444", "middle", "600")
     b += t(490, y + 14, f"S_sc = 100/{ind(XTH_P, 2)} = {ind(S_B / XTH_P, 1)} MVA", 10.5, TX, "middle", "600")
     b += t(490, y + 36, "sumbangan tiap sumber ∝ 1/X-nya:", 10, AX) + t(490, y + 50, f"A {ind(1 / XA / I_SC_P * 100, 0)} %, B {ind(1 / XB / I_SC_P * 100, 0)} %", 10, AX)
-    b += t(330, 176, "Menutup jalur kedua (loop, Modul 11) menaikkan keandalan tetapi juga arus gangguan: PMT dan kabel harus diperiksa ulang setiap kali topologi berubah", 10, AX)
-    return svg(660, 186, b, "Gambar 5 — Reduksi paralel: arus gangguan total dan sumbangan tiap jalur")
+    b += t(330, 176, "Menutup jalur kedua (loop, Modul 11) menaikkan keandalan tetapi juga arus gangguan:", 10, AX)
+    b += t(330, 190, "PMT dan kabel harus diperiksa ulang setiap kali topologi berubah", 10, AX)
+    return svg(660, 200, b, "Gambar 5 — Reduksi paralel: arus gangguan total dan sumbangan tiap jalur")
 
 
 def gambar6():
     b = ""
-    ox, oy, sk = 70, 160, 420
-    b += kawat(ox - 20, oy, ox + sk * 1.12, oy, GRID, 1) + kawat(ox, oy + 20, ox, oy - sk * 0.3, GRID, 1)
+    ox, oy, sk = 70, 120, 420
+    b += kawat(ox - 20, oy, ox + sk * 1.12, oy, GRID, 1) + kawat(ox, oy + 60, ox, oy - sk * 0.2, GRID, 1)
     phi = math.acos(0.9)
     Ir, Ii = I_PU * math.cos(phi), -I_PU * math.sin(phi)
     dVr, dVi = Ir * R_PU - Ii * X_PU, Ir * X_PU + Ii * R_PU
     Vs = math.hypot(1 + dVr, dVi)
     b += arrow(ox, oy, ox + sk, oy, "#00e09e", 2.6) + t(ox + sk / 2, oy + 18, "V_r = 1∠0 pu (acuan)", 10.5, "#00e09e", "middle", "700")
-    b += arrow(ox, oy, ox + Ir * sk * 0.6, oy - Ii * sk * 0.6, "#f59e0b", 2.2) + t(ox + Ir * sk * 0.6 + 8, oy - Ii * sk * 0.6 + 12, f"I = {ind(I_PU, 1)}∠−{ind(math.degrees(phi), 1)}° pu", 10, "#f59e0b", "start", "600")
+    b += arrow(ox, oy, ox + Ir * sk * 0.3, oy - Ii * sk * 0.3, "#f59e0b", 2.2) + t(ox + Ir * sk * 0.3 + 8, oy - Ii * sk * 0.3 + 12, f"I = {ind(I_PU, 1)}∠−{ind(math.degrees(phi), 1)}° pu", 10, "#f59e0b", "start", "600")
     b += arrow(ox + sk, oy, ox + (1 + Ir * R_PU) * sk, oy - (Ir * X_PU) * sk * 0, "#ef4444", 1.6)
     b += arrow(ox + sk, oy, ox + (1 + dVr) * sk, oy - dVi * sk, "#ef4444", 1.8) + t(ox + (1 + dVr / 2) * sk + 30, oy - dVi * sk / 2 - 6, f"I·Z = {ind(math.hypot(dVr, dVi), 4)} pu", 10, "#ef4444", "start", "600")
     b += arrow(ox, oy, ox + (1 + dVr) * sk, oy - dVi * sk, "#22d3ee", 2.6) + t(ox + (1 + dVr) * sk * 0.55, oy - dVi * sk * 0.55 - 14, f"V_s = {ind(Vs, 4)}∠{ind(math.degrees(math.atan2(dVi, 1 + dVr)), 2)}° pu", 10.5, "#22d3ee", "middle", "700")
-    b += t(330, 200, f"Saluran {ind(R_PU, 2)} + j{ind(X_PU, 2)} pu, beban I = {ind(I_PU, 1)} pu pf 0,9 tertinggal: V_s = V_r + I(R + jX) → regulasi {ind((Vs - 1) * 100, 2)} %; pendekatan I(R cos φ + X sin φ) = {ind(I_PU * (R_PU * 0.9 + X_PU * math.sin(phi)), 4)} pu", 10, AX)
-    b += t(330, 218, f"Beban resistif {ind(I_PU, 1)} pu (pf 1): |V_s| = √((1 + {ind(I_PU * R_PU, 3)})² + ({ind(I_PU * X_PU, 3)})²) = {ind(VS_PU, 4)} pu ({ind(REG_PU, 2)} %); dalam pu, rumus Modul 6 dan 10 berlaku tanpa √3 dan tanpa rasio trafo", 10, AX)
-    return svg(660, 230, b, "Gambar 6 — Fasor tegangan dan arus dalam per unit: V_s = V_r + I·Z")
+    b += t(330, 204, f"Saluran {ind(R_PU, 2)} + j{ind(X_PU, 2)} pu, beban I = {ind(I_PU, 1)} pu pf 0,9 tertinggal: V_s = V_r + I(R + jX) → regulasi {ind((Vs - 1) * 100, 2)} %;", 10, AX)
+    b += t(330, 218, f"pendekatan I(R cos φ + X sin φ) = {ind(I_PU * (R_PU * 0.9 + X_PU * math.sin(phi)), 4)} pu", 10, AX)
+    b += t(330, 236, f"Beban resistif {ind(I_PU, 1)} pu (pf 1): |V_s| = √((1 + {ind(I_PU * R_PU, 3)})² + ({ind(I_PU * X_PU, 3)})²) = {ind(VS_PU, 4)} pu ({ind(REG_PU, 2)} %);", 10, AX)
+    b += t(330, 250, f"dalam pu, rumus Modul 6 dan 10 berlaku tanpa √3 dan tanpa rasio trafo", 10, AX)
+    return svg(660, 260, b, "Gambar 6 — Fasor tegangan dan arus dalam per unit: V_s = V_r + I·Z")
 
 
 # ─────────────────────────── SUBNAV & HERO ───────────────────────────

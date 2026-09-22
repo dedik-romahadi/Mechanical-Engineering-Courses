@@ -72,8 +72,9 @@ def gambar1():
     b += f'<line x1="{x0}" y1="{y0 - A / math.sqrt(2):.1f}" x2="{x1}" y2="{y0 - A / math.sqrt(2):.1f}" stroke="#ec4899" stroke-width="1.2" stroke-dasharray="5 3"/>' + t(x1 + 6, y0 - A / math.sqrt(2) + 4, f"V_rms = {ind(V_RMS, 0)} V", 10.5, "#ec4899", "start", "600")
     b += t(x1 + 6, y0 - 0.6 * A + 22, f"i(t) tertinggal φ = {ind(PHI_Z, 1)}°", 10.5, "#22d3ee", "start", "600")
     b += f'<line x1="{X(math.pi / 2):.1f}" y1="{y0 - A:.1f}" x2="{X(math.pi / 2 + math.radians(PHI_Z)):.1f}" y2="{y0 - A:.1f}" stroke="#a855f7" stroke-width="2"/>' + t((X(math.pi / 2) + X(math.pi / 2 + math.radians(PHI_Z))) / 2, y0 - A - 8, "φ", 11, "#a855f7", "middle", "700")
-    b += t(260, 236, f"v(t) = {ind(V_M, 1)} sin(ωt), i(t) = {ind(I_Z * math.sqrt(2), 2)} sin(ωt − {ind(PHI_Z, 1)}°); ω = 2π·50 = {ind(W_, 1)} rad/s; satu periode = 20 ms", 11.5, AX)
-    return svg(660, 246, b, "Gambar 1 — Tegangan dan arus sinusoidal: nilai puncak, nilai rms, dan beda fasa")
+    b += t(260, 234, f"v(t) = {ind(V_M, 1)} sin(ωt), i(t) = {ind(I_Z * math.sqrt(2), 2)} sin(ωt − {ind(PHI_Z, 1)}°)", 11.5, AX)
+    b += t(260, 248, f"ω = 2π·50 = {ind(W_, 1)} rad/s; satu periode = 20 ms", 11.5, AX)
+    return svg(660, 258, b, "Gambar 1 — Tegangan dan arus sinusoidal: nilai puncak, nilai rms, dan beda fasa")
 
 
 def gambar2():
@@ -81,18 +82,18 @@ def gambar2():
     ox, oy, sk = 60, 170, 9.0
     b += arrow(ox, oy, ox + R_Z * sk, oy, "#22d3ee", 2.4) + t(ox + R_Z * sk / 2, oy + 16, f"R = {ind(R_Z, 0)} Ω", 11, "#22d3ee", "middle", "600")
     b += arrow(ox + R_Z * sk, oy, ox + R_Z * sk, oy - XL_Z * sk, "#f59e0b", 2.4) + t(ox + R_Z * sk + 8, oy - XL_Z * sk / 2, f"X_L = {ind(XL_Z, 0)} Ω", 11, "#f59e0b", "start", "600")
-    b += arrow(ox, oy, ox + R_Z * sk, oy - XL_Z * sk, "#00e09e", 2.8) + t(ox + 22, oy - XL_Z * sk / 2 - 14, f"|Z| = {ind(Z_Z, 0)} Ω", 11.5, "#00e09e", "start", "700")
-    b += f'<path d="M {ox + 30} {oy} A 30 30 0 0 0 {ox + 30 * math.cos(math.radians(PHI_Z)):.1f} {oy - 30 * math.sin(math.radians(PHI_Z)):.1f}" fill="none" stroke="#a855f7" stroke-width="1.6"/>' + t(ox + 40, oy - 12, f"φ = {ind(PHI_Z, 1)}°", 10.5, "#a855f7", "start", "600")
-    b += t(150, 206, "Z = R + jX_L = |Z|∠φ;  tan φ = X_L/R", 11, AX)
+    b += arrow(ox, oy, ox + R_Z * sk, oy - XL_Z * sk, "#00e09e", 2.8) + t(ox + (XL_Z * sk / 2 + 14) * R_Z / XL_Z - 8, oy - XL_Z * sk / 2 - 14, f"|Z| = {ind(Z_Z, 0)} Ω", 11.5, "#00e09e", "end", "700")
+    b += f'<path d="M {ox + 30} {oy} A 30 30 0 0 0 {ox + 30 * math.cos(math.radians(PHI_Z)):.1f} {oy - 30 * math.sin(math.radians(PHI_Z)):.1f}" fill="none" stroke="#a855f7" stroke-width="1.6"/>' + t(ox + 40, oy - 12, "φ", 11, "#a855f7", "start", "700")
+    b += t(150, 206, "Z = R + jX_L = |Z|∠φ", 11, AX) + t(150, 220, f"tan φ = X_L/R → φ = {ind(PHI_Z, 1)}°", 11, AX)
     b += t(480, 22, "Diagram fasor beban RL", 12, TX, "middle", "700")
     cx, cy, r = 480, 118, 70
     b += f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{GRID}" stroke-width="1"/>'
     b += arrow(cx, cy, cx + r, cy, "#f59e0b", 2.6) + t(cx + r + 6, cy + 4, f"V = {ind(V_RMS, 0)}∠0° V", 11, "#f59e0b", "start", "600")
     ia = math.radians(-PHI_Z)
-    b += arrow(cx, cy, cx + 0.75 * r * math.cos(ia), cy - 0.75 * r * math.sin(ia), "#22d3ee", 2.6) + t(cx + 0.75 * r * math.cos(ia) + 6, cy - 0.75 * r * math.sin(ia) + 12, f"I = {ind(I_Z, 0)}∠−{ind(PHI_Z, 1)}° A", 11, "#22d3ee", "start", "600")
+    b += arrow(cx, cy, cx + 0.75 * r * math.cos(ia), cy - 0.75 * r * math.sin(ia), "#22d3ee", 2.6) + t(cx + 40, cy + r + 4, f"I = {ind(I_Z, 0)}∠−{ind(PHI_Z, 1)}° A", 11, "#22d3ee", "start", "600")
     b += f'<path d="M {cx + 28} {cy} A 28 28 0 0 1 {cx + 28 * math.cos(ia):.1f} {cy - 28 * math.sin(ia):.1f}" fill="none" stroke="#a855f7" stroke-width="1.6"/>' + t(cx + 34, cy + 22, "φ", 11, "#a855f7", "start", "700")
     b += t(480, 206, "Arus tertinggal φ dari tegangan (induktif); fasor berputar ω rad/s", 11, AX)
-    return svg(660, 220, b, "Gambar 2 — Impedansi dan fasor beban RL")
+    return svg(660, 230, b, "Gambar 2 — Impedansi dan fasor beban RL")
 
 
 def gambar3():
@@ -100,15 +101,16 @@ def gambar3():
     ox, oy, sk = 90, 190, 0.042
     b += arrow(ox, oy, ox + P_Z * sk, oy, "#22d3ee", 2.8) + t(ox + P_Z * sk / 2, oy + 18, f"P = {ind(P_Z, 0)} W", 12, "#22d3ee", "middle", "700")
     b += arrow(ox + P_Z * sk, oy, ox + P_Z * sk, oy - Q_Z * sk, "#f59e0b", 2.8) + t(ox + P_Z * sk + 10, oy - Q_Z * sk / 2 + 4, f"Q = {ind(Q_Z, 0)} VAR", 12, "#f59e0b", "start", "700")
-    b += arrow(ox, oy, ox + P_Z * sk, oy - Q_Z * sk, "#00e09e", 3) + t(ox + 20, oy - Q_Z * sk / 2 - 16, f"S = {ind(S_Z, 0)} VA", 12.5, "#00e09e", "start", "700")
-    b += f'<path d="M {ox + 36} {oy} A 36 36 0 0 0 {ox + 36 * math.cos(math.radians(PHI_Z)):.1f} {oy - 36 * math.sin(math.radians(PHI_Z)):.1f}" fill="none" stroke="#a855f7" stroke-width="1.8"/>' + t(ox + 46, oy - 12, f"φ = {ind(PHI_Z, 1)}°, pf = {ind(math.cos(math.radians(PHI_Z)), 2)}", 11, "#a855f7", "start", "600")
+    b += arrow(ox, oy, ox + P_Z * sk, oy - Q_Z * sk, "#00e09e", 3) + t(ox + (Q_Z * sk / 2 + 16) * P_Z / Q_Z - 8, oy - Q_Z * sk / 2 - 16, f"S = {ind(S_Z, 0)} VA", 12.5, "#00e09e", "end", "700")
+    b += f'<path d="M {ox + 36} {oy} A 36 36 0 0 0 {ox + 36 * math.cos(math.radians(PHI_Z)):.1f} {oy - 36 * math.sin(math.radians(PHI_Z)):.1f}" fill="none" stroke="#a855f7" stroke-width="1.8"/>' + t(ox + 46, oy - 12, "φ", 11.5, "#a855f7", "start", "700")
     for i, (judul, isi, c) in enumerate([("Daya aktif P (W)", "kerja nyata: panas, cahaya, putaran motor", "#22d3ee"), ("Daya reaktif Q (VAR)", "bolak-balik ke medan magnet/listrik; rata-rata nol", "#f59e0b"),
                                           ("Daya semu S (VA)", "V·I; ukuran trafo, kabel, dan generator", "#00e09e"), ("Faktor daya cos φ", "P/S; 1 = seluruh arus menghasilkan kerja", "#a855f7")]):
         y = 30 + i * 44
         b += f'<rect x="420" y="{y}" width="222" height="36" rx="8" fill="{BOX}" stroke="{c}" stroke-width="1.4"/>'
         b += t(428, y + 15, judul, 11.5, TX, "start", "600") + t(428, y + 29, isi, 9, AX, "start")
     b += t(230, 224, f"Beban RL Gambar 2 pada {ind(V_RMS, 0)} V: S² = P² + Q² → {ind(S_Z, 0)}² = {ind(P_Z, 0)}² + {ind(Q_Z, 0)}²", 11.5, AX)
-    return svg(660, 236, b, "Gambar 3 — Segitiga daya beban RL")
+    b += t(230, 238, f"φ = {ind(PHI_Z, 1)}°; faktor daya pf = cos φ = P/S = {ind(math.cos(math.radians(PHI_Z)), 2)}", 11.5, AX)
+    return svg(660, 250, b, "Gambar 3 — Segitiga daya beban RL")
 
 
 def gambar4():
@@ -121,7 +123,7 @@ def gambar4():
         b += arrow(ox + P_PF * sk, oy, ox + P_PF * sk, oy - Q * sk, c, 2.2) + t(ox + P_PF * sk + 8, oy - Q * sk / 2 + 4, f"Q = {ind(Q, 1)} kVAR", 11, c, "start", "600")
         b += arrow(ox, oy, ox + P_PF * sk, oy - Q * sk, c, 2.6) + t(ox + 10, oy - Q * sk / 2 - 12, f"S = {ind(S, 1)} kVA", 11, c, "start", "700")
         b += t(ox + P_PF * sk / 2, oy - Q * sk - 12 if Q * sk > 60 else oy - 70, f"I_L = {ind(I, 1)} A", 11, TX, "middle", "600")
-    b += arrow(60 + P_PF * sk + 60, 190 - Q1_PF * sk, 60 + P_PF * sk + 60, 190 - Q2_PF * sk, "#a855f7", 2.6) + t(60 + P_PF * sk + 68, 190 - (Q1_PF + Q2_PF) * sk / 2 + 4, f"Q_C = {ind(QC_PF, 1)} kVAR", 11, "#a855f7", "start", "700")
+    b += arrow(60 + P_PF * sk + 100, 190 - Q1_PF * sk, 60 + P_PF * sk + 100, 190 - Q2_PF * sk, "#a855f7", 2.6) + t(60 + P_PF * sk + 108, 190 - (Q1_PF + Q2_PF) * sk / 2 + 4, f"Q_C = {ind(QC_PF, 1)} kVAR", 11, "#a855f7", "start", "700")
     b += t(330, 224, f"Kapasitor paralel memasok {ind(QC_PF, 1)} kVAR secara lokal: P tetap, S turun {ind((1 - S2_PF / S1_PF) * 100, 0)}%, arus saluran turun dari {ind(I1_PF, 1)} A ke {ind(I2_PF, 1)} A", 11.5, AX)
     return svg(660, 236, b, "Gambar 4 — Perbaikan faktor daya dengan kapasitor paralel")
 
@@ -136,7 +138,7 @@ def gambar5():
         b += f'<line x1="{cx}" y1="{cy}" x2="{ex:.1f}" y2="{ey:.1f}" stroke="{AX}" stroke-width="2"/>'
         b += f'<rect x="{mx - 9:.1f}" y="{my - 9:.1f}" width="18" height="18" rx="3" fill="{BOX}" stroke="{c}" stroke-width="2"/>'
         b += f'<circle cx="{ex:.1f}" cy="{ey:.1f}" r="4" fill="{c}"/>' + t(ex + 12 * math.cos(math.radians(ang)), ey - 12 * math.sin(math.radians(ang)) + 4, lab, 12, c, "middle", "700")
-    b += f'<circle cx="{cx}" cy="{cy}" r="4" fill="{AX}"/>' + t(cx + 10, cy + 14, "n", 11, AX, "start", "600")
+    b += f'<circle cx="{cx}" cy="{cy}" r="4" fill="{AX}"/>' + t(cx, cy + 20, "n", 11, AX, "middle", "600")
     b += t(160, 206, "V_L = √3·V_fasa (∠30°);  I_L = I_fasa", 11.5, TX) + t(160, 224, f"{ind(VL3, 0)} V saluran → {ind(VP3, 1)} V per fasa", 11, AX)
     # Δ
     cx, cy = 500, 128
@@ -167,9 +169,10 @@ def gambar6():
     ytot = ya - Ap * (1.5 * PFY) / (1.5 * PFY)
     b += f'<line x1="{x0}" y1="{ytot:.1f}" x2="{x1}" y2="{ytot:.1f}" stroke="#00e09e" stroke-width="2.8"/>' + t(x0 + 6, ytot - 6, f"p_a + p_b + p_c = P = {ind(P3 / 1000, 2)} kW, konstan", 11, "#00e09e", "start", "700")
     b += t(x0 + 6, yv - Av - 6, "v_a, v_b, v_c: sama besar, berselisih 120°", 11, TX, "start", "600")
-    b += t(x0 + 6, ya - Ap - 8, "daya sesaat tiap fasa berayun pada 100 Hz", 10.5, AX, "start")
-    b += t(340, 230, f"Beban Y {ind(RY, 0)} + j{ind(XY, 1)} Ω pada {ind(VL3, 0)} V: I = {ind(IY, 2)} A, pf = {ind(PFY, 2)}; daya total tidak berdenyut, itulah keunggulan tiga fasa untuk motor", 11.5, AX)
-    return svg(660, 240, b, "Gambar 6 — Tegangan tiga fasa dan daya sesaat total yang konstan")
+    b += t(x0 + 6, ya + 16, "daya sesaat tiap fasa (garis tipis) berayun pada 100 Hz", 10.5, AX, "start")
+    b += t(340, 218, f"Beban Y {ind(RY, 0)} + j{ind(XY, 1)} Ω pada {ind(VL3, 0)} V: I = {ind(IY, 2)} A, pf = {ind(PFY, 2)};", 11.5, AX)
+    b += t(340, 232, "daya total tidak berdenyut, itulah keunggulan tiga fasa untuk motor", 11.5, AX)
+    return svg(660, 242, b, "Gambar 6 — Tegangan tiga fasa dan daya sesaat total yang konstan")
 
 
 # ─────────────────────────── SUBNAV & HERO ───────────────────────────

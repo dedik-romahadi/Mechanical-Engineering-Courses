@@ -67,7 +67,7 @@ def kawat(x1, y1, x2, y2, c=AX, w=2):
     return f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{c}" stroke-width="{w}"/>'
 
 
-def kumparan(x1, x2, y, c, label, dy=-12):
+def kumparan(x1, x2, y, c, label, dy=-16):
     n, w = 4, (x2 - x1) / 4
     d = " ".join(f"a {w / 2:.1f} {w / 2:.1f} 0 0 1 {w:.1f} 0" for _ in range(n))
     return f'<path d="M {x1} {y} {d}" fill="none" stroke="{c}" stroke-width="2.2"/>' + t((x1 + x2) / 2, y + dy, label, 10.5, c, "middle", "600")
@@ -117,18 +117,19 @@ def gambar3():
     b += kawat(60, 100, 120, 100) + res_h(120, 190, 100, "#22d3ee", f"R = {ind(Z_C.real, 0)} Ω") + kawat(190, 100, 210, 100) + kumparan(210, 300, 100, "#f59e0b", f"jX = j{ind(Z_C.imag, 1)} Ω") + kawat(300, 100, 600, 100) + kawat(60, 180, 600, 180)
     b += kapasitor(100, 100, 180, "#a855f7", f"jB/2 = j{ind(B_KM * L_LINE / 2 * 1e6, 0)} µS") + kapasitor(560, 100, 180, "#a855f7", f"jB/2")
     b += f'<circle cx="60" cy="100" r="4" fill="#00e09e"/><circle cx="600" cy="100" r="4" fill="#ec4899"/>' + t(60, 88, "V_S, I_S", 10.5, "#00e09e", "middle", "700") + t(600, 88, "V_R, I_R", 10.5, "#ec4899", "middle", "700")
-    b += t(330, 208, f"A = D = 1 + YZ/2 = {ind(A_C.real, 4)} + j{ind(A_C.imag, 4)} (|A| = {ind(abs(A_C), 4)});  B = Z;  C = Y(1 + YZ/4) = j{ind(C_ABCD.imag * 1e6, 2)} µS (+{ind(C_ABCD.real * 1e6, 2)} µS)", 11, AX)
+    b += t(330, 208, f"A = D = 1 + YZ/2 = {ind(A_C.real, 4)} + j{ind(A_C.imag, 4)} (|A| = {ind(abs(A_C), 4)});  B = Z;  C = Y(1 + YZ/4) = j{ind(C_ABCD.imag * 1e6, 2)} µS ({"+" if C_ABCD.real >= 0 else "−"}{ind(abs(C_ABCD.real) * 1e6, 2)} µS)", 11, AX)
     b += t(330, 226, f"Beban {ind(P_LOAD, 0)} MW pf {ind(PF_LOAD, 1)} pada 132 kV → V_S = {ind(VS_LL, 1)} kV, I_S = {ind(abs(IS_C), 1)} A; regulasi {ind(REG, 1)} %", 11, AX)
     return svg(660, 238, b, "Gambar 3 — Model nominal-π dan konstanta ABCD-nya")
 
 
 def gambar4():
     b = t(330, 22, "Kaskade dua-port: [V_S; I_S] = [A B; C D] × [V_R; I_R], dan perkalian matriks untuk seri", 11.5, TX, "middle", "700")
-    for i, (lab, x, c, nilai) in enumerate([("Saluran 1", 90, "#22d3ee", "[A₁ B₁; C₁ D₁]"), ("Trafo / kompensator", 300, "#f59e0b", "[A₂ B₂; C₂ D₂]"), ("Saluran 2", 510, "#a855f7", "[A₃ B₃; C₃ D₃]")]):
+    for i, (lab, x, c, nilai) in enumerate([("Saluran 1", 104, "#22d3ee", "[A₁ B₁; C₁ D₁]"), ("Trafo / kompensator", 324, "#f59e0b", "[A₂ B₂; C₂ D₂]"), ("Saluran 2", 544, "#a855f7", "[A₃ B₃; C₃ D₃]")]):
         b += f'<rect x="{x - 70}" y="60" width="140" height="70" rx="10" fill="{BOX}" stroke="{c}" stroke-width="1.8"/>' + t(x, 88, lab, 11.5, c, "middle", "700") + t(x, 110, nilai, 11, TX, "middle", "600")
         if i < 2:
             b += arrow(x + 76, 95, x + 134, 95, "#94a3b8", 1.6)
-    b += f'<circle cx="14" cy="95" r="4" fill="#00e09e"/>' + t(14, 80, "kirim", 9.5, "#00e09e") + kawat(18, 95, 20, 95) + f'<circle cx="646" cy="95" r="4" fill="#ec4899"/>' + t(646, 80, "terima", 9.5, "#ec4899")
+    b += f'<circle cx="22" cy="95" r="4" fill="#00e09e"/>' + t(22, 56, "kirim", 9.5, "#00e09e") + kawat(26, 95, 34, 95)
+    b += f'<circle cx="628" cy="95" r="4" fill="#ec4899"/>' + t(628, 56, "terima", 9.5, "#ec4899") + kawat(614, 95, 624, 95)
     b += t(330, 160, "[A B; C D]_total = [A₁ B₁; C₁ D₁] · [A₂ B₂; C₂ D₂] · [A₃ B₃; C₃ D₃]  (urutan dari kirim ke terima)", 11, "#00e09e", "middle", "600")
     b += t(330, 182, "Trafo ideal a:1 → [a 0; 0 1/a];  impedansi seri Z → [1 Z; 0 1];  admitansi shunt Y → [1 0; Y 1]", 10.5, AX)
     b += t(330, 200, "Pemeriksaan tiap tahap: AD − BC = 1 (resiprokal); saluran simetris: A = D", 10.5, AX)
@@ -138,7 +139,7 @@ def gambar4():
 
 def gambar5():
     b = ""
-    x0, x1, y0, y1 = 64, 630, 196, 26
+    x0, x1, y0, y1 = 64, 616, 196, 26
     lmax = 600.0
     X = lambda l: x0 + l / lmax * (x1 - x0)
     Y = lambda a: y0 - (a - 0.6) / 0.45 * (y0 - y1)
@@ -149,16 +150,17 @@ def gambar5():
     pts_l = " ".join(f"{X(l):.1f},{Y(math.cos(BETA * l)):.1f}" for l in range(0, 601, 10))
     pts_p = " ".join(f"{X(l):.1f},{Y(1 - X_KM * l * B_KM * l / 2):.1f}" for l in range(0, 601, 10))
     b += f'<polyline points="{pts_l}" fill="none" stroke="#00e09e" stroke-width="2.4"/>' + t(X(320), Y(math.cos(BETA * 320)) - 10, "A = cos(βℓ) (parameter tersebar)", 10.5, "#00e09e", "start", "600")
-    b += f'<polyline points="{pts_p}" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 4"/>' + t(X(430), Y(1 - X_KM * 430 * B_KM * 430 / 2) + 16, "A = 1 − xbℓ²/2 (nominal-π)", 10.5, "#f59e0b", "start", "600")
+    b += f'<polyline points="{pts_p}" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 4"/>' + t(X(590), Y(0.75) + 4, "A = 1 − xbℓ²/2 (nominal-π, garis putus)", 10.5, "#f59e0b", "end", "600")
     b += f'<line x1="{X(250):.1f}" y1="{y1}" x2="{X(250):.1f}" y2="{y0}" stroke="#ec4899" stroke-width="1.2" stroke-dasharray="4 4"/>' + t(X(250) + 4, y1 + 12, "batas praktis nominal-π ± 250 km", 9.5, "#ec4899", "start")
     b += t(28, 110, "|A|", 10.5, AX)
-    b += t(347, 232, f"β = √(xb) = {ind(BETA * 1000, 3)}×10⁻³ rad/km (λ = {ind(LAMBDA, 0)} km); pada {ind(L_LONG, 0)} km βℓ = {ind(BL, 3)} rad, A = {ind(math.cos(BL), 4)}, dan V_R tanpa beban = V_S/A (+{ind(FERRANTI, 1)} %)", 11, AX)
-    return svg(660, 242, b, "Gambar 5 — Konstanta A terhadap panjang saluran: nominal-π vs parameter tersebar")
+    b += t(340, 232, f"β = √(xb) = {ind(BETA * 1000, 3)}×10⁻³ rad/km (λ = {ind(LAMBDA, 0)} km); pada {ind(L_LONG, 0)} km βℓ = {ind(BL, 3)} rad, A = {ind(math.cos(BL), 4)},", 11, AX)
+    b += t(340, 246, f"dan V_R tanpa beban = V_S/A (+{ind(FERRANTI, 1)} %)", 11, AX)
+    return svg(660, 256, b, "Gambar 5 — Konstanta A terhadap panjang saluran: nominal-π vs parameter tersebar")
 
 
 def gambar6():
     b = ""
-    x0, x1, y0, y1 = 64, 630, 196, 26
+    x0, x1, y0, y1 = 64, 560, 196, 26
     X = lambda xk: x0 + xk / L_LONG * (x1 - x0)
     Y = lambda v: y0 - (v - 0.85) / 0.35 * (y0 - y1)
     for xk in [0, 100, 200, 300, 400]:
@@ -172,8 +174,9 @@ def gambar6():
         pts = " ".join(f"{X(xk):.1f},{Y(V(xk) / VS):.1f}" for xk in [L_LONG - i * 8 for i in range(0, 51)])
         b += f'<polyline points="{pts}" fill="none" stroke="{c}" stroke-width="2.2"/>' + t(x1 + 4, Y(1 / VS) + 4, lab, 9.5, c, "start", "600")
     b += t(x0 + 6, y1 + 12, "V_S = 1 pu di kiri; jarak dari ujung kirim →", 10, AX, "start")
-    b += t(347, 232, f"Saluran tanpa rugi {ind(L_LONG, 0)} km: V(x) = V_R cos βx + jZ_c I_R sin βx; di bawah SIL tegangan naik ke ujung terima, di atas SIL turun, pada SIL rata", 11, AX)
-    return svg(660, 242, b, "Gambar 6 — Profil tegangan saluran panjang untuk beban di bawah, pada, dan di atas SIL")
+    b += t(330, 232, f"Saluran tanpa rugi {ind(L_LONG, 0)} km: V(x) = V_R cos βx + jZ_c I_R sin βx;", 11, AX)
+    b += t(330, 246, "di bawah SIL tegangan naik ke ujung terima, di atas SIL turun, pada SIL rata", 11, AX)
+    return svg(660, 256, b, "Gambar 6 — Profil tegangan saluran panjang untuk beban di bawah, pada, dan di atas SIL")
 
 
 # ─────────────────────────── SUBNAV & HERO ───────────────────────────

@@ -539,10 +539,10 @@ def render_svg(svg_markup, png_path, perluas_kanvas=True):
     tidak tercetak sebagai garis utuh.
 
     `perluas_kanvas=False` melewati langkah perluasan: gambar dirender tepat pada
-    viewBox-nya. Dipakai generator TTL selama sebagian gambar TTL masih memuat
-    teks yang juga melewati tepi kanvas di peramban (keterangan satu baris yang
-    lebih lebar dari gambarnya); memperluas kanvas untuk teks semacam itu hanya
-    mengecilkan seluruh gambar di Word tanpa membuat teksnya utuh.
+    viewBox-nya. Perluasan hanya dimaksudkan untuk selisih metrik font; teks yang
+    juga melewati tepi di peramban adalah cacat sumber gambar (periksa dengan
+    periksa_gambar_chrome.py), karena memperluas kanvas untuknya hanya mengecilkan
+    seluruh gambar di Word tanpa membuat teksnya utuh.
     """
     svg = xml_aman(svg_markup)
     if "xmlns=" not in svg[:200]:
