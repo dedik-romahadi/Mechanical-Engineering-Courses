@@ -81,7 +81,7 @@ def gambar1():
     return svg(680, 294, b, "Gambar 1 — Gambar kerja 2D beranotasi lengkap")
 
 
-def gambar2():
+def gambar3():
     b = ""
     s = 1.55
     for k, (judul, mode, warna) in enumerate([("Dimensi berantai (chain)", "chain", "#f59e0b"), ("Dimensi baseline (dari satu acuan)", "base", "#00e09e")]):
@@ -101,10 +101,10 @@ def gambar2():
                 b += _dim(X(0), Y(0), X(i * 30), Y(0), f"{i * 30}±{T_CH}", warna, 10 + i * 12, 8.5, 1.0, -3)
             b += t(X(N_CH * 30) + 14, Y(10) + 4, f"tiap fitur ±{T_CH}", 10.5, "#00e09e", "start")
     b += teks2(340, 266, "Baseline dipakai bila posisi tiap fitur penting (lubang baut); chain bila jarak antar-fitur yang penting (alur bertingkat)", 11, AX, maks=70)
-    return svg(680, 292, b, "Gambar 2 — Dimensi berantai menumpuk toleransi, baseline tidak")
+    return svg(680, 292, b, "Gambar 3 — Dimensi berantai menumpuk toleransi, baseline tidak")
 
 
-def gambar3():
+def gambar4():
     b = ""
     # sektor
     cx, cy, R = 150, 150, 92
@@ -127,10 +127,10 @@ def gambar3():
     b += t(ox + L_SL * s + r * s * math.cos(-0.7) + 4, oy + r * s * math.sin(-0.7) - 4, f"R{r:g}", 10.5, "#f97316", "start")
     b += t(ox + L_SL * s / 2, oy + r * s + 44, f"slot: 2·r·L + π·r² = {ind(LUAS_SLOT, 2)} mm²", 10.5, TX)
     b += teks2(340, 258, "Busur tidak penuh didimensi dengan R; lingkaran penuh dengan ⌀; sudut dengan °; slot dengan jarak pusat dan panjang total", 11, AX, maks=70)
-    return svg(680, 284, b, "Gambar 3 — Radius, sudut, dan slot pada sektor dan alur obround")
+    return svg(680, 284, b, "Gambar 4 — Radius, sudut, dan slot pada sektor dan alur obround")
 
 
-def gambar4():
+def gambar5():
     b = ""
     items = [("Draft Text", ["teks bebas beberapa baris di satu titik;", "tanpa panah"], "#22d3ee", 40),
              ("Draft Label", ["teks + garis penunjuk (leader) berpanah ke", "titik/objek target; jenis Custom, Name,", "Length, Area, Position…"], "#00e09e", 118),
@@ -149,10 +149,10 @@ def gambar4():
     b += t(660, 104, "C15 × 45°", 11, "#00e09e", "end", "600")
     b += t(565, 224, "Label dengan leader ke sisi chamfer", 10, AX, "middle")
     b += t(340, 254, "Teks menjelaskan yang tidak tergambar: jumlah lubang, pengerjaan, bahan, toleransi umum, dan catatan produksi", 11, AX)
-    return svg(680, 266, b, "Gambar 4 — Tiga alat teks dan anotasi Draft")
+    return svg(680, 266, b, "Gambar 5 — Tiga alat teks dan anotasi Draft")
 
 
-def gambar5():
+def gambar6():
     b = ""
     b += f'<rect x="60" y="20" width="330" height="230" fill="#0e1628" stroke="#e2e8f0" stroke-width="1.6"/>'
     b += f'<rect x="70" y="30" width="310" height="210" fill="none" stroke="#475569" stroke-width="1"/>'
@@ -176,10 +176,10 @@ def gambar5():
         b += f'<circle cx="430" cy="{y}" r="11" fill="rgba(255,255,255,.03)" stroke="{c}" stroke-width="1.4"/>'
         b += t(430, y + 4, no, 10.5, c, "middle", "700")
         b += t(450, y + 4, teks, 10.5, TX, "start")
-    return svg(680, 280, b, "Gambar 5 — Dari model ke lembar gambar TechDraw")
+    return svg(680, 280, b, "Gambar 6 — Dari model ke lembar gambar TechDraw")
 
 
-def gambar6():
+def gambar2():
     b = ""
     s = 2.4
     ox, oy = 150, 90                      # digeser ke kanan-atas: dulu separuh atas kanvas kosong dan gambar menepi kiri
@@ -199,7 +199,7 @@ def gambar6():
         b += _dim(X(xs[i + 1]), Y(h), X(xs[i + 1]), Y(0), str(h), "#00e09e", -(14 + (2 - i) * 0), 9, 1.55)     # label tegak tidak menempel garis
     b += t(X(xs[3]) + 20, Y(H_P[1]) + 4, f"luas = Σ lᵢ·hᵢ = {ind(LUAS_PROFIL, 0)} mm²", 10.5, TX, "start")
     b += teks2(340, 178, "Setengah profil poros bertingkat: panjang tingkat berantai (kuning), tinggi tiap tingkat vertikal (hijau), sumbu sebagai garis rantai merah", 11, AX, maks=70)
-    return svg(680, 204, b, "Gambar 6 — Pendimensian setengah profil poros bertingkat")
+    return svg(680, 204, b, "Gambar 2 — Pendimensian setengah profil poros bertingkat")
 
 
 def _kepala(xt, yt, ux, uy, warna=AM):
@@ -401,7 +401,7 @@ def materi():
     m += bagian(1, "m-fungsi", "Anotasi:<br>Mengubah Geometri Menjadi Instruksi", "Gambar tanpa dimensi hanya ilustrasi. Bagian ini menempatkan dimensi, simbol, dan teks sebagai bahasa antara perancang dan pembuat benda, serta memetakan alat Draft untuk setiap pertanyaan yang harus dijawab gambar.", isi, "FUNGSI ANOTASI")
 
     # 02 — Jenis dimensi
-    isi = figure(6, "Pendimensian setengah profil poros bertingkat", f"Tiga panjang tingkat didimensi berantai, tiga tinggi secara vertikal; luas profil Σ lᵢ·hᵢ = {ind(LUAS_PROFIL, 0)} mm² adalah angka pemeriksa pada Tugas 1.", gambar6())
+    isi = figure(2, "Pendimensian setengah profil poros bertingkat", f"Tiga panjang tingkat didimensi berantai, tiga tinggi secara vertikal; luas profil Σ lᵢ·hᵢ = {ind(LUAS_PROFIL, 0)} mm² adalah angka pemeriksa pada Tugas 1.", gambar2())
     isi += tabel(["Jenis Draft Dimension", "Cara membuat", "Simbol / satuan", "Contoh pemakaian"],
                  [["Linear horizontal / vertikal", "Klik dua titik, geser garis dimensi mendatar atau tegak", "mm", "Panjang, lebar, posisi lubang"],
                   ["Aligned", "Klik dua titik, geser sejajar segmen", "mm", "Sisi miring, kaki chamfer"],
@@ -423,7 +423,7 @@ def materi():
     m += bagian(2, "m-jenis", "Jenis Draft Dimension:<br>Linear, Aligned, Radius, Diameter, Angular", "Draft menyediakan satu alat Dimension yang berubah perilaku sesuai apa yang dipilih. Bagian ini merinci keenam jenisnya, cara membuatnya, simbolnya, dan rumus untuk memeriksa profil bertingkat Tugas 1.", isi, "JENIS DIMENSI")
 
     # 03 — Aturan ISO
-    isi = figure(2, "Dimensi berantai menumpuk toleransi, baseline tidak", f"Empat ruas 30 ±{T_CH}: pada dimensi berantai lubang terakhir boleh meleset ±{N_CH * T_CH:.1f}, pada baseline tiap lubang tetap ±{T_CH} dari acuan.", gambar2())
+    isi = figure(3, "Dimensi berantai menumpuk toleransi, baseline tidak", f"Empat ruas 30 ±{T_CH}: pada dimensi berantai lubang terakhir boleh meleset ±{N_CH * T_CH:.1f}, pada baseline tiap lubang tetap ±{T_CH} dari acuan.", gambar3())
     isi += formula(2, "Akumulasi Toleransi pada Dimensi Berantai", r"t_{total} = \sum_{i=1}^{n} t_i \quad(\text{chain}), \qquad t_{fitur} = t_i \quad(\text{baseline})",
                    r"\(t_i\) = toleransi ruas ke-i &nbsp;·&nbsp; \(n\) = jumlah ruas. Contoh " + str(N_CH) + r" ruas ±" + str(T_CH) + r": chain \(\pm" + f"{N_CH * T_CH:.1f}" + r"\), baseline \(\pm" + str(T_CH) + r"\).",
                    "Setiap dimensi membawa toleransinya sendiri; pada rantai, posisi fitur terakhir adalah jumlah semua ruas sehingga penyimpangannya pun berjumlah. Baseline mengukur tiap fitur langsung dari acuan, sehingga penyimpangan tidak diwariskan. Pilih berdasarkan fungsi: posisi lubang baut → baseline; panjang tiap tingkat poros → chain.",
@@ -445,7 +445,7 @@ def materi():
     m += bagian(3, "m-aturan", "Aturan Pendimensian:<br>ISO 129 dan Pilihan Berantai atau Baseline", "Dimensi yang benar mengikuti kaidah agar tidak berganda arti dan tidak menumpuk toleransi. Bagian ini merangkum aturan ISO 129 yang dapat diterapkan di Draft dan menjelaskan kapan memakai chain, baseline, atau ordinat.", isi, "ATURAN PENDIMENSIAN")
 
     # 04 — Radius, diameter, sudut
-    isi = figure(3, "Radius, sudut, dan slot pada sektor dan alur obround", f"Sektor R{R_S} sudut {TH_S}° dan slot L = {L_SL}, ⌀{D_SL}: keduanya didimensi dengan R, ⌀/°, dan jarak pusat, dan keduanya punya rumus luas untuk pemeriksaan.", gambar3())
+    isi = figure(4, "Radius, sudut, dan slot pada sektor dan alur obround", f"Sektor R{R_S} sudut {TH_S}° dan slot L = {L_SL}, ⌀{D_SL}: keduanya didimensi dengan R, ⌀/°, dan jarak pusat, dan keduanya punya rumus luas untuk pemeriksaan.", gambar4())
     isi += formula(3, "Luas Sektor Lingkaran", r"A_{sektor} = \tfrac{1}{2}\,r^{2}\theta, \qquad \theta \text{ dalam radian}",
                    r"\(r\) = radius busur (dimensi R) &nbsp;·&nbsp; \(\theta\) = sudut pusat (dimensi angular). Contoh \(r = " + str(R_S) + r"\), \(\theta = " + str(TH_S) + r"^\circ\): \(A = " + ind(LUAS_SEKTOR, 2) + r"\) mm².",
                    "Sektor adalah pecahan lingkaran sebesar θ/2π; luasnya πr² dikalikan pecahan itu. Dimensi radius membaca r, dimensi angular membaca θ dalam derajat, sehingga keduanya menjadi pemeriksa Tugas 2.",
@@ -470,7 +470,7 @@ def materi():
     m += bagian(4, "m-radius", "Radius, Diameter, dan Sudut:<br>Simbol dan Rumus Pemeriksanya", "Fitur melingkar dan miring punya simbol sendiri: R, ⌀, dan °. Bagian ini menetapkan mana yang dipakai untuk apa, dan memberi rumus luas sektor dan slot yang dipakai Tugas 2 dan 4.", isi, "RADIUS DIAMETER SUDUT")
 
     # 05 — Teks dan anotasi
-    isi = figure(4, "Tiga alat teks dan anotasi Draft", "Text untuk catatan bebas, Label untuk teks berpanah ke fitur, ShapeString untuk teks yang menjadi geometri.", gambar4())
+    isi = figure(5, "Tiga alat teks dan anotasi Draft", "Text untuk catatan bebas, Label untuk teks berpanah ke fitur, ShapeString untuk teks yang menjadi geometri.", gambar5())
     isi += tabel(["Alat", "Masukan", "Properti penting", "Kegunaan khas"],
                  [["<strong>Draft Text</strong>", "Titik, lalu baris teks (Enter dua kali untuk selesai)", "Text (daftar baris), FontSize, Justification", "Catatan umum: bahan, tebal, toleransi umum"],
                   ["<strong>Draft Label</strong>", "Titik target, titik teks; jenis Custom/Name/Length/Area/Position", "CustomText, LabelType, StraightDirection, Distance, Target", "Callout: “C15 × 45°”, “3 × ⌀8 tembus”, luas otomatis"],
@@ -508,7 +508,7 @@ def materi():
     m += bagian(6, "m-format", "Format Dimensi dan Layer:<br>Seragam Lewat AnnotationStyle", "Gambar yang rapi memakai satu gaya untuk semua anotasi. Bagian ini merinci properti gaya dimensi, cara menyimpannya sebagai AnnotationStyle, dan peran layer Dimensi.", isi, "FORMAT DAN LAYER")
 
     # 07 — TechDraw
-    isi = figure(5, "Dari model ke lembar gambar TechDraw", "Page memuat template A4 dengan kepala gambar; View memproyeksikan objek Draft/Part; dimensi dan teks ditambahkan pada lembar, lalu diekspor ke PDF atau DXF.", gambar5())
+    isi = figure(6, "Dari model ke lembar gambar TechDraw", "Page memuat template A4 dengan kepala gambar; View memproyeksikan objek Draft/Part; dimensi dan teks ditambahkan pada lembar, lalu diekspor ke PDF atau DXF.", gambar6())
     isi += tabel(["Langkah TechDraw", "Perintah", "Catatan"],
                  [["Buat lembar", "TechDraw → Page Default (A4 landscape) atau Page using template", "Template SVG punya kolom kepala gambar yang bisa diisi (klik ikon di sudut)"],
                   ["Sisipkan view", "Pilih objek 2D/3D → Insert View", "Untuk objek Draft 2D pakai Insert Draft View / Insert View dengan arah Top"],

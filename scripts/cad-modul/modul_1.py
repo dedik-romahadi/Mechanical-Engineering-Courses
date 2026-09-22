@@ -144,7 +144,7 @@ def gambar4():
     return svg(660, 314, b, "Gambar 4 — Sistem koordinat global dan tiga bidang kerja Draft")
 
 
-def gambar5():
+def gambar6():
     b = ""
     b += f'<rect x="24" y="24" width="250" height="196" rx="10" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/>'
     b += t(149, 46, "Latihan1.FCStd  (arsip ZIP)", 12, TX, "middle", "600")
@@ -167,10 +167,10 @@ def gambar5():
         b += t(360, y, s, 10.5, TX if i < 5 else "#f59e0b", "start")
     b += arrow(274, 122, 326, 122, AX)
     b += t(333, 244, "Berkas turunan (DXF, STEP, PDF) tidak menyimpan riwayat parametrik; simpan selalu .FCStd-nya", 11, AX)
-    return svg(666, 256, b, "Gambar 5 — Isi berkas .FCStd dan alur penyimpanan")
+    return svg(666, 256, b, "Gambar 6 — Isi berkas .FCStd dan alur penyimpanan")
 
 
-def gambar6():
+def gambar5():
     b = ""
     s = 2.2
     ox, oy = 90, 224
@@ -196,7 +196,7 @@ def gambar6():
     b += t(450, 132, f"x̄₁ = {ind(W_L / 2, 0)}; x̄₂ = {ind(T_L / 2, 1)} (pusat bagian)", 10.5, AX, "start")
     b += t(450, 150, f"x̄ = ({ind(A1_L, 0)}·{ind(W_L / 2, 0)} + {ind(A2_L, 0)}·{ind(T_L / 2, 1)})", 10.5, AX, "start")
     b += t(450, 168, f"     / ({ind(A1_L, 0)} + {ind(A2_L, 0)}) = {ind(XB_L, 3)} mm", 10.5, "#00e09e", "start")
-    return svg(670, 250, b, "Gambar 6 — Titik berat profil L sebagai gabungan dua persegi panjang")
+    return svg(670, 250, b, "Gambar 5 — Titik berat profil L sebagai gabungan dua persegi panjang")
 
 
 def _putus(pts, pola=(8, 3, 2, 3)):
@@ -484,7 +484,7 @@ def materi():
     m += bagian(6, "m-draft", "Menggambar Objek 2D<br>dengan Draft Workbench", "Draft adalah papan gambar 2D FreeCAD. Bagian ini membahas alat pembentuk objek 2D, cara memasukkan ukuran dengan tepat, serta rumus luas dan panjang yang dipakai untuk memeriksa hasil gambar.", isi, "MENGGAMBAR 2D DENGAN DRAFT")
 
     # 07 — Membaca properti geometri
-    isi = figure(6, "Titik berat profil L sebagai gabungan dua persegi panjang", f"Profil L {W_L} × {H_L} mm dengan tebal {T_L} mm dibagi menjadi dua persegi panjang; titik berat gabungan adalah rata-rata tertimbang luas.", gambar6())
+    isi = figure(5, "Titik berat profil L sebagai gabungan dua persegi panjang", f"Profil L {W_L} × {H_L} mm dengan tebal {T_L} mm dibagi menjadi dua persegi panjang; titik berat gabungan adalah rata-rata tertimbang luas.", gambar5())
     isi += formula(5, "Titik Berat Gabungan Beberapa Luasan", r"\bar{x} = \frac{\sum_i A_i\,\bar{x}_i}{\sum_i A_i}, \qquad \bar{y} = \frac{\sum_i A_i\,\bar{y}_i}{\sum_i A_i}",
                    r"\(A_i\) = luas bagian ke-i &nbsp;·&nbsp; \((\bar{x}_i, \bar{y}_i)\) = titik berat bagian itu. Contoh profil L di atas: \(\bar{x} = " + ind(XB_L, 3) + r"\) mm, \(\bar{y} = " + ind(YB_L, 3) + r"\) mm.",
                    "FreeCAD menghitung titik berat langsung dari face (Shape.CenterOfMass). Rumus ini berguna untuk memeriksa angka tersebut dan menjadi dasar sifat penampang (momen inersia) yang dipakai pada mata kuliah mekanika.",
@@ -529,7 +529,7 @@ for o in doc.Objects:                                     # semua objek pada poh
     m += bagian(7, "m-properti", "Membaca Properti<br>Geometri dari Model", "Keunggulan CAD adalah angka yang langsung tersedia dari model. Bagian ini menunjukkan cara membaca luas, panjang, titik berat, dan kotak pembatas lewat antarmuka maupun Python console, disertai rumus untuk memeriksanya.", isi, "MEMBACA PROPERTI GEOMETRI")
 
     # 08 — Manajemen berkas
-    isi = figure(5, "Isi berkas .FCStd dan alur penyimpanan", "Berkas FreeCAD adalah arsip ZIP berisi XML dokumen dan geometri BREP; berkas turunan (DXF, STEP) hanya memuat geometri tanpa riwayat.", gambar5())
+    isi = figure(6, "Isi berkas .FCStd dan alur penyimpanan", "Berkas FreeCAD adalah arsip ZIP berisi XML dokumen dan geometri BREP; berkas turunan (DXF, STEP) hanya memuat geometri tanpa riwayat.", gambar6())
     isi += tabel(["Format", "Ekstensi", "Kegunaan", "Parametrik?"],
                  [["FreeCAD Standard", ".FCStd", "Sumber tunggal: objek, riwayat, tampilan", "Ya"],
                   ["STEP (AP214/AP242)", ".step / .stp", "Tukar solid antar-CAD (SolidWorks, Inventor, Fusion)", "Tidak (geometri saja)"],
@@ -799,7 +799,7 @@ def forum_page():
             "Berkas yang harus dijadikan sumber utama dan dicadangkan oleh bengkel adalah...",
             [".FCStd, karena menyimpan objek, parameter, dan riwayat pembuatan model", ".dxf, karena itulah yang dikirim ke mesin potong", ".pdf gambar kerja, karena mudah dibuka semua orang", ".stl, karena ukurannya paling kecil"],
             "✅ Tepat! Hanya .FCStd yang menyimpan parameter dan riwayat; DXF, PDF, dan STL adalah turunan yang bisa dibuat ulang kapan saja dari sumbernya, tetapi tidak sebaliknya.",
-            "❌ DXF, PDF, dan STL hanya memuat geometri akhir tanpa parameter; bila hanya itu yang disimpan, revisi ukuran berarti menggambar ulang dari awal. Lihat Gambar 5 dan tabel format Bagian 08.",
+            "❌ DXF, PDF, dan STL hanya memuat geometri akhir tanpa parameter; bila hanya itu yang disimpan, revisi ukuran berarti menggambar ulang dari awal. Lihat Gambar 6 dan tabel format Bagian 08.",
             "Petunjuk: (1) Usulkan skema penamaan. (2) Jelaskan cara membuat tiga varian dari satu model. (3) Sebutkan langkah cadangan dan kerugian bila hanya menyimpan DXF.")
     kartu = lambda teks, rgb, warna: f'      <div style="background:rgba({rgb},.05);border:1px solid rgba({rgb},.15);border-radius:10px;padding:12px 16px;font-family:\'JetBrains Mono\',monospace;font-size:13px;color:var(--{warna})">{teks}</div>'
     return f'''<div class="page" id="page-forum">
