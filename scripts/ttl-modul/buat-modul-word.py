@@ -35,7 +35,6 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-import fitz  # PyMuPDF: render SVG → PNG
 from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT
@@ -47,6 +46,8 @@ from lxml import html as lhtml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from pustaka import nama_berkas_word  # noqa: E402
+sys.path.insert(1, str(Path(__file__).resolve().parent.parent))
+from svg_word import render_svg  # noqa: E402  (SVG → PNG lewat MuPDF, dipakai bersama CAD)
 
 AKAR = Path(__file__).resolve().parent.parent.parent
 KURSUS = AKAR / "Teknik-Tenaga-Listrik"
@@ -526,26 +527,6 @@ def rencana_rps():
     return hasil
 
 
-def xml_aman(svg):
-    """SVG inline HTML boleh memuat '<' dan '&' telanjang di teks; XML (MuPDF) tidak."""
-    svg = re.sub(r"&(?![A-Za-z]+;|#\d+;|#x[0-9A-Fa-f]+;)", "&amp;", svg)
-    return re.sub(r"<(?![A-Za-z/!?])", "&lt;", svg)
-
-
-def render_svg(svg_markup, png_path):
-    svg = xml_aman(svg_markup)
-    if "xmlns=" not in svg[:200]:
-        svg = svg.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ', 1)
-    svg_path = png_path.with_suffix(".svg")
-    svg_path.write_text(svg, encoding="utf-8")
-    d = fitz.open(str(svg_path))
-    try:
-        d[0].get_pixmap(dpi=200).save(str(png_path))
-    finally:
-        d.close()
-    svg_path.unlink()
-
-
 def muat_modul(n):
     """Baca Modul-N.html → struktur isi."""
     path = KURSUS / "Modul" / f"Modul-{n}.html"
@@ -750,7 +731,7 @@ def bangun(n, tmpdir):
                 cap = el.xpath("./figcaption")
                 if svg:
                     png = Path(tmpdir) / f"m{n}-g{n_gambar}.png"
-                    render_svg(svg, png)
+                    render_svg(svg, png, perluas_kanvas=False)
                     W.gambar(png)
                 if cap:
                     W.caption([(t, b, i, sk) for t, b, i, sk in rapikan_runs(runs_dari(cap[0]))])
