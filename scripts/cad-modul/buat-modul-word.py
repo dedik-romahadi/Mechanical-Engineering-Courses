@@ -724,6 +724,272 @@ def warna_mupdf(svg):
     return svg
 
 
+# ─────────────────── garis putus yang diabaikan MuPDF ───────────────────
+GEOMETRI = {"line": {"x1", "y1", "x2", "y2"}, "polyline": {"points"}, "polygon": {"points"},
+            "rect": {"x", "y", "width", "height", "rx", "ry"}, "circle": {"cx", "cy", "r"},
+            "ellipse": {"cx", "cy", "rx", "ry"}, "path": {"d"}}
+TAG_BENTUK = re.compile(r'<(line|polyline|polygon|rect|circle|ellipse|path)((?:\s+[\w:-]+="[^"]*")*)(\s*/?)>')
+ANGKA_SVG = re.compile(r"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?")
+TOKEN_PATH = re.compile(r"[A-Za-z]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?")
+LANGKAH_KURVA = 0.5    # panjang maksimum potongan lurus saat kurva/busur dipecah (unit viewBox)
+
+
+def _busur(x0, y0, rx, ry, phi, besar, sapu, x, y):
+    """Titik busur eliptis SVG (perintah A) dari (x0, y0) ke (x, y), tanpa titik awalnya.
+
+    Konversi titik-ujung → pusat mengikuti catatan implementasi SVG (F.6.5),
+    termasuk pembesaran jari-jari yang terlalu kecil.
+    """
+    if (x0, y0) == (x, y):
+        return []
+    rx, ry = abs(rx), abs(ry)
+    if rx == 0 or ry == 0:
+        return [(x, y)]
+    c, s = math.cos(math.radians(phi)), math.sin(math.radians(phi))
+    dx, dy = (x0 - x) / 2, (y0 - y) / 2
+    x1, y1 = c * dx + s * dy, -s * dx + c * dy
+    lam = (x1 / rx) ** 2 + (y1 / ry) ** 2
+    if lam > 1:
+        rx, ry = rx * math.sqrt(lam), ry * math.sqrt(lam)
+    pembilang = (rx * ry) ** 2 - (rx * y1) ** 2 - (ry * x1) ** 2
+    k = math.sqrt(max(0.0, pembilang / ((rx * y1) ** 2 + (ry * x1) ** 2))) * (-1 if besar == sapu else 1)
+    pcx, pcy = k * rx * y1 / ry, -k * ry * x1 / rx
+    cx, cy = c * pcx - s * pcy + (x0 + x) / 2, s * pcx + c * pcy + (y0 + y) / 2
+    t0 = math.atan2((y1 - pcy) / ry, (x1 - pcx) / rx)
+    dt = math.atan2((-y1 - pcy) / ry, (-x1 - pcx) / rx) - t0
+    if sapu and dt < 0:
+        dt += 2 * math.pi
+    elif not sapu and dt > 0:
+        dt -= 2 * math.pi
+    n = max(8, math.ceil(abs(dt) * max(rx, ry) / LANGKAH_KURVA))
+    titik = []
+    for i in range(1, n):
+        t = t0 + dt * i / n
+        ex, ey = rx * math.cos(t), ry * math.sin(t)
+        titik.append((cx + c * ex - s * ey, cy + s * ex + c * ey))
+    return titik + [(x, y)]
+
+
+def _bezier(p):
+    """Titik kurva Bezier kuadrat/kubik berkendali p (de Casteljau), tanpa titik awalnya."""
+    n = max(4, math.ceil(sum(math.dist(a, b) for a, b in zip(p, p[1:])) / LANGKAH_KURVA))
+    hasil = []
+    for i in range(1, n + 1):
+        t, q = i / n, list(p)
+        while len(q) > 1:
+            q = [(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t) for a, b in zip(q, q[1:])]
+        hasil.append(q[0])
+    return hasil
+
+
+def _subjalur_path(d):
+    """Data path SVG → [(titik, tertutup), ...] per subjalur; kurva dan busur dipecah lurus."""
+    tok = TOKEN_PATH.findall(d)
+    hasil, titik = [], []
+    x = y = x0 = y0 = 0.0
+    kendali, perintah, i = None, None, 0
+
+    def ambil(jml):
+        nonlocal i
+        if i + jml > len(tok) or any(t.isalpha() for t in tok[i:i + jml]):
+            raise ValueError(f"data path tidak lengkap: {d[:60]!r}")
+        i += jml
+        return [float(t) for t in tok[i - jml:i]]
+
+    while i < len(tok):
+        if tok[i].isalpha():
+            perintah = tok[i]
+            i += 1
+        elif perintah is None:
+            raise ValueError(f"data path tanpa perintah: {d[:60]!r}")
+        P, rel = perintah.upper(), perintah.islower()
+        if P == "Z":
+            if len(titik) > 1:
+                hasil.append((titik, True))
+            titik, x, y, kendali, perintah = [], x0, y0, None, None
+            continue
+        ox, oy = (x, y) if rel else (0.0, 0.0)
+        if P == "M":
+            if len(titik) > 1:
+                hasil.append((titik, False))
+            vx, vy = ambil(2)
+            x = x0 = ox + vx
+            y = y0 = oy + vy
+            titik, kendali = [(x, y)], None
+            perintah = "l" if rel else "L"          # pasangan koordinat berikutnya = lineto
+            continue
+        if not titik:
+            titik = [(x, y)]
+        if P == "L":
+            vx, vy = ambil(2)
+            x, y, kendali = ox + vx, oy + vy, None
+            titik.append((x, y))
+        elif P == "H":
+            x, kendali = ox + ambil(1)[0], None
+            titik.append((x, y))
+        elif P == "V":
+            y, kendali = oy + ambil(1)[0], None
+            titik.append((x, y))
+        elif P in "CS":
+            if P == "C":
+                a1, b1, a2, b2, a, b = ambil(6)
+                k1 = (ox + a1, oy + b1)
+            else:
+                a2, b2, a, b = ambil(4)
+                k1 = (2 * x - kendali[0], 2 * y - kendali[1]) if kendali and kendali[2] == "C" else (x, y)
+            k2, akhir = (ox + a2, oy + b2), (ox + a, oy + b)
+            titik += _bezier([(x, y), k1, k2, akhir])
+            kendali, (x, y) = (*k2, "C"), akhir
+        elif P in "QT":
+            if P == "Q":
+                a1, b1, a, b = ambil(4)
+                k1 = (ox + a1, oy + b1)
+            else:
+                a, b = ambil(2)
+                k1 = (2 * x - kendali[0], 2 * y - kendali[1]) if kendali and kendali[2] == "Q" else (x, y)
+            akhir = (ox + a, oy + b)
+            titik += _bezier([(x, y), k1, akhir])
+            kendali, (x, y) = (*k1, "Q"), akhir
+        elif P == "A":
+            rx, ry, phi, besar, sapu, a, b = ambil(7)
+            if besar not in (0, 1) or sapu not in (0, 1):
+                raise ValueError(f"flag busur harus 0/1 dan dipisah spasi: {d[:60]!r}")
+            akhir = (ox + a, oy + b)
+            titik += _busur(x, y, rx, ry, phi, besar == 1, sapu == 1, *akhir)
+            kendali, (x, y) = None, akhir
+        else:
+            raise ValueError(f"perintah path {perintah!r} tidak dikenal: {d[:60]!r}")
+    if len(titik) > 1:
+        hasil.append((titik, False))
+    return hasil
+
+
+def _subjalur(nama, a):
+    """Bentuk SVG → subjalur (titik, tertutup) menurut path setaranya di SVG 2.
+
+    Titik awal dan arahnya mengikuti spesifikasi agar pola putus-putus jatuh di
+    tempat yang sama dengan di peramban: persegi mulai di (x + rx, y) lalu
+    searah jarum jam; lingkaran dan elips mulai di (cx + r, cy) ke arah sudut
+    positif (searah jarum jam di layar).
+    """
+    def f(k):
+        return _angka(a.get(k), 0.0)
+
+    if nama == "line":
+        return [([(f("x1"), f("y1")), (f("x2"), f("y2"))], False)]
+    if nama in ("polyline", "polygon"):
+        v = [float(t) for t in ANGKA_SVG.findall(a.get("points", ""))]
+        return [(list(zip(v[0::2], v[1::2])), nama == "polygon")]
+    if nama == "path":
+        return _subjalur_path(a.get("d", ""))
+    if nama == "rect":
+        x, y, w, h = f("x"), f("y"), f("width"), f("height")
+        rx = min(_angka(a.get("rx") or a.get("ry"), 0.0), w / 2)
+        ry = min(_angka(a.get("ry") or a.get("rx"), 0.0), h / 2)
+        if rx <= 0 or ry <= 0:
+            return [([(x, y), (x + w, y), (x + w, y + h), (x, y + h)], True)]
+        return _subjalur_path(f"M {x + rx} {y} H {x + w - rx} A {rx} {ry} 0 0 1 {x + w} {y + ry} V {y + h - ry} "
+                              f"A {rx} {ry} 0 0 1 {x + w - rx} {y + h} H {x + rx} A {rx} {ry} 0 0 1 {x} {y + h - ry} "
+                              f"V {y + ry} A {rx} {ry} 0 0 1 {x + rx} {y} Z")
+    cx, cy = f("cx"), f("cy")
+    rx, ry = (f("r"), f("r")) if nama == "circle" else (f("rx"), f("ry"))
+    return _subjalur_path(f"M {cx + rx} {cy} A {rx} {ry} 0 0 1 {cx} {cy + ry} A {rx} {ry} 0 0 1 {cx - rx} {cy} "
+                          f"A {rx} {ry} 0 0 1 {cx} {cy - ry} A {rx} {ry} 0 0 1 {cx + rx} {cy} Z")
+
+
+def _pola_putus(v):
+    """'5 3' / '8,3,2,3' → daftar panjang strip-celah; 'none', negatif, atau jumlah 0 → None (utuh)."""
+    v = v.strip()
+    if v in ("", "none"):
+        return None
+    nilai = [float(t[:-2] if t.endswith("px") else t) for t in re.split(r"[\s,]+", v) if t]
+    if any(n < 0 for n in nilai) or sum(nilai) <= 0:
+        return None
+    return nilai * 2 if len(nilai) % 2 else nilai       # jumlah ganjil diulang, seperti di peramban
+
+
+def _strip(titik, tertutup, pola, geser):
+    """Potongan 'nyala' pola garis putus di sepanjang satu subjalur → daftar polyline.
+
+    Pola dimulai di titik awal subjalur (digeser `stroke-dashoffset`), berlanjut
+    melewati sudut, dan strip yang melewati sudut tetap satu polyline sehingga
+    sambungannya digambar seperti di peramban.
+    """
+    if tertutup and titik[0] != titik[-1]:
+        titik = titik + [titik[0]]
+    fase, i = geser % sum(pola), 0
+    while fase >= pola[i]:
+        fase -= pola[i]
+        i = (i + 1) % len(pola)
+    sisa = pola[i] - fase
+    hasil, kini = [], ([titik[0]] if i % 2 == 0 else None)
+    for a, b in zip(titik, titik[1:]):
+        seg = math.dist(a, b)
+        if seg <= 1e-9:
+            continue
+        t = 0.0
+        while seg - t > sisa:
+            t += sisa
+            p = (a[0] + (b[0] - a[0]) * t / seg, a[1] + (b[1] - a[1]) * t / seg)
+            if i % 2 == 0:
+                kini.append(p)
+                hasil.append(kini)
+                kini = None
+            else:
+                kini = [p]
+            i = (i + 1) % len(pola)
+            sisa = pola[i]
+        sisa -= seg - t
+        if i % 2 == 0:
+            kini.append(b)
+    if i % 2 == 0 and kini and len(kini) > 1:
+        hasil.append(kini)
+    return hasil
+
+
+def garis_putus_mupdf(svg):
+    """Ganti garis putus-putus SVG dengan strip nyata sebelum dirender MuPDF.
+
+    MuPDF mengabaikan `stroke-dasharray` dalam bentuk apa pun (spasi, koma, px,
+    maupun style), sehingga garis tersembunyi, garis sumbu titik-strip, garis
+    bantu, dan kontur rencana pada gambar CAD (453 elemen di 125 dari 168
+    gambar) tercetak sebagai garis utuh di Word/PDF dan makna gambarnya berubah.
+    Setiap bentuk bergaris putus dijalani sepanjang path setaranya (`_subjalur`)
+    dan pola strip-celahnya dipotong menjadi subjalur M…L… dalam satu <path>
+    tanpa isian, dengan atribut garis yang sama (warna, tebal, opasitas, ujung,
+    sambungan, transform). Pola dimulai ulang di setiap subjalur dan
+    `stroke-dashoffset` dihormati, seperti di peramban. Isian bentuknya, bila
+    ada, tetap digambar dari elemen asli (stroke="none") di bawah garisnya.
+    """
+    def tag(m):
+        nama, isi, tutup = m.group(1), m.group(2), m.group(3)
+        if "stroke-dasharray" not in isi:
+            return m.group(0)
+        a = dict(ATRIBUT.findall(isi))
+        polos = {k: v for k, v in a.items() if k not in ("stroke-dasharray", "stroke-dashoffset")}
+        pola = _pola_putus(a.get("stroke-dasharray", ""))
+        if pola is None or a.get("stroke", "none") == "none":
+            return _tag(nama, polos, tutup)
+        if "/" not in tutup:
+            raise ValueError(f"<{nama}> bergaris putus yang berisi elemen anak belum didukung")
+        if "pathLength" in a:
+            raise ValueError(f"<{nama}> bergaris putus dengan pathLength belum didukung")
+        geser = _angka(a.get("stroke-dashoffset"), 0.0)
+        strip = [s for titik, tertutup in _subjalur(nama, a) if len(titik) > 1
+                 for s in _strip(titik, tertutup, pola, geser)]
+        d = " ".join("M" + " L".join(f"{x:.2f} {y:.2f}" for x, y in s) for s in strip)
+        hasil = ""
+        if nama != "line" and a.get("fill") != "none":
+            hasil += _tag(nama, dict(polos, stroke="none"), tutup)
+        garis = {k: v for k, v in polos.items() if k not in GEOMETRI[nama] and k not in ("fill", "fill-opacity", "fill-rule")}
+        return hasil + (_tag("path", {"d": d, "fill": "none", **garis}) if d else "")
+
+    svg = TAG_BENTUK.sub(tag, svg)
+    if "stroke-dasharray" in svg:
+        raise ValueError("stroke-dasharray yang tidak dapat diubah menjadi segmen masih tersisa")
+    return svg
+
+
 PAD_UKUR = 64          # kelebihan kanvas saat mengukur luapan isi gambar (unit viewBox)
 VIEWBOX = re.compile(r'viewBox="0 0 ([\d.]+) ([\d.]+)"')
 LATAR_SVG = re.compile(r'<rect x="0" y="0" width="[\d.]+" height="[\d.]+"')
@@ -784,12 +1050,14 @@ def render_svg(svg_markup, png_path):
     pada kanvas yang dilebihkan, lalu dirender ulang dengan viewBox dan kotak
     latar yang diperluas seperlunya saja. Gambar yang isinya sudah muat dirender
     apa adanya, sama seperti sebelumnya. Warna rgba() dan gradien lebih dulu
-    diubah ke bentuk yang dikenal MuPDF (`warna_mupdf`) agar tidak tercetak hitam.
+    diubah ke bentuk yang dikenal MuPDF (`warna_mupdf`) agar tidak tercetak hitam,
+    dan garis putus-putus dipecah menjadi strip nyata (`garis_putus_mupdf`) agar
+    tidak tercetak sebagai garis utuh.
     """
     svg = xml_aman(svg_markup)
     if "xmlns=" not in svg[:200]:
         svg = svg.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ', 1)
-    svg = warna_mupdf(svg)
+    svg = garis_putus_mupdf(warna_mupdf(svg))
     m = VIEWBOX.search(svg[:300])
     if m and LATAR_SVG.search(svg[:600]):
         W, H = float(m.group(1)), float(m.group(2))
