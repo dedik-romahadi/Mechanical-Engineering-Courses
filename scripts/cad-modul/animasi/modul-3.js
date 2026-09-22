@@ -44,11 +44,18 @@ function _cad3Kepala(ctx,W,bagian,sep){
 function _cad3Kotak(ctx,s,x,y,pad){const u=ctx.measureText(s), p=pad||0; return [x-u.actualBoundingBoxLeft-p,y-u.actualBoundingBoxAscent-p,x+u.actualBoundingBoxRight+p,y+u.actualBoundingBoxDescent+p];}
 // Kotak baris-baris teks rata kiri mulai (x, y) berjarak lh (font ctx saat ini), untuk dihindari label lain.
 function _cad3KotakBaris(ctx,baris,x,y,lh){return [x-2,y-11,x+Math.max(...baris.map(t=>ctx.measureText(t).width))+2,y+(baris.length-1)*lh+5];}
-// Menaruh label rata kiri tanpa saling menimpa. label = [{s, warna, calon:[[x,y],...]}] (font 10 px); untuk tiap
-// label dipilih calon pertama yang, sesudah dijepit ke dalam batas [x0,y0,x1,y1], tidak mengiris kotak di
-// `terpakai`; bila semua calon mengiris, dipakai calon dengan irisan tersempit. Kotak yang dipilih ditambahkan
-// ke `terpakai` (jarak 2 px), jadi urutan label = urutan prioritas.
-function _cad3Tata(ctx,label,terpakai,batas){
+// Garis yang harus dihindari label (alat periksa menghitung garis yang mencoret kotak tinta teks):
+// {pts, lw} dengan titik tiap ≤ 1,5 px di sepanjang polyline (_cad3Ruas) atau busur (_cad3Busur).
+function _cad3Ruas(pts,lw){const out=[pts[0]]; for(let i=1;i<pts.length;i++){const [x1,y1]=pts[i-1],[x2,y2]=pts[i], n=Math.max(1,Math.ceil(Math.hypot(x2-x1,y2-y1)/1.5)); for(let j=1;j<=n;j++) out.push([x1+(x2-x1)*j/n,y1+(y2-y1)*j/n]);} return {pts:out,lw:lw||1};}
+function _cad3Busur(cx,cy,r,a0,a1,lw){const n=Math.max(8,Math.ceil(Math.abs(a1-a0)*r/1.5)), p=[]; for(let i=0;i<=n;i++){const t=a0+(a1-a0)*i/n; p.push([cx+r*Math.cos(t),cy+r*Math.sin(t)]);} return {pts:p,lw:lw||1};}
+// Banyaknya titik garis di dalam kotak k = [x0,y0,x1,y1] yang diperlebar celah + setengah tebal garis.
+function _cad3Kena(k,garis,celah){let n=0; for(const g of garis){const e=celah+g.lw/2; for(const [x,y] of g.pts) if(x>k[0]-e&&x<k[2]+e&&y>k[1]-e&&y<k[3]+e) n++;} return n;}
+// Menaruh label rata kiri tanpa saling menimpa dan tanpa dicoret garis. label = [{s, warna, calon:[[x,y],...]}]
+// (font 10 px; [x,y] = awal garis dasar). Untuk tiap label dipilih calon pertama yang, sesudah dijepit ke dalam
+// batas [x0,y0,x1,y1], tidak mengiris kotak di `terpakai` dan (bila `garis` diberikan) berjarak ≥ 2 px dari tiap
+// garis; bila semua calon kena, dipakai calon dengan pelanggaran terkecil. Kotak yang dipilih ditambahkan ke
+// `terpakai` (jarak 2 px), jadi urutan label = urutan prioritas.
+function _cad3Tata(ctx,label,terpakai,batas,garis){
   const iris=(p,q)=>Math.max(0,Math.min(p[2],q[2])-Math.max(p[0],q[0]))*Math.max(0,Math.min(p[3],q[3])-Math.max(p[1],q[1]));
   ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='left';
   label.forEach(L=>{
@@ -56,12 +63,25 @@ function _cad3Tata(ctx,label,terpakai,batas){
     let pilih=null, sisa=Infinity;
     for(const [cx,cy] of L.calon){
       const x=Math.max(batas[0]+kr,Math.min(batas[2]-kn,cx)), y=Math.max(batas[1]+at,Math.min(batas[3]-bw,cy));
-      const k=[x-kr-2,y-at-2,x+kn+2,y+bw+2], luas=terpakai.reduce((t,q)=>t+iris(k,q),0);
+      const k=[x-kr-2,y-at-2,x+kn+2,y+bw+2], luas=terpakai.reduce((t,q)=>t+iris(k,q),0)+(garis?1e4*_cad3Kena([x-kr,y-at,x+kn,y+bw],garis,2):0);
       if(luas<sisa){sisa=luas; pilih=[x,y,k];}
       if(!luas) break;
     }
     terpakai.push(pilih[2]); ctx.fillStyle=L.warna; ctx.fillText(L.s,pilih[0],pilih[1]);
   });
+}
+// Calon untuk _cad3Tata dari titik-titik pusat: awal garis dasar agar kotak tinta s (10 px) berpusat di tiap titik.
+function _cad3Pusat(ctx,s,pusat){ctx.font="10px 'JetBrains Mono',monospace"; const u=ctx.measureText(s); return pusat.map(([cx,cy])=>[cx-(u.actualBoundingBoxRight-u.actualBoundingBoxLeft)/2,cy+(u.actualBoundingBoxAscent-u.actualBoundingBoxDescent)/2]);}
+// Titik-titik pusat pada lingkaran-lingkaran berjari-jari rs di sekitar p (16 arah), untuk label satu huruf.
+function _cad3Cincin(p,rs){const out=[]; rs.forEach(r=>{for(let i=0;i<16;i++){const t=i*Math.PI/8; out.push([p[0]+r*Math.cos(t),p[1]-r*Math.sin(t)]);}}); return out;}
+// Baris nilai berwarna di tempat tetap (tidak meloncat antarfase): [tampil, warna, teks], mulai (x, y) berjarak lh.
+function _cad3Nilai(ctx,baris,x,y,lh,maxW){ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='left'; baris.forEach(([tampil,w,s],i)=>{if(tampil){ctx.fillStyle=w; _ttlTeks(ctx,s,x,y+i*lh,maxW);}});}
+// Tata letak nilai: kolom kanan bila kolom itu memberi skala gambar yang tidak lebih kecil daripada menaruh
+// baris nilai di bawah teks kepala. lebarMm/tinggiMm = bidang kisi, wNilai = lebar teks nilai terpanjang,
+// yAtas = batas bawah baris nilai di bawah teks kepala. Kembali: {kolom, sk}.
+function _cad3Letak(W,H,lebarMm,tinggiMm,wNilai,yAtas){
+  const skKolom=Math.min((H-60)/tinggiMm,(W-108-wNilai)/lebarMm), skAtas=Math.min((W-76)/lebarMm,(H-34-yAtas)/tinggiMm);
+  return skKolom>=skAtas?{kolom:true,sk:Math.max(0.05,skKolom)}:{kolom:false,sk:Math.max(0.05,skAtas)};
 }
 
 // ════════════════════════════════════════════════════════════
@@ -115,60 +135,61 @@ let _ukFrame=0;
 function toggleUkur(){_ttlToggle('ukur','btnUkur',drawUkur);}
 window.toggleUkur=toggleUkur;
 function drawUkur(){
-  // Ponsel: kanvas sedikit ditinggikan agar baris-baris keterangan ukuran muat di atas segitiga.
+  // Ponsel: kanvas sedikit ditinggikan agar baris-baris nilai ukur muat di atas segitiga.
   const k=_ttlKanvas('cvUkur',320); if(!k) return; const {ctx,W,H}=k;
   const sempit=W<_TTL_SEMPIT;
   const a=_ttlNilai('sl_uk_a',120), c=_ttlNilai('sl_uk_c',40), h=_ttlNilai('sl_uk_h',70);
   _ttlTulis('v_uk_a',a.toFixed(0)); _ttlTulis('v_uk_c',c.toFixed(0)); _ttlTulis('v_uk_h',h.toFixed(0));
   const fase=_ttlJalan('ukur')?Math.floor((_ukFrame/80)%3):3;
-  // Teks fase dihitung lebih dulu: kotaknya dihindari label ukuran, dan di ponsel baris keterangan di bawahnya
-  // membatasi skala segitiga agar puncaknya (h maksimum 110) tidak naik menimpa keterangan.
   const frase=[['Shape.CenterOfMass →','titik berat G'],['Std Measure Distance:','vertex A → edge BC'],['Std Measure Angle:','edge AB dan edge BC'],['Tiga pengukuran sekaligus']];
   const kp=_cad3Kepala(ctx,W,frase[fase],' '), kotakKepala=_cad3KotakBaris(ctx,kp.baris,12,18,kp.lh);
   const nMaks=Math.max(...frase.map(f=>_cad3Pecah(ctx,f,' ',W-24).length)), yLeg=18+nMaks*kp.lh+3;
-  const {X,Y}=_cad3Kisi(ctx,W,H,200,130,52,34,10,10,sempit?(H-50-(yLeg+3*kp.lh+4))/120:0);
-  const A=[0,0],B=[a,0],C=[c,h];
-  _cad3Poli(ctx,X,Y,[A,B,C],'rgba(34,211,238,.14)','#22d3ee',2);
   const G=[(a+c)/3,h/3];
   // kaki tegak lurus dari A ke BC
   const bx=c-a, by=h, L2=bx*bx+by*by, tt=((0-a)*bx+(0-0)*by)/L2, F=[a+tt*bx,tt*by];
   const dAG=Math.hypot(c-G[0],h-G[1]), dABC=Math.abs(a*h)/Math.sqrt((c-a)**2+h*h), sudutB=Math.atan2(h,a-c)*180/Math.PI;
+  const tB='∠B = '+sudutB.toFixed(3)+'°', tG='G ('+G[0].toFixed(2)+', '+G[1].toFixed(2)+')', tCG='CG = '+dAG.toFixed(3), tD='d(A, BC) = '+dABC.toFixed(3);
+  // Nilai ukur ditulis sebagai baris berwarna (warna garis ukurnya) di tempat tetap, tidak meloncat antarfase:
+  // di kolom kanan bila kolom itu memberi segitiga yang lebih besar, selain itu di bawah teks fase. Dulu di layar
+  // lebar nilai itu menempel di dalam segitiga dan dicoret median, sisi, dan sumbu.
+  ctx.font="10px 'JetBrains Mono',monospace"; const wNilai=Math.max(...[tG,tCG,tD,tB].map(s=>ctx.measureText(s).width));
+  // Bila sudut B tumpul (c > a), kaki tegak lurus F jatuh di perpanjangan CB di bawah sumbu X: kisi diperpanjang
+  // ke bawah agar F tetap di dalam kanvas (dulu keluar tepi bawah).
+  const yB=Math.min(-10,10*Math.floor((F[1]-6)/10)), tinggi=120-yB;
+  const tata=_cad3Letak(W,H,200,tinggi,wNilai,yLeg+3*kp.lh+6);
+  const {X,Y}=_cad3Kisi(ctx,W,H,200,tinggi,52,34,10,-yB,tata.sk);
+  const A=[0,0],B=[a,0],C=[c,h], P=q=>[X(q[0]),Y(q[1])];
+  // Semua garis (termasuk garis ukur fase lain) dicatat untuk dihindari label titik, sehingga label C dan G
+  // tidak berpindah tempat antarfase.
+  const garis=[_cad3Ruas([[X(-10),Y(0)],[X(190),Y(0)]],1.4),_cad3Ruas([[X(0),Y(yB)],[X(0),Y(120)]],1.4),_cad3Ruas([A,B,C,A].map(P),2)];
+  _cad3Poli(ctx,X,Y,[A,B,C],'rgba(34,211,238,.14)','#22d3ee',2);
   // median ke titik berat
   ctx.strokeStyle='rgba(148,163,184,.35)'; ctx.setLineDash([3,3]); ctx.lineWidth=1;
-  [[A,[(a+c)/2,h/2]],[B,[c/2,h/2]],[C,[a/2,0]]].forEach(([p,q])=>{ctx.beginPath(); ctx.moveTo(X(p[0]),Y(p[1])); ctx.lineTo(X(q[0]),Y(q[1])); ctx.stroke();}); ctx.setLineDash([]);
+  [[A,[(a+c)/2,h/2]],[B,[c/2,h/2]],[C,[a/2,0]]].forEach(([p,q])=>{ctx.beginPath(); ctx.moveTo(X(p[0]),Y(p[1])); ctx.lineTo(X(q[0]),Y(q[1])); ctx.stroke(); garis.push(_cad3Ruas([P(p),P(q)],1));}); ctx.setLineDash([]);
   _cad3Titik(ctx,X(G[0]),Y(G[1]),'#00e09e',4.5);
-  ctx.fillStyle='#e2e8f0'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='left';
-  const titikLbl=[['A',X(0)-12,Y(0)+12],['B',X(a)+4,Y(0)+12],['C',X(c)-4,Y(h)-6]];
-  titikLbl.forEach(([s,x,y])=>ctx.fillText(s,x,y));
   // |a − c|: bila C di kanan B (c > a) radius busur tidak boleh negatif (arc melempar galat).
-  const rB=Math.min(Math.abs(a-c),40)*0.35*(X(1)-X(0)), tB='∠B = '+sudutB.toFixed(3)+'°';
-  const tG='G ('+G[0].toFixed(2)+', '+G[1].toFixed(2)+')', tCG='CG = '+dAG.toFixed(3), tD='d(A, BC) = '+dABC.toFixed(3);
+  const rB=Math.min(Math.abs(a-c),40)*0.35*(X(1)-X(0));
+  garis.push(_cad3Ruas([P(C),P(G)],1.6),_cad3Ruas([P(A),P(F)],1.6)); if(rB>0) garis.push(_cad3Busur(X(a),Y(0),rB,Math.PI,Math.PI+Math.atan2(h,a-c),1.2));
   if(fase===0||fase===3){ctx.strokeStyle='#00e09e'; ctx.lineWidth=1.6; ctx.beginPath(); ctx.moveTo(X(c),Y(h)); ctx.lineTo(X(G[0]),Y(G[1])); ctx.stroke();}
   if(fase===1||fase===3){ctx.strokeStyle='#f59e0b'; ctx.lineWidth=1.6; ctx.beginPath(); ctx.moveTo(X(0),Y(0)); ctx.lineTo(X(F[0]),Y(F[1])); ctx.stroke(); _cad3Titik(ctx,X(F[0]),Y(F[1]),'#f59e0b',3);}
   // Busur ∠B di antara BA (arah kiri) dan BC (ke atas); dulu tercermin ke bawah sumbu X.
-  if(fase===2||fase===3){ctx.strokeStyle='#a855f7'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(X(a),Y(0),rB,Math.PI,Math.PI+Math.atan2(h,a-c)); ctx.stroke();}
-  if(!sempit){
-    // Layar lebar: label ukuran menempel pada gambarnya. Tiap label punya beberapa calon posisi; yang dipilih
-    // tidak menimpa label titik A/B/C, teks fase, maupun label lain (saat dijeda keempatnya tampil sekaligus).
-    const terpakai=titikLbl.map(([s,x,y])=>_cad3Kotak(ctx,s,x,y,2)); terpakai.push(kotakKepala);
-    const w=s=>ctx.measureText(s).width, g=[X(G[0]),Y(G[1])], mCG=[X((c+G[0])/2),Y((h+G[1])/2)], mD=[X(F[0]/2),Y(F[1]/2)];
-    const lbl=[];
-    if(fase>=2) lbl.push({s:tB,warna:'#a855f7',calon:[[X(a)-rB*2.4,Y(0)-rB*0.6],[X(a)-rB-8-w(tB),Y(0)-5],[X(a)-w(tB)-6,Y(0)-rB-8],[X(a)+8,Y(0)-rB-4],[X(a)-w(tB)/2,Y(0)+26]]});
-    if(fase===1||fase===3) lbl.push({s:tD,warna:'#f59e0b',calon:[[mD[0]+6,mD[1]-8],[mD[0]-6-w(tD),mD[1]-8],[mD[0]+6,mD[1]+14],[mD[0]-6-w(tD),mD[1]+14],[mD[0]+6,mD[1]-20],[mD[0]-6-w(tD),mD[1]-20]]});
-    if(fase===0||fase===3) lbl.push({s:tCG,warna:'#00e09e',calon:[[mCG[0]+8,mCG[1]],[mCG[0]-8-w(tCG),mCG[1]],[mCG[0]+8,mCG[1]-12],[mCG[0]+8,mCG[1]+14],[mCG[0]-8-w(tCG),mCG[1]-12],[mCG[0]-8-w(tCG),mCG[1]+14]]});
-    lbl.push({s:tG,warna:'#00e09e',calon:[[g[0]+6,g[1]+12],[g[0]+6,g[1]-8],[g[0]-6-w(tG),g[1]+12],[g[0]-6-w(tG),g[1]-8],[g[0]-w(tG)/2,g[1]+24],[g[0]-w(tG)/2,g[1]-18]]});
-    _cad3Tata(ctx,lbl,terpakai,[4,4,W-4,H-4]);
-  } else {ctx.fillStyle='#00e09e'; ctx.fillText('G',X(G[0])+6,Y(G[1])+12);}
+  if((fase===2||fase===3)&&rB>0){ctx.strokeStyle='#a855f7'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(X(a),Y(0),rB,Math.PI,Math.PI+Math.atan2(h,a-c)); ctx.stroke();}
+  // Label titik: A dan B di bawah sumbu X; C dan G dipilih dari calon di sekeliling titiknya yang tidak dicoret
+  // sisi, median, sumbu, atau garis ukur (dulu C dicoret sumbu Y saat c = 0 dan G dicoret median).
+  ctx.fillStyle='#e2e8f0'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='left';
+  const titikLbl=[['A',X(0)-12,Y(0)+12],['B',X(a)+4,Y(0)+12]];
+  titikLbl.forEach(([s,x,y])=>ctx.fillText(s,x,y));
+  const xN=tata.kolom?X(190)+24:12, yN=tata.kolom?H*0.16:yLeg, lhN=tata.kolom?18:kp.lh;
+  const terpakai=titikLbl.map(([s,x,y])=>_cad3Kotak(ctx,s,x,y,2)); terpakai.push(kotakKepala,[xN-2,yN-11,xN+wNilai+2,yN+3*lhN+5]);
+  const pc=P(C), pg=P(G);
+  _cad3Tata(ctx,[
+    {s:'C',warna:'#e2e8f0',calon:[[pc[0]+4,pc[1]-5],[pc[0]-10,pc[1]-5],[pc[0]-3,pc[1]-9],[pc[0]+7,pc[1]+4],[pc[0]-13,pc[1]+4],...
+      _cad3Pusat(ctx,'C',_cad3Cincin(pc,[11,16]))]},
+    {s:'G',warna:'#00e09e',calon:_cad3Pusat(ctx,'G',_cad3Cincin(pg,[11,15,20,26]))}],terpakai,[4,4,W-4,H-4],garis);
   // Teks fase: di ponsel dipecah per bagian kalimat.
   ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font=sempit?"10px 'JetBrains Mono',monospace":"11px 'JetBrains Mono',monospace";
   _cad3Baris(ctx,kp.baris,12,18,W-24,kp.lh);
-  if(sempit){
-    // Ponsel: segitiganya terlalu kecil untuk empat label (saat dijeda saling menimpa), jadi titik berat cukup
-    // ditandai "G" dan nilainya ditulis sebagai baris keterangan berwarna di tempat tetap (tidak meloncat antarfase).
-    let y=yLeg;
-    ctx.font="10px 'JetBrains Mono',monospace";
-    [[true,'#00e09e',tG],[fase===0||fase===3,'#00e09e',tCG],[fase===1||fase===3,'#f59e0b',tD],[fase===2||fase===3,'#a855f7',tB]].forEach(([tampil,w,s])=>{if(tampil){ctx.fillStyle=w; _ttlTeks(ctx,s,12,y,W-24);} y+=kp.lh;});
-  }
+  _cad3Nilai(ctx,[[true,'#00e09e',tG],[fase===0||fase===3,'#00e09e',tCG],[fase===1||fase===3,'#f59e0b',tD],[fase===2||fase===3,'#a855f7',tB]],xN,yN,lhN,W-xN-8);
   _ttlTulis('ukurInfo','G = ((0 + '+a+' + '+c+')/3, (0 + 0 + '+h+')/3); jarak CG = '+dAG.toFixed(3)+' mm; jarak A ke garis BC = a·h/|BC| = '+dABC.toFixed(3)+' mm; sudut di B = arctan(h/(a − c)) = '+sudutB.toFixed(3)+'°');
   if(_ttlJalan('ukur')){_ukFrame++; requestAnimationFrame(drawUkur);}
 }
@@ -181,27 +202,44 @@ function togglePutar(){_ttlToggle('putar','btnPutar',drawPutar);}
 window.togglePutar=togglePutar;
 function drawPutar(){
   const k=_ttlKanvas('cvPutar'); if(!k) return; const {ctx,W,H}=k;
-  const sempit=W<_TTL_SEMPIT;
   const L=_ttlNilai('sl_pt_L',100), thMaks=_ttlNilai('sl_pt_th',40);
   _ttlTulis('v_pt_L',L.toFixed(0)); _ttlTulis('v_pt_th',thMaks.toFixed(0)+'°');
   const th=_ttlJalan('putar')?thMaks*(0.5+0.5*Math.sin(_ptFrame/50-Math.PI/2)):thMaks;
-  const {X,Y}=_cad3Kisi(ctx,W,H,180,140,52,34,20,20);
-  const rad=th*Math.PI/180, P=[L,0], Q=[L*Math.cos(rad),L*Math.sin(rad)];
+  const rad=th*Math.PI/180, radM=thMaks*Math.PI/180;
+  const d=2*L*Math.sin(rad/2), tD='d = 2L·sin(θ/2) = '+d.toFixed(3);
+  // Bidang kisi mengikuti L dan θ slider (tetap selama animasi): garis yang diputar sampai 120° dulu keluar tepi
+  // kiri dan menembus teks kepala.
+  const xMin=Math.min(-20,10*Math.floor((L*Math.cos(radM)-12)/10)), xMax=Math.max(160,10*Math.ceil((L+20)/10));
+  const yMax=Math.max(120,10*Math.ceil((L*(radM>=Math.PI/2?1:Math.sin(radM))+14)/10)), lebar=xMax-xMin, tinggi=yMax+20;
+  const kp=_cad3Kepala(ctx,W,['Draft Rotate (Copy):','pusat (0,0),','sudut acuan 0°,','sudut rotasi θ'],' '), kotakKepala=_cad3KotakBaris(ctx,kp.baris,12,18,kp.lh);
+  const yBawah=18+kp.baris.length*kp.lh;
+  // Nilai d di kolom kanan bila kolom itu memberi gambar yang lebih besar, selain itu satu baris di bawah teks
+  // kepala (dulu di layar lebar menempel di tengah tali busur dan dicoret sumbu X saat θ kecil).
+  ctx.font="10px 'JetBrains Mono',monospace"; const wD=ctx.measureText('d = 2L·sin(θ/2) = 000.000').width;
+  const tata=_cad3Letak(W,H,lebar,tinggi,wD,yBawah+8);
+  const {X,Y}=_cad3Kisi(ctx,W,H,lebar,tinggi,52,34,-xMin,20,tata.sk);
+  const P=[L,0], Q=[L*Math.cos(rad),L*Math.sin(rad)], s1=X(1)-X(0), O=[X(0),Y(0)], rr=Math.min(L,40)*0.5*s1;
   ctx.strokeStyle='#22d3ee'; ctx.lineWidth=2.4; ctx.beginPath(); ctx.moveTo(X(0),Y(0)); ctx.lineTo(X(P[0]),Y(P[1])); ctx.stroke();
   ctx.strokeStyle='#f59e0b'; ctx.beginPath(); ctx.moveTo(X(0),Y(0)); ctx.lineTo(X(Q[0]),Y(Q[1])); ctx.stroke();
-  ctx.strokeStyle='rgba(245,158,11,.5)'; ctx.lineWidth=1; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.arc(X(0),Y(0),L*(X(1)-X(0)),-rad,0); ctx.stroke(); ctx.setLineDash([]);
-  const rr=Math.min(L,40)*0.5*(X(1)-X(0)); ctx.strokeStyle='#a855f7'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(X(0),Y(0),rr,-rad,0); ctx.stroke();
-  ctx.fillStyle='#a855f7'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('θ = '+th.toFixed(1)+'°',X(0)+rr*1.1,Y(0)-rr*0.4);
-  const d=2*L*Math.sin(rad/2), tD='d = 2L·sin(θ/2) = '+d.toFixed(3);
+  ctx.strokeStyle='rgba(245,158,11,.5)'; ctx.lineWidth=1; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.arc(X(0),Y(0),L*s1,-rad,0); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle='#a855f7'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(X(0),Y(0),rr,-rad,0); ctx.stroke();
   ctx.strokeStyle='#00e09e'; ctx.lineWidth=1.6; ctx.beginPath(); ctx.moveTo(X(P[0]),Y(P[1])); ctx.lineTo(X(Q[0]),Y(Q[1])); ctx.stroke();
   _cad3Titik(ctx,X(P[0]),Y(P[1]),'#22d3ee'); _cad3Titik(ctx,X(Q[0]),Y(Q[1]),'#f59e0b'); _cad3Titik(ctx,X(0),Y(0),'#e2e8f0',3);
-  // Label d: di layar lebar menempel di tengah tali busur; di ponsel labelnya keluar tepi kanan dan menimpa
-  // label θ, jadi ditulis sebagai baris hijau (warna tali busur) di bawah teks kepala.
-  if(!sempit){ctx.fillStyle='#00e09e'; ctx.fillText(tD,X((P[0]+Q[0])/2)+8,Y((P[1]+Q[1])/2));}
-  ctx.fillStyle='rgba(226,232,240,.92)'; ctx.textAlign='left';
-  const kp=_cad3Kepala(ctx,W,['Draft Rotate (Copy):','pusat (0,0),','sudut acuan 0°,','sudut rotasi θ'],' ');
-  const yBawah=_cad3Baris(ctx,kp.baris,12,18,W-24,kp.lh);
-  if(sempit){ctx.fillStyle='#00e09e'; ctx.font="10px 'JetBrains Mono',monospace"; _ttlTeks(ctx,tD,12,yBawah+2,W-24);}
+  const garis=[_cad3Ruas([[X(xMin),Y(0)],[X(xMax),Y(0)]],2.4),_cad3Ruas([[X(0),Y(-20)],[X(0),Y(yMax)]],1.4),_cad3Ruas([O,[X(Q[0]),Y(Q[1])]],2.4),
+    _cad3Busur(O[0],O[1],L*s1,-rad,0,1),_cad3Busur(O[0],O[1],rr,-rad,0,1.2),_cad3Ruas([[X(P[0]),Y(P[1])],[X(Q[0]),Y(Q[1])]],1.6)];
+  ctx.fillStyle='rgba(226,232,240,.92)'; ctx.textAlign='left'; ctx.font=W<_TTL_SEMPIT?"10px 'JetBrains Mono',monospace":"11px 'JetBrains Mono',monospace";
+  _cad3Baris(ctx,kp.baris,12,18,W-24,kp.lh);
+  const xN=tata.kolom?X(xMax)+24:12, yN=tata.kolom?H*0.16:yBawah+2;
+  ctx.fillStyle='#00e09e'; ctx.font="10px 'JetBrains Mono',monospace"; _ttlTeks(ctx,tD,xN,yN,W-xN-8);
+  // Label θ: di dalam sudut sepanjang garis bagi (bagian kuadran I bila θ > 90°), sedekat mungkin dengan busur
+  // dan tetap di dalam segitiga O–P–Q, tanpa dicoret kaki sudut, busur, tali busur, maupun sumbu. Bila sudutnya
+  // terlalu sempit: di bawah sumbu X dekat titik asal, lalu di atas kaki yang diputar.
+  const tTh='θ = '+th.toFixed(1)+'°', bagi=Math.min(rad,Math.PI/2)/2, rTali=L*s1*Math.cos(rad/2), pusat=[];
+  for(let r=rr+12;r<=Math.max(rr+12,rTali-6);r+=6) pusat.push([O[0]+r*Math.cos(bagi),O[1]-r*Math.sin(bagi)]);
+  pusat.push([O[0]+rr+34,O[1]+11],[O[0]+48,O[1]+11],[O[0]+rr+60,O[1]+11]);
+  [0.35,0.6].forEach(f=>{const t=Math.min(rad+f,Math.PI/2+0.3); [26,44].forEach(r=>pusat.push([O[0]+(rr+r)*Math.cos(t),O[1]-(rr+r)*Math.sin(t)]));});
+  const terpakai=[kotakKepala,[xN-2,yN-11,xN+wD+2,yN+5],...[P,Q,[0,0]].map(q=>[X(q[0])-5,Y(q[1])-5,X(q[0])+5,Y(q[1])+5])];
+  _cad3Tata(ctx,[{s:tTh,warna:'#a855f7',calon:_cad3Pusat(ctx,tTh,pusat)}],terpakai,[4,4,W-4,H-4],garis);
   _ttlTulis('putarInfo','Kedua ujung bebas berjarak L = '+L+' dari pusat; tali busur di antara keduanya d = 2·'+L+'·sin('+(th/2).toFixed(2)+'°) = '+d.toFixed(3)+' mm; ujung yang diputar berada di ('+Q[0].toFixed(2)+', '+Q[1].toFixed(2)+')');
   if(_ttlJalan('putar')){_ptFrame++; requestAnimationFrame(drawPutar);}
 }
@@ -214,46 +252,35 @@ function toggleTransform(){_ttlToggle('transform','btnTransform',drawTransform);
 window.toggleTransform=toggleTransform;
 function drawTransform(){
   const k=_ttlKanvas('cvTransform'); if(!k) return; const {ctx,W,H}=k;
-  const sempit=W<_TTL_SEMPIT;
   const dx=_ttlNilai('sl_tf_dx',80), dy=_ttlNilai('sl_tf_dy',45), th=_ttlNilai('sl_tf_th',30), kf=_ttlNilai('sl_tf_k',1.5);
   _ttlTulis('v_tf_dx',dx.toFixed(0)); _ttlTulis('v_tf_dy',dy.toFixed(0)); _ttlTulis('v_tf_th',th.toFixed(0)+'°'); _ttlTulis('v_tf_k',kf.toFixed(2));
   const a=100,b=40, rad=th*Math.PI/180;
-  const {X,Y}=_cad3Kisi(ctx,W,H,300,180,52,34,40,30);
-  const asal=[[0,0],[a,0],[a,b],[0,b]];
   const fase=_ttlJalan('transform')?Math.floor((_tfFrame/90)%3):3;
+  const frase=[['Draft Move (Copy)','vektor (dx, dy)'],['Draft Rotate','di titik asal','sebesar θ'],['Draft Scale (Copy)','faktor k','di titik asal'],['Tiga transformasi','pada persegi panjang',a+' × '+b]];
+  const kp=_cad3Kepala(ctx,W,frase[fase],' ');
+  // Tempat baris nilai tetap (dihitung dari teks fase terpanjang) agar tidak meloncat antarfase.
+  const nMaks=Math.max(...frase.map(f=>_cad3Pecah(ctx,f,' ',W-24).length)), yLeg=18+nMaks*kp.lh+3;
+  const ymax=a*Math.sin(rad)+b*Math.cos(rad), xmin=-b*Math.sin(rad);
+  const lMove='Move |v| = '+Math.hypot(dx,dy).toFixed(3), lRot='Rotate θ: BoundBox YMax = '+ymax.toFixed(3), lSkala='Scale k: luas = k²·'+(a*b)+' = '+(kf*kf*a*b).toFixed(1);
+  // Label tiap transformasi ditulis sebagai baris berwarna sama dengan bentuknya: di kolom kanan bila kolom itu
+  // memberi gambar yang lebih besar, selain itu di bawah teks kepala. Dulu di layar lebar label menempel pada
+  // bentuknya dan dicoret tepi bentuk lain, kotak pembatas, dan sumbu.
+  ctx.font="10px 'JetBrains Mono',monospace"; const wNilai=Math.max(...[lMove,lRot,lSkala].map(s=>ctx.measureText(s).width));
+  const tata=_cad3Letak(W,H,300,180,wNilai,yLeg+2*kp.lh+6);
+  const {X,Y}=_cad3Kisi(ctx,W,H,300,180,52,34,40,30,tata.sk);
+  const asal=[[0,0],[a,0],[a,b],[0,b]];
   _cad3Poli(ctx,X,Y,asal,'rgba(34,211,238,.16)','#22d3ee',2);
   const pindah=asal.map(([x,y])=>[x+dx,y+dy]);
   const putar=asal.map(([x,y])=>[x*Math.cos(rad)-y*Math.sin(rad),x*Math.sin(rad)+y*Math.cos(rad)]);
   const skala=asal.map(([x,y])=>[x*kf,y*kf]);
-  const ymax=a*Math.sin(rad)+b*Math.cos(rad), xmin=-b*Math.sin(rad);
-  // Label tiap transformasi: di layar lebar menempel pada bentuknya; di ponsel labelnya keluar tepi kanan
-  // dan saling menimpa, jadi ditulis sebagai baris keterangan berwarna sama di bawah teks kepala.
-  const lMove='Move |v| = '+Math.hypot(dx,dy).toFixed(3), lRot='Rotate θ: BoundBox YMax = '+ymax.toFixed(3), lSkala='Scale k: luas = k²·'+(a*b)+' = '+(kf*kf*a*b).toFixed(1);
   if(fase===0||fase===3){_cad3Poli(ctx,X,Y,pindah,'rgba(0,224,158,.10)','#00e09e',1.6,[6,4]); ctx.strokeStyle='#00e09e'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(X(0),Y(0)); ctx.lineTo(X(dx),Y(dy)); ctx.stroke();}
   if(fase===1||fase===3){_cad3Poli(ctx,X,Y,putar,'rgba(245,158,11,.10)','#f59e0b',1.6); ctx.strokeStyle='rgba(245,158,11,.5)'; ctx.setLineDash([3,3]); ctx.strokeRect(X(xmin),Y(ymax),(a*Math.cos(rad)-xmin)*(X(1)-X(0)),ymax*(X(1)-X(0))); ctx.setLineDash([]);}
   if(fase===2||fase===3){_cad3Poli(ctx,X,Y,skala,null,'#a855f7',1.6,[2,3]);}
   _cad3Titik(ctx,X(0),Y(0),'#e2e8f0',3);
   ctx.fillStyle='rgba(226,232,240,.92)'; ctx.textAlign='left';
-  const frase=[['Draft Move (Copy)','vektor (dx, dy)'],['Draft Rotate','di titik asal','sebesar θ'],['Draft Scale (Copy)','faktor k','di titik asal'],['Tiga transformasi','pada persegi panjang',a+' × '+b]];
-  const kp=_cad3Kepala(ctx,W,frase[fase],' '), kotakKepala=_cad3KotakBaris(ctx,kp.baris,12,18,kp.lh);
   _cad3Baris(ctx,kp.baris,12,18,W-24,kp.lh);
-  if(!sempit){
-    // Layar lebar: tiap label menempel pada bentuknya dengan beberapa calon posisi (termasuk di bawah sumbu X)
-    // agar tidak saling menimpa saat dijeda dan tidak keluar tepi kanan pada lebar 520-540.
-    ctx.font="10px 'JetBrains Mono',monospace"; const w=s=>ctx.measureText(s).width, yb=Y(0)+14;
-    const lbl=[];
-    if(fase===0||fase===3) lbl.push({s:lMove,warna:'#00e09e',calon:[[X(dx)+6,Y(dy)-6],[X(dx)+6,Y(dy)+14],[X(dx+a)+6,Y(dy+b)+12],[X(dx)-6-w(lMove),Y(dy)-6],[X(dx+a/2)-w(lMove)/2,Y(dy+b)-6],[X(0)+8,yb]]});
-    if(fase===1||fase===3) lbl.push({s:lRot,warna:'#f59e0b',calon:[[X(xmin),Y(ymax)-6],[X(xmin),Y(ymax)-18],[X(xmin)+4,Y(ymax)+14],[X(a*Math.cos(rad))+6,Y(ymax)+12],[X(0)+8,yb+12],[X(0)+8,yb]]});
-    if(fase===2||fase===3) lbl.push({s:lSkala,warna:'#a855f7',calon:[[X(a*kf)-60,Y(b*kf)-6],[X(a*kf)-w(lSkala),Y(b*kf)-6],[X(a*kf)-w(lSkala),Y(b*kf)-18],[X(a*kf)+6,Y(b*kf)-6],[X(a*kf)-w(lSkala),Y(b*kf)+14],[X(0)+8,yb+24]]});
-    _cad3Tata(ctx,lbl,[kotakKepala],[4,4,W-4,H-4]);
-  }
-  if(sempit){
-    // Tempat baris keterangan tetap (dihitung dari teks fase terpanjang) agar tidak meloncat antarfase.
-    const nMaks=Math.max(...frase.map(f=>_cad3Pecah(ctx,f,' ',W-24).length));
-    let y=18+nMaks*kp.lh+3;
-    ctx.font="10px 'JetBrains Mono',monospace";
-    [[fase===0||fase===3,'#00e09e',lMove],[fase===1||fase===3,'#f59e0b',lRot],[fase===2||fase===3,'#a855f7',lSkala]].forEach(([tampil,w,s])=>{if(tampil){ctx.fillStyle=w; _ttlTeks(ctx,s,12,y,W-24);} y+=kp.lh;});
-  }
+  const xN=tata.kolom?X(260)+24:12, yN=tata.kolom?H*0.16:yLeg, lhN=tata.kolom?18:kp.lh;
+  _cad3Nilai(ctx,[[fase===0||fase===3,'#00e09e',lMove],[fase===1||fase===3,'#f59e0b',lRot],[fase===2||fase===3,'#a855f7',lSkala]],xN,yN,lhN,W-xN-8);
   _ttlTulis('transformInfo','Move: jarak sudut asal–salinan √('+dx+'² + '+dy+'²) = '+Math.hypot(dx,dy).toFixed(3)+' mm · Rotate: YMax = a·sin θ + b·cos θ = '+(a*Math.sin(rad)+b*Math.cos(rad)).toFixed(3)+' mm · Scale: luas '+(kf*kf*a*b).toFixed(1)+' mm² (k² = '+(kf*kf).toFixed(3)+')');
   if(_ttlJalan('transform')){_tfFrame++; requestAnimationFrame(drawTransform);}
 }

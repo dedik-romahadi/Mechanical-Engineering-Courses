@@ -9176,6 +9176,18 @@ function _ttlTeks(ctx,teks,x,y,maxW,opsi){
   if(baris){ctx.fillText(baris,x,yy); yy+=lh;}
   ctx.font=f; return yy;
 }
+// Label berpelat: kotak warna latar kanvas digambar di belakang teks sehingga garis yang
+// melintas di belakangnya terputus (seperti gambar teknik yang memutus garis bantu di belakang
+// angka dimensi). Pakai untuk angka dimensi di atas garis dimensinya atau label di atas kisi/kurva
+// yang tidak bisa dipindah. Pelat hanya menutupi garis yang digambar SEBELUM label.
+// opsi: {pad (bawaan 2), latar (bawaan '#050a16')}. Perataan mengikuti ctx.textAlign/textBaseline.
+function _ttlLabel(ctx,teks,x,y,opsi){
+  opsi=opsi||{};
+  const u=ctx.measureText(teks), pad=opsi.pad==null?2:opsi.pad;
+  const x0=x-u.actualBoundingBoxLeft-pad, x1=x+u.actualBoundingBoxRight+pad, y0=y-u.actualBoundingBoxAscent-pad, y1=y+u.actualBoundingBoxDescent+pad;
+  const warna=ctx.fillStyle; ctx.fillStyle=opsi.latar||'#050a16'; ctx.fillRect(x0,y0,x1-x0,y1-y0); ctx.fillStyle=warna;
+  ctx.__plat=true; ctx.fillText(teks,x,y); ctx.__plat=false;
+}
 function _ttlNilai(id,def){const el=document.getElementById(id); const v=parseFloat(el&&el.value); return Number.isFinite(v)?v:def;}
 function _ttlTulis(id,teks){const el=document.getElementById(id); if(el) el.textContent=teks;}
 function _ttlGaris(ctx,x1,y1,x2,y2,warna,lebar,putus){
@@ -9323,7 +9335,7 @@ function drawRusuk(){
     // Ponsel: angka di bawah judul → penampang T (label sumbu dua baris) → kantilever selebar kanvas.
     const yK=_cad10Kolom(ctx,12,54,W-24,baris);
     sk=Math.max(0.05,Math.min((W-54-wSumbu)/b,64/(t+hrM))); cx=26+b/2*sk; y0=yK+24+(t+hrM)*sk;
-    bx0=26; bx1=W-14; by=y0+46; skala=Math.max(24,Math.min(48,H-by-70))/Math.max(d0,1e-9);
+    bx0=26; bx1=W-14; by=y0+50; skala=Math.max(24,Math.min(48,H-by-30))/Math.max(d0,1e-9);
   } else {
     sk=Math.max(0.05,Math.min((W*0.26)/(b+10),(H-90)/(t+hrM+10))); cx=W*0.16; y0=H*0.80;
     // Kantilever mulai sesudah label sumbu netral (dulu tertimpa label "pelat polos δ" di lebar 800).
@@ -9338,19 +9350,22 @@ function drawRusuk(){
   if(duaBaris){_cad10Teks(ctx,'sumbu netral',X(b/2)+16,Y(g.yb)+4,'#ef4444',f10); _cad10Teks(ctx,'ȳ = '+g.yb.toFixed(1),X(b/2)+16,Y(g.yb)+15,'#ef4444',f10);}
   else _cad10Teks(ctx,'sumbu netral ȳ = '+g.yb.toFixed(1),X(b/2)+16,Y(g.yb)+4,'#ef4444',f10);
   _cad10Teks(ctx,'pelat '+b+' × '+t,cx,y0+16,'#22d3ee',f10,'center');
-  // Label rusuk di samping puncak rusuk; bila bisa menabrak label sumbu netral (kanvas kecil atau
-  // rusuk tebal), dipindah ke atas puncak rusuk. Pilihan ini hanya bergantung pada slider dan lebar.
-  if(hr>0){const sR='rusuk '+tr.toFixed(0)+' × '+hr.toFixed(1); ctx.font=f10; const wR=ctx.measureText('rusuk '+tr.toFixed(0)+' × 00.0').width;
-    if(sempit||X(tr/2)+6+wR>X(b/2)+12) _cad10Teks(ctx,sR,cx,Y(t+hr)-6,'#f59e0b',f10,'center');
-    else _cad10Teks(ctx,sR,X(tr/2)+6,Y(t+hr)+12,'#f59e0b',f10);}
+  // Label rusuk selalu di atas puncak rusuk: di samping puncak rusuk ia dicoret tepi atas pelat dan
+  // sumbu netral selama rusuk masih pendek.
+  if(hr>0) _cad10Teks(ctx,'rusuk '+tr.toFixed(0)+' × '+hr.toFixed(1),cx,Y(t+hr)-6,'#f59e0b',f10,'center');
   // kanan (ponsel: bawah): kantilever samping dengan lendutan (dilebihkan; δ pelat polos = skala tetap)
   for(let i=0;i<=5;i++){_ttlGaris(ctx,bx0,by-24+i*10,bx0-8,by-16+i*10,'#94a3b8',1);} _ttlGaris(ctx,bx0,by-26,bx0,by+28,'#94a3b8',1.6);
   const kurva=(dd,warna,lebar,putus)=>{ctx.strokeStyle=warna; ctx.lineWidth=lebar; ctx.setLineDash(putus||[]); ctx.beginPath(); for(let i=0;i<=40;i++){const x=i/40; const y=dd*skala*(3*x*x-x*x*x)/2; i?ctx.lineTo(bx0+(bx1-bx0)*x,by+y):ctx.moveTo(bx0,by);} ctx.stroke(); ctx.setLineDash([]);};
   kurva(d0,'rgba(148,163,184,.5)',1.2,[5,4]); kurva(d1,'#00e09e',3);
-  _ttlGaris(ctx,bx1-6,by+d1*skala+6,bx1-6,by+d1*skala+30,'#f59e0b',1.8); ctx.fillStyle='#f59e0b'; ctx.beginPath(); ctx.moveTo(bx1-6,by+d1*skala+32); ctx.lineTo(bx1-11,by+d1*skala+23); ctx.lineTo(bx1-1,by+d1*skala+23); ctx.fill();
-  _cad10Teks(ctx,'F = '+F.toFixed(0)+' N',bx1-60,by+d1*skala+44,'#f59e0b',f10);
-  // ponsel: label pelat polos di baris sendiri paling bawah agar tidak ditabrak label F yang bergerak
-  _cad10Teks(ctx,'pelat polos δ = '+d0.toFixed(2)+' mm',sempit?12:bx0+8,sempit?H-10:by+d0*skala+16,'rgba(148,163,184,.85)',f10);
+  // Beban F di ATAS ujung bebas, panah menunjuk ke bawah. Dulu panah dan labelnya di bawah ujung, dan label
+  // itu dicoret kurva pelat polos. Label di kiri pangkal panah; bila kurva lendutan di bawah tepi kiri label
+  // lebih tinggi (kantilever pendek), label dinaikkan di atasnya.
+  const yU=by+d1*skala, teksF='F = '+F.toFixed(0)+' N'; ctx.font=f10; const wF=ctx.measureText(teksF).width;
+  _ttlGaris(ctx,bx1-6,yU-34,bx1-6,yU-12,'#f59e0b',1.8); ctx.fillStyle='#f59e0b'; ctx.beginPath(); ctx.moveTo(bx1-6,yU-3); ctx.lineTo(bx1-11,yU-12); ctx.lineTo(bx1-1,yU-12); ctx.fill();
+  const uF=Math.max(0,(bx1-12-wF-bx0)/(bx1-bx0)), yKiri=by+d1*skala*(3*uF*uF-uF*uF*uF)/2;
+  _cad10Teks(ctx,teksF,bx1-12,Math.min(yU-26,yKiri-4),'#f59e0b',f10,'right');
+  // label pelat polos di bawah kurvanya (ponsel: baris sendiri di bawah ujung kurva)
+  _cad10Teks(ctx,'pelat polos δ = '+d0.toFixed(2)+' mm',sempit?12:bx0+8,by+d0*skala+(sempit?20:16),'rgba(148,163,184,.85)',f10);
   _ttlTulis('rusukInfo','Rusuk '+tr.toFixed(0)+' × '+hr.toFixed(1)+' mm menggeser sumbu netral ke ȳ = '+g.yb.toFixed(2)+' mm dan menaikkan I dari '+I0.toFixed(0)+' ke '+g.I.toFixed(0)+' mm⁴ ('+(g.I/I0).toFixed(1)+'×); defleksi ujung turun dari '+d0.toFixed(3)+' ke '+d1.toFixed(3)+' mm dengan tambahan luas hanya '+(100*tr*hr/(b*t)).toFixed(0)+' %');
   if(_ttlJalan('rusuk')){_rbFrame++; requestAnimationFrame(drawRusuk);}
 }

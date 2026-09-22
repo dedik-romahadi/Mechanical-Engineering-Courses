@@ -24,14 +24,25 @@ function _cad6Poli(ctx,P,isi,garis,lebar){
   ctx.beginPath(); P.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])); ctx.closePath();
   if(isi){ctx.fillStyle=isi; ctx.fill();} ctx.strokeStyle=garis; ctx.lineWidth=lebar||1.2; ctx.stroke();
 }
-// Sumbu X/Y/Z. Label dijepit ke dalam batas [x0,y0,x1,y1] (bawaan: tepi kanvas) agar tidak terpotong atau
-// menimpa keterangan, dan digeser ke samping bila menumpuk label sebelumnya (X dan Y berimpit saat elevasi 0°).
-function _cad6Sumbu(ctx,az,el,sk,cx,cy,L,D,batas){
-  const O=_cad6P([0,0,0],az,el,sk,cx,cy,D), [x0,y0,x1,y1]=batas||[4,4,ctx.canvas.width-4,ctx.canvas.height-4], pos=[];
-  [[[L,0,0],_C6X,'X'],[[0,L,0],_C6Y,'Y'],[[0,0,L],_C6Z,'Z']].forEach(([v,w,n])=>{const Q=_cad6P(v,az,el,sk,cx,cy,D); ctx.strokeStyle=w; ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(O[0],O[1]); ctx.lineTo(Q[0],Q[1]); ctx.stroke(); ctx.fillStyle=w; ctx.font="bold 10px 'JetBrains Mono',monospace"; ctx.textAlign='left';
-    let lx=Math.min(Math.max(Q[0]+4,x0),x1-7); const ly=Math.min(Math.max(Q[1]-3,y0+8),y1);
-    pos.forEach(([px,py])=>{if(Math.abs(lx-px)<8&&Math.abs(ly-py)<9) lx=px+9>x1-7?px-9:px+9;});
-    pos.push([lx,ly]); ctx.fillText(n,lx,ly);});
+// Sumbu X/Y/Z balok yang berputar. Garis digambar SEBELUM balok (_cad6SumbuGaris), label SESUDAHNYA
+// (_cad6SumbuLabel) dengan pelat _ttlLabel: ujung sumbu yang ikut berputar pasti sesekali jatuh di atas rusuk
+// balok atau sumbu lain, jadi garis di belakang huruf diputus seperti pada gambar teknik. Label ditaruh 7 px di
+// luar ujung searah sumbu, dijepit ke dalam batas [x0,y0,x1,y1] agar tidak terpotong atau menimpa keterangan,
+// dan digeser ke samping bila menumpuk label sebelumnya (X dan Y berimpit saat elevasi 0°).
+function _cad6SumbuGaris(ctx,az,el,sk,cx,cy,L,D){
+  const O=_cad6P([0,0,0],az,el,sk,cx,cy,D);
+  [[[L,0,0],_C6X],[[0,L,0],_C6Y],[[0,0,L],_C6Z]].forEach(([v,w])=>{const Q=_cad6P(v,az,el,sk,cx,cy,D); ctx.strokeStyle=w; ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(O[0],O[1]); ctx.lineTo(Q[0],Q[1]); ctx.stroke();});
+}
+function _cad6SumbuLabel(ctx,az,el,sk,cx,cy,L,D,batas){
+  const O=_cad6P([0,0,0],az,el,sk,cx,cy,D), [x0,y0,x1,y1]=batas, pos=[];
+  ctx.font="bold 10px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.textBaseline='middle';
+  [[[L,0,0],_C6X,'X'],[[0,L,0],_C6Y,'Y'],[[0,0,L],_C6Z,'Z']].forEach(([v,w,n])=>{
+    const Q=_cad6P(v,az,el,sk,cx,cy,D), dx=Q[0]-O[0], dy=Q[1]-O[1], r=Math.hypot(dx,dy), ux=r>1?dx/r:0.7, uy=r>1?dy/r:-0.7;
+    let lx=Math.min(Math.max(Q[0]+7*ux,x0+5),x1-5); const ly=Math.min(Math.max(Q[1]+7*uy,y0+6),y1-6);
+    pos.forEach(([px,py])=>{if(Math.abs(lx-px)<9&&Math.abs(ly-py)<10) lx=px+10>x1-5?px-10:px+10;});
+    pos.push([lx,ly]); ctx.fillStyle=w; _ttlLabel(ctx,n,lx,ly,{pad:1.5});
+  });
+  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
 }
 // Balok berpusat di titik asal: enam muka digambar dari yang terjauh ke yang terdekat (algoritma pelukis).
 function _cad6Balok(ctx,a,b,h,az,el,sk,cx,cy,D,isi,garis){
@@ -92,18 +103,24 @@ function drawKamera(){
                ['Perspektif (V, P) — D = '+D.toFixed(0)+' mm',D,'#f59e0b','sudut terjauh tampak '+(rasio*100).toFixed(0)+'% dari sudut terdekat']];
   const ketAz=s=>['azimut '+s+'° · elevasi '+el.toFixed(0)+'° ·','balok '+a+'\u00a0×\u00a0'+b+'\u00a0×\u00a0'+h];
   const ket=ketAz(az.toFixed(0));
+  // Batas proyeksi pada semua azimut (balok + ujung sumbu, ortografik dan perspektif), satuan model.
+  const titik=c.concat([[0,0,0],[L,0,0],[0,L,0],[0,0,L]]), azs=Array.from({length:72},(_,i)=>i*5);
+  const kb=[Infinity,D].map(Dk=>_cad6Kotak(titik,azs,el,Dk));
+  const bx0=Math.min(kb[0][0],kb[1][0]), by0=Math.min(kb[0][1],kb[1][1]), bx1=Math.max(kb[0][2],kb[1][2]), by1=Math.max(kb[0][3],kb[1][3]);
   if(!sempit){
-    const sk=Math.max(0.05,Math.min(W*0.40,H*0.80)/(2*diag*mP));
     const cy=H*0.52;
     // Keterangan bawah dibungkus dalam setengah lebar (rata bawah); baris azimut naik di atasnya bila perlu.
     ctx.font=_F6(10); const cat=panel.map(p=>_cad6Tata(ctx,[p[3]],W/2-16,1)), nC=Math.max(...cat.map(t=>t.baris.length));
     const yKet=Math.min(H-30,H-12-(nC-1)*12-18);
+    // Skala asal, dibatasi agar balok dan sumbu yang berputar tetap di bawah judul, di atas keterangan, dan di dalam setengah kanvasnya.
+    const sk=Math.max(0.05,Math.min(Math.min(W*0.40,H*0.80)/(2*diag*mP),(cy-38)/-by0,(yKet-18-cy)/by1,(W/4-16)/Math.max(-bx0,bx1)));
     ctx.font=_F6(11); const lKet=ctx.measureText(ket.join(' ')).width;
     _ttlGaris(ctx,W/2,30,W/2,12+lKet>W/2-8?yKet-14:H-30,'rgba(148,163,184,.25)',1,[4,4]);
     panel.forEach(([judul,Dk,warna],i)=>{
       const cx=W*(0.25+0.5*i);
-      _cad6Sumbu(ctx,az,el,sk,cx,cy,L,Dk,[cx-W/4+4,28,cx+W/4-4,yKet-12]);
+      _cad6SumbuGaris(ctx,az,el,sk,cx,cy,L,Dk);
       _cad6Balok(ctx,a,b,h,az,el,sk,cx,cy,Dk,'rgba(34,211,238,.12)',warna);
+      _cad6SumbuLabel(ctx,az,el,sk,cx,cy,L,Dk,[cx-W/4+4,28,cx+W/4-4,yKet-12]);
       ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font="11px 'JetBrains Mono',monospace"; ctx.textAlign='center'; _ttlTeks(ctx,judul,cx,20,W/2-12);
     });
     ctx.fillStyle='rgba(148,163,184,.9)'; ctx.textAlign='center';
@@ -115,17 +132,15 @@ function drawKamera(){
     ctx.font=_F6(11); const nK=_cad6Baris(ctx,ketAz('359'),W-24);   // azimut 3 digit agar tata letak tidak melompat
     const yKet=H-10-(nK-1)*14, tp=(yKet-16)/2;                         // tp = tinggi tiap panel
     ctx.font=_F6(10); const cat=panel.map(p=>_cad6Tata(ctx,[p[3]],W-16,1)), nC=Math.max(...cat.map(t=>t.baris.length));
-    // Skala bersama dari batas proyeksi pada semua azimut (balok + ujung sumbu, kedua proyeksi): balok yang
-    // berputar dan label sumbunya tetap di dalam panel pada nilai slider apa pun.
-    const titik=c.concat([[0,0,0],[L,0,0],[0,L,0],[0,0,L]]), azs=Array.from({length:72},(_,i)=>i*5);
-    const kb=[Infinity,D].map(Dk=>_cad6Kotak(titik,azs,el,Dk));
-    const bx0=Math.min(kb[0][0],kb[1][0]), by0=Math.min(kb[0][1],kb[1][1]), bx1=Math.max(kb[0][2],kb[1][2]), by1=Math.max(kb[0][3],kb[1][3]);
-    const zA=30, zB=tp-14-nC*12;                                      // batas gambar relatif terhadap puncak panel
-    const sk=Math.max(0.05,Math.min((W-36)/(bx1-bx0),(zB-zA-10)/(by1-by0)));
+    // Skala bersama dari batas proyeksi pada semua azimut: balok yang berputar dan label sumbunya tetap di
+    // dalam panel pada nilai slider apa pun.
+    const zA=30, zB=tp-18-nC*12;                                      // batas gambar relatif terhadap puncak panel
+    const sk=Math.max(0.05,Math.min((W-44)/(bx1-bx0),(zB-zA-12)/(by1-by0)));
     panel.forEach(([judul,Dk,warna],i)=>{
-      const y0=i*tp, cx=(W-10)/2-sk*(bx0+bx1)/2, cy=y0+(zA+10+zB)/2-sk*(by0+by1)/2;
-      _cad6Sumbu(ctx,az,el,sk,cx,cy,L,Dk,[6,y0+zA,W-6,y0+zB+4]);
+      const y0=i*tp, cx=W/2-sk*(bx0+bx1)/2, cy=y0+(zA+12+zB)/2-sk*(by0+by1)/2;
+      _cad6SumbuGaris(ctx,az,el,sk,cx,cy,L,Dk);
       _cad6Balok(ctx,a,b,h,az,el,sk,cx,cy,Dk,'rgba(34,211,238,.12)',warna);
+      _cad6SumbuLabel(ctx,az,el,sk,cx,cy,L,Dk,[6,y0+zA,W-6,y0+zB+4]);
       ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font=_F6(11); ctx.textAlign='center'; _ttlTeks(ctx,judul,W/2,y0+18,W-16);
       ctx.fillStyle='rgba(148,163,184,.9)'; ctx.font=cat[i].font; cat[i].baris.forEach((s,j)=>ctx.fillText(s,W/2,y0+tp-10-(cat[i].baris.length-1-j)*12));
     });
@@ -157,8 +172,10 @@ function drawTigaPandangan(){
   const luas=['luas muka Depan = a·H − (a/2)·hₙ','= '+Adepan.toFixed(0)+' mm²'];
   let sk3,cx3,cy3,sk2,gx,gy,yBenda=0,yLuas=0;
   if(!sempit){
-    // benda 3D (kiri, ortografik) dan tiga pandangan (kanan) seperti semula
-    sk3=Math.max(0.05,Math.min(W*0.28/(a+b),(H-90)/(Hh+b*0.6))); cx3=W*0.15; cy3=H*0.72;
+    // benda 3D (kiri, ortografik) dan tiga pandangan (kanan) seperti semula; skala benda dibatasi agar puncaknya
+    // (pojok belakang takik saat H besar dan hₙ kecil) tetap di bawah judul dan tidak dilintasi rusuknya
+    const kb3=_cad6Kotak(F0.concat(F1),[az],el,Infinity);
+    sk3=Math.max(0.05,Math.min(W*0.28/(a+b),(H-90)/(Hh+b*0.6),(H*0.72-30)/-kb3[1])); cx3=W*0.15; cy3=H*0.72;
     sk2=Math.max(0.05,Math.min((W*0.50-gap)/(a+b),(H-70-gap)/(Hh+b)));
     const gw=(a+b)*sk2+gap, gh=(Hh+b)*sk2+gap;
     gx=W*0.66-gw/2; gy=H*0.50-gh/2;
@@ -194,8 +211,6 @@ function drawTigaPandangan(){
   [[pDepan,0],[pAtas,1],[pKanan,2]].forEach(([pts,i])=>{const aktif=i===fase; _cad6Poli(ctx,pts,aktif?'rgba(255,255,255,.10)':'rgba(255,255,255,.03)',warna[i],aktif?2:1);});
   _ttlGaris(ctx,atas.x+a/2*sk2,atas.y,atas.x+a/2*sk2,atas.y+atas.h,warna[1],1);
   _ttlGaris(ctx,kanan.x,kanan.y+hn*sk2,kanan.x+kanan.w,kanan.y+hn*sk2,warna[2],1);
-  ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='center';
-  [depan,atas,kanan].forEach((r,i)=>{ctx.fillStyle=warna[i]; ctx.fillText(nama[i],r.x+r.w/2,r.y+r.h-5);});
   // garis proyeksi bergerak dari sudut benda ke sudut pandangan aktif
   const sumberAtas=metode?[[0,b,Hh],[a,b,Hh-hn],[a,0,Hh-hn],[0,0,Hh]]:[[0,0,Hh],[a,0,Hh-hn],[a,b,Hh-hn],[0,b,Hh]];
   const sumberKanan=metode?[[a/2,0,Hh],[a/2,b,Hh],[a,b,0],[a,0,0]]:[[a/2,b,Hh],[a/2,0,Hh],[a,0,0],[a,b,0]];
@@ -203,6 +218,13 @@ function drawTigaPandangan(){
   ctx.setLineDash([6,5]); ctx.lineDashOffset=-((_tp6Frame*0.8)%22); ctx.strokeStyle=warna[fase]; ctx.lineWidth=0.9;
   sumber.forEach((p,i)=>{const s=P3(p), q=tujuan[i]; ctx.beginPath(); ctx.moveTo(s[0],s[1]); ctx.lineTo(q[0],q[1]); ctx.stroke();});
   ctx.setLineDash([]); ctx.lineDashOffset=0;
+  // Nama pandangan SESUDAH garis proyeksi, berpelat karena garis proyeksi yang bergerak pasti melintasinya.
+  // Posisinya dijauhkan dari garis takik (geometri penting, tidak boleh tertutup pelat): "Atas" di tengah
+  // separuh kiri (rusuk takik ada di x = a/2), "Kanan" di bagian bawah atau atas rusuk takik z = H − hₙ,
+  // mana yang cukup lega; semuanya 7 px di atas tepi bawah bagiannya.
+  const yKanan=(Hh-hn)*sk2>=17?kanan.y+kanan.h-7:kanan.y+hn*sk2-5;
+  ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='center';
+  [[depan.x+depan.w/2,depan.y+depan.h-7],[atas.x+a/4*sk2,atas.y+atas.h-7],[kanan.x+kanan.w/2,yKanan]].forEach(([x,y],i)=>{ctx.fillStyle=warna[i]; _ttlLabel(ctx,nama[i],x,y,{pad:1.5});});
   ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font="11px 'JetBrains Mono',monospace"; ctx.textAlign='left';
   if(!sempit) ctx.fillText(judul.join(' '),12,18); else _cad6Judul(ctx,judul,12,18,W-24,14);
   ctx.fillStyle='#00e09e'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='right';
@@ -301,20 +323,26 @@ function drawBoundBox(){
   const XL=a*c+b*s, YL=a*s+b*c, maks=Math.sqrt(a*a+b*b);
   const judul=['Alas '+a+'\u00a0×\u00a0'+b+' diputar θ;','kotak putus = Bounding box'];
   const tMaks=['maks √(a² + b²) = '+maks.toFixed(2),'saat tan θ = b/a (θ = '+(Math.atan2(b,a)*180/Math.PI).toFixed(1)+'°)'];
-  let sk,ox,oy,gx0,gx1,gy0,gy1,atas=0,yLeg=18;
+  // Label tampak atas diletakkan di ruang yang selalu kosong: θ dan XLength di bawah garis dasar (dua baris),
+  // YLength (tegak) di KIRI kotak pembatas, karena di kiri xmin tidak ada garis apa pun, sedangkan di kanan
+  // kotak ada persegi asal (putus-putus) dan busur θ.
+  let sk,ox,oy,gx0,gx1,gy0,gy1,atas=30,yLeg=18,tMk=null;
   if(!sempit){
     sk=Math.max(0.05,Math.min(W*0.42/(a+b),(H-76)/(a+b))); ox=W*0.04+b*sk; oy=H-40;
     gx0=W*0.60; gx1=W*0.96; gy0=H-40; gy1=44;
+    // Baris "maks" satu baris di bawah grafik; bila keluar tepi kanan (tablet) dipecah dua di kolom grafik
+    // (bukan digeser ke kiri ke bawah tampak atas) dan grafik dinaikkan secukupnya.
+    ctx.font=_F6(10); if(gx0+ctx.measureText(tMaks.join(' ')).width>W){tMk=_cad6Tata(ctx,tMaks,W-12-gx0); gy0-=13*(tMk.baris.length-1);}
   } else {
     // Sempit: judul, tampak atas (selebar kanvas), lalu grafik XLength(θ)/YLength(θ) beserta keterangannya.
     ctx.font=_F6(11); const nJ=_cad6Baris(ctx,judul,W-24);
     ctx.font=_F6(10); const nM=_cad6Baris(ctx,tMaks,W-24);
     atas=18+14*nJ;
-    // satuan tampak atas: x ∈ [−b, a], y ∈ [0, √(a² + b²)]; sisakan 22 px kanan (YLength) dan 24 px bawah (XLength)
+    // satuan tampak atas: x ∈ [−b, a], y ∈ [0, √(a² + b²)]; sisakan 16 px kiri (YLength) dan 38 px bawah (θ, XLength)
     const tinggiA=Math.round((H-atas)*0.44);
-    sk=Math.max(0.05,Math.min((W-24-22)/(a+b),(tinggiA-32)/maks));
-    ox=12+b*sk+((W-24-22)-(a+b)*sk)/2; oy=atas+tinggiA-24;
-    yLeg=atas+tinggiA+14;
+    sk=Math.max(0.05,Math.min((W-44)/(a+b),(tinggiA-46)/maks));
+    ox=28+b*sk+((W-44)-(a+b)*sk)/2; oy=atas+tinggiA-38;
+    yLeg=atas+tinggiA+12;
     gx0=16; gx1=W-16; gy1=yLeg+24; gy0=H-10-(nM-1)*13-28;
   }
   // tampak atas alas yang diputar dan kotak pembatasnya
@@ -325,20 +353,14 @@ function drawBoundBox(){
   const xmin=X(-b*s), xmax=X(a*c), ymin=Y(YL), ymax=Y(0);
   ctx.setLineDash([7,4]); _cad6Poli(ctx,[[xmin,ymin],[xmax,ymin],[xmax,ymax],[xmin,ymax]],null,'#f59e0b',1.4); ctx.setLineDash([]);
   ctx.strokeStyle='#ec4899'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(X(0),Y(0),26,0,-r,true); ctx.stroke();
-  ctx.fillStyle='#ec4899'; ctx.font="bold 11px 'JetBrains Mono',monospace"; ctx.textAlign='left'; ctx.fillText('θ = '+th.toFixed(0)+'°',X(0)+30,Y(0)-8);
-  // Baris "maks" kanvas lebar: tetap di gx0 kecuali keluar tepi kanan (tablet), lalu digeser ke kiri sehingga bisa
-  // berada di bawah label YLength; posisinya dihitung lebih dulu agar label itu bisa menghindarinya.
-  const tM=tMaks.join(' '); ctx.font=_F6(10); const lM=ctx.measureText(tM).width, mx=gx0+lM<=W?gx0:W-12-lM;
-  // label ukuran kotak pembatas, dijepit ke dalam kanvas; label YLength (vertikal, berpusat di sisi kotak) dijaga
-  // di atas label θ dan XLength (kanvas sempit) atau di atas baris "maks" yang bergeser ke bawahnya (kanvas lebar)
+  // θ tepat di bawah pangkal busurnya (baris 1 di bawah garis dasar); XLength di tengah kotak (baris 2)
+  ctx.fillStyle='#ec4899'; ctx.font="bold 11px 'JetBrains Mono',monospace"; ctx.textAlign='left'; ctx.fillText('θ = '+th.toFixed(0)+'°',Math.min(X(0)+8,W-50),ymax+14);
   ctx.fillStyle='#f59e0b'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='center';
   const tX='XLength = '+XL.toFixed(2), tY='YLength = '+YL.toFixed(2), lX=ctx.measureText(tX).width, lY=ctx.measureText(tY).width;
-  ctx.fillText(tX,Math.min(Math.max((xmin+xmax)/2,lX/2+4),W-lX/2-4),ymax+16);
-  const xY=Math.min(xmax+12,W-6);
-  let yY=(ymin+ymax)/2;
-  if(sempit) yY=Math.min(Math.max(yY,atas+4+lY/2),ymax-20-lY/2);
-  else if(xY-9<mx+lM&&xY+4>mx) yY=Math.min(yY,gy0+17-lY/2);
-  ctx.save(); ctx.translate(xY,Math.min(Math.max(yY,lY/2+4),H-lY/2-4)); ctx.rotate(-Math.PI/2); ctx.fillText(tY,0,0); ctx.restore();
+  ctx.fillText(tX,Math.min(Math.max((xmin+xmax)/2,lX/2+4),W-lX/2-4),ymax+28);
+  // YLength tegak 6 px di kiri kotak, berpusat pada tinggi kotak tetapi seluruhnya di atas garis dasar dan di bawah judul
+  const yY=Math.max(Math.min((ymin+ymax)/2,ymax-3-lY/2),atas+lY/2);
+  ctx.save(); ctx.translate(Math.max(xmin-6,12),yY); ctx.rotate(-Math.PI/2); ctx.fillText(tY,0,0); ctx.restore();
   // grafik XLength(θ) dan YLength(θ)
   _ttlGaris(ctx,gx0,gy0,gx1,gy0,'rgba(148,163,184,.6)',1); _ttlGaris(ctx,gx0,gy0,gx0,gy1,'rgba(148,163,184,.6)',1);
   const kurva=(f,warna)=>{ctx.strokeStyle=warna; ctx.lineWidth=1.8; ctx.beginPath(); for(let i=0;i<=90;i++){const q=i*Math.PI/180, v=f(q); const px=gx0+(gx1-gx0)*i/90, py=gy0-(gy0-gy1)*v/maks*0.92; i?ctx.lineTo(px,py):ctx.moveTo(px,py);} ctx.stroke();};
@@ -354,7 +376,7 @@ function drawBoundBox(){
     ctx.font=_F6(11); const lJ=ctx.measureText(judul.join(' ')).width; ctx.font=_F6(10);
     const lx=Math.max(gx0,Math.min(12+lJ+14,W-12-ctx.measureText(leg[0]).width));
     ctx.fillStyle='#22d3ee'; ctx.fillText(leg[0],lx,18); ctx.fillStyle='#a855f7'; ctx.fillText(leg[1],lx,32);
-    ctx.fillStyle='rgba(226,232,240,.9)'; ctx.fillText(tM,mx,gy0+28);
+    ctx.fillStyle='rgba(226,232,240,.9)'; if(tMk){ctx.font=tMk.font; tMk.baris.forEach((t,j)=>ctx.fillText(t,gx0,gy0+28+j*13)); ctx.font=_F6(10);} else ctx.fillText(tMaks.join(' '),gx0,gy0+28);
     ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font="11px 'JetBrains Mono',monospace"; ctx.fillText(judul.join(' '),12,18);
   } else {
     ctx.fillStyle='#22d3ee'; _ttlTeks(ctx,leg[0],gx0,yLeg,W-24); ctx.fillStyle='#a855f7'; _ttlTeks(ctx,leg[1],gx0,yLeg+14,W-24);

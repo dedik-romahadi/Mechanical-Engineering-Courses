@@ -128,8 +128,9 @@ function drawBillet(){
   if(wSisa>1&&hSisa>1){
     _cad13Kotak(ctx,X(t),Y(c),wSisa,hSisa,'rgba(239,68,68,.20)','rgba(239,68,68,.75)',1.2);
     for(let i=0;i<14;i++){const dx=i*12; if(dx<wSisa) _ttlGaris(ctx,X(t)+dx,Y(c)+Math.min(hSisa,0),X(t)+Math.min(dx+22,wSisa),Y(c)+Math.min(22,hSisa),'rgba(239,68,68,.35)',1);}
-    // label hanya selama muat di dalam sisa bahan (arti warna merah juga tertulis di judul)
-    ctx.font=f10; if(wSisa>=ctx.measureText('serpihan').width+8&&hSisa>=20) _cad13Teks(ctx,'serpihan',X(t)+wSisa/2,Y(c)+hSisa/2,'rgba(239,68,68,.95)',f10,'center');
+    // label di bawah pita arsir (arsir mengisi 22 px teratas), hanya selama muat di dalam sisa bahan; arti warna
+    // merah juga tertulis di judul. Dulu label di tengah sisa bahan sehingga tercoret garis arsir saat bahan menipis.
+    ctx.font=f10; if(wSisa>=ctx.measureText('serpihan').width+8&&hSisa>=40) _cad13Teks(ctx,'serpihan',X(t)+wSisa/2,Y(c)+Math.max(31.5,14.6+hSisa/2),'rgba(239,68,68,.95)',f10,'center');
   }
   // profil L (produk)
   ctx.beginPath();
@@ -189,8 +190,11 @@ function drawJejak(){
   const garis=(f,rho,warna,lebar)=>{ctx.strokeStyle=warna; ctx.lineWidth=lebar||1.6; ctx.beginPath(); for(let i=0;i<=40;i++){const vv=i/40*vMaks, yy=gy-Math.min(gh,f*rho*vv/1000/yMaks*gh); const xx=gx+i/40*gw; i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);} ctx.stroke();};
   garis(fAl,2.70,_C13A); garis(fSt,7.85,_C13C); garis(fAlR,2.70,_C13G);
   const px=gx+V/vMaks*gw;
-  _ttlGaris(ctx,px,gy,px,gy-gh,'rgba(226,232,240,.25)',1,[4,4]);
-  [[cAl,_C13A],[cSt,_C13C],[cAlR,_C13G]].forEach(([c,w])=>{const py=gy-Math.min(gh,c/yMaks*gh); ctx.fillStyle=w; ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fill();});
+  // penanda V: garis putus dari sumbu sampai 8 px di atas titik tertinggi (dulu setinggi grafik dan mencoret
+  // legenda serta label sumbu kg CO₂ saat V kecil)
+  const titik=[[cAl,_C13A],[cSt,_C13C],[cAlR,_C13G]].map(([c,w])=>[gy-Math.min(gh,c/yMaks*gh),w]);
+  _ttlGaris(ctx,px,gy,px,Math.min(...titik.map(q=>q[0]))-8,'rgba(226,232,240,.25)',1,[4,4]);
+  titik.forEach(([py,w])=>{ctx.fillStyle=w; ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fill();});
   const legenda=[['Aluminium primer f = '+_cad13Ind(fAl,1),_C13A],['Baja f = '+_cad13Ind(fSt,1),_C13C],['Aluminium daur ulang f = '+_cad13Ind(fAlR,1),_C13G]];
   const baris=[['V = '+V.toFixed(0)+' cm³ = '+(V*1000).toFixed(0)+' mm³',_C13T,f10,0,4],
                ['baja: m = '+_cad13Ind(7.85*V/1000,3)+' kg → '+_cad13Ind(cSt,3)+' kg CO₂',_C13C,f10,22,2],

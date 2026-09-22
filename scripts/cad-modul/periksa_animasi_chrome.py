@@ -1,5 +1,7 @@
 # Pemeriksa animasi kanvas modul CAD di Chrome headless: teks yang TERPOTONG tepi kanvas,
-# huruf terlalu kecil, teks yang saling menimpa, galat JavaScript, dan bentuk yang meluber.
+# huruf terlalu kecil, teks yang saling menimpa, garis yang mencoret teks (label duduk di atas
+# garis; kisi samar beropasitas < 0,2 dan garis di belakang label berpelat _ttlLabel diabaikan),
+# galat JavaScript, dan bentuk yang meluber.
 #
 # Halaman uji dirakit dari sumbernya (modul_N.materi() + animasi/dasar.js + animasi/modul-N.js,
 # dengan font halaman modul dari Google Fonts), jadi perubahan skrip animasi bisa diuji TANPA
@@ -41,7 +43,7 @@ WAJIB_MIN = 244
 GAMBAR = [1000, 570, 298, 244]
 FONT = ("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900"
         "&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap")
-JENIS = (("potong", "TERPOTONG"), ("kecil", "HURUF < 8 px"), ("tumpang", "BERTUMPUK"), ("galat", "GALAT"))
+JENIS = (("potong", "TERPOTONG"), ("kecil", "HURUF < 8 px"), ("tumpang", "BERTUMPUK"), ("garis", "GARIS DI ATAS TEKS"), ("galat", "GALAT"))
 
 
 def cari_chrome():
