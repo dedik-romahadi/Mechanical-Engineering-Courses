@@ -63,12 +63,16 @@ def kapasitor(x, y1, y2, c, label):
 
 def gambar1():
     b = ""
-    ox, oy, sk = 60, 176, 0.03
-    b += arrow(ox, oy, ox + P_LOAD * 1e3 * sk, oy, "#22d3ee", 2.8) + t(ox + P_LOAD * 1e3 * sk / 2, oy + 18, f"P = {ind(P_LOAD, 0)} MW", 11.5, "#22d3ee", "middle", "700")
-    b += arrow(ox + P_LOAD * 1e3 * sk, oy, ox + P_LOAD * 1e3 * sk, oy - Q1 * sk, "#ef4444", 2.4) + t(ox + P_LOAD * 1e3 * sk + 10, oy - Q1 * sk / 2 + 4, f"Q₁ = {ind(Q1, 0)} kVAR", 11, "#ef4444", "start", "600")
-    b += arrow(ox, oy, ox + P_LOAD * 1e3 * sk, oy - Q1 * sk, "#ef4444", 2.4) + t(ox + 24, oy - Q1 * sk / 2 - 14, f"S₁ = {ind(P_LOAD * 1e3 / PF1, 0)} kVA · I = {ind(I1, 0)} A", 10.5, "#ef4444", "start", "600")
-    b += arrow(ox, oy, ox + P_LOAD * 1e3 * sk, oy - (Q1 - QC) * sk, "#00e09e", 2.8) + t(ox + P_LOAD * 1e3 * sk * 0.55, oy - (Q1 - QC) * sk - 10, f"S₂ = {ind(P_LOAD * 1e3 / PF2, 0)} kVA · I = {ind(I2, 0)} A", 10.5, "#00e09e", "start", "600")
-    b += arrow(ox + P_LOAD * 1e3 * sk + 60, oy - Q1 * sk, ox + P_LOAD * 1e3 * sk + 60, oy - (Q1 - QC) * sk, "#a855f7", 2.6) + t(ox + P_LOAD * 1e3 * sk + 68, oy - (2 * Q1 - QC) * sk / 2 + 4, f"Q_C = {ind(QC, 0)} kVAR", 11, "#a855f7", "start", "700")
+    ox, oy, sk = 60, 180, 0.04
+    xp, yq1, yq2 = ox + P_LOAD * 1e3 * sk, oy - Q1 * sk, oy - (Q1 - QC) * sk
+    b += arrow(ox, oy, xp, oy, "#22d3ee", 2.8) + t((ox + xp) / 2, oy + 18, f"P = {ind(P_LOAD, 0)} MW", 11.5, "#22d3ee", "middle", "700")
+    b += arrow(xp, oy, xp, yq1, "#ef4444", 2.4) + arrow(ox, oy, xp, yq1, "#ef4444", 2.4) + arrow(ox, oy, xp, yq2, "#00e09e", 2.8)
+    b += arrow(xp + 16, yq1, xp + 16, yq2, "#a855f7", 2.6) + t(xp + 24, (yq1 + yq2) / 2 + 4, f"Q_C = {ind(QC, 0)} kVAR", 11, "#a855f7", "start", "700")
+    yb = (oy + yq1) / 2 + 6                                  # S₁ di kiri sisi miringnya
+    xs = ox + (oy - yb) * (xp - ox) / (oy - yq1) - 8
+    b += t(xs, yb - 13, f"S₁ = {ind(P_LOAD * 1e3 / PF1, 0)} kVA", 10.5, "#ef4444", "end", "600") + t(xs, yb, f"I = {ind(I1, 0)} A", 10.5, "#ef4444", "end", "600")
+    b += t(xp + 8, yq2 + 20, f"S₂ = {ind(P_LOAD * 1e3 / PF2, 0)} kVA", 10.5, "#00e09e", "start", "600") + t(xp + 8, yq2 + 33, f"I = {ind(I2, 0)} A", 10.5, "#00e09e", "start", "600")
+    b += t(xp + 8, oy - 6, f"Q₁ = {ind(Q1, 0)} kVAR", 11, "#ef4444", "start", "600")
     for i, (judul, isi, c) in enumerate([("Arus penyulang", f"{ind(I1, 0)} → {ind(I2, 0)} A (−{ind((1 - I2 / I1) * 100, 0)} %)", "#22d3ee"), ("Rugi 3I²R", f"{ind(LOSS1, 0)} → {ind(LOSS2, 0)} kW (−{ind((1 - LOSS2 / LOSS1) * 100, 0)} %)", "#f59e0b"),
                                           ("Jatuh tegangan", f"{ind(DV1 / VF * 100, 1)} → {ind(DV2 / VF * 100, 1)} %", "#00e09e"), ("Kapasitas trafo terbebas", f"{ind(P_LOAD * 1e3 / PF1 - P_LOAD * 1e3 / PF2, 0)} kVA", "#a855f7")]):
         y = 30 + i * 44
@@ -85,17 +89,17 @@ def gambar2():
     d = " ".join(f"a {w / 2:.1f} {w / 2:.1f} 0 0 1 {w:.1f} 0" for _ in range(n))
     b += f'<path d="M 200 90 {d}" fill="none" stroke="#f59e0b" stroke-width="2.2"/>' + t(244, 74, f"X = {ind(X_L, 1)} Ω", 10.5, "#f59e0b", "middle", "600") + kawat(288, 90, 520, 90) + kawat(40, 170, 520, 170)
     b += f'<rect x="500" y="110" width="20" height="40" rx="3" fill="{BOX}" stroke="#ef4444" stroke-width="2"/>' + kawat(510, 90, 510, 110) + kawat(510, 150, 510, 170) + t(510, 190, f"{ind(P_LOAD, 0)} MW, pf {ind(PF1, 1)}", 10, TX, "middle", "600")
-    b += kapasitor(460, 90, 170, "#a855f7", f"C {ind(QC, 0)} kVAR")
+    b += kapasitor(400, 90, 170, "#a855f7", f"C {ind(QC, 0)} kVAR")
     b += f'<circle cx="40" cy="90" r="4" fill="#00e09e"/>' + t(40, 76, "gardu 20 kV", 10, "#00e09e", "middle", "700")
     b += arrow(300, 76, 380, 76, "#ef4444", 1.6) + t(340, 66, f"I₁ = {ind(I1, 0)} A → I₂ = {ind(I2, 0)} A", 10, "#ef4444", "middle", "600")
-    b += arrow(480, 100, 480, 140, "#a855f7", 1.6) + t(492, 124, f"I_C = {ind(IC, 1)} A", 9.5, "#a855f7", "start", "600")
+    b += arrow(385, 100, 385, 140, "#a855f7", 1.6) + t(377, 124, f"I_C = {ind(IC, 1)} A", 9.5, "#a855f7", "end", "600")
     b += t(330, 214, f"ΔV sebelum = {ind(I1, 0)}({ind(R_L, 1)}·{ind(PF1, 1)} + {ind(X_L, 1)}·{ind(math.sin(math.acos(PF1)), 2)}) = {ind(DV1, 0)} V ({ind(DV1 / VF * 100, 1)} %); sesudah {ind(DV2, 0)} V ({ind(DV2 / VF * 100, 1)} %); kenaikan oleh kapasitor ≈ Q_C·X/V² = {ind(DV_RISE, 2)} %", 10.5, AX)
     return svg(660, 226, b, "Gambar 2 — Jatuh tegangan penyulang dan kenaikan tegangan oleh kapasitor")
 
 
 def gambar3():
     b = ""
-    x0, x1, y0, y1 = 64, 630, 196, 26
+    x0, x1, y0, y1 = 64, 620, 196, 26
     X = lambda p: x0 + p * (x1 - x0)
     Y = lambda v: y0 - v * (y0 - y1)
     for p in [0, 0.25, 0.5, 0.75, 1.0]:
@@ -111,10 +115,12 @@ def gambar3():
     for c, col, lab in [(1 / 3, "#94a3b8", "C = 1/3 I_Q"), (2 / 3, "#00e09e", "C = 2/3 I_Q (optimum)"), (1.0, "#f59e0b", "C = I_Q")]:
         pts = " ".join(f"{X(i / 50):.1f},{Y(max(0, reduksi(c, i / 50))):.1f}" for i in range(51))
         b += f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="{2.6 if c == 2 / 3 else 1.8}"/>'
-        b += t(X(0.03), Y(reduksi(c, 0.25)) - 6 + (0 if c != 1 / 3 else 0), lab, 10, col, "start", "600")
+        yy = y1 + 14 + 14 * [1 / 3, 2 / 3, 1.0].index(c)
+        b += f'<line x1="{x0 + 8}" y1="{yy - 4}" x2="{x0 + 26}" y2="{yy - 4}" stroke="{col}" stroke-width="2.4"/>' + t(x0 + 32, yy, lab, 10, col, "start", "600")
     b += f'<circle cx="{X(2 / 3):.1f}" cy="{Y(8 / 9):.1f}" r="6" fill="#00e09e"/>' + t(X(2 / 3) - 10, Y(8 / 9) - 12, "2/3 panjang, 8/9 = 88,9 %", 10.5, "#00e09e", "end", "700")
-    b += t(28, 112, "Δrugi", 10.5, AX) + t(347, 232, "Beban merata: pengurangan rugi reaktif terhadap letak kapasitor untuk tiga ukuran; kapasitor 2/3 I_Q di 2/3 panjang memberi maksimum 8/9", 11, AX)
-    return svg(660, 242, b, "Gambar 3 — Aturan dua-pertiga: pengurangan rugi terhadap ukuran dan letak kapasitor")
+    b += t(x0 - 8, y1 - 8, "Δrugi", 10.5, AX, "end") + t(340, 232, "Beban merata: pengurangan rugi reaktif terhadap letak kapasitor untuk tiga ukuran;", 11, AX)
+    b += t(340, 246, "kapasitor 2/3 I_Q di 2/3 panjang memberi maksimum 8/9", 11, AX)
+    return svg(660, 256, b, "Gambar 3 — Aturan dua-pertiga: pengurangan rugi terhadap ukuran dan letak kapasitor")
 
 
 def gambar4():
@@ -134,10 +140,11 @@ def gambar4():
     pts_n = " ".join(f"{X(i / 4):.1f},{Y(max(0, Q(i / 4) - Qcap(i / 4))):.1f}" for i in range(97))
     b += f'<polygon points="{X(0):.1f},{Y(0):.1f} {pts_n} {X(24):.1f},{Y(0):.1f}" fill="#f59e0b" fill-opacity=".18"/>'
     b += f'<polyline points="{pts_q}" fill="none" stroke="#ef4444" stroke-width="2.2"/>' + t(X(13), Y(Q(13)) - 8, "Q beban", 10.5, "#ef4444", "middle", "600")
-    b += f'<polyline points="{pts_c}" fill="none" stroke="#00e09e" stroke-width="2.4"/>' + t(X(12), Y(1800) - 8, "Q kapasitor: tetap 600 + switched 1200 kVAR (08–18)", 10, "#00e09e", "middle", "600")
+    b += f'<polyline points="{pts_c}" fill="none" stroke="#00e09e" stroke-width="2.4"/>' + t(X(12.5), Y(1800) - 21, "Q kapasitor: tetap 600 +", 10, "#00e09e", "middle", "600") + t(X(12.5), Y(1800) - 8, "switched 1200 kVAR (08–18)", 10, "#00e09e", "middle", "600")
     b += t(X(20), Y(600) + 16, "Q dari jaringan (arsir)", 10, "#f59e0b", "middle", "600")
-    b += t(28, 112, "kVAR", 10.5, AX) + t(347, 232, "Kurva harian penyulang industri: kapasitor tetap sebesar Q malam, switched menutup selisih siang; tanpa switching Q malam negatif (tegangan lebih)", 11, AX)
-    return svg(660, 242, b, "Gambar 4 — Kapasitor tetap dan switched mengikuti kurva beban harian")
+    b += t(x0 - 8, y1 - 8, "kVAR", 10.5, AX, "end") + t(347, 232, "Kurva harian penyulang industri: kapasitor tetap sebesar Q malam, switched menutup selisih siang;", 11, AX)
+    b += t(347, 246, "tanpa switching Q malam negatif (tegangan lebih)", 11, AX)
+    return svg(660, 256, b, "Gambar 4 — Kapasitor tetap dan switched mengikuti kurva beban harian")
 
 
 def gambar5():
@@ -148,15 +155,17 @@ def gambar5():
         b += kawat(x, 100, x, 124) + f'<rect x="{x - 8}" y="124" width="16" height="16" rx="2" fill="{BOX}" stroke="#ef4444" stroke-width="1.5"/>'
     b += f'<circle cx="40" cy="100" r="4" fill="#00e09e"/>' + t(40, 86, f"rel {ind(V_REL, 1)} kV", 10, "#00e09e", "middle", "700")
     b += t(230, 60, f"tingkat +{math.ceil(N_STEP)} → {ind(V_REL + math.ceil(N_STEP) * STEP, 2)} kV", 10.5, "#a855f7", "middle", "600")
-    b += t(620, 86, f"ujung {ind(V_UJUNG, 1)} → {ind(V_UJUNG * 1.00625 ** math.ceil(N_LOG), 2)} kV", 10, "#ef4444", "middle", "600")
-    b += t(330, 176, f"tanpa regulator: rel {ind(V_REL, 1)} kV, ujung {ind(V_UJUNG, 1)} kV (−{ind((1 - V_UJUNG / 20) * 100, 1)} %); regulator {math.ceil(N_LOG)} tingkat (5/8 % = 125 V per tingkat) mengangkat seluruh hilir ≈ {ind((1.00625 ** math.ceil(N_LOG) - 1) * 100, 1)} %", 10.5, AX)
-    b += t(330, 196, "LDC (line drop compensation): regulator mengatur tegangan di titik pusat beban, bukan di terminalnya, dengan meniru jatuh R dan X dari arus terukur", 10.5, AX)
-    return svg(660, 210, b, "Gambar 5 — Regulator tegangan bertingkat pada pangkal penyulang")
+    b += t(638, 86, f"ujung {ind(V_UJUNG, 1)} → {ind(V_UJUNG * 1.00625 ** math.ceil(N_LOG), 2)} kV", 10, "#ef4444", "end", "600")
+    b += t(330, 170, f"tanpa regulator: rel {ind(V_REL, 1)} kV, ujung {ind(V_UJUNG, 1)} kV (−{ind((1 - V_UJUNG / 20) * 100, 1)} %); regulator {math.ceil(N_LOG)} tingkat (5/8 % = 125 V per tingkat)", 10.5, AX)
+    b += t(330, 184, f"mengangkat seluruh hilir ≈ {ind((1.00625 ** math.ceil(N_LOG) - 1) * 100, 1)} %", 10.5, AX)
+    b += t(330, 204, "LDC (line drop compensation): regulator mengatur tegangan di titik pusat beban, bukan di terminalnya,", 10.5, AX)
+    b += t(330, 218, "dengan meniru jatuh R dan X dari arus terukur", 10.5, AX)
+    return svg(660, 228, b, "Gambar 5 — Regulator tegangan bertingkat pada pangkal penyulang")
 
 
 def gambar6():
     b = ""
-    x0, x1, y0, y1 = 64, 630, 196, 26
+    x0, x1, y0, y1 = 64, 630, 196, 36
     pfs = [0.6, 0.7, 0.8, 0.9, 0.95, 1.0]
     X = lambda i: x0 + i / (len(pfs) - 1) * (x1 - x0)
     lossrel = lambda pf: (0.6 / pf) ** 2 * 100
@@ -172,8 +181,9 @@ def gambar6():
     pts2 = " ".join(f"{X(i):.1f},{Y(0.6 / pf * 100):.1f}" for i, pf in enumerate(pfs))
     b += f'<polyline points="{pts2}" fill="none" stroke="#22d3ee" stroke-width="2" stroke-dasharray="5 4"/>' + t(X(4), Y(0.6 / 0.95 * 100) + 16, "arus relatif ∝ 1/pf", 10, "#22d3ee", "middle", "600")
     b += t(X(1), Y(lossrel(0.7)) + 20, "rugi relatif ∝ 1/pf²", 10, "#f59e0b", "middle", "600")
-    b += t(28, 112, "%", 10.5, AX) + t(347, 232, "Untuk P tetap: arus turun berbanding terbalik pf, rugi berbanding terbalik kuadratnya; dari 0,6 ke 0,95 rugi tinggal 40 %", 11, AX)
-    return svg(660, 242, b, "Gambar 6 — Arus dan rugi penyulang relatif terhadap faktor daya (P tetap)")
+    b += t(347, 232, "Untuk P tetap: arus turun berbanding terbalik pf, rugi berbanding terbalik kuadratnya;", 11, AX)
+    b += t(347, 246, "dari 0,6 ke 0,95 rugi tinggal 40 %", 11, AX)
+    return svg(660, 256, b, "Gambar 6 — Arus dan rugi penyulang relatif terhadap faktor daya (P tetap)")
 
 
 # ─────────────────────────── SUBNAV & HERO ───────────────────────────

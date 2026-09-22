@@ -84,19 +84,20 @@ def gambar1():
 def gambar2():
     b = ""
     x0, x1, y0, y1 = 64, 630, 196, 26
-    X = lambda i: x0 + i / 3 * (x1 - x0)
+    X = lambda i: x0 + i / len(TINGKAT) * (x1 - x0)
     maks = HASIL[70.0][1]
     Y = lambda p: y0 - min(p, maks) / (maks * 1.1) * (y0 - y1)
     for i, V in enumerate(TINGKAT):
         I, loss = HASIL[V]
         c = "#ef4444" if loss > 0.1 * P_EX else ("#f59e0b" if loss > 0.03 * P_EX else "#00e09e")
-        xb = X(i) + 30
+        xb = X(i) + ((x1 - x0) / len(TINGKAT) - 80) / 2
         b += f'<rect x="{xb}" y="{Y(loss):.1f}" width="80" height="{y0 - Y(loss):.1f}" rx="4" fill="{c}" fill-opacity=".8"/>'
         b += t(xb + 40, Y(loss) - 8, f"{ind(loss, 1)} MW ({ind(loss / P_EX * 100, 1)} %)", 10.5, TX, "middle", "600")
         b += t(xb + 40, y0 + 16, f"{ind(V, 0)} kV", 11, AX) + t(xb + 40, y0 + 30, f"I = {ind(I, 0)} A", 10, AX)
     b += f'<line x1="{x0}" y1="{y0}" x2="{x1}" y2="{y0}" stroke="{AX}" stroke-width="1.2"/>'
-    b += t(330, 244, f"PLTU {ind(P_EX, 0)} MW, {ind(L_EX, 0)} km, ACSR 240 (R = {ind(R_KM, 2)} Ω/km): rugi 3I²R ∝ 1/V²; 70 dan 150 kV bahkan melampaui kemampuan termal satu konduktor", 11, AX)
-    return svg(660, 254, b, "Gambar 2 — Rugi daya terhadap tingkat tegangan untuk daya dan konduktor yang sama")
+    b += t(330, 244, f"PLTU {ind(P_EX, 0)} MW, {ind(L_EX, 0)} km, ACSR 240 (R = {ind(R_KM, 2)} Ω/km): rugi 3I²R ∝ 1/V²;", 11, AX)
+    b += t(330, 258, "70 dan 150 kV bahkan melampaui kemampuan termal satu konduktor", 11, AX)
+    return svg(660, 270, b, "Gambar 2 — Rugi daya terhadap tingkat tegangan untuk daya dan konduktor yang sama")
 
 
 def gambar3():
@@ -114,17 +115,18 @@ def gambar3():
     b += t(150, 178, f"R₂₀ = ρ·1000/A = {ind(R20, 4)} Ω/km", 10.5, "#22d3ee", "middle", "600")
     b += t(150, 194, f"R₇₅ = R₂₀(1 + α·55) = {ind(R75, 4)} Ω/km; R_ac ≈ {ind(R_AC, 4)} Ω/km", 10.5, "#f59e0b", "middle", "600")
     # kanan: efek kulit dan berkas
-    b += t(495, 22, "Efek kulit dan konduktor berkas", 12, TX, "middle", "700")
-    b += f'<circle cx="420" cy="90" r="30" fill="{BOX}" stroke="#94a3b8" stroke-width="2"/>'
+    b += t(480, 22, "Efek kulit dan konduktor berkas", 12, TX, "middle", "700")
+    b += f'<circle cx="400" cy="90" r="30" fill="{BOX}" stroke="#94a3b8" stroke-width="2"/>'
     for rr, a in [(30, 0.55), (26, 0.35), (22, 0.18), (18, 0.08)]:
-        b += f'<circle cx="420" cy="90" r="{rr}" fill="#22d3ee" fill-opacity="{a}"/>'
-    b += t(420, 136, "kerapatan arus AC memusat di kulit", 9.5, AX) + t(420, 150, "R_ac/R_dc ≈ 1,02–1,05 (50 Hz)", 9.5, AX)
+        b += f'<circle cx="400" cy="90" r="{rr}" fill="#22d3ee" fill-opacity="{a}"/>'
+    b += t(400, 136, "kerapatan arus AC", 9.5, AX) + t(400, 149, "memusat di kulit", 9.5, AX) + t(400, 162, "R_ac/R_dc ≈ 1,02–1,05 (50 Hz)", 9.5, AX)
     for (dx, dy) in [(-16, -16), (16, -16), (-16, 16), (16, 16)]:
-        b += f'<circle cx="{570 + dx}" cy="{90 + dy}" r="7" fill="#94a3b8" stroke="{BOX}" stroke-width="1"/>'
-    b += f'<circle cx="570" cy="90" r="34" fill="none" stroke="#a855f7" stroke-width="1.2" stroke-dasharray="4 3"/>'
-    b += t(570, 136, "berkas 4 × ACSR (SUTET 500 kV)", 9.5, AX) + t(570, 150, "r_eq besar: korona & X_L turun", 9.5, AX)
-    b += t(330, 216, f"Kemampuan hantar arus ACSR 240 pada 75 °C ≈ {ind(I_TERMAL, 0)} A → {ind(P_TERMAL, 0)} MW pada 150 kV, pf 0,95; PLTU 300 MW butuh 2 sirkit atau tegangan lebih tinggi", 11, AX)
-    return svg(660, 226, b, "Gambar 3 — Konduktor ACSR: penampang, resistansi, efek kulit, dan berkas")
+        b += f'<circle cx="{560 + dx}" cy="{90 + dy}" r="7" fill="#94a3b8" stroke="{BOX}" stroke-width="1"/>'
+    b += f'<circle cx="560" cy="90" r="34" fill="none" stroke="#a855f7" stroke-width="1.2" stroke-dasharray="4 3"/>'
+    b += t(560, 136, "berkas 4 × ACSR", 9.5, AX) + t(560, 149, "(SUTET 500 kV)", 9.5, AX) + t(560, 162, "r_eq besar: korona & X_L turun", 9.5, AX)
+    b += t(330, 216, f"Kemampuan hantar arus ACSR 240 pada 75 °C ≈ {ind(I_TERMAL, 0)} A → {ind(P_TERMAL, 0)} MW pada 150 kV, pf 0,95;", 11, AX)
+    b += t(330, 230, "PLTU 300 MW butuh 2 sirkit atau tegangan lebih tinggi", 11, AX)
+    return svg(660, 240, b, "Gambar 3 — Konduktor ACSR: penampang, resistansi, efek kulit, dan berkas")
 
 
 def gambar4():
@@ -151,8 +153,9 @@ def gambar4():
         b += kawat(bx + 40, y + 7, bx + 90, y + 7, "#94a3b8", 1.2) + f'<rect x="{bx + 90}" y="{y}" width="24" height="14" rx="3" fill="{BOX}" stroke="#a855f7" stroke-width="1.4"/>' + t(bx + 102, y + 11, "kC", 8.5, "#a855f7", "middle", "600") + kawat(bx + 114, y + 7, bx + 150, y + 7, "#94a3b8", 1.2)
     b += kawat(bx + 150, 40, bx + 150, 150, "#94a3b8", 3) + t(bx + 158, 100, "menara", 9.5, AX, "start")
     b += t(bx + 80, 176, "arus bocor lewat kC ke menara membuat", 9.5, AX) + t(bx + 80, 190, "arus C tidak sama: piring bawah paling terbebani", 9.5, AX)
-    b += t(330, 228, f"k = {ind(K_ISO, 2)}, {N_PIRING} piring: piring terdekat konduktor {ind(max(V_ISO) / sum(V_ISO) * 100, 1)} % vs rata-rata {ind(100 / N_PIRING, 0)} %; efisiensi rentengan {ind(EFF_ISO, 1)} %; cincin perata (grading ring) menaikkannya", 11, AX)
-    return svg(660, 238, b, "Gambar 4 — Distribusi tegangan pada rentengan isolator piring")
+    b += t(330, 228, f"k = {ind(K_ISO, 2)}, {N_PIRING} piring: piring terdekat konduktor {ind(max(V_ISO) / sum(V_ISO) * 100, 1)} % vs rata-rata {ind(100 / N_PIRING, 0)} %;", 11, AX)
+    b += t(330, 242, f"efisiensi rentengan {ind(EFF_ISO, 1)} %; cincin perata (grading ring) menaikkannya", 11, AX)
+    return svg(660, 252, b, "Gambar 4 — Distribusi tegangan pada rentengan isolator piring")
 
 
 def gambar5():
@@ -164,15 +167,16 @@ def gambar5():
     b += f'<rect x="{x0 - 30}" y="{y0}" width="{x1 - x0 + 60}" height="14" fill="#5a3f1e" fill-opacity=".5"/>' + kawat(x0 - 30, y0, x1 + 30, y0, "#b08050", 2)
     for x in (0, SPAN):
         b += kawat(X(x), y0, X(x), Y(H_MENARA), "#94a3b8", 4) + kawat(X(x) - 14, Y(H_MENARA), X(x) + 14, Y(H_MENARA), "#94a3b8", 3)
-    for S_, c, lab in [(SAG, "#f59e0b", f"30 °C: S = {ind(SAG, 2)} m"), (SAG_PANAS, "#ef4444", f"75 °C (T turun): S = {ind(SAG_PANAS, 2)} m")]:
+    for k, (S_, c, lab) in enumerate([(SAG, "#f59e0b", f"30 °C: S = {ind(SAG, 2)} m"), (SAG_PANAS, "#ef4444", f"75 °C (T turun): S = {ind(SAG_PANAS, 2)} m")]):
         pts = " ".join(f"{X(SPAN * i / 60):.1f},{Y(H_MENARA - 4 * S_ * (i / 60) * (1 - i / 60)):.1f}" for i in range(61))
-        b += f'<polyline points="{pts}" fill="none" stroke="{c}" stroke-width="2.2"/>' + t(X(SPAN / 2) + 8, Y(H_MENARA - S_) + 14, lab, 10.5, c, "start", "600")
+        b += f'<polyline points="{pts}" fill="none" stroke="{c}" stroke-width="2.2"/>' + t(X(SPAN / 2) + 8, Y(H_MENARA - max(SAG, SAG_PANAS)) + 16 + 14 * k, lab, 10.5, c, "start", "600")
     b += kawat(X(SPAN / 2), Y(H_MENARA), X(SPAN / 2), Y(0), "#22d3ee", 1.2)
     b += t(X(SPAN / 2) - 8, Y(H_MENARA - SAG / 2), "S", 11, "#22d3ee", "end", "700") + t(X(SPAN / 2) - 8, Y(BEBAS / 2), f"bebas {ind(BEBAS, 1)} m", 10.5, "#00e09e", "end", "600")
     b += t(X(SPAN / 2), Y(H_MENARA) - 10, f"gawang L = {ind(SPAN, 0)} m", 11, TX, "middle", "600")
-    b += t(x0 + 6, Y(H_MENARA) + 14, f"H = {ind(H_MENARA, 0)} m", 10.5, AX, "start")
-    b += t(330, 214, f"S = wL²/(8T) = {ind(W_KOND, 0)}×{ind(SPAN, 0)}²/(8×{ind(T_TARIK / 1000, 0)} kN) = {ind(SAG, 2)} m; panjang konduktor {ind(PANJANG, 2)} m; jarak bebas minimum SUTT 150 kV: 8–9 m (jalan raya 15 m)", 11, AX)
-    return svg(660, 224, b, "Gambar 5 — Andongan konduktor, gaya tarik, dan jarak bebas")
+    b += t(x0 + 8, Y(H_MENARA / 2), f"H = {ind(H_MENARA, 0)} m", 10.5, AX, "start")
+    b += t(330, 214, f"S = wL²/(8T) = {ind(W_KOND, 0)}×{ind(SPAN, 0)}²/(8×{ind(T_TARIK / 1000, 0)} kN) = {ind(SAG, 2)} m; panjang konduktor {ind(PANJANG, 2)} m;", 11, AX)
+    b += t(330, 228, "jarak bebas minimum SUTT 150 kV: 8–9 m (jalan raya 15 m)", 11, AX)
+    return svg(660, 238, b, "Gambar 5 — Andongan konduktor, gaya tarik, dan jarak bebas")
 
 
 def gambar6():
@@ -188,12 +192,19 @@ def gambar6():
         req = R_KOR if Vc == VC_KOR else R_EQ2
         pts = " ".join(f"{X(v):.1f},{Y(241 * 75 * math.sqrt(req / D_KOR) * max(0, v - Vc) ** 2 * 1e-5):.1f}" for v in [i * 2 for i in range(0, 111)])
         b += f'<polyline points="{pts}" fill="none" stroke="{c}" stroke-width="2.2"/>'
-        b += f'<line x1="{X(Vc):.1f}" y1="{y1}" x2="{X(Vc):.1f}" y2="{y0}" stroke="{c}" stroke-width="1" stroke-dasharray="5 4"/>' + t(X(Vc) + 4, y1 + 12 + (0 if Vc == VC_KOR else 14), lab, 9.5, c, "start", "600")
+        if Vc <= vmax:
+            b += f'<line x1="{X(Vc):.1f}" y1="{y1}" x2="{X(Vc):.1f}" y2="{y0}" stroke="{c}" stroke-width="1" stroke-dasharray="5 4"/>'
+            kepala, ekor = lab.split(": ")
+            b += t(X(Vc) + 4, y1 + 12, kepala + ":", 9.5, c, "start", "600") + t(X(Vc) + 4, y1 + 25, ekor, 9.5, c, "start", "600")
+        else:   # V_c di luar sumbu: kurvanya nol sepanjang grafik, jadi cukup dicatat
+            b += t(x0 + 6, y1 + 12, f"berkas 2 (r_eq {ind(R_EQ2, 2)} cm):", 9.5, c, "start", "600") + t(x0 + 6, y1 + 25, f"V_c = {ind(Vc, 1)} kV, di luar sumbu", 9.5, c, "start", "600")
     for Vf, lab, c in [(VF_150, "150 kV", "#22d3ee"), (VF_275, "275 kV", "#f59e0b")]:
-        b += f'<line x1="{X(Vf):.1f}" y1="{y1}" x2="{X(Vf):.1f}" y2="{y0}" stroke="{c}" stroke-width="1.6"/>' + t(X(Vf) + 4, y0 - 8, f"V_fasa {lab} = {ind(Vf, 1)} kV", 9.5, c, "start", "600")
+        kiri = Vf < VC_KOR
+        b += f'<line x1="{X(Vf):.1f}" y1="{y1}" x2="{X(Vf):.1f}" y2="{y0}" stroke="{c}" stroke-width="1.6"/>' + t(X(Vf) - 4 if kiri else X(Vf) + 4, y0 - 8, f"V_fasa {lab} = {ind(Vf, 1)} kV", 9.5, c, "end" if kiri else "start", "600")
     b += t(28, 112, "kW/km", 10, AX)
-    b += t(330, 234, f"Rugi korona Peek (cuaca cerah) terhadap tegangan fasa: konduktor tunggal aman di 150 kV tetapi berkorona di 275 kV ({ind(RUGI_KOR, 2)} kW/km/fasa); berkas 2 menaikkan V_c di atasnya", 11, AX)
-    return svg(660, 244, b, "Gambar 6 — Tegangan kritis korona dan rugi korona: konduktor tunggal vs berkas")
+    b += t(330, 234, f"Rugi korona Peek (cuaca cerah) terhadap tegangan fasa: konduktor tunggal aman di 150 kV", 11, AX)
+    b += t(330, 248, f"tetapi berkorona di 275 kV ({ind(RUGI_KOR, 2)} kW/km/fasa); berkas 2 menaikkan V_c di atasnya", 11, AX)
+    return svg(660, 258, b, "Gambar 6 — Tegangan kritis korona dan rugi korona: konduktor tunggal vs berkas")
 
 
 # ─────────────────────────── SUBNAV & HERO ───────────────────────────

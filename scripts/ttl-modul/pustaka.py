@@ -1,6 +1,8 @@
 # Pustaka bersama generator modul Teknik Tenaga Listrik: helper SVG, blok HTML,
 # panel animasi, blok kode, kartu pustaka, dan blok Tugas/Forum. Dipakai modul_N.py.
+import html as _html
 import math
+import re
 
 SQ3 = math.sqrt(3)
 
@@ -37,6 +39,19 @@ def t(x, y, s, size=12, fill=TX, anchor="middle", weight="", fam=SANS):
     return f'<text x="{x:.1f}" y="{y:.1f}" text-anchor="{anchor}" font-size="{size}" fill="{fill}"{w} font-family="{fam}">{s}</text>'
 
 
+def teks2(x, y, s, size=11, fill=AX, anchor="middle", maks=92, jarak=14, weight=""):
+    """Teks panjang dipecah otomatis pada spasi menjadi beberapa baris (<= maks karakter)."""
+    kata, baris, kini = s.split(" "), [], ""
+    for k in kata:
+        if kini and len(kini) + 1 + len(k) > maks:
+            baris.append(kini)
+            kini = k
+        else:
+            kini = (kini + " " + k).strip()
+    if kini:
+        baris.append(kini)
+    return "".join(t(x, y + i * jarak, b, size, fill, anchor, weight) for i, b in enumerate(baris))
+
 def arrow(x1, y1, x2, y2, color=AX, w=1.6):
     ang = math.atan2(y2 - y1, x2 - x1)
     bx, by = x2 - 9 * math.cos(ang), y2 - 9 * math.sin(ang)
@@ -54,7 +69,79 @@ def box(x, y, w, h, lines, stroke, size=12.5):
     return out
 
 
+def lebar_teks(s, size, tebal=False):
+    """Taksiran lebar teks SVG yang SENGAJA dilebihkan (dipakai untuk melubangi kisi, bukan tata letak)."""
+    lebar = 0.0
+    for ch in s:
+        if ch in " .,:;'|!iljtfr()[]·‖":
+            lebar += 0.36
+        elif ch in "mwMW%@":
+            lebar += 0.95
+        elif ch.isupper() or ch.isdigit() or not ch.isascii():
+            lebar += 0.68
+        else:
+            lebar += 0.58
+    return lebar * size * (1.08 if tebal else 1.0)
+
+
+_TEKS = re.compile(r"<text\b([^>]*)>(.*?)</text>", re.S)
+_ATR = re.compile(r'([\w:-]+)="([^"]*)"')
+_KISI = re.compile(r'<line x1="([-\d.]+)" y1="([-\d.]+)" x2="([-\d.]+)" y2="([-\d.]+)" stroke="' + GRID + r'" stroke-width="0.7"/>')
+
+
+def lubangi_kisi(body, pad=3):
+    """Putus garis kisi (stroke GRID, tebal 0,7) tepat di belakang setiap label teks.
+
+    Label di dalam area grafik hampir selalu melintasi garis kisi tegak atau mendatar, dan
+    garis yang menembus huruf membuat label sulit dibaca. Garis kisi yang melewati kotak
+    taksiran sebuah label dipotong di sana (efeknya seperti pelat latar di belakang label);
+    garis lain dan semua bentuk selain kisi tidak disentuh.
+    """
+    kotak = []
+    for m in _TEKS.finditer(body):
+        a = dict(_ATR.findall(m.group(1)))
+        if "transform" in a or "x" not in a or "y" not in a:
+            continue
+        isi = _html.unescape(re.sub(r"<[^>]+>", "", m.group(2)))
+        size, x, y = float(a.get("font-size", 12)), float(a["x"]), float(a["y"])
+        w = lebar_teks(isi, size, a.get("font-weight", "") in ("600", "700", "800", "bold"))
+        an = a.get("text-anchor", "start")
+        x0 = x - w / 2 if an == "middle" else (x - w if an == "end" else x)
+        kotak.append((x0 - pad, y - 0.82 * size - pad, x0 + w + pad, y + 0.28 * size + pad))
+
+    def potong(m):
+        x1, y1, x2, y2 = map(float, m.groups())
+        if x1 == x2:
+            tetap, a0, a1, tegak = x1, min(y1, y2), max(y1, y2), True
+        elif y1 == y2:
+            tetap, a0, a1, tegak = y1, min(x1, x2), max(x1, x2), False
+        else:
+            return m.group(0)
+        lubang = [(by0, by1) if tegak else (bx0, bx1) for bx0, by0, bx1, by1 in kotak
+                  if (bx0 <= tetap <= bx1 if tegak else by0 <= tetap <= by1)]
+        if not lubang:
+            return m.group(0)
+        ruas = [(a0, a1)]
+        for p0, p1 in lubang:
+            baru = []
+            for s0, s1 in ruas:
+                if p1 <= s0 or p0 >= s1:
+                    baru.append((s0, s1))
+                    continue
+                if p0 > s0:
+                    baru.append((s0, p0))
+                if p1 < s1:
+                    baru.append((p1, s1))
+            ruas = baru
+        return "".join((f'<line x1="{tetap:g}" y1="{s0:.1f}" x2="{tetap:g}" y2="{s1:.1f}" stroke="{GRID}" stroke-width="0.7"/>' if tegak else
+                        f'<line x1="{s0:.1f}" y1="{tetap:g}" x2="{s1:.1f}" y2="{tetap:g}" stroke="{GRID}" stroke-width="0.7"/>')
+                       for s0, s1 in ruas if s1 - s0 >= 1)
+
+    return _KISI.sub(potong, body)
+
+
 def svg(w, h, body, label):
+    body = lubangi_kisi(body)
     return (f'<svg viewBox="0 0 {w} {h}" role="img" aria-label="{label}" preserveAspectRatio="xMidYMid meet">'
             f'<rect x="0" y="0" width="{w}" height="{h}" fill="{BG}"/>{body}</svg>')
 

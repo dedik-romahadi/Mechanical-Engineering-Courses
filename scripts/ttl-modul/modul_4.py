@@ -3,7 +3,7 @@
 # sini agar teks, tabel, dan gambar konsisten, dan sengaja berbeda dari varian soal.
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
+from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula, teks2,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel)
 
 NOMOR = 4
@@ -74,25 +74,30 @@ def loop_arrow(cx, cy, r, c, label):
             + t(cx, cy + 4, label, 12, c, "middle", "700"))
 
 
-def jaringan_dua_sumber(ox, oy, w, e1, e2, r1, r2, r3, c_v="#ef4444", ket_v=None, mati=None):
-    """E1—R1—simpul—R2—E2, R3 dari simpul ke bawah; mati='E1'/'E2' menggambar sumber sebagai kawat."""
+def jaringan_dua_sumber(ox, oy, w, e1, e2, r1, r2, r3, c_v="#ef4444", ket_v=None, mati=None, label_dalam=False, y_ket=None):
+    """E1—R1—simpul—R2—E2, R3 dari simpul ke bawah; mati='E1'/'E2' menggambar sumber sebagai kawat.
+
+    label_dalam=True menaruh label sumber (dan "0 V" sumber mati) di dalam loop, di samping
+    simbolnya, agar panel berdampingan tidak saling bertabrakan atau keluar kanvas; y_ket
+    memindah label tegangan simpul dari atas simpul ke baris tersendiri.
+    """
     xl, xr, xm, yt, yb = ox, ox + w, ox + w / 2, oy, oy + 120
     b = kawat(xl, yt, xr, yt) + kawat(xl, yb, xr, yb) + kawat(xl, yt, xl, yb) + kawat(xr, yt, xr, yb)
     b += kawat(xm, yt, xm, yt + 30) + kawat(xm, yb - 30, xm, yb)
     ym = (yt + yb) / 2
     if mati == "E1":
-        b += t(xl - 6, ym + 4, "0 V", 10.5, AX, "end", "600")
+        b += t(xl + 8, ym + 4, "0 V", 10.5, AX, "start", "600") if label_dalam else t(xl - 6, ym + 4, "0 V", 10.5, AX, "end", "600")
     else:
-        b += f'<rect x="{xl - 18}" y="{ym - 12}" width="36" height="26" fill="{BOX}"/>' + sumber(xl, ym, "#f59e0b", e1, "end", -20)
+        b += f'<rect x="{xl - 18}" y="{ym - 12}" width="36" height="26" fill="{BOX}"/>' + (sumber(xl, ym, "#f59e0b", e1, "start", 20) if label_dalam else sumber(xl, ym, "#f59e0b", e1, "end", -20))
     if mati == "E2":
-        b += t(xr + 6, ym + 4, "0 V", 10.5, AX, "start", "600")
+        b += t(xr - 8, ym + 4, "0 V", 10.5, AX, "end", "600") if label_dalam else t(xr + 6, ym + 4, "0 V", 10.5, AX, "start", "600")
     else:
-        b += f'<rect x="{xr - 18}" y="{ym - 12}" width="36" height="26" fill="{BOX}"/>' + sumber(xr, ym, "#f97316", e2, "start", 20)
+        b += f'<rect x="{xr - 18}" y="{ym - 12}" width="36" height="26" fill="{BOX}"/>' + (sumber(xr, ym, "#f97316", e2, "end", -20) if label_dalam else sumber(xr, ym, "#f97316", e2, "start", 20))
     b += res_h(xl + w * 0.16, xl + w * 0.36, yt, "#22d3ee", r1) + res_h(xm + w * 0.14, xm + w * 0.34, yt, "#a855f7", r2)
     b += res_v(xm, yt + 30, yb - 30, "#00e09e", r3)
     b += f'<circle cx="{xm}" cy="{yt}" r="5" fill="{c_v}"/>'
     if ket_v:
-        b += t(xm, yt - 14, ket_v, 11.5, c_v, "middle", "700")
+        b += t(xm, yt - 14 if y_ket is None else y_ket, ket_v, 11.5, c_v, "middle", "700")
     return b
 
 
@@ -127,7 +132,7 @@ def gambar2():
           + t(xr + 20, 115, f"E₂ {ind(E2M, 0)} V", 12, "#f97316", "start", "700"))
     b += res_h(130, 220, yt, "#22d3ee", f"R₁ {ind(R1M, 0)} Ω") + res_h(420, 510, yt, "#a855f7", f"R₂ {ind(R2M, 0)} Ω") + res_v(xm, yt + 30, yb - 30, "#00e09e", f"R₃ {ind(R3M, 0)} Ω")
     b += loop_arrow(205, 110, 26, "#f59e0b", "I₁") + loop_arrow(455, 110, 26, "#f97316", "I₂")
-    b += t(xm - 14, 105, f"I₁ − I₂", 10.5, "#00e09e", "end", "600") + arrow(xm - 30, 90, xm - 30, 130, "#00e09e", 1.6)
+    b += t(xm - 38, 114, f"I₁ − I₂", 10.5, "#00e09e", "end", "600") + arrow(xm - 30, 90, xm - 30, 130, "#00e09e", 1.6)
     b += t(330, 200, f"Loop 1: {ind(E1M, 0)} = {ind(R1M + R3M, 0)}·I₁ − {ind(R3M, 0)}·I₂;  Loop 2: {ind(E2M, 0)} = {ind(R2M + R3M, 0)}·I₂ − {ind(R3M, 0)}·I₁  →  I₁ = {ind(I1M, 3)} A, I₂ = {ind(I2M, 3)} A, I_R3 = {ind(I3M, 3)} A", 11.5, AX)
     return svg(660, 214, b, "Gambar 2 — Jaringan dua loop dan arus mesh (kedua ggl mendorong searah jarum jam)")
 
@@ -142,17 +147,17 @@ def gambar3():
 
 
 def gambar4():
-    b = t(110, 22, "① Hanya E₁ (E₂ → kawat)", 11.5, "#f59e0b", "middle", "700")
-    b += jaringan_dua_sumber(20, 40, 180, f"{ind(E1N, 0)} V", "", "R₁", "R₂", "R₃", "#f59e0b", f"V′ = {ind(V_S1, 2)} V", mati="E2")
-    b += t(110, 182, f"I₃′ = {ind(I3_S1, 3)} A", 11.5, "#f59e0b", "middle", "600")
-    b += t(330, 22, "② Hanya E₂ (E₁ → kawat)", 11.5, "#f97316", "middle", "700")
-    b += jaringan_dua_sumber(240, 40, 180, "", f"{ind(E2N, 0)} V", "R₁", "R₂", "R₃", "#f97316", f"V″ = {ind(V_S2, 2)} V", mati="E1")
-    b += t(330, 182, f"I₃″ = {ind(I3_S2, 3)} A", 11.5, "#f97316", "middle", "600")
-    b += t(550, 22, "③ Jumlah = rangkaian lengkap", 11.5, "#00e09e", "middle", "700")
-    b += jaringan_dua_sumber(460, 40, 180, f"{ind(E1N, 0)} V", f"{ind(E2N, 0)} V", "R₁", "R₂", "R₃", "#00e09e", f"V = {ind(V_N, 2)} V")
-    b += t(550, 182, f"I₃ = {ind(I3_S1, 3)} + {ind(I3_S2, 3)} = {ind(I3N, 3)} A", 11.5, "#00e09e", "middle", "600")
-    b += t(330, 206, f"Daya R₃ = I₃²R₃ = {ind(I3N ** 2 * R3N, 2)} W, bukan {ind(I3_S1 ** 2 * R3N, 2)} + {ind(I3_S2 ** 2 * R3N, 2)} W: daya tidak disuperposisikan", 11.5, AX)
-    return svg(660, 218, b, "Gambar 4 — Superposisi: satu sumber aktif pada satu waktu, lalu dijumlahkan")
+    b = ""
+    for ox, judul, c, e1, e2, ket, mati, arus in [
+            (20, "① Hanya E₁ (E₂ → kawat)", "#f59e0b", f"{ind(E1N, 0)} V", "", f"V′ = {ind(V_S1, 2)} V", "E2", f"I₃′ = {ind(I3_S1, 3)} A"),
+            (240, "② Hanya E₂ (E₁ → kawat)", "#f97316", "", f"{ind(E2N, 0)} V", f"V″ = {ind(V_S2, 2)} V", "E1", f"I₃″ = {ind(I3_S2, 3)} A"),
+            (460, "③ Jumlah = rangkaian lengkap", "#00e09e", f"{ind(E1N, 0)} V", f"{ind(E2N, 0)} V", f"V = {ind(V_N, 2)} V", None,
+             f"I₃ = {ind(I3_S1, 3)} + {ind(I3_S2, 3)} = {ind(I3N, 3)} A")]:
+        b += t(ox + 90, 18, judul, 11.5, c, "middle", "700")
+        b += jaringan_dua_sumber(ox, 70, 180, e1, e2, "R₁", "R₂", "R₃", c, ket, mati=mati, label_dalam=True, y_ket=38)
+        b += t(ox + 90, 212, arus, 11.5, c, "middle", "600")
+    b += t(330, 236, f"Daya R₃ = I₃²R₃ = {ind(I3N ** 2 * R3N, 2)} W, bukan {ind(I3_S1 ** 2 * R3N, 2)} + {ind(I3_S2 ** 2 * R3N, 2)} W: daya tidak disuperposisikan", 11.5, AX)
+    return svg(660, 248, b, "Gambar 4 — Superposisi: satu sumber aktif pada satu waktu, lalu dijumlahkan")
 
 
 def gambar5():
@@ -172,10 +177,10 @@ def gambar5():
     b += f'<circle cx="440" cy="50" r="4" fill="#ec4899"/><circle cx="440" cy="150" r="4" fill="#ec4899"/>' + t(449, 54, "a", 11, "#ec4899", "start", "700") + t(449, 154, "b", 11, "#ec4899", "start", "700")
     b += arrow(468, 100, 498, 100, "#94a3b8", 2)
     b += t(580, 22, "Ekuivalen Norton", 11.5, TX, "middle", "700")
-    b += kawat(520, 50, 640, 50) + kawat(520, 150, 640, 150) + kawat(520, 50, 520, 84) + kawat(520, 116, 520, 150) + kawat(580, 50, 580, 80) + kawat(580, 120, 580, 150)
-    b += f'<circle cx="520" cy="100" r="16" fill="{BOX}" stroke="#f59e0b" stroke-width="2"/>' + arrow(520, 110, 520, 90, "#f59e0b", 1.8) + t(500, 104, f"I_N {ind(IN_, 0)} A", 11, "#f59e0b", "end", "700")
-    b += res_v(580, 80, 120, "#22d3ee", f"R_N {ind(RTH, 0)} Ω", 14)
-    b += f'<circle cx="640" cy="50" r="4" fill="#ec4899"/><circle cx="640" cy="150" r="4" fill="#ec4899"/>' + t(649, 54, "a", 11, "#ec4899", "start", "700") + t(649, 154, "b", 11, "#ec4899", "start", "700")
+    b += kawat(520, 50, 626, 50) + kawat(520, 150, 626, 150) + kawat(520, 50, 520, 84) + kawat(520, 116, 520, 150) + kawat(574, 50, 574, 80) + kawat(574, 120, 574, 150)
+    b += f'<circle cx="520" cy="100" r="16" fill="{BOX}" stroke="#f59e0b" stroke-width="2"/>' + arrow(520, 110, 520, 90, "#f59e0b", 1.8) + t(512, 136, f"I_N {ind(IN_, 0)} A", 11, "#f59e0b", "end", "700")
+    b += res_v(574, 80, 120, "#22d3ee", f"R_N {ind(RTH, 0)} Ω", 14)
+    b += f'<circle cx="626" cy="50" r="4" fill="#ec4899"/><circle cx="626" cy="150" r="4" fill="#ec4899"/>' + t(635, 54, "a", 11, "#ec4899", "start", "700") + t(635, 154, "b", 11, "#ec4899", "start", "700")
     b += t(330, 190, f"V_th = {ind(ET, 0)}·{ind(R2T, 0)}/({ind(R1T, 0)}+{ind(R2T, 0)}) = {ind(VTH, 0)} V;  R_th = {ind(R1T, 0)}‖{ind(R2T, 0)} + {ind(R3T, 0)} = {ind(RTH, 0)} Ω;  I_N = V_th/R_th = {ind(IN_, 0)} A;  P_maks = V_th²/(4R_th) = {ind(PMAKS, 0)} W", 11.5, AX)
     return svg(660, 204, b, "Gambar 5 — Dari jaringan asli ke ekuivalen Thevenin dan Norton")
 
@@ -190,11 +195,11 @@ def gambar6():
     b += f'<circle cx="{xm}" cy="{yt}" r="5" fill="#ef4444"/>' + t(xm, yt - 14, f"V = {ind(V_P, 3)} V", 11.5, "#ef4444", "middle", "700")
     b += arrow(150, yt + 26, 230, yt + 26, "#f59e0b", 1.8) + t(190, yt + 42, f"I₁ = {ind(I1P, 2)} A", 11, "#f59e0b", "middle", "600")
     b += arrow(450, yt + 26, 370, yt + 26, "#f97316", 1.8) + t(410, yt + 42, f"I₂ = {ind(I2P, 2)} A", 11, "#f97316", "middle", "600")
-    b += t(xm + 28, 116, f"I_L = {ind(ILP, 2)} A", 11, "#00e09e", "start", "600")
+    b += t(xm + 14, 134, f"I_L = {ind(ILP, 2)} A", 11, "#00e09e", "start", "600")
     b += (f'<path d="M 130 {yb - 14} L 130 {yt + 14} L 470 {yt + 14} L 470 {yb - 14} Z" fill="none" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="5 4"/>'
-          + t(300, yb - 22, f"tanpa beban: arus sirkulasi (E₁−E₂)/(r₁+r₂) = {ind(I_SIRK, 2)} A, rugi {ind(P_SIRK, 2)} W terus-menerus", 10.5, "#ef4444", "middle", "600"))
-    b += t(330, 204, f"Sumber ber-ggl lebih tinggi dan ber-r lebih kecil memikul bagian terbesar; selisih ggl memicu arus antar-sumber walau beban dilepas", 11.5, AX)
-    return svg(660, 214, b, "Gambar 6 — Dua baterai paralel memasok satu beban")
+          + t(300, yb + 18, f"loop putus-putus, tanpa beban: arus sirkulasi (E₁−E₂)/(r₁+r₂) = {ind(I_SIRK, 2)} A, rugi {ind(P_SIRK, 2)} W terus-menerus", 10.5, "#ef4444", "middle", "600"))
+    b += teks2(330, 218, f"Sumber ber-ggl lebih tinggi dan ber-r lebih kecil memikul bagian terbesar; selisih ggl memicu arus antar-sumber walau beban dilepas", 11.5, AX, maks=86)
+    return svg(660, 242, b, "Gambar 6 — Dua baterai paralel memasok satu beban")
 
 
 # ─────────────────────────── SUBNAV & HERO ───────────────────────────

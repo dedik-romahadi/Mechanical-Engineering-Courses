@@ -54,7 +54,11 @@ function ukurSvg(svg) {
     if (tg === 'rect') {
       const w = +el.getAttribute('width'), h = +el.getAttribute('height');
       if (w >= W * 0.95 && h >= H * 0.95) continue;             // latar kanvas
-      R.push([+el.getAttribute('x') || 0, +el.getAttribute('y') || 0, w, h]);
+      // kotak dalam koordinat kanvas (ikut transform elemen/grup), sama seperti teks
+      const x = +el.getAttribute('x') || 0, y = +el.getAttribute('y') || 0;
+      const q = [pt(m, x, y), pt(m, x + w, y), pt(m, x, y + h), pt(m, x + w, y + h)];
+      const qx = q.map(v => v[0]), qy = q.map(v => v[1]);
+      R.push([Math.min(...qx), Math.min(...qy), Math.max(...qx) - Math.min(...qx), Math.max(...qy) - Math.min(...qy)]);
     }
     const kecil = Math.max(bb.width, bb.height) <= TANDA_KECIL && tg !== 'rect' && tg !== 'line';
     if (!adaStroke && !kecil) continue;                         // bidang isian tanpa stroke
