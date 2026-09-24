@@ -10949,6 +10949,10 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
 .pm-kunci-modal li{padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);font-size:.9rem;color:#cbd5e1}
 .pm-kunci-modal li.ok{border-color:rgba(0,224,158,.35);color:#9ff3d2}
 .pm-kunci-modal li.kurang{border-color:rgba(251,113,133,.35);color:#fecdd3}
+.pm-kunci-modal .pm-periksa{width:100%;padding:12px;border-radius:14px;margin-top:12px;border:1px solid rgba(0,224,158,.55);background:rgba(0,224,158,.12);color:#9ff3d2;font-family:inherit;font-weight:700;font-size:.92rem;cursor:pointer;transition:background .2s}
+.pm-kunci-modal .pm-periksa:hover{background:rgba(0,224,158,.2)}
+.pm-kunci-modal .pm-periksa:disabled{opacity:.6;cursor:wait}
+.pm-kunci-modal .pm-catatan{font-size:.8rem;color:#94a3b8;text-align:center;margin:10px 0 0}
 .pm-toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:9500;background:rgba(15,23,42,.95);border:1px solid rgba(148,163,184,.35);color:#e2e8f0;padding:10px 16px;border-radius:10px;font-size:.85rem;box-shadow:0 12px 32px rgba(0,0,0,.45);opacity:0;transition:opacity .25s;pointer-events:none;max-width:min(92vw,520px);text-align:center}
 .pm-toast.tampil{opacity:1}
 </style>
@@ -11066,8 +11070,9 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 
   // Overlay kunci bila modul sebelumnya belum lengkap.
   function tampilkanKunci(pras) {
+    var lama = document.getElementById('pmKunci'); if (lama) lama.remove();
     var ov = document.createElement('div');
-    ov.className = 'visitor-overlay'; ov.style.zIndex = '100001';
+    ov.id = 'pmKunci'; ov.className = 'visitor-overlay'; ov.style.zIndex = '100001';
     var n = pras.n;
     var baris = function (ok, teks) { return '<li class="' + (ok ? 'ok' : 'kurang') + '">' + (ok ? '✅ ' : '❌ ') + teks + '</li>'; };
     ov.innerHTML = '<div class="visitor-modal pm-kunci-modal">'
@@ -11080,6 +11085,8 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
       + baris(pras.forumSelesai, 'Forum Modul ' + n + ': 3 jawaban diskusi (≥ 30 kata)')
       + '</ul>'
       + '<a class="v-btn-primary" style="display:block;text-decoration:none;text-align:center" href="Modul-' + n + '.html">📖 Buka Modul ' + n + ' →</a>'
+      + '<button class="pm-periksa" type="button" id="pmPeriksa">🔄 Periksa lagi</button>'
+      + '<p class="pm-catatan">Sudah melengkapi Modul ' + n + ' di tab lain? Tekan <strong>Periksa lagi</strong>, tidak perlu login ulang.</p>'
       + '<button class="v-btn-cancel" type="button" id="pmKeluar">🚪 Keluar</button>'
       + '</div>';
     document.body.appendChild(ov);
@@ -11087,9 +11094,43 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     ov.querySelector('#pmKeluar').addEventListener('click', function () {
       if (typeof window._switchRole === 'function') window._switchRole(); else location.reload();
     });
+    var periksa = ov.querySelector('#pmPeriksa');
+    periksa.addEventListener('click', function () {
+      var d = dasar();
+      if (!d.pinHash) { toast('⚠ Sesi login berakhir. Tekan Keluar, lalu login lagi.', 4500); return; }
+      periksa.disabled = true; periksa.textContent = '⏳ Memeriksa…';
+      panggil('getModulProgress', d).then(function (p) {
+        if (p.akses && p.akses.boleh === false && p.akses.prasyarat) {
+          tampilkanKunci(p.akses.prasyarat);   // gambar ulang rincian dengan data terbaru
+          toast('Modul ' + n + ' belum lengkap. Lengkapi syarat yang bertanda ❌.', 4500);
+          return;
+        }
+        ov.remove();
+        if (fab) fab.style.display = '';
+        terapkanProgres(p);
+        toast('✅ Modul ' + n + ' sudah lengkap. Selamat mempelajari Modul ' + nomorModul + '.', 4500);
+      }).catch(function (e) {
+        periksa.disabled = false; periksa.textContent = '🔄 Periksa lagi';
+        toast('⚠ Gagal memeriksa: ' + ((e && e.message) || 'koneksi'), 4500);
+        if (/login ulang/i.test(String(e && e.message))) window._sessionPinHash = null;
+      });
+    });
   }
 
   var forumDimuat = false;
+  // Terapkan progres modul ini (akses sudah lolos): centang dan jawaban forum tersimpan.
+  function terapkanProgres(p) {
+    centang = Math.min(total, Number(p.centang) || 0);
+    render();
+    if (!forumDimuat && p.forum) {
+      forumDimuat = true;
+      ['fq1', 'fq2', 'fq3'].forEach(function (id) {
+        var ta = document.getElementById('ans-' + id);
+        if (ta && !ta.value && typeof p.forum[id] === 'string' && p.forum[id]) ta.value = p.forum[id];
+      });
+      if (typeof window.checkForumReady === 'function') try { window.checkForumReady(); } catch (e) {}
+    }
+  }
   function muatProgres() {
     if (!mhsAktif()) { bebas = true; centang = muatBebas(); render(); return; }
     var d = dasar();
@@ -11097,16 +11138,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     bebas = false; render();
     panggil('getModulProgress', d).then(function (p) {
       if (p.akses && p.akses.boleh === false && p.akses.prasyarat) { tampilkanKunci(p.akses.prasyarat); return; }
-      centang = Math.min(total, Number(p.centang) || 0);
-      render();
-      if (!forumDimuat && p.forum) {
-        forumDimuat = true;
-        ['fq1', 'fq2', 'fq3'].forEach(function (id) {
-          var ta = document.getElementById('ans-' + id);
-          if (ta && !ta.value && typeof p.forum[id] === 'string' && p.forum[id]) ta.value = p.forum[id];
-        });
-        if (typeof window.checkForumReady === 'function') try { window.checkForumReady(); } catch (e) {}
-      }
+      terapkanProgres(p);
     }).catch(function (e) {
       console.warn('[progres-modul] gagal memuat progres:', e && e.message);
       toast('⚠ Gagal memuat progres materi: ' + ((e && e.message) || 'koneksi'));
