@@ -6,7 +6,11 @@
 #
 # Yang diperiksa:
 #   1. Sisa kerangka terlarang: pyodide, editor kode, runAndCheck(, identitas
-#      course TTL, dan seluruh mesin soal benar-salah.
+#      course TTL, dan seluruh mesin soal benar-salah. Blok widget chat AI
+#      (AI-CHAT-AGENT:BEGIN/END) dikecualikan: isinya satu sumber dari repo
+#      backend untuk seluruh 96 halaman dan memang menyebut keenam mata kuliah,
+#      termasuk Teknik Tenaga Listrik. Blok itu wajib ada tepat sekali dan
+#      mengenal Pemodelan CAD.
 #   2. Jumlah kartu soal: UTS 20 PG + 10 tugas; UAS 20 PG + 10 tugas + 1 rakitan.
 #      Karena kartu dirakit di klien dari data server, yang dihitung adalah
 #      tabel poin per soal (EXAM_QID_POINTS) dan wadah bagiannya.
@@ -86,6 +90,9 @@ JENIS = {"uts": "UTS", "uas": "UAS"}
 galat = []
 catatan = []
 
+BLOK_AI = re.compile(r"<!-- AI-CHAT-AGENT:BEGIN v\d+[^>]*-->.*?<!-- AI-CHAT-AGENT:END v\d+ -->", re.S)
+BLOK_AI_WAJIB = ('"pemodelan_cad": [', '"pemodelan_cad": "', "pemodelan-cad)-(uts|uas)", "pemodelan_cad)-modul-")
+
 
 def periksa(jenis):
     K = importlib.import_module(jenis)
@@ -96,11 +103,20 @@ def periksa(jenis):
     s = berkas.read_text(encoding="utf-8")
     nama = K.TUJUAN
 
-    # 1. Sisa kerangka
+    # 1. Sisa kerangka (di luar blok widget chat AI; baris kosong pengganti blok
+    #    menjaga nomor baris laporan tetap sama dengan berkas aslinya)
+    blok = BLOK_AI.findall(s)
+    if len(blok) != 1:
+        galat.append(f"{nama}: blok AI-CHAT-AGENT harus ada tepat sekali, ditemukan {len(blok)}x")
+    else:
+        for w in BLOK_AI_WAJIB:
+            if w not in blok[0]:
+                galat.append(f"{nama}: blok AI-CHAT-AGENT belum mengenal Pemodelan CAD ({w!r})")
+    luar = BLOK_AI.sub(lambda m: "\n" * m.group(0).count("\n"), s)
     for potongan, alasan in TERLARANG:
-        n = s.count(potongan)
+        n = luar.count(potongan)
         if n:
-            baris = s.count("\n", 0, s.index(potongan)) + 1
+            baris = luar.count("\n", 0, luar.index(potongan)) + 1
             galat.append(f"{nama}: sisa kerangka {potongan!r} ({alasan}) — {n}x, pertama di baris {baris}")
 
     # 2. Potongan wajib
