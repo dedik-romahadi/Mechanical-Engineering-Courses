@@ -638,7 +638,7 @@ PETUNJUK_HTML = '''  <div class="warn-box">
     <div class="warn-icon">🧊</div>
     <div>
       <h4>Petunjuk Pengerjaan Tugas 1</h4>
-      <p>Kerjakan lima tugas pemodelan di <strong>FreeCAD 1.0</strong> (Draft Workbench, bidang kerja Top/XY, satuan mm) sesuai angka pada <strong>varian N Anda</strong> yang muncul setelah login. Untuk tiap tugas: simpan model sebagai <strong>.FCStd</strong> (Ctrl+S, bukan Export), klik <strong>⬆ Unggah</strong>, isikan <strong>angka bacaan</strong> dari FreeCAD (Area, Shape.Length, atau CenterOfMass), lalu klik <strong>▶ Kirim &amp; Validasi</strong>. Berkas boleh diganti selama tugas belum dikirim; setelah dikirim, berkas dan angka terkunci. Berkas yang terunggah tanpa angka yang benar mendapat partial 0,5 poin.</p>
+      <p>Kerjakan lima tugas pemodelan di <strong>FreeCAD 1.0</strong> (Draft Workbench, bidang kerja Top/XY, satuan mm) sesuai angka pada <strong>varian N Anda</strong> yang muncul setelah login. Untuk tiap tugas: simpan model sebagai <strong>.FCStd</strong> (Ctrl+S, bukan Export), klik <strong>⬆ Unggah</strong>, isikan <strong>angka bacaan</strong> dari FreeCAD (Area, Shape.Length, atau CenterOfMass), lalu klik <strong>▶ Kirim &amp; Validasi</strong>. Server membaca geometri berkas Anda: angka yang tidak ada di model ditolak dan <strong>tidak dihitung</strong>, jadi bacalah angkanya dari model yang diunggah. Bila kiriman dinilai salah, tugas <strong>tidak terkunci</strong>: perbaiki model, unggah ulang, lalu kirim ulang (tanpa batas); kiriman benar setelah pernah salah bernilai <strong>65%</strong> dari poin tugas.</p>
     </div>
   </div>
 
@@ -698,7 +698,7 @@ def tugas_block():
       <span style="font-size:20px;flex-shrink:0">⚠️</span>
       <div>
         <div style="font-weight:700;color:var(--amber);margin-bottom:6px;font-size:14px">Sebelum klik ▶ Kirim &amp; Validasi</div>
-        <p style="font-size:13px;color:var(--muted);margin:0;line-height:1.7">Pastikan berkas <strong style="color:var(--text)">.FCStd sudah terunggah</strong> (status hijau di kartu) dan <strong style="color:var(--text)">angka bacaan disalin dari FreeCAD</strong> untuk varian N Anda. Setiap tugas hanya punya <strong style="color:var(--text)">satu kesempatan kirim</strong>; berkas masih boleh diganti sebelum dikirim.</p>
+        <p style="font-size:13px;color:var(--muted);margin:0;line-height:1.7">Pastikan berkas <strong style="color:var(--text)">.FCStd sudah terunggah</strong> (status hijau di kartu) dan <strong style="color:var(--text)">angka bacaan disalin dari FreeCAD</strong> untuk varian N Anda. Angka harus <strong style="color:var(--text)">terbaca dari geometri berkas</strong> yang diunggah; angka yang tidak ada di model ditolak tanpa dihitung. Kiriman benar pertama bernilai penuh; bila salah, perbaiki lalu <strong style="color:var(--text)">kirim ulang</strong> dengan nilai maksimal <strong style="color:var(--text)">65%</strong>.</p>
       </div>
     </div>
     <div class="q-type-badge badge-comp">🧊 BAGIAN B — Tugas Pemodelan FreeCAD · 5 Tugas · 6/6/6/11/11 Poin · Berkas .FCStd + Angka Bacaan</div>

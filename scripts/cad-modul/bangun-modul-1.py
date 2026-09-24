@@ -176,6 +176,8 @@ TUGAS_JS = r'''// ═══ TUGAS PEMODELAN CAD ═══
 // ringkasan berkas ke ledger. Klien tidak punya kunci/toleransi.
 const berkasTerunggah = {};   // qId → {namaBerkas, size, sha256, uploadedAt, versi}
 const berkasSyarat = {};      // qId → {ekstensi:[...], maksMB} dari getModulQuestions
+const berkasDiServer = {};    // qId → true: berkas pernah dinilai dan masih tersimpan di server (kirim ulang)
+window._cadSudahKirim = {};   // qId → true: sudah pernah dikirim (dihitung lengkap untuk ekspor walau dibuka lagi)
 window.berkasTerunggah = berkasTerunggah;
 function _escCad(v) { return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function _fmtKB(b) { return (Number(b || 0) / 1024).toFixed(1) + ' KB'; }
@@ -194,7 +196,7 @@ function _setBerkasStatus(qId, html, warna) {
 function _refreshTugasBtn(qId) {
   const btn = document.getElementById('sub-' + qId); if (!btn || compAnswered[qId]) return;
   const inp = document.getElementById('nilai-' + qId);
-  const siap = !!berkasTerunggah[qId] && _parseNilai(inp && inp.value) !== null;
+  const siap = (!!berkasTerunggah[qId] || !!berkasDiServer[qId]) && _parseNilai(inp && inp.value) !== null;
   btn.disabled = !siap; btn.style.opacity = siap ? '1' : '.5';
 }
 function _tampilBerkas(qId) {
@@ -220,6 +222,33 @@ window._ringkasTugasCad = function(qId) {
   let teks = b ? ('📎 ' + b.namaBerkas + ' · ' + _fmtKB(b.size) + ' · SHA-256 ' + String(b.sha256 || '').slice(0, 16) + '…') : (st ? st.textContent.trim() : '');
   if (inp && inp.value) teks += (teks ? '\n' : '') + 'Angka bacaan: ' + inp.value;
   return teks;
+};
+// Tugas FreeCAD yang kirimannya belum benar dibuka kembali: kirim ulang tanpa
+// batas, dan kiriman benar berikutnya bernilai 65 % poin (ditetapkan server).
+window._bukaKirimUlangCad = function(qId, poin, baru) {
+  compAnswered[qId] = false;
+  compScores[qId] = Number(poin) || 0;
+  berkasDiServer[qId] = true;
+  window._cadSudahKirim[qId] = true;
+  ['nilai-', 'berkas-', 'unggah-'].forEach((p) => { const el = document.getElementById(p + qId); if (el) { el.disabled = false; el.style.opacity = '1'; } });
+  const f = document.getElementById('berkas-' + qId);
+  const unggah = document.getElementById('unggah-' + qId);
+  if (unggah) unggah.disabled = !(f && f.files && f.files[0]);
+  const inp = document.getElementById('nilai-' + qId);
+  if (inp) inp.style.borderColor = 'rgba(251,191,36,.45)';
+  const btn = document.getElementById('sub-' + qId);
+  if (btn) { btn.textContent = '🔁 Kirim Ulang (maks 65%)'; btn.style.borderColor = ''; btn.style.color = ''; btn.classList.remove('running'); }
+  _refreshTugasBtn(qId);
+  const fb = document.getElementById('fb-' + qId);
+  if (fb) {
+    fb.className = 'feedback wrong';
+    fb.innerHTML = (baru ? '❌ <strong>Kurang tepat.</strong> ' : '🔁 <strong>Kiriman sebelumnya belum benar.</strong> ')
+      + 'Periksa kembali model FreeCAD Anda, perbaiki bila perlu lalu unggah ulang berkasnya, baca ulang angkanya, dan kirim ulang. '
+      + 'Kiriman benar setelah salah bernilai <strong>65%</strong> dari poin tugas.'
+      + (compScores[qId] > 0 ? ' Poin tercatat saat ini: +' + compScores[qId] + '.' : '');
+  }
+  if (typeof updateScore === 'function') updateScore();
+  if (typeof checkExportReady === 'function') checkExportReady();
 };
 function pilihBerkas(qId) {
   const inp = document.getElementById('berkas-' + qId);
@@ -264,7 +293,8 @@ async function unggahBerkas(qId) {
     berkasTerunggah[qId] = { namaBerkas: d.namaBerkas || f.name, size: d.size || f.size, sha256: d.sha256 || '', uploadedAt: d.uploadedAt || new Date().toISOString(), versi: d.versi || 1 };
     _tampilBerkas(qId);
     if (typeof _saveDraft === 'function') _saveDraft();
-    if (fb) { fb.className = 'feedback correct'; fb.textContent = '✅ Berkas terunggah (v' + (d.versi || 1) + '). Isikan angka bacaan dari FreeCAD, lalu klik ▶ Kirim & Validasi.'; }
+    const geo = d.geometri ? (' Geometri terbaca server: ' + d.geometri.objek + ' objek' + (d.geometri.padat ? ', ' + d.geometri.padat + ' benda padat' : '') + '.') : '';
+    if (fb) { fb.className = 'feedback correct'; fb.textContent = '✅ Berkas terunggah (v' + (d.versi || 1) + ').' + geo + ' Isikan angka bacaan dari model ini, lalu klik kirim.'; }
   } catch (err) {
     const pesan = (err && err.message) ? err.message : 'Gagal mengunggah berkas';
     _setBerkasStatus(qId, '❌ ' + _escCad(pesan), 'var(--pink)');
@@ -293,9 +323,11 @@ async function kirimTugas(qId) {
   const btn = document.getElementById('sub-' + qId);
   const inp = document.getElementById('nilai-' + qId);
   const nilai = _parseNilai(inp && inp.value);
-  if (!berkasTerunggah[qId]) { if (fb) { fb.className = 'feedback warn'; fb.textContent = '⚠ Unggah berkas .FCStd terlebih dahulu.'; } return; }
+  if (!berkasTerunggah[qId] && !berkasDiServer[qId]) { if (fb) { fb.className = 'feedback warn'; fb.textContent = '⚠ Unggah berkas .FCStd terlebih dahulu.'; } return; }
   if (nilai === null) { if (fb) { fb.className = 'feedback warn'; fb.textContent = '⚠ Isikan angka bacaan dari FreeCAD (mis. 3200,5).'; } return; }
-  if (!confirm('Kirim T' + qId.slice(1) + ' dengan berkas "' + berkasTerunggah[qId].namaBerkas + '" dan angka ' + inp.value.trim() + '?\nSetelah dikirim, berkas dan angka tidak dapat diubah lagi (satu kesempatan).')) return;
+  const namaB = berkasTerunggah[qId] ? berkasTerunggah[qId].namaBerkas : 'yang terakhir diunggah';
+  if (!confirm('Kirim T' + qId.slice(1) + ' dengan berkas "' + namaB + '" dan angka ' + inp.value.trim() + '?\nAngka harus terbaca dari geometri berkas itu. Bila salah, Anda boleh memperbaiki dan mengirim ulang, tetapi kiriman benar berikutnya hanya bernilai 65%.')) return;
+  const labelKirim = btn.textContent.indexOf('Ulang') >= 0 ? btn.textContent : '▶ Kirim & Validasi';
 
   compAnswered[qId] = true;                       // optimistic lock — server adalah authority
   btn.disabled = true; btn.textContent = '⏳ Memvalidasi...'; btn.classList.remove('running');
@@ -303,6 +335,12 @@ async function kirimTugas(qId) {
   try {
     if (typeof window._callCheckModulAnswer !== 'function') throw new Error('Callable belum siap, silakan refresh halaman.');
     const res = await window._callCheckModulAnswer(qId, nilai, '', [nilai], [nilai]);
+    if (res && res.bisaUlang) {
+      window._bukaKirimUlangCad(qId, Number(res.scoreDelta) || 0, true);
+      if (fb && typeof rayakanJawaban === 'function') rayakanJawaban(fb, 'wrong');
+      if (typeof _saveDraft === 'function') _saveDraft();
+      return;
+    }
     btn.textContent = (res && (res.correct || res.status === 'correct')) ? '✓ Selesai' : '✗ Terkunci';
     window._kunciTugasCad(qId);
     if (inp) {
@@ -311,13 +349,17 @@ async function kirimTugas(qId) {
       else inp.style.borderColor = 'rgba(239,68,68,.25)';
     }
     _applyModulServerResult(qId, res, 'comp', btn, fb, null);
+    if (res && res.correct && Number(res.percobaan) > 1 && fb) fb.textContent += ' (kiriman ke-' + res.percobaan + ': 65% poin)';
     if (typeof _saveDraft === 'function') _saveDraft();
   } catch (err) {
     compAnswered[qId] = false;
-    btn.textContent = '▶ Kirim & Validasi';
+    btn.textContent = labelKirim;
     ['nilai-', 'berkas-', 'unggah-'].forEach((p) => { const el = document.getElementById(p + qId); if (el) { el.disabled = false; el.style.opacity = '1'; } });
     _refreshTugasBtn(qId);
-    _handleModulServerError(err, qId, fb);
+    // Penolakan (angka tidak ada di berkas, berkas tak terbaca) bukan attempt: tugas tetap terbuka.
+    const kode = String((err && err.code) || '').replace(/^functions\//, '');
+    if (fb && ['failed-precondition', 'unavailable', 'invalid-argument'].includes(kode)) { fb.className = 'feedback warn'; fb.textContent = '⚠ ' + (err.message || 'Pengiriman ditolak.'); }
+    else _handleModulServerError(err, qId, fb);
   }
 }
 window.pilihBerkas = pilihBerkas; window.unggahBerkas = unggahBerkas; window.onNilaiInput = onNilaiInput; window.kirimTugas = kirimTugas;
@@ -357,7 +399,14 @@ ganti("""    if (data.codes && typeof data.codes === 'object') {
       });
     }""")
 ganti("    });\n    updateScore();\n    _markLoaded();   // PEDOMAN §18.2",
-      "    });\n    Object.keys(compAnswered).forEach((q) => { if (compAnswered[q] && typeof window._kunciTugasCad === 'function') window._kunciTugasCad(q); });\n    updateScore();\n    _markLoaded();   // PEDOMAN §18.2")
+      "    });\n    scored.forEach((m) => { const r = /^(c[1-5])_comp_(?:ulang|used|partial)$/.exec(m); if (r && typeof window._bukaKirimUlangCad === 'function') window._bukaKirimUlangCad(r[1], restoredDelta(r[1], 0), false); });\n    Object.keys(compAnswered).forEach((q) => { if (compAnswered[q] && typeof window._kunciTugasCad === 'function') window._kunciTugasCad(q); });\n    updateScore();\n    _markLoaded();   // PEDOMAN §18.2")
+
+# Tugas benar yang tercatat: poin dari server (kiriman ulang yang benar bernilai 65 %).
+ganti("        compAnswered[baseId]=true; compScores[baseId]=restoredPts;",
+      "        compAnswered[baseId]=true; compScores[baseId]=restoredDelta(baseId, restoredPts);")
+# Ekspor: tugas yang sudah pernah dikirim dihitung lengkap walau dibuka lagi untuk kirim ulang.
+ganti("  const emptyCompEz  = compEzIds.filter(id => !compAnswered[id]);\n  const emptyCompHard = compHardIds.filter(id => !compAnswered[id]);",
+      "  const sudahKirim = (id) => compAnswered[id] || !!(window._cadSudahKirim && window._cadSudahKirim[id]);\n  const emptyCompEz  = compEzIds.filter(id => !sudahKirim(id));\n  const emptyCompHard = compHardIds.filter(id => !sudahKirim(id));")
 
 # Draft lokal: angka bacaan + metadata berkas yang sudah terunggah (per NIM).
 ganti("""    // Save all 15 code textarea contents (Pedoman §15.4c — textarea = volatile DOM state)
