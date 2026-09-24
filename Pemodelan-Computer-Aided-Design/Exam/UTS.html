@@ -1327,7 +1327,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <ul style="margin-top:12px;line-height:1.8;padding-left:24px">
       <li><strong>Total maksimal: 100 poin</strong>, dengan poin per soal proporsional bobot Sub-CPMK OBE.</li>
       <li><strong>Satu kesempatan</strong>: setiap soal hanya bisa dikirim <strong>satu kali</strong>. Setelah dikirim (benar atau salah), soal terkunci permanen.</li>
-      <li><strong>Tugas pemodelan</strong>: berkas <code>.FCStd</code> wajib diunggah lebih dulu. Angka benar = poin penuh; angka salah tetapi berkas sudah terunggah = <strong>partial credit</strong>.</li>
+      <li><strong>Tugas pemodelan</strong>: berkas <code>.FCStd</code> wajib diunggah lebih dulu. Angka benar = poin penuh; angka salah tetapi berkas sudah terunggah = <strong>partial credit</strong>. Server membaca geometri berkas: angka yang tidak ada di model yang diunggah <strong>ditolak tanpa dihitung</strong> dan soal tetap terbuka.</li>
       <li><strong>Durasi 180 menit + perpanjangan 120 menit</strong>. Pengerjaan setelah tenggat masih dinilai dengan <strong>penalti 35 persen</strong>.</li>
       <li><strong>Konsolasi</strong>: jika hampir seluruh soal dicoba tetapi total poin = 0, otomatis +1 poin konsolasi.</li>
       <li>Setelah selesai, <strong>Export HTML</strong> untuk laporan kerja yang menjadi bukti pengumpulan.</li>
@@ -1416,7 +1416,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Sepuluh tugas pemodelan dengan dimensi milik NIM Anda. Untuk setiap tugas: kerjakan di FreeCAD 1.0, simpan lewat <strong>Ctrl+S</strong> sebagai dokumen <code>.FCStd</code> (bukan Export), unggah berkasnya pada kartu soal, lalu salin angka bacaan yang diminta ke kolom angka. Berkas adalah bukti pengerjaan yang diperiksa dosen; angkanya diperiksa server dengan toleransi.</p>
   <div class="info-box reveal" style="border-left:4px solid var(--amber);background:rgba(249,115,22,.06);margin-top:20px">
     <strong style="color:var(--amber);font-size:14px">⚠ Sebelum klik ▶ Kirim &amp; Validasi</strong>
-    <p style="margin-top:10px;line-height:1.7;font-size:13.5px">Pastikan berkas <strong>.FCStd sudah terunggah</strong> (status hijau berisi nama berkas dan SHA-256 di kartu soal) dan <strong>angka bacaan disalin dari FreeCAD</strong> untuk varian N Anda. Setiap tugas hanya punya <strong>satu kesempatan kirim</strong>; berkas masih boleh diganti selama tugas belum dikirim.</p>
+    <p style="margin-top:10px;line-height:1.7;font-size:13.5px">Pastikan berkas <strong>.FCStd sudah terunggah</strong> (status hijau berisi nama berkas dan SHA-256 di kartu soal) dan <strong>angka bacaan disalin dari model FreeCAD yang diunggah itu</strong> untuk varian N Anda (server memeriksa angkanya pada geometri berkas). Setiap tugas hanya punya <strong>satu kesempatan kirim</strong>; berkas masih boleh diganti selama tugas belum dikirim.</p>
   </div>
   <div id="container-comp-ez" style="margin-top:32px"></div>
 </div>
@@ -2603,7 +2603,8 @@ async function unggahBerkas(qId) {
     berkasTerunggah[qId] = { namaBerkas: d.namaBerkas || f.name, size: d.size || f.size, sha256: d.sha256 || '', uploadedAt: d.uploadedAt || new Date().toISOString(), versi: d.versi || 1 };
     _tampilBerkas(qId);
     if (typeof _saveDraft === 'function') _saveDraft();
-    if (fb) { fb.className = 'feedback correct'; fb.textContent = '✅ Berkas terunggah (v' + (d.versi || 1) + '). Isikan angka bacaan dari FreeCAD, lalu klik ▶ Kirim & Validasi.'; }
+    const geo = d.geometri ? (' Geometri terbaca server: ' + d.geometri.objek + ' objek' + (d.geometri.padat ? ', ' + d.geometri.padat + ' benda padat' : '') + '.') : '';
+    if (fb) { fb.className = 'feedback correct'; fb.textContent = '✅ Berkas terunggah (v' + (d.versi || 1) + ').' + geo + ' Isikan angka bacaan dari model ini, lalu klik ▶ Kirim & Validasi.'; }
   } catch (err) {
     const pesan = (err && err.message) ? err.message : 'Gagal mengunggah berkas';
     _setBerkasStatus(qId, '❌ ' + _escCad(pesan), 'var(--pink)');
@@ -2634,7 +2635,7 @@ async function kirimTugas(qId) {
   const nilai = _parseNilai(inp && inp.value);
   if (!berkasTerunggah[qId]) { if (fb) { fb.className = 'feedback warn'; fb.textContent = '⚠ Unggah berkas .FCStd terlebih dahulu — server menolak angka tanpa bukti model.'; } return; }
   if (nilai === null) { if (fb) { fb.className = 'feedback warn'; fb.textContent = '⚠ Isikan angka bacaan dari FreeCAD (mis. 3200,5).'; } return; }
-  if (!confirm('Kirim tugas ' + qId.toUpperCase() + ' dengan berkas "' + berkasTerunggah[qId].namaBerkas + '" dan angka ' + inp.value.trim() + '?\nSetelah dikirim, berkas dan angka tidak dapat diubah lagi (satu kesempatan).')) return;
+  if (!confirm('Kirim tugas ' + qId.toUpperCase() + ' dengan berkas "' + berkasTerunggah[qId].namaBerkas + '" dan angka ' + inp.value.trim() + '?\nAngka harus terbaca dari geometri berkas itu (angka yang tidak ada di model ditolak tanpa dihitung). Setelah dinilai, berkas dan angka tidak dapat diubah lagi (satu kesempatan).')) return;
 
   compAnswered[qId] = true;                       // kunci optimistis — server tetap otoritas
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Memvalidasi...'; btn.classList.add('running'); }
@@ -2660,7 +2661,11 @@ async function kirimTugas(qId) {
     compAnswered[qId] = false;
     if (btn) { btn.textContent = '▶ Kirim & Validasi'; btn.classList.remove('running'); }
     window._bukaTugasCad(qId);
-    _handleServerExamError(err, qId, fb);
+    // Penolakan server (angka tidak terbaca dari berkas, berkas tak terbaca) tidak
+    // dihitung dan kartu sudah dibuka lagi: tampilkan sebagai peringatan, bukan gembok.
+    const kode = String((err && err.code) || '').replace(/^functions\//, '');
+    if (fb && ['failed-precondition', 'unavailable'].includes(kode)) { fb.className = 'feedback warn'; fb.style.display = 'block'; fb.textContent = '⚠ ' + (err.message || 'Pengiriman ditolak server.'); console.warn('[exam callable]', qId, kode, err && err.message); }
+    else _handleServerExamError(err, qId, fb);
   }
 }
 window.pilihBerkas = pilihBerkas; window.unggahBerkas = unggahBerkas;

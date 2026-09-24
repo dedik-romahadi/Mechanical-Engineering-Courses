@@ -53,6 +53,25 @@ TUJUAN.parent.mkdir(parents=True, exist_ok=True)
 
 d = Sunting(SUMBER.read_text(encoding="utf-8"), K.TUJUAN)
 
+# Blok widget chat AI (AI-CHAT-AGENT:BEGIN/END) dihasilkan SATU sumber di repo
+# backend (frontend-integration/apply-ai-chat.js) dan isinya sama di seluruh 96
+# halaman modul/ujian: daftar topik keenam mata kuliah, COURSE_NAMES, dan pola
+# modul/exam. Blok itu memang memuat "teknik_tenaga_listrik" dan "Teknik Tenaga
+# Listrik", jadi disisihkan dulu supaya sapuan identitas course (bagian 12) dan
+# penjaga sisa kerangka (bagian 13) tidak menyentuhnya, lalu dikembalikan utuh
+# di akhir. Dulu generator menambal blok ini sendiri; sejak blok diseragamkan
+# (#938) tambalan itu meleset dan build gagal.
+_BLOK_AI = re.compile(r"<!-- AI-CHAT-AGENT:BEGIN v\d+[^>]*-->.*?<!-- AI-CHAT-AGENT:END v\d+ -->", re.S)
+_PENANDA_AI = "<!--@@BLOK-AI-CHAT-AGENT@@-->"
+_blok_ai = _BLOK_AI.findall(d.s)
+assert len(_blok_ai) == 1, f"[{K.TUJUAN}] blok AI-CHAT-AGENT kerangka: {len(_blok_ai)}x, harap 1x"
+BLOK_AI = _blok_ai[0]
+for _wajib in ('"pemodelan_cad": [', '"pemodelan_cad": "', "pemodelan-cad)-(uts|uas)", "pemodelan_cad)-modul-"):
+    assert _wajib in BLOK_AI, (
+        f"blok AI-CHAT-AGENT kerangka belum mengenal Pemodelan CAD ({_wajib!r}); jalankan dulu "
+        "node frontend-integration/apply-ai-chat.js <repo-frontend> di repo backend")
+d.s = d.s.replace(BLOK_AI, _PENANDA_AI)
+
 # Kerangka UAS memakai nama penanda render campur aduk (_utsRendered pada halaman
 # UAS). Samakan dulu supaya jangkar di bawah cukup satu bentuk.
 d.s = re.sub(r"_(?:uts|uas)(Rendered|QuestionsLoading|ServerN|RenderRetryStarted)",
@@ -215,7 +234,7 @@ badan = f'''<!-- ═══ PETUNJUK PENGERJAAN {LABEL} ═══ -->
     <ul style="margin-top:12px;line-height:1.8;padding-left:24px">
       <li><strong>Total maksimal: 100 poin</strong>, dengan poin per soal proporsional bobot Sub-CPMK OBE.</li>
       <li><strong>Satu kesempatan</strong>: setiap soal hanya bisa dikirim <strong>satu kali</strong>. Setelah dikirim (benar atau salah), soal terkunci permanen.</li>
-      <li><strong>Tugas pemodelan</strong>: berkas <code>.FCStd</code> wajib diunggah lebih dulu. Angka benar = poin penuh; angka salah tetapi berkas sudah terunggah = <strong>partial credit</strong>.</li>
+      <li><strong>Tugas pemodelan</strong>: berkas <code>.FCStd</code> wajib diunggah lebih dulu. Angka benar = poin penuh; angka salah tetapi berkas sudah terunggah = <strong>partial credit</strong>. Server membaca geometri berkas: angka yang tidak ada di model yang diunggah <strong>ditolak tanpa dihitung</strong> dan soal tetap terbuka.</li>
       <li><strong>Durasi {K.DURASI}</strong>. Pengerjaan setelah tenggat masih dinilai dengan <strong>penalti {K.PENALTI}</strong>.</li>
       <li><strong>Konsolasi</strong>: jika hampir seluruh soal dicoba tetapi total poin = 0, otomatis +1 poin konsolasi.</li>
       <li>Setelah selesai, <strong>Export HTML</strong> untuk laporan kerja yang menjadi bukti pengumpulan.</li>
@@ -299,7 +318,7 @@ badan = f'''<!-- ═══ PETUNJUK PENGERJAAN {LABEL} ═══ -->
   <p class="section-desc reveal">{K.BAGIAN_B_DESC}</p>
   <div class="info-box reveal" style="border-left:4px solid var(--amber);background:rgba(249,115,22,.06);margin-top:20px">
     <strong style="color:var(--amber);font-size:14px">⚠ Sebelum klik ▶ Kirim &amp; Validasi</strong>
-    <p style="margin-top:10px;line-height:1.7;font-size:13.5px">Pastikan berkas <strong>.FCStd sudah terunggah</strong> (status hijau berisi nama berkas dan SHA-256 di kartu soal) dan <strong>angka bacaan disalin dari FreeCAD</strong> untuk varian N Anda. Setiap tugas hanya punya <strong>satu kesempatan kirim</strong>; berkas masih boleh diganti selama tugas belum dikirim.</p>
+    <p style="margin-top:10px;line-height:1.7;font-size:13.5px">Pastikan berkas <strong>.FCStd sudah terunggah</strong> (status hijau berisi nama berkas dan SHA-256 di kartu soal) dan <strong>angka bacaan disalin dari model FreeCAD yang diunggah itu</strong> untuk varian N Anda (server memeriksa angkanya pada geometri berkas). Setiap tugas hanya punya <strong>satu kesempatan kirim</strong>; berkas masih boleh diganti selama tugas belum dikirim.</p>
   </div>
   <div id="container-comp-ez" style="margin-top:32px"></div>
 </div>
@@ -1007,42 +1026,6 @@ d.ganti_re(
 d.ganti_re(r"  const LK = 'teknik_tenaga_listrik_identity_u(?:ts|as)';",
            f"  const LK = 'pemodelan_cad_identity_{JENIS}';")
 
-# Registry chat AI: daftar topik + nama course + pola examId.
-d.ganti_re(
-    r'    "teknik_tenaga_listrik": \[\n(?:      "[^"]*",\n)+    \],\n',
-    '''    "pemodelan_cad": [
-      "Pengenalan FreeCAD dan Menggambar 2D",
-      "Drafting dan Penyuntingan 2D: Trim, Extend, Offset, Layer, Dimensi",
-      "Bentuk Dasar 2D, Pengukuran, dan Transformasi Objek",
-      "Dimensi, Anotasi, dan Format Gambar Teknik",
-      "Pemodelan 3D Berbasis Sketsa: Extrude, Revolve, Sweep",
-      "Sudut Pandang, Proyeksi, dan Manajemen Tampilan 3D",
-      "Proyek Gabungan 2D dan 3D, Blok, dan Sub-Assembly",
-      "Simulasi Kinerja Komponen: Tegangan, Termal, Kinematik",
-      "Evaluasi Hasil Simulasi dan Analisis Kekuatan",
-      "Optimasi Desain Pasca-Simulasi",
-      "Perakitan Komponen dan Analisis Sistem",
-      "Identifikasi Masalah Desain dan Solusi Optimasi",
-      "Prinsip Desain Berkelanjutan dalam CAD",
-      "Optimasi Desain untuk Efisiensi dan Lingkungan",
-    ],
-''',
-)
-d.ganti('    "teknik_tenaga_listrik": "Teknik Tenaga Listrik",\n  };',
-        '    "pemodelan_cad": "Pemodelan CAD",\n  };')
-d.ganti_re(
-    r'var e = /\^\(getaran-mekanik\|math4\|optoauto\|sisken(?:\|teknik-tenaga-listrik)?\)-\(uts\|uas\)\$/\.exec\(id\);',
-    'var e = /^(getaran-mekanik|math4|optoauto|sisken|pemodelan-cad)-(uts|uas)$/.exec(id);',
-)
-d.ganti_re(
-    r'var examCourseId = e\[1\] === "sisken" \? "sistem_kendali_cerdas" : (?:e\[1\] === "teknik-tenaga-listrik" \? "teknik_tenaga_listrik" : )?e\[1\];',
-    'var examCourseId = e[1] === "sisken" ? "sistem_kendali_cerdas" : e[1] === "pemodelan-cad" ? "pemodelan_cad" : e[1];',
-)
-d.ganti_re(
-    r'var m = /\^\(getaran-mekanik\|math4\|optoauto\|sistem_kendali_cerdas\|teknik_tenaga_listrik\)-modul-\(\\d\{1,2\}\)\$/\.exec\(id\);',
-    lambda _m: 'var m = /^(getaran-mekanik|math4|optoauto|sistem_kendali_cerdas|pemodelan_cad)-modul-(\\d{1,2})$/.exec(id);',
-)
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 12. Sapuan akhir identitas course
 # ═════════════════════════════════════════════════════════════════════════════
@@ -1080,6 +1063,9 @@ d.wajib_ada(
     "_terapkanSyaratBerkas",
     "_parseNilai",
 )
+
+# Blok widget chat AI dikembalikan utuh (lihat catatan di awal berkas).
+d.ganti(_PENANDA_AI, BLOK_AI)
 
 # newline="\n": seluruh repo memakai LF, dan penyuntik .mjs mencari jangkar
 # ber-"\n" — menulis dengan terjemahan baris bawaan Windows (CRLF) membuat

@@ -158,7 +158,8 @@ async function unggahBerkas(qId) {
     berkasTerunggah[qId] = { namaBerkas: d.namaBerkas || f.name, size: d.size || f.size, sha256: d.sha256 || '', uploadedAt: d.uploadedAt || new Date().toISOString(), versi: d.versi || 1 };
     _tampilBerkas(qId);
     if (typeof _saveDraft === 'function') _saveDraft();
-    if (fb) { fb.className = 'feedback correct'; fb.textContent = '✅ Berkas terunggah (v' + (d.versi || 1) + '). Isikan angka bacaan dari FreeCAD, lalu klik ▶ Kirim & Validasi.'; }
+    const geo = d.geometri ? (' Geometri terbaca server: ' + d.geometri.objek + ' objek' + (d.geometri.padat ? ', ' + d.geometri.padat + ' benda padat' : '') + '.') : '';
+    if (fb) { fb.className = 'feedback correct'; fb.textContent = '✅ Berkas terunggah (v' + (d.versi || 1) + ').' + geo + ' Isikan angka bacaan dari model ini, lalu klik ▶ Kirim & Validasi.'; }
   } catch (err) {
     const pesan = (err && err.message) ? err.message : 'Gagal mengunggah berkas';
     _setBerkasStatus(qId, '❌ ' + _escCad(pesan), 'var(--pink)');
@@ -189,7 +190,7 @@ async function kirimTugas(qId) {
   const nilai = _parseNilai(inp && inp.value);
   if (!berkasTerunggah[qId]) { if (fb) { fb.className = 'feedback warn'; fb.textContent = '⚠ Unggah berkas .FCStd terlebih dahulu — server menolak angka tanpa bukti model.'; } return; }
   if (nilai === null) { if (fb) { fb.className = 'feedback warn'; fb.textContent = '⚠ Isikan angka bacaan dari FreeCAD (mis. 3200,5).'; } return; }
-  if (!confirm('Kirim tugas ' + qId.toUpperCase() + ' dengan berkas "' + berkasTerunggah[qId].namaBerkas + '" dan angka ' + inp.value.trim() + '?\\nSetelah dikirim, berkas dan angka tidak dapat diubah lagi (satu kesempatan).')) return;
+  if (!confirm('Kirim tugas ' + qId.toUpperCase() + ' dengan berkas "' + berkasTerunggah[qId].namaBerkas + '" dan angka ' + inp.value.trim() + '?\\nAngka harus terbaca dari geometri berkas itu (angka yang tidak ada di model ditolak tanpa dihitung). Setelah dinilai, berkas dan angka tidak dapat diubah lagi (satu kesempatan).')) return;
 
   compAnswered[qId] = true;                       // kunci optimistis — server tetap otoritas
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Memvalidasi...'; btn.classList.add('running'); }
@@ -215,7 +216,11 @@ async function kirimTugas(qId) {
     compAnswered[qId] = false;
     if (btn) { btn.textContent = '▶ Kirim & Validasi'; btn.classList.remove('running'); }
     window._bukaTugasCad(qId);
-    _handleServerExamError(err, qId, fb);
+    // Penolakan server (angka tidak terbaca dari berkas, berkas tak terbaca) tidak
+    // dihitung dan kartu sudah dibuka lagi: tampilkan sebagai peringatan, bukan gembok.
+    const kode = String((err && err.code) || '').replace(/^functions\\//, '');
+    if (fb && ['failed-precondition', 'unavailable'].includes(kode)) { fb.className = 'feedback warn'; fb.style.display = 'block'; fb.textContent = '⚠ ' + (err.message || 'Pengiriman ditolak server.'); console.warn('[exam callable]', qId, kode, err && err.message); }
+    else _handleServerExamError(err, qId, fb);
   }
 }
 window.pilihBerkas = pilihBerkas; window.unggahBerkas = unggahBerkas;
