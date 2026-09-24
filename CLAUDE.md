@@ -114,7 +114,8 @@ ditambah dua yang sedang disiapkan bertahap:
 > "Optimalisasi & Automasi" (huruf A) atas permintaan dosen — jangan "diperbaiki".
 
 Total berkas HTML utama: **84 modul + 12 exam + 6 OBE**. Pemodelan CAD: Modul 1–14 terbit (FreeCAD 1.0; 10 PG + 5 tugas unggah berkas
-`.FCStd` + angka bacaan, generator `scripts/cad-modul/bangun-modul-1.py`; berkas dosen
+`.FCStd` + angka bacaan yang wajib terbaca dari geometri berkas (divalidasi server sejak 24 September 2026;
+tugas modul yang salah boleh dikirim ulang dengan nilai maksimal 65%), generator `scripts/cad-modul/bangun-modul-1.py`; berkas dosen
 di `Admin/berkas-tugas.html`), **UTS dan UAS terbit 20 September 2026** dengan bentuk
 sendiri: UTS 30 soal (20 PG + 10 tugas unggah model), UAS 31 soal (20 PG + 10 sub-model
 komponen kompresor KT-40 + 1 tugas rakitan). Tanpa soal benar-salah dan tanpa Pyodide;
