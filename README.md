@@ -32,11 +32,11 @@ Yang bisa dilakukan mahasiswa di sini:
 | `Getaran-Mekanik/` | `getaran_mekanik` | Getaran Mekanik | Getaran bebas & paksa, sistem 2-DoF, analisis modal, FFT/STFT |
 | `Optimalisasi-dan-Automasi/` | `optoauto` | Optimalisasi & Otomasi | Time series, ekstraksi fitur, optimasi linear/non-linear, machine learning |
 | `Sistem-Kendali-Cerdas/` | `sistem_kendali_cerdas` | Sistem Kendali Cerdas | Fungsi transfer, respons sistem umpan balik, PID, logika fuzzy, jaringan saraf tiruan, algoritma genetika |
-| `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | Pemodelan Computer Aided Design (CAD) | Pengantar CAD, penggambaran 2D dan pemodelan 3D, simulasi dan analisis kinerja komponen, perakitan, desain berkelanjutan dan optimasi — *sedang disiapkan* |
+| `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | Pemodelan Computer Aided Design (CAD) | Pengantar CAD, penggambaran 2D dan pemodelan 3D, simulasi dan analisis kinerja komponen, perakitan, desain berkelanjutan dan optimasi — *Modul 1–14 (HTML + Word/PDF), UTS, dan UAS sudah terbit; tugas pemodelan diserahkan sebagai berkas FreeCAD (`.FCStd`) di samping soal PG* |
 | `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | Teknik Tenaga Listrik | Daya pada jaringan DC dan AC, saluran transmisi, sistem distribusi, proteksi, single line diagram dan load flow — *Modul 1–14 (HTML + Word/PDF), UTS, dan UAS sudah terbit* |
 
-Empat mata kuliah pertama masing-masing berisi **14 modul + UTS + UAS + dokumen OBE**, lengkap dengan versi Word/PDF tiap modul. Pemodelan CAD dan Teknik Tenaga Listrik disiapkan bertahap: Pemodelan CAD baru memiliki **Silabus/OBE dan RPS**, sedangkan Teknik Tenaga Listrik sudah lengkap: **Modul 1–14 (HTML dan Word/PDF), UTS, dan UAS**.
-Total: **70 halaman modul · 9 halaman ujian · 6 dokumen OBE · 72 banner pertemuan**.
+Keenam mata kuliah masing-masing berisi **14 modul + UTS + UAS + dokumen OBE**, lengkap dengan versi Word/PDF tiap modul. Pemodelan CAD dan Teknik Tenaga Listrik ditambahkan bertahap pada September 2026 dan kini sudah lengkap.
+Total: **84 halaman modul · 12 halaman ujian · 6 dokumen OBE · 110 halaman banner**.
 
 ## 🗂️ Struktur Repository
 
@@ -53,7 +53,7 @@ Mechanical-Engineering-Courses/
 ├── Admin/              Tools dosen (rescale-deadline, reset-soal, recompute-obe-score, verify-export-code, ...)
 ├── PDD-UKTPT/          Portofolio pengajaran Serdos 2026 (slide + video + narasi)
 ├── Template-Modul-Word-dan-PPT/   Template resmi BOP — jangan diubah
-├── Unduhan-Gabungan/   PDF gabungan modul, ujian, dan RPS per mata kuliah
+├── Unduhan-Gabungan/   PDF gabungan modul dan RPS per mata kuliah
 ├── Images/             Logo dan foto
 ├── scripts/            Generator, penyuntik idempoten, dan validator (≈50 skrip)
 ├── index.html          Halaman depan situs
