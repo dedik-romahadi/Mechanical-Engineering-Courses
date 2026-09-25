@@ -2,7 +2,7 @@
 
 > **Status:** acuan keadaan sistem saat ini, diperbarui 10 Agustus 2026
 >
-> **Lingkup:** LMS empat mata kuliah S1 Teknik Mesin Universitas Mercu Buana
+> **Lingkup:** LMS enam mata kuliah S1 Teknik Mesin Universitas Mercu Buana
 >
 > **Dosen pengampu:** Dedik Romahadi
 >
@@ -86,8 +86,8 @@ Secret runtime yang dibuat di Firebase Secret Manager adalah `EXPORT_CODE_SECRET
 | `Getaran-Mekanik/` | `getaran_mekanik` | `getaran-mekanik` | Getaran Mekanik |
 | `Optimalisasi-dan-Automasi/` | `optoauto` | `optoauto` | Optimalisasi & Otomasi |
 | `Sistem-Kendali-Cerdas/` | `sistem_kendali_cerdas` | `sisken` | Sistem Kendali Cerdas |
-| `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | — (belum ada exam) | Pemodelan Computer Aided Design (CAD) |
-| `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | `teknik-tenaga-listrik` (UTS terbit; UAS menyusul) | Teknik Tenaga Listrik |
+| `Pemodelan-Computer-Aided-Design/` | `pemodelan_cad` | `pemodelan-cad` | Pemodelan Computer Aided Design (CAD) |
+| `Teknik-Tenaga-Listrik/` | `teknik_tenaga_listrik` | `teknik-tenaga-listrik` | Teknik Tenaga Listrik |
 
 Perhatikan Sistem Kendali Cerdas memakai **dua penamaan berbeda** yang keduanya benar dan tidak boleh disamakan: course id/path Firebase `sistem_kendali_cerdas` (dengan garis bawah), tetapi prefix exam `sisken` (`sisken-uts`, `sisken-uas`). Nama berkas kunci modul juga memakai bentuk panjang: `functions/seed/modul/sistem_kendali_cerdas-modul-N-answers.js`.
 
@@ -161,10 +161,10 @@ Setiap course mempunyai:
 
 Inventaris utama saat ini:
 
-- 84 modul: 14 per course aktif + Modul 1–14 Teknik Tenaga Listrik + Modul 1–14 Pemodelan CAD;
-- 10 exam: UTS dan UAS per course aktif, termasuk Teknik Tenaga Listrik;
-- 6 halaman OBE (termasuk Pemodelan CAD yang belum punya exam dan Teknik Tenaga Listrik yang baru punya UTS);
-- total 86 halaman HTML inti;
+- 84 modul: 14 per course untuk keenam mata kuliah;
+- 12 exam: UTS dan UAS per course;
+- 6 halaman OBE;
+- total 102 halaman HTML inti;
 - 6 halaman Admin HTML dan satu helper analisis Python.
 
 Halaman standalone lama di `Attributes/` (`Nilai-Akhir.html`, `Pembagian-Kelompok.html`, `Setup-Python.html`) **sudah dihapus** dari Matematika 4, Getaran Mekanik, dan Optimalisasi. Halaman itu memakai login lama (nama + NIM, tanpa PIN) dan fungsinya sudah ada di dalam halaman modul. Tautannya di `index.html` ikut dihapus. Jangan membuatnya kembali; jika perlu, tambahkan sebagai tab di halaman modul supaya ikut gerbang PIN.
@@ -318,7 +318,7 @@ Ketentuan saat ini:
 
 ### 4.5 Akun simulasi mahasiswa
 
-Untuk menguji alur mahasiswa tanpa mengotori data, ada satu akun uji: NIM `41399999901`, nama roster "SIMULASI MAHASISWA", terdaftar di `students.json` empat course aktif dan Teknik Tenaga Listrik. PIN-nya hanya tersimpan sebagai hash di `pins/` dan **tidak ditulis di repo mana pun**. Daftar NIM-nya harus sama di dua tempat: `SIM_NIMS` di backend `functions/index.js` dan di `scripts/kecualikan-akun-simulasi.mjs` (disuntikkan ke 65 halaman modul/exam dan 4 halaman OBE).
+Untuk menguji alur mahasiswa tanpa mengotori data, ada satu akun uji: NIM `41399999901`, nama roster "SIMULASI MAHASISWA", terdaftar di `students.json` keenam course. PIN-nya hanya tersimpan sebagai hash di `pins/` dan **tidak ditulis di repo mana pun**. Daftar NIM-nya harus sama di tiga tempat: `SIM_NIMS` di backend `functions/index.js`, di `scripts/kecualikan-akun-simulasi.mjs` (disuntikkan ke 96 halaman modul/exam dan 6 halaman OBE), dan di `scripts/tambah-progres-modul.mjs` (disuntikkan ke 84 halaman modul; mengatur perlakuan akun simulasi pada progres materi).
 
 | Aspek | Perilaku akun simulasi |
 |---|---|
@@ -338,7 +338,7 @@ Saat membersihkan sisa data akun ini di Firestore, ingat kunci dokumen modul mem
 - Di tab Hasil akun ini melihat papan peringkat dan roster mahasiswa lain, tetapi **tidak melihat dirinya sendiri** (tidak ada record pengunjung). Bilah poin di tab Tugas menunjukkan poin lokal sesi itu saja dan hilang saat muat ulang.
 - Gerbang antar-modul tidak bisa diuji dengan akun ini (selalu lolos); lapis servernya diuji lewat data mahasiswa nyata (lihat §6.7).
 
-**Mengganti nama atau PIN:** nama ada di lima `students.json` **dan** di RTDB `pins/mhs_41399999901.nama` (perbarui keduanya; `pins/` hanya bisa ditulis admin SDK karena write-once untuk klien). Mengganti PIN: hapus node `pins/mhs_41399999901`, lalu login sekali dengan PIN baru (alur "Buat PIN" akan menulis hash baru). Jangan pernah menuliskan PIN-nya di repo, commit, atau dokumen ini.
+**Mengganti nama atau PIN:** nama ada di enam `students.json` **dan** di RTDB `pins/mhs_41399999901.nama` (perbarui keduanya; `pins/` hanya bisa ditulis admin SDK karena write-once untuk klien). Mengganti PIN: hapus node `pins/mhs_41399999901`, lalu login sekali dengan PIN baru (alur "Buat PIN" akan menulis hash baru). Jangan pernah menuliskan PIN-nya di repo, commit, atau dokumen ini.
 
 ---
 
@@ -567,9 +567,11 @@ Berlaku di keempat course sejak 22 Agustus 2026 (permintaan dosen), dan di Tekni
 
 ### 6.8 Sistem Agen AI berbasis sumber
 
-Mode **Asisten Dosen** memakai panel Chat Kelas yang sama pada 70 halaman modul
-dan 10 halaman UTS/UAS (lima mata kuliah; halaman Pemodelan CAD belum masuk
-registry sehingga moduleId-nya masih ditolak). Ini bukan model yang dilatih ulang dengan seluruh data
+Mode **Asisten Dosen** memakai panel Chat Kelas yang sama pada 84 halaman modul
+dan 12 halaman UTS/UAS (enam mata kuliah). Teknik Tenaga Listrik masuk registry
+lewat backend PR #74 dan Pemodelan CAD lewat backend PR #75. ID ujian keduanya
+bertanda hubung (`teknik-tenaga-listrik-uts`/`-uas`, `pemodelan-cad-uts`/`-uas`),
+tidak seperti ID modulnya yang bergaris bawah (`pemodelan_cad-modul-1`). Ini bukan model yang dilatih ulang dengan seluruh data
 kampus. Sistem memakai retrieval-augmented generation (RAG) dari sumber privat
 yang diizinkan, dengan tiga lapis:
 
@@ -581,8 +583,8 @@ yang diizinkan, dengan tiga lapis:
 
 Callable `getModuleChatContext` menyiapkan konteks awal tanpa model, sedangkan
 `aiChat` mengorkestrasi ketiga lapis. Browser hanya mengirim `moduleId`, pesan,
-dan riwayat terbatas. Backend memverifikasi `moduleId` terhadap allowlist 80
-halaman, menyusun ulang metadata dari registry, dan membaca jadwal aktual dari
+dan riwayat terbatas. Backend memverifikasi `moduleId` terhadap allowlist 96
+halaman (84 modul + 12 ujian), menyusun ulang metadata dari registry, dan membaca jadwal aktual dari
 RTDB; metadata buatan browser diabaikan. NIM, nama akun, dan hash PIN hanya
 dipakai untuk autentikasi/kuota dan tidak dikirim ke penyedia model. Sebelum
 request keluar, `chat/privacy.js` menyunting NIM, email, nomor telepon, dan token
@@ -593,7 +595,9 @@ Indeks privat dibangun hanya dari area materi `#page-modul` sebelum
 halaman OBE. Area Tugas/Forum/Hasil, halaman ujian, bank soal, pembahasan, kunci
 jawaban, roster, dan data pribadi tidak boleh masuk generator atau indeks.
 `knowledge-base.json` tetap berada di repo backend privat dan tidak boleh
-disalin ke frontend.
+disalin ke frontend. Per 24 September 2026 (backend PR #79) indeksnya berisi
+2.596 potongan untuk enam mata kuliah, termasuk Teknik Tenaga Listrik 414 dan
+Pemodelan CAD 372.
 
 Jawaban materi wajib memakai sitasi yang ada pada hasil retrieval serta tetap
 terisolasi pada mata kuliah aktif. Jawaban tanpa sitasi valid, sitasi rekaan,
@@ -624,7 +628,7 @@ npm.cmd test
 ```
 
 Sumber integrasi UI berada di `frontend-integration/` pada repo backend. Hanya
-jika blok UI/agent berubah, terapkan dan periksa generator ke seluruh 80 halaman;
+jika blok UI/agent berubah, terapkan dan periksa generator ke seluruh 96 halaman;
 jangan mengedit salinan inline satu per satu:
 
 ```powershell
