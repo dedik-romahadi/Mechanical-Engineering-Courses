@@ -83,8 +83,8 @@ lain per area ada di `Pedoman-Modul.md` §17.1.
 
 LMS multi-course untuk **S1 Teknik Mesin Universitas Mercu Buana** (dosen:
 Dedik Romahadi). Satu berkas HTML mandiri per modul/exam; Firebase RTDB +
-Firestore + Cloud Functions di belakang (repo privat). Empat mata kuliah aktif,
-ditambah dua yang sedang disiapkan bertahap:
+Firestore + Cloud Functions di belakang (repo privat). Enam mata kuliah aktif;
+Pemodelan CAD dan Teknik Tenaga Listrik ditambahkan bertahap pada September 2026:
 
 | Folder | Course ID | Slug callable modul | Singkatan |
 |---|---|---|---|
@@ -178,9 +178,10 @@ repo publik ini.
     server, tab terkunci, forum tersimpan) kecuali boleh membatalkan centang
     terakhir (`setModulCentang` dengan `batal:true`) dan selalu lolos gerbang
     antar-modul — gerbang itu tidak bisa diuji dengan akun ini;
-  - daftar NIM-nya harus sama di dua tempat: `SIM_NIMS` di backend
-    `functions/index.js` dan `scripts/kecualikan-akun-simulasi.mjs` di sini
-    (disuntikkan ke 80 halaman modul/exam + 4 halaman OBE); nama ada di lima `students.json` **dan**
+  - daftar NIM-nya harus sama di tiga tempat: `SIM_NIMS` di backend
+    `functions/index.js`, `scripts/kecualikan-akun-simulasi.mjs` di sini
+    (disuntikkan ke 96 halaman modul/exam + 6 halaman OBE), dan
+    `scripts/tambah-progres-modul.mjs` (84 halaman modul); nama ada di enam `students.json` **dan**
     RTDB `pins/mhs_41399999901.nama`;
   - saat membersihkan sisa datanya, kunci Firestore modul memakai prefiks
     `mhs_` (`modulAttempts/<id>/students/mhs_<nim>`), exam tidak.
