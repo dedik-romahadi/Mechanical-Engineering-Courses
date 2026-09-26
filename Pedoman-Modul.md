@@ -518,21 +518,18 @@ admin-only lewat callable `rescaleExamLatePenalty` (parameter `nims[]` +
   daftar telanjur tertulis).
 - **Batas 30 hari untuk rescale satu kelas.** Rules RTDB membatasi `duration`
   UTS/UAS paling banyak 43200 menit (30 hari) untuk tulisan klien, termasuk
-  modal Atur Jadwal. Rescale satu kelas menulis lewat Admin SDK, yang melewati
-  rules, dan belum membatasinya. Deadline Baru lebih dari 30 hari sesudah
-  `start` menghasilkan `duration` di atas batas, misalnya perpanjangan
-  berminggu-minggu sesudah ujian dengan preset yang dihitung dari hari ini, atau
-  rescale jadwal penutup (`duration` 1, `end` ≤ 2000-01-02). Server dan halaman
-  tetap memakai jadwal itu, tetapi menyimpan ulang Atur Jadwal tanpa perubahan
-  ditolak rules (`PERMISSION_DENIED`) sampai Durasi diperkecil, yang menggeser
-  waktu mulai. `rescale-deadline.html` membaca `start` ujian (node `settings`
-  terbaca publik) dan memperingatkannya di dialog konfirmasi dan di Diagnose,
-  tanpa memblokir. Untuk ujian susulan sebagian mahasiswa, pakai kolom NIM:
-  override tidak menulis `duration`. Sejak deploy cabang backend
-  `fix/chat-kenapa-admin-dan-rescale-due`, rescale satu kelas menghapus
-  `duration` yang di luar 1..43200 menit sehingga modal meminta Durasi diisi
-  alih-alih ditolak rules; sampai deploy itu, callable produksi masih menulis
-  `duration` di atas batas seperti di atas.
+  modal Atur Jadwal. Deadline Baru lebih dari 30 hari sesudah `start` (misalnya
+  perpanjangan berminggu-minggu sesudah ujian dengan preset yang dihitung dari
+  hari ini, atau rescale jadwal penutup dengan `duration` 1 dan `end` ≤
+  2000-01-02) tetap diterapkan server, tetapi rescale satu kelas lalu
+  **menghapus** `duration` (sejak deploy cabang backend
+  `fix/chat-kenapa-admin-dan-rescale-due`; sebelumnya ia menulis `duration` di
+  atas batas sehingga simpan ulang ditolak `PERMISSION_DENIED`). Akibatnya modal
+  Atur Jadwal meminta Durasi diisi, dan Durasi ≤ 43200 yang diisi menggeser
+  waktu mulai (`start = due − duration`). `rescale-deadline.html` membaca
+  `start` ujian (node `settings` terbaca publik) dan memperingatkannya di dialog
+  konfirmasi dan di Diagnose, tanpa memblokir. Untuk ujian susulan sebagian
+  mahasiswa, pakai kolom NIM: override tidak menulis `duration`.
 
 Penjaganya `scripts/verify-rescale-jadwal-modul.js` di `npm test` backend, yang
 juga menjalankan modal kedua belas halaman ujian (§17.2). Penulisan `end`/`due`/
@@ -1251,7 +1248,7 @@ Daftar callable yang digunakan sistem saat ini:
 | `resetModulQuestion` | admin | reset soal tertentu/semua untuk satu atau semua mahasiswa |
 | `resetExamQuestion` | admin | reset soal tertentu/semua untuk satu atau semua mahasiswa |
 | `rescaleModulLatePenalty` | admin | menghitung ulang penalti modul, dapat dibatasi NIM; `newEnd` tanpa `nims` memperpanjang jadwal global dengan menulis `end` dan `due` (waktu buka tetap, §5.4); menolak sebelum menulis deadline satu kelas yang tidak berselisih kelipatan 24 jam dari waktu buka, deadline pada/sebelum waktu buka, dan hitung ulang tanpa `newEnd` saat `end` ≠ `due` (§5.4). Semuanya sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; sebelumnya hanya `end` yang ditulis, tanpa penolakan |
-| `rescaleExamLatePenalty` | admin | menghitung ulang penalti keterlambatan exam (UTS/UAS), dapat dibatasi NIM; parameter `nims[]`+`newEnd`/`newExtension` menulis `scheduleOverrides` untuk ujian susulan (§5.5); `newEnd` tanpa `nims` menulis `end`, `due`, dan `duration` jadwal global dengan `start` tetap; tiap mahasiswa dinilai ulang terhadap override-nya (`overriddenStudents`); deadline pada/sebelum `start` dan NIM tidak sah ditolak sebelum menulis (§5.5). Semuanya sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; sebelumnya hanya `end`, terhadap jadwal global, tanpa penolakan. Belum membatasi `duration` satu kelas pada 43200 menit (§5.5) |
+| `rescaleExamLatePenalty` | admin | menghitung ulang penalti keterlambatan exam (UTS/UAS), dapat dibatasi NIM; parameter `nims[]`+`newEnd`/`newExtension` menulis `scheduleOverrides` untuk ujian susulan (§5.5); `newEnd` tanpa `nims` menulis `end`, `due`, dan `duration` jadwal global dengan `start` tetap; tiap mahasiswa dinilai ulang terhadap override-nya (`overriddenStudents`); deadline pada/sebelum `start` dan NIM tidak sah ditolak sebelum menulis; `duration` di luar 1..43200 menit dihapus sehingga modal Atur Jadwal meminta Durasi (§5.5). Semuanya sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; sebelumnya hanya `end`, terhadap jadwal global, tanpa penolakan |
 | `analyzeModulData` | admin | menganalisis data modul dan anomali grading |
 | `recomputeExamPoints` | admin | menghitung ulang total exam dari ledger |
 | `computeObeScores` | admin | menghitung TGS/UTS/UAS per Sub-CPMK |

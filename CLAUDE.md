@@ -207,8 +207,9 @@ repo publik ini.
   Jadwal modul menyimpan `start = due − Durasi` hari penuh, jadi jam deadline
   harus sama dengan jam buka modul), deadline pada/sebelum waktu buka modul
   atau `start` ujian, dan hitung ulang modul tanpa Deadline Baru saat
-  `end` ≠ `due` (§5.4). Jendela ujian lebih dari 30 hari (`duration` > 43200
-  menit) tidak bisa disimpan ulang dari modal Atur Jadwal karena rules;
+  `end` ≠ `due` (§5.4). Rescale ujian satu kelas yang membuat jendela lebih
+  dari 30 hari menghapus `duration` (rules membatasi 43200 menit), sehingga
+  modal Atur Jadwal meminta Durasi dan Durasi yang diisi menggeser waktu mulai;
   `rescale-deadline.html` memperingatkannya.
 - **Penalti terlambat 0,65** (potongan 35%) seragam semua course; sumber
   kebenarannya server (`cfg.lateMultiplierValue`). Partial Hard 0,5.

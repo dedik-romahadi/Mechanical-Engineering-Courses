@@ -106,7 +106,7 @@
     </div>
     <div class="hint">Klik input untuk picker, atau pilih preset. Waktu lokal browser Anda (asumsi WIB). Kosongkan = pakai deadline yang sudah ada — pada Modul, server menolaknya bila jadwal menyimpan dua deadline berbeda (<code>end</code> ≠ <code>due</code>); isi Deadline Baru sekali dengan NIM kosong untuk menyelaraskannya. Deadline pada/sebelum waktu buka modul atau waktu mulai ujian selalu ditolak.</div>
     <div class="hint" id="modulDeadlineNote">Modul, NIM kosong: jam deadline harus sama dengan <b>jam buka modul</b> (selisih kelipatan 24 jam), karena Atur Jadwal di halaman modul menyimpan waktu buka = deadline − Durasi hari penuh. Preset 23:59 hanya cocok untuk modul yang dibuka pukul 23.59 WIB; bila jamnya lain, server menolak dan menyebut jam buka serta dua deadline yang sah.</div>
-    <div class="hint" id="examDeadlineNote" style="display:none">Ujian, NIM kosong: jaga deadline paling lambat <b>30 hari</b> sesudah waktu mulai ujian. Server tetap menyimpan jendela yang lebih panjang, tetapi Atur Jadwal di halaman ujian lalu tidak bisa menyimpan ulang jadwal itu (rules membatasi Durasi 43200 menit); tool ini memperingatkan sebelum menjalankannya.</div>
+    <div class="hint" id="examDeadlineNote" style="display:none">Ujian, NIM kosong: jaga deadline paling lambat <b>30 hari</b> sesudah waktu mulai ujian. Server tetap menerapkan jendela yang lebih panjang, tetapi menghapus Durasinya (rules membatasi Durasi 43200 menit), sehingga Atur Jadwal di halaman ujian lalu meminta Durasi diisi dan Durasi yang diisi menggeser waktu mulai; tool ini memperingatkan sebelum menjalankannya.</div>
 
     <div id="extWrap" style="display:none">
       <label>Perpanjangan Waktu (menit) — khusus ujian</label>
@@ -267,11 +267,11 @@ function scheduleFields(){
 // ── Batas durasi jadwal ujian (Pedoman §5.5) ──
 // Rules RTDB membatasi `duration` UTS/UAS ≤ 43200 menit (30 hari) untuk tulisan
 // klien, termasuk modal Atur Jadwal di halaman ujian. Rescale ujian satu kelas
-// ditulis Admin SDK (melewati rules) dan menyetel duration = deadline baru −
-// start tanpa batas. Deadline lebih dari 30 hari sesudah start tetap berlaku
-// bagi server dan halaman, tetapi modal itu lalu tidak bisa menyimpan ulang
-// jadwalnya tanpa memperkecil Durasi (= menggeser waktu mulai). Tool ini
-// membaca start ujian dan memperingatkan sebelum menjalankan; tidak memblokir.
+// menyetel duration = deadline baru − start, atau menghapusnya bila di luar
+// 1..43200 menit. Deadline lebih dari 30 hari sesudah start tetap berlaku bagi
+// server dan halaman, tetapi modal itu lalu meminta Durasi diisi, dan Durasi
+// yang diisi menggeser waktu mulai (start = due − duration). Tool ini membaca
+// start ujian dan memperingatkan sebelum menjalankan; tidak memblokir.
 const BATAS_DURASI_UJIAN_MENIT = 43200;
 function fmtWib(ms){
   const w = new Date(ms + 7*3600*1000);
@@ -319,9 +319,9 @@ async function peringatanDurasiUjian(newEndIso){
   const menit = Math.floor(Date.parse(newEndIso) / 60000) - mulaiMs / 60000;   // pembulatan sama dengan server
   if (!(menit > BATAS_DURASI_UJIAN_MENIT)) return '';
   return `⚠ Deadline baru ${Math.floor(menit / 1440)} hari sesudah waktu mulai ujian (${fmtWib(mulaiMs)}). ` +
-    `Durasi jadwal akan menjadi ${Math.round(menit)} menit, di atas batas ${BATAS_DURASI_UJIAN_MENIT} menit (30 hari). ` +
-    'Server tetap menerapkannya, tetapi menyimpan ulang Atur Jadwal di halaman ujian lalu ditolak (PERMISSION_DENIED) ' +
-    'sampai Durasi diperkecil, yang menggeser waktu mulai ujian. Untuk ujian susulan sebagian mahasiswa, isi kolom NIM.';
+    `Jendela menjadi ${Math.round(menit)} menit, di atas batas Durasi ${BATAS_DURASI_UJIAN_MENIT} menit (30 hari). ` +
+    'Server tetap menerapkannya tetapi menghapus Durasi jadwal, sehingga Atur Jadwal di halaman ujian lalu meminta Durasi diisi, ' +
+    'dan Durasi yang diisi menggeser waktu mulai ujian. Untuk ujian susulan sebagian mahasiswa, isi kolom NIM.';
 }
 
 window.setPreset = function(daysOffset, hour, minute){
