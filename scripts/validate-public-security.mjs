@@ -363,6 +363,17 @@ for (const course of courseRoots) {
     ]) {
       if (!exam.includes(required)) throw new Error(`${relative}: student Asisten launcher missing ${required.split("\n")[0]}`);
     }
+    // Formulir login tidak menyimpan PIN setelah login berhasil, dan NIM ikut
+    // dibuang saat logout paksa tanpa jadwal (komputer lab dipakai bergantian).
+    for (const required of [
+      "function _bersihkanFormLoginUjian(adaIdentitas)",
+      "for (const id of ['vPin', 'pinSetupInput1', 'pinSetupInput2', 'pinInputField'])",
+      "tombol.getAttribute('aria-busy') === 'true' && typeof window.selesaiMuat === 'function') window.selesaiMuat(tombol);",
+      "const nim = document.getElementById('vNim');\n    if (nim && nim.value) nim.value = '';",
+      "  _bersihkanFormLoginUjian(isStudent || isDosen);\n  _terapkanAsistenUjian(isStudent);\n",
+    ]) {
+      if (!exam.includes(required)) throw new Error(`${relative}: login form hygiene missing ${required.split("\n")[0]}`);
+    }
     for (const required of [
       "body.ujian-mahasiswa #visitorPanel .vp-mode-tabs,",
       "body.ujian-mahasiswa #vpModeKelas,",
@@ -370,6 +381,10 @@ for (const course of courseRoots) {
       "body.ujian-mahasiswa #vpBadge,",
       "body.ujian-mahasiswa #fabCount{display:none !important}",
       "body.ujian-mahasiswa #backToTop{right:144px}",
+      // Panel tertutup keluar dari urutan Tab (chip tak terlihat tidak bisa dikirim).
+      "body.ujian-mahasiswa #visitorPanel:not(.open){visibility:hidden;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s,visibility 0s linear .3s}",
+      // Ponsel: halaman tidak lebih lebar dari layar, tombol tetap di kanan tetap terlihat.
+      "@media(max-width:600px){.comp-header{flex-wrap:wrap}.comp-pts{flex-shrink:1}}",
     ]) {
       if (!exam.includes(required)) throw new Error(`${relative}: student roster-hiding CSS missing ${required}`);
     }
@@ -410,6 +425,22 @@ for (const course of courseRoots) {
     const blokAi = exam.match(RX_BLOK_AI);
     const aiMulai = blokAi ? blokAi.index : -1;
     const aiAkhir = blokAi ? aiMulai + blokAi[0].length : -1;
+    // Blok AI harus sudah membawa mode mahasiswa-ujian dari backend
+    // (frontend-integration/modul-ai-chat.js, cabang feat/asisten-ujian-mahasiswa
+    // dan sesudahnya). CSS di atas menyembunyikan tab Online bagi mahasiswa;
+    // blok yang lebih tua tetap di mode 'kelas', sehingga panel mahasiswa buntu
+    // tanpa Asisten padahal pemeriksaan lain hijau. Terjadi bila apply-ai-chat.js
+    // dijalankan dari checkout backend yang lebih tua.
+    for (const required of [
+      "function terapkanPeran()",
+      'var EXAM_STUDENT_CLASS = "vp-ujian-mhs";',
+      "injectStyle(state.doc, EXAM_STYLE_ID, EXAM_CSS);",
+      "function forgetExamStudentHistory(keepKey)",
+    ]) {
+      if (!blokAi || !blokAi[0].includes(required)) {
+        throw new Error(`${relative}: AI block predates student exam mode (missing ${required}); re-apply apply-ai-chat.js from an up-to-date backend checkout`);
+      }
+    }
     const jsMulai = exam.indexOf("// ═══ ASISTEN-UJIAN-MAHASISWA:JS BEGIN");
     const jsAkhir = exam.indexOf("// ═══ ASISTEN-UJIAN-MAHASISWA:JS END");
     if (jsAkhir < jsMulai) throw new Error(`${relative}: ASISTEN-UJIAN-MAHASISWA:JS block is not closed`);

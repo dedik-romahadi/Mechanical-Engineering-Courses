@@ -211,7 +211,9 @@ repo publik ini.
   (12 halaman, penanda `ASISTEN-UJIAN-MAHASISWA`, ada `--periksa`); sisi blok
   AI diubah di backend `frontend-integration/modul-ai-chat.js` lalu
   `apply-ai-chat.js`, **bukan** disunting di antara penanda `AI-CHAT-AGENT`.
-  Rincian: Pedoman §6.8 dan §7.8.
+  Jangan menerapkan blok dari checkout backend yang lebih tua (panel mahasiswa
+  jadi buntu; `validate-public-security.mjs` menolaknya) — gabungkan perubahan
+  backend lebih dulu. Rincian: Pedoman §6.8 dan §7.8.
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
   yang idempoten, bukan suntingan manual per berkas.

@@ -35,6 +35,23 @@
  *      peringkat, kartu "Nilai Anda", dan `return` dini tetap persis sama, jadi
  *      #fabCount/#vpBadge/#vpList tetap hanya diisi di jalur dosen.
  *
+ * TAMBAHAN v2 (26 September 2026, temuan tinjauan):
+ *   5. CSS — panel mahasiswa yang tertutup juga visibility:hidden (setelah
+ *      animasi tutup 0,3 s), sehingga chip, kolom tanya, dan tombol kirim yang
+ *      tak terlihat tidak lagi masuk urutan Tab; Enter pada chip tak terlihat
+ *      tidak lagi mengirim pertanyaan. Tampilan dosen tidak berubah.
+ *   6. CSS — di layar ≤600px kepala kartu komputasi (.comp-header) boleh
+ *      membungkus dan label poin (.comp-pts) boleh menyusut. Label "4 poin+1
+ *      partial …" (lebar ±240px, flex-shrink:0) membuat halaman ujian lebih
+ *      lebar daripada layar ponsel, sehingga tombol tetap (position:fixed di
+ *      kanan) — termasuk tombol Asisten mahasiswa — berada di luar layar.
+ *   7. JS — formulir login dibersihkan lewat _bersihkanFormLoginUjian() dari
+ *      _applyRoleVisibility: setelah login berhasil PIN tidak tertinggal di
+ *      #vPin/kolom PIN dan tombol #vSubmit kembali dari "Memverifikasi...";
+ *      setelah logout paksa karena jadwal dihapus NIM juga dikosongkan.
+ *      Tanpa ini, di komputer lab siapa pun dapat masuk sebagai mahasiswa
+ *      sebelumnya begitu jadwal dipulihkan, tanpa mengetik PIN.
+ *
  * Tidak pernah menambahkan .vp-chat / #vpChatList / sendChat ke halaman ujian:
  * RTDB chat/* menerima tulisan tanpa autentikasi, jadi hanya ketiadaan UI itu
  * yang mencegah chat antarmahasiswa selama ujian. Penguncian tutor materi
@@ -75,7 +92,7 @@ const JUDUL_ASISTEN = "🤖 Asisten Dosen";
 
 // ── 1. CSS ───────────────────────────────────────────────────────────────────
 const RX_CSS = /<!-- ASISTEN-UJIAN-MAHASISWA:CSS BEGIN[^>]*-->\n[\s\S]*?<!-- ASISTEN-UJIAN-MAHASISWA:CSS END[^>]*-->\n/;
-const BLOK_CSS = `<!-- ASISTEN-UJIAN-MAHASISWA:CSS BEGIN v1 — dipasang scripts/buka-asisten-ujian.mjs -->
+const BLOK_CSS = `<!-- ASISTEN-UJIAN-MAHASISWA:CSS BEGIN v2 — dipasang scripts/buka-asisten-ujian.mjs -->
 <style id="asistenUjianMahasiswaCss">
 /* Halaman UTS/UAS, mahasiswa yang login (kelas dipasang _terapkanAsistenUjian):
    #visitorFab menjadi tombol "Asisten Dosen". Daftar mahasiswa online (nama,
@@ -93,14 +110,27 @@ body.ujian-mahasiswa #fabCount{display:none !important}
    tombol bisu tidak punya aturan ponsel (tetap 92px), jadi posisi yang sama
    tetap bebas tumpang tindih tanpa aturan @media tersendiri. */
 body.ujian-mahasiswa #backToTop{right:144px}
+/* Panel tertutup hanya transparan (opacity 0, pointer-events none), jadi chip,
+   kolom tanya, dan tombol kirim Asisten masih bisa dicapai dengan Tab — Enter
+   pada chip tak terlihat mengirim pertanyaan. visibility:hidden mengeluarkannya
+   dari urutan fokus; ditunda 0,3 s (lama animasi tutup .visitor-panel) supaya
+   animasinya tetap terlihat. Saat .open, aturan ini lepas dan panel langsung
+   tampil dengan transisi bawaan. */
+body.ujian-mahasiswa #visitorPanel:not(.open){visibility:hidden;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s,visibility 0s linear .3s}
+/* Ponsel: label poin soal komputasi sulit ("4 poin+1 partial jika kode terisi",
+   ±240px, flex-shrink:0) melebihi kepala kartu (±296px bersama nomor dan teks
+   soal), sehingga halaman lebih lebar daripada layar dan tombol tetap di kanan
+   (tombol Asisten, tombol bisu, panel) tergeser ke luar layar. Kepala kartu
+   dibiarkan membungkus dan labelnya menyusut. */
+@media(max-width:600px){.comp-header{flex-wrap:wrap}.comp-pts{flex-shrink:1}}
 </style>
-<!-- ASISTEN-UJIAN-MAHASISWA:CSS END v1 -->
+<!-- ASISTEN-UJIAN-MAHASISWA:CSS END v2 -->
 `;
 
 // ── 2. Fungsi bantu (sesudah ekspor _applyRoleVisibility) ────────────────────
 const JANGKAR_JS = "window._applyRoleVisibility = _applyRoleVisibility;\n";
 const RX_JS = /\/\/ ═══ ASISTEN-UJIAN-MAHASISWA:JS BEGIN[^\n]*\n[\s\S]*?\/\/ ═══ ASISTEN-UJIAN-MAHASISWA:JS END[^\n]*\n/;
-const BLOK_JS = `// ═══ ASISTEN-UJIAN-MAHASISWA:JS BEGIN v1 — dipasang scripts/buka-asisten-ujian.mjs ═══
+const BLOK_JS = `// ═══ ASISTEN-UJIAN-MAHASISWA:JS BEGIN v2 — dipasang scripts/buka-asisten-ujian.mjs ═══
 // Mahasiswa yang login membuka Asisten Dosen lewat #visitorFab (tetap
 // satu-satunya tombol chat); daftar mahasiswa online beserta jumlahnya tetap
 // khusus dosen. Dua lapis penjaga: kelas body.ujian-mahasiswa (CSS !important)
@@ -164,7 +194,27 @@ function _terapkanAsistenUjian(isStudent) {
     if (agen && typeof agen.terapkanPeran === 'function') agen.terapkanPeran();
   } catch (e) { console.warn('[Asisten ujian] terapkanPeran gagal:', e); }
 }
-// ═══ ASISTEN-UJIAN-MAHASISWA:JS END v1 ═══
+function _bersihkanFormLoginUjian(adaIdentitas) {
+  // Komputer lab dipakai bergantian (kini juga untuk Asisten Dosen). PIN tidak
+  // boleh tertinggal di formulir: sesudah login berhasil overlay hanya
+  // disembunyikan, dan bila jadwal lalu dihapus (logout paksa) overlay tampil
+  // lagi berisi NIM + PIN — begitu jadwal dipulihkan, siapa pun bisa masuk
+  // sebagai mahasiswa itu tanpa mengetik PIN.
+  for (const id of ['vPin', 'pinSetupInput1', 'pinSetupInput2', 'pinInputField']) {
+    const el = document.getElementById(id);
+    if (el && el.value) el.value = '';
+  }
+  const tombol = document.getElementById('vSubmit');
+  if (adaIdentitas) {
+    // Login berhasil: tombol kembali dari "Memverifikasi..." (mulaiMuat).
+    if (tombol && tombol.getAttribute('aria-busy') === 'true' && typeof window.selesaiMuat === 'function') window.selesaiMuat(tombol);
+  } else {
+    // Identitas dihapus (jadwal hilang): NIM mahasiswa sebelumnya ikut dibuang.
+    const nim = document.getElementById('vNim');
+    if (nim && nim.value) nim.value = '';
+  }
+}
+// ═══ ASISTEN-UJIAN-MAHASISWA:JS END v2 ═══
 `;
 
 // ── 3. _applyRoleVisibility: tombol untuk mahasiswa ──────────────────────────
@@ -186,11 +236,14 @@ const RX_PERAN_LAMA = new RegExp(
   ].join("\n"),
 );
 const RX_PERAN = /  \/\/ ASISTEN-UJIAN-MAHASISWA:PERAN BEGIN[^\n]*\n[\s\S]*?  \/\/ ASISTEN-UJIAN-MAHASISWA:PERAN END[^\n]*\n/;
-const blokPeran = (jenis) => `  // ASISTEN-UJIAN-MAHASISWA:PERAN BEGIN v1 — dipasang scripts/buka-asisten-ujian.mjs
+const blokPeran = (jenis) => `  // ASISTEN-UJIAN-MAHASISWA:PERAN BEGIN v2 — dipasang scripts/buka-asisten-ujian.mjs
   // ${jenis} PRIVACY: daftar mahasiswa online (panel "Mahasiswa") hanya untuk dosen.
   // Mahasiswa yang login tetap mendapat #visitorFab, tetapi sebagai tombol
   // "Asisten Dosen": roster, badge, dan jumlah online disembunyikan dan
   // dikosongkan oleh _terapkanAsistenUjian (tepat di bawah fungsi ini).
+  // Fungsi ini berjalan pada setiap login berhasil dan pada logout paksa
+  // tanpa jadwal, jadi formulir login dibersihkan di sini juga.
+  _bersihkanFormLoginUjian(isStudent || isDosen);
   _terapkanAsistenUjian(isStudent);
   const visitorFab = document.getElementById('visitorFab');
   if (visitorFab) {
@@ -202,7 +255,7 @@ const blokPeran = (jenis) => `  // ASISTEN-UJIAN-MAHASISWA:PERAN BEGIN v1 — di
       // display di-set oleh login flow (flex), tidak override di sini
     }
   }
-  // ASISTEN-UJIAN-MAHASISWA:PERAN END v1
+  // ASISTEN-UJIAN-MAHASISWA:PERAN END v2
 `;
 
 // ── 4. renderVisitors: cabang mahasiswa ──────────────────────────────────────
