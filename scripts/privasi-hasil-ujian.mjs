@@ -34,6 +34,11 @@
  *      dipanggil, jadi dosen yang baru login dari layar tamu/Preview langsung
  *      melihat data kelas (tidak menunggu event RTDB berikutnya atau interval
  *      30 detik), dan logout paksa langsung membuang data kelas dari DOM.
+ *   2c. enterPreviewMode — tepat sesudah `window._previewMode = true;`
+ *      _segarkanHasilUjian() dipanggil. Tanpa ini, data kelas yang sudah
+ *      dirender untuk identitas dosen tersimpan (dosen memilih "← Pilih peran
+ *      lain" lalu "Mode Preview") tetap terlihat dalam Preview sampai render
+ *      berikutnya (event jadwal/RTDB atau interval 30 detik).
  *   3. renderVisitors — tepat sesudah cabang mahasiswa (yang tetap sama):
  *      selain dosen terverifikasi berhenti dengan placeholder. Daftar online
  *      tamu kini tidak pernah diisi di sumbernya; pembersih defensif
@@ -63,9 +68,9 @@
  * sengaja tidak disentuh (papan peringkat modul memang untuk mahasiswa), begitu
  * pula salinan konflik OneDrive (*-DEDIK-PC.html).
  *
- * Idempoten: keempat sisipan dibatasi penanda PRIVASI-HASIL-UJIAN dan ditimpa
- * di tempat bila sudah ada; baris isDosen diganti sekali. Jalan kedua
- * melaporkan 0 halaman.
+ * Idempoten: kelima sisipan (JS, PERAN, PREVIEW, RENDER, LEADERBOARD) dibatasi
+ * penanda PRIVASI-HASIL-UJIAN dan ditimpa di tempat bila sudah ada; baris
+ * isDosen diganti sekali. Jalan kedua melaporkan 0 halaman.
  *
  * Pakai:
  *   node scripts/privasi-hasil-ujian.mjs            # terapkan
@@ -175,6 +180,20 @@ const BLOK_PERAN = `  // PRIVASI-HASIL-UJIAN:PERAN BEGIN v1 — dipasang scripts
   // PRIVASI-HASIL-UJIAN:PERAN END v1
 `;
 
+// ── 2c. enterPreviewMode: render ulang begitu Preview aktif ──────────────────
+// Identitas dosen yang tersimpan sudah merender data kelas lengkap; tanpa ini
+// tabel, papan, statistik, dan daftar online itu tetap TERLIHAT dalam Mode
+// Preview sampai render berikutnya (event jadwal/RTDB atau interval 30 detik).
+const JANGKAR_PREVIEW = "window.enterPreviewMode = async function() {\n  await signOut(_auth).catch(() => {});\n  window._previewMode = true;\n";
+const RX_PREVIEW = /  \/\/ PRIVASI-HASIL-UJIAN:PREVIEW BEGIN[^\n]*\n[\s\S]*?  \/\/ PRIVASI-HASIL-UJIAN:PREVIEW END[^\n]*\n/;
+const BLOK_PREVIEW = `  // PRIVASI-HASIL-UJIAN:PREVIEW BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+  // Mode Preview berlaku seketika di tab Hasil dan daftar online: data kelas
+  // yang sudah dirender untuk identitas dosen tersimpan dibuang dari DOM
+  // sekarang, bukan pada event RTDB berikutnya atau interval 30 detik.
+  _segarkanHasilUjian();
+  // PRIVASI-HASIL-UJIAN:PREVIEW END v1
+`;
+
 // ── 3. renderVisitors: gerbang sesudah cabang mahasiswa ──────────────────────
 const JANGKAR_RENDER = "    // Skip rest of dosen-only rendering\n    return;\n  }\n";
 const RX_RENDER = /  \/\/ PRIVASI-HASIL-UJIAN:RENDER BEGIN[^\n]*\n[\s\S]*?  \/\/ PRIVASI-HASIL-UJIAN:RENDER END[^\n]*\n/;
@@ -249,6 +268,13 @@ function proses(berkas) {
     return h.replace(RX_JANGKAR_PERAN, (m, a, b) => a + BLOK_PERAN + b);
   });
 
+  // 2c. Render ulang tepat sesudah Mode Preview dinyalakan.
+  html = pasang(html, RX_PREVIEW, BLOK_PREVIEW, "preview", catatan, (h) => {
+    const n = hitung(h, JANGKAR_PREVIEW);
+    if (n !== 1) throw new Error(`awal enterPreviewMode (signOut lalu _previewMode = true) muncul ${n}x, harusnya 1`);
+    return h.replace(JANGKAR_PREVIEW, () => JANGKAR_PREVIEW + BLOK_PREVIEW);
+  });
+
   // 3. renderVisitors: gerbang sesudah cabang mahasiswa.
   html = pasang(html, RX_RENDER, BLOK_RENDER, "render", catatan, (h) => {
     const n = hitung(h, JANGKAR_RENDER);
@@ -264,8 +290,11 @@ function proses(berkas) {
   });
 
   // Penjaga hasil: tiap blok tepat sekali dan di tempatnya.
-  for (const [rx, label] of [[RX_JS, "js"], [RX_PERAN, "peran"], [RX_RENDER, "render"], [RX_LB, "leaderboard"]]) {
+  for (const [rx, label] of [[RX_JS, "js"], [RX_PERAN, "peran"], [RX_PREVIEW, "preview"], [RX_RENDER, "render"], [RX_LB, "leaderboard"]]) {
     if (hitungRx(html, rx) !== 1) throw new Error(`blok ${label} harus tepat 1x`);
+  }
+  if (html.indexOf(JANGKAR_PREVIEW) + JANGKAR_PREVIEW.length !== html.indexOf("  // PRIVASI-HASIL-UJIAN:PREVIEW BEGIN")) {
+    throw new Error("render ulang Mode Preview tidak tepat sesudah window._previewMode = true di enterPreviewMode");
   }
   if (html.includes(DOSEN_LAMA)) throw new Error("aturan dosen lama tertinggal di _applyRoleVisibility");
   const rv = html.indexOf("function renderVisitors(visitors){");

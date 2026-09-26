@@ -568,6 +568,7 @@ for (const course of courseRoots) {
     for (const required of [
       "// ═══ PRIVASI-HASIL-UJIAN:JS BEGIN",
       "  // PRIVASI-HASIL-UJIAN:PERAN BEGIN",
+      "  // PRIVASI-HASIL-UJIAN:PREVIEW BEGIN",
       "  // PRIVASI-HASIL-UJIAN:RENDER BEGIN",
       "  // PRIVASI-HASIL-UJIAN:LEADERBOARD BEGIN",
       "function _dosenUjianTerverifikasi(me) {\n",
@@ -587,6 +588,19 @@ for (const course of courseRoots) {
     }
     if (!/\n  _segarkanHasilUjian\(\);\n  \/\/ PRIVASI-HASIL-UJIAN:PERAN END[^\n]*\n\}\n$/.test(peran)) {
       throw new Error(`${relative}: _applyRoleVisibility must end by re-rendering the Hasil tab (_segarkanHasilUjian) so a lecturer login shows class data at once`);
+    }
+
+    // enterPreviewMode merender ulang tepat sesudah flag Preview dinyalakan:
+    // data kelas yang sudah dirender untuk identitas dosen tersimpan dibuang
+    // seketika, bukan pada event RTDB berikutnya atau interval 30 detik.
+    const AWAL_PREVIEW = "window.enterPreviewMode = async function() {\n  await signOut(_auth).catch(() => {});\n  window._previewMode = true;\n  // PRIVASI-HASIL-UJIAN:PREVIEW BEGIN";
+    if (exam.split(AWAL_PREVIEW).length !== 2) {
+      throw new Error(`${relative}: enterPreviewMode must re-render the Hasil tab right after window._previewMode = true (PRIVASI-HASIL-UJIAN:PREVIEW)`);
+    }
+    const blokPreview = ambilBlok(exam, "  // PRIVASI-HASIL-UJIAN:PREVIEW BEGIN", "  // PRIVASI-HASIL-UJIAN:PREVIEW END", relative);
+    const kodePreview = blokPreview.split("\n").filter((b) => b.trim() && !b.trim().startsWith("//"));
+    if (kodePreview.length !== 1 || kodePreview[0] !== "  _segarkanHasilUjian();") {
+      throw new Error(`${relative}: PRIVASI-HASIL-UJIAN:PREVIEW must only call _segarkanHasilUjian(), found: ${kodePreview.join(" | ")}`);
     }
 
     // renderVisitors: gerbang tepat sesudah cabang mahasiswa, sebelum tulisan
@@ -667,6 +681,11 @@ for (const course of courseRoots) {
     konteks.identitas = IDENTITAS_DOSEN; jalankan("_segarkanHasilUjian();", "guest->dosen");
     denganDataKelas("guest -> lecturer login (_segarkanHasilUjian)");
     render("dosen"); denganDataKelas("lecturer");
+    // Dosen → Mode Preview (identitas dosen tetap tersimpan): blok PREVIEW
+    // halaman itu sendiri langsung membuang data kelas yang sudah dirender.
+    konteks.window._previewMode = true; jalankan(blokPreview, "lecturer->preview");
+    tanpaDataKelas("lecturer -> Mode Preview (enterPreviewMode, before any new RTDB event)");
+    konteks.window._previewMode = false; render("dosen again"); denganDataKelas("lecturer (again)");
     // Dosen → logout paksa (identitas dihapus): data kelas langsung dibuang.
     konteks.identitas = null; jalankan("_segarkanHasilUjian();", "forced logout"); tanpaDataKelas("after forced logout");
     // Mahasiswa: tetap hanya kartu nilai sendiri, papan peringkat tidak terisi.

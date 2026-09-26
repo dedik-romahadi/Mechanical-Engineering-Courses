@@ -217,11 +217,13 @@ repo publik ini.
 - **Data kelas UTS/UAS khusus dosen.** Tabel kelas tab Hasil, papan Top
   Skor/Top Akses, statistik kelas, dan daftar online hanya dirender untuk
   dosen terverifikasi (`_dosenUjianTerverifikasi`, satu fungsi dengan aturan
-  dosen `_applyRoleVisibility`); tamu dan Mode Preview mendapat placeholder.
-  "Bukan mahasiswa" tidak pernah berarti "dosen". Dipasang
-  `scripts/privasi-hasil-ujian.mjs` (penanda `PRIVASI-HASIL-UJIAN`, ada
-  `--periksa`, jalankan sesudah `buka-asisten-ujian.mjs`). Halaman modul tidak
-  memakainya. Rincian: Pedoman §4.2 dan §7.8.
+  dosen `_applyRoleVisibility`); tamu dan Mode Preview mendapat placeholder,
+  dan setiap perubahan peran — termasuk masuk Mode Preview — merender ulang
+  seketika (`_segarkanHasilUjian`). "Bukan mahasiswa" tidak pernah berarti
+  "dosen". Dipasang `scripts/privasi-hasil-ujian.mjs` (penanda
+  `PRIVASI-HASIL-UJIAN`, ada `--periksa`, jalankan sesudah
+  `buka-asisten-ujian.mjs`). Halaman modul tidak memakainya. Rincian: Pedoman
+  §4.2 dan §7.8.
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
   yang idempoten, bukan suntingan manual per berkas.

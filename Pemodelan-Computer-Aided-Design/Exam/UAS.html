@@ -6573,6 +6573,12 @@ window._previewMode = false;
 window.enterPreviewMode = async function() {
   await signOut(_auth).catch(() => {});
   window._previewMode = true;
+  // PRIVASI-HASIL-UJIAN:PREVIEW BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+  // Mode Preview berlaku seketika di tab Hasil dan daftar online: data kelas
+  // yang sudah dirender untuk identitas dosen tersimpan dibuang dari DOM
+  // sekarang, bukan pada event RTDB berikutnya atau interval 30 detik.
+  _segarkanHasilUjian();
+  // PRIVASI-HASIL-UJIAN:PREVIEW END v1
   const rc = document.getElementById('roleChooserOverlay');
   if (rc) rc.classList.add('hidden');
   const vo = document.getElementById('visitorOverlay');
