@@ -171,6 +171,26 @@ for (const course of courseRoots) {
     if (/const dueDate\s*=\s*new Date\(due\)/.test(exam)) {
       throw new Error(`${relative}: schedule input depends on browser timezone`);
     }
+    // Lapisan friksi membaca identitas halaman INI (LOCAL_IDENTITY =
+    // `<slug>_identity_${MODULE_ID}`). Empat UAS sempat membaca kunci UTS:
+    // mahasiswa yang login di UAS lolos dari blokir salin/watermark/penghitung
+    // tab, sementara identitas UTS yang tertinggal di komputer lab dipakai
+    // sebagai watermark. Diperbaiki scripts/ubah-friction.mjs (butir 5).
+    {
+      const slug = /\nconst LOCAL_IDENTITY = `([a-z0-9_]+)_identity_\$\{MODULE_ID\}`;\n/.exec(exam);
+      const modul = /\nconst MODULE_ID = '(uts|uas)';\n/.exec(exam);
+      const lk = [...exam.matchAll(/\n {2}const LK = '([^']+)';\n/g)];
+      if (!slug || !modul || lk.length !== 1) {
+        throw new Error(`${relative}: LOCAL_IDENTITY, MODULE_ID, or the friction identity key (LK) not found exactly once`);
+      }
+      if (modul[1] !== examName.slice(0, 3).toLowerCase()) {
+        throw new Error(`${relative}: MODULE_ID '${modul[1]}' does not match the page`);
+      }
+      const expected = `${slug[1]}_identity_${modul[1]}`;
+      if (lk[0][1] !== expected) {
+        throw new Error(`${relative}: friction layer reads identity key '${lk[0][1]}', expected '${expected}' (this page's LOCAL_IDENTITY)`);
+      }
+    }
     for (const required of [
       "Masuk &amp; Lihat Soal",
       "window._dosenQuestionView = false",
@@ -330,6 +350,137 @@ for (const course of courseRoots) {
     }
   }
 }
+
+// Asisten Dosen untuk mahasiswa di UTS/UAS (scripts/buka-asisten-ujian.mjs,
+// 26 September 2026). #visitorFab tetap satu-satunya tombol chat: bagi
+// mahasiswa yang login ia membuka Asisten Dosen, sedangkan daftar mahasiswa
+// online (nama, NIM, waktu akses, lencana "Terlambat") beserta jumlahnya tetap
+// khusus dosen ("UTS/UAS PRIVACY"). RTDB visitors/presence dapat dibaca publik,
+// jadi privasi ini murni tanggung jawab UI dan dijaga di sini. Chat Kelas tidak
+// boleh ada di halaman ujian: RTDB chat/* menerima tulisan tanpa autentikasi,
+// sehingga hanya ketiadaan UI-nya yang mencegah chat antarmahasiswa saat ujian.
+// Blok AI (AI-CHAT-AGENT) dikecualikan dari pemeriksaan chat karena memuat
+// logika varian modulnya sendiri; blok itu diperiksa di repo backend.
+const RX_BLOK_AI = /<!-- AI-CHAT-AGENT:BEGIN[\s\S]*?<!-- AI-CHAT-AGENT:END[^>]*-->/;
+let examAsisten = 0;
+for (const course of courseRoots) {
+  for (const examName of ["UTS.html", "UAS.html"]) {
+    const relative = `${course}/Exam/${examName}`;
+    const exam = fs.readFileSync(path.join(root, relative), "utf8");
+    for (const required of [
+      "<!-- ASISTEN-UJIAN-MAHASISWA:CSS BEGIN",
+      "// ═══ ASISTEN-UJIAN-MAHASISWA:JS BEGIN",
+      "  // ASISTEN-UJIAN-MAHASISWA:PERAN BEGIN",
+      "    // ASISTEN-UJIAN-MAHASISWA:RENDER BEGIN",
+      "function _terapkanAsistenUjian(isStudent)",
+      "function _kosongkanRosterUjian()",
+      "document.body.classList.toggle('ujian-mahasiswa', mhs)",
+      "fab.setAttribute('aria-label', 'Asisten Dosen')",
+      "if (agen && typeof agen.terapkanPeran === 'function') agen.terapkanPeran();",
+      "if (list && list.innerHTML) list.innerHTML = '';",
+      "for (const id of ['vpBadge', 'fabCount'])",
+      "  _terapkanAsistenUjian(isStudent);\n  const visitorFab = document.getElementById('visitorFab');\n  if (visitorFab) {\n    if (isStudent) {\n      visitorFab.style.display = 'flex';\n      visitorFab.style.visibility = 'visible';\n",
+    ]) {
+      if (!exam.includes(required)) throw new Error(`${relative}: student Asisten launcher missing ${required.split("\n")[0]}`);
+    }
+    // Formulir login tidak menyimpan PIN setelah login berhasil, dan NIM ikut
+    // dibuang saat logout paksa tanpa jadwal (komputer lab dipakai bergantian).
+    for (const required of [
+      "function _bersihkanFormLoginUjian(adaIdentitas)",
+      "for (const id of ['vPin', 'pinSetupInput1', 'pinSetupInput2', 'pinInputField'])",
+      "tombol.getAttribute('aria-busy') === 'true' && typeof window.selesaiMuat === 'function') window.selesaiMuat(tombol);",
+      "const nim = document.getElementById('vNim');\n    if (nim && nim.value) nim.value = '';",
+      "  _bersihkanFormLoginUjian(isStudent || isDosen);\n  _terapkanAsistenUjian(isStudent);\n",
+    ]) {
+      if (!exam.includes(required)) throw new Error(`${relative}: login form hygiene missing ${required.split("\n")[0]}`);
+    }
+    for (const required of [
+      "body.ujian-mahasiswa #visitorPanel .vp-mode-tabs,",
+      "body.ujian-mahasiswa #vpModeKelas,",
+      "body.ujian-mahasiswa #vpList,",
+      "body.ujian-mahasiswa #vpBadge,",
+      "body.ujian-mahasiswa #fabCount{display:none !important}",
+      "body.ujian-mahasiswa #backToTop{right:144px}",
+      // Panel tertutup keluar dari urutan Tab (chip tak terlihat tidak bisa dikirim).
+      "body.ujian-mahasiswa #visitorPanel:not(.open){visibility:hidden;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s,visibility 0s linear .3s}",
+      // Ponsel: halaman tidak lebih lebar dari layar, tombol tetap di kanan tetap terlihat.
+      "@media(max-width:600px){.comp-header{flex-wrap:wrap}.comp-pts{flex-shrink:1}}",
+    ]) {
+      if (!exam.includes(required)) throw new Error(`${relative}: student roster-hiding CSS missing ${required}`);
+    }
+    if (exam.indexOf("<!-- ASISTEN-UJIAN-MAHASISWA:CSS BEGIN") > exam.indexOf("</head>")) {
+      throw new Error(`${relative}: student roster-hiding CSS must sit in the document <head>`);
+    }
+    if (exam.includes("visitorFab.style.display = 'none';\n      visitorFab.style.visibility = 'hidden';")) {
+      throw new Error(`${relative}: _applyRoleVisibility still hides the only chat button from students`);
+    }
+
+    // renderVisitors: cabang mahasiswa hanya membuang sisa roster lalu return;
+    // #fabCount/#vpBadge/#vpList hanya diisi jalur dosen sesudah return itu.
+    const rvMulai = exam.indexOf("function renderVisitors(visitors){");
+    const cabang = rvMulai < 0 ? -1 : exam.indexOf("\n  if (_isStudent) {\n", rvMulai);
+    const PENUTUP_CABANG = "    // Skip rest of dosen-only rendering\n    return;\n  }\n";
+    const cabangAkhir = cabang < 0 ? -1 : exam.indexOf(PENUTUP_CABANG, cabang);
+    const rvAkhir = cabangAkhir < 0 ? -1 : exam.indexOf("\n}\n", cabangAkhir);
+    if (rvMulai < 0 || cabang < 0 || cabangAkhir < 0 || rvAkhir < 0) {
+      throw new Error(`${relative}: renderVisitors student branch with early return not found`);
+    }
+    const cabangMhs = exam.slice(cabang, cabangAkhir);
+    if (!cabangMhs.includes("    _kosongkanRosterUjian();\n")) {
+      throw new Error(`${relative}: renderVisitors student branch does not clear the guest-phase roster`);
+    }
+    if (/getElementById\(['"](?:visitorFab|fabCount|vpBadge|vpList)['"]\)|onlineVisited/.test(cabangMhs)) {
+      throw new Error(`${relative}: renderVisitors student branch touches the online roster or the chat button`);
+    }
+    for (const isiDosen of [
+      "  document.getElementById('fabCount').textContent=onlineVisited.length;\n",
+      "  document.getElementById('vpBadge').textContent=onlineVisited.length+' online';\n",
+      "const listEl=document.getElementById('vpList')",
+    ]) {
+      const i = exam.indexOf(isiDosen, cabangAkhir);
+      if (i < 0 || i > rvAkhir || exam.indexOf(isiDosen) < cabangAkhir) {
+        throw new Error(`${relative}: ${isiDosen.trim()} must stay on the lecturer path after the student return`);
+      }
+    }
+    const blokAi = exam.match(RX_BLOK_AI);
+    const aiMulai = blokAi ? blokAi.index : -1;
+    const aiAkhir = blokAi ? aiMulai + blokAi[0].length : -1;
+    // Blok AI harus sudah membawa mode mahasiswa-ujian dari backend
+    // (frontend-integration/modul-ai-chat.js, cabang feat/asisten-ujian-mahasiswa
+    // dan sesudahnya). CSS di atas menyembunyikan tab Online bagi mahasiswa;
+    // blok yang lebih tua tetap di mode 'kelas', sehingga panel mahasiswa buntu
+    // tanpa Asisten padahal pemeriksaan lain hijau. Terjadi bila apply-ai-chat.js
+    // dijalankan dari checkout backend yang lebih tua.
+    for (const required of [
+      "function terapkanPeran()",
+      'var EXAM_STUDENT_CLASS = "vp-ujian-mhs";',
+      "injectStyle(state.doc, EXAM_STYLE_ID, EXAM_CSS);",
+      "function forgetExamStudentHistory(keepKey)",
+    ]) {
+      if (!blokAi || !blokAi[0].includes(required)) {
+        throw new Error(`${relative}: AI block predates student exam mode (missing ${required}); re-apply apply-ai-chat.js from an up-to-date backend checkout`);
+      }
+    }
+    const jsMulai = exam.indexOf("// ═══ ASISTEN-UJIAN-MAHASISWA:JS BEGIN");
+    const jsAkhir = exam.indexOf("// ═══ ASISTEN-UJIAN-MAHASISWA:JS END");
+    if (jsAkhir < jsMulai) throw new Error(`${relative}: ASISTEN-UJIAN-MAHASISWA:JS block is not closed`);
+    if (/onlineVisited|onlinePresence|\bvisited\b|visitMap/.test(exam.slice(jsMulai, jsAkhir))) {
+      throw new Error(`${relative}: student Asisten helper must only clear the roster, never fill it`);
+    }
+    for (const m of exam.matchAll(/getElementById\(['"](fabCount|vpBadge|vpList)['"]\)/g)) {
+      const di = m.index;
+      const sah = (di > aiMulai && di < aiAkhir) || (di > jsMulai && di < jsAkhir) || (di > cabangAkhir && di < rvAkhir);
+      if (!sah) throw new Error(`${relative}: #${m[1]} is written outside the lecturer path of renderVisitors`);
+    }
+
+    const tanpaBlokAi = exam.replace(RX_BLOK_AI, "");
+    for (const forbidden of ["vp-chat", "vpChatList", "vpChatInput", "sendChat"]) {
+      if (tanpaBlokAi.includes(forbidden)) throw new Error(`${relative}: exam page must not carry class chat (${forbidden})`);
+    }
+    examAsisten += 1;
+  }
+}
+if (examAsisten !== 12) throw new Error(`Expected 12 UTS/UAS pages with the student Asisten launcher, found ${examAsisten}`);
 
 const formatPointsForValidation = (pts) => {
   const value = Number(pts);
