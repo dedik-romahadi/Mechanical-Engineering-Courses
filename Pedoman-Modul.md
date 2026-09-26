@@ -295,6 +295,8 @@ Konsekuensi yang wajib dipatuhi:
 
 **Urutan deploy wajib** bila menyentuh alur ini (salah urutan memutus login seluruh mahasiswa): (1) deploy Cloud Functions supaya `verifyPin` ada; (2) merge frontend agar halaman memakainya; (3) baru deploy RTDB Rules yang menutup `pins/`.
 
+**PIN tidak tertinggal di formulir (UTS/UAS, sejak 26 September 2026).** Setelah login berhasil, overlay login hanya disembunyikan. Dulu `#vPin` tetap berisi PIN dan tombol tetap "Memverifikasi...", sehingga bila jadwal dihapus (logout paksa) overlay tampil lagi berisi NIM + PIN, dan begitu jadwal dipulihkan siapa pun di komputer lab dapat masuk sebagai mahasiswa itu tanpa mengetik PIN. Kini `_bersihkanFormLoginUjian()` (dipanggil dari `_applyRoleVisibility`, dipasang `scripts/buka-asisten-ujian.mjs`) mengosongkan `#vPin` dan kolom PIN modal setelah setiap login berhasil serta memulihkan `#vSubmit`; pada logout paksa tanpa jadwal NIM ikut dikosongkan.
+
 **Login pertama memakai modal konfirmasi.** Ketika NIM belum punya PIN, `submitVisitor()` tidak lagi menulis `pins/` langsung. Ia mengisi `_pinFlow`, membuka modal "Buat PIN Keamanan" dengan PIN yang baru diketik terisi di kolom pertama dan fokus di kolom konfirmasi, lalu `submitPinSetup()` yang menuliskannya. Tidak ada penulisan ke Firebase sebelum konfirmasi cocok. `submitPinSetup()` juga menggabungkan visitor record lama bila ada, sehingga poin dan `scoredQuestions` mahasiswa lama tidak tereset saat PIN dibuat.
 
 ### 4.4 Autentikasi admin
@@ -567,8 +569,41 @@ Berlaku di keempat course sejak 22 Agustus 2026 (permintaan dosen), dan di Tekni
 
 ### 6.8 Sistem Agen AI berbasis sumber
 
-Mode **Asisten Dosen** memakai panel Chat Kelas yang sama pada 84 halaman modul
-dan 12 halaman UTS/UAS (enam mata kuliah). Teknik Tenaga Listrik masuk registry
+Mode **Asisten Dosen** menempel pada tombol dan panel chat yang sudah ada
+(`#visitorFab` + `#visitorPanel`, tetap satu tombol dan satu panel) pada 84
+halaman modul dan 12 halaman UTS/UAS (enam mata kuliah). Di halaman modul ia
+menjadi tab kedua panel Chat Kelas ("👥 Kelas" ↔ "🤖 Asisten Dosen"). Halaman
+UTS/UAS **tidak punya Chat Kelas**: panelnya hanya daftar mahasiswa online
+(presence, §7.8), sehingga Asisten membawa komposernya sendiri (`#vpAiComposer`).
+Perilakunya di ujian bergantung peran:
+
+- **Dosen**: tab "👥 Online" (default) dan "🤖 Asisten Dosen", seperti sebelumnya
+  — termasuk riwayat dan sapaan Asisten saat dosen login dari layar tamu
+  (tidak ditukar ke riwayat dosen).
+- **Mahasiswa yang login** (sejak 26 September 2026): `#visitorFab` tampil
+  sebagai tombol "🤖 Asisten Dosen" dan panel langsung terbuka di mode Asisten
+  dengan catatan cakupan ujian. Tab Online, daftar nama/NIM, badge, dan jumlah
+  online tidak pernah terlihat — roster tetap khusus dosen (§7.8). Catatannya
+  juga menyatakan bahwa tawaran penjelasan materi pada sapaan dan contoh
+  pertanyaan hanya berlaku di luar jendela ujian. Panel yang tertutup keluar
+  dari urutan Tab; di layar pendek (laptop dengan skala 125 %, ponsel mendatar)
+  daftar pesan menyusut supaya kolom tanya tetap terlihat; pertanyaan yang
+  diketik sebelum balasan sebelumnya tiba tetap tersimpan di kolom tanya.
+- **Riwayat Asisten mahasiswa di UTS/UAS dibuang saat logout.** Komputer lab
+  dipakai bergantian, jadi kunci `modulAiChat:v2:<examId>:<NIM>` dihapus dari
+  perangkat ketika halaman ujian dibuka tanpa login mahasiswa (logout memuat
+  ulang halaman) dan ketika identitas mahasiswa hilang tanpa muat ulang (logout
+  paksa karena jadwal dihapus). Muat ulang biasa selama masih login tetap
+  memulihkan riwayat; halaman modul tidak berubah.
+- **Tamu** (belum login): tidak ada tombol.
+
+Sisi halaman dipasang `scripts/buka-asisten-ujian.mjs` (penanda
+`ASISTEN-UJIAN-MAHASISWA`); sisi blok AI (mode mahasiswa, catatan cakupan,
+`ModulAiAgent.terapkanPeran()`) ada di `modul-ai-chat.js` backend. Jangan
+menambahkan `.vp-chat`, `#vpChatList`, atau `sendChat` ke halaman ujian: blok AI
+akan beralih ke varian modul yang punya chat kelas, dan RTDB `chat/*` menerima
+tulisan tanpa autentikasi, jadi hanya ketiadaan UI itulah yang mencegah chat
+antarmahasiswa selama ujian. Teknik Tenaga Listrik masuk registry
 lewat backend PR #74 dan Pemodelan CAD lewat backend PR #75. ID ujian keduanya
 bertanda hubung (`teknik-tenaga-listrik-uts`/`-uas`, `pemodelan-cad-uts`/`-uas`),
 tidak seperti ID modulnya yang bergaris bawah (`pemodelan_cad-modul-1`). Ini bukan model yang dilatih ulang dengan seluruh data
@@ -606,7 +641,11 @@ fallback retrieval yang aman. Pertanyaan konsep, rumus, contoh umum, dan kode
 pembelajaran boleh dilayani; permintaan jawaban soal tertentu atau kode
 siap-submit ditolak sebelum retrieval/model. Untuk mahasiswa, tutor materi
 terkunci selama jendela UTS/UAS aktif, termasuk `scheduleOverrides` per NIM,
-tetapi bantuan administratif tetap tersedia.
+tetapi bantuan administratif tetap tersedia. Penguncian ini ditegakkan backend
+(`aiChat`) untuk halaman mana pun yang memanggil, termasuk halaman ujian;
+membuka Asisten bagi mahasiswa di UTS/UAS tidak menambah callable maupun
+pengecualian. Sapaan dan enam chip saran tetap identik dengan `greeting.js`
+backend; catatan cakupan ujian hanya teks frontend.
 
 Lapis model dapat dimatikan dengan `AI_PROVIDER=none`; resolver dan retrieval
 tetap berfungsi. Kuota internal model adalah 8 pertanyaan per mahasiswa per jam.
@@ -635,6 +674,23 @@ jangan mengedit salinan inline satu per satu:
 node frontend-integration/apply-ai-chat.js ..\Mechanical-Engineering-Courses
 node frontend-integration/apply-ai-chat.js ..\Mechanical-Engineering-Courses --check
 ```
+
+Kode halaman ujian di luar penanda `AI-CHAT-AGENT` (tombol `#visitorFab` untuk
+mahasiswa, `_applyRoleVisibility`, cabang mahasiswa `renderVisitors`, CSS
+penyembunyi roster) milik frontend dan hanya diubah lewat
+`node scripts/buka-asisten-ujian.mjs` (cek dulu dengan `--periksa`). UTS/UAS
+Pemodelan CAD ikut dari kerangka Teknik Tenaga Listrik saat
+`scripts/cad-exam/bangun.py` dijalankan.
+
+**Urutan merge frontend–backend.** Kode halaman di atas menyembunyikan tab
+Online bagi mahasiswa dan mengandalkan mode mahasiswa di blok AI untuk membuka
+Asisten. Blok AI dari checkout backend yang lebih tua membuat panel mahasiswa
+buntu (hanya judul, tanpa Asisten) walau validator lain hijau, sehingga
+`validate-public-security.mjs` menolak halaman ujian yang bloknya belum memuat
+mode itu (`terapkanPeran`, `EXAM_STUDENT_CLASS`, gaya ujian, pembersih riwayat).
+Gabungkan perubahan `modul-ai-chat.js` ke `main` backend sebelum atau bersama PR
+frontend yang membawa hasil `apply-ai-chat.js`, dan jangan menerapkan dari
+checkout backend yang lebih tua.
 
 ---
 
@@ -825,6 +881,39 @@ Semua exam hanya menampilkan mahasiswa yang sedang online:
 
 Presence bukan sumber nilai atau bukti final kehadiran.
 
+**Daftar online hanya untuk dosen.** Tiap baris memuat nama, NIM, waktu akses,
+jumlah kunjungan, dan lencana "⏰ Terlambat" yang hanya muncul bila mahasiswa
+itu sudah punya poin — jadi daftar ini membocorkan identitas, kehadiran, dan
+status nilai teman sekelas. Aturan "UTS/UAS PRIVACY" (sejak April 2026)
+menyembunyikannya dari mahasiswa, seperti kartu "Nilai Anda" yang hanya
+menampilkan nilai sendiri. Sejak 26 September 2026 mahasiswa tetap memakai
+`#visitorFab`, tetapi hanya sebagai tombol Asisten Dosen (§6.8):
+
+- tab "👥 Online", `#vpList`, `#vpBadge`, dan `#fabCount` disembunyikan lewat
+  `body.ujian-mahasiswa` (halaman) dan `body.vp-ujian-mhs` (blok AI), keduanya
+  CSS `!important`, sehingga `setMode('kelas')` atau render apa pun tidak bisa
+  memunculkannya lagi;
+- isinya juga dikosongkan dari DOM, karena render fase tamu (sebelum login)
+  sempat mengisinya dengan mahasiswa lain;
+- cabang mahasiswa `renderVisitors` tetap `return` sebelum jalur dosen mengisi
+  roster, badge, dan jumlah online.
+
+RTDB `visitors/*` dan `presence/*` dapat dibaca publik, jadi ini jaminan UI,
+bukan batas keamanan: jangan menambahkan data yang lebih sensitif ke node itu.
+Semuanya dipasang `scripts/buka-asisten-ujian.mjs` dan dijaga
+`validate-public-security.mjs` (§17.1).
+
+**Celah yang belum ditutup (menunggu keputusan dosen).** Tab **Hasil** dalam
+Mode Preview atau sebagai tamu (tanpa identitas) masih merender tabel kelas
+lengkap (nama, NIM, status Terlambat/Bolos/Tepat Waktu, poin, kunjungan) beserta
+papan peringkat, karena `renderVisitors` memperlakukan "bukan mahasiswa" sebagai
+dosen. Mahasiswa yang sedang ujian dapat membuka tab kedua dalam Mode Preview
+dan melihat status teman sekelas. Ini sudah ada sebelum Asisten dibuka untuk
+mahasiswa dan tidak disentuh perubahan 26 September 2026; menutupnya berarti
+mengubah apa yang dilihat tamu/Mode Preview di ke-12 halaman ujian (misalnya
+hanya dosen terverifikasi yang mendapat jalur dosen `renderVisitors`), jadi
+diputuskan terpisah.
+
 ---
 
 ## 8. Friction layer UAS dan batasannya
@@ -849,6 +938,17 @@ Batasan yang wajib dinyatakan jujur:
 **Keadaan per 22 Agustus 2026.** Watermark NIM+nama dan panel "🔒 Mode Modul Aktif" **dihapus dari 56 halaman modul** atas permintaan dosen; panel "Mode Ujian Aktif" dihapus dari 8 exam. **Watermark pada UAS/UTS sengaja dipertahankan** sampai ada keputusan eksplisit: ia satu-satunya alat atribusi bila foto soal bocor keluar, dan `validate-public-security.mjs` masih menuntutnya. `scripts/ubah-friction.mjs --exam-watermark` menghapusnya bila keputusan itu jatuh; validator harus diperbarui bersamaan.
 
 Dua penghalang ditambahkan ke seluruh 64 halaman: `@media print` mengosongkan halaman saat dicetak atau disimpan sebagai PDF (menutup jalur menu browser yang tidak lewat Ctrl+P), dan `beforeprint` mencatatnya. Halaman **modul** juga dikaburkan saat *jendela* kehilangan fokus (`blur`/`focus`) — Alt+Tab dan Snipping Tool tidak mengubah `visibilitychange`, jadi dipantau terpisah. Ini **tidak** diterapkan pada exam: larangan memburamkan halaman ujian saat kehilangan fokus tetap berlaku dan ditegakkan validator.
+
+**Kunci identitas lapisan friksi (diperbaiki 26 September 2026).** Lapisan friksi
+memutuskan "mahasiswa atau bukan" dari `localStorage[LK]`, dan `LK` wajib sama
+dengan `LOCAL_IDENTITY` halaman itu (`<slug>_identity_<uts|uas>`). UAS Math4,
+Getaran, Sisken, dan TTL sempat membaca kunci **UTS** hasil salin-tempel (sejak
+Mei 2026): mahasiswa yang login di UAS lolos dari blokir salin/potong/Ctrl+C,
+watermark, dan penghitung pindah tab, sementara identitas UTS yang tertinggal di
+komputer lab (mahasiswa lain) justru dipakai sebagai watermark, juga bagi tamu.
+`scripts/ubah-friction.mjs` (butir 5) menyamakan `LK` dengan `LOCAL_IDENTITY`,
+dan `validate-public-security.mjs` menolak `LK` yang berbeda di ke-12 halaman
+ujian. `scripts/cad-exam/bangun.py` menulis ulang `LK` UTS/UAS CAD sendiri.
 
 Jangan menulis klaim “screenshot mustahil” atau “Alt+Tab diblokir total”.
 
@@ -1165,9 +1265,9 @@ node scripts/validate-all-course-modern-design.mjs
 git diff --check
 ```
 
-`validate-public-security.mjs` memindai seluruh HTML dalam allowlist Pages pada lima course aktif serta folder Pemodelan CAD. Ia menjaga artefak sensitif, sintaks inline script, 108 halaman berautentikasi admin (96 Modul/Exam + 6 OBE + 6 Admin), gate dan friction exam, WIB, preview modul, reset, presence, format poin, pemulihan `scoreDeltas`, serta keamanan publikasi. Jumlah halaman autentikasi dipatok di validator; perbarui bersama bila inventaris berubah.
+`validate-public-security.mjs` memindai seluruh HTML dalam allowlist Pages pada lima course aktif serta folder Pemodelan CAD. Ia menjaga artefak sensitif, sintaks inline script, 108 halaman berautentikasi admin (96 Modul/Exam + 6 OBE + 6 Admin), gate dan friction exam, WIB, preview modul, reset, presence, format poin, pemulihan `scoreDeltas`, serta keamanan publikasi. Sejak 26 September 2026 ia juga menagih Asisten mahasiswa di ke-12 UTS/UAS: penanda dan kode `buka-asisten-ujian.mjs`, CSS penyembunyi roster di `<head>`, `#fabCount`/`#vpBadge`/`#vpList` hanya diisi jalur dosen `renderVisitors` (cabang mahasiswa hanya mengosongkan lalu `return`), serta larangan `.vp-chat`/`#vpChatList`/`#vpChatInput`/`sendChat` di luar blok AI. Ia juga menolak blok AI ujian yang belum memuat mode mahasiswa (blok dari checkout backend yang lebih tua, §6.8), `LK` lapisan friksi yang berbeda dari `LOCAL_IDENTITY` halaman (§8), formulir login yang tidak dibersihkan setelah login (§4.3), serta CSS panel mahasiswa yang tertutup (di luar urutan Tab) dan kepala kartu komputasi yang membungkus di layar ≤600px. Jumlah halaman autentikasi (108) dan halaman ujian ber-Asisten (12) dipatok di validator; perbarui bersama bila inventaris berubah.
 
-Skrip penyuntik lintas halaman (semua idempoten lewat penanda; jalankan `--periksa` dulu) yang wajib dijalankan ulang setelah regenerasi modul: `tambah-efek-memuat.mjs`, `tambah-efek-jawaban.mjs`, `ubah-friction.mjs`, `kecualikan-akun-simulasi.mjs`, `kunci-lapisan-animasi-login.mjs`, `tambah-progres-modul.mjs` (modul saja), dan `perkuat-pembagian-kelompok.mjs` (tab Pembagian Kelompok di Modul 1 setiap course; penanda `KELOMPOK-TANGGUH`). Yang terakhir ditambahkan 14 September 2026 setelah tab itu menampilkan "Gagal memuat data mahasiswa": `renderGroups()` dulu mengambil roster sekali tanpa cek status HTTP dan tanpa percobaan ulang, sehingga satu kegagalan sesaat langsung tampil sebagai error. Kini roster dimuat lewat `_pkAmbilRoster()` (cek `r.ok`, tiga percobaan dengan jeda dan parameter anti-cache), pesan gagal menyebut penyebabnya beserta tombol **Coba lagi**, dan halaman yang dibuka dari berkas lokal (`file://`) diarahkan ke situs. Dua di antaranya juga menyentuh `<Course>/OBE/Penilaian-OBE.htm` sejak 1 September 2026: `kecualikan-akun-simulasi.mjs` (menyaring akun simulasi dari roster `STUDENTS`) dan `tambah-efek-memuat.mjs` (efek loading pemilih peran). Keduanya memakai jalur terpisah `prosesObe()` karena halaman OBE beda ekstensi dan tidak punya jangkar `updateLeaderboard`. **Posisi blok dipertahankan (diperbaiki 1 September 2026).** `tambah-efek-memuat.mjs` dan `tambah-efek-jawaban.mjs` sama-sama menaruh satu blok `<style>` di `<head>`. Dulu keduanya membuang bloknya lalu menyisipkan ulang tepat sebelum `</head>`, sehingga berebut tempat terakhir: menjalankan yang satu memindahkan blok yang lain ke bawah — 64 berkas berubah, 67 baris bergeser, nol perubahan isi — lalu menjalankan yang lain memindahkannya balik. Siklus dua langkah yang tidak pernah selesai dan mengotori setiap diff. Sekarang keduanya **mengganti blok di tempat** bila sudah ada, dan hanya menyisip sebelum `</head>` bila blok itu memang belum ada. Isinya tetap ditimpa tiap jalan (perbaikan CSS tetap sampai), tetapi urutannya tidak lagi berubah. Diuji: empat putaran bergantian, keduanya melaporkan 0 halaman. `tinggikan-daftar-hasil.mjs` (modul + exam) menyamakan tinggi wadah roster tab Hasil `#visitorTableBody`: `max-height:420px` tetap → `min(72vh,820px)` responsif, sehingga daftar ikut tinggi layar tetapi berhenti di 820px. Ditambahkan 5 September 2026 untuk 8 halaman Exam, diperluas 7 September 2026 ke 56 modul — kini seragam di seluruh 64 halaman. Aturan CSS lintas course yang ditulis langsung di halaman (ukuran roadmap, padding panel persamaan, jarak `br+span`) juga sudah ada di generator `apply-modern-academic-all-modules.mjs` dan `enrich-sisken-modules.mjs`.
+Skrip penyuntik lintas halaman (semua idempoten lewat penanda; jalankan `--periksa` dulu) yang wajib dijalankan ulang setelah regenerasi modul: `tambah-efek-memuat.mjs`, `tambah-efek-jawaban.mjs`, `ubah-friction.mjs` (sejak 26 September 2026 juga menyamakan `LK` lapisan friksi exam dengan `LOCAL_IDENTITY`, §8), `kecualikan-akun-simulasi.mjs`, `kunci-lapisan-animasi-login.mjs`, `tambah-progres-modul.mjs` (modul saja), `perkuat-pembagian-kelompok.mjs` (tab Pembagian Kelompok di Modul 1 setiap course; penanda `KELOMPOK-TANGGUH`), dan `buka-asisten-ujian.mjs` (12 halaman UTS/UAS saja; penanda `ASISTEN-UJIAN-MAHASISWA`; ditambahkan 26 September 2026 — `#visitorFab` menjadi tombol Asisten Dosen bagi mahasiswa sementara roster online tetap khusus dosen, lihat §6.8 dan §7.8; v2 menambah pembersih formulir login §4.3, panel tertutup di luar urutan Tab, dan kepala kartu komputasi yang membungkus di ponsel agar halaman tidak lebih lebar dari layar; UTS/UAS CAD yang dibangun ulang `bangun.py` mewarisinya dari kerangka TTL, jadi `--periksa` sesudahnya harus 0). Yang terakhir ditambahkan 14 September 2026 setelah tab itu menampilkan "Gagal memuat data mahasiswa": `renderGroups()` dulu mengambil roster sekali tanpa cek status HTTP dan tanpa percobaan ulang, sehingga satu kegagalan sesaat langsung tampil sebagai error. Kini roster dimuat lewat `_pkAmbilRoster()` (cek `r.ok`, tiga percobaan dengan jeda dan parameter anti-cache), pesan gagal menyebut penyebabnya beserta tombol **Coba lagi**, dan halaman yang dibuka dari berkas lokal (`file://`) diarahkan ke situs. Dua di antaranya juga menyentuh `<Course>/OBE/Penilaian-OBE.htm` sejak 1 September 2026: `kecualikan-akun-simulasi.mjs` (menyaring akun simulasi dari roster `STUDENTS`) dan `tambah-efek-memuat.mjs` (efek loading pemilih peran). Keduanya memakai jalur terpisah `prosesObe()` karena halaman OBE beda ekstensi dan tidak punya jangkar `updateLeaderboard`. **Posisi blok dipertahankan (diperbaiki 1 September 2026).** `tambah-efek-memuat.mjs` dan `tambah-efek-jawaban.mjs` sama-sama menaruh satu blok `<style>` di `<head>`. Dulu keduanya membuang bloknya lalu menyisipkan ulang tepat sebelum `</head>`, sehingga berebut tempat terakhir: menjalankan yang satu memindahkan blok yang lain ke bawah — 64 berkas berubah, 67 baris bergeser, nol perubahan isi — lalu menjalankan yang lain memindahkannya balik. Siklus dua langkah yang tidak pernah selesai dan mengotori setiap diff. Sekarang keduanya **mengganti blok di tempat** bila sudah ada, dan hanya menyisip sebelum `</head>` bila blok itu memang belum ada. Isinya tetap ditimpa tiap jalan (perbaikan CSS tetap sampai), tetapi urutannya tidak lagi berubah. Diuji: empat putaran bergantian, keduanya melaporkan 0 halaman. `tinggikan-daftar-hasil.mjs` (modul + exam) menyamakan tinggi wadah roster tab Hasil `#visitorTableBody`: `max-height:420px` tetap → `min(72vh,820px)` responsif, sehingga daftar ikut tinggi layar tetapi berhenti di 820px. Ditambahkan 5 September 2026 untuk 8 halaman Exam, diperluas 7 September 2026 ke 56 modul — kini seragam di seluruh 64 halaman. Aturan CSS lintas course yang ditulis langsung di halaman (ukuran roadmap, padding panel persamaan, jarak `br+span`) juga sudah ada di generator `apply-modern-academic-all-modules.mjs` dan `enrich-sisken-modules.mjs`.
 
 Validator khusus melengkapi pemeriksaan publik tersebut:
 
@@ -1218,7 +1318,8 @@ Bila menulis soal pada bank yang sebelumnya placeholder, ingat bahwa penjaga yan
 | Modul | 25 soal, total 50, PG dapat dipilih dan tombol Periksa aktif, late 0,65 (seragam semua course), partial Hard 0,5 (semua course), export lengkap, Forum/chat |
 | Exam | 45 soal, total 100, format poin, late/cutoff, online-only, export resmi |
 | Agen AI | konsep modul aktif dijawab dengan sitasi; pertanyaan lintas MK dan jawaban langsung asesmen ditolak; data pribadi disunting; saat UTS/UAS aktif materi terkunci tetapi jadwal/aturan tetap terjawab; mode `AI_PROVIDER=none` dan simulasi kuota tetap menghasilkan fallback retrieval |
-| UAS | soal tidak ada di source publik, fetch setelah gate, friction tidak memburamkan halaman |
+| Asisten di UTS/UAS | mahasiswa yang login (termasuk yang baru login dari layar tamu, tanpa muat ulang) melihat tombol 🤖 "Asisten Dosen" dan panel langsung di mode Asisten dengan catatan cakupan ujian; tab Online, nama/NIM mahasiswa lain, badge, dan jumlah online tidak terlihat; saat jendela UTS/UAS aktif pertanyaan materi dijawab pesan penguncian, permintaan kunci jawaban ditolak, jadwal/aturan ujian tetap terjawab; dosen tetap melihat tab Online sebagai default; tamu tidak melihat tombol; `#backToTop` tidak tertutup tombol chat di desktop maupun ≤480px; di ponsel 360/390 px (soal sudah tampil) tombol Asisten terlihat tanpa menggeser layar; pada laptop 1366×768 skala 125 % dan ponsel mendatar kolom tanya terlihat saat panel terbuka; Tab dari tombol tidak masuk ke panel yang tertutup; setelah logout (maupun logout paksa karena jadwal dihapus) riwayat Asisten mahasiswa tidak tersisa di localStorage dan formulir login tidak berisi PIN |
+| UAS | soal tidak ada di source publik, fetch setelah gate, friction tidak memburamkan halaman; mahasiswa yang login di UAS mendapat watermark NIM-nya sendiri dan salin diblokir (tidak memakai identitas UTS yang tertinggal) |
 | Progres modul | kotak centang hanya giliran yang aktif, lompat ditolak server; tab Tugas/Forum/Hasil terkunci sampai lengkap; login modul *n* ditolak bila modul *n*−1 belum lengkap (overlay kunci dengan rincian; tombol Periksa lagi membuka halaman tanpa login ulang setelah syaratnya terpenuhi); forum terpulihkan setelah login |
 | Akun simulasi | bisa menjawab ulang; tidak ada ledger/poin/record pengunjung; tidak tampil di papan hasil/roster; progres tersimpan dan boleh membatalkan centang terakhir |
 | Efek jawaban | emoji dan suara hanya pada jawaban baru; tombol bisu berlaku untuk suara jawaban dan antarmuka; overlay login tidak memunculkan scrollbar berkedip |
@@ -1242,7 +1343,7 @@ Jangan menganggap perubahan selesai hanya karena halaman terbuka. Penilaian haru
 7. Refresh tidak boleh mengubah poin atau rincian per soal.
 8. UTS dan UAS sama-sama mengambil teks soal dari server; HTML publik tidak memuat bank soal apa pun.
 9. Preview tidak menilai; preview modul tidak menampilkan Tugas dan Forum.
-10. Panel exam menampilkan mahasiswa online, bukan seluruh riwayat visitor.
+10. Panel exam menampilkan mahasiswa online, bukan seluruh riwayat visitor, dan daftar itu hanya untuk dosen: mahasiswa hanya mendapat Asisten Dosen di panel yang sama (roster berisi nama, NIM, dan status poin teman sekelas; RTDB-nya terbaca publik sehingga UI satu-satunya penjaga). Halaman ujian tidak punya Chat Kelas.
 11. Poin exam ditampilkan maksimal dua desimal tanpa mengubah nilai mentah.
 12. Friction browser adalah deterrent, bukan jaminan anti-screenshot atau blokir Alt+Tab.
 13. Atur Jadwal tidak boleh menghapus data. Reset adalah operasi terpisah dan eksplisit.
