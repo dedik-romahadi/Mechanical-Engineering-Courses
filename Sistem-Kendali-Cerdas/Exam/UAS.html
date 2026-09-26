@@ -5698,7 +5698,12 @@ async function _ensureUASQuestionsLoaded() {
   if ((typeof _utsRendered !== 'undefined' && _utsRendered) || window._utsRenderedFlag || window._uasQuestionsLoading) return;
   const me = getIdentity();
   if (!me) return;
-  const isDosenNow = me.role === 'dosen';
+  // PRIVASI-HASIL-UJIAN:MUAT-SOAL BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+  // Permintaan soal mode dosen (tanpa NIM/PIN; server menagih klaim admin)
+  // hanya untuk dosen terverifikasi. Identitas lain menunggu sesi PIN
+  // mahasiswa seperti biasa.
+  const isDosenNow = _dosenUjianTerverifikasi(me);
+  // PRIVASI-HASIL-UJIAN:MUAT-SOAL END v1
   if (!isDosenNow && (!me.nim || !window._sessionPinHash)) return;   // tunggu PIN session siap
 
   window._uasQuestionsLoading = true;
@@ -5947,7 +5952,7 @@ function _bersihkanFormLoginUjian(adaIdentitas) {
   }
 }
 // ═══ ASISTEN-UJIAN-MAHASISWA:JS END v2 ═══
-// ═══ PRIVASI-HASIL-UJIAN:JS BEGIN v2 — dipasang scripts/privasi-hasil-ujian.mjs ═══
+// ═══ PRIVASI-HASIL-UJIAN:JS BEGIN v3 — dipasang scripts/privasi-hasil-ujian.mjs ═══
 // Data kelas halaman UTS/UAS — tabel tab Hasil (nama, NIM, status
 // Terlambat/Bolos/Tepat Waktu, poin, kunjungan, waktu akses), papan Top Skor/
 // Top Akses, statistik kelas, dan daftar mahasiswa online — hanya dirender
@@ -5958,12 +5963,15 @@ function _bersihkanFormLoginUjian(adaIdentitas) {
 // serta nilai seluruh kelas. RTDB visitors/presence tetap terbaca publik: ini
 // penjaga UI, bukan batas keamanan (Pedoman §7.8).
 function _dosenUjianTerverifikasi(me) {
-  // SATU-SATUNYA aturan "dosen" halaman ujian. Dipakai _applyRoleVisibility
-  // (tombol Reset, banner jadwal, #visitorFab), auto-login jadwal
-  // (_handleScheduleReady), tinjauan soal dosen (_activateDosenQuestionView),
-  // dan gerbang data kelas di bawah, jadi semuanya tidak bisa menyimpang.
-  // Penjaga yang MEMBATASI (_previewGuard, _previewExportGuard: soal hanya-baca,
-  // ekspor mati) sengaja tetap memakai role saja.
+  // SATU-SATUNYA aturan "dosen" halaman ujian untuk semua yang MEMBUKA fitur
+  // dosen: _applyRoleVisibility (tombol Reset, banner jadwal, #visitorFab),
+  // auto-login jadwal (_handleScheduleReady), tinjauan soal dosen
+  // (_activateDosenQuestionView), gerbang wadah soal (_update…AccessGate),
+  // permintaan soal mode dosen (_ensure…QuestionsLoaded), dan gerbang data
+  // kelas di bawah, jadi semuanya tidak bisa menyimpang. Pemeriksaan role yang
+  // tersisa tidak membuka apa pun: penjaga yang MEMBATASI (_previewGuard,
+  // _previewExportGuard: soal hanya-baca, ekspor mati), penentu mahasiswa, dan
+  // pengalih ke _activateDosenQuestionView.
   return !!(me && me.role === 'dosen' && typeof me.nama === 'string' && me.nama.toLowerCase() === 'dedik romahadi');
 }
 function _identitasUjianDikenal(me) {
@@ -6042,7 +6050,7 @@ function _segarkanHasilUjian() {
     renderVisitors(Array.isArray(data) ? data : []);
   } catch (e) { console.warn('[Privasi hasil ujian] render ulang gagal:', e); }
 }
-// ═══ PRIVASI-HASIL-UJIAN:JS END v2 ═══
+// ═══ PRIVASI-HASIL-UJIAN:JS END v3 ═══
 function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-zA-Z.'\-]*$/.test(w));}
 function isValidNim(n){return /^\d+$/.test(n);}
 function sanitizeKey(s){return s.replace(/[.#$\/\[\]]/g,'_');}
@@ -7778,7 +7786,12 @@ function _updateUASAccessGate() {
     const state = _uasScheduleState();
     const me = (typeof getIdentity === 'function') ? getIdentity() : null;
     const isStudent = me && me.nim && me.role !== 'dosen';
-    const isDosen = me && me.role === 'dosen';
+    // PRIVASI-HASIL-UJIAN:GERBANG-SOAL BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+    // Wadah soal selalu tampil dan banner kunci disembunyikan hanya untuk dosen
+    // terverifikasi (aturan dosen tunggal). Identitas {role:'dosen'} bernama
+    // lain mengikuti cabang non-mahasiswa di bawah, seperti tamu.
+    const isDosen = _dosenUjianTerverifikasi(me);
+    // PRIVASI-HASIL-UJIAN:GERBANG-SOAL END v1
 
     // Containers untuk soal
     const tfC = document.getElementById('container-tf');

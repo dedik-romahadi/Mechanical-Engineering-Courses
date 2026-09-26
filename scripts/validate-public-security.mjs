@@ -89,7 +89,9 @@ function pisahkanTerabaikan(files) {
   // status 0 = ada yang terabaikan, 1 = tidak ada. Selain itu git tidak dapat
   // menjawab (bukan repo, git tak terpasang) — jangan sampai itu melemahkan
   // pemeriksaan, jadi seluruh berkas tetap dipindai.
-  if (hasil.status !== 0 && hasil.status !== 1) return { dipakai: files, diabaikan: [] };
+  // Salinan, bukan array yang sama: pemanggil mengosongkan htmlFiles sebelum
+  // mengisinya lagi dari `dipakai` (dulu di luar repo git tidak ada yang dipindai).
+  if (hasil.status !== 0 && hasil.status !== 1) return { dipakai: files.slice(), diabaikan: [] };
   const terabaikan = new Set((hasil.stdout || "").split("\n")
     .map((baris) => baris.trim()).filter(Boolean)
     .map((baris) => path.resolve(root, baris)));
@@ -280,6 +282,25 @@ for (const course of courseRoots) {
     }
     if (!/compScores\[baseId\]\s*=\s*restoredDelta\(baseId, (?:0\.5|1)\);/.test(modul)) {
       throw new Error(`${relative}: fallback partial credit harus 0.5 atau 1`);
+    }
+    // Statistik "Absen" tab Hasil tepat sejak roster dimuat
+    // (scripts/leaderboard-modul-sekali.mjs, 26 September 2026): fetchMasterStudents
+    // dulu memanggil updateLeaderboard kedua kali dengan variabel jadwal-berakhir
+    // yang tidak pernah didefinisikan (selalu false), menimpa statistik benar
+    // dari renderVisitors. updateLeaderboard kini hanya dipanggil dari
+    // renderVisitors, di tingkat teratas badannya.
+    if (modul.includes("_scheduleExpired")) throw new Error(`${relative}: undefined _scheduleExpired is used again (module Absen stats go stale after the roster loads)`);
+    if ((modul.match(/updateLeaderboard\(/g) || []).length !== 2) {
+      throw new Error(`${relative}: updateLeaderboard must only be defined once and called once (from renderVisitors); run node scripts/leaderboard-modul-sekali.mjs`);
+    }
+    if (!ambilFungsi(modul, "function renderVisitors(visitors){", relative).includes("\n  updateLeaderboard(visitors, schedExpired);\n")) {
+      throw new Error(`${relative}: renderVisitors must call updateLeaderboard(visitors, schedExpired) at the top level of its body`);
+    }
+    {
+      const fm = ambilFungsi(modul, "function fetchMasterStudents(", relative);
+      if (!fm.includes("        renderVisitors(latestVisitors || []);\n      }\n      // LEADERBOARD-MODUL-SEKALI BEGIN")) {
+        throw new Error(`${relative}: fetchMasterStudents must re-render through renderVisitors right before the LEADERBOARD-MODUL-SEKALI block`);
+      }
     }
   }
 }
@@ -521,6 +542,21 @@ function ambilBlok(exam, awal, akhir, relative) {
   if (i < 0 || j < 0) throw new Error(`${relative}: block ${awal} not found`);
   return exam.slice(i, exam.indexOf("\n", j) + 1);
 }
+/** Elemen teratas sebuah potongan HTML (tanpa parser DOM): atributnya terbaca lewat getAttribute. */
+const TAG_KOSONG = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]);
+function anakTeratas(html) {
+  const anak = [];
+  let dalam = 0;
+  for (const [, tutup, tag, atr] of html.matchAll(/<(\/?)([a-zA-Z][\w-]*)((?:[^>"']|"[^"]*"|'[^']*')*)>/g)) {
+    if (tutup) { dalam -= 1; continue; }
+    if (dalam === 0) {
+      const atribut = new Map([...atr.matchAll(/([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)].map((a) => [a[1].toLowerCase(), a[2] ?? a[3]]));
+      anak.push({ tagName: tag.toUpperCase(), getAttribute: (n) => (atribut.has(n) ? atribut.get(n) : null) });
+    }
+    if (!TAG_KOSONG.has(tag.toLowerCase()) && !/\/\s*$/.test(atr)) dalam += 1;
+  }
+  return anak;
+}
 /** Jalankan renderVisitors/updateLeaderboard halaman di sandbox; kembalikan isi DOM tiruan. */
 function simulasiHasilUjian(exam, relative) {
   const kode = [
@@ -533,7 +569,17 @@ function simulasiHasilUjian(exam, relative) {
   const buat = (id, isi = {}) => (el[id] = { id, innerHTML: "", textContent: "", style: { display: "" }, ...isi });
   for (const id of ["leaderboardPanel", "fabCount", "vpBadge", "statLate", "vpList", "rajinList", "santaiList", "statTotalMhs", "statHadir", "statAbsen"]) buat(id);
   const judul = buat("(judul tabel)", { textContent: "No Nama NIM Status Poin (Nilai) Kunjungan Waktu Akses", style: { display: "flex" } });
-  buat("visitorTableBody", { previousElementSibling: judul });
+  // #visitorTableBody meniru DOM sungguhan: innerHTML menentukan anak
+  // teratasnya (childElementCount, firstElementChild.getAttribute), sehingga
+  // pemeriksaan "kartu sudah terpasang" _tampilkanHasilTanpaDataKelas ikut
+  // teruji (tamu→Preview harus mengganti ajakan). tulis menghitung penulisan.
+  const tabel = buat("visitorTableBody", { previousElementSibling: judul, tulis: 0 });
+  let isiTabel = "";
+  Object.defineProperties(tabel, {
+    innerHTML: { enumerable: true, get: () => isiTabel, set: (v) => { isiTabel = String(v); tabel.tulis += 1; } },
+    childElementCount: { get: () => anakTeratas(isiTabel).length },
+    firstElementChild: { get: () => anakTeratas(isiTabel)[0] || null },
+  });
   const now = Date.now();
   const ts = new Date(now - 20 * 60000).toISOString();
   const visitors = [...DATA_UJI.peers, DATA_UJI.student].map((p) => ({ role: "student", timestamp: ts, lastVisit: ts, points: 0, visitCount: 1, ...p }));
@@ -586,7 +632,11 @@ for (const course of courseRoots) {
       "      // PRIVASI-HASIL-UJIAN:PEMILIH BEGIN",
       "  // PRIVASI-HASIL-UJIAN:SOAL-DOSEN BEGIN",
       "      // PRIVASI-HASIL-UJIAN:MASTER BEGIN",
+      "    // PRIVASI-HASIL-UJIAN:GERBANG-SOAL BEGIN",
+      "  // PRIVASI-HASIL-UJIAN:MUAT-SOAL BEGIN",
       "function _identitasUjianDikenal(me) {\n",
+      // Kartu tamu yang sudah terpasang diganti begitu masuk Mode Preview.
+      "&& kartu.getAttribute('data-ajakan') === ajakan",
       PLACEHOLDER_AWAL,
       AJAKAN_TAMU,
       AJAKAN_PREVIEW,
@@ -623,6 +673,22 @@ for (const course of courseRoots) {
       if ((exam.match(/\n  const isDosenView = !!\(me && me\.role === 'dosen'\);\n  if \(!window\._previewMode && !isDosenView\) return false;\n/g) || []).length !== 2) {
         throw new Error(`${relative}: _previewGuard/_previewExportGuard must stay role-based (read-only for any 'dosen' identity)`);
       }
+      // Gerbang wadah soal dan permintaan soal mode dosen juga MEMBUKA fitur
+      // dosen, jadi memakai aturan tunggal (GERBANG-SOAL, MUAT-SOAL). Selain
+      // kedua penjaga di atas, tidak ada variabel isDosen* yang diambil dari
+      // `role === 'dosen'` saja.
+      const jenis = examName.slice(0, 3);
+      const gerbangSoal = ambilFungsi(exam, `function _update${jenis}AccessGate() {`, relative);
+      if ((gerbangSoal.match(/\bisDosen\s*=/g) || []).length !== 1 || !gerbangSoal.includes("\n    const isDosen = _dosenUjianTerverifikasi(me);\n    // PRIVASI-HASIL-UJIAN:GERBANG-SOAL END")) {
+        throw new Error(`${relative}: _update${jenis}AccessGate must take isDosen from _dosenUjianTerverifikasi (PRIVASI-HASIL-UJIAN:GERBANG-SOAL)`);
+      }
+      const muatSoal = ambilFungsi(exam, `async function _ensure${jenis}QuestionsLoaded() {`, relative);
+      if ((muatSoal.match(/\bisDosenNow\s*=/g) || []).length !== 1 || !muatSoal.includes("\n  const isDosenNow = _dosenUjianTerverifikasi(me);\n  // PRIVASI-HASIL-UJIAN:MUAT-SOAL END")) {
+        throw new Error(`${relative}: _ensure${jenis}QuestionsLoaded must take isDosenNow from _dosenUjianTerverifikasi (PRIVASI-HASIL-UJIAN:MUAT-SOAL)`);
+      }
+      for (const m of exam.replace(RX_BLOK_AI, "").matchAll(/\b(_?isDosen\w*)\s*=\s*[^;\n]*\brole\s*===?\s*['"]dosen['"]/g)) {
+        if (m[1] !== "isDosenView") throw new Error(`${relative}: ${m[1]} is taken from role === 'dosen' alone; anything that opens a lecturer feature must use _dosenUjianTerverifikasi`);
+      }
       // Perilaku blok halaman itu sendiri untuk identitas asli, lama, dan rekaan.
       const blok = (awal, akhir) => ambilBlok(exam, awal, akhir, relative);
       const kodeAturan = ambilBlok(exam, "// ═══ PRIVASI-HASIL-UJIAN:JS BEGIN", "// ═══ PRIVASI-HASIL-UJIAN:JS END", relative);
@@ -631,6 +697,8 @@ for (const course of courseRoots) {
       const autologin = vm.runInContext(`(function (me) {\n${blok("      // PRIVASI-HASIL-UJIAN:AUTOLOGIN BEGIN", "      // PRIVASI-HASIL-UJIAN:AUTOLOGIN END")}      return { isDosen: _isDosen };\n})`, ctx);
       const pemilih = vm.runInContext(`(function (_me) {\n${blok("      // PRIVASI-HASIL-UJIAN:PEMILIH BEGIN", "      // PRIVASI-HASIL-UJIAN:PEMILIH END")}      return 'sembunyikan-bila-perlu';\n})`, ctx);
       const tinjauSoal = vm.runInContext(`(function (me) {\n${blok("  // PRIVASI-HASIL-UJIAN:SOAL-DOSEN BEGIN", "  // PRIVASI-HASIL-UJIAN:SOAL-DOSEN END")}  return 'aktif';\n})`, ctx);
+      const wadahSoal = vm.runInContext(`(function (me) {\n${blok("    // PRIVASI-HASIL-UJIAN:GERBANG-SOAL BEGIN", "    // PRIVASI-HASIL-UJIAN:GERBANG-SOAL END")}    return isDosen;\n})`, ctx);
+      const soalModeDosen = vm.runInContext(`(function (me) {\n${blok("  // PRIVASI-HASIL-UJIAN:MUAT-SOAL BEGIN", "  // PRIVASI-HASIL-UJIAN:MUAT-SOAL END")}  return isDosenNow;\n})`, ctx);
       const mhs = { nama: DATA_UJI.student.nama, nim: DATA_UJI.student.nim, role: "student" };
       for (const [label, me, dosen, dikenal] of [
         ["real lecturer", IDENTITAS_DOSEN, true, true],
@@ -649,6 +717,8 @@ for (const course of courseRoots) {
         }
         if ((pemilih(me) === undefined) === dikenal) throw new Error(`${relative}: role picker for ${label} should ${dikenal ? "be skippable" : "stay visible"}`);
         if ((tinjauSoal(me) === "aktif") !== dosen) throw new Error(`${relative}: lecturer question view for ${label} should ${dosen ? "" : "not "}activate`);
+        if (wadahSoal(me) !== dosen) throw new Error(`${relative}: question-container gate for ${label} should ${dosen ? "" : "not "}treat it as the lecturer`);
+        if (soalModeDosen(me) !== dosen) throw new Error(`${relative}: lecturer-mode question fetch for ${label} should ${dosen ? "" : "not "}be sent`);
       }
     }
 
@@ -756,8 +826,21 @@ for (const course of courseRoots) {
 
     // Tamu di layar login.
     render("guest"); tanpaDataKelas("guest");
-    // Mode Preview, termasuk bila identitas dosen kebetulan tersimpan.
-    konteks.window._previewMode = true; render("preview"); tanpaDataKelas("preview");
+    // Kartu placeholder: satu elemen bertanda, tidak ditulis ulang pada render
+    // berikutnya dalam konteks yang sama (render tiap event RTDB / 30 detik).
+    {
+      const kartu = el.visitorTableBody.firstElementChild;
+      if (el.visitorTableBody.childElementCount !== 1 || !kartu || kartu.getAttribute("data-privasi-hasil") !== "tanpa-data-kelas" || kartu.getAttribute("data-ajakan") !== "tamu") {
+        throw new Error(`${relative}: guest placeholder must be one card marked data-privasi-hasil="tanpa-data-kelas" data-ajakan="tamu"`);
+      }
+      const tulis = el.visitorTableBody.tulis;
+      render("guest (same card)");
+      if (el.visitorTableBody.tulis !== tulis) throw new Error(`${relative}: guest placeholder is rewritten on every render (the already-rendered check never matches)`);
+    }
+    // Mode Preview, termasuk bila identitas dosen kebetulan tersimpan. Kartu
+    // tamu yang sudah terpasang HARUS diganti ajakan Preview (data-ajakan
+    // termasuk dalam pemeriksaan "kartu sudah terpasang").
+    konteks.window._previewMode = true; render("preview"); tanpaDataKelas("preview (card switched from the guest card)");
     konteks.identitas = IDENTITAS_DOSEN; render("preview+dosen"); tanpaDataKelas("preview with a stored lecturer identity");
     konteks.window._previewMode = false;
     // Identitas 'dosen' yang bukan dosen pengampu.

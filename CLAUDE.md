@@ -224,8 +224,12 @@ repo publik ini.
 - **Data kelas UTS/UAS khusus dosen.** Tabel kelas tab Hasil, papan Top
   Skor/Top Akses, statistik kelas, dan daftar online hanya dirender untuk
   dosen terverifikasi (`_dosenUjianTerverifikasi` — satu-satunya aturan dosen
-  halaman ujian, juga untuk `_applyRoleVisibility`, auto-login jadwal, dan
-  tinjauan soal dosen; jangan menulis perbandingan nama dosen kedua); tamu dan
+  halaman ujian untuk semua yang membuka fitur dosen: `_applyRoleVisibility`,
+  auto-login jadwal, tinjauan soal dosen, gerbang wadah soal, dan permintaan
+  soal mode dosen; jangan menulis perbandingan nama dosen kedua maupun
+  `isDosen… = …role === 'dosen'` baru — yang berbasis role hanya penjaga yang
+  membatasi `_previewGuard`/`_previewExportGuard`, penentu mahasiswa, dan
+  pengalih ke tinjauan soal dosen); tamu dan
   Mode Preview mendapat placeholder (ajakan berbeda: Preview diarahkan ke tombol
   "Keluar Preview"), identitas yang bukan dosen terverifikasi maupun mahasiswa
   tidak dipulihkan otomatis, dan setiap perubahan peran — termasuk masuk Mode

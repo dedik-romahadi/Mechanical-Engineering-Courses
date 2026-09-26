@@ -6367,9 +6367,13 @@ function fetchMasterStudents(retries){
       if (typeof renderVisitors === 'function' && typeof latestVisitors !== 'undefined') {
         renderVisitors(latestVisitors || []);
       }
-      if (typeof updateLeaderboard === 'function' && typeof latestVisitors !== 'undefined') {
-        updateLeaderboard(latestVisitors || [], typeof _scheduleExpired !== 'undefined' ? _scheduleExpired : false);
-      }
+      // LEADERBOARD-MODUL-SEKALI BEGIN v1 — dipasang scripts/leaderboard-modul-sekali.mjs
+      // renderVisitors di atas sudah memanggil updateLeaderboard dengan
+      // schedExpired dari jadwal saat ini. Panggilan kedua di sini dulu membaca
+      // variabel jadwal-berakhir yang tidak pernah didefinisikan (selalu false),
+      // sehingga "Absen" tertimpa tanpa mahasiswa Bolos sampai render
+      // berikutnya. Panggilan itu sengaja dibuang.
+      // LEADERBOARD-MODUL-SEKALI END v1
     } catch(e) { console.warn('[Visitor] Re-render after master load failed:', e); }
     // Update loading indicator → success
     const ls  = document.getElementById('loadingStudents');
