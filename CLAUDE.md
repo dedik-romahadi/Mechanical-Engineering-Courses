@@ -192,10 +192,17 @@ repo publik ini.
   23:59 WIB) dan tidak punya batas atas (terlambat tetap boleh). Exam memakai
   **menit** (default 180, perpanjangan 120) dan ditutup setelah
   `end + extension`. Jangan tertukar `dur*86400000` vs `dur*60000`.
+  Deadline modul yang kanonis adalah `due` (WIB); perpanjangan satu kelas
+  lewat `Admin/rescale-deadline.html` (NIM kosong) menulis `end` **dan**
+  `due` dengan waktu buka tetap (backend `rescaleModulLatePenalty`, Pedoman
+  §5.4). Rescale ujian hanya menulis `end`/`extension` (§5.5).
 - **Penalti terlambat 0,65** (potongan 35%) seragam semua course; sumber
   kebenarannya server (`cfg.lateMultiplierValue`). Partial Hard 0,5.
 - **Skor.** Modul: 25 soal = 10 PG ×1 + 10 Komputasi ×2 + 5 Hard ×4 = 50.
-  Exam: TF=1, MC=1, Comp Easy=2, Comp Hard=4; total 100.
+  Exam: TF=1, MC=1, Comp Easy=2, Comp Hard=4; total 100. Pengecualian
+  Pemodelan CAD: modul 15 soal (10 PG + 5 tugas pemodelan 6/6/6/11/11 = 50,
+  kirim ulang maksimal 65%, tanpa partial); UTS 30 / UAS 31 soal tanpa TF
+  (bobot tipe PG 1, tugas unggah 2, rakitan `c11` 6 dengan partial 3).
 - **Progres materi berurutan** (sejak 22 Agu 2026): kotak centang per bagian,
   tab Tugas/Forum/Hasil terkunci sampai lengkap, login modul *n* ditolak bila
   modul *n*−1 belum lengkap (centang + tugas + forum). Rincian: Pedoman §6.7.
