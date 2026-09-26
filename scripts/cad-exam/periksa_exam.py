@@ -6,7 +6,8 @@
 #
 # Yang diperiksa:
 #   1. Sisa kerangka terlarang: pyodide, editor kode, runAndCheck(, identitas
-#      course TTL, dan seluruh mesin soal benar-salah. Blok widget chat AI
+#      course TTL (termasuk label navbar TENAGALISTRIK/GETARANMESIN), dan
+#      seluruh mesin soal benar-salah. Blok widget chat AI
 #      (AI-CHAT-AGENT:BEGIN/END) dikecualikan: isinya satu sumber dari repo
 #      backend untuk seluruh 96 halaman dan memang menyebut keenam mata kuliah,
 #      termasuk Teknik Tenaga Listrik. Blok itu wajib ada tepat sekali dan
@@ -15,7 +16,8 @@
 #      Karena kartu dirakit di klien dari data server, yang dihitung adalah
 #      tabel poin per soal (EXAM_QID_POINTS) dan wadah bagiannya.
 #   3. Konstanta halaman: EXAM_ID, DB_PATH, SCHEDULE_PATH, kunci penyimpanan,
-#      nama berkas ekspor, callable unggah, dan potongan kartu unggah.
+#      nama berkas ekspor, label navbar (PEMODELANCAD // UTS|UAS), callable
+#      unggah, dan potongan kartu unggah.
 #   4. Poin per soal cocok dengan bobot Sub-CPMK di scripts/cad-exam/<jenis>.py
 #      (yang mencerminkan OBE_EXAM_CONFIG backend) dan berjumlah 100.
 import importlib
@@ -45,6 +47,10 @@ TERLARANG = [
     ("teknik-tenaga-listrik", "identitas course Teknik Tenaga Listrik"),
     ("Teknik Tenaga Listrik", "nama course Teknik Tenaga Listrik"),
     ("TeknikTenagaListrik", "nama berkas ekspor Teknik Tenaga Listrik"),
+    # Label navbar: kerangka TTL (TENAGALISTRIK) dan sisa templat Getaran
+    # (GETARANMESIN) harus menjadi PEMODELANCAD, sama dengan ke-14 modul CAD.
+    ("TENAGALISTRIK", "label navbar Teknik Tenaga Listrik"),
+    ("GETARANMESIN", "label navbar sisa templat Getaran Mekanik"),
     # Soal benar-salah: bank CAD memang tidak punya tf sama sekali.
     ("tf-card", "kartu soal benar-salah"),
     ("tfopts-", "wadah opsi benar-salah"),
@@ -136,6 +142,8 @@ def periksa(jenis):
         (f"const MODULE_ID = '{jenis}';", "MODULE_ID"),
         (f"const PERTEMUAN = '{jenis}';", "PERTEMUAN"),
         (f"<title>{K.JUDUL}</title>", "judul halaman"),
+        (f'<span class="nav-brand"><span class="pulse"></span><span>PEMODELANCAD // {JENIS[jenis]}</span></span>',
+         "label navbar"),
     ]
     for potongan, label in konstanta:
         if potongan not in s:

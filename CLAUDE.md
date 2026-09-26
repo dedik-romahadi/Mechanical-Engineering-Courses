@@ -216,14 +216,20 @@ repo publik ini.
   backend lebih dulu. Rincian: Pedoman §6.8 dan §7.8.
 - **Data kelas UTS/UAS khusus dosen.** Tabel kelas tab Hasil, papan Top
   Skor/Top Akses, statistik kelas, dan daftar online hanya dirender untuk
-  dosen terverifikasi (`_dosenUjianTerverifikasi`, satu fungsi dengan aturan
-  dosen `_applyRoleVisibility`); tamu dan Mode Preview mendapat placeholder,
-  dan setiap perubahan peran — termasuk masuk Mode Preview — merender ulang
-  seketika (`_segarkanHasilUjian`). "Bukan mahasiswa" tidak pernah berarti
-  "dosen". Dipasang `scripts/privasi-hasil-ujian.mjs` (penanda
+  dosen terverifikasi (`_dosenUjianTerverifikasi` — satu-satunya aturan dosen
+  halaman ujian, juga untuk `_applyRoleVisibility`, auto-login jadwal, dan
+  tinjauan soal dosen; jangan menulis perbandingan nama dosen kedua); tamu dan
+  Mode Preview mendapat placeholder (ajakan berbeda: Preview diarahkan ke tombol
+  "Keluar Preview"), identitas yang bukan dosen terverifikasi maupun mahasiswa
+  tidak dipulihkan otomatis, dan setiap perubahan peran — termasuk masuk Mode
+  Preview — merender ulang seketika (`_segarkanHasilUjian`). "Bukan mahasiswa"
+  tidak pernah berarti "dosen". Dipasang `scripts/privasi-hasil-ujian.mjs` (penanda
   `PRIVASI-HASIL-UJIAN`, ada `--periksa`, jalankan sesudah
   `buka-asisten-ujian.mjs`). Halaman modul tidak memakainya. Rincian: Pedoman
   §4.2 dan §7.8.
+- **Label navbar UTS/UAS** = label modul course-nya (`TENAGALISTRIK // UTS`,
+  bukan sisa templat `GETARANMESIN`); dipasang `scripts/label-nav-ujian.mjs`
+  (ada `--periksa`), CAD lewat `scripts/cad-exam/bangun.py`.
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
   yang idempoten, bukan suntingan manual per berkas.

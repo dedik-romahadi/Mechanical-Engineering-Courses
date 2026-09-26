@@ -1224,7 +1224,7 @@ body.ujian-mahasiswa #visitorPanel:not(.open){visibility:hidden;transition:trans
 
 <!-- ─── NAVBAR TOP BAR (always fixed) ─── -->
 <nav id="navTop">
-  <span class="nav-brand"><span class="pulse"></span><span>GETARANMESIN // UTS</span></span>
+  <span class="nav-brand"><span class="pulse"></span><span>SISKENCERDAS // UTS</span></span>
   <div class="nav-tabs">
     <button class="nav-tab active" id="tab-uts" onclick="switchTab('uts')">📝 Soal Ujian</button>
     <button class="nav-tab" id="tab-hasil" onclick="switchTab('hasil')">📊 Hasil</button>
@@ -5545,7 +5545,13 @@ window.getIdentity = getIdentity;
 window._dosenQuestionView = false;
 async function _activateDosenQuestionView() {
   const me = getIdentity();
-  if (!me || me.role !== 'dosen') return;
+  // PRIVASI-HASIL-UJIAN:SOAL-DOSEN BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+  // Tinjauan soal dosen memakai aturan dosen tunggal halaman. Identitas
+  // {role:'dosen'} bernama lain tidak mengaktifkan mode ini; penjaga jawaban
+  // (_previewGuard/_previewExportGuard) tetap berbasis role, jadi identitas
+  // seperti itu tetap hanya-baca.
+  if (!_dosenUjianTerverifikasi(me)) return;
+  // PRIVASI-HASIL-UJIAN:SOAL-DOSEN END v1
   window._dosenQuestionView = true;
   const chip = document.getElementById('navIdentityChip');
   if (chip) {
@@ -5738,7 +5744,7 @@ function _bersihkanFormLoginUjian(adaIdentitas) {
   }
 }
 // ═══ ASISTEN-UJIAN-MAHASISWA:JS END v2 ═══
-// ═══ PRIVASI-HASIL-UJIAN:JS BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs ═══
+// ═══ PRIVASI-HASIL-UJIAN:JS BEGIN v2 — dipasang scripts/privasi-hasil-ujian.mjs ═══
 // Data kelas halaman UTS/UAS — tabel tab Hasil (nama, NIM, status
 // Terlambat/Bolos/Tepat Waktu, poin, kunjungan, waktu akses), papan Top Skor/
 // Top Akses, statistik kelas, dan daftar mahasiswa online — hanya dirender
@@ -5750,9 +5756,19 @@ function _bersihkanFormLoginUjian(adaIdentitas) {
 // penjaga UI, bukan batas keamanan (Pedoman §7.8).
 function _dosenUjianTerverifikasi(me) {
   // SATU-SATUNYA aturan "dosen" halaman ujian. Dipakai _applyRoleVisibility
-  // (tombol Reset, banner jadwal, #visitorFab) dan gerbang data kelas di bawah,
-  // jadi keduanya tidak bisa menyimpang.
+  // (tombol Reset, banner jadwal, #visitorFab), auto-login jadwal
+  // (_handleScheduleReady), tinjauan soal dosen (_activateDosenQuestionView),
+  // dan gerbang data kelas di bawah, jadi semuanya tidak bisa menyimpang.
+  // Penjaga yang MEMBATASI (_previewGuard, _previewExportGuard: soal hanya-baca,
+  // ekspor mati) sengaja tetap memakai role saja.
   return !!(me && me.role === 'dosen' && typeof me.nama === 'string' && me.nama.toLowerCase() === 'dedik romahadi');
+}
+function _identitasUjianDikenal(me) {
+  // Identitas tersimpan yang dipulihkan otomatis: dosen terverifikasi, atau
+  // mahasiswa ber-NIM (aturan isStudent yang sama dengan _applyRoleVisibility
+  // dan renderVisitors). Selain itu — sisa format lama {nama:'Dedik Romahadi'}
+  // tanpa role, {role:'dosen'} bernama lain — diperlakukan seperti tamu.
+  return _dosenUjianTerverifikasi(me) || !!(me && me.nim && me.role !== 'dosen');
 }
 function _dataKelasUjianBoleh() {
   // Mode Preview tidak pernah melihat data kelas, apa pun identitas yang
@@ -5788,13 +5804,20 @@ function _tampilkanHasilTanpaDataKelas() {
   const judul = _judulTabelHasilUjian(tableEl);
   if (judul && judul.style.display !== 'none') judul.style.display = 'none';
   if (!tableEl) return;
-  const sudah = tableEl.childElementCount === 1 && tableEl.firstElementChild.getAttribute('data-privasi-hasil') === 'tanpa-data-kelas';
+  // Ajakan mengikuti konteks: Mode Preview tidak punya formulir login — jalan
+  // keluarnya tombol "Keluar Preview" di banner atas (memuat ulang halaman).
+  const ajakan = window._previewMode ? 'preview' : 'tamu';
+  const kartu = tableEl.firstElementChild;
+  const sudah = tableEl.childElementCount === 1 && kartu.getAttribute('data-privasi-hasil') === 'tanpa-data-kelas' && kartu.getAttribute('data-ajakan') === ajakan;
   if (!sudah) {
-    tableEl.innerHTML = '<div data-privasi-hasil="tanpa-data-kelas" style="padding:48px 28px;text-align:center;color:#94a3b8">'
+    tableEl.innerHTML = '<div data-privasi-hasil="tanpa-data-kelas" data-ajakan="' + ajakan + '" style="padding:48px 28px;text-align:center;color:#94a3b8">'
       + '<div style="font-size:48px;margin-bottom:16px">🔐</div>'
       + '<h3 style="color:#fff;font-size:1.2rem;margin-bottom:8px">Data Kelas Khusus Dosen</h3>'
-      + '<p style="font-size:.85rem;line-height:1.6">Data kelas hanya tersedia untuk dosen. Masuk sebagai mahasiswa untuk melihat nilai Anda sendiri.</p>'
-      + '</div>';
+      + '<p style="font-size:.85rem;line-height:1.6">Data kelas hanya tersedia untuk dosen. '
+      + (ajakan === 'preview'
+        ? 'Keluar dari Mode Preview (tombol <strong>Keluar Preview</strong> di banner atas), lalu masuk sebagai mahasiswa untuk melihat nilai Anda sendiri.'
+        : 'Masuk sebagai mahasiswa untuk melihat nilai Anda sendiri.')
+      + '</p></div>';
   }
 }
 function _pulihkanTataHasilDosen() {
@@ -5816,7 +5839,7 @@ function _segarkanHasilUjian() {
     renderVisitors(Array.isArray(data) ? data : []);
   } catch (e) { console.warn('[Privasi hasil ujian] render ulang gagal:', e); }
 }
-// ═══ PRIVASI-HASIL-UJIAN:JS END v1 ═══
+// ═══ PRIVASI-HASIL-UJIAN:JS END v2 ═══
 function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-zA-Z.'\-]*$/.test(w));}
 function isValidNim(n){return /^\d+$/.test(n);}
 function sanitizeKey(s){return s.replace(/[.#$\/\[\]]/g,'_');}
@@ -5839,9 +5862,13 @@ function fetchMasterStudents(retries){
       if (typeof renderVisitors === 'function' && typeof latestVisitors !== 'undefined') {
         renderVisitors(latestVisitors || []);
       }
-      if (typeof updateLeaderboard === 'function' && typeof latestVisitors !== 'undefined') {
-        updateLeaderboard(latestVisitors || [], typeof _scheduleExpired !== 'undefined' ? _scheduleExpired : false);
-      }
+      // PRIVASI-HASIL-UJIAN:MASTER BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+      // renderVisitors di atas sudah memanggil updateLeaderboard dengan
+      // schedExpired dari jadwal saat ini (jalur dosen). Panggilan kedua di sini
+      // dulu membaca variabel jadwal-berakhir yang tidak pernah didefinisikan
+      // (selalu false), sehingga "Jumlah Absen" dosen tertimpa tanpa mahasiswa
+      // Bolos sampai render berikutnya. Panggilan itu sengaja dibuang.
+      // PRIVASI-HASIL-UJIAN:MASTER END v1
     } catch(e) { console.warn('[Visitor] Re-render after master load failed:', e); }
     // Update loading indicator → success
     const ls  = document.getElementById('loadingStudents');
@@ -6091,7 +6118,15 @@ function _handleScheduleReady() {
       // ── UTS: Cek schedule sebelum auto-login ──
       // Jika now < start dan user adalah student, JANGAN auto-login.
       // Tampilkan pesan di overlay agar user tau akses belum dibuka.
-      const _isDosen = me.nama.toLowerCase() === 'dedik romahadi';
+      // PRIVASI-HASIL-UJIAN:AUTOLOGIN BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+      // Aturan dosen tunggal halaman (_dosenUjianTerverifikasi: role 'dosen' DAN
+      // nama dosen pengampu), bukan lagi nama saja. Identitas yang bukan dosen
+      // terverifikasi dan bukan mahasiswa ber-NIM (sisa format lama tanpa role,
+      // {role:'dosen'} bernama lain) tidak dipulihkan: layar login tetap tampil,
+      // tanpa #visitorFab dan tanpa melewati gerbang jam mulai.
+      const _isDosen = _dosenUjianTerverifikasi(me);
+      if (!_identitasUjianDikenal(me)) return;
+      // PRIVASI-HASIL-UJIAN:AUTOLOGIN END v1
       if (!_isDosen && currentSchedule && currentSchedule.start) {
         const _now = Date.now();
         const _start = new Date(currentSchedule.start).getTime();
@@ -7239,6 +7274,12 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     if (typeof getIdentity === 'function') {
       const _me = getIdentity();
+      // PRIVASI-HASIL-UJIAN:PEMILIH BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+      // Pemilih peran hanya dilewati untuk identitas yang dipulihkan auto-login
+      // (_identitasUjianDikenal). Identitas lain melihatnya seperti tamu, jadi
+      // dosen dengan identitas format lama bisa langsung memilih "Dosen".
+      if (!_identitasUjianDikenal(_me)) return;
+      // PRIVASI-HASIL-UJIAN:PEMILIH END v1
       if (_me && _me.nama && _me.role !== 'guest') {
         const rc = document.getElementById('roleChooserOverlay');
         if (rc) rc.classList.add('hidden');

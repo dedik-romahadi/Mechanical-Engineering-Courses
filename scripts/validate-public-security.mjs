@@ -502,6 +502,13 @@ const DATA_UJI = {
   student: { nim: "41300000001", nama: "TES MAHASISWA SATU" },
 };
 const RX_DATA_TEMAN = /peerlate|peeronline|peertop|4139900001\d|roster only|41300000099/i;
+// Ajakan placeholder mengikuti konteks: tamu bisa langsung masuk sebagai
+// mahasiswa, sedangkan Mode Preview tidak punya formulir login (jalan keluarnya
+// tombol "Keluar Preview" di banner). Kalimat pertama placeholder sama untuk
+// keduanya; di sumber halaman ajakan ditulis sebagai literal terpisah.
+const PLACEHOLDER_AWAL = "Data kelas hanya tersedia untuk dosen. ";
+const AJAKAN_TAMU = "Masuk sebagai mahasiswa untuk melihat nilai Anda sendiri.";
+const AJAKAN_PREVIEW = "Keluar dari Mode Preview (tombol <strong>Keluar Preview</strong> di banner atas), lalu masuk sebagai mahasiswa untuk melihat nilai Anda sendiri.";
 function ambilFungsi(exam, awal, relative) {
   const i = exam.indexOf(awal);
   const j = i < 0 ? -1 : exam.indexOf("\n}\n", i);
@@ -575,9 +582,83 @@ for (const course of courseRoots) {
       "  return !!(me && me.role === 'dosen' && typeof me.nama === 'string' && me.nama.toLowerCase() === 'dedik romahadi');\n",
       "function _dataKelasUjianBoleh() {\n  // Mode Preview tidak pernah melihat data kelas, apa pun identitas yang\n  // kebetulan tersimpan di localStorage.\n  if (window._previewMode) return false;\n",
       "  _kosongkanRosterUjian();          // daftar online, badge, jumlah (buka-asisten-ujian.mjs)\n  _kosongkanPapanKelasUjian();\n",
-      "Data kelas hanya tersedia untuk dosen. Masuk sebagai mahasiswa untuk melihat nilai Anda sendiri.",
+      "      // PRIVASI-HASIL-UJIAN:AUTOLOGIN BEGIN",
+      "      // PRIVASI-HASIL-UJIAN:PEMILIH BEGIN",
+      "  // PRIVASI-HASIL-UJIAN:SOAL-DOSEN BEGIN",
+      "      // PRIVASI-HASIL-UJIAN:MASTER BEGIN",
+      "function _identitasUjianDikenal(me) {\n",
+      PLACEHOLDER_AWAL,
+      AJAKAN_TAMU,
+      AJAKAN_PREVIEW,
     ]) {
       if (!exam.includes(required)) throw new Error(`${relative}: lecturer-only class data gate missing ${required.split("\n")[0]}`);
+    }
+    // Ajakan Mode Preview menunjuk tombol banner yang memang ada di halaman.
+    if (!exam.includes('<button onclick="exitPreviewMode()"') || !exam.includes(">Keluar Preview</button>")) {
+      throw new Error(`${relative}: the Mode Preview placeholder points to the banner's "Keluar Preview" button, which is missing`);
+    }
+
+    // SATU aturan dosen untuk seluruh halaman (lanjutan 26 September 2026).
+    // Auto-login jadwal dulu memakai `me.nama.toLowerCase() === 'dedik romahadi'`
+    // (nama saja, tanpa role) untuk melewati gerbang jam mulai; identitas
+    // format lama {nama:'Dedik Romahadi'} atau {role:'dosen'} bernama lain jadi
+    // setengah-login. Perbandingan nama dosen kini hanya boleh ada di
+    // _dosenUjianTerverifikasi.
+    {
+      const aturanDosen = ambilFungsi(exam, "function _dosenUjianTerverifikasi(me) {", relative);
+      const sisa = exam.replace(aturanDosen, "");
+      const nama = /toLowerCase\(\)\s*===?\s*['"]dedik romahadi['"]/i.exec(sisa);
+      if (nama) throw new Error(`${relative}: lecturer name comparison outside _dosenUjianTerverifikasi (one lecturer rule for the page): …${sisa.slice(Math.max(0, nama.index - 60), nama.index + 40).replace(/\n/g, "⏎")}…`);
+      const jadwal = ambilFungsi(exam, "function _handleScheduleReady() {", relative);
+      if (!jadwal.includes("\n      const _isDosen = _dosenUjianTerverifikasi(me);\n      if (!_identitasUjianDikenal(me)) return;\n") || (jadwal.match(/_isDosen\s*=/g) || []).length !== 1) {
+        throw new Error(`${relative}: _handleScheduleReady auto-login must take _isDosen from _dosenUjianTerverifikasi and skip identities that are neither the verified lecturer nor a student`);
+      }
+      const soal = ambilFungsi(exam, "async function _activateDosenQuestionView() {", relative);
+      const pertamaSoal = soal.split("\n").slice(2).find((b) => b.trim() && !b.trim().startsWith("//"));
+      if (pertamaSoal !== "  if (!_dosenUjianTerverifikasi(me)) return;") {
+        throw new Error(`${relative}: _activateDosenQuestionView must be gated by _dosenUjianTerverifikasi, found: ${pertamaSoal}`);
+      }
+      // Penjaga yang MEMBATASI (soal hanya-baca, ekspor mati) sengaja tetap
+      // berbasis role: identitas {role:'dosen'} apa pun tidak bisa menjawab.
+      if ((exam.match(/\n  const isDosenView = !!\(me && me\.role === 'dosen'\);\n  if \(!window\._previewMode && !isDosenView\) return false;\n/g) || []).length !== 2) {
+        throw new Error(`${relative}: _previewGuard/_previewExportGuard must stay role-based (read-only for any 'dosen' identity)`);
+      }
+      // Perilaku blok halaman itu sendiri untuk identitas asli, lama, dan rekaan.
+      const blok = (awal, akhir) => ambilBlok(exam, awal, akhir, relative);
+      const kodeAturan = ambilBlok(exam, "// ═══ PRIVASI-HASIL-UJIAN:JS BEGIN", "// ═══ PRIVASI-HASIL-UJIAN:JS END", relative);
+      const ctx = vm.createContext({ window: {}, document: { getElementById: () => null }, console: { warn() {} } });
+      vm.runInContext(kodeAturan, ctx, { filename: `${relative}#aturan-dosen` });
+      const autologin = vm.runInContext(`(function (me) {\n${blok("      // PRIVASI-HASIL-UJIAN:AUTOLOGIN BEGIN", "      // PRIVASI-HASIL-UJIAN:AUTOLOGIN END")}      return { isDosen: _isDosen };\n})`, ctx);
+      const pemilih = vm.runInContext(`(function (_me) {\n${blok("      // PRIVASI-HASIL-UJIAN:PEMILIH BEGIN", "      // PRIVASI-HASIL-UJIAN:PEMILIH END")}      return 'sembunyikan-bila-perlu';\n})`, ctx);
+      const tinjauSoal = vm.runInContext(`(function (me) {\n${blok("  // PRIVASI-HASIL-UJIAN:SOAL-DOSEN BEGIN", "  // PRIVASI-HASIL-UJIAN:SOAL-DOSEN END")}  return 'aktif';\n})`, ctx);
+      const mhs = { nama: DATA_UJI.student.nama, nim: DATA_UJI.student.nim, role: "student" };
+      for (const [label, me, dosen, dikenal] of [
+        ["real lecturer", IDENTITAS_DOSEN, true, true],
+        ["lecturer name in capitals", { ...IDENTITAS_DOSEN, nama: "DEDIK ROMAHADI" }, true, true],
+        ["student", mhs, false, true],
+        ["legacy student without role", { nama: mhs.nama, nim: mhs.nim }, false, true],
+        ["legacy lecturer identity without role", { nama: "Dedik Romahadi" }, false, false],
+        ["role-less identity with a NIM (a student everywhere on the page)", { nama: "Dedik Romahadi", nim: "DOSEN" }, false, true],
+        ["crafted dosen with another name", { role: "dosen", nama: "X" }, false, false],
+        ["crafted dosen with a student's NIM", { role: "dosen", nama: mhs.nama, nim: mhs.nim }, false, false],
+        ["lecturer name with student role, no NIM", { nama: "Dedik Romahadi", role: "student" }, false, false],
+      ]) {
+        const a = autologin(me);
+        if (dikenal ? !(a && a.isDosen === dosen) : a !== undefined) {
+          throw new Error(`${relative}: auto-login for ${label} ${JSON.stringify(me)} should ${dikenal ? `restore the session with _isDosen=${dosen}` : "not restore the session"}, got ${JSON.stringify(a)}`);
+        }
+        if ((pemilih(me) === undefined) === dikenal) throw new Error(`${relative}: role picker for ${label} should ${dikenal ? "be skippable" : "stay visible"}`);
+        if ((tinjauSoal(me) === "aktif") !== dosen) throw new Error(`${relative}: lecturer question view for ${label} should ${dosen ? "" : "not "}activate`);
+      }
+    }
+
+    // "Jumlah Absen" dosen sesudah roster dimuat: fetchMasterStudents dulu
+    // memanggil updateLeaderboard kedua kali dengan variabel jadwal-berakhir
+    // yang tidak pernah didefinisikan (selalu false), menimpa statistik benar
+    // dari renderVisitors.
+    if (exam.includes("_scheduleExpired")) throw new Error(`${relative}: undefined _scheduleExpired is used again (lecturer Absen stats go stale after the roster loads)`);
+    if ((exam.match(/updateLeaderboard\(/g) || []).length !== 2) {
+      throw new Error(`${relative}: updateLeaderboard must only be defined once and called once (from renderVisitors, with schedExpired from the current schedule)`);
     }
 
     // _applyRoleVisibility memakai aturan dosen yang sama dan merender ulang
@@ -649,7 +730,12 @@ for (const course of courseRoots) {
       const isi = isiDom();
       const bocor = isi.match(RX_DATA_TEMAN);
       if (bocor) throw new Error(`${relative}: ${label} still gets class data in the DOM (${bocor[0]})`);
-      if (!el.visitorTableBody.innerHTML.includes("Data kelas hanya tersedia untuk dosen.")) throw new Error(`${relative}: ${label} does not get the class-data placeholder`);
+      if (!el.visitorTableBody.innerHTML.includes(PLACEHOLDER_AWAL)) throw new Error(`${relative}: ${label} does not get the class-data placeholder`);
+      // Ajakan sesuai konteks: Mode Preview tidak punya formulir login.
+      const ajakan = konteks.window._previewMode ? AJAKAN_PREVIEW : AJAKAN_TAMU;
+      if (!el.visitorTableBody.innerHTML.includes(PLACEHOLDER_AWAL + ajakan)) {
+        throw new Error(`${relative}: ${label}: placeholder call to action should read "${ajakan}"`);
+      }
       if (el.leaderboardPanel.style.display !== "none" || el["(judul tabel)"].style.display !== "none") throw new Error(`${relative}: ${label} still sees the leaderboard or the table header`);
       for (const id of ["vpList", "vpBadge", "fabCount", "rajinList", "santaiList"]) {
         if (`${el[id].innerHTML}${el[id].textContent}`.trim()) throw new Error(`${relative}: ${label} leaves #${id} filled`);
@@ -681,6 +767,19 @@ for (const course of courseRoots) {
     konteks.identitas = IDENTITAS_DOSEN; jalankan("_segarkanHasilUjian();", "guest->dosen");
     denganDataKelas("guest -> lecturer login (_segarkanHasilUjian)");
     render("dosen"); denganDataKelas("lecturer");
+    // "Jumlah Absen" dosen tepat sesudah roster dimuat: jalankan render ulang
+    // fetchMasterStudents halaman itu sendiri dengan jadwal yang sudah berakhir.
+    // Harus 5 total / 2 hadir (poin > 0) / 3 absen (Bolos: dua mahasiswa 0 poin
+    // + ROSTER ONLY yang tidak pernah akses). Dulu panggilan kedua dengan
+    // variabel yang tidak terdefinisi menimpanya menjadi 0 absen.
+    konteks.currentSchedule = { start: new Date(Date.now() - 4 * 3600000).toISOString(), end: new Date(Date.now() - 3600000).toISOString(), extension: 120 };
+    jalankan(ambilBlok(exam, "    // Bug fix (Apr 2026): trigger re-render setelah master list tersedia,", "    } catch(e) { console.warn('[Visitor] Re-render after master load failed:', e); }", relative), "roster loaded (fetchMasterStudents)");
+    {
+      const statistik = ["statTotalMhs", "statHadir", "statAbsen"].map((id) => String(el[id].textContent)).join("/");
+      if (statistik !== "5/2/3") throw new Error(`${relative}: lecturer stats right after the roster loads (expired schedule) are ${statistik}, expected 5/2/3 (Total/Hadir/Absen)`);
+    }
+    denganDataKelas("lecturer after roster load");
+    konteks.currentSchedule = null;
     // Dosen → Mode Preview (identitas dosen tetap tersimpan): blok PREVIEW
     // halaman itu sendiri langsung membuang data kelas yang sudah dirender.
     konteks.window._previewMode = true; jalankan(blokPreview, "lecturer->preview");
@@ -700,6 +799,37 @@ for (const course of courseRoots) {
   }
 }
 if (examPrivasiHasil !== 12) throw new Error(`Expected 12 UTS/UAS pages with lecturer-only class data, found ${examPrivasiHasil}`);
+
+// Label navbar halaman ujian = label course di ke-14 halaman modulnya
+// (scripts/label-nav-ujian.mjs; CAD lewat scripts/cad-exam/bangun.py). UTS/UAS
+// Sistem Kendali Cerdas, Teknik Tenaga Listrik, dan Pemodelan CAD sempat
+// berlabel "GETARANMESIN // UTS" — sisa templat Getaran Mekanik yang ikut
+// tersalin tanpa ada yang menagihnya.
+const RX_NAV_BRAND = /<span class="nav-brand"><span class="pulse"><\/span><span>([A-Z0-9]+) \/\/ ([A-Z]+\d*)<\/span><\/span>/g;
+let examNav = 0;
+for (const course of courseRoots) {
+  const modulDir = path.join(root, course, "Modul");
+  const labels = new Set();
+  for (const f of fs.readdirSync(modulDir).filter((x) => /^Modul-\d+\.html$/.test(x))) {
+    const nav = [...fs.readFileSync(path.join(modulDir, f), "utf8").matchAll(RX_NAV_BRAND)];
+    if (nav.length !== 1) throw new Error(`${course}/Modul/${f}: expected exactly one "<LABEL> // <n>" navbar brand, found ${nav.length}`);
+    labels.add(nav[0][1]);
+  }
+  if (labels.size !== 1) throw new Error(`${course}: module navbar labels disagree (${[...labels].join(", ")})`);
+  const label = [...labels][0];
+  if (course !== "Getaran-Mekanik" && label === "GETARANMESIN") throw new Error(`${course}: navbar label is the Getaran Mekanik template leftover`);
+  for (const kind of ["UTS", "UAS"]) {
+    const relative = `${course}/Exam/${kind}.html`;
+    const exam = fs.readFileSync(path.join(root, relative), "utf8");
+    const nav = [...exam.matchAll(RX_NAV_BRAND)];
+    if (nav.length !== 1 || nav[0][1] !== label || nav[0][2] !== kind) {
+      throw new Error(`${relative}: navbar brand must read "${label} // ${kind}" like this course's modules, found ${nav.map((m) => `"${m[1]} // ${m[2]}"`).join(", ") || "none"} (run node scripts/label-nav-ujian.mjs)`);
+    }
+    if (course !== "Getaran-Mekanik" && exam.includes("GETARANMESIN")) throw new Error(`${relative}: Getaran Mekanik template label GETARANMESIN left on a non-Getaran exam page`);
+    examNav += 1;
+  }
+}
+if (examNav !== 12) throw new Error(`Expected 12 UTS/UAS pages with the course navbar label, found ${examNav}`);
 
 const formatPointsForValidation = (pts) => {
   const value = Number(pts);
