@@ -1,6 +1,6 @@
 # Pedoman Sistem Modul, Exam, dan OBE
 
-> **Status:** acuan keadaan sistem saat ini, diperbarui 10 Agustus 2026
+> **Status:** acuan keadaan sistem saat ini, diperbarui 26 September 2026
 >
 > **Lingkup:** LMS enam mata kuliah S1 Teknik Mesin Universitas Mercu Buana
 >
@@ -98,15 +98,15 @@ Khusus course Optimalisasi:
 - deck Slidev tertentu memakai “Optimalisasi & Automasi” secara sengaja;
 - jangan membuat path `Optimization-Automation`.
 
-**Pemodelan Computer Aided Design (CAD) — Tahap 1 (13 September 2026).** Mata kuliah semester 2 ini ditambahkan bertahap atas keputusan dosen. Yang sudah ada: `Attributes/Asesmen-Pemodelan-Computer-Aided-Design.json` (bobot dari SIA), `Attributes/students.json` (11 mahasiswa), `OBE/Penilaian-OBE.htm`, `Unduhan-Gabungan/RPS-Pemodelan-Computer-Aided-Design.pdf`, kartu di `index.html`, dan baris `rsync` di `deploy-slides.yml`. Yang **sengaja belum** dibuat: Banner, Modul, Modul-Word, Exam, dan bentuk Tugas (masih diputuskan dosen).
+**Pemodelan Computer Aided Design (CAD) — Tahap 1 (13 September 2026).** Mata kuliah semester 2 ini ditambahkan bertahap atas keputusan dosen. Yang sudah ada: `Attributes/Asesmen-Pemodelan-Computer-Aided-Design.json` (bobot dari SIA), `Attributes/students.json` (11 mahasiswa), `OBE/Penilaian-OBE.htm`, `Unduhan-Gabungan/RPS-Pemodelan-Computer-Aided-Design.pdf`, kartu di `index.html`, dan baris `rsync` di `deploy-slides.yml`. Yang pada tahap itu **sengaja belum** dibuat: Banner, Modul, Modul-Word, Exam, dan bentuk Tugas (masih diputuskan dosen); semuanya terbit 20–21 September 2026 (Tahap 2 di bawah).
 
 - **Bobot mengikuti SIA** (TGS 55%, UTS 22%, UAS 23%), bukan komponen penilaian RPS (UTS 50%/UAS 50%, bobot mingguan Σ92%) yang tidak konsisten dengan SIA.
 - Kelas sudah dibuka: SIA kelas 354322, `kode_mk` `W132500006`, kelas `2A2132FF`, Selasa 19:30–22:00 (19 September 2026); RPS masih memakai kode lama `W132100008`. Roster 11 mahasiswa dari presensi SIA; akun simulasi ditambahkan saat modul dibuat.
-- Backend hanya menambahkan `pemodelan_cad` ke `OBE_MAPPING_COURSES` agar mapping OBE bisa disimpan. `computeObeScores` menolak course ini dengan pesan jelas karena belum ada di `OBE_COURSE_EXAMS`.
-- `validate-public-security.mjs` memindai halaman OBE-nya lewat `obeOnlyRoots` (bukan `courseRoots`, yang mewajibkan `Exam/UTS.html` dan `Exam/UAS.html`); hitungan halaman ber-autentikasi menjadi 74 (75 setelah OBE Teknik Tenaga Listrik, 76 setelah Modul 1-nya terbit).
-- Saat modul dan ujian dibuat: pindahkan ke `courseRoots` dan daftar di `validate-all-course-modern-design.mjs` (serta sesuaikan hitungan modul dan halaman ber-autentikasi), tambahkan ke `_MODUL_COURSES`, `EXAM_CONFIG`, `OBE_EXAM_CONFIG`, `OBE_COURSE_EXAMS`, keempat daftar course di `database.rules.json`, registry dan basis pengetahuan chat, lima alat `Admin/`, isi `DEFAULT_MAPPING` UTS/UAS di halaman OBE, lalu isi roster.
+- Pada tahap ini backend hanya menambahkan `pemodelan_cad` ke `OBE_MAPPING_COURSES` agar mapping OBE bisa disimpan, sehingga `computeObeScores` sempat menolak course ini dengan pesan jelas karena belum ada di `OBE_COURSE_EXAMS`. Sejak UTS/UAS CAD terbit (20 September 2026) `pemodelan_cad` ada di `OBE_COURSE_EXAMS` (`pemodelan-cad-uts`/`-uas`) dan dihitung seperti course lain.
+- Saat itu `validate-public-security.mjs` memindai halaman OBE-nya lewat `obeOnlyRoots` (bukan `courseRoots`, yang mewajibkan `Exam/UTS.html` dan `Exam/UAS.html`); hitungan halaman ber-autentikasi menjadi 74 (75 setelah OBE Teknik Tenaga Listrik, 76 setelah Modul 1-nya terbit). Kini CAD dipindai lewat `courseRoots` dan `obeOnlyRoots` kosong (butir Validator Tahap 2).
+- Daftar yang dijalankan saat modul dan ujian dibuat (seluruhnya selesai 20–21 September 2026): pindahkan ke `courseRoots` dan daftar di `validate-all-course-modern-design.mjs` (serta sesuaikan hitungan modul dan halaman ber-autentikasi), tambahkan ke `_MODUL_COURSES`, `EXAM_CONFIG`, `OBE_EXAM_CONFIG`, `OBE_COURSE_EXAMS`, keempat daftar course di `database.rules.json`, registry dan basis pengetahuan chat, lima alat `Admin/`, isi `DEFAULT_MAPPING` UTS/UAS di halaman OBE, lalu isi roster.
 
-**Pemodelan CAD — Tahap 2: Modul 1 dan jalur unggah berkas (20 September 2026).** Perangkat lunak yang dipakai **FreeCAD 1.0**. Tugas per modul = **10 PG + 5 tugas pemodelan** (6/6/6/11/11 poin = 40; total 50). Tiap tugas pemodelan mengunggah **berkas `.FCStd`** langsung di kartu tugas dan mengisi **satu angka bacaan** dari FreeCAD (Area, Shape.Length, CenterOfMass) yang parametrik per NIM; server menolak penilaian sebelum berkas ada. Modul 1–4 berisi tugas 2D (Draft/Sketcher). **Sejak 24 September 2026 isi berkas divalidasi server** (backend PR #78): pembaca Python `bacaFcstd` membaca geometri yang tersimpan di `.FCStd`, sehingga unggahan tanpa geometri ditolak dan angka ketikan harus terbaca dari model yang diunggah (aturan baca per tugas di backend); angka yang tidak ada di berkas ditolak tanpa dihitung dan tanpa mengunci soal. **Kirim ulang (modul saja):** kiriman salah bernilai 0 tetapi tidak mengunci; mahasiswa boleh memperbaiki model, mengunggah ulang, dan mengirim ulang tanpa batas, dan kiriman benar setelah pernah salah bernilai 65% dari poin tugas (× 0,65 lagi bila terlambat). Partial 0,5 tidak lagi berlaku di tugas modul; attempt lama yang sudah mendapat partial mempertahankan poinnya dan boleh dikirim ulang. Kunci dan penjelasan baru ditampilkan setelah tugas benar. UTS/UAS CAD tetap satu kesempatan (partial 0,5), dengan validasi isi berkas yang sama.
+**Pemodelan CAD — Tahap 2: Modul 1 dan jalur unggah berkas (20 September 2026).** Perangkat lunak yang dipakai **FreeCAD 1.0**. Tugas per modul = **10 PG + 5 tugas pemodelan** (6/6/6/11/11 poin = 40; total 50). Tiap tugas pemodelan mengunggah **berkas `.FCStd`** langsung di kartu tugas dan mengisi **satu angka bacaan** dari FreeCAD (Area, Shape.Length, CenterOfMass) yang parametrik per NIM; server menolak penilaian sebelum berkas ada. Modul 1–4 berisi tugas 2D (Draft/Sketcher). **Sejak 24 September 2026 isi berkas divalidasi server** (backend PR #78): pembaca Python `bacaFcstd` membaca geometri yang tersimpan di `.FCStd`, sehingga unggahan tanpa geometri ditolak dan angka ketikan harus terbaca dari model yang diunggah (aturan baca per tugas di backend); angka yang tidak ada di berkas ditolak tanpa dihitung dan tanpa mengunci soal. **Kirim ulang (modul saja):** kiriman salah bernilai 0 tetapi tidak mengunci; mahasiswa boleh memperbaiki model, mengunggah ulang, dan mengirim ulang tanpa batas, dan kiriman benar setelah pernah salah bernilai 65% dari poin tugas (× 0,65 lagi bila terlambat). Partial 0,5 tidak lagi berlaku di tugas modul; attempt lama yang sudah mendapat partial mempertahankan poinnya dan boleh dikirim ulang. Kunci dan penjelasan baru ditampilkan setelah tugas benar. UTS/UAS CAD tetap satu kesempatan (partial 0,5; tugas rakitan `c11` UAS 3 poin, §7.5), dengan validasi isi berkas yang sama.
 
 - **Halaman:** `Pemodelan-Computer-Aided-Design/Modul/Modul-1.html` dibangun `scripts/cad-modul/bangun-modul-1.py` dari kerangka TTL Modul 1 (semua lapisan injektor ikut) dengan konten `scripts/cad-modul/modul_1.py` dan `animasi/modul-1.js` (helper `pustaka.py`, `animasi/dasar.js` — salinan dari `scripts/ttl-modul/`). Tab: Setup FreeCAD (instalasi dan preferensi), Setup Python (`scripts/cad-modul/setup_python.py`: Miniconda + env `pemodelan_cad` + VS Code + uji `freecadcmd`; halaman `page-python`, CSS-nya salinan blok `#page-setup`), Modul (9 bagian, 6 gambar, 4 animasi, 3 cell Python console FreeCAD), Tugas, Forum, Hasil; tab Pembagian Kelompok, Pyodide, dan pemanasan `getPyodide()` dibuang. Setiap kartu tugas T1–T5 memuat gambar acuan simbolik (`scripts/cad-modul/tugas_gambar.py`, `tugas_gambar_html(N)`; simbol mengikuti teks tugas, angka dimuat per NIM). Urutan regenerasi: `bangun-modul-1.py` → `tambah-progres-modul.mjs` → `bangun.py 2..N` → `tambah-progres-modul.mjs` (bangun.py membuang kotak centang Modul 1 sebelum menyalin, jadi injektor harus sudah berjalan). Gambar materi diperiksa agar teks tidak saling menimpa (`teks2()` di `pustaka.py` memecah keterangan panjang). **Teks SVG memakai `'Inter'` yang tidak dimuat halaman** (halaman hanya memuat Source Sans 3, Playfair Display, JetBrains Mono; `@import` Inter di berkas hanya milik templat ekspor tugas), sehingga gambar tampil dengan font sistem perangkat, dan font sistem Mac/iPhone lebih lebar daripada Windows. **Pemeriksa tata letak yang berlaku adalah `python scripts/cad-modul/periksa_gambar_chrome.py --semua` lalu `--semua --inter`** (Chrome headless, `getBBox` nyata; `--inter` memuat Inter dari Google Fonts sebagai pendekatan lebar font Mac). Keduanya harus "0 cacat": teks keluar kanvas, sisa < 16 px dari tepi kanan (di mode Inter hanya peringatan), < 6 px dari tepi lain, tinta dua teks bersentuhan, teks memotong `<rect>`, atau garis mencoret tinta huruf; tumpang/sentuh yang hanya mengenai kotak getBBox kosmetik. Sejak 22 September 2026 aturan KOTAK memakai posisi `<rect>` sesudah transformasi elemen/grupnya, sama seperti teks (sebelumnya kotak di dalam `<g transform>` dibandingkan pada koordinat mentah). `periksa_gambar.py` hanya menaksir lebar (0,46 em per huruf) dan meloloskan teks hingga 4 px melewati tepi: pada 21–22 September 2026 pemeriksa Chrome menemukan 179 temuan di 40 dari 70 gambar tugas dan puluhan di gambar materi yang semuanya lolos `periksa_gambar.py` — label dicoret garis, baris catatan terpotong tepi kanan, label es/ei zona g6 Modul 12 tertukar, dan angka dimensi Modul 4 yang salah tempat ("70" di Gambar 1 tergambar seluruhnya di luar kanvas) karena helper `_dim` menimpa parameter `dy`. Semua 168 gambar (98 materi + 70 tugas) sudah dirapikan. **Gambar 7 tiap modul adalah gambar kerja praktik terbimbing** di awal bagian 09, sebelum kartu langkah: setiap angkanya membaca konstanta yang sama dengan teks langkah sehingga keduanya tidak bisa menyimpang, dan `periksa_modul.py` menuntut 7 gambar dengan Gambar 7 di `m-praktik` tanpa `rgba()`. Pengurai SVG MuPDF di generator Word mencetak `rgba()` dan isian gradien `url(#…)` sebagai hitam pekat, mengabaikan `fill-opacity` pada `<text>`, dan mengabaikan `stroke-dasharray`. Sejak 22 September 2026 `warna_mupdf()` (kini di `scripts/svg_word.py`, modul render SVG→PNG yang dipakai bersama generator Word CAD dan TTL) mengolah salinan SVG untuk Word lebih dulu (`rgba()` → `rgb()` + `fill-/stroke-opacity`, alpha teks → `opacity`, kotak bergradien → PNG ber-alpha dengan sudut membulat), sehingga 134 dari 168 gambar yang dulu bercetak blok hitam kini sama dengan halaman web; halaman modulnya sendiri tidak berubah. `garis_putus_mupdf()` (22 September 2026) lalu memecah setiap bentuk bergaris putus (line, polyline, polygon, rect, circle, ellipse, path — 453 elemen di 125 gambar, termasuk garis sumbu titik-strip dan banyak garis di Gambar 7) menjadi strip nyata di sepanjang path setaranya menurut SVG 2, dengan titik awal, arah, dan `stroke-dashoffset` yang sama dengan peramban; isian bentuknya tetap. Dibandingkan piksel demi piksel dengan render Chrome (tanpa teks, 2 px/unit, toleransi 1 px), selisihnya turun dari 81.395 menjadi 442 piksel dan gumpalan sisa terbesar 4 piksel (anti-alias di ujung strip). Kedua fungsi berhenti dengan galat jelas bila menemui bentuk yang belum didukung (misalnya `pathLength`), bukan diam-diam mencetak hitam atau garis utuh. **Animasi kanvas (22 September 2026):** lebar kanvas mengikuti kolom halaman, tingginya bawaan 280. Lebar nyata: layar ≥ 1366 px → 1000, 1024 → 800, 768 → 570, ponsel 414/390/360/320 px → 298/274/244/204; tablet dan ponsel mendatar memberi lebar di antaranya. Keterangan satu baris berposisi tetap dulu terpotong di hampir semua animasi di ponsel, sebagian juga di desktop (label sumbu keluar tepi atas, label yang ikut model saat zoom maksimum). `animasi/dasar.js` kini punya `_TTL_SEMPIT` (520), `_ttlKanvas(id, hSempit)` (kanvas lebih tinggi saat sempit) dan `_ttlTeks(ctx, teks, x, y, maxW)` (kecilkan huruf sampai 85 % lalu pecah per kata); tiap `animasi/modul-N.js` punya cabang tata letak `sempit`. **Pemeriksanya `python scripts/cad-modul/periksa_animasi_chrome.py`** (Chrome headless; halaman uji dirakit dari `materi()` + skrip animasi, jadi tanpa membangun ulang): 33 lebar 1000..204, siklus 460 bingkai pada slider bawaan/min/maks, kisi keadaan dijeda, dan `requestAnimationFrame` dimatikan agar deterministik. Pada lebar ≥ 244 teks terpotong, huruf < 8 px, teks bertumpuk, garis yang mencoret tinta teks (label duduk di atas garis; kisi samar beropasitas < 0,2 diabaikan), atau galat JavaScript = cacat; semua 56 animasi kini nol (dari 1.250 teks terpotong dan ±900 label di atas garis pada pengukuran awal). Label yang memang harus menumpang garis (nilai dimensi di tengah garis dimensinya, label di atas kurva) memakai `_ttlLabel`, yang menggambar pelat warna latar di belakang teks sehingga garis yang digambar sebelumnya terputus. `--cepat` untuk iterasi, `--gambar DIR` menyimpan PNG tiap kanvas. Mengubah skrip animasi: jalankan pemeriksa ini, lalu bangun ulang halaman modulnya. Memperbaiki gambar modul yang sudah terbit: `bangun.py N` → `tambah-progres-modul.mjs` → `pasang-tautan-pdf.py`, lalu bangun ulang Word/PDF modul itu; pada pembangunan ulang, `bangun.py` tidak menyentuh CLAUDE.md dan Pedoman karena hitungannya tidak berubah.
 - **UTS/UAS CAD (20 September 2026).** `Pemodelan-Computer-Aided-Design/Exam/UTS.html` dan `UAS.html`
@@ -126,12 +126,14 @@ Khusus course Optimalisasi:
   (#938); kini `bangun.py uts|uas` kembali mereproduksi halaman live byte demi byte. Kartu tugas ujian mengikuti
   validasi isi berkas di server: pesan unggah menampilkan ringkasan geometri, konfirmasi kirim menyebut bahwa angka
   harus terbaca dari geometri berkas, dan penolakan server (angka tidak ada di model) tampil sebagai peringatan tanpa
-  mengunci kartu. Ujian tetap satu kesempatan dengan partial 0,5.
+  mengunci kartu. Ujian tetap satu kesempatan dengan partial 0,5 (rakitan `c11` UAS: 3 poin). Label navbar kerangka
+  `TENAGALISTRIK // UTS|UAS` dipetakan menjadi `PEMODELANCAD // UTS|UAS`, dan build gagal bila kerangkanya masih
+  berlabel lain (sejak 26 September 2026, §17.1).
 - **Kartu tugas** (`c1`–`c5`, label T1–T5): input berkas + tombol ⬆ Unggah (`unggahBerkasTugas`: ekstensi dari server, maks 8 MB, tanda ZIP + `Document.xml`; boleh diganti selama belum dikirim) + kolom angka (`kirimTugas` → `checkModulAnswer` dengan `userAnswer` angka, koma/titik desimal diterima) + konfirmasi kirim. Respons `bisaUlang` membuka kartu lagi lewat `_bukaKirimUlangCad` (tombol "🔁 Kirim Ulang (maks 65%)", unggah aktif, `berkasDiServer` membolehkan kirim tanpa unggah ulang); penanda RTDB `cN_comp_ulang` (dan `_comp_used`/`_comp_partial` lama) dipulihkan sebagai kartu terbuka, dan `window._cadSudahKirim` membuat ekspor tetap siap. Penolakan server (angka tidak terbaca dari berkas, berkas tak terbaca) ditampilkan sebagai peringatan tanpa mengunci. `SCORE_CONFIG`: `COMP_EZ_COUNT 3 × 6`, `COMP_HARD_COUNT 2 × 11`, `_isHardComp` = c4–c5, konsolasi 12 dari 15 soal. Ringkasan berkas yang dinilai dipulihkan dari RTDB `codes/<qId>`; angka dan metadata unggahan yang belum dikirim disimpan di draft localStorage per NIM. Tautan Google Drive opsional. Ekspor HTML memuat nama berkas, ukuran, SHA-256, dan angka bacaan.
-- **Backend:** `_MODUL_COURSES` `{ slug: "pemodelan_cad", id: "pemodelan_cad", moduls: [1], consolationThreshold: 12 }`, bank `functions/modules/cad-modul-all-v2.js` (+ `cad-modul-1.js`, `cad-helpers.js`), seed `seed/modul/pemodelan_cad-modul-1-answers.js`, PG diacak per NIM, `pemodelan_cad` di keempat daftar course `database.rules.json`, penjaga `scripts/verify-cad-modules.js`. Berkas di bucket privat `getaran-mekanik-tugas` (`tugas/<modulId>/mhs_<nim>/<qId>/<nama>`), metadata Firestore `tugasBerkas/`. Callable: `unggahBerkasTugas` (mahasiswa), `unduhBerkasTugas` (dosen, atau pemilik dengan PIN), `daftarBerkasTugas` (dosen).
+- **Backend:** `_MODUL_COURSES` `{ slug: "pemodelan_cad", id: "pemodelan_cad", moduls: [1, …, 14], consolationThreshold: 12 }` (Modul 1 saja pada tahap ini; kini 1–14), bank `functions/modules/cad-modul-all-v2.js` (+ `cad-modul-1.js` … `cad-modul-14.js`, `cad-helpers.js`), seed `seed/modul/pemodelan_cad-modul-N-answers.js`, PG diacak per NIM, `pemodelan_cad` di keempat daftar course `database.rules.json`, penjaga `scripts/verify-cad-modules.js`. Berkas di bucket privat `getaran-mekanik-tugas` (`tugas/<modulId>/mhs_<nim>/<qId>/<nama>`), metadata Firestore `tugasBerkas/`. Callable: `unggahBerkasTugas` (mahasiswa), `unduhBerkasTugas` (dosen, atau pemilik dengan PIN), `daftarBerkasTugas` (dosen).
 - **Modul-Word CAD (21 September 2026) diturunkan dari HTML-nya oleh generator** `scripts/cad-modul/buat-modul-word.py N` (atau `--semua`; jalankan dengan `PYTHONIOENCODING=utf-8`). Polanya sama dengan TTL — kerangka sampul/header/footer BOP dari `Sistem-Kendali-Cerdas/Modul-Word/Modul-1-…docx`, panel MODUL INTERAKTIF dari `panel-modul-interaktif-docx.py`, SVG dirender PNG lewat PyMuPDF setelah `warna_mupdf()` mengganti `rgba()` dan gradien yang oleh MuPDF dicetak hitam dan `garis_putus_mupdf()` memecah garis putus-putus yang oleh MuPDF dicetak utuh — dengan empat beda khas CAD. (a) **Tidak ada RPS JavaScript untuk CAD**, sehingga "Bahan kajian" diambil dari paragraf cakupan `Banner/Banner-Pertemuan-P.html` (Pertemuan 8 = UTS, jadi Modul 8–14 memakai banner 9–15) dan chip banner menjadi butir "Kata kunci"; "Indikator" dirakit dari butir yang benar-benar dinilai di halaman modul (jumlah PG, kelima label tugas beserta poin 6/6/6/11/11 dan bentuk setorannya, jumlah pertanyaan forum); Sub-CPMK/bobot/SKS/kode MK dari berkas asesmen. Tidak ada kalimat yang dikarang di luar repo. (b) Bagian tugas berjudul "Bagian A — Pilihan Ganda" dan "Bagian B — Tugas Pemodelan FreeCAD (unggah .FCStd + angka bacaan)", bukan Komputasi Mudah/Sulit; `compEzDefs` dan `compHardDefs` dibaca per-array (regex menyapu seluruh berkas akan mencampur c1–c5). (c) Gambar acuan tugas ikut dicetak — labelnya simbolik (a, b, h, rᵢ, rₒ, θ) tanpa angka per-NIM, dan karena teks tugas dirakit server, gambar itulah satu-satunya isi tugas yang bisa disiapkan mahasiswa lebih awal. (d) `div.warning-box` khas CAD ikut sebagai kotak catatan, dan sampulnya dua baris `PEMODELAN`/`CAD` karena nama penuh tidak muat di kotak judul. Lanjutan pipeline: `python scripts/docx-ke-pdf.py Pemodelan-Computer-Aided-Design/Modul-Word/*.docx` → `python scripts/cad-modul/pasang-tautan-pdf.py` (`--periksa` melapor; idempoten) → `python scripts/gabung-pdf-modul.py --buat-baru` (`Modul-Gabungan-Pemodelan-Computer-Aided-Design.pdf`, 303 halaman; skrip itu menulis ulang berkas gabungan **semua** course, jadi kembalikan lima berkas course lain dengan `git checkout --` agar diff tetap sempit). Hasil render 14 PDF: 18–25 halaman per modul, di atas minimum 10 halaman isi §15. **`bangun-modul-1.py` dan `bangun.py` mengosongkan kembali `MODUL_PDF_URL`/`MODUL_PDF_FILENAME` setiap kali dijalankan**, jadi `pasang-tautan-pdf.py` harus diulang sesudahnya — dan bangun ulang Word-nya juga bila `modul_N.py` berubah, agar dokumen tetap identik dengan halaman.
 - **Dosen:** `Admin/berkas-tugas.html` mendaftar dan mengunduh berkas per modul beserta status penilaian (berkas akun simulasi disaring kecuali dicentang). Course CAD juga ada di pilihan `reset-soal`, `rescale-deadline`, `verify-export-code`, `analyze-victims`.
-- **Validator:** modul CAD dihitung `validate-all-course-modern-design.mjs` lewat `moduleCount` (1); CAD tetap di `obeOnlyRoots` validator keamanan sampai UTS/UAS-nya ada. Hitungan: 84 modul dengan tombol ekspor terjaga dan 108 halaman ber-autentikasi (96 Modul/Exam + 6 OBE + 6 Admin). Roster memuat akun simulasi. Daftar "belum" pada tahap ini — UTS/UAS, `OBE_COURSE_EXAMS`, registry chat AI backend, versi Word/PDF, banner LMS — **seluruhnya sudah terbit 20–21 September 2026**; CAD kini dipindai lewat `courseRoots`. Yang masih tersisa hanya jadwal `settings/pemodelan_cad/…` yang belum diisi dosen.
+- **Validator:** modul CAD dihitung `validate-all-course-modern-design.mjs` lewat `moduleCount` (1 pada tahap ini; kini 14); CAD sempat di `obeOnlyRoots` validator keamanan sampai UTS/UAS-nya ada. Hitungan: 84 modul dengan tombol ekspor terjaga dan 108 halaman ber-autentikasi (96 Modul/Exam + 6 OBE + 6 Admin). Roster memuat akun simulasi. Daftar "belum" pada tahap ini — UTS/UAS, `OBE_COURSE_EXAMS`, registry chat AI backend, versi Word/PDF, banner LMS — **seluruhnya sudah terbit 20–21 September 2026**; CAD kini dipindai lewat `courseRoots`. Yang tersisa waktu itu hanya jadwal `settings/pemodelan_cad/…`, yang diisi dosen pekan demi pekan (Modul 2 pada 22 September 2026, butir Kelas LMS CAD di bawah).
 
 **Teknik Tenaga Listrik — Tahap 1 (13 September 2026).** Mata kuliah semester 5 (kelas SIA 354290, `W132500023`, `2A51362F`, Sabtu 12:00–13:40), ditambahkan dengan pola yang sama seperti Pemodelan CAD: `Attributes/Asesmen-Teknik-Tenaga-Listrik.json`, `Attributes/students.json` (20 mahasiswa dari presensi SIA), `OBE/Penilaian-OBE.htm`, `Unduhan-Gabungan/RPS-Teknik-Tenaga-Listrik.pdf`, kartu di `index.html`, baris `rsync`, `obeOnlyRoots`, dan `teknik_tenaga_listrik` di `OBE_MAPPING_COURSES`. Sejak 14 September 2026 modulnya dibangun satu per satu atas permintaan dosen (modul berikutnya menunggu persetujuan modul sebelumnya): **Modul 1–14, UTS, dan UAS sudah terbit** (Modul 2–9 dan UTS pada 19 September 2026, Modul 10–14 dan UAS pada 20 September 2026; UTS = `teknik-tenaga-listrik-uts`, 45 soal parametrik, cakupan Sub-CPMK 1.1/1.2/1.3/2.1/3.1 sesuai matriks SIA); **Modul-Word 1–14 (docx + PDF) dan `Unduhan-Gabungan/Modul-Gabungan-Teknik-Tenaga-Listrik.pdf` terbit 20 September 2026** (lihat butir Modul-Word di bawah). Banner LMS untuk seluruh semester sudah ada (lihat butir Kelas LMS di bawah).
 
@@ -142,7 +144,7 @@ Khusus course Optimalisasi:
 - Roster memuat akun simulasi (`41399999901`) sejak Modul 1 terbit.
 - **Modul 1 — Konsep Dasar Sistem Tenaga Listrik (Sub-CPMK 1.1)** dibangun dari kerangka Sisken Modul 1 (6 tab, 9 bagian materi, 6 gambar, 5 animasi, 4 cell Python) dengan skrip sekali pakai, sehingga semua lapisan injektor sudah ada; `tambah-progres-modul.mjs` menyisipkan 9 kotak centang. Tugas memakai struktur universal 25 soal/50 poin: 10 PG diacak per NIM (`mcOrderVersion: 1`) dan 15 komputasi parametrik per NIM dari `functions/modules/ttl-modul-all-v2.js` (satu berkas bank untuk seluruh modul TTL, modul ditambah lewat `register()`); kunci PG di `functions/seed/modul/teknik_tenaga_listrik-modul-N-answers.js`, penjaganya `scripts/verify-ttl-modules.js`.
 - Backend hanya mendaftarkan modul yang sudah terbit lewat `moduls: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]` pada entri `_MODUL_COURSES`. Modul yang belum terdaftar ditolak callable progres dan gerbang antar-modul meloloskan modul sesudahnya, jadi setiap modul baru wajib ditambahkan di sana bersama bank, seed (`seed_scope=modul:custom`), dan halamannya, dengan urutan deploy backend lebih dulu.
-- Validator: TTL sudah masuk `courseRoots` validator keamanan (UTS dan UAS lengkap sejak 20 September 2026); `validate-all-course-modern-design.mjs` memeriksanya lewat `moduleCount` (sekarang 14, lengkap). Hitungan: 70 modul dengan tombol ekspor terjaga dan 91 halaman ber-autentikasi admin (80 Modul/Exam). `OBE_COURSE_EXAMS` backend dan `verify-obe-mapping.js` memuat TTL (UTS+UAS); halaman OBE TTL memuat `DEFAULT_MAPPING.uts` dan `.uas` (MAP_KEY v5).
+- Validator: TTL sudah masuk `courseRoots` validator keamanan (UTS dan UAS lengkap sejak 20 September 2026); `validate-all-course-modern-design.mjs` memeriksanya lewat `moduleCount` (sekarang 14, lengkap). Hitungan saat itu (TTL lengkap, modul CAD belum dihitung): 70 modul dengan tombol ekspor terjaga dan 91 halaman ber-autentikasi admin (80 Modul/Exam); kini 84 modul dan 108 halaman (§17.1). `OBE_COURSE_EXAMS` backend dan `verify-obe-mapping.js` memuat TTL (UTS+UAS); halaman OBE TTL memuat `DEFAULT_MAPPING.uts` dan `.uas` (MAP_KEY v5).
 - **Modul 2 dst (sejak 19 September 2026) dibangun generator** `scripts/ttl-modul/bangun.py N` dari `Modul-1.html` TTL (kerangka yang sudah memuat semua lapisan injektor) dan konten `scripts/ttl-modul/modul_N.py` + `animasi/modul-N.js`; helper bersama di `pustaka.py` dan `animasi/dasar.js`. **Gambar SVG TTL diperiksa `python scripts/ttl-modul/periksa_gambar_chrome.py` lalu `--inter`** (pembungkus pemeriksa CAD: aturan, getBBox, dan kotak tinta yang sama, sumbernya `gambar1..6` tiap `modul_N.py`); keduanya harus "0 cacat". Pada 22 September 2026 pemeriksa ini menemukan 405 cacat di 67 dari 84 gambar yang semuanya tampil di halaman web — keterangan satu baris lebih lebar dari gambarnya, label bertumpuk atau dicoret garis, batang 500 kV Modul 8 Gambar 2 di luar kanvas (pembagi posisi 3 untuk empat tingkat), kurva yang keluar sumbu (M3 G4, M6 G3, M14 G3), label berkas-2 M8 G6 di x ≈ 1800 — dan kecepatan rambat "0×10³ km/s" di M6 (gambar dan teks materi; kini 296×10³ km/s). Semuanya dirapikan. Bantuan di `pustaka.py`: `teks2` memecah keterangan panjang, dan `svg()` memanggil `lubangi_kisi`, yang memutus garis kisi (stroke `GRID`, tebal 0,7) tepat di belakang setiap label sehingga label di dalam grafik tidak dicoret kisi. Memperbaiki gambar TTL yang sudah terbit: Modul 2–14 lewat `bangun.py N` → `tambah-progres-modul.mjs` → `pasang-tautan-pdf.py` (jalur ini mereproduksi halaman live byte demi byte bila sumbernya tidak berubah); Modul 1 dibangun skrip sekali pakai dari halaman Sisken, jadi SVG gambarnya diganti di tempat dengan keluaran `modul_1.gambarK()`. Lalu bangun ulang Word/PDF-nya. Generator mengganti identitas ber-angka, subnav, hero, materi, PG, forum (beserta salinan LMS dan kanvas), animasi, dan label ekspor, lalu membuang tab Setup Python dan Pembagian Kelompok (pola Sisken Modul 2–14). Setelah membangun: jalankan `tambah-progres-modul.mjs` (kotak centang), naikkan `moduleCount` dan hitungan validator keamanan, tambah tautan di `index.html`, tambah nomor ke `PUBLISHED` di `ttl-banner.mjs` lalu `node scripts/ttl-banner.mjs`, dan cocokkan baris minggunya di RPS. Backend: `functions/modules/ttl-modul-N.js` + seed + nomor di `moduls` + deploy dan seed `modul:custom` **sebelum** merge frontend. Modul 2 (Komponen Sistem Tenaga Listrik, Sub-CPMK 1.2): 9 bagian, 6 gambar, 10 persamaan, 4 animasi, 4 cell. Modul 3 (Daya pada Jaringan DC Satu Sumber, Sub-CPMK 1.3): 8 bagian, 6 gambar, 10 persamaan, 4 animasi, 4 cell. Modul 4 (Daya pada Jaringan DC Dua Sumber, Sub-CPMK 2.1): 8 bagian, 6 gambar, 10 persamaan, 4 animasi, 4 cell; angka contohnya sengaja berbeda dari varian soal C1–C15. Modul 5 (Daya pada Jaringan Listrik AC, Sub-CPMK 2.2): 8 bagian, 6 gambar, 10 persamaan, 4 animasi, 4 cell; bangun dengan `PYTHONIOENCODING=utf-8` agar cetakan pemeriksaan sisa tidak gagal di konsol cp1252. Modul 6 (Aliran Daya dan Transien Saluran Transmisi, Sub-CPMK 3.1): 8 bagian, 6 gambar, 10 persamaan, 4 animasi, 4 cell. Modul 7 (Reaktansi dan Impedansi di STL, Sub-CPMK 3.2): 8 bagian, 6 gambar, 10 persamaan, 4 animasi, 4 cell. Modul 8 (Saluran Transmisi, Sub-CPMK 4.1, Pertemuan 9): 8 bagian, 6 gambar, 8 persamaan, 4 animasi, 4 cell. Modul 9 (Pemodelan Saluran Transmisi, Sub-CPMK 4.2, Pertemuan 10): 8 bagian, 6 gambar, 9 persamaan, 4 animasi, 4 cell. Modul 10 (Kompensasi dalam Sistem Distribusi, Sub-CPMK 5.1, Pertemuan 11): 8 bagian, 6 gambar, 6 persamaan, 4 animasi, 4 cell. Modul 11 (Konsep dan Teori Dasar Sistem Distribusi Tenaga Listrik, Sub-CPMK 5.2, Pertemuan 12): 8 bagian, 6 gambar, 6 persamaan, 4 animasi, 4 cell. Modul 12 (Aliran Daya, Peralatan, dan Pengembangan Sistem Distribusi, Sub-CPMK 6.1, Pertemuan 13): 8 bagian, 6 gambar, 6 persamaan, 4 animasi, 4 cell. Modul 13 (Metode Single Line Diagram, Sub-CPMK 7.1, Pertemuan 14): 8 bagian, 6 gambar, 6 persamaan, 4 animasi, 4 cell. Modul 14 (Metode Analisis Aliran Daya, Sub-CPMK 7.2, Pertemuan 15): 8 bagian, 6 gambar, 6 persamaan, 4 animasi, 4 cell.
 - **Terdaftar di agen AI sejak 20 September 2026** (backend PR #74): `functions/chat/module-registry.js` memuat 14 modul + `teknik-tenaga-listrik-uts`/`-uas` beserta metadata resmi dari berkas asesmen (W132500023, 2 SKS, kelas 2A51362F, bobot 43/25/32, Sub-CPMK UTS 1.1–3.1 dan UAS 3.2–7.2) dan semester Ganjil 2026/2027 yang di-override per course; `knowledge-base.json` dibangun ulang menjadi 2.224 potongan untuk lima mata kuliah (TTL 414 potongan). Sebelum itu `aiChat` menolak moduleId TTL dengan "Modul tidak dikenal". Lima alat `Admin/` juga sudah memuat TTL (`berkas-tugas.html` khusus unggahan CAD, tidak berlaku untuk TTL). Versi Word/PDF modul terbit 20 September 2026, jadi tombol Export PDF mengunduh berkasnya.
 - **Kelas LMS (FAST Learning course id 5923, kelas 2F Sabtu Reguler 2, 19 September 2026).** Halaman kelas mengikuti pola Getaran/Opto/Math dengan desain banner Sistem Kendali Cerdas: banner Introduction di section General; tiap section pekan dinamai `Pertemuan P · <hari, tanggal> · Modul N · <tipe>` dengan banner pertemuan sebagai ringkasan section; pekan TMV berisi Google Meet™ for Moodle + Attendance + Tugas + Forum, pekan Daring berisi Tugas + Forum; UTS (7–20 November 2026) dan UAS (9–22 Januari 2027) masing-masing satu section banner + `UTS/UAS — Submit Hasil Export` (tanggal ujian mengikuti web SIA, jadi tanpa due date), pekan kedua masa ujian memakai strip banner lanjutan. **Aktivitas dibuat sesuai minggunya** (keputusan dosen 19 September 2026): banner boleh dipasang untuk seluruh semester, tetapi Google Meet, Attendance, Tugas, dan Forum tiap pekan baru dibuat pada pekannya lewat form Add an activity — Google Meet wajib lewat UI form agar room dibuat plugin — dan tombol Meet di banner tetap nonaktif ("Google Meet belum dibuka") sampai pekannya tiba. Jadwal mengikuti Kalender Perkuliahan Fast Learning Ganjil 2026/2027 kode kelas 2F: TMV pada P1/3/5/7/9/11/13/15 (P9 dan P15 di kalender tertulis TMK, tetapi dosen menjalankannya sebagai TMV), Daring pada P2/4/6/10/12/14. Deadline Tugas dan Forum di LMS = Sabtu pertemuan + 6 hari, 23:59 WIB (sama dengan default modul). Banner dibuat `scripts/ttl-banner.mjs` (konfigurasi `PUBLISHED`, `EXAM_PUBLISHED`, `MEET_URL`, `KALENDER`, `MODUL`) ke `Teknik-Tenaga-Listrik/Banner/`; tombol modul aktif hanya untuk modul di `PUBLISHED` **yang pekannya sudah tiba** (gerbang `HARI_INI` = tanggal WIB saat generator dijalankan, dapat ditimpa `HARI_INI=YYYY-MM-DD`; permintaan dosen 20 September 2026 — modul terbit yang pekannya belum tiba tampil "Modul N dibuka <tanggal>", yang belum terbit "Modul N terbit menjelang pertemuan"; karena itu generator dijalankan ulang pada pekan P sebelum poster) dan tombol Meet menunjuk room di `MEET_URL` (seperti banner Sisken). Pengisian ke LMS memakai `scripts/ttl-lms-poster.js` dari konsol browser dosen (idempoten; aktivitas lewat form Add, bukan Duplicate; `activities:true` wajib disertai `only:[P]`; situs mewajibkan deskripsi aktivitas ≥ 100 karakter). **Rutinitas tiap pekan P:** (1) buat Google Meet pekan TMV lewat UI form dan salin room URL ke `MEET_URL`; (2) bila modulnya terbit, tambahkan nomornya ke `PUBLISHED`; (3) jalankan generator, commit; (4) `ttlPoster.run({sections:true, activities:true, only:[P]})` untuk memasang banner baru dan membuat Attendance/Tugas/Forum pekan itu. Catatan 19 September 2026: Pertemuan 1 sengaja **tanpa forum LMS** — menurut dosen, FAST memang diatur agar pekan tertentu tidak memiliki forum; gejalanya form Forum mengembalikan halaman form tanpa pesan galat (tambah maupun ubah). Untuk pekan seperti itu jalankan poster dengan `forum:false`; mahasiswa tetap mengerjakan Forum di halaman modul.
@@ -193,7 +195,7 @@ Modul 1–7  → Pertemuan 1–7
 Modul 8–14 → Pertemuan 9–15
 ```
 
-Rumusnya: `P = N` untuk `N <= 7`, dan `P = N + 1` untuk `N >= 8`. Rumus ini dipakai `_segmentsForModul()` di backend untuk **keempat** course, termasuk Sistem Kendali Cerdas.
+Rumusnya: `P = N` untuk `N <= 7`, dan `P = N + 1` untuk `N >= 8`. Rumus ini dipakai `_segmentsForModul()` di backend untuk **keenam** course, termasuk Sistem Kendali Cerdas.
 
 > **Sistem Kendali Cerdas: nomor yang TAMPIL berbeda dari nomor pada PATH — dan itu disengaja.**
 >
@@ -215,6 +217,7 @@ Rumusnya: `P = N` untuk `N <= 7`, dan `P = N + 1` untuk `N >= 8`. Rumus ini dipa
 | Optimalisasi & Otomasi | `optoauto-modul-N` |
 | Sistem Kendali Cerdas | `sistem_kendali_cerdas-modul-N` |
 | Teknik Tenaga Listrik | `teknik_tenaga_listrik-modul-N` (terbit: N = 1–14) |
+| Pemodelan CAD | `pemodelan_cad-modul-N` (terbit: N = 1–14) |
 
 ### 3.2 Path modul
 
@@ -225,6 +228,7 @@ Rumusnya: `P = N` untuk `N <= 7`, dan `P = N + 1` untuk `N >= 8`. Rumus ini dipa
 | Optoauto | `visitors/optoauto/pertemuan-P` | `settings/optoauto/pertemuan-P/schedule` | `presence/optoauto/pertemuan-P` | `chat/optoauto/pertemuan-P/messages` |
 | Sisken | `visitors/sistem_kendali_cerdas/pertemuan-P` | `settings/sistem_kendali_cerdas/pertemuan-P/schedule` | `presence/sistem_kendali_cerdas/pertemuan-P` | `chat/sistem_kendali_cerdas/pertemuan-P/messages` |
 | TTL | `visitors/teknik_tenaga_listrik/pertemuan-P` | `settings/teknik_tenaga_listrik/pertemuan-P/schedule` | `presence/teknik_tenaga_listrik/pertemuan-P` | `chat/teknik_tenaga_listrik/pertemuan-P/messages` |
+| CAD | `visitors/pemodelan_cad/pertemuan-P` | `settings/pemodelan_cad/pertemuan-P/schedule` | `presence/pemodelan_cad/pertemuan-P` | `chat/pemodelan_cad/pertemuan-P/messages` |
 
 Untuk Matematika, visitor memakai `modul-N` sedangkan jadwal memakai `pertemuan-P`. Perbedaan ini disengaja dan sudah ditangani oleh backend. Course lain memakai `pertemuan-P` untuk keduanya.
 
@@ -241,6 +245,9 @@ Untuk Matematika, visitor memakai `modul-N` sedangkan jadwal memakai `pertemuan-
 | `sisken-uts` | `visitors/sistem_kendali_cerdas/uts` | `settings/sistem_kendali_cerdas/uts/schedule` | `presence/sistem_kendali_cerdas/uts` |
 | `sisken-uas` | `visitors/sistem_kendali_cerdas/uas` | `settings/sistem_kendali_cerdas/uas/schedule` | `presence/sistem_kendali_cerdas/uas` |
 | `teknik-tenaga-listrik-uts` | `visitors/teknik_tenaga_listrik/uts` | `settings/teknik_tenaga_listrik/uts/schedule` | `presence/teknik_tenaga_listrik/uts` |
+| `teknik-tenaga-listrik-uas` | `visitors/teknik_tenaga_listrik/uas` | `settings/teknik_tenaga_listrik/uas/schedule` | `presence/teknik_tenaga_listrik/uas` |
+| `pemodelan-cad-uts` | `visitors/pemodelan_cad/uts` | `settings/pemodelan_cad/uts/schedule` | `presence/pemodelan_cad/uts` |
+| `pemodelan-cad-uas` | `visitors/pemodelan_cad/uas` | `settings/pemodelan_cad/uas/schedule` | `presence/pemodelan_cad/uas` |
 
 ID, slug, path, localStorage key, konfigurasi backend, seed, dan OBE mapping harus berubah bersama. Jangan menyalin prefix course asal saat membuat halaman baru.
 
@@ -256,7 +263,7 @@ Halaman modul dan exam membuka pemilih peran sebelum akses penilaian:
 - **Dosen:** password admin, kemudian dapat mengatur jadwal atau masuk untuk meninjau soal exam.
 - **Mode Preview:** akses tanpa identitas untuk melihat struktur halaman, tanpa penilaian.
 
-Pada seluruh UTS dan UAS, login dosen otomatis membuka tab **Soal Ujian** dalam mode hanya-baca. UTS maupun UAS mengambil teks soal melalui `getExamQuestions` memakai sesi Firebase dengan claim admin, sehingga dapat ditinjau tanpa menunggu jadwal mahasiswa. Mode dosen tidak boleh mengirim jawaban, membuat attempt, menambah poin, atau membuat export mahasiswa.
+Pada seluruh UTS dan UAS, login dosen otomatis membuka tab **Soal Ujian** dalam mode hanya-baca (hanya untuk dosen terverifikasi, `_dosenUjianTerverifikasi`; identitas `role: 'dosen'` bernama lain tidak mendapatkannya, §7.8). UTS maupun UAS mengambil teks soal melalui `getExamQuestions` memakai sesi Firebase dengan claim admin, sehingga dapat ditinjau tanpa menunggu jadwal mahasiswa. Mode dosen tidak boleh mengirim jawaban, membuat attempt, menambah poin, atau membuat export mahasiswa.
 
 Tombol perpindahan sesi bernama **Log Out**, bukan “Ganti Peran”. Logout menghapus identitas lokal, sesi PIN, presence, dan sesi Firebase Auth yang relevan, lalu mengembalikan pengguna ke pemilih peran.
 
@@ -272,7 +279,7 @@ Pada exam:
 
 - handler jawaban dan export tetap dinonaktifkan;
 - teks soal **tidak tampil**, baik UTS maupun UAS. Bank soal keduanya diambil dari server lewat `getExamQuestions`, yang mensyaratkan sesi mahasiswa valid (NIM + PIN + jadwal terbuka) atau sesi admin Firebase. Preview tidak memenuhi keduanya, sehingga panel soal menampilkan pesan terkunci;
-- tab **Hasil** tidak memuat data kelas apa pun (sejak 26 September 2026): tabel kelas, papan Top Skor/Top Akses, statistik kelas, dan daftar mahasiswa online hanya dirender untuk dosen terverifikasi. Preview (dan tamu di layar login) mendapat placeholder "Data kelas hanya tersedia untuk dosen. Masuk sebagai mahasiswa untuk melihat nilai Anda sendiri.", dan nama/NIM/status mahasiswa lain tidak ada di DOM sama sekali — bahkan bila identitas dosen kebetulan tersimpan di browser itu. Rincian di §7.8.
+- tab **Hasil** tidak memuat data kelas apa pun (sejak 26 September 2026): tabel kelas, papan Top Skor/Top Akses, statistik kelas, dan daftar mahasiswa online hanya dirender untuk dosen terverifikasi. Preview mendapat placeholder "Data kelas hanya tersedia untuk dosen. Keluar dari Mode Preview (tombol Keluar Preview di banner atas), lalu masuk sebagai mahasiswa untuk melihat nilai Anda sendiri." (Preview tidak punya formulir login; tamu di layar login mendapat "… Masuk sebagai mahasiswa untuk melihat nilai Anda sendiri."), dan nama/NIM/status mahasiswa lain tidak ada di DOM sama sekali — bahkan bila identitas dosen kebetulan tersimpan di browser itu. Rincian di §7.8.
 
 Preview bukan identitas mahasiswa dan tidak membuat record kehadiran.
 
@@ -381,7 +388,7 @@ String `due` bukan waktu lokal browser. Parse dengan `_wibStringToDate`, bukan
 - Setelah `end + extension`, submit diblokir.
 - Mengubah jadwal tidak mereset data mahasiswa.
 
-> **Penalti 35% seragam:** seluruh mata kuliah memakai pengali 0,65 (potongan 35%). Rollout bertahap yang sempat menahan Optimalisasi & Otomasi, Matematika 4, dan Getaran Mekanik di 0,7 sudah berakhir. Attempt yang terlanjur dinilai dengan pengali lama tetap bernilai seperti saat itu dan tidak dihitung ulang, sebab pengali diterapkan pada saat submit lalu disimpan.
+> **Penalti 35% seragam:** seluruh mata kuliah memakai pengali 0,65 (potongan 35%). Rollout bertahap yang sempat menahan Optimalisasi & Otomasi, Matematika 4, dan Getaran Mekanik di 0,7 sudah berakhir. Attempt yang terlanjur dinilai dengan pengali lama tetap bernilai seperti saat itu dan tidak dihitung ulang, sebab pengali diterapkan pada saat submit lalu disimpan. Teks halaman ketiga course itu sempat tertinggal (pesan terlambat 42 modul dan 6 UTS/UAS "dikurangi 30%", `_getLateMultiplier()` 0.7 yang tidak dipakai menilai, serta halaman Pengantar yang ditaut `index.html` "dikurangi 20% (multiplier 0.8)"); sejak 27 September 2026 semuanya menyebut 35%/0,65 lewat `scripts/penalti-35.mjs`, dan `validate-public-security.mjs` menolak angka lama di seluruh halaman course dan `Admin/`.
 
 ### 5.3 Default modal exam yang benar-benar ada saat ini
 
@@ -391,13 +398,13 @@ String `due` bukan waktu lokal browser. Parse dengan `_wibStringToDate`, bukan
 | UTS Getaran | tanggal WIB saat modal dibuka, 19.30 | Atur Jadwal UTS |
 | UTS Matematika | waktu WIB sekarang + 180 menit | Atur Jadwal Perkuliahan |
 | UTS Optimalisasi | waktu WIB sekarang + 180 menit | Atur Jadwal Perkuliahan |
-| UTS Sisken dan UTS Teknik Tenaga Listrik | tanggal WIB saat modal dibuka, 19.30 | Atur Jadwal UTS |
+| UTS Sisken, UTS Teknik Tenaga Listrik, dan UTS Pemodelan CAD | tanggal WIB saat modal dibuka, 19.30 | Atur Jadwal UTS |
 
-Tabel ini mencatat implementasi aktual, bukan menyatakan ketidakkonsistenan tersebut sebagai desain ideal. Jika default UTS diseragamkan, ubah keempat halaman UTS, pemeriksa otomatis, dan bagian ini dalam commit yang sama.
+Tabel ini mencatat implementasi aktual, bukan menyatakan ketidakkonsistenan tersebut sebagai desain ideal. Jika default UTS diseragamkan, ubah keenam halaman UTS, pemeriksa otomatis, dan bagian ini dalam commit yang sama.
 
 ### 5.4 Zona waktu modul
 
-Seluruh 70 modul memakai editor deadline berupa field tanggal dan field teks jam
+Seluruh 84 modul (enam mata kuliah) memakai editor deadline berupa field tanggal dan field teks jam
 `HH:mm` 24 jam. Input `10:00 PM` tidak dipakai; nilai ekuivalennya adalah
 `22:00`. Alur simpan membaca keduanya melalui `_readScheduleDueWib`, memvalidasi
 jam, lalu `_wibStringToDate` mengonversi WIB (UTC+7) ke ISO UTC. Contoh:
@@ -413,6 +420,57 @@ RTDB dan tanpa mengubah attempt, jawaban, atau poin mahasiswa. Jika `due` hilang
 atau tidak valid, sistem baru memakai ISO `start`/`end` yang tersimpan sebagai
 fallback.
 
+**Perpanjangan deadline satu kelas menulis `end` dan `due` (backend, 26 September
+2026).** `Admin/rescale-deadline.html` mode Modul dengan Deadline Baru dan kolom
+NIM kosong memanggil `rescaleModulLatePenalty` dengan `newEnd` tanpa `nims`.
+Callable itu menulis jadwal global `end` **dan** `due` (wall-clock WIB) untuk
+instan yang sama, dibulatkan ke menit, lalu menghitung ulang penalti terhadapnya.
+Waktu buka yang sedang ditegakkan `evalSchedule` tidak bergeser: `start` ditulis
+eksplisit dan `duration` disetel ulang ke selisih harinya. Dulu hanya `end` yang
+ditulis; karena halaman modul, `evalSchedule`, dan agen chat membaca `due`,
+perpanjangan itu tidak berpengaruh apa pun. Diagnose (dry-run) dan cakupan
+per-NIM tidak menulis jadwal; per-NIM, Deadline Baru hanya menjadi acuan hitung
+ulang poin. Rescale ujian satu kelas ikut menulis `due`, tetapi tanpa menggeser
+`start` (§5.5).
+
+Callable itu menolak tiga keadaan sebelum menulis apa pun (attempt, poin, dan
+jadwal tidak tersentuh):
+
+- **Deadline satu kelas yang tidak berselisih kelipatan 24 jam dari waktu buka**
+  (`invalid-argument`, juga pada Diagnose; per-NIM tidak terkena karena tidak
+  menulis jadwal). Modal Atur Jadwal di ke-84 halaman modul menyimpan
+  `start = due − Durasi` hari penuh dan mengisi Durasi dari `duration`
+  tersimpan (atau 7), jadi jadwal seperti itu akan menggeser waktu buka begitu
+  modal disimpan ulang tanpa perubahan dan bisa mengunci modul yang sedang
+  berjalan untuk satu kelas (versi awal cabang backend ini menghapus `duration`
+  pada rentang seperti itu, dan justru itu yang memasang jebakan tersebut).
+  Artinya jam Deadline Baru harus sama dengan jam buka modul: preset 23:59 di
+  `rescale-deadline.html` hanya cocok untuk modul yang dibuka pukul 23.59 WIB
+  (bawaan Atur Jadwal); modul yang dibuka pukul 22.00 WIB (mis. sebagian jadwal
+  Sisken) perlu deadline pukul 22.00. Pesannya menyebut jam buka modul dan dua
+  deadline sah terdekat (juga di `details.waktuBuka` dan
+  `details.saranDeadline`). Untuk memindahkan jam buka, atur ulang jadwal lewat
+  Atur Jadwal di halaman modul lebih dulu.
+- **Deadline Baru pada atau sebelum waktu buka modul** yang ditegakkan
+  (`due − duration` hari bila keduanya sah, selain itu `start` mentah):
+  `invalid-argument` untuk satu kelas, Diagnose, maupun per-NIM.
+- **Hitung Ulang atau Diagnose tanpa Deadline Baru pada jadwal yang `end`-nya
+  berbeda dari `due` yang sah** (`failed-precondition`, "…menyimpan dua deadline
+  berbeda…", dengan `details.scheduleEnd`/`scheduleDue`). Tanpa deadline baru
+  acuannya `end`, padahal `evalSchedule` menegakkan `due`; pada jadwal lama
+  `end` bisa satu jam lebih awal (disimpan dari browser UTC+8) atau diperpanjang
+  rescale lama yang belum menulis `due`, sehingga memilih salah satunya adalah
+  keputusan dosen. Isi Deadline Baru dengan deadline yang dimaksud; dengan kolom
+  NIM kosong, `end` dan `due` sekaligus diselaraskan, dan hitung ulang
+  berikutnya tanpa Deadline Baru kembali berjalan. Audit baca-saja saat cabang
+  itu dibuat mencatat 45 jadwal modul lama seperti ini.
+
+Penjaganya `scripts/verify-rescale-jadwal-modul.js` di `npm test` backend
+(§17.2). Perilaku ini datang dari cabang backend
+`fix/chat-kenapa-admin-dan-rescale-due`; sebelum cabang itu di-deploy, callable
+produksi masih hanya menulis `end` dan belum menolak ketiga keadaan di atas.
+Gabungkan dan deploy backend lebih dulu (§1.2), baru frontend.
+
 ### 5.5 Jadwal ujian susulan (override per mahasiswa)
 
 Selain jadwal global di §5.2, exam punya lapisan kedua opsional di RTDB
@@ -422,31 +480,81 @@ admin-only lewat callable `rescaleExamLatePenalty` (parameter `nims[]` +
 
 - Override hanya boleh mengubah `end`/`extension`, **tidak pernah** `start`.
 - Jadwal global dan mahasiswa lain tidak tersentuh — ini per-NIM.
-- Kedelapan halaman `UTS.html`/`UAS.html` (4 course × 2 exam) subscribe ke path
+- Kedua belas halaman `UTS.html`/`UAS.html` (6 course × 2 exam) subscribe ke path
   ini secara real-time (`_watchScheduleOverride`/`_mergeSchedule`) dan
   menggabungkannya di atas jadwal global.
 - `getExamQuestions` dan `checkExamAnswer` di backend mengevaluasi override
   untuk NIM yang meminta (`evalSchedule(..., nimKey)`), jadi mahasiswa dalam
   jendela override aktif tetap bisa mengambil soal/submit walau jadwal
   global sudah tertutup.
+- Tanpa NIM, `rescaleExamLatePenalty` dengan Deadline Baru menulis jadwal
+  global ujian: `end` **dan** `due` (wall-clock WIB) untuk instan yang sama,
+  dibulatkan ke menit, serta `duration` = end baru − `start` dalam menit;
+  `extension` hanya berubah bila Perpanjangan diisi, dan `start` tidak pernah
+  disentuh. Server dan hitung mundur halaman tetap membaca `start` + `end` +
+  `extension`; `due` ujian hanya dibaca modal Atur Jadwal (`duration` juga oleh
+  keterangan lama ujian di panel jadwal). Modal itu mengisi kolomnya dari nilai
+  tersimpan lalu menyimpan `end = due` dan `start = due − duration`. Karena keduanya ikut diselaraskan, membuka lalu
+  menyimpan modal tanpa perubahan setelah rescale tidak lagi mengembalikan
+  deadline lama dan tidak menggeser waktu buka. Bila selisih end baru − `start`
+  bukan menit bulat positif, `duration` dihapus sehingga modal meminta durasi
+  diisi. Diagnose (dry-run) tidak menulis apa pun tetapi memakai deadline yang
+  sudah dibulatkan; override per-NIM tetap hanya `end`/`extension`.
+- **Penilaian ulang memakai jendela tiap mahasiswa.** Seperti `evalSchedule`
+  saat submit, override tersimpan menimpa `end`/`extension` global bagi
+  mahasiswa itu, juga pada rescale satu kelas, sehingga attempt susulan yang sah
+  tetap bernilai ketika jadwal kelas diubah (dulu dinilai terhadap jadwal global
+  saja dan bisa menjadi 0, `outsideWindow`). Override dibaca sekali sebelum
+  menulis; bila gagal dibaca, panggilan gagal alih-alih jatuh ke jadwal global.
+  Panggilan per-NIM memakai override yang akan ditulisnya (juga pada dry-run),
+  dan per-NIM tanpa Deadline Baru menilai terhadap override mahasiswa itu, bukan
+  `end` global. Respons memuat `overriddenStudents` dan `students[].window`;
+  `rescale-deadline.html` menampilkan keduanya.
+- **Penolakan sebelum menulis.** Deadline Baru pada atau sebelum `start` ujian
+  ditolak (`invalid-argument`, menyebut waktu mulai dalam WIB) di semua mode:
+  satu kelas, Diagnose, dan per-NIM. Override tidak bisa memajukan `start`, dan
+  jendela kosong akan menilai setiap attempt 0. NIM yang tidak sah juga ditolak
+  sebelum override apa pun ditulis (dulu sesudah override NIM sebelumnya dalam
+  daftar telanjur tertulis).
+- **Batas 30 hari untuk rescale satu kelas.** Rules RTDB membatasi `duration`
+  UTS/UAS paling banyak 43200 menit (30 hari) untuk tulisan klien, termasuk
+  modal Atur Jadwal. Deadline Baru lebih dari 30 hari sesudah `start` (misalnya
+  perpanjangan berminggu-minggu sesudah ujian dengan preset yang dihitung dari
+  hari ini, atau rescale jadwal penutup dengan `duration` 1 dan `end` ≤
+  2000-01-02) tetap diterapkan server, tetapi rescale satu kelas lalu
+  **menghapus** `duration` (sejak deploy cabang backend
+  `fix/chat-kenapa-admin-dan-rescale-due`; sebelumnya ia menulis `duration` di
+  atas batas sehingga simpan ulang ditolak `PERMISSION_DENIED`). Akibatnya modal
+  Atur Jadwal meminta Durasi diisi, dan Durasi ≤ 43200 yang diisi menggeser
+  waktu mulai (`start = due − duration`). `rescale-deadline.html` membaca
+  `start` ujian (node `settings` terbaca publik) dan memperingatkannya di dialog
+  konfirmasi dan di Diagnose, tanpa memblokir. Untuk ujian susulan sebagian
+  mahasiswa, pakai kolom NIM: override tidak menulis `duration`.
+
+Penjaganya `scripts/verify-rescale-jadwal-modul.js` di `npm test` backend, yang
+juga menjalankan modal kedua belas halaman ujian (§17.2). Penulisan `end`/`due`/
+`duration` satu kelas, penilaian ulang terhadap override, dan kedua penolakan di
+atas datang dari cabang backend `fix/chat-kenapa-admin-dan-rescale-due`. Sebelum
+cabang itu di-deploy, callable produksi masih hanya menulis `end`, menilai ulang
+mahasiswa susulan terhadap jadwal global (poin susulannya bisa menjadi 0), dan
+menerima deadline pada atau sebelum `start`. Jadi sampai deploy: setelah rescale
+global periksa kolom batas akhir dan durasi di modal sebelum menyimpan agar `end`
+tidak kembali ke nilai lama, dan jangan rescale satu kelas selama ada mahasiswa
+susulan. Gabungkan dan deploy backend lebih dulu (§1.2), baru frontend.
 
 ---
 
 ## 6. Struktur halaman modul
 
-Modul adalah satu file HTML mandiri yang memuat UI, konten, animasi, Pyodide, dan integrasi Firebase. Susunan tab **berbeda per course** dan tidak ada aturan "harus enam tab":
+Modul adalah satu file HTML mandiri yang memuat UI, konten, animasi, Pyodide, dan integrasi Firebase. Susunan tab **berbeda antara Modul 1 dan modul lain** dan tidak ada aturan "harus enam tab":
 
 | Course | Tab |
 |---|---|
-| Matematika 4, Getaran Mekanik, Optimalisasi | Setup Python · Pembagian Kelompok · Modul · Tugas · Forum · Hasil (6 tab) |
-| Sistem Kendali Cerdas — Modul 1 | Setup Python · Pembagian Kelompok · Modul · Tugas · Forum · Hasil (6 tab) |
-| Sistem Kendali Cerdas — Modul 2–14 | Modul · Tugas · Forum · Hasil (4 tab) |
-| Teknik Tenaga Listrik — Modul 1 | Setup Python · Pembagian Kelompok · Modul · Tugas · Forum · Hasil (6 tab) |
-| Teknik Tenaga Listrik — Modul 2–14 | Modul · Tugas · Forum · Hasil (4 tab) |
+| Modul 1 Matematika 4, Getaran Mekanik, Optimalisasi, Sistem Kendali Cerdas, Teknik Tenaga Listrik | Setup Python · Pembagian Kelompok · Modul · Tugas · Forum · Hasil (6 tab; label Math/Opto disingkat "Setup"/"Kelompok") |
 | Pemodelan CAD — Modul 1 | Setup FreeCAD · Setup Python · Modul · Tugas · Forum · Hasil (6 tab) |
-| Pemodelan CAD — Modul 2–5 | Modul · Tugas · Forum · Hasil (4 tab) |
+| Modul 2–14 keenam course | Modul · Tugas · Forum · Hasil (4 tab) |
 
-Setup Python dan Pembagian Kelompok hanya ada di Modul 1 tiap course (CAD: Setup FreeCAD + Setup Python, tanpa Pembagian Kelompok); pada Sisken Modul 2–14 dan CAD Modul 2–5 tombol nav, halaman, dan blok gayanya dibuang oleh generator supaya tidak ada tab yang menuju halaman kosong. Jangan "memperbaiki" ketidaksamaan ini dengan menambahkan tab kosong.
+Setup Python dan Pembagian Kelompok hanya ada di Modul 1 tiap course (CAD: Setup FreeCAD + Setup Python, tanpa Pembagian Kelompok). Pada Modul 2–14 tab itu tidak ada; generator Sisken, TTL, dan CAD membuang tombol nav, halaman, dan blok gayanya supaya tidak ada tab yang menuju halaman kosong. Jangan "memperbaiki" ketidaksamaan ini dengan menambahkan tab kosong.
 
 **Angka pada hero harus dihitung dari isi, bukan dipatok.** Statistik hero (Bagian Materi, Animasi, Cell Python) pernah salah di seluruh Sisken Modul 2–14 — tertulis 13/1/1 padahal isinya 11/3/3 — karena jumlah bagian memakai rumus terpisah (`deep.length + 4`) yang basi setelah bagian materi digabung, sementara dua angka lain dipatok. Sekarang hero dirakit setelah seluruh bagian dibuat dan angkanya diturunkan dari keluaran (`daftarBagian.length`, jumlah `.anim-title` berjudul "Animasi N", jumlah `.code-wrap`). Bila menambah atau menggabung bagian, jangan menuliskan angka barunya secara manual di hero.
 
@@ -463,7 +571,7 @@ Ketentuan konten dan UI:
 
 ### 6.1 Sistem desain modul
 
-Seluruh 70 modul memakai satu sistem **modern academic**. Keseragaman berarti komponen, interaksi, dan hierarki visualnya sama; isi, jumlah bagian, jumlah tab, dan aksen course tetap boleh berbeda. Lapisan ini ditandai oleh `body.modern-academic-design`, `<style id="modern-academic-design">`, dan `<script id="modern-academic-runtime">`. Jangan menerapkannya pada halaman exam.
+Seluruh 84 modul memakai satu sistem **modern academic**. Keseragaman berarti komponen, interaksi, dan hierarki visualnya sama; isi, jumlah bagian, jumlah tab, dan aksen course tetap boleh berbeda. Lapisan ini ditandai oleh `body.modern-academic-design`, `<style id="modern-academic-design">`, dan `<script id="modern-academic-runtime">`. Jangan menerapkannya pada halaman exam.
 
 | Area | Aturan desain saat ini |
 |---|---|
@@ -479,7 +587,7 @@ Seluruh 70 modul memakai satu sistem **modern academic**. Keseragaman berarti ko
 | Overlay login | Lapisan partikel/rumus melayang (`#overlayParticles`, `#pickerParticles`) wajib berkelas `overlay-anim-particles` (absolute, inset 0, `overflow:hidden`). Tanpa itu, pada overlay yang bisa di-scroll (modul Sisken) partikel memperbesar area scroll dan scrollbar muncul-hilang terus (`scripts/kunci-lapisan-animasi-login.mjs`, plus `scrollbar-gutter:stable`). |
 | Aksesibilitas dan batas scope | Animasi menghormati `prefers-reduced-motion`. Aturan dibatasi ke `#page-modul`/`#page-tugas` dan `@media screen`; jangan mengubah login, penilaian, path Firebase, atau output cetak. |
 
-Sumber penerapan lintas course adalah `scripts/apply-modern-academic-all-modules.mjs`. Markup hasil normalisasi harus sudah menyimpan kelas tabel dan daftar pustaka secara statis; runtime hanya memulihkan markup lama sebagai fallback. Generator Sisken wajib menghasilkan struktur yang sama secara langsung. Cakupan pemeriksanya dirangkum di §17.1.
+Sumber penerapan lintas course adalah `scripts/apply-modern-academic-all-modules.mjs` untuk empat course lama (Matematika 4, Getaran, Optimalisasi, Sisken); Teknik Tenaga Listrik dan Pemodelan CAD mewarisi lapisan yang sama dari kerangka Modul 1 lewat generatornya (`scripts/ttl-modul/`, `scripts/cad-modul/`), dan validatornya memeriksa keenam course. Markup hasil normalisasi harus sudah menyimpan kelas tabel dan daftar pustaka secara statis; runtime hanya memulihkan markup lama sebagai fallback. Generator Sisken wajib menghasilkan struktur yang sama secara langsung. Cakupan pemeriksanya dirangkum di §17.1.
 
 Khusus Sistem Kendali Cerdas, modul kelipatan tiga (Modul 3, 6, 9, dan 12) berjenis TMV. Buat ruang melalui aktivitas **Google Meet™ for Moodle** pada menu LMS, lalu pasang tautannya sebagai tombol pada kolom kanan banner pertemuan. Tautan halaman modul juga cukup tersedia pada tombol banner dan tidak perlu dibuat ulang sebagai resource URL terpisah di LMS.
 
@@ -494,6 +602,8 @@ Struktur universal:
 | Komputasi Hard | 5 | 4 | 20 |
 | **Total** | **25** |  | **50** |
 
+Pengecualian: Pemodelan CAD memakai 10 PG × 1 + 5 tugas pemodelan (unggah `.FCStd` + angka bacaan; 6/6/6/11/11 poin) = 15 soal dan 50 poin, dengan konsolasi setelah ≥ 12 dari 15 soal dicoba (§2).
+
 Markup wajib per soal (pernah rusak, jadi ditulis eksplisit):
 
 - setiap soal pilihan ganda butuh **tiga** elemen dengan urutan ini: grup radio `id="rg-mcN"`, lalu tombol `<button class="mc-submit" id="sub-mcN" onclick="checkMC('mcN')" disabled>Periksa Jawaban</button>`, lalu kotak umpan balik `id="fb-mcN"`;
@@ -503,14 +613,14 @@ Markup wajib per soal (pernah rusak, jadi ditulis eksplisit):
 Perilaku penilaian:
 
 - jawaban dikirim ke `checkModulAnswer`; kunci berada di Firestore `modulAnswers` dan tidak ada di client;
-- pada 14 modul Sisken dan modul Teknik Tenaga Listrik, urutan empat opsi PG diacak deterministik per NIM. Markup tidak membawa huruf kanonik; client mengirim huruf posisi yang terlihat dengan `mcOrderVersion: 1`, lalu server merekonstruksi permutasi memakai `shuffleSeed` dari bank exam dan memetakannya ke huruf kanonik. Payload tanpa versi tetap diperlakukan sebagai huruf kanonik agar frontend lama aman selama deployment bertahap;
+- pada modul Sistem Kendali Cerdas, Teknik Tenaga Listrik, dan Pemodelan CAD (masing-masing 14 modul), urutan empat opsi PG diacak deterministik per NIM. Markup tidak membawa huruf kanonik; client mengirim huruf posisi yang terlihat dengan `mcOrderVersion: 1`, lalu server merekonstruksi permutasi memakai `shuffleSeed` dari bank exam dan memetakannya ke huruf kanonik. Payload tanpa versi tetap diperlakukan sebagai huruf kanonik agar frontend lama aman selama deployment bertahap;
 - batas perlindungan shuffle PG harus disebutkan jujur: teks opsi masih berada di HTML publik sehingga mahasiswa teknis dapat menghitung ulang permutasi. Mekanisme ini mematikan penyebaran kunci huruf universal, tetapi bukan penghalang kriptografis;
-- seluruh Modul 1–14 Sisken memakai komputasi parametrik per NIM. Teks `c1`–`c15` tidak lagi statis di HTML; setelah login ia diambil melalui `getModulQuestions`, sedangkan kunci/toleransi/`explain` tetap di backend privat. Registry bersama berada di `functions/modules/sisken-modul-all-v2.js`; Modul 3 mempertahankan bank pilotnya, sedangkan modul lain memakai tiga skenario topikal dengan parameter fisik berbeda serta nilai kalibrasi varian yang dinyatakan pada teks. Verifikasi `scripts/verify-sisken-all-modules.js` menjalankan 14 × 15 × 100 varian dan menolak toleransi yang saling menerima;
-- satu `qId` hanya dapat dicoba sekali sampai direset;
+- seluruh Modul 1–14 Sisken memakai komputasi parametrik per NIM. Teks `c1`–`c15` tidak lagi statis di HTML; setelah login ia diambil melalui `getModulQuestions`, sedangkan kunci/toleransi/`explain` tetap di backend privat. Registry bersama berada di `functions/modules/sisken-modul-all-v2.js`; Modul 3 mempertahankan bank pilotnya, sedangkan modul lain memakai tiga skenario topikal dengan parameter fisik berbeda serta nilai kalibrasi varian yang dinyatakan pada teks. Verifikasi `scripts/verify-sisken-all-modules.js` menjalankan 14 × 15 × 100 varian dan menolak toleransi yang saling menerima. Teknik Tenaga Listrik (`c1`–`c15`, `functions/modules/ttl-modul-all-v2.js`, penjaga `verify-ttl-modules.js`) dan Pemodelan CAD (`c1`–`c5`, `cad-modul-all-v2.js`, penjaga `verify-cad-modules.js`) memakai jalur `getModulQuestions` yang sama;
+- satu `qId` hanya dapat dicoba sekali sampai direset, kecuali tugas pemodelan CAD: kiriman salah boleh dikirim ulang, dan kiriman benar setelah pernah salah bernilai 65% (§2);
 - modul bersifat formatif: server boleh mengembalikan jawaban benar dan penjelasan setelah attempt;
 - komputasi dinilai dengan nilai target dan toleransi pada server;
 - kandidat numerik dapat berasal dari jawaban utama, angka pertama/terakhir output, dan kandidat per baris `print()`;
-- soal Hard dapat memberi partial credit jika dikonfigurasi dan dikerjakan sebelum terlambat. Besarnya diambil dari `partialPoints` pada kunci Firestore: **0,5 poin, seragam di semua mata kuliah**. Attempt yang dinilai sebelum kebijakan ini berlaku tetap bernilai 1 di tiga course lama dan tidak dihitung ulang. Angka ini juga muncul sebagai teks yang dibaca mahasiswa di pengantar Bagian C, jadi ubah keduanya bersama;
+- soal Hard dapat memberi partial credit jika dikonfigurasi dan dikerjakan sebelum terlambat. Besarnya diambil dari `partialPoints` pada kunci Firestore: **0,5 poin, seragam di semua mata kuliah**. Attempt yang dinilai sebelum kebijakan ini berlaku tetap bernilai 1 di tiga course lama dan tidak dihitung ulang. Angka ini juga muncul sebagai teks yang dibaca mahasiswa di pengantar Bagian C, jadi ubah keduanya bersama. Tugas modul Pemodelan CAD tidak memakai partial (§2);
 - poin terlambat ditentukan backend dan kini seragam: dikalikan 0,65 (potongan 35%) di semua mata kuliah;
 - konsolasi satu poin (berbeda dari partial credit) ditentukan backend. Jangan memakai konstanta threshold client sebagai sumber kebenaran.
 
@@ -531,6 +641,8 @@ Export tugas baru aktif jika:
 - seluruh 10 pilihan ganda sudah dijawab;
 - seluruh 15 soal komputasi sudah dicoba;
 - link Google Drive valid sudah diisi.
+
+Pemodelan CAD: seluruh 10 PG dijawab dan kelima tugas pemodelan sudah dikirim; tautan Google Drive opsional (cadangan berkas; bila diisi harus valid), karena berkas `.FCStd` resmi sudah tersimpan di server saat diunggah.
 
 File export memuat identitas, jawaban/kode, poin server, waktu, dan kode verifikasi. Nama file harus memuat nomor tugas, NIM, dan course yang benar.
 
@@ -557,7 +669,7 @@ Tab Hasil membaca record visitor untuk statistik, aktivitas, dan skor. Presence 
 
 ### 6.7 Progres materi berurutan dan gerbang antar-modul
 
-Berlaku di keempat course sejak 22 Agustus 2026 (permintaan dosen), dan di Teknik Tenaga Listrik sejak Modul 1 terbit. Diterapkan oleh `scripts/tambah-progres-modul.mjs` (idempoten, penanda `PROGRES-MODUL`) dan empat callable di §10.
+Berlaku di keempat course lama sejak 22 Agustus 2026 (permintaan dosen), dan di Teknik Tenaga Listrik serta Pemodelan CAD sejak Modul 1 masing-masing terbit — kini di ke-84 modul. Diterapkan oleh `scripts/tambah-progres-modul.mjs` (idempoten, penanda `PROGRES-MODUL`) dan empat callable di §10.
 
 - Di akhir setiap bagian materi (`div.section`, kecuali "Daftar Pustaka" dan bagian orientasi "Posisi Anda dan Sisa Waktu" di Sisken) ada kotak centang pernyataan *"Saya sudah mempelajari dan memahami bagian ini — [judul bagian]"* (teks 17 px, panel gradien hijau–sian dengan lencana status). Hanya kotak giliran yang aktif — **untuk semua peran**: centang harus urut dari bagian pertama, satu per satu, dan bagi mahasiswa tidak dapat dibatalkan. Injector membuang kotak lama lalu menyisipkan ulang, jadi perubahan pengecualian/teks cukup dengan menjalankannya kembali. Server (`setModulCentang`) menolak indeks yang tidak urut lewat transaksi Firestore.
 - Tab **Tugas, Forum, dan Hasil terkunci** sampai semua kotak dicentang; `switchTab` dibungkus sehingga tab terkunci tidak bisa dibuka lewat jalur lain.
@@ -616,6 +728,32 @@ yang diizinkan, dengan tiga lapis:
 | Administratif | `chat/resolver.js` | menjawab jadwal, RPS, penilaian, dan aturan dari registry serta RTDB secara deterministik |
 | Retrieval | `chat/retriever.js` + `knowledge-base.json` | mengambil materi/kurikulum mata kuliah aktif dan menghasilkan jawaban ekstraktif bersitasi |
 | Model | `chat/provider.js` | opsional; hanya merangkai potongan retrieval, bukan menjadi sumber fakta |
+
+Pemilihan lapis ditentukan `classifyQuestion` (`chat/policy.js`). Kata tanya
+alasan "kenapa/mengapa" menandai pertanyaan materi ("Kenapa redaman mengurangi
+amplitudo?" tetap ke tutor), **kecuali** bila objeknya urusan administratif
+(cabang backend `fix/chat-kenapa-admin-dan-rescale-due`, 26 September 2026,
+keenam mata kuliah; berlaku sejak cabang itu di-deploy — sebelumnya
+kenapa/mengapa selalu diarahkan ke tutor). Objek itu meliputi export, tautan
+Drive, poin/nilai, pengali terlambat 0,65, status terlambat,
+jadwal/tenggat, gerbang modul dan tab terkunci, kotak centang, login/PIN,
+berkas/unggahan, kirim ulang, dan presensi. Pertanyaan seperti "Kenapa tombol
+export saya tidak aktif?" atau "Kenapa poin tugas saya cuma 65%?" dijawab lapis
+administratif, misalnya syarat export, pengali 0,65 atau batas kirim ulang CAD
+65%, dan modul *n*−1 yang belum lengkap. Dulu pertanyaan seperti itu jatuh ke
+retrieval materi. Pola objek (`ALASAN_ADMIN_PATTERNS`) hanya diperiksa bila
+kalimatnya memuat kenapa/mengapa, jadi pertanyaan tanpa kata tanya alasan tidak
+berubah klasifikasinya. Sebagian besar pola memasangkan objek dengan keadaannya
+dan punya pengecualian kosakata materi (misalnya "link" mekanisme, "pin"
+rakitan, "jadwal perawatan"). Kata "poin" hanya dicocokkan sebagai kata
+Indonesia, sehingga "Mengapa respons melewati set point sebelum tunak?",
+"fixed point", "operating point", dan "poin kritis" tetap ke tutor (dulu
+`\bpoin\w*` ikut menangkap "point"). Objek yang tidak dipakai materi berdiri
+tanpa pengecualian (misalnya `forum`, `submit`, `login`, "kode verifikasi").
+Pertanyaan yang administratif hanya karena pola alasan tetapi tidak cocok
+dengan jawaban lapis 1 mana pun kembali ke tutor (`viaAlasan`). Penanda materi
+lain ("Jelaskan …", "rumus") tetap didahulukan dan mengarahkan ke tutor, dan
+permintaan jawaban asesmen tetap ditolak.
 
 Callable `getModuleChatContext` menyiapkan konteks awal tanpa model, sedangkan
 `aiChat` mengorkestrasi ketiga lapis. Browser hanya mengirim `moduleId`, pesan,
@@ -709,6 +847,8 @@ Struktur semua exam:
 | Komputasi Hard | 5 | 4 |
 | **Total** | **45** |  |
 
+Pengecualian: UTS/UAS Pemodelan CAD memakai bentuk sendiri tanpa True/False dan tanpa Pyodide — UTS 30 soal (`mc1`–`mc20` + `c1`–`c10` tugas unggah model `.FCStd` + angka bacaan), UAS 31 soal (tambahan `c11` tugas rakitan). Bobot tipenya PG 1, tugas unggah 2, rakitan 6 (`_qTypeWeightByIdx`); lihat §2 dan §7.5.
+
 Bobot tipe 1:1:2:4 digunakan untuk membagi bobot di dalam Sub-CPMK. Nilai tiap soal bukan angka tetap 1/1/2/4. Backend menghitungnya dari:
 
 1. bobot Sub-CPMK exam;
@@ -717,7 +857,7 @@ Bobot tipe 1:1:2:4 digunakan untuk membagi bobot di dalam Sub-CPMK. Nilai tiap s
 
 Jumlah nilai exam adalah 100. Soal yang sengaja tidak dipetakan dapat bernilai nol walaupun tetap bisa dijawab.
 
-**Dua sumber angka yang mudah tertukar.** Definisi bank soal (`functions/exams/*-v2.js`) memberi tiap soal field `points` mengikuti bobot tipe 1/1/2/4, sehingga Σ`points` sebuah exam = **70**. Angka 70 itu **bukan** nilai yang diberikan ke mahasiswa: `checkExamAnswer` menimpanya dengan `_examQPoints(examId, qId)` yang dihitung dari bobot Sub-CPMK OBE sehingga **Σ = 100**. Jadi:
+**Dua sumber angka yang mudah tertukar.** Definisi bank soal (`functions/exams/*-v2.js`) memberi tiap soal field `points` mengikuti bobot tipe 1/1/2/4, sehingga Σ`points` sebuah exam 45 soal = **70** (Pemodelan CAD memakai bobot tipe 1/2/6, jadi Σ-nya lain). Angka 70 itu **bukan** nilai yang diberikan ke mahasiswa: `checkExamAnswer` menimpanya dengan `_examQPoints(examId, qId)` yang dihitung dari bobot Sub-CPMK OBE sehingga **Σ = 100**. Jadi:
 
 - Σ`points` bank = 70 → dipakai untuk seed/SUMMARY, pemeriksa struktur, dan pembagian bobot di dalam Sub-CPMK;
 - Σ`_examQPoints` = 100 → yang benar-benar masuk ledger dan nilai mahasiswa;
@@ -743,19 +883,19 @@ Tabel itu **tidak boleh disunting tangan**. Jalankan `node scripts/bangkitkan-po
 
 **Seed pengocokan opsi MC wajib berbeda tiap soal.** `shuffleSeed(opts, seed)` dengan `seed = N` saja menghasilkan permutasi yang identik untuk seluruh soal; karena opsi benar lazim ditulis paling pertama, satu mahasiswa akan melihat SELURUH kunci di huruf yang sama dan menjawab satu huruf terus memberi nilai penuh bagian pilihan ganda. Bedakan seednya per soal — mis. lewat sidik isi opsi seperti `uas-sisken-v2.js` — dan jangan mengandalkan sebaran kunci gabungan lintas `N` sebagai bukti sehat: sebaran itu tetap tampak seimbang justru ketika cacatnya ada, sebab hurufnya berpindah antar-`N`. Yang benar memeriksa satu `N` pada satu waktu.
 
-**Partial credit exam membaca `partialPoints` dari kunci** (kini 0,5 seragam di semua course). Sebelumnya `checkExamAnswer` mematoknya 1 dan mengabaikan `partialPoints`, sehingga kebijakan per-course tidak pernah berlaku di exam; sekarang hanya status `correct` yang ditimpa bobot OBE. Jalur `recomputeExamPoints` memakai aturan yang sama — bila salah satunya kembali mematok 1, rescale akan menimpa poin partial yang sudah benar.
+**Partial credit exam membaca `partialPoints` dari kunci** (kini 0,5 seragam di semua course; satu-satunya pengecualian adalah tugas rakitan `c11` UAS Pemodelan CAD, yang partial-nya 3 poin dari 10,43). Sebelumnya `checkExamAnswer` mematoknya 1 dan mengabaikan `partialPoints`, sehingga kebijakan per-course tidak pernah berlaku di exam; sekarang hanya status `correct` yang ditimpa bobot OBE. Jalur `recomputeExamPoints` memakai aturan yang sama — bila salah satunya kembali mematok 1, rescale akan menimpa poin partial yang sudah benar.
 
 **Partial credit tetap hanya diberikan sebelum deadline.** Begitu masuk fase perpanjangan (exam) atau fase terlambat (modul), `computeOutcome` mengembalikan status `wrong` bernilai 0 — bukan partial yang dipotong. Yang dikenai potongan keterlambatan (0,65 di semua course) adalah **jawaban benar**. Contoh Sisken UTS `c15`: benar tepat waktu 2,797 poin; benar saat perpanjangan 2,797 × 0,65 = 1,818; kode disubmit tetapi salah → 0,5 bila tepat waktu, dan 0 bila sudah masuk perpanjangan.
 
 ### 7.1 Sistem desain exam
 
-Kedelapan halaman exam memakai satu keluarga desain exam yang terpisah dari sistem desain modul. Keempat UTS berbagi stylesheet utama yang sama, demikian pula keempat UAS. Perbedaan konten, identitas course, jadwal, dan status UTS/UAS diperbolehkan; struktur visual dan perilaku komponen lintas course harus tetap setara.
+Kedua belas halaman exam (enam course) memakai satu keluarga desain exam yang terpisah dari sistem desain modul. Kelima UTS selain Pemodelan CAD berbagi stylesheet utama yang identik, demikian pula kelima UAS-nya. UTS/UAS Pemodelan CAD dibangun `scripts/cad-exam/bangun.py` dari kerangka Teknik Tenaga Listrik dengan formatnya sendiri (tanpa True/False dan Pyodide, kartu tugas unggah `.FCStd`), sehingga stylesheet-nya adalah kerangka itu tanpa gaya kartu benar-salah. Perbedaan konten, identitas course, jadwal, dan status UTS/UAS diperbolehkan; struktur visual dan perilaku komponen lintas course harus tetap setara. Label navbar ujian sama dengan label modul course-nya (`<LABEL> // UTS|UAS`, §17.1).
 
 - hero menyajikan identitas exam, status jadwal, timer, dan ringkasan progres;
 - panel skor `.score-bar` selalu terlihat secara sticky selama pengerjaan dan menjadi pusat progres, rincian poin, serta export;
 - pemilih peran, login, friction layer mahasiswa, state sebelum/dalam/setelah jadwal, dan halaman Hasil harus mempertahankan hierarki visual yang sama;
 - friction dan pembatasan interaksi hanya berlaku untuk mahasiswa, bukan mode dosen;
-- perubahan desain exam harus diterapkan ke seluruh empat course untuk jenis exam yang sama, tanpa menyalin marker atau runtime `modern-academic-design` milik modul;
+- perubahan desain exam harus diterapkan ke keenam course untuk jenis exam yang sama (CAD lewat kerangka TTL lalu `bangun.py uts|uas`), tanpa menyalin marker atau runtime `modern-academic-design` milik modul;
 - perubahan visual tidak boleh mengubah gate PIN/jadwal, penilaian server, ledger attempt, presence, atau export.
 
 ### 7.2 ID soal
@@ -767,18 +907,18 @@ Urutan konseptual adalah Q1–Q45:
 - Q31–Q40: komputasi Easy/Medium;
 - Q41–Q45: komputasi Hard.
 
-Getaran, Matematika, dan Opto UAS memakai `c1`–`c15`. Opto UTS memakai `ce1`–`ce10` untuk Easy/Medium dan `ch1`–`ch5` untuk Hard. Reset, mapping OBE, urutan backend, dan frontend harus memahami pengecualian ini.
+Semua exam memakai `c1`–`c15` untuk komputasi, dengan dua pengecualian. Opto UTS memakai `ce1`–`ce10` untuk Easy/Medium dan `ch1`–`ch5` untuk Hard. Pemodelan CAD tidak punya `tf`: UTS `mc1`–`mc20` lalu `c1`–`c10` (Q1–Q30), UAS ditambah `c11` (Q31), dan urutannya ditulis eksplisit di `OBE_ORDER` backend. Reset, mapping OBE, urutan backend, dan frontend harus memahami pengecualian ini.
 
 ### 7.3 Aturan submit
 
 - Validasi semua tipe soal berjalan melalui `checkExamAnswer`.
 - Kunci jawaban berada di Firestore `examAnswers`, tidak di HTML.
 - Setiap soal one-shot dan dikunci oleh ledger Firestore.
-- Akun dosen dapat meninjau seluruh soal dalam mode hanya-baca; handler jawaban dan export mahasiswa tetap diblokir.
+- Dosen terverifikasi (`_dosenUjianTerverifikasi`, §7.8) dapat meninjau seluruh soal dalam mode hanya-baca; handler jawaban dan export mahasiswa tetap diblokir untuk identitas `role: 'dosen'` apa pun.
 - Exam bersifat sumatif: jawaban benar tidak ditampilkan kepada mahasiswa.
-- Komputasi menjalankan kode dengan Pyodide, lalu mengirim kandidat output dan potongan kode ke server.
+- Komputasi menjalankan kode dengan Pyodide, lalu mengirim kandidat output dan potongan kode ke server. Pemodelan CAD tidak memakai Pyodide: tugas unggah memanggil `unggahBerkasTugas` dengan `examId`, lalu angka bacaan dinilai `checkExamAnswer` dan harus terbaca dari geometri berkas (§2).
 - Toleransi numerik dan variasi per NIM ditentukan kunci server.
-- Comp Hard dapat memberi 0,5 poin partial jika dikonfigurasi dan tidak terlambat.
+- Comp Hard dapat memberi 0,5 poin partial jika dikonfigurasi dan tidak terlambat (tugas unggah CAD juga 0,5; rakitan `c11` UAS CAD 3 poin).
 - Pengali terlambat diterapkan server dan seragam di semua mata kuliah: 0,65 (potongan 35%). Client tidak boleh menjadi sumber kebenaran multiplier.
 
 ### 7.4 Parameter NIM
@@ -787,22 +927,24 @@ Getaran, Matematika, dan Opto UAS memakai `c1`–`c15`. Opto UTS memakai `ce1`�
 
 Jangan mengambil satu digit terakhir saja. Contoh NIM berakhiran `22` harus menghasilkan `N = 22`, bukan 2 atau 0.
 
-> ⚠️ **Catatan implementasi (diperiksa ulang 21 Agu 2026):** tidak ada satu pun
-> halaman exam yang memiliki fallback `00` pada penurunan `N` sisi client —
-> catatan sebelumnya yang menyebut UTS Getaran dan Sisken sudah memilikinya
-> keliru. Keadaan sebenarnya:
+> ⚠️ **Catatan implementasi (diperiksa ulang 26 September 2026 terhadap
+> `getN()` di ke-12 halaman):** catatan 21 Agustus 2026 yang menyatakan tidak
+> ada satu pun halaman exam dengan fallback `00` keliru — UTS Getaran memilikinya
+> sejak Mei 2026 (#222), dan halaman yang disalin darinya ikut membawanya.
+> Keadaan sebenarnya:
 >
 > | Halaman | Sumber `N` di client | Aman untuk NIM berakhiran `00`? |
 > |---|---|---|
-> | UAS Getaran, UAS Sisken | `window._uasServerN` bila tersedia | ya, mengikuti server |
-> | Keempat `UTS.html` | turunan lokal; `window._utsServerN` disimpan tetapi tidak dipakai `getN()` | tidak |
-> | UAS Math4, UAS Opto | turunan lokal | tidak |
+> | UAS Getaran, Sisken, Teknik Tenaga Listrik, Pemodelan CAD; UTS Pemodelan CAD | `window._uasServerN`/`_utsServerN` bila tersedia, turunan lokal sebagai cadangan | ya, mengikuti server |
+> | UTS Getaran, Sisken, Teknik Tenaga Listrik | turunan lokal dengan fallback `00` (sama dengan `deriveN()`); `window._utsServerN` disimpan tetapi tidak dipakai `getN()` | ya |
+> | UTS dan UAS Math4, UTS dan UAS Opto | turunan lokal tanpa fallback `00` | tidak |
 >
 > Dampaknya tampilan saja: badge `N=` bisa berbeda dari `N` server, sedangkan
 > penilaian tetap benar karena server memakai `deriveN()` sendiri. Perbaikan
-> yang paling bersih bukan menambah fallback di enam tempat, melainkan
-> mengikuti pola UAS Getaran/Sisken — pakai `N` yang sudah dikirim server
-> (`_utsServerN`/`_uasServerN`) dan jadikan turunan lokal sekadar cadangan.
+> yang paling bersih untuk empat halaman terakhir bukan menambah fallback,
+> melainkan mengikuti pola UAS Getaran/Sisken/TTL/CAD — pakai `N` yang sudah
+> dikirim server (`_utsServerN`/`_uasServerN`) dan jadikan turunan lokal
+> sekadar cadangan.
 
 ### 7.5 Perbedaan UTS dan UAS
 
@@ -813,7 +955,7 @@ Jangan mengambil satu digit terakhir saja. Contoh NIM berakhiran `22` harus meng
 | Gate teks soal | PIN + jadwal (mahasiswa) atau sesi admin (dosen) | PIN + jadwal (mahasiswa) atau sesi admin (dosen) |
 | Friction anti-copy/capture | aktif untuk mahasiswa (identik dengan UAS) | aktif untuk mahasiswa |
 
-`getExamQuestions` melayani kedelapan exam (empat UTS + empat UAS). Response berisi teks, opsi, hint, diagram, dan nilai `N` yang sudah dirender; bukan fungsi `compute()` atau jawaban benar.
+`getExamQuestions` melayani kedua belas exam (enam UTS + enam UAS, `QUESTION_BANKS` backend). Response berisi teks, opsi, hint, diagram, dan nilai `N` yang sudah dirender; bukan fungsi `compute()` atau jawaban benar.
 
 Status bank per exam saat ini:
 
@@ -825,10 +967,13 @@ Status bank per exam saat ini:
 | `sisken-uts` | ditulis | 45 soal, cakupan Modul 1–4 (Sub-CPMK 1.1, 1.2, 2.1, 2.2) |
 | `sisken-uas` | ditulis | 45 soal, cakupan Modul 8–14 (Sub-CPMK 4.1–4.3, 5.1–5.4) |
 | `teknik-tenaga-listrik-uts` | ditulis (19 September 2026) | 45 soal, 40 parametrik, cakupan Modul 1–4 dan 6 (Sub-CPMK 1.1, 1.2, 1.3, 2.1, 3.1); Modul 5 (2.2) dinilai lewat Tugas |
+| `teknik-tenaga-listrik-uas` | ditulis (20 September 2026) | 45 soal, cakupan Modul 7–9 dan 11–14 (Sub-CPMK 3.2, 4.1, 4.2, 5.2, 6.1, 7.1, 7.2); Modul 10 (5.1) dinilai lewat Tugas |
+| `pemodelan-cad-uts` | ditulis (20 September 2026) | 30 soal tanpa TF: `mc1`–`mc20` + `c1`–`c10` tugas unggah model `.FCStd` + angka bacaan, seluruhnya parametrik; cakupan Modul 3–7 (Sub-CPMK 2.1–2.5) |
+| `pemodelan-cad-uas` | ditulis (20 September 2026) | 31 soal tanpa TF: `mc1`–`mc20` + `c1`–`c10` sub-model komponen kompresor KT-40 + `c11` rakitan (10,43 poin, partial 3); cakupan Modul 8–12 (Sub-CPMK 3.1–4.2) |
 
 Cakupan exam Sisken **tidak** mengikuti urutan pertemuan, melainkan matriks OBE di SIA: UTS 22% hanya menilai Sub-CPMK 1.1/1.2/2.1/2.2, dan UAS 30% menilai 4.1–4.3/5.1–5.4. Sub-CPMK 3.1–3.3 (Modul 5–7) dinilai **hanya lewat Tugas**. Menulis soal Modul 5–7 di UTS akan membuat jawabannya dihitung sebagai nilai Sub-CPMK lain, karena pemetaan OBE berbasis **posisi** soal (1–45), bukan topiknya.
 
-Blueprint posisi → Sub-CPMK untuk Sisken (harus sama dengan `OBE_EXAM_CONFIG` backend dan mapping halaman Penilaian-OBE):
+Blueprint posisi → Sub-CPMK untuk Sisken, Teknik Tenaga Listrik, dan Pemodelan CAD (harus sama dengan `OBE_EXAM_CONFIG` backend dan mapping halaman Penilaian-OBE):
 
 ```text
 sisken-uts   1.1 → 1-8    1.2 → 9-29   2.1 → 30-37  2.2 → 38-45
@@ -837,9 +982,20 @@ sisken-uas   4.1 → 1-9    4.2 → 10-17  4.3 → 18-25  5.1 → 26-28
 teknik-tenaga-listrik-uts
              1.1 → 1-4    1.2 → 5-8, 11-13   1.3 → 9-10, 14-19, 31-33
              2.1 → 20-25, 34-37, 41-42   3.1 → 26-30, 38-40, 43-45
+teknik-tenaga-listrik-uas
+             3.2 → 1-2, 11-12, 31        4.1 → 3-4, 13-16, 32-33, 41
+             4.2 → 5, 17-18, 34, 42      5.2 → 6-7, 19-22, 35-36, 43
+             6.1 → 8, 23-24, 37, 44      7.1 → 9, 25-27, 38, 45
+             7.2 → 10, 28-30, 39-40
+pemodelan-cad-uts
+             2.1 → 1-4, 21-22   2.2 → 5-8, 23-24   2.3 → 9-12, 25-26
+             2.4 → 13-16, 27-28 2.5 → 17-20, 29-30
+pemodelan-cad-uas
+             3.1 → 1-5, 21-22   3.2 → 6-10, 23-24  3.3 → 11-14, 25-27
+             4.1 → 15-16, 28, 31               4.2 → 17-20, 29-30
 ```
 
-Urutan posisi mengikuti `OBE_EXAM_ORDER`: `tf1..tf10`, `mc1..mc20`, `c1..c10`, `c11..c15`.
+Urutan posisi mengikuti `OBE_EXAM_ORDER`: `tf1..tf10`, `mc1..mc20`, `c1..c10`, `c11..c15`. Pemodelan CAD memakai urutan eksplisit `mc1..mc20`, `c1..c10` (UAS: lalu `c11`), karena `OBE_EXAM_ORDER` selalu menaruh `tf1..tf10` di depan.
 
 ### 7.6 Sumber nilai dan konsistensi
 
@@ -855,7 +1011,7 @@ Sumber data exam mempunyai fungsi berbeda:
 Ketentuan:
 
 - refresh harus memulihkan nilai per soal dari `scoreDeltas`, bukan menghitung ulang dari bobot default;
-- bila `scoreDeltas` tidak ada — modul baru mulai menulisnya, dan exam baru menulisnya sejak 30 Juli 2026 — helper `restoredDelta(qId, fallback)` memakai nilai partial historis mata kuliah itu: **1** untuk Getaran Mekanik, Matematika 4, dan Optimalisasi & Otomasi; **0,5** untuk Sistem Kendali Cerdas. Fallback lain akan ditolak `validate-public-security.mjs`;
+- bila `scoreDeltas` tidak ada — modul baru mulai menulisnya, dan exam baru menulisnya sejak 30 Juli 2026 — helper `restoredDelta(qId, fallback)` memakai nilai partial historis mata kuliah itu: **1** untuk Getaran Mekanik, Matematika 4, dan Optimalisasi & Otomasi; **0,5** untuk Sistem Kendali Cerdas, Teknik Tenaga Listrik, dan Pemodelan CAD. Fallback lain akan ditolak `validate-public-security.mjs`;
 - tab Soal Ujian, tab Hasil, leaderboard, dan export harus mengacu pada total yang sama;
 - `generateExportCode` menghitung ulang nilai exam dari ledger Firestore, mengembalikan `scoreDeltas` resmi, dan memperbaiki cache RTDB jika drift;
 - `recomputeExamPoints` dapat menghitung ulang seluruh mahasiswa pada satu exam setelah perubahan mapping/bobot;
@@ -912,15 +1068,22 @@ kunjungan, waktu akses), papan Top Skor/Top Akses, statistik kelas (jumlah
 mahasiswa, kehadiran, absen), dan daftar online hanya dirender bila halaman
 tidak dalam Mode Preview **dan** identitasnya lolos `_dosenUjianTerverifikasi`:
 `role === 'dosen'` dan nama `dedik romahadi` (huruf besar/kecil bebas). Itu
-aturan yang sama — satu fungsi — yang dipakai `_applyRoleVisibility` untuk
-tombol Reset, banner jadwal, dan `#visitorFab`, jadi keduanya tidak bisa
-menyimpang. Dulu `renderVisitors` memperlakukan siapa pun yang bukan mahasiswa
+aturan yang sama — satu fungsi — untuk semua yang membuka fitur dosen:
+`_applyRoleVisibility` (tombol Reset, banner jadwal, `#visitorFab`), auto-login
+jadwal (`_handleScheduleReady`), tinjauan soal dosen
+(`_activateDosenQuestionView`), gerbang wadah soal
+(`_updateUTSAccessGate`/`_updateUASAccessGate`), dan permintaan soal mode
+dosen (`_ensureUTSQuestionsLoaded`/`_ensureUASQuestionsLoaded`), jadi semuanya
+tidak bisa menyimpang. Dulu `renderVisitors` memperlakukan siapa pun yang bukan mahasiswa
 sebagai dosen, sehingga tamu di layar login dan Mode Preview mendapat seluruh
 data kelas; mahasiswa yang sedang ujian cukup membuka tab kedua dalam Mode
 Preview untuk melihat status dan nilai teman sekelas. Sekarang:
 
 - tamu dan Mode Preview mendapat placeholder netral ("Data kelas hanya tersedia
-  untuk dosen. Masuk sebagai mahasiswa untuk melihat nilai Anda sendiri.");
+  untuk dosen." lalu ajakan sesuai konteks: tamu "Masuk sebagai mahasiswa untuk
+  melihat nilai Anda sendiri.", Mode Preview — yang tidak punya formulir login —
+  "Keluar dari Mode Preview (tombol Keluar Preview di banner atas), lalu masuk
+  sebagai mahasiswa untuk melihat nilai Anda sendiri.");
   papan peringkat dan judul tabel disembunyikan, sedangkan isi papan,
   statistik, dan daftar online **dibuang dari DOM**, bukan sekadar
   disembunyikan. Identitas `role: 'dosen'` dengan nama lain diperlakukan sama;
@@ -941,7 +1104,46 @@ Preview untuk melihat status dan nilai teman sekelas. Sekarang:
   berikutnya atau interval 30 detik (diperbaiki 26 September 2026);
 - daftar online kini tidak pernah diisi untuk tamu di sumbernya (jalur dosen
   `renderVisitors`), sehingga badge "N online" tidak lagi muncul di belakang
-  overlay login setelah logout paksa.
+  overlay login setelah logout paksa;
+- satu aturan dosen untuk seluruh halaman (lanjutan 26 September 2026).
+  Auto-login jadwal dulu memakai aturannya sendiri,
+  `me.nama.toLowerCase() === 'dedik romahadi'` (nama saja, tanpa role), untuk
+  melewati gerbang jam mulai dan penambahan kunjungan, dan tinjauan soal dosen
+  aktif untuk `role === 'dosen'` bernama siapa pun. Identitas tersimpan format
+  lama `{nama:'Dedik Romahadi'}` tanpa role, atau `{role:'dosen'}` bernama lain,
+  jadi setengah-login: overlay hilang, 👥 FAB membuka panel online kosong, chip
+  "DOSEN · SOAL HANYA-BACA", soal tertahan atau pesan "belum dibuka" dengan NIM
+  "undefined". Sekarang `_isDosen` auto-login dan `_activateDosenQuestionView`
+  memakai `_dosenUjianTerverifikasi`, dan identitas yang bukan dosen
+  terverifikasi maupun mahasiswa ber-NIM (`_identitasUjianDikenal`) tidak
+  dipulihkan: pemilih peran tampil seperti untuk tamu, tanpa `#visitorFab`,
+  tanpa melewati gerbang jam mulai, tanpa tulisan ke RTDB — dosen tinggal
+  memilih "Dosen" dan memasukkan password. Gerbang wadah soal (`isDosen` di
+  `_update…AccessGate`, penanda `PRIVASI-HASIL-UJIAN:GERBANG-SOAL`) dan
+  permintaan soal mode dosen tanpa NIM/PIN (`isDosenNow` di
+  `_ensure…QuestionsLoaded`, `PRIVASI-HASIL-UJIAN:MUAT-SOAL`) juga memakainya
+  sejak temuan tinjauan 26 September 2026; dulu keduanya `role === 'dosen'`
+  saja. Tampilannya tidak berubah bagi identitas rekaan (wadah soalnya kosong
+  dan server menolak permintaan tanpa klaim admin), tetapi kini tidak ada
+  jalur pembuka fitur dosen yang berbasis role. Pemeriksaan role yang tersisa
+  tidak membuka apa pun: `_previewGuard` dan `_previewExportGuard` sengaja
+  tetap berbasis role karena keduanya MEMBATASI (soal hanya-baca, ekspor mati),
+  jadi identitas `role: 'dosen'` apa pun tetap tidak bisa menjawab; penentu
+  mahasiswa (`role !== 'dosen'`); pengalih `saveIdentity`/inisialisasi yang
+  hanya memanggil `_activateDosenQuestionView` (bergerbang aturan tunggal); dan
+  penjaga N=0 renderer soal yang hanya menggambar soal yang sudah dimuat;
+- "Jumlah Absen" dosen benar sejak roster dimuat: `fetchMasterStudents` dulu
+  memanggil `updateLeaderboard` kedua kali dengan variabel jadwal-berakhir yang
+  tidak pernah didefinisikan (selalu `false`), menimpa statistik yang baru saja
+  dihitung benar oleh `renderVisitors`, sehingga mahasiswa Bolos (jadwal sudah
+  berakhir) tidak terhitung sampai event RTDB berikutnya atau interval 30 detik
+  (terjadi bila data RTDB tiba lebih dulu daripada `students.json`). Panggilan
+  itu dibuang; `renderVisitors` sudah memanggil `updateLeaderboard` dengan
+  `schedExpired` dari jadwal saat ini (penanda `PRIVASI-HASIL-UJIAN:MASTER`).
+  Ke-84 halaman modul membawa panggilan yang sama dan diperbaiki dengan cara
+  yang sama oleh `scripts/leaderboard-modul-sekali.mjs` (penanda
+  `LEADERBOARD-MODUL-SEKALI`, §17.1): statistik Absen tab Hasil modul kini
+  benar sejak roster dimuat.
 
 Dipasang `scripts/privasi-hasil-ujian.mjs` (penanda `PRIVASI-HASIL-UJIAN`,
 dijalankan sesudah `buka-asisten-ujian.mjs` karena memakai
@@ -974,7 +1176,7 @@ Batasan yang wajib dinyatakan jujur:
 
 **Keadaan per 22 Agustus 2026.** Watermark NIM+nama dan panel "🔒 Mode Modul Aktif" **dihapus dari 56 halaman modul** atas permintaan dosen; panel "Mode Ujian Aktif" dihapus dari 8 exam. **Watermark pada UAS/UTS sengaja dipertahankan** sampai ada keputusan eksplisit: ia satu-satunya alat atribusi bila foto soal bocor keluar, dan `validate-public-security.mjs` masih menuntutnya. `scripts/ubah-friction.mjs --exam-watermark` menghapusnya bila keputusan itu jatuh; validator harus diperbarui bersamaan.
 
-Dua penghalang ditambahkan ke seluruh 64 halaman: `@media print` mengosongkan halaman saat dicetak atau disimpan sebagai PDF (menutup jalur menu browser yang tidak lewat Ctrl+P), dan `beforeprint` mencatatnya. Halaman **modul** juga dikaburkan saat *jendela* kehilangan fokus (`blur`/`focus`) — Alt+Tab dan Snipping Tool tidak mengubah `visibilitychange`, jadi dipantau terpisah. Ini **tidak** diterapkan pada exam: larangan memburamkan halaman ujian saat kehilangan fokus tetap berlaku dan ditegakkan validator.
+Dua penghalang ditambahkan ke 64 halaman yang ada saat itu dan kini terpasang di ke-96 halaman modul/exam: `@media print` mengosongkan halaman saat dicetak atau disimpan sebagai PDF (menutup jalur menu browser yang tidak lewat Ctrl+P), dan `beforeprint` mencatatnya. Halaman **modul** juga dikaburkan saat *jendela* kehilangan fokus (`blur`/`focus`) — Alt+Tab dan Snipping Tool tidak mengubah `visibilitychange`, jadi dipantau terpisah. Ini **tidak** diterapkan pada exam: larangan memburamkan halaman ujian saat kehilangan fokus tetap berlaku dan ditegakkan validator.
 
 **Kunci identitas lapisan friksi (diperbaiki 26 September 2026).** Lapisan friksi
 memutuskan "mahasiswa atau bukan" dari `localStorage[LK]`, dan `LK` wajib sama
@@ -1021,6 +1223,7 @@ Rules harus mencegah client mengubah field server-owned seperti `points`, `score
 | `obeNilai/<courseId>/students/<nimKey>` | nilai OBE yang dipublish |
 | `obeMappings/<courseId>` | mapping Tugas/UTS/UAS per course |
 | `progresModul/<modulId>/students/<nimKey>` | progres materi: `centang`, `total`, `forum{fq1..3}`, `forumSelesai`, `updatedAt` (§6.7) |
+| `tugasBerkas/<modulId\|examId>/students/<nimKey>/qs/<qId>` | metadata berkas tugas pemodelan Pemodelan CAD (nama, ukuran, SHA-256, path objek, versi, `simulasi`); isi berkasnya di bucket privat `getaran-mekanik-tugas` (§2) |
 
 Firestore Rules menolak semua akses client langsung. Jangan melonggarkan rules untuk memudahkan debugging.
 
@@ -1033,18 +1236,19 @@ Daftar callable yang digunakan sistem saat ini:
 | Callable | Akses | Fungsi |
 |---|---|---|
 | `createAdminSession` | password admin | membuat custom token admin |
+| `verifyPin` | tanpa sesi (NIM + hash PIN) | memeriksa PIN mahasiswa `{exists, valid}` tanpa mengembalikan hash; lockout per-NIM (§4.3) |
 | `checkModulAnswer` | mahasiswa + PIN | validasi satu soal modul dan catat poin |
 | `checkExamAnswer` | mahasiswa + PIN | validasi satu soal exam dan catat attempt/poin |
 | `getExamQuestions` | mahasiswa + PIN + jadwal, atau admin | mengambil bank teks soal UTS/UAS yang sudah dirender |
-| `getModulQuestions` | mahasiswa + PIN + jadwal, atau admin | mengambil teks `c1`–`c15` Sisken Modul 1–14 yang sudah dirender per NIM |
+| `getModulQuestions` | mahasiswa + PIN + jadwal, atau admin | mengambil teks tugas parametrik yang sudah dirender per NIM: `c1`–`c15` Sisken dan Teknik Tenaga Listrik, `c1`–`c5` Pemodelan CAD (Modul 1–14) |
 | `generateExportCode` | mahasiswa + PIN | mengambil poin resmi dan membuat kode HMAC export |
 | `verifyExportCode` | admin | memverifikasi kode export |
 | `resetModulAttempts` | admin | menghapus ledger seluruh attempt satu modul |
 | `resetExamAttempts` | admin | menghapus ledger seluruh attempt satu exam |
 | `resetModulQuestion` | admin | reset soal tertentu/semua untuk satu atau semua mahasiswa |
 | `resetExamQuestion` | admin | reset soal tertentu/semua untuk satu atau semua mahasiswa |
-| `rescaleModulLatePenalty` | admin | menghitung ulang penalti modul, dapat dibatasi NIM |
-| `rescaleExamLatePenalty` | admin | menghitung ulang penalti keterlambatan exam (UTS/UAS), dapat dibatasi NIM; parameter `nims[]`+`newEnd`/`newExtension` menulis `scheduleOverrides` untuk ujian susulan (§5.5) |
+| `rescaleModulLatePenalty` | admin | menghitung ulang penalti modul, dapat dibatasi NIM; `newEnd` tanpa `nims` memperpanjang jadwal global dengan menulis `end` dan `due` (waktu buka tetap, §5.4); menolak sebelum menulis deadline satu kelas yang tidak berselisih kelipatan 24 jam dari waktu buka, deadline pada/sebelum waktu buka, dan hitung ulang tanpa `newEnd` saat `end` ≠ `due` (§5.4). Semuanya sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; sebelumnya hanya `end` yang ditulis, tanpa penolakan |
+| `rescaleExamLatePenalty` | admin | menghitung ulang penalti keterlambatan exam (UTS/UAS), dapat dibatasi NIM; parameter `nims[]`+`newEnd`/`newExtension` menulis `scheduleOverrides` untuk ujian susulan (§5.5); `newEnd` tanpa `nims` menulis `end`, `due`, dan `duration` jadwal global dengan `start` tetap; tiap mahasiswa dinilai ulang terhadap override-nya (`overriddenStudents`); deadline pada/sebelum `start` dan NIM tidak sah ditolak sebelum menulis; `duration` di luar 1..43200 menit dihapus sehingga modal Atur Jadwal meminta Durasi (§5.5). Semuanya sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; sebelumnya hanya `end`, terhadap jadwal global, tanpa penolakan |
 | `analyzeModulData` | admin | menganalisis data modul dan anomali grading |
 | `recomputeExamPoints` | admin | menghitung ulang total exam dari ledger |
 | `computeObeScores` | admin | menghitung TGS/UTS/UAS per Sub-CPMK |
@@ -1086,15 +1290,15 @@ Jika penghapusan ledger gagal, jangan lanjut menghapus RTDB karena mahasiswa aka
 
 | Halaman | Kegunaan |
 |---|---|
-| `reset-soal.html` | reset satu, beberapa, atau semua soal pada 56 modul dan 8 exam; target satu NIM atau semua mahasiswa |
+| `reset-soal.html` | reset satu, beberapa, atau semua soal pada 84 modul dan 12 exam (enam mata kuliah); target satu NIM atau semua mahasiswa |
 | `recompute-obe-score.html` | recompute poin satu exam dari mapping OBE dan ledger |
-| `rescale-deadline.html` | rescale penalti keterlambatan modul atau exam (UTS/UAS), global atau NIM tertentu (exam via `rescaleExamLatePenalty`, §5.5/§10) |
+| `rescale-deadline.html` | rescale penalti keterlambatan modul atau exam (UTS/UAS), global atau NIM tertentu (exam via `rescaleExamLatePenalty`, §5.5/§10). Deadline Baru dengan NIM kosong menulis `end` **dan** `due` jadwal global dan mempertahankan waktu buka, baik modul (§5.4) maupun ujian (§5.5, `duration` menit ikut diselaraskan), sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; dengan NIM terisi, jadwal global tidak diubah. Sejak deploy yang sama server menolak (juga pada Diagnose): deadline modul satu kelas yang jamnya tidak sama dengan jam buka modul (preset 23:59 hanya cocok untuk modul yang dibuka 23.59 WIB; pesannya menyarankan dua deadline sah), deadline pada/sebelum waktu buka modul atau `start` ujian, dan hitung ulang modul tanpa Deadline Baru saat `end` ≠ `due` (§5.4). Untuk ujian satu kelas, halaman membaca `start` dan memperingatkan bila Deadline Baru lebih dari 30 hari sesudahnya; hasilnya menampilkan jumlah mahasiswa yang dinilai terhadap jendela susulannya sendiri (§5.5) |
 | `analyze-victims.html` | analisis korban/anomali grading modul dan reset terarah |
 | `verify-export-code.html` | verifikasi HMAC export modul/exam |
 | `berkas-tugas.html` | daftar dan unduh berkas FreeCAD tugas pemodelan CAD per modul, dengan status penilaian |
 | `analyze-affected.py` | helper analisis file/data lokal; bukan halaman web |
 
-Pada `reset-soal.html`, opsi **semua soal** harus benar-benar mengirim seluruh qId yang valid. Untuk exam, reset harus menghapus attempt, marker, selection/code, dan mengurangi delta poin yang bersangkutan tanpa merusak soal lain.
+Pada `reset-soal.html`, opsi **semua soal** harus benar-benar mengirim seluruh qId yang valid. Daftar chip-nya baku untuk semua course (modul `mc1`–`mc10` + `c1`–`c15`; exam `tf1`–`tf10` + `mc1`–`mc20` + `c1`–`c15`, Opto UTS `ce`/`ch`), sehingga untuk Pemodelan CAD daftar itu memuat qId yang tidak ada (`c6`–`c15` modul; `tf*` dan `c12`–`c15` ujian). Semua qId CAD yang nyata tetap tercakup, dan qId yang tidak ada dilaporkan tidak ditemukan tanpa efek. Untuk exam, reset harus menghapus attempt, marker, selection/code, dan mengurangi delta poin yang bersangkutan tanpa merusak soal lain.
 
 ---
 
@@ -1110,7 +1314,7 @@ Setiap `OBE/Penilaian-OBE.htm` menggabungkan dua mode:
 Dosen dapat:
 
 - mengisi atau mengimpor PRE dan nilai Sub-CPMK;
-- mengedit mapping modul 1–14 dan soal exam 1–45 ke Sub-CPMK;
+- mengedit mapping modul 1–14 dan soal exam 1–45 ke Sub-CPMK (Pemodelan CAD hanya memakai posisi 1–30 untuk UTS dan 1–31 untuk UAS, §7.5);
 - menarik performa sistem melalui `computeObeScores`;
 - meninjau hasil dalam draft lokal;
 - mempublikasikan nilai melalui `publishObeNilai`;
@@ -1147,7 +1351,8 @@ Nilai akhir = (TGS_total/100)×TGS + (UTS_total/100)×UTS + (UAS_total/100)×UAS
 ```
 
 Bobot saat ini per course: Getaran Mekanik 51/25/24, Matematika 4 39/31/30,
-Optimalisasi & Otomasi 60/20/20. Cek `FORMS` di `Penilaian-OBE.htm` course
+Optimalisasi & Otomasi 60/20/20, Sistem Kendali Cerdas 48/22/30, Teknik Tenaga
+Listrik 43/25/32, Pemodelan CAD 55/22/23. Cek `FORMS` di `Penilaian-OBE.htm` course
 terkait untuk angka yang berlaku — jangan asumsikan 60/20/20 berlaku umum.
 
 > **Riwayat:** sampai Agustus 2026, `Penilaian-OBE.htm` Getaran Mekanik dan
@@ -1253,7 +1458,7 @@ Pedoman teknis pembuatan slide Slidev berada terpisah di `Pedoman-Slides.md`.
 1. Tentukan course, nomor file `N`, dan pertemuan `P`.
 2. Salin hanya dari modul yang strukturnya paling dekat.
 3. Ubah seluruh identitas, path, localStorage key, roster URL, konten, Sub-CPMK, animasi, filename export, dan judul.
-4. Pastikan 25 soal dan bobot 50 poin tetap konsisten, kecuali perubahan desain memang disetujui.
+4. Pastikan 25 soal (Pemodelan CAD: 15 soal) dan bobot 50 poin tetap konsisten, kecuali perubahan desain memang disetujui.
 5. Perbarui seed `modulAnswers`, `MODUL_CONFIG`, dan validator backend jika ID/struktur berubah.
 6. Uji preview, mahasiswa, dosen, refresh, late, export, Forum, chat, dan reset.
 
@@ -1261,7 +1466,7 @@ Pedoman teknis pembuatan slide Slidev berada terpisah di `Pedoman-Slides.md`.
 
 1. Pertahankan `examId`, DB path, schedule path, `OBE_ORDER`, dan seed dalam satu perubahan atomik.
 2. Jika soal berubah, perbarui teks, kunci/toleransi, mapping Sub-CPMK, dan qId reset. `EXAM_QID_POINTS` **dibangkitkan**, bukan disunting: jalankan `node scripts/bangkitkan-poin-soal-exam.js` di backend setiap kali `OBE_EXAM_CONFIG` atau `OBE_ORDER` berubah.
-3. Teks soal hanya di backend: UAS di bank `uas-v2`, UTS di `functions/exams/uts-<course>-v2.js` (yang benar-benar dilayani `QUESTION_BANKS`; `uts-<course>-bank.js` cuma sumber helper lama, bukan jalur serving — lihat §14). Jangan menambah bank statis ke HTML. Untuk UTS, jaga `shuffleSeed` di bank identik dengan yang di berkas kunci — jalankan manual `node scripts/verify-uts-bank.js` (bukan `npm run lint`, yang cuma syntax-check). Saat menambah atau menulis ulang soal MC, pastikan seed pengocokannya berbeda tiap soal (lihat §7); penjaganya ada di `verify-sisken-uas.js`.
+3. Teks soal hanya di backend: UAS di bank `uas-v2.js` (Getaran, Math4, Opto) atau `functions/exams/uas-<course>-v2.js` (Sisken, Teknik Tenaga Listrik, Pemodelan CAD), UTS di `functions/exams/uts-<course>-v2.js` (yang benar-benar dilayani `QUESTION_BANKS`; `uts-<course>-bank.js` cuma sumber helper lama, bukan jalur serving — lihat §14). Jangan menambah bank statis ke HTML. Untuk UTS, jaga `shuffleSeed` di bank identik dengan yang di berkas kunci — jalankan manual `node scripts/verify-uts-bank.js` (bukan `npm run lint`, yang cuma syntax-check). Saat menambah atau menulis ulang soal MC, pastikan seed pengocokannya berbeda tiap soal (lihat §7); penjaganya ada di `verify-sisken-uas.js`.
 4. Ubah nama berkas ekspor jawaban agar menyebut mata kuliahnya (`UTS_<MataKuliah>_<nim>.html`). Halaman exam lazim disalin dari course lain, dan nama ini ikut tersalin tanpa gejala apa pun sampai mahasiswa mengunduh berkasnya — halaman Sisken sempat menghasilkan `UTS_GetaranMekanik_<nim>.html`.
 5. Verifikasi `deriveN()` dan contoh NIM termasuk suffix `00`.
 6. Jalankan seed dry-run sebelum live seed.
@@ -1302,15 +1507,15 @@ node scripts/validate-all-course-modern-design.mjs
 git diff --check
 ```
 
-`validate-public-security.mjs` memindai seluruh HTML dalam allowlist Pages pada lima course aktif serta folder Pemodelan CAD. Ia menjaga artefak sensitif, sintaks inline script, 108 halaman berautentikasi admin (96 Modul/Exam + 6 OBE + 6 Admin), gate dan friction exam, WIB, preview modul, reset, presence, format poin, pemulihan `scoreDeltas`, serta keamanan publikasi. Sejak 26 September 2026 ia juga menagih Asisten mahasiswa di ke-12 UTS/UAS: penanda dan kode `buka-asisten-ujian.mjs`, CSS penyembunyi roster di `<head>`, `#fabCount`/`#vpBadge`/`#vpList` hanya diisi jalur dosen `renderVisitors` (cabang mahasiswa hanya mengosongkan lalu `return`), serta larangan `.vp-chat`/`#vpChatList`/`#vpChatInput`/`sendChat` di luar blok AI. Ia juga menolak blok AI ujian yang belum memuat mode mahasiswa (blok dari checkout backend yang lebih tua, §6.8), `LK` lapisan friksi yang berbeda dari `LOCAL_IDENTITY` halaman (§8), formulir login yang tidak dibersihkan setelah login (§4.3), serta CSS panel mahasiswa yang tertutup (di luar urutan Tab) dan kepala kartu komputasi yang membungkus di layar ≤600px. Ia juga menagih gerbang data kelas `privasi-hasil-ujian.mjs` di ke-12 UTS/UAS (§7.8): penanda `PRIVASI-HASIL-UJIAN`, `_applyRoleVisibility` yang mengambil `isDosen` dari `_dosenUjianTerverifikasi` (tanpa aturan dosen kedua) dan diakhiri render ulang `_segarkanHasilUjian()`, `enterPreviewMode` yang memanggil `_segarkanHasilUjian()` tepat sesudah `window._previewMode = true` (blok `PRIVASI-HASIL-UJIAN:PREVIEW` tanpa pernyataan lain), gerbang `renderVisitors` tepat sesudah cabang mahasiswa dan sebelum setiap tulisan data kelas (`#fabCount`, `updateLeaderboard`, `#vpBadge`, `#vpList`, tabel dari `masterStudents`), gerbang di baris pertama `updateLeaderboard`, dan fungsi pembantu yang hanya menggerbang/mengosongkan (tidak membaca `masterStudents`/`onlinePresence`). Selain pemeriksaan teks, ia memuat `renderVisitors`, `updateLeaderboard`, dan kedua blok pembantu halaman ke sandbox `node:vm` dengan DOM tiruan lalu menjalankan tamu, Mode Preview (juga dengan identitas dosen tersimpan), identitas `dosen` bernama lain, tamu→login dosen (`_segarkanHasilUjian`), dosen, dosen→Mode Preview (blok `PRIVASI-HASIL-UJIAN:PREVIEW` halaman itu sendiri, tanpa event RTDB baru), logout paksa, dan mahasiswa — gagal bila nama/NIM teman sampai ke DOM selain untuk dosen, atau bila tampilan dosen kehilangan tabel, papan, statistik, atau daftar online. Jumlah halaman autentikasi (108), halaman ujian ber-Asisten (12), dan halaman ujian bergerbang data kelas (12) dipatok di validator; perbarui bersama bila inventaris berubah.
+`validate-public-security.mjs` memindai seluruh HTML dalam allowlist Pages pada keenam course (`courseRoots`) serta `Admin/`. Ia menjaga artefak sensitif, sintaks inline script, 108 halaman berautentikasi admin (96 Modul/Exam + 6 OBE + 6 Admin), gate dan friction exam, WIB, preview modul, reset, presence, format poin, pemulihan `scoreDeltas`, serta keamanan publikasi. Sejak 26 September 2026 ia juga menagih Asisten mahasiswa di ke-12 UTS/UAS: penanda dan kode `buka-asisten-ujian.mjs`, CSS penyembunyi roster di `<head>`, `#fabCount`/`#vpBadge`/`#vpList` hanya diisi jalur dosen `renderVisitors` (cabang mahasiswa hanya mengosongkan lalu `return`), serta larangan `.vp-chat`/`#vpChatList`/`#vpChatInput`/`sendChat` di luar blok AI. Ia juga menolak blok AI ujian yang belum memuat mode mahasiswa (blok dari checkout backend yang lebih tua, §6.8), `LK` lapisan friksi yang berbeda dari `LOCAL_IDENTITY` halaman (§8), formulir login yang tidak dibersihkan setelah login (§4.3), serta CSS panel mahasiswa yang tertutup (di luar urutan Tab) dan kepala kartu komputasi yang membungkus di layar ≤600px. Ia juga menagih gerbang data kelas `privasi-hasil-ujian.mjs` di ke-12 UTS/UAS (§7.8): penanda `PRIVASI-HASIL-UJIAN`, `_applyRoleVisibility` yang mengambil `isDosen` dari `_dosenUjianTerverifikasi` (tanpa aturan dosen kedua) dan diakhiri render ulang `_segarkanHasilUjian()`, `enterPreviewMode` yang memanggil `_segarkanHasilUjian()` tepat sesudah `window._previewMode = true` (blok `PRIVASI-HASIL-UJIAN:PREVIEW` tanpa pernyataan lain), gerbang `renderVisitors` tepat sesudah cabang mahasiswa dan sebelum setiap tulisan data kelas (`#fabCount`, `updateLeaderboard`, `#vpBadge`, `#vpList`, tabel dari `masterStudents`), gerbang di baris pertama `updateLeaderboard`, dan fungsi pembantu yang hanya menggerbang/mengosongkan (tidak membaca `masterStudents`/`onlinePresence`). Selain pemeriksaan teks, ia memuat `renderVisitors`, `updateLeaderboard`, dan kedua blok pembantu halaman ke sandbox `node:vm` dengan DOM tiruan lalu menjalankan tamu, Mode Preview (juga dengan identitas dosen tersimpan), identitas `dosen` bernama lain, tamu→login dosen (`_segarkanHasilUjian`), dosen, dosen→Mode Preview (blok `PRIVASI-HASIL-UJIAN:PREVIEW` halaman itu sendiri, tanpa event RTDB baru), logout paksa, dan mahasiswa — gagal bila nama/NIM teman sampai ke DOM selain untuk dosen, atau bila tampilan dosen kehilangan tabel, papan, statistik, atau daftar online. Sejak lanjutannya (26 September 2026) ia juga menolak perbandingan nama dosen di luar `_dosenUjianTerverifikasi` (auto-login jadwal, tinjauan soal), menuntut `_previewGuard`/`_previewExportGuard` tetap berbasis role, menuntut gerbang wadah soal (`_update…AccessGate`) dan permintaan soal mode dosen (`_ensure…QuestionsLoaded`) mengambil `isDosen`/`isDosenNow` dari aturan tunggal (blok `GERBANG-SOAL`/`MUAT-SOAL`) dan menolak variabel `isDosen…` lain yang diambil dari `role === 'dosen'` saja, menjalankan blok `AUTOLOGIN`, `PEMILIH`, `SOAL-DOSEN`, `GERBANG-SOAL`, dan `MUAT-SOAL` halaman itu untuk sembilan identitas — dosen asli (juga dengan nama berhuruf kapital), mahasiswa, mahasiswa format lama tanpa role, `{nama:'Dedik Romahadi'}` tanpa role, identitas tanpa role yang ber-NIM (diperlakukan mahasiswa), `{role:'dosen'}` rekaan bernama lain atau ber-NIM mahasiswa, dan nama dosen ber-role mahasiswa tanpa NIM — menolak `_scheduleExpired` serta panggilan `updateLeaderboard` selain dari `renderVisitors`, menjalankan render ulang `fetchMasterStudents` halaman itu dengan jadwal yang sudah berakhir (statistik harus 5/2/3), memeriksa ajakan placeholder tamu dan Mode Preview (beserta tombol "Keluar Preview" di banner; DOM tiruannya membentuk anak `#visitorTableBody` dari `innerHTML`, sehingga pemeriksaan "kartu sudah terpasang" ikut teruji: kartu tamu harus diganti begitu masuk Mode Preview dan tidak ditulis ulang pada render berikutnya dalam konteks yang sama), dan menuntut label navbar ke-12 halaman ujian sama dengan label ke-14 modul course-nya (tanpa `GETARANMESIN` di luar Getaran Mekanik). Di ke-84 halaman modul ia menolak `_scheduleExpired` dan panggilan `updateLeaderboard` selain dari tingkat teratas `renderVisitors` (penanda `LEADERBOARD-MODUL-SEKALI`, `leaderboard-modul-sekali.mjs`). Sejak 27 September 2026 ia juga menolak angka penalti terlambat lama (potongan 30%/20%, `multiplier 0.7`/`0.8`, `_isPastDeadline() ? 0.7`, `×0,7`, `dikali 0,7`/`0,8`) di seluruh halaman course dan `Admin/` (§5.2; perbaiki dengan `penalti-35.mjs`). Di luar repo git (salinan untuk uji mutasi) ia tetap memindai seluruh HTML; dulu daftar berkasnya kosong di sana. Jumlah halaman autentikasi (108), halaman ujian ber-Asisten (12), halaman ujian bergerbang data kelas (12), dan halaman ujian berlabel navbar course (12) dipatok di validator; perbarui bersama bila inventaris berubah.
 
-Skrip penyuntik lintas halaman (semua idempoten lewat penanda; jalankan `--periksa` dulu) yang wajib dijalankan ulang setelah regenerasi modul: `tambah-efek-memuat.mjs`, `tambah-efek-jawaban.mjs`, `ubah-friction.mjs` (sejak 26 September 2026 juga menyamakan `LK` lapisan friksi exam dengan `LOCAL_IDENTITY`, §8), `kecualikan-akun-simulasi.mjs`, `kunci-lapisan-animasi-login.mjs`, `tambah-progres-modul.mjs` (modul saja), `perkuat-pembagian-kelompok.mjs` (tab Pembagian Kelompok di Modul 1 setiap course; penanda `KELOMPOK-TANGGUH`), `buka-asisten-ujian.mjs` (12 halaman UTS/UAS saja; penanda `ASISTEN-UJIAN-MAHASISWA`; ditambahkan 26 September 2026 — `#visitorFab` menjadi tombol Asisten Dosen bagi mahasiswa sementara roster online tetap khusus dosen, lihat §6.8 dan §7.8; v2 menambah pembersih formulir login §4.3, panel tertutup di luar urutan Tab, dan kepala kartu komputasi yang membungkus di ponsel agar halaman tidak lebih lebar dari layar; UTS/UAS CAD yang dibangun ulang `bangun.py` mewarisinya dari kerangka TTL, jadi `--periksa` sesudahnya harus 0), dan `privasi-hasil-ujian.mjs` (12 halaman UTS/UAS saja; penanda `PRIVASI-HASIL-UJIAN`; ditambahkan 26 September 2026 dalam PR terpisah — tabel kelas tab Hasil, papan Top Skor/Top Akses, statistik kelas, dan daftar online hanya dirender untuk dosen terverifikasi, sedangkan tamu dan Mode Preview mendapat placeholder, lihat §4.2 dan §7.8; lima sisipan: `JS`, `PERAN`, `PREVIEW` (render ulang begitu Mode Preview dinyalakan), `RENDER`, `LEADERBOARD`; jalankan **sesudah** `buka-asisten-ujian.mjs` karena memakai `_kosongkanRosterUjian` dan menyisip sesudah penanda `ASISTEN-UJIAN-MAHASISWA:JS END`/`PERAN END`; seperti skrip sebelumnya, UTS/UAS CAD yang dibangun ulang `bangun.py` mewarisinya dari TTL sehingga `--periksa` sesudahnya harus 0). `perkuat-pembagian-kelompok.mjs` ditambahkan 14 September 2026 setelah tab itu menampilkan "Gagal memuat data mahasiswa": `renderGroups()` dulu mengambil roster sekali tanpa cek status HTTP dan tanpa percobaan ulang, sehingga satu kegagalan sesaat langsung tampil sebagai error. Kini roster dimuat lewat `_pkAmbilRoster()` (cek `r.ok`, tiga percobaan dengan jeda dan parameter anti-cache), pesan gagal menyebut penyebabnya beserta tombol **Coba lagi**, dan halaman yang dibuka dari berkas lokal (`file://`) diarahkan ke situs. Dua di antaranya juga menyentuh `<Course>/OBE/Penilaian-OBE.htm` sejak 1 September 2026: `kecualikan-akun-simulasi.mjs` (menyaring akun simulasi dari roster `STUDENTS`) dan `tambah-efek-memuat.mjs` (efek loading pemilih peran). Keduanya memakai jalur terpisah `prosesObe()` karena halaman OBE beda ekstensi dan tidak punya jangkar `updateLeaderboard`. **Posisi blok dipertahankan (diperbaiki 1 September 2026).** `tambah-efek-memuat.mjs` dan `tambah-efek-jawaban.mjs` sama-sama menaruh satu blok `<style>` di `<head>`. Dulu keduanya membuang bloknya lalu menyisipkan ulang tepat sebelum `</head>`, sehingga berebut tempat terakhir: menjalankan yang satu memindahkan blok yang lain ke bawah — 64 berkas berubah, 67 baris bergeser, nol perubahan isi — lalu menjalankan yang lain memindahkannya balik. Siklus dua langkah yang tidak pernah selesai dan mengotori setiap diff. Sekarang keduanya **mengganti blok di tempat** bila sudah ada, dan hanya menyisip sebelum `</head>` bila blok itu memang belum ada. Isinya tetap ditimpa tiap jalan (perbaikan CSS tetap sampai), tetapi urutannya tidak lagi berubah. Diuji: empat putaran bergantian, keduanya melaporkan 0 halaman. `tinggikan-daftar-hasil.mjs` (modul + exam) menyamakan tinggi wadah roster tab Hasil `#visitorTableBody`: `max-height:420px` tetap → `min(72vh,820px)` responsif, sehingga daftar ikut tinggi layar tetapi berhenti di 820px. Ditambahkan 5 September 2026 untuk 8 halaman Exam, diperluas 7 September 2026 ke 56 modul — kini seragam di seluruh 64 halaman. Aturan CSS lintas course yang ditulis langsung di halaman (ukuran roadmap, padding panel persamaan, jarak `br+span`) juga sudah ada di generator `apply-modern-academic-all-modules.mjs` dan `enrich-sisken-modules.mjs`.
+Skrip penyuntik lintas halaman (semua idempoten lewat penanda; jalankan `--periksa` dulu) yang wajib dijalankan ulang setelah regenerasi modul: `tambah-efek-memuat.mjs`, `tambah-efek-jawaban.mjs`, `ubah-friction.mjs` (sejak 26 September 2026 juga menyamakan `LK` lapisan friksi exam dengan `LOCAL_IDENTITY`, §8), `kecualikan-akun-simulasi.mjs`, `kunci-lapisan-animasi-login.mjs`, `tambah-progres-modul.mjs` (modul saja), `perkuat-pembagian-kelompok.mjs` (tab Pembagian Kelompok di Modul 1 setiap course; penanda `KELOMPOK-TANGGUH`), `buka-asisten-ujian.mjs` (12 halaman UTS/UAS saja; penanda `ASISTEN-UJIAN-MAHASISWA`; ditambahkan 26 September 2026 — `#visitorFab` menjadi tombol Asisten Dosen bagi mahasiswa sementara roster online tetap khusus dosen, lihat §6.8 dan §7.8; v2 menambah pembersih formulir login §4.3, panel tertutup di luar urutan Tab, dan kepala kartu komputasi yang membungkus di ponsel agar halaman tidak lebih lebar dari layar; UTS/UAS CAD yang dibangun ulang `bangun.py` mewarisinya dari kerangka TTL, jadi `--periksa` sesudahnya harus 0), dan `privasi-hasil-ujian.mjs` (12 halaman UTS/UAS saja; penanda `PRIVASI-HASIL-UJIAN`; ditambahkan 26 September 2026 dalam PR terpisah — tabel kelas tab Hasil, papan Top Skor/Top Akses, statistik kelas, dan daftar online hanya dirender untuk dosen terverifikasi, sedangkan tamu dan Mode Preview mendapat placeholder, lihat §4.2 dan §7.8; sebelas sisipan: `JS`, `PERAN`, `PREVIEW` (render ulang begitu Mode Preview dinyalakan), `RENDER`, `LEADERBOARD`, lalu pada lanjutannya `AUTOLOGIN` (auto-login jadwal memakai aturan dosen tunggal; identitas yang bukan dosen terverifikasi maupun mahasiswa ber-NIM tidak dipulihkan), `PEMILIH` (pemilih peran tetap tampil untuk identitas itu), `SOAL-DOSEN` (tinjauan soal dosen), `MASTER` (panggilan `updateLeaderboard` kedua di `fetchMasterStudents` dibuang), `GERBANG-SOAL` (gerbang wadah soal), dan `MUAT-SOAL` (permintaan soal mode dosen); placeholder-nya membedakan ajakan tamu dan Mode Preview; jalankan **sesudah** `buka-asisten-ujian.mjs` karena memakai `_kosongkanRosterUjian` dan menyisip sesudah penanda `ASISTEN-UJIAN-MAHASISWA:JS END`/`PERAN END`; seperti skrip sebelumnya, UTS/UAS CAD yang dibangun ulang `bangun.py` mewarisinya dari TTL sehingga `--periksa` sesudahnya harus 0), dan `label-nav-ujian.mjs` (12 halaman UTS/UAS; ditambahkan 26 September 2026 — label `.nav-brand` ujian dibaca dari navbar ke-14 modul course yang sama, misalnya `TENAGALISTRIK // UTS`; UTS/UAS Sisken, TTL, dan CAD sempat berlabel sisa templat `GETARANMESIN // UTS`; jalankan pada TTL sebelum `bangun.py` CAD, yang memetakan `TENAGALISTRIK // <UTS|UAS>` menjadi `PEMODELANCAD // <UTS|UAS>` dan gagal bila kerangkanya masih berlabel lain; `periksa_exam.py` menolak `TENAGALISTRIK`/`GETARANMESIN` di halaman CAD), dan `leaderboard-modul-sekali.mjs` (84 halaman modul; penanda `LEADERBOARD-MODUL-SEKALI`; ditambahkan 26 September 2026 — `fetchMasterStudents` tidak lagi memanggil `updateLeaderboard` kedua kali dengan variabel jadwal-berakhir yang tidak terdefinisi, sehingga statistik Absen tab Hasil modul benar sejak roster dimuat, §7.8; generator TTL/CAD membangun modul dari Modul-1 course-nya sehingga mewarisinya, dan `--periksa` sesudah regenerasi harus 0), dan `penalti-35.mjs` (84 modul, 12 UTS/UAS, dan halaman `Attributes/`; ditambahkan 27 September 2026 — teks penalti terlambat halaman Matematika 4, Getaran Mekanik, dan Optimalisasi & Otomasi beserta halaman Pengantar-nya disamakan dengan Sisken/TTL/CAD: 35%, `multiplier 0.65`, `_getLateMultiplier()` 0.65, §5.2; jangkar teks persis tanpa penanda, lalu menuntut ke-96 halaman memuat bentuk barunya tepat sekali; tidak ada generator yang membawa teks lama, sebab TTL dibangun dari Sisken dan CAD dari TTL). `perkuat-pembagian-kelompok.mjs` ditambahkan 14 September 2026 setelah tab itu menampilkan "Gagal memuat data mahasiswa": `renderGroups()` dulu mengambil roster sekali tanpa cek status HTTP dan tanpa percobaan ulang, sehingga satu kegagalan sesaat langsung tampil sebagai error. Kini roster dimuat lewat `_pkAmbilRoster()` (cek `r.ok`, tiga percobaan dengan jeda dan parameter anti-cache), pesan gagal menyebut penyebabnya beserta tombol **Coba lagi**, dan halaman yang dibuka dari berkas lokal (`file://`) diarahkan ke situs. Dua di antaranya juga menyentuh `<Course>/OBE/Penilaian-OBE.htm` sejak 1 September 2026: `kecualikan-akun-simulasi.mjs` (menyaring akun simulasi dari roster `STUDENTS`) dan `tambah-efek-memuat.mjs` (efek loading pemilih peran). Keduanya memakai jalur terpisah `prosesObe()` karena halaman OBE beda ekstensi dan tidak punya jangkar `updateLeaderboard`. **Posisi blok dipertahankan (diperbaiki 1 September 2026).** `tambah-efek-memuat.mjs` dan `tambah-efek-jawaban.mjs` sama-sama menaruh satu blok `<style>` di `<head>`. Dulu keduanya membuang bloknya lalu menyisipkan ulang tepat sebelum `</head>`, sehingga berebut tempat terakhir: menjalankan yang satu memindahkan blok yang lain ke bawah — 64 berkas berubah, 67 baris bergeser, nol perubahan isi — lalu menjalankan yang lain memindahkannya balik. Siklus dua langkah yang tidak pernah selesai dan mengotori setiap diff. Sekarang keduanya **mengganti blok di tempat** bila sudah ada, dan hanya menyisip sebelum `</head>` bila blok itu memang belum ada. Isinya tetap ditimpa tiap jalan (perbaikan CSS tetap sampai), tetapi urutannya tidak lagi berubah. Diuji: empat putaran bergantian, keduanya melaporkan 0 halaman. `tinggikan-daftar-hasil.mjs` (modul + exam) menyamakan tinggi wadah roster tab Hasil `#visitorTableBody`: `max-height:420px` tetap → `min(72vh,820px)` responsif, sehingga daftar ikut tinggi layar tetapi berhenti di 820px. Ditambahkan 5 September 2026 untuk 8 halaman Exam, diperluas 7 September 2026 ke 56 modul — kini seragam di ke-96 halaman modul/exam (TTL dan CAD mewarisinya dari kerangka generatornya). Aturan CSS lintas course yang ditulis langsung di halaman (ukuran roadmap, padding panel persamaan, jarak `br+span`) juga sudah ada di generator `apply-modern-academic-all-modules.mjs` dan `enrich-sisken-modules.mjs`.
 
 Validator khusus melengkapi pemeriksaan publik tersebut:
 
 | Validator | Cakupan khusus |
 |---|---|
-| `validate-all-course-modern-design.mjs` | Marker, runtime, tabel, kartu pustaka, perilaku tab, editor deadline `HH:mm` 24 jam, normalisasi WIB, dan sintaks pada seluruh 70 modul (Teknik Tenaga Listrik sebatas modul yang sudah terbit). |
+| `validate-all-course-modern-design.mjs` | Marker, runtime, tabel, kartu pustaka, perilaku tab, editor deadline `HH:mm` 24 jam, normalisasi WIB, dan sintaks pada seluruh 84 modul keenam mata kuliah (jumlah 84 dipatok; `moduleCount` TTL dan CAD kini 14). |
 | `validate-all-course-score-panels.mjs` | Panel skor compact pada 42 modul Matematika 4, Getaran Mekanik, dan Optimalisasi & Otomasi. |
 | `validate-sisken-modules.mjs` | Struktur dan perilaku 14 modul Sisken, termasuk urutan tombol pilihan ganda, panel skor, serta kompatibilitas generator. |
 | `validate-sisken-forum.mjs` | Seluruh 156 kombinasi jajak Forum Modul 2–14 beserta Clipboard API dan fallback `execCommand`. |
@@ -1327,6 +1532,8 @@ Set-Location functions
 npm.cmd run lint
 npm.cmd test
 ```
+
+Sejak cabang backend `fix/chat-kenapa-admin-dan-rescale-due` (dan `main` backend sesudah cabang itu digabung), `npm test` antara lain menjalankan `validate-ai-chat.js` (termasuk klasifikasi "kenapa/mengapa" administratif serta "point"/"poin kritis" yang tetap materi, §6.8) dan `verify-rescale-jadwal-modul.js`, yang menjalankan `rescaleModulLatePenalty` dan `rescaleExamLatePenalty` dengan RTDB/Firestore tiruan dan menagih `end` + `due` serta waktu buka yang tetap; penolakan deadline modul satu kelas yang bukan kelipatan 24 jam dari waktu buka, deadline pada/sebelum waktu buka modul atau `start` ujian, dan hitung ulang modul tanpa deadline saat `end` ≠ `due`; serta penilaian ulang attempt susulan terhadap override per-NIM (§5.4, §5.5). Bila repo frontend ada di sebelahnya, ia juga menjalankan modal Atur Jadwal ke-84 halaman modul dan kedua belas halaman ujian apa adanya dan menagih simpan ulang tanpa perubahan sesudah rescale; tanpa repo frontend bagian itu dilewati (SKIP), kecuali dengan `REQUIRE_FRONTEND=1`, yang membuatnya gagal.
 
 Sebelum live seed, gunakan opsi `dry_run_seed` pada workflow atau perintah seed dengan `--dry-run`.
 
@@ -1351,12 +1558,14 @@ Bila menulis soal pada bank yang sebelumnya placeholder, ingat bahwa penjaga yan
 |---|---|
 | Preview | tidak membuat identity/attempt/poin; Tugas dan Forum modul tersembunyi; tab Hasil ujian tanpa data kelas (baris "Data kelas di UTS/UAS") |
 | Mahasiswa | roster, PIN, schedule gate, satu attempt, restore setelah refresh |
-| Dosen | login, pesan lock, atur jadwal dengan jam 24 jam, tampilan deadline WIB yang sama pada perangkat beda zona waktu, logout, sesi kedaluwarsa |
-| Modul | 25 soal, total 50, PG dapat dipilih dan tombol Periksa aktif, late 0,65 (seragam semua course), partial Hard 0,5 (semua course), export lengkap, Forum/chat |
-| Exam | 45 soal, total 100, format poin, late/cutoff, online-only, export resmi |
-| Agen AI | konsep modul aktif dijawab dengan sitasi; pertanyaan lintas MK dan jawaban langsung asesmen ditolak; data pribadi disunting; saat UTS/UAS aktif materi terkunci tetapi jadwal/aturan tetap terjawab; mode `AI_PROVIDER=none` dan simulasi kuota tetap menghasilkan fallback retrieval |
+| Dosen | login, pesan lock, atur jadwal dengan jam 24 jam, tampilan deadline WIB yang sama pada perangkat beda zona waktu, logout, sesi kedaluwarsa; perpanjangan modul satu kelas lewat `Admin/rescale-deadline.html` (NIM kosong) mengubah deadline yang tampil di halaman modul dan di jawaban chat, sedangkan waktu buka modul tidak berubah (§5.4); rescale ujian satu kelas lalu buka dan simpan Atur Jadwal UTS/UAS tanpa perubahan mempertahankan deadline baru dan waktu buka (§5.5); Diagnose modul satu kelas dengan deadline yang jamnya tidak sama dengan jam buka modul ditolak dengan saran dua deadline sah (§5.4); rescale ujian satu kelas saat ada mahasiswa susulan mempertahankan poin susulannya (§5.5); semuanya sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due` |
+| Modul | 25 soal (CAD 15), total 50, PG dapat dipilih dan tombol Periksa aktif, late 0,65 (seragam semua course), partial Hard 0,5 (semua course kecuali tugas modul CAD), export lengkap, Forum/chat |
+| Exam | 45 soal (CAD: UTS 30, UAS 31, tanpa TF), total 100, format poin, late/cutoff, online-only, export resmi |
+| Agen AI | konsep modul aktif dijawab dengan sitasi; pertanyaan lintas MK dan jawaban langsung asesmen ditolak; data pribadi disunting; saat UTS/UAS aktif materi terkunci tetapi jadwal/aturan tetap terjawab; "Kenapa tombol export saya tidak aktif?" dan "Kenapa poin tugas saya cuma 65%?" dijawab lapis administratif, sedangkan "Kenapa redaman mengurangi amplitudo?" dan "Mengapa respons melewati set point sebelum tunak?" tetap ke tutor (§6.8; sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`); mode `AI_PROVIDER=none` dan simulasi kuota tetap menghasilkan fallback retrieval |
 | Asisten di UTS/UAS | mahasiswa yang login (termasuk yang baru login dari layar tamu, tanpa muat ulang) melihat tombol 🤖 "Asisten Dosen" dan panel langsung di mode Asisten dengan catatan cakupan ujian; tab Online, nama/NIM mahasiswa lain, badge, dan jumlah online tidak terlihat; saat jendela UTS/UAS aktif pertanyaan materi dijawab pesan penguncian, permintaan kunci jawaban ditolak, jadwal/aturan ujian tetap terjawab; dosen tetap melihat tab Online sebagai default; tamu tidak melihat tombol; `#backToTop` tidak tertutup tombol chat di desktop maupun ≤480px; di ponsel 360/390 px (soal sudah tampil) tombol Asisten terlihat tanpa menggeser layar; pada laptop 1366×768 skala 125 % dan ponsel mendatar kolom tanya terlihat saat panel terbuka; Tab dari tombol tidak masuk ke panel yang tertutup; setelah logout (maupun logout paksa karena jadwal dihapus) riwayat Asisten mahasiswa tidak tersisa di localStorage dan formulir login tidak berisi PIN |
-| Data kelas di UTS/UAS | Mode Preview dan tamu di layar login: tab Hasil menampilkan placeholder "Data kelas hanya tersedia untuk dosen…", tanpa tabel kelas, papan Top Skor/Top Akses, dan statistik; di DevTools (Elements, Ctrl+F) nama/NIM mahasiswa lain tidak ditemukan sama sekali, juga setelah menunggu 30 detik; identitas `dosen` bernama lain sama; mahasiswa tetap hanya kartu "Nilai Anda"; dosen yang sudah melihat tabel kelas lalu memilih "← Pilih peran lain" → "Mode Preview" langsung mendapat placeholder (tanpa menunggu 30 detik); dosen yang login dari layar tamu langsung melihat tabel kelas, papan peringkat, statistik, dan daftar online tanpa muat ulang; logout paksa (jadwal dihapus) langsung mengosongkan data kelas dan badge online |
+| Data kelas di UTS/UAS | Mode Preview dan tamu di layar login: tab Hasil menampilkan placeholder "Data kelas hanya tersedia untuk dosen…", tanpa tabel kelas, papan Top Skor/Top Akses, dan statistik; di DevTools (Elements, Ctrl+F) nama/NIM mahasiswa lain tidak ditemukan sama sekali, juga setelah menunggu 30 detik; identitas `dosen` bernama lain sama; mahasiswa tetap hanya kartu "Nilai Anda"; dosen yang sudah melihat tabel kelas lalu memilih "← Pilih peran lain" → "Mode Preview" langsung mendapat placeholder (tanpa menunggu 30 detik); dosen yang login dari layar tamu langsung melihat tabel kelas, papan peringkat, statistik, dan daftar online tanpa muat ulang; logout paksa (jadwal dihapus) langsung mengosongkan data kelas dan badge online; placeholder Mode Preview mengarahkan ke tombol "Keluar Preview" di banner, placeholder tamu ke login mahasiswa; setelah jadwal berakhir, dosen yang memuat ulang halaman langsung melihat "Absen" yang menghitung mahasiswa Bolos (tanpa menunggu 30 detik) |
+| Identitas dosen lama/rekaan di UTS/UAS | isi localStorage identitas halaman dengan `{nama:'Dedik Romahadi'}` (tanpa role) atau `{role:'dosen', nama:'X'}`, lalu muat ulang saat jadwal berjalan dan sebelum jam mulai: pemilih peran tampil, tanpa 👥/🤖 FAB, tanpa chip "DOSEN · SOAL HANYA-BACA", tanpa pesan "belum dibuka"; pilih Dosen + password → tampilan dosen lengkap; dosen asli yang kembali tetap langsung masuk (juga sebelum jam mulai) |
+| Label navbar ujian | UTS/UAS berlabel sama dengan modul course-nya: `MATEMATIKA4`, `GETARANMESIN`, `OPTOAUTO`, `SISKENCERDAS`, `TENAGALISTRIK`, `PEMODELANCAD` `// UTS` atau `// UAS` |
 | UAS | soal tidak ada di source publik, fetch setelah gate, friction tidak memburamkan halaman; mahasiswa yang login di UAS mendapat watermark NIM-nya sendiri dan salin diblokir (tidak memakai identitas UTS yang tertinggal) |
 | Progres modul | kotak centang hanya giliran yang aktif, lompat ditolak server; tab Tugas/Forum/Hasil terkunci sampai lengkap; login modul *n* ditolak bila modul *n*−1 belum lengkap (overlay kunci dengan rincian; tombol Periksa lagi membuka halaman tanpa login ulang setelah syaratnya terpenuhi); forum terpulihkan setelah login |
 | Akun simulasi | bisa menjawab ulang; tidak ada ledger/poin/record pengunjung; tidak tampil di papan hasil/roster; progres tersimpan dan boleh membatalkan centang terakhir |
@@ -1381,7 +1590,7 @@ Jangan menganggap perubahan selesai hanya karena halaman terbuka. Penilaian haru
 7. Refresh tidak boleh mengubah poin atau rincian per soal.
 8. UTS dan UAS sama-sama mengambil teks soal dari server; HTML publik tidak memuat bank soal apa pun.
 9. Preview tidak menilai; preview modul tidak menampilkan Tugas dan Forum; preview exam tidak menampilkan data kelas.
-10. Panel exam menampilkan mahasiswa online, bukan seluruh riwayat visitor, dan daftar itu hanya untuk dosen: mahasiswa hanya mendapat Asisten Dosen di panel yang sama (roster berisi nama, NIM, dan status poin teman sekelas; RTDB-nya terbaca publik sehingga UI satu-satunya penjaga). Halaman ujian tidak punya Chat Kelas. Tabel kelas tab Hasil, papan Top Skor/Top Akses, statistik kelas, dan daftar online hanya dirender untuk dosen terverifikasi (`_dosenUjianTerverifikasi`, fungsi yang sama dengan aturan dosen `_applyRoleVisibility`); tamu dan Mode Preview mendapat placeholder tanpa data kelas di DOM, dan "bukan mahasiswa" tidak pernah berarti "dosen".
+10. Panel exam menampilkan mahasiswa online, bukan seluruh riwayat visitor, dan daftar itu hanya untuk dosen: mahasiswa hanya mendapat Asisten Dosen di panel yang sama (roster berisi nama, NIM, dan status poin teman sekelas; RTDB-nya terbaca publik sehingga UI satu-satunya penjaga). Halaman ujian tidak punya Chat Kelas. Tabel kelas tab Hasil, papan Top Skor/Top Akses, statistik kelas, dan daftar online hanya dirender untuk dosen terverifikasi (`_dosenUjianTerverifikasi`, satu-satunya aturan dosen halaman ujian untuk semua yang membuka fitur dosen: `_applyRoleVisibility`, auto-login jadwal, tinjauan soal dosen, gerbang wadah soal, dan permintaan soal mode dosen memakainya; pemeriksaan role yang tersisa tidak membuka apa pun — penjaga yang membatasi `_previewGuard`/`_previewExportGuard`, penentu mahasiswa, dan pengalih ke tinjauan soal dosen, §7.8); tamu dan Mode Preview mendapat placeholder tanpa data kelas di DOM, identitas yang bukan dosen terverifikasi maupun mahasiswa tidak dipulihkan otomatis, dan "bukan mahasiswa" tidak pernah berarti "dosen".
 11. Poin exam ditampilkan maksimal dua desimal tanpa mengubah nilai mentah.
 12. Friction browser adalah deterrent, bukan jaminan anti-screenshot atau blokir Alt+Tab.
 13. Atur Jadwal tidak boleh menghapus data. Reset adalah operasi terpisah dan eksplisit.
@@ -1390,7 +1599,7 @@ Jangan menganggap perubahan selesai hanya karena halaman terbuka. Penilaian haru
 16. Node `pins/` tertutup dari klien. Verifikasi PIN hanya lewat callable `verifyPin`; jangan membaca `pins/` dari browser.
 17. Kunci jawaban tidak pernah masuk repo publik — sekali ter-commit, kebocorannya permanen di riwayat Git dan hanya dapat ditutup dengan merotasi soal.
 18. Bank soal yang masih placeholder tidak boleh di-live-seed; kunci dummy di produksi menilai mahasiswa secara ngawur tanpa gejala.
-19. Angka poin bank exam (Σ=70) bukan nilai mahasiswa; yang diberikan adalah `_examQPoints` (Σ=100), dan hanya status `correct` yang ditimpa bobot itu. Partial credit membaca `partialPoints` kunci (0,5 seragam) dan hanya berlaku sebelum deadline; setelah itu 0, bukan partial yang dipotong.
+19. Angka poin bank exam (Σ=70 untuk ujian 45 soal) bukan nilai mahasiswa; yang diberikan adalah `_examQPoints` (Σ=100), dan hanya status `correct` yang ditimpa bobot itu. Partial credit membaca `partialPoints` kunci (0,5 seragam; rakitan `c11` UAS Pemodelan CAD 3) dan hanya berlaku sebelum deadline; setelah itu 0, bukan partial yang dipotong.
 20. Setiap soal pilihan ganda wajib punya tombol `sub-mcN`-nya sendiri; tanpa itu `selectMC()` melempar dan PG tidak dapat dipilih.
 21. Publikasi Pages memakai push ke branch `gh-pages`; jangan kembali ke `actions/deploy-pages`.
 22. Agen AI hanya memakai resolver dan retrieval privat dari allowlist mata kuliah aktif; model bersifat opsional, bank/kunci tidak masuk indeks, sitasi wajib, dan tutor materi terkunci selama ujian mahasiswa aktif.

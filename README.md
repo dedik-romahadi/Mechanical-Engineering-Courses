@@ -55,7 +55,7 @@ Mechanical-Engineering-Courses/
 ├── Template-Modul-Word-dan-PPT/   Template resmi BOP — jangan diubah
 ├── Unduhan-Gabungan/   PDF gabungan modul dan RPS per mata kuliah
 ├── Images/             Logo dan foto
-├── scripts/            Generator, penyuntik idempoten, dan validator (≈50 skrip)
+├── scripts/            Generator, penyuntik idempoten, dan validator (≈55 skrip + generator CAD/TTL di subfolder)
 ├── index.html          Halaman depan situs
 ├── CLAUDE.md           Aturan awal sesi + peta orientasi repo
 ├── Pedoman-Modul.md    📖 Spesifikasi lengkap sistem (rujukan utama)

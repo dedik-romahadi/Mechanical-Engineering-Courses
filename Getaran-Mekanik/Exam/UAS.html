@@ -1201,7 +1201,7 @@ body.ujian-mahasiswa #visitorPanel:not(.open){visibility:hidden;transition:trans
     <div style="text-align:left;margin-bottom:14px;">
       <label style="font-size:.75rem;color:#94a3b8;font-weight:600;display:block;margin-bottom:4px;">Perpanjangan (menit), opsional</label>
       <input type="number" class="v-input" id="scheduleExtension" min="0" value="120" placeholder="120" style="margin-bottom:0;">
-      <p style="font-size:.7rem;color:#64748b;margin:4px 0 0;line-height:1.4;">Mahasiswa yang mengerjakan di sesi perpanjangan tercatat <strong style="color:#fb7185">⏰ Terlambat</strong> dengan poin dikurangi 30%. Setelah perpanjangan habis, submit diblokir.</p>
+      <p style="font-size:.7rem;color:#64748b;margin:4px 0 0;line-height:1.4;">Mahasiswa yang mengerjakan di sesi perpanjangan tercatat <strong style="color:#fb7185">⏰ Terlambat</strong> dengan poin dikurangi 35%. Setelah perpanjangan habis, submit diblokir.</p>
     </div>
     <button class="v-btn-primary" onclick="jalankanDenganMuat(this,'Menyimpan...',saveSchedule)">💾 Simpan Jadwal</button>
     <button class="v-btn-cancel" onclick="hideScheduleModal()">Batal</button>
@@ -5673,7 +5673,12 @@ async function _ensureUASQuestionsLoaded() {
   if ((typeof _utsRendered !== 'undefined' && _utsRendered) || window._utsRenderedFlag || window._uasQuestionsLoading) return;
   const me = getIdentity();
   if (!me) return;
-  const isDosenNow = me.role === 'dosen';
+  // PRIVASI-HASIL-UJIAN:MUAT-SOAL BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+  // Permintaan soal mode dosen (tanpa NIM/PIN; server menagih klaim admin)
+  // hanya untuk dosen terverifikasi. Identitas lain menunggu sesi PIN
+  // mahasiswa seperti biasa.
+  const isDosenNow = _dosenUjianTerverifikasi(me);
+  // PRIVASI-HASIL-UJIAN:MUAT-SOAL END v1
   if (!isDosenNow && (!me.nim || !window._sessionPinHash)) return;   // tunggu PIN session siap
 
   window._uasQuestionsLoading = true;
@@ -5720,7 +5725,13 @@ window.getIdentity = getIdentity;
 window._dosenQuestionView = false;
 async function _activateDosenQuestionView() {
   const me = getIdentity();
-  if (!me || me.role !== 'dosen') return;
+  // PRIVASI-HASIL-UJIAN:SOAL-DOSEN BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+  // Tinjauan soal dosen memakai aturan dosen tunggal halaman. Identitas
+  // {role:'dosen'} bernama lain tidak mengaktifkan mode ini; penjaga jawaban
+  // (_previewGuard/_previewExportGuard) tetap berbasis role, jadi identitas
+  // seperti itu tetap hanya-baca.
+  if (!_dosenUjianTerverifikasi(me)) return;
+  // PRIVASI-HASIL-UJIAN:SOAL-DOSEN END v1
   window._dosenQuestionView = true;
   const chip = document.getElementById('navIdentityChip');
   if (chip) {
@@ -5916,7 +5927,7 @@ function _bersihkanFormLoginUjian(adaIdentitas) {
   }
 }
 // ═══ ASISTEN-UJIAN-MAHASISWA:JS END v2 ═══
-// ═══ PRIVASI-HASIL-UJIAN:JS BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs ═══
+// ═══ PRIVASI-HASIL-UJIAN:JS BEGIN v3 — dipasang scripts/privasi-hasil-ujian.mjs ═══
 // Data kelas halaman UTS/UAS — tabel tab Hasil (nama, NIM, status
 // Terlambat/Bolos/Tepat Waktu, poin, kunjungan, waktu akses), papan Top Skor/
 // Top Akses, statistik kelas, dan daftar mahasiswa online — hanya dirender
@@ -5927,10 +5938,23 @@ function _bersihkanFormLoginUjian(adaIdentitas) {
 // serta nilai seluruh kelas. RTDB visitors/presence tetap terbaca publik: ini
 // penjaga UI, bukan batas keamanan (Pedoman §7.8).
 function _dosenUjianTerverifikasi(me) {
-  // SATU-SATUNYA aturan "dosen" halaman ujian. Dipakai _applyRoleVisibility
-  // (tombol Reset, banner jadwal, #visitorFab) dan gerbang data kelas di bawah,
-  // jadi keduanya tidak bisa menyimpang.
+  // SATU-SATUNYA aturan "dosen" halaman ujian untuk semua yang MEMBUKA fitur
+  // dosen: _applyRoleVisibility (tombol Reset, banner jadwal, #visitorFab),
+  // auto-login jadwal (_handleScheduleReady), tinjauan soal dosen
+  // (_activateDosenQuestionView), gerbang wadah soal (_update…AccessGate),
+  // permintaan soal mode dosen (_ensure…QuestionsLoaded), dan gerbang data
+  // kelas di bawah, jadi semuanya tidak bisa menyimpang. Pemeriksaan role yang
+  // tersisa tidak membuka apa pun: penjaga yang MEMBATASI (_previewGuard,
+  // _previewExportGuard: soal hanya-baca, ekspor mati), penentu mahasiswa, dan
+  // pengalih ke _activateDosenQuestionView.
   return !!(me && me.role === 'dosen' && typeof me.nama === 'string' && me.nama.toLowerCase() === 'dedik romahadi');
+}
+function _identitasUjianDikenal(me) {
+  // Identitas tersimpan yang dipulihkan otomatis: dosen terverifikasi, atau
+  // mahasiswa ber-NIM (aturan isStudent yang sama dengan _applyRoleVisibility
+  // dan renderVisitors). Selain itu — sisa format lama {nama:'Dedik Romahadi'}
+  // tanpa role, {role:'dosen'} bernama lain — diperlakukan seperti tamu.
+  return _dosenUjianTerverifikasi(me) || !!(me && me.nim && me.role !== 'dosen');
 }
 function _dataKelasUjianBoleh() {
   // Mode Preview tidak pernah melihat data kelas, apa pun identitas yang
@@ -5966,13 +5990,20 @@ function _tampilkanHasilTanpaDataKelas() {
   const judul = _judulTabelHasilUjian(tableEl);
   if (judul && judul.style.display !== 'none') judul.style.display = 'none';
   if (!tableEl) return;
-  const sudah = tableEl.childElementCount === 1 && tableEl.firstElementChild.getAttribute('data-privasi-hasil') === 'tanpa-data-kelas';
+  // Ajakan mengikuti konteks: Mode Preview tidak punya formulir login — jalan
+  // keluarnya tombol "Keluar Preview" di banner atas (memuat ulang halaman).
+  const ajakan = window._previewMode ? 'preview' : 'tamu';
+  const kartu = tableEl.firstElementChild;
+  const sudah = tableEl.childElementCount === 1 && kartu.getAttribute('data-privasi-hasil') === 'tanpa-data-kelas' && kartu.getAttribute('data-ajakan') === ajakan;
   if (!sudah) {
-    tableEl.innerHTML = '<div data-privasi-hasil="tanpa-data-kelas" style="padding:48px 28px;text-align:center;color:#94a3b8">'
+    tableEl.innerHTML = '<div data-privasi-hasil="tanpa-data-kelas" data-ajakan="' + ajakan + '" style="padding:48px 28px;text-align:center;color:#94a3b8">'
       + '<div style="font-size:48px;margin-bottom:16px">🔐</div>'
       + '<h3 style="color:#fff;font-size:1.2rem;margin-bottom:8px">Data Kelas Khusus Dosen</h3>'
-      + '<p style="font-size:.85rem;line-height:1.6">Data kelas hanya tersedia untuk dosen. Masuk sebagai mahasiswa untuk melihat nilai Anda sendiri.</p>'
-      + '</div>';
+      + '<p style="font-size:.85rem;line-height:1.6">Data kelas hanya tersedia untuk dosen. '
+      + (ajakan === 'preview'
+        ? 'Keluar dari Mode Preview (tombol <strong>Keluar Preview</strong> di banner atas), lalu masuk sebagai mahasiswa untuk melihat nilai Anda sendiri.'
+        : 'Masuk sebagai mahasiswa untuk melihat nilai Anda sendiri.')
+      + '</p></div>';
   }
 }
 function _pulihkanTataHasilDosen() {
@@ -5994,7 +6025,7 @@ function _segarkanHasilUjian() {
     renderVisitors(Array.isArray(data) ? data : []);
   } catch (e) { console.warn('[Privasi hasil ujian] render ulang gagal:', e); }
 }
-// ═══ PRIVASI-HASIL-UJIAN:JS END v1 ═══
+// ═══ PRIVASI-HASIL-UJIAN:JS END v3 ═══
 function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-zA-Z.'\-]*$/.test(w));}
 function isValidNim(n){return /^\d+$/.test(n);}
 function sanitizeKey(s){return s.replace(/[.#$\/\[\]]/g,'_');}
@@ -6017,9 +6048,13 @@ function fetchMasterStudents(retries){
       if (typeof renderVisitors === 'function' && typeof latestVisitors !== 'undefined') {
         renderVisitors(latestVisitors || []);
       }
-      if (typeof updateLeaderboard === 'function' && typeof latestVisitors !== 'undefined') {
-        updateLeaderboard(latestVisitors || [], typeof _scheduleExpired !== 'undefined' ? _scheduleExpired : false);
-      }
+      // PRIVASI-HASIL-UJIAN:MASTER BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+      // renderVisitors di atas sudah memanggil updateLeaderboard dengan
+      // schedExpired dari jadwal saat ini (jalur dosen). Panggilan kedua di sini
+      // dulu membaca variabel jadwal-berakhir yang tidak pernah didefinisikan
+      // (selalu false), sehingga "Jumlah Absen" dosen tertimpa tanpa mahasiswa
+      // Bolos sampai render berikutnya. Panggilan itu sengaja dibuang.
+      // PRIVASI-HASIL-UJIAN:MASTER END v1
     } catch(e) { console.warn('[Visitor] Re-render after master load failed:', e); }
     // Update loading indicator → success
     const ls  = document.getElementById('loadingStudents');
@@ -6264,7 +6299,15 @@ function _handleScheduleReady() {
       // ── UAS: Cek schedule sebelum auto-login ──
       // Jika now < start dan user adalah student, JANGAN auto-login.
       // Tampilkan pesan di overlay agar user tau akses belum dibuka.
-      const _isDosen = me.nama.toLowerCase() === 'dedik romahadi';
+      // PRIVASI-HASIL-UJIAN:AUTOLOGIN BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+      // Aturan dosen tunggal halaman (_dosenUjianTerverifikasi: role 'dosen' DAN
+      // nama dosen pengampu), bukan lagi nama saja. Identitas yang bukan dosen
+      // terverifikasi dan bukan mahasiswa ber-NIM (sisa format lama tanpa role,
+      // {role:'dosen'} bernama lain) tidak dipulihkan: layar login tetap tampil,
+      // tanpa #visitorFab dan tanpa melewati gerbang jam mulai.
+      const _isDosen = _dosenUjianTerverifikasi(me);
+      if (!_identitasUjianDikenal(me)) return;
+      // PRIVASI-HASIL-UJIAN:AUTOLOGIN END v1
       if (!_isDosen && currentSchedule && currentSchedule.start) {
         const _now = Date.now();
         const _start = new Date(currentSchedule.start).getTime();
@@ -7380,6 +7423,12 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     if (typeof getIdentity === 'function') {
       const _me = getIdentity();
+      // PRIVASI-HASIL-UJIAN:PEMILIH BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+      // Pemilih peran hanya dilewati untuk identitas yang dipulihkan auto-login
+      // (_identitasUjianDikenal). Identitas lain melihatnya seperti tamu, jadi
+      // dosen dengan identitas format lama bisa langsung memilih "Dosen".
+      if (!_identitasUjianDikenal(_me)) return;
+      // PRIVASI-HASIL-UJIAN:PEMILIH END v1
       if (_me && _me.nama && _me.role !== 'guest') {
         const rc = document.getElementById('roleChooserOverlay');
         if (rc) rc.classList.add('hidden');
@@ -7674,7 +7723,7 @@ function _isScheduleOpen() {
 
 // ─── v8 Late submission helpers (Pedoman §9.2, §15.4) ───────────────
 function _isPastDeadline() {
-  // Exam: "past deadline" (untuk late multiplier 0.7) hanya saat dalam
+  // Exam: "past deadline" (untuk late multiplier 0.65) hanya saat dalam
   // window perpanjangan (now in (end, end+extension]). Setelah extension habis,
   // _isScheduleOpen() = false jadi award functions tidak akan dipanggil.
   if (!currentSchedule || !currentSchedule.end) return false;
@@ -7684,7 +7733,7 @@ function _isPastDeadline() {
   return now > e && now <= (e + ext);
 }
 function _getLateMultiplier() {
-  return _isPastDeadline() ? 0.7 : 1.0;
+  return _isPastDeadline() ? 0.65 : 1.0;
 }
 window._isPastDeadline    = _isPastDeadline;
 window._getLateMultiplier = _getLateMultiplier;
@@ -7712,7 +7761,12 @@ function _updateUASAccessGate() {
     const state = _uasScheduleState();
     const me = (typeof getIdentity === 'function') ? getIdentity() : null;
     const isStudent = me && me.nim && me.role !== 'dosen';
-    const isDosen = me && me.role === 'dosen';
+    // PRIVASI-HASIL-UJIAN:GERBANG-SOAL BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+    // Wadah soal selalu tampil dan banner kunci disembunyikan hanya untuk dosen
+    // terverifikasi (aturan dosen tunggal). Identitas {role:'dosen'} bernama
+    // lain mengikuti cabang non-mahasiswa di bawah, seperti tamu.
+    const isDosen = _dosenUjianTerverifikasi(me);
+    // PRIVASI-HASIL-UJIAN:GERBANG-SOAL END v1
 
     // Containers untuk soal
     const tfC = document.getElementById('container-tf');
@@ -7858,7 +7912,7 @@ function _updateLateBanner() {
       // State 2: Sesi perpanjangan (terlambat tapi masih bisa submit)
       const sisaMnt = Math.max(1, Math.ceil((e + ext - now) / 60000));
       if (titleEl) titleEl.textContent = '⏰ Sesi Perpanjangan — Status Terlambat';
-      if (msgEl) msgEl.innerHTML = 'Anda berada di <strong style="color:#fff">sesi perpanjangan ujian</strong> (sisa ' + sisaMnt + ' menit). Status tercatat <strong style="color:#fff">⏰ Terlambat</strong>: <strong style="color:#fff">poin per soal dikurangi 30%</strong>, <strong style="color:#fff">tidak masuk Top Skor / Top Akses</strong>, dan <strong style="color:#fff">Comp Hard tidak dapat partial credit</strong>. Setelah perpanjangan habis, submit akan diblokir.';
+      if (msgEl) msgEl.innerHTML = 'Anda berada di <strong style="color:#fff">sesi perpanjangan ujian</strong> (sisa ' + sisaMnt + ' menit). Status tercatat <strong style="color:#fff">⏰ Terlambat</strong>: <strong style="color:#fff">poin per soal dikurangi 35%</strong>, <strong style="color:#fff">tidak masuk Top Skor / Top Akses</strong>, dan <strong style="color:#fff">Comp Hard tidak dapat partial credit</strong>. Setelah perpanjangan habis, submit akan diblokir.';
     } else {
       // State 3: Habis total
       if (titleEl) titleEl.textContent = '⏱ Waktu Ujian Sudah Habis';

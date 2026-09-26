@@ -19,7 +19,7 @@
 #   • unggahan memanggil callable unggahBerkasTugas dengan `examId` (BUKAN
 #     `modulId`), penilaian tetap lewat checkExamAnswer; server menolak angka
 #     bila berkasnya belum ada;
-#   • seluruh identitas course diganti (judul, EXAM_ID, kunci penyimpanan,
+#   • seluruh identitas course diganti (judul, label navbar, EXAM_ID, kunci penyimpanan,
 #     DB_PATH visitors/pemodelan_cad/<uts|uas>, SCHEDULE_PATH, nama unduhan,
 #     tabel bobot Sub-CPMK, cakupan, registry chat AI).
 #
@@ -124,6 +124,12 @@ d.ganti(".code-textarea,.v-input,[contenteditable=\"true\"]{", ".nilai-input,.v-
 # 2. BODY — bilah status Pyodide, subnav, hero
 # ═════════════════════════════════════════════════════════════════════════════
 d.potong("<!-- Pyodide Status Bar -->", "</div>\n\n<!-- ─── NAVBAR TOP BAR", "<!-- ─── NAVBAR TOP BAR", False)
+
+# Label navbar mengikuti ke-14 modul Pemodelan CAD ("PEMODELANCAD // M1"). Label
+# kerangka TTL dipasang scripts/label-nav-ujian.mjs; bila kerangka masih
+# berlabel lain (skrip itu belum dijalankan), jangkar ini menggagalkan build.
+NAV_CAD = f'<span class="nav-brand"><span class="pulse"></span><span>PEMODELANCAD // {PRE}</span></span>'
+d.ganti(f'<span class="nav-brand"><span class="pulse"></span><span>TENAGALISTRIK // {PRE}</span></span>', NAV_CAD)
 
 subnav = [
     '  <a href="#u-petunjuk">📋 Petunjuk</a>',
@@ -1048,9 +1054,11 @@ d.wajib_kosong(
     "tfAnswered", "tfScores", "selectTF", "checkTF", "container-tf",
     f"{PRE}_TF", "tf-card", "tfopts-", "BENAR (TRUE)", "SALAH (FALSE)",
     "teknik_tenaga_listrik", "teknik-tenaga-listrik", "Teknik Tenaga Listrik",
+    "TENAGALISTRIK", "GETARANMESIN",
     "gdrive-link", "gdrive-feedback",
 )
 d.wajib_ada(
+    NAV_CAD,
     f"const EXAM_ID = '{K.EXAM_ID}';",
     "visitors/pemodelan_cad/",
     "settings/pemodelan_cad/",
