@@ -153,6 +153,27 @@ function proses(berkas) {
   const RX_CSS_BLUR_TOAST = /body\.friction-blurred #frictionToast\{filter:none;\}\n/;
   if (RX_CSS_BLUR_TOAST.test(html)) { html = html.replace(RX_CSS_BLUR_TOAST, ""); catatan.push("cabut-css-blur-toast"); }
 
+  // 5. Exam: kunci identitas lapisan friksi (LK) = LOCAL_IDENTITY halaman,
+  //    `<slug>_identity_<MODULE_ID>`. Empat UAS (Math4, Getaran, Sisken, TTL)
+  //    sempat membaca kunci UTS hasil salin-tempel (sejak Mei 2026): bagi
+  //    mahasiswa yang login di UAS, salin/potong/Ctrl+C tidak diblokir,
+  //    watermark tidak ada, dan penghitung pindah tab mati — sementara identitas
+  //    UTS yang tertinggal di komputer lab (mahasiswa lain) justru dipakai
+  //    sebagai watermark, juga bagi tamu. Dijaga validate-public-security.mjs.
+  if (isExam) {
+    const mSlug = /\nconst LOCAL_IDENTITY = `([a-z0-9_]+)_identity_\$\{MODULE_ID\}`;\n/.exec(html);
+    const mModul = /\nconst MODULE_ID = '(uts|uas)';\n/.exec(html);
+    const RX_LK = /\n  const LK = '([a-z0-9_-]+)';\n/;
+    const mLk = RX_LK.exec(html);
+    if (mSlug && mModul && mLk) {
+      const benar = `${mSlug[1]}_identity_${mModul[1]}`;
+      if (mLk[1] !== benar) {
+        html = html.replace(RX_LK, () => `\n  const LK = '${benar}';\n`);
+        catatan.push("friksi-kunci-identitas");
+      }
+    }
+  }
+
   if (html === awal) return null;
   return { html, catatan };
 }

@@ -171,6 +171,26 @@ for (const course of courseRoots) {
     if (/const dueDate\s*=\s*new Date\(due\)/.test(exam)) {
       throw new Error(`${relative}: schedule input depends on browser timezone`);
     }
+    // Lapisan friksi membaca identitas halaman INI (LOCAL_IDENTITY =
+    // `<slug>_identity_${MODULE_ID}`). Empat UAS sempat membaca kunci UTS:
+    // mahasiswa yang login di UAS lolos dari blokir salin/watermark/penghitung
+    // tab, sementara identitas UTS yang tertinggal di komputer lab dipakai
+    // sebagai watermark. Diperbaiki scripts/ubah-friction.mjs (butir 5).
+    {
+      const slug = /\nconst LOCAL_IDENTITY = `([a-z0-9_]+)_identity_\$\{MODULE_ID\}`;\n/.exec(exam);
+      const modul = /\nconst MODULE_ID = '(uts|uas)';\n/.exec(exam);
+      const lk = [...exam.matchAll(/\n {2}const LK = '([^']+)';\n/g)];
+      if (!slug || !modul || lk.length !== 1) {
+        throw new Error(`${relative}: LOCAL_IDENTITY, MODULE_ID, or the friction identity key (LK) not found exactly once`);
+      }
+      if (modul[1] !== examName.slice(0, 3).toLowerCase()) {
+        throw new Error(`${relative}: MODULE_ID '${modul[1]}' does not match the page`);
+      }
+      const expected = `${slug[1]}_identity_${modul[1]}`;
+      if (lk[0][1] !== expected) {
+        throw new Error(`${relative}: friction layer reads identity key '${lk[0][1]}', expected '${expected}' (this page's LOCAL_IDENTITY)`);
+      }
+    }
     for (const required of [
       "Masuk &amp; Lihat Soal",
       "window._dosenQuestionView = false",
