@@ -201,7 +201,15 @@ repo publik ini.
   `rescaleExamLatePenalty`, sejak cabang yang sama di-deploy) menulis `end`,
   `due`, dan `duration` menit dengan `start` tetap, karena modal Atur Jadwal
   UTS/UAS mengisi kolomnya dari `due`/`duration`; override per-NIM tetap hanya
-  `end`/`extension` (§5.5).
+  `end`/`extension` dan tetap dipakai saat menilai ulang satu kelas (§5.5).
+  Sejak deploy yang sama server menolak sebelum menulis: deadline modul satu
+  kelas yang tidak berselisih kelipatan 24 jam dari waktu buka (modal Atur
+  Jadwal modul menyimpan `start = due − Durasi` hari penuh, jadi jam deadline
+  harus sama dengan jam buka modul), deadline pada/sebelum waktu buka modul
+  atau `start` ujian, dan hitung ulang modul tanpa Deadline Baru saat
+  `end` ≠ `due` (§5.4). Jendela ujian lebih dari 30 hari (`duration` > 43200
+  menit) tidak bisa disimpan ulang dari modal Atur Jadwal karena rules;
+  `rescale-deadline.html` memperingatkannya.
 - **Penalti terlambat 0,65** (potongan 35%) seragam semua course; sumber
   kebenarannya server (`cfg.lateMultiplierValue`). Partial Hard 0,5.
 - **Skor.** Modul: 25 soal = 10 PG ×1 + 10 Komputasi ×2 + 5 Hard ×4 = 50.
@@ -265,6 +273,8 @@ repo publik ini.
 3. Default jadwal modul dalam menit — modul memakai hari.
 4. `new Date(due)` di `saveSchedule` — pakai `_wibStringToDate(due)`.
 5. Menulis angka penalti lama (0,7/30% atau 0,8/20%) — sekarang 0,65/35%.
+   `validate-public-security.mjs` menolaknya di halaman course dan `Admin/`;
+   `scripts/penalti-35.mjs` menyeragamkan halaman.
 6. Konstanta penilaian di klien sebagai sumber kebenaran — server yang
    menentukan.
 7. Mengeklaim "screenshot mustahil" atau memburamkan halaman saat pindah

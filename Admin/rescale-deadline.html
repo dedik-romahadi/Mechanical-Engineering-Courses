@@ -104,7 +104,9 @@
       <button type="button" class="preset" onclick="setPreset(7, 23, 59)">+ 7 hari 23:59</button>
       <button type="button" class="preset" onclick="setPreset(14, 23, 59)">+ 14 hari 23:59</button>
     </div>
-    <div class="hint">Klik input untuk picker, atau pilih preset. Waktu lokal browser Anda (asumsi WIB). Kosongkan = pakai deadline yang sudah ada.</div>
+    <div class="hint">Klik input untuk picker, atau pilih preset. Waktu lokal browser Anda (asumsi WIB). Kosongkan = pakai deadline yang sudah ada — pada Modul, server menolaknya bila jadwal menyimpan dua deadline berbeda (<code>end</code> ≠ <code>due</code>); isi Deadline Baru sekali dengan NIM kosong untuk menyelaraskannya. Deadline pada/sebelum waktu buka modul atau waktu mulai ujian selalu ditolak.</div>
+    <div class="hint" id="modulDeadlineNote">Modul, NIM kosong: jam deadline harus sama dengan <b>jam buka modul</b> (selisih kelipatan 24 jam), karena Atur Jadwal di halaman modul menyimpan waktu buka = deadline − Durasi hari penuh. Preset 23:59 hanya cocok untuk modul yang dibuka pukul 23.59 WIB; bila jamnya lain, server menolak dan menyebut jam buka serta dua deadline yang sah.</div>
+    <div class="hint" id="examDeadlineNote" style="display:none">Ujian, NIM kosong: jaga deadline paling lambat <b>30 hari</b> sesudah waktu mulai ujian. Server tetap menyimpan jendela yang lebih panjang, tetapi Atur Jadwal di halaman ujian lalu tidak bisa menyimpan ulang jadwal itu (rules membatasi Durasi 43200 menit); tool ini memperingatkan sebelum menjalankannya.</div>
 
     <div id="extWrap" style="display:none">
       <label>Perpanjangan Waktu (menit) — khusus ujian</label>
@@ -122,7 +124,8 @@
       🎓 <b>Ujian susulan:</b> isi <b>kolom NIM</b> di bawah, lalu isi Deadline Baru — jendela ujian dibuka
       <b>hanya untuk NIM tersebut</b>. Jadwal global tidak bergeser dan mahasiswa lain tidak terpengaruh.
       <br><br>
-      <b>NIM dikosongkan</b> = jadwal global diubah untuk <b>semua</b> mahasiswa.
+      <b>NIM dikosongkan</b> = jadwal global diubah untuk <b>semua</b> mahasiswa. Mahasiswa yang sudah punya
+      jendela susulan tetap dinilai ulang terhadap jendelanya sendiri, bukan jadwal global.
       <br><br>
       Catatan: waktu <i>mulai</i> tidak ikut di-override, dan tiap soal tetap hanya bisa dijawab sekali —
       mahasiswa yang sudah menjawab tetap terkunci pada soal itu.
@@ -202,6 +205,8 @@ function refreshTarget(){
   examNoteEl.style.display  = exam ? '' : 'none';
   document.getElementById('extWrap').style.display     = exam ? '' : 'none';
   document.getElementById('susulanNote').style.display = exam ? '' : 'none';
+  document.getElementById('modulDeadlineNote').style.display = exam ? 'none' : '';
+  document.getElementById('examDeadlineNote').style.display  = exam ? '' : 'none';
   modulIdEl.textContent = currentTargetId();
   // Teks tombol ikut menyebut sasaran supaya tidak salah klik.
   document.getElementById('btnDiag').textContent =
@@ -259,6 +264,66 @@ function scheduleFields(){
   return out;
 }
 
+// ── Batas durasi jadwal ujian (Pedoman §5.5) ──
+// Rules RTDB membatasi `duration` UTS/UAS ≤ 43200 menit (30 hari) untuk tulisan
+// klien, termasuk modal Atur Jadwal di halaman ujian. Rescale ujian satu kelas
+// ditulis Admin SDK (melewati rules) dan menyetel duration = deadline baru −
+// start tanpa batas. Deadline lebih dari 30 hari sesudah start tetap berlaku
+// bagi server dan halaman, tetapi modal itu lalu tidak bisa menyimpan ulang
+// jadwalnya tanpa memperkecil Durasi (= menggeser waktu mulai). Tool ini
+// membaca start ujian dan memperingatkan sebelum menjalankan; tidak memblokir.
+const BATAS_DURASI_UJIAN_MENIT = 43200;
+function fmtWib(ms){
+  const w = new Date(ms + 7*3600*1000);
+  return `${pad2(w.getUTCDate())}-${pad2(w.getUTCMonth()+1)}-${w.getUTCFullYear()} ${pad2(w.getUTCHours())}:${pad2(w.getUTCMinutes())} WIB`;
+}
+// Jendela override per-NIM (ujian susulan) yang dipakai server menilai ulang
+// mahasiswa ini; respons rescaleExamLatePenalty membawanya sebagai students[].window.
+function jendelaSusulan(s){
+  const w = s && s.window;
+  if (!w || !w.end) return '';
+  const ms = Date.parse(w.end);
+  return `  [jendela susulan: ${Number.isFinite(ms) ? fmtWib(ms) : w.end} + ${Number(w.extension) || 0} menit]`;
+}
+// start jadwal ujian terpilih (ms), null bila belum ada, atau NaN bila gagal dibaca.
+async function bacaMulaiUjian(){
+  // settings/<course> terbaca publik tanpa login (sama dengan halaman ujian);
+  // REST cukup untuk satu nilai. Nilai course di pilihan memakai tanda hubung
+  // (getaran-mekanik), node RTDB memakai garis bawah (getaran_mekanik).
+  const kunci = courseEl.value.replace(/-/g, '_');
+  const url = `${firebaseConfig.databaseURL}/settings/${kunci}/${examEl.value}/schedule/start.json`;
+  const ctrl = new AbortController();
+  const batas = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const r = await fetch(url, { cache: 'no-store', signal: ctrl.signal });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const v = await r.json();
+    if (v === null) return null;
+    const ms = typeof v === 'string' ? Date.parse(v) : NaN;
+    return Number.isFinite(ms) ? ms : NaN;
+  } catch (e) {
+    console.warn('[rescale] waktu mulai ujian tidak terbaca:', e);
+    return NaN;
+  } finally {
+    clearTimeout(batas);
+  }
+}
+// Teks peringatan untuk deadline ujian satu kelas, atau '' bila aman.
+async function peringatanDurasiUjian(newEndIso){
+  const mulaiMs = await bacaMulaiUjian();
+  if (mulaiMs === null) return '';                       // jadwal belum ada → server tidak menulis duration
+  if (Number.isNaN(mulaiMs)) {
+    return '⚠ Waktu mulai ujian tidak terbaca, jadi batas 30 hari tidak dapat diperiksa. ' +
+      'Pastikan deadline baru paling lambat 30 hari sesudah waktu mulai ujian.';
+  }
+  const menit = Math.floor(Date.parse(newEndIso) / 60000) - mulaiMs / 60000;   // pembulatan sama dengan server
+  if (!(menit > BATAS_DURASI_UJIAN_MENIT)) return '';
+  return `⚠ Deadline baru ${Math.floor(menit / 1440)} hari sesudah waktu mulai ujian (${fmtWib(mulaiMs)}). ` +
+    `Durasi jadwal akan menjadi ${Math.round(menit)} menit, di atas batas ${BATAS_DURASI_UJIAN_MENIT} menit (30 hari). ` +
+    'Server tetap menerapkannya, tetapi menyimpan ulang Atur Jadwal di halaman ujian lalu ditolak (PERMISSION_DENIED) ' +
+    'sampai Durasi diperkecil, yang menggeser waktu mulai ujian. Untuk ujian susulan sebagian mahasiswa, isi kolom NIM.';
+}
+
 window.setPreset = function(daysOffset, hour, minute){
   const d = new Date();
   d.setDate(d.getDate() + daysOffset);
@@ -297,8 +362,15 @@ window.doRescale = async function(){
         'acuan hitung ulang poin untuk NIM tersebut.\n\n' +
         'Untuk mengubah jadwal modul, kosongkan kolom NIM.\n\nLanjutkan hitung ulang poin saja?';
     } else {
+      let peringatan = '';
+      if(exam && sched.newEnd){
+        btn.disabled=true; btn.textContent='Memeriksa jadwal...';
+        try { peringatan = await peringatanDurasiUjian(sched.newEnd); }
+        finally { btn.disabled=false; btn.textContent='Hitung Ulang Penalti'; }
+      }
       pesan = 'Jadwal ' + (exam ? 'ujian' : 'modul') + ' GLOBAL akan diubah — berlaku untuk SEMUA mahasiswa.\n\n' +
         (exam ? 'Untuk membuka susulan bagi sebagian mahasiswa saja, isi kolom NIM.\n\n' : '') +
+        (peringatan ? peringatan + '\n\n' : '') +
         'Lanjutkan?';
     }
     if(!confirm(pesan)) return;
@@ -330,12 +402,15 @@ window.doRescale = async function(){
     if(exam && d.beyondExtension){
       lines.push(`⚠ ${d.beyondExtension} attempt jatuh SETELAH deadline + perpanjangan → ujian sudah ditutup, poinnya menjadi 0.`);
     }
+    if(exam && d.overriddenStudents > 0){
+      lines.push(`🎓 ${d.overriddenStudents} mahasiswa dinilai terhadap jendela susulannya sendiri (override per-NIM), bukan jadwal global.`);
+    }
     lines.push('');
     if(d.students.length === 0){
       lines.push('(Tidak ada poin yang perlu disesuaikan — semua sudah sesuai deadline ini.)');
     } else {
       d.students.forEach(s=>{
-        lines.push(`• ${s.nimKey.replace(/^mhs_/,'')}  poin: ${s.pointsBefore} → ${s.pointsAfter}`);
+        lines.push(`• ${s.nimKey.replace(/^mhs_/,'')}  poin: ${s.pointsBefore} → ${s.pointsAfter}${jendelaSusulan(s)}`);
         s.adjustments.forEach(a=>{
           const tag = a.oldStatus !== a.newStatus ? `  [${a.oldStatus}→${a.newStatus}]` : '';
           lines.push(`    ${String(a.qId).padEnd(5)} Δpoin ${a.oldScoreDelta} → ${a.newScoreDelta}${tag}`);
@@ -400,6 +475,14 @@ window.doDiagnose = async function(){
     if(exam && d.beyondExtension){
       lines.push(`⚠ ${d.beyondExtension} attempt jatuh setelah deadline + perpanjangan → akan dinilai 0 (ujian ditutup).`);
     }
+    if(exam && d.overriddenStudents > 0){
+      lines.push(`🎓 ${d.overriddenStudents} mahasiswa dinilai terhadap jendela susulannya sendiri (override per-NIM), bukan jadwal global.`);
+    }
+    // Diagnose selalu satu kelas (tanpa NIM): periksa batas 30 hari jadwal ujian.
+    if(exam && payload.newEnd){
+      const peringatan = await peringatanDurasiUjian(payload.newEnd);
+      if(peringatan) lines.push(``, peringatan);
+    }
     lines.push(``);
     if(d.totalStudents === 0 && d.totalAdjusted === 0){
       lines.push('⚠ KENAPA 0?');
@@ -412,7 +495,7 @@ window.doDiagnose = async function(){
     } else {
       lines.push('Perkiraan perubahan (klik "Hitung Ulang Penalti" untuk menerapkan):');
       d.students.forEach(s=>{
-        lines.push(`• ${s.nimKey.replace(/^mhs_/,'')}  poin: ${s.pointsBefore} → ${s.pointsAfter}`);
+        lines.push(`• ${s.nimKey.replace(/^mhs_/,'')}  poin: ${s.pointsBefore} → ${s.pointsAfter}${jendelaSusulan(s)}`);
       });
     }
     res.className='result ok'; res.style.display='block'; res.textContent=lines.join('\n');

@@ -108,6 +108,18 @@ if (diabaikan.length) {
 htmlFiles.length = 0;
 htmlFiles.push(...dipakai);
 
+// Angka penalti terlambat dari rollout lama (0,7/30% dan 0,8/20%). Server
+// memakai 0,65 (potongan 35%) untuk semua course (Pedoman §5.1–§5.2); halaman
+// Math4/Getaran/Opto dan Pengantar-nya masih menyebut angka lama sampai
+// 27 September 2026 (scripts/penalti-35.mjs, pola yang sama).
+const RX_PENALTI_LAMA = [
+  /(?:dikurangi|dipotong|potongan|dipangkas)\s*(?:<[^>]{0,120}>\s*)?(?:20|30)\s*%/i,
+  /\bmultiplier\s+0\.[78]\b/i,
+  /_isPastDeadline\(\)\s*\?\s*0\.[78]\b/,
+  /×\s?0[.,]7\b/,
+  /\bdikali\s+0[.,][78]\b/i,
+];
+
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "mec-security-"));
 let authPages = 0;
 let checkedScripts = 0;
@@ -116,6 +128,10 @@ try {
     const relative = path.relative(root, file);
     const source = fs.readFileSync(file, "utf8");
     if (/57ae60d1|ADMIN_PW_HASH|adminPwHash/.test(source)) throw new Error(`${relative}: legacy admin hash remains`);
+    for (const rx of RX_PENALTI_LAMA) {
+      const lama = source.match(rx);
+      if (lama) throw new Error(`${relative}: late-penalty text from the old rollout ("${lama[0]}"); the server multiplier is 0.65 (35%) — run node scripts/penalti-35.mjs`);
+    }
     if (source.includes("createAdminSession")) authPages += 1;
 
     const scripts = [...source.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)];
