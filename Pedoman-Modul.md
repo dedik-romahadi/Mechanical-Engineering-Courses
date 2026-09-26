@@ -528,9 +528,11 @@ admin-only lewat callable `rescaleExamLatePenalty` (parameter `nims[]` +
   waktu mulai. `rescale-deadline.html` membaca `start` ujian (node `settings`
   terbaca publik) dan memperingatkannya di dialog konfirmasi dan di Diagnose,
   tanpa memblokir. Untuk ujian susulan sebagian mahasiswa, pakai kolom NIM:
-  override tidak menulis `duration`. Perbaikan di server (menolak, atau
-  mengosongkan `duration` di atas batas agar modal meminta durasi) belum ada di
-  cabang backend.
+  override tidak menulis `duration`. Sejak deploy cabang backend
+  `fix/chat-kenapa-admin-dan-rescale-due`, rescale satu kelas menghapus
+  `duration` yang di luar 1..43200 menit sehingga modal meminta Durasi diisi
+  alih-alih ditolak rules; sampai deploy itu, callable produksi masih menulis
+  `duration` di atas batas seperti di atas.
 
 Penjaganya `scripts/verify-rescale-jadwal-modul.js` di `npm test` backend, yang
 juga menjalankan modal kedua belas halaman ujian (§17.2). Penulisan `end`/`due`/
