@@ -432,7 +432,10 @@ mentah. Dulu hanya `end` yang ditulis; karena halaman modul, `evalSchedule`, dan
 agen chat membaca `due`, perpanjangan itu tidak berpengaruh apa pun. Diagnose
 (dry-run) dan cakupan per-NIM tidak menulis jadwal; per-NIM, Deadline Baru hanya
 menjadi acuan hitung ulang poin. Penjaganya `scripts/verify-rescale-jadwal-modul.js`
-di `npm test` backend. Rescale ujian tidak berubah (§5.5).
+di `npm test` backend. Rescale ujian tidak berubah (§5.5). Perilaku ini
+datang dari cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; sebelum
+cabang itu di-deploy, callable produksi masih hanya menulis `end`. Gabungkan
+dan deploy backend lebih dulu (§1.2), baru frontend.
 
 ### 5.5 Jadwal ujian susulan (override per mahasiswa)
 
@@ -456,7 +459,7 @@ admin-only lewat callable `rescaleExamLatePenalty` (parameter `nims[]` +
   ikut ditulis. Satu-satunya pembaca `due` ujian adalah modal Atur Jadwal, yang
   mengisi kolom batas akhir dari `due` tersimpan; setelah rescale global, periksa
   kolom itu sebelum menyimpan agar `end` tidak kembali ke nilai lama. Ini berbeda
-  dari rescale modul, yang sejak 26 September 2026 menulis `end` dan `due` karena
+  dari rescale modul, yang sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due` menulis `end` dan `due` karena
   `due` adalah deadline kanonis modul (§5.4).
 
 ---
@@ -649,19 +652,27 @@ yang diizinkan, dengan tiga lapis:
 Pemilihan lapis ditentukan `classifyQuestion` (`chat/policy.js`). Kata tanya
 alasan "kenapa/mengapa" menandai pertanyaan materi ("Kenapa redaman mengurangi
 amplitudo?" tetap ke tutor), **kecuali** bila objeknya urusan administratif
-(backend, 26 September 2026, keenam mata kuliah). Objek itu meliputi export,
-tautan Drive, poin/nilai, pengali terlambat 0,65, status terlambat,
+(cabang backend `fix/chat-kenapa-admin-dan-rescale-due`, 26 September 2026,
+keenam mata kuliah; berlaku sejak cabang itu di-deploy — sebelumnya
+kenapa/mengapa selalu diarahkan ke tutor). Objek itu meliputi export, tautan
+Drive, poin/nilai, pengali terlambat 0,65, status terlambat,
 jadwal/tenggat, gerbang modul dan tab terkunci, kotak centang, login/PIN,
 berkas/unggahan, kirim ulang, dan presensi. Pertanyaan seperti "Kenapa tombol
 export saya tidak aktif?" atau "Kenapa poin tugas saya cuma 65%?" dijawab lapis
 administratif, misalnya syarat export, pengali 0,65 atau batas kirim ulang CAD
 65%, dan modul *n*−1 yang belum lengkap. Dulu pertanyaan seperti itu jatuh ke
 retrieval materi. Pola objek (`ALASAN_ADMIN_PATTERNS`) hanya diperiksa bila
-kalimatnya memuat kenapa/mengapa. Tiap pola memasangkan objek dengan keadaannya
+kalimatnya memuat kenapa/mengapa, jadi pertanyaan tanpa kata tanya alasan tidak
+berubah klasifikasinya. Sebagian besar pola memasangkan objek dengan keadaannya
 dan punya pengecualian kosakata materi (misalnya "link" mekanisme, "pin"
-rakitan, "jadwal perawatan"), jadi pertanyaan lain tidak berubah
-klasifikasinya. Penanda materi lain ("Jelaskan …", "rumus") tetap didahulukan
-dan mengarahkan ke tutor, dan permintaan jawaban asesmen tetap ditolak.
+rakitan, "jadwal perawatan"). Kata "poin" hanya dicocokkan sebagai kata
+Indonesia, sehingga "Mengapa respons melewati set point sebelum tunak?",
+"fixed point", "operating point", dan "poin kritis" tetap ke tutor (dulu
+`\bpoin\w*` ikut menangkap "point"). Beberapa objek berdiri sendiri tanpa
+pengecualian (`forum`, `progres`, `sks`/`semester`, `submit`): pertanyaan
+kenapa/mengapa yang memuatnya diarahkan ke lapis administratif. Penanda materi
+lain ("Jelaskan …", "rumus") tetap didahulukan dan mengarahkan ke tutor, dan
+permintaan jawaban asesmen tetap ditolak.
 
 Callable `getModuleChatContext` menyiapkan konteks awal tanpa model, sedangkan
 `aiChat` mengorkestrasi ketiga lapis. Browser hanya mengirim `moduleId`, pesan,
@@ -1155,7 +1166,7 @@ Daftar callable yang digunakan sistem saat ini:
 | `resetExamAttempts` | admin | menghapus ledger seluruh attempt satu exam |
 | `resetModulQuestion` | admin | reset soal tertentu/semua untuk satu atau semua mahasiswa |
 | `resetExamQuestion` | admin | reset soal tertentu/semua untuk satu atau semua mahasiswa |
-| `rescaleModulLatePenalty` | admin | menghitung ulang penalti modul, dapat dibatasi NIM; `newEnd` tanpa `nims` memperpanjang jadwal global dengan menulis `end` dan `due` (waktu buka tetap, §5.4) |
+| `rescaleModulLatePenalty` | admin | menghitung ulang penalti modul, dapat dibatasi NIM; `newEnd` tanpa `nims` memperpanjang jadwal global dengan menulis `end` dan `due` (waktu buka tetap, §5.4; sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`, sebelumnya hanya `end`) |
 | `rescaleExamLatePenalty` | admin | menghitung ulang penalti keterlambatan exam (UTS/UAS), dapat dibatasi NIM; parameter `nims[]`+`newEnd`/`newExtension` menulis `scheduleOverrides` untuk ujian susulan (§5.5) |
 | `analyzeModulData` | admin | menganalisis data modul dan anomali grading |
 | `recomputeExamPoints` | admin | menghitung ulang total exam dari ledger |
@@ -1200,7 +1211,7 @@ Jika penghapusan ledger gagal, jangan lanjut menghapus RTDB karena mahasiswa aka
 |---|---|
 | `reset-soal.html` | reset satu, beberapa, atau semua soal pada 84 modul dan 12 exam (enam mata kuliah); target satu NIM atau semua mahasiswa |
 | `recompute-obe-score.html` | recompute poin satu exam dari mapping OBE dan ledger |
-| `rescale-deadline.html` | rescale penalti keterlambatan modul atau exam (UTS/UAS), global atau NIM tertentu (exam via `rescaleExamLatePenalty`, §5.5/§10). Deadline Baru pada modul dengan NIM kosong menulis `end` **dan** `due` jadwal global dan mempertahankan waktu buka (§5.4); dengan NIM terisi, jadwal tidak diubah |
+| `rescale-deadline.html` | rescale penalti keterlambatan modul atau exam (UTS/UAS), global atau NIM tertentu (exam via `rescaleExamLatePenalty`, §5.5/§10). Deadline Baru pada modul dengan NIM kosong menulis `end` **dan** `due` jadwal global dan mempertahankan waktu buka (§5.4; sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`); dengan NIM terisi, jadwal tidak diubah |
 | `analyze-victims.html` | analisis korban/anomali grading modul dan reset terarah |
 | `verify-export-code.html` | verifikasi HMAC export modul/exam |
 | `berkas-tugas.html` | daftar dan unduh berkas FreeCAD tugas pemodelan CAD per modul, dengan status penilaian |
@@ -1441,7 +1452,7 @@ npm.cmd run lint
 npm.cmd test
 ```
 
-`npm test` antara lain menjalankan `validate-ai-chat.js` (termasuk klasifikasi "kenapa/mengapa" administratif, §6.8) dan `verify-rescale-jadwal-modul.js`, yang menjalankan `rescaleModulLatePenalty` dengan RTDB/Firestore tiruan dan menagih `end` + `due` serta waktu buka yang tetap (§5.4).
+Sejak cabang backend `fix/chat-kenapa-admin-dan-rescale-due` (dan `main` backend sesudah cabang itu digabung), `npm test` antara lain menjalankan `validate-ai-chat.js` (termasuk klasifikasi "kenapa/mengapa" administratif serta "point"/"poin kritis" yang tetap materi, §6.8) dan `verify-rescale-jadwal-modul.js`, yang menjalankan `rescaleModulLatePenalty` dengan RTDB/Firestore tiruan dan menagih `end` + `due` serta waktu buka yang tetap (§5.4).
 
 Sebelum live seed, gunakan opsi `dry_run_seed` pada workflow atau perintah seed dengan `--dry-run`.
 
@@ -1466,10 +1477,10 @@ Bila menulis soal pada bank yang sebelumnya placeholder, ingat bahwa penjaga yan
 |---|---|
 | Preview | tidak membuat identity/attempt/poin; Tugas dan Forum modul tersembunyi; tab Hasil ujian tanpa data kelas (baris "Data kelas di UTS/UAS") |
 | Mahasiswa | roster, PIN, schedule gate, satu attempt, restore setelah refresh |
-| Dosen | login, pesan lock, atur jadwal dengan jam 24 jam, tampilan deadline WIB yang sama pada perangkat beda zona waktu, logout, sesi kedaluwarsa; perpanjangan modul satu kelas lewat `Admin/rescale-deadline.html` (NIM kosong) mengubah deadline yang tampil di halaman modul dan di jawaban chat, sedangkan waktu buka modul tidak berubah (§5.4) |
+| Dosen | login, pesan lock, atur jadwal dengan jam 24 jam, tampilan deadline WIB yang sama pada perangkat beda zona waktu, logout, sesi kedaluwarsa; perpanjangan modul satu kelas lewat `Admin/rescale-deadline.html` (NIM kosong) mengubah deadline yang tampil di halaman modul dan di jawaban chat, sedangkan waktu buka modul tidak berubah (§5.4; sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`) |
 | Modul | 25 soal (CAD 15), total 50, PG dapat dipilih dan tombol Periksa aktif, late 0,65 (seragam semua course), partial Hard 0,5 (semua course kecuali tugas modul CAD), export lengkap, Forum/chat |
 | Exam | 45 soal (CAD: UTS 30, UAS 31, tanpa TF), total 100, format poin, late/cutoff, online-only, export resmi |
-| Agen AI | konsep modul aktif dijawab dengan sitasi; pertanyaan lintas MK dan jawaban langsung asesmen ditolak; data pribadi disunting; saat UTS/UAS aktif materi terkunci tetapi jadwal/aturan tetap terjawab; "Kenapa tombol export saya tidak aktif?" dan "Kenapa poin tugas saya cuma 65%?" dijawab lapis administratif, sedangkan "Kenapa redaman mengurangi amplitudo?" tetap ke tutor (§6.8); mode `AI_PROVIDER=none` dan simulasi kuota tetap menghasilkan fallback retrieval |
+| Agen AI | konsep modul aktif dijawab dengan sitasi; pertanyaan lintas MK dan jawaban langsung asesmen ditolak; data pribadi disunting; saat UTS/UAS aktif materi terkunci tetapi jadwal/aturan tetap terjawab; "Kenapa tombol export saya tidak aktif?" dan "Kenapa poin tugas saya cuma 65%?" dijawab lapis administratif, sedangkan "Kenapa redaman mengurangi amplitudo?" dan "Mengapa respons melewati set point sebelum tunak?" tetap ke tutor (§6.8; sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`); mode `AI_PROVIDER=none` dan simulasi kuota tetap menghasilkan fallback retrieval |
 | Asisten di UTS/UAS | mahasiswa yang login (termasuk yang baru login dari layar tamu, tanpa muat ulang) melihat tombol 🤖 "Asisten Dosen" dan panel langsung di mode Asisten dengan catatan cakupan ujian; tab Online, nama/NIM mahasiswa lain, badge, dan jumlah online tidak terlihat; saat jendela UTS/UAS aktif pertanyaan materi dijawab pesan penguncian, permintaan kunci jawaban ditolak, jadwal/aturan ujian tetap terjawab; dosen tetap melihat tab Online sebagai default; tamu tidak melihat tombol; `#backToTop` tidak tertutup tombol chat di desktop maupun ≤480px; di ponsel 360/390 px (soal sudah tampil) tombol Asisten terlihat tanpa menggeser layar; pada laptop 1366×768 skala 125 % dan ponsel mendatar kolom tanya terlihat saat panel terbuka; Tab dari tombol tidak masuk ke panel yang tertutup; setelah logout (maupun logout paksa karena jadwal dihapus) riwayat Asisten mahasiswa tidak tersisa di localStorage dan formulir login tidak berisi PIN |
 | Data kelas di UTS/UAS | Mode Preview dan tamu di layar login: tab Hasil menampilkan placeholder "Data kelas hanya tersedia untuk dosen…", tanpa tabel kelas, papan Top Skor/Top Akses, dan statistik; di DevTools (Elements, Ctrl+F) nama/NIM mahasiswa lain tidak ditemukan sama sekali, juga setelah menunggu 30 detik; identitas `dosen` bernama lain sama; mahasiswa tetap hanya kartu "Nilai Anda"; dosen yang sudah melihat tabel kelas lalu memilih "← Pilih peran lain" → "Mode Preview" langsung mendapat placeholder (tanpa menunggu 30 detik); dosen yang login dari layar tamu langsung melihat tabel kelas, papan peringkat, statistik, dan daftar online tanpa muat ulang; logout paksa (jadwal dihapus) langsung mengosongkan data kelas dan badge online; placeholder Mode Preview mengarahkan ke tombol "Keluar Preview" di banner, placeholder tamu ke login mahasiswa; setelah jadwal berakhir, dosen yang memuat ulang halaman langsung melihat "Absen" yang menghitung mahasiswa Bolos (tanpa menunggu 30 detik) |
 | Identitas dosen lama/rekaan di UTS/UAS | isi localStorage identitas halaman dengan `{nama:'Dedik Romahadi'}` (tanpa role) atau `{role:'dosen', nama:'X'}`, lalu muat ulang saat jadwal berjalan dan sebelum jam mulai: pemilih peran tampil, tanpa 👥/🤖 FAB, tanpa chip "DOSEN · SOAL HANYA-BACA", tanpa pesan "belum dibuka"; pilih Dosen + password → tampilan dosen lengkap; dosen asli yang kembali tetap langsung masuk (juga sebelum jam mulai) |

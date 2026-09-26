@@ -195,7 +195,10 @@ repo publik ini.
   Deadline modul yang kanonis adalah `due` (WIB); perpanjangan satu kelas
   lewat `Admin/rescale-deadline.html` (NIM kosong) menulis `end` **dan**
   `due` dengan waktu buka tetap (backend `rescaleModulLatePenalty`, Pedoman
-  §5.4). Rescale ujian hanya menulis `end`/`extension` (§5.5).
+  §5.4) — berlaku sejak cabang backend
+  `fix/chat-kenapa-admin-dan-rescale-due` di-deploy; sebelumnya callable
+  produksi hanya menulis `end`. Rescale ujian hanya menulis `end`/`extension`
+  (§5.5).
 - **Penalti terlambat 0,65** (potongan 35%) seragam semua course; sumber
   kebenarannya server (`cfg.lateMultiplierValue`). Partial Hard 0,5.
 - **Skor.** Modul: 25 soal = 10 PG ×1 + 10 Komputasi ×2 + 5 Hard ×4 = 50.
