@@ -9233,14 +9233,21 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
  * (#vpList) dengan badge #vpBadge. Asisten membawa komposernya sendiri
  * (#vpAiComposer) dan tab "👥 Online" ↔ "🤖 Asisten Dosen". Chat kelas
  * (.vp-chat / #vpChatList / sendChat) tidak pernah dibuat di halaman ujian.
- *   • Dosen dan tamu: perilaku lama — tab Online tersedia dan menjadi default.
+ *   • Dosen dan tamu: perilaku lama — tab Online tersedia dan menjadi default,
+ *     dan riwayat/sapaan yang dimuat saat init dipertahankan walau identitas
+ *     berganti sesudahnya (mis. dosen login dari layar tamu).
  *   • Mahasiswa (identitas ber-NIM, bukan dosen — sama dengan aturan
  *     "UTS/UAS PRIVACY" halaman): daftar online adalah data dosen, jadi tab
  *     pemilih, #vpList, #vpBadge, dan #fabCount disembunyikan (kelas
  *     body.vp-ujian-mhs + !important), sisa daftar fase tamu dibuang dari DOM,
  *     judul panel menjadi "🤖 Asisten Dosen", mode dipaksa "ai", dan
  *     setMode("kelas") tidak berpengaruh. Tombolnya tetap #visitorFab milik
- *     halaman — skrip ini tidak membuat tombol kedua.
+ *     halaman — skrip ini tidak membuat tombol kedua. Login setelah init
+ *     memuat riwayat dan sapaan milik NIM itu.
+ *   • Riwayat mahasiswa di halaman ujian dibuang dari perangkat begitu tidak
+ *     ada lagi mahasiswa yang login (logout memuat ulang halaman → init tanpa
+ *     identitas mahasiswa; logout paksa karena jadwal dihapus → identitas
+ *     hilang tanpa muat ulang). Komputer lab dipakai bergantian.
  * Peran dievaluasi ulang setiap setMode/render, saat #visitorFab diklik (fase
  * capture), dan saat halaman memanggil ModulAiAgent.terapkanPeran() — karena
  * mahasiswa biasanya login SETELAH skrip ini terpasang. Penguncian tutor
@@ -9255,8 +9262,10 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
  * Riwayat disimpan di localStorage dengan kunci per modul DAN per NIM:
  * bertahan saat halaman dimuat ulang atau dibuka di tab baru, tidak pernah
  * tercampur antar modul, dan tidak terlihat oleh mahasiswa lain pada
- * perangkat yang sama. Jumlah yang disimpan dibatasi (STORE_MAX); yang
- * dikirim ke backend lebih ketat lagi (HISTORY_MAX).
+ * perangkat yang sama. Yang disimpan adalah isi memori, yang dipangkas
+ * pushMessage ke HISTORY_MAX + 6 = 14 pesan (STORE_MAX = 40 hanya batas atas
+ * saat membaca/menulis penyimpanan); yang dikirim ke backend lebih ketat lagi
+ * (HISTORY_MAX = 8).
  *
  * Skrip ini di-inline ke 84 Modul-N.html dan 12 Exam/UTS|UAS.html oleh
  * frontend-integration/apply-ai-chat.js (idempoten, ditandai marker).
@@ -9466,7 +9475,8 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
   var HISTORY_PREFIX = "modulAiChat:v2:";
   var HISTORY_MAX = 8;           // dikirim ke backend (selaras batas backend)
   var HISTORY_MAX_CHARS = 1200;
-  var STORE_MAX = 40;            // disimpan & ditampilkan ulang di perangkat ini
+  var STORE_MAX = 40;            // batas atas baca/tulis penyimpanan; praktiknya ≤ HISTORY_MAX + 6 (pushMessage)
+  var SEND_GAP_MS = 1500;        // jeda antispam antar-pertanyaan
 
   // Kunci memuat moduleId DAN NIM: di komputer bersama (lab), mahasiswa lain
   // yang login tidak melihat percakapan pemilik sebelumnya.
@@ -9608,14 +9618,25 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
   // Kelas body dipasang/dilepas oleh syncExamRole() mengikuti identitas.
   var EXAM_STUDENT_CLASS = "vp-ujian-mhs";
   var EXAM_STUDENT_TITLE = "🤖 Asisten Dosen";
+  // Sapaan dan chip identik dengan backend (greeting.js), jadi tidak diubah;
+  // kalimat kedua menjelaskan mengapa tawaran materinya ditolak selama ujian.
   var EXAM_STUDENT_NOTE =
-    "Selama UTS/UAS berlangsung, Asisten hanya membantu jadwal, aturan ujian, dan kendala administratif; materi dan jawaban soal tidak dijawab.";
+    "Selama UTS/UAS berlangsung, Asisten hanya membantu jadwal, aturan ujian, dan kendala administratif; materi dan jawaban soal tidak dijawab. " +
+    "Tawaran penjelasan materi pada sapaan dan contoh pertanyaan hanya berlaku di luar jendela ujian.";
   var EXAM_STYLE_ID = "vp-ai-style-ujian";
   var EXAM_CSS = [
     /* Daftar mahasiswa online (nama, NIM, status terlambat) dan jumlahnya hanya
        untuk dosen. !important: tidak ada setMode/render halaman yang dapat
        memunculkannya kembali selama kelas ini terpasang. */
     "body." + EXAM_STUDENT_CLASS + " #visitorPanel .vp-mode-tabs,body." + EXAM_STUDENT_CLASS + " #vpList,body." + EXAM_STUDENT_CLASS + " #vpBadge,body." + EXAM_STUDENT_CLASS + " #fabCount{display:none!important}",
+    /* Layar pendek (laptop 1366×768 dengan skala 125 %, ponsel mendatar): tinggi
+       minimum daftar ikut tinggi layar supaya kolom tanya dan tombol kirim tetap
+       di dalam panel (max-height 100vh - 116px, overflow hidden). 300px = 116 +
+       judul + toolbar + komposer mahasiswa (tanpa tab) + sedikit ruang. Layar
+       yang cukup tinggi tetap memakai min(480px,55vh) / min(320px,45vh) bawaan.
+       Khusus mahasiswa: tampilan dosen tidak berubah. */
+    "body." + EXAM_STUDENT_CLASS + " #visitorPanel .vp-ai-list{min-height:min(480px,55vh,calc(100vh - 300px))}",
+    "@media(max-width:480px){body." + EXAM_STUDENT_CLASS + " #visitorPanel .vp-ai-list{min-height:min(320px,45vh,calc(100vh - 300px))}}",
     ".vp-ai-note{align-self:stretch;max-width:100%;padding:7px 10px;border-radius:10px;border:1px dashed rgba(34,211,238,.35);background:rgba(34,211,238,.06);color:#a5f3fc;font-size:.72rem;line-height:1.45}",
   ].join("");
 
@@ -9633,6 +9654,7 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
     lastSentAt: 0,
     examUi: false,   // true bila panel halaman ujian (tanpa chat kelas)
     historyOwner: null,  // kunci riwayat yang sedang dimuat (halaman ujian: deteksi login)
+    historyOwnerStudent: false,  // pemilik riwayat itu mahasiswa di halaman ujian
     doc: null,
     win: null,
   };
@@ -9663,17 +9685,55 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
   }
 
   /**
+   * Hapus riwayat Asisten milik mahasiswa (kunci ber-NIM) untuk halaman ujian
+   * ini dari localStorage dan sessionStorage. Komputer lab dipakai bergantian:
+   * percakapan selama ujian tidak boleh tertinggal untuk pengguna berikutnya
+   * setelah pemiliknya logout. Kunci tamu/dosen serta kunci modul dan ujian lain
+   * tidak disentuh. No-op di halaman modul.
+   * @param {string|null} keepKey kunci milik mahasiswa yang kini login (dipertahankan)
+   */
+  function forgetExamStudentHistory(keepKey) {
+    if (!state.examUi || !state.win) return;
+    var prefix = HISTORY_PREFIX + String(state.moduleId || "unknown") + ":";
+    var names = ["localStorage", "sessionStorage"];
+    for (var n = 0; n < names.length; n++) {
+      var s = null;
+      try { s = state.win[names[n]]; } catch (e) { s = null; }   // diblokir
+      if (!s || typeof s.key !== "function") continue;
+      try {
+        var stale = [];
+        for (var i = 0; i < s.length; i++) {
+          var k = s.key(i);
+          if (k && k !== keepKey && k.indexOf(prefix) === 0 && /^\d+$/.test(k.slice(prefix.length))) stale.push(k);
+        }
+        for (var j = 0; j < stale.length; j++) s.removeItem(stale[j]);
+      } catch (e) { /* penyimpanan tidak bisa dibaca — tidak ada yang tertinggal */ }
+    }
+  }
+
+  /**
    * Mahasiswa biasanya login SETELAH agent terpasang (init berjalan saat
    * DOMContentLoaded, login lewat overlay PIN sesudahnya). Bila pemilik riwayat
    * berganti (tamu → NIM), muat riwayat milik NIM itu dan pasang sapaan baru yang
    * menyebut namanya. Tanpa ini pertanyaan pertama menimpa riwayat NIM tersebut
    * dengan percakapan tamu yang kosong.
+   *
+   * Hanya peralihan yang melibatkan mahasiswa yang ditangani. Dosen dan tamu
+   * tetap berperilaku lama: riwayat dan sapaan yang dimuat saat init dipakai
+   * terus walau identitas berganti sesudahnya (mis. dosen login dari layar tamu).
    */
   function refreshExamIdentity() {
     if (!state.examUi || state.busy) return;
     var key = historyKey(state.moduleId);
     if (key === state.historyOwner) return;
+    var student = isExamStudent();
+    if (!student && !state.historyOwnerStudent) return;
+    // Identitas mahasiswa sebelumnya hilang atau berganti tanpa muat ulang
+    // (logout paksa karena jadwal dihapus, lalu mungkin orang lain login):
+    // riwayatnya dibuang dari perangkat, bukan hanya dari layar.
+    if (state.historyOwnerStudent) forgetExamStudentHistory(student ? key : null);
     state.historyOwner = key;
+    state.historyOwnerStudent = student;
     state.messages = loadHistory(state.moduleId).map(function (m) {
       return { role: m.role, content: m.content, kind: "text" };
     });
@@ -9785,7 +9845,10 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
     return trimHistory(conversationOnly());
   }
 
-  /** Yang disimpan lebih panjang (STORE_MAX) supaya riwayat tampil utuh lagi. */
+  /**
+   * Simpan percakapan di memori (≤ HISTORY_MAX + 6 pesan, lihat pushMessage)
+   * supaya tampil lagi saat halaman dibuka ulang.
+   */
   function persist() {
     saveHistory(state.moduleId, conversationOnly());
   }
@@ -9903,7 +9966,7 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
     refreshExamIdentity();
     if (!canAsk()) { renderAi(); return; }
     var now = Date.now();
-    if (now - state.lastSentAt < 1500) return;
+    if (now - state.lastSentAt < SEND_GAP_MS) return;
     state.lastSentAt = now;
 
     var history = historyForRequest();
@@ -10067,6 +10130,10 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
     if (!input) return;
     var text = String(input.value || "").trim();
     if (!text) return;
+    // Balasan sebelumnya belum tiba, atau jeda antispam belum lewat: ask() akan
+    // mengabaikan pesan ini, jadi draf dibiarkan di kolom tanya (indikator
+    // mengetik sudah tampil) alih-alih terhapus tanpa terkirim.
+    if (state.busy || Date.now() - state.lastSentAt < SEND_GAP_MS) return;
     input.value = "";
     ask(text);
   }
@@ -10159,7 +10226,12 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
     state.lastSentAt = 0;   // halaman modul baru → throttle antispam dimulai bersih
 
     // Riwayat modul ini saja — kunci penyimpanan memuat moduleId.
+    // Halaman ujian dibuka tanpa login mahasiswa (mis. sesudah logout, yang
+    // memuat ulang halaman): riwayat mahasiswa di perangkat ini dibuang dulu.
+    var examStudent = isExamStudent();
+    if (state.examUi && !examStudent) forgetExamStudentHistory(null);
     state.historyOwner = historyKey(state.moduleId);
+    state.historyOwnerStudent = examStudent;
     state.messages = loadHistory(state.moduleId).map(function (m) {
       return { role: m.role, content: m.content, kind: "text" };
     });
