@@ -5783,7 +5783,7 @@ window._logoutUAS = async function() {
 // ═══════════════════════════════════════════════════════
 function _applyRoleVisibility() {
   const me = (function(){ try { return JSON.parse(localStorage.getItem(LOCAL_IDENTITY) || 'null'); } catch(e){ return null; } })();
-  const isDosen = !!(me && me.role === 'dosen' && me.nama && me.nama.toLowerCase() === 'dedik romahadi');
+  const isDosen = _dosenUjianTerverifikasi(me);   // PRIVASI-HASIL-UJIAN: aturan dosen tunggal, sama dengan gerbang data kelas
   const isStudent = !!(me && me.nim && me.role !== 'dosen');
   // Pantau override jadwal (ujian susulan) untuk mahasiswa yang login.
   if (typeof window._watchScheduleOverride === 'function') {
@@ -5823,6 +5823,12 @@ function _applyRoleVisibility() {
     }
   }
   // ASISTEN-UJIAN-MAHASISWA:PERAN END v2
+  // PRIVASI-HASIL-UJIAN:PERAN BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+  // Peran baru langsung berlaku di tab Hasil dan daftar online: dosen yang baru
+  // login dari layar tamu/Preview langsung melihat data kelas, sedangkan logout
+  // paksa (jadwal dihapus) langsung membuangnya dari DOM.
+  _segarkanHasilUjian();
+  // PRIVASI-HASIL-UJIAN:PERAN END v1
 }
 window._applyRoleVisibility = _applyRoleVisibility;
 // ═══ ASISTEN-UJIAN-MAHASISWA:JS BEGIN v2 — dipasang scripts/buka-asisten-ujian.mjs ═══
@@ -5910,6 +5916,85 @@ function _bersihkanFormLoginUjian(adaIdentitas) {
   }
 }
 // ═══ ASISTEN-UJIAN-MAHASISWA:JS END v2 ═══
+// ═══ PRIVASI-HASIL-UJIAN:JS BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs ═══
+// Data kelas halaman UTS/UAS — tabel tab Hasil (nama, NIM, status
+// Terlambat/Bolos/Tepat Waktu, poin, kunjungan, waktu akses), papan Top Skor/
+// Top Akses, statistik kelas, dan daftar mahasiswa online — hanya dirender
+// untuk dosen terverifikasi. Tamu di layar login dan Mode Preview mendapat
+// placeholder netral; mahasiswa tetap hanya melihat kartu nilainya sendiri.
+// Dulu "bukan mahasiswa" diperlakukan sebagai dosen, sehingga mahasiswa yang
+// sedang ujian bisa membuka tab kedua dalam Mode Preview dan melihat status
+// serta nilai seluruh kelas. RTDB visitors/presence tetap terbaca publik: ini
+// penjaga UI, bukan batas keamanan (Pedoman §7.8).
+function _dosenUjianTerverifikasi(me) {
+  // SATU-SATUNYA aturan "dosen" halaman ujian. Dipakai _applyRoleVisibility
+  // (tombol Reset, banner jadwal, #visitorFab) dan gerbang data kelas di bawah,
+  // jadi keduanya tidak bisa menyimpang.
+  return !!(me && me.role === 'dosen' && typeof me.nama === 'string' && me.nama.toLowerCase() === 'dedik romahadi');
+}
+function _dataKelasUjianBoleh() {
+  // Mode Preview tidak pernah melihat data kelas, apa pun identitas yang
+  // kebetulan tersimpan di localStorage.
+  if (window._previewMode) return false;
+  const me = (typeof getIdentity === 'function') ? getIdentity() : null;
+  return _dosenUjianTerverifikasi(me);
+}
+function _judulTabelHasilUjian(tableEl) {
+  // Baris judul kolom (No/Nama/NIM/Status/...) tepat di atas #visitorTableBody;
+  // dikenali dengan cara yang sama seperti cabang mahasiswa renderVisitors.
+  const judul = tableEl ? tableEl.previousElementSibling : null;
+  return (judul && judul.style && judul.textContent.toUpperCase().includes('STATUS')) ? judul : null;
+}
+function _kosongkanPapanKelasUjian() {
+  // Papan Top Skor/Top Akses dan statistik kelas: isinya dibuang dari DOM.
+  for (const id of ['rajinList', 'santaiList']) {
+    const el = document.getElementById(id);
+    if (el && el.innerHTML) el.innerHTML = '';
+  }
+  for (const id of ['statTotalMhs', 'statHadir', 'statAbsen', 'statLate']) {
+    const el = document.getElementById(id);
+    if (el && el.textContent !== '—') el.textContent = '—';
+  }
+}
+function _tampilkanHasilTanpaDataKelas() {
+  // Tamu / Mode Preview: tidak ada data mahasiswa lain di mana pun di DOM.
+  _kosongkanRosterUjian();          // daftar online, badge, jumlah (buka-asisten-ujian.mjs)
+  _kosongkanPapanKelasUjian();
+  const lb = document.getElementById('leaderboardPanel');
+  if (lb && lb.style.display !== 'none') lb.style.display = 'none';
+  const tableEl = document.getElementById('visitorTableBody');
+  const judul = _judulTabelHasilUjian(tableEl);
+  if (judul && judul.style.display !== 'none') judul.style.display = 'none';
+  if (!tableEl) return;
+  const sudah = tableEl.childElementCount === 1 && tableEl.firstElementChild.getAttribute('data-privasi-hasil') === 'tanpa-data-kelas';
+  if (!sudah) {
+    tableEl.innerHTML = '<div data-privasi-hasil="tanpa-data-kelas" style="padding:48px 28px;text-align:center;color:#94a3b8">'
+      + '<div style="font-size:48px;margin-bottom:16px">🔐</div>'
+      + '<h3 style="color:#fff;font-size:1.2rem;margin-bottom:8px">Data Kelas Khusus Dosen</h3>'
+      + '<p style="font-size:.85rem;line-height:1.6">Data kelas hanya tersedia untuk dosen. Masuk sebagai mahasiswa untuk melihat nilai Anda sendiri.</p>'
+      + '</div>';
+  }
+}
+function _pulihkanTataHasilDosen() {
+  // Jalur dosen: papan peringkat dan judul tabel yang sempat disembunyikan untuk
+  // tamu/Preview (atau oleh cabang mahasiswa sebelum logout paksa) tampil lagi.
+  // Judul tabel ber-inline display:flex di markup ke-12 halaman.
+  const lb = document.getElementById('leaderboardPanel');
+  if (lb && lb.style.display === 'none') lb.style.display = '';
+  const judul = _judulTabelHasilUjian(document.getElementById('visitorTableBody'));
+  if (judul && judul.style.display === 'none') judul.style.display = 'flex';
+}
+function _segarkanHasilUjian() {
+  // Render ulang tab Hasil dan daftar online dari data terakhir begitu peran
+  // berubah (login dosen dari layar tamu, logout paksa), tanpa menunggu event
+  // RTDB berikutnya atau interval 30 detik.
+  let data;
+  try { data = latestVisitors; } catch (e) { return; }   // skrip belum selesai dievaluasi; render pertama datang dari listener RTDB
+  try {
+    renderVisitors(Array.isArray(data) ? data : []);
+  } catch (e) { console.warn('[Privasi hasil ujian] render ulang gagal:', e); }
+}
+// ═══ PRIVASI-HASIL-UJIAN:JS END v1 ═══
 function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-zA-Z.'\-]*$/.test(w));}
 function isValidNim(n){return /^\d+$/.test(n);}
 function sanitizeKey(s){return s.replace(/[.#$\/\[\]]/g,'_');}
@@ -5976,6 +6061,11 @@ function fetchMasterStudents(retries){
 const SIM_NIMS = new Set(["41399999901"]);
 const isSimulasiNim = (nim) => SIM_NIMS.has(String(nim || ''));
 function updateLeaderboard(visitors, schedExpired){
+  // PRIVASI-HASIL-UJIAN:LEADERBOARD BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+  // fetchMasterStudents memanggil fungsi ini untuk SIAPA PUN; papan Top Skor/
+  // Top Akses dan statistik kelas hanya diisi untuk dosen terverifikasi.
+  if (!_dataKelasUjianBoleh()) { _kosongkanPapanKelasUjian(); return; }
+  // PRIVASI-HASIL-UJIAN:LEADERBOARD END v1
   const rajinEl=document.getElementById('rajinList'), santaiEl=document.getElementById('santaiList');
   if(!rajinEl)return;
   if(!masterStudents.length){rajinEl.innerHTML='<span style="color:#64748b;font-size:.75rem;">Memuat data mahasiswa...</span>';santaiEl.innerHTML=rajinEl.innerHTML;return;}
@@ -6610,6 +6700,18 @@ function renderVisitors(visitors){
     return;
   }
 
+  // PRIVASI-HASIL-UJIAN:RENDER BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+  // Bukan mahasiswa BUKAN berarti dosen. Tamu di layar login dan Mode Preview
+  // berhenti di sini dengan placeholder netral; tabel kelas, papan peringkat,
+  // statistik, dan daftar online di bawah hanya untuk dosen terverifikasi
+  // (_dosenUjianTerverifikasi, aturan yang sama dengan _applyRoleVisibility).
+  if (!_dataKelasUjianBoleh()) {
+    _tampilkanHasilTanpaDataKelas();
+    return;
+  }
+  _pulihkanTataHasilDosen();
+  // PRIVASI-HASIL-UJIAN:RENDER END v1
+
   // === DOSEN VIEW: lihat semua (default behavior) ===
   // Per Pedoman §17.3: label "Terlambat" butuh points > 0 (bukan hanya timestamp di zona 24h).
   // Mahasiswa yang akses di zona 24h tapi 0 poin statusnya "Belum" (jadwal aktif) atau "Bolos" (selesai).
@@ -7190,6 +7292,12 @@ window._previewMode = false;
 window.enterPreviewMode = async function() {
   await signOut(_auth).catch(() => {});
   window._previewMode = true;
+  // PRIVASI-HASIL-UJIAN:PREVIEW BEGIN v1 — dipasang scripts/privasi-hasil-ujian.mjs
+  // Mode Preview berlaku seketika di tab Hasil dan daftar online: data kelas
+  // yang sudah dirender untuk identitas dosen tersimpan dibuang dari DOM
+  // sekarang, bukan pada event RTDB berikutnya atau interval 30 detik.
+  _segarkanHasilUjian();
+  // PRIVASI-HASIL-UJIAN:PREVIEW END v1
   const rc = document.getElementById('roleChooserOverlay');
   if (rc) rc.classList.add('hidden');
   const vo = document.getElementById('visitorOverlay');

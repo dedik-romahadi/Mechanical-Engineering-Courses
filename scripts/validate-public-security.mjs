@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import vm from "node:vm";
 import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
@@ -481,6 +482,224 @@ for (const course of courseRoots) {
   }
 }
 if (examAsisten !== 12) throw new Error(`Expected 12 UTS/UAS pages with the student Asisten launcher, found ${examAsisten}`);
+
+// Data kelas UTS/UAS hanya untuk dosen terverifikasi (scripts/privasi-hasil-ujian.mjs,
+// 26 September 2026). Tabel tab Hasil (nama, NIM, status Terlambat/Bolos/Tepat
+// Waktu, poin, kunjungan, waktu akses), papan Top Skor/Top Akses, statistik
+// kelas, dan daftar online dulu dirender untuk SIAPA PUN yang bukan mahasiswa —
+// termasuk tamu di layar login dan Mode Preview, sehingga mahasiswa yang sedang
+// ujian cukup membuka tab kedua dalam Mode Preview untuk melihat status dan
+// nilai seluruh kelas. Pemeriksaan di bawah menagih gerbangnya secara teks DAN
+// menjalankan renderVisitors/updateLeaderboard halaman itu sendiri di sandbox
+// (DOM tiruan) untuk tamu, Preview, mahasiswa, dan dosen.
+const PENUTUP_CABANG_MHS = "    // Skip rest of dosen-only rendering\n    return;\n  }\n";
+const DATA_UJI = {
+  peers: [
+    { nim: "41399000011", nama: "BUDI PEERLATE", points: 5, visitCount: 3 },
+    { nim: "41399000012", nama: "CITRA PEERONLINE", points: 0, visitCount: 1 },
+    { nim: "41399000013", nama: "DODI PEERTOP", points: 10, visitCount: 2 },
+  ],
+  student: { nim: "41300000001", nama: "TES MAHASISWA SATU" },
+};
+const RX_DATA_TEMAN = /peerlate|peeronline|peertop|4139900001\d|roster only|41300000099/i;
+function ambilFungsi(exam, awal, relative) {
+  const i = exam.indexOf(awal);
+  const j = i < 0 ? -1 : exam.indexOf("\n}\n", i);
+  if (i < 0 || j < 0) throw new Error(`${relative}: ${awal} not found`);
+  return exam.slice(i, j + 3);
+}
+function ambilBlok(exam, awal, akhir, relative) {
+  const i = exam.indexOf(awal);
+  const j = i < 0 ? -1 : exam.indexOf(akhir, i);
+  if (i < 0 || j < 0) throw new Error(`${relative}: block ${awal} not found`);
+  return exam.slice(i, exam.indexOf("\n", j) + 1);
+}
+/** Jalankan renderVisitors/updateLeaderboard halaman di sandbox; kembalikan isi DOM tiruan. */
+function simulasiHasilUjian(exam, relative) {
+  const kode = [
+    ambilFungsi(exam, "function renderVisitors(visitors){", relative),
+    ambilFungsi(exam, "function updateLeaderboard(visitors, schedExpired){", relative),
+    ambilBlok(exam, "// ═══ ASISTEN-UJIAN-MAHASISWA:JS BEGIN", "// ═══ ASISTEN-UJIAN-MAHASISWA:JS END", relative),
+    ambilBlok(exam, "// ═══ PRIVASI-HASIL-UJIAN:JS BEGIN", "// ═══ PRIVASI-HASIL-UJIAN:JS END", relative),
+  ].join("\n");
+  const el = {};
+  const buat = (id, isi = {}) => (el[id] = { id, innerHTML: "", textContent: "", style: { display: "" }, ...isi });
+  for (const id of ["leaderboardPanel", "fabCount", "vpBadge", "statLate", "vpList", "rajinList", "santaiList", "statTotalMhs", "statHadir", "statAbsen"]) buat(id);
+  const judul = buat("(judul tabel)", { textContent: "No Nama NIM Status Poin (Nilai) Kunjungan Waktu Akses", style: { display: "flex" } });
+  buat("visitorTableBody", { previousElementSibling: judul });
+  const now = Date.now();
+  const ts = new Date(now - 20 * 60000).toISOString();
+  const visitors = [...DATA_UJI.peers, DATA_UJI.student].map((p) => ({ role: "student", timestamp: ts, lastVisit: ts, points: 0, visitCount: 1, ...p }));
+  const presence = Object.fromEntries(DATA_UJI.peers.map((p) => [`mhs_${p.nim}`, { nim: p.nim, nama: p.nama, role: "student", lastSeen: now }]));
+  const konteks = {
+    identitas: null,
+    window: { _previewMode: false },
+    document: { getElementById: (id) => el[id] || null },
+    console: { warn() {}, log() {}, error() {} },
+    getIdentity: () => konteks.identitas,
+    isSimulasiNim: () => false,
+    isLate: () => false,
+    pointsToScore: (p) => p,
+    formatPoints: (p) => String(p),
+    escH: (s) => String(s == null ? "" : s),
+    masterStudents: [...DATA_UJI.peers, DATA_UJI.student, { nim: "41300000099", nama: "ROSTER ONLY" }].map(({ nim, nama }) => ({ nim, nama })),
+    masterFetchDone: true,
+    onlinePresence: presence,
+    ONLINE_THRESHOLD_MS: 45000,
+    currentSchedule: null,
+    latestVisitors: visitors,
+  };
+  vm.createContext(konteks);
+  try { vm.runInContext(kode, konteks, { filename: `${relative}#hasil-kelas` }); }
+  catch (e) { throw new Error(`${relative}: renderVisitors/updateLeaderboard could not be loaded into the class-data sandbox: ${e.message}`); }
+  const isiDom = () => Object.values(el).map((e) => `${e.innerHTML}\n${e.textContent}`).join("\n");
+  const jalankan = (kodeJalan, label) => {
+    try { vm.runInContext(kodeJalan, konteks); }
+    catch (e) { throw new Error(`${relative}: class-data sandbox (${label}) threw ${e.message}; update simulasiHasilUjian if the page gained new dependencies`); }
+  };
+  return { el, konteks, isiDom, jalankan };
+}
+const IDENTITAS_DOSEN = { nama: "Dedik Romahadi", nim: "DOSEN", role: "dosen" };
+let examPrivasiHasil = 0;
+for (const course of courseRoots) {
+  for (const examName of ["UTS.html", "UAS.html"]) {
+    const relative = `${course}/Exam/${examName}`;
+    const exam = fs.readFileSync(path.join(root, relative), "utf8");
+    for (const required of [
+      "// ═══ PRIVASI-HASIL-UJIAN:JS BEGIN",
+      "  // PRIVASI-HASIL-UJIAN:PERAN BEGIN",
+      "  // PRIVASI-HASIL-UJIAN:PREVIEW BEGIN",
+      "  // PRIVASI-HASIL-UJIAN:RENDER BEGIN",
+      "  // PRIVASI-HASIL-UJIAN:LEADERBOARD BEGIN",
+      "function _dosenUjianTerverifikasi(me) {\n",
+      "  return !!(me && me.role === 'dosen' && typeof me.nama === 'string' && me.nama.toLowerCase() === 'dedik romahadi');\n",
+      "function _dataKelasUjianBoleh() {\n  // Mode Preview tidak pernah melihat data kelas, apa pun identitas yang\n  // kebetulan tersimpan di localStorage.\n  if (window._previewMode) return false;\n",
+      "  _kosongkanRosterUjian();          // daftar online, badge, jumlah (buka-asisten-ujian.mjs)\n  _kosongkanPapanKelasUjian();\n",
+      "Data kelas hanya tersedia untuk dosen. Masuk sebagai mahasiswa untuk melihat nilai Anda sendiri.",
+    ]) {
+      if (!exam.includes(required)) throw new Error(`${relative}: lecturer-only class data gate missing ${required.split("\n")[0]}`);
+    }
+
+    // _applyRoleVisibility memakai aturan dosen yang sama dan merender ulang
+    // tab Hasil begitu peran berubah (login dosen dari layar tamu/Preview).
+    const peran = ambilFungsi(exam, "function _applyRoleVisibility() {", relative);
+    if (!peran.includes("\n  const isDosen = _dosenUjianTerverifikasi(me);") || /toLowerCase\(\) === 'dedik romahadi'/.test(peran)) {
+      throw new Error(`${relative}: _applyRoleVisibility must take isDosen from _dosenUjianTerverifikasi (one lecturer rule for the page)`);
+    }
+    if (!/\n  _segarkanHasilUjian\(\);\n  \/\/ PRIVASI-HASIL-UJIAN:PERAN END[^\n]*\n\}\n$/.test(peran)) {
+      throw new Error(`${relative}: _applyRoleVisibility must end by re-rendering the Hasil tab (_segarkanHasilUjian) so a lecturer login shows class data at once`);
+    }
+
+    // enterPreviewMode merender ulang tepat sesudah flag Preview dinyalakan:
+    // data kelas yang sudah dirender untuk identitas dosen tersimpan dibuang
+    // seketika, bukan pada event RTDB berikutnya atau interval 30 detik.
+    const AWAL_PREVIEW = "window.enterPreviewMode = async function() {\n  await signOut(_auth).catch(() => {});\n  window._previewMode = true;\n  // PRIVASI-HASIL-UJIAN:PREVIEW BEGIN";
+    if (exam.split(AWAL_PREVIEW).length !== 2) {
+      throw new Error(`${relative}: enterPreviewMode must re-render the Hasil tab right after window._previewMode = true (PRIVASI-HASIL-UJIAN:PREVIEW)`);
+    }
+    const blokPreview = ambilBlok(exam, "  // PRIVASI-HASIL-UJIAN:PREVIEW BEGIN", "  // PRIVASI-HASIL-UJIAN:PREVIEW END", relative);
+    const kodePreview = blokPreview.split("\n").filter((b) => b.trim() && !b.trim().startsWith("//"));
+    if (kodePreview.length !== 1 || kodePreview[0] !== "  _segarkanHasilUjian();") {
+      throw new Error(`${relative}: PRIVASI-HASIL-UJIAN:PREVIEW must only call _segarkanHasilUjian(), found: ${kodePreview.join(" | ")}`);
+    }
+
+    // renderVisitors: gerbang tepat sesudah cabang mahasiswa, sebelum tulisan
+    // data kelas apa pun.
+    const rv = ambilFungsi(exam, "function renderVisitors(visitors){", relative);
+    const akhirMhs = rv.indexOf(PENUTUP_CABANG_MHS);
+    const GERBANG = "  if (!_dataKelasUjianBoleh()) {\n    _tampilkanHasilTanpaDataKelas();\n    return;\n  }\n  _pulihkanTataHasilDosen();\n";
+    const gerbang = rv.indexOf(GERBANG);
+    if (akhirMhs < 0 || gerbang < 0) {
+      throw new Error(`${relative}: renderVisitors lecturer-only gate (_dataKelasUjianBoleh) missing after the student branch`);
+    }
+    const antara = rv.slice(akhirMhs + PENUTUP_CABANG_MHS.length, gerbang).split("\n").filter((b) => b.trim() && !b.trim().startsWith("//"));
+    if (antara.length) throw new Error(`${relative}: code runs between the student branch and the lecturer-only gate: ${antara[0].trim()}`);
+    for (const tulis of [
+      "document.getElementById('fabCount').textContent=",
+      "updateLeaderboard(visitors, schedExpired);",
+      "document.getElementById('vpBadge').textContent=",
+      "listEl.innerHTML=",
+      "tableEl.innerHTML=masterStudents",
+    ]) {
+      const i = rv.indexOf(tulis, akhirMhs);
+      if (i < 0 || i < gerbang) throw new Error(`${relative}: ${tulis} must stay behind the lecturer-only gate in renderVisitors`);
+    }
+    // updateLeaderboard: gerbang di baris pertama (fetchMasterStudents memanggilnya untuk siapa pun).
+    const lb = ambilFungsi(exam, "function updateLeaderboard(visitors, schedExpired){", relative);
+    const pernyataanPertama = lb.split("\n").slice(1).find((b) => b.trim() && !b.trim().startsWith("//"));
+    if (pernyataanPertama !== "  if (!_dataKelasUjianBoleh()) { _kosongkanPapanKelasUjian(); return; }") {
+      throw new Error(`${relative}: updateLeaderboard must start with the lecturer-only gate, found: ${pernyataanPertama}`);
+    }
+    const blokPrivasi = ambilBlok(exam, "// ═══ PRIVASI-HASIL-UJIAN:JS BEGIN", "// ═══ PRIVASI-HASIL-UJIAN:JS END", relative);
+    if (/masterStudents|onlinePresence|onlineVisited|visitMap/.test(blokPrivasi)) {
+      throw new Error(`${relative}: PRIVASI-HASIL-UJIAN helpers must only gate and clear class data, never read or fill it`);
+    }
+
+    // Perilaku, dijalankan dari kode halaman itu sendiri.
+    const { el, konteks, isiDom, jalankan } = simulasiHasilUjian(exam, relative);
+    const aturan = vm.runInContext("_dosenUjianTerverifikasi", konteks);
+    for (const [me, harap] of [
+      [IDENTITAS_DOSEN, true], [{ ...IDENTITAS_DOSEN, nama: "DEDIK ROMAHADI" }, true], [null, false], [{}, false],
+      [{ ...IDENTITAS_DOSEN, role: "student" }, false], [{ ...IDENTITAS_DOSEN, nama: "Dosen Lain" }, false],
+      [{ ...IDENTITAS_DOSEN, nama: 42 }, false], [{ nim: DATA_UJI.student.nim, nama: DATA_UJI.student.nama, role: "student" }, false],
+    ]) {
+      if (aturan(me) !== harap) throw new Error(`${relative}: _dosenUjianTerverifikasi(${JSON.stringify(me)}) should be ${harap}`);
+    }
+    const tanpaDataKelas = (label) => {
+      const isi = isiDom();
+      const bocor = isi.match(RX_DATA_TEMAN);
+      if (bocor) throw new Error(`${relative}: ${label} still gets class data in the DOM (${bocor[0]})`);
+      if (!el.visitorTableBody.innerHTML.includes("Data kelas hanya tersedia untuk dosen.")) throw new Error(`${relative}: ${label} does not get the class-data placeholder`);
+      if (el.leaderboardPanel.style.display !== "none" || el["(judul tabel)"].style.display !== "none") throw new Error(`${relative}: ${label} still sees the leaderboard or the table header`);
+      for (const id of ["vpList", "vpBadge", "fabCount", "rajinList", "santaiList"]) {
+        if (`${el[id].innerHTML}${el[id].textContent}`.trim()) throw new Error(`${relative}: ${label} leaves #${id} filled`);
+      }
+    };
+    const denganDataKelas = (label) => {
+      const isi = isiDom();
+      for (const perlu of ["41399000011", "41399000013", "41300000099"]) {
+        if (!el.visitorTableBody.innerHTML.includes(perlu)) throw new Error(`${relative}: ${label}: lecturer class table lost ${perlu}`);
+      }
+      if (!/PEERONLINE/.test(el.vpList.innerHTML) || el.vpBadge.textContent !== "3 online" || String(el.fabCount.textContent) !== "3") {
+        throw new Error(`${relative}: ${label}: lecturer online roster not rendered`);
+      }
+      if (!/PEERTOP/.test(el.rajinList.innerHTML) || !/PEER/.test(isi)) throw new Error(`${relative}: ${label}: lecturer leaderboard not rendered`);
+      if (el.leaderboardPanel.style.display === "none" || el["(judul tabel)"].style.display !== "flex") throw new Error(`${relative}: ${label}: lecturer leaderboard/table header stay hidden`);
+    };
+    const render = (label) => jalankan("renderVisitors(latestVisitors); updateLeaderboard(latestVisitors, false);", label);
+
+    // Tamu di layar login.
+    render("guest"); tanpaDataKelas("guest");
+    // Mode Preview, termasuk bila identitas dosen kebetulan tersimpan.
+    konteks.window._previewMode = true; render("preview"); tanpaDataKelas("preview");
+    konteks.identitas = IDENTITAS_DOSEN; render("preview+dosen"); tanpaDataKelas("preview with a stored lecturer identity");
+    konteks.window._previewMode = false;
+    // Identitas 'dosen' yang bukan dosen pengampu.
+    konteks.identitas = { ...IDENTITAS_DOSEN, nama: "Dosen Lain" }; render("other dosen"); tanpaDataKelas("unverified dosen identity");
+    // Tamu → dosen login: _segarkanHasilUjian (dipanggil _applyRoleVisibility) langsung memunculkan data kelas.
+    konteks.identitas = null; render("guest again"); tanpaDataKelas("guest (again)");
+    konteks.identitas = IDENTITAS_DOSEN; jalankan("_segarkanHasilUjian();", "guest->dosen");
+    denganDataKelas("guest -> lecturer login (_segarkanHasilUjian)");
+    render("dosen"); denganDataKelas("lecturer");
+    // Dosen → Mode Preview (identitas dosen tetap tersimpan): blok PREVIEW
+    // halaman itu sendiri langsung membuang data kelas yang sudah dirender.
+    konteks.window._previewMode = true; jalankan(blokPreview, "lecturer->preview");
+    tanpaDataKelas("lecturer -> Mode Preview (enterPreviewMode, before any new RTDB event)");
+    konteks.window._previewMode = false; render("dosen again"); denganDataKelas("lecturer (again)");
+    // Dosen → logout paksa (identitas dihapus): data kelas langsung dibuang.
+    konteks.identitas = null; jalankan("_segarkanHasilUjian();", "forced logout"); tanpaDataKelas("after forced logout");
+    // Mahasiswa: tetap hanya kartu nilai sendiri, papan peringkat tidak terisi.
+    konteks.identitas = { nim: DATA_UJI.student.nim, nama: DATA_UJI.student.nama, role: "student" };
+    render("student");
+    const bocorMhs = isiDom().match(RX_DATA_TEMAN);
+    if (bocorMhs) throw new Error(`${relative}: student gets class data in the DOM (${bocorMhs[0]})`);
+    if (!el.visitorTableBody.innerHTML.includes("Nilai Anda") && !el.visitorTableBody.innerHTML.includes("Belum Ada Data")) {
+      throw new Error(`${relative}: student no longer gets the own-score card`);
+    }
+    examPrivasiHasil += 1;
+  }
+}
+if (examPrivasiHasil !== 12) throw new Error(`Expected 12 UTS/UAS pages with lecturer-only class data, found ${examPrivasiHasil}`);
 
 const formatPointsForValidation = (pts) => {
   const value = Number(pts);
