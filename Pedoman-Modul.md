@@ -432,7 +432,8 @@ mentah. Dulu hanya `end` yang ditulis; karena halaman modul, `evalSchedule`, dan
 agen chat membaca `due`, perpanjangan itu tidak berpengaruh apa pun. Diagnose
 (dry-run) dan cakupan per-NIM tidak menulis jadwal; per-NIM, Deadline Baru hanya
 menjadi acuan hitung ulang poin. Penjaganya `scripts/verify-rescale-jadwal-modul.js`
-di `npm test` backend. Rescale ujian tidak berubah (§5.5). Perilaku ini
+di `npm test` backend. Rescale ujian satu kelas ikut menulis `due`, tetapi
+tanpa menggeser `start` (§5.5). Perilaku ini
 datang dari cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; sebelum
 cabang itu di-deploy, callable produksi masih hanya menulis `end`. Gabungkan
 dan deploy backend lebih dulu (§1.2), baru frontend.
@@ -453,14 +454,26 @@ admin-only lewat callable `rescaleExamLatePenalty` (parameter `nims[]` +
   untuk NIM yang meminta (`evalSchedule(..., nimKey)`), jadi mahasiswa dalam
   jendela override aktif tetap bisa mengambil soal/submit walau jadwal
   global sudah tertutup.
-- Tanpa NIM, `rescaleExamLatePenalty` menulis `end`/`extension` jadwal global
-  ujian (`start` tetap). Ujian tidak memakai `due` sebagai deadline — server dan
-  hitung mundur halaman membaca `end` + `extension` — sehingga `due` ujian tidak
-  ikut ditulis. Satu-satunya pembaca `due` ujian adalah modal Atur Jadwal, yang
-  mengisi kolom batas akhir dari `due` tersimpan; setelah rescale global, periksa
-  kolom itu sebelum menyimpan agar `end` tidak kembali ke nilai lama. Ini berbeda
-  dari rescale modul, yang sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due` menulis `end` dan `due` karena
-  `due` adalah deadline kanonis modul (§5.4).
+- Tanpa NIM, `rescaleExamLatePenalty` dengan Deadline Baru menulis jadwal
+  global ujian: `end` **dan** `due` (wall-clock WIB) untuk instan yang sama,
+  dibulatkan ke menit, serta `duration` = end baru − `start` dalam menit;
+  `extension` hanya berubah bila Perpanjangan diisi, dan `start` tidak pernah
+  disentuh. Server dan hitung mundur halaman tetap membaca `start` + `end` +
+  `extension`; `due` ujian hanya dibaca modal Atur Jadwal (`duration` juga oleh
+  keterangan lama ujian di panel jadwal). Modal itu mengisi kolomnya dari nilai
+  tersimpan lalu menyimpan `end = due` dan `start = due − duration`. Karena keduanya ikut diselaraskan, membuka lalu
+  menyimpan modal tanpa perubahan setelah rescale tidak lagi mengembalikan
+  deadline lama dan tidak menggeser waktu buka. Bila selisih end baru − `start`
+  bukan menit bulat positif, `duration` dihapus sehingga modal meminta durasi
+  diisi. Diagnose (dry-run) tidak menulis apa pun tetapi memakai deadline yang
+  sudah dibulatkan; override per-NIM tetap hanya `end`/`extension`. Penjaganya
+  `scripts/verify-rescale-jadwal-modul.js` di `npm test` backend, yang juga
+  menjalankan modal kedua belas halaman ujian. Perilaku ini datang dari cabang
+  backend `fix/chat-kenapa-admin-dan-rescale-due`; sebelum cabang itu
+  di-deploy, callable produksi masih hanya menulis `end`, jadi setelah rescale
+  global periksa kolom batas akhir dan durasi di modal sebelum menyimpan agar
+  `end` tidak kembali ke nilai lama. Gabungkan dan deploy backend lebih dulu
+  (§1.2), baru frontend.
 
 ---
 
@@ -1168,7 +1181,7 @@ Daftar callable yang digunakan sistem saat ini:
 | `resetModulQuestion` | admin | reset soal tertentu/semua untuk satu atau semua mahasiswa |
 | `resetExamQuestion` | admin | reset soal tertentu/semua untuk satu atau semua mahasiswa |
 | `rescaleModulLatePenalty` | admin | menghitung ulang penalti modul, dapat dibatasi NIM; `newEnd` tanpa `nims` memperpanjang jadwal global dengan menulis `end` dan `due` (waktu buka tetap, §5.4; sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`, sebelumnya hanya `end`) |
-| `rescaleExamLatePenalty` | admin | menghitung ulang penalti keterlambatan exam (UTS/UAS), dapat dibatasi NIM; parameter `nims[]`+`newEnd`/`newExtension` menulis `scheduleOverrides` untuk ujian susulan (§5.5) |
+| `rescaleExamLatePenalty` | admin | menghitung ulang penalti keterlambatan exam (UTS/UAS), dapat dibatasi NIM; parameter `nims[]`+`newEnd`/`newExtension` menulis `scheduleOverrides` untuk ujian susulan (§5.5); `newEnd` tanpa `nims` menulis `end`, `due`, dan `duration` jadwal global dengan `start` tetap (§5.5; sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`, sebelumnya hanya `end`) |
 | `analyzeModulData` | admin | menganalisis data modul dan anomali grading |
 | `recomputeExamPoints` | admin | menghitung ulang total exam dari ledger |
 | `computeObeScores` | admin | menghitung TGS/UTS/UAS per Sub-CPMK |
@@ -1212,7 +1225,7 @@ Jika penghapusan ledger gagal, jangan lanjut menghapus RTDB karena mahasiswa aka
 |---|---|
 | `reset-soal.html` | reset satu, beberapa, atau semua soal pada 84 modul dan 12 exam (enam mata kuliah); target satu NIM atau semua mahasiswa |
 | `recompute-obe-score.html` | recompute poin satu exam dari mapping OBE dan ledger |
-| `rescale-deadline.html` | rescale penalti keterlambatan modul atau exam (UTS/UAS), global atau NIM tertentu (exam via `rescaleExamLatePenalty`, §5.5/§10). Deadline Baru pada modul dengan NIM kosong menulis `end` **dan** `due` jadwal global dan mempertahankan waktu buka (§5.4; sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`); dengan NIM terisi, jadwal tidak diubah |
+| `rescale-deadline.html` | rescale penalti keterlambatan modul atau exam (UTS/UAS), global atau NIM tertentu (exam via `rescaleExamLatePenalty`, §5.5/§10). Deadline Baru dengan NIM kosong menulis `end` **dan** `due` jadwal global dan mempertahankan waktu buka, baik modul (§5.4) maupun ujian (§5.5, `duration` menit ikut diselaraskan), sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; dengan NIM terisi, jadwal global tidak diubah |
 | `analyze-victims.html` | analisis korban/anomali grading modul dan reset terarah |
 | `verify-export-code.html` | verifikasi HMAC export modul/exam |
 | `berkas-tugas.html` | daftar dan unduh berkas FreeCAD tugas pemodelan CAD per modul, dengan status penilaian |
@@ -1453,7 +1466,7 @@ npm.cmd run lint
 npm.cmd test
 ```
 
-Sejak cabang backend `fix/chat-kenapa-admin-dan-rescale-due` (dan `main` backend sesudah cabang itu digabung), `npm test` antara lain menjalankan `validate-ai-chat.js` (termasuk klasifikasi "kenapa/mengapa" administratif serta "point"/"poin kritis" yang tetap materi, §6.8) dan `verify-rescale-jadwal-modul.js`, yang menjalankan `rescaleModulLatePenalty` dengan RTDB/Firestore tiruan dan menagih `end` + `due` serta waktu buka yang tetap (§5.4).
+Sejak cabang backend `fix/chat-kenapa-admin-dan-rescale-due` (dan `main` backend sesudah cabang itu digabung), `npm test` antara lain menjalankan `validate-ai-chat.js` (termasuk klasifikasi "kenapa/mengapa" administratif serta "point"/"poin kritis" yang tetap materi, §6.8) dan `verify-rescale-jadwal-modul.js`, yang menjalankan `rescaleModulLatePenalty` dan `rescaleExamLatePenalty` dengan RTDB/Firestore tiruan dan menagih `end` + `due` serta waktu buka yang tetap (§5.4, §5.5), termasuk simpan ulang modal Atur Jadwal kedua belas halaman ujian tanpa perubahan.
 
 Sebelum live seed, gunakan opsi `dry_run_seed` pada workflow atau perintah seed dengan `--dry-run`.
 
@@ -1478,7 +1491,7 @@ Bila menulis soal pada bank yang sebelumnya placeholder, ingat bahwa penjaga yan
 |---|---|
 | Preview | tidak membuat identity/attempt/poin; Tugas dan Forum modul tersembunyi; tab Hasil ujian tanpa data kelas (baris "Data kelas di UTS/UAS") |
 | Mahasiswa | roster, PIN, schedule gate, satu attempt, restore setelah refresh |
-| Dosen | login, pesan lock, atur jadwal dengan jam 24 jam, tampilan deadline WIB yang sama pada perangkat beda zona waktu, logout, sesi kedaluwarsa; perpanjangan modul satu kelas lewat `Admin/rescale-deadline.html` (NIM kosong) mengubah deadline yang tampil di halaman modul dan di jawaban chat, sedangkan waktu buka modul tidak berubah (§5.4; sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`) |
+| Dosen | login, pesan lock, atur jadwal dengan jam 24 jam, tampilan deadline WIB yang sama pada perangkat beda zona waktu, logout, sesi kedaluwarsa; perpanjangan modul satu kelas lewat `Admin/rescale-deadline.html` (NIM kosong) mengubah deadline yang tampil di halaman modul dan di jawaban chat, sedangkan waktu buka modul tidak berubah (§5.4); rescale ujian satu kelas lalu buka dan simpan Atur Jadwal UTS/UAS tanpa perubahan mempertahankan deadline baru dan waktu buka (§5.5); keduanya sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due` |
 | Modul | 25 soal (CAD 15), total 50, PG dapat dipilih dan tombol Periksa aktif, late 0,65 (seragam semua course), partial Hard 0,5 (semua course kecuali tugas modul CAD), export lengkap, Forum/chat |
 | Exam | 45 soal (CAD: UTS 30, UAS 31, tanpa TF), total 100, format poin, late/cutoff, online-only, export resmi |
 | Agen AI | konsep modul aktif dijawab dengan sitasi; pertanyaan lintas MK dan jawaban langsung asesmen ditolak; data pribadi disunting; saat UTS/UAS aktif materi terkunci tetapi jadwal/aturan tetap terjawab; "Kenapa tombol export saya tidak aktif?" dan "Kenapa poin tugas saya cuma 65%?" dijawab lapis administratif, sedangkan "Kenapa redaman mengurangi amplitudo?" dan "Mengapa respons melewati set point sebelum tunak?" tetap ke tutor (§6.8; sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`); mode `AI_PROVIDER=none` dan simulasi kuota tetap menghasilkan fallback retrieval |

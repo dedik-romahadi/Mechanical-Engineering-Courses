@@ -197,8 +197,11 @@ repo publik ini.
   `due` dengan waktu buka tetap (backend `rescaleModulLatePenalty`, Pedoman
   §5.4) — berlaku sejak cabang backend
   `fix/chat-kenapa-admin-dan-rescale-due` di-deploy; sebelumnya callable
-  produksi hanya menulis `end`. Rescale ujian hanya menulis `end`/`extension`
-  (§5.5).
+  produksi hanya menulis `end`. Rescale ujian satu kelas (backend
+  `rescaleExamLatePenalty`, sejak cabang yang sama di-deploy) menulis `end`,
+  `due`, dan `duration` menit dengan `start` tetap, karena modal Atur Jadwal
+  UTS/UAS mengisi kolomnya dari `due`/`duration`; override per-NIM tetap hanya
+  `end`/`extension` (§5.5).
 - **Penalti terlambat 0,65** (potongan 35%) seragam semua course; sumber
   kebenarannya server (`cfg.lateMultiplierValue`). Partial Hard 0,5.
 - **Skor.** Modul: 25 soal = 10 PG ×1 + 10 Komputasi ×2 + 5 Hard ×4 = 50.
