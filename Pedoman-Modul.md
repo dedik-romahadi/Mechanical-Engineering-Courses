@@ -668,9 +668,10 @@ dan punya pengecualian kosakata materi (misalnya "link" mekanisme, "pin"
 rakitan, "jadwal perawatan"). Kata "poin" hanya dicocokkan sebagai kata
 Indonesia, sehingga "Mengapa respons melewati set point sebelum tunak?",
 "fixed point", "operating point", dan "poin kritis" tetap ke tutor (dulu
-`\bpoin\w*` ikut menangkap "point"). Beberapa objek berdiri sendiri tanpa
-pengecualian (`forum`, `progres`, `sks`/`semester`, `submit`): pertanyaan
-kenapa/mengapa yang memuatnya diarahkan ke lapis administratif. Penanda materi
+`\bpoin\w*` ikut menangkap "point"). Objek yang tidak dipakai materi berdiri
+tanpa pengecualian (misalnya `forum`, `submit`, `login`, "kode verifikasi").
+Pertanyaan yang administratif hanya karena pola alasan tetapi tidak cocok
+dengan jawaban lapis 1 mana pun kembali ke tutor (`viaAlasan`). Penanda materi
 lain ("Jelaskan …", "rumus") tetap didahulukan dan mengarahkan ke tutor, dan
 permintaan jawaban asesmen tetap ditolak.
 
