@@ -14,7 +14,7 @@ Dokumen ini adalah quick-start untuk sesi Codex yang mengerjakan slide Slidev di
 
 > Deck Opto `penerapan-machine-learning.md`: **23 slide**. Brand di SLIDE memakai **"Optimalisasi & Automasi"** (huruf A — sengaja beda dari LMS lain yang "Otomasi", atas permintaan dosen). Punya **2 sesi kuis interaktif** (§17) + **webcam terkunci** (§16). Penyesuaian per-slide via `.slidev-page-N` (§14).
 
-> Hanya tiga deck ini yang ada. Sistem Kendali Cerdas dan Matematika Teknik 4 **tidak punya** folder `Slides/`; materi kuliahnya memakai halaman modul HTML dan `Modul-Word/`. `PDD-UKTPT/` bukan mata kuliah (portofolio Serdos) — jangan ditiru strukturnya untuk course.
+> Hanya tiga deck ini yang ada. Matematika 4, Sistem Kendali Cerdas, Pemodelan CAD, dan Teknik Tenaga Listrik **tidak punya** folder `Slides/`; materi kuliahnya memakai halaman modul HTML dan `Modul-Word/`. `PDD-UKTPT/` bukan mata kuliah (portofolio Serdos) — jangan ditiru strukturnya untuk course.
 
 ### Struktur tiap deck
 ```

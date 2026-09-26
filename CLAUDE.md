@@ -192,10 +192,32 @@ repo publik ini.
   23:59 WIB) dan tidak punya batas atas (terlambat tetap boleh). Exam memakai
   **menit** (default 180, perpanjangan 120) dan ditutup setelah
   `end + extension`. Jangan tertukar `dur*86400000` vs `dur*60000`.
+  Deadline modul yang kanonis adalah `due` (WIB); perpanjangan satu kelas
+  lewat `Admin/rescale-deadline.html` (NIM kosong) menulis `end` **dan**
+  `due` dengan waktu buka tetap (backend `rescaleModulLatePenalty`, Pedoman
+  §5.4) — berlaku sejak cabang backend
+  `fix/chat-kenapa-admin-dan-rescale-due` di-deploy; sebelumnya callable
+  produksi hanya menulis `end`. Rescale ujian satu kelas (backend
+  `rescaleExamLatePenalty`, sejak cabang yang sama di-deploy) menulis `end`,
+  `due`, dan `duration` menit dengan `start` tetap, karena modal Atur Jadwal
+  UTS/UAS mengisi kolomnya dari `due`/`duration`; override per-NIM tetap hanya
+  `end`/`extension` dan tetap dipakai saat menilai ulang satu kelas (§5.5).
+  Sejak deploy yang sama server menolak sebelum menulis: deadline modul satu
+  kelas yang tidak berselisih kelipatan 24 jam dari waktu buka (modal Atur
+  Jadwal modul menyimpan `start = due − Durasi` hari penuh, jadi jam deadline
+  harus sama dengan jam buka modul), deadline pada/sebelum waktu buka modul
+  atau `start` ujian, dan hitung ulang modul tanpa Deadline Baru saat
+  `end` ≠ `due` (§5.4). Rescale ujian satu kelas yang membuat jendela lebih
+  dari 30 hari menghapus `duration` (rules membatasi 43200 menit), sehingga
+  modal Atur Jadwal meminta Durasi dan Durasi yang diisi menggeser waktu mulai;
+  `rescale-deadline.html` memperingatkannya.
 - **Penalti terlambat 0,65** (potongan 35%) seragam semua course; sumber
   kebenarannya server (`cfg.lateMultiplierValue`). Partial Hard 0,5.
 - **Skor.** Modul: 25 soal = 10 PG ×1 + 10 Komputasi ×2 + 5 Hard ×4 = 50.
-  Exam: TF=1, MC=1, Comp Easy=2, Comp Hard=4; total 100.
+  Exam: TF=1, MC=1, Comp Easy=2, Comp Hard=4; total 100. Pengecualian
+  Pemodelan CAD: modul 15 soal (10 PG + 5 tugas pemodelan 6/6/6/11/11 = 50,
+  kirim ulang maksimal 65%, tanpa partial); UTS 30 / UAS 31 soal tanpa TF
+  (bobot tipe PG 1, tugas unggah 2, rakitan `c11` 6 dengan partial 3).
 - **Progres materi berurutan** (sejak 22 Agu 2026): kotak centang per bagian,
   tab Tugas/Forum/Hasil terkunci sampai lengkap, login modul *n* ditolak bila
   modul *n*−1 belum lengkap (centang + tugas + forum). Rincian: Pedoman §6.7.
@@ -216,14 +238,24 @@ repo publik ini.
   backend lebih dulu. Rincian: Pedoman §6.8 dan §7.8.
 - **Data kelas UTS/UAS khusus dosen.** Tabel kelas tab Hasil, papan Top
   Skor/Top Akses, statistik kelas, dan daftar online hanya dirender untuk
-  dosen terverifikasi (`_dosenUjianTerverifikasi`, satu fungsi dengan aturan
-  dosen `_applyRoleVisibility`); tamu dan Mode Preview mendapat placeholder,
-  dan setiap perubahan peran — termasuk masuk Mode Preview — merender ulang
-  seketika (`_segarkanHasilUjian`). "Bukan mahasiswa" tidak pernah berarti
-  "dosen". Dipasang `scripts/privasi-hasil-ujian.mjs` (penanda
+  dosen terverifikasi (`_dosenUjianTerverifikasi` — satu-satunya aturan dosen
+  halaman ujian untuk semua yang membuka fitur dosen: `_applyRoleVisibility`,
+  auto-login jadwal, tinjauan soal dosen, gerbang wadah soal, dan permintaan
+  soal mode dosen; jangan menulis perbandingan nama dosen kedua maupun
+  `isDosen… = …role === 'dosen'` baru — yang berbasis role hanya penjaga yang
+  membatasi `_previewGuard`/`_previewExportGuard`, penentu mahasiswa, dan
+  pengalih ke tinjauan soal dosen); tamu dan
+  Mode Preview mendapat placeholder (ajakan berbeda: Preview diarahkan ke tombol
+  "Keluar Preview"), identitas yang bukan dosen terverifikasi maupun mahasiswa
+  tidak dipulihkan otomatis, dan setiap perubahan peran — termasuk masuk Mode
+  Preview — merender ulang seketika (`_segarkanHasilUjian`). "Bukan mahasiswa"
+  tidak pernah berarti "dosen". Dipasang `scripts/privasi-hasil-ujian.mjs` (penanda
   `PRIVASI-HASIL-UJIAN`, ada `--periksa`, jalankan sesudah
   `buka-asisten-ujian.mjs`). Halaman modul tidak memakainya. Rincian: Pedoman
   §4.2 dan §7.8.
+- **Label navbar UTS/UAS** = label modul course-nya (`TENAGALISTRIK // UTS`,
+  bukan sisa templat `GETARANMESIN`); dipasang `scripts/label-nav-ujian.mjs`
+  (ada `--periksa`), CAD lewat `scripts/cad-exam/bangun.py`.
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
   yang idempoten, bukan suntingan manual per berkas.
@@ -242,6 +274,8 @@ repo publik ini.
 3. Default jadwal modul dalam menit — modul memakai hari.
 4. `new Date(due)` di `saveSchedule` — pakai `_wibStringToDate(due)`.
 5. Menulis angka penalti lama (0,7/30% atau 0,8/20%) — sekarang 0,65/35%.
+   `validate-public-security.mjs` menolaknya di halaman course dan `Admin/`;
+   `scripts/penalti-35.mjs` menyeragamkan halaman.
 6. Konstanta penilaian di klien sebagai sumber kebenaran — server yang
    menentukan.
 7. Mengeklaim "screenshot mustahil" atau memburamkan halaman saat pindah
