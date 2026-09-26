@@ -1018,6 +1018,26 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- ASISTEN-UJIAN-MAHASISWA:CSS BEGIN v1 — dipasang scripts/buka-asisten-ujian.mjs -->
+<style id="asistenUjianMahasiswaCss">
+/* Halaman UTS/UAS, mahasiswa yang login (kelas dipasang _terapkanAsistenUjian):
+   #visitorFab menjadi tombol "Asisten Dosen". Daftar mahasiswa online (nama,
+   NIM, status terlambat) dan jumlahnya khusus dosen. !important: setMode('kelas')
+   blok AI atau render halaman mana pun tidak bisa memunculkannya lagi. */
+body.ujian-mahasiswa #visitorPanel .vp-mode-tabs,
+body.ujian-mahasiswa #vpModeKelas,
+body.ujian-mahasiswa #vpList,
+body.ujian-mahasiswa #vpBadge,
+body.ujian-mahasiswa #fabCount{display:none !important}
+/* #backToTop (right:32px, 48px) tertutup tombol chat (right:24px, 56px) begitu
+   tombol itu tampil untuk mahasiswa. Geser ke kiri tombol bisu
+   (.ej-tombol-bisu right:92px, 40px): 92 + 40 + 12 jarak = 144px; bottom 32px
+   sejajar tombol bisu. Di layar <=480px tombol chat pindah ke 18px/18px dan
+   tombol bisu tidak punya aturan ponsel (tetap 92px), jadi posisi yang sama
+   tetap bebas tumpang tindih tanpa aturan @media tersendiri. */
+body.ujian-mahasiswa #backToTop{right:144px}
+</style>
+<!-- ASISTEN-UJIAN-MAHASISWA:CSS END v1 -->
 </head>
 <body>
 <div id="scrollProgress"></div>
@@ -5795,20 +5815,90 @@ function _applyRoleVisibility() {
     dosenBanner.style.display = (isDosen && !hasValidSchedule) ? 'flex' : 'none';
   }
 
-  // UAS PRIVACY: Sembunyikan visitor FAB (panel "Mahasiswa") untuk mahasiswa
-  // Hanya dosen yang dapat melihat panel daftar mahasiswa real-time.
+  // ASISTEN-UJIAN-MAHASISWA:PERAN BEGIN v1 — dipasang scripts/buka-asisten-ujian.mjs
+  // UAS PRIVACY: daftar mahasiswa online (panel "Mahasiswa") hanya untuk dosen.
+  // Mahasiswa yang login tetap mendapat #visitorFab, tetapi sebagai tombol
+  // "Asisten Dosen": roster, badge, dan jumlah online disembunyikan dan
+  // dikosongkan oleh _terapkanAsistenUjian (tepat di bawah fungsi ini).
+  _terapkanAsistenUjian(isStudent);
   const visitorFab = document.getElementById('visitorFab');
   if (visitorFab) {
     if (isStudent) {
-      visitorFab.style.display = 'none';
-      visitorFab.style.visibility = 'hidden';
+      visitorFab.style.display = 'flex';
+      visitorFab.style.visibility = 'visible';
     } else if (isDosen) {
       visitorFab.style.visibility = 'visible';
       // display di-set oleh login flow (flex), tidak override di sini
     }
   }
+  // ASISTEN-UJIAN-MAHASISWA:PERAN END v1
 }
 window._applyRoleVisibility = _applyRoleVisibility;
+// ═══ ASISTEN-UJIAN-MAHASISWA:JS BEGIN v1 — dipasang scripts/buka-asisten-ujian.mjs ═══
+// Mahasiswa yang login membuka Asisten Dosen lewat #visitorFab (tetap
+// satu-satunya tombol chat); daftar mahasiswa online beserta jumlahnya tetap
+// khusus dosen. Dua lapis penjaga: kelas body.ujian-mahasiswa (CSS !important)
+// dan isi roster yang dikosongkan. Blok AI (AI-CHAT-AGENT) memasang lapisnya
+// sendiri (body.vp-ujian-mhs) dan membuka panel langsung di mode Asisten.
+// Halaman ujian sengaja tanpa Chat Kelas (tidak ada chat antarmahasiswa selama
+// ujian); jangan menyalin markup/komposer chat kelas halaman modul ke sini.
+function _kosongkanRosterUjian() {
+  // Render fase tamu (sebelum login) sempat mengisi nama/NIM mahasiswa lain;
+  // dibuang dari DOM, bukan sekadar disembunyikan.
+  const list = document.getElementById('vpList');
+  if (list && list.innerHTML) list.innerHTML = '';
+  for (const id of ['vpBadge', 'fabCount']) {
+    const el = document.getElementById(id);
+    if (el && el.textContent) el.textContent = '';
+  }
+}
+function _terapkanAsistenUjian(isStudent) {
+  const mhs = !!isStudent;
+  if (document.body) document.body.classList.toggle('ujian-mahasiswa', mhs);
+  const fab = document.getElementById('visitorFab');
+  if (fab) {
+    // Ikon = simpul teks pertama tombol. Span #fabCount tidak diganti karena
+    // cabang dosen renderVisitors menulis ke sana.
+    const ikon = Array.prototype.find.call(fab.childNodes, (n) => n.nodeType === 3 && n.nodeValue.trim());
+    if (mhs) {
+      if (!fab.hasAttribute('data-title-asli')) {
+        fab.setAttribute('data-title-asli', fab.getAttribute('title') || '');
+        if (ikon) fab.setAttribute('data-ikon-asli', ikon.nodeValue);
+      }
+      fab.setAttribute('title', 'Asisten Dosen');
+      fab.setAttribute('aria-label', 'Asisten Dosen');
+      if (ikon) ikon.nodeValue = '🤖';
+    } else if (fab.hasAttribute('data-title-asli')) {
+      fab.setAttribute('title', fab.getAttribute('data-title-asli'));
+      fab.removeAttribute('aria-label');
+      if (ikon && fab.hasAttribute('data-ikon-asli')) ikon.nodeValue = fab.getAttribute('data-ikon-asli');
+      fab.removeAttribute('data-title-asli');
+      fab.removeAttribute('data-ikon-asli');
+    }
+  }
+  // Judul panel: '<h3>👥 Mahasiswa Online</h3>' tetap di markup (dosen);
+  // mahasiswa melihat judul Asisten. Protokol data-judul-asli sama dengan blok
+  // AI supaya kedua lapis tidak saling membalik judul.
+  const judul = '🤖 Asisten Dosen';
+  const h3 = document.querySelector('#visitorPanel .vp-header h3');
+  if (h3) {
+    const asli = h3.getAttribute('data-judul-asli');
+    if (mhs) {
+      if (asli === null && h3.textContent !== judul) h3.setAttribute('data-judul-asli', h3.textContent);
+      if (h3.textContent !== judul) h3.textContent = judul;
+    } else if (asli !== null && h3.textContent !== asli) {
+      h3.textContent = asli;
+    }
+  }
+  if (mhs) _kosongkanRosterUjian();
+  // Blok AI: mahasiswa langsung ke mode Asisten, dosen/tamu dipulihkan. Aman
+  // sebelum blok terpasang (mengembalikan false; init-nya menerapkan peran sendiri).
+  try {
+    const agen = window.ModulAiAgent;
+    if (agen && typeof agen.terapkanPeran === 'function') agen.terapkanPeran();
+  } catch (e) { console.warn('[Asisten ujian] terapkanPeran gagal:', e); }
+}
+// ═══ ASISTEN-UJIAN-MAHASISWA:JS END v1 ═══
 function isValidName(n){if(!n)return false;return n.split(/\s+/).every(w=>w.length>0&&/^[A-Z][a-zA-Z.'\-]*$/.test(w));}
 function isValidNim(n){return /^\d+$/.test(n);}
 function sanitizeKey(s){return s.replace(/[.#$\/\[\]]/g,'_');}
@@ -6410,9 +6500,13 @@ function renderVisitors(visitors){
     const myNim = _me.nim;
     const myData = visitMap[myNim] || null;
 
-    // Hide visitor FAB (panel "Mahasiswa")
-    const fab = document.getElementById('visitorFab');
-    if (fab) fab.style.display = 'none';
+    // ASISTEN-UJIAN-MAHASISWA:RENDER BEGIN v1 — dipasang scripts/buka-asisten-ujian.mjs
+    // #visitorFab TIDAK disembunyikan lagi: bagi mahasiswa ia tombol Asisten
+    // Dosen (_applyRoleVisibility). Roster online tetap khusus dosen — sisa
+    // daftar, badge, dan jumlah dari render fase tamu dibuang di sini, dan
+    // cabang ini tetap berakhir dengan return sebelum jalur dosen mengisinya.
+    _kosongkanRosterUjian();
+    // ASISTEN-UJIAN-MAHASISWA:RENDER END v1
 
     // Hide leaderboard panel + stats grid
     const lb = document.getElementById('leaderboardPanel');

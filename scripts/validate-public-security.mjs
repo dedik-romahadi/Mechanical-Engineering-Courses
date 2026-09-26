@@ -331,6 +331,106 @@ for (const course of courseRoots) {
   }
 }
 
+// Asisten Dosen untuk mahasiswa di UTS/UAS (scripts/buka-asisten-ujian.mjs,
+// 26 September 2026). #visitorFab tetap satu-satunya tombol chat: bagi
+// mahasiswa yang login ia membuka Asisten Dosen, sedangkan daftar mahasiswa
+// online (nama, NIM, waktu akses, lencana "Terlambat") beserta jumlahnya tetap
+// khusus dosen ("UTS/UAS PRIVACY"). RTDB visitors/presence dapat dibaca publik,
+// jadi privasi ini murni tanggung jawab UI dan dijaga di sini. Chat Kelas tidak
+// boleh ada di halaman ujian: RTDB chat/* menerima tulisan tanpa autentikasi,
+// sehingga hanya ketiadaan UI-nya yang mencegah chat antarmahasiswa saat ujian.
+// Blok AI (AI-CHAT-AGENT) dikecualikan dari pemeriksaan chat karena memuat
+// logika varian modulnya sendiri; blok itu diperiksa di repo backend.
+const RX_BLOK_AI = /<!-- AI-CHAT-AGENT:BEGIN[\s\S]*?<!-- AI-CHAT-AGENT:END[^>]*-->/;
+let examAsisten = 0;
+for (const course of courseRoots) {
+  for (const examName of ["UTS.html", "UAS.html"]) {
+    const relative = `${course}/Exam/${examName}`;
+    const exam = fs.readFileSync(path.join(root, relative), "utf8");
+    for (const required of [
+      "<!-- ASISTEN-UJIAN-MAHASISWA:CSS BEGIN",
+      "// ═══ ASISTEN-UJIAN-MAHASISWA:JS BEGIN",
+      "  // ASISTEN-UJIAN-MAHASISWA:PERAN BEGIN",
+      "    // ASISTEN-UJIAN-MAHASISWA:RENDER BEGIN",
+      "function _terapkanAsistenUjian(isStudent)",
+      "function _kosongkanRosterUjian()",
+      "document.body.classList.toggle('ujian-mahasiswa', mhs)",
+      "fab.setAttribute('aria-label', 'Asisten Dosen')",
+      "if (agen && typeof agen.terapkanPeran === 'function') agen.terapkanPeran();",
+      "if (list && list.innerHTML) list.innerHTML = '';",
+      "for (const id of ['vpBadge', 'fabCount'])",
+      "  _terapkanAsistenUjian(isStudent);\n  const visitorFab = document.getElementById('visitorFab');\n  if (visitorFab) {\n    if (isStudent) {\n      visitorFab.style.display = 'flex';\n      visitorFab.style.visibility = 'visible';\n",
+    ]) {
+      if (!exam.includes(required)) throw new Error(`${relative}: student Asisten launcher missing ${required.split("\n")[0]}`);
+    }
+    for (const required of [
+      "body.ujian-mahasiswa #visitorPanel .vp-mode-tabs,",
+      "body.ujian-mahasiswa #vpModeKelas,",
+      "body.ujian-mahasiswa #vpList,",
+      "body.ujian-mahasiswa #vpBadge,",
+      "body.ujian-mahasiswa #fabCount{display:none !important}",
+      "body.ujian-mahasiswa #backToTop{right:144px}",
+    ]) {
+      if (!exam.includes(required)) throw new Error(`${relative}: student roster-hiding CSS missing ${required}`);
+    }
+    if (exam.indexOf("<!-- ASISTEN-UJIAN-MAHASISWA:CSS BEGIN") > exam.indexOf("</head>")) {
+      throw new Error(`${relative}: student roster-hiding CSS must sit in the document <head>`);
+    }
+    if (exam.includes("visitorFab.style.display = 'none';\n      visitorFab.style.visibility = 'hidden';")) {
+      throw new Error(`${relative}: _applyRoleVisibility still hides the only chat button from students`);
+    }
+
+    // renderVisitors: cabang mahasiswa hanya membuang sisa roster lalu return;
+    // #fabCount/#vpBadge/#vpList hanya diisi jalur dosen sesudah return itu.
+    const rvMulai = exam.indexOf("function renderVisitors(visitors){");
+    const cabang = rvMulai < 0 ? -1 : exam.indexOf("\n  if (_isStudent) {\n", rvMulai);
+    const PENUTUP_CABANG = "    // Skip rest of dosen-only rendering\n    return;\n  }\n";
+    const cabangAkhir = cabang < 0 ? -1 : exam.indexOf(PENUTUP_CABANG, cabang);
+    const rvAkhir = cabangAkhir < 0 ? -1 : exam.indexOf("\n}\n", cabangAkhir);
+    if (rvMulai < 0 || cabang < 0 || cabangAkhir < 0 || rvAkhir < 0) {
+      throw new Error(`${relative}: renderVisitors student branch with early return not found`);
+    }
+    const cabangMhs = exam.slice(cabang, cabangAkhir);
+    if (!cabangMhs.includes("    _kosongkanRosterUjian();\n")) {
+      throw new Error(`${relative}: renderVisitors student branch does not clear the guest-phase roster`);
+    }
+    if (/getElementById\(['"](?:visitorFab|fabCount|vpBadge|vpList)['"]\)|onlineVisited/.test(cabangMhs)) {
+      throw new Error(`${relative}: renderVisitors student branch touches the online roster or the chat button`);
+    }
+    for (const isiDosen of [
+      "  document.getElementById('fabCount').textContent=onlineVisited.length;\n",
+      "  document.getElementById('vpBadge').textContent=onlineVisited.length+' online';\n",
+      "const listEl=document.getElementById('vpList')",
+    ]) {
+      const i = exam.indexOf(isiDosen, cabangAkhir);
+      if (i < 0 || i > rvAkhir || exam.indexOf(isiDosen) < cabangAkhir) {
+        throw new Error(`${relative}: ${isiDosen.trim()} must stay on the lecturer path after the student return`);
+      }
+    }
+    const blokAi = exam.match(RX_BLOK_AI);
+    const aiMulai = blokAi ? blokAi.index : -1;
+    const aiAkhir = blokAi ? aiMulai + blokAi[0].length : -1;
+    const jsMulai = exam.indexOf("// ═══ ASISTEN-UJIAN-MAHASISWA:JS BEGIN");
+    const jsAkhir = exam.indexOf("// ═══ ASISTEN-UJIAN-MAHASISWA:JS END");
+    if (jsAkhir < jsMulai) throw new Error(`${relative}: ASISTEN-UJIAN-MAHASISWA:JS block is not closed`);
+    if (/onlineVisited|onlinePresence|\bvisited\b|visitMap/.test(exam.slice(jsMulai, jsAkhir))) {
+      throw new Error(`${relative}: student Asisten helper must only clear the roster, never fill it`);
+    }
+    for (const m of exam.matchAll(/getElementById\(['"](fabCount|vpBadge|vpList)['"]\)/g)) {
+      const di = m.index;
+      const sah = (di > aiMulai && di < aiAkhir) || (di > jsMulai && di < jsAkhir) || (di > cabangAkhir && di < rvAkhir);
+      if (!sah) throw new Error(`${relative}: #${m[1]} is written outside the lecturer path of renderVisitors`);
+    }
+
+    const tanpaBlokAi = exam.replace(RX_BLOK_AI, "");
+    for (const forbidden of ["vp-chat", "vpChatList", "vpChatInput", "sendChat"]) {
+      if (tanpaBlokAi.includes(forbidden)) throw new Error(`${relative}: exam page must not carry class chat (${forbidden})`);
+    }
+    examAsisten += 1;
+  }
+}
+if (examAsisten !== 12) throw new Error(`Expected 12 UTS/UAS pages with the student Asisten launcher, found ${examAsisten}`);
+
 const formatPointsForValidation = (pts) => {
   const value = Number(pts);
   if (!Number.isFinite(value)) return "0";

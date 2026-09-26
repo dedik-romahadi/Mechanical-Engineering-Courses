@@ -204,6 +204,14 @@ repo publik ini.
   disuntikkan oleh skrip idempoten di `scripts/` yang wajib dijalankan ulang
   setelah regenerasi modul (daftar di Pedoman §17.1). Regenerasi Sisken
   bukan satu perintah (Pedoman §6.4).
+- **Asisten Dosen di UTS/UAS** (sejak 26 Sep 2026). Mahasiswa yang login
+  memakai `#visitorFab` sebagai tombol "🤖 Asisten Dosen"; daftar mahasiswa
+  online (nama, NIM, status poin) tetap khusus dosen dan halaman ujian tidak
+  punya Chat Kelas. Sisi halaman dipasang `scripts/buka-asisten-ujian.mjs`
+  (12 halaman, penanda `ASISTEN-UJIAN-MAHASISWA`, ada `--periksa`); sisi blok
+  AI diubah di backend `frontend-integration/modul-ai-chat.js` lalu
+  `apply-ai-chat.js`, **bukan** disunting di antara penanda `AI-CHAT-AGENT`.
+  Rincian: Pedoman §6.8 dan §7.8.
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
   yang idempoten, bukan suntingan manual per berkas.
