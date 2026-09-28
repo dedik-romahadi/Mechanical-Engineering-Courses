@@ -35,7 +35,7 @@
  *      sementara → dicoba lagi (otomatis 3 dan 10 detik, dan pada
  *      _loadScoredQuestions berikutnya); resource-exhausted (penguncian PIN
  *      per NIM + sumber — keluarga penilaian/soal, bukan kunci per NIM
- *      verifyPin yang bisa ditahan dari jarak jauh)
+ *      milik verifyPin)
  *      → pemberitahuan "coba lagi dalam N detik" lalu dicoba lagi sesudah
  *      `details.remainingSeconds`, sesi PIN tetap; unauthenticated → hash PIN
  *      sesi dibuang dan PIN diminta lagi; lainnya → di-cache per muat halaman.
