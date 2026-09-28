@@ -318,6 +318,10 @@ for (const course of courseRoots) {
         throw new Error(`${relative}: fetchMasterStudents must re-render through renderVisitors right before the LEADERBOARD-MODUL-SEKALI block`);
       }
     }
+    // Pilihan PG dipulihkan dari RTDB selections setelah muat ulang, dan
+    // Export HTML tidak melaporkan jawaban BENAR sebagai "pilihan salah"
+    // (scripts/pulihkan-pilihan-pg.mjs, 28 September 2026).
+    periksaPilihanPg(modul, relative);
   }
 }
 
@@ -557,6 +561,113 @@ function ambilBlok(exam, awal, akhir, relative) {
   const j = i < 0 ? -1 : exam.indexOf(akhir, i);
   if (i < 0 || j < 0) throw new Error(`${relative}: block ${awal} not found`);
   return exam.slice(i, exam.indexOf("\n", j) + 1);
+}
+/**
+ * Halaman modul: blok PILIHAN-PG-PULIH (pemulihan pilihan PG dari RTDB
+ * selections) dan PILIHAN-PG-EKSPOR (teks fallback ekspor) dari
+ * scripts/pulihkan-pilihan-pg.mjs. Selain penanda dan letaknya, kedua blok
+ * halaman itu dijalankan di sandbox node:vm dengan DOM tiruan: course kanonik
+ * (huruf di onclick), course acak per NIM (data-display-letter setelah
+ * shuffleMCOptions), acak yang belum bisa diterapkan, dan record lama tanpa
+ * selections.
+ */
+function periksaPilihanPg(modul, relative) {
+  const saran = "; jalankan node scripts/pulihkan-pilihan-pg.mjs";
+  if (/isCorrect\s*&&\s*correctOpt\s*\?\s*correctOpt\.textContent\.trim\(\)\s*:\s*'\(Sudah dijawab, tetapi pilihan salah\)'/.test(modul)) {
+    throw new Error(`${relative}: fallback Export HTML lama melaporkan jawaban PG benar sebagai "pilihan salah"${saran}`);
+  }
+  for (const penanda of ["// PILIHAN-PG-PULIH BEGIN v1", "// PILIHAN-PG-PULIH END v1", "// PILIHAN-PG-EKSPOR BEGIN v1", "// PILIHAN-PG-EKSPOR END v1"]) {
+    const n = modul.split(penanda).length - 1;
+    if (n !== 1) throw new Error(`${relative}: penanda ${penanda} muncul ${n}x, harusnya 1${saran}`);
+  }
+  if (!modul.includes("\n    const data = snap.val();\n    // PILIHAN-PG-PULIH BEGIN v1")) {
+    throw new Error(`${relative}: blok PILIHAN-PG-PULIH harus tepat sesudah \`const data = snap.val();\` di _loadScoredQuestions${saran}`);
+  }
+  if (!modul.includes("    } else if (mcAnswered[id]) {\n      isCorrect    = (mcScores[id] || 0) > 0;\n      // PILIHAN-PG-EKSPOR BEGIN v1")) {
+    throw new Error(`${relative}: blok PILIHAN-PG-EKSPOR harus berada di cabang mcAnswered perakitan mcData${saran}`);
+  }
+  const pulih = ambilBlok(modul, "    // PILIHAN-PG-PULIH BEGIN v1", "    // PILIHAN-PG-PULIH END v1", relative);
+  const ekspor = ambilBlok(modul, "      // PILIHAN-PG-EKSPOR BEGIN v1", "      // PILIHAN-PG-EKSPOR END v1", relative);
+
+  const jalankan = ({ acakDiterapkan = false, hurufOnclick = false, data, ulang = 1 }) => {
+    const grup = {};
+    for (let q = 1; q <= 4; q += 1) {
+      grup[`mc${q}`] = ["A", "B", "C", "D"].map((h) => {
+        const kelas = new Set();
+        const onclick = hurufOnclick ? `selectMC('mc${q}',this,'${h}')` : `selectMC('mc${q}',this)`;
+        return {
+          asal: h, kelas, dataset: {},
+          classList: { add: (...k) => k.forEach((x) => kelas.add(x)), remove: (...k) => k.forEach((x) => kelas.delete(x)), contains: (k) => kelas.has(k) },
+          getAttribute: (n) => (n === "onclick" ? onclick : null),
+        };
+      });
+    }
+    const semua = () => Object.values(grup).flat();
+    const win = {};
+    // Tiruan shuffleMCOptions: urutan terlihat dibalik, huruf posisi di data-display-letter.
+    win.shuffleMCOptions = () => {
+      if (!acakDiterapkan) return false;
+      if (semua().some((o) => o.dataset.displayLetter)) return true;
+      for (const opsi of Object.values(grup)) { opsi.reverse(); opsi.forEach((o, i) => { o.dataset.displayLetter = String.fromCharCode(65 + i); }); }
+      return true;
+    };
+    const doc = {
+      getElementById: (id) => { const q = id.replace(/^rg-/, ""); return grup[q] ? { querySelectorAll: () => grup[q].slice() } : null; },
+    };
+    // ulang > 1: _loadScoredQuestions dipanggil lagi (mis. sesudah login) — hasilnya harus sama.
+    for (let k = 0; k < ulang; k += 1) {
+      vm.runInNewContext(`(function (data) {\n${pulih}\n})(data);`, {
+        window: win, document: doc, data,
+        console: { warn: (...a) => { throw new Error(`blok PILIHAN-PG-PULIH melempar: ${a.map(String).join(" ")}`); } },
+      });
+    }
+    const ringkas = {};
+    for (const [q, opsi] of Object.entries(grup)) ringkas[q] = opsi.map((o) => `${o.asal}:${[...o.kelas].sort().join("+")}`).join(" ");
+    return ringkas;
+  };
+  const harap = (nama, hasil, ekspektasi) => {
+    for (const [q, h] of Object.entries(ekspektasi)) {
+      if (hasil[q] !== h) throw new Error(`${relative}: PILIHAN-PG-PULIH (${nama}) ${q} = "${hasil[q]}", harap "${h}"`);
+    }
+  };
+  harap("kanonik", jalankan({
+    hurufOnclick: true, ulang: 2,
+    data: { scoredQuestions: "mc1,mc2_mc_used,mc3,mc4_mc_used,c1_comp", selections: { mc1: "B", mc2: "c", mc3: 2 } },
+  }), {
+    mc1: "A: B:correct-ans+selected C: D:",
+    mc2: "A: B: C:selected+wrong-ans D:",
+    mc3: "A: B: C:correct-ans+selected D:",
+    mc4: "A: B: C: D:",
+  });
+  harap("acak per NIM", jalankan({
+    acakDiterapkan: true, ulang: 2,
+    data: { scoredQuestions: "mc1,mc2_mc_used,mc3", selections: { mc1: "A", mc2: "D", mc3: 1 } },
+  }), {
+    mc1: "D:correct-ans+selected C: B: A:",
+    mc2: "D: C: B: A:selected+wrong-ans",
+    mc3: "D: C: B: A:",
+  });
+  harap("acak belum diterapkan", jalankan({
+    acakDiterapkan: false,
+    data: { scoredQuestions: "mc1,mc2_mc_used", selections: { mc1: "A", mc2: "B" } },
+  }), { mc1: "A: B: C: D:", mc2: "A: B: C: D:" });
+  harap("record lama tanpa selections", jalankan({
+    hurufOnclick: true, data: { scoredQuestions: "mc1,mc2_mc_used" },
+  }), { mc1: "A: B: C: D:", mc2: "A: B: C: D:" });
+
+  const teksEkspor = (isCorrect, correctOpt) => vm.runInNewContext(
+    `(function (isCorrect, correctOpt) {\n  let selectedText;\n${ekspor}  return selectedText;\n})(isCorrect, correctOpt)`,
+    { isCorrect, correctOpt },
+  );
+  for (const [isCorrect, correctOpt, harapTeks] of [
+    [true, null, "(Sudah dijawab benar — teks pilihan tidak tersedia)"],
+    [false, null, "(Sudah dijawab, tetapi pilihan salah)"],
+    [true, { textContent: " (B) Opsi benar " }, "(B) Opsi benar"],
+    [false, { textContent: " (B) Opsi benar " }, "(Sudah dijawab, tetapi pilihan salah)"],
+  ]) {
+    const hasil = teksEkspor(isCorrect, correctOpt);
+    if (hasil !== harapTeks) throw new Error(`${relative}: PILIHAN-PG-EKSPOR isCorrect=${isCorrect} correctOpt=${!!correctOpt} → "${hasil}", harap "${harapTeks}"`);
+  }
 }
 /** Elemen teratas sebuah potongan HTML (tanpa parser DOM): atributnya terbaca lewat getAttribute. */
 const TAG_KOSONG = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]);
