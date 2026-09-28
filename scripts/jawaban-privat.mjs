@@ -33,7 +33,9 @@
  *      bahwa berkas yang belum dinilai sudah ada di server, sehingga angka
  *      bisa dikirim tanpa unggah ulang. Kegagalan dibedakan menurut kode:
  *      sementara → dicoba lagi (otomatis 3 dan 10 detik, dan pada
- *      _loadScoredQuestions berikutnya); resource-exhausted (penguncian PIN)
+ *      _loadScoredQuestions berikutnya); resource-exhausted (penguncian PIN
+ *      per NIM + sumber — keluarga penilaian/soal, bukan kunci per NIM
+ *      verifyPin yang bisa ditahan dari jarak jauh)
  *      → pemberitahuan "coba lagi dalam N detik" lalu dicoba lagi sesudah
  *      `details.remainingSeconds`, sesi PIN tetap; unauthenticated → hash PIN
  *      sesi dibuang dan PIN diminta lagi; lainnya → di-cache per muat halaman.
@@ -166,11 +168,13 @@ function _mintaPinLagiJawabanSaya(pesan) {
 // untuk soal yang ada di respons.
 // Kegagalan: sementara (internal, unavailable, deadline-exceeded, jaringan) →
 // dicoba lagi otomatis 3 lalu 10 detik kemudian dan pada _loadScoredQuestions
-// berikutnya; resource-exhausted (penguncian PIN per NIM) → pemberitahuan
+// berikutnya; resource-exhausted (penguncian PIN per NIM + sumber, node yang
+// sama dengan penilaian/soal, tidak dibagi verifyPin) → pemberitahuan
 // "coba lagi dalam N detik", lalu dicoba lagi sesudah details.remainingSeconds,
-// sesi PIN tetap; unauthenticated → hash PIN sesi dibuang (tidak diulang dengan
-// hash yang sama: setiap percobaan ikut dihitung penguncian) dan PIN diminta
-// lagi; not-found, invalid-argument, dan lainnya → di-cache sampai muat ulang.
+// sesi PIN tetap; unauthenticated (mis. PIN dirotasi/dicabut dosen; pins/ tidak
+// pernah dikosongkan) → hash PIN sesi dibuang (tidak diulang dengan hash yang
+// sama: setiap percobaan ikut dihitung penguncian) dan PIN diminta lagi;
+// not-found, invalid-argument, dan lainnya → di-cache sampai muat ulang.
 window._getJawabanSayaCallable = httpsCallable(_functions, 'getJawabanSaya');
 const _JAWABAN_SAYA_UNTUK = ${untuk};
 const _JAWABAN_SAYA_TUNGGU_MS = 2500;
