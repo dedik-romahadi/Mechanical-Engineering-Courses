@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Analisis Korban Bug Grading | Mechanical Engineering Courses</title>
-<script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
 <style>
   :root{
     --bg:#060a10; --surface:#0d1520; --border:#1a2840; --cyan:#00e5ff;
@@ -58,7 +57,7 @@
 <body>
 <div class="wrap">
   <h1>🔬 Analisis Korban Bug Grading</h1>
-  <div class="sub">Admin-only. Re-run kode Python tiap mahasiswa di browser (Pyodide), bandingkan logika lama (angka pertama) vs baru (angka terakhir). Flag yang dulu salah padahal jawaban benar.</div>
+  <div class="sub">Admin-only. Re-run kode Python tiap mahasiswa di browser (Pyodide di kotak pasir terisolasi: tanpa akses ke sesi admin, satu interpreter per mahasiswa), bandingkan logika lama (angka pertama) vs baru (angka terakhir). Flag yang dulu salah padahal jawaban benar.</div>
 
   <div class="card">
     <label>Mata Kuliah &amp; Modul</label>
@@ -126,15 +125,40 @@ const resetModulQuestion  = httpsCallable(functions, 'resetModulQuestion');
 const NUM_RE = /-?\d+\.?\d*(?:[eE][+-]?\d+)?/g;
 function parseNumbers(str){ return (String(str).match(NUM_RE)||[]).map(Number).filter(n=>isFinite(n)); }
 
-// ── Pyodide singleton ──
-let _py = null;
-const _loaded = new Set(['numpy']);
-async function getPyodide(){
-  if(_py) return _py;
-  setStatus('📦 Memuat Python (Pyodide)... sekali saja, ~10–20 detik');
-  const pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/' });
-  await pyodide.loadPackage('numpy');
-  await pyodide.runPythonAsync(`
+// ── Python mahasiswa di kotak pasir ──
+// Kode yang dijalankan di sini DITULIS MAHASISWA (codePreview ledger atau
+// cadangan migrasi), dan sengaja bisa dibuat salah dinilai agar masuk daftar
+// ini. Dokumen ini memegang sesi admin Firebase (token di sessionStorage origin
+// ini, klaim admin berlaku 2 jam) dan kunci jawaban dari analyzeModulData,
+// sedangkan Pyodide `import js` membuka window, sessionStorage, dan fetch dari
+// tempat ia berjalan. Karena itu Pyodide TIDAK PERNAH dimuat di dokumen ini:
+//   • iframe sandbox="allow-scripts" TANPA allow-same-origin — origin buram:
+//     tidak bisa membaca penyimpanan, cookie, atau DOM halaman ini, tidak bisa
+//     membuka jendela maupun memindahkan halaman;
+//   • di dalamnya satu Web Worker (satu interpreter Python) per mahasiswa;
+//     Worker dihentikan sebelum kode mahasiswa berikutnya, sehingga kode satu
+//     mahasiswa tidak bisa mengubah hasil mahasiswa lain;
+//   • yang masuk hanya teks kode, yang keluar hanya teks keluaran (postMessage),
+//     dan keluaran hanya diurai menjadi angka; kunci jawaban tidak pernah
+//     dikirim ke kotak pasir;
+//   • tiap kode memakai namespace Python baru; kode yang tidak selesai dalam
+//     batas waktu dihentikan dengan membuang iframe-nya.
+const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/';
+const BATAS_KODE_MS = 120000;   // termasuk memuat Pyodide untuk mahasiswa baru
+
+// Isi Worker (dijalankan HANYA di kotak pasir; di sini sekadar sumber teks).
+function pekerjaPython(URL_PYODIDE) {
+  importScripts(URL_PYODIDE + 'pyodide.js');
+  const PKG = [
+    { name:'scipy',  re:/(?:^|[\n;])\s*(?:from\s+scipy(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?scipy(?:\s|,|\.|$))/m },
+    { name:'sympy',  re:/(?:^|[\n;])\s*(?:from\s+sympy(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?sympy(?:\s|,|$))/m },
+    { name:'pandas', re:/(?:^|[\n;])\s*(?:from\s+pandas(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?pandas(?:\s|,|$))/m },
+  ];
+  const dimuat = new Set(['numpy']);
+  const siap = (async () => {
+    const py = await loadPyodide({ indexURL: URL_PYODIDE });
+    await py.loadPackage('numpy');
+    await py.runPythonAsync(`
 import sys, io
 class _Capture:
     def __init__(self): self.buf = io.StringIO()
@@ -144,31 +168,111 @@ class _Capture:
     def reset(self): self.buf = io.StringIO()
 _cap = _Capture()
 `);
-  _py = pyodide;
-  return pyodide;
+    return py;
+  })();
+  self.onmessage = async (ev) => {
+    const id = ev.data && ev.data.id, code = String((ev.data && ev.data.code) || '');
+    let out;
+    try {
+      const py = await siap;
+      const perlu = PKG.filter((p) => p.re.test(code) && !dimuat.has(p.name)).map((p) => p.name);
+      if (perlu.length) {
+        try { await py.loadPackage(perlu); perlu.forEach((p) => dimuat.add(p)); }
+        catch (e) { self.postMessage({ id, out: '__PKGFAIL__ ' + ((e && e.message) || e) }); return; }
+      }
+      await py.runPythonAsync('_cap.reset(); sys.stdout = _cap');
+      const ns = py.globals.get('dict')();
+      let err = null;
+      try { await py.runPythonAsync(code, { globals: ns }); }
+      catch (e) { err = String((e && e.message) || e).replace(/^PythonError:\s*/, ''); }
+      ns.destroy();
+      await py.runPythonAsync('sys.stdout = sys.__stdout__');
+      out = py.runPython('_cap.getvalue()');
+      if (err) out = out + '\n__ERR__ ' + err.slice(0, 200);
+    } catch (e) {
+      out = '__PKGFAIL__ ' + ((e && e.message) || e);
+    }
+    self.postMessage({ id, out: String(out) });
+  };
 }
-const PKG = [
-  { name:'scipy',  re:/(?:^|[\n;])\s*(?:from\s+scipy(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?scipy(?:\s|,|\.|$))/m },
-  { name:'sympy',  re:/(?:^|[\n;])\s*(?:from\s+sympy(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?sympy(?:\s|,|$))/m },
-  { name:'pandas', re:/(?:^|[\n;])\s*(?:from\s+pandas(?:\s|\.)|import\s+(?:[^\n#]*?,\s*)?pandas(?:\s|,|$))/m },
-];
-async function ensurePkgs(code){
-  const need = PKG.filter(p=>p.re.test(code) && !_loaded.has(p.name)).map(p=>p.name);
-  if(need.length===0) return;
-  setStatus('📦 Memuat package: '+need.join(', ')+'...');
-  await _py.loadPackage(need);
-  need.forEach(p=>_loaded.add(p));
+
+// Perekat di dalam iframe (dijalankan HANYA di kotak pasir): satu Worker per
+// mahasiswa, pesan diteruskan apa adanya ke halaman induk.
+function perekatKotakPasir(URL_PYODIDE, SUMBER_PEKERJA) {
+  const urlPekerja = URL.createObjectURL(new Blob(['(' + SUMBER_PEKERJA + ')(' + JSON.stringify(URL_PYODIDE) + ');'], { type: 'text/javascript' }));
+  let pekerja = null, pemilik = null, menunggu = null;
+  const lapor = (id, out) => parent.postMessage({ id, out: String(out) }, '*');
+  addEventListener('message', (ev) => {
+    if (ev.source !== parent || !ev.data || typeof ev.data.code !== 'string') return;
+    const { id, code } = ev.data, p = String(ev.data.pemilik || '');
+    if (!pekerja || pemilik !== p) {
+      if (pekerja) pekerja.terminate();
+      pekerja = new Worker(urlPekerja);
+      pemilik = p;
+      pekerja.onmessage = (e) => { if (e.data && e.data.id === menunggu) { menunggu = null; lapor(e.data.id, e.data.out); } };
+      pekerja.onerror = (e) => {
+        if (menunggu !== null) { lapor(menunggu, '__PKGFAIL__ ' + ((e && e.message) || 'Worker Python gagal')); menunggu = null; }
+        if (pekerja) pekerja.terminate();
+        pekerja = null; pemilik = null;
+      };
+    }
+    menunggu = id;
+    pekerja.postMessage({ id, code });
+  });
+  parent.postMessage({ siap: true }, '*');
 }
-async function runCode(code){
-  const pyodide = await getPyodide();
-  try{ await ensurePkgs(code); }catch(e){ return '__PKGFAIL__ '+(e.message||e); }
-  await pyodide.runPythonAsync('_cap.reset(); sys.stdout = _cap');
-  let err=null;
-  try{ await pyodide.runPythonAsync(code); }
-  catch(e){ err = String(e.message||e).replace(/^PythonError:\s*/,''); }
-  await pyodide.runPythonAsync('sys.stdout = sys.__stdout__');
-  const out = await pyodide.runPythonAsync('_cap.getvalue()');
-  return err ? (out + '\n__ERR__ ' + err.slice(0,200)) : out;
+
+let _kotak = null;   // { frame, siap, selesaiSiap, tunggu: Map(id → fn) }
+function _buangKotak() {
+  if (!_kotak) return;
+  const k = _kotak; _kotak = null;
+  k.frame.remove();
+  for (const f of k.tunggu.values()) f('__PKGFAIL__ kotak pasir dihentikan');
+  k.tunggu.clear();
+}
+function _kotakPasir() {
+  if (_kotak) return _kotak;
+  const frame = document.createElement('iframe');
+  frame.setAttribute('sandbox', 'allow-scripts');   // TANPA allow-same-origin: origin buram
+  frame.setAttribute('aria-hidden', 'true');
+  frame.setAttribute('tabindex', '-1');
+  frame.style.display = 'none';
+  frame.srcdoc = '<!doctype html><meta charset="utf-8"><script>(' + perekatKotakPasir.toString() + ')('
+    + JSON.stringify(PYODIDE_URL) + ', ' + JSON.stringify(pekerjaPython.toString()) + ');<\/script>';
+  const k = { frame, tunggu: new Map(), selesaiSiap: null, siap: null };
+  k.siap = new Promise((ok, gagal) => {
+    const t = setTimeout(() => gagal(new Error('kotak pasir Python tidak siap dalam 30 detik')), 30000);
+    k.selesaiSiap = () => { clearTimeout(t); ok(); };
+  });
+  _kotak = k;
+  document.body.appendChild(frame);
+  return k;
+}
+window.addEventListener('message', (ev) => {
+  const k = _kotak;
+  if (!k || ev.source !== k.frame.contentWindow || !ev.data || typeof ev.data !== 'object') return;
+  if (ev.data.siap === true) { k.selesaiSiap(); return; }
+  const f = k.tunggu.get(ev.data.id);
+  if (f) { k.tunggu.delete(ev.data.id); f(String(ev.data.out == null ? '' : ev.data.out)); }
+});
+async function getPyodide(){
+  setStatus('📦 Menyiapkan kotak pasir Python (Pyodide dimuat terpisah per mahasiswa, ~10–20 detik yang pertama)...');
+  await _kotakPasir().siap;
+}
+let _idKode = 0;
+async function runCode(code, pemilik){
+  const k = _kotakPasir();
+  try { await k.siap; } catch (e) { _buangKotak(); return '__PKGFAIL__ ' + (e.message || e); }
+  const id = ++_idKode;
+  return new Promise((selesai) => {
+    const t = setTimeout(() => {
+      k.tunggu.delete(id);
+      if (_kotak === k) _buangKotak();   // kode berputar tanpa akhir: hentikan seluruh kotak pasir
+      selesai('__PKGFAIL__ waktu habis; kode dihentikan');
+    }, BATAS_KODE_MS);
+    k.tunggu.set(id, (out) => { clearTimeout(t); selesai(out); });
+    k.frame.contentWindow.postMessage({ id, code: String(code), pemilik: String(pemilik || '') }, '*');
+  });
 }
 
 // ── Eval logic — mirror server ──
@@ -220,7 +324,7 @@ window.doAnalyze = async function(){
         done++;
         setStatus(`⚙️ Menjalankan kode... ${done} soal (mhs ${st.nim}, ${qId})`);
         if(!code){ rows.push({nim:st.nim,qId,target:ans.answer,info:'(tidak ada code)',status:'skip'}); continue; }
-        const out = await runCode(code);
+        const out = await runCode(code, st.nim);
         if(out.startsWith('__PKGFAIL__')){ rows.push({nim:st.nim,qId,target:ans.answer,info:'pkg gagal',status:'runfail'}); continue; }
         const nums = parseNumbers(out);
         const oldOk = evalOld(nums,ans.answer,ans.tolerance);

@@ -1320,7 +1320,7 @@ Jika penghapusan ledger gagal, jangan lanjut menghapus RTDB karena mahasiswa aka
 | `reset-soal.html` | reset satu, beberapa, atau semua soal pada 84 modul dan 12 exam (enam mata kuliah); target satu NIM atau semua mahasiswa |
 | `recompute-obe-score.html` | recompute poin satu exam dari mapping OBE dan ledger |
 | `rescale-deadline.html` | rescale penalti keterlambatan modul atau exam (UTS/UAS), global atau NIM tertentu (exam via `rescaleExamLatePenalty`, §5.5/§10). Deadline Baru dengan NIM kosong menulis `end` **dan** `due` jadwal global dan mempertahankan waktu buka, baik modul (§5.4) maupun ujian (§5.5, `duration` menit ikut diselaraskan), sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; dengan NIM terisi, jadwal global tidak diubah. Sejak deploy yang sama server menolak (juga pada Diagnose): deadline modul satu kelas yang jamnya tidak sama dengan jam buka modul (preset 23:59 hanya cocok untuk modul yang dibuka 23.59 WIB; pesannya menyarankan dua deadline sah), deadline pada/sebelum waktu buka modul atau `start` ujian, dan hitung ulang modul tanpa Deadline Baru saat `end` ≠ `due` (§5.4). Untuk ujian satu kelas, halaman membaca `start` dan memperingatkan bila Deadline Baru lebih dari 30 hari sesudahnya; hasilnya menampilkan jumlah mahasiswa yang dinilai terhadap jendela susulannya sendiri (§5.5) |
-| `analyze-victims.html` | analisis korban/anomali grading modul dan reset terarah |
+| `analyze-victims.html` | analisis korban/anomali grading modul dan reset terarah. Kode Python mahasiswa (ditulis mahasiswa, dari `codePreview` ledger) dijalankan di kotak pasir: `<iframe sandbox="allow-scripts">` tanpa `allow-same-origin` + satu Web Worker Pyodide per mahasiswa, hanya teks kode masuk dan teks keluaran keluar (`postMessage`), namespace Python baru per kode, batas waktu 120 detik. Jangan pernah memuat Pyodide atau menjalankan kode mahasiswa di dokumen halaman ini: dokumen itu memegang sesi admin (token di `sessionStorage`) dan kunci jawaban, dan `import js` Pyodide membuka keduanya (sebelum 29 September 2026 begitulah keadaannya). |
 | `verify-export-code.html` | verifikasi HMAC export modul/exam |
 | `berkas-tugas.html` | daftar dan unduh berkas FreeCAD tugas pemodelan CAD per modul, dengan status penilaian |
 | `analyze-affected.py` | helper analisis file/data lokal; bukan halaman web |
@@ -1425,6 +1425,7 @@ Wajib dipertahankan:
 - semua operasi admin memakai Firebase Auth custom token dan claim admin;
 - update RTDB dari client harus sparse dan tidak boleh menulis ulang field server-owned dari snapshot basi;
 - jawaban mahasiswa (pilihan PG/benar-salah, kode, ringkasan berkas) tidak boleh kembali dibaca dari atau ditulis ke `visitors/`, yang terbaca publik; halaman memulihkannya lewat `getJawabanSaya` dan identitas localStorage tidak menyimpannya (§6.3, §9.1) — `validate-public-security.mjs` menegakkannya;
+- kode yang ditulis mahasiswa tidak boleh dijalankan di dokumen yang memegang sesi admin atau kunci jawaban (`Admin/analyze-victims.html` memakai kotak pasir, §11.2);
 - user input harus di-escape ketika masuk ke export, chat, atau HTML dinamis;
 - Pages workflow harus menolak artefak sensitif sebelum deploy;
 - node RTDB `pins/` tidak boleh dibuka kembali untuk dibaca klien (lihat §4.3);
