@@ -32,6 +32,20 @@
  *      course acak, dibiarkan (ekspor memakai teks netral di bawah). Status
  *      mcAnswered/mcScores, kunci grup, opacity, dan teks umpan balik tidak
  *      disentuh — itu tetap tugas perulangan marker di bawahnya.
+ *      v2 (28 September 2026): pada course acak, huruf posisi hanya dipercaya
+ *      bila `timestamp` record (kunjungan pertama; rules RTDB melarang klien
+ *      mengubahnya, backend mengisinya sekali) >= 2026-08-09T00:00:00Z. Modul
+ *      Sisken terbit 5 Agustus 2026 dengan onclick kanonik (6b8db6a8) dan
+ *      acak per NIM baru terpasang 8 Agustus 2026 ±17:14 +08:00 (22057ba0,
+ *      "Attempt lama tetap sah"; backend `mcOrderVersion`), jadi record yang
+ *      lebih tua bisa menyimpan huruf KANONIK — sekitar 3 dari 4 akan menandai
+ *      opsi yang salah, dan jawaban benar lalu diekspor dengan teks opsi
+ *      keliru ber-✓.
+ *      Record RTDB tidak mencatat jenis hurufnya, jadi record seperti itu
+ *      (juga yang timestamp-nya hilang/tak terbaca) tidak ditandai dan
+ *      ekspornya memakai teks netral, yang tidak pernah salah. TTL (mulai
+ *      14 September) dan CAD (20 September) tidak terdampak. Batasnya
+ *      sengaja jatuh ±15 jam sesudah deploy (tab lama yang masih terbuka).
  *   2. PILIHAN-PG-EKSPOR — fallback ekspor saat teks pilihan tidak diketahui:
  *      benar → "(Sudah dijawab benar — teks pilihan tidak tersedia)", salah →
  *      tetap "(Sudah dijawab, tetapi pilihan salah)", belum dijawab tidak
@@ -71,15 +85,21 @@ const JANGKAR_DATA = "\n    const data = snap.val();\n";
 const AWAL_RESTORE = "window._loadScoredQuestions = function() {";
 const GET_RESTORE = "get(ref(db, DB_PATH + '/' + key)).then(snap => {";
 
-const BLOK_PULIH = `    // PILIHAN-PG-PULIH BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
+const BLOK_PULIH = `    // PILIHAN-PG-PULIH BEGIN v2 — dipasang scripts/pulihkan-pilihan-pg.mjs
     // Pilihan PG yang sudah dijawab dipulihkan dari RTDB selections[mcN], yaitu
     // huruf yang dulu dikirim selectMC ke checkModulAnswer: huruf kanonik di
     // onclick bila markup membawanya, selain itu huruf posisi terlihat
     // (data-display-letter) dari urutan acak per NIM. Benar → .selected +
     // .correct-ans; salah → .selected + .wrong-ans tanpa mengungkap opsi benar.
     // Record lama tanpa selections dibiarkan; ekspor memakai teks netral.
+    // Huruf posisi hanya dipercaya bila kunjungan pertama record (timestamp,
+    // tidak bisa diubah klien) jatuh sesudah urutan acak per NIM pertama kali
+    // terpasang (8 Agustus 2026): record yang lebih tua bisa menyimpan huruf
+    // kanonik, dan jenis hurufnya tidak tercatat, jadi tidak ditandai.
     try {
       const pgPilihan = (data.selections && typeof data.selections === 'object') ? data.selections : {};
+      const pgMulai = Date.parse(String(data.timestamp || ''));
+      const pgHurufPosisiSah = Number.isFinite(pgMulai) && pgMulai >= Date.parse('2026-08-09T00:00:00Z');
       const pgStatus = {};
       String(data.scoredQuestions || '').split(',').forEach((m) => {
         if (/^mc\\d+$/.test(m)) pgStatus[m] = 'benar';
@@ -97,6 +117,7 @@ const BLOK_PULIH = `    // PILIHAN-PG-PULIH BEGIN v1 — dipasang scripts/pulihk
         if (!rg) return;
         const opsi = Array.from(rg.querySelectorAll('.radio-option'));
         const kanonik = opsi.length > 0 && opsi.every((o) => pgHurufOnclick(o));
+        if (!kanonik && !pgHurufPosisiSah) return;
         const nilai = pgPilihan[qId];
         let huruf = null;
         if (typeof nilai === 'string' && /^[A-D]$/i.test(nilai.trim())) huruf = nilai.trim().toUpperCase();
@@ -112,7 +133,7 @@ const BLOK_PULIH = `    // PILIHAN-PG-PULIH BEGIN v1 — dipasang scripts/pulihk
         pilihan.classList.add('selected', benar ? 'correct-ans' : 'wrong-ans');
       });
     } catch (e) { console.warn('[pilihan-pg] gagal memulihkan pilihan PG:', e); }
-    // PILIHAN-PG-PULIH END v1
+    // PILIHAN-PG-PULIH END v2
 `;
 
 const TERNARY_LAMA = `      selectedText = isCorrect && correctOpt
