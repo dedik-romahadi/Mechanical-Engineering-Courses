@@ -297,6 +297,11 @@ repo publik ini.
    tab — dilarang (Pedoman §8).
 8. Mengubah `students.json` dengan `json.dumps` — memformat ulang seluruh
    berkas; sisipkan satu baris dengan gaya yang sama.
+9. Menjalankan kode mahasiswa (Pyodide) di halaman `Admin/` yang memegang
+   sesi admin — `import js` membuka `sessionStorage` dan `fetch` halaman itu.
+   Pakai kotak pasir seperti `Admin/analyze-victims.html` (iframe
+   `sandbox="allow-scripts"` tanpa `allow-same-origin` + Worker per
+   mahasiswa; Pedoman §11.2).
 
 ### B.6 Dokumen wajib baca sebelum perubahan besar
 
