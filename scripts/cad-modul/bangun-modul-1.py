@@ -176,7 +176,7 @@ TUGAS_JS = r'''// ═══ TUGAS PEMODELAN CAD ═══
 // ringkasan berkas ke ledger. Klien tidak punya kunci/toleransi.
 const berkasTerunggah = {};   // qId → {namaBerkas, size, sha256, uploadedAt, versi}
 const berkasSyarat = {};      // qId → {ekstensi:[...], maksMB} dari getModulQuestions
-const berkasDiServer = {};    // qId → true: berkas pernah dinilai dan masih tersimpan di server (kirim ulang)
+const berkasDiServer = {};    // qId → true: berkas ada di server — pernah dinilai (kirim ulang) atau terunggah tetapi belum dinilai
 window._cadSudahKirim = {};   // qId → true: sudah pernah dikirim (dihitung lengkap untuk ekspor walau dibuka lagi)
 window.berkasTerunggah = berkasTerunggah;
 function _escCad(v) { return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -214,6 +214,16 @@ window._terapkanSyaratBerkas = function(qId, berkas) {
 };
 window._kunciTugasCad = function(qId) {
   ['nilai-', 'berkas-', 'unggah-'].forEach((p) => { const el = document.getElementById(p + qId); if (el) { el.disabled = true; el.style.opacity = '.6'; } });
+};
+// Berkas yang sudah terunggah tetapi belum dinilai (dipulihkan getJawabanSaya
+// sesudah muat ulang atau di perangkat lain): angka bacaan boleh langsung
+// dikirim tanpa unggah ulang — checkModulAnswer memeriksa berkas di server.
+window._tandaiBerkasDiServer = function(qId) {
+  if (compAnswered[qId]) return;
+  berkasDiServer[qId] = true;
+  _refreshTugasBtn(qId);
+  const fb = document.getElementById('fb-' + qId);
+  if (fb && !fb.textContent.trim()) { fb.className = 'feedback warn'; fb.textContent = '📎 Berkas tugas ini sudah terunggah di server tetapi belum dikirim. Isikan angka bacaan dari model itu lalu klik kirim; tidak perlu unggah ulang.'; }
 };
 window._ringkasTugasCad = function(qId) {
   const b = berkasTerunggah[qId];

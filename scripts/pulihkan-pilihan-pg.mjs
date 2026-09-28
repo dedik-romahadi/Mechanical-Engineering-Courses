@@ -17,8 +17,8 @@
  * mencetak "pilihan salah" untuk jawaban benar (poin 1, ✓).
  *
  * YANG DILAKUKAN (dua sisipan bertanda, sama persis di ke-84 halaman):
- *   1. PILIHAN-PG-PULIH — tepat sesudah `const data = snap.val();` di
- *      _loadScoredQuestions. Huruf yang dikirim ke checkModulAnswer sudah
+ *   1. PILIHAN-PG-PULIH — tepat sesudah `const data = snap.val();` (dan blok
+ *      JAWABAN-PRIVAT:GABUNG bila ada) di _loadScoredQuestions. Huruf yang dikirim ke checkModulAnswer sudah
  *      disimpan server di RTDB `selections[mcN]`: huruf POSISI terlihat pada
  *      course ber-PG acak per NIM (Sisken, Teknik Tenaga Listrik, Pemodelan
  *      CAD; `mcOrderVersion: 1`) dan huruf kanonik markup pada Matematika 4,
@@ -46,6 +46,18 @@
  *      ekspornya memakai teks netral, yang tidak pernah salah. TTL (mulai
  *      14 September) dan CAD (20 September) tidak terdampak. Batasnya
  *      sengaja jatuh ±15 jam sesudah deploy (tab lama yang masih terbuka).
+ *      v3 (29 September 2026): `data.selections` kini diisi callable
+ *      getJawabanSaya dari ledger server (blok JAWABAN-PRIVAT:GABUNG dari
+ *      scripts/jawaban-privat.mjs, tepat sebelum blok ini), karena record RTDB
+ *      pengunjung terbaca publik dan backend berhenti menyimpan selections di
+ *      sana; sejak perbaikan tinjauan (29 September 2026) field RTDB publik
+ *      tidak pernah dipakai lagi, juga bila callable gagal. Ledger mencatat
+ *      jenis hurufnya: `data.mcOrderVersion[mcN]` 1 = huruf posisi terlihat
+ *      (dicari lewat data-display-letter sesudah shuffleMCOptions), 0 = huruf
+ *      kanonik (course kanonik: onclick; course acak: data-huruf-asal, urutan
+ *      markup yang dicatat blok JAWABAN-PRIVAT:HURUF-ASAL sebelum opsi diacak).
+ *      Penjaga timestamp v2 hanya berlaku untuk mcN tanpa entri mcOrderVersion
+ *      di respons getJawabanSaya.
  *   2. PILIHAN-PG-EKSPOR — fallback ekspor saat teks pilihan tidak diketahui:
  *      benar → "(Sudah dijawab benar — teks pilihan tidak tersedia)", salah →
  *      tetap "(Sudah dijawab, tetapi pilihan salah)", belum dijawab tidak
@@ -83,21 +95,31 @@ const periksa = process.argv.includes("--periksa");
 
 const JANGKAR_DATA = "\n    const data = snap.val();\n";
 const AWAL_RESTORE = "window._loadScoredQuestions = function() {";
-const GET_RESTORE = "get(ref(db, DB_PATH + '/' + key)).then(snap => {";
+// Pembacaan record di _loadScoredQuestions: bentuk asli, atau bentuk
+// JAWABAN-PRIVAT:TUNGGU (record + getJawabanSaya ditunggu bersama).
+const GET_RESTORE = ["get(ref(db, DB_PATH + '/' + key)).then(snap => {", "Promise.all([get(ref(db, DB_PATH + '/' + key)), "];
+// Blok penggabung jawaban dari scripts/jawaban-privat.mjs (boleh belum ada).
+const RX_GABUNG = /    \/\/ JAWABAN-PRIVAT:GABUNG BEGIN[^\n]*\n[\s\S]*?    \/\/ JAWABAN-PRIVAT:GABUNG END[^\n]*\n/;
 
-const BLOK_PULIH = `    // PILIHAN-PG-PULIH BEGIN v2 — dipasang scripts/pulihkan-pilihan-pg.mjs
-    // Pilihan PG yang sudah dijawab dipulihkan dari RTDB selections[mcN], yaitu
+const BLOK_PULIH = `    // PILIHAN-PG-PULIH BEGIN v3 — dipasang scripts/pulihkan-pilihan-pg.mjs
+    // Pilihan PG yang sudah dijawab dipulihkan dari data.selections[mcN] —
+    // hanya diisi getJawabanSaya dari ledger server (blok JAWABAN-PRIVAT:GABUNG
+    // di atas; selections record RTDB publik tidak pernah dipakai) — yaitu
     // huruf yang dulu dikirim selectMC ke checkModulAnswer: huruf kanonik di
     // onclick bila markup membawanya, selain itu huruf posisi terlihat
     // (data-display-letter) dari urutan acak per NIM. Benar → .selected +
     // .correct-ans; salah → .selected + .wrong-ans tanpa mengungkap opsi benar.
-    // Record lama tanpa selections dibiarkan; ekspor memakai teks netral.
-    // Huruf posisi hanya dipercaya bila kunjungan pertama record (timestamp,
-    // tidak bisa diubah klien) jatuh sesudah urutan acak per NIM pertama kali
+    // Tanpa pilihan (callable gagal, attempt tanpa ledger): dibiarkan, ekspor
+    // memakai teks netral. Jenis huruf dari ledger, data.mcOrderVersion[mcN]:
+    // 1 = huruf posisi terlihat, 0 = huruf kanonik (course acak:
+    // data-huruf-asal, urutan markup sebelum diacak). Tanpa entri itu, huruf
+    // posisi hanya dipercaya bila kunjungan pertama record (timestamp, tidak
+    // bisa diubah klien) jatuh sesudah urutan acak per NIM pertama kali
     // terpasang (8 Agustus 2026): record yang lebih tua bisa menyimpan huruf
-    // kanonik, dan jenis hurufnya tidak tercatat, jadi tidak ditandai.
+    // kanonik.
     try {
       const pgPilihan = (data.selections && typeof data.selections === 'object') ? data.selections : {};
+      const pgVersi = (data.mcOrderVersion && typeof data.mcOrderVersion === 'object') ? data.mcOrderVersion : {};
       const pgMulai = Date.parse(String(data.timestamp || ''));
       const pgHurufPosisiSah = Number.isFinite(pgMulai) && pgMulai >= Date.parse('2026-08-09T00:00:00Z');
       const pgStatus = {};
@@ -117,15 +139,17 @@ const BLOK_PULIH = `    // PILIHAN-PG-PULIH BEGIN v2 — dipasang scripts/pulihk
         if (!rg) return;
         const opsi = Array.from(rg.querySelectorAll('.radio-option'));
         const kanonik = opsi.length > 0 && opsi.every((o) => pgHurufOnclick(o));
-        if (!kanonik && !pgHurufPosisiSah) return;
+        const versi = (pgVersi[qId] === 0 || pgVersi[qId] === 1) ? pgVersi[qId] : null;
+        if (!kanonik && versi === null && !pgHurufPosisiSah) return;
         const nilai = pgPilihan[qId];
         let huruf = null;
         if (typeof nilai === 'string' && /^[A-D]$/i.test(nilai.trim())) huruf = nilai.trim().toUpperCase();
         else if (kanonik && typeof nilai === 'number' && Number.isInteger(nilai) && nilai >= 0 && nilai < 4) huruf = String.fromCharCode(65 + nilai);
         if (!huruf) return;
-        const pilihan = kanonik
-          ? opsi.find((o) => pgHurufOnclick(o) === huruf)
-          : opsi.find((o) => o.dataset && o.dataset.displayLetter === huruf);
+        let pilihan;
+        if (kanonik) pilihan = opsi.find((o) => pgHurufOnclick(o) === huruf);
+        else if (versi === 0) pilihan = opsi.find((o) => o.dataset && o.dataset.hurufAsal === huruf);
+        else pilihan = opsi.find((o) => o.dataset && o.dataset.displayLetter === huruf);
         if (!pilihan) return;
         const benar = pgStatus[qId] === 'benar';
         opsi.forEach((o) => { if (o !== pilihan) o.classList.remove('selected', 'wrong-ans'); });
@@ -133,7 +157,7 @@ const BLOK_PULIH = `    // PILIHAN-PG-PULIH BEGIN v2 — dipasang scripts/pulihk
         pilihan.classList.add('selected', benar ? 'correct-ans' : 'wrong-ans');
       });
     } catch (e) { console.warn('[pilihan-pg] gagal memulihkan pilihan PG:', e); }
-    // PILIHAN-PG-PULIH END v2
+    // PILIHAN-PG-PULIH END v3
 `;
 
 const TERNARY_LAMA = `      selectedText = isCorrect && correctOpt
@@ -180,7 +204,9 @@ function proses(berkas) {
   } else {
     const n = hitung(html, JANGKAR_DATA);
     if (n !== 1) throw new Error(`jangkar \`const data = snap.val();\` muncul ${n}x, harusnya 1`);
-    const i = html.indexOf(JANGKAR_DATA) + JANGKAR_DATA.length;
+    let i = html.indexOf(JANGKAR_DATA) + JANGKAR_DATA.length;
+    const gabung = RX_GABUNG.exec(html.slice(i));
+    if (gabung && gabung.index === 0) i += gabung[0].length;   // sesudah JAWABAN-PRIVAT:GABUNG
     html = html.slice(0, i) + BLOK_PULIH + html.slice(i);
     catatan.push("pulih dipasang");
   }
@@ -201,13 +227,20 @@ function proses(berkas) {
 
   // ── Penjaga hasil ──
   if (RX_TERNARY_LAMA.test(html)) throw new Error("fallback ekspor lama yang menyesatkan masih tertinggal");
-  if (hitung(html, JANGKAR_DATA + BLOK_PULIH) !== 1) throw new Error("blok PILIHAN-PG-PULIH harus tepat sesudah `const data = snap.val();`");
+  {
+    const j = html.indexOf(JANGKAR_DATA) + JANGKAR_DATA.length;
+    const gabung = RX_GABUNG.exec(html.slice(j));
+    const k = j + (gabung && gabung.index === 0 ? gabung[0].length : 0);
+    if (hitung(html, BLOK_PULIH) !== 1 || !html.startsWith(BLOK_PULIH, k)) {
+      throw new Error("blok PILIHAN-PG-PULIH harus tepat sesudah `const data = snap.val();` (dan blok JAWABAN-PRIVAT:GABUNG bila ada)");
+    }
+  }
   {
     // Jangkar harus berada di _loadScoredQuestions yang sesungguhnya (definisi
     // yang membaca record RTDB), bukan di fungsi lain.
     const j = html.indexOf(JANGKAR_DATA);
     const d = html.lastIndexOf(AWAL_RESTORE, j);
-    if (d < 0 || !html.slice(d, j).includes(GET_RESTORE)) throw new Error("`const data = snap.val();` tidak berada di _loadScoredQuestions");
+    if (d < 0 || !GET_RESTORE.some((g) => html.slice(d, j).includes(g))) throw new Error("`const data = snap.val();` tidak berada di _loadScoredQuestions");
   }
   {
     // Blok ekspor harus di dalam perakitan mcData (cabang mcAnswered).
