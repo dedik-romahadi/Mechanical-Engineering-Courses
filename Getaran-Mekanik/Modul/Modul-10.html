@@ -9572,11 +9572,12 @@ function drawMuRatio(){
       const bx = padL + (i+0.5)*bw;
       const bh = (eigval/2.5)*plotH;
       const grad = ctx.createLinearGradient(0, padT+plotH-bh, 0, padT+plotH);
-      grad.addColorStop(0, 'var(--amber)');
-      grad.addColorStop(1, 'var(--amber)40');
+      // Kanvas tidak mengenal var(--...): addColorStop melempar SyntaxError. #ffb300 = --amber di :root.
+      grad.addColorStop(0, '#ffb300');
+      grad.addColorStop(1, '#ffb30040');
       ctx.fillStyle = grad;
       ctx.fillRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
-      ctx.strokeStyle = 'var(--amber)';
+      ctx.strokeStyle = '#ffb300';
       ctx.strokeRect(bx-bw*0.35, padT+plotH-bh, bw*0.7, bh);
       ctx.fillStyle = '#fff'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
       ctx.fillText('ω'+(i+1), bx, padT+plotH+14);
@@ -9584,8 +9585,8 @@ function drawMuRatio(){
     }
   } else {
     // Continuous curve
-    ctx.strokeStyle = 'var(--amber)'; ctx.lineWidth = 2.5;
-    ctx.shadowColor = 'var(--amber)A0'; ctx.shadowBlur = 6;
+    ctx.strokeStyle = '#ffb300'; ctx.lineWidth = 2.5;
+    ctx.shadowColor = '#ffb300A0'; ctx.shadowBlur = 6;
     ctx.beginPath();
     for(let i=0; i<=200; i++){
       const x = padL + plotW*i/200;
@@ -9599,7 +9600,7 @@ function drawMuRatio(){
   }
 
   ctx.textAlign = 'left';
-  ctx.fillStyle = 'var(--amber)'; ctx.font = 'bold 12px JetBrains Mono';
+  ctx.fillStyle = '#ffb300'; ctx.font = 'bold 12px JetBrains Mono';
   ctx.fillText('Mass Ratio μ = '+v.toFixed(2), padL+10, padT+18);
 
   const info = document.getElementById('cvMuRatio_info');
