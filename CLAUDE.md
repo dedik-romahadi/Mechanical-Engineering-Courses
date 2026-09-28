@@ -163,7 +163,11 @@ repo publik ini.
   NIM + PIN 6 digit (nama dari roster; tidak ada input nama). Dosen: password
   admin. PIN global di RTDB `pins/mhs_<NIM>` (hash SHA-256, lintas course);
   klien tidak boleh membaca `pins/` — verifikasi lewat callable `verifyPin`.
-  Reset modul/exam tidak menghapus PIN. Rincian: Pedoman §4.
+  Reset modul/exam tidak menghapus PIN. Reset/ganti PIN **menimpa**
+  `pins/mhs_<NIM>`, tidak pernah menghapusnya (slot kosong = login pertama
+  bagi siapa pun yang lebih dulu). Lockout PIN dua keluarga: per NIM (dibagi
+  `verifyPin`) dan per NIM + sumber (penilaian, soal, unggah,
+  `getJawabanSaya`, `generateExportCode`). Rincian: Pedoman §4.3.
 - **Akun simulasi** NIM `41399999901` ("SIMULASI MAHASISWA") — akun uji
   dosen untuk menjalani alur mahasiswa tanpa mengotori data:
   - masuk lewat tombol 🎓 Mahasiswa dengan NIM itu + PIN yang dipegang dosen;
@@ -262,8 +266,9 @@ repo publik ini.
   sebelum kode pemulihan lama; `scoreDelta` ledger menang atas RTDB. Callable
   gagal → field publik TETAP tidak dipakai (functions + rules ter-deploy
   sebelum halaman), teks netral; galat sementara dicoba lagi,
-  `resource-exhausted` (penguncian PIN) menunggu `remainingSeconds` tanpa
-  mengakhiri sesi, `unauthenticated` membuang hash sesi dan meminta PIN.
+  `resource-exhausted` (penguncian PIN per NIM + sumber) menunggu
+  `remainingSeconds` tanpa mengakhiri sesi, `unauthenticated` membuang hash
+  sesi dan meminta PIN.
   Identitas localStorage tanpa field jawaban (`_identitasTanpaJawaban`,
   NIM mahasiswa selalu `student`) dan sesudah login dari alur login
   (`_identitasLogin`, bukan salinan record); tulisan klien ke record visitor
@@ -310,6 +315,10 @@ repo publik ini.
    Pakai kotak pasir seperti `Admin/analyze-victims.html` (iframe
    `sandbox="allow-scripts"` tanpa `allow-same-origin` + Worker per
    mahasiswa; Pedoman §11.2).
+10. "Reset PIN" dengan menghapus `pins/mhs_<NIM>` (juga akun simulasi) —
+    slot kosong menjadi login pertama bagi siapa pun yang lebih dulu. Timpa
+    `pinHash` di tempat; PIN terpapar dirotasi skrip backend
+    (`reset-pin`/`cabut-pin`). Pedoman §4.3.
 
 ### B.6 Dokumen wajib baca sebelum perubahan besar
 
