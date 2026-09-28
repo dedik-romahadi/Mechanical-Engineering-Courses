@@ -53,6 +53,7 @@ def skrip(rakitan_qid, pre="uts"):
 let compAnswered = {}, compScores = {};
 const berkasTerunggah = {};   // qId → {namaBerkas, size, sha256, uploadedAt, versi}
 const berkasSyarat = {};      // qId → {ekstensi:[...], maksMB, label} dari getExamQuestions
+const berkasDiServer = {};    // qId → true: berkas sudah terunggah di server tetapi belum dinilai (dipulihkan getJawabanSaya)
 window.berkasTerunggah = berkasTerunggah;
 
 function _escCad(v) { return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -76,7 +77,7 @@ function _setBerkasStatus(qId, html, warna) {
 function _refreshTugasBtn(qId) {
   const btn = document.getElementById('sub-' + qId); if (!btn || compAnswered[qId]) return;
   const inp = document.getElementById('nilai-' + qId);
-  const siap = !!berkasTerunggah[qId] && _parseNilai(inp && inp.value) !== null;
+  const siap = (!!berkasTerunggah[qId] || !!berkasDiServer[qId]) && _parseNilai(inp && inp.value) !== null;
   btn.disabled = !siap; btn.style.opacity = siap ? '1' : '.5';
 }
 function _tampilBerkas(qId) {
@@ -99,6 +100,16 @@ window._kunciTugasCad = function(qId) {
 window._bukaTugasCad = function(qId) {
   ['nilai-', 'berkas-', 'unggah-'].forEach((p) => { const el = document.getElementById(p + qId); if (el) { el.disabled = false; el.style.opacity = '1'; } });
   _refreshTugasBtn(qId);
+};
+// Berkas yang sudah terunggah tetapi belum dinilai (dipulihkan getJawabanSaya
+// sesudah muat ulang atau di perangkat lain): angka bacaan boleh langsung
+// dikirim tanpa unggah ulang — checkExamAnswer memeriksa berkas di server.
+window._tandaiBerkasDiServer = function(qId) {
+  if (compAnswered[qId]) return;
+  berkasDiServer[qId] = true;
+  _refreshTugasBtn(qId);
+  const fb = document.getElementById('fb-' + qId);
+  if (fb && !fb.textContent.trim()) { fb.className = 'feedback warn'; fb.style.display = 'block'; fb.textContent = '📎 Berkas tugas ini sudah terunggah di server tetapi belum dikirim. Isikan angka bacaan dari model itu lalu klik ▶ Kirim & Validasi; tidak perlu unggah ulang.'; }
 };
 // Ringkasan berkas + angka untuk laporan ekspor HTML.
 window._ringkasTugasCad = function(qId) {
@@ -188,9 +199,10 @@ async function kirimTugas(qId) {
   const btn = document.getElementById('sub-' + qId);
   const inp = document.getElementById('nilai-' + qId);
   const nilai = _parseNilai(inp && inp.value);
-  if (!berkasTerunggah[qId]) { if (fb) { fb.className = 'feedback warn'; fb.textContent = '⚠ Unggah berkas .FCStd terlebih dahulu — server menolak angka tanpa bukti model.'; } return; }
+  if (!berkasTerunggah[qId] && !berkasDiServer[qId]) { if (fb) { fb.className = 'feedback warn'; fb.textContent = '⚠ Unggah berkas .FCStd terlebih dahulu — server menolak angka tanpa bukti model.'; } return; }
   if (nilai === null) { if (fb) { fb.className = 'feedback warn'; fb.textContent = '⚠ Isikan angka bacaan dari FreeCAD (mis. 3200,5).'; } return; }
-  if (!confirm('Kirim tugas ' + qId.toUpperCase() + ' dengan berkas "' + berkasTerunggah[qId].namaBerkas + '" dan angka ' + inp.value.trim() + '?\\nAngka harus terbaca dari geometri berkas itu (angka yang tidak ada di model ditolak tanpa dihitung). Setelah dinilai, berkas dan angka tidak dapat diubah lagi (satu kesempatan).')) return;
+  const namaB = berkasTerunggah[qId] ? berkasTerunggah[qId].namaBerkas : 'yang terakhir diunggah';
+  if (!confirm('Kirim tugas ' + qId.toUpperCase() + ' dengan berkas "' + namaB + '" dan angka ' + inp.value.trim() + '?\\nAngka harus terbaca dari geometri berkas itu (angka yang tidak ada di model ditolak tanpa dihitung). Setelah dinilai, berkas dan angka tidak dapat diubah lagi (satu kesempatan).')) return;
 
   compAnswered[qId] = true;                       // kunci optimistis — server tetap otoritas
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Memvalidasi...'; btn.classList.add('running'); }

@@ -256,18 +256,26 @@ repo publik ini.
 - **Jawaban mahasiswa privat** (sejak 29 Sep 2026). Record RTDB
   `visitors/<course>/<slot>/<kunci>` terbaca publik (papan peringkat, tab
   Hasil), jadi halaman tidak membaca pilihan PG/benar-salah maupun kode dari
-  sana: jawaban sendiri dipulihkan lewat callable `getJawabanSaya` (ledger
-  Firestore; NIM + hash PIN sesi, sekali per muat halaman, ditunggu
-  `_loadScoredQuestions` ≤ 6 detik, hasil terlambat tetap diterapkan) dan
-  digabung ke `data` sebelum kode pemulihan lama; identitas localStorage tanpa
-  field jawaban (`_identitasTanpaJawaban`); tulisan klien ke record visitor
-  hanya lewat `_tulisPengunjung`/patch kunjungan, tidak pernah `set()` dari
-  snapshot record. Dipasang `scripts/jawaban-privat.mjs` (96 halaman, penanda
-  `JAWABAN-PRIVAT`, ada `--periksa`); `PILIHAN-PG-PULIH` v3 membaca
-  `mcOrderVersion` ledger. Jangan menambah pembaca `data.selections`/
-  `data.codes` di luar jalur itu, dan jangan mengembalikan `set()` seluruh
-  record. Callable gagal/belum ter-deploy → field publik lama (transisi), lalu
-  teks netral. Rincian: Pedoman §6.3, §7.6, §9.1.
+  sana: jawaban sendiri dipulihkan HANYA lewat callable `getJawabanSaya`
+  (ledger Firestore; NIM + hash PIN sesi, ditunggu `_loadScoredQuestions`
+  ≤ 2,5 detik, hasil terlambat tetap diterapkan) dan digabung ke `data`
+  sebelum kode pemulihan lama; `scoreDelta` ledger menang atas RTDB. Callable
+  gagal → field publik TETAP tidak dipakai (functions + rules ter-deploy
+  sebelum halaman), teks netral; galat sementara dicoba lagi,
+  `resource-exhausted` (penguncian PIN) menunggu `remainingSeconds` tanpa
+  mengakhiri sesi, `unauthenticated` membuang hash sesi dan meminta PIN.
+  Identitas localStorage tanpa field jawaban (`_identitasTanpaJawaban`,
+  NIM mahasiswa selalu `student`) dan sesudah login dari alur login
+  (`_identitasLogin`, bukan salinan record); tulisan klien ke record visitor
+  hanya lewat `_tulisPengunjung` (rules create-only: record lama hanya
+  `visitCount`/`lastVisit`)/patch kunjungan, tidak pernah `set()` dari
+  snapshot record (juga tidak ada cadangan `freshRec`). Dipasang
+  `scripts/jawaban-privat.mjs` (96 halaman, penanda `JAWABAN-PRIVAT`, ada
+  `--periksa`); `PILIHAN-PG-PULIH` v3 membaca `mcOrderVersion` ledger; kait
+  berkas CAD belum dinilai (`_tandaiBerkasDiServer`) milik generator CAD.
+  Jangan menambah pembaca `data.selections`/`data.codes` di luar jalur itu,
+  dan jangan mengembalikan `set()` seluruh record. Rincian: Pedoman §6.3,
+  §7.6, §9.1.
 - **Label navbar UTS/UAS** = label modul course-nya (`TENAGALISTRIK // UTS`,
   bukan sisa templat `GETARANMESIN`); dipasang `scripts/label-nav-ujian.mjs`
   (ada `--periksa`), CAD lewat `scripts/cad-exam/bangun.py`.
