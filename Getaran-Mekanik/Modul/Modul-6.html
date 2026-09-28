@@ -4481,9 +4481,15 @@ async function exportTugasHtml() {
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
+      // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
+      // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
+      // benar tidak boleh dilaporkan sebagai "pilihan salah".
       selectedText = isCorrect && correctOpt
         ? correctOpt.textContent.trim()
-        : '(Sudah dijawab, tetapi pilihan salah)';
+        : (isCorrect
+          ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
+          : '(Sudah dijawab, tetapi pilihan salah)');
+      // PILIHAN-PG-EKSPOR END v1
     } else {
       selectedText = '(Belum dijawab)';
       isCorrect    = false;
@@ -9444,6 +9450,55 @@ window._loadScoredQuestions = function() {
   get(ref(db, DB_PATH + '/' + key)).then(snap => {
     if (!snap.exists()) { _markLoaded(); return; }
     const data = snap.val();
+    // PILIHAN-PG-PULIH BEGIN v2 — dipasang scripts/pulihkan-pilihan-pg.mjs
+    // Pilihan PG yang sudah dijawab dipulihkan dari RTDB selections[mcN], yaitu
+    // huruf yang dulu dikirim selectMC ke checkModulAnswer: huruf kanonik di
+    // onclick bila markup membawanya, selain itu huruf posisi terlihat
+    // (data-display-letter) dari urutan acak per NIM. Benar → .selected +
+    // .correct-ans; salah → .selected + .wrong-ans tanpa mengungkap opsi benar.
+    // Record lama tanpa selections dibiarkan; ekspor memakai teks netral.
+    // Huruf posisi hanya dipercaya bila kunjungan pertama record (timestamp,
+    // tidak bisa diubah klien) jatuh sesudah urutan acak per NIM pertama kali
+    // terpasang (8 Agustus 2026): record yang lebih tua bisa menyimpan huruf
+    // kanonik, dan jenis hurufnya tidak tercatat, jadi tidak ditandai.
+    try {
+      const pgPilihan = (data.selections && typeof data.selections === 'object') ? data.selections : {};
+      const pgMulai = Date.parse(String(data.timestamp || ''));
+      const pgHurufPosisiSah = Number.isFinite(pgMulai) && pgMulai >= Date.parse('2026-08-09T00:00:00Z');
+      const pgStatus = {};
+      String(data.scoredQuestions || '').split(',').forEach((m) => {
+        if (/^mc\d+$/.test(m)) pgStatus[m] = 'benar';
+        else if (/^mc\d+_mc_used$/.test(m)) pgStatus[m.replace(/_mc_used$/, '')] = 'salah';
+      });
+      // Urutan acak per NIM harus sudah terpasang sebelum huruf posisi dicocokkan
+      // (idempoten; no-op pada course tanpa acak).
+      if (Object.keys(pgStatus).length && typeof window.shuffleMCOptions === 'function') window.shuffleMCOptions();
+      const pgHurufOnclick = (o) => {
+        const m = /selectMC\(\s*'[^']+'\s*,\s*this\s*,\s*'([A-D])'\s*\)/.exec(o.getAttribute('onclick') || '');
+        return m ? m[1] : null;
+      };
+      Object.keys(pgStatus).forEach((qId) => {
+        const rg = document.getElementById('rg-' + qId);
+        if (!rg) return;
+        const opsi = Array.from(rg.querySelectorAll('.radio-option'));
+        const kanonik = opsi.length > 0 && opsi.every((o) => pgHurufOnclick(o));
+        if (!kanonik && !pgHurufPosisiSah) return;
+        const nilai = pgPilihan[qId];
+        let huruf = null;
+        if (typeof nilai === 'string' && /^[A-D]$/i.test(nilai.trim())) huruf = nilai.trim().toUpperCase();
+        else if (kanonik && typeof nilai === 'number' && Number.isInteger(nilai) && nilai >= 0 && nilai < 4) huruf = String.fromCharCode(65 + nilai);
+        if (!huruf) return;
+        const pilihan = kanonik
+          ? opsi.find((o) => pgHurufOnclick(o) === huruf)
+          : opsi.find((o) => o.dataset && o.dataset.displayLetter === huruf);
+        if (!pilihan) return;
+        const benar = pgStatus[qId] === 'benar';
+        opsi.forEach((o) => { if (o !== pilihan) o.classList.remove('selected', 'wrong-ans'); });
+        pilihan.classList.remove(benar ? 'wrong-ans' : 'correct-ans');
+        pilihan.classList.add('selected', benar ? 'correct-ans' : 'wrong-ans');
+      });
+    } catch (e) { console.warn('[pilihan-pg] gagal memulihkan pilihan PG:', e); }
+    // PILIHAN-PG-PULIH END v2
     // PEDOMAN §15.4c — Restore code Komputasi dari Firebase codes/ field (primary storage)
     // Fire FIRST karena textarea state tidak terikat ke scoredQuestions processing
     if (data.codes && typeof data.codes === 'object') {
