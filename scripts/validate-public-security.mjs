@@ -568,25 +568,29 @@ function ambilBlok(exam, awal, akhir, relative) {
  * scripts/pulihkan-pilihan-pg.mjs. Selain penanda dan letaknya, kedua blok
  * halaman itu dijalankan di sandbox node:vm dengan DOM tiruan: course kanonik
  * (huruf di onclick), course acak per NIM (data-display-letter setelah
- * shuffleMCOptions), acak yang belum bisa diterapkan, dan record lama tanpa
- * selections.
+ * shuffleMCOptions), acak yang belum bisa diterapkan, record lama tanpa
+ * selections, dan (v2) record course acak yang kunjungan pertamanya sebelum
+ * acak per NIM terpasang (timestamp < 2026-08-09, hilang, atau rusak) — huruf
+ * yang tersimpan di sana bisa kanonik, jadi tidak boleh ditandai.
  */
 function periksaPilihanPg(modul, relative) {
   const saran = "; jalankan node scripts/pulihkan-pilihan-pg.mjs";
   if (/isCorrect\s*&&\s*correctOpt\s*\?\s*correctOpt\.textContent\.trim\(\)\s*:\s*'\(Sudah dijawab, tetapi pilihan salah\)'/.test(modul)) {
     throw new Error(`${relative}: fallback Export HTML lama melaporkan jawaban PG benar sebagai "pilihan salah"${saran}`);
   }
-  for (const penanda of ["// PILIHAN-PG-PULIH BEGIN v1", "// PILIHAN-PG-PULIH END v1", "// PILIHAN-PG-EKSPOR BEGIN v1", "// PILIHAN-PG-EKSPOR END v1"]) {
+  // PULIH v2 (penjaga timestamp untuk course acak per NIM); EKSPOR tetap v1.
+  for (const penanda of ["// PILIHAN-PG-PULIH BEGIN", "// PILIHAN-PG-PULIH END", "// PILIHAN-PG-EKSPOR BEGIN", "// PILIHAN-PG-EKSPOR END",
+    "// PILIHAN-PG-PULIH BEGIN v2", "// PILIHAN-PG-PULIH END v2", "// PILIHAN-PG-EKSPOR BEGIN v1", "// PILIHAN-PG-EKSPOR END v1"]) {
     const n = modul.split(penanda).length - 1;
     if (n !== 1) throw new Error(`${relative}: penanda ${penanda} muncul ${n}x, harusnya 1${saran}`);
   }
-  if (!modul.includes("\n    const data = snap.val();\n    // PILIHAN-PG-PULIH BEGIN v1")) {
+  if (!modul.includes("\n    const data = snap.val();\n    // PILIHAN-PG-PULIH BEGIN v2")) {
     throw new Error(`${relative}: blok PILIHAN-PG-PULIH harus tepat sesudah \`const data = snap.val();\` di _loadScoredQuestions${saran}`);
   }
   if (!modul.includes("    } else if (mcAnswered[id]) {\n      isCorrect    = (mcScores[id] || 0) > 0;\n      // PILIHAN-PG-EKSPOR BEGIN v1")) {
     throw new Error(`${relative}: blok PILIHAN-PG-EKSPOR harus berada di cabang mcAnswered perakitan mcData${saran}`);
   }
-  const pulih = ambilBlok(modul, "    // PILIHAN-PG-PULIH BEGIN v1", "    // PILIHAN-PG-PULIH END v1", relative);
+  const pulih = ambilBlok(modul, "    // PILIHAN-PG-PULIH BEGIN v2", "    // PILIHAN-PG-PULIH END v2", relative);
   const ekspor = ambilBlok(modul, "      // PILIHAN-PG-EKSPOR BEGIN v1", "      // PILIHAN-PG-EKSPOR END v1", relative);
 
   const jalankan = ({ acakDiterapkan = false, hurufOnclick = false, data, ulang = 1 }) => {
@@ -639,17 +643,40 @@ function periksaPilihanPg(modul, relative) {
     mc3: "A: B: C:correct-ans+selected D:",
     mc4: "A: B: C: D:",
   });
+  // Course kanonik tidak bergantung pada timestamp: record sebelum 9 Agustus 2026 tetap ditandai.
+  harap("kanonik, record sebelum acak per NIM", jalankan({
+    hurufOnclick: true,
+    data: { timestamp: "2026-08-06T00:00:00.000Z", scoredQuestions: "mc1,mc2_mc_used", selections: { mc1: "D", mc2: "A" } },
+  }), { mc1: "A: B: C: D:correct-ans+selected", mc2: "A:selected+wrong-ans B: C: D:" });
+  const ACAK_SAH = "2026-09-20T01:00:00.000Z";
   harap("acak per NIM", jalankan({
     acakDiterapkan: true, ulang: 2,
-    data: { scoredQuestions: "mc1,mc2_mc_used,mc3", selections: { mc1: "A", mc2: "D", mc3: 1 } },
+    data: { timestamp: ACAK_SAH, scoredQuestions: "mc1,mc2_mc_used,mc3", selections: { mc1: "A", mc2: "D", mc3: 1 } },
   }), {
     mc1: "D:correct-ans+selected C: B: A:",
     mc2: "D: C: B: A:selected+wrong-ans",
     mc3: "D: C: B: A:",
   });
+  harap("acak per NIM, tepat di batas 2026-08-09T00:00:00Z", jalankan({
+    acakDiterapkan: true,
+    data: { timestamp: "2026-08-09T00:00:00.000Z", scoredQuestions: "mc1", selections: { mc1: "B" } },
+  }), { mc1: "D: C:correct-ans+selected B: A:" });
+  // Record course acak yang lebih tua dari acak per NIM (Sisken 5–8 Agustus 2026)
+  // bisa menyimpan huruf KANONIK: tidak ditandai, ekspor memakai teks netral.
+  for (const [nama, timestamp] of [
+    ["acak per NIM, record sebelum acak", "2026-08-06T00:00:00Z"],
+    ["acak per NIM, sedetik sebelum batas", "2026-08-08T23:59:59.999Z"],
+    ["acak per NIM, tanpa timestamp", undefined],
+    ["acak per NIM, timestamp rusak", "kemarin"],
+  ]) {
+    harap(nama, jalankan({
+      acakDiterapkan: true, ulang: 2,
+      data: { timestamp, scoredQuestions: "mc1,mc2_mc_used", selections: { mc1: "A", mc2: "B" } },
+    }), { mc1: "D: C: B: A:", mc2: "D: C: B: A:" });
+  }
   harap("acak belum diterapkan", jalankan({
     acakDiterapkan: false,
-    data: { scoredQuestions: "mc1,mc2_mc_used", selections: { mc1: "A", mc2: "B" } },
+    data: { timestamp: ACAK_SAH, scoredQuestions: "mc1,mc2_mc_used", selections: { mc1: "A", mc2: "B" } },
   }), { mc1: "A: B: C: D:", mc2: "A: B: C: D:" });
   harap("record lama tanpa selections", jalankan({
     hurufOnclick: true, data: { scoredQuestions: "mc1,mc2_mc_used" },
