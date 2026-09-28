@@ -163,7 +163,11 @@ repo publik ini.
   NIM + PIN 6 digit (nama dari roster; tidak ada input nama). Dosen: password
   admin. PIN global di RTDB `pins/mhs_<NIM>` (hash SHA-256, lintas course);
   klien tidak boleh membaca `pins/` — verifikasi lewat callable `verifyPin`.
-  Reset modul/exam tidak menghapus PIN. Rincian: Pedoman §4.
+  Reset modul/exam tidak menghapus PIN. Reset/ganti PIN **menimpa**
+  `pins/mhs_<NIM>`, tidak pernah menghapusnya (slot kosong = login pertama
+  bagi siapa pun yang lebih dulu). Lockout PIN dua keluarga: per NIM (dibagi
+  `verifyPin`) dan per NIM + sumber (penilaian, soal, unggah,
+  `getJawabanSaya`, `generateExportCode`). Rincian: Pedoman §4.3.
 - **Akun simulasi** NIM `41399999901` ("SIMULASI MAHASISWA") — akun uji
   dosen untuk menjalani alur mahasiswa tanpa mengotori data:
   - masuk lewat tombol 🎓 Mahasiswa dengan NIM itu + PIN yang dipegang dosen;
@@ -253,6 +257,30 @@ repo publik ini.
   `PRIVASI-HASIL-UJIAN`, ada `--periksa`, jalankan sesudah
   `buka-asisten-ujian.mjs`). Halaman modul tidak memakainya. Rincian: Pedoman
   §4.2 dan §7.8.
+- **Jawaban mahasiswa privat** (sejak 29 Sep 2026). Record RTDB
+  `visitors/<course>/<slot>/<kunci>` terbaca publik (papan peringkat, tab
+  Hasil), jadi halaman tidak membaca pilihan PG/benar-salah maupun kode dari
+  sana: jawaban sendiri dipulihkan HANYA lewat callable `getJawabanSaya`
+  (ledger Firestore; NIM + hash PIN sesi, ditunggu `_loadScoredQuestions`
+  ≤ 2,5 detik, hasil terlambat tetap diterapkan) dan digabung ke `data`
+  sebelum kode pemulihan lama; `scoreDelta` ledger menang atas RTDB. Callable
+  gagal → field publik TETAP tidak dipakai (functions + rules ter-deploy
+  sebelum halaman), teks netral; galat sementara dicoba lagi,
+  `resource-exhausted` (penguncian PIN per NIM + sumber) menunggu
+  `remainingSeconds` tanpa mengakhiri sesi, `unauthenticated` membuang hash
+  sesi dan meminta PIN.
+  Identitas localStorage tanpa field jawaban (`_identitasTanpaJawaban`,
+  NIM mahasiswa selalu `student`) dan sesudah login dari alur login
+  (`_identitasLogin`, bukan salinan record); tulisan klien ke record visitor
+  hanya lewat `_tulisPengunjung` (rules create-only: record lama hanya
+  `visitCount`/`lastVisit`)/patch kunjungan, tidak pernah `set()` dari
+  snapshot record (juga tidak ada cadangan `freshRec`). Dipasang
+  `scripts/jawaban-privat.mjs` (96 halaman, penanda `JAWABAN-PRIVAT`, ada
+  `--periksa`); `PILIHAN-PG-PULIH` v3 membaca `mcOrderVersion` ledger; kait
+  berkas CAD belum dinilai (`_tandaiBerkasDiServer`) milik generator CAD.
+  Jangan menambah pembaca `data.selections`/`data.codes` di luar jalur itu,
+  dan jangan mengembalikan `set()` seluruh record. Rincian: Pedoman §6.3,
+  §7.6, §9.1.
 - **Label navbar UTS/UAS** = label modul course-nya (`TENAGALISTRIK // UTS`,
   bukan sisa templat `GETARANMESIN`); dipasang `scripts/label-nav-ujian.mjs`
   (ada `--periksa`), CAD lewat `scripts/cad-exam/bangun.py`.
@@ -282,6 +310,15 @@ repo publik ini.
    tab — dilarang (Pedoman §8).
 8. Mengubah `students.json` dengan `json.dumps` — memformat ulang seluruh
    berkas; sisipkan satu baris dengan gaya yang sama.
+9. Menjalankan kode mahasiswa (Pyodide) di halaman `Admin/` yang memegang
+   sesi admin — `import js` membuka `sessionStorage` dan `fetch` halaman itu.
+   Pakai kotak pasir seperti `Admin/analyze-victims.html` (iframe
+   `sandbox="allow-scripts"` tanpa `allow-same-origin` + Worker per
+   mahasiswa; Pedoman §11.2).
+10. "Reset PIN" dengan menghapus `pins/mhs_<NIM>` (juga akun simulasi) —
+    slot kosong menjadi login pertama bagi siapa pun yang lebih dulu. Timpa
+    `pinHash` di tempat; PIN terpapar dirotasi skrip backend
+    (`reset-pin`/`cabut-pin`). Pedoman §4.3.
 
 ### B.6 Dokumen wajib baca sebelum perubahan besar
 
