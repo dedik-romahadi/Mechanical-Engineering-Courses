@@ -120,6 +120,16 @@ const RX_PENALTI_LAMA = [
   /\bdikali\s+0[.,][78]\b/i,
 ];
 
+// Kanvas 2D tidak mengenal properti khusus CSS: warna 'var(--amber)' tidak
+// terurai. addColorStop melempar DOMException bernama "SyntaxError" (Getaran
+// Modul-10, drawMuRatio, sampai 28 September 2026: animasi hanya menggambar
+// kisi kosong), sedangkan fillStyle/strokeStyle/shadowColor diam-diam memakai
+// warna sebelumnya (Getaran Modul-13/14). `node --check` di bawah hanya
+// memeriksa sintaks JavaScript, dan galat ini baru terjadi saat skrip berjalan
+// di peramban, jadi pola teksnya ditolak di sini. Pakai warna hex yang sama
+// dengan variabel CSS-nya (atau baca lewat getComputedStyle).
+const RX_WARNA_KANVAS_VAR = /(?:\.addColorStop\(\s*[^,()]+,\s*|\b(?:fillStyle|strokeStyle|shadowColor)\s*=\s*)(['"`])\s*var\(--/;
+
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "mec-security-"));
 let authPages = 0;
 let checkedScripts = 0;
@@ -131,6 +141,13 @@ try {
     for (const rx of RX_PENALTI_LAMA) {
       const lama = source.match(rx);
       if (lama) throw new Error(`${relative}: late-penalty text from the old rollout ("${lama[0]}"); the server multiplier is 0.65 (35%) — run node scripts/penalti-35.mjs`);
+    }
+    {
+      const warna = RX_WARNA_KANVAS_VAR.exec(source);
+      if (warna) {
+        const baris = source.slice(0, warna.index).split("\n").length;
+        throw new Error(`${relative}:${baris}: canvas colour uses a CSS variable (${source.slice(warna.index, warna.index + 60).split("\n")[0]}…); canvas cannot resolve var(--…) — addColorStop throws, fillStyle/strokeStyle keep the previous colour`);
+      }
     }
     if (source.includes("createAdminSession")) authPages += 1;
 
@@ -1105,6 +1122,37 @@ for (const relative of modulPages) {
   previewGuarded += 1;
 }
 if (previewGuarded !== 84) throw new Error(`Expected 84 modul pages with a guarded export button, found ${previewGuarded}`);
+
+// exportPoints/exportNilai adalah variabel LOKAL exportTugasHtml (diisi dari
+// callable generateExportCode). Math4 Modul-4 sempat membacanya di
+// updateScore (#626, 16 Juli 2026 — sampai 28 September 2026): setiap hasil
+// server PG/komputasi berakhir ReferenceError, mahasiswa melihat "Koneksi/server
+// error (exportPoints is not defined)", checkMC membatalkan kunci optimistik
+// padahal jawaban sudah tercatat, dan panel skor tidak pernah terbarui. Setiap
+// rujukan harus berada di badan exportTugasHtml: fungsi tingkat atas terdekat
+// sebelum rujukan itu adalah exportTugasHtml, dan rujukan itu datang sesudah
+// deklarasinya.
+let eksporLokal = 0;
+const halamanEkspor = [
+  ...modulPages,
+  ...courseRoots.flatMap((course) => ["UTS.html", "UAS.html"].map((f) => path.join(course, "Exam", f))),
+];
+for (const relative of halamanEkspor) {
+  const page = fs.readFileSync(path.join(root, relative), "utf8");
+  const deklarasi = [...page.matchAll(/\blet exportCode = '[^']*', exportPoints = 0, exportNilai = 0, /g)];
+  if (deklarasi.length !== 1) throw new Error(`${relative}: expected one local exportPoints/exportNilai declaration in exportTugasHtml, found ${deklarasi.length}`);
+  const fungsi = [...page.matchAll(/^(?:async\s+)?function\s+([\w$]+)\s*\(/gm)];
+  for (const m of page.matchAll(/\bexport(?:Points|Nilai)\b/g)) {
+    let induk = null;
+    for (const f of fungsi) { if (f.index < m.index) induk = f[1]; else break; }
+    if (induk !== "exportTugasHtml" || m.index < deklarasi[0].index) {
+      const baris = page.slice(0, m.index).split("\n").length;
+      throw new Error(`${relative}:${baris}: ${m[0]} is read outside exportTugasHtml (in ${induk || "top level"}); it is a local there, so this throws ReferenceError — compute the value locally like the other pages`);
+    }
+  }
+  eksporLokal += 1;
+}
+if (eksporLokal !== 96) throw new Error(`Expected 96 modul/exam pages with a local export code, found ${eksporLokal}`);
 
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");
 if (/rsync -a \\\r?\n\s+--exclude='.git'/.test(workflow)) throw new Error("Pages workflow still copies repository root");
