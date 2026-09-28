@@ -335,9 +335,10 @@ for (const course of courseRoots) {
         throw new Error(`${relative}: fetchMasterStudents must re-render through renderVisitors right before the LEADERBOARD-MODUL-SEKALI block`);
       }
     }
-    // Pilihan PG dipulihkan dari RTDB selections setelah muat ulang, dan
-    // Export HTML tidak melaporkan jawaban BENAR sebagai "pilihan salah"
-    // (scripts/pulihkan-pilihan-pg.mjs, 28 September 2026).
+    // Pilihan PG dipulihkan setelah muat ulang (v3: dari getJawabanSaya lewat
+    // blok JAWABAN-PRIVAT:GABUNG, cadangan field RTDB lama), dan Export HTML
+    // tidak melaporkan jawaban BENAR sebagai "pilihan salah"
+    // (scripts/pulihkan-pilihan-pg.mjs, 28–29 September 2026).
     periksaPilihanPg(modul, relative);
   }
 }
@@ -580,37 +581,42 @@ function ambilBlok(exam, awal, akhir, relative) {
   return exam.slice(i, exam.indexOf("\n", j) + 1);
 }
 /**
- * Halaman modul: blok PILIHAN-PG-PULIH (pemulihan pilihan PG dari RTDB
- * selections) dan PILIHAN-PG-EKSPOR (teks fallback ekspor) dari
- * scripts/pulihkan-pilihan-pg.mjs. Selain penanda dan letaknya, kedua blok
- * halaman itu dijalankan di sandbox node:vm dengan DOM tiruan: course kanonik
- * (huruf di onclick), course acak per NIM (data-display-letter setelah
- * shuffleMCOptions), acak yang belum bisa diterapkan, record lama tanpa
- * selections, dan (v2) record course acak yang kunjungan pertamanya sebelum
- * acak per NIM terpasang (timestamp < 2026-08-09, hilang, atau rusak) — huruf
- * yang tersimpan di sana bisa kanonik, jadi tidak boleh ditandai.
+ * Halaman modul: blok PILIHAN-PG-PULIH (pemulihan pilihan PG dari
+ * data.selections — sejak v3 diisi getJawabanSaya lewat blok
+ * JAWABAN-PRIVAT:GABUNG, cadangan field RTDB lama) dan PILIHAN-PG-EKSPOR (teks
+ * fallback ekspor) dari scripts/pulihkan-pilihan-pg.mjs. Selain penanda dan
+ * letaknya, kedua blok halaman itu dijalankan di sandbox node:vm dengan DOM
+ * tiruan: course kanonik (huruf di onclick), course acak per NIM
+ * (data-display-letter setelah shuffleMCOptions), acak yang belum bisa
+ * diterapkan, record lama tanpa selections, (v2) record course acak tanpa
+ * mcOrderVersion yang kunjungan pertamanya sebelum acak per NIM terpasang
+ * (timestamp < 2026-08-09, hilang, atau rusak) — huruf yang tersimpan di sana
+ * bisa kanonik, jadi tidak boleh ditandai — dan (v3) mcOrderVersion dari ledger:
+ * 1 = huruf posisi (dipercaya berapa pun timestamp-nya), 0 = huruf kanonik
+ * (course acak: data-huruf-asal yang dicatat blok JAWABAN-PRIVAT:HURUF-ASAL
+ * sebelum opsi diacak; tanpa catatan itu tidak ditandai).
  */
 function periksaPilihanPg(modul, relative) {
   const saran = "; jalankan node scripts/pulihkan-pilihan-pg.mjs";
   if (/isCorrect\s*&&\s*correctOpt\s*\?\s*correctOpt\.textContent\.trim\(\)\s*:\s*'\(Sudah dijawab, tetapi pilihan salah\)'/.test(modul)) {
     throw new Error(`${relative}: fallback Export HTML lama melaporkan jawaban PG benar sebagai "pilihan salah"${saran}`);
   }
-  // PULIH v2 (penjaga timestamp untuk course acak per NIM); EKSPOR tetap v1.
+  // PULIH v3 (mcOrderVersion dari ledger; penjaga timestamp v2 bila tidak ada); EKSPOR tetap v1.
   for (const penanda of ["// PILIHAN-PG-PULIH BEGIN", "// PILIHAN-PG-PULIH END", "// PILIHAN-PG-EKSPOR BEGIN", "// PILIHAN-PG-EKSPOR END",
-    "// PILIHAN-PG-PULIH BEGIN v2", "// PILIHAN-PG-PULIH END v2", "// PILIHAN-PG-EKSPOR BEGIN v1", "// PILIHAN-PG-EKSPOR END v1"]) {
+    "// PILIHAN-PG-PULIH BEGIN v3", "// PILIHAN-PG-PULIH END v3", "// PILIHAN-PG-EKSPOR BEGIN v1", "// PILIHAN-PG-EKSPOR END v1"]) {
     const n = modul.split(penanda).length - 1;
     if (n !== 1) throw new Error(`${relative}: penanda ${penanda} muncul ${n}x, harusnya 1${saran}`);
   }
-  if (!modul.includes("\n    const data = snap.val();\n    // PILIHAN-PG-PULIH BEGIN v2")) {
-    throw new Error(`${relative}: blok PILIHAN-PG-PULIH harus tepat sesudah \`const data = snap.val();\` di _loadScoredQuestions${saran}`);
+  if (!/\n    const data = snap\.val\(\);\n    \/\/ JAWABAN-PRIVAT:GABUNG BEGIN[^\n]*\n(?:    \/\/[^\n]*\n)*    if \(typeof window\._gabungJawabanSaya === 'function'\) window\._gabungJawabanSaya\(data\);\n    \/\/ JAWABAN-PRIVAT:GABUNG END v1\n    \/\/ PILIHAN-PG-PULIH BEGIN v3/.test(modul)) {
+    throw new Error(`${relative}: blok PILIHAN-PG-PULIH harus tepat sesudah \`const data = snap.val();\` dan blok JAWABAN-PRIVAT:GABUNG di _loadScoredQuestions${saran} (dan scripts/jawaban-privat.mjs)`);
   }
   if (!modul.includes("    } else if (mcAnswered[id]) {\n      isCorrect    = (mcScores[id] || 0) > 0;\n      // PILIHAN-PG-EKSPOR BEGIN v1")) {
     throw new Error(`${relative}: blok PILIHAN-PG-EKSPOR harus berada di cabang mcAnswered perakitan mcData${saran}`);
   }
-  const pulih = ambilBlok(modul, "    // PILIHAN-PG-PULIH BEGIN v2", "    // PILIHAN-PG-PULIH END v2", relative);
+  const pulih = ambilBlok(modul, "    // PILIHAN-PG-PULIH BEGIN v3", "    // PILIHAN-PG-PULIH END v3", relative);
   const ekspor = ambilBlok(modul, "      // PILIHAN-PG-EKSPOR BEGIN v1", "      // PILIHAN-PG-EKSPOR END v1", relative);
 
-  const jalankan = ({ acakDiterapkan = false, hurufOnclick = false, data, ulang = 1 }) => {
+  const jalankan = ({ acakDiterapkan = false, hurufOnclick = false, stempelAsal = false, data, ulang = 1 }) => {
     const grup = {};
     for (let q = 1; q <= 4; q += 1) {
       grup[`mc${q}`] = ["A", "B", "C", "D"].map((h) => {
@@ -623,6 +629,9 @@ function periksaPilihanPg(modul, relative) {
         };
       });
     }
+    // Tiruan blok JAWABAN-PRIVAT:HURUF-ASAL: huruf kanonik (urutan markup)
+    // dicatat sebelum opsi diacak.
+    if (stempelAsal) for (const opsi of Object.values(grup)) opsi.forEach((o, i) => { o.dataset.hurufAsal = String.fromCharCode(65 + i); });
     const semua = () => Object.values(grup).flat();
     const win = {};
     // Tiruan shuffleMCOptions: urutan terlihat dibalik, huruf posisi di data-display-letter.
@@ -698,6 +707,33 @@ function periksaPilihanPg(modul, relative) {
   harap("record lama tanpa selections", jalankan({
     hurufOnclick: true, data: { scoredQuestions: "mc1,mc2_mc_used" },
   }), { mc1: "A: B: C: D:", mc2: "A: B: C: D:" });
+  // v3: mcOrderVersion dari ledger (getJawabanSaya). 1 = huruf posisi, dipercaya
+  // walau timestamp record lebih tua dari batas; 0 = huruf kanonik, dicari lewat
+  // data-huruf-asal pada course acak. mc3 tanpa entri → penjaga timestamp v2.
+  harap("acak per NIM, mcOrderVersion 1/0 dari ledger", jalankan({
+    acakDiterapkan: true, stempelAsal: true, ulang: 2,
+    data: {
+      timestamp: "2026-08-06T00:00:00Z", scoredQuestions: "mc1,mc2_mc_used,mc3,mc4",
+      selections: { mc1: "A", mc2: "B", mc3: "C", mc4: "d" }, mcOrderVersion: { mc1: 1, mc2: 0, mc4: 0 },
+    },
+  }), {
+    mc1: "D:correct-ans+selected C: B: A:",
+    mc2: "D: C: B:selected+wrong-ans A:",
+    mc3: "D: C: B: A:",
+    mc4: "D:correct-ans+selected C: B: A:",
+  });
+  harap("acak per NIM, mcOrderVersion 0 tanpa catatan huruf asal", jalankan({
+    acakDiterapkan: true,
+    data: { timestamp: ACAK_SAH, scoredQuestions: "mc1,mc2_mc_used", selections: { mc1: "A", mc2: "B" }, mcOrderVersion: { mc1: 0, mc2: 0 } },
+  }), { mc1: "D: C: B: A:", mc2: "D: C: B: A:" });
+  harap("acak per NIM, mcOrderVersion 1 tetapi acak belum diterapkan", jalankan({
+    acakDiterapkan: false, stempelAsal: true,
+    data: { timestamp: ACAK_SAH, scoredQuestions: "mc1", selections: { mc1: "A" }, mcOrderVersion: { mc1: 1 } },
+  }), { mc1: "A: B: C: D:" });
+  harap("kanonik, mcOrderVersion dari ledger", jalankan({
+    hurufOnclick: true, stempelAsal: true,
+    data: { timestamp: "2026-08-06T00:00:00Z", scoredQuestions: "mc1,mc2_mc_used", selections: { mc1: "C", mc2: "A" }, mcOrderVersion: { mc1: 0, mc2: 1 } },
+  }), { mc1: "A: B: C:correct-ans+selected D:", mc2: "A:selected+wrong-ans B: C: D:" });
 
   const teksEkspor = (isCorrect, correctOpt) => vm.runInNewContext(
     `(function (isCorrect, correctOpt) {\n  let selectedText;\n${ekspor}  return selectedText;\n})(isCorrect, correctOpt)`,
@@ -1153,6 +1189,354 @@ for (const relative of halamanEkspor) {
   eksporLokal += 1;
 }
 if (eksporLokal !== 96) throw new Error(`Expected 96 modul/exam pages with a local export code, found ${eksporLokal}`);
+
+// Jawaban mahasiswa (pilihan PG/benar-salah, kode, ringkasan berkas) tidak
+// dibaca dari atau ditulis ulang ke record RTDB publik
+// (scripts/jawaban-privat.mjs, 29 September 2026). Rules RTDB memberi
+// `.read: true` pada visitors/<course>/<slot>/<kunci> dan izin baca menurun ke
+// seluruh anak, sementara ke-96 halaman mengunduh seluruh node slot untuk papan
+// peringkat: selections/codes teman sekelas + marker benar/salah membuka kunci
+// jawaban. Pemulihan jawaban sendiri memakai callable getJawabanSaya (ledger
+// server). Diperiksa di ke-96 halaman: penanda dan letak blok, jembatan callable
+// di luar blok AI, identitas localStorage tanpa field jawaban, tidak ada
+// tulisan klien yang mengirim ulang record lama (selections/codes/pinHash),
+// lalu blok halaman itu sendiri dijalankan di sandbox node:vm — callable ada /
+// tidak ada / gagal / lambat, tanpa PIN, dosen, identitas lain, akun simulasi,
+// halaman bertugas berkas, penulis record pengunjung, dan (modul) pemulihan PG
+// terpadu JEMBATAN + HURUF-ASAL + GABUNG + PILIHAN-PG-PULIH.
+const FIELD_JAWABAN = ["selections", "codes", "scoreDeltas", "pinHash", "pinSetAt"];
+const HASH_UJI = "a".repeat(64);   // hash rekaan untuk uji, bukan PIN siapa pun
+const NIM_UJI = "41300000123";
+const MHS_UJI = { nama: "TES MAHASISWA SATU", nim: NIM_UJI, role: "student" };
+const RESPONS_UJI = {
+  jawaban: {
+    mc1: { tipe: "mc", pilihan: "b", mcOrderVersion: 1, status: "correct", scoreDelta: 1, correctAnswer: "KUNCI-RAHASIA", explain: "PENJELASAN-RAHASIA" },
+    mc2: { tipe: "mc", pilihan: "D", mcOrderVersion: 0, status: "wrong", scoreDelta: 0 },
+    mc3: { tipe: "mc", pilihan: 2, status: "correct", scoreDelta: 1 },
+    tf1: { tipe: "tf", pilihan: false, status: "wrong", scoreDelta: 0 },
+    c1: { tipe: "comp", kode: "print(42)", status: "correct", scoreDelta: 2, explain: "PENJELASAN-RAHASIA" },
+    c2: { tipe: "comp", status: "wrong", scoreDelta: 0, correctAnswer: 3.14159 },
+    c3: { tipe: "comp", kode: "📎 dinilai.FCStd · 1.0 KB", status: "correct", scoreDelta: 6 },
+    "mc1/../x": { tipe: "mc", pilihan: "A" },
+  },
+  berkas: { c3: "📎 lama.FCStd", c4: "📎 baru.FCStd · 2.0 KB · SHA-256 0123456789abcdef… · 2026-09-29T01:00:00Z" },
+  kunci: { mc1: "C" },
+};
+const tunggu = (ms) => new Promise((r) => setTimeout(r, ms));
+const salinJson = (x) => JSON.parse(JSON.stringify(x));
+
+/** Indeks `)` penutup panggilan yang `(`-nya di posisi i (string literal dilompati). */
+function tutupPanggilanUji(s, i) {
+  let d = 0;
+  for (let k = i; k < s.length; k += 1) {
+    const c = s[k];
+    if (c === "'" || c === '"' || c === "`") { for (k += 1; k < s.length && s[k] !== c; k += 1) if (s[k] === "\\") k += 1; continue; }
+    if (c === "(") d += 1;
+    else if (c === ")") { d -= 1; if (d === 0) return k; }
+  }
+  return -1;
+}
+
+/** Jalankan blok JEMBATAN halaman di sandbox dengan callable getJawabanSaya tiruan. */
+function sandboxJembatan(jembatan, jenis, opsi = {}) {
+  const { respons = RESPONS_UJI, gagal = false, tanpaCallable = false, tundaMs = 0, cad = false, dom = null } = opsi;
+  const panggilan = [], peringatan = [];
+  const win = { _sessionPinHash: "pinHash" in opsi ? opsi.pinHash : HASH_UJI, _cache: null, _ulang: 0 };
+  if (cad) win._ringkasTugasCad = () => "";
+  win._loadScoredQuestions = () => { win._ulang += 1; };
+  win._cachedFirebaseData = () => win._cache;
+  win[`_reapply${jenis}StateFromCache`] = () => { win._ulang += 1; };
+  const ctx = {
+    window: win, document: dom, setTimeout, clearTimeout,
+    console: { warn: (...a) => peringatan.push(a.map(String).join(" ")) },
+    _functions: {}, MODUL_ID: "uji-modul-x", EXAM_ID: "uji-ujian-x",
+    identitas: "me" in opsi ? opsi.me : MHS_UJI,
+    httpsCallable: (fx, nama) => {
+      if (tanpaCallable || nama !== "getJawabanSaya") return undefined;
+      return (payload) => {
+        panggilan.push(salinJson(payload));
+        return new Promise((ok, tolak) => setTimeout(() => (gagal
+          ? tolak(Object.assign(new Error("Function not found"), { code: "functions/not-found" }))
+          : ok({ data: salinJson(respons) })), tundaMs));
+      };
+    },
+  };
+  ctx.getIdentity = () => ctx.identitas;
+  vm.createContext(ctx);
+  vm.runInContext(jembatan, ctx);
+  return { win, ctx, panggilan, peringatan };
+}
+
+async function periksaJawabanPrivat(page, relative, jenis) {
+  const saran = "; jalankan node scripts/jawaban-privat.mjs";
+  const modul = jenis === "Modul";
+  const nama = ["JEMBATAN", "IDENTITAS", "TUNGGU", "GABUNG", ...(modul ? ["HURUF-ASAL"] : [])];
+  for (const n of nama) {
+    for (const ujung of ["BEGIN v1", "END v1"]) {
+      const k = page.split(`// JAWABAN-PRIVAT:${n} ${ujung}`).length - 1;
+      if (k !== 1) throw new Error(`${relative}: penanda JAWABAN-PRIVAT:${n} ${ujung} muncul ${k}x, harusnya 1${saran}`);
+    }
+  }
+  if (!modul && page.includes("JAWABAN-PRIVAT:HURUF-ASAL")) throw new Error(`${relative}: blok HURUF-ASAL hanya untuk halaman modul`);
+  for (const ai of page.match(/<!-- AI-CHAT-AGENT:BEGIN[\s\S]*?<!-- AI-CHAT-AGENT:END[^>]*-->/g) || []) {
+    if (/JAWABAN-PRIVAT|getJawabanSaya/.test(ai)) throw new Error(`${relative}: sisipan JAWABAN-PRIVAT/getJawabanSaya di dalam blok AI-CHAT-AGENT`);
+  }
+  const blok = (n) => ambilBlok(page, `// JAWABAN-PRIVAT:${n} BEGIN`, `// JAWABAN-PRIVAT:${n} END`, relative);
+  const jembatan = blok("JEMBATAN"), identitas = blok("IDENTITAS"), gabung = blok("GABUNG");
+
+  // ── Letak dan bentuk ──
+  if ((page.match(/getJawabanSaya'/g) || []).length !== 1 || !jembatan.includes("window._getJawabanSayaCallable = httpsCallable(_functions, 'getJawabanSaya');\n")) {
+    throw new Error(`${relative}: jembatan window._getJawabanSayaCallable harus tepat sekali di blok JEMBATAN${saran}`);
+  }
+  if (!jembatan.includes(modul ? "const _JAWABAN_SAYA_UNTUK = { modulId: MODUL_ID };" : "const _JAWABAN_SAYA_UNTUK = { examId: EXAM_ID };")) {
+    throw new Error(`${relative}: getJawabanSaya harus dipanggil dengan ${modul ? "modulId" : "examId"} saja${saran}`);
+  }
+  if (!new RegExp(`// JAWABAN-PRIVAT:${modul ? "HURUF-ASAL" : "JEMBATAN"} END v1\\nconst _generateExportCodeCallable = httpsCallable\\(_functions, 'generateExportCode'\\);\\n`).test(page)) {
+    throw new Error(`${relative}: blok JEMBATAN${modul ? " + HURUF-ASAL" : ""} harus tepat sebelum \`const _generateExportCodeCallable = …\` (jangkar generator CAD)${saran}`);
+  }
+  if (!page.includes("  Promise.all([get(ref(db, DB_PATH + '/' + key)), (typeof window._muatJawabanSaya === 'function' ? window._muatJawabanSaya() : null)]).then(([snap]) => {\n  // JAWABAN-PRIVAT:TUNGGU END v1\n")
+    || page.includes("get(ref(db, DB_PATH + '/' + key)).then(snap => {")) {
+    throw new Error(`${relative}: _loadScoredQuestions harus menunggu record RTDB dan getJawabanSaya bersama (blok TUNGGU)${saran}`);
+  }
+  if (!gabung.includes("\n    if (typeof window._gabungJawabanSaya === 'function') window._gabungJawabanSaya(data);\n")) {
+    throw new Error(`${relative}: blok GABUNG harus memanggil window._gabungJawabanSaya(data)${saran}`);
+  }
+  const lanjutGabung = modul ? "    // PILIHAN-PG-PULIH BEGIN" : "    _cachedFirebaseData = data;";
+  if (!page.includes("\n    const data = snap.val();\n    " + gabung + lanjutGabung)) {
+    throw new Error(`${relative}: blok GABUNG harus tepat sesudah \`const data = snap.val();\` dan sebelum ${modul ? "PILIHAN-PG-PULIH" : "`_cachedFirebaseData = data;`"}${saran}`);
+  }
+  {
+    const t = page.indexOf("// JAWABAN-PRIVAT:TUNGGU BEGIN"), g = page.indexOf("// JAWABAN-PRIVAT:GABUNG BEGIN");
+    const d = page.lastIndexOf("window._loadScoredQuestions = function", t);
+    if (d < 0 || g < t || page.slice(d, g).includes("\n};\n")) throw new Error(`${relative}: blok TUNGGU/GABUNG harus di _loadScoredQuestions yang sama${saran}`);
+  }
+  if (modul) {
+    const acak = page.indexOf("\nif (typeof shuffleMCOptions === 'function') shuffleMCOptions();");
+    if (acak >= 0 && acak < page.indexOf("// JAWABAN-PRIVAT:HURUF-ASAL BEGIN")) throw new Error(`${relative}: HURUF-ASAL harus berjalan sebelum urutan acak per NIM diterapkan`);
+  }
+
+  // ── Identitas localStorage tanpa field jawaban ──
+  const simpan = (page.match(/localStorage\.setItem\(\s*(?:LOCAL_IDENTITY|LK)\b[^\n]*/g) || []);
+  if (simpan.length !== 1 || simpan[0] !== "localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(_identitasTanpaJawaban(v)));"
+    && !simpan[0].startsWith("localStorage.setItem(LOCAL_IDENTITY, JSON.stringify(_identitasTanpaJawaban(v)));}")) {
+    throw new Error(`${relative}: identitas localStorage hanya boleh disimpan saveIdentity lewat _identitasTanpaJawaban(v) (ditemukan: ${simpan.join(" | ")})${saran}`);
+  }
+  if (!/function saveIdentity\(v\)\s?\{\n?\s*localStorage\.setItem\(LOCAL_IDENTITY, JSON\.stringify\(_identitasTanpaJawaban\(v\)\)\);/.test(page)) {
+    throw new Error(`${relative}: saveIdentity harus menyimpan _identitasTanpaJawaban(v) di baris pertamanya${saran}`);
+  }
+
+  // ── Tidak ada tulisan klien yang mengirim ulang record lama ──
+  for (const m of page.matchAll(/\b(set|update)\(\s*(ref\(db,\s*(?:DB_PATH \+ '\/' \+ key|`\$\{DB_PATH\}\/\$\{_key\}`)\)|nodeRef)\s*,\s*([^\n]{0,40})/g)) {
+    const [, op, , sisa] = m;
+    const boleh = op === "set" ? /^freshRec\)/.test(sisa) : /^patch\)/.test(sisa);
+    if (!boleh) {
+      const baris = page.slice(0, m.index).split("\n").length;
+      throw new Error(`${relative}:${baris}: ${op}() record pengunjung dengan payload "${sisa.trim()}" — tulisan klien harus lewat _tulisPengunjung (record lama → update field yang berubah), freshRec, atau patch kunjungan${saran}`);
+    }
+  }
+  for (const m of page.matchAll(/const freshRec = \{[^}]*\}/g)) {
+    if (/\.\.\.|\b(?:selections|codes|scoreDeltas|pinHash|pinSetAt)\b/.test(m[0])) throw new Error(`${relative}: freshRec membawa field jawaban/PIN atau salinan record lama`);
+  }
+  for (const m of page.matchAll(/const patch = \{[^}]*\}/g)) {
+    if (/\.\.\.|\b(?:selections|codes|scoreDeltas|pinHash|pinSetAt)\b/.test(m[0])) throw new Error(`${relative}: patch kunjungan membawa field jawaban/PIN`);
+  }
+  for (const m of page.matchAll(/\bpatch\.(\w+)\s*=\s*([^;\n]*)/g)) {
+    if (!["pinHash", "pinSetAt"].includes(m[1]) || m[2].trim() !== "null") throw new Error(`${relative}: patch.${m[1]} = ${m[2]} — patch kunjungan hanya boleh menghapus pinHash/pinSetAt lama`);
+  }
+  let tulisPengunjung = 0;
+  for (const m of page.matchAll(/(?<!function )\b_tulisPengunjung\(/g)) {
+    const tutup = tutupPanggilanUji(page, m.index + "_tulisPengunjung".length);
+    const isi = page.slice(m.index, tutup + 1);
+    if (!/, (?:ex|existingVisitor|state)\)$/.test(isi)) throw new Error(`${relative}: ${isi.slice(0, 80)}… — argumen ketiga _tulisPengunjung harus record lama (ex/existingVisitor/state)`);
+    tulisPengunjung += 1;
+  }
+  if (tulisPengunjung < 3) throw new Error(`${relative}: hanya ${tulisPengunjung} tulisan lewat _tulisPengunjung (kunjungan auto-login, PIN baru, konsolasi)${saran}`);
+  if (/_awardCompHardPoint = function\(qId\)|codes:\s*codes\b/.test(page)) throw new Error(`${relative}: penulis klien lama _awardCompHardPoint (menulis codes) masih ada${saran}`);
+  if (!/import \{[^}]*\bupdate\b[^}]*\} from "https:\/\/www\.gstatic\.com\/firebasejs\/12\.11\.0\/firebase-database\.js";/.test(page)) {
+    throw new Error(`${relative}: update belum diimpor dari firebase-database (dipakai _tulisPengunjung)${saran}`);
+  }
+
+  // ── Sandbox: identitas dan penulis record pengunjung ──
+  {
+    const lamaPenuh = { nama: "TES", nim: NIM_UJI, role: "student", timestamp: "2026-09-01T00:00:00Z", lastVisit: "2026-09-01T00:00:00Z", visitCount: 2, points: 5, scoredQuestions: "mc1,c1_comp",
+      selections: { mc1: "A" }, codes: { c1: "print(1)" }, scoreDeltas: { mc1: 1 }, pinHash: "b".repeat(64), pinSetAt: "2026-01-01T00:00:00Z" };
+    const toko = new Map([
+      ["uji_identity_a", JSON.stringify(lamaPenuh)],
+      ["uji_identity_b", JSON.stringify({ nama: "TES", nim: NIM_UJI, role: "student" })],
+      ["uji_draft_a", JSON.stringify({ selections: { mc1: "A" } })],
+      ["uji_identity_rusak", "{"],
+    ]);
+    const localStorage = { get length() { return toko.size; }, key: (i) => [...toko.keys()][i] ?? null, getItem: (k) => (toko.has(k) ? toko.get(k) : null), setItem: (k, v) => { toko.set(k, String(v)); } };
+    const tulis = [];
+    const ctx = vm.createContext({
+      localStorage,
+      set: (r, v) => { tulis.push(["set", r, salinJson(v)]); return Promise.resolve(); },
+      update: (r, v) => { tulis.push(["update", r, salinJson(v)]); return Promise.resolve(); },
+    });
+    vm.runInContext(identitas, ctx);
+    const bersih = JSON.parse(toko.get("uji_identity_a"));
+    if (FIELD_JAWABAN.some((f) => f in bersih) || bersih.nim !== NIM_UJI || bersih.visitCount !== 2) throw new Error(`${relative}: salinan identitas lama di localStorage tidak dibersihkan: ${toko.get("uji_identity_a")}`);
+    if (toko.get("uji_draft_a") !== JSON.stringify({ selections: { mc1: "A" } }) || toko.get("uji_identity_rusak") !== "{") throw new Error(`${relative}: pembersih identitas menyentuh kunci lain`);
+    const id = salinJson(ctx._identitasTanpaJawaban(lamaPenuh));
+    if (JSON.stringify(Object.keys(id)) !== JSON.stringify(["nama", "nim", "role", "timestamp", "lastVisit", "visitCount", "points", "scoredQuestions"])) throw new Error(`${relative}: _identitasTanpaJawaban → ${JSON.stringify(id)}`);
+    await ctx._tulisPengunjung("baru", { nama: "TES", nim: NIM_UJI, role: "student", timestamp: "t", lastVisit: "t", visitCount: 1, points: 0, scoredQuestions: "", selections: { mc1: "A" } }, null);
+    await ctx._tulisPengunjung("kunjungan", { ...lamaPenuh, visitCount: 3, lastVisit: "2026-09-29T00:00:00Z" }, lamaPenuh);
+    const tanpaPin = { ...lamaPenuh };
+    delete tanpaPin.pinHash; delete tanpaPin.pinSetAt;
+    await ctx._tulisPengunjung("tetap", { ...tanpaPin }, tanpaPin);
+    await ctx._tulisPengunjung("konsolasi", Object.assign({}, lamaPenuh, { points: 1, pointTimestamp: "t2", consolationAwarded: true }), lamaPenuh);
+    const harap = JSON.stringify([
+      ["set", "baru", { nama: "TES", nim: NIM_UJI, role: "student", timestamp: "t", lastVisit: "t", visitCount: 1, points: 0, scoredQuestions: "" }],
+      ["update", "kunjungan", { lastVisit: "2026-09-29T00:00:00Z", visitCount: 3, pinHash: null, pinSetAt: null }],
+      ["update", "konsolasi", { points: 1, pointTimestamp: "t2", consolationAwarded: true, pinHash: null, pinSetAt: null }],
+    ]);
+    if (JSON.stringify(tulis) !== harap) throw new Error(`${relative}: _tulisPengunjung menulis ${JSON.stringify(tulis)}, harap ${harap}`);
+  }
+
+  // ── Sandbox: jembatan getJawabanSaya ──
+  const rekaman = () => ({ timestamp: "2026-09-20T01:00:00Z", scoredQuestions: "mc1,mc2_mc_used,mc3,tf1,c1_comp,c2_comp_used", selections: { mc9: "A" }, codes: { c9: "kode lama" }, scoreDeltas: { mc1: 1, c1: 1.3 } });
+  {
+    // Callable ada: sekali per NIM + hash PIN; pilihan/kode HANYA dari respons
+    // berdaftar-putih (sisa field publik mc9/c9 — misalnya codes yang dulu bisa
+    // ditanam klien lain — diabaikan), scoreDeltas RTDB hanya dilengkapi.
+    for (const cad of [false, true]) {
+      const s = sandboxJembatan(jembatan, jenis, { cad });
+      const h = await s.win._muatJawabanSaya(500);
+      await s.win._muatJawabanSaya(500);
+      if (!h) throw new Error(`${relative}: _muatJawabanSaya tidak mengembalikan hasil callable`);
+      const harapPayload = JSON.stringify(modul ? { nim: NIM_UJI, pinHash: HASH_UJI, modulId: "uji-modul-x" } : { nim: NIM_UJI, pinHash: HASH_UJI, examId: "uji-ujian-x" });
+      if (s.panggilan.length !== 1 || JSON.stringify(s.panggilan[0]) !== harapPayload) throw new Error(`${relative}: getJawabanSaya dipanggil ${JSON.stringify(s.panggilan)}, harap sekali dengan ${harapPayload}`);
+      const data = salinJson(s.win._gabungJawabanSaya(rekaman()));
+      const harap = {
+        timestamp: "2026-09-20T01:00:00Z", scoredQuestions: "mc1,mc2_mc_used,mc3,tf1,c1_comp,c2_comp_used",
+        selections: { mc1: "B", mc2: "D", mc3: 2, tf1: false },
+        codes: cad ? { c4: RESPONS_UJI.berkas.c4, c1: "print(42)", c3: "📎 dinilai.FCStd · 1.0 KB" } : { c1: "print(42)", c3: "📎 dinilai.FCStd · 1.0 KB" },
+        scoreDeltas: { mc1: 1, c1: 1.3, mc2: 0, mc3: 1, tf1: 0, c2: 0, c3: 6 },
+        mcOrderVersion: { mc1: 1, mc2: 0 },
+      };
+      if (JSON.stringify(data) !== JSON.stringify(harap)) throw new Error(`${relative}: gabungan getJawabanSaya${cad ? " (halaman berkas)" : ""} = ${JSON.stringify(data)}, harap ${JSON.stringify(harap)}`);
+      if (/KUNCI-RAHASIA|PENJELASAN-RAHASIA|3\.14159|\.\.\//.test(JSON.stringify(data))) throw new Error(`${relative}: field di luar daftar putih ikut tergabung`);
+    }
+    // Callable gagal / belum ter-deploy: tanpa galat, data publik tetap, tidak diulang.
+    for (const [nama, opsi] of [["gagal", { gagal: true }], ["tidak ada", { tanpaCallable: true }]]) {
+      const s = sandboxJembatan(jembatan, jenis, opsi);
+      const h1 = await s.win._muatJawabanSaya(500), h2 = await s.win._muatJawabanSaya(500);
+      const data = salinJson(s.win._gabungJawabanSaya(rekaman()));
+      if (h1 !== null || h2 !== null || JSON.stringify(data) !== JSON.stringify(rekaman())) throw new Error(`${relative}: callable ${nama}: data berubah atau hasil bukan null (${JSON.stringify(data)})`);
+      if (s.panggilan.length !== (opsi.gagal ? 1 : 0)) throw new Error(`${relative}: callable ${nama}: dipanggil ${s.panggilan.length}x (kegagalan harus di-cache per muat halaman)`);
+      if (opsi.gagal && !s.peringatan.some((w) => /getJawabanSaya gagal/.test(w))) throw new Error(`${relative}: kegagalan getJawabanSaya tidak dilaporkan di console.warn`);
+    }
+    // Tanpa sesi PIN (tab baru): tidak memanggil; sesudah verifikasi PIN: memanggil.
+    {
+      const s = sandboxJembatan(jembatan, jenis, { pinHash: null });
+      if ((await s.win._muatJawabanSaya(500)) !== null || s.panggilan.length) throw new Error(`${relative}: getJawabanSaya dipanggil tanpa sesi PIN`);
+      s.win._sessionPinHash = HASH_UJI;
+      if (!(await s.win._muatJawabanSaya(500)) || s.panggilan.length !== 1) throw new Error(`${relative}: getJawabanSaya tidak dipanggil sesudah verifikasi PIN`);
+    }
+    // Dosen, tamu, dan tanpa identitas: tidak memanggil.
+    for (const me of [{ nama: "Dedik Romahadi", nim: "DOSEN", role: "dosen" }, { nama: "Tamu", role: "guest" }, null]) {
+      const s = sandboxJembatan(jembatan, jenis, { me });
+      await tunggu(5);
+      if ((await s.win._muatJawabanSaya(500)) !== null || s.panggilan.length) throw new Error(`${relative}: getJawabanSaya dipanggil untuk identitas ${JSON.stringify(me)}`);
+    }
+    // Identitas berganti: hasil milik NIM lain tidak pernah digabung.
+    {
+      const s = sandboxJembatan(jembatan, jenis);
+      await s.win._muatJawabanSaya(500);
+      s.ctx.identitas = { nama: "LAIN", nim: "41300000999", role: "student" };
+      if (JSON.stringify(salinJson(s.win._gabungJawabanSaya(rekaman()))) !== JSON.stringify(rekaman())) throw new Error(`${relative}: jawaban NIM lain ikut tergabung`);
+    }
+    // Akun simulasi: respons kosong → tidak ada jawaban yang dipulihkan; marker dan
+    // scoreDeltas record tetap.
+    {
+      const s = sandboxJembatan(jembatan, jenis, { respons: { jawaban: {}, berkas: {}, simulasi: true } });
+      await s.win._muatJawabanSaya(500);
+      const { selections, codes, ...tanpaJawaban } = rekaman();
+      if (JSON.stringify(salinJson(s.win._gabungJawabanSaya(rekaman()))) !== JSON.stringify(tanpaJawaban)) throw new Error(`${relative}: respons akun simulasi tidak menghasilkan data tanpa jawaban`);
+    }
+    // Callable lambat: batas tunggu habis → null; hasil terlambat tetap diterapkan
+    // (modul: _loadScoredQuestions diulang; ujian: cache digabung lalu reapply).
+    {
+      const s = sandboxJembatan(jembatan, jenis, { tundaMs: 120 });
+      const cache = rekaman(); cache.selections = {}; cache.codes = {};
+      s.win._cache = cache;
+      if ((await s.win._muatJawabanSaya(20)) !== null) throw new Error(`${relative}: batas tunggu getJawabanSaya tidak berlaku`);
+      await tunggu(250);
+      if (s.win._ulang !== 1) throw new Error(`${relative}: hasil getJawabanSaya yang terlambat diterapkan ${s.win._ulang}x, harap 1x`);
+      if (!modul && (cache.selections.mc1 !== "B" || cache.codes.c1 !== "print(42)")) throw new Error(`${relative}: hasil terlambat tidak digabung ke _cachedFirebaseData`);
+      if (modul && Object.keys(cache.selections).length) throw new Error(`${relative}: modul tidak memakai cache ujian`);
+    }
+  }
+
+  // ── Sandbox (modul): pemulihan PG terpadu JEMBATAN + HURUF-ASAL + GABUNG + PULIH ──
+  if (modul) {
+    const hurufAsal = blok("HURUF-ASAL");
+    const pulih = ambilBlok(page, "    // PILIHAN-PG-PULIH BEGIN v3", "    // PILIHAN-PG-PULIH END v3", relative);
+    const skenario = async (nama, { acak, respons, gagal = false, tanpaCallable = false, data, harap }) => {
+      const grup = {};
+      for (let q = 1; q <= 3; q += 1) {
+        grup[`mc${q}`] = ["A", "B", "C", "D"].map((h) => {
+          const kelas = new Set();
+          const onclick = acak ? `selectMC('mc${q}',this)` : `selectMC('mc${q}',this,'${h}')`;
+          return { asal: h, kelas, dataset: {}, classList: { add: (...k) => k.forEach((x) => kelas.add(x)), remove: (...k) => k.forEach((x) => kelas.delete(x)), contains: (k) => kelas.has(k) }, getAttribute: (n) => (n === "onclick" ? onclick : null) };
+        });
+      }
+      const rg = (q) => ({ id: `rg-${q}`, querySelectorAll: () => grup[q].slice() });
+      const dom = {
+        getElementById: (id) => (grup[id.replace(/^rg-/, "")] ? rg(id.replace(/^rg-/, "")) : null),
+        querySelectorAll: (sel) => (sel === '.radio-group[id^="rg-mc"]' ? Object.keys(grup).map(rg) : []),
+      };
+      const s = sandboxJembatan(jembatan, jenis, { respons, gagal, tanpaCallable, dom });
+      s.win.shuffleMCOptions = () => {
+        if (!acak) return false;
+        if (Object.values(grup).flat().some((o) => o.dataset.displayLetter)) return true;
+        for (const opsi of Object.values(grup)) { opsi.reverse(); opsi.forEach((o, i) => { o.dataset.displayLetter = String.fromCharCode(65 + i); }); }
+        return true;
+      };
+      vm.runInContext(hurufAsal, s.ctx);
+      await s.win._muatJawabanSaya(500);
+      s.ctx.data = data;
+      s.ctx.console.warn = (...a) => { throw new Error(`blok melempar: ${a.map(String).join(" ")}`); };
+      vm.runInContext(`(function (data) {\n${gabung}\n${pulih}\n})(data);`, s.ctx);
+      const hasil = {};
+      for (const [q, opsi] of Object.entries(grup)) hasil[q] = opsi.map((o) => `${o.asal}:${[...o.kelas].sort().join("+")}`).join(" ");
+      for (const [q, h] of Object.entries(harap)) if (hasil[q] !== h) throw new Error(`${relative}: pemulihan PG terpadu (${nama}) ${q} = "${hasil[q]}", harap "${h}"`);
+    };
+    const ledgerAcak = { jawaban: { mc1: { tipe: "mc", pilihan: "A", mcOrderVersion: 1, status: "correct", scoreDelta: 1 }, mc2: { tipe: "mc", pilihan: "B", mcOrderVersion: 0, status: "wrong", scoreDelta: 0 } }, berkas: {} };
+    // Sesudah pembersihan backend: record publik tanpa selections, callable ada.
+    await skenario("acak, callable ada, record publik tanpa selections", {
+      acak: true, respons: ledgerAcak,
+      data: { timestamp: "2026-08-06T00:00:00Z", scoredQuestions: "mc1,mc2_mc_used,mc3" },
+      harap: { mc1: "D:correct-ans+selected C: B: A:", mc2: "D: C: B:selected+wrong-ans A:", mc3: "D: C: B: A:" },
+    });
+    await skenario("kanonik, callable ada", {
+      acak: false, respons: { jawaban: { mc1: { tipe: "mc", pilihan: "c", mcOrderVersion: 0, status: "correct", scoreDelta: 1 } }, berkas: {} },
+      data: { scoredQuestions: "mc1,mc2_mc_used" },
+      harap: { mc1: "A: B: C:correct-ans+selected D:", mc2: "A: B: C: D:" },
+    });
+    // Masa transisi: callable gagal/belum ter-deploy, field publik lama masih ada.
+    for (const [nama, opsi] of [["gagal", { gagal: true }], ["belum ter-deploy", { tanpaCallable: true }]]) {
+      await skenario(`acak, callable ${nama}, selections publik lama`, {
+        acak: true, ...opsi,
+        data: { timestamp: "2026-09-20T01:00:00Z", scoredQuestions: "mc1,mc2_mc_used", selections: { mc1: "A", mc2: "B" } },
+        harap: { mc1: "D:correct-ans+selected C: B: A:", mc2: "D: C:selected+wrong-ans B: A:" },
+      });
+      await skenario(`acak, callable ${nama}, record publik sudah dibersihkan`, {
+        acak: true, ...opsi,
+        data: { timestamp: "2026-09-20T01:00:00Z", scoredQuestions: "mc1,mc2_mc_used" },
+        harap: { mc1: "D: C: B: A:", mc2: "D: C: B: A:" },
+      });
+    }
+  }
+}
+let jawabanPrivat = 0;
+for (const relative of halamanEkspor) {
+  const page = fs.readFileSync(path.join(root, relative), "utf8");
+  const jenis = /[\\/]Exam[\\/]UTS\.html$/.test(relative) ? "UTS" : /[\\/]Exam[\\/]UAS\.html$/.test(relative) ? "UAS" : "Modul";
+  await periksaJawabanPrivat(page, relative, jenis);
+  jawabanPrivat += 1;
+}
+if (jawabanPrivat !== 96) throw new Error(`Expected 96 modul/exam pages restoring answers through getJawabanSaya, found ${jawabanPrivat}`);
 
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");
 if (/rsync -a \\\r?\n\s+--exclude='.git'/.test(workflow)) throw new Error("Pages workflow still copies repository root");
