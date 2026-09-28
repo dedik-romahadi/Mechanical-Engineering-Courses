@@ -50,13 +50,14 @@
  *      getJawabanSaya dari ledger server (blok JAWABAN-PRIVAT:GABUNG dari
  *      scripts/jawaban-privat.mjs, tepat sebelum blok ini), karena record RTDB
  *      pengunjung terbaca publik dan backend berhenti menyimpan selections di
- *      sana; field RTDB lama hanya cadangan selama transisi. Ledger mencatat
+ *      sana; sejak perbaikan tinjauan (29 September 2026) field RTDB publik
+ *      tidak pernah dipakai lagi, juga bila callable gagal. Ledger mencatat
  *      jenis hurufnya: `data.mcOrderVersion[mcN]` 1 = huruf posisi terlihat
  *      (dicari lewat data-display-letter sesudah shuffleMCOptions), 0 = huruf
  *      kanonik (course kanonik: onclick; course acak: data-huruf-asal, urutan
  *      markup yang dicatat blok JAWABAN-PRIVAT:HURUF-ASAL sebelum opsi diacak).
  *      Penjaga timestamp v2 hanya berlaku untuk mcN tanpa entri mcOrderVersion
- *      (record lama tanpa ledger, atau callable gagal/belum ter-deploy).
+ *      di respons getJawabanSaya.
  *   2. PILIHAN-PG-EKSPOR — fallback ekspor saat teks pilihan tidak diketahui:
  *      benar → "(Sudah dijawab benar — teks pilihan tidak tersedia)", salah →
  *      tetap "(Sudah dijawab, tetapi pilihan salah)", belum dijawab tidak
@@ -102,19 +103,20 @@ const RX_GABUNG = /    \/\/ JAWABAN-PRIVAT:GABUNG BEGIN[^\n]*\n[\s\S]*?    \/\/ 
 
 const BLOK_PULIH = `    // PILIHAN-PG-PULIH BEGIN v3 — dipasang scripts/pulihkan-pilihan-pg.mjs
     // Pilihan PG yang sudah dijawab dipulihkan dari data.selections[mcN] —
-    // diisi getJawabanSaya dari ledger server (blok JAWABAN-PRIVAT:GABUNG di
-    // atas; field RTDB lama hanya cadangan) — yaitu huruf yang dulu dikirim
-    // selectMC ke checkModulAnswer: huruf kanonik di onclick bila markup
-    // membawanya, selain itu huruf posisi terlihat (data-display-letter) dari
-    // urutan acak per NIM. Benar → .selected + .correct-ans; salah → .selected
-    // + .wrong-ans tanpa mengungkap opsi benar. Tanpa pilihan: dibiarkan,
-    // ekspor memakai teks netral. Jenis huruf dari ledger,
-    // data.mcOrderVersion[mcN]: 1 = huruf posisi terlihat, 0 = huruf kanonik
-    // (course acak: data-huruf-asal, urutan markup sebelum diacak). Tanpa entri
-    // itu (record lama tanpa ledger, callable gagal), huruf posisi hanya
-    // dipercaya bila kunjungan pertama record (timestamp, tidak bisa diubah
-    // klien) jatuh sesudah urutan acak per NIM pertama kali terpasang
-    // (8 Agustus 2026): record yang lebih tua bisa menyimpan huruf kanonik.
+    // hanya diisi getJawabanSaya dari ledger server (blok JAWABAN-PRIVAT:GABUNG
+    // di atas; selections record RTDB publik tidak pernah dipakai) — yaitu
+    // huruf yang dulu dikirim selectMC ke checkModulAnswer: huruf kanonik di
+    // onclick bila markup membawanya, selain itu huruf posisi terlihat
+    // (data-display-letter) dari urutan acak per NIM. Benar → .selected +
+    // .correct-ans; salah → .selected + .wrong-ans tanpa mengungkap opsi benar.
+    // Tanpa pilihan (callable gagal, attempt tanpa ledger): dibiarkan, ekspor
+    // memakai teks netral. Jenis huruf dari ledger, data.mcOrderVersion[mcN]:
+    // 1 = huruf posisi terlihat, 0 = huruf kanonik (course acak:
+    // data-huruf-asal, urutan markup sebelum diacak). Tanpa entri itu, huruf
+    // posisi hanya dipercaya bila kunjungan pertama record (timestamp, tidak
+    // bisa diubah klien) jatuh sesudah urutan acak per NIM pertama kali
+    // terpasang (8 Agustus 2026): record yang lebih tua bisa menyimpan huruf
+    // kanonik.
     try {
       const pgPilihan = (data.selections && typeof data.selections === 'object') ? data.selections : {};
       const pgVersi = (data.mcOrderVersion && typeof data.mcOrderVersion === 'object') ? data.mcOrderVersion : {};
