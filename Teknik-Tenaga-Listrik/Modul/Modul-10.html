@@ -10361,7 +10361,7 @@ _ttlMulai();
   }, true);
 })();
 </script>
-<!-- DRAFT-MODUL:PENJAGA BEGIN v3 — dipasang scripts/draft-modul.mjs (Pedoman §6.3) -->
+<!-- DRAFT-MODUL:PENJAGA BEGIN v4 — dipasang scripts/draft-modul.mjs (Pedoman §6.3) -->
 <script>
 // Draft materi (kode komputasi, tautan Google Drive, teks Forum, angka bacaan dan
 // berkas tugas FreeCAD) — scripts/draft-modul.mjs. _saveDraft/_loadDraft halaman
@@ -10398,6 +10398,10 @@ _ttlMulai();
 //    PIN sesi ini selesai dan diterapkan, dan hanya bila server tidak punya berkas
 //    tugas itu atau sidik SHA-256-nya sama dengan ringkasan server di kartu. Sebelum
 //    itu ditahan: kartu, konfirmasi kirim, dan ekspor tidak menyebut berkas lama.
+//    Tugas yang sudah dikirim lalu dibuka lagi: angka yang dikirim dan berkas yang dinilai
+//    keluar dari draft begitu hasilnya datang (hanya ketikan/unggahan sesudahnya yang
+//    tersimpan), dan metadata draft tugas itu tidak dipakai sesudah muat ulang — kartunya
+//    memuat ringkasan ledger berkas yang sudah dinilai, bukan unggahan terbaru.
 //  • NIM mahasiswa berganti tanpa muat ulang (logout paksa, lalu NIM lain masuk di
 //    tab yang sama): kolom draft dikosongkan dan halaman dimuat ulang.
 //  • Setiap ketikan di kolom kode, tautan Drive, angka bacaan, atau Forum disimpan.
@@ -10409,7 +10413,7 @@ _ttlMulai();
   var dimuatUntuk = null, draftAwal = null, sesiFb = null, sesiSah = null;
   var serverUntuk = null, forumServer = null, forumAda = false;
   var kotor = {}, diketik = {}, dibuang = {}, pemilik = null, berganti = false;
-  var berkasDraft = {}, berkasTunda = {}, jsSelesai = {}, berkasSiap = null;
+  var berkasDraft = {}, berkasTunda = {}, jsSelesai = {}, berkasSiap = null, terkirim = {}, lepas = {};
   function kunci() { if (berganti) return null; try { return typeof _draftKey === 'function' ? _draftKey() : null; } catch (e) { return null; } }
   function sesi(k) { return k ? k + '|' + String(window._sessionPinHash) : null; }
   function fbSiap() { try { return typeof _firebaseStateLoaded !== 'undefined' && _firebaseStateLoaded === true; } catch (e) { return false; } }
@@ -10418,6 +10422,9 @@ _ttlMulai();
   function nimSaya() { try { var me = typeof getIdentityLocal === 'function' ? getIdentityLocal() : null; return me && me.role === 'student' && me.nim ? String(me.nim) : null; } catch (e) { return null; } }
   function sesiJs() { var n = nimSaya(); return n ? n + '|' + String(window._sessionPinHash) : null; }
   function dinilai(q) { try { return typeof compAnswered === 'object' && !!compAnswered && !!compAnswered[q]; } catch (e) { return false; } }
+  // Tugas berkas yang sudah pernah dikirim dan dinilai, lalu dibuka lagi untuk kirim ulang.
+  function sudahKirim(q) { try { var s = window._cadSudahKirim; return !!s && typeof s === 'object' && !!s[q]; } catch (e) { return false; } }
+  function sidikBerkas(x) { return x && typeof x === 'object' ? [x.namaBerkas, x.sha256, x.uploadedAt, x.versi].join('|') : ''; }
   // Sidik 53-bit (cyrb53) teks Forum server: basis suntingan draft tanpa menyimpan teks itu.
   function sidik(t) {
     var h1 = 0xdeadbeef, h2 = 0x41c6ce57, s = teks(t);
@@ -10477,7 +10484,7 @@ _ttlMulai();
       var lk = lama.code && typeof lama.code === 'object' ? lama.code : {}, kode = {};
       Object.keys(d.code).concat(Object.keys(lk)).forEach(function (q) {
         if (!/^c\d{1,2}$/.test(q) || dinilai(q) || kode[q]) return;
-        var v = teks(diketik[q] ? d.code[q] : lk[q]);
+        var v = teks(diketik[q] ? d.code[q] : lepas[q] ? '' : lk[q]);
         if (v) { kode[q] = v; ada = true; }
       });
       o.code = kode;
@@ -10486,7 +10493,7 @@ _ttlMulai();
       var bk = {};
       Object.keys(d.berkas).concat(Object.keys(berkasTunda)).forEach(function (q) {
         var x = Object.prototype.hasOwnProperty.call(d.berkas, q) ? d.berkas[q] : berkasTunda[q];
-        if (!bk[q] && x && typeof x === 'object' && x.namaBerkas && !dinilai(q)) { bk[q] = x; ada = true; }
+        if (!bk[q] && x && typeof x === 'object' && x.namaBerkas && !dinilai(q) && terkirim[q] !== sidikBerkas(x)) { bk[q] = x; ada = true; }
       });
       o.berkas = bk;
     }
@@ -10499,6 +10506,7 @@ _ttlMulai();
     if (!d || typeof d !== 'object') return;
     var o = saring(d, baca(k));
     if (o) setAsli.call(st, k, JSON.stringify(o)); else st.removeItem(k);
+    lepas = {};   // angka yang baru dinilai sudah keluar dari draft tersimpan
   }
   // _saveDraft asli dijalankan dengan setItem localStorage dibungkus sesaat: objek draft
   // disaring sebelum ditulis; tulisan localStorage lain di dalamnya dibuang.
@@ -10535,8 +10543,11 @@ _ttlMulai();
   }
   // Metadata berkas dari draft: 'pakai' | 'tahan' (getJawabanSaya sesi ini belum diterapkan) | 'buang'.
   function shaKartu(x) { var m = /SHA-256 ([0-9a-f]{16})/i.exec(String(x || '')); return m ? m[1].toLowerCase() : null; }
+  // Tugas yang dibuka lagi: kartunya memuat ringkasan ledger berkas yang SUDAH dinilai, dan server tidak
+  // melaporkan unggahan yang belum dinilai untuk tugas ber-ledger, jadi metadata draft tidak bisa dipastikan
+  // berkas terbaru (juga bila SHA-256-nya sama dengan ringkasan ledger itu) → dibuang.
   function nasibBerkas(q, meta, kartuTeks) {
-    if (dinilai(q)) return 'buang';
+    if (dinilai(q) || sudahKirim(q)) return 'buang';
     if (!berkasSiap || berkasSiap !== sesiJs()) return 'tahan';
     var diServer = false;
     try { diServer = typeof berkasDiServer === 'object' && !!berkasDiServer && !!berkasDiServer[q]; } catch (e) {}
@@ -10643,6 +10654,22 @@ _ttlMulai();
       Object.defineProperty(window, '_getJawabanSayaCallable', { configurable: true, enumerable: true,
         get: function () { return jsKini; }, set: function (fn) { jsKini = bungkusJs(fn); } });
     } catch (e) {}
+    // Kiriman tugas yang baru dinilai server lalu dibuka lagi (kirimTugas → _bukaKirimUlangCad(q, poin,
+    // true), sebelum _saveDraft-nya): angka yang dikirim dan metadata berkas yang dinilai bukan lagi isian
+    // belum terkirim — tanda "diketik" dilepas, angka draft tersimpan tugas itu dibuang pada tulisan
+    // berikutnya, dan berkas itu tidak ikut tersimpan. Ketikan/unggahan sesudahnya tersimpan lagi.
+    // Pemulihan marker sesudah muat (…, false) bukan kiriman.
+    var bukaAsli = window._bukaKirimUlangCad;
+    if (typeof bukaAsli === 'function') {
+      window._bukaKirimUlangCad = function (q, poin, baru) {
+        if (baru === true && typeof q === 'string') {
+          var x = window.berkasTerunggah[q];
+          diketik[q] = false; lepas[q] = true; delete berkasTunda[q];
+          if (x && typeof x === 'object') terkirim[q] = sidikBerkas(x);
+        }
+        return bukaAsli.apply(this, arguments);
+      };
+    }
   }
   // getModulProgress (NIM + hash PIN sesi ini) sudah memeriksa PIN di server.
   window.addEventListener('progres-modul:diterapkan', function (e) {
@@ -10681,7 +10708,7 @@ _ttlMulai();
   }, true);
 })();
 </script>
-<!-- DRAFT-MODUL:PENJAGA END v3 -->
+<!-- DRAFT-MODUL:PENJAGA END v4 -->
 <!-- PROGRES-MODUL: awal -->
 <style>
 .pm-centang{display:flex;align-items:center;gap:16px;margin:32px 0 8px;padding:18px 22px;border:2px solid rgba(0,224,158,.45);border-radius:16px;background:linear-gradient(135deg,rgba(0,224,158,.14),rgba(34,211,238,.10));box-shadow:0 0 0 1px rgba(0,224,158,.12),0 10px 30px rgba(0,0,0,.28);color:#eaf2ff;font-size:17px;line-height:1.55;cursor:pointer;transition:border-color .2s,background .2s,box-shadow .2s}
