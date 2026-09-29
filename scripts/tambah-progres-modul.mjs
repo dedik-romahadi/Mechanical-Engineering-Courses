@@ -23,7 +23,7 @@
  *      terdefinisi di server.
  *   6. (PENJAGA-FORUM v1, 29 September 2026) Jawaban forum baru dikirim
  *      SESUDAH progres server modul ini diterapkan — sub-blok
- *      `// PROGRES-MODUL:PENJAGA-FORUM BEGIN v1` … `END v1` di dalam runtime.
+ *      `// PROGRES-MODUL:PENJAGA-FORUM BEGIN vN` … `END vN` di dalam runtime.
  *      Sebelumnya simpanForum mengirim fq1–fq3 KOSONG bila getModulProgress
  *      lebih lambat dari ±2 detik (cold start), gagal, atau modul terkunci
  *      overlay, sehingga forum di server tertimpa kosong dan forumSelesai
@@ -55,6 +55,14 @@
  *      {ok:false} setiap kali getModulProgress gagal, sesudah forumGagal —
  *      termasuk tiap coba ulang otomatis PENJAGA-FORUM yang gagal lagi.
  *      Akses ditolak (overlay prasyarat) tidak mengirim apa pun.
+ *   8. (PENJAGA-FORUM v2, 29 September 2026) Sesudah saveModulForum sukses,
+ *      runtime mengirim event window 'progres-modul:forum-tersimpan' (detail
+ *      {jawaban} = ketiga teks yang terkirim; fungsi forumTersimpan di dalam
+ *      sub-blok). Dipakai blok DRAFT-MODUL:PENJAGA (scripts/draft-modul.mjs,
+ *      jalankan SESUDAH skrip ini) untuk mencatat salinan tersinkron draft
+ *      forum, supaya draft yang sudah terkirim tidak menimpa forum server yang
+ *      lebih baru dari perangkat lain. Aturan kapan forum boleh dikirim (butir
+ *      6) tidak berubah.
  *
  * Dosen, Mode Preview, dan akun simulasi tidak digerbang (kotak bisa
  * dicentang bebas, tidak disimpan). UTS/UAS tidak disentuh.
@@ -313,7 +321,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   }
 
   var forumDimuat = false;
-  // PROGRES-MODUL:PENJAGA-FORUM BEGIN v1 — scripts/tambah-progres-modul.mjs (Pedoman §6.7)
+  // PROGRES-MODUL:PENJAGA-FORUM BEGIN v2 — scripts/tambah-progres-modul.mjs (Pedoman §6.7)
   // Kiriman forum menimpa ketiga jawaban di server sekaligus, jadi baru dikirim sesudah
   // progres server modul ini DITERAPKAN. statusForum: 'belum' (tanpa sesi PIN) →
   // 'memuat' → 'siap' (baseline = forum server: teks yang sama tidak dikirim ulang) |
@@ -375,7 +383,14 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   }
   function forumTertahan() { return mhsAktif() && statusForum !== 'siap'; }
   function bolehKirimForum(j) { return statusForum === 'siap' && !!(j.fq1.trim() || j.fq2.trim() || j.fq3.trim()); }
-  // PROGRES-MODUL:PENJAGA-FORUM END v1
+  // v2: sesudah kiriman forum sukses, event window 'progres-modul:forum-tersimpan' (detail
+  // {jawaban} = ketiga teks yang terkirim). Blok DRAFT-MODUL (scripts/draft-modul.mjs) mencatatnya
+  // sebagai salinan tersinkron draft forum: draft yang sudah terkirim tidak menimpa forum server
+  // yang lebih baru dari perangkat lain. Penjagaan kiriman di atas tidak berubah.
+  function forumTersimpan(j) {
+    try { window.dispatchEvent(new CustomEvent('progres-modul:forum-tersimpan', { detail: { jawaban: j } })); } catch (e) {}
+  }
+  // PROGRES-MODUL:PENJAGA-FORUM END v2
   // Kait 'progres-modul:diterapkan' (v2, 29 September 2026): blok lain di halaman
   // (PILIHAN-POLL-FORUM dari scripts/simpan-pilihan-poll.mjs) bereaksi sesudah
   // progres server diterapkan — detail {ok:true, progres} — atau gagal dimuat
@@ -441,7 +456,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     var d = dasar(); if (!d.pinHash) return;
     d.jawaban = j;
     panggil('saveModulForum', d).then(function (r) {
-      forumTerakhir = kunci; gagalKirimForum = 0;
+      forumTerakhir = kunci; gagalKirimForum = 0; forumTersimpan(j);
       if (r.forumSelesai) toast('💾 Jawaban forum tersimpan di server — forum modul ini selesai.');
     }).catch(function (e) {
       console.warn('[progres-modul] forum:', e && e.message);

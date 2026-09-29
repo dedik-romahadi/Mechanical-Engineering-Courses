@@ -305,6 +305,26 @@ let kunciIdentitasModul = 0;
 // Blok PILIHAN-POLL-FORUM (periksaPilihanPoll): pola dan isi unik untuk sandbox.
 const RX_BLOK_POLL = /<!-- PILIHAN-POLL-FORUM:BEGIN v\d+[^>]*-->[\s\S]*?<!-- PILIHAN-POLL-FORUM:END v\d+ -->/g;
 const blokPollUnik = new Map();
+// Draft materi (periksaDraftModul, scripts/draft-modul.mjs): templat diimpor dari injector.
+const draftModul = await import(new URL("./draft-modul.mjs", import.meta.url));
+const SARAN_DRAFT_MODUL = "; jalankan node scripts/draft-modul.mjs";
+// Klaim "draft modul mati" yang usang (periksaKlaimDraftUsang).
+const KLAIM_DRAFT_USANG = [
+  [/_draftKey\(\)`?[^\n]{0,200}?selalu\s+`?null/, "\"_draftKey() … selalu null\""],
+  [/saat ini tidak tersimpan, lihat §6\.3/, "\"(saat ini tidak tersimpan, lihat §6.3)\""],
+];
+const DRAFT_MODUL_NIM = "41300000189";        // rekaan: bukan akun simulasi, bukan NIM nyata
+const DRAFT_MODUL_HASH = "e".repeat(64);      // hash PIN rekaan
+const MODUL_ID_KURSUS = {
+  "Engineering-Mathematics": "math4", "Getaran-Mekanik": "getaran-mekanik", "Optimalisasi-dan-Automasi": "optoauto",
+  "Sistem-Kendali-Cerdas": "sistem_kendali_cerdas", "Teknik-Tenaga-Listrik": "teknik_tenaga_listrik", "Pemodelan-Computer-Aided-Design": "pemodelan_cad",
+};
+const KUNCI_DRAFT_MODUL_LAMA_UJI = "function _draftKey() {\n  try {\n    const me = JSON.parse(localStorage.getItem(LOCAL_IDENTITY) || 'null');\n    if (!me || !me.nim || me.role === 'dosen') return null;\n    return 'uji_draft_' + MODULE_ID + '_' + me.nim;   // per-NIM, course-scoped\n  } catch(e) { return null; }\n}";
+
+const draftModulRagam = new Map();   // bahan uji perilaku unik (ragam simpan/muat/_markLoaded)
+const draftModulId = new Set();
+const contohMutasiDraftModul = [];
+let draftModulHalaman = 0;
 for (const course of courseRoots) {
   for (let modulNo = 1; modulNo <= 14; modulNo += 1) {
     const relative = `${course}/Modul/Modul-${modulNo}.html`;
@@ -371,12 +391,30 @@ for (const course of courseRoots) {
     // Pilihan quick check Forum tersimpan (hanya lewat saveModulPoll) dan
     // dipulihkan (scripts/simpan-pilihan-poll.mjs v2).
     periksaPilihanPoll(modul, relative);
+    // Draft materi per modul per NIM tersimpan dan pulih (scripts/draft-modul.mjs, 29 September 2026).
+    {
+      const { modulId, b } = periksaDraftModul(modul, relative, course, modulNo);
+      draftModulId.add(modulId);
+      const kunciRagam = JSON.stringify([b.simpan, b.muat, b.markLoaded]);
+      if (!draftModulRagam.has(kunciRagam)) draftModulRagam.set(kunciRagam, { relative, b });
+      if (["Getaran-Mekanik/Modul/Modul-2.html", "Engineering-Mathematics/Modul/Modul-4.html", "Pemodelan-Computer-Aided-Design/Modul/Modul-2.html"].includes(relative)) contohMutasiDraftModul.push({ relative, course, modulNo, modul, b });
+      draftModulHalaman += 1;
+    }
   }
 }
 if (penjagaForum.halaman !== 84) throw new Error(`Expected 84 modul pages with PROGRES-MODUL:PENJAGA-FORUM, found ${penjagaForum.halaman}`);
 await ujiMutasiPenjagaForum();
 if (kunciIdentitasModul !== 84) throw new Error(`Expected 84 module pages with a checked classic identity key, found ${kunciIdentitasModul}`);
 ujiMutasiKunciIdentitas();
+if (draftModulHalaman !== 84 || draftModulId.size !== 84) throw new Error(`Expected 84 module pages with a working per-module draft (unique MODUL_ID), found ${draftModulHalaman} pages / ${draftModulId.size} ids`);
+for (const { relative, b } of draftModulRagam.values()) ujiPerilakuDraftModul(b, relative);
+if (contohMutasiDraftModul.length !== 3 || !contohMutasiDraftModul.some((c) => c.b.cad) || !contohMutasiDraftModul.some((c) => c.b.markLoadedGlobal)) throw new Error("draft-modul mutation samples must cover a code page, a CAD page, and the global _markLoaded page");
+ujiMutasiDraftModul(contohMutasiDraftModul);
+// Kalimat "draft modul mati" dari cabang yang dibuat sebelum draft-modul (mis. komentar
+// JAWABAN-PRIVAT:ANGKA-CAD, catatan temuan CAD di Pedoman) tidak boleh ikut tergabung.
+for (const relative of ["Pedoman-Modul.md", "CLAUDE.md", "scripts/jawaban-privat.mjs"]) {
+  periksaKlaimDraftUsang(fs.readFileSync(path.join(root, relative), "utf8"), relative);
+}
 
 for (const course of courseRoots) {
   for (const examName of ["UTS.html", "UAS.html"]) {
@@ -667,8 +705,11 @@ function periksaFlagRender(exam, jenis, relative) {
  * MODULE_ID adalah const skrip module, jadi tidak terlihat dari skrip klasik
  * (`typeof LOCAL_IDENTITY` di sana selalu 'undefined') dan skrip klasik
  * menulis kuncinya sebagai literal: getIdentityLocal() — dipakai blok
- * PROGRES-MODUL, Export Tugas, dan forum HTML —, cadangan identitas dan
- * cadangan MODULE_ID di _draftKey(), dan `const LK` lapisan friksi.
+ * PROGRES-MODUL, Export Tugas, forum HTML, dan kunci draft — dan `const LK`
+ * lapisan friksi. (Sejak scripts/draft-modul.mjs, _draftKey() tidak memuat
+ * literal lagi: kunci draft = 'draft_modul_' + window.MODUL_ID + NIM dari
+ * getIdentityLocal(), diperiksa periksaDraftModul; di sini tinggal aturan satu
+ * deklarasi yang tidak ditimpa.)
  * Optimalisasi Modul 12–14 membaca kunci modul SEBELUMNYA sejak MODULE_ID
  * digeser ke pertemuan n+1 (#285, 30 Mei 2026): progres, gerbang, forum
  * server, dan friksi mati bagi mahasiswa yang tidak login di modul
@@ -781,32 +822,6 @@ function periksaKunciIdentitasModul(modul, relative, course, modulNo) {
       throw new Error(`${relative}: getIdentityLocal() must read localStorage '${K}' (this page's LOCAL_IDENTITY)${saran}`);
     }
   }
-  // _draftKey: kunci draf efektif `<slug>_draft_<MODULE_ID>_<nim>`. Tepat satu
-  // `return` selain `return null`, dalam salah satu bentuk yang dikenal:
-  //   '<slug>_draft_<MODULE_ID>_' + me.nim         blok KUNCI-IDENTITAS:DRAF, Math4 M4, Opto M4
-  //   '<slug>_draft_' + moduleId + '_' + me.nim    bentuk lama; moduleId = cadangan literal
-  //   '<slug>_draft_' + MODULE_ID + '_' + me.nim   bentuk mati (ReferenceError di skrip klasik)
-  // Gabungan literal lain ('<slug>_draft_' + 'pertemuan-12_'), templat backtick,
-  // atau return kedua ditolak.
-  {
-    const f = fungsiKlasik("_draftKey").split("\n").filter((b) => !b.trim().startsWith("//")).join("\n");
-    for (const m of f.matchAll(/\(typeof MODULE_ID !== 'undefined'\) \? MODULE_ID : '([^'\n]+)'/g)) {
-      if (m[1] !== mid) throw new Error(`${relative}: _draftKey falls back to MODULE_ID '${m[1]}' (always used in a classic script), expected '${mid}'${saran}`);
-    }
-    for (const m of f.matchAll(/'([a-z0-9_]+)_draft_([^'\n]*)'/g)) {
-      if (m[1] !== slug || (m[2] !== "" && m[2] !== `${mid}_`)) {
-        throw new Error(`${relative}: _draftKey builds '${m[1]}_draft_${m[2]}…', expected '${slug}_draft_${mid}_<nim>'${saran}`);
-      }
-    }
-    const bentuk = [`'${slug}_draft_${mid}_' + me.nim`, `'${slug}_draft_' + moduleId + '_' + me.nim`, `'${slug}_draft_' + MODULE_ID + '_' + me.nim`];
-    const kembali = [...f.matchAll(/\breturn\b\s*([^;\n]*);/g)].map((m) => m[1].trim()).filter((r) => r !== "null");
-    if (kembali.length !== 1 || !bentuk.includes(kembali[0])) {
-      throw new Error(`${relative}: _draftKey returns ${kembali.map((r) => `\`${r}\``).join(" / ") || "nothing"}, expected ${bentuk[0]}${saran}`);
-    }
-    if (kembali[0] === bentuk[1] && f.split(`const moduleId = (typeof MODULE_ID !== 'undefined') ? MODULE_ID : '${mid}';`).length !== 2) {
-      throw new Error(`${relative}: _draftKey uses moduleId without the single fallback '${mid}'${saran}`);
-    }
-  }
   // LK lapisan friksi (bentuk yang sama dengan pemeriksaan LK ujian §8).
   {
     const lk = [...modul.matchAll(/\n {2}const LK = '([^'\n]*)';\n/g)];
@@ -818,23 +833,20 @@ function periksaKunciIdentitasModul(modul, relative, course, modulNo) {
 /**
  * Uji mutasi pemeriksaan di atas: salinan halaman yang dirusak dengan cara
  * yang pernah terjadi (literal Opto Modul 12 sebelum #285 diikutkan, LK
- * Matematika 4 tanpa interpolasi, cadangan draf 'pertemuan-5', MODULE_ID tanpa
- * geseran n+1) harus ditolak, sedangkan halaman aslinya lolos. Kasus berpola
+ * Matematika 4 tanpa interpolasi, MODULE_ID tanpa geseran n+1, literal lama
+ * Getaran Modul 12) harus ditolak, sedangkan halaman aslinya lolos. (Kasus
+ * kunci draft — cadangan 'pertemuan-5', gabungan literal, templat backtick —
+ * pindah ke ujiMutasiDraftModul sejak _draftKey tanpa literal.) Kasus berpola
  * (elemen kelima) juga menagih ALASAN penolakannya, supaya kasus itu terbukti
  * ditangkap pemeriksaan yang dimaksud, bukan kebetulan oleh pemeriksaan lain:
  * kunci dalam templat backtick, gabungan literal, templat ber-${…} di skrip
- * klasik, penimpaan getIdentityLocal/_draftKey, dan bentuk return _draftKey
- * lain (temuan tinjauan 29 September 2026).
+ * klasik, dan penimpaan getIdentityLocal/_draftKey (temuan tinjauan 29
+ * September 2026).
  */
 function ujiMutasiKunciIdentitas() {
   const LK_OPTO12 = "  // KUNCI-IDENTITAS:LK END v1\n";
   const sisip = (s) => LK_OPTO12 + s;
   const kasus = [
-    ["Optimalisasi-dan-Automasi", 12, "'optoauto_draft_pertemuan-13_' + me.nim", "'optoauto_draft_' + 'pertemuan-12_' + me.nim", /_draftKey returns/],
-    ["Optimalisasi-dan-Automasi", 12, "'optoauto_draft_pertemuan-13_' + me.nim", "`optoauto_draft_pertemuan-12_` + me.nim", /_draftKey returns/],
-    ["Optimalisasi-dan-Automasi", 12, "'optoauto_draft_pertemuan-13_' + me.nim", "`optoauto_draft_pertemuan-12_${me.nim}`", /_draftKey returns/],
-    ["Optimalisasi-dan-Automasi", 12, "'optoauto_draft_pertemuan-13_' + me.nim; ", "(window._drafLain || 'optoauto_draft_pertemuan-13_') + me.nim; ", /_draftKey returns/],
-    ["Getaran-Mekanik", 12, "'getaran_mekanik_draft_' + moduleId + '_' + me.nim", "'getaran_mekanik_draft_' + 'pertemuan-12' + '_' + me.nim", /_draftKey returns/],
     ["Optimalisasi-dan-Automasi", 12, LK_OPTO12, sisip("  const _idLain = localStorage.getItem(`optoauto_identity_pertemuan-12`);\n"), /classic script reads identity key 'optoauto_identity_pertemuan-12'/],
     ["Optimalisasi-dan-Automasi", 12, LK_OPTO12, sisip("  const _idGabung = localStorage.getItem('optoauto_identity_' + 'pertemuan-12');\n"), /classic script reads identity key 'optoauto_identity_pertemuan-12'/],
     ["Optimalisasi-dan-Automasi", 12, LK_OPTO12, sisip("  const _idTpl = localStorage.getItem(`optoauto_identity_${MODULE_ID}`);\n"), /classic script builds an identity key from a template/],
@@ -843,12 +855,10 @@ function ujiMutasiKunciIdentitas() {
     ["Engineering-Mathematics", 1, "\nwindow._draftKey  = _draftKey;\n", "\nwindow._draftKey  = function () { return null; };\n", /_draftKey is reassigned/],
     ["Optimalisasi-dan-Automasi", 12, "localStorage.getItem('optoauto_identity_pertemuan-13')", "localStorage.getItem('optoauto_identity_pertemuan-12')"],
     ["Optimalisasi-dan-Automasi", 12, "\n  const LK = 'optoauto_identity_pertemuan-13';\n", "\n  const LK = 'optoauto_identity_pertemuan-12';\n"],
-    ["Optimalisasi-dan-Automasi", 12, "'optoauto_draft_pertemuan-13_'", "'optoauto_draft_pertemuan-12_'"],
     ["Optimalisasi-dan-Automasi", 12, "\nconst MODULE_ID = 'pertemuan-13';", "\nconst MODULE_ID = 'pertemuan-12';"],
     ["Engineering-Mathematics", 1, "\n  const LK = 'math4_identity_modul-1';\n", "\n  const LK = '${COURSE_ID}_identity_modul-1';\n"],
-    ["Engineering-Mathematics", 1, "'math4_draft_modul-1_'", "'math4_draft_pertemuan-5_'"],
-    ["Getaran-Mekanik", 12, "? MODULE_ID : 'pertemuan-13'", "? MODULE_ID : 'pertemuan-12'"],
-    ["Getaran-Mekanik", 12, "? LOCAL_IDENTITY : 'getaran_mekanik_identity_pertemuan-13'", "? LOCAL_IDENTITY : 'getaran_mekanik_identity_pertemuan-12'"],
+    ["Getaran-Mekanik", 12, "localStorage.getItem('getaran_mekanik_identity_pertemuan-13')", "localStorage.getItem('getaran_mekanik_identity_pertemuan-12')"],
+    ["Getaran-Mekanik", 12, "\n  const LK = 'getaran_mekanik_identity_pertemuan-13';\n", "\n  const LK = 'getaran_mekanik_identity_pertemuan-12';\n"],
     ["Pemodelan-Computer-Aided-Design", 1, "localStorage.getItem('pemodelan_cad_identity_pertemuan-1')", "localStorage.getItem('pemodelan_cad_identity_pertemuan-2')"],
   ];
   for (const [course, n, asli, rusak, alasan] of kasus) {
@@ -1408,13 +1418,16 @@ async function periksaPenjagaForum(modul, relative) {
     "var statusForum = 'belum',", "forumTerakhir = null;",
     "function mulaiMuatForum() {", "function forumSiap(p) {", "function forumDitolak() {", "function forumGagal(e, d) {",
     "function forumCobaLagi() {", "function forumTertahan() {", "function bolehKirimForum(j) {",
+    // v2 (29 September 2026): event sesudah kiriman forum sukses, dipakai DRAFT-MODUL:PENJAGA
+    // (scripts/draft-modul.mjs) sebagai salinan tersinkron draft forum.
+    "function forumTersimpan(j) {", "window.dispatchEvent(new CustomEvent('progres-modul:forum-tersimpan', { detail: { jawaban: j } }))",
   ]) {
     if (hitungDi(blok, wajib) < 1) throw new Error(`${relative}: PENJAGA-FORUM missing ${wajib}${saran}`);
   }
   if (/_sessionPinHash/.test(blok)) throw new Error(`${relative}: PENJAGA-FORUM must not touch window._sessionPinHash (the PIN re-prompt belongs to JAWABAN-PRIVAT)${saran}`);
   const pmTanpaSub = pm.replace(blok, "\n");
   if (/\bvar\b[^;\n]*\bforumTerakhir\b/.test(pmTanpaSub)) throw new Error(`${relative}: forumTerakhir must only be declared inside PENJAGA-FORUM (a later \`var … forumTerakhir = ''\` resets the server baseline)${saran}`);
-  for (const nama of ["mulaiMuatForum", "forumSiap", "forumDitolak", "forumGagal", "forumCobaLagi", "forumTertahan", "tahanForum", "bolehKirimForum", "statusForum", "jedaForum"]) {
+  for (const nama of ["mulaiMuatForum", "forumSiap", "forumDitolak", "forumGagal", "forumCobaLagi", "forumTertahan", "tahanForum", "bolehKirimForum", "statusForum", "jedaForum", "forumTersimpan"]) {
     if (new RegExp(`function ${nama}\\b|var ${nama}\\b|\\b${nama}\\s*=[^=]`).test(pmTanpaSub)) throw new Error(`${relative}: ${nama} must only be defined inside PENJAGA-FORUM${saran}`);
   }
   // Kait di runtime.
@@ -1452,6 +1465,11 @@ async function periksaPenjagaForum(modul, relative) {
   // Satu-satunya kiriman teks forum: simpanForum di PROGRES-MODUL.
   if (hitungDi(pm, "saveModulForum") !== 1 || hitungDi(simpan, "panggil('saveModulForum', d)") !== 1 || !simpan.includes("\n    d.jawaban = j;\n")) {
     throw new Error(`${relative}: PROGRES-MODUL must call saveModulForum exactly once, from simpanForum with d.jawaban = j${saran}`);
+  }
+  // v2: 'progres-modul:forum-tersimpan' hanya sesudah kiriman sukses (di .then, bersama baseline baru).
+  if (!simpan.includes("panggil('saveModulForum', d).then(function (r) {\n      forumTerakhir = kunci; gagalKirimForum = 0; forumTersimpan(j);\n")
+    || hitungDi(pmTanpaSub, "forumTersimpan(") !== 1) {
+    throw new Error(`${relative}: simpanForum must call forumTersimpan(j) exactly once, in the saveModulForum .then next to the new baseline (DRAFT-MODUL records the synced forum copy)${saran}`);
   }
   // Blok PILIHAN-POLL-FORUM v2 menyimpan pilihan quick check lewat callable terpisah
   // saveModulPoll, jadi di luar PROGRES-MODUL (termasuk blok poll) saveModulForum tidak
@@ -1592,7 +1610,7 @@ async function simulasiPenjagaForum(pm, relative) {
   const alir = async () => { for (let i = 0; i < 6; i += 1) await new Promise((r) => setImmediate(r)); };
   const buat = (opsi = {}) => {
     let jam = 0, idT = 0, toastEl = null;
-    const timer = [], panggilan = [], tertunda = [], tabDibuka = [], gagalSimpan = [], kabar = [];
+    const timer = [], panggilan = [], tertunda = [], tabDibuka = [], gagalSimpan = [], kabar = [], tersimpan = [];
     const kelas = () => { const s = new Set(); return { toggle: (k, v) => ((v === undefined ? !s.has(k) : v) ? s.add(k) : s.delete(k)), add: (...k) => k.forEach((x) => s.add(x)), remove: (...k) => k.forEach((x) => s.delete(x)), contains: (k) => s.has(k) }; };
     const kotak = [0, 1].map(() => {
       const input = { checked: false, disabled: true, ubah: null, addEventListener: (jenis, fn) => { if (jenis === "change") input.ubah = fn; } }, st = { textContent: "" };
@@ -1626,7 +1644,8 @@ async function simulasiPenjagaForum(pm, relative) {
       getApp: () => ({}), getFunctions: () => ({}),
       // Kait 'progres-modul:diterapkan' untuk PILIHAN-POLL-FORUM: keadaan tab Forum dan textarea saat dikirim.
       CustomEvent: function (jenis, init) { this.type = jenis; this.detail = init && init.detail; },
-      dispatchEvent: (ev) => { kabar.push({ jenis: ev.type, ok: ev.detail && ev.detail.ok, progres: !!(ev.detail && ev.detail.progres), forumTerkunci: el["tab-forum"].classList.contains("pm-terkunci"), fq1: el["ans-fq1"].value }); return true; },
+      // 'progres-modul:forum-tersimpan' (PENJAGA-FORUM v2) dicatat terpisah: detail {jawaban} sesudah kiriman sukses.
+      dispatchEvent: (ev) => { if (ev.type === "progres-modul:forum-tersimpan") { tersimpan.push(JSON.parse(JSON.stringify(ev.detail))); return true; } kabar.push({ jenis: ev.type, ok: ev.detail && ev.detail.ok, progres: !!(ev.detail && ev.detail.progres), forumTerkunci: el["tab-forum"].classList.contains("pm-terkunci"), fq1: el["ans-fq1"].value }); return true; },
       httpsCallable: (fx, nama) => (data) => {
         panggilan.push({ nama, data: JSON.parse(JSON.stringify(data)), jam });
         if (nama === "saveModulForum") {
@@ -1652,7 +1671,7 @@ async function simulasiPenjagaForum(pm, relative) {
     };
     const ketik = (q, v) => { el["ans-" + q].value = v; win.checkForumReady(); };
     return {
-      win, el, panggilan, majukan, ketik, tabDibuka, gagalSimpan, kabar,
+      win, el, panggilan, majukan, ketik, tabDibuka, gagalSimpan, kabar, tersimpan,
       simpan: () => panggilan.filter((p) => p.nama === "saveModulForum"),
       progres: () => panggilan.filter((p) => p.nama === "getModulProgress").length,
       terkunci: (t) => el["tab-" + t].classList.contains("pm-terkunci"),
@@ -1689,6 +1708,7 @@ async function simulasiPenjagaForum(pm, relative) {
     s.ketik("fq2", SERVER.fq2 + " tambahan"); await s.majukan(2000);
     const k = s.simpan();
     if (k.length !== 1 || k[0].data.jawaban.fq1 !== SERVER.fq1 || k[0].data.jawaban.fq2 !== SERVER.fq2 + " tambahan" || k[0].data.jawaban.fq3 !== SERVER.fq3) gagal(nama, `an edit after progress was applied must be sent once with all three answers ${ringkas(s)}`);
+    if (s.tersimpan.length !== 1 || JSON.stringify(s.tersimpan[0]) !== JSON.stringify({ jawaban: k[0].data.jawaban })) gagal(nama, `a successful save must dispatch 'progres-modul:forum-tersimpan' once with the sent answers: ${JSON.stringify(s.tersimpan).slice(0, 200)}`);
     s.win.checkForumReady(); await s.majukan(2000);
     if (s.simpan().length !== 1) gagal(nama, "unchanged text must not be sent again");
     s.el["ans-fq1"].value = ""; s.el["ans-fq2"].value = ""; s.ketik("fq3", ""); await s.majukan(2000);
@@ -1836,8 +1856,10 @@ async function simulasiPenjagaForum(pm, relative) {
     s.gagalSimpan.push("functions/unavailable");
     s.ketik("fq1", SERVER.fq1 + " revisi"); await s.majukan(2000);
     if (s.simpan().length !== 1 || !/belum tersimpan/i.test(s.toast())) gagal(nama, "a failed forum save must be reported to the student");
+    if (s.tersimpan.length) gagal(nama, "a failed save must not dispatch 'progres-modul:forum-tersimpan'");
     await s.majukan(3000);
     if (s.simpan().length !== 2 || s.simpan()[1].data.jawaban.fq1 !== SERVER.fq1 + " revisi") gagal(nama, `a transient save failure must be retried after 3 s ${ringkas(s)}`);
+    if (s.tersimpan.length !== 1 || s.tersimpan[0].jawaban.fq1 !== SERVER.fq1 + " revisi") gagal(nama, "the successful retry must dispatch 'progres-modul:forum-tersimpan' once");
     await s.majukan(60000);
     if (s.simpan().length !== 2) gagal(nama, `a successful retry must not be followed by more saves ${ringkas(s)}`);
     s.gagalSimpan.push("functions/unauthenticated");
@@ -1909,7 +1931,10 @@ async function ujiMutasiPenjagaForum() {
     ["poll-saja lewat saveModulForum di PILIHAN-POLL-FORUM", [["panggil('saveModulPoll', {", "panggil('saveModulForum', {"]]],
     ["kait ok:true sebelum tab Forum terbuka dan textarea terisi", [["\n    kabarkan({ ok: true, progres: p });\n", "\n"], ["\n    forumSiap(p);\n    centang =", "\n    forumSiap(p);\n    kabarkan({ ok: true, progres: p });\n    centang ="]]],
     ["kait ok:false hilang", [["\n      kabarkan({ ok: false });\n", "\n"]]],
-    ["tanpa sub-blok", [["  // PROGRES-MODUL:PENJAGA-FORUM BEGIN v1", "  // PROGRES-MODUL:PENJAGA-FORUM-LAMA BEGIN v1"]]],
+    ["tanpa sub-blok", [["  // PROGRES-MODUL:PENJAGA-FORUM BEGIN v2", "  // PROGRES-MODUL:PENJAGA-FORUM-LAMA BEGIN v2"]]],
+    ["v1: tanpa event forum-tersimpan", [[" gagalKirimForum = 0; forumTersimpan(j);", " gagalKirimForum = 0;"]]],
+    ["forum-tersimpan sebelum kiriman sukses", [[" gagalKirimForum = 0; forumTersimpan(j);", " gagalKirimForum = 0;"], ["\n    d.jawaban = j;\n", "\n    d.jawaban = j; forumTersimpan(j);\n"]]],
+    ["forum-tersimpan tanpa jawaban", [["{ detail: { jawaban: j } }", "{ detail: {} }"]]],
     ["satu byte sub-blok berbeda", [["'gagal' (galat sementara dicoba ulang 3/10/30 dtk).", "'gagal' (galat sementara dicoba ulang 3/10/30 dtk)!"]], true],
   ];
   for (const [nama, ganti, bandingkan] of kasus) {
@@ -1925,6 +1950,518 @@ async function ujiMutasiPenjagaForum() {
     Object.assign(penjagaForum, simpan);
     if (!alasan) throw new Error(`${relative}: PENJAGA-FORUM check accepted a mutated page (${nama})`);
     if (process.env.PENJAGA_FORUM_MUTASI) console.log(`mutasi "${nama}" ditolak: ${alasan}`);
+  }
+}
+/**
+ * Draft materi modul (scripts/draft-modul.mjs, 29 September 2026; Pedoman §6.3).
+ * `_draftKey` skrip klasik dulu merujuk konstanta skrip module (null di 43
+ * halaman) atau literal cadangan per halaman (kunci bersama Matematika 4), dan
+ * di halaman yang kuncinya hidup `_saveDraft` dari check*Ready menulis kolom
+ * kosong SEBELUM `_loadDraft` membacanya. Pemeriksaan: struktur (prasyarat
+ * injector — termasuk daftar pemanggil `_loadDraft` —, blok KUNCI/PENJAGA
+ * byte-sama dengan templat, PENJAGA tepat sebelum `<!-- PROGRES-MODUL: awal -->`,
+ * MODUL_ID sesuai path dan unik di 84 halaman, PENJAGA-FORUM v2 mengirim
+ * 'progres-modul:forum-tersimpan') + perilaku di node:vm memakai
+ * `_saveDraft`/`_loadDraft` ASLI tiap ragam dan `_markLoaded` persis bentuk
+ * halaman (DOM tiruan) + uji mutasi (tiap mutasi wajib diterapkan DAN ditolak).
+ */
+function fungsiDraftModul(html, awal, relative) {
+  const i = html.indexOf(awal);
+  const j = i < 0 ? -1 : draftModul.akhirFungsi(html, i);
+  if (i < 0 || j < 0) throw new Error(`${relative}: ${awal} not found`);
+  return html.slice(i, j + 1);
+}
+
+/** Struktur satu halaman modul; mengembalikan bahan uji perilaku. */
+function periksaDraftModul(modulAsli, relative, course, modulNo) {
+  const modul = modulAsli.replace(/\r\n/g, "\n");
+  let info;
+  try { info = draftModul.prasyarat(modul); } catch (e) { throw new Error(`${relative}: draft ${e.message}${SARAN_DRAFT_MODUL}`); }
+  if (info.ragam !== "blok") throw new Error(`${relative}: _draftKey is the old ${info.ragam} form (key from module-script constants or a per-page literal)${SARAN_DRAFT_MODUL}`);
+  const kunci = fungsiDraftModul(modul, draftModul.AWAL_FUNGSI, relative);
+  if (kunci !== draftModul.KUNCI) throw new Error(`${relative}: _draftKey is not the DRAFT-MODUL:KUNCI template${SARAN_DRAFT_MODUL}`);
+  for (const [s, n] of [[draftModul.KUNCI_AWAL, 1], [draftModul.KUNCI_AKHIR, 1], [draftModul.PENJAGA_AWAL, 1], [draftModul.PENJAGA_AKHIR, 1], [draftModul.PENJAGA + "\n" + draftModul.JANGKAR, 1]]) {
+    const c = modul.split(s).length - 1;
+    if (c !== n) throw new Error(`${relative}: ${s.split("\n")[0].slice(0, 90)} found ${c}x, expected ${n} (DRAFT-MODUL:PENJAGA byte-identical, right before <!-- PROGRES-MODUL: awal -->)${SARAN_DRAFT_MODUL}`);
+  }
+  if (/DRAFT-MODUL:(?:KUNCI|PENJAGA) (?:BEGIN|END)/.test(modul.replace(draftModul.KUNCI, "").replace(draftModul.PENJAGA, ""))) throw new Error(`${relative}: orphan DRAFT-MODUL marker${SARAN_DRAFT_MODUL}`);
+  if (modul.includes("KUNCI-IDENTITAS:DRAF")) throw new Error(`${relative}: KUNCI-IDENTITAS:DRAF block left behind (replaced by DRAFT-MODUL:KUNCI)${SARAN_DRAFT_MODUL}`);
+  const kunciLama = draftModul.RX_KUNCI_LAMA_DISEBUT.exec(modul);
+  if (kunciLama) throw new Error(`${relative}: old draft key still named (${kunciLama[0]}…); the key is draft_modul_<MODUL_ID>_<NIM>${SARAN_DRAFT_MODUL}`);
+  periksaKlaimDraftUsang(modul, relative);
+  for (const b of draftModul.blokAi(modul)) if (b.includes("DRAFT-MODUL")) throw new Error(`${relative}: DRAFT-MODUL block inside AI-CHAT-AGENT`);
+  const modulId = (modul.match(/const MODUL_ID = '([^']+)';/) || [])[1];
+  const harapId = `${MODUL_ID_KURSUS[course]}-modul-${modulNo}`;
+  if (modulId !== harapId) throw new Error(`${relative}: MODUL_ID '${modulId}', expected '${harapId}' (draft key draft_modul_<MODUL_ID>_<NIM> must be unique per module)`);
+  const pmA = modul.indexOf("<!-- PROGRES-MODUL: awal -->"), pmZ = modul.indexOf("<!-- PROGRES-MODUL: akhir -->");
+  const pm = modul.slice(pmA, pmZ);
+  if (!pm.includes("new CustomEvent('progres-modul:forum-tersimpan'") || !pm.includes("new CustomEvent('progres-modul:diterapkan'")) {
+    throw new Error(`${relative}: PROGRES-MODUL must dispatch 'progres-modul:diterapkan' and (PENJAGA-FORUM v2) 'progres-modul:forum-tersimpan' for the draft forum sync; jalankan node scripts/tambah-progres-modul.mjs`);
+  }
+  let markLoaded;
+  if (info.markLoadedGlobal) markLoaded = fungsiDraftModul(modul, "\nfunction _markLoaded() {", relative).trim();
+  else {
+    const i = modul.indexOf("  const _markLoaded = () => {"), j = modul.indexOf("\n  };\n", i);
+    if (i < 0 || j < 0) throw new Error(`${relative}: const _markLoaded not found`);
+    markLoaded = modul.slice(i, j + 5);
+    if (!markLoaded.includes(draftModul.PANGGIL_MUAT) || !markLoaded.includes("_firebaseStateLoaded = true;")) throw new Error(`${relative}: _markLoaded must set _firebaseStateLoaded and call _loadDraft()`);
+  }
+  const simpan = fungsiDraftModul(modul, "function _saveDraft() {", relative);
+  return {
+    modulId,
+    b: {
+      kunci, penjaga: draftModul.PENJAGA, simpan, muat: fungsiDraftModul(modul, "function _loadDraft() {", relative),
+      markLoaded, markLoadedGlobal: info.markLoadedGlobal, cad: /nilai-c/.test(simpan), tanpaKode: !/code-c|nilai-c/.test(simpan),
+    },
+  };
+}
+
+/**
+ * Klaim "draft modul mati" yang usang sejak scripts/draft-modul.mjs (Pedoman §6.3
+ * "Draft materi"). Cabang yang dibuat sebelum draft-modul (mis. fix/angka-bacaan-cad,
+ * JAWABAN-PRIVAT:ANGKA-CAD) menulis bahwa `_draftKey()` CAD selalu null dan angka/
+ * metadata unggahan tidak tersimpan; kalimat itu tergabung tanpa konflik saat rebase.
+ * Diperiksa di Pedoman, CLAUDE.md, sumber komentar ANGKA-CAD, dan ke-84 halaman modul.
+ * Polanya (KLAIM_DRAFT_USANG) dideklarasikan di atas, sebelum perulangan halaman.
+ */
+function periksaKlaimDraftUsang(teks, relative) {
+  for (const [rx, nama] of KLAIM_DRAFT_USANG) {
+    if (rx.test(teks)) throw new Error(`${relative}: stale claim ${nama} — module drafts are saved and restored since scripts/draft-modul.mjs (Pedoman §6.3 "Draft materi"); rewrite the sentence (the JAWABAN-PRIVAT:ANGKA-CAD comment lives in scripts/jawaban-privat.mjs — edit it there and rerun the injector)`);
+  }
+}
+
+/** _draftKey/_saveDraft/_loadDraft ragam halaman + _markLoaded + skrip PENJAGA di node:vm (DOM, localStorage, event tiruan). */
+function sandboxDraftModul(b, opsi = {}) {
+  const { modulId = "uji-modul-2", me = { nama: "UJI DRAFT", nim: DRAFT_MODUL_NIM, role: "student" }, pinHash = DRAFT_MODUL_HASH, preview = false, isi = {}, toko: tokoBersama = null } = opsi;
+  const el = new Map(), pendengar = [], pendengarWin = {}, tulisan = [];
+  // toko bersama = localStorage satu peramban untuk beberapa tab (sandbox) sekaligus.
+  const toko = tokoBersama || new Map();
+  for (const [k, v] of Object.entries(isi)) toko.set(k, v);
+  const buat = (id, tagName) => { const e = { id, tagName, value: "", innerHTML: "", disabled: false, style: {} }; el.set(id, e); return e; };
+  buat("gdrive-link", "INPUT");
+  for (const q of ["fq1", "fq2", "fq3"]) buat("ans-" + q, "TEXTAREA");
+  if (b.cad) { buat("nilai-c1", "INPUT"); buat("nilai-c2", "INPUT"); buat("berkas-status-c1", "DIV"); buat("berkas-status-c2", "DIV"); }
+  else { buat("code-c1", "TEXTAREA"); buat("code-c11", "TEXTAREA"); buat("code-c15", "TEXTAREA"); }
+  const document = {
+    getElementById: (id) => el.get(id) || null,
+    querySelectorAll: (sel) => {
+      if (sel !== 'textarea[id^="code-c"], input[id^="nilai-c"]') return [];
+      return [...el.values()].filter((e) => (e.tagName === "TEXTAREA" && e.id.startsWith("code-c")) || (e.tagName === "INPUT" && e.id.startsWith("nilai-c")));
+    },
+    addEventListener: (jenis, fn) => { if (jenis === "input") pendengar.push(fn); },
+  };
+  const localStorage = {
+    getItem: (k) => (toko.has(k) ? toko.get(k) : null),
+    setItem: (k, v) => { tulisan.push({ k, isi: JSON.parse(String(v)) }); toko.set(k, String(v)); },
+    removeItem: (k) => { toko.delete(k); },
+  };
+  const ctx = { document, localStorage, console: { log() {}, warn() {}, error() {} } };
+  vm.createContext(ctx);
+  vm.runInContext("var window = this;", ctx);
+  Object.assign(ctx, {
+    MODUL_ID: modulId, _previewMode: preview, _sessionPinHash: pinHash, getIdentityLocal: () => me, __cfr: 0, __cfrFq1: [], __muatUlang: 0,
+    location: { reload: () => { ctx.__muatUlang += 1; } },
+    addEventListener: (jenis, fn) => { (pendengarWin[jenis] = pendengarWin[jenis] || []).push(fn); },
+    dispatchEvent: (ev) => { for (const fn of pendengarWin[ev.type] || []) fn(ev); return true; },
+    CustomEvent: function (jenis, init) { this.type = jenis; this.detail = init && init.detail; },
+  });
+  // Halaman tiruan: check*Ready menyimpan draft (seperti ragam asli); kolom CAD butuh
+  // compAnswered/berkasTerunggah/berkasDiServer, dan _tampilBerkas menulis kartu berkas.
+  vm.runInContext(`let _firebaseStateLoaded = false;
+var compAnswered = {};
+window.berkasTerunggah = {};
+${b.cad ? "const berkasDiServer = {};" : ""}
+function _tampilBerkas(q) { var x = window.berkasTerunggah[q], st = document.getElementById('berkas-status-' + q); if (x && st) { st.innerHTML = 'DRAF ' + x.namaBerkas; st.style.color = 'draf'; } }
+function _refreshTugasBtn() {}
+function checkExportReady() { _saveDraft(); }
+function checkForumReady() { window.__cfr += 1; window.__cfrFq1.push(document.getElementById('ans-fq1').value); _saveDraft(); }
+${b.kunci}
+${b.simpan}
+${b.muat}
+${b.markLoadedGlobal ? b.markLoaded + "\nwindow._markLoaded = _markLoaded;" : ""}`, ctx);
+  const skrip = /^<!--[^\n]*-->\n<script>\n([\s\S]*?)<\/script>\n<!--[^\n]*-->$/.exec(b.penjaga);
+  if (!skrip) throw new Error("DRAFT-MODUL:PENJAGA must wrap exactly one classic <script>");
+  vm.runInContext(skrip[1], ctx);
+  if (!b.markLoadedGlobal) vm.runInContext(`window.__markLoaded = (function () {\n${b.markLoaded}\n  return _markLoaded;\n})();`, ctx);
+  const jalan = (s) => vm.runInContext(s, ctx);
+  const s = {
+    ctx, el, tulisan, toko, jalan,
+    // Akhir _loadScoredQuestions (sukses): marker & kode ledger sudah diterapkan.
+    markLoaded: () => jalan(b.markLoadedGlobal ? "if (typeof window._loadDraft === 'function') window._loadDraft(); window._markLoaded();" : "window.__markLoaded();"),
+    // Jaring 10 detik halaman ber-_markLoaded const (tanpa _loadDraft).
+    jaring: () => jalan("if (!_firebaseStateLoaded) { _firebaseStateLoaded = true; checkExportReady(); checkForumReady(); }"),
+    ketik: (id, v) => { const e = el.get(id); e.value = v; for (const fn of pendengar) fn({ target: e }); },
+    nilai: (id) => (el.get(id) || { value: null }).value,
+    // terapkanProgres PROGRES-MODUL (getModulProgress menerima NIM + hash PIN sesi ini):
+    // textarea kosong diisi forum server, checkForumReady, lalu event {ok:true}.
+    terapkan: (forum) => {
+      for (const q of ["fq1", "fq2", "fq3"]) { const t = el.get("ans-" + q); if (!t.value && typeof forum[q] === "string" && forum[q]) t.value = forum[q]; }
+      jalan("checkForumReady();");
+      ctx.dispatchEvent(new ctx.CustomEvent("progres-modul:diterapkan", { detail: { ok: true, progres: { forum } } }));
+    },
+    // getModulProgress ditolak/gagal (PIN salah, galat sementara): event {ok:false}.
+    gagalProgres: () => ctx.dispatchEvent(new ctx.CustomEvent("progres-modul:diterapkan", { detail: { ok: false } })),
+    tersimpan: (jawaban) => ctx.dispatchEvent(new ctx.CustomEvent("progres-modul:forum-tersimpan", { detail: { jawaban } })),
+    sinkron: (k) => { const v = toko.get(k + "_sinkron"); return v ? JSON.parse(v) : null; },
+    draft: (k) => { const v = toko.get(k); return v ? JSON.parse(v) : null; },
+  };
+  // Sesi siap: data Firebase sesi ini dimuat (_markLoaded) DAN diterima server (progres).
+  s.siap = (forum = {}) => { s.markLoaded(); s.terapkan(forum); };
+  return s;
+}
+
+function ujiPerilakuDraftModul(b, label) {
+  const gagal = (m) => { throw new Error(`${label}: draft ${m}${SARAN_DRAFT_MODUL}`); };
+  const K = `draft_modul_uji-modul-2_${DRAFT_MODUL_NIM}`;
+  const DRIVE = "https://drive.google.com/drive/folders/UJI-DRAFT";
+  const kode = b.tanpaKode ? {} : (b.cad ? { c1: "12,5", c2: "7" } : { c1: "print(1)", c11: "print(11)" });
+  const META_T1 = { namaBerkas: "uji-t1.FCStd", size: 2048, sha256: "ab", uploadedAt: "2026-09-29T01:00:00.000Z", versi: 1 };
+  const draft = (fq, tambah = {}) => JSON.stringify(Object.assign({ gdrive: DRIVE, fq1: fq[0], fq2: fq[1], fq3: fq[2], code: kode, savedAt: "2026-09-29T00:00:00.000Z" },
+    b.cad ? { berkas: { c1: META_T1 } } : {}, tambah));
+  const simpanan = draft(["draf satu", "draf dua", ""]);
+  const kolomKode = b.tanpaKode ? [] : (b.cad ? ["nilai-c1", "nilai-c2"] : ["code-c1", "code-c11"]);
+  const harapKode = b.tanpaKode ? [] : (b.cad ? ["12,5", "7"] : ["print(1)", "print(11)"]);
+  const isian = (s) => [s.nilai("gdrive-link"), s.nilai("ans-fq1"), s.nilai("ans-fq2"), ...kolomKode.map((id) => s.nilai(id))];
+  const harap = JSON.stringify([DRIVE, "draf satu", "draf dua", ...harapKode]);
+  const hilang = (w) => w.k === K && (w.isi.fq1 !== "draf satu" || w.isi.gdrive !== DRIVE || (!b.tanpaKode && JSON.stringify(w.isi.code) !== JSON.stringify(kode)));
+  const kosong = (s) => !s.jalan("window._draftSudahDimuat()") && !isian(s).some(Boolean);
+
+  // Kunci per modul + NIM, terjangkau dari skrip klasik.
+  let s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+  if (s.jalan("_draftKey()") !== K) gagal(`key must be draft_modul_<window.MODUL_ID>_<NIM>, got ${JSON.stringify(s.jalan("_draftKey()"))}`);
+  // Sebelum data Firebase: tidak ada tulisan (dulu check*Ready menimpa draft dengan kolom kosong),
+  // juga bila server sudah menerima sesi (progres diterapkan lebih dulu).
+  s.jalan("_saveDraft(); _loadDraft(); checkExportReady(); checkForumReady();");
+  s.terapkan({});
+  if (s.tulisan.some((w) => w.k === K) || !kosong(s)) gagal("written/loaded before the Firebase state was loaded (progress applied first)");
+  if (!b.markLoadedGlobal) {
+    // Jaring 10 detik (Firebase menggantung) bukan tanda siap.
+    s.jaring();
+    if (s.tulisan.some((w) => w.k === K) || isian(s).some(Boolean)) gagal("the 10-second safety net loaded or wrote the draft");
+  }
+  // Kode ledger soal yang sudah dinilai sudah di kolomnya saat _markLoaded: draft tidak menimpanya.
+  if (!b.tanpaKode) s.el.get(kolomKode[0]).value = "LEDGER";
+  s.markLoaded();
+  const pulih = isian(s);
+  if (!b.tanpaKode && pulih[3] !== "LEDGER") gagal(`covered the ledger code/number of a graded question: ${JSON.stringify(pulih[3])}`);
+  if (JSON.stringify(pulih.slice(0, 3).concat(b.tanpaKode ? [] : pulih.slice(4))) !== JSON.stringify(JSON.parse(harap).slice(0, 3).concat(harapKode.slice(1)))) gagal(`not restored after _markLoaded: ${JSON.stringify(pulih)}`);
+  if (!s.jalan("window._draftSudahDimuat()")) gagal("not marked loaded after _markLoaded");
+  const tulisK = s.tulisan.filter((w) => w.k === K);
+  if (tulisK.length < 1 || tulisK.length > 4) gagal(`one load wrote ${tulisK.length}x (load not marked before the original _loadDraft?)`);
+  if (s.tulisan.some((w) => w.k !== K && w.k !== K + "_sinkron") || tulisK.some((w) => w.isi.fq1 !== "draf satu" || w.isi.gdrive !== DRIVE)) gagal("a write lost the restored draft");
+  if (b.cad && !(s.ctx.berkasTerunggah.c1 && s.ctx.berkasTerunggah.c1.namaBerkas === "uji-t1.FCStd")) gagal("CAD upload metadata (berkasTerunggah) not restored");
+  // Ketikan tersimpan — termasuk kolom kode tanpa oninput (lewat pendengar input); kolom lain tidak.
+  let n0 = s.tulisan.length;
+  s.ketik("gdrive-link", DRIVE + "-BARU");
+  if (!b.tanpaKode && !b.cad) s.ketik("code-c15", "print(15)");
+  if (b.cad) s.ketik("nilai-c2", "8");
+  const akhir = s.draft(K);
+  if (s.tulisan.length === n0 || akhir.gdrive !== DRIVE + "-BARU" || (!b.tanpaKode && !b.cad && akhir.code.c15 !== "print(15)") || (b.cad && akhir.code.c2 !== "8")) gagal("typing into a Drive/code/number field is not saved");
+  n0 = s.tulisan.length;
+  s.el.set("vPin", { id: "vPin", tagName: "INPUT", value: "" });
+  s.ketik("vPin", "123456");
+  if (s.tulisan.length !== n0) gagal("saved on input into a non-draft field");
+
+  // Sesi belum DITERIMA SERVER (progres ditolak/gagal, mis. hash PIN basi milik NIM lain
+  // sesudah Keluar): _markLoaded saja tidak memuat maupun menulis draft.
+  s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+  s.markLoaded();
+  s.gagalProgres();
+  s.jalan("checkExportReady(); checkForumReady(); _saveDraft();");
+  s.ketik("gdrive-link", "ketik");
+  if (s.tulisan.length || s.jalan("window._draftSudahDimuat()") || s.nilai("ans-fq1") || s.nilai("gdrive-link") !== "ketik") gagal("loaded/written before the server accepted this session (progres-modul:diterapkan ok)");
+  s.terapkan({});
+  if (s.nilai("ans-fq1") !== "draf satu" || s.draft(K).gdrive !== "ketik") gagal("not restored (or the typing before loading lost) once the server accepted the session");
+  // Penerimaan server terikat hash PIN sesi: sesudah hash berganti (hash basi/lain),
+  // _markLoaded dengan hash itu tidak memuat draft sampai server menerima hash itu.
+  s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+  s.terapkan({});
+  s.ctx._sessionPinHash = "d".repeat(64);
+  s.markLoaded();
+  if (s.tulisan.some((w) => w.k === K) || !kosong(s)) gagal("server acceptance of one PIN-session hash was reused for another hash");
+  s.terapkan({});
+  if (s.nilai("ans-fq1") !== "draf satu") gagal("not restored after the server accepted the new PIN-session hash");
+
+  // Kode/angka ledger soal yang sudah dinilai datang terlambat (getJawabanSaya > batas tunggu):
+  // saat _markLoaded kolomnya masih kosong tetapi compAnswered sudah true — draft tidak mengisinya.
+  if (!b.tanpaKode) {
+    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+    s.jalan(`compAnswered.c1 = true;`);
+    s.siap();
+    const sisa = kolomKode.slice(1).map((id) => s.nilai(id));
+    if (s.nilai(kolomKode[0]) !== "") gagal(`filled a graded question's code/number from the draft before the late ledger code: ${JSON.stringify(s.nilai(kolomKode[0]))}`);
+    if (JSON.stringify(sisa) !== JSON.stringify(harapKode.slice(1))) gagal("not restored into the ungraded code/number fields next to a graded one");
+    const w = s.draft(K);
+    if (w.code && w.code.c1) gagal("the saved draft still carries the graded question's draft code");
+  }
+  // Simpanan pertama (checkExportReady di _markLoaded, sebelum _loadDraft) memuat draft lebih dulu.
+  s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+  s.siap();
+  if (JSON.stringify(isian(s)) !== harap || s.tulisan.some(hilang)) gagal("a save before _loadDraft overwrote the stored draft");
+  // Firebase dimuat SEBELUM kunci ada (tab baru sebelum PIN): sesudah PIN draft baru dimuat
+  // pada _markLoaded berikutnya (sesudah kode ledger diterapkan), walau progres lebih dulu.
+  s = sandboxDraftModul(b, { pinHash: null, isi: { [K]: simpanan } });
+  s.markLoaded();
+  s.ctx._sessionPinHash = DRAFT_MODUL_HASH;
+  s.jalan("checkExportReady(); checkForumReady();");
+  s.terapkan({});
+  if (s.tulisan.some((w) => w.k === K) || !kosong(s)) {
+    gagal("loaded/written before the Firebase state of this key (identity + PIN session) was restored");
+  }
+  s.markLoaded();
+  if (JSON.stringify(isian(s)) !== harap) gagal("not restored after the keyed _markLoaded");
+  if (b.markLoadedGlobal) {
+    // Ragam _markLoaded global: jalur tanpa record/gagal hanya memanggil window._markLoaded().
+    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+    s.jalan("window._loadDraft();");
+    s.terapkan({});
+    if (s.tulisan.some((w) => w.k === K) || s.jalan("window._draftSudahDimuat()")) gagal("loaded by _loadDraft() before _markLoaded set _firebaseStateLoaded");
+    s.jalan("window._markLoaded();");
+    if (JSON.stringify(isian(s)) !== harap) gagal("not restored on the global _markLoaded path without _loadDraft (no RTDB record / error)");
+  }
+  // Dua modul: draft modul lain tidak dipulihkan; ketikan masuk kuncinya sendiri.
+  s = sandboxDraftModul(b, { modulId: "uji-modul-3", isi: { [K]: simpanan } });
+  s.siap();
+  if (isian(s).some(Boolean)) gagal("of another module was restored");
+  s.ketik("gdrive-link", "lain");
+  if (s.toko.get(K) !== simpanan || !s.toko.has(`draft_modul_uji-modul-3_${DRAFT_MODUL_NIM}`)) gagal("is not kept apart per MODUL_ID");
+  // NIM berganti tanpa muat ulang (logout paksa, lalu NIM lain masuk di tab yang sama):
+  // tidak ada tulisan ke kunci baru; pada _markLoaded / progres NIM baru kolom draft
+  // dikosongkan dan halaman dimuat ulang (isian NIM lama tidak digabung ke draft NIM baru).
+  const K2 = `draft_modul_uji-modul-2_41300000190`;
+  const LAIN = { nama: "UJI LAIN", nim: "41300000190", role: "student" };
+  for (const [nama, jalur] of [["_markLoaded", (x) => x.siap()], ["progress applied first", (x) => { x.terapkan({}); x.markLoaded(); }]]) {
+    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+    s.siap();
+    s.ketik("gdrive-link", "MILIK-A");
+    s.ctx.getIdentityLocal = () => LAIN;
+    n0 = s.tulisan.length;
+    s.jalan("checkExportReady(); checkForumReady();");
+    if (s.tulisan.length !== n0) gagal("wrote the previous student's fields into the new NIM's key before its _markLoaded");
+    jalur(s);
+    if (s.toko.has(K2) || s.ctx.__muatUlang !== 1 || isian(s).some(Boolean)) {
+      gagal(`merged the previous student's fields after the NIM changed without a reload (${nama}): K2 written=${s.toko.has(K2)}, reloads=${s.ctx.__muatUlang}, fields=${JSON.stringify(isian(s))}`);
+    }
+    if (s.draft(K).gdrive !== "MILIK-A") gagal("lost the previous student's own draft when the NIM changed");
+  }
+  // NIM lama tanpa draft termuat (tanpa sesi PIN) tetapi datanya sudah diterapkan (_markLoaded).
+  s = sandboxDraftModul(b, { pinHash: null, isi: {} });
+  s.markLoaded();
+  s.ketik("gdrive-link", "KETIK-TANPA-PIN");
+  s.ctx.getIdentityLocal = () => LAIN;
+  s.ctx._sessionPinHash = DRAFT_MODUL_HASH;
+  s.siap();
+  if (s.toko.has(K2) || s.ctx.__muatUlang !== 1) gagal("merged fields typed under another NIM (no PIN session) into the new NIM's draft");
+  // Tanpa kunci: dosen, tamu, Mode Preview, tanpa sesi PIN, tanpa MODUL_ID, tanpa NIM, tanpa peran.
+  for (const [nama, o] of [
+    ["lecturer", { me: { nama: "Dedik Romahadi", nim: "DOSEN", role: "dosen" } }], ["guest", { me: null }], ["Preview mode", { preview: true }],
+    ["no PIN session", { pinHash: null }], ["no MODUL_ID", { modulId: null }], ["no NIM", { me: { nama: "UJI", role: "student" } }],
+    ["no role", { me: { nama: "UJI", nim: DRAFT_MODUL_NIM } }],
+  ]) {
+    s = sandboxDraftModul(b, { ...o, isi: { [K]: simpanan } });
+    s.siap();
+    s.jalan("checkExportReady(); _saveDraft();");
+    const dipulihkan = isian(s).some(Boolean);
+    s.ketik("gdrive-link", "x");
+    s.tersimpan({ fq1: "a", fq2: "b", fq3: "c" });
+    if (s.jalan("_draftKey()") !== null || s.tulisan.length || dipulihkan) gagal(`must stay off for ${nama} (null key, no read/write)`);
+  }
+
+  // ── Forum: server menang, kecuali suntingan yang belum terkirim ──
+  const S = { fq1: "server satu", fq2: "server dua", fq3: "" };
+  // (1) Progres lebih dulu; fq1 belum terkirim (draft ≠ server ≠ salinan tersinkron) → draft;
+  //     fq2 sudah pernah tersinkron (draft = salinan) → server tetap.
+  s = sandboxDraftModul(b, { isi: { [K]: simpanan, [K + "_sinkron"]: JSON.stringify({ fq1: "server satu", fq2: "draf dua", fq3: "" }) } });
+  s.terapkan(S);
+  s.markLoaded();
+  if (s.nilai("ans-fq1") !== "draf satu" || s.nilai("ans-fq2") !== "server dua") gagal(`forum priority (progress first): expected [draf satu, server dua], got ${JSON.stringify([s.nilai("ans-fq1"), s.nilai("ans-fq2")])}`);
+  // checkForumReady sesudah penyelarasan: PROGRES-MODUL menjadwalkan kiriman dengan teks draft.
+  if (s.ctx.__cfrFq1[s.ctx.__cfrFq1.length - 1] !== "draf satu") gagal("an unsent forum draft restored over the server text must re-run checkForumReady (so PROGRES-MODUL sends it)");
+  if (s.draft(K).fq1 !== "draf satu" || s.draft(K).fq2 !== "server dua") gagal(`after reconciling, the draft forum must match the textareas: ${JSON.stringify([s.draft(K).fq1, s.draft(K).fq2])}`);
+  if (JSON.stringify(s.sinkron(K)) !== JSON.stringify(S)) gagal("the synced copy must be the server forum after reconciling");
+  // (2) _markLoaded lebih dulu, draft basi-tersinkron: server yang lebih baru (perangkat lain) menang,
+  //     dan draft tersimpan ikut teks server — muat ulang berikutnya tidak menganggapnya belum terkirim.
+  const T2 = new Map();
+  s = sandboxDraftModul(b, { toko: T2, isi: { [K]: simpanan, [K + "_sinkron"]: JSON.stringify({ fq1: "draf satu", fq2: "draf dua", fq3: "" }) } });
+  const BARU = { fq1: "baru dari perangkat lain", fq2: "draf dua", fq3: "" };
+  s.siap(BARU);
+  if (s.nilai("ans-fq1") !== "baru dari perangkat lain" || s.nilai("ans-fq2") !== "draf dua") gagal(`forum priority (stale synced draft): server must win, got ${JSON.stringify([s.nilai("ans-fq1"), s.nilai("ans-fq2")])}`);
+  s.ketik("gdrive-link", DRIVE + "-2");
+  s = sandboxDraftModul(b, { toko: T2 });
+  s.siap(BARU);
+  if (s.nilai("ans-fq1") !== "baru dari perangkat lain" || s.draft(K).fq1 !== "baru dari perangkat lain") gagal(`second reload after the server won: the replaced synced draft came back as unsent (${JSON.stringify([s.nilai("ans-fq1"), s.draft(K).fq1])})`);
+  // (3) Tanpa salinan tersinkron, server kosong → draft tetap (lalu dikirim PROGRES-MODUL).
+  s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+  s.siap({});
+  if (s.nilai("ans-fq1") !== "draf satu" || s.nilai("ans-fq2") !== "draf dua") gagal("an unsent draft with an empty server forum was dropped");
+  // (4) Pengguna sudah mengubah textarea sebelum draft dimuat: tidak disentuh.
+  s = sandboxDraftModul(b, { isi: { [K]: simpanan, [K + "_sinkron"]: JSON.stringify({ fq1: "draf satu", fq2: "draf dua", fq3: "" }) } });
+  s.markLoaded();
+  s.ketik("ans-fq1", "ketikan baru");
+  s.terapkan({ fq1: "server lain", fq2: "server lain", fq3: "" });
+  if (s.nilai("ans-fq1") !== "ketikan baru" || s.nilai("ans-fq2") !== "server lain") gagal(`a textarea the student already edited was overwritten, or a stale one kept: ${JSON.stringify([s.nilai("ans-fq1"), s.nilai("ans-fq2")])}`);
+  if (s.draft(K).fq1 !== "ketikan baru") gagal("the typing made before the draft loaded was not saved");
+  // (5) Kiriman forum sukses → salinan tersinkron; diselaraskan sekali per kunci.
+  s.tersimpan({ fq1: "ketikan baru", fq2: "server lain", fq3: "" });
+  if (JSON.stringify(s.sinkron(K)) !== JSON.stringify({ fq1: "ketikan baru", fq2: "server lain", fq3: "" })) gagal("'progres-modul:forum-tersimpan' must update the synced copy");
+  s.terapkan({ fq1: "x", fq2: "y", fq3: "z" });
+  s.markLoaded();
+  if (s.nilai("ans-fq1") !== "ketikan baru") gagal("reconciled more than once per key");
+  // (6) Tanpa kunci (dosen/Preview/tanpa PIN): event tidak menulis apa pun.
+  s = sandboxDraftModul(b, { preview: true, isi: { [K]: simpanan } });
+  s.terapkan(S); s.tersimpan(S);
+  if (s.tulisan.length) gagal("forum events wrote draft data without a key");
+  // (7) Jawaban yang di server sengaja DIKOSONGKAN (perangkat lain; catatan forum ada) menang atas
+  //     draft yang sudah tersinkron: textarea kosong, tanpa kiriman ulang teks lama — juga pada muat
+  //     ulang berikutnya. Tanpa catatan forum sama sekali ({}), draft tersinkron tidak dikosongkan.
+  const L = { fq1: "lama satu", fq2: "lama dua", fq3: "lama tiga" };
+  const KOSONG2 = { fq1: "srv satu", fq2: "", fq3: "srv tiga" };
+  const T7 = new Map();
+  s = sandboxDraftModul(b, { toko: T7, isi: { [K]: draft([L.fq1, L.fq2, L.fq3]), [K + "_sinkron"]: JSON.stringify(L) } });
+  s.siap(KOSONG2);
+  if (s.nilai("ans-fq1") !== "srv satu" || s.nilai("ans-fq2") !== "" || s.draft(K).fq2 !== "" || s.ctx.__cfrFq1.length === 0) {
+    gagal(`an answer cleared on the server was brought back from the synced draft: ${JSON.stringify([s.nilai("ans-fq1"), s.nilai("ans-fq2"), s.draft(K).fq2])}`);
+  }
+  s = sandboxDraftModul(b, { toko: T7 });
+  s.siap(KOSONG2);
+  if (s.nilai("ans-fq2") !== "") gagal("the server-cleared answer came back on the next reload");
+  s = sandboxDraftModul(b, { isi: { [K]: draft([L.fq1, L.fq2, L.fq3]), [K + "_sinkron"]: JSON.stringify(L) } });
+  s.siap({});
+  if (s.nilai("ans-fq2") !== "lama dua") gagal("a synced draft was cleared although the server has no forum record at all");
+  // (8) Dua tab modul yang sama (localStorage bersama): tab B menyunting & mengirim fq1; tab A yang
+  //     masih memuat teks lama hanya menyimpan kolom lain (Drive, checkExportReady). Draft tetap
+  //     memuat teks B, dan tab A yang dimuat ulang tidak mengirim teks lama.
+  const T8 = new Map();
+  const S0 = { fq1: "awal satu", fq2: "awal dua", fq3: "awal tiga" };
+  const tA = sandboxDraftModul(b, { toko: T8 }), tB = sandboxDraftModul(b, { toko: T8 });
+  tA.siap(S0); tB.siap(S0);
+  tB.ketik("ans-fq1", "baru B");
+  tB.tersimpan({ fq1: "baru B", fq2: "awal dua", fq3: "awal tiga" });
+  tA.ketik("gdrive-link", DRIVE + "-A");
+  tA.jalan("checkExportReady();");
+  if (tA.draft(K).fq1 !== "baru B" || tA.draft(K).gdrive !== DRIVE + "-A") gagal(`a save in a second tab still showing old forum text overwrote the newer forum draft: ${JSON.stringify(tA.draft(K).fq1)}`);
+  const tC = sandboxDraftModul(b, { toko: T8 });
+  tC.siap({ fq1: "baru B", fq2: "awal dua", fq3: "awal tiga" });
+  if (tC.nilai("ans-fq1") !== "baru B" || tC.nilai("gdrive-link") !== DRIVE + "-A") gagal(`reloading the stale tab restored its old forum text: ${JSON.stringify(tC.nilai("ans-fq1"))}`);
+  // (9) Sesudah kiriman sukses, tanda "disunting di tab ini" dilepas: suntingan tab lain yang lebih
+  //     baru tidak ditimpa simpanan kolom lain dari tab yang sudah mengirim.
+  const T9 = new Map();
+  const uA = sandboxDraftModul(b, { toko: T9 }), uB = sandboxDraftModul(b, { toko: T9 });
+  uA.siap(S0); uB.siap(S0);
+  uA.ketik("ans-fq1", "teks A");
+  uA.tersimpan({ fq1: "teks A", fq2: "awal dua", fq3: "awal tiga" });
+  uB.ketik("ans-fq1", "teks B lebih baru");
+  uA.ketik("gdrive-link", DRIVE + "-A");
+  if (uA.draft(K).fq1 !== "teks B lebih baru") gagal(`a tab whose forum edit was already sent overwrote a newer edit from another tab: ${JSON.stringify(uA.draft(K).fq1)}`);
+
+  // ── CAD: berkas yang diketahui server menang atas metadata berkas di draft ──
+  if (b.cad) {
+    // (i) Ringkasan server sudah ada saat draft dimuat (getJawabanSaya: berkas terunggah belum dinilai).
+    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+    s.jalan("berkasDiServer.c1 = true;");
+    s.el.get("berkas-status-c1").innerHTML = "SERVER c1 baru-v2";
+    s.siap();
+    if (s.ctx.berkasTerunggah.c1 || s.el.get("berkas-status-c1").innerHTML !== "SERVER c1 baru-v2") gagal(`draft file metadata covered the server's newer file summary: ${JSON.stringify([s.ctx.berkasTerunggah.c1 && s.ctx.berkasTerunggah.c1.namaBerkas, s.el.get("berkas-status-c1").innerHTML])}`);
+    if ((s.draft(K).berkas || {}).c1) gagal("the draft still carries file metadata for a task whose file is known to the server");
+    // (ii) Ringkasan server datang terlambat: metadata draft yang sempat terpasang dibuang.
+    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+    s.siap();
+    if (!s.ctx.berkasTerunggah.c1) gagal("CAD upload metadata (berkasTerunggah) not restored without server file data");
+    s.jalan("berkasDiServer.c1 = true;");
+    s.el.get("berkas-status-c1").innerHTML = "SERVER c1 baru-v2";
+    s.markLoaded();
+    if (s.ctx.berkasTerunggah.c1 || s.el.get("berkas-status-c1").innerHTML !== "SERVER c1 baru-v2") gagal("stale draft file metadata kept after the server file summary arrived late");
+    // (iii) Unggahan di halaman ini (objek baru) tetap berlaku.
+    s.jalan("window.berkasTerunggah.c2 = { namaBerkas: 'unggah-baru.FCStd', size: 1, sha256: 'cd', uploadedAt: '2026-09-29T02:00:00.000Z', versi: 3 }; berkasDiServer.c2 = true;");
+    s.markLoaded();
+    if (!s.ctx.berkasTerunggah.c2 || s.ctx.berkasTerunggah.c2.namaBerkas !== "unggah-baru.FCStd") gagal("dropped a file uploaded in this page");
+  }
+}
+
+function ujiMutasiDraftModul(contoh) {
+  // Mutan dibangun DI LUAR try: jangkar yang hilang menggagalkan validator
+  // (bukan tercatat sebagai "mutasi ditolak"), dan mutan wajib berbeda dari aslinya.
+  const ganti = (s, a, z) => { if (s.split(a).length !== 2) throw new Error(`draft-modul mutation anchor not found once: ${a.slice(0, 70)}`); return s.replace(a, () => z); };
+  const P = (a, z) => (b) => ({ ...b, penjaga: ganti(b.penjaga, a, z) });
+  const Kc = (a, z) => (b) => ({ ...b, kunci: ganti(b.kunci, a, z) });
+  const semua = () => true;
+  const GERBANG = "if (!k || sesiFb !== s || sesiSah !== s) return;";
+  const BELUM = "      if (lokal !== '' && lokal !== srv && !(snap && snap[q] === lokal)) {   // belum terkirim";
+  const mutasi = [
+    ["_draftKey from module-script constants (old)", semua, (b) => ({ ...b, kunci: KUNCI_DRAFT_MODUL_LAMA_UJI })],
+    ["no PIN-session gate", semua, Kc("if (window._previewMode || !window._sessionPinHash) return null;", "if (window._previewMode) return null;")],
+    ["no Preview gate", semua, Kc("if (window._previewMode || !window._sessionPinHash) return null;", "if (!window._sessionPinHash) return null;")],
+    ["any role gets a key", semua, Kc("me.role !== 'student' || ", "")],
+    ["key without MODUL_ID", semua, Kc("return 'draft_modul_' + modul + '_' + String(me.nim);", "return 'draft_modul_' + String(me.nim);")],
+    ["load marked after the original _loadDraft", semua, P("    dimuatUntuk = k;   // ditandai SEBELUM asli: check*Ready di dalamnya boleh menyimpan\n    try { return muatAsli.apply(this, arguments); }\n    finally {\n",
+      "    try { return muatAsli.apply(this, arguments); }\n    finally {\n      dimuatUntuk = k;\n")],
+    ["no Firebase check before loading", semua, P(GERBANG, "if (!k || sesiSah !== s) return;")],
+    ["no server acceptance before loading (stale PIN hash)", semua, P(GERBANG, "if (!k || sesiFb !== s) return;")],
+    ["server acceptance not bound to the PIN-session hash", semua, P("function sesi(k) { return k ? k + '|' + String(window._sessionPinHash) : null; }", "function sesi(k) { return k; }")],
+    ["Firebase readiness not per key (_firebaseStateLoaded)", semua, P(GERBANG, "if (!k || !fbSiap() || sesiSah !== s) return;")],
+    ["any _loadDraft call marks Firebase ready", semua, P("if (k && fbSiap()) sesiFb = sesi(k);", "if (k) sesiFb = sesi(k);")],
+    ["save without loading first", semua, P("if (dimuatUntuk !== k) { muat(); if (dimuatUntuk !== k) return; }", "if (dimuatUntuk !== k) { muat(); }")],
+    ["global _markLoaded not wrapped", (b) => b.markLoadedGlobal, P("  if (typeof tandaiAsli === 'function') {", "  if (false) {")],
+    ["graded fields filled from the draft (late ledger)", (b) => !b.cad && !b.tanpaKode, P("      dinilai.forEach(function (x) { if (x[0].value !== x[1]) x[0].value = x[1]; });\n", "")],
+    ["draft snapshot taken after the first write", semua, P("    if (pertama) draftAwal = baca(k);   // potret SEBELUM ada tulisan untuk kunci ini\n", "")],
+    ["server forum always wins", semua, P(BELUM, "      if (false) {   // belum terkirim")],
+    ["draft forum always wins", semua, P(BELUM, "      if (lokal !== '' && lokal !== srv) {   // belum terkirim")],
+    ["edited textarea overwritten", semua, P("} else if (ta.value === lokal && lokal !== srv && (srv !== '' || forumAda)) {", "} else if (lokal !== srv && (srv !== '' || forumAda)) {")],
+    ["server-cleared answer not applied", semua, P("(srv !== '' || forumAda)", "srv !== ''")],
+    ["synced draft cleared without a server forum record", semua, P("(srv !== '' || forumAda)", "true")],
+    ["synced copy not updated on forum-tersimpan", semua, P("    if (!k || !j || typeof j !== 'object') return;\n    tulisSinkron(k, j);\n", "    if (!k || !j || typeof j !== 'object') return;\n")],
+    ["restored forum draft not re-checked", semua, P("      if (berubah && typeof window.checkForumReady === 'function') { try { window.checkForumReady(); } catch (e) {} }\n", "")],
+    ["first load keeps the stored forum text (stale synced draft)", semua, P("simpanDgnForum(pertama ? null : baca(k))", "simpanDgnForum(baca(k))")],
+    ["any save stores the tab's forum text (second tab)", semua, P("      if (lama) FQ.forEach(function (q) {", "      if (false) FQ.forEach(function (q) {")],
+    ["forum edit mark kept after a successful send", semua, P("if (ta && ta.value === teks(j[q])) kotor[q] = false;", "if (false) kotor[q] = false;")],
+    ["NIM change without reload merged into the new draft", semua, P("  function pemilikSama() {\n    if (berganti) return false;\n", "  function pemilikSama() {\n    return true;\n")],
+    ["CAD draft file metadata over the server file", (b) => b.cad, P("          if (Object.prototype.hasOwnProperty.call(sebelum, x[0])) bt[x[0]] = sebelum[x[0]]; else delete bt[x[0]];\n", "")],
+    ["CAD stale draft file metadata kept after a late server summary", (b) => b.cad, P("          if (bt[q] && bt[q] === berkasDraft[q]) delete bt[q];   // dipasang draft pada pemuatan sebelumnya\n", "")],
+    ["typing not saved", semua, P("document.addEventListener('input',", "document.addEventListener('change',")],
+  ];
+  for (const { relative, course, modulNo, modul, b } of contoh) {
+    ujiPerilakuDraftModul(b, relative);
+    for (const [nama, berlaku, ubah] of mutasi) {
+      if (!berlaku(b)) continue;
+      const mutan = ubah(b);
+      if (JSON.stringify(mutan) === JSON.stringify(b)) throw new Error(`${relative}: draft-modul mutation "${nama}" changed nothing`);
+      let lolos = true;
+      try { ujiPerilakuDraftModul(mutan, relative); } catch (e) { lolos = false; if (process.env.DRAFT_MODUL_MUTASI) console.log(`mutasi draft "${nama}" (${relative}) ditolak: ${e.message.slice(0, 200)}`); }
+      if (lolos) throw new Error(`${relative}: draft-modul behaviour test accepts mutation "${nama}"`);
+    }
+    const blok = draftModul.PENJAGA + "\n";
+    for (const [nama, ubah] of [
+      ["PENJAGA after PROGRES-MODUL", (h) => { const t = ganti(h, blok, ""), i = t.indexOf("<!-- PROGRES-MODUL: akhir -->\n") + "<!-- PROGRES-MODUL: akhir -->\n".length; return t.slice(0, i) + blok + t.slice(i); }],
+      ["one byte changed in PENJAGA", (h) => ganti(h, GERBANG, GERBANG.replace("return;", "return ;"))],
+      ["KUNCI end marker removed", (h) => ganti(h, draftModul.KUNCI_AKHIR + "\n", "")],
+      ["old _draftKey", (h) => ganti(h, draftModul.KUNCI, KUNCI_DRAFT_MODUL_LAMA_UJI)],
+      ["unknown _loadDraft caller", (h) => ganti(h, "function _loadDraft() {", "setTimeout(function () { _loadDraft(); }, 0);\nfunction _loadDraft() {")],
+      ["_saveDraft redefined after PROGRES-MODUL", (h) => ganti(h, "<!-- PROGRES-MODUL: akhir -->\n", "<!-- PROGRES-MODUL: akhir -->\n<script>window._saveDraft = function () {};</script>\n")],
+      ["_saveDraft overwritten in a module script BEFORE PROGRES-MODUL", (h) => ganti(h, "window.MODUL_ID = MODUL_ID;", "window.MODUL_ID = MODUL_ID;\nwindow._saveDraft = function () {};")],
+      ["_loadDraft reassigned (bare) in a module script", (h) => ganti(h, "window.MODUL_ID = MODUL_ID;", "window.MODUL_ID = MODUL_ID;\n_loadDraft = function () {};")],
+      ["window._markLoaded reassigned in a module script", (h) => ganti(h, "window.MODUL_ID = MODUL_ID;", "window.MODUL_ID = MODUL_ID;\nwindow._markLoaded = function () {};")],
+      ["MODUL_ID of another module", (h) => ganti(h, `const MODUL_ID = '${MODUL_ID_KURSUS[course]}-modul-${modulNo}';`, `const MODUL_ID = '${MODUL_ID_KURSUS[course]}-modul-${modulNo === 1 ? 2 : 1}';`)],
+      ["PENJAGA-FORUM v1 (no forum-tersimpan event)", (h) => ganti(h, "new CustomEvent('progres-modul:forum-tersimpan'", "new CustomEvent('progres-modul:forum-lain'")],
+      ["KUNCI-IDENTITAS:DRAF block left", (h) => ganti(h, draftModul.KUNCI, "// KUNCI-IDENTITAS:DRAF BEGIN v1 — sisa\n" + draftModul.KUNCI + "\n// KUNCI-IDENTITAS:DRAF END v1")],
+      ["old draft key named in a comment", (h) => ganti(h, draftModul.KUNCI, "// Key per-NIM (`math4_draft_modul-4_<NIM>`)\n" + draftModul.KUNCI)],
+      ["stale 'draft always null' claim in a page comment", (h) => ganti(h, draftModul.KUNCI, "// Draft tidak ikut menentukan: _draftKey() skrip klasik selalu null di halaman ini.\n" + draftModul.KUNCI)],
+    ]) {
+      const mutan = ubah(modul);
+      if (mutan === modul) throw new Error(`${relative}: draft-modul structure mutation "${nama}" changed nothing`);
+      let lolos = true;
+      try { periksaDraftModul(mutan, relative, course, modulNo); } catch (e) { lolos = false; if (process.env.DRAFT_MODUL_MUTASI) console.log(`mutasi struktur draft "${nama}" (${relative}) ditolak: ${e.message.slice(0, 200)}`); }
+      if (lolos) throw new Error(`${relative}: draft-modul structure check accepts mutation "${nama}"`);
+    }
+  }
+  // Klaim usang di dokumen/sumber (cabang lama yang di-rebase): tiap pola wajib ditolak.
+  for (const contohKlaim of [
+    "Catatan (temuan 29 September 2026, belum diperbaiki): di halaman CAD `_draftKey()` skrip klasik merujuk `LOCAL_IDENTITY`/`MODULE_ID` yang dideklarasikan di skrip modul, sehingga selalu `null`",
+    "// dipertahankan), seperti keadaan tepat sesudah kiriman salah. Draft tidak ikut\n// menentukan: _draftKey() skrip klasik selalu null di halaman ini, dan",
+    "Angka dan metadata unggahan yang belum dikirim dimaksudkan tersimpan di draft localStorage per NIM (saat ini tidak tersimpan, lihat §6.3).",
+  ]) {
+    let lolos = true;
+    try { periksaKlaimDraftUsang(contohKlaim, "contoh"); } catch { lolos = false; }
+    if (lolos) throw new Error(`stale draft claim check accepts: ${contohKlaim.slice(0, 80)}`);
   }
 }
 /** Elemen teratas sebuah potongan HTML (tanpa parser DOM): atributnya terbaca lewat getAttribute. */
