@@ -45,6 +45,16 @@
  *      Penanda luar PROGRES-MODUL sengaja tanpa versi (jangkar injector lain);
  *      versinya di penanda sub-blok. Diperiksa validate-public-security.mjs
  *      (periksaPenjagaForum).
+ *   7. (v2, 29 September 2026) Sesudah progres server diterapkan — atau gagal
+ *      dimuat — runtime mengirim event window 'progres-modul:diterapkan'
+ *      (detail {ok:true, progres} / {ok:false}). Dipakai blok
+ *      PILIHAN-POLL-FORUM (scripts/simpan-pilihan-poll.mjs, jalankan SESUDAH
+ *      skrip ini) untuk memulihkan pilihan quick check forum; perilaku
+ *      runtime ini sendiri tidak berubah. {ok:true} dikirim di akhir
+ *      terapkanProgres (sesudah forumSiap PENJAGA-FORUM dan checkForumReady),
+ *      {ok:false} setiap kali getModulProgress gagal, sesudah forumGagal —
+ *      termasuk tiap coba ulang otomatis PENJAGA-FORUM yang gagal lagi.
+ *      Akses ditolak (overlay prasyarat) tidak mengirim apa pun.
  *
  * Dosen, Mode Preview, dan akun simulasi tidak digerbang (kotak bisa
  * dicentang bebas, tidak disimpan). UTS/UAS tidak disentuh.
@@ -366,6 +376,13 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   function forumTertahan() { return mhsAktif() && statusForum !== 'siap'; }
   function bolehKirimForum(j) { return statusForum === 'siap' && !!(j.fq1.trim() || j.fq2.trim() || j.fq3.trim()); }
   // PROGRES-MODUL:PENJAGA-FORUM END v1
+  // Kait 'progres-modul:diterapkan' (v2, 29 September 2026): blok lain di halaman
+  // (PILIHAN-POLL-FORUM dari scripts/simpan-pilihan-poll.mjs) bereaksi sesudah
+  // progres server diterapkan — detail {ok:true, progres} — atau gagal dimuat
+  // — detail {ok:false}. Tidak dikirim untuk dosen/preview/tamu.
+  function kabarkan(detail) {
+    try { window.dispatchEvent(new CustomEvent('progres-modul:diterapkan', { detail: detail })); } catch (e) {}
+  }
   // Terapkan progres modul ini (akses sudah lolos): centang dan jawaban forum tersimpan.
   function terapkanProgres(p) {
     forumSiap(p);
@@ -382,6 +399,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     // ulang atau kiriman gagal) dikirim sesudah progres diterapkan. Teks yang sama dengan
     // baseline tidak dikirim.
     if (typeof window.checkForumReady === 'function') try { window.checkForumReady(); } catch (e) {}
+    kabarkan({ ok: true, progres: p });
   }
   function muatProgres() {
     if (!mhsAktif()) { bebas = true; centang = muatBebas(); render(); return; }
@@ -398,6 +416,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
       console.warn('[progres-modul] gagal memuat progres:', e && e.message);
       toast('⚠ Gagal memuat progres materi: ' + ((e && e.message) || 'koneksi'));
       forumGagal(e, d);
+      kabarkan({ ok: false });
     });
   }
   // _loadScoredQuestions dipanggil di ketiga jalur login (PIN baru, verifikasi PIN,
