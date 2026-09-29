@@ -300,8 +300,10 @@ const penjagaForum = { acuan: null, acuanDari: null, halaman: 0, sandbox: new Ma
 const PF_AWAL = "<!-- PROGRES-MODUL: awal -->";
 const PF_AKHIR = "<!-- PROGRES-MODUL: akhir -->";
 const RX_PF_SUB = /\n {2}\/\/ PROGRES-MODUL:PENJAGA-FORUM BEGIN (v\d+)[^\n]*\n[\s\S]*?\n {2}\/\/ PROGRES-MODUL:PENJAGA-FORUM END \1\n/g;
-const RX_PF_POLL = /<!-- PILIHAN-POLL-FORUM:BEGIN v\d+[^>]*-->[\s\S]*?<!-- PILIHAN-POLL-FORUM:END v\d+ -->/g;
 let kunciIdentitasModul = 0;
+// Blok PILIHAN-POLL-FORUM (periksaPilihanPoll): pola dan isi unik untuk sandbox.
+const RX_BLOK_POLL = /<!-- PILIHAN-POLL-FORUM:BEGIN v\d+[^>]*-->[\s\S]*?<!-- PILIHAN-POLL-FORUM:END v\d+ -->/g;
+const blokPollUnik = new Map();
 for (const course of courseRoots) {
   for (let modulNo = 1; modulNo <= 14; modulNo += 1) {
     const relative = `${course}/Modul/Modul-${modulNo}.html`;
@@ -365,6 +367,9 @@ for (const course of courseRoots) {
     // LOCAL_IDENTITY halaman (scripts/samakan-kunci-identitas.mjs, 29 September 2026).
     periksaKunciIdentitasModul(modul, relative, course, modulNo);
     kunciIdentitasModul += 1;
+    // Pilihan quick check Forum tersimpan (hanya lewat saveModulPoll) dan
+    // dipulihkan (scripts/simpan-pilihan-poll.mjs v2).
+    periksaPilihanPoll(modul, relative);
   }
 }
 if (penjagaForum.halaman !== 84) throw new Error(`Expected 84 modul pages with PROGRES-MODUL:PENJAGA-FORUM, found ${penjagaForum.halaman}`);
@@ -862,6 +867,318 @@ function ambilBlok(exam, awal, akhir, relative) {
   return exam.slice(i, exam.indexOf("\n", j) + 1);
 }
 /**
+ * Halaman modul: pilihan quick check Forum (scripts/simpan-pilihan-poll.mjs,
+ * 29 September 2026; v2 sesudah tinjauan hari yang sama). Tiap halaman wajib
+ * memuat tepat satu blok PILIHAN-POLL-FORUM tepat sesudah
+ * `<!-- PROGRES-MODUL: akhir -->`, dan PROGRES-MODUL wajib mengirim event
+ * 'progres-modul:diterapkan' (ok:true sebagai pernyataan terakhir
+ * terapkanProgres — sesudah forumSiap(p) PENJAGA-FORUM dan checkForumReady —,
+ * ok:false langsung sesudah forumGagal(e, d) saat getModulProgress gagal;
+ * urutannya juga diuji di sandbox runtime periksaPenjagaForum). saveModulForum (versi lama maupun sekarang) menulis
+ * tiga teks forum kosong bila dipanggil tanpa `jawaban`, dan fungsi backend
+ * diperbarui satu per satu saat deploy atau bisa di-rollback, jadi: pilihan
+ * poll HANYA lewat callable terpisah saveModulPoll (backend tanpa callable itu
+ * menjawab NOT_FOUND tanpa menulis); `pilihanPoll` dan `saveModulPoll` hanya
+ * ada di blok itu, tepat satu panggilan di kirim() tanpa `jawaban`;
+ * saveModulForum hanya dari simpanForum PROGRES-MODUL dengan `d.jawaban = j`
+ * dan tidak disebut sama sekali di luar PROGRES-MODUL (termasuk blok ini);
+ * penanda `bisaPoll` ditetapkan ulang dari setiap respons getModulProgress.
+ * Perilakunya diuji lagi di sandbox (simulasiPilihanPoll). RX_BLOK_POLL dan
+ * blokPollUnik dideklarasikan sebelum perulangan halaman modul.
+ */
+function periksaPilihanPoll(modul, relative) {
+  const saran = "; jalankan node scripts/tambah-progres-modul.mjs lalu node scripts/simpan-pilihan-poll.mjs";
+  const hitungDi = (s, sub) => s.split(sub).length - 1;
+  const blok = modul.match(RX_BLOK_POLL) || [];
+  if (blok.length !== 1) throw new Error(`${relative}: expected exactly one PILIHAN-POLL-FORUM block, found ${blok.length}${saran}`);
+  if (hitungDi(modul, "PILIHAN-POLL-FORUM:BEGIN") !== 1 || hitungDi(modul, "PILIHAN-POLL-FORUM:END") !== 1) {
+    throw new Error(`${relative}: stray PILIHAN-POLL-FORUM marker${saran}`);
+  }
+  if (!/<!-- PROGRES-MODUL: akhir -->\r?\n<!-- PILIHAN-POLL-FORUM:BEGIN v2 /.test(modul)) {
+    throw new Error(`${relative}: PILIHAN-POLL-FORUM v2 must directly follow <!-- PROGRES-MODUL: akhir -->${saran}`);
+  }
+  const pmAwal = modul.indexOf("<!-- PROGRES-MODUL: awal -->"), pmAkhir = modul.indexOf("<!-- PROGRES-MODUL: akhir -->");
+  const pm = modul.slice(pmAwal, pmAkhir);
+  if (hitungDi(pm, "new CustomEvent('progres-modul:diterapkan'") !== 1 || hitungDi(pm, "kabarkan({ ok: true, progres: p });") !== 1 || hitungDi(pm, "kabarkan({ ok: false });") !== 1) {
+    throw new Error(`${relative}: PROGRES-MODUL must dispatch 'progres-modul:diterapkan' (ok:true after terapkanProgres, ok:false when getModulProgress fails)${saran}`);
+  }
+  // Titik kait bersama PENJAGA-FORUM (#968): ok:true pernyataan terakhir terapkanProgres —
+  // sesudah forumSiap(p) (pernyataan pertama, ditagih periksaPenjagaForum), textarea terisi,
+  // dan checkForumReady — sehingga tab Forum sudah terbuka saat pilihan dipulihkan; ok:false
+  // langsung sesudah forumGagal(e, d) di catch getModulProgress.
+  if (!pm.includes("\n    if (typeof window.checkForumReady === 'function') try { window.checkForumReady(); } catch (e) {}\n    kabarkan({ ok: true, progres: p });\n  }\n  function muatProgres() {")
+    || !pm.includes("\n      forumGagal(e, d);\n      kabarkan({ ok: false });\n    });\n")) {
+    throw new Error(`${relative}: PROGRES-MODUL must dispatch ok:true as the last statement of terapkanProgres (after forumSiap and checkForumReady) and ok:false right after forumGagal(e, d)${saran}`);
+  }
+  const isi = blok[0];
+  const luar = modul.replace(isi, "");
+  for (const nama of ["pilihanPoll", "saveModulPoll"]) {
+    if (luar.includes(nama)) throw new Error(`${relative}: ${nama} outside the PILIHAN-POLL-FORUM block`);
+  }
+  const diLuarPm = modul.slice(0, pmAwal) + modul.slice(pmAkhir);
+  if (diLuarPm.includes("saveModulForum")) {
+    throw new Error(`${relative}: saveModulForum referenced outside PROGRES-MODUL (it writes three empty forum answers when called without jawaban; poll choices go through saveModulPoll)`);
+  }
+  if (hitungDi(pm, "saveModulForum") !== 1 || !/\n    d\.jawaban = j;\r?\n    panggil\('saveModulForum', d\)/.test(pm)) {
+    throw new Error(`${relative}: PROGRES-MODUL simpanForum must call saveModulForum only with d.jawaban = j`);
+  }
+  if (hitungDi(isi, "'saveModulPoll'") !== 1) throw new Error(`${relative}: PILIHAN-POLL-FORUM must call saveModulPoll exactly once`);
+  const k0 = isi.indexOf("  function kirim() {");
+  const kirim = k0 < 0 ? "" : isi.slice(k0, isi.indexOf("\n  }\n", k0));
+  if (!/^ {2}function kirim\(\) \{\r?\n {4}if \(!bisaPoll \|\| berhenti \|\| !aktif\(\)\) return;/.test(kirim)
+    || !kirim.includes("panggil('saveModulPoll', { modulId: window.MODUL_ID, nim: String(me.nim), pinHash: pin, pilihanPoll: baru })")
+    || /jawaban/.test(kirim.replace(/\/\/[^\n]*/g, ""))
+    || !/\.catch\(function \(e\) \{[\s\S]*?\n {6}berhenti = true;/.test(kirim)) {
+    throw new Error(`${relative}: PILIHAN-POLL-FORUM must send poll choices only via saveModulPoll (gated by bisaPoll, no jawaban, any error stops the session)`);
+  }
+  if (!isi.includes("      bisaPoll = peta !== null;") || isi.includes("bisaPoll = true") || !isi.includes("      var peta = petaServer(d.progres);\n")) {
+    throw new Error(`${relative}: PILIHAN-POLL-FORUM must re-evaluate bisaPoll from every getModulProgress response (forumPoll present)`);
+  }
+  if (!blokPollUnik.has(isi)) blokPollUnik.set(isi, relative);
+}
+
+/**
+ * Sandbox node:vm untuk blok PILIHAN-POLL-FORUM: DOM tiruan (3 poll × 4 opsi),
+ * voteForum/checkForumReady tiruan halaman, pembungkus PROGRES-MODUL tiruan,
+ * callable tiruan, localStorage yang bisa dibawa ke "muat ulang" berikutnya.
+ * Menagih: backend lama (respons tanpa forumPoll) → nol panggilan; backend
+ * baru → satu saveModulPoll per pilihan, payload tepat, tanpa jawaban, tidak
+ * pernah saveModulForum; klik sebelum respons progres diantre; pemulihan dari
+ * server (server menang) dan localStorage lewat voteForum halaman tanpa memicu
+ * penyimpanan teks forum; unggah pilihan lokal sekali; rilis miring
+ * (getModulProgress baru, saveModulPoll belum ada → NOT_FOUND: berhenti, tidak
+ * ada callable lain, diunggah pada muat berikutnya); rollback di tengah sesi
+ * (respons tanpa forumPoll mematikan panggilan); reset dosen (kunci yang
+ * pernah dikonfirmasi lalu hilang dari server tidak dipulihkan/diunggah);
+ * bentuk localStorage v1; ok:false lalu ok:true; galat PIN; Mode Preview
+ * inert; dosen hanya DOM; tombol Copy Forum: dilepas hanya bila forumSelesai +
+ * teks lengkap + peramban ini belum pernah melihat forum belum selesai.
+ */
+async function simulasiPilihanPoll(isi, relative) {
+  const modul = [...isi.matchAll(/<script type="module">([\s\S]*?)<\/script>/g)];
+  const klasik = [...isi.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+  if (modul.length !== 1 || klasik.length !== 1) throw new Error(`${relative}: PILIHAN-POLL-FORUM must hold one classic and one module script`);
+  const badan = modul[0][1].replace(/^import [^\n]*\n/gm, "");
+  if (/^\s*import\b/m.test(badan)) throw new Error(`${relative}: PILIHAN-POLL-FORUM import not stripped for the sandbox`);
+  const KUNCI_LS = "forum_poll_uji-sandbox_41300000001";
+  const buat = (opsi = {}) => {
+    const log = [], panggilan = [], simpan = opsi.simpan || new Map(), el = {}, pendengar = {};
+    const elemen = (id, tambahan) => (el[id] = Object.assign({ id, dataset: {}, style: {}, textContent: "", value: "", disabled: true,
+      appendChild(c) { this.textContent += c.textContent; } }, tambahan));
+    const polls = [1, 2, 3].map((n) => {
+      const p = elemen("fp" + n);
+      p.opsi = [0, 1, 2, 3].map((k) => ({ style: {}, getAttribute: (a) => (a === "onclick" ? `voteForum(${n},this,${k})` : null) }));
+      p.querySelectorAll = (sel) => (sel === "[onclick]" ? p.opsi : []);
+      return p;
+    });
+    for (const id of ["ans-fq1", "ans-fq2", "ans-fq3"]) elemen(id, { value: opsi.teks || "" });
+    elemen("btn-copy-forum");
+    elemen("forum-blocked-msg", { textContent: "⚠ awal" });
+    const respons = opsi.respons || {};
+    const tolak = (nama) => (typeof opsi.tolak === "string" ? opsi.tolak : (opsi.tolak || {})[nama]);
+    const sb = {
+      __log: log,
+      console: { warn: (...a) => log.push("warn " + a.map(String).join(" ")), log() {} },
+      localStorage: { getItem: (k) => (simpan.has(k) ? simpan.get(k) : null), setItem: (k, v) => simpan.set(k, String(v)) },
+      document: {
+        getElementById: (id) => el[id] || null,
+        querySelectorAll: (sel) => (sel === '.poll-opts[id^="fp"]' ? polls : []),
+        createElement: () => ({ style: {}, textContent: "" }),
+      },
+      addEventListener: (t, f) => { (pendengar[t] = pendengar[t] || []).push(f); },
+      getIdentityLocal: () => (opsi.me === undefined ? { nama: "TES", nim: "41300000001", role: "student" } : opsi.me),
+      MODUL_ID: "uji-sandbox",
+      _sessionPinHash: "ab".repeat(32),
+      _previewMode: !!opsi.preview,
+      FORUM_MIN_WORDS: 30,
+      countWords: (s) => String(s || "").trim().split(/\s+/).filter(Boolean).length,
+      getApp: () => ({}),
+      getFunctions: () => ({}),
+      httpsCallable: (fx, nama) => (data) => {
+        panggilan.push({ nama, data: JSON.parse(JSON.stringify(data)) });
+        if (tolak(nama)) return Promise.reject(Object.assign(new Error("tolak"), { code: tolak(nama) }));
+        return Promise.resolve({ data: typeof respons[nama] === "function" ? respons[nama](data) : (respons[nama] || {}) });
+      },
+    };
+    sb.window = sb;
+    vm.createContext(sb);
+    vm.runInContext(`function voteForum(n, opt, idx) {
+      var p = document.getElementById('fp' + n); if (p.dataset.done) return;
+      p.dataset.done = '1'; opt.style.borderColor = 'x'; __log.push('vote ' + n + ':' + idx);
+      if (typeof checkForumReady === 'function') checkForumReady();
+    }
+    function checkForumReady() { __log.push('cekAsli'); document.getElementById('btn-copy-forum').disabled = true; }`, sb);
+    vm.runInContext(klasik[0][1], sb);
+    // Pembungkus PROGRES-MODUL tiruan: setiap panggilan lewat sini menjadwalkan simpan teks forum.
+    vm.runInContext("(function () { var a = window.checkForumReady; window.checkForumReady = function () { __log.push('simpanTeksDijadwalkan'); return a.apply(this, arguments); }; })();", sb);
+    vm.runInContext(`'use strict';\n${badan}`, sb, { filename: `${relative}#PILIHAN-POLL-FORUM` });
+    const kabar = (detail) => (pendengar["progres-modul:diterapkan"] || []).forEach((f) => f({ detail }));
+    const klik = (n, k) => sb.voteForum(n, polls[n - 1].opsi[k], k);
+    const ls = () => JSON.parse(simpan.get(KUNCI_LS) || "{}");
+    const lokal = () => ls().pilihan || {};
+    const dipilih = () => polls.map((p) => (p.dataset.done ? p.opsi.findIndex((o) => o.style.borderColor === "x") : null));
+    return { sb, log, panggilan, polls, el, simpan, kabar, klik, ls, lokal, dipilih };
+  };
+  const salah = (s, pesan, bukti) => { throw new Error(`${relative}: PILIHAN-POLL-FORUM (${s}) ${pesan}: ${JSON.stringify(bukti).slice(0, 300)}`); };
+  const diam = () => tunggu(0).then(() => tunggu(0));
+  const sama = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const pollSaja = (p) => p.nama === "saveModulPoll" && !Object.prototype.hasOwnProperty.call(p.data, "jawaban")
+    && sama(Object.keys(p.data).sort(), ["modulId", "nim", "pilihanPoll", "pinHash"]);
+  const tanpaCallableTeks = (s, label) => { if (s.panggilan.some((p) => p.nama !== "saveModulPoll")) salah(label, "called a callable other than saveModulPoll", s.panggilan); };
+  // Server tiruan kontrak saveModulPoll: pilihan pertama final, respons = peta akhir.
+  const serverBaru = (awal) => { const peta = Object.assign({}, awal || {}); return { peta, saveModulPoll: (d) => { for (const k of Object.keys(d.pilihanPoll)) if (!(k in peta)) peta[k] = d.pilihanPoll[k]; return { forumPoll: Object.assign({}, peta) }; } }; };
+
+  // 1. Backend lama: respons tanpa forumPoll → tidak ada panggilan sama sekali.
+  {
+    const s = buat();
+    s.kabar({ ok: true, progres: { centang: 1, forum: {}, forumSelesai: false } });
+    s.klik(1, 2); s.klik(2, 0);
+    await diam();
+    if (s.panggilan.length) salah("backend lama", "called a callable", s.panggilan);
+    if (!sama(s.lokal(), { 1: 2, 2: 0 }) || !sama(s.ls().diServer, [])) salah("backend lama", "choices not kept (unconfirmed) in localStorage", s.ls());
+  }
+  // 2. Backend baru: satu saveModulPoll per pilihan, tanpa jawaban; poll terkunci tidak memanggil lagi.
+  {
+    const srv = serverBaru();
+    const s = buat({ respons: { saveModulPoll: srv.saveModulPoll } });
+    s.kabar({ ok: true, progres: { forum: {}, forumSelesai: false, forumPoll: {} } });
+    s.klik(3, 1);
+    await diam();
+    if (s.panggilan.length !== 1 || !pollSaja(s.panggilan[0]) || !sama(s.panggilan[0].data.pilihanPoll, { 3: 1 })) salah("backend baru", "expected one saveModulPoll {3:1}", s.panggilan);
+    if (!sama(s.ls().diServer, ["3"])) salah("backend baru", "server-confirmed key not recorded", s.ls());
+    s.klik(3, 2);
+    await diam();
+    if (s.panggilan.length !== 1) salah("backend baru", "second click on a locked poll called again", s.panggilan);
+    tanpaCallableTeks(s, "backend baru");
+  }
+  // 3. Klik sebelum respons progres → diantre; server menang; unggah sekali; pemulihan tanpa simpan teks.
+  {
+    const srv = serverBaru({ 1: 3 });
+    const s = buat({ respons: { saveModulPoll: srv.saveModulPoll } });
+    s.simpan.set(KUNCI_LS, '{"pilihan":{"1":0,"2":1}}');
+    s.klik(3, 2);
+    await diam();
+    if (s.panggilan.length) salah("klik sebelum progres", "called before getModulProgress answered", s.panggilan);
+    s.log.length = 0;
+    s.kabar({ ok: true, progres: { forum: {}, forumSelesai: false, forumPoll: { 1: 3 } } });
+    await diam();
+    if (!s.log.includes("vote 1:3") || !s.log.includes("vote 2:1")) salah("pulih", "server/localStorage choices not restored through voteForum", s.log);
+    if (s.log.includes("simpanTeksDijadwalkan")) salah("pulih", "restoring polls scheduled a forum text save", s.log);
+    if (!sama(s.lokal(), { 1: 3, 2: 1, 3: 2 })) salah("pulih", "server choice must win in localStorage", s.ls());
+    if (s.panggilan.length !== 1 || !pollSaja(s.panggilan[0]) || !sama(s.panggilan[0].data.pilihanPoll, { 2: 1, 3: 2 })) salah("unggah lokal", "expected one upload of local-only choices", s.panggilan);
+    s.kabar({ ok: true, progres: { forum: {}, forumSelesai: false, forumPoll: { 1: 3, 2: 1, 3: 2 } } });
+    await diam();
+    if (s.panggilan.length !== 1) salah("event ulang", "repeated progress event uploaded again", s.panggilan);
+  }
+  // 4. Rilis miring: getModulProgress sudah memuat forumPoll, saveModulPoll belum ada (NOT_FOUND).
+  {
+    const simpan = new Map();
+    const s = buat({ simpan, tolak: { saveModulPoll: "functions/not-found" } });
+    s.kabar({ ok: true, progres: { forum: {}, forumSelesai: true, forumPoll: {} } });
+    s.klik(1, 1);
+    await diam();
+    s.klik(2, 3);
+    await diam();
+    if (s.panggilan.length !== 1 || s.panggilan[0].nama !== "saveModulPoll") salah("rilis miring", "expected exactly one saveModulPoll attempt, then stop", s.panggilan);
+    if (!sama(s.lokal(), { 1: 1, 2: 3 }) || !sama(s.ls().diServer, [])) salah("rilis miring", "choices must stay unconfirmed in localStorage", s.ls());
+    // Muat berikutnya, saveModulPoll sudah ada: diunggah sekali.
+    const srv = serverBaru();
+    const t = buat({ simpan, respons: { saveModulPoll: srv.saveModulPoll } });
+    t.kabar({ ok: true, progres: { forum: {}, forumSelesai: true, forumPoll: {} } });
+    await diam();
+    if (t.panggilan.length !== 1 || !sama(t.panggilan[0].data.pilihanPoll, { 1: 1, 2: 3 }) || !sama(t.dipilih(), [1, 3, null])) salah("rilis miring, muat ulang", "expected restore + one upload", { p: t.panggilan, d: t.dipilih() });
+    tanpaCallableTeks(t, "rilis miring");
+  }
+  // 5. Rollback di tengah sesi: respons berikutnya tanpa forumPoll mematikan panggilan.
+  {
+    const srv = serverBaru();
+    const s = buat({ respons: { saveModulPoll: srv.saveModulPoll } });
+    s.kabar({ ok: true, progres: { forum: {}, forumSelesai: false, forumPoll: {} } });
+    s.kabar({ ok: true, progres: { forum: {}, forumSelesai: false } });
+    s.klik(1, 0);
+    await diam();
+    if (s.panggilan.length) salah("rollback", "called after a response without forumPoll", s.panggilan);
+    const u = buat({ tolak: "functions/internal" });
+    u.kabar({ ok: true, progres: { forumPoll: {} } });
+    u.klik(1, 0); await diam(); u.klik(2, 0); await diam();
+    if (u.panggilan.length !== 1) salah("galat lain", "kept calling after an error", u.panggilan);
+    const v = buat({ respons: { saveModulPoll: () => ({ ok: true }) } });
+    v.kabar({ ok: true, progres: { forumPoll: {} } });
+    v.klik(1, 0); await diam(); v.klik(2, 0); await diam();
+    if (v.panggilan.length !== 1 || !sama(v.ls().diServer, [])) salah("respons tanpa forumPoll", "must not be treated as saved; stop", { p: v.panggilan, ls: v.ls() });
+  }
+  // 6. Reset dosen: kunci terkonfirmasi yang hilang dari server tidak dipulihkan/diunggah; kunci belum terkonfirmasi tetap diunggah.
+  {
+    const srv = serverBaru();
+    const s = buat({ respons: { saveModulPoll: srv.saveModulPoll } });
+    s.simpan.set(KUNCI_LS, '{"pilihan":{"1":2,"2":1},"diServer":["1"]}');
+    s.kabar({ ok: true, progres: { forum: {}, forumSelesai: false, forumPoll: {} } });
+    await diam();
+    if (!sama(s.dipilih(), [null, 1, null])) salah("reset", "reset key restored or local key lost", s.dipilih());
+    if (s.panggilan.length !== 1 || !sama(s.panggilan[0].data.pilihanPoll, { 2: 1 })) salah("reset", "expected upload of the unconfirmed key only", s.panggilan);
+    if (!sama(s.lokal(), { 2: 1 }) || !sama(s.ls().diServer, ["2"])) salah("reset", "reset key must leave localStorage", s.ls());
+    // Backend lama/gagal: tidak bisa tahu soal reset → pulih dari localStorage apa adanya.
+    const t = buat();
+    t.simpan.set(KUNCI_LS, '{"pilihan":{"1":2},"diServer":["1"]}');
+    t.kabar({ ok: false });
+    await diam();
+    if (!sama(t.dipilih(), [2, null, null]) || t.panggilan.length) salah("progres gagal", "expected restore from localStorage without callables", { d: t.dipilih(), p: t.panggilan });
+  }
+  // 7. Bentuk localStorage v1 {"1":idx}; ok:false lalu ok:true; progres gagal tanpa callable/simpan teks; galat PIN.
+  {
+    const srv = serverBaru();
+    const s = buat({ respons: { saveModulPoll: srv.saveModulPoll } });
+    s.simpan.set(KUNCI_LS, '{"2":3}');
+    s.kabar({ ok: false });
+    await diam();
+    if (!s.log.includes("vote 2:3") || s.panggilan.length || s.log.includes("simpanTeksDijadwalkan")) salah("progres gagal", "expected restore from localStorage without callables/text saves", { log: s.log, p: s.panggilan });
+    s.kabar({ ok: true, progres: { forum: {}, forumSelesai: false, forumPoll: {} } });
+    await diam();
+    if (s.panggilan.length !== 1 || !sama(s.panggilan[0].data.pilihanPoll, { 2: 3 }) || s.log.filter((x) => x === "vote 2:3").length !== 1) salah("ok:false lalu ok:true", "expected one upload, no second restore", { log: s.log, p: s.panggilan });
+    const t = buat({ tolak: "functions/unauthenticated" });
+    t.kabar({ ok: true, progres: { forumPoll: {} } });
+    t.klik(1, 0); await diam(); t.klik(2, 0); await diam();
+    if (t.panggilan.length !== 1) salah("unauthenticated", "kept calling after a PIN error", t.panggilan);
+  }
+  // 8. Mode Preview inert; dosen hanya DOM.
+  {
+    const s = buat({ preview: true });
+    s.kabar({ ok: true, progres: { forumPoll: {} } });
+    s.klik(1, 1);
+    await diam();
+    if (s.polls[0].dataset.done || s.simpan.size || s.panggilan.length) salah("preview", "poll reacted or stored", { done: s.polls[0].dataset.done, ls: [...s.simpan.keys()], p: s.panggilan });
+    const d = buat({ me: { nama: "DOSEN", role: "dosen" } });
+    d.kabar({ ok: true, progres: { forumPoll: {} } });
+    d.klik(1, 1);
+    await diam();
+    if (!d.polls[0].dataset.done || d.simpan.size || d.panggilan.length) salah("dosen", "expected DOM-only behaviour", { done: d.polls[0].dataset.done, ls: [...d.simpan.keys()], p: d.panggilan });
+  }
+  // 9. Tombol Copy Forum: lepas hanya bila forumSelesai + teks lengkap + peramban ini belum pernah melihat forum belum selesai.
+  {
+    const teks = Array.from({ length: 30 }, (_, i) => "k" + i).join(" ");
+    const s = buat({ teks });
+    s.kabar({ ok: true, progres: { forumSelesai: true } });
+    if (s.el["btn-copy-forum"].disabled !== false || !/quick check belum dipilih/.test(s.el["forum-blocked-msg"].textContent)) salah("forumSelesai", "copy button must stay enabled with a soft note", { btn: s.el["btn-copy-forum"].disabled, msg: s.el["forum-blocked-msg"].textContent });
+    s.sb.checkForumReady();
+    if (s.el["btn-copy-forum"].disabled !== false) salah("forumSelesai", "checkForumReady disabled the button again", s.el["btn-copy-forum"].disabled);
+    // Pengiriman pertama di peramban ini: forum belum selesai saat dimuat...
+    const simpan = new Map();
+    const t = buat({ teks, simpan });
+    t.kabar({ ok: true, progres: { forumSelesai: false } });
+    t.sb.checkForumReady();
+    if (t.el["btn-copy-forum"].disabled !== true || t.el["forum-blocked-msg"].textContent !== "⚠ awal") salah("pengiriman pertama", "empty polls must still block the first submission", t.el["forum-blocked-msg"].textContent);
+    if (JSON.parse(simpan.get(KUNCI_LS) || "{}").forumBelumSelesai !== true) salah("pengiriman pertama", "forumBelumSelesai not recorded", [...simpan]);
+    // ...lalu teks tersimpan otomatis (forumSelesai true) dan halaman dimuat ulang: tetap menunggu poll.
+    const u = buat({ teks, simpan });
+    u.kabar({ ok: true, progres: { forumSelesai: true } });
+    u.sb.checkForumReady();
+    if (u.el["btn-copy-forum"].disabled !== true || u.el["forum-blocked-msg"].textContent !== "⚠ awal") salah("muat ulang sesudah simpan otomatis", "empty polls must keep blocking after a reload", { btn: u.el["btn-copy-forum"].disabled, msg: u.el["forum-blocked-msg"].textContent });
+    const w = buat({ teks: "pendek" });
+    w.kabar({ ok: true, progres: { forumSelesai: true } });
+    if (w.el["btn-copy-forum"].disabled !== true) salah("forumSelesai, teks pendek", "word minimum must still apply", w.el["btn-copy-forum"].disabled);
+  }
+}
+/**
  * Halaman modul: blok PILIHAN-PG-PULIH (pemulihan pilihan PG dari
  * data.selections — sejak v3 hanya diisi getJawabanSaya lewat blok
  * JAWABAN-PRIVAT:GABUNG, tanpa field RTDB publik) dan PILIHAN-PG-EKSPOR (teks
@@ -1047,8 +1364,8 @@ function periksaPilihanPg(modul, relative) {
  *     simpanForum sebelum panggilan saveModulForum, dan forumTertahan() di
  *     kunciTab serta pembungkus switchTab (tab Forum terkunci sebelum 'siap');
  *   - saveModulForum dipanggil tepat 1x di PROGRES-MODUL (simpanForum, dengan
- *     jawaban); di luar itu hanya panggilan poll-saja tanpa `jawaban` di blok
- *     PILIHAN-POLL-FORUM;
+ *     jawaban); blok PILIHAN-POLL-FORUM v2 tidak menyebut saveModulForum sama
+ *     sekali (pilihan quick check lewat saveModulPoll);
  *   - sandbox node:vm: (a) sub-blok sendiri — status belum/memuat/ditolak/gagal
  *     menolak kiriman, siap + tiga field kosong menolak, baseline = forum server
  *     (tanpa gema), sesi baru mereset (kecuali PIN baru untuk NIM yang sama
@@ -1135,15 +1452,10 @@ async function periksaPenjagaForum(modul, relative) {
   if (hitungDi(pm, "saveModulForum") !== 1 || hitungDi(simpan, "panggil('saveModulForum', d)") !== 1 || !simpan.includes("\n    d.jawaban = j;\n")) {
     throw new Error(`${relative}: PROGRES-MODUL must call saveModulForum exactly once, from simpanForum with d.jawaban = j${saran}`);
   }
-  let luarPoll = luarPm;
-  for (const poll of luarPm.match(RX_PF_POLL) || []) {
-    luarPoll = luarPoll.replace(poll, "");
-    const kirim = [...poll.matchAll(/panggil\('saveModulForum',\s*(\{[^{}]*\})/g)];
-    if (kirim.length !== hitungDi(poll, "saveModulForum") || kirim.some((k) => /jawaban/.test(k[1]))) {
-      throw new Error(`${relative}: PILIHAN-POLL-FORUM may only make poll-only saveModulForum calls (object literal without jawaban)`);
-    }
-  }
-  if (luarPoll.includes("saveModulForum")) throw new Error(`${relative}: saveModulForum referenced outside PROGRES-MODUL (and PILIHAN-POLL-FORUM); forum text may only be sent by the guarded simpanForum`);
+  // Blok PILIHAN-POLL-FORUM v2 menyimpan pilihan quick check lewat callable terpisah
+  // saveModulPoll, jadi di luar PROGRES-MODUL (termasuk blok poll) saveModulForum tidak
+  // boleh disebut sama sekali: panggilan tanpa jawaban menulis tiga teks kosong di backend lama.
+  if (luarPm.includes("saveModulForum")) throw new Error(`${relative}: saveModulForum referenced outside PROGRES-MODUL (PILIHAN-POLL-FORUM uses saveModulPoll); forum text may only be sent by the guarded simpanForum`);
   // Perilaku (sandbox), sekali per isi PROGRES-MODUL.
   if (!penjagaForum.sandbox.has(pm)) {
     let galat = null;
@@ -1279,7 +1591,7 @@ async function simulasiPenjagaForum(pm, relative) {
   const alir = async () => { for (let i = 0; i < 6; i += 1) await new Promise((r) => setImmediate(r)); };
   const buat = (opsi = {}) => {
     let jam = 0, idT = 0, toastEl = null;
-    const timer = [], panggilan = [], tertunda = [], tabDibuka = [], gagalSimpan = [];
+    const timer = [], panggilan = [], tertunda = [], tabDibuka = [], gagalSimpan = [], kabar = [];
     const kelas = () => { const s = new Set(); return { toggle: (k, v) => ((v === undefined ? !s.has(k) : v) ? s.add(k) : s.delete(k)), add: (...k) => k.forEach((x) => s.add(x)), remove: (...k) => k.forEach((x) => s.delete(x)), contains: (k) => s.has(k) }; };
     const kotak = [0, 1].map(() => {
       const input = { checked: false, disabled: true, ubah: null, addEventListener: (jenis, fn) => { if (jenis === "change") input.ubah = fn; } }, st = { textContent: "" };
@@ -1311,6 +1623,9 @@ async function simulasiPenjagaForum(pm, relative) {
       setTimeout: (fn, ms) => { idT += 1; timer.push({ id: idT, at: jam + (Number(ms) || 0), fn }); return idT; },
       clearTimeout: (id) => { const i = timer.findIndex((t) => t.id === id); if (i >= 0) timer.splice(i, 1); },
       getApp: () => ({}), getFunctions: () => ({}),
+      // Kait 'progres-modul:diterapkan' untuk PILIHAN-POLL-FORUM: keadaan tab Forum dan textarea saat dikirim.
+      CustomEvent: function (jenis, init) { this.type = jenis; this.detail = init && init.detail; },
+      dispatchEvent: (ev) => { kabar.push({ jenis: ev.type, ok: ev.detail && ev.detail.ok, progres: !!(ev.detail && ev.detail.progres), forumTerkunci: el["tab-forum"].classList.contains("pm-terkunci"), fq1: el["ans-fq1"].value }); return true; },
       httpsCallable: (fx, nama) => (data) => {
         panggilan.push({ nama, data: JSON.parse(JSON.stringify(data)), jam });
         if (nama === "saveModulForum") {
@@ -1336,7 +1651,7 @@ async function simulasiPenjagaForum(pm, relative) {
     };
     const ketik = (q, v) => { el["ans-" + q].value = v; win.checkForumReady(); };
     return {
-      win, el, panggilan, majukan, ketik, tabDibuka, gagalSimpan,
+      win, el, panggilan, majukan, ketik, tabDibuka, gagalSimpan, kabar,
       simpan: () => panggilan.filter((p) => p.nama === "saveModulForum"),
       progres: () => panggilan.filter((p) => p.nama === "getModulProgress").length,
       terkunci: (t) => el["tab-" + t].classList.contains("pm-terkunci"),
@@ -1361,8 +1676,12 @@ async function simulasiPenjagaForum(pm, relative) {
     s.ketik("fq1", "draf lokal"); await s.majukan(2000);
     s.ketik("fq1", ""); await s.majukan(2000);
     if (s.simpan().length) gagal(nama, `saveModulForum sent before getModulProgress was applied ${ringkas(s)}`);
+    if (s.kabar.length) gagal(nama, "'progres-modul:diterapkan' dispatched before getModulProgress was applied");
     await s.jawab(LENGKAP);
     await s.majukan(5000);
+    if (s.kabar.length !== 1 || s.kabar[0].jenis !== "progres-modul:diterapkan" || s.kabar[0].ok !== true || !s.kabar[0].progres || s.kabar[0].forumTerkunci || s.kabar[0].fq1 !== SERVER.fq1) {
+      gagal(nama, `exactly one {ok:true, progres} must be dispatched after progress is applied (Forum tab open, textareas restored): ${JSON.stringify(s.kabar)}`);
+    }
     if (["fq1", "fq2", "fq3"].some((q) => s.el["ans-" + q].value !== SERVER[q])) gagal(nama, "forum server harus dipulihkan ke textarea");
     if (s.simpan().length) gagal(nama, `server forum echoed back unchanged ${ringkas(s)}`);
     if (s.terkunci("forum") || !bukaForum(s)) gagal(nama, "the Forum tab must open once progress is applied");
@@ -1389,12 +1708,14 @@ async function simulasiPenjagaForum(pm, relative) {
     const s = buat(), nama = "gagal lalu pulih";
     s.win._loadScoredQuestions();
     await s.tolak("functions/unavailable", "UNAVAILABLE");
+    if (JSON.stringify(s.kabar.map((k) => k.ok)) !== "[false]") gagal(nama, `a failed getModulProgress must dispatch {ok:false} once: ${JSON.stringify(s.kabar)}`);
     s.win.checkForumReady(); await s.majukan(1600);
     if (s.simpan().length || s.progres() !== 1) gagal(nama, `nothing may be sent while progress failed ${ringkas(s)}`);
     await s.majukan(1500);
     if (s.progres() !== 2) gagal(nama, "a transient getModulProgress error must be retried after 3 s");
     await s.jawab(LENGKAP);
     await s.majukan(5000);
+    if (JSON.stringify(s.kabar.map((k) => k.ok)) !== "[false,true]" || s.kabar[1].forumTerkunci) gagal(nama, `the successful retry must dispatch {ok:true} with the Forum tab open: ${JSON.stringify(s.kabar)}`);
     if (s.simpan().length || s.el["ans-fq3"].value !== SERVER.fq3) gagal(nama, `after the retry the server forum must be restored without an echo ${ringkas(s)}`);
     s.ketik("fq3", "teks baru"); await s.majukan(2000);
     if (s.simpan().length !== 1) gagal(nama, "typing after the retry must be sent");
@@ -1528,6 +1849,7 @@ async function simulasiPenjagaForum(pm, relative) {
     s.win._loadScoredQuestions();
     await s.jawab({ centang: 0, total: 2, akses: { boleh: false, prasyarat: PRAS }, forum: SERVER, forumSelesai: true });
     if (!s.el.pmKunci) gagal(nama, "the prerequisite overlay must be shown");
+    if (s.kabar.length) gagal(nama, `denied access must not dispatch 'progres-modul:diterapkan': ${JSON.stringify(s.kabar)}`);
     s.win.checkForumReady(); await s.majukan(3000);
     s.ketik("fq1", "teks"); await s.majukan(60000);
     if (s.simpan().length) gagal(nama, `a locked module sent saveModulForum ${ringkas(s)}`);
@@ -1540,6 +1862,7 @@ async function simulasiPenjagaForum(pm, relative) {
     await s.jawab(LENGKAP);
     await s.majukan(5000);
     if (s.el.pmKunci || s.simpan().length || s.el["ans-fq2"].value !== SERVER.fq2) gagal(nama, `after Periksa lagi the overlay must close and the server forum be restored without an echo ${ringkas(s)}`);
+    if (JSON.stringify(s.kabar.map((k) => k.ok)) !== "[true]") gagal(nama, `Periksa lagi must dispatch {ok:true} once: ${JSON.stringify(s.kabar)}`);
     s.ketik("fq2", SERVER.fq2 + " revisi"); await s.majukan(2000);
     if (s.simpan().length !== 1) gagal(nama, "after Periksa lagi an edit must be sent");
   }
@@ -1582,6 +1905,9 @@ async function ujiMutasiPenjagaForum() {
     ["kiriman gagal tanpa coba ulang", [["if (ulang) { clearTimeout(forumTimer);", "if (false) { clearTimeout(forumTimer);"]]],
     ["saveModulForum kedua tanpa penjaga", [["\n  var forumAsli = window.checkForumReady;\n", "\n  window.__kirimLangsung = function () { panggil('saveModulForum', dasar()); };\n  var forumAsli = window.checkForumReady;\n"]]],
     ["saveModulForum di luar PROGRES-MODUL", [[PF_AKHIR, PF_AKHIR + "\n<script>/* saveModulForum */</script>"]]],
+    ["poll-saja lewat saveModulForum di PILIHAN-POLL-FORUM", [["panggil('saveModulPoll', {", "panggil('saveModulForum', {"]]],
+    ["kait ok:true sebelum tab Forum terbuka dan textarea terisi", [["\n    kabarkan({ ok: true, progres: p });\n", "\n"], ["\n    forumSiap(p);\n    centang =", "\n    forumSiap(p);\n    kabarkan({ ok: true, progres: p });\n    centang ="]]],
+    ["kait ok:false hilang", [["\n      kabarkan({ ok: false });\n", "\n"]]],
     ["tanpa sub-blok", [["  // PROGRES-MODUL:PENJAGA-FORUM BEGIN v1", "  // PROGRES-MODUL:PENJAGA-FORUM-LAMA BEGIN v1"]]],
     ["satu byte sub-blok berbeda", [["'gagal' (galat sementara dicoba ulang 3/10/30 dtk).", "'gagal' (galat sementara dicoba ulang 3/10/30 dtk)!"]], true],
   ];
@@ -2737,6 +3063,8 @@ async function periksaJawabanPrivat(page, relative, jenis) {
     }
   }
 }
+for (const [isi, relative] of blokPollUnik) await simulasiPilihanPoll(isi, relative);
+if (blokPollUnik.size !== 1) throw new Error(`PILIHAN-POLL-FORUM blocks differ across module pages (${blokPollUnik.size} variants); rerun node scripts/simpan-pilihan-poll.mjs`);
 let jawabanPrivat = 0;
 {
   // Sandbox tiap halaman menunggu pewaktu (coba ulang, penguncian, batas

@@ -10987,6 +10987,13 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   function forumTertahan() { return mhsAktif() && statusForum !== 'siap'; }
   function bolehKirimForum(j) { return statusForum === 'siap' && !!(j.fq1.trim() || j.fq2.trim() || j.fq3.trim()); }
   // PROGRES-MODUL:PENJAGA-FORUM END v1
+  // Kait 'progres-modul:diterapkan' (v2, 29 September 2026): blok lain di halaman
+  // (PILIHAN-POLL-FORUM dari scripts/simpan-pilihan-poll.mjs) bereaksi sesudah
+  // progres server diterapkan — detail {ok:true, progres} — atau gagal dimuat
+  // — detail {ok:false}. Tidak dikirim untuk dosen/preview/tamu.
+  function kabarkan(detail) {
+    try { window.dispatchEvent(new CustomEvent('progres-modul:diterapkan', { detail: detail })); } catch (e) {}
+  }
   // Terapkan progres modul ini (akses sudah lolos): centang dan jawaban forum tersimpan.
   function terapkanProgres(p) {
     forumSiap(p);
@@ -11003,6 +11010,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     // ulang atau kiriman gagal) dikirim sesudah progres diterapkan. Teks yang sama dengan
     // baseline tidak dikirim.
     if (typeof window.checkForumReady === 'function') try { window.checkForumReady(); } catch (e) {}
+    kabarkan({ ok: true, progres: p });
   }
   function muatProgres() {
     if (!mhsAktif()) { bebas = true; centang = muatBebas(); render(); return; }
@@ -11019,6 +11027,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
       console.warn('[progres-modul] gagal memuat progres:', e && e.message);
       toast('⚠ Gagal memuat progres materi: ' + ((e && e.message) || 'koneksi'));
       forumGagal(e, d);
+      kabarkan({ ok: false });
     });
   }
   // _loadScoredQuestions dipanggil di ketiga jalur login (PIN baru, verifikasi PIN,
@@ -11068,5 +11077,196 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 })();
 </script>
 <!-- PROGRES-MODUL: akhir -->
+<!-- PILIHAN-POLL-FORUM:BEGIN v2 — dipasang scripts/simpan-pilihan-poll.mjs -->
+<script>
+// Quick check Forum (scripts/simpan-pilihan-poll.mjs): checkForumReady ASLI
+// halaman ditangkap saat parsing, sebelum skrip module membungkusnya, supaya
+// pemulihan pilihan tidak memicu penyimpanan teks forum (PROGRES-MODUL).
+window._pollForumAsli = { cek: window.checkForumReady };
+</script>
+<script type="module">
+import { getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+(function () {
+  var voteDalam = window.voteForum;
+  var cekLuar = window.checkForumReady;
+  var cekAsli = (window._pollForumAsli && typeof window._pollForumAsli.cek === 'function') ? window._pollForumAsli.cek : null;
+  if (typeof voteDalam !== 'function') return;
+  var RX_OPSI = /voteForum\(\s*(\d+)\s*,\s*this\s*,\s*(\d+)\s*\)/;
+  var punya = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+  var fx = null;
+  function panggil(nama, data) {
+    if (!fx) fx = getFunctions(getApp(), 'asia-southeast1');
+    return httpsCallable(fx, nama)(data).then(function (r) { return (r && r.data) || {}; });
+  }
+  function identitas() { try { return typeof getIdentityLocal === 'function' ? getIdentityLocal() : null; } catch (e) { return null; } }
+  // Sama dengan mhsAktif() PROGRES-MODUL: mahasiswa + akun simulasi, bukan preview.
+  function aktif() {
+    var me = identitas();
+    return !!(me && me.role === 'student' && me.nim && window.MODUL_ID && !window._previewMode);
+  }
+  function kunciLokal() { var me = identitas(); return 'forum_poll_' + String(window.MODUL_ID) + '_' + String(me && me.nim); }
+  function sah(k, v) { return /^[1-3]$/.test(k) && typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 9; }
+  function bersihkan(o) {
+    var r = {};
+    if (o && typeof o === 'object' && !Array.isArray(o)) Object.keys(o).forEach(function (k) { if (sah(k, o[k])) r[k] = o[k]; });
+    return r;
+  }
+  // localStorage: {pilihan: {"1": idx}, diServer: ["1"] (dikonfirmasi server),
+  // forumBelumSelesai: true (peramban ini pernah melihat forum belum selesai)}.
+  // Bentuk datar {"1": idx} (v1) dibaca sebagai pilihan yang belum dikonfirmasi.
+  function bacaLokal() {
+    var o = null;
+    try { o = JSON.parse(localStorage.getItem(kunciLokal()) || 'null'); } catch (e) { o = null; }
+    if (!o || typeof o !== 'object' || Array.isArray(o)) o = {};
+    var datar = !punya(o, 'pilihan');
+    var pilihan = bersihkan(datar ? o : o.pilihan);
+    var diServer = (!datar && Array.isArray(o.diServer)) ? o.diServer.filter(function (k, i, a) { return punya(pilihan, k) && a.indexOf(k) === i; }) : [];
+    return { pilihan: pilihan, diServer: diServer, forumBelumSelesai: !datar && o.forumBelumSelesai === true };
+  }
+  function tulisLokal(o) { try { localStorage.setItem(kunciLokal(), JSON.stringify(o)); } catch (e) {} }
+  // Peta forumPoll sah dari respons server, atau null (backend tanpa saveModulPoll).
+  function petaServer(o) {
+    return (o && typeof o === 'object' && punya(o, 'forumPoll') && o.forumPoll && typeof o.forumPoll === 'object' && !Array.isArray(o.forumPoll)) ? bersihkan(o.forumPoll) : null;
+  }
+
+  var bisaPoll = false;            // respons getModulProgress TERAKHIR memuat forumPoll
+  var forumSelesaiServer = false;  // forumSelesai dari respons getModulProgress terakhir
+  var dikonfirmasi = {};           // pilihan yang diketahui tersimpan di server (sesi ini)
+  var memulihkan = false, berhenti = false, kirimJalan = false, kirimLagi = false;
+
+  // Peta forumPoll LENGKAP dari server (getModulProgress / saveModulPoll). Server
+  // menang; kunci yang pernah dikonfirmasi tetapi kini tidak ada = direset dosen.
+  function serap(server) {
+    var l = bacaLokal(), ubah = false;
+    l.diServer = l.diServer.filter(function (k) {
+      if (punya(server, k)) return true;
+      delete l.pilihan[k]; ubah = true; return false;
+    });
+    dikonfirmasi = {};
+    Object.keys(server).forEach(function (k) {
+      dikonfirmasi[k] = server[k];
+      if (l.pilihan[k] !== server[k]) { l.pilihan[k] = server[k]; ubah = true; }
+      if (l.diServer.indexOf(k) < 0) { l.diServer.push(k); ubah = true; }
+    });
+    if (ubah) tulisLokal(l);
+  }
+  // Hanya lewat callable pilihan poll (bukan callable teks forum): backend yang
+  // belum mengenalnya menjawab NOT_FOUND tanpa menulis apa pun.
+  function kirim() {
+    if (!bisaPoll || berhenti || !aktif()) return;
+    if (kirimJalan) { kirimLagi = true; return; }
+    var l = bacaLokal(), baru = {}, ada = false;
+    Object.keys(l.pilihan).forEach(function (k) {
+      if (!punya(dikonfirmasi, k) && l.diServer.indexOf(k) < 0) { baru[k] = l.pilihan[k]; ada = true; }
+    });
+    var me = identitas(), pin = window._sessionPinHash;
+    if (!ada || !pin) return;
+    kirimJalan = true;
+    panggil('saveModulPoll', { modulId: window.MODUL_ID, nim: String(me.nim), pinHash: pin, pilihanPoll: baru }).then(function (r) {
+      var peta = petaServer(r);
+      if (peta) serap(peta);
+      else berhenti = true;   // respons di luar kontrak: jangan dianggap tersimpan
+    }).catch(function (e) {
+      // Tanpa coba ulang di sesi ini: setiap panggilan melewati PIN + penguncian
+      // per NIM, dan backend tanpa saveModulPoll menjawab NOT_FOUND. Pilihan tetap
+      // di localStorage dan diunggah sekali pada muat berikutnya.
+      berhenti = true;
+      console.warn('[poll-forum] gagal menyimpan pilihan quick check:', e && (e.code || e.message));
+    }).finally(function () {
+      kirimJalan = false;
+      if (kirimLagi) { kirimLagi = false; kirim(); }
+    });
+  }
+
+  function cariOpsi(p, n, idx) {
+    var opsi = p.querySelectorAll('[onclick]');
+    for (var i = 0; i < opsi.length; i++) {
+      var m = RX_OPSI.exec(opsi[i].getAttribute('onclick') || '');
+      if (m && m[1] === String(n) && Number(m[2]) === idx) return opsi[i];
+    }
+    return null;
+  }
+  // Tampilan dipulihkan lewat voteForum halaman sendiri (persis seperti klik).
+  function pulihkan(pilihan) {
+    memulihkan = true;
+    try {
+      Object.keys(pilihan).forEach(function (n) {
+        var p = document.getElementById('fp' + n);
+        if (!p || p.dataset.done) return;
+        var opt = cariOpsi(p, n, pilihan[n]);
+        if (opt) voteDalam.call(window, Number(n), opt, pilihan[n]);
+      });
+    } catch (e) { console.warn('[poll-forum] gagal memulihkan pilihan quick check:', e); }
+    finally { memulihkan = false; }
+  }
+
+  // Keputusan dosen: poll kosong tidak mematikan tombol Copy Forum bila forum
+  // sudah lengkap di server SEBELUM peramban ini melihatnya belum selesai
+  // (quick check tidak dinilai); pengiriman pertama tetap menunggu poll.
+  function lunakkan() {
+    if (!forumSelesaiServer || !aktif() || bacaLokal().forumBelumSelesai) return;
+    var sisa = 0;
+    Array.prototype.forEach.call(document.querySelectorAll('.poll-opts[id^="fp"]'), function (p) { if (!p.dataset.done) sisa++; });
+    if (!sisa) return;
+    var minimal = typeof FORUM_MIN_WORDS === 'number' ? FORUM_MIN_WORDS : 30;
+    var hitung = typeof countWords === 'function' ? countWords : function (s) { return String(s || '').trim().split(/\s+/).filter(Boolean).length; };
+    var lengkap = ['ans-fq1', 'ans-fq2', 'ans-fq3'].every(function (id) { var ta = document.getElementById(id); return !!ta && hitung(ta.value) >= minimal; });
+    if (!lengkap) return;
+    var btn = document.getElementById('btn-copy-forum');
+    if (!btn) return;
+    if (typeof window._setBtnState === 'function') window._setBtnState(btn, true);
+    else { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+    var pesan = document.getElementById('forum-blocked-msg');
+    if (pesan) {
+      var catatan = document.createElement('span');
+      catatan.style.color = 'var(--muted, #94a3b8)';
+      catatan.textContent = 'ℹ ' + sisa + ' quick check belum dipilih (tidak dinilai) — forum Anda sudah tersimpan di server, tombol tetap aktif.';
+      pesan.textContent = '';
+      pesan.appendChild(catatan);
+    }
+  }
+
+  window.voteForum = function (n, opt, idx) {
+    if (window._previewMode) return;   // Mode Preview: quick check tidak bereaksi dan tidak disimpan
+    var p = document.getElementById('fp' + n);
+    var sebelum = !!(p && p.dataset.done);
+    var r = voteDalam.apply(this, arguments);
+    var k = String(n), v = Number(idx);
+    if (!memulihkan && !sebelum && p && p.dataset.done && sah(k, v) && aktif()) {
+      var l = bacaLokal();
+      if (l.diServer.indexOf(k) < 0) { l.pilihan[k] = v; tulisLokal(l); }   // server menang atas kunci terkonfirmasi
+      kirim();
+    }
+    return r;
+  };
+  if (typeof cekLuar === 'function') {
+    window.checkForumReady = function () {
+      var r = (memulihkan && cekAsli) ? cekAsli.apply(this, arguments) : cekLuar.apply(this, arguments);
+      try { lunakkan(); } catch (e) { console.warn('[poll-forum]', e); }
+      return r;
+    };
+  }
+
+  window.addEventListener('progres-modul:diterapkan', function (ev) {
+    if (!aktif()) return;
+    var d = (ev && ev.detail) || {};
+    if (d.ok && d.progres && typeof d.progres === 'object') {
+      forumSelesaiServer = d.progres.forumSelesai === true;
+      if (d.progres.forumSelesai === false) {
+        var l = bacaLokal();
+        if (!l.forumBelumSelesai) { l.forumBelumSelesai = true; tulisLokal(l); }
+      }
+      var peta = petaServer(d.progres);
+      bisaPoll = peta !== null;   // ditetapkan ulang setiap respons (rollback functions)
+      if (peta) serap(peta);
+    }
+    pulihkan(bacaLokal().pilihan);
+    kirim();
+    try { lunakkan(); } catch (e) { console.warn('[poll-forum]', e); }
+  });
+})();
+</script>
+<!-- PILIHAN-POLL-FORUM:END v2 -->
 </body>
 </html>
