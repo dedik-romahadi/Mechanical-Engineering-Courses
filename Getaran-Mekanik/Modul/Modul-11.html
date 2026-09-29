@@ -8141,6 +8141,37 @@ function _handleScheduleReady() {
               const existingVisitor = visSnap.exists() ? visSnap.val() : null;
               _pinFlow = { nama: me.nama, nim: me.nim, nowISO: new Date().toISOString(), existingPin, existingVisitor, schedOpen: true };
               if (typeof _showPinInput === 'function') _showPinInput(me.nama);
+            } else {
+              // PIN-KOSONG-LOGIN BEGIN v1 — dipasang scripts/pin-kosong-ke-login.mjs
+              // verifyPin: belum ada PIN global untuk NIM ini dan tidak ada PIN lama untuk
+              // dimigrasi. Tanpa cabang ini halaman tetap "masuk" tanpa hash PIN sesi dan
+              // setiap callable gagal sampai mahasiswa menekan Log Out. Identitas tersimpan
+              // dibuang dan form login mahasiswa tampil lagi; PIN baru dibuat lewat alur
+              // login pertama biasa (submitVisitor → modal konfirmasi PIN). NIM sengaja
+              // TIDAK diisikan: di komputer bersama, identitas basi milik mahasiswa lain
+              // akan mengundang orang berikutnya membuat PIN untuk slot kosong orang itu.
+              // Hanya identitas mahasiswa; galat jaringan/penguncian masuk catch di bawah.
+              const _kini = getIdentity();
+              if ((!me.role || me.role === 'student') && /^\d+$/.test(String(me.nim || ''))
+                  && !window._sessionPinHash && _kini && _kini.nim === me.nim) {
+                try { localStorage.removeItem(LOCAL_IDENTITY); } catch (e) {}
+                try { if (typeof cleanupPresence === 'function') cleanupPresence(); else if (typeof _cleanupPresence === 'function') _cleanupPresence(); } catch (e) {}
+                signOut(_auth).catch(() => {});
+                const _rc = document.getElementById('roleChooserOverlay');
+                if (_rc) _rc.classList.add('hidden');
+                const _vo = document.getElementById('visitorOverlay');
+                if (_vo) _vo.classList.remove('hidden');
+                const _fab = document.getElementById('visitorFab');
+                if (_fab) _fab.style.display = 'none';
+                if (typeof _applyRoleVisibility === 'function') _applyRoleVisibility();
+                const _vPin = document.getElementById('vPin');
+                if (_vPin) _vPin.value = '';
+                const _vNim = document.getElementById('vNim');
+                if (_vNim) { _vNim.value = ''; setTimeout(() => _vNim.focus(), 50); }
+                const _vErr = document.getElementById('vError');
+                if (_vErr) { _vErr.textContent = "⚠ Sesi tersimpan belum punya PIN, jadi Anda perlu masuk lagi. Ketik NIM Anda dan PIN 6 digit baru lalu klik Masuk; PIN itu diminta sekali lagi untuk konfirmasi."; _vErr.style.display = 'block'; }
+              }
+              // PIN-KOSONG-LOGIN END v1
             }
           } catch (e) { console.error('[Auto-login PIN reverify]', e); }
         })();

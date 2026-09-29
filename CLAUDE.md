@@ -165,7 +165,9 @@ repo publik ini.
   klien tidak boleh membaca `pins/` — verifikasi lewat callable `verifyPin`.
   Reset modul/exam tidak menghapus PIN. Reset/ganti PIN **menimpa**
   `pins/mhs_<NIM>`, tidak pernah menghapusnya (slot kosong = login pertama
-  bagi siapa pun yang lebih dulu). Lockout PIN dua keluarga: per NIM (dibagi
+  bagi siapa pun yang lebih dulu). Auto-login yang mendapati slot kosong
+  membuang identitas dan menampilkan form login lagi, tanpa mengisikan NIM
+  (`scripts/pin-kosong-ke-login.mjs`). Lockout PIN dua keluarga: per NIM (dibagi
   `verifyPin`) dan per NIM + sumber (penilaian, soal, unggah,
   `getJawabanSaya`, `generateExportCode`). Rincian: Pedoman §4.3.
 - **Akun simulasi** NIM `41399999901` ("SIMULASI MAHASISWA") — akun uji
