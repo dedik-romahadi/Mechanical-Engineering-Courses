@@ -7011,6 +7011,14 @@ const HEARTBEAT_MS = 20000; // 20s heartbeat
 const ONLINE_THRESHOLD_MS = 45000; // offline if no heartbeat in 45s
 let panelOpen = false;
 let currentSchedule = null;
+// DEKLARASI-CHAT-MODUL:VAR BEGIN v2 — dipasang scripts/deklarasi-chat-modul.mjs
+// Keadaan Chat Kelas & presence milik skrip module ini (strict mode):
+// listener presence/chat dan sendChat menugasinya, jadi tanpa deklarasi
+// di sini halaman melempar ReferenceError (pola Getaran Modul-3).
+let onlineUsers = [];
+let chatMessages = [];
+let _lastSentAt = 0;
+// DEKLARASI-CHAT-MODUL:VAR END v2
 const VISIT_COOLDOWN = 3600000;
 
 function getIdentity(){try{return JSON.parse(localStorage.getItem(LOCAL_IDENTITY));}catch(e){return null;}}
@@ -8723,6 +8731,12 @@ document.getElementById('scheduleDueTime').addEventListener('input',function(){
 document.getElementById('vPin').addEventListener('keydown',function(e){if(e.key==='Enter')submitVisitor();});
 
 window.submitVisitor=submitVisitor;window.togglePanel=togglePanel;
+// DEKLARASI-CHAT-MODUL:EKSPOR BEGIN v2 — dipasang scripts/deklarasi-chat-modul.mjs
+// Handler inline #vpChatInput/#vpChatSend (oninput/onkeydown/onclick)
+// berjalan di cakupan global dan tidak melihat fungsi skrip module; blok
+// AI-CHAT-AGENT membungkus window.sendChat/onChatKey yang harus sudah ada.
+window.sendChat=sendChat; window.onChatInput=onChatInput; window.onChatKey=onChatKey;
+// DEKLARASI-CHAT-MODUL:EKSPOR END v2
 window.showResetModal=showResetModal;window.hideResetModal=hideResetModal;window.confirmReset=confirmReset;
 window.showScheduleModal=showScheduleModal;window.hideScheduleModal=hideScheduleModal;window.saveSchedule=saveSchedule;
 
@@ -9077,6 +9091,16 @@ window.shuffleMCOptions = shuffleMCOptions;
 // 3. Restore state dari Firebase setelah PIN flow + Firebase ready
 if (typeof shuffleMCOptions === 'function') shuffleMCOptions();
 initVisitor();
+// DEKLARASI-CHAT-MODUL:INIT BEGIN v2 — dipasang scripts/deklarasi-chat-modul.mjs
+// Listener chat untuk semua peran, seperti modul lain. Tanpa ini tamu tidak
+// pernah melihat chat, dan dosen yang baru login (jalur itu hanya memanggil
+// initPresence) baru melihatnya sesudah memuat ulang halaman.
+// Presence TIDAK dipasang di sini: auto-login _handleScheduleReady sudah
+// memanggil initPresence untuk identitas tersimpan; timer kedua membuatnya
+// jalan dua kali (pendengar visibilitychange & tulisan heartbeat ganda).
+// Init Chat listener (always — even guests/dosen can see messages)
+initChat();
+// DEKLARASI-CHAT-MODUL:INIT END v2
 setTimeout(window._loadScoredQuestions, 1200);
 // PEDOMAN §18.2 — Safety net: unlock soal interaction setelah 10 detik meskipun Firebase offline/error.
 // Mencegah mahasiswa stuck tidak bisa jawab kalau koneksi lambat atau Firebase down.
