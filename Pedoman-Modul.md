@@ -1274,10 +1274,45 @@ jadwal.
   menampilkan "🔒 <pesan server>" di bawah banner "UAS Telah Berakhir". Dulu
   wadah UTS kedua halaman itu kosong.
 
-Teks pesan server saat ini selalu menyebut "UAS", juga untuk UTS: "Akses UAS
-belum dibuka — tunggu waktu mulai" dan "Batas waktu UAS sudah lewat" (backend
-`getExamQuestions`). Perbaikannya di backend (pesan menurut jenis ujian),
-bukan di halaman.
+**Teks pesan server menyebut jenis ujian halaman itu** (sejak deploy
+fungsi backend 29 September 2026, PR backend #89 — sebelumnya halaman menerima
+teks lama di bawah). Ketiga callable yang
+menggerbang jendela ujian mengambil teksnya dari satu helper backend
+(`_pesanJadwalUjian`, jenis dari `EXAM_CONFIG[examId].jenisUjian`), untuk
+jadwal global maupun override susulan:
+
+| Keadaan jadwal | `getExamQuestions` (wadah soal) | `checkExamAnswer` (kirim jawaban) | `unggahBerkasTugas` (UTS/UAS CAD) |
+|---|---|---|---|
+| sebelum `start` | "Akses UTS belum dibuka — tunggu waktu mulai" | sama | sama |
+| sesudah `end + extension` | "Batas waktu UTS sudah lewat" | "Batas waktu UTS sudah lewat — submit ditolak" | "Batas waktu UTS sudah lewat — unggahan ditolak" |
+| jadwal tidak ada, atau tanpa `start`/`end` | "Jadwal UTS belum dikonfigurasi" | sama | sama |
+
+Di keenam UAS kata "UTS" menjadi "UAS". UTS yang sudah berakhir jadi
+menampilkan "Soal terkunci: Batas waktu UTS sudah lewat" di bawah banner "UTS
+Telah Berakhir". Sebelumnya `getExamQuestions` menulis "UAS" untuk kedua belas
+ujian ("Akses UAS belum dibuka — tunggu waktu mulai", "Batas waktu UAS sudah
+lewat", "Jadwal UAS belum dikonfigurasi"), sedangkan `checkExamAnswer` dan
+unggahan menulis "ujian". Hanya teksnya yang berubah: kode galat tetap
+`failed-precondition` tanpa `details`, dan halaman tidak disentuh. Ke-12
+halaman menampilkan `err.message` apa adanya — di wadah soal sebagai "Soal
+terkunci: …" (UTS) atau "🔒 …" (UAS), dan di umpan balik soal saat mengirim
+jawaban atau mengunggah berkas CAD — dan tidak ada yang mencocokkan teks
+pesan ini (diperiksa dengan `git grep` pada 29 September 2026). Halaman tidak
+perlu membedakan keadaan jadwal: tampilkan `err.message` apa adanya. Ketiga
+keadaan memakai kode yang sama (`failed-precondition`, tanpa `details`), dan
+`checkExamAnswer`/`unggahBerkasTugas` juga memakai kode itu untuk penolakan
+yang bukan jadwal (berkas belum diunggah, angka tidak ada di geometri berkas,
+soal sudah dinilai), jadi kode galat tidak dapat membedakannya. Bila kelak
+perlu dibedakan, tambahkan `details` (mis. `{ reason }`) di backend lewat
+`_pesanJadwalUjian` dan sesuaikan `verify-pesan-jadwal-ujian.js`, yang kini
+menagih `details` tidak ada; jangan mencocokkan teks. Callable dosen `rescaleExamLatePenalty` (halaman
+`Admin/rescale-deadline.html`, "❌ Gagal: …") memakai helper yang sama: "Jadwal
+UTS belum dikonfigurasi" bila node jadwal tidak ada, dan "Jadwal UTS belum
+punya field 'end'" bila jadwal tanpa `end` dan tanpa deadline baru (dulu
+keduanya menulis "ujian"). Penjaganya di backend:
+`scripts/verify-pesan-jadwal-ujian.js` (12 ujian × 4 keadaan jadwal untuk
+ketiga callable mahasiswa dan 12 ujian × 3 keadaan untuk rescale, ikut `npm
+test`, §17.2).
 
 Tinjauan soal dosen (chip "DOSEN · SOAL HANYA-BACA", permintaan tanpa NIM/PIN
 dengan sesi admin, jawaban diblokir) tidak berubah. Mode Preview tanpa
@@ -1704,6 +1739,8 @@ npm.cmd test
 ```
 
 Sejak cabang backend `fix/chat-kenapa-admin-dan-rescale-due` (dan `main` backend sesudah cabang itu digabung), `npm test` antara lain menjalankan `validate-ai-chat.js` (termasuk klasifikasi "kenapa/mengapa" administratif serta "point"/"poin kritis" yang tetap materi, §6.8) dan `verify-rescale-jadwal-modul.js`, yang menjalankan `rescaleModulLatePenalty` dan `rescaleExamLatePenalty` dengan RTDB/Firestore tiruan dan menagih `end` + `due` serta waktu buka yang tetap; penolakan deadline modul satu kelas yang bukan kelipatan 24 jam dari waktu buka, deadline pada/sebelum waktu buka modul atau `start` ujian, dan hitung ulang modul tanpa deadline saat `end` ≠ `due`; serta penilaian ulang attempt susulan terhadap override per-NIM (§5.4, §5.5). Bila repo frontend ada di sebelahnya, ia juga menjalankan modal Atur Jadwal ke-84 halaman modul dan kedua belas halaman ujian apa adanya dan menagih simpan ulang tanpa perubahan sesudah rescale; tanpa repo frontend bagian itu dilewati (SKIP), kecuali dengan `REQUIRE_FRONTEND=1`, yang membuatnya gagal.
+
+Sejak cabang backend `fix/pesan-jadwal-ujian` (dan `main` backend sesudah cabang itu digabung), `npm test` juga menjalankan `verify-pesan-jadwal-ujian.js`: `getExamQuestions` dan `checkExamAnswer` untuk ke-12 examId, serta `unggahBerkasTugas` untuk kedua ujian CAD, masing-masing dengan jadwal belum dibuka, sudah lewat, tidak ada, dan tanpa `start`/`end`, serta `rescaleExamLatePenalty` (sesi dosen tiruan, `dryRun`) untuk ke-12 examId dengan jadwal tidak ada dan tanpa `end` (RTDB/Firestore tiruan). Ia menagih kode `failed-precondition` tanpa `details`, teks persis yang menyebut UTS atau UAS sesuai examId (§7.9), tanpa tulisan ledger, kontrol jendela terbuka, sesi dosen, dan override susulan, serta tidak ada teks jadwal ujian di `index.js` di luar helper `_pesanJadwalUjian`.
 
 Sebelum live seed, gunakan opsi `dry_run_seed` pada workflow atau perintah seed dengan `--dry-run`.
 
