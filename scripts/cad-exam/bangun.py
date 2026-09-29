@@ -8,6 +8,10 @@
 #     python scripts/cad-exam/periksa_exam.py
 #     node scripts/validate-public-security.mjs
 #
+# Draft ujian: jalankan `node scripts/draft-ujian.mjs` PALING AKHIR (sesudah
+# penyuntik lain). Generator ini menulis ulang _draftKey lama sehingga blok
+# DRAFT-UJIAN:KUNCI hilang; blok DRAFT-UJIAN:PENJAGA ikut terwaris dari TTL.
+#
 # ── APA YANG DIUBAH DARI KERANGKA ────────────────────────────────────────────
 # Kerangka TTL adalah ujian 45 soal berbasis Python: 10 benar-salah + 20 pilihan
 # ganda + 15 soal komputasi yang dijalankan di browser lewat Pyodide. Ujian
