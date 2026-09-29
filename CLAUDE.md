@@ -228,6 +228,13 @@ repo publik ini.
 - **Progres materi berurutan** (sejak 22 Agu 2026): kotak centang per bagian,
   tab Tugas/Forum/Hasil terkunci sampai lengkap, login modul *n* ditolak bila
   modul *n*−1 belum lengkap (centang + tugas + forum). Rincian: Pedoman §6.7.
+  Pilihan quick check Forum (tidak dinilai) disimpan ke localStorage dan,
+  bila `getModulProgress` memuat `forumPoll`, ke server `forumPoll` lewat
+  callable terpisah `saveModulPoll` — JANGAN lewat `saveModulForum`, yang
+  menulis tiga teks kosong bila `jawaban` tidak ada, sedangkan fungsi backend
+  diperbarui satu per satu saat deploy/rollback — lalu dipulihkan saat dimuat; dipasang
+  `scripts/simpan-pilihan-poll.mjs` (penanda `PILIHAN-POLL-FORUM`, ada
+  `--periksa`, jalankan sesudah `tambah-progres-modul.mjs`). Pedoman §6.5.
 - **Efek & skrip penyuntik.** Emoji/suara jawaban, efek memuat, friction,
   pengecualian akun simulasi, lapisan overlay login, progres modul, dan
   kunci identitas skrip klasik disuntikkan oleh skrip idempoten di `scripts/`
