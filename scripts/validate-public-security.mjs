@@ -241,14 +241,43 @@ for (const course of courseRoots) {
     ]) {
       if (!exam.includes(required)) throw new Error(`${relative}: lecturer question view missing ${required}`);
     }
-    const lecturerLoader = examName === "UAS.html"
-      ? "await window._ensureUASQuestionsLoaded()"
-      : "window.renderUTSQuestions()";
+    // Tinjauan soal dosen memuat soal lewat loader (getExamQuestions), di UTS
+    // maupun UAS. Dulu UTS cukup memuat teks `window.renderUTSQuestions()`,
+    // yang juga ada di dalam loader, sehingga tuntutan ini tidak menjaga apa pun.
+    const lecturerLoader = `await window._ensure${examName.slice(0, 3)}QuestionsLoaded()`;
     if (!exam.includes(lecturerLoader)) {
       throw new Error(`${relative}: lecturer question loader missing ${lecturerLoader}`);
     }
     if (examName === "UAS.html" && !exam.includes("await _auth.authStateReady()")) {
       throw new Error(`${relative}: lecturer UAS view does not wait for restored admin auth`);
+    }
+    // Flag "soal sudah dirender" hanya sesudah render sukses (29 September 2026,
+    // scripts/muat-soal-uts.mjs, Pedoman §7.9). UTS Math4/Opto dulu merender
+    // langsung lalu memasang flag di jaring aman init dan di auto-login
+    // _handleScheduleReady, sebelum soal diambil: renderer return dini
+    // (window.UTS_TF belum ada) tetapi flag terpasang, sehingga
+    // _ensureUTSQuestionsLoaded — juga dari saveIdentity dan _setSessionPinHash —
+    // tidak pernah memanggil getExamQuestions untuk mahasiswa yang kembali.
+    // Satu-satunya pasangan render→flag yang sah ada di _ensure…QuestionsLoaded,
+    // tepat sesudah bank soal diisi dari respons server. Spasi dan pindah baris
+    // bebas, dengan atau tanpa `window.`, kombinasi UTS/UAS campuran ikut.
+    {
+      const jenis = examName.slice(0, 3);
+      const awalPemuat = `async function _ensure${jenis}QuestionsLoaded() {`;
+      const pemuat = ambilFungsi(exam, awalPemuat, relative);
+      const mulaiPemuat = exam.indexOf(awalPemuat);
+      let diPemuat = 0;
+      for (const m of exam.matchAll(/renderU[TA]SQuestions\s*\(\s*\)\s*;?\s*(?:window\.)?_u[ta]sRenderedFlag\s*=\s*true\b/g)) {
+        if (m.index >= mulaiPemuat && m.index < mulaiPemuat + pemuat.length) {
+          diPemuat += 1;
+          continue;
+        }
+        const baris = exam.slice(0, m.index).split("\n").length;
+        throw new Error(`${relative}:${baris}: rendered flag set right after render${jenis}Questions() outside _ensure${jenis}QuestionsLoaded ("${m[0].replace(/\s+/g, " ")}"); the renderer returns early while the questions are not loaded yet, and the flag then stops _ensure${jenis}QuestionsLoaded (auto-login, saveIdentity, _setSessionPinHash) from ever calling getExamQuestions — set the flag inside the renderer after a successful render and call the loader instead (node scripts/muat-soal-uts.mjs)`);
+      }
+      if (diPemuat !== 1) {
+        throw new Error(`${relative}: _ensure${jenis}QuestionsLoaded must render the questions and set the rendered flag exactly once after loading them, found ${diPemuat}`);
+      }
     }
     if (examName === "UAS.html") {
       for (const required of [

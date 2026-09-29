@@ -2460,6 +2460,14 @@ function renderUTSQuestions() {
   }
 
   _utsRendered = true;
+  // MUAT-SOAL-UTS:FLAG BEGIN v1 — dipasang scripts/muat-soal-uts.mjs
+  // _utsRenderedFlag dipasang HANYA di sini, sesudah kartu soal benar-benar
+  // terender (pola UTS Getaran/Sisken/TTL/CAD). Selama window.UTS_TF belum
+  // diisi getExamQuestions renderer return dini dan flag tetap false, jadi
+  // _ensureUTSQuestionsLoaded masih bisa mengambil soal. Pemanggil di luar
+  // loader itu tidak memasang flag sendiri.
+  window._utsRenderedFlag = true;
+  // MUAT-SOAL-UTS:FLAG END v1
   // Trigger reveal observer for new elements
   if (typeof revealObs !== 'undefined') {
     document.querySelectorAll('.reveal:not(.visible)').forEach(el => revealObs.observe(el));
@@ -6295,15 +6303,18 @@ function _handleScheduleReady() {
         })();
       }
       _applyRoleVisibility();
+      // MUAT-SOAL-UTS:AUTOLOGIN BEGIN v1 — dipasang scripts/muat-soal-uts.mjs
       // Jaring aman: identity & sesi PIN sudah ada dari kunjungan sebelumnya.
+      // Soal diambil dari server (getExamQuestions) lalu dirender DI DALAM
+      // _ensureUTSQuestionsLoaded; flag render hanya terpasang sesudah render
+      // sukses. Renderer sengaja tidak dipanggil langsung di sini: tanpa soal
+      // ia return dini, dan flag yang dulu dipasang sesudahnya menahan loader
+      // (juga dari saveIdentity dan _setSessionPinHash), sehingga mahasiswa
+      // yang kembali tidak pernah mendapat soal.
       if (typeof window._ensureUTSQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
         setTimeout(() => window._ensureUTSQuestionsLoaded(), 100);
       }
-      // UTS: Render questions FIRST sebelum _loadScoredQuestions agar DOM ready
-      if (typeof window.renderUTSQuestions === 'function' && !window._utsRenderedFlag) {
-        try { window.renderUTSQuestions(); window._utsRenderedFlag = true; }
-        catch(e) { console.error('renderUTSQuestions error:', e); }
-      }
+      // MUAT-SOAL-UTS:AUTOLOGIN END v1
       if (!_isDosen && me.role === 'student' && me.nim) {
         try { _initPresence(); } catch(e) { console.warn('[Presence] init failed:', e); }
       }
@@ -8135,23 +8146,24 @@ function shuffleMCOptions() { /* no-op untuk UTS */ }
 window.shuffleMCOptions = shuffleMCOptions;
 
 // ─── Init sequence (urutan penting) ───
-// UTS: render TF/MC/Comp HANYA setelah identity tersedia (untuk param NIM-based).
-// renderUTSQuestions otomatis dipanggil dari saveIdentity() / auto-login flow.
-// Untuk dosen/admin yang langsung masuk tanpa login (jika ada), juga di-render saat
-// _loadScoredQuestions trigger.
+// MUAT-SOAL-UTS:INIT BEGIN v1 — dipasang scripts/muat-soal-uts.mjs
+// UTS: fetch+render soal (server-gated, getExamQuestions) HANYA setelah
+// identity + sesi PIN tersedia — pola UAS. _ensureUTSQuestionsLoaded dipanggil
+// dari saveIdentity(), auto-login _handleScheduleReady, dan _setSessionPinHash()
+// (PIN dimasukkan ulang di tab baru); dosen lewat _activateDosenQuestionView.
 initVisitor();
-// Safety: jika ada returning user dengan identity sudah cached, render segera.
+// Safety: returning user dengan identity tersimpan — coba muat segera (no-op
+// bila sesi PIN belum ada; dicoba lagi oleh _setSessionPinHash). Flag render
+// tidak dipasang di sini: renderer memasangnya sendiri sesudah render sukses.
 if (typeof getIdentity === 'function') {
   const _me = getIdentity();
   if (_me && _me.role === 'dosen' && typeof window._activateDosenQuestionView === 'function') {
     setTimeout(() => window._activateDosenQuestionView(), 100);
-  } else if (_me && _me.nim && typeof renderUTSQuestions === 'function' && !window._utsRenderedFlag) {
-    setTimeout(() => {
-      try { renderUTSQuestions(); window._utsRenderedFlag = true; }
-      catch(e) { console.error('renderUTSQuestions early error:', e); }
-    }, 100);
+  } else if (_me && _me.nim && typeof window._ensureUTSQuestionsLoaded === 'function' && !window._utsRenderedFlag) {
+    setTimeout(() => window._ensureUTSQuestionsLoaded(), 100);
   }
 }
+// MUAT-SOAL-UTS:INIT END v1
 setTimeout(window._loadScoredQuestions, 1200);
 // PEDOMAN §18.2 — Safety net: unlock soal interaction setelah 10 detik meskipun Firebase offline/error.
 // Mencegah mahasiswa stuck tidak bisa jawab kalau koneksi lambat atau Firebase down.
