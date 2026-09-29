@@ -4,13 +4,18 @@
 #     python scripts/cad-exam/bangun.py uts      -> Pemodelan-Computer-Aided-Design/Exam/UTS.html
 #     python scripts/cad-exam/bangun.py uas      -> Pemodelan-Computer-Aided-Design/Exam/UAS.html
 #
-# Sesudahnya jalankan penyuntik wajib repo (lihat Pedoman-Modul.md), lalu:
+# Sesudahnya jalankan penyuntik wajib repo (lihat Pedoman-Modul.md) — minimal
+# `node scripts/jawaban-privat.mjs`, karena blok JAWABAN-PRIVAT:ANGKA-CAD (angka
+# bacaan yang dinilai setelah muat ulang) tidak ada di kerangka TTL, dan
+# `node scripts/draft-ujian.mjs` PALING AKHIR (lihat Draft ujian di bawah) — lalu:
 #     python scripts/cad-exam/periksa_exam.py
 #     node scripts/validate-public-security.mjs
 #
 # Draft ujian: jalankan `node scripts/draft-ujian.mjs` PALING AKHIR (sesudah
-# penyuntik lain). Generator ini menulis ulang _draftKey lama sehingga blok
-# DRAFT-UJIAN:KUNCI hilang; blok DRAFT-UJIAN:PENJAGA ikut terwaris dari TTL.
+# penyuntik lain, termasuk jawaban-privat.mjs). Generator ini menulis ulang
+# _draftKey lama sehingga blok DRAFT-UJIAN:KUNCI hilang; blok
+# DRAFT-UJIAN:PENJAGA ikut terwaris dari TTL. Kolom angka yang sudah dinilai
+# (diisi dan dikunci blok ANGKA-CAD) tidak diisi draft.
 #
 # ── APA YANG DIUBAH DARI KERANGKA ────────────────────────────────────────────
 # Kerangka TTL adalah ujian 45 soal berbasis Python: 10 benar-salah + 20 pilihan
@@ -977,9 +982,12 @@ d.potong("""  // ── Restore code Komputasi dari Firebase codes/ ──
       }
     });
   }
-""", "  // ── Restore user selections (TF/MC) jika tersimpan ──", """  // ── Pulihkan ringkasan berkas tugas dari ledger server (codes/) ──
-  // Server membekukan ringkasan berkas .FCStd + angka bacaan ke field codes/
-  // saat tugas dinilai, jadi status kartu tetap terbaca setelah muat ulang.
+""", "  // ── Restore user selections (TF/MC) jika tersimpan ──", """  // ── Pulihkan ringkasan berkas tugas dari ledger server (data.codes) ──
+  // Ringkasan berkas .FCStd yang sudah dinilai (nama, ukuran, SHA-256, waktu
+  // unggah; TANPA angka bacaan) datang dari ledger lewat getJawabanSaya dan
+  // digabung ke data.codes (blok JAWABAN-PRIVAT:GABUNG); field codes/ record
+  // RTDB publik tidak ditulis lagi. Angka bacaannya kembali lewat data.angka
+  // (blok JAWABAN-PRIVAT:ANGKA-CAD di akhir fungsi ini).
   if (data.codes && typeof data.codes === 'object') {
     Object.keys(data.codes).forEach(qId => {
       const st = document.getElementById('berkas-status-' + qId);

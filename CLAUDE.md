@@ -283,7 +283,12 @@ repo publik ini.
   sana: jawaban sendiri dipulihkan HANYA lewat callable `getJawabanSaya`
   (ledger Firestore; NIM + hash PIN sesi, ditunggu `_loadScoredQuestions`
   ≤ 2,5 detik, hasil terlambat tetap diterapkan) dan digabung ke `data`
-  sebelum kode pemulihan lama; `scoreDelta` ledger menang atas RTDB. Record
+  sebelum kode pemulihan lama; `scoreDelta` ledger menang atas RTDB hanya
+  bila status entri itu cocok dengan marker RTDB segar soalnya (JEMBATAN v4:
+  `qId`/`_comp` = correct, `_comp_partial` = partial, `_mc_used`/`_tf_used`/
+  `_comp_used`/`_comp_ulang` = wrong; tidak cocok → entri itu tidak dipakai
+  sama sekali, soal tanpa marker tetap dari ledger), supaya hasil terlambat
+  yang dibaca sebelum kiriman ulang CAD tidak menurunkan skor. Record
   RTDB baru dibaca SESUDAH penantian itu, dan snapshot yang tidak memuat
   marker benar yang sudah diketahui halaman (`window._answeredQ`) dibaca
   ulang lalu dilewati (TUNGGU v2) — jangan kembalikan `Promise.all([get(…),
@@ -301,8 +306,16 @@ repo publik ini.
   snapshot record (juga tidak ada cadangan `freshRec`). Dipasang
   `scripts/jawaban-privat.mjs` (96 halaman, penanda `JAWABAN-PRIVAT`, ada
   `--periksa`); `PILIHAN-PG-PULIH` v3 membaca `mcOrderVersion` ledger; kait
-  berkas CAD belum dinilai (`_tandaiBerkasDiServer`) milik generator CAD.
-  Jangan menambah pembaca `data.selections`/`data.codes` di luar jalur itu,
+  berkas CAD belum dinilai (`_tandaiBerkasDiServer`) milik generator CAD,
+  dan ringkasan berkas belum dinilai tidak dipakai untuk soal yang sudah
+  bermarker atau sudah dikirim di sesi itu (`compAnswered`, JEMBATAN v5);
+  angka bacaan tugas CAD yang sudah dinilai (field `angka` → `data.angka`,
+  status ledger-nya → `data.angkaStatus`, JEMBATAN v3) dipasang blok
+  `JAWABAN-PRIVAT:ANGKA-CAD` di 16 halaman CAD (tugas final terkunci berisi
+  angka ledger — di modul hanya bila status ledger `correct`, supaya hasil
+  terlambat yang lebih tua daripada marker tidak menimpa kiriman ulang;
+  kartu kirim ulang diisi bila kolomnya kosong; ekspor "Angka bacaan: X").
+  Jangan menambah pembaca `data.selections`/`data.codes`/`data.angka`/`data.angkaStatus` di luar jalur itu,
   dan jangan mengembalikan `set()` seluruh record. Rincian: Pedoman §6.3,
   §7.6, §9.1.
 - **Label navbar UTS/UAS** = label modul course-nya (`TENAGALISTRIK // UTS`,

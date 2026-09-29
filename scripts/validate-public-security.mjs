@@ -2879,6 +2879,19 @@ if (deklarasiChat !== 96 || chatModul !== 84) throw new Error(`Expected 96 modul
 // sesudah penantian getJawabanSaya; snapshot yang lebih tua daripada marker
 // benar yang sudah diketahui halaman dibaca ulang lalu dilewati) punya sandbox
 // dan uji mutasi sendiri (periksaTungguPemulihan, ujiMutasiTunggu).
+// Sejak JEMBATAN v3 (angka bacaan
+// FreeCAD, 29 September 2026): `angka` respons hanya tergabung ke data.angka di
+// halaman bertugas berkas (entri comp, number berhingga, qId cN) beserta status
+// ledger-nya ke data.angkaStatus, `angka`/`angkaStatus` record publik selalu
+// dibuang, dan 16 halaman CAD memuat blok ANGKA-CAD
+// (letak + sandbox, lihat periksaAngkaCad); halaman lain tidak boleh memuatnya.
+// Sejak JEMBATAN v4 (29 September 2026): entri respons yang statusnya tidak
+// cocok dengan marker RTDB segar soal itu tidak dipakai sama sekali (poin dari
+// scoreDeltas RTDB) — lihat periksaGabungMarker. Sejak JEMBATAN v5 (hari yang
+// sama): ringkasan berkas belum dinilai untuk soal yang sudah bermarker atau
+// sudah dikirim di sesi ini (compAnswered) tidak masuk codes dan tidak memicu
+// _tandaiBerkasDiServer — juga di periksaGabungMarker; halaman CAD wajib
+// mendeklarasikan compAnswered di tingkat atas skrip klasik supaya terjangkau.
 const FIELD_JAWABAN = ["selections", "codes", "scoreDeltas", "pinHash", "pinSetAt"];
 const HASH_UJI = "a".repeat(64);   // hash rekaan untuk uji, bukan PIN siapa pun
 const HASH_UJI_2 = "c".repeat(64);   // hash rekaan kedua (PIN baru), bukan PIN siapa pun
@@ -2972,6 +2985,237 @@ function sandboxJembatan(jembatan, jenis, opsi = {}) {
   vm.createContext(ctx);
   vm.runInContext(jembatan, ctx);
   return { win, ctx, panggilan, peringatan, tandai, mintaPin };
+}
+
+/**
+ * JEMBATAN v4 — ledger basi vs marker RTDB segar (temuan 29 September 2026,
+ * sejak #963/JEMBATAN v2): hasil getJawabanSaya yang datang sesudah batas
+ * tunggu bisa membawa ledger yang dibaca SEBELUM mahasiswa mengirim ulang tugas
+ * CAD dengan benar di sesi yang sama; pemulihan ulang membaca marker `cN_comp`
+ * dan scoreDeltas baru dari RTDB, tetapi scoreDelta 0 ledger dulu menang →
+ * compScores[cN] = 0, panel skor turun sampai muat ulang. Kini entri respons
+ * dipakai hanya bila statusnya cocok dengan marker soal itu (pemetaan
+ * _statusDariMarker backend: qId atau qId_comp = correct, qId_comp_partial =
+ * partial, _mc_used/_tf_used/_comp_used/_comp_ulang = wrong); tidak cocok (juga
+ * entri tanpa status) → pilihan, mcOrderVersion, kode, angka, angkaStatus, dan
+ * scoreDelta entri itu tidak dipakai (scoreDeltas RTDB). Soal tanpa marker
+ * (termasuk marker berakhiran tak dikenal) dan entri yang cocok tetap dari
+ * ledger (ledger menang atas RTDB, mis. sesudah rescale). Diuji langsung,
+ * lewat hasil terlambat (modul: pemulihan diulang lalu digabung ke record
+ * segar; ujian: digabung ke _cachedFirebaseData), dan dua kali (idempoten).
+ * Urutan pemeriksaan: poin dulu, supaya galat pada jembatan lama menunjuk
+ * akar masalahnya.
+ * JEMBATAN v5 (tinjauan v4, 29 September 2026): ringkasan berkas yang belum
+ * dinilai (`berkas` respons; backend hanya mengirimnya untuk soal tanpa entri
+ * ledger saat dibaca) basi bila soal itu sudah dinilai sesudahnya. Hasil
+ * terlambat yang dibaca sebelum mahasiswa mengunggah berkas baru lalu mengirim
+ * tugas CAD di sesi yang sama dulu menimpa kartu berkas-status tugas yang baru
+ * dinilai dengan ringkasan berkas lama (sejak #963). Kini ringkasan itu tidak
+ * masuk codes dan tidak memicu _tandaiBerkasDiServer bila soalnya bermarker
+ * (akhiran yang dikenal; c10_comp, c13_comp_ulang) atau kartunya sudah dikirim
+ * di sesi ini (compAnswered[qId] truthy; c15 tanpa marker — cache ujian
+ * membawa marker saat muat, dan kiriman modul bisa masih menunggu server);
+ * tanpa marker dan belum dikirim (c9, juga compAnswered false) atau berakhiran
+ * tak dikenal (c14) tetap dipakai dan ditandai.
+ */
+async function periksaGabungMarker(jembatan, relative, jenis) {
+  const modul = jenis === "Modul";
+  const respons = { jawaban: {
+    // Tidak cocok dengan marker segar → tidak dipakai.
+    c2: { tipe: "comp", kode: "📎 salah-c2.FCStd", angka: 13, status: "wrong", scoreDelta: 0 },       // marker c2_comp (kiriman ulang benar)
+    c11: { tipe: "comp", kode: "📎 c11.FCStd", angka: 1, status: "wrong", scoreDelta: 0 },            // marker c11_comp_partial
+    ch1: { tipe: "comp", kode: "print('ch1')", status: "correct", scoreDelta: 4 },                   // marker ch1_comp_partial
+    c3: { tipe: "comp", kode: "📎 c3.FCStd", angka: 12, status: "correct", scoreDelta: 6 },           // marker c3_comp_ulang
+    c4: { tipe: "comp", kode: "print('c4')", status: "partial", scoreDelta: 0.5 },                   // marker c4_comp_used
+    c7: { tipe: "comp", kode: "📎 c7.FCStd", angka: 5, scoreDelta: 2 },                              // tanpa status, marker c7_comp
+    mc1: { tipe: "mc", pilihan: "B", mcOrderVersion: 1, status: "wrong", scoreDelta: 0 },            // marker mc1
+    mc2: { tipe: "mc", pilihan: "C", mcOrderVersion: 0, status: "correct", scoreDelta: 1 },          // marker mc2_mc_used
+    tf1: { tipe: "tf", pilihan: true, status: "correct", scoreDelta: 1 },                            // marker tf1_tf_used
+    tf2: { tipe: "tf", pilihan: false, status: "wrong", scoreDelta: 0 },                             // marker tf2
+    // Cocok → dari ledger (scoreDelta ledger menang atas RTDB).
+    c1: { tipe: "comp", kode: "📎 benar-c1.FCStd", angka: 3200.5, status: "correct", scoreDelta: 3.9 },
+    c5: { tipe: "comp", kode: "📎 c5.FCStd", angka: 7, status: "wrong", scoreDelta: 0 },             // c5_comp_ulang
+    c12: { tipe: "comp", kode: "📎 c12.FCStd", angka: 2, status: "partial", scoreDelta: 3 },         // c12_comp_partial
+    ce1: { tipe: "comp", kode: "print('ce1')", status: "wrong", scoreDelta: 0 },                     // ce1_comp_used
+    mc3: { tipe: "mc", pilihan: "A", mcOrderVersion: 1, status: "correct", scoreDelta: 1 },
+    mc4: { tipe: "mc", pilihan: 2, status: "wrong", scoreDelta: 0 },                                 // mc4_mc_used (indeks PG ujian)
+    tf3: { tipe: "tf", pilihan: false, status: "wrong", scoreDelta: 0 },
+    tf4: { tipe: "tf", pilihan: true, status: "correct", scoreDelta: 1 },
+    // Tanpa marker (belum tercatat, di-reset dosen, akhiran tak dikenal) → dari ledger.
+    c6: { tipe: "comp", kode: "📎 c6.FCStd", angka: 9, status: "correct", scoreDelta: 6 },
+    c8: { tipe: "comp", kode: "📎 c8.FCStd", angka: 4, status: "wrong", scoreDelta: 0 },             // marker c8_comp_x
+    mc5: { tipe: "mc", pilihan: "D", mcOrderVersion: 0, status: "wrong", scoreDelta: 0 },
+  }, berkas: {
+    c9: "📎 belum-c9.FCStd",           // tanpa marker, belum dikirim → dipakai + ditandai
+    c10: "📎 lama-c10.FCStd",          // marker c10_comp (dinilai sesudah respons dibaca) → dibuang
+    c13: "📎 lama-c13.FCStd",          // marker c13_comp_ulang (kiriman salah, dibuka lagi) → dibuang
+    c14: "📎 belum-c14.FCStd",         // marker c14_comp_x (akhiran tak dikenal = tanpa marker) → dipakai
+    c15: "📎 lama-c15.FCStd",          // tanpa marker, tetapi compAnswered.c15 (dikirim di sesi ini) → dibuang
+  } };
+  // Kartu yang sudah dikirim di sesi ini (variabel global halaman, penjaga kait
+  // _tandaiBerkasDiServer generator CAD); c9 false = belum/gagal dikirim.
+  const dikirim = { c15: true, c9: false };
+  const segar = () => ({
+    scoredQuestions: "c2_comp,c11_comp_partial,ch1_comp_partial,c3_comp_ulang,c4_comp_used,c7_comp,mc1,mc2_mc_used,tf1_tf_used,tf2,"
+      + "c1_comp,c5_comp_ulang,c12_comp_partial,ce1_comp_used,mc3,mc4_mc_used,tf3_tf_used,tf4,c8_comp_x,c10_comp,c13_comp_ulang,c14_comp_x",
+    scoreDeltas: { c2: 6, c11: 5.5, ch1: 2, c3: 0, c4: 0, c7: 6, mc1: 1, mc2: 0, tf1: 0, tf2: 1, c1: 6, c5: 0, c12: 5.5, ce1: 0, mc3: 1, mc4: 0, tf3: 0, tf4: 1, c10: 6, c13: 0 },
+    selections: { c2: 12, mc1: "A" }, codes: { c2: "📎 tanaman.FCStd" }, angka: { c2: 12 }, angkaStatus: { c2: "correct" },
+  });
+  const urut = (o) => (o && typeof o === "object" ? Object.fromEntries(Object.keys(o).sort().map((k) => [k, o[k]])) : o);
+  const harapUntuk = (cad) => ({
+    scoreDeltas: { c2: 6, c11: 5.5, ch1: 2, c3: 0, c4: 0, c7: 6, mc1: 1, mc2: 0, tf1: 0, tf2: 1, c1: 3.9, c5: 0, c12: 3, ce1: 0, mc3: 1, mc4: 0, tf3: 0, tf4: 1, c6: 6, c8: 0, mc5: 0, c10: 6, c13: 0 },
+    selections: { mc3: "A", mc4: 2, tf3: false, tf4: true, mc5: "D" },
+    mcOrderVersion: { mc3: 1, mc5: 0 },
+    codes: { ...(cad ? { c9: "📎 belum-c9.FCStd", c14: "📎 belum-c14.FCStd" } : {}), c1: "📎 benar-c1.FCStd", c5: "📎 c5.FCStd", c12: "📎 c12.FCStd", ce1: "print('ce1')", c6: "📎 c6.FCStd", c8: "📎 c8.FCStd" },
+    angka: cad ? { c1: 3200.5, c5: 7, c12: 2, c6: 9, c8: 4 } : undefined,
+    angkaStatus: cad ? { c1: "correct", c5: "wrong", c12: "partial", c6: "correct", c8: "wrong" } : undefined,
+  });
+  const cek = (label, data, cad) => {
+    const harap = harapUntuk(cad);
+    for (const f of ["scoreDeltas", "selections", "mcOrderVersion", "codes", "angka", "angkaStatus"]) {
+      const x = JSON.stringify(urut(data[f])), y = JSON.stringify(urut(harap[f]));
+      if (x !== y) {
+        throw new Error(`${relative}: ledger basi vs marker segar (${label}${cad ? ", halaman berkas" : ""}): ${f} = ${x}, harap ${y} — entri getJawabanSaya yang statusnya tidak cocok dengan marker RTDB soal itu (qId/qId_comp = correct, _comp_partial = partial, _mc_used/_tf_used/_comp_used/_comp_ulang = wrong) tidak boleh dipakai; soal tanpa marker dan entri yang cocok tetap dari ledger; jalankan node scripts/jawaban-privat.mjs`);
+      }
+    }
+    if (data.scoredQuestions !== segar().scoredQuestions) throw new Error(`${relative}: ledger basi vs marker segar (${label}): marker record diubah`);
+  };
+  const cekTandai = (label, tandai, cad) => {
+    const x = JSON.stringify([...new Set(tandai)].sort()), y = JSON.stringify(cad ? ["c14", "c9"] : []);
+    if (x !== y) {
+      throw new Error(`${relative}: berkas belum dinilai yang basi (${label}${cad ? ", halaman berkas" : ""}): _tandaiBerkasDiServer dipanggil untuk ${x}, harap ${y} — ringkasan berkas untuk soal yang sudah bermarker (akhiran yang dikenal) atau sudah dikirim di sesi ini (compAnswered) tidak boleh dipakai; jalankan node scripts/jawaban-privat.mjs`);
+    }
+  };
+  for (const cad of [false, true]) {
+    // Langsung (respons sudah ada saat _loadScoredQuestions), dua kali.
+    const s = sandboxJembatan(jembatan, jenis, { cad, respons });
+    s.ctx.compAnswered = { ...dikirim };
+    await s.win._muatJawabanSaya(500);
+    const data = segar();
+    s.win._gabungJawabanSaya(data);
+    cek("langsung", salinJson(data), cad);
+    cekTandai("langsung", s.tandai, cad);
+    s.win._gabungJawabanSaya(data);
+    cek("digabung dua kali", salinJson(data), cad);
+    cekTandai("digabung dua kali", s.tandai, cad);
+    // Hasil terlambat: modul mengulang pemulihan (record RTDB dibaca lagi, sudah
+    // bermarker kiriman ulang) memakai cache respons; ujian menggabungkannya ke
+    // _cachedFirebaseData lalu memulihkan ulang dari cache.
+    const t = sandboxJembatan(jembatan, jenis, { cad, respons, tundaMs: 120 });
+    t.ctx.compAnswered = { ...dikirim };
+    const cache = segar();
+    t.win._cache = cache;
+    if ((await t.win._muatJawabanSaya(20)) !== null) throw new Error(`${relative}: ledger basi vs marker segar: batas tunggu tidak berlaku`);
+    await sampai(() => t.win._ulang >= 1);
+    if (t.win._ulang !== 1) throw new Error(`${relative}: ledger basi vs marker segar: hasil terlambat diterapkan ${t.win._ulang}x, harap 1x`);
+    if (modul) cek("hasil terlambat, pemulihan diulang", salinJson(t.win._gabungJawabanSaya(segar())), cad);
+    else cek("hasil terlambat, _cachedFirebaseData", salinJson(cache), cad);
+    cekTandai("hasil terlambat", t.tandai, cad);
+  }
+}
+
+/**
+ * Blok JAWABAN-PRIVAT:ANGKA-CAD (hanya 16 halaman bertugas berkas CAD): angka
+ * bacaan FreeCAD yang sudah dinilai (data.angka, dari JEMBATAN v3) kembali ke
+ * kolom nilai-<qId> sesudah muat ulang. Diperiksa letaknya (modul: tepat
+ * sesudah `_markLoaded();` pemulihan — jadi sesudah _loadDraft — di
+ * _loadScoredQuestions yang sama dengan GABUNG; ujian: tepat sebelum
+ * `updateScore();` penutup _apply<UTS|UAS>VisualState), bahwa ekspor
+ * (_ringkasTugasCad) membaca kolom itu, lalu blok halaman dijalankan di
+ * sandbox node:vm bersama _parseNilai halaman: tugas final diisi angka ledger
+ * (ketikan bernilai sama dipertahankan) dan dikunci dengan bingkai sesuai
+ * status — di modul hanya bila status ledger-nya (data.angkaStatus) juga
+ * 'correct': respons yang lebih tua daripada marker `_comp` (hasil terlambat
+ * sesudah kiriman ulang benar di sesi yang sama) tidak menimpa kolom; tugas
+ * modul yang dibuka lagi diisi hanya bila kolomnya kosong (ketikan yang ada
+ * dipertahankan; draft kartu CAD belum pernah terpulihkan, Pedoman §6.3),
+ * tanpa dikunci, tombol disegarkan; tanpa marker, tanpa
+ * kolom, nilai bukan number berhingga, qId bukan cN, atau tanpa data.angka
+ * (backend lama) → tidak ada yang berubah; `data` tidak diubah; idempoten.
+ */
+function periksaAngkaCad(page, relative, jenis) {
+  const saran = "; jalankan node scripts/jawaban-privat.mjs";
+  const modul = jenis === "Modul";
+  for (const ujung of ["BEGIN v1", "END v1"]) {
+    const k = page.split(`// JAWABAN-PRIVAT:ANGKA-CAD ${ujung}`).length - 1;
+    if (k !== 1) throw new Error(`${relative}: penanda JAWABAN-PRIVAT:ANGKA-CAD ${ujung} muncul ${k}x, harusnya 1${saran}`);
+  }
+  const blok = ambilBlok(page, `${modul ? "    " : "  "}// JAWABAN-PRIVAT:ANGKA-CAD BEGIN v1`, "// JAWABAN-PRIVAT:ANGKA-CAD END v1", relative);
+  const a = page.indexOf(blok);
+  if (modul) {
+    const sebelum = "    updateScore();\n    _markLoaded();   // PEDOMAN §18.2 — mark ready + trigger checkExport/checkForum/_loadDraft\n";
+    if (!page.includes(sebelum + blok + "  }).catch(() => { _markLoaded(); });\n")) {
+      throw new Error(`${relative}: blok ANGKA-CAD modul harus tepat sesudah \`_markLoaded();\` pemulihan (sesudah _loadDraft) dan sebelum \`}).catch(() => { _markLoaded(); });\`${saran}`);
+    }
+    const g = page.indexOf("// JAWABAN-PRIVAT:GABUNG END"), d = page.lastIndexOf("window._loadScoredQuestions = function", g);
+    if (g < 0 || d < 0 || a < g || page.slice(d, a).includes("\n};\n")) throw new Error(`${relative}: blok ANGKA-CAD harus di _loadScoredQuestions yang sama, sesudah GABUNG${saran}`);
+  } else {
+    if (!page.includes(blok + `  updateScore();\n}\nwindow._apply${jenis}VisualState = _apply${jenis}VisualState;\n`)) {
+      throw new Error(`${relative}: blok ANGKA-CAD ujian harus tepat sebelum \`updateScore();\` penutup _apply${jenis}VisualState${saran}`);
+    }
+    const f = [...page.slice(0, a).matchAll(/\n(?:async )?function (\w+)\(/g)].pop();
+    if (!f || f[1] !== `_apply${jenis}VisualState` || page.slice(f.index, a).includes("\n}\n")) throw new Error(`${relative}: blok ANGKA-CAD ujian harus di dalam _apply${jenis}VisualState(data)${saran}`);
+  }
+  if (page.split(String.raw`  if (inp && inp.value) teks += (teks ? '\n' : '') + 'Angka bacaan: ' + inp.value;` + "\n").length !== 2) {
+    throw new Error(`${relative}: _ringkasTugasCad (ekspor) harus menulis "Angka bacaan: " dari kolom nilai-<qId> tepat sekali; jalankan generator CAD`);
+  }
+  const parse = /\nfunction _parseNilai\(v\) \{\n[\s\S]*?\n\}\n/.exec(page);
+  if (!parse) throw new Error(`${relative}: function _parseNilai(v) tidak ditemukan`);
+
+  const jalankan = (data, { answered = {}, markers = [], kirimUlang = {}, isi = {} }, kali = 1) => {
+    const kolom = {};
+    for (const [q, v] of Object.entries(isi)) kolom[`nilai-${q}`] = { id: `nilai-${q}`, value: v, disabled: false, style: {} };
+    const kunci = [], segar = [], warn = [];
+    const ctx = vm.createContext({
+      data, document: { getElementById: (id) => kolom[id] || null },
+      compAnswered: { ...answered }, _answeredQ: new Set(markers), _refreshTugasBtn: (q) => segar.push(q),
+      window: { _kunciTugasCad: (q) => { kunci.push(q); if (kolom[`nilai-${q}`]) kolom[`nilai-${q}`].disabled = true; }, _cadSudahKirim: { ...kirimUlang } },
+      console: { warn: (...x) => warn.push(x.map(String).join(" ")) },
+    });
+    vm.runInContext(parse[0], ctx);
+    const sebelum = JSON.stringify(data);
+    for (let i = 0; i < kali; i += 1) vm.runInContext(`(function (data) {\n${blok}\n})(data);`, ctx);
+    if (JSON.stringify(data) !== sebelum) throw new Error(`${relative}: blok ANGKA-CAD mengubah data`);
+    if (warn.length) throw new Error(`${relative}: blok ANGKA-CAD melempar: ${warn.join(" | ")}`);
+    const hasil = Object.fromEntries(Object.entries(kolom).map(([id, el]) => [id.slice(6), `${el.disabled ? "D" : "E"}:${el.value}:${el.style.borderColor || "-"}`]).sort());
+    return { hasil, kunci: [...new Set(kunci)].sort(), segar: [...new Set(segar)].sort() };
+  };
+  const cek = (nama, r, harap) => {
+    const x = JSON.stringify(r), y = JSON.stringify({ hasil: Object.fromEntries(Object.entries(harap.hasil).sort()), kunci: harap.kunci.slice().sort(), segar: harap.segar.slice().sort() });
+    if (x !== y) throw new Error(`${relative}: ANGKA-CAD (${nama}) = ${x}, harap ${y}`);
+  };
+  const hijau = "rgba(0,224,158,.5)", kuning = "rgba(251,191,36,.3)", merah = "rgba(239,68,68,.25)";
+  const salah = { c8: "12", c9: null, c10: NaN, c12: Infinity, mc1: 7, ce1: 4 };
+  // Modul c11: marker `_comp` dari kiriman ulang benar (12) di sesi ini, tetapi
+  // respons getJawabanSaya dibaca sebelum kiriman itu (status 'wrong', angka 13)
+  // dan baru diterapkan sesudahnya: kolom tidak boleh ditimpa.
+  const keadaan = modul
+    ? { answered: { c1: true, c4: true, c5: true, c8: true, c9: true, c10: true, c11: true, c12: true, mc1: true, ce1: true }, markers: ["c1_comp", "c2_comp_ulang", "c3_comp_ulang", "c4_comp", "c5_comp", "c11_comp"],
+      kirimUlang: { c2: true, c3: true }, isi: { c1: "", c2: "", c3: "14", c4: "3200,5", c5: "9999", c6: "", c8: "", c9: "", c10: "", c11: "12", c12: "", mc1: "", ce1: "" } }
+    : { answered: { c1: true, c2: true, c11: true, c4: true, c5: true, c8: true, c9: true, c10: true, c12: true, mc1: true, ce1: true }, markers: ["c1_comp", "c2_comp_used", "c11_comp_partial", "c4_comp", "c5_comp"],
+      kirimUlang: { c3: true }, isi: { c1: "", c2: "", c3: "", c11: "", c4: "9", c5: "3200,5", c8: "", c9: "", c10: "", c12: "", mc1: "", ce1: "" } };
+  const angka = modul ? { c1: 3200.5, c2: 13, c3: 12, c4: 3200.5, c5: 7, c6: 1, c7: 2, c11: 13, ...salah } : { c1: 3200.5, c2: 13, c3: 12, c11: -1500, c4: 7, c5: 3200.5, c7: 2, ...salah };
+  const statusSalah = Object.fromEntries(Object.keys(salah).map((q) => [q, "correct"]));
+  const angkaStatus = modul
+    ? { c1: "correct", c2: "wrong", c3: "wrong", c4: "correct", c5: "correct", c6: "wrong", c7: "correct", c11: "wrong", ...statusSalah }
+    : { c1: "correct", c2: "wrong", c3: "wrong", c11: "partial", c4: "correct", c5: "correct", c7: "correct", ...statusSalah };
+  const kosong = Object.fromEntries(Object.entries(keadaan.isi).map(([q, v]) => [q, `E:${v}:-`]));
+  const harap = modul
+    ? { hasil: { ...kosong, c1: `D:3200.5:${hijau}`, c2: "E:13:-", c4: `D:3200,5:${hijau}`, c5: `D:7:${hijau}` }, kunci: ["c1", "c4", "c5"], segar: ["c2"] }
+    : { hasil: { ...kosong, c1: `D:3200.5:${hijau}`, c2: `D:13:${merah}`, c11: `D:-1500:${kuning}`, c4: `D:7:${hijau}`, c5: `D:3200,5:${hijau}` }, kunci: ["c1", "c11", "c2", "c4", "c5"], segar: [] };
+  cek("angka dari ledger", jalankan({ scoredQuestions: "x", angka, angkaStatus }, keadaan), harap);
+  cek("diterapkan dua kali (pemulihan ulang)", jalankan({ angka, angkaStatus }, keadaan, 2), harap);
+  // Modul: tugas final hanya diisi/dikunci bila status ledger 'correct' (respons
+  // lebih tua daripada marker `_comp`, atau JEMBATAN tanpa angkaStatus → kolom
+  // tidak disentuh); kartu kirim ulang tetap diisi. Ujian satu kesempatan: status
+  // tidak dipakai, bingkai mengikuti marker.
+  const basi = Object.fromEntries(Object.entries(angkaStatus).map(([q, v]) => [q, v === "correct" ? "wrong" : v]));
+  const tanpaStatusFinal = modul ? { hasil: { ...kosong, c2: "E:13:-" }, kunci: [], segar: ["c2"] } : harap;
+  cek("respons lebih tua daripada marker (status ledger bukan correct)", jalankan({ angka, angkaStatus: basi }, keadaan), tanpaStatusFinal);
+  cek("tanpa data.angkaStatus", jalankan({ angka }, keadaan), tanpaStatusFinal);
+  for (const [nama, data] of [["tanpa data.angka (backend lama)", { scoredQuestions: "c1_comp", codes: { c1: "📎 x" } }], ["data.angka bukan objek", { angka: "3200.5", angkaStatus }], ["data.angka null", { angka: null, angkaStatus }]]) {
+    cek(nama, jalankan(data, keadaan), { hasil: kosong, kunci: [], segar: [] });
+  }
 }
 
 /**
@@ -3165,7 +3409,7 @@ async function sandboxTunggu(blokTunggu) {
 async function periksaJawabanPrivat(page, relative, jenis) {
   const saran = "; jalankan node scripts/jawaban-privat.mjs";
   const modul = jenis === "Modul";
-  const versi = { JEMBATAN: "v2", IDENTITAS: "v2", TUNGGU: "v2", GABUNG: "v2", ...(modul ? { "HURUF-ASAL": "v1" } : {}) };
+  const versi = { JEMBATAN: "v5", IDENTITAS: "v2", TUNGGU: "v2", GABUNG: "v2", ...(modul ? { "HURUF-ASAL": "v1" } : {}) };
   for (const [n, v] of Object.entries(versi)) {
     for (const ujung of [`BEGIN ${v}`, `END ${v}`]) {
       const k = page.split(`// JAWABAN-PRIVAT:${n} ${ujung}`).length - 1;
@@ -3190,7 +3434,7 @@ async function periksaJawabanPrivat(page, relative, jenis) {
     const m = /const _JAWABAN_SAYA_TUNGGU_MS = (\d+);/.exec(jembatan);
     if (!m || Number(m[1]) > 2500) throw new Error(`${relative}: batas tunggu getJawabanSaya di _loadScoredQuestions harus ≤ 2500 ms (ditemukan ${m ? m[1] : "-"})${saran}`);
   }
-  if (!new RegExp(`// JAWABAN-PRIVAT:${modul ? "HURUF-ASAL END v1" : "JEMBATAN END v2"}\\nconst _generateExportCodeCallable = httpsCallable\\(_functions, 'generateExportCode'\\);\\n`).test(page)) {
+  if (!new RegExp(`// JAWABAN-PRIVAT:${modul ? "HURUF-ASAL END v1" : "JEMBATAN END v5"}\\nconst _generateExportCodeCallable = httpsCallable\\(_functions, 'generateExportCode'\\);\\n`).test(page)) {
     throw new Error(`${relative}: blok JEMBATAN${modul ? " + HURUF-ASAL" : ""} harus tepat sebelum \`const _generateExportCodeCallable = …\` (jangkar generator CAD)${saran}`);
   }
   // Record RTDB dibaca sesudah penantian getJawabanSaya; snapshot yang lebih tua
@@ -3238,6 +3482,18 @@ async function periksaJawabanPrivat(page, relative, jenis) {
     ]) {
       if (page.split(teks).length !== 2) throw new Error(`${relative}: ${nama} berkas CAD belum dinilai (berkasDiServer/_tandaiBerkasDiServer) tidak ditemukan tepat sekali; jalankan generator CAD (bangun-modul-1.py / cad-exam/bangun.py)`);
     }
+    // JEMBATAN v5 (skrip module) membaca compAnswered untuk menyaring ringkasan
+    // berkas belum dinilai dari hasil terlambat; nama itu hanya terjangkau dari
+    // skrip module bila dideklarasikan di tingkat atas skrip klasik.
+    const dekl = "\nlet compAnswered = {}, compScores = {};\n";
+    const iDekl = page.indexOf(dekl);
+    const tagDekl = iDekl < 0 ? null : [...page.slice(0, iDekl).matchAll(/<script\b[^>]*>/g)].pop();
+    if (page.split(dekl).length !== 2 || !tagDekl || /\btype\s*=\s*["']?module/.test(tagDekl[0]) || page.lastIndexOf("</script>", iDekl) > tagDekl.index) {
+      throw new Error(`${relative}: \`let compAnswered = {}, compScores = {};\` harus tepat sekali di tingkat atas skrip klasik (bukan module) — JEMBATAN v5 membacanya untuk menyaring ringkasan berkas belum dinilai; jalankan generator CAD`);
+    }
+    periksaAngkaCad(page, relative, jenis);
+  } else if (/JAWABAN-PRIVAT:ANGKA-CAD (?:BEGIN|END)/.test(page)) {
+    throw new Error(`${relative}: blok JAWABAN-PRIVAT:ANGKA-CAD hanya untuk halaman bertugas berkas CAD${saran}`);
   }
 
   // ── Identitas localStorage tanpa field jawaban ──
@@ -3333,7 +3589,7 @@ async function periksaJawabanPrivat(page, relative, jenis) {
   }
 
   // ── Sandbox: jembatan getJawabanSaya ──
-  const rekaman = () => ({ timestamp: "2026-09-20T01:00:00Z", scoredQuestions: "mc1,mc2_mc_used,mc3,tf1,c1_comp,c2_comp_used", selections: { mc9: "A" }, codes: { c9: "kode lama" }, mcOrderVersion: { mc9: 1 }, scoreDeltas: { mc1: 1, c1: 1.3 } });
+  const rekaman = () => ({ timestamp: "2026-09-20T01:00:00Z", scoredQuestions: "mc1,mc2_mc_used,mc3,tf1_tf_used,c1_comp,c2_comp_used", selections: { mc9: "A" }, codes: { c9: "kode lama" }, mcOrderVersion: { mc9: 1 }, scoreDeltas: { mc1: 1, c1: 1.3 } });
   const tanpaPublik = () => { const { selections, codes, mcOrderVersion, ...r } = rekaman(); return r; };
   const cekTanpaPublik = (data, label) => {
     if (JSON.stringify(salinJson(data)) !== JSON.stringify(tanpaPublik())) throw new Error(`${relative}: ${label}: selections/codes publik tidak dibuang atau data lain berubah (${JSON.stringify(data)})`);
@@ -3351,7 +3607,7 @@ async function periksaJawabanPrivat(page, relative, jenis) {
       if (s.panggilan.length !== 1 || JSON.stringify(s.panggilan[0]) !== harapPayload) throw new Error(`${relative}: getJawabanSaya dipanggil ${JSON.stringify(s.panggilan)}, harap sekali dengan ${harapPayload}`);
       const data = salinJson(s.win._gabungJawabanSaya(rekaman()));
       const harap = {
-        timestamp: "2026-09-20T01:00:00Z", scoredQuestions: "mc1,mc2_mc_used,mc3,tf1,c1_comp,c2_comp_used",
+        timestamp: "2026-09-20T01:00:00Z", scoredQuestions: "mc1,mc2_mc_used,mc3,tf1_tf_used,c1_comp,c2_comp_used",
         scoreDeltas: { mc1: 1, c1: 2, mc2: 0, mc3: 1, tf1: 0, c2: 0, c3: 6 },
         selections: { mc1: "B", mc2: "D", mc3: 2, tf1: false },
         codes: cad ? { c4: RESPONS_UJI.berkas.c4, c1: "print(42)", c3: "📎 dinilai.FCStd · 1.0 KB" } : { c1: "print(42)", c3: "📎 dinilai.FCStd · 1.0 KB" },
@@ -3360,6 +3616,36 @@ async function periksaJawabanPrivat(page, relative, jenis) {
       if (JSON.stringify(data) !== JSON.stringify(harap)) throw new Error(`${relative}: gabungan getJawabanSaya${cad ? " (halaman berkas)" : ""} = ${JSON.stringify(data)}, harap ${JSON.stringify(harap)}`);
       if (/KUNCI-RAHASIA|PENJELASAN-RAHASIA|3\.14159|\.\.\//.test(JSON.stringify(data))) throw new Error(`${relative}: field di luar daftar putih ikut tergabung`);
       if (JSON.stringify(s.tandai) !== JSON.stringify(cad ? ["c4"] : [])) throw new Error(`${relative}: kait _tandaiBerkasDiServer dipanggil untuk ${JSON.stringify(s.tandai)}, harap ${cad ? '["c4"]' : "tidak sama sekali"}`);
+    }
+    // Angka bacaan CAD yang dinilai (JEMBATAN v3): hanya entri comp dengan
+    // number berhingga dan qId cN, hanya di halaman bertugas berkas; `angka`
+    // di record publik selalu dibuang (juga bila callable gagal). RESPONS_UJI
+    // di atas tanpa `angka` (backend lama) = hasil yang sama dengan v2.
+    for (const cad of [false, true]) {
+      const respons = { jawaban: {
+        c3: { tipe: "comp", kode: "📎 dinilai.FCStd · 1.0 KB", angka: 3200.5, status: "correct", scoreDelta: 6 },
+        c4: { tipe: "comp", angka: -0.25, status: "wrong", scoreDelta: 0 },
+        c5: { tipe: "comp", angka: "12", status: "wrong", scoreDelta: 0 },
+        c6: { tipe: "comp", angka: null, status: "wrong", scoreDelta: 0 },
+        ch1: { tipe: "comp", angka: 5, status: "correct", scoreDelta: 4 },
+        mc4: { tipe: "mc", pilihan: "A", mcOrderVersion: 0, angka: 7, status: "correct", scoreDelta: 1 },
+      }, berkas: {} };
+      const s = sandboxJembatan(jembatan, jenis, { cad, respons });
+      await s.win._muatJawabanSaya(500);
+      const data = salinJson(s.win._gabungJawabanSaya({ scoredQuestions: "c3_comp,c4_comp_ulang", angka: { c9: 1, c3: 1 }, angkaStatus: { c9: "correct", c4: "correct" } }));
+      if (cad ? JSON.stringify(data.angka) !== JSON.stringify({ c3: 3200.5, c4: -0.25 }) : "angka" in data) {
+        throw new Error(`${relative}: angka bacaan getJawabanSaya${cad ? " (halaman berkas)" : ""} tergabung sebagai ${JSON.stringify(data.angka)}, harap ${cad ? '{"c3":3200.5,"c4":-0.25}' : "tidak ada (course lain mengabaikan angka)"}`);
+      }
+      // Status ledger hanya untuk angka yang tergabung (blok ANGKA-CAD modul
+      // mencocokkannya dengan marker); angkaStatus record publik dibuang.
+      if (cad ? JSON.stringify(data.angkaStatus) !== JSON.stringify({ c3: "correct", c4: "wrong" }) : "angkaStatus" in data) {
+        throw new Error(`${relative}: status angka bacaan tergabung sebagai ${JSON.stringify(data.angkaStatus)}, harap ${cad ? '{"c3":"correct","c4":"wrong"}' : "tidak ada"}`);
+      }
+      if (JSON.stringify(data.codes) !== JSON.stringify({ c3: "📎 dinilai.FCStd · 1.0 KB" })) throw new Error(`${relative}: respons berangka mengubah codes (${JSON.stringify(data.codes)})`);
+      const g = sandboxJembatan(jembatan, jenis, { cad, gagal: true });
+      await g.win._muatJawabanSaya(500);
+      const gagal = g.win._gabungJawabanSaya({ scoredQuestions: "c3_comp", angka: { c3: 1 }, angkaStatus: { c3: "correct" } });
+      if ("angka" in gagal || "angkaStatus" in gagal) throw new Error(`${relative}: angka/angkaStatus di record publik dipakai saat callable gagal`);
     }
     // scoreDelta 0 pada jawaban benar tanpa nilai RTDB (entri cadangan): poin
     // tak diketahui → cadangan halaman; dengan nilai RTDB → ledger 0 menang
@@ -3372,6 +3658,9 @@ async function periksaJawabanPrivat(page, relative, jenis) {
       const d = salinJson(s.win._gabungJawabanSaya({ scoredQuestions: "mc5,c7_comp,c8_comp_used", scoreDeltas: { c7: 2 } })).scoreDeltas;
       if (JSON.stringify(d) !== JSON.stringify({ c7: 0, c8: 0 })) throw new Error(`${relative}: scoreDelta 0 ledger/cadangan: ${JSON.stringify(d)}, harap {"c7":0,"c8":0}`);
     }
+    // Ledger basi vs marker RTDB segar (JEMBATAN v4, hasil terlambat sesudah
+    // kiriman ulang CAD): lihat periksaGabungMarker.
+    await periksaGabungMarker(jembatan, relative, jenis);
     // Belum ter-deploy (not-found) / tanpa jembatan: tanpa galat, field publik
     // dibuang (tidak ada cadangan publik), kegagalan di-cache, tanpa coba ulang.
     for (const [nama, opsi] of [["belum ter-deploy", { gagal: true }], ["tidak ada", { tanpaCallable: true }]]) {
@@ -3486,6 +3775,17 @@ async function periksaJawabanPrivat(page, relative, jenis) {
       if (!modul && (cache.selections.mc1 !== "B" || cache.codes.c1 !== "print(42)")) throw new Error(`${relative}: hasil terlambat tidak digabung ke _cachedFirebaseData`);
       if (modul && Object.keys(cache.selections).length) throw new Error(`${relative}: modul tidak memakai cache ujian`);
     }
+    // Ujian bertugas berkas: angka dari hasil yang terlambat ikut digabung ke
+    // cache yang dipakai pemulihan ulang (_reapply…StateFromCache).
+    if (!modul) {
+      const s = sandboxJembatan(jembatan, jenis, { cad: true, tundaMs: 120, respons: { jawaban: { c1: { tipe: "comp", kode: "📎 a.FCStd", angka: 3200.5, status: "correct", scoreDelta: 2 } }, berkas: {} } });
+      const cache = rekaman(); s.win._cache = cache;
+      await s.win._muatJawabanSaya(20);
+      await sampai(() => s.win._ulang >= 1);
+      if (JSON.stringify(cache.angka) !== JSON.stringify({ c1: 3200.5 }) || JSON.stringify(cache.angkaStatus) !== JSON.stringify({ c1: "correct" })) {
+        throw new Error(`${relative}: angka dari hasil getJawabanSaya yang terlambat tidak digabung ke _cachedFirebaseData (${JSON.stringify({ angka: cache.angka, angkaStatus: cache.angkaStatus })})`);
+      }
+    }
   }
 
   // ── Sandbox (modul): pemulihan PG terpadu JEMBATAN + HURUF-ASAL + GABUNG + PULIH ──
@@ -3549,10 +3849,11 @@ async function periksaJawabanPrivat(page, relative, jenis) {
       }
     }
   }
+  return page.includes("window._ringkasTugasCad = function");
 }
 for (const [isi, relative] of blokPollUnik) await simulasiPilihanPoll(isi, relative);
 if (blokPollUnik.size !== 1) throw new Error(`PILIHAN-POLL-FORUM blocks differ across module pages (${blokPollUnik.size} variants); rerun node scripts/simpan-pilihan-poll.mjs`);
-let jawabanPrivat = 0;
+let jawabanPrivat = 0, angkaCad = 0;
 {
   // Sandbox tiap halaman menunggu pewaktu (coba ulang, penguncian, batas
   // tunggu); 8 halaman sekaligus supaya validator tetap cepat tanpa membuat
@@ -3562,13 +3863,14 @@ let jawabanPrivat = 0;
     for (let relative = antrean.shift(); relative !== undefined; relative = antrean.shift()) {
       const page = fs.readFileSync(path.join(root, relative), "utf8");
       const jenis = /[\\/]Exam[\\/]UTS\.html$/.test(relative) ? "UTS" : /[\\/]Exam[\\/]UAS\.html$/.test(relative) ? "UAS" : "Modul";
-      await periksaJawabanPrivat(page, relative, jenis);
+      if (await periksaJawabanPrivat(page, relative, jenis)) angkaCad += 1;
       jawabanPrivat += 1;
     }
   };
   await Promise.all(Array.from({ length: 8 }, pekerja));
 }
 if (jawabanPrivat !== 96) throw new Error(`Expected 96 modul/exam pages restoring answers through getJawabanSaya, found ${jawabanPrivat}`);
+if (angkaCad !== 16) throw new Error(`Expected 16 Pemodelan CAD pages restoring graded FreeCAD readings (JAWABAN-PRIVAT:ANGKA-CAD), found ${angkaCad}`);
 if (tungguSandbox.size !== 1) throw new Error(`Expected one JAWABAN-PRIVAT:TUNGGU block shared by the 96 pages, found ${tungguSandbox.size} variants`);
 await ujiMutasiTunggu();
 
