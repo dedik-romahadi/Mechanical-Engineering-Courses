@@ -2299,6 +2299,313 @@ for (const course of courseRoots) {
 }
 if (examNav !== 12) throw new Error(`Expected 12 UTS/UAS pages with the course navbar label, found ${examNav}`);
 
+// Draft UTS/UAS (scripts/draft-ujian.mjs, 29 September 2026). _draftKey ke-12
+// halaman ujian dulu membaca LOCAL_IDENTITY/MODULE_ID — const skrip module yang
+// tidak terlihat dari skrip klasik — sehingga selalu null: draft kode, tautan
+// Drive, dan angka bacaan CAD tidak pernah tersimpan maupun dipulihkan. Soal
+// datang dari getExamQuestions sesudah PIN, jadi draft yang dimuat sebelum kartu
+// ada tidak punya tempat, dan simpanan sebelum kartu ada menulis kode kosong di
+// atas draft. PENJAGA v2: data Firebase harus sudah dimuat UNTUK kunci draft itu
+// (_markLoaded saat identitas + sesi PIN ada) — pemuatan tanpa sesi PIN (tab
+// baru sebelum PIN, form login sesudah Keluar) tidak dihitung, supaya draft lama
+// tidak menutupi kode ledger soal yang sudah dinilai — dan kolom terkunci tidak
+// diisi draft. Pemeriksaan: struktur (prasyarat injector termasuk _markLoaded dan
+// daftar pemanggil _loadDraft, blok KUNCI/PENJAGA byte-sama dengan templat,
+// PENJAGA tepat sebelum skrip module, EXAM_ID sesuai path dan unik) + perilaku
+// di node:vm memakai _saveDraft/_loadDraft ASLI tiap halaman dan _markLoaded
+// persis bentuk halaman (DOM tiruan) + uji mutasi (tiap mutasi wajib diterapkan
+// DAN ditolak; mutasi yang jangkarnya hilang menggagalkan validator).
+const draftUjian = await import(new URL("./draft-ujian.mjs", import.meta.url));
+const EXAM_ID_KURSUS = {
+  "Engineering-Mathematics": "math4", "Getaran-Mekanik": "getaran-mekanik", "Optimalisasi-dan-Automasi": "optoauto",
+  "Sistem-Kendali-Cerdas": "sisken", "Teknik-Tenaga-Listrik": "teknik-tenaga-listrik", "Pemodelan-Computer-Aided-Design": "pemodelan-cad",
+};
+const DRAFT_NIM_UJI = "41300000187";      // rekaan: bukan akun simulasi, bukan NIM nyata
+const DRAFT_HASH_UJI = "d".repeat(64);    // hash PIN rekaan
+const SARAN_DRAFT = "; jalankan node scripts/draft-ujian.mjs";
+const SELEKTOR_KARTU_DRAFT = 'textarea[id^="code-c"], input[id^="nilai-c"]';
+const KUNCI_DRAFT_LAMA_UJI = "function _draftKey() {\n  try {\n    const me = JSON.parse(localStorage.getItem(LOCAL_IDENTITY) || 'null');\n    if (!me || !me.nim || me.role === 'dosen') return null;\n    return 'uji_draft_' + MODULE_ID + '_' + me.nim;\n  } catch(e) { return null; }\n}";
+
+function fungsiDraftUjian(html, awal, relative) {
+  const i = html.indexOf(awal);
+  const j = i < 0 ? -1 : draftUjian.akhirFungsi(html, i);
+  if (i < 0 || j < 0) throw new Error(`${relative}: ${awal} not found`);
+  return html.slice(i, j + 1);
+}
+
+/** _draftKey/_saveDraft/_loadDraft halaman + _markLoaded + skrip PENJAGA di node:vm (DOM, localStorage, pewaktu tiruan). */
+function sandboxDraftUjian(b, opsi = {}) {
+  const { examId = "uji-ujian-uts", me = { nama: "UJI DRAFT", nim: DRAFT_NIM_UJI, role: "student" }, pinHash = DRAFT_HASH_UJI, preview = false, isi = {} } = opsi;
+  const el = new Map(), pendengar = [], timer = [], tulisan = [], toko = new Map(Object.entries(isi));
+  const buat = (id, tagName, className = "") => { const e = { id, tagName, className, value: "", disabled: false, style: {} }; el.set(id, e); return e; };
+  const kolomKartu = () => [...el.values()].filter((e) => (e.tagName === "TEXTAREA" && e.id.startsWith("code-c")) || (e.tagName === "INPUT" && e.id.startsWith("nilai-c")));
+  const document = {
+    getElementById: (id) => el.get(id) || null,
+    querySelector: (sel) => { if (sel !== SELEKTOR_KARTU_DRAFT) throw new Error(`unexpected selector ${sel}`); return kolomKartu()[0] || null; },
+    querySelectorAll: (sel) => {
+      if (sel === SELEKTOR_KARTU_DRAFT) return kolomKartu();
+      if (sel !== ".nilai-input") throw new Error(`unexpected selector ${sel}`);
+      return [...el.values()].filter((e) => e.className.split(/\s+/).includes("nilai-input"));
+    },
+    addEventListener: (jenis, fn) => { if (jenis === "input") pendengar.push(fn); },
+  };
+  const localStorage = {
+    getItem: (k) => (toko.has(k) ? toko.get(k) : null),
+    setItem: (k, v) => { tulisan.push({ k, isi: JSON.parse(String(v)), kartu: kolomKartu().length > 0 }); toko.set(k, String(v)); },
+    removeItem: (k) => { toko.delete(k); },
+  };
+  const ctx = { document, localStorage, console: { log() {}, warn() {}, error() {} }, setTimeout: (fn) => { timer.push(fn); return timer.length; }, clearTimeout() {} };
+  vm.createContext(ctx);
+  vm.runInContext("var window = this;", ctx);
+  Object.assign(ctx, { EXAM_ID: examId, _previewMode: preview, _sessionPinHash: pinHash, __siap: false, getIdentityLocal: () => me });
+  ctx.__render = () => {
+    if (b.cad) { buat("nilai-c1", "INPUT", "nilai-input"); buat("nilai-c2", "INPUT", "nilai-input"); }
+    else { buat("code-c1", "TEXTAREA", "code-textarea"); buat("code-c11", "TEXTAREA", "code-textarea"); }
+  };
+  if (!b.cad) buat("gdrive-link", "INPUT");
+  const R = `render${b.perender}Questions`;
+  // Perender tiruan: kartu + jadwal _loadDraft milik perender CAD (bila halaman memilikinya).
+  vm.runInContext(`let _firebaseStateLoaded = false;
+function checkExportReady() { if (window.__siap) _saveDraft(); }
+function checkForumReady() {}
+function _refreshTugasBtn() {}
+function ${R}() { window.__render();${b.jadwalRender ? ` ${draftUjian.JADWAL_RENDER}` : ""} }
+${b.kunci}
+${b.simpan}
+${b.muat}
+window._saveDraft = _saveDraft;
+window._loadDraft = _loadDraft;
+window._draftKey  = _draftKey;
+window.${R} = ${R};`, ctx);
+  const skrip = /^<!--[^\n]*-->\n<script>\n([\s\S]*?)<\/script>\n<!--[^\n]*-->$/.exec(b.penjaga);
+  if (!skrip) throw new Error("DRAFT-UJIAN:PENJAGA must wrap exactly one classic <script>");
+  vm.runInContext(skrip[1], ctx);
+  // _markLoaded persis bentuk halaman (akhir _loadScoredQuestions, skrip module).
+  vm.runInContext(`window.__markLoaded = (function () {\n${draftUjian.MARK_LOADED}\n  return _markLoaded;\n})();`, ctx);
+  return {
+    ctx, el, tulisan, toko, buat,
+    jalan: (s) => vm.runInContext(s, ctx),
+    // _loadScoredQuestions selesai (marker & kode ledger sudah diterapkan ke kartu yang ada).
+    markLoaded: () => vm.runInContext("window.__markLoaded();", ctx),
+    waktu: (n = Infinity) => { for (let k = 0; timer.length && k < n; k += 1) timer.shift()(); },
+    ketik: (id, v) => { const e = el.get(id); e.value = v; for (const fn of pendengar) fn({ target: e }); },
+  };
+}
+
+function ujiPerilakuDraftUjian(b, label) {
+  const gagal = (m) => { throw new Error(`${label}: draft ${m}${SARAN_DRAFT}`); };
+  const K = `draft_ujian_uji-ujian-uts_${DRAFT_NIM_UJI}`;
+  const simpanan = JSON.stringify(b.cad
+    ? { nilai: { c1: "12,5", c2: "7" }, savedAt: "2026-09-29T00:00:00.000Z" }
+    : { gdrive: "https://drive.google.com/drive/folders/UJI", fq1: "", fq2: "", fq3: "", code: { c1: "print(1)", c11: "print(11)" }, savedAt: "2026-09-29T00:00:00.000Z" });
+  const kolom = b.cad ? ["nilai-c1", "nilai-c2"] : ["code-c1", "code-c11", "gdrive-link"];
+  const harap = JSON.stringify(b.cad ? ["12,5", "7"] : ["print(1)", "print(11)", "https://drive.google.com/drive/folders/UJI"]);
+  const harapSisa = JSON.stringify(JSON.parse(harap).slice(1));
+  const isian = (s) => kolom.map((id) => (s.el.get(id) || { value: null }).value);
+  const tanpaIsi = (w) => (b.cad ? !(w.isi.nilai && w.isi.nilai.c1) : !(w.isi.code && w.isi.code.c1 && w.isi.code.c11));
+  const render = `render${b.perender}Questions();`;
+
+  // Kunci per ujian + NIM, terjangkau dari skrip klasik.
+  let s = sandboxDraftUjian(b, { isi: { [K]: simpanan } });
+  if (s.jalan("_draftKey()") !== K) gagal(`key must be draft_ujian_<window.EXAM_ID>_<NIM>, got ${JSON.stringify(s.jalan("_draftKey()"))}`);
+  // Sebelum data Firebase dan kartu soal ada: tidak ada tulisan.
+  s.ctx.__siap = true;
+  s.jalan("_saveDraft(); _loadDraft(); checkExportReady();");
+  if (s.tulisan.length) gagal("written before the Firebase state was loaded");
+  // Firebase siap (_markLoaded dengan kunci), kartu soal (getExamQuestions) belum dirender: tidak dimuat, tidak ditulis.
+  s.markLoaded();
+  s.jalan("_loadDraft(); checkExportReady(); _saveDraft();");
+  if (s.tulisan.length) gagal(`written before the question cards exist (overwrites the draft with ${b.cad ? "nilai:{}" : "code:{}"})`);
+  if (s.jalan("window._draftSudahDimuat()") || isian(s).some(Boolean)) gagal("loaded before the question cards exist");
+  // Render → dimuat sesudah kartu ada; setiap tulisan membawa isian yang dipulihkan.
+  s.jalan(render);
+  s.waktu();
+  if (JSON.stringify(isian(s)) !== harap) gagal(`not restored after the questions rendered: ${JSON.stringify(isian(s))}`);
+  if (!s.jalan("window._draftSudahDimuat()")) gagal("not marked loaded after render");
+  if (s.tulisan.length > 3) gagal(`one load wrote ${s.tulisan.length}x (load not marked before the original _loadDraft?)`);
+  if (s.tulisan.some((w) => w.k !== K || !w.kartu || tanpaIsi(w))) gagal("a write lost the restored code/number");
+  // Ketikan di kolom kode / tautan Drive / angka bacaan tersimpan; kolom lain tidak.
+  const n0 = s.tulisan.length;
+  if (b.cad) s.ketik("nilai-c1", "99");
+  else { s.ketik("code-c1", "print(2)"); s.ketik("gdrive-link", "https://drive.google.com/drive/folders/BARU"); }
+  const akhir = JSON.parse(s.toko.get(K));
+  if (s.tulisan.length === n0 || (b.cad ? akhir.nilai.c1 !== "99" || akhir.nilai.c2 !== "7"
+    : akhir.code.c1 !== "print(2)" || akhir.code.c11 !== "print(11)" || akhir.gdrive !== "https://drive.google.com/drive/folders/BARU")) {
+    gagal("typing into a code/Drive/number field is not saved");
+  }
+  const n1 = s.tulisan.length;
+  s.buat("vPin", "INPUT");
+  s.ketik("vPin", "123456");
+  if (s.tulisan.length !== n1) gagal("saved on input into a non-draft field");
+  // Kartu lebih dulu, data Firebase belakangan (RTDB lambat): _loadDraft lain
+  // sebelum _firebaseStateLoaded bukan tanda siap; _markLoaded yang memuat.
+  s = sandboxDraftUjian(b, { isi: { [K]: simpanan } });
+  s.jalan(render);
+  s.jalan("_loadDraft();");
+  s.waktu();
+  if (s.tulisan.length || s.jalan("window._draftSudahDimuat()")) gagal("loaded before the Firebase state (markers, ledger code) was restored");
+  s.markLoaded();
+  s.waktu();
+  if (JSON.stringify(isian(s)) !== harap) gagal("not restored when the Firebase state arrives after the render");
+  // Simpanan pertama (checkExportReady sebelum _loadDraft) memuat draft lebih dulu.
+  s = sandboxDraftUjian(b, { isi: { [K]: simpanan } });
+  s.markLoaded();
+  s.ctx.__render();
+  s.ctx.__siap = true;
+  s.jalan("checkExportReady();");
+  if (!s.tulisan.length || s.tulisan.some(tanpaIsi) || JSON.stringify(isian(s)) !== harap) gagal("a save before _loadDraft overwrote the stored draft");
+  // Firebase dimuat SEBELUM kunci ada (tab baru sebelum PIN; form login sesudah
+  // Keluar): sesudah PIN + render draft belum boleh dimuat — kode ledger soal
+  // yang sudah dinilai baru datang dari _loadScoredQuestions berikutnya dan
+  // hanya mengisi kolom kosong. Sesudah itu ledger tetap tampil, kolom lain pulih.
+  s = sandboxDraftUjian(b, { pinHash: null, isi: { [K]: simpanan } });
+  s.markLoaded();
+  s.ctx._sessionPinHash = DRAFT_HASH_UJI;
+  s.jalan(render);
+  s.waktu();
+  s.ctx.__siap = true;
+  s.jalan("checkExportReady();");
+  if (s.tulisan.length || s.jalan("window._draftSudahDimuat()") || isian(s).some(Boolean)) {
+    gagal("loaded before the Firebase state of this key (identity + PIN session) was restored — an old draft covers the graded ledger code");
+  }
+  const dinilai = s.el.get(kolom[0]);
+  dinilai.value = "LEDGER";
+  dinilai.disabled = true;
+  s.markLoaded();
+  s.waktu();
+  if (dinilai.value !== "LEDGER") gagal(`covered the graded ledger code/number: ${JSON.stringify(dinilai.value)}`);
+  if (JSON.stringify(isian(s).slice(1)) !== harapSisa) gagal("not restored into the ungraded fields after the keyed Firebase load");
+  // Kartu dinilai sudah terkunci tetapi masih kosong (kode ledger terlambat,
+  // angka CAD tanpa ledger): draft tidak mengisinya.
+  s = sandboxDraftUjian(b, { isi: { [K]: simpanan } });
+  s.markLoaded();
+  s.jalan(render);
+  s.el.get(kolom[0]).disabled = true;   // marker dari cache (pemulihan ulang visual 150 ms)
+  s.waktu();
+  if (s.el.get(kolom[0]).value !== "") gagal("filled a locked (graded) card from the draft");
+  if (JSON.stringify(isian(s).slice(1)) !== harapSisa) gagal("not restored into the ungraded fields next to a locked card");
+  // Dua ujian: draft UTS tidak dipulihkan di UAS; ketikan UAS masuk kuncinya sendiri.
+  s = sandboxDraftUjian(b, { examId: "uji-ujian-uas", isi: { [K]: simpanan } });
+  s.markLoaded();
+  s.jalan(render);
+  s.waktu();
+  if (isian(s).some(Boolean)) gagal("of another exam was restored");
+  s.ketik(b.cad ? "nilai-c1" : "code-c1", "lain");
+  if (s.toko.get(K) !== simpanan || !s.toko.has(`draft_ujian_uji-ujian-uas_${DRAFT_NIM_UJI}`)) gagal("is not kept apart per EXAM_ID");
+  // Tanpa kunci: dosen, tamu, Mode Preview, tanpa sesi PIN, tanpa EXAM_ID, tanpa NIM.
+  for (const [nama, o] of [
+    ["lecturer", { me: { nama: "Dedik Romahadi", nim: "DOSEN", role: "dosen" } }], ["guest", { me: null }], ["Preview mode", { preview: true }],
+    ["no PIN session", { pinHash: null }], ["no EXAM_ID", { examId: null }], ["no NIM", { me: { nama: "UJI", role: "student" } }],
+  ]) {
+    s = sandboxDraftUjian(b, { ...o, isi: { [K]: simpanan } });
+    s.markLoaded();
+    s.jalan(render);
+    s.waktu();
+    s.ctx.__siap = true;
+    s.jalan("checkExportReady(); _saveDraft();");
+    const dipulihkan = isian(s).some(Boolean);
+    s.ketik(b.cad ? "nilai-c1" : "code-c1", "x");
+    if (s.jalan("_draftKey()") !== null || s.tulisan.length || dipulihkan) gagal(`must stay off for ${nama} (null key, no read/write)`);
+  }
+}
+
+/** Struktur satu halaman; mengembalikan bahan uji perilaku. */
+function periksaDraftUjian(exam, relative, course, kind) {
+  let info;
+  try { info = draftUjian.prasyarat(exam); } catch (e) { throw new Error(`${relative}: draft ${e.message}${SARAN_DRAFT}`); }
+  if (info.perender !== kind) throw new Error(`${relative}: question renderer is render${info.perender}Questions, expected render${kind}Questions`);
+  const kunci = fungsiDraftUjian(exam, draftUjian.AWAL_FUNGSI, relative);
+  if (kunci !== draftUjian.KUNCI) throw new Error(`${relative}: _draftKey is not the DRAFT-UJIAN:KUNCI template (key from module-script constants is always null)${SARAN_DRAFT}`);
+  for (const [s, n] of [[draftUjian.KUNCI_AWAL, 1], [draftUjian.KUNCI_AKHIR, 1], [draftUjian.PENJAGA_AWAL, 1], [draftUjian.PENJAGA_AKHIR, 1], [draftUjian.PENJAGA + "\n" + draftUjian.JANGKAR, 1]]) {
+    const c = exam.split(s).length - 1;
+    if (c !== n) throw new Error(`${relative}: ${s.split("\n")[0].slice(0, 90)} found ${c}x, expected ${n} (DRAFT-UJIAN:PENJAGA byte-identical, right before the Firebase module script)${SARAN_DRAFT}`);
+  }
+  if (/DRAFT-UJIAN:(?:KUNCI|PENJAGA) (?:BEGIN|END)/.test(exam.replace(draftUjian.KUNCI, "").replace(draftUjian.PENJAGA, ""))) throw new Error(`${relative}: orphan DRAFT-UJIAN marker${SARAN_DRAFT}`);
+  const ai = exam.match(RX_BLOK_AI);
+  if (ai && ai[0].includes("DRAFT-UJIAN")) throw new Error(`${relative}: DRAFT-UJIAN block inside AI-CHAT-AGENT`);
+  const examId = (exam.match(/const EXAM_ID = '([^']+)';/) || [])[1];
+  const harapId = `${EXAM_ID_KURSUS[course]}-${kind.toLowerCase()}`;
+  if (examId !== harapId) throw new Error(`${relative}: EXAM_ID '${examId}', expected '${harapId}' (draft key draft_ujian_<EXAM_ID>_<NIM> must be unique per exam)`);
+  return {
+    examId,
+    b: {
+      kunci, perender: kind, cad: info.cad, jadwalRender: info.jadwalRender, penjaga: draftUjian.PENJAGA,
+      simpan: fungsiDraftUjian(exam, "function _saveDraft() {", relative), muat: fungsiDraftUjian(exam, "function _loadDraft() {", relative),
+    },
+  };
+}
+
+function ujiMutasiDraftUjian(contoh) {
+  // Mutan dibangun DI LUAR try: jangkar yang hilang menggagalkan validator
+  // (bukan tercatat sebagai "mutasi ditolak"), dan mutan wajib berbeda dari aslinya.
+  const ganti = (s, a, z) => { if (s.split(a).length !== 2) throw new Error(`draft mutation anchor not found once: ${a.slice(0, 60)}`); return s.replace(a, () => z); };
+  const P = (a, z) => (b) => ({ ...b, penjaga: ganti(b.penjaga, a, z) });
+  const Kc = (a, z) => (b) => ({ ...b, kunci: ganti(b.kunci, a, z) });
+  const semua = () => true;
+  const mutasi = [
+    ["_draftKey from module-script constants (old)", semua, (b) => ({ ...b, kunci: KUNCI_DRAFT_LAMA_UJI })],
+    ["no PIN-session gate", semua, Kc("if (window._previewMode || !window._sessionPinHash) return null;", "if (window._previewMode) return null;")],
+    ["no Preview gate", semua, Kc("if (window._previewMode || !window._sessionPinHash) return null;", "if (!window._sessionPinHash) return null;")],
+    ["any role gets a key", semua, Kc("me.role !== 'student' || ", "")],
+    ["load marked after the original _loadDraft", semua, P("    dimuatUntuk = k;   // ditandai SEBELUM asli: checkExportReady di dalamnya boleh menyimpan\n    try { return muatAsli.apply(this, arguments); }\n    finally {\n",
+      "    try { return muatAsli.apply(this, arguments); }\n    finally {\n      dimuatUntuk = k;\n")],
+    ["no card check before loading", semua, P("if (!k || siapUntuk !== k || !kartuAda()) return;", "if (!k || siapUntuk !== k) return;")],
+    ["no Firebase check before loading", semua, P("if (!k || siapUntuk !== k || !kartuAda()) return;", "if (!k || !kartuAda()) return;")],
+    ["Firebase readiness not per key (_firebaseStateLoaded, v1)", semua, P("if (!k || siapUntuk !== k || !kartuAda()) return;", "if (!k || !fbSiap() || !kartuAda()) return;")],
+    ["any _loadDraft call marks Firebase ready", semua, P("if (k && fbSiap()) siapUntuk = k;", "if (k) siapUntuk = k;")],
+    ["renderer's own scheduled _loadDraft marks Firebase ready", (b) => b.jadwalRender, P("      window._loadDraft = abaikan;   // jadwal _loadDraft milik perender: dimuat di bawah\n", "")],
+    ["locked (graded) cards filled from the draft", (b) => !b.cad, P("      terkunci.forEach(function (x) { if (x[0].value !== x[1]) x[0].value = x[1]; });   // soal yang dinilai: bukan dari draft\n", "")],
+    ["save without loading first", semua, P("if (dimuatUntuk !== k) { muat(); if (dimuatUntuk !== k) return; }", "if (dimuatUntuk !== k) { muat(); }")],
+    ["renderer not wrapped", semua, P("['renderUTSQuestions', 'renderUASQuestions']", "[]")],
+    ["typing not saved", semua, P("document.addEventListener('input',", "document.addEventListener('change',")],
+  ];
+  for (const { relative, course, kind, exam, b } of contoh) {
+    ujiPerilakuDraftUjian(b, relative);
+    for (const [nama, berlaku, ubah] of mutasi) {
+      if (!berlaku(b)) continue;
+      const mutan = ubah(b);
+      if (JSON.stringify(mutan) === JSON.stringify(b)) throw new Error(`${relative}: draft mutation "${nama}" changed nothing`);
+      let lolos = true;
+      try { ujiPerilakuDraftUjian(mutan, relative); } catch { lolos = false; }
+      if (lolos) throw new Error(`${relative}: draft behaviour test accepts mutation "${nama}"`);
+    }
+    const blok = draftUjian.PENJAGA + "\n";
+    for (const [nama, ubah] of [
+      ["PENJAGA after the module script", (h) => { const t = ganti(h, blok, ""), i = t.lastIndexOf("</body>"); if (i < 0) throw new Error("draft mutation anchor </body> not found"); return t.slice(0, i) + blok + t.slice(i); }],
+      ["one byte changed in PENJAGA", (h) => ganti(h, "setTimeout(function () { try { muat(); } catch (e) {} }, 250);", "setTimeout(function () { try { muat(); } catch (e) {} }, 251);")],
+      ["KUNCI end marker removed", (h) => ganti(h, draftUjian.KUNCI_AKHIR + "\n", "")],
+      ["old _draftKey", (h) => ganti(h, draftUjian.KUNCI, KUNCI_DRAFT_LAMA_UJI)],
+      ["_markLoaded without _loadDraft", (h) => ganti(h, draftUjian.MARK_LOADED, draftUjian.MARK_LOADED.split("\n").filter((l) => !l.includes("_loadDraft")).join("\n"))],
+      ["unknown _loadDraft caller", (h) => ganti(h, "window._loadDraft = _loadDraft;", "window._loadDraft = _loadDraft;\nsetTimeout(function () { _loadDraft(); }, 0);")],
+      ["renderer without the 150 ms visual re-apply", (h) => ganti(h, `setTimeout(() => window._reapply${kind}StateFromCache(), 150);`, `setTimeout(() => window._reapply${kind}StateFromCache(), 300);`)],
+    ]) {
+      const mutan = ubah(exam);
+      if (mutan === exam) throw new Error(`${relative}: draft structure mutation "${nama}" changed nothing`);
+      let lolos = true;
+      try { periksaDraftUjian(mutan, relative, course, kind); } catch { lolos = false; }
+      if (lolos) throw new Error(`${relative}: draft structure check accepts mutation "${nama}"`);
+    }
+  }
+}
+
+let examDraft = 0;
+const examIdDraft = new Set();
+const contohMutasiDraft = [];
+for (const course of courseRoots) {
+  for (const kind of ["UTS", "UAS"]) {
+    const relative = `${course}/Exam/${kind}.html`;
+    const exam = fs.readFileSync(path.join(root, relative), "utf8");
+    const { examId, b } = periksaDraftUjian(exam, relative, course, kind);
+    ujiPerilakuDraftUjian(b, relative);
+    examIdDraft.add(examId);
+    if (relative === "Teknik-Tenaga-Listrik/Exam/UTS.html" || relative === "Pemodelan-Computer-Aided-Design/Exam/UAS.html") contohMutasiDraft.push({ relative, course, kind, exam, b });
+    examDraft += 1;
+  }
+}
+if (examDraft !== 12 || examIdDraft.size !== 12) throw new Error(`Expected 12 UTS/UAS pages with a working per-exam draft (unique EXAM_ID), found ${examDraft} pages / ${examIdDraft.size} ids`);
+if (contohMutasiDraft.length !== 2 || contohMutasiDraft.filter((c) => c.b.cad).length !== 1) throw new Error("draft mutation samples must cover one code page and one CAD page");
+ujiMutasiDraftUjian(contohMutasiDraft);
+
 const formatPointsForValidation = (pts) => {
   const value = Number(pts);
   if (!Number.isFinite(value)) return "0";
