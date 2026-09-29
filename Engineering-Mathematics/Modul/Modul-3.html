@@ -12715,19 +12715,30 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     if (bebas) { try { localStorage.setItem(KUNCI_BEBAS, String(centang)); } catch (e) {} }
   }
   function kunciTab(kunci) {
+    // Tab Forum mahasiswa juga terkunci selama progres server belum diterapkan (PENJAGA-FORUM).
+    var tahan = forumTertahan();
     TAB_TERKUNCI.forEach(function (t) {
       var b = document.getElementById('tab-' + t); if (!b) return;
-      b.classList.toggle('pm-terkunci', kunci);
-      b.setAttribute('aria-disabled', kunci ? 'true' : 'false');
-      b.title = kunci ? 'Centang semua bagian materi dulu (' + centang + '/' + total + ')' : '';
+      var k = kunci || (t === 'forum' && tahan);
+      b.classList.toggle('pm-terkunci', k);
+      b.setAttribute('aria-disabled', k ? 'true' : 'false');
+      b.title = kunci ? 'Centang semua bagian materi dulu (' + centang + '/' + total + ')' : (k ? 'Menunggu progres materi modul ini dari server' : '');
     });
+    // Forum yang terlanjur terbuka ditutup sampai forum server diterapkan.
+    var pf = document.getElementById('page-forum');
+    if (tahan && pf && pf.classList.contains('active') && typeof switchAsli === 'function') switchAsli('modul');
   }
   // switchTab adalah fungsi global klasik; dibungkus agar tab terkunci tidak bisa dibuka lewat cara lain.
   var switchAsli = window.switchTab;
   if (typeof switchAsli === 'function') {
     window.switchTab = function (tab) {
-      if (!bebas && centang < total && TAB_TERKUNCI.indexOf(tab) >= 0) {
-        toast('🔒 Tab ' + tab.charAt(0).toUpperCase() + tab.slice(1) + ' terbuka setelah semua bagian materi dicentang (' + centang + '/' + total + ').');
+      var kunciCentang = !bebas && centang < total && TAB_TERKUNCI.indexOf(tab) >= 0;
+      if (kunciCentang || (tab === 'forum' && forumTertahan())) {
+        // Progres belum/gagal dimuat: centang dan forum server dimuat ulang (PENJAGA-FORUM, berjeda).
+        var ulang = forumCobaLagi();
+        toast((kunciCentang
+          ? '🔒 Tab ' + tab.charAt(0).toUpperCase() + tab.slice(1) + ' terbuka setelah semua bagian materi dicentang (' + centang + '/' + total + ')'
+          : '⏳ Tab Forum terbuka setelah progres materi modul ini termuat dari server') + (ulang ? ' — memuat ulang progres…' : '.'), kunciCentang ? 0 : 4500);
         return;
       }
       return switchAsli.apply(this, arguments);
@@ -12758,13 +12769,15 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
       panggil('setModulCentang', d).then(function (r) {
         centang = Number(r.centang) || (i + 1);
         render();
-        if (centang >= total) toast('🎉 Semua bagian materi sudah dipahami. Tab Tugas, Forum, dan Hasil kini terbuka.', 4500);
+        if (centang >= total) toast(forumTertahan()
+          ? '🎉 Semua bagian materi sudah dipahami. Tab Tugas dan Hasil kini terbuka; tab Forum terbuka setelah progres materi termuat.'
+          : '🎉 Semua bagian materi sudah dipahami. Tab Tugas, Forum, dan Hasil kini terbuka.', 4500);
         else { var next = kotak[centang]; if (next) next.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
       }).catch(function (e) {
         cb.checked = false;
         toast('⚠ ' + ((e && e.message) || 'Gagal menyimpan centang. Coba lagi.'));
         if (/login ulang/i.test(String(e && e.message))) window._sessionPinHash = null;
-      }).finally(function () { sibuk = false; render(); });
+      }).finally(function () { sibuk = false; render(); forumCobaLagi(); });
     });
   });
 
@@ -12818,8 +12831,72 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   }
 
   var forumDimuat = false;
+  // PROGRES-MODUL:PENJAGA-FORUM BEGIN v1 — scripts/tambah-progres-modul.mjs (Pedoman §6.7)
+  // Kiriman forum menimpa ketiga jawaban di server sekaligus, jadi baru dikirim sesudah
+  // progres server modul ini DITERAPKAN. statusForum: 'belum' (tanpa sesi PIN) →
+  // 'memuat' → 'siap' (baseline = forum server: teks yang sama tidak dikirim ulang) |
+  // 'ditolak' (overlay prasyarat) | 'gagal' (galat sementara dicoba ulang 3/10/30 dtk).
+  // Selama belum 'siap' tab Forum mahasiswa terkunci (forumTertahan). 'siap' bertahan bila
+  // hanya PIN sesi yang berganti (NIM sama). Dari 'belum'/'gagal', membuka tab Forum atau
+  // centang yang dijawab server memuat ulang progres (forumCobaLagi, jeda 15 dtk; penguncian
+  // PIN: sesudah masa kunci; sesi PIN tidak berlaku: sesudah PIN dimasukkan lagi). Hash PIN
+  // sesi tidak disentuh di sini: permintaan PIN ulang milik JAWABAN-PRIVAT.
+  var statusForum = 'belum', sesiForum = '', cobaForum = 0, timerUlangForum = null, forumTerakhir = null;
+  var jedaForum = false, timerJedaForum = null;
+  function tahanForum(ms) {
+    jedaForum = true; clearTimeout(timerJedaForum);
+    timerJedaForum = ms > 0 ? setTimeout(function () { jedaForum = false; timerJedaForum = null; }, ms) : null;
+  }
+  function mulaiMuatForum() {
+    var d = dasar(), s = d.nim + '|' + d.pinHash;
+    if (s !== sesiForum) {
+      var nimSama = sesiForum.split('|')[0] === String(d.nim);
+      sesiForum = s; cobaForum = 0; jedaForum = false;
+      clearTimeout(timerUlangForum); timerUlangForum = null; clearTimeout(timerJedaForum); timerJedaForum = null;
+      if (nimSama && statusForum === 'siap') return;   // PIN sesi baru, NIM sama: baseline tetap
+      statusForum = 'memuat'; forumTerakhir = null;
+    } else if (statusForum !== 'siap') statusForum = 'memuat';
+  }
+  function forumSiap(p) {
+    if (statusForum === 'siap') return;
+    statusForum = 'siap'; clearTimeout(timerUlangForum); timerUlangForum = null;
+    var f = (p && p.forum) || {}, t = function (v) { return typeof v === 'string' ? v : ''; };
+    forumTerakhir = JSON.stringify({ fq1: t(f.fq1), fq2: t(f.fq2), fq3: t(f.fq3) });
+  }
+  function forumDitolak() { if (statusForum !== 'siap') statusForum = 'ditolak'; }
+  function forumGagal(e, d) {
+    if (statusForum === 'siap' || (d && d.nim + '|' + d.pinHash !== sesiForum)) return;   // galat milik sesi lama diabaikan
+    statusForum = 'gagal';
+    var k = String((e && e.code) || '').replace(/^functions\//, ''), pesan = (e && e.message) || 'koneksi';
+    if (k === 'unauthenticated') {
+      tahanForum(0);
+      toast('⚠ Sesi PIN tidak berlaku lagi (' + pesan + '). Masukkan PIN Anda, atau 🚪 Log Out lalu masuk lagi. Tab Forum terbuka setelah progres materi termuat.', 6000);
+      return;
+    }
+    if (k === 'resource-exhausted') {
+      tahanForum(Math.min(300, Math.max(1, Math.ceil(Number(e && e.details && e.details.remainingSeconds) || 60))) * 1000);
+      toast('⏳ ' + pesan + ' Tab Forum terbuka setelah progres materi termuat.', 6000);
+      return;
+    }
+    if (!/^(unavailable|internal|deadline-exceeded|unknown|aborted|cancelled|)$/.test(k) || cobaForum >= 3) {
+      toast('⚠ Progres materi belum termuat: ' + pesan + '. Buka tab Forum untuk mencoba lagi, atau muat ulang halaman. Jawaban forum baru disimpan ke server setelah progres termuat.', 6000);
+      return;
+    }
+    clearTimeout(timerUlangForum);
+    timerUlangForum = setTimeout(function () { timerUlangForum = null; try { muatProgres(); } catch (x) {} }, [3000, 10000, 30000][cobaForum++]);
+  }
+  function forumCobaLagi() {
+    if ((statusForum !== 'gagal' && statusForum !== 'belum') || jedaForum || timerUlangForum || !mhsAktif()) return false;
+    tahanForum(15000);
+    try { muatProgres(); } catch (x) {}
+    return true;
+  }
+  function forumTertahan() { return mhsAktif() && statusForum !== 'siap'; }
+  function bolehKirimForum(j) { return statusForum === 'siap' && !!(j.fq1.trim() || j.fq2.trim() || j.fq3.trim()); }
+  // PROGRES-MODUL:PENJAGA-FORUM END v1
   // Terapkan progres modul ini (akses sudah lolos): centang dan jawaban forum tersimpan.
   function terapkanProgres(p) {
+    forumSiap(p);
     centang = Math.min(total, Number(p.centang) || 0);
     render();
     if (!forumDimuat && p.forum) {
@@ -12828,20 +12905,27 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         var ta = document.getElementById('ans-' + id);
         if (ta && !ta.value && typeof p.forum[id] === 'string' && p.forum[id]) ta.value = p.forum[id];
       });
-      if (typeof window.checkForumReady === 'function') try { window.checkForumReady(); } catch (e) {}
     }
+    // Status forum disegarkan; suntingan yang belum terkirim (mis. saat PIN sesi diminta
+    // ulang atau kiriman gagal) dikirim sesudah progres diterapkan. Teks yang sama dengan
+    // baseline tidak dikirim.
+    if (typeof window.checkForumReady === 'function') try { window.checkForumReady(); } catch (e) {}
   }
   function muatProgres() {
     if (!mhsAktif()) { bebas = true; centang = muatBebas(); render(); return; }
     var d = dasar();
-    if (!d.pinHash) { bebas = false; render(); return; }   // sesi PIN belum ada: tetap terkunci sampai login ulang
-    bebas = false; render();
+    // Hitungan centang mode bebas (dosen/Preview di peramban yang sama) bukan milik mahasiswa.
+    if (bebas) { bebas = false; centang = 0; }
+    if (!d.pinHash) { render(); return; }   // sesi PIN belum ada: tetap terkunci sampai login ulang
+    mulaiMuatForum();
+    render();
     panggil('getModulProgress', d).then(function (p) {
-      if (p.akses && p.akses.boleh === false && p.akses.prasyarat) { tampilkanKunci(p.akses.prasyarat); return; }
+      if (p.akses && p.akses.boleh === false && p.akses.prasyarat) { forumDitolak(); tampilkanKunci(p.akses.prasyarat); return; }
       terapkanProgres(p);
     }).catch(function (e) {
       console.warn('[progres-modul] gagal memuat progres:', e && e.message);
       toast('⚠ Gagal memuat progres materi: ' + ((e && e.message) || 'koneksi'));
+      forumGagal(e, d);
     });
   }
   // _loadScoredQuestions dipanggil di ketiga jalur login (PIN baru, verifikasi PIN,
@@ -12852,20 +12936,30 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     return typeof loadAsli === 'function' ? loadAsli.apply(this, arguments) : undefined;
   };
 
-  // Forum → server (debounce), hanya mahasiswa sungguhan.
-  var forumTimer = null, forumTerakhir = '';
+  // Forum → server (debounce), hanya mahasiswa sungguhan, hanya sesudah progres
+  // diterapkan (forumTerakhir dideklarasikan di sub-blok PENJAGA-FORUM).
+  var forumTimer = null;
+  var gagalKirimForum = 0;
   function simpanForum() {
     if (!mhsAktif()) return;
     var j = {};
     ['fq1', 'fq2', 'fq3'].forEach(function (id) { var ta = document.getElementById('ans-' + id); j[id] = ta ? ta.value : ''; });
     var kunci = JSON.stringify(j);
+    if (!bolehKirimForum(j)) return;
     if (kunci === forumTerakhir) return;
     var d = dasar(); if (!d.pinHash) return;
     d.jawaban = j;
     panggil('saveModulForum', d).then(function (r) {
-      forumTerakhir = kunci;
+      forumTerakhir = kunci; gagalKirimForum = 0;
       if (r.forumSelesai) toast('💾 Jawaban forum tersimpan di server — forum modul ini selesai.');
-    }).catch(function (e) { console.warn('[progres-modul] forum:', e && e.message); });
+    }).catch(function (e) {
+      console.warn('[progres-modul] forum:', e && e.message);
+      // Kiriman gagal diberitahukan; galat sementara dicoba ulang 3/10/30 dtk dengan isi terbaru.
+      var k = String((e && e.code) || '').replace(/^functions\//, '');
+      var ulang = /^(unavailable|internal|deadline-exceeded|unknown|aborted|cancelled|)$/.test(k) && gagalKirimForum < 3;
+      toast('⚠ Jawaban forum belum tersimpan ke server: ' + ((e && e.message) || 'koneksi') + (ulang ? ' — dicoba lagi otomatis.' : ' — ubah jawaban atau muat ulang halaman untuk mencoba lagi.'), 5000);
+      if (ulang) { clearTimeout(forumTimer); forumTimer = setTimeout(simpanForum, [3000, 10000, 30000][gagalKirimForum++]); }
+    });
   }
   var forumAsli = window.checkForumReady;
   if (typeof forumAsli === 'function') {
