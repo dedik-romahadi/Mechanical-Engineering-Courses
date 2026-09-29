@@ -6,8 +6,11 @@
 # tugas (tugas_gambar.py), ekspor, dan registry chat.
 #
 # Pakai (dari root repo):  python scripts/cad-modul/bangun-modul-1.py
-# Lalu jalankan injektor progres (kotak centang) dan validator:
+# Lalu jalankan injektor progres (kotak centang), injektor jawaban privat (blok
+# JAWABAN-PRIVAT:ANGKA-CAD hanya dipasang di halaman CAD, jadi tidak ada di
+# kerangka TTL; jalankan SEBELUM bangun.py 2..N agar ikut tersalin), dan validator:
 #   node scripts/tambah-progres-modul.mjs
+#   node scripts/jawaban-privat.mjs
 #   node scripts/validate-public-security.mjs && node scripts/validate-all-course-modern-design.mjs
 #
 # Modul 2 dst CAD kelak dibangun dari Modul-1.html CAD ini dengan pola bangun.py TTL.
