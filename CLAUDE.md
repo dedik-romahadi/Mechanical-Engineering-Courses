@@ -228,10 +228,19 @@ repo publik ini.
   tab Tugas/Forum/Hasil terkunci sampai lengkap, login modul *n* ditolak bila
   modul *n*−1 belum lengkap (centang + tugas + forum). Rincian: Pedoman §6.7.
 - **Efek & skrip penyuntik.** Emoji/suara jawaban, efek memuat, friction,
-  pengecualian akun simulasi, lapisan overlay login, dan progres modul
-  disuntikkan oleh skrip idempoten di `scripts/` yang wajib dijalankan ulang
-  setelah regenerasi modul (daftar di Pedoman §17.1). Regenerasi Sisken
-  bukan satu perintah (Pedoman §6.4).
+  pengecualian akun simulasi, lapisan overlay login, progres modul, dan
+  kunci identitas skrip klasik disuntikkan oleh skrip idempoten di `scripts/`
+  yang wajib dijalankan ulang setelah regenerasi modul (daftar di Pedoman
+  §17.1). Regenerasi Sisken bukan satu perintah (Pedoman §6.4).
+- **Kunci identitas di skrip klasik modul** (sejak 29 Sep 2026).
+  `LOCAL_IDENTITY`/`MODULE_ID` adalah `const` skrip module dan tidak terlihat
+  dari skrip klasik, jadi `getIdentityLocal()` (dipakai progres modul, Export
+  Tugas, forum HTML), `_draftKey()`, dan `const LK` friksi menulis kuncinya
+  sebagai literal yang wajib sama dengan `<slug>_identity_<MODULE_ID>`
+  (Modul 8–14 = pertemuan N+1). Mengubah `MODULE_ID` saja membuat progres,
+  gerbang, dan friksi mati tanpa galat — Optimalisasi Modul 12–14 begitu sejak
+  30 Mei 2026. Jalankan `scripts/samakan-kunci-identitas.mjs`;
+  `validate-public-security.mjs` menagihnya di 84 modul. Rincian: Pedoman §6.7.
 - **Asisten Dosen di UTS/UAS** (sejak 26 Sep 2026). Mahasiswa yang login
   memakai `#visitorFab` sebagai tombol "🤖 Asisten Dosen"; daftar mahasiswa
   online (nama, NIM, status poin) tetap khusus dosen dan halaman ujian tidak

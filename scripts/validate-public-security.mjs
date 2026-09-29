@@ -301,6 +301,7 @@ const PF_AWAL = "<!-- PROGRES-MODUL: awal -->";
 const PF_AKHIR = "<!-- PROGRES-MODUL: akhir -->";
 const RX_PF_SUB = /\n {2}\/\/ PROGRES-MODUL:PENJAGA-FORUM BEGIN (v\d+)[^\n]*\n[\s\S]*?\n {2}\/\/ PROGRES-MODUL:PENJAGA-FORUM END \1\n/g;
 const RX_PF_POLL = /<!-- PILIHAN-POLL-FORUM:BEGIN v\d+[^>]*-->[\s\S]*?<!-- PILIHAN-POLL-FORUM:END v\d+ -->/g;
+let kunciIdentitasModul = 0;
 for (const course of courseRoots) {
   for (let modulNo = 1; modulNo <= 14; modulNo += 1) {
     const relative = `${course}/Modul/Modul-${modulNo}.html`;
@@ -360,10 +361,16 @@ for (const course of courseRoots) {
     // Forum tidak pernah dikirim sebelum progres server diterapkan
     // (scripts/tambah-progres-modul.mjs, PROGRES-MODUL:PENJAGA-FORUM, 29 September 2026).
     await periksaPenjagaForum(modul, relative);
+    // Kunci identitas skrip klasik (getIdentityLocal, _draftKey, LK friksi) =
+    // LOCAL_IDENTITY halaman (scripts/samakan-kunci-identitas.mjs, 29 September 2026).
+    periksaKunciIdentitasModul(modul, relative, course, modulNo);
+    kunciIdentitasModul += 1;
   }
 }
 if (penjagaForum.halaman !== 84) throw new Error(`Expected 84 modul pages with PROGRES-MODUL:PENJAGA-FORUM, found ${penjagaForum.halaman}`);
 await ujiMutasiPenjagaForum();
+if (kunciIdentitasModul !== 84) throw new Error(`Expected 84 module pages with a checked classic identity key, found ${kunciIdentitasModul}`);
+ujiMutasiKunciIdentitas();
 
 for (const course of courseRoots) {
   for (const examName of ["UTS.html", "UAS.html"]) {
@@ -646,6 +653,135 @@ function periksaFlagRender(exam, jenis, relative) {
   }
   if (!kode(/(?<![\w$])render(U[TA]S)Questions\s*(?:\?\.\s*)?\(\s*\)/g).some((m) => m[1] === jenis && di(pemuat, m.index))) {
     throw new Error(`${relative}: _ensure${jenis}QuestionsLoaded must call render${jenis}Questions() after loading the questions`);
+  }
+}
+/**
+ * Halaman modul: kunci identitas yang dibaca skrip KLASIK = LOCAL_IDENTITY
+ * halaman (§6.7; scripts/samakan-kunci-identitas.mjs). LOCAL_IDENTITY dan
+ * MODULE_ID adalah const skrip module, jadi tidak terlihat dari skrip klasik
+ * (`typeof LOCAL_IDENTITY` di sana selalu 'undefined') dan skrip klasik
+ * menulis kuncinya sebagai literal: getIdentityLocal() — dipakai blok
+ * PROGRES-MODUL, Export Tugas, dan forum HTML —, cadangan identitas dan
+ * cadangan MODULE_ID di _draftKey(), dan `const LK` lapisan friksi.
+ * Optimalisasi Modul 12–14 membaca kunci modul SEBELUMNYA sejak MODULE_ID
+ * digeser ke pertemuan n+1 (#285, 30 Mei 2026): progres, gerbang, forum
+ * server, dan friksi mati bagi mahasiswa yang tidak login di modul
+ * sebelumnya pada peramban yang sama. LK Matematika 4 ditulis
+ * '${COURSE_ID}_identity_modul-N' dalam kutip tunggal (tidak diinterpolasi),
+ * sehingga friksinya tidak pernah aktif. Sama seperti pemeriksaan LK ujian
+ * (§8), tetapi untuk ke-84 modul, dan juga menagih aturan nomor MODULE_ID
+ * (Modul 1–7 → pertemuan-N, Modul 8–14 → pertemuan-(N+1) karena pertemuan 8
+ * = UTS; Matematika 4 → modul-N).
+ */
+function periksaKunciIdentitasModul(modul, relative, course, modulNo) {
+  const saran = "; run node scripts/samakan-kunci-identitas.mjs";
+  const slug = {
+    "Engineering-Mathematics": "math4",
+    "Getaran-Mekanik": "getaran_mekanik",
+    "Optimalisasi-dan-Automasi": "optoauto",
+    "Sistem-Kendali-Cerdas": "sistem_kendali_cerdas",
+    "Teknik-Tenaga-Listrik": "teknik_tenaga_listrik",
+    "Pemodelan-Computer-Aided-Design": "pemodelan_cad",
+  }[course];
+  if (!slug) throw new Error(`${relative}: unknown course for the identity-key check`);
+  const blok = [...modul.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .filter((m) => !/\bsrc\s*=/.test(m[1]))
+    .map((m) => ({ awal: m.index + m[0].indexOf(">") + 1, isi: m[2], module: /type\s*=\s*["']module["']/i.test(m[1]) }));
+  const diModule = (i) => blok.some((b) => b.module && i >= b.awal && i < b.awal + b.isi.length);
+  const satu = (rx, apa) => {
+    const m = [...modul.matchAll(rx)];
+    if (m.length !== 1) throw new Error(`${relative}: ${apa} found ${m.length}x, expected once`);
+    if (!diModule(m[0].index)) throw new Error(`${relative}: ${apa} must be declared in the page's <script type="module">`);
+    return m[0][1];
+  };
+  const mid = satu(/\nconst MODULE_ID = '([^'\n]+)';/g, "const MODULE_ID");
+  const harapMid = slug === "math4" ? `modul-${modulNo}` : `pertemuan-${modulNo <= 7 ? modulNo : modulNo + 1}`;
+  if (mid !== harapMid) {
+    throw new Error(`${relative}: MODULE_ID '${mid}', expected '${harapMid}' (Modul 1–7 → pertemuan-N, Modul 8–14 → pertemuan-(N+1) because meeting 8 is the UTS; Math4 uses modul-N)`);
+  }
+  let K = satu(/\nconst LOCAL_IDENTITY = `([^`\n]+)`;/g, "const LOCAL_IDENTITY").split("${MODULE_ID}").join(mid);
+  if (K.includes("${COURSE_ID}")) K = K.split("${COURSE_ID}").join(satu(/\nconst COURSE_ID = '([^'\n]+)';/g, "const COURSE_ID"));
+  if (K !== `${slug}_identity_${mid}`) throw new Error(`${relative}: LOCAL_IDENTITY resolves to '${K}', expected '${slug}_identity_${mid}'`);
+  // Literal kunci identitas UTUH (bukan awalan '<slug>_identity_' + …) dalam
+  // kutip tunggal/ganda, di luar baris komentar, di SEMUA skrip inline halaman:
+  // harus K. Menangkap juga '${COURSE_ID}_identity_…' yang tidak diinterpolasi.
+  const literal = (js) => {
+    const out = [];
+    for (const baris of js.split("\n")) {
+      const t = baris.trim();
+      if (t.startsWith("//") || t.startsWith("*") || t.startsWith("/*")) continue;
+      for (const m of baris.matchAll(/(['"])([A-Za-z0-9_${}.-]*_identity_[A-Za-z0-9_${}.-]+)\1/g)) out.push(m[2]);
+    }
+    return out;
+  };
+  for (const b of blok) {
+    for (const x of literal(b.isi)) {
+      if (x !== K) throw new Error(`${relative}: ${b.module ? "module" : "classic"} script reads identity key '${x}', expected '${K}' (this page's LOCAL_IDENTITY)${saran}`);
+    }
+  }
+  const klasik = (i) => blok.some((b) => !b.module && i >= b.awal && i < b.awal + b.isi.length);
+  const fungsiKlasik = (nama) => {
+    const kepala = `\nfunction ${nama}() {`;
+    const n = modul.split(kepala).length - 1;
+    if (n !== 1) throw new Error(`${relative}: ${kepala.trim()} found ${n}x, expected once${saran}`);
+    const i = modul.indexOf(kepala) + 1;
+    if (!klasik(i)) throw new Error(`${relative}: ${nama}() must stay in a classic script (PROGRES-MODUL calls it as a global)`);
+    const j = modul.indexOf("\n}\n", i);
+    return modul.slice(i, j + 3);
+  };
+  // getIdentityLocal: sumber identitas PROGRES-MODUL, Export Tugas, forum HTML.
+  {
+    const f = fungsiKlasik("getIdentityLocal");
+    const lit = literal(f);
+    if (!f.includes("localStorage.getItem(") || !lit.length || lit.some((x) => x !== K)) {
+      throw new Error(`${relative}: getIdentityLocal() must read localStorage '${K}' (this page's LOCAL_IDENTITY)${saran}`);
+    }
+  }
+  // _draftKey: kunci draf efektif `<slug>_draft_<MODULE_ID>_<nim>`.
+  {
+    const f = fungsiKlasik("_draftKey").split("\n").filter((b) => !b.trim().startsWith("//")).join("\n");
+    for (const m of f.matchAll(/\(typeof MODULE_ID !== 'undefined'\) \? MODULE_ID : '([^'\n]+)'/g)) {
+      if (m[1] !== mid) throw new Error(`${relative}: _draftKey falls back to MODULE_ID '${m[1]}' (always used in a classic script), expected '${mid}'${saran}`);
+    }
+    for (const m of f.matchAll(/'([a-z0-9_]+)_draft_([^'\n]*)'/g)) {
+      if (m[1] !== slug || (m[2] !== "" && m[2] !== `${mid}_`)) {
+        throw new Error(`${relative}: _draftKey builds '${m[1]}_draft_${m[2]}…', expected '${slug}_draft_${mid}_<nim>'${saran}`);
+      }
+    }
+  }
+  // LK lapisan friksi (bentuk yang sama dengan pemeriksaan LK ujian §8).
+  {
+    const lk = [...modul.matchAll(/\n {2}const LK = '([^'\n]*)';\n/g)];
+    if (lk.length !== 1) throw new Error(`${relative}: friction identity key (LK) found ${lk.length}x, expected once`);
+    if (!klasik(lk[0].index)) throw new Error(`${relative}: friction identity key (LK) must be in the classic friction script`);
+    if (lk[0][1] !== K) throw new Error(`${relative}: friction layer reads identity key '${lk[0][1]}', expected '${K}' (this page's LOCAL_IDENTITY)${saran}`);
+  }
+}
+/**
+ * Uji mutasi pemeriksaan di atas: salinan halaman yang dirusak dengan cara
+ * yang pernah terjadi (literal Opto Modul 12 sebelum #285 diikutkan, LK
+ * Matematika 4 tanpa interpolasi, cadangan draf 'pertemuan-5', MODULE_ID tanpa
+ * geseran n+1) harus ditolak, sedangkan halaman aslinya lolos.
+ */
+function ujiMutasiKunciIdentitas() {
+  const kasus = [
+    ["Optimalisasi-dan-Automasi", 12, "localStorage.getItem('optoauto_identity_pertemuan-13')", "localStorage.getItem('optoauto_identity_pertemuan-12')"],
+    ["Optimalisasi-dan-Automasi", 12, "\n  const LK = 'optoauto_identity_pertemuan-13';\n", "\n  const LK = 'optoauto_identity_pertemuan-12';\n"],
+    ["Optimalisasi-dan-Automasi", 12, "'optoauto_draft_pertemuan-13_'", "'optoauto_draft_pertemuan-12_'"],
+    ["Optimalisasi-dan-Automasi", 12, "\nconst MODULE_ID = 'pertemuan-13';", "\nconst MODULE_ID = 'pertemuan-12';"],
+    ["Engineering-Mathematics", 1, "\n  const LK = 'math4_identity_modul-1';\n", "\n  const LK = '${COURSE_ID}_identity_modul-1';\n"],
+    ["Engineering-Mathematics", 1, "'math4_draft_modul-1_'", "'math4_draft_pertemuan-5_'"],
+    ["Getaran-Mekanik", 12, "? MODULE_ID : 'pertemuan-13'", "? MODULE_ID : 'pertemuan-12'"],
+    ["Getaran-Mekanik", 12, "? LOCAL_IDENTITY : 'getaran_mekanik_identity_pertemuan-13'", "? LOCAL_IDENTITY : 'getaran_mekanik_identity_pertemuan-12'"],
+    ["Pemodelan-Computer-Aided-Design", 1, "localStorage.getItem('pemodelan_cad_identity_pertemuan-1')", "localStorage.getItem('pemodelan_cad_identity_pertemuan-2')"],
+  ];
+  for (const [course, n, asli, rusak] of kasus) {
+    const relative = `${course}/Modul/Modul-${n}.html`;
+    const modul = fs.readFileSync(path.join(root, relative), "utf8");
+    if (!modul.includes(asli)) throw new Error(`${relative}: identity-key mutation test anchor not found: ${asli.trim()}`);
+    let ditolak = false;
+    try { periksaKunciIdentitasModul(modul.replace(asli, () => rusak), relative, course, n); } catch { ditolak = true; }
+    if (!ditolak) throw new Error(`${relative}: identity-key check accepted a mutated page (${rusak.trim()})`);
   }
 }
 function ambilBlok(exam, awal, akhir, relative) {
