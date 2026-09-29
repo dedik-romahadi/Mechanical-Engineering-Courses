@@ -4412,17 +4412,19 @@ document.addEventListener('DOMContentLoaded', () => {
 // agar tidak hilang saat mahasiswa reload page / ganti device / browser crash.
 // Firebase hanya simpan MARKER (mc1, c5_comp), bukan TEXT code mahasiswa — draft ini penting.
 
+// KUNCI-IDENTITAS:DRAF BEGIN v1 — dipasang scripts/samakan-kunci-identitas.mjs
+// Kunci draf per NIM = <slug>_draft_<MODULE_ID>_<nim>, identitas dari
+// getIdentityLocal() (kunci LOCAL_IDENTITY). Bentuk lama memeriksa
+// `typeof LOCAL_IDENTITY`/`typeof MODULE_ID`, yang di skrip klasik selalu
+// 'undefined', sehingga literal cadangannya yang terpakai.
 function _draftKey() {
   try {
-    // LOCAL_IDENTITY didefinisikan di script type="module" di bawah; saat fungsi ini
-    // di-invoke dari event handler textarea, scope window sudah resolved.
-    const key = (typeof LOCAL_IDENTITY !== 'undefined') ? LOCAL_IDENTITY : 'math4_identity_modul-14';
-    const me = JSON.parse(localStorage.getItem(key) || 'null');
+    const me = getIdentityLocal();
     if (!me || !me.nim || me.role === 'dosen') return null;
-    const moduleId = (typeof MODULE_ID !== 'undefined') ? MODULE_ID : 'pertemuan-14';
-    return 'math4_draft_' + moduleId + '_' + me.nim;   // per-NIM, course-scoped
+    return 'math4_draft_modul-14_' + me.nim;   // per-NIM, course-scoped
   } catch(e) { return null; }
 }
+// KUNCI-IDENTITAS:DRAF END v1
 
 function _saveDraft() {
   const key = _draftKey();
@@ -11353,7 +11355,10 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
 ═══════════════════════════════════════════════════════════════════ -->
 <script>
 (function _frictionLayer(){
-  const LK = '${COURSE_ID}_identity_modul-14';
+  // KUNCI-IDENTITAS:LK BEGIN v1 — dipasang scripts/samakan-kunci-identitas.mjs
+  // Sama dengan LOCAL_IDENTITY skrip module halaman ini (dijaga validator).
+  const LK = 'math4_identity_modul-14';
+  // KUNCI-IDENTITAS:LK END v1
 
   function getMe(){
     try { return JSON.parse(localStorage.getItem(LK) || 'null'); }
