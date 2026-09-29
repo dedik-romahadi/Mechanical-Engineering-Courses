@@ -13108,7 +13108,7 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
   }, true);
 })();
 </script>
-<!-- DRAFT-MODUL:PENJAGA BEGIN v2 — dipasang scripts/draft-modul.mjs (Pedoman §6.3) -->
+<!-- DRAFT-MODUL:PENJAGA BEGIN v3 — dipasang scripts/draft-modul.mjs (Pedoman §6.3) -->
 <script>
 // Draft materi (kode komputasi, tautan Google Drive, teks Forum, angka bacaan dan
 // berkas tugas FreeCAD) — scripts/draft-modul.mjs. _saveDraft/_loadDraft halaman
@@ -13126,37 +13126,72 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
 //    (bila ada) dibungkus.
 //  • Tidak ada tulisan sebelum draft kunci itu dimuat: dulu _saveDraft dari
 //    check*Ready menimpa draft dengan kolom kosong sebelum _loadDraft membacanya.
-//  • Forum: server menang, kecuali suntingan yang belum terkirim (draft ≠ server
-//    dan ≠ salinan tersinkron <kunci>_sinkron). Sesudah muat pertama, simpanan
-//    hanya mengambil teks Forum dari textarea yang disunting di tab ini; jawaban
-//    lain mempertahankan teks draft yang tersimpan (tab lain yang masih memuat
-//    teks lama tidak menimpanya). Kiriman tetap hanya lewat simpanForum
+//  • Yang tersimpan HANYA isian mahasiswa yang belum dinilai atau belum terkirim:
+//    tulisan _saveDraft halaman disaring sebelum sampai ke localStorage. Kode/angka
+//    soal yang sudah dinilai (compAnswered) tidak ikut; kolom yang diketik di tab ini
+//    diambil dari DOM, kolom lain mempertahankan draft tersimpan (kode/angka ledger dan
+//    angka kiriman terakhir tidak pernah masuk draft). Teks Forum hanya bila berbeda
+//    dari teks server, bersama sidik (hash) teks server tempat suntingan itu dibuat —
+//    bukan teks server itu sendiri. Draft tanpa isi dihapus; draft tetap ada sesudah
+//    Keluar (isian yang belum terkirim milik mahasiswa).
+//  • Forum, gabung 3-arah saat draft dimuat: sidik server = basis draft → suntingan
+//    belum terkirim, dipulihkan lalu dikirim PROGRES-MODUL sesudah progres diterapkan;
+//    sidik berbeda (server berubah di perangkat atau tab lain) → server menang, draft
+//    jawaban itu dibuang dan catatan muncul di bawah textarea. Sesudah muat, simpanan
+//    hanya mengambil teks Forum dari textarea yang disunting di tab ini; jawaban lain
+//    mempertahankan draft tersimpan. Kiriman tetap hanya lewat simpanForum
 //    PROGRES-MODUL sesudah progres diterapkan.
-//  • Tugas CAD yang berkasnya diketahui server (berkasDiServer): ringkasan berkas
-//    server yang berlaku, bukan metadata berkas dari draft.
+//  • Tugas CAD: metadata berkas dari draft dipakai hanya sesudah getJawabanSaya NIM +
+//    PIN sesi ini selesai dan diterapkan, dan hanya bila server tidak punya berkas
+//    tugas itu atau sidik SHA-256-nya sama dengan ringkasan server di kartu. Sebelum
+//    itu ditahan: kartu, konfirmasi kirim, dan ekspor tidak menyebut berkas lama.
 //  • NIM mahasiswa berganti tanpa muat ulang (logout paksa, lalu NIM lain masuk di
 //    tab yang sama): kolom draft dikosongkan dan halaman dimuat ulang.
 //  • Setiap ketikan di kolom kode, tautan Drive, angka bacaan, atau Forum disimpan.
+//  • Akun simulasi menulis draft seperti mahasiswa (disengaja: alur draft bisa diuji).
 (function () {
   var simpanAsli = window._saveDraft, muatAsli = window._loadDraft;
   if (typeof simpanAsli !== 'function' || typeof muatAsli !== 'function') return;
   var FQ = ['fq1', 'fq2', 'fq3'], KOLOM = 'textarea[id^="code-c"], input[id^="nilai-c"]';
   var dimuatUntuk = null, draftAwal = null, sesiFb = null, sesiSah = null;
   var serverUntuk = null, forumServer = null, forumAda = false;
-  var kotor = {}, berkasDraft = {}, pemilik = null, berganti = false;
+  var kotor = {}, diketik = {}, dibuang = {}, pemilik = null, berganti = false;
+  var berkasDraft = {}, berkasTunda = {}, jsSelesai = {}, berkasSiap = null;
   function kunci() { if (berganti) return null; try { return typeof _draftKey === 'function' ? _draftKey() : null; } catch (e) { return null; } }
   function sesi(k) { return k ? k + '|' + String(window._sessionPinHash) : null; }
   function fbSiap() { try { return typeof _firebaseStateLoaded !== 'undefined' && _firebaseStateLoaded === true; } catch (e) { return false; } }
   function teks(v) { return typeof v === 'string' ? v : ''; }
   function baca(k) { try { var d = JSON.parse(localStorage.getItem(k) || 'null'); return d && typeof d === 'object' ? d : null; } catch (e) { return null; } }
-  function tulis(k, d) { try { localStorage.setItem(k, JSON.stringify(d)); } catch (e) {} }
-  function tulisSinkron(k, f) { tulis(k + '_sinkron', { fq1: teks(f && f.fq1), fq2: teks(f && f.fq2), fq3: teks(f && f.fq3) }); }
+  function nimSaya() { try { var me = typeof getIdentityLocal === 'function' ? getIdentityLocal() : null; return me && me.role === 'student' && me.nim ? String(me.nim) : null; } catch (e) { return null; } }
+  function sesiJs() { var n = nimSaya(); return n ? n + '|' + String(window._sessionPinHash) : null; }
+  function dinilai(q) { try { return typeof compAnswered === 'object' && !!compAnswered && !!compAnswered[q]; } catch (e) { return false; } }
+  // Sidik 53-bit (cyrb53) teks Forum server: basis suntingan draft tanpa menyimpan teks itu.
+  function sidik(t) {
+    var h1 = 0xdeadbeef, h2 = 0x41c6ce57, s = teks(t);
+    for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return 'c53:' + (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+  }
+  // Catatan lembut di bawah textarea Forum yang draftnya dikalahkan server.
+  function catatan(q, tampil) {
+    try {
+      var id = 'dm-catatan-' + q, el = document.getElementById(id), ta = document.getElementById('ans-' + q);
+      if (!tampil) { if (el && el.parentNode) el.parentNode.removeChild(el); return; }
+      if (el || !ta || !ta.parentNode) return;
+      el = document.createElement('div');
+      el.id = id;
+      el.setAttribute('role', 'status');
+      el.style.cssText = 'margin:6px 0 0;font-size:.8rem;line-height:1.45;color:#94a3b8';
+      el.textContent = 'ℹ Jawaban ini sudah diperbarui dari perangkat atau tab lain, jadi suntingan lama di perangkat ini yang belum terkirim tidak dipakai.';
+      ta.parentNode.insertBefore(el, ta.nextSibling);
+    } catch (e) {}
+  }
   // NIM mahasiswa yang data dan isiannya ada di halaman ini. NIM lain tanpa muat ulang:
   // isian lama tidak boleh masuk draft maupun forum NIM itu — kosongkan, muat ulang.
   function pemilikSama() {
     if (berganti) return false;
-    var n = null;
-    try { var me = typeof getIdentityLocal === 'function' ? getIdentityLocal() : null; if (me && me.role === 'student' && me.nim) n = String(me.nim); } catch (e) {}
+    var n = nimSaya();
     if (!n) return true;
     if (pemilik === null) pemilik = n;
     if (pemilik === n) return true;
@@ -13170,91 +13205,154 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
     try { location.reload(); } catch (e) {}
     return false;
   }
-  // _saveDraft halaman menulis ulang objek draft dari DOM. Teks Forum yang tidak disunting di
-  // tab ini diambil dari draft tersimpan (lama): dipasang sesaat di textarea selama simpanan
-  // (sinkron, tanpa event; seleksi dikembalikan), jadi setiap tulisan membawa teks yang benar.
-  function simpanDgnForum(lama, diri, argumen) {
-    var tukar = [];
-    try {
-      if (lama) FQ.forEach(function (q) {
-        var ta = document.getElementById('ans-' + q);
-        if (!ta || kotor[q] || typeof lama[q] !== 'string' || ta.value === lama[q]) return;
-        tukar.push([ta, ta.value, document.activeElement === ta, ta.selectionStart, ta.selectionEnd]);
-        ta.value = lama[q];
+  // Isi draft yang boleh tersimpan: d = objek tulisan _saveDraft halaman (dari DOM),
+  // lama = draft tersimpan. Hanya isian mahasiswa yang belum dinilai atau belum terkirim.
+  function saring(d, lama) {
+    lama = lama || {};
+    var o = { gdrive: teks(diketik.gdrive ? d.gdrive : lama.gdrive) }, ada = !!o.gdrive, basis = {};
+    var lb = lama.forumBasis && typeof lama.forumBasis === 'object' ? lama.forumBasis : {};
+    FQ.forEach(function (q) {
+      var t = '', b = null, srv = forumServer ? teks(forumServer[q]) : null;
+      if (kotor[q]) { t = teks(d[q]); b = srv === null ? null : sidik(srv); }
+      else if (!dibuang[q]) { t = teks(lama[q]); b = typeof lb[q] === 'string' ? lb[q] : null; }
+      if (t === srv) t = '';   // sama dengan teks server: bukan suntingan, tidak disimpan
+      o[q] = t;
+      if (t) { ada = true; if (b) basis[q] = b; }
+    });
+    if (Object.keys(basis).length) o.forumBasis = basis;
+    if (d.code && typeof d.code === 'object') {
+      var lk = lama.code && typeof lama.code === 'object' ? lama.code : {}, kode = {};
+      Object.keys(d.code).concat(Object.keys(lk)).forEach(function (q) {
+        if (!/^c\d{1,2}$/.test(q) || dinilai(q) || kode[q]) return;
+        var v = teks(diketik[q] ? d.code[q] : lk[q]);
+        if (v) { kode[q] = v; ada = true; }
       });
-    } catch (e) {}
-    try { return simpanAsli.apply(diri, argumen || []); }
-    finally {
-      tukar.forEach(function (x) { x[0].value = x[1]; if (x[2]) { try { x[0].setSelectionRange(x[3], x[4]); } catch (e) {} } });
+      o.code = kode;
     }
+    if (d.berkas && typeof d.berkas === 'object') {
+      var bk = {};
+      Object.keys(d.berkas).concat(Object.keys(berkasTunda)).forEach(function (q) {
+        var x = Object.prototype.hasOwnProperty.call(d.berkas, q) ? d.berkas[q] : berkasTunda[q];
+        if (!bk[q] && x && typeof x === 'object' && x.namaBerkas && !dinilai(q)) { bk[q] = x; ada = true; }
+      });
+      o.berkas = bk;
+    }
+    if (typeof d.savedAt === 'string') o.savedAt = d.savedAt;
+    return ada ? o : null;
   }
-  // Muat pertama untuk kunci ini (forum server sudah diketahui dari event yang sama).
-  function selaraskan(k) {
-    var snap = baca(k + '_sinkron'), berubah = false;
+  function tulisDraft(st, k, v, setAsli) {
+    var d = null;
+    try { d = JSON.parse(v); } catch (e) {}
+    if (!d || typeof d !== 'object') return;
+    var o = saring(d, baca(k));
+    if (o) setAsli.call(st, k, JSON.stringify(o)); else st.removeItem(k);
+  }
+  // _saveDraft asli dijalankan dengan setItem localStorage dibungkus sesaat: objek draft
+  // disaring sebelum ditulis; tulisan localStorage lain di dalamnya dibuang.
+  function simpanTersaring(k, diri, argumen) {
+    var P = typeof Storage === 'function' ? Storage.prototype : null, setAsli = P && P.setItem;
+    if (typeof setAsli !== 'function') return;
+    P.setItem = function (kk, v) {
+      if (this === localStorage) return kk === k ? tulisDraft(this, k, String(v), setAsli) : undefined;
+      return setAsli.apply(this, arguments);
+    };
+    try { return simpanAsli.apply(diri, argumen || []); }
+    finally { P.setItem = setAsli; }
+  }
+  // Muat pertama untuk kunci ini (forum server sudah diketahui dari event yang sama):
+  // gabung 3-arah per jawaban antara draft, basis draft (sidik), dan teks server.
+  function selaraskan() {
+    var berubah = false, lb = draftAwal && draftAwal.forumBasis && typeof draftAwal.forumBasis === 'object' ? draftAwal.forumBasis : {};
     FQ.forEach(function (q) {
       var ta = document.getElementById('ans-' + q);
       if (!ta) return;
       var lokal = teks(draftAwal && draftAwal[q]), srv = teks(forumServer[q]);
-      if (lokal !== '' && lokal !== srv && !(snap && snap[q] === lokal)) {   // belum terkirim
+      if (lokal === '' || lokal === srv) return;
+      var belum = typeof lb[q] === 'string' ? lb[q] === sidik(srv) : !forumAda;
+      if (belum) {   // server belum berubah sejak suntingan dibuat: belum terkirim
         if ((ta.value === srv || ta.value === '') && ta.value !== lokal) { ta.value = lokal; berubah = true; }
         if (ta.value === lokal) kotor[q] = true;
-      } else if (ta.value === lokal && lokal !== srv && (srv !== '' || forumAda)) { ta.value = srv; berubah = true; }
+      } else {   // server berubah di perangkat/tab lain: server menang
+        dibuang[q] = true;
+        if (ta.value === lokal) { ta.value = srv; berubah = true; }
+        catatan(q, true);
+      }
     });
-    tulisSinkron(k, forumServer);
     return berubah;
+  }
+  // Metadata berkas dari draft: 'pakai' | 'tahan' (getJawabanSaya sesi ini belum diterapkan) | 'buang'.
+  function shaKartu(x) { var m = /SHA-256 ([0-9a-f]{16})/i.exec(String(x || '')); return m ? m[1].toLowerCase() : null; }
+  function nasibBerkas(q, meta, kartuTeks) {
+    if (dinilai(q)) return 'buang';
+    if (!berkasSiap || berkasSiap !== sesiJs()) return 'tahan';
+    var diServer = false;
+    try { diServer = typeof berkasDiServer === 'object' && !!berkasDiServer && !!berkasDiServer[q]; } catch (e) {}
+    if (!diServer) return 'pakai';
+    var a = shaKartu(kartuTeks), b = String((meta && meta.sha256) || '').slice(0, 16).toLowerCase();
+    return a && a === b ? 'pakai' : 'buang';
+  }
+  function aturBerkas(bt, sebelum, kartu) {
+    var segar = function (q) { if (typeof _refreshTugasBtn === 'function') { try { _refreshTugasBtn(q); } catch (e) {} } };
+    var pulih = function (x) { if (x && x[0] && x[0].innerHTML !== x[1]) { x[0].innerHTML = x[1]; x[0].style.color = x[2]; } };
+    Object.keys(bt).forEach(function (q) {
+      var x = bt[q], lama = sebelum[q], kt = kartu[q];
+      if (x === lama) return;   // tidak dipasang _loadDraft asli kali ini
+      if (lama && lama !== berkasDraft[q]) { bt[q] = lama; pulih(kt); segar(q); return; }   // unggahan di tab ini menang
+      var n = nasibBerkas(q, x, kt ? kt[1] : '');
+      if (n === 'pakai') { berkasDraft[q] = x; delete berkasTunda[q]; return; }
+      if (n === 'tahan') { berkasTunda[q] = x; if (lama) bt[q] = lama; else delete bt[q]; }
+      else { delete berkasTunda[q]; delete bt[q]; }
+      pulih(kt); segar(q);
+    });
   }
   function muat() {
     var k = kunci(), s = sesi(k);
     if (!k || sesiFb !== s || sesiSah !== s) return;
     var pertama = dimuatUntuk !== k;
-    if (pertama) draftAwal = baca(k);   // potret SEBELUM ada tulisan untuk kunci ini
+    if (pertama) {
+      draftAwal = baca(k);   // potret SEBELUM ada tulisan untuk kunci ini
+      try { localStorage.removeItem(k + '_sinkron'); } catch (e) {}   // salinan teks server (v2)
+    }
+    var dr = pertama ? draftAwal : baca(k);
     // Kolom soal yang sudah dinilai (compAnswered) bukan dari draft: kode/angka ledger
     // yang datang terlambat (getJawabanSaya > batas tunggu) tetap mengisi kolom kosongnya.
-    var dinilai = [];
+    var tetap = [];
     try {
-      if (typeof compAnswered === 'object' && compAnswered) {
-        document.querySelectorAll(KOLOM).forEach(function (el) {
-          if (compAnswered[el.id.replace(/^[a-z]+-/, '')]) dinilai.push([el, el.value]);
-        });
-      }
+      document.querySelectorAll(KOLOM).forEach(function (el) {
+        if (dinilai(el.id.replace(/^[a-z]+-/, ''))) tetap.push([el, el.value]);
+      });
     } catch (e) {}
-    // Tugas CAD yang berkasnya diketahui server (terunggah belum dinilai, atau dibuka lagi
-    // untuk kirim ulang): ringkasan server berlaku, bukan metadata berkas draft (bisa lebih
-    // lama: diunggah ulang dari perangkat atau tab lain).
-    var bt = window.berkasTerunggah, sebelum = {}, diServer = [];
+    // Tugas CAD: metadata berkas yang dipasang _loadDraft asli diputuskan sesudahnya.
+    var bt = window.berkasTerunggah, sebelum = {}, kartu = {};
     if (!bt || typeof bt !== 'object') bt = null;
     try {
-      if (bt && typeof berkasDiServer === 'object' && berkasDiServer) {
-        Object.keys(berkasDiServer).forEach(function (q) {
-          if (!berkasDiServer[q]) return;
-          if (bt[q] && bt[q] === berkasDraft[q]) delete bt[q];   // dipasang draft pada pemuatan sebelumnya
+      if (bt) {
+        Object.keys(bt).forEach(function (q) { sebelum[q] = bt[q]; });
+        Object.keys(dr && dr.berkas && typeof dr.berkas === 'object' ? dr.berkas : {}).forEach(function (q) {
           var st = document.getElementById('berkas-status-' + q);
-          diServer.push([q, st, st ? st.innerHTML : '', st ? st.style.color : '']);
+          kartu[q] = [st, st ? st.innerHTML : '', st ? st.style.color : ''];
         });
       }
-      if (bt) Object.keys(bt).forEach(function (q) { sebelum[q] = bt[q]; });
     } catch (e) {}
     dimuatUntuk = k;   // ditandai SEBELUM asli: check*Ready di dalamnya boleh menyimpan
     try { return muatAsli.apply(this, arguments); }
     finally {
-      dinilai.forEach(function (x) { if (x[0].value !== x[1]) x[0].value = x[1]; });
-      try {
-        diServer.forEach(function (x) {
-          if (Object.prototype.hasOwnProperty.call(sebelum, x[0])) bt[x[0]] = sebelum[x[0]]; else delete bt[x[0]];
-          if (x[1] && x[1].innerHTML !== x[2]) { x[1].innerHTML = x[2]; x[1].style.color = x[3]; }
-          if (typeof _refreshTugasBtn === 'function') _refreshTugasBtn(x[0]);
-        });
-        if (bt) Object.keys(bt).forEach(function (q) { if (bt[q] !== sebelum[q]) berkasDraft[q] = bt[q]; });
-      } catch (e) {}
-      var berubah = pertama && !!forumServer && selaraskan(k);
-      try { simpanDgnForum(pertama ? null : baca(k)); } catch (e) {}   // gabungan draft + isian yang sudah ada
+      tetap.forEach(function (x) { if (x[0].value !== x[1]) x[0].value = x[1]; });
+      try { if (bt) aturBerkas(bt, sebelum, kartu); } catch (e) {}
+      var berubah = pertama && !!forumServer && selaraskan();
+      try { simpanTersaring(k, null, []); } catch (e) {}   // gabungan draft + isian, tersaring
+      dibuang = {};
       if (berubah && typeof window.checkForumReady === 'function') { try { window.checkForumReady(); } catch (e) {} }
     }
   }
   function muatSesudahFirebase() {
     if (pemilikSama()) {
       var k = kunci();
-      if (k && fbSiap()) sesiFb = sesi(k);   // _markLoaded dengan sesi ini: marker & kode ledger sudah diterapkan
+      if (k && fbSiap()) {
+        sesiFb = sesi(k);   // _markLoaded dengan sesi ini: marker & kode ledger sudah diterapkan
+        var j = sesiJs();
+        if (j && jsSelesai[j]) berkasSiap = j;   // ringkasan berkas getJawabanSaya sesi ini ikut diterapkan
+      }
     }
     return muat.apply(this, arguments);
   }
@@ -13262,7 +13360,7 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
     var k = kunci();
     if (!k) return;
     if (dimuatUntuk !== k) { muat(); if (dimuatUntuk !== k) return; }
-    return simpanDgnForum(baca(k), this, arguments);
+    return simpanTersaring(k, this, arguments);
   }
   window._loadDraft = muatSesudahFirebase;
   window._saveDraft = simpan;
@@ -13274,6 +13372,24 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
       try { muatSesudahFirebase(); } catch (e) {}
       return r;
     };
+  }
+  // Halaman bertugas berkas: getJawabanSaya (JAWABAN-PRIVAT:JEMBATAN, skrip module yang
+  // menugaskan window._getJawabanSayaCallable sesudah skrip ini) yang selesai untuk NIM +
+  // hash PIN sesi dicatat; hasilnya tidak diubah.
+  if (window.berkasTerunggah && typeof window.berkasTerunggah === 'object') {
+    try {
+      var bungkusJs = function (fn) {
+        if (typeof fn !== 'function') return fn;
+        return function (p) {
+          var r = fn.apply(this, arguments), sj = p && p.nim ? String(p.nim) + '|' + String(p.pinHash) : null;
+          if (sj) Promise.resolve(r).then(function () { jsSelesai[sj] = true; }, function () {});
+          return r;
+        };
+      };
+      var jsKini = bungkusJs(window._getJawabanSayaCallable);
+      Object.defineProperty(window, '_getJawabanSayaCallable', { configurable: true, enumerable: true,
+        get: function () { return jsKini; }, set: function (fn) { jsKini = bungkusJs(fn); } });
+    } catch (e) {}
   }
   // getModulProgress (NIM + hash PIN sesi ini) sudah memeriksa PIN di server.
   window.addEventListener('progres-modul:diterapkan', function (e) {
@@ -13291,21 +13407,28 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
     sesiSah = sesi(k);
     muat();
   });
+  // Kiriman forum sukses: teks itu kini teks server yang diketahui tab ini (basis suntingan
+  // berikutnya) dan keluar dari draft.
   window.addEventListener('progres-modul:forum-tersimpan', function (e) {
     var k = kunci(), j = e && e.detail && e.detail.jawaban;
-    if (!k || !j || typeof j !== 'object') return;
-    tulisSinkron(k, j);
-    FQ.forEach(function (q) { var ta = document.getElementById('ans-' + q); if (ta && ta.value === teks(j[q])) kotor[q] = false; });
+    if (!k || !j || typeof j !== 'object' || serverUntuk !== k) return;
+    forumServer = { fq1: teks(j.fq1), fq2: teks(j.fq2), fq3: teks(j.fq3) };
+    forumAda = true;
+    FQ.forEach(function (q) { var ta = document.getElementById('ans-' + q); if (ta && ta.value === forumServer[q]) kotor[q] = false; });
+    if (dimuatUntuk === k) { try { simpanTersaring(k, null, []); } catch (x) {} }
   });
   document.addEventListener('input', function (e) {
     var t = e && e.target, id = t && typeof t.id === 'string' ? t.id : '';
-    if (!/^(?:code-c\d{1,2}|nilai-c\d{1,2}|gdrive-link|ans-fq[1-3])$/.test(id)) return;
-    if (id.indexOf('ans-') === 0) kotor[id.slice(4)] = true;
+    var m = /^(?:code|nilai)-(c\d{1,2})$/.exec(id);
+    if (m) diketik[m[1]] = true;
+    else if (id === 'gdrive-link') diketik.gdrive = true;
+    else if (/^ans-fq[1-3]$/.test(id)) { kotor[id.slice(4)] = true; catatan(id.slice(4), false); }
+    else return;
     try { simpan(); } catch (x) {}
   }, true);
 })();
 </script>
-<!-- DRAFT-MODUL:PENJAGA END v2 -->
+<!-- DRAFT-MODUL:PENJAGA END v3 -->
 <!-- PROGRES-MODUL: awal -->
 <style>
 .pm-centang{display:flex;align-items:center;gap:16px;margin:32px 0 8px;padding:18px 22px;border:2px solid rgba(0,224,158,.45);border-radius:16px;background:linear-gradient(135deg,rgba(0,224,158,.14),rgba(34,211,238,.10));box-shadow:0 0 0 1px rgba(0,224,158,.12),0 10px 30px rgba(0,0,0,.28);color:#eaf2ff;font-size:17px;line-height:1.55;cursor:pointer;transition:border-color .2s,background .2s,box-shadow .2s}
