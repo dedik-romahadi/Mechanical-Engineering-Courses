@@ -407,9 +407,9 @@ await ujiMutasiPenjagaForum();
 if (kunciIdentitasModul !== 84) throw new Error(`Expected 84 module pages with a checked classic identity key, found ${kunciIdentitasModul}`);
 ujiMutasiKunciIdentitas();
 if (draftModulHalaman !== 84 || draftModulId.size !== 84) throw new Error(`Expected 84 module pages with a working per-module draft (unique MODUL_ID), found ${draftModulHalaman} pages / ${draftModulId.size} ids`);
-for (const { relative, b } of draftModulRagam.values()) ujiPerilakuDraftModul(b, relative);
+for (const { relative, b } of draftModulRagam.values()) await ujiPerilakuDraftModul(b, relative);
 if (contohMutasiDraftModul.length !== 3 || !contohMutasiDraftModul.some((c) => c.b.cad) || !contohMutasiDraftModul.some((c) => c.b.markLoadedGlobal)) throw new Error("draft-modul mutation samples must cover a code page, a CAD page, and the global _markLoaded page");
-ujiMutasiDraftModul(contohMutasiDraftModul);
+await ujiMutasiDraftModul(contohMutasiDraftModul);
 // Kalimat "draft modul mati" dari cabang yang dibuat sebelum draft-modul (mis. komentar
 // JAWABAN-PRIVAT:ANGKA-CAD, catatan temuan CAD di Pedoman) tidak boleh ikut tergabung.
 for (const relative of ["Pedoman-Modul.md", "CLAUDE.md", "scripts/jawaban-privat.mjs"]) {
@@ -1419,7 +1419,8 @@ async function periksaPenjagaForum(modul, relative) {
     "function mulaiMuatForum() {", "function forumSiap(p) {", "function forumDitolak() {", "function forumGagal(e, d) {",
     "function forumCobaLagi() {", "function forumTertahan() {", "function bolehKirimForum(j) {",
     // v2 (29 September 2026): event sesudah kiriman forum sukses, dipakai DRAFT-MODUL:PENJAGA
-    // (scripts/draft-modul.mjs) sebagai salinan tersinkron draft forum.
+    // (scripts/draft-modul.mjs; sejak PENJAGA v3 sebagai teks server yang diketahui tab = basis
+    // gabung 3-arah, dan teks yang terkirim keluar dari draft).
     "function forumTersimpan(j) {", "window.dispatchEvent(new CustomEvent('progres-modul:forum-tersimpan', { detail: { jawaban: j } }))",
   ]) {
     if (hitungDi(blok, wajib) < 1) throw new Error(`${relative}: PENJAGA-FORUM missing ${wajib}${saran}`);
@@ -1964,6 +1965,13 @@ async function ujiMutasiPenjagaForum() {
  * 'progres-modul:forum-tersimpan') + perilaku di node:vm memakai
  * `_saveDraft`/`_loadDraft` ASLI tiap ragam dan `_markLoaded` persis bentuk
  * halaman (DOM tiruan) + uji mutasi (tiap mutasi wajib diterapkan DAN ditolak).
+ * PENJAGA v3 (30 September 2026, temuan verifikasi A/B/C): Forum digabung 3-arah
+ * (sidik basis server di draft; server yang berubah di perangkat lain menang),
+ * draft disaring sebelum ditulis (tanpa kode/angka dinilai, tanpa isi yang tidak
+ * diketik, tanpa teks server; draft kosong dihapus; salinan _sinkron v2 dihapus),
+ * dan metadata berkas CAD dari draft baru dipakai sesudah getJawabanSaya sesi itu
+ * selesai (accessor window._getJawabanSayaCallable) — diuji di sandbox dengan
+ * Storage.prototype dan callable tiruan, plus mutasi A/B/C.
  */
 function fungsiDraftModul(html, awal, relative) {
   const i = html.indexOf(awal);
@@ -2030,14 +2038,31 @@ function periksaKlaimDraftUsang(teks, relative) {
   }
 }
 
+/** cyrb53 — sama dengan sidik() blok PENJAGA v3 (basis suntingan Forum di draft), ditulis ulang di sini. */
+function sidikDraftModul(t) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  const s = typeof t === "string" ? t : "";
+  for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+  h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+  h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return "c53:" + (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+function tungguMikro() { return new Promise((r) => setImmediate(r)); }
+
 /** _draftKey/_saveDraft/_loadDraft ragam halaman + _markLoaded + skrip PENJAGA di node:vm (DOM, localStorage, event tiruan). */
 function sandboxDraftModul(b, opsi = {}) {
   const { modulId = "uji-modul-2", me = { nama: "UJI DRAFT", nim: DRAFT_MODUL_NIM, role: "student" }, pinHash = DRAFT_MODUL_HASH, preview = false, isi = {}, toko: tokoBersama = null } = opsi;
-  const el = new Map(), pendengar = [], pendengarWin = {}, tulisan = [];
+  const el = new Map(), pendengar = [], pendengarWin = {}, tulisan = [], hapus = [];
   // toko bersama = localStorage satu peramban untuk beberapa tab (sandbox) sekaligus.
   const toko = tokoBersama || new Map();
   for (const [k, v] of Object.entries(isi)) toko.set(k, v);
-  const buat = (id, tagName) => { const e = { id, tagName, value: "", innerHTML: "", disabled: false, style: {} }; el.set(id, e); return e; };
+  const induk = {
+    insertBefore: (n) => { n.parentNode = induk; if (n.id) el.set(n.id, n); },
+    removeChild: (n) => { if (el.get(n.id) === n) el.delete(n.id); n.parentNode = null; },
+  };
+  const buat = (id, tagName) => { const e = { id, tagName, value: "", innerHTML: "", disabled: false, style: {}, parentNode: induk, nextSibling: null }; el.set(id, e); return e; };
   buat("gdrive-link", "INPUT");
   for (const q of ["fq1", "fq2", "fq3"]) buat("ans-" + q, "TEXTAREA");
   if (b.cad) { buat("nilai-c1", "INPUT"); buat("nilai-c2", "INPUT"); buat("berkas-status-c1", "DIV"); buat("berkas-status-c2", "DIV"); }
@@ -2049,15 +2074,22 @@ function sandboxDraftModul(b, opsi = {}) {
       return [...el.values()].filter((e) => (e.tagName === "TEXTAREA" && e.id.startsWith("code-c")) || (e.tagName === "INPUT" && e.id.startsWith("nilai-c")));
     },
     addEventListener: (jenis, fn) => { if (jenis === "input") pendengar.push(fn); },
+    createElement: (tag) => ({ id: "", tagName: String(tag).toUpperCase(), style: {}, textContent: "", parentNode: null, setAttribute() {} }),
   };
-  const localStorage = {
-    getItem: (k) => (toko.has(k) ? toko.get(k) : null),
-    setItem: (k, v) => { tulisan.push({ k, isi: JSON.parse(String(v)) }); toko.set(k, String(v)); },
-    removeItem: (k) => { toko.delete(k); },
+  // localStorage = instans Storage sandbox (PENJAGA v3 membungkus Storage.prototype.setItem sesaat).
+  const penyimpan = {
+    ambil: (k) => (toko.has(k) ? toko.get(k) : null),
+    taruh: (k, v) => { let d = null; try { d = JSON.parse(v); } catch { d = v; } tulisan.push({ k, isi: d }); toko.set(k, v); },
+    buang: (k) => { hapus.push(k); toko.delete(k); },
   };
-  const ctx = { document, localStorage, console: { log() {}, warn() {}, error() {} } };
+  const ctx = { document, __penyimpan: penyimpan, console: { log() {}, warn() {}, error() {} } };
   vm.createContext(ctx);
-  vm.runInContext("var window = this;", ctx);
+  vm.runInContext(`var window = this;
+function Storage() {}
+Storage.prototype.getItem = function (k) { return __penyimpan.ambil(String(k)); };
+Storage.prototype.setItem = function (k, v) { __penyimpan.taruh(String(k), String(v)); };
+Storage.prototype.removeItem = function (k) { __penyimpan.buang(String(k)); };
+var localStorage = new Storage();`, ctx);
   Object.assign(ctx, {
     MODUL_ID: modulId, _previewMode: preview, _sessionPinHash: pinHash, getIdentityLocal: () => me, __cfr: 0, __cfrFq1: [], __muatUlang: 0,
     location: { reload: () => { ctx.__muatUlang += 1; } },
@@ -2069,8 +2101,7 @@ function sandboxDraftModul(b, opsi = {}) {
   // compAnswered/berkasTerunggah/berkasDiServer, dan _tampilBerkas menulis kartu berkas.
   vm.runInContext(`let _firebaseStateLoaded = false;
 var compAnswered = {};
-window.berkasTerunggah = {};
-${b.cad ? "const berkasDiServer = {};" : ""}
+${b.cad ? "window.berkasTerunggah = {};\nconst berkasDiServer = {};" : ""}
 function _tampilBerkas(q) { var x = window.berkasTerunggah[q], st = document.getElementById('berkas-status-' + q); if (x && st) { st.innerHTML = 'DRAF ' + x.namaBerkas; st.style.color = 'draf'; } }
 function _refreshTugasBtn() {}
 function checkExportReady() { _saveDraft(); }
@@ -2082,10 +2113,14 @@ ${b.markLoadedGlobal ? b.markLoaded + "\nwindow._markLoaded = _markLoaded;" : ""
   const skrip = /^<!--[^\n]*-->\n<script>\n([\s\S]*?)<\/script>\n<!--[^\n]*-->$/.exec(b.penjaga);
   if (!skrip) throw new Error("DRAFT-MODUL:PENJAGA must wrap exactly one classic <script>");
   vm.runInContext(skrip[1], ctx);
+  const aksesorJs = !!Object.getOwnPropertyDescriptor(ctx, "_getJawabanSayaCallable");
+  // Skrip module JEMBATAN (ditunda) menugaskan callable getJawabanSaya sesudah PENJAGA.
+  ctx.__jsHasil = { data: { jawaban: {}, berkas: {} } };
+  vm.runInContext("window._getJawabanSayaCallable = function (p) { window.__jsTerakhir = Promise.resolve(window.__jsHasil); return window.__jsTerakhir; };", ctx);
   if (!b.markLoadedGlobal) vm.runInContext(`window.__markLoaded = (function () {\n${b.markLoaded}\n  return _markLoaded;\n})();`, ctx);
   const jalan = (s) => vm.runInContext(s, ctx);
   const s = {
-    ctx, el, tulisan, toko, jalan,
+    ctx, el, tulisan, hapus, toko, jalan, aksesorJs,
     // Akhir _loadScoredQuestions (sukses): marker & kode ledger sudah diterapkan.
     markLoaded: () => jalan(b.markLoadedGlobal ? "if (typeof window._loadDraft === 'function') window._loadDraft(); window._markLoaded();" : "window.__markLoaded();"),
     // Jaring 10 detik halaman ber-_markLoaded const (tanpa _loadDraft).
@@ -2102,22 +2137,28 @@ ${b.markLoadedGlobal ? b.markLoaded + "\nwindow._markLoaded = _markLoaded;" : ""
     // getModulProgress ditolak/gagal (PIN salah, galat sementara): event {ok:false}.
     gagalProgres: () => ctx.dispatchEvent(new ctx.CustomEvent("progres-modul:diterapkan", { detail: { ok: false } })),
     tersimpan: (jawaban) => ctx.dispatchEvent(new ctx.CustomEvent("progres-modul:forum-tersimpan", { detail: { jawaban } })),
-    sinkron: (k) => { const v = toko.get(k + "_sinkron"); return v ? JSON.parse(v) : null; },
     draft: (k) => { const v = toko.get(k); return v ? JSON.parse(v) : null; },
+    catatan: (q) => el.has("dm-catatan-" + q),
+    // getJawabanSaya (JEMBATAN) untuk NIM + hash PIN sesi ini (atau p) selesai sukses.
+    js: async (p) => { const r = await ctx._getJawabanSayaCallable(p || { nim: me && me.nim, pinHash: ctx._sessionPinHash, modulId }); await tungguMikro(); return r; },
+    // Semua nilai localStorage (untuk pemeriksaan privasi).
+    semua: () => [...toko.entries()].map(([k, v]) => k + "=" + v).join("\n"),
   };
   // Sesi siap: data Firebase sesi ini dimuat (_markLoaded) DAN diterima server (progres).
   s.siap = (forum = {}) => { s.markLoaded(); s.terapkan(forum); };
   return s;
 }
 
-function ujiPerilakuDraftModul(b, label) {
+async function ujiPerilakuDraftModul(b, label) {
   const gagal = (m) => { throw new Error(`${label}: draft ${m}${SARAN_DRAFT_MODUL}`); };
   const K = `draft_modul_uji-modul-2_${DRAFT_MODUL_NIM}`;
   const DRIVE = "https://drive.google.com/drive/folders/UJI-DRAFT";
   const kode = b.tanpaKode ? {} : (b.cad ? { c1: "12,5", c2: "7" } : { c1: "print(1)", c11: "print(11)" });
-  const META_T1 = { namaBerkas: "uji-t1.FCStd", size: 2048, sha256: "ab", uploadedAt: "2026-09-29T01:00:00.000Z", versi: 1 };
+  const SHA_T1 = "ab12c1" + "0".repeat(58);
+  const META_T1 = { namaBerkas: "uji-t1.FCStd", size: 2048, sha256: SHA_T1, uploadedAt: "2026-09-29T01:00:00.000Z", versi: 1 };
   const draft = (fq, tambah = {}) => JSON.stringify(Object.assign({ gdrive: DRIVE, fq1: fq[0], fq2: fq[1], fq3: fq[2], code: kode, savedAt: "2026-09-29T00:00:00.000Z" },
     b.cad ? { berkas: { c1: META_T1 } } : {}, tambah));
+  // Draft tanpa forumBasis (dibuat tangan): dipulihkan hanya bila server belum punya catatan forum.
   const simpanan = draft(["draf satu", "draf dua", ""]);
   const kolomKode = b.tanpaKode ? [] : (b.cad ? ["nilai-c1", "nilai-c2"] : ["code-c1", "code-c11"]);
   const harapKode = b.tanpaKode ? [] : (b.cad ? ["12,5", "7"] : ["print(1)", "print(11)"]);
@@ -2128,18 +2169,26 @@ function ujiPerilakuDraftModul(b, label) {
 
   // Kunci per modul + NIM, terjangkau dari skrip klasik.
   let s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+  // Pembungkus getJawabanSaya hanya di halaman bertugas berkas; janji callable diteruskan apa adanya.
+  if (s.aksesorJs !== !!b.cad) gagal(`getJawabanSaya accessor must be installed exactly on file-task (CAD) pages (installed=${s.aksesorJs})`);
+  if (b.cad) {
+    const janji = s.ctx._getJawabanSayaCallable({ nim: DRAFT_MODUL_NIM, pinHash: DRAFT_MODUL_HASH, modulId: "uji-modul-2" });
+    if (janji !== s.ctx.__jsTerakhir || (await janji) !== s.ctx.__jsHasil) gagal("the getJawabanSaya wrapper must return the callable's own promise unchanged (ledger result untouched)");
+    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+  }
   if (s.jalan("_draftKey()") !== K) gagal(`key must be draft_modul_<window.MODUL_ID>_<NIM>, got ${JSON.stringify(s.jalan("_draftKey()"))}`);
   // Sebelum data Firebase: tidak ada tulisan (dulu check*Ready menimpa draft dengan kolom kosong),
   // juga bila server sudah menerima sesi (progres diterapkan lebih dulu).
   s.jalan("_saveDraft(); _loadDraft(); checkExportReady(); checkForumReady();");
   s.terapkan({});
-  if (s.tulisan.some((w) => w.k === K) || !kosong(s)) gagal("written/loaded before the Firebase state was loaded (progress applied first)");
+  if (s.tulisan.some((w) => w.k === K) || s.hapus.length || !kosong(s)) gagal("written/loaded before the Firebase state was loaded (progress applied first)");
   if (!b.markLoadedGlobal) {
     // Jaring 10 detik (Firebase menggantung) bukan tanda siap.
     s.jaring();
     if (s.tulisan.some((w) => w.k === K) || isian(s).some(Boolean)) gagal("the 10-second safety net loaded or wrote the draft");
   }
-  // Kode ledger soal yang sudah dinilai sudah di kolomnya saat _markLoaded: draft tidak menimpanya.
+  // Kolom yang sudah terisi dari server saat _markLoaded (kode ledger, angka kiriman terakhir):
+  // draft tidak menimpanya, dan isinya tidak masuk draft (bukan ketikan mahasiswa).
   if (!b.tanpaKode) s.el.get(kolomKode[0]).value = "LEDGER";
   s.markLoaded();
   const pulih = isian(s);
@@ -2148,8 +2197,12 @@ function ujiPerilakuDraftModul(b, label) {
   if (!s.jalan("window._draftSudahDimuat()")) gagal("not marked loaded after _markLoaded");
   const tulisK = s.tulisan.filter((w) => w.k === K);
   if (tulisK.length < 1 || tulisK.length > 4) gagal(`one load wrote ${tulisK.length}x (load not marked before the original _loadDraft?)`);
-  if (s.tulisan.some((w) => w.k !== K && w.k !== K + "_sinkron") || tulisK.some((w) => w.isi.fq1 !== "draf satu" || w.isi.gdrive !== DRIVE)) gagal("a write lost the restored draft");
-  if (b.cad && !(s.ctx.berkasTerunggah.c1 && s.ctx.berkasTerunggah.c1.namaBerkas === "uji-t1.FCStd")) gagal("CAD upload metadata (berkasTerunggah) not restored");
+  if (s.tulisan.some((w) => w.k !== K) || tulisK.some((w) => w.isi.fq1 !== "draf satu" || w.isi.gdrive !== DRIVE)) gagal("a write lost the restored draft (or wrote another key)");
+  if (!b.tanpaKode && (s.draft(K).code[kolomKode[0].replace(/^[a-z]+-/, "")] !== harapKode[0] || /LEDGER/.test(s.semua()))) {
+    gagal(`a value the student did not type (ledger/server fill) went into the draft: ${JSON.stringify(s.draft(K).code)}`);
+  }
+  if (b.cad && (s.ctx.berkasTerunggah.c1 || s.el.get("berkas-status-c1").innerHTML)) gagal("CAD draft file metadata shown before getJawabanSaya of this session finished");
+  if (b.cad && !(s.draft(K).berkas || {}).c1) gagal("CAD draft file metadata held back before getJawabanSaya was dropped from the stored draft");
   // Ketikan tersimpan — termasuk kolom kode tanpa oninput (lewat pendengar input); kolom lain tidak.
   let n0 = s.tulisan.length;
   s.ketik("gdrive-link", DRIVE + "-BARU");
@@ -2157,10 +2210,19 @@ function ujiPerilakuDraftModul(b, label) {
   if (b.cad) s.ketik("nilai-c2", "8");
   const akhir = s.draft(K);
   if (s.tulisan.length === n0 || akhir.gdrive !== DRIVE + "-BARU" || (!b.tanpaKode && !b.cad && akhir.code.c15 !== "print(15)") || (b.cad && akhir.code.c2 !== "8")) gagal("typing into a Drive/code/number field is not saved");
+  if (b.cad && !(akhir.berkas || {}).c1) gagal("held-back CAD file metadata lost on the next save");
   n0 = s.tulisan.length;
   s.el.set("vPin", { id: "vPin", tagName: "INPUT", value: "" });
   s.ketik("vPin", "123456");
   if (s.tulisan.length !== n0) gagal("saved on input into a non-draft field");
+  if (b.cad) {
+    // getJawabanSaya sesi ini selesai (server tanpa berkas tugas itu) → _markLoaded berikutnya memasangnya.
+    await s.js();
+    s.markLoaded();
+    if (!(s.ctx.berkasTerunggah.c1 && s.ctx.berkasTerunggah.c1.namaBerkas === "uji-t1.FCStd") || s.el.get("berkas-status-c1").innerHTML !== "DRAF uji-t1.FCStd") {
+      gagal("CAD upload metadata not restored once getJawabanSaya finished without a server file");
+    }
+  }
 
   // Sesi belum DITERIMA SERVER (progres ditolak/gagal, mis. hash PIN basi milik NIM lain
   // sesudah Keluar): _markLoaded saja tidak memuat maupun menulis draft.
@@ -2183,16 +2245,21 @@ function ujiPerilakuDraftModul(b, label) {
   if (s.nilai("ans-fq1") !== "draf satu") gagal("not restored after the server accepted the new PIN-session hash");
 
   // Kode/angka ledger soal yang sudah dinilai datang terlambat (getJawabanSaya > batas tunggu):
-  // saat _markLoaded kolomnya masih kosong tetapi compAnswered sudah true — draft tidak mengisinya.
+  // saat _markLoaded kolomnya masih kosong tetapi compAnswered sudah true — draft tidak mengisinya,
+  // dan draft tersimpan tidak lagi membawa kode/angka maupun metadata berkas soal itu.
   if (!b.tanpaKode) {
     s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
     s.jalan(`compAnswered.c1 = true;`);
+    if (b.cad) await s.js();
     s.siap();
     const sisa = kolomKode.slice(1).map((id) => s.nilai(id));
     if (s.nilai(kolomKode[0]) !== "") gagal(`filled a graded question's code/number from the draft before the late ledger code: ${JSON.stringify(s.nilai(kolomKode[0]))}`);
     if (JSON.stringify(sisa) !== JSON.stringify(harapKode.slice(1))) gagal("not restored into the ungraded code/number fields next to a graded one");
+    s.el.get(kolomKode[0]).value = "LEDGER-TERLAMBAT";
+    s.jalan("checkExportReady();");
     const w = s.draft(K);
-    if (w.code && w.code.c1) gagal("the saved draft still carries the graded question's draft code");
+    if ((w.code && w.code.c1) || /LEDGER-TERLAMBAT/.test(s.semua())) gagal("the saved draft still carries the graded question's code/number");
+    if (b.cad && ((w.berkas || {}).c1 || s.ctx.berkasTerunggah.c1)) gagal("the saved draft still carries the graded CAD task's file metadata");
   }
   // Simpanan pertama (checkExportReady di _markLoaded, sebelum _loadDraft) memuat draft lebih dulu.
   s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
@@ -2264,129 +2331,233 @@ function ujiPerilakuDraftModul(b, label) {
     const dipulihkan = isian(s).some(Boolean);
     s.ketik("gdrive-link", "x");
     s.tersimpan({ fq1: "a", fq2: "b", fq3: "c" });
-    if (s.jalan("_draftKey()") !== null || s.tulisan.length || dipulihkan) gagal(`must stay off for ${nama} (null key, no read/write)`);
+    if (s.jalan("_draftKey()") !== null || s.tulisan.length || s.hapus.length || dipulihkan) gagal(`must stay off for ${nama} (null key, no read/write)`);
   }
 
-  // ── Forum: server menang, kecuali suntingan yang belum terkirim ──
+  // ── Privasi (v3): draft hanya isian yang belum dinilai/terkirim; tanpa teks server ──
   const S = { fq1: "server satu", fq2: "server dua", fq3: "" };
-  // (1) Progres lebih dulu; fq1 belum terkirim (draft ≠ server ≠ salinan tersinkron) → draft;
-  //     fq2 sudah pernah tersinkron (draft = salinan) → server tetap.
-  s = sandboxDraftModul(b, { isi: { [K]: simpanan, [K + "_sinkron"]: JSON.stringify({ fq1: "server satu", fq2: "draf dua", fq3: "" }) } });
+  // (P1) Draft gaya v2 (teks Forum = teks server, salinan _sinkron berisi teks server, kode soal
+  //      yang kini dinilai): sesudah muat tidak ada kode dinilai, teks server, maupun _sinkron.
+  s = sandboxDraftModul(b, { isi: { [K]: draft([S.fq1, S.fq2, ""], { code: Object.assign({}, kode, b.tanpaKode ? {} : { c1: "RAHASIA-DINILAI" }) }), [K + "_sinkron"]: JSON.stringify(S) } });
+  if (!b.tanpaKode) s.jalan("compAnswered.c1 = true;");
+  s.siap(S);
+  if (/server satu|server dua|RAHASIA-DINILAI/.test(s.semua()) || s.toko.has(K + "_sinkron")) gagal(`localStorage still holds server forum text, the v2 synced copy, or a graded answer after loading: ${s.semua().slice(0, 300)}`);
+  if (s.nilai("ans-fq1") !== "server satu" || s.nilai("ans-fq2") !== "server dua") gagal("server forum text not kept in the textareas");
+  if (s.draft(K).gdrive !== DRIVE) gagal("the student's own Drive link was dropped while filtering");
+  // (P2) Draft yang tidak berisi apa pun sesudah disaring dihapus.
+  s = sandboxDraftModul(b, { isi: { [K]: JSON.stringify({ gdrive: "", fq1: S.fq1, fq2: "", fq3: "", code: {}, savedAt: "2026-09-29T00:00:00.000Z" }) } });
+  s.siap(S);
+  if (s.toko.has(K)) gagal(`a draft left with nothing unsent was kept: ${s.toko.get(K)}`);
+  // (P3) Kolom yang diisi server/halaman (bukan ketikan) tidak masuk draft; sesudah diketik masuk.
+  if (!b.tanpaKode) {
+    const id = kolomKode[1], q = id.replace(/^[a-z]+-/, "");
+    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+    s.siap();
+    s.el.get(id).value = "ISI-SERVER";   // mis. angka kiriman terakhir tugas yang dibuka lagi (ANGKA-CAD)
+    s.jalan("checkExportReady();");
+    if (s.draft(K).code[q] !== harapKode[1] || /ISI-SERVER/.test(s.semua())) gagal(`a field filled by the page (not typed) replaced the stored draft value: ${JSON.stringify(s.draft(K).code)}`);
+    s.ketik(id, "KETIKAN");
+    if (s.draft(K).code[q] !== "KETIKAN") gagal("a typed field was not saved");
+    s.ketik(id, "");
+    if (q in s.draft(K).code) gagal("a field the student emptied came back from the stored draft");
+  }
+  // (P4) Teks Forum yang sudah terkirim keluar dari draft (juga sesudah muat ulang).
+  const T4 = new Map();
+  s = sandboxDraftModul(b, { toko: T4 });
+  s.siap(S);
+  s.ketik("ans-fq1", "suntingan terkirim");
+  if (s.draft(K).fq1 !== "suntingan terkirim" || (s.draft(K).forumBasis || {}).fq1 !== sidikDraftModul(S.fq1)) gagal(`an unsent forum edit must be saved with the hash of the server text it was made on: ${JSON.stringify(s.draft(K))}`);
+  s.tersimpan({ fq1: "suntingan terkirim", fq2: S.fq2, fq3: "" });
+  if (s.toko.has(K) && /suntingan terkirim/.test(s.toko.get(K))) gagal("a forum answer already sent stays in the draft");
+  s.ketik("gdrive-link", DRIVE);
+  if (/suntingan terkirim|server satu|server dua/.test(s.semua())) gagal("a later save brought sent/server forum text back into the draft");
+
+  // ── Forum: gabung 3-arah (draft, sidik basis server, teks server) ──
+  const dasar = (fq, basis) => draft(fq, { forumBasis: basis });
+  // (F1) Progres lebih dulu. fq1 disunting di atas teks server yang masih sama (belum terkirim) →
+  //      draft; fq2 disunting di atas teks server lama (server berubah di tempat lain) → server +
+  //      catatan; draft tersimpan tanpa suntingan fq2 dan tanpa teks server.
+  s = sandboxDraftModul(b, { isi: { [K]: dasar(["draf satu", "draf dua", ""], { fq1: sidikDraftModul(S.fq1), fq2: sidikDraftModul("server dua lama") }) } });
   s.terapkan(S);
   s.markLoaded();
-  if (s.nilai("ans-fq1") !== "draf satu" || s.nilai("ans-fq2") !== "server dua") gagal(`forum priority (progress first): expected [draf satu, server dua], got ${JSON.stringify([s.nilai("ans-fq1"), s.nilai("ans-fq2")])}`);
+  if (s.nilai("ans-fq1") !== "draf satu" || s.nilai("ans-fq2") !== "server dua") gagal(`3-way merge (progress first): expected [draf satu, server dua], got ${JSON.stringify([s.nilai("ans-fq1"), s.nilai("ans-fq2")])}`);
+  if (!s.catatan("fq2") || s.catatan("fq1")) gagal("the answer whose draft lost to a newer server text must show the note (and only that one)");
   // checkForumReady sesudah penyelarasan: PROGRES-MODUL menjadwalkan kiriman dengan teks draft.
   if (s.ctx.__cfrFq1[s.ctx.__cfrFq1.length - 1] !== "draf satu") gagal("an unsent forum draft restored over the server text must re-run checkForumReady (so PROGRES-MODUL sends it)");
-  if (s.draft(K).fq1 !== "draf satu" || s.draft(K).fq2 !== "server dua") gagal(`after reconciling, the draft forum must match the textareas: ${JSON.stringify([s.draft(K).fq1, s.draft(K).fq2])}`);
-  if (JSON.stringify(s.sinkron(K)) !== JSON.stringify(S)) gagal("the synced copy must be the server forum after reconciling");
-  // (2) _markLoaded lebih dulu, draft basi-tersinkron: server yang lebih baru (perangkat lain) menang,
-  //     dan draft tersimpan ikut teks server — muat ulang berikutnya tidak menganggapnya belum terkirim.
+  if (s.draft(K).fq1 !== "draf satu" || s.draft(K).fq2 || (s.draft(K).forumBasis || {}).fq1 !== sidikDraftModul(S.fq1)) gagal(`after merging, the draft must keep only the unsent edit (with its base hash): ${JSON.stringify(s.draft(K))}`);
+  s.ketik("ans-fq2", "ketik lagi");
+  if (s.catatan("fq2")) gagal("the note must disappear once that answer is typed again");
+  // (F2) Dua perangkat: draft lama perangkat 1 yang belum terkirim (basis = teks server lama) vs
+  //      suntingan lebih baru perangkat 2 di server → server menang, tanpa jadwal kirim teks lama;
+  //      muat ulang berikutnya tetap teks server (draft lama sudah dibuang).
   const T2 = new Map();
-  s = sandboxDraftModul(b, { toko: T2, isi: { [K]: simpanan, [K + "_sinkron"]: JSON.stringify({ fq1: "draf satu", fq2: "draf dua", fq3: "" }) } });
-  const BARU = { fq1: "baru dari perangkat lain", fq2: "draf dua", fq3: "" };
+  const S0 = { fq1: "awal satu", fq2: "awal dua", fq3: "awal tiga" };
+  const BARU = { fq1: "baru dari perangkat lain", fq2: "awal dua", fq3: "awal tiga" };
+  s = sandboxDraftModul(b, { toko: T2, isi: { [K]: dasar(["lama belum terkirim", "", ""], { fq1: sidikDraftModul(S0.fq1) }) } });
   s.siap(BARU);
-  if (s.nilai("ans-fq1") !== "baru dari perangkat lain" || s.nilai("ans-fq2") !== "draf dua") gagal(`forum priority (stale synced draft): server must win, got ${JSON.stringify([s.nilai("ans-fq1"), s.nilai("ans-fq2")])}`);
-  s.ketik("gdrive-link", DRIVE + "-2");
+  if (s.nilai("ans-fq1") !== BARU.fq1 || s.ctx.__cfrFq1.includes("lama belum terkirim") || !s.catatan("fq1")) {
+    gagal(`two devices: an old unsent draft beat the newer server text (fq1=${JSON.stringify(s.nilai("ans-fq1"))}, checked=${JSON.stringify(s.ctx.__cfrFq1)}, note=${s.catatan("fq1")})`);
+  }
+  if (/lama belum terkirim/.test(s.semua())) gagal("two devices: the old unsent draft was kept after the server won");
   s = sandboxDraftModul(b, { toko: T2 });
   s.siap(BARU);
-  if (s.nilai("ans-fq1") !== "baru dari perangkat lain" || s.draft(K).fq1 !== "baru dari perangkat lain") gagal(`second reload after the server won: the replaced synced draft came back as unsent (${JSON.stringify([s.nilai("ans-fq1"), s.draft(K).fq1])})`);
-  // (3) Tanpa salinan tersinkron, server kosong → draft tetap (lalu dikirim PROGRES-MODUL).
+  if (s.nilai("ans-fq1") !== BARU.fq1) gagal("two devices: the old draft came back on the next reload");
+  // (F3) Perangkat yang sama, server belum berubah: suntingan belum terkirim dipulihkan; sesudah
+  //      terkirim keluar dari draft, dan muat ulang berikutnya tidak memulihkannya lagi.
+  const T3 = new Map();
+  s = sandboxDraftModul(b, { toko: T3, isi: { [K]: dasar(["belum terkirim", "", ""], { fq1: sidikDraftModul(S0.fq1) }) } });
+  s.siap(S0);
+  if (s.nilai("ans-fq1") !== "belum terkirim" || s.ctx.__cfrFq1[s.ctx.__cfrFq1.length - 1] !== "belum terkirim" || s.catatan("fq1")) gagal("same device: an unsent edit on an unchanged server text was not restored and re-checked");
+  s.tersimpan({ fq1: "belum terkirim", fq2: S0.fq2, fq3: S0.fq3 });
+  s.ketik("gdrive-link", DRIVE + "-3");
+  if (/belum terkirim|awal satu|awal dua/.test(s.semua())) gagal("same device: the sent edit (or server text) stayed in the draft");
+  s = sandboxDraftModul(b, { toko: T3 });
+  s.siap({ fq1: "belum terkirim", fq2: S0.fq2, fq3: S0.fq3 });
+  if (s.nilai("ans-fq1") !== "belum terkirim" || s.nilai("gdrive-link") !== DRIVE + "-3" || s.catatan("fq1") || /belum terkirim/.test(s.semua())) gagal("same device: reload after the send restored the edit again (or kept it in the draft)");
+  // (F4) Draft tanpa basis (dibuat tangan): belum terkirim hanya bila server belum punya catatan forum.
   s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
   s.siap({});
-  if (s.nilai("ans-fq1") !== "draf satu" || s.nilai("ans-fq2") !== "draf dua") gagal("an unsent draft with an empty server forum was dropped");
-  // (4) Pengguna sudah mengubah textarea sebelum draft dimuat: tidak disentuh.
-  s = sandboxDraftModul(b, { isi: { [K]: simpanan, [K + "_sinkron"]: JSON.stringify({ fq1: "draf satu", fq2: "draf dua", fq3: "" }) } });
-  s.markLoaded();
-  s.ketik("ans-fq1", "ketikan baru");
-  s.terapkan({ fq1: "server lain", fq2: "server lain", fq3: "" });
-  if (s.nilai("ans-fq1") !== "ketikan baru" || s.nilai("ans-fq2") !== "server lain") gagal(`a textarea the student already edited was overwritten, or a stale one kept: ${JSON.stringify([s.nilai("ans-fq1"), s.nilai("ans-fq2")])}`);
-  if (s.draft(K).fq1 !== "ketikan baru") gagal("the typing made before the draft loaded was not saved");
-  // (5) Kiriman forum sukses → salinan tersinkron; diselaraskan sekali per kunci.
+  if (s.nilai("ans-fq1") !== "draf satu" || s.nilai("ans-fq2") !== "draf dua") gagal("an unsent draft without base hash was dropped although the server has no forum record");
+  s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+  s.siap(S);
+  if (s.nilai("ans-fq1") !== "server satu" || s.nilai("ans-fq2") !== "server dua" || /draf satu/.test(s.semua())) gagal("a draft without base hash beat an existing server forum record");
+  // (F5) Textarea yang sudah diketik sebelum draft dimuat tidak disentuh (server menang maupun
+  //      suntingan belum terkirim); ketikan itu tersimpan dengan basis teks server.
+  for (const [nama, basis] of [["stale draft", null], ["unsent draft", { fq1: sidikDraftModul("server lain") }]]) {
+    s = sandboxDraftModul(b, { isi: { [K]: basis ? dasar(["draf satu", "draf dua", ""], basis) : simpanan } });
+    s.markLoaded();
+    s.ketik("ans-fq1", "ketikan baru");
+    s.terapkan({ fq1: "server lain", fq2: "server lain", fq3: "" });
+    if (s.nilai("ans-fq1") !== "ketikan baru" || s.nilai("ans-fq2") !== "server lain") gagal(`a textarea the student already edited was overwritten, or a stale one kept (${nama}): ${JSON.stringify([s.nilai("ans-fq1"), s.nilai("ans-fq2")])}`);
+    if (s.draft(K).fq1 !== "ketikan baru" || (s.draft(K).forumBasis || {}).fq1 !== sidikDraftModul("server lain")) gagal(`the typing made before the draft loaded was not saved with its base hash (${nama})`);
+  }
+  // (F6) Diselaraskan sekali per kunci; kiriman sukses melepas tanda suntingan.
   s.tersimpan({ fq1: "ketikan baru", fq2: "server lain", fq3: "" });
-  if (JSON.stringify(s.sinkron(K)) !== JSON.stringify({ fq1: "ketikan baru", fq2: "server lain", fq3: "" })) gagal("'progres-modul:forum-tersimpan' must update the synced copy");
   s.terapkan({ fq1: "x", fq2: "y", fq3: "z" });
   s.markLoaded();
   if (s.nilai("ans-fq1") !== "ketikan baru") gagal("reconciled more than once per key");
-  // (6) Tanpa kunci (dosen/Preview/tanpa PIN): event tidak menulis apa pun.
+  // (F7) Tanpa kunci (dosen/Preview/tanpa PIN): event tidak menulis apa pun.
   s = sandboxDraftModul(b, { preview: true, isi: { [K]: simpanan } });
   s.terapkan(S); s.tersimpan(S);
-  if (s.tulisan.length) gagal("forum events wrote draft data without a key");
-  // (7) Jawaban yang di server sengaja DIKOSONGKAN (perangkat lain; catatan forum ada) menang atas
-  //     draft yang sudah tersinkron: textarea kosong, tanpa kiriman ulang teks lama — juga pada muat
-  //     ulang berikutnya. Tanpa catatan forum sama sekali ({}), draft tersinkron tidak dikosongkan.
-  const L = { fq1: "lama satu", fq2: "lama dua", fq3: "lama tiga" };
+  if (s.tulisan.length || s.hapus.length) gagal("forum events wrote draft data without a key");
+  // (F8) Jawaban yang di server sengaja DIKOSONGKAN di perangkat lain menang atas suntingan lama;
+  //      suntingan yang dibuat di atas jawaban kosong (server masih kosong) tetap belum terkirim.
   const KOSONG2 = { fq1: "srv satu", fq2: "", fq3: "srv tiga" };
-  const T7 = new Map();
-  s = sandboxDraftModul(b, { toko: T7, isi: { [K]: draft([L.fq1, L.fq2, L.fq3]), [K + "_sinkron"]: JSON.stringify(L) } });
+  const T8k = new Map();
+  s = sandboxDraftModul(b, { toko: T8k, isi: { [K]: dasar(["", "lama dua", ""], { fq2: sidikDraftModul("srv dua lama") }) } });
   s.siap(KOSONG2);
-  if (s.nilai("ans-fq1") !== "srv satu" || s.nilai("ans-fq2") !== "" || s.draft(K).fq2 !== "" || s.ctx.__cfrFq1.length === 0) {
-    gagal(`an answer cleared on the server was brought back from the synced draft: ${JSON.stringify([s.nilai("ans-fq1"), s.nilai("ans-fq2"), s.draft(K).fq2])}`);
-  }
-  s = sandboxDraftModul(b, { toko: T7 });
+  if (s.nilai("ans-fq2") !== "" || /lama dua/.test(s.semua())) gagal(`an answer cleared on the server was brought back from an old draft: ${JSON.stringify(s.nilai("ans-fq2"))}`);
+  s = sandboxDraftModul(b, { toko: T8k });
   s.siap(KOSONG2);
   if (s.nilai("ans-fq2") !== "") gagal("the server-cleared answer came back on the next reload");
-  s = sandboxDraftModul(b, { isi: { [K]: draft([L.fq1, L.fq2, L.fq3]), [K + "_sinkron"]: JSON.stringify(L) } });
-  s.siap({});
-  if (s.nilai("ans-fq2") !== "lama dua") gagal("a synced draft was cleared although the server has no forum record at all");
-  // (8) Dua tab modul yang sama (localStorage bersama): tab B menyunting & mengirim fq1; tab A yang
-  //     masih memuat teks lama hanya menyimpan kolom lain (Drive, checkExportReady). Draft tetap
-  //     memuat teks B, dan tab A yang dimuat ulang tidak mengirim teks lama.
-  const T8 = new Map();
-  const S0 = { fq1: "awal satu", fq2: "awal dua", fq3: "awal tiga" };
-  const tA = sandboxDraftModul(b, { toko: T8 }), tB = sandboxDraftModul(b, { toko: T8 });
+  s = sandboxDraftModul(b, { isi: { [K]: dasar(["", "baru dua", ""], { fq2: sidikDraftModul("") }) } });
+  s.siap(KOSONG2);
+  if (s.nilai("ans-fq2") !== "baru dua") gagal("an unsent edit made on an empty server answer was dropped");
+  // (F9) Dua tab modul yang sama (localStorage bersama). (a) Tab B menyunting & mengirim fq1; tab A
+  //      yang masih memuat teks lama hanya menyimpan kolom lain: teks lama A tidak masuk draft, dan
+  //      A yang dimuat ulang memakai teks server. (b) Suntingan B belum terkirim: simpanan kolom
+  //      lain di tab A mempertahankannya (dengan basisnya).
+  const T9 = new Map();
+  const tA = sandboxDraftModul(b, { toko: T9 }), tB = sandboxDraftModul(b, { toko: T9 });
   tA.siap(S0); tB.siap(S0);
   tB.ketik("ans-fq1", "baru B");
   tB.tersimpan({ fq1: "baru B", fq2: "awal dua", fq3: "awal tiga" });
   tA.ketik("gdrive-link", DRIVE + "-A");
   tA.jalan("checkExportReady();");
-  if (tA.draft(K).fq1 !== "baru B" || tA.draft(K).gdrive !== DRIVE + "-A") gagal(`a save in a second tab still showing old forum text overwrote the newer forum draft: ${JSON.stringify(tA.draft(K).fq1)}`);
-  const tC = sandboxDraftModul(b, { toko: T8 });
+  if (/awal satu|baru B/.test(tA.semua()) || tA.draft(K).gdrive !== DRIVE + "-A") gagal(`a save in a second tab still showing old forum text put forum text into the draft: ${tA.semua().slice(0, 200)}`);
+  const tC = sandboxDraftModul(b, { toko: T9 });
   tC.siap({ fq1: "baru B", fq2: "awal dua", fq3: "awal tiga" });
   if (tC.nilai("ans-fq1") !== "baru B" || tC.nilai("gdrive-link") !== DRIVE + "-A") gagal(`reloading the stale tab restored its old forum text: ${JSON.stringify(tC.nilai("ans-fq1"))}`);
-  // (9) Sesudah kiriman sukses, tanda "disunting di tab ini" dilepas: suntingan tab lain yang lebih
-  //     baru tidak ditimpa simpanan kolom lain dari tab yang sudah mengirim.
-  const T9 = new Map();
-  const uA = sandboxDraftModul(b, { toko: T9 }), uB = sandboxDraftModul(b, { toko: T9 });
+  const T9b = new Map();
+  const uA = sandboxDraftModul(b, { toko: T9b }), uB = sandboxDraftModul(b, { toko: T9b });
   uA.siap(S0); uB.siap(S0);
-  uA.ketik("ans-fq1", "teks A");
-  uA.tersimpan({ fq1: "teks A", fq2: "awal dua", fq3: "awal tiga" });
-  uB.ketik("ans-fq1", "teks B lebih baru");
+  uB.ketik("ans-fq1", "B belum terkirim");
   uA.ketik("gdrive-link", DRIVE + "-A");
-  if (uA.draft(K).fq1 !== "teks B lebih baru") gagal(`a tab whose forum edit was already sent overwrote a newer edit from another tab: ${JSON.stringify(uA.draft(K).fq1)}`);
+  if (uA.draft(K).fq1 !== "B belum terkirim" || (uA.draft(K).forumBasis || {}).fq1 !== sidikDraftModul(S0.fq1)) gagal(`a save in another tab dropped an unsent edit from this browser: ${JSON.stringify(uA.draft(K))}`);
+  // (F10) Sesudah kiriman sukses, tanda "disunting di tab ini" dilepas: suntingan tab lain yang lebih
+  //       baru tidak ditimpa simpanan kolom lain dari tab yang sudah mengirim.
+  const T10 = new Map();
+  const vA = sandboxDraftModul(b, { toko: T10 }), vB = sandboxDraftModul(b, { toko: T10 });
+  vA.siap(S0); vB.siap(S0);
+  vA.ketik("ans-fq1", "teks A");
+  vA.tersimpan({ fq1: "teks A", fq2: "awal dua", fq3: "awal tiga" });
+  vB.ketik("ans-fq1", "teks B lebih baru");
+  vA.ketik("gdrive-link", DRIVE + "-A");
+  if (vA.draft(K).fq1 !== "teks B lebih baru") gagal(`a tab whose forum edit was already sent overwrote a newer edit from another tab: ${JSON.stringify(vA.draft(K).fq1)}`);
 
-  // ── CAD: berkas yang diketahui server menang atas metadata berkas di draft ──
+  // ── CAD: metadata berkas draft hanya sesudah getJawabanSaya sesi ini, dan kalah dari server ──
   if (b.cad) {
-    // (i) Ringkasan server sudah ada saat draft dimuat (getJawabanSaya: berkas terunggah belum dinilai).
+    const RINGKAS = (nama, sha) => `📎 ${nama} · 4.0 KB · SHA-256 ${sha.slice(0, 16)}… · 2026-09-28T02:00:00.000Z`;
+    // (C1) getJawabanSaya lambat (belum selesai saat draft dimuat): metadata draft ditahan — kartu,
+    //      konfirmasi kirim (berkasTerunggah), dan ekspor tidak menyebutnya; tetap tersimpan.
     s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
-    s.jalan("berkasDiServer.c1 = true;");
-    s.el.get("berkas-status-c1").innerHTML = "SERVER c1 baru-v2";
+    s.el.get("berkas-status-c1").innerHTML = "Belum ada berkas terunggah.";
     s.siap();
-    if (s.ctx.berkasTerunggah.c1 || s.el.get("berkas-status-c1").innerHTML !== "SERVER c1 baru-v2") gagal(`draft file metadata covered the server's newer file summary: ${JSON.stringify([s.ctx.berkasTerunggah.c1 && s.ctx.berkasTerunggah.c1.namaBerkas, s.el.get("berkas-status-c1").innerHTML])}`);
-    if ((s.draft(K).berkas || {}).c1) gagal("the draft still carries file metadata for a task whose file is known to the server");
-    // (ii) Ringkasan server datang terlambat: metadata draft yang sempat terpasang dibuang.
-    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
-    s.siap();
-    if (!s.ctx.berkasTerunggah.c1) gagal("CAD upload metadata (berkasTerunggah) not restored without server file data");
+    if (s.ctx.berkasTerunggah.c1 || s.el.get("berkas-status-c1").innerHTML !== "Belum ada berkas terunggah.") gagal("draft file metadata used while getJawabanSaya was still pending");
+    s.ketik("nilai-c2", "9");
+    if (!(s.draft(K).berkas || {}).c1) gagal("held-back draft file metadata dropped from the stored draft while getJawabanSaya was pending");
+    // (C4) Hasilnya datang terlambat: server punya berkas lain → ringkasan server menang, metadata
+    //      draft dibuang (juga dari draft tersimpan).
     s.jalan("berkasDiServer.c1 = true;");
-    s.el.get("berkas-status-c1").innerHTML = "SERVER c1 baru-v2";
+    s.el.get("berkas-status-c1").innerHTML = RINGKAS("baru-v2.FCStd", "ab12c20000000000");
+    await s.js();
     s.markLoaded();
-    if (s.ctx.berkasTerunggah.c1 || s.el.get("berkas-status-c1").innerHTML !== "SERVER c1 baru-v2") gagal("stale draft file metadata kept after the server file summary arrived late");
-    // (iii) Unggahan di halaman ini (objek baru) tetap berlaku.
+    if (s.ctx.berkasTerunggah.c1 || !/baru-v2/.test(s.el.get("berkas-status-c1").innerHTML) || (s.draft(K).berkas || {}).c1) {
+      gagal(`stale draft file metadata used after a late server summary with another file: ${JSON.stringify([s.ctx.berkasTerunggah.c1 && s.ctx.berkasTerunggah.c1.namaBerkas, s.el.get("berkas-status-c1").innerHTML, s.draft(K).berkas])}`);
+    }
+    // (C2) getJawabanSaya selesai sebelum draft dimuat, server punya berkas lain → server menang.
+    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+    s.jalan("berkasDiServer.c1 = true;");
+    s.el.get("berkas-status-c1").innerHTML = RINGKAS("baru-v2.FCStd", "ab12c20000000000");
+    await s.js();
+    s.siap();
+    if (s.ctx.berkasTerunggah.c1 || !/baru-v2/.test(s.el.get("berkas-status-c1").innerHTML)) gagal("draft file metadata covered the server's newer file summary");
+    if ((s.draft(K).berkas || {}).c1) gagal("the draft still carries file metadata for a task whose (other) file is known to the server");
+    // (C3) Server punya berkas dengan sidik SHA-256 yang sama → metadata draft dipakai.
+    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+    s.jalan("berkasDiServer.c1 = true;");
+    s.el.get("berkas-status-c1").innerHTML = RINGKAS("uji-t1.FCStd", SHA_T1);
+    await s.js();
+    s.siap();
+    if (!s.ctx.berkasTerunggah.c1 || s.ctx.berkasTerunggah.c1.namaBerkas !== "uji-t1.FCStd") gagal("draft file metadata not used although the server file has the same SHA-256");
+    // (C5) getJawabanSaya sesi PIN lain (hash basi) tidak dihitung — juga yang sudah diterapkan
+    //      pada _markLoaded sesi sebelumnya di tab yang sama (PIN sesi berganti, NIM sama).
+    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+    await s.js({ nim: DRAFT_MODUL_NIM, pinHash: "d".repeat(64), modulId: "uji-modul-2" });
+    s.siap();
+    if (s.ctx.berkasTerunggah.c1) gagal("getJawabanSaya of another PIN session made draft file metadata usable");
+    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+    await s.js();
+    s.markLoaded();
+    s.ctx._sessionPinHash = "f".repeat(64);
+    s.siap();
+    if (s.ctx.berkasTerunggah.c1) gagal("getJawabanSaya applied for the previous PIN session made draft file metadata usable in the new one");
+    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+    s.siap();
+    // (C6) Unggahan di halaman ini (objek baru) tetap berlaku.
+    await s.js();
     s.jalan("window.berkasTerunggah.c2 = { namaBerkas: 'unggah-baru.FCStd', size: 1, sha256: 'cd', uploadedAt: '2026-09-29T02:00:00.000Z', versi: 3 }; berkasDiServer.c2 = true;");
+    s.jalan("checkExportReady();");
     s.markLoaded();
     if (!s.ctx.berkasTerunggah.c2 || s.ctx.berkasTerunggah.c2.namaBerkas !== "unggah-baru.FCStd") gagal("dropped a file uploaded in this page");
+    if (!s.ctx.berkasTerunggah.c1) gagal("draft file metadata not used once getJawabanSaya of this session finished without a server file");
+    // (C7) Tugas yang dinilai di tab ini: metadata berkasnya keluar dari draft tersimpan.
+    s.jalan("compAnswered.c1 = true; checkExportReady();");
+    if ((s.draft(K).berkas || {}).c1) gagal("file metadata of a task graded in this tab stays in the draft");
   }
 }
 
-function ujiMutasiDraftModul(contoh) {
+async function ujiMutasiDraftModul(contoh) {
   // Mutan dibangun DI LUAR try: jangkar yang hilang menggagalkan validator
   // (bukan tercatat sebagai "mutasi ditolak"), dan mutan wajib berbeda dari aslinya.
   const ganti = (s, a, z) => { if (s.split(a).length !== 2) throw new Error(`draft-modul mutation anchor not found once: ${a.slice(0, 70)}`); return s.replace(a, () => z); };
   const P = (a, z) => (b) => ({ ...b, penjaga: ganti(b.penjaga, a, z) });
   const Kc = (a, z) => (b) => ({ ...b, kunci: ganti(b.kunci, a, z) });
   const semua = () => true;
+  const cad = (b) => b.cad;
   const GERBANG = "if (!k || sesiFb !== s || sesiSah !== s) return;";
-  const BELUM = "      if (lokal !== '' && lokal !== srv && !(snap && snap[q] === lokal)) {   // belum terkirim";
+  const BELUM = "var belum = typeof lb[q] === 'string' ? lb[q] === sidik(srv) : !forumAda;";
+  const TAHAN = "if (!berkasSiap || berkasSiap !== sesiJs()) return 'tahan';";
   const mutasi = [
     ["_draftKey from module-script constants (old)", semua, (b) => ({ ...b, kunci: KUNCI_DRAFT_MODUL_LAMA_UJI })],
     ["no PIN-session gate", semua, Kc("if (window._previewMode || !window._sessionPinHash) return null;", "if (window._previewMode) return null;")],
@@ -2399,38 +2570,56 @@ function ujiMutasiDraftModul(contoh) {
     ["no server acceptance before loading (stale PIN hash)", semua, P(GERBANG, "if (!k || sesiFb !== s) return;")],
     ["server acceptance not bound to the PIN-session hash", semua, P("function sesi(k) { return k ? k + '|' + String(window._sessionPinHash) : null; }", "function sesi(k) { return k; }")],
     ["Firebase readiness not per key (_firebaseStateLoaded)", semua, P(GERBANG, "if (!k || !fbSiap() || sesiSah !== s) return;")],
-    ["any _loadDraft call marks Firebase ready", semua, P("if (k && fbSiap()) sesiFb = sesi(k);", "if (k) sesiFb = sesi(k);")],
+    ["any _loadDraft call marks Firebase ready", semua, P("if (k && fbSiap()) {", "if (k) {")],
     ["save without loading first", semua, P("if (dimuatUntuk !== k) { muat(); if (dimuatUntuk !== k) return; }", "if (dimuatUntuk !== k) { muat(); }")],
     ["global _markLoaded not wrapped", (b) => b.markLoadedGlobal, P("  if (typeof tandaiAsli === 'function') {", "  if (false) {")],
-    ["graded fields filled from the draft (late ledger)", (b) => !b.cad && !b.tanpaKode, P("      dinilai.forEach(function (x) { if (x[0].value !== x[1]) x[0].value = x[1]; });\n", "")],
-    ["draft snapshot taken after the first write", semua, P("    if (pertama) draftAwal = baca(k);   // potret SEBELUM ada tulisan untuk kunci ini\n", "")],
-    ["server forum always wins", semua, P(BELUM, "      if (false) {   // belum terkirim")],
-    ["draft forum always wins", semua, P(BELUM, "      if (lokal !== '' && lokal !== srv) {   // belum terkirim")],
-    ["edited textarea overwritten", semua, P("} else if (ta.value === lokal && lokal !== srv && (srv !== '' || forumAda)) {", "} else if (lokal !== srv && (srv !== '' || forumAda)) {")],
-    ["server-cleared answer not applied", semua, P("(srv !== '' || forumAda)", "srv !== ''")],
-    ["synced draft cleared without a server forum record", semua, P("(srv !== '' || forumAda)", "true")],
-    ["synced copy not updated on forum-tersimpan", semua, P("    if (!k || !j || typeof j !== 'object') return;\n    tulisSinkron(k, j);\n", "    if (!k || !j || typeof j !== 'object') return;\n")],
+    ["graded fields filled from the draft (late ledger)", (b) => !b.cad && !b.tanpaKode, P("      tetap.forEach(function (x) { if (x[0].value !== x[1]) x[0].value = x[1]; });\n", "")],
+    ["draft snapshot taken after the first write", semua, P("      draftAwal = baca(k);   // potret SEBELUM ada tulisan untuk kunci ini\n", "")],
     ["restored forum draft not re-checked", semua, P("      if (berubah && typeof window.checkForumReady === 'function') { try { window.checkForumReady(); } catch (e) {} }\n", "")],
-    ["first load keeps the stored forum text (stale synced draft)", semua, P("simpanDgnForum(pertama ? null : baca(k))", "simpanDgnForum(baca(k))")],
-    ["any save stores the tab's forum text (second tab)", semua, P("      if (lama) FQ.forEach(function (q) {", "      if (false) FQ.forEach(function (q) {")],
-    ["forum edit mark kept after a successful send", semua, P("if (ta && ta.value === teks(j[q])) kotor[q] = false;", "if (false) kotor[q] = false;")],
+    ["edited textarea overwritten (unsent draft)", semua, P("if ((ta.value === srv || ta.value === '') && ta.value !== lokal) { ta.value = lokal; berubah = true; }", "if (ta.value !== lokal) { ta.value = lokal; berubah = true; }")],
+    ["edited textarea overwritten (server wins)", semua, P("if (ta.value === lokal) { ta.value = srv; berubah = true; }", "if (ta.value !== srv) { ta.value = srv; berubah = true; }")],
+    ["any save stores the tab's forum text (second tab)", semua, P("      if (kotor[q]) { t = teks(d[q]);", "      if (true) { t = teks(d[q]);")],
+    ["forum edit mark kept after a successful send", semua, P("if (ta && ta.value === forumServer[q]) kotor[q] = false;", "if (false) kotor[q] = false;")],
     ["NIM change without reload merged into the new draft", semua, P("  function pemilikSama() {\n    if (berganti) return false;\n", "  function pemilikSama() {\n    return true;\n")],
-    ["CAD draft file metadata over the server file", (b) => b.cad, P("          if (Object.prototype.hasOwnProperty.call(sebelum, x[0])) bt[x[0]] = sebelum[x[0]]; else delete bt[x[0]];\n", "")],
-    ["CAD stale draft file metadata kept after a late server summary", (b) => b.cad, P("          if (bt[q] && bt[q] === berkasDraft[q]) delete bt[q];   // dipasang draft pada pemuatan sebelumnya\n", "")],
     ["typing not saved", semua, P("document.addEventListener('input',", "document.addEventListener('change',")],
+    // A — gabung 3-arah
+    ["3-way: base hash ignored (any differing draft restored)", semua, P(BELUM, "var belum = true;")],
+    ["3-way: server always wins", semua, P(BELUM, "var belum = false;")],
+    ["3-way: edit saved without its base hash", semua, P("b = srv === null ? null : sidik(srv); }", "b = null; }")],
+    ["3-way: draft without base hash always unsent", semua, P(BELUM, "var belum = typeof lb[q] === 'string' ? lb[q] === sidik(srv) : true;")],
+    ["3-way: server wins without the note", semua, P("        catatan(q, true);\n", "")],
+    ["3-way: dropped stale edit kept in the draft", semua, P("      else if (!dibuang[q]) { t = teks(lama[q]);", "      else { t = teks(lama[q]);")],
+    ["3-way: sent text not recorded as the known server text", semua, P("    forumServer = { fq1: teks(j.fq1), fq2: teks(j.fq2), fq3: teks(j.fq3) };\n    forumAda = true;\n", "    forumAda = true;\n")],
+    // B — privasi
+    ["privacy: server forum text saved", semua, P("      if (t === srv) t = '';", "")],
+    ["privacy: graded code/number saved", (b) => !b.tanpaKode, P("if (!/^c\\d{1,2}$/.test(q) || dinilai(q) || kode[q]) return;", "if (!/^c\\d{1,2}$/.test(q) || kode[q]) return;")],
+    ["privacy: untyped field saved from the page", (b) => !b.tanpaKode, P("var v = teks(diketik[q] ? d.code[q] : lk[q]);", "var v = teks(d.code[q]);")],
+    ["privacy: empty draft kept", semua, P("return ada ? o : null;", "return o;")],
+    ["privacy: v2 synced copy with server text kept", semua, P("      try { localStorage.removeItem(k + '_sinkron'); } catch (e) {}   // salinan teks server (v2)\n", "")],
+    ["privacy: page write not filtered", semua, P("return kk === k ? tulisDraft(this, k, String(v), setAsli) : undefined;", "return setAsli.apply(this, arguments);")],
+    ["privacy: graded CAD file metadata saved", cad, P("x.namaBerkas && !dinilai(q)) { bk[q] = x;", "x.namaBerkas) { bk[q] = x;")],
+    // C — berkas CAD
+    ["CAD: draft file metadata before getJawabanSaya", cad, P(TAHAN, "")],
+    ["CAD: getJawabanSaya of another PIN session counts", cad, P(TAHAN, "if (!berkasSiap) return 'tahan';")],
+    ["CAD: server file always loses to the draft", cad, P("return a && a === b ? 'pakai' : 'buang';", "return 'pakai';")],
+    ["CAD: SHA-256 match ignored", cad, P("return a && a === b ? 'pakai' : 'buang';", "return 'buang';")],
+    ["CAD: held-back metadata not kept in the stored draft", cad, P("Object.keys(d.berkas).concat(Object.keys(berkasTunda))", "Object.keys(d.berkas)")],
+    ["CAD: finished getJawabanSaya never recorded", cad, P("if (j && jsSelesai[j]) berkasSiap = j;", "if (false) berkasSiap = j;")],
+    ["CAD: getJawabanSaya wrapper changes the result", cad, P("          return r;\n        };\n      };", "          return r.then(function (x) { return x; });\n        };\n      };")],
+    ["CAD: this page's upload replaced by draft metadata", cad, P("if (lama && lama !== berkasDraft[q]) { bt[q] = lama; pulih(kt); segar(q); return; }", "")],
   ];
   for (const { relative, course, modulNo, modul, b } of contoh) {
-    ujiPerilakuDraftModul(b, relative);
+    await ujiPerilakuDraftModul(b, relative);
     for (const [nama, berlaku, ubah] of mutasi) {
       if (!berlaku(b)) continue;
       const mutan = ubah(b);
       if (JSON.stringify(mutan) === JSON.stringify(b)) throw new Error(`${relative}: draft-modul mutation "${nama}" changed nothing`);
       let lolos = true;
-      try { ujiPerilakuDraftModul(mutan, relative); } catch (e) { lolos = false; if (process.env.DRAFT_MODUL_MUTASI) console.log(`mutasi draft "${nama}" (${relative}) ditolak: ${e.message.slice(0, 200)}`); }
+      try { await ujiPerilakuDraftModul(mutan, relative); } catch (e) { lolos = false; if (process.env.DRAFT_MODUL_MUTASI) console.log(`mutasi draft "${nama}" (${relative}) ditolak: ${e.message.slice(0, 200)}`); }
       if (lolos) throw new Error(`${relative}: draft-modul behaviour test accepts mutation "${nama}"`);
     }
     const blok = draftModul.PENJAGA + "\n";
-    for (const [nama, ubah] of [
+    for (const [nama, ubah, berlaku = semua] of [
       ["PENJAGA after PROGRES-MODUL", (h) => { const t = ganti(h, blok, ""), i = t.indexOf("<!-- PROGRES-MODUL: akhir -->\n") + "<!-- PROGRES-MODUL: akhir -->\n".length; return t.slice(0, i) + blok + t.slice(i); }],
       ["one byte changed in PENJAGA", (h) => ganti(h, GERBANG, GERBANG.replace("return;", "return ;"))],
       ["KUNCI end marker removed", (h) => ganti(h, draftModul.KUNCI_AKHIR + "\n", "")],
@@ -2445,7 +2634,10 @@ function ujiMutasiDraftModul(contoh) {
       ["KUNCI-IDENTITAS:DRAF block left", (h) => ganti(h, draftModul.KUNCI, "// KUNCI-IDENTITAS:DRAF BEGIN v1 — sisa\n" + draftModul.KUNCI + "\n// KUNCI-IDENTITAS:DRAF END v1")],
       ["old draft key named in a comment", (h) => ganti(h, draftModul.KUNCI, "// Key per-NIM (`math4_draft_modul-4_<NIM>`)\n" + draftModul.KUNCI)],
       ["stale 'draft always null' claim in a page comment", (h) => ganti(h, draftModul.KUNCI, "// Draft tidak ikut menentukan: _draftKey() skrip klasik selalu null di halaman ini.\n" + draftModul.KUNCI)],
+      ["CAD file-metadata global moved into a module script", (h) => ganti(h, draftModul.BERKAS_GLOBAL, "").replace("window.MODUL_ID = MODUL_ID;", () => "window.MODUL_ID = MODUL_ID;\n" + draftModul.BERKAS_GLOBAL), cad],
+      ["CAD getJawabanSaya callable assigned twice", (h) => ganti(h, draftModul.PANGGIL_JS, "window._getJawabanSayaCallable = null;\n" + draftModul.PANGGIL_JS), cad],
     ]) {
+      if (!berlaku(b)) continue;
       const mutan = ubah(modul);
       if (mutan === modul) throw new Error(`${relative}: draft-modul structure mutation "${nama}" changed nothing`);
       let lolos = true;
