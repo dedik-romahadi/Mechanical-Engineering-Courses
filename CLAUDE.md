@@ -222,7 +222,8 @@ repo publik ini.
 - **Skor.** Modul: 25 soal = 10 PG ×1 + 10 Komputasi ×2 + 5 Hard ×4 = 50.
   Exam: TF=1, MC=1, Comp Easy=2, Comp Hard=4; total 100. Pengecualian
   Pemodelan CAD: modul 15 soal (10 PG + 5 tugas pemodelan 6/6/6/11/11 = 50,
-  kirim ulang maksimal 65%, tanpa partial); UTS 30 / UAS 31 soal tanpa TF
+  kirim ulang maksimal 65%, tanpa partial — juga saat rescale, sejak cabang
+  backend `fix/rescale-cad-kirim-ulang` di-deploy, Pedoman §5.4); UTS 30 / UAS 31 soal tanpa TF
   (bobot tipe PG 1, tugas unggah 2, rakitan `c11` 6 dengan partial 3).
 - **Progres materi berurutan** (sejak 22 Agu 2026): kotak centang per bagian,
   tab Tugas/Forum/Hasil terkunci sampai lengkap, login modul *n* ditolak bila

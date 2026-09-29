@@ -48,7 +48,7 @@
 
   <div class="warn">
     ⚠ Isi <b>Deadline Baru</b> di bawah untuk atur jadwal + rescale sekaligus (atau kosongkan kalau deadline sudah diubah via Atur Jadwal).
-    Tool menghitung ulang tiap attempt terhadap deadline acuan: jika waktu submit asli kini ≤ deadline → poin penuh; soal Hard yang dulu telat (0) bisa jadi <b>partial</b>. Aman dipanggil berulang (idempoten).
+    Tool menghitung ulang tiap attempt terhadap deadline acuan: jika waktu submit asli kini ≤ deadline → poin penuh; soal Hard yang dulu telat (0) bisa jadi <b>partial</b>. Pengecualian: tugas FreeCAD modul <b>Pemodelan CAD</b> mengikuti aturan kirim ulang (catatannya muncul saat course itu dipilih). Aman dipanggil berulang (idempoten).
     <br><br>
     📌 <b>NIM diisi</b> → pada <b>Ujian</b>: jendela dibuka hanya untuk NIM tsb (ujian susulan), jadwal global tidak bergeser.
     Pada <b>Modul</b>: Deadline Baru hanya jadi acuan hitung ulang, jadwal tidak diubah.
@@ -91,6 +91,12 @@
       Ujian memakai bobot Sub-CPMK (total 100 poin). Aturan poin saat hitung ulang <b>sama persis dengan pelaksanaan normal</b>:
       submit <b>sampai deadline</b> → poin penuh; <b>di masa perpanjangan</b> → poin dipotong 35% (×0,65);
       <b>setelah perpanjangan habis</b> → ujian ditutup total, poinnya 0. Keadaan ketiga hanya muncul kalau deadline acuan Anda <i>majukan</i>; saat memperpanjang tidak ada yang jatuh ke sana.
+    </div>
+    <div class="hint" id="cadNote" style="display:none;color:#ffb300">
+      Pemodelan CAD — tugas FreeCAD modul (T1–T5) dihitung ulang dengan <b>aturan kirim ulang</b>, sama seperti saat mahasiswa mengirim:
+      benar pada kiriman pertama → poin penuh; benar setelah pernah salah → <b>65% poin</b>; keduanya lalu dikali 0,65 bila kirimannya lewat deadline acuan.
+      Kiriman salah tetap <b>0</b> dan tugasnya <b>tetap bisa dikirim ulang</b> — tidak berubah menjadi partial meski deadline diperpanjang.
+      Attempt yang dinilai sebelum 24 September 2026 tetap memakai aturan lama (partial bila tepat waktu), dan partial lama itu tetap dipegang sesudah dikirim ulang bila kirimannya tepat waktu terhadap deadline acuan. Soal PG mengikuti aturan biasa.
     </div>
 
     <label>Deadline Baru (opsional)</label>
@@ -203,6 +209,8 @@ function refreshTarget(){
   targetLabelEl.textContent = exam ? 'Ujian' : 'Modul';
   idKindLabelEl.textContent = exam ? 'examId' : 'modulId';
   examNoteEl.style.display  = exam ? '' : 'none';
+  // Tugas FreeCAD modul CAD dihitung ulang dengan aturan kirim ulang (backend _hasilRescaleCadUlang).
+  document.getElementById('cadNote').style.display = (!exam && courseEl.value === 'pemodelan_cad') ? '' : 'none';
   document.getElementById('extWrap').style.display     = exam ? '' : 'none';
   document.getElementById('susulanNote').style.display = exam ? '' : 'none';
   document.getElementById('modulDeadlineNote').style.display = exam ? 'none' : '';
