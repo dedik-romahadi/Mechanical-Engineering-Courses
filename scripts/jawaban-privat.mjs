@@ -52,8 +52,21 @@
  *      saja + hapus pinHash/pinSetAt — satu-satunya yang boleh diubah klien
  *      menurut rules create-only); saveIdentity menyimpan
  *      `_identitasTanpaJawaban(v)`.
- *   3. JAWABAN-PRIVAT:TUNGGU — di _loadScoredQuestions, `get(...)` record
- *      pengunjung menjadi `Promise.all([get(...), window._muatJawabanSaya()])`.
+ *   3. JAWABAN-PRIVAT:TUNGGU (v2) — di _loadScoredQuestions, `get(...)` record
+ *      pengunjung dibaca SESUDAH `window._muatJawabanSaya()` selesai (hasil
+ *      atau batas 2,5 detik), bukan bersamaan (v1: `Promise.all`), lalu
+ *      snapshot yang lebih tua daripada marker BENAR yang sudah diketahui
+ *      halaman (`window._answeredQ`, NIM yang sama sejak halaman dimuat)
+ *      dibaca ulang tiap 750 ms paling banyak 4 kali, dan bila tetap lebih tua
+ *      pemulihan itu dilewati (`_markLoaded()` tetap dipanggil). Sebabnya
+ *      (29 September 2026): v1 membaca snapshot di awal penantian lalu
+ *      menerapkannya sampai 2,5 detik kemudian; halaman modul memanggil
+ *      _loadScoredQuestions dua kali saat dimuat (auto-login +500 ms dan
+ *      +1200 ms), jadi selama getJawabanSaya lambat kiriman ulang tugas CAD
+ *      yang benar sesudah pemulihan pertama dibatalkan pemulihan kedua
+ *      (snapshot lama berisi `cN_comp_ulang` → `_bukaKirimUlangCad(cN, 0)`,
+ *      skor 6 → 0, kartu terbuka lagi) sampai pemulihan berikutnya — atau
+ *      sampai muat ulang bila getJawabanSaya gagal.
  *   4. JAWABAN-PRIVAT:GABUNG (v2) — tepat sesudah `const data = snap.val();`:
  *      `window._gabungJawabanSaya(data)`, sebelum PILIHAN-PG-PULIH (modul) atau
  *      `_cachedFirebaseData = data;` (ujian; ekspor ujian tetap membaca cache
@@ -403,11 +416,46 @@ function _tulisPengunjung(r, rec, lama) {
 // JAWABAN-PRIVAT:IDENTITAS END v2
 `;
 
-const BLOK_TUNGGU = `  // JAWABAN-PRIVAT:TUNGGU BEGIN v1 — ${PENANDA}
-  // Record RTDB publik (marker, poin, scoreDeltas) dan jawaban sendiri dari
-  // getJawabanSaya ditunggu bersama (lihat JAWABAN-PRIVAT:JEMBATAN).
-  Promise.all([get(ref(db, DB_PATH + '/' + key)), (typeof window._muatJawabanSaya === 'function' ? window._muatJawabanSaya() : null)]).then(([snap]) => {
-  // JAWABAN-PRIVAT:TUNGGU END v1
+const BLOK_TUNGGU = `  // JAWABAN-PRIVAT:TUNGGU BEGIN v2 — ${PENANDA}
+  // Jawaban sendiri dari getJawabanSaya ditunggu DULU (paling lama 2,5 detik,
+  // lihat JAWABAN-PRIVAT:JEMBATAN), BARU record RTDB publik (marker, poin,
+  // scoreDeltas) dibaca, sehingga snapshot dibaca tepat sebelum diterapkan.
+  // (v1 membacanya bersamaan, di awal penantian. Halaman modul memanggil
+  // _loadScoredQuestions dua kali saat dimuat, masing-masing dengan batas
+  // tunggunya sendiri; selama getJawabanSaya lambat, kiriman ulang tugas CAD
+  // yang benar sesudah pemulihan pertama dibatalkan pemulihan kedua yang
+  // membawa snapshot lama berisi marker _comp_ulang: skor 6 → 0, kartu terbuka
+  // lagi, sampai pemulihan berikutnya atau muat ulang.)
+  // Snapshot yang tetap lebih tua daripada yang sudah diketahui halaman — ada
+  // marker BENAR (qId atau qId_comp) di window._answeredQ (hasil penilaian
+  // server di sesi ini dan pemulihan sebelumnya) yang tidak ada di
+  // scoredQuestions-nya, mis. cache listener RTDB yang tertinggal dari respons
+  // callable — dibaca ulang tiap 750 ms, paling banyak 4 kali; bila masih lebih
+  // tua, pemulihan ini dilewati (keadaan halaman dipertahankan) dan halaman
+  // tetap ditandai termuat. Hanya marker benar yang menjadi penanda umur: benar
+  // itu final di semua course (kirim ulang CAD hanya mengganti marker
+  // salah/partial), sedangkan snapshot tanpa marker salah/partial tidak merusak
+  // apa pun karena pemulihan hanya menambah. Bila identitas halaman berganti
+  // tanpa muat ulang, marker halaman bercampur, jadi pemeriksaan umur mati
+  // sampai halaman dimuat ulang.
+  const _nimPulih = String(me.nim);
+  if (!window._nimPemulihan) window._nimPemulihan = _nimPulih;
+  else if (window._nimPemulihan !== _nimPulih) window._nimPemulihan = '*';
+  const _snapLebihTua = (snap) => {
+    if (window._nimPemulihan !== _nimPulih) return false;
+    const v = (snap && snap.exists()) ? snap.val() : null;
+    const ada = new Set(String((v && v.scoredQuestions) || '').split(','));
+    return Array.from(window._answeredQ || []).some((m) => /^(?:tf|mc|ce|ch|c)\\d{1,2}(?:_comp)?$/.test(m) && !ada.has(m));
+  };
+  const _bacaRekaman = (sisa) => get(ref(db, DB_PATH + '/' + key)).then((snap) => {
+    if (!_snapLebihTua(snap)) return snap;
+    if (sisa > 0) return new Promise((r) => setTimeout(r, 750)).then(() => _bacaRekaman(sisa - 1));
+    console.warn('[jawaban-saya] record RTDB masih lebih tua daripada penilaian yang sudah diterima halaman; pemulihan ini dilewati, keadaan halaman dipertahankan.');
+    return null;
+  });
+  Promise.resolve().then(() => (typeof window._muatJawabanSaya === 'function' ? window._muatJawabanSaya() : null)).catch(() => null).then(() => _bacaRekaman(4)).then((snap) => {
+    if (!snap) { if (typeof _markLoaded === 'function') _markLoaded(); else if (typeof window._markLoaded === 'function') window._markLoaded(); return; }
+  // JAWABAN-PRIVAT:TUNGGU END v2
 `;
 
 const BLOK_GABUNG = `    // JAWABAN-PRIVAT:GABUNG BEGIN v2 — ${PENANDA}
