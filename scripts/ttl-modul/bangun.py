@@ -87,8 +87,18 @@ ganti("'teknik_tenaga_listrik_identity_pertemuan-1'", f"'teknik_tenaga_listrik_i
 ganti("'Tugas1_' + nim + '_TeknikTenagaListrik.html'", f"'Tugas{N}_' + nim + '_TeknikTenagaListrik.html'")
 ganti("Versi Word/PDF Modul 1 Teknik Tenaga Listrik belum dibuat", f"Versi Word/PDF Modul {N} Teknik Tenaga Listrik belum dibuat")
 ganti("alert('Versi PDF Modul 1 Teknik Tenaga Listrik belum tersedia.", f"alert('Versi PDF Modul {N} Teknik Tenaga Listrik belum tersedia.")
-# Tautan Modul-Word/PDF mengikuti nama berkas modul ini (buat-modul-word.py; injektor pasang-tautan-pdf.py).
-_pdf = nama_berkas_word(N, K.JUDUL) + ".pdf"
+# Tautan Modul-Word/PDF: nama berkas dari judul <title> halaman (K.JUDUL_PANJANG),
+# sumber yang sama dengan buat-modul-word.py (nama .docx/.pdf) dan
+# pasang-tautan-pdf.py. Dulu dari K.JUDUL (judul pendek), yang berbeda di Modul
+# 2, 3, 4, dan 6, sehingga regenerasi tanpa pasang-tautan-pdf.py menautkan PDF
+# yang tidak ada (404). PDF yang sudah terbit tidak boleh berganti nama (tautan
+# LMS bisa memakainya): bila Modul-Word sudah memuat Modul-N-*.pdf dengan nama
+# lain, berhenti di sini.
+_pdf = nama_berkas_word(N, K.JUDUL_PANJANG) + ".pdf"
+_terbit = sorted(p.name for p in (REPO / "Teknik-Tenaga-Listrik" / "Modul-Word").glob(f"Modul-{N}-*.pdf"))
+assert not _terbit or _pdf in _terbit, (
+    f"nama PDF {_pdf!r} (dari JUDUL_PANJANG) tidak cocok dengan PDF yang sudah terbit {_terbit}; "
+    "jangan ganti nama berkas terbit: samakan JUDUL_PANJANG, atau terbitkan ulang Word/PDF dengan sengaja")
 ganti_re(r"const MODUL_PDF_URL = '[^']*';", f"const MODUL_PDF_URL = '../Modul-Word/{_pdf}';")
 ganti_re(r"const MODUL_PDF_FILENAME = '[^']*';", f"const MODUL_PDF_FILENAME = '{_pdf}';")
 # Tab Hasil, ekspor tugas, dan salinan forum LMS: nomor pertemuan/tugas/forum generik.
