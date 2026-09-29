@@ -36,14 +36,23 @@
  * CAKUPAN: hanya Engineering-Mathematics/Exam/UTS.html dan
  * Optimalisasi-dan-Automasi/Exam/UTS.html yang disunting. Kesepuluh
  * <Kursus>/Exam/UTS.html|UAS.html lain hanya diperiksa dengan aturan yang sama
- * dengan validate-public-security.mjs: di luar _ensure…QuestionsLoaded tidak
- * boleh ada render…Questions() yang langsung diikuti pemasangan flag render,
- * dan di dalamnya tepat satu. Salinan konflik OneDrive (*-DEDIK-PC.html) tidak
- * disentuh. Tidak ada generator yang dibangun dari kedua halaman target
- * (cad-exam/bangun.py membaca TTL), jadi regenerasi tidak mengembalikan bug.
+ * dengan validate-public-security.mjs (periksaFlagRender; baris komentar `//`
+ * diabaikan):
+ *   1. render…Questions() yang langsung diikuti pemasangan flag render hanya
+ *      boleh di dalam _ensure…QuestionsLoaded;
+ *   2. flag render hanya boleh diberi nilai selain `false` di dalam
+ *      render…Questions atau _ensure…QuestionsLoaded, minimal sekali;
+ *   3. _ensure…QuestionsLoaded memanggil render…Questions() (bentuk
+ *      pemasangan flag di loader tidak dikunci, boleh bersyarat).
+ * Salinan konflik OneDrive (*-DEDIK-PC.html) tidak disentuh. Tidak ada
+ * generator yang dibangun dari kedua halaman target (cad-exam/bangun.py
+ * membaca TTL), jadi regenerasi tidak mengembalikan bug.
  *
  * Idempoten: blok yang sudah ada ditimpa di tempat; jalan kedua melaporkan
- * 0 halaman. Berkas ber-CR ditolak (repo LF).
+ * 0 halaman. Semua-atau-tidak-sama-sekali: ke-12 halaman diproses dan
+ * diperiksa di memori lebih dulu (CR, aturan di atas, jumlah halaman), baru
+ * sesudah semuanya lolos halaman yang berubah ditulis. Berkas ber-CR ditolak
+ * (repo LF).
  *
  * Pakai:
  *   node scripts/muat-soal-uts.mjs            # terapkan
@@ -58,10 +67,6 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const periksa = process.argv.includes("--periksa");
 
 const TARGET = new Set(["Engineering-Mathematics/Exam/UTS.html", "Optimalisasi-dan-Automasi/Exam/UTS.html"]);
-
-// Aturan yang sama dengan validate-public-security.mjs: render lalu flag
-// (spasi/pindah baris bebas, dengan atau tanpa `window.`).
-const RX_RENDER_FLAG = /renderU[TA]SQuestions\s*\(\s*\)\s*;?\s*(?:window\.)?_u[ta]sRenderedFlag\s*=\s*true\b/g;
 
 // ── FLAG: renderUTSQuestions memasang flag sesudah render sukses ─────────────
 const FLAG_AWAL = "  _utsRendered = true;\n";
@@ -161,15 +166,30 @@ function ambilFungsi(html, awal) {
 /** Blok AI-CHAT-AGENT (HTML) — harus identik sebelum/sesudah. */
 const blokAi = (html) => html.match(/<!-- AI-CHAT-AGENT:BEGIN[\s\S]*?<!-- AI-CHAT-AGENT:END[^>]*-->/g) || [];
 
-/** Pasangan render→flag: tepat satu di dalam loader, nol di luar. */
-function periksaPasangan(html, jenis) {
-  const loader = ambilFungsi(html, `async function _ensure${jenis}QuestionsLoaded() {`);
-  let di = 0;
-  for (const m of html.matchAll(RX_RENDER_FLAG)) {
-    if (m.index >= loader.awal && m.index < loader.akhir) { di += 1; continue; }
-    throw new Error(`baris ${barisDi(html, m.index)}: render${jenis}Questions() langsung diikuti pemasangan flag render di luar _ensure${jenis}QuestionsLoaded ("${m[0].replace(/\s+/g, " ")}")`);
+/**
+ * Aturan flag render — sama dengan periksaFlagRender di
+ * validate-public-security.mjs (ubah keduanya bersama). Baris komentar `//`
+ * diabaikan.
+ */
+function periksaFlagRender(html, jenis) {
+  const pemuat = ambilFungsi(html, `async function _ensure${jenis}QuestionsLoaded() {`);
+  const perender = ambilFungsi(html, `function render${jenis}Questions() {`);
+  const di = (r, i) => i >= r.awal && i < r.akhir;
+  const komentar = (i) => /(?:^|[^:])\/\//.test(html.slice(html.lastIndexOf("\n", i - 1) + 1, i));
+  const kode = (rx) => [...html.matchAll(rx)].filter((m) => !komentar(m.index));
+  for (const m of kode(/(?<![\w$])render(U[TA]S)Questions\s*(?:\?\.\s*)?\(\s*\)\s*;?\s*(?:window\.)?_u[ta]sRenderedFlag\s*=\s*true\b/g)) {
+    if (di(pemuat, m.index)) continue;
+    throw new Error(`baris ${barisDi(html, m.index)}: render${m[1]}Questions() langsung diikuti pemasangan flag render di luar _ensure${jenis}QuestionsLoaded ("${m[0].replace(/\s+/g, " ")}")`);
   }
-  if (di !== 1) throw new Error(`_ensure${jenis}QuestionsLoaded harus merender lalu memasang flag tepat sekali, ditemukan ${di}`);
+  let dipasang = 0;
+  for (const m of kode(/(?<![\w$])_u[ta]sRenderedFlag\s*=(?!=)(?!\s*false\b)/g)) {
+    if (di(pemuat, m.index) || di(perender, m.index)) { dipasang += 1; continue; }
+    throw new Error(`baris ${barisDi(html, m.index)}: flag render dipasang di luar render${jenis}Questions/_ensure${jenis}QuestionsLoaded`);
+  }
+  if (dipasang === 0) throw new Error(`flag render tidak pernah dipasang di render${jenis}Questions maupun _ensure${jenis}QuestionsLoaded`);
+  if (!kode(/(?<![\w$])render(U[TA]S)Questions\s*(?:\?\.\s*)?\(\s*\)/g).some((m) => m[1] === jenis && di(pemuat, m.index))) {
+    throw new Error(`_ensure${jenis}QuestionsLoaded harus memanggil render${jenis}Questions() sesudah soal dimuat`);
+  }
 }
 
 /** Ganti blok bertanda di tempat, atau sisipkan lewat fungsi `sisip` bila belum ada. */
@@ -247,8 +267,11 @@ function prosesTarget(awal) {
   return { html, catatan };
 }
 
-let n = 0;
+// Tahap 1 — di memori saja: baca, proses, dan periksa ke-12 halaman. Galat apa
+// pun (berkas ber-CR, aturan flag render, jangkar hilang, jumlah halaman)
+// menghentikan skrip sebelum satu berkas pun ditulis.
 let total = 0;
+const tulis = [];
 const rekap = {};
 for (const kursus of fs.readdirSync(root, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
   if (!kursus.isDirectory()) continue;
@@ -262,20 +285,24 @@ for (const kursus of fs.readdirSync(root, { withFileTypes: true }).sort((a, b) =
       if (awal.includes("\r")) throw new Error("berkas memuat CR; repo ini LF (.gitattributes eol=lf)");
       if (!TARGET.has(rel)) {
         if (awal.includes("MUAT-SOAL-UTS")) throw new Error("penanda MUAT-SOAL-UTS di luar cakupan skrip ini");
-        periksaPasangan(awal, jenis);
+        periksaFlagRender(awal, jenis);
         continue;
       }
       const h = prosesTarget(awal);
-      periksaPasangan(h.html, jenis);
+      periksaFlagRender(h.html, jenis);
       if (h.html === awal) continue;
-      n += 1;
+      tulis.push({ f, html: h.html });
       for (const c of h.catatan) rekap[c] = (rekap[c] || 0) + 1;
-      if (!periksa) fs.writeFileSync(f, h.html);
     } catch (e) {
       throw new Error(`${rel}: ${e.message}`);
     }
   }
 }
 if (total !== 12) throw new Error(`harap 12 halaman <Kursus>/Exam/UTS.html|UAS.html, ditemukan ${total}`);
-console.log(`${n} dari ${total} halaman ujian ${periksa ? "akan diperbarui" : "diperbarui"}: ${JSON.stringify(rekap)}`);
-if (periksa && n > 0) process.exitCode = 1;
+const hilang = [...TARGET].filter((rel) => !fs.existsSync(path.join(root, rel)));
+if (hilang.length) throw new Error(`halaman target tidak ada: ${hilang.join(", ")}`);
+
+// Tahap 2 — semua lolos: tulis halaman yang berubah.
+if (!periksa) for (const { f, html } of tulis) fs.writeFileSync(f, html);
+console.log(`${tulis.length} dari ${total} halaman ujian ${periksa ? "akan diperbarui" : "diperbarui"}: ${JSON.stringify(rekap)}`);
+if (periksa && tulis.length > 0) process.exitCode = 1;
