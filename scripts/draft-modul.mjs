@@ -77,7 +77,10 @@
  *           (`JAWABAN-PRIVAT:ANGKA-CAD`), dan isian tab lain yang masih memuat
  *           teks lama tidak pernah masuk draft; tautan Drive sama. Metadata
  *           berkas CAD: `berkasTerunggah` + metadata draft yang masih ditahan,
- *           tanpa tugas ber-`compAnswered`. Teks Forum hanya bila berbeda dari
+ *           tanpa tugas ber-`compAnswered` dan (v4) tanpa berkas yang baru dinilai di
+ *           tab itu; angka yang dikirim juga keluar (butir kirim ulang CAD di bawah —
+ *           v3 masih menyimpan keduanya untuk tugas yang dibuka lagi, karena
+ *           `compAnswered` kembali false). Teks Forum hanya bila berbeda dari
  *           teks server yang diketahui tab itu (suntingan belum terkirim),
  *           bersama `forumBasis` = SIDIK (hash 53-bit) teks server tempat
  *           suntingan itu dibuat, bukan teks server itu sendiri. Draft tanpa isi
@@ -121,6 +124,26 @@
  *           `getJawabanSaya` lebih lambat dari batas tunggunya 2,5 detik; bila
  *           server punya berkas lain, metadata draft dibuang. Unggahan di tab itu
  *           selalu menang. Server menilai berkas terbaru di `tugasBerkas`;
+ *         - tugas CAD yang DIKIRIM lalu dibuka lagi (v4; temuan verifikasi putaran 1,
+ *           30 September 2026: sesudah kiriman yang dinilai salah, `_bukaKirimUlangCad`
+ *           mengembalikan `compAnswered` ke false sementara tanda "diketik" masih ada,
+ *           sehingga angka yang dikirim dan metadata berkas yang dinilai tetap di draft —
+ *           juga sesudah Log Out dan muat ulang — dan metadata itu dipakai lagi karena
+ *           SHA-256-nya sama dengan ringkasan LEDGER di kartu, padahal server menilai
+ *           unggahan terbaru dari perangkat lain): PENJAGA membungkus
+ *           `window._bukaKirimUlangCad`; panggilan hasil kiriman baru (`…, true)` dari
+ *           `kirimTugas`, sebelum `_saveDraft`-nya) melepas tanda "diketik" tugas itu,
+ *           membuang angka draft tersimpannya pada tulisan berikutnya, membuang metadata
+ *           yang masih ditahan, dan mencatat sidik metadata berkas yang dinilai (nama,
+ *           SHA-256, waktu unggah, versi) sehingga berkas itu tidak ikut tersimpan. Angka
+ *           yang diketik dan berkas yang diunggah SESUDAH kiriman terakhir tersimpan seperti
+ *           biasa. Sesudah muat ulang, metadata draft untuk tugas ber-`_cadSudahKirim`
+ *           dibuang (tidak dipasang): kartu tugas itu memuat ringkasan ledger berkas yang
+ *           sudah dinilai, dan server tidak melaporkan unggahan yang belum dinilai untuk
+ *           tugas ber-ledger, jadi tidak bisa dipastikan metadata draft itu berkas terbaru —
+ *           kesamaan SHA-256 dengan ringkasan ledger justru berarti berkas yang sudah dinilai.
+ *           Konfirmasi kirim menyebut "yang terakhir diunggah" (server menilai berkas terbaru);
+ *           angka draft yang diketik sesudah kiriman terakhir tetap mengisi kolom kosongnya;
  *         - NIM mahasiswa berganti tanpa muat ulang (logout paksa karena jadwal
  *           dihapus atau PIN kosong, lalu NIM lain masuk di tab yang sama): pada
  *           `_markLoaded` atau progres pertama NIM baru, kolom draft dikosongkan
@@ -138,7 +161,11 @@
  *       `window.berkasTerunggah = berkasTerunggah;` di skrip klasik sebelum
  *       PROGRES-MODUL (PENJAGA memasang pembungkus getJawabanSaya hanya bila
  *       objek itu sudah ada) dan `window._getJawabanSayaCallable =` di skrip
- *       module; `window.MODUL_ID = MODUL_ID;` di skrip module;
+ *       module; juga (v4) `window._bukaKirimUlangCad = function(qId, poin, baru) {`
+ *       tepat sekali di skrip klasik sebelum PROGRES-MODUL tanpa penugasan lain, semua
+ *       panggilannya lewat `window.`, satu-satunya panggilan ber-`true` di dalam
+ *       `kirimTugas`, dan `window._cadSudahKirim = {};` tepat sekali;
+ *       `window.MODUL_ID = MODUL_ID;` di skrip module;
  *       pemanggil `_loadDraft` hanya `_markLoaded` (daftar tetap), karena
  *       pemanggil lain akan terbaca sebagai tanda Firebase siap; tidak ada
  *       penugasan `_saveDraft`/`_loadDraft`/`window._markLoaded` di skrip module
@@ -191,7 +218,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export const VERSI_KUNCI = "v1";
-export const VERSI_PENJAGA = "v3";   // v2: sesi diterima server, Forum hanya dari suntingan tab ini, NIM berganti → muat ulang; v3: draft tersaring (tanpa jawaban dinilai/teks server), Forum gabung 3-arah (sidik basis server), berkas CAD sesudah getJawabanSaya
+export const VERSI_PENJAGA = "v4";   // v2: sesi diterima server, Forum hanya dari suntingan tab ini, NIM berganti → muat ulang; v3: draft tersaring (tanpa jawaban dinilai/teks server), Forum gabung 3-arah (sidik basis server), berkas CAD sesudah getJawabanSaya; v4: tugas CAD yang dinilai lalu dibuka lagi — angka yang dikirim & berkas yang dinilai keluar dari draft, metadata draft tugas itu tidak dipakai
 export const KUNCI_AWAL = `  // DRAFT-MODUL:KUNCI BEGIN ${VERSI_KUNCI} — dipasang scripts/draft-modul.mjs (Pedoman §6.3)`;
 export const KUNCI_AKHIR = `  // DRAFT-MODUL:KUNCI END ${VERSI_KUNCI}`;
 export const PENJAGA_AWAL = `<!-- DRAFT-MODUL:PENJAGA BEGIN ${VERSI_PENJAGA} — dipasang scripts/draft-modul.mjs (Pedoman §6.3) -->`;
@@ -258,6 +285,10 @@ export const PENJAGA = `${PENJAGA_AWAL}
 //    PIN sesi ini selesai dan diterapkan, dan hanya bila server tidak punya berkas
 //    tugas itu atau sidik SHA-256-nya sama dengan ringkasan server di kartu. Sebelum
 //    itu ditahan: kartu, konfirmasi kirim, dan ekspor tidak menyebut berkas lama.
+//    Tugas yang sudah dikirim lalu dibuka lagi: angka yang dikirim dan berkas yang dinilai
+//    keluar dari draft begitu hasilnya datang (hanya ketikan/unggahan sesudahnya yang
+//    tersimpan), dan metadata draft tugas itu tidak dipakai sesudah muat ulang — kartunya
+//    memuat ringkasan ledger berkas yang sudah dinilai, bukan unggahan terbaru.
 //  • NIM mahasiswa berganti tanpa muat ulang (logout paksa, lalu NIM lain masuk di
 //    tab yang sama): kolom draft dikosongkan dan halaman dimuat ulang.
 //  • Setiap ketikan di kolom kode, tautan Drive, angka bacaan, atau Forum disimpan.
@@ -269,7 +300,7 @@ export const PENJAGA = `${PENJAGA_AWAL}
   var dimuatUntuk = null, draftAwal = null, sesiFb = null, sesiSah = null;
   var serverUntuk = null, forumServer = null, forumAda = false;
   var kotor = {}, diketik = {}, dibuang = {}, pemilik = null, berganti = false;
-  var berkasDraft = {}, berkasTunda = {}, jsSelesai = {}, berkasSiap = null;
+  var berkasDraft = {}, berkasTunda = {}, jsSelesai = {}, berkasSiap = null, terkirim = {}, lepas = {};
   function kunci() { if (berganti) return null; try { return typeof _draftKey === 'function' ? _draftKey() : null; } catch (e) { return null; } }
   function sesi(k) { return k ? k + '|' + String(window._sessionPinHash) : null; }
   function fbSiap() { try { return typeof _firebaseStateLoaded !== 'undefined' && _firebaseStateLoaded === true; } catch (e) { return false; } }
@@ -278,6 +309,9 @@ export const PENJAGA = `${PENJAGA_AWAL}
   function nimSaya() { try { var me = typeof getIdentityLocal === 'function' ? getIdentityLocal() : null; return me && me.role === 'student' && me.nim ? String(me.nim) : null; } catch (e) { return null; } }
   function sesiJs() { var n = nimSaya(); return n ? n + '|' + String(window._sessionPinHash) : null; }
   function dinilai(q) { try { return typeof compAnswered === 'object' && !!compAnswered && !!compAnswered[q]; } catch (e) { return false; } }
+  // Tugas berkas yang sudah pernah dikirim dan dinilai, lalu dibuka lagi untuk kirim ulang.
+  function sudahKirim(q) { try { var s = window._cadSudahKirim; return !!s && typeof s === 'object' && !!s[q]; } catch (e) { return false; } }
+  function sidikBerkas(x) { return x && typeof x === 'object' ? [x.namaBerkas, x.sha256, x.uploadedAt, x.versi].join('|') : ''; }
   // Sidik 53-bit (cyrb53) teks Forum server: basis suntingan draft tanpa menyimpan teks itu.
   function sidik(t) {
     var h1 = 0xdeadbeef, h2 = 0x41c6ce57, s = teks(t);
@@ -337,7 +371,7 @@ export const PENJAGA = `${PENJAGA_AWAL}
       var lk = lama.code && typeof lama.code === 'object' ? lama.code : {}, kode = {};
       Object.keys(d.code).concat(Object.keys(lk)).forEach(function (q) {
         if (!/^c\\d{1,2}$/.test(q) || dinilai(q) || kode[q]) return;
-        var v = teks(diketik[q] ? d.code[q] : lk[q]);
+        var v = teks(diketik[q] ? d.code[q] : lepas[q] ? '' : lk[q]);
         if (v) { kode[q] = v; ada = true; }
       });
       o.code = kode;
@@ -346,7 +380,7 @@ export const PENJAGA = `${PENJAGA_AWAL}
       var bk = {};
       Object.keys(d.berkas).concat(Object.keys(berkasTunda)).forEach(function (q) {
         var x = Object.prototype.hasOwnProperty.call(d.berkas, q) ? d.berkas[q] : berkasTunda[q];
-        if (!bk[q] && x && typeof x === 'object' && x.namaBerkas && !dinilai(q)) { bk[q] = x; ada = true; }
+        if (!bk[q] && x && typeof x === 'object' && x.namaBerkas && !dinilai(q) && terkirim[q] !== sidikBerkas(x)) { bk[q] = x; ada = true; }
       });
       o.berkas = bk;
     }
@@ -359,6 +393,7 @@ export const PENJAGA = `${PENJAGA_AWAL}
     if (!d || typeof d !== 'object') return;
     var o = saring(d, baca(k));
     if (o) setAsli.call(st, k, JSON.stringify(o)); else st.removeItem(k);
+    lepas = {};   // angka yang baru dinilai sudah keluar dari draft tersimpan
   }
   // _saveDraft asli dijalankan dengan setItem localStorage dibungkus sesaat: objek draft
   // disaring sebelum ditulis; tulisan localStorage lain di dalamnya dibuang.
@@ -395,8 +430,11 @@ export const PENJAGA = `${PENJAGA_AWAL}
   }
   // Metadata berkas dari draft: 'pakai' | 'tahan' (getJawabanSaya sesi ini belum diterapkan) | 'buang'.
   function shaKartu(x) { var m = /SHA-256 ([0-9a-f]{16})/i.exec(String(x || '')); return m ? m[1].toLowerCase() : null; }
+  // Tugas yang dibuka lagi: kartunya memuat ringkasan ledger berkas yang SUDAH dinilai, dan server tidak
+  // melaporkan unggahan yang belum dinilai untuk tugas ber-ledger, jadi metadata draft tidak bisa dipastikan
+  // berkas terbaru (juga bila SHA-256-nya sama dengan ringkasan ledger itu) → dibuang.
   function nasibBerkas(q, meta, kartuTeks) {
-    if (dinilai(q)) return 'buang';
+    if (dinilai(q) || sudahKirim(q)) return 'buang';
     if (!berkasSiap || berkasSiap !== sesiJs()) return 'tahan';
     var diServer = false;
     try { diServer = typeof berkasDiServer === 'object' && !!berkasDiServer && !!berkasDiServer[q]; } catch (e) {}
@@ -503,6 +541,22 @@ export const PENJAGA = `${PENJAGA_AWAL}
       Object.defineProperty(window, '_getJawabanSayaCallable', { configurable: true, enumerable: true,
         get: function () { return jsKini; }, set: function (fn) { jsKini = bungkusJs(fn); } });
     } catch (e) {}
+    // Kiriman tugas yang baru dinilai server lalu dibuka lagi (kirimTugas → _bukaKirimUlangCad(q, poin,
+    // true), sebelum _saveDraft-nya): angka yang dikirim dan metadata berkas yang dinilai bukan lagi isian
+    // belum terkirim — tanda "diketik" dilepas, angka draft tersimpan tugas itu dibuang pada tulisan
+    // berikutnya, dan berkas itu tidak ikut tersimpan. Ketikan/unggahan sesudahnya tersimpan lagi.
+    // Pemulihan marker sesudah muat (…, false) bukan kiriman.
+    var bukaAsli = window._bukaKirimUlangCad;
+    if (typeof bukaAsli === 'function') {
+      window._bukaKirimUlangCad = function (q, poin, baru) {
+        if (baru === true && typeof q === 'string') {
+          var x = window.berkasTerunggah[q];
+          diketik[q] = false; lepas[q] = true; delete berkasTunda[q];
+          if (x && typeof x === 'object') terkirim[q] = sidikBerkas(x);
+        }
+        return bukaAsli.apply(this, arguments);
+      };
+    }
   }
   // getModulProgress (NIM + hash PIN sesi ini) sudah memeriksa PIN di server.
   window.addEventListener('progres-modul:diterapkan', function (e) {
@@ -629,6 +683,11 @@ export const PANGGIL_MUAT_GLOBAL = "if (typeof window._loadDraft === 'function')
 /** Halaman bertugas berkas (CAD): objek metadata berkas global dan penugasan callable getJawabanSaya. */
 export const BERKAS_GLOBAL = "window.berkasTerunggah = berkasTerunggah;";
 export const PANGGIL_JS = "window._getJawabanSayaCallable = ";
+/** Halaman bertugas berkas (v4): pembuka kirim ulang, panggilannya di kirimTugas (hasil kiriman baru), dan catatan tugas terkirim. */
+export const BUKA_GLOBAL = "window._bukaKirimUlangCad = function(qId, poin, baru) {";
+export const AWAL_KIRIM = "async function kirimTugas(qId) {";
+export const BUKA_KIRIM = "window._bukaKirimUlangCad(qId, Number(res.scoreDelta) || 0, true);";
+export const SUDAH_KIRIM_GLOBAL = "window._cadSudahKirim = {};";
 
 /** Prasyarat halaman modul; mengembalikan ringkasan ragam. `html` sudah LF. */
 export function prasyarat(html) {
@@ -669,6 +728,24 @@ export function prasyarat(html) {
     if (hitung(html, PANGGIL_JS) !== 1 || !/type\s*=\s*["']module["']/i.test(skripPelingkup(html, ci) || "")) {
       throw new Error(`halaman bertugas berkas: \`${PANGGIL_JS}\` harus tepat sekali, di skrip module (JAWABAN-PRIVAT:JEMBATAN)`);
     }
+    // v4: kiriman yang baru dinilai lalu dibuka lagi dikenali dari _bukaKirimUlangCad(…, true) di kirimTugas —
+    // PENJAGA membungkus window._bukaKirimUlangCad saat diparse, jadi fungsinya harus sudah ada (skrip klasik
+    // sebelum PROGRES-MODUL), tidak ditugaskan ulang, dan dipanggil lewat window.
+    const ui = html.indexOf(BUKA_GLOBAL), tu = skripPelingkup(html, ui);
+    if (hitung(tanpaPenjaga, BUKA_GLOBAL) !== 1 || tu === null || /type\s*=\s*["']module["']/i.test(tu) || ui > jangkar
+      || (tanpaPenjaga.match(/\b_bukaKirimUlangCad\s*=(?!=)/g) || []).length !== 1) {
+      throw new Error(`halaman bertugas berkas: \`${BUKA_GLOBAL}\` harus tepat sekali, di skrip klasik sebelum PROGRES-MODUL, tanpa penugasan lain`);
+    }
+    if ((tanpaPenjaga.match(/_bukaKirimUlangCad\s*\(/g) || []).length !== (tanpaPenjaga.match(/\bwindow\._bukaKirimUlangCad\s*\(/g) || []).length) {
+      throw new Error("halaman bertugas berkas: `_bukaKirimUlangCad(` harus dipanggil lewat `window.` (pembungkus DRAFT-MODUL:PENJAGA)");
+    }
+    const ki = html.indexOf(AWAL_KIRIM), kj = ki < 0 ? -1 : akhirFungsi(html, ki), bk = html.indexOf(BUKA_KIRIM);
+    if (hitung(tanpaPenjaga, AWAL_KIRIM) !== 1 || hitung(tanpaPenjaga, BUKA_KIRIM) !== 1 || !(ki < bk && bk < kj)
+      || /type\s*=\s*["']module["']/i.test(skripPelingkup(html, ki) || "module")
+      || (tanpaPenjaga.match(/_bukaKirimUlangCad\s*\([^;\n]*,\s*true\s*\)/g) || []).length !== 1) {
+      throw new Error(`halaman bertugas berkas: \`${BUKA_KIRIM}\` harus satu-satunya panggilan ber-\`true\`, di dalam \`${AWAL_KIRIM}\` (skrip klasik)`);
+    }
+    if (hitung(tanpaPenjaga, SUDAH_KIRIM_GLOBAL) !== 1) throw new Error(`halaman bertugas berkas: \`${SUDAH_KIRIM_GLOBAL}\` harus tepat sekali`);
   }
   // Sesudah jangkar tidak ada yang menulis ulang fungsi draft (pembungkus akan hilang).
   const ekor = tanpaPenjaga.slice(jangkarTp);

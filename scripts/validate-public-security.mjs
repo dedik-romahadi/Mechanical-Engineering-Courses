@@ -395,7 +395,7 @@ for (const course of courseRoots) {
     {
       const { modulId, b } = periksaDraftModul(modul, relative, course, modulNo);
       draftModulId.add(modulId);
-      const kunciRagam = JSON.stringify([b.simpan, b.muat, b.markLoaded]);
+      const kunciRagam = JSON.stringify([b.simpan, b.muat, b.markLoaded, b.kirim || null, b.buka || null, b.parse || null]);
       if (!draftModulRagam.has(kunciRagam)) draftModulRagam.set(kunciRagam, { relative, b });
       if (["Getaran-Mekanik/Modul/Modul-2.html", "Engineering-Mathematics/Modul/Modul-4.html", "Pemodelan-Computer-Aided-Design/Modul/Modul-2.html"].includes(relative)) contohMutasiDraftModul.push({ relative, course, modulNo, modul, b });
       draftModulHalaman += 1;
@@ -1972,6 +1972,12 @@ async function ujiMutasiPenjagaForum() {
  * dan metadata berkas CAD dari draft baru dipakai sesudah getJawabanSaya sesi itu
  * selesai (accessor window._getJawabanSayaCallable) — diuji di sandbox dengan
  * Storage.prototype dan callable tiruan, plus mutasi A/B/C.
+ * PENJAGA v4 (30 September 2026, verifikasi putaran 1): tugas CAD yang dikirim,
+ * dinilai salah, lalu dibuka lagi (_bukaKirimUlangCad → compAnswered false) tidak
+ * lagi meninggalkan angka yang dikirim maupun metadata berkas yang dinilai di draft,
+ * dan metadata draft tugas ber-_cadSudahKirim tidak dipakai sesudah muat ulang —
+ * diuji dengan kirimTugas, _bukaKirimUlangCad, dan _parseNilai ASLI halaman CAD di
+ * sandbox (callable penilaian tiruan), plus mutasi B/C dan struktur baru.
  */
 function fungsiDraftModul(html, awal, relative) {
   const i = html.indexOf(awal);
@@ -2015,11 +2021,18 @@ function periksaDraftModul(modulAsli, relative, course, modulNo) {
     if (!markLoaded.includes(draftModul.PANGGIL_MUAT) || !markLoaded.includes("_firebaseStateLoaded = true;")) throw new Error(`${relative}: _markLoaded must set _firebaseStateLoaded and call _loadDraft()`);
   }
   const simpan = fungsiDraftModul(modul, "function _saveDraft() {", relative);
+  const cad = /nilai-c/.test(simpan);
+  // Halaman CAD (v4): kirimTugas, _bukaKirimUlangCad, dan _parseNilai asli ikut diuji di sandbox.
+  const kirimCad = cad ? {
+    kirim: fungsiDraftModul(modul, draftModul.AWAL_KIRIM, relative),
+    buka: fungsiDraftModul(modul, draftModul.BUKA_GLOBAL, relative) + ";",
+    parse: fungsiDraftModul(modul, "function _parseNilai(v) {", relative),
+  } : {};
   return {
     modulId,
     b: {
       kunci, penjaga: draftModul.PENJAGA, simpan, muat: fungsiDraftModul(modul, "function _loadDraft() {", relative),
-      markLoaded, markLoadedGlobal: info.markLoadedGlobal, cad: /nilai-c/.test(simpan), tanpaKode: !/code-c|nilai-c/.test(simpan),
+      markLoaded, markLoadedGlobal: info.markLoadedGlobal, cad, tanpaKode: !/code-c|nilai-c/.test(simpan), ...kirimCad,
     },
   };
 }
@@ -2065,7 +2078,10 @@ function sandboxDraftModul(b, opsi = {}) {
   const buat = (id, tagName) => { const e = { id, tagName, value: "", innerHTML: "", disabled: false, style: {}, parentNode: induk, nextSibling: null }; el.set(id, e); return e; };
   buat("gdrive-link", "INPUT");
   for (const q of ["fq1", "fq2", "fq3"]) buat("ans-" + q, "TEXTAREA");
-  if (b.cad) { buat("nilai-c1", "INPUT"); buat("nilai-c2", "INPUT"); buat("berkas-status-c1", "DIV"); buat("berkas-status-c2", "DIV"); }
+  if (b.cad) {
+    buat("nilai-c1", "INPUT"); buat("nilai-c2", "INPUT"); buat("berkas-status-c1", "DIV"); buat("berkas-status-c2", "DIV");
+    for (const q of ["c1", "c2"]) Object.assign(buat("sub-" + q, "BUTTON"), { textContent: "▶ Kirim & Validasi", classList: { add() {}, remove() {} } });
+  }
   else { buat("code-c1", "TEXTAREA"); buat("code-c11", "TEXTAREA"); buat("code-c15", "TEXTAREA"); }
   const document = {
     getElementById: (id) => el.get(id) || null,
@@ -2101,7 +2117,7 @@ var localStorage = new Storage();`, ctx);
   // compAnswered/berkasTerunggah/berkasDiServer, dan _tampilBerkas menulis kartu berkas.
   vm.runInContext(`let _firebaseStateLoaded = false;
 var compAnswered = {};
-${b.cad ? "window.berkasTerunggah = {};\nconst berkasDiServer = {};" : ""}
+${b.cad ? "window.berkasTerunggah = {};\nconst berkasDiServer = {};\nwindow._cadSudahKirim = {};\nvar compScores = {};" : ""}
 function _tampilBerkas(q) { var x = window.berkasTerunggah[q], st = document.getElementById('berkas-status-' + q); if (x && st) { st.innerHTML = 'DRAF ' + x.namaBerkas; st.style.color = 'draf'; } }
 function _refreshTugasBtn() {}
 function checkExportReady() { _saveDraft(); }
@@ -2109,7 +2125,19 @@ function checkForumReady() { window.__cfr += 1; window.__cfrFq1.push(document.ge
 ${b.kunci}
 ${b.simpan}
 ${b.muat}
-${b.markLoadedGlobal ? b.markLoaded + "\nwindow._markLoaded = _markLoaded;" : ""}`, ctx);
+${b.markLoadedGlobal ? b.markLoaded + "\nwindow._markLoaded = _markLoaded;" : ""}
+${b.cad ? `// kirimTugas/_bukaKirimUlangCad/_parseNilai ASLI halaman; penilaian server tiruan (window.__hasilKirim).
+var SCORE_CONFIG = { COMP_HARD_POINT: 4, COMP_EZ_POINT: 2 };
+window._previewGuard = function () { return false; };
+window._isHardComp = function () { return false; };
+window.confirm = function (t) { window.__konfirmasi = t; return true; };
+window._callCheckModulAnswer = function (q, n) { window.__dikirim = [q, n]; return Promise.resolve(window.__hasilKirim); };
+window._kunciTugasCad = function () {};
+function _applyModulServerResult() {}
+function _handleModulServerError() {}
+${b.parse}
+${b.buka}
+${b.kirim}` : ""}`, ctx);
   const skrip = /^<!--[^\n]*-->\n<script>\n([\s\S]*?)<\/script>\n<!--[^\n]*-->$/.exec(b.penjaga);
   if (!skrip) throw new Error("DRAFT-MODUL:PENJAGA must wrap exactly one classic <script>");
   vm.runInContext(skrip[1], ctx);
@@ -2544,6 +2572,70 @@ async function ujiPerilakuDraftModul(b, label) {
     // (C7) Tugas yang dinilai di tab ini: metadata berkasnya keluar dari draft tersimpan.
     s.jalan("compAnswered.c1 = true; checkExportReady();");
     if ((s.draft(K).berkas || {}).c1) gagal("file metadata of a task graded in this tab stays in the draft");
+
+    // ── v4: tugas yang DIKIRIM, dinilai salah, lalu dibuka lagi (kirimTugas + _bukaKirimUlangCad asli) ──
+    const KIRIM = { namaBerkas: "kiriman-dinilai.FCStd", size: 3, sha256: SHA_T1, uploadedAt: "2026-09-29T03:00:00.000Z", versi: 2 };
+    const kirim = async (x, hasil = { bisaUlang: true, scoreDelta: 0, status: "wrong" }) => { x.ctx.__hasilKirim = hasil; await x.jalan("kirimTugas('c1')"); await tungguMikro(); };
+    // (C8) B: angka yang dikirim dan metadata berkas yang dinilai keluar dari draft (tidak ada tulisan yang
+    //      memuatnya sesudah hasil datang); simpanan kolom lain tidak membawanya kembali; angka yang diketik
+    //      dan berkas yang diunggah SESUDAH kiriman itu tersimpan (isian belum terkirim).
+    const T8 = new Map();
+    s = sandboxDraftModul(b, { toko: T8 });
+    s.siap();
+    await s.js();
+    s.jalan(`window.berkasTerunggah.c1 = ${JSON.stringify(KIRIM)}; berkasDiServer.c1 = true; _saveDraft();`);
+    s.ketik("nilai-c1", "4321,5");
+    if (!/4321,5/.test(s.semua()) || !/kiriman-dinilai/.test(s.semua())) gagal("CAD resend setup: the unsent number and file must be in the draft before sending");
+    const n8 = s.tulisan.length;
+    await kirim(s);
+    if (s.jalan("compAnswered.c1") !== false || !s.jalan("window._cadSudahKirim.c1") || JSON.stringify(s.ctx.__dikirim) !== JSON.stringify(["c1", 4321.5])) gagal("CAD resend setup: kirimTugas did not send 4321.5 and reopen the task");
+    if (/4321|kiriman-dinilai/.test(s.semua()) || s.tulisan.slice(n8).some((w) => /4321|kiriman-dinilai/.test(JSON.stringify(w.isi)))) {
+      gagal(`the sent number or the graded file metadata stayed in (or was written to) the draft after the task was graded and reopened: ${s.semua().slice(0, 300)}`);
+    }
+    s.ketik("gdrive-link", DRIVE + "-8");
+    if (/4321|kiriman-dinilai/.test(s.semua())) gagal("a later save of another field brought the sent number / graded file back into the draft");
+    s.ketik("nilai-c1", "5000,25");
+    s.jalan(`window.berkasTerunggah.c1 = ${JSON.stringify({ ...KIRIM, namaBerkas: "perbaikan.FCStd", uploadedAt: "2026-09-29T04:00:00.000Z", versi: 3 })}; _saveDraft();`);
+    if (s.draft(K).code.c1 !== "5000,25" || ((s.draft(K).berkas || {}).c1 || {}).namaBerkas !== "perbaikan.FCStd") gagal(`a number typed / file uploaded AFTER the graded send was not saved: ${JSON.stringify(s.draft(K))}`);
+    // (C9) C: muat ulang tugas yang dibuka lagi (marker → _bukaKirimUlangCad(…, false), berkas di server, kartu =
+    //      ringkasan LEDGER berkas yang dinilai dengan SHA-256 yang SAMA dengan metadata draft): metadata draft tidak
+    //      dipakai (kartu tetap ringkasan server, konfirmasi "yang terakhir diunggah") dan dibuang dari draft; angka
+    //      perbaikan pulih. Kiriman ulang yang dinilai lagi mengeluarkan angka itu dari draft.
+    s = sandboxDraftModul(b, { toko: T8 });
+    s.jalan("window._bukaKirimUlangCad('c1', 0, false);");
+    s.el.get("berkas-status-c1").innerHTML = RINGKAS("kiriman-dinilai.FCStd", SHA_T1);
+    await s.js();
+    s.siap();
+    if (s.ctx.berkasTerunggah.c1 || !/kiriman-dinilai/.test(s.el.get("berkas-status-c1").innerHTML)) gagal(`draft file metadata used for a reopened task (the card holds the LEDGER summary of the graded file): ${JSON.stringify([s.ctx.berkasTerunggah.c1, s.el.get("berkas-status-c1").innerHTML])}`);
+    if ((s.draft(K).berkas || {}).c1) gagal("unverifiable draft file metadata of a reopened task stays in the draft");
+    if (s.nilai("nilai-c1") !== "5000,25" || s.draft(K).code.c1 !== "5000,25") gagal("the number typed after the graded send was not restored/kept for the reopened task");
+    await kirim(s);
+    if (!/yang terakhir diunggah/.test(s.ctx.__konfirmasi || "") || /perbaikan|kiriman-dinilai\.FCStd"/.test(s.ctx.__konfirmasi || "")) gagal(`the send confirmation of a reopened task named a draft file: ${JSON.stringify(s.ctx.__konfirmasi)}`);
+    if (/5000/.test(s.semua())) gagal("the resent (graded again) number stayed in the draft");
+    // (C10) Pemulihan marker sesudah muat (_bukaKirimUlangCad(…, false)) bukan kiriman: ketikan tetap tersimpan.
+    s.ketik("nilai-c2", "8,5");
+    s.jalan("window._bukaKirimUlangCad('c2', 0, false);");
+    if ((s.draft(K).code || {}).c2 !== "8,5") gagal("a marker restore (_bukaKirimUlangCad(…, false)) dropped a typed number as if it had been sent");
+    // (C11) Metadata draft yang masih DITAHAN (getJawabanSaya belum selesai) lalu tugas itu dikirim (berkas di
+    //       server) dan dinilai: metadata tahanan tidak tersimpan lagi.
+    s = sandboxDraftModul(b, { isi: { [K]: simpanan } });
+    s.siap();
+    s.jalan("berkasDiServer.c1 = true;");
+    s.ketik("nilai-c1", "9");
+    await kirim(s);
+    if (/uji-t1/.test(s.semua())) gagal("held-back draft file metadata stayed in the draft after that task was sent and graded");
+    // (C12) Dua tab: tab A mengirim (dinilai salah), tab B lalu mengetik angka baru tugas itu; simpanan kolom lain
+    //       di tab A tidak membuang angka tab B (pembuangan angka tersimpan hanya sekali, pada tulisan sesudah hasil).
+    const T12 = new Map();
+    const wA = sandboxDraftModul(b, { toko: T12 }), wB = sandboxDraftModul(b, { toko: T12 });
+    wA.siap(); wB.siap();
+    await wA.js(); await wB.js();
+    wA.jalan(`window.berkasTerunggah.c1 = ${JSON.stringify(KIRIM)}; berkasDiServer.c1 = true;`);
+    wA.ketik("nilai-c1", "4321,5");
+    await kirim(wA);
+    wB.ketik("nilai-c1", "6000");
+    wA.ketik("gdrive-link", DRIVE + "-A12");
+    if ((wA.draft(K).code || {}).c1 !== "6000") gagal(`a tab that sent a task later dropped the number typed for it in another tab: ${JSON.stringify(wA.draft(K).code)}`);
   }
 }
 
@@ -2593,11 +2685,11 @@ async function ujiMutasiDraftModul(contoh) {
     // B — privasi
     ["privacy: server forum text saved", semua, P("      if (t === srv) t = '';", "")],
     ["privacy: graded code/number saved", (b) => !b.tanpaKode, P("if (!/^c\\d{1,2}$/.test(q) || dinilai(q) || kode[q]) return;", "if (!/^c\\d{1,2}$/.test(q) || kode[q]) return;")],
-    ["privacy: untyped field saved from the page", (b) => !b.tanpaKode, P("var v = teks(diketik[q] ? d.code[q] : lk[q]);", "var v = teks(d.code[q]);")],
+    ["privacy: untyped field saved from the page", (b) => !b.tanpaKode, P("var v = teks(diketik[q] ? d.code[q] : lepas[q] ? '' : lk[q]);", "var v = teks(d.code[q]);")],
     ["privacy: empty draft kept", semua, P("return ada ? o : null;", "return o;")],
     ["privacy: v2 synced copy with server text kept", semua, P("      try { localStorage.removeItem(k + '_sinkron'); } catch (e) {}   // salinan teks server (v2)\n", "")],
     ["privacy: page write not filtered", semua, P("return kk === k ? tulisDraft(this, k, String(v), setAsli) : undefined;", "return setAsli.apply(this, arguments);")],
-    ["privacy: graded CAD file metadata saved", cad, P("x.namaBerkas && !dinilai(q)) { bk[q] = x;", "x.namaBerkas) { bk[q] = x;")],
+    ["privacy: graded CAD file metadata saved", cad, P("x.namaBerkas && !dinilai(q) && terkirim[q]", "x.namaBerkas && terkirim[q]")],
     // C — berkas CAD
     ["CAD: draft file metadata before getJawabanSaya", cad, P(TAHAN, "")],
     ["CAD: getJawabanSaya of another PIN session counts", cad, P(TAHAN, "if (!berkasSiap) return 'tahan';")],
@@ -2607,6 +2699,15 @@ async function ujiMutasiDraftModul(contoh) {
     ["CAD: finished getJawabanSaya never recorded", cad, P("if (j && jsSelesai[j]) berkasSiap = j;", "if (false) berkasSiap = j;")],
     ["CAD: getJawabanSaya wrapper changes the result", cad, P("          return r;\n        };\n      };", "          return r.then(function (x) { return x; });\n        };\n      };")],
     ["CAD: this page's upload replaced by draft metadata", cad, P("if (lama && lama !== berkasDraft[q]) { bt[q] = lama; pulih(kt); segar(q); return; }", "")],
+    // B/C v4 — tugas CAD yang dikirim, dinilai, lalu dibuka lagi
+    ["CAD resend: typed mark kept after the graded send", cad, P("diketik[q] = false; lepas[q] = true; delete berkasTunda[q];", "lepas[q] = true; delete berkasTunda[q];")],
+    ["CAD resend: stored sent number kept", cad, P("d.code[q] : lepas[q] ? '' : lk[q]", "d.code[q] : lk[q]")],
+    ["CAD resend: graded file metadata kept", cad, P(" && terkirim[q] !== sidikBerkas(x)", "")],
+    ["CAD resend: graded send not intercepted", cad, P("if (baru === true && typeof q === 'string') {", "if (false) {")],
+    ["CAD resend: marker restore after reload treated as a send", cad, P("if (baru === true && typeof q === 'string') {", "if (typeof q === 'string') {")],
+    ["CAD resend: held-back draft metadata kept after the graded send", cad, P("diketik[q] = false; lepas[q] = true; delete berkasTunda[q];", "diketik[q] = false; lepas[q] = true;")],
+    ["CAD resend: stored-number drop never cleared (another tab's newer number lost)", cad, P("    lepas = {};   // angka yang baru dinilai sudah keluar dari draft tersimpan\n", "")],
+    ["CAD resend: reopened task's draft metadata used when its SHA-256 matches the ledger card", cad, P("if (dinilai(q) || sudahKirim(q)) return 'buang';", "if (dinilai(q)) return 'buang';")],
   ];
   for (const { relative, course, modulNo, modul, b } of contoh) {
     await ujiPerilakuDraftModul(b, relative);
@@ -2636,6 +2737,10 @@ async function ujiMutasiDraftModul(contoh) {
       ["stale 'draft always null' claim in a page comment", (h) => ganti(h, draftModul.KUNCI, "// Draft tidak ikut menentukan: _draftKey() skrip klasik selalu null di halaman ini.\n" + draftModul.KUNCI)],
       ["CAD file-metadata global moved into a module script", (h) => ganti(h, draftModul.BERKAS_GLOBAL, "").replace("window.MODUL_ID = MODUL_ID;", () => "window.MODUL_ID = MODUL_ID;\n" + draftModul.BERKAS_GLOBAL), cad],
       ["CAD getJawabanSaya callable assigned twice", (h) => ganti(h, draftModul.PANGGIL_JS, "window._getJawabanSayaCallable = null;\n" + draftModul.PANGGIL_JS), cad],
+      ["CAD resend call in kirimTugas without baru=true", (h) => ganti(h, draftModul.BUKA_KIRIM, draftModul.BUKA_KIRIM.replace("true);", "false);")), cad],
+      ["CAD _bukaKirimUlangCad reassigned in a module script", (h) => ganti(h, "window.MODUL_ID = MODUL_ID;", "window.MODUL_ID = MODUL_ID;\nwindow._bukaKirimUlangCad = function () {};"), cad],
+      ["CAD _bukaKirimUlangCad called without window.", (h) => ganti(h, "window._bukaKirimUlangCad(r[1]", "_bukaKirimUlangCad(r[1]"), cad],
+      ["CAD _cadSudahKirim record missing", (h) => ganti(h, draftModul.SUDAH_KIRIM_GLOBAL, "window._cadSudahKirimLama = {};"), cad],
     ]) {
       if (!berlaku(b)) continue;
       const mutan = ubah(modul);
