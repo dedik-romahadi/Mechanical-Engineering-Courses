@@ -2062,7 +2062,10 @@ if (eksporLokal !== 96) throw new Error(`Expected 96 modul/exam pages with a loc
 // lagi) / lambat (batas tunggu bawaan ≤ 2,5 detik), tanpa PIN, dosen,
 // identitas lain, akun simulasi, halaman bertugas berkas, penulis record
 // pengunjung (rules create-only), dan (modul) pemulihan PG terpadu JEMBATAN +
-// HURUF-ASAL + GABUNG + PILIHAN-PG-PULIH.
+// HURUF-ASAL + GABUNG + PILIHAN-PG-PULIH. Blok TUNGGU v2 (record RTDB dibaca
+// sesudah penantian getJawabanSaya; snapshot yang lebih tua daripada marker
+// benar yang sudah diketahui halaman dibaca ulang lalu dilewati) punya sandbox
+// dan uji mutasi sendiri (periksaTungguPemulihan, ujiMutasiTunggu).
 const FIELD_JAWABAN = ["selections", "codes", "scoreDeltas", "pinHash", "pinSetAt"];
 const HASH_UJI = "a".repeat(64);   // hash rekaan untuk uji, bukan PIN siapa pun
 const HASH_UJI_2 = "c".repeat(64);   // hash rekaan kedua (PIN baru), bukan PIN siapa pun
@@ -2158,10 +2161,198 @@ function sandboxJembatan(jembatan, jenis, opsi = {}) {
   return { win, ctx, panggilan, peringatan, tandai, mintaPin };
 }
 
+/**
+ * JAWABAN-PRIVAT:TUNGGU v2 (29 September 2026). v1 membaca record RTDB
+ * bersamaan dengan penantian getJawabanSaya (≤ 2,5 detik) lalu menerapkan
+ * snapshot yang dibaca di AWAL penantian; halaman modul memanggil
+ * _loadScoredQuestions dua kali saat dimuat, sehingga kiriman ulang tugas CAD
+ * yang benar sesudah pemulihan pertama dibatalkan snapshot lama pemulihan kedua
+ * (marker cN_comp_ulang → skor 6 → 0, kartu terbuka lagi). v2: getJawabanSaya
+ * ditunggu dulu, record dibaca sesudahnya; snapshot yang tidak memuat marker
+ * BENAR yang sudah diketahui halaman (window._answeredQ, NIM yang sama sejak
+ * halaman dimuat) dibaca ulang tiap 750 ms paling banyak 4 kali, lalu
+ * pemulihannya dilewati dengan _markLoaded(). Blok ke-96 halaman identik, jadi
+ * sandbox dijalankan sekali per isi blok (`tanpaCache` untuk uji mutasi).
+ */
+const tungguSandbox = new Map();
+const TUNGGU_EKOR = "  Promise.resolve().then(() => (typeof window._muatJawabanSaya === 'function' ? window._muatJawabanSaya() : null)).catch(() => null).then(() => _bacaRekaman(4)).then((snap) => {\n"
+  + "    if (!snap) { if (typeof _markLoaded === 'function') _markLoaded(); else if (typeof window._markLoaded === 'function') window._markLoaded(); return; }\n"
+  + "  // JAWABAN-PRIVAT:TUNGGU END v2\n";
+async function periksaTungguPemulihan(page, relative, { tanpaCache = false } = {}) {
+  const saran = "; jalankan node scripts/jawaban-privat.mjs";
+  for (const ujung of ["BEGIN v2", "END v2"]) {
+    const k = page.split(`// JAWABAN-PRIVAT:TUNGGU ${ujung}`).length - 1;
+    if (k !== 1) throw new Error(`${relative}: penanda JAWABAN-PRIVAT:TUNGGU ${ujung} muncul ${k}x, harusnya 1${saran}`);
+  }
+  const blokTunggu = ambilBlok(page, "// JAWABAN-PRIVAT:TUNGGU BEGIN", "// JAWABAN-PRIVAT:TUNGGU END", relative);
+  // Ekor blok membuka callback pemulihan halaman: snapshot null = dilewati.
+  if (!blokTunggu.endsWith("\n" + TUNGGU_EKOR) || !page.includes("\n  " + blokTunggu)) {
+    throw new Error(`${relative}: blok TUNGGU v2 harus diakhiri pembuka callback pemulihan \`…then(() => _bacaRekaman(4)).then((snap) => {\` dengan \`if (!snap) { …_markLoaded()…; return; }\`${saran}`);
+  }
+  if (/Promise\.all\(/.test(blokTunggu) || page.includes("get(ref(db, DB_PATH + '/' + key)).then(snap => {")) {
+    throw new Error(`${relative}: record RTDB harus dibaca SESUDAH penantian getJawabanSaya, bukan bersamaan (Promise.all) atau tanpa blok TUNGGU${saran}`);
+  }
+  if (!tanpaCache && tungguSandbox.has(blokTunggu)) {
+    const g = tungguSandbox.get(blokTunggu);
+    if (g) throw new Error(`${relative}: ${g}`);
+    return;
+  }
+  let galat = null;
+  try { await sandboxTunggu(blokTunggu); } catch (e) { galat = e.message; }
+  if (!tanpaCache) tungguSandbox.set(blokTunggu, galat);
+  if (galat) throw new Error(`${relative}: ${galat}`);
+}
+/** Jalankan blok TUNGGU di _loadScoredQuestions tiruan (pewaktu dipercepat 100×). */
+async function sandboxTunggu(blokTunggu) {
+  const gagal = (skenario, pesan) => { throw new Error(`JAWABAN-PRIVAT:TUNGGU sandbox (${skenario}): ${pesan}`); };
+  // Badan pemulihan tiruan: mencatat snapshot yang diterapkan, menambahkan
+  // markernya ke _answeredQ seperti kode pemulihan halaman, lalu _markLoaded().
+  const badan = "    hasil.diterapkan.push(snap.exists() ? snap.val() : null);\n"
+    + "    String((snap.exists() && snap.val() && snap.val().scoredQuestions) || '').split(',').filter(Boolean).forEach((m) => window._answeredQ.add(m));\n"
+    + "    _markLoaded();\n"
+    + "  }).catch((e) => { hasil.galat.push(String((e && e.message) || e)); _markLoaded(); });\n";
+  const kodeLokal = `(function (me, key) {\n  const _markLoaded = () => { hasil.termuat += 1; };\n  ${blokTunggu}${badan}})`;
+  const kodeGlobal = `(function (me, key) {\n  ${blokTunggu}${badan}})`;   // ragam Matematika 4 Modul-4: window._markLoaded
+  const buat = (globalMarkLoaded = false) => {
+    const s = { baca: [], jeda: [], peringatan: [], rekaman: null, hasil: { termuat: 0, diterapkan: [], galat: [] }, win: { _answeredQ: new Set() } };
+    if (globalMarkLoaded) s.win._markLoaded = () => { s.hasil.termuat += 1; };
+    const ctx = vm.createContext({
+      window: s.win, hasil: s.hasil, db: {}, DB_PATH: "visitors/uji/slot-x",
+      ref: (d, p) => ({ path: p }),
+      get: (r) => {
+        s.baca.push(r.path);
+        const v = typeof s.rekaman === "function" ? s.rekaman(s.baca.length) : s.rekaman;
+        if (v instanceof Error) return Promise.reject(v);
+        return Promise.resolve({ exists: () => v != null, val: () => (v == null ? null : salinJson(v)) });
+      },
+      setTimeout: (fn, ms) => { s.jeda.push(ms); return setTimeout(fn, Math.ceil(Number(ms || 0) / 100)); },
+      console: { warn: (...a) => s.peringatan.push(a.map(String).join(" ")) },
+    });
+    const f = vm.runInContext(globalMarkLoaded ? kodeGlobal : kodeLokal, ctx);
+    s.jalankan = async (me = MHS_UJI) => {
+      const n = s.hasil.termuat;
+      f(me, "mhs_" + me.nim);
+      await sampai(() => s.hasil.termuat > n, 3000);
+      await tunggu(15);   // tidak ada pembacaan/penerapan tambahan sesudah selesai
+    };
+    return s;
+  };
+  const cekJeda = (skenario, s, n) => {
+    if (s.jeda.length !== n || s.jeda.some((ms) => !(Number(ms) >= 500 && Number(ms) <= 5000))) gagal(skenario, `jeda baca ulang ${JSON.stringify(s.jeda)}, harap ${n} jeda 500–5000 ms`);
+  };
+  const cekSelesai = (skenario, s, { baca, diterapkan }) => {
+    if (s.hasil.termuat !== 1) gagal(skenario, `_markLoaded dipanggil ${s.hasil.termuat}x, harap 1x`);
+    if (s.hasil.galat.length) gagal(skenario, `galat ${JSON.stringify(s.hasil.galat)}`);
+    if (s.baca.length !== baca) gagal(skenario, `record RTDB dibaca ${s.baca.length}x, harap ${baca}x`);
+    if (JSON.stringify(s.hasil.diterapkan) !== JSON.stringify(diterapkan)) gagal(skenario, `snapshot diterapkan ${JSON.stringify(s.hasil.diterapkan)}, harap ${JSON.stringify(diterapkan)}`);
+  };
+
+  // 1) Record dibaca SESUDAH penantian getJawabanSaya selesai: snapshot yang
+  //    diterapkan memuat penilaian yang terjadi selama penantian.
+  {
+    const s = buat();
+    let lepas = null;
+    s.win._muatJawabanSaya = () => new Promise((r) => { lepas = r; });
+    s.rekaman = { scoredQuestions: "mc1,c2_comp_ulang", scoreDeltas: { mc1: 1, c2: 0 } };
+    const jalan = s.jalankan();
+    await tunggu(20);
+    if (!lepas) gagal("tunggu dulu", "window._muatJawabanSaya() tidak dipanggil");
+    if (s.baca.length) gagal("tunggu dulu", "record RTDB dibaca sebelum penantian getJawabanSaya selesai (harus sesudahnya)");
+    s.rekaman = { scoredQuestions: "mc1,c2_comp", scoreDeltas: { mc1: 1, c2: 6 } };
+    lepas(null);
+    await jalan;
+    cekSelesai("tunggu dulu", s, { baca: 1, diterapkan: [{ scoredQuestions: "mc1,c2_comp", scoreDeltas: { mc1: 1, c2: 6 } }] });
+  }
+  // 2) Penantian tidak ada, melempar, atau menolak: record tetap dibaca dan diterapkan.
+  for (const [nama, muat] of [["tanpa _muatJawabanSaya", undefined], ["_muatJawabanSaya melempar", () => { throw new Error("uji"); }],
+    ["_muatJawabanSaya menolak", () => Promise.reject(new Error("uji"))], ["_muatJawabanSaya berhasil", () => Promise.resolve({ selections: {} })]]) {
+    const s = buat();
+    if (muat) s.win._muatJawabanSaya = muat;
+    s.rekaman = { scoredQuestions: "mc1" };
+    await s.jalankan();
+    cekSelesai(nama, s, { baca: 1, diterapkan: [{ scoredQuestions: "mc1" }] });
+    cekJeda(nama, s, 0);
+  }
+  // 3) Snapshot yang tidak memuat marker BENAR yang sudah diketahui halaman
+  //    (penilaian di sesi ini; cache listener tertinggal) dibaca ulang sampai segar.
+  for (const [penanda, basi] of [["c2_comp", 1], ["mc1", 1], ["tf1", 1], ["ce2_comp", 1], ["ch1_comp", 1], ["c12_comp", 1], ["mc10", 1], ["c2_comp", 3]]) {
+    const nama = `snapshot tertinggal ${basi}x (${penanda})`;
+    const s = buat();
+    s.win._answeredQ = new Set(["mc9", penanda]);
+    s.rekaman = (n) => (n <= basi ? { scoredQuestions: "mc9,c2_comp_ulang" } : { scoredQuestions: "mc9," + penanda });
+    await s.jalankan();
+    cekSelesai(nama, s, { baca: basi + 1, diterapkan: [{ scoredQuestions: "mc9," + penanda }] });
+    cekJeda(nama, s, basi);
+    if (s.peringatan.length) gagal(nama, `peringatan tak perlu: ${s.peringatan.join(" | ")}`);
+  }
+  // 4) Tetap lebih tua: 5 bacaan (4 ulang), pemulihan dilewati, halaman tetap
+  //    termuat, peringatan di console — juga untuk _markLoaded global.
+  for (const globalMarkLoaded of [false, true]) {
+    const nama = `snapshot tertinggal terus${globalMarkLoaded ? ", window._markLoaded" : ""}`;
+    const s = buat(globalMarkLoaded);
+    s.win._answeredQ = new Set(["c2_comp"]);
+    s.rekaman = { scoredQuestions: "c2_comp_ulang" };
+    await s.jalankan();
+    await tunggu(40);
+    cekSelesai(nama, s, { baca: 5, diterapkan: [] });
+    cekJeda(nama, s, 4);
+    if (s.peringatan.length !== 1 || !/lebih tua/.test(s.peringatan[0])) gagal(nama, `harap satu console.warn "lebih tua", ditemukan ${JSON.stringify(s.peringatan)}`);
+  }
+  // 5) Marker salah/partial/kirim ulang bukan penanda umur (pemulihan hanya
+  //    menambah; kirim ulang CAD mengganti marker itu), dan snapshot yang memuat
+  //    semua marker benar langsung diterapkan.
+  for (const [nama, diketahui, rekaman] of [
+    ["marker salah/partial bukan penanda umur", ["c2_comp_ulang", "mc4_mc_used", "tf2_tf_used", "c3_comp_used", "c11_comp_partial", "ch1_comp_partial"], "c2_comp"],
+    ["semua marker benar ada", ["mc1", "tf1", "c1_comp", "ce2_comp", "ch1_comp"], "mc1,tf1,c1_comp,ce2_comp,ch1_comp,mc2_mc_used"],
+  ]) {
+    const s = buat();
+    s.win._answeredQ = new Set(diketahui);
+    s.rekaman = { scoredQuestions: rekaman };
+    await s.jalankan();
+    cekSelesai(nama, s, { baca: 1, diterapkan: [{ scoredQuestions: rekaman }] });
+  }
+  // 6) Record belum ada: diterapkan (jalur mahasiswa baru); record hilang
+  //    padahal halaman tahu marker benar (reset dosen) → dilewati.
+  {
+    const s = buat();
+    await s.jalankan();
+    cekSelesai("record belum ada", s, { baca: 1, diterapkan: [null] });
+    const s2 = buat();
+    s2.win._answeredQ = new Set(["mc1"]);
+    await s2.jalankan();
+    await tunggu(40);
+    cekSelesai("record hilang, marker benar diketahui", s2, { baca: 5, diterapkan: [] });
+  }
+  // 7) Identitas halaman berganti tanpa muat ulang (localStorage tab lain):
+  //    marker bercampur, pemeriksaan umur mati — juga saat kembali ke NIM awal.
+  {
+    const s = buat();
+    const A = MHS_UJI, B = { nama: "LAIN", nim: "41300000999", role: "student" };
+    s.rekaman = { scoredQuestions: "mc1,c2_comp" };
+    await s.jalankan(A);
+    if (s.win._nimPemulihan !== A.nim) gagal("identitas berganti", `NIM pemulihan pertama tidak dicatat (${s.win._nimPemulihan})`);
+    s.rekaman = { scoredQuestions: "mc5" };
+    await s.jalankan(B);
+    s.rekaman = { scoredQuestions: "mc1,c2_comp" };
+    await s.jalankan(A);
+    await tunggu(40);
+    if (s.baca.length !== 3 || JSON.stringify(s.hasil.diterapkan) !== JSON.stringify([{ scoredQuestions: "mc1,c2_comp" }, { scoredQuestions: "mc5" }, { scoredQuestions: "mc1,c2_comp" }]) || s.hasil.termuat !== 3) {
+      gagal("identitas berganti", `dibaca ${s.baca.length}x, diterapkan ${JSON.stringify(s.hasil.diterapkan)}, termuat ${s.hasil.termuat}x (harap 3/3/3: marker NIM lain bukan penanda umur)`);
+    }
+  }
+  // 8) Pembacaan RTDB gagal: jalur .catch halaman (_markLoaded), tanpa penerapan.
+  {
+    const s = buat();
+    s.rekaman = new Error("PERMISSION_DENIED");
+    await s.jalankan();
+    if (s.hasil.termuat !== 1 || s.hasil.diterapkan.length || s.hasil.galat.length !== 1) gagal("get() menolak", `termuat ${s.hasil.termuat}, diterapkan ${s.hasil.diterapkan.length}, galat ${JSON.stringify(s.hasil.galat)}`);
+  }
+}
+
 async function periksaJawabanPrivat(page, relative, jenis) {
   const saran = "; jalankan node scripts/jawaban-privat.mjs";
   const modul = jenis === "Modul";
-  const versi = { JEMBATAN: "v2", IDENTITAS: "v2", TUNGGU: "v1", GABUNG: "v2", ...(modul ? { "HURUF-ASAL": "v1" } : {}) };
+  const versi = { JEMBATAN: "v2", IDENTITAS: "v2", TUNGGU: "v2", GABUNG: "v2", ...(modul ? { "HURUF-ASAL": "v1" } : {}) };
   for (const [n, v] of Object.entries(versi)) {
     for (const ujung of [`BEGIN ${v}`, `END ${v}`]) {
       const k = page.split(`// JAWABAN-PRIVAT:${n} ${ujung}`).length - 1;
@@ -2189,10 +2380,9 @@ async function periksaJawabanPrivat(page, relative, jenis) {
   if (!new RegExp(`// JAWABAN-PRIVAT:${modul ? "HURUF-ASAL END v1" : "JEMBATAN END v2"}\\nconst _generateExportCodeCallable = httpsCallable\\(_functions, 'generateExportCode'\\);\\n`).test(page)) {
     throw new Error(`${relative}: blok JEMBATAN${modul ? " + HURUF-ASAL" : ""} harus tepat sebelum \`const _generateExportCodeCallable = …\` (jangkar generator CAD)${saran}`);
   }
-  if (!page.includes("  Promise.all([get(ref(db, DB_PATH + '/' + key)), (typeof window._muatJawabanSaya === 'function' ? window._muatJawabanSaya() : null)]).then(([snap]) => {\n  // JAWABAN-PRIVAT:TUNGGU END v1\n")
-    || page.includes("get(ref(db, DB_PATH + '/' + key)).then(snap => {")) {
-    throw new Error(`${relative}: _loadScoredQuestions harus menunggu record RTDB dan getJawabanSaya bersama (blok TUNGGU)${saran}`);
-  }
+  // Record RTDB dibaca sesudah penantian getJawabanSaya; snapshot yang lebih tua
+  // daripada marker benar yang sudah diketahui halaman tidak diterapkan (TUNGGU v2).
+  await periksaTungguPemulihan(page, relative);
   if (!gabung.includes("\n    if (typeof window._gabungJawabanSaya === 'function') window._gabungJawabanSaya(data);\n    else { delete data.selections; delete data.codes; delete data.mcOrderVersion; }\n")) {
     throw new Error(`${relative}: blok GABUNG harus memanggil window._gabungJawabanSaya(data) dan membuang selections/codes publik bila jembatan tidak ada${saran}`);
   }
@@ -2564,6 +2754,47 @@ let jawabanPrivat = 0;
   await Promise.all(Array.from({ length: 8 }, pekerja));
 }
 if (jawabanPrivat !== 96) throw new Error(`Expected 96 modul/exam pages restoring answers through getJawabanSaya, found ${jawabanPrivat}`);
+if (tungguSandbox.size !== 1) throw new Error(`Expected one JAWABAN-PRIVAT:TUNGGU block shared by the 96 pages, found ${tungguSandbox.size} variants`);
+await ujiMutasiTunggu();
+
+/**
+ * Uji mutasi periksaTungguPemulihan: tiap salinan blok TUNGGU yang dirusak harus
+ * ditolak (halaman aslinya lolos di perulangan di atas). TUNGGU_MUTASI=1 mencetak
+ * alasan penolakan tiap kasus.
+ */
+async function ujiMutasiTunggu() {
+  const relative = "Pemodelan-Computer-Aided-Design/Modul/Modul-2.html";
+  const modul = fs.readFileSync(path.join(root, relative), "utf8");
+  const BACA = "  const _bacaRekaman = (sisa) => get(ref(db, DB_PATH + '/' + key)).then((snap) => {\n";
+  const kasus = [
+    ["penanda v1", [["// JAWABAN-PRIVAT:TUNGGU BEGIN v2", "// JAWABAN-PRIVAT:TUNGGU BEGIN v1"], ["// JAWABAN-PRIVAT:TUNGGU END v2", "// JAWABAN-PRIVAT:TUNGGU END v1"]]],
+    ["record dibaca bersamaan dengan penantian", [[BACA, "  const _bacaAwal = get(ref(db, DB_PATH + '/' + key));\n  const _bacaRekaman = (sisa) => (sisa === 4 ? _bacaAwal : get(ref(db, DB_PATH + '/' + key))).then((snap) => {\n"]]],
+    ["getJawabanSaya tidak ditunggu", [["(typeof window._muatJawabanSaya === 'function' ? window._muatJawabanSaya() : null)).catch", "(typeof window._muatJawabanSaya === 'function' ? (window._muatJawabanSaya(), null) : null)).catch"]]],
+    ["penantian yang menolak menghentikan pemulihan", [[".catch(() => null).then(() => _bacaRekaman(4))", ".then(() => _bacaRekaman(4))"]]],
+    ["tanpa pemeriksaan umur", [["    if (!_snapLebihTua(snap)) return snap;\n", "    return snap;\n"]]],
+    ["marker salah ikut menjadi penanda umur", [["/^(?:tf|mc|ce|ch|c)\\d{1,2}(?:_comp)?$/.test(m)", "/^(?:tf|mc|ce|ch|c)\\d{1,2}/.test(m)"]]],
+    ["marker benar-salah tidak dikenali", [["/^(?:tf|mc|ce|ch|c)\\d{1,2}(?:_comp)?$/.test(m)", "/^(?:mc|ce|ch|c)\\d{1,2}(?:_comp)?$/.test(m)"]]],
+    ["marker dua digit tidak dikenali", [["/^(?:tf|mc|ce|ch|c)\\d{1,2}(?:_comp)?$/.test(m)", "/^(?:tf|mc|ce|ch|c)\\d(?:_comp)?$/.test(m)"]]],
+    ["baca ulang tanpa batas", [["    if (sisa > 0) return", "    if (sisa > -60) return"]]],
+    ["baca ulang tanpa jeda", [["setTimeout(r, 750)", "setTimeout(r, 0)"]]],
+    ["snapshot tua diterapkan sesudah batas", [["    console.warn('[jawaban-saya] record RTDB masih lebih tua daripada penilaian yang sudah diterima halaman; pemulihan ini dilewati, keadaan halaman dipertahankan.');\n    return null;\n", "    return snap;\n"]]],
+    ["dilewati tanpa _markLoaded", [["    if (!snap) { if (typeof _markLoaded === 'function') _markLoaded(); else if (typeof window._markLoaded === 'function') window._markLoaded(); return; }\n", "    if (!snap) return;\n"]]],
+    ["tanpa penjaga identitas", [["    if (window._nimPemulihan !== _nimPulih) return false;\n", ""]]],
+    ["identitas bercampur tidak dimatikan", [["  else if (window._nimPemulihan !== _nimPulih) window._nimPemulihan = '*';\n", ""]]],
+    ["record yang hilang dianggap segar", [["    const v = (snap && snap.exists()) ? snap.val() : null;\n", "    const v = (snap && snap.exists()) ? snap.val() : null;\n    if (!v) return false;\n"]]],
+  ];
+  for (const [nama, ganti] of kasus) {
+    let salinan = modul;
+    for (const [asli, rusak] of ganti) {
+      if (!salinan.includes(asli)) throw new Error(`${relative}: JAWABAN-PRIVAT:TUNGGU mutation test anchor not found (${nama})`);
+      salinan = salinan.replace(asli, () => rusak);
+    }
+    let alasan = null;
+    try { await periksaTungguPemulihan(salinan, relative + " [mutasi]", { tanpaCache: true }); } catch (e) { alasan = e.message; }
+    if (!alasan) throw new Error(`${relative}: JAWABAN-PRIVAT:TUNGGU check accepted a mutated page (${nama})`);
+    if (process.env.TUNGGU_MUTASI) console.log(`mutasi TUNGGU "${nama}" ditolak: ${alasan}`);
+  }
+}
 
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");
 if (/rsync -a \\\r?\n\s+--exclude='.git'/.test(workflow)) throw new Error("Pages workflow still copies repository root");
