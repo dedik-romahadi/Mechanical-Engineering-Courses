@@ -241,15 +241,25 @@ for (const course of courseRoots) {
     ]) {
       if (!exam.includes(required)) throw new Error(`${relative}: lecturer question view missing ${required}`);
     }
-    const lecturerLoader = examName === "UAS.html"
-      ? "await window._ensureUASQuestionsLoaded()"
-      : "window.renderUTSQuestions()";
+    // Tinjauan soal dosen memuat soal lewat loader (getExamQuestions), di UTS
+    // maupun UAS. Dulu UTS cukup memuat teks `window.renderUTSQuestions()`,
+    // yang juga ada di dalam loader, sehingga tuntutan ini tidak menjaga apa pun.
+    const lecturerLoader = `await window._ensure${examName.slice(0, 3)}QuestionsLoaded()`;
     if (!exam.includes(lecturerLoader)) {
       throw new Error(`${relative}: lecturer question loader missing ${lecturerLoader}`);
     }
     if (examName === "UAS.html" && !exam.includes("await _auth.authStateReady()")) {
       throw new Error(`${relative}: lecturer UAS view does not wait for restored admin auth`);
     }
+    // Flag "soal sudah dirender" (window._utsRenderedFlag/_uasRenderedFlag) hanya
+    // sesudah render sukses (29 September 2026, scripts/muat-soal-uts.mjs,
+    // Pedoman §7.9). UTS Math4/Opto dulu merender langsung lalu memasang flag di
+    // jaring aman init dan di auto-login _handleScheduleReady, sebelum soal
+    // diambil: renderer return dini (window.UTS_TF belum ada) tetapi flag
+    // terpasang, sehingga _ensureUTSQuestionsLoaded — juga dari saveIdentity dan
+    // _setSessionPinHash — tidak pernah memanggil getExamQuestions untuk
+    // mahasiswa yang kembali. Aturannya ada di periksaFlagRender (di bawah).
+    periksaFlagRender(exam, examName.slice(0, 3), relative);
     if (examName === "UAS.html") {
       for (const required of [
         ">Atur Jadwal UAS</h2>",
@@ -573,6 +583,58 @@ function ambilFungsi(exam, awal, relative) {
   const j = i < 0 ? -1 : exam.indexOf("\n}\n", i);
   if (i < 0 || j < 0) throw new Error(`${relative}: ${awal} not found`);
   return exam.slice(i, j + 3);
+}
+/**
+ * Flag render halaman ujian (Pedoman §7.9). Baris komentar `//` diabaikan.
+ *  1. render…Questions() yang langsung diikuti pemasangan flag render (spasi
+ *     dan pindah baris bebas, juga `?.()`, dengan atau tanpa `window.`, UTS/UAS
+ *     campuran) hanya boleh di dalam _ensure…QuestionsLoaded — bentuk persis
+ *     bug UTS Math4/Opto.
+ *  2. Flag render hanya boleh diberi nilai selain `false` di dalam
+ *     render…Questions (sesudah render sukses) atau _ensure…QuestionsLoaded
+ *     (sesudah bank soal diisi dari respons server), dan minimal sekali di
+ *     sana. Aturan ini menangkap bentuk lain bug yang sama: flag sesudah
+ *     try/catch, komentar di antara render dan flag, `?.()`.
+ *  3. _ensure…QuestionsLoaded memanggil render…Questions(). Bentuk pemasangan
+ *     flag di loader sengaja tidak dikunci (boleh bersyarat).
+ * scripts/muat-soal-uts.mjs memakai aturan yang sama (periksaFlagRender) untuk
+ * memeriksa hasilnya; ubah keduanya bersama.
+ */
+function periksaFlagRender(exam, jenis, relative) {
+  const rentang = (awal) => {
+    const i = exam.indexOf(awal);
+    const j = i < 0 ? -1 : exam.indexOf("\n}\n", i);
+    if (i < 0 || j < 0) throw new Error(`${relative}: ${awal} not found`);
+    if (exam.indexOf(awal, i + 1) >= 0) throw new Error(`${relative}: ${awal} appears more than once`);
+    return [i, j + 3];
+  };
+  const pemuat = rentang(`async function _ensure${jenis}QuestionsLoaded() {`);
+  const perender = rentang(`function render${jenis}Questions() {`);
+  const di = ([a, b], i) => i >= a && i < b;
+  const baris = (i) => exam.slice(0, i).split("\n").length;
+  const sebarisSesudah = (i) => exam.slice(i, exam.indexOf("\n", i) < 0 ? undefined : exam.indexOf("\n", i)).trim();
+  // Di baris komentar: teks sebelum kecocokan pada barisnya memuat `//` (bukan `://` URL).
+  const komentar = (i) => /(?:^|[^:])\/\//.test(exam.slice(exam.lastIndexOf("\n", i - 1) + 1, i));
+  const kode = (rx) => [...exam.matchAll(rx)].filter((m) => !komentar(m.index));
+
+  for (const m of kode(/(?<![\w$])render(U[TA]S)Questions\s*(?:\?\.\s*)?\(\s*\)\s*;?\s*(?:window\.)?_u[ta]sRenderedFlag\s*=\s*true\b/g)) {
+    if (di(pemuat, m.index)) continue;
+    throw new Error(`${relative}:${baris(m.index)}: rendered flag set right after render${m[1]}Questions() outside _ensure${jenis}QuestionsLoaded ("${m[0].replace(/\s+/g, " ")}"); the renderer returns early while the questions are not loaded yet, and the flag then stops _ensure${jenis}QuestionsLoaded (auto-login, saveIdentity, _setSessionPinHash) from ever calling getExamQuestions — set the flag inside the renderer after a successful render and call the loader instead (node scripts/muat-soal-uts.mjs)`);
+  }
+  let dipasang = 0;
+  for (const m of kode(/(?<![\w$])_u[ta]sRenderedFlag\s*=(?!=)(?!\s*false\b)/g)) {
+    if (di(pemuat, m.index) || di(perender, m.index)) {
+      dipasang += 1;
+      continue;
+    }
+    throw new Error(`${relative}:${baris(m.index)}: rendered flag assigned outside render${jenis}Questions/_ensure${jenis}QuestionsLoaded ("${sebarisSesudah(m.index)}"); set it only in the renderer after a successful render or in the loader after getExamQuestions answered, otherwise it can be true before any question exists and the loader never fetches them (Pedoman §7.9)`);
+  }
+  if (dipasang === 0) {
+    throw new Error(`${relative}: rendered flag (_utsRenderedFlag/_uasRenderedFlag) is never set in render${jenis}Questions or _ensure${jenis}QuestionsLoaded`);
+  }
+  if (!kode(/(?<![\w$])render(U[TA]S)Questions\s*(?:\?\.\s*)?\(\s*\)/g).some((m) => m[1] === jenis && di(pemuat, m.index))) {
+    throw new Error(`${relative}: _ensure${jenis}QuestionsLoaded must call render${jenis}Questions() after loading the questions`);
+  }
 }
 function ambilBlok(exam, awal, akhir, relative) {
   const i = exam.indexOf(awal);
