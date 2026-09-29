@@ -6892,11 +6892,12 @@ window._pinAuthObj = async (nim, inputHash) => {
   if (inputHash) return { pinHash: r.valid ? inputHash : '\u0000nomatch' };
   return { pinHash: '\u0001exists' };
 };
-// JAWABAN-PRIVAT:JEMBATAN BEGIN v2 — dipasang scripts/jawaban-privat.mjs
+// JAWABAN-PRIVAT:JEMBATAN BEGIN v5 — dipasang scripts/jawaban-privat.mjs
 // Jawaban milik sendiri (pilihan PG/benar-salah, kode Python, ringkasan berkas
-// tugas) HANYA dari ledger server lewat callable getJawabanSaya
-// ({modulId|examId, nim, pinHash}). Record RTDB visitors/ terbaca publik
-// (papan peringkat, tab Hasil), jadi selections/codes/mcOrderVersion di sana
+// tugas, angka bacaan FreeCAD yang dinilai) HANYA dari ledger server lewat
+// callable getJawabanSaya ({modulId|examId, nim, pinHash}). Record RTDB
+// visitors/ terbaca publik (papan peringkat, tab Hasil), jadi
+// selections/codes/mcOrderVersion/angka/angkaStatus di sana
 // tidak pernah dipakai — juga saat callable gagal: isinya bisa sisa lama atau
 // tanaman orang lain, dan functions + rules sudah aktif sebelum halaman ini
 // terbit. Tanpa respons, pilihan tidak ditandai, kode hanya dari draft lokal,
@@ -6905,7 +6906,12 @@ window._pinAuthObj = async (nim, inputHash) => {
 // _loadScoredQuestions paling lama 2,5 detik, dan hasil yang datang terlambat
 // tetap diterapkan. Hanya field berdaftar-putih yang dipakai; kunci/penjelasan
 // tidak pernah. scoreDelta ledger (ikut rescale) menang atas scoreDeltas RTDB
-// untuk soal yang ada di respons.
+// untuk soal yang ada di respons — hanya bila status ledger soal itu cocok
+// dengan marker RTDB segar (v4); entri yang tidak cocok milik attempt lain
+// (mis. hasil terlambat yang dibaca sebelum kiriman ulang CAD di sesi ini) dan
+// tidak dipakai sama sekali untuk soal itu. Ringkasan berkas yang belum dinilai
+// juga tidak dipakai untuk soal yang sudah bermarker atau sudah dikirim di sesi
+// ini (v5).
 // Kegagalan: sementara (internal, unavailable, deadline-exceeded, jaringan) →
 // dicoba lagi otomatis 3 lalu 10 detik kemudian dan pada _loadScoredQuestions
 // berikutnya; resource-exhausted (penguncian PIN per NIM + sumber, node yang
@@ -6923,7 +6929,7 @@ const _jawabanSaya = { kunci: null, hasil: null, janji: null, terlambat: false, 
 function _normalkanJawabanSaya(d) {
   if (!d || typeof d !== 'object') return null;
   const qSah = /^(?:tf|mc|ce|ch|c)\d{1,2}$/;
-  const h = { selections: {}, codes: {}, berkas: {}, mcOrderVersion: {}, scoreDeltas: {}, status: {} };
+  const h = { selections: {}, codes: {}, berkas: {}, angka: {}, mcOrderVersion: {}, scoreDeltas: {}, status: {} };
   const jawaban = (d.jawaban && typeof d.jawaban === 'object') ? d.jawaban : {};
   Object.keys(jawaban).forEach((qId) => {
     const j = jawaban[qId];
@@ -6937,6 +6943,10 @@ function _normalkanJawabanSaya(d) {
     } else if (j.tipe === 'comp' && typeof j.kode === 'string' && j.kode) {
       h.codes[qId] = j.kode.slice(0, 5000);
     }
+    // Angka bacaan FreeCAD yang dinilai (attempt terakhir): hanya halaman
+    // bertugas berkas (CAD) yang memakainya; course lain mengabaikannya.
+    if (j.tipe === 'comp' && typeof j.angka === 'number' && Number.isFinite(j.angka) && /^c\d{1,2}$/.test(qId)
+        && typeof window._ringkasTugasCad === 'function') h.angka[qId] = j.angka;
     if (typeof j.scoreDelta === 'number' && Number.isFinite(j.scoreDelta)) h.scoreDeltas[qId] = j.scoreDelta;
     if (typeof j.status === 'string') h.status[qId] = j.status;
   });
@@ -7056,10 +7066,25 @@ window._muatJawabanSaya = function (batasMs, terapkan) {
     janji.then((h) => { if (habis) return; clearTimeout(t); selesai(h); });
   });
 };
+// Status yang diharapkan dari marker RTDB (sama dengan _statusDariMarker
+// backend): qId (PG/benar-salah benar) atau qId_comp = 'correct',
+// qId_comp_partial = 'partial', akhiran lain yang dikenal (_mc_used, _tf_used,
+// _comp_used, _comp_ulang kirim ulang CAD) = 'wrong'. Akhiran tak dikenal
+// diabaikan (stripMarkerSuffix backend juga tidak mengenalinya).
+function _statusMarkerJawabanSaya(scored) {
+  const st = {};
+  String(scored || '').split(',').forEach((m) => {
+    const r = /^((?:tf|mc|ce|ch|c)\d{1,2})(_tf_used|_mc_used|_comp_used|_comp_partial|_comp_ulang|_comp)?$/.exec(m);
+    if (!r) return;
+    const s = (!r[2] || r[2] === '_comp') ? 'correct' : r[2] === '_comp_partial' ? 'partial' : 'wrong';
+    (st[r[1]] = st[r[1]] || []).push(s);
+  });
+  return st;
+}
 window._gabungJawabanSaya = function (data) {
   if (!data || typeof data !== 'object') return data;
   // Isi publik record tidak pernah menjadi jawaban (juga bila callable gagal).
-  delete data.selections; delete data.codes; delete data.mcOrderVersion;
+  delete data.selections; delete data.codes; delete data.mcOrderVersion; delete data.angka; delete data.angkaStatus;
   const h = _jawabanSaya.hasil;
   let me = null;
   try { me = getIdentity(); } catch (e) {}
@@ -7068,15 +7093,54 @@ window._gabungJawabanSaya = function (data) {
     const x = Object.assign({}, ...sumber);
     if (Object.keys(x).length) data[field] = x;
   };
-  isi('selections', h.selections);
-  isi('codes', h.berkas, h.codes);
-  isi('mcOrderVersion', h.mcOrderVersion);
+  // Entri respons yang statusnya tidak cocok dengan marker RTDB segar soal itu
+  // (data.scoredQuestions, dibaca bersama atau sesudah respons) milik attempt
+  // lain: respons getJawabanSaya dibaca sebelum kiriman ulang tugas CAD di sesi
+  // ini lalu diterapkan terlambat (_terapkanJawabanSayaTerlambat), atau cache
+  // sesi yang dipakai lagi oleh _loadScoredQuestions berikutnya. Seluruh isinya
+  // — pilihan, mcOrderVersion, kode, angka, status, scoreDelta — tidak dipakai
+  // untuk soal itu, sehingga poin, tampilan, dan angka bacaan mengikuti record
+  // RTDB (dulu scoreDelta 0 kiriman salah menimpa poin kiriman ulang benar
+  // sampai halaman dimuat ulang). Soal tanpa marker (belum tercatat, di-reset
+  // dosen) tetap memakai entri ledger.
+  const statusMarker = _statusMarkerJawabanSaya(data.scoredQuestions);
+  const cocok = (qId) => !statusMarker[qId] || statusMarker[qId].includes(h.status[qId]);
+  const saring = (o) => {
+    const x = {};
+    Object.keys(o).forEach((qId) => { if (cocok(qId)) x[qId] = o[qId]; });
+    return x;
+  };
+  isi('selections', saring(h.selections));
+  // Ringkasan berkas yang belum dinilai (h.berkas; backend hanya mengirimnya
+  // untuk soal tanpa entri ledger saat dibaca) basi bila soal itu sudah dinilai
+  // sesudahnya: ada marker di data.scoredQuestions, atau kartunya sudah dikirim
+  // di sesi ini (compAnswered, penjaga yang sama dengan kait
+  // _tandaiBerkasDiServer — cache ujian yang menerima hasil terlambat membawa
+  // marker saat muat, dan kiriman modul bisa masih menunggu server). Untuk soal
+  // itu ringkasan dan kaitnya tidak dipakai (v5); dulu kartu berkas-status tugas
+  // CAD yang baru dinilai kembali ke berkas lama sampai halaman dimuat ulang.
+  const sudahDikirim = (qId) => {
+    try { return typeof compAnswered === 'object' && compAnswered !== null && !!compAnswered[qId]; } catch (e) { return false; }
+  };
+  const berkas = {};
+  Object.keys(h.berkas).forEach((qId) => { if (!statusMarker[qId] && !sudahDikirim(qId)) berkas[qId] = h.berkas[qId]; });
+  isi('codes', berkas, saring(h.codes));
+  isi('mcOrderVersion', saring(h.mcOrderVersion));
+  const angka = saring(h.angka);
+  isi('angka', angka);   // hanya halaman CAD (kolom angka kartu tugas yang dinilai)
+  // Status ledger attempt yang memberi angka itu (selalu cocok dengan marker
+  // sejak v4); blok ANGKA-CAD modul tetap hanya mengunci kolom tugas benar bila
+  // status ini 'correct' — lapis kedua.
+  const angkaStatus = {};
+  Object.keys(angka).forEach((qId) => { if (typeof h.status[qId] === 'string') angkaStatus[qId] = h.status[qId]; });
+  isi('angkaStatus', angkaStatus);
   // Poin per soal: ledger (sumber resmi, ikut rescale) untuk setiap soal di
-  // respons; scoreDeltas RTDB hanya untuk soal lain. 0 pada jawaban benar/
-  // partial berarti poinnya tak diketahui (entri cadangan tanpa scoreDeltas):
-  // nilai RTDB, atau cadangan halaman bila tidak ada, yang dipakai.
+  // respons yang statusnya cocok dengan marker; scoreDeltas RTDB untuk soal
+  // lain. 0 pada jawaban benar/partial berarti poinnya tak diketahui (entri
+  // cadangan tanpa scoreDeltas): nilai RTDB, atau cadangan halaman bila tidak
+  // ada, yang dipakai.
   const delta = Object.assign({}, (data.scoreDeltas && typeof data.scoreDeltas === 'object') ? data.scoreDeltas : {});
-  Object.keys(h.scoreDeltas).forEach((qId) => {
+  Object.keys(saring(h.scoreDeltas)).forEach((qId) => {
     const v = h.scoreDeltas[qId];
     if (v === 0 && (h.status[qId] === 'correct' || h.status[qId] === 'partial') && !Number.isFinite(Number(delta[qId]))) return;
     delta[qId] = v;
@@ -7084,13 +7148,14 @@ window._gabungJawabanSaya = function (data) {
   if (Object.keys(delta).length) data.scoreDeltas = delta;
   // Berkas CAD yang sudah terunggah tetapi belum dinilai: kartunya boleh
   // langsung dikirim tanpa unggah ulang (server memeriksa berkasnya sendiri).
+  // Hanya ringkasan yang lolos saringan v5 di atas.
   if (typeof window._tandaiBerkasDiServer === 'function') {
-    Object.keys(h.berkas).forEach((qId) => { try { window._tandaiBerkasDiServer(qId); } catch (e) {} });
+    Object.keys(berkas).forEach((qId) => { try { window._tandaiBerkasDiServer(qId); } catch (e) {} });
   }
   return data;
 };
 setTimeout(() => { try { window._muatJawabanSaya(); } catch (e) {} }, 0);   // mulai lebih awal bila sesi PIN tersimpan
-// JAWABAN-PRIVAT:JEMBATAN END v2
+// JAWABAN-PRIVAT:JEMBATAN END v5
 // JAWABAN-PRIVAT:HURUF-ASAL BEGIN v1 — dipasang scripts/jawaban-privat.mjs
 // Huruf kanonik tiap opsi PG (urutan markup) dicatat sebelum urutan acak per
 // NIM diterapkan, supaya pilihan berhuruf kanonik (mcOrderVersion 0, attempt

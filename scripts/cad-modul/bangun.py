@@ -5,6 +5,7 @@
 # Pakai (dari root repo):  python scripts/cad-modul/bangun.py 2
 # Lalu jalankan injektor progres (kotak centang) dan validator:
 #   node scripts/tambah-progres-modul.mjs
+#   node scripts/jawaban-privat.mjs --periksa   # harus 0: blok ANGKA-CAD diwarisi dari Modul-1
 #   node scripts/validate-public-security.mjs && node scripts/validate-all-course-modern-design.mjs
 #
 # Yang diganti dari kerangka: identitas (judul, nomor modul/pertemuan, kunci

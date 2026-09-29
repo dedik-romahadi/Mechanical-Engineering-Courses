@@ -19,16 +19,59 @@
  * YANG DILAKUKAN (ke-84 modul dan ke-12 UTS/UAS, di luar penanda
  * AI-CHAT-AGENT; blok sengaja tanpa nama course dan nomor modul karena
  * generator TTL/CAD mengganti keduanya secara global):
- *   1. JAWABAN-PRIVAT:JEMBATAN (v2) — tepat sebelum
+ *   1. JAWABAN-PRIVAT:JEMBATAN (v5) — tepat sebelum
  *      `const _generateExportCodeCallable = …`: jembatan
  *      `window._getJawabanSayaCallable`, cache per NIM + hash PIN sesi,
  *      pemanggilan awal sesudah skrip modul selesai,
  *      `window._muatJawabanSaya(batasMs)` (tidak pernah menolak; menunggu
  *      paling lama 2,5 detik, hasil yang terlambat tetap diterapkan), dan
  *      `window._gabungJawabanSaya(data)` yang MEMBUANG selections/codes/
- *      mcOrderVersion record publik lalu mengisinya dari respons
- *      berdaftar-putih (pilihan, mcOrderVersion, kode, ringkasan berkas yang
- *      belum dinilai; scoreDelta ledger menang atas scoreDeltas RTDB). Halaman
+ *      mcOrderVersion/angka/angkaStatus record publik lalu mengisinya dari
+ *      respons berdaftar-putih (pilihan, mcOrderVersion, kode, ringkasan berkas
+ *      yang belum dinilai, dan — sejak v3, hanya halaman bertugas berkas CAD —
+ *      angka bacaan FreeCAD yang dinilai (`angka`, number berhingga pada entri
+ *      `tipe: 'comp'`) ke `data.angka` beserta status ledger attempt itu ke
+ *      `data.angkaStatus`; scoreDelta ledger menang atas scoreDeltas RTDB).
+ *      Respons tanpa `angka` (backend lama) menghasilkan
+ *      `data` yang sama persis dengan v2.
+ *      v4 (29 September 2026): entri respons dipakai hanya bila status ledger
+ *      soal itu cocok dengan marker RTDB segar (`data.scoredQuestions`, dibaca
+ *      untuk pemulihan yang sama — sejak TUNGGU v2 sesudah penantian
+ *      respons — atau, hasil terlambat modul, dibaca ulang sesudahnya), dengan
+ *      pemetaan `_statusDariMarker` backend: `qId` (PG/benar-salah benar) atau
+ *      `qId_comp` = correct, `qId_comp_partial` = partial, `_mc_used`,
+ *      `_tf_used`, `_comp_used`, dan `_comp_ulang` (kirim ulang CAD) = wrong.
+ *      Tidak cocok → pilihan, mcOrderVersion, kode, angka, angkaStatus, dan
+ *      scoreDelta entri itu tidak dipakai; poin dan tampilan soal itu
+ *      mengikuti record RTDB. Soal tanpa marker (belum tercatat, di-reset
+ *      dosen) tetap memakai entri ledger, dan ringkasan berkas belum dinilai
+ *      (`berkas`) tidak berubah (disaring sejak v5). Sebabnya (sejak #963,
+ *      JEMBATAN v2): hasil
+ *      getJawabanSaya yang datang sesudah batas tunggu (cold start, coba ulang
+ *      3/10 detik) membawa ledger yang dibaca SEBELUM mahasiswa mengirim ulang
+ *      tugas CAD dengan benar di sesi yang sama; pemulihan ulang
+ *      (_terapkanJawabanSayaTerlambat → _loadScoredQuestions) membaca marker
+ *      `cN_comp` dan scoreDeltas baru dari RTDB, tetapi scoreDelta 0 kiriman
+ *      salah dari ledger menang, sehingga compScores[cN] = 0 dan panel skor
+ *      turun sampai halaman dimuat ulang.
+ *      v5 (29 September 2026, tinjauan v4): ringkasan berkas yang belum
+ *      dinilai (`berkas`; backend hanya mengirimnya untuk soal tanpa entri
+ *      ledger saat dibaca) tidak dipakai — tidak masuk `data.codes` dan tidak
+ *      memicu `_tandaiBerkasDiServer` — untuk soal yang sudah bermarker di
+ *      `data.scoredQuestions` (akhiran yang dikenal pemetaan v4) atau yang
+ *      kartunya sudah dikirim di sesi ini (`compAnswered[qId]`, penjaga yang
+ *      sama dengan kait `_tandaiBerkasDiServer` generator CAD; perlu untuk
+ *      ujian, yang menggabung hasil terlambat ke `_cachedFirebaseData` yang
+ *      markernya dibaca saat muat, dan untuk kiriman modul yang masih
+ *      menunggu jawaban server). Sebabnya (sejak #963, sama di v2–v4):
+ *      hasil terlambat yang dibaca sebelum mahasiswa mengunggah berkas baru
+ *      lalu mengirim tugas CAD di sesi yang sama menimpa kartu
+ *      `berkas-status` tugas yang baru dinilai dengan ringkasan berkas lama
+ *      ("📎 <berkas lama> …", juga menimpa "✅ Berkas dan angka bacaan
+ *      diterima" ujian) sampai muat ulang; poin, kolom angka, dan ekspor
+ *      (`_ringkasTugasCad` memakai berkas yang diunggah di sesi itu) tidak
+ *      terpengaruh. Soal tanpa marker yang belum dikirim tetap menerima
+ *      ringkasan dan kaitnya seperti sebelumnya. Halaman
  *      bertugas berkas (CAD) diberi tahu lewat `window._tandaiBerkasDiServer`
  *      bahwa berkas yang belum dinilai sudah ada di server, sehingga angka
  *      bisa dikirim tanpa unggah ulang. Kegagalan dibedakan menurut kode:
@@ -91,6 +134,44 @@
  *   8. `_handleModulServerError` (modul) dan `_handleServerExamError` (ujian)
  *      menampilkan resource-exhausted sebagai penguncian PIN "coba lagi dalam
  *      N detik" (details.remainingSeconds), bukan galat koneksi.
+ *   9. JAWABAN-PRIVAT:ANGKA-CAD (v1) — HANYA di 16 halaman bertugas berkas
+ *      Pemodelan CAD (yang memuat `window._ringkasTugasCad = function`; di
+ *      halaman lain blok ini dilarang): angka bacaan yang sudah dinilai
+ *      (`data.angka` dari butir 1) dikembalikan ke kolom `nilai-<qId>` kartu
+ *      tugas, sehingga kartu dan ekspor HTML ("Angka bacaan: X" dari
+ *      `_ringkasTugasCad`) sama seperti sebelum muat ulang. Angka ditulis
+ *      `String(n)` (titik desimal), kecuali ketikan yang nilainya sama.
+ *      - Modul: di _loadScoredQuestions, tepat sesudah `_markLoaded();` (jadi
+ *        sesudah _loadDraft). Tugas final (benar) → diisi angka ledger (menang
+ *        atas draft), dikunci, bingkai hijau — hanya bila status ledger attempt
+ *        itu (`data.angkaStatus`) juga 'correct'. Status lain berarti respons
+ *        lebih tua daripada marker RTDB (hasil getJawabanSaya yang dibaca
+ *        sebelum kiriman ulang benar di sesi yang sama lalu diterapkan
+ *        terlambat, atau cache sesi yang dipakai ulang): kolom dibiarkan berisi
+ *        angka yang baru dikirim. Sejak JEMBATAN v4 angka entri seperti itu
+ *        tidak tergabung sama sekali, jadi syarat ini lapis kedua; angka,
+ *        poin, dan kolom mengikuti keputusan yang sama. Tugas yang dibuka
+ *        lagi untuk kirim ulang (`_cadSudahKirim`) → tidak dikunci; diisi
+ *        angka kiriman terakhir hanya bila kolomnya masih kosong (ketikan
+ *        yang sudah ada di
+ *        sesi itu dipertahankan), lalu tombol kirim ulang disegarkan — sama
+ *        dengan keadaan di perangkat yang sama tepat sesudah kiriman salah.
+ *        Draft localStorage tidak ikut menentukan: di halaman CAD `_draftKey()`
+ *        skrip klasik selalu null (LOCAL_IDENTITY/MODULE_ID milik skrip
+ *        modul), dan seandainya kuncinya ada pun `_saveDraft()` di akhir
+ *        `checkExportReady()` — dipanggil `_bukaKirimUlangCad` dan `_markLoaded`
+ *        sebelum `_loadDraft()` — sudah menimpa draft dengan kolom yang masih
+ *        kosong. Jadi kolom kartu kirim ulang dalam praktik selalu berisi angka
+ *        ledger; "draft menang" baru berlaku bila urutan itu dibenahi bersama
+ *        `_draftKey` (Pedoman §6.3). Tanpa marker (belum dikirim/di-reset) →
+ *        tidak diisi.
+ *      - Ujian: di akhir `_apply<UTS|UAS>VisualState(data)`, tepat sebelum
+ *        `updateScore();` (ikut jalur `_reapply…StateFromCache` sesudah kartu
+ *        dirender dan hasil getJawabanSaya yang terlambat). Hanya tugas yang
+ *        sudah dinilai (satu kesempatan: benar/partial/salah) → diisi, dikunci,
+ *        bingkai sesuai status.
+ *      Tanpa `data.angka` (backend lama, callable gagal, akun simulasi) blok
+ *      tidak mengubah apa pun.
  *
  * ROLLOUT. Backend men-deploy functions (getJawabanSaya) DAN rules RTDB
  * bersamaan, lalu halaman ini di-merge beberapa menit kemudian (DEPLOY.md
@@ -105,9 +186,14 @@
  * `_generateExportCodeCallable` yang dijadikan jangkar generator CAD). Jalankan
  * `--periksa` sesudah regenerasi, harus 0. Kait `_tandaiBerkasDiServer`
  * milik generator CAD (scripts/cad-modul/bangun-modul-1.py dan
- * scripts/cad-exam/kartu.py), bukan injektor ini.
+ * scripts/cad-exam/kartu.py), bukan injektor ini. Blok ANGKA-CAD (butir 9)
+ * tidak ada di kerangka TTL, jadi CAD Modul-1 sesudah bangun-modul-1.py dan
+ * UTS/UAS CAD sesudah cad-exam/bangun.py tidak memuatnya: `--periksa`
+ * melaporkan halaman itu sampai skrip ini dijalankan. CAD 2–14 mewarisinya
+ * dari CAD Modul-1 bila skrip ini sudah dijalankan sebelum bangun.py 2..14.
  *
- * CAKUPAN: <Kursus>/Modul/Modul-N.html (84) dan <Kursus>/Exam/UTS|UAS.html (12).
+ * CAKUPAN: <Kursus>/Modul/Modul-N.html (84) dan <Kursus>/Exam/UTS|UAS.html (12);
+ * blok ANGKA-CAD hanya 16 halaman CAD (Modul 1–14, UTS, UAS).
  * Salinan konflik OneDrive (*-DEDIK-PC.html) dilewati.
  *
  * Idempoten: blok bertanda ditimpa di tempat; jalan kedua melaporkan 0 halaman.
@@ -165,11 +251,12 @@ function _mintaPinLagiJawabanSaya(pesan) {
     if (galat) { galat.textContent = '⚠ ' + pesan; galat.style.display = 'block'; }
   }).catch((e) => console.warn('[jawaban-saya] gagal meminta PIN ulang:', (e && (e.code || e.message)) || e));
 }`;
-  return `// JAWABAN-PRIVAT:JEMBATAN BEGIN v2 — ${PENANDA}
+  return `// JAWABAN-PRIVAT:JEMBATAN BEGIN v5 — ${PENANDA}
 // Jawaban milik sendiri (pilihan PG/benar-salah, kode Python, ringkasan berkas
-// tugas) HANYA dari ledger server lewat callable getJawabanSaya
-// ({modulId|examId, nim, pinHash}). Record RTDB visitors/ terbaca publik
-// (papan peringkat, tab Hasil), jadi selections/codes/mcOrderVersion di sana
+// tugas, angka bacaan FreeCAD yang dinilai) HANYA dari ledger server lewat
+// callable getJawabanSaya ({modulId|examId, nim, pinHash}). Record RTDB
+// visitors/ terbaca publik (papan peringkat, tab Hasil), jadi
+// selections/codes/mcOrderVersion/angka/angkaStatus di sana
 // tidak pernah dipakai — juga saat callable gagal: isinya bisa sisa lama atau
 // tanaman orang lain, dan functions + rules sudah aktif sebelum halaman ini
 // terbit. Tanpa respons, pilihan tidak ditandai, kode hanya dari draft lokal,
@@ -178,7 +265,12 @@ function _mintaPinLagiJawabanSaya(pesan) {
 // _loadScoredQuestions paling lama 2,5 detik, dan hasil yang datang terlambat
 // tetap diterapkan. Hanya field berdaftar-putih yang dipakai; kunci/penjelasan
 // tidak pernah. scoreDelta ledger (ikut rescale) menang atas scoreDeltas RTDB
-// untuk soal yang ada di respons.
+// untuk soal yang ada di respons — hanya bila status ledger soal itu cocok
+// dengan marker RTDB segar (v4); entri yang tidak cocok milik attempt lain
+// (mis. hasil terlambat yang dibaca sebelum kiriman ulang CAD di sesi ini) dan
+// tidak dipakai sama sekali untuk soal itu. Ringkasan berkas yang belum dinilai
+// juga tidak dipakai untuk soal yang sudah bermarker atau sudah dikirim di sesi
+// ini (v5).
 // Kegagalan: sementara (internal, unavailable, deadline-exceeded, jaringan) →
 // dicoba lagi otomatis 3 lalu 10 detik kemudian dan pada _loadScoredQuestions
 // berikutnya; resource-exhausted (penguncian PIN per NIM + sumber, node yang
@@ -196,7 +288,7 @@ const _jawabanSaya = { kunci: null, hasil: null, janji: null, terlambat: false, 
 function _normalkanJawabanSaya(d) {
   if (!d || typeof d !== 'object') return null;
   const qSah = /^(?:tf|mc|ce|ch|c)\\d{1,2}$/;
-  const h = { selections: {}, codes: {}, berkas: {}, mcOrderVersion: {}, scoreDeltas: {}, status: {} };
+  const h = { selections: {}, codes: {}, berkas: {}, angka: {}, mcOrderVersion: {}, scoreDeltas: {}, status: {} };
   const jawaban = (d.jawaban && typeof d.jawaban === 'object') ? d.jawaban : {};
   Object.keys(jawaban).forEach((qId) => {
     const j = jawaban[qId];
@@ -210,6 +302,10 @@ function _normalkanJawabanSaya(d) {
     } else if (j.tipe === 'comp' && typeof j.kode === 'string' && j.kode) {
       h.codes[qId] = j.kode.slice(0, 5000);
     }
+    // Angka bacaan FreeCAD yang dinilai (attempt terakhir): hanya halaman
+    // bertugas berkas (CAD) yang memakainya; course lain mengabaikannya.
+    if (j.tipe === 'comp' && typeof j.angka === 'number' && Number.isFinite(j.angka) && /^c\\d{1,2}$/.test(qId)
+        && typeof window._ringkasTugasCad === 'function') h.angka[qId] = j.angka;
     if (typeof j.scoreDelta === 'number' && Number.isFinite(j.scoreDelta)) h.scoreDeltas[qId] = j.scoreDelta;
     if (typeof j.status === 'string') h.status[qId] = j.status;
   });
@@ -313,10 +409,25 @@ window._muatJawabanSaya = function (batasMs, terapkan) {
     janji.then((h) => { if (habis) return; clearTimeout(t); selesai(h); });
   });
 };
+// Status yang diharapkan dari marker RTDB (sama dengan _statusDariMarker
+// backend): qId (PG/benar-salah benar) atau qId_comp = 'correct',
+// qId_comp_partial = 'partial', akhiran lain yang dikenal (_mc_used, _tf_used,
+// _comp_used, _comp_ulang kirim ulang CAD) = 'wrong'. Akhiran tak dikenal
+// diabaikan (stripMarkerSuffix backend juga tidak mengenalinya).
+function _statusMarkerJawabanSaya(scored) {
+  const st = {};
+  String(scored || '').split(',').forEach((m) => {
+    const r = /^((?:tf|mc|ce|ch|c)\\d{1,2})(_tf_used|_mc_used|_comp_used|_comp_partial|_comp_ulang|_comp)?$/.exec(m);
+    if (!r) return;
+    const s = (!r[2] || r[2] === '_comp') ? 'correct' : r[2] === '_comp_partial' ? 'partial' : 'wrong';
+    (st[r[1]] = st[r[1]] || []).push(s);
+  });
+  return st;
+}
 window._gabungJawabanSaya = function (data) {
   if (!data || typeof data !== 'object') return data;
   // Isi publik record tidak pernah menjadi jawaban (juga bila callable gagal).
-  delete data.selections; delete data.codes; delete data.mcOrderVersion;
+  delete data.selections; delete data.codes; delete data.mcOrderVersion; delete data.angka; delete data.angkaStatus;
   const h = _jawabanSaya.hasil;
   let me = null;
   try { me = getIdentity(); } catch (e) {}
@@ -325,15 +436,54 @@ window._gabungJawabanSaya = function (data) {
     const x = Object.assign({}, ...sumber);
     if (Object.keys(x).length) data[field] = x;
   };
-  isi('selections', h.selections);
-  isi('codes', h.berkas, h.codes);
-  isi('mcOrderVersion', h.mcOrderVersion);
+  // Entri respons yang statusnya tidak cocok dengan marker RTDB segar soal itu
+  // (data.scoredQuestions, dibaca bersama atau sesudah respons) milik attempt
+  // lain: respons getJawabanSaya dibaca sebelum kiriman ulang tugas CAD di sesi
+  // ini lalu diterapkan terlambat (_terapkanJawabanSayaTerlambat), atau cache
+  // sesi yang dipakai lagi oleh _loadScoredQuestions berikutnya. Seluruh isinya
+  // — pilihan, mcOrderVersion, kode, angka, status, scoreDelta — tidak dipakai
+  // untuk soal itu, sehingga poin, tampilan, dan angka bacaan mengikuti record
+  // RTDB (dulu scoreDelta 0 kiriman salah menimpa poin kiriman ulang benar
+  // sampai halaman dimuat ulang). Soal tanpa marker (belum tercatat, di-reset
+  // dosen) tetap memakai entri ledger.
+  const statusMarker = _statusMarkerJawabanSaya(data.scoredQuestions);
+  const cocok = (qId) => !statusMarker[qId] || statusMarker[qId].includes(h.status[qId]);
+  const saring = (o) => {
+    const x = {};
+    Object.keys(o).forEach((qId) => { if (cocok(qId)) x[qId] = o[qId]; });
+    return x;
+  };
+  isi('selections', saring(h.selections));
+  // Ringkasan berkas yang belum dinilai (h.berkas; backend hanya mengirimnya
+  // untuk soal tanpa entri ledger saat dibaca) basi bila soal itu sudah dinilai
+  // sesudahnya: ada marker di data.scoredQuestions, atau kartunya sudah dikirim
+  // di sesi ini (compAnswered, penjaga yang sama dengan kait
+  // _tandaiBerkasDiServer — cache ujian yang menerima hasil terlambat membawa
+  // marker saat muat, dan kiriman modul bisa masih menunggu server). Untuk soal
+  // itu ringkasan dan kaitnya tidak dipakai (v5); dulu kartu berkas-status tugas
+  // CAD yang baru dinilai kembali ke berkas lama sampai halaman dimuat ulang.
+  const sudahDikirim = (qId) => {
+    try { return typeof compAnswered === 'object' && compAnswered !== null && !!compAnswered[qId]; } catch (e) { return false; }
+  };
+  const berkas = {};
+  Object.keys(h.berkas).forEach((qId) => { if (!statusMarker[qId] && !sudahDikirim(qId)) berkas[qId] = h.berkas[qId]; });
+  isi('codes', berkas, saring(h.codes));
+  isi('mcOrderVersion', saring(h.mcOrderVersion));
+  const angka = saring(h.angka);
+  isi('angka', angka);   // hanya halaman CAD (kolom angka kartu tugas yang dinilai)
+  // Status ledger attempt yang memberi angka itu (selalu cocok dengan marker
+  // sejak v4); blok ANGKA-CAD modul tetap hanya mengunci kolom tugas benar bila
+  // status ini 'correct' — lapis kedua.
+  const angkaStatus = {};
+  Object.keys(angka).forEach((qId) => { if (typeof h.status[qId] === 'string') angkaStatus[qId] = h.status[qId]; });
+  isi('angkaStatus', angkaStatus);
   // Poin per soal: ledger (sumber resmi, ikut rescale) untuk setiap soal di
-  // respons; scoreDeltas RTDB hanya untuk soal lain. 0 pada jawaban benar/
-  // partial berarti poinnya tak diketahui (entri cadangan tanpa scoreDeltas):
-  // nilai RTDB, atau cadangan halaman bila tidak ada, yang dipakai.
+  // respons yang statusnya cocok dengan marker; scoreDeltas RTDB untuk soal
+  // lain. 0 pada jawaban benar/partial berarti poinnya tak diketahui (entri
+  // cadangan tanpa scoreDeltas): nilai RTDB, atau cadangan halaman bila tidak
+  // ada, yang dipakai.
   const delta = Object.assign({}, (data.scoreDeltas && typeof data.scoreDeltas === 'object') ? data.scoreDeltas : {});
-  Object.keys(h.scoreDeltas).forEach((qId) => {
+  Object.keys(saring(h.scoreDeltas)).forEach((qId) => {
     const v = h.scoreDeltas[qId];
     if (v === 0 && (h.status[qId] === 'correct' || h.status[qId] === 'partial') && !Number.isFinite(Number(delta[qId]))) return;
     delta[qId] = v;
@@ -341,13 +491,14 @@ window._gabungJawabanSaya = function (data) {
   if (Object.keys(delta).length) data.scoreDeltas = delta;
   // Berkas CAD yang sudah terunggah tetapi belum dinilai: kartunya boleh
   // langsung dikirim tanpa unggah ulang (server memeriksa berkasnya sendiri).
+  // Hanya ringkasan yang lolos saringan v5 di atas.
   if (typeof window._tandaiBerkasDiServer === 'function') {
-    Object.keys(h.berkas).forEach((qId) => { try { window._tandaiBerkasDiServer(qId); } catch (e) {} });
+    Object.keys(berkas).forEach((qId) => { try { window._tandaiBerkasDiServer(qId); } catch (e) {} });
   }
   return data;
 };
 setTimeout(() => { try { window._muatJawabanSaya(); } catch (e) {} }, 0);   // mulai lebih awal bila sesi PIN tersimpan
-// JAWABAN-PRIVAT:JEMBATAN END v2
+// JAWABAN-PRIVAT:JEMBATAN END v5
 `;
 }
 
@@ -467,6 +618,77 @@ const BLOK_GABUNG = `    // JAWABAN-PRIVAT:GABUNG BEGIN v2 — ${PENANDA}
     // JAWABAN-PRIVAT:GABUNG END v2
 `;
 
+// Angka bacaan FreeCAD yang dinilai → kolom nilai-<qId> (hanya halaman CAD).
+// Teks blok sengaja tanpa nama course, nomor modul/tugas, dan tanpa potongan
+// yang dilarang periksa_exam.py, karena CAD Modul 2–14 dirakit dari CAD Modul-1.
+function blokAngkaCad(jenis) {
+  const ujian = jenis !== "Modul";
+  const s = ujian ? "  " : "    ";
+  const komentar = ujian
+    ? `// Angka bacaan FreeCAD yang sudah dinilai (data.angka: field \`angka\`
+// getJawabanSaya, attempt yang dinilai di ledger, digabung JEMBATAN hanya dari
+// respons milik NIM sesi) dikembalikan ke kolom angka kartu tugas yang sudah
+// dinilai (satu kesempatan: benar, partial, atau salah) — terkunci, dengan
+// bingkai sesuai status seperti sesudah kiriman — sehingga ekspor memuat
+// "Angka bacaan: X" (_ringkasTugasCad) seperti sebelum muat ulang. Angka ledger
+// menang atas draft. Ikut pemulihan ulang dari cache (kartu yang dirender
+// belakangan, hasil getJawabanSaya yang terlambat). Tanpa marker, atau tanpa
+// data.angka (backend lama, callable gagal), tidak ada yang diisi.`
+    : `// Angka bacaan FreeCAD yang sudah dinilai (data.angka: field \`angka\`
+// getJawabanSaya, attempt terakhir di ledger, digabung JEMBATAN hanya dari
+// respons milik NIM sesi) dikembalikan ke kolom angka kartu tugas, sehingga
+// kartu dan ekspor ("Angka bacaan: X" dari _ringkasTugasCad) sama seperti
+// sebelum muat ulang. Berjalan sesudah _markLoaded (→ _loadDraft). Tugas benar
+// → angka ledger (menang atas draft), terkunci — hanya bila status ledger
+// attempt itu (data.angkaStatus) juga 'correct'; bila tidak, respons lebih tua
+// daripada marker (mis. hasil terlambat sesudah kiriman ulang benar di sesi
+// ini) dan kolom yang berisi angka kiriman itu tidak disentuh. Tugas yang
+// dibuka lagi untuk kirim ulang → tidak dikunci; diisi angka kiriman terakhir
+// hanya bila kolomnya masih kosong (ketikan yang sudah ada di sesi ini
+// dipertahankan), seperti keadaan tepat sesudah kiriman salah. Draft tidak ikut
+// menentukan: _draftKey() skrip klasik selalu null di halaman ini, dan
+// _saveDraft() di akhir checkExportReady() (dipanggil _bukaKirimUlangCad dan
+// _markLoaded sebelum _loadDraft) menimpa draft dengan kolom kosong sebelum
+// dibaca, jadi kolom ini dalam praktik selalu berisi angka ledger. Tanpa
+// marker, atau tanpa data.angka (backend lama, callable gagal), tidak ada yang
+// diisi.`;
+  const cabang = ujian
+    ? `      if (!/^c\\d{1,2}$/.test(qId) || typeof n !== 'number' || !Number.isFinite(n) || !inp || !compAnswered[qId]) return;
+      if (!(typeof _parseNilai === 'function' && _parseNilai(inp.value) === n)) inp.value = String(n);
+      inp.style.borderColor = _answeredQ.has(qId + '_comp') ? 'rgba(0,224,158,.5)' : _answeredQ.has(qId + '_comp_partial') ? 'rgba(251,191,36,.3)' : 'rgba(239,68,68,.25)';
+      if (typeof window._kunciTugasCad === 'function') window._kunciTugasCad(qId);`
+    : `      if (!/^c\\d{1,2}$/.test(qId) || typeof n !== 'number' || !Number.isFinite(n) || !inp) return;
+      if (compAnswered[qId]) {
+        if (status[qId] !== 'correct') return;   // respons lebih tua daripada marker _comp
+        if (!(typeof _parseNilai === 'function' && _parseNilai(inp.value) === n)) inp.value = String(n);
+        inp.style.borderColor = 'rgba(0,224,158,.5)';
+        if (typeof window._kunciTugasCad === 'function') window._kunciTugasCad(qId);
+      } else if (window._cadSudahKirim && window._cadSudahKirim[qId] && !inp.value) {
+        inp.value = String(n);
+        if (typeof _refreshTugasBtn === 'function') _refreshTugasBtn(qId);
+      }`;
+  const isi = `// JAWABAN-PRIVAT:ANGKA-CAD BEGIN v1 — ${PENANDA}
+${komentar}
+try {
+  const angka = (data.angka && typeof data.angka === 'object') ? data.angka : {};
+${ujian ? "" : "  const status = (data.angkaStatus && typeof data.angkaStatus === 'object') ? data.angkaStatus : {};\n"}  Object.keys(angka).forEach((qId) => {
+    const n = angka[qId];
+    const inp = document.getElementById('nilai-' + qId);
+${cabang.split("\n").map((b) => b.slice(2)).join("\n")}
+  });
+} catch (e) { console.warn('[angka-cad] gagal memulihkan angka bacaan:', e); }
+// JAWABAN-PRIVAT:ANGKA-CAD END v1
+`;
+  return isi.split("\n").map((b) => (b ? s + b : b)).join("\n");
+}
+// Modul: tepat sesudah `_markLoaded();` di jalur pemulihan _loadScoredQuestions
+// (baris kunci tugas CAD milik generator ada tepat di atasnya).
+const ANGKA_MODUL_SEBELUM = "    Object.keys(compAnswered).forEach((q) => { if (compAnswered[q] && typeof window._kunciTugasCad === 'function') window._kunciTugasCad(q); });\n"
+  + "    updateScore();\n    _markLoaded();   // PEDOMAN §18.2 — mark ready + trigger checkExport/checkForum/_loadDraft\n";
+const ANGKA_MODUL_SESUDAH = "  }).catch(() => { _markLoaded(); });\n";
+// Ujian: tepat sebelum `updateScore();` penutup _apply<UTS|UAS>VisualState.
+const angkaUjianSesudah = (jenis) => `  updateScore();\n}\nwindow._apply${jenis}VisualState = _apply${jenis}VisualState;\n`;
+
 // Cadangan "freshRec" di submitPinVerify: sesudah update kunjungan ditolak
 // (PERMISSION_DENIED), record ditulis ulang utuh dengan poin/marker salinan
 // snapshot. Rules create-only selalu menolaknya; gagal kunjungan tidak lagi
@@ -507,6 +729,7 @@ const RX = {
   TUNGGU: rxBlok("TUNGGU", "  "),
   GABUNG: rxBlok("GABUNG", "    "),
   "AWARD-HARD": rxBlok("AWARD-HARD", ""),
+  "ANGKA-CAD": rxBlok("ANGKA-CAD", " +"),   // modul 4 spasi, ujian 2 spasi
 };
 
 // Penambah kunjungan auto-login: set() seluruh record lama (+ selections/codes).
@@ -560,6 +783,7 @@ function sisipSebelum(html, jangkar, isi, nama) {
   return html.slice(0, i) + isi + html.slice(i);
 }
 
+let halamanCad = 0;
 function proses(berkas) {
   const rel = path.relative(root, berkas).replace(/\\/g, "/");
   const jenis = /\/Exam\/UTS\.html$/.test(rel) ? "UTS" : /\/Exam\/UAS\.html$/.test(rel) ? "UAS" : "Modul";
@@ -700,6 +924,25 @@ function proses(berkas) {
     catatan.push("galat-pin-terkunci");
   }
 
+  // ── 9) Angka bacaan CAD yang dinilai → kolom angka (hanya halaman bertugas berkas) ──
+  const cad = html.includes("window._ringkasTugasCad = function");
+  if (cad) halamanCad += 1;
+  if (cad) {
+    const isi = blokAngkaCad(jenis);
+    html = pasangBlok(html, "ANGKA-CAD", isi, (h) => {
+      if (jenis === "Modul") {
+        const n = hitung(h, ANGKA_MODUL_SEBELUM + ANGKA_MODUL_SESUDAH);
+        if (n !== 1) throw new Error(`jangkar ANGKA-CAD modul (kunci tugas CAD + updateScore + _markLoaded, lalu .catch) muncul ${n}x, harusnya 1`);
+        return h.replace(ANGKA_MODUL_SEBELUM + ANGKA_MODUL_SESUDAH, () => ANGKA_MODUL_SEBELUM + isi + ANGKA_MODUL_SESUDAH);
+      }
+      const n = hitung(h, angkaUjianSesudah(jenis));
+      if (n !== 1) throw new Error(`jangkar ANGKA-CAD ujian (\`updateScore();\` penutup _apply${jenis}VisualState) muncul ${n}x, harusnya 1`);
+      return h.replace(angkaUjianSesudah(jenis), () => isi + angkaUjianSesudah(jenis));
+    }, catatan);
+  } else if (hitungRx(html, RX["ANGKA-CAD"]) || /JAWABAN-PRIVAT:ANGKA-CAD (?:BEGIN|END)/.test(html)) {
+    throw new Error("blok ANGKA-CAD hanya untuk halaman bertugas berkas CAD (window._ringkasTugasCad)");
+  }
+
   // ── Penjaga hasil ──
   for (const nama of ["JEMBATAN", "IDENTITAS", "TUNGGU", "GABUNG", ...(jenis === "Modul" ? ["HURUF-ASAL"] : [])]) {
     if (hitungRx(html, RX[nama]) !== 1) throw new Error(`blok JAWABAN-PRIVAT:${nama} harus tepat sekali`);
@@ -756,6 +999,20 @@ function proses(berkas) {
   if (jenis === "Modul" ? hitung(html, GALAT_MODUL_BARU + GALAT_MODUL_JANGKAR) !== 1 : hitung(html, GALAT_UJIAN_BARU + GALAT_UJIAN_JANGKAR) !== 1) {
     throw new Error("cabang resource-exhausted penangan galat penilaian harus tepat sekali, tepat sebelum cabang not-found");
   }
+  if (cad) {
+    if (hitungRx(html, RX["ANGKA-CAD"]) !== 1 || hitung(html, "JAWABAN-PRIVAT:ANGKA-CAD BEGIN") !== 1) throw new Error("blok JAWABAN-PRIVAT:ANGKA-CAD harus tepat sekali di halaman CAD");
+    const isi = blokAngkaCad(jenis), a = html.indexOf(isi);
+    if (jenis === "Modul") {
+      // Sesudah _markLoaded (→ _loadDraft) di _loadScoredQuestions yang sama dengan GABUNG.
+      if (hitung(html, ANGKA_MODUL_SEBELUM + isi + ANGKA_MODUL_SESUDAH) !== 1) throw new Error("blok ANGKA-CAD modul harus tepat sesudah `_markLoaded();` pemulihan dan sebelum `}).catch(() => { _markLoaded(); });`");
+      const g = html.indexOf("    // JAWABAN-PRIVAT:GABUNG END"), d = html.lastIndexOf("window._loadScoredQuestions = function", g);
+      if (g < 0 || d < 0 || a < g || html.slice(d, a).includes("\n};\n")) throw new Error("blok ANGKA-CAD tidak berada di _loadScoredQuestions yang sama, sesudah GABUNG");
+    } else {
+      if (hitung(html, isi + angkaUjianSesudah(jenis)) !== 1) throw new Error(`blok ANGKA-CAD ujian harus tepat sebelum \`updateScore();\` penutup _apply${jenis}VisualState`);
+      const f = [...html.slice(0, a).matchAll(/\n(?:async )?function (\w+)\(/g)].pop();
+      if (!f || f[1] !== `_apply${jenis}VisualState` || html.slice(f.index, a).includes("\n}\n")) throw new Error(`blok ANGKA-CAD ujian tidak berada di dalam _apply${jenis}VisualState(data)`);
+    }
+  }
   if (/\bset\(nodeRef\b/.test(html)) throw new Error("set(nodeRef, …) masih tersisa");
   if (/\bset\(ref\(db, ?`\$\{DB_PATH\}\/\$\{_key\}`\)/.test(html)) throw new Error("set() record pengunjung auto-login masih tersisa");
   const aiLama = blokAi(awal), aiBaru = blokAi(html);
@@ -787,4 +1044,5 @@ for (const f of berkas.sort()) {
   for (const c of h.catatan) rekap[c.replace(/×\d+$/, "")] = (rekap[c.replace(/×\d+$/, "")] || 0) + 1;
   if (!periksa) fs.writeFileSync(f, h.html);
 }
+if (halamanCad !== 16) throw new Error(`harap 16 halaman bertugas berkas CAD (window._ringkasTugasCad), ditemukan ${halamanCad}`);
 console.log(`${n} dari ${berkas.length} halaman modul/ujian ${periksa ? "akan diperbarui" : "diperbarui"}: ${JSON.stringify(rekap)}`);
