@@ -1256,9 +1256,9 @@ jadwal.
   menampilkan "🔒 <pesan server>" di bawah banner "UAS Telah Berakhir". Dulu
   wadah UTS kedua halaman itu kosong.
 
-**Teks pesan server menyebut jenis ujian halaman itu** (berlaku sesudah
-deploy fungsi backend cabang `fix/pesan-jadwal-ujian`; sebelum deploy itu
-halaman live masih menerima teks lama di bawah). Ketiga callable yang
+**Teks pesan server menyebut jenis ujian halaman itu** (sejak deploy
+fungsi backend 29 September 2026, PR backend #89 — sebelumnya halaman menerima
+teks lama di bawah). Ketiga callable yang
 menggerbang jendela ujian mengambil teksnya dari satu helper backend
 (`_pesanJadwalUjian`, jenis dari `EXAM_CONFIG[examId].jenisUjian`), untuk
 jadwal global maupun override susulan:
