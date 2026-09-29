@@ -259,12 +259,16 @@ repo publik ini.
   sesi tidak terikat NIM), tidak ada tulisan sebelum draft dibaca; kolom
   kode/angka soal yang sudah dinilai (`compAnswered`) tidak pernah diisi draft
   (ledger menang, juga angka `JAWABAN-PRIVAT:ANGKA-CAD`); forum server
-  menang kecuali suntingan yang belum terkirim (salinan `_sinkron` + event
-  `progres-modul:forum-tersimpan` dari PENJAGA-FORUM v2), dan simpanan hanya
-  mengambil teks Forum yang disunting di tab itu; berkas CAD yang diketahui
-  server menang atas metadata draft; NIM yang berganti tanpa muat ulang →
+  menang kecuali suntingan yang belum terkirim — gabung 3-arah: sidik teks
+  server = basis draft → belum terkirim, berbeda → server menang + catatan
+  (event `progres-modul:forum-tersimpan` dari PENJAGA-FORUM v2) — dan simpanan
+  hanya mengambil teks Forum yang disunting di tab itu; draft hanya menyimpan
+  isian yang belum dinilai/terkirim (tanpa kode/angka ledger, tanpa teks
+  server; tetap ada sesudah Log Out); metadata berkas CAD dari draft dipakai
+  hanya sesudah `getJawabanSaya` sesi itu selesai dan bila server tidak punya
+  berkas lain; NIM yang berganti tanpa muat ulang →
   kolom dikosongkan + muat ulang. Dipasang `scripts/draft-modul.mjs` (penanda
-  `DRAFT-MODUL:KUNCI` v1/`PENJAGA` v2, ada `--periksa`, jalankan PALING
+  `DRAFT-MODUL:KUNCI` v1/`PENJAGA` v3, ada `--periksa`, jalankan PALING
   AKHIR, sesudah `simpan-pilihan-poll.mjs`); badan `_saveDraft`/`_loadDraft`
   tidak disunting, dan fungsi draft tidak boleh ditugaskan di skrip module.
   Rincian: Pedoman §6.3.

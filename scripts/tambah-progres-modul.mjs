@@ -59,10 +59,13 @@
  *      runtime mengirim event window 'progres-modul:forum-tersimpan' (detail
  *      {jawaban} = ketiga teks yang terkirim; fungsi forumTersimpan di dalam
  *      sub-blok). Dipakai blok DRAFT-MODUL:PENJAGA (scripts/draft-modul.mjs,
- *      jalankan SESUDAH skrip ini) untuk mencatat salinan tersinkron draft
- *      forum, supaya draft yang sudah terkirim tidak menimpa forum server yang
- *      lebih baru dari perangkat lain. Aturan kapan forum boleh dikirim (butir
- *      6) tidak berubah.
+ *      jalankan SESUDAH skrip ini): sejak PENJAGA v3 teks itu menjadi teks
+ *      server yang diketahui tab (basis gabung 3-arah suntingan berikutnya) dan
+ *      keluar dari draft, supaya draft yang sudah terkirim tidak menimpa forum
+ *      server yang lebih baru dari perangkat lain. Aturan kapan forum boleh
+ *      dikirim (butir 6) tidak berubah; komentar di dalam sub-blok ("salinan
+ *      tersinkron") menyebut tujuan yang sama dan sengaja tidak disunting agar
+ *      penanda PENJAGA-FORUM tetap v2.
  *
  * Dosen, Mode Preview, dan akun simulasi tidak digerbang (kotak bisa
  * dicentang bebas, tidak disimpan). UTS/UAS tidak disentuh.
