@@ -2481,11 +2481,22 @@ window.renderUTSQuestions = renderUTSQuestions;
 // Firebase hanya simpan MARKER (mc1, c5_comp), bukan TEXT code mahasiswa — draft ini penting.
 
 function _draftKey() {
+  // DRAFT-UJIAN:KUNCI BEGIN v1 — dipasang scripts/draft-ujian.mjs (Pedoman §6.3)
+  // Kunci draft UTS/UAS: draft_ujian_<EXAM_ID>_<NIM>. Skrip klasik ini tidak
+  // bisa membaca konstanta skrip module (dulu ReferenceError → null, sehingga
+  // draft tidak pernah tersimpan maupun dipulihkan); yang dipakai window.EXAM_ID
+  // dan getIdentityLocal(). Hanya mahasiswa (termasuk akun simulasi) dengan sesi
+  // PIN; dosen, tamu, dan Mode Preview → null. Penjaga muat/simpan: blok
+  // DRAFT-UJIAN:PENJAGA sebelum skrip module.
   try {
-    const me = JSON.parse(localStorage.getItem(LOCAL_IDENTITY) || 'null');
-    if (!me || !me.nim || me.role === 'dosen') return null;
-    return 'pemodelan_cad_draft_' + MODULE_ID + '_' + me.nim;   // per-NIM, per-course
-  } catch(e) { return null; }
+    if (window._previewMode || !window._sessionPinHash) return null;
+    var ujian = window.EXAM_ID;
+    if (typeof ujian !== 'string' || !ujian) return null;
+    var me = typeof getIdentityLocal === 'function' ? getIdentityLocal() : null;
+    if (!me || me.role !== 'student' || !me.nim) return null;
+    return 'draft_ujian_' + ujian + '_' + String(me.nim);
+  } catch (e) { return null; }
+  // DRAFT-UJIAN:KUNCI END v1
 }
 
 // Draft menyimpan angka bacaan yang BELUM dikirim (berkasnya sendiri sudah di
@@ -4771,6 +4782,81 @@ initLoginAnimation('pickerWaveCanvas',  'pickerParticles');
 initLoginAnimation('dosenWaveCanvas',   'dosenParticles');
 </script>
 
+<!-- DRAFT-UJIAN:PENJAGA BEGIN v2 — dipasang scripts/draft-ujian.mjs (Pedoman §6.3) -->
+<script>
+// Draft UTS/UAS (kode komputasi, tautan Google Drive, angka bacaan CAD) —
+// scripts/draft-ujian.mjs. _saveDraft/_loadDraft halaman dibungkus saat parsing,
+// sebelum skrip module berjalan; panggilan polos di halaman (checkExportReady,
+// _markLoaded, onNilaiInput, …) ikut memakai pembungkus ini.
+//  • Muat hanya bila ada kunci (_draftKey), kartu soal sudah dirender (kolom
+//    code-cN / nilai-cN; soal datang dari getExamQuestions sesudah PIN), dan
+//    data Firebase sudah dimuat UNTUK KUNCI ITU: _loadDraft() dari _markLoaded
+//    (akhir _loadScoredQuestions) yang berjalan saat identitas + sesi PIN sudah
+//    ada. Pemuatan tanpa sesi PIN (tab baru sebelum PIN, form login sesudah
+//    Keluar) tidak dihitung: kode ledger soal yang dinilai belum diterapkan, dan
+//    draft yang mengisi kolom kosong lebih dulu akan menutupinya.
+//  • Perender UTS/UAS dibungkus: draft dimuat 250 ms sesudah render (sesudah
+//    pemulihan ulang visual dari cache, 150 ms). _loadDraft yang dijadwalkan
+//    perender sendiri (CAD) diabaikan — bukan tanda Firebase siap.
+//  • Kolom soal yang sudah terkunci (dinilai; disabled) tidak diisi draft.
+//  • Tidak ada tulisan sebelum draft kunci itu dimuat: simpanan sebelum kartu ada
+//    (mis. checkExportReady dari _markLoaded) dulu menimpa draft dengan isi kosong.
+//  • Setiap ketikan di kolom kode, tautan Drive, atau angka bacaan menyimpan draft.
+(function () {
+  var simpanAsli = window._saveDraft, muatAsli = window._loadDraft;
+  if (typeof simpanAsli !== 'function' || typeof muatAsli !== 'function') return;
+  var KOLOM = 'textarea[id^="code-c"], input[id^="nilai-c"]';
+  var dimuatUntuk = null, siapUntuk = null;
+  function kunci() { try { return typeof _draftKey === 'function' ? _draftKey() : null; } catch (e) { return null; } }
+  function fbSiap() { try { return typeof _firebaseStateLoaded !== 'undefined' && _firebaseStateLoaded === true; } catch (e) { return false; } }
+  function kartuAda() { return !!document.querySelector(KOLOM); }
+  function muat() {
+    var k = kunci();
+    if (!k || siapUntuk !== k || !kartuAda()) return;
+    var terkunci = [];
+    try { document.querySelectorAll(KOLOM).forEach(function (el) { if (el.disabled) terkunci.push([el, el.value]); }); } catch (e) {}
+    dimuatUntuk = k;   // ditandai SEBELUM asli: checkExportReady di dalamnya boleh menyimpan
+    try { return muatAsli.apply(this, arguments); }
+    finally {
+      terkunci.forEach(function (x) { if (x[0].value !== x[1]) x[0].value = x[1]; });   // soal yang dinilai: bukan dari draft
+      try { simpanAsli(); } catch (e) {}   // gabungan draft + isian yang sudah ada
+    }
+  }
+  function muatSesudahFirebase() {
+    var k = kunci();
+    if (k && fbSiap()) siapUntuk = k;   // _markLoaded dengan kunci ini: marker & kode ledger sudah diterapkan
+    return muat.apply(this, arguments);
+  }
+  function simpan() {
+    var k = kunci();
+    if (!k) return;
+    if (dimuatUntuk !== k) { muat(); if (dimuatUntuk !== k) return; }
+    return simpanAsli.apply(this, arguments);
+  }
+  window._loadDraft = muatSesudahFirebase;
+  window._saveDraft = simpan;
+  window._draftSudahDimuat = function () { var k = kunci(); return !!k && dimuatUntuk === k; };
+  function abaikan() {}
+  ['renderUTSQuestions', 'renderUASQuestions'].forEach(function (nama) {
+    var asli = window[nama];
+    if (typeof asli !== 'function') return;
+    window[nama] = function () {
+      window._loadDraft = abaikan;   // jadwal _loadDraft milik perender: dimuat di bawah
+      try { return asli.apply(this, arguments); }
+      finally {
+        window._loadDraft = muatSesudahFirebase;
+        setTimeout(function () { try { muat(); } catch (e) {} }, 250);
+      }
+    };
+  });
+  document.addEventListener('input', function (e) {
+    var t = e && e.target, id = t && typeof t.id === 'string' ? t.id : '';
+    if (!t || !/^(?:TEXTAREA|INPUT)$/.test(t.tagName || '') || !/^(?:code-c\d{1,2}|nilai-c\d{1,2}|gdrive-\w+)$/.test(id)) return;
+    try { simpan(); } catch (x) {}
+  }, true);
+})();
+</script>
+<!-- DRAFT-UJIAN:PENJAGA END v2 -->
 <!-- ── FIREBASE + VISITOR SYSTEM (identik dengan Modul-1) ── -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
