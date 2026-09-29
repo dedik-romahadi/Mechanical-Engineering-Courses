@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import vm from "node:vm";
 import { spawnSync } from "node:child_process";
+import { uraiSkripInline, deklarasiLeksikal, pemakaian, fungsiTingkatAtas, panggilanTingkatAtas, namaGlobal, presenceSaatMuat, presenceAutoLogin } from "./pemindai-deklarasi.mjs";
 
 const root = process.cwd();
 const courseRoots = ["Engineering-Mathematics", "Getaran-Mekanik", "Optimalisasi-dan-Automasi", "Sistem-Kendali-Cerdas", "Teknik-Tenaga-Listrik", "Pemodelan-Computer-Aided-Design"];
@@ -2366,6 +2367,185 @@ for (const relative of halamanEkspor) {
   eksporLokal += 1;
 }
 if (eksporLokal !== 96) throw new Error(`Expected 96 modul/exam pages with a local export code, found ${eksporLokal}`);
+
+// Keadaan Chat Kelas/presence dan handler chat di skrip module
+// (scripts/deklarasi-chat-modul.mjs, 29 September 2026). Chat Kelas dan daftar
+// online berjalan di <script type="module"> (strict mode), jadi menugasi
+// pengenal yang tidak dideklarasikan melempar ReferenceError. Unggahan manual
+// Getaran Modul-4 (6811c36e, 28 April 2026) membuang `let onlineUsers`,
+// `let chatMessages`, `let _lastSentAt`, ekspor window.sendChat/onChatInput/
+// onChatKey, dan `initChat();` di init sequence: setiap snapshot presence/chat
+// melempar "onlineUsers/chatMessages is not defined", handler inline komposer
+// chat melempar atau diam, dan tamu serta dosen yang baru login (jalur itu hanya
+// memanggil initPresence) tidak memasang listener chat — lima bulan tanpa
+// pemeriksaan yang gagal (node --check hanya sintaks).
+// Di ke-96 halaman modul/ujian:
+//   1. setiap pengenal keadaan chat/presence (PENGENAL_KEADAAN_CHAT) yang
+//      dipakai sebuah skrip module punya tepat satu deklarasi let/var di
+//      tingkat teratas skrip ITU (bukan const, bukan di skrip lain, bukan di
+//      dalam fungsi, komentar, atau string), sebelum pemakaian pertamanya.
+//      Deklarator sesudah koma (`let a = [], b = [];`), pola destrukturisasi,
+//      dan indentasi dihitung sama seperti oleh injector. Nama yang hanya ada
+//      di cakupan global (let/var skrip klasik, window.X) tidak melempar, tetapi
+//      tetap ditolak sebagai aturan rumah (§6.5) dengan pesan tersendiri;
+//   2. handler on*="F(…)" di HTML statis yang memanggil fungsi tingkat teratas
+//      skrip module punya ekspor window.F di luar blok AI-CHAT-AGENT (handler
+//      inline berjalan di cakupan global; blok AI hanya membungkus
+//      window.sendChat/onChatKey yang sudah ada);
+// dan di ke-84 modul skrip module chat memanggil `initChat();` di tingkat
+// teratasnya, serta tidak memasang presence dua kali untuk identitas tersimpan:
+// bila auto-login `_handleScheduleReady` sudah memanggil initPresence (Getaran
+// Modul-4), init sequence tidak boleh memanggilnya lagi (timer presence
+// 1,5 detik ke-83 modul lain) — tiap panggilan menambah pendengar
+// visibilitychange dan tulisan heartbeat RTDB. Pemindaiannya memakai
+// scripts/pemindai-deklarasi.mjs, pemindai yang sama dengan injector itu:
+// komentar, string, templat, dan regex dikosongkan lebih dulu; skrip yang
+// kurungnya tidak seimbang sesudah itu ditolak supaya pemeriksaan tidak
+// melemah diam-diam. Aturan ini diuji mutasi di bawah pada Getaran Modul-3 dan
+// UTS Getaran sebelum halaman dipindai.
+const PENGENAL_KEADAAN_CHAT = ["onlineUsers", "chatMessages", "_lastSentAt", "onlinePresence"];
+/** Skrip inline halaman lewat pemindai bersama; kurung tak seimbang → galat. */
+function skripInlineTerurai(page, relative) {
+  const hasil = uraiSkripInline(page);
+  for (const s of hasil) {
+    if (!s.seimbang) {
+      throw new Error(`${relative}:${page.slice(0, s.mulai).split("\n").length}: pemindai deklarasi validator tidak dapat mengurai skrip inline ini (kurung tak seimbang sesudah komentar/string/regex dikosongkan); perbaiki kodeTanpaLiteral di scripts/pemindai-deklarasi.mjs, jangan lewati skripnya`);
+    }
+  }
+  return hasil;
+}
+/** Daftar pelanggaran (kosong = lolos). `modul`: halaman Modul-N (menagih initChat() dan presence tunggal). */
+function pelanggaranDeklarasiChat(page, relative, { modul }) {
+  const galat = [];
+  const baris = (pos) => page.slice(0, pos).split("\n").length;
+  const skrip = skripInlineTerurai(page, relative);
+  const global = namaGlobal(skrip);
+  // 1. Pengenal keadaan chat/presence dideklarasikan di skrip module pemakainya.
+  for (const s of skrip) {
+    if (!s.module || s.dalamAi) continue;
+    const deklarasi = deklarasiLeksikal(s.kode, s.dalam);
+    for (const x of PENGENAL_KEADAAN_CHAT) {
+      const milik = deklarasi.filter((d) => d.nama === x);
+      const pakai = pemakaian(s.kode, x, new Set(milik.map((d) => d.pos)));
+      if (!pakai.length) continue;
+      const atas = milik.filter((d) => d.kedalaman === 0);
+      const awal = `${relative}:${baris(s.mulai + pakai[0])}: ${x} dipakai di skrip module tanpa tepat satu deklarasi \`let ${x}\` di tingkat teratas skrip itu (ditemukan ${atas.length}${atas.some((d) => d.jenis === "const") ? ", const" : ""})`;
+      if (!atas.length && global.has(x)) {
+        galat.push(`${awal}; ${x} hanya ada di cakupan global (let/var skrip klasik atau window.${x}), jadi tidak melempar ReferenceError, tetapi keadaan chat/presence wajib milik skrip module pemakainya (Pedoman §6.5) — pindahkan deklarasinya ke sana dengan tangan (deklarasi-chat-modul.mjs menolak halaman ini agar tidak menyisipkan \`let\` yang membayangi nama global itu)`);
+      } else if (!atas.length) {
+        galat.push(`${awal}; strict mode → ReferenceError — jalankan node scripts/deklarasi-chat-modul.mjs`);
+      } else if (atas.some((d) => d.jenis === "const")) {
+        galat.push(`${awal}; const tidak dapat ditugasi ulang oleh listener (TypeError) — ganti menjadi \`let\` dengan tangan`);
+      } else if (atas.length > 1) {
+        galat.push(`${awal}; deklarasi ganda — sisakan satu`);
+      } else if (pakai[0] < atas[0].pos) {
+        galat.push(`${relative}:${baris(s.mulai + pakai[0])}: ${x} dipakai sebelum deklarasinya (baris ${baris(s.mulai + atas[0].pos)})`);
+      }
+    }
+  }
+  // 2. Handler inline statis → fungsi skrip module harus diekspos ke window di luar blok AI.
+  const fnModul = new Set();
+  for (const s of skrip) if (s.module && !s.dalamAi) for (const nama of fungsiTingkatAtas(s.kode, s.dalam).keys()) fnModul.add(nama);
+  const html = page.replace(/<!-- AI-CHAT-AGENT:BEGIN[\s\S]*?<!-- AI-CHAT-AGENT:END[^>]*-->/g, (b) => b.replace(/[^\n]/g, " "))
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (b) => b.replace(/[^\n]/g, " "));
+  for (const a of html.matchAll(/\s(on[a-z]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/gi)) {
+    for (const c of (a[2] ?? a[3]).matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*)\s*\(/g)) {
+      if (fnModul.has(c[1]) && !global.has(c[1])) galat.push(`${relative}:${baris(a.index + 1)}: ${a[1]}="…${c[1]}(…)" memanggil fungsi skrip module tanpa window.${c[1]} di luar blok AI-CHAT-AGENT (handler inline berjalan di cakupan global → ReferenceError) — jalankan node scripts/deklarasi-chat-modul.mjs`);
+    }
+  }
+  // 3. Modul: listener chat dipasang di tingkat teratas skrip module chat, dan
+  //    presence tidak dipasang dua kali untuk identitas tersimpan.
+  if (modul) {
+    const chat = skrip.filter((s) => s.module && !s.dalamAi && fungsiTingkatAtas(s.kode, s.dalam).has("initChat"));
+    if (chat.length !== 1) galat.push(`${relative}: skrip module ber-\`function initChat()\` di tingkat teratas ada ${chat.length}, harusnya 1`);
+    else {
+      const s = chat[0];
+      if (!panggilanTingkatAtas(s.kode, s.dalam, "initChat").length) {
+        galat.push(`${relative}: skrip module chat tidak memanggil initChat(); di tingkat teratas (tamu dan dosen yang baru login tanpa listener chat) — jalankan node scripts/deklarasi-chat-modul.mjs`);
+      }
+      const autoLogin = presenceAutoLogin(s.kode, s.dalam);
+      const muat = presenceSaatMuat(s.kode, s.dalam);
+      if (autoLogin.length && muat.length) {
+        galat.push(`${relative}:${baris(s.mulai + muat[0])}: initPresence dipasang dua kali untuk identitas tersimpan — oleh init sequence dan oleh auto-login _handleScheduleReady (baris ${baris(s.mulai + autoLogin[0])}); tiap panggilan menambah pendengar visibilitychange dan tulisan heartbeat — sisakan satu (blok DEKLARASI-CHAT-MODUL:INIT diatur node scripts/deklarasi-chat-modul.mjs)`);
+      }
+    }
+  }
+  return galat;
+}
+{
+  // Uji mutasi aturan di atas: halaman benar lolos, tiap mutasi gagal dengan
+  // pengenal yang tepat. Mutasi yang tidak berlaku (teks jangkar hilang)
+  // menggagalkan validator, supaya uji ini tidak diam-diam kosong.
+  const M3 = "Getaran-Mekanik/Modul/Modul-3.html";
+  const UTS = "Getaran-Mekanik/Exam/UTS.html";
+  const dasar = { [M3]: fs.readFileSync(path.join(root, M3), "utf8"), [UTS]: fs.readFileSync(path.join(root, UTS), "utf8") };
+  const EKSPOR = "window.sendChat=sendChat; window.onChatInput=onChatInput; window.onChatKey=onChatKey;\n";
+  const DEKL = "\nlet onlineUsers = [];\nlet chatMessages = [];\n";
+  const AUTOLOGIN = "window._loadScoredQuestions(); }, 500);\n    }\n  }\n}\n\nfunction updateScheduleDisplay()";
+  const PRESENCE_MUAT = "setTimeout(() => {\n  const me = getIdentity();\n  if (me && (me.role === 'student' || me.role === 'dosen')) initPresence();\n}, 1500);\n";
+  const ubah = (rel, ...pasangan) => {
+    let s = dasar[rel];
+    for (let i = 0; i < pasangan.length; i += 2) {
+      if (s.split(pasangan[i]).length !== 2) throw new Error(`uji mutasi deklarasi chat: jangkar ${JSON.stringify(pasangan[i].slice(0, 60))} tidak tepat sekali di ${rel}`);
+      s = s.replace(pasangan[i], () => pasangan[i + 1]);
+    }
+    return s;
+  };
+  const autoLoginPresence = AUTOLOGIN.replace("}, 500);\n", "}, 500);\n      if (typeof initPresence === 'function') setTimeout(initPresence, 300);\n");
+  const kasus = [
+    ["tanpa let onlineUsers", M3, ["\nlet onlineUsers = [];", ""], /onlineUsers dipakai di skrip module tanpa.*ReferenceError/],
+    ["tanpa let chatMessages", M3, ["\nlet chatMessages = [];", ""], /chatMessages dipakai di skrip module tanpa.*ReferenceError/],
+    ["tanpa let _lastSentAt", M3, ["\nlet _lastSentAt = 0;", ""], /_lastSentAt dipakai di skrip module tanpa/],
+    ["const onlineUsers", M3, ["\nlet onlineUsers = [];", "\nconst onlineUsers = [];"], /onlineUsers dipakai .*const.*TypeError/],
+    ["const pada deklarator kedua", M3, [DEKL, "\nconst _uji = 1, onlineUsers = [];\nlet chatMessages = [];\n"], /onlineUsers dipakai .*const/],
+    ["deklarasi ganda", M3, [DEKL, "\nvar onlineUsers = [];\nvar onlineUsers = [];\nlet chatMessages = [];\n"], /onlineUsers dipakai .*deklarasi ganda/],
+    ["deklarasi di komentar", M3, ["\nlet onlineUsers = [];", "\n// let onlineUsers = [];"], /onlineUsers dipakai di skrip module tanpa/],
+    ["deklarasi di string", M3, ["\nlet chatMessages = [];", "\nconst _uji = 'let chatMessages = [];';"], /chatMessages dipakai di skrip module tanpa/],
+    ["deklarasi di dalam fungsi", M3, ["\nlet onlineUsers = [];", "\nfunction _uji() { let onlineUsers = []; return onlineUsers; }"], /onlineUsers dipakai di skrip module tanpa/],
+    ["deklarasi sesudah pemakaian", M3, ["\nlet chatMessages = [];", "", EKSPOR, EKSPOR + "let chatMessages = [];\n"], /chatMessages dipakai sebelum deklarasinya/],
+    ["deklarasi di skrip module lain", M3, ["\nlet onlineUsers = [];", "", "<!-- AI-CHAT-AGENT:BEGIN", "<script type=\"module\">let onlineUsers = [];</script>\n<!-- AI-CHAT-AGENT:BEGIN"], /onlineUsers dipakai di skrip module tanpa.*ReferenceError/],
+    ["deklarasi hanya di skrip klasik", M3, ["\nlet onlineUsers = [];", "", "<!-- AI-CHAT-AGENT:BEGIN", "<script>let onlineUsers = [];</script>\n<!-- AI-CHAT-AGENT:BEGIN"], /onlineUsers hanya ada di cakupan global .*tidak melempar ReferenceError/],
+    ["tanpa window.sendChat", M3, [EKSPOR, "window.onChatInput=onChatInput; window.onChatKey=onChatKey;\n"], /onclick="…sendChat\(…\)" memanggil fungsi skrip module/],
+    ["tanpa window.onChatKey", M3, [EKSPOR, "window.sendChat=sendChat; window.onChatInput=onChatInput;\n"], /onkeydown="…onChatKey\(…\)"/],
+    ["ekspor hanya di blok AI", M3, [EKSPOR, "window.sendChat=sendChat; window.onChatKey=onChatKey;\n", "<!-- AI-CHAT-AGENT:END", "<script>window.onChatInput=onChatInput;</script>\n<!-- AI-CHAT-AGENT:END"], /oninput="…onChatInput\(…\)"/],
+    ["tanpa initChat()", M3, ["\ninitChat();\n", "\n"], /tidak memanggil initChat\(\); di tingkat teratas/],
+    ["initChat() hanya di dalam fungsi", M3, ["\ninitChat();\n", "\nfunction _uji() { initChat(); }\n"], /tidak memanggil initChat\(\); di tingkat teratas/],
+    ["presence ganda (auto-login + timer init)", M3, [AUTOLOGIN, autoLoginPresence], /initPresence dipasang dua kali untuk identitas tersimpan/],
+    ["ujian tanpa let onlinePresence", UTS, ["let onlinePresence = {};", ""], /onlinePresence dipakai di skrip module tanpa/],
+  ];
+  // Bentuk deklarasi/presence yang sah: harus lolos (injector memakai pemindai yang sama).
+  const sah = [
+    ["var onlineUsers", M3, ["\nlet onlineUsers = [];", "\nvar onlineUsers = [];"]],
+    ["deklarasi ber-indentasi", M3, ["\nlet onlineUsers = [];", "\n  let onlineUsers = [];"]],
+    ["beberapa deklarator", M3, [DEKL, "\nlet onlineUsers = [], chatMessages = [];\n"]],
+    ["beberapa deklarator lintas baris", M3, [DEKL, "\nlet onlineUsers = [],\n    chatMessages = [];\n"]],
+    ["destrukturisasi larik", M3, [DEKL, "\nlet [onlineUsers, chatMessages] = [[], []];\n"]],
+    ["destrukturisasi objek", M3, [DEKL, "\nlet { a: onlineUsers, chatMessages = [] } = { a: [] };\n"]],
+    ["presence hanya lewat auto-login", M3, [AUTOLOGIN, autoLoginPresence, PRESENCE_MUAT, ""]],
+  ];
+  for (const rel of [M3, UTS]) {
+    const g = pelanggaranDeklarasiChat(dasar[rel], rel, { modul: rel === M3 });
+    if (g.length) throw new Error(`uji mutasi deklarasi chat: halaman dasar ${rel} harusnya lolos:\n${g.join("\n")}`);
+  }
+  for (const [nama, rel, pasangan] of sah) {
+    const g = pelanggaranDeklarasiChat(ubah(rel, ...pasangan), rel, { modul: rel === M3 });
+    if (g.length) throw new Error(`uji mutasi deklarasi chat: bentuk sah "${nama}" harusnya lolos:\n${g.join("\n")}`);
+  }
+  for (const [nama, rel, pasangan, harap] of kasus) {
+    const g = pelanggaranDeklarasiChat(ubah(rel, ...pasangan), rel, { modul: rel === M3 });
+    if (!g.some((x) => harap.test(x))) throw new Error(`uji mutasi deklarasi chat "${nama}" tidak tertangkap (${harap}); pelanggaran: ${JSON.stringify(g)}`);
+  }
+}
+let deklarasiChat = 0, chatModul = 0;
+for (const relative of halamanEkspor) {
+  const page = fs.readFileSync(path.join(root, relative), "utf8");
+  const modul = modulPages.includes(relative);
+  const galat = pelanggaranDeklarasiChat(page, relative, { modul });
+  if (galat.length) throw new Error(galat.join("\n"));
+  deklarasiChat += 1;
+  if (modul) chatModul += 1;
+}
+if (deklarasiChat !== 96 || chatModul !== 84) throw new Error(`Expected 96 modul/exam pages (84 with Chat Kelas) checked for chat/presence declarations, found ${deklarasiChat} (${chatModul})`);
 
 // Jawaban mahasiswa (pilihan PG/benar-salah, kode, ringkasan berkas) tidak
 // dibaca dari atau ditulis ulang ke record RTDB publik
