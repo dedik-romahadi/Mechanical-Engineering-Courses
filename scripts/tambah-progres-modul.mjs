@@ -21,6 +21,20 @@
  *   5. Jawaban forum disimpan ke server (saveModulForum) setiap kali berubah
  *      (debounce), dan dipulihkan saat login, sehingga "forum selesai"
  *      terdefinisi di server.
+ *   6. (PENJAGA-FORUM v1, 29 September 2026) Jawaban forum baru dikirim
+ *      SESUDAH progres server modul ini diterapkan — sub-blok
+ *      `// PROGRES-MODUL:PENJAGA-FORUM BEGIN v1` … `END v1` di dalam runtime.
+ *      Sebelumnya simpanForum mengirim fq1–fq3 KOSONG bila getModulProgress
+ *      lebih lambat dari ±2 detik (cold start), gagal, atau modul terkunci
+ *      overlay, sehingga forum di server tertimpa kosong dan forumSelesai
+ *      menjadi false (gerbang modul berikutnya ikut terkunci). Sekarang:
+ *      tidak ada kiriman selama memuat, saat akses ditolak, maupun saat
+ *      progres gagal (galat sementara dicoba ulang 3/10/30 detik; penguncian
+ *      PIN dan sesi habis tidak); ketiga jawaban kosong tidak pernah dikirim;
+ *      baseline = forum server, jadi teks yang sama tidak dikirim ulang saat
+ *      halaman dimuat. Penanda luar PROGRES-MODUL sengaja tanpa versi (jangkar
+ *      injector lain); versinya di penanda sub-blok. Diperiksa
+ *      validate-public-security.mjs (periksaPenjagaForum).
  *
  * Dosen, Mode Preview, dan akun simulasi tidak digerbang (kotak bisa
  * dicentang bebas, tidak disimpan). UTS/UAS tidak disentuh.
@@ -266,8 +280,41 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   }
 
   var forumDimuat = false;
+  // PROGRES-MODUL:PENJAGA-FORUM BEGIN v1 — scripts/tambah-progres-modul.mjs (Pedoman §6.7)
+  // Kiriman forum menimpa ketiga jawaban di server sekaligus, jadi baru dikirim sesudah
+  // progres server modul ini DITERAPKAN. statusForum: 'belum' (tanpa sesi PIN) →
+  // 'memuat' → 'siap' (baseline = forum server: teks yang sama tidak dikirim ulang) |
+  // 'ditolak' (overlay prasyarat) | 'gagal' (galat sementara dicoba ulang 3/10/30 dtk).
+  var statusForum = 'belum', sesiForum = '', cobaForum = 0, timerUlangForum = null, forumTerakhir = null;
+  function mulaiMuatForum() {
+    var d = dasar(), s = d.nim + '|' + d.pinHash;
+    if (s !== sesiForum) { sesiForum = s; statusForum = 'memuat'; forumTerakhir = null; cobaForum = 0; }
+    else if (statusForum !== 'siap') statusForum = 'memuat';
+  }
+  function forumSiap(p) {
+    if (statusForum === 'siap') return;
+    statusForum = 'siap'; clearTimeout(timerUlangForum);
+    var f = (p && p.forum) || {}, t = function (v) { return typeof v === 'string' ? v : ''; };
+    forumTerakhir = JSON.stringify({ fq1: t(f.fq1), fq2: t(f.fq2), fq3: t(f.fq3) });
+  }
+  function forumDitolak() { if (statusForum !== 'siap') statusForum = 'ditolak'; }
+  function forumGagal(e) {
+    if (statusForum === 'siap') return;
+    statusForum = 'gagal';
+    var k = String((e && e.code) || '').replace(/^functions\\//, '');
+    if (k === 'unauthenticated' || /login ulang/i.test(String(e && e.message))) window._sessionPinHash = null;
+    if (!/^(unavailable|internal|deadline-exceeded|unknown|aborted|cancelled|)$/.test(k) || cobaForum >= 3) {
+      toast('⚠ Progres materi belum termuat: ' + ((e && e.message) || 'koneksi') + ' — muat ulang halaman. Jawaban forum baru disimpan ke server setelah progres termuat.', 6000);
+      return;
+    }
+    clearTimeout(timerUlangForum);
+    timerUlangForum = setTimeout(function () { try { muatProgres(); } catch (x) {} }, [3000, 10000, 30000][cobaForum++]);
+  }
+  function bolehKirimForum(j) { return statusForum === 'siap' && !!(j.fq1.trim() || j.fq2.trim() || j.fq3.trim()); }
+  // PROGRES-MODUL:PENJAGA-FORUM END v1
   // Terapkan progres modul ini (akses sudah lolos): centang dan jawaban forum tersimpan.
   function terapkanProgres(p) {
+    forumSiap(p);
     centang = Math.min(total, Number(p.centang) || 0);
     render();
     if (!forumDimuat && p.forum) {
@@ -283,13 +330,15 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     if (!mhsAktif()) { bebas = true; centang = muatBebas(); render(); return; }
     var d = dasar();
     if (!d.pinHash) { bebas = false; render(); return; }   // sesi PIN belum ada: tetap terkunci sampai login ulang
+    mulaiMuatForum();
     bebas = false; render();
     panggil('getModulProgress', d).then(function (p) {
-      if (p.akses && p.akses.boleh === false && p.akses.prasyarat) { tampilkanKunci(p.akses.prasyarat); return; }
+      if (p.akses && p.akses.boleh === false && p.akses.prasyarat) { forumDitolak(); tampilkanKunci(p.akses.prasyarat); return; }
       terapkanProgres(p);
     }).catch(function (e) {
       console.warn('[progres-modul] gagal memuat progres:', e && e.message);
       toast('⚠ Gagal memuat progres materi: ' + ((e && e.message) || 'koneksi'));
+      forumGagal(e);
     });
   }
   // _loadScoredQuestions dipanggil di ketiga jalur login (PIN baru, verifikasi PIN,
@@ -300,13 +349,15 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     return typeof loadAsli === 'function' ? loadAsli.apply(this, arguments) : undefined;
   };
 
-  // Forum → server (debounce), hanya mahasiswa sungguhan.
-  var forumTimer = null, forumTerakhir = '';
+  // Forum → server (debounce), hanya mahasiswa sungguhan, hanya sesudah progres
+  // diterapkan (forumTerakhir dideklarasikan di sub-blok PENJAGA-FORUM).
+  var forumTimer = null;
   function simpanForum() {
     if (!mhsAktif()) return;
     var j = {};
     ['fq1', 'fq2', 'fq3'].forEach(function (id) { var ta = document.getElementById('ans-' + id); j[id] = ta ? ta.value : ''; });
     var kunci = JSON.stringify(j);
+    if (!bolehKirimForum(j)) return;
     if (kunci === forumTerakhir) return;
     var d = dasar(); if (!d.pinHash) return;
     d.jawaban = j;
