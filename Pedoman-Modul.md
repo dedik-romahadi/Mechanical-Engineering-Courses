@@ -485,6 +485,24 @@ Penjaganya `scripts/verify-rescale-jadwal-modul.js` di `npm test` backend
 produksi masih hanya menulis `end` dan belum menolak ketiga keadaan di atas.
 Gabungkan dan deploy backend lebih dulu (§1.2), baru frontend.
 
+**Rescale tugas FreeCAD modul Pemodelan CAD memakai aturan kirim ulang (backend,
+29 September 2026).** Tugas pemodelan modul CAD dinilai dengan aturan kirim
+ulang (§2), dan sejak cabang backend `fix/rescale-cad-kirim-ulang` di-deploy
+`rescaleModulLatePenalty` memakai aturan yang sama untuk attempt yang dinilai
+dengan aturan itu: benar = poin × pengali kirim ulang yang tersimpan di ledger
+(1 untuk benar pada kiriman pertama, 0,65 untuk benar setelah pernah salah) ×
+pengali terlambat terhadap deadline acuan; salah tetap 0 dengan penanda
+`cN_comp_ulang`, sehingga kartu tetap terbuka dan tidak pernah menjadi partial;
+partial aturan lama yang terbawa kiriman ulang tetap dipegang bila kirimannya
+tepat waktu terhadap deadline acuan. Attempt yang dinilai sebelum 24 September
+2026 (tanpa jejak kiriman ulang) tetap dihitung dengan aturan lama. Sebelum
+deploy itu, rescale — bahkan tanpa perubahan deadline — menaikkan
+benar-setelah-salah ke poin penuh, menukar `_comp_ulang` menjadi `_comp_used`
+(atau partial 0,5 saat deadline diperpanjang), dan membuang partial lama yang
+dipertahankan kiriman ulang. `Admin/rescale-deadline.html` menampilkan aturan
+ini saat Pemodelan CAD mode Modul dipilih. Penjaganya
+`scripts/verify-rescale-cad-ulang.js` di `npm test` backend (§17.2).
+
 ### 5.5 Jadwal ujian susulan (override per mahasiswa)
 
 Selain jadwal global di §5.2, exam punya lapisan kedua opsional di RTDB
@@ -1388,7 +1406,7 @@ Daftar callable yang digunakan sistem saat ini:
 | `resetExamAttempts` | admin | menghapus ledger seluruh attempt satu exam |
 | `resetModulQuestion` | admin | reset soal tertentu/semua untuk satu atau semua mahasiswa |
 | `resetExamQuestion` | admin | reset soal tertentu/semua untuk satu atau semua mahasiswa |
-| `rescaleModulLatePenalty` | admin | menghitung ulang penalti modul, dapat dibatasi NIM; `newEnd` tanpa `nims` memperpanjang jadwal global dengan menulis `end` dan `due` (waktu buka tetap, §5.4); menolak sebelum menulis deadline satu kelas yang tidak berselisih kelipatan 24 jam dari waktu buka, deadline pada/sebelum waktu buka, dan hitung ulang tanpa `newEnd` saat `end` ≠ `due` (§5.4). Semuanya sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; sebelumnya hanya `end` yang ditulis, tanpa penolakan |
+| `rescaleModulLatePenalty` | admin | menghitung ulang penalti modul, dapat dibatasi NIM; `newEnd` tanpa `nims` memperpanjang jadwal global dengan menulis `end` dan `due` (waktu buka tetap, §5.4); menolak sebelum menulis deadline satu kelas yang tidak berselisih kelipatan 24 jam dari waktu buka, deadline pada/sebelum waktu buka, dan hitung ulang tanpa `newEnd` saat `end` ≠ `due` (§5.4). Semuanya sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; sebelumnya hanya `end` yang ditulis, tanpa penolakan. Tugas FreeCAD modul Pemodelan CAD dihitung ulang dengan aturan kirim ulang sejak deploy cabang backend `fix/rescale-cad-kirim-ulang` (§5.4) |
 | `rescaleExamLatePenalty` | admin | menghitung ulang penalti keterlambatan exam (UTS/UAS), dapat dibatasi NIM; parameter `nims[]`+`newEnd`/`newExtension` menulis `scheduleOverrides` untuk ujian susulan (§5.5); `newEnd` tanpa `nims` menulis `end`, `due`, dan `duration` jadwal global dengan `start` tetap; tiap mahasiswa dinilai ulang terhadap override-nya (`overriddenStudents`); deadline pada/sebelum `start` dan NIM tidak sah ditolak sebelum menulis; `duration` di luar 1..43200 menit dihapus sehingga modal Atur Jadwal meminta Durasi (§5.5). Semuanya sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; sebelumnya hanya `end`, terhadap jadwal global, tanpa penolakan |
 | `analyzeModulData` | admin | menganalisis data modul dan anomali grading |
 | `recomputeExamPoints` | admin | menghitung ulang total exam dari ledger |
@@ -1434,7 +1452,7 @@ Jika penghapusan ledger gagal, jangan lanjut menghapus RTDB karena mahasiswa aka
 |---|---|
 | `reset-soal.html` | reset satu, beberapa, atau semua soal pada 84 modul dan 12 exam (enam mata kuliah); target satu NIM atau semua mahasiswa |
 | `recompute-obe-score.html` | recompute poin satu exam dari mapping OBE dan ledger |
-| `rescale-deadline.html` | rescale penalti keterlambatan modul atau exam (UTS/UAS), global atau NIM tertentu (exam via `rescaleExamLatePenalty`, §5.5/§10). Deadline Baru dengan NIM kosong menulis `end` **dan** `due` jadwal global dan mempertahankan waktu buka, baik modul (§5.4) maupun ujian (§5.5, `duration` menit ikut diselaraskan), sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; dengan NIM terisi, jadwal global tidak diubah. Sejak deploy yang sama server menolak (juga pada Diagnose): deadline modul satu kelas yang jamnya tidak sama dengan jam buka modul (preset 23:59 hanya cocok untuk modul yang dibuka 23.59 WIB; pesannya menyarankan dua deadline sah), deadline pada/sebelum waktu buka modul atau `start` ujian, dan hitung ulang modul tanpa Deadline Baru saat `end` ≠ `due` (§5.4). Untuk ujian satu kelas, halaman membaca `start` dan memperingatkan bila Deadline Baru lebih dari 30 hari sesudahnya; hasilnya menampilkan jumlah mahasiswa yang dinilai terhadap jendela susulannya sendiri (§5.5) |
+| `rescale-deadline.html` | rescale penalti keterlambatan modul atau exam (UTS/UAS), global atau NIM tertentu (exam via `rescaleExamLatePenalty`, §5.5/§10). Deadline Baru dengan NIM kosong menulis `end` **dan** `due` jadwal global dan mempertahankan waktu buka, baik modul (§5.4) maupun ujian (§5.5, `duration` menit ikut diselaraskan), sejak deploy cabang backend `fix/chat-kenapa-admin-dan-rescale-due`; dengan NIM terisi, jadwal global tidak diubah. Sejak deploy yang sama server menolak (juga pada Diagnose): deadline modul satu kelas yang jamnya tidak sama dengan jam buka modul (preset 23:59 hanya cocok untuk modul yang dibuka 23.59 WIB; pesannya menyarankan dua deadline sah), deadline pada/sebelum waktu buka modul atau `start` ujian, dan hitung ulang modul tanpa Deadline Baru saat `end` ≠ `due` (§5.4). Untuk ujian satu kelas, halaman membaca `start` dan memperingatkan bila Deadline Baru lebih dari 30 hari sesudahnya; hasilnya menampilkan jumlah mahasiswa yang dinilai terhadap jendela susulannya sendiri (§5.5). Saat Pemodelan CAD mode Modul dipilih, halaman menampilkan aturan kirim ulang yang dipakai menghitung ulang tugas FreeCAD (§5.4) |
 | `analyze-victims.html` | analisis korban/anomali grading modul dan reset terarah. Kode Python mahasiswa (ditulis mahasiswa, dari `codePreview` ledger) dijalankan di kotak pasir: `<iframe sandbox="allow-scripts">` tanpa `allow-same-origin` + satu Web Worker Pyodide per mahasiswa, hanya teks kode masuk dan teks keluaran keluar (`postMessage`), namespace Python baru per kode, batas waktu 120 detik. Jangan pernah memuat Pyodide atau menjalankan kode mahasiswa di dokumen halaman ini: dokumen itu memegang sesi admin (token di `sessionStorage`) dan kunci jawaban, dan `import js` Pyodide membuka keduanya (sebelum 29 September 2026 begitulah keadaannya). |
 | `verify-export-code.html` | verifikasi HMAC export modul/exam |
 | `berkas-tugas.html` | daftar dan unduh berkas FreeCAD tugas pemodelan CAD per modul, dengan status penilaian |
@@ -1679,7 +1697,7 @@ npm.cmd run lint
 npm.cmd test
 ```
 
-Sejak cabang backend `fix/chat-kenapa-admin-dan-rescale-due` (dan `main` backend sesudah cabang itu digabung), `npm test` antara lain menjalankan `validate-ai-chat.js` (termasuk klasifikasi "kenapa/mengapa" administratif serta "point"/"poin kritis" yang tetap materi, §6.8) dan `verify-rescale-jadwal-modul.js`, yang menjalankan `rescaleModulLatePenalty` dan `rescaleExamLatePenalty` dengan RTDB/Firestore tiruan dan menagih `end` + `due` serta waktu buka yang tetap; penolakan deadline modul satu kelas yang bukan kelipatan 24 jam dari waktu buka, deadline pada/sebelum waktu buka modul atau `start` ujian, dan hitung ulang modul tanpa deadline saat `end` ≠ `due`; serta penilaian ulang attempt susulan terhadap override per-NIM (§5.4, §5.5). Bila repo frontend ada di sebelahnya, ia juga menjalankan modal Atur Jadwal ke-84 halaman modul dan kedua belas halaman ujian apa adanya dan menagih simpan ulang tanpa perubahan sesudah rescale; tanpa repo frontend bagian itu dilewati (SKIP), kecuali dengan `REQUIRE_FRONTEND=1`, yang membuatnya gagal.
+Sejak cabang backend `fix/chat-kenapa-admin-dan-rescale-due` (dan `main` backend sesudah cabang itu digabung), `npm test` antara lain menjalankan `validate-ai-chat.js` (termasuk klasifikasi "kenapa/mengapa" administratif serta "point"/"poin kritis" yang tetap materi, §6.8) dan `verify-rescale-jadwal-modul.js`, yang menjalankan `rescaleModulLatePenalty` dan `rescaleExamLatePenalty` dengan RTDB/Firestore tiruan dan menagih `end` + `due` serta waktu buka yang tetap; penolakan deadline modul satu kelas yang bukan kelipatan 24 jam dari waktu buka, deadline pada/sebelum waktu buka modul atau `start` ujian, dan hitung ulang modul tanpa deadline saat `end` ≠ `due`; serta penilaian ulang attempt susulan terhadap override per-NIM (§5.4, §5.5). Bila repo frontend ada di sebelahnya, ia juga menjalankan modal Atur Jadwal ke-84 halaman modul dan kedua belas halaman ujian apa adanya dan menagih simpan ulang tanpa perubahan sesudah rescale; tanpa repo frontend bagian itu dilewati (SKIP), kecuali dengan `REQUIRE_FRONTEND=1`, yang membuatnya gagal. Sejak cabang backend `fix/rescale-cad-kirim-ulang`, `npm test` juga menjalankan `verify-rescale-cad-ulang.js`: ledger tugas FreeCAD modul CAD dibangun lewat `checkModulAnswer` sungguhan (kunci dari seed `pemodelan_cad-modul-1`), lalu ditagih bahwa rescale ke deadline yang sama tidak mengubah apa pun dan bahwa dinilai lalu di-rescale sama dengan dinilai langsung di deadline baru, baik diperpanjang maupun dimajukan (§5.4).
 
 Sebelum live seed, gunakan opsi `dry_run_seed` pada workflow atau perintah seed dengan `--dry-run`.
 
