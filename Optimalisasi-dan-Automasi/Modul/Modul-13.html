@@ -3997,17 +3997,19 @@ document.addEventListener('DOMContentLoaded', () => {
 // agar tidak hilang saat mahasiswa reload page / ganti device / browser crash.
 // Firebase hanya simpan MARKER (mc1, c5_comp), bukan TEXT code mahasiswa — draft ini penting.
 
+// KUNCI-IDENTITAS:DRAF BEGIN v1 — dipasang scripts/samakan-kunci-identitas.mjs
+// Kunci draf per NIM = <slug>_draft_<MODULE_ID>_<nim>, identitas dari
+// getIdentityLocal() (kunci LOCAL_IDENTITY). Bentuk lama memeriksa
+// `typeof LOCAL_IDENTITY`/`typeof MODULE_ID`, yang di skrip klasik selalu
+// 'undefined', sehingga literal cadangannya yang terpakai.
 function _draftKey() {
   try {
-    // LOCAL_IDENTITY didefinisikan di script type="module" di bawah; saat fungsi ini
-    // di-invoke dari event handler textarea, scope window sudah resolved.
-    const key = (typeof LOCAL_IDENTITY !== 'undefined') ? LOCAL_IDENTITY : 'optoauto_identity_pertemuan-13';
-    const me = JSON.parse(localStorage.getItem(key) || 'null');
+    const me = getIdentityLocal();
     if (!me || !me.nim || me.role === 'dosen') return null;
-    const moduleId = (typeof MODULE_ID !== 'undefined') ? MODULE_ID : 'pertemuan-13';
-    return 'optoauto_draft_' + moduleId + '_' + me.nim;   // per-NIM, course-scoped
+    return 'optoauto_draft_pertemuan-14_' + me.nim;   // per-NIM, course-scoped
   } catch(e) { return null; }
 }
+// KUNCI-IDENTITAS:DRAF END v1
 
 function _saveDraft() {
   const key = _draftKey();
@@ -5343,9 +5345,16 @@ function exportForumHtml() { copyForumHtml(); }
   // HTML siap copas ke forum Fast Learning (tanpa <html>/<head>/<body>)
   // Menggunakan inline style agar kompatibel dengan editor LMS
 
+// KUNCI-IDENTITAS:LOKAL BEGIN v1 — dipasang scripts/samakan-kunci-identitas.mjs
+// Kunci ini wajib sama dengan LOCAL_IDENTITY skrip module halaman ini
+// (`<slug>_identity_${MODULE_ID}`). Const skrip module tidak terlihat dari
+// skrip klasik, jadi kuncinya ditulis sebagai literal; blok PROGRES-MODUL,
+// Export Tugas, forum HTML, dan _draftKey membaca identitas lewat fungsi ini.
+// validate-public-security.mjs menagih kesamaannya di ke-84 modul.
 function getIdentityLocal() {
-  try { return JSON.parse(localStorage.getItem('optoauto_identity_pertemuan-13')); } catch(e) { return null; }
+  try { return JSON.parse(localStorage.getItem('optoauto_identity_pertemuan-14')); } catch(e) { return null; }
 }
+// KUNCI-IDENTITAS:LOKAL END v1
 
 // ═══════════════════════════════════════
 // ANIMATIONS
@@ -9633,7 +9642,10 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
 ═══════════════════════════════════════════════════════════════════ -->
 <script>
 (function _frictionLayer(){
-  const LK = 'optoauto_identity_pertemuan-13';
+  // KUNCI-IDENTITAS:LK BEGIN v1 — dipasang scripts/samakan-kunci-identitas.mjs
+  // Sama dengan LOCAL_IDENTITY skrip module halaman ini (dijaga validator).
+  const LK = 'optoauto_identity_pertemuan-14';
+  // KUNCI-IDENTITAS:LK END v1
 
   function getMe(){
     try { return JSON.parse(localStorage.getItem(LK) || 'null'); }
