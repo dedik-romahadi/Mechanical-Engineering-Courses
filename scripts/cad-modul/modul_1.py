@@ -706,6 +706,7 @@ def tugas_block():
     <div class="ref-params" id="parametric-modul-note">
 <strong style="color:var(--cyan)">Tugas parametrik per NIM.</strong>
 <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">Masuk sebagai mahasiswa untuk memuat dimensi milik Anda. Teks tugas dirakit server dan tidak disimpan di halaman publik.</span>
+<span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">⌨️ <strong style="color:var(--text)">Desimal saat mengetik di FreeCAD:</strong> teks tugas menulis desimal dengan koma (mis. 31,4 mm), tetapi di kotak isian FreeCAD ketik dengan pemisah desimal yang ditampilkan FreeCAD Anda, umumnya <strong style="color:var(--text)">titik (31.4)</strong>. Koma bisa terbaca sebagai pemisah ribuan sehingga 31,4 menjadi 314. Setelah objek dibuat, periksa nilainya di tab <strong style="color:var(--text)">Data</strong> panel Property sebelum menyimpan.</span>
 </div>
 '''
     gambar_html = tugas_gambar_html(NOMOR)
@@ -980,6 +981,7 @@ Python 3.11.x, Qt 5.15.x / 6.x</pre></div>
             <li>Klik <strong>Apply → OK</strong>; preferensi berlaku untuk semua dokumen.</li>
           </ol>
           <p style="margin-top:1rem;font-size:.85rem;color:var(--sp-t3)"><strong style="color:var(--sp-c4)">⚠ Penting:</strong> satuan yang berbeda (cm atau inci) membuat angka Area dan Length berbeda dari kunci server walaupun modelnya benar.</p>
+          <p style="margin-top:.5rem;font-size:.85rem;color:var(--sp-t3)"><strong style="color:var(--sp-c4)">⌨️ Pemisah desimal:</strong> teks tugas menulis desimal dengan koma (31,4 mm), sedangkan FreeCAD memakai format angka komputer Anda. Ketik dimensi dengan pemisah desimal yang ditampilkan FreeCAD, umumnya titik (<code>31.4</code>); koma bisa terbaca sebagai pemisah ribuan sehingga 31,4 menjadi 314 mm. Setelah objek dibuat, periksa nilainya di tab <strong>Data</strong> panel Property.</p>
         </div>
       </div>
     </div>
