@@ -8,7 +8,11 @@ function _ttlKotak7(ctx,x,y,w,h,warna,label,sub){
   ctx.fillStyle=warna; ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText(label,x+w/2,y+h/2-(sub?4:-4));
   if(sub){ctx.fillStyle='rgba(226,232,240,.9)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText(sub,x+w/2,y+h/2+12);}
 }
+// Rentang tanpa lebar pakai dilewati. Kanvas di tab yang tersembunyi (mahasiswa pindah ke Forum saat
+// animasi berjalan) punya clientWidth 0, sehingga _ttlKanvas memberi W = 0 dan rentang dari W terbalik;
+// arc dengan radius negatif melempar IndexSizeError dan mematikan requestAnimationFrame animasinya.
 function _ttlReaktor7(ctx,x1,x2,y,warna,label){
+  if(!(x2>x1)) return;
   const n=4,w=(x2-x1)/n; ctx.strokeStyle=warna; ctx.lineWidth=2.2; ctx.beginPath();
   for(let i=0;i<n;i++){ctx.arc(x1+w*(i+0.5),y,w/2,Math.PI,0,false);} ctx.stroke();
   if(label){ctx.fillStyle=warna; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText(label,(x1+x2)/2,y-12);}
