@@ -834,18 +834,26 @@ function periksaPilihanPg(modul, relative) {
  *     `var forumDimuat = false;`, identik di 84 halaman, dan satu-satunya
  *     deklarasi forumTerakhir (baseline tidak boleh direset ke '');
  *   - kaitnya: forumSiap(p) pernyataan pertama terapkanProgres, mulaiMuatForum()
- *     di muatProgres sesudah cek pinHash, forumDitolak() sebelum tampilkanKunci,
- *     forumGagal(e) di catch, dan `if (!bolehKirimForum(j)) return;` di
- *     simpanForum sebelum panggilan saveModulForum;
+ *     di muatProgres sesudah cek pinHash (dan hitungan centang mode bebas
+ *     dibuang sebelum cek itu), forumDitolak() sebelum tampilkanKunci,
+ *     forumGagal(e, d) di catch, `if (!bolehKirimForum(j)) return;` di
+ *     simpanForum sebelum panggilan saveModulForum, dan forumTertahan() di
+ *     kunciTab serta pembungkus switchTab (tab Forum terkunci sebelum 'siap');
  *   - saveModulForum dipanggil tepat 1x di PROGRES-MODUL (simpanForum, dengan
  *     jawaban); di luar itu hanya panggilan poll-saja tanpa `jawaban` di blok
  *     PILIHAN-POLL-FORUM;
  *   - sandbox node:vm: (a) sub-blok sendiri — status belum/memuat/ditolak/gagal
  *     menolak kiriman, siap + tiga field kosong menolak, baseline = forum server
- *     (tanpa gema), sesi baru mereset, coba ulang 3/10/30 detik hanya untuk
- *     galat sementara; (b) runtime PROGRES-MODUL utuh dengan Firebase/DOM tiruan
- *     dan pewaktu virtual — cold start, mahasiswa baru, gagal lalu pulih, akses
- *     ditolak, PIN terkunci, sesi habis, coba ulang habis.
+ *     (tanpa gema), sesi baru mereset (kecuali PIN baru untuk NIM yang sama
+ *     sesudah 'siap'), coba ulang 3/10/30 detik hanya untuk galat sementara,
+ *     coba ulang atas permintaan berjeda, galat sesi lama diabaikan, hash PIN
+ *     sesi tidak disentuh; (b) runtime PROGRES-MODUL utuh dengan Firebase/DOM
+ *     tiruan dan pewaktu virtual — cold start, mahasiswa baru, gagal lalu
+ *     pulih, coba ulang habis lalu tab Forum memuat ulang, gagal lalu centang
+ *     lengkap, akses ditolak, PIN terkunci, sesi PIN tidak berlaku, galat sesi
+ *     lama, PIN ulang di halaman yang sama, jendela sebelum muatProgres,
+ *     centang mode bebas di localStorage, Forum yang terlanjur terbuka, dan
+ *     kiriman forum gagal lalu dicoba ulang.
  * ujiMutasiPenjagaForum: salinan halaman yang dirusak harus ditolak.
  */
 function pfAmbilFungsi(teks, awal, relative) {
@@ -873,13 +881,15 @@ async function periksaPenjagaForum(modul, relative) {
   else if (blok !== penjagaForum.acuan) throw new Error(`${relative}: PENJAGA-FORUM differs from ${penjagaForum.acuanDari} (the sub-block must be identical on all 84 pages)${saran}`);
   for (const wajib of [
     "var statusForum = 'belum',", "forumTerakhir = null;",
-    "function mulaiMuatForum() {", "function forumSiap(p) {", "function forumDitolak() {", "function forumGagal(e) {", "function bolehKirimForum(j) {",
+    "function mulaiMuatForum() {", "function forumSiap(p) {", "function forumDitolak() {", "function forumGagal(e, d) {",
+    "function forumCobaLagi() {", "function forumTertahan() {", "function bolehKirimForum(j) {",
   ]) {
     if (hitungDi(blok, wajib) < 1) throw new Error(`${relative}: PENJAGA-FORUM missing ${wajib}${saran}`);
   }
+  if (/_sessionPinHash/.test(blok)) throw new Error(`${relative}: PENJAGA-FORUM must not touch window._sessionPinHash (the PIN re-prompt belongs to JAWABAN-PRIVAT)${saran}`);
   const pmTanpaSub = pm.replace(blok, "\n");
   if (/\bvar\b[^;\n]*\bforumTerakhir\b/.test(pmTanpaSub)) throw new Error(`${relative}: forumTerakhir must only be declared inside PENJAGA-FORUM (a later \`var … forumTerakhir = ''\` resets the server baseline)${saran}`);
-  for (const nama of ["mulaiMuatForum", "forumSiap", "forumDitolak", "forumGagal", "bolehKirimForum", "statusForum"]) {
+  for (const nama of ["mulaiMuatForum", "forumSiap", "forumDitolak", "forumGagal", "forumCobaLagi", "forumTertahan", "tahanForum", "bolehKirimForum", "statusForum", "jedaForum"]) {
     if (new RegExp(`function ${nama}\\b|var ${nama}\\b|\\b${nama}\\s*=[^=]`).test(pmTanpaSub)) throw new Error(`${relative}: ${nama} must only be defined inside PENJAGA-FORUM${saran}`);
   }
   // Kait di runtime.
@@ -891,12 +901,22 @@ async function periksaPenjagaForum(modul, relative) {
   if (!(iPin >= 0 && iMulai > iPin && iPanggil > iMulai) || hitungDi(pmTanpaSub, "mulaiMuatForum(") !== 1) {
     throw new Error(`${relative}: muatProgres must call mulaiMuatForum() after the pinHash check and before getModulProgress${saran}`);
   }
+  const iBebas = muat.indexOf("\n    if (bebas) { bebas = false; centang = 0; }\n");
+  if (!(iBebas >= 0 && iBebas < iPin)) {
+    throw new Error(`${relative}: muatProgres must drop the free-mode tick count (\`if (bebas) { bebas = false; centang = 0; }\`) before the pinHash check (a lecturer/Preview count in localStorage must not unlock a student's tabs)${saran}`);
+  }
   if (!muat.includes("{ forumDitolak(); tampilkanKunci(p.akses.prasyarat); return; }") || hitungDi(pmTanpaSub, "forumDitolak(") !== 1) {
     throw new Error(`${relative}: muatProgres must call forumDitolak() before tampilkanKunci when access is denied${saran}`);
   }
   const iCatch = muat.indexOf("}).catch(function (e) {");
-  if (iCatch < 0 || !muat.slice(iCatch).includes("\n      forumGagal(e);\n") || hitungDi(pmTanpaSub, "forumGagal(") !== 1) {
-    throw new Error(`${relative}: muatProgres must call forumGagal(e) in the getModulProgress catch${saran}`);
+  if (iCatch < 0 || !muat.slice(iCatch).includes("\n      forumGagal(e, d);\n") || hitungDi(pmTanpaSub, "forumGagal(") !== 1) {
+    throw new Error(`${relative}: muatProgres must call forumGagal(e, d) in the getModulProgress catch${saran}`);
+  }
+  // Tab Forum terkunci sebelum 'siap': kunciTab dan pembungkus switchTab memakai forumTertahan().
+  const kunciTab = pfAmbilFungsi(pm, "\n  function kunciTab(kunci) {", relative);
+  if (!kunciTab.includes("var tahan = forumTertahan();") || !kunciTab.includes("var k = kunci || (t === 'forum' && tahan);")
+    || !pm.includes("\n      if (kunciCentang || (tab === 'forum' && forumTertahan())) {\n") || hitungDi(pm, "var ulang = forumCobaLagi();") !== 1) {
+    throw new Error(`${relative}: kunciTab and the switchTab wrapper must lock the Forum tab while forumTertahan() (before server progress is applied)${saran}`);
   }
   const simpan = pfAmbilFungsi(pm, "\n  function simpanForum() {", relative);
   const iIsi = simpan.indexOf("['fq1', 'fq2', 'fq3'].forEach("), iBoleh = simpan.indexOf("\n    if (!bolehKirimForum(j)) return;\n");
@@ -927,65 +947,115 @@ async function periksaPenjagaForum(modul, relative) {
   if (galat) throw new Error(`${galat.message.startsWith(relative) ? "" : relative + ": "}${galat.message}`);
   penjagaForum.halaman += 1;
 }
-/** (a) Sub-blok penjaga sendiri, dengan dasar/muatProgres/toast/pewaktu palsu. */
+/** (a) Sub-blok penjaga sendiri, dengan dasar/mhsAktif/muatProgres/toast palsu dan pewaktu virtual. */
 function ujiSubBlokPenjagaForum(blok, relative) {
   const gagal = (pesan) => { throw new Error(`${relative}: PENJAGA-FORUM sandbox: ${pesan}`); };
-  const ctx = { sesi: { nim: "41300000123", pinHash: "b".repeat(64) }, toast: [], timer: [], muat: 0, window: { _sessionPinHash: "b".repeat(64) } };
+  const HASH_B = "b".repeat(64), HASH_C = "c".repeat(64);   // hash rekaan, bukan PIN siapa pun
+  const ctx = { sesi: { nim: "41300000123", pinHash: HASH_B }, aktif: true, toast: [], muat: 0, jam: 0, id: 0, timer: [], window: { _sessionPinHash: HASH_B } };
   const f = vm.runInNewContext(`(function () {
-  function dasar() { return { modulId: 'uji-modul-2', nim: sesi.nim, pinHash: sesi.pinHash }; }
-  function muatProgres() { muat.n += 1; }
-  function toast(m) { toastLog.push(String(m)); }
-  function setTimeout(fn, ms) { timer.push({ fn: fn, ms: ms }); return timer.length; }
-  function clearTimeout() {}
+  function dasar() { return { modulId: 'uji-modul-2', nim: ctx.sesi.nim, pinHash: ctx.sesi.pinHash }; }
+  function mhsAktif() { return ctx.aktif; }
+  function muatProgres() { ctx.muat += 1; }
+  function toast(m) { ctx.toast.push(String(m)); }
+  function setTimeout(fn, ms) { ctx.id += 1; ctx.timer.push({ id: ctx.id, at: ctx.jam + (Number(ms) || 0), fn: fn }); return ctx.id; }
+  function clearTimeout(id) { for (var i = 0; i < ctx.timer.length; i += 1) if (ctx.timer[i].id === id) { ctx.timer.splice(i, 1); return; } }
 ${blok}
   return { mulaiMuatForum: mulaiMuatForum, forumSiap: forumSiap, forumDitolak: forumDitolak, forumGagal: forumGagal, bolehKirimForum: bolehKirimForum,
-    status: function () { return statusForum; }, baseline: function () { return forumTerakhir; } };
-})()`, { sesi: ctx.sesi, muat: { get n() { return ctx.muat; }, set n(v) { ctx.muat = v; } }, toastLog: ctx.toast, timer: ctx.timer, window: ctx.window });
+    forumCobaLagi: forumCobaLagi, forumTertahan: forumTertahan, status: function () { return statusForum; }, baseline: function () { return forumTerakhir; } };
+})()`, { ctx, window: ctx.window });
+  const majukan = (ms) => {
+    const akhir = ctx.jam + ms;
+    for (;;) {
+      ctx.timer.sort((x, y) => x.at - y.at || x.id - y.id);
+      const t = ctx.timer[0];
+      if (!t || t.at > akhir) break;
+      ctx.timer.shift(); ctx.jam = t.at; t.fn();
+    }
+    ctx.jam = akhir;
+  };
   const J = (a, b, c) => ({ fq1: a, fq2: b, fq3: c });
   const teks = J("jawaban satu", "", "");
   const boleh = (j) => f.bolehKirimForum(j);
-  if (f.status() !== "belum" || boleh(teks)) gagal("status awal harus 'belum' dan menolak kiriman");
+  if (f.status() !== "belum" || boleh(teks) || !f.forumTertahan()) gagal("status awal harus 'belum', menolak kiriman, dan menahan tab Forum");
+  ctx.aktif = false;
+  if (f.forumTertahan() || f.forumCobaLagi()) gagal("dosen/Preview (bukan mahasiswa aktif) tidak boleh ditahan maupun memuat progres");
+  ctx.aktif = true;
   f.mulaiMuatForum();
-  if (f.status() !== "memuat" || boleh(teks)) gagal("status 'memuat' harus menolak kiriman");
+  if (f.status() !== "memuat" || boleh(teks) || !f.forumTertahan() || f.forumCobaLagi()) gagal("status 'memuat' harus menolak kiriman, menahan tab Forum, dan tidak memuat ulang atas permintaan");
   f.forumDitolak();
-  if (f.status() !== "ditolak" || boleh(teks)) gagal("status 'ditolak' harus menolak kiriman");
+  if (f.status() !== "ditolak" || boleh(teks) || f.forumCobaLagi()) gagal("status 'ditolak' harus menolak kiriman (overlay prasyarat yang memeriksa ulang)");
   f.mulaiMuatForum();
+  // Galat sementara: coba ulang otomatis 3/10/30 detik, lalu berhenti.
   const kode = ["unavailable", "internal", "deadline-exceeded"];
   for (let i = 0; i < 3; i += 1) {
+    const jeda = [3000, 10000, 30000][i];
     f.forumGagal({ code: "functions/" + kode[i], message: "gagal sementara" });
-    if (f.status() !== "gagal" || boleh(teks)) gagal("status 'gagal' harus menolak kiriman");
-    if (ctx.timer.length !== i + 1 || ctx.timer[i].ms !== [3000, 10000, 30000][i]) gagal(`coba ulang ke-${i + 1} harus ${[3000, 10000, 30000][i]} ms (dapat ${JSON.stringify(ctx.timer.map((t) => t.ms))})`);
-    ctx.timer[i].fn();
-    if (ctx.muat !== i + 1) gagal("pewaktu coba ulang harus memanggil muatProgres()");
+    if (f.status() !== "gagal" || boleh(teks) || !f.forumTertahan()) gagal("status 'gagal' harus menolak kiriman dan menahan tab Forum");
+    if (f.forumCobaLagi()) gagal("selama coba ulang otomatis terjadwal, membuka tab Forum tidak boleh menambah panggilan");
+    majukan(jeda - 1);
+    if (ctx.muat !== i) gagal(`coba ulang ke-${i + 1} terlalu cepat (harus ${jeda} ms)`);
+    majukan(1);
+    if (ctx.muat !== i + 1) gagal(`coba ulang ke-${i + 1} harus ${jeda} ms dan memanggil muatProgres()`);
     f.mulaiMuatForum();
     if (f.status() !== "memuat") gagal("coba ulang harus kembali ke 'memuat'");
   }
   f.forumGagal({ code: "functions/unavailable", message: "gagal sementara" });
-  if (ctx.timer.length !== 3 || !ctx.toast.some((m) => /muat ulang halaman/i.test(m))) gagal("sesudah 3 kali coba ulang harus berhenti dan meminta muat ulang halaman");
-  // Sesi baru (NIM|pinHash lain): status, baseline, dan jatah coba ulang direset.
-  ctx.sesi.pinHash = "c".repeat(64);
+  majukan(600000);
+  if (ctx.muat !== 3 || !ctx.toast.some((m) => /muat ulang halaman/i.test(m))) gagal("sesudah 3 kali coba ulang otomatis harus berhenti dan memberi tahu (buka tab Forum / muat ulang halaman)");
+  // Coba ulang atas permintaan (tab Forum dibuka, centang dijawab server): langsung, lalu berjeda 15 detik.
+  if (!f.forumCobaLagi() || ctx.muat !== 4) gagal("sesudah coba ulang otomatis habis, membuka tab Forum harus memuat ulang progres");
+  f.mulaiMuatForum(); f.forumGagal({ code: "functions/unavailable", message: "gagal sementara" });
+  if (f.forumCobaLagi() || ctx.muat !== 4) gagal("coba ulang atas permintaan harus berjeda 15 detik");
+  majukan(15000);
+  if (!f.forumCobaLagi() || ctx.muat !== 5) gagal("sesudah jeda 15 detik coba ulang atas permintaan harus diizinkan lagi");
+  f.mulaiMuatForum(); f.forumGagal({ code: "functions/unavailable", message: "gagal sementara" });
+  // Sesi baru (NIM|pinHash lain) sebelum 'siap': status, baseline, jeda, dan jatah coba ulang direset.
+  ctx.sesi.pinHash = HASH_C;
   f.mulaiMuatForum();
   if (f.status() !== "memuat" || f.baseline() !== null) gagal("sesi baru harus mereset status dan baseline");
-  f.forumGagal({ code: "functions/resource-exhausted", message: "Terlalu banyak percobaan PIN. Coba lagi dalam 42 detik." });
-  if (ctx.timer.length !== 3 || f.status() !== "gagal" || ctx.window._sessionPinHash !== "b".repeat(64)) gagal("resource-exhausted tidak boleh dicoba ulang dan tidak mengakhiri sesi");
+  f.forumGagal({ code: "functions/unauthenticated", message: "PIN salah, silakan login ulang" }, { nim: ctx.sesi.nim, pinHash: HASH_B });
+  if (f.status() !== "memuat") gagal("galat getModulProgress milik sesi lama tidak boleh mengubah status sesi baru");
+  // Penguncian PIN: tanpa coba ulang otomatis; atas permintaan baru sesudah masa kunci.
+  const m0 = ctx.muat;
+  f.forumGagal({ code: "functions/resource-exhausted", message: "Terlalu banyak percobaan PIN. Coba lagi dalam 42 detik.", details: { remainingSeconds: 42 } }, { nim: ctx.sesi.nim, pinHash: HASH_C });
+  majukan(41000);
+  if (f.status() !== "gagal" || ctx.muat !== m0 || f.forumCobaLagi()) gagal("resource-exhausted tidak boleh dicoba ulang (otomatis maupun atas permintaan) sebelum masa kunci habis");
+  majukan(1000);
+  if (!f.forumCobaLagi() || ctx.muat !== m0 + 1) gagal("sesudah masa kunci PIN habis, membuka tab Forum harus memuat ulang progres");
   f.mulaiMuatForum();
   f.forumGagal({ code: "functions/unavailable", message: "gagal sementara" });
-  if (ctx.timer.length !== 4 || ctx.timer[3].ms !== 3000) gagal("sesi baru harus mendapat jatah coba ulang baru (3000 ms)");
+  majukan(3000);
+  if (ctx.muat !== m0 + 2) gagal("sesi baru harus mendapat jatah coba ulang otomatis baru (3000 ms)");
   f.mulaiMuatForum();
+  // Sesi PIN tidak berlaku: tanpa coba ulang (hash basi = percobaan PIN salah), hash tidak disentuh.
   f.forumGagal({ code: "functions/unauthenticated", message: "PIN salah, silakan login ulang" });
-  if (ctx.timer.length !== 4 || ctx.window._sessionPinHash !== null) gagal("unauthenticated tidak boleh dicoba ulang dan harus membuang hash PIN sesi");
+  majukan(600000);
+  if (ctx.muat !== m0 + 2 || f.forumCobaLagi()) gagal("unauthenticated tidak boleh dicoba ulang, otomatis maupun atas permintaan");
+  if (ctx.window._sessionPinHash !== HASH_B) gagal("PENJAGA-FORUM tidak boleh mengubah hash PIN sesi (permintaan PIN ulang milik JAWABAN-PRIVAT)");
+  // PIN dimasukkan lagi (sesi baru): mulai memuat lagi.
+  ctx.sesi.pinHash = "e".repeat(64);
+  f.mulaiMuatForum();
+  if (f.status() !== "memuat") gagal("PIN baru sesudah sesi tidak berlaku harus memuat ulang");
   // Siap: baseline = forum server (urutan kunci sama dengan simpanForum), tiga field kosong ditolak.
   f.forumSiap({ forum: { fq1: "a", fq3: 7 } });
-  if (f.status() !== "siap") gagal("forumSiap harus membuat status 'siap'");
+  if (f.status() !== "siap" || f.forumTertahan()) gagal("forumSiap harus membuat status 'siap' dan membuka tab Forum");
   if (f.baseline() !== JSON.stringify(J("a", "", ""))) gagal(`baseline harus JSON forum server dalam urutan fq1,fq2,fq3 (dapat ${f.baseline()})`);
   if (boleh(J("", "", "")) || boleh(J("  ", "\n\t", " "))) gagal("tiga jawaban kosong tidak boleh dikirim");
   if (!boleh(J("a", "", "")) || !boleh(J("", "", "x"))) gagal("status 'siap' dengan teks harus boleh dikirim");
-  f.forumGagal({ code: "functions/unavailable" }); f.forumDitolak(); f.mulaiMuatForum();
-  if (f.status() !== "siap" || ctx.timer.length !== 4) gagal("sesudah 'siap', galat/penolakan/muat ulang pada sesi yang sama tidak boleh mengubah status");
+  const mSiap = ctx.muat;
+  f.forumGagal({ code: "functions/unavailable" }); f.forumDitolak(); f.mulaiMuatForum(); majukan(600000);
+  if (f.status() !== "siap" || f.forumCobaLagi() || ctx.muat !== mSiap) gagal("sesudah 'siap', galat/penolakan/muat ulang pada sesi yang sama tidak boleh mengubah status");
   f.forumSiap({ forum: { fq1: "lain" } });
   if (f.baseline() !== JSON.stringify(J("a", "", ""))) gagal("forumSiap kedua pada sesi yang sama tidak boleh mengganti baseline");
-  f.forumSiap({});
-  const f2 = vm.runInNewContext(`(function () { function dasar() { return { nim: '1', pinHash: 'x' }; } function muatProgres() {} function toast() {} function setTimeout() { return 0; } function clearTimeout() {}
+  // PIN sesi baru untuk NIM yang sama: tetap 'siap' dengan baseline yang sama (suntingan tidak menunggu lagi).
+  ctx.sesi.pinHash = "f".repeat(64);
+  f.mulaiMuatForum();
+  if (f.status() !== "siap" || f.baseline() !== JSON.stringify(J("a", "", "")) || f.forumTertahan()) gagal("PIN sesi baru untuk NIM yang sama harus mempertahankan 'siap' dan baseline");
+  // NIM lain: mulai dari awal.
+  ctx.sesi.nim = "41300000999";
+  f.mulaiMuatForum();
+  if (f.status() !== "memuat" || f.baseline() !== null || !f.forumTertahan()) gagal("NIM lain harus mereset status dan baseline serta menahan tab Forum");
+  const f2 = vm.runInNewContext(`(function () { function dasar() { return { nim: '1', pinHash: 'x' }; } function mhsAktif() { return true; } function muatProgres() {} function toast() {} function setTimeout() { return 0; } function clearTimeout() {}
 ${blok}
   forumSiap({}); return forumTerakhir; })()`, { window: {} });
   if (f2 !== JSON.stringify(J("", "", ""))) gagal("forumSiap tanpa forum server harus memberi baseline tiga string kosong");
@@ -996,21 +1066,23 @@ async function simulasiPenjagaForum(pm, relative) {
   if (s0 < 0 || s1 < 0) throw new Error(`${relative}: PROGRES-MODUL module script not found`);
   const kode = pm.slice(s0 + '<script type="module">'.length, s1).replace(/^import \{[^}]*\} from "https:\/\/www\.gstatic\.com\/firebasejs\/[^"]+";\r?\n/gm, "");
   if (/^\s*import\b/m.test(kode)) throw new Error(`${relative}: PROGRES-MODUL sandbox: unexpected import`);
-  const HASH = "d".repeat(64);   // hash rekaan, bukan PIN siapa pun
+  const HASH = "d".repeat(64), HASH2 = "a".repeat(64);   // hash rekaan, bukan PIN siapa pun
   const KATA = (p) => Array.from({ length: 35 }, (_, i) => p + i).join(" ");
   const SERVER = { fq1: KATA("satu"), fq2: KATA("dua"), fq3: KATA("tiga") };
   const alir = async () => { for (let i = 0; i < 6; i += 1) await new Promise((r) => setImmediate(r)); };
-  const buat = () => {
-    let jam = 0, idT = 0;
-    const timer = [], panggilan = [], tertunda = [];
+  const buat = (opsi = {}) => {
+    let jam = 0, idT = 0, toastEl = null;
+    const timer = [], panggilan = [], tertunda = [], tabDibuka = [], gagalSimpan = [];
     const kelas = () => { const s = new Set(); return { toggle: (k, v) => ((v === undefined ? !s.has(k) : v) ? s.add(k) : s.delete(k)), add: (...k) => k.forEach((x) => s.add(x)), remove: (...k) => k.forEach((x) => s.delete(x)), contains: (k) => s.has(k) }; };
     const kotak = [0, 1].map(() => {
-      const input = { checked: false, disabled: true, addEventListener() {} }, st = { textContent: "" };
-      return { classList: kelas(), querySelector: (q) => (q === "input" ? input : st), scrollIntoView() {} };
+      const input = { checked: false, disabled: true, ubah: null, addEventListener: (jenis, fn) => { if (jenis === "change") input.ubah = fn; } }, st = { textContent: "" };
+      return { input, classList: kelas(), querySelector: (q) => (q === "input" ? input : st), scrollIntoView() {} };
     });
     const el = {};
     for (const t of ["tugas", "forum", "hasil"]) el["tab-" + t] = { classList: kelas(), setAttribute() {}, title: "" };
     for (const q of ["fq1", "fq2", "fq3"]) el["ans-" + q] = { value: "" };
+    el["page-forum"] = { classList: kelas() };
+    if (opsi.forumTerbuka) el["page-forum"].classList.add("active");
     const tombol = () => { const b = { disabled: false, textContent: "", klik: [], addEventListener: (jenis, fn) => { if (jenis === "click") b.klik.push(fn); } }; return b; };
     const document = {
       querySelectorAll: (q) => (q === ".pm-centang" ? kotak.slice() : []),
@@ -1020,20 +1092,24 @@ async function simulasiPenjagaForum(pm, relative) {
           querySelector: (q) => (e.tombol[q] = e.tombol[q] || tombol()), remove() { if (el[e.id] === e) delete el[e.id]; } };
         return e;
       },
-      body: { appendChild: (e) => { if (e.id) el[e.id] = e; } },
+      body: { appendChild: (e) => { if (e.id) el[e.id] = e; if (e.className === "pm-toast") toastEl = e; } },
     };
     const win = {
       MODUL_ID: "uji-modul-2", _sessionPinHash: HASH, _previewMode: false,
       getIdentityLocal: () => ({ nama: "UJI", nim: "41300000123", role: "student" }),
-      switchTab() {}, checkForumReady() { return true; }, _loadScoredQuestions() {},
-      localStorage: { getItem: () => null, setItem() {} }, location: { pathname: "/uji", reload() {} },
+      switchTab(tab) { tabDibuka.push(tab); el["page-forum"].classList.toggle("active", tab === "forum"); },
+      checkForumReady() { return true; }, _loadScoredQuestions() {},
+      localStorage: { getItem: () => (opsi.bebasLokal === undefined ? null : String(opsi.bebasLokal)), setItem() {} }, location: { pathname: "/uji", reload() {} },
       console: { warn() {}, log() {}, error() {} }, document,
       setTimeout: (fn, ms) => { idT += 1; timer.push({ id: idT, at: jam + (Number(ms) || 0), fn }); return idT; },
       clearTimeout: (id) => { const i = timer.findIndex((t) => t.id === id); if (i >= 0) timer.splice(i, 1); },
       getApp: () => ({}), getFunctions: () => ({}),
       httpsCallable: (fx, nama) => (data) => {
         panggilan.push({ nama, data: JSON.parse(JSON.stringify(data)), jam });
-        if (nama === "saveModulForum") return Promise.resolve({ data: { forumSelesai: false } });
+        if (nama === "saveModulForum") {
+          if (gagalSimpan.length) { const e = new Error("gagal simpan"); e.code = gagalSimpan.shift(); return Promise.reject(e); }
+          return Promise.resolve({ data: { forumSelesai: false } });
+        }
         if (nama !== "getModulProgress") return Promise.resolve({ data: {} });
         return new Promise((res, rej) => tertunda.push({ res: (d) => res({ data: d }), rej }));
       },
@@ -1053,29 +1129,36 @@ async function simulasiPenjagaForum(pm, relative) {
     };
     const ketik = (q, v) => { el["ans-" + q].value = v; win.checkForumReady(); };
     return {
-      win, el, panggilan, majukan, ketik,
+      win, el, panggilan, majukan, ketik, tabDibuka, gagalSimpan,
       simpan: () => panggilan.filter((p) => p.nama === "saveModulForum"),
       progres: () => panggilan.filter((p) => p.nama === "getModulProgress").length,
+      terkunci: (t) => el["tab-" + t].classList.contains("pm-terkunci"),
+      toast: () => (toastEl ? String(toastEl.textContent) : ""),
+      centangKotak: async (i) => { const input = kotak[i].input; input.checked = true; input.ubah({ target: input }); await alir(); },
       jawab: async (d) => { const t = tertunda.shift(); if (!t) throw new Error(`${relative}: PROGRES-MODUL sandbox: no pending getModulProgress`); t.res(d); await alir(); },
-      tolak: async (code, message) => { const t = tertunda.shift(); if (!t) throw new Error(`${relative}: PROGRES-MODUL sandbox: no pending getModulProgress`); const e = new Error(message || code); e.code = code; t.rej(e); await alir(); },
+      tolak: async (code, message, details) => { const t = tertunda.shift(); if (!t) throw new Error(`${relative}: PROGRES-MODUL sandbox: no pending getModulProgress`); const e = new Error(message || code); e.code = code; if (details) e.details = details; t.rej(e); await alir(); },
     };
   };
   const gagal = (skenario, pesan) => { throw new Error(`${relative}: PROGRES-MODUL sandbox (${skenario}): ${pesan}`); };
   const ringkas = (s) => JSON.stringify(s.simpan().map((p) => ["fq1", "fq2", "fq3"].map((q) => String((p.data.jawaban || {})[q] || "").split(" ").filter(Boolean).length).join("/")));
   const PRAS = { n: 1, centangLengkap: true, centang: 9, total: 9, tugasSelesai: true, soalDicoba: 15, totalSoal: 15, forumSelesai: false };
+  const LENGKAP = { centang: 2, total: 2, akses: { boleh: true }, forum: SERVER, forumSelesai: true };
+  const bukaForum = (s) => { const n = s.tabDibuka.length; s.win.switchTab("forum"); return s.tabDibuka.length > n && s.tabDibuka[s.tabDibuka.length - 1] === "forum"; };
   {
     // Cold start: pemicu checkForumReady lain (mis. _loadDraft) datang saat getModulProgress belum menjawab.
     const s = buat(), nama = "cold start";
     s.win._loadScoredQuestions();
     if (s.progres() !== 1) gagal(nama, "login harus memanggil getModulProgress");
+    if (!s.terkunci("forum") || bukaForum(s)) gagal(nama, "the Forum tab must stay locked while getModulProgress is pending");
     s.win.checkForumReady(); await s.majukan(2000);
     s.ketik("fq1", "draf lokal"); await s.majukan(2000);
     s.ketik("fq1", ""); await s.majukan(2000);
     if (s.simpan().length) gagal(nama, `saveModulForum sent before getModulProgress was applied ${ringkas(s)}`);
-    await s.jawab({ centang: 2, total: 2, akses: { boleh: true }, forum: SERVER, forumSelesai: true });
+    await s.jawab(LENGKAP);
     await s.majukan(5000);
     if (["fq1", "fq2", "fq3"].some((q) => s.el["ans-" + q].value !== SERVER[q])) gagal(nama, "forum server harus dipulihkan ke textarea");
     if (s.simpan().length) gagal(nama, `server forum echoed back unchanged ${ringkas(s)}`);
+    if (s.terkunci("forum") || !bukaForum(s)) gagal(nama, "the Forum tab must open once progress is applied");
     s.ketik("fq2", SERVER.fq2 + " tambahan"); await s.majukan(2000);
     const k = s.simpan();
     if (k.length !== 1 || k[0].data.jawaban.fq1 !== SERVER.fq1 || k[0].data.jawaban.fq2 !== SERVER.fq2 + " tambahan" || k[0].data.jawaban.fq3 !== SERVER.fq3) gagal(nama, `an edit after progress was applied must be sent once with all three answers ${ringkas(s)}`);
@@ -1103,30 +1186,134 @@ async function simulasiPenjagaForum(pm, relative) {
     if (s.simpan().length || s.progres() !== 1) gagal(nama, `nothing may be sent while progress failed ${ringkas(s)}`);
     await s.majukan(1500);
     if (s.progres() !== 2) gagal(nama, "a transient getModulProgress error must be retried after 3 s");
-    await s.jawab({ centang: 2, total: 2, akses: { boleh: true }, forum: SERVER, forumSelesai: true });
+    await s.jawab(LENGKAP);
     await s.majukan(5000);
     if (s.simpan().length || s.el["ans-fq3"].value !== SERVER.fq3) gagal(nama, `after the retry the server forum must be restored without an echo ${ringkas(s)}`);
     s.ketik("fq3", "teks baru"); await s.majukan(2000);
     if (s.simpan().length !== 1) gagal(nama, "typing after the retry must be sent");
   }
   {
-    // Coba ulang habis (3/10/30 detik) → berhenti; tidak ada kiriman.
+    // Coba ulang habis (3/10/30 detik) → berhenti tanpa kiriman; tab Forum tetap terkunci dan
+    // membukanya memuat ulang progres, sesudah itu suntingan terkirim.
     const s = buat(), nama = "coba ulang habis";
     s.win._loadScoredQuestions();
     for (const jeda of [3000, 10000, 30000]) { await s.tolak("functions/internal", "INTERNAL"); await s.majukan(jeda); }
-    await s.tolak("functions/deadline-exceeded", "DEADLINE"); s.ketik("fq1", "teks"); await s.majukan(120000);
+    await s.tolak("functions/deadline-exceeded", "DEADLINE"); s.win.checkForumReady(); await s.majukan(120000);
     if (s.progres() !== 4 || s.simpan().length) gagal(nama, `expected 4 getModulProgress calls and no save (got ${s.progres()}, ${ringkas(s)})`);
+    if (!s.terkunci("forum") || bukaForum(s)) gagal(nama, "the Forum tab must stay locked while progress failed");
+    if (s.progres() !== 5) gagal(nama, "opening the locked Forum tab after the retries ran out must load progress again");
+    await s.jawab(LENGKAP); await s.majukan(5000);
+    if (s.terkunci("forum") || !bukaForum(s) || s.simpan().length) gagal(nama, `after progress loads the Forum tab must open without an echo ${ringkas(s)}`);
+    s.ketik("fq1", SERVER.fq1 + " revisi"); await s.majukan(2000);
+    if (s.simpan().length !== 1) gagal(nama, "an edit after the recovery must be sent");
   }
-  for (const [nama, code, pesan, sesiHilang] of [
-    ["PIN terkunci", "functions/resource-exhausted", "Terlalu banyak percobaan PIN. Coba lagi dalam 42 detik.", false],
-    ["sesi habis", "functions/unauthenticated", "PIN salah, silakan login ulang", true],
-  ]) {
-    const s = buat();
+  {
+    // Progres gagal, lalu semua bagian dicentang (setModulCentang sukses): tab Forum tidak terbuka
+    // tanpa progres; centang yang dijawab server memuat ulang progres, lalu jawaban terkirim.
+    const s = buat(), nama = "gagal lalu centang lengkap";
     s.win._loadScoredQuestions();
-    await s.tolak(code, pesan);
-    s.ketik("fq1", "teks"); await s.majukan(120000);
+    for (const jeda of [3000, 10000, 30000]) { await s.tolak("functions/unavailable", "UNAVAILABLE"); await s.majukan(jeda); }
+    await s.tolak("functions/internal", "INTERNAL"); await s.majukan(60000);
+    if (s.progres() !== 4) gagal(nama, `expected 4 getModulProgress calls (got ${s.progres()})`);
+    await s.centangKotak(0); await s.centangKotak(1);
+    if (s.panggilan.filter((p) => p.nama === "setModulCentang").length !== 2 || s.terkunci("tugas")) gagal(nama, "ticking every section must unlock Tugas");
+    if (s.progres() !== 5) gagal(nama, "a tick answered by the server must load progress again while progress failed");
+    if (!s.terkunci("forum") || bukaForum(s)) gagal(nama, "the Forum tab must stay locked until progress is applied, even with every section ticked");
+    await s.jawab({ centang: 2, total: 2, akses: { boleh: true }, forum: {}, forumSelesai: false }); await s.majukan(3000);
+    if (s.terkunci("forum") || !bukaForum(s) || s.simpan().length) gagal(nama, `the Forum tab must open after progress is applied, without sending empty answers ${ringkas(s)}`);
+    s.ketik("fq1", KATA("baru")); await s.majukan(2000);
+    if (s.simpan().length !== 1) gagal(nama, `typing after the recovery must be sent ${ringkas(s)}`);
+  }
+  {
+    // Penguncian PIN: tanpa coba ulang otomatis; tab Forum baru memuat ulang sesudah masa kunci.
+    const s = buat(), nama = "PIN terkunci";
+    s.win._loadScoredQuestions();
+    await s.tolak("functions/resource-exhausted", "Terlalu banyak percobaan PIN. Coba lagi dalam 42 detik.", { remainingSeconds: 42 });
+    s.win.checkForumReady(); await s.majukan(5000);
+    if (bukaForum(s) || s.progres() !== 1 || s.simpan().length) gagal(nama, `must not retry nor save during the PIN lock (got ${s.progres()} getModulProgress, ${ringkas(s)})`);
+    if (s.win._sessionPinHash !== HASH) gagal(nama, "resource-exhausted must keep the session PIN hash");
+    await s.majukan(40000);
+    if (bukaForum(s) || s.progres() !== 2) gagal(nama, "after the PIN lock, opening the Forum tab must load progress again");
+  }
+  {
+    // Sesi PIN tidak berlaku: tanpa coba ulang (hash basi = percobaan PIN salah), hash sesi tidak
+    // disentuh (JAWABAN-PRIVAT yang meminta PIN ulang); PIN baru memuat ulang progres.
+    const s = buat(), nama = "sesi PIN tidak berlaku";
+    s.win._loadScoredQuestions();
+    await s.tolak("functions/unauthenticated", "PIN salah, silakan login ulang");
+    s.win.checkForumReady(); await s.majukan(20000);
+    if (bukaForum(s)) gagal(nama, "the Forum tab must stay locked");
+    await s.majukan(120000);
     if (s.progres() !== 1 || s.simpan().length) gagal(nama, `must not retry nor save (got ${s.progres()} getModulProgress, ${ringkas(s)})`);
-    if ((s.win._sessionPinHash === null) !== sesiHilang) gagal(nama, sesiHilang ? "unauthenticated must drop the session PIN hash" : "resource-exhausted must keep the session PIN hash");
+    if (s.win._sessionPinHash !== HASH) gagal(nama, "the progress guard must not drop the session PIN hash (JAWABAN-PRIVAT shows the PIN prompt and clears sessionStorage)");
+    s.win._sessionPinHash = HASH2; s.win._loadScoredQuestions();
+    if (s.progres() !== 2) gagal(nama, "a new PIN session must load progress again");
+    await s.jawab(LENGKAP); await s.majukan(3000);
+    if (s.terkunci("forum") || s.simpan().length) gagal(nama, `after the new PIN the Forum tab must open without an echo ${ringkas(s)}`);
+  }
+  {
+    // Galat sesi lama (PIN diganti selama getModulProgress lama tertunda) tidak mengganggu sesi baru.
+    const s = buat(), nama = "galat sesi lama";
+    s.win._loadScoredQuestions();
+    s.win._sessionPinHash = HASH2; s.win._loadScoredQuestions();
+    await s.tolak("functions/unauthenticated", "PIN salah, silakan login ulang");
+    if (s.win._sessionPinHash !== HASH2) gagal(nama, "a stale unauthenticated error must not drop the new session PIN hash");
+    await s.jawab(LENGKAP); await s.majukan(3000);
+    if (s.terkunci("forum")) gagal(nama, "a stale error must not keep the new session from becoming ready");
+    s.ketik("fq3", SERVER.fq3 + " revisi"); await s.majukan(2000);
+    if (s.simpan().length !== 1 || s.simpan()[0].data.pinHash !== HASH2) gagal(nama, `an edit must be sent with the new session ${ringkas(s)}`);
+  }
+  {
+    // PIN diminta ulang di halaman yang sama (NIM sama): tab Forum tidak dikunci lagi, dan suntingan
+    // yang belum terkirim selama hash kosong dikirim sesudah progres sesi baru diterapkan.
+    const s = buat(), nama = "PIN ulang di halaman yang sama";
+    s.win._loadScoredQuestions();
+    await s.jawab(LENGKAP); await s.majukan(3000);
+    s.win._sessionPinHash = null;
+    s.ketik("fq2", SERVER.fq2 + " revisi"); await s.majukan(3000);
+    if (s.simpan().length) gagal(nama, "nothing can be sent without a PIN session");
+    s.win._sessionPinHash = HASH2; s.win._loadScoredQuestions();
+    if (s.progres() !== 2 || s.terkunci("forum")) gagal(nama, "a new PIN for the same NIM must reload progress without locking the Forum tab again");
+    await s.jawab(LENGKAP); await s.majukan(2000);
+    const k = s.simpan();
+    if (k.length !== 1 || k[0].data.jawaban.fq2 !== SERVER.fq2 + " revisi" || k[0].data.pinHash !== HASH2) gagal(nama, `the unsent edit must be sent once after progress is applied ${ringkas(s)}`);
+  }
+  {
+    // Jendela sebelum muatProgres (overlay login sudah tertutup, _loadScoredQuestions belum jalan).
+    const s = buat(), nama = "jendela sebelum muatProgres";
+    if (!s.terkunci("forum") || bukaForum(s)) gagal(nama, "the Forum tab must be locked for a student before progress is loaded");
+    if (s.progres() !== 1) gagal(nama, "opening the Forum tab before muatProgres must load progress");
+    await s.jawab(LENGKAP); await s.majukan(3000);
+    if (s.terkunci("forum") || !bukaForum(s) || s.simpan().length) gagal(nama, `the Forum tab must open after progress is applied ${ringkas(s)}`);
+  }
+  {
+    // Hitungan centang mode bebas (dosen/Preview) di localStorage tidak membuka tab mahasiswa.
+    const s = buat({ bebasLokal: 2 }), nama = "centang mode bebas di localStorage";
+    s.win._loadScoredQuestions();
+    if (!s.terkunci("tugas") || !s.terkunci("forum") || bukaForum(s)) gagal(nama, "a free-mode tick count must not unlock a student's tabs while progress loads");
+    await s.jawab({ centang: 0, total: 2, akses: { boleh: true }, forum: SERVER, forumSelesai: true }); await s.majukan(3000);
+    if (!s.terkunci("forum") || s.simpan().length) gagal(nama, `the server tick count (0/2) must keep the tabs locked ${ringkas(s)}`);
+  }
+  {
+    // Tab Forum yang terlanjur terbuka ditutup sampai forum server diterapkan.
+    const s = buat({ forumTerbuka: true }), nama = "Forum yang terlanjur terbuka";
+    if (s.el["page-forum"].classList.contains("active") || s.tabDibuka[s.tabDibuka.length - 1] !== "modul") gagal(nama, "an open Forum page must be closed while progress is not applied");
+  }
+  {
+    // Kiriman forum gagal: diberitahukan, galat sementara dicoba ulang dengan isi terbaru.
+    const s = buat(), nama = "kiriman forum gagal";
+    s.win._loadScoredQuestions();
+    await s.jawab(LENGKAP); await s.majukan(3000);
+    s.gagalSimpan.push("functions/unavailable");
+    s.ketik("fq1", SERVER.fq1 + " revisi"); await s.majukan(2000);
+    if (s.simpan().length !== 1 || !/belum tersimpan/i.test(s.toast())) gagal(nama, "a failed forum save must be reported to the student");
+    await s.majukan(3000);
+    if (s.simpan().length !== 2 || s.simpan()[1].data.jawaban.fq1 !== SERVER.fq1 + " revisi") gagal(nama, `a transient save failure must be retried after 3 s ${ringkas(s)}`);
+    await s.majukan(60000);
+    if (s.simpan().length !== 2) gagal(nama, `a successful retry must not be followed by more saves ${ringkas(s)}`);
+    s.gagalSimpan.push("functions/unauthenticated");
+    s.ketik("fq1", SERVER.fq1 + " revisi dua"); await s.majukan(60000);
+    if (s.simpan().length !== 3) gagal(nama, `an unauthenticated save failure must not be retried automatically ${ringkas(s)}`);
   }
   {
     // Akses ditolak (overlay prasyarat): modul ini tidak pernah mengirim forum.
@@ -1143,7 +1330,7 @@ async function simulasiPenjagaForum(pm, relative) {
     s.ketik("fq1", "");
     periksa.klik[0]();
     if (s.progres() !== 2) gagal(nama, "Periksa lagi must ask getModulProgress again");
-    await s.jawab({ centang: 2, total: 2, akses: { boleh: true }, forum: SERVER, forumSelesai: true });
+    await s.jawab(LENGKAP);
     await s.majukan(5000);
     if (s.el.pmKunci || s.simpan().length || s.el["ans-fq2"].value !== SERVER.fq2) gagal(nama, `after Periksa lagi the overlay must close and the server forum be restored without an echo ${ringkas(s)}`);
     s.ketik("fq2", SERVER.fq2 + " revisi"); await s.majukan(2000);
@@ -1166,14 +1353,26 @@ async function ujiMutasiPenjagaForum() {
     ["buang forumSiap", [["\n    forumSiap(p);\n    centang =", "\n    centang ="]]],
     ["forumSiap sesudah checkForumReady", [["\n    forumSiap(p);\n    centang =", "\n    centang ="], [CFR, CFR + "      forumSiap(p);\n"]]],
     ["buang forumDitolak", [["{ forumDitolak(); tampilkanKunci(p.akses.prasyarat); return; }", "{ tampilkanKunci(p.akses.prasyarat); return; }"]]],
-    ["buang forumGagal", [["\n      forumGagal(e);\n", "\n"]]],
+    ["buang forumGagal", [["\n      forumGagal(e, d);\n", "\n"]]],
     ["buang mulaiMuatForum", [["\n    mulaiMuatForum();\n", "\n"]]],
     ["baseline direset ke ''", [["\n  var forumTimer = null;\n", "\n  var forumTimer = null, forumTerakhir = '';\n"]]],
     ["penjaga selalu mengizinkan", [["function bolehKirimForum(j) { return statusForum === 'siap' && ", "function bolehKirimForum(j) { return true || "]]],
     ["tiga jawaban kosong boleh", [["&& !!(j.fq1.trim() || j.fq2.trim() || j.fq3.trim()); }", "&& true; }"]]],
     ["siap tanpa baseline server", [["forumTerakhir = JSON.stringify({ fq1: t(f.fq1), fq2: t(f.fq2), fq3: t(f.fq3) });", "forumTerakhir = '';"]]],
-    ["coba ulang untuk PIN terkunci", [["unavailable|internal|deadline-exceeded", "unavailable|internal|deadline-exceeded|resource-exhausted"]]],
-    ["tanpa coba ulang", [["timerUlangForum = setTimeout(function () { try { muatProgres(); } catch (x) {} }", "timerUlangForum = setTimeout(function () {}"]]],
+    ["PIN terkunci tanpa jeda", [["\n    if (k === 'resource-exhausted') {\n", "\n    if (false) {\n"]]],
+    ["tanpa coba ulang", [["timerUlangForum = setTimeout(function () { timerUlangForum = null; try { muatProgres(); } catch (x) {} }", "timerUlangForum = setTimeout(function () { timerUlangForum = null; }"]]],
+    ["hash PIN dibuang di forumGagal", [["\n      tahanForum(0);\n", "\n      tahanForum(0); window._sessionPinHash = null;\n"]]],
+    ["sesi PIN tidak berlaku dicoba ulang", [["\n      tahanForum(0);\n", "\n      tahanForum(15000);\n"]]],
+    ["galat sesi lama tidak diabaikan", [[" || (d && d.nim + '|' + d.pinHash !== sesiForum)", ""]]],
+    ["PIN baru untuk NIM sama mengulang penantian", [["if (nimSama && statusForum === 'siap') return;", "if (false) return;"]]],
+    ["tab Forum tidak dikunci", [["var k = kunci || (t === 'forum' && tahan);", "var k = kunci;"]]],
+    ["switchTab Forum tidak ditahan", [["if (kunciCentang || (tab === 'forum' && forumTertahan())) {", "if (kunciCentang) {"]]],
+    ["tab terkunci tanpa coba ulang", [["\n        var ulang = forumCobaLagi();\n", "\n        var ulang = false;\n"]]],
+    ["centang tanpa coba ulang", [["render(); forumCobaLagi(); });", "render(); });"]]],
+    ["centang mode bebas dipakai mahasiswa", [["\n    if (bebas) { bebas = false; centang = 0; }\n", "\n    bebas = false;\n"]]],
+    ["Forum terbuka tidak ditutup", [["if (tahan && pf && pf.classList.contains('active')", "if (false && pf && pf.classList.contains('active')"]]],
+    ["suntingan tertunda tidak dikirim", [["    // baseline tidak dikirim.\n    if (typeof window.checkForumReady === 'function') try { window.checkForumReady(); } catch (e) {}\n", "    // baseline tidak dikirim.\n"]]],
+    ["kiriman gagal tanpa coba ulang", [["if (ulang) { clearTimeout(forumTimer);", "if (false) { clearTimeout(forumTimer);"]]],
     ["saveModulForum kedua tanpa penjaga", [["\n  var forumAsli = window.checkForumReady;\n", "\n  window.__kirimLangsung = function () { panggil('saveModulForum', dasar()); };\n  var forumAsli = window.checkForumReady;\n"]]],
     ["saveModulForum di luar PROGRES-MODUL", [[PF_AKHIR, PF_AKHIR + "\n<script>/* saveModulForum */</script>"]]],
     ["tanpa sub-blok", [["  // PROGRES-MODUL:PENJAGA-FORUM BEGIN v1", "  // PROGRES-MODUL:PENJAGA-FORUM-LAMA BEGIN v1"]]],
