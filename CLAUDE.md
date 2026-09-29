@@ -275,7 +275,11 @@ repo publik ini.
   sana: jawaban sendiri dipulihkan HANYA lewat callable `getJawabanSaya`
   (ledger Firestore; NIM + hash PIN sesi, ditunggu `_loadScoredQuestions`
   ≤ 2,5 detik, hasil terlambat tetap diterapkan) dan digabung ke `data`
-  sebelum kode pemulihan lama; `scoreDelta` ledger menang atas RTDB. Callable
+  sebelum kode pemulihan lama; `scoreDelta` ledger menang atas RTDB. Record
+  RTDB baru dibaca SESUDAH penantian itu, dan snapshot yang tidak memuat
+  marker benar yang sudah diketahui halaman (`window._answeredQ`) dibaca
+  ulang lalu dilewati (TUNGGU v2) — jangan kembalikan `Promise.all([get(…),
+  _muatJawabanSaya()])`: snapshot lama membatalkan kiriman ulang CAD. Callable
   gagal → field publik TETAP tidak dipakai (functions + rules ter-deploy
   sebelum halaman), teks netral; galat sementara dicoba lagi,
   `resource-exhausted` (penguncian PIN per NIM + sumber) menunggu

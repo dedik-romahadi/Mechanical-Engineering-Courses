@@ -95,9 +95,14 @@ const periksa = process.argv.includes("--periksa");
 
 const JANGKAR_DATA = "\n    const data = snap.val();\n";
 const AWAL_RESTORE = "window._loadScoredQuestions = function() {";
-// Pembacaan record di _loadScoredQuestions: bentuk asli, atau bentuk
-// JAWABAN-PRIVAT:TUNGGU (record + getJawabanSaya ditunggu bersama).
-const GET_RESTORE = ["get(ref(db, DB_PATH + '/' + key)).then(snap => {", "Promise.all([get(ref(db, DB_PATH + '/' + key)), "];
+// Pembacaan record di _loadScoredQuestions: bentuk asli, bentuk
+// JAWABAN-PRIVAT:TUNGGU v1 (record + getJawabanSaya ditunggu bersama), atau v2
+// (record dibaca sesudah penantian getJawabanSaya).
+const GET_RESTORE = [
+  "get(ref(db, DB_PATH + '/' + key)).then(snap => {",
+  "Promise.all([get(ref(db, DB_PATH + '/' + key)), ",
+  "const _bacaRekaman = (sisa) => get(ref(db, DB_PATH + '/' + key)).then((snap) => {",
+];
 // Blok penggabung jawaban dari scripts/jawaban-privat.mjs (boleh belum ada).
 const RX_GABUNG = /    \/\/ JAWABAN-PRIVAT:GABUNG BEGIN[^\n]*\n[\s\S]*?    \/\/ JAWABAN-PRIVAT:GABUNG END[^\n]*\n/;
 
