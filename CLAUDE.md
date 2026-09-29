@@ -266,14 +266,19 @@ repo publik ini.
   isian yang belum dinilai/terkirim (tanpa kode/angka ledger, tanpa teks
   server; tetap ada sesudah Log Out); metadata berkas CAD dari draft dipakai
   hanya sesudah `getJawabanSaya` sesi itu selesai dan bila server tidak punya
-  berkas lain; tugas CAD yang dikirim lalu dibuka lagi: angka yang dikirim dan
-  berkas yang dinilai keluar dari draft, dan metadata draft tugas itu tidak
-  dipakai sesudah muat ulang (v4); NIM yang berganti tanpa muat ulang →
-  kolom dikosongkan + muat ulang. Dipasang `scripts/draft-modul.mjs` (penanda
-  `DRAFT-MODUL:KUNCI` v1/`PENJAGA` v4, ada `--periksa`, jalankan PALING
+  berkas lain; tugas CAD yang dibuka lagi: metadata draft tidak dipakai
+  sesudah muat ulang (v4); kiriman (v5) dikenali di pembungkus accessor
+  `window._callCheckModulAnswer`: angka & berkas tugas CAD keluar dari draft
+  begitu dikirim, tetap keluar bila hasilnya dinilai atau tak pasti (respons
+  hilang/galat), kembali bila ditolak sebelum dinilai; angka draft = angka
+  ledger `getJawabanSaya` dibuang saat muat; hasil penilaian diumumkan ke tab
+  lain lewat `BroadcastChannel` (tanpa localStorage); NIM yang berganti tanpa
+  muat ulang → kolom dikosongkan + muat ulang. Dipasang `scripts/draft-modul.mjs`
+  (penanda `DRAFT-MODUL:KUNCI` v1/`PENJAGA` v5, ada `--periksa`, jalankan PALING
   AKHIR, sesudah `simpan-pilihan-poll.mjs`); badan `_saveDraft`/`_loadDraft`
-  tidak disunting, dan fungsi draft tidak boleh ditugaskan di skrip module.
-  Rincian: Pedoman §6.3.
+  tidak disunting, dan fungsi draft tidak boleh ditugaskan di skrip module;
+  `window._callCheckModulAnswer` ditugaskan tepat sekali (skrip module) dan
+  selalu dipanggil lewat `window.`. Rincian: Pedoman §6.3.
 - **Asisten Dosen di UTS/UAS** (sejak 26 Sep 2026). Mahasiswa yang login
   memakai `#visitorFab` sebagai tombol "🤖 Asisten Dosen"; daftar mahasiswa
   online (nama, NIM, status poin) tetap khusus dosen dan halaman ujian tidak
