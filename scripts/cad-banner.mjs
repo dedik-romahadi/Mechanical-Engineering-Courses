@@ -38,7 +38,7 @@ export const EXAM_PUBLISHED = { UTS: false, UAS: false };
 // Tautan room Google Meet per pertemuan TMV — diisi PADA PEKANNYA setelah aktivitas
 // Google Meet™ for Moodle dibuat lewat UI form LMS (room dibuat otomatis oleh plugin).
 // Pertemuan yang belum ada di sini memakai tombol nonaktif "Google Meet belum dibuka".
-export const MEET_URL = { 1: "https://meet.google.com/nbb-etyg-pho" };
+export const MEET_URL = { 1: "https://meet.google.com/nbb-etyg-pho", 3: "https://meet.google.com/qno-rehc-efb" };
 export const WA_URL = "https://chat.whatsapp.com/Dr6Jsi67Ey3Cb9jRHYUZGu"; // grup WhatsApp kelas CAD (dosen, 21 Sep 2026); null = tombol tidak ditampilkan
 export const HARI_KULIAH = "Selasa";
 export const JAM = "19:30–22:00 WIB";
