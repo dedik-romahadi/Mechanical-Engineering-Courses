@@ -2,8 +2,11 @@
 """
 Mengisi MODUL_PDF_URL/MODUL_PDF_FILENAME pada halaman modul Teknik Tenaga
 Listrik agar tombol "Export PDF" mengunduh Modul-Word/Modul-N-<judul>.pdf,
-sama seperti halaman modul course lain. Idempoten; jalankan setelah
-buat-modul-word.py (dan setiap kali halaman dibangun ulang bangun.py).
+sama seperti halaman modul course lain. <judul> = judul <title> halaman
+(JUDUL_PANJANG di modul_N.py), sumber yang sama dengan buat-modul-word.py.
+Idempoten; jalankan setelah buat-modul-word.py. Sejak 29 September 2026
+bangun.py menulis nama yang sama, jadi sesudah regenerasi `--periksa` harus
+melaporkan "diubah 0" tanpa menjalankan skrip ini.
 
 Pakai:
     python scripts/ttl-modul/pasang-tautan-pdf.py            # semua modul yang PDF-nya ada
