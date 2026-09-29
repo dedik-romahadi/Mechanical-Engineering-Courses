@@ -44,9 +44,15 @@
  *      getIdentityLocal(), kunci `<slug>_draft_<MODULE_ID>_` + NIM.
  *   4. `const LK = '…';` lapisan friksi yang bukan K diganti blok
  *      KUNCI-IDENTITAS:LK.
- *   5. Sesudahnya setiap literal kunci identitas utuh di skrip halaman harus
- *      sama dengan K; bila tidak, skrip berhenti (tempat baru yang belum
- *      dikenal — tangani dulu, jangan ditebak).
+ *   5. Sesudahnya setiap kunci identitas utuh yang tertulis di skrip halaman
+ *      (literal kutip tunggal/ganda/backtick, gabungan dua literal, templat
+ *      ber-${MODULE_ID}/${COURSE_ID} di skrip module) harus sama dengan K;
+ *      templat ber-${…} yang memuat `_identity_` di skrip klasik, deklarasi
+ *      kedua atau penimpaan getIdentityLocal/_draftKey (mis.
+ *      `window.getIdentityLocal = …`), dan `return` _draftKey di luar tiga
+ *      bentuk yang dikenal juga menghentikan skrip (tempat baru yang belum
+ *      dikenal — tangani dulu, jangan ditebak). Aturannya sama dengan
+ *      periksaKunciIdentitasModul di validate-public-security.mjs.
  * Halaman yang sudah benar tidak disentuh sama sekali. Blok yang sudah ada
  * dibangun ulang dari K halaman itu (idempoten; versi lama ikut diganti).
  * Tidak ada yang disunting di dalam penanda AI-CHAT-AGENT.
@@ -62,6 +68,14 @@
  *     sehingga draf di kunci mana pun tertimpa sebelum sempat dibaca —
  *     memindahkannya tidak berpengaruh, dan draf lama Opto Modul 13/14 yang
  *     kini berada di kunci Modul 12/13 tidak ikut termuat ke forum.
+ *     AWAS bila urutan simpan/muat itu kelak diperbaiki: kunci draf baru Opto
+ *     Modul 12/13 (optoauto_draft_pertemuan-13_/-14_<nim>) = kunci tempat
+ *     halaman lama Modul 13/14 menulis draf (kode, forum, link Drive) atas NIM
+ *     dari kunci identitas modul sebelumnya — di komputer lab bisa NIM orang
+ *     lain — dan optoauto_draft_pertemuan-12_ Modul 11 memuat draf halaman
+ *     lama Modul 12. Perbaikan urutan itu wajib sekaligus memakai awalan draf
+ *     baru di ke-84 modul (atau membersihkan kunci-kunci warisan itu);
+ *     Pedoman §6.7, catatan draf.
  *   - _draftKey bentuk lama yang memakai LOCAL_IDENTITY/MODULE_ID langsung
  *     (Getaran Modul 1, Sisken, TTL, CAD; ReferenceError yang ditelan
  *     sehingga draf tidak pernah tersimpan) tidak diubah: kuncinya tidak
@@ -173,15 +187,43 @@ function fungsi(html, nama) {
   return { awal: i, akhir: j + 3, teks: html.slice(i, j + 3) };
 }
 
-/** Literal kunci identitas utuh (bukan awalan) dalam kutip tunggal/ganda, di luar baris komentar. */
-function literalIdentitas(js) {
+const bukanKomentar = (js) => js.split("\n").filter((b) => { const t = b.trim(); return !(t.startsWith("//") || t.startsWith("*") || t.startsWith("/*")); });
+
+/**
+ * Kunci identitas utuh (bukan awalan '<slug>_identity_' + variabel) yang
+ * tertulis di skrip, di luar baris komentar — sama dengan validator:
+ *   - literal kutip tunggal/ganda/backtick ('${COURSE_ID}_identity_…' dalam
+ *     kutip tunggal tidak diinterpolasi, jadi tertangkap apa adanya);
+ *   - gabungan dua literal ('<slug>_identity_' + 'pertemuan-12');
+ *   - templat backtick ber-${…}: di skrip module (`nilai` = {MODULE_ID,
+ *     COURSE_ID}) diganti nilainya, sisa ${…} = kunci dinamis (dilewati); di
+ *     skrip KLASIK dilempar — const skrip module tidak terlihat di sana.
+ */
+function literalIdentitas(js, nilai = null) {
   const out = [];
-  for (const baris of js.split("\n")) {
-    const t = baris.trim();
-    if (t.startsWith("//") || t.startsWith("*") || t.startsWith("/*")) continue;
-    for (const m of baris.matchAll(/(['"])([A-Za-z0-9_${}.-]*_identity_[A-Za-z0-9_${}.-]+)\1/g)) out.push(m[2]);
+  for (const baris of bukanKomentar(js)) {
+    for (const m of baris.matchAll(/(['"`])([A-Za-z0-9_.-]*_identity_)\1\s*\+\s*(['"`])([A-Za-z0-9_.-]+)\3/g)) out.push(m[2] + m[4]);
+    for (const m of baris.matchAll(/(['"`])([A-Za-z0-9_${}.-]*_identity_[A-Za-z0-9_${}.-]+)\1/g)) {
+      let x = m[2];
+      if (m[1] === "`" && x.includes("${")) {
+        if (!nilai) continue;   // templat di skrip klasik dilempar di bawah
+        for (const [k, v] of Object.entries(nilai)) if (v) x = x.split("${" + k + "}").join(v);
+        if (x.includes("${")) continue;   // kunci dinamis
+      }
+      out.push(x);
+    }
+    if (!nilai) {
+      for (const m of baris.matchAll(/`[^`\n]*_identity_[^`\n]*`/g)) {
+        if (m[0].includes("${")) throw new Error(`skrip klasik membangun kunci identitas dari templat ${m[0]} — const skrip module tidak terlihat di sana; tangani dulu, jangan ditebak`);
+      }
+    }
   }
   return out;
+}
+
+/** Bentuk `return` _draftKey yang dikenal (sama dengan validator). */
+function bentukKembaliDraf(slug, mid) {
+  return [`'${slug}_draft_${mid}_' + me.nim`, `'${slug}_draft_' + moduleId + '_' + me.nim`, `'${slug}_draft_' + MODULE_ID + '_' + me.nim`];
 }
 
 function proses(berkas, kursus, n) {
@@ -209,6 +251,7 @@ function proses(berkas, kursus, n) {
   const midHarap = moduleIdHarap(slug, n);
   if (mid !== midHarap) throw new Error(`MODULE_ID '${mid}', harusnya '${midHarap}'`);
   if (K !== `${slug}_identity_${mid}`) throw new Error(`LOCAL_IDENTITY '${K}', harusnya '${slug}_identity_${mid}'`);
+  const nilaiModule = { MODULE_ID: mid, COURSE_ID: (html.match(/\nconst COURSE_ID = '([^'\n]+)';/) || [])[1] || null };
 
   // 2. getIdentityLocal.
   {
@@ -287,8 +330,34 @@ function proses(berkas, kursus, n) {
   // 5. Penjaga hasil.
   const skripAkhir = skrip(html);
   for (const b of skripAkhir) {
-    for (const x of literalIdentitas(html.slice(b.awal, b.akhir))) {
+    for (const x of literalIdentitas(html.slice(b.awal, b.akhir), b.module ? nilaiModule : null)) {
       if (x !== K) throw new Error(`literal kunci identitas '${x}' ≠ LOCAL_IDENTITY '${K}' di tempat yang belum dikenal skrip ini`);
+    }
+  }
+  // Satu deklarasi getIdentityLocal/_draftKey, tanpa penimpaan (deklarasi yang
+  // lebih akhir atau `window.getIdentityLocal = …` menggantikan fungsi yang
+  // diperbaiki di atas); satu-satunya penugasan sah `window._draftKey = _draftKey;`.
+  for (const nama of ["getIdentityLocal", "_draftKey"]) {
+    let def = 0;
+    for (const b of skripAkhir) {
+      for (const baris of bukanKomentar(html.slice(b.awal, b.akhir))) {
+        def += (baris.match(new RegExp(`\\bfunction\\s+${nama}\\b`, "g")) || []).length;
+        if (new RegExp(`\\b${nama}\\s*=(?!=)`).test(baris) && !(nama === "_draftKey" && /^\s*window\._draftKey\s*=\s*_draftKey;\s*$/.test(baris))) {
+          throw new Error(`${nama} ditimpa (${baris.trim().slice(0, 100)}) — tangani dulu, jangan ditebak`);
+        }
+      }
+    }
+    if (def !== 1) throw new Error(`deklarasi ${nama} muncul ${def}x di skrip inline, harusnya 1`);
+  }
+  {
+    const kode = bukanKomentar(fungsi(html, "_draftKey").teks).join("\n");
+    const bentuk = bentukKembaliDraf(slug, mid);
+    const kembali = [...kode.matchAll(/\breturn\b\s*([^;\n]*);/g)].map((m) => m[1].trim()).filter((r) => r !== "null");
+    if (kembali.length !== 1 || !bentuk.includes(kembali[0])) {
+      throw new Error(`_draftKey mengembalikan ${kembali.map((r) => "`" + r + "`").join(" / ") || "(tidak ada)"} — bentuk tak dikenal; tangani dulu, jangan ditebak`);
+    }
+    if (kembali[0] === bentuk[1] && kode.split(`const moduleId = (typeof MODULE_ID !== 'undefined') ? MODULE_ID : '${mid}';`).length !== 2) {
+      throw new Error(`_draftKey memakai moduleId tanpa cadangan tunggal '${mid}'`);
     }
   }
   for (const nama of ["LOKAL", "DRAF", "LK"]) {

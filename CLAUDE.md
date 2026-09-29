@@ -237,7 +237,8 @@ repo publik ini.
   dari skrip klasik, jadi `getIdentityLocal()` (dipakai progres modul, Export
   Tugas, forum HTML), `_draftKey()`, dan `const LK` friksi menulis kuncinya
   sebagai literal yang wajib sama dengan `<slug>_identity_<MODULE_ID>`
-  (Modul 8–14 = pertemuan N+1). Mengubah `MODULE_ID` saja membuat progres,
+  (`MODULE_ID`: Modul 1–7 = `pertemuan-N`, Modul 8–14 = `pertemuan-(N+1)`;
+  Matematika 4 = `modul-N`; Pedoman §3). Mengubah `MODULE_ID` saja membuat progres,
   gerbang, dan friksi mati tanpa galat — Optimalisasi Modul 12–14 begitu sejak
   30 Mei 2026. Jalankan `scripts/samakan-kunci-identitas.mjs`;
   `validate-public-security.mjs` menagihnya di 84 modul. Rincian: Pedoman §6.7.
