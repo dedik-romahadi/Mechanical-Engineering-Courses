@@ -266,9 +266,11 @@ repo publik ini.
   isian yang belum dinilai/terkirim (tanpa kode/angka ledger, tanpa teks
   server; tetap ada sesudah Log Out); metadata berkas CAD dari draft dipakai
   hanya sesudah `getJawabanSaya` sesi itu selesai dan bila server tidak punya
-  berkas lain; NIM yang berganti tanpa muat ulang →
+  berkas lain; tugas CAD yang dikirim lalu dibuka lagi: angka yang dikirim dan
+  berkas yang dinilai keluar dari draft, dan metadata draft tugas itu tidak
+  dipakai sesudah muat ulang (v4); NIM yang berganti tanpa muat ulang →
   kolom dikosongkan + muat ulang. Dipasang `scripts/draft-modul.mjs` (penanda
-  `DRAFT-MODUL:KUNCI` v1/`PENJAGA` v3, ada `--periksa`, jalankan PALING
+  `DRAFT-MODUL:KUNCI` v1/`PENJAGA` v4, ada `--periksa`, jalankan PALING
   AKHIR, sesudah `simpan-pilihan-poll.mjs`); badan `_saveDraft`/`_loadDraft`
   tidak disunting, dan fungsi draft tidak boleh ditugaskan di skrip module.
   Rincian: Pedoman §6.3.
