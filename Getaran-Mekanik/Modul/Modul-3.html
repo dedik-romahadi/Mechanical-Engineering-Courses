@@ -3989,15 +3989,22 @@ document.addEventListener('DOMContentLoaded', () => {
 // Firebase hanya simpan MARKER (mc1, c5_comp), bukan TEXT code mahasiswa — draft ini penting.
 
 function _draftKey() {
+  // DRAFT-MODUL:KUNCI BEGIN v1 — dipasang scripts/draft-modul.mjs (Pedoman §6.3)
+  // Kunci draft materi: draft_modul_<MODUL_ID>_<NIM>. Skrip klasik ini tidak
+  // bisa membaca konstanta skrip module (bentuk lama → ReferenceError → null,
+  // atau literal cadangan yang bisa sama antarhalaman); yang dipakai
+  // window.MODUL_ID dan getIdentityLocal(). Hanya mahasiswa (termasuk akun
+  // simulasi) dengan sesi PIN; dosen, tamu, dan Mode Preview → null. Penjaga
+  // muat/simpan: blok DRAFT-MODUL:PENJAGA sebelum PROGRES-MODUL.
   try {
-    // LOCAL_IDENTITY didefinisikan di script type="module" di bawah; saat fungsi ini
-    // di-invoke dari event handler textarea, scope window sudah resolved.
-    const key = (typeof LOCAL_IDENTITY !== 'undefined') ? LOCAL_IDENTITY : 'getaran_mekanik_identity_pertemuan-3';
-    const me = JSON.parse(localStorage.getItem(key) || 'null');
-    if (!me || !me.nim || me.role === 'dosen') return null;
-    const moduleId = (typeof MODULE_ID !== 'undefined') ? MODULE_ID : 'pertemuan-3';
-    return 'getaran_mekanik_draft_' + moduleId + '_' + me.nim;   // per-NIM, course-scoped
-  } catch(e) { return null; }
+    if (window._previewMode || !window._sessionPinHash) return null;
+    var modul = window.MODUL_ID;
+    if (typeof modul !== 'string' || !modul) return null;
+    var me = typeof getIdentityLocal === 'function' ? getIdentityLocal() : null;
+    if (!me || me.role !== 'student' || !me.nim) return null;
+    return 'draft_modul_' + modul + '_' + String(me.nim);
+  } catch (e) { return null; }
+  // DRAFT-MODUL:KUNCI END v1
 }
 
 function _saveDraft() {
@@ -11637,6 +11644,204 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
   }, true);
 })();
 </script>
+<!-- DRAFT-MODUL:PENJAGA BEGIN v2 — dipasang scripts/draft-modul.mjs (Pedoman §6.3) -->
+<script>
+// Draft materi (kode komputasi, tautan Google Drive, teks Forum, angka bacaan dan
+// berkas tugas FreeCAD) — scripts/draft-modul.mjs. _saveDraft/_loadDraft halaman
+// dibungkus saat parsing, sebelum skrip module berjalan; panggilan polos di halaman
+// (checkExportReady, checkForumReady, _markLoaded, onCodeInput, …) ikut memakai
+// pembungkus ini.
+//  • Muat hanya bila ada kunci (_draftKey) dan SESI itu (kunci + hash PIN sesi)
+//    (1) sudah dimuat datanya: _loadDraft() dari _markLoaded (akhir
+//    _loadScoredQuestions), jadi marker dan kode ledger sudah diterapkan dan draft
+//    hanya mengisi kolom kosong; kolom soal yang sudah dinilai (compAnswered) tidak
+//    diisi draft; dan (2) sudah diterima server: event progres-modul:diterapkan
+//    {ok:true} (getModulProgress memeriksa PIN NIM itu). Hash PIN sesi tidak terikat
+//    NIM: sesudah Keluar, auto-login NIM lain di tab yang sama membawa hash lama.
+//    Tanpa sesi PIN dan jaring 10 detik tidak dihitung. _markLoaded klasik global
+//    (bila ada) dibungkus.
+//  • Tidak ada tulisan sebelum draft kunci itu dimuat: dulu _saveDraft dari
+//    check*Ready menimpa draft dengan kolom kosong sebelum _loadDraft membacanya.
+//  • Forum: server menang, kecuali suntingan yang belum terkirim (draft ≠ server
+//    dan ≠ salinan tersinkron <kunci>_sinkron). Sesudah muat pertama, simpanan
+//    hanya mengambil teks Forum dari textarea yang disunting di tab ini; jawaban
+//    lain mempertahankan teks draft yang tersimpan (tab lain yang masih memuat
+//    teks lama tidak menimpanya). Kiriman tetap hanya lewat simpanForum
+//    PROGRES-MODUL sesudah progres diterapkan.
+//  • Tugas CAD yang berkasnya diketahui server (berkasDiServer): ringkasan berkas
+//    server yang berlaku, bukan metadata berkas dari draft.
+//  • NIM mahasiswa berganti tanpa muat ulang (logout paksa, lalu NIM lain masuk di
+//    tab yang sama): kolom draft dikosongkan dan halaman dimuat ulang.
+//  • Setiap ketikan di kolom kode, tautan Drive, angka bacaan, atau Forum disimpan.
+(function () {
+  var simpanAsli = window._saveDraft, muatAsli = window._loadDraft;
+  if (typeof simpanAsli !== 'function' || typeof muatAsli !== 'function') return;
+  var FQ = ['fq1', 'fq2', 'fq3'], KOLOM = 'textarea[id^="code-c"], input[id^="nilai-c"]';
+  var dimuatUntuk = null, draftAwal = null, sesiFb = null, sesiSah = null;
+  var serverUntuk = null, forumServer = null, forumAda = false;
+  var kotor = {}, berkasDraft = {}, pemilik = null, berganti = false;
+  function kunci() { if (berganti) return null; try { return typeof _draftKey === 'function' ? _draftKey() : null; } catch (e) { return null; } }
+  function sesi(k) { return k ? k + '|' + String(window._sessionPinHash) : null; }
+  function fbSiap() { try { return typeof _firebaseStateLoaded !== 'undefined' && _firebaseStateLoaded === true; } catch (e) { return false; } }
+  function teks(v) { return typeof v === 'string' ? v : ''; }
+  function baca(k) { try { var d = JSON.parse(localStorage.getItem(k) || 'null'); return d && typeof d === 'object' ? d : null; } catch (e) { return null; } }
+  function tulis(k, d) { try { localStorage.setItem(k, JSON.stringify(d)); } catch (e) {} }
+  function tulisSinkron(k, f) { tulis(k + '_sinkron', { fq1: teks(f && f.fq1), fq2: teks(f && f.fq2), fq3: teks(f && f.fq3) }); }
+  // NIM mahasiswa yang data dan isiannya ada di halaman ini. NIM lain tanpa muat ulang:
+  // isian lama tidak boleh masuk draft maupun forum NIM itu — kosongkan, muat ulang.
+  function pemilikSama() {
+    if (berganti) return false;
+    var n = null;
+    try { var me = typeof getIdentityLocal === 'function' ? getIdentityLocal() : null; if (me && me.role === 'student' && me.nim) n = String(me.nim); } catch (e) {}
+    if (!n) return true;
+    if (pemilik === null) pemilik = n;
+    if (pemilik === n) return true;
+    berganti = true;
+    try {
+      document.querySelectorAll(KOLOM).forEach(function (el) { el.value = ''; });
+      ['gdrive-link', 'ans-fq1', 'ans-fq2', 'ans-fq3'].forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; });
+      var bt = window.berkasTerunggah;
+      if (bt && typeof bt === 'object') Object.keys(bt).forEach(function (q) { delete bt[q]; });
+    } catch (e) {}
+    try { location.reload(); } catch (e) {}
+    return false;
+  }
+  // _saveDraft halaman menulis ulang objek draft dari DOM. Teks Forum yang tidak disunting di
+  // tab ini diambil dari draft tersimpan (lama): dipasang sesaat di textarea selama simpanan
+  // (sinkron, tanpa event; seleksi dikembalikan), jadi setiap tulisan membawa teks yang benar.
+  function simpanDgnForum(lama, diri, argumen) {
+    var tukar = [];
+    try {
+      if (lama) FQ.forEach(function (q) {
+        var ta = document.getElementById('ans-' + q);
+        if (!ta || kotor[q] || typeof lama[q] !== 'string' || ta.value === lama[q]) return;
+        tukar.push([ta, ta.value, document.activeElement === ta, ta.selectionStart, ta.selectionEnd]);
+        ta.value = lama[q];
+      });
+    } catch (e) {}
+    try { return simpanAsli.apply(diri, argumen || []); }
+    finally {
+      tukar.forEach(function (x) { x[0].value = x[1]; if (x[2]) { try { x[0].setSelectionRange(x[3], x[4]); } catch (e) {} } });
+    }
+  }
+  // Muat pertama untuk kunci ini (forum server sudah diketahui dari event yang sama).
+  function selaraskan(k) {
+    var snap = baca(k + '_sinkron'), berubah = false;
+    FQ.forEach(function (q) {
+      var ta = document.getElementById('ans-' + q);
+      if (!ta) return;
+      var lokal = teks(draftAwal && draftAwal[q]), srv = teks(forumServer[q]);
+      if (lokal !== '' && lokal !== srv && !(snap && snap[q] === lokal)) {   // belum terkirim
+        if ((ta.value === srv || ta.value === '') && ta.value !== lokal) { ta.value = lokal; berubah = true; }
+        if (ta.value === lokal) kotor[q] = true;
+      } else if (ta.value === lokal && lokal !== srv && (srv !== '' || forumAda)) { ta.value = srv; berubah = true; }
+    });
+    tulisSinkron(k, forumServer);
+    return berubah;
+  }
+  function muat() {
+    var k = kunci(), s = sesi(k);
+    if (!k || sesiFb !== s || sesiSah !== s) return;
+    var pertama = dimuatUntuk !== k;
+    if (pertama) draftAwal = baca(k);   // potret SEBELUM ada tulisan untuk kunci ini
+    // Kolom soal yang sudah dinilai (compAnswered) bukan dari draft: kode/angka ledger
+    // yang datang terlambat (getJawabanSaya > batas tunggu) tetap mengisi kolom kosongnya.
+    var dinilai = [];
+    try {
+      if (typeof compAnswered === 'object' && compAnswered) {
+        document.querySelectorAll(KOLOM).forEach(function (el) {
+          if (compAnswered[el.id.replace(/^[a-z]+-/, '')]) dinilai.push([el, el.value]);
+        });
+      }
+    } catch (e) {}
+    // Tugas CAD yang berkasnya diketahui server (terunggah belum dinilai, atau dibuka lagi
+    // untuk kirim ulang): ringkasan server berlaku, bukan metadata berkas draft (bisa lebih
+    // lama: diunggah ulang dari perangkat atau tab lain).
+    var bt = window.berkasTerunggah, sebelum = {}, diServer = [];
+    if (!bt || typeof bt !== 'object') bt = null;
+    try {
+      if (bt && typeof berkasDiServer === 'object' && berkasDiServer) {
+        Object.keys(berkasDiServer).forEach(function (q) {
+          if (!berkasDiServer[q]) return;
+          if (bt[q] && bt[q] === berkasDraft[q]) delete bt[q];   // dipasang draft pada pemuatan sebelumnya
+          var st = document.getElementById('berkas-status-' + q);
+          diServer.push([q, st, st ? st.innerHTML : '', st ? st.style.color : '']);
+        });
+      }
+      if (bt) Object.keys(bt).forEach(function (q) { sebelum[q] = bt[q]; });
+    } catch (e) {}
+    dimuatUntuk = k;   // ditandai SEBELUM asli: check*Ready di dalamnya boleh menyimpan
+    try { return muatAsli.apply(this, arguments); }
+    finally {
+      dinilai.forEach(function (x) { if (x[0].value !== x[1]) x[0].value = x[1]; });
+      try {
+        diServer.forEach(function (x) {
+          if (Object.prototype.hasOwnProperty.call(sebelum, x[0])) bt[x[0]] = sebelum[x[0]]; else delete bt[x[0]];
+          if (x[1] && x[1].innerHTML !== x[2]) { x[1].innerHTML = x[2]; x[1].style.color = x[3]; }
+          if (typeof _refreshTugasBtn === 'function') _refreshTugasBtn(x[0]);
+        });
+        if (bt) Object.keys(bt).forEach(function (q) { if (bt[q] !== sebelum[q]) berkasDraft[q] = bt[q]; });
+      } catch (e) {}
+      var berubah = pertama && !!forumServer && selaraskan(k);
+      try { simpanDgnForum(pertama ? null : baca(k)); } catch (e) {}   // gabungan draft + isian yang sudah ada
+      if (berubah && typeof window.checkForumReady === 'function') { try { window.checkForumReady(); } catch (e) {} }
+    }
+  }
+  function muatSesudahFirebase() {
+    if (pemilikSama()) {
+      var k = kunci();
+      if (k && fbSiap()) sesiFb = sesi(k);   // _markLoaded dengan sesi ini: marker & kode ledger sudah diterapkan
+    }
+    return muat.apply(this, arguments);
+  }
+  function simpan() {
+    var k = kunci();
+    if (!k) return;
+    if (dimuatUntuk !== k) { muat(); if (dimuatUntuk !== k) return; }
+    return simpanDgnForum(baca(k), this, arguments);
+  }
+  window._loadDraft = muatSesudahFirebase;
+  window._saveDraft = simpan;
+  window._draftSudahDimuat = function () { var k = kunci(); return !!k && dimuatUntuk === k; };
+  var tandaiAsli = window._markLoaded;
+  if (typeof tandaiAsli === 'function') {
+    window._markLoaded = function () {
+      var r = tandaiAsli.apply(this, arguments);
+      try { muatSesudahFirebase(); } catch (e) {}
+      return r;
+    };
+  }
+  // getModulProgress (NIM + hash PIN sesi ini) sudah memeriksa PIN di server.
+  window.addEventListener('progres-modul:diterapkan', function (e) {
+    var d = e && e.detail;
+    if (!d || d.ok !== true || !d.progres || !pemilikSama()) return;
+    var k = kunci();
+    if (!k) return;
+    if (serverUntuk !== k) {
+      var f = d.progres.forum;
+      forumAda = !!f && typeof f === 'object' && Object.keys(f).length > 0;
+      if (!forumAda) f = {};
+      forumServer = { fq1: teks(f.fq1), fq2: teks(f.fq2), fq3: teks(f.fq3) };
+      serverUntuk = k;
+    }
+    sesiSah = sesi(k);
+    muat();
+  });
+  window.addEventListener('progres-modul:forum-tersimpan', function (e) {
+    var k = kunci(), j = e && e.detail && e.detail.jawaban;
+    if (!k || !j || typeof j !== 'object') return;
+    tulisSinkron(k, j);
+    FQ.forEach(function (q) { var ta = document.getElementById('ans-' + q); if (ta && ta.value === teks(j[q])) kotor[q] = false; });
+  });
+  document.addEventListener('input', function (e) {
+    var t = e && e.target, id = t && typeof t.id === 'string' ? t.id : '';
+    if (!/^(?:code-c\d{1,2}|nilai-c\d{1,2}|gdrive-link|ans-fq[1-3])$/.test(id)) return;
+    if (id.indexOf('ans-') === 0) kotor[id.slice(4)] = true;
+    try { simpan(); } catch (x) {}
+  }, true);
+})();
+</script>
+<!-- DRAFT-MODUL:PENJAGA END v2 -->
 <!-- PROGRES-MODUL: awal -->
 <style>
 .pm-centang{display:flex;align-items:center;gap:16px;margin:32px 0 8px;padding:18px 22px;border:2px solid rgba(0,224,158,.45);border-radius:16px;background:linear-gradient(135deg,rgba(0,224,158,.14),rgba(34,211,238,.10));box-shadow:0 0 0 1px rgba(0,224,158,.12),0 10px 30px rgba(0,0,0,.28);color:#eaf2ff;font-size:17px;line-height:1.55;cursor:pointer;transition:border-color .2s,background .2s,box-shadow .2s}
@@ -11841,7 +12046,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   }
 
   var forumDimuat = false;
-  // PROGRES-MODUL:PENJAGA-FORUM BEGIN v1 — scripts/tambah-progres-modul.mjs (Pedoman §6.7)
+  // PROGRES-MODUL:PENJAGA-FORUM BEGIN v2 — scripts/tambah-progres-modul.mjs (Pedoman §6.7)
   // Kiriman forum menimpa ketiga jawaban di server sekaligus, jadi baru dikirim sesudah
   // progres server modul ini DITERAPKAN. statusForum: 'belum' (tanpa sesi PIN) →
   // 'memuat' → 'siap' (baseline = forum server: teks yang sama tidak dikirim ulang) |
@@ -11903,7 +12108,14 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   }
   function forumTertahan() { return mhsAktif() && statusForum !== 'siap'; }
   function bolehKirimForum(j) { return statusForum === 'siap' && !!(j.fq1.trim() || j.fq2.trim() || j.fq3.trim()); }
-  // PROGRES-MODUL:PENJAGA-FORUM END v1
+  // v2: sesudah kiriman forum sukses, event window 'progres-modul:forum-tersimpan' (detail
+  // {jawaban} = ketiga teks yang terkirim). Blok DRAFT-MODUL (scripts/draft-modul.mjs) mencatatnya
+  // sebagai salinan tersinkron draft forum: draft yang sudah terkirim tidak menimpa forum server
+  // yang lebih baru dari perangkat lain. Penjagaan kiriman di atas tidak berubah.
+  function forumTersimpan(j) {
+    try { window.dispatchEvent(new CustomEvent('progres-modul:forum-tersimpan', { detail: { jawaban: j } })); } catch (e) {}
+  }
+  // PROGRES-MODUL:PENJAGA-FORUM END v2
   // Kait 'progres-modul:diterapkan' (v2, 29 September 2026): blok lain di halaman
   // (PILIHAN-POLL-FORUM dari scripts/simpan-pilihan-poll.mjs) bereaksi sesudah
   // progres server diterapkan — detail {ok:true, progres} — atau gagal dimuat
@@ -11969,7 +12181,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     var d = dasar(); if (!d.pinHash) return;
     d.jawaban = j;
     panggil('saveModulForum', d).then(function (r) {
-      forumTerakhir = kunci; gagalKirimForum = 0;
+      forumTerakhir = kunci; gagalKirimForum = 0; forumTersimpan(j);
       if (r.forumSelesai) toast('💾 Jawaban forum tersimpan di server — forum modul ini selesai.');
     }).catch(function (e) {
       console.warn('[progres-modul] forum:', e && e.message);
