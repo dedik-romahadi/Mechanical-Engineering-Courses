@@ -24,10 +24,11 @@
  *        akun simulasi; bukan Mode Preview) → pilihan baru ditulis ke
  *        localStorage `forum_poll_<MODUL_ID>_<nim>` =
  *        {"pilihan":{"1":idx,…},"diServer":["1",…],"forumBelumSelesai":true}
- *        (kunci khusus: objek draft forum ditulis ulang utuh oleh _saveDraft,
- *        _draftKey mati di 43 halaman — 46 sebelum samakan-kunci-identitas.mjs —
- *        dan kosong lagi saat muat ulang, jadi tidak bisa ditumpangi; bentuk
- *        datar {"1":idx} dari v1 tetap dibaca),
+ *        (kunci khusus: objek draft forum ditulis ulang utuh dari DOM oleh
+ *        _saveDraft, jadi tidak bisa ditumpangi — saat blok ini dibuat
+ *        _draftKey juga mati di 43 halaman dan draft kosong lagi saat muat
+ *        ulang, keduanya diperbaiki scripts/draft-modul.mjs; bentuk datar
+ *        {"1":idx} dari v1 tetap dibaca),
  *        lalu dikirim ke server lewat callable TERPISAH `saveModulPoll`
  *        `{modulId, nim, pinHash, pilihanPoll}`. (v1 memakai mode poll-saja
  *        callable teks forum; versi lama callable itu menulis tiga teks kosong

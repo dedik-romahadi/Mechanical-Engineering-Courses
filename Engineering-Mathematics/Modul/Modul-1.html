@@ -4491,19 +4491,24 @@ document.addEventListener('DOMContentLoaded', () => {
 // agar tidak hilang saat mahasiswa reload page / ganti device / browser crash.
 // Firebase hanya simpan MARKER (mc1, c5_comp), bukan TEXT code mahasiswa — draft ini penting.
 
-// KUNCI-IDENTITAS:DRAF BEGIN v1 — dipasang scripts/samakan-kunci-identitas.mjs
-// Kunci draf per NIM = <slug>_draft_<MODULE_ID>_<nim>, identitas dari
-// getIdentityLocal() (kunci LOCAL_IDENTITY). Bentuk lama memeriksa
-// `typeof LOCAL_IDENTITY`/`typeof MODULE_ID`, yang di skrip klasik selalu
-// 'undefined', sehingga literal cadangannya yang terpakai.
 function _draftKey() {
+  // DRAFT-MODUL:KUNCI BEGIN v1 — dipasang scripts/draft-modul.mjs (Pedoman §6.3)
+  // Kunci draft materi: draft_modul_<MODUL_ID>_<NIM>. Skrip klasik ini tidak
+  // bisa membaca konstanta skrip module (bentuk lama → ReferenceError → null,
+  // atau literal cadangan yang bisa sama antarhalaman); yang dipakai
+  // window.MODUL_ID dan getIdentityLocal(). Hanya mahasiswa (termasuk akun
+  // simulasi) dengan sesi PIN; dosen, tamu, dan Mode Preview → null. Penjaga
+  // muat/simpan: blok DRAFT-MODUL:PENJAGA sebelum PROGRES-MODUL.
   try {
-    const me = getIdentityLocal();
-    if (!me || !me.nim || me.role === 'dosen') return null;
-    return 'math4_draft_modul-1_' + me.nim;   // per-NIM, course-scoped
-  } catch(e) { return null; }
+    if (window._previewMode || !window._sessionPinHash) return null;
+    var modul = window.MODUL_ID;
+    if (typeof modul !== 'string' || !modul) return null;
+    var me = typeof getIdentityLocal === 'function' ? getIdentityLocal() : null;
+    if (!me || me.role !== 'student' || !me.nim) return null;
+    return 'draft_modul_' + modul + '_' + String(me.nim);
+  } catch (e) { return null; }
+  // DRAFT-MODUL:KUNCI END v1
 }
-// KUNCI-IDENTITAS:DRAF END v1
 
 function _saveDraft() {
   const key = _draftKey();
@@ -13103,6 +13108,450 @@ img,video,svg{-webkit-user-drag:none;user-drag:none;}
   }, true);
 })();
 </script>
+<!-- DRAFT-MODUL:PENJAGA BEGIN v5 — dipasang scripts/draft-modul.mjs (Pedoman §6.3) -->
+<script>
+// Draft materi (kode komputasi, tautan Google Drive, teks Forum, angka bacaan dan
+// berkas tugas FreeCAD) — scripts/draft-modul.mjs. _saveDraft/_loadDraft halaman
+// dibungkus saat parsing, sebelum skrip module berjalan; panggilan polos di halaman
+// (checkExportReady, checkForumReady, _markLoaded, onCodeInput, …) ikut memakai
+// pembungkus ini.
+//  • Muat hanya bila ada kunci (_draftKey) dan SESI itu (kunci + hash PIN sesi)
+//    (1) sudah dimuat datanya: _loadDraft() dari _markLoaded (akhir
+//    _loadScoredQuestions), jadi marker dan kode ledger sudah diterapkan dan draft
+//    hanya mengisi kolom kosong; kolom soal yang sudah dinilai (compAnswered) tidak
+//    diisi draft; dan (2) sudah diterima server: event progres-modul:diterapkan
+//    {ok:true} (getModulProgress memeriksa PIN NIM itu). Hash PIN sesi tidak terikat
+//    NIM: sesudah Keluar, auto-login NIM lain di tab yang sama membawa hash lama.
+//    Tanpa sesi PIN dan jaring 10 detik tidak dihitung. _markLoaded klasik global
+//    (bila ada) dibungkus.
+//  • Tidak ada tulisan sebelum draft kunci itu dimuat: dulu _saveDraft dari
+//    check*Ready menimpa draft dengan kolom kosong sebelum _loadDraft membacanya.
+//  • Yang tersimpan HANYA isian mahasiswa yang belum dinilai atau belum terkirim:
+//    tulisan _saveDraft halaman disaring sebelum sampai ke localStorage. Kode/angka
+//    soal yang sudah dinilai (compAnswered) tidak ikut; kolom yang diketik di tab ini
+//    diambil dari DOM, kolom lain mempertahankan draft tersimpan (kode/angka ledger dan
+//    angka kiriman terakhir tidak pernah masuk draft). Teks Forum hanya bila berbeda
+//    dari teks server, bersama sidik (hash) teks server tempat suntingan itu dibuat —
+//    bukan teks server itu sendiri. Draft tanpa isi dihapus; draft tetap ada sesudah
+//    Keluar (isian yang belum terkirim milik mahasiswa).
+//  • Forum, gabung 3-arah saat draft dimuat: sidik server = basis draft → suntingan
+//    belum terkirim, dipulihkan lalu dikirim PROGRES-MODUL sesudah progres diterapkan;
+//    sidik berbeda (server berubah di perangkat atau tab lain) → server menang, draft
+//    jawaban itu dibuang dan catatan muncul di bawah textarea. Sesudah muat, simpanan
+//    hanya mengambil teks Forum dari textarea yang disunting di tab ini; jawaban lain
+//    mempertahankan draft tersimpan. Kiriman tetap hanya lewat simpanForum
+//    PROGRES-MODUL sesudah progres diterapkan.
+//  • Tugas CAD: metadata berkas dari draft dipakai hanya sesudah getJawabanSaya NIM +
+//    PIN sesi ini selesai dan diterapkan, dan hanya bila server tidak punya berkas
+//    tugas itu atau sidik SHA-256-nya sama dengan ringkasan server di kartu. Sebelum
+//    itu ditahan: kartu, konfirmasi kirim, dan ekspor tidak menyebut berkas lama.
+//    Tugas yang sudah dikirim: angka dan berkasnya keluar dari draft begitu dikirim, dan tidak
+//    tersimpan lagi bila hasilnya dinilai atau tak pasti (respons hilang, batas waktu); angka
+//    yang sama dengan angka kiriman terakhir di ledger (getJawabanSaya) dibuang saat draft
+//    dimuat, jadi juga sesudah kiriman dari tab/perangkat lain atau muat ulang saat menilai.
+//    Hanya ketikan/unggahan sesudahnya yang tersimpan. Metadata draft tugas yang dibuka lagi
+//    tidak dipakai sesudah muat ulang — kartunya memuat ringkasan ledger berkas yang dinilai.
+//  • Hasil penilaian diumumkan ke tab lain peramban ini (BroadcastChannel, di memori): soal
+//    yang dinilai di tab lain tidak dikembalikan ke draft oleh simpanan tab ini.
+//  • NIM mahasiswa berganti tanpa muat ulang (logout paksa, lalu NIM lain masuk di
+//    tab yang sama): kolom draft dikosongkan dan halaman dimuat ulang.
+//  • Setiap ketikan di kolom kode, tautan Drive, angka bacaan, atau Forum disimpan.
+//  • Akun simulasi menulis draft seperti mahasiswa (disengaja: alur draft bisa diuji).
+(function () {
+  var simpanAsli = window._saveDraft, muatAsli = window._loadDraft;
+  if (typeof simpanAsli !== 'function' || typeof muatAsli !== 'function') return;
+  var FQ = ['fq1', 'fq2', 'fq3'], KOLOM = 'textarea[id^="code-c"], input[id^="nilai-c"]';
+  var dimuatUntuk = null, draftAwal = null, sesiFb = null, sesiSah = null;
+  var serverUntuk = null, forumServer = null, forumAda = false;
+  var kotor = {}, diketik = {}, dibuang = {}, pemilik = null, berganti = false;
+  var berkasDraft = {}, berkasTunda = {}, jsSelesai = {}, berkasSiap = null;
+  // Kiriman (v5): angka tugas berkas yang sudah dikirim, sidik berkas yang dinilai, angka kiriman terakhir di
+  // ledger (getJawabanSaya per NIM + hash PIN sesi), dan soal yang dinilai final di tab lain peramban ini.
+  var BERKAS = !!window.berkasTerunggah && typeof window.berkasTerunggah === 'object';
+  var angkaKirim = {}, terkirim = {}, angkaLedger = {}, dinilaiLain = {}, berjalan = {}, kanal = null;
+  function kunci() { if (berganti) return null; try { return typeof _draftKey === 'function' ? _draftKey() : null; } catch (e) { return null; } }
+  function sesi(k) { return k ? k + '|' + String(window._sessionPinHash) : null; }
+  function fbSiap() { try { return typeof _firebaseStateLoaded !== 'undefined' && _firebaseStateLoaded === true; } catch (e) { return false; } }
+  function teks(v) { return typeof v === 'string' ? v : ''; }
+  function baca(k) { try { var d = JSON.parse(localStorage.getItem(k) || 'null'); return d && typeof d === 'object' ? d : null; } catch (e) { return null; } }
+  function nimSaya() { try { var me = typeof getIdentityLocal === 'function' ? getIdentityLocal() : null; return me && me.role === 'student' && me.nim ? String(me.nim) : null; } catch (e) { return null; } }
+  function sesiJs() { var n = nimSaya(); return n ? n + '|' + String(window._sessionPinHash) : null; }
+  // Dinilai: compAnswered tab ini, atau (v5) dinilai final di tab lain. Selama kiriman tugas berkas berjalan,
+  // compAnswered hanya kunci optimistis halaman: yang disaring angka & berkas kiriman itu saja (berjalan).
+  function dinilai(q) {
+    if (dinilaiLain[q]) return true;
+    if (berjalan[q]) return false;
+    try { return typeof compAnswered === 'object' && !!compAnswered && !!compAnswered[q]; } catch (e) { return false; }
+  }
+  // Tugas berkas yang sudah pernah dikirim dan dinilai, lalu dibuka lagi untuk kirim ulang.
+  function sudahKirim(q) { try { var s = window._cadSudahKirim; return !!s && typeof s === 'object' && !!s[q]; } catch (e) { return false; } }
+  function sidikBerkas(x) { return x && typeof x === 'object' ? [x.namaBerkas, x.sha256, x.uploadedAt, x.versi].join('|') : ''; }
+  // Angka tugas berkas yang SUDAH DIKIRIM (v5): kiriman tab ini (juga yang sedang dinilai) atau tab lain yang dinilai
+  // atau hasilnya tak pasti, dan angka kiriman terakhir di ledger sesi ini (getJawabanSaya — sama dengan yang diisi
+  // ANGKA-CAD). Dibandingkan sebagai bilangan (_parseNilai halaman: 4321,5 = 4321.5), jadi berlaku juga bila respons
+  // kiriman tidak sampai.
+  function angkaTerkirim(q, v) {
+    if (!BERKAS || typeof v !== 'string' || !v) return false;
+    var n = null, l = angkaLedger[sesiJs()], j = berjalan[q];
+    try { n = typeof _parseNilai === 'function' ? _parseNilai(v) : null; } catch (e) {}
+    if (typeof n !== 'number' || !isFinite(n)) return false;
+    return (angkaKirim[q] || []).indexOf(n) >= 0 || (!!j && j.n === n) || (!!l && l[q] === n);
+  }
+  function berkasTerkirim(q, x) { var s = sidikBerkas(x), j = berjalan[q]; return (!!terkirim[q] && !!terkirim[q][s]) || (!!j && !!j.b && j.b === s); }
+  function catatKirim(q, n, b) {
+    if (typeof n === 'number' && isFinite(n)) { var a = angkaKirim[q] = angkaKirim[q] || []; if (a.indexOf(n) < 0) a.push(n); }
+    if (b) (terkirim[q] = terkirim[q] || {})[b] = true;
+    delete berkasTunda[q];   // metadata draft yang masih ditahan diunggah sebelum kiriman ini: dinilai atau tergantikan
+  }
+  // Sidik 53-bit (cyrb53) teks Forum server: basis suntingan draft tanpa menyimpan teks itu.
+  function sidik(t) {
+    var h1 = 0xdeadbeef, h2 = 0x41c6ce57, s = teks(t);
+    for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return 'c53:' + (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+  }
+  // Catatan lembut di bawah textarea Forum yang draftnya dikalahkan server.
+  function catatan(q, tampil) {
+    try {
+      var id = 'dm-catatan-' + q, el = document.getElementById(id), ta = document.getElementById('ans-' + q);
+      if (!tampil) { if (el && el.parentNode) el.parentNode.removeChild(el); return; }
+      if (el || !ta || !ta.parentNode) return;
+      el = document.createElement('div');
+      el.id = id;
+      el.setAttribute('role', 'status');
+      el.style.cssText = 'margin:6px 0 0;font-size:.8rem;line-height:1.45;color:#94a3b8';
+      el.textContent = 'ℹ Jawaban ini sudah diperbarui dari perangkat atau tab lain, jadi suntingan lama di perangkat ini yang belum terkirim tidak dipakai.';
+      ta.parentNode.insertBefore(el, ta.nextSibling);
+    } catch (e) {}
+  }
+  // NIM mahasiswa yang data dan isiannya ada di halaman ini. NIM lain tanpa muat ulang:
+  // isian lama tidak boleh masuk draft maupun forum NIM itu — kosongkan, muat ulang.
+  function pemilikSama() {
+    if (berganti) return false;
+    var n = nimSaya();
+    if (!n) return true;
+    if (pemilik === null) pemilik = n;
+    if (pemilik === n) return true;
+    berganti = true;
+    try {
+      document.querySelectorAll(KOLOM).forEach(function (el) { el.value = ''; });
+      ['gdrive-link', 'ans-fq1', 'ans-fq2', 'ans-fq3'].forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; });
+      var bt = window.berkasTerunggah;
+      if (bt && typeof bt === 'object') Object.keys(bt).forEach(function (q) { delete bt[q]; });
+    } catch (e) {}
+    try { location.reload(); } catch (e) {}
+    return false;
+  }
+  // Isi draft yang boleh tersimpan: d = objek tulisan _saveDraft halaman (dari DOM),
+  // lama = draft tersimpan. Hanya isian mahasiswa yang belum dinilai atau belum terkirim.
+  function saring(d, lama) {
+    lama = lama || {};
+    var o = { gdrive: teks(diketik.gdrive ? d.gdrive : lama.gdrive) }, ada = !!o.gdrive, basis = {};
+    var lb = lama.forumBasis && typeof lama.forumBasis === 'object' ? lama.forumBasis : {};
+    FQ.forEach(function (q) {
+      var t = '', b = null, srv = forumServer ? teks(forumServer[q]) : null;
+      if (kotor[q]) { t = teks(d[q]); b = srv === null ? null : sidik(srv); }
+      else if (!dibuang[q]) { t = teks(lama[q]); b = typeof lb[q] === 'string' ? lb[q] : null; }
+      if (t === srv) t = '';   // sama dengan teks server: bukan suntingan, tidak disimpan
+      o[q] = t;
+      if (t) { ada = true; if (b) basis[q] = b; }
+    });
+    if (Object.keys(basis).length) o.forumBasis = basis;
+    if (d.code && typeof d.code === 'object') {
+      var lk = lama.code && typeof lama.code === 'object' ? lama.code : {}, kode = {};
+      Object.keys(d.code).concat(Object.keys(lk)).forEach(function (q) {
+        if (!/^c\d{1,2}$/.test(q) || dinilai(q) || kode[q]) return;
+        var v = teks(diketik[q] ? d.code[q] : lk[q]);
+        // Angka yang sudah dikirim tidak pernah tersimpan; ketikan tab ini yang sama dengan kiriman itu memberi
+        // jalan pada isi draft tersimpan yang belum dikirim (mis. angka baru dari tab lain).
+        if (v && angkaTerkirim(q, v)) v = diketik[q] && !angkaTerkirim(q, teks(lk[q])) ? teks(lk[q]) : '';
+        if (v) { kode[q] = v; ada = true; }
+      });
+      o.code = kode;
+    }
+    if (d.berkas && typeof d.berkas === 'object') {
+      var bk = {};
+      Object.keys(d.berkas).concat(Object.keys(berkasTunda)).forEach(function (q) {
+        var x = Object.prototype.hasOwnProperty.call(d.berkas, q) ? d.berkas[q] : berkasTunda[q];
+        if (!bk[q] && x && typeof x === 'object' && x.namaBerkas && !dinilai(q) && !berkasTerkirim(q, x)) { bk[q] = x; ada = true; }
+      });
+      o.berkas = bk;
+    }
+    if (typeof d.savedAt === 'string') o.savedAt = d.savedAt;
+    return ada ? o : null;
+  }
+  function tulisDraft(st, k, v, setAsli) {
+    var d = null;
+    try { d = JSON.parse(v); } catch (e) {}
+    if (!d || typeof d !== 'object') return;
+    var o = saring(d, baca(k));
+    if (o) setAsli.call(st, k, JSON.stringify(o)); else st.removeItem(k);
+  }
+  // _saveDraft asli dijalankan dengan setItem localStorage dibungkus sesaat: objek draft
+  // disaring sebelum ditulis; tulisan localStorage lain di dalamnya dibuang.
+  function simpanTersaring(k, diri, argumen) {
+    var P = typeof Storage === 'function' ? Storage.prototype : null, setAsli = P && P.setItem;
+    if (typeof setAsli !== 'function') return;
+    P.setItem = function (kk, v) {
+      if (this === localStorage) return kk === k ? tulisDraft(this, k, String(v), setAsli) : undefined;
+      return setAsli.apply(this, arguments);
+    };
+    try { return simpanAsli.apply(diri, argumen || []); }
+    finally { P.setItem = setAsli; }
+  }
+  // Muat pertama untuk kunci ini (forum server sudah diketahui dari event yang sama):
+  // gabung 3-arah per jawaban antara draft, basis draft (sidik), dan teks server.
+  function selaraskan() {
+    var berubah = false, lb = draftAwal && draftAwal.forumBasis && typeof draftAwal.forumBasis === 'object' ? draftAwal.forumBasis : {};
+    FQ.forEach(function (q) {
+      var ta = document.getElementById('ans-' + q);
+      if (!ta) return;
+      var lokal = teks(draftAwal && draftAwal[q]), srv = teks(forumServer[q]);
+      if (lokal === '' || lokal === srv) return;
+      var belum = typeof lb[q] === 'string' ? lb[q] === sidik(srv) : !forumAda;
+      if (belum) {   // server belum berubah sejak suntingan dibuat: belum terkirim
+        if ((ta.value === srv || ta.value === '') && ta.value !== lokal) { ta.value = lokal; berubah = true; }
+        if (ta.value === lokal) kotor[q] = true;
+      } else {   // server berubah di perangkat/tab lain: server menang
+        dibuang[q] = true;
+        if (ta.value === lokal) { ta.value = srv; berubah = true; }
+        catatan(q, true);
+      }
+    });
+    return berubah;
+  }
+  // Metadata berkas dari draft: 'pakai' | 'tahan' (getJawabanSaya sesi ini belum diterapkan) | 'buang'.
+  function shaKartu(x) { var m = /SHA-256 ([0-9a-f]{16})/i.exec(String(x || '')); return m ? m[1].toLowerCase() : null; }
+  // Tugas yang dibuka lagi: kartunya memuat ringkasan ledger berkas yang SUDAH dinilai, dan server tidak
+  // melaporkan unggahan yang belum dinilai untuk tugas ber-ledger, jadi metadata draft tidak bisa dipastikan
+  // berkas terbaru (juga bila SHA-256-nya sama dengan ringkasan ledger itu) → dibuang.
+  function nasibBerkas(q, meta, kartuTeks) {
+    if (dinilai(q) || sudahKirim(q)) return 'buang';
+    if (!berkasSiap || berkasSiap !== sesiJs()) return 'tahan';
+    var diServer = false;
+    try { diServer = typeof berkasDiServer === 'object' && !!berkasDiServer && !!berkasDiServer[q]; } catch (e) {}
+    if (!diServer) return 'pakai';
+    var a = shaKartu(kartuTeks), b = String((meta && meta.sha256) || '').slice(0, 16).toLowerCase();
+    return a && a === b ? 'pakai' : 'buang';
+  }
+  function aturBerkas(bt, sebelum, kartu) {
+    var segar = function (q) { if (typeof _refreshTugasBtn === 'function') { try { _refreshTugasBtn(q); } catch (e) {} } };
+    var pulih = function (x) { if (x && x[0] && x[0].innerHTML !== x[1]) { x[0].innerHTML = x[1]; x[0].style.color = x[2]; } };
+    Object.keys(bt).forEach(function (q) {
+      var x = bt[q], lama = sebelum[q], kt = kartu[q];
+      if (x === lama) return;   // tidak dipasang _loadDraft asli kali ini
+      if (lama && lama !== berkasDraft[q]) { bt[q] = lama; pulih(kt); segar(q); return; }   // unggahan di tab ini menang
+      var n = nasibBerkas(q, x, kt ? kt[1] : '');
+      if (n === 'pakai') { berkasDraft[q] = x; delete berkasTunda[q]; return; }
+      if (n === 'tahan') { berkasTunda[q] = x; if (lama) bt[q] = lama; else delete bt[q]; }
+      else { delete berkasTunda[q]; delete bt[q]; }
+      pulih(kt); segar(q);
+    });
+  }
+  function muat() {
+    var k = kunci(), s = sesi(k);
+    if (!k || sesiFb !== s || sesiSah !== s) return;
+    var pertama = dimuatUntuk !== k;
+    if (pertama) {
+      draftAwal = baca(k);   // potret SEBELUM ada tulisan untuk kunci ini
+      try { localStorage.removeItem(k + '_sinkron'); } catch (e) {}   // salinan teks server (v2)
+    }
+    var dr = pertama ? draftAwal : baca(k);
+    // Kolom soal yang sudah dinilai (compAnswered) bukan dari draft: kode/angka ledger
+    // yang datang terlambat (getJawabanSaya > batas tunggu) tetap mengisi kolom kosongnya.
+    // Juga (v5) kolom tugas berkas yang angka draftnya sudah dikirim (= angka ledger sesi ini atau
+    // kiriman yang dicatat): kolom itu milik ANGKA-CAD, dan angka itu keluar dari draft di bawah.
+    var tetap = [];
+    try {
+      document.querySelectorAll(KOLOM).forEach(function (el) {
+        var q = el.id.replace(/^[a-z]+-/, '');
+        if (dinilai(q) || (dr && dr.code && typeof dr.code === 'object' && angkaTerkirim(q, dr.code[q]))) tetap.push([el, el.value, q]);
+      });
+    } catch (e) {}
+    // Tugas CAD: metadata berkas yang dipasang _loadDraft asli diputuskan sesudahnya.
+    var bt = window.berkasTerunggah, sebelum = {}, kartu = {};
+    if (!bt || typeof bt !== 'object') bt = null;
+    try {
+      if (bt) {
+        Object.keys(bt).forEach(function (q) { sebelum[q] = bt[q]; });
+        Object.keys(dr && dr.berkas && typeof dr.berkas === 'object' ? dr.berkas : {}).forEach(function (q) {
+          var st = document.getElementById('berkas-status-' + q);
+          kartu[q] = [st, st ? st.innerHTML : '', st ? st.style.color : ''];
+        });
+      }
+    } catch (e) {}
+    dimuatUntuk = k;   // ditandai SEBELUM asli: check*Ready di dalamnya boleh menyimpan
+    try { return muatAsli.apply(this, arguments); }
+    finally {
+      tetap.forEach(function (x) {
+        if (x[0].value === x[1]) return;
+        x[0].value = x[1];
+        if (/^nilai-/.test(x[0].id) && typeof _refreshTugasBtn === 'function') { try { _refreshTugasBtn(x[2]); } catch (e) {} }
+      });
+      try { if (bt) aturBerkas(bt, sebelum, kartu); } catch (e) {}
+      var berubah = pertama && !!forumServer && selaraskan();
+      try { simpanTersaring(k, null, []); } catch (e) {}   // gabungan draft + isian, tersaring
+      dibuang = {};
+      if (berubah && typeof window.checkForumReady === 'function') { try { window.checkForumReady(); } catch (e) {} }
+    }
+  }
+  function muatSesudahFirebase() {
+    if (pemilikSama()) {
+      var k = kunci();
+      if (k && fbSiap()) {
+        sesiFb = sesi(k);   // _markLoaded dengan sesi ini: marker & kode ledger sudah diterapkan
+        var j = sesiJs();
+        if (j && jsSelesai[j]) berkasSiap = j;   // ringkasan berkas getJawabanSaya sesi ini ikut diterapkan
+      }
+    }
+    return muat.apply(this, arguments);
+  }
+  function simpan() {
+    var k = kunci();
+    if (!k) return;
+    if (dimuatUntuk !== k) { muat(); if (dimuatUntuk !== k) return; }
+    return simpanTersaring(k, this, arguments);
+  }
+  window._loadDraft = muatSesudahFirebase;
+  window._saveDraft = simpan;
+  window._draftSudahDimuat = function () { var k = kunci(); return !!k && dimuatUntuk === k; };
+  var tandaiAsli = window._markLoaded;
+  if (typeof tandaiAsli === 'function') {
+    window._markLoaded = function () {
+      var r = tandaiAsli.apply(this, arguments);
+      try { muatSesudahFirebase(); } catch (e) {}
+      return r;
+    };
+  }
+  // Halaman bertugas berkas: getJawabanSaya (JAWABAN-PRIVAT:JEMBATAN, skrip module yang
+  // menugaskan window._getJawabanSayaCallable sesudah skrip ini) yang selesai untuk NIM +
+  // hash PIN sesi dicatat bersama angka kiriman terakhir tiap tugas di ledger (v5); hasilnya
+  // tidak diubah.
+  function catatLedger(sj, x) {
+    var j = x && x.data && x.data.jawaban, a = {};
+    if (j && typeof j === 'object') {
+      Object.keys(j).forEach(function (q) {
+        var v = j[q];
+        if (/^c\d{1,2}$/.test(q) && v && typeof v === 'object' && typeof v.angka === 'number' && isFinite(v.angka)) a[q] = v.angka;
+      });
+    }
+    angkaLedger[sj] = a;
+  }
+  if (BERKAS) {
+    try {
+      var bungkusJs = function (fn) {
+        if (typeof fn !== 'function') return fn;
+        return function (p) {
+          var r = fn.apply(this, arguments), sj = p && p.nim ? String(p.nim) + '|' + String(p.pinHash) : null;
+          if (sj) Promise.resolve(r).then(function (x) { jsSelesai[sj] = true; try { catatLedger(sj, x); } catch (e) {} }, function () {});
+          return r;
+        };
+      };
+      var jsKini = bungkusJs(window._getJawabanSayaCallable);
+      Object.defineProperty(window, '_getJawabanSayaCallable', { configurable: true, enumerable: true,
+        get: function () { return jsKini; }, set: function (fn) { jsKini = bungkusJs(fn); } });
+    } catch (e) {}
+  }
+  // Penilaian soal kode dan tugas berkas (v5): window._callCheckModulAnswer (skrip module menugaskannya
+  // sesudah skrip ini) dibungkus lewat accessor; janjinya diteruskan apa adanya.
+  //  - Tugas berkas: begitu dikirim angka dan berkasnya (yang SAMA dengan kiriman itu) keluar dari draft
+  //    tersimpan, jadi muat ulang atau tab ditutup saat menunggu tidak meninggalkannya; selama menunggu
+  //    compAnswered hanya kunci optimistis, jadi angka lain (mis. diketik di tab lain) tetap. Hasil dinilai
+  //    (juga dibuka lagi untuk kirim ulang) atau TAK PASTI (galat yang bisa terjadi sesudah server menilai:
+  //    batas waktu, jaringan, internal) → angka & sidik berkas itu dicatat terkirim dan tidak tersimpan lagi;
+  //    ditolak sebelum dinilai (bukan attempt) → sesudah catch halaman isian kolom itu kembali ke draft.
+  //  - Hasil dinilai/tak pasti diumumkan ke tab lain peramban ini (BroadcastChannel, di memori; tidak ada yang
+  //    ditulis ke localStorage): soal yang dinilai final dianggap dinilai di tab itu juga, angka/berkas yang
+  //    dikirim dicatat terkirim. Perangkat lain: angka ledger getJawabanSaya sesudah muat ulang.
+  var TAK_PASTI = ['deadline-exceeded', 'internal', 'unknown', 'aborted', 'cancelled', 'data-loss', ''];
+  function tulisSekarang() { var k = kunci(); if (k && dimuatUntuk === k) { try { simpanTersaring(k, null, []); } catch (e) {} } }
+  // Sesudah kelanjutan halaman (catch kirimTugas / _bukaKirimUlangCad): saat hasil diterima compAnswered masih
+  // kunci optimistis, jadi tulisan saat itu akan membuang angka lain tugas itu (mis. dari tab lain).
+  function nanti(f) { try { setTimeout(f, 0); } catch (x) { f(); } }
+  function selesaiKirim(ki, final) {
+    if (ki.cad) { if (berjalan[ki.q] === ki) delete berjalan[ki.q]; catatKirim(ki.q, ki.n, ki.b); }
+    try { if (kanal && ki.k) kanal.postMessage({ k: ki.k, q: ki.q, n: ki.n, b: ki.b, final: final }); } catch (e) {}
+    if (ki.cad) nanti(tulisSekarang);
+  }
+  function gagalKirim(ki, e) {
+    if (!ki.cad) return;   // soal kode: tidak ada yang dikeluarkan sebelum hasil
+    var kode = String((e && e.code) || '').replace(/^functions\//, '');
+    if (TAK_PASTI.indexOf(kode) >= 0) { selesaiKirim(ki, false); return; }
+    if (berjalan[ki.q] === ki) delete berjalan[ki.q];
+    nanti(function () { diketik[ki.q] = true; tulisSekarang(); });
+  }
+  function bungkusKirim(fn) {
+    if (typeof fn !== 'function' || fn.__draftModul) return fn;
+    var w = function (q, jawab) {
+      if (typeof q !== 'string' || !/^c\d{1,2}$/.test(q)) return fn.apply(this, arguments);
+      var cad = BERKAS && !!document.getElementById('nilai-' + q) && typeof jawab === 'number' && isFinite(jawab);
+      var bt = window.berkasTerunggah, x = cad ? ((bt && bt[q]) || berkasTunda[q]) : null;
+      var ki = { k: kunci(), q: q, n: cad ? jawab : null, b: x && typeof x === 'object' ? sidikBerkas(x) : '', cad: cad };
+      if (cad) { berjalan[q] = ki; tulisSekarang(); }
+      var r;
+      try { r = fn.apply(this, arguments); } catch (e) { try { gagalKirim(ki, e); } catch (x2) {} throw e; }
+      Promise.resolve(r).then(function (res) { try { selesaiKirim(ki, !(res && res.bisaUlang)); } catch (e) {} },
+        function (e) { try { gagalKirim(ki, e); } catch (x2) {} });
+      return r;
+    };
+    w.__draftModul = true;
+    return w;
+  }
+  try {
+    var kirimKini = bungkusKirim(window._callCheckModulAnswer);
+    Object.defineProperty(window, '_callCheckModulAnswer', { configurable: true, enumerable: true,
+      get: function () { return kirimKini; }, set: function (fn) { kirimKini = bungkusKirim(fn); } });
+  } catch (e) {}
+  try {
+    if (typeof BroadcastChannel === 'function') {
+      kanal = new BroadcastChannel('draft-modul-kiriman');
+      kanal.onmessage = function (e) {
+        var m = e && e.data, k = kunci();
+        if (!m || typeof m !== 'object' || !k || m.k !== k || typeof m.q !== 'string' || !/^c\d{1,2}$/.test(m.q)) return;
+        if (m.final === true) dinilaiLain[m.q] = true;
+        if (BERKAS && (typeof m.n === 'number' || (typeof m.b === 'string' && m.b))) catatKirim(m.q, m.n, typeof m.b === 'string' ? m.b : '');
+      };
+    }
+  } catch (e) { kanal = null; }
+  // getModulProgress (NIM + hash PIN sesi ini) sudah memeriksa PIN di server.
+  window.addEventListener('progres-modul:diterapkan', function (e) {
+    var d = e && e.detail;
+    if (!d || d.ok !== true || !d.progres || !pemilikSama()) return;
+    var k = kunci();
+    if (!k) return;
+    if (serverUntuk !== k) {
+      var f = d.progres.forum;
+      forumAda = !!f && typeof f === 'object' && Object.keys(f).length > 0;
+      if (!forumAda) f = {};
+      forumServer = { fq1: teks(f.fq1), fq2: teks(f.fq2), fq3: teks(f.fq3) };
+      serverUntuk = k;
+    }
+    sesiSah = sesi(k);
+    muat();
+  });
+  // Kiriman forum sukses: teks itu kini teks server yang diketahui tab ini (basis suntingan
+  // berikutnya) dan keluar dari draft.
+  window.addEventListener('progres-modul:forum-tersimpan', function (e) {
+    var k = kunci(), j = e && e.detail && e.detail.jawaban;
+    if (!k || !j || typeof j !== 'object' || serverUntuk !== k) return;
+    forumServer = { fq1: teks(j.fq1), fq2: teks(j.fq2), fq3: teks(j.fq3) };
+    forumAda = true;
+    FQ.forEach(function (q) { var ta = document.getElementById('ans-' + q); if (ta && ta.value === forumServer[q]) kotor[q] = false; });
+    if (dimuatUntuk === k) { try { simpanTersaring(k, null, []); } catch (x) {} }
+  });
+  document.addEventListener('input', function (e) {
+    var t = e && e.target, id = t && typeof t.id === 'string' ? t.id : '';
+    var m = /^(?:code|nilai)-(c\d{1,2})$/.exec(id);
+    if (m) diketik[m[1]] = true;
+    else if (id === 'gdrive-link') diketik.gdrive = true;
+    else if (/^ans-fq[1-3]$/.test(id)) { kotor[id.slice(4)] = true; catatan(id.slice(4), false); }
+    else return;
+    try { simpan(); } catch (x) {}
+  }, true);
+})();
+</script>
+<!-- DRAFT-MODUL:PENJAGA END v5 -->
 <!-- PROGRES-MODUL: awal -->
 <style>
 .pm-centang{display:flex;align-items:center;gap:16px;margin:32px 0 8px;padding:18px 22px;border:2px solid rgba(0,224,158,.45);border-radius:16px;background:linear-gradient(135deg,rgba(0,224,158,.14),rgba(34,211,238,.10));box-shadow:0 0 0 1px rgba(0,224,158,.12),0 10px 30px rgba(0,0,0,.28);color:#eaf2ff;font-size:17px;line-height:1.55;cursor:pointer;transition:border-color .2s,background .2s,box-shadow .2s}
@@ -13307,7 +13756,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   }
 
   var forumDimuat = false;
-  // PROGRES-MODUL:PENJAGA-FORUM BEGIN v1 — scripts/tambah-progres-modul.mjs (Pedoman §6.7)
+  // PROGRES-MODUL:PENJAGA-FORUM BEGIN v2 — scripts/tambah-progres-modul.mjs (Pedoman §6.7)
   // Kiriman forum menimpa ketiga jawaban di server sekaligus, jadi baru dikirim sesudah
   // progres server modul ini DITERAPKAN. statusForum: 'belum' (tanpa sesi PIN) →
   // 'memuat' → 'siap' (baseline = forum server: teks yang sama tidak dikirim ulang) |
@@ -13369,7 +13818,14 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   }
   function forumTertahan() { return mhsAktif() && statusForum !== 'siap'; }
   function bolehKirimForum(j) { return statusForum === 'siap' && !!(j.fq1.trim() || j.fq2.trim() || j.fq3.trim()); }
-  // PROGRES-MODUL:PENJAGA-FORUM END v1
+  // v2: sesudah kiriman forum sukses, event window 'progres-modul:forum-tersimpan' (detail
+  // {jawaban} = ketiga teks yang terkirim). Blok DRAFT-MODUL (scripts/draft-modul.mjs) mencatatnya
+  // sebagai salinan tersinkron draft forum: draft yang sudah terkirim tidak menimpa forum server
+  // yang lebih baru dari perangkat lain. Penjagaan kiriman di atas tidak berubah.
+  function forumTersimpan(j) {
+    try { window.dispatchEvent(new CustomEvent('progres-modul:forum-tersimpan', { detail: { jawaban: j } })); } catch (e) {}
+  }
+  // PROGRES-MODUL:PENJAGA-FORUM END v2
   // Kait 'progres-modul:diterapkan' (v2, 29 September 2026): blok lain di halaman
   // (PILIHAN-POLL-FORUM dari scripts/simpan-pilihan-poll.mjs) bereaksi sesudah
   // progres server diterapkan — detail {ok:true, progres} — atau gagal dimuat
@@ -13435,7 +13891,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     var d = dasar(); if (!d.pinHash) return;
     d.jawaban = j;
     panggil('saveModulForum', d).then(function (r) {
-      forumTerakhir = kunci; gagalKirimForum = 0;
+      forumTerakhir = kunci; gagalKirimForum = 0; forumTersimpan(j);
       if (r.forumSelesai) toast('💾 Jawaban forum tersimpan di server — forum modul ini selesai.');
     }).catch(function (e) {
       console.warn('[progres-modul] forum:', e && e.message);

@@ -6,9 +6,10 @@
  * `const` di dalam <script type="module">, jadi TIDAK terlihat dari skrip
  * klasik halaman yang sama: `typeof LOCAL_IDENTITY` di sana selalu
  * 'undefined'. Karena itu skrip klasik menulis kuncinya sebagai literal —
- * getIdentityLocal(), cadangan identitas dan cadangan MODULE_ID di
- * _draftKey(), dan `const LK` lapisan friksi — dan literal itu harus diikutkan
- * setiap kali MODULE_ID berubah. Dua kali tidak diikutkan:
+ * getIdentityLocal() dan `const LK` lapisan friksi (dulu juga cadangan
+ * identitas dan cadangan MODULE_ID di _draftKey(); sejak draft-modul.mjs kunci
+ * draft tidak memuat literal lagi) — dan literal itu harus diikutkan setiap
+ * kali MODULE_ID berubah. Dua kali tidak diikutkan:
  *
  *   - Optimalisasi Modul 12–14 (sejak #285, 30 Mei 2026): MODULE_ID digeser
  *     ke pertemuan-13/-14/-15 (pertemuan 8 = UTS, jadi Modul n ≥ 8 memakai
@@ -38,20 +39,20 @@
  *      Matematika 4 → modul-N).
  *   2. getIdentityLocal() yang membaca kunci selain K diganti blok
  *      KUNCI-IDENTITAS:LOKAL berisi fungsi yang membaca K.
- *   3. _draftKey() yang kunci efektifnya bukan
- *      `<slug>_draft_<MODULE_ID>_<nim>` (cadangan identitas ≠ K, cadangan
- *      MODULE_ID ≠ MODULE_ID) diganti blok KUNCI-IDENTITAS:DRAF: identitas dari
- *      getIdentityLocal(), kunci `<slug>_draft_<MODULE_ID>_` + NIM.
+ *   3. (Dihapus 29 September 2026.) Dulu _draftKey() yang kunci efektifnya
+ *      bukan `<slug>_draft_<MODULE_ID>_<nim>` diganti blok KUNCI-IDENTITAS:DRAF.
+ *      Kunci draft kini milik scripts/draft-modul.mjs (blok DRAFT-MODUL:KUNCI,
+ *      `draft_modul_<MODUL_ID>_<nim>` tanpa literal, yang juga membuang blok
+ *      DRAF lama); skrip ini tidak menyentuh _draftKey lagi.
  *   4. `const LK = '…';` lapisan friksi yang bukan K diganti blok
  *      KUNCI-IDENTITAS:LK.
  *   5. Sesudahnya setiap kunci identitas utuh yang tertulis di skrip halaman
  *      (literal kutip tunggal/ganda/backtick, gabungan dua literal, templat
  *      ber-${MODULE_ID}/${COURSE_ID} di skrip module) harus sama dengan K;
- *      templat ber-${…} yang memuat `_identity_` di skrip klasik, deklarasi
- *      kedua atau penimpaan getIdentityLocal/_draftKey (mis.
- *      `window.getIdentityLocal = …`), dan `return` _draftKey di luar tiga
- *      bentuk yang dikenal juga menghentikan skrip (tempat baru yang belum
- *      dikenal — tangani dulu, jangan ditebak). Aturannya sama dengan
+ *      templat ber-${…} yang memuat `_identity_` di skrip klasik, serta
+ *      deklarasi kedua atau penimpaan getIdentityLocal/_draftKey (mis.
+ *      `window.getIdentityLocal = …`) juga menghentikan skrip (tempat baru yang
+ *      belum dikenal — tangani dulu, jangan ditebak). Aturannya sama dengan
  *      periksaKunciIdentitasModul di validate-public-security.mjs.
  * Halaman yang sudah benar tidak disentuh sama sekali. Blok yang sudah ada
  * dibangun ulang dari K halaman itu (idempoten; versi lama ikut diganti).
@@ -62,25 +63,11 @@
  *     identitas sah modul lain (bisa milik NIM lain di komputer lab), jadi
  *     tidak dipindah maupun dihapus; mahasiswa cukup login sekali di modul
  *     itu. Centang mode bebas (pm_centang_bebas_<MODUL_ID>) sudah memakai
- *     MODUL_ID yang benar. Draf lama tidak dipindah karena di 83 dari 84
- *     halaman _markLoaded menjalankan checkExportReady/checkForumReady (yang
- *     memanggil _saveDraft dengan isi formulir saat itu) SEBELUM _loadDraft,
- *     sehingga draf di kunci mana pun tertimpa sebelum sempat dibaca —
- *     memindahkannya tidak berpengaruh, dan draf lama Opto Modul 13/14 yang
- *     kini berada di kunci Modul 12/13 tidak ikut termuat ke forum.
- *     AWAS bila urutan simpan/muat itu kelak diperbaiki: kunci draf baru Opto
- *     Modul 12/13 (optoauto_draft_pertemuan-13_/-14_<nim>) = kunci tempat
- *     halaman lama Modul 13/14 menulis draf (kode, forum, link Drive) atas NIM
- *     dari kunci identitas modul sebelumnya — di komputer lab bisa NIM orang
- *     lain — dan optoauto_draft_pertemuan-12_ Modul 11 memuat draf halaman
- *     lama Modul 12. Perbaikan urutan itu wajib sekaligus memakai awalan draf
- *     baru di ke-84 modul (atau membersihkan kunci-kunci warisan itu);
- *     Pedoman §6.7, catatan draf.
- *   - _draftKey bentuk lama yang memakai LOCAL_IDENTITY/MODULE_ID langsung
- *     (Getaran Modul 1, Sisken, TTL, CAD; ReferenceError yang ditelan
- *     sehingga draf tidak pernah tersimpan) tidak diubah: kuncinya tidak
- *     salah, drafnya mati, dan menghidupkannya mengubah perilaku course yang
- *     sedang berjalan — keputusan terpisah. Skrip ini hanya melaporkannya.
+ *     MODUL_ID yang benar. Draf: lihat scripts/draft-modul.mjs — kunci barunya
+ *     `draft_modul_<MODUL_ID>_<nim>` (awalan baru di ke-84 modul, jadi kunci
+ *     warisan `<slug>_draft_…` — termasuk kunci bersama/bergeser Matematika 4
+ *     dan Optimalisasi 11–14 — tidak pernah dibaca), dan urutan simpan/muat
+ *     diperbaiki blok DRAFT-MODUL:PENJAGA; Pedoman §6.3.
  *
  * Pakai:
  *   node scripts/samakan-kunci-identitas.mjs            # terapkan
@@ -122,23 +109,6 @@ function getIdentityLocal() {
   try { return JSON.parse(localStorage.getItem('${K}')); } catch(e) { return null; }
 }
 // KUNCI-IDENTITAS:LOKAL END ${VERSI}
-`;
-}
-function blokDraf(K) {
-  const awalan = K.replace("_identity_", "_draft_") + "_";
-  return `// KUNCI-IDENTITAS:DRAF BEGIN ${VERSI} — ${SUMBER}
-// Kunci draf per NIM = <slug>_draft_<MODULE_ID>_<nim>, identitas dari
-// getIdentityLocal() (kunci LOCAL_IDENTITY). Bentuk lama memeriksa
-// \`typeof LOCAL_IDENTITY\`/\`typeof MODULE_ID\`, yang di skrip klasik selalu
-// 'undefined', sehingga literal cadangannya yang terpakai.
-function _draftKey() {
-  try {
-    const me = getIdentityLocal();
-    if (!me || !me.nim || me.role === 'dosen') return null;
-    return '${awalan}' + me.nim;   // per-NIM, course-scoped
-  } catch(e) { return null; }
-}
-// KUNCI-IDENTITAS:DRAF END ${VERSI}
 `;
 }
 function blokLk(K) {
@@ -221,11 +191,6 @@ function literalIdentitas(js, nilai = null) {
   return out;
 }
 
-/** Bentuk `return` _draftKey yang dikenal (sama dengan validator). */
-function bentukKembaliDraf(slug, mid) {
-  return [`'${slug}_draft_${mid}_' + me.nim`, `'${slug}_draft_' + moduleId + '_' + me.nim`, `'${slug}_draft_' + MODULE_ID + '_' + me.nim`];
-}
-
 function proses(berkas, kursus, n) {
   const asli = fs.readFileSync(berkas, "utf8");
   const crlf = asli.includes("\r\n");
@@ -273,39 +238,9 @@ function proses(berkas, kursus, n) {
     }
   }
 
-  // 3. _draftKey.
-  let drafMati = false;
-  {
-    const rx = RX_BLOK("DRAF", "");
-    const ada = (html.match(rx) || []).length;
-    if (ada > 1) throw new Error(`blok KUNCI-IDENTITAS:DRAF muncul ${ada}x`);
-    if (ada === 1) {
-      const baru = html.replace(rx, () => blokDraf(K));
-      if (baru !== html) catatan.push("draf-diperbarui");
-      html = baru;
-    } else {
-      const f = fungsi(html, "_draftKey");
-      const kode = f.teks.split("\n").filter((b) => !b.trim().startsWith("//")).join("\n");
-      const litId = literalIdentitas(f.teks);
-      const cadMid = [...kode.matchAll(/\(typeof MODULE_ID !== 'undefined'\) \? MODULE_ID : '([^'\n]+)'/g)].map((m) => m[1]);
-      const drafUtuh = [...kode.matchAll(/'([a-z0-9_]+)_draft_([^'\n]+)_'/g)];
-      const drafAwalan = [...kode.matchAll(/'([a-z0-9_]+)_draft_'/g)].map((m) => m[1]);
-      // Bentuk lama tanpa literal: LOCAL_IDENTITY/MODULE_ID dipakai langsung dari
-      // skrip klasik → ReferenceError yang ditelan catch → draf tidak pernah ada.
-      drafMati = /localStorage\.getItem\(LOCAL_IDENTITY\)/.test(kode) && !/typeof LOCAL_IDENTITY/.test(kode);
-      const dikenal = drafMati || litId.length || drafUtuh.length || cadMid.length;
-      if (!dikenal) throw new Error("_draftKey berbentuk tak dikenal");
-      const salah = litId.some((x) => x !== K)
-        || cadMid.some((x) => x !== mid)
-        || drafUtuh.some((m) => m[1] !== slug || m[2] !== mid)
-        || drafAwalan.some((s) => s !== slug);
-      if (salah) {
-        html = html.slice(0, f.awal) + blokDraf(K) + html.slice(f.akhir);
-        const lama = [...new Set([...litId.filter((x) => x !== K), ...cadMid.filter((x) => x !== mid).map((x) => "MODULE_ID:" + x)])];
-        catatan.push(`_draftKey ${lama.join("/")}→${K.replace("_identity_", "_draft_")}_<nim>`);
-      }
-    }
-  }
+  // 3. _draftKey: tidak disentuh lagi — milik scripts/draft-modul.mjs (blok
+  //    DRAFT-MODUL:KUNCI tanpa literal kunci). Yang tetap dijaga di bawah: satu
+  //    deklarasi, tidak ditimpa, dan tidak ada literal kunci identitas yang salah.
 
   // 4. LK lapisan friksi.
   {
@@ -349,18 +284,7 @@ function proses(berkas, kursus, n) {
     }
     if (def !== 1) throw new Error(`deklarasi ${nama} muncul ${def}x di skrip inline, harusnya 1`);
   }
-  {
-    const kode = bukanKomentar(fungsi(html, "_draftKey").teks).join("\n");
-    const bentuk = bentukKembaliDraf(slug, mid);
-    const kembali = [...kode.matchAll(/\breturn\b\s*([^;\n]*);/g)].map((m) => m[1].trim()).filter((r) => r !== "null");
-    if (kembali.length !== 1 || !bentuk.includes(kembali[0])) {
-      throw new Error(`_draftKey mengembalikan ${kembali.map((r) => "`" + r + "`").join(" / ") || "(tidak ada)"} — bentuk tak dikenal; tangani dulu, jangan ditebak`);
-    }
-    if (kembali[0] === bentuk[1] && kode.split(`const moduleId = (typeof MODULE_ID !== 'undefined') ? MODULE_ID : '${mid}';`).length !== 2) {
-      throw new Error(`_draftKey memakai moduleId tanpa cadangan tunggal '${mid}'`);
-    }
-  }
-  for (const nama of ["LOKAL", "DRAF", "LK"]) {
+  for (const nama of ["LOKAL", "LK"]) {
     const nBlok = (html.match(RX_BLOK(nama, nama === "LK" ? "  " : "")) || []).length;
     if (nBlok > 1) throw new Error(`blok KUNCI-IDENTITAS:${nama} muncul ${nBlok}x`);
   }
@@ -382,8 +306,8 @@ function proses(berkas, kursus, n) {
     }
   }
 
-  if (html === awal) return { html: null, catatan, drafMati };
-  return { html: crlf ? html.replace(/\n/g, "\r\n") : html, catatan, drafMati };
+  if (html === awal) return { html: null, catatan };
+  return { html: crlf ? html.replace(/\n/g, "\r\n") : html, catatan };
 }
 
 const berkas = [];
@@ -399,13 +323,11 @@ if (berkas.length !== 84) throw new Error(`harap 84 halaman <Kursus>/Modul/Modul
 
 let ubah = 0;
 const rinci = [];
-const drafMati = [];
 for (const b of berkas.sort((x, y) => x.f.localeCompare(y.f))) {
   const rel = path.relative(root, b.f).split(path.sep).join("/");
   let h;
   try { h = proses(b.f, b.kursus, b.n); }
   catch (e) { throw new Error(`${rel}: ${e.message}`); }
-  if (h.drafMati) drafMati.push(rel);
   if (!h.html) continue;
   ubah += 1;
   rinci.push(`  ${rel}: ${h.catatan.join("; ")}`);
@@ -413,7 +335,4 @@ for (const b of berkas.sort((x, y) => x.f.localeCompare(y.f))) {
 }
 console.log(`${ubah} dari ${berkas.length} halaman modul ${periksa ? "akan diperbarui" : "diperbarui"}.`);
 for (const r of rinci) console.log(r);
-if (drafMati.length) {
-  console.log(`Catatan: ${drafMati.length} halaman memakai _draftKey bentuk lama tanpa literal (LOCAL_IDENTITY langsung dari skrip klasik; draf tidak pernah tersimpan) — dibiarkan, lihat komentar kepala skrip.`);
-}
 if (periksa && ubah > 0) process.exitCode = 1;
