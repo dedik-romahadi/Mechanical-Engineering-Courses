@@ -2952,8 +2952,43 @@ function _lineAnswers(str) {
       // TERAKHIR per baris karena nilai jawaban biasanya diletak di akhir.
     }
   }
+  // ANGKA-TANPA-LABEL:BARIS v1 (scripts/angka-tanpa-label.mjs) — mulai
+  // Laporan mhs (29 Sep 2026): "T2: 1136.1310 kVA  (68.24 % dari rating)"
+  // -- angka pertama baris itu "2" dari label "T2" dan angka terakhirnya 68.24,
+  // sehingga 1136.1310 tidak pernah jadi kandidat. Tambahkan angka PERTAMA dan
+  // TERAKHIR per baris yang bukan bagian label. Kandidat di atas tidak diubah
+  // dan tetap di depan (pengirim memotong di 64 entri).
+  for (const line of lines) {
+    const nb = _angkaTanpaLabel(line.replace(/\[[^\[\]]*\]/g, ' '));
+    if (nb.length > 0) {
+      if (out.indexOf(nb[0]) === -1) out.push(nb[0]);
+      if (nb.length > 1 && out.indexOf(nb[nb.length - 1]) === -1) out.push(nb[nb.length - 1]);
+    }
+  }
+  // ANGKA-TANPA-LABEL:BARIS — selesai
   return out;
 }
+// ANGKA-TANPA-LABEL:BANTU v1 (scripts/angka-tanpa-label.mjs) — mulai
+// Angka di dalam teks, kecuali yang digit pertamanya menempel pada huruf atau
+// garis bawah: itu bagian label/nama variabel (T2, x2, S_1), bukan nilai.
+// Tanda minus di depan tidak dihitung menempel ("x-3" tetap -3, sama dengan
+// parseNumbers).
+let _RX_HURUF_LABEL;
+try { _RX_HURUF_LABEL = new RegExp('[\\p{L}_]$', 'u'); }
+catch (e) { _RX_HURUF_LABEL = /[A-Za-z_\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF]$/; }
+function _angkaTanpaLabel(str) {
+  const s = String(str || '');
+  const re = /-?\d+\.?\d*(?:[eE][+-]?\d+)?/g;
+  const out = [];
+  let m;
+  while ((m = re.exec(s)) !== null) {
+    if (m[0].charAt(0) !== '-' && _RX_HURUF_LABEL.test(s.slice(Math.max(0, m.index - 2), m.index))) continue;
+    const n = Number(m[0]);
+    if (isFinite(n)) out.push(n);
+  }
+  return out;
+}
+// ANGKA-TANPA-LABEL:BANTU — selesai
 
 let compAnswered = {}, compScores = {};
 

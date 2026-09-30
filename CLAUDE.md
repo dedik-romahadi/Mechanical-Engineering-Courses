@@ -347,6 +347,16 @@ repo publik ini.
   Jangan menambah pembaca `data.selections`/`data.codes`/`data.angka`/`data.angkaStatus` di luar jalur itu,
   dan jangan mengembalikan `set()` seluruh record. Rincian: Pedoman §6.3,
   §7.6, §9.1.
+- **Kandidat jawaban komputasi** (sejak 30 Sep 2026). Server hanya
+  membandingkan kandidat yang dikirim halaman (angka pertama/terakhir output
+  dan `lineAnswers` per baris), bukan semua angka. `_lineAnswers` juga
+  mengirim angka pertama/terakhir per baris yang bukan bagian label — digit
+  menempel huruf/garis bawah (`T2`, `x2`, `S_1`) dilewati — supaya
+  `T2: 1136.1310 kVA  (68.24 % …)` tidak dinilai salah. Hanya menambah
+  kandidat (yang lama tetap di depan, `parseNumbers`/`userAnswers` tetap);
+  tanpa lookbehind regex. Dipasang `scripts/angka-tanpa-label.mjs` (94
+  halaman, penanda `ANGKA-TANPA-LABEL`, ada `--periksa` dan `--uji`; CI
+  menjalankan keduanya). Rincian: Pedoman §6.2 dan §17.1.
 - **Label navbar UTS/UAS** = label modul course-nya (`TENAGALISTRIK // UTS`,
   bukan sisa templat `GETARANMESIN`); dipasang `scripts/label-nav-ujian.mjs`
   (ada `--periksa`), CAD lewat `scripts/cad-exam/bangun.py`.
