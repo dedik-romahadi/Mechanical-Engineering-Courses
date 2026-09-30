@@ -141,8 +141,8 @@
  *      tugas, sehingga kartu dan ekspor HTML ("Angka bacaan: X" dari
  *      `_ringkasTugasCad`) sama seperti sebelum muat ulang. Angka ditulis
  *      `String(n)` (titik desimal), kecuali ketikan yang nilainya sama.
- *      - Modul: di _loadScoredQuestions, tepat sesudah `_markLoaded();` (jadi
- *        sesudah _loadDraft). Tugas final (benar) → diisi angka ledger (menang
+ *      - Modul: di _loadScoredQuestions, tepat sesudah `_markLoaded();` (yang
+ *        memanggil _loadDraft). Tugas final (benar) → diisi angka ledger (menang
  *        atas draft), dikunci, bingkai hijau — hanya bila status ledger attempt
  *        itu (`data.angkaStatus`) juga 'correct'. Status lain berarti respons
  *        lebih tua daripada marker RTDB (hasil getJawabanSaya yang dibaca
@@ -156,15 +156,14 @@
  *        yang sudah ada di
  *        sesi itu dipertahankan), lalu tombol kirim ulang disegarkan — sama
  *        dengan keadaan di perangkat yang sama tepat sesudah kiriman salah.
- *        Draft localStorage tidak ikut menentukan: di halaman CAD `_draftKey()`
- *        skrip klasik selalu null (LOCAL_IDENTITY/MODULE_ID milik skrip
- *        modul), dan seandainya kuncinya ada pun `_saveDraft()` di akhir
- *        `checkExportReady()` — dipanggil `_bukaKirimUlangCad` dan `_markLoaded`
- *        sebelum `_loadDraft()` — sudah menimpa draft dengan kolom yang masih
- *        kosong. Jadi kolom kartu kirim ulang dalam praktik selalu berisi angka
- *        ledger; "draft menang" baru berlaku bila urutan itu dibenahi bersama
- *        `_draftKey` (Pedoman §6.3). Tanpa marker (belum dikirim/di-reset) →
- *        tidak diisi.
+ *        Draft materi (`DRAFT-MODUL:PENJAGA`, scripts/draft-modul.mjs) dimuat
+ *        `_markLoaded` hanya bila progres sesi itu sudah diterima server, jadi
+ *        bisa sebelum atau sesudah blok ini. Kolom tugas yang sudah dinilai
+ *        (`compAnswered`) tidak pernah diisi draft, jadi angka ledger tugas
+ *        benar tetap menang; kolom kartu kirim ulang diisi oleh yang lebih dulu
+ *        berjalan (angka draft atau angka kiriman terakhir), karena keduanya
+ *        hanya mengisi kolom kosong (Pedoman §6.3). Tanpa marker (belum
+ *        dikirim/di-reset) → tidak diisi.
  *      - Ujian: di akhir `_apply<UTS|UAS>VisualState(data)`, tepat sebelum
  *        `updateScore();` (ikut jalur `_reapply…StateFromCache` sesudah kartu
  *        dirender dan hasil getJawabanSaya yang terlambat). Hanya tugas yang
@@ -645,13 +644,13 @@ function blokAngkaCad(jenis) {
 // ini) dan kolom yang berisi angka kiriman itu tidak disentuh. Tugas yang
 // dibuka lagi untuk kirim ulang → tidak dikunci; diisi angka kiriman terakhir
 // hanya bila kolomnya masih kosong (ketikan yang sudah ada di sesi ini
-// dipertahankan), seperti keadaan tepat sesudah kiriman salah. Draft tidak ikut
-// menentukan: _draftKey() skrip klasik selalu null di halaman ini, dan
-// _saveDraft() di akhir checkExportReady() (dipanggil _bukaKirimUlangCad dan
-// _markLoaded sebelum _loadDraft) menimpa draft dengan kolom kosong sebelum
-// dibaca, jadi kolom ini dalam praktik selalu berisi angka ledger. Tanpa
-// marker, atau tanpa data.angka (backend lama, callable gagal), tidak ada yang
-// diisi.`;
+// dipertahankan), seperti keadaan tepat sesudah kiriman salah. Draft materi
+// (DRAFT-MODUL:PENJAGA) dimuat hanya bila progres sesi itu sudah diterima
+// server, jadi bisa sesudah blok ini: kolom tugas yang sudah dinilai
+// (compAnswered) tidak pernah diisi draft, sedangkan kolom tugas yang dibuka
+// lagi diisi draft atau blok ini, mana yang lebih dulu, karena keduanya hanya
+// mengisi kolom kosong. Tanpa marker, atau tanpa data.angka (backend lama,
+// callable gagal), tidak ada yang diisi.`;
   const cabang = ujian
     ? `      if (!/^c\\d{1,2}$/.test(qId) || typeof n !== 'number' || !Number.isFinite(n) || !inp || !compAnswered[qId]) return;
       if (!(typeof _parseNilai === 'function' && _parseNilai(inp.value) === n)) inp.value = String(n);

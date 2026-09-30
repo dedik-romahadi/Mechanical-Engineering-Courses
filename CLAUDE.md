@@ -236,20 +236,49 @@ repo publik ini.
   `scripts/simpan-pilihan-poll.mjs` (penanda `PILIHAN-POLL-FORUM`, ada
   `--periksa`, jalankan sesudah `tambah-progres-modul.mjs`). Pedoman §6.5.
 - **Efek & skrip penyuntik.** Emoji/suara jawaban, efek memuat, friction,
-  pengecualian akun simulasi, lapisan overlay login, progres modul, dan
-  kunci identitas skrip klasik disuntikkan oleh skrip idempoten di `scripts/`
+  pengecualian akun simulasi, lapisan overlay login, progres modul, kunci
+  identitas skrip klasik, dan draft materi disuntikkan oleh skrip idempoten di `scripts/`
   yang wajib dijalankan ulang setelah regenerasi modul (daftar di Pedoman
   §17.1). Regenerasi Sisken bukan satu perintah (Pedoman §6.4).
 - **Kunci identitas di skrip klasik modul** (sejak 29 Sep 2026).
   `LOCAL_IDENTITY`/`MODULE_ID` adalah `const` skrip module dan tidak terlihat
   dari skrip klasik, jadi `getIdentityLocal()` (dipakai progres modul, Export
-  Tugas, forum HTML), `_draftKey()`, dan `const LK` friksi menulis kuncinya
+  Tugas, forum HTML, kunci draft) dan `const LK` friksi menulis kuncinya
   sebagai literal yang wajib sama dengan `<slug>_identity_<MODULE_ID>`
   (`MODULE_ID`: Modul 1–7 = `pertemuan-N`, Modul 8–14 = `pertemuan-(N+1)`;
   Matematika 4 = `modul-N`; Pedoman §3). Mengubah `MODULE_ID` saja membuat progres,
   gerbang, dan friksi mati tanpa galat — Optimalisasi Modul 12–14 begitu sejak
   30 Mei 2026. Jalankan `scripts/samakan-kunci-identitas.mjs`;
   `validate-public-security.mjs` menagihnya di 84 modul. Rincian: Pedoman §6.7.
+- **Draft materi modul** (sejak 29 Sep 2026). Kode, tautan Drive, teks Forum,
+  serta angka bacaan dan metadata berkas CAD yang belum dikirim disimpan di
+  localStorage `draft_modul_<MODUL_ID>_<nim>` (hanya mahasiswa dan akun
+  simulasi bersesi PIN; dosen, tamu, Mode Preview → tanpa kunci) dan pulih
+  sesudah muat ulang. Draft dimuat hanya sesudah `_markLoaded` bersesi DAN
+  progres `{ok:true}` bersesi sama (server menerima NIM + hash PIN; hash PIN
+  sesi tidak terikat NIM), tidak ada tulisan sebelum draft dibaca; kolom
+  kode/angka soal yang sudah dinilai (`compAnswered`) tidak pernah diisi draft
+  (ledger menang, juga angka `JAWABAN-PRIVAT:ANGKA-CAD`); forum server
+  menang kecuali suntingan yang belum terkirim — gabung 3-arah: sidik teks
+  server = basis draft → belum terkirim, berbeda → server menang + catatan
+  (event `progres-modul:forum-tersimpan` dari PENJAGA-FORUM v2) — dan simpanan
+  hanya mengambil teks Forum yang disunting di tab itu; draft hanya menyimpan
+  isian yang belum dinilai/terkirim (tanpa kode/angka ledger, tanpa teks
+  server; tetap ada sesudah Log Out); metadata berkas CAD dari draft dipakai
+  hanya sesudah `getJawabanSaya` sesi itu selesai dan bila server tidak punya
+  berkas lain; tugas CAD yang dibuka lagi: metadata draft tidak dipakai
+  sesudah muat ulang (v4); kiriman (v5) dikenali di pembungkus accessor
+  `window._callCheckModulAnswer`: angka & berkas tugas CAD keluar dari draft
+  begitu dikirim, tetap keluar bila hasilnya dinilai atau tak pasti (respons
+  hilang/galat), kembali bila ditolak sebelum dinilai; angka draft = angka
+  ledger `getJawabanSaya` dibuang saat muat; hasil penilaian diumumkan ke tab
+  lain lewat `BroadcastChannel` (tanpa localStorage); NIM yang berganti tanpa
+  muat ulang → kolom dikosongkan + muat ulang. Dipasang `scripts/draft-modul.mjs`
+  (penanda `DRAFT-MODUL:KUNCI` v1/`PENJAGA` v5, ada `--periksa`, jalankan PALING
+  AKHIR, sesudah `simpan-pilihan-poll.mjs`); badan `_saveDraft`/`_loadDraft`
+  tidak disunting, dan fungsi draft tidak boleh ditugaskan di skrip module;
+  `window._callCheckModulAnswer` ditugaskan tepat sekali (skrip module) dan
+  selalu dipanggil lewat `window.`. Rincian: Pedoman §6.3.
 - **Asisten Dosen di UTS/UAS** (sejak 26 Sep 2026). Mahasiswa yang login
   memakai `#visitorFab` sebagai tombol "🤖 Asisten Dosen"; daftar mahasiswa
   online (nama, NIM, status poin) tetap khusus dosen dan halaman ujian tidak
