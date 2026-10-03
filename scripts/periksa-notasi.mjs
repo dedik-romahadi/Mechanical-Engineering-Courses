@@ -1,26 +1,40 @@
 #!/usr/bin/env node
-// Pemeriksa notasi rumus di halaman modul (Pedoman §2 dan §17.1; dipakai validate-public-security.mjs).
+// Pemeriksa notasi rumus di halaman modul dan ujian (Pedoman §2 dan §17.1; dipakai validate-public-security.mjs).
 //
 // Notasi rumus di teks yang DIRENDER untuk mahasiswa ditulis sebagai subskrip/superskrip sungguhan:
-// <sub>/<sup> di HTML, <tspan> di SVG (pustaka.py rumus_svg), helper kanvas _ttlRumus/_ttlRumusKtx
-// (animasi/dasar.js) untuk fillText. Garis bawah mentah seperti "V_k = V · R_k / R_seri" tampil apa
-// adanya di <text> SVG dan di kanvas — laporan dosen 3 Oktober 2026 (TTL Modul 3, Gambar 2). Yang ditolak:
+// <sub>/<sup> di HTML, <tspan> di SVG (pustaka.py rumus_svg, sisken-ilustrasi.mjs rumusSvg), helper
+// kanvas _ttlRumus/_ttlRumusKtx (animasi/dasar.js TTL/CAD) atau blok NOTASI-KANVAS
+// (scripts/notasi-halaman.mjs, course lain dan halaman ujian) untuk fillText. Garis bawah mentah seperti
+// "V_k = V · R_k / R_seri" tampil apa adanya di <text> SVG dan di kanvas — laporan dosen 3 Oktober 2026
+// (TTL Modul 3, Gambar 2). Yang ditolak:
 //   1. <text> SVG yang memuat notasi bergaris bawah (X_k, R_seri, σ_maks) atau pangkat ^ mentah,
 //      kecuali <text data-kode="1"> (kode/alias Spreadsheet yang memang diketik: pustaka.Kode);
 //   2. penanda <sub>/<sup> yang tertinggal di dalam <text> SVG (SVG tidak mengenalnya);
-//   3. literal string argumen pertama fillText/strokeText/_ttlTeks/_ttlLabel dan argumen kedua
-//      _ttlTulis yang memuat notasi bergaris bawah atau pangkat ^, kecuali baris bertanda
-//      "// notasi: kode" (alias yang diketik);
-//   4. literal kanvas berpenanda <sub>/<sup> di halaman tanpa helper _ttlRumusKtx (penanda tampil mentah);
+//   3. literal string argumen pertama fillText/strokeText/_ttlTeks/_ttlLabel, argumen kedua
+//      _ttlTulis/_siskenLegenda, dan teks _siskenBawah yang memuat notasi bergaris bawah atau pangkat ^,
+//      kecuali baris bertanda "// notasi: kode" (alias/parameter yang diketik);
+//   4. literal kanvas berpenanda <sub>/<sup> di halaman tanpa helper kanvas (penanda tampil mentah);
 //   5. segmen KaTeX \( … \) yang terpecah lintas simpul teks (mis. <sub> atau "<" telanjang masuk ke
 //      dalamnya), karena auto-render hanya mencari pembatas di dalam satu simpul teks.
-// Teks HTML biasa tidak diperiksa di sini (notasi di <code>/<pre>/KaTeX sah); generator TTL/CAD menjaganya.
+// Teks HTML biasa tidak diperiksa di sini (notasi di <code>/<pre>/KaTeX sah, dan nama parameter kode
+// seperti n_estimators boleh tampil); generator TTL/CAD/Sisken dan notasi-halaman.mjs menjaganya.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Course yang notasinya sudah dirapikan dan dijaga (folder di root repo).
-export const KURSUS_NOTASI = ["Teknik-Tenaga-Listrik", "Pemodelan-Computer-Aided-Design"];
+// Course yang notasinya sudah dirapikan dan dijaga (folder di root repo): seluruh enam course.
+export const KURSUS_NOTASI = ["Teknik-Tenaga-Listrik", "Pemodelan-Computer-Aided-Design", "Getaran-Mekanik",
+  "Engineering-Mathematics", "Optimalisasi-dan-Automasi", "Sistem-Kendali-Cerdas"];
+
+/** Halaman yang diperiksa per course: Modul/Modul-1..14.html lalu Exam/UTS.html dan Exam/UAS.html. */
+export function halamanNotasi(root, course) {
+  const dir = path.join(root, course, "Modul");
+  const modul = fs.readdirSync(dir).filter((n) => /^Modul-\d+\.html$/.test(n))
+    .sort((a, b) => parseInt(a.slice(6), 10) - parseInt(b.slice(6), 10))
+    .map((n) => path.join(course, "Modul", n));
+  const ujian = ["UTS.html", "UAS.html"].map((n) => path.join(course, "Exam", n)).filter((r) => fs.existsSync(path.join(root, r)));
+  return [...modul, ...ujian];
+}
 
 const HURUF = "A-Za-zΑ-Ωα-ω";
 export const RX_SUB = new RegExp(`(?<![A-Za-z0-9_$@.\\\\-])[${HURUF}ΔΣ″′]*[${HURUF}″′]_[${HURUF}0-9φ{(]`, "u");
@@ -60,19 +74,26 @@ export function periksaNotasi(html) {
     if (RX_SUB.test(isi) || RX_SUP.test(isi)) hasil.push({ baris: baris(html, m.index), jenis: "notasi mentah di <text> SVG", teks: isi.slice(0, 90) });
   }
   // 3–4. kanvas dan readout
-  const adaHelper = /function _ttlRumusKtx\(/.test(html);
+  // helper TTL/CAD (_ttlRumusKtx di animasi/dasar.js) atau blok NOTASI-KANVAS (scripts/notasi-halaman.mjs)
+  const adaHelper = /function _ttlRumusKtx\(/.test(html) || /<!-- NOTASI-KANVAS:START v\d+ -->/.test(html);
   for (const s of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
     const js = s[1], awal = s.index + s[0].indexOf(js);
-    for (const c of js.matchAll(/\b(fillText|strokeText|_ttlTeks|_ttlLabel|_ttlTulis)\(/g)) {
+    for (const c of js.matchAll(/\b(fillText|strokeText|_ttlTeks|_ttlLabel|_ttlTulis|_siskenLegenda|_siskenBawah)\(/g)) {
       let [arg, j] = argumen(js, c.index + c[0].length);
       if (c[1] === "_ttlTeks" || c[1] === "_ttlLabel") [arg] = argumen(js, j + 1);            // (ctx, teks, …)
-      else if (c[1] === "_ttlTulis") [arg] = argumen(js, j + 1);                                // (id, teks)
+      else if (c[1] === "_ttlTulis" || c[1] === "_siskenLegenda") [arg] = argumen(js, j + 1); // (id, teks) · (x, [[teks, warna], …])
+      else if (c[1] === "_siskenBawah") {                                                      // (x, s, kiri, kanan)
+        const [, j2] = argumen(js, j + 1);
+        const [kiri, j3] = argumen(js, j2 + 1);
+        const [kanan] = js[j3] === "," ? argumen(js, j3 + 1) : [""];
+        arg = `${kiri},${kanan}`;
+      }
       const akhirBaris = js.indexOf("\n", c.index);
       if (/\/\/ notasi: kode/.test(js.slice(c.index, akhirBaris < 0 ? undefined : akhirBaris))) continue;
       for (const lit of literal(arg)) {
         const polos = lit.replace(/<\/?su[bp]>/g, "");
         if (RX_SUB.test(polos) || RX_SUP.test(polos) || /[A-Za-zΑ-Ωα-ω]_$/u.test(polos)) hasil.push({ baris: baris(html, awal + c.index), jenis: `notasi mentah di ${c[1]}`, teks: lit.slice(0, 90) });   // 'Z_'+lab: subskrip bersambung
-        if (/<su[bp]>/.test(lit) && !adaHelper) hasil.push({ baris: baris(html, awal + c.index), jenis: `penanda <sub>/<sup> di ${c[1]} tanpa helper _ttlRumusKtx`, teks: lit.slice(0, 90) });
+        if (/<su[bp]>/.test(lit) && !adaHelper) hasil.push({ baris: baris(html, awal + c.index), jenis: `penanda <sub>/<sup> di ${c[1]} tanpa helper kanvas (_ttlRumusKtx/NOTASI-KANVAS)`, teks: lit.slice(0, 90) });
       }
     }
   }
@@ -90,8 +111,23 @@ export function periksaNotasi(html) {
   return hasil;
 }
 
-/** Uji mutasi: pemeriksa harus menolak notasi mentah dan menerima pengecualian yang sah. */
-export function ujiMutasiNotasi(halamanBersih, relative) {
+/**
+ * Uji mutasi: pemeriksa harus menolak notasi mentah dan menerima pengecualian yang sah.
+ * `halamanBersih` memakai helper _ttlRumusKtx (TTL/CAD); `halamanKanvas` (opsional) memakai blok
+ * NOTASI-KANVAS (course lain) — tanpa blok itu penanda kanvas harus ditolak.
+ */
+export function ujiMutasiNotasi(halamanBersih, relative, halamanKanvas = null, relKanvas = "") {
+  if (halamanKanvas !== null) {
+    const rxBlok = /<!-- NOTASI-KANVAS:START v\d+ -->[\s\S]*?<!-- NOTASI-KANVAS:END v\d+ -->/;
+    if (!rxBlok.test(halamanKanvas)) throw new Error(`${relKanvas}: notation mutation test needs a NOTASI-KANVAS page`);
+    if (/function _ttlRumusKtx\(/.test(halamanKanvas)) throw new Error(`${relKanvas}: notation mutation test needs a page without _ttlRumusKtx`);
+    if (periksaNotasi(halamanKanvas).length) throw new Error(`${relKanvas}: notation mutation test needs a clean page`);
+    const ujung = halamanKanvas.lastIndexOf("</body>");
+    const baris = "<script>\nfunction _ujiNotasi(ctx){\n  ctx.fillText('x<sub>A</sub> = 3', 4, 4);\n}\n</script>\n";
+    const dengan = halamanKanvas.slice(0, ujung) + baris + halamanKanvas.slice(ujung);
+    if (periksaNotasi(dengan).length) throw new Error(`${relKanvas}: notation check rejected canvas markers on a NOTASI-KANVAS page`);
+    if (!periksaNotasi(dengan.replace(rxBlok, "")).length) throw new Error(`${relKanvas}: notation check accepted canvas markers without NOTASI-KANVAS`);
+  }
   const awalSvg = halamanBersih.indexOf('<figure class="ilustrasi');
   if (awalSvg < 0) throw new Error(`${relative}: notation mutation test needs a figure`);
   if (periksaNotasi(halamanBersih).length) throw new Error(`${relative}: notation mutation test needs a clean page`);
@@ -108,6 +144,9 @@ export function ujiMutasiNotasi(halamanBersih, relative) {
     ["fillText bersambung", kanvas("ctx.fillText('Z_'+lab[i]+' '+z, 10, 10);")],
     ["_ttlTulis bergaris bawah", kanvas("_ttlTulis('info', 'V_th = '+v.toFixed(2));")],
     ["_ttlTeks bergaris bawah", kanvas("_ttlTeks(ctx, 'I_sc = '+i, 4, 4, 100);")],
+    ["_siskenLegenda bergaris bawah", kanvas("_siskenLegenda(x,[['e_ss','#fbbf24']],s.pad,s.atas-13);")],
+    ["_siskenBawah bergaris bawah", kanvas("_siskenBawah(x,s,'K_p naik','waktu →');")],
+    ["fillText berpangkat ^", kanvas("ctx.fillText('y = e^(-at)', 4, 4);")],
     ["KaTeX dipecah <sub>", diAkhir("<p>Contoh \\(V<sub>1</sub> = 4\\) V.</p>")],
     ["KaTeX dengan < telanjang", diAkhir("<p>\\(\\sum_{k<i} Y_{ik}\\)</p>")],
   ];
@@ -132,15 +171,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const rinci = process.argv.includes("--rinci");
   const kursus = process.argv.slice(2).filter((a) => !a.startsWith("--"));
   let total = 0;
+  let jumlah = 0;
   for (const k of kursus.length ? kursus : KURSUS_NOTASI) {
-    const dir = path.join(root, k, "Modul");
-    for (const f of fs.readdirSync(dir).filter((n) => /^Modul-\d+\.html$/.test(n)).sort((a, b) => parseInt(a.slice(6)) - parseInt(b.slice(6)))) {
-      const h = periksaNotasi(fs.readFileSync(path.join(dir, f), "utf8"));
+    for (const rel of halamanNotasi(root, k)) {
+      const h = periksaNotasi(fs.readFileSync(path.join(root, rel), "utf8"));
       total += h.length;
-      if (h.length) console.log(`${k}/Modul/${f}: ${h.length} pelanggaran notasi`);
+      jumlah += 1;
+      if (h.length) console.log(`${rel.replace(/\\/g, "/")}: ${h.length} pelanggaran notasi`);
       if (rinci) for (const x of h) console.log(`  baris ${x.baris}: ${x.jenis} — ${x.teks}`);
     }
   }
-  console.log(`${total} pelanggaran notasi`);
+  console.log(`${total} pelanggaran notasi di ${jumlah} halaman`);
   process.exit(total ? 1 : 0);
 }

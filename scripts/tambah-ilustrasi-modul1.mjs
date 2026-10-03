@@ -57,9 +57,11 @@ SASARAN.forEach((cuplik, i) => {
   html = `${html.slice(0, posTutup)} ${frasa}</p>${blok}${html.slice(posTutup + 4)}`;
 });
 
-// CSS figure: satu blok style bertanda sendiri sebelum </head>.
-html = html.replace(/<style id="ilustrasi-css">[\s\S]*?<\/style>\n?/, "");
-html = html.replace("</head>", `<style id="ilustrasi-css">${CSS_ILUSTRASI}</style>\n</head>`);
+// CSS figure: satu blok style bertanda sendiri sebelum </head>; blok yang sudah ada diganti DI TEMPAT
+// (lihat tambah-ilustrasi-statis.mjs: memindahkannya tiap jalan ulang membuat diff yang isinya sama).
+const gaya = `<style id="ilustrasi-css">${CSS_ILUSTRASI}</style>`;
+if (/<style id="ilustrasi-css">[\s\S]*?<\/style>/.test(html)) html = html.replace(/<style id="ilustrasi-css">[\s\S]*?<\/style>/, () => gaya);
+else html = html.replace("</head>", () => `${gaya}\n</head>`);
 
 // Kotak penjelasan panel animasi menyebut nomor serinya.
 let urutAnim = 0;

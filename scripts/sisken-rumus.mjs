@@ -550,3 +550,59 @@ export function rumusLatex(teks, esc) {
     return kapitalRuas(depan + "\\(" + tokenLatex(rumus) + "\\)" + ekor);
   }).filter(Boolean).join(pemisah);
 }
+
+// ─── Notasi rumus di PROSA yang dirender apa adanya (tanpa KaTeX) ─────────────
+// Laporan dosen 3 Oktober 2026: notasi seperti "V_k" atau "R_l" tampil mentah.
+// Teks penjelasan Sisken ditulis dengan gaya ASCII ("wn", "Kp", "tau", "exp(-st)",
+// "G*H", "e_ss"); di halaman itu tampil apa adanya, berdampingan dengan KaTeX yang
+// menulis ω_n dan K_p bersubskrip. notasiTeks() mengubah SATU potong teks polos;
+// rapikanNotasiHtml() menerapkannya hanya pada simpul teks HTML — tag, atribut,
+// entitas, <script>/<style>/<pre>/<code>/<textarea>/<svg>, dan segmen KaTeX
+// \( \) \[ \] $$ $$ tidak disentuh. Gambar SVG ditulis dengan penanda <sub>/<sup>
+// di sisken-ilustrasi-data.mjs (rumusSvg), kanvas di sisken-animasi.mjs.
+// Huruf z untuk rasio redaman tidak diubah otomatis (z juga peubah neuron dan zero);
+// datanya ditulis ζ.
+const NOTASI_LEKAT = [
+  ["Kp", "K", "p"], ["Ki", "K", "i"], ["Kd", "K", "d"], ["Ku", "K", "u"],
+  ["Tu", "T", "u"], ["Ti", "T", "i"], ["Td", "T", "d"], ["Ts", "T", "s"],
+  ["Mp", "M", "p"], ["tr", "t", "r"], ["tp", "t", "p"], ["ts", "t", "s"], ["ess", "e", "ss"],
+  ["wn", "ω", "n"], ["wd", "ω", "d"], ["ωn", "ω", "n"], ["ωd", "ω", "d"],
+].map(([kata, dasar, indeks]) => [new RegExp(String.raw`(?<![\p{L}\p{N}_\\])` + kata + String.raw`(?![\p{L}\p{N}_])`, "gu"), `${dasar}<sub>${indeks}</sub>`]);
+const NOTASI_YUNANI = [["tau", "τ"], ["zeta", "ζ"], ["eta", "η"], ["mu", "μ"], ["sigma", "σ"], ["omega", "ω"], ["Delta", "Δ"]]
+  .map(([kata, huruf]) => [new RegExp(String.raw`(?<![\p{L}\p{N}_\\-])` + kata + String.raw`(?![\p{L}\p{N}_-])`, "gu"), huruf]);
+
+export function notasiTeks(teks) {
+  let s = String(teks);
+  s = s.replace(/\+\/-/g, "±");
+  // a*b → a·b; "u*(e)" (keluaran tegas u*) tetap: bintang sesudah huruf yang diikuti "(" bukan perkalian.
+  s = s.replace(/(?<=[\p{L}\p{N}])\*(?=[\p{L}\p{N}])|(?<=\))\*(?=[\p{L}\p{N}(])/gu, "·");
+  s = s.replace(/\bexp\(([^()]*)\)/g, (_, a) => `e<sup>${a.trim().replace(/^-/, "−")}</sup>`);
+  s = s.replace(/\bsqrt\(([^()]*)\)/g, "√($1)");
+  s = s.replace(/\|([^|<>]+)\|(maks|max|min)(?![\p{L}\p{N}_])/gu, "|$1|<sub>$2</sub>");
+  for (const [rx, ganti] of NOTASI_LEKAT) s = s.replace(rx, ganti);
+  for (const [rx, ganti] of NOTASI_YUNANI) s = s.replace(rx, ganti);
+  // X_y, X_{..}, X_(..) — pengenal kode huruf kecil (≥3 huruf, mis. solve_ivp) dibiarkan.
+  s = s.replace(/(?<![\p{L}\p{N}_@./\\-])(\p{L}[\p{L}′″]{0,2})_(\{[^{}<>]+\}|\([^()<>]+\)|[\p{L}\p{N}]+)/gu,
+    (m, dasar, indeks) => (/^[a-z]{3,}$/.test(dasar) ? m : `${dasar}<sub>${indeks.replace(/^[{(]|[})]$/g, "")}</sub>`));
+  // Pangkat ^(…) dengan kurung bersarang (e^(−πζ/√(1−ζ²))), lalu ^{…} dan ^x.
+  for (let i = s.indexOf("^("); i >= 0; i = s.indexOf("^(", i + 1)) {
+    const tutup = pasanganKurung(s, i + 1);
+    if (tutup < 0) continue;
+    s = `${s.slice(0, i)}<sup>${s.slice(i + 2, tutup)}</sup>${s.slice(tutup + 1)}`;
+  }
+  s = s.replace(/\^\{([^{}<>]*)\}|\^([\p{L}\p{N}]+)/gu, (m, b, c) => `<sup>${b ?? c}</sup>`);
+  return s;
+}
+
+const LINDUNG_NOTASI = /<(script|style|pre|code|textarea|kbd|samp|svg)\b[\s\S]*?<\/\1\s*>|<!--[\s\S]*?-->|<[A-Za-z!/][^>]*>|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\]|\$\$[\s\S]*?\$\$|&#?\w+;/gi;
+
+export function rapikanNotasiHtml(html) {
+  const s = String(html);
+  let out = "";
+  let pos = 0;
+  for (const m of s.matchAll(LINDUNG_NOTASI)) {
+    out += notasiTeks(s.slice(pos, m.index)) + m[0];
+    pos = m.index + m[0].length;
+  }
+  return out + notasiTeks(s.slice(pos));
+}
