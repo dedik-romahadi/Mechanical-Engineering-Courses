@@ -1672,19 +1672,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔺</div>
       <h3>Daerah Feasibel = Poligon Konveks</h3>
       <p>Setiap kendala <code>aᵢᵀx ≤ bᵢ</code> adalah <strong>setengah-bidang</strong>. Irisan semua kendala membentuk <em>polihedron konveks</em>. Sifat konveks ini krusial: <strong style="color:var(--green)">setiap maksimum/minimum lokal sekaligus global</strong>, tidak ada "perangkap" lokal seperti di NLP. Inilah yang membuat LP <em>tractable</em> bahkan untuk ratusan ribu variabel.</p>
-      <div class="formula">\(P = {x | Ax \le b, x \ge 0}\)</div>
+      <div class="formula">\(P = \{x | Ax \le b, x \ge 0\}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Teorema Dasar LP (Dantzig 1947)</h3>
       <p>Jika LP punya solusi optimal terbatas, maka <strong>setidaknya satu titik vertex</strong> daerah feasibel adalah solusi optimal. Konsekuensi: alih-alih cek semua titik di poligon (jumlahnya tak hingga), cukup periksa <strong style="color:var(--violet)">vertex saja</strong>, jumlahnya finite (paling banyak C(m+n, n)). <em>Algoritma Simpleks</em> melompat dari vertex ke vertex, selalu memperbaiki Z, hingga tidak ada peningkatan lagi.</p>
-      <div class="formula">\(x* \in vertices(P)\)</div>
+      <div class="formula">\(x^* \in \text{vertices}(P)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🐍</div>
       <h3>Implementasi: scipy.optimize.linprog</h3>
       <p>Python menyediakan solver LP gratis lewat <code>scipy.optimize.linprog</code>. Cukup definisikan: <code>c</code> (koefisien objektif), <code>A_ub</code>/<code>b_ub</code> (kendala ≤), <code>A_eq</code>/<code>b_eq</code> (kendala =), <code>bounds</code> (batas variabel). Method default <code>'highs'</code> (HiGHS solver, 2020) menyelesaikan masalah hingga <strong style="color:var(--amber)">jutaan variabel dalam detik</strong>. Untuk LP industrial: pakai PuLP/Pyomo + Gurobi/CPLEX.</p>
-      <div class="formula">\(linprog(c, A_{ub}, b_{ub}, ...)\)</div>
+      <div class="formula"><code>linprog(c, A_ub, b_ub, ...)</code></div>
     </div>
   </div>
 
@@ -1715,7 +1715,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Empat Komponen Wajib Formulasi LP</div>
-    Variabel \(x \in \mathbb{R}ⁿ \cdot\) Objektif \(min/max\) cᵀx  \(\cdot\) Kendala \(Ax \le b\) (atau \(=) \cdot\) Bounds \(x \ge 0\) (atau \(lb \le x \le ub)\)
+    Variabel \(x \in \mathbb{R}ⁿ \cdot\) Objektif \(\min/\max\) cᵀx  \(\cdot\) Kendala \(Ax \le b\) (atau \(=\)) \(\cdot\) Bounds \(x \ge 0\) (atau \(lb \le x \le ub\))
   <span class="formula-number">(2)</span></div>
 <!-- PERSAMAAN-STATIS:2:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1729,7 +1729,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📝</div>
       <h3>Bentuk Kanonik (Maksimisasi)</h3>
       <p>Bentuk paling intuitif untuk masalah produksi: <code>max Z = cᵀx</code> dengan kendala <code>Ax ≤ b</code> dan <code>x ≥ 0</code>. Setiap baris <code>aᵢᵀx ≤ bᵢ</code> merepresentasikan <em>batas sumber daya</em> (kapasitas mesin, bahan baku, jam kerja). <strong style="color:var(--cyan)">Inequality ≤ adalah default</strong> karena menggambarkan "tidak boleh melebihi". Untuk minimisasi, kalikan c dengan −1.</p>
-      <div class="formula">\(max c^{T}x s.t. Ax \le b, x \ge 0\)</div>
+      <div class="formula">\(\max c^{T}x \text{ s.t. } Ax \le b, x \ge 0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
@@ -1747,7 +1747,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚠️</div>
       <h3>Tiga Status Solusi LP</h3>
       <p>Saat solver berjalan, hasilnya salah satu dari: (1) <strong style="color:var(--green)">Optimal</strong>, solusi unik atau multiple optima ditemukan; (2) <strong style="color:var(--pink)">Infeasible</strong>, kendala kontradiktif, daerah feasibel kosong; (3) <strong style="color:var(--amber)">Unbounded</strong>, Z bisa naik tanpa batas (formulasi kurang kendala). Selalu cek <code>result.status</code> sebelum percaya <code>result.x</code>, jangan asumsi optimal.</p>
-      <div class="formula">\(status \in {0, 2, 3}\)</div>
+      <div class="formula">\(\text{status} \in \{0, 2, 3\}\)</div>
     </div>
   </div>
 
@@ -1778,7 +1778,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Empat Komponen Geometris LP</div>
-    Constraint line: aᵢᵀx \(= bᵢ \cdot Half-plane:\) aᵢᵀx \(\le bᵢ \cdot\) Vertex (extreme point)  \(\cdot Iso-profit\) line: cᵀx \(= c_0\)
+    Constraint line: aᵢᵀx \(= bᵢ \cdot \text{Half-plane:}\) aᵢᵀx \(\le bᵢ \cdot\) Vertex (extreme point)  \(\cdot \text{Iso-profit}\) line: cᵀx \(= c_0\)
   <span class="formula-number">(3)</span></div>
 <!-- PERSAMAAN-STATIS:3:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1798,19 +1798,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔻</div>
       <h3>Identifikasi Daerah Feasibel</h3>
       <p>Daerah feasibel = irisan semua setengah-bidang. Berbentuk <strong>poligon konveks</strong> (mungkin bounded atau unbounded). Vertex daerah feasibel = perpotongan dua atau lebih garis constraint yang aktif (binding). Untuk LP 2D dengan m kendala + 2 non-negativitas, jumlah vertex ≤ <code>C(m+2, 2)</code>. <strong style="color:var(--green)">Salah satu vertex inilah solusi optimal</strong> (Teorema Dasar LP).</p>
-      <div class="formula">\(P = ⋂ {x | a_i^{T}x \le b_i}\)</div>
+      <div class="formula">\(P = ⋂ \{x | a_i^{T}x \le b_i\}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Iso-Profit Line &amp; Optimasi</h3>
       <p>Plot garis <code>c₁x₁ + c₂x₂ = Z₀</code> untuk Z₀ kecil. Garis ini punya kemiringan tetap <code>−c₁/c₂</code>; nilai Z naik saat garis bergeser ke arah <strong>vektor gradien c</strong>. Geser garis menjauhi origin (untuk maksimisasi) hingga <em>menyentuh vertex terakhir</em> daerah feasibel. Vertex itu = solusi optimal x*. Jika garis sejajar dengan satu sisi → <strong>multiple optima</strong>.</p>
-      <div class="formula">\(∇Z = c \to arah peningkatan\)</div>
+      <div class="formula">\(∇Z = c \to \text{arah peningkatan}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔍</div>
       <h3>Enumerasi Vertex (Brute Force)</h3>
       <p>Alternatif metode grafis: <em>cari semua vertex</em>, evaluasi Z di tiap vertex, pilih yang terbesar. Vertex = solusi sistem persamaan dari 2 kendala aktif. Untuk n=2 dengan m kendala: cek semua <code>C(m,2)</code> kombinasi pasangan, validasi feasibility, lalu evaluasi Z. Cocok untuk <strong style="color:var(--amber)">verifikasi manual</strong> hasil solver di kasus kecil.</p>
-      <div class="formula">\(x* = argmax{Z(v) : v \in vertices}\)</div>
+      <div class="formula">\(x^* = \arg\max\{Z(v) : v \in \text{vertices}\}\)</div>
     </div>
   </div>
 
@@ -1854,7 +1854,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Empat Tahap Algoritma Simpleks</div>
-    Initial BFS  \(\cdot\) Pricing (reduced cost \(zⱼ - cⱼ) \cdot\) Ratio test (min \(bᵢ/aᵢⱼ) \cdot\) Pivot \((Gauss-Jordan)\)
+    Initial BFS  \(\cdot\) Pricing (reduced cost \(zⱼ - cⱼ\)) \(\cdot\) Ratio test (min \(bᵢ/aᵢⱼ\)) \(\cdot\) Pivot \((\text{Gauss-Jordan})\)
   <span class="formula-number">(4)</span></div>
 <!-- PERSAMAAN-STATIS:4:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1874,7 +1874,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">💰</div>
       <h3>Pricing — Pilih Variabel Masuk</h3>
       <p>Hitung <strong>reduced cost</strong> tiap NBV: <code>z̄ⱼ = cⱼ − c<sub>BV</sub>·B⁻¹·aⱼ</code>. Untuk <em>maksimisasi</em>: pilih NBV dengan <strong style="color:var(--green)">z̄ⱼ paling positif</strong> (Dantzig's rule), variabel ini akan masuk basis dan menaikkan Z. Jika semua z̄ⱼ ≤ 0 → <em>solusi optimal</em>, stop. Alternatif: <em>steepest edge</em> (lebih cepat tapi lebih mahal per iterasi), <em>Bland's rule</em> (anti-cycling).</p>
-      <div class="formula">\(j* = argmax{z̄_j : NBV}\)</div>
+      <div class="formula">\(j^* = \arg\max\{z̄_j : \text{NBV}\}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
@@ -1892,7 +1892,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚡</div>
       <h3>Big-M &amp; Two-Phase (Initial BFS)</h3>
       <p>Saat tidak ada slack/identitas siap (mis. ada kendala = atau ≥), pakai <strong>artificial variable</strong>. Dua pendekatan: (1) <em>Big-M method</em>: tambah artificial dengan koefisien penalti M besar di objektif → solver akan menekan ke 0; (2) <em>Two-Phase method</em>: minimize sum of artificial dulu (Phase 1), lalu solve LP asli (Phase 2). Two-Phase lebih numerik stabil di praktik.</p>
-      <div class="formula">\(min M \cdot \Sigma a_j + c^{T}x\)</div>
+      <div class="formula">\(\min M \cdot \Sigma a_j + c^{T}x\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚀</div>
@@ -1906,7 +1906,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <table class="data-table">
       <thead><tr><th>Aspek</th><th>Simpleks</th><th>Interior Point</th><th>Network Simplex</th></tr></thead>
       <tbody>
-        <tr><td style="color:var(--cyan)">Worst-case</td><td>Eksponensial (Klee-Minty)</td><td>O(\(n^3\)·L) polynomial</td><td>O(\(m \cdot n)\) untuk network LP</td></tr>
+        <tr><td style="color:var(--cyan)">Worst-case</td><td>Eksponensial (Klee-Minty)</td><td>O(\(n^3\)·L) polynomial</td><td>\(O(m \cdot n)\) untuk network LP</td></tr>
         <tr><td style="color:var(--green)">Praktik</td><td>~2m–3m iter, sangat cepat</td><td>~30–50 iter, scalable</td><td>10–100× lebih cepat untuk transport</td></tr>
         <tr><td style="color:var(--amber)">Solusi</td><td>Vertex (sparse)</td><td>Interior (dense)</td><td>Vertex jaringan</td></tr>
         <tr><td style="color:var(--violet)">Cocok untuk</td><td>LP kecil-sedang, warm start</td><td>LP besar, dense matrix</td><td>Transportation, shortest path</td></tr>
@@ -1992,7 +1992,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi \(1\;\text{---}\) Daerah Feasibel \(2D\) &amp; \(Iso-Profit\) Lines: Cari Vertex Optimal</span>
+      <span class="anim-title">Animasi \(1\;\text{---}\) Daerah Feasibel \(2D\) &amp; Iso-Profit Lines: Cari Vertex Optimal</span>
     </div>
     <div class="anim-body">
       <canvas id="cvPhysics" height="340"></canvas>
@@ -2141,13 +2141,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🏭</div>
       <h3>Production Planning &amp; Mix Optimization</h3>
       <p>Pabrik komponen otomotif memproduksi 8 jenis bracket dengan profit, waktu CNC, waktu welding, dan demand pasar berbeda. <strong>Variabel</strong>: <code>xᵢ</code> = unit per bracket; <strong>objektif</strong>: max Σ profit·xᵢ; <strong>kendala</strong>: jam mesin, raw material, demand min/max, kontrak supply. LP menyelesaikan dalam detik vs spreadsheet manual yang bisa miss optimal 10–20%. Dipakai di Toyota Production System, Bosch, Astra. SAP IBP (Integrated Business Planning) menjalankan LP setiap shift untuk re-plan.</p>
-      <div class="formula">\(max c^{T}x s.t. capacity, demand\)</div>
+      <div class="formula">\(\max c^{T}x \text{ s.t. capacity, demand}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔩</div>
       <h3>Material Blending — Steel &amp; Alloy</h3>
       <p>Pabrik baja blend scrap, pig iron, dan ferro-alloy untuk hasilkan komposisi target (C, Mn, Si, Ni, Cr, %) dengan biaya minimum. <strong>Variabel</strong>: <code>xⱼ</code> = ton tiap raw material; <strong>objektif</strong>: min Σ harga·xⱼ; <strong>kendala</strong>: spek kimia <code>aᵢⱼxⱼ &lt;/&gt; spec_i</code>, total weight, melt capacity. ArcelorMittal, Krakatau Steel, Posco semua pakai LP untuk tiap heat di EAF (Electric Arc Furnace). Hemat 2–8% biaya raw material, translate ke jutaan USD/tahun.</p>
-      <div class="formula">\(min c^{T}x s.t. spec \le Ax \le spec̄\)</div>
+      <div class="formula">\(\min c^{T}x\ \text{s.t. spec} \le Ax \le \overline{\text{spec}}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚛</div>
@@ -2159,7 +2159,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚡</div>
       <h3>Energy Optimization Smart Factory</h3>
       <p>Pabrik dengan solar PV (200 kW), genset diesel, dan grid PLN. Bagaimana <em>mix</em> sumber listrik per jam agar total cost minimum, dengan kendala demand pabrik (kompresor, oven, AC) dan batas grid (kontrak max 150 kW). <strong>Variabel</strong>: pᵢ(t) = power tiap sumber per jam; <strong>objektif</strong>: min Σ cost·p; <strong>kendala</strong>: balance Σpᵢ ≥ demand, ramp rate genset, baterai SoC linear approximation. LP dijalankan setiap 15 menit di Energy Management System modern (Siemens MindSphere, GE Predix). Hemat 8–15% tagihan listrik vs operasi manual.</p>
-      <div class="formula">\(min \Sigma c_i(t) \cdot p_i(t)\)</div>
+      <div class="formula">\(\min \Sigma c_i(t) \cdot p_i(t)\)</div>
     </div>
   </div>
 
@@ -3175,7 +3175,7 @@ from scipy.optimize import linprog
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Sensitivity analysis menunjukkan welding adalah bottleneck dengan shadow price Rp 16k/jam. Pertimbangkan tiga opsi: <strong>(A)</strong> overtime 20 jam/minggu @ Rp 8k/jam (premi lembur); <strong>(B)</strong> beli mesin welding kedua, capex Rp 800 juta, +60 jam/minggu kapasitas, lifespan 8 tahun; <strong>(C)</strong> outsource ke vendor @ Rp 12k/jam, tanpa batas atas. Analisis break-even time, NPV ke depan, dan risiko (kualitas, dependensi vendor).</p>
         <div style="background:rgba(255,64,129,.04);border:1px solid rgba(255,64,129,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
-          💬 <em>Petunjuk: marginal benefit per jam welding \(=\) shadow price \(= Rp 16k.\) Untuk overtime: marginal cost \(Rp 8k \to\) marginal profit \(Rp 8k/jam,\) langsung positif. Untuk mesin baru: marginal benefit \(60\) jam \(\cdot 50\) minggu \(\cdot Rp 16k = Rp 48 juta/tahun,\) payback period \(= 800 / 48 \approx 16.7\) tahun \(( \gg\) lifespan \(8\) tahun!), kecuali demand naik signifikan. Untuk outsource: marginal cost \(Rp 12k \to\) marginal profit \(Rp 4k/jam,\) lebih kecil dari overtime, tetapi tidak ada commitment jangka panjang.</em>
+          💬 <em>Petunjuk: marginal benefit per jam welding = shadow price = Rp 16k. Untuk overtime: marginal cost Rp 8k → marginal profit Rp 8k/jam, langsung positif. Untuk mesin baru: marginal benefit 60 jam · 50 minggu · Rp 16k = Rp 48 juta/tahun, payback period \(= 800 / 48 \approx 16.7\) tahun (≫ lifespan 8 tahun!), kecuali demand naik signifikan. Untuk outsource: marginal cost Rp 12k → marginal profit Rp 4k/jam, lebih kecil dari overtime, tetapi tidak ada commitment jangka panjang.</em>
         </div>
 
         <div class="poll">
