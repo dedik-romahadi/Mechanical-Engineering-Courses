@@ -4,12 +4,13 @@ import path from "node:path";
 import { MATERI } from "./sisken-materi.mjs";
 import { FORUM } from "./sisken-forum.mjs";
 import { PUSTAKA } from "./sisken-pustaka.mjs";
-import { rumusLatex as _rumusLatex, tokenLatex, tokenNotasi, adaPersamaanInti } from "./sisken-rumus.mjs";
+import { rumusLatex as _rumusLatex, tokenLatex, tokenNotasi, adaPersamaanInti, notasiTeks, rapikanNotasiHtml } from "./sisken-rumus.mjs";
 import { renderIlustrasi, CSS_ILUSTRASI, kapitalAwal } from "./sisken-ilustrasi.mjs";
 import { GAMBAR_MODUL } from "./sisken-ilustrasi-data.mjs";
 import { PENJELASAN_RUMUS, NOTASI_KAMUS } from "./sisken-rumus-jelas.mjs";
 import { normalizeSiskenExportHtml } from "./sisken-export-html.mjs";
 import { normalizeSiskenForumRuntime } from "./sisken-forum-runtime.mjs";
+import { bungkus as bungkusOpsi } from "./notasi-halaman.mjs";
 import { ANIMASI_MODUL, PENJELASAN_ANIMASI } from "./sisken-animasi.mjs";
 
 const rumusLatex = (teks) => _rumusLatex(teks, esc);
@@ -159,7 +160,7 @@ const modules = [
     title: "Sistem Kontrol Logika Fuzzy",
     sub: "Sub-CPMK 5.3 — Merancang variabel linguistik, membership function, rule base, inferensi, dan defuzzifikasi",
     intro: "Fuzzy control memetakan istilah seperti 'error besar positif' dan 'perubahan cepat' menjadi aksi kontrol numerik. Kekuatan utamanya adalah interpretabilitas dan kemampuan menangkap heuristik operator tanpa model plant presisi.",
-    concepts: [["Fuzzifikasi", "Input crisp diubah menjadi derajat keanggotaan 0–1 pada beberapa himpunan linguistik.", "μ_A(x)∈[0,1]"], ["Rule base", "Aturan IF–THEN menghubungkan kondisi error dan delta-error dengan aksi.", "IF e=P AND de=N THEN u=PM"], ["Inferensi", "Operator AND/OR dan implication menggabungkan kekuatan aturan.", "α=min(μ_e,μ_de)"], ["Defuzzifikasi", "Output fuzzy diubah menjadi nilai actuator, misalnya centroid atau weighted average.", "u = (Σ α_i*z_i)/(Σ α_i)" ]],
+    concepts: [["Fuzzifikasi", "Input crisp diubah menjadi derajat keanggotaan 0–1 pada beberapa himpunan linguistik.", "μ_A(x)∈[0,1]"], ["Rule base", "Aturan IF–THEN menghubungkan kondisi error dan perubahan error (Δe) dengan aksi.", "IF e=P AND de=N THEN u=PM"], ["Inferensi", "Operator AND/OR dan implication menggabungkan kekuatan aturan.", "α=min(μ_e,μ_de)"], ["Defuzzifikasi", "Output fuzzy diubah menjadi nilai actuator, misalnya centroid atau weighted average.", "u = (Σ α_i*z_i)/(Σ α_i)" ]],
     steps: ["Tentukan rentang dan scaling input", "Rancang membership function overlap", "Susun rule table lengkap", "Uji surface, saturasi, dan noise"],
     analogies: [["Bahasa sehari-hari", "Kata 'agak panas' tidak biner; memiliki derajat yang berubah halus."], ["Mengatur keran", "Aksi tidak hanya ON/OFF, tetapi sedikit, sedang, atau banyak berdasarkan kondisi."], ["Operator senior", "Rule base merekam keputusan yang biasanya tersimpan sebagai intuisi."]],
     industries: [["Crane", "Fuzzy meredam swing berdasarkan sudut dan kecepatan ayun."], ["Air conditioning", "Mengatur compressor dan fan dari error suhu serta kelembapan."], ["Water level", "Valve diatur halus berdasarkan level dan laju perubahan."]],
@@ -507,11 +508,15 @@ ${panelForum.replaceAll("__PERTEMUAN__", String(pert))}
   // persis: penghitung kata per jawaban, status jajak, bilah kemajuan, dan
   // penyusun HTML yang ditempel ke Forum FAST Learning. Yang khusus per modul
   // hanya kunci jajak, nomor pertemuan, judul, serta teks pertanyaannya.
+  // Pertanyaan dan petunjuk di salinan HTML Forum (yang disalin/diekspor mahasiswa) memakai notasi
+  // yang sama dengan halaman forum (K<sub>p</sub>, ω<sub>n</sub>): rapikanNotasiHtml melewati <script>, jadi
+  // teksnya dirapikan di sini sebelum masuk ke templat runtime.
+  const tampil = (s) => rapikanNotasiHtml(esc(s));
   const isiBangun = bangunForum
     .replaceAll("__PERTEMUAN__", String(pert))
     .replaceAll("__JUDUL__", esc(d.judul))
-    .replace("__Q1__", esc(d.diskusi[0].q)).replace("__Q2__", esc(d.diskusi[1].q)).replace("__Q3__", esc(d.diskusi[2].q))
-    .replace("__H1__", esc(d.diskusi[0].petunjuk)).replace("__H2__", esc(d.diskusi[1].petunjuk)).replace("__H3__", esc(d.diskusi[2].petunjuk));
+    .replace("__Q1__", () => tampil(d.diskusi[0].q)).replace("__Q2__", () => tampil(d.diskusi[1].q)).replace("__Q3__", () => tampil(d.diskusi[2].q))
+    .replace("__H1__", () => tampil(d.diskusi[0].petunjuk)).replace("__H2__", () => tampil(d.diskusi[1].petunjuk)).replace("__H3__", () => tampil(d.diskusi[2].petunjuk));
 
   const runtime = `<script id="sisken-forum-runtime">
 function _ah(s){var h=5381;s=s+'mEKsP9k4tQ2';for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}
@@ -1089,7 +1094,7 @@ function richModule(m, index) {
   const kotakJelas = (j, labelPanel) => {
     if (!j.apa || !j.variabel?.length) throw new Error(`Modul ${n}: penjelasan panel kosong`);
     const daftar = j.variabel.map(([notasi, arti], iw) =>
-      `<span class="anim-var nw${iw % 5}"><code>${notasi}</code><span>${kapitalAwal(arti)}</span></span>`).join("");
+      `<span class="anim-var nw${iw % 5}"><code>${notasiTeks(notasi)}</code><span>${kapitalAwal(arti)}</span></span>`).join("");
     return `  <div class="tip-box reveal anim-jelas">
     <strong>📊 Cara Membaca ${labelPanel || "Animasi Ini"}:</strong> ${kapitalAwal(j.apa)}
     <div class="anim-var-list" aria-label="Arti tiap notasi">${daftar}</div>
@@ -1243,7 +1248,7 @@ function _siskenPasangTeksPas(c,x){
     var utuh=teks, potong=false;
     // Elipsis hanya bila teks TELANJANG masih tak muat setelah menyusut —
     // jangan menghukum teks yang pas hanya karena '…' ikut ditimbang.
-    if(x.measureText(teks).width>batas){
+    if(x.measureText(teks).width>batas){teks=teks.replace(/<\\/?su[bp]>/g,''); // penanda rumus NOTASI-KANVAS tak boleh terpenggal
       while(teks.length>4&&x.measureText(teks+'…').width>batas)teks=teks.slice(0,-1);
       teks+='…';potong=true;
     }
@@ -1422,7 +1427,7 @@ for (const [index, m] of modules.entries()) {
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>Modul ${index + 1} — ${m.title} | Sistem Kendali Cerdas</title>`);
   html = html.replace(/^[ \t]*<span class="nav-brand">[^\r\n]*$/m, `  <span class="nav-brand"><span class="pulse"></span><span>SISKENCERDAS // M${index + 1}</span></span>`);
   html = html.replace(/id="visitorTableBody" style="max-height:[^;\"]+;overflow-y:auto;"/g, 'id="visitorTableBody" style="max-height:min(72vh,820px);overflow-y:auto;"');
-  html = html.replace(/<div class="page active" id="page-modul">[\s\S]*?<\/div>\s*<!-- end page-modul -->/, `<div class="page active" id="page-modul">${richModule(m, index)}\n</div><!-- end page-modul -->`);
+  html = html.replace(/<div class="page active" id="page-modul">[\s\S]*?<\/div>\s*<!-- end page-modul -->/, `<div class="page active" id="page-modul">${rapikanNotasiHtml(richModule(m, index))}\n</div><!-- end page-modul -->`);
 
   // Bilah tautan di bawah nav dibangun ulang dari bagian yang benar-benar ada.
   // Sebelumnya isinya masih menunjuk ke anchor halaman lama sehingga seluruh
@@ -1442,7 +1447,13 @@ for (const [index, m] of modules.entries()) {
   // qId-nya terikat Firestore.
   // Halaman forum dibangkitkan bila modul sudah punya data kasus di
   // sisken-forum.mjs. Modul yang belum punya dibiarkan apa adanya.
-  const forum = forumPage(nomor);
+  // Notasi rumus di prosa (wn, Kp, tau, exp(), a*b, e_ss) ditulis bersubskrip/berpangkat sungguhan;
+  // sisken-rumus.rapikanNotasiHtml hanya menyentuh simpul teks di luar kode, KaTeX, SVG, dan skrip.
+  // Opsi jajak (.p-opt, display:flex) yang sesudah dirapikan memuat <sub>/<sup> (K<sub>p</sub>, e<sup>−Ls</sup>)
+  // dibungkus satu <span class="opsi-teks"> — aturan yang sama dengan notasi-halaman.mjs (Pedoman §2 butir (9)),
+  // supaya keluaran generator langsung final dan notasi-halaman --periksa tetap 0 sesudah regenerasi.
+  const forumMentah = forumPage(nomor);
+  const forum = forumMentah ? bungkusOpsi(rapikanNotasiHtml(forumMentah)) : forumMentah;
   if (forum) {
     const reForum = /(<div class="page" id="page-forum">)[\s\S]*?(<\/div>\s*<!-- end page-forum -->)/;
     if (reForum.test(html)) {

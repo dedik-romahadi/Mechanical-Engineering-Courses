@@ -35,10 +35,10 @@ function drawMaterial(){
   const hMaks=Math.max.apply(null,data.map(d=>d.h)), mMaks=Math.max.apply(null,data.map(d=>d.m));
   const sorot=_ttlJalan('material')?Math.floor(_mtFrame/70)%5:0;
   const f9="9px 'JetBrains Mono',monospace", f10="10px 'JetBrains Mono',monospace";
-  const judul='Lima penampang di bawah memiliki E·I yang sama persis — tingginya berbeda karena '+_cad13Ikat('h ∝ E^(−1/3)');
+  const judul='Lima penampang di bawah memiliki E·I yang sama persis — tingginya berbeda karena '+_cad13Ikat('h ∝ E<sup>−1/3</sup>');
   const d=data[sorot];
   const ringkas=[[d.nama+': h = '+_cad13Ind(d.h,2)+' mm',d.warna],['m = ρ·L·b·h = '+_cad13Ind(d.m,0)+' g',_C13G,f10],
-                 ['indeks M = E^(1/3)/ρ = '+_cad13Ind(d.idx,2),_C13A,f10],['massa relatif baja = '+_cad13Ind(100*d.m/data[0].m,1)+' %',_C13M,f10]];
+                 ['indeks M = E<sup>1/3</sup>/ρ = '+_cad13Ind(d.idx,2),_C13A,f10],['massa relatif baja = '+_cad13Ind(100*d.m/data[0].m,1)+' %',_C13M,f10]];
   if(!sempit){
     _cad13Muat(ctx,judul,12,18,W-24,_C13T);
     // penampang b x h_i (kiri)
@@ -52,7 +52,7 @@ function drawMaterial(){
       _cad13Teks(ctx,'h '+_cad13Ind(dd.h,1),x+wpx/2,dasar+26,dd.warna,f9,'center');
     });
     _ttlGaris(ctx,x0-6,dasar,x0+W*0.40,dasar,'rgba(148,163,184,.45)',1.2);
-    _cad13Teks(ctx,'penampang b × h_i (skala sama)',x0,dasar+42,_C13M,f10);
+    _cad13Teks(ctx,'penampang b × h<sub>i</sub> (skala sama)',x0,dasar+42,_C13M,f10);
     // batang massa (kanan)
     const bx=W*0.50, bw=W*0.30;
     _cad13Teks(ctx,'massa balok (g) pada kekakuan sama',bx,H*0.14,_C13T,f10);
@@ -79,7 +79,7 @@ function drawMaterial(){
       _cad13Muat(ctx,'h '+_cad13Ind(dd.h,1),xc,dasar+25,kol-3,dd.warna,f9,'center');
     });
     _ttlGaris(ctx,m,dasar,W-m,dasar,'rgba(148,163,184,.45)',1.2);
-    y=_cad13Muat(ctx,'penampang b × h_i (skala sama)',12,dasar+41,W-24,_C13M,f10);
+    y=_cad13Muat(ctx,'penampang b × h<sub>i</sub> (skala sama)',12,dasar+41,W-24,_C13M,f10);
     y=_cad13Muat(ctx,'massa balok (g) pada kekakuan sama',12,y+8,W-24,_C13T,f10);
     ctx.font=f10; const wLab=ctx.measureText(_cad13Ind(mMaks,0)+' g').width;
     const bx=12, bw=Math.max(40,W-bx-18-wLab);
@@ -91,7 +91,7 @@ function drawMaterial(){
     y+=5*17+8;
     ringkas.forEach(([s,w,f])=>{y=_cad13Muat(ctx,s,12,y,W-24,w,f)+2;});
   }
-  _ttlTulis('materialInfo',d.nama+': h = '+_cad13Ind(d.h,2)+' mm agar E·I sama dengan baja '+h0.toFixed(0)+' mm; massa '+_cad13Ind(d.m,0)+' g ('+_cad13Ind(100*d.m/data[0].m,1)+' % massa baja) dengan indeks E^(1/3)/ρ = '+_cad13Ind(d.idx,2)+'. Jejak karbonnya masih harus dikalikan faktor emisi f = '+_cad13Ind(d.f,1)+' kg CO₂/kg — massa terkecil belum tentu jejak terkecil.');
+  _ttlTulis('materialInfo',d.nama+': h = '+_cad13Ind(d.h,2)+' mm agar E·I sama dengan baja '+h0.toFixed(0)+' mm; massa '+_cad13Ind(d.m,0)+' g ('+_cad13Ind(100*d.m/data[0].m,1)+' % massa baja) dengan indeks E<sup>1/3</sup>/ρ = '+_cad13Ind(d.idx,2)+'. Jejak karbonnya masih harus dikalikan faktor emisi f = '+_cad13Ind(d.f,1)+' kg CO₂/kg — massa terkecil belum tentu jejak terkecil.');
   if(_ttlJalan('material')){_mtFrame++; requestAnimationFrame(drawMaterial);}
 }
 
@@ -141,8 +141,8 @@ function drawBillet(){
   _cad13Panah(ctx,X(0),oy+18,X(a),oy+18,_C13A); _cad13Panah(ctx,X(a),oy+18,X(0),oy+18,_C13A);
   _cad13Teks(ctx,'a = '+a.toFixed(0),X(a/2),oy+14,_C13A,f10,'center');
   _cad13Teks(ctx,'c = '+c.toFixed(0),X(0)-6,Y(c/2),_C13A,f10,'right');
-  const baris=[['V_part = b·(a·t + (c − t)·t)',_C13C,undefined,0,2],['  = '+vPart.toFixed(0)+' mm³',_C13M,f10,18,2],['V_billet = a·b·c = '+vBillet.toFixed(0)+' mm³',_C13M,f10,38,6],
-               ['U = 100·V_part/V_billet = '+_cad13Ikat(_cad13Ind(U,3)+' %'),U<30?_C13R:_C13G,undefined,62,2],['serpihan = '+_cad13Ind(100-U,3)+' %',_C13R,f10,82,0]];
+  const baris=[['V<sub>part</sub> = b·(a·t + (c − t)·t)',_C13C,undefined,0,2],['  = '+vPart.toFixed(0)+' mm³',_C13M,f10,18,2],['V<sub>billet</sub> = a·b·c = '+vBillet.toFixed(0)+' mm³',_C13M,f10,38,6],
+               ['U = 100·V<sub>part</sub>/V<sub>billet</sub> = '+_cad13Ikat(_cad13Ind(U,3)+' %'),U<30?_C13R:_C13G,undefined,62,2],['serpihan = '+_cad13Ind(100-U,3)+' %',_C13R,f10,82,0]];
   // kolom angka: di kanan gambar (layar lebar) atau di bawahnya (ponsel)
   let gx, gy, gw;
   if(!sempit){
@@ -160,7 +160,7 @@ function drawBillet(){
   _cad13Kotak(ctx,gx+gw*U/100,gy,gw*(100-U)/100,14,'rgba(239,68,68,.25)',_C13R,1.2);
   _cad13Teks(ctx,'produk',gx+2,gy+26,_C13G,f9);
   _cad13Teks(ctx,'serpihan',gx+gw,gy+26,_C13R,f9,'right');
-  _ttlTulis('billetInfo','a = '+a.toFixed(0)+', c = '+c.toFixed(0)+', t = '+t.toFixed(0)+' mm: V_part = '+vPart.toFixed(0)+' mm³ dari V_billet = '+vBillet.toFixed(0)+' mm³, sehingga U = '+_cad13Ind(U,3)+' % dan serpihan '+_cad13Ind(100-U,3)+' %. Menipiskan kaki t memang meringankan produk, tetapi menurunkan U — energi terkandung serpihan tetap dibayar.');
+  _ttlTulis('billetInfo','a = '+a.toFixed(0)+', c = '+c.toFixed(0)+', t = '+t.toFixed(0)+' mm: V<sub>part</sub> = '+vPart.toFixed(0)+' mm³ dari V<sub>billet</sub> = '+vBillet.toFixed(0)+' mm³, sehingga U = '+_cad13Ind(U,3)+' % dan serpihan '+_cad13Ind(100-U,3)+' %. Menipiskan kaki t memang meringankan produk, tetapi menurunkan U — energi terkandung serpihan tetap dibayar.');
   if(_ttlJalan('billet')){_blFrame++; requestAnimationFrame(drawBillet);}
 }
 
@@ -252,7 +252,7 @@ function drawCangkang(){
   _cad13Teks(ctx,'muka atas dibuang',X(a/2),Y(h)-8,_C13M,f10,'center');
   _cad13Panah(ctx,X(0),oy+22,X(a),oy+22,_C13A); _cad13Panah(ctx,X(a),oy+22,X(0),oy+22,_C13A);
   _cad13Teks(ctx,'a = '+a.toFixed(0),X(a/2),oy+18,_C13A,f10,'center');
-  const baris=[['V_pejal = '+vSolid.toFixed(0)+' mm³ → '+mSolid.toFixed(0)+' g',_C13M,0,4],['V_cangkang = '+vShell.toFixed(0)+' mm³',_C13C,18,6],
+  const baris=[['V<sub>pejal</sub> = '+vSolid.toFixed(0)+' mm³ → '+mSolid.toFixed(0)+' g',_C13M,0,4],['V<sub>cangkang</sub> = '+vShell.toFixed(0)+' mm³',_C13C,18,6],
                ['massa = '+_cad13Ind(mShell,2)+' g (hemat '+_cad13Ind(hemat,1)+' %)',_C13G,38,0]];
   // kurva massa terhadap tebal dinding (kanan bawah; di ponsel di bawah baris angka)
   let gx, gy, gw, gh;
@@ -274,7 +274,7 @@ function drawCangkang(){
   _cad13Teks(ctx,'m (g)',gx+4,gy-gh+10,_C13M,f9);
   _cad13Teks(ctx,'t = '+tMin,gx,gy+14,_C13M,f9);
   _cad13Teks(ctx,'t = '+tMaks+' mm',gx+gw,gy+14,_C13M,f9,'right');
-  _ttlTulis('cangkangInfo','t = '+_cad13Ind(t,1)+' mm: V_cangkang = a·b·h − (a − 2t)(b − 2t)(h − t) = '+vShell.toFixed(0)+' mm³, massa '+_cad13Ind(mShell,2)+' g dari '+mSolid.toFixed(0)+' g pejal (hemat '+_cad13Ind(hemat,1)+' %). Perhatikan kurva yang melandai: menipiskan dinding di bawah batas proses menambah risiko cacat jauh lebih cepat daripada menghemat massa.');
+  _ttlTulis('cangkangInfo','t = '+_cad13Ind(t,1)+' mm: V<sub>cangkang</sub> = a·b·h − (a − 2t)(b − 2t)(h − t) = '+vShell.toFixed(0)+' mm³, massa '+_cad13Ind(mShell,2)+' g dari '+mSolid.toFixed(0)+' g pejal (hemat '+_cad13Ind(hemat,1)+' %). Perhatikan kurva yang melandai: menipiskan dinding di bawah batas proses menambah risiko cacat jauh lebih cepat daripada menghemat massa.');
   if(_ttlJalan('cangkang')){_cgFrame++; requestAnimationFrame(drawCangkang);}
 }
 

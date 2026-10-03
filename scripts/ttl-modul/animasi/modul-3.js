@@ -43,7 +43,7 @@ function drawSeriParalel(){
   });
   ctx.textAlign='left'; ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font="11px 'JetBrains Mono',monospace";
   ctx.fillText('I = '+I.toFixed(3)+' A',xR1a,yAtas-22); ctx.fillText('I₂ = '+I2.toFixed(3)+' A',xR2-40,yR2-22); ctx.fillText('I₃ = '+I3.toFixed(3)+' A',xR3-40,yR3+30);
-  _ttlTulis('seriParalelInfo','R_par = '+Rp.toFixed(3)+' Ω, R_total = '+Rt.toFixed(3)+' Ω   |   I = '+I.toFixed(3)+' A; V₁ = '+V1.toFixed(2)+' V, V_par = '+Vp.toFixed(2)+' V (V₁ + V_par = '+(V1+Vp).toFixed(2)+' V)   |   I₂ + I₃ = '+(I2+I3).toFixed(3)+' A = I   |   P_total = '+(V*I).toFixed(2)+' W');
+  _ttlTulis('seriParalelInfo','R<sub>par</sub> = '+Rp.toFixed(3)+' Ω, R<sub>total</sub> = '+Rt.toFixed(3)+' Ω   |   I = '+I.toFixed(3)+' A; V₁ = '+V1.toFixed(2)+' V, V<sub>par</sub> = '+Vp.toFixed(2)+' V (V₁ + V<sub>par</sub> = '+(V1+Vp).toFixed(2)+' V)   |   I₂ + I₃ = '+(I2+I3).toFixed(3)+' A = I   |   P<sub>total</sub> = '+(V*I).toFixed(2)+' W');
   if(_ttlJalan('seriparalel')){_spFrame++; requestAnimationFrame(drawSeriParalel);}
 }
 
@@ -63,18 +63,18 @@ function drawTransfer(){
   for(let i=0;i<=4;i++){_ttlGaris(ctx,x0,y0-plotH*i/4,x0+plotW,y0-plotH*i/4,'rgba(148,163,184,.10)',1); ctx.fillStyle='rgba(0,224,158,.75)'; ctx.fillText((Pmax*1.1*i/4).toFixed(0)+' W',6,y0-plotH*i/4+4); ctx.fillStyle='rgba(255,179,0,.8)'; ctx.fillText((25*i)+'%',W-40,y0-plotH*i/4+4);}
   _ttlGaris(ctx,x0,padT,x0,y0,'rgba(148,163,184,.45)',1.2); _ttlGaris(ctx,x0,y0,x0+plotW,y0,'rgba(148,163,184,.45)',1.2);
   ctx.textAlign='center'; for(let i=0;i<=5;i++){ctx.fillStyle='rgba(148,163,184,.75)'; ctx.fillText((i*r).toFixed(2)+' Ω',X(i*r),y0+16);} ctx.textAlign='left';
-  ctx.fillStyle='rgba(148,163,184,.7)'; ctx.fillText('R_L (kelipatan r)',x0+plotW-110,y0+30);
+  ctx.fillStyle='rgba(148,163,184,.7)'; ctx.fillText('R<sub>L</sub> (kelipatan r)',x0+plotW-110,y0+30);
   ctx.strokeStyle='rgba(0,224,158,.95)'; ctx.lineWidth=2.4; ctx.beginPath();
   for(let i=0;i<=300;i++){const RL=0.01+(i/300)*RLmax; i?ctx.lineTo(X(RL),Yp(PL(RL))):ctx.moveTo(X(RL),Yp(PL(RL)));} ctx.stroke();
   ctx.strokeStyle='rgba(255,179,0,.9)'; ctx.lineWidth=2; ctx.setLineDash([5,4]); ctx.beginPath();
   for(let i=0;i<=300;i++){const RL=0.01+(i/300)*RLmax; i?ctx.lineTo(X(RL),Ye(eta(RL))):ctx.moveTo(X(RL),Ye(eta(RL)));} ctx.stroke(); ctx.setLineDash([]);
   _ttlGaris(ctx,X(r),padT,X(r),y0,'rgba(236,72,153,.85)',1.5,[3,3]);
-  ctx.fillStyle='rgba(236,72,153,.95)'; ctx.fillText('R_L = r → P_maks = '+Pmax.toFixed(2)+' W, η = 50%',Math.min(X(r)+6,x0+plotW-230),padT+12);
+  ctx.fillStyle='rgba(236,72,153,.95)'; ctx.fillText('R<sub>L</sub> = r → P<sub>maks</sub> = '+Pmax.toFixed(2)+' W, η = 50%',Math.min(X(r)+6,x0+plotW-230),padT+12);
   const RLnow=0.01+((_tdFrame*0.004)%1)*RLmax;
   ctx.fillStyle='#00e5ff'; ctx.beginPath(); ctx.arc(X(RLnow),Yp(PL(RLnow)),4.5,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#ffb300'; ctx.beginPath(); ctx.arc(X(RLnow),Ye(eta(RLnow)),4.5,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('■ daya beban P_L',x0+8,padT+12); ctx.fillStyle='rgba(255,179,0,.95)'; ctx.fillText('■ efisiensi η',x0+8,padT+26);
-  _ttlTulis('transferInfo','R_L = '+RLnow.toFixed(2)+' Ω → I = '+(E/(r+RLnow)).toFixed(3)+' A, P_L = '+PL(RLnow).toFixed(2)+' W, η = '+eta(RLnow).toFixed(1)+' %   |   P_maks = E²/(4r) = '+Pmax.toFixed(2)+' W pada R_L = '+r.toFixed(2)+' Ω');
+  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('■ daya beban P<sub>L</sub>',x0+8,padT+12); ctx.fillStyle='rgba(255,179,0,.95)'; ctx.fillText('■ efisiensi η',x0+8,padT+26);
+  _ttlTulis('transferInfo','R<sub>L</sub> = '+RLnow.toFixed(2)+' Ω → I = '+(E/(r+RLnow)).toFixed(3)+' A, P<sub>L</sub> = '+PL(RLnow).toFixed(2)+' W, η = '+eta(RLnow).toFixed(1)+' %   |   P<sub>maks</sub> = E²/(4r) = '+Pmax.toFixed(2)+' W pada R<sub>L</sub> = '+r.toFixed(2)+' Ω');
   if(_ttlJalan('transfer')){_tdFrame++; requestAnimationFrame(drawTransfer);}
 }
 
@@ -106,7 +106,7 @@ function drawKabel(){
   _ttlGaris(ctx,x0,Y(dVmaks),x0+plotW,Y(dVmaks),'rgba(239,68,68,.85)',1.5,[6,4]);
   ctx.textAlign='left'; ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('batas '+batas.toFixed(1)+'% = '+dVmaks.toFixed(2)+' V',x0+6,Y(dVmaks)-6);
   const rugi=A=>I*dV(A), eta=A=>V*I/(V*I+rugi(A))*100;
-  _ttlTulis('kabelInfo','A minimum = 2ρLI/ΔV_maks = '+Amin.toFixed(2)+' mm² → kabel '+(pilih?pilih+' mm²':'> 50 mm²')+(pilih?': ΔV = '+dV(pilih).toFixed(2)+' V ('+(dV(pilih)/V*100).toFixed(2)+'%), rugi '+rugi(pilih).toFixed(1)+' W, η = '+eta(pilih).toFixed(2)+'%':'')+'   |   beban '+(V*I).toFixed(0)+' W pada '+V+' V, '+L.toFixed(0)+' m');
+  _ttlTulis('kabelInfo','A minimum = 2ρLI/ΔV<sub>maks</sub> = '+Amin.toFixed(2)+' mm² → kabel '+(pilih?pilih+' mm²':'> 50 mm²')+(pilih?': ΔV = '+dV(pilih).toFixed(2)+' V ('+(dV(pilih)/V*100).toFixed(2)+'%), rugi '+rugi(pilih).toFixed(1)+' W, η = '+eta(pilih).toFixed(2)+'%':'')+'   |   beban '+(V*I).toFixed(0)+' W pada '+V+' V, '+L.toFixed(0)+' m');
   if(_ttlJalan('kabel')){_kbFrame++; requestAnimationFrame(drawKabel);}
 }
 
@@ -133,8 +133,8 @@ function drawSumber(){
   const Inow=Iplot*((_snFrame*0.004)%1);
   ctx.fillStyle='#00e5ff'; ctx.beginPath(); ctx.arc(X(Inow),Yv(Vt(Inow)),4.5,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#00e09e'; ctx.beginPath(); ctx.arc(X(Inow),Yp(PL(Inow)),4.5,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='rgba(34,211,238,.95)'; ctx.fillText('■ V_t = E − I·r',x0+8,padT+12); ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('■ P_beban = V_t·I',x0+8,padT+26);
-  _ttlTulis('sumberInfo','I = '+Inow.toFixed(1)+' A → V_t = '+Vt(Inow).toFixed(3)+' V (turun '+(Inow*r).toFixed(3)+' V), P_beban = '+PL(Inow).toFixed(1)+' W, rugi dalam = '+(Inow*Inow*r).toFixed(1)+' W   |   I hubung singkat = E/r = '+Isc.toFixed(0)+' A; P_maks = '+Pmax.toFixed(0)+' W pada '+(Isc/2).toFixed(0)+' A');
+  ctx.fillStyle='rgba(34,211,238,.95)'; ctx.fillText('■ V<sub>t</sub> = E − I·r',x0+8,padT+12); ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('■ P<sub>beban</sub> = V<sub>t</sub>·I',x0+8,padT+26);
+  _ttlTulis('sumberInfo','I = '+Inow.toFixed(1)+' A → V<sub>t</sub> = '+Vt(Inow).toFixed(3)+' V (turun '+(Inow*r).toFixed(3)+' V), P<sub>beban</sub> = '+PL(Inow).toFixed(1)+' W, rugi dalam = '+(Inow*Inow*r).toFixed(1)+' W   |   I hubung singkat = E/r = '+Isc.toFixed(0)+' A; P<sub>maks</sub> = '+Pmax.toFixed(0)+' W pada '+(Isc/2).toFixed(0)+' A');
   if(_ttlJalan('sumber')){_snFrame++; requestAnimationFrame(drawSumber);}
 }
 

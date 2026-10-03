@@ -40,17 +40,17 @@ function drawSLD(){
   const y2=170; ctx.fillStyle='rgba(226,232,240,.9)'; ctx.fillText('DIAGRAM REAKTANSI (dasar 100 MVA; 13,8 kV | 150 kV)',W/2,y2-46);
   const kotak=(x,w,label,warna)=>{ctx.strokeStyle=warna; ctx.lineWidth=1.8; ctx.strokeRect(x,y2-12,w,24); ctx.fillStyle=warna; ctx.fillText(label,x+w/2,y2+4);};
   ctx.strokeStyle='rgba(0,224,158,.95)'; ctx.beginPath(); ctx.arc(xs[0],y2,14,0,Math.PI*2); ctx.stroke(); ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('E=1∠0',xs[0],y2+4);
-  _ttlGaris(ctx,xs[0]+14,y2,xs[0]+40,y2,'rgba(148,163,184,.8)',2); kotak(xs[0]+40,90,'jX_g '+Xg.toFixed(4),'rgba(0,224,158,.95)'); _ttlGaris(ctx,xs[0]+130,y2,xs[1],y2,'rgba(148,163,184,.8)',2);
+  _ttlGaris(ctx,xs[0]+14,y2,xs[0]+40,y2,'rgba(148,163,184,.8)',2); kotak(xs[0]+40,90,'jX<sub>g</sub> '+Xg.toFixed(4),'rgba(0,224,158,.95)'); _ttlGaris(ctx,xs[0]+130,y2,xs[1],y2,'rgba(148,163,184,.8)',2);
   _ttlGaris(ctx,xs[1],y2-14,xs[1],y2+14,bus===1?'rgba(239,68,68,1)':'rgba(226,232,240,.9)',4);
-  _ttlGaris(ctx,xs[1],y2,xs[1]+25,y2,'rgba(148,163,184,.8)',2); kotak(xs[1]+25,90,'jX_t '+Xt.toFixed(4),'rgba(168,85,247,.95)'); _ttlGaris(ctx,xs[1]+115,y2,xs[2],y2,'rgba(148,163,184,.8)',2);
+  _ttlGaris(ctx,xs[1],y2,xs[1]+25,y2,'rgba(148,163,184,.8)',2); kotak(xs[1]+25,90,'jX<sub>t</sub> '+Xt.toFixed(4),'rgba(168,85,247,.95)'); _ttlGaris(ctx,xs[1]+115,y2,xs[2],y2,'rgba(148,163,184,.8)',2);
   _ttlGaris(ctx,xs[2],y2-14,xs[2],y2+14,bus===2?'rgba(239,68,68,1)':'rgba(226,232,240,.9)',4);
-  _ttlGaris(ctx,xs[2],y2,xs[2]+60,y2,'rgba(148,163,184,.8)',2); kotak(xs[2]+60,140,'jX_L '+Xl.toFixed(4)+' ('+xl+'/'+zb+')','rgba(0,229,255,.95)'); _ttlGaris(ctx,xs[2]+200,y2,xs[4],y2,'rgba(148,163,184,.8)',2);
+  _ttlGaris(ctx,xs[2],y2,xs[2]+60,y2,'rgba(148,163,184,.8)',2); kotak(xs[2]+60,140,'jX<sub>L</sub> '+Xl.toFixed(4)+' ('+xl+'/'+zb+')','rgba(0,229,255,.95)'); _ttlGaris(ctx,xs[2]+200,y2,xs[4],y2,'rgba(148,163,184,.8)',2);
   _ttlGaris(ctx,xs[4],y2-14,xs[4],y2+14,bus===3?'rgba(239,68,68,1)':'rgba(226,232,240,.9)',4);
   // gangguan berkedip di rel terpilih
   const xf=[xs[1],xs[2],xs[4]][bus-1]; const a=0.5+0.5*Math.sin(_sdFrame*0.25);
   ctx.strokeStyle='rgba(239,68,68,'+a.toFixed(2)+')'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(xf-8,y2+18); ctx.lineTo(xf+2,y2+30); ctx.lineTo(xf-4,y2+32); ctx.lineTo(xf+8,y2+46); ctx.stroke();
-  ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('gangguan 3φ: X_th = '+xth.toFixed(4)+' pu → I_sc = '+isc.toFixed(3)+' pu = '+(iscA/1000).toFixed(2)+' kA, S_sc = '+ssc.toFixed(1)+' MVA',W/2,H-14);
-  _ttlTulis('sldInfo','Dasar 100 MVA; Z_base 150 kV = '+zb+' Ω, I_base = '+(S*1e6/(_SQ3_13*150e3)).toFixed(1)+' A (150 kV) / '+(S*1e6/(_SQ3_13*13.8e3)).toFixed(0)+' A (13,8 kV)   |   X_g = '+xg.toFixed(2)+'×100/'+sg+' = '+Xg.toFixed(4)+', X_t = '+xt.toFixed(2)+'×100/'+st+' = '+Xt.toFixed(4)+', X_L = '+xl+'/'+zb+' = '+Xl.toFixed(4)+' pu   |   gangguan di '+['rel 1','rel 2','rel 3'][bus-1]+': X_th = '+xth.toFixed(4)+' pu, I_sc = 1/X_th = '+isc.toFixed(4)+' pu × I_base('+vb+' kV) = '+iscA.toFixed(0)+' A, S_sc = 100/X_th = '+ssc.toFixed(2)+' MVA   |   makin jauh dari generator, X_th bertambah dan arus gangguan turun');
+  ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('gangguan 3φ: X<sub>th</sub> = '+xth.toFixed(4)+' pu → I<sub>sc</sub> = '+isc.toFixed(3)+' pu = '+(iscA/1000).toFixed(2)+' kA, S<sub>sc</sub> = '+ssc.toFixed(1)+' MVA',W/2,H-14);
+  _ttlTulis('sldInfo','Dasar 100 MVA; Z<sub>base</sub> 150 kV = '+zb+' Ω, I<sub>base</sub> = '+(S*1e6/(_SQ3_13*150e3)).toFixed(1)+' A (150 kV) / '+(S*1e6/(_SQ3_13*13.8e3)).toFixed(0)+' A (13,8 kV)   |   X<sub>g</sub> = '+xg.toFixed(2)+'×100/'+sg+' = '+Xg.toFixed(4)+', X<sub>t</sub> = '+xt.toFixed(2)+'×100/'+st+' = '+Xt.toFixed(4)+', X<sub>L</sub> = '+xl+'/'+zb+' = '+Xl.toFixed(4)+' pu   |   gangguan di '+['rel 1','rel 2','rel 3'][bus-1]+': X<sub>th</sub> = '+xth.toFixed(4)+' pu, I<sub>sc</sub> = 1/X<sub>th</sub> = '+isc.toFixed(4)+' pu × I<sub>base</sub>('+vb+' kV) = '+iscA.toFixed(0)+' A, S<sub>sc</sub> = 100/X<sub>th</sub> = '+ssc.toFixed(2)+' MVA   |   makin jauh dari generator, X<sub>th</sub> bertambah dan arus gangguan turun');
   if(_ttlJalan('sld')){_sdFrame++; requestAnimationFrame(drawSLD);}
 }
 
@@ -66,7 +66,7 @@ function drawPerUnit(){
   // kiri: empat besaran dasar
   ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.textAlign='left';
   ctx.fillStyle='rgba(226,232,240,.95)'; ctx.fillText('BESARAN DASAR (2 dipilih, 2 mengikuti)',20,22);
-  const baris=[['S_base (dipilih)',sb.toFixed(0)+' MVA','rgba(255,179,0,.95)'],['V_base (dipilih)',vb.toFixed(0)+' kV','rgba(255,179,0,.95)'],['Z_base = V²/S',zb.toFixed(3)+' Ω','rgba(0,229,255,.95)'],['I_base = S/(√3·V)',ib.toFixed(1)+' A','rgba(0,229,255,.95)']];
+  const baris=[['S<sub>base</sub> (dipilih)',sb.toFixed(0)+' MVA','rgba(255,179,0,.95)'],['V<sub>base</sub> (dipilih)',vb.toFixed(0)+' kV','rgba(255,179,0,.95)'],['Z<sub>base</sub> = V²/S',zb.toFixed(3)+' Ω','rgba(0,229,255,.95)'],['I<sub>base</sub> = S/(√3·V)',ib.toFixed(1)+' A','rgba(0,229,255,.95)']];
   baris.forEach(([n,v,w],i)=>{ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText(n,20,48+i*22); ctx.fillStyle=w; ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.fillText(v,190,48+i*22);});
   ctx.fillStyle='rgba(226,232,240,.95)'; ctx.fillText('KONVERSI',20,150);
   ctx.fillStyle='rgba(0,224,158,.95)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('saluran '+zohm+' Ω → '+zohm+'/'+zb.toFixed(1)+' = '+zpu.toFixed(4)+' pu',20,170);
@@ -81,9 +81,9 @@ function drawPerUnit(){
   ctx.textAlign='center'; for(const s of [0,100,200,300,400,500]) ctx.fillText(s+' MVA',X(s),padT+plotH+16);
   ctx.strokeStyle='rgba(0,224,158,.9)'; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(X(0),Y(0)); ctx.lineTo(X(sMax),Y(zohm/(vb*vb/sMax))); ctx.stroke();
   const a=0.5+0.5*Math.sin(_puFrame*0.15); ctx.fillStyle='rgba(255,179,0,'+(0.5+0.5*a).toFixed(2)+')'; ctx.beginPath(); ctx.arc(X(sb),Y(zpu),6,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.textAlign='left'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.fillText('Z_pu saluran '+zohm+' Ω vs S_base (V_base '+vb+' kV)',padL+6,padT+12);
-  ctx.fillStyle='rgba(255,179,0,.95)'; ctx.fillText('S_base '+sb+' → '+zpu.toFixed(4)+' pu',X(sb)+8,Y(zpu)-6);
-  _ttlTulis('perUnitInfo','Dasar '+sb+' MVA, '+vb+' kV → Z_base = '+zb.toFixed(3)+' Ω, I_base = '+ib.toFixed(1)+' A   |   saluran '+zohm+' Ω = '+zpu.toFixed(4)+' pu; generator '+xOwn.toFixed(2)+' pu @ '+sOwn+' MVA = '+xNew.toFixed(4)+' pu @ '+sb+' MVA   |   Z_pu ∝ S_base/V_base²: menggandakan S_base menggandakan semua Z_pu, tetapi hasil akhir dalam ampere dan volt tetap sama   |   pilih S_base bulat (100 MVA) dan V_base = tegangan pengenal tiap tingkat agar trafo ideal hilang');
+  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.textAlign='left'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.fillText('Z<sub>pu</sub> saluran '+zohm+' Ω vs S<sub>base</sub> (V<sub>base</sub> '+vb+' kV)',padL+6,padT+12);
+  ctx.fillStyle='rgba(255,179,0,.95)'; ctx.fillText('S<sub>base</sub> '+sb+' → '+zpu.toFixed(4)+' pu',X(sb)+8,Y(zpu)-6);
+  _ttlTulis('perUnitInfo','Dasar '+sb+' MVA, '+vb+' kV → Z<sub>base</sub> = '+zb.toFixed(3)+' Ω, I<sub>base</sub> = '+ib.toFixed(1)+' A   |   saluran '+zohm+' Ω = '+zpu.toFixed(4)+' pu; generator '+xOwn.toFixed(2)+' pu @ '+sOwn+' MVA = '+xNew.toFixed(4)+' pu @ '+sb+' MVA   |   Z<sub>pu</sub> ∝ S<sub>base</sub>/V<sub>base</sub>²: menggandakan S<sub>base</sub> menggandakan semua Z<sub>pu</sub>, tetapi hasil akhir dalam ampere dan volt tetap sama   |   pilih S<sub>base</sub> bulat (100 MVA) dan V<sub>base</sub> = tegangan pengenal tiap tingkat agar trafo ideal hilang');
   if(_ttlJalan('perunit')){_puFrame++; requestAnimationFrame(drawPerUnit);}
 }
 
@@ -119,7 +119,7 @@ function drawThevenin(){
   const vmax=isc*1.15, bw=plotW/items.length;
   items.forEach(([n,v,w],i)=>{const h=v/vmax*plotH; ctx.fillStyle=w; ctx.fillRect(padL+i*bw+bw*0.2,padT+plotH-h,bw*0.6,h); ctx.fillStyle='rgba(226,232,240,.95)'; ctx.textAlign='center'; ctx.fillText(n,padL+i*bw+bw*0.5,padT+plotH+14); ctx.fillStyle=w; ctx.fillText(v.toFixed(2)+' pu',padL+i*bw+bw*0.5,padT+plotH-h-5); ctx.fillStyle='rgba(148,163,184,.8)'; ctx.font="9px 'JetBrains Mono',monospace"; ctx.fillText((v*ib/1000).toFixed(2)+' kA',padL+i*bw+bw*0.5,padT+plotH+26); ctx.font="600 10px 'JetBrains Mono',monospace";});
   ctx.fillStyle='rgba(226,232,240,.9)'; ctx.textAlign='left'; ctx.fillText('sumbangan arus gangguan (pu, dasar 100 MVA)',padL,padT-8);
-  _ttlTulis('theveninInfo','Rel '+vb+' kV: I_base = '+ib.toFixed(1)+' A   |   X_th = ('+xa.toFixed(2)+' ∥ '+xb.toFixed(2)+(motor?' ∥ '+xm.toFixed(1):'')+') = '+xth.toFixed(4)+' pu → I_sc = '+isc.toFixed(3)+' pu = '+(isc*ib/1000).toFixed(2)+' kA, S_sc = '+(S/xth).toFixed(1)+' MVA   |   tiap cabang menyumbang 1/X-nya: A '+ia.toFixed(3)+', B '+ibb.toFixed(3)+(motor?', motor '+im.toFixed(3)+' (berlangsung beberapa siklus, ikut menentukan kapasitas PMT)':'')+'   |   PMT harus mampu memutus ≥ '+(isc*ib/1000*1.1).toFixed(1)+' kA (dengan cadangan 10 %)');
+  _ttlTulis('theveninInfo','Rel '+vb+' kV: I<sub>base</sub> = '+ib.toFixed(1)+' A   |   X<sub>th</sub> = ('+xa.toFixed(2)+' ∥ '+xb.toFixed(2)+(motor?' ∥ '+xm.toFixed(1):'')+') = '+xth.toFixed(4)+' pu → I<sub>sc</sub> = '+isc.toFixed(3)+' pu = '+(isc*ib/1000).toFixed(2)+' kA, S<sub>sc</sub> = '+(S/xth).toFixed(1)+' MVA   |   tiap cabang menyumbang 1/X-nya: A '+ia.toFixed(3)+', B '+ibb.toFixed(3)+(motor?', motor '+im.toFixed(3)+' (berlangsung beberapa siklus, ikut menentukan kapasitas PMT)':'')+'   |   PMT harus mampu memutus ≥ '+(isc*ib/1000*1.1).toFixed(1)+' kA (dengan cadangan 10 %)');
   if(_ttlJalan('thevenin')){_thFrame++; requestAnimationFrame(drawThevenin);}
 }
 
@@ -141,13 +141,13 @@ function drawJatuhPU(){
   const ox=W*0.28, oy=H*0.62, sk=Math.min(W*0.22,H*0.5)/Math.max(1.05,Vs);
   const vek=(x,y,w,label,dx,dy)=>{ctx.strokeStyle=w; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ox+x*sk,oy-y*sk); ctx.stroke(); const ang=Math.atan2(-y,x); ctx.fillStyle=w; ctx.beginPath(); ctx.moveTo(ox+x*sk,oy-y*sk); ctx.lineTo(ox+x*sk-9*Math.cos(ang-0.4),oy-y*sk-9*Math.sin(ang-0.4)); ctx.lineTo(ox+x*sk-9*Math.cos(ang+0.4),oy-y*sk-9*Math.sin(ang+0.4)); ctx.closePath(); ctx.fill(); ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.textAlign='left'; ctx.fillText(label,ox+x*sk+dx,oy-y*sk+dy);};
   _ttlGaris(ctx,ox-20,oy,ox+sk*1.3,oy,'rgba(148,163,184,.3)',1); _ttlGaris(ctx,ox,oy+20,ox,oy-sk*0.7,'rgba(148,163,184,.3)',1);
-  vek(1,0,'rgba(0,224,158,.95)','V_r = 1∠0',6,-6);
+  vek(1,0,'rgba(0,224,158,.95)','V<sub>r</sub> = 1∠0',6,-6);
   const a=0.5+0.5*Math.sin(_jpFrame*0.1);
   vek(Ir*0.9,Ii*0.9,'rgba(255,179,0,.95)','I = '+I.toFixed(2)+'∠'+(phi*180/Math.PI).toFixed(1)+'°',6,12);
   // IR dan IX
   ctx.strokeStyle='rgba(239,68,68,.8)'; ctx.lineWidth=1.6; ctx.setLineDash([4,3]); ctx.beginPath(); ctx.moveTo(ox+1*sk,oy); ctx.lineTo(ox+(1+Ir*R)*sk,oy-(Ir*X)*sk*0+0); ctx.stroke(); ctx.setLineDash([]);
   ctx.strokeStyle='rgba(239,68,68,.8)'; ctx.beginPath(); ctx.moveTo(ox+1*sk,oy); ctx.lineTo(ox+(1+Ir*R-Ii*X)*sk,oy-(Ir*X+Ii*R)*sk); ctx.stroke();
-  vek(1+dVr,dVi,'rgba(0,229,255,'+(0.7+0.3*a).toFixed(2)+')','V_s = '+Vs.toFixed(4)+'∠'+dlt.toFixed(2)+'°',6,-8);
+  vek(1+dVr,dVi,'rgba(0,229,255,'+(0.7+0.3*a).toFixed(2)+')','V<sub>s</sub> = '+Vs.toFixed(4)+'∠'+dlt.toFixed(2)+'°',6,-8);
   ctx.fillStyle='rgba(239,68,68,.9)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='left'; ctx.fillText('I·Z = '+Math.hypot(dVr,dVi).toFixed(4)+' pu',ox+(1+dVr/2)*sk+6,oy-(dVi/2)*sk-4);
   // kanan: kurva V_s terhadap pf (tertinggal → mendahului)
   const padL=W*0.6,padT=26,plotW=W-padL-20,plotH=H-padT-40;
@@ -157,8 +157,8 @@ function drawJatuhPU(){
   ctx.textAlign='center'; ctx.fillText('pf 0 tertinggal',Xp(-1),padT+plotH+14); ctx.fillText('pf 1',Xp(0),padT+plotH+14); ctx.fillText('pf 0 mendahului',Xp(1),padT+plotH+14);
   ctx.strokeStyle='rgba(0,229,255,.9)'; ctx.lineWidth=2; ctx.beginPath(); for(let i=0;i<=100;i++){const p=-1+2*i/100; const ph=Math.acos(Math.min(1,Math.abs(1-Math.abs(p))))*(p>0?1:-1); const ir=I*Math.cos(ph), ii=I*Math.sin(ph); const vs=Math.hypot(1+ir*R-ii*X,ir*X+ii*R); const yy=Yv(Math.max(vmin,Math.min(vmax,vs))); i?ctx.lineTo(Xp(p),yy):ctx.moveTo(Xp(p),yy);} ctx.stroke();
   const pNow=lead?(1-pf):-(1-pf); ctx.fillStyle='rgba(255,179,0,.95)'; ctx.beginPath(); ctx.arc(Xp(pNow),Yv(Math.max(vmin,Math.min(vmax,Vs))),5,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='rgba(0,229,255,.95)'; ctx.textAlign='left'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.fillText('|V_s| yang diperlukan agar V_r = 1 pu, terhadap pf',padL+4,padT+12);
-  _ttlTulis('jatuhPUInfo','Beban I = '+I.toFixed(2)+' pu pf '+pf.toFixed(2)+' '+(lead?'mendahului':'tertinggal')+' pada V_r = 1∠0; saluran '+R.toFixed(3)+' + j'+X.toFixed(2)+' pu   |   I·Z = ('+dVr.toFixed(4)+') + j('+dVi.toFixed(4)+') pu → V_s = '+Vs.toFixed(4)+'∠'+dlt.toFixed(2)+'° pu; regulasi = '+reg.toFixed(2)+' %   |   pendekatan |ΔV| ≈ I(R cos φ + X sin φ) = '+(I*(R*pf+X*Math.sqrt(1-pf*pf))*(lead?-1:1)+0).toFixed(4)+' pu (Modul 6/10 dalam bentuk pu)   |   pf mendahului (kapasitif) menaikkan V_r di atas V_s: efek Ferranti versi beban');
+  ctx.fillStyle='rgba(0,229,255,.95)'; ctx.textAlign='left'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.fillText('|V<sub>s</sub>| yang diperlukan agar V<sub>r</sub> = 1 pu, terhadap pf',padL+4,padT+12);
+  _ttlTulis('jatuhPUInfo','Beban I = '+I.toFixed(2)+' pu pf '+pf.toFixed(2)+' '+(lead?'mendahului':'tertinggal')+' pada V<sub>r</sub> = 1∠0; saluran '+R.toFixed(3)+' + j'+X.toFixed(2)+' pu   |   I·Z = ('+dVr.toFixed(4)+') + j('+dVi.toFixed(4)+') pu → V<sub>s</sub> = '+Vs.toFixed(4)+'∠'+dlt.toFixed(2)+'° pu; regulasi = '+reg.toFixed(2)+' %   |   pendekatan |ΔV| ≈ I(R cos φ + X sin φ) = '+(I*(R*pf+X*Math.sqrt(1-pf*pf))*(lead?-1:1)+0).toFixed(4)+' pu (Modul 6/10 dalam bentuk pu)   |   pf mendahului (kapasitif) menaikkan V<sub>r</sub> di atas V<sub>s</sub>: efek Ferranti versi beban');
   if(_ttlJalan('jatuhpu')){_jpFrame++; requestAnimationFrame(drawJatuhPU);}
 }
 

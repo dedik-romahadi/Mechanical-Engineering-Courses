@@ -152,7 +152,7 @@ function drawExtrude(){
   const A=w*t+(h-t)*t, V=L*A;
   ctx.textAlign='left';
   const judul=['Draft Wire L '+w+' × '+h+' (t = '+t+')','→ Part Extrude '+L.toFixed(1)+' mm searah Z'];
-  const butir=[['#f59e0b',_C7F11,'A_L = W·t + (H − t)·t'],['#00e09e',_C7F11,'= '+_cad7Rp(A,1)+' mm²'],['#22d3ee',_C7F11,'V = L·A_L'],['#00e09e',_C7F11,'= '+_cad7Rp(V,1)+' mm³'],
+  const butir=[['#f59e0b',_C7F11,'A<sub>L</sub> = W·t + (H − t)·t'],['#00e09e',_C7F11,'= '+_cad7Rp(A,1)+' mm²'],['#22d3ee',_C7F11,'V = L·A<sub>L</sub>'],['#00e09e',_C7F11,'= '+_cad7Rp(V,1)+' mm³'],
     [_C7ABU,_C7F10,'= '+(V/1000).toFixed(3)+' cm³ → baja '+(V/1000*7.85).toFixed(1)+' g'],[_C7ABU,_C7F10,'Create solid · Direction Normal']];
   if(sempit){
     _cad7Kolom(ctx,10,18,W-18,judul.map(s=>[_C7TEKS,_C7F11,s]),[0,15]);
@@ -161,7 +161,7 @@ function drawExtrude(){
     ctx.fillStyle=_C7TEKS; ctx.font=_C7F11; ctx.fillText(judul.join(' '),12,18);
     const tx=W*0.64; _cad7Kolom(ctx,tx,H*0.30,W-tx-2,butir,[0,20,30,20,22,20]);
   }
-  _ttlTulis('extrudeInfo','Profil L: kaki mendatar W × t = '+(w*t).toFixed(1)+' mm² + kaki tegak (H − t) × t = '+((h-t)*t).toFixed(1)+' mm² → A_L = '+A.toFixed(1)+' mm²; Extrude sepanjang '+L.toFixed(1)+' mm memberi V = '+V.toFixed(2)+' mm³ (Persamaan (1)).');
+  _ttlTulis('extrudeInfo','Profil L: kaki mendatar W × t = '+(w*t).toFixed(1)+' mm² + kaki tegak (H − t) × t = '+((h-t)*t).toFixed(1)+' mm² → A<sub>L</sub> = '+A.toFixed(1)+' mm²; Extrude sepanjang '+L.toFixed(1)+' mm memberi V = '+V.toFixed(2)+' mm³ (Persamaan (1)).');
   if(_ttlJalan('extrude')){_c7exFrame++; requestAnimationFrame(drawExtrude);}
 }
 
@@ -203,7 +203,7 @@ function drawPolar(){
   const V=h*Math.PI/4*(D*D-d0*d0-n*db*db), satu=Math.PI/4*db*db*h;
   ctx.textAlign='left';
   const j1='Flens ⌀'+D+' × '+h+', lubang pusat ⌀'+d0, j2='PolarPattern '+tampil+'/'+n+' lubang ⌀'+db.toFixed(0);
-  const sAx='Axis Z · Angle 360°', sOc='Occurrences '+n, sDbc='D_bc = (D + d₀)/2 = '+Dbc.toFixed(1)+' mm', sV='V = h·(π/4)(D² − d₀² − n·d_b²)', sVn='= '+_cad7Rp(V,1)+' mm³';
+  const sAx='Axis Z · Angle 360°', sOc='Occurrences '+n, sDbc='D<sub>bc</sub> = (D + d₀)/2 = '+Dbc.toFixed(1)+' mm', sV='V = h·(π/4)(D² − d₀² − n·d<sub>b</sub>²)', sVn='= '+_cad7Rp(V,1)+' mm³';
   const sSatu='tiap lubang baut membuang '+satu.toFixed(1)+' mm³', sN='n lubang: '+(n*satu).toFixed(1)+' mm³', sSud='sudut 360°/n = '+(360/n).toFixed(1)+'°';
   if(sempit){
     _cad7Kolom(ctx,10,18,W-18,[[_C7TEKS,_C7F11,j1],[_C7TEKS,_C7F11,j2]],[0,15]);
@@ -215,7 +215,7 @@ function drawPolar(){
     _cad7Kolom(ctx,tx,H*0.26,W-tx-2,[['#a855f7',_C7F11,sAx+' · '+sOc],['#f59e0b',_C7F11,sDbc],['#22d3ee',_C7F11,sV],['#00e09e',_C7F11,sVn],
       [_C7ABU,_C7F10,sSatu],[_C7ABU,_C7F10,sN+' · '+sSud]],[0,20,30,20,22,20]);
   }
-  _ttlTulis('polarInfo','Cakram (π/4)·'+D+'²·'+h+' = '+(Math.PI/4*D*D*h).toFixed(1)+' mm³ dikurangi lubang pusat '+(Math.PI/4*d0*d0*h).toFixed(1)+' mm³ dan '+n+' lubang baut × '+satu.toFixed(1)+' mm³ → V = '+V.toFixed(2)+' mm³ (Persamaan (2)); posisi D_bc tidak mengubah volume selama lubang tidak saling memotong.');
+  _ttlTulis('polarInfo','Cakram (π/4)·'+D+'²·'+h+' = '+(Math.PI/4*D*D*h).toFixed(1)+' mm³ dikurangi lubang pusat '+(Math.PI/4*d0*d0*h).toFixed(1)+' mm³ dan '+n+' lubang baut × '+satu.toFixed(1)+' mm³ → V = '+V.toFixed(2)+' mm³ (Persamaan (2)); posisi D<sub>bc</sub> tidak mengubah volume selama lubang tidak saling memotong.');
   if(_ttlJalan('polar')){_c7poFrame++; requestAnimationFrame(drawPolar);}
 }
 

@@ -75,13 +75,13 @@ function drawEfisiensi(){
   const xOpt=Math.sqrt(pFe/pCu), eOpt=eta(xOpt);
   if(xOpt<=xMax){
     _ttlGaris(ctx,X(xOpt),padT,X(xOpt),y0,'rgba(236,72,153,.85)',1.5,[3,3]);
-    ctx.fillStyle='rgba(236,72,153,.95)'; ctx.fillText('x_opt = √(P_Fe/P_Cu) = '+(xOpt*100).toFixed(1)+'%',Math.min(X(xOpt)+6,x0+plotW-190),padT+28);
+    ctx.fillStyle='rgba(236,72,153,.95)'; ctx.fillText('x<sub>opt</sub> = √(P<sub>Fe</sub>/P<sub>Cu</sub>) = '+(xOpt*100).toFixed(1)+'%',Math.min(X(xOpt)+6,x0+plotW-190),padT+28);
     ctx.fillStyle='#ec4899'; ctx.beginPath(); ctx.arc(X(xOpt),Y(eOpt),5,0,Math.PI*2); ctx.fill();
   }
   const xNow=0.02+((_efFrame*0.004)%1)*(xMax-0.02), eNow=eta(xNow);
   ctx.fillStyle='#00e5ff'; ctx.beginPath(); ctx.arc(X(xNow),Y(eNow),4.5,0,Math.PI*2); ctx.fill();
   const rugiCu=xNow*xNow*pCu;
-  _ttlTulis('efisiensiInfo','beban '+(xNow*100).toFixed(0)+'%: P_out = '+(xNow*S*pf).toFixed(1)+' kW, rugi inti '+pFe.toFixed(2)+' kW, rugi tembaga '+rugiCu.toFixed(2)+' kW → η = '+eNow.toFixed(3)+'%   |   η maks '+eOpt.toFixed(3)+'% pada '+(xOpt*100).toFixed(1)+'% beban');
+  _ttlTulis('efisiensiInfo','beban '+(xNow*100).toFixed(0)+'%: P<sub>out</sub> = '+(xNow*S*pf).toFixed(1)+' kW, rugi inti '+pFe.toFixed(2)+' kW, rugi tembaga '+rugiCu.toFixed(2)+' kW → η = '+eNow.toFixed(3)+'%   |   η maks '+eOpt.toFixed(3)+'% pada '+(xOpt*100).toFixed(1)+'% beban');
   if(_ttlJalan('efisiensi')){_efFrame++; requestAnimationFrame(drawEfisiensi);}
 }
 
@@ -105,7 +105,7 @@ function drawHubungSingkat(){
   const denyut=1+0.05*Math.sin(_hsFrame*0.12);
   const xb=x0+kolom*0.25, wb=kolom*0.5;
   ctx.fillStyle='rgba(239,68,68,.85)'; ctx.fillRect(xb,Y(Isc*denyut),wb,y0-Y(Isc*denyut));
-  ctx.fillStyle='#fca5a5'; ctx.textAlign='center'; ctx.fillText('I_sc',xb+wb/2,y0+14); ctx.fillText(Isc.toFixed(2)+' kA',xb+wb/2,Y(Isc)-6);
+  ctx.fillStyle='#fca5a5'; ctx.textAlign='center'; ctx.fillText('I<sub>sc</sub>',xb+wb/2,y0+14); ctx.fillText(Isc.toFixed(2)+' kA',xb+wb/2,Y(Isc)-6);
   // batang rating PMT
   _TTL_PMT.forEach((r,i)=>{
     const x=x0+kolom*(i+1)+kolom*0.25;
@@ -117,7 +117,7 @@ function drawHubungSingkat(){
   });
   _ttlGaris(ctx,x0,Y(Isc),x0+plotW,Y(Isc),'rgba(239,68,68,.6)',1,[4,4]);
   ctx.textAlign='left'; ctx.fillStyle='rgba(148,163,184,.75)'; ctx.fillText('rating pemutusan PMT yang tersedia (kA)',x0+kolom*1.2,padT+2);
-  _ttlTulis('hubungSingkatInfo','I_n = '+S+' MVA / (√3 × '+V+' kV) = '+In.toFixed(1)+' A   |   I_sc = I_n / '+(Z/100).toFixed(3)+' = '+(Isc*1000).toFixed(0)+' A = '+Isc.toFixed(2)+' kA   |   PMT dipilih: '+(pilih?pilih+' kA':'melebihi 50 kA — perlu impedansi lebih besar atau rel dipisah'));
+  _ttlTulis('hubungSingkatInfo','I<sub>n</sub> = '+S+' MVA / (√3 × '+V+' kV) = '+In.toFixed(1)+' A   |   I<sub>sc</sub> = I<sub>n</sub> / '+(Z/100).toFixed(3)+' = '+(Isc*1000).toFixed(0)+' A = '+Isc.toFixed(2)+' kA   |   PMT dipilih: '+(pilih?pilih+' kA':'melebihi 50 kA — perlu impedansi lebih besar atau rel dipisah'));
   if(_ttlJalan('hubungsingkat')){_hsFrame++; requestAnimationFrame(drawHubungSingkat);}
 }
 

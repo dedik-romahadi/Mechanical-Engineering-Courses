@@ -87,14 +87,14 @@ function drawKonturVM(){
   if(sempit){const yL=yc+52; _cad9LegendaDatar(ctx,12,yL,W-24,'0 (min)',teksMaks); tx=12; ty=yL+46;}
   else {_cad9Legenda(ctx,W*0.66,H*0.16,H*0.42,teksMaks,'0 (min)'); tx=W*0.66; ty=H*0.66;}
   const yK=_cad9Kolom(ctx,tx,ty,W-tx-(sempit?12:6),[
-    ['σ_maks = 6FL/(bh²)','#22d3ee',f11,0],
+    ['σ<sub>maks</sub> = 6FL/(bh²)','#22d3ee',f11,0],
     ['= '+sigMaks.toFixed(2)+' MPa','#00e09e',f11,sempit?16:18],
     ['δ = FL³/(3EI) = '+delta.toFixed(3)+' mm','#f59e0b',f11,sempit?34:40],
-    ['SF = 250/σ_maks = '+(_C9SY/sigMaks).toFixed(2)+(sigMaks>=_C9SY?' → luluh!':''),sigMaks<_C9SY?'rgba(148,163,184,.85)':'#ef4444',f10,sempit?52:60]]);
+    ['SF = 250/σ<sub>maks</sub> = '+(_C9SY/sigMaks).toFixed(2)+(sigMaks>=_C9SY?' → luluh!':''),sigMaks<_C9SY?'rgba(148,163,184,.85)':'#ef4444',f10,sempit?52:60]]);
   ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font=f10; ctx.textAlign='left';
-  if(sempit) _ttlTeks(ctx,'biru = sumbu netral dan ujung bebas',12,_ttlTeks(ctx,'merah = serat terluar jepitan\u00a0(σ_maks)',12,yK+10,W-24,{lh:13}),W-24,{lh:13});
-  else _ttlTeks(ctx,'merah = serat terluar jepitan (σ_maks) · biru = sumbu netral dan ujung bebas',12,H-14,W-24,{lh:13});
-  _ttlTulis('infoKonturVM','I = '+b+'·'+h+'³/12 = '+I.toFixed(1)+' mm⁴; σ_maks = 6·'+F+'·'+L+'/('+b+'·'+h+'²) = '+sigMaks.toFixed(3)+' MPa di serat terluar jepitan (von Mises FEM ≈ nilai ini pada jarak ≥ h dari rusuk Fixed); δ = '+delta.toFixed(4)+' mm; SF luluh S235 = '+(_C9SY/sigMaks).toFixed(3));
+  if(sempit) _ttlTeks(ctx,'biru = sumbu netral dan ujung bebas',12,_ttlTeks(ctx,'merah = serat terluar jepitan\u00a0(σ<sub>maks</sub>)',12,yK+10,W-24,{lh:13}),W-24,{lh:13});
+  else _ttlTeks(ctx,'merah = serat terluar jepitan (σ<sub>maks</sub>) · biru = sumbu netral dan ujung bebas',12,H-14,W-24,{lh:13});
+  _ttlTulis('infoKonturVM','I = '+b+'·'+h+'³/12 = '+I.toFixed(1)+' mm⁴; σ<sub>maks</sub> = 6·'+F+'·'+L+'/('+b+'·'+h+'²) = '+sigMaks.toFixed(3)+' MPa di serat terluar jepitan (von Mises FEM ≈ nilai ini pada jarak ≥ h dari rusuk Fixed); δ = '+delta.toFixed(4)+' mm; SF luluh S235 = '+(_C9SY/sigMaks).toFixed(3));
   if(_ttlJalan('konturvm')){_c9vmFrame++; requestAnimationFrame(drawKonturVM);}
 }
 
@@ -113,7 +113,7 @@ function drawKonvergensi(){
   const data=[]; for(let i=0;i<tingkat;i++){const h=8/Math.pow(2,i), n=900*Math.pow(8,i), e=0.15*Math.pow(h/8,p); data.push({h,n,s:_C9SIG_EX*(1-e)});}
   const tampil=_ttlJalan('konvergensi')?Math.min(tingkat,Math.floor((_c9kvFrame/55)%(tingkat+2))+1):tingkat;
   ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font=f11; ctx.textAlign='left';
-  const yJ=_ttlTeks(ctx,'h dibagi dua tiap tingkat → elemen ×\u00a08; kesalahan ~ h^p',12,18,W-24,{lh:14});
+  const yJ=_ttlTeks(ctx,'h dibagi dua tiap tingkat → elemen ×\u00a08; kesalahan ~ h<sup>p</sup>',12,18,W-24,{lh:14});
   // Ponsel: grafik selebar kanvas di bawah judul, tabel di bawah grafik.
   const gx0=sempit?34:W*0.08, gx1=sempit?W-12:W*0.60, gy1=sempit?yJ+26:H*0.16, gy0=sempit?gy1+96:H*0.80;
   const X=n=>gx0+(gx1-gx0)*(Math.log10(n)-2.5)/(Math.log10(900*Math.pow(8,6))-2.5), Y=s=>gy0-(gy0-gy1)*(s-44)/12;
@@ -122,7 +122,7 @@ function drawKonvergensi(){
   ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font=f10; ctx.textAlign='right';
   for(let s=44;s<=56;s+=4) ctx.fillText(s,gx0-4,Y(s)+3);
   ctx.textAlign='center'; [1e3,1e4,1e5,1e6].forEach(n=>ctx.fillText(n.toExponential(0).replace('e+','e'),X(n),gy0+14));
-  ctx.fillText('jumlah elemen (log)',(gx0+gx1)/2,gy0+28); ctx.textAlign='left'; ctx.fillText('σ_maks (MPa)',gx0,gy1-8);
+  ctx.fillText('jumlah elemen (log)',(gx0+gx1)/2,gy0+28); ctx.textAlign='left'; ctx.fillText('σ<sub>maks</sub> (MPa)',gx0,gy1-8);
   // pita ± 5 % dan garis analitis
   ctx.fillStyle='rgba(0,224,158,.10)'; ctx.fillRect(gx0,Y(_C9SIG_EX*1.05),gx1-gx0,Y(_C9SIG_EX*0.95)-Y(_C9SIG_EX*1.05));
   ctx.setLineDash([6,3]); ctx.strokeStyle='#00e09e'; ctx.lineWidth=1.3; ctx.beginPath(); ctx.moveTo(gx0,Y(_C9SIG_EX)); ctx.lineTo(gx1,Y(_C9SIG_EX)); ctx.stroke(); ctx.setLineDash([]);
@@ -133,7 +133,7 @@ function drawKonvergensi(){
   // tabel (kanan; ponsel: di bawah grafik). Huruf 10 px, diperkecil seragam bila baris terpanjang
   // dari SEMUA tingkat tidak muat, sehingga ukurannya tidak berubah saat baris bermunculan.
   const tx=sempit?12:W*0.66, ty=sempit?gy0+46:H*0.16, dy=sempit?14:16, maxW=W-tx-(sempit?12:4);
-  const judulT='h (mm)   elemen    σ_maks   Δ';
+  const judulT='h (mm)   elemen    σ<sub>maks</sub>   Δ';
   const baris=data.map((d,i)=>{const ubah=i?Math.abs(d.s-data[i-1].s)/data[i-1].s*100:null;
     return {ubah,teks:(d.h<1?d.h.toFixed(2):d.h.toFixed(d.h%1?1:0)).padStart(5)+'  '+Math.round(d.n).toLocaleString('id-ID').padStart(10)+'  '+d.s.toFixed(2).padStart(6)+'  '+(ubah===null?'   —':ubah.toFixed(1).padStart(4)+'%')};});
   ctx.textAlign='left'; ctx.font=f10;
@@ -145,7 +145,7 @@ function drawKonvergensi(){
   const konv=ubahAkhir!==null&&ubahAkhir<5;
   ctx.fillStyle=konv?'#00e09e':'#ef4444'; ctx.font=f11; _ttlTeks(ctx,ubahAkhir===null?'satu mesh: belum ada bukti':(konv?'konvergen (Δ < 5 %)':'belum konvergen (Δ ≥ 5 %)'),tx,ty+dy*(tampil+2),maxW,{lh:14});
   ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font=f10; _ttlTeks(ctx,'kesalahan thd analitis '+(Math.abs(data[tampil-1].s-_C9SIG_EX)/_C9SIG_EX*100).toFixed(1)+' %',tx,ty+dy*(tampil+3),maxW,{lh:13});
-  _ttlTulis('infoKonvergensi','Tingkat '+tampil+'/'+tingkat+': h = '+data[tampil-1].h+' mm, ≈ '+Math.round(data[tampil-1].n).toLocaleString('id-ID')+' elemen, σ_maks = '+data[tampil-1].s.toFixed(2)+' MPa'+(ubahAkhir===null?'':', perubahan '+ubahAkhir.toFixed(2)+' % dari tingkat sebelumnya')+'; nilai analitis '+_C9SIG_EX+' MPa. Laju p besar (elemen orde 2) mencapai pita ± 5 % dengan lebih sedikit elemen.');
+  _ttlTulis('infoKonvergensi','Tingkat '+tampil+'/'+tingkat+': h = '+data[tampil-1].h+' mm, ≈ '+Math.round(data[tampil-1].n).toLocaleString('id-ID')+' elemen, σ<sub>maks</sub> = '+data[tampil-1].s.toFixed(2)+' MPa'+(ubahAkhir===null?'':', perubahan '+ubahAkhir.toFixed(2)+' % dari tingkat sebelumnya')+'; nilai analitis '+_C9SIG_EX+' MPa. Laju p besar (elemen orde 2) mencapai pita ± 5 % dengan lebih sedikit elemen.');
   if(_ttlJalan('konvergensi')){_c9kvFrame++; requestAnimationFrame(drawKonvergensi);}
 }
 
@@ -165,7 +165,7 @@ function drawKtLubang(){
   const r=d/Wp, Kt=_cad9Kt(r), sigNom=F/((Wp-d)*t), sigMaks=Kt*sigNom, sigKotor=F/(Wp*t);
   // judul: σ_nom → σ_maks (ponsel: dua baris)
   ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font=f11; ctx.textAlign='left';
-  const s1='σ_nom = F/((W − d)·t) = '+sigNom.toFixed(2)+' MPa', s2='σ_maks = Kt·σ_nom = '+sigMaks.toFixed(2)+' MPa';
+  const s1='σ<sub>nom</sub> = F/((W − d)·t) = '+sigNom.toFixed(2)+' MPa', s2='σ<sub>maks</sub> = K<sub>t</sub>·σ<sub>nom</sub> = '+sigMaks.toFixed(2)+' MPa';
   const yJ=sempit?_ttlTeks(ctx,'→  '+s2,12,_ttlTeks(ctx,s1,12,18,W-24,{lh:14,susut:0.8}),W-24,{lh:14,susut:0.8}):_ttlTeks(ctx,s1+'  →  '+s2,12,18,W-24,{lh:14});
   // pelat (tampak depan): panjang tetap 2,4·W agar proporsional. Ponsel: pelat di atas, grafik di bawah.
   // pa = panjang panah gaya; di kanvas sedang dipendekkan agar label F kiri tidak terpotong.
@@ -180,21 +180,21 @@ function drawKtLubang(){
   _cad9Panah(ctx,px,cy,px-pa,cy,'#f59e0b',2); _cad9Panah(ctx,px+pl,cy,px+pl+pa,cy,'#f59e0b',2);
   ctx.fillStyle='#f59e0b'; ctx.font="bold 11px "+_C9F; ctx.textAlign='right'; ctx.fillText('F',px-pa-4,cy+4); ctx.textAlign='left'; ctx.fillText('F',px+pl+pa+4,cy+4);
   ctx.fillStyle='rgba(226,232,240,.9)'; ctx.font=f10; ctx.textAlign='center'; _ttlTeks(ctx,'W = '+Wp+' · ⌀d = '+d.toFixed(1)+' · t = '+t,cx,py+ph+16,2*Math.min(cx-12,W-12-cx),{lh:13});
-  ctx.fillStyle='#ef4444'; ctx.fillText('σ_maks di tepi lubang',cx,py-8);
+  ctx.fillStyle='#ef4444'; ctx.fillText('σ<sub>maks</sub> di tepi lubang',cx,py-8);
   // grafik Kt(d/W) kanan (ponsel: di bawah pelat)
   const gx0=sempit?40:W*0.60, gx1=sempit?W-16:W*0.95, gy1=sempit?py+ph+50:H*0.16, gy0=sempit?gy1+90:H*0.80;
   const X=x=>gx0+(gx1-gx0)*x/0.6, Y=y=>gy0-(gy0-gy1)*(y-2)/1.1;
   ctx.strokeStyle='rgba(148,163,184,.8)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(gx0,gy0); ctx.lineTo(gx1,gy0); ctx.moveTo(gx0,gy0); ctx.lineTo(gx0,gy1); ctx.stroke();
   ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font=f10; ctx.textAlign='center'; [0,0.2,0.4,0.6].forEach(x=>ctx.fillText(x.toFixed(1).replace('.',','),X(x),gy0+14)); ctx.fillText('d/W',(gx0+gx1)/2,gy0+28);
-  ctx.textAlign='right'; [2,2.5,3].forEach(y=>ctx.fillText(y.toFixed(1).replace('.',','),gx0-4,Y(y)+3)); ctx.textAlign='left'; ctx.fillText('Kt',gx0,gy1-8);
+  ctx.textAlign='right'; [2,2.5,3].forEach(y=>ctx.fillText(y.toFixed(1).replace('.',','),gx0-4,Y(y)+3)); ctx.textAlign='left'; ctx.fillText('K<sub>t</sub>',gx0,gy1-8);
   ctx.strokeStyle='#22d3ee'; ctx.lineWidth=1.8; ctx.beginPath(); for(let i=0;i<=60;i++){const x=i/100; i?ctx.lineTo(X(x),Y(_cad9Kt(x))):ctx.moveTo(X(x),Y(_cad9Kt(x)));} ctx.stroke();
   ctx.fillStyle='#f59e0b'; ctx.beginPath(); ctx.arc(X(r),Y(Kt),5,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='rgba(226,232,240,.9)'; ctx.textAlign='left'; _ttlTeks(ctx,'Kt = '+Kt.toFixed(3)+' pada d/W = '+r.toFixed(3),gx0+6,gy1+6,gx1-gx0-8,{lh:13});
+  ctx.fillStyle='rgba(226,232,240,.9)'; ctx.textAlign='left'; _ttlTeks(ctx,'K<sub>t</sub> = '+Kt.toFixed(3)+' pada d/W = '+r.toFixed(3),gx0+6,gy1+6,gx1-gx0-8,{lh:13});
   ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font=f10;
-  const kaki1='tegangan kotor F/(W·t) = '+sigKotor.toFixed(2)+' MPa;', kaki2='Kt turun, σ_nom naik: σ_maks tetap membesar dengan d';
+  const kaki1='tegangan kotor F/(W·t) = '+sigKotor.toFixed(2)+' MPa;', kaki2='K<sub>t</sub> turun, σ<sub>nom</sub> naik: σ<sub>maks</sub> tetap membesar dengan d';
   if(sempit) _ttlTeks(ctx,kaki2,12,_ttlTeks(ctx,kaki1,12,gy0+46,W-24,{lh:13}),W-24,{lh:13});
   else _ttlTeks(ctx,kaki1+' '+kaki2,12,H-14,W-24,{lh:13});
-  _ttlTulis('infoKtLubang','d/W = '+r.toFixed(3)+' → Kt = 3,00 − 3,13r + 3,66r² − 1,53r³ = '+Kt.toFixed(4)+'; σ_nom = '+F+'/(('+Wp+' − '+d.toFixed(1)+')·'+t+') = '+sigNom.toFixed(3)+' MPa; σ_maks = '+sigMaks.toFixed(3)+' MPa di tepi lubang (pembanding von Mises FEM dengan mesh halus di lubang).');
+  _ttlTulis('infoKtLubang','d/W = '+r.toFixed(3)+' → K<sub>t</sub> = 3,00 − 3,13r + 3,66r² − 1,53r³ = '+Kt.toFixed(4)+'; σ<sub>nom</sub> = '+F+'/(('+Wp+' − '+d.toFixed(1)+')·'+t+') = '+sigNom.toFixed(3)+' MPa; σ<sub>maks</sub> = '+sigMaks.toFixed(3)+' MPa di tepi lubang (pembanding von Mises FEM dengan mesh halus di lubang).');
   if(_ttlJalan('ktlubang')){_c9ktFrame++; requestAnimationFrame(drawKtLubang);}
 }
 
@@ -214,7 +214,7 @@ function drawTekuk(){
   const rasio=P/Pcr, amp=rasio<1?0:Math.min(1,Math.sqrt(rasio-1)*0.8+0.15);
   // judul; di ponsel dua baris selalu disediakan agar gambar tidak meloncat saat teksnya berganti
   ctx.fillStyle='rgba(226,232,240,.92)'; ctx.font=f11; ctx.textAlign='left';
-  _ttlTeks(ctx,rasio<1?'P < P_cr: kolom tetap lurus, von\u00a0Mises\u00a0kecil':'P ≥ P_cr: kolom menekuk pada sumbu\u00a0lemah walau\u00a0σ\u00a0≪\u00a0σ_y',12,18,W-24,{lh:14});
+  _ttlTeks(ctx,rasio<1?'P < P<sub>cr</sub>: kolom tetap lurus, von\u00a0Mises\u00a0kecil':'P ≥ P<sub>cr</sub>: kolom menekuk pada sumbu\u00a0lemah walau\u00a0σ\u00a0≪\u00a0σ<sub>y</sub>',12,18,W-24,{lh:14});
   const yJ=sempit?46:32;
   // Puncak kolom diturunkan sehingga panah beban (panjangnya sebanding P) selalu di bawah judul.
   const cx=W*0.26, yTop=sempit?yJ+54:H*0.30, yBot=sempit?yTop+100:H*0.86, sk=(yBot-yTop), tebal=Math.max(4,h*sk/L*2);
@@ -241,19 +241,19 @@ function drawTekuk(){
   ctx.strokeStyle='rgba(226,232,240,.5)'; ctx.lineWidth=1; ctx.strokeRect(mx,my,mw,mh);
   const isi=Math.min(1,rasio/2)*mh; ctx.fillStyle=rasio<1?'rgba(34,211,238,.6)':'rgba(239,68,68,.7)'; ctx.fillRect(mx,my+mh-isi,mw,isi);
   ctx.strokeStyle='#ef4444'; ctx.setLineDash([4,3]); ctx.beginPath(); ctx.moveTo(mx-6,my+mh/2); ctx.lineTo(mx+mw+6,my+mh/2); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle='#ef4444'; ctx.textAlign='left'; ctx.fillText('P_cr',mx+mw+8,my+mh/2+4); ctx.fillStyle='rgba(148,163,184,.85)'; ctx.fillText('2·P_cr',mx+mw+8,my+4); ctx.fillText('0',mx+mw+8,my+mh+4);
-  ctx.fillStyle='rgba(226,232,240,.9)'; ctx.textAlign='center'; ctx.fillText('P / P_cr',mx+mw/2,my-8); ctx.textAlign='left';
+  ctx.fillStyle='#ef4444'; ctx.textAlign='left'; ctx.fillText('P<sub>cr</sub>',mx+mw+8,my+mh/2+4); ctx.fillStyle='rgba(148,163,184,.85)'; ctx.fillText('2·P<sub>cr</sub>',mx+mw+8,my+4); ctx.fillText('0',mx+mw+8,my+mh+4);
+  ctx.fillStyle='rgba(226,232,240,.9)'; ctx.textAlign='center'; ctx.fillText('P / P<sub>cr</sub>',mx+mw/2,my-8); ctx.textAlign='left';
   // teks kanan (ponsel: di bawah gambar)
   const tx=sempit?12:sedang?W*0.57:W*0.68, ty=sempit?yBot+46:H*0.22, dg=sempit?[0,16,32,52,70,85,100]:[0,20,40,66,88,106,124];
   _cad9Kolom(ctx,tx,ty,W-tx-(sempit?12:8),[
     ['I = bh³/12 = '+I.toFixed(1)+' mm⁴','#22d3ee',f11,dg[0]],
-    ['P_cr = π²EI/L²','#22d3ee',f11,dg[1]],
+    ['P<sub>cr</sub> = π²EI/L²','#22d3ee',f11,dg[1]],
     ['= '+Pcr.toFixed(1)+' N','#00e09e',f11,dg[2]],
-    ['SF tekuk = P_cr/P = '+(Pcr/P).toFixed(2)+(rasio>=1?' →\u00a0tekuk!':''),rasio<1?'#00e09e':'#ef4444',f11,dg[3]],
-    ['σ = P/A = '+(P/A).toFixed(1)+' MPa (σ_y 250)','rgba(148,163,184,.85)',f10,dg[4]],
-    ['σ_cr = P_cr/A = '+(Pcr/A).toFixed(1)+' MPa'+(Pcr/A<_C9SY?' → elastis':' > σ_y: bukan\u00a0Euler'),'rgba(148,163,184,.85)',f10,dg[5]],
+    ['SF tekuk = P<sub>cr</sub>/P = '+(Pcr/P).toFixed(2)+(rasio>=1?' →\u00a0tekuk!':''),rasio<1?'#00e09e':'#ef4444',f11,dg[3]],
+    ['σ = P/A = '+(P/A).toFixed(1)+' MPa (σ<sub>y</sub> 250)','rgba(148,163,184,.85)',f10,dg[4]],
+    ['σ<sub>cr</sub> = P<sub>cr</sub>/A = '+(Pcr/A).toFixed(1)+' MPa'+(Pcr/A<_C9SY?' → elastis':' > σ<sub>y</sub>: bukan\u00a0Euler'),'rgba(148,163,184,.85)',f10,dg[5]],
     ['kelangsingan λ = L/r = '+lam.toFixed(0)+' (r\u00a0=\u00a0h/√12)','rgba(148,163,184,.85)',f10,dg[6]]]);
-  _ttlTulis('infoTekuk','I sumbu lemah = '+b+'·'+h.toFixed(1)+'³/12 = '+I.toFixed(2)+' mm⁴; P_cr = π²·210000·'+I.toFixed(2)+'/'+L+'² = '+Pcr.toFixed(1)+' N; pada P = '+Ps.toFixed(0)+' N, SF tekuk = '+(Pcr/Ps).toFixed(3)+' dan tegangan hanya '+(Ps/A).toFixed(2)+' MPa — CalculiX Buckling memberi buckling factor ≈ P_cr/P yang dibandingkan dengan Euler.');
+  _ttlTulis('infoTekuk','I sumbu lemah = '+b+'·'+h.toFixed(1)+'³/12 = '+I.toFixed(2)+' mm⁴; P<sub>cr</sub> = π²·210000·'+I.toFixed(2)+'/'+L+'² = '+Pcr.toFixed(1)+' N; pada P = '+Ps.toFixed(0)+' N, SF tekuk = '+(Pcr/Ps).toFixed(3)+' dan tegangan hanya '+(Ps/A).toFixed(2)+' MPa — CalculiX Buckling memberi buckling factor ≈ P<sub>cr</sub>/P yang dibandingkan dengan Euler.');
   if(_ttlJalan('tekuk')){_c9tkFrame++; requestAnimationFrame(drawTekuk);}
 }
 

@@ -230,7 +230,7 @@ function drawTigaPandangan(){
   ctx.fillStyle='#00e09e'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='right';
   if(!sempit) ctx.fillText(luas.join(' '),W-12,H-12); else _cad6Judul(ctx,luas,W-12,yLuas,W-24,13);
   ctx.textAlign='left';
-  _ttlTulis('tigaPandanganInfo','Pandangan '+nama[fase]+' sedang diproyeksikan. Muka depan (profil XZ) luasnya a·H − (a/2)·h_n = '+a+'·'+Hh+' − '+(a/2)+'·'+hn+' = '+Adepan.toFixed(2)+' mm²; pandangan Atas '+a+' × '+b+' memperlihatkan rusuk takik di x = a/2, pandangan Kanan '+b+' × '+Hh+' memperlihatkan rusuk takik di z = H − h_n = '+(Hh-hn)+'.');
+  _ttlTulis('tigaPandanganInfo','Pandangan '+nama[fase]+' sedang diproyeksikan. Muka depan (profil XZ) luasnya a·H − (a/2)·h<sub>n</sub> = '+a+'·'+Hh+' − '+(a/2)+'·'+hn+' = '+Adepan.toFixed(2)+' mm²; pandangan Atas '+a+' × '+b+' memperlihatkan rusuk takik di x = a/2, pandangan Kanan '+b+' × '+Hh+' memperlihatkan rusuk takik di z = H − h<sub>n</sub> = '+(Hh-hn)+'.');
   if(_ttlJalan('tigapandangan')){_tp6Frame++; requestAnimationFrame(drawTigaPandangan);}
 }
 

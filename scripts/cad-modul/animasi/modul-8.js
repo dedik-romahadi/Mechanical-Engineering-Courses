@@ -80,7 +80,7 @@ function drawMesh(){
   const rasio=orde===2?1-0.04/(n*n):1-0.55/Math.pow(n,1.1);
   const ukuran=h/n;
   const butir=[[_C8TEKS,_C8F11,'ukuran elemen ≈ '+ukuran.toFixed(2)+' mm'],['#22d3ee',_C8F11,'elemen tet ≈ '+_cad8Id(nEl,0)],['#22d3ee',_C8F11,'simpul ≈ '+_cad8Id(nNode,0)],
-    [orde===2?'#f59e0b':'#22d3ee',_C8F11,(orde===2?'tet10 (orde 2)':'tet4 (orde 1)')+':'],['#00e09e',_C8F11,'δ_FEM/δ_rumus ≈ '+rasio.toFixed(3)],['#ef4444',_C8F11,'kesalahan ≈ '+((1-rasio)*100).toFixed(1)+' %']];
+    [orde===2?'#f59e0b':'#22d3ee',_C8F11,(orde===2?'tet10 (orde 2)':'tet4 (orde 1)')+':'],['#00e09e',_C8F11,'δ<sub>FEM</sub>/δ<sub>rumus</sub> ≈ '+rasio.toFixed(3)],['#ef4444',_C8F11,'kesalahan ≈ '+((1-rasio)*100).toFixed(1)+' %']];
   let bx=tx, by=H*0.2+128, bw=W*0.28;
   if(sempit){by=_cad8Kolom(ctx,10,yKet+8,W-18,butir,[0,17,16,21,16,16])+12; bx=10; bw=Math.min(W-28,240);}
   else _cad8Kolom(ctx,tx,H*0.2,W-tx-2,butir,[0,22,20,30,20,20]);
@@ -239,11 +239,11 @@ function drawGetar(){
   _ttlTeks(ctx,sMode,Math.max(8+wM/2,Math.min(kanan-wM/2,X(L/2))),oy+A0+22,kanan-8);
   ctx.textAlign='left';
   const fBaris=f.map((fn,i)=>[i===mode-1?'#00e09e':'rgba(226,232,240,.7)',_C8F11,(i===mode-1?'▶ ':'  ')+'f'+['₁','₂','₃'][i]+' = '+_cad8Id(fn,1)+' Hz']);
-  const butir=[[_C8TEKS,_C8F11,'kantilever '+L+' × '+b+' × '+h+' mm baja'],['#a855f7',_C8F11,'f_n = (β_n²/2π)·√(EI/ρA)/L²'],[_C8ABU,_C8F10,'√(EI/ρA) = h·√(E/12ρ) = '+((h/1000)*c).toFixed(3)+' m/s'],...fBaris];
+  const butir=[[_C8TEKS,_C8F11,'kantilever '+L+' × '+b+' × '+h+' mm baja'],['#a855f7',_C8F11,'f<sub>n</sub> = (β<sub>n</sub>²/2π)·√(EI/ρA)/L²'],[_C8ABU,_C8F10,'√(EI/ρA) = h·√(E/12ρ) = '+((h/1000)*c).toFixed(3)+' m/s'],...fBaris];
   const x0=sempit?10:tx, mw=sempit?W-18:W-tx-2;
   const yf=sempit?_cad8Kolom(ctx,10,oy+A0+46,mw,butir,[0,18,16,21,16,16]):_cad8Kolom(ctx,tx,H*0.2,mw,butir,[0,24,20,28,20,20]);
   ctx.fillStyle=_C8ABU; ctx.font=_C8F10;
-  _cad8Frasa(ctx,['f ∝ h/L²','resonansi bila rpm/60 ≈ f_n'],x0,yf+(sempit?20:28),mw,13,' · ');
+  _cad8Frasa(ctx,['f ∝ h/L²','resonansi bila rpm/60 ≈ f<sub>n</sub>'],x0,yf+(sempit?20:28),mw,13,' · ');
   const j1='Mode getar '+mode+' kantilever,', sFr='f = '+f[mode-1].toFixed(1)+' Hz', sArah='(lentur arah tebal h)';
   ctx.fillStyle=_C8TEKS; ctx.font=_C8F11;
   if(sempit){_ttlTeks(ctx,j1,10,18,W-18); _cad8Frasa(ctx,[sFr,sArah],10,33,W-18,13);}

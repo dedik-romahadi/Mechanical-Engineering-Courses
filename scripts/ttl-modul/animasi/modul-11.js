@@ -44,14 +44,14 @@ function drawKurvaBeban(){
   const hj=(_kbFrame*0.08)%24; const hi=Math.floor(hj);
   const a=0.6+0.4*Math.sin(_kbFrame*0.15); ctx.fillStyle='rgba(255,255,255,'+a.toFixed(2)+')'; ctx.beginPath(); ctx.arc(X(hj),Y(tot[hi]),5,0,Math.PI*2); ctx.fill();
   ctx.textAlign='left'; ctx.font="600 10px 'JetBrains Mono',monospace";
-  ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('P_maks '+pmax.toFixed(0)+' kW @ '+hmax+':00',padL+6,Y(pmax)-6);
-  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('P_rata '+(e/24).toFixed(0)+' kW',padL+6,Y(e/24)-6);
+  ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('P<sub>maks</sub> '+pmax.toFixed(0)+' kW @ '+hmax+':00',padL+6,Y(pmax)-6);
+  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('P<sub>rata</sub> '+(e/24).toFixed(0)+' kW',padL+6,Y(e/24)-6);
   ctx.fillStyle='rgba(255,255,255,.9)'; ctx.fillText(hi+':00 → '+tot[hi].toFixed(0)+' kW',X(hj)+8,Y(tot[hi])-8);
   // legenda & kotak faktor
   const lx=padL+plotW+14; nama.forEach((n,i)=>{ctx.fillStyle=warna[i]; ctx.fillRect(lx,padT+i*15,10,10); ctx.fillStyle='rgba(226,232,240,.9)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText(n,lx+14,padT+9+i*15);});
   const baris=[['faktor beban',lf.toFixed(3)],['faktor rugi',lossf.toFixed(3)],['faktor kebutuhan',df.toFixed(2)],['faktor keragaman',fd.toFixed(2)],['energi/hari',(e/1000).toFixed(1)+' MWh']];
   baris.forEach(([n,v],i)=>{ctx.fillStyle='rgba(148,163,184,.8)'; ctx.fillText(n,lx,padT+62+i*15); ctx.fillStyle='rgba(0,229,255,.95)'; ctx.textAlign='right'; ctx.fillText(v,lx+150,padT+62+i*15); ctx.textAlign='left';});
-  _ttlTulis('kurvaBebanInfo',nR+' rumah × '+dR+' kW, '+nK+' ruko × '+dK+' kW, industri '+pI+' kW   |   P_maks gabungan '+pmax.toFixed(0)+' kW pada '+hmax+':00 (Σ puncak individu '+sumIndiv.toFixed(0)+' kW → faktor keragaman '+fd.toFixed(2)+')   |   energi '+(e/1000).toFixed(2)+' MWh/hari, P_rata '+(e/24).toFixed(0)+' kW → faktor beban '+lf.toFixed(3)+', faktor rugi '+lossf.toFixed(3)+'   |   beban terhubung ≈ '+terhubung.toFixed(0)+' kW → faktor kebutuhan '+df.toFixed(2)+'   |   trafo gardu ≥ '+(pmax/0.9).toFixed(0)+' kVA pada pf 0,9');
+  _ttlTulis('kurvaBebanInfo',nR+' rumah × '+dR+' kW, '+nK+' ruko × '+dK+' kW, industri '+pI+' kW   |   P<sub>maks</sub> gabungan '+pmax.toFixed(0)+' kW pada '+hmax+':00 (Σ puncak individu '+sumIndiv.toFixed(0)+' kW → faktor keragaman '+fd.toFixed(2)+')   |   energi '+(e/1000).toFixed(2)+' MWh/hari, P<sub>rata</sub> '+(e/24).toFixed(0)+' kW → faktor beban '+lf.toFixed(3)+', faktor rugi '+lossf.toFixed(3)+'   |   beban terhubung ≈ '+terhubung.toFixed(0)+' kW → faktor kebutuhan '+df.toFixed(2)+'   |   trafo gardu ≥ '+(pmax/0.9).toFixed(0)+' kVA pada pf 0,9');
   if(_ttlJalan('kurvabeban')){_kbFrame++; requestAnimationFrame(drawKurvaBeban);}
 }
 

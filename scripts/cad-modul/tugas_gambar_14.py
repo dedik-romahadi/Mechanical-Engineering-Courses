@@ -7,6 +7,7 @@ import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
+from pustaka import Kode  # noqa: E402  (teks SVG berupa kode yang diketik)
 from tugas_gambar import AM, AX, BL, CY, GN, GR, PK, RD, TX, VI, _panah, catatan, dim_h, dim_v, ext, gambar_tugas, iso, lingkar3d, poli, sumbu2d, sumbu3d, t  # noqa: E402,F401
 
 
@@ -30,21 +31,21 @@ def gambar():
     body += dim_v(cx + rx + 26, ytop, ybot, "h = 2r", kiri=False)
     body += t(cx, 31, "volume V₀ ditetapkan (mm³)", 9.5, GR, "middle")  # di atas label r
     body += t(cx, 212, "luas A = 2πr² + 2πrh = 6πr²", 9.5, AX, "middle")
-    body += catatan(["Spreadsheet alias:", "  V0 (mm³, angka polos)", "  r = (V0/(2*pi))^(1/3)", "  h = 2*r  (hasil optimasi)", "Sketch XY: Circle pusat (0,0),", "  Radius = Spreadsheet.r", "Pad Length = Spreadsheet.h", "baca: Shape.Area (mm²)"], 330, 40)
+    body += catatan(["Spreadsheet alias:", Kode("  V0 (mm³, angka polos)"), Kode("  r = (V0/(2*pi))^(1/3)"), Kode("  h = 2*r  (hasil optimasi)"), "Sketch XY: Circle pusat (0,0),", "  Radius = Spreadsheet.r", "Pad Length = Spreadsheet.h", "baca: Shape.Area (mm²)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 1 — kaleng silinder tertutup bervolume tetap dengan luas permukaan minimum", h=240))
     # T2 — kantilever aluminium: tinggi minimum dari kendala defleksi
     x0, x1, yt, yb = 50, 250, 112, 146
     body = _jepit(x0, yt - 14, yb + 14)
     body += f'<rect x="40" y="40" width="30" height="34" fill="rgba(245,158,11,.18)" stroke="{AM}" stroke-width="1.6"/>'
-    body += t(55, 88, "b", 10.5, AM, "middle", "600") + t(74, 60, "h_req", 10.5, AM, "start", "600")
-    body += t(150, 92, "penampang b × h_req (Sketch YZ)", 9.5, AX, "middle")
+    body += t(55, 88, "b", 10.5, AM, "middle", "600") + t(74, 60, "h<sub>req</sub>", 10.5, AM, "start", "600")
+    body += t(150, 92, "penampang b × h<sub>req</sub> (Sketch YZ)", 9.5, AX, "middle")
     body += f'<rect x="{x0}" y="{yt}" width="{x1 - x0}" height="{yb - yt}" fill="rgba(34,211,238,.16)" stroke="{CY}" stroke-width="2"/>'
     body += _panah(240, 74, 240, yt - 4, AM, 1.6) + t(248, 86, "F", 11, AM, "start", "700")
     body += f'<path d="M {x0} 129 Q 170 129 {x1} 160" fill="none" stroke="{VI}" stroke-width="1.6" stroke-dasharray="5 3"/>'
-    body += dim_v(x1 + 12, yt, yb, "h_req", CY, kiri=False)
-    body += t(150, 180, "defleksi ujung δ ≤ δ_izin (kendala)", 9.5, VI, "middle")
+    body += dim_v(x1 + 12, yt, yb, "h<sub>req</sub>", CY, kiri=False)
+    body += t(150, 180, "defleksi ujung δ ≤ δ<sub>izin</sub> (kendala)", 9.5, VI, "middle")
     body += ext(x0, yb, x0, 202) + ext(x1, 160, x1, 202) + dim_h(x0, x1, 196, "L", atas=False)
-    body += catatan(["Spreadsheet alias F, L, b, E,", "  d_izin (aluminium E = 70000)", "sel h_req =", "  (4*F*L^3/(E*b*d_izin))^(1/3)", "Sketch YZ b × h_req, kedua", "  dimensi berekspresi → Pad L", "baca: nilai sel h_req (mm)"], 330, 40)
+    body += catatan(["Spreadsheet alias F, L, b, E,", Kode("  d_izin (aluminium E = 70000)"), Kode("sel h_req ="), Kode("  (4*F*L^3/(E*b*d_izin))^(1/3)"), "Sketch YZ b × h<sub>req</sub>, kedua", "  dimensi berekspresi → Pad L", "baca: nilai sel h<sub>req</sub> (mm)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 2 — kantilever aluminium: tinggi minimum dari kendala defleksi", h=240))
     # T3 — tabung pengganti poros pejal dengan momen inersia sama
     cy = 118
@@ -54,24 +55,24 @@ def gambar():
     body += f'<line x1="50" y1="{cy}" x2="140" y2="{cy}" stroke="{RD}" stroke-width=".7" stroke-dasharray="6 2 2 2"/>'
     body += f'<line x1="165" y1="{cy}" x2="285" y2="{cy}" stroke="{RD}" stroke-width=".7" stroke-dasharray="6 2 2 2"/>'
     body += _panah(145, cy, 166, cy, GR, 1.6) + t(155, cy - 22, "I sama", 9.5, GR, "middle", "600")
-    body += t(95, 176, "⌀d_s (pejal)", 10, AX, "middle", "600")
-    body += t(225, 192, "⌀d_o (luar)", 10, GR, "middle", "600")
-    body += t(225, cy - 4, "⌀d_i", 10, GR, "middle", "600")  # di atas garis sumbu merah
-    body += t(160, 212, "k = d_i/d_o diberikan di soal", 9.5, AM, "middle")
-    body += catatan(["Spreadsheet alias d_s, k", "sel d_o = d_s/(1 − k^4)^(1/4)", "sel d_i = k*d_o", "Sketch XY: dua lingkaran", "  sepusat ⌀d_o dan ⌀d_i", "  (berekspresi) → Pad 100", "bandingkan Shape.Volume", "baca: nilai sel d_o (mm)"], 330, 40)
+    body += t(95, 176, "⌀d<sub>s</sub> (pejal)", 10, AX, "middle", "600")
+    body += t(225, 192, "⌀d<sub>o</sub> (luar)", 10, GR, "middle", "600")
+    body += t(225, cy - 4, "⌀d<sub>i</sub>", 10, GR, "middle", "600")  # di atas garis sumbu merah
+    body += t(160, 212, "k = d<sub>i</sub>/d<sub>o</sub> diberikan di soal", 9.5, AM, "middle")
+    body += catatan([Kode("Spreadsheet alias d_s, k"), Kode("sel d_o = d_s/(1 - k^4)^(1/4)"), Kode("sel d_i = k*d_o"), "Sketch XY: dua lingkaran", "  sepusat ⌀d<sub>o</sub> dan ⌀d<sub>i</sub>", "  (berekspresi) → Pad 100", "bandingkan Shape.Volume", "baca: nilai sel d<sub>o</sub> (mm)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 3 — tabung berongga pengganti poros pejal dengan momen inersia sama", h=240))
     # T4 — pelat kantilever dengan dua kendala sekaligus
     x0, x1, yt, yb = 50, 250, 124, 150
     body = _jepit(x0, yt - 14, yb + 14)
-    body += t(150, 48, "σ_maks = 6·F·L/(b·t²) ≤ σ_izin", 10, RD, "middle", "600")
-    body += t(150, 70, "δ = 4·F·L³/(E·b·t³) ≤ δ_izin", 10, VI, "middle", "600")
-    body += t(150, 92, "t_req = maks(t_σ, t_δ)", 10, AM, "middle", "700")
+    body += t(150, 48, "σ<sub>maks</sub> = 6·F·L/(b·t²) ≤ σ<sub>izin</sub>", 10, RD, "middle", "600")
+    body += t(150, 70, "δ = 4·F·L³/(E·b·t³) ≤ δ<sub>izin</sub>", 10, VI, "middle", "600")
+    body += t(150, 92, "t<sub>req</sub> = maks(t<sub>σ</sub>, t<sub>δ</sub>)", 10, AM, "middle", "700")
     body += f'<rect x="{x0}" y="{yt}" width="{x1 - x0}" height="{yb - yt}" fill="rgba(34,211,238,.16)" stroke="{CY}" stroke-width="2"/>'
     body += _panah(240, 104, 240, yt - 4, AM, 1.6) + t(248, 116, "F", 11, AM, "start", "700")
-    body += dim_v(x1 + 12, yt, yb, "t_req", CY, kiri=False)
+    body += dim_v(x1 + 12, yt, yb, "t<sub>req</sub>", CY, kiri=False)
     body += t(150, 172, "lebar b tegak lurus bidang gambar", 9.5, AX, "middle")
     body += ext(x0, yb, x0, 200) + ext(x1, yb, x1, 200) + dim_h(x0, x1, 194, "L", atas=False)
-    body += catatan(["Spreadsheet alias F, L, b, E,", "  s_izin, d_izin (baja)", "t_sigma = (6*F*L/(b*s_izin))^(1/2)", "t_delta =", "  (4*F*L^3/(E*b*d_izin))^(1/3)", "t_req = max(t_sigma; t_delta)", "Sketch YZ b × t_req → Pad L", "baca: nilai sel t_req (mm)"], 330, 40)
+    body += catatan(["Spreadsheet alias F, L, b, E,", Kode("  s_izin, d_izin (baja)"), Kode("t_sigma = (6*F*L/(b*s_izin))^(1/2)"), Kode("t_delta ="), Kode("  (4*F*L^3/(E*b*d_izin))^(1/3)"), Kode("t_req = max(t_sigma; t_delta)"), "Sketch YZ b × t<sub>req</sub> → Pad L", "baca: nilai sel t<sub>req</sub> (mm)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 4 — pelat kantilever dengan kendala tegangan dan defleksi sekaligus", h=240))
     # T5 — pilihan material berjejak karbon terkecil pada kekakuan sama
     x0, x1 = 50, 250
@@ -80,12 +81,12 @@ def gambar():
     body += f'<rect x="{x0}" y="120" width="{x1 - x0}" height="40" fill="rgba(34,211,238,.16)" stroke="{CY}" stroke-width="2"/>'
     body += _panah(238, 26, 238, 52, AM, 1.4) + t(245, 38, "F", 10.5, AM, "start", "700")
     body += _panah(238, 90, 238, 116, AM, 1.4) + t(245, 102, "F", 10.5, AM, "start", "700")
-    body += dim_v(262, 56, 82, "h_St", AX, kiri=False)
-    body += dim_v(262, 120, 160, "h_Al", CY, kiri=False)
-    body += t(140, 102, "kekakuan sama: E_st·I_st = E_Al·I_Al", 9.5, GR, "middle")
+    body += dim_v(262, 56, 82, "h<sub>St</sub>", AX, kiri=False)
+    body += dim_v(262, 120, 160, "h<sub>Al</sub>", CY, kiri=False)
+    body += t(140, 102, "kekakuan sama: E<sub>st</sub>·I<sub>st</sub> = E<sub>Al</sub>·I<sub>Al</sub>", 9.5, GR, "middle")
     body += ext(x0, 160, x0, 196) + ext(x1, 160, x1, 196) + dim_h(x0, x1, 190, "L", atas=False)
     body += t(140, 222, "jejak CO₂ = f × ρ × b·L·h", 9.5, AM, "middle", "600")
-    body += catatan(["Spreadsheet alias F, L, b,", "  d_izin; tiap material:", "  h = (4*F*L^3/(E*b*d_izin))", "       ^(1/3)", "  massa = rho*b*L*h  (kg)", "  CO2 = f*massa", "modelkan balok ALUMINIUM", "  b × h_Al → Pad L", "baca: jejak CO₂ Al (kg)"], 330, 40)
+    body += catatan(["Spreadsheet alias F, L, b,", Kode("  d_izin; tiap material:"), Kode("  h = (4*F*L^3/(E*b*d_izin))"), Kode("       ^(1/3)"), Kode("  massa = rho*b*L*h  (kg)"), Kode("  CO2 = f*massa"), "modelkan balok ALUMINIUM", "  b × h<sub>Al</sub> → Pad L", "baca: jejak CO₂ Al (kg)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 5 — pilihan material berjejak karbon terkecil pada kekakuan lentur sama", h=246))
     return out
 

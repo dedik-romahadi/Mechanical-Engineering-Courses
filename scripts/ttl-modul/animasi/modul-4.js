@@ -50,7 +50,7 @@ function drawNodal(){
   ctx.fillText('I₁ = '+I1.toFixed(3)+' A'+(I1<0?' (masuk ke E₁: diisi)':''),xL+8,yT+18);
   ctx.textAlign='right'; ctx.fillText('I₂ = '+I2.toFixed(3)+' A'+(I2<0?' (masuk ke E₂: diisi)':''),xR-8,yT+18);
   ctx.textAlign='left'; ctx.fillText('I₃ = '+I3.toFixed(3)+' A',xM+12,(yT+yB)/2+40);
-  _ttlTulis('nodalInfo','V = (E₁/R₁ + E₂/R₂)/(1/R₁ + 1/R₂ + 1/R₃) = '+V.toFixed(4)+' V   |   I₁ = '+I1.toFixed(3)+' A, I₂ = '+I2.toFixed(3)+' A, I₃ = '+I3.toFixed(3)+' A   |   KCL: I₁ + I₂ − I₃ = '+(I1+I2-I3).toFixed(4)+'   |   P₁ = '+(E1*I1).toFixed(2)+' W, P₂ = '+(E2*I2).toFixed(2)+' W, P_R3 = '+(V*I3).toFixed(2)+' W');
+  _ttlTulis('nodalInfo','V = (E₁/R₁ + E₂/R₂)/(1/R₁ + 1/R₂ + 1/R₃) = '+V.toFixed(4)+' V   |   I₁ = '+I1.toFixed(3)+' A, I₂ = '+I2.toFixed(3)+' A, I₃ = '+I3.toFixed(3)+' A   |   KCL: I₁ + I₂ − I₃ = '+(I1+I2-I3).toFixed(4)+'   |   P₁ = '+(E1*I1).toFixed(2)+' W, P₂ = '+(E2*I2).toFixed(2)+' W, P<sub>R3</sub> = '+(V*I3).toFixed(2)+' W');
   if(_ttlJalan('nodal')){_ndFrame++; requestAnimationFrame(drawNodal);}
 }
 
@@ -106,8 +106,8 @@ function drawThevenin(){
   const xs=30, ys=H/2, lebarSkema=Math.min(200,W*0.3);
   const kawat=(a,b,c,d)=>_ttlGaris(ctx,a,b,c,d,'rgba(148,163,184,.7)',2);
   kawat(xs+20,ys-60,xs+20,ys-12); kawat(xs+20,ys+12,xs+20,ys+60); kawat(xs+20,ys-60,xs+lebarSkema-10,ys-60); kawat(xs+20,ys+60,xs+lebarSkema-10,ys+60);
-  _ttlSumber(ctx,xs+20,ys,'V_th '+Vth.toFixed(2)+' V','rgba(255,179,0,.95)',true);
-  _ttlResistor(ctx,xs+50,ys-60,xs+lebarSkema-40,ys-60,'R_th '+Rth.toFixed(2)+' Ω','rgba(34,211,238,.95)');
+  _ttlSumber(ctx,xs+20,ys,'V<sub>th</sub> '+Vth.toFixed(2)+' V','rgba(255,179,0,.95)',true);
+  _ttlResistor(ctx,xs+50,ys-60,xs+lebarSkema-40,ys-60,'R<sub>th</sub> '+Rth.toFixed(2)+' Ω','rgba(34,211,238,.95)');
   ctx.fillStyle='rgba(0,224,158,.95)'; ctx.beginPath(); ctx.arc(xs+lebarSkema-10,ys-60,4,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(xs+lebarSkema-10,ys+60,4,0,Math.PI*2); ctx.fill();
   ctx.font="11px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('terminal beban',xs+lebarSkema-10,ys+80);
   const padL=xs+lebarSkema+50, padR=20, padT=24, padB=36, x0=padL, y0=H-padB, plotW=W-padL-padR, plotH=H-padT-padB;
@@ -119,10 +119,10 @@ function drawThevenin(){
   ctx.strokeStyle='rgba(0,224,158,.95)'; ctx.lineWidth=2.4; ctx.beginPath();
   for(let i=0;i<=300;i++){const RL=0.01+(i/300)*RLmax; i?ctx.lineTo(X(RL),Y(PL(RL))):ctx.moveTo(X(RL),Y(PL(RL)));} ctx.stroke();
   _ttlGaris(ctx,X(Rth),padT,X(Rth),y0,'rgba(236,72,153,.85)',1.5,[3,3]);
-  ctx.fillStyle='rgba(236,72,153,.95)'; ctx.textAlign='left'; ctx.fillText('R_L = R_th → P_maks = '+Pmax.toFixed(2)+' W',Math.min(X(Rth)+6,x0+plotW-170),padT+12);
+  ctx.fillStyle='rgba(236,72,153,.95)'; ctx.textAlign='left'; ctx.fillText('R<sub>L</sub> = R<sub>th</sub> → P<sub>maks</sub> = '+Pmax.toFixed(2)+' W',Math.min(X(Rth)+6,x0+plotW-170),padT+12);
   const RLnow=0.01+((_thFrame*0.004)%1)*RLmax;
   ctx.fillStyle='#00e5ff'; ctx.beginPath(); ctx.arc(X(RLnow),Y(PL(RLnow)),4.5,0,Math.PI*2); ctx.fill();
-  _ttlTulis('theveninInfo','V_th = E·R₂/(R₁+R₂) = '+Vth.toFixed(3)+' V;  R_th = R₁‖R₂ + R₃ = '+Rth.toFixed(3)+' Ω;  I_N = '+(Vth/Rth).toFixed(3)+' A   |   R_L = '+RLnow.toFixed(2)+' Ω → I = '+(Vth/(Rth+RLnow)).toFixed(3)+' A, P_L = '+PL(RLnow).toFixed(2)+' W   |   P_maks = V_th²/(4R_th) = '+Pmax.toFixed(2)+' W');
+  _ttlTulis('theveninInfo','V<sub>th</sub> = E·R₂/(R₁+R₂) = '+Vth.toFixed(3)+' V;  R<sub>th</sub> = R₁‖R₂ + R₃ = '+Rth.toFixed(3)+' Ω;  I<sub>N</sub> = '+(Vth/Rth).toFixed(3)+' A   |   R<sub>L</sub> = '+RLnow.toFixed(2)+' Ω → I = '+(Vth/(Rth+RLnow)).toFixed(3)+' A, P<sub>L</sub> = '+PL(RLnow).toFixed(2)+' W   |   P<sub>maks</sub> = V<sub>th</sub>²/(4R<sub>th</sub>) = '+Pmax.toFixed(2)+' W');
   if(_ttlJalan('thevenin')){_thFrame++; requestAnimationFrame(drawThevenin);}
 }
 
@@ -142,16 +142,16 @@ function drawParalelSumber(){
   _ttlSumber(ctx,xL,yB-40,'E₁ '+E1.toFixed(1)+' V','rgba(255,179,0,.95)',true);
   _ttlResistor(ctx,xR,yT+30,xR,yT+80,'r₂ '+r2.toFixed(3)+' Ω','rgba(168,85,247,.95)');
   _ttlSumber(ctx,xR,yB-40,'E₂ '+E2.toFixed(1)+' V','rgba(249,115,22,.95)',true);
-  _ttlResistor(ctx,xM,yT+30,xM,yB-30,'R_L '+RL.toFixed(2)+' Ω','rgba(0,224,158,.95)');
+  _ttlResistor(ctx,xM,yT+30,xM,yB-30,'R<sub>L</sub> '+RL.toFixed(2)+' Ω','rgba(0,224,158,.95)');
   ctx.font="600 12px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillStyle='#fca5a5'; ctx.fillText('V rel = '+V.toFixed(3)+' V',xM,yT-14);
   _ttlPartikel(ctx,[[xL,yB],[xL,yT],[xM,yT]],I1,_psFrame,'rgba(255,179,0,.95)');
   _ttlPartikel(ctx,[[xR,yB],[xR,yT],[xM,yT]],I2,_psFrame,'rgba(249,115,22,.95)');
   _ttlPartikel(ctx,[[xM,yT],[xM,yB]],IL,_psFrame,'rgba(0,224,158,.95)');
   ctx.font="11px 'JetBrains Mono',monospace"; ctx.textAlign='left'; ctx.fillStyle=I1<0?'#fca5a5':'rgba(226,232,240,.9)'; ctx.fillText('I₁ = '+I1.toFixed(2)+' A'+(I1<0?' ⚠ diisi':''),xL+8,yT+18);
   ctx.textAlign='right'; ctx.fillStyle=I2<0?'#fca5a5':'rgba(226,232,240,.9)'; ctx.fillText('I₂ = '+I2.toFixed(2)+' A'+(I2<0?' ⚠ diisi':''),xR-8,yT+18);
-  ctx.textAlign='left'; ctx.fillStyle='rgba(226,232,240,.9)'; ctx.fillText('I_L = '+IL.toFixed(2)+' A',xM+12,(yT+yB)/2+40);
+  ctx.textAlign='left'; ctx.fillStyle='rgba(226,232,240,.9)'; ctx.fillText('I<sub>L</sub> = '+IL.toFixed(2)+' A',xM+12,(yT+yB)/2+40);
   const sirk=Math.abs(E1-E2)/(r1+r2);
-  _ttlTulis('paralelSumberInfo','V = '+V.toFixed(4)+' V; I₁ = '+I1.toFixed(3)+' A, I₂ = '+I2.toFixed(3)+' A, I_L = '+IL.toFixed(3)+' A'+(I2<0||I1<0?'   ⚠ satu sumber diisi oleh yang lain':'')+'   |   tanpa beban: arus sirkulasi |E₁−E₂|/(r₁+r₂) = '+sirk.toFixed(2)+' A, rugi '+(sirk*sirk*(r1+r2)).toFixed(2)+' W terus-menerus');
+  _ttlTulis('paralelSumberInfo','V = '+V.toFixed(4)+' V; I₁ = '+I1.toFixed(3)+' A, I₂ = '+I2.toFixed(3)+' A, I<sub>L</sub> = '+IL.toFixed(3)+' A'+(I2<0||I1<0?'   ⚠ satu sumber diisi oleh yang lain':'')+'   |   tanpa beban: arus sirkulasi |E₁−E₂|/(r₁+r₂) = '+sirk.toFixed(2)+' A, rugi '+(sirk*sirk*(r1+r2)).toFixed(2)+' W terus-menerus');
   if(_ttlJalan('paralelsumber')){_psFrame++; requestAnimationFrame(drawParalelSumber);}
 }
 

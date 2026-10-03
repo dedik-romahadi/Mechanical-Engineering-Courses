@@ -1243,6 +1243,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -2069,8 +2140,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
         <div class="ctrl-group" style="flex:1 1 100%;">
           <label>Pilih Sistem Real (Dropdown):</label>
           <select id="sl_sys_real" onchange="setSysReal(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:380px;margin-top:6px;">
-            <option value="pendulum">🪀 Pendulum sederhana — ω_n = \(\sqrt{g/L}\)</option>
-            <option value="msd">🔧 Mass-Spring-Damper — ω_n = \(\sqrt{k/m}\)</option>
+            <option value="pendulum">🪀 Pendulum sederhana — ωₙ = √(g/L)</option>
+            <option value="msd">🔧 Mass-Spring-Damper — ωₙ = √(k/m)</option>
             <option value="cantilever">🪛 Cantilever Beam, bending mode 1</option>
             <option value="rotor">⚙️ Rotor + Bearing, radial vibration</option>
             <option value="suspension">🚗 Mobil suspensi, bounce mode</option>
@@ -2418,7 +2489,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">x(t) = A·sin(ωt + φ)</span>
     <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">ωₙ = √(k/m)</span>
     <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">ζ = c/(2√(km))</span>
-    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">ω_d = ωₙ·√(1−ζ²)</span>
+    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">ω<sub>d</sub> = ωₙ·√(1−ζ²)</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 1 · Konsep Dasar Getaran</div>
@@ -2512,9 +2583,9 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
-        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; ωₙ = \(k \cdot m\)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; ωₙ = \(\sqrt{m/k}\)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; ωₙ = \(\sqrt{k/m}\)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; ωₙ = \(k \cdot m\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; ωₙ = \(\sqrt{m/k}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; ωₙ = \(\sqrt{k/m}\)</span></div>
         <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; ωₙ = k/(2m)</div>
       </div>
       <button class="mc-submit" id="sub-mc2" onclick="checkMC('mc2')" disabled>Periksa Jawaban</button>
@@ -2548,7 +2619,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div class="radio-group" id="rg-mc4">
         <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Perpindahan (displacement, mm)</div>
         <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Kecepatan (velocity, mm/s)</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Percepatan (acceleration, m/\(s^2\) atau g)</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; Percepatan (acceleration, m/\(s^2\) atau g)</span></div>
         <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Periode (s)</div>
       </div>
       <button class="mc-submit" id="sub-mc4" onclick="checkMC('mc4')" disabled>Periksa Jawaban</button>
@@ -2563,10 +2634,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc5">
-        <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(v_{\text{max}}\) = A</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(v_{\text{max}}\) = A·ω</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(v_{\text{max}}\) = A·ω²</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(v_{\text{max}}\) = A/ω</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(v_{\text{max}}\) = A</span></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(v_{\text{max}}\) = A·ω</span></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(v_{\text{max}}\) = A·ω²</span></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(v_{\text{max}}\) = A/ω</span></div>
       </div>
       <button class="mc-submit" id="sub-mc5" onclick="checkMC('mc5')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc5"></div>
@@ -2600,7 +2671,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; ω = f</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; ω = 2π·f</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; ω = f/(2π)</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; ω = π·\(f^2\)</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; ω = π·\(f^2\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc7" onclick="checkMC('mc7')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc7"></div>
@@ -2616,7 +2687,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div class="radio-group" id="rg-mc8">
         <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Tetap konstan</div>
         <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Naik secara eksponensial</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Berkurang secara eksponensial dengan envelope e^(−ζωₙt)</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; Berkurang secara eksponensial dengan envelope e<sup>−ζωₙt</sup></span></div>
         <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Berfluktuasi acak tanpa pola</div>
       </div>
       <button class="mc-submit" id="sub-mc8" onclick="checkMC('mc8')" disabled>Periksa Jawaban</button>
@@ -2737,7 +2808,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="comp-q">Hitung <strong>rasio redaman ζ</strong> (dimensionless) dari sistem referensi (c=40 Ns/m, m=5 kg, k=2000 N/m). Gunakan rumus ζ = c / (2\(\sqrt{km}\)).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Hitung redaman kritis c_c = 2\(\sqrt{km}\) dulu, lalu rasio redaman ζ = c/c_c (tak berdimensi).</div>
+      <div class="comp-hint">💡 Hitung redaman kritis c<sub>c</sub> = 2\(\sqrt{km}\) dulu, lalu rasio redaman ζ = c/c<sub>c</sub> (tak berdimensi).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">ζ (dimensionless)</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
@@ -2771,7 +2842,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="comp-q">Untuk getaran harmonik <code style="font-family:'JetBrains Mono',monospace">x(t) = A·sin(ωt)</code> dengan A = 0.05 m dan ω = 20 rad/s, hitung <strong>kecepatan maksimum \(v_{\text{max}}\)</strong> (m/s). Gunakan \(v_{\text{max}}\) = A·ω.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Turunkan x(t) terhadap t: kecepatan maksimum terjadi saat cos=1, sehingga v_max = A·ω.</div>
+      <div class="comp-hint">💡 Turunkan x(t) terhadap t: kecepatan maksimum terjadi saat cos=1, sehingga v<sub>max</sub> = A·ω.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(v_{\text{max}} (m/s)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
@@ -2788,7 +2859,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="comp-q">Untuk getaran harmonik <code style="font-family:'JetBrains Mono',monospace">x(t) = A·sin(ωt)</code> dengan A = 0.05 m dan ω = 20 rad/s, hitung <strong>percepatan maksimum \(a_{\text{max}}\)</strong> (m/\(s^2\)). Gunakan \(a_{\text{max}}\) = A·ω².</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Turunan kedua x(t): percepatan maksimum a_max = A·ω²; hasil dalam m/\(s^2\).</div>
+      <div class="comp-hint">💡 Turunan kedua x(t): percepatan maksimum a<sub>max</sub> = A·ω²; hasil dalam m/\(s^2\).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(a_{\text{max}} (m/s^2)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
@@ -2883,10 +2954,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q">Identifikasi <strong>rasio redaman ζ</strong> dari data simulasi getaran bebas underdamped menggunakan metode <strong>logarithmic decrement</strong>. Generate data signal: <code>x(t) = 0.1·exp(−0.5·t)·cos(10·t)</code> untuk t ∈ [0, 4] (1000 sampel). Deteksi puncak-puncak (peaks), hitung δ = (1/n)·ln(x₁/x_(1+n)) dengan n=5, lalu hitung ζ = δ/\(\sqrt{4\pi ^2 + \delta ^2}\). Laporkan ζ estimasi.</div>
+        <div class="comp-q">Identifikasi <strong>rasio redaman ζ</strong> dari data simulasi getaran bebas underdamped menggunakan metode <strong>logarithmic decrement</strong>. Generate data signal: <code>x(t) = 0.1·exp(−0.5·t)·cos(10·t)</code> untuk t ∈ [0, 4] (1000 sampel). Deteksi puncak-puncak (peaks), hitung δ = (1/n)·ln(x₁/x<sub>1+n</sub>) dengan n=5, lalu hitung ζ = δ/\(\sqrt{4\pi ^2 + \delta ^2}\). Laporkan ζ estimasi.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Deteksi puncak sinyal dengan <code>scipy.signal.find_peaks</code>, ambil puncak ke-1 dan ke-(1+n), hitung δ = (1/n)·ln(x₁/x_(1+n)), lalu ζ = δ/\(\sqrt{4\pi ^2+\delta ^2}\).</div>
+      <div class="comp-hint">💡 Deteksi puncak sinyal dengan <code>scipy.signal.find_peaks</code>, ambil puncak ke-1 dan ke-(1+n), hitung δ = (1/n)·ln(x₁/x<sub>1+n</sub>), lalu ζ = δ/\(\sqrt{4\pi ^2+\delta ^2}\).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">ζ estimasi (logarithmic decrement)</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="10" placeholder="Paste kode Python log-decrement, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -2989,8 +3060,8 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   <div class="float-formulas">
     <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">x(t) = A·sin(ωt + φ)</span>
     <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">fₙ = (1/2π)·√(k/m)</span>
-    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">v_max = Aω</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">a_max = Aω²</span>
+    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">v<sub>max</sub> = Aω</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">a<sub>max</sub> = Aω²</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 1 · Konsep Dasar Getaran</div>
@@ -3083,7 +3154,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
           <div class="poll-opts" id="fp2">
             <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Perpindahan (mm), paling akurat di frekuensi rendah saja (&lt; 10 Hz)</div>
             <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Kecepatan (mm/s), paling efektif di rentang 10–1000 Hz, sesuai ISO 10816</div>
-            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Percepatan (m/\(s^2\)), paling baik untuk frekuensi tinggi (&gt; 1000 Hz, bearing defect)</div>
+            <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div><span class="opsi-teks">Percepatan (m/\(s^2\)), paling baik untuk frekuensi tinggi (&gt; 1000 Hz, bearing defect)</span></div>
             <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>RMS dari ketiganya, kompleks dan tidak ada standar industri</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! Pada 25 Hz (rentang 10–1000 Hz), <strong>velocity</strong> adalah parameter paling informatif dan relatif konstan terhadap frekuensi. Itulah sebabnya ISO 10816 (standar dunia untuk vibration severity mesin rotasi) berbasis \(v_{\text{RMS}}\) dengan threshold sesuai kelas mesin. \(v_{\text{RMS}}\) = 8.2 mm/s pada pompa kelas ini = zona "unsatisfactory" → wajib investigasi.</div>
@@ -4776,6 +4847,35 @@ window._setBtnState = _setBtnState;
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4843,15 +4943,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -4890,7 +4992,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -4903,7 +5005,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5710,9 +5812,9 @@ function buildForumHtml() {
       <div style="font-weight:700;color:#5b35d0;margin-bottom:8px;font-size:15px;">&#128203; Skenario: Pompa Sentrifugal Bermasalah di Pabrik Kimia</div>
       <div style="font-size:.88rem;color:#475569;margin-bottom:10px;line-height:1.65;">Pompa sentrifugal menunjukkan gejala bermasalah: getaran terasa di lantai, kebisingan meningkat, baut penopang motor longgar berulang kali. Tim maintenance memasang accelerometer dan menemukan amplitudo melebihi batas ISO 10816. Diperlukan diagnosa awal berbasis konsep dasar getaran. Data lapangan:</div>
       <div style="margin-top:10px;line-height:2.2;"><div style="display:inline-block;margin:2px 6px 2px 0;background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">RPM motor = 1500</div>
-      <div style="display:inline-block;margin:2px 6px 2px 0;background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">v_RMS = 8.2 mm/s</div>
+      <div style="display:inline-block;margin:2px 6px 2px 0;background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">v<sub>RMS</sub> = 8.2 mm/s</div>
       <div style="display:inline-block;margin:2px 6px 2px 0;background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">m = 120 kg</div>
-      <div style="display:inline-block;margin:2px 6px 2px 0;background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">f_dom = 25 Hz</div>
+      <div style="display:inline-block;margin:2px 6px 2px 0;background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">f<sub>dom</sub> = 25 Hz</div>
     </td></tr>
   </table>
   </div>
@@ -5730,7 +5832,7 @@ function buildForumHtml() {
 
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:4px;">
     <tr><td style="padding:20px 28px;">
-      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#0ea5e9;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Mengapa parameter v_RMS dipilih sebagai indikator utama, bukan perpindahan atau percepatan?</h3>
+      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#0ea5e9;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Mengapa parameter v<sub>RMS</sub> dipilih sebagai indikator utama, bukan perpindahan atau percepatan?</h3>
       <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Sebutkan tiga parameter getaran (displacement, velocity, acceleration). Hubungan turunan: v = A&middot;&omega;, a = A&middot;&omega;&sup2;. Pada rentang frekuensi mesin rotasi tipikal (10&ndash;1000 Hz), velocity menjadi pilihan optimal. Jelaskan klasifikasi zona ISO 10816 (A/B/C/D).</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
@@ -6247,7 +6349,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(255,179,0,.85)'; ctx.beginPath();
     ctx.arc(px,py,18,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.fillText('m',px,py+4);
-    document.getElementById('sysRealInfo').textContent=`Pendulum L=1m: ω_n = √(g/L) = ${wn.toFixed(2)} rad/s, T = ${(2*Math.PI/wn).toFixed(2)} s`;
+    document.getElementById('sysRealInfo').innerHTML=`Pendulum L=1m: ω<sub>n</sub> = √(g/L) = ${wn.toFixed(2)} rad/s, T = ${(2*Math.PI/wn).toFixed(2)} s`;
   }
   else if(_sysRealKind==='msd'){
     wn=Math.sqrt(100);
@@ -6262,13 +6364,13 @@ function drawSysReal(){
     ctx.lineTo(cx+x-30,cy); ctx.stroke();
     ctx.fillStyle='rgba(14,165,233,.85)'; ctx.fillRect(cx+x-30,cy-30,60,60);
     ctx.fillStyle='#fff'; ctx.font='bold 14px JetBrains Mono'; ctx.fillText('m',cx+x,cy+5);
-    document.getElementById('sysRealInfo').textContent=`Mass-Spring k=100 N/m, m=1 kg: ω_n = √(k/m) = ${wn.toFixed(2)} rad/s`;
+    document.getElementById('sysRealInfo').innerHTML=`Mass-Spring k=100 N/m, m=1 kg: ω<sub>n</sub> = √(k/m) = ${wn.toFixed(2)} rad/s`;
   }
   else if(_sysRealKind==='cantilever'){
     wn=2*Math.PI*1.5;
     const amp=Math.sin(2*t)*0.5;
     sigValue=amp;
-    label='y_tip(t)'; sigUnit='m';
+    label='y<sub>tip</sub>(t)'; sigUnit='m';
     ctx.fillStyle='#1e293b'; ctx.fillRect(20,cy-40,8,80);
     ctx.strokeStyle='rgba(0,224,158,.8)'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(28,cy);
@@ -6284,7 +6386,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(0,224,158,.9)';
     ctx.beginPath(); ctx.arc(28+beamL,tipY,12,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Cantilever Mode 1',cx,cy+80);
-    document.getElementById('sysRealInfo').textContent='Cantilever: ω_n = (1.875)²·√(EI/(ρAL⁴)), yaitu bending mode 1, tip mass berosilasi';
+    document.getElementById('sysRealInfo').innerHTML='Cantilever: ω<sub>n</sub> = (1.875)²·√(EI/(ρAL⁴)), yaitu bending mode 1, tip mass berosilasi';
   }
   else if(_sysRealKind==='rotor'){
     wn=2*Math.PI*1.27;
@@ -6300,13 +6402,13 @@ function drawSysReal(){
     ctx.fillStyle='#fff'; ctx.beginPath();
     ctx.arc(cx+Math.cos(spin)*20, cy+wobble+Math.sin(spin)*20, 4, 0, Math.PI*2); ctx.fill();
     ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Rotor + Bearing',cx,cy+60);
-    document.getElementById('sysRealInfo').textContent='Rotor + Bearing: ω_n = √(k_journal/m_rotor), bearing journal sebagai pegas radial';
+    document.getElementById('sysRealInfo').innerHTML='Rotor + Bearing: ω<sub>n</sub> = √(k<sub>journal</sub>/m<sub>rotor</sub>), bearing journal sebagai pegas radial';
   }
   else if(_sysRealKind==='suspension'){
     wn=2*Math.PI*1.0;
     const bump=Math.sin(wn*t)*10;
     sigValue=bump/10*0.3;
-    label='z_body(t)'; sigUnit='m';
+    label='z<sub>body</sub>(t)'; sigUnit='m';
     ctx.strokeStyle='#1e293b'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(20,cy+70+bump); ctx.lineTo(splitX-20,cy+70+bump); ctx.stroke();
     ctx.fillStyle='#0f172a';
@@ -6321,7 +6423,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(14,165,233,.9)';
     ctx.fillRect(cx-100,cy-25+bump*0.3,200,30);
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Body',cx,cy-5+bump*0.3);
-    document.getElementById('sysRealInfo').textContent='Suspensi mobil: ω_n = √(k_spring/m_body) ≈ 1-2 Hz natural ride frequency';
+    document.getElementById('sysRealInfo').innerHTML='Suspensi mobil: ω<sub>n</sub> = √(k<sub>spring</sub>/m<sub>body</sub>) ≈ 1-2 Hz natural ride frequency';
   }
 
   // Append to history (keep 200 points)
@@ -6474,8 +6576,8 @@ function drawForumCanvas() {
   ctx.strokeStyle='rgba(0,224,158,.2)'; ctx.strokeRect(padL+6, padT+8, 250, 70);
   ctx.fillStyle='#34d399'; ctx.font='bold 10px JetBrains Mono'; ctx.fillText('Pompa Sentrifugal — Velocity v(t)', padL+14, padT+22);
   ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono';
-  ctx.fillText(`RPM = ${RPM}  |  f_dominan = ${f1} Hz (1×RPM)`, padL+14, padT+36);
-  ctx.fillText(`v_RMS ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
+  ctx.fillText(`RPM = ${RPM}  |  f<sub>dominan</sub> = ${f1} Hz (1×RPM)`, padL+14, padT+36);
+  ctx.fillText(`v<sub>RMS</sub> ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
   ctx.fillText(`Hipotesis: unbalance rotor (verifikasi via FFT)`, padL+14, padT+64);
 }
 // Resize handler — redraw all active canvases

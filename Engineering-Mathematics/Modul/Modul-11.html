@@ -335,8 +335,8 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .radio-group{display:flex;flex-direction:column;gap:10px}
 .radio-option{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:10px;border:1px solid var(--border);cursor:pointer;transition:all .2s;font-size:14px;color:var(--text)}
 .radio-option sup,.radio-option sub{font-size:.78em;line-height:0;position:relative;margin-left:.5px;color:var(--cyan)}
-.radio-option sup{top:-0.55em}
-.radio-option sub{bottom:-0.25em}
+.radio-option > sup{top:-0.55em}
+.radio-option > sub{bottom:-0.25em}
 .radio-option:hover{border-color:rgba(249,115,22,.3);background:rgba(249,115,22,.04)}
 .radio-option.selected{border-color:var(--cyan);background:rgba(249,115,22,.06)}
 .radio-option.correct-ans{border-color:var(--green)!important;background:rgba(0,224,158,.08)!important}
@@ -1342,6 +1342,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1577,8 +1648,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="hero academic-hero" data-tab="modul" data-module-number="11">
   <canvas class="hero-orbits" data-hero-id="1"></canvas>
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">L{H(t−a)} = e^(−as)/s</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">L{δ(t−a)} = e^(−as)</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">L{H(t−a)} = e<sup>−as</sup>/s</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">L{δ(t−a)} = e<sup>−as</sup></span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">H(s) = Y(s)/U(s)</span>
     <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">y(t) = h*u (konvolusi)</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">L{f*g} = F(s)·G(s)</span>
@@ -1688,7 +1759,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">∫</div>
       <h3>Konvolusi y = h*u</h3>
-      <p><strong>Teorema konvolusi</strong>: <code>L{f*g} = F(s)·G(s)</code>, perkalian di domain s = konvolusi di domain t. Konsekuensi: untuk sistem dengan transfer function H(s), <code>y(t) = h(t)*u(t) = ∫₀^t h(τ)·u(t−τ)·dτ</code>. Respons ke input arbitrary = konvolusi impulse response dengan input.</p>
+      <p><strong>Teorema konvolusi</strong>: <code>L{f*g} = F(s)·G(s)</code>, perkalian di domain s = konvolusi di domain t. Konsekuensi: untuk sistem dengan transfer function H(s), <code>y(t) = h(t)*u(t) = ∫₀<sup>t</sup> h(τ)·u(t−τ)·dτ</code>. Respons ke input arbitrary = konvolusi impulse response dengan input.</p>
       <div class="formula">\(L{f*g} = F(s) \cdot G(s)\)</div>
     </div>
   </div>
@@ -1968,7 +2039,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">∫</div>
       <h3>Definisi Konvolusi</h3>
-      <p><strong>Konvolusi</strong> dua fungsi: <code>(f*g)(t) = ∫₀^t f(τ)·g(t−τ)·dτ</code>. Visual: f(τ) tetap, g(t−τ) di-flip dan slide di atas f, integral memberi area overlap. Sifat: <strong>komutatif</strong> (f*g = g*f), <strong>asosiatif</strong>, <strong>distributif</strong> ke penjumlahan. Identitas: <code>f*δ = f</code> (Dirac delta = identitas konvolusi).</p>
+      <p><strong>Konvolusi</strong> dua fungsi: <code>(f*g)(t) = ∫₀<sup>t</sup> f(τ)·g(t−τ)·dτ</code>. Visual: f(τ) tetap, g(t−τ) di-flip dan slide di atas f, integral memberi area overlap. Sifat: <strong>komutatif</strong> (f*g = g*f), <strong>asosiatif</strong>, <strong>distributif</strong> ke penjumlahan. Identitas: <code>f*δ = f</code> (Dirac delta = identitas konvolusi).</p>
       <div class="formula">\((f*g)(t) = \int _0^t f(\tau )g(t-\tau ) d\tau\)</div>
     </div>
     <div class="card">
@@ -2207,7 +2278,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Eigenvalue &amp; Stabilitas</h3>
-      <p>Akar dari <code>det(sI − A) = 0</code> = eigenvalue λ_i matriks A. Identik dengan akar karakteristik untuk sistem single PD. <strong>Sistem stabil</strong> bila <em>semua</em> eigenvalue Re(λ_i) &lt; 0. Bila ada satu eigenvalue dengan Re ≥ 0 → unstable. Konektor langsung antara aljabar matriks (linear algebra) dengan teori sistem dinamis.</p>
+      <p>Akar dari <code>det(sI − A) = 0</code> = eigenvalue λ<sub>i</sub> matriks A. Identik dengan akar karakteristik untuk sistem single PD. <strong>Sistem stabil</strong> bila <em>semua</em> eigenvalue Re(λ<sub>i</sub>) &lt; 0. Bila ada satu eigenvalue dengan Re ≥ 0 → unstable. Konektor langsung antara aljabar matriks (linear algebra) dengan teori sistem dinamis.</p>
       <div class="formula">\(\det(sI-A)=0 \to eigenvalue\)</div>
     </div>
   </div>
@@ -2254,7 +2325,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 2: PID Controller Design -->
   <div class="analogy-box reveal" style="border-left-color:var(--cyan);background:linear-gradient(135deg,rgba(14,165,233,.07),rgba(14,165,233,.03))">
     <span class="analogy-label" style="color:var(--cyan)">⚡ Analogi 2 — Desain Kontroler PID (Transfer Function)</span>
-    <strong style="color:var(--cyan)">PID controller</strong> = jantung kendali industri (motor, suhu, level cairan). Transfer function PID: <code>C(s) = K_p + K_i/s + K_d·s</code>. Sistem closed-loop: <code>T(s) = (G·C)/(1 + G·C)</code> dengan G plant transfer function. Engineer tuning \(K_p\), \(K_i\), \(K_d\) untuk mencapai: (a) zero steady-state error (lewat term integral \(K_i\)/s), (b) response cepat (lewat \(K_p\)), (c) tanpa overshoot besar (lewat term derivative \(K_d\)·s). Stabilitas dicek via lokasi pole closed-loop di s-plane. Tanpa konsep transfer function dari Laplace, kendali otomatis tidak ada.
+    <strong style="color:var(--cyan)">PID controller</strong> = jantung kendali industri (motor, suhu, level cairan). Transfer function PID: <code>C(s) = K<sub>p</sub> + K<sub>i</sub>/s + K<sub>d</sub>·s</code>. Sistem closed-loop: <code>T(s) = (G·C)/(1 + G·C)</code> dengan G plant transfer function. Engineer tuning \(K_p\), \(K_i\), \(K_d\) untuk mencapai: (a) zero steady-state error (lewat term integral \(K_i\)/s), (b) response cepat (lewat \(K_p\)), (c) tanpa overshoot besar (lewat term derivative \(K_d\)·s). Stabilitas dicek via lokasi pole closed-loop di s-plane. Tanpa konsep transfer function dari Laplace, kendali otomatis tidak ada.
   </div>
 
   <!-- Analogi 3: Sirkuit dengan Step + Pulse Input -->
@@ -2266,7 +2337,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 4: Konvolusi untuk Earthquake Response -->
   <div class="analogy-box reveal" style="border-left-color:var(--amber);background:linear-gradient(135deg,rgba(249,115,22,.07),rgba(249,115,22,.03))">
     <span class="analogy-label" style="color:var(--amber)">🎯 Analogi 4 — Earthquake Response via Konvolusi</span>
-    Engineer struktur menghitung respons bangunan terhadap <strong>earthquake ground motion</strong> u(t) (record dari accelerometer di lapangan). Bangunan dimodelkan sebagai sistem orde 2: <code>mẍ + cẋ + kx = −m·ü_g(t)</code>. Karena u(t) input arbitrary (tidak smooth, bukan eksponensial/sin), <strong>konvolusi</strong> ideal: <code>x(t) = h(t)*u(t) = ∫₀^t h(τ)·u(t−τ)·dτ</code> dengan h(t) = impulse response struktur. Implementasi numerik: <code>scipy.signal.convolve(h, u)</code>. Hasilnya = response history yang dipakai untuk: (a) cek apakah amplitudo melebihi threshold safety, (b) desain damper untuk mereduksi peak response, (c) evaluasi LRFD building code.
+    Engineer struktur menghitung respons bangunan terhadap <strong>earthquake ground motion</strong> u(t) (record dari accelerometer di lapangan). Bangunan dimodelkan sebagai sistem orde 2: <code>mẍ + cẋ + kx = −m·ü<sub>g</sub>(t)</code>. Karena u(t) input arbitrary (tidak smooth, bukan eksponensial/sin), <strong>konvolusi</strong> ideal: <code>x(t) = h(t)*u(t) = ∫₀<sup>t</sup> h(τ)·u(t−τ)·dτ</code> dengan h(t) = impulse response struktur. Implementasi numerik: <code>scipy.signal.convolve(h, u)</code>. Hasilnya = response history yang dipakai untuk: (a) cek apakah amplitudo melebihi threshold safety, (b) desain damper untuk mereduksi peak response, (c) evaluasi LRFD building code.
   </div>
 
   <!-- Analogi 5: Sistem Coupled Robot Lengan 2-Link -->
@@ -2445,7 +2516,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>Heaviside &amp; Dirac</h3>
-      <p>SymPy menyediakan <code>sp.Heaviside(t-a)</code> dan <code>sp.DiracDelta(t-a)</code>. Pakai <code>sp.laplace_transform</code> untuk dapatkan transformasi otomatis (e^(-as)/s atau e^(-as)). Pakai sifting sintetis untuk integral.</p>
+      <p>SymPy menyediakan <code>sp.Heaviside(t-a)</code> dan <code>sp.DiracDelta(t-a)</code>. Pakai <code>sp.laplace_transform</code> untuk dapatkan transformasi otomatis (e<sup>-as</sup>/s atau e<sup>-as</sup>). Pakai sifting sintetis untuk integral.</p>
       <div class="formula">sp.Heaviside, sp.DiracDelta</div>
     </div>
     <div class="card">
@@ -2817,7 +2888,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
 <div class="hero" data-tab="tugas" style="min-height:60vh">
   <canvas class="hero-orbits" data-hero-id="2"></canvas>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">L{H(t−a)} = e^(−as)/s</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">L{H(t−a)} = e<sup>−as</sup>/s</span>
     <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">L{δ(t)} = 1</span>
     <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">H(s) = Y/U</span>
     <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">L{f*g} = F·G</span>
@@ -2907,10 +2978,10 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc1">
-        <div class="radio-option" onclick="selectMC('mc1',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(e^{as}/s\)</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(e^{-as}/s\)</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>1/(s + a)</code></div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>a/s</code></div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(e^{as}/s\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(e^{-as}/s\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <code>1/(s + a)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>a/s</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc1" onclick="checkMC('mc1')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc1"></div>
@@ -2924,10 +2995,10 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
-        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(e^{-as}\)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(e^{-as}/s\)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>1/s</code></div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>a·s</code></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(e^{-as}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(e^{-as}/s\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <code>1/s</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>a·s</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc2" onclick="checkMC('mc2')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc2"></div>
@@ -2941,10 +3012,10 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc3">
-        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>0</code></div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>f(3)</code></div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>f(0)</code></div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>3·f(t)</code></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; <code>0</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <code>f(3)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <code>f(0)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>3·f(t)</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc3" onclick="checkMC('mc3')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc3"></div>
@@ -2958,10 +3029,10 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>Y(s)·U(s)</code></div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>Y(s)/U(s)</code></div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>Y(s) + U(s)</code></div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>L{y(t)·u(t)}</code></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; <code>Y(s)·U(s)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <code>Y(s)/U(s)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <code>Y(s) + U(s)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>L{y(t)·u(t)}</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc4" onclick="checkMC('mc4')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc4"></div>
@@ -2992,10 +3063,10 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc6">
-        <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>F(s) + G(s)</code></div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>F(s) · G(s)</code></div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>F(s) / G(s)</code></div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>F(s) ∗ G(s)</code></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; <code>F(s) + G(s)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <code>F(s) · G(s)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <code>F(s) / G(s)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>F(s) ∗ G(s)</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc6" onclick="checkMC('mc6')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc6"></div>
@@ -3009,10 +3080,10 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc7">
-        <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>y(t) = h(t) + u(t)</code></div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>y(t) = h(t)·u(t)</code></div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>y(t) = h(t)*u(t) = ∫₀^t h(τ)·u(t−τ) dτ</code></div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>y(t) = u(t)/h(t)</code></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; <code>y(t) = h(t) + u(t)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <code>y(t) = h(t)·u(t)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <code>y(t) = h(t)*u(t) = ∫₀<sup>t</sup> h(τ)·u(t−τ) dτ</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>y(t) = u(t)/h(t)</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc7" onclick="checkMC('mc7')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc7"></div>
@@ -3026,10 +3097,10 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc8">
-        <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>F(s − a)</code></div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(e^{-as} \cdot F(s)\)</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(e^{as} \cdot F(s)\)</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>F(s)/(s − a)</code></div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; <code>F(s − a)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(e^{-as} \cdot F(s)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(e^{as} \cdot F(s)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>F(s)/(s − a)</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc8" onclick="checkMC('mc8')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc8"></div>
@@ -3061,9 +3132,9 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
       </div>
       <div class="radio-group" id="rg-mc10">
         <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div>(A) &nbsp; trace(A) = 0</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>det(sI − A) = 0</code></div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>A · X = 0</code></div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(A^{T} = A\)</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <code>det(sI − A) = 0</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <code>A · X = 0</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(A^{T} = A\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc10" onclick="checkMC('mc10')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc10"></div>
@@ -3095,7 +3166,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
         <div class="comp-q">Hitung <code>L{H(t − 2)}</code> di s = 1. Rumus: \(e^{-as}/s\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Gunakan rumus <code>L{H(t − a)} = e^(−as)/s</code>, lalu substitusikan nilai a dan s yang diminta.</div>
+      <div class="comp-hint">💡 Gunakan rumus <code>L{H(t − a)} = e<sup>−as</sup>/s</code>, lalu substitusikan nilai a dan s yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">F(1)</strong></span></div>
         <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;import numpy as np&#10;a, s = 2, 1&#10;F = np.exp(-a*s)/s&#10;print(F)" oninput="onCodeInput('c1')"></textarea>
@@ -3112,7 +3183,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
         <div class="comp-q">Hitung <code>L{δ(t − 1)}</code> di s = 2. Rumus: \(e^{-as}\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Gunakan rumus <code>L{δ(t − a)} = e^(−as)</code>, lalu substitusikan nilai a dan s yang diminta.</div>
+      <div class="comp-hint">💡 Gunakan rumus <code>L{δ(t − a)} = e<sup>−as</sup></code>, lalu substitusikan nilai a dan s yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">F(2)</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
@@ -3309,7 +3380,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C13</div>
-        <div class="comp-q">Aplikasi <strong>sirkuit RLC dengan step input</strong>: <code>q'' + 2q' + 5q = u(t), q(0)=0, q'(0)=0</code>. Pakai Laplace: Q(s) = 1/[\(s \cdot (s^2\)+2s+5)]. Setelah pecahan parsial &amp; invers, q(t) = (1/5)·[1 − e^(-t)·(cos(2t) + (1/2)·sin(2t))]. Hitung <strong>q(2)</strong> (3 desimal).</div>
+        <div class="comp-q">Aplikasi <strong>sirkuit RLC dengan step input</strong>: <code>q'' + 2q' + 5q = u(t), q(0)=0, q'(0)=0</code>. Pakai Laplace: Q(s) = 1/[\(s \cdot (s^2\)+2s+5)]. Setelah pecahan parsial &amp; invers, q(t) = (1/5)·[1 − e<sup>-t</sup>·(cos(2t) + (1/2)·sin(2t))]. Hitung <strong>q(2)</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Bentuk Q(s), uraikan dengan pecahan parsial dan ambil invers Laplace untuk q(t), lalu evaluasi di titik t yang diminta.</div>
@@ -3346,7 +3417,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
         <div class="comp-q">Aplikasi <strong>final value theorem</strong>: \(\lim_{t \to \infty } y(t) = \lim_{s \to 0} s \cdot Y(s)\). Untuk transfer function H(s) = 5/(\(s^2\)+4s+13) dengan input step <code>U(s) = 1/s</code>, output Y(s) = H(s)/s = 5/[\(s \cdot (s^2\)+4s+13)]. Hitung <strong>\(\text{steady}\;-\;\text{state}\) value \(y(\infty )\)</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Final value theorem: hitung <code>lim_(s→0) s·Y(s)</code> dengan menyederhanakan ekspresi lalu evaluasi pada s=0.</div>
+      <div class="comp-hint">💡 Final value theorem: hitung <code>lim<sub>s→0</sub> s·Y(s)</code> dengan menyederhanakan ekspresi lalu evaluasi pada s=0.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(y(\infty )\)</strong></span></div>
         <textarea class="code-textarea" id="code-c15" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;# Final value theorem: lim s->0 of s*Y(s)&#10;# Y(s) = 5/[s*(s^2+4s+13)]&#10;# s*Y(s) = 5/(s^2+4s+13); pada s=0: 5/13&#10;y_inf = 5/13&#10;print(f'y(inf) = {y_inf:.4f}')" oninput="onCodeInput('c15')"></textarea>
@@ -3489,7 +3560,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Untuk PD <code>m·ẍ + c·ẋ + k·x = F(t)</code> dengan IVP nol, transfer function: <code>H(s) = X(s)/F(s) = 1/(ms² + cs + k)</code>. Saat input F(t) = δ(t): <code>L{δ(t)} = 1</code>, jadi <code>X(s) = H(s)·1 = H(s)</code>. Invers Laplace: <strong><code>h(t) = L⁻¹{H(s)}</code></strong> = impulse response. Inilah mengapa h(t) langsung mengkode H(s) sistem. Dari h(t) terukur \((1/3) \cdot e^{-2t} \cdot \sin(3t)\), identifikasi: pole kompleks s = −2 ± 3j → denominator <code>(s+2)² + 9 = s² + 4s + 13</code>; numerator (1/3)·3 = 1 (sesuai L{(1/3)e^(-2t)sin(3t)} = (1/3)·3/[(s+2)²+9]). Maka <strong>\(H(s) = 1/(s^2 + 4s + 13)\)</strong>.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Untuk PD <code>m·ẍ + c·ẋ + k·x = F(t)</code> dengan IVP nol, transfer function: <code>H(s) = X(s)/F(s) = 1/(ms² + cs + k)</code>. Saat input F(t) = δ(t): <code>L{δ(t)} = 1</code>, jadi <code>X(s) = H(s)·1 = H(s)</code>. Invers Laplace: <strong><code>h(t) = L⁻¹{H(s)}</code></strong> = impulse response. Inilah mengapa h(t) langsung mengkode H(s) sistem. Dari h(t) terukur \((1/3) \cdot e^{-2t} \cdot \sin(3t)\), identifikasi: pole kompleks s = −2 ± 3j → denominator <code>(s+2)² + 9 = s² + 4s + 13</code>; numerator (1/3)·3 = 1 (sesuai L{(1/3)e<sup>-2t</sup>sin(3t)} = (1/3)·3/[(s+2)²+9]). Maka <strong>\(H(s) = 1/(s^2 + 4s + 13)\)</strong>.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">L{δ(t)} = 1</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">h(t) ↔ H(s)</span>
@@ -3508,7 +3579,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
           <div class="p-fb w" id="fp1w">❌ Inti: Dirac delta punya transformasi Laplace paling sederhana <code>L{δ(t)} = 1</code>. Jadi saat <code>Y(s) = H(s)·U(s)</code> dengan <code>U(s) = 1</code>: hasil Y(s) = H(s) langsung. Domain waktu: y(t) = h(t) = invers Laplace dari transfer function = "impulse response" yang berisi semua informasi sistem.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis analisis lengkap di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Tunjukkan derivasi h(t) ↔ H(s) untuk input δ(t). (2) Dari h(t) = (1/3)·e^(-2t)·sin(3t) terukur, hitung Laplace untuk dapatkan H(s). (3) Verifikasi pole H(s). (4) Diskusikan mengapa hammer test = teknik fundamental di experimental modal analysis." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis analisis lengkap di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Tunjukkan derivasi h(t) ↔ H(s) untuk input δ(t). (2) Dari h(t) = (1/3)·e⁻²ᵗ·sin(3t) terukur, hitung Laplace untuk dapatkan H(s). (3) Verifikasi pole H(s). (4) Diskusikan mengapa hammer test = teknik fundamental di experimental modal analysis." oninput="checkForumReady()"></textarea>
         <div id="wc-fq1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -3537,10 +3608,10 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
             <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Unstable (pole di kanan)</div>
           </div>
           <div class="p-fb r" id="fp2r">✅ Benar! <strong>ζ ≈ 0.55</strong> adalah <em>underdamped</em> (0 &lt; ζ &lt; 1). Karakter: (a) <strong>osilasi peluruh</strong>, pole kompleks dengan envelope decay e<sup>−σt</sup>. (b) <strong>Settling time</strong> ≈ 4/σ = 2 s (5% rule). (c) <strong>Overshoot</strong> moderat ≈ 13%, tidak terlalu besar (yang akan terjadi bila ζ→0) atau lambat (yang akan terjadi bila ζ→1+). Untuk power supply atau control system, ζ ∈ [0.6, 0.8] sering dipilih sebagai <em>kompromis ideal</em>: response cepat tanpa overshoot berlebihan. Dari hammer test, ζ &lt; 0.1 menunjukkan struktur "ringing" (vibrasi terlalu lama), perlu damper.</div>
-          <div class="p-fb w" id="fp2w">❌ Damping ratio ζ klasifikasi: ζ = 0 (undamped, osilasi tak meluruh), 0 &lt; ζ &lt; 1 (<strong>underdamped</strong>, osilasi peluruh), ζ = 1 (critically damped, no osilasi), ζ &gt; 1 (overdamped, slow decay). Untuk pole −2 ± 3j: σ = 2, ω<sub>d</sub> = 3, ω<sub>n</sub> = \(\sqrt{\sigma ^2+\omega <sub>d</sub>^2}\) = √13 ≈ 3.61, ζ = σ/ω<sub>n</sub> ≈ 0.55 → underdamped.</div>
+          <div class="p-fb w" id="fp2w">❌ Damping ratio ζ klasifikasi: ζ = 0 (undamped, osilasi tak meluruh), 0 &lt; ζ &lt; 1 (<strong>underdamped</strong>, osilasi peluruh), ζ = 1 (critically damped, no osilasi), ζ &gt; 1 (overdamped, slow decay). Untuk pole −2 ± 3j: σ = 2, ω<sub>d</sub> = 3, ω<sub>n</sub> = \(\sqrt{\sigma ^2+\omega _{d}^2}\) = √13 ≈ 3.61, ζ = σ/ω<sub>n</sub> ≈ 0.55 → underdamped.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis analisis system identification (min. 30 kata)...&#10;&#10;Petunjuk: (1) Bandingkan H(s) dari hammer test dengan H(s) teoritis dari m·ẍ + c·ẋ + k·x = F. (2) Identifikasi c dan k dari koefisien (asumsi m = 1 kg). (3) Hitung ω_n, ζ, ω_d. (4) Klasifikasi sistem (underdamped/critically/overdamped) dan implikasi engineering." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis analisis system identification (min. 30 kata)...&#10;&#10;Petunjuk: (1) Bandingkan H(s) dari hammer test dengan H(s) teoritis dari m·ẍ + c·ẋ + k·x = F. (2) Identifikasi c dan k dari koefisien (asumsi m = 1 kg). (3) Hitung ωₙ, ζ, dan frekuensi teredam. (4) Klasifikasi sistem (underdamped/critically/overdamped) dan implikasi engineering." oninput="checkForumReady()"></textarea>
         <div id="wc-fq2" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -3555,7 +3626,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Setelah dapat impulse response \(h(t) = (1/3) \cdot e^{-2t} \cdot \sin(3t)\) dari hammer test, <strong>konvolusi</strong> memungkinkan hitung respons untuk <em>input apapun</em> tanpa solve PD ulang. Untuk step input <code>u(t) = H(t)</code>: <code>x(t) = h(t)*u(t) = ∫₀^t h(τ)·1·dτ</code>. Hitung integral analitik atau numerik (<code>scipy.signal.convolve(h, u)*dt</code>). Hasil: step response yang menggambarkan getar bracket saat mesin menyala mendadak.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Setelah dapat impulse response \(h(t) = (1/3) \cdot e^{-2t} \cdot \sin(3t)\) dari hammer test, <strong>konvolusi</strong> memungkinkan hitung respons untuk <em>input apapun</em> tanpa solve PD ulang. Untuk step input <code>u(t) = H(t)</code>: <code>x(t) = h(t)*u(t) = ∫₀<sup>t</sup> h(τ)·1·dτ</code>. Hitung integral analitik atau numerik (<code>scipy.signal.convolve(h, u)*dt</code>). Hasil: step response yang menggambarkan getar bracket saat mesin menyala mendadak.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">x(t) = h(t)*u(t)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">step response: 0 → 1/13</span>
@@ -4814,6 +4885,35 @@ function checkExportReady() {
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4881,15 +4981,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -4928,7 +5030,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -4941,7 +5043,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5730,7 +5832,7 @@ function buildForumHtml() {
       <div style="font-size:.88rem;color:#475569;margin-bottom:10px;line-height:1.65;">Blok silinder aluminium keluar die casting pada suhu 450&deg;C, didinginkan di udara pabrik (30&deg;C) menuju suhu aman 80&deg;C. Hukum Pendinginan Newton: <span style="font-family:monospace;color:#f97316;">T' + kT = kT&infin;</span>. Parameter kunci:</div>
       <div style="margin-top:10px;line-height:2.2;"><div style="display:inline-block;margin:2px 6px 2px 0;background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">T&#8320; = 450&deg;C</div>
       <div style="display:inline-block;margin:2px 6px 2px 0;background:#fef3c7;border:1px solid #fcd34d;color:#92400e;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">T&infin; = 30&deg;C</div>
-      <div style="display:inline-block;margin:2px 6px 2px 0;background:#d1fae5;border:1px solid #fdba74;color:#9a3412;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">T_aman = 80&deg;C</div>
+      <div style="display:inline-block;margin:2px 6px 2px 0;background:#d1fae5;border:1px solid #fdba74;color:#9a3412;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">T<sub>aman</sub> = 80&deg;C</div>
       <div style="display:inline-block;margin:2px 6px 2px 0;background:#ede9fe;border:1px solid #c4b5fd;color:#9a3412;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">k = 0.04 /menit</div>
     </td></tr>
   </table>
@@ -5739,7 +5841,7 @@ function buildForumHtml() {
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:8px;">
     <tr><td style="padding:20px 28px;">
       <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#f97316;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">1</span>Berapa waktu pendinginan alami (k = 0.04/menit) agar coran mencapai 80&deg;C? Bagaimana jika k dinaikkan ke 0.08/menit dengan kipas?</h3>
-      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Gunakan solusi T(t) = T&infin; + (T&#8320; &minus; T&infin;)&middot;e^(&minus;kt). Tentukan t saat T = 80&deg;C untuk kedua skenario.</div>
+      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Gunakan solusi T(t) = T&infin; + (T&#8320; &minus; T&infin;)&middot;e<sup>&minus;kt</sup>. Tentukan t saat T = 80&deg;C untuk kedua skenario.</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
         <div style="background:#f8f5ff;border:1px solid #c4b5fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans1}</div>
@@ -5749,7 +5851,7 @@ function buildForumHtml() {
 
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:4px;">
     <tr><td style="padding:20px 28px;">
-      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#f97316;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Jika spray mist mengubah model menjadi T' = &minus;k(T&minus;T&infin;)^1.2 (non-linier), bagaimana strategi penyelesaiannya?</h3>
+      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#f97316;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Jika spray mist mengubah model menjadi T' = &minus;k(T&minus;T&infin;)<sup>1.2</sup> (non-linier), bagaimana strategi penyelesaiannya?</h3>
       <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Pertimbangkan: substitusi u = T &minus; T&infin; menjadikan PD terpisah, bukan Bernoulli klasik. Tunjukkan langkah integrasi.</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
@@ -5986,13 +6088,13 @@ function drawCases(){
     let rootsStr;
     if (kase === 1){
       const m1 = ((1-b) + Math.sqrt(D))/2, m2 = ((1-b) - Math.sqrt(D))/2;
-      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x^m₁ + c₂·x^m₂`;
+      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x<sup>m₁</sup> + c₂·x<sup>m₂</sup>`;
     } else if (kase === 2){
       const m = (1-b)/2;
-      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x^m`;
+      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x<sup>m</sup>`;
     } else {
       const al = (1-b)/2, be = Math.sqrt(-D)/2;
-      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x^α·[c₁cos(β ln x) + c₂sin(β ln x)]`;
+      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x<sup>α</sup>·[c₁cos(β ln x) + c₂sin(β ln x)]`;
     }
     infoEl.innerHTML = `<span style="color:${color}">●</span> PD: x²y'' + ${b.toFixed(2)}·x·y' + ${c.toFixed(2)}·y = 0 &nbsp;|&nbsp; D = (b−1)² − 4c = ${D.toFixed(2)} &nbsp;|&nbsp; ${rootsStr}`;
   }
@@ -6109,9 +6211,9 @@ function drawRoots(){
   ctx.fillText('Re(m)', px1 - 35, cy - 8);
   ctx.fillText('Im(m)', cx + 6, py0 + 12);
   ctx.fillStyle = '#00e09e';
-  ctx.fillText('x^m → 0', px0 + 8, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → 0', px0 + 8, py0 + 16);
   ctx.fillStyle = '#ef4444';
-  ctx.fillText('x^m → ∞', px1 - 65, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → ∞', px1 - 65, py0 + 16);
   ctx.fillStyle = '#94a3b8';
   for (let i = -4; i <= 4; i += 2){
     if (i === 0) continue;
@@ -6535,7 +6637,7 @@ function drawSweep(){
       const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
       const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
       const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
+      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r<sub>max</sub>=${rmaxTheory.toFixed(2)}, DMF<sub>max</sub>=${dmfmaxTheory.toFixed(2)}`;
     } else {
       info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
     }
@@ -6901,7 +7003,7 @@ function drawHPB(){
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
+  ctx.fillText(`${linePos.toFixed(2)} × H²<sub>max</sub> = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
 
   // Find ω₁ and ω₂ (intersection of curve with targetY)
   // Binary search on either side of peak
@@ -6945,12 +7047,12 @@ function drawHPB(){
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
+    let html = `ζ<sub>TRUE</sub> = ${zetaTrue.toFixed(3)} · ω<sub>peak</sub> = ${omegaPeak.toFixed(2)} · H²<sub>max</sub> = ${H2max.toFixed(2)}<br>`;
     if(omega1 !== null && omega2 !== null){
       html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
       if(Math.abs(linePos - 0.5) < 0.02){
         const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
+        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ<sub>estimated</sub> = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
       } else {
         html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
       }
@@ -7834,10 +7936,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7851,7 +7953,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -10372,7 +10474,7 @@ function drawEMTog(){
   const isNum = (_emTogMode === 1);
   const color = isNum ? '#a855f7' : '#00e09e';
   ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e^(-bt/2)·cos(ωt)', 20, 30);
+  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e<sup>-bt/2</sup>·cos(ωt)', 20, 30);
 
   const padL=50, padR=20, padT=50, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
@@ -11151,7 +11253,7 @@ function _createForumParticleBurst(event) {
       lbl.style.fontWeight = active ? '700' : '400';
       lbl.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
       lbl.style.transform = active ? 'scale(1.05)' : 'scale(1)';
-      lbl.textContent = active ? (lbl.textContent.replace(' ✓','') + ' ✓') : lbl.textContent.replace(' ✓','');
+      (function (el, aktif) { var t = el.lastChild; if (t && t.nodeType === 3 && / ✓$/.test(t.nodeValue)) { t.nodeValue = t.nodeValue.slice(0, -2); if (!t.nodeValue) el.removeChild(t); } if (aktif) el.appendChild(document.createTextNode(' ✓')); })(lbl, active);   // notasi-halaman.mjs: ✓ tanpa menulis ulang textContent
     });
   };
 

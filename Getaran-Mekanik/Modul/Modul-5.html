@@ -1239,6 +1239,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1773,7 +1844,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <thead><tr><th>Zona</th><th>r</th><th>Tᵣ</th><th>Interpretasi Isolasi</th></tr></thead>
       <tbody>
         <tr><td style="color:var(--cyan)">Kaku (r kecil)</td><td>r → 0</td><td>Tᵣ → 1</td><td>Isolator seperti "batu", gaya diteruskan penuh</td></tr>
-        <tr><td style="color:var(--pink)">Resonansi</td><td>r = 1</td><td>Tᵣ_max ≈ 1/(2ζ) untuk ζ kecil</td><td><strong>AMPLIFIKASI</strong>, isolator memperburuk keadaan 10×+</td></tr>
+        <tr><td style="color:var(--pink)">Resonansi</td><td>r = 1</td><td>T<sub>r,max</sub> ≈ 1/(2ζ) untuk ζ kecil</td><td><strong>AMPLIFIKASI</strong>, isolator memperburuk keadaan 10×+</td></tr>
         <tr><td style="color:var(--amber)">Crossover</td><td>r = √2</td><td><strong>Tᵣ = 1 (tepat, ∀ζ)</strong></td><td>Batas antara amplifikasi dan isolasi</td></tr>
         <tr><td style="color:var(--green)">Isolasi Efektif</td><td>r = 3</td><td>Tᵣ ≈ 0.15–0.25</td><td>Hanya 15–25% gaya diteruskan, isolasi baik</td></tr>
         <tr><td style="color:var(--green)">Isolasi Sangat Baik</td><td>r = 5</td><td>Tᵣ ≈ 0.04–0.10</td><td>Di bawah 10%, standar industri presisi</td></tr>
@@ -1998,11 +2069,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <canvas id="cvIso" height="360"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Rasio Frekuensi r = ω/ωₙ_iso — <span class="ctrl-val" id="v_ri">2.50</span></label>
+          <label>Rasio Frekuensi r = ω/ω<sub>n,iso</sub> — <span class="ctrl-val" id="v_ri">2.50</span></label>
           <input type="range" id="sl_ri" min="0.3" max="5" step="0.05" value="2.5">
         </div>
         <div class="ctrl-group">
-          <label>Redaman Isolator ζ_iso — <span class="ctrl-val" id="v_zi">0.08</span></label>
+          <label>Redaman Isolator ζ<sub>iso</sub> — <span class="ctrl-val" id="v_zi">0.08</span></label>
           <input type="range" id="sl_zi" min="0.02" max="0.5" step="0.01" value="0.08">
         </div>
         <button class="btn-anim" id="btnIso" onclick="toggleIso()">⏸ PAUSE</button>
@@ -2046,7 +2117,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div id="hpbInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca Animasi Ini:</strong> Kurva cyan = |H(ω)|² (amplitudo kuadrat, proxy untuk power). Garis horizontal kuning = <em>half-power line</em> yang bisa Anda geser. Saat Anda menggeser garis tepat di <strong>\(½ \times H^2_max\)</strong>, titik ω₁ dan ω₂ akan dideteksi.<br>
-        <strong>Coba:</strong> (1) Geser slider "Garis Horizontal" perlahan ke 0.50, kemudian lihat garis turun. Saat tepat di 0.50 × \(H^2\)_max, titik-titik hijau muncul di persimpangan kurva. (2) Δω = ω₂ − ω₁ terlihat jelas. (3) Q = ωₙ/Δω dan ζ_estimated muncul di info. (4) Geser ζ_TRUE, lalu lihat lebar puncak berubah, Q berubah, dan formula ζ ≈ 1/(2Q) terverifikasi.
+        <strong>Coba:</strong> (1) Geser slider "Garis Horizontal" perlahan ke 0.50, kemudian lihat garis turun. Saat tepat di 0.50 × \(H^2\)_max, titik-titik hijau muncul di persimpangan kurva. (2) Δω = ω₂ − ω₁ terlihat jelas. (3) Q = ωₙ/Δω dan ζ<sub>estimated</sub> muncul di info. (4) Geser ζ<sub>TRUE</sub>, lalu lihat lebar puncak berubah, Q berubah, dan formula ζ ≈ 1/(2Q) terverifikasi.
       </div>
     </div>
   </div>
@@ -2074,7 +2145,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div id="isoTypeInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca Animasi Ini:</strong> Pilih jenis isolator dari dropdown, kurva transmissibility \(T_r\) vs frekuensi (log scale) digambar progresif. Setiap jenis isolator punya rentang frekuensi optimal yang berbeda berdasarkan fn dan ζ.<br>
-        <strong>Pemilihan praktis:</strong> (1) <strong>Rubber pad</strong>: 25-3000 Hz, paling murah, untuk pompa/motor menengah. (2) <strong>Helical spring</strong>: low-freq 15-150 Hz, untuk kompresor besar. (3) <strong>Pneumatic</strong>: 5-100 Hz, presisi tinggi (lab equipment, microscope). (4) <strong>Wire rope</strong>: shock+vibrasi militer, fn tinggi. (5) <strong>Polymer</strong>: 20-2000 Hz, electronics PCB mounting. Aturan emas: pilih isolator dengan fn ≤ ω_eksitasi/√2.
+        <strong>Pemilihan praktis:</strong> (1) <strong>Rubber pad</strong>: 25-3000 Hz, paling murah, untuk pompa/motor menengah. (2) <strong>Helical spring</strong>: low-freq 15-150 Hz, untuk kompresor besar. (3) <strong>Pneumatic</strong>: 5-100 Hz, presisi tinggi (lab equipment, microscope). (4) <strong>Wire rope</strong>: shock+vibrasi militer, fn tinggi. (5) <strong>Polymer</strong>: 20-2000 Hz, electronics PCB mounting. Aturan emas: pilih isolator dengan fn ≤ ω<sub>eksitasi</sub>/√2.
       </div>
     </div>
   </div>
@@ -2110,7 +2181,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">1️⃣</div>
       <h3>Langkah 1: Spesifikasi Input</h3>
-      <p>Kumpulkan data operasi: <strong>m</strong> (massa mesin + base), <strong>\(\omega\)</strong> (frekuensi operasi dari RPM), <strong>F₀</strong> (gaya eksitasi dari unbalance), dan <strong>Tᵣ_target</strong> (biasanya 0.05–0.20). Target Tᵣ ditentukan oleh regulasi kebisingan dan sensitivitas lantai.</p>
+      <p>Kumpulkan data operasi: <strong>m</strong> (massa mesin + base), <strong>\(\omega\)</strong> (frekuensi operasi dari RPM), <strong>F₀</strong> (gaya eksitasi dari unbalance), dan <strong>T<sub>r,target</sub></strong> (biasanya 0.05–0.20). Target Tᵣ ditentukan oleh regulasi kebisingan dan sensitivitas lantai.</p>
       <div class="formula">\(Input: m, \omega , F_0, T_{r,\text{target}}\)</div>
     </div>
     <div class="card">
@@ -2121,21 +2192,21 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     </div>
     <div class="card">
       <div class="card-icon">3️⃣</div>
-      <h3>Langkah 3: Tentukan ωₙ_iso</h3>
-      <p>Dari r = ω/ωₙ dan nilai r yang sudah dihitung: <strong>\(\omega_{n,\text{iso}} = \omega /r\)</strong>. Ini menentukan <em>frekuensi natural isolator</em> yang harus jauh di bawah frekuensi operasi. Untuk mesin 3000 RPM (ω = 314 rad/s) dengan Tᵣ = 0.1 → ωₙ_iso ≈ 94.5 rad/s atau ≈ 15 Hz.</p>
+      <h3>Langkah 3: Tentukan ω<sub>n,iso</sub></h3>
+      <p>Dari r = ω/ωₙ dan nilai r yang sudah dihitung: <strong>\(\omega_{n,\text{iso}} = \omega /r\)</strong>. Ini menentukan <em>frekuensi natural isolator</em> yang harus jauh di bawah frekuensi operasi. Untuk mesin 3000 RPM (ω = 314 rad/s) dengan Tᵣ = 0.1 → ω<sub>n,iso</sub> ≈ 94.5 rad/s atau ≈ 15 Hz.</p>
       <div class="formula">\(\omega_{n,\text{iso}} = \omega /r\)</div>
     </div>
     <div class="card">
       <div class="card-icon">4️⃣</div>
       <h3>Langkah 4: Hitung \(k_{\text{iso}}\)</h3>
-      <p>Dari <strong>\(\omega _n = \sqrt{k/m}\)</strong>: <strong>\(k_{\text{iso}} = m \cdot \omega_{n,\text{iso}}^2\)</strong>. Verifikasi: defleksi statik δ_st = mg/k harus dalam rentang <strong>1–10 mm</strong> untuk isolator rubber, <strong>10–50 mm</strong> untuk coil spring, <strong>50–200 mm</strong> untuk air spring. Defleksi &gt; 50 mm → pakai air mount.</p>
+      <p>Dari <strong>\(\omega _n = \sqrt{k/m}\)</strong>: <strong>\(k_{\text{iso}} = m \cdot \omega_{n,\text{iso}}^2\)</strong>. Verifikasi: defleksi statik δ<sub>st</sub> = mg/k harus dalam rentang <strong>1–10 mm</strong> untuk isolator rubber, <strong>10–50 mm</strong> untuk coil spring, <strong>50–200 mm</strong> untuk air spring. Defleksi &gt; 50 mm → pakai air mount.</p>
       <div class="formula">\(k_{\text{iso}} = m \cdot \omega _n^2\)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
     <strong>Langkah 5: Pilih Material Isolator Berdasarkan Defleksi Statik</strong><br>
-    Defleksi statik δ_st = mg/k_iso menentukan jenis isolator:
+    Defleksi statik δ<sub>st</sub> = mg/k<sub>iso</sub> menentukan jenis isolator:
     <br><strong>1–5 mm</strong> → rubber block (neoprene, natural rubber), biaya rendah, ζ ≈ 0.05
     <br><strong>5–25 mm</strong> → rubber + metal spring composite, ζ ≈ 0.10
     <br><strong>25–100 mm</strong> → helical coil spring (baja), ζ rendah (≈ 0.01), perlu damper tambahan
@@ -2144,7 +2215,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="tbl-wrap reveal" style="margin:32px 0">
     <table class="data-table">
-      <thead><tr><th>Contoh Desain</th><th>m (kg)</th><th>ω operasi</th><th>Tᵣ_target</th><th>\(k_{\text{iso}}\) (N/m)</th><th>Jenis Isolator</th></tr></thead>
+      <thead><tr><th>Contoh Desain</th><th>m (kg)</th><th>ω operasi</th><th>T<sub>r,target</sub></th><th>\(k_{\text{iso}}\) (N/m)</th><th>Jenis Isolator</th></tr></thead>
       <tbody>
         <tr><td>AC Outdoor Split 1.5 PK</td><td>45</td><td>157 rad/s (1500 rpm)</td><td>0.15</td><td>≈ 1.4×10⁵</td><td>Rubber block</td></tr>
         <tr><td>Kompresor Piston 5 HP</td><td>120</td><td>94 rad/s (900 rpm)</td><td>0.10</td><td>≈ 2.0×10⁵</td><td>Rubber + damper</td></tr>
@@ -2160,14 +2231,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div>
       <h4>Dua Trade-Off Desainer Harus Tahu</h4>
       <p>
-      <strong>Trade-off #1: Tᵣ rendah vs defleksi besar.</strong> Isolator "lunak" (k kecil) memberi isolasi terbaik, tapi mesin "duduk" lebih rendah (δ_st besar), tidak stabil saat start/stop, dan cenderung bergoyang lateral. Kompromi: desain untuk Tᵣ = 0.05–0.15, bukan 0.01.<br><br>
-      <strong>Trade-off #2: Start-up transient resonansi.</strong> Saat mesin start dari 0 ke ω operasi, sistem <em>melewati</em> ωₙ_iso. Jika ζ terlalu kecil, amplitudo puncak transient bisa merusak baut. Solusi: tambah viscous damper (ζ ≥ 0.10) atau lakukan run-up cepat (&lt;1 detik melewati resonansi).
+      <strong>Trade-off #1: Tᵣ rendah vs defleksi besar.</strong> Isolator "lunak" (k kecil) memberi isolasi terbaik, tapi mesin "duduk" lebih rendah (δ<sub>st</sub> besar), tidak stabil saat start/stop, dan cenderung bergoyang lateral. Kompromi: desain untuk Tᵣ = 0.05–0.15, bukan 0.01.<br><br>
+      <strong>Trade-off #2: Start-up transient resonansi.</strong> Saat mesin start dari 0 ke ω operasi, sistem <em>melewati</em> ω<sub>n,iso</sub>. Jika ζ terlalu kecil, amplitudo puncak transient bisa merusak baut. Solusi: tambah viscous damper (ζ ≥ 0.10) atau lakukan run-up cepat (&lt;1 detik melewati resonansi).
       </p>
     </div>
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Quick Formula untuk Engineer di Lapangan:</strong> Banyak engineer menghafal aturan cepat, misalnya <strong>\(Tᵣ \approx 1/r^2\)</strong> untuk r &gt; 3 dan ζ &lt; 0.1. Jadi "Tᵣ = 5%" → r = √20 ≈ 4.5 → ωₙ_iso ≈ ω/4.5. Dalam Hz: \(f_n\)_iso = \(f_{\text{operasi}}\)/4.5. Untuk pompa 50 Hz → pilih isolator dengan \(f_n\) ≈ 11 Hz. Ini shortcut 30-detik yang cukup akurat untuk preliminary design.
+    💡 <strong>Quick Formula untuk Engineer di Lapangan:</strong> Banyak engineer menghafal aturan cepat, misalnya <strong>\(Tᵣ \approx 1/r^2\)</strong> untuk r &gt; 3 dan ζ &lt; 0.1. Jadi "Tᵣ = 5%" → r = √20 ≈ 4.5 → ω<sub>n,iso</sub> ≈ ω/4.5. Dalam Hz: \(f_n\)_iso = \(f_{\text{operasi}}\)/4.5. Untuk pompa 50 Hz → pilih isolator dengan \(f_n\) ≈ 11 Hz. Ini shortcut 30-detik yang cukup akurat untuk preliminary design.
   </div>
 
   <label class="pm-centang" data-pm="6"><input type="checkbox" disabled aria-describedby="pm-status-6"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Desain Isolator Industri: Workflow Step-by-Step</b>.</span><em class="pm-status" id="pm-status-6"></em></label>
@@ -2532,10 +2603,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc1">
-        <div class="radio-option" onclick="selectMC('mc1',this,'A')"><div class="radio-circle"></div>(A) &nbsp; DMF = 1 / √[ (1 + \(r^2\))² + (2ζr)² ]</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div>(B) &nbsp; DMF = 1 / √[ (1 − \(r^2\))² + (2ζr)² ]</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'C')"><div class="radio-circle"></div>(C) &nbsp; DMF = 1 / (1 − \(r^2\))</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'D')"><div class="radio-circle"></div>(D) &nbsp; DMF = \(r^2\) / √[ (1 − \(r^2\))² + (2ζr)² ]</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; DMF = 1 / √[ (1 + \(r^2\))² + (2ζr)² ]</span></div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; DMF = 1 / √[ (1 − \(r^2\))² + (2ζr)² ]</span></div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; DMF = 1 / (1 − \(r^2\))</span></div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; DMF = \(r^2\) / √[ (1 − \(r^2\))² + (2ζr)² ]</span></div>
       </div>
       <button class="mc-submit" id="sub-mc1" onclick="checkMC('mc1')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc1"></div>
@@ -2550,7 +2621,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       </div>
       <div class="radio-group" id="rg-mc2">
         <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; r = 1 untuk semua nilai ζ</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; r = \(\sqrt{1 - 2\zeta ^2}\), selalu sedikit di bawah r = 1</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; r = \(\sqrt{1 - 2\zeta ^2}\), selalu sedikit di bawah r = 1</span></div>
         <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; r = 1 + 2ζ</div>
         <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; r = ζ²</div>
       </div>
@@ -2636,7 +2707,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div class="radio-group" id="rg-mc7">
         <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Nol</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Tak hingga</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Defleksi statik \(X_{\text{st}}\) = F₀/k</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; Defleksi statik \(X_{\text{st}}\) = F₀/k</span></div>
         <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; F₀/(mωₙ²)·√2</div>
       </div>
       <button class="mc-submit" id="sub-mc7" onclick="checkMC('mc7')" disabled>Periksa Jawaban</button>
@@ -2647,14 +2718,14 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">08</div>
-        <div class="mc-q">Sebuah mesin beroperasi pada ω = 120 rad/s. Untuk mencapai <strong>Tᵣ = 0.1</strong> (isolasi 90%) dengan redaman kecil (ζ ≈ 0), berapa nilai ωₙ_iso yang harus dipilih untuk isolator? Gunakan aproksimasi <strong>\(r = \sqrt{1 + 1/Tᵣ}\)</strong>.</div>
+        <div class="mc-q">Sebuah mesin beroperasi pada ω = 120 rad/s. Untuk mencapai <strong>Tᵣ = 0.1</strong> (isolasi 90%) dengan redaman kecil (ζ ≈ 0), berapa nilai ω<sub>n,iso</sub> yang harus dipilih untuk isolator? Gunakan aproksimasi <strong>\(r = \sqrt{1 + 1/Tᵣ}\)</strong>.</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc8">
-        <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div>(A) &nbsp; ωₙ_iso ≈ 60 rad/s (r = 2)</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div>(B) &nbsp; ωₙ_iso ≈ 85 rad/s (r = √2)</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div>(C) &nbsp; ωₙ_iso ≈ 36 rad/s (r ≈ 3.32)</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div>(D) &nbsp; ωₙ_iso ≈ 12 rad/s (r = 10)</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; ω<sub>n,iso</sub> ≈ 60 rad/s (r = 2)</span></div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; ω<sub>n,iso</sub> ≈ 85 rad/s (r = √2)</span></div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; ω<sub>n,iso</sub> ≈ 36 rad/s (r ≈ 3.32)</span></div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; ω<sub>n,iso</sub> ≈ 12 rad/s (r = 10)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc8" onclick="checkMC('mc8')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc8"></div>
@@ -2740,7 +2811,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Hitung <strong>rasio redaman ζ</strong> (dimensionless) dari sistem referensi. Gunakan rumus ζ = c / (2\(\sqrt{km}\)).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Hitung redaman kritis c_c = 2\(\sqrt{km}\) dulu, lalu ζ = c/c_c (tak berdimensi).</div>
+      <div class="comp-hint">💡 Hitung redaman kritis c<sub>c</sub> = 2\(\sqrt{km}\) dulu, lalu ζ = c/c<sub>c</sub> (tak berdimensi).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">ζ (dimensionless)</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
@@ -2825,7 +2896,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Hitung <strong>DMF maksimum</strong> yang mungkin terjadi pada sistem referensi. Gunakan rumus \(DMF_{\text{max}}\) = 1 / (2ζ\(\sqrt{1 - \zeta ^2}\)) dan tentukan juga nilai r yang menghasilkan DMF maksimum ini (\(r_{\text{max}}\) = \(\sqrt{1 - 2\zeta ^2}\)).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 r yang memaksimalkan DMF adalah r_max = \(\sqrt{1-2\zeta ^2}\), dan DMF maksimum = 1/(2ζ\(\sqrt{1-\zeta ^2}\)); pakai <code>np.sqrt</code>.</div>
+      <div class="comp-hint">💡 r yang memaksimalkan DMF adalah r<sub>max</sub> = \(\sqrt{1-2\zeta ^2}\), dan DMF maksimum = 1/(2ζ\(\sqrt{1-\zeta ^2}\)); pakai <code>np.sqrt</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">DMF maksimum</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
@@ -2844,7 +2915,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       </div>
       <div class="comp-hint">💡 <code>Tr = np.sqrt(1+(2*zeta*r)**2) / np.sqrt((1-r**2)**2+(2*zeta*r)**2)</code></div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Tr transmissibility</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">T<sub>r</sub> transmissibility</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
@@ -2859,7 +2930,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Hitung <strong>energi yang didisipasi per siklus</strong> \(E_d\) (Joule) saat ω = 18 rad/s dan X = 0.1228 m. Gunakan rumus \(E_d\) = π × c × ω × \(X^2\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Energi disipasi per siklus E_d = π·c·ω·\(X^2\); substitusikan c, ω, dan amplitudo X yang dihitung sebelumnya, gunakan <code>np.pi</code>.</div>
+      <div class="comp-hint">💡 Energi disipasi per siklus E<sub>d</sub> = π·c·ω·\(X^2\); substitusikan c, ω, dan amplitudo X yang dihitung sebelumnya, gunakan <code>np.pi</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(E_d\) (Joule)</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
@@ -2876,7 +2947,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Untuk frekuensi eksitasi <strong>\(\omega = 25 rad/s\)</strong> (di atas resonansi, r = 1.25), hitung <strong>amplitudo steady-state X</strong> (m) menggunakan parameter sistem referensi.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Hitung r = ω/ωₙ (di sini r &gt; 1), lalu X = (F₀/k)·DMF; bandingkan X dengan X_st dan pikirkan maknanya secara fisik.</div>
+      <div class="comp-hint">💡 Hitung r = ω/ωₙ (di sini r &gt; 1), lalu X = (F₀/k)·DMF; bandingkan X dengan X<sub>st</sub> dan pikirkan maknanya secara fisik.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">X (meter, omega=25)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -2902,12 +2973,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q">Implementasikan <strong>Half-Power Bandwidth method</strong> untuk ekstraksi ζ dari data FRF. Sistem: ωₙ = 30 rad/s, ζ_true = 0.08 (unknown). Generate 2000 titik frequency response |H(ω)|² = DMF² di rentang ω ∈ [15, 45] rad/s. Temukan ω₁, ω₂ (titik di mana |H|² = ½·|H|²_max) dan hitung <strong>\(\zeta _estimated = (\omega _2 - \omega _1)/(2 \cdot \omega _peak)\)</strong>. Laporkan <strong>ζ_estimated</strong> (harus ≈ 0.08).</div>
+        <div class="comp-q">Implementasikan <strong>Half-Power Bandwidth method</strong> untuk ekstraksi ζ dari data FRF. Sistem: ωₙ = 30 rad/s, ζ<sub>true</sub> = 0.08 (unknown). Generate 2000 titik frequency response |H(ω)|² = DMF² di rentang ω ∈ [15, 45] rad/s. Temukan ω₁, ω₂ (titik di mana |H|² = ½·|H|²_max) dan hitung <strong>\(\zeta _estimated = (\omega _2 - \omega _1)/(2 \cdot \omega _peak)\)</strong>. Laporkan <strong>ζ<sub>estimated</sub></strong> (harus ≈ 0.08).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Buat grid frekuensi (<code>np.linspace</code>), hitung respons kuadrat \(H^2\)=DMF², temukan puncak dengan <code>np.argmax</code>, lalu cari dua frekuensi half-power (\(H^2\) = \(H^2\)_max/2) dan terapkan ζ = (ω₂−ω₁)/(2·ω_peak).</div>
+      <div class="comp-hint">💡 Buat grid frekuensi (<code>np.linspace</code>), hitung respons kuadrat \(H^2\)=DMF², temukan puncak dengan <code>np.argmax</code>, lalu cari dua frekuensi half-power (\(H^2\) = \(H^2\)_max/2) dan terapkan ζ = (ω₂−ω₁)/(2·ω<sub>peak</sub>).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook (20–40 baris) — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">ζ_estimated (dimensionless)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook (20–40 baris) — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">ζ<sub>estimated</sub> (dimensionless)</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="10" placeholder="Paste kode Python Half-Power BW dari Jupyter Notebook di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c11')"></textarea>
         <div class="stdout-box" id="stdout-c11"></div>
       </div>
@@ -2919,10 +2990,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q">Dengan metode <strong>bisection numerik</strong>, cari nilai rasio frekuensi <strong>\(r_{\text{max}}\)</strong> yang memaksimalkan DMF untuk sistem dengan ζ = 0.2. Cari dalam rentang r ∈ [0.1, 2.0], toleransi 1e−6. Verifikasi dengan rumus analitik <code>r_max = √(1−2ζ²)</code>. Laporkan \(r_{\text{max}}\) numerik Anda.</div>
+        <div class="comp-q">Dengan metode <strong>bisection numerik</strong>, cari nilai rasio frekuensi <strong>\(r_{\text{max}}\)</strong> yang memaksimalkan DMF untuk sistem dengan ζ = 0.2. Cari dalam rentang r ∈ [0.1, 2.0], toleransi 1e−6. Verifikasi dengan rumus analitik <code>r<sub>max</sub> = √(1−2ζ²)</code>. Laporkan \(r_{\text{max}}\) numerik Anda.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Definisikan fungsi DMF(r), hitung turunan numerik dDMF/dr (finite difference), lalu bisection mencari di mana turunan = 0; verifikasi dengan analitik r_max = \(\sqrt{1-2\zeta ^2}\).</div>
+      <div class="comp-hint">💡 Definisikan fungsi DMF(r), hitung turunan numerik dDMF/dr (finite difference), lalu bisection mencari di mana turunan = 0; verifikasi dengan analitik r<sub>max</sub> = \(\sqrt{1-2\zeta ^2}\).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(r_{\text{max}}\) (bisection)</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="10" placeholder="Paste kode Python bisection dari Jupyter Notebook, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -2953,7 +3024,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C14</div>
-        <div class="comp-q">Analisa <strong>daya disipasi steady-state</strong> untuk sistem: m=5 kg, c=40 Ns/m, k=2000 N/m, F₀=100 N, ω=18 rad/s. Hitung terlebih dahulu amplitudo steady-state <strong>X</strong> menggunakan <code>X = (F₀/k)·DMF</code>, lalu hitung <strong>rata-rata daya disipasi</strong> dengan rumus analitik <code>P_avg = ½·c·(ω·X)²</code> (watt). Verifikasi dengan integrasi numerik <code>P(t) = c·ẋ²(t)</code> di satu siklus penuh menggunakan <code>np.trapz</code>.</div>
+        <div class="comp-q">Analisa <strong>daya disipasi steady-state</strong> untuk sistem: m=5 kg, c=40 Ns/m, k=2000 N/m, F₀=100 N, ω=18 rad/s. Hitung terlebih dahulu amplitudo steady-state <strong>X</strong> menggunakan <code>X = (F₀/k)·DMF</code>, lalu hitung <strong>rata-rata daya disipasi</strong> dengan rumus analitik <code>P<sub>avg</sub> = ½·c·(ω·X)²</code> (watt). Verifikasi dengan integrasi numerik <code>P(t) = c·ẋ²(t)</code> di satu siklus penuh menggunakan <code>np.trapz</code>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Hitung amplitudo X = (F₀/k)·DMF, bentuk kecepatan ẋ = X·ω·cos(ωt−φ) pada satu periode, lalu daya rata-rata = integral c·ẋ² selama satu periode dibagi periode (gunakan <code>np.trapz</code> dan <code>np.linspace</code>).</div>
@@ -2970,10 +3041,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q"><strong>Desain isolator</strong>: sebuah mesin beroperasi pada ω = 60 rad/s dengan gaya eksitasi F₀ = 500 N. Rancang isolator dengan ζ_iso = 0.05 sehingga transmissibility <strong>Tᵣ ≤ 0.1</strong>. Cari nilai <strong>kekakuan isolator \(k_{\text{iso}}\)</strong> (N/m) minimum yang memenuhi syarat, dengan asumsi massa mesin \(m_{\text{iso}}\) = 50 kg. Gunakan <strong>iterative search</strong> (bukan rumus langsung).</div>
+        <div class="comp-q"><strong>Desain isolator</strong>: sebuah mesin beroperasi pada ω = 60 rad/s dengan gaya eksitasi F₀ = 500 N. Rancang isolator dengan ζ<sub>iso</sub> = 0.05 sehingga transmissibility <strong>Tᵣ ≤ 0.1</strong>. Cari nilai <strong>kekakuan isolator \(k_{\text{iso}}\)</strong> (N/m) minimum yang memenuhi syarat, dengan asumsi massa mesin \(m_{\text{iso}}\) = 50 kg. Gunakan <strong>iterative search</strong> (bukan rumus langsung).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Untuk tiap kandidat k_iso hitung ωₙ_iso=\(\sqrt{k_{\text{iso}}/m_{\text{iso}}}\), r=ω/ωₙ_iso, dan Tᵣ=\(\sqrt{\dfrac{1+(2\zeta r)^2}{(1-r^2)^2+(2\zeta r)^2}}\); lakukan iterative/binary search untuk k_iso minimum yang memenuhi syarat Tᵣ.</div>
+      <div class="comp-hint">💡 Untuk tiap kandidat k<sub>iso</sub> hitung ω<sub>n,iso</sub>=\(\sqrt{k_{\text{iso}}/m_{\text{iso}}}\), r=ω/ω<sub>n,iso</sub>, dan Tᵣ=\(\sqrt{\dfrac{1+(2\zeta r)^2}{(1-r^2)^2+(2\zeta r)^2}}\); lakukan iterative/binary search untuk k<sub>iso</sub> minimum yang memenuhi syarat Tᵣ.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(k_{\text{iso}}\) minimum \((N/m)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c15" rows="10" placeholder="Paste kode Python iterative search isolator, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c15')"></textarea>
@@ -3051,7 +3122,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">m = 80 kg</div>
       <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">k = 72000 N/m</div>
       <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">c = 240 Ns/m</div>
-      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">ω_operasi = 28.5 rad/s</div>
+      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">ω<sub>operasi</sub> = 28.5 rad/s</div>
     </div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted)">Blower berputar pada kecepatan yang menghasilkan gaya eksitasi dengan frekuensi <strong style="color:var(--pink)">\(\omega = 28.5 rad/s\)</strong>. Model sistem: massa-pegas-peredam SDOF dengan persamaan <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">mẍ + cẋ + kx = F₀sin(ωt)</code>. Forum ini mengajak Anda mengidentifikasi apakah sistem beroperasi di dekat resonansi, kemudian mengusulkan solusi teknis yang menjauhkan \(r\) dari 1 atau menambah isolasi.</p>
   </div>
@@ -4297,6 +4368,35 @@ function checkExportReady() {
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4364,15 +4464,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -4411,7 +4513,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -4424,7 +4526,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5753,7 +5855,7 @@ function drawSweep(){
       const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
       const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
       const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
+      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r<sub>max</sub>=${rmaxTheory.toFixed(2)}, DMF<sub>max</sub>=${dmfmaxTheory.toFixed(2)}`;
     } else {
       info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
     }
@@ -6119,7 +6221,7 @@ function drawHPB(){
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
+  ctx.fillText(`${linePos.toFixed(2)} × H²<sub>max</sub> = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
 
   // Find ω₁ and ω₂ (intersection of curve with targetY)
   // Binary search on either side of peak
@@ -6163,12 +6265,12 @@ function drawHPB(){
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
+    let html = `ζ<sub>TRUE</sub> = ${zetaTrue.toFixed(3)} · ω<sub>peak</sub> = ${omegaPeak.toFixed(2)} · H²<sub>max</sub> = ${H2max.toFixed(2)}<br>`;
     if(omega1 !== null && omega2 !== null){
       html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
       if(Math.abs(linePos - 0.5) < 0.02){
         const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
+        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ<sub>estimated</sub> = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
       } else {
         html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
       }
@@ -6274,7 +6376,7 @@ function drawIsoType(){
   });
   ctx.textAlign = 'left';
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('T_r', padL-30, padT-8);
+  ctx.fillText('T<sub>r</sub>', padL-30, padT-8);
   ctx.fillText('frekuensi (Hz, log scale)', padL+plotW-150, padT+plotH+28);
 
   // Tr=1 line
@@ -6282,7 +6384,7 @@ function drawIsoType(){
   ctx.beginPath(); ctx.moveTo(padL, sy(1)); ctx.lineTo(padL+plotW, sy(1)); ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = 'rgba(239,68,68,.7)'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText('Tr=1 (no isolation)', padL+10, sy(1)-4);
+  ctx.fillText('T<sub>r</sub>=1 (no isolation)', padL+10, sy(1)-4);
 
   // fn marker
   ctx.strokeStyle = 'rgba(255,179,0,.5)'; ctx.setLineDash([3,3]);
@@ -7361,10 +7463,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7378,7 +7480,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

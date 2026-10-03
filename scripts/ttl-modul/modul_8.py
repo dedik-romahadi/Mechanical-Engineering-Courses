@@ -113,17 +113,17 @@ def gambar3():
     b += f'<circle cx="{cx}" cy="{cy}" r="4.6" fill="#64748b" stroke="{BOX}" stroke-width="0.8"/>'
     b += t(150, 160, "aluminium (penghantar) · inti baja (kekuatan tarik)", 10, AX)
     b += t(150, 178, f"R₂₀ = ρ·1000/A = {ind(R20, 4)} Ω/km", 10.5, "#22d3ee", "middle", "600")
-    b += t(150, 194, f"R₇₅ = R₂₀(1 + α·55) = {ind(R75, 4)} Ω/km; R_ac ≈ {ind(R_AC, 4)} Ω/km", 10.5, "#f59e0b", "middle", "600")
+    b += t(150, 194, f"R₇₅ = R₂₀(1 + α·55) = {ind(R75, 4)} Ω/km; R<sub>ac</sub> ≈ {ind(R_AC, 4)} Ω/km", 10.5, "#f59e0b", "middle", "600")
     # kanan: efek kulit dan berkas
     b += t(480, 22, "Efek kulit dan konduktor berkas", 12, TX, "middle", "700")
     b += f'<circle cx="400" cy="90" r="30" fill="{BOX}" stroke="#94a3b8" stroke-width="2"/>'
     for rr, a in [(30, 0.55), (26, 0.35), (22, 0.18), (18, 0.08)]:
         b += f'<circle cx="400" cy="90" r="{rr}" fill="#22d3ee" fill-opacity="{a}"/>'
-    b += t(400, 136, "kerapatan arus AC", 9.5, AX) + t(400, 149, "memusat di kulit", 9.5, AX) + t(400, 162, "R_ac/R_dc ≈ 1,02–1,05 (50 Hz)", 9.5, AX)
+    b += t(400, 136, "kerapatan arus AC", 9.5, AX) + t(400, 149, "memusat di kulit", 9.5, AX) + t(400, 162, "R<sub>ac</sub>/R<sub>dc</sub> ≈ 1,02–1,05 (50 Hz)", 9.5, AX)
     for (dx, dy) in [(-16, -16), (16, -16), (-16, 16), (16, 16)]:
         b += f'<circle cx="{560 + dx}" cy="{90 + dy}" r="7" fill="#94a3b8" stroke="{BOX}" stroke-width="1"/>'
     b += f'<circle cx="560" cy="90" r="34" fill="none" stroke="#a855f7" stroke-width="1.2" stroke-dasharray="4 3"/>'
-    b += t(560, 136, "berkas 4 × ACSR", 9.5, AX) + t(560, 149, "(SUTET 500 kV)", 9.5, AX) + t(560, 162, "r_eq besar: korona & X_L turun", 9.5, AX)
+    b += t(560, 136, "berkas 4 × ACSR", 9.5, AX) + t(560, 149, "(SUTET 500 kV)", 9.5, AX) + t(560, 162, "r<sub>eq</sub> besar: korona & X<sub>L</sub> turun", 9.5, AX)
     b += t(330, 216, f"Kemampuan hantar arus ACSR 240 pada 75 °C ≈ {ind(I_TERMAL, 0)} A → {ind(P_TERMAL, 0)} MW pada 150 kV, pf 0,95;", 11, AX)
     b += t(330, 230, "PLTU 300 MW butuh 2 sirkit atau tegangan lebih tinggi", 11, AX)
     return svg(660, 240, b, "Gambar 3 — Konduktor ACSR: penampang, resistansi, efek kulit, dan berkas")
@@ -188,7 +188,7 @@ def gambar6():
     Y = lambda p: y0 - p / (pmax * 1.1) * (y0 - y1)
     for v in [0, 50, 100, 150, 200]:
         b += f'<line x1="{X(v):.1f}" y1="{y1}" x2="{X(v):.1f}" y2="{y0}" stroke="{GRID}" stroke-width="0.7"/>' + t(X(v), y0 + 16, f"{v} kV", 10.5, AX)
-    for Vc, c, lab in [(VC_KOR, "#ec4899", f"1 × r {ind(R_KOR, 2)} cm: V_c = {ind(VC_KOR, 1)} kV"), (VC_BERKAS, "#00e09e", f"berkas 2 (r_eq {ind(R_EQ2, 2)} cm): V_c = {ind(VC_BERKAS, 1)} kV")]:
+    for Vc, c, lab in [(VC_KOR, "#ec4899", f"1 × r {ind(R_KOR, 2)} cm: V<sub>c</sub> = {ind(VC_KOR, 1)} kV"), (VC_BERKAS, "#00e09e", f"berkas 2 (r<sub>eq</sub> {ind(R_EQ2, 2)} cm): V<sub>c</sub> = {ind(VC_BERKAS, 1)} kV")]:
         req = R_KOR if Vc == VC_KOR else R_EQ2
         pts = " ".join(f"{X(v):.1f},{Y(241 * 75 * math.sqrt(req / D_KOR) * max(0, v - Vc) ** 2 * 1e-5):.1f}" for v in [i * 2 for i in range(0, 111)])
         b += f'<polyline points="{pts}" fill="none" stroke="{c}" stroke-width="2.2"/>'
@@ -197,14 +197,14 @@ def gambar6():
             kepala, ekor = lab.split(": ")
             b += t(X(Vc) + 4, y1 + 12, kepala + ":", 9.5, c, "start", "600") + t(X(Vc) + 4, y1 + 25, ekor, 9.5, c, "start", "600")
         else:   # V_c di luar sumbu: kurvanya nol sepanjang grafik, jadi cukup dicatat
-            b += t(x0 + 6, y1 + 12, f"berkas 2 (r_eq {ind(R_EQ2, 2)} cm):", 9.5, c, "start", "600") + t(x0 + 6, y1 + 25, f"V_c = {ind(Vc, 1)} kV, di luar sumbu", 9.5, c, "start", "600")
+            b += t(x0 + 6, y1 + 12, f"berkas 2 (r<sub>eq</sub> {ind(R_EQ2, 2)} cm):", 9.5, c, "start", "600") + t(x0 + 6, y1 + 25, f"V<sub>c</sub> = {ind(Vc, 1)} kV, di luar sumbu", 9.5, c, "start", "600")
     for Vf, lab, c in [(VF_150, "150 kV", "#22d3ee"), (VF_275, "275 kV", "#f59e0b")]:
         kiri = Vf < VC_KOR
-        b += f'<line x1="{X(Vf):.1f}" y1="{y1}" x2="{X(Vf):.1f}" y2="{y0}" stroke="{c}" stroke-width="1.6"/>' + t(X(Vf) - 4 if kiri else X(Vf) + 4, y0 - 8, f"V_fasa {lab} = {ind(Vf, 1)} kV", 9.5, c, "end" if kiri else "start", "600")
+        b += f'<line x1="{X(Vf):.1f}" y1="{y1}" x2="{X(Vf):.1f}" y2="{y0}" stroke="{c}" stroke-width="1.6"/>' + t(X(Vf) - 4 if kiri else X(Vf) + 4, y0 - 8, f"V<sub>fasa</sub> {lab} = {ind(Vf, 1)} kV", 9.5, c, "end" if kiri else "start", "600")
     b += t(28, 112, "kW/km", 10, AX)
     b += t(330, 234, f"Rugi korona Peek (cuaca cerah) terhadap tegangan fasa: konduktor tunggal aman di 150 kV", 11, AX)
-    b += t(330, 248, f"tetapi berkorona di 275 kV ({ind(RUGI_KOR, 2)} kW/km/fasa); berkas 2 menaikkan V_c di atasnya", 11, AX)
-    return svg(660, 258, b, "Gambar 6 — Tegangan kritis korona dan rugi korona: konduktor tunggal vs berkas")
+    b += t(330, 248, f"tetapi berkorona di 275 kV ({ind(RUGI_KOR, 2)} kW/km/fasa); berkas 2 menaikkan V<sub>c</sub> di atasnya", 11, AX)
+    return svg(660, 262, b, "Gambar 6 — Tegangan kritis korona dan rugi korona: konduktor tunggal vs berkas")
 
 
 # ─────────────────────────── SUBNAV & HERO ───────────────────────────
@@ -255,14 +255,14 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
   </div>
 {HERO_SCHEMATIC_1}
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">P_rugi = 3I²R ∝ 1/V²</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">R_T = R₂₀[1 + α(T − 20)]</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">P<sub>rugi</sub> = 3I²R ∝ 1/V²</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">R<sub>T</sub> = R₂₀[1 + α(T − 20)]</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">S = wL²/(8T)</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">V_c = 21,1·m·δ·r·ln(D/r)</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">η_string = V/(n·V_maks)</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">V<sub>c</sub> = 21,1·m·δ·r·ln(D/r)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">η<sub>string</sub> = V/(n·V<sub>maks</sub>)</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">SUTT · SUTET · SKTT</span>
     <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">R = ρL/A</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">P_termal = √3·V·I·pf</span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">P<sub>termal</sub> = √3·V·I·pf</span>
   </div>
 {HERO_SCHEMATIC_2}
   <div class="hero-content">
@@ -322,7 +322,7 @@ def materi():
     # 02 — konduktor
     isi = figure(2, "Rugi daya terhadap tingkat tegangan untuk daya dan konduktor yang sama", f"PLTU {ind(P_EX, 0)} MW sejauh {ind(L_EX, 0)} km dengan ACSR 240: pada 70 dan 150 kV rugi melampaui sepersepuluh daya dan arusnya melampaui kemampuan termal konduktor; 275 kV memberi rugi {ind(HASIL[275.0][1] / P_EX * 100, 1)} % dan 500 kV {ind(HASIL[500.0][1] / P_EX * 100, 1)} %.", gambar2())
     isi += formula(2, "Resistansi Konduktor: Bahan, Suhu, dan Efek Kulit", r"R_{20} = \dfrac{\rho\,\ell}{A}, \qquad R_T = R_{20}\,[1 + \alpha(T - 20)], \qquad R_{ac} \approx (1{,}02\ldots1{,}05)\,R_{dc}",
-                   rf"ACSR 240/40 (Al {ind(A_ACSR, 0)} mm²): \(R_{{20}} = 0{{,}}0282\times1000/{ind(A_ACSR, 0)} = {ind(R20, 4)}\) Ω/km; pada suhu kerja 75 °C \(R_{{75}} = {ind(R20, 4)}(1 + 0{{,}}00403\times55) = {ind(R75, 4)}\) Ω/km (+22 %); dengan efek kulit \(R_{{ac}} \approx {ind(R_AC, 4)}\) Ω/km. Tabel katalog memberi R_ac pada 20 °C dan 75 °C; studi rugi memakai suhu kerja.",
+                   rf"ACSR 240/40 (Al {ind(A_ACSR, 0)} mm²): \(R_{{20}} = 0{{,}}0282\times1000/{ind(A_ACSR, 0)} = {ind(R20, 4)}\) Ω/km; pada suhu kerja 75 °C \(R_{{75}} = {ind(R20, 4)}(1 + 0{{,}}00403\times55) = {ind(R75, 4)}\) Ω/km (+22 %); dengan efek kulit \(R_{{ac}} \approx {ind(R_AC, 4)}\) Ω/km. Tabel katalog memberi R<sub>ac</sub> pada 20 °C dan 75 °C; studi rugi memakai suhu kerja.",
                    "Aluminium dipilih karena rasio konduktivitas terhadap berat dan harga terbaik (tembaga dua kali lebih berat untuk resistansi sama); baja di inti ACSR memikul gaya tarik. Suhu konduktor bergantung arus dan cuaca, sehingga kemampuan hantar arus (ampacity) dinyatakan pada suhu maksimum yang diizinkan, lazimnya 75–90 °C, di atas itu andongan dan penuaan menjadi masalah.",
                    [("\\rho", "Resistivitas (Al 0,0282, Cu 0,0172 Ω·mm²/m)"), ("A", "Penampang penghantar efektif (mm²)"), ("\\alpha", "Koefisien suhu (Al 0,00403 /°C)"), ("R_{ac}", "Resistansi AC (efek kulit)")])
     isi += figure(3, "Konduktor ACSR: penampang, resistansi, efek kulit, dan berkas", f"Untaian aluminium mengalirkan arus, inti baja memikul tarikan. Efek kulit memusatkan arus AC di lapisan luar; konduktor berkas memperbesar jari-jari efektif sehingga korona dan reaktansi turun. ACSR 240 mampu ±{ind(I_TERMAL, 0)} A ≈ {ind(P_TERMAL, 0)} MW pada 150 kV.", gambar3())
@@ -330,11 +330,11 @@ def materi():
         ("🧵", "ACSR", "Aluminium Conductor Steel Reinforced: baku SUTT/SUTET Indonesia (Hawk 240/40, Drake 403/65, Zebra 400/50). Kuat, ringan, murah; inti baja rawan korosi di pantai.", None),
         ("🪶", "AAAC dan ACCC", "AAAC (paduan Al) tanpa baja: lebih tahan korosi, dipakai di pesisir. ACCC (inti komposit karbon): andongan rendah, ampacity dua kali; untuk penguatan jalur lama (reconductoring).", None),
         ("🌡️", "Ampacity", "Ditentukan keseimbangan panas: pemanasan I²R + matahari = pendinginan konveksi + radiasi. Angin 0,6 m/s dan 40 °C sekitar memberi ACSR 240 sekitar 600 A; dynamic line rating memanfaatkan angin nyata.", r"\(I^2R + q_s = q_c + q_r\)"),
-        ("🔁", "Efek Kulit", "Pada 50 Hz kedalaman kulit Al ≈ 12 mm; konduktor berdiameter 20–30 mm mengalami R_ac/R_dc 1,02–1,08. Pada arus DC efeknya nol, satu lagi keunggulan HVDC.", None),
-        ("🔗", "Konduktor Berkas", "2–4 sub-konduktor berjarak 40–45 cm per fasa: jari-jari efektif besar → gradien permukaan (korona) dan X_L turun, ampacity naik. Baku untuk ≥ 275 kV.", r"\(r_{eq} = \sqrt[n]{n\,r\,s^{\,n-1}}\)"),
+        ("🔁", "Efek Kulit", "Pada 50 Hz kedalaman kulit Al ≈ 12 mm; konduktor berdiameter 20–30 mm mengalami R<sub>ac</sub>/R<sub>dc</sub> 1,02–1,08. Pada arus DC efeknya nol, satu lagi keunggulan HVDC.", None),
+        ("🔗", "Konduktor Berkas", "2–4 sub-konduktor berjarak 40–45 cm per fasa: jari-jari efektif besar → gradien permukaan (korona) dan X<sub>L</sub> turun, ampacity naik. Baku untuk ≥ 275 kV.", r"\(r_{eq} = \sqrt[n]{n\,r\,s^{\,n-1}}\)"),
         ("🛠️", "Sambungan dan Klem", "Sambungan tekan (compression joint) dan klem gantung/tarik harus berkonduktivitas dan berkekuatan sama dengan konduktor; titik panas di sambungan adalah penyebab putus yang paling sering.", None),
     ])
-    isi += tabel(["Konduktor ACSR", "Al/baja (mm²)", "Diameter (mm)", "R_dc 20 °C (Ω/km)", "R_ac 75 °C (Ω/km)", "Ampacity ±(A)", "Berat (kg/m)"], [
+    isi += tabel(["Konduktor ACSR", "Al/baja (mm²)", "Diameter (mm)", "R<sub>dc</sub> 20 °C (Ω/km)", "R<sub>ac</sub> 75 °C (Ω/km)", "Ampacity ±(A)", "Berat (kg/m)"], [
         ["Hawk 240/40", "242 / 39", "21,8", ind(0.0282 * 1000 / 242, 4), ind(0.0282 * 1000 / 242 * 1.2217 * 1.02, 4), "600", "0,98"],
         ["Zebra 400/50", "429 / 56", "28,6", ind(0.0282 * 1000 / 429, 4), ind(0.0282 * 1000 / 429 * 1.2217 * 1.03, 4), "830", "1,62"],
         ["Drake 403/65", "403 / 66", "28,1", ind(0.0282 * 1000 / 403, 4), ind(0.0282 * 1000 / 403 * 1.2217 * 1.03, 4), "900", "1,63"],
@@ -347,7 +347,7 @@ def materi():
 
     # 03 — menara & isolator
     isi = figure(4, "Distribusi tegangan pada rentengan isolator piring", f"Kapasitansi tiap piring ke menara mengalirkan sebagian arus bocor sehingga tegangan tidak terbagi rata: pada {N_PIRING} piring dengan k = {ind(K_ISO, 2)}, piring terdekat konduktor memikul {ind(max(V_ISO) / sum(V_ISO) * 100, 1)} % tegangan, bukan {ind(100 / N_PIRING, 0)} %.", gambar4())
-    isi += formula(3, "Distribusi Tegangan dan Efisiensi Rentengan", r"V_{m+1} = (1 + k)\,V_m + k\sum_{j<m} V_j, \qquad \eta_{string} = \dfrac{V_{string}}{n\,V_{maks}}\times100\%, \qquad k = \dfrac{C_{menara}}{C_{piring}}",
+    isi += formula(3, "Distribusi Tegangan dan Efisiensi Rentengan", r"V_{m+1} = (1 + k)\,V_m + k\sum_{j \lt m} V_j, \qquad \eta_{string} = \dfrac{V_{string}}{n\,V_{maks}}\times100\%, \qquad k = \dfrac{C_{menara}}{C_{piring}}",
                    rf"Contoh {N_PIRING} piring, k = {ind(K_ISO, 2)}, saluran 150 kV (\(V_{{fasa}} = {ind(V_FASA_150, 1)}\) kV): tegangan dari piring terjauh ke terdekat konduktor {', '.join(ind(v / sum(V_ISO) * V_FASA_150, 2) for v in V_ISO)} kV; efisiensi \({ind(V_FASA_150, 1)}/({N_PIRING}\times{ind(max(V_ISO) / sum(V_ISO) * V_FASA_150, 2)}) = {ind(EFF_ISO, 1)}\%\). Pada rentengan panjang (24 piring, 500 kV) efisiensi jatuh ke 50–60 % tanpa cincin perata.",
                    "Piring terdekat konduktor selalu paling terbebani; ia yang lebih dulu tembus atau berkorona. Cincin perata (grading/corona ring) di ujung konduktor menambah kapasitansi ke konduktor sehingga arus bocor ke menara terimbangi dan distribusi merata. Isolator komposit (polimer) berkapasitansi lebih kecil dan lebih ringan, tetapi rentengan piring kaca/keramik tetap dominan karena mudah diperiksa piring demi piring.",
                    [("V_m", "Tegangan piring ke-m (m = 1 terjauh dari konduktor)"), ("k", "Perbandingan kapasitansi ke menara terhadap kapasitansi piring (0,08–0,15)"), ("n", "Jumlah piring")])
@@ -379,7 +379,7 @@ def materi():
     isi += cards([
         ("📏", "Jarak Bebas Minimum", "SNI/PLN: SUTT 150 kV ≥ 8–9 m di atas tanah, 15 m di atas jalan raya, 9 m di atas bangunan tahan api; SUTET 500 kV ≥ 11–15 m. Diukur pada suhu konduktor maksimum.", None),
         ("🌡️", "Persamaan Keadaan", "Menghubungkan tarikan pada dua keadaan (suhu, beban) lewat pemuaian termal dan elastis; disebut sag–tension calculation, dihitung program (PLS-CADD) untuk tiap gawang.", None),
-        ("🌬️", "Beban Angin", "Tekanan angin pada konduktor menambah beban resultan √(w² + w_angin²) dan mengayunkan rentengan; jarak fasa–menara dirancang pada ayunan maksimum.", None),
+        ("🌬️", "Beban Angin", "Tekanan angin pada konduktor menambah beban resultan √(w² + w<sub>angin</sub>²) dan mengayunkan rentengan; jarak fasa–menara dirancang pada ayunan maksimum.", None),
         ("🎵", "Getaran Aeolian", "Angin pelan 1–7 m/s menimbulkan getaran 5–100 Hz beramplitudo kecil yang melelahkan konduktor di klem; peredam Stockbridge dan EDS ≤ 20 % kekuatan putus mengendalikannya.", None),
         ("🌀", "Galloping", "Konduktor berlapis es beramplitudo meter pada frekuensi rendah; fasa bisa saling menyentuh. Di Indonesia jarang, tetapi ayunan akibat angin badai tetap diperhitungkan.", None),
         ("🔧", "Penarikan (Stringing)", "Saat pemasangan, andongan diatur dengan tabel sag pada suhu saat itu; kesalahan 0,5 m mengubah jarak bebas seumur saluran. Insinyur mesin sering menjadi pengawasnya.", None),
@@ -399,7 +399,7 @@ def materi():
     isi = figure(6, "Tegangan kritis korona dan rugi korona: konduktor tunggal vs berkas", f"Konduktor tunggal r = {ind(R_KOR, 2)} cm berkorona di atas {ind(VC_KOR, 0)} kV fasa: aman pada 150 kV, tetapi pada 275 kV membuang {ind(RUGI_KOR, 1)} kW/km/fasa. Berkas dua sub-konduktor menaikkan tegangan kritis ke {ind(VC_BERKAS, 0)} kV.", gambar6())
     isi += formula(5, "Tegangan Kritis Korona (Peek)", r"V_c = 21{,}1\,m\,\delta\,r\,\ln\dfrac{D}{r}\ \text{kV (rms, fasa–netral)}, \qquad \delta = \dfrac{3{,}92\,p}{273 + t}, \qquad r_{eq} = \sqrt[n]{n\,r\,s^{\,n-1}}",
                    rf"Konduktor tunggal r = {ind(R_KOR, 2)} cm, D = {ind(D_KOR, 0)} cm, m = {ind(M_KOR, 2)}, δ = 1: \(V_c = 21{{,}}1\times{ind(M_KOR, 2)}\times{ind(R_KOR, 2)}\times\ln({ind(D_KOR, 0)}/{ind(R_KOR, 2)}) = {ind(VC_KOR, 1)}\) kV. Tegangan fasa 150 kV = {ind(VF_150, 1)} kV (aman), 275 kV = {ind(VF_275, 1)} kV (korona). Berkas 2 × r dengan jarak 40 cm: \(r_{{eq}} = \sqrt{{2\times{ind(R_KOR, 2)}\times40}} = {ind(R_EQ2, 2)}\) cm → \(V_c = {ind(VC_BERKAS, 1)}\) kV.",
-                   "Korona terjadi ketika gradien medan di permukaan konduktor melampaui kekuatan dielektrik udara (≈ 30 kV/cm puncak, 21,1 kV/cm rms pada kondisi standar); udara di sekitar konduktor terionisasi, memancarkan cahaya ungu, desis, ozon, dan gangguan radio. Faktor m (0,8–0,9 untuk konduktor berurat, 1 untuk halus) dan kerapatan udara δ (lebih rendah di dataran tinggi dan saat panas) menurunkan V_c; hujan dan embun menurunkannya lagi.",
+                   "Korona terjadi ketika gradien medan di permukaan konduktor melampaui kekuatan dielektrik udara (≈ 30 kV/cm puncak, 21,1 kV/cm rms pada kondisi standar); udara di sekitar konduktor terionisasi, memancarkan cahaya ungu, desis, ozon, dan gangguan radio. Faktor m (0,8–0,9 untuk konduktor berurat, 1 untuk halus) dan kerapatan udara δ (lebih rendah di dataran tinggi dan saat panas) menurunkan V<sub>c</sub>; hujan dan embun menurunkannya lagi.",
                    [("m", "Faktor kondisi permukaan (0,8–1,0)"), ("\\delta", "Kerapatan udara relatif (p cmHg, t °C)"), ("r, D", "Jari-jari konduktor dan jarak antar-fasa (cm)"), ("r_{eq}", "Jari-jari efektif berkas n sub-konduktor berjarak s")])
     isi += formula(6, "Rugi Korona (Peek)", r"P_{korona} = \dfrac{241}{\delta}\,(f + 25)\sqrt{\dfrac{r}{D}}\,(V - V_c)^2\times10^{-5}\ \text{kW/km/fasa}",
                    rf"Konduktor tunggal pada 275 kV: \((V - V_c) = {ind(VF_275, 1)} - {ind(VC_KOR, 1)} = {ind(VF_275 - VC_KOR, 1)}\) kV; \(P = 241\times75\times\sqrt{{{ind(R_KOR, 2)}/{ind(D_KOR, 0)}}}\times{ind(VF_275 - VC_KOR, 1)}^2\times10^{{-5}} = {ind(RUGI_KOR, 2)}\) kW/km/fasa, atau \({ind(RUGI_KOR * 3 * 200, 0)}\) kW untuk 3 fasa × 200 km: kecil dibanding rugi tembaga, tetapi saat hujan bisa 5–10 kali dan gangguan radionya yang tidak dapat diterima.",
@@ -409,17 +409,17 @@ def materi():
         ("💜", "Tanda-Tandanya", "Cahaya ungu redup di malam hari, desis atau derak, bau ozon, dan gangguan penerimaan radio AM di dekat saluran; semuanya bertambah saat hujan dan kabut.", None),
         ("📻", "Gangguan Radio dan Audio", "Kriteria rancangan SUTET sering ditentukan bukan oleh rugi, melainkan oleh radio interference (RI) dan audible noise (AN) di tepi ruang bebas; hujan menaikkan AN 10–20 dB.", None),
         ("🔗", "Berkas: Solusi Utama", "2 × 275 kV, 4 × 500 kV, 6–8 × 765 kV: jari-jari efektif besar menurunkan gradien permukaan dan sekaligus reaktansi seri (Modul 6, 9).", r"\(E_s \propto \dfrac{V}{r_{eq}\ln(D/r_{eq})}\)"),
-        ("🏔️", "Ketinggian", "Kerapatan udara δ turun ±10 % per 1000 m; saluran di dataran tinggi berkorona pada tegangan lebih rendah, alasan V_c dikoreksi dengan δ.", None),
+        ("🏔️", "Ketinggian", "Kerapatan udara δ turun ±10 % per 1000 m; saluran di dataran tinggi berkorona pada tegangan lebih rendah, alasan V<sub>c</sub> dikoreksi dengan δ.", None),
         ("🔩", "Perangkat Keras", "Klem, spacer, dan ujung rentengan diberi cincin korona; tetesan air di permukaan konduktor adalah sumber korona hujan yang tidak bisa dihilangkan, hanya dikurangi.", None),
         ("🧲", "Manfaat Korona", "Presipitator elektrostatik PLTU dan pembersih udara memakai korona untuk mengionkan partikel; pengecas listrik statis di mesin cetak juga.", None),
     ])
-    isi += tabel(["Konfigurasi (D = 5 m, m = 0,87)", "r_eq (cm)", "V_c (kV fasa)", "V_c (kV saluran)", "Aman untuk"], [
+    isi += tabel(["Konfigurasi (D = 5 m, m = 0,87)", "r<sub>eq</sub> (cm)", "V<sub>c</sub> (kV fasa)", "V<sub>c</sub> (kV saluran)", "Aman untuk"], [
         [f"1 × ACSR 240 (r {ind(R_KOR, 2)} cm)", ind(R_KOR, 2), ind(VC_KOR, 1), ind(VC_KOR * SQ3, 0), "150 kV"],
         ["1 × ACSR 400 (r 1,43 cm)", "1,43", ind(21.1 * M_KOR * 1.43 * math.log(D_KOR / 1.43), 1), ind(21.1 * M_KOR * 1.43 * math.log(D_KOR / 1.43) * SQ3, 0), "150–220 kV"],
         [f"2 × ACSR 240, s = 40 cm", ind(R_EQ2, 2), ind(VC_BERKAS, 1), ind(VC_BERKAS * SQ3, 0), "275 kV"],
         ["4 × ACSR 400, s = 45 cm (D = 11 m)", ind((4 * 1.43 * 45 ** 3) ** 0.25, 2), ind(21.1 * M_KOR * (4 * 1.43 * 45 ** 3) ** 0.25 * math.log(1100 / (4 * 1.43 * 45 ** 3) ** 0.25), 1), ind(21.1 * M_KOR * (4 * 1.43 * 45 ** 3) ** 0.25 * math.log(1100 / (4 * 1.43 * 45 ** 3) ** 0.25) * SQ3, 0), "500 kV"],
     ])
-    isi += kotak("tip-box", "💡 <strong>Membaca Tabel di Atas:</strong> menggandakan penampang konduktor tunggal hanya menaikkan V_c sedikit, sedangkan membaginya menjadi berkas dua menaikkannya hampir dua kali: jari-jari efektif berkas tumbuh dengan akar jarak sub-konduktor, bukan dengan luas. Soal C8 dan C14 memakai Persamaan (5)–(6).")
+    isi += kotak("tip-box", "💡 <strong>Membaca Tabel di Atas:</strong> menggandakan penampang konduktor tunggal hanya menaikkan V<sub>c</sub> sedikit, sedangkan membaginya menjadi berkas dua menaikkannya hampir dua kali: jari-jari efektif berkas tumbuh dengan akar jarak sub-konduktor, bukan dengan luas. Soal C8 dan C14 memakai Persamaan (5)–(6).")
     m += bagian(5, "m-korona", "Korona:<br>Tegangan Kritis dan Rugi",
                 "Di atas tegangan tertentu udara di sekeliling konduktor mulai terionisasi: konduktor berpendar ungu, berdesis, membuang daya, dan mengganggu radio. Persamaan (5) memberi tegangan kritis menurut Peek beserta pengaruh permukaan, ketinggian, dan konduktor berkas, dan Persamaan (6) menaksir rugi dayanya; Gambar 6 memperlihatkan mengapa SUTET selalu memakai berkas.",
                 isi, "KORONA")
@@ -468,8 +468,8 @@ def materi():
     isi += anim_panel(4, "pink", r"Korona: Tegangan Kritis Peek, Konduktor Berkas, dan Rugi", "cvKorona",
                       [("sl_ko_r", "v_ko_r", "Jari-jari sub-konduktor r (cm)", 0.5, 2.5, 0.05, 1.05, "1.05"), ("sl_ko_d", "v_ko_d", "Jarak antar-fasa D (cm)", 200, 1200, 10, 500, "500"), ("sl_ko_m", "v_ko_m", "Faktor permukaan m", 0.7, 1.0, 0.01, 0.87, "0.87"), ("sl_ko_v", "v_ko_v", "Tegangan saluran (kV)", 70, 500, 5, 150, "150"), ("sl_ko_n", "v_ko_n", "Sub-konduktor per berkas", 1, 4, 1, 1, "1")],
                       "btnKorona", "toggleKorona", "koronaInfo",
-                      "<strong>📊 Cara Membaca Animasi 4:</strong> Kurva merah muda adalah rugi korona Peek terhadap tegangan fasa; garis kuning tegangan kritis V_c, garis hijau/merah tegangan fasa operasi (berkedip merah bila berkorona). Ikon kanan memperlihatkan berkas.<br>Amati: (1) <strong style=\"color:var(--pink)\">Naikkan tegangan ke 275 kV dengan satu konduktor</strong>: berkorona; ubah berkas ke 2, V_c melompat di atasnya. (2) Permukaan kasar (m kecil) dan jarak fasa rapat menurunkan V_c. (3) Readout memberi gradien permukaan yang dipakai standar modern. Soal C8 dan C14.")
-    isi += kotak("info-box", f"<strong>🔍 Latihan Mandiri:</strong> pada Animasi 1 atur 300 MW, 120 km, 0,08 Ω/km, pf 0,9 dan cocokkan rugi 150 kV = {ind(HASIL[150.0][1], 1)} MW dengan Gambar 2; pada Animasi 3 atur 350 m, 9 N/m, 25 kN, 30 m dan cocokkan S = {ind(SAG, 2)} m dengan Gambar 5; pada Animasi 4 atur r 1,05 cm, D 500 cm, m 0,87, 150 kV dan cocokkan V_c = {ind(VC_KOR, 1)} kV.")
+                      "<strong>📊 Cara Membaca Animasi 4:</strong> Kurva merah muda adalah rugi korona Peek terhadap tegangan fasa; garis kuning tegangan kritis V<sub>c</sub>, garis hijau/merah tegangan fasa operasi (berkedip merah bila berkorona). Ikon kanan memperlihatkan berkas.<br>Amati: (1) <strong style=\"color:var(--pink)\">Naikkan tegangan ke 275 kV dengan satu konduktor</strong>: berkorona; ubah berkas ke 2, V<sub>c</sub> melompat di atasnya. (2) Permukaan kasar (m kecil) dan jarak fasa rapat menurunkan V<sub>c</sub>. (3) Readout memberi gradien permukaan yang dipakai standar modern. Soal C8 dan C14.")
+    isi += kotak("info-box", f"<strong>🔍 Latihan Mandiri:</strong> pada Animasi 1 atur 300 MW, 120 km, 0,08 Ω/km, pf 0,9 dan cocokkan rugi 150 kV = {ind(HASIL[150.0][1], 1)} MW dengan Gambar 2; pada Animasi 3 atur 350 m, 9 N/m, 25 kN, 30 m dan cocokkan S = {ind(SAG, 2)} m dengan Gambar 5; pada Animasi 4 atur r 1,05 cm, D 500 cm, m 0,87, 150 kV dan cocokkan V<sub>c</sub> = {ind(VC_KOR, 1)} kV.")
     m += bagian(7, "m-animasi", "Animasi Interaktif<br>Saluran Transmisi",
                 "Geser daya, tegangan, jumlah piring, gawang, suhu, dan konfigurasi berkas, lalu amati rugi daya, distribusi tegangan isolator, andongan dan jarak bebas, serta tegangan kritis korona. Empat animasi ini memvisualkan Persamaan (1)–(6).",
                 isi, "ANIMASI")
@@ -541,7 +541,7 @@ for VL in [150, 275]:
 # gradien permukaan (kriteria modern, kV/cm rms)
 Vf = 275/np.sqrt(3); re = r_eq(2, r)
 print(f"gradien permukaan 275 kV berkas 2 ≈ {{Vf/(re*np.log(D/re)):.2f}} kV/cm (batas praktis ±16–17)")''')
-    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 02–05: rugi 150 kV {ind(HASIL[150.0][1], 1)} MW, R₇₅ = {ind(R75, 4)} Ω/km, efisiensi rentengan {ind(EFF_ISO, 1)} %, S = {ind(SAG, 2)} m, dan V_c = {ind(VC_KOR, 1)} kV. Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
+    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 02–05: rugi 150 kV {ind(HASIL[150.0][1], 1)} MW, R₇₅ = {ind(R75, 4)} Ω/km, efisiensi rentengan {ind(EFF_ISO, 1)} %, S = {ind(SAG, 2)} m, dan V<sub>c</sub> = {ind(VC_KOR, 1)} kV. Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
     m += bagian(8, "m-jupyter", "Implementasi Python<br>di Jupyter Notebook",
                 "Empat cell berikut mengerjakan seluruh contoh modul ini: rugi terhadap tegangan dan resistansi konduktor, distribusi tegangan isolator, andongan dengan pengaruh suhu, dan korona dengan konduktor berkas. Salin satu cell utuh ke Jupyter Notebook (VS Code), jalankan apa adanya lebih dulu, baru ubah parameternya.",
                 isi, "IMPLEMENTASI PYTHON")
@@ -581,11 +581,11 @@ TUGAS_HERO = f'''<div class="hero" data-tab="tugas" style="min-height:60vh">
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">P_rugi ∝ 1/V²</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">R_T = R₂₀[1 + α(T − 20)]</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">P<sub>rugi</sub> ∝ 1/V²</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">R<sub>T</sub> = R₂₀[1 + α(T − 20)]</span>
     <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">S = wL²/(8T)</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">V_c = 21,1·m·δ·r·ln(D/r)</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">η = V/(n·V_maks)</span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">V<sub>c</sub> = 21,1·m·δ·r·ln(D/r)</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">η = V/(n·V<sub>maks</sub>)</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan {PERTEMUAN} · {JUDUL_PANJANG}</div>
@@ -613,10 +613,10 @@ MC = [
      ["Arus bocor melalui permukaan isolator kotor", "Pemanasan konduktor oleh efek kulit", "Ionisasi udara di sekitar konduktor ketika gradien medan permukaan melampaui nilai kritis; ditekan dengan konduktor berkas", "Pantulan gelombang petir di ujung saluran"],
      "Korona"),
     ("Untuk daya dan konduktor yang sama, menaikkan tegangan transmisi dua kali lipat membuat rugi daya saluran...",
-     ["Turun menjadi seperempat, karena P_rugi ∝ 1/V²", "Turun menjadi setengah", "Tetap, karena resistansinya sama", "Naik dua kali karena tegangan lebih tinggi"],
+     ["Turun menjadi seperempat, karena P<sub>rugi</sub> ∝ 1/V²", "Turun menjadi setengah", "Tetap, karena resistansinya sama", "Naik dua kali karena tegangan lebih tinggi"],
      "Rugi vs tegangan"),
     ("<strong>Efek kulit</strong> pada konduktor AC menyebabkan...",
-     ["Resistansi AC lebih kecil daripada DC", "Arus terkonsentrasi di pusat konduktor", "Kapasitansi saluran bertambah", "Arus terkonsentrasi di permukaan sehingga R_ac lebih besar daripada R_dc"],
+     ["Resistansi AC lebih kecil daripada DC", "Arus terkonsentrasi di pusat konduktor", "Kapasitansi saluran bertambah", "Arus terkonsentrasi di permukaan sehingga R<sub>ac</sub> lebih besar daripada R<sub>dc</sub>"],
      "Efek kulit"),
     ("<strong>Kawat tanah</strong> (ground wire) di puncak menara berfungsi...",
      ["Menyalurkan arus netral beban", "Menangkap sambaran petir dan menyalurkannya ke pentanahan menara sebelum mengenai konduktor fasa", "Menahan menara agar tidak roboh", "Menyeimbangkan tegangan tiga fasa"],
@@ -633,7 +633,7 @@ MC = [
 ]
 
 COMP_EZ_LABELS = ["Rugi saluran 150 kV dari P, L, r", "Rugi pada 500 kV dari rugi 150 kV (∝ 1/V²)", "Resistansi konduktor Al per km", "Koreksi suhu R₇₅", "Tegangan rata-rata per piring",
-                  "Efisiensi rentengan dari V_maks", "Andongan S = wL²/(8T)", "Tegangan kritis korona (Peek)", "Rugi saluran 275 kV", "Daya termal maksimum"]
+                  "Efisiensi rentengan dari V<sub>maks</sub>", "Andongan S = wL²/(8T)", "Tegangan kritis korona (Peek)", "Rugi saluran 275 kV", "Daya termal maksimum"]
 COMP_HARD_LABELS = ["Efisiensi penyaluran 150 kV", "Penampang minimum untuk rugi ≤ 3 %", "Efisiensi rentengan 3 piring dari k",
                     "Rugi korona Peek total 3 fasa", "Jarak bebas dari andongan"]
 
@@ -666,32 +666,32 @@ FQ_JUDUL = [
     "Menara di persilangan jalan raya: berapa andongan, tinggi titik gantung minimum, dan berapa piring isolator yang diperlukan?",
 ]
 FQ_RINGKAS = [
-    f"PLTU {ind(PF_F, 0)} MW pf {ind(PFF, 1)}, {ind(LF, 0)} km, ACSR 240 (R_ac 75 °C {ind(R_KMF, 2)} Ω/km, ampacity ±600 A). Hitung I, rugi 3I²R, dan η untuk 150 kV satu sirkit, 150 kV dua sirkit, dan 275 kV (Persamaan 1); periksa terhadap ampacity (Persamaan 8) dan rumus tegangan ekonomis (Persamaan 7).",
-    f"275 kV, satu ACSR 240 (r = {ind(RK_F, 2)} cm), D = {ind(DK_F / 100, 0)} m, m = {ind(MK_F, 2)}, δ = 1: V_c Peek (Persamaan 5) vs V_fasa = {ind(VF275, 1)} kV; rugi korona (Persamaan 6); ulangi dengan berkas 2 (s = 40 cm) dan simpulkan konfigurasi konduktor.",
+    f"PLTU {ind(PF_F, 0)} MW pf {ind(PFF, 1)}, {ind(LF, 0)} km, ACSR 240 (R<sub>ac</sub> 75 °C {ind(R_KMF, 2)} Ω/km, ampacity ±600 A). Hitung I, rugi 3I²R, dan η untuk 150 kV satu sirkit, 150 kV dua sirkit, dan 275 kV (Persamaan 1); periksa terhadap ampacity (Persamaan 8) dan rumus tegangan ekonomis (Persamaan 7).",
+    f"275 kV, satu ACSR 240 (r = {ind(RK_F, 2)} cm), D = {ind(DK_F / 100, 0)} m, m = {ind(MK_F, 2)}, δ = 1: V<sub>c</sub> Peek (Persamaan 5) vs V<sub>fasa</sub> = {ind(VF275, 1)} kV; rugi korona (Persamaan 6); ulangi dengan berkas 2 (s = 40 cm) dan simpulkan konfigurasi konduktor.",
     f"Gawang {ind(SPAN_F, 0)} m di persilangan jalan raya (jarak bebas 15 m), ACSR 240 w = {ind(W_F, 0)} N/m, T = {ind(T_F / 1000, 0)} kN: andongan (Persamaan 4), tinggi titik gantung minimum, dan jumlah piring isolator 275 kV (rata-rata per piring ≤ 11 kV wet, faktor 1,3) beserta efisiensi rentengan (Persamaan 3).",
 ]
 
 
 def forum_page():
     q1 = fq(1, "14,165,233", "cyan", FQ_JUDUL[0],
-            f"PLTU baru <b>{ind(PF_F, 0)} MW</b> (pf {ind(PFF, 1)}) akan disalurkan sejauh <b>{ind(LF, 0)} km</b> ke gardu induk pusat beban. Jaringan setempat 150 kV, tetapi PLN menawarkan pilihan 275 kV. Konduktor yang tersedia ACSR 240 (R_ac pada 75 °C {ind(R_KMF, 2)} Ω/km, ampacity ±600 A). Hitung arus, rugi 3I²R, dan efisiensi (Persamaan 1) untuk tiga pilihan: 150 kV satu sirkit, 150 kV dua sirkit, dan 275 kV satu sirkit (berkas 2 × 240, ampacity ±1100 A). Periksa tiap pilihan terhadap ampacity (Persamaan 8) dan bandingkan dengan rumus tegangan ekonomis (Persamaan 7). Pilihan mana yang layak, dan apa harga yang dibayar untuk 275 kV (trafo, menara, ruang bebas)?",
-            ["I = P/(√3·V·pf)", "P_rugi = 3I²R", "I ≤ ampacity?"],
+            f"PLTU baru <b>{ind(PF_F, 0)} MW</b> (pf {ind(PFF, 1)}) akan disalurkan sejauh <b>{ind(LF, 0)} km</b> ke gardu induk pusat beban. Jaringan setempat 150 kV, tetapi PLN menawarkan pilihan 275 kV. Konduktor yang tersedia ACSR 240 (R<sub>ac</sub> pada 75 °C {ind(R_KMF, 2)} Ω/km, ampacity ±600 A). Hitung arus, rugi 3I²R, dan efisiensi (Persamaan 1) untuk tiga pilihan: 150 kV satu sirkit, 150 kV dua sirkit, dan 275 kV satu sirkit (berkas 2 × 240, ampacity ±1100 A). Periksa tiap pilihan terhadap ampacity (Persamaan 8) dan bandingkan dengan rumus tegangan ekonomis (Persamaan 7). Pilihan mana yang layak, dan apa harga yang dibayar untuk 275 kV (trafo, menara, ruang bebas)?",
+            ["I = P/(√3·V·pf)", "P<sub>rugi</sub> = 3I²R", "I ≤ ampacity?"],
             "Rugi daya dan kelayakan termal ketiga pilihan adalah sekitar...",
             [f"150 kV 1 sirkit: {ind(LOSS150, 0)} MW, layak; 275 kV: {ind(LOSS275, 0)} MW", f"150 kV 1 sirkit dan 2 sirkit sama-sama {ind(LOSS150, 0)} MW karena tegangannya sama", f"150 kV 1 sirkit: {ind(LOSS150, 0)} MW ({ind(LOSS150 / PF_F * 100, 0)} %) dan I = {ind(I150, 0)} A melampaui ampacity; 2 sirkit: {ind(LOSS150_2, 0)} MW; 275 kV: {ind(LOSS275, 1)} MW ({ind(LOSS275 / PF_F * 100, 1)} %)", f"275 kV: {ind(LOSS150, 0)} MW, lebih boros karena tegangannya lebih tinggi"],
             f"✅ Tepat! 150 kV satu sirkit: \\(I = {ind(PF_F, 0)}\\times10^6/(\\sqrt{{3}}\\times150\\times10^3\\times{ind(PFF, 1)}) = {ind(I150, 0)}\\) A > 600 A (tidak layak termal) dan rugi \\(3\\times{ind(I150, 0)}^2\\times{ind(RF, 1)} = {ind(LOSS150, 1)}\\) MW. Dua sirkit: {ind(I150_2, 0)} A per konduktor, rugi {ind(LOSS150_2, 1)} MW (η {ind(ETA150_2, 1)} %). 275 kV: {ind(I275, 0)} A, rugi {ind(LOSS275, 1)} MW (η {ind(ETA275, 1)} %). Rumus ekonomis memberi ≈ {ind(5.5 * math.sqrt(LF / 1.6 + PF_F * 1000 / 100), 0)} kV → 275 kV; harganya trafo 275/150 kV dan menara lebih tinggi.",
             "❌ Rugi bergantung pada arus tiap konduktor: pada tegangan sama, dua sirkit membagi arus dua dan rugi total dua (bukan sama), sedangkan tegangan lebih tinggi menurunkan arus dan rugi kuadratis. Hitung I dan periksa terhadap ampacity untuk tiap pilihan.",
             "Petunjuk: (1) Hitung I, rugi, η untuk tiga pilihan. (2) Periksa ampacity dan rumus V ekonomis. (3) Bandingkan harga yang harus dibayar 275 kV.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
-            f"Bila dipilih 275 kV, konsultan awalnya menggambar satu ACSR 240 per fasa (r = {ind(RK_F, 2)} cm) dengan jarak antar-fasa {ind(DK_F / 100, 0)} m, permukaan berurat m = {ind(MK_F, 2)}, δ = 1. Hitung tegangan kritis korona menurut Peek (Persamaan 5) dan bandingkan dengan tegangan fasa {ind(VF275, 1)} kV; bila berkorona, taksir rugi korona per km per fasa dan totalnya untuk {ind(LF, 0)} km (Persamaan 6). Lalu ulangi dengan berkas dua sub-konduktor berjarak 40 cm (r_eq = √(2·r·s)) dan simpulkan konfigurasi konduktor yang harus dipakai. Bahas pula gangguan radio dan keadaan hujan.",
-            ["V_c = 21,1·m·δ·r·ln(D/r)", "r_eq = √(2·r·s)", "P = 241(f+25)√(r/D)(V−V_c)²·10⁻⁵"],
+            f"Bila dipilih 275 kV, konsultan awalnya menggambar satu ACSR 240 per fasa (r = {ind(RK_F, 2)} cm) dengan jarak antar-fasa {ind(DK_F / 100, 0)} m, permukaan berurat m = {ind(MK_F, 2)}, δ = 1. Hitung tegangan kritis korona menurut Peek (Persamaan 5) dan bandingkan dengan tegangan fasa {ind(VF275, 1)} kV; bila berkorona, taksir rugi korona per km per fasa dan totalnya untuk {ind(LF, 0)} km (Persamaan 6). Lalu ulangi dengan berkas dua sub-konduktor berjarak 40 cm (r<sub>eq</sub> = √(2·r·s)) dan simpulkan konfigurasi konduktor yang harus dipakai. Bahas pula gangguan radio dan keadaan hujan.",
+            ["V<sub>c</sub> = 21,1·m·δ·r·ln(D/r)", "r<sub>eq</sub> = √(2·r·s)", "P = 241(f+25)√(r/D)(V−V<sub>c</sub>)²·10⁻⁵"],
             f"Untuk satu ACSR 240 pada 275 kV, tegangan kritis korona dan kesimpulannya adalah...",
-            [f"V_c ≈ {ind(VC_F, 0)} kV fasa < V_fasa {ind(VF275, 1)} kV: berkorona; berkas 2 menaikkan V_c ke ≈ {ind(VC_F2, 0)} kV, di atas tegangan operasi", f"V_c ≈ {ind(VC_F * SQ3, 0)} kV fasa > {ind(VF275, 1)} kV: aman tanpa berkas", f"V_c ≈ {ind(VC_F, 0)} kV, tetapi korona tidak bergantung jumlah sub-konduktor", f"Korona tidak mungkin pada 275 kV karena D = {ind(DK_F / 100, 0)} m"],
+            [f"V<sub>c</sub> ≈ {ind(VC_F, 0)} kV fasa < V<sub>fasa</sub> {ind(VF275, 1)} kV: berkorona; berkas 2 menaikkan V<sub>c</sub> ke ≈ {ind(VC_F2, 0)} kV, di atas tegangan operasi", f"V<sub>c</sub> ≈ {ind(VC_F * SQ3, 0)} kV fasa > {ind(VF275, 1)} kV: aman tanpa berkas", f"V<sub>c</sub> ≈ {ind(VC_F, 0)} kV, tetapi korona tidak bergantung jumlah sub-konduktor", f"Korona tidak mungkin pada 275 kV karena D = {ind(DK_F / 100, 0)} m"],
             f"✅ Tepat! \\(V_c = 21{{,}}1\\times{ind(MK_F, 2)}\\times{ind(RK_F, 2)}\\times\\ln({ind(DK_F, 0)}/{ind(RK_F, 2)}) = {ind(VC_F, 1)}\\) kV < {ind(VF275, 1)} kV: berkorona, rugi ≈ \\({ind(241 * 75 * math.sqrt(RK_F / DK_F) * (VF275 - VC_F) ** 2 * 1e-5, 2)}\\) kW/km/fasa (≈ {ind(241 * 75 * math.sqrt(RK_F / DK_F) * (VF275 - VC_F) ** 2 * 1e-5 * 3 * LF, 0)} kW total, cuaca cerah). Berkas 2: \\(r_{{eq}} = \\sqrt{{2\\times{ind(RK_F, 2)}\\times40}} = {ind(REQ_F, 2)}\\) cm → \\(V_c = {ind(VC_F2, 1)}\\) kV: aman; itulah sebabnya SUTET selalu berkas.",
-            "❌ V_c Peek adalah tegangan fasa–netral (bandingkan dengan 275/√3), dan jumlah sub-konduktor mengubah jari-jari efektif sehingga V_c ikut naik. Hitung ln(D/r) dengan r dan D dalam cm, lalu ulangi dengan r_eq berkas.",
-            "Petunjuk: (1) Hitung V_c satu konduktor dan bandingkan dengan V_fasa. (2) Taksir rugi korona per km dan total. (3) Ulangi dengan berkas 2 dan simpulkan; bahas RI dan hujan.")
+            "❌ V<sub>c</sub> Peek adalah tegangan fasa–netral (bandingkan dengan 275/√3), dan jumlah sub-konduktor mengubah jari-jari efektif sehingga V<sub>c</sub> ikut naik. Hitung ln(D/r) dengan r dan D dalam cm, lalu ulangi dengan r<sub>eq</sub> berkas.",
+            "Petunjuk: (1) Hitung tegangan kritis korona satu konduktor dan bandingkan dengan tegangan fasa. (2) Taksir rugi korona per km dan total. (3) Ulangi dengan berkas 2 dan simpulkan; bahas RI dan hujan.")
     q3 = fq(3, "168,85,247", "violet", FQ_JUDUL[2],
             f"Jalur 275 kV itu menyeberangi jalan raya dengan gawang <b>{ind(SPAN_F, 0)} m</b>. Konduktor ACSR 240 (w = {ind(W_F, 0)} N/m) ditarik {ind(T_F / 1000, 0)} kN pada keadaan suhu maksimum. Hitung andongan (Persamaan 4) dan tinggi titik gantung minimum agar jarak bebas di atas jalan raya {ind(H_JALAN, 0)} m terpenuhi; berapa tinggi menara bila rentengan isolator gantung dan lengan menambah ±4 m? Lalu tentukan jumlah piring isolator 275 kV: tegangan fasa {ind(VF275, 1)} kV dengan faktor keamanan 1,3 dibagi 11 kV per piring, dan hitung efisiensi rentengannya untuk k = 0,1 (Persamaan 3, Cell 2). Bahas mengapa jumlah piring di lapangan (18–20) lebih banyak daripada hasil hitung.",
-            ["S = wL²/(8T)", "H ≥ h_min + S", "n ≈ 1,3·V_fasa/11"],
+            ["S = wL²/(8T)", "H ≥ h<sub>min</sub> + S", "n ≈ 1,3·V<sub>fasa</sub>/11"],
             f"Andongan dan tinggi titik gantung minimum di persilangan jalan raya adalah sekitar...",
             [f"S ≈ {ind(SAG_F / 4, 1)} m; H ≥ {ind(H_JALAN + SAG_F / 4, 1)} m", f"S ≈ {ind(SAG_F, 1)} m; H ≥ {ind(H_MIN_F, 1)} m (jalan raya 15 m + andongan), menara ≈ {ind(H_MIN_F + 4, 0)} m", f"S ≈ {ind(SAG_F * 2, 1)} m; H ≥ {ind(H_JALAN + SAG_F * 2, 1)} m", f"S = 0 karena tarikan {ind(T_F / 1000, 0)} kN membuat konduktor lurus"],
             f"✅ Tepat! \\(S = {ind(W_F, 0)}\\times{ind(SPAN_F, 0)}^2/(8\\times{ind(T_F, 0)}) = {ind(SAG_F, 2)}\\) m; titik gantung ≥ {ind(H_JALAN, 0)} + {ind(SAG_F, 2)} = {ind(H_MIN_F, 2)} m, menara ≈ {ind(H_MIN_F + 4, 0)} m dengan rentengan dan lengan. Piring: \\(1{{,}}3\\times{ind(VF275, 1)}/11 \\approx {ind(1.3 * VF275 / 11, 1)}\\) → 19 piring; efisiensi rentengan 19 piring dengan k = 0,1 hanya ± 50–55 %, sehingga cincin perata dan piring tambahan untuk polusi membuat jumlah lapangan 18–22.",
@@ -707,8 +707,8 @@ def forum_page():
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">P_rugi = 3I²R</span>
-    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">V_c = 21,1·m·δ·r·ln(D/r)</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">P<sub>rugi</sub> = 3I²R</span>
+    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">V<sub>c</sub> = 21,1·m·δ·r·ln(D/r)</span>
     <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">S = wL²/(8T)</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">150 atau 275 kV?</span>
   </div>
@@ -726,7 +726,7 @@ def forum_page():
   <div class="forum-scenario reveal">
     <div class="scenario-label">📋 KASUS PERANCANGAN SALURAN TRANSMISI</div>
     <p>
-      Sebuah <strong style="color:var(--amber)">PLTU {ind(PF_F, 0)} MW</strong> (pf {ind(PFF, 1)}) dibangun <strong style="color:var(--cyan)">{ind(LF, 0)} km</strong> dari gardu induk pusat beban. Jaringan setempat 150 kV; PLN menawarkan pilihan <strong style="color:var(--cyan)">150 kV atau 275 kV</strong>. Konduktor yang tersedia <strong>ACSR 240</strong> (R_ac 75 °C {ind(R_KMF, 2)} Ω/km, r = {ind(RK_F, 2)} cm, ampacity ±600 A), jarak antar-fasa {ind(DK_F / 100, 0)} m.
+      Sebuah <strong style="color:var(--amber)">PLTU {ind(PF_F, 0)} MW</strong> (pf {ind(PFF, 1)}) dibangun <strong style="color:var(--cyan)">{ind(LF, 0)} km</strong> dari gardu induk pusat beban. Jaringan setempat 150 kV; PLN menawarkan pilihan <strong style="color:var(--cyan)">150 kV atau 275 kV</strong>. Konduktor yang tersedia <strong>ACSR 240</strong> (R<sub>ac</sub> 75 °C {ind(R_KMF, 2)} Ω/km, r = {ind(RK_F, 2)} cm, ampacity ±600 A), jarak antar-fasa {ind(DK_F / 100, 0)} m.
     </p>
     <p style="margin-top:12px">
       Tiga pertanyaan menunggu jawaban: tegangan mana yang <strong>layak dari sisi rugi dan termal</strong>; apakah satu konduktor per fasa pada 275 kV akan <strong style="color:var(--pink)">berkorona</strong>; dan berapa <strong>andongan serta tinggi menara</strong> pada gawang {ind(SPAN_F, 0)} m yang menyeberangi jalan raya (jarak bebas {ind(H_JALAN, 0)} m), beserta jumlah piring isolatornya.
@@ -754,7 +754,7 @@ def forum_page():
 {q1}{q2}{q3}'''
 
 
-FORUM_SKENARIO_LMS = f"PLTU {ind(PF_F, 0)} MW (pf {ind(PFF, 1)}) sejauh {ind(LF, 0)} km ke gardu induk; pilihan 150 kV atau 275 kV; konduktor ACSR 240 (R_ac {ind(R_KMF, 2)} Ω/km, r {ind(RK_F, 2)} cm, ampacity ±600 A), D = {ind(DK_F / 100, 0)} m, m = {ind(MK_F, 2)}. Persoalan: rugi dan kelayakan termal tiap pilihan; korona pada 275 kV satu konduktor vs berkas 2; andongan dan tinggi menara pada gawang {ind(SPAN_F, 0)} m di atas jalan raya (bebas {ind(H_JALAN, 0)} m) serta jumlah piring isolator."
+FORUM_SKENARIO_LMS = f"PLTU {ind(PF_F, 0)} MW (pf {ind(PFF, 1)}) sejauh {ind(LF, 0)} km ke gardu induk; pilihan 150 kV atau 275 kV; konduktor ACSR 240 (R<sub>ac</sub> {ind(R_KMF, 2)} Ω/km, r {ind(RK_F, 2)} cm, ampacity ±600 A), D = {ind(DK_F / 100, 0)} m, m = {ind(MK_F, 2)}. Persoalan: rugi dan kelayakan termal tiap pilihan; korona pada 275 kV satu konduktor vs berkas 2; andongan dan tinggi menara pada gawang {ind(SPAN_F, 0)} m di atas jalan raya (bebas {ind(H_JALAN, 0)} m) serta jumlah piring isolator."
 FORUM_CHIPS_LMS = [f"PLTU = {ind(PF_F, 0)} MW, {ind(LF, 0)} km", f"ACSR 240 = {ind(R_KMF, 2)} Ω/km, ±600 A", f"korona: r {ind(RK_F, 2)} cm, D {ind(DK_F / 100, 0)} m", f"gawang = {ind(SPAN_F, 0)} m, bebas {ind(H_JALAN, 0)} m"]
 
 FORUM_KANVAS = r"""// ════════════════════════════════════════════════════════════

@@ -9,8 +9,9 @@ import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
+from pustaka import Kode  # noqa: E402  (teks SVG berupa kode yang diketik)
 from pustaka import (AX, BG, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
-                     mc_block, pm_ref, svg, t, tabel, teks2)
+                     mc_block, pm_ref, svg, t, tabel, teks2, rumus_mentah)
 from tugas_gambar import AM, BL, CY, GN, PK, RD, VI, _panah, dim_h, dim_v, ext  # noqa: E402
 
 NOMOR = 14
@@ -125,11 +126,11 @@ def gambar1():
     b += t(362, 196, "ruang layak", 10, "#00e09e", "middle", "600")
     b += t(440, 52, "Bentuk baku (Persamaan 1):", 11, "#22d3ee", "start", "600")
     b += t(440, 70, "minimumkan f(x)", 11, TX, "start")
-    b += t(440, 88, "terhadap g_i(x) ≤ 0, h_j(x) = 0", 10.5, TX, "start")
-    b += t(440, 106, "dan x_L ≤ x ≤ x_U", 10.5, TX, "start")
+    b += t(440, 88, "terhadap g<sub>i</sub>(x) ≤ 0, h<sub>j</sub>(x) = 0", 10.5, TX, "start")
+    b += t(440, 106, "dan x<sub>L</sub> ≤ x ≤ x<sub>U</sub>", 10.5, TX, "start")
     b += t(440, 132, "Contoh modul ini:", 11, "#f59e0b", "start", "600")
     b += t(440, 150, "f = luas · massa · jejak CO₂", 10.5, AX, "start")
-    b += t(440, 168, "g = σ ≤ σ_izin, δ ≤ δ_izin", 10.5, AX, "start")
+    b += t(440, 168, "g = σ ≤ σ<sub>izin</sub>, δ ≤ δ<sub>izin</sub>", 10.5, AX, "start")
     b += t(440, 186, "h = volume kaleng tetap V₀", 10.5, AX, "start")
     b += t(440, 212, "Optimum di batas ruang layak", 10.5, "#00e09e", "start")
     b += teks2(340, 252, "Optimasi bukan menebak: fungsi tujuan, variabel, dan kendala ditulis dahulu, baru model dibuat parametrik", 11, AX, maks=94)
@@ -138,7 +139,7 @@ def gambar1():
 
 def gambar2():
     b = ""
-    baris = [("alias", "isi sel"), ("V0", "500000"), ("r", "=(V0/(2*pi))^(1/3)"), ("h", "=2*r"), ("A", "=6*pi*r^2")]
+    baris = [("alias", "isi sel"), ("V0", "500000"), ("r", Kode("=(V0/(2*pi))^(1/3)")), ("h", Kode("=2*r")), ("A", Kode("=6*pi*r^2"))]
     b += t(138, 40, "Spreadsheet (alias)", 11, "#22d3ee", "middle", "600")
     for i, (a_, c_) in enumerate(baris):
         y = 52 + i * 24
@@ -194,20 +195,20 @@ def gambar3():
     b += f'<line x1="56" y1="{Y(1):.1f}" x2="410" y2="{Y(1):.1f}" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="7 4"/>'
     for xx, c in ((X(T_SIGMA), "#22d3ee"), (X(T_DELTA), "#00e09e")):
         b += f'<line x1="{xx:.1f}" y1="60" x2="{xx:.1f}" y2="220" stroke="{c}" stroke-width="1" stroke-dasharray="5 3"/>'
-    b += t(X(T_SIGMA), 54, f"t_σ = {ind(T_SIGMA, 2)}", 10, "#22d3ee", "middle", "600")
-    b += t(X(T_DELTA), 54, f"t_δ = {ind(T_DELTA, 2)}", 10, "#00e09e", "middle", "600")
+    b += t(X(T_SIGMA), 54, f"t<sub>σ</sub> = {ind(T_SIGMA, 2)}", 10, "#22d3ee", "middle", "600")
+    b += t(X(T_DELTA), 54, f"t<sub>δ</sub> = {ind(T_DELTA, 2)}", 10, "#00e09e", "middle", "600")
     b += t(180, 90, "tidak layak", 10, "#ef4444", "middle", "600")
-    b += t(170, 116, "δ/δ_izin", 10, "#00e09e", "middle", "600")
-    b += t(200, 200, "σ/σ_izin", 10, "#22d3ee", "middle", "600")
+    b += t(170, 116, "δ/δ<sub>izin</sub>", 10, "#00e09e", "middle", "600")
+    b += t(200, 200, "σ/σ<sub>izin</sub>", 10, "#22d3ee", "middle", "600")
     b += t(320, 158, "kendala terpenuhi (≤ 1)", 10, AX, "middle")
     b += t(233, 252, "tebal t (mm)", 10, AX, "middle")
     b += t(452, 48, "Studi parameter (Bagian 03):", 11, "#22d3ee", "start", "600")
     b += t(452, 66, f"b = {B_P}, L = {L_P}, F = {ind(F_P, 0)} N", 10.5, TX, "start")
-    b += t(452, 84, f"σ_izin = {S_IZIN} MPa, δ_izin = {ind(D_IZIN, 1)} mm", 10.5, TX, "start")
+    b += t(452, 84, f"σ<sub>izin</sub> = {S_IZIN} MPa, δ<sub>izin</sub> = {ind(D_IZIN, 1)} mm", 10.5, TX, "start")
     b += t(452, 102, "sapu t, catat σ, δ, massa", 10.5, TX, "start")
-    b += t(452, 128, f"t_σ = {ind(T_SIGMA, 3)} mm (tegangan)", 10.5, AX, "start")
-    b += t(452, 146, f"t_δ = {ind(T_DELTA, 3)} mm (defleksi)", 10.5, AX, "start")
-    b += t(452, 164, f"t_req = maks = {ind(T_REQ, 3)} mm", 10.5, "#00e09e", "start")
+    b += t(452, 128, f"t<sub>σ</sub> = {ind(T_SIGMA, 3)} mm (tegangan)", 10.5, AX, "start")
+    b += t(452, 146, f"t<sub>δ</sub> = {ind(T_DELTA, 3)} mm (defleksi)", 10.5, AX, "start")
+    b += t(452, 164, f"t<sub>req</sub> = maks = {ind(T_REQ, 3)} mm", 10.5, "#00e09e", "start")
     b += t(452, 182, "kendala aktif: defleksi", 10.5, "#ec4899", "start")
     b += teks2(340, 268, "Dua kendala memberi dua tebal minimum; yang terbesar menentukan, dan itulah kendala aktif", 11, AX, maks=98)
     return svg(680, 280, b, "Gambar 3 — Studi parameter tebal pelat: dua kendala dan tebal minimum yang menentukan")
@@ -236,19 +237,19 @@ def gambar4():
     b += f'<line x1="{xr:.1f}" y1="{yr:.1f}" x2="{xr:.1f}" y2="220" stroke="#00e09e" stroke-width="1" stroke-dasharray="5 3"/>'
     b += f'<line x1="60" y1="{yr:.1f}" x2="{xr:.1f}" y2="{yr:.1f}" stroke="#00e09e" stroke-width="1" stroke-dasharray="5 3"/>'
     b += f'<circle cx="{xr:.1f}" cy="{yr:.1f}" r="5" fill="#00e09e"/>'
-    b += t(xr, yr - 16, f"A* = {ind(A_OPT, 0)} mm²", 10, "#00e09e", "middle", "600")
-    b += t(xr, 252, f"r* = {ind(R_OPT, 2)} mm", 10, "#f59e0b", "middle", "600")
+    b += t(xr, yr - 16, f"A<sup>*</sup> = {ind(A_OPT, 0)} mm²", 10, "#00e09e", "middle", "600")
+    b += t(xr, 252, f"r<sup>*</sup> = {ind(R_OPT, 2)} mm", 10, "#f59e0b", "middle", "600")
     b += t(300, 96, "A(r) = 2πr² + 2V₀/r", 10.5, TX, "middle", "600")
-    b += t(300, 118, "h* = 2r*", 10, "#f59e0b", "middle", "600")
+    b += t(300, 118, "h<sup>*</sup> = 2r<sup>*</sup>", 10, "#f59e0b", "middle", "600")
     b += t(452, 48, "Optimasi analitis (Persamaan 2):", 11, "#22d3ee", "start", "600")
     b += t(452, 66, "dA/dr = 4πr − 2V₀/r² = 0", 10.5, TX, "start")
-    b += t(452, 84, "r* = (V₀/(2π))^(1/3)", 10.5, TX, "start")
-    b += t(452, 102, "h* = 2r*, A* = 6π·r*²", 10.5, TX, "start")
+    b += t(452, 84, "r<sup>*</sup> = (V₀/(2π))<sup>1/3</sup>", 10.5, TX, "start")
+    b += t(452, 102, "h<sup>*</sup> = 2r<sup>*</sup>, A<sup>*</sup> = 6π·r<sup>*</sup>²", 10.5, TX, "start")
     b += t(452, 128, f"V₀ = {ind(V0, 0)} mm³:", 10.5, AX, "start")
-    b += t(452, 146, f"r* = {ind(R_OPT, 2)} mm, h* = {ind(H_OPT, 2)} mm", 10.5, AX, "start")
-    b += t(452, 164, f"A* = {ind(A_OPT, 2)} mm²", 10.5, "#00e09e", "start")
+    b += t(452, 146, f"r<sup>*</sup> = {ind(R_OPT, 2)} mm, h<sup>*</sup> = {ind(H_OPT, 2)} mm", 10.5, AX, "start")
+    b += t(452, 164, f"A<sup>*</sup> = {ind(A_OPT, 2)} mm²", 10.5, "#00e09e", "start")
     b += t(452, 182, "tinggi = diameter: kaleng ideal", 10.5, "#ec4899", "start")
-    b += teks2(340, 268, "Kurva tujuan datar di sekitar optimum: menyimpang sedikit dari r* hampir tidak menaikkan luas", 11, AX, maks=98)
+    b += teks2(340, 268, "Kurva tujuan datar di sekitar optimum: menyimpang sedikit dari r<sup>*</sup> hampir tidak menaikkan luas", 11, AX, maks=98)
     return svg(680, 280, b, "Gambar 4 — Kaleng tertutup dengan luas permukaan minimum pada volume tetap")
 
 
@@ -274,7 +275,7 @@ def gambar5():
         total = ["Skor berbobot", "0,00 (datum)", f"+{ind(TOTAL_B, 2)} ✅", ind(TOTAL_C, 2)]
         b += t(x + w / 2, 219, total[j], 9.5, "#f59e0b" if j != 0 else TX, "middle", "700")
     b += t(452, 52, "Matriks keputusan (Pers. 6):", 11, "#22d3ee", "start", "600")
-    b += t(452, 70, "S_j = Σ w_i · s_ij", 11, TX, "start")
+    b += t(452, 70, "S<sub>j</sub> = Σ w<sub>i</sub> · s<sub>ij</sub>", 11, TX, "start")
     b += t(452, 88, "s = +1 lebih baik, 0 sama,", 10.5, TX, "start")
     b += t(452, 106, "−1 lebih buruk dari datum A", 10.5, TX, "start")
     b += t(452, 132, "Bobot dijumlahkan = 1,00", 10.5, AX, "start")
@@ -286,7 +287,7 @@ def gambar5():
 
 def gambar6():
     b = ""
-    b += t(200, 36, "Kekakuan lentur sama (E·I tetap): h ∝ E^(−1/3)", 10.5, TX, "middle", "600")
+    b += t(200, 36, "Kekakuan lentur sama (E·I tetap): h ∝ E<sup>−1/3</sup>", 10.5, TX, "middle", "600")
     s = 0.9
     b += f'<line x1="30" y1="190" x2="252" y2="190" stroke="{AX}" stroke-width="1.2"/>'
     b += f'<rect x="40" y="{190 - H_R_ST * s:.1f}" width="90" height="{H_R_ST * s:.1f}" fill="rgba(148,163,184,.20)" stroke="{AX}" stroke-width="1.8"/>'
@@ -306,7 +307,7 @@ def gambar6():
     b += t(360, 226, "jejak CO₂ (kg)", 9.5, "#00e09e", "middle")
     b += t(452, 48, "Jejak bahan (Persamaan 5):", 11, "#22d3ee", "start", "600")
     b += t(452, 66, "C = f · ρ · V = f · ρ · b·L·h", 10.5, TX, "start")
-    b += t(452, 84, "kekakuan sama → C ∝ f·ρ/E^(1/3)", 10, TX, "start")
+    b += t(452, 84, "kekakuan sama → C ∝ f·ρ/E<sup>1/3</sup>", 10, TX, "start")
     b += t(452, 110, f"baja: {ind(M_R_ST, 1)} kg → {ind(CO2_R_ST, 1)} kg CO₂", 10.5, AX, "start")
     b += t(452, 128, f"alu: {ind(M_R_AL, 1)} kg → {ind(CO2_R_AL, 1)} kg CO₂", 10.5, AX, "start")
     b += t(452, 154, f"indeks baja {ind(IDX_ST, 0)} vs alu {ind(IDX_AL, 0)}", 10.5, "#ec4899", "start")
@@ -390,10 +391,10 @@ def gambar7():
             ("tujuan: minimumkan massa dan jejak CO₂", TX, ""),
             ("variabel desain: material dan tinggi h", PK, ""),
             (f"kendala: δ ≤ {ind(D_R, 1)} pada F = {ind(F_R, 0)} N", TX, ""),
-            ("alias: F, L, b, d_izin, E, rho, f_co2", TX, ""),
-            ("konstrain =Spreadsheet.b dan =Spreadsheet.h", TX, ""),
-            ("sel h = (4*F*L^3/(E*b*d_izin))^(1/3)", TX, ""),
-            ("massa = rho × Volume, CO2 = f_co2 × massa", TX, "")]
+            (Kode("alias: F, L, b, d_izin, E, rho, f_co2"), TX, ""),
+            (Kode("konstrain =Spreadsheet.b dan =Spreadsheet.h"), TX, ""),
+            (Kode("sel h = (4*F*L^3/(E*b*d_izin))^(1/3)"), TX, ""),
+            (Kode("massa = rho × Volume, CO2 = f_co2 × massa"), TX, "")]
     kanan = [("Sapuan dan alternatif (langkah 4–6)", CY, "600"),
              (f"sapu h {H_SAPU[0]} … {H_SAPU[1]}; selisih > {ind(TOL_SAPU, 1)} % = satuan salah", TX, ""),
              ("A baja pejal: datum (iterasi 0)", TX, ""),
@@ -421,16 +422,16 @@ SUBNAV = '''<div id="modulSubnav" class="subnav-bar show">
   <a href="#m-pustaka">Referensi</a>
 </div>'''
 
-HERO_SCHEMATIC_1 = '''  <div class="hero-schematic">
+HERO_SCHEMATIC_1 = rumus_mentah('''  <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
       <ellipse cx="50" cy="52" rx="26" ry="9" fill="rgba(0,229,255,.18)" stroke="rgba(0,229,255,.6)" stroke-width="1.4"/>
       <path d="M 24 52 V 140 A 26 9 0 0 0 76 140 V 52" fill="rgba(0,229,255,.10)" stroke="rgba(0,229,255,.55)" stroke-width="1.4"/>
       <line x1="50" y1="52" x2="76" y2="52" stroke="rgba(255,179,0,.8)" stroke-width="1.2"/>
       <line x1="86" y1="52" x2="86" y2="140" stroke="rgba(255,179,0,.8)" stroke-width="1.2"/>
-      <text x="50" y="170" text-anchor="middle" fill="rgba(255,179,0,.8)" font-family="JetBrains Mono" font-size="8">h* = 2r*</text>
+      <text x="50" y="170" text-anchor="middle" fill="rgba(255,179,0,.8)" font-family="JetBrains Mono" font-size="8">h<sup>*</sup> = 2r<sup>*</sup></text>
       <text x="50" y="205" text-anchor="middle" fill="rgba(148,163,184,.55)" font-family="JetBrains Mono" font-size="8">A = 6πr²</text>
     </svg>
-  </div>'''
+  </div>''')
 
 HERO_SCHEMATIC_2 = '''  <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
@@ -454,13 +455,13 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
 {HERO_SCHEMATIC_1}
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">min f(x) s.t. g(x) ≤ 0</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">r* = (V₀/2π)^(1/3)</span>
-    <span class="ff" style="left:34%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">h_req = (4FL³/Ebδ)^(1/3)</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">t_req = maks(t_σ, t_δ)</span>
-    <span class="ff" style="left:66%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">d_o = d_s/(1−k⁴)^(1/4)</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">r<sup>*</sup> = (V₀/2π)<sup>1/3</sup></span>
+    <span class="ff" style="left:34%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">h<sub>req</sub> = (4FL³/Ebδ)<sup>1/3</sup></span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">t<sub>req</sub> = maks(t<sub>σ</sub>, t<sub>δ</sub>)</span>
+    <span class="ff" style="left:66%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">d<sub>o</sub> = d<sub>s</sub>/(1−k⁴)<sup>1/4</sup></span>
     <span class="ff" style="left:84%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">CO₂ = f·ρ·V</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">S_j = Σ w_i·s_ij</span>
-    <span class="ff" style="left:60%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">f·ρ/E^(1/3)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">S<sub>j</sub> = Σ w<sub>i</sub>·s<sub>ij</sub></span>
+    <span class="ff" style="left:60%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">f·ρ/E<sup>1/3</sup></span>
   </div>
 {HERO_SCHEMATIC_2}
   <div class="hero-content">
@@ -495,7 +496,7 @@ def materi():
     isi += cards([
         ("🎯", "Fungsi tujuan f(x)", "Satu besaran yang diminimumkan atau dimaksimumkan: luas permukaan, massa, defleksi, biaya, atau jejak CO₂. Bila ada dua tujuan, salah satunya dijadikan kendala (mis. minimumkan massa dengan CO₂ ≤ batas).", "min f(x)"),
         ("🎚️", "Variabel desain x", "Dimensi atau pilihan yang boleh diubah: jari-jari, tinggi, tebal, jumlah rusuk, material. Di FreeCAD, setiap variabel menjadi satu sel beralias di Spreadsheet.", "x = (r, h, t, …)"),
-        ("⛔", "Kendala g dan h", "Pertidaksamaan (σ ≤ σ_izin, δ ≤ δ_izin, massa ≤ target) dan persamaan (volume kaleng tetap V₀). Kendala memotong ruang desain menjadi ruang layak.", "g(x) ≤ 0, h(x) = 0"),
+        ("⛔", "Kendala g dan h", "Pertidaksamaan (σ ≤ σ<sub>izin</sub>, δ ≤ δ<sub>izin</sub>, massa ≤ target) dan persamaan (volume kaleng tetap V₀). Kendala memotong ruang desain menjadi ruang layak.", "g(x) ≤ 0, h(x) = 0"),
         ("📍", "Kendala aktif", "Optimum jarang di tengah ruang layak: memperkecil tujuan selalu mendorong desain ke batas. Kendala yang “tersentuh” di titik optimum disebut aktif dan menentukan ukuran akhir.", "g(x*) = 0"),
     ])
     isi += formula(1, "Bentuk Baku Masalah Optimasi Desain", r"\min_{\mathbf{x}} \ f(\mathbf{x}) \quad \text{dengan} \quad g_i(\mathbf{x}) \le 0,\ \ h_j(\mathbf{x}) = 0,\ \ \mathbf{x}_L \le \mathbf{x} \le \mathbf{x}_U",
@@ -504,9 +505,9 @@ def materi():
                    [("f(\\mathbf{x})", "Fungsi tujuan yang diminimumkan (mm², kg, kg CO₂)"), ("\\mathbf{x}", "Variabel desain (mm, pilihan material)"), ("g_i(\\mathbf{x})", "Kendala pertidaksamaan (—)"), ("h_j(\\mathbf{x})", "Kendala persamaan (—)"), ("\\mathbf{x}_L, \\mathbf{x}_U", "Batas bawah dan atas variabel (mm)")])
     isi += tabel(["Kasus modul ini", "Fungsi tujuan", "Variabel desain", "Kendala", "Bagian"],
                  [["Kaleng silinder tertutup", "luas permukaan A (bahan pelat)", "r (dan h yang mengikutinya)", f"volume tetap V₀ = {ind(V0, 0)} mm³", "02 dan 04"],
-                  ["Kantilever aluminium", "massa ∝ tinggi h", "h", "defleksi ujung δ ≤ δ_izin", "02"],
-                  ["Pelat kantilever baja", "massa ∝ tebal t", "t", "σ ≤ σ_izin <em>dan</em> δ ≤ δ_izin", "03"],
-                  ["Poros: pejal atau tabung", "volume bahan", "d_o (dengan k = d_i/d_o tetap)", "momen inersia I sama", "04 dan 05"],
+                  ["Kantilever aluminium", "massa ∝ tinggi h", "h", "defleksi ujung δ ≤ δ<sub>izin</sub>", "02"],
+                  ["Pelat kantilever baja", "massa ∝ tebal t", "t", "σ ≤ σ<sub>izin</sub> <em>dan</em> δ ≤ δ<sub>izin</sub>", "03"],
+                  ["Poros: pejal atau tabung", "volume bahan", "d<sub>o</sub> (dengan k = d<sub>i</sub>/d<sub>o</sub> tetap)", "momen inersia I sama", "04 dan 05"],
                   ["Lengan braket rak", "jejak CO₂ bahan", "material dan h", "kekakuan E·I sama, ruang pasang", "05 dan 06"]])
     isi += kotak("tip-box", "💡 <strong>Cara Membaca Modul Ini:</strong> Bagian 02 membuat model yang <em>bisa</em> diiterasi (Spreadsheet dan ekspresi, dasar semua tugas), Bagian 03 menyapu parameter dengan Python untuk menemukan nilai minimum yang memenuhi kendala (Tugas 4), Bagian 04 menghitung optimum secara analitis agar sapuan bisa diperiksa (Tugas 1, 2, 3), Bagian 05 memilih di antara alternatif yang sama-sama layak, Bagian 06 memasukkan jejak lingkungan ke dalam keputusan (Tugas 5), dan Bagian 07–09 menutup dengan dokumentasi, Python, serta praktik.")
     m += bagian(1, "m-formulasi", "Formulasi Optimasi:<br>Tujuan, Variabel, dan Kendala", "Optimasi dimulai jauh sebelum model dibuka: dengan menuliskan apa yang diminimumkan, apa yang boleh diubah, dan apa yang tidak boleh dilanggar. Bagian ini menetapkan bentuk baku itu dan menunjukkan mengapa optimum selalu bersandar pada kendala.", isi, "FORMULASI OPTIMASI")
@@ -518,11 +519,11 @@ def materi():
                   ["B2", "r", "<code>=(V0 / (2 * pi))^(1/3)</code>", f"{ind(R_OPT, 4)} mm", "konstrain Radius sketsa"],
                   ["B3", "h", "<code>=2 * r</code>", f"{ind(H_OPT, 4)} mm", "Length pada Pad"],
                   ["B4", "A", "<code>=6 * pi * r^2</code>", f"{ind(A_OPT, 2)} mm²", "pembanding Shape.Area"],
-                  ["B6", "d_izin", str(ind(D_KA, 1)), f"{ind(D_KA, 1)} mm", "sel h_req"],
-                  ["B7", "h_req", "<code>=(4 * F * L^3 / (E * b * d_izin))^(1/3)</code>", f"{ind(H_REQ_AL, 3)} mm", "tinggi sketsa kantilever"]])
+                  ["B6", "<code>d_izin</code>", str(ind(D_KA, 1)), f"{ind(D_KA, 1)} mm", "sel <code>h_req</code>"],
+                  ["B7", "<code>h_req</code>", "<code>=(4 * F * L^3 / (E * b * d_izin))^(1/3)</code>", f"{ind(H_REQ_AL, 3)} mm", "tinggi sketsa kantilever"]])
     isi += formula(2, "Tinggi atau Tebal Minimum dari Kendala Defleksi", r"\delta = \frac{F L^{3}}{3EI} = \frac{4FL^{3}}{E\,b\,h^{3}} \le \delta_{izin} \quad\Rightarrow\quad h_{req} = \left(\frac{4FL^{3}}{E\,b\,\delta_{izin}}\right)^{1/3}",
                    r"Kantilever penampang persegi panjang \(b \times h\) dengan \(I = bh^{3}/12\); \(F\) beban ujung, \(L\) panjang, \(E\) modulus elastisitas. Contoh aluminium \(E = " + ind(E_AL, 0) + r"\) MPa, \(b = " + str(B_KA) + r"\) mm, \(F = " + str(F_KA) + r"\) N, \(L = " + str(L_KA) + r"\) mm, \(\delta_{izin} = " + ind(D_KA, 1) + r"\) mm: \(h_{req} = " + ind(H_REQ_AL, 3) + r"\) mm.",
-                   "Karena massa balok sebanding dengan h sedangkan defleksi sebanding dengan 1/h³, tinggi terkecil yang masih memenuhi δ_izin adalah desain bermassa minimum untuk kendala itu: kendala defleksi aktif tepat di h_req. Menaikkan h sedikit di atas h_req hanya menambah massa; menurunkannya sedikit langsung melanggar kendala. Di Spreadsheet, tulis pangkat pecahan sebagai ^(1/3) dan lepas satuan (angka polos) agar ekspresi menerima pangkat tersebut.",
+                   "Karena massa balok sebanding dengan h sedangkan defleksi sebanding dengan 1/h³, tinggi terkecil yang masih memenuhi δ<sub>izin</sub> adalah desain bermassa minimum untuk kendala itu: kendala defleksi aktif tepat di h<sub>req</sub>. Menaikkan h sedikit di atas h<sub>req</sub> hanya menambah massa; menurunkannya sedikit langsung melanggar kendala. Di Spreadsheet, tulis pangkat pecahan sebagai <code>^(1/3)</code> dan lepas satuan (angka polos) agar ekspresi menerima pangkat tersebut.",
                    [("h_{req}", "Tinggi minimum penampang (mm)"), ("F, L", "Beban ujung (N) dan panjang (mm)"), ("E", "Modulus elastisitas (MPa)"), ("b", "Lebar penampang (mm)"), ("\\delta_{izin}", "Defleksi ujung maksimum (mm)")])
     isi += cards([
         ("🏷️", "Alias sebelum ekspresi", "Klik kanan sel → Properties → Alias. Nama tanpa spasi, huruf besar-kecil dibedakan. Alias dibuat lebih dahulu; ekspresi yang menunjuk alias yang belum ada akan merah.", "Set alias"),
@@ -534,21 +535,21 @@ def materi():
                       [("sl_kl_V", "v_kl_V", "Volume V₀ (mL)", 200, 1500, 50, 500, "500"),
                        ("sl_kl_r", "v_kl_r", "Jari-jari r (mm)", 20, 90, 1, 43, "43")],
                       "btnKaleng", "toggleKaleng", "kalengInfo",
-                      "<strong>Cara membaca:</strong> jari-jari menyapu kiri–kanan sementara tinggi menyesuaikan diri agar volume tetap V₀ (PAUSE menahan nilai slider r). Kurva di kanan adalah A(r) = 2πr² + 2V₀/r; titik hijau adalah minimumnya di r* = (V₀/2π)^(1/3), tempat tinggi kaleng tepat sama dengan diameternya. Perhatikan kurva yang datar di sekitar minimum: salah 2–3 mm hampir tidak menambah bahan.")
+                      "<strong>Cara membaca:</strong> jari-jari menyapu kiri–kanan sementara tinggi menyesuaikan diri agar volume tetap V₀ (PAUSE menahan nilai slider r). Kurva di kanan adalah A(r) = 2πr² + 2V₀/r; titik hijau adalah minimumnya di r<sup>*</sup> = (V₀/2π)<sup>1/3</sup>, tempat tinggi kaleng tepat sama dengan diameternya. Perhatikan kurva yang datar di sekitar minimum: salah 2–3 mm hampir tidak menambah bahan.")
     isi += kotak("warning-box", "⚠️ <strong>Ekspresi melingkar:</strong> sel Spreadsheet boleh dibaca oleh fitur, tetapi sel <em>tidak boleh</em> membaca properti fitur yang bergantung pada sel itu sendiri (mis. <code>Pad.Length</code> yang sudah terikat <code>=Spreadsheet.h</code>). FreeCAD akan menolak dengan pesan <em>cyclic dependency</em> dan seluruh dokumen berhenti menghitung. Bacaan hasil (Shape.Area, Shape.Volume) dibaca lewat Python console atau Std Measure, bukan dimasukkan kembali ke sel yang mengendalikan geometri.")
     m += bagian(2, "m-spreadsheet", "Optimasi Parametrik:<br>Spreadsheet, Alias, dan Ekspresi", "Model yang tidak bisa dihitung ulang tidak bisa dioptimasi. Bagian ini membangun rantai sel beralias → ekspresi → geometri untuk kaleng bervolume tetap dan kantilever berkendala defleksi, lengkap dengan aturan penulisan pangkat pecahan.", isi, "SPREADSHEET PARAMETRIK")
 
     # 03 — Studi parameter dengan Python
-    isi = figure(3, "Studi parameter tebal pelat dengan dua kendala", f"Pelat kantilever baja {B_P} mm × t × {L_P} mm memikul {ind(F_P, 0)} N: kendala tegangan menuntut t ≥ {ind(T_SIGMA, 3)} mm dan kendala defleksi menuntut t ≥ {ind(T_DELTA, 3)} mm; daerah merah tidak layak, sehingga t_req = {ind(T_REQ, 3)} mm dengan kendala defleksi sebagai kendala aktif.", gambar3())
+    isi = figure(3, "Studi parameter tebal pelat dengan dua kendala", f"Pelat kantilever baja {B_P} mm × t × {L_P} mm memikul {ind(F_P, 0)} N: kendala tegangan menuntut t ≥ {ind(T_SIGMA, 3)} mm dan kendala defleksi menuntut t ≥ {ind(T_DELTA, 3)} mm; daerah merah tidak layak, sehingga t<sub>req</sub> = {ind(T_REQ, 3)} mm dengan kendala defleksi sebagai kendala aktif.", gambar3())
     isi += formula(3, "Dua Kendala, Dua Batas, Satu Tebal Minimum", r"t_{\sigma} = \sqrt{\frac{6FL}{b\,\sigma_{izin}}}, \qquad t_{\delta} = \left(\frac{4FL^{3}}{E\,b\,\delta_{izin}}\right)^{1/3}, \qquad t_{req} = \max\left(t_{\sigma},\, t_{\delta}\right)",
                    r"\(t_\sigma\) dari \(\sigma_{maks} = 6FL/(bt^{2}) \le \sigma_{izin}\) &nbsp;·&nbsp; \(t_\delta\) dari \(\delta = 4FL^{3}/(Ebt^{3}) \le \delta_{izin}\). Contoh baja \(b = " + str(B_P) + r"\), \(F = " + ind(F_P, 0) + r"\) N, \(L = " + str(L_P) + r"\) mm, \(\sigma_{izin} = " + str(S_IZIN) + r"\) MPa, \(\delta_{izin} = " + ind(D_IZIN, 1) + r"\) mm: \(t_\sigma = " + ind(T_SIGMA, 3) + r"\), \(t_\delta = " + ind(T_DELTA, 3) + r"\), \(t_{req} = " + ind(T_REQ, 3) + r"\) mm.",
-                   "Desain harus memenuhi semua kendala sekaligus, jadi tebal minimum adalah yang terbesar di antara semua batas — bukan rata-ratanya. Kendala yang menghasilkan nilai terbesar disebut kendala aktif; kendala lainnya longgar dan tidak memengaruhi ukuran akhir. Karena t_δ tumbuh dengan L³ sedangkan t_σ hanya dengan L^(1/2), balok panjang hampir selalu dikendalikan defleksi, sementara balok pendek berbeban besar dikendalikan tegangan.",
+                   "Desain harus memenuhi semua kendala sekaligus, jadi tebal minimum adalah yang terbesar di antara semua batas — bukan rata-ratanya. Kendala yang menghasilkan nilai terbesar disebut kendala aktif; kendala lainnya longgar dan tidak memengaruhi ukuran akhir. Karena t<sub>δ</sub> tumbuh dengan L³ sedangkan t<sub>σ</sub> hanya dengan L<sup>1/2</sup>, balok panjang hampir selalu dikendalikan defleksi, sementara balok pendek berbeban besar dikendalikan tegangan.",
                    [("t_{\\sigma}", "Tebal minimum dari kendala tegangan (mm)"), ("t_{\\delta}", "Tebal minimum dari kendala defleksi (mm)"), ("t_{req}", "Tebal minimum yang memenuhi keduanya (mm)"), ("\\sigma_{izin}, \\delta_{izin}", "Tegangan dan defleksi izin (MPa, mm)")])
     baris = []
     for tt in (35, 40, 45, 50, 55, 60):
         s_, d_ = sig_t(tt), del_t(tt)
         baris.append([f"{tt}", ind(s_, 1), "✅" if s_ <= S_IZIN else "❌", ind(d_, 3), "✅" if d_ <= D_IZIN else "❌", ind(m_pelat(tt), 2), "layak" if s_ <= S_IZIN and d_ <= D_IZIN else "tidak layak"])
-    isi += tabel(["Tebal t (mm)", "σ_maks (MPa)", "≤ 100?", "δ ujung (mm)", "≤ 1,0?", "Massa (kg)", "Status"], baris)
+    isi += tabel(["Tebal t (mm)", "σ<sub>maks</sub> (MPa)", "≤ 100?", "δ ujung (mm)", "≤ 1,0?", "Massa (kg)", "Status"], baris)
     isi += cards([
         ("🔁", "Sapu, jangan tebak", "Loop Python mengatur sel atau properti, memanggil <code>doc.recompute()</code>, lalu membaca Shape. Setiap putaran menghasilkan satu baris data; nilai minimum yang berstatus layak adalah jawaban.", "for t in range(...)"),
         ("♻️", "Recompute wajib", "Tanpa <code>doc.recompute()</code>, Shape yang dibaca masih geometri sebelum perubahan. Gejalanya khas: seluruh baris tabel memberi angka yang sama persis.", "doc.recompute()"),
@@ -558,33 +559,33 @@ def materi():
     isi += anim_panel(2, "amber", "Sapuan tebal pelat: dua kendala dan massa minimum", "cvBalokMassa",
                       [("sl_bm_F", "v_bm_F", "Beban ujung F (N)", 500, 6000, 100, 3000, "3000"),
                        ("sl_bm_L", "v_bm_L", "Panjang L (mm)", 200, 800, 25, 500, "500"),
-                       ("sl_bm_d", "v_bm_d", "Defleksi izin δ_izin (mm)", 0.4, 3, 0.1, 1, "1,0")],
+                       ("sl_bm_d", "v_bm_d", "Defleksi izin δ<sub>izin</sub> (mm)", 0.4, 3, 0.1, 1, "1,0")],
                       "btnBalokMassa", "toggleBalokMassa", "balokMassaInfo",
-                      "<strong>Cara membaca:</strong> tebal pelat menyapu dari tipis ke tebal (PAUSE menahan tebal pada t_req). Dua batang di kanan adalah rasio σ/σ_izin dan δ/δ_izin: selama salah satunya di atas garis merah 1,0, desain belum layak. Garis hijau menandai t_req = maks(t_σ, t_δ); ubah L dan lihat bagaimana kendala aktif berpindah dari tegangan ke defleksi.")
+                      "<strong>Cara membaca:</strong> tebal pelat menyapu dari tipis ke tebal (PAUSE menahan tebal pada t<sub>req</sub>). Dua batang di kanan adalah rasio σ/σ<sub>izin</sub> dan δ/δ<sub>izin</sub>: selama salah satunya di atas garis merah 1,0, desain belum layak. Garis hijau menandai t<sub>req</sub> = maks(t<sub>σ</sub>, t<sub>δ</sub>); ubah L dan lihat bagaimana kendala aktif berpindah dari tegangan ke defleksi.")
     isi += kotak("info-box", "<strong>🐍 Dua cara menyapu parameter:</strong> (1) mengubah <em>sel Spreadsheet</em> dengan <code>sh.set(\"B5\", \"12\")</code> lalu <code>doc.recompute()</code> — seluruh rantai ekspresi ikut terhitung dan paling mirip dengan cara mahasiswa mengerjakannya di GUI; (2) mengubah <em>properti fitur</em> langsung, mis. <code>doc.Pad.Length = 12</code>, yang lebih cepat tetapi memutus ikatan ekspresi bila properti itu sudah terikat ke Spreadsheet. Untuk tugas modul ini pakai cara pertama: pohon fitur dan ekspresinya harus tetap ada di berkas .FCStd yang diunggah.")
     m += bagian(3, "m-studi", "Studi Parameter dengan Python:<br>Menyapu, Menghitung Ulang, Mencatat", "Bila rumus tertutup tidak tersedia, jawaban dicari dengan sapuan: ubah satu variabel, hitung ulang model, baca hasilnya, catat. Bagian ini menyusun sapuan tebal pelat dengan dua kendala sekaligus dan menunjukkan cara menemukan kendala yang aktif.", isi, "STUDI PARAMETER PYTHON")
 
     # 04 — Optimasi analitis klasik
-    isi = figure(4, "Kaleng tertutup dengan luas permukaan minimum", f"Untuk volume tetap {ind(V0, 0)} mm³, luas A(r) = 2πr² + 2V₀/r mencapai minimum {ind(A_OPT, 2)} mm² pada r* = {ind(R_OPT, 2)} mm dengan h* = 2r* = {ind(H_OPT, 2)} mm — tinggi persis sama dengan diameter.", gambar4())
+    isi = figure(4, "Kaleng tertutup dengan luas permukaan minimum", f"Untuk volume tetap {ind(V0, 0)} mm³, luas A(r) = 2πr² + 2V₀/r mencapai minimum {ind(A_OPT, 2)} mm² pada r<sup>*</sup> = {ind(R_OPT, 2)} mm dengan h<sup>*</sup> = 2r<sup>*</sup> = {ind(H_OPT, 2)} mm — tinggi persis sama dengan diameter.", gambar4())
     isi += formula(4, "Kaleng Silinder Tertutup: Luas Minimum pada Volume Tetap", r"A(r) = 2\pi r^{2} + \frac{2V_0}{r}, \qquad \frac{dA}{dr} = 4\pi r - \frac{2V_0}{r^{2}} = 0 \ \Rightarrow\ r^{*} = \left(\frac{V_0}{2\pi}\right)^{1/3},\ \ h^{*} = 2r^{*},\ \ A^{*} = 6\pi r^{*2}",
                    r"Kendala persamaan \(V_0 = \pi r^{2} h\) dipakai untuk menghilangkan \(h\) dari fungsi tujuan, sehingga tersisa satu variabel bebas. Contoh \(V_0 = " + ind(V0, 0) + r"\) mm³: \(r^{*} = " + ind(R_OPT, 4) + r"\) mm, \(h^{*} = " + ind(H_OPT, 4) + r"\) mm, \(A^{*} = " + ind(A_OPT, 2) + r"\) mm².",
-                   "Inilah pola optimasi analitis klasik: pakai kendala persamaan untuk mengurangi jumlah variabel, lalu samakan turunan fungsi tujuan dengan nol. Hasilnya, h* = 2r* — proporsi yang sama untuk semua ukuran kaleng, dan mudah diperiksa di FreeCAD lewat Shape.Area. Kaleng minuman nyata lebih ramping daripada ini karena biaya tutup atas berbeda dari dinding dan karena genggaman tangan ikut menjadi kendala: contoh bagus bahwa optimum matematis harus selalu diuji terhadap kendala yang tidak tertulis.",
+                   "Inilah pola optimasi analitis klasik: pakai kendala persamaan untuk mengurangi jumlah variabel, lalu samakan turunan fungsi tujuan dengan nol. Hasilnya, h<sup>*</sup> = 2r<sup>*</sup> — proporsi yang sama untuk semua ukuran kaleng, dan mudah diperiksa di FreeCAD lewat Shape.Area. Kaleng minuman nyata lebih ramping daripada ini karena biaya tutup atas berbeda dari dinding dan karena genggaman tangan ikut menjadi kendala: contoh bagus bahwa optimum matematis harus selalu diuji terhadap kendala yang tidak tertulis.",
                    [("A", "Luas permukaan kaleng tertutup (mm²)"), ("V_0", "Volume yang ditetapkan (mm³)"), ("r^{*}", "Jari-jari optimum (mm)"), ("h^{*}", "Tinggi optimum (mm)")])
     isi += formula(5, "Tabung Pengganti Poros Pejal dengan Momen Inersia Sama", r"\frac{\pi d_o^{4}\left(1 - k^{4}\right)}{64} = \frac{\pi d_s^{4}}{64} \ \Rightarrow\ d_o = \frac{d_s}{\left(1 - k^{4}\right)^{1/4}}, \qquad \frac{V_{tabung}}{V_{pejal}} = \frac{d_o^{2}\left(1 - k^{2}\right)}{d_s^{2}}",
                    r"\(k = d_i/d_o\) = rasio diameter dalam terhadap luar (tetap) &nbsp;·&nbsp; \(d_s\) = diameter poros pejal yang digantikan. Contoh \(d_s = " + ind(DS, 0) + r"\) mm, \(k = " + ind(KR, 2) + r"\): \(d_o = " + ind(D_O, 3) + r"\) mm, \(d_i = " + ind(D_I, 3) + r"\) mm, rasio volume \(= " + ind(RASIO_V, 4) + r"\) (hemat " + ind((1 - RASIO_V) * 100, 1) + r" %).",
                    "Momen inersia tumbuh dengan pangkat empat jarak ke sumbu, sehingga bahan di dekat sumbu hampir tidak menyumbang kekakuan. Mengosongkan inti dan memperbesar diameter luar sedikit saja mengembalikan I yang sama dengan bahan jauh lebih sedikit. Batasnya bukan matematika melainkan manufaktur dan tekuk lokal: dinding yang terlalu tipis mudah penyok, sukar dilas, dan menaikkan biaya. Karena itu k biasanya dibatasi 0,6–0,8 untuk poros baja.",
-                   [("d_o, d_i", "Diameter luar dan dalam tabung (mm)"), ("d_s", "Diameter poros pejal semula (mm)"), ("k", "Rasio d_i/d_o (—)"), ("I", "Momen inersia penampang (mm⁴)")])
+                   [("d_o, d_i", "Diameter luar dan dalam tabung (mm)"), ("d_s", "Diameter poros pejal semula (mm)"), ("k", "Rasio d<sub>i</sub>/d<sub>o</sub> (—)"), ("I", "Momen inersia penampang (mm⁴)")])
     isi += tabel(["Kasus klasik", "Fungsi tujuan", "Kendala", "Hasil optimum", "Bukti di FreeCAD"],
-                 [["Kaleng silinder tertutup", "luas permukaan A", "volume V₀ tetap", "h* = 2r*, A* = 6πr*²", "<code>Body.Shape.Area</code>"],
-                  ["Kaleng tanpa tutup atas", "luas A = πr² + 2V₀/r", "volume V₀ tetap", "h* = r* (setengah kasus tertutup)", "Shape.Area muka terpilih"],
-                  ["Balok massa minimum", "massa ∝ h", "δ ≤ δ_izin", f"h_req = (4FL³/(Ebδ))^(1/3) = {ind(H_REQ_AL, 3)} mm", "<code>Shape.Volume</code> × ρ"],
-                  ["Pelat dua kendala", "massa ∝ t", "σ ≤ σ_izin dan δ ≤ δ_izin", f"t_req = maks = {ind(T_REQ, 3)} mm", "Spreadsheet <code>max(…; …)</code>"],
-                  ["Tabung vs poros pejal", "volume bahan", "I sama", f"d_o = d_s/(1 − k⁴)^(1/4) = {ind(D_O, 3)} mm", "bandingkan Shape.Volume"]])
+                 [["Kaleng silinder tertutup", "luas permukaan A", "volume V₀ tetap", "h<sup>*</sup> = 2r<sup>*</sup>, A<sup>*</sup> = 6πr<sup>*</sup>²", "<code>Body.Shape.Area</code>"],
+                  ["Kaleng tanpa tutup atas", "luas A = πr² + 2V₀/r", "volume V₀ tetap", "h<sup>*</sup> = r<sup>*</sup> (setengah kasus tertutup)", "Shape.Area muka terpilih"],
+                  ["Balok massa minimum", "massa ∝ h", "δ ≤ δ<sub>izin</sub>", f"h<sub>req</sub> = (4FL³/(Ebδ))<sup>1/3</sup> = {ind(H_REQ_AL, 3)} mm", "<code>Shape.Volume</code> × ρ"],
+                  ["Pelat dua kendala", "massa ∝ t", "σ ≤ σ<sub>izin</sub> dan δ ≤ δ<sub>izin</sub>", f"t<sub>req</sub> = maks = {ind(T_REQ, 3)} mm", "Spreadsheet <code>max(…; …)</code>"],
+                  ["Tabung vs poros pejal", "volume bahan", "I sama", f"d<sub>o</sub> = d<sub>s</sub>/(1 − k⁴)<sup>1/4</sup> = {ind(D_O, 3)} mm", "bandingkan Shape.Volume"]])
     isi += anim_panel(3, "green", "Tabung berongga menggantikan poros pejal dengan kekakuan sama", "cvTabung",
-                      [("sl_tb_ds", "v_tb_ds", "Diameter poros pejal d_s (mm)", 20, 80, 1, 50, "50"),
-                       ("sl_tb_k", "v_tb_k", "Rasio k = d_i/d_o", 0, 0.9, 0.05, 0.75, "0,75")],
+                      [("sl_tb_ds", "v_tb_ds", "Diameter poros pejal d<sub>s</sub> (mm)", 20, 80, 1, 50, "50"),
+                       ("sl_tb_k", "v_tb_k", "Rasio k = d<sub>i</sub>/d<sub>o</sub>", 0, 0.9, 0.05, 0.75, "0,75")],
                       "btnTabung", "toggleTabung", "tabungInfo",
-                      "<strong>Cara membaca:</strong> lingkaran kiri adalah poros pejal ⌀d_s; lingkaran kanan adalah tabung yang tumbuh sampai momen inersianya persis sama (PAUSE menahan ukuran akhir). Batang di kanan membandingkan luas penampang — dan karena panjangnya sama, itu juga rasio volume dan massanya. Naikkan k dan lihat penghematan bahan bertambah sementara diameter luar hanya sedikit membesar.")
+                      "<strong>Cara membaca:</strong> lingkaran kiri adalah poros pejal ⌀d<sub>s</sub>; lingkaran kanan adalah tabung yang tumbuh sampai momen inersianya persis sama (PAUSE menahan ukuran akhir). Batang di kanan membandingkan luas penampang — dan karena panjangnya sama, itu juga rasio volume dan massanya. Naikkan k dan lihat penghematan bahan bertambah sementara diameter luar hanya sedikit membesar.")
     isi += kotak("tip-box", "💡 <strong>Memeriksa optimum analitis di model:</strong> buat sel <code>A_rumus</code> berisi <code>=6*pi*r^2</code> dan bandingkan dengan <code>Body.Shape.Area</code> di Python console. Selisih lebih dari 0,1 % hampir selalu berarti sketsa belum <em>fully constrained</em>, ada muka ganda akibat Boolean, atau Pad memakai panjang lama karena belum recompute. Untuk kaleng, luas Shape mencakup dinding dan <em>kedua</em> tutup; bila hasilnya kira-kira 2πrh saja, berarti Pad menghasilkan permukaan terbuka, bukan solid.")
     m += bagian(4, "m-analitis", "Optimasi Analitis Klasik:<br>Kaleng, Balok, dan Tabung", "Beberapa masalah desain punya jawaban tertutup yang elegan dan berlaku untuk semua ukuran. Bagian ini menurunkan tiga di antaranya — luas kaleng minimum, tinggi balok minimum, dan tabung pengganti poros pejal — sebagai pembanding bagi hasil sapuan parameter.", isi, "OPTIMUM ANALITIS")
 
@@ -611,9 +612,9 @@ def materi():
     isi = figure(6, "Jejak CO₂ baja versus aluminium pada kekakuan lentur yang sama", f"Untuk kekakuan yang sama, lengan aluminium harus {ind(H_R_AL / H_R_ST, 2)}× lebih tinggi ({ind(H_R_AL, 2)} mm) tetapi hanya bermassa {ind(M_R_AL, 2)} kg dibanding {ind(M_R_ST, 2)} kg. Meski begitu, faktor emisinya enam kali lipat, sehingga jejaknya {ind(CO2_R_AL, 0)} kg CO₂ melawan {ind(CO2_R_ST, 0)} kg CO₂ untuk baja.", gambar6())
     isi += formula(7, "Jejak Karbon Bahan dan Indeks Lingkungan untuk Kekakuan Sama", r"C = f\,\rho\,V = f\,\rho\,b\,L\,h, \qquad h \propto E^{-1/3} \ \Rightarrow\ C \propto \frac{f\,\rho}{E^{1/3}}",
                    r"\(f\) = faktor emisi bahan (kg CO₂ per kg) &nbsp;·&nbsp; \(\rho\) = massa jenis &nbsp;·&nbsp; \(V\) = volume dari <code>Shape.Volume</code>. Baja: \(f = " + ind(FE_ST, 1) + r"\), \(\rho = 7850\) kg/m³ → indeks " + ind(IDX_ST, 0) + r"; aluminium: \(f = " + ind(FE_AL, 1) + r"\), \(\rho = 2700\) → indeks " + ind(IDX_AL, 0) + r". Makin kecil indeks, makin rendah jejaknya pada kekakuan yang sama.",
-                   "Kendala lingkungan masuk ke perhitungan dengan cara yang sama seperti tegangan dan defleksi: sebagai angka yang dihitung dari model. Karena massa pada kekakuan sama sebanding dengan ρ/E^(1/3), maka jejaknya sebanding dengan f·ρ/E^(1/3) — indeks material Ashby dengan faktor emisi. Aluminium menang telak pada massa (baik untuk kendaraan yang bergerak), tetapi kalah pada jejak bahan untuk komponen diam seperti rak. Bila komponen ikut bergerak atau umurnya panjang, energi pemakaian harus ikut dihitung dan kesimpulannya bisa berbalik.",
+                   "Kendala lingkungan masuk ke perhitungan dengan cara yang sama seperti tegangan dan defleksi: sebagai angka yang dihitung dari model. Karena massa pada kekakuan sama sebanding dengan ρ/E<sup>1/3</sup>, maka jejaknya sebanding dengan f·ρ/E<sup>1/3</sup> — indeks material Ashby dengan faktor emisi. Aluminium menang telak pada massa (baik untuk kendaraan yang bergerak), tetapi kalah pada jejak bahan untuk komponen diam seperti rak. Bila komponen ikut bergerak atau umurnya panjang, energi pemakaian harus ikut dihitung dan kesimpulannya bisa berbalik.",
                    [("C", "Jejak karbon bahan (kg CO₂)"), ("f", "Faktor emisi bahan (kg CO₂/kg)"), ("\\rho", "Massa jenis (kg/m³ atau kg/mm³)"), ("V", "Volume komponen (mm³)"), ("E", "Modulus elastisitas (MPa)")])
-    isi += tabel(["Material", "E (MPa)", "ρ (kg/m³)", "f (kg CO₂/kg)", "h untuk E·I sama (mm)", "Massa (kg)", "Jejak CO₂ (kg)", "Indeks f·ρ/E^(1/3)"],
+    isi += tabel(["Material", "E (MPa)", "ρ (kg/m³)", "f (kg CO₂/kg)", "h untuk E·I sama (mm)", "Massa (kg)", "Jejak CO₂ (kg)", "Indeks f·ρ/E<sup>1/3</sup>"],
                  [["Baja S235", ind(E_ST, 0), "7.850", ind(FE_ST, 1), ind(H_R_ST, 2), ind(M_R_ST, 2), ind(CO2_R_ST, 1), ind(IDX_ST, 0)],
                   ["Baja S235 (30 % daur ulang)", ind(E_ST, 0), "7.850", "1,4", ind(H_R_ST, 2), ind(M_R_ST, 2), ind(1.4 * M_R_ST, 1), ind(1.4 * 7850 / E_ST ** (1 / 3), 0)],
                   ["Aluminium 6061 (primer)", ind(E_AL, 0), "2.700", ind(FE_AL, 1), ind(H_R_AL, 2), ind(M_R_AL, 2), ind(CO2_R_AL, 1), ind(IDX_AL, 0)],
@@ -636,7 +637,7 @@ def materi():
                  ["Matriks keputusan", "kriteria, bobot, skor, alasan tiap tanda", "Spreadsheet lembar kedua", "membuat pilihan akhir dapat ditelusuri"],
                  ["Gambar kerja", "pandangan, dimensi kritis, toleransi, catatan bahan", "TechDraw: Page, ProjectionGroup, Dimension", "menyerahkan hasil ke bengkel tanpa salah tafsir"]])
     isi += cards([
-        ("📄", "TechDraw untuk desain terpilih", "Buat Page, ProjectionGroup tiga pandangan, lalu beri dimensi pada variabel hasil optimasi (h_req, t_req, d_o). Dimensi TechDraw mengambil nilai dari model, jadi ikut berubah bila Spreadsheet diperbarui.", "Insert Dimension"),
+        ("📄", "TechDraw untuk desain terpilih", "Buat Page, ProjectionGroup tiga pandangan, lalu beri dimensi pada variabel hasil optimasi (h<sub>req</sub>, t<sub>req</sub>, d<sub>o</sub>). Dimensi TechDraw mengambil nilai dari model, jadi ikut berubah bila Spreadsheet diperbarui.", "Insert Dimension"),
         ("🔢", "Cantumkan angka bacaannya", "Tulis luas, volume, massa, dan jejak CO₂ hasil akhir di kolom catatan gambar. Inilah angka yang diminta pada kartu tugas dan yang akan diperiksa pembaca.", "A · V · m · CO₂"),
         ("🧾", "Batas sistem yang jujur", "Sebutkan faktor emisi yang dipakai, asal bahan (primer atau daur ulang), dan apa yang tidak dihitung. Klaim lingkungan tanpa batas sistem tidak dapat diperiksa.", "f = 2,0 / 12,0"),
         ("💾", "Simpan yang bisa dibuka lagi", "Satu berkas .FCStd berisi Spreadsheet, Body, dan halaman TechDraw. Ekspor PDF untuk lampiran, tetapi berkas sumber tetap yang diunggah agar ekspresinya dapat diperiksa.", "Ctrl+S · .FCStd"),
@@ -685,13 +686,13 @@ for nama, E, rho, f_co2 in [("baja", {E_ST}, 7.85e-6, {FE_ST}), ("aluminium", {E
     h = (4*F*L**3/(E*b*d_izin))**(1/3); massa = rho*b*L*h
     print(f"{{nama:10s}} h {{h:6.2f}} mm, massa {{massa:6.2f}} kg, CO2 {{f_co2*massa:7.2f}} kg")
 Part.show(tabung, "TabungKakuSama")''', "Python (FreeCAD)")
-    isi += kotak("tip-box", "💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan ketiga cell dan cocokkan angkanya dengan komentar (r* " + ind(R_OPT, 4) + " mm, A* " + ind(A_OPT, 2) + " mm², t_σ " + ind(T_SIGMA, 3) + " mm, t_δ " + ind(T_DELTA, 3) + " mm, d_o " + ind(D_O, 3) + " mm, rasio volume " + ind(RASIO_V, 4) + "). Tugas tetap meminta model dibuat lewat GUI dengan Spreadsheet beralias, Sketch berekspresi, dan Pad/Pocket sehingga pohon fiturnya tersimpan di berkas .FCStd; Part API di cell ini hanya alat pemeriksa rumus, bukan pengganti model.")
+    isi += kotak("tip-box", "💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan ketiga cell dan cocokkan angkanya dengan komentar (r<sup>*</sup> " + ind(R_OPT, 4) + " mm, A<sup>*</sup> " + ind(A_OPT, 2) + " mm², t<sub>σ</sub> " + ind(T_SIGMA, 3) + " mm, t<sub>δ</sub> " + ind(T_DELTA, 3) + " mm, d<sub>o</sub> " + ind(D_O, 3) + " mm, rasio volume " + ind(RASIO_V, 4) + "). Tugas tetap meminta model dibuat lewat GUI dengan Spreadsheet beralias, Sketch berekspresi, dan Pad/Pocket sehingga pohon fiturnya tersimpan di berkas .FCStd; Part API di cell ini hanya alat pemeriksa rumus, bukan pengganti model.")
     m += bagian(8, "m-python", "Python Console:<br>Spreadsheet, Sapuan Parameter, dan Pembanding", "Cell pertama membangun Spreadsheet beralias untuk kaleng lewat API dan membaca luasnya; cell kedua menyapu tebal pelat terhadap dua kendala dan menunjuk kendala aktif; cell ketiga membandingkan tabung dengan poros pejal serta jejak CO₂ dua material pada kekakuan sama.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Rumuskan masalahnya", f"Tulis di lembar pertama Spreadsheet: fungsi tujuan (massa dan jejak CO₂ lengan braket), variabel desain (material dan tinggi h), kendala (δ ≤ {ind(D_R, 1)} mm pada F = {ind(F_R, 0)} N, L = {L_R} mm, b = {B_R} mm), serta batas variabel (h ≤ {H_MAKS} mm karena ruang pasang). Beri alias F, L, b, d_izin, E, rho, f_co2."),
+    langkah = [("1", "Rumuskan masalahnya", f"Tulis di lembar pertama Spreadsheet: fungsi tujuan (massa dan jejak CO₂ lengan braket), variabel desain (material dan tinggi h), kendala (δ ≤ {ind(D_R, 1)} mm pada F = {ind(F_R, 0)} N, L = {L_R} mm, b = {B_R} mm), serta batas variabel (h ≤ {H_MAKS} mm karena ruang pasang). Beri alias <code>F, L, b, d_izin, E, rho, f_co2</code>."),
                ("2", "Bangun model parametrik", "Body baru: Sketch YZ persegi panjang b × h dengan kedua konstrain terikat ekspresi <code>=Spreadsheet.b</code> dan <code>=Spreadsheet.h</code>, lalu Pad <code>=Spreadsheet.L</code>. Pastikan sketsa fully constrained dan nilai konstrain berwarna biru."),
-               ("3", "Hitung tinggi dari kendala", "Tambahkan sel <code>h = (4*F*L^3/(E*b*d_izin))^(1/3)</code>. Ctrl+R, lalu catat h, Shape.Volume, massa = rho × Volume, dan CO2 = f_co2 × massa untuk baja sebagai iterasi 0 (datum)."),
+               ("3", "Hitung tinggi dari kendala", "Tambahkan sel <code>h = (4*F*L^3/(E*b*d_izin))^(1/3)</code>. Ctrl+R, lalu catat h, Shape.Volume, massa = rho × Volume, dan CO₂ = <code>f_co2</code> × massa untuk baja sebagai iterasi 0 (datum)."),
                ("4", "Sapu parameter", f"Jalankan cell kedua Bagian 08 dengan angka kasus ini untuk menyapu h dari {H_SAPU[0]} sampai {H_SAPU[1]} mm; tandai h terkecil yang masih memenuhi δ ≤ {ind(D_R, 1)} mm dan cocokkan dengan nilai sel h. Selisih di atas {ind(TOL_SAPU, 1)} % berarti ada satuan yang salah."),
                ("5", "Bandingkan alternatif", f"Kolom kedua Spreadsheet: aluminium ({TEKS_AL}). Kolom ketiga: baja berusuk dengan massa {FAKTOR_RUSUK * 100:.0f} % pelat pejal pada I setara. Hitung h, massa, dan CO₂ ketiganya berdampingan."),
                ("6", "Matriks keputusan", f"Lembar kedua: lima kriteria dengan bobot {TEKS_BOBOT}, nilai −1, 0, +1 terhadap datum baja pejal, lalu skor berbobot Persamaan (6). Tulis satu kalimat alasan untuk setiap tanda − yang diberikan."),
@@ -717,16 +718,16 @@ Part.show(tabung, "TabungKakuSama")''', "Python (FreeCAD)")
                   ["Semua baris sapuan memberi angka identik", "<code>doc.recompute()</code> tidak dipanggil di dalam loop", "Panggil recompute setiap putaran sebelum membaca Shape"],
                   ["<em>Cyclic dependency</em> dan dokumen berhenti menghitung", "Sel membaca properti fitur yang sudah terikat ke sel itu", "Putus salah satu arah: bacaan hasil dibaca lewat Python/Std Measure, bukan dimasukkan ke sel pengendali"],
                   ["Shape.Area kaleng kira-kira separuh nilai rumus", "Pad menghasilkan permukaan terbuka, bukan solid", "Sketsa harus lingkaran tertutup; centang <em>Solid</em> pada Pad"],
-                  [f"t_req hasil sapuan jauh di atas {ind(T_REQ, 1)} mm", "δ_izin atau E memakai satuan berbeda (m vs mm, GPa vs MPa)", "Samakan ke N, mm, MPa; periksa E = 210.000 MPa, bukan 210"],
+                  [f"t<sub>req</sub> hasil sapuan jauh di atas {ind(T_REQ, 1)} mm", "δ<sub>izin</sub> atau E memakai satuan berbeda (m vs mm, GPa vs MPa)", "Samakan ke N, mm, MPa; periksa E = 210.000 MPa, bukan 210"],
                   ["Massa FreeCAD berbeda dari ρ × Volume", "Material Body belum diatur atau ρ dalam kg/m³", "Body → Material, atau hitung 7,85×10⁻⁶ kg/mm³ × Volume(mm³)"],
                   ["Skor matriks berubah-ubah tiap kali dihitung", "Bobot ditetapkan setelah melihat angka", "Sepakati bobot lebih dahulu, lalu uji kepekaan ±0,05"]])
-    isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) Spreadsheet berisi alias yang diminta tugas dan sel rumusnya (r/h/A, h_req, d_o, t_req, massa, CO2); (2) konstrain sketsa terikat ekspresi (nilai biru) dan sketsa fully constrained; (3) Body satu solid dengan pohon fitur sesuai tugas (Sketch → Pad, dua lingkaran sepusat untuk tabung); (4) angka bacaan diambil dari sel Spreadsheet atau Shape sesuai label, dengan jumlah desimal yang diminta; (5) satuan konsisten N–mm–MPa; (6) berkas tersimpan lewat Ctrl+S dengan nama tanpa spasi.")
+    isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) Spreadsheet berisi alias yang diminta tugas dan sel rumusnya (<code>r</code>/<code>h</code>/<code>A</code>, <code>h_req</code>, <code>d_o</code>, <code>t_req</code>, massa, CO₂); (2) konstrain sketsa terikat ekspresi (nilai biru) dan sketsa fully constrained; (3) Body satu solid dengan pohon fitur sesuai tugas (Sketch → Pad, dua lingkaran sepusat untuk tabung); (4) angka bacaan diambil dari sel Spreadsheet atau Shape sesuai label, dengan jumlah desimal yang diminta; (5) satuan konsisten N–mm–MPa; (6) berkas tersimpan lewat Ctrl+S dengan nama tanpa spasi.")
     isi += kotak("info-box", "<strong>🎓 Penutup semester — Pertemuan 15:</strong> modul ini menutup rangkaian CPMK 5 (desain berkelanjutan dan optimasi): Modul 13 memperkenalkan siklus hidup, pemilihan material, dan jejak bahan (Sub-CPMK 5.1), sedangkan Modul 14 menjadikannya kriteria keputusan yang dihitung dari model parametrik (Sub-CPMK 5.2). Bersama CPMK 1–2 (sketsa, pemodelan, proyeksi), CPMK 3 (simulasi dan evaluasi), dan CPMK 4 (perakitan serta perbaikan desain), semuanya menjadi bahan <strong>Ujian Akhir Semester</strong>: siapkan ringkasan rumus tiap modul, satu berkas .FCStd contoh dari tiap CPMK, dan tabel iterasi terakhir Anda sebagai bahan belajar. Jangan lupa menuntaskan forum dan kelima tugas modul ini sebelum jadwal UAS dibuka.")
     m += bagian(9, "m-praktik", "Praktik Terbimbing:<br>Optimasi Lengan Braket dari Rumusan sampai Laporan", "Tujuh langkah berikut menjalankan satu putaran optimasi utuh pada lengan braket rak: merumuskan masalah, membangun model parametrik, menghitung tinggi dari kendala, menyapu parameter, membandingkan tiga alternatif, menyusun matriks keputusan, dan mendokumentasikannya di TechDraw.", isi, "PRAKTIK TERBIMBING")
 
     refs = pm_ref(1, "cyan", "14,165,233", "FreeCAD Community", "FreeCAD 1.0 Documentation: Spreadsheet Workbench, Expressions, PartDesign Pad/Pocket, TechDraw Workbench, Part TopoShape", " (wiki.freecad.org), 2024–2026.", "Acuan alias, sintaks ekspresi dan fungsi (pow, sqrt, max), pembacaan Shape.Area/Shape.Volume, dan pembuatan gambar kerja.")
     refs += pm_ref(2, "amber", "249,115,22", "J. S. Arora", "Introduction to Optimum Design", ", 4th ed. Academic Press, 2017.", "Bentuk baku masalah optimasi, kendala aktif, dan studi parameter; dasar Persamaan (1) serta Bagian 01–03.")
-    refs += pm_ref(3, "violet", "168,85,247", "M. F. Ashby", "Materials Selection in Mechanical Design", ", 5th ed. Butterworth-Heinemann, 2017.", "Indeks material untuk kekakuan dan indeks jejak karbon f·ρ/E^(1/3) yang dipakai Bagian 06.")
+    refs += pm_ref(3, "violet", "168,85,247", "M. F. Ashby", "Materials Selection in Mechanical Design", ", 5th ed. Butterworth-Heinemann, 2017.", "Indeks material untuk kekakuan dan indeks jejak karbon f·ρ/E<sup>1/3</sup> yang dipakai Bagian 06.")
     refs += pm_ref(4, "green", "0,224,158", "R. G. Budynas &amp; J. K. Nisbett", "Shigley's Mechanical Engineering Design", ", 11th ed. McGraw-Hill, 2020.", "Tegangan lentur, defleksi kantilever, dan momen inersia penampang lingkaran berongga (Persamaan 3 dan 5).")
     refs += pm_ref(5, "pink", "236,72,153", "D. G. Ullman", "The Mechanical Design Process", ", 6th ed. McGraw-Hill, 2018.", "Matriks keputusan Pugh berbobot, uji kepekaan bobot, dan dokumentasi keputusan desain (Bagian 05 dan 07).")
     m += f'''<!-- ═══ PUSTAKA ═══ -->
@@ -759,10 +760,10 @@ TUGAS_HERO = '''<div class="hero" data-tab="tugas" style="min-height:60vh">
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">A = 6π·r*²</span>
-    <span class="ff" style="left:26%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">h_req = (4FL³/Ebδ)^(1/3)</span>
-    <span class="ff" style="left:46%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">d_o = d_s/(1−k⁴)^(1/4)</span>
-    <span class="ff" style="left:66%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">t_req = maks(t_σ, t_δ)</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">A = 6π·r<sup>*</sup>²</span>
+    <span class="ff" style="left:26%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">h<sub>req</sub> = (4FL³/Ebδ)<sup>1/3</sup></span>
+    <span class="ff" style="left:46%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">d<sub>o</sub> = d<sub>s</sub>/(1−k⁴)<sup>1/4</sup></span>
+    <span class="ff" style="left:66%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">t<sub>req</sub> = maks(t<sub>σ</sub>, t<sub>δ</sub>)</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">CO₂ = f·ρ·V</span>
   </div>
   <div class="hero-content">
@@ -783,36 +784,36 @@ MC = [
      ["Hanya daftar dimensi yang boleh diubah", "Fungsi tujuan yang diminimumkan atau dimaksimumkan, variabel desain yang boleh diubah, dan kendala yang membatasi ruang layak", "Hanya kendala tegangan dan defleksi", "Hanya pilihan material dan proses pembuatan"],
      "Formulasi optimasi"),
     ("<strong>Alias</strong> pada Spreadsheet FreeCAD dipakai untuk...",
-     ["Mengunci sel agar tidak dapat diedit siapa pun", "Mengubah satuan seluruh dokumen sekaligus", "Memberi nama sel (mis. V0, r, h_req) sehingga konstrain sketsa dan properti fitur dapat merujuknya lewat ekspresi =Spreadsheet.nama", "Menyalin isi sel ke dokumen FreeCAD lain"],
+     ["Mengunci sel agar tidak dapat diedit siapa pun", "Mengubah satuan seluruh dokumen sekaligus", "Memberi nama sel (mis. <code>V0</code>, <code>r</code>, <code>h_req</code>) sehingga konstrain sketsa dan properti fitur dapat merujuknya lewat ekspresi <code>=Spreadsheet.nama</code>", "Menyalin isi sel ke dokumen FreeCAD lain"],
      "Alias Spreadsheet"),
     ("Kaleng silinder <strong>tertutup</strong> bervolume tetap V₀ memiliki luas permukaan terkecil bila...",
-     ["r* = (V₀/(2π))^(1/3) dan h* = 2r*, sehingga tinggi sama dengan diameter dan A* = 6π·r*²", "r* = (V₀/π)^(1/3) dan h* = r*, sehingga tinggi sama dengan jari-jari", "r sekecil mungkin agar luas tutup mengecil", "h sekecil mungkin agar luas dinding mengecil"],
+     ["r<sup>*</sup> = (V₀/(2π))<sup>1/3</sup> dan h<sup>*</sup> = 2r<sup>*</sup>, sehingga tinggi sama dengan diameter dan A<sup>*</sup> = 6π·r<sup>*</sup>²", "r<sup>*</sup> = (V₀/π)<sup>1/3</sup> dan h<sup>*</sup> = r<sup>*</sup>, sehingga tinggi sama dengan jari-jari", "r sekecil mungkin agar luas tutup mengecil", "h sekecil mungkin agar luas dinding mengecil"],
      "Kaleng luas minimum"),
     ("Urutan yang benar pada <strong>studi parameter dengan Python</strong> di FreeCAD adalah...",
      ["Membaca Shape, menetapkan nilai sel, lalu recompute", "Menetapkan nilai sel lalu langsung membaca Shape tanpa recompute", "Recompute sekali di awal lalu menyapu seluruh nilai", "Menetapkan nilai sel atau properti → doc.recompute() → membaca Shape (Volume, Area, BoundBox) → menyimpan hasilnya ke daftar atau CSV"],
      "Studi parameter Python"),
-    ("Tinggi minimum kantilever persegi panjang (lebar b, beban ujung F, panjang L, modulus E) agar defleksi ujung tidak melebihi δ_izin adalah...",
-     ["h_req = 6·F·L/(b·δ_izin)", "h_req = (4·F·L³/(E·b·δ_izin))^(1/3)", "h_req = √(4·F·L³/(E·b·δ_izin))", "h_req = E·b·δ_izin/(4·F·L³)"],
+    ("Tinggi minimum kantilever persegi panjang (lebar b, beban ujung F, panjang L, modulus E) agar defleksi ujung tidak melebihi δ<sub>izin</sub> adalah...",
+     ["h<sub>req</sub> = 6·F·L/(b·δ<sub>izin</sub>)", "h<sub>req</sub> = (4·F·L³/(E·b·δ<sub>izin</sub>))<sup>1/3</sup>", "h<sub>req</sub> = √(4·F·L³/(E·b·δ<sub>izin</sub>))", "h<sub>req</sub> = E·b·δ<sub>izin</sub>/(4·F·L³)"],
      "Tinggi minimum dari δ"),
-    ("Poros pejal ⌀d_s diganti tabung dengan rasio k = d_i/d_o tanpa mengurangi <strong>momen inersia</strong>. Diameter luar tabung adalah...",
-     ["d_o = d_s·(1 − k⁴)^(1/4)", "d_o = d_s/(1 − k²)^(1/2)", "d_o = d_s/(1 − k⁴)^(1/4), dan volumenya d_o²(1 − k²)/d_s² kali volume poros pejal", "d_o = d_s karena momen inersia hanya bergantung pada diameter luar"],
+    ("Poros pejal ⌀d<sub>s</sub> diganti tabung dengan rasio k = d<sub>i</sub>/d<sub>o</sub> tanpa mengurangi <strong>momen inersia</strong>. Diameter luar tabung adalah...",
+     ["d<sub>o</sub> = d<sub>s</sub>·(1 − k⁴)<sup>1/4</sup>", "d<sub>o</sub> = d<sub>s</sub>/(1 − k²)<sup>1/2</sup>", "d<sub>o</sub> = d<sub>s</sub>/(1 − k⁴)<sup>1/4</sup>, dan volumenya d<sub>o</sub>²(1 − k²)/d<sub>s</sub>² kali volume poros pejal", "d<sub>o</sub> = d<sub>s</sub> karena momen inersia hanya bergantung pada diameter luar"],
      "Tabung kekakuan sama"),
     ("<strong>Matriks keputusan Pugh</strong> membandingkan alternatif desain dengan cara...",
      ["Menilai tiap alternatif terhadap satu desain acuan (datum) per kriteria dengan +, 0, atau −, lalu menjumlahkannya (berbobot bila kriteria tidak sama penting)", "Menjumlahkan seluruh angka hasil simulasi tanpa bobot", "Memilih alternatif dengan massa terkecil tanpa kriteria lain", "Mengurutkan alternatif menurut biaya bahan saja"],
      "Matriks keputusan"),
-    ("Pelat kantilever harus memenuhi kendala tegangan (memberi t_σ) <em>dan</em> kendala defleksi (memberi t_δ). Tebal minimum yang dipakai adalah...",
-     ["Rata-rata t_σ dan t_δ", "Yang terkecil di antara keduanya agar massa minimum", "t_σ selalu, karena kekuatan lebih penting daripada kekakuan", "t_req = maks(t_σ, t_δ), karena kedua kendala harus terpenuhi sekaligus; kendala yang memberi nilai terbesar disebut kendala aktif"],
+    ("Pelat kantilever harus memenuhi kendala tegangan (memberi t<sub>σ</sub>) <em>dan</em> kendala defleksi (memberi t<sub>δ</sub>). Tebal minimum yang dipakai adalah...",
+     ["Rata-rata t<sub>σ</sub> dan t<sub>δ</sub>", "Yang terkecil di antara keduanya agar massa minimum", "t<sub>σ</sub> selalu, karena kekuatan lebih penting daripada kekakuan", "t<sub>req</sub> = maks(t<sub>σ</sub>, t<sub>δ</sub>), karena kedua kendala harus terpenuhi sekaligus; kendala yang memberi nilai terbesar disebut kendala aktif"],
      "Dua kendala, satu tebal"),
     ("<strong>Jejak karbon bahan</strong> sebuah komponen dihitung dari...",
      ["Luas permukaan komponen dikalikan faktor emisi", "Jumlah fitur pada pohon model dikalikan faktor emisi", "Faktor emisi f (kg CO₂ per kg) dikalikan massa, dan massa = ρ × Shape.Volume dengan satuan yang disamakan", "Selisih volume billet dan volume komponen saja"],
      "Jejak karbon bahan"),
     ("Untuk <strong>kekakuan lentur yang sama</strong> (E·I tetap, lebar b tetap), lengan aluminium dibandingkan lengan baja...",
-     ["Boleh lebih pendek karena aluminium lebih ringan", "Harus sekitar 1,44× lebih tinggi (h ∝ E^(−1/3)) sehingga massanya lebih kecil, tetapi jejak CO₂-nya belum tentu lebih kecil karena faktor emisinya jauh lebih besar", "Sama tinggi dan sama jejak karbonnya", "Harus 3× lebih tinggi karena modulusnya sepertiga"],
+     ["Boleh lebih pendek karena aluminium lebih ringan", "Harus sekitar 1,44× lebih tinggi (h ∝ E<sup>−1/3</sup>) sehingga massanya lebih kecil, tetapi jejak CO₂-nya belum tentu lebih kecil karena faktor emisinya jauh lebih besar", "Sama tinggi dan sama jejak karbonnya", "Harus 3× lebih tinggi karena modulusnya sepertiga"],
      "Aluminium vs baja"),
 ]
 
-TUGAS_LABELS = ["Kaleng tertutup luas minimum — A (mm²)", "Kantilever aluminium — h_req (mm)", "Tabung kekakuan sama — d_o (mm)",
-                "Pelat dua kendala — t_req (mm)", "Pilihan material — jejak CO₂ Al (kg)"]
+TUGAS_LABELS = ["Kaleng tertutup luas minimum — A (mm²)", "Kantilever aluminium — h<sub>req</sub> (mm)", "Tabung kekakuan sama — d<sub>o</sub> (mm)",
+                "Pelat dua kendala — t<sub>req</sub> (mm)", "Pilihan material — jejak CO₂ Al (kg)"]
 
 # ─────────────────────────── FORUM ───────────────────────────
 FORUM_POLL_BENAR = {1: 1, 2: 3, 3: 0}
@@ -825,7 +826,7 @@ FQ_JUDUL = [
 FQ_RINGKAS = [
     "Susun bentuk baku Persamaan (1) untuk lengan braket rak: fungsi tujuan, variabel desain, kendala defleksi dan tegangan, serta batas ruang pasang; tentukan tinggi minimum dengan Persamaan (2) dan (3), lalu jelaskan mengapa optimum berada tepat di kendala aktif.",
     "Bandingkan pelat baja pejal, pelat baja berusuk, dan pelat aluminium dengan matriks keputusan berbobot Persamaan (6); tetapkan bobot lebih dahulu, hitung skornya, lalu uji kepekaan dengan menggeser bobot ±0,05 dan laporkan apakah pemenangnya bertahan.",
-    "Hitung jejak CO₂ kedua material dengan Persamaan (7) pada kekakuan yang sama, bandingkan indeks f·ρ/E^(1/3), lalu tetapkan batas sistem perhitungan (bahan primer atau daur ulang, proses apa yang tidak dihitung) agar klaim rendah karbon dapat diperiksa pelanggan.",
+    "Hitung jejak CO₂ kedua material dengan Persamaan (7) pada kekakuan yang sama, bandingkan indeks f·ρ/E<sup>1/3</sup>, lalu tetapkan batas sistem perhitungan (bahan primer atau daur ulang, proses apa yang tidak dihitung) agar klaim rendah karbon dapat diperiksa pelanggan.",
 ]
 
 
@@ -834,10 +835,10 @@ def forum_page():
             "PT Rakindo Sentosa membuat rak kantilever gudang. Satu lengan sepanjang 700 mm dengan lebar profil 100 mm harus memikul beban ujung 4.000 N dengan defleksi ujung maksimum 1,5 mm, dan ruang antar-tingkat membatasi tinggi profil ≤ 90 mm. Tim produksi terbiasa memilih tebal “yang tersedia di gudang” lalu mengujinya, sehingga separuh percobaan terbuang. Tuliskan masalah ini dalam bentuk baku Persamaan (1), tentukan tinggi minimumnya dengan Persamaan (2), dan jelaskan mengapa desain bermassa minimum selalu berada tepat pada kendala yang aktif (Bagian 01 dan 03).",
             ["L 700 mm · b 100 mm · F 4.000 N", "δ ≤ 1,5 mm · h ≤ 90 mm", "tujuan: massa & CO₂ minimum"],
             "Pada desain bermassa minimum yang dibatasi defleksi, tinggi profil yang dipilih adalah...",
-            ["Tinggi terbesar yang masih muat di ruang pasang, agar aman", "Tinggi terkecil yang masih memenuhi δ ≤ δ_izin, yaitu h_req = (4FL³/(E·b·δ_izin))^(1/3)", "Tinggi rata-rata antara batas ruang dan h_req", "Tinggi yang kebetulan tersedia di gudang, lalu diuji"],
-            "✅ Tepat! Massa sebanding dengan h sedangkan defleksi sebanding dengan 1/h³, sehingga menaikkan h di atas h_req hanya menambah bahan tanpa manfaat. Optimum berada tepat pada kendala defleksi: kendala itulah yang aktif.",
+            ["Tinggi terbesar yang masih muat di ruang pasang, agar aman", "Tinggi terkecil yang masih memenuhi δ ≤ δ<sub>izin</sub>, yaitu h<sub>req</sub> = (4FL³/(E·b·δ<sub>izin</sub>))<sup>1/3</sup>", "Tinggi rata-rata antara batas ruang dan h<sub>req</sub>", "Tinggi yang kebetulan tersedia di gudang, lalu diuji"],
+            "✅ Tepat! Massa sebanding dengan h sedangkan defleksi sebanding dengan 1/h³, sehingga menaikkan h di atas h<sub>req</sub> hanya menambah bahan tanpa manfaat. Optimum berada tepat pada kendala defleksi: kendala itulah yang aktif.",
             "❌ Tinggi maksimum memang aman tetapi paling boros; rata-rata tidak punya dasar; memilih dari stok adalah kebiasaan yang justru ingin diganti. Lihat Persamaan (2) dan Gambar 3.",
-            "Petunjuk: (1) Tulis f, x, g, dan batas variabel. (2) Hitung h_req dengan Persamaan (2). (3) Jelaskan arti kendala aktif dan periksa apakah h_req ≤ 90 mm.")
+            "Petunjuk: (1) Tulis f, x, g, dan batas variabel. (2) Hitung tinggi minimum dengan Persamaan (2). (3) Jelaskan arti kendala aktif dan periksa apakah tinggi minimum itu ≤ 90 mm.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
             "Tiga alternatif lolos kendala: A pelat baja pejal (datum), B pelat baja berusuk dengan momen inersia setara tetapi massa sekitar 60 %, dan C pelat aluminium pejal yang harus 1,44× lebih tinggi. Rapat desain terpecah: bagian produksi menolak rusuk karena menambah satu operasi las, bagian pemasaran menginginkan aluminium karena terdengar modern, dan bagian keuangan hanya melihat biaya bahan. Susun matriks keputusan berbobot (Bagian 05) dengan lima kriteria — massa, jejak CO₂, biaya, kemudahan pembuatan, tinggi terpasang — lalu hitung skor tiap alternatif dan uji kepekaannya.",
             ["A pejal · B berusuk · C aluminium", "5 kriteria, Σ bobot = 1,00", "uji kepekaan Δw = ±0,05"],
@@ -845,15 +846,15 @@ def forum_page():
             ["Memberi bobot sama besar untuk semua kriteria", "Memilih datum dari alternatif yang paling disukai tim", "Menghitung ulang skor sampai alternatif favorit menang", "Menetapkan kriteria dan bobotnya sebelum angka hasil simulasi dibuka, menilai semua alternatif terhadap satu datum, dan menuliskan alasan setiap tanda + atau −"],
             "✅ Tepat! Bobot yang ditetapkan lebih dahulu mencegah keputusan “disetir” setelah angka keluar, datum tunggal membuat perbandingan adil, dan alasan tertulis membuat keputusan dapat ditelusuri di kemudian hari.",
             "❌ Bobot seragam mengabaikan prioritas nyata; datum favorit dan perhitungan ulang justru sumber bias yang ingin dihindari. Lihat Persamaan (6) dan Gambar 5.",
-            "Petunjuk: (1) Tetapkan bobot dan alasannya. (2) Isi +1/0/−1 terhadap datum A. (3) Hitung S_j, lalu geser bobot ±0,05 dan laporkan apakah pemenangnya bertahan.")
+            "Petunjuk: (1) Tetapkan bobot dan alasannya. (2) Isi +1/0/−1 terhadap datum A. (3) Hitung skor Sⱼ tiap konsep, lalu geser bobot ±0,05 dan laporkan apakah pemenangnya bertahan.")
     q3 = fq(3, "168,85,247", "violet", FQ_JUDUL[2],
-            "Pelanggan besar meminta label “rak rendah karbon” dan menganggap aluminium otomatis lebih hijau karena lebih ringan. Dengan kekakuan yang sama, lengan aluminium memang jauh lebih ringan, tetapi faktor emisi bahannya 12,0 kg CO₂/kg melawan 2,0 kg CO₂/kg untuk baja, dan pemasok menawarkan baja berkandungan daur ulang serta aluminium daur ulang dengan faktor emisi yang jauh lebih rendah. Hitung jejak kedua pilihan dengan Persamaan (7), bandingkan indeks f·ρ/E^(1/3), lalu susun pernyataan klaim beserta batas sistemnya (Bagian 06 dan 07).",
-            ["f baja 2,0 · aluminium 12,0", "h ∝ E^(−1/3), massa ∝ ρ·h", "batas sistem: bahan saja"],
+            "Pelanggan besar meminta label “rak rendah karbon” dan menganggap aluminium otomatis lebih hijau karena lebih ringan. Dengan kekakuan yang sama, lengan aluminium memang jauh lebih ringan, tetapi faktor emisi bahannya 12,0 kg CO₂/kg melawan 2,0 kg CO₂/kg untuk baja, dan pemasok menawarkan baja berkandungan daur ulang serta aluminium daur ulang dengan faktor emisi yang jauh lebih rendah. Hitung jejak kedua pilihan dengan Persamaan (7), bandingkan indeks f·ρ/E<sup>1/3</sup>, lalu susun pernyataan klaim beserta batas sistemnya (Bagian 06 dan 07).",
+            ["f baja 2,0 · aluminium 12,0", "h ∝ E<sup>−1/3</sup>, massa ∝ ρ·h", "batas sistem: bahan saja"],
             "Untuk komponen rak yang diam dan berkekakuan sama, pilihan berjejak karbon bahan terkecil ditunjukkan oleh...",
-            ["Indeks f·ρ/E^(1/3) terkecil, sehingga baja unggul meski jauh lebih berat daripada aluminium", "Massa terkecil, sehingga aluminium selalu unggul", "Modulus elastisitas terbesar, sehingga baja unggul tanpa perlu menghitung massa", "Harga bahan per kilogram terendah"],
-            "✅ Tepat! Pada kekakuan sama, massa sebanding ρ/E^(1/3) sehingga jejaknya sebanding f·ρ/E^(1/3). Aluminium menang pada massa tetapi kalah telak pada jejak bahan karena faktor emisinya enam kali lipat — kecuali memakai aluminium daur ulang.",
+            ["Indeks f·ρ/E<sup>1/3</sup> terkecil, sehingga baja unggul meski jauh lebih berat daripada aluminium", "Massa terkecil, sehingga aluminium selalu unggul", "Modulus elastisitas terbesar, sehingga baja unggul tanpa perlu menghitung massa", "Harga bahan per kilogram terendah"],
+            "✅ Tepat! Pada kekakuan sama, massa sebanding ρ/E<sup>1/3</sup> sehingga jejaknya sebanding f·ρ/E<sup>1/3</sup>. Aluminium menang pada massa tetapi kalah telak pada jejak bahan karena faktor emisinya enam kali lipat — kecuali memakai aluminium daur ulang.",
             "❌ Massa terkecil tidak sama dengan jejak terkecil bila faktor emisinya berbeda jauh; modulus saja tidak menentukan massa; harga bukan ukuran emisi. Lihat Persamaan (7), Gambar 6, dan Animasi 4.",
-            "Petunjuk: (1) Hitung h, massa, dan CO₂ kedua material. (2) Bandingkan indeks f·ρ/E^(1/3), termasuk versi daur ulang. (3) Tulis klaim beserta batas sistem dan apa yang tidak dihitung.")
+            "Petunjuk: (1) Hitung h, massa, dan CO₂ kedua material. (2) Bandingkan indeks f·ρ/∛E, termasuk versi daur ulang. (3) Tulis klaim beserta batas sistem dan apa yang tidak dihitung.")
     kartu = lambda teks, rgb, warna: f'      <div style="background:rgba({rgb},.05);border:1px solid rgba({rgb},.15);border-radius:10px;padding:12px 16px;font-family:\'JetBrains Mono\',monospace;font-size:13px;color:var(--{warna})">{teks}</div>'
     return f'''<div class="page" id="page-forum">
 <div class="hero" data-tab="forum" style="min-height:55vh">
@@ -866,7 +867,7 @@ def forum_page():
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">rak kantilever gudang</span>
     <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">min massa s.t. δ ≤ 1,5 mm</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">S_j = Σ w_i·s_ij</span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">S<sub>j</sub> = Σ w<sub>i</sub>·s<sub>ij</sub></span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">CO₂ = f·ρ·V</span>
   </div>
   <div class="hero-content">

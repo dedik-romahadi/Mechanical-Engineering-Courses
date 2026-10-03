@@ -41,7 +41,7 @@ function drawFasor(){
   _ttlPanah(ctx,cx,cy,cx+r*0.8*Math.cos(-wt0+phi*_RAD),cy+r*0.8*Math.sin(-wt0+phi*_RAD),'rgba(0,229,255,.95)',2.2);
   ctx.textAlign='center'; ctx.font="10px 'JetBrains Mono',monospace";
   ctx.fillStyle='rgba(255,179,0,.95)'; ctx.fillText('v(t)  V',cx,cy-r-16); ctx.fillStyle='rgba(0,229,255,.95)'; ctx.fillText('i(t)  I  (φ = '+phi.toFixed(0)+'°)',cx,cy+r+16); ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('p(t) = v·i',cx,cy+r+28);
-  _ttlTulis('fasorInfo','V_rms = '+Vr.toFixed(2)+' V, I_rms = '+Ir.toFixed(3)+' A   |   P = V·I·cos φ = '+P.toFixed(2)+' W,  Q = V·I·sin φ = '+Q.toFixed(2)+' VAR,  S = V·I = '+S.toFixed(2)+' VA,  pf = '+Math.cos(phi*_RAD).toFixed(4)+(phi>0?' tertinggal':phi<0?' mendahului':'')+'   |   p(t) berayun pada 2f di sekitar P; bagian di bawah nol = daya kembali ke sumber');
+  _ttlTulis('fasorInfo','V<sub>rms</sub> = '+Vr.toFixed(2)+' V, I<sub>rms</sub> = '+Ir.toFixed(3)+' A   |   P = V·I·cos φ = '+P.toFixed(2)+' W,  Q = V·I·sin φ = '+Q.toFixed(2)+' VAR,  S = V·I = '+S.toFixed(2)+' VA,  pf = '+Math.cos(phi*_RAD).toFixed(4)+(phi>0?' tertinggal':phi<0?' mendahului':'')+'   |   p(t) berayun pada 2f di sekitar P; bagian di bawah nol = daya kembali ke sumber');
   if(_ttlJalan('fasor')){_fsFrame++; requestAnimationFrame(drawFasor);}
 }
 
@@ -64,8 +64,8 @@ function drawImpedansi(){
   _ttlPanah(ctx,ox,oy,ox+R*skala,oy-X*skala,'rgba(0,224,158,.95)',2.6);
   ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.textAlign='left';
   ctx.fillStyle='rgba(0,229,255,.95)'; ctx.fillText('R = '+R.toFixed(1)+' Ω',ox+R*skala/2-20,oy+14);
-  ctx.fillStyle='rgba(255,179,0,.9)'; ctx.fillText('X_L = '+XL.toFixed(2)+' Ω',ox+R*skala+14,oy-XL*skala/2);
-  ctx.fillStyle='rgba(168,85,247,.9)'; ctx.fillText('−X_C = '+XC.toFixed(2)+' Ω',ox+R*skala+14,oy-XL*skala+XC*skala/2+12);
+  ctx.fillStyle='rgba(255,179,0,.9)'; ctx.fillText('X<sub>L</sub> = '+XL.toFixed(2)+' Ω',ox+R*skala+14,oy-XL*skala/2);
+  ctx.fillStyle='rgba(168,85,247,.9)'; ctx.fillText('−X<sub>C</sub> = '+XC.toFixed(2)+' Ω',ox+R*skala+14,oy-XL*skala+XC*skala/2+12);
   ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('|Z| = '+Z.toFixed(2)+' Ω ∠'+(phi/_RAD).toFixed(1)+'°',ox+6,oy-X*skala-8-(X<0?-26:0));
   // kanan: fasor V dan I berputar
   const cx=W*0.42+Math.min(120,W*0.12)+60, cy=H/2, r=Math.min(H/2-24,110);
@@ -82,7 +82,7 @@ function drawImpedansi(){
   if(gw>60){_ttlSumbu(ctx,gx,gy,gw,gh*2);
     const kurva=(A,ph,warna)=>{ctx.strokeStyle=warna; ctx.lineWidth=1.8; ctx.beginPath(); for(let i=0;i<=200;i++){const th=i/200*4*Math.PI; const y=gy-A*Math.sin(th-wt+ph); i?ctx.lineTo(gx+i/200*gw,y):ctx.moveTo(gx+i/200*gw,y);} ctx.stroke();};
     kurva(gh*0.9,0,'rgba(255,179,0,.9)'); kurva(gh*0.9*Math.min(1,I/40+0.25),-phi,'rgba(0,229,255,.9)');}
-  _ttlTulis('impedansiInfo','X_L = 2πfL = '+XL.toFixed(3)+' Ω, X_C = 1/(2πfC) = '+XC.toFixed(3)+' Ω, X = '+X.toFixed(3)+' Ω ('+(X>0?'induktif':X<0?'kapasitif':'resonansi')+')   |   |Z| = '+Z.toFixed(3)+' Ω, φ = '+(phi/_RAD).toFixed(2)+'°, pf = '+Math.cos(phi).toFixed(4)+'   |   I = 240/|Z| = '+I.toFixed(3)+' A;  P = I²R = '+(I*I*R).toFixed(1)+' W, Q = I²X = '+(I*I*X).toFixed(1)+' VAR   |   f_res = '+(1/(2*Math.PI*Math.sqrt(L/1000*C*1e-6))).toFixed(1)+' Hz');
+  _ttlTulis('impedansiInfo','X<sub>L</sub> = 2πfL = '+XL.toFixed(3)+' Ω, X<sub>C</sub> = 1/(2πfC) = '+XC.toFixed(3)+' Ω, X = '+X.toFixed(3)+' Ω ('+(X>0?'induktif':X<0?'kapasitif':'resonansi')+')   |   |Z| = '+Z.toFixed(3)+' Ω, φ = '+(phi/_RAD).toFixed(2)+'°, pf = '+Math.cos(phi).toFixed(4)+'   |   I = 240/|Z| = '+I.toFixed(3)+' A;  P = I²R = '+(I*I*R).toFixed(1)+' W, Q = I²X = '+(I*I*X).toFixed(1)+' VAR   |   f<sub>res</sub> = '+(1/(2*Math.PI*Math.sqrt(L/1000*C*1e-6))).toFixed(1)+' Hz');
   if(_ttlJalan('impedansi')){_imFrame++; requestAnimationFrame(drawImpedansi);}
 }
 
@@ -115,7 +115,7 @@ function drawSegitiga(){
   ctx.fillStyle='rgba(0,229,255,.95)'; ctx.fillText('P = '+P.toFixed(0)+' kW',ox+P*sk/2-24,oy+16);
   ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('S₁ = '+S1.toFixed(1)+' kVA  (φ₁ = '+(Math.acos(pf1)/_RAD).toFixed(1)+'°)',ox+8,oy-Q1*sk-8);
   ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('S₂ = '+S2.toFixed(1)+' kVA  (φ₂ = '+(Math.acos(Math.min(pf2,1))/_RAD).toFixed(1)+'°)',ox+P*sk*0.35,oy-Q2*sk-8);
-  ctx.fillStyle='rgba(168,85,247,.95)'; ctx.fillText('Q_C = '+Qc.toFixed(1)+' kVAR',ox+P*sk+30,oy-Q1*sk+Qc*sk/2+4);
+  ctx.fillStyle='rgba(168,85,247,.95)'; ctx.fillText('Q<sub>C</sub> = '+Qc.toFixed(1)+' kVAR',ox+P*sk+30,oy-Q1*sk+Qc*sk/2+4);
   ctx.fillStyle='rgba(239,68,68,.85)'; ctx.fillText('Q₁ = '+Q1.toFixed(1),ox+P*sk-70,oy-Q1*sk/2+4);
   // kanan: batang arus saluran
   const bx=W*0.62, bw=W-bx-20, by=40, bh=H-80, maks=Math.max(I1,1)*1.15;
@@ -123,7 +123,7 @@ function drawSegitiga(){
   const batang=(x,w,I,warna,label)=>{const h=I/maks*bh; ctx.fillStyle=warna; ctx.fillRect(x,by+bh-h,w,h); ctx.fillStyle='#e2e8f0'; ctx.font="11px 'JetBrains Mono',monospace"; ctx.fillText(I.toFixed(1)+' A',x+w/2,by+bh-h-6); ctx.fillStyle='rgba(148,163,184,.85)'; ctx.fillText(label,x+w/2,by+bh+16);};
   batang(bx+bw*0.12,bw*0.3,I1,'rgba(239,68,68,.75)','sebelum (pf '+pf1.toFixed(2)+')');
   batang(bx+bw*0.58,bw*0.3,I2,'rgba(0,224,158,.75)','sesudah (pf '+pf2.toFixed(2)+')');
-  _ttlTulis('segitigaInfo','Sebelum: Q₁ = P·tan φ₁ = '+Q1.toFixed(2)+' kVAR, S₁ = '+S1.toFixed(2)+' kVA, I₁ = '+I1.toFixed(2)+' A   |   Sesudah: Q₂ = '+Q2.toFixed(2)+' kVAR, S₂ = '+S2.toFixed(2)+' kVA, I₂ = '+I2.toFixed(2)+' A ('+((1-I2/I1)*100).toFixed(1)+'% lebih kecil; rugi saluran I²R turun '+((1-(I2/I1)**2)*100).toFixed(1)+'%)   |   Q_C = '+Qc.toFixed(2)+' kVAR → bank Δ: C per fasa = '+Cfasa.toFixed(1)+' µF pada '+VL+' V');
+  _ttlTulis('segitigaInfo','Sebelum: Q₁ = P·tan φ₁ = '+Q1.toFixed(2)+' kVAR, S₁ = '+S1.toFixed(2)+' kVA, I₁ = '+I1.toFixed(2)+' A   |   Sesudah: Q₂ = '+Q2.toFixed(2)+' kVAR, S₂ = '+S2.toFixed(2)+' kVA, I₂ = '+I2.toFixed(2)+' A ('+((1-I2/I1)*100).toFixed(1)+'% lebih kecil; rugi saluran I²R turun '+((1-(I2/I1)**2)*100).toFixed(1)+'%)   |   Q<sub>C</sub> = '+Qc.toFixed(2)+' kVAR → bank Δ: C per fasa = '+Cfasa.toFixed(1)+' µF pada '+VL+' V');
   if(_ttlJalan('segitiga')){_sgFrame++; requestAnimationFrame(drawSegitiga);}
 }
 
@@ -142,7 +142,7 @@ function drawTigaFasa(){
   const cx=90, cy=H/2, r=Math.min(H/2-26,80);
   ctx.strokeStyle='rgba(148,163,184,.25)'; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
   for(let p=0;p<3;p++){const a=-wt+p*2*Math.PI/3; _ttlPanah(ctx,cx,cy,cx+r*Math.cos(a),cy+r*Math.sin(a),warna[p],2.2); _ttlPanah(ctx,cx,cy,cx+r*0.6*Math.cos(a+phi),cy+r*0.6*Math.sin(a+phi),warna[p].replace('.95','.5'),1.6);}
-  ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillStyle='rgba(148,163,184,.85)'; ctx.fillText('V_a, V_b, V_c (tebal) dan I (tipis, φ = '+(phi/_RAD).toFixed(1)+'°)',cx,cy+r+18); ctx.fillText('V_fasa = '+Vp.toFixed(1)+' V',cx,cy-r-12);
+  ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillStyle='rgba(148,163,184,.85)'; ctx.fillText('V<sub>a</sub>, V<sub>b</sub>, V<sub>c</sub> (tebal) dan I (tipis, φ = '+(phi/_RAD).toFixed(1)+'°)',cx,cy+r+18); ctx.fillText('V<sub>fasa</sub> = '+Vp.toFixed(1)+' V',cx,cy-r-12);
   // tengah: gelombang tegangan tiga fasa; bawah: daya sesaat tiap fasa + total
   const gx=cx+r+40, gw=W-gx-20, gy1=H*0.3, gh1=H*0.22, gy2=H*0.76, gh2=H*0.2;
   _ttlSumbu(ctx,gx,gy1,gw,gh1*2); _ttlSumbu(ctx,gx,gy2,gw,gh2*2);
@@ -154,9 +154,9 @@ function drawTigaFasa(){
     for(let i=0;i<=300;i++){const th=i/300*4*Math.PI; const pw=Vm*Math.sin(th-wt-p*2*Math.PI/3)*Im*Math.sin(th-wt-p*2*Math.PI/3-phi); const y=gy2-pw/(3*Pfasa*1.6)*gh2; i?ctx.lineTo(gx+i/300*gw,y):ctx.moveTo(gx+i/300*gw,y);} ctx.stroke();
   }
   _ttlGaris(ctx,gx,gy2-3*Pfasa/(3*Pfasa*1.6)*gh2,gx+gw,gy2-3*Pfasa/(3*Pfasa*1.6)*gh2,'rgba(0,224,158,.95)',2.6);
-  ctx.textAlign='left'; ctx.fillStyle='rgba(0,224,158,.95)'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.fillText('p_a + p_b + p_c = P = '+(P/1000).toFixed(2)+' kW (konstan!)',gx+6,gy2-3*Pfasa/(3*Pfasa*1.6)*gh2-6);
-  ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('v_a, v_b, v_c: beda fasa 120°',gx+6,gy1-gh1-4); ctx.fillText('p(t) tiap fasa berayun, jumlahnya rata',gx+6,gy2-gh2-4);
-  _ttlTulis('tigaFasaInfo','V_fasa = V_L/√3 = '+Vp.toFixed(2)+' V   |   P = √3·V_L·I_L·cos φ = '+(P/1000).toFixed(3)+' kW,  Q = '+(Q/1000).toFixed(3)+' kVAR,  S = '+(S/1000).toFixed(3)+' kVA   |   per fasa: P = '+(Pfasa/1000).toFixed(3)+' kW; beban Y setara Z = '+(Vp/IL).toFixed(2)+' Ω ∠'+(phi/_RAD).toFixed(1)+'° = '+(Vp/IL*pf).toFixed(2)+' + j'+(Vp/IL*Math.sin(phi)).toFixed(2)+' Ω');
+  ctx.textAlign='left'; ctx.fillStyle='rgba(0,224,158,.95)'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.fillText('p<sub>a</sub> + p<sub>b</sub> + p<sub>c</sub> = P = '+(P/1000).toFixed(2)+' kW (konstan!)',gx+6,gy2-3*Pfasa/(3*Pfasa*1.6)*gh2-6);
+  ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('v<sub>a</sub>, v<sub>b</sub>, v<sub>c</sub>: beda fasa 120°',gx+6,gy1-gh1-4); ctx.fillText('p(t) tiap fasa berayun, jumlahnya rata',gx+6,gy2-gh2-4);
+  _ttlTulis('tigaFasaInfo','V<sub>fasa</sub> = V<sub>L</sub>/√3 = '+Vp.toFixed(2)+' V   |   P = √3·V<sub>L</sub>·I<sub>L</sub>·cos φ = '+(P/1000).toFixed(3)+' kW,  Q = '+(Q/1000).toFixed(3)+' kVAR,  S = '+(S/1000).toFixed(3)+' kVA   |   per fasa: P = '+(Pfasa/1000).toFixed(3)+' kW; beban Y setara Z = '+(Vp/IL).toFixed(2)+' Ω ∠'+(phi/_RAD).toFixed(1)+'° = '+(Vp/IL*pf).toFixed(2)+' + j'+(Vp/IL*Math.sin(phi)).toFixed(2)+' Ω');
   if(_ttlJalan('tigafasa')){_tfFrame++; requestAnimationFrame(drawTigaFasa);}
 }
 

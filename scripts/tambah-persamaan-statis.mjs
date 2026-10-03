@@ -143,8 +143,10 @@ function prosesBerkas(berkas, daftar, konsep) {
     html = `${html.slice(0, tutup)} ${frasa}${html.slice(tutup)}`;
   }
 
-  html = html.replace(/<style id="persamaan-css">[\s\S]*?<\/style>\n?/, "");
-  html = html.replace("</head>", `<style id="persamaan-css">${CSS}</style>\n</head>`);
+  // Blok gaya yang sudah ada diganti DI TEMPAT (lihat tambah-ilustrasi-statis.mjs).
+  const gaya = `<style id="persamaan-css">${CSS}</style>`;
+  if (/<style id="persamaan-css">[\s\S]*?<\/style>/.test(html)) html = html.replace(/<style id="persamaan-css">[\s\S]*?<\/style>/, () => gaya);
+  else html = html.replace("</head>", () => `${gaya}\n</head>`);
   fs.writeFileSync(berkas, html);
   return daftar.length;
 }

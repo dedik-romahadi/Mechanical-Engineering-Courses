@@ -10,7 +10,7 @@ import sys
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
-                     mc_block, pm_ref, svg, t, tabel, teks2)
+                     mc_block, pm_ref, svg, t, tabel, teks2, rumus_mentah)
 from pustaka import BG  # noqa: E402
 from tugas_gambar import AM, CY, GN, GR, PK, RD, VI, _panah, dim_h, dim_v, ext, iso  # noqa: E402
 
@@ -102,10 +102,10 @@ def gambar1():
                             "4. DFM — sulit, lama, atau mahal dibuat"]):
         b += t(34, 142 + i * 18, s_, 10.5, AX, "start")
     b += t(372, 120, "Tiap temuan wajib bermetrik:", 11, TX, "start", "600")
-    for i, s_ in enumerate(["V_int (mm³) · c_maks, c_min (mm)",
+    for i, s_ in enumerate(["V<sub>int</sub> (mm³) · c<sub>maks</sub>, c<sub>min</sub> (mm)",
                             "tebal dinding w · jarak tepi e (mm)",
-                            "σ_maks (MPa) · SF · defleksi δ (mm)",
-                            "c_min gerak (mm) · Check Geometry"]):
+                            "σ<sub>maks</sub> (MPa) · SF · defleksi δ (mm)",
+                            "c<sub>min</sub> gerak (mm) · Check Geometry"]):
         b += t(372, 142 + i * 18, s_, 10.5, AX, "start")
     b += teks2(340, 226, "Tanpa angka, “kelihatannya rapat” bukan temuan: perbaikan baru dapat dipertanggungjawabkan bila metrik sebelum dan sesudah dibaca dari model yang sama", 11, AX, maks=74)
     return svg(680, 268, b, "Gambar 1 — Alur identifikasi masalah desain: temuan, metrik, perbaikan, verifikasi")
@@ -136,9 +136,9 @@ def gambar2():
     b += t(40, 62, "Zona toleransi (µm) terhadap garis nol ⌀12", 11, TX, "start", "600")
     b += t(448, 62, "Lubang H: EI = 0, ES = +IT", 10.5, "#22d3ee", "start", "600")
     for i, s_ in enumerate(["Poros g, f, c: es < 0 → longgar", "Poros j, k, n: zona memotong 0",
-                            "Poros p, s, u: ei > 0 → sesak", "c_maks = (ES − ei)/1000 mm",
-                            "c_min = (EI − es)/1000 mm", f"⌀{D_FIT} H7/g6 (contoh materi):",
-                            f"c_maks = {ind(C_MAKS, 3)} mm", f"c_min = {ind(C_MIN_FIT, 3)} mm"]):
+                            "Poros p, s, u: ei > 0 → sesak", "c<sub>maks</sub> = (ES − ei)/1000 mm",
+                            "c<sub>min</sub> = (EI − es)/1000 mm", f"⌀{D_FIT} H7/g6 (contoh materi):",
+                            f"c<sub>maks</sub> = {ind(C_MAKS, 3)} mm", f"c<sub>min</sub> = {ind(C_MIN_FIT, 3)} mm"]):
         b += t(448, 84 + i * 19, s_, 10.5, "#00e09e" if i >= 6 else AX, "start")
     b += teks2(340, 262, "Huruf menentukan letak zona terhadap garis nol, angka menentukan lebarnya (kualitas IT); pasangan huruf-angka itulah yang menetapkan longgar, transisi, atau sesak", 11, AX, maks=76)
     return svg(680, 302, b, "Gambar 2 — Zona toleransi lubang dan poros ISO serta jenis suaian yang dihasilkan")
@@ -175,8 +175,8 @@ def gambar3():
     b += t(352, 218, "V = δ · b · h", 11, TX, "middle", "600")
     b += t(448, 62, "Uji tabrakan dua komponen", 10.5, TX, "start", "600")
     for i, s_ in enumerate([f"contoh δ = {ind(DELTA_I, 1)} · b = {B_I} · h = {H_I}",
-                            f"V_int = {ind(V_INT, 2)} mm³",
-                            "V_int = 0 → tidak bertabrakan",
+                            f"V<sub>int</sub> = {ind(V_INT, 2)} mm³",
+                            "V<sub>int</sub> = 0 → tidak bertabrakan",
                             "distToShape → jarak minimum",
                             "   dan pasangan titik terdekat",
                             "Ulangi pada posisi kritis gerak,",
@@ -192,11 +192,11 @@ def gambar4():
     b += t(124, 34, "Bahu tajam → fillet", 11, "#22d3ee", "middle", "600")
     b += _poli([(40, 182), (112, 182), (112, 162), (62, 162), (62, 106), (40, 106)], "rgba(239,68,68,.14)", "#ef4444", 1.6)
     b += _ling(62, 162, 7, "none", "#ef4444", 1.4)
-    b += t(62, 196, f"Kt = {ind(KT_SEBELUM, 2)}", 10, "#ef4444", "middle", "700")
+    b += t(62, 196, f"K<sub>t</sub> = {ind(KT_SEBELUM, 2)}", 10, "#ef4444", "middle", "700")
     b += f'<path d="M 140 182 L 212 182 L 212 162 L 176 162 A 14 14 0 0 1 162 148 L 162 106 L 140 106 Z" fill="rgba(0,224,158,.14)" stroke="#00e09e" stroke-width="1.6"/>'
     b += _ling(176, 148, 7, "none", "#00e09e", 1.4)
-    b += t(178, 196, f"Kt = {ind(KT_SESUDAH, 2)}  (r)", 10, "#00e09e", "middle", "700")
-    b += teks2(124, 216, "Fillet pada bahu menurunkan konsentrasi tegangan; σ_maks = Kt · σ_nom ikut turun", 9.5, AX, maks=32, jarak=13)
+    b += t(178, 196, f"K<sub>t</sub> = {ind(KT_SESUDAH, 2)}  (r)", 10, "#00e09e", "middle", "700")
+    b += teks2(124, 216, "Fillet pada bahu menurunkan konsentrasi tegangan; σ<sub>maks</sub>\u00a0=\u00a0K<sub>t</sub>\u00a0·\u00a0σ<sub>nom</sub> ikut turun", 9.5, AX, maks=32, jarak=13)
     # Panel B — dinding tipis vs tebal + rusuk
     b += t(340, 34, "Dinding tipis → tebal + rusuk", 11, "#f59e0b", "middle", "600")
     b += _poli([(256, 106), (264, 106), (264, 174), (316, 174), (316, 106), (324, 106), (324, 182), (256, 182)], "rgba(239,68,68,.14)", "#ef4444", 1.5)
@@ -224,7 +224,7 @@ def gambar5():
     b += t(pusat[0], 34, "Tebal dinding", 11, "#22d3ee", "middle", "600")
     b += _poli([(48, 96), (58, 96), (58, 156), (132, 156), (132, 96), (142, 96), (142, 166), (48, 166)], "rgba(34,211,238,.16)", "#22d3ee", 1.5)
     b += arrow(48, 82, 58, 82, "#00e09e", 1.1)
-    b += t(70, 78, "w ≥ w_min", 10, "#00e09e", "start", "700")
+    b += t(70, 78, "w ≥ w<sub>min</sub>", 10, "#00e09e", "start", "700")
     b += teks2(pusat[0], 190, "Tiap proses punya tebal dinding minimum; di bawahnya cacat isi atau retak", 9.5, AX, maks=26, jarak=13)
     b += t(pusat[1], 34, "Sudut tirus (draft)", 11, "#f59e0b", "middle", "600")
     b += _poli([(212, 166), (318, 166), (302, 96), (228, 96)], "rgba(245,158,11,.16)", "#f59e0b", 1.5)
@@ -266,17 +266,17 @@ def gambar6():
     b += t(ox + W_DIND + 6, 46, "dinding", 9.5, AX, "middle")
     b += arrow(ox + R_SUDUT, oy - 26, ox + W_DIND, oy - 26, "#00e09e", 1.1)
     b += _garis(ox + R_SUDUT, oy - 20, ox + R_SUDUT, oy - 4, "#00e09e", 0.8, "3 2")
-    b += t(ox + W_DIND - 4, oy - 36, "c_min", 10, "#00e09e", "end", "700")
+    b += t(ox + W_DIND - 4, oy - 36, "c<sub>min</sub>", 10, "#00e09e", "end", "700")
     b += arrow(ox, oy + 84, ox + W_DIND, oy + 84, "#f59e0b", 1.1)
     b += t(ox + W_DIND / 2, oy + 78, "W", 11, "#f59e0b", "middle", "700")
     b += t(rot(R_L / 2, W_L / 2 + 14)[0], rot(R_L / 2, W_L / 2 + 14)[1], "R", 11, "#22d3ee", "middle", "700")
     b += t(ox + 4, oy - 84, "lintasan sudut terjauh √(R² + (w/2)²)", 9.5, "#ec4899", "middle")
     b += t(396, 44, "Metrik sebelum → sesudah", 11, TX, "start", "600")
-    baris = [("V_int rakitan (mm³)", ind(V_INT, 0), "0", "0", "#00e09e"),
-             ("c_min lengan (mm)", ind(C_MIN_LAMA, 2), ind(C_MIN_L, 2), "≥ 15", "#00e09e"),
+    baris = [("V<sub>int</sub> rakitan (mm³)", ind(V_INT, 0), "0", "0", "#00e09e"),
+             ("c<sub>min</sub> lengan (mm)", ind(C_MIN_LAMA, 2), ind(C_MIN_L, 2), "≥ 15", "#00e09e"),
              ("tebal dinding (mm)", ind(W_TIPIS, 1), ind(W_H, 1), "≥ " + ind(W_MIN_PROSES, 1), "#00e09e"),
              ("jarak tepi e (mm)", ind(6.0, 1), ind(E_X, 1), "≥ " + ind(E_BATAS, 1), "#00e09e"),
-             ("Kt bahu", ind(KT_SEBELUM, 2), ind(KT_SESUDAH, 2), "≤ 2,00", "#00e09e")]
+             ("K<sub>t</sub> bahu", ind(KT_SEBELUM, 2), ind(KT_SESUDAH, 2), "≤ 2,00", "#00e09e")]
     b += t(396, 70, "metrik", 9.5, AX, "start", "700")
     b += t(544, 70, "sblm", 9.5, "#ef4444", "middle", "700")
     b += t(594, 70, "ssdh", 9.5, "#00e09e", "middle", "700")
@@ -413,7 +413,7 @@ def gambar7():
     b += dim_v(cxp - ro - 20, yp0, yp1, f"{L_POROS}")
     b += _lurus(cxp - (rp + rh) / 2, yc1 - 4, cxp - ro - 4, yp1 - 4, GR, 0.9)
     b += t(240, yp1 + 19, f"celah radial {ind(C_MAKS / 2, 4)}", 10.5, GR, "start", "600")
-    b += t(240, yp1 + 34, f"c_maks = 2 × {ind(C_MAKS / 2, 4)} = {ind(C_MAKS, 4)}", 10.5, GR, "start", "600")
+    b += t(240, yp1 + 34, f"c<sub>maks</sub> = 2 × {ind(C_MAKS / 2, 4)} = {ind(C_MAKS, 4)}", 10.5, GR, "start", "600")
     b += t(240, yp1 + 49, f"⌀{D_FIT} H7/g6 · celah digambar diperbesar", 10, AX, "start")
     # (3) langkah 5: rumah berdinding tipis, isometrik
     b += _judul(444, 22, 3, "Dinding tipis (langkah 5)", PK)
@@ -498,7 +498,7 @@ def gambar7():
     ra = 46
     b += f'<path d="M {Ox + ra:.1f} {Oy:.1f} A {ra:.1f} {ra:.1f} 0 0 0 {Ox + ra * math.cos(thr):.1f} {Oy - ra * math.sin(thr):.1f}" fill="none" stroke="{PK}" stroke-width="1.4"/>'
     b += _lurus(Ox + ra + 1, Oy - 4, Ox + ra - 4, Oy + 18, PK, 0.8)
-    b += t(Ox + ra - 26, Oy + 29, f"θ* = {ind(TH_KRITIS, 2)}°", 10.5, PK, "start", "700")
+    b += t(Ox + ra - 26, Oy + 29, f"θ<sup>*</sup> = {ind(TH_KRITIS, 2)}°", 10.5, PK, "start", "700")
     yc = Oy + 36
     b += ext(kx, ky + 5, kx, yc + 6, GR) + ext(xw, Oy + 6, xw, yc + 6, GR)
     b += _dim_h_lega(kx, xw, yc, f"{ind(C_MIN_L, 3)}", GR)
@@ -541,7 +541,7 @@ HERO_SCHEMATIC_1 = '''  <div class="hero-schematic">
     </svg>
   </div>'''
 
-HERO_SCHEMATIC_2 = '''  <div class="hero-schematic">
+HERO_SCHEMATIC_2 = rumus_mentah('''  <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
       <rect x="14" y="70" width="46" height="44" fill="rgba(0,229,255,.14)" stroke="rgba(0,229,255,.7)" stroke-width="1.2"/>
       <rect x="52" y="70" width="40" height="44" fill="rgba(255,179,0,.14)" stroke="rgba(255,179,0,.7)" stroke-width="1.2"/>
@@ -549,10 +549,10 @@ HERO_SCHEMATIC_2 = '''  <div class="hero-schematic">
       <circle cx="30" cy="160" r="22" fill="none" stroke="rgba(236,72,153,.5)" stroke-width="1" stroke-dasharray="4 3"/>
       <rect x="30" y="156" width="22" height="8" fill="rgba(0,229,255,.25)" stroke="rgba(0,229,255,.7)" stroke-width="1"/>
       <rect x="60" y="136" width="6" height="48" fill="rgba(148,163,184,.25)" stroke="rgba(148,163,184,.6)" stroke-width="1"/>
-      <text x="50" y="130" text-anchor="middle" fill="rgba(239,68,68,.6)" font-family="JetBrains Mono" font-size="8">V_int = &#948;bh</text>
-      <text x="50" y="204" text-anchor="middle" fill="rgba(0,230,118,.6)" font-family="JetBrains Mono" font-size="8">c_min &gt; 0</text>
+      <text x="50" y="130" text-anchor="middle" fill="rgba(239,68,68,.6)" font-family="JetBrains Mono" font-size="8">V<sub>int</sub> = &#948;bh</text>
+      <text x="50" y="204" text-anchor="middle" fill="rgba(0,230,118,.6)" font-family="JetBrains Mono" font-size="8">c<sub>min</sub> &gt; 0</text>
     </svg>
-  </div>'''
+  </div>''')
 
 HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="12">
   <div class="hero-waves">
@@ -565,13 +565,13 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
 {HERO_SCHEMATIC_1}
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">H7/g6</span>
-    <span class="ff" style="left:19%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">c_maks = ES &minus; ei</span>
-    <span class="ff" style="left:34%;font-size:.78rem;color:var(--amber);--dur:16s;--del:8s">V_int = &delta;&middot;b&middot;h</span>
+    <span class="ff" style="left:19%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">c<sub>maks</sub> = ES &minus; ei</span>
+    <span class="ff" style="left:34%;font-size:.78rem;color:var(--amber);--dur:16s;--del:8s">V<sub>int</sub> = &delta;&middot;b&middot;h</span>
     <span class="ff" style="left:49%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">Part Common</span>
     <span class="ff" style="left:64%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">distToShape</span>
     <span class="ff" style="left:80%;font-size:.72rem;color:var(--cyan);--dur:17s;--del:10s">Check Geometry</span>
     <span class="ff" style="left:11%;font-size:.68rem;color:var(--violet);--dur:19s;--del:12s">tebal dinding w</span>
-    <span class="ff" style="left:60%;font-size:.72rem;color:var(--amber);--dur:21s;--del:14s">c_min = W &minus; &radic;(R&sup2; + (w/2)&sup2;)</span>
+    <span class="ff" style="left:60%;font-size:.72rem;color:var(--amber);--dur:21s;--del:14s">c<sub>min</sub> = W &minus; &radic;(R&sup2; + (w/2)&sup2;)</span>
   </div>
 {HERO_SCHEMATIC_2}
   <div class="hero-content">
@@ -606,14 +606,14 @@ def materi():
     isi += cards([
         ("🔎", "Temuan, bukan kesan", "“Rodanya seret”, “dindingnya tipis”, “lengannya hampir kena” adalah gejala. Temuan baru lengkap bila disertai tempat (komponen dan muka mana), kondisi (posisi gerak, ukuran batas), dan angka yang dibaca dari model.", "gejala → temuan"),
         ("📐", "Metrik yang bisa dibaca", "Tiap kelompok temuan punya besaran bakunya: volume interferensi (mm³), kelonggaran maksimum dan minimum (mm), tebal dinding dan jarak tepi (mm), tegangan dan faktor keamanan, serta jarak bebas minimum selama gerak.", "satu temuan, satu angka"),
-        ("🎯", "Batas penerimaan", "Angka tanpa batas tidak menolong. Tetapkan batas sebelum mengukur: V_int = 0, c_min &ge; kelonggaran kerja, tebal dinding &ge; batas proses, jarak tepi &ge; 1,5&nbsp;&times;&nbsp;tebal pelat, SF &ge; 2.", "metrik vs batas"),
+        ("🎯", "Batas penerimaan", "Angka tanpa batas tidak menolong. Tetapkan batas sebelum mengukur: V<sub>int</sub> = 0, c<sub>min</sub> &ge; kelonggaran kerja, tebal dinding &ge; batas proses, jarak tepi &ge; 1,5&nbsp;&times;&nbsp;tebal pelat, SF &ge; 2.", "metrik vs batas"),
         ("🔁", "Verifikasi ulang", "Perbaikan dinyatakan berhasil hanya bila metrik yang sama dibaca ulang pada berkas yang sudah diubah, bukan dari ingatan atau tangkapan layar lama. Catat sebelum dan sesudah pada satu tabel.", "sebelum → sesudah"),
     ])
     isi += tabel(["Kelompok temuan", "Gejala yang terlihat", "Alat baca di FreeCAD 1.0", "Metrik dan batas lazim"],
-                 [["<strong>Fit (suaian)</strong>", "Poros goyang, atau tidak masuk sama sekali", "Std Measure Distance antar muka silinder; ukuran batas dari deviasi", "c_maks, c_min (mm, 4 desimal) sesuai kelas fit (Tugas 2)"],
-                  ["<strong>Interferensi</strong>", "Komponen saling menembus, solver tetap diam", "Part &rarr; Boolean &rarr; Common; <code>distToShape</code>", "V_int = 0 mm&sup3; (Tugas 1)"],
-                  ["<strong>Gerak</strong>", "Lengan menyenggol rangka pada sudut tertentu", "Placement Angle + Std Measure; loop <code>distToShape</code>", "c_min &gt; 0 dan &ge; batas kerja (Tugas 5)"],
-                  ["<strong>Kekuatan</strong>", "Retak pada bahu, defleksi berlebih", "FEM (Pertemuan 9–10), K_t dari tabel", "&sigma;_maks &le; &sigma;_izin; SF &ge; 2"],
+                 [["<strong>Fit (suaian)</strong>", "Poros goyang, atau tidak masuk sama sekali", "Std Measure Distance antar muka silinder; ukuran batas dari deviasi", "c<sub>maks</sub>, c<sub>min</sub> (mm, 4 desimal) sesuai kelas fit (Tugas 2)"],
+                  ["<strong>Interferensi</strong>", "Komponen saling menembus, solver tetap diam", "Part &rarr; Boolean &rarr; Common; <code>distToShape</code>", "V<sub>int</sub> = 0 mm&sup3; (Tugas 1)"],
+                  ["<strong>Gerak</strong>", "Lengan menyenggol rangka pada sudut tertentu", "Placement Angle + Std Measure; loop <code>distToShape</code>", "c<sub>min</sub> &gt; 0 dan &ge; batas kerja (Tugas 5)"],
+                  ["<strong>Kekuatan</strong>", "Retak pada bahu, defleksi berlebih", "FEM (Pertemuan 9–10), K<sub>t</sub> dari tabel", "&sigma;<sub>maks</sub> &le; &sigma;<sub>izin</sub>; SF &ge; 2"],
                   ["<strong>DFM — dinding</strong>", "Cacat isi pada cor, dinding melengkung saat dipesin", "Std Measure Distance dua muka; volume Pocket", "w &ge; batas proses (Tugas 3)"],
                   ["<strong>DFM — tepi</strong>", "Tepi lubang atau slot sobek", "Std Measure dari ujung fitur ke tepi benda", "e &ge; 1,5&nbsp;&times;&nbsp;t (Tugas 4)"],
                   ["<strong>Validitas model</strong>", "Boolean gagal, ekspor STEP menolak, FEM tidak mau mesh", "Part &rarr; Check Geometry, <code>Shape.isValid()</code>", "0 kesalahan sebelum langkah berikutnya"]])
@@ -621,7 +621,7 @@ def materi():
     m += bagian(1, "m-periksa", "Daftar Periksa Masalah Desain:<br>Dari Gejala ke Angka", "Prototipe jarang gagal karena satu sebab besar; ia gagal karena beberapa hal kecil yang tidak pernah diukur. Bagian ini menyusun cara kerja tetap: kelompokkan temuan, beri metrik, tetapkan batas, perbaiki, lalu baca ulang.", isi, "DAFTAR PERIKSA MASALAH DESAIN")
 
     # 02 — Toleransi dan fit ISO
-    isi = figure(2, "Zona toleransi lubang dan poros ISO serta jenis suaian yang dihasilkan", f"Huruf menentukan letak zona terhadap garis nol (H untuk lubang berarti EI = 0), angka menentukan lebar zona. Poros g berada di bawah garis nol (longgar), k memotongnya (transisi), dan p berada di atasnya (sesak). Contoh ⌀{D_FIT} H7/g6 memberi c_maks = {ind(C_MAKS, 3)} mm dan c_min = {ind(C_MIN_FIT, 3)} mm.", gambar2())
+    isi = figure(2, "Zona toleransi lubang dan poros ISO serta jenis suaian yang dihasilkan", f"Huruf menentukan letak zona terhadap garis nol (H untuk lubang berarti EI = 0), angka menentukan lebar zona. Poros g berada di bawah garis nol (longgar), k memotongnya (transisi), dan p berada di atasnya (sesak). Contoh ⌀{D_FIT} H7/g6 memberi c<sub>maks</sub> = {ind(C_MAKS, 3)} mm dan c<sub>min</sub> = {ind(C_MIN_FIT, 3)} mm.", gambar2())
     isi += formula(1, "Kelonggaran Maksimum dan Minimum Suaian Lubang–Poros", r"c_{\text{maks}} = \frac{ES - ei}{1000}, \qquad c_{\text{min}} = \frac{EI - es}{1000}",
                    r"\(ES, EI\) = deviasi atas dan bawah lubang (µm) &nbsp;·&nbsp; \(es, ei\) = deviasi atas dan bawah poros (µm) &nbsp;·&nbsp; nilai negatif berarti di bawah garis nol. Contoh " + f"⌀{D_FIT} H7/g6 (ES = +{ES_LUB}, EI = 0, es = −6, ei = −17 µm)" + r": \(c_{\text{maks}} = " + ind(C_MAKS, 4) + r"\) mm, \(c_{\text{min}} = " + ind(C_MIN_FIT, 4) + r"\) mm.",
                    "Kelonggaran terbesar muncul pada kombinasi terburuk: lubang pada ukuran maksimumnya bertemu poros pada ukuran minimumnya. Sebaliknya, kelonggaran terkecil muncul saat lubang minimum bertemu poros maksimum; bila hasilnya negatif, pasangan itu sesak (interferensi). Di FreeCAD kedua keadaan dimodelkan dengan memasukkan ukuran batas ke konstrain Diameter — itulah yang diminta Tugas 2 — dan Std Measure Distance antara dua muka silinder sesumbu membaca setengahnya, yaitu celah radial.",
@@ -631,10 +631,10 @@ def materi():
                   ["<strong>Deviasi fundamental</strong>", "Jarak zona toleransi terdekat ke garis nol", "Huruf: H, g, k, p …", "Huruf besar untuk lubang, huruf kecil untuk poros"],
                   ["<strong>Kualitas IT</strong>", "Lebar zona toleransi", "Angka: IT6, IT7, IT11 …", "Makin kecil angkanya, makin mahal pembuatannya"],
                   ["<strong>Ukuran batas</strong>", "Ukuran terbesar dan terkecil yang masih diterima", "12,000 … 12,018 (lubang H7)", "Ukuran inilah yang dimasukkan ke Sketch saat memodelkan keadaan ekstrem"],
-                  ["<strong>Suaian longgar</strong>", "Selalu ada celah (c_min &gt; 0)", "H7/g6, H8/f7, H11/c11", "Poros berputar atau bergeser di dalam lubang"],
+                  ["<strong>Suaian longgar</strong>", "Selalu ada celah (c<sub>min</sub> &gt; 0)", "H7/g6, H8/f7, H11/c11", "Poros berputar atau bergeser di dalam lubang"],
                   ["<strong>Suaian transisi</strong>", "Bisa sedikit longgar atau sedikit sesak", "H7/k6, H7/n6", "Pemusatan teliti, dibongkar-pasang dengan palu lunak"],
-                  ["<strong>Suaian sesak</strong>", "Selalu interferensi (c_maks &le; 0)", "H7/p6, H7/s6", "Dipres atau dipanaskan; jangan dipakai untuk bagian yang harus bergerak"]])
-    isi += tabel(["Pasangan ⌀12", "ES / EI lubang (µm)", "es / ei poros (µm)", "c_maks (mm)", "Sifat"],
+                  ["<strong>Suaian sesak</strong>", "Selalu interferensi (c<sub>maks</sub> &le; 0)", "H7/p6, H7/s6", "Dipres atau dipanaskan; jangan dipakai untuk bagian yang harus bergerak"]])
+    isi += tabel(["Pasangan ⌀12", "ES / EI lubang (µm)", "es / ei poros (µm)", "c<sub>maks</sub> (mm)", "Sifat"],
                  [["<strong>H7/g6</strong>", "+18 / 0", "−6 / −17", ind(C_MAKS, 4), "Longgar; poros berputar ringan"],
                   ["<strong>H7/k6</strong>", "+18 / 0", "+12 / +1", ind(0.017, 4), "Transisi; pemusatan teliti"],
                   ["<strong>H7/p6</strong>", "+18 / 0", "+29 / +18", ind(0.0, 4), "Sesak; interferensi sampai 29 µm"],
@@ -644,12 +644,12 @@ def materi():
                        ("sl_ft_es", "v_ft_es", "Deviasi fundamental poros saat PAUSE (µm)", -40, 30, 1, -6, "−6"),
                        ("sl_ft_it", "v_ft_it", "Lebar zona poros IT (µm)", 4, 40, 1, 11, "11")],
                       "btnFit", "toggleFit", "fitInfo",
-                      "<strong>Cara membaca:</strong> batang biru adalah zona lubang (selalu mulai dari garis nol karena H), batang oranye adalah zona poros yang naik-turun mengikuti deviasi fundamentalnya. Saat berjalan, zona poros bergeser perlahan dari bawah ke atas garis nol sehingga suaian berubah longgar → transisi → sesak. Angka c_maks dan c_min mengikuti Persamaan (1); PAUSE lalu geser slider untuk menguji satu pasangan tertentu.")
+                      "<strong>Cara membaca:</strong> batang biru adalah zona lubang (selalu mulai dari garis nol karena H), batang oranye adalah zona poros yang naik-turun mengikuti deviasi fundamentalnya. Saat berjalan, zona poros bergeser perlahan dari bawah ke atas garis nol sehingga suaian berubah longgar → transisi → sesak. Angka c<sub>maks</sub> dan c<sub>min</sub> mengikuti Persamaan (1); PAUSE lalu geser slider untuk menguji satu pasangan tertentu.")
     isi += kotak("warning-box", "⚠️ <strong>Jangan memodelkan ukuran nominal saja:</strong> sketsa ⌀12 untuk lubang dan ⌀12 untuk poros menghasilkan celah nol, sehingga Part Common tetap nol dan Anda merasa aman. Keadaan yang harus diperiksa adalah ukuran batas: lubang maksimum bertemu poros minimum (paling longgar) dan lubang minimum bertemu poros maksimum (paling sesak). Isi konstrain Diameter dengan empat desimal, karena beda 0,018 mm menentukan apakah poros berputar ringan atau macet.")
     m += bagian(2, "m-toleransi", "Toleransi dan Fit ISO:<br>Bahasa Suaian yang Dapat Diukur", "Tidak ada benda yang dibuat tepat pada ukuran nominal. Bagian ini membaca sistem ISO 286 — deviasi fundamental, kualitas IT, ukuran batas — lalu menghitung kelonggaran maksimum dan minimum yang menentukan apakah pasangan lubang–poros longgar, transisi, atau sesak.", isi, "TOLERANSI DAN FIT ISO")
 
     # 03 — Uji gerak dan tabrakan
-    isi = figure(3, "Uji interferensi dua komponen dengan Part Common dan distToShape", f"Komponen B digeser sehingga menumpang A sejauh δ arah X. Part → Boolean → Common menyisakan slab δ × b × h yang volumenya adalah ukuran tabrakan; contoh δ = {ind(DELTA_I, 1)}, b = {B_I}, h = {H_I} memberi V_int = {ind(V_INT, 2)} mm³. Bila tidak bertabrakan, Common kosong dan distToShape memberi jarak terdekat yang positif.", gambar3())
+    isi = figure(3, "Uji interferensi dua komponen dengan Part Common dan distToShape", f"Komponen B digeser sehingga menumpang A sejauh δ arah X. Part → Boolean → Common menyisakan slab δ × b × h yang volumenya adalah ukuran tabrakan; contoh δ = {ind(DELTA_I, 1)}, b = {B_I}, h = {H_I} memberi V<sub>int</sub> = {ind(V_INT, 2)} mm³. Bila tidak bertabrakan, Common kosong dan distToShape memberi jarak terdekat yang positif.", gambar3())
     isi += formula(2, "Volume Interferensi Dua Balok yang Saling Menumpang", r"V_{\text{int}} = \delta \cdot b \cdot h",
                    r"\(\delta\) = panjang tumpang tindih searah geseran (mm) &nbsp;·&nbsp; \(b, h\) = lebar dan tinggi penampang bersama (mm). Contoh " + f"δ = {ind(DELTA_I, 1)} mm, b = {B_I} mm, h = {H_I} mm" + r": \(V_{\text{int}} = " + ind(V_INT, 2) + r"\) mm³.",
                    "Bila dua balok sejajar sumbu dan hanya bergeser pada satu arah, daerah irisannya juga balok: penampangnya sama dengan penampang bersama dan panjangnya sama dengan tumpang tindih. Karena itu volume Common dapat dihitung tangan lebih dulu dan dipakai memeriksa apakah operasi Boolean berjalan benar. Untuk bentuk rumit angkanya tetap dibaca dari Common.Shape.Volume; nilai nol berarti kedua komponen paling banter bersinggungan, bukan saling menembus. Tugas 1 membaca angka ini dengan dua desimal.",
@@ -658,15 +658,15 @@ def materi():
                  [["Volume tabrakan", "Part &rarr; Boolean &rarr; Common", "mm&sup3;; 0 berarti aman", "Dua komponen pada satu posisi tertentu (Tugas 1)"],
                   ["Jarak terdekat", "<code>a.distToShape(b)[0]</code>", "mm + pasangan titik terdekat", "Kelonggaran yang harus dibuktikan positif"],
                   ["Jarak di GUI", "Std Measure Distance dua muka/rusuk", "mm", "Pemeriksaan cepat tanpa skrip (Tugas 4, 5)"],
-                  ["Sapuan gerak", "Placement Angle/Base dalam loop + distToShape", "c_min dan sudut kritisnya", "Lengan berputar, peluncur, tuas (Tugas 5)"],
-                  ["Tumpang tindih banyak komponen", "Loop pasangan komponen (Bagian 08)", "Matriks V_int antar pasangan", "Rakitan dengan banyak bagian"],
+                  ["Sapuan gerak", "Placement Angle/Base dalam loop + distToShape", "c<sub>min</sub> dan sudut kritisnya", "Lengan berputar, peluncur, tuas (Tugas 5)"],
+                  ["Tumpang tindih banyak komponen", "Loop pasangan komponen (Bagian 08)", "Matriks V<sub>int</sub> antar pasangan", "Rakitan dengan banyak bagian"],
                   ["Pemeriksaan visual", "Transparansi + Std Section cutting", "Pengamatan, bukan bukti", "Menemukan calon masalah, lalu diukur"]])
     isi += anim_panel(2, "amber", "Dua komponen saling masuk: volume interferensi vs δ", "cvTabrak",
                       [("sl_tb_d", "v_tb_d", "Tumpang tindih δ saat PAUSE (mm)", 0, 12, 0.1, 2.5, "2,5"),
                        ("sl_tb_b", "v_tb_b", "Lebar penampang b (mm)", 20, 60, 1, 45, "45"),
                        ("sl_tb_h", "v_tb_h", "Tinggi penampang h (mm)", 10, 40, 1, 28, "28")],
                       "btnTabrak", "toggleTabrak", "tabrakInfo",
-                      "<strong>Cara membaca:</strong> balok B bergerak maju-mundur terhadap A; daerah merah adalah hasil Part Common. Selama masih ada celah, V_int = 0 dan distToShape memberi jarak positif (hijau). Begitu B menembus A, volume merah tumbuh linear terhadap δ mengikuti Persamaan (2). PAUSE lalu kunci δ untuk membaca satu keadaan tertentu.")
+                      "<strong>Cara membaca:</strong> balok B bergerak maju-mundur terhadap A; daerah merah adalah hasil Part Common. Selama masih ada celah, V<sub>int</sub> = 0 dan distToShape memberi jarak positif (hijau). Begitu B menembus A, volume merah tumbuh linear terhadap δ mengikuti Persamaan (2). PAUSE lalu kunci δ untuk membaca satu keadaan tertentu.")
     isi += cards([
         ("🧊", "Common bukan Cut", "Boolean Common menyisakan irisan, yaitu bahan milik kedua solid; Cut justru membuang. Untuk uji tabrakan selalu Common, dan batalkan (Ctrl+Z) atau sembunyikan hasilnya agar model asli tidak ikut termakan.", "A &cap; B"),
         ("📏", "distToShape", "<code>bentukA.distToShape(bentukB)</code> mengembalikan jarak minimum, pasangan titik terdekat, dan info geometrinya. Nilai 0 berarti bersentuhan atau menembus, sehingga perlu dipasangkan dengan Common untuk membedakan keduanya.", "jarak + titik"),
@@ -677,23 +677,23 @@ def materi():
     m += bagian(3, "m-tabrakan", "Uji Gerak dan Tabrakan:<br>Membuktikan Komponen Tidak Bertemu", "Tabrakan adalah masalah desain yang paling mudah dibuktikan sekaligus paling sering terlewat. Bagian ini memakai Part Common untuk mengukur volume interferensi, distToShape untuk jarak terdekat, dan pemindaian posisi gerak untuk mencari keadaan terkritis.", isi, "UJI GERAK DAN TABRAKAN")
 
     # 04 — Kelemahan struktur dan perbaikannya
-    isi = figure(4, "Kelemahan struktur yang sering ditemukan dan perbaikan terukurnya", f"Bahu tajam memusatkan tegangan (K_t tinggi) dan menjadi tempat retak pertama; fillet menurunkannya. Dinding di bawah batas proses melengkung atau retak, sehingga ditebalkan atau diberi rusuk. Lubang yang terlalu dekat tepi menyobek bahan. Contoh: K_t turun dari {ind(KT_SEBELUM, 2)} menjadi {ind(KT_SESUDAH, 2)}, sehingga σ_maks turun {ind(TURUN_SIG, 1)}%.", gambar4())
+    isi = figure(4, "Kelemahan struktur yang sering ditemukan dan perbaikan terukurnya", f"Bahu tajam memusatkan tegangan (K<sub>t</sub> tinggi) dan menjadi tempat retak pertama; fillet menurunkannya. Dinding di bawah batas proses melengkung atau retak, sehingga ditebalkan atau diberi rusuk. Lubang yang terlalu dekat tepi menyobek bahan. Contoh: K<sub>t</sub> turun dari {ind(KT_SEBELUM, 2)} menjadi {ind(KT_SESUDAH, 2)}, sehingga σ<sub>maks</sub> turun {ind(TURUN_SIG, 1)}%.", gambar4())
     isi += formula(3, "Tegangan Maksimum pada Daerah Kritis dan Faktor Keamanan", r"\sigma_{\text{maks}} = K_t \cdot \sigma_{\text{nom}}, \qquad SF = \frac{\sigma_y}{\sigma_{\text{maks}}}",
-                   r"\(K_t\) = faktor konsentrasi tegangan geometri &nbsp;·&nbsp; \(\sigma_{\text{nom}}\) = tegangan nominal penampang &nbsp;·&nbsp; \(\sigma_y\) = tegangan luluh bahan. Contoh " + f"σ_nom = {ind(SIG_NOM, 1)} MPa" + r": \(K_t = " + ind(KT_SEBELUM, 2) + r"\) memberi \(\sigma_{\text{maks}} = " + ind(SIG_SEBELUM, 1) + r"\) MPa, dan setelah difillet \(K_t = " + ind(KT_SESUDAH, 2) + r"\) memberi \(" + ind(SIG_SESUDAH, 1) + r"\) MPa.",
-                   "Retak hampir selalu dimulai pada perubahan bentuk mendadak: bahu tajam, ujung slot, pangkal rusuk, dan tepi lubang. Faktor K_t menyatakan berapa kali tegangan lokal melampaui tegangan nominal, dan ia ditentukan geometri, bukan besar beban. Memperbesar jari-jari fillet, melandaikan transisi penampang, serta menjauhkan fitur dari tepi menurunkan K_t hampir tanpa tambahan massa — perbaikan termurah setelah simulasi Pertemuan 10 dan 11.",
+                   r"\(K_t\) = faktor konsentrasi tegangan geometri &nbsp;·&nbsp; \(\sigma_{\text{nom}}\) = tegangan nominal penampang &nbsp;·&nbsp; \(\sigma_y\) = tegangan luluh bahan. Contoh " + f"σ<sub>nom</sub> = {ind(SIG_NOM, 1)} MPa" + r": \(K_t = " + ind(KT_SEBELUM, 2) + r"\) memberi \(\sigma_{\text{maks}} = " + ind(SIG_SEBELUM, 1) + r"\) MPa, dan setelah difillet \(K_t = " + ind(KT_SESUDAH, 2) + r"\) memberi \(" + ind(SIG_SESUDAH, 1) + r"\) MPa.",
+                   "Retak hampir selalu dimulai pada perubahan bentuk mendadak: bahu tajam, ujung slot, pangkal rusuk, dan tepi lubang. Faktor K<sub>t</sub> menyatakan berapa kali tegangan lokal melampaui tegangan nominal, dan ia ditentukan geometri, bukan besar beban. Memperbesar jari-jari fillet, melandaikan transisi penampang, serta menjauhkan fitur dari tepi menurunkan K<sub>t</sub> hampir tanpa tambahan massa — perbaikan termurah setelah simulasi Pertemuan 10 dan 11.",
                    [("\\sigma_{\\text{maks}}", "Tegangan puncak lokal (MPa)"), ("K_t", "Faktor konsentrasi tegangan"), ("\\sigma_{\\text{nom}}", "Tegangan nominal penampang (MPa)"), ("SF", "Faktor keamanan"), ("\\sigma_y", "Tegangan luluh bahan (MPa)")])
     isi += tabel(["Kelemahan", "Tanda pada model atau prototipe", "Perbaikan yang lazim", "Metrik yang dibaca ulang"],
-                 [["<strong>Bahu tajam</strong>", "Kontur tegangan menyala di sudut dalam; retak dari sudut", "Fillet r &ge; 0,1&nbsp;&times;&nbsp;tebal; transisi bertingkat", "K_t dan &sigma;_maks (MPa)"],
+                 [["<strong>Bahu tajam</strong>", "Kontur tegangan menyala di sudut dalam; retak dari sudut", "Fillet r &ge; 0,1&nbsp;&times;&nbsp;tebal; transisi bertingkat", "K<sub>t</sub> dan &sigma;<sub>maks</sub> (MPa)"],
                   ["<strong>Dinding terlalu tipis</strong>", "Dinding melengkung, cacat isi pada benda cor", "Tebalkan w, atau tambahkan rusuk penguat", "w (mm) dan defleksi &delta; (mm)"],
                   ["<strong>Rusuk terlalu tinggi dan tipis</strong>", "Rusuk sendiri tertekuk", "Tebal rusuk &asymp; 0,6&nbsp;&times;&nbsp;tebal dinding, tinggi &le; 3&nbsp;&times;&nbsp;tebalnya", "Rasio tinggi terhadap tebal rusuk"],
                   ["<strong>Lubang dekat tepi</strong>", "Tepi menggelembung atau sobek", "Geser lubang ke dalam atau perlebar pelat", "Jarak tepi e (mm)"],
                   ["<strong>Ulir pada dinding tipis</strong>", "Ulir tercabut saat dikencangkan", "Tambah boss, pakai insert, perpanjang pengikatan", "Panjang pengikatan dibagi diameter baut"],
-                  ["<strong>Penampang berubah mendadak</strong>", "Defleksi dan tegangan melonjak di satu titik", "Tirus bertahap, tambah pelat buhul", "&sigma;_maks, SF, dan massa (g)"]])
+                  ["<strong>Penampang berubah mendadak</strong>", "Defleksi dan tegangan melonjak di satu titik", "Tirus bertahap, tambah pelat buhul", "&sigma;<sub>maks</sub>, SF, dan massa (g)"]])
     isi += cards([
         ("🧩", "Perbaiki penyebab, bukan gejala", "Menebalkan seluruh komponen memang menurunkan tegangan, tetapi menambah massa dan biaya. Menemukan satu daerah kritis lalu memfilletnya sering memberi penurunan tegangan yang sama dengan tambahan massa hampir nol.", "lokal &gt; global"),
         ("⚖️", "Perbaikan selalu berbiaya", "Setiap perubahan menukar sesuatu: massa, ruang, waktu pemesinan, atau jumlah operasi. Catat biaya itu di sebelah metriknya agar pemilihan dapat dipertanggungjawabkan.", "untung vs biaya"),
         ("🔗", "Efek samping ke rakitan", "Menebalkan dinding memperkecil ruang dalam dan bisa menimbulkan interferensi baru; memperbesar fillet dapat menabrak komponen tetangga. Setelah perbaikan struktur, ulangi uji tabrakan Bagian 03.", "periksa ulang rakitan"),
-        ("📚", "Pakai hasil pertemuan sebelumnya", "K_t, konvergensi mesh, dan faktor keamanan sudah dibahas pada Pertemuan 10 dan 11. Modul ini memakainya sebagai alat diagnosis, bukan mengulang teorinya.", "FEM → diagnosis"),
+        ("📚", "Pakai hasil pertemuan sebelumnya", "K<sub>t</sub>, konvergensi mesh, dan faktor keamanan sudah dibahas pada Pertemuan 10 dan 11. Modul ini memakainya sebagai alat diagnosis, bukan mengulang teorinya.", "FEM → diagnosis"),
     ])
     isi += kotak("tip-box", "💡 <strong>Fillet di FreeCAD:</strong> pada Part Design gunakan Fillet setelah fitur yang membentuk bahu, dan pilih rusuk (edge), bukan muka, agar radius mengikuti kontur. Bila Fillet gagal, biasanya radius lebih besar daripada bahan yang tersedia atau ada dua fillet yang saling bertemu; kecilkan radius, atau buat fillet dalam dua tahap dengan urutan berbeda.")
     m += bagian(4, "m-struktur", "Kelemahan Struktur:<br>Daerah Kritis dan Perbaikannya", "Setelah fit dan tabrakan beres, masalah berikutnya biasanya kekuatan: bahu tajam, dinding tipis, rusuk yang salah ukuran, dan fitur yang terlalu dekat tepi. Bagian ini mengenali tandanya di model dan memilih perbaikan yang dampaknya bisa diukur ulang.", isi, "KELEMAHAN STRUKTUR")
@@ -705,8 +705,8 @@ def materi():
                    "Pocket persegi panjang yang dipusatkan pada muka atas membuang prisma bervolume (a − 2w)(b − 2w)·p dan menyisakan dinding setebal w di keempat sisi serta dasar setebal h − p. Dua angka terakhir itulah metrik DFM yang dibandingkan dengan batas proses: dinding yang terlalu tipis melengkung saat dipesin atau gagal terisi saat dicor, sedangkan dasar yang terlalu tipis melendut ketika dicekam. Tugas 3 meminta volume akhir sebagai bukti bahwa Pocket benar-benar berpusat dan sedalam yang diminta.",
                    [("V", "Volume solid akhir (mm³)"), ("a, b, h", "Ukuran luar balok (mm)"), ("w", "Tebal dinding sisa (mm)"), ("p", "Kedalaman Pocket (mm)"), ("t_{\\text{dasar}}", "Tebal dasar = h − p (mm)")])
     isi += formula(5, "Jarak Tepi Slot Obround pada Pelat", r"e_x = \frac{a - (L_s + w_s)}{2}, \qquad e_y = \frac{b - w_s}{2}",
-                   r"\(a, b\) = panjang dan lebar pelat (mm) &nbsp;·&nbsp; \(L_s\) = jarak pusat-ke-pusat busur slot &nbsp;·&nbsp; \(w_s\) = lebar slot. Contoh " + f"a = {A_S}, b = {B_S}, L_s = {LS_S}, w_s = {WS_S}" + r": \(e_x = " + ind(E_X, 3) + r"\) mm dan \(e_y = " + ind(E_Y, 3) + r"\) mm, keduanya di atas batas " + f"1,5 × t = {ind(E_BATAS, 1)} mm" + r".",
-                   "Slot obround dibatasi dua setengah lingkaran berjari-jari w_s/2, sehingga ujungnya berada pada x = ±(L_s + w_s)/2 — bukan pada ±L_s/2. Jarak tepi diukur dari ujung busur itu ke tepi benda terdekat, bukan dari pusat busur; kekeliruan ini membuat pelat tampak aman di gambar tetapi sobek saat dipunch. Tugas 4 membaca e_x dengan tiga desimal dan melaporkan e_y sebagai pembanding.",
+                   r"\(a, b\) = panjang dan lebar pelat (mm) &nbsp;·&nbsp; \(L_s\) = jarak pusat-ke-pusat busur slot &nbsp;·&nbsp; \(w_s\) = lebar slot. Contoh " + f"a = {A_S}, b = {B_S}, L<sub>s</sub> = {LS_S}, w<sub>s</sub> = {WS_S}" + r": \(e_x = " + ind(E_X, 3) + r"\) mm dan \(e_y = " + ind(E_Y, 3) + r"\) mm, keduanya di atas batas " + f"1,5 × t = {ind(E_BATAS, 1)} mm" + r".",
+                   "Slot obround dibatasi dua setengah lingkaran berjari-jari w<sub>s</sub>/2, sehingga ujungnya berada pada x = ±(L<sub>s</sub> + w<sub>s</sub>)/2 — bukan pada ±L<sub>s</sub>/2. Jarak tepi diukur dari ujung busur itu ke tepi benda terdekat, bukan dari pusat busur; kekeliruan ini membuat pelat tampak aman di gambar tetapi sobek saat dipunch. Tugas 4 membaca e<sub>x</sub> dengan tiga desimal dan melaporkan e<sub>y</sub> sebagai pembanding.",
                    [("e_x", "Jarak tepi arah panjang slot (mm)"), ("e_y", "Jarak tepi arah lebar slot (mm)"), ("L_s", "Jarak pusat-ke-pusat busur (mm)"), ("w_s", "Lebar slot (mm)"), ("a, b", "Panjang dan lebar pelat (mm)")])
     isi += tabel(["Aturan DFM", "Pedoman umum", "Alasan", "Cara memeriksanya di model"],
                  [["<strong>Tebal dinding minimum</strong>", "Pemesinan &ge; 1 mm; cetak 3D FDM &ge; 1,2 mm; cor aluminium &ge; 3 mm; cor besi &ge; 4 mm", "Dinding tipis melengkung, bergetar, atau tidak terisi logam cair", "Std Measure Distance antara dua muka sejajar; periksa juga dasar Pocket"],
@@ -727,24 +727,24 @@ def materi():
     m += bagian(5, "m-dfm", "Design for Manufacturing:<br>Bentuk yang Bisa Dibuat dengan Wajar", "Model yang benar secara geometri belum tentu mudah dibuat. Bagian ini menjalankan daftar periksa DFM — tebal dinding, keseragaman tebal, sudut tirus, undercut, lubang standar, jarak tepi, dan toleransi — dengan angka yang semuanya dapat dibaca dari model.", isi, "DESIGN FOR MANUFACTURING")
 
     # 06 — Perbaikan terukur
-    isi = figure(6, "Jarak bebas lengan berputar dan tabel metrik sebelum-sesudah perbaikan", f"Titik terjauh lengan dari sumbu putar adalah sudut ujungnya pada jarak √(R² + (w/2)²); ketika berputar, titik itu menyapu lingkaran. Contoh R = {R_L}, w = {W_L}, dinding pada W = {W_DIND} memberi c_min = {ind(C_MIN_L, 3)} mm pada θ* = {ind(TH_KRITIS, 2)}°. Tabel kanan mencatat lima metrik sebelum dan sesudah perbaikan berikut batas penerimaannya.", gambar6())
+    isi = figure(6, "Jarak bebas lengan berputar dan tabel metrik sebelum-sesudah perbaikan", f"Titik terjauh lengan dari sumbu putar adalah sudut ujungnya pada jarak √(R² + (w/2)²); ketika berputar, titik itu menyapu lingkaran. Contoh R = {R_L}, w = {W_L}, dinding pada W = {W_DIND} memberi c<sub>min</sub> = {ind(C_MIN_L, 3)} mm pada θ<sup>*</sup> = {ind(TH_KRITIS, 2)}°. Tabel kanan mencatat lima metrik sebelum dan sesudah perbaikan berikut batas penerimaannya.", gambar6())
     isi += formula(6, "Jarak Bebas Minimum Lengan Berputar terhadap Dinding", r"c_{\text{min}} = W - \sqrt{R^{2} + \left(\tfrac{w}{2}\right)^{2}}, \qquad \theta^{*} = \arctan\frac{w/2}{R}",
                    r"\(W\) = jarak dinding dari sumbu putar (mm) &nbsp;·&nbsp; \(R\) = panjang lengan &nbsp;·&nbsp; \(w\) = lebar lengan &nbsp;·&nbsp; \(\theta^{*}\) = sudut saat sudut ujung lengan tepat menghadap dinding. Contoh " + f"W = {W_DIND}, R = {R_L}, w = {W_L}" + r": \(c_{\text{min}} = " + ind(C_MIN_L, 3) + r"\) mm pada \(\theta^{*} = " + ind(TH_KRITIS, 2) + r"\)°.",
-                   "Kesalahan yang sering terjadi adalah memakai W − R, seolah ujung lengan berupa titik di sumbu tengahnya. Padahal titik terjauh adalah sudut ujung lengan, sejauh √(R² + (w/2)²) dari pusat putar, sehingga jarak bebas sebenarnya selalu lebih kecil daripada W − R. Selama satu putaran penuh, sudut itu menyapu lingkaran, dan jarak terdekat ke dinding datar terjadi tepat ketika ia menghadap dinding. Tugas 5 membaca c_min dengan tiga desimal; nilai negatif berarti lengan menabrak dinding dan model harus diperbaiki.",
+                   "Kesalahan yang sering terjadi adalah memakai W − R, seolah ujung lengan berupa titik di sumbu tengahnya. Padahal titik terjauh adalah sudut ujung lengan, sejauh √(R² + (w/2)²) dari pusat putar, sehingga jarak bebas sebenarnya selalu lebih kecil daripada W − R. Selama satu putaran penuh, sudut itu menyapu lingkaran, dan jarak terdekat ke dinding datar terjadi tepat ketika ia menghadap dinding. Tugas 5 membaca c<sub>min</sub> dengan tiga desimal; nilai negatif berarti lengan menabrak dinding dan model harus diperbaiki.",
                    [("c_{\\text{min}}", "Jarak bebas minimum (mm)"), ("W", "Jarak dinding dari sumbu putar (mm)"), ("R", "Panjang lengan (mm)"), ("w", "Lebar lengan (mm)"), ("\\theta^{*}", "Sudut kritis (derajat)")])
     isi += tabel(["Metrik", "Sebelum", "Sesudah", "Batas penerimaan", "Perubahan yang dilakukan"],
-                 [["Volume interferensi V_int (mm&sup3;)", ind(V_INT, 2), "0,00", "0", "Komponen B digeser keluar sejauh &delta;"],
-                  ["Jarak bebas lengan c_min (mm)", ind(C_MIN_LAMA, 2), ind(C_MIN_L, 2), "&ge; 15", f"Lengan dipendekkan {R_LAMA} &rarr; {R_L} mm"],
+                 [["Volume interferensi V<sub>int</sub> (mm&sup3;)", ind(V_INT, 2), "0,00", "0", "Komponen B digeser keluar sejauh &delta;"],
+                  ["Jarak bebas lengan c<sub>min</sub> (mm)", ind(C_MIN_LAMA, 2), ind(C_MIN_L, 2), "&ge; 15", f"Lengan dipendekkan {R_LAMA} &rarr; {R_L} mm"],
                   ["Tebal dinding w (mm)", ind(W_TIPIS, 1), ind(W_H, 1), "&ge; " + ind(W_MIN_PROSES, 1), "Pocket diperkecil, dinding ditebalkan"],
                   ["Jarak tepi slot e (mm)", "6,0", ind(E_X, 1), "&ge; " + ind(E_BATAS, 1), f"Slot diperpendek dan pelat diperlebar menjadi {A_S} mm"],
-                  ["Faktor konsentrasi K_t", ind(KT_SEBELUM, 2), ind(KT_SESUDAH, 2), "&le; 2,00", "Fillet ditambahkan pada bahu"],
-                  ["Tegangan puncak &sigma;_maks (MPa)", ind(SIG_SEBELUM, 1), ind(SIG_SESUDAH, 1), "&le; 125", f"Akibat langsung penurunan K_t ({ind(TURUN_SIG, 1)}%)"]])
+                  ["Faktor konsentrasi K<sub>t</sub>", ind(KT_SEBELUM, 2), ind(KT_SESUDAH, 2), "&le; 2,00", "Fillet ditambahkan pada bahu"],
+                  ["Tegangan puncak &sigma;<sub>maks</sub> (MPa)", ind(SIG_SEBELUM, 1), ind(SIG_SESUDAH, 1), "&le; 125", f"Akibat langsung penurunan K<sub>t</sub> ({ind(TURUN_SIG, 1)}%)"]])
     isi += anim_panel(4, "green", "Lengan berputar mendekati dinding: jarak bebas minimum", "cvLengan",
                       [("sl_lg_R", "v_lg_R", "Panjang lengan R (mm)", 40, 120, 1, 70, "70"),
                        ("sl_lg_w", "v_lg_w", "Lebar lengan w (mm)", 8, 40, 1, 24, "24"),
                        ("sl_lg_W", "v_lg_W", "Jarak dinding W (mm)", 60, 160, 1, 100, "100")],
                       "btnLengan", "toggleLengan", "lenganInfo",
-                      "<strong>Cara membaca:</strong> lengan berputar terhadap sumbu di ujung kirinya; lingkaran putus-putus adalah lintasan sudut terjauhnya. Angka hijau adalah jarak sesaat ke dinding, angka di bawahnya adalah c_min menurut Persamaan (6). Perhatikan c_min selalu lebih kecil daripada W − R; bila lengan menembus dinding, angkanya menjadi negatif dan tulisannya merah.")
+                      "<strong>Cara membaca:</strong> lengan berputar terhadap sumbu di ujung kirinya; lingkaran putus-putus adalah lintasan sudut terjauhnya. Angka hijau adalah jarak sesaat ke dinding, angka di bawahnya adalah c<sub>min</sub> menurut Persamaan (6). Perhatikan c<sub>min</sub> selalu lebih kecil daripada W − R; bila lengan menembus dinding, angkanya menjadi negatif dan tulisannya merah.")
     isi += cards([
         ("📊", "Satu tabel, bukan cerita", "Laporan perbaikan yang baik muat dalam satu tabel: metrik, nilai sebelum, nilai sesudah, batas, dan perubahan yang dilakukan. Pembaca dapat memeriksa ulang tiap baris pada berkas yang sama.", "sebelum · sesudah · batas"),
         ("🔬", "Ukur dengan cara yang sama", "Bila nilai sebelum dibaca dengan Std Measure, nilai sesudah juga dibaca dengan Std Measure. Mengganti cara ukur di tengah jalan membuat selisihnya tidak bermakna.", "metode tetap"),
@@ -822,23 +822,23 @@ rumah = Part.makeBox(a, b, h).cut(Part.makeBox(a-2*wd, b-2*wd, p, V(wd, wd, h-p)
 print(f"V rumah = {rumah.Volume:.2f} mm^3 (rumus {a*b*h-(a-2*wd)*(b-2*wd)*p:.2f})")   # 79680.00
 print(f"isValid = {rumah.isValid()}, dinding {wd} mm, dasar {h-p} mm")
 # Part -> Check Geometry di GUI menjalankan pemeriksaan yang sama dan merincinya di panel Tasks''', "Python (FreeCAD)")
-    isi += kotak("tip-box", "💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan ketiga cell dan cocokkan angkanya dengan komentar (volume interferensi " + ind(V_INT, 2) + " mm³, c_maks " + ind(C_MAKS, 4) + " mm dengan celah radial " + ind(C_MAKS / 2, 4) + " mm, jarak bebas lengan " + ind(C_MIN_L, 3) + " mm, volume rumah " + ind(V_RUMAH, 2) + " mm³). Tugas tetap meminta model dibangun di GUI — Sketch, Pad, Pocket, Placement, Boolean — agar pohon dokumen terlihat di berkas .FCStd; Python di sini dipakai untuk memeriksa angka bacaan dan memindai posisi gerak yang jumlahnya terlalu banyak bila dilakukan satu per satu.")
+    isi += kotak("tip-box", "💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan ketiga cell dan cocokkan angkanya dengan komentar (volume interferensi " + ind(V_INT, 2) + " mm³, c<sub>maks</sub> " + ind(C_MAKS, 4) + " mm dengan celah radial " + ind(C_MAKS / 2, 4) + " mm, jarak bebas lengan " + ind(C_MIN_L, 3) + " mm, volume rumah " + ind(V_RUMAH, 2) + " mm³). Tugas tetap meminta model dibangun di GUI — Sketch, Pad, Pocket, Placement, Boolean — agar pohon dokumen terlihat di berkas .FCStd; Python di sini dipakai untuk memeriksa angka bacaan dan memindai posisi gerak yang jumlahnya terlalu banyak bila dilakukan satu per satu.")
     m += bagian(8, "m-python", "Python Console:<br>Pemeriksaan yang Berjalan Sendiri", "Cell pertama memeriksa tabrakan seluruh pasangan komponen sekaligus; cell kedua menghitung ukuran batas dan kelonggaran fit lalu membuktikannya pada model; cell ketiga memindai satu putaran gerak lengan, menghitung volume rumah berdinding tipis, dan memvalidasi geometrinya.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
     langkah = [("1", "Siapkan dua komponen", f"Buat dokumen baru. Part &rarr; Primitives &rarr; Box A berukuran {A1_I} × {B_I} × {H_I} mm di titik asal, lalu Box B berukuran {A2_I} × {B_I} × {H_I} mm dengan Placement Position x = {ind(A1_I - DELTA_I, 1)} mm sehingga B menumpang A sejauh δ = {ind(DELTA_I, 1)} mm."),
                ("2", "Ukur tabrakan", f"Pilih A dan B &rarr; Part &rarr; Boolean &rarr; Common. Baca Common.Shape.Volume (atau Std Measure Volume): {ind(V_INT, 2)} mm³, sama dengan δ·b·h. Catat sebagai nilai “sebelum”, lalu batalkan Boolean dengan Ctrl+Z."),
                ("3", "Perbaiki lalu verifikasi", "Ubah Placement Position x milik B menjadi tepat di ujung A sehingga keduanya hanya bersinggungan. Ulangi Common: volumenya harus 0 mm³, dan <code>A.distToShape(B)[0]</code> bernilai 0 karena bersentuhan. Beri jarak rakit kecil bila memang diinginkan celah."),
-               ("4", "Modelkan keadaan fit ekstrem", f"Body baru: cincin (Sketch dua lingkaran sepusat, lubang pada ukuran maksimum ⌀{ind(LUB_MAKS, 4)}) di-Pad {H_CINCIN} mm, dan poros pada ukuran minimum ⌀{ind(POR_MIN, 4)} di-Pad {L_POROS} mm, sesumbu. Std Measure Distance antara dua muka silinder memberi celah radial {ind(C_MAKS / 2, 4)} mm; kalikan dua menjadi c_maks = {ind(C_MAKS, 4)} mm."),
+               ("4", "Modelkan keadaan fit ekstrem", f"Body baru: cincin (Sketch dua lingkaran sepusat, lubang pada ukuran maksimum ⌀{ind(LUB_MAKS, 4)}) di-Pad {H_CINCIN} mm, dan poros pada ukuran minimum ⌀{ind(POR_MIN, 4)} di-Pad {L_POROS} mm, sesumbu. Std Measure Distance antara dua muka silinder memberi celah radial {ind(C_MAKS / 2, 4)} mm; kalikan dua menjadi c<sub>maks</sub> = {ind(C_MAKS, 4)} mm."),
                ("5", "Rumah berdinding tipis", f"Body baru: Sketch {A_H} × {B_H} mm &rarr; Pad {H_H} mm. Pada muka atas, Sketch {A_H - 2 * W_H} × {B_H - 2 * W_H} mm yang dipusatkan dengan konstrain Symmetric &rarr; Pocket Dimension {P_H} mm. Periksa tebal dinding {ind(W_H, 1)} mm dan dasar {ind(DASAR_H, 1)} mm dengan Std Measure; volume solid harus {ind(V_RUMAH, 2)} mm³."),
                ("6", "Slot dan jarak tepi", f"Body baru: pelat {A_S} × {B_S} × {T_S} mm simetris terhadap origin &rarr; Pad. Pada muka atas gambar satu slot obround (alat Slot) dengan jarak pusat-ke-pusat {LS_S} mm dan lebar {WS_S} mm &rarr; Pocket Through all. Std Measure dari ujung busur ke tepi pendek pelat memberi e = {ind(E_X, 3)} mm, di atas batas 1,5·t = {ind(E_BATAS, 1)} mm."),
-               ("7", "Gerak, validasi, simpan", f"Body lengan {R_L} × {W_L} × {T_LENGAN} mm dengan sumbu putar Z di titik asal, dan dinding Part Box yang muka dalamnya di x = {W_DIND} mm. Putar Placement Angle ke θ* = {ind(TH_KRITIS, 2)}° lalu Std Measure Distance sudut lengan &rarr; muka dinding: {ind(C_MIN_L, 3)} mm. Jalankan Part &rarr; Check Geometry pada semua Body (harus bersih), lalu Ctrl+S ke <code>Latihan12_NIM.FCStd</code>.")]
+               ("7", "Gerak, validasi, simpan", f"Body lengan {R_L} × {W_L} × {T_LENGAN} mm dengan sumbu putar Z di titik asal, dan dinding Part Box yang muka dalamnya di x = {W_DIND} mm. Putar Placement Angle ke θ<sup>*</sup> = {ind(TH_KRITIS, 2)}° lalu Std Measure Distance sudut lengan &rarr; muka dinding: {ind(C_MIN_L, 3)} mm. Jalankan Part &rarr; Check Geometry pada semua Body (harus bersih), lalu Ctrl+S ke <code>Latihan12_NIM.FCStd</code>.")]
     isi = figure(7, "Gambar kerja audit satu dokumen: tabrakan, fit, dinding tipis, jarak tepi, dan jarak bebas gerak",
                  f"Satuan mm; volume dalam mm³. Nomor 1–5 mengikuti langkah: (1) Box A {A1_I} × {B_I} × {H_I} dan Box B {A2_I} × {B_I} × {H_I} menumpang δ = {ind(DELTA_I, 1)} "
                  f"sehingga Common = {ind(V_INT, 2)} mm³, lalu nol setelah B digeser ke ujung A; (2) cincin berlubang ⌀{ind(LUB_MAKS, 4)} (batas maksimum ⌀{D_FIT} H7) "
                  f"dan poros ⌀{ind(POR_MIN, 4)} (batas minimum g6) sesumbu, celahnya digambar diperbesar; (3) rumah {A_H} × {B_H} × {H_H} dengan Pocket "
                  f"{A_H - 2 * W_H} × {B_H - 2 * W_H} sedalam {P_H}; (4) pelat {A_S} × {B_S} × {T_S} dengan slot berjarak pusat {LS_S} dan lebar {WS_S}, serta jarak tepi e; "
-                 f"(5) lengan {R_L} × {W_L} × {T_LENGAN} diputar θ* = {ind(TH_KRITIS, 2)}° di depan dinding pada x = {W_DIND}. Diameter luar dan letak aksial cincin, "
+                 f"(5) lengan {R_L} × {W_L} × {T_LENGAN} diputar θ<sup>*</sup> = {ind(TH_KRITIS, 2)}° di depan dinding pada x = {W_DIND}. Diameter luar dan letak aksial cincin, "
                  "serta ukuran Part Box dinding, tidak ditetapkan langkah, jadi digambar tanpa ukuran.", gambar7())
     isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
@@ -853,9 +853,9 @@ print(f"isValid = {rumah.isValid()}, dinding {wd} mm, dasar {h-p} mm")
                  [["Common menghasilkan objek kosong padahal jelas menumpang", "Yang dipilih objek induk yang sudah termakan Boolean sebelumnya, atau salah satu bukan solid", "Batalkan Boolean terdahulu; periksa Check Geometry kedua bentuk"],
                   ["Volume Common jauh dari δ·b·h", "Placement B juga bergeser arah Y atau Z, sehingga penampang bersama mengecil", "Nolkan y dan z pada Placement Position; ukur ulang"],
                   ["Std Measure Distance memberi 0 padahal tampak ada celah", "Yang terpilih muka yang bersinggungan, bukan pasangan muka yang dimaksud", "Perbesar tampilan, pilih muka lewat pohon atau tekan Space untuk menyembunyikan komponen penghalang"],
-                  ["Kelonggaran terbaca setengah dari perkiraan", "Yang diukur celah radial, sedangkan yang diminta kelonggaran diametral", "Kalikan dua: c_diametral = 2 × celah radial"],
+                  ["Kelonggaran terbaca setengah dari perkiraan", "Yang diukur celah radial, sedangkan yang diminta kelonggaran diametral", "Kalikan dua: c<sub>diametral</sub> = 2 × celah radial"],
                   ["Pocket tidak berpusat sehingga dinding tidak sama tebal", "Sketch Pocket hanya diberi jarak dari dua sisi", "Pakai konstrain Symmetric terhadap sumbu sketsa, atau beri jarak w dari keempat tepi"],
-                  ["Jarak tepi slot terbaca lebih besar daripada hitungan", "Yang diukur dari pusat busur, bukan dari ujung busur", "Ukur dari titik ujung slot; ujungnya di ±(L_s + w_s)/2"],
+                  ["Jarak tepi slot terbaca lebih besar daripada hitungan", "Yang diukur dari pusat busur, bukan dari ujung busur", "Ukur dari titik ujung slot; ujungnya di ±(L<sub>s</sub> + w<sub>s</sub>)/2"],
                   ["Lengan menembus dinding padahal W &gt; R", "Yang dipakai W − R, bukan memperhitungkan sudut ujung lengan", "Pakai √(R² + (w/2)²) sesuai Persamaan (6)"],
                   ["Pocket membelah benda menjadi dua solid", "Kedalaman p melebihi tinggi h, atau dinding w terlalu besar", "Kembalikan p &lt; h dan (a − 2w) &gt; 0; jalankan Check Geometry"]])
     isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) tiap tugas punya Body/objek yang diminta, bukan sisa percobaan yang tersembunyi; (2) ukuran dimasukkan lewat konstrain sketsa atau properti, bukan digeser dengan mouse; (3) Part &rarr; Check Geometry bersih untuk semua solid yang diukur; (4) angka bacaan diambil dari bentuk akhir dengan jumlah desimal yang diminta dan memakai koma sesuai isian; (5) berkas disimpan lewat Ctrl+S sebagai .FCStd tanpa spasi pada namanya, lalu diunggah pada kartu tugasnya masing-masing.")
@@ -897,10 +897,10 @@ TUGAS_HERO = '''<div class="hero" data-tab="tugas" style="min-height:60vh">
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">Part Common</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">c_maks = ES &minus; ei</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">c<sub>maks</sub> = ES &minus; ei</span>
     <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">tebal dinding w</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">e = (a &minus; (Ls + ws))/2</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">c_min gerak</span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">e = (a &minus; (L<sub>s</sub> + w<sub>s</sub>))/2</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">c<sub>min</sub> gerak</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 13 · Identifikasi Masalah Desain dan Solusi Optimasi</div>
@@ -922,8 +922,8 @@ MC = [
       "Membuat ulang seluruh model dari awal"],
      "Langkah pertama audit desain"),
     ("<strong>Kelonggaran maksimum</strong> pasangan lubang–poros dihitung dari...",
-     ["Deviasi atas lubang dikurangi deviasi bawah poros: c_maks = ES − ei", "Deviasi bawah lubang dikurangi deviasi atas poros: c_maks = EI − es",
-      "Selisih ukuran nominal lubang dan poros", "Rata-rata kedua deviasi poros: c_maks = (es + ei)/2"],
+     ["Deviasi atas lubang dikurangi deviasi bawah poros: c<sub>maks</sub> = ES − ei", "Deviasi bawah lubang dikurangi deviasi atas poros: c<sub>maks</sub> = EI − es",
+      "Selisih ukuran nominal lubang dan poros", "Rata-rata kedua deviasi poros: c<sub>maks</sub> = (es + ei)/2"],
      "Rumus kelonggaran maksimum"),
     ("<strong>Boolean Common</strong> pada dua komponen rakitan dipakai untuk...",
      ["Menggabungkan keduanya menjadi satu solid", "Membuang bagian komponen pertama yang tertutup komponen kedua",
@@ -974,7 +974,7 @@ FQ_JUDUL = [
     "Bagaimana menyusun usulan perbaikan DFM yang metriknya dapat diperiksa ulang?",
 ]
 FQ_RINGKAS = [
-    "Hitung c_maks dan c_min kedua kelas suaian dengan Persamaan (1), pilih yang sesuai fungsi, lalu jelaskan cara memodelkan ukuran batas dan mengukurnya di FreeCAD.",
+    "Hitung c<sub>maks</sub> dan c<sub>min</sub> kedua kelas suaian dengan Persamaan (1), pilih yang sesuai fungsi, lalu jelaskan cara memodelkan ukuran batas dan mengukurnya di FreeCAD.",
     "Rancang uji tabrakan: Part Common pada posisi pemasangan dan pemindaian distToShape sepanjang putaran tuas, lalu hitung jarak bebas dengan Persamaan (6) dan usulkan batas gerak.",
     "Periksa tebal dinding dan jarak tepi terhadap batas proses (Bagian 05), usulkan perubahan parameter, lalu susun tabel metrik sebelum–sesudah beserta batas penerimaannya.",
 ]
@@ -982,24 +982,24 @@ FQ_RINGKAS = [
 
 def forum_page():
     q1 = fq(1, "14,165,233", "cyan", FQ_JUDUL[0],
-            f"Poros pinion ⌀{D_FIT} mm berputar di dalam bus rumah gearbox. Gambar kerja prototipe menuliskan H11/c11 (c_maks {ind(0.315, 3)} mm) sehingga pinion goyang dan bunyi, padahal fungsi yang dituju adalah poros berputar ringan tanpa goyang. Hitung c_maks dan c_min untuk H11/c11 dan untuk H7/g6 (ES = +{ES_LUB}, EI = 0, es = −6, ei = −17 µm) dengan Persamaan (1), pilih kelas yang tepat, lalu jelaskan cara memodelkan keadaan paling longgar dan paling sesak di FreeCAD serta cara mengukurnya.",
-            [f"⌀{D_FIT} H11/c11 → H7/g6", "c_maks = (ES − ei)/1000", "Std Measure celah radial"],
+            f"Poros pinion ⌀{D_FIT} mm berputar di dalam bus rumah gearbox. Gambar kerja prototipe menuliskan H11/c11 (c<sub>maks</sub> {ind(0.315, 3)} mm) sehingga pinion goyang dan bunyi, padahal fungsi yang dituju adalah poros berputar ringan tanpa goyang. Hitung c<sub>maks</sub> dan c<sub>min</sub> untuk H11/c11 dan untuk H7/g6 (ES = +{ES_LUB}, EI = 0, es = −6, ei = −17 µm) dengan Persamaan (1), pilih kelas yang tepat, lalu jelaskan cara memodelkan keadaan paling longgar dan paling sesak di FreeCAD serta cara mengukurnya.",
+            [f"⌀{D_FIT} H11/c11 → H7/g6", "c<sub>maks</sub> = (ES − ei)/1000", "Std Measure celah radial"],
             "Kelonggaran maksimum suatu pasangan lubang–poros dihitung dari...",
             ["Selisih ukuran nominal lubang dan poros", "(ES − ei)/1000: lubang pada ukuran maksimum bertemu poros pada ukuran minimum",
              "Rata-rata deviasi lubang dan poros", "Lebar zona toleransi IT poros saja"],
-            "✅ Tepat! Keadaan paling longgar adalah lubang terbesar bertemu poros terkecil, sehingga c_maks = (ES − ei)/1000 mm. Keadaan sebaliknya memberi c_min = (EI − es)/1000; kedua angka itulah yang menentukan apakah pinion berputar ringan atau goyang.",
+            "✅ Tepat! Keadaan paling longgar adalah lubang terbesar bertemu poros terkecil, sehingga c<sub>maks</sub> = (ES − ei)/1000 mm. Keadaan sebaliknya memberi c<sub>min</sub> = (EI − es)/1000; kedua angka itulah yang menentukan apakah pinion berputar ringan atau goyang.",
             "❌ Ukuran nominal sama untuk keduanya sehingga selisihnya nol, rata-rata deviasi tidak punya makna fisik, dan lebar zona poros saja mengabaikan lubang. Lihat Bagian 02 dan Animasi 1.",
-            "Petunjuk: (1) Hitung c_maks dan c_min kedua kelas suaian. (2) Pilih kelas yang sesuai fungsi dan beri alasannya. (3) Jelaskan pemodelan ukuran batas dan cara pengukurannya.")
+            "Petunjuk: (1) Hitung kelonggaran maksimum dan minimum kedua kelas suaian. (2) Pilih kelas yang sesuai fungsi dan beri alasannya. (3) Jelaskan pemodelan ukuran batas dan cara pengukurannya.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
             f"Tutup rumah gearbox ternyata menumpang rusuk dalam sejauh δ = {ind(DELTA_I, 1)} mm pada penampang {B_I} × {H_I} mm sehingga tidak dapat ditutup rapat, dan tuas selektor sepanjang R = {R_LAMA} mm dengan lebar w = {W_L} mm hanya berjarak {ind(C_MIN_LAMA, 2)} mm dari dinding rumah (W = {W_DIND} mm) padahal QA meminta sekurang-kurangnya 15 mm. Rancang prosedur pembuktian: Part Common pada posisi pemasangan, pemindaian distToShape sepanjang putaran tuas, dan perhitungan jarak bebas dengan Persamaan (6); usulkan perubahan yang membuat kedua metrik memenuhi batas.",
-            [f"δ = {ind(DELTA_I, 1)} mm · V_int = {ind(V_INT, 0)} mm³", f"tuas R = {R_LAMA} · w = {W_L}", "target c_min ≥ 15 mm"],
+            [f"δ = {ind(DELTA_I, 1)} mm · V<sub>int</sub> = {ind(V_INT, 0)} mm³", f"tuas R = {R_LAMA} · w = {W_L}", "target c<sub>min</sub> ≥ 15 mm"],
             "Bukti paling kuat bahwa tutup dan tuas selektor tidak bertabrakan sepanjang geraknya adalah...",
             ["Tampilan isometrik pada posisi awal terlihat tidak bersentuhan", "Solver rakitan tidak menampilkan peringatan apa pun",
              "Semua komponen ditransparankan lalu diamati sekilas",
              "Part Common bervolume nol dan distToShape positif pada seluruh sudut yang dipindai, termasuk sudut kritis"],
             "✅ Tepat! Joint dan tampilan tidak memeriksa tabrakan; volume irisan nol dan jarak minimum positif pada posisi kritis adalah bukti berangka yang dapat diperiksa ulang siapa pun.",
             "❌ Satu posisi, ketiadaan peringatan, dan pengamatan sekilas bukan bukti. Lihat Bagian 03, Bagian 06, dan Animasi 2 serta 4.",
-            "Petunjuk: (1) Tulis prosedur uji Common dan distToShape. (2) Hitung c_min dengan Persamaan (6). (3) Usulkan perubahan R, W, atau batas gerak agar c_min ≥ 15 mm.")
+            "Petunjuk: (1) Tulis prosedur uji Common dan distToShape. (2) Hitung celah minimum dengan Persamaan (6). (3) Usulkan perubahan R, W, atau batas gerak agar celah minimum ≥ 15 mm.")
     q3 = fq(3, "168,85,247", "violet", FQ_JUDUL[2],
             f"Rumah gearbox dicor aluminium dengan dinding {ind(W_TIPIS, 1)} mm (batas proses {ind(W_MIN_PROSES, 1)} mm) dan lubang baut flens berjarak tepi 6,0 mm pada pelat setebal {T_S} mm. Bagian produksi menolak karena cacat isi dan tepi flens sobek. Periksa keduanya terhadap aturan Bagian 05, usulkan perubahan parameter yang konkret (tebal dinding, ukuran pelat, letak lubang), lalu susun tabel metrik sebelum–sesudah beserta batas penerimaannya dan jelaskan biaya dari tiap perubahan.",
             [f"dinding {ind(W_TIPIS, 1)} mm vs {ind(W_MIN_PROSES, 1)} mm", f"jarak tepi 6,0 mm vs {ind(E_BATAS, 1)} mm", "tabel sebelum → sesudah"],
@@ -1022,8 +1022,8 @@ def forum_page():
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">gearbox prototipe</span>
     <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">H11/c11 &rarr; H7/g6</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">V_int &gt; 0</span>
-    <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">c_min &ge; 15 mm</span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">V<sub>int</sub> &gt; 0</span>
+    <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">c<sub>min</sub> &ge; 15 mm</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 13 · Identifikasi Masalah Desain dan Solusi Optimasi</div>
@@ -1045,7 +1045,7 @@ def forum_page():
       Laporan pertama ditolak pembimbing karena berisi kalimat seperti “agak longgar”, “nyaris kena”, dan “dindingnya kurang tebal” <strong style="color:var(--cyan)">tanpa satu pun angka</strong>. Bagian produksi juga menolak rumah cor karena cacat isi pada dinding tipis, dan tepi flens sobek saat lubang dibuat.
     </p>
     <p style="margin-top:12px">
-      Anda diminta menyusun <strong style="color:var(--cyan)">audit desain yang berangka</strong>: kelas suaian yang tepat beserta c_maks dan c_min-nya, bukti tabrakan dan jarak bebas gerak dari model, pemeriksaan DFM terhadap batas proses, dan satu tabel metrik sebelum&ndash;sesudah lengkap dengan batas penerimaan.
+      Anda diminta menyusun <strong style="color:var(--cyan)">audit desain yang berangka</strong>: kelas suaian yang tepat beserta c<sub>maks</sub> dan c<sub>min</sub>-nya, bukti tabrakan dan jarak bebas gerak dari model, pemeriksaan DFM terhadap batas proses, dan satu tabel metrik sebelum&ndash;sesudah lengkap dengan batas penerimaan.
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">
 {kartu(f"Pinion &oslash;{D_FIT}: H11/c11 &rarr; H7/g6", "14,165,233", "cyan")}
@@ -1067,7 +1067,7 @@ def forum_page():
 {q1}{q2}{q3}'''
 
 
-FORUM_SKENARIO_LMS = "PT Roda Presisi membuat lima unit prototipe gearbox reduksi kecil dan tim QA mencatat empat temuan: poros pinion &oslash;12 mm dipasang dengan suaian H11/c11 sehingga goyang dan berbunyi; tutup rumah menumpang rusuk dalam sejauh &delta; = 2,5 mm pada penampang 45 &times; 28 mm sehingga tidak dapat menutup rapat; tuas selektor sepanjang 90 mm dan lebar 24 mm hanya berjarak 9,20 mm dari dinding rumah (W = 100 mm) padahal QA meminta sekurang-kurangnya 15 mm; serta rumah cor berdinding 1,8 mm dengan lubang baut flens berjarak tepi 6,0 mm pada pelat 6 mm. Laporan pertama ditolak karena hanya berisi kesan tanpa angka. Susun audit desain berangka: kelas suaian yang tepat beserta c_maks dan c_min, bukti tabrakan dan jarak bebas gerak dari model (Part Common, distToShape), pemeriksaan DFM terhadap batas proses, dan tabel metrik sebelum&ndash;sesudah lengkap dengan batas penerimaan."
+FORUM_SKENARIO_LMS = "PT Roda Presisi membuat lima unit prototipe gearbox reduksi kecil dan tim QA mencatat empat temuan: poros pinion &oslash;12 mm dipasang dengan suaian H11/c11 sehingga goyang dan berbunyi; tutup rumah menumpang rusuk dalam sejauh &delta; = 2,5 mm pada penampang 45 &times; 28 mm sehingga tidak dapat menutup rapat; tuas selektor sepanjang 90 mm dan lebar 24 mm hanya berjarak 9,20 mm dari dinding rumah (W = 100 mm) padahal QA meminta sekurang-kurangnya 15 mm; serta rumah cor berdinding 1,8 mm dengan lubang baut flens berjarak tepi 6,0 mm pada pelat 6 mm. Laporan pertama ditolak karena hanya berisi kesan tanpa angka. Susun audit desain berangka: kelas suaian yang tepat beserta c<sub>maks</sub> dan c<sub>min</sub>, bukti tabrakan dan jarak bebas gerak dari model (Part Common, distToShape), pemeriksaan DFM terhadap batas proses, dan tabel metrik sebelum&ndash;sesudah lengkap dengan batas penerimaan."
 FORUM_CHIPS_LMS = ["pinion ⌀12: H11/c11 → H7/g6", "tutup menumpang δ = 2,5 mm", "tuas R = 90, w = 24, W = 100", "dinding cor 1,8 mm · jarak tepi 6,0 mm"]
 
 FORUM_KANVAS = r"""// ════════════════════════════════════════════════════════════
@@ -1077,7 +1077,7 @@ function drawForumCanvas() {
   const cv = document.getElementById('cvForum'); if (!cv) return;
   const W = cv.clientWidth || cv.width; if (cv.clientWidth > 0) cv.width = W; const H = cv.height;
   if (W < 120) return;   // tab tersembunyi: digambar ulang saat resize/tab dibuka
-  const ctx = cv.getContext('2d');
+  const ctx = (typeof _ttlRumusKtx === 'function' ? _ttlRumusKtx : c => c)(cv.getContext('2d'));  // notasi <sub>/<sup> (animasi/dasar.js)
   const bg = ctx.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#020812'); bg.addColorStop(1, '#1a0a12');
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
   const s = Math.min(W / 700, H / 180);
@@ -1111,10 +1111,10 @@ function drawForumCanvas() {
   ctx.fillStyle = 'rgba(226,232,240,.92)'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
   ctx.fillText('pinion ⌀12 pada bus — fit terlalu longgar', X(120), Y(164));
   ctx.fillText('tutup menumpang δ', X(300), Y(22));
-  ctx.fillText('tuas selektor — c_min ke dinding', X(410), Y(168));
+  ctx.fillText('tuas selektor — c<sub>min</sub> ke dinding', X(410), Y(168));
   ctx.fillText('flens: jarak tepi kecil', X(598), Y(136));
   ctx.fillStyle = 'rgba(239,68,68,.95)'; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'left';
-  ctx.fillText('■ empat temuan QA: c_maks salah kelas · V_int > 0 · c_min < 15 mm · dinding & jarak tepi di bawah batas', 14, 16);
+  ctx.fillText('■ empat temuan QA: c<sub>maks</sub> salah kelas · V<sub>int</sub> > 0 · c<sub>min</sub> < 15 mm · dinding & jarak tepi di bawah batas', 14, 16);
 }
 // Resize handler — gambar ulang kanvas forum; animasi materi mengurus dirinya sendiri.
 window.addEventListener('resize', () => {

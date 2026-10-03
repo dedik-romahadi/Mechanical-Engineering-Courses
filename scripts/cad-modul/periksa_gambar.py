@@ -13,13 +13,13 @@ import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
-RX_TEXT = re.compile(r'<text x="([\d.\-]+)" y="([\d.\-]+)" text-anchor="(\w+)" font-size="([\d.]+)" fill="[^"]*"(?: font-weight="[^"]*")? font-family="([^"]*)"[^>]*>([^<]*)</text>')
+RX_TEXT = re.compile(r'<text x="([\d.\-]+)" y="([\d.\-]+)" text-anchor="(\w+)" font-size="([\d.]+)" fill="[^"]*"(?: font-weight="[^"]*")? font-family="([^"]*)"[^>]*>((?:[^<]|</?tspan[^>]*>)*)</text>')
 RX_RECT = re.compile(r'<rect x="([\d.\-]+)" y="([\d.\-]+)" width="([\d.]+)" height="([\d.]+)"')
 
 
 def _bbox(m):
     x, y, anchor, size, fam, teks = float(m.group(1)), float(m.group(2)), m.group(3), float(m.group(4)), m.group(5), m.group(6)
-    teks = re.sub(r"&[a-z]+;", "x", teks)
+    teks = re.sub(r"&[a-z]+;", "x", re.sub(r"</?tspan[^>]*>", "", teks))   # tspan subskrip: taksiran tetap pada ukuran penuh
     if "Mono" in fam:
         lebar = len(teks) * size * 0.6
     else:  # Inter: spasi sempit, huruf rata-rata ~0,46 em (dikalibrasi dengan getBBox di browser)

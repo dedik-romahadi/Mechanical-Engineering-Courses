@@ -1239,6 +1239,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1657,7 +1728,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Dataset Structure: X (matrix) &amp; y (vector)</h3>
-      <p>Format standar tabular: matrix <code>X ∈ ℝ^(n×d)</code> dengan n = sample count, d = feature count; vector <code>y ∈ ℝ^n</code> (regresi) atau <code>y ∈ {0, 1, …, K-1}^n</code> (klasifikasi K-kelas). Contoh: 1000 sample × 8 fitur = X shape (1000, 8). Pandas DataFrame format: <code>df = pd.DataFrame(X, columns=feature_names); df['label'] = y</code>. Format CSV/Parquet untuk persistence. <strong>Label binary</strong> (healthy=0, fault=1) untuk binary classification; <strong>multi-class</strong> (healthy/bearing/imbalance/looseness) untuk diagnostik tipe fault.</p>
+      <p>Format standar tabular: matrix <code>X ∈ ℝ<sup>n×d</sup></code> dengan n = sample count, d = feature count; vector <code>y ∈ ℝ<sup>n</sup></code> (regresi) atau <code>y ∈ {0, 1, …, K-1}<sup>n</sup></code> (klasifikasi K-kelas). Contoh: 1000 sample × 8 fitur = X shape (1000, 8). Pandas DataFrame format: <code>df = pd.DataFrame(X, columns=feature_names); df['label'] = y</code>. Format CSV/Parquet untuk persistence. <strong>Label binary</strong> (healthy=0, fault=1) untuk binary classification; <strong>multi-class</strong> (healthy/bearing/imbalance/looseness) untuk diagnostik tipe fault.</p>
       <div class="formula">\(X[n, d], y[n]\)</div>
     </div>
     <div class="card">
@@ -1735,7 +1806,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-dmf">
   <div class="section-label reveal">Bagian 03</div>
   <h2 class="section-title reveal">Logistic Regression:<br>Linear Baseline Classifier untuk Healthy/Fault Detection</h2>
-  <p class="section-desc reveal"><strong>Logistic Regression (LR)</strong> adalah algoritma klasifikasi paling fundamental di ML, meski namanya "regression", LR sebenarnya untuk klasifikasi. Inti idenya: gabungkan fitur secara linear dengan bobot, lalu transform jadi probability via <em>sigmoid function</em>: <code>P(y=1 | x) = σ(wᵀx + b)</code> dengan σ(z) = 1/(1+e^(−z)). Decision boundary linear: predict class 1 kalau P &gt; 0.5, class 0 kalau P ≤ 0.5. Loss function: <em>cross-entropy (log-loss)</em>. Optimasi: <em>gradient descent</em> (atau Newton-Raphson IRLS). LR jadi <strong>baseline wajib</strong> di setiap ML project karena: (a) <em>cepat</em> training + inference (linear, tidak ada tree traversal), (b) <em>interpretable</em>, koefisien w[i] = log-odds contribution per fitur (bisa di-rank), (c) <em>probabilistic output</em> langsung (bukan post-hoc Platt scaling), (d) <em>robust</em> di linearly separable problem, (e) <em>regularization</em> built-in (L1 lasso, L2 ridge) via parameter <code>C</code>. Algoritma lanjutan (Random Forest tree ensemble + SVM kernel trick) di Pertemuan 15. Perhatikan ilustrasinya pada Gambar 3. Persamaan (3) di bawah memadatkan aturan tersebut.</p>
+  <p class="section-desc reveal"><strong>Logistic Regression (LR)</strong> adalah algoritma klasifikasi paling fundamental di ML, meski namanya "regression", LR sebenarnya untuk klasifikasi. Inti idenya: gabungkan fitur secara linear dengan bobot, lalu transform jadi probability via <em>sigmoid function</em>: <code>P(y=1 | x) = σ(wᵀx + b)</code> dengan σ(z) = 1/(1+e<sup>−z</sup>). Decision boundary linear: predict class 1 kalau P &gt; 0.5, class 0 kalau P ≤ 0.5. Loss function: <em>cross-entropy (log-loss)</em>. Optimasi: <em>gradient descent</em> (atau Newton-Raphson IRLS). LR jadi <strong>baseline wajib</strong> di setiap ML project karena: (a) <em>cepat</em> training + inference (linear, tidak ada tree traversal), (b) <em>interpretable</em>, koefisien w[i] = log-odds contribution per fitur (bisa di-rank), (c) <em>probabilistic output</em> langsung (bukan post-hoc Platt scaling), (d) <em>robust</em> di linearly separable problem, (e) <em>regularization</em> built-in (L1 lasso, L2 ridge) via parameter <code>C</code>. Algoritma lanjutan (Random Forest tree ensemble + SVM kernel trick) di Pertemuan 15. Perhatikan ilustrasinya pada Gambar 3. Persamaan (3) di bawah memadatkan aturan tersebut.</p>
 <!-- ILUSTRASI-STATIS:3:START -->
   <figure class="ilustrasi reveal">
     <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 3 — Kurva sigmoid mengubah skor menjadi peluang" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,207.0 L166.8,195.9 L255.9,172.0 L345.0,126.0 L434.1,80.0 L523.2,56.1 L642.0,45.0 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,207.0 L166.8,195.9 L255.9,172.0 L345.0,126.0 L434.1,80.0 L523.2,56.1 L642.0,45.0" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><line x1="48" y1="126" x2="642" y2="126" stroke="#fbbf24" stroke-width="1.1" stroke-dasharray="4 4" stroke-linecap="round"/><text x="56" y="121" text-anchor="start" font-size="11" fill="#fbbf24" font-weight="600" font-family="'Inter',system-ui,sans-serif">Ambang 0,5</text><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Sigmoid</text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Skor gabungan fitur</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Peluang rusak</text></g></svg>
@@ -2014,7 +2085,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Scatter 2D feature space dengan dua kelas (healthy biru / fault merah). Garis = <em>linear decision boundary</em> Logistic Regression: <code>w₁x₁ + w₂x₂ + b = 0</code>. Kurva sigmoid di samping = <code>σ(z) = 1/(1+e^(−z))</code>: input z = wᵀx+b, output P(y=1|x). Slider kontrol noise level &amp; class separability.<br>
+        <strong>📊 Cara Membaca:</strong> Scatter 2D feature space dengan dua kelas (healthy biru / fault merah). Garis = <em>linear decision boundary</em> Logistic Regression: <code>w₁x₁ + w₂x₂ + b = 0</code>. Kurva sigmoid di samping = <code>σ(z) = 1/(1+e<sup>−z</sup>)</code>: input z = wᵀx+b, output P(y=1|x). Slider kontrol noise level &amp; class separability.<br>
         <strong>Coba:</strong> (1) Separability tinggi, noise rendah → boundary linear sempurna, sigmoid steep. (2) Separability rendah, noise tinggi → boundary linear masih ditarik tetapi banyak misclassification, sigmoid landai. (3) Pattern non-linear (XOR/spiral) → LogReg <em>gagal</em>, butuh RF/SVM (lihat animasi modul P15). Pelajaran: <strong>LogReg = baseline cepat &amp; interpretable untuk linearly separable problem</strong>. Coefficient w[i] = log-odds contribution per fitur (built-in feature importance).
       </div>
     </div>
@@ -2683,7 +2754,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc1">
         <div class="radio-option" onclick="selectMC('mc1',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Supervised butuh GPU, unsupervised tidak</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Supervised butuh data <em>labeled</em> (X, y), model belajar mapping input → output dari contoh. Unsupervised hanya X (cari pattern intrinsik: clustering, dimensionality reduction)</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; Supervised butuh data <em>labeled</em> (X, y), model belajar mapping input → output dari contoh. Unsupervised hanya X (cari pattern intrinsik: clustering, dimensionality reduction)</span></div>
         <div class="radio-option" onclick="selectMC('mc1',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Supervised hanya untuk regresi, unsupervised untuk klasifikasi</div>
         <div class="radio-option" onclick="selectMC('mc1',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Tidak ada perbedaan signifikan</div>
       </div>
@@ -2700,7 +2771,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc2">
         <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Mempercepat training</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Menjaga proporsi tiap kelas <em>sama di train &amp; test set</em>, penting untuk imbalanced data (mis. 1% fault). Tanpa stratify, test set bisa kebetulan tidak punya sample positif sama sekali</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; Menjaga proporsi tiap kelas <em>sama di train &amp; test set</em>, penting untuk imbalanced data (mis. 1% fault). Tanpa stratify, test set bisa kebetulan tidak punya sample positif sama sekali</span></div>
         <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Mengubah label jadi numerik</div>
         <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Menghapus duplicate sample</div>
       </div>
@@ -2717,7 +2788,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc3">
         <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Setiap tree dilatih di seluruh dataset yang sama, hasil di-rata-rata</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Tiap tree dilatih di <em>bootstrap sample</em> + <em>random subset features</em>; prediksi via <strong>majority voting</strong>. Diversifikasi mengurangi variance, robust terhadap noise</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; Tiap tree dilatih di <em>bootstrap sample</em> + <em>random subset features</em>; prediksi via <strong>majority voting</strong>. Diversifikasi mengurangi variance, robust terhadap noise</span></div>
         <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Sequential boosting per tree dari error tree sebelumnya</div>
         <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Single tree dengan max_depth tinggi</div>
       </div>
@@ -2734,7 +2805,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc4">
         <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Menggunakan banyak hidden layer seperti neural network</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>Kernel trick</em>: implicit map data ke ruang dimensi tinggi via kernel function (RBF, polynomial). Di ruang tersebut, batas linear cukup untuk memisahkan kelas yang non-linear di ruang asli</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <em>Kernel trick</em>: implicit map data ke ruang dimensi tinggi via kernel function (RBF, polynomial). Di ruang tersebut, batas linear cukup untuk memisahkan kelas yang non-linear di ruang asli</span></div>
         <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Pakai gradient descent agresif</div>
         <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Hanya bekerja untuk binary classification</div>
       </div>
@@ -2751,7 +2822,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc5">
         <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Excellent, model sukses</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>Misleading</em>! Recall = 0% (semua fault missed). Untuk imbalanced data, accuracy tidak relevan, lalu pakai <strong>F1-score, precision, recall, ROC-AUC</strong>. Solusi: <code>class_weight='balanced'</code>, SMOTE, custom threshold</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <em>Misleading</em>! Recall = 0% (semua fault missed). Untuk imbalanced data, accuracy tidak relevan, lalu pakai <strong>F1-score, precision, recall, ROC-AUC</strong>. Solusi: <code>class_weight='balanced'</code>, SMOTE, custom threshold</span></div>
         <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Tidak bisa diinterpretasi tanpa data lebih</div>
         <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Bukti overfit</div>
       </div>
@@ -2768,7 +2839,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc6">
         <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div>(A) &nbsp; FP (false alarm), yang utama hindari</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>FN (missed fault)</em>, paling berbahaya. Predict "healthy" padahal actual "fault" → mesin tidak diperbaiki, catastrophic failure. Solusi: minimize FN via threshold rendah (high recall)</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <em>FN (missed fault)</em>, paling berbahaya. Predict "healthy" padahal actual "fault" → mesin tidak diperbaiki, catastrophic failure. Solusi: minimize FN via threshold rendah (high recall)</span></div>
         <div class="radio-option" onclick="selectMC('mc6',this,'C')"><div class="radio-circle"></div>(C) &nbsp; TN (correct normal), yang harus dimaksimalkan</div>
         <div class="radio-option" onclick="selectMC('mc6',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Semua sama pentingnya</div>
       </div>
@@ -2785,7 +2856,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc7">
         <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Selalu lebih besar dari accuracy</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>Harmonic mean</em> precision &amp; recall, single metric yang menyeimbangkan keduanya. F1 tinggi hanya saat P &amp; R keduanya tinggi (penalize jika salah satu rendah). Cocok untuk imbalanced data</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <em>Harmonic mean</em> precision &amp; recall, single metric yang menyeimbangkan keduanya. F1 tinggi hanya saat P &amp; R keduanya tinggi (penalize jika salah satu rendah). Cocok untuk imbalanced data</span></div>
         <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; F1 = accuracy untuk binary classification</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Hanya bekerja untuk 2 kelas</div>
       </div>
@@ -2802,7 +2873,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc8">
         <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Single split selalu underperform CV</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div>(B) &nbsp; CV memberikan <em>mean ± std</em> dari k metric estimates, single split bisa lucky/unlucky (variance tinggi). CV reduce variance estimate via averaging across k folds, lebih robust untuk model selection &amp; hyperparameter tuning</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; CV memberikan <em>mean ± std</em> dari k metric estimates, single split bisa lucky/unlucky (variance tinggi). CV reduce variance estimate via averaging across k folds, lebih robust untuk model selection &amp; hyperparameter tuning</span></div>
         <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div>(C) &nbsp; CV gunakan algoritma berbeda</div>
         <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div>(D) &nbsp; CV lebih cepat 5×</div>
       </div>
@@ -2819,7 +2890,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc9">
         <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Train accuracy &amp; test accuracy sama-sama rendah</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>Train accuracy &gt;&gt; test accuracy</em>, model memorize training data tetapi gagal generalize. Solusi: regularize (smaller max_depth, larger min_samples_leaf, smaller C), more data, simpler model, ensemble averaging, cross-validation</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <em>Train accuracy &gt;&gt; test accuracy</em>, model memorize training data tetapi gagal generalize. Solusi: regularize (smaller max_depth, larger min_samples_leaf, smaller C), more data, simpler model, ensemble averaging, cross-validation</span></div>
         <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Model selalu predict kelas mayoritas</div>
         <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Training error tidak konvergen</div>
       </div>
@@ -2836,7 +2907,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc10">
         <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div>(A) &nbsp; ML 100% menggantikan rule-based</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>Hybrid rule-based + ML</em>: rule-based ISO 10816 (P13) sebagai <strong>safety net + compliance</strong>; ML (P14) sebagai <strong>early-warning + diagnosis multi-feature</strong>. Operator dashboard unified. Re-train model periodik (concept drift)</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <em>Hybrid rule-based + ML</em>: rule-based ISO 10816 (P13) sebagai <strong>safety net + compliance</strong>; ML (P14) sebagai <strong>early-warning + diagnosis multi-feature</strong>. Operator dashboard unified. Re-train model periodik (concept drift)</span></div>
         <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Hanya ML, abaikan rule-based</div>
         <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Hanya rule-based, ML tidak diperlukan</div>
       </div>
@@ -3244,8 +3315,8 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Setup baseline LogReg paling tepat untuk extreme imbalance?</div>
           <div class="poll-opts" id="fp1">
-            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div><code>train_test_split(X, y, test_size=0.2)</code> default, sklearn akan handle otomatis</div>
-            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div><strong>Wajib stratify</strong>: <code>train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)</code>. Plus pakai <code>class_weight='balanced'</code> di <code>LogisticRegression(class_weight='balanced', max_iter=1000)</code>. Plus evaluasi pakai F1/recall/PR-AUC, BUKAN accuracy. Plus stratified 5-fold CV (<code>StratifiedKFold</code>). Untuk extreme imbalance, threshold tuning 0.5 → ~0.1 (lebih rendah supaya catch lebih banyak positive)</div>
+            <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div><span class="opsi-teks"><code>train_test_split(X, y, test_size=0.2)</code> default, sklearn akan handle otomatis</span></div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div><span class="opsi-teks"><strong>Wajib stratify</strong>: <code>train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)</code>. Plus pakai <code>class_weight='balanced'</code> di <code>LogisticRegression(class_weight='balanced', max_iter=1000)</code>. Plus evaluasi pakai F1/recall/PR-AUC, BUKAN accuracy. Plus stratified 5-fold CV (<code>StratifiedKFold</code>). Untuk extreme imbalance, threshold tuning 0.5 → ~0.1 (lebih rendah supaya catch lebih banyak positive)</span></div>
             <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Hapus 99% healthy sample supaya jadi 50/50 balanced, model lebih mudah belajar</div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Tetap pakai accuracy — 99.9% aman</div>
           </div>
@@ -3276,8 +3347,8 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Cara terbaik komunikasikan koefisien LogReg ke maintenance engineer?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Print <code>model.coef_</code> raw, engineer bisa baca sendiri</div>
-            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div><strong>Visualisasi feature importance ranked</strong>: bar chart |w[i]| descending dengan color coding (positif=merah/danger, negatif=hijau/protective). Plus <em>per-prediction breakdown</em> untuk each alert: "Engine X predicted degraded karena (a) EGT delta +5°C dari baseline = log-odds +0.85, (b) N1 vibration +12% = +0.31, (c) oil_pressure -3% = -0.18 (slight protective)". Sertakan <em>interpretasi engineering</em>: "EGT tinggi konsisten dengan combustion inefficiency, recommend borescope inspection turbine vane". Pelajaran: <strong>raw number tidak cukup, butuh narrative engineering</strong></div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div><span class="opsi-teks">Print <code>model.coef_</code> raw, engineer bisa baca sendiri</span></div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div><span class="opsi-teks"><strong>Visualisasi feature importance ranked</strong>: bar chart |w[i]| descending dengan color coding (positif=merah/danger, negatif=hijau/protective). Plus <em>per-prediction breakdown</em> untuk each alert: "Engine X predicted degraded karena (a) EGT delta +5°C dari baseline = log-odds +0.85, (b) N1 vibration +12% = +0.31, (c) oil_pressure -3% = -0.18 (slight protective)". Sertakan <em>interpretasi engineering</em>: "EGT tinggi konsisten dengan combustion inefficiency, recommend borescope inspection turbine vane". Pelajaran: <strong>raw number tidak cukup, butuh narrative engineering</strong></span></div>
             <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Tidak perlu jelaskan, engineer harus belajar ML sendiri</div>
             <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Skip LogReg, langsung pakai Random Forest dengan SHAP</div>
           </div>
@@ -3390,7 +3461,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
   <div class="float-formulas">
     <span class="ff" style="left:6%;font-size:.9rem;color:var(--violet);--dur:22s;--del:0s">✅ Tepat Waktu</span>
     <span class="ff" style="left:28%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">min f(x)</span>
-    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">x_{k+1} = x_k − α∇f</span>
+    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">x<sub>k+1</sub> = x<sub>k</sub> − α∇f</span>
     <span class="ff" style="left:70%;font-size:.7rem;color:var(--pink);--dur:24s;--del:2s">🏆 Top Skor</span>
     <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">scipy.minimize</span>
   </div>
@@ -4435,6 +4506,35 @@ function checkExportReady() {
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4502,15 +4602,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -4549,7 +4651,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -4562,7 +4664,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -6984,7 +7086,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
   const formulas = [
     { t: 'min f(x), x ∈ ℝⁿ',                     s: 13 },
     { t: '∇f(x*) = 0',                            s: 12 },
-    { t: 'x_{k+1} = x_k − α·∇f(x_k)',             s: 11 },
+    { t: 'x<sub>k+1</sub> = x<sub>k</sub> − α·∇f(x<sub>k</sub>)',             s: 11 },
     { t: 'L = f + λᵀh + μᵀg',                    s: 12 },
     { t: 'KKT: μᵢgᵢ = 0',                         s: 11 },
     { t: 'Hessian ∇²f ⪰ 0',                      s: 11 },
@@ -7006,7 +7108,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

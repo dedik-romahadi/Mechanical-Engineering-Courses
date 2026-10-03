@@ -511,7 +511,7 @@ export const FORUM = {
     diskusi: [
       {
         q: "Hitung dan bandingkan penyetelan Ziegler-Nichols dengan penyetelan berbasis spesifikasi untuk kasus ini",
-        petunjuk: "1) Hitung Kp, Ti, dan Td menurut Ziegler-Nichols dari Ku dan Tu. 2) Tetapkan spesifikasi overshoot dan waktu menetap yang wajar lalu turunkan z dan wn. 3) Hitung parameter dari letak pole yang dituju. 4) Bandingkan kedua himpunan parameter dan jelaskan mana yang lebih agresif pada tiap aksinya.",
+        petunjuk: "1) Hitung Kp, Ti, dan Td menurut Ziegler-Nichols dari Ku dan Tu. 2) Tetapkan spesifikasi overshoot dan waktu menetap yang wajar lalu turunkan ζ dan wn. 3) Hitung parameter dari letak pole yang dituju. 4) Bandingkan kedua himpunan parameter dan jelaskan mana yang lebih agresif pada tiap aksinya.",
       },
       {
         q: "Jelaskan mekanisme penumpukan integral pada kasus ini beserta cara mengujinya",

@@ -1239,6 +1239,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1682,7 +1753,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="info-box reveal">
     <strong>Contoh Konkret, Pabrik Komponen Mesin:</strong><br>
-    Pabrik menghasilkan dua jenis bracket: A (profit Rp 40k/unit) dan B (profit Rp 30k/unit). Kendala: <em>mesin CNC</em> (60 jam tersedia, A pakai 2 jam, B pakai 1 jam) dan <em>welding</em> (80 jam, A pakai 1 jam, B pakai 3 jam). Formulasi LP: <code>max Z = 40x_A + 30x_B</code> s.t. <code>2x_A + x_B ≤ 60</code>, <code>x_A + 3x_B ≤ 80</code>, <code>x_A, x_B ≥ 0</code>. Solusi optimal di vertex (20, 20) dengan Z = Rp 1.400k.
+    Pabrik menghasilkan dua jenis bracket: A (profit Rp 40k/unit) dan B (profit Rp 30k/unit). Kendala: <em>mesin CNC</em> (60 jam tersedia, A pakai 2 jam, B pakai 1 jam) dan <em>welding</em> (80 jam, A pakai 1 jam, B pakai 3 jam). Formulasi LP: <code>max Z = 40x<sub>A</sub> + 30x<sub>B</sub></code> s.t. <code>2x<sub>A</sub> + x<sub>B</sub> ≤ 60</code>, <code>x<sub>A</sub> + 3x<sub>B</sub> ≤ 80</code>, <code>x<sub>A</sub>, x<sub>B</sub> ≥ 0</code>. Solusi optimal di vertex (20, 20) dengan Z = Rp 1.400k.
   </div>
 
   <div class="tip-box reveal">
@@ -1802,13 +1873,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">💰</div>
       <h3>Pricing — Pilih Variabel Masuk</h3>
-      <p>Hitung <strong>reduced cost</strong> tiap NBV: <code>z̄ⱼ = cⱼ − c_BV·B⁻¹·aⱼ</code>. Untuk <em>maksimisasi</em>: pilih NBV dengan <strong style="color:var(--green)">z̄ⱼ paling positif</strong> (Dantzig's rule), variabel ini akan masuk basis dan menaikkan Z. Jika semua z̄ⱼ ≤ 0 → <em>solusi optimal</em>, stop. Alternatif: <em>steepest edge</em> (lebih cepat tapi lebih mahal per iterasi), <em>Bland's rule</em> (anti-cycling).</p>
+      <p>Hitung <strong>reduced cost</strong> tiap NBV: <code>z̄ⱼ = cⱼ − c<sub>BV</sub>·B⁻¹·aⱼ</code>. Untuk <em>maksimisasi</em>: pilih NBV dengan <strong style="color:var(--green)">z̄ⱼ paling positif</strong> (Dantzig's rule), variabel ini akan masuk basis dan menaikkan Z. Jika semua z̄ⱼ ≤ 0 → <em>solusi optimal</em>, stop. Alternatif: <em>steepest edge</em> (lebih cepat tapi lebih mahal per iterasi), <em>Bland's rule</em> (anti-cycling).</p>
       <div class="formula">\(j* = argmax{z̄_j : NBV}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Ratio Test — Pilih Variabel Keluar</h3>
-      <p>Setelah variabel <code>x_{j*}</code> dipilih masuk, harus ada satu BV yang keluar (agar tetap n basic variables). <strong>Minimum ratio test</strong>: untuk semua baris <code>i</code> dengan <code>aᵢⱼ* &gt; 0</code>, hitung <code>θᵢ = bᵢ / aᵢⱼ*</code>. Pilih <code>i*</code> dengan <strong>θ minimum</strong>; itulah BV yang keluar. Jika semua <code>aᵢⱼ* ≤ 0</code> → <strong style="color:var(--amber)">unbounded</strong> (Z bisa naik ∞).</p>
+      <p>Setelah variabel <code>x<sub>j*</sub></code> dipilih masuk, harus ada satu BV yang keluar (agar tetap n basic variables). <strong>Minimum ratio test</strong>: untuk semua baris <code>i</code> dengan <code>aᵢⱼ* &gt; 0</code>, hitung <code>θᵢ = bᵢ / aᵢⱼ*</code>. Pilih <code>i*</code> dengan <strong>θ minimum</strong>; itulah BV yang keluar. Jika semua <code>aᵢⱼ* ≤ 0</code> → <strong style="color:var(--amber)">unbounded</strong> (Z bisa naik ∞).</p>
       <div class="formula">\(\theta^{*} = \min\{b_i / a_{ij}^{*} : a_{ij}^{*} > 0\}\)</div>
     </div>
     <div class="card">
@@ -1846,7 +1917,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="info-box reveal">
     <strong>Dual Simplex &amp; Sensitivity Analysis:</strong><br>
-    Setiap LP <em>primal</em> punya <strong>dual</strong> yang setara. Dual variable <code>y</code> menunjukkan <em>shadow price</em> tiap kendala, berapa peningkatan Z kalau <code>bᵢ</code> ditambah 1 unit. Misal pabrik dengan kendala 60 jam CNC dan 80 jam welding (lihat C2), solve sistem dual <code>2y₁+y₂=40, y₁+3y₂=30</code> → dual <code>y_CNC = 18, y_welding = 4</code>. Tambahan 1 jam CNC akan menaikkan profit Rp 18k (lebih besar dari welding). Insight bisnis: <strong style="color:var(--cyan)">y memberi prioritas investasi</strong>, investasi di CNC memberi ROI lebih besar. Hasil <code>scipy.optimize.linprog</code> mengembalikan <code>-result.ineqlin.marginals</code> = nilai dual.
+    Setiap LP <em>primal</em> punya <strong>dual</strong> yang setara. Dual variable <code>y</code> menunjukkan <em>shadow price</em> tiap kendala, berapa peningkatan Z kalau <code>bᵢ</code> ditambah 1 unit. Misal pabrik dengan kendala 60 jam CNC dan 80 jam welding (lihat C2), solve sistem dual <code>2y₁+y₂=40, y₁+3y₂=30</code> → dual <code>y<sub>CNC</sub> = 18, y<sub>welding</sub> = 4</code>. Tambahan 1 jam CNC akan menaikkan profit Rp 18k (lebih besar dari welding). Insight bisnis: <strong style="color:var(--cyan)">y memberi prioritas investasi</strong>, investasi di CNC memberi ROI lebih besar. Hasil <code>scipy.optimize.linprog</code> mengembalikan <code>-result.ineqlin.marginals</code> = nilai dual.
   </div>
 
   <div class="warn-box reveal">
@@ -1894,7 +1965,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 5 -->
   <div class="analogy-box reveal" style="border-left-color:var(--pink);background:linear-gradient(135deg,rgba(239,68,68,.07),rgba(168,85,247,.03))">
     <span class="analogy-label" style="color:var(--pink)">💰 Analogi 5 — Portfolio &amp; Markowitz's Model</span>
-    Investor mengalokasikan dana ke saham, obligasi, emas, kripto, agar return maksimum dengan risk tertentu. <strong>Markowitz (1952)</strong> rumuskan ini sebagai LP/QP: variabel <code>wᵢ</code> = bobot tiap aset, objektif = maximize Σwᵢ·rᵢ, kendala Σwᵢ = 1 (full investment), <code>w ≥ 0</code> (no short), <code>wᵀΣw ≤ σ²_target</code> (risk budget). Setiap robo-advisor (Wealthfront, Bibit) menjalankan variant LP/QP ini saat Anda klik "rebalance". Konsep yang sama dipakai di pabrik: <em>alokasi budget maintenance</em> ke berbagai mesin agar reliability portfolio maksimum.
+    Investor mengalokasikan dana ke saham, obligasi, emas, kripto, agar return maksimum dengan risk tertentu. <strong>Markowitz (1952)</strong> rumuskan ini sebagai LP/QP: variabel <code>wᵢ</code> = bobot tiap aset, objektif = maximize Σwᵢ·rᵢ, kendala Σwᵢ = 1 (full investment), <code>w ≥ 0</code> (no short), <code>wᵀΣw ≤ σ²<sub>target</sub></code> (risk budget). Setiap robo-advisor (Wealthfront, Bibit) menjalankan variant LP/QP ini saat Anda klik "rebalance". Konsep yang sama dipakai di pabrik: <em>alokasi budget maintenance</em> ke berbagai mesin agar reliability portfolio maksimum.
   </div>
 
   <!-- Analogi 6 -->
@@ -1938,7 +2009,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi:</strong> Bidang ungu = <em>daerah feasibel</em> hasil irisan kendala (CNC: 2x_A+\(x_B\) ≤ b₁; Welding: \(x_A\)+3x_B ≤ 80; x ≥ 0). Garis cyan putus-putus = kendala CNC, garis amber putus-putus = kendala Welding. Garis ungu solid bergerak = <em>iso-profit line</em> (cᵀx = Z) yang bergeser ke arah maksimum. Bintang kuning = vertex optimal x*.<br>
+        <strong>📊 Cara Membaca Animasi:</strong> Bidang ungu = <em>daerah feasibel</em> hasil irisan kendala (CNC: 2x<sub>A</sub>+\(x_B\) ≤ b₁; Welding: \(x_A\)+3x<sub>B</sub> ≤ 80; x ≥ 0). Garis cyan putus-putus = kendala CNC, garis amber putus-putus = kendala Welding. Garis ungu solid bergerak = <em>iso-profit line</em> (cᵀx = Z) yang bergeser ke arah maksimum. Bintang kuning = vertex optimal x*.<br>
         <strong>Coba:</strong> (1) c₁ = 40 → vertex optimal di (20, 20) dengan Z = 1400. (2) Naikkan c₁ ke 60 → vertex optimal bergeser ke (30, 0). (3) Turunkan kapasitas CNC b₁ → daerah feasibel mengecil, optimum berkurang. Inilah esensi metode grafis LP: <em>iso-profit menggeser hingga menyentuh vertex terjauh</em>.
       </div>
     </div>
@@ -1965,7 +2036,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="sweepInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Daerah ungu = feasibel polygon LP (max 40x_A+30x_B s.t. CNC≤60, Welding≤80). Bulatan amber = vertex feasibel. Garis amber solid = trajectory Simpleks dari vertex ke vertex (iterasi 0 → optimal). Bintang kuning = vertex Simpleks pada iterasi saat ini. Panel info menunjukkan iterasi #, vertex koordinat, nilai Z, dan reduced cost dari NBV terbaik.<br>
+        <strong>📊 Cara Membaca:</strong> Daerah ungu = feasibel polygon LP (max 40x<sub>A</sub>+30x<sub>B</sub> s.t. CNC≤60, Welding≤80). Bulatan amber = vertex feasibel. Garis amber solid = trajectory Simpleks dari vertex ke vertex (iterasi 0 → optimal). Bintang kuning = vertex Simpleks pada iterasi saat ini. Panel info menunjukkan iterasi #, vertex koordinat, nilai Z, dan reduced cost dari NBV terbaik.<br>
         <strong>Coba:</strong> (1) Iterasi 0 = origin (0,0), Z = 0, semua slack basic. (2) Iter 1 = pivot ke vertex tetangga dengan reduced cost terbesar (Dantzig rule). (3) Iter 2 = lanjut hingga semua reduced cost ≤ 0 (optimal di (20,20), Z=1400). <em>Setiap iterasi Z monoton naik</em>; itulah teorema fundamental Simpleks.
       </div>
     </div>
@@ -2556,7 +2627,7 @@ Z_check = (out[<span class="st">'production'</span>] * profit_arr).<span class="
       </div>
       <div class="radio-group" id="rg-mc3">
         <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Memperkenalkan ketidakpastian probabilistik ke LP</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Mengkonversi kendala inequality menjadi <em>equality</em> <code>aᵢᵀx + sᵢ = bᵢ</code> agar bisa diolah algoritma Simpleks</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; Mengkonversi kendala inequality menjadi <em>equality</em> <code>aᵢᵀx + sᵢ = bᵢ</code> agar bisa diolah algoritma Simpleks</span></div>
         <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Membuat masalah jadi non-linier</div>
         <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Memperbesar daerah feasibel dengan tambahan dimensi</div>
       </div>
@@ -2572,8 +2643,8 @@ Z_check = (out[<span class="st">'production'</span>] * profit_arr).<span class="
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Memberi parameter <code>direction='max'</code> ke linprog</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Negasikan koefisien c (kirim <code>-c</code>) karena linprog selalu MEMINIMUMKAN; nilai Z dikembalikan dengan <code>-result.fun</code></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; Memberi parameter <code>direction='max'</code> ke linprog</span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; Negasikan koefisien c (kirim <code>-c</code>) karena linprog selalu MEMINIMUMKAN; nilai Z dikembalikan dengan <code>-result.fun</code></span></div>
         <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Tidak bisa, scipy tidak mendukung maksimisasi sama sekali</div>
         <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Membalikkan tanda b_ub dan A_ub saja</div>
       </div>
@@ -2590,7 +2661,7 @@ Z_check = (out[<span class="st">'production'</span>] * profit_arr).<span class="
       </div>
       <div class="radio-group" id="rg-mc5">
         <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Solusi optimal sudah ditemukan dengan akurasi tinggi</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Daerah feasibel terbentang ke arah peningkatan Z tanpa batas, biasanya <em>kurang kendala fisik</em>; harus ditinjau ulang formulasinya</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; Daerah feasibel terbentang ke arah peningkatan Z tanpa batas, biasanya <em>kurang kendala fisik</em>; harus ditinjau ulang formulasinya</span></div>
         <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Daerah feasibel kosong, kendala kontradiktif</div>
         <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Solver belum konvergen, perlu iterasi lebih banyak</div>
       </div>
@@ -2657,8 +2728,8 @@ Z_check = (out[<span class="st">'production'</span>] * profit_arr).<span class="
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
-        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>x₁ + x₂ = 4</code> (langsung dijadikan equality)</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>−x₁ − x₂ ≤ −4</code> (negasikan kedua sisi membalik tanda inequality)</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; <code>x₁ + x₂ = 4</code> (langsung dijadikan equality)</span></div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <code>−x₁ − x₂ ≤ −4</code> (negasikan kedua sisi membalik tanda inequality)</span></div>
         <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Menambah variabel kuadratik di sisi kiri</div>
         <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Tidak perlu konversi, kendala ≥ langsung diterima</div>
       </div>
@@ -2675,9 +2746,9 @@ Z_check = (out[<span class="st">'production'</span>] * profit_arr).<span class="
       </div>
       <div class="radio-group" id="rg-mc10">
         <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Tetap pakai LP biasa, lalu pembulatan hasil ke integer terdekat</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>Mixed-Integer Linear Programming (MILP)</em> dengan variabel ber-tipe integer (<code>integrality=1</code> di scipy 1.9+), pembulatan LP biasa bisa infeasible/sub-optimal</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <em>Mixed-Integer Linear Programming (MILP)</em> dengan variabel ber-tipe integer (<code>integrality=1</code> di scipy 1.9+), pembulatan LP biasa bisa infeasible/sub-optimal</span></div>
         <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Quadratic Programming saja</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div>(D) &nbsp; LP dengan kendala tambahan <code>x ∈ ℝ</code></div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; LP dengan kendala tambahan <code>x ∈ ℝ</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc10" onclick="checkMC('mc10')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc10"></div>
@@ -2732,7 +2803,7 @@ from scipy.optimize import linprog
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Pabrik bracket 2-produk: <strong>max \(Z = 40x_A + 30x_B\)</strong> s.t. <code>2x_A + x_B ≤ 60</code> (CNC), <code>x_A + 3x_B ≤ 80</code> (welding), <code>x ≥ 0</code>. Selesaikan dengan linprog dan print <strong>Z optimal</strong> (Rp k).</div>
+        <div class="comp-q">Pabrik bracket 2-produk: <strong>max \(Z = 40x_A + 30x_B\)</strong> s.t. <code>2x<sub>A</sub> + x<sub>B</sub> ≤ 60</code> (CNC), <code>x<sub>A</sub> + 3x<sub>B</sub> ≤ 80</code> (welding), <code>x ≥ 0</code>. Selesaikan dengan linprog dan print <strong>Z optimal</strong> (Rp k).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Susun c (negasi karena maksimisasi), A_ub dari koefisien kendala, dan b_ub dari batas kapasitas; ambil Z dari <code>-res.fun</code>.</div>
@@ -2752,7 +2823,7 @@ from scipy.optimize import linprog
         <div class="comp-q">Untuk LP yang sama dengan C2, print <strong>\(x_A\) optimal</strong> (jumlah unit Bracket A).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Vertex optimal terjadi di perpotongan kedua kendala binding (CNC &amp; welding); nilai x_A diambil dari elemen pertama <code>res.x</code>.</div>
+      <div class="comp-hint">💡 Vertex optimal terjadi di perpotongan kedua kendala binding (CNC &amp; welding); nilai x<sub>A</sub> diambil dari elemen pertama <code>res.x</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(x_A\) optimal</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
@@ -2800,7 +2871,7 @@ from scipy.optimize import linprog
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C6</div>
-        <div class="comp-q"><strong>Slack di vertex optimal C2</strong> (pabrik bracket 2-produk): hitung slack kendala CNC <code>s_CNC = 60 − (2·x_A + x_B)</code> di solusi optimal (selesaikan LP C2 terlebih dahulu untuk dapat \(x_A\), \(x_B\)). Print nilainya.</div>
+        <div class="comp-q"><strong>Slack di vertex optimal C2</strong> (pabrik bracket 2-produk): hitung slack kendala CNC <code>s<sub>CNC</sub> = 60 − (2·x<sub>A</sub> + x<sub>B</sub>)</code> di solusi optimal (selesaikan LP C2 terlebih dahulu untuk dapat \(x_A\), \(x_B\)). Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Slack = kapasitas − pemakaian di solusi optimal; slack = 0 berarti kendala binding. Bisa juga dibaca dari <code>res.ineqlin.residual</code>.</div>
@@ -2963,7 +3034,7 @@ from scipy.optimize import linprog
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q"><strong>Sensitivity Analysis</strong>: untuk pabrik bracket 2-produk (C2: max 40x_A+30x_B, kendala CNC ≤ 60, Welding ≤ 80, x ≥ 0). Hitung <strong>perubahan Z optimal</strong> kalau kapasitas CNC ditambah dari 60 → 65 (lebih 5 jam). Bandingkan dengan prediksi shadow price (Δkapasitas · shadow_price_CNC). Print \(Z_{\text{baru}}\) − \(Z_{\text{lama}}\).</div>
+        <div class="comp-q"><strong>Sensitivity Analysis</strong>: untuk pabrik bracket 2-produk (C2: max 40x<sub>A</sub>+30x<sub>B</sub>, kendala CNC ≤ 60, Welding ≤ 80, x ≥ 0). Hitung <strong>perubahan Z optimal</strong> kalau kapasitas CNC ditambah dari 60 → 65 (lebih 5 jam). Bandingkan dengan prediksi shadow price (Δkapasitas · shadow_price_CNC). Print \(Z_{\text{baru}}\) − \(Z_{\text{lama}}\).</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Selesaikan LP dua kali (kapasitas CNC lama vs baru), lalu hitung selisih Z; bandingkan dengan prediksi shadow price × Δb sebagai validasi sensitivity analysis.</div>
@@ -4268,6 +4339,35 @@ function checkExportReady() {
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4335,15 +4435,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -4382,7 +4484,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -4395,7 +4497,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5431,8 +5533,8 @@ function drawPhysics(){
   ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
   ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x_A', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('x_B', PX(0)-22, PY(yMax)+10);
+  ctx.fillText('x<sub>A</sub>', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('x<sub>B</sub>', PX(0)-22, PY(yMax)+10);
   // Tick labels
   ctx.font = '9px JetBrains Mono'; ctx.fillStyle = 'rgba(255,255,255,.5)';
   for(let i=10;i<=xMax;i+=10) ctx.fillText(i, PX(i)-6, PY(0)+14);
@@ -5457,8 +5559,8 @@ function drawPhysics(){
 
   // Legend
   ctx.font = '10px JetBrains Mono';
-  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.fillText('--- CNC: 2x_A+x_B ≤ '+b1, PX(2), PY(yMax)+12);
-  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.fillText('--- Welding: x_A+3x_B ≤ '+b2, PX(2), PY(yMax)+24);
+  ctx.fillStyle = 'rgba(14,165,233,.95)'; ctx.fillText('--- CNC: 2x<sub>A</sub>+x<sub>B</sub> ≤ '+b1, PX(2), PY(yMax)+12);
+  ctx.fillStyle = 'rgba(249,115,22,.95)'; ctx.fillText('--- Welding: x<sub>A</sub>+3x<sub>B</sub> ≤ '+b2, PX(2), PY(yMax)+24);
   ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.fillText('— Iso-profit Z='+Zcur.toFixed(0), PX(2), PY(yMax)+36);
 
   // Slider display
@@ -5565,9 +5667,9 @@ function drawSweep(){
 
   const path = [[0,0], [30,0], [20,20], [20,20]];  // iter 0, 1, 2, 3 (steady at 2)
   const reducedCosts = [
-    {label: 'r_A=40, r_B=30', enter: 'x_A', exit: 's₁'},
-    {label: 'r_B=10, r_s1=-20', enter: 'x_B', exit: 's₂'},
-    {label: 'r_s1=-18, r_s2=-4', enter: '— optimal', exit: '—'},
+    {label: 'r<sub>A</sub>=40, r<sub>B</sub>=30', enter: 'x<sub>A</sub>', exit: 's₁'},
+    {label: 'r<sub>B</sub>=10, r<sub>s1</sub>=-20', enter: 'x<sub>B</sub>', exit: 's₂'},
+    {label: 'r<sub>s1</sub>=-18, r<sub>s2</sub>=-4', enter: '— optimal', exit: '—'},
     {label: 'OPTIMAL: r ≤ 0 ∀ NBV', enter: '—', exit: '—'}
   ];
   const Zat = path.map(([x,y]) => c1*x + c2*y);
@@ -5629,8 +5731,8 @@ function drawSweep(){
   ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
   ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '11px JetBrains Mono';
-  ctx.fillText('x_A', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('x_B', PX(0)-22, PY(yMax)+10);
+  ctx.fillText('x<sub>A</sub>', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('x<sub>B</sub>', PX(0)-22, PY(yMax)+10);
   ctx.font = '9px JetBrains Mono'; ctx.fillStyle = 'rgba(255,255,255,.5)';
   for(let i=10;i<=xMax;i+=10) ctx.fillText(i, PX(i)-6, PY(0)+14);
   for(let j=10;j<=yMax;j+=10) ctx.fillText(j, PX(0)-22, PY(j)+4);
@@ -5944,8 +6046,8 @@ function drawHPB(){
   ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(xMax), PY(0)); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(0), PY(yMax)); ctx.stroke();
   ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('x_A', PX(xMax)+5, PY(0)+4);
-  ctx.fillText('x_B', PX(0)-22, PY(yMax)+10);
+  ctx.fillText('x<sub>A</sub>', PX(xMax)+5, PY(0)+4);
+  ctx.fillText('x<sub>B</sub>', PX(0)-22, PY(yMax)+10);
 
   // Title
   ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
@@ -5955,9 +6057,9 @@ function drawHPB(){
   const slacks = optV ? {
     CNC:     b1 - (2*optV[0] + optV[1]),
     Welding: b2 - (optV[0] + 3*optV[1]),
-    'x_A≥0': optV[0],
-    'x_B≥0': optV[1]
-  } : { CNC: b1, Welding: b2, 'x_A≥0': 0, 'x_B≥0': 0 };
+    'x<sub>A</sub>≥0': optV[0],
+    'x<sub>B</sub>≥0': optV[1]
+  } : { CNC: b1, Welding: b2, 'x<sub>A</sub>≥0': 0, 'x<sub>B</sub>≥0': 0 };
 
   const labels = Object.keys(slacks);
   const values = Object.values(slacks);

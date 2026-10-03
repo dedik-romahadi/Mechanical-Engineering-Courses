@@ -1,6 +1,7 @@
 # Pustaka bersama generator modul Pemodelan CAD (salinan dari scripts/ttl-modul/pustaka.py): helper SVG, blok HTML,
 # panel animasi, blok kode, kartu pustaka, dan blok Tugas/Forum. Dipakai modul_N.py.
 import math
+import re
 
 SQ3 = math.sqrt(3)
 
@@ -32,16 +33,81 @@ MONO = "'JetBrains Mono',monospace"
 SANS = "'Inter',system-ui,sans-serif"
 
 
+# ─── Notasi rumus pada teks SVG ───
+# Penanda yang sama dengan teks HTML modul: R<sub>L</sub>, e<sup>−t/τ</sup>. SVG tidak mengenal
+# <sub>/<sup>, jadi t() mengubahnya menjadi <tspan>: subskrip/superskrip berukuran 0,72× dan
+# digeser dengan dy (bukan baseline-shift, yang diabaikan MuPDF saat gambar dirender untuk
+# Modul-Word), ukuran hurufnya mutlak (persen "bocor" ke teks sesudahnya di MuPDF), dan setiap
+# potongan sesudahnya dibungkus <tspan dy> yang mengembalikan garis dasar. Hanya teks yang
+# memuat penanda yang diubah, jadi nama berkas, alias Spreadsheet, dan kode tetap apa adanya.
+_PENANDA = re.compile(r"<(sub|sup)>(.*?)</\1>", re.S)
+SUB_SKALA, SUB_MIN, SUB_TURUN, SUP_NAIK = 0.72, 8, 0.22, 0.38
+
+
+class Kode(str):
+    """Teks SVG berupa kode yang diketik (alias/ekspresi Spreadsheet, nama variabel): apa adanya,
+    tanpa konversi subskrip, bertanda data-kode="1" sehingga validator notasi melewatinya."""
+
+
+def tanpa_penanda(s):
+    """Teks tampak tanpa penanda <sub>/<sup> (untuk menghitung panjang baris teks2)."""
+    return _PENANDA.sub(r"\2", s)
+
+
+def teks_aria(s):
+    """aria-label (atribut, tanpa markup): subskrip ditulis menempel (R<sub>L</sub> → RL), pangkat
+    dengan ^ (E<sup>1/3</sup> → E^(1/3)) agar tidak terbaca sebagai angka biasa."""
+    return _PENANDA.sub(lambda m: m.group(2) if m.group(1) == "sub" else
+                        "^" + (m.group(2) if len(m.group(2)) == 1 else f"({m.group(2)})"), s)
+
+
+def _g(v):
+    return f"{round(v, 1):g}"
+
+
+def rumus_svg(s, size):
+    """'V<sub>k</sub> = V·R<sub>k</sub>' → isi <text> ber-<tspan> (subskrip/superskrip)."""
+    if "<su" not in s:
+        return s
+    kecil = max(size * SUB_SKALA, min(size * 0.9, SUB_MIN))   # tidak di bawah 8 unit bila teksnya lebih besar (ponsel)
+    out, pos, kembali = [], 0, 0.0
+    for m in _PENANDA.finditer(s):
+        sebelum = s[pos:m.start()]
+        if sebelum:
+            out.append(f'<tspan dy="{_g(kembali)}">{sebelum}</tspan>' if kembali else sebelum)
+            kembali = 0.0
+        geser = round(size * (SUB_TURUN if m.group(1) == "sub" else -SUP_NAIK), 1)
+        out.append(f'<tspan dy="{_g(geser + kembali)}" font-size="{_g(kecil)}">{m.group(2)}</tspan>')
+        kembali = -geser
+        pos = m.end()
+    sisa = s[pos:]
+    if sisa:
+        out.append(f'<tspan dy="{_g(kembali)}">{sisa}</tspan>' if kembali else sisa)
+    hasil = "".join(out)
+    assert "<sub" not in hasil and "<sup" not in hasil and "</su" not in hasil, f"penanda rumus tidak seimbang: {s!r}"
+    return hasil
+
+
+_TEKS_MENTAH = re.compile(r'(<text\b[^>]*\bfont-size="([\d.]+)"[^>]*>)(.*?)(</text>)', re.S)
+
+
+def rumus_mentah(markup):
+    """SVG yang ditulis langsung (mis. HERO_SCHEMATIC_*): penanda <sub>/<sup> di tiap <text> → tspan."""
+    return _TEKS_MENTAH.sub(lambda m: m.group(1) + rumus_svg(m.group(3), float(m.group(2))) + m.group(4), markup)
+
+
 def t(x, y, s, size=12, fill=TX, anchor="middle", weight="", fam=SANS):
     w = f' font-weight="{weight}"' if weight else ""
-    return f'<text x="{x:.1f}" y="{y:.1f}" text-anchor="{anchor}" font-size="{size}" fill="{fill}"{w} font-family="{fam}">{s}</text>'
+    if isinstance(s, Kode):
+        return f'<text x="{x:.1f}" y="{y:.1f}" text-anchor="{anchor}" font-size="{size}" fill="{fill}"{w} font-family="{fam}" data-kode="1">{s}</text>'
+    return f'<text x="{x:.1f}" y="{y:.1f}" text-anchor="{anchor}" font-size="{size}" fill="{fill}"{w} font-family="{fam}">{rumus_svg(s, size)}</text>'
 
 
 def teks2(x, y, s, size=11, fill=AX, anchor="middle", maks=92, jarak=14):
     """Teks panjang dipecah otomatis pada spasi menjadi beberapa baris (≤ maks karakter)."""
     kata, baris, kini = s.split(" "), [], ""
     for k in kata:
-        if kini and len(kini) + 1 + len(k) > maks:
+        if kini and len(tanpa_penanda(kini)) + 1 + len(tanpa_penanda(k)) > maks:
             baris.append(kini)
             kini = k
         else:
@@ -69,7 +135,7 @@ def box(x, y, w, h, lines, stroke, size=12.5):
 
 
 def svg(w, h, body, label):
-    return (f'<svg viewBox="0 0 {w} {h}" role="img" aria-label="{label}" preserveAspectRatio="xMidYMid meet">'
+    return (f'<svg viewBox="0 0 {w} {h}" role="img" aria-label="{teks_aria(label)}" preserveAspectRatio="xMidYMid meet">'
             f'<rect x="0" y="0" width="{w}" height="{h}" fill="{BG}"/>{body}</svg>')
 
 
@@ -225,12 +291,20 @@ def pm_ref(no, warna, rgb, penulis, judul, terbit, catatan):
 '''
 
 
+def opsi_teks(s):
+    """Isi opsi PG/jajak dan tautan subnav (induknya display:flex). Bila memuat elemen (<sub>, <sup>, <code>,
+    <strong>, …) atau KaTeX, isinya dibungkus SATU <span class="opsi-teks">: tanpa pembungkus tiap elemen
+    menjadi flex item tersendiri — subskrip tidak turun, ada celah 10–12 px di tengah rumus, dan di layar
+    sempit teks opsi terpotong. textContent tidak berubah (selectMC, kunci, ekspor tetap cocok)."""
+    return f'<span class="opsi-teks">{s}</span>' if ("<" in s or "\\(" in s) else s
+
+
 def chip(teks, rgb, warna):
     return f'<span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;background:rgba({rgb},.07);border:1px solid rgba({rgb},.18);color:var(--{warna});padding:6px 12px;border-radius:8px;">{teks}</span>'
 
 
 def fq(n, rgb, warna, judul, isi, chips, poll_q, opsi, fb_r, fb_w, placeholder):
-    ops = "\n".join(f'            <div class="p-opt" onclick="voteForum({n},this,{k})"><div class="p-circle"></div>{o}</div>' for k, o in enumerate(opsi))
+    ops = "\n".join(f'            <div class="p-opt" onclick="voteForum({n},this,{k})"><div class="p-circle"></div>{opsi_teks(o)}</div>' for k, o in enumerate(opsi))
     ch = "\n".join("          " + chip(c, rgb, warna) for c in chips)
     return f'''  <!-- Pertanyaan {n} -->
   <div class="fq-card reveal" id="fq{n}">
@@ -270,7 +344,7 @@ def mc_block(MC):
     <div class="q-type-badge badge-mc">🅐 BAGIAN A — Pilihan Ganda · 10 Soal · @1 Poin</div>
 '''
     for i, (q, opsi, _) in enumerate(MC, 1):
-        rows = "\n".join(f'        <div class="radio-option" onclick="selectMC(\'mc{i}\',this)"><div class="radio-circle"></div>({"ABCD"[k]}) &nbsp; {o}</div>' for k, o in enumerate(opsi))
+        rows = "\n".join(f'        <div class="radio-option" onclick="selectMC(\'mc{i}\',this)"><div class="radio-circle"></div>{opsi_teks("(" + "ABCD"[k] + ") &nbsp; " + o)}</div>' for k, o in enumerate(opsi))
         out += f'''
     <!-- MC {i} -->
     <div class="mc-card reveal">
