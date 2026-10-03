@@ -19,7 +19,7 @@ import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
-from pustaka import nama_berkas_word  # noqa: E402
+from pustaka import koma_katex, nama_berkas_word  # noqa: E402
 REPO = SCR.parent.parent
 N = int(sys.argv[1])
 assert N >= 2, "Modul 1 dibangun oleh bangun-modul-1-dari-sisken.py"
@@ -214,6 +214,7 @@ s = re.sub(r"<style[^>]*>[\s\S]*?</style>", saring_style, s)
 s = re.sub(r"\s*<!--\s*═+\s*PAGE: (SETUP PYTHON|PEMBAGIAN KELOMPOK)[\s\S]*?-->", "", s)
 assert 'id="page-setup"' not in s and 'id="page-kelompok"' not in s
 
+s = koma_katex(s)
 TUJUAN.write_text(s, encoding="utf-8", newline="")
 print(f"Modul-{N} TTL ditulis: {len(s)} karakter; bagian {n_bagian}, animasi {n_animasi}, cell {n_cell}; pertemuan {P}; hash jajak {hash_baru}")
 

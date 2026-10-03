@@ -371,3 +371,53 @@ def nama_berkas_word(nomor, judul):
     s = unicodedata.normalize("NFKD", judul).encode("ascii", "ignore").decode()
     s = re.sub(r"[^A-Za-z0-9]+", "-", s).strip("-")
     return f"Modul-{nomor}-{s}"
+
+
+# ── Koma desimal di KaTeX (fase D rencana perbaikan KaTeX, 4 Okt 2026; Pedoman §2 butir (21)) ──
+# KaTeX memperlakukan koma sebagai tanda baca dan menambah spasi tipis sesudahnya, jadi
+# "0,849" tampil "0, 849" (dan bercampur dengan konstanta 0{,}7788 yang ditulis manual di
+# rumus yang sama). Dipanggil SEKALI pada HTML akhir sebelum ditulis: di dalam setiap
+# segmen \( … \) teks tampil, "angka,angka" menjadi "angka{,}angka", kecuali di dalam
+# \text{…} dan di dalam subskrip _{…} (daftar indeks seperti \sigma_{1,2,3}); pangkat
+# ^{0,02} ikut diubah. Koordinat/daftar ditulis berspasi "A(0, 0)" agar tidak ikut diubah
+# (tampilan KaTeX-nya identik). Yang tidak dirender auto-render tidak disentuh: blok
+# AI-CHAT-AGENT, <script>, <style>, komentar HTML, <pre>, <code>, <textarea>; segmen tidak
+# melewati tag (auto-render bekerja per simpul teks). Idempoten: "0{,}849" tidak cocok
+# lagi (juga angka sesudah {,}). buat-modul-word.py mengubah {,} kembali menjadi ",".
+_KOMA_LEWATI = re.compile(
+    r"<!-- AI-CHAT-AGENT:BEGIN[\s\S]*?<!-- AI-CHAT-AGENT:END[^>]*-->|<!--[\s\S]*?-->"
+    r"|<(script|style|pre|code|textarea)\b[\s\S]*?</\1\s*>", re.I)
+_KOMA_SEG = re.compile(r"\\\(([^<]+?)\\\)")
+_KOMA_TEKS = re.compile(r"(\\text\s*\{[^{}]*\})")
+_KOMA_ANGKA = re.compile(r"(?<![\d,])(?<!\{,\})(\d+),(\d+)")
+
+
+def _di_subskrip(s, i):
+    """True bila posisi i berada di dalam _{…} yang belum tertutup."""
+    tumpuk = []
+    for k in range(i):
+        if s[k] == "{":
+            tumpuk.append(k > 0 and s[k - 1] == "_")
+        elif s[k] == "}" and tumpuk:
+            tumpuk.pop()
+    return any(tumpuk)
+
+
+def _koma_segmen(m):
+    bagian = _KOMA_TEKS.split(m.group(1))
+    for i in range(0, len(bagian), 2):
+        b = bagian[i]
+        bagian[i] = _KOMA_ANGKA.sub(
+            lambda n, b=b: n.group(0) if _di_subskrip(b, n.start()) else n.group(1) + "{,}" + n.group(2), b)
+    return "\\(" + "".join(bagian) + "\\)"
+
+
+def koma_katex(html):
+    """Koma desimal di dalam segmen KaTeX \\( … \\) ditulis {,} (lihat keterangan di atas)."""
+    out, pos = [], 0
+    for m in _KOMA_LEWATI.finditer(html):
+        out.append(_KOMA_SEG.sub(_koma_segmen, html[pos:m.start()]))
+        out.append(m.group(0))
+        pos = m.end()
+    out.append(_KOMA_SEG.sub(_koma_segmen, html[pos:]))
+    return "".join(out)

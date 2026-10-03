@@ -211,6 +211,8 @@ s = re.sub(r"<style[^>]*>[\s\S]*?</style>", saring_style, s)
 s = re.sub(r"\s*<!--\s*═+\s*PAGE: SETUP PYTHON[\s\S]*?-->", "", s)
 assert 'id="page-setup"' not in s and 'id="page-python"' not in s
 
+from pustaka import koma_katex  # noqa: E402
+s = koma_katex(s)
 TUJUAN.write_text(s, encoding="utf-8", newline="")
 print(f"Modul-{N} CAD ditulis: {len(s)} karakter; bagian {n_bagian}, animasi {n_animasi}; pertemuan {P}; hash jajak {hash_baru}")
 

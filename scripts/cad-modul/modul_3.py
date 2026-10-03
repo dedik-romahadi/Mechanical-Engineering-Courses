@@ -458,7 +458,7 @@ def materi():
     isi = figure(4, "Mode Std Measure dan padanannya di Python console", "Std Measure (FreeCAD 1.0) menampilkan hasil ukur di jendela 3D; Python console memberi angka berpresisi penuh dan besaran seperti titik berat dan kotak pembatas.", gambar4())
     isi += figure(5, "Titik berat, jarak titik–garis, dan sudut pada segitiga", f"Segitiga A(0,0), B({A_T},0), C({C_T},{H_T}): titik berat G, jarak CG, jarak A ke garis BC, dan sudut di B; ketiganya terukur dengan Std Measure atau Python.", gambar5())
     isi += formula(3, "Titik Berat Segitiga dan Jarak Titik ke Garis", r"G = \left(\tfrac{x_A + x_B + x_C}{3},\ \tfrac{y_A + y_B + y_C}{3}\right), \qquad d(A, BC) = \frac{|a\,h|}{\sqrt{(c - a)^{2} + h^{2}}}",
-                   r"Untuk \(A(0,0)\), \(B(a,0)\), \(C(c,h)\). Contoh \(a = " + str(A_T) + r", c = " + str(C_T) + r", h = " + str(H_T) + r"\): \(G = (" + ind(G_T[0], 3) + ", " + ind(G_T[1], 3) + r")\), \(CG = " + ind(CG_T, 3) + r"\), \(d(A, BC) = " + ind(DABC_T, 3) + r"\) mm.",
+                   r"Untuk \(A(0, 0)\), \(B(a,0)\), \(C(c,h)\). Contoh \(a = " + str(A_T) + r", c = " + str(C_T) + r", h = " + str(H_T) + r"\): \(G = (" + ind(G_T[0], 3) + ", " + ind(G_T[1], 3) + r")\), \(CG = " + ind(CG_T, 3) + r"\), \(d(A, BC) = " + ind(DABC_T, 3) + r"\) mm.",
                    "Shape.CenterOfMass face segitiga mengembalikan G; Std Measure Distance dari vertex ke edge mengembalikan jarak tegak lurus. Kedua rumus ini memeriksa apakah lingkaran pada Tugas 4 benar-benar berpusat di titik berat.",
                    [("G", "Titik berat (mm, mm)"), ("d(A, BC)", "Jarak tegak lurus A ke garis BC (mm)"), ("a", "Panjang alas AB (mm)"), ("c, h", "Koordinat titik C (mm)")])
     isi += tabel(["Besaran", "Std Measure", "Python console", "Catatan"],
