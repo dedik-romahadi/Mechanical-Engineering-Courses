@@ -1342,6 +1342,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1577,14 +1648,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="hero academic-hero" data-tab="modul" data-module-number="10">
   <canvas class="hero-orbits" data-hero-id="1"></canvas>
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">L{f(t)} = ∫₀^∞ e^(−st)·f(t) dt</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">L{e^(at)} = 1/(s−a)</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">L{f(t)} = ∫₀<sup>∞</sup> e<sup>−st</sup>·f(t) dt</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">L{e<sup>at</sup>} = 1/(s−a)</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">L{sin(ωt)} = ω/(s²+ω²)</span>
     <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">L{f'} = sF(s) − f(0)</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">PD → aljabar dalam s</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">L⁻¹{F(s)} = f(t)</span>
     <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">pecahan parsial</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">teorema shift: e^(at)f(t)</span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">teorema shift: e<sup>at</sup>f(t)</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 11 &nbsp;·&nbsp; Matematika 4 &nbsp;·&nbsp; 2025/2026</div>
@@ -1727,7 +1798,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Inti penguasaan Laplace = <strong>menghafal tabel transformasi fungsi dasar</strong>. Tiap fungsi <code>f(t)</code> punya partner <code>F(s)</code> yang dapat dihitung sekali (via integral definisi) dan dipakai berulang. Tabel berikut adalah fondasi, wajib dihafal seperti tabel turunan/integral di kalkulus dasar. Skemanya diperlihatkan pada Gambar 2. Bentuk ringkasnya dituliskan pada Persamaan (2).</p>
 <!-- ILUSTRASI-STATIS:2:START -->
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 177" role="img" aria-label="Gambar 2 — Pasangan dasar yang perlu dihafal" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="177" fill="#0a101f"/><text x="186" y="35" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">1 ↔ 1/s</text><rect x="196" y="16" width="149.79999999999998" height="30" rx="7" fill="#22d3ee" fill-opacity="0.82"/><text x="186" y="78" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">e^{at} ↔ 1/(s−a)</text><rect x="196" y="59" width="256.8" height="30" rx="7" fill="#a855f7" fill-opacity="0.82"/><text x="186" y="121" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Sin ωt ↔ ω/(s²+ω²)</text><rect x="196" y="102" width="363.8" height="30" rx="7" fill="#f97316" fill-opacity="0.82"/><text x="330" y="167" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Sisanya diturunkan dari yang tiga ini</text></svg>
+    <svg viewBox="0 0 660 177" role="img" aria-label="Gambar 2 — Pasangan dasar yang perlu dihafal" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="177" fill="#0a101f"/><text x="186" y="35" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">1 ↔ 1/s</text><rect x="196" y="16" width="149.79999999999998" height="30" rx="7" fill="#22d3ee" fill-opacity="0.82"/><text x="186" y="78" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">e<tspan dy="-4.6" font-size="8.6">at</tspan><tspan dy="4.6"> ↔ 1/(s−a)</tspan></text><rect x="196" y="59" width="256.8" height="30" rx="7" fill="#a855f7" fill-opacity="0.82"/><text x="186" y="121" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Sin ωt ↔ ω/(s²+ω²)</text><rect x="196" y="102" width="363.8" height="30" rx="7" fill="#f97316" fill-opacity="0.82"/><text x="330" y="167" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Sisanya diturunkan dari yang tiga ini</text></svg>
     <figcaption><strong>Gambar 2</strong> — Pasangan dasar yang perlu dihafal. Sebagian besar soal hanya memerlukan segelintir pasangan baku ini beserta sifat pergeserannya.</figcaption>
   </figure>
 <!-- ILUSTRASI-STATIS:2:END -->
@@ -1866,7 +1937,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">⏱</div>
       <h3>Second Shift Theorem</h3>
-      <p>\(L{f(\text{t - a}) \cdot H(\text{t - a})} = e^{-as} \cdot F(s)\), kemudian geser fungsi dalam waktu (mis. fungsi yang aktif setelah delay a detik via Heaviside step <code>H(t−a)</code>). Faktor e^(−as) muncul. Sangat penting untuk handling sinyal step, pulse, gigi gergaji.</p>
+      <p>\(L{f(\text{t - a}) \cdot H(\text{t - a})} = e^{-as} \cdot F(s)\), kemudian geser fungsi dalam waktu (mis. fungsi yang aktif setelah delay a detik via Heaviside step <code>H(t−a)</code>). Faktor e<sup>−as</sup> muncul. Sangat penting untuk handling sinyal step, pulse, gigi gergaji.</p>
       <div class="formula">\(L{f(t-a)H(t-a)} = e^{-as}F(s)\)</div>
     </div>
     <div class="card">
@@ -1968,7 +2039,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <strong>Step 2.</strong> Substitusi y(0) = 4 dan solve: <code>(s + 3)·Y − 4 = 6/s</code> → <code>(s + 3)Y = 6/s + 4 = (6 + 4s)/s</code> → <code>Y(s) = (4s + 6)/[s(s+3)]</code>.<br>
     <strong>Step 3.</strong> Pecahan parsial: <code>Y(s) = A/s + B/(s+3)</code>. Solve: <code>4s + 6 = A(s+3) + Bs</code>. Pada s=0: <code>6 = 3A → A = 2</code>. Pada s=−3: <code>−6 = −3B → B = 2</code>.<br>
     <strong>Step 4.</strong> Invers Laplace: <code>Y(s) = 2/s + 2/(s+3)</code> → \(y(t) = 2 + 2 \cdot e^{-3t}\).<br>
-    <strong>Verifikasi:</strong> y(0) = 2 + 2 = 4 ✓; y' = −6e^(−3t); y' + 3y = −6e^(−3t) + 6 + 6e^(−3t) = 6 ✓.
+    <strong>Verifikasi:</strong> y(0) = 2 + 2 = 4 ✓; y' = −6e<sup>−3t</sup>; y' + 3y = −6e<sup>−3t</sup> + 6 + 6e<sup>−3t</sup> = 6 ✓.
   </div>
 
   <div class="warn-box reveal">
@@ -2154,7 +2225,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">⏱</div>
       <h3>Second Shift Inverse</h3>
-      <p>\(L^{-1}{e^{-as} \cdot F(s)} = f(\text{t - a}) \cdot H(\text{t - a})\). Faktor e^(−as) di domain s = delay a detik di domain t (fungsi aktif setelah t = a). Penting untuk PD dengan input step yang ditunda.</p>
+      <p>\(L^{-1}{e^{-as} \cdot F(s)} = f(\text{t - a}) \cdot H(\text{t - a})\). Faktor e<sup>−as</sup> di domain s = delay a detik di domain t (fungsi aktif setelah t = a). Penting untuk PD dengan input step yang ditunda.</p>
       <div class="formula">\(L^{-1}{e^{-as}F(s)} = f(t-a)H(t-a)\)</div>
     </div>
   </div>
@@ -2199,7 +2270,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
 
   <div class="warn-box reveal">
-    ⚠ <strong>Tips invers Laplace:</strong> <strong>(1)</strong> Lengkapi kuadrat untuk denominator quadratic, bila tidak match \(s^2\) + ω² atau (s−a)² + ω², susun ke salah satunya. <strong>(2)</strong> Sesuaikan numerator dengan konstanta multiplikasi, tabel mungkin butuh adjust faktor. <strong>(3)</strong> Pecahan parsial untuk denominator yang dapat difaktorkan. <strong>(4)</strong> Heaviside untuk denominator dengan e^(−as). <strong>(5)</strong> SymPy <code>sp.inverse_laplace_transform(F, s, t)</code> sebagai backup.
+    ⚠ <strong>Tips invers Laplace:</strong> <strong>(1)</strong> Lengkapi kuadrat untuk denominator quadratic, bila tidak match \(s^2\) + ω² atau (s−a)² + ω², susun ke salah satunya. <strong>(2)</strong> Sesuaikan numerator dengan konstanta multiplikasi, tabel mungkin butuh adjust faktor. <strong>(3)</strong> Pecahan parsial untuk denominator yang dapat difaktorkan. <strong>(4)</strong> Heaviside untuk denominator dengan e<sup>−as</sup>. <strong>(5)</strong> SymPy <code>sp.inverse_laplace_transform(F, s, t)</code> sebagai backup.
   </div>
 
   <div class="info-box reveal" style="margin-top:18px">
@@ -2277,14 +2348,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🅰️</div>
       <h3>Kasus 1: Akar Real Berbeda</h3>
-      <p>Bila <code>D(s) = (s − r₁)(s − r₂)…(s − r_n)</code>, dekomposisi: <code>N/D = A₁/(s−r₁) + A₂/(s−r₂) + …</code>. Tiap \(A_i\) dihitung via <em>cover-up rule</em>: <code>A_i = N(r_i)/D'(r_i)</code> atau substitusi s = \(r_i\). Tiap term invers menjadi \(A_i \cdot e^{r_i \cdot t}\).</p>
+      <p>Bila <code>D(s) = (s − r₁)(s − r₂)…(s − r<sub>n</sub>)</code>, dekomposisi: <code>N/D = A₁/(s−r₁) + A₂/(s−r₂) + …</code>. Tiap \(A_i\) dihitung via <em>cover-up rule</em>: <code>A_i = N(r_i)/D'(r_i)</code> atau substitusi s = \(r_i\). Tiap term invers menjadi \(A_i \cdot e^{r_i \cdot t}\).</p>
       <div class="formula">\(\sum A_i/(s - r_i) \to \sum A_i \cdot e^{r_i t}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🅱️</div>
       <h3>Kasus 2: Akar Berulang</h3>
       <p>Bila \(D(s) = (\text{s - r})^{m} \cdot \ldots\), dekomposisi: \(A_1/(s-r) + A_2/(s-r)^2 + \ldots + A_m/(s-r)^{m}\). Tiap term dengan pangkat lebih tinggi memberi faktor t: \(A_k/(s-r)^{k} \to (A_k/(k-1)!) \cdot t^{k-1} \cdot e^{rt}\).</p>
-      <div class="formula">\(A_k\)/(s−r)^k → (\(A_k\)/(k−1)!)·t^(k−1)·\(e^{rt}\)</div>
+      <div class="formula">\(A_k\)/(s−r)<sup>k</sup> → (\(A_k\)/(k−1)!)·t<sup>k−1</sup>·\(e^{rt}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">©️</div>
@@ -2295,7 +2366,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Cover-Up Rule (Heaviside)</h3>
-      <p>Untuk menghitung \(A_i\) pada <code>A_i/(s − r_i)</code>: tutup faktor <code>(s − r_i)</code> di denominator, lalu evaluasi sisanya pada <code>s = r_i</code>. Sangat cepat untuk akar real berbeda. Mis. <code>(2s+1)/[(s−1)(s+3)]</code>: A₁ = (2·1+1)/(1+3) = 3/4; A₂ = (2·(−3)+1)/(−3−1) = (−5)/(−4) = 5/4.</p>
+      <p>Untuk menghitung \(A_i\) pada <code>A<sub>i</sub>/(s − r<sub>i</sub>)</code>: tutup faktor <code>(s − r<sub>i</sub>)</code> di denominator, lalu evaluasi sisanya pada <code>s = r<sub>i</sub></code>. Sangat cepat untuk akar real berbeda. Mis. <code>(2s+1)/[(s−1)(s+3)]</code>: A₁ = (2·1+1)/(1+3) = 3/4; A₂ = (2·(−3)+1)/(−3−1) = (−5)/(−4) = 5/4.</p>
       <div class="formula">\(A_i = N(r_i)/D'(r_i)\)</div>
     </div>
   </div>
@@ -2341,7 +2412,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 1: Sistem Kendali Otomatis -->
   <div class="analogy-box reveal">
     <span class="analogy-label">🏗️ Analogi 1 — Sistem Kendali Otomatis (Control Theory)</span>
-    Laplace adalah <strong style="color:var(--violet)">tulang punggung teori kendali klasik</strong>. <em>Transfer function</em> <code>G(s) = Y(s)/U(s)</code> = rasio output ke input di domain s, didefinisikan langsung via Laplace. Engineer kendali bekerja sehari-hari di domain s untuk: (a) analisis stabilitas via lokasi pole G(s) di kompleks plane, (b) desain kompensator PID yang transfer function-nya <code>K_p + K_i/s + K_d·s</code>, (c) frequency response analysis (Bode plot, Nyquist) dengan substitusi s = jω. Tanpa Laplace, teori kendali modern tidak ada.
+    Laplace adalah <strong style="color:var(--violet)">tulang punggung teori kendali klasik</strong>. <em>Transfer function</em> <code>G(s) = Y(s)/U(s)</code> = rasio output ke input di domain s, didefinisikan langsung via Laplace. Engineer kendali bekerja sehari-hari di domain s untuk: (a) analisis stabilitas via lokasi pole G(s) di kompleks plane, (b) desain kompensator PID yang transfer function-nya <code>K<sub>p</sub> + K<sub>i</sub>/s + K<sub>d</sub>·s</code>, (c) frequency response analysis (Bode plot, Nyquist) dengan substitusi s = jω. Tanpa Laplace, teori kendali modern tidak ada.
   </div>
 
   <!-- Analogi 2: Sirkuit Elektronik -->
@@ -2359,7 +2430,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 4: Pengolahan Sinyal Digital -->
   <div class="analogy-box reveal" style="border-left-color:var(--amber);background:linear-gradient(135deg,rgba(249,115,22,.07),rgba(249,115,22,.03))">
     <span class="analogy-label" style="color:var(--amber)">🎯 Analogi 4 — Pengolahan Sinyal &amp; Filter Design</span>
-    Engineer sinyal merancang <strong>filter (low-pass, high-pass, band-pass)</strong> di domain s. Filter prototipe (Butterworth, Chebyshev, Elliptic) didefinisikan via lokasi pole/zero di s-plane. Mis. low-pass orde 1: <code>H(s) = ω_c/(s + ω_c)</code>, pole real negatif di −\(\omega _c\). Konversi ke domain digital via bilinear transform <code>s → (2/T)·(z−1)/(z+1)</code> untuk implementasi DSP. Audio engineer, telekomunikasi, biomedical signal processing, semua bekerja di domain s/z.
+    Engineer sinyal merancang <strong>filter (low-pass, high-pass, band-pass)</strong> di domain s. Filter prototipe (Butterworth, Chebyshev, Elliptic) didefinisikan via lokasi pole/zero di s-plane. Mis. low-pass orde 1: <code>H(s) = ω<sub>c</sub>/(s + ω<sub>c</sub>)</code>, pole real negatif di −\(\omega _c\). Konversi ke domain digital via bilinear transform <code>s → (2/T)·(z−1)/(z+1)</code> untuk implementasi DSP. Audio engineer, telekomunikasi, biomedical signal processing, semua bekerja di domain s/z.
   </div>
 
   <!-- Analogi 5: Termal & Heat Transfer -->
@@ -2380,7 +2451,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 09</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Transformasi Laplace: Pole, Tabel &amp; Aplikasi</h2>
-  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 11 — Transformasi Laplace</strong>: (1) <strong>Pole-Zero Plot di s-plane</strong> dengan response y(t) live, (2) <strong>Laplace Pairs Visualizer</strong> menampilkan f(t) ↔ F(s), (3) <strong>toggle First/Second Shift Theorem</strong> e^at·f(t) ↔ F(s−a), (4) <strong>radio Pecahan Parsial</strong> 4 kasus (real distinct, repeated, complex, mixed), (5) <strong>dropdown aplikasi engineering</strong> (RLC step, control system, impulse, switching).</p>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 11 — Transformasi Laplace</strong>: (1) <strong>Pole-Zero Plot di s-plane</strong> dengan response y(t) live, (2) <strong>Laplace Pairs Visualizer</strong> menampilkan f(t) ↔ F(s), (3) <strong>toggle First/Second Shift Theorem</strong> e<sup>at</sup>·f(t) ↔ F(s−a), (4) <strong>radio Pecahan Parsial</strong> 4 kasus (real distinct, repeated, complex, mixed), (5) <strong>dropdown aplikasi engineering</strong> (RLC step, control system, impulse, switching).</p>
 
   <!-- Animasi 1: Pole-Zero Plot di s-plane (M10-specific) -->
   <div class="anim-panel reveal">
@@ -2420,11 +2491,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
         <div class="ctrl-group" style="flex:1 1 100%;">
           <label>Pilih Laplace pair (preset push buttons):</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <button class="m10pair-pbtn" onclick="window.m10SetPair('exp')" data-p="exp" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,107,179,.4);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">e^(−2t) ↔ 1/(s+2) ✓</button>
+            <button class="m10pair-pbtn" onclick="window.m10SetPair('exp')" data-p="exp" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,107,179,.4);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">e<sup>−2t</sup> ↔ 1/(s+2) ✓</button>
             <button class="m10pair-pbtn" onclick="window.m10SetPair('sin')" data-p="sin" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">sin(2t) ↔ 2/(\(s^2\)+4)</button>
             <button class="m10pair-pbtn" onclick="window.m10SetPair('cos')" data-p="cos" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">cos(2t) ↔ s/(\(s^2\)+4)</button>
             <button class="m10pair-pbtn" onclick="window.m10SetPair('t')" data-p="t" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">t ↔ 1/\(s^2\)</button>
-            <button class="m10pair-pbtn" onclick="window.m10SetPair('damp')" data-p="damp" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">e^(−t)·sin(2t)</button>
+            <button class="m10pair-pbtn" onclick="window.m10SetPair('damp')" data-p="damp" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">e<sup>−t</sup>·sin(2t)</button>
           </div>
         </div>
       </div>
@@ -2462,7 +2533,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="m10ShiftInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> <strong>FIRST SHIFT</strong> (s-shift): mengalikan f(t) dengan \(e^{at}\) menggeser F(s) menjadi F(s−a). Visualisasi: pole sin(2t)/(\(s^2\)+4) di s = ±2i, setelah dikalikan \(e^{at}\) menjadi pole di s = a ± 2i (geser horizontal sebesar a). <strong>SECOND SHIFT</strong> (t-shift): f(t−c)·u(t−c) ↔ e^(−cs)·F(s), translasi waktu menjadi pengalian eksponensial di s-domain.
+        <strong>📊 Cara Membaca:</strong> <strong>FIRST SHIFT</strong> (s-shift): mengalikan f(t) dengan \(e^{at}\) menggeser F(s) menjadi F(s−a). Visualisasi: pole sin(2t)/(\(s^2\)+4) di s = ±2i, setelah dikalikan \(e^{at}\) menjadi pole di s = a ± 2i (geser horizontal sebesar a). <strong>SECOND SHIFT</strong> (t-shift): f(t−c)·u(t−c) ↔ e<sup>−cs</sup>·F(s), translasi waktu menjadi pengalian eksponensial di s-domain.
       </div>
     </div>
   </div>
@@ -2515,7 +2586,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
           <label>Pilih aplikasi engineering yang menggunakan Laplace:</label>
           <select id="m10slAppLap" onchange="window.m10SetAppLap(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:520px;margin-top:6px;">
             <option value="rlc_step">⚡ RLC Step Response: V₀·u(t) input, transient + steady</option>
-            <option value="control">🎛️ Control Step: G(s) = K/(\(s^2\)+2ζωs+ω²), overshoot/settling</option>
+            <option value="control">🎛️ Control Step: G(s) = K/(s²+2ζωs+ω²), overshoot/settling</option>
             <option value="impulse">💥 Impulse Response: δ(t) input → h(t) (kernel)</option>
             <option value="switching">🔌 Heaviside Switch: u(t−c), delayed activation</option>
             <option value="convolution">⊛ Convolution: y(t) = h(t) ⊛ f(t)</option>
@@ -2827,9 +2898,9 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
 <div class="hero" data-tab="tugas" style="min-height:60vh">
   <canvas class="hero-orbits" data-hero-id="2"></canvas>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">L{f(t)} = ∫₀^∞ e^(−st)f(t) dt</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">L{f(t)} = ∫₀<sup>∞</sup> e<sup>−st</sup>f(t) dt</span>
     <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">L{f'} = sF − f(0)</span>
-    <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">L{e^(at)} = 1/(s−a)</span>
+    <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">L{e<sup>at</sup>} = 1/(s−a)</span>
     <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">pecahan parsial</span>
   </div>
   <div class="hero-content">
@@ -3099,7 +3170,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="comp-q">Hitung Laplace \(L{e^{3t}}\) di s = 5 secara numerik. Hasilnya <code>1/(s−3) = 1/2</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Gunakan rumus <code>L{e^(at)} = 1/(s − a)</code>, lalu substitusikan nilai s yang diminta.</div>
+      <div class="comp-hint">💡 Gunakan rumus <code>L{e<sup>at</sup>} = 1/(s − a)</code>, lalu substitusikan nilai s yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">F(5)</strong></span></div>
         <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;s = 5&#10;F = 1/(s - 3)&#10;print(F)" oninput="onCodeInput('c1')"></textarea>
@@ -3313,7 +3384,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C13</div>
-        <div class="comp-q">Aplikasi <strong>sirkuit RLC dengan step input</strong>: <code>q'' + 2q' + 5q = u(t), q(0)=0, q'(0)=0</code>. Pakai Laplace: Q(s) = 1/[\(s \cdot (s^2\)+2s+5)]. Setelah pecahan parsial &amp; invers, q(t) = (1/5)·[1 − e^(-t)·(cos(2t) + (1/2)·sin(2t))]. Hitung <strong>q(2)</strong> (3 desimal).</div>
+        <div class="comp-q">Aplikasi <strong>sirkuit RLC dengan step input</strong>: <code>q'' + 2q' + 5q = u(t), q(0)=0, q'(0)=0</code>. Pakai Laplace: Q(s) = 1/[\(s \cdot (s^2\)+2s+5)]. Setelah pecahan parsial &amp; invers, q(t) = (1/5)·[1 − e<sup>-t</sup>·(cos(2t) + (1/2)·sin(2t))]. Hitung <strong>q(2)</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Bentuk Q(s), uraikan dengan pecahan parsial dan ambil invers Laplace untuk q(t), lalu evaluasi di titik t yang diminta.</div>
@@ -3350,7 +3421,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="comp-q">Aplikasi <strong>final value theorem</strong>: \(\lim_{t \to \infty } y(t) = \lim_{s \to 0} s \cdot Y(s)\). Untuk transfer function H(s) = 5/(\(s^2\)+4s+13) dengan input step <code>U(s) = 1/s</code>, output Y(s) = H(s)/s = 5/[\(s \cdot (s^2\)+4s+13)]. Hitung <strong>\(\text{steady}\;-\;\text{state}\) value \(y(\infty )\)</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Final value theorem: hitung <code>lim_(s→0) s·Y(s)</code> dengan menyederhanakan ekspresi lalu evaluasi pada s=0.</div>
+      <div class="comp-hint">💡 Final value theorem: hitung <code>lim<sub>s→0</sub> s·Y(s)</code> dengan menyederhanakan ekspresi lalu evaluasi pada s=0.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(y(\infty )\)</strong></span></div>
         <textarea class="code-textarea" id="code-c15" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;# Final value theorem: lim s->0 of s*Y(s)&#10;# Y(s) = 5/[s*(s^2+4s+13)]&#10;# s*Y(s) = 5/(s^2+4s+13); pada s=0: 5/13&#10;y_inf = 5/13&#10;print(f'y(inf) = {y_inf:.4f}')" oninput="onCodeInput('c15')"></textarea>
@@ -5947,13 +6018,13 @@ function drawCases(){
     let rootsStr;
     if (kase === 1){
       const m1 = ((1-b) + Math.sqrt(D))/2, m2 = ((1-b) - Math.sqrt(D))/2;
-      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x^m₁ + c₂·x^m₂`;
+      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x<sup>m₁</sup> + c₂·x<sup>m₂</sup>`;
     } else if (kase === 2){
       const m = (1-b)/2;
-      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x^m`;
+      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x<sup>m</sup>`;
     } else {
       const al = (1-b)/2, be = Math.sqrt(-D)/2;
-      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x^α·[c₁cos(β ln x) + c₂sin(β ln x)]`;
+      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x<sup>α</sup>·[c₁cos(β ln x) + c₂sin(β ln x)]`;
     }
     infoEl.innerHTML = `<span style="color:${color}">●</span> PD: x²y'' + ${b.toFixed(2)}·x·y' + ${c.toFixed(2)}·y = 0 &nbsp;|&nbsp; D = (b−1)² − 4c = ${D.toFixed(2)} &nbsp;|&nbsp; ${rootsStr}`;
   }
@@ -6070,9 +6141,9 @@ function drawRoots(){
   ctx.fillText('Re(m)', px1 - 35, cy - 8);
   ctx.fillText('Im(m)', cx + 6, py0 + 12);
   ctx.fillStyle = '#00e09e';
-  ctx.fillText('x^m → 0', px0 + 8, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → 0', px0 + 8, py0 + 16);
   ctx.fillStyle = '#ef4444';
-  ctx.fillText('x^m → ∞', px1 - 65, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → ∞', px1 - 65, py0 + 16);
   ctx.fillStyle = '#94a3b8';
   for (let i = -4; i <= 4; i += 2){
     if (i === 0) continue;
@@ -6496,7 +6567,7 @@ function drawSweep(){
       const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
       const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
       const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
+      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r<sub>max</sub>=${rmaxTheory.toFixed(2)}, DMF<sub>max</sub>=${dmfmaxTheory.toFixed(2)}`;
     } else {
       info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
     }
@@ -6862,7 +6933,7 @@ function drawHPB(){
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
+  ctx.fillText(`${linePos.toFixed(2)} × H²<sub>max</sub> = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
 
   // Find ω₁ and ω₂ (intersection of curve with targetY)
   // Binary search on either side of peak
@@ -6906,12 +6977,12 @@ function drawHPB(){
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
+    let html = `ζ<sub>TRUE</sub> = ${zetaTrue.toFixed(3)} · ω<sub>peak</sub> = ${omegaPeak.toFixed(2)} · H²<sub>max</sub> = ${H2max.toFixed(2)}<br>`;
     if(omega1 !== null && omega2 !== null){
       html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
       if(Math.abs(linePos - 0.5) < 0.02){
         const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
+        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ<sub>estimated</sub> = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
       } else {
         html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
       }
@@ -7795,10 +7866,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7812,7 +7883,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -10333,7 +10404,7 @@ function drawEMTog(){
   const isNum = (_emTogMode === 1);
   const color = isNum ? '#a855f7' : '#00e09e';
   ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e^(-bt/2)·cos(ωt)', 20, 30);
+  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e<sup>-bt/2</sup>·cos(ωt)', 20, 30);
 
   const padL=50, padR=20, padT=50, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
@@ -10796,7 +10867,7 @@ function _createForumParticleBurst(event) {
     // Title
     ctx.fillStyle = color; ctx.font = 'bold 12px JetBrains Mono, monospace';
     const status = isStable ? 'STABLE' : (isMarginal ? 'MARGINAL' : 'UNSTABLE');
-    ctx.fillText(`y(t) = e^(${alpha.toFixed(2)}t)·cos(${beta.toFixed(2)}t)  [${status}]`, sx0 + 6, sy0 + 14);
+    ctx.fillText(`y(t) = e<sup>${alpha.toFixed(2)}t</sup>·cos(${beta.toFixed(2)}t)  [${status}]`, sx0 + 6, sy0 + 14);
 
     const infoEl = document.getElementById('m10PoleInfo');
     if (infoEl){
@@ -10819,11 +10890,11 @@ function _createForumParticleBurst(event) {
   const m10LapTable = { which: 'exp', t: 0, raf: null };
 
   const M10_PAIRS = {
-    exp:  { fLabel: 'f(t) = e^(−2t)',          FLabel: 'F(s) = 1/(s+2)',           ft: t => Math.exp(-2*t),                    poles: [{re:-2, im:0}], color: '#ff6bb3' },
+    exp:  { fLabel: 'f(t) = e<sup>−2t</sup>',          FLabel: 'F(s) = 1/(s+2)',           ft: t => Math.exp(-2*t),                    poles: [{re:-2, im:0}], color: '#ff6bb3' },
     sin:  { fLabel: 'f(t) = sin(2t)',           FLabel: 'F(s) = 2/(s²+4)',         ft: t => Math.sin(2*t),                     poles: [{re:0, im:2}, {re:0, im:-2}], color: '#00e09e' },
     cos:  { fLabel: 'f(t) = cos(2t)',           FLabel: 'F(s) = s/(s²+4)',         ft: t => Math.cos(2*t),                     poles: [{re:0, im:2}, {re:0, im:-2}], color: '#0ea5e9' },
     t:    { fLabel: 'f(t) = t',                 FLabel: 'F(s) = 1/s²',             ft: t => t,                                 poles: [{re:0, im:0, mult:2}], color: '#a855f7' },
-    damp: { fLabel: 'f(t) = e^(−t)·sin(2t)',   FLabel: 'F(s) = 2/((s+1)²+4)',     ft: t => Math.exp(-t)*Math.sin(2*t),         poles: [{re:-1, im:2}, {re:-1, im:-2}], color: '#ffb300' }
+    damp: { fLabel: 'f(t) = e<sup>−t</sup>·sin(2t)',   FLabel: 'F(s) = 2/((s+1)²+4)',     ft: t => Math.exp(-t)*Math.sin(2*t),         poles: [{re:-1, im:2}, {re:-1, im:-2}], color: '#ffb300' }
   };
 
   window.m10SetPair = function(key){
@@ -11017,12 +11088,12 @@ function _createForumParticleBurst(event) {
       view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)';
       knob.style.transform = 'translateX(0px)';
       lbl.style.color = 'var(--green)';
-      lbl.textContent = 'FIRST SHIFT: L{e^(at)·f(t)} = F(s−a)';
+      lbl.innerHTML = 'FIRST SHIFT: L{e<sup>at</sup>·f(t)} = F(s−a)';
     } else {
       view.style.background = 'rgba(255,179,0,.25)'; view.style.borderColor = 'var(--amber)';
       knob.style.transform = 'translateX(28px)';
       lbl.style.color = 'var(--amber)';
-      lbl.textContent = 'SECOND SHIFT: L{f(t−c)·u(t−c)} = e^(−cs)·F(s)';
+      lbl.innerHTML = 'SECOND SHIFT: L{f(t−c)·u(t−c)} = e<sup>−cs</sup>·F(s)';
     }
   };
 
@@ -11090,7 +11161,7 @@ function _createForumParticleBurst(event) {
       ctx.shadowBlur = 0;
 
       ctx.fillStyle = colorG; ctx.font = 'bold 12px JetBrains Mono, monospace';
-      ctx.fillText(`g(t) = e^(${a.toFixed(2)}t)·sin(2t)`, padL + 6, padT - 8);
+      ctx.fillText(`g(t) = e<sup>${a.toFixed(2)}t</sup>·sin(2t)`, padL + 6, padT - 8);
       ctx.fillStyle = 'rgba(148,163,184,.7)'; ctx.font = '10px JetBrains Mono, monospace';
       ctx.fillText('(faded: f(t) = sin(2t))', padL + 6, padT - 26);
 
@@ -11192,7 +11263,7 @@ function _createForumParticleBurst(event) {
       ctx.fillText(`t = c = ${c.toFixed(2)}`, tx(c) + 6, py0 + 16);
 
       ctx.fillStyle = '#ffb300'; ctx.font = 'bold 13px JetBrains Mono, monospace';
-      ctx.fillText(`f(t−${c.toFixed(2)})·u(t−${c.toFixed(2)})  ↔  e^(−${c.toFixed(2)}s)·F(s)`, padL + 6, padT - 8);
+      ctx.fillText(`f(t−${c.toFixed(2)})·u(t−${c.toFixed(2)})  ↔  e<sup>−${c.toFixed(2)}s</sup>·F(s)`, padL + 6, padT - 8);
       ctx.fillStyle = 'rgba(148,163,184,.7)'; ctx.font = '10px JetBrains Mono, monospace';
       ctx.fillText('(faded: f(t) = sin(2t))', padL + 6, padT - 26);
     }
@@ -11200,8 +11271,8 @@ function _createForumParticleBurst(event) {
     const infoEl = document.getElementById('m10ShiftInfo');
     if (infoEl){
       infoEl.innerHTML = m10Shift.isFirst
-        ? `<span style="color:#00e09e">●</span> First Shift: e^(${a.toFixed(2)}t)·sin(2t) → pole bergeser horizontal sebesar a (s ↦ s−a). Stability flip saat a melewati 0.`
-        : `<span style="color:#ffb300">●</span> Second Shift: f(t−c)·u(t−c) → translasi waktu di t-domain = pengalian e^(−cs) di s-domain.`;
+        ? `<span style="color:#00e09e">●</span> First Shift: e<sup>${a.toFixed(2)}t</sup>·sin(2t) → pole bergeser horizontal sebesar a (s ↦ s−a). Stability flip saat a melewati 0.`
+        : `<span style="color:#ffb300">●</span> Second Shift: f(t−c)·u(t−c) → translasi waktu di t-domain = pengalian e<sup>−cs</sup> di s-domain.`;
     }
 
     m10Shift.raf = requestAnimationFrame(drawM10Shift);
@@ -11217,9 +11288,9 @@ function _createForumParticleBurst(event) {
   const m10Decomp = { which: 'distinct', t: 0, raf: null };
 
   const M10_DECOMP = {
-    distinct: { label: 'Real Distinct: 1/((s+1)(s+3))',                                    formula: '= ½/(s+1) − ½/(s+3) → ½(e^(−t) − e^(−3t))', fn: t => 0.5*(Math.exp(-t) - Math.exp(-3*t)),                            color: '#0ea5e9' },
-    repeated: { label: 'Real Repeated: 1/(s+2)²',                                          formula: '→ t·e^(−2t)',                                fn: t => t * Math.exp(-2*t),                                              color: '#a855f7' },
-    complex:  { label: 'Complex: s/(s²+2s+5)',                                              formula: '= (s+1)/((s+1)²+4) − ½·2/((s+1)²+4) → e^(−t)·cos(2t) − ½·e^(−t)·sin(2t)', fn: t => Math.exp(-t)*Math.cos(2*t) - 0.5*Math.exp(-t)*Math.sin(2*t),  color: '#00e09e' },
+    distinct: { label: 'Real Distinct: 1/((s+1)(s+3))',                                    formula: '= ½/(s+1) − ½/(s+3) → ½(e<sup>−t</sup> − e<sup>−3t</sup>)', fn: t => 0.5*(Math.exp(-t) - Math.exp(-3*t)),                            color: '#0ea5e9' },
+    repeated: { label: 'Real Repeated: 1/(s+2)²',                                          formula: '→ t·e<sup>−2t</sup>',                                fn: t => t * Math.exp(-2*t),                                              color: '#a855f7' },
+    complex:  { label: 'Complex: s/(s²+2s+5)',                                              formula: '= (s+1)/((s+1)²+4) − ½·2/((s+1)²+4) → e<sup>−t</sup>·cos(2t) − ½·e<sup>−t</sup>·sin(2t)', fn: t => Math.exp(-t)*Math.cos(2*t) - 0.5*Math.exp(-t)*Math.sin(2*t),  color: '#00e09e' },
     mixed:    { label: 'Mixed: 1/(s(s²+1))',                                                formula: '= 1/s − s/(s²+1) → 1 − cos(t)',              fn: t => 1 - Math.cos(t),                                                color: '#ff6bb3' }
   };
 
@@ -11313,9 +11384,9 @@ function _createForumParticleBurst(event) {
   const M10_APP = {
     rlc_step:   { label: 'RLC Step Response: V₀=1, R=1, L=0.5, C=0.2',                     compute: t => 1 - Math.exp(-t)*(Math.cos(2*t) + 0.5*Math.sin(2*t)),               color: '#ffb300', icon: 'rlc' },
     control:    { label: 'Control 2nd-order step: ζ=0.4, ω=2',                              compute: t => 1 - Math.exp(-0.8*t)*(Math.cos(1.83*t) + (0.8/1.83)*Math.sin(1.83*t)), color: '#0ea5e9', icon: 'block' },
-    impulse:    { label: 'Impulse Response h(t): h = e^(−t)·sin(2t) (kernel)',              compute: t => Math.exp(-t)*Math.sin(2*t),                                          color: '#a855f7', icon: 'impulse' },
+    impulse:    { label: 'Impulse Response h(t): h = e<sup>−t</sup>·sin(2t) (kernel)',              compute: t => Math.exp(-t)*Math.sin(2*t),                                          color: '#a855f7', icon: 'impulse' },
     switching:  { label: 'Heaviside Switch: u(t)·(1 − u(t−3))·sin(t)',                      compute: t => (t > 3) ? 0 : Math.sin(t),                                          color: '#00e09e', icon: 'switch' },
-    convolution:{ label: 'Convolution: y = h ⊛ f, h=e^(−t), f=u(t)',                        compute: t => 1 - Math.exp(-t),                                                    color: '#ff6bb3', icon: 'conv' }
+    convolution:{ label: 'Convolution: y = h ⊛ f, h=e<sup>−t</sup>, f=u(t)',                        compute: t => 1 - Math.exp(-t),                                                    color: '#ff6bb3', icon: 'conv' }
   };
 
   window.m10SetAppLap = function(key){

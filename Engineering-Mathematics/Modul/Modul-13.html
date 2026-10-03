@@ -1342,6 +1342,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -2342,7 +2413,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">②</div>
       <h3>Step 2: Faktorkan Q(s)</h3>
       <p>Faktorkan Q(s) atas ℝ ke kombinasi: \((s-aᵢ)^{kᵢ} \cdot \prod (s^2+pⱼs+qⱼ)^{mⱼ}\). Klasifikasi tiap faktor: linear berbeda / berulang / kuadratik tak tereduksi. Untuk akar kompleks konjugat, gabung jadi faktor kuadratik. Pakai <code>sp.factor()</code> bila kompleks atau bermultiplicity tinggi.</p>
-      <div class="formula">Q = ∏(s−aᵢ)^kᵢ·∏(\(s^2\)+pⱼs+qⱼ)^mⱼ</div>
+      <div class="formula">Q = ∏(s−aᵢ)<sup>kᵢ</sup>·∏(\(s^2\)+pⱼs+qⱼ)<sup>mⱼ</sup></div>
     </div>
     <div class="card">
       <div class="card-icon">③</div>
@@ -2524,7 +2595,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="m13PFDInvInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Contoh: F(s) = (s+5)/[(s+1)(s+3)] = 2/(s+1) − 1/(s+3). <strong>PFD FORM</strong>: tampilkan tiap term Aᵢ/(s−aᵢ) sebagai badge dengan formula. <strong>TIME DOMAIN</strong>: plot tiap term hasil inversi (Aᵢ·e^(aᵢt)) dan jumlah f(t). Setiap pole Q(s) → satu mode eksponensial di f(t).
+        <strong>📊 Cara Membaca:</strong> Contoh: F(s) = (s+5)/[(s+1)(s+3)] = 2/(s+1) − 1/(s+3). <strong>PFD FORM</strong>: tampilkan tiap term Aᵢ/(s−aᵢ) sebagai badge dengan formula. <strong>TIME DOMAIN</strong>: plot tiap term hasil inversi (Aᵢ·e<sup>aᵢt</sup>) dan jumlah f(t). Setiap pole Q(s) → satu mode eksponensial di f(t).
       </div>
     </div>
   </div>
@@ -2555,7 +2626,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div id="m13CaseInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca:</strong> Empat kasus dekomposisi pecahan parsial:
-        (1) <strong>Linear Distinct</strong>: F(s) = ΣAᵢ/(s−aᵢ) → f(t) = ΣAᵢ·e^(aᵢt);
+        (1) <strong>Linear Distinct</strong>: F(s) = ΣAᵢ/(s−aᵢ) → f(t) = ΣAᵢ·e<sup>aᵢt</sup>;
         (2) <strong>Linear Repeated</strong> (mult k): butuh A/(s−a) + B/(s−a)² → \(A \cdot e^{at}\) + \(B \cdot t\)·\(e^{at}\);
         (3) <strong>Quadratic Tak Tereduksi</strong>: (As+B)/(\(s^2\)+ps+q) → completing-the-square jadi \(e^{\alpha t}\)·(...);
         (4) <strong>Mixed</strong>: kombinasi. Plot f(t) hasil inversi.
@@ -3371,7 +3442,7 @@ print(sp.inverse_laplace_transform(F2, s, t))  # 3*e^(-t) - 5*e^t + 3*e^(2t)</pr
         <div class="comp-q">Final Value Theorem: untuk <code>Y(s) = 1/[s·(s²+4s+13)]</code>, hitung <strong>\(y(\infty )\)</strong> (tanpa solve PD penuh).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Final value theorem: hitung <code>lim_(s→0) s·Y(s)</code> dengan menyederhanakan ekspresi lalu evaluasi pada s=0.</div>
+      <div class="comp-hint">💡 Final value theorem: hitung <code>lim<sub>s→0</sub> s·Y(s)</code> dengan menyederhanakan ekspresi lalu evaluasi pada s=0.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(y(\infty )\)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -3550,7 +3621,7 @@ print(sp.inverse_laplace_transform(F2, s, t))  # 3*e^(-t) - 5*e^t + 3*e^(2t)</pr
 
   <!-- Canvas Animasi Forum — kept ID for canvas reuse -->
   <canvas id="cvForum" height="360" style="margin-bottom:12px;border-radius:12px"></canvas>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:24px;font-family:'JetBrains Mono',monospace;text-align:center">— Visualisasi step response y(t) robotic arm: tiga mode peluruhan e^(−2t), e^(−5t), e^(−6t) dengan residu berbeda, plus konstanta DC dari pole di s=0. Mode terlambat (e^(−2t)) dominant karena decay paling lambat, menentukan settling time ≈ 4/2 = 2 s. PFD memungkinkan analisis tiap mode terpisah.</p>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:24px;font-family:'JetBrains Mono',monospace;text-align:center">— Visualisasi step response y(t) robotic arm: tiga mode peluruhan e<sup>−2t</sup>, e<sup>−5t</sup>, e<sup>−6t</sup> dengan residu berbeda, plus konstanta DC dari pole di s=0. Mode terlambat (e<sup>−2t</sup>) dominant karena decay paling lambat, menentukan settling time ≈ 4/2 = 2 s. PFD memungkinkan analisis tiap mode terpisah.</p>
 
   <div class="info-box reveal" style="margin-bottom:24px">
     <strong>Forum Step Response Robotic Arm, Generalisasi 4-Pole:</strong>
@@ -3622,7 +3693,7 @@ print(sp.inverse_laplace_transform(F2, s, t))  # 3*e^(-t) - 5*e^t + 3*e^(2t)</pr
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Inversi tabel L⁻¹ tiap term dari PFD: <code>1/s ↔ 1</code>; \(-2.5/(s+2) \leftrightarrow -2.5 \cdot e^{-2t}\); \(4/(s+5) \leftrightarrow 4 \cdot e^{-5t}\); \(-2.5/(s+6) \leftrightarrow -2.5 \cdot e^{-6t}\). Total: <strong>\(y(t) = 1 - 2.5 \cdot e^{-2t} + 4 \cdot e^{-5t} - 2.5 \cdot e^{-6t}\)</strong>.<br>
         Verifikasi y(0) = 1 − 2.5 + 4 − 2.5 = 0 ✓ (sistem starts dari rest).<br>
         Verifikasi y(∞) = 1 ✓ (steady state command angle 1 rad).<br>
-        <strong>Mode dominant</strong>: pole paling lambat = <code>s = −2</code> dengan time constant <code>τ = 1/2 = 0.5 s</code>. Mode \(e^{-5t}\) dan \(e^{-6t}\) jauh lebih cepat (decay 2.5–3 kali), kontribusi terabaikan setelah ~0.5 s. <strong>Settling time</strong> ≈ 4·τ_dominant = 4·0.5 = <strong>2 s</strong> (dalam ±2 % dari steady state).</p>
+        <strong>Mode dominant</strong>: pole paling lambat = <code>s = −2</code> dengan time constant <code>τ = 1/2 = 0.5 s</code>. Mode \(e^{-5t}\) dan \(e^{-6t}\) jauh lebih cepat (decay 2.5–3 kali), kontribusi terabaikan setelah ~0.5 s. <strong>Settling time</strong> ≈ 4·τ<sub>dominant</sub> = 4·0.5 = <strong>2 s</strong> (dalam ±2 % dari steady state).</p>
         <div style="background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
           💬 <em><strong>Mode dominant analysis</strong>: hal yang membuat PFD sangat berharga di control engineering. Setelah dekomposisi, kita langsung lihat <em>kontribusi tiap pole</em> ke response. Pole paling kecil (closest to imaginary axis) = lambat decay = <em>dominant mode</em>. Untuk Y(s) ini, pole −2 mengatur settling time, sedangkan pole −5 dan −6 hanya kontribusi di transient awal. <strong>Reduced-order modeling</strong>: untuk simulasi cepat, kita bisa <em>mengabaikan</em> mode cepat (e<sup>−5t</sup>, e<sup>−6t</sup>) dan pakai approximation \(y(t) \approx 1 - 2.5 \cdot e^{-2t}\). Error &lt; 5 % setelah t=0.5 s. Inilah dasar <em>balanced truncation</em> di model reduction.</em>
         </div>
@@ -3655,11 +3726,11 @@ print(sp.inverse_laplace_transform(F2, s, t))  # 3*e^(-t) - 5*e^t + 3*e^(2t)</pr
     <div class="fq-body">
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Re-tuning: numerator dari 60 → 120 (gain doubled), denominator tidak berubah. Cover-up rule baru:<br>
-        <code>A_new = 120/[(2)(5)(6)] = 120/60 = 2</code> (sebelumnya 1).<br>
-        <code>B_new = 120/[(−2)(3)(4)] = 120/(−24) = −5</code> (sebelumnya −2.5).<br>
-        <code>C_new = 120/[(−5)(−3)(1)] = 120/15 = 8</code> (sebelumnya 4).<br>
-        <code>D_new = 120/[(−6)(−4)(−1)] = 120/(−24) = −5</code> (sebelumnya −2.5).<br>
-        <strong>Pattern</strong>: semua residu berubah <em>linier dengan gain</em>, semua di-double. Ini logis karena PFD adalah operasi <em>linear</em> di numerator. <strong>Settling time</strong> tidak berubah (pole dominant tetap −2, τ=0.5, t_settle ≈ 2 s) karena <em>denominator tidak berubah</em>.<br>
+        <code>A<sub>new</sub> = 120/[(2)(5)(6)] = 120/60 = 2</code> (sebelumnya 1).<br>
+        <code>B<sub>new</sub> = 120/[(−2)(3)(4)] = 120/(−24) = −5</code> (sebelumnya −2.5).<br>
+        <code>C<sub>new</sub> = 120/[(−5)(−3)(1)] = 120/15 = 8</code> (sebelumnya 4).<br>
+        <code>D<sub>new</sub> = 120/[(−6)(−4)(−1)] = 120/(−24) = −5</code> (sebelumnya −2.5).<br>
+        <strong>Pattern</strong>: semua residu berubah <em>linier dengan gain</em>, semua di-double. Ini logis karena PFD adalah operasi <em>linear</em> di numerator. <strong>Settling time</strong> tidak berubah (pole dominant tetap −2, τ=0.5, t<sub>settle</sub> ≈ 2 s) karena <em>denominator tidak berubah</em>.<br>
         <strong>Steady state baru</strong>: y(∞) = \(A_{\text{new}}\) = <strong>2</strong> (input 1, sistem amplify ke 2). Doubled gain → 2× output amplitude.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(y(\infty ) = 2\) (overshoot target!)</span>
@@ -6091,13 +6162,13 @@ function drawCases(){
     let rootsStr;
     if (kase === 1){
       const m1 = ((1-b) + Math.sqrt(D))/2, m2 = ((1-b) - Math.sqrt(D))/2;
-      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x^m₁ + c₂·x^m₂`;
+      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x<sup>m₁</sup> + c₂·x<sup>m₂</sup>`;
     } else if (kase === 2){
       const m = (1-b)/2;
-      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x^m`;
+      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x<sup>m</sup>`;
     } else {
       const al = (1-b)/2, be = Math.sqrt(-D)/2;
-      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x^α·[c₁cos(β ln x) + c₂sin(β ln x)]`;
+      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x<sup>α</sup>·[c₁cos(β ln x) + c₂sin(β ln x)]`;
     }
     infoEl.innerHTML = `<span style="color:${color}">●</span> PD: x²y'' + ${b.toFixed(2)}·x·y' + ${c.toFixed(2)}·y = 0 &nbsp;|&nbsp; D = (b−1)² − 4c = ${D.toFixed(2)} &nbsp;|&nbsp; ${rootsStr}`;
   }
@@ -6214,9 +6285,9 @@ function drawRoots(){
   ctx.fillText('Re(m)', px1 - 35, cy - 8);
   ctx.fillText('Im(m)', cx + 6, py0 + 12);
   ctx.fillStyle = '#00e09e';
-  ctx.fillText('x^m → 0', px0 + 8, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → 0', px0 + 8, py0 + 16);
   ctx.fillStyle = '#ef4444';
-  ctx.fillText('x^m → ∞', px1 - 65, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → ∞', px1 - 65, py0 + 16);
   ctx.fillStyle = '#94a3b8';
   for (let i = -4; i <= 4; i += 2){
     if (i === 0) continue;
@@ -6640,7 +6711,7 @@ function drawSweep(){
       const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
       const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
       const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
+      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r<sub>max</sub>=${rmaxTheory.toFixed(2)}, DMF<sub>max</sub>=${dmfmaxTheory.toFixed(2)}`;
     } else {
       info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
     }
@@ -7006,7 +7077,7 @@ function drawHPB(){
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
+  ctx.fillText(`${linePos.toFixed(2)} × H²<sub>max</sub> = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
 
   // Find ω₁ and ω₂ (intersection of curve with targetY)
   // Binary search on either side of peak
@@ -7050,12 +7121,12 @@ function drawHPB(){
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
+    let html = `ζ<sub>TRUE</sub> = ${zetaTrue.toFixed(3)} · ω<sub>peak</sub> = ${omegaPeak.toFixed(2)} · H²<sub>max</sub> = ${H2max.toFixed(2)}<br>`;
     if(omega1 !== null && omega2 !== null){
       html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
       if(Math.abs(linePos - 0.5) < 0.02){
         const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
+        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ<sub>estimated</sub> = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
       } else {
         html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
       }
@@ -7102,7 +7173,7 @@ function drawForumCanvas() {
   ctx.fillStyle = '#f97316'; ctx.font = 'bold 12px JetBrains Mono';
   ctx.fillText('🤖 STEP RESPONSE ROBOTIC ARM, PFD Mode Decomposition', 12, 22);
   ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('Y(s) = 60/[s(s+2)(s+5)(s+6)]   |   y(t) = 1 − 2.5e^(−2t) + 4e^(−5t) − 2.5e^(−6t)', 12, 36);
+  ctx.fillText('Y(s) = 60/[s(s+2)(s+5)(s+6)]   |   y(t) = 1 − 2.5e<sup>−2t</sup> + 4e<sup>−5t</sup> − 2.5e<sup>−6t</sup>', 12, 36);
 
   // Domain t ∈ [0, 4] s
   const tMin = 0, tMax = 4;
@@ -7154,9 +7225,9 @@ function drawForumCanvas() {
 
   // Plot tiap mode (dashed lines)
   const modes = [
-    { fn: modeB, color: '#0ea5e9', label: 'mode 2: −2.5e^(−2t) [DOMINANT]' },
-    { fn: modeC, color: '#a855f7', label: 'mode 3: 4·e^(−5t)' },
-    { fn: modeD, color: '#ec4899', label: 'mode 4: −2.5e^(−6t)' }
+    { fn: modeB, color: '#0ea5e9', label: 'mode 2: −2.5e<sup>−2t</sup> [DOMINANT]' },
+    { fn: modeC, color: '#a855f7', label: 'mode 3: 4·e<sup>−5t</sup>' },
+    { fn: modeD, color: '#ec4899', label: 'mode 4: −2.5e<sup>−6t</sup>' }
   ];
   const N = 400;
   modes.forEach(m => {
@@ -7195,7 +7266,7 @@ function drawForumCanvas() {
   ctx.beginPath(); ctx.moveTo(xToPx(2), plotY); ctx.lineTo(xToPx(2), plotY + plotH); ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#f97316'; ctx.font = 'bold 9px JetBrains Mono'; ctx.textAlign = 'center';
-  ctx.fillText('t_settle = 2s', xToPx(2), plotY + plotH + 28);
+  ctx.fillText('t<sub>settle</sub> = 2s', xToPx(2), plotY + plotH + 28);
 
   // Time cursor
   if (tCur <= tMax) {
@@ -7218,9 +7289,9 @@ function drawForumCanvas() {
   ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1;
   ctx.strokeRect(lx - 6, ly - 10, 236, 60);
   ctx.fillStyle = '#00e09e'; ctx.fillText('━━ y(t) TOTAL', lx, ly + 4);
-  ctx.fillStyle = '#0ea5e9'; ctx.fillText('— — −2.5e^(−2t) [DOMINANT]', lx, ly + 18);
-  ctx.fillStyle = '#a855f7'; ctx.fillText('— — 4·e^(−5t)', lx, ly + 30);
-  ctx.fillStyle = '#ec4899'; ctx.fillText('— — −2.5e^(−6t)', lx, ly + 42);
+  ctx.fillStyle = '#0ea5e9'; ctx.fillText('— — −2.5e<sup>−2t</sup> [DOMINANT]', lx, ly + 18);
+  ctx.fillStyle = '#a855f7'; ctx.fillText('— — 4·e<sup>−5t</sup>', lx, ly + 30);
+  ctx.fillStyle = '#ec4899'; ctx.fillText('— — −2.5e<sup>−6t</sup>', lx, ly + 42);
 
   // ══════════════ BOTTOM STRIP — Live Metrics ══════════════
   const stripY = H - stripH;
@@ -7234,7 +7305,7 @@ function drawForumCanvas() {
   const metrics = [
     { label: 'POLE DOM', value: 's = −2', color: '#0ea5e9' },
     { label: 'τ DOMINANT', value: '0.5 s', color: '#a855f7' },
-    { label: 't_SETTLE', value: '2 s', color: '#f97316' },
+    { label: 't<sub>settle</sub>', value: '2 s', color: '#f97316' },
     { label: 'y(t)', value: yNow.toFixed(3), color: '#00e09e' },
     { label: 'FASE', value: fase, color: '#ec4899' },
   ];
@@ -7944,10 +8015,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7961,7 +8032,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -10482,7 +10553,7 @@ function drawEMTog(){
   const isNum = (_emTogMode === 1);
   const color = isNum ? '#a855f7' : '#00e09e';
   ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e^(-bt/2)·cos(ωt)', 20, 30);
+  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e<sup>-bt/2</sup>·cos(ωt)', 20, 30);
 
   const padL=50, padR=20, padT=50, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
@@ -11102,7 +11173,7 @@ function _createForumParticleBurst(event) {
       view.style.background = 'rgba(255,179,0,.25)'; view.style.borderColor = 'var(--amber)';
       knob.style.transform = 'translateX(28px)';
       lbl.style.color = 'var(--amber)';
-      lbl.textContent = 'TIME DOMAIN: f(t) = ΣAᵢ·e^(aᵢt)';
+      lbl.innerHTML = 'TIME DOMAIN: f(t) = ΣAᵢ·e<sup>aᵢt</sup>';
     }
   };
 
@@ -11150,7 +11221,7 @@ function _createForumParticleBurst(event) {
 
       // Footer
       ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
-      ctx.fillText('Setiap term Aᵢ/(s−aᵢ) → invers ke Aᵢ·e^(aᵢt) di domain waktu', W/2, H - 30);
+      ctx.fillText('Setiap term Aᵢ/(s−aᵢ) → invers ke Aᵢ·e<sup>aᵢt</sup> di domain waktu', W/2, H - 30);
       ctx.textAlign = 'left';
     } else {
       // Plot time domain f(t)
@@ -11179,8 +11250,8 @@ function _createForumParticleBurst(event) {
 
       // Plot terms (faded) + total
       const arrs = [
-        { data: term1, color: '#0ea5e9', label: '2·e^(−t)', width: 2 },
-        { data: term2, color: '#ff6bb3', label: '−e^(−3t)', width: 2 },
+        { data: term1, color: '#0ea5e9', label: '2·e<sup>−t</sup>', width: 2 },
+        { data: term2, color: '#ff6bb3', label: '−e<sup>−3t</sup>', width: 2 },
         { data: total, color: '#fff',     label: 'f(t) = total',  width: 3 }
       ];
       arrs.forEach((arr, k) => {
@@ -11206,7 +11277,7 @@ function _createForumParticleBurst(event) {
       ctx.shadowBlur = 0;
 
       ctx.fillStyle = '#ffb300'; ctx.font = 'bold 13px JetBrains Mono, monospace';
-      ctx.fillText('f(t) = 2·e^(−t) − e^(−3t)  (inversi tiap term PFD)', padL + 6, padT - 12);
+      ctx.fillText('f(t) = 2·e<sup>−t</sup> − e<sup>−3t</sup>  (inversi tiap term PFD)', padL + 6, padT - 12);
 
       // Legend
       let lx = px1 - 130, ly = padT + 12;
@@ -11235,9 +11306,9 @@ function _createForumParticleBurst(event) {
   const m13Case = { which: 'distinct', t: 0, raf: null };
 
   const M13_CASES = {
-    distinct:  { label: 'Linear Distinct: 1/((s+1)(s+3))',                                    formula: '½/(s+1) − ½/(s+3) → ½(e^(−t) − e^(−3t))', fn: t => 0.5*(Math.exp(-t) - Math.exp(-3*t)),                            color: '#0ea5e9' },
-    repeated:  { label: 'Linear Repeated: 1/((s+2)²(s+5))',                                    formula: '... → t·e^(−2t) komponen + biasa',         fn: t => 0.111*t*Math.exp(-2*t) + 0.037*Math.exp(-2*t) - 0.037*Math.exp(-5*t), color: '#a855f7' },
-    quadratic: { label: 'Quadratic: 1/((s²+2s+5)(s+1))',                                       formula: '... → e^(−t)·sin/cos + biasa',              fn: t => 0.25*Math.exp(-t) + 0.25*Math.exp(-t)*(Math.sin(2*t) - Math.cos(2*t)), color: '#0ea5e9' },
+    distinct:  { label: 'Linear Distinct: 1/((s+1)(s+3))',                                    formula: '½/(s+1) − ½/(s+3) → ½(e<sup>−t</sup> − e<sup>−3t</sup>)', fn: t => 0.5*(Math.exp(-t) - Math.exp(-3*t)),                            color: '#0ea5e9' },
+    repeated:  { label: 'Linear Repeated: 1/((s+2)²(s+5))',                                    formula: '... → t·e<sup>−2t</sup> komponen + biasa',         fn: t => 0.111*t*Math.exp(-2*t) + 0.037*Math.exp(-2*t) - 0.037*Math.exp(-5*t), color: '#a855f7' },
+    quadratic: { label: 'Quadratic: 1/((s²+2s+5)(s+1))',                                       formula: '... → e<sup>−t</sup>·sin/cos + biasa',              fn: t => 0.25*Math.exp(-t) + 0.25*Math.exp(-t)*(Math.sin(2*t) - Math.cos(2*t)), color: '#0ea5e9' },
     mixed:     { label: 'Mixed: 1/(s(s²+1))',                                                   formula: '1/s − s/(s²+1) → 1 − cos(t)',               fn: t => 1 - Math.cos(t),                                                color: '#00e09e' }
   };
 
@@ -11326,7 +11397,7 @@ function _createForumParticleBurst(event) {
     servo:   { label: 'Servo Motor: dominant pole at −0.5', poles: [{re: -0.5, color: '#ef4444'}, {re: -2.5, color: '#94a3b8'}], compute: t => 1 - 1.25*Math.exp(-0.5*t) + 0.25*Math.exp(-2.5*t),                                                                                          color: '#0ea5e9', icon: 'servo' },
     filter:  { label: 'Filter: ringing dengan pole kompleks',  poles: [{re: -0.5, im: 2, color: '#ef4444'}, {re: -3, color: '#94a3b8'}], compute: t => 1 - Math.exp(-0.5*t)*(Math.cos(2*t) + 0.25*Math.sin(2*t)),                                                                          color: '#a855f7', icon: 'filter' },
     control: { label: 'Control Step: overshoot via complex poles', poles: [{re: -0.4, im: 1.83, color: '#ef4444'}, {re: -0.4, im: -1.83, color: '#ef4444'}], compute: t => 1 - Math.exp(-0.4*t)*(Math.cos(1.83*t) + (0.4/1.83)*Math.sin(1.83*t)),                                          color: '#00e09e', icon: 'control' },
-    circuit: { label: 'RLC Transient Charge: e^(−t)·sin(2t)',   poles: [{re: -1, im: 2, color: '#ef4444'}, {re: -1, im: -2, color: '#ef4444'}], compute: t => Math.exp(-t)*Math.sin(2*t),                                                                                                  color: '#ffb300', icon: 'circuit' }
+    circuit: { label: 'RLC Transient Charge: e<sup>−t</sup>·sin(2t)',   poles: [{re: -1, im: 2, color: '#ef4444'}, {re: -1, im: -2, color: '#ef4444'}], compute: t => Math.exp(-t)*Math.sin(2*t),                                                                                                  color: '#ffb300', icon: 'circuit' }
   };
 
   window.m13SetAppArm = function(key){

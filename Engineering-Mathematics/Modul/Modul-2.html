@@ -1342,6 +1342,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1579,9 +1650,9 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">g(y) dy = f(x) dx</span>
     <span class="ff" style="left:24%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">∫dy/y = ∫r·dx</span>
-    <span class="ff" style="left:42%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">y = C·e^(rx)</span>
+    <span class="ff" style="left:42%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">y = C·e<sup>rx</sup></span>
     <span class="ff" style="left:60%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">dT/dt = -k(T - Tm)</span>
-    <span class="ff" style="left:78%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">N = N₀·e^(-λt)</span>
+    <span class="ff" style="left:78%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">N = N₀·e<sup>-λt</sup></span>
     <span class="ff" style="left:8%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">Pisahkan → Integrasi → Solusi</span>
     <span class="ff" style="left:48%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">dN/dt = rN(1-N/K)</span>
     <span class="ff" style="left:88%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">Half-life = ln(2)/λ</span>
@@ -1721,7 +1792,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Tidak semua PD orde 1 dapat dipisahkan variabelnya. Untuk mengidentifikasi PD variabel terpisah, periksa apakah <strong>turunan dapat dituliskan sebagai produk fungsi-x dan fungsi-y secara terpisah</strong>: <code>dy/dx = f(x) · g(y)</code>. Jika ada suku campuran seperti <code>x + y</code> yang tidak bisa difaktorkan menjadi produk, PD <em>bukan</em> variabel terpisah. Skemanya diperlihatkan pada Gambar 2. Bentuk ringkasnya dituliskan pada Persamaan (2).</p>
 <!-- ILUSTRASI-STATIS:2:START -->
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 161" role="img" aria-label="Gambar 2 — Menguji apakah persamaan dapat dipisahkan" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="161" fill="#0a101f"/><text x="186" y="35" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">dy/dx = x·y</text><rect x="196" y="16" width="385.2" height="30" rx="7" fill="#00e09e" fill-opacity="0.82"/><text x="589.2" y="35" text-anchor="start" font-size="11.5" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Bisa dipisah</text><text x="186" y="78" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">dy/dx = x + y</text><rect x="196" y="59" width="128.4" height="30" rx="7" fill="#ef4444" fill-opacity="0.82"/><text x="332.4" y="78" text-anchor="start" font-size="11.5" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Tidak bisa</text><text x="186" y="121" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">dy/dx = e^x·cos y</text><rect x="196" y="102" width="363.8" height="30" rx="7" fill="#00e09e" fill-opacity="0.82"/><text x="567.8" y="121" text-anchor="start" font-size="11.5" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Bisa dipisah</text></svg>
+    <svg viewBox="0 0 660 161" role="img" aria-label="Gambar 2 — Menguji apakah persamaan dapat dipisahkan" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="161" fill="#0a101f"/><text x="186" y="35" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">dy/dx = x·y</text><rect x="196" y="16" width="385.2" height="30" rx="7" fill="#00e09e" fill-opacity="0.82"/><text x="589.2" y="35" text-anchor="start" font-size="11.5" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Bisa dipisah</text><text x="186" y="78" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">dy/dx = x + y</text><rect x="196" y="59" width="128.4" height="30" rx="7" fill="#ef4444" fill-opacity="0.82"/><text x="332.4" y="78" text-anchor="start" font-size="11.5" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Tidak bisa</text><text x="186" y="121" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">dy/dx = e<tspan dy="-4.6" font-size="8.6">x</tspan><tspan dy="4.6">·cos y</tspan></text><rect x="196" y="102" width="363.8" height="30" rx="7" fill="#00e09e" fill-opacity="0.82"/><text x="567.8" y="121" text-anchor="start" font-size="11.5" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Bisa dipisah</text></svg>
     <figcaption><strong>Gambar 2</strong> — Menguji apakah persamaan dapat dipisahkan. Persamaan dapat dipisahkan bila ruas kanannya berupa hasil kali fungsi x dengan fungsi y; penjumlahan keduanya tidak bisa.</figcaption>
   </figure>
 <!-- ILUSTRASI-STATIS:2:END -->
@@ -2369,17 +2440,17 @@ window.jalankanDenganMuat = async function (el, label, fn) {
         <div class="ctrl-group" style="flex:1 1 100%;">
           <label>Pilih aplikasi nyata yang menggunakan variabel terpisah:</label>
           <select id="m2slApps" onchange="window.m2SetApps(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="cooling">☕ Pendinginan Kopi, T(t) = Tₐ + (T₀−Tₐ)e^(−kt)</option>
-            <option value="halflife">☢️ Waktu Paruh, N(t) = N₀·e^(−ln2·t/T½)</option>
-            <option value="population">🐛 Populasi Bakteri, N(t) = N₀·\(e^{rt}\)</option>
-            <option value="mixing">🧪 Tangki Garam — \(V \cdot dC\)/dt = q(Cᵢₙ − C)</option>
-            <option value="terminal">🪂 Kecepatan Terminal — \(m \cdot dv\)/dt = mg − bv</option>
+            <option value="cooling">☕ Pendinginan Kopi, T(t) = Tₐ + (T₀−Tₐ)e⁻ᵏᵗ</option>
+            <option value="halflife">☢️ Waktu Paruh, N(t) = N₀·exp(−ln2·t/T½)</option>
+            <option value="population">🐛 Populasi Bakteri, N(t) = N₀·eʳᵗ</option>
+            <option value="mixing">🧪 Tangki Garam — V·dC/dt = q(Cᵢₙ − C)</option>
+            <option value="terminal">🪂 Kecepatan Terminal — m·dv/dt = mg − bv</option>
           </select>
         </div>
       </div>
       <div id="m2AppsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Lima aplikasi nyata yang dimodelkan dengan PD variabel terpisah. Layout split: kiri = ikon/diagram (cangkir kopi, atom decay, bakteri, tangki, parasut), kanan = signal trace 1000 samples (~10 detik). <strong>Insight:</strong> Walau domainnya beda, semua menggunakan teknik "pisahkan variabel" untuk mendapat closed-form solusi yang melibatkan e^(±kt). Inilah kekuatan metode separasi variabel.
+        <strong>📊 Cara Membaca:</strong> Lima aplikasi nyata yang dimodelkan dengan PD variabel terpisah. Layout split: kiri = ikon/diagram (cangkir kopi, atom decay, bakteri, tangki, parasut), kanan = signal trace 1000 samples (~10 detik). <strong>Insight:</strong> Walau domainnya beda, semua menggunakan teknik "pisahkan variabel" untuk mendapat closed-form solusi yang melibatkan e<sup>±kt</sup>. Inilah kekuatan metode separasi variabel.
       </div>
     </div>
   </div>
@@ -2745,7 +2816,7 @@ plt.<span class="fn">show</span>()</pre>
         <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; T<sub>1/2</sub> = 1/λ</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <strong>\(T_{1/2} = \ln(2)/\lambda\)</strong></div>
         <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; T<sub>1/2</sub> = 2λ</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; T<sub>1/2</sub> = e^λ/2</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; T<sub>1/2</sub> = e<sup>λ</sup>/2</div>
       </div>
       <button class="mc-submit" id="sub-mc7" onclick="checkMC('mc7')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc7"></div>
@@ -2898,7 +2969,7 @@ plt.<span class="fn">show</span>()</pre>
         <div class="comp-q">Newton Cooling: \(T(t) = 20 + 80 \cdot e^{-0.1t}\) (Contoh 2.6). Hitung <strong>T(10)</strong> dalam °C.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Pakai rumus pendinginan Newton <code>T = T_m + (T₀−T_m)e^(−kt)</code>, substitusikan t yang diminta lalu evaluasi.</div>
+      <div class="comp-hint">💡 Pakai rumus pendinginan Newton <code>T = T<sub>m</sub> + (T₀−T<sub>m</sub>)e<sup>−kt</sup></code>, substitusikan t yang diminta lalu evaluasi.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">T(10)</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
@@ -2983,7 +3054,7 @@ plt.<span class="fn">show</span>()</pre>
         <div class="comp-q">Newton Cooling \(T(t) = T_{m} + (T_0-T_{m}) \cdot e^{-kt}\). Untuk \(T_0=100, T_{m}=20, k=0.1\), berapakah <strong>(T₀−T<sub>m</sub>)</strong>?</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Konstanta amplitudo pada solusi Newton Cooling adalah selisih suhu awal dengan suhu lingkungan, <code>T₀ − T_m</code>.</div>
+      <div class="comp-hint">💡 Konstanta amplitudo pada solusi Newton Cooling adalah selisih suhu awal dengan suhu lingkungan, <code>T₀ − T<sub>m</sub></code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">amplitudo</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -3064,7 +3135,7 @@ plt.<span class="fn">show</span>()</pre>
         <div class="comp-q">Sebuah fosil tertinggal <strong>11460 tahun</strong> (= 2 half-lives Carbon-14, T<sub>1/2</sub>=5730). Hitung <strong>persen Carbon-14</strong> yang tersisa relatif ke kondisi awal (output 0-100). Awalnya 100%.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Gunakan <code>N/N₀ = e^(−λt)</code> dengan <code>λ = ln(2)/t½</code>; hitung berapa kelipatan waktu paruh yang berlalu lalu evaluasi fraksinya.</div>
+      <div class="comp-hint">💡 Gunakan <code>N/N₀ = e<sup>−λt</sup></code> dengan <code>λ = ln(2)/t½</code>; hitung berapa kelipatan waktu paruh yang berlalu lalu evaluasi fraksinya.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">% C-14 tersisa</strong></span></div>
         <textarea class="code-textarea" id="code-c14" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c14')"></textarea>
@@ -3128,7 +3199,7 @@ plt.<span class="fn">show</span>()</pre>
   <div class="float-formulas">
     <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">g(y)dy = f(x)dx</span>
     <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">∫dy/y = ∫r·dx</span>
-    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">y = C·e^(rx)</span>
+    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">y = C·e<sup>rx</sup></span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">dT/dt = -k(T-Tm)</span>
   </div>
   <div class="hero-content">
@@ -3150,7 +3221,7 @@ plt.<span class="fn">show</span>()</pre>
       Anda dihadapkan pada tiga PD orde 1 berbeda. Tugas: <strong>identifikasi</strong> apakah tiap PD adalah variabel terpisah, <strong>pisahkan</strong> variabelnya, <strong>integrasikan</strong>, dan <strong>tentukan solusi khusus</strong> jika ada syarat awal.
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:16px">
-      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">PD 1: dy/dx = 2xy, IC y(0)=1 → y = e^(\(x^2\))</div>
+      <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">PD 1: dy/dx = 2xy, IC y(0)=1 → y = \(e^{x^2}\)</div>
       <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">PD 2: dT/dt = -0.1(T-20), T(0)=100 [Newton]</div>
       <div style="background:rgba(236,72,153,.05);border:1px solid rgba(236,72,153,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">PD 3: dy/dx = x + y &nbsp;(BUKAN separable)</div>
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">Identifikasi → Pisahkan → Solusi</div>
@@ -3323,7 +3394,7 @@ plt.<span class="fn">show</span>()</pre>
     <span class="ff" style="left:32%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">g(y)dy = f(x)dx</span>
     <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">Pisahkan · Integrasi · Solusi</span>
     <span class="ff" style="left:75%;font-size:.7rem;color:var(--pink);--dur:24s;--del:2s">🏆 Top Skor</span>
-    <span class="ff" style="left:90%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">y = C·e^(rx)</span>
+    <span class="ff" style="left:90%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">y = C·e<sup>rx</sup></span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 2 &nbsp;·&nbsp; Hasil &amp; Kehadiran</div>
@@ -6190,7 +6261,7 @@ function drawSweep(){
       const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
       const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
       const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
+      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r<sub>max</sub>=${rmaxTheory.toFixed(2)}, DMF<sub>max</sub>=${dmfmaxTheory.toFixed(2)}`;
     } else {
       info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
     }
@@ -6556,7 +6627,7 @@ function drawHPB(){
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
+  ctx.fillText(`${linePos.toFixed(2)} × H²<sub>max</sub> = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
 
   // Find ω₁ and ω₂ (intersection of curve with targetY)
   // Binary search on either side of peak
@@ -6600,12 +6671,12 @@ function drawHPB(){
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
+    let html = `ζ<sub>TRUE</sub> = ${zetaTrue.toFixed(3)} · ω<sub>peak</sub> = ${omegaPeak.toFixed(2)} · H²<sub>max</sub> = ${H2max.toFixed(2)}<br>`;
     if(omega1 !== null && omega2 !== null){
       html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
       if(Math.abs(linePos - 0.5) < 0.02){
         const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
+        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ<sub>estimated</sub> = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
       } else {
         html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
       }
@@ -7658,10 +7729,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7675,7 +7746,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -10237,7 +10308,7 @@ function drawEMTog(){
   const isNum = (_emTogMode === 1);
   const color = isNum ? '#a855f7' : '#00e09e';
   ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e^(-bt/2)·cos(ωt)', 20, 30);
+  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e<sup>-bt/2</sup>·cos(ωt)', 20, 30);
 
   const padL=50, padR=20, padT=50, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
@@ -10808,7 +10879,7 @@ function _createForumParticleBurst(event) {
 
     // Title
     ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 13px JetBrains Mono, monospace';
-    ctx.fillText(`Solution family: y = C·e^(${k.toFixed(2)}·x), C ∈ [−${Cmax.toFixed(1)}, ${Cmax.toFixed(1)}]`, padL + 8, padT + 16);
+    ctx.fillText(`Solution family: y = C·e<sup>${k.toFixed(2)}·x</sup>, C ∈ [−${Cmax.toFixed(1)}, ${Cmax.toFixed(1)}]`, padL + 8, padT + 16);
 
     // Info
     const infoEl = document.getElementById('m2FamInfo');
@@ -11091,11 +11162,11 @@ function _createForumParticleBurst(event) {
   const m2Apps = { which: 'cooling', t: 0, hist: [], raf: null };
 
   const M2_APPS = {
-    cooling:    { label: "Pendinginan Kopi: T(t) = 20 + 70·e^(−0.4·t)",        compute: t => 0.20 + 0.70*Math.exp(-0.4*t),       color: '#0ea5e9', icon: 'cup'   },
-    halflife:   { label: "Waktu Paruh: N(t) = 100·e^(−ln2·t/3)",                compute: t => 1.0 * Math.exp(-Math.LN2 * t/3),    color: '#a855f7', icon: 'atom'  },
-    population: { label: "Populasi Bakteri: N(t) = 1·e^(0.5·t)",                compute: t => 0.10 * Math.exp(0.5*t) - 0.20,      color: '#00e09e', icon: 'germ'  },
-    mixing:     { label: "Tangki Garam: C(t) = 0.5(1 − e^(−0.3·t))",            compute: t => 0.50*(1 - Math.exp(-0.3*t)),        color: '#ffb300', icon: 'tank'  },
-    terminal:   { label: "Kecepatan Terminal: v(t) = v_T(1 − e^(−t/τ))",       compute: t => 0.95*(1 - Math.exp(-t/2)),          color: '#ff6bb3', icon: 'chute' }
+    cooling:    { label: "Pendinginan Kopi: T(t) = 20 + 70·e<sup>−0.4·t</sup>",        compute: t => 0.20 + 0.70*Math.exp(-0.4*t),       color: '#0ea5e9', icon: 'cup'   },
+    halflife:   { label: "Waktu Paruh: N(t) = 100·e<sup>−ln2·t/3</sup>",                compute: t => 1.0 * Math.exp(-Math.LN2 * t/3),    color: '#a855f7', icon: 'atom'  },
+    population: { label: "Populasi Bakteri: N(t) = 1·e<sup>0.5·t</sup>",                compute: t => 0.10 * Math.exp(0.5*t) - 0.20,      color: '#00e09e', icon: 'germ'  },
+    mixing:     { label: "Tangki Garam: C(t) = 0.5(1 − e<sup>−0.3·t</sup>)",            compute: t => 0.50*(1 - Math.exp(-0.3*t)),        color: '#ffb300', icon: 'tank'  },
+    terminal:   { label: "Kecepatan Terminal: v(t) = v<sub>T</sub>(1 − e<sup>−t/τ</sup>)",       compute: t => 0.95*(1 - Math.exp(-t/2)),          color: '#ff6bb3', icon: 'chute' }
   };
 
   window.m2SetApps = function(key){

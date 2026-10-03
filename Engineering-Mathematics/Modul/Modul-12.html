@@ -1342,6 +1342,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1578,9 +1649,9 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <canvas class="hero-orbits" data-hero-id="1"></canvas>
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">H(t−a) = {0, t&lt;a; 1, t≥a}</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">L{H(t−a)} = e^(−as)/s</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">L{H(t−a)} = e<sup>−as</sup>/s</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">pulse = H(t)−H(t−d)</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">L{f(t−a)·H(t−a)} = e^(−as)F(s)</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">L{f(t−a)·H(t−a)} = e<sup>−as</sup>F(s)</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">square wave periodik</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">switching control</span>
     <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">d/dt H(t) = δ(t)</span>
@@ -1856,7 +1927,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Inti penguasaan fungsi tangga di engineering: <strong>transformasi Laplace</strong> dari Heaviside step. Rumus baku: <strong>\(L{H(t-a)} = e^{-as}/s\)</strong>. Faktor \(e^{-as}\) = <em>delay operator</em> di domain s, sedangkan 1/s = transformasi step di origin. Dari rumus dasar ini, kombinasi linier memberi transformasi semua sinyal kompleks (pulse, step ber-tingkat, piecewise), semua di-handle secara seragam oleh tabel + linieritas Laplace. Perhatikan ilustrasinya pada Gambar 3. Persamaan (3) di bawah memadatkan aturan tersebut.</p>
 <!-- ILUSTRASI-STATIS:3:START -->
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 3 — Transformasi fungsi tangga" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="153" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="232" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">H(t−a)</text><line x1="311" y1="39" x2="340" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="349,39 340,43.5 340,34.5" fill="#94a3b8"/><rect x="349" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="428" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">e^{−as}/s</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Pangkat eksponensial menyimpan besar tundaannya</text></svg>
+    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 3 — Transformasi fungsi tangga" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="153" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="232" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">H(t−a)</text><line x1="311" y1="39" x2="340" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="349,39 340,43.5 340,34.5" fill="#94a3b8"/><rect x="349" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="428" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">e<tspan dy="-4.7" font-size="9">−as</tspan><tspan dy="4.7">/s</tspan></text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Pangkat eksponensial menyimpan besar tundaannya</text></svg>
     <figcaption><strong>Gambar 3</strong> — Transformasi fungsi tangga. Fungsi tangga bertunda menghasilkan faktor eksponensial di domain-s, dan faktor itulah penanda adanya penundaan.</figcaption>
   </figure>
 <!-- ILUSTRASI-STATIS:3:END -->
@@ -1887,8 +1958,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     </div>
     <div class="card">
       <div class="card-icon">⏰</div>
-      <h3>Faktor Delay e^(−as)</h3>
-      <p>Faktor \(e^{-as}\) adalah <em>operator delay</em> di domain s, semakin besar a (delay), semakin kecil F(s) untuk s tetap. Properti ini membuat translasi waktu mudah di-handle: sinyal yang ditunda a detik di domain t = perkalian dengan e^(−as) di domain s.</p>
+      <h3>Faktor Delay e<sup>−as</sup></h3>
+      <p>Faktor \(e^{-as}\) adalah <em>operator delay</em> di domain s, semakin besar a (delay), semakin kecil F(s) untuk s tetap. Properti ini membuat translasi waktu mudah di-handle: sinyal yang ditunda a detik di domain t = perkalian dengan e<sup>−as</sup> di domain s.</p>
       <div class="formula">\(delay a \to e^{-as}\)</div>
     </div>
     <div class="card">
@@ -1932,7 +2003,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
 
   <div class="warn-box reveal">
-    ⚠ <strong>Tips transformasi Heaviside:</strong> <strong>(1)</strong> Konvergensi: integral hanya konvergen untuk s &gt; 0. Tidak ada masalah praktis karena kita selalu pakai s &gt; 0 (region of convergence). <strong>(2)</strong> Sebaiknya identifikasi struktur sinyal dulu (step, pulse, step ber-tingkat) sebelum transformasi. <strong>(3)</strong> Jangan keliru menulis <code>L{H(t−a)} = 1/(s−a)</code> (itu untuk \(e^{at}\)!). Heaviside selalu menghasilkan <em>e^(−as)/s</em>. <strong>(4)</strong> SymPy: <code>sp.laplace_transform(sp.Heaviside(t-a), t, s)</code> memberi <code>e^(−as)/s</code>.
+    ⚠ <strong>Tips transformasi Heaviside:</strong> <strong>(1)</strong> Konvergensi: integral hanya konvergen untuk s &gt; 0. Tidak ada masalah praktis karena kita selalu pakai s &gt; 0 (region of convergence). <strong>(2)</strong> Sebaiknya identifikasi struktur sinyal dulu (step, pulse, step ber-tingkat) sebelum transformasi. <strong>(3)</strong> Jangan keliru menulis <code>L{H(t−a)} = 1/(s−a)</code> (itu untuk \(e^{at}\)!). Heaviside selalu menghasilkan <em>e<sup>−as</sup>/s</em>. <strong>(4)</strong> SymPy: <code>sp.laplace_transform(sp.Heaviside(t-a), t, s)</code> memberi <code>e<sup>−as</sup>/s</code>.
   </div>
 
   <label class="pm-centang" data-pm="2"><input type="checkbox" disabled aria-describedby="pm-status-2"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Transformasi Laplace L{H(t−a)} — Step di Domain s</b>.</span><em class="pm-status" id="pm-status-2"></em></label>
@@ -1983,7 +2054,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     </div>
     <div class="card">
       <div class="card-icon">↩️</div>
-      <h3>Invers: e^(−as)F(s) → ?</h3>
+      <h3>Invers: e<sup>−as</sup>F(s) → ?</h3>
       <p>Untuk Y(s) yang mengandung faktor \(e^{-as}\), pisahkan: \(Y(s) = e^{-as} \cdot F(s)\). Hitung <code>f(t) = L⁻¹{F(s)}</code>, lalu <code>L⁻¹{Y(s)} = f(t−a)·H(t−a)</code>. Hasilnya = fungsi f digeser dan dimasking dengan H. Sangat sering muncul saat solve PD dengan input ditunda.</p>
       <div class="formula">\(L^{-1}{e^{-as}F} = f(t-a)H(t-a)\)</div>
     </div>
@@ -2017,7 +2088,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
 
   <div class="warn-box reveal">
-    ⚠ <strong>Tips Second Shift:</strong> <strong>(1)</strong> Selalu cek argumen f sebelum menerapkan theorem, apakah f(t−a) atau f(t)? <strong>(2)</strong> Untuk f(t)·H(t−a) (tidak digeser), pakai trik <code>f(t) = f((t−a)+a)</code>. <strong>(3)</strong> Untuk invers Laplace dengan e^(−as), <em>SELALU</em> hasil mengandung H(t−a) (jangan lupa). <strong>(4)</strong> SymPy <code>sp.laplace_transform</code> handle ini otomatis tetapi hasil mungkin perlu disederhanakan dengan <code>sp.simplify</code>. <strong>(5)</strong> Verifikasi dengan substitusi t&lt;a (harus 0) dan t&gt;a (harus match).
+    ⚠ <strong>Tips Second Shift:</strong> <strong>(1)</strong> Selalu cek argumen f sebelum menerapkan theorem, apakah f(t−a) atau f(t)? <strong>(2)</strong> Untuk f(t)·H(t−a) (tidak digeser), pakai trik <code>f(t) = f((t−a)+a)</code>. <strong>(3)</strong> Untuk invers Laplace dengan e<sup>−as</sup>, <em>SELALU</em> hasil mengandung H(t−a) (jangan lupa). <strong>(4)</strong> SymPy <code>sp.laplace_transform</code> handle ini otomatis tetapi hasil mungkin perlu disederhanakan dengan <code>sp.simplify</code>. <strong>(5)</strong> Verifikasi dengan substitusi t&lt;a (harus 0) dan t&gt;a (harus match).
   </div>
 
   <div class="info-box reveal">
@@ -2272,7 +2343,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-ivp">
   <div class="section-label reveal">Bagian 07</div>
   <h2 class="section-title reveal">Solve PD dengan Input Step —<br>Workflow End-to-End</h2>
-  <p class="section-desc reveal">Setelah memahami konstruksi sinyal Heaviside dan transformasinya, kini kita gunakan untuk <strong>solve PD dengan input switching</strong>. Workflow standar Laplace + handling Heaviside di sisi kanan: (1) transformasi PD, (2) solve untuk Y(s), (3) pisahkan Y(s) ke term tanpa e^(−as) dan term dengan e^(−as), (4) invers Laplace tiap term, kemudian gunakan second shift theorem untuk term dengan delay. Hasil akhir: solusi y(t) yang berisi Heaviside di domain waktu, sesuai dengan input switching. Perhatikan ilustrasinya pada Gambar 7. Persamaan (7) di bawah memadatkan aturan tersebut.</p>
+  <p class="section-desc reveal">Setelah memahami konstruksi sinyal Heaviside dan transformasinya, kini kita gunakan untuk <strong>solve PD dengan input switching</strong>. Workflow standar Laplace + handling Heaviside di sisi kanan: (1) transformasi PD, (2) solve untuk Y(s), (3) pisahkan Y(s) ke term tanpa e<sup>−as</sup> dan term dengan e<sup>−as</sup>, (4) invers Laplace tiap term, kemudian gunakan second shift theorem untuk term dengan delay. Hasil akhir: solusi y(t) yang berisi Heaviside di domain waktu, sesuai dengan input switching. Perhatikan ilustrasinya pada Gambar 7. Persamaan (7) di bawah memadatkan aturan tersebut.</p>
 <!-- ILUSTRASI-STATIS:7:START -->
   <figure class="ilustrasi reveal">
     <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 7 — Tanggapan sistem terhadap masukan tangga" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,208.8 L214.3,208.8 L273.7,140.7 L345.0,92.9 L440.0,63.4 L535.1,52.4 L642.0,48.7 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,208.8 L214.3,208.8 L273.7,140.7 L345.0,92.9 L440.0,63.4 L535.1,52.4 L642.0,48.7" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M48.0,208.8 L214.3,208.8 L226.2,48.7 L642.0,48.7" fill="none" stroke="#94a3b8" stroke-width="2.4" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"/><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Tanggapan</text><line x1="139.6" y1="18" x2="161.6" y2="18" stroke="#94a3b8" stroke-width="3" stroke-dasharray="5 4" stroke-linecap="round"/><text x="166.6" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Masukan tangga</text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">t</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">y(t)</text></g></svg>
@@ -2301,13 +2372,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Step 2: Solve Y(s)</h3>
-      <p>Susun: \(P(s) \cdot Y(s) = R(s) + sum cᵢ \cdot e^{-aᵢs} \cdot G(s)\). Solve aljabar: \(Y(s) = R(s)/P(s) + sum cᵢ \cdot e^{-aᵢs} \cdot G(s)/P(s)\). Pisahkan term dengan e^(−as) dari term tanpa.</p>
+      <p>Susun: \(P(s) \cdot Y(s) = R(s) + sum cᵢ \cdot e^{-aᵢs} \cdot G(s)\). Solve aljabar: \(Y(s) = R(s)/P(s) + sum cᵢ \cdot e^{-aᵢs} \cdot G(s)/P(s)\). Pisahkan term dengan e<sup>−as</sup> dari term tanpa.</p>
       <div class="formula">\(Y(s) = Y_1 + \sum e^{-a_{is}} \cdot Y_{2,i}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">↩️</div>
       <h3>Step 3: Invers via Second Shift</h3>
-      <p>Untuk tiap term: tanpa e^(−as) → invers biasa via tabel/pecahan parsial. Dengan e^(−as) → pakai second shift inverse \(L^{-1}{e^{-as} \cdot F(s)} = f(t-a) \cdot H(t-a)\). Tiap kontribusi step input memberi term di y(t) yang aktif dengan delay.</p>
+      <p>Untuk tiap term: tanpa e<sup>−as</sup> → invers biasa via tabel/pecahan parsial. Dengan e<sup>−as</sup> → pakai second shift inverse \(L^{-1}{e^{-as} \cdot F(s)} = f(t-a) \cdot H(t-a)\). Tiap kontribusi step input memberi term di y(t) yang aktif dengan delay.</p>
       <div class="formula">\(L^{-1}{e^{-as}F} = f(t-a)H(t-a)\)</div>
     </div>
     <div class="card">
@@ -2360,7 +2431,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 2: PWM Motor Control -->
   <div class="analogy-box reveal" style="border-left-color:var(--cyan);background:linear-gradient(135deg,rgba(14,165,233,.07),rgba(14,165,233,.03))">
     <span class="analogy-label" style="color:var(--cyan)">🔧 Analogi 2 — PWM untuk Motor Control</span>
-    <strong style="color:var(--cyan)">PWM (Pulse Width Modulation)</strong> dipakai untuk kendali kecepatan motor DC, dimming LED, dan switching power supply. Sinyal PWM = pulse train periodik <code>u(t) = V₀·∑[H(t−nT) − H(t−nT−d·T)]</code> dengan T = periode (mis. 1 ms), d = duty cycle (0–1). Transformasi Laplace via periodicity theorem. Tegangan rata-rata <code>V_avg = V₀·d</code>, mengubah duty d mengubah avg signal yang terlihat oleh motor (dengan filtering di induktansi). Kendali kecepatan motor: high d → fast, low d → slow. Frekuensi switching tipikal 1–100 kHz untuk effisiensi tinggi.
+    <strong style="color:var(--cyan)">PWM (Pulse Width Modulation)</strong> dipakai untuk kendali kecepatan motor DC, dimming LED, dan switching power supply. Sinyal PWM = pulse train periodik <code>u(t) = V₀·∑[H(t−nT) − H(t−nT−d·T)]</code> dengan T = periode (mis. 1 ms), d = duty cycle (0–1). Transformasi Laplace via periodicity theorem. Tegangan rata-rata <code>V<sub>avg</sub> = V₀·d</code>, mengubah duty d mengubah avg signal yang terlihat oleh motor (dengan filtering di induktansi). Kendali kecepatan motor: high d → fast, low d → slow. Frekuensi switching tipikal 1–100 kHz untuk effisiensi tinggi.
   </div>
 
   <!-- Analogi 3: Digital Communication -->
@@ -2417,7 +2488,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="m12SigInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Heaviside H(t−a) adalah <em>building block</em> sinyal diskontinu. Dari kombinasi H(t−a₁), H(t−a₂), ..., kita bisa bangun pulse rectangular, ramp, staircase, dan bentuk arbitrary. Canvas tampilkan sinyal final + komponen H(t−aᵢ) individual (faded). Inilah trick utama: di Laplace, semua bentuk ini menjadi e^(−aᵢ·s) per komponen, algebra sederhana.
+        <strong>📊 Cara Membaca:</strong> Heaviside H(t−a) adalah <em>building block</em> sinyal diskontinu. Dari kombinasi H(t−a₁), H(t−a₂), ..., kita bisa bangun pulse rectangular, ramp, staircase, dan bentuk arbitrary. Canvas tampilkan sinyal final + komponen H(t−aᵢ) individual (faded). Inilah trick utama: di Laplace, semua bentuk ini menjadi e<sup>−aᵢ·s</sup> per komponen, algebra sederhana.
       </div>
     </div>
   </div>
@@ -2442,7 +2513,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="m12SquareInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Square wave / pulse train periode T dan duty cycle D = pulse_width/T. Slider mengontrol kedua. <strong>Konstruksi:</strong> ΣH(t−nT) − H(t−nT−DT) untuk n=0,1,2,... <strong>Average voltage:</strong> \(V_{\text{avg}}\) = \(D \cdot V\)_peak (penting untuk PWM motor control). <strong>Laplace:</strong> per pulse = e^(−nTs)·(1−e^(−DTs))/s. Periodic signals memiliki representasi 1/(1−e^(−Ts)) di s-domain.
+        <strong>📊 Cara Membaca:</strong> Square wave / pulse train periode T dan duty cycle D = pulse_width/T. Slider mengontrol kedua. <strong>Konstruksi:</strong> ΣH(t−nT) − H(t−nT−DT) untuk n=0,1,2,... <strong>Average voltage:</strong> \(V_{\text{avg}}\) = \(D \cdot V\)_peak (penting untuk PWM motor control). <strong>Laplace:</strong> per pulse = e<sup>−nTs</sup>·(1−e<sup>−DTs</sup>)/s. Periodic signals memiliki representasi 1/(1−e<sup>−Ts</sup>) di s-domain.
       </div>
     </div>
   </div>
@@ -2972,7 +3043,7 @@ for f in (f53a, f53b, f54):
   <canvas class="hero-orbits" data-hero-id="2"></canvas>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">H(t−a)</span>
-    <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">L{H(t−a)} = e^(−as)/s</span>
+    <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">L{H(t−a)} = e<sup>−as</sup>/s</span>
     <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">pulse rectangular</span>
     <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">PWM &amp; switching</span>
   </div>
@@ -3245,7 +3316,7 @@ for f in (f53a, f53b, f54):
         <div class="comp-q">Hitung <code>L{H(t − 2)}</code> di s = 1. Rumus: \(e^{-as}/s\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Gunakan rumus <code>L{H(t − a)} = e^(−as)/s</code>, lalu substitusikan nilai a dan s yang diminta.</div>
+      <div class="comp-hint">💡 Gunakan rumus <code>L{H(t − a)} = e<sup>−as</sup>/s</code>, lalu substitusikan nilai a dan s yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">F(1)</strong></span></div>
         <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;import numpy as np&#10;a, s = 2, 1&#10;F = np.exp(-a*s)/s&#10;print(F)" oninput="onCodeInput('c1')"></textarea>
@@ -3262,7 +3333,7 @@ for f in (f53a, f53b, f54):
         <div class="comp-q">Hitung <code>L{δ(t − 1)}</code> di s = 2. Rumus: \(e^{-as}\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Gunakan rumus <code>L{δ(t − a)} = e^(−as)</code>, lalu substitusikan nilai a dan s yang diminta.</div>
+      <div class="comp-hint">💡 Gunakan rumus <code>L{δ(t − a)} = e<sup>−as</sup></code>, lalu substitusikan nilai a dan s yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">F(2)</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
@@ -3279,7 +3350,7 @@ for f in (f53a, f53b, f54):
         <div class="comp-q">Untuk pulse rectangular <code>f(t) = 4·[H(t−1) − H(t−5)]</code>, hitung <strong>F(s)</strong> di s = 1. Rumus: \((c/s) \cdot (e^{-as} - e^{-bs})\) dengan c=4, a=1, b=5.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Gunakan rumus pulse <code>F(s) = (c/s)(e^(−as) − e^(−bs))</code>, lalu substitusikan c, a, b, dan s yang diminta.</div>
+      <div class="comp-hint">💡 Gunakan rumus pulse <code>F(s) = (c/s)(e<sup>−as</sup> − e<sup>−bs</sup>)</code>, lalu substitusikan c, a, b, dan s yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">F(1)</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;import numpy as np&#10;c, a, b, s = 4, 1, 5, 1&#10;F = (c/s)*(np.exp(-a*s) - np.exp(-b*s))&#10;print(F)" oninput="onCodeInput('c3')"></textarea>
@@ -3330,7 +3401,7 @@ for f in (f53a, f53b, f54):
         <div class="comp-q">Pakai <strong>second shift theorem</strong>: \(L{(t-2)^2 \cdot H(t-2)} = e^{-2s} \cdot F(s)\) dengan F(s) = L{\(t^2\)} = 2/\(s^3\). Hitung <strong>\(L{(t-2)^2 \cdot H(t-2)}\)</strong> di s = 1.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Second shift theorem: <code>L{(t−a)²·H(t−a)} = e^(−as)·L{t²}</code> dengan <code>L{t²}=2/s³</code>; substitusikan s yang diminta.</div>
+      <div class="comp-hint">💡 Second shift theorem: <code>L{(t−a)²·H(t−a)} = e<sup>−as</sup>·L{t²}</code> dengan <code>L{t²}=2/s³</code>; substitusikan s yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">F(1)</strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
@@ -3364,7 +3435,7 @@ for f in (f53a, f53b, f54):
         <div class="comp-q">Untuk PWM dengan amplitudo V₀ = 12 V dan duty cycle d = 0.3, hitung <strong>average voltage</strong> output (rata-rata setelah filtering).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Tegangan rata-rata PWM setelah filter adalah <code>V_avg = V₀ · d</code>; substitusikan amplitudo dan duty cycle.</div>
+      <div class="comp-hint">💡 Tegangan rata-rata PWM setelah filter adalah <code>V<sub>avg</sub> = V₀ · d</code>; substitusikan amplitudo dan duty cycle.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(V_{\text{avg}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
@@ -3398,7 +3469,7 @@ for f in (f53a, f53b, f54):
         <div class="comp-q">Square wave amplitudo 1 dengan periode T=2 (duty 50%) memiliki \(F(s) = 1/[s \cdot (1+e^{-s})]\). Evaluasi di s = 1.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Gunakan rumus transform gelombang kotak <code>F(s) = 1/[s(1 + e^(−s))]</code>, lalu substitusikan s yang diminta.</div>
+      <div class="comp-hint">💡 Gunakan rumus transform gelombang kotak <code>F(s) = 1/[s(1 + e<sup>−s</sup>)]</code>, lalu substitusikan s yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">F(1)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -3542,7 +3613,7 @@ for f in (f53a, f53b, f54):
   <canvas class="hero-orbits" data-hero-id="3"></canvas>
   <div class="float-formulas">
     <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">PWM: V₀·[H(t) − H(t−d·T)]</span>
-    <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">V_avg = V₀ · d (duty cycle)</span>
+    <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">V<sub>avg</sub> = V₀ · d (duty cycle)</span>
     <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">Step bertingkat: ΣcᵢH(t−aᵢ)</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">τ·ω' + ω = K·V(t)</span>
   </div>
@@ -3572,7 +3643,7 @@ for f in (f53a, f53b, f54):
       <div style="background:rgba(236,72,153,.05);border:1px solid rgba(236,72,153,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">Motor: τ=0.5 s, K=15 rpm/V</div>
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">Steady ω = \(K \cdot V\)₀·d_∞</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">PWM = sinyal kotak periodik dengan amplitudo V₀, dimana <strong>fraksi waktu HIGH = duty cycle d</strong>. Setelah filtering oleh induktansi motor (low-pass), output mendekati nilai average <code>V_avg = V₀·d</code>. <strong>Step bertingkat</strong> = duty d(t) yang berubah secara <em>diskrit</em> di waktu tertentu, dimodelkan sebagai jumlah Heaviside terbobot. Tiga pertanyaan diskusi: (1) konstruksi dan Laplace dari \(V_{\text{avg}}\)(t), (2) hitung steady-state ω di tiap fase + verifikasi second shift theorem, (3) prediksi response transient ω(t) dengan konvolusi dan implikasi engineering.</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">PWM = sinyal kotak periodik dengan amplitudo V₀, dimana <strong>fraksi waktu HIGH = duty cycle d</strong>. Setelah filtering oleh induktansi motor (low-pass), output mendekati nilai average <code>V<sub>avg</sub> = V₀·d</code>. <strong>Step bertingkat</strong> = duty d(t) yang berubah secara <em>diskrit</em> di waktu tertentu, dimodelkan sebagai jumlah Heaviside terbobot. Tiga pertanyaan diskusi: (1) konstruksi dan Laplace dari \(V_{\text{avg}}\)(t), (2) hitung steady-state ω di tiap fase + verifikasi second shift theorem, (3) prediksi response transient ω(t) dengan konvolusi dan implikasi engineering.</p>
   </div>
 
   <!-- Canvas Animasi Forum — kept ID for canvas reuse -->
@@ -6104,13 +6175,13 @@ function drawCases(){
     let rootsStr;
     if (kase === 1){
       const m1 = ((1-b) + Math.sqrt(D))/2, m2 = ((1-b) - Math.sqrt(D))/2;
-      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x^m₁ + c₂·x^m₂`;
+      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x<sup>m₁</sup> + c₂·x<sup>m₂</sup>`;
     } else if (kase === 2){
       const m = (1-b)/2;
-      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x^m`;
+      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x<sup>m</sup>`;
     } else {
       const al = (1-b)/2, be = Math.sqrt(-D)/2;
-      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x^α·[c₁cos(β ln x) + c₂sin(β ln x)]`;
+      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x<sup>α</sup>·[c₁cos(β ln x) + c₂sin(β ln x)]`;
     }
     infoEl.innerHTML = `<span style="color:${color}">●</span> PD: x²y'' + ${b.toFixed(2)}·x·y' + ${c.toFixed(2)}·y = 0 &nbsp;|&nbsp; D = (b−1)² − 4c = ${D.toFixed(2)} &nbsp;|&nbsp; ${rootsStr}`;
   }
@@ -6227,9 +6298,9 @@ function drawRoots(){
   ctx.fillText('Re(m)', px1 - 35, cy - 8);
   ctx.fillText('Im(m)', cx + 6, py0 + 12);
   ctx.fillStyle = '#00e09e';
-  ctx.fillText('x^m → 0', px0 + 8, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → 0', px0 + 8, py0 + 16);
   ctx.fillStyle = '#ef4444';
-  ctx.fillText('x^m → ∞', px1 - 65, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → ∞', px1 - 65, py0 + 16);
   ctx.fillStyle = '#94a3b8';
   for (let i = -4; i <= 4; i += 2){
     if (i === 0) continue;
@@ -6653,7 +6724,7 @@ function drawSweep(){
       const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
       const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
       const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
+      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r<sub>max</sub>=${rmaxTheory.toFixed(2)}, DMF<sub>max</sub>=${dmfmaxTheory.toFixed(2)}`;
     } else {
       info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
     }
@@ -7019,7 +7090,7 @@ function drawHPB(){
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
+  ctx.fillText(`${linePos.toFixed(2)} × H²<sub>max</sub> = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
 
   // Find ω₁ and ω₂ (intersection of curve with targetY)
   // Binary search on either side of peak
@@ -7063,12 +7134,12 @@ function drawHPB(){
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
+    let html = `ζ<sub>TRUE</sub> = ${zetaTrue.toFixed(3)} · ω<sub>peak</sub> = ${omegaPeak.toFixed(2)} · H²<sub>max</sub> = ${H2max.toFixed(2)}<br>`;
     if(omega1 !== null && omega2 !== null){
       html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
       if(Math.abs(linePos - 0.5) < 0.02){
         const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
+        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ<sub>estimated</sub> = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
       } else {
         html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
       }
@@ -7241,7 +7312,7 @@ function drawForumCanvas() {
   ctx.fillRect(lx - 6, ly - 10, 196, 50);
   ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1;
   ctx.strokeRect(lx - 6, ly - 10, 196, 50);
-  ctx.fillStyle = '#0ea5e9'; ctx.fillText('— — V_avg(t)·K (step bertingkat)', lx, ly + 4);
+  ctx.fillStyle = '#0ea5e9'; ctx.fillText('— — V<sub>avg</sub>(t)·K (step bertingkat)', lx, ly + 4);
   ctx.fillStyle = '#00e09e'; ctx.fillText('━━ ω(t) motor response', lx, ly + 18);
   ctx.fillStyle = '#f97316'; ctx.fillText('··· jump times (Heaviside)', lx, ly + 32);
 
@@ -7968,10 +8039,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7985,7 +8056,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -10506,7 +10577,7 @@ function drawEMTog(){
   const isNum = (_emTogMode === 1);
   const color = isNum ? '#a855f7' : '#00e09e';
   ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e^(-bt/2)·cos(ωt)', 20, 30);
+  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e<sup>-bt/2</sup>·cos(ωt)', 20, 30);
 
   const padL=50, padR=20, padT=50, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
@@ -10992,7 +11063,7 @@ function _createForumParticleBurst(event) {
     ctx.beginPath(); ctx.moveTo(px0, ty(Vavg)); ctx.lineTo(px1, ty(Vavg)); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = '#ffb300'; ctx.font = 'bold 11px JetBrains Mono, monospace';
-    ctx.fillText(`V_avg = D = ${Vavg.toFixed(2)}`, px1 - 130, ty(Vavg) - 5);
+    ctx.fillText(`V<sub>avg</sub> = D = ${Vavg.toFixed(2)}`, px1 - 130, ty(Vavg) - 5);
 
     // Square wave
     ctx.strokeStyle = '#ff6bb3'; ctx.lineWidth = 3;
@@ -11028,7 +11099,7 @@ function _createForumParticleBurst(event) {
     if (infoEl){
       const freq = (1/T).toFixed(2);
       const pulseW = (D*T).toFixed(2);
-      infoEl.innerHTML = `<span style="color:#ff6bb3">●</span> Periode T=${T.toFixed(1)}s (f=${freq} Hz), Duty Cycle=${(D*100).toFixed(0)}%, Pulse Width=${pulseW}s &nbsp;|&nbsp; <span style="color:#ffb300">V_avg=${Vavg.toFixed(2)}</span> (PWM principle)`;
+      infoEl.innerHTML = `<span style="color:#ff6bb3">●</span> Periode T=${T.toFixed(1)}s (f=${freq} Hz), Duty Cycle=${(D*100).toFixed(0)}%, Pulse Width=${pulseW}s &nbsp;|&nbsp; <span style="color:#ffb300">V<sub>avg</sub>=${Vavg.toFixed(2)}</span> (PWM principle)`;
     }
 
     m12Sq.raf = requestAnimationFrame(drawM12Sq);
@@ -11053,7 +11124,7 @@ function _createForumParticleBurst(event) {
       view.style.background = 'rgba(255,179,0,.25)'; view.style.borderColor = 'var(--amber)';
       knob.style.transform = 'translateX(28px)';
       lbl.style.color = 'var(--amber)';
-      lbl.textContent = 'S-DOMAIN: F(s) vs e^(−cs)·F(s) magnitude';
+      lbl.innerHTML = 'S-DOMAIN: F(s) vs e<sup>−cs</sup>·F(s) magnitude';
     }
   };
 
@@ -11326,7 +11397,7 @@ function _createForumParticleBurst(event) {
 
     const infoEl = document.getElementById('m12PatInfo');
     if (infoEl){
-      infoEl.innerHTML = `<span style="color:#ff6bb3">●</span> Pattern: <strong>${m12Pat.which}</strong> &nbsp;|&nbsp; sistem orde 2, ω_n=2, ζ=0.1 &nbsp;|&nbsp; max |y| = ${yMax.toFixed(2)}`;
+      infoEl.innerHTML = `<span style="color:#ff6bb3">●</span> Pattern: <strong>${m12Pat.which}</strong> &nbsp;|&nbsp; sistem orde 2, ω<sub>n</sub>=2, ζ=0.1 &nbsp;|&nbsp; max |y| = ${yMax.toFixed(2)}`;
     }
 
     m12Pat.raf = requestAnimationFrame(drawM12Pat);
@@ -11338,11 +11409,11 @@ function _createForumParticleBurst(event) {
   const m12App = { which: 'pwm', t: 0, hist: [], raf: null };
 
   const M12_APP = {
-    pwm:         { label: 'PWM Motor: D=30%, V_avg=0.3·V_peak',                       compute: t => {
+    pwm:         { label: 'PWM Motor: D=30%, V<sub>avg</sub>=0.3·V<sub>peak</sub>',                       compute: t => {
                      const phase = (t / 0.3) - Math.floor(t / 0.3);
                      return phase < 0.3 ? 1 : 0;
                    }, color: '#ffb300', icon: 'pwm' },
-    ramp:        { label: 'Ramping ω: 0 → ω_max via stair function',                   compute: t => Math.min(1, 0.2*Math.floor(t/1) + 0.1*Math.min(1, (t%1)/0.5)),
+    ramp:        { label: 'Ramping ω: 0 → ω<sub>max</sub> via stair function',                   compute: t => Math.min(1, 0.2*Math.floor(t/1) + 0.1*Math.min(1, (t%1)/0.5)),
                                                                                                                                                     color: '#0ea5e9', icon: 'ramp' },
     multistep:   { label: 'Multi-Step: V₁ → V₂ → V₃ at t = 1, 3, 5',                   compute: t => 0.3*(t > 1 ? 1 : 0) + 0.4*(t > 3 ? 1 : 0) + 0.3*(t > 5 ? 1 : 0),
                                                                                                                                                     color: '#00e09e', icon: 'multistep' },

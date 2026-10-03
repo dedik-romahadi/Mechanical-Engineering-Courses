@@ -1433,6 +1433,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1682,11 +1753,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">e(t) = r(t) − y(t)</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">T(s) = G/(1+GH)</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">L = Kp·K</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">τ_cl = τ/(1+L)</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">L = K<sub>p</sub>·K</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">τ<sub>cl</sub> = τ/(1+L)</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">S + T = 1</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">u(t) = Kp·e(t)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">u(t) = K<sub>p</sub>·e(t)</span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">G(s) = K/(τs+1)</span>
   </div>
   <div class="hero-schematic">
@@ -1992,13 +2063,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🧭</div>
       <h3>Bentuk kenaikan</h3>
-      <p>Diperoleh dengan mengurangkan u_(k-1) dari u_k.</p>
+      <p>Diperoleh dengan mengurangkan u<sub>k−1</sub> dari u<sub>k</sub>.</p>
       <div class="formula">\(du = K_p \cdot (e_k - e_{k-1}) + K_i \cdot T \cdot e_k + K_d \cdot (e_k - 2 \cdot e_{k-1} + e_{k-2})/T\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧪</div>
       <h3>Keluaran akhir</h3>
-      <p>Bentuk kenaikan menangani windup secara alami karena pembatasan pada u_k langsung menghentikan penumpukan.</p>
+      <p>Bentuk kenaikan menangani windup secara alami karena pembatasan pada u<sub>k</sub> langsung menghentikan penumpukan.</p>
       <div class="formula">\(u_k = u_{k-1} + du\)</div>
     </div>
   </div>
@@ -2146,24 +2217,24 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="tip-box reveal anim-jelas">
     <strong>📊 Cara Membaca Animasi 1:</strong> 24 kandidat gain diuji serentak: yang memenuhi batas lonjakan diberi warna teal, dan yang tercepat di antaranya disorot kuning. Beginilah komputer memilih gain: bukan menebak, melainkan menyaring.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>K</code><span>Gain kandidat yang sedang diuji</span></span><span class="anim-var nw1"><code>Mp</code><span>Lonjakan tiap kandidat, % di atas nilai akhir</span></span><span class="anim-var nw2"><code>batas lonjakan</code><span>Spesifikasi yang Anda setel (garis merah muda)</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>K</code><span>Gain kandidat yang sedang diuji</span></span><span class="anim-var nw1"><code>M<sub>p</sub></code><span>Lonjakan tiap kandidat, % di atas nilai akhir</span></span><span class="anim-var nw2"><code>batas lonjakan</code><span>Spesifikasi yang Anda setel (garis merah muda)</span></span></div>
   </div>
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 2 — Periode Sampling: Kendali Hanya Bertindak Tiap Ts</span>
+      <span class="anim-title">Animasi 2 — Periode Sampling: Kendali Hanya Bertindak Tiap T<sub>s</sub></span>
     </div>
     <div class="anim-body">
       <canvas id="siskenAnim2Canvas6" width="1000" height="400" aria-label="Animasi 2 — Periode Sampling: Kendali Hanya Bertindak Tiap Ts"></canvas>
       <div class="ctrl-row"><div class="ctrl-group">
-          <label>Periode sampling Ts (s) — <span class="ctrl-val" id="siskenAnim2Nilai6">0.20</span></label>
+          <label>Periode sampling T<sub>s</sub> (s) — <span class="ctrl-val" id="siskenAnim2Nilai6">0.20</span></label>
           <input id="siskenAnim2Geser6" type="range" min="0.02" max="0.9" step="0.02" value="0.2" oninput="drawSiskenAnim2(6)">
         </div></div>
     </div>
   </div>
   <div class="tip-box reveal anim-jelas">
-    <strong>📊 Cara Membaca Animasi 2:</strong> Kendali digital hanya bertindak setiap Ts detik; di antaranya sinyal ditahan rata (tangga ungu). Ts kecil nyaris kontinu; Ts besar membuat kendali selalu terlambat sampai akhirnya berdering.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>Ts</code><span>Periode sampling: jeda antar eksekusi kode kendali</span></span><span class="anim-var nw1"><code>ZOH</code><span>Tahan-orde-nol: nilai u dibekukan sampai sampel berikutnya</span></span><span class="anim-var nw2"><code>K·Ts</code><span>Indikator kasar keamanan: nyaman jauh di bawah 1, bahaya mendekati 2</span></span></div>
+    <strong>📊 Cara Membaca Animasi 2:</strong> Kendali digital hanya bertindak setiap T<sub>s</sub> detik; di antaranya sinyal ditahan rata (tangga ungu). T<sub>s</sub> kecil nyaris kontinu; T<sub>s</sub> besar membuat kendali selalu terlambat sampai akhirnya berdering.
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>T<sub>s</sub></code><span>Periode sampling: jeda antar eksekusi kode kendali</span></span><span class="anim-var nw1"><code>ZOH</code><span>Tahan-orde-nol: nilai u dibekukan sampai sampel berikutnya</span></span><span class="anim-var nw2"><code>K·T<sub>s</sub></code><span>Indikator kasar keamanan: nyaman jauh di bawah 1, bahaya mendekati 2</span></span></div>
   </div>
   <div class="anim-panel reveal">
     <div class="anim-header">
@@ -2182,11 +2253,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <strong>📊 Cara Membaca Animasi 3:</strong> Root locus adalah jejak pole loop tertutup saat K dinaikkan dari nol: dua pole saling mendekat di sumbu nyata, bertemu, lalu berbelok tegak; hasilnya tetap stabil, tapi mulai berosilasi.
     <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>K</code><span>Gain loop</span></span><span class="anim-var nw1"><code>pole</code><span>Akar persamaan (s+1)(s+3)+K = 0, ditandai ×</span></span><span class="anim-var nw2"><code>σ, jω</code><span>Sumbu nyata dan khayal bidang-s</span></span></div>
   </div>
-  <p class="section-desc reveal">Dua sumbu keputusan implementasi digital: periode sampling Ts dan gain K. Wilayah arsir memenuhi dua-duanya, yakni cukup cepat menuruti spesifikasi error, cukup lambat agar loop digital tetap stabil. Sajian statisnya diperlihatkan pada Gambar 10 di bawah.</p>
+  <p class="section-desc reveal">Dua sumbu keputusan implementasi digital: periode sampling T<sub>s</sub> dan gain K. Wilayah arsir memenuhi dua-duanya, yakni cukup cepat menuruti spesifikasi error, cukup lambat agar loop digital tetap stabil. Sajian statisnya diperlihatkan pada Gambar 10 di bawah.</p>
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Gambar 10 — Wilayah Layak pada Bidang (Ts, K)</span>
+      <span class="anim-title">Gambar 10 — Wilayah Layak pada Bidang (T<sub>s</sub>, K)</span>
     </div>
     <div class="anim-body">
       <canvas id="siskenGrafikCanvas6" width="1000" height="300" aria-label="Gambar 10 — Wilayah Layak pada Bidang (Ts, K)"></canvas>
@@ -2195,7 +2266,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="tip-box reveal anim-jelas">
     <strong>📊 Cara Membaca Gambar 10:</strong> Dua syarat implementasi digital dalam satu bidang: kurva merah muda plafon kestabilan, garis kuning lantai akurasi. Rancangan yang sehat memilih titik di dalam wilayah arsir.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>Ts</code><span>Periode sampling</span></span><span class="anim-var nw1"><code>K = 2/Ts</code><span>Plafon: gain di atas kurva ini membuat loop digital tak stabil</span></span><span class="anim-var nw2"><code>K_min</code><span>K minimum (lantai): gain di bawah garis ini menyisakan error tunak terlalu besar</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>T<sub>s</sub></code><span>Periode sampling</span></span><span class="anim-var nw1"><code>K = 2/T<sub>s</sub></code><span>Plafon: gain di atas kurva ini membuat loop digital tak stabil</span></span><span class="anim-var nw2"><code>K<sub>min</sub></code><span>K minimum (lantai): gain di bawah garis ini menyisakan error tunak terlalu besar</span></span></div>
   </div>
 
   <label class="pm-centang" data-pm="7"><input type="checkbox" disabled aria-describedby="pm-status-7"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Animasi Respons dan Karakteristik Sistem</b>.</span><em class="pm-status" id="pm-status-7"></em></label>
@@ -2443,7 +2514,7 @@ function _siskenPasangTeksPas(c,x){
     var utuh=teks, potong=false;
     // Elipsis hanya bila teks TELANJANG masih tak muat setelah menyusut —
     // jangan menghukum teks yang pas hanya karena '…' ikut ditimbang.
-    if(x.measureText(teks).width>batas){
+    if(x.measureText(teks).width>batas){teks=teks.replace(/<\/?su[bp]>/g,''); // penanda rumus NOTASI-KANVAS tak boleh terpenggal
       while(teks.length>4&&x.measureText(teks+'…').width>batas)teks=teks.slice(0,-1);
       teks+='…';potong=true;
     }
@@ -2515,7 +2586,7 @@ _siskenJalur(x,sk,ty,'#67e8f9',3);
 var kasar=4*v;
 _siskenLegenda(x,[['y(t) kendali digital','#67e8f9'],['u/5 (tangga ZOH)','#a78bfa'],['acuan kontinu','rgba(103,132,168,.9)']],s.pad,s.atas-13);
 x.font='17px JetBrains Mono';x.fillStyle=kasar<1?'#9fb2cc':'#f9a8d4';
-x.fillText('K·Ts = '+kasar.toFixed(2)+(kasar<1?', artinya sampel cukup rapat, perilaku ≈ kontinu':(kasar<2?', tandanya mulai berdering karena kendali selalu terlambat':', artinya melewati batas sehingga loop digital tak stabil')),s.pad,s.h-13);
+x.fillText('K·T<sub>s</sub> = '+kasar.toFixed(2)+(kasar<1?', artinya sampel cukup rapat, perilaku ≈ kontinu':(kasar<2?', tandanya mulai berdering karena kendali selalu terlambat':', artinya melewati batas sehingga loop digital tak stabil')),s.pad,s.h-13);
 x.textAlign='right';x.fillText('waktu →',s.w-s.pad,s.h-13);x.textAlign='left';
 };
 window.drawSiskenAnim3=function(n,phase){
@@ -2555,10 +2626,10 @@ for(var j=220;j>=0;j--){var t2=0.05+0.85*j/220;x.lineTo(sk.x(t2),sk.y(Math.min(3
 x.closePath();x.fill();
 _siskenKurva(x,sk,atap,0.05,0.9,'#ec4899',2.5);
 _siskenGarisDatar(x,s,sk.y(3),'#fbbf24');
-_siskenLegenda(x,[['batas kestabilan K=2/Ts','#ec4899'],['K minimum utk error','#fbbf24'],['wilayah layak','#5eead4']],s.pad,s.atas-14);
+_siskenLegenda(x,[['batas kestabilan K=2/T<sub>s</sub>','#ec4899'],['K minimum utk error','#fbbf24'],['wilayah layak','#5eead4']],s.pad,s.atas-14);
 x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
 x.fillText('K ↑',s.pad,s.atas+18);
-x.textAlign='right';x.fillText('periode sampling Ts →',s.w-s.pad,s.h-13);x.textAlign='left';
+x.textAlign='right';x.fillText('periode sampling T<sub>s</sub> →',s.w-s.pad,s.h-13);x.textAlign='left';
 };
 window.drawSiskenPeta=function(n){
   var s=_siskenSiapkan('siskenPetaCanvas'+n,40,0,0);if(!s)return;
@@ -2671,10 +2742,10 @@ document.addEventListener('DOMContentLoaded',function(){
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">L = Kp·K</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">τ_cl = τ/(1+L)</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">Mp = e^(−πζ/√(1−ζ²))</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">L = K<sub>p</sub>·K</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">τ<sub>cl</sub> = τ/(1+L)</span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">M<sub>p</sub> = e<sup>−πζ/√(1−ζ²)</sup></span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">S + T = 1</span>
   </div>
   <div class="hero-content">
@@ -3150,8 +3221,8 @@ document.addEventListener('DOMContentLoaded',function(){
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">e(t) = r(t) − y(t)</span>
-    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">L = Kp·K</span>
+    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">L = K<sub>p</sub>·K</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">on–off → ripple</span>
   </div>
   <div class="hero-content">
@@ -5879,7 +5950,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(255,179,0,.85)'; ctx.beginPath();
     ctx.arc(px,py,18,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.fillText('m',px,py+4);
-    document.getElementById('sysRealInfo').textContent=`Pendulum L=1m: ω_n = √(g/L) = ${wn.toFixed(2)} rad/s, T = ${(2*Math.PI/wn).toFixed(2)} s`;
+    document.getElementById('sysRealInfo').innerHTML=`Pendulum L=1m: ω<sub>n</sub> = √(g/L) = ${wn.toFixed(2)} rad/s, T = ${(2*Math.PI/wn).toFixed(2)} s`;
   }
   else if(_sysRealKind==='msd'){
     wn=Math.sqrt(100);
@@ -5894,13 +5965,13 @@ function drawSysReal(){
     ctx.lineTo(cx+x-30,cy); ctx.stroke();
     ctx.fillStyle='rgba(14,165,233,.85)'; ctx.fillRect(cx+x-30,cy-30,60,60);
     ctx.fillStyle='#fff'; ctx.font='bold 14px JetBrains Mono'; ctx.fillText('m',cx+x,cy+5);
-    document.getElementById('sysRealInfo').textContent=`Mass-Spring k=100 N/m, m=1 kg: ω_n = √(k/m) = ${wn.toFixed(2)} rad/s`;
+    document.getElementById('sysRealInfo').innerHTML=`Mass-Spring k=100 N/m, m=1 kg: ω<sub>n</sub> = √(k/m) = ${wn.toFixed(2)} rad/s`;
   }
   else if(_sysRealKind==='cantilever'){
     wn=2*Math.PI*1.5;
     const amp=Math.sin(2*t)*0.5;
     sigValue=amp;
-    label='y_tip(t)'; sigUnit='m';
+    label='y<sub>tip</sub>(t)'; sigUnit='m';
     ctx.fillStyle='#1e293b'; ctx.fillRect(20,cy-40,8,80);
     ctx.strokeStyle='rgba(0,224,158,.8)'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(28,cy);
@@ -5916,7 +5987,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(0,224,158,.9)';
     ctx.beginPath(); ctx.arc(28+beamL,tipY,12,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Cantilever Mode 1',cx,cy+80);
-    document.getElementById('sysRealInfo').textContent='Cantilever: ω_n = (1.875)²·√(EI/(ρAL⁴)), yaitu bending mode 1, tip mass berosilasi';
+    document.getElementById('sysRealInfo').innerHTML='Cantilever: ω<sub>n</sub> = (1.875)²·√(EI/(ρAL⁴)), yaitu bending mode 1, tip mass berosilasi';
   }
   else if(_sysRealKind==='rotor'){
     wn=2*Math.PI*1.27;
@@ -5932,13 +6003,13 @@ function drawSysReal(){
     ctx.fillStyle='#fff'; ctx.beginPath();
     ctx.arc(cx+Math.cos(spin)*20, cy+wobble+Math.sin(spin)*20, 4, 0, Math.PI*2); ctx.fill();
     ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Rotor + Bearing',cx,cy+60);
-    document.getElementById('sysRealInfo').textContent='Rotor + Bearing: ω_n = √(k_journal/m_rotor), bearing journal sebagai pegas radial';
+    document.getElementById('sysRealInfo').innerHTML='Rotor + Bearing: ω<sub>n</sub> = √(k<sub>journal</sub>/m<sub>rotor</sub>), bearing journal sebagai pegas radial';
   }
   else if(_sysRealKind==='suspension'){
     wn=2*Math.PI*1.0;
     const bump=Math.sin(wn*t)*10;
     sigValue=bump/10*0.3;
-    label='z_body(t)'; sigUnit='m';
+    label='z<sub>body</sub>(t)'; sigUnit='m';
     ctx.strokeStyle='#1e293b'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(20,cy+70+bump); ctx.lineTo(splitX-20,cy+70+bump); ctx.stroke();
     ctx.fillStyle='#0f172a';
@@ -5953,7 +6024,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(14,165,233,.9)';
     ctx.fillRect(cx-100,cy-25+bump*0.3,200,30);
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Body',cx,cy-5+bump*0.3);
-    document.getElementById('sysRealInfo').textContent='Suspensi mobil: ω_n = √(k_spring/m_body) ≈ 1-2 Hz natural ride frequency';
+    document.getElementById('sysRealInfo').innerHTML='Suspensi mobil: ω<sub>n</sub> = √(k<sub>spring</sub>/m<sub>body</sub>) ≈ 1-2 Hz natural ride frequency';
   }
 
   // Append to history (keep 200 points)
@@ -6106,8 +6177,8 @@ function drawForumCanvas() {
   ctx.strokeStyle='rgba(0,224,158,.2)'; ctx.strokeRect(padL+6, padT+8, 250, 70);
   ctx.fillStyle='#34d399'; ctx.font='bold 10px JetBrains Mono'; ctx.fillText('Pompa Sentrifugal — Velocity v(t)', padL+14, padT+22);
   ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono';
-  ctx.fillText(`RPM = ${RPM}  |  f_dominan = ${f1} Hz (1×RPM)`, padL+14, padT+36);
-  ctx.fillText(`v_RMS ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
+  ctx.fillText(`RPM = ${RPM}  |  f<sub>dominan</sub> = ${f1} Hz (1×RPM)`, padL+14, padT+36);
+  ctx.fillText(`v<sub>RMS</sub> ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
   ctx.fillText(`Hipotesis: unbalance rotor (verifikasi via FFT)`, padL+14, padT+64);
 }
 // Resize handler — redraw all active canvases
@@ -6780,7 +6851,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
   /* ── Floating physics formulas (Rancang Kontrol Digital) ── */
   const formulas = [
     { t: 'e(t) = r(t) − y(t)',                 s: 13 },
-    { t: 'u(t) = Kp·e(t)',                     s: 14 },
+    { t: 'u(t) = K<sub>p</sub>·e(t)',                     s: 14 },
     { t: 'G(s) = Y(s)/U(s)',                   s: 13 },
     { t: 'L(s) = C(s)G(s)',                    s: 14 },
     { t: 'T(s) = L(s)/(1+L(s))',               s: 12 },
@@ -6803,7 +6874,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

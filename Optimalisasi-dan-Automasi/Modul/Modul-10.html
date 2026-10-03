@@ -1239,6 +1239,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1767,7 +1838,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🎲</div>
       <h3>Step 5 — Hitung F &amp; p-value</h3>
-      <p><code>F = MS_b / MS_w</code>. p-value = <code>1 − F.cdf(F_obs, df_b, df_w)</code>. Kalau <strong>\(p\) &lt; \(\alpha\)</strong> (e.g. p = 0.004 &lt; 0.05) → tolak H₀, faktor signifikan. Kalau <strong>\(p \ge \alpha\)</strong> (e.g. p = 0.18) → tidak ada bukti efek (tetapi mungkin sample kecil; cek <em>power</em> dengan G*Power atau pingouin). <strong style="color:var(--amber)">Reporting standar</strong>: F(\(df_b\), \(df_w\)) = X.XX, p = X.XXX, η² = X.XX.</p>
+      <p><code>F = MS<sub>b</sub> / MS<sub>w</sub></code>. p-value = <code>1 − F.cdf(F_obs, df_b, df_w)</code>. Kalau <strong>\(p\) &lt; \(\alpha\)</strong> (e.g. p = 0.004 &lt; 0.05) → tolak H₀, faktor signifikan. Kalau <strong>\(p \ge \alpha\)</strong> (e.g. p = 0.18) → tidak ada bukti efek (tetapi mungkin sample kecil; cek <em>power</em> dengan G*Power atau pingouin). <strong style="color:var(--amber)">Reporting standar</strong>: F(\(df_b\), \(df_w\)) = X.XX, p = X.XXX, η² = X.XX.</p>
       <div class="formula">\(p \lt \alpha \Rightarrow \text{tolak } H_0\)</div>
     </div>
     <div class="card">
@@ -1839,7 +1910,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🅰️</div>
       <h3>Main Effect — Pengaruh Tunggal Faktor</h3>
-      <p>Main effect faktor A: <code>F_A = MS_A / MS_error</code>. Menjawab "apakah rata-rata respons berbeda antar level A, <em>marjinal</em> atas B?" Mean \(A_i\) = rata-rata semua observasi di level A=i (semua level B). Kalau \(F_A\) signifikan (p &lt; α), faktor A berpengaruh secara overall. Sama untuk main effect B. <strong style="color:var(--green)">Hati-hati</strong>: main effect bisa misleading kalau ada interaksi kuat, selalu cek interaction dulu.</p>
+      <p>Main effect faktor A: <code>F<sub>A</sub> = MS<sub>A</sub> / MS<sub>error</sub></code>. Menjawab "apakah rata-rata respons berbeda antar level A, <em>marjinal</em> atas B?" Mean \(A_i\) = rata-rata semua observasi di level A=i (semua level B). Kalau \(F_A\) signifikan (p &lt; α), faktor A berpengaruh secara overall. Sama untuk main effect B. <strong style="color:var(--green)">Hati-hati</strong>: main effect bisa misleading kalau ada interaksi kuat, selalu cek interaction dulu.</p>
       <div class="formula">\(F_A = MS_A / MS_{error}\)</div>
     </div>
     <div class="card">
@@ -1851,7 +1922,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Full Factorial — Lengkap tetapi Mahal</h3>
-      <p>Full factorial 2² = 4 trial dasar (n replikasi → 4n total). 3³ = 27 trial. 5⁴ = 625 trial. <strong>Cost grow exponential</strong>. Untuk faktor banyak (≥ 4 level @ 3+), full factorial tidak praktis. Solusi: <em>fractional factorial</em> 2^(k-p), kemudian pilih subset trial yang menjaga main effects tetap teridentifikasi tapi sacrifice higher-order interactions. <strong>Resolution III/IV/V</strong> menentukan apa yang tidak teridentifikasi.</p>
+      <p>Full factorial 2² = 4 trial dasar (n replikasi → 4n total). 3³ = 27 trial. 5⁴ = 625 trial. <strong>Cost grow exponential</strong>. Untuk faktor banyak (≥ 4 level @ 3+), full factorial tidak praktis. Solusi: <em>fractional factorial</em> 2<sup>k-p</sup>, kemudian pilih subset trial yang menjaga main effects tetap teridentifikasi tapi sacrifice higher-order interactions. <strong>Resolution III/IV/V</strong> menentukan apa yang tidak teridentifikasi.</p>
       <div class="formula">\(\text{Full: } k_1 \cdot k_2 \cdot \ldots \cdot k_p\)</div>
     </div>
     <div class="card">
@@ -2080,7 +2151,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div id="oa5Info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca:</strong> Pilih DOE, pemilihan tergantung jumlah faktor, budget eksperimen, tujuan.<br>
-        <strong>Insight:</strong> Full: 2^k runs (mahal kalau k>5). Fractional: 2^(k-p) saving. Plackett-Burman: untuk screening 7-15 faktor. RSM (CCD/Box-Behnken): optimasi response.
+        <strong>Insight:</strong> Full: 2<sup>k</sup> runs (mahal kalau k>5). Fractional: 2<sup>k-p</sup> saving. Plackett-Burman: untuk screening 7-15 faktor. RSM (CCD/Box-Behnken): optimasi response.
       </div>
     </div>
   </div>
@@ -2879,10 +2950,10 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C1</div>
-        <div class="comp-q">Hitung <strong>\(SS_{\text{total}}\)</strong> (total sum of squares) untuk dataset 3 grup: A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]. Formula: <code>SS_total = Σ(yᵢⱼ − ȳ)²</code> di mana ȳ = grand mean. Print nilainya.</div>
+        <div class="comp-q">Hitung <strong>\(SS_{\text{total}}\)</strong> (total sum of squares) untuk dataset 3 grup: A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]. Formula: <code>SS<sub>total</sub> = Σ(yᵢⱼ − ȳ)²</code> di mana ȳ = grand mean. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 SS_total = Σ(yᵢ − grand mean)²; gabungkan semua grup ke satu array lalu jumlahkan kuadrat deviasi terhadap meannya.</div>
+      <div class="comp-hint">💡 SS<sub>total</sub> = Σ(yᵢ − grand mean)²; gabungkan semua grup ke satu array lalu jumlahkan kuadrat deviasi terhadap meannya.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(SS_{\text{total}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;import numpy as np&#10;data = np.array([5,6,7,8,9,10,11,12,13])&#10;ss_total = ((data - data.mean())**2).sum()&#10;print(f'{ss_total:.4f}')" oninput="onCodeInput('c1')"></textarea>
@@ -2899,7 +2970,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q">Untuk dataset di C1 (A = [5, 6, 7], B = [8, 9, 10], C = [11, 12, 13]), hitung <strong>\(SS_{\text{between}}\)</strong> = <code>Σ nⱼ·(ȳⱼ − ȳ)²</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 SS_between = Σ nⱼ·(mean grup − grand mean)²; hitung mean tiap grup dan grand mean, lalu jumlahkan deviasi kuadrat berbobot ukuran grup.</div>
+      <div class="comp-hint">💡 SS<sub>between</sub> = Σ nⱼ·(mean grup − grand mean)²; hitung mean tiap grup dan grand mean, lalu jumlahkan deviasi kuadrat berbobot ukuran grup.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(SS_{\text{between}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
@@ -2916,7 +2987,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q">Untuk dataset di C1, hitung <strong>\(SS_{\text{within}}\)</strong> = <code>ΣⱼΣᵢ (yᵢⱼ − ȳⱼ)²</code> (deviasi data dari mean grup-nya, jumlah semua grup). Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 SS_within = jumlah kuadrat deviasi tiap data terhadap mean grup-nya, dijumlahkan atas semua grup. Verifikasi: SS_between + SS_within = SS_total.</div>
+      <div class="comp-hint">💡 SS<sub>within</sub> = jumlah kuadrat deviasi tiap data terhadap mean grup-nya, dijumlahkan atas semua grup. Verifikasi: SS<sub>between</sub> + SS<sub>within</sub> = SS<sub>total</sub>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(SS_{\text{within}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
@@ -2930,10 +3001,10 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C4</div>
-        <div class="comp-q">Diketahui <strong>\(SS_{\text{between}} = 120\)</strong>, <strong>\(SS_{\text{within}} = 36\)</strong>, <strong>\(df_b = 3\)</strong>, <strong>\(df_w = 16\)</strong>. Hitung statistik <strong>F</strong> = <code>(SS_b/df_b) / (SS_w/df_w)</code>. Print nilainya.</div>
+        <div class="comp-q">Diketahui <strong>\(SS_{\text{between}} = 120\)</strong>, <strong>\(SS_{\text{within}} = 36\)</strong>, <strong>\(df_b = 3\)</strong>, <strong>\(df_w = 16\)</strong>. Hitung statistik <strong>F</strong> = <code>(SS<sub>b</sub>/df<sub>b</sub>) / (SS<sub>w</sub>/df<sub>w</sub>)</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 MS_b = SS_b/df_b dan MS_w = SS_w/df_w; F = MS_b ÷ MS_w. F besar menandakan efek faktor yang kuat.</div>
+      <div class="comp-hint">💡 MS<sub>b</sub> = SS<sub>b</sub>/df<sub>b</sub> dan MS<sub>w</sub> = SS<sub>w</sub>/df<sub>w</sub>; F = MS<sub>b</sub> ÷ MS<sub>w</sub>. F besar menandakan efek faktor yang kuat.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">F-statistic</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
@@ -2947,10 +3018,10 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">Untuk one-way ANOVA dengan <strong>k = 4 level</strong> dan <strong>n = 5 replikasi</strong> per level, hitung <strong>\(df_{\text{total}}\)</strong> (degrees of freedom total). Formula: <code>df_total = N − 1</code> dengan <code>N = k·n</code>. Print nilainya.</div>
+        <div class="comp-q">Untuk one-way ANOVA dengan <strong>k = 4 level</strong> dan <strong>n = 5 replikasi</strong> per level, hitung <strong>\(df_{\text{total}}\)</strong> (degrees of freedom total). Formula: <code>df<sub>total</sub> = N − 1</code> dengan <code>N = k·n</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 N = k × n (total observasi), lalu df_total = N − 1. Verifikasi: df_total = df_between (k−1) + df_within (N−k).</div>
+      <div class="comp-hint">💡 N = k × n (total observasi), lalu df<sub>total</sub> = N − 1. Verifikasi: df<sub>total</sub> = df<sub>between</sub> (k−1) + df<sub>within</sub> (N−k).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(df_{\text{total}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
@@ -2981,10 +3052,10 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q"><strong>Effect size \(\eta ^2\)</strong>: untuk \(SS_{\text{between}}\) = 120 dan \(SS_{\text{total}}\) = 156, hitung <code>η² = SS_b / SS_total</code>. Print nilainya (desimal).</div>
+        <div class="comp-q"><strong>Effect size \(\eta ^2\)</strong>: untuk \(SS_{\text{between}}\) = 120 dan \(SS_{\text{total}}\) = 156, hitung <code>η² = SS<sub>b</sub> / SS<sub>total</sub></code>. Print nilainya (desimal).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 η² = SS_between ÷ SS_total, proporsi varians yang dijelaskan faktor. Menurut Cohen, η² ≥ 0.14 tergolong large effect.</div>
+      <div class="comp-hint">💡 η² = SS<sub>between</sub> ÷ SS<sub>total</sub>, proporsi varians yang dijelaskan faktor. Menurut Cohen, η² ≥ 0.14 tergolong large effect.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(\eta ^2\)</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
@@ -2998,10 +3069,10 @@ F, p = stats.f_oneway(group1, group2, group3)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q"><strong>F-critical value</strong>: untuk α = 0.05, \(df_b\) = 2, \(df_w\) = 12, hitung <code>F_crit</code> menggunakan <code>scipy.stats.f.ppf(0.95, dfn=2, dfd=12)</code>. Print nilainya.</div>
+        <div class="comp-q"><strong>F-critical value</strong>: untuk α = 0.05, \(df_b\) = 2, \(df_w\) = 12, hitung <code>F<sub>crit</sub></code> menggunakan <code>scipy.stats.f.ppf(0.95, dfn=2, dfd=12)</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Gunakan <code>scipy.stats.f.ppf(1−α, dfn, dfd)</code> untuk F-critical; jika F_observed melebihinya, tolak H₀. Makin besar df, F_crit makin kecil.</div>
+      <div class="comp-hint">💡 Gunakan <code>scipy.stats.f.ppf(1−α, dfn, dfd)</code> untuk F-critical; jika F<sub>observed</sub> melebihinya, tolak H₀. Makin besar df, F<sub>crit</sub> makin kecil.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(F_{\text{critical}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
@@ -3062,7 +3133,7 @@ F, p = stats.f_oneway(group1, group2, group3)
         <div class="comp-q"><strong>One-Way ANOVA dari scratch, CNC Cutting Speed → Surface Roughness</strong>: gunakan data 3 grup A=[2.5, 2.4, 2.6, 2.3, 2.2], B=[1.8, 1.7, 1.9, 1.8, 1.6], C=[2.0, 2.2, 2.1, 2.3, 1.9] (Ra μm pada speed 80, 100, 120 m/min). Hitung <strong>F-statistic</strong> manual via \(SS_{\text{between}}\), \(SS_{\text{within}}\), df, MS, tanpa <code>scipy.stats.f_oneway</code>. Print F.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Hitung mean tiap grup dan grand mean, lalu SS_between, SS_within, MS, dan F = MS_b/MS_w secara manual; verifikasi dengan <code>scipy.stats.f_oneway</code>.</div>
+      <div class="comp-hint">💡 Hitung mean tiap grup dan grand mean, lalu SS<sub>between</sub>, SS<sub>within</sub>, MS, dan F = MS<sub>b</sub>/MS<sub>w</sub> secara manual; verifikasi dengan <code>scipy.stats.f_oneway</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">F-statistic</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="14" placeholder="Paste kode One-Way ANOVA scratch, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
@@ -3279,7 +3350,7 @@ F, p = stats.f_oneway(group1, group2, group3)
             <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Cukup Taguchi L9, interaksi tidak penting di machining</div>
             <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>One-factor-at-a-time (OFAT): bagus untuk eksperimen industri</div>
           </div>
-          <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Sequential DoE</strong> adalah praktik industrial standar. Workflow: <strong>Stage 1, Screening</strong> (Taguchi L8/L16/L18, fractional factorial 2^(k-p) resolution III): 8–18 trial untuk identifikasi 2–3 faktor paling dominan dari 5–8 faktor kandidat. <strong>Stage 2, Validation &amp; Interaction</strong> (full factorial 2² atau 3² pada faktor terpilih): 4–9 trial untuk capture interaksi 2-arah. <strong>Stage 3, Optimization</strong> (Response Surface Methodology, Central Composite Design): 12–27 trial untuk model surface respons (orde 2: linear + interaksi + quadratic). Industri otomotif (Toyota, Ford), aerospace (Boeing, GE), &amp; biotech (Pfizer) standar pakai 3-stage workflow ini. Tools: <em>Minitab, JMP, Design-Expert, Python pyDOE2</em>. <strong>Caveat penting</strong>: Taguchi sendiri kontroversial di komunitas statistisi, kritik utama dari Box (1988) "<em>Taguchi's contributions, evaluated</em>": orthogonal array bukan inovasi (sudah ada di Plackett-Burman 1946), S/N ratio metodologi questionable. Tetapi pragmatically Taguchi sangat efektif untuk industrial screening. Modern best practice: kombinasi.</div>
+          <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Sequential DoE</strong> adalah praktik industrial standar. Workflow: <strong>Stage 1, Screening</strong> (Taguchi L8/L16/L18, fractional factorial 2<sup>k-p</sup> resolution III): 8–18 trial untuk identifikasi 2–3 faktor paling dominan dari 5–8 faktor kandidat. <strong>Stage 2, Validation &amp; Interaction</strong> (full factorial 2² atau 3² pada faktor terpilih): 4–9 trial untuk capture interaksi 2-arah. <strong>Stage 3, Optimization</strong> (Response Surface Methodology, Central Composite Design): 12–27 trial untuk model surface respons (orde 2: linear + interaksi + quadratic). Industri otomotif (Toyota, Ford), aerospace (Boeing, GE), &amp; biotech (Pfizer) standar pakai 3-stage workflow ini. Tools: <em>Minitab, JMP, Design-Expert, Python pyDOE2</em>. <strong>Caveat penting</strong>: Taguchi sendiri kontroversial di komunitas statistisi, kritik utama dari Box (1988) "<em>Taguchi's contributions, evaluated</em>": orthogonal array bukan inovasi (sudah ada di Plackett-Burman 1946), S/N ratio metodologi questionable. Tetapi pragmatically Taguchi sangat efektif untuk industrial screening. Modern best practice: kombinasi.</div>
           <div class="p-fb w" id="fp2w">❌ Periksa kembali. Full factorial mahal kalau faktor banyak. Taguchi sendiri tidak menangkap interaksi, risky. OFAT (one-factor-at-a-time) jauh lebih buruk: tidak randomized, missed interaksi, biased. Sequential approach kombinasi screening + validation adalah jawaban mature.</div>
         </div>
 
@@ -6080,7 +6151,7 @@ function drawHPB(){
     const verdict = interactionDetected
       ? '🔴 INTERACTION DETECTED, efek A bergantung pada level B (garis tidak paralel)'
       : '🟢 NO INTERACTION, garis paralel, main effect bisa diinterpretasi terpisah';
-    info.innerHTML = `Interaction strength=<strong>${inter.toFixed(2)}</strong> · F_A=<strong>${Fa.toFixed(2)}</strong> · F_B=<strong>${Fb.toFixed(2)}</strong> · F_AB=<strong>${Fab.toFixed(2)}</strong> (F kritis≈${Fcrit}) · ${verdict}`;
+    info.innerHTML = `Interaction strength=<strong>${inter.toFixed(2)}</strong> · F<sub>A</sub>=<strong>${Fa.toFixed(2)}</strong> · F<sub>B</sub>=<strong>${Fb.toFixed(2)}</strong> · F<sub>AB</sub>=<strong>${Fab.toFixed(2)}</strong> (F kritis≈${Fcrit}) · ${verdict}`;
   }
 }
 
@@ -6986,7 +7057,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
   const formulas = [
     { t: 'min f(x), x ∈ ℝⁿ',                     s: 13 },
     { t: '∇f(x*) = 0',                            s: 12 },
-    { t: 'x_{k+1} = x_k − α·∇f(x_k)',             s: 11 },
+    { t: 'x<sub>k+1</sub> = x<sub>k</sub> − α·∇f(x<sub>k</sub>)',             s: 11 },
     { t: 'L = f + λᵀh + μᵀg',                    s: 12 },
     { t: 'KKT: μᵢgᵢ = 0',                         s: 11 },
     { t: 'Hessian ∇²f ⪰ 0',                      s: 11 },
@@ -7008,7 +7079,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

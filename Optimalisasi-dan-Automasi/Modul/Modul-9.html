@@ -1239,6 +1239,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1499,7 +1570,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">min f(x), x ∈ ℝⁿ</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">∇f(x*) = 0</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">x_{k+1} = x_k − α∇f(x_k)</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">x<sub>k+1</sub> = x<sub>k</sub> − α∇f(x<sub>k</sub>)</span>
     <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">∇²f(x) ≻ 0</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">L(x,λ,μ) = f + λᵀh + μᵀg</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">μᵢ·gᵢ(x) = 0</span>
@@ -1571,7 +1642,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-persamaan">
   <div class="section-label reveal">Bagian 01</div>
   <h2 class="section-title reveal">Mengapa Non-Linear Programming:<br>Saat Realita Tidak Patuh pada Asumsi Linier</h2>
-  <p class="section-desc reveal">LP (Pertemuan 9) memberi solusi terbukti optimal selama asumsi linieritas dipenuhi. Tetapi mesin nyata penuh dengan fenomena <em>non-linier</em>: drag aerodinamis <code>F_d = ½ρCdAv²</code>, gaya gesek viskos kuadratik, deformasi besar dengan stiffness yang menurun, biaya energi melonjak eksponensial saat motor mendekati overload, efisiensi pompa berbentuk parabolik. Ketika fungsi objektif <strong>f(x)</strong> dan/atau kendala <strong>g(x), h(x)</strong> non-linier, kita masuk ranah <strong>Non-Linear Programming (NLP)</strong>. Tools-nya: turunan (gradient ∇f), kondisi orde-pertama <code>∇f(x*) = 0</code>, iterasi descent, dan <strong style="color:var(--cyan)">Karush–Kuhn–Tucker (KKT) conditions</strong> untuk masalah berkendala. Gambar 1 mengilustrasikan gagasan ini. Hubungan ini dirangkum dalam Persamaan (1) di bawah.</p>
+  <p class="section-desc reveal">LP (Pertemuan 9) memberi solusi terbukti optimal selama asumsi linieritas dipenuhi. Tetapi mesin nyata penuh dengan fenomena <em>non-linier</em>: drag aerodinamis <code>F<sub>d</sub> = ½ρCdAv²</code>, gaya gesek viskos kuadratik, deformasi besar dengan stiffness yang menurun, biaya energi melonjak eksponensial saat motor mendekati overload, efisiensi pompa berbentuk parabolik. Ketika fungsi objektif <strong>f(x)</strong> dan/atau kendala <strong>g(x), h(x)</strong> non-linier, kita masuk ranah <strong>Non-Linear Programming (NLP)</strong>. Tools-nya: turunan (gradient ∇f), kondisi orde-pertama <code>∇f(x*) = 0</code>, iterasi descent, dan <strong style="color:var(--cyan)">Karush–Kuhn–Tucker (KKT) conditions</strong> untuk masalah berkendala. Gambar 1 mengilustrasikan gagasan ini. Hubungan ini dirangkum dalam Persamaan (1) di bawah.</p>
 <!-- ILUSTRASI-STATIS:1:START -->
   <figure class="ilustrasi reveal">
     <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 1 — Permukaan berbukit menuntut metode lain" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,116.8 L119.3,162.8 L178.7,107.6 L250.0,181.2 L333.1,85.5 L404.4,155.4 L487.6,107.6 L558.8,195.9 L642.0,126.0 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,116.8 L119.3,162.8 L178.7,107.6 L250.0,181.2 L333.1,85.5 L404.4,155.4 L487.6,107.6 L558.8,195.9 L642.0,126.0" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><text x="202.44" y="203.28" text-anchor="start" font-size="11.5" fill="#fbbf24"  font-family="'Inter',system-ui,sans-serif">Lembah lokal</text><text x="523.2" y="212.48" text-anchor="start" font-size="11.5" fill="#00e09e"  font-family="'Inter',system-ui,sans-serif">Lembah global</text><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">J(x)</text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Parameter</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Fungsi tujuan</text></g></svg>
@@ -1594,7 +1665,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>Non-Linearitas — Wajah Asli Engineering</h3>
-      <p>Sebagian besar masalah teknik mesin <em>tidak</em> linier: drag <code>F_d = ½·ρ·Cd·A·v²</code>, energi kinetik <code>E = ½mv²</code>, daya pompa berbentuk parabolik, biaya rugi gesek tergantung kuadrat kecepatan. Kalau dipaksa LP, hasilnya akan <strong style="color:var(--cyan)">overestimate atau underestimate</strong> ekstrim saat skala besar. NLP menerima fungsi non-linier apapun selama bisa dievaluasi numerik (dan ideally turunan tersedia analitik).</p>
+      <p>Sebagian besar masalah teknik mesin <em>tidak</em> linier: drag <code>F<sub>d</sub> = ½·ρ·Cd·A·v²</code>, energi kinetik <code>E = ½mv²</code>, daya pompa berbentuk parabolik, biaya rugi gesek tergantung kuadrat kecepatan. Kalau dipaksa LP, hasilnya akan <strong style="color:var(--cyan)">overestimate atau underestimate</strong> ekstrim saat skala besar. NLP menerima fungsi non-linier apapun selama bisa dievaluasi numerik (dan ideally turunan tersedia analitik).</p>
       <div class="formula">\(f: \mathbb{R}ⁿ \to \mathbb{R}, non-linier\)</div>
     </div>
     <div class="card">
@@ -1606,7 +1677,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🔻</div>
       <h3>Iterasi Descent — Loncat Mengikuti Slope</h3>
-      <p>Tidak ada <em>closed-form solution</em> umum untuk NLP. Strategi: mulai dari titik awal x₀, hitung gradient ∇f, ambil arah descent <code>d = −∇f</code> (steepest descent) atau <code>d = −H⁻¹·∇f</code> (Newton), pilih step size α dengan <em>line search</em>, update <code>x_{k+1} = x_k + α·d</code>. Stop saat <code>‖∇f‖ &lt; ε</code>. Konvergensi: gradient descent linier, Newton kuadratik (jauh lebih cepat).</p>
+      <p>Tidak ada <em>closed-form solution</em> umum untuk NLP. Strategi: mulai dari titik awal x₀, hitung gradient ∇f, ambil arah descent <code>d = −∇f</code> (steepest descent) atau <code>d = −H⁻¹·∇f</code> (Newton), pilih step size α dengan <em>line search</em>, update <code>x<sub>k+1</sub> = x<sub>k</sub> + α·d</code>. Stop saat <code>‖∇f‖ &lt; ε</code>. Konvergensi: gradient descent linier, Newton kuadratik (jauh lebih cepat).</p>
       <div class="formula">\(x_{k+1} = x_k - \alpha \cdot ∇f(x_k)\)</div>
     </div>
     <div class="card">
@@ -1634,7 +1705,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-solusi">
   <div class="section-label reveal">Bagian 02</div>
   <h2 class="section-title reveal">Gradient Descent &amp; Line Search:<br>Iterasi Turun Mengikuti Slope Negatif</h2>
-  <p class="section-desc reveal">Algoritma paling fundamental NLP unconstrained: <strong>steepest descent</strong> Cauchy (1847). Idenya intuitif: di tiap titik, gradient <code>∇f(x)</code> menunjuk arah <em>peningkatan</em> tercepat, jadi <strong>−∇f(x)</strong> menunjuk arah <em>penurunan</em> tercepat. Pilih step size α yang tepat (tidak terlalu besar agar tidak overshoot, tidak terlalu kecil agar konvergen cepat) lewat <em>line search</em>, update <code>x_{k+1} = x_k − α·∇f(x_k)</code>, ulangi hingga gradient mendekati nol. Konvergensi linier, sederhana &amp; robust untuk fungsi konveks, tetapi lambat untuk masalah ill-conditioned (rasio eigenvalue Hessian besar → zigzag). Skemanya diperlihatkan pada Gambar 2. Bentuk ringkasnya dituliskan pada Persamaan (2).</p>
+  <p class="section-desc reveal">Algoritma paling fundamental NLP unconstrained: <strong>steepest descent</strong> Cauchy (1847). Idenya intuitif: di tiap titik, gradient <code>∇f(x)</code> menunjuk arah <em>peningkatan</em> tercepat, jadi <strong>−∇f(x)</strong> menunjuk arah <em>penurunan</em> tercepat. Pilih step size α yang tepat (tidak terlalu besar agar tidak overshoot, tidak terlalu kecil agar konvergen cepat) lewat <em>line search</em>, update <code>x<sub>k+1</sub> = x<sub>k</sub> − α·∇f(x<sub>k</sub>)</code>, ulangi hingga gradient mendekati nol. Konvergensi linier, sederhana &amp; robust untuk fungsi konveks, tetapi lambat untuk masalah ill-conditioned (rasio eigenvalue Hessian besar → zigzag). Skemanya diperlihatkan pada Gambar 2. Bentuk ringkasnya dituliskan pada Persamaan (2).</p>
 <!-- ILUSTRASI-STATIS:2:START -->
   <figure class="ilustrasi reveal">
     <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 2 — Menuruni permukaan mengikuti gradien" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,43.2 L119.3,103.9 L196.5,144.4 L285.6,173.8 L392.5,194.1 L511.3,205.1 L642.0,210.6 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,43.2 L119.3,103.9 L196.5,144.4 L285.6,173.8 L392.5,194.1 L511.3,205.1 L642.0,210.6" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M48.0,126.0 L89.6,52.4 L137.1,166.5 L184.6,81.8 L232.1,148.1 L285.6,100.2 L345.0,137.0 L404.4,115.0 L475.7,129.7 L552.9,122.3 L642.0,126.0" fill="none" stroke="#ef4444" stroke-width="2.4" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"/><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Langkah tepat</text><line x1="165.2" y1="18" x2="187.2" y2="18" stroke="#ef4444" stroke-width="3" stroke-dasharray="5 4" stroke-linecap="round"/><text x="192.2" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Langkah terlalu besar</text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Iterasi</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Nilai tujuan</text></g></svg>
@@ -1663,30 +1734,30 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🔍</div>
       <h3>Backtracking Line Search (Armijo Rule)</h3>
-      <p>Step size α terlalu besar → overshoot &amp; divergen; terlalu kecil → konvergen lambat. <strong>Armijo backtracking</strong>: mulai dengan α=1, sampai kondisi <code>f(x_k + αd_k) ≤ f(x_k) + c·α·∇fᵀd_k</code> (c≈10⁻⁴), kalau gagal kalikan α dengan ρ=0.5 dan ulangi. Menjamin <em>sufficient decrease</em>. Adaptif &amp; aman tanpa hyperparameter tuning manual.</p>
+      <p>Step size α terlalu besar → overshoot &amp; divergen; terlalu kecil → konvergen lambat. <strong>Armijo backtracking</strong>: mulai dengan α=1, sampai kondisi <code>f(x<sub>k</sub> + αd<sub>k</sub>) ≤ f(x<sub>k</sub>) + c·α·∇fᵀd<sub>k</sub></code> (c≈10⁻⁴), kalau gagal kalikan α dengan ρ=0.5 dan ulangi. Menjamin <em>sufficient decrease</em>. Adaptif &amp; aman tanpa hyperparameter tuning manual.</p>
       <div class="formula">\(\alpha : f(x+\alpha d) \le f(x) + c \cdot \alpha \cdot ∇f^{T}d\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
       <h3>Conjugate Gradient — Lebih Cepat dari SD</h3>
-      <p>Steepest descent zigzag pada fungsi quadratic ill-conditioned (κ = λ_max/λ_min besar). <strong>Conjugate Gradient (CG)</strong> Hestenes-Stiefel (1952): pilih arah descent yang <em>conjugate</em> terhadap arah sebelumnya (lewat A-norm), bukan ortogonal. Untuk f quadratik, konvergen <strong style="color:var(--green)">dalam ≤ n iterasi</strong> (n = jumlah variabel). Implementasi: Polak–Ribière, Fletcher–Reeves. SciPy: <code>method='CG'</code>.</p>
+      <p>Steepest descent zigzag pada fungsi quadratic ill-conditioned (κ = λ<sub>max</sub>/λ<sub>min</sub> besar). <strong>Conjugate Gradient (CG)</strong> Hestenes-Stiefel (1952): pilih arah descent yang <em>conjugate</em> terhadap arah sebelumnya (lewat A-norm), bukan ortogonal. Untuk f quadratik, konvergen <strong style="color:var(--green)">dalam ≤ n iterasi</strong> (n = jumlah variabel). Implementasi: Polak–Ribière, Fletcher–Reeves. SciPy: <code>method='CG'</code>.</p>
       <div class="formula">\(d_{k+1} = -∇f + \beta \cdot d_k\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Momentum &amp; Adam (Modern Variants)</h3>
-      <p>Inspirasi dari deep learning, <strong>momentum</strong> akumulasi gradient masa lalu untuk <em>melewati lembah dangkal</em>: <code>v_{k+1} = γ·v_k − α·∇f, x_{k+1} = x_k + v_{k+1}</code>. <strong>Adam</strong> (Kingma 2014) tambahan: adaptive learning rate per dimensi. Standar untuk training neural network &amp; banyak NLP non-konveks. Tidak diimplementasikan di scipy.minimize, tapi tersedia di <code>torch.optim</code>, <code>jax.optimizers</code>.</p>
+      <p>Inspirasi dari deep learning, <strong>momentum</strong> akumulasi gradient masa lalu untuk <em>melewati lembah dangkal</em>: <code>v<sub>k+1</sub> = γ·v<sub>k</sub> − α·∇f, x<sub>k+1</sub> = x<sub>k</sub> + v<sub>k+1</sub></code>. <strong>Adam</strong> (Kingma 2014) tambahan: adaptive learning rate per dimensi. Standar untuk training neural network &amp; banyak NLP non-konveks. Tidak diimplementasikan di scipy.minimize, tapi tersedia di <code>torch.optim</code>, <code>jax.optimizers</code>.</p>
       <div class="formula">\(v ← \gamma v - \alpha ∇f; x ← x + v\)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
     <strong>Contoh Konkret, Optimasi Tinggi Antena:</strong><br>
-    Insinyur ingin mencari tinggi antena h yang meminimumkan biaya total: <code>f(h) = 1000/h + 50h²</code> (biaya komunikasi turun dengan tinggi, biaya konstruksi naik kuadratik). Gradient: <code>f'(h) = −1000/h² + 100h</code>. Set <code>f'(h*) = 0</code>: <code>100h³ = 1000 → h* = 10^(1/3) ≈ 2.154 m</code>. Atau via gradient descent dari h₀=5 m: turun cepat ke 2.15 m dalam ~10 iterasi. Validasi konveksitas: <code>f''(h) = 2000/h³ + 100 &gt; 0</code> ∀h&gt;0 ✓.
+    Insinyur ingin mencari tinggi antena h yang meminimumkan biaya total: <code>f(h) = 1000/h + 50h²</code> (biaya komunikasi turun dengan tinggi, biaya konstruksi naik kuadratik). Gradient: <code>f'(h) = −1000/h² + 100h</code>. Set <code>f'(h*) = 0</code>: <code>100h³ = 1000 → h* = 10<sup>1/3</sup> ≈ 2.154 m</code>. Atau via gradient descent dari h₀=5 m: turun cepat ke 2.15 m dalam ~10 iterasi. Validasi konveksitas: <code>f''(h) = 2000/h³ + 100 &gt; 0</code> ∀h&gt;0 ✓.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Tips Praktis Gradient Descent:</strong> (1) <strong>Skalakan variabel</strong> (z-score atau min-max) agar Hessian well-conditioned, gradient descent sensitif terhadap skala. (2) <strong>Mulai dari titik wajar</strong>, heuristik domain knowledge atau LP relaxation. (3) <strong>Plot trajectory</strong> di space variabel + nilai f(x) per iterasi untuk debug konvergensi. (4) <strong>Stopping criterion</strong>: kombinasi <code>‖∇f‖ &lt; ε</code> AND <code>|f_{k+1} − f_k| &lt; δ</code> agar tidak premature stop. (5) Untuk NLP <strong>non-konveks</strong>: multi-start dengan x₀ acak, ambil hasil terbaik (tidak menjamin global, tapi sering cukup untuk engineering).
+    💡 <strong>Tips Praktis Gradient Descent:</strong> (1) <strong>Skalakan variabel</strong> (z-score atau min-max) agar Hessian well-conditioned, gradient descent sensitif terhadap skala. (2) <strong>Mulai dari titik wajar</strong>, heuristik domain knowledge atau LP relaxation. (3) <strong>Plot trajectory</strong> di space variabel + nilai f(x) per iterasi untuk debug konvergensi. (4) <strong>Stopping criterion</strong>: kombinasi <code>‖∇f‖ &lt; ε</code> AND <code>|f<sub>k+1</sub> − f<sub>k</sub>| &lt; δ</code> agar tidak premature stop. (5) Untuk NLP <strong>non-konveks</strong>: multi-start dengan x₀ acak, ambil hasil terbaik (tidak menjamin global, tapi sering cukup untuk engineering).
   </div>
 
   <label class="pm-centang" data-pm="1"><input type="checkbox" disabled aria-describedby="pm-status-1"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Gradient Descent &amp;amp; Line Search: Iterasi Turun Mengikuti Slope Negatif</b>.</span><em class="pm-status" id="pm-status-1"></em></label>
@@ -1720,13 +1791,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Pure Newton — Quadratic Model</h3>
-      <p>Aproksimasi Taylor orde-2 sekitar \(x_k\): <code>f(x_k+d) ≈ f(x_k) + ∇fᵀd + ½dᵀHd</code>. Set turunan terhadap d = 0: <code>Hd = −∇f</code> → <strong>Newton direction</strong>. Untuk fungsi quadratic <code>f = ½xᵀAx − bᵀx</code>, satu Newton step langsung sampai minimum. Untuk fungsi non-quadratic, butuh ~5–15 iterasi dengan akurasi tinggi. <strong style="color:var(--cyan)">Konvergensi kuadratik</strong>: <code>‖x_{k+1} − x*‖ ≤ C·‖x_k − x*‖²</code>.</p>
+      <p>Aproksimasi Taylor orde-2 sekitar \(x_k\): <code>f(x<sub>k</sub>+d) ≈ f(x<sub>k</sub>) + ∇fᵀd + ½dᵀHd</code>. Set turunan terhadap d = 0: <code>Hd = −∇f</code> → <strong>Newton direction</strong>. Untuk fungsi quadratic <code>f = ½xᵀAx − bᵀx</code>, satu Newton step langsung sampai minimum. Untuk fungsi non-quadratic, butuh ~5–15 iterasi dengan akurasi tinggi. <strong style="color:var(--cyan)">Konvergensi kuadratik</strong>: <code>‖x<sub>k+1</sub> − x*‖ ≤ C·‖x<sub>k</sub> − x*‖²</code>.</p>
       <div class="formula">\(d = -H^{-1} \cdot ∇f\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧮</div>
       <h3>BFGS — Hessian Approximation</h3>
-      <p>Hitung Hessian eksak mahal &amp; sering tidak tersedia analitik. <strong>BFGS</strong> (Broyden-Fletcher-Goldfarb-Shanno, 1970) update matrix <code>B_k ≈ ∇²f</code> dari informasi <code>s_k = x_{k+1}−x_k</code> dan <code>y_k = ∇f_{k+1}−∇f_k</code> (secant condition). Konvergensi super-linier, tanpa Hessian eksplisit. SciPy default untuk unconstrained: <code>method='BFGS'</code>. Robust &amp; sangat cepat untuk n ≤ 1000.</p>
+      <p>Hitung Hessian eksak mahal &amp; sering tidak tersedia analitik. <strong>BFGS</strong> (Broyden-Fletcher-Goldfarb-Shanno, 1970) update matrix <code>B<sub>k</sub> ≈ ∇²f</code> dari informasi <code>s<sub>k</sub> = x<sub>k+1</sub>−x<sub>k</sub></code> dan <code>y<sub>k</sub> = ∇f<sub>k+1</sub>−∇f<sub>k</sub></code> (secant condition). Konvergensi super-linier, tanpa Hessian eksplisit. SciPy default untuk unconstrained: <code>method='BFGS'</code>. Robust &amp; sangat cepat untuk n ≤ 1000.</p>
       <div class="formula">\(B_{k+1} = B_k + \Delta (s,y)\)</div>
     </div>
     <div class="card">
@@ -1738,7 +1809,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">⚠️</div>
       <h3>Trust Region — Robust Alternative</h3>
-      <p>Line search bisa fail kalau Hessian non-positive-definite (misal saddle point). <strong>Trust region</strong>: hanya percaya quadratic model dalam radius Δ_k, solve subproblem <code>min m(d) s.t. ‖d‖ ≤ Δ_k</code>. Update Δ adaptif berdasarkan kualitas prediksi vs aktual. SciPy: <code>method='trust-ncg'</code>, <code>'trust-krylov'</code>, <code>'trust-constr'</code>. Robust untuk masalah ill-conditioned &amp; non-konveks.</p>
+      <p>Line search bisa fail kalau Hessian non-positive-definite (misal saddle point). <strong>Trust region</strong>: hanya percaya quadratic model dalam radius Δ<sub>k</sub>, solve subproblem <code>min m(d) s.t. ‖d‖ ≤ Δ<sub>k</sub></code>. Update Δ adaptif berdasarkan kualitas prediksi vs aktual. SciPy: <code>method='trust-ncg'</code>, <code>'trust-krylov'</code>, <code>'trust-constr'</code>. Robust untuk masalah ill-conditioned &amp; non-konveks.</p>
       <div class="formula">\(‖d‖ \le \Delta _k (\text{trust radius})\)</div>
     </div>
   </div>
@@ -1826,7 +1897,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🔧</div>
       <h3>Augmented Lagrangian</h3>
-      <p>Kombinasi penalty + Lagrangian, best of both: <code>L_A = f + λᵀh + (ρ/2)·‖h‖²</code>. Update <code>λ_{k+1} = λ_k + ρ·h(x_k)</code> tiap iter outer. Tidak perlu ρ → ∞, lebih stabil numerik. Powell (1969), Hestenes (1969). Banyak dipakai di ADMM &amp; large-scale optimization. SciPy <code>method='trust-constr'</code> menggunakan variant ini internal.</p>
+      <p>Kombinasi penalty + Lagrangian, best of both: <code>L<sub>A</sub> = f + λᵀh + (ρ/2)·‖h‖²</code>. Update <code>λ<sub>k+1</sub> = λ<sub>k</sub> + ρ·h(x<sub>k</sub>)</code> tiap iter outer. Tidak perlu ρ → ∞, lebih stabil numerik. Powell (1969), Hestenes (1969). Banyak dipakai di ADMM &amp; large-scale optimization. SciPy <code>method='trust-constr'</code> menggunakan variant ini internal.</p>
       <div class="formula">\(L_A = f + \lambda ^{T}h + \rho /2 \cdot ‖h‖^2\)</div>
     </div>
   </div>
@@ -1938,7 +2009,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="physicsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi:</strong> Kontur ungu = level sets fungsi konveks <code>f(x,y) = (x−1)² + 2(y−0.5)²</code>. Bintang kuning = optimum global di (1, 0.5). Trajectory cyan = iterasi gradient descent <code>x_{k+1} = x_k − α∇f</code>, dimulai dari (x₀, 0). Bulatan = posisi tiap iterasi.<br>
+        <strong>📊 Cara Membaca Animasi:</strong> Kontur ungu = level sets fungsi konveks <code>f(x,y) = (x−1)² + 2(y−0.5)²</code>. Bintang kuning = optimum global di (1, 0.5). Trajectory cyan = iterasi gradient descent <code>x<sub>k+1</sub> = x<sub>k</sub> − α∇f</code>, dimulai dari (x₀, 0). Bulatan = posisi tiap iterasi.<br>
         <strong>Coba:</strong> (1) α kecil (0.05) → trajectory smooth tapi konvergen lambat. (2) α moderate (0.15) → konvergen efisien. (3) α terlalu besar (0.4) → overshoot/zigzag/divergent. (4) Geser x₀ jauh dari optimum → lihat trajectory descent menuju (1, 0.5). Pelajaran: <em>step size kontrol konvergensi</em>, line search adaptif (Armijo) memilih α optimal otomatis.
       </div>
     </div>
@@ -2075,7 +2146,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🎛️</div>
       <h3>PID/MPC Controller Tuning</h3>
-      <p>Tune kontroler PID <code>K_p, K_i, K_d</code> agar respons sistem mekanik <em>cepat tanpa overshoot</em>. <strong>NLP non-linier</strong>: minimize ITAE (Integral of Time × Absolute Error) atau ISE; kendala: stability (eigenvalue closed-loop di kiri), overshoot ≤ 5%, settling time ≤ 2 s. Solver: scipy SLSQP atau Nelder-Mead (kalau gradient sulit dihitung). Untuk MPC, NLP dijalankan setiap sample time (~10 ms), robot industrial, drone autopilot, kendaraan otonom semua bergantung pada ini. Library: <code>do-mpc</code>, <code>CasADi</code> (auto-diff super cepat).</p>
+      <p>Tune kontroler PID <code>K<sub>p</sub>, K<sub>i</sub>, K<sub>d</sub></code> agar respons sistem mekanik <em>cepat tanpa overshoot</em>. <strong>NLP non-linier</strong>: minimize ITAE (Integral of Time × Absolute Error) atau ISE; kendala: stability (eigenvalue closed-loop di kiri), overshoot ≤ 5%, settling time ≤ 2 s. Solver: scipy SLSQP atau Nelder-Mead (kalau gradient sulit dihitung). Untuk MPC, NLP dijalankan setiap sample time (~10 ms), robot industrial, drone autopilot, kendaraan otonom semua bergantung pada ini. Library: <code>do-mpc</code>, <code>CasADi</code> (auto-diff super cepat).</p>
       <div class="formula">\(min \int |e(t)| \cdot t dt s.t. stability\)</div>
     </div>
     <div class="card">
@@ -2621,7 +2692,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">02</div>
-        <div class="mc-q">Pada <strong>gradient descent</strong> dengan formula <code>x_{k+1} = x_k − α·∇f(x_k)</code>, peran step size α adalah...</div>
+        <div class="mc-q">Pada <strong>gradient descent</strong> dengan formula <code>x<sub>k+1</sub> = x<sub>k</sub> − α·∇f(x<sub>k</sub>)</code>, peran step size α adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
@@ -2819,7 +2890,7 @@ from scipy.optimize import minimize
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Untuk fungsi quadratic 2D <strong>\(f(x,y) = (x-3)^2 + 2(y-2)^2\)</strong>, hitung <strong>nilai gradient di titik (1, 1)</strong> sebagai vektor norma. <code>‖∇f(1,1)‖ = √(∇f_x² + ∇f_y²)</code>. Print nilainya.</div>
+        <div class="comp-q">Untuk fungsi quadratic 2D <strong>\(f(x,y) = (x-3)^2 + 2(y-2)^2\)</strong>, hitung <strong>nilai gradient di titik (1, 1)</strong> sebagai vektor norma. <code>‖∇f(1,1)‖ = √(∇f<sub>x</sub>² + ∇f<sub>y</sub>²)</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Gradien ∇f = (2(x−3), 4(y−2)); evaluasi di titik yang diminta lalu hitung norma = \(\sqrt{∇f_x^2 + ∇f_y^2}\) dengan <code>np.sqrt</code>.</div>
@@ -3050,7 +3121,7 @@ from scipy.optimize import minimize
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q"><strong>Pegas Coil Engineering Design</strong>: min mass <code>m = ρ·π·(d²/4)·(πD)·N</code> dengan ρ = 7.85e−6 kg/mm³, D = 50 mm, F = 500 N. Kendala: τ_max = 8FD/(πd³) ≤ 600 MPa, δ = 8FD³N/(Gd⁴) ≥ 25 mm (G = 79300 MPa), L ≥ \(N \cdot d\). Bounds: d ∈ [2,15], N ∈ [5,30], L ∈ [50,200]. Pakai SLSQP. Print <strong>massa minimum</strong> (g, x0=[8,12,120]).</div>
+        <div class="comp-q"><strong>Pegas Coil Engineering Design</strong>: min mass <code>m = ρ·π·(d²/4)·(πD)·N</code> dengan ρ = 7.85e−6 kg/mm³, D = 50 mm, F = 500 N. Kendala: τ<sub>max</sub> = 8FD/(πd³) ≤ 600 MPa, δ = 8FD³N/(Gd⁴) ≥ 25 mm (G = 79300 MPa), L ≥ \(N \cdot d\). Bounds: d ∈ [2,15], N ∈ [5,30], L ∈ [50,200]. Pakai SLSQP. Print <strong>massa minimum</strong> (g, x0=[8,12,120]).</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Formulasikan fungsi massa dan tiga kendala (tegangan, defleksi, panjang) sebagai dict inequality, lalu selesaikan dengan <code>method='SLSQP'</code> memakai bounds dan x0 dari soal; massa dalam gram = <code>res.fun</code> × 1000.</div>
@@ -3130,12 +3201,12 @@ from scipy.optimize import minimize
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">
       <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Variabel: d (Ø wire), N (lilitan), L (free length)</div>
       <div style="background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">Objektif: <em>min</em> mass = ρπ(\(d^2\)/4)(πD)N</div>
-      <div style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)">Stress: 8FD/(πd³) ≤ τ_y = 600 MPa</div>
+      <div style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)">Stress: 8FD/(πd³) ≤ τ<sub>y</sub> = 600 MPa</div>
       <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">Defleksi: 8FD³N/(Gd⁴) ≥ 25 mm</div>
       <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Spacing: L ≥ \(N \cdot d\) (avoid solid)</div>
       <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Solver SLSQP: m* ≈ 41 g (tegangan + defleksi binding)</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Pertanyaan kritis: hasil <code>scipy.minimize</code> menunjukkan <em>tegangan dan defleksi keduanya BINDING</em> (g(x*) ≈ 0), kedua kendala aktif di optimum. Spacing slack (L &gt; \(N \cdot d)\). <strong style="color:var(--amber)">Lagrange multiplier μ_stress ≈ 0.18, μ_deflection ≈ 1.45</strong> menunjukkan defleksi adalah kendala lebih "ketat". Beberapa pertanyaan: (a) bagaimana interpretasi multiplier untuk decisi engineering, apa artinya secara fisik? (b) jika manajemen ingin lebih ringan 10%, kendala mana harus di-relaks dan apa risikonya? (c) apakah masalah ini konveks? Bisakah kita yakin solusi global atau perlu multi-start? (d) bagaimana validasi asumsi (mis. shear modulus G konstan vs temperature-dependent)?</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Pertanyaan kritis: hasil <code>scipy.minimize</code> menunjukkan <em>tegangan dan defleksi keduanya BINDING</em> (g(x*) ≈ 0), kedua kendala aktif di optimum. Spacing slack (L &gt; \(N \cdot d)\). <strong style="color:var(--amber)">Lagrange multiplier μ<sub>stress</sub> ≈ 0.18, μ<sub>deflection</sub> ≈ 1.45</strong> menunjukkan defleksi adalah kendala lebih "ketat". Beberapa pertanyaan: (a) bagaimana interpretasi multiplier untuk decisi engineering, apa artinya secara fisik? (b) jika manajemen ingin lebih ringan 10%, kendala mana harus di-relaks dan apa risikonya? (c) apakah masalah ini konveks? Bisakah kita yakin solusi global atau perlu multi-start? (d) bagaimana validasi asumsi (mis. shear modulus G konstan vs temperature-dependent)?</p>
   </div>
 
   <!-- Canvas Animasi Forum -->
@@ -3155,11 +3226,11 @@ from scipy.optimize import minimize
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Hasil <code>scipy.minimize</code> SLSQP menunjukkan g_stress(x*) ≈ 0 dan g_defl(x*) ≈ 0, kedua kendala <em>aktif</em> di solusi optimal. Multiplier Lagrange μ_stress &gt; 0 dan μ_defl &gt; 0. Spacing slack (L − \(N \cdot d)\) &gt; 0 (tidak binding). Apa arti fisik dari kedua kendala binding ini? Kenapa tidak ada slack di salah satu? Apa yang terjadi kalau kedua kendala dilepas (relaxed) sedikit?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Hasil <code>scipy.minimize</code> SLSQP menunjukkan g<sub>stress</sub>(x*) ≈ 0 dan g<sub>defl</sub>(x*) ≈ 0, kedua kendala <em>aktif</em> di solusi optimal. Multiplier Lagrange μ<sub>stress</sub> &gt; 0 dan μ<sub>defl</sub> &gt; 0. Spacing slack (L − \(N \cdot d)\) &gt; 0 (tidak binding). Apa arti fisik dari kedua kendala binding ini? Kenapa tidak ada slack di salah satu? Apa yang terjadi kalau kedua kendala dilepas (relaxed) sedikit?</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">τ_max = τ_y (yield)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">δ = δ_target (deflection min)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">μ_stress, μ_defl &gt; 0</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">τ<sub>max</sub> = τ<sub>y</sub> (yield)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">δ = δ<sub>target</sub> (deflection min)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">μ<sub>stress</sub>, μ<sub>defl</sub> &gt; 0</span>
         </div>
 
         <div class="poll">
@@ -3170,7 +3241,7 @@ from scipy.optimize import minimize
             <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Kedua kendala kebetulan paralel di space (R, H), jadi pasti binding bersamaan</div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Hanya tegangan binding; defleksi adalah secondary constraint</div>
           </div>
-          <div class="p-fb r" id="fp1r">✅ Tepat! Karakteristik desain "min mass" dengan loading tetap: solusi optimal pasti di <strong>boundary kendala kritis</strong>. Logika: kalau kendala stress tidak binding (τ &lt; τ_y dengan margin), kita bisa <em>kurangi d</em> sedikit → mass turun. Begitu juga kalau defleksi tidak binding (δ &gt; δ_target), kita bisa kurangi N → mass turun. Solver akan terus iterate sampai kedua kendala bertabrakan dengan boundary, <em>complementary slackness</em>. Multiplier μ_defl &gt; μ_stress berarti kendala defleksi <strong>lebih ketat</strong>: relaxasi 1 mm di δ_target akan turunkan mass lebih banyak daripada relaxasi 1 MPa di τ_y. <strong>Spacing tidak binding</strong>: artinya geometri pegas tidak terlalu padat (L &gt; \(N \cdot d\) dengan margin), bisa dipakai untuk visual tolerance / coiling yang lebih nyaman. Action engineering: investigasi material baru dengan G lebih tinggi (turunkan defleksi paling berdampak).</div>
+          <div class="p-fb r" id="fp1r">✅ Tepat! Karakteristik desain "min mass" dengan loading tetap: solusi optimal pasti di <strong>boundary kendala kritis</strong>. Logika: kalau kendala stress tidak binding (τ &lt; τ<sub>y</sub> dengan margin), kita bisa <em>kurangi d</em> sedikit → mass turun. Begitu juga kalau defleksi tidak binding (δ &gt; δ<sub>target</sub>), kita bisa kurangi N → mass turun. Solver akan terus iterate sampai kedua kendala bertabrakan dengan boundary, <em>complementary slackness</em>. Multiplier μ<sub>defl</sub> &gt; μ<sub>stress</sub> berarti kendala defleksi <strong>lebih ketat</strong>: relaxasi 1 mm di δ<sub>target</sub> akan turunkan mass lebih banyak daripada relaxasi 1 MPa di τ<sub>y</sub>. <strong>Spacing tidak binding</strong>: artinya geometri pegas tidak terlalu padat (L &gt; \(N \cdot d\) dengan margin), bisa dipakai untuk visual tolerance / coiling yang lebih nyaman. Action engineering: investigasi material baru dengan G lebih tinggi (turunkan defleksi paling berdampak).</div>
           <div class="p-fb w" id="fp1w">❌ Periksa kembali. Solver tidak <em>memaksa</em> semua kendala = 0, kalau kendala spacing slack di optimum, itu hasil natural. Bahkan paralelitas kendala bukan penyebab kedua binding; penyebabnya adalah sifat min-mass dengan loading tetap. Coba cek Lagrange multiplier output dari trust-constr — μ &gt; 0 menunjukkan binding aktif.</div>
         </div>
 
@@ -3221,7 +3292,7 @@ from scipy.optimize import minimize
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Model NLP pegas ini menggunakan formula klasik (Wahl correction terabaikan, G konstan, ρ konstan). Realita: shear modulus G turun ~10% saat suhu naik 80°C, fatigue limit τ_endurance &lt; τ_yield (ada cycle), wire bisa <em>buckle</em> kalau L/d &gt; 8, dan coiling tolerance 0.05 mm di d. Bagaimana validasi solusi NLP Anda untuk produksi nyata? Kapan harus pindah dari deterministic NLP ke <em>robust optimization</em> atau <em>reliability-based design optimization</em> (RBDO)?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Model NLP pegas ini menggunakan formula klasik (Wahl correction terabaikan, G konstan, ρ konstan). Realita: shear modulus G turun ~10% saat suhu naik 80°C, fatigue limit τ<sub>endurance</sub> &lt; τ<sub>yield</sub> (ada cycle), wire bisa <em>buckle</em> kalau L/d &gt; 8, dan coiling tolerance 0.05 mm di d. Bagaimana validasi solusi NLP Anda untuk produksi nyata? Kapan harus pindah dari deterministic NLP ke <em>robust optimization</em> atau <em>reliability-based design optimization</em> (RBDO)?</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">G(T) variabel?</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">F stokastik?</span>
@@ -3229,7 +3300,7 @@ from scipy.optimize import minimize
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">fatigue endurance</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Tidak ada jawaban tunggal, yang dinilai pemahaman batasan model. Pertimbangan: \((1)\) Wahl factor <code>K_w = (4C−1)/(4C−4) + 0.615/C</code> dengan \(C = D/d \to\) tegangan effective &gt; nominal; abaikan kalau \(d/D\) moderate. \((2)\) Fatigue: pakai \(\tau _endurance = 0.4 \cdot \tau _y \to\) safety factor \(1.5 \times . (3)\) Buckling: kendala tambahan \(L/d\) &lt; \(6\) (Faires criterion). \((4)\) Stochastic loading \(F \pm \sigma \to reliability-based\) design dengan reliability index \(\beta \ge 3. (5)\) Manufacturing tolerance \(\pm 0.05 mm di d \to\) robust optimization minimize \(worst-\;\text{case}\;. (6)\) Workflow: NLP deterministic untuk baseline, lalu Monte Carlo ribuan run dengan parameter random untuk reliability assessment, lalu \(re-design\) dengan margin lebih besar kalau \(Pf\) &gt; \(1e-4.\)</em>
+          💬 <em>Tidak ada jawaban tunggal, yang dinilai pemahaman batasan model. Pertimbangan: \((1)\) Wahl factor <code>K<sub>w</sub> = (4C−1)/(4C−4) + 0.615/C</code> dengan \(C = D/d \to\) tegangan effective &gt; nominal; abaikan kalau \(d/D\) moderate. \((2)\) Fatigue: pakai \(\tau _endurance = 0.4 \cdot \tau _y \to\) safety factor \(1.5 \times . (3)\) Buckling: kendala tambahan \(L/d\) &lt; \(6\) (Faires criterion). \((4)\) Stochastic loading \(F \pm \sigma \to reliability-based\) design dengan reliability index \(\beta \ge 3. (5)\) Manufacturing tolerance \(\pm 0.05 mm di d \to\) robust optimization minimize \(worst-\;\text{case}\;. (6)\) Workflow: NLP deterministic untuk baseline, lalu Monte Carlo ribuan run dengan parameter random untuk reliability assessment, lalu \(re-design\) dengan margin lebih besar kalau \(Pf\) &gt; \(1e-4.\)</em>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis analisis validasi asumsi Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Identifikasi minimal 3 asumsi yang mungkin runtuh di kasus pegas ini. (2) Untuk tiap asumsi, jelaskan dampak ke desain (mass naik X%, atau risiko failure naik Y%). (3) Tools alternatif: Wahl factor, fatigue criteria, buckling, Monte Carlo, Robust Optimization, Reliability-Based Design Optimization. (4) Workflow rekomendasi: deterministic NLP → uncertainty quantification → re-optimization. (5) Kapan stop iterasi (acceptable risk vs cost)?" oninput="checkForumReady()"></textarea>
@@ -3311,7 +3382,7 @@ from scipy.optimize import minimize
   <div class="float-formulas">
     <span class="ff" style="left:6%;font-size:.9rem;color:var(--violet);--dur:22s;--del:0s">✅ Tepat Waktu</span>
     <span class="ff" style="left:28%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">min f(x)</span>
-    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">x_{k+1} = x_k − α∇f</span>
+    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">x<sub>k+1</sub> = x<sub>k</sub> − α∇f</span>
     <span class="ff" style="left:70%;font-size:.7rem;color:var(--pink);--dur:24s;--del:2s">🏆 Top Skor</span>
     <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">scipy.minimize</span>
   </div>
@@ -5503,7 +5574,7 @@ function drawPhysics(){
     if (diverged) status = '🔴 DIVERGEN — α terlalu besar, kurangi step size!';
     else if (converged) status = `🟢 KONVERGEN dalam ${trajectory.length-1} iter`;
     else status = `🟡 Belum konvergen (60 iter limit, ‖∇f‖=${gradNorm.toFixed(3)})`;
-    info.innerHTML = `Iter: <strong>${trajectory.length-1}</strong> · x_final = (${finalPt[0].toFixed(3)}, ${finalPt[1].toFixed(3)}) · f = <strong>${fFinal.toFixed(4)}</strong> · ‖∇f‖ = ${gradNorm.toFixed(3)} · ${status}`;
+    info.innerHTML = `Iter: <strong>${trajectory.length-1}</strong> · x<sub>final</sub> = (${finalPt[0].toFixed(3)}, ${finalPt[1].toFixed(3)}) · f = <strong>${fFinal.toFixed(4)}</strong> · ‖∇f‖ = ${gradNorm.toFixed(3)} · ${status}`;
   }
 }
 
@@ -5837,7 +5908,7 @@ function drawIso(){
     else if (Math.abs(finalX + 2) < 0.1) conv = '🟢 Global min KIRI (x = -2, f = -11)';
     else if (Math.abs(finalX) < 0.1) conv = '🔴 STUCK di local MAX (saddle-like)!';
     else conv = `🟡 Belum konvergen (x=${finalX.toFixed(2)})`;
-    info.innerHTML = `x₀=<strong>${x0.toFixed(1)}</strong>, α=${alpha.toFixed(2)} · ${trajectory.length-1} iter · x_final=<strong>${finalX.toFixed(3)}</strong>, f=<strong>${finalF.toFixed(2)}</strong> · ${conv}`;
+    info.innerHTML = `x₀=<strong>${x0.toFixed(1)}</strong>, α=${alpha.toFixed(2)} · ${trajectory.length-1} iter · x<sub>final</sub>=<strong>${finalX.toFixed(3)}</strong>, f=<strong>${finalF.toFixed(2)}</strong> · ${conv}`;
   }
 }
 
@@ -6966,7 +7037,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
   const formulas = [
     { t: 'min f(x), x ∈ ℝⁿ',                     s: 13 },
     { t: '∇f(x*) = 0',                            s: 12 },
-    { t: 'x_{k+1} = x_k − α·∇f(x_k)',             s: 11 },
+    { t: 'x<sub>k+1</sub> = x<sub>k</sub> − α·∇f(x<sub>k</sub>)',             s: 11 },
     { t: 'L = f + λᵀh + μᵀg',                    s: 12 },
     { t: 'KKT: μᵢgᵢ = 0',                         s: 11 },
     { t: 'Hessian ∇²f ⪰ 0',                      s: 11 },
@@ -6988,7 +7059,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

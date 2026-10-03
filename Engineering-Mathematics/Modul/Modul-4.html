@@ -1339,6 +1339,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1576,9 +1647,9 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">u = e^∫P dx</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">y·u = ∫Q·u dx + c</span>
     <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">y' + Py = Qyⁿ</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">z = y^(1−n)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">z = y<sup>1−n</sup></span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">[y·u]' = Q·u</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">w = y^(n−1)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">w = y<sup>n−1</sup></span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">dsolve(ode, y(x))</span>
   </div>
   <div class="hero-content">
@@ -1708,7 +1779,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Penguasaan PD linier sepenuhnya bergantung pada kemampuan menghitung \(\int P(x)\,dx\), kemudian \(\int Q(x)\cdot e^{\int P\,dx}\,dx\). Berikut panduan 5 langkah yang dapat dipakai untuk semua PD linier orde satu. Skemanya diperlihatkan pada Gambar 2. Bentuk ringkasnya dituliskan pada Persamaan (2).</p>
 <!-- ILUSTRASI-STATIS:2:START -->
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 2 — Empat langkah faktor integrasi" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="38" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="96.75" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Bentuk baku</text><line x1="155.5" y1="39" x2="184.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="193.5,39 184.5,43.5 184.5,34.5" fill="#94a3b8"/><rect x="193.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#0ea5e9" stroke-width="1.6"/><text x="252.25" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">μ = e^∫P dx</text><line x1="311" y1="39" x2="340" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="349,39 340,43.5 340,34.5" fill="#94a3b8"/><rect x="349" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="407.75" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Kalikan</text><text x="407.75" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Seluruh PD</text><line x1="466.5" y1="39" x2="495.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="504.5,39 495.5,43.5 495.5,34.5" fill="#94a3b8"/><rect x="504.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="563.25" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Integralkan</text><text x="563.25" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Sekali</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Ruas kiri selalu menjadi turunan dari μ·y</text></svg>
+    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 2 — Empat langkah faktor integrasi" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="38" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="96.75" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Bentuk baku</text><line x1="155.5" y1="39" x2="184.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="193.5,39 184.5,43.5 184.5,34.5" fill="#94a3b8"/><rect x="193.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#0ea5e9" stroke-width="1.6"/><text x="252.25" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">μ = e<tspan dy="-4.7" font-size="9">∫P dx</tspan></text><line x1="311" y1="39" x2="340" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="349,39 340,43.5 340,34.5" fill="#94a3b8"/><rect x="349" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="407.75" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Kalikan</text><text x="407.75" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Seluruh PD</text><line x1="466.5" y1="39" x2="495.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="504.5,39 495.5,43.5 495.5,34.5" fill="#94a3b8"/><rect x="504.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="563.25" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Integralkan</text><text x="563.25" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Sekali</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Ruas kiri selalu menjadi turunan dari μ·y</text></svg>
     <figcaption><strong>Gambar 2</strong> — Empat langkah faktor integrasi. Faktor integrasi mengubah ruas kiri menjadi turunan hasil kali, sehingga sekali integral langsung memberi solusinya.</figcaption>
   </figure>
 <!-- ILUSTRASI-STATIS:2:END -->
@@ -1871,7 +1942,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Persamaan Bernoulli adalah "sepupu non-linier" dari PD linier. Ada suku tambahan \(y^n\) yang tampak membuat PD sulit dipecahkan, tapi sebuah substitusi cerdas mengubahnya kembali menjadi PD linier yang sudah kita kuasai. Perhatikan ilustrasinya pada Gambar 3. Persamaan (3) di bawah memadatkan aturan tersebut.</p>
 <!-- ILUSTRASI-STATIS:3:START -->
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 3 — Melinierkan persamaan Bernoulli" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="55" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="134" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">y' + Py = Qyⁿ</text><line x1="213" y1="39" x2="242" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="251,39 242,43.5 242,34.5" fill="#94a3b8"/><rect x="251" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="330" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">z = y^(1−n)</text><line x1="409" y1="39" x2="438" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="447,39 438,43.5 438,34.5" fill="#94a3b8"/><rect x="447" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#00e09e" stroke-width="1.6"/><text x="526" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">PD linier dalam z</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Nilai n = 0 atau 1 tidak perlu substitusi</text></svg>
+    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 3 — Melinierkan persamaan Bernoulli" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="55" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="134" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">y' + Py = Qyⁿ</text><line x1="213" y1="39" x2="242" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="251,39 242,43.5 242,34.5" fill="#94a3b8"/><rect x="251" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="330" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">z = y<tspan dy="-4.7" font-size="9">1−n</tspan></text><line x1="409" y1="39" x2="438" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="447,39 438,43.5 438,34.5" fill="#94a3b8"/><rect x="447" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#00e09e" stroke-width="1.6"/><text x="526" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">PD linier dalam z</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Nilai n = 0 atau 1 tidak perlu substitusi</text></svg>
     <figcaption><strong>Gambar 3</strong> — Melinierkan persamaan Bernoulli. Substitusi pangkat yang tepat mengubah persamaan tak linier itu menjadi PD linier biasa yang sudah dikenal cara penyelesaiannya.</figcaption>
   </figure>
 <!-- ILUSTRASI-STATIS:3:END -->
@@ -2335,17 +2406,17 @@ window.jalankanDenganMuat = async function (el, label, fn) {
         <div class="ctrl-group" style="flex:1 1 100%;">
           <label>Pilih aplikasi (semua dapat diselesaikan dengan faktor integrasi):</label>
           <select id="m4slApps" onchange="window.m4SetApps(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:520px;margin-top:6px;">
-            <option value="rl">⚡ Rangkaian RL — \(L \cdot dI\)/dt + \(R \cdot I\) = V (arus naik ke V/R)</option>
-            <option value="mix">🧪 Tangki Pencampuran — \(V \cdot dC\)/dt = q(Cᵢₙ − C)</option>
-            <option value="drug">💊 Konsentrasi Obat, dC/dt + \(k \cdot C\) = D₀ (dosis konstan)</option>
-            <option value="bank">💰 Bunga Majemuk Kontinyu, dB/dt = \(r \cdot B\)</option>
-            <option value="drag">🪂 Jatuh + Drag Linier — \(m \cdot dv\)/dt + \(b \cdot v\) = \(m \cdot g\)</option>
+            <option value="rl">⚡ Rangkaian RL — L·dI/dt + R·I = V (arus naik ke V/R)</option>
+            <option value="mix">🧪 Tangki Pencampuran — V·dC/dt = q(Cᵢₙ − C)</option>
+            <option value="drug">💊 Konsentrasi Obat, dC/dt + k·C = D₀ (dosis konstan)</option>
+            <option value="bank">💰 Bunga Majemuk Kontinyu, dB/dt = r·B</option>
+            <option value="drag">🪂 Jatuh + Drag Linier — m·dv/dt + b·v = m·g</option>
           </select>
         </div>
       </div>
       <div id="m4AppsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Lima aplikasi PD linier orde 1 (semua bentuk <code>y' + P(x)·y = Q(x)</code>). Layout split: kiri = ikon/diagram fisik bergerak (rangkaian RL dengan arus, tangki dengan particle, sel tubuh dengan obat, koin bertambah, parasut), kanan = signal trace 1000 samples (~10 detik). Solusi semua memiliki struktur <em>steady-state + transient e^(−kt)</em>.
+        <strong>📊 Cara Membaca:</strong> Lima aplikasi PD linier orde 1 (semua bentuk <code>y' + P(x)·y = Q(x)</code>). Layout split: kiri = ikon/diagram fisik bergerak (rangkaian RL dengan arus, tangki dengan particle, sel tubuh dengan obat, koin bertambah, parasut), kanan = signal trace 1000 samples (~10 detik). Solusi semua memiliki struktur <em>steady-state + transient e<sup>−kt</sup></em>.
       </div>
     </div>
   </div>
@@ -2653,7 +2724,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">y' + Py = Q</span>
     <span class="ff" style="left:35%;font-size:.85rem;color:#fb923c;--dur:22s;--del:5s">u = e^∫P dx</span>
-    <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">z = y^(1−n)</span>
+    <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">z = y<sup>1−n</sup></span>
     <span class="ff" style="left:75%;font-size:.7rem;color:#fb923c;--dur:22s;--del:9s">y·u = ∫Q·u dx + c</span>
   </div>
   <div class="hero-content">
@@ -2808,10 +2879,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc5">
-        <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; y = (1/5)\(e^{2x}\) + Ce^(−3x)</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; y = \(e^{2x}\) + Ce^(3x)</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; y = (1/5)\(e^{2x}\) + Ce^(3x)</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; y = (1/2)\(e^{2x}\) + Ce^(−3x)</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; y = (1/5)\(e^{2x}\) + Ce<sup>−3x</sup></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; y = \(e^{2x}\) + Ce<sup>3x</sup></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; y = (1/5)\(e^{2x}\) + Ce<sup>3x</sup></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; y = (1/2)\(e^{2x}\) + Ce<sup>−3x</sup></div>
       </div>
       <button class="mc-submit" id="sub-mc5" onclick="checkMC('mc5')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc5"></div>
@@ -2825,7 +2896,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc6">
-        <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Substitusi Bernoulli z = y^(1−n)</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Substitusi Bernoulli z = y<sup>1−n</sup></div>
         <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Reduksi orde dengan substitusi w = y', sehingga w' = y''</div>
         <div class="radio-option" onclick="selectMC('mc6',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Cek syarat eksak ∂M/∂y = ∂N/∂x</div>
         <div class="radio-option" onclick="selectMC('mc6',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Pisahkan variabel dx dan dy</div>
@@ -2842,7 +2913,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc7">
-        <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; u = e^(1/x)</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; u = e<sup>1/x</sup></div>
         <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; u = x</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; u = 1/x</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; u = ln x</div>
@@ -2893,7 +2964,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc10">
-        <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Langsung substitusi z = y^(1−n) tanpa membagi</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Langsung substitusi z = y<sup>1−n</sup> tanpa membagi</div>
         <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Bagi kedua ruas dengan y<sup>n</sup> terlebih dahulu untuk memunculkan y<sup>−n</sup>y'</div>
         <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Hitung faktor integrasi u = e^∫P dx dulu, lalu kalikan</div>
         <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Integralkan langsung kedua ruas terhadap x</div>
@@ -2925,11 +2996,11 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C1</div>
-        <div class="comp-q">PD linier <code style="font-family:'JetBrains Mono',monospace">y' + 3y = e^(2x)</code>. Hitung <strong>faktor integrasi pada x = 1</strong>, yaitu <code style="font-family:'JetBrains Mono',monospace">u(1) = e^(3·1)</code>. Print nilainya.</div>
+        <div class="comp-q">PD linier <code style="font-family:'JetBrains Mono',monospace">y' + 3y = e^(2x)</code>. Hitung <strong>faktor integrasi pada x = 1</strong>, yaitu <code style="font-family:'JetBrains Mono',monospace">u(1) = e<sup>3·1</sup></code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">
-        💡 Faktor integrasi PD linier adalah <code>u(x) = e^(∫P dx)</code>; substitusikan titik x yang diminta lalu evaluasi dengan <code>np.exp</code>.
+        💡 Faktor integrasi PD linier adalah <code>u(x) = e<sup>∫P dx</sup></code>; substitusikan titik x yang diminta lalu evaluasi dengan <code>np.exp</code>.
       </div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(u(1) = e^3\)</strong></span></div>
@@ -2944,7 +3015,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Untuk PD <code style="font-family:'JetBrains Mono',monospace">y' + 3y = e^(2x)</code> dengan penyelesaian umum <code style="font-family:'JetBrains Mono',monospace">y = (1/5)e^(2x) + Ce^(−3x)</code>, jika diberi syarat awal <code style="font-family:'JetBrains Mono',monospace">y(0) = 1</code>, hitung nilai <strong>konstanta C</strong>. Print nilainya.</div>
+        <div class="comp-q">Untuk PD <code style="font-family:'JetBrains Mono',monospace">y' + 3y = e^(2x)</code> dengan penyelesaian umum <code style="font-family:'JetBrains Mono',monospace">y = (1/5)e<sup>2x</sup> + Ce<sup>−3x</sup></code>, jika diberi syarat awal <code style="font-family:'JetBrains Mono',monospace">y(0) = 1</code>, hitung nilai <strong>konstanta C</strong>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">
@@ -2963,7 +3034,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Dengan penyelesaian <code style="font-family:'JetBrains Mono',monospace">y(x) = (1/5)e^(2x) + 0.8·e^(−3x)</code>, hitung <strong>nilai y pada x = 0.5</strong>. Print nilai y(0.5).</div>
+        <div class="comp-q">Dengan penyelesaian <code style="font-family:'JetBrains Mono',monospace">y(x) = (1/5)e<sup>2x</sup> + 0.8·e<sup>−3x</sup></code>, hitung <strong>nilai y pada x = 0.5</strong>. Print nilai y(0.5).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">
@@ -3001,11 +3072,11 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">Benda dengan suhu awal <strong>T₀ = 100°C</strong> didinginkan di ruangan <strong>T∞ = 25°C</strong>. Dengan k = 0.05/menit, suhunya: <code style="font-family:'JetBrains Mono',monospace">T(t) = T∞ + (T₀ − T∞)·e^(−kt)</code>. Hitung <strong>T pada t = 30 menit</strong>. Print suhu dalam °C.</div>
+        <div class="comp-q">Benda dengan suhu awal <strong>T₀ = 100°C</strong> didinginkan di ruangan <strong>T∞ = 25°C</strong>. Dengan k = 0.05/menit, suhunya: <code style="font-family:'JetBrains Mono',monospace">T(t) = T∞ + (T₀ − T∞)·e<sup>−kt</sup></code>. Hitung <strong>T pada t = 30 menit</strong>. Print suhu dalam °C.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">
-        💡 Pakai rumus pendinginan Newton <code>T = T∞ + (T₀−T∞)e^(−kt)</code>, substitusikan t yang diminta lalu evaluasi.
+        💡 Pakai rumus pendinginan Newton <code>T = T∞ + (T₀−T∞)e<sup>−kt</sup></code>, substitusikan t yang diminta lalu evaluasi.
       </div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">T(30 menit) dalam °C</strong></span></div>
@@ -3020,7 +3091,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C6</div>
-        <div class="comp-q">Untuk persamaan Bernoulli dengan <strong>n = 5</strong>, pangkat substitusi <code style="font-family:'JetBrains Mono',monospace">z = y^(1−n)</code> bernilai... Print hasil <code style="font-family:'JetBrains Mono',monospace">1 − n</code>.</div>
+        <div class="comp-q">Untuk persamaan Bernoulli dengan <strong>n = 5</strong>, pangkat substitusi <code style="font-family:'JetBrains Mono',monospace">z = y<sup>1−n</sup></code> bernilai... Print hasil <code style="font-family:'JetBrains Mono',monospace">1 − n</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">
@@ -3039,11 +3110,11 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q">Rangkaian RL: <strong>R = 10 Ω</strong>, <strong>L = 2 H</strong>, V<sub>s</sub> = 20 V DC, i(0) = 0. Arus memenuhi <code style="font-family:'JetBrains Mono',monospace">i(t) = (V_s/R)·(1 − e^(−Rt/L))</code>. Hitung <strong>arus pada t = 0.5 detik</strong>. Print nilai i dalam Ampere.</div>
+        <div class="comp-q">Rangkaian RL: <strong>R = 10 Ω</strong>, <strong>L = 2 H</strong>, V<sub>s</sub> = 20 V DC, i(0) = 0. Arus memenuhi <code style="font-family:'JetBrains Mono',monospace">i(t) = (V<sub>s</sub>/R)·(1 − e<sup>−Rt/L</sup>)</code>. Hitung <strong>arus pada t = 0.5 detik</strong>. Print nilai i dalam Ampere.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">
-        💡 Pakai rumus arus RL <code>i(t) = (V_s/R)(1 − e^(−Rt/L))</code>, substitusikan t yang diminta lalu evaluasi.
+        💡 Pakai rumus arus RL <code>i(t) = (V<sub>s</sub>/R)(1 − e<sup>−Rt/L</sup>)</code>, substitusikan t yang diminta lalu evaluasi.
       </div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">i(0.5) dalam A</strong></span></div>
@@ -3058,7 +3129,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q">Tangki berisi <strong>V = 200 L</strong> air garam murni (y(0) = 0 kg). Air garam masuk dengan <strong>r = 4 L/menit</strong>, konsentrasi <strong>c<sub>in</sub> = 0.5 kg/L</strong>; keluar dengan laju sama. Massa garam mengikuti <code style="font-family:'JetBrains Mono',monospace">y(t) = V·c_in·(1 − e^(−rt/V))</code>. Hitung <strong>massa garam pada t = 50 menit</strong>. Print nilai (kg).</div>
+        <div class="comp-q">Tangki berisi <strong>V = 200 L</strong> air garam murni (y(0) = 0 kg). Air garam masuk dengan <strong>r = 4 L/menit</strong>, konsentrasi <strong>c<sub>in</sub> = 0.5 kg/L</strong>; keluar dengan laju sama. Massa garam mengikuti <code style="font-family:'JetBrains Mono',monospace">y(t) = V·c<sub>in</sub>·(1 − e<sup>−rt/V</sup>)</code>. Hitung <strong>massa garam pada t = 50 menit</strong>. Print nilai (kg).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">
@@ -3077,11 +3148,11 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q">Pertumbuhan logistik (Bernoulli n=2): <code style="font-family:'JetBrains Mono',monospace">P(t) = K / (1 + ((K − P₀)/P₀)·e^(−rt))</code>. Dengan <strong>K = 1000</strong> (kapasitas), <strong>P₀ = 50</strong>, <strong>r = 0.1/hari</strong>, hitung <strong>P pada t = 20 hari</strong>. Print hasilnya.</div>
+        <div class="comp-q">Pertumbuhan logistik (Bernoulli n=2): <code style="font-family:'JetBrains Mono',monospace">P(t) = K / (1 + ((K − P₀)/P₀)·e<sup>−rt</sup>)</code>. Dengan <strong>K = 1000</strong> (kapasitas), <strong>P₀ = 50</strong>, <strong>r = 0.1/hari</strong>, hitung <strong>P pada t = 20 hari</strong>. Print hasilnya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">
-        💡 Pakai rumus logistik <code>P(t) = K/(1 + ((K−P₀)/P₀)e^(−rt))</code>, substitusikan t yang diminta lalu evaluasi.
+        💡 Pakai rumus logistik <code>P(t) = K/(1 + ((K−P₀)/P₀)e<sup>−rt</sup>)</code>, substitusikan t yang diminta lalu evaluasi.
       </div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">P(20 hari)</strong></span></div>
@@ -3130,7 +3201,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
             Tanpa menggunakan <code style="font-family:'JetBrains Mono',monospace">scipy</code> atau <code>sympy</code>, implementasikan metode Runge-Kutta orde-4 dari awal untuk menyelesaikan PD linier:
             <code style="display:block;margin:8px 0;padding:6px 10px;background:rgba(249,115,22,.06);border-radius:6px;font-family:'JetBrains Mono',monospace;color:#f9a8d4">y' + 2xy = 2x·e^(−x²)</code>
             dengan syarat awal <strong>\(y(0) = 1\)</strong>, step size <strong>h = 0.01</strong>, dari x = 0 sampai x = 2. Print <strong>nilai \(y(2)\)</strong> dengan 5 angka desimal.
-            <div style="margin-top:8px;font-size:13px;color:var(--muted)">Solusi analitis: faktor integrasi u = e^(\(x^2\)) memberi y = (\(x^2\) + 1)·e^(−\(x^2\)), sehingga <code>y(2) = 5·e^(−4) ≈ 0.09158</code>.</div>
+            <div style="margin-top:8px;font-size:13px;color:var(--muted)">Solusi analitis: faktor integrasi u = \(e^{x^2}\) memberi y = (\(x^2\) + 1)·\(e^{-x^2}\), sehingga <code>y(2) = 5·e<sup>−4</sup> ≈ 0.09158</code>.</div>
           </div>
           <div class="comp-pts">4 poin</div>
         </div>
@@ -3284,8 +3355,8 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="float-formulas">
     <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">T' + kT = kT∞</span>
     <span class="ff" style="left:40%;font-size:.8rem;color:#fb923c;--dur:18s;--del:7s">τ = 1/k</span>
-    <span class="ff" style="left:65%;font-size:.75rem;color:#fbbf24;--dur:22s;--del:11s">T(t) = T∞ + ΔT·e^(−kt)</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">u = e^(kt)</span>
+    <span class="ff" style="left:65%;font-size:.75rem;color:#fbbf24;--dur:22s;--del:11s">T(t) = T∞ + ΔT·e<sup>−kt</sup></span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">u = e<sup>kt</sup></span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot" style="background:var(--green)"></div>Forum Diskusi · Pertemuan 4 · PD Linier Orde N</div>
@@ -3311,7 +3382,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">\(T_{\text{aman}}\) = 80°C (target)</div>
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)">k = 0.04 /menit (terukur)</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Model Hukum Pendinginan Newton: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">T' + kT = kT∞</code> — PD linier orde satu dengan solusi <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">T(t) = T∞ + (T₀ − T∞)·e^(−kt)</code>. Tim ingin meningkatkan k (mempercepat pendinginan) dengan menambah <strong style="color:var(--amber)">kipas / spray mist</strong>, namun harus mempertimbangkan biaya energi dan risiko <em>thermal shock</em> pada material. Forum ini mengajak Anda menganalisis trade-off teknik & ekonomi berdasarkan PD linier.</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Model Hukum Pendinginan Newton: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">T' + kT = kT∞</code> — PD linier orde satu dengan solusi <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">T(t) = T∞ + (T₀ − T∞)·e<sup>−kt</sup></code>. Tim ingin meningkatkan k (mempercepat pendinginan) dengan menambah <strong style="color:var(--amber)">kipas / spray mist</strong>, namun harus mempertimbangkan biaya energi dan risiko <em>thermal shock</em> pada material. Forum ini mengajak Anda menganalisis trade-off teknik & ekonomi berdasarkan PD linier.</p>
   </div>
 
   <div class="info-box reveal" style="margin-top:18px;margin-bottom:18px">
@@ -3322,7 +3393,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
 
   <!-- Canvas Animasi Forum -->
   <canvas id="cvForum" height="180" style="margin-bottom:12px;border-radius:12px"></canvas>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— Simulasi kurva pendinginan T(t) = T∞ + (T₀ − T∞)·e^(−kt) untuk tiga skenario k</p>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">— Simulasi kurva pendinginan T(t) = T∞ + (T₀ − T∞)·e<sup>−kt</sup> untuk tiga skenario k</p>
 
   <!-- Pertanyaan Diskusi -->
   <div class="section-label reveal">Pertanyaan Diskusi</div>
@@ -3337,7 +3408,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Dari solusi <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">T(t) = T∞ + (T₀ − T∞)·e^(−kt)</code>, tentukan \(t\) saat \(T = 80°C\) untuk kedua skenario. Gunakan kalkulator atau Python.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Dari solusi <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">T(t) = T∞ + (T₀ − T∞)·e<sup>−kt</sup></code>, tentukan \(t\) saat \(T = 80°C\) untuk kedua skenario. Gunakan kalkulator atau Python.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">t = −ln((T−T∞)/(T₀−T∞))/k</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">konstanta waktu τ = 1/k</span>
@@ -3406,7 +3477,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Kecepatan pendinginan maksimum terjadi di awal (\(t = 0\)), di mana \(T' = -k(T_0 - T_\infty) = -k \cdot 420 = -16.8°C/\;\text{menit}\) untuk \(k = 0.04\). Jika \(k\) dinaikkan ke 0.1, laju awal menjadi \(-42°C/\;\text{menit}\), mungkin melebihi batas aman material (misal \(|dT/dt|_{\max} = 30°C/\;\text{menit}\) untuk aluminium casting).</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(T'(0) = -k \cdot (T_0 - T\infty )\)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">|dT/dt|_max ≈ 30°C/menit</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">|dT/dt|<sub>max</sub> ≈ 30°C/menit</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(k_{aman} = 30/420 \approx 0.071\)</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
@@ -3491,7 +3562,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <span class="ff" style="left:28%;font-size:.75rem;color:#ec4899;--dur:18s;--del:4s">y' + Py = Q</span>
     <span class="ff" style="left:52%;font-size:.85rem;color:#fbbf24;--dur:20s;--del:8s">u = e^∫P dx</span>
     <span class="ff" style="left:70%;font-size:.7rem;color:#f472b6;--dur:24s;--del:2s">🏆 Top Skor</span>
-    <span class="ff" style="left:85%;font-size:.8rem;color:#a78bfa;--dur:16s;--del:11s">z = y^(1−n)</span>
+    <span class="ff" style="left:85%;font-size:.8rem;color:#a78bfa;--dur:16s;--del:11s">z = y<sup>1−n</sup></span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot" style="background:#fb923c"></div>Pertemuan 4 &nbsp;·&nbsp; Hasil &amp; Kehadiran</div>
@@ -5725,8 +5796,8 @@ function drawLinierFamily(){
   // Legend
   ctx.fillStyle='rgba(26,10,5,.85)'; ctx.fillRect(padL+8,padT+8,210,58);
   ctx.strokeStyle='rgba(255,255,255,.1)'; ctx.strokeRect(padL+8,padT+8,210,58);
-  ctx.fillStyle='#94a3b8'; ctx.font='bold 9px JetBrains Mono'; ctx.fillText("y' + 3y = e^(2x)",padL+16,padT+22);
-  ctx.fillStyle='#f97316'; ctx.font='9px JetBrains Mono'; ctx.fillText('━ y = 0.2e^(2x) + C·e^(−3x)',padL+16,padT+36);
+  ctx.fillStyle='#94a3b8'; ctx.font='bold 9px JetBrains Mono'; ctx.fillText("y' + 3y = e<sup>2x</sup>",padL+16,padT+22);
+  ctx.fillStyle='#f97316'; ctx.font='9px JetBrains Mono'; ctx.fillText('━ y = 0.2e<sup>2x</sup> + C·e<sup>−3x</sup>',padL+16,padT+36);
   ctx.fillStyle='#f97316'; ctx.fillText('━ partikular (C=0)',padL+16,padT+48);
   ctx.fillStyle='rgba(168,162,158,.55)'; ctx.fillText('┅ C = −2,−1,1,2',padL+16,padT+60);
 }
@@ -5824,9 +5895,9 @@ function drawFactor(){
   ctx.fillStyle='rgba(26,10,5,.85)'; ctx.fillRect(padL+8,padT+8,230,74);
   ctx.strokeStyle='rgba(255,255,255,.1)'; ctx.strokeRect(padL+8,padT+8,230,74);
   ctx.fillStyle='#94a3b8'; ctx.font='bold 9px JetBrains Mono'; ctx.fillText("y' + Py = 1,  y(0)=0",padL+16,padT+22);
-  ctx.fillStyle='#f97316'; ctx.font='9px JetBrains Mono'; ctx.fillText('━ y(x) = (1/P)(1 − e^(−Px))',padL+16,padT+36);
+  ctx.fillStyle='#f97316'; ctx.font='9px JetBrains Mono'; ctx.fillText('━ y(x) = (1/P)(1 − e<sup>−Px</sup>)',padL+16,padT+36);
   ctx.fillStyle='#f97316'; ctx.fillText('┅ y·u (sebelum dibagi u)',padL+16,padT+48);
-  ctx.fillStyle='#f97316'; ctx.fillText('┅ u(x) = e^(Px) (scaled)',padL+16,padT+60);
+  ctx.fillStyle='#f97316'; ctx.fillText('┅ u(x) = e<sup>Px</sup> (scaled)',padL+16,padT+60);
   ctx.fillStyle='#00e09e'; ctx.fillText('┄ steady-state = 1/P = '+ySS.toFixed(2),padL+16,padT+72);
 }
 (function(){const s=document.getElementById('sl_p2'); if(s) s.addEventListener('input',drawFactor);})();
@@ -5892,7 +5963,7 @@ function drawBernoulli(){
   ctx.fillStyle='rgba(26,10,5,.85)'; ctx.fillRect(padL+8,padT+6,140,34);
   ctx.strokeStyle='rgba(255,255,255,.1)'; ctx.strokeRect(padL+8,padT+6,140,34);
   ctx.fillStyle='#f97316'; ctx.font='bold 10px JetBrains Mono'; ctx.fillText('━ y(x) non-linier',padL+14,padT+20);
-  ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono'; ctx.fillText("y' + y = y^"+n,padL+14,padT+32);
+  ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono'; ctx.fillText("y' + y = y<sup>"+n+"</sup>",padL+14,padT+32);
 
   // Bottom panel: z(x)
   const y0=padT+panelH+gap;
@@ -5914,7 +5985,7 @@ function drawBernoulli(){
 
   ctx.fillStyle='rgba(26,10,5,.85)'; ctx.fillRect(padL+8,y0+6,160,34);
   ctx.strokeStyle='rgba(255,255,255,.1)'; ctx.strokeRect(padL+8,y0+6,160,34);
-  ctx.fillStyle='#f97316'; ctx.font='bold 10px JetBrains Mono'; ctx.fillText('━ z(x) = y^(1−n)',padL+14,y0+20);
+  ctx.fillStyle='#f97316'; ctx.font='bold 10px JetBrains Mono'; ctx.fillText('━ z(x) = y<sup>1−n</sup>',padL+14,y0+20);
   ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono'; ctx.fillText('→ PD Linier dalam z',padL+14,y0+32);
 
   // X axis label
@@ -6049,7 +6120,7 @@ function drawForumCanvas() {
   ctx.strokeStyle='rgba(0,224,158,.4)'; ctx.lineWidth=1; ctx.setLineDash([3,4]);
   ctx.beginPath(); ctx.moveTo(padL,sy(80)); ctx.lineTo(padL+plotW,sy(80)); ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle='#00e09e'; ctx.font='9px JetBrains Mono'; ctx.fillText('T_aman = 80°C',padL+4,sy(80)-4);
+  ctx.fillStyle='#00e09e'; ctx.font='9px JetBrains Mono'; ctx.fillText('T<sub>aman</sub> = 80°C',padL+4,sy(80)-4);
 
   // Draw each scenario
   scenarios.forEach(s=>{
@@ -6074,7 +6145,7 @@ function drawForumCanvas() {
   // Legend
   ctx.fillStyle='rgba(26,10,5,.88)'; ctx.fillRect(padL+plotW-200,padT+8,194,72);
   ctx.strokeStyle='rgba(255,255,255,.1)'; ctx.strokeRect(padL+plotW-200,padT+8,194,72);
-  ctx.fillStyle='#94a3b8'; ctx.font='bold 9px JetBrains Mono'; ctx.fillText("T(t)=T∞+(T₀−T∞)e^(−kt)",padL+plotW-194,padT+22);
+  ctx.fillStyle='#94a3b8'; ctx.font='bold 9px JetBrains Mono'; ctx.fillText("T(t)=T∞+(T₀−T∞)e<sup>−kt</sup>",padL+plotW-194,padT+22);
   scenarios.forEach((s,i)=>{
     const t80 = -Math.log((80-Tinf)/(T0-Tinf))/s.k;
     ctx.fillStyle=s.color; ctx.font='9px JetBrains Mono';
@@ -6753,14 +6824,14 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: "y' + P(x)y = Q(x)",              s: 13 },
     { t: 'u = e^∫P dx',                     s: 13 },
     { t: 'y·u = ∫Q·u dx + c',               s: 12 },
-    { t: 'z = y^(1−n)',                     s: 13 },
+    { t: 'z = y<sup>1−n</sup>',                     s: 13 },
     { t: "y' + Py = Qyⁿ",                   s: 12 },
-    { t: 'T(t) = T∞ + ΔT·e^(−kt)',          s: 10 },
+    { t: 'T(t) = T∞ + ΔT·e<sup>−kt</sup>',          s: 10 },
     { t: 'τ = 1/k',                         s: 14 },
     { t: 'dsolve(ode, y(x))',               s: 11 },
-    { t: 'w = y^(n−1)',                     s: 13 },
+    { t: 'w = y<sup>n−1</sup>',                     s: 13 },
     { t: '[y·u]′ = Q·u',                    s: 12 },
-    { t: 'i(t) = (Vs/R)(1−e^(−Rt/L))',      s: 10 },
+    { t: 'i(t) = (Vs/R)(1−e<sup>−Rt/L</sup>)',      s: 10 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -6774,7 +6845,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -9601,11 +9672,11 @@ function _createForumParticleBurst(event) {
   const m4Apps = { which: 'rl', t: 0, hist: [], raf: null };
 
   const M4_APPS = {
-    rl:   { label: "RL Circuit: I(t) = (V/R)·(1 − e^(−Rt/L))",       compute: t => 0.95*(1 - Math.exp(-0.5*t)),               color: '#0ea5e9', icon: 'rl'   },
-    mix:  { label: "Tangki: C(t) = Cᵢₙ + (C₀−Cᵢₙ)·e^(−q·t/V)",       compute: t => 0.7 - 0.55*Math.exp(-0.3*t),               color: '#ffb300', icon: 'tank' },
-    drug: { label: "Obat: C(t) = (D₀/k)(1 − e^(−k·t))",                compute: t => 0.85*(1 - Math.exp(-0.6*t)),               color: '#ff6bb3', icon: 'drug' },
-    bank: { label: "Bunga: B(t) = B₀·e^(r·t)",                          compute: t => 0.20 * Math.exp(0.25 * t) - 0.10,           color: '#00e09e', icon: 'coin' },
-    drag: { label: "Drag: v(t) = (mg/b)·(1 − e^(−b·t/m)) (terminal)",  compute: t => 0.92*(1 - Math.exp(-t/2.2)),               color: '#a855f7', icon: 'fall' }
+    rl:   { label: "RL Circuit: I(t) = (V/R)·(1 − e<sup>−Rt/L</sup>)",       compute: t => 0.95*(1 - Math.exp(-0.5*t)),               color: '#0ea5e9', icon: 'rl'   },
+    mix:  { label: "Tangki: C(t) = Cᵢₙ + (C₀−Cᵢₙ)·e<sup>−q·t/V</sup>",       compute: t => 0.7 - 0.55*Math.exp(-0.3*t),               color: '#ffb300', icon: 'tank' },
+    drug: { label: "Obat: C(t) = (D₀/k)(1 − e<sup>−k·t</sup>)",                compute: t => 0.85*(1 - Math.exp(-0.6*t)),               color: '#ff6bb3', icon: 'drug' },
+    bank: { label: "Bunga: B(t) = B₀·e<sup>r·t</sup>",                          compute: t => 0.20 * Math.exp(0.25 * t) - 0.10,           color: '#00e09e', icon: 'coin' },
+    drag: { label: "Drag: v(t) = (mg/b)·(1 − e<sup>−b·t/m</sup>) (terminal)",  compute: t => 0.92*(1 - Math.exp(-t/2.2)),               color: '#a855f7', icon: 'fall' }
   };
 
   window.m4SetApps = function(key){
@@ -9670,7 +9741,7 @@ function _createForumParticleBurst(event) {
       }
       ctx.shadowBlur = 0;
       ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
-      ctx.fillText(`I = ${(val*100).toFixed(0)}% I_max`, cx, H - 22);
+      ctx.fillText(`I = ${(val*100).toFixed(0)}% I<sub>max</sub>`, cx, H - 22);
       ctx.textAlign = 'left';
     } else if (obj.icon === 'tank'){
       // Tank with mixing (similar to M2)
@@ -9778,7 +9849,7 @@ function _createForumParticleBurst(event) {
       ctx.beginPath(); ctx.moveTo(cx - 50, cy + 50); ctx.lineTo(cx + 50, cy + 50); ctx.stroke();
       ctx.setLineDash([]);
       ctx.fillStyle = '#ffb300'; ctx.font = '10px JetBrains Mono, monospace';
-      ctx.fillText('v_terminal', cx + 12, cy + 46);
+      ctx.fillText('v<sub>terminal</sub>', cx + 12, cy + 46);
       ctx.fillStyle = '#fff'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center';
       ctx.fillText(`v = ${(val*30).toFixed(1)} m/s`, cx, H - 22);
       ctx.textAlign = 'left';
