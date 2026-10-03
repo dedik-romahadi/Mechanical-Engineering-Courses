@@ -196,7 +196,7 @@ def gambar4():
     b += f'<path d="M 140 182 L 212 182 L 212 162 L 176 162 A 14 14 0 0 1 162 148 L 162 106 L 140 106 Z" fill="rgba(0,224,158,.14)" stroke="#00e09e" stroke-width="1.6"/>'
     b += _ling(176, 148, 7, "none", "#00e09e", 1.4)
     b += t(178, 196, f"K<sub>t</sub> = {ind(KT_SESUDAH, 2)}  (r)", 10, "#00e09e", "middle", "700")
-    b += teks2(124, 216, "Fillet pada bahu menurunkan konsentrasi tegangan; σ<sub>maks</sub> = K<sub>t</sub> · σ<sub>nom</sub> ikut turun", 9.5, AX, maks=32, jarak=13)
+    b += teks2(124, 216, "Fillet pada bahu menurunkan konsentrasi tegangan; σ<sub>maks</sub>\u00a0=\u00a0K<sub>t</sub>\u00a0·\u00a0σ<sub>nom</sub> ikut turun", 9.5, AX, maks=32, jarak=13)
     # Panel B — dinding tipis vs tebal + rusuk
     b += t(340, 34, "Dinding tipis → tebal + rusuk", 11, "#f59e0b", "middle", "600")
     b += _poli([(256, 106), (264, 106), (264, 174), (316, 174), (316, 106), (324, 106), (324, 182), (256, 182)], "rgba(239,68,68,.14)", "#ef4444", 1.5)

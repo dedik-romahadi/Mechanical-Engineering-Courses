@@ -369,7 +369,10 @@ repo publik ini.
   Halaman tulisan tangan dan UTS/UAS: `scripts/notasi-halaman.mjs` + data JSON
   berjangkar unik, blok `NOTASI-KANVAS` untuk kanvas (`--periksa`, sebelum
   `draft-modul.mjs`). Penjaga `scripts/periksa-notasi.mjs` (96 halaman, dijalankan
-  `validate-public-security.mjs`). Rincian: Pedoman §2 butir **Notasi rumus**.
+  `validate-public-security.mjs`). Opsi PG/jajak dan tautan subnav (induk `display:flex`)
+  yang memuat elemen/KaTeX dibungkus satu `<span class="opsi-teks">` (`pustaka.opsi_teks`, notasi-halaman);
+  Export Tugas membaca soal/pilihan lewat `_teksNotasi` (`scripts/notasi-ekspor.mjs`, sebelum
+  `draft-modul.mjs`), bukan textContent. Rincian: Pedoman §2 butir **Notasi rumus** (1)–(16).
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
   yang idempoten, bukan suntingan manual per berkas.

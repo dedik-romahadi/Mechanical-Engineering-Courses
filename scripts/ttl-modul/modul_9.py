@@ -186,7 +186,7 @@ SUBNAV = '''<div id="modulSubnav" class="subnav-bar show">
   <a href="#m-pi">Nominal-π</a>
   <a href="#m-abcd">ABCD</a>
   <a href="#m-panjang">Saluran Panjang</a>
-  <a href="#m-sil">Z<sub>c</sub>, SIL, Profil</a>
+  <a href="#m-sil"><span class="opsi-teks">Z<sub>c</sub>, SIL, Profil</span></a>
   <a href="#m-animasi">Animasi</a>
   <a href="#m-jupyter">Python</a>
   <a href="#m-pustaka">Referensi</a>

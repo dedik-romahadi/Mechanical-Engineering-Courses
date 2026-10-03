@@ -453,7 +453,7 @@ def gambar7():
 # ─────────────────────────── kerangka halaman ───────────────────────────
 SUBNAV = '''<div id="modulSubnav" class="subnav-bar show">
   <a href="#m-siklus">Siklus Iterasi</a>
-  <a href="#m-fillet">Fillet &amp; K<sub>t</sub></a>
+  <a href="#m-fillet"><span class="opsi-teks">Fillet &amp; K<sub>t</sub></span></a>
   <a href="#m-rusuk">Rusuk</a>
   <a href="#m-massa">Massa &amp; σ</a>
   <a href="#m-material">Material</a>
@@ -864,7 +864,7 @@ def forum_page():
             ["Menebalkan seluruh lengan dua kali lipat", "Memperbesar radius fillet bahu sehingga K<sub>t</sub> turun (σ<sub>maks</sub> = K<sub>t</sub>·σ<sub>nom</sub>, σ<sub>nom</sub> tetap)", "Mengganti material menjadi baja", "Menghaluskan mesh FEM sampai tegangan turun"],
             "✅ Tepat! Tegangan puncak adalah K<sub>t</sub> kali tegangan nominal; fillet memperkecil h/r dan menurunkan K<sub>t</sub> tanpa mengubah σ<sub>nom</sub> maupun massa. Menebalkan lengan menurunkan σ<sub>nom</sub> tetapi mahal massanya; mesh yang lebih halus justru menaikkan σ pada sudut tajam.",
             "❌ Menebalkan seluruh lengan membayar massa untuk masalah lokal; baja lebih berat tiga kali; mesh halus tidak mengubah desain (dan pada sudut tajam menaikkan σ). Lihat Bagian 02 dan Animasi 1.",
-            "Petunjuk: (1) Kt = σ_maks/σ_nom. (2) Balik Persamaan (1) untuk r. (3) Jelaskan singularitas sudut tajam dan konvergensi mesh.")
+            "Petunjuk: (1) Kₜ = σₘₐₖₛ/σₙₒₘ. (2) Balik Persamaan (1) untuk r. (3) Jelaskan singularitas sudut tajam dan konvergensi mesh.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
             "Defleksi ujung poros roda 3,4 mm melampaui batas L/250 ≈ 1,7 mm untuk lengan sepanjang 420 mm. Tim mengusulkan dua jalan: menebalkan dinding lengan dari 4 ke 6 mm (massa +50 %) atau menambah rusuk tinggi 20 mm tebal 4 mm sepanjang sisi dalam. Bandingkan keduanya dengan Persamaan (2) dan δ ∝ 1/I (Bagian 03), lalu tentukan di mana lubang penghemat massa ⌀25 boleh diletakkan agar σ<sub>maks</sub> tepi lubang (Persamaan 4) tetap ≤ 120 MPa (Bagian 04).",
             ["δ 3,4 → ≤ 1,7 mm", "dinding 4 → 6 mm vs rusuk 20 × 4", "lubang ⌀25 di daerah biru"],

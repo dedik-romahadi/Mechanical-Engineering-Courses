@@ -507,11 +507,15 @@ ${panelForum.replaceAll("__PERTEMUAN__", String(pert))}
   // persis: penghitung kata per jawaban, status jajak, bilah kemajuan, dan
   // penyusun HTML yang ditempel ke Forum FAST Learning. Yang khusus per modul
   // hanya kunci jajak, nomor pertemuan, judul, serta teks pertanyaannya.
+  // Pertanyaan dan petunjuk di salinan HTML Forum (yang disalin/diekspor mahasiswa) memakai notasi
+  // yang sama dengan halaman forum (K<sub>p</sub>, ω<sub>n</sub>): rapikanNotasiHtml melewati <script>, jadi
+  // teksnya dirapikan di sini sebelum masuk ke templat runtime.
+  const tampil = (s) => rapikanNotasiHtml(esc(s));
   const isiBangun = bangunForum
     .replaceAll("__PERTEMUAN__", String(pert))
     .replaceAll("__JUDUL__", esc(d.judul))
-    .replace("__Q1__", esc(d.diskusi[0].q)).replace("__Q2__", esc(d.diskusi[1].q)).replace("__Q3__", esc(d.diskusi[2].q))
-    .replace("__H1__", esc(d.diskusi[0].petunjuk)).replace("__H2__", esc(d.diskusi[1].petunjuk)).replace("__H3__", esc(d.diskusi[2].petunjuk));
+    .replace("__Q1__", () => tampil(d.diskusi[0].q)).replace("__Q2__", () => tampil(d.diskusi[1].q)).replace("__Q3__", () => tampil(d.diskusi[2].q))
+    .replace("__H1__", () => tampil(d.diskusi[0].petunjuk)).replace("__H2__", () => tampil(d.diskusi[1].petunjuk)).replace("__H3__", () => tampil(d.diskusi[2].petunjuk));
 
   const runtime = `<script id="sisken-forum-runtime">
 function _ah(s){var h=5381;s=s+'mEKsP9k4tQ2';for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))&0xffffffff;return(h>>>0).toString(36);}

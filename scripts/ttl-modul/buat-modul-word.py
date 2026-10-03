@@ -548,6 +548,15 @@ def rencana_rps():
     return hasil
 
 
+def runs_rps(teks):
+    """Teks RPS (dokumen resmi, ditulis polos "Y_bus") → run Word dengan subskrip sungguhan (Y + bus)."""
+    out, pos = [], 0
+    for m in re.finditer(r"(?<![A-Za-z0-9_])([A-Za-z])_([A-Za-z0-9]+)(?![A-Za-z0-9_])", teks):
+        out += [(teks[pos:m.start()] + m.group(1), False, False, None), (m.group(2), False, False, "sub")]
+        pos = m.end()
+    return out + [(teks[pos:], False, False, None)]
+
+
 def muat_modul(n):
     """Baca Modul-N.html → struktur isi."""
     path = KURSUS / "Modul" / f"Modul-{n}.html"
@@ -728,8 +737,8 @@ def bangun(n, tmpdir):
     bt, ind = rencana_rps()[n - 1]
     W.heading2("Capaian Pembelajaran (Sub-CPMK)")
     W.bullet([(f"Sub-CPMK {sub_kode}: ", True, False, None), (sub["deskripsi"], False, False, None)])
-    W.bullet([("Bahan kajian: ", True, False, None), ("; ".join(bt) + ".", False, False, None)])
-    W.bullet([("Indikator: ", True, False, None), ("; ".join(ind) + ".", False, False, None)])
+    W.bullet([("Bahan kajian: ", True, False, None)] + runs_rps("; ".join(bt) + "."))
+    W.bullet([("Indikator: ", True, False, None)] + runs_rps("; ".join(ind) + "."))
     W.bullet([("Kedudukan: ", True, False, None), (f"Pertemuan {pertemuan} dari 16, bobot penilaian Tugas {sub['bobot']['tugas']} %, UTS {sub['bobot']['uts']} %, UAS {sub['bobot']['uas']} % (SIA).", False, False, None)])
 
     # ── BAGIAN MATERI ──

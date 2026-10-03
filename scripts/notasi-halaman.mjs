@@ -128,6 +128,50 @@ export function pasangKanvas(html) {
   return `${sebelum}${BLOK_KANVAS}\n${html.slice(i)}`;
 }
 
+// ── Struktur tampilan sesudah pasangan ──────────────────────────────────────────────────────────
+// (a) Opsi PG/jajak (.radio-option/.p-opt) dan tautan #modulSubnav adalah display:flex: tiap elemen anak
+//     (<sub>, <sup>, <code>, <strong>, KaTeX) menjadi flex item sendiri — subskrip tidak turun, ada celah
+//     10–12 px di tengah rumus, dan di layar sempit teks opsi terpotong. Isi yang memuat elemen/KaTeX
+//     dibungkus satu <span class="opsi-teks"> (sama dengan pustaka.opsi_teks TTL/CAD; textContent tetap).
+//     Pasangan data dicocokkan pada bentuk TANPA pembungkus (dilepas dulu, dipasang lagi sesudahnya),
+//     jadi jangkarnya tidak bergantung pada pembungkus.
+// (b) Tombol/label pemilih animasi yang menandai pilihan aktif dengan menulis ulang textContent
+//     (`btn.textContent = active ? (btn.textContent.replace(' ✓','') + ' ✓') : …`) meratakan <sup> dan
+//     KaTeX labelnya (e<sup>−x/3</sup> → "e−x/3"); diganti penanda ✓ sebagai simpul teks terakhir saja.
+export const BUKA_OPSI = '<span class="opsi-teks">';
+const TUTUP_OPSI = "</span>";
+const RX_OPSI = /(<div class="(?:radio-option|p-opt)"[^>\n]*><div class="(?:radio|p)-circle"><\/div>)((?:(?!<\/?div\b)[^\n])*?)(<\/div>)/g;
+const RX_SUBNAV = /(<div id="modulSubnav"[^>]*>)([\s\S]*?)(<\/div>)/g;
+const RX_SUBNAV_A = /(<a\b[^>]*>)([\s\S]*?)(<\/a>)/g;
+const perluBungkus = (isi) => isi.includes("<") || isi.includes("\\(");
+const terbungkus = (isi) => isi.startsWith(BUKA_OPSI) && isi.endsWith(TUTUP_OPSI);
+const RX_SKRIP = /<script\b[\s\S]*?<\/script>/gi;
+/** Terapkan fn hanya pada bagian di luar <script>…</script>. */
+function diLuarSkrip(html, fn) {
+  let out = "", pos = 0;
+  for (const m of html.matchAll(RX_SKRIP)) { out += fn(html.slice(pos, m.index)) + m[0]; pos = m.index + m[0].length; }
+  return out + fn(html.slice(pos));
+}
+function petakanIsi(html, ubah) {
+  return diLuarSkrip(html, (s) => s
+    .replace(RX_OPSI, (m, a, isi, z) => a + ubah(isi) + z)
+    .replace(RX_SUBNAV, (m, a, isi, z) => a + isi.replace(RX_SUBNAV_A, (m2, a2, isi2, z2) => a2 + ubah(isi2) + z2) + z));
+}
+/** Lepas pembungkus opsi-teks (bentuk tempat pasangan data dicocokkan). */
+export function lepasBungkus(html) {
+  return petakanIsi(html, (isi) => (terbungkus(isi) ? isi.slice(BUKA_OPSI.length, -TUTUP_OPSI.length) : isi));
+}
+/** Bungkus isi opsi/tautan subnav yang memuat elemen atau KaTeX. */
+export function bungkus(html) {
+  return petakanIsi(html, (isi) => (perluBungkus(isi) && !terbungkus(isi) ? BUKA_OPSI + isi + TUTUP_OPSI : isi));
+}
+const RX_CENTANG = /^([ \t]*)(\w+)\.textContent = active \? \(\2\.textContent\.replace\(' ✓',''\)((?:\.replace\(' ✗',''\))?) \+ ' ✓'\) : \2\.textContent\.replace\(' ✓',''\)\3;[ \t]*$/gm;
+/** Penanda ✓ pilihan aktif tanpa menulis ulang textContent (pangkat dan KaTeX label tetap). */
+export function centang(html) {
+  return html.replace(RX_CENTANG, (m, ind, el, silang) =>
+    `${ind}(function (el, aktif) { var t = el.lastChild; if (t && t.nodeType === 3 && ${silang ? "/ [✓✗]$/" : "/ ✓$/"}.test(t.nodeValue)) { t.nodeValue = t.nodeValue.slice(0, -2); if (!t.nodeValue) el.removeChild(t); } if (aktif) el.appendChild(document.createTextNode(' ✓')); })(${el}, active);   // notasi-halaman.mjs: ✓ tanpa menulis ulang textContent`);
+}
+
 /** Terapkan pasangan pada satu halaman: {html, dipasang, sudah, ditolak[]} */
 export function terapkan(html, pasangan) {
   let out = html, dipasang = 0, sudah = 0;
@@ -152,14 +196,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   for (const rel of DATA.kanvas) if (!perHalaman.has(rel)) perHalaman.set(rel, []);
   const kanvas = new Set(DATA.kanvas);
   const hasil = [], salah = [];
-  const rekap = { pasangan: 0, kanvas: 0 };
+  const rekap = { pasangan: 0, kanvas: 0, struktur: 0 };
   for (const [rel, pasangan] of [...perHalaman].sort()) {
     const f = path.join(root, rel);
     if (!fs.existsSync(f)) { salah.push(`${rel}: berkas tidak ada`); continue; }
     const asli = fs.readFileSync(f, "utf8");
-    const r = terapkan(asli, pasangan);
+    const polos = lepasBungkus(asli);
+    const r = terapkan(polos, pasangan);
     if (r.ditolak.length) { salah.push(...r.ditolak.map((d) => `${rel}: ${d}`)); continue; }
-    let html = r.html;
+    let html = centang(bungkus(r.html));
+    if (centang(bungkus(polos)) !== asli) rekap.struktur += 1;     // pembungkus opsi / penanda ✓ yang belum terpasang
     if (kanvas.has(rel)) {
       const k = pasangKanvas(html);
       if (k !== html) rekap.kanvas += 1;

@@ -31,7 +31,7 @@ function drawGeometri(){
     ctx.fillStyle=warna[q]; ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText(lab,x,cy-26);
   });
   _ttlGaris(ctx,cx-D*sk,cy+28,cx,cy+28,'rgba(148,163,184,.8)',1.2); ctx.fillStyle='rgba(148,163,184,.9)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText('D = '+D.toFixed(1)+' m',cx-D*sk/2,cy+42);
-  ctx.fillText('GMD = D·∛2 = '+p.GMD.toFixed(3)+' m',cx,cy+62); ctx.fillText('GMR'+(n>1?'_b':'')+' = '+(p.GMRb*100).toFixed(3)+' cm · r'+(n>1?'_b':'')+' = '+(p.rb*100).toFixed(3)+' cm',cx,cy+76);
+  ctx.fillText('GMD = D·∛2 = '+p.GMD.toFixed(3)+' m',cx,cy+62); ctx.fillText('GMR'+(n>1?'<sub>b</sub>':'')+' = '+(p.GMRb*100).toFixed(3)+' cm · r'+(n>1?'<sub>b</sub>':'')+' = '+(p.rb*100).toFixed(3)+' cm',cx,cy+76);
   // kanan: batang L, C, X, B
   const bx=W*0.55, bw=W-bx-20, by=24, bh=(H-60)/4;
   const item=[['L (mH/km)',p.L,2.0,'rgba(255,179,0,.85)'],['C (nF/km)',p.C*1000,20,'rgba(0,229,255,.85)'],['X<sub>L</sub> (Ω/km)',p.x,0.6,'rgba(168,85,247,.85)'],['B (µS/km)',p.b*1e6,6,'rgba(0,224,158,.85)']];

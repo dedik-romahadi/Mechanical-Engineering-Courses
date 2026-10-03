@@ -5032,6 +5032,17 @@ async function ujiMutasiTunggu() {
   const acuan = path.join("Teknik-Tenaga-Listrik", "Modul", "Modul-3.html");
   const acuanKanvas = path.join("Getaran-Mekanik", "Modul", "Modul-3.html");
   notasi.ujiMutasiNotasi(fs.readFileSync(path.join(root, acuan), "utf8"), acuan, fs.readFileSync(path.join(root, acuanKanvas), "utf8"), acuanKanvas);
+
+  // Dokumen Export Tugas membaca soal/pilihan lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs),
+  // bukan textContent yang menempelkan subskrip ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru").
+  const ekspor = await import(new URL("./notasi-ekspor.mjs", import.meta.url));
+  const halamanEkspor = ekspor.halamanModul();
+  if (halamanEkspor.length !== 14 * notasi.KURSUS_NOTASI.length) throw new Error(`notasi-ekspor: expected ${14 * notasi.KURSUS_NOTASI.length} module pages, got ${halamanEkspor.length}`);
+  for (const relative of halamanEkspor) {
+    const salah = ekspor.periksaHalaman(fs.readFileSync(path.join(root, relative), "utf8"), relative);
+    if (salah.length) throw new Error(`${salah[0]}${salah.length > 1 ? ` (dan ${salah.length - 1} lagi)` : ""} — node scripts/notasi-ekspor.mjs`);
+  }
+  ekspor.ujiTeksNotasi();
 }
 
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");

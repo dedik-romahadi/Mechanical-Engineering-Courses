@@ -240,7 +240,7 @@ def gambar6():
 # ─────────────────────────── SUBNAV & HERO ───────────────────────────
 SUBNAV = '''<div id="modulSubnav" class="subnav-bar show">
   <a href="#m-bus">Masalah &amp; Jenis Bus</a>
-  <a href="#m-ybus">Matriks Y<sub>bus</sub></a>
+  <a href="#m-ybus"><span class="opsi-teks">Matriks Y<sub>bus</sub></span></a>
   <a href="#m-persamaan">Persamaan Aliran Daya</a>
   <a href="#m-gs">Gauss–Seidel</a>
   <a href="#m-nr">Newton–Raphson</a>
