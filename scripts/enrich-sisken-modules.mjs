@@ -10,6 +10,7 @@ import { GAMBAR_MODUL } from "./sisken-ilustrasi-data.mjs";
 import { PENJELASAN_RUMUS, NOTASI_KAMUS } from "./sisken-rumus-jelas.mjs";
 import { normalizeSiskenExportHtml } from "./sisken-export-html.mjs";
 import { normalizeSiskenForumRuntime } from "./sisken-forum-runtime.mjs";
+import { bungkus as bungkusOpsi } from "./notasi-halaman.mjs";
 import { ANIMASI_MODUL, PENJELASAN_ANIMASI } from "./sisken-animasi.mjs";
 
 const rumusLatex = (teks) => _rumusLatex(teks, esc);
@@ -1448,8 +1449,11 @@ for (const [index, m] of modules.entries()) {
   // sisken-forum.mjs. Modul yang belum punya dibiarkan apa adanya.
   // Notasi rumus di prosa (wn, Kp, tau, exp(), a*b, e_ss) ditulis bersubskrip/berpangkat sungguhan;
   // sisken-rumus.rapikanNotasiHtml hanya menyentuh simpul teks di luar kode, KaTeX, SVG, dan skrip.
+  // Opsi jajak (.p-opt, display:flex) yang sesudah dirapikan memuat <sub>/<sup> (K<sub>p</sub>, e<sup>−Ls</sup>)
+  // dibungkus satu <span class="opsi-teks"> — aturan yang sama dengan notasi-halaman.mjs (Pedoman §2 butir (9)),
+  // supaya keluaran generator langsung final dan notasi-halaman --periksa tetap 0 sesudah regenerasi.
   const forumMentah = forumPage(nomor);
-  const forum = forumMentah ? rapikanNotasiHtml(forumMentah) : forumMentah;
+  const forum = forumMentah ? bungkusOpsi(rapikanNotasiHtml(forumMentah)) : forumMentah;
   if (forum) {
     const reForum = /(<div class="page" id="page-forum">)[\s\S]*?(<\/div>\s*<!-- end page-forum -->)/;
     if (reForum.test(html)) {
