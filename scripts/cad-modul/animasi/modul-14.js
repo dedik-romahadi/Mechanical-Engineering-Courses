@@ -127,8 +127,8 @@ function drawBalokMassa() {
   const layak = sg <= _C14_SIZIN && dl <= dIz;
   const f10 = _C14_F10;
   const judul = 'Pelat kantilever baja ' + _cad14Ikat('b = ' + b + ' mm;') + ' sapuan tebal t terhadap dua kendala';
-  const baris = [['t_σ = ' + tS.toFixed(2) + '  t_δ = ' + tD.toFixed(2) + ' mm', 'rgba(148,163,184,.95)', f10],
-                 ['t_req = maks = ' + tReq.toFixed(3) + ' mm', '#00e09e'],
+  const baris = [['t<sub>σ</sub> = ' + tS.toFixed(2) + '  t<sub>δ</sub> = ' + tD.toFixed(2) + ' mm', 'rgba(148,163,184,.95)', f10],
+                 ['t<sub>req</sub> = maks = ' + tReq.toFixed(3) + ' mm', '#00e09e'],
                  ['kendala aktif: ' + (tD >= tS ? 'defleksi' : 'tegangan'), '#ec4899', f10]];
   // Label t di kanan ujung pelat: sisakan ruang selebar label terlebar selama sapuan (t ≤ 1,42·t_req).
   ctx.font = f10; const wT = ctx.measureText('t = ' + (tReq * 1.42).toFixed(2) + ' mm').width;
@@ -161,10 +161,10 @@ function drawBalokMassa() {
   _cad14Teks(ctx, 'L = ' + L.toFixed(0) + ' mm', (x0 + x1) / 2, cy + th / 2 + 26, 'rgba(148,163,184,.9)', f10, 'center');
   _cad14Teks(ctx, 't = ' + t.toFixed(2) + ' mm', x1 + 8, cy + 4, layak ? '#00e09e' : '#ef4444', f10);
   // dua rasio kendala + massa
-  _cad14Gauge(ctx, gx, gy, gw, gh, sg / _C14_SIZIN, 2.4, sg <= _C14_SIZIN ? '#00e09e' : '#ef4444', 'σ/σ_izin', 1, lebarLabel);
-  _cad14Gauge(ctx, gx + gd, gy, gw, gh, dl / dIz, 2.4, dl <= dIz ? '#00e09e' : '#ef4444', 'δ/δ_izin', 1, lebarLabel);
+  _cad14Gauge(ctx, gx, gy, gw, gh, sg / _C14_SIZIN, 2.4, sg <= _C14_SIZIN ? '#00e09e' : '#ef4444', 'σ/σ<sub>izin</sub>', 1, lebarLabel);
+  _cad14Gauge(ctx, gx + gd, gy, gw, gh, dl / dIz, 2.4, dl <= dIz ? '#00e09e' : '#ef4444', 'δ/δ<sub>izin</sub>', 1, lebarLabel);
   _cad14Gauge(ctx, gx + 2 * gd, gy, gw, gh, ms, _C14_RHO_ST * b * L * tReq * 1.6, '#22d3ee', 'massa', undefined, lebarLabel);
-  _ttlTulis('balokMassaInfo', 'F = ' + F.toFixed(0) + ' N, L = ' + L.toFixed(0) + ' mm, δ_izin = ' + dIz.toFixed(1) + ' mm → t_σ = ' + tS.toFixed(3) + ' mm dan t_δ = ' + tD.toFixed(3) + ' mm, sehingga t_req = ' + tReq.toFixed(3) + ' mm (kendala ' + (tD >= tS ? 'defleksi' : 'tegangan') + ' aktif); pada t = ' + t.toFixed(2) + ' mm: σ = ' + sg.toFixed(1) + ' MPa, δ = ' + dl.toFixed(3) + ' mm, massa = ' + ms.toFixed(3) + ' kg (' + (layak ? 'layak' : 'belum layak') + ')');
+  _ttlTulis('balokMassaInfo', 'F = ' + F.toFixed(0) + ' N, L = ' + L.toFixed(0) + ' mm, δ<sub>izin</sub> = ' + dIz.toFixed(1) + ' mm → t<sub>σ</sub> = ' + tS.toFixed(3) + ' mm dan t<sub>δ</sub> = ' + tD.toFixed(3) + ' mm, sehingga t<sub>req</sub> = ' + tReq.toFixed(3) + ' mm (kendala ' + (tD >= tS ? 'defleksi' : 'tegangan') + ' aktif); pada t = ' + t.toFixed(2) + ' mm: σ = ' + sg.toFixed(1) + ' MPa, δ = ' + dl.toFixed(3) + ' mm, massa = ' + ms.toFixed(3) + ' kg (' + (layak ? 'layak' : 'belum layak') + ')');
   if (_ttlJalan('balokmassa')) { _bmFrame++; requestAnimationFrame(drawBalokMassa); }
 }
 
@@ -184,9 +184,9 @@ function drawTabung() {
   const aPejal = Math.PI * ds * ds / 4, aTab = Math.PI * (dO * dO - dI * dI) / 4;
   const iP = Math.PI * Math.pow(ds, 4) / 64, iT = Math.PI * (Math.pow(dO, 4) - Math.pow(dI, 4)) / 64;
   const f10 = _C14_F10;
-  const judul = 'Kekakuan sama ' + _cad14Ikat('(I tetap):') + ' ' + _cad14Ikat('d_o = d_s/(1 − k⁴)^(1/4)');
+  const judul = 'Kekakuan sama ' + _cad14Ikat('(I tetap):') + ' ' + _cad14Ikat('d<sub>o</sub> = d<sub>s</sub>/(1 − k⁴)<sup>1/4</sup>');
   const lPejal = 'poros pejal ⌀' + ds.toFixed(0), lTabung = 'tabung ⌀' + dO.toFixed(2) + ' / ⌀' + dI.toFixed(2);
-  const baris = [['k = d_i/d_o = ' + kNow.toFixed(3), '#22d3ee'], [_cad14Ikat('I pejal ' + _cad14Num(iP, 0) + ' ≈') + ' ' + _cad14Ikat('I tabung ' + _cad14Num(iT, 0)), 'rgba(148,163,184,.9)', f10],
+  const baris = [['k = d<sub>i</sub>/d<sub>o</sub> = ' + kNow.toFixed(3), '#22d3ee'], [_cad14Ikat('I pejal ' + _cad14Num(iP, 0) + ' ≈') + ' ' + _cad14Ikat('I tabung ' + _cad14Num(iT, 0)), 'rgba(148,163,184,.9)', f10],
                  ['volume ' + (100 * aTab / aPejal).toFixed(1) + ' % → hemat ' + (100 * (1 - aTab / aPejal)).toFixed(1) + ' %', '#00e09e']];
   let sk, cy, cx1, cx2, yL1, yL2, gx, gy, gh, gd, y;
   if (!sempit) {
@@ -219,7 +219,7 @@ function drawTabung() {
   ctx.font = f10; _cad14Teks(ctx, lTabung, sempit ? _cad14Tengah(ctx, lTabung, cx2, W, 6) : cx2, yL2, '#00e09e', f10, 'center');
   _cad14Gauge(ctx, gx, gy, 36, gh, aPejal, aPejal * 1.1, '#94a3b8', 'A pejal');
   _cad14Gauge(ctx, gx + gd, gy, 36, gh, aTab, aPejal * 1.1, '#00e09e', 'A tabung');
-  _ttlTulis('tabungInfo', 'Poros pejal ⌀' + ds.toFixed(0) + ' mm diganti tabung dengan k = ' + kNow.toFixed(3) + ': d_o = ' + dO.toFixed(3) + ' mm, d_i = ' + dI.toFixed(3) + ' mm; momen inersia tetap ' + iT.toFixed(0) + ' mm⁴ sementara luas penampang turun dari ' + aPejal.toFixed(0) + ' ke ' + aTab.toFixed(0) + ' mm² (hemat bahan ' + (100 * (1 - aTab / aPejal)).toFixed(1) + ' %)');
+  _ttlTulis('tabungInfo', 'Poros pejal ⌀' + ds.toFixed(0) + ' mm diganti tabung dengan k = ' + kNow.toFixed(3) + ': d<sub>o</sub> = ' + dO.toFixed(3) + ' mm, d<sub>i</sub> = ' + dI.toFixed(3) + ' mm; momen inersia tetap ' + iT.toFixed(0) + ' mm⁴ sementara luas penampang turun dari ' + aPejal.toFixed(0) + ' ke ' + aTab.toFixed(0) + ' mm² (hemat bahan ' + (100 * (1 - aTab / aPejal)).toFixed(1) + ' %)');
   if (_ttlJalan('tabung')) { _tbFrame++; requestAnimationFrame(drawTabung); }
 }
 
@@ -240,8 +240,8 @@ function drawJejak() {
   const mS = _C14_RHO_ST * b * L * hS, mA = _C14_RHO_AL * b * L * hA;
   const cS = _C14_FST * mS, cA = _C14_FAL * mA;
   const f10 = _C14_F10;
-  const judul = 'Kekakuan sama: ' + ['h ∝ E^(−1/3) ·', 'massa ∝ ρ·h ·', 'CO₂ = f·massa'].map(_cad14Ikat).join(' ');
-  const tParam = ['F = ' + F.toFixed(0) + ' N ·', 'L = ' + L.toFixed(0) + ' ·', 'b = ' + b.toFixed(0) + ' ·', 'δ_izin 1,5 mm'].map(_cad14Ikat).join(' ');
+  const judul = 'Kekakuan sama: ' + ['h ∝ E<sup>−1/3</sup> ·', 'massa ∝ ρ·h ·', 'CO₂ = f·massa'].map(_cad14Ikat).join(' ');
+  const tParam = ['F = ' + F.toFixed(0) + ' N ·', 'L = ' + L.toFixed(0) + ' ·', 'b = ' + b.toFixed(0) + ' ·', 'δ<sub>izin</sub> 1,5 mm'].map(_cad14Ikat).join(' ');
   const tHS = 'baja h = ' + hS.toFixed(1), tHA = 'alu h = ' + hA.toFixed(1);
   const baris = [['massa (kg): ' + mS.toFixed(2) + ' vs ' + mA.toFixed(2), '#22d3ee'], ['CO₂ (kg): ' + cS.toFixed(1) + ' vs ' + cA.toFixed(1), '#ef4444'],
                  [['aluminium', (mA / mS).toFixed(2) + '× massa,', 'tetapi', (cA / cS).toFixed(2) + '× jejak'].map(_cad14Ikat).join(' '), 'rgba(148,163,184,.9)']];
@@ -283,7 +283,7 @@ function drawJejak() {
     const gy = H - 22, gh = gy - (y - 8), gd = (W - 16) / 4, gw = Math.min(32, gd - 16);
     batang.forEach(([v, maks, w, lab], i) => _cad14Gauge(ctx, 8 + gd * (i + 0.5) - gw / 2, gy, gw, gh, v, maks, w, lab, undefined, gd - 4));
   }
-  _ttlTulis('jejakInfo', 'F = ' + F.toFixed(0) + ' N, L = ' + L.toFixed(0) + ' mm, b = ' + b.toFixed(0) + ' mm, δ_izin = 1,5 mm → h baja ' + hS.toFixed(2) + ' mm dan h aluminium ' + hA.toFixed(2) + ' mm; massa ' + mS.toFixed(2) + ' kg vs ' + mA.toFixed(2) + ' kg, tetapi jejak CO₂ bahan ' + cS.toFixed(2) + ' kg vs ' + cA.toFixed(2) + ' kg — baja ' + (cA / cS).toFixed(2) + '× lebih rendah untuk kekakuan yang sama');
+  _ttlTulis('jejakInfo', 'F = ' + F.toFixed(0) + ' N, L = ' + L.toFixed(0) + ' mm, b = ' + b.toFixed(0) + ' mm, δ<sub>izin</sub> = 1,5 mm → h baja ' + hS.toFixed(2) + ' mm dan h aluminium ' + hA.toFixed(2) + ' mm; massa ' + mS.toFixed(2) + ' kg vs ' + mA.toFixed(2) + ' kg, tetapi jejak CO₂ bahan ' + cS.toFixed(2) + ' kg vs ' + cA.toFixed(2) + ' kg — baja ' + (cA / cS).toFixed(2) + '× lebih rendah untuk kekakuan yang sama');
   if (_ttlJalan('jejak')) { _jjFrame++; requestAnimationFrame(drawJejak); }
 }
 

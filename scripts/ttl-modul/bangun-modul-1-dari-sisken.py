@@ -192,21 +192,11 @@ s = s[:i] + KANVAS_FORUM + s[j:]
 ganti("    setTimeout(() => { drawStep(); drawLoop(); drawBlock(); drawDesign(); drawOnOff(); }, 200);",
       "    setTimeout(() => { if (typeof window._ttlGambarUlang === 'function') window._ttlGambarUlang(); }, 200);")
 
-# Rumus melayang di overlay login (peninggalan Getaran) diganti rumus tenaga listrik.
-RUMUS_LOGIN = """const formulas = [
-    { t: 'P = V·I·cos φ',                 s: 13 },
-    { t: 'P = √3·V_L·I_L·cos φ',          s: 12 },
-    { t: 'E = P·t',                       s: 14 },
-    { t: 'I_L = P/(√3·V_L·cos φ)',        s: 11 },
-    { t: 'P_rugi = 3·I²·R',               s: 13 },
-    { t: 'f = p·n/120',                   s: 14 },
-    { t: 'ω = 2π·n/60',                   s: 13 },
-    { t: 'T = P_mek/ω',                   s: 13 },
-    { t: 'η = η_p·η_trf·η_t·η_d',         s: 11 },
-    { t: 'LF = P_rata/P_puncak',          s: 12 },
-    { t: 'CF = E/(P·8760)',               s: 12 },
-  ];"""
-ganti_re(r"const formulas = \[\n    \{ t: 'mẍ \+ cẋ \+ kx = 0',.*?\n  \];", lambda m: RUMUS_LOGIN)
+# Rumus melayang di overlay login (peninggalan Getaran) diganti rumus tenaga listrik. Sumbernya
+# modul_1.RUMUS_LOGIN (berpenanda <sub>, dipasang el.innerHTML); halaman yang sudah terbit
+# diperbarui segarkan-modul-1.py.
+ganti_re(r"const formulas = \[\n    \{ t: 'mẍ \+ cẋ \+ kx = 0',.*?\n  \];", lambda m: K.RUMUS_LOGIN)
+ganti("    el.textContent = f.t;\n", "    el.innerHTML = f.t;\n")
 ganti_re(r"/\* ── Floating physics formulas \([^)\n]*\) ── \*/", lambda m: "/* ── Floating formulas (Konsep Dasar Sistem Tenaga Listrik) ── */")
 ganti("// Urutan opsi PG Sisken diacak deterministik per NIM.", "// Urutan opsi PG Sisken dan Teknik Tenaga Listrik diacak deterministik per NIM.")
 

@@ -9,6 +9,7 @@ import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
+from pustaka import Kode  # noqa: E402  (teks SVG berupa kode yang diketik)
 from tugas_gambar import (AM, AX, BL, CY, GN, GR, PK, RD, TX, VI, _panah, catatan, dim_h, dim_v, ext, gambar_tugas,  # noqa: E402,F401
                           iso, lingkar3d, poli, sumbu2d, sumbu3d, t)
 
@@ -61,7 +62,7 @@ def gambar():
     body += t(p[0] + 4, p[1] + 10, "b", 11, AM, "start", "600")
     p = iso(a + 6, 0, h / 2, cx, cy, s)
     body += t(p[0] + 6, p[1] + 2, "h", 11, AM, "start", "600")
-    body += catatan(["Part Box L × b × h (Length = X)", "Analysis: baja E, ν, ρ = 7850", "Mesh Gmsh orde 2, Fixed x = 0", "Force F (−Z) di ujung, solver", "  CalculiX static → CCX_Results", "baca: m = 7,85×10⁻³ × V (g)"], 330, 40)
+    body += catatan(["Part Box L × b × h (Length = X)", "Analysis: baja E, ν, ρ = 7850", "Mesh Gmsh orde 2, Fixed x = 0", "Force F (−Z) di ujung, solver", Kode("  CalculiX static → CCX_Results"), "baca: m = 7,85×10⁻³ × V (g)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 1 — kantilever L × b × h dengan Analysis statik dan bacaan massa"))
 
     # ── T2: kantilever L × 20 × 10 tampak samping, defleksi δ di ujung ──

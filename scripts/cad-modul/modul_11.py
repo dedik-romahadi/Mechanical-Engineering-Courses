@@ -628,9 +628,9 @@ def materi():
         ("🧱", "Sub-assembly", "Assembly yang sudah jadi dapat dimasukkan ke Assembly lain (Insert Link pada objek Assembly). Joint internalnya tetap; terhadap induknya ia bersikap seperti satu komponen kaku kecuali dibiarkan fleksibel.", "rakitan di dalam rakitan"),
     ])
     isi += anim_panel(2, "amber", "Placement komponen menggeser pusat massa rakitan", "cvPusatMassa",
-                      [("sl_pm_x", "v_pm_x", "Posisi boss x_B saat PAUSE (mm)", 15, 105, 1, 60, "60"),
-                       ("sl_pm_d", "v_pm_d", "Diameter boss d_B (mm)", 10, 50, 1, 30, "30"),
-                       ("sl_pm_h", "v_pm_h", "Tinggi boss h_B (mm)", 10, 70, 1, 40, "40")],
+                      [("sl_pm_x", "v_pm_x", "Posisi boss x<sub>B</sub> saat PAUSE (mm)", 15, 105, 1, 60, "60"),
+                       ("sl_pm_d", "v_pm_d", "Diameter boss d<sub>B</sub> (mm)", 10, 50, 1, 30, "30"),
+                       ("sl_pm_h", "v_pm_h", "Tinggi boss h<sub>B</sub> (mm)", 10, 70, 1, 40, "40")],
                       "btnPusatMassa", "togglePusatMassa", "pusatMassaInfo",
                       "<strong>Cara membaca:</strong> pelat 120 × 70 × 15 grounded; boss dipindah lewat Placement (Fixed joint dengan Offset). Tanda G₁ dan G₂ adalah pusat massa tiap komponen, G hijau adalah pusat massa gabungan yang bergeser mengikuti boss: x̄ mengikuti posisi, z̄ mengikuti tinggi dan volume boss (Persamaan (4)).")
     isi += kotak("info-box", "<strong>🧭 Urutan yang aman:</strong> masukkan komponen acuan dulu, ground-kan, baru masukkan komponen lain satu per satu dan langsung beri joint. Memasukkan sepuluh komponen sekaligus tanpa joint membuat semuanya bertumpuk di titik asal dan sulit dipilih; gunakan Move part untuk menjauhkan sementara sebelum memilih acuan joint.")

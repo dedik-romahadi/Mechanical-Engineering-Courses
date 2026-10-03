@@ -34,10 +34,10 @@ function drawGeometri(){
   ctx.fillText('GMD = D·∛2 = '+p.GMD.toFixed(3)+' m',cx,cy+62); ctx.fillText('GMR'+(n>1?'_b':'')+' = '+(p.GMRb*100).toFixed(3)+' cm · r'+(n>1?'_b':'')+' = '+(p.rb*100).toFixed(3)+' cm',cx,cy+76);
   // kanan: batang L, C, X, B
   const bx=W*0.55, bw=W-bx-20, by=24, bh=(H-60)/4;
-  const item=[['L (mH/km)',p.L,2.0,'rgba(255,179,0,.85)'],['C (nF/km)',p.C*1000,20,'rgba(0,229,255,.85)'],['X_L (Ω/km)',p.x,0.6,'rgba(168,85,247,.85)'],['B (µS/km)',p.b*1e6,6,'rgba(0,224,158,.85)']];
+  const item=[['L (mH/km)',p.L,2.0,'rgba(255,179,0,.85)'],['C (nF/km)',p.C*1000,20,'rgba(0,229,255,.85)'],['X<sub>L</sub> (Ω/km)',p.x,0.6,'rgba(168,85,247,.85)'],['B (µS/km)',p.b*1e6,6,'rgba(0,224,158,.85)']];
   const fase=Math.min(1,(_gmFrame%100)/40);
   item.forEach(([lab,v,mx,c],i)=>{const y=by+i*bh; ctx.fillStyle='rgba(148,163,184,.9)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='left'; ctx.fillText(lab,bx,y+10); ctx.fillStyle=c; ctx.fillRect(bx,y+14,bw*Math.min(1,v/mx)*fase,bh*0.45); ctx.fillStyle='#e2e8f0'; ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.fillText(v.toFixed(4),bx+bw*Math.min(1,v/mx)*fase+6,y+14+bh*0.3);});
-  _ttlTulis('geometriInfo','GMD = '+p.GMD.toFixed(3)+' m, GMR = '+(p.GMRb*100).toFixed(3)+' cm → L = 0,2 ln(GMD/GMR) = '+p.L.toFixed(4)+' mH/km, X_L = '+p.x.toFixed(4)+' Ω/km   |   r_eff = '+(p.rb*100).toFixed(3)+' cm → C = 0,05563/ln(GMD/r) = '+(p.C*1000).toFixed(3)+' nF/km, B = '+(p.b*1e6).toFixed(3)+' µS/km   |   Z_c = √(x/b) = '+p.Zc.toFixed(1)+' Ω; SIL 150 kV = '+(22500/p.Zc).toFixed(1)+' MW, 500 kV = '+(250000/p.Zc).toFixed(0)+' MW');
+  _ttlTulis('geometriInfo','GMD = '+p.GMD.toFixed(3)+' m, GMR = '+(p.GMRb*100).toFixed(3)+' cm → L = 0,2 ln(GMD/GMR) = '+p.L.toFixed(4)+' mH/km, X<sub>L</sub> = '+p.x.toFixed(4)+' Ω/km   |   r<sub>eff</sub> = '+(p.rb*100).toFixed(3)+' cm → C = 0,05563/ln(GMD/r) = '+(p.C*1000).toFixed(3)+' nF/km, B = '+(p.b*1e6).toFixed(3)+' µS/km   |   Z<sub>c</sub> = √(x/b) = '+p.Zc.toFixed(1)+' Ω; SIL 150 kV = '+(22500/p.Zc).toFixed(1)+' MW, 500 kV = '+(250000/p.Zc).toFixed(0)+' MW');
   if(_ttlJalan('geometri')){_gmFrame++; requestAnimationFrame(drawGeometri);}
 }
 
@@ -65,12 +65,12 @@ function drawABCD(){
   _ttlGaris(ctx,padL,yA0+16,padL,yB0,'rgba(148,163,184,.45)',1.2); _ttlGaris(ctx,padL,yB0,padL+plotW,yB0,'rgba(148,163,184,.45)',1.2);
   ctx.textAlign='right'; ctx.fillStyle='rgba(148,163,184,.7)'; ctx.fillText('|B| Ω',padL-4,yA0+28); ctx.fillText((x*lmax).toFixed(0),padL-4,YB(x*lmax)+4);
   kurva(Blong,'rgba(0,229,255,.95)',YB); kurva(Bpi,'rgba(168,85,247,.95)',YB,[5,4]);
-  ctx.textAlign='left'; ctx.fillStyle='rgba(0,229,255,.95)'; ctx.fillText('|B| tersebar = Z_c sin(βℓ)',padL+6,yA0+28); ctx.fillStyle='rgba(168,85,247,.95)'; ctx.fillText('|B| nominal = xℓ',padL+190,yA0+28);
+  ctx.textAlign='left'; ctx.fillStyle='rgba(0,229,255,.95)'; ctx.fillText('|B| tersebar = Z<sub>c</sub> sin(βℓ)',padL+6,yA0+28); ctx.fillStyle='rgba(168,85,247,.95)'; ctx.fillText('|B| nominal = xℓ',padL+190,yA0+28);
   ctx.textAlign='center'; ctx.fillStyle='rgba(148,163,184,.7)'; for(let i=0;i<=6;i++) ctx.fillText((lmax*i/6).toFixed(0)+' km',X(lmax*i/6),yB0+16);
   // garis panjang terpilih (berkedip)
   const a=0.5+0.5*Math.sin(_abFrame*0.08); _ttlGaris(ctx,X(ln),padT,X(ln),yB0,'rgba(236,72,153,'+a.toFixed(2)+')',1.6);
   const errA=(Api(ln)-Along(ln))/Along(ln)*100, errB=(Bpi(ln)-Blong(ln))/Blong(ln)*100;
-  _ttlTulis('abcdInfo','β = √(xb) = '+(beta*1000).toFixed(4)+'×10⁻³ rad/km, Z_c = '+Zc.toFixed(1)+' Ω, λ = 2π/β = '+(2*Math.PI/beta).toFixed(0)+' km   |   ℓ = '+ln+' km: βℓ = '+(beta*ln).toFixed(4)+' rad ('+(beta*ln*180/Math.PI).toFixed(1)+'°); A tersebar '+Along(ln).toFixed(5)+' vs nominal-π '+Api(ln).toFixed(5)+' (selisih '+errA.toFixed(2)+' %); |B| '+Blong(ln).toFixed(2)+' vs '+Bpi(ln).toFixed(2)+' Ω (selisih '+errB.toFixed(2)+' %)   |   nominal-π memadai sampai ±250 km');
+  _ttlTulis('abcdInfo','β = √(xb) = '+(beta*1000).toFixed(4)+'×10⁻³ rad/km, Z<sub>c</sub> = '+Zc.toFixed(1)+' Ω, λ = 2π/β = '+(2*Math.PI/beta).toFixed(0)+' km   |   ℓ = '+ln+' km: βℓ = '+(beta*ln).toFixed(4)+' rad ('+(beta*ln*180/Math.PI).toFixed(1)+'°); A tersebar '+Along(ln).toFixed(5)+' vs nominal-π '+Api(ln).toFixed(5)+' (selisih '+errA.toFixed(2)+' %); |B| '+Blong(ln).toFixed(2)+' vs '+Bpi(ln).toFixed(2)+' Ω (selisih '+errB.toFixed(2)+' %)   |   nominal-π memadai sampai ±250 km');
   if(_ttlJalan('abcd')){_abFrame++; requestAnimationFrame(drawABCD);}
 }
 
@@ -98,8 +98,8 @@ function drawProfilPanjang(){
   const pos=(_ppFrame*0.5)%l, vv=V(pos)/VS; ctx.fillStyle='#e2e8f0'; ctx.beginPath(); ctx.arc(X(pos),Y(vv),4.5,0,Math.PI*2); ctx.fill();
   const SIL=VL*VL/Zc, VRpu=1/VS;
   ctx.textAlign='left'; ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.fillStyle=warna;
-  ctx.fillText((rasio<0.98?'beban < SIL: tegangan NAIK ke ujung terima':rasio>1.02?'beban > SIL: tegangan TURUN ke ujung terima':'beban = SIL: profil rata')+' · V_R = '+(VRpu*VL).toFixed(1)+' kV ('+((VRpu-1)*100).toFixed(1)+' %)',padL+8,padT+14);
-  _ttlTulis('profilPanjangInfo','SIL = '+VL+'²/'+Zc+' = '+SIL.toFixed(0)+' MW; beban '+(rasio*SIL).toFixed(0)+' MW ('+rasio.toFixed(2)+' SIL, resistif)   |   βℓ = '+(beta*l).toFixed(4)+' rad; V(x) = V_R cos βx + jZ_c I_R sin βx   |   dengan V_S = 500 kV: V_R = '+(VRpu*VL).toFixed(2)+' kV'+(rasio===0?' (tanpa beban: Ferranti +'+((1/Math.cos(beta*l)-1)*100).toFixed(2)+' %)':'')+'   |   pada SIL, Q kapasitansi = Q induktansi di tiap titik');
+  ctx.fillText((rasio<0.98?'beban < SIL: tegangan NAIK ke ujung terima':rasio>1.02?'beban > SIL: tegangan TURUN ke ujung terima':'beban = SIL: profil rata')+' · V<sub>R</sub> = '+(VRpu*VL).toFixed(1)+' kV ('+((VRpu-1)*100).toFixed(1)+' %)',padL+8,padT+14);
+  _ttlTulis('profilPanjangInfo','SIL = '+VL+'²/'+Zc+' = '+SIL.toFixed(0)+' MW; beban '+(rasio*SIL).toFixed(0)+' MW ('+rasio.toFixed(2)+' SIL, resistif)   |   βℓ = '+(beta*l).toFixed(4)+' rad; V(x) = V<sub>R</sub> cos βx + jZ<sub>c</sub> I<sub>R</sub> sin βx   |   dengan V<sub>S</sub> = 500 kV: V<sub>R</sub> = '+(VRpu*VL).toFixed(2)+' kV'+(rasio===0?' (tanpa beban: Ferranti +'+((1/Math.cos(beta*l)-1)*100).toFixed(2)+' %)':'')+'   |   pada SIL, Q kapasitansi = Q induktansi di tiap titik');
   if(_ttlJalan('profilpanjang')){_ppFrame++; requestAnimationFrame(drawProfilPanjang);}
 }
 
@@ -119,10 +119,10 @@ function drawSIL(){
     const y=padT+i*barH;
     ctx.fillStyle='rgba(226,232,240,.9)'; ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.textAlign='right'; ctx.fillText('berkas '+h.n+'×',padL-10,y+barH/2+4);
     ctx.fillStyle=['rgba(239,68,68,.8)','rgba(255,179,0,.8)','rgba(0,229,255,.8)','rgba(0,224,158,.8)'][i]; ctx.fillRect(padL,y+6,plotW*h.SIL/maxSIL*fase,barH-12);
-    ctx.fillStyle='#e2e8f0'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='left'; ctx.fillText('SIL '+h.SIL.toFixed(0)+' MW · Z_c '+h.Zc.toFixed(0)+' Ω · x '+h.x.toFixed(3)+' Ω/km · Ferranti '+l+' km: +'+h.fer.toFixed(1)+' %',padL+plotW*h.SIL/maxSIL*fase+6>W-260?padL+8:padL+plotW*h.SIL/maxSIL*fase+6,y+barH/2+4);
+    ctx.fillStyle='#e2e8f0'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='left'; ctx.fillText('SIL '+h.SIL.toFixed(0)+' MW · Z<sub>c</sub> '+h.Zc.toFixed(0)+' Ω · x '+h.x.toFixed(3)+' Ω/km · Ferranti '+l+' km: +'+h.fer.toFixed(1)+' %',padL+plotW*h.SIL/maxSIL*fase+6>W-260?padL+8:padL+plotW*h.SIL/maxSIL*fase+6,y+barH/2+4);
   });
-  ctx.fillStyle='rgba(148,163,184,.8)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText('SIL = V²/Z_c untuk 1–4 sub-konduktor (D = '+D+' m, r = '+r+' cm, s = 45 cm) pada '+VL+' kV',W/2,H-10);
-  _ttlTulis('silInfo',hasil.map(h=>h.n+'×: Z_c = '+h.Zc.toFixed(1)+' Ω, SIL = '+h.SIL.toFixed(0)+' MW, b = '+(h.b*1e6).toFixed(2)+' µS/km, Ferranti '+l+' km = +'+h.fer.toFixed(2)+' %').join('   |   ')+'   |   berkas menurunkan x dan menaikkan b → Z_c turun, SIL naik, tetapi arus pengisian dan Ferranti ikut naik');
+  ctx.fillStyle='rgba(148,163,184,.8)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText('SIL = V²/Z<sub>c</sub> untuk 1–4 sub-konduktor (D = '+D+' m, r = '+r+' cm, s = 45 cm) pada '+VL+' kV',W/2,H-10);
+  _ttlTulis('silInfo',hasil.map(h=>h.n+'×: Z<sub>c</sub> = '+h.Zc.toFixed(1)+' Ω, SIL = '+h.SIL.toFixed(0)+' MW, b = '+(h.b*1e6).toFixed(2)+' µS/km, Ferranti '+l+' km = +'+h.fer.toFixed(2)+' %').join('   |   ')+'   |   berkas menurunkan x dan menaikkan b → Z<sub>c</sub> turun, SIL naik, tetapi arus pengisian dan Ferranti ikut naik');
   if(_ttlJalan('sil')){_slFrame++; requestAnimationFrame(drawSIL);}
 }
 

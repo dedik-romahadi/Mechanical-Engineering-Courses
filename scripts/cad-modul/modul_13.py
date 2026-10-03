@@ -10,6 +10,7 @@ import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
+from pustaka import Kode  # noqa: E402  (teks SVG berupa kode yang diketik)
 from pustaka import (AX, BG, TX, anim_panel, arrow, bagian, box, cards, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
 from tugas_gambar import AM, BL, CY, GN, GR, PK, RD, _panah, dim_h, dim_v, ext, iso  # noqa: E402
@@ -137,7 +138,7 @@ def gambar1():
 
 def gambar2():
     b = t(20, 24, f"Balok rangka {L_BM} × {B_BM} × {H_BM} mm (baja) diganti material lain dengan E·I sama", 11.5, TX, "start", "600")
-    b += t(20, 42, "h_i = h·(E_baja/E_i)^(1/3) — panjang batang = massa balok", 10.5, AX, "start")
+    b += t(20, 42, "h<sub>i</sub> = h·(E<sub>baja</sub>/E<sub>i</sub>)<sup>1/3</sup> — panjang batang = massa balok", 10.5, AX, "start")
     y0 = 66
     for i, (nama, E, rho, ee, f, c) in enumerate(MAT):
         y = y0 + i * 26
@@ -146,19 +147,19 @@ def gambar2():
         b += f'<rect x="126" y="{y - 8:.1f}" width="{wb:.1f}" height="15" rx="3" fill="rgba(148,163,184,.10)" stroke="{c}" stroke-width="1.3"/>'
         b += t(126 + wb + 6, y + 4, f"{ind(M_BM[i], 0)} g · h = {ind(H_BM_I[i], 1)}", 10, AX, "start")
     b += t(452, 62, "Indeks massa balok lentur:", 11, TX, "start", "600")
-    b += t(452, 80, "M = E^(1/3) / ρ — besar = ringan", 10, AX, "start")
+    b += t(452, 80, "M = E<sup>1/3</sup> / ρ — besar = ringan", 10, AX, "start")
     for i, (nama, E, rho, ee, f, c) in enumerate(MAT):
         b += t(452, 100 + i * 17, f"{nama.split()[0]} {ind(IDX_M[i], 2)}", 10, c, "start")
     b += t(20, 206, "penampang", 10, AX, "start")
-    b += t(20, 222, "b × h_i", 10, AX, "start")
+    b += t(20, 222, "b × h<sub>i</sub>", 10, AX, "start")
     sc = 1.5
     for i, (nama, E, rho, ee, f, c) in enumerate(MAT):
         cx = 138 + i * 118
         hh = H_BM_I[i] * sc
         b += f'<rect x="{cx - B_BM * sc / 2:.1f}" y="{250 - hh:.1f}" width="{B_BM * sc:.1f}" height="{hh:.1f}" fill="rgba(148,163,184,.10)" stroke="{c}" stroke-width="1.4"/>'
         b += t(cx, 266, f"{nama.split()[0][:4]} {ind(H_BM_I[i], 1)}", 9.5, c, "middle")
-    b += teks2(340, 292, "Pada kekakuan lentur sama, tinggi penampang naik seperti E^(−1/3) tetapi massa mengikuti ρ/E^(1/3)", 11, AX, maks=76)
-    return svg(680, 316, b, "Gambar 2 — Massa balok berkekakuan sama untuk lima material dan indeks E^(1/3)/ρ")
+    b += teks2(340, 292, "Pada kekakuan lentur sama, tinggi penampang naik seperti E<sup>−1/3</sup> tetapi massa mengikuti ρ/E<sup>1/3</sup>", 11, AX, maks=76)
+    return svg(680, 316, b, "Gambar 2 — Massa balok berkekakuan sama untuk lima material dan indeks E<sup>1/3</sup>/ρ")
 
 
 def gambar3():
@@ -182,10 +183,10 @@ def gambar3():
     b += t(276, Y(C_BI / 2) + 4, "c", 11, "#f59e0b", "start", "600")
     b += t(X(A_BI / 2), 256, f"kedalaman b = {B_BI} mm (arah Y)", 10, AX, "middle")
     b += t(452, 64, "Pemanfaatan material:", 11, TX, "start", "600")
-    b += t(452, 84, "V_part = b·(a·t + (c − t)·t)", 10, AX, "start")
-    b += t(452, 102, "V_billet = a·b·c", 10, AX, "start")
-    b += t(452, 124, f"V_part = {ind(V_PART, 0)} mm³", 10, "#22d3ee", "start")
-    b += t(452, 142, f"V_billet = {ind(V_BILLET, 0)} mm³", 10, AX, "start")
+    b += t(452, 84, "V<sub>part</sub> = b·(a·t + (c − t)·t)", 10, AX, "start")
+    b += t(452, 102, "V<sub>billet</sub> = a·b·c", 10, AX, "start")
+    b += t(452, 124, f"V<sub>part</sub> = {ind(V_PART, 0)} mm³", 10, "#22d3ee", "start")
+    b += t(452, 142, f"V<sub>billet</sub> = {ind(V_BILLET, 0)} mm³", 10, AX, "start")
     b += t(452, 164, f"U = {ind(U_BI, 3)} %", 11, "#00e09e", "start", "600")
     b += t(452, 182, f"serpihan = {ind(100 - U_BI, 3)} %", 10.5, "#ef4444", "start")
     b += teks2(340, 276, "Serpihan membawa energi terkandung dan jejak CO₂ penuh tanpa memberi fungsi apa pun pada produk", 11, AX, maks=76)
@@ -250,9 +251,9 @@ def gambar6():
     b += t(24, yb - hh / 2 + 4, "h", 11, "#f59e0b", "end", "600")
     b += arrow(268, 220, x2 + tw / 2, 178, "#00e09e", 1.2)
     b += t(262, 226, "dinding t", 10, "#00e09e", "end", "600")
-    b += t(470, 60, "V_pejal = a·b·h", 10.5, AX, "start")
+    b += t(470, 60, "V<sub>pejal</sub> = a·b·h", 10.5, AX, "start")
     b += t(470, 78, f"= {ind(V_SOLID, 0)} mm³ → {ind(M_SOLID, 0)} g", 10, "#22d3ee", "start")
-    b += t(470, 100, "V_cangkang = a·b·h −", 10.5, AX, "start")
+    b += t(470, 100, "V<sub>cangkang</sub> = a·b·h −", 10.5, AX, "start")
     b += t(470, 118, "(a − 2t)(b − 2t)(h − t)", 10.5, AX, "start")
     b += t(470, 136, f"= {ind(V_SHELL, 0)} mm³", 10, "#00e09e", "start")
     b += t(470, 158, f"massa = {ind(M_SHELL, 2)} g", 10.5, "#00e09e", "start", "600")
@@ -337,7 +338,7 @@ def gambar7():
     out += _poli([(X(x), Z(z)) for x, z in u], _campur(GR, .24), GR, 1.6)
     out += _garis(X(tw), Z(h), X(a - tw), Z(h), AX, .8, "5 4")
     out += t(X(a / 2), Z(h) - 7, "muka atas dibuang", 10, GR, "middle", "600")
-    out += t(X(a / 2), Z(h / 2) + 4, "dinding dan dasar = t_dinding", 10, GR, "middle")
+    out += t(X(a / 2), Z(h / 2) + 4, "dinding dan dasar = t<sub>dinding</sub>", 10, GR, "middle")
     # a dan h
     out += ext(X(0), Z(0) + 3, X(0), Z(0) + 31) + ext(X(a), Z(0) + 3, X(a), Z(0) + 31) + dim_h(X(0), X(a), Z(0) + 25, f"{a}")
     out += ext(X(a) + 3, Z(h), X(a) + 29, Z(h)) + ext(X(a) + 3, Z(0), X(a) + 29, Z(0)) + dim_v(X(a) + 23, Z(h), Z(0), f"{h}", kiri=False)
@@ -354,13 +355,13 @@ def gambar7():
     # ── catatan: besaran yang diketik pada langkah, persis seperti teks langkah ──
     y0 = 234
     baris = [("Catatan untuk langkah 1–6", CY, "600"),
-             (f"Spreadsheet Jejak: rho_st, f_st, t_dinding = {tw}", TX, ""),
+             (Kode(f"Spreadsheet Jejak: rho_st, f_st, t_dinding = {tw}"), TX, ""),
              (f"baja: massa (g) = {RHO_ST_TEKS} × V", TX, ""),
              (f"massa pejal (garis dasar) = {ind(M_SOLID, 0)} g", TX, ""),
-             ("Thickness: =Jejak.t_dinding, Skin, ke dalam", TX, ""),
-             ("sapuan t_dinding: " + ", ".join(str(v) for v in T_SAPU), PK, "600"),
-             ("V_body = Body.Shape.Volume", TX, ""),
-             ("co2 = f_st * rho_st * V_body", TX, ""),
+             (Kode("Thickness: =Jejak.t_dinding, Skin, ke dalam"), TX, ""),
+             ("sapuan t<sub>dinding</sub>: " + ", ".join(str(v) for v in T_SAPU), PK, "600"),
+             (Kode("V_body = Body.Shape.Volume"), TX, ""),
+             (Kode("co2 = f_st * rho_st * V_body"), TX, ""),
              ("alternatif: aluminium, tinggi dari Pers. (2)", AX, "")]
     for i, (s_, c, w) in enumerate(baris):
         out += t(384, y0 + i * 15.5, s_, 11 if i == 0 else 10.5, c, "start", w)
@@ -416,8 +417,8 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">m = &rho;&middot;V</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">E = e&middot;m</span>
     <span class="ff" style="left:34%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">CO&#8322; = &Sigma; f&rho;V</span>
-    <span class="ff" style="left:49%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">U = V_part/V_billet</span>
-    <span class="ff" style="left:66%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">E^(1/3)/&rho;</span>
+    <span class="ff" style="left:49%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">U = V<sub>part</sub>/V<sub>billet</sub></span>
+    <span class="ff" style="left:66%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">E<sup>1/3</sup>/&rho;</span>
     <span class="ff" style="left:84%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">Thickness t</span>
     <span class="ff" style="left:11%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">Shape.Volume</span>
     <span class="ff" style="left:61%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">3R</span>
@@ -460,7 +461,7 @@ def materi():
     ])
     isi += tabel(["Tahap siklus hidup", "Yang ditentukan model CAD", "Angka yang dapat dibaca"],
                  [["<strong>Bahan mentah</strong>", "Jenis material dan volume tiap Body", "<code>ρ × Shape.Volume</code>, e (MJ/kg), f (kg CO₂/kg)"],
-                  ["<strong>Produksi</strong>", "Proses dan bentuk: serpihan, tebal dinding, jumlah fitur", "U = V_part/V_billet, jumlah operasi"],
+                  ["<strong>Produksi</strong>", "Proses dan bentuk: serpihan, tebal dinding, jumlah fitur", "U = V<sub>part</sub>/V<sub>billet</sub>, jumlah operasi"],
                   ["<strong>Distribusi</strong>", "Massa total dan kepadatan kemasan", "Massa rakitan, <code>Shape.BoundBox</code>"],
                   ["<strong>Pemakaian</strong>", "Massa yang harus digerakkan, kekakuan, umur", "Massa, pusat massa, hasil FEM (Modul 8–10)"],
                   ["<strong>Akhir hayat</strong>", "Jumlah jenis material dan cara menyambung", "Jumlah Body per material, jenis joint"]])
@@ -468,16 +469,16 @@ def materi():
     m += bagian(1, "m-siklus", "Desain Berkelanjutan:<br>Siklus Hidup dan 3R", "Dampak lingkungan sebuah komponen sebagian besar sudah ditetapkan ketika sketsanya ditutup. Bagian ini memetakan lima tahap siklus hidup, menerjemahkan 3R menjadi keputusan model, dan menegaskan batas perhitungan yang boleh diklaim dari sebuah berkas CAD.", isi, "SIKLUS HIDUP DAN 3R")
 
     # 02 — Material dan massa minimum
-    isi = figure(2, "Massa balok berkekakuan sama untuk lima material dan indeks E^(1/3)/ρ", f"Balok rangka {L_BM} × {B_BM} × {H_BM} mm dari baja ({ind(M_BM[0], 0)} g) diganti material lain dengan E·I sama: tinggi penampang naik, tetapi massa CFRP hanya {ind(M_BM[4], 0)} g karena indeks E^(1/3)/ρ-nya terbesar.", gambar2())
+    isi = figure(2, "Massa balok berkekakuan sama untuk lima material dan indeks E<sup>1/3</sup>/ρ", f"Balok rangka {L_BM} × {B_BM} × {H_BM} mm dari baja ({ind(M_BM[0], 0)} g) diganti material lain dengan E·I sama: tinggi penampang naik, tetapi massa CFRP hanya {ind(M_BM[4], 0)} g karena indeks E<sup>1/3</sup>/ρ-nya terbesar.", gambar2())
     isi += formula(1, "Massa Komponen dari Volume Model", r"m = \rho\,V, \qquad V_{pelat\ berlubang} = a\,b\,t - \frac{\pi d^{2}}{4}\,t",
                    r"\(\rho\) = massa jenis (g/mm³: baja 7,85 × 10⁻³; aluminium 2,70 × 10⁻³) &nbsp;·&nbsp; \(V\) = <code>Shape.Volume</code> Body (mm³). Contoh pelat aluminium " + f"{A_PL} × {B_PL} × {T_PL}" + r" mm berlubang ⌀" + f"{D_PL}" + r": \(V = " + ind(V_PL, 2) + r"\) mm³, \(m = " + ind(M_PL, 2) + r"\) g.",
                    "Seluruh angka lingkungan pada modul ini berangkat dari satu besaran: volume solid akhir. Karena itu volume wajib dibaca dari Body (fitur Tip), bukan dari Pad sebelum Pocket. Satuan harus dijaga: ρ dalam g/mm³ menghasilkan gram, ρ dalam kg/mm³ (7,85 × 10⁻⁶) menghasilkan kilogram. Persamaan ini yang dipakai Tugas 1.",
                    [("m", "Massa komponen (g)"), (r"\rho", "Massa jenis (g/mm³)"), ("V", "Volume Shape.Volume (mm³)"), ("a, b, t", "Panjang, lebar, tebal pelat (mm)"), ("d", "Diameter lubang (mm)")])
     isi += formula(2, "Massa Minimum pada Kekakuan Lentur Sama (Indeks Material)", r"E_1 I_1 = E_2 I_2 \ \Rightarrow\ h_2 = h_1\left(\frac{E_1}{E_2}\right)^{1/3}, \qquad m \propto \frac{\rho}{E^{1/3}} \ \Rightarrow\ M = \frac{E^{1/3}}{\rho}",
                    r"\(h\) = tinggi penampang (lebar \(b\) tetap) &nbsp;·&nbsp; \(M\) = indeks material balok lentur (besar = ringan). Contoh balok " + f"{L_BM} × {B_BM} × {H_BM}" + r" mm: baja \(m = " + ind(M_BM[0], 0) + r"\) g, aluminium \(h = " + ind(H_BM_I[1], 1) + r"\) mm dan \(m = " + ind(M_BM[1], 0) + r"\) g.",
-                   "Mengganti material tanpa mengubah penampang adalah kesalahan klasik: kekakuan ikut berubah. Bandingkan pada fungsi yang sama, yaitu E·I tetap. Karena I ∝ h³, tinggi hanya perlu naik sebesar (E₁/E₂)^(1/3) sehingga massa mengikuti ρ/E^(1/3); material dengan indeks E^(1/3)/ρ terbesar memberi massa terkecil. Indeks ini juga alasan aluminium dan magnesium menang di rangka ringan meski modulusnya jauh di bawah baja.",
-                   [("E", "Modulus elastisitas (MPa)"), ("I", "Momen inersia penampang (mm⁴)"), ("h", "Tinggi penampang (mm)"), (r"\rho", "Massa jenis (g/cm³)"), ("M", "Indeks material E^(1/3)/ρ")])
-    isi += tabel(["Material", "ρ (g/cm³)", "E (MPa)", "e (MJ/kg)", "f (kg CO₂/kg)", "M = E^(1/3)/ρ", f"Massa balok setara (g)"],
+                   "Mengganti material tanpa mengubah penampang adalah kesalahan klasik: kekakuan ikut berubah. Bandingkan pada fungsi yang sama, yaitu E·I tetap. Karena I ∝ h³, tinggi hanya perlu naik sebesar (E₁/E₂)<sup>1/3</sup> sehingga massa mengikuti ρ/E<sup>1/3</sup>; material dengan indeks E<sup>1/3</sup>/ρ terbesar memberi massa terkecil. Indeks ini juga alasan aluminium dan magnesium menang di rangka ringan meski modulusnya jauh di bawah baja.",
+                   [("E", "Modulus elastisitas (MPa)"), ("I", "Momen inersia penampang (mm⁴)"), ("h", "Tinggi penampang (mm)"), (r"\rho", "Massa jenis (g/cm³)"), ("M", "Indeks material E<sup>1/3</sup>/ρ")])
+    isi += tabel(["Material", "ρ (g/cm³)", "E (MPa)", "e (MJ/kg)", "f (kg CO₂/kg)", "M = E<sup>1/3</sup>/ρ", f"Massa balok setara (g)"],
                  [[f"<strong>{nama}</strong>", ind(rho * 1000, 2), ind(E, 0), ind(ee, 0), ind(f, 1), ind(IDX_M[i], 2), ind(M_BM[i], 0)]
                   for i, (nama, E, rho, ee, f, _) in enumerate(MAT)])
     isi += anim_panel(1, "cyan", "Material berkekakuan sama: tinggi naik, massa turun", "cvMaterial",
@@ -485,9 +486,9 @@ def materi():
                        ("sl_mt_b", "v_mt_b", "Lebar penampang b (mm)", 30, 90, 1, 60, "60"),
                        ("sl_mt_h", "v_mt_h", "Tinggi baja acuan h (mm)", 15, 40, 1, 28, "28")],
                       "btnMaterial", "toggleMaterial", "materialInfo",
-                      "<strong>Cara membaca:</strong> lima penampang di kiri memiliki kekakuan lentur yang sama persis; tingginya berbeda karena h ∝ E^(−1/3). Batang di kanan adalah massanya. Sorotan berpindah bergantian (PAUSE untuk menahan) sehingga terlihat bahwa penampang paling tinggi justru bukan yang paling berat.")
+                      "<strong>Cara membaca:</strong> lima penampang di kiri memiliki kekakuan lentur yang sama persis; tingginya berbeda karena h ∝ E<sup>−1/3</sup>. Batang di kanan adalah massanya. Sorotan berpindah bergantian (PAUSE untuk menahan) sehingga terlihat bahwa penampang paling tinggi justru bukan yang paling berat.")
     isi += kotak("tip-box", "💡 <strong>Sebelum menyatakan satu material “lebih hijau”:</strong> samakan dulu fungsinya (kekakuan, kekuatan, atau umur), baru hitung massanya, lalu kalikan energi terkandung dan faktor emisi. Aluminium primer memiliki f enam kali baja; pada kekakuan sama massanya hanya sekitar separuh, sehingga jejaknya justru naik — kecuali memakai aluminium daur ulang. Ini yang dibahas pada Bagian 05 dan menjadi inti Forum modul ini.")
-    m += bagian(2, "m-material", "Material dan Massa Minimum:<br>Indeks Material di Tangan Pemodel", "Massa adalah pengali setiap angka lingkungan, dan massa ditentukan oleh material bersama geometri. Bagian ini menghitung massa dari volume model, menetapkan cara membandingkan material secara adil pada kekakuan sama, dan memperkenalkan indeks E^(1/3)/ρ.", isi, "MATERIAL DAN MASSA MINIMUM")
+    m += bagian(2, "m-material", "Material dan Massa Minimum:<br>Indeks Material di Tangan Pemodel", "Massa adalah pengali setiap angka lingkungan, dan massa ditentukan oleh material bersama geometri. Bagian ini menghitung massa dari volume model, menetapkan cara membandingkan material secara adil pada kekakuan sama, dan memperkenalkan indeks E<sup>1/3</sup>/ρ.", isi, "MATERIAL DAN MASSA MINIMUM")
 
     # 03 — Efisiensi proses dan pemanfaatan material
     isi = figure(3, "Braket L dari billet: bagian yang menjadi serpihan dan pemanfaatan material U", f"Braket L {A_BI} × {C_BI} mm (tebal kaki {T_BI}, kedalaman {B_BI}) bervolume {ind(V_PART, 0)} mm³ dipesin dari billet {ind(V_BILLET, 0)} mm³: hanya {ind(U_BI, 3)} % bahan menjadi produk, sisanya {ind(100 - U_BI, 3)} % menjadi serpihan.", gambar3())
@@ -562,7 +563,7 @@ def materi():
     isi += tabel(["Strategi lightweighting", "Alat FreeCAD", "Penghematan tipikal", "Batas yang harus dijaga"],
                  [["Cangkang (shell)", "Part Design → Thickness", "60–85 % massa", "Tebal dinding minimum proses; Thickness gagal bila t terlalu besar"],
                   ["Tabung menggantikan batang pejal", "Sketsa dua lingkaran → Pad", "40–70 % massa pada I sama", "Tekuk lokal dinding tipis"],
-                  ["Lubang penghemat massa", "Pocket + LinearPattern", "10–25 % massa", "Konsentrasi tegangan Kt di tepi lubang (Modul 09)"],
+                  ["Lubang penghemat massa", "Pocket + LinearPattern", "10–25 % massa", "Konsentrasi tegangan K<sub>t</sub> di tepi lubang (Modul 09)"],
                   ["Rusuk menggantikan tebal merata", "Pad tipis + rusuk", "20–40 % massa pada δ sama", "Rusuk tipis rawan tekuk; sudut perlu fillet"],
                   ["Substitusi material", "Properti Material + ekspresi", "sampai 70 % massa", "Jejak belum tentu ikut turun (Bagian 05)"],
                   ["Mengurangi jumlah komponen", "Menggabungkan fitur dalam satu Body", "massa pengencang hilang", "Jangan mengorbankan kemudahan bongkar"]])
@@ -593,7 +594,7 @@ def materi():
     ])
     isi += tabel(["Alternatif rakitan dudukan", "Perubahan pada model", "Massa total (kg)", "Jejak (kg CO₂)"],
                  [["Awal — pelat baja " + f"{T_JK}" + " mm + blok aluminium primer", "—", ind(M_JK, 3), ind(CO2_JK, 3)],
-                  ["Blok aluminium daur ulang", f"hanya konstanta f_al menjadi {ind(FC_ALR, 1)}", ind(M_JK, 3), ind(CO2_JK_R, 3)],
+                  ["Blok aluminium daur ulang", f"hanya konstanta f<sub>al</sub> menjadi {ind(FC_ALR, 1)}", ind(M_JK, 3), ind(CO2_JK_R, 3)],
                   ["Pelat ditipiskan menjadi " + f"{T_JK2}" + " mm", "Pad pelat diubah lewat ekspresi", ind(M_JK2, 3), ind(CO2_JK_T, 3)],
                   ["Gabungan: pelat tipis + aluminium daur ulang", "dua perubahan di atas sekaligus", ind(M_JK2, 3), ind(CO2_JK_RT, 3)]])
     isi += kotak("tip-box", "💡 <strong>Urutan yang paling cepat memberi hasil:</strong> (1) benahi kandungan daur ulang material berfaktor emisi tinggi — sering menurunkan jejak paling besar tanpa menyentuh geometri; (2) kurangi massa lewat cangkang dan tabung; (3) perbaiki pemanfaatan material dengan mengubah proses; (4) baru pertimbangkan penggantian material, karena itulah perubahan yang paling banyak menuntut perhitungan ulang kekuatan.")
@@ -677,14 +678,14 @@ for nama, E, rho in [("Baja", {E_ST}, 7.85e-3), ("Aluminium", {E_AL}, 2.70e-3), 
                   ["Massa cangkang sama dengan massa pejal", "Membaca <code>Pad.Shape.Volume</code>, bukan <code>Body.Shape.Volume</code> (Tip)", "Baca Body; Std Measure Volume dengan memilih Body"],
                   ["Jejak CO₂ meleset 1000 kali", "ρ dalam g/mm³ dipakai bersama f per kilogram", "Pakai ρ kg/mm³ (7,85 × 10⁻⁶) bila hasil diminta dalam kg"],
                   ["Angka Spreadsheet tidak berubah saat model diubah", "Sel berisi angka ketik, bukan ekspresi <code>=Body.Shape.Volume</code>", "Ganti menjadi ekspresi; recompute dokumen (F5)"],
-                  ["U lebih besar dari 100 %", "V_billet diambil lebih kecil dari kotak pembatas komponen", "Billet minimal seukuran <code>Shape.BoundBox</code> braket"],
+                  ["U lebih besar dari 100 %", "V<sub>billet</sub> diambil lebih kecil dari kotak pembatas komponen", "Billet minimal seukuran <code>Shape.BoundBox</code> braket"],
                   ["Massa aluminium lebih ringan tetapi jejak naik", "Faktor emisi aluminium primer enam kali baja", "Gunakan kandungan daur ulang; bandingkan pada fungsi yang sama"],
                   ["Volume tabung tidak sesuai rumus", "Dua lingkaran tidak sepusat atau profil bukan cincin", "Konstrain Coincident pusat ke origin; periksa profil sebelum Pad"]])
     isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) satu Body per komponen dengan pohon fitur sesuai permintaan soal; (2) semua sketsa fully constrained; (3) angka bacaan diambil dari Body (Tip), bukan fitur perantara; (4) satuan sesuai <em>inputLabel</em> tugas (g, MJ, %, atau kg CO₂) dengan jumlah desimal yang diminta; (5) Spreadsheet memakai ekspresi, bukan angka ketik; (6) berkas .FCStd tersimpan lewat Ctrl+S, nama tanpa spasi.")
     m += bagian(9, "m-praktik", "Praktik Terbimbing:<br>Housing Ringan Berlabel Jejak", "Tujuh langkah berikut menjalankan satu siklus desain berkelanjutan lengkap: garis dasar massa, cangkang Thickness, sapuan tebal dinding, neraca jejak yang hidup di Spreadsheet, alternatif material, dan dokumentasi keputusan; ditutup tabel gejala dan perbaikan.", isi, "PRAKTIK TERBIMBING")
 
     refs = pm_ref(1, "cyan", "14,165,233", "M. F. Ashby", "Materials and the Environment: Eco-informed Material Choice", ", 2nd ed. Butterworth-Heinemann, 2013.", "Sumber energi terkandung, faktor emisi, dan cara membandingkan alternatif desain pada fungsi yang sama.")
-    refs += pm_ref(2, "amber", "249,115,22", "M. F. Ashby", "Materials Selection in Mechanical Design", ", 5th ed. Butterworth-Heinemann, 2016.", "Indeks material untuk balok lentur (E^(1/3)/ρ) dan prosedur pemilihan material berbasis fungsi–kendala–tujuan.")
+    refs += pm_ref(2, "amber", "249,115,22", "M. F. Ashby", "Materials Selection in Mechanical Design", ", 5th ed. Butterworth-Heinemann, 2016.", "Indeks material untuk balok lentur (E<sup>1/3</sup>/ρ) dan prosedur pemilihan material berbasis fungsi–kendala–tujuan.")
     refs += pm_ref(3, "violet", "168,85,247", "G. Boothroyd, P. Dewhurst &amp; W. A. Knight", "Product Design for Manufacture and Assembly", ", 3rd ed. CRC Press, 2011.", "Dasar DFMA dan Design for Disassembly: jumlah komponen, jenis sambungan, dan biaya bongkar pasang.")
     refs += pm_ref(4, "green", "0,224,158", "FreeCAD Community", "FreeCAD 1.0 Documentation: PartDesign Thickness, Spreadsheet Workbench, Material, Part TopoShape (Volume, BoundBox)", " (wiki.freecad.org), 2024–2026.", "Acuan parameter Thickness, alias dan ekspresi Spreadsheet, serta API volume yang dipakai pada cell Python.")
     refs += pm_ref(5, "pink", "236,72,153", "T. E. Graedel &amp; B. R. Allenby", "Industrial Ecology and Sustainable Engineering", ". Pearson, 2010.", "Kerangka siklus hidup, 3R, dan batas sistem yang membedakan jejak bahan dari LCA penuh ISO 14040/14044.")
@@ -720,7 +721,7 @@ TUGAS_HERO = '''<div class="hero" data-tab="tugas" style="min-height:60vh">
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">m = &rho;&middot;V</span>
     <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">E = e&middot;m</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">U = V_part/V_billet</span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">U = V<sub>part</sub>/V<sub>billet</sub></span>
     <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">Thickness t</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">CO&#8322; = &Sigma; f&rho;V</span>
   </div>
@@ -760,11 +761,11 @@ MC = [
      ["Massa jenis ρ terkecil, tanpa memperhatikan modulus elastisitas",
       "Modulus elastisitas E terbesar, tanpa memperhatikan massa jenis",
       "Rasio E/ρ (kekakuan spesifik tarik) terbesar",
-      "Indeks E^(1/3)/ρ terbesar, karena h ∝ E^(−1/3) sehingga massa sebanding dengan ρ/E^(1/3)"],
+      "Indeks E<sup>1/3</sup>/ρ terbesar, karena h ∝ E<sup>−1/3</sup> sehingga massa sebanding dengan ρ/E<sup>1/3</sup>"],
      "Indeks material balok lentur"),
     ("<strong>Pemanfaatan material</strong> sebuah proses pemesinan dinyatakan sebagai...",
-     ["100 × V_billet/V_part, yaitu berapa kali bahan baku lebih besar daripada komponen",
-      "100 × V_part/V_billet, yaitu perbandingan volume komponen jadi terhadap volume bahan baku; sisanya menjadi serpihan",
+     ["100 × V<sub>billet</sub>/V<sub>part</sub>, yaitu berapa kali bahan baku lebih besar daripada komponen",
+      "100 × V<sub>part</sub>/V<sub>billet</sub>, yaitu perbandingan volume komponen jadi terhadap volume bahan baku; sisanya menjadi serpihan",
       "100 × massa serpihan/massa billet, yaitu bagian yang dapat didaur ulang",
       "100 × luas permukaan komponen/luas permukaan billet"],
      "Pemanfaatan material U"),
@@ -784,7 +785,7 @@ MC = [
      ["Menambahkan lapisan bahan di luar solid setebal t sehingga dimensi luar bertambah",
       "Memecah satu solid menjadi beberapa Body terpisah",
       "Mengubah satuan panjang dokumen menjadi milimeter",
-      "Mengosongkan bagian dalam solid dan menyisakan dinding setebal t dengan muka terpilih dibuang; volume cangkang = V_luar − V_rongga"],
+      "Mengosongkan bagian dalam solid dan menyisakan dinding setebal t dengan muka terpilih dibuang; volume cangkang = V<sub>luar</sub> − V<sub>rongga</sub>"],
      "Fungsi Thickness"),
     ("Manfaat memberi <strong>alias</strong> pada sel Spreadsheet FreeCAD untuk perhitungan jejak adalah...",
      ["Angka pada sel otomatis dibulatkan menjadi dua desimal",
@@ -866,7 +867,7 @@ def forum_page():
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">label rendah karbon</span>
     <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">m = &rho;&middot;V</span>
     <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">CO&#8322; = &Sigma; f&rho;V</span>
-    <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">U = V_part/V_billet</span>
+    <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">U = V<sub>part</sub>/V<sub>billet</sub></span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 14 · Desain Berkelanjutan dalam CAD</div>

@@ -4,7 +4,7 @@
 import math
 
 from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
-                     fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel)
+                     fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel, rumus_mentah)
 
 NOMOR = 10
 PERTEMUAN = 11
@@ -67,7 +67,7 @@ def gambar1():
     xp, yq1, yq2 = ox + P_LOAD * 1e3 * sk, oy - Q1 * sk, oy - (Q1 - QC) * sk
     b += arrow(ox, oy, xp, oy, "#22d3ee", 2.8) + t((ox + xp) / 2, oy + 18, f"P = {ind(P_LOAD, 0)} MW", 11.5, "#22d3ee", "middle", "700")
     b += arrow(xp, oy, xp, yq1, "#ef4444", 2.4) + arrow(ox, oy, xp, yq1, "#ef4444", 2.4) + arrow(ox, oy, xp, yq2, "#00e09e", 2.8)
-    b += arrow(xp + 16, yq1, xp + 16, yq2, "#a855f7", 2.6) + t(xp + 24, (yq1 + yq2) / 2 + 4, f"Q_C = {ind(QC, 0)} kVAR", 11, "#a855f7", "start", "700")
+    b += arrow(xp + 16, yq1, xp + 16, yq2, "#a855f7", 2.6) + t(xp + 24, (yq1 + yq2) / 2 + 4, f"Q<sub>C</sub> = {ind(QC, 0)} kVAR", 11, "#a855f7", "start", "700")
     yb = (oy + yq1) / 2 + 6                                  # S₁ di kiri sisi miringnya
     xs = ox + (oy - yb) * (xp - ox) / (oy - yq1) - 8
     b += t(xs, yb - 13, f"S₁ = {ind(P_LOAD * 1e3 / PF1, 0)} kVA", 10.5, "#ef4444", "end", "600") + t(xs, yb, f"I = {ind(I1, 0)} A", 10.5, "#ef4444", "end", "600")
@@ -92,8 +92,8 @@ def gambar2():
     b += kapasitor(400, 90, 170, "#a855f7", f"C {ind(QC, 0)} kVAR")
     b += f'<circle cx="40" cy="90" r="4" fill="#00e09e"/>' + t(40, 76, "gardu 20 kV", 10, "#00e09e", "middle", "700")
     b += arrow(300, 76, 380, 76, "#ef4444", 1.6) + t(340, 66, f"I₁ = {ind(I1, 0)} A → I₂ = {ind(I2, 0)} A", 10, "#ef4444", "middle", "600")
-    b += arrow(385, 100, 385, 140, "#a855f7", 1.6) + t(377, 124, f"I_C = {ind(IC, 1)} A", 9.5, "#a855f7", "end", "600")
-    b += t(330, 214, f"ΔV sebelum = {ind(I1, 0)}({ind(R_L, 1)}·{ind(PF1, 1)} + {ind(X_L, 1)}·{ind(math.sin(math.acos(PF1)), 2)}) = {ind(DV1, 0)} V ({ind(DV1 / VF * 100, 1)} %); sesudah {ind(DV2, 0)} V ({ind(DV2 / VF * 100, 1)} %); kenaikan oleh kapasitor ≈ Q_C·X/V² = {ind(DV_RISE, 2)} %", 10.5, AX)
+    b += arrow(385, 100, 385, 140, "#a855f7", 1.6) + t(377, 124, f"I<sub>C</sub> = {ind(IC, 1)} A", 9.5, "#a855f7", "end", "600")
+    b += t(330, 214, f"ΔV sebelum = {ind(I1, 0)}({ind(R_L, 1)}·{ind(PF1, 1)} + {ind(X_L, 1)}·{ind(math.sin(math.acos(PF1)), 2)}) = {ind(DV1, 0)} V ({ind(DV1 / VF * 100, 1)} %); sesudah {ind(DV2, 0)} V ({ind(DV2 / VF * 100, 1)} %); kenaikan oleh kapasitor ≈ Q<sub>C</sub>·X/V² = {ind(DV_RISE, 2)} %", 10.5, AX)
     return svg(660, 226, b, "Gambar 2 — Jatuh tegangan penyulang dan kenaikan tegangan oleh kapasitor")
 
 
@@ -112,15 +112,15 @@ def gambar3():
         s0 = sum(((1 - (i + 0.5) / n)) ** 2 for i in range(n)) / n
         s = sum(((1 - (i + 0.5) / n) - (c if (i + 0.5) / n < p else 0)) ** 2 for i in range(n)) / n
         return 1 - s / s0
-    for c, col, lab in [(1 / 3, "#94a3b8", "C = 1/3 I_Q"), (2 / 3, "#00e09e", "C = 2/3 I_Q (optimum)"), (1.0, "#f59e0b", "C = I_Q")]:
+    for c, col, lab in [(1 / 3, "#94a3b8", "C = 1/3 I<sub>Q</sub>"), (2 / 3, "#00e09e", "C = 2/3 I<sub>Q</sub> (optimum)"), (1.0, "#f59e0b", "C = I<sub>Q</sub>")]:
         pts = " ".join(f"{X(i / 50):.1f},{Y(max(0, reduksi(c, i / 50))):.1f}" for i in range(51))
         b += f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="{2.6 if c == 2 / 3 else 1.8}"/>'
         yy = y1 + 14 + 14 * [1 / 3, 2 / 3, 1.0].index(c)
         b += f'<line x1="{x0 + 8}" y1="{yy - 4}" x2="{x0 + 26}" y2="{yy - 4}" stroke="{col}" stroke-width="2.4"/>' + t(x0 + 32, yy, lab, 10, col, "start", "600")
     b += f'<circle cx="{X(2 / 3):.1f}" cy="{Y(8 / 9):.1f}" r="6" fill="#00e09e"/>' + t(X(2 / 3) - 10, Y(8 / 9) - 12, "2/3 panjang, 8/9 = 88,9 %", 10.5, "#00e09e", "end", "700")
     b += t(x0 - 8, y1 - 8, "Δrugi", 10.5, AX, "end") + t(340, 232, "Beban merata: pengurangan rugi reaktif terhadap letak kapasitor untuk tiga ukuran;", 11, AX)
-    b += t(340, 246, "kapasitor 2/3 I_Q di 2/3 panjang memberi maksimum 8/9", 11, AX)
-    return svg(660, 256, b, "Gambar 3 — Aturan dua-pertiga: pengurangan rugi terhadap ukuran dan letak kapasitor")
+    b += t(340, 246, "kapasitor 2/3 I<sub>Q</sub> di 2/3 panjang memberi maksimum 8/9", 11, AX)
+    return svg(660, 260, b, "Gambar 3 — Aturan dua-pertiga: pengurangan rugi terhadap ukuran dan letak kapasitor")
 
 
 def gambar4():
@@ -199,15 +199,15 @@ SUBNAV = '''<div id="modulSubnav" class="subnav-bar show">
   <a href="#m-pustaka">Referensi</a>
 </div>'''
 
-HERO_SCHEMATIC_1 = '''  <div class="hero-schematic">
+HERO_SCHEMATIC_1 = rumus_mentah('''  <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
       <line x1="10" y1="100" x2="90" y2="100" stroke="rgba(148,163,184,.5)" stroke-width="1.5"/>
       <line x1="70" y1="100" x2="70" y2="124" stroke="rgba(168,85,247,.6)" stroke-width="1.2"/><line x1="62" y1="124" x2="78" y2="124" stroke="rgba(168,85,247,.7)" stroke-width="1.8"/><line x1="62" y1="130" x2="78" y2="130" stroke="rgba(168,85,247,.7)" stroke-width="1.8"/><line x1="70" y1="130" x2="70" y2="150" stroke="rgba(168,85,247,.6)" stroke-width="1.2"/>
       <rect x="84" y="104" width="10" height="24" rx="2" fill="none" stroke="rgba(239,68,68,.6)" stroke-width="1.5"/>
       <text x="20" y="92" fill="rgba(0,229,255,.55)" font-family="JetBrains Mono" font-size="8">I ↓</text>
-      <text x="44" y="164" fill="rgba(168,85,247,.6)" font-family="JetBrains Mono" font-size="8">Q_C</text>
+      <text x="44" y="164" fill="rgba(168,85,247,.6)" font-family="JetBrains Mono" font-size="8">Q<sub>C</sub></text>
     </svg>
-  </div>'''
+  </div>''')
 
 HERO_SCHEMATIC_2 = '''  <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
@@ -229,14 +229,14 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
   </div>
 {HERO_SCHEMATIC_1}
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">Q_C = P(tan φ₁ − tan φ₂)</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">Q<sub>C</sub> = P(tan φ₁ − tan φ₂)</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">ΔV ≈ I(R cos φ + X sin φ)</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">ΔV_naik ≈ Q_C·X/V²</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">ΔV<sub>naik</sub> ≈ Q<sub>C</sub>·X/V²</span>
     <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">aturan 2/3</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">rugi ∝ 1/pf²</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">5/8 % per tingkat</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">Q_C ∝ V²</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">E = ΔP·8760·F_rugi</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">Q<sub>C</sub> ∝ V²</span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">E = ΔP·8760·F<sub>rugi</sub></span>
   </div>
 {HERO_SCHEMATIC_2}
   <div class="hero-content">
@@ -270,17 +270,17 @@ def materi():
     isi = figure(1, "Segitiga daya penyulang sebelum dan sesudah kapasitor shunt", f"Beban {ind(P_LOAD, 0)} MW pf {ind(PF1, 1)} menarik {ind(Q1, 0)} kVAR dan {ind(I1, 0)} A dari penyulang; kapasitor {ind(QC, 0)} kVAR memasok sebagian besar Q itu di tempat sehingga arus turun ke {ind(I2, 0)} A, rugi turun {ind((1 - LOSS2 / LOSS1) * 100, 0)} %, dan {ind(P_LOAD * 1e3 / PF1 - P_LOAD * 1e3 / PF2, 0)} kVA kapasitas trafo terbebas.", gambar1())
     isi += formula(1, "Daya Reaktif Beban dan Arus Penyulang", r"Q = P\tan\varphi, \qquad I = \dfrac{P}{\sqrt{3}\,V_L\cos\varphi} = \sqrt{I_P^2 + I_Q^2}, \qquad I_Q = \dfrac{Q}{\sqrt{3}\,V_L}",
                    rf"Penyulang contoh: \(Q_1 = {ind(P_LOAD, 0)}\times10^3\times\tan({ind(math.degrees(math.acos(PF1)), 1)}^\circ) = {ind(Q1, 0)}\) kVAR; \(I_1 = {ind(P_LOAD, 0)}\times10^6/(\sqrt{{3}}\times20\times10^3\times{ind(PF1, 1)}) = {ind(I1, 1)}\) A, terdiri atas \(I_P = {ind(I1 * PF1, 1)}\) A yang bekerja dan \(I_Q = {ind(I1 * math.sin(math.acos(PF1)), 1)}\) A yang hanya bolak-balik. Modul 5 membahas ini untuk satu pelanggan; di sini untuk seluruh penyulang.",
-                   "Komponen reaktif arus tidak menghasilkan kWh tetapi ikut memanaskan konduktor (∝ I²), menjatuhkan tegangan lewat reaktansi (X·I_Q), dan memakan kapasitas trafo (kVA). Utilitas memandangnya sebagai rugi teknis dan kapasitas yang hilang; itulah alasan PLN memasang kapasitor di gardu dan penyulang, di samping mendenda pelanggan berfaktor daya rendah.",
+                   "Komponen reaktif arus tidak menghasilkan kWh tetapi ikut memanaskan konduktor (∝ I²), menjatuhkan tegangan lewat reaktansi (X·I<sub>Q</sub>), dan memakan kapasitas trafo (kVA). Utilitas memandangnya sebagai rugi teknis dan kapasitas yang hilang; itulah alasan PLN memasang kapasitor di gardu dan penyulang, di samping mendenda pelanggan berfaktor daya rendah.",
                    [("I_P, I_Q", "Komponen aktif dan reaktif arus (A)"), ("V_L", "Tegangan penyulang antar-saluran (V)"), ("\\varphi", "Sudut faktor daya beban gabungan")])
     isi += cards([
         ("🏭", "Sumber kVAR", "Motor induksi (pf 0,7–0,85), lampu neon balast magnetik, las, tanur induksi, dan trafo distribusi yang setengah kosong (arus magnetisasi 1–3 % kVA).", None),
-        ("📉", "Tiga Akibat", "Rugi I²R lebih besar, jatuh tegangan X·I_Q di ujung penyulang, dan kapasitas trafo/penyulang termakan kVA yang tidak membayar.", None),
+        ("📉", "Tiga Akibat", "Rugi I²R lebih besar, jatuh tegangan X·I<sub>Q</sub> di ujung penyulang, dan kapasitas trafo/penyulang termakan kVA yang tidak membayar.", None),
         ("💸", "Sisi Utilitas", "PLN membayar rugi teknis dari energi yang dibangkitkan tetapi tidak terjual (± 8 % di distribusi); kapasitor penyulang adalah investasi pengurang rugi termurah.", None),
         ("👤", "Sisi Pelanggan", "Pelanggan ≥ 200 kVA membayar kVARh berlebih bila pf < 0,85 (Modul 5); kapasitor di panel pelanggan menghilangkan denda sekaligus membantu penyulang.", None),
         ("🌙", "Beban Berubah", "Q malam bisa sepertiga Q siang; kapasitor yang cukup untuk siang berlebih di malam hari dan menaikkan tegangan: alasan kapasitor switched (Bagian 04).", None),
         ("🔗", "Rantai Modul", "Modul 5 memberi segitiga daya, Modul 6 memberi jatuh tegangan I(R cos φ + X sin φ), Modul 9 memberi parameter penyulang; modul ini menggabungkan ketiganya.", None),
     ])
-    isi += tabel(["Beban penyulang 20 kV", "P (MW)", "pf", "S (kVA)", "I (A)", "I_Q (A)"],
+    isi += tabel(["Beban penyulang 20 kV", "P (MW)", "pf", "S (kVA)", "I (A)", "I<sub>Q</sub> (A)"],
                  [[nama, ind(p, 1), ind(pf, 2), ind(p * 1e3 / pf, 0), ind(p * 1e6 / (SQ3 * 20e3 * pf), 0), ind(p * 1e6 / (SQ3 * 20e3 * pf) * math.sin(math.acos(pf)), 0)] for nama, p, pf in
                   [("Kawasan industri siang", 4.0, 0.80), ("Kawasan industri malam", 1.5, 0.72), ("Perumahan malam", 3.0, 0.92), ("Campuran siang", 3.5, 0.85), ("Tanur induksi", 2.0, 0.65)]])
     isi += kotak("info-box", "<strong>📊 Cara Membaca Tabel di Atas:</strong> tanur induksi 2 MW menarik arus reaktif hampir sama dengan kawasan industri 4 MW; faktor daya, bukan hanya besar beban, yang menentukan arus reaktif yang harus dilayani penyulang. Soal C1–C3 memakai Persamaan (1).")
@@ -292,7 +292,7 @@ def materi():
     # 02 — kapasitor shunt
     isi = formula(2, "Kapasitor Shunt: Ukuran, Arus, dan Rugi", r"Q_C = P(\tan\varphi_1 - \tan\varphi_2), \qquad I_2 = I_1\dfrac{\cos\varphi_1}{\cos\varphi_2}, \qquad P_{rugi,2} = P_{rugi,1}\left(\dfrac{\cos\varphi_1}{\cos\varphi_2}\right)^2",
                    rf"Penyulang contoh: \(Q_C = {ind(P_LOAD * 1e3, 0)}(\tan{ind(math.degrees(math.acos(PF1)), 1)}^\circ - \tan{ind(math.degrees(math.acos(PF2)), 1)}^\circ) = {ind(QC, 0)}\) kVAR; \(I_2 = {ind(I1, 1)}\times{ind(PF1, 1)}/{ind(PF2, 2)} = {ind(I2, 1)}\) A; rugi \(3I^2R\): \({ind(LOSS1, 1)}\) → \({ind(LOSS2, 1)}\) kW ({ind((1 - LOSS2 / LOSS1) * 100, 1)} % lebih kecil). Rumus ini menganggap seluruh Q beban berada di titik kapasitor (beban terpusat).",
-                   "Kapasitor shunt adalah sumber daya reaktif lokal: arus reaktif beban kini berputar antara kapasitor dan motor di ujung penyulang, tidak lagi melewati penyulang dan trafo. Daya aktif tidak berubah, sehingga seluruh penurunan arus adalah penurunan I_Q; rugi turun kuadratis karena rugi ∝ I². Kapasitor tegangan menengah dijual per unit 100–400 kVAR yang dirangkai menjadi bank 600–3000 kVAR di tiang atau gardu.",
+                   "Kapasitor shunt adalah sumber daya reaktif lokal: arus reaktif beban kini berputar antara kapasitor dan motor di ujung penyulang, tidak lagi melewati penyulang dan trafo. Daya aktif tidak berubah, sehingga seluruh penurunan arus adalah penurunan I<sub>Q</sub>; rugi turun kuadratis karena rugi ∝ I². Kapasitor tegangan menengah dijual per unit 100–400 kVAR yang dirangkai menjadi bank 600–3000 kVAR di tiang atau gardu.",
                    [("\\varphi_1, \\varphi_2", "Sudut sebelum dan sesudah kompensasi"), ("I_1, I_2", "Arus penyulang sebelum dan sesudah (A)"), ("P_{rugi}", "Rugi tembaga penyulang 3I²R (W)")])
     isi += figure(6, "Arus dan rugi penyulang relatif terhadap faktor daya (P tetap)", f"Untuk daya aktif yang sama, arus berbanding terbalik pf dan rugi berbanding terbalik kuadratnya: dari pf 0,6 ke 0,95 rugi tinggal 40 %, dan dari 0,8 ke 0,95 tinggal {ind((0.8 / 0.95) ** 2 * 100, 0)} %.", gambar6())
     isi += cards([
@@ -300,7 +300,7 @@ def materi():
         ("🏢", "Bank Gardu", "Bank 3–10 MVAR di rel 20 kV gardu induk: membebaskan trafo 150/20 kV dan sistem hulu, tetapi tidak mengurangi rugi penyulang (arus reaktif tetap lewat penyulang).", None),
         ("⚙️", "Di Terminal Motor", "Kapasitor di terminal motor besar (pelanggan) mengurangi arus di seluruh jalur; batas ukurannya ≈ 90 % kVAR magnetisasi motor agar tidak self-excitation saat motor dilepas.", None),
         ("🧮", "Q ∝ V²", "Kapasitor 1000 kVAR pada 19 kV hanya memberi 903 kVAR; pada tegangan rendah, saat paling dibutuhkan, kapasitor paling lemah. Regulator (Bagian 05) menutupinya.", r"\(Q_C = V^2\,\omega C\)"),
-        ("🔥", "Harmonik", "Kapasitor beresonansi dengan induktansi sistem pada frekuensi f_r = f√(S_sc/Q_C); bila dekat harmonik ke-5/7 dari VSD, arus harmonik membesar; pakai reaktor detuning.", r"\(f_r = 50\sqrt{S_{sc}/Q_C}\)"),
+        ("🔥", "Harmonik", "Kapasitor beresonansi dengan induktansi sistem pada frekuensi f<sub>r</sub> = f√(S<sub>sc</sub>/Q<sub>C</sub>); bila dekat harmonik ke-5/7 dari VSD, arus harmonik membesar; pakai reaktor detuning.", r"\(f_r = 50\sqrt{S_{sc}/Q_C}\)"),
         ("🛡️", "Proteksi Bank", "Sekring per unit, relai ketidakseimbangan netral (unit gagal), dan resistor pelepas muatan (tegangan sisa < 50 V dalam 5 menit) adalah perangkat baku bank kapasitor.", None),
     ])
     isi += tabel(["Penyulang contoh (4 MW, R = 3,2 Ω)", "pf", "Q dari jaringan (kVAR)", "I (A)", "Rugi (kW)", "Kapasitas trafo terpakai (kVA)"],
@@ -312,10 +312,10 @@ def materi():
                 isi, "KAPASITOR SHUNT")
 
     # 03 — tegangan
-    isi = figure(2, "Jatuh tegangan penyulang dan kenaikan tegangan oleh kapasitor", f"Beban di ujung penyulang menjatuhkan {ind(DV1 / VF * 100, 1)} % lewat R dan X; kapasitor {ind(QC, 0)} kVAR mengurangi komponen reaktif arus sehingga jatuh tegangan tinggal {ind(DV2 / VF * 100, 1)} %, setara kenaikan Q_C·X/V² ≈ {ind(DV_RISE, 2)} % di titik kapasitor.", gambar2())
+    isi = figure(2, "Jatuh tegangan penyulang dan kenaikan tegangan oleh kapasitor", f"Beban di ujung penyulang menjatuhkan {ind(DV1 / VF * 100, 1)} % lewat R dan X; kapasitor {ind(QC, 0)} kVAR mengurangi komponen reaktif arus sehingga jatuh tegangan tinggal {ind(DV2 / VF * 100, 1)} %, setara kenaikan Q<sub>C</sub>·X/V² ≈ {ind(DV_RISE, 2)} % di titik kapasitor.", gambar2())
     isi += formula(3, "Jatuh Tegangan dan Kenaikan Tegangan oleh Kapasitor", r"\Delta V \approx I(R\cos\varphi + X\sin\varphi) = I_P R + I_Q X, \qquad \Delta V_{naik} \approx I_C X = \dfrac{Q_C\,X}{V_L^2}\ (\text{pu})",
                    rf"Penyulang contoh: \(\Delta V_1 = {ind(I1, 1)}({ind(R_L, 1)}\times{ind(PF1, 1)} + {ind(X_L, 1)}\times{ind(math.sin(math.acos(PF1)), 2)}) = {ind(DV1, 0)}\) V/fasa = {ind(DV1 / VF * 100, 2)} % (ujung {ind((1 - DV1 / VF) * 20, 2)} kV). Kapasitor {ind(QC, 0)} kVAR: \(I_C = {ind(IC, 1)}\) A, \(\Delta V_{{naik}} = {ind(IC, 1)}\times{ind(X_L, 1)} = {ind(IC * X_L, 0)}\) V = {ind(DV_RISE, 2)} %; jatuh tegangan sesudahnya \({ind(DV2, 0)}\) V = {ind(DV2 / VF * 100, 2)} %.",
-                   "Kapasitor 'menaikkan' tegangan dengan menghapus jatuh tegangan reaktif I_Q·X; besarnya sebanding kVAR dan reaktansi dari sumber ke titik kapasitor. Karena itu kapasitor di ujung penyulang panjang menaikkan tegangan jauh lebih banyak daripada di rel gardu (X ≈ 0). Kenaikan ini terjadi juga saat beban ringan: kapasitor tetap yang terlalu besar membuat tegangan malam melampaui batas +5 %.",
+                   "Kapasitor 'menaikkan' tegangan dengan menghapus jatuh tegangan reaktif I<sub>Q</sub>·X; besarnya sebanding kVAR dan reaktansi dari sumber ke titik kapasitor. Karena itu kapasitor di ujung penyulang panjang menaikkan tegangan jauh lebih banyak daripada di rel gardu (X ≈ 0). Kenaikan ini terjadi juga saat beban ringan: kapasitor tetap yang terlalu besar membuat tegangan malam melampaui batas +5 %.",
                    [("I_P, I_Q", "Komponen aktif dan reaktif arus (A)"), ("I_C", "Arus kapasitor (A)"), ("X", "Reaktansi dari sumber ke titik kapasitor (Ω)")])
     isi += cards([
         ("📏", "Batas Tegangan", "SPLN: tegangan pelanggan −10 %/+5 % dari 220 V; penyulang 20 kV dijaga 19–21 kV agar setelah trafo distribusi dan kabel rumah masih dalam batas.", None),
@@ -336,7 +336,7 @@ def materi():
     # 04 — penempatan
     isi = figure(3, "Aturan dua-pertiga: pengurangan rugi terhadap ukuran dan letak kapasitor", "Untuk beban tersebar merata, satu kapasitor sebesar dua-pertiga arus reaktif yang dipasang pada dua-pertiga panjang penyulang memberi pengurangan rugi reaktif maksimum 8/9; kapasitor yang terlalu besar atau terlalu jauh justru menambah rugi.", gambar3())
     isi += formula(4, "Aturan Dua-Pertiga dan Beberapa Kapasitor", r"\text{beban merata, 1 kapasitor: } Q_C = \tfrac{2}{3}Q_{beban}\ \text{pada } \tfrac{2}{3}\ell,\ \Delta P_{maks} = \tfrac{8}{9}P_{rugi,Q}; \qquad n\ \text{kapasitor: tiap } \tfrac{2}{2n+1}Q_{beban}\ \text{pada } \tfrac{2k}{2n+1}\ell",
-                   rf"Penyulang beban merata dengan arus pangkal {ind(I_MERATA, 0)} A pf {ind(PF_M, 1)}: \(I_Q = {ind(IQ_M, 0)}\) A, \(Q_{{beban}} = \sqrt{{3}}\times20\times{ind(IQ_M, 0)} = {ind(Q_M, 0)}\) kVAR; kapasitor optimum \(2/3\times{ind(Q_M, 0)} = {ind(QC_23, 0)}\) kVAR pada {ind(2 / 3 * L_KM, 2)} km. Rugi akibat arus reaktif (beban merata = ⅓ I_Q²R) = {ind(LOSSQ_M, 1)} kW → berkurang {ind(8 / 9 * LOSSQ_M, 1)} kW. Dua kapasitor: masing-masing 2/5 Q pada 1/5 dan 3/5 panjang (total 4/5, pengurangan 24/25).",
+                   rf"Penyulang beban merata dengan arus pangkal {ind(I_MERATA, 0)} A pf {ind(PF_M, 1)}: \(I_Q = {ind(IQ_M, 0)}\) A, \(Q_{{beban}} = \sqrt{{3}}\times20\times{ind(IQ_M, 0)} = {ind(Q_M, 0)}\) kVAR; kapasitor optimum \(2/3\times{ind(Q_M, 0)} = {ind(QC_23, 0)}\) kVAR pada {ind(2 / 3 * L_KM, 2)} km. Rugi akibat arus reaktif (beban merata = ⅓ I<sub>Q</sub>²R) = {ind(LOSSQ_M, 1)} kW → berkurang {ind(8 / 9 * LOSSQ_M, 1)} kW. Dua kapasitor: masing-masing 2/5 Q pada 1/5 dan 3/5 panjang (total 4/5, pengurangan 24/25).",
                    "Pada beban merata, arus reaktif berkurang linear dari pangkal ke ujung; kapasitor yang terlalu dekat pangkal tidak 'menjangkau' arus di hilir, yang terlalu dekat ujung membuat arus kapasitif berlebih di hulu. Titik dua-pertiga menyeimbangkan keduanya. Beban nyata campuran merata dan terpusat; program penempatan kapasitor (capacitor placement) mengoptimalkan ukuran dan letak berdasarkan profil beban tiap penyulang, tetapi aturan 2/3 tetap menjadi penaksir awal yang baik.",
                    [("Q_{beban}", "Daya reaktif total penyulang (kVAR)"), ("P_{rugi,Q}", "Rugi yang disebabkan komponen reaktif arus"), ("n, k", "Jumlah kapasitor dan indeks kapasitor ke-k")])
     isi += figure(4, "Kapasitor tetap dan switched mengikuti kurva beban harian", "Kapasitor tetap 600 kVAR sebesar daya reaktif malam, kapasitor switched 1200 kVAR disambung 08:00–18:00 saat industri beroperasi; daya reaktif dari jaringan (arsir) tetap positif sepanjang hari sehingga tegangan tidak melampaui batas atas.", gambar4())
@@ -348,7 +348,7 @@ def materi():
         ("⚖️", "Rugi vs Tegangan", "Kapasitor untuk rugi (2/3) dan untuk tegangan (di ujung) berbeda letaknya; bila tegangan ujung yang menjadi masalah, geser ke hilir atau tambah regulator.", None),
         ("🔁", "Penyulang Berubah", "Manuver jaringan memindahkan beban antar-penyulang; kapasitor tetap di titik tetap sementara bebannya berpindah, satu lagi alasan kendali otomatis.", None),
     ])
-    isi += tabel(["Kapasitor pada beban merata (Q_beban = 100 %)", "Ukuran tiap unit", "Letak", "Total kVAR", "Pengurangan rugi reaktif maks"], [
+    isi += tabel(["Kapasitor pada beban merata (Q<sub>beban</sub> = 100 %)", "Ukuran tiap unit", "Letak", "Total kVAR", "Pengurangan rugi reaktif maks"], [
         ["1 unit", "2/3", "2/3 ℓ", "66,7 %", "88,9 %"],
         ["2 unit", "2/5", "2/5 ℓ dan 4/5 ℓ", "80,0 %", "96,0 %"],
         ["3 unit", "2/7", "2/7, 4/7, 6/7 ℓ", "85,7 %", "98,0 %"],
@@ -399,7 +399,7 @@ def materi():
         ("📡", "Pemantauan", "Pengendali modern melaporkan status, kVAR, dan tegangan lewat SCADA; VVO (volt-VAR optimization) mengoordinasi seluruh kapasitor dan regulator penyulang.", None),
         ("🔗", "Ke Modul Berikut", "Modul 11–12 membahas struktur sistem distribusi dan aliran dayanya; kompensasi di sini menjadi salah satu peralatan yang dimodelkan di sana.", None),
     ])
-    isi += tabel(["Penyulang contoh: pilihan kompensasi", "Q_C (kVAR)", "Letak", "Rugi puncak (kW)", "Hemat (MWh/th)", "ΔV ujung (%)"],
+    isi += tabel(["Penyulang contoh: pilihan kompensasi", "Q<sub>C</sub> (kVAR)", "Letak", "Rugi puncak (kW)", "Hemat (MWh/th)", "ΔV ujung (%)"],
                  [[nama, ind(q, 0), letak, ind(rugi, 0), ind((LOSS1 - rugi) * 8760 * LSF / 1000, 0), ind(dv, 1)] for nama, q, letak, rugi, dv in
                   [("Tanpa kapasitor", 0, "—", LOSS1, DV1 / VF * 100),
                    ("1000 kVAR tetap di ujung", 1000, "8 km", 3 * (P_LOAD * 1e6 / (SQ3 * 20e3) / (P_LOAD * 1e3 / math.hypot(P_LOAD * 1e3, Q1 - 1000))) ** 2 * R_L / 1000, (P_LOAD * 1e6 / (SQ3 * 20e3) / (P_LOAD * 1e3 / math.hypot(P_LOAD * 1e3, Q1 - 1000))) * (R_L * P_LOAD * 1e3 / math.hypot(P_LOAD * 1e3, Q1 - 1000) + X_L * (Q1 - 1000) / math.hypot(P_LOAD * 1e3, Q1 - 1000)) / VF * 100),
@@ -412,11 +412,11 @@ def materi():
 
     # 07 — animasi
     isi = anim_panel(1, "cyan", r"Profil Tegangan dan Rugi Penyulang Beban Merata dengan Satu Kapasitor", "cvPenyulang",
-                     [("sl_py_l", "v_py_l", "Panjang penyulang (km)", 4, 20, 1, 10, "10"), ("sl_py_i", "v_py_i", "Arus pangkal (A)", 50, 400, 10, 200, "200"), ("sl_py_pf", "v_py_pf", "Faktor daya beban", 0.6, 1.0, 0.01, 0.8, "0.80"), ("sl_py_qc", "v_py_qc", "Kapasitor Q_C (kVAR)", 0, 5000, 100, 1500, "1500"), ("sl_py_pos", "v_py_pos", "Letak kapasitor (fraksi panjang)", 0, 1, 0.01, 0.67, "0.67")],
+                     [("sl_py_l", "v_py_l", "Panjang penyulang (km)", 4, 20, 1, 10, "10"), ("sl_py_i", "v_py_i", "Arus pangkal (A)", 50, 400, 10, 200, "200"), ("sl_py_pf", "v_py_pf", "Faktor daya beban", 0.6, 1.0, 0.01, 0.8, "0.80"), ("sl_py_qc", "v_py_qc", "Kapasitor Q<sub>C</sub> (kVAR)", 0, 5000, 100, 1500, "1500"), ("sl_py_pos", "v_py_pos", "Letak kapasitor (fraksi panjang)", 0, 1, 0.01, 0.67, "0.67")],
                      "btnPenyulang", "togglePenyulang", "penyulangInfo",
-                     "<strong>📊 Cara Membaca Animasi 1:</strong> Merah profil tegangan tanpa kapasitor, hijau dengan kapasitor (garis ungu letaknya); garis merah putus-putus batas 19 kV. Readout memberi rugi kedua keadaan dan ukuran optimum aturan 2/3.<br>Amati: (1) <strong style=\"color:var(--cyan)\">Geser kapasitor ke ujung</strong>: tegangan ujung naik paling tinggi, tetapi rugi tidak minimum. (2) Atur Q_C dan letak sesuai readout 2/3: rugi minimum. (3) Q_C terlalu besar membuat profil naik di atas 20 kV (tegangan lebih). Soal C4–C8.")
+                     "<strong>📊 Cara Membaca Animasi 1:</strong> Merah profil tegangan tanpa kapasitor, hijau dengan kapasitor (garis ungu letaknya); garis merah putus-putus batas 19 kV. Readout memberi rugi kedua keadaan dan ukuran optimum aturan 2/3.<br>Amati: (1) <strong style=\"color:var(--cyan)\">Geser kapasitor ke ujung</strong>: tegangan ujung naik paling tinggi, tetapi rugi tidak minimum. (2) Atur Q<sub>C</sub> dan letak sesuai readout 2/3: rugi minimum. (3) Q<sub>C</sub> terlalu besar membuat profil naik di atas 20 kV (tegangan lebih). Soal C4–C8.")
     isi += anim_panel(2, "amber", r"Aturan Dua-Pertiga: Pengurangan Rugi terhadap Ukuran, Letak, dan Sebaran Beban", "cvDuaPertiga",
-                      [("sl_dp_c", "v_dp_c", "Ukuran kapasitor (fraksi I_Q)", 0.1, 1.2, 0.01, 0.67, "0.67"), ("sl_dp_lam", "v_dp_lam", "Sebaran beban λ (1 merata, 0 terpusat ujung)", 0, 1, 0.05, 1.0, "1.00")],
+                      [("sl_dp_c", "v_dp_c", "Ukuran kapasitor (fraksi I<sub>Q</sub>)", 0.1, 1.2, 0.01, 0.67, "0.67"), ("sl_dp_lam", "v_dp_lam", "Sebaran beban λ (1 merata, 0 terpusat ujung)", 0, 1, 0.05, 1.0, "1.00")],
                       "btnDuaPertiga", "toggleDuaPertiga", "duaPertigaInfo",
                       "<strong>📊 Cara Membaca Animasi 2:</strong> Kurva pengurangan rugi reaktif terhadap letak kapasitor untuk beberapa ukuran; kurva hijau tebal adalah ukuran yang Anda pilih, titik berkedip optimumnya.<br>Amati: (1) <strong style=\"color:var(--amber)\">Beban merata, ukuran 2/3</strong>: optimum di 67 % dengan 88,9 %. (2) Geser λ ke 0 (beban terpusat di ujung): optimum bergeser ke ujung dengan ukuran 100 %. (3) Ukuran > 1 selalu lebih buruk: arus kapasitif berlebih. Soal C7, C8, dan C13.")
     isi += anim_panel(3, "green", r"Kurva Beban Harian: Kapasitor Tetap + Switched dan Faktor Daya di Titik Sambung", "cvHarian",
@@ -427,14 +427,14 @@ def materi():
                       [("sl_rg_vs", "v_rg_vs", "Tegangan sumber (pu dari 20 kV)", 0.92, 1.05, 0.01, 0.98, "0.98"), ("sl_rg_i", "v_rg_i", "Arus pangkal (A)", 50, 400, 10, 250, "250"), ("sl_rg_set", "v_rg_set", "Setpoint titik regulasi (pu)", 0.95, 1.05, 0.005, 1.0, "1.000"), ("sl_rg_ldc", "v_rg_ldc", "Titik regulasi LDC (fraksi panjang)", 0, 1, 0.05, 0.5, "0.50")],
                       "btnRegulator", "toggleRegulator", "regulatorInfo",
                       "<strong>📊 Cara Membaca Animasi 4:</strong> Merah profil tanpa regulator, hijau dengan regulator di pangkal yang memilih tingkat (5/8 %, ±16) agar tegangan di titik LDC (garis ungu) sama dengan setpoint; garis merah putus-putus batas 19 dan 21 kV.<br>Amati: (1) <strong style=\"color:var(--pink)\">Naikkan arus pangkal</strong>: regulator menambah tingkat, seluruh profil terangkat, tetapi pangkal dapat melampaui 21 kV. (2) Geser LDC ke ujung: ujung tepat di setpoint, pangkal terlalu tinggi; ke pangkal: ujung tetap rendah. (3) Tegangan sumber rendah + beban berat dapat melampaui 16 tingkat. Soal C9, C10, dan C14.")
-    isi += kotak("info-box", f"<strong>🔍 Latihan Mandiri:</strong> pada Animasi 1 atur 8 km, 144 A (setara 4 MW pf 0,8 di ujung tidak persis merata, tetapi bandingkan kecenderungannya), lalu cari Q_C dan letak yang membuat rugi minimum dan bandingkan dengan aturan 2/3 di readout. Pada Animasi 3 atur tetap {ind(QC * 0.36, 0)} dan switched {ind(QC * 0.64, 0)} kVAR dan periksa tidak ada jam mendahului.")
+    isi += kotak("info-box", f"<strong>🔍 Latihan Mandiri:</strong> pada Animasi 1 atur 8 km, 144 A (setara 4 MW pf 0,8 di ujung tidak persis merata, tetapi bandingkan kecenderungannya), lalu cari Q<sub>C</sub> dan letak yang membuat rugi minimum dan bandingkan dengan aturan 2/3 di readout. Pada Animasi 3 atur tetap {ind(QC * 0.36, 0)} dan switched {ind(QC * 0.64, 0)} kVAR dan periksa tidak ada jam mendahului.")
     m += bagian(7, "m-animasi", "Animasi Interaktif<br>Kompensasi Distribusi",
                 "Geser ukuran dan letak kapasitor, sebaran beban, jadwal switching, dan setelan regulator, lalu amati profil tegangan penyulang, rugi, faktor daya sepanjang hari, dan tingkat regulator yang dipilih. Empat animasi ini memvisualkan Persamaan (1)–(5).",
                 isi, "ANIMASI")
 
     # 08 — python
     isi = kotak("info-box", "<strong>📦 Paket yang Diperlukan:</strong> <code style=\"font-family:'JetBrains Mono',monospace;color:var(--cyan)\">numpy</code> dan <code style=\"font-family:'JetBrains Mono',monospace;color:var(--cyan)\">matplotlib</code>. Untuk soal tugas, yang dinilai adalah <strong>nilai numerik yang Anda <code>print()</code></strong>; perhatikan satuan (kVAR, A, kW, V, %, kWh, µF) dan jumlah desimal yang diminta.")
-    isi += kode("Cell 1 — Kapasitor Shunt: Q_C, Arus, Rugi, dan Kapasitas Terbebas", f'''import numpy as np
+    isi += kode("Cell 1 — Kapasitor Shunt: Q<sub>C</sub>, Arus, Rugi, dan Kapasitas Terbebas", f'''import numpy as np
 
 tanpf = lambda pf: np.tan(np.arccos(pf))
 P, pf1, pf2, VL, R = {ind(P_LOAD, 0)}e6, {ind(PF1, 1).replace(",", ".")}, {ind(PF2, 2).replace(",", ".")}, 20e3, {ind(R_L, 1).replace(",", ".")}
@@ -510,7 +510,7 @@ print(f"faktor rugi = {{F_rugi:.3f}}; hemat = {{E/1e3:.1f}} MWh/tahun = Rp {{E*1
 # bank kapasitor delta 20 kV
 Qc, VL, w = {ind(QC, 1).replace(",", ".")}e3, 20e3, 2*np.pi*50
 print(f"bank {{Qc/1e3:.0f}} kVAR: I = {{Qc/(np.sqrt(3)*VL):.2f}} A; C per fasa (delta) = {{Qc/(3*w*VL**2)*1e6:.3f}} uF; pada 19 kV hanya memberi {{Qc/1e3*(19/20)**2:.0f}} kVAR")''')
-    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 02–06: Q_C = {ind(QC, 0)} kVAR, rugi {ind(LOSS1, 0)} → {ind(LOSS2, 0)} kW, ΔV {ind(DV1 / VF * 100, 1)} → {ind(DV2 / VF * 100, 1)} %, kapasitor optimum {ind(QC_23, 0)} kVAR, dan {math.ceil(N_LOG)} tingkat regulator. Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
+    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 02–06: Q<sub>C</sub> = {ind(QC, 0)} kVAR, rugi {ind(LOSS1, 0)} → {ind(LOSS2, 0)} kW, ΔV {ind(DV1 / VF * 100, 1)} → {ind(DV2 / VF * 100, 1)} %, kapasitor optimum {ind(QC_23, 0)} kVAR, dan {math.ceil(N_LOG)} tingkat regulator. Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
     m += bagian(8, "m-jupyter", "Implementasi Python<br>di Jupyter Notebook",
                 "Empat cell berikut mengerjakan seluruh contoh modul ini: ukuran kapasitor dan efeknya pada arus dan rugi, jatuh tegangan dan profil penyulang, aturan dua-pertiga dengan pemeriksaan numerik, serta regulator, ekonomi, dan bank kapasitor. Salin satu cell utuh ke Jupyter Notebook (VS Code), jalankan apa adanya lebih dulu, baru ubah parameternya.",
                 isi, "IMPLEMENTASI PYTHON")
@@ -550,11 +550,11 @@ TUGAS_HERO = f'''<div class="hero" data-tab="tugas" style="min-height:60vh">
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">Q_C = P(tan φ₁ − tan φ₂)</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">ΔV_naik ≈ Q_C·X/V²</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">Q<sub>C</sub> = P(tan φ₁ − tan φ₂)</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">ΔV<sub>naik</sub> ≈ Q<sub>C</sub>·X/V²</span>
     <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">2/3 Q pada 2/3 ℓ</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">n = ln(V_t/V)/ln 1,00625</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">E = ΔP·8760·F_rugi</span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">n = ln(V<sub>t</sub>/V)/ln 1,00625</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">E = ΔP·8760·F<sub>rugi</sub></span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan {PERTEMUAN} · {JUDUL_PANJANG}</div>
@@ -601,7 +601,7 @@ MC = [
      "Letak kapasitor"),
 ]
 
-COMP_EZ_LABELS = ["kVAR perbaikan faktor daya penyulang", "Arus sesudah pf naik (P tetap)", "Rugi sesudah pf naik (∝ 1/pf²)", "Jatuh tegangan penyulang I(R cos φ + X sin φ)", "Kenaikan tegangan Q_C·X/V²",
+COMP_EZ_LABELS = ["kVAR perbaikan faktor daya penyulang", "Arus sesudah pf naik (P tetap)", "Rugi sesudah pf naik (∝ 1/pf²)", "Jatuh tegangan penyulang I(R cos φ + X sin φ)", "Kenaikan tegangan Q<sub>C</sub>·X/V²",
                   "Ukuran kapasitor untuk kenaikan target", "Kapasitor optimum aturan 2/3", "Pengurangan rugi 8/9", "Tingkat regulator (linear)", "Tegangan sekunder pada tap +2,5 %"]
 COMP_HARD_LABELS = ["ΔV sebelum dan sesudah kompensasi (%)", "Penghematan energi tahunan (kWh)", "Dua kapasitor optimum (2/5 masing-masing)",
                     "Tingkat regulator logaritmik", "Arus dan C per fasa bank Δ"]
@@ -635,8 +635,8 @@ FQ_JUDUL = [
     "Regulator di pangkal atau kapasitor? Bandingkan keduanya untuk tegangan ujung dan rugi, lalu susun urutan pemasangan yang tepat.",
 ]
 FQ_RINGKAS = [
-    f"Penyulang 20 kV {ind(LF, 0)} km (r {ind(RF_KM, 1)}, x {ind(XF_KM, 2)} Ω/km) berbeban merata {ind(PF_MW, 0)} MW pf {ind(PFF, 2)}: arus pangkal, I_Q, Q_beban (Persamaan 1); jatuh tegangan beban merata = ½ I(R cos φ + X sin φ) dan rugi = ⅓ · 3I²R (Persamaan 3 dan Modul 6); tegangan ujung terhadap batas 19 kV.",
-    f"Aturan 2/3 (Persamaan 4): Q_C = 2/3 Q_beban di 2/3 panjang; kenaikan tegangan di titik dan ujung (I_C·X hulu, Persamaan 3); rugi sesudahnya (pengurangan 8/9 rugi reaktif); Q malam ≈ 35 % → bagian tetap vs switched agar tidak ada tegangan lebih malam.",
+    f"Penyulang 20 kV {ind(LF, 0)} km (r {ind(RF_KM, 1)}, x {ind(XF_KM, 2)} Ω/km) berbeban merata {ind(PF_MW, 0)} MW pf {ind(PFF, 2)}: arus pangkal, I<sub>Q</sub>, Q<sub>beban</sub> (Persamaan 1); jatuh tegangan beban merata = ½ I(R cos φ + X sin φ) dan rugi = ⅓ · 3I²R (Persamaan 3 dan Modul 6); tegangan ujung terhadap batas 19 kV.",
+    f"Aturan 2/3 (Persamaan 4): Q<sub>C</sub> = 2/3 Q<sub>beban</sub> di 2/3 panjang; kenaikan tegangan di titik dan ujung (I<sub>C</sub>·X hulu, Persamaan 3); rugi sesudahnya (pengurangan 8/9 rugi reaktif); Q malam ≈ 35 % → bagian tetap vs switched agar tidak ada tegangan lebih malam.",
     f"Regulator bertingkat (Persamaan 5): tingkat untuk mengangkat ujung {ind(V_UJUNG_F, 2)} → 19,8 kV dan tegangan pangkal yang dihasilkan; regulator tidak mengubah rugi; kapasitor mengubah rugi dan tegangan; urutan: kapasitor 2/3 dulu, regulator/LDC untuk sisa; koordinasi tunda waktu.",
 ]
 
@@ -644,23 +644,23 @@ FQ_RINGKAS = [
 def forum_page():
     q1 = fq(1, "14,165,233", "cyan", FQ_JUDUL[0],
             f"Penyulang 20 kV <b>{ind(LF, 0)} km</b> (AAAC 150: r = {ind(RF_KM, 1)} Ω/km, x = {ind(XF_KM, 2)} Ω/km) memasok kawasan industri dengan beban yang tersebar merata sepanjang penyulang, total <b>{ind(PF_MW, 0)} MW pada pf {ind(PFF, 2)}</b> di jam puncak. Rel gardu dijaga 20 kV. Hitung arus pangkal dan komponen reaktifnya, daya reaktif beban (Persamaan 1), jatuh tegangan sampai ujung (untuk beban merata = setengah jatuh tegangan beban terpusat, Persamaan 3), tegangan ujung, dan rugi penyulang (beban merata = sepertiga 3I²R). Bandingkan tegangan ujung dengan batas 19 kV dan jelaskan peran arus reaktif di dalamnya.",
-            ["I = P/(√3·V·pf)", "ΔV_merata = ½·I(R cos φ + X sin φ)", "rugi_merata = ⅓·3I²R"],
+            ["I = P/(√3·V·pf)", "ΔV<sub>merata</sub> = ½·I(R cos φ + X sin φ)", "rugi<sub>merata</sub> = ⅓·3I²R"],
             f"Tegangan ujung penyulang dan rugi puncaknya kira-kira...",
-            [f"{ind(20 - 2 * DV_F * SQ3 / 1000, 2)} kV dan {ind(3 * LOSS_F, 0)} kW (seolah beban terpusat di ujung)", f"20 kV dan 0 kW, karena beban tersebar", f"{ind(V_UJUNG_F, 2)} kV (ΔV {ind(DV_F / VF * 100, 1)} %) dan {ind(LOSS_F, 0)} kW: di bawah 19 kV, sebagian besar ΔV dari X·I_Q", f"{ind(V_UJUNG_F, 2)} kV dan {ind(LOSS_F, 0)} kW, tetapi arus reaktif tidak berperan pada tegangan"],
-            f"✅ Tepat! \\(I = {ind(PF_MW, 0)}\\times10^6/(\\sqrt{{3}}\\times20\\times10^3\\times{ind(PFF, 2)}) = {ind(I_F, 1)}\\) A, \\(I_Q = {ind(IQ_F, 1)}\\) A, \\(Q = {ind(Q_F, 0)}\\) kVAR. R = {ind(RF, 1)} Ω, X = {ind(XF, 1)} Ω: \\(\\Delta V = \\tfrac{{1}}{{2}}\\times{ind(I_F, 1)}({ind(RF, 1)}\\times{ind(PFF, 2)} + {ind(XF, 1)}\\times{ind(math.sin(math.acos(PFF)), 3)}) = {ind(DV_F, 0)}\\) V/fasa = {ind(DV_F / VF * 100, 2)} % → ujung {ind(V_UJUNG_F, 2)} kV; suku X·I_Q menyumbang {ind(XF * math.sin(math.acos(PFF)) / (RF * PFF + XF * math.sin(math.acos(PFF))) * 100, 0)} %. Rugi = ⅓ × 3 × {ind(I_F, 1)}² × {ind(RF, 1)} = {ind(LOSS_F, 0)} kW.",
+            [f"{ind(20 - 2 * DV_F * SQ3 / 1000, 2)} kV dan {ind(3 * LOSS_F, 0)} kW (seolah beban terpusat di ujung)", f"20 kV dan 0 kW, karena beban tersebar", f"{ind(V_UJUNG_F, 2)} kV (ΔV {ind(DV_F / VF * 100, 1)} %) dan {ind(LOSS_F, 0)} kW: di bawah 19 kV, sebagian besar ΔV dari X·I<sub>Q</sub>", f"{ind(V_UJUNG_F, 2)} kV dan {ind(LOSS_F, 0)} kW, tetapi arus reaktif tidak berperan pada tegangan"],
+            f"✅ Tepat! \\(I = {ind(PF_MW, 0)}\\times10^6/(\\sqrt{{3}}\\times20\\times10^3\\times{ind(PFF, 2)}) = {ind(I_F, 1)}\\) A, \\(I_Q = {ind(IQ_F, 1)}\\) A, \\(Q = {ind(Q_F, 0)}\\) kVAR. R = {ind(RF, 1)} Ω, X = {ind(XF, 1)} Ω: \\(\\Delta V = \\tfrac{{1}}{{2}}\\times{ind(I_F, 1)}({ind(RF, 1)}\\times{ind(PFF, 2)} + {ind(XF, 1)}\\times{ind(math.sin(math.acos(PFF)), 3)}) = {ind(DV_F, 0)}\\) V/fasa = {ind(DV_F / VF * 100, 2)} % → ujung {ind(V_UJUNG_F, 2)} kV; suku X·I<sub>Q</sub> menyumbang {ind(XF * math.sin(math.acos(PFF)) / (RF * PFF + XF * math.sin(math.acos(PFF))) * 100, 0)} %. Rugi = ⅓ × 3 × {ind(I_F, 1)}² × {ind(RF, 1)} = {ind(LOSS_F, 0)} kW.",
             "❌ Untuk beban tersebar merata, jatuh tegangan sampai ujung adalah setengah dan rugi sepertiga dari kasus beban terpusat di ujung (arus berkurang linear sepanjang penyulang). Hitung I dulu, lalu terapkan faktor ½ dan ⅓.",
-            "Petunjuk: (1) Hitung I, I_Q, Q. (2) Hitung ΔV (faktor ½), tegangan ujung, rugi (faktor ⅓). (3) Bandingkan dengan 19 kV dan pisahkan sumbangan R·I_P dan X·I_Q.")
+            "Petunjuk: (1) Hitung I, komponen reaktif arus, dan Q. (2) Hitung ΔV (faktor ½), tegangan ujung, rugi (faktor ⅓). (3) Bandingkan dengan 19 kV dan pisahkan sumbangan R × arus aktif dan X × arus reaktif.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
-            f"Rancang kapasitor dengan aturan dua-pertiga (Persamaan 4): ukuran Q_C dan letaknya. Hitung arus kapasitor, kenaikan tegangan di titik kapasitor dan di ujung (I_C dikali reaktansi hulu, Persamaan 3), tegangan ujung yang baru, dan rugi sesudahnya (pengurangan 8/9 dari rugi akibat arus reaktif). Daya reaktif malam hanya sekitar 35 % daya reaktif siang: bagi Q_C menjadi bagian tetap dan switched, dan hitung kenaikan tegangan malam bila seluruh Q_C dibiarkan tetap. Bahas pula unit kapasitor standar (300 kVAR) dan pengendali yang dipilih.",
-            ["Q_C = 2/3 Q_beban di 2/3 ℓ", "ΔV_naik = I_C·X_hulu", "Δrugi = 8/9 rugi reaktif"],
+            f"Rancang kapasitor dengan aturan dua-pertiga (Persamaan 4): ukuran Q<sub>C</sub> dan letaknya. Hitung arus kapasitor, kenaikan tegangan di titik kapasitor dan di ujung (I<sub>C</sub> dikali reaktansi hulu, Persamaan 3), tegangan ujung yang baru, dan rugi sesudahnya (pengurangan 8/9 dari rugi akibat arus reaktif). Daya reaktif malam hanya sekitar 35 % daya reaktif siang: bagi Q<sub>C</sub> menjadi bagian tetap dan switched, dan hitung kenaikan tegangan malam bila seluruh Q<sub>C</sub> dibiarkan tetap. Bahas pula unit kapasitor standar (300 kVAR) dan pengendali yang dipilih.",
+            ["Q<sub>C</sub> = 2/3 Q<sub>beban</sub> di 2/3 ℓ", "ΔV<sub>naik</sub> = I<sub>C</sub>·X<sub>hulu</sub>", "Δrugi = 8/9 rugi reaktif"],
             f"Kapasitor aturan 2/3 untuk penyulang ini dan tegangan ujung sesudahnya kira-kira...",
-            [f"Q_C ≈ {ind(QC_F, 0)} kVAR di km {ind(POS_F, 0)}; ujung naik ke ≈ {ind(V_UJUNG_F2, 2)} kV, rugi turun ke ≈ {ind(LOSS_F2, 0)} kW; malam sebaiknya hanya ≈ {ind(Q_MALAM, 0)} kVAR tetap", f"Q_C ≈ {ind(Q_F, 0)} kVAR di ujung; pf menjadi 1 dan rugi nol", f"Q_C ≈ {ind(QC_F, 0)} kVAR di pangkal gardu; efeknya sama di mana pun", f"Q_C ≈ {ind(QC_F / 3, 0)} kVAR di km {ind(POS_F, 0)}"],
+            [f"Q<sub>C</sub> ≈ {ind(QC_F, 0)} kVAR di km {ind(POS_F, 0)}; ujung naik ke ≈ {ind(V_UJUNG_F2, 2)} kV, rugi turun ke ≈ {ind(LOSS_F2, 0)} kW; malam sebaiknya hanya ≈ {ind(Q_MALAM, 0)} kVAR tetap", f"Q<sub>C</sub> ≈ {ind(Q_F, 0)} kVAR di ujung; pf menjadi 1 dan rugi nol", f"Q<sub>C</sub> ≈ {ind(QC_F, 0)} kVAR di pangkal gardu; efeknya sama di mana pun", f"Q<sub>C</sub> ≈ {ind(QC_F / 3, 0)} kVAR di km {ind(POS_F, 0)}"],
             f"✅ Tepat! \\(Q_C = \\tfrac{{2}}{{3}}\\times{ind(Q_F, 0)} = {ind(QC_F, 0)}\\) kVAR pada \\(\\tfrac{{2}}{{3}}\\times{ind(LF, 0)} = {ind(POS_F, 0)}\\) km; \\(I_C = {ind(IC_F, 1)}\\) A; kenaikan di titik = \\({ind(IC_F, 1)}\\times{ind(XF_KM, 2)}\\times{ind(POS_F, 0)} = {ind(DV_RISE_F, 0)}\\) V ({ind(DV_RISE_F / VF * 100, 2)} %), sama di ujung → ujung ≈ {ind(V_UJUNG_F2, 2)} kV. Rugi reaktif {ind(LOSSQ_F, 0)} kW berkurang 8/9 → rugi total ≈ {ind(LOSS_F2, 0)} kW. Malam Q ≈ {ind(Q_MALAM, 0)} kVAR: bila {ind(QC_F, 0)} kVAR tetap, kelebihan {ind(QC_F - Q_MALAM, 0)} kVAR menaikkan tegangan ≈ {ind(V_NIGHT_RISE, 1)} %; pilih tetap ≈ {ind(Q_MALAM, 0)} kVAR (mis. 2 × 300 + …) dan sisanya switched dengan kendali waktu/VAR.",
             "❌ Aturan 2/3 berlaku untuk beban merata: dua-pertiga daya reaktif di dua-pertiga panjang, bukan seluruh Q di ujung atau di pangkal. Kenaikan tegangan dihitung dari arus kapasitor dikali reaktansi dari gardu ke titik kapasitor.",
-            "Petunjuk: (1) Hitung Q_C, letak, I_C. (2) Hitung kenaikan tegangan, ujung baru, rugi baru. (3) Bagi tetap/switched dari Q malam dan hitung risiko tegangan malam.")
+            "Petunjuk: (1) Hitung daya reaktif kapasitor, letaknya, dan arus kapasitor. (2) Hitung kenaikan tegangan, ujung baru, rugi baru. (3) Bagi tetap/switched dari Q malam dan hitung risiko tegangan malam.")
     q3 = fq(3, "168,85,247", "violet", FQ_JUDUL[2],
             f"Manajer rayon mengusulkan memasang regulator tegangan bertingkat di pangkal penyulang sebagai ganti kapasitor. Hitung jumlah tingkat (Persamaan 5) untuk mengangkat tegangan ujung dari {ind(V_UJUNG_F, 2)} kV ke 19,8 kV dan tegangan pangkal yang dihasilkan (batas 21 kV); apakah rugi penyulang berubah? Bandingkan dengan kapasitor dari pertanyaan 2 dalam hal tegangan ujung, rugi, kapasitas trafo, dan biaya. Lalu susun urutan pemasangan yang tepat (kapasitor dulu atau regulator dulu), setelan LDC, dan koordinasi tunda waktu agar kapasitor switched dan regulator tidak saling 'berebut'.",
-            ["n = ln(V_t/V)/ln 1,00625", "regulator: rugi tetap", "kapasitor: rugi turun"],
+            ["n = ln(V<sub>t</sub>/V)/ln 1,00625", "regulator: rugi tetap", "kapasitor: rugi turun"],
             f"Regulator di pangkal untuk mengangkat ujung ke 19,8 kV memerlukan kira-kira...",
             [f"{math.ceil(N_REG)} tingkat dan rugi turun {ind((1 - LOSS_F2 / LOSS_F) * 100, 0)} % seperti kapasitor", f"{math.ceil(N_REG)} tingkat (≈ {ind((1.00625 ** math.ceil(N_REG) - 1) * 100, 1)} %); pangkal menjadi ≈ {ind(20 * 1.00625 ** math.ceil(N_REG), 2)} kV, dan rugi TIDAK berubah karena arus reaktif tetap lewat penyulang", f"32 tingkat penuh; rugi naik dua kali", f"{math.ceil(N_REG)} tingkat; pangkal tetap 20 kV karena regulator hanya mengatur ujung"],
             f"✅ Tepat! \\(n = \\ln(19{{,}}8/{ind(V_UJUNG_F, 2)})/\\ln 1{{,}}00625 = {ind(N_REG, 2)}\\) → {math.ceil(N_REG)} tingkat; pangkal naik ke {ind(20 * 1.00625 ** math.ceil(N_REG), 2)} kV (masih < 21 kV). Arus penyulang tidak berubah sehingga rugi tetap {ind(LOSS_F, 0)} kW, sedangkan kapasitor menurunkannya ke {ind(LOSS_F2, 0)} kW dan membebaskan kapasitas trafo. Urutan yang benar: kapasitor 2/3 dulu (rugi dan sebagian tegangan), lalu regulator dengan LDC ke pusat beban untuk sisa tegangan; regulator diberi tunda lebih lama daripada kapasitor switched agar tidak hunting.",
@@ -677,8 +677,8 @@ def forum_page():
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">ΔV = ½ I(R cos φ + X sin φ)</span>
-    <span class="ff" style="left:32%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">Q_C = 2/3 Q di 2/3 ℓ</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">n = ln(V_t/V)/ln 1,00625</span>
+    <span class="ff" style="left:32%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">Q<sub>C</sub> = 2/3 Q di 2/3 ℓ</span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">n = ln(V<sub>t</sub>/V)/ln 1,00625</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">19 kV?</span>
   </div>
   <div class="hero-content">

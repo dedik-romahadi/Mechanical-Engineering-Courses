@@ -60,7 +60,7 @@ function drawIsolator(){
   const wb=bw2/n*0.7;
   for(let i=0;i<n;i++){const idx=n-1-i; const hh=volt[idx]/vmax*bh; const x=bx+bw2/n*(i+0.5)-wb/2; ctx.fillStyle=idx===n-1?'rgba(239,68,68,.85)':'rgba(0,229,255,.8)'; ctx.fillRect(x,by+bh-hh,wb,hh); ctx.fillStyle='#e2e8f0'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText(volt[idx].toFixed(1),x+wb/2,by+bh-hh-4); ctx.fillStyle='rgba(148,163,184,.85)'; ctx.fillText('#'+(idx+1),x+wb/2,by+bh+12);}
   _ttlGaris(ctx,bx,by+bh-Vfasa/n/vmax*bh,bx+bw2,by+bh-Vfasa/n/vmax*bh,'rgba(0,224,158,.9)',1.4,[5,4]); ctx.fillStyle='rgba(0,224,158,.95)'; ctx.textAlign='left'; ctx.fillText('rata-rata '+(Vfasa/n).toFixed(2)+' kV',bx+4,by+bh-Vfasa/n/vmax*bh-5);
-  _ttlTulis('isolatorInfo','n = '+n+', k = '+kk.toFixed(2)+': tegangan piring (dari konduktor) = '+volt.slice().reverse().map(v=>v.toFixed(2)).join(' / ')+' kV;  piring terdekat konduktor memikul '+vmax.toFixed(2)+' kV ('+(vmax/(Vfasa/n)).toFixed(2)+'× rata-rata)   |   efisiensi rentengan = V/(n·V_maks) = '+eff.toFixed(2)+' %   |   k → 0 (cincin perata, grading) membuat distribusi merata');
+  _ttlTulis('isolatorInfo','n = '+n+', k = '+kk.toFixed(2)+': tegangan piring (dari konduktor) = '+volt.slice().reverse().map(v=>v.toFixed(2)).join(' / ')+' kV;  piring terdekat konduktor memikul '+vmax.toFixed(2)+' kV ('+(vmax/(Vfasa/n)).toFixed(2)+'× rata-rata)   |   efisiensi rentengan = V/(n·V<sub>maks</sub>) = '+eff.toFixed(2)+' %   |   k → 0 (cincin perata, grading) membuat distribusi merata');
   if(_ttlJalan('isolator')){_isFrame++; requestAnimationFrame(drawIsolator);}
 }
 
@@ -117,13 +117,13 @@ function drawKorona(){
   for(let i=0;i<=5;i++) ctx.fillText((Vmax*i/5).toFixed(0)+' kV',X(Vmax*i/5),padT+plotH+16);
   ctx.textAlign='right'; for(let i=1;i<=4;i++) ctx.fillText((Pm*i/4).toFixed(1)+' kW/km',padL-4,Y(Pm*i/4)+4);
   ctx.strokeStyle='rgba(236,72,153,.95)'; ctx.lineWidth=2.4; ctx.beginPath(); for(let i=0;i<=200;i++){const v=Vmax*i/200; i?ctx.lineTo(X(v),Y(rugi(v))):ctx.moveTo(X(v),Y(rugi(v)));} ctx.stroke();
-  _ttlGaris(ctx,X(Vc),padT,X(Vc),padT+plotH,'rgba(255,179,0,.9)',1.5,[5,4]); ctx.fillStyle='rgba(255,179,0,.95)'; ctx.textAlign='left'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.fillText('V_c = '+Vc.toFixed(1)+' kV',X(Vc)+4,padT+12);
+  _ttlGaris(ctx,X(Vc),padT,X(Vc),padT+plotH,'rgba(255,179,0,.9)',1.5,[5,4]); ctx.fillStyle='rgba(255,179,0,.95)'; ctx.textAlign='left'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.fillText('V<sub>c</sub> = '+Vc.toFixed(1)+' kV',X(Vc)+4,padT+12);
   const a=0.5+0.5*Math.sin(_koFrame*0.1);
-  _ttlGaris(ctx,X(Vf),padT,X(Vf),padT+plotH,Vf>Vc?'rgba(239,68,68,'+a.toFixed(2)+')':'rgba(0,224,158,.9)',2); ctx.fillStyle=Vf>Vc?'rgba(239,68,68,.95)':'rgba(0,224,158,.95)'; ctx.fillText('V_fasa = '+Vf.toFixed(1)+' kV'+(Vf>Vc?' ⚠ KORONA':' aman'),X(Vf)+4,padT+26);
+  _ttlGaris(ctx,X(Vf),padT,X(Vf),padT+plotH,Vf>Vc?'rgba(239,68,68,'+a.toFixed(2)+')':'rgba(0,224,158,.9)',2); ctx.fillStyle=Vf>Vc?'rgba(239,68,68,.95)':'rgba(0,224,158,.95)'; ctx.fillText('V<sub>fasa</sub> = '+Vf.toFixed(1)+' kV'+(Vf>Vc?' ⚠ KORONA':' aman'),X(Vf)+4,padT+26);
   // ikon konduktor berkas
   const cx=W-70, cy=padT+50; for(let i=0;i<nb;i++){const ang=2*Math.PI*i/nb; const px=cx+(nb>1?18:0)*Math.cos(ang), py=cy+(nb>1?18:0)*Math.sin(ang); ctx.fillStyle='rgba(148,163,184,.9)'; ctx.beginPath(); ctx.arc(px,py,5,0,Math.PI*2); ctx.fill(); if(Vf>Vc){ctx.strokeStyle='rgba(168,85,247,'+(0.3+0.5*a).toFixed(2)+')'; ctx.beginPath(); ctx.arc(px,py,9+4*a,0,Math.PI*2); ctx.stroke();}}
-  ctx.fillStyle='rgba(148,163,184,.9)'; ctx.textAlign='center'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('berkas '+nb+'×, r_eq '+req.toFixed(2)+' cm',cx,cy+40);
-  _ttlTulis('koronaInfo','r_eq = '+req.toFixed(3)+' cm ('+nb+' sub-konduktor); V_c = 21,1·m·δ·r_eq·ln(D/r_eq) = '+Vc.toFixed(2)+' kV fasa = '+(Vc*_SQ3_8).toFixed(1)+' kV antar-saluran   |   V_fasa '+Vf.toFixed(2)+' kV → '+(Vf>Vc?'rugi korona ≈ '+rugi(Vf).toFixed(3)+' kW/km/fasa (Peek, cuaca cerah; hujan bisa ×5–10)':'di bawah V_c: tanpa korona (cuaca cerah)')+'   |   gradien permukaan ≈ '+(Vf/(req*Math.log(D/req))).toFixed(2)+' kV/cm rms (kritis ≈ 21,1·m)');
+  ctx.fillStyle='rgba(148,163,184,.9)'; ctx.textAlign='center'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('berkas '+nb+'×, r<sub>eq</sub> '+req.toFixed(2)+' cm',cx,cy+40);
+  _ttlTulis('koronaInfo','r<sub>eq</sub> = '+req.toFixed(3)+' cm ('+nb+' sub-konduktor); V<sub>c</sub> = 21,1·m·δ·r<sub>eq</sub>·ln(D/r<sub>eq</sub>) = '+Vc.toFixed(2)+' kV fasa = '+(Vc*_SQ3_8).toFixed(1)+' kV antar-saluran   |   V<sub>fasa</sub> '+Vf.toFixed(2)+' kV → '+(Vf>Vc?'rugi korona ≈ '+rugi(Vf).toFixed(3)+' kW/km/fasa (Peek, cuaca cerah; hujan bisa ×5–10)':'di bawah V<sub>c</sub>: tanpa korona (cuaca cerah)')+'   |   gradien permukaan ≈ '+(Vf/(req*Math.log(D/req))).toFixed(2)+' kV/cm rms (kritis ≈ 21,1·m)');
   if(_ttlJalan('korona')){_koFrame++; requestAnimationFrame(drawKorona);}
 }
 

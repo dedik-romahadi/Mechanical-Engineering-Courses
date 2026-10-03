@@ -123,7 +123,7 @@ def gambar3():
     b += t(p[0] + 4, p[1], "profil XZ", 10.5, "#f59e0b", "start")
     b += t(470, 56, "Revolution:", 11, "#f59e0b", "start", "600")
     b += t(470, 74, "profil tertutup + sumbu, sudut 0–360°", 10, AX, "start")
-    b += t(470, 104, f"V = π(r_o² − r_i²)·h", 11, TX, "start")
+    b += t(470, 104, f"V = π(r<sub>o</sub>² − r<sub>i</sub>²)·h", 11, TX, "start")
     b += t(470, 122, f"= π({ro}² − {ri}²)·{h} = {ind(V_BUS, 1)} mm³", 10.5, "#00e09e", "start")
     b += t(470, 152, "Pappus: V = 2π·ȳ·A", 11, TX, "start")
     b += t(470, 170, f"ȳ = {(ri + ro) / 2:g}, A = {(ro - ri) * h} → {ind(2 * math.pi * (ri + ro) / 2 * (ro - ri) * h, 1)}", 10.5, "#00e09e", "start")
@@ -163,7 +163,7 @@ def gambar4():
     b += t(p[0], p[1] - r * s - 12, f"lintasan busur R{R} (XZ)", 10.5, "#ec4899", "middle")
     b += t(452, 56, "Additive Pipe (sweep):", 11, "#ec4899", "start", "600")
     b += t(452, 74, "profil tertutup + lintasan (sketsa/edge)", 10, AX, "start")
-    b += t(452, 104, "Pappus: V = A_profil × s_titik berat", 10.5, TX, "start")
+    b += t(452, 104, "Pappus: V = A<sub>profil</sub> × s<sub>titik</sub> berat", 10.5, TX, "start")
     b += t(452, 122, f"= πr² × (πR/2)", 10.5, TX, "start")
     b += t(452, 140, f"= {ind(V_SIKU, 1)} mm³", 10.5, "#00e09e", "start")
     b += t(452, 170, "Loft: ≥ 2 profil → solid transisi", 10, AX, "start")
@@ -215,10 +215,10 @@ def gambar6():
     b += t(p[0] + 6, p[1] - 6, f"chamfer C{C_CH:g} × 45°", 10, "#ec4899", "start")
     b += t(450, 50, "Satu Revolution dari setengah profil:", 11, "#f59e0b", "start", "600")
     b += t(450, 68, f"⌀{D1} × {L1} dan ⌀{D2} × {L2} searah Z", 10, AX, "start")
-    b += t(450, 98, "V = πR₁²L₁ + πR₂²L₂ − V_chamfer", 11, TX, "start")
+    b += t(450, 98, "V = πR₁²L₁ + πR₂²L₂ − V<sub>chamfer</sub>", 11, TX, "start")
     b += t(450, 116, f"= {ind(V_POROS, 1)} − {ind(V_CHAMFER, 2)}", 10.5, AX, "start")
     b += t(450, 134, f"= {ind(V_POROS - V_CHAMFER, 1)} mm³", 10.5, "#00e09e", "start")
-    b += t(450, 164, "V_chamfer (Pappus, cincin segitiga):", 11, TX, "start")
+    b += t(450, 164, "V<sub>chamfer</sub> (Pappus, cincin segitiga):", 11, TX, "start")
     b += t(450, 182, f"π·c²·(R₂ − c/3) = {ind(V_CHAMFER, 2)} mm³", 10.5, "#00e09e", "start")
     b += teks2(340, 258, "Poros bertingkat dibuat sekali putar; chamfer ujung membuang cincin bersayap segitiga yang volumenya dihitung teorema Pappus", 11, AX, maks=70)
     return svg(680, 284, b, "Gambar 6 — Poros bertingkat: Revolution setengah profil dan chamfer ujung")
@@ -491,7 +491,7 @@ def materi():
     m += bagian(3, "m-pad", "Pad dan Pocket:<br>Menebalkan dan Memotong dari Sketsa", "Pad adalah fitur 3D pertama yang dibuat setiap pemodel. Bagian ini membahas parameternya, Pocket sebagai kebalikannya, sketsa di muka solid, dan rumus volume prisma untuk memeriksa hasil.", isi, "PAD DAN POCKET")
 
     # 04 — Revolution
-    isi = figure(3, "Revolution profil XZ menjadi bus berongga", f"Persegi panjang ({RI}…{RO}) × {H_R} pada bidang XZ diputar 360° terhadap sumbu Z; volumenya π(r_o² − r_i²)h = {ind(V_BUS, 1)} mm³, sama dengan teorema Pappus.", gambar3())
+    isi = figure(3, "Revolution profil XZ menjadi bus berongga", f"Persegi panjang ({RI}…{RO}) × {H_R} pada bidang XZ diputar 360° terhadap sumbu Z; volumenya π(r<sub>o</sub>² − r<sub>i</sub>²)h = {ind(V_BUS, 1)} mm³, sama dengan teorema Pappus.", gambar3())
     isi += formula(2, "Volume Benda Putar dan Teorema Pappus", r"V = \pi\left(r_o^{2} - r_i^{2}\right)h, \qquad V = 2\pi\,\bar{y}\,A \ \ (\text{Pappus})",
                    r"\(r_i, r_o\) = radius dalam dan luar &nbsp;·&nbsp; \(h\) = tinggi &nbsp;·&nbsp; \(\bar{y}\) = jarak titik berat profil ke sumbu &nbsp;·&nbsp; \(A\) = luas profil. Contoh: \(V = " + ind(V_BUS, 2) + r"\) mm³.",
                    "Teorema Pappus berlaku untuk profil apa pun: volume benda putar = luas profil × keliling lintasan titik beratnya (2πȳ). Untuk poros bertingkat, cukup menjumlahkan silinder tiap tingkat; untuk profil rumit, Shape.Volume dan Shape.CenterOfMass profil memberi ȳ dan A.",
@@ -503,8 +503,8 @@ def materi():
                   ["Groove", "Revolution subtraktif", "Alur melingkar pada poros (mis. alur ring)"],
                   ["Bidang sketsa", "XZ dengan sumbu Z sebagai sumbu", "Menghasilkan benda putar tegak; profil menempel sumbu → pejal"]])
     isi += anim_panel(3, "green", "Revolution: profil XZ diputar mengelilingi sumbu Z", "cvRevolve",
-                      [("sl_rv_ri", "v_rv_ri", "Radius dalam r_i (mm)", 0, 30, 1, 12, "12"),
-                       ("sl_rv_ro", "v_rv_ro", "Radius luar r_o (mm)", 10, 50, 1, 24, "24"),
+                      [("sl_rv_ri", "v_rv_ri", "Radius dalam r<sub>i</sub> (mm)", 0, 30, 1, 12, "12"),
+                       ("sl_rv_ro", "v_rv_ro", "Radius luar r<sub>o</sub> (mm)", 10, 50, 1, 24, "24"),
                        ("sl_rv_h", "v_rv_h", "Tinggi h (mm)", 10, 60, 1, 36, "36")],
                       "btnRevolve", "toggleRevolve", "revolveInfo",
                       "<strong>Cara membaca:</strong> profil kuning pada bidang XZ disapu mengelilingi sumbu Z dari 0° sampai 360° (PAUSE menahan bentuk penuh). Volume sebanding sudut; pada 360° sama dengan Persamaan (2), dan teorema Pappus memberi angka yang sama lewat ȳ dan A.")

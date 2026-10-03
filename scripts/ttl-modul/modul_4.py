@@ -4,7 +4,7 @@
 import math
 
 from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula, teks2,
-                     fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel)
+                     fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel, rumus_mentah)
 
 NOMOR = 4
 PERTEMUAN = 4
@@ -109,7 +109,7 @@ def gambar1():
     b += kawat(40, 84, 40, 96) + kawat(40, 104, 40, 122)
     b += res_v(290, 85, 135, "#22d3ee", f"R {ind(RS, 0)} Ω", -60)
     b += arrow(140, 60, 200, 60, "#00e09e", 2.2) + t(170, 50, f"I = {ind(I_AID, 3)} A", 12, "#00e09e", "middle", "700")
-    b += t(165, 186, f"E_tot = E₁ + E₂ = {ind(E1S + E2S, 1)} V", 12, TX)
+    b += t(165, 186, f"E<sub>tot</sub> = E₁ + E₂ = {ind(E1S + E2S, 1)} V", 12, TX)
     b += t(495, 24, "Seri saling melawan (opposing)", 12, TX, "middle", "700")
     b += kawat(370, 60, 620, 60) + kawat(370, 160, 620, 160) + kawat(370, 60, 370, 84) + kawat(370, 136, 370, 160) + kawat(620, 60, 620, 160)
     b += sumber(370, 96, "#f59e0b", f"E₁ {ind(E1S, 0)} V", "start", 22)
@@ -118,7 +118,7 @@ def gambar1():
     b += kawat(370, 84, 370, 96) + kawat(370, 104, 370, 122)
     b += res_v(620, 85, 135, "#22d3ee", f"R {ind(RS, 0)} Ω", -60)
     b += arrow(470, 60, 530, 60, "#00e09e", 2.2) + t(500, 50, f"I = {ind(I_OPP, 3)} A", 12, "#00e09e", "middle", "700")
-    b += t(495, 186, f"E_tot = E₁ − E₂ = {ind(E1S - E2S, 1)} V, searah E₁", 12, TX)
+    b += t(495, 186, f"E<sub>tot</sub> = E₁ − E₂ = {ind(E1S - E2S, 1)} V, searah E₁", 12, TX)
     b += t(330, 210, "Dua ggl dalam satu loop: polaritas menentukan apakah keduanya dijumlahkan atau dikurangkan", 11.5, AX)
     return svg(660, 220, b, "Gambar 1 — Dua sumber seri: menguatkan dan melawan")
 
@@ -133,7 +133,7 @@ def gambar2():
     b += res_h(130, 220, yt, "#22d3ee", f"R₁ {ind(R1M, 0)} Ω") + res_h(420, 510, yt, "#a855f7", f"R₂ {ind(R2M, 0)} Ω") + res_v(xm, yt + 30, yb - 30, "#00e09e", f"R₃ {ind(R3M, 0)} Ω")
     b += loop_arrow(205, 110, 26, "#f59e0b", "I₁") + loop_arrow(455, 110, 26, "#f97316", "I₂")
     b += t(xm - 38, 114, f"I₁ − I₂", 10.5, "#00e09e", "end", "600") + arrow(xm - 30, 90, xm - 30, 130, "#00e09e", 1.6)
-    b += t(330, 200, f"Loop 1: {ind(E1M, 0)} = {ind(R1M + R3M, 0)}·I₁ − {ind(R3M, 0)}·I₂;  Loop 2: {ind(E2M, 0)} = {ind(R2M + R3M, 0)}·I₂ − {ind(R3M, 0)}·I₁  →  I₁ = {ind(I1M, 3)} A, I₂ = {ind(I2M, 3)} A, I_R3 = {ind(I3M, 3)} A", 11.5, AX)
+    b += t(330, 200, f"Loop 1: {ind(E1M, 0)} = {ind(R1M + R3M, 0)}·I₁ − {ind(R3M, 0)}·I₂;  Loop 2: {ind(E2M, 0)} = {ind(R2M + R3M, 0)}·I₂ − {ind(R3M, 0)}·I₁  →  I₁ = {ind(I1M, 3)} A, I₂ = {ind(I2M, 3)} A, I<sub>R3</sub> = {ind(I3M, 3)} A", 11.5, AX)
     return svg(660, 214, b, "Gambar 2 — Jaringan dua loop dan arus mesh (kedua ggl mendorong searah jarum jam)")
 
 
@@ -172,16 +172,16 @@ def gambar5():
     b += arrow(235, 100, 265, 100, "#94a3b8", 2)
     b += t(360, 22, "Ekuivalen Thevenin", 11.5, TX, "middle", "700")
     b += kawat(290, 50, 290, 88) + kawat(290, 112, 290, 150) + kawat(290, 50, 400, 50) + kawat(290, 150, 440, 150) + kawat(400, 50, 440, 50)
-    b += f'<rect x="272" y="88" width="36" height="26" fill="{BOX}"/>' + sumber(290, 100, "#f59e0b", f"V_th {ind(VTH, 0)} V", "start", 20)
-    b += res_h(320, 390, 50, "#22d3ee", f"R_th {ind(RTH, 0)} Ω")
+    b += f'<rect x="272" y="88" width="36" height="26" fill="{BOX}"/>' + sumber(290, 100, "#f59e0b", f"V<sub>th</sub> {ind(VTH, 0)} V", "start", 20)
+    b += res_h(320, 390, 50, "#22d3ee", f"R<sub>th</sub> {ind(RTH, 0)} Ω", dy=-13)
     b += f'<circle cx="440" cy="50" r="4" fill="#ec4899"/><circle cx="440" cy="150" r="4" fill="#ec4899"/>' + t(449, 54, "a", 11, "#ec4899", "start", "700") + t(449, 154, "b", 11, "#ec4899", "start", "700")
     b += arrow(468, 100, 498, 100, "#94a3b8", 2)
     b += t(580, 22, "Ekuivalen Norton", 11.5, TX, "middle", "700")
     b += kawat(520, 50, 626, 50) + kawat(520, 150, 626, 150) + kawat(520, 50, 520, 84) + kawat(520, 116, 520, 150) + kawat(574, 50, 574, 80) + kawat(574, 120, 574, 150)
-    b += f'<circle cx="520" cy="100" r="16" fill="{BOX}" stroke="#f59e0b" stroke-width="2"/>' + arrow(520, 110, 520, 90, "#f59e0b", 1.8) + t(512, 136, f"I_N {ind(IN_, 0)} A", 11, "#f59e0b", "end", "700")
-    b += res_v(574, 80, 120, "#22d3ee", f"R_N {ind(RTH, 0)} Ω", 14)
+    b += f'<circle cx="520" cy="100" r="16" fill="{BOX}" stroke="#f59e0b" stroke-width="2"/>' + arrow(520, 110, 520, 90, "#f59e0b", 1.8) + t(512, 136, f"I<sub>N</sub> {ind(IN_, 0)} A", 11, "#f59e0b", "end", "700")
+    b += res_v(574, 80, 120, "#22d3ee", f"R<sub>N</sub> {ind(RTH, 0)} Ω", 14)
     b += f'<circle cx="626" cy="50" r="4" fill="#ec4899"/><circle cx="626" cy="150" r="4" fill="#ec4899"/>' + t(635, 54, "a", 11, "#ec4899", "start", "700") + t(635, 154, "b", 11, "#ec4899", "start", "700")
-    b += t(330, 190, f"V_th = {ind(ET, 0)}·{ind(R2T, 0)}/({ind(R1T, 0)}+{ind(R2T, 0)}) = {ind(VTH, 0)} V;  R_th = {ind(R1T, 0)}‖{ind(R2T, 0)} + {ind(R3T, 0)} = {ind(RTH, 0)} Ω;  I_N = V_th/R_th = {ind(IN_, 0)} A;  P_maks = V_th²/(4R_th) = {ind(PMAKS, 0)} W", 11.5, AX)
+    b += t(330, 190, f"V<sub>th</sub> = {ind(ET, 0)}·{ind(R2T, 0)}/({ind(R1T, 0)}+{ind(R2T, 0)}) = {ind(VTH, 0)} V;  R<sub>th</sub> = {ind(R1T, 0)}‖{ind(R2T, 0)} + {ind(R3T, 0)} = {ind(RTH, 0)} Ω;  I<sub>N</sub> = V<sub>th</sub>/R<sub>th</sub> = {ind(IN_, 0)} A;  P<sub>maks</sub> = V<sub>th</sub>²/(4R<sub>th</sub>) = {ind(PMAKS, 0)} W", 11.5, AX)
     return svg(660, 204, b, "Gambar 5 — Dari jaringan asli ke ekuivalen Thevenin dan Norton")
 
 
@@ -191,11 +191,11 @@ def gambar6():
     b += kawat(xm, yt, xm, 80) + kawat(xm, 140, xm, yb)
     b += res_v(xl, 70, 110, "#22d3ee", f"r₁ {ind(R1P, 2)} Ω", -70) + sumber(xl, 140, "#f59e0b", f"E₁ {ind(E1P, 1)} V", "end", -20)
     b += res_v(xr, 70, 110, "#a855f7", f"r₂ {ind(R2P, 2)} Ω", 14) + sumber(xr, 140, "#f97316", f"E₂ {ind(E2P, 1)} V", "start", 20)
-    b += res_v(xm, 80, 140, "#00e09e", f"R_L {ind(RLP, 1)} Ω", 14)
+    b += res_v(xm, 80, 140, "#00e09e", f"R<sub>L</sub> {ind(RLP, 1)} Ω", 14)
     b += f'<circle cx="{xm}" cy="{yt}" r="5" fill="#ef4444"/>' + t(xm, yt - 14, f"V = {ind(V_P, 3)} V", 11.5, "#ef4444", "middle", "700")
     b += arrow(150, yt + 26, 230, yt + 26, "#f59e0b", 1.8) + t(190, yt + 42, f"I₁ = {ind(I1P, 2)} A", 11, "#f59e0b", "middle", "600")
     b += arrow(450, yt + 26, 370, yt + 26, "#f97316", 1.8) + t(410, yt + 42, f"I₂ = {ind(I2P, 2)} A", 11, "#f97316", "middle", "600")
-    b += t(xm + 14, 134, f"I_L = {ind(ILP, 2)} A", 11, "#00e09e", "start", "600")
+    b += t(xm + 14, 134, f"I<sub>L</sub> = {ind(ILP, 2)} A", 11, "#00e09e", "start", "600")
     b += (f'<path d="M 130 {yb - 14} L 130 {yt + 14} L 470 {yt + 14} L 470 {yb - 14} Z" fill="none" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="5 4"/>'
           + t(300, yb + 18, f"loop putus-putus, tanpa beban: arus sirkulasi (E₁−E₂)/(r₁+r₂) = {ind(I_SIRK, 2)} A, rugi {ind(P_SIRK, 2)} W terus-menerus", 10.5, "#ef4444", "middle", "600"))
     b += teks2(330, 218, f"Sumber ber-ggl lebih tinggi dan ber-r lebih kecil memikul bagian terbesar; selisih ggl memicu arus antar-sumber walau beban dilepas", 11.5, AX, maks=86)
@@ -234,7 +234,7 @@ HERO_SCHEMATIC_1 = '''  <div class="hero-schematic">
     </svg>
   </div>'''
 
-HERO_SCHEMATIC_2 = '''  <div class="hero-schematic">
+HERO_SCHEMATIC_2 = rumus_mentah('''  <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
       <line x1="10" y1="60" x2="10" y2="150" stroke="rgba(148,163,184,.5)" stroke-width="1.5"/>
       <line x1="10" y1="60" x2="70" y2="60" stroke="rgba(148,163,184,.5)" stroke-width="1.5"/>
@@ -246,10 +246,10 @@ HERO_SCHEMATIC_2 = '''  <div class="hero-schematic">
       <circle cx="70" cy="150" r="3" fill="rgba(236,72,153,.7)"/>
       <text x="76" y="64" fill="rgba(236,72,153,.6)" font-family="JetBrains Mono" font-size="8">a</text>
       <text x="76" y="154" fill="rgba(236,72,153,.6)" font-family="JetBrains Mono" font-size="8">b</text>
-      <text x="26" y="48" fill="rgba(0,229,255,.55)" font-family="JetBrains Mono" font-size="8">R_th</text>
-      <text x="0" y="90" fill="rgba(255,179,0,.55)" font-family="JetBrains Mono" font-size="8">V_th</text>
+      <text x="26" y="48" fill="rgba(0,229,255,.55)" font-family="JetBrains Mono" font-size="8">R<sub>th</sub></text>
+      <text x="0" y="90" fill="rgba(255,179,0,.55)" font-family="JetBrains Mono" font-size="8">V<sub>th</sub></text>
     </svg>
-  </div>'''
+  </div>''')
 
 HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="04">
   <div class="hero-waves">
@@ -261,12 +261,12 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
   </div>
 {HERO_SCHEMATIC_1}
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">ΣV_loop = 0</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">ΣV<sub>loop</sub> = 0</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">V = (ΣE/R)/(Σ1/R)</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">I = I′ + I″</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">V_th, R_th</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">I_N = V_th/R_th</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">P_maks = V_th²/4R_th</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">V<sub>th</sub>, R<sub>th</sub></span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">I<sub>N</sub> = V<sub>th</sub>/R<sub>th</sub></span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">P<sub>maks</sub> = V<sub>th</sub>²/4R<sub>th</sub></span>
     <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">E₁ − E₂ = I(r₁ + r₂)</span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">E = (R₁+R₃)I₁ − R₃I₂</span>
   </div>
@@ -408,26 +408,26 @@ def materi():
                 isi, "SUPERPOSISI")
 
     # 05 — thevenin norton
-    isi = figure(5, "Dari jaringan asli ke ekuivalen Thevenin dan Norton", f"Sumber {ind(ET, 0)} V dengan pembagi R₁ = R₂ = {ind(R1T, 0)} Ω dan R₃ = {ind(R3T, 0)} Ω menuju terminal a–b diringkas menjadi V_th = {ind(VTH, 0)} V seri R_th = {ind(RTH, 0)} Ω, atau I_N = {ind(IN_, 0)} A paralel R_N = {ind(RTH, 0)} Ω. Beban apa pun di a–b melihat rangkaian yang sama.", gambar5())
+    isi = figure(5, "Dari jaringan asli ke ekuivalen Thevenin dan Norton", f"Sumber {ind(ET, 0)} V dengan pembagi R₁ = R₂ = {ind(R1T, 0)} Ω dan R₃ = {ind(R3T, 0)} Ω menuju terminal a–b diringkas menjadi V<sub>th</sub> = {ind(VTH, 0)} V seri R<sub>th</sub> = {ind(RTH, 0)} Ω, atau I<sub>N</sub> = {ind(IN_, 0)} A paralel R<sub>N</sub> = {ind(RTH, 0)} Ω. Beban apa pun di a–b melihat rangkaian yang sama.", gambar5())
     isi += formula(7, "Ekuivalen Thevenin", r"V_{th} = V_{ab}\big|_{\text{terbuka}}, \qquad R_{th} = R_{ab}\big|_{\text{semua sumber bebas dimatikan}}",
                    rf"Gambar 5: terbuka, tidak ada arus di R₃, jadi \(V_{{th}} = {ind(ET, 0)}\times{ind(R2T, 0)}/({ind(R1T, 0)}+{ind(R2T, 0)}) = {ind(VTH, 0)}\) V. Sumber dihubung singkat: dari a–b terlihat \(R_3\) seri \((R_1 \parallel R_2)\), \(R_{{th}} = {ind(R3T, 0)} + {ind(R1T * R2T / (R1T + R2T), 0)} = {ind(RTH, 0)}\) Ω. Beban 6 Ω di a–b: \(I = {ind(VTH, 0)}/({ind(RTH, 0)}+6) = {ind(VTH / (RTH + 6), 3)}\) A, tanpa perlu menghitung ulang seluruh jaringan.",
-                   "Thevenin adalah 'sudut pandang beban': apa pun di balik dua terminal, beban hanya merasakan satu ggl dan satu resistansi seri. Pada sistem tenaga, V_th adalah tegangan tanpa beban dan R_th adalah 'kekuatan' sumber: makin kecil R_th, makin kaku tegangannya dan makin besar arus hubung singkatnya. Ekuivalen untuk jaringan dengan sumber tak bebas memerlukan cara lain (sumber uji), di luar modul ini.",
+                   "Thevenin adalah 'sudut pandang beban': apa pun di balik dua terminal, beban hanya merasakan satu ggl dan satu resistansi seri. Pada sistem tenaga, V<sub>th</sub> adalah tegangan tanpa beban dan R<sub>th</sub> adalah 'kekuatan' sumber: makin kecil R<sub>th</sub>, makin kaku tegangannya dan makin besar arus hubung singkatnya. Ekuivalen untuk jaringan dengan sumber tak bebas memerlukan cara lain (sumber uji), di luar modul ini.",
                    [("V_{th}", "Tegangan Thevenin = tegangan terminal terbuka (V)"), ("R_{th}", "Resistansi Thevenin dilihat dari terminal (Ω)"), ("V_{ab}", "Tegangan terminal a terhadap b (V)")])
     isi += formula(8, "Ekuivalen Norton dan Transfer Daya Maksimum", r"I_N = \dfrac{V_{th}}{R_{th}} = I_{ab}\big|_{\text{hubung singkat}}, \qquad R_N = R_{th}, \qquad P_{L,maks} = \dfrac{V_{th}^2}{4R_{th}}\ \text{ saat } R_L = R_{th}",
                    rf"\(I_N = {ind(VTH, 0)}/{ind(RTH, 0)} = {ind(IN_, 0)}\) A, dan bila terminal a–b dihubung singkat pada jaringan asli memang mengalir {ind(IN_, 0)} A. Daya maksimum ke beban: \({ind(VTH, 0)}^2/(4\times{ind(RTH, 0)}) = {ind(PMAKS, 0)}\) W pada \(R_L = {ind(RTH, 0)}\) Ω. Kurvanya ada di Animasi 3.",
-                   "Norton adalah Thevenin yang ditulis sebagai sumber arus; keduanya saling dikonversi dengan hukum Ohm. Arus Norton adalah arus hubung singkat: angka yang dipakai untuk memilih sekring dan pemutus. Teorema transfer daya maksimum Modul 3 kini berlaku untuk jaringan apa pun, cukup dengan mengganti E dan r menjadi V_th dan R_th.",
-                   [("I_N", "Arus Norton = arus hubung singkat terminal (A)"), ("R_N", "Resistansi Norton = R_th (Ω)"), ("P_{L,maks}", "Daya maksimum yang dapat diserap beban (W)"), ("R_L", "Resistansi beban (Ω)")])
+                   "Norton adalah Thevenin yang ditulis sebagai sumber arus; keduanya saling dikonversi dengan hukum Ohm. Arus Norton adalah arus hubung singkat: angka yang dipakai untuk memilih sekring dan pemutus. Teorema transfer daya maksimum Modul 3 kini berlaku untuk jaringan apa pun, cukup dengan mengganti E dan r menjadi V<sub>th</sub> dan R<sub>th</sub>.",
+                   [("I_N", "Arus Norton = arus hubung singkat terminal (A)"), ("R_N", "Resistansi Norton = R<sub>th</sub> (Ω)"), ("P_{L,maks}", "Daya maksimum yang dapat diserap beban (W)"), ("R_L", "Resistansi beban (Ω)")])
     isi += cards([
         ("🎯", "Kapan Dipakai", "Saat satu bagian rangkaian (beban) akan diubah-ubah sementara sisanya tetap: hitung Thevenin sekali, lalu setiap beban baru cukup satu pembagi tegangan.", None),
         ("⚡", "Arus Hubung Singkat", "\\(I_{sc} = V_{th}/R_{th}\\) pada titik mana pun di jaringan menentukan kapasitas pemutus dan ukuran kabel yang tahan sampai pengaman bekerja. Pada bank baterai besar, ribuan ampere.", r"\(I_{sc} = V_{th}/R_{th}\)"),
-        ("📏", "Mengukur di Lapangan", "V_th = tegangan terminal tanpa beban; R_th = (V_th − V_beban)/I_beban dari satu pengukuran berbeban. Cara yang sama dengan mengukur hambatan dalam baterai di Modul 3.", r"\(R_{th} = \dfrac{V_{th} - V_L}{I_L}\)"),
+        ("📏", "Mengukur di Lapangan", "V<sub>th</sub> = tegangan terminal tanpa beban; R<sub>th</sub> = (V<sub>th</sub> − V<sub>beban</sub>)/I<sub>beban</sub> dari satu pengukuran berbeban. Cara yang sama dengan mengukur hambatan dalam baterai di Modul 3.", r"\(R_{th} = \dfrac{V_{th} - V_L}{I_L}\)"),
         ("🔁", "Konversi Sumber", "Sumber tegangan V seri R ⇔ sumber arus V/R paralel R. Konversi berulang sering meruntuhkan jaringan bertingkat tanpa menulis satu pun persamaan simultan.", None),
         ("🔋", "Sumber Paralel = Satu Thevenin", "Beberapa sumber paralel dengan hambatan dalamnya dapat diganti satu \\(E_{eq}\\) seri \\(r_{eq}\\) (Bagian 06); beban lalu dihitung seperti sumber tunggal. Soal C15.", None),
-        ("⚠️", "Hanya Untuk Terminal Itu", "Ekuivalen Thevenin benar untuk arus dan tegangan di terminal a–b saja; daya yang 'hilang' di R_th bukan daya rugi nyata jaringan asli.", None),
+        ("⚠️", "Hanya Untuk Terminal Itu", "Ekuivalen Thevenin benar untuk arus dan tegangan di terminal a–b saja; daya yang 'hilang' di R<sub>th</sub> bukan daya rugi nyata jaringan asli.", None),
     ])
-    isi += tabel(["R_L pada a–b (Ω)", "I (A)", "V_ab (V)", "P_L (W)", "Efisiensi V_ab/V_th"],
+    isi += tabel(["R<sub>L</sub> pada a–b (Ω)", "I (A)", "V<sub>ab</sub> (V)", "P<sub>L</sub> (W)", "Efisiensi V<sub>ab</sub>/V<sub>th</sub>"],
                  [[f"{RL:g}", ind(VTH / (RTH + RL), 3), ind(VTH * RL / (RTH + RL), 3), ind(p_thev(RL), 3), ind(RL / (RTH + RL) * 100, 1) + "%"] for RL in [2, 6, 12, 24, 60]])
-    isi += kotak("tip-box", f"💡 <strong>Membaca Tabel di Atas:</strong> daya beban memuncak {ind(PMAKS, 0)} W tepat di R_L = R_th = {ind(RTH, 0)} Ω, tetapi efisiensinya 50%; pada 60 Ω efisiensi 91% walau daya tinggal {ind(p_thev(60), 2)} W. Soal C5–C7 meminta V_th, R_th, dan I_N; soal C12 melanjutkannya sampai daya maksimum.")
+    isi += kotak("tip-box", f"💡 <strong>Membaca Tabel di Atas:</strong> daya beban memuncak {ind(PMAKS, 0)} W tepat di R<sub>L</sub> = R<sub>th</sub> = {ind(RTH, 0)} Ω, tetapi efisiensinya 50%; pada 60 Ω efisiensi 91% walau daya tinggal {ind(p_thev(60), 2)} W. Soal C5–C7 meminta V<sub>th</sub>, R<sub>th</sub>, dan I<sub>N</sub>; soal C12 melanjutkannya sampai daya maksimum.")
     m += bagian(5, "m-thevenin", "Teorema Thevenin<br>dan Norton",
                 "Dari sudut pandang sebuah beban, jaringan di belakang dua terminalnya, seberapa pun rumitnya, berperilaku seperti satu ggl dengan satu resistansi seri. Itulah teorema Thevenin pada Persamaan (7); bentuk kembarnya dengan sumber arus adalah Norton pada Persamaan (8), yang sekaligus memperluas teorema transfer daya maksimum ke jaringan apa pun. Gambar 5 memperlihatkan ketiga wajah rangkaian yang sama.",
                 isi, "THEVENIN DAN NORTON")
@@ -473,11 +473,11 @@ def materi():
     isi += anim_panel(3, "green", r"Ekuivalen Thevenin dan Kurva Daya Beban \(P_L(R_L)\)", "cvThevenin",
                       [("sl_th_e", "v_th_e", "Sumber E (V)", 6, 60, 1, 24, "24"), ("sl_th_r1", "v_th_r1", "R₁ (Ω)", 1, 30, 0.5, 8, "8.0"), ("sl_th_r2", "v_th_r2", "R₂ (Ω)", 1, 30, 0.5, 8, "8.0"), ("sl_th_r3", "v_th_r3", "R₃ seri terminal (Ω)", 0, 20, 0.5, 2, "2.0")],
                       "btnThevenin", "toggleThevenin", "theveninInfo",
-                      "<strong>📊 Cara Membaca Animasi 3:</strong> Kiri: ekuivalen Thevenin yang dihitung dari jaringan Gambar 5; kanan: daya beban terhadap R_L, dengan titik yang menyapu R_L dari kecil ke besar dan garis merah muda di R_L = R_th.<br>Amati: (1) <strong style=\"color:var(--green)\">V_th hanya bergantung pada pembagi R₁–R₂</strong>, sedangkan R₃ hanya menambah R_th. (2) Memperbesar R₃ menurunkan puncak daya (∝ 1/R_th) dan menggesernya ke kanan. (3) Readout memberi I_N = V_th/R_th, arus hubung singkat terminal. Soal C5–C7 dan C12.")
+                      "<strong>📊 Cara Membaca Animasi 3:</strong> Kiri: ekuivalen Thevenin yang dihitung dari jaringan Gambar 5; kanan: daya beban terhadap R<sub>L</sub>, dengan titik yang menyapu R<sub>L</sub> dari kecil ke besar dan garis merah muda di R<sub>L</sub> = R<sub>th</sub>.<br>Amati: (1) <strong style=\"color:var(--green)\">V<sub>th</sub> hanya bergantung pada pembagi R₁–R₂</strong>, sedangkan R₃ hanya menambah R<sub>th</sub>. (2) Memperbesar R₃ menurunkan puncak daya (∝ 1/R<sub>th</sub>) dan menggesernya ke kanan. (3) Readout memberi I<sub>N</sub> = V<sub>th</sub>/R<sub>th</sub>, arus hubung singkat terminal. Soal C5–C7 dan C12.")
     isi += anim_panel(4, "pink", r"Dua Sumber Paralel: Tegangan Rel, Pembagian Beban, dan Arus Sirkulasi", "cvParalelSumber",
-                      [("sl_ps_e1", "v_ps_e1", "Ggl E₁ (V)", 10, 15, 0.1, 12.8, "12.8"), ("sl_ps_r1", "v_ps_r1", "r₁ (Ω)", 0.01, 0.3, 0.005, 0.05, "0.050"), ("sl_ps_e2", "v_ps_e2", "Ggl E₂ (V)", 10, 15, 0.1, 12.2, "12.2"), ("sl_ps_r2", "v_ps_r2", "r₂ (Ω)", 0.01, 0.3, 0.005, 0.08, "0.080"), ("sl_ps_rl", "v_ps_rl", "Beban R_L (Ω)", 0.1, 5, 0.05, 0.6, "0.60")],
+                      [("sl_ps_e1", "v_ps_e1", "Ggl E₁ (V)", 10, 15, 0.1, 12.8, "12.8"), ("sl_ps_r1", "v_ps_r1", "r₁ (Ω)", 0.01, 0.3, 0.005, 0.05, "0.050"), ("sl_ps_e2", "v_ps_e2", "Ggl E₂ (V)", 10, 15, 0.1, 12.2, "12.2"), ("sl_ps_r2", "v_ps_r2", "r₂ (Ω)", 0.01, 0.3, 0.005, 0.08, "0.080"), ("sl_ps_rl", "v_ps_rl", "Beban R<sub>L</sub> (Ω)", 0.1, 5, 0.05, 0.6, "0.60")],
                       "btnParalelSumber", "toggleParalelSumber", "paralelSumberInfo",
-                      "<strong>📊 Cara Membaca Animasi 4:</strong> Dua sumber dengan hambatan dalamnya memasok satu beban; kerapatan titik menggambarkan arus tiap cabang, dan label merah menandai sumber yang justru diisi.<br>Amati: (1) <strong style=\"color:var(--pink)\">Samakan E₁ = E₂</strong>: beban terbagi persis berbanding terbalik r. (2) Turunkan E₂ sedikit di bawah E₁: pada beban ringan (R_L besar) sumber 2 diisi, pada beban berat ia ikut memasok. (3) Readout memberi arus sirkulasi tanpa beban dan rugi yang ditimbulkannya. Soal C8–C10, C14, dan C15.")
+                      "<strong>📊 Cara Membaca Animasi 4:</strong> Dua sumber dengan hambatan dalamnya memasok satu beban; kerapatan titik menggambarkan arus tiap cabang, dan label merah menandai sumber yang justru diisi.<br>Amati: (1) <strong style=\"color:var(--pink)\">Samakan E₁ = E₂</strong>: beban terbagi persis berbanding terbalik r. (2) Turunkan E₂ sedikit di bawah E₁: pada beban ringan (R<sub>L</sub> besar) sumber 2 diisi, pada beban berat ia ikut memasok. (3) Readout memberi arus sirkulasi tanpa beban dan rugi yang ditimbulkannya. Soal C8–C10, C14, dan C15.")
     isi += kotak("info-box", f"<strong>🔍 Latihan Mandiri:</strong> pada Animasi 1 atur E₁ = {ind(E1N, 0)}, E₂ = {ind(E2N, 0)}, R = {ind(R1N, 0)}/{ind(R2N, 0)}/{ind(R3N, 0)} Ω: tegangan simpul harus {ind(V_N, 3)} V seperti Bagian 03. Turunkan E₂ sampai arusnya tepat nol dan bandingkan dengan tabel Bagian 03. Lalu pada Animasi 4 buat E₁ = E₂ = 12,8 V dan periksa bahwa I₁ : I₂ = r₂ : r₁.")
     m += bagian(7, "m-animasi", "Animasi Interaktif<br>Jaringan Dua Sumber",
                 "Geser ggl dan resistansi, lalu amati bagaimana tegangan simpul, arah arus tiap sumber, sumbangan tiap sumber, ekuivalen Thevenin, dan pembagian beban berubah. Empat animasi ini memvisualkan Persamaan (4)–(10) pada jaringan contoh yang sama dengan Bagian 03–06.",
@@ -570,7 +570,7 @@ print(f"Generator: V rel = {{V:.4f}} V, I_G1 = {{I[0]:.4f}} A, I_G2 = {{I[1]:.4f
 # ═══ Ekuivalen Thevenin sumber paralel ═══
 E_eq = (E1/r1 + E2/r2) / (1/r1 + 1/r2);  r_eq = 1 / (1/r1 + 1/r2)
 print(f"E_eq = {{E_eq:.4f}} V, r_eq = {{r_eq:.4f}} ohm")''')
-    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan angka di Bagian 02–06: V simpul {ind(V_N, 3)} V, arus R₃ mesh {ind(I3M, 3)} A, V_th = {ind(VTH, 0)} V dan R_th = {ind(RTH, 0)} Ω, serta arus sirkulasi {ind(I_SIRK, 2)} A. Cell 2–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
+    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan angka di Bagian 02–06: V simpul {ind(V_N, 3)} V, arus R₃ mesh {ind(I3M, 3)} A, V<sub>th</sub> = {ind(VTH, 0)} V dan R<sub>th</sub> = {ind(RTH, 0)} Ω, serta arus sirkulasi {ind(I_SIRK, 2)} A. Cell 2–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
     m += bagian(8, "m-jupyter", "Implementasi Python<br>di Jupyter Notebook",
                 "Empat cell berikut menyelesaikan seluruh jaringan contoh modul ini: nodal, mesh dengan matriks, superposisi, Thevenin–Norton, dan sumber paralel. Salin satu cell utuh ke Jupyter Notebook (VS Code), jalankan apa adanya lebih dulu, baru ubah parameternya. Setiap perhitungan diberi nomor persamaan yang dipakainya.",
                 isi, "IMPLEMENTASI PYTHON")
@@ -612,9 +612,9 @@ TUGAS_HERO = f'''<div class="hero" data-tab="tugas" style="min-height:60vh">
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">V = (ΣE/R)/(Σ1/R)</span>
     <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">E = (R₁+R₃)I₁ − R₃I₂</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">V_th, R_th, I_N</span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">V<sub>th</sub>, R<sub>th</sub>, I<sub>N</sub></span>
     <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">I = I′ + I″</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">I_sirk = ΔE/(r₁+r₂)</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">I<sub>sirk</sub> = ΔE/(r₁+r₂)</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan {PERTEMUAN} · {JUDUL_PANJANG}</div>
@@ -661,9 +661,9 @@ MC = [
      "Transfer daya maksimum via Thevenin"),
 ]
 
-COMP_EZ_LABELS = ["Arus dua ggl seri aiding", "Arus dua ggl seri opposing", "Tegangan simpul (nodal dua sumber)", "Arus beban I₃ dari tegangan simpul", "Tegangan Thevenin V_th",
-                  "Resistansi Thevenin R_th", "Arus Norton I_N", "Arus baterai B1 pada paralel", "Arus generator G2 (beban arus tetap)", "Daya sumber S1 = E₁·I₁"]
-COMP_HARD_LABELS = ["Mesh dua loop: daya pada R₃", "Thevenin lalu daya maksimum V_th²/(4R_th)", "Superposisi: kontribusi E₁ pada I₃",
+COMP_EZ_LABELS = ["Arus dua ggl seri aiding", "Arus dua ggl seri opposing", "Tegangan simpul (nodal dua sumber)", "Arus beban I₃ dari tegangan simpul", "Tegangan Thevenin V<sub>th</sub>",
+                  "Resistansi Thevenin R<sub>th</sub>", "Arus Norton I<sub>N</sub>", "Arus baterai B1 pada paralel", "Arus generator G2 (beban arus tetap)", "Daya sumber S1 = E₁·I₁"]
+COMP_HARD_LABELS = ["Mesh dua loop: daya pada R₃", "Thevenin lalu daya maksimum V<sub>th</sub>²/(4R<sub>th</sub>)", "Superposisi: kontribusi E₁ pada I₃",
                     "Baterai baru–lama paralel: arus B2 bertanda", "Ekuivalen Thevenin dua sumber paralel: daya beban"]
 
 
@@ -694,14 +694,14 @@ FQ_JUDUL = [
 FQ_RINGKAS = [
     f"Tiga cabang bertemu di rel 24 V: alternator ({ind(EA, 1)} V, r {ind(RA, 2)} Ω), baterai utama ({ind(EB, 1)} V, r {ind(RB, 2)} Ω), dan beban malam {ind(RLK, 2)} Ω. Hitung tegangan rel dengan Persamaan (4), arus tiap cabang dengan Persamaan (5), tanda arus baterai, dan daya yang diserap/dibangkitkan tiap sumber.",
     f"Mesin mati; baterai utama ({ind(EB, 1)} V, r {ind(RB, 2)} Ω) diparalel baterai lama ({ind(EL, 1)} V, r {ind(RL_, 2)} Ω) memasok beban {ind(RLK, 2)} Ω. Hitung tegangan rel dan arus tiap baterai (Persamaan 9), lalu arus sirkulasi dan rugi saat beban dilepas (Persamaan 10). Nilai apakah baterai lama membantu atau merugikan.",
-    f"Gabungkan alternator dan baterai utama menjadi E_eq dan r_eq (Persamaan 9), hitung P_maks = E_eq²/(4r_eq), lalu tegangan rel bila beban total menjadi {ind(P_LAS, 0)} W (inverter las + beban malam). Bandingkan dengan syarat minimum 24 V dan jelaskan mengapa P_maks bukan batas kerja yang aman.",
+    f"Gabungkan alternator dan baterai utama menjadi E<sub>eq</sub> dan r<sub>eq</sub> (Persamaan 9), hitung P<sub>maks</sub> = E<sub>eq</sub>²/(4r<sub>eq</sub>), lalu tegangan rel bila beban total menjadi {ind(P_LAS, 0)} W (inverter las + beban malam). Bandingkan dengan syarat minimum 24 V dan jelaskan mengapa P<sub>maks</sub> bukan batas kerja yang aman.",
 ]
 
 
 def forum_page():
     q1 = fq(1, "14,165,233", "cyan", FQ_JUDUL[0],
             f"Saat mesin hidup, tiga cabang bertemu di rel 24 V kapal: alternator (ggl {ind(EA, 1)} V, r = {ind(RA, 2)} Ω), baterai utama (ggl {ind(EB, 1)} V, r = {ind(RB, 2)} Ω), dan beban malam (lampu sorot, pompa, radio) yang setara {ind(RLK, 2)} Ω. Hitung tegangan rel dengan Persamaan (4) dan arus tiap cabang dengan Persamaan (5). Perhatikan tanda arus baterai: apakah ia memasok atau justru diisi? Hitung daya yang dibangkitkan alternator, daya yang diserap baterai, dan panas \\(I^2 r\\) di dalam baterai, lalu jelaskan keluhan nelayan bahwa baterai 'terasa hangat' saat mesin hidup.",
-            ["V = (ΣE/r)/(Σ1/r + 1/R_L)", "I_k = (E_k − V)/r_k", "P_bat = E_b·I_b"],
+            ["V = (ΣE/r)/(Σ1/r + 1/R<sub>L</sub>)", "I<sub>k</sub> = (E<sub>k</sub> − V)/r<sub>k</sub>", "P<sub>bat</sub> = E<sub>b</sub>·I<sub>b</sub>"],
             "Saat mesin hidup, tegangan rel dan arus baterai utama adalah sekitar...",
             [f"{ind(EB, 1)} V dan 0 A: baterai tidak terlibat", f"{ind(V_K, 2)} V dan {ind(abs(IB_K), 1)} A masuk ke baterai: baterai sedang diisi", f"{ind(EA, 1)} V dan {ind(IL_K, 1)} A keluar: baterai memikul seluruh beban", f"{ind(V_K, 2)} V dan {ind(abs(IB_K), 1)} A keluar: baterai dan alternator berbagi beban sama rata"],
             f"✅ Tepat! \\(V = ({ind(EA, 1)}/{ind(RA, 2)} + {ind(EB, 1)}/{ind(RB, 2)})/(1/{ind(RA, 2)} + 1/{ind(RB, 2)} + 1/{ind(RLK, 2)}) \\approx {ind(V_K, 3)}\\) V, di atas ggl baterai, sehingga \\(I_b = ({ind(EB, 1)} - {ind(V_K, 3)})/{ind(RB, 2)} \\approx {ind(IB_K, 1)}\\) A (negatif: diisi). Alternator memasok \\(\\approx {ind(IA_K, 1)}\\) A: {ind(IL_K, 1)} A ke beban dan {ind(abs(IB_K), 1)} A ke baterai. Panas \\(I^2 r = {ind(IB_K ** 2 * RB, 1)}\\) W ditambah reaksi kimia pengisian membuat baterai hangat.",
@@ -709,7 +709,7 @@ def forum_page():
             "Petunjuk: (1) Hitung tegangan rel. (2) Hitung arus alternator, baterai (bertanda), dan beban; periksa KCL. (3) Hitung daya tiap sumber dan panas di baterai; jelaskan gejala hangat.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
             f"Untuk 'menambah daya' saat mesin mati, nelayan memaralel baterai lama (ggl {ind(EL, 1)} V, r = {ind(RL_, 2)} Ω) dengan baterai utama (ggl {ind(EB, 1)} V, r = {ind(RB, 2)} Ω). Hitung tegangan rel dan arus tiap baterai saat memasok beban {ind(RLK, 2)} Ω (Persamaan 9): berapa persen beban yang dipikul baterai lama? Lalu lepas beban (lampu dipadamkan) dan hitung arus sirkulasi serta rugi dayanya (Persamaan 10). Berapa energi yang terbuang semalam (10 jam)? Simpulkan apakah baterai lama membantu, dan usulkan cara yang benar (mis. dioda pemisah, saklar pemilih, atau mengganti dengan baterai sejenis).",
-            ["I_k = (E_k − V)/r_k", "I_sirk = (E₁ − E₂)/(r₁ + r₂)", "E_rugi = P·t"],
+            ["I<sub>k</sub> = (E<sub>k</sub> − V)/r<sub>k</sub>", "I<sub>sirk</sub> = (E₁ − E₂)/(r₁ + r₂)", "E<sub>rugi</sub> = P·t"],
             "Saat beban dilepas, arus yang berputar antara baterai utama dan baterai lama adalah sekitar...",
             ["0 A, karena tidak ada beban", f"{ind(IB_M, 1)} A, sama seperti saat berbeban", f"{ind((EB - EL) / RB, 1)} A, dibatasi r baterai utama saja", f"{ind(I_SIRK_K, 2)} A, membuang {ind(P_SIRK_K, 1)} W terus-menerus"],
             f"✅ Tepat! \\(I_{{sirk}} = ({ind(EB, 1)} - {ind(EL, 1)})/({ind(RB, 2)} + {ind(RL_, 2)}) \\approx {ind(I_SIRK_K, 2)}\\) A dan \\(P = I^2(r_1 + r_2) \\approx {ind(P_SIRK_K, 1)}\\) W; semalam 10 jam berarti \\(\\approx {ind(P_SIRK_K * 10, 0)}\\) Wh hilang, sambil mengisi paksa baterai lama yang tidak mampu menyimpannya. Saat berbeban, baterai lama hanya menyumbang \\(\\approx {ind(IL_M, 2)}\\) A dari {ind(ILD_M, 1)} A ({ind(IL_M / ILD_M * 100, 1)}%).",
@@ -717,12 +717,12 @@ def forum_page():
             "Petunjuk: (1) Hitung V rel dan arus tiap baterai saat berbeban; persentase sumbangan baterai lama. (2) Hitung arus sirkulasi, rugi daya, dan energi semalam. (3) Simpulkan dan usulkan susunan yang benar.")
     q3 = fq(3, "168,85,247", "violet", FQ_JUDUL[2],
             f"Nelayan ingin memasang inverter las kecil 1,5 kW yang dipakai bersamaan dengan beban malam ({ind(P_LAS, 0)} W total), hanya saat mesin hidup. Ganti alternator dan baterai utama dengan satu ekuivalen Thevenin: \\(E_{{eq}}\\) dan \\(r_{{eq}}\\) (Persamaan 9). Hitung daya maksimum teoretis \\(P_{{maks}} = E_{{eq}}^2/(4r_{{eq}})\\) dan arusnya, lalu tegangan rel yang sebenarnya pada beban {ind(P_LAS, 0)} W (perkirakan arus ≈ P/25 V, lalu \\(V = E_{{eq}} - I r_{{eq}}\\)). Apakah rel tetap di atas 24 V? Jelaskan mengapa \\(P_{{maks}}\\) bukan batas kerja yang aman (efisiensi 50%, arus hubung singkat, kemampuan alternator), dan sebutkan batas nyata apa yang sebaiknya dipakai.",
-            ["E_eq = (ΣE/r)/(Σ1/r)", "r_eq = r₁‖r₂", "P_maks = E_eq²/(4r_eq)"],
+            ["E<sub>eq</sub> = (ΣE/r)/(Σ1/r)", "r<sub>eq</sub> = r₁‖r₂", "P<sub>maks</sub> = E<sub>eq</sub>²/(4r<sub>eq</sub>)"],
             f"Ekuivalen Thevenin alternator + baterai utama dan tegangan rel pada beban {ind(P_LAS, 0)} W adalah sekitar...",
-            [f"E_eq ≈ {ind(EEQ_K, 2)} V, r_eq ≈ {ind(REQ_K, 3)} Ω; rel ≈ {ind(V_LAS, 1)} V, masih di atas 24 V", f"E_eq = {ind(EA, 1)} V, r_eq = {ind(RA, 2)} Ω; rel ≈ {ind(EA - I_LAS * RA, 1)} V", f"E_eq = {ind((EA + EB) / 2, 2)} V, r_eq = {ind(RA + RB, 2)} Ω; rel ≈ {ind((EA + EB) / 2 - I_LAS * (RA + RB), 1)} V, di bawah 24 V", "Tidak dapat dihitung tanpa mengetahui beban"],
+            [f"E<sub>eq</sub> ≈ {ind(EEQ_K, 2)} V, r<sub>eq</sub> ≈ {ind(REQ_K, 3)} Ω; rel ≈ {ind(V_LAS, 1)} V, masih di atas 24 V", f"E<sub>eq</sub> = {ind(EA, 1)} V, r<sub>eq</sub> = {ind(RA, 2)} Ω; rel ≈ {ind(EA - I_LAS * RA, 1)} V", f"E<sub>eq</sub> = {ind((EA + EB) / 2, 2)} V, r<sub>eq</sub> = {ind(RA + RB, 2)} Ω; rel ≈ {ind((EA + EB) / 2 - I_LAS * (RA + RB), 1)} V, di bawah 24 V", "Tidak dapat dihitung tanpa mengetahui beban"],
             f"✅ Tepat! \\(E_{{eq}} = ({ind(EA, 1)}/{ind(RA, 2)} + {ind(EB, 1)}/{ind(RB, 2)})/(1/{ind(RA, 2)} + 1/{ind(RB, 2)}) \\approx {ind(EEQ_K, 3)}\\) V, \\(r_{{eq}} = {ind(RA, 2)}\\parallel{ind(RB, 2)} \\approx {ind(REQ_K, 4)}\\) Ω. \\(P_{{maks}} \\approx {ind(PMAKS_K / 1000, 1)}\\) kW pada \\(\\approx {ind(EEQ_K / (2 * REQ_K), 0)}\\) A: mustahil bagi alternator dan hanya 50% efisien. Beban {ind(P_LAS, 0)} W menarik \\(\\approx {ind(I_LAS, 0)}\\) A dan rel \\(\\approx {ind(V_LAS, 2)}\\) V: masih di atas 24 V, tetapi batas nyatanya adalah arus pengenal alternator, bukan \\(P_{{maks}}\\).",
             "❌ Sumber paralel diringkas dengan rata-rata ggl berbobot konduktansi (bukan rata-rata biasa) dan hambatan dalam paralel (bukan seri). Hitung \\(E_{eq}\\) dan \\(r_{eq}\\) dari Persamaan (9) lebih dulu.",
-            "Petunjuk: (1) Hitung E_eq dan r_eq. (2) Hitung P_maks, arusnya, dan tegangan rel pada beban 2340 W. (3) Jelaskan batas kerja yang aman dan apa yang membatasinya.")
+            "Petunjuk: (1) Hitung ggl dan hambatan dalam ekuivalen. (2) Hitung Pₘₐₖₛ, arusnya, dan tegangan rel pada beban 2340 W. (3) Jelaskan batas kerja yang aman dan apa yang membatasinya.")
     kartu = lambda teks, rgb, warna: f'      <div style="background:rgba({rgb},.05);border:1px solid rgba({rgb},.15);border-radius:10px;padding:12px 16px;font-family:\'JetBrains Mono\',monospace;font-size:13px;color:var(--{warna})">{teks}</div>'
     return f'''<div class="page" id="page-forum">
 <div class="hero" data-tab="forum" style="min-height:55vh">
@@ -734,9 +734,9 @@ def forum_page():
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">V = (ΣE/r)/(Σ1/r)</span>
-    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">I_k = (E_k − V)/r_k</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">I_sirk = ΔE/(r₁+r₂)</span>
-    <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">E_eq, r_eq</span>
+    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">I<sub>k</sub> = (E<sub>k</sub> − V)/r<sub>k</sub></span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">I<sub>sirk</sub> = ΔE/(r₁+r₂)</span>
+    <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">E<sub>eq</sub>, r<sub>eq</sub></span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan {PERTEMUAN} · {JUDUL_PANJANG}</div>

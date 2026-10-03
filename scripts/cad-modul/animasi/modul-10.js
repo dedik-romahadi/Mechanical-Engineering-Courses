@@ -74,17 +74,17 @@ function drawFilletKt(){
   // rumus (kanan; ponsel: di bawah batang) lalu batang σ_nom dan σ_maks vs σ_izin.
   // Batang ukur dibuat sedikit lebih pendek dari semula agar puncaknya tidak menabrak baris SF.
   const col=sm>_C10_SIZIN?'#ef4444':'#00e09e';
-  const baris=[['Kt ≈ 1 + 0,5·√(h/r) = '+Kt.toFixed(2),'#22d3ee',f11,0],
-    ['σ_maks = Kt·σ_nom = '+sm.toFixed(1)+' MPa',col,f11,sempit?17:18],
-    [sm>_C10_SIZIN?'SF = 250/σ_maks = '+(250/sm).toFixed(2)+' < 2 →\u00a0perbesar\u00a0r':'SF = '+(250/sm).toFixed(2)+' ≥ 2 →\u00a0lolos','rgba(148,163,184,.9)',f10,sempit?34:36]];
+  const baris=[['K<sub>t</sub> ≈ 1 + 0,5·√(h/r) = '+Kt.toFixed(2),'#22d3ee',f11,0],
+    ['σ<sub>maks</sub> = K<sub>t</sub>·σ<sub>nom</sub> = '+sm.toFixed(1)+' MPa',col,f11,sempit?17:18],
+    [sm>_C10_SIZIN?'SF = 250/σ<sub>maks</sub> = '+(250/sm).toFixed(2)+' < 2 →\u00a0perbesar\u00a0r':'SF = '+(250/sm).toFixed(2)+' ≥ 2 →\u00a0lolos','rgba(148,163,184,.9)',f10,sempit?34:36]];
   let gx,gy,gh,dxG,wG;
   if(sempit){const yK=_cad10Kolom(ctx,12,oy+Math.max(D/2,10+rM)*sk+22,W-24,baris); gx=16; gy=H-24; gh=Math.max(40,gy-yK-14); dxG=64; wG=30;}
   else {gx=sedang?W*0.60:W*0.66; _cad10Kolom(ctx,gx,H*0.16,W-gx-8,baris); gy=H*0.80; gh=H*0.48; dxG=70; wG=34;}
   const maks=Math.max(200,sm*1.15);
-  _cad10Gauge(ctx,gx,gy,wG,gh,sn,maks,'#22d3ee','σ_nom',_C10_SIZIN);
-  _cad10Gauge(ctx,gx+dxG,gy,wG,gh,sm,maks,col,'σ_maks',_C10_SIZIN);
-  _cad10Teks(ctx,'σ_izin 125',gx+dxG+wG+14,gy-gh*Math.min(1,_C10_SIZIN/maks)+4,'#ef4444',f10);
-  _ttlTulis('filletKtInfo','Bahu h = '+h.toFixed(0)+' mm dengan fillet r = '+r.toFixed(2)+' mm: Kt ≈ 1 + 0,5·√('+h.toFixed(0)+'/'+r.toFixed(2)+') = '+Kt.toFixed(3)+'; σ_maks = '+Kt.toFixed(3)+' × '+sn.toFixed(0)+' = '+sm.toFixed(1)+' MPa ('+(sm>_C10_SIZIN?'melebihi':'di bawah')+' σ_izin 125 MPa, SF = '+(250/sm).toFixed(2)+')');
+  _cad10Gauge(ctx,gx,gy,wG,gh,sn,maks,'#22d3ee','σ<sub>nom</sub>',_C10_SIZIN);
+  _cad10Gauge(ctx,gx+dxG,gy,wG,gh,sm,maks,col,'σ<sub>maks</sub>',_C10_SIZIN);
+  _cad10Teks(ctx,'σ<sub>izin</sub> 125',gx+dxG+wG+14,gy-gh*Math.min(1,_C10_SIZIN/maks)+4,'#ef4444',f10);
+  _ttlTulis('filletKtInfo','Bahu h = '+h.toFixed(0)+' mm dengan fillet r = '+r.toFixed(2)+' mm: K<sub>t</sub> ≈ 1 + 0,5·√('+h.toFixed(0)+'/'+r.toFixed(2)+') = '+Kt.toFixed(3)+'; σ<sub>maks</sub> = '+Kt.toFixed(3)+' × '+sn.toFixed(0)+' = '+sm.toFixed(1)+' MPa ('+(sm>_C10_SIZIN?'melebihi':'di bawah')+' σ<sub>izin</sub> 125 MPa, SF = '+(250/sm).toFixed(2)+')');
   if(_ttlJalan('filletkt')){_fkFrame++; requestAnimationFrame(drawFilletKt);}
 }
 
@@ -105,7 +105,7 @@ function drawRusuk(){
   const d0=F*L*L*L/(3*_C10_E*I0), d1=F*L*L*L/(3*_C10_E*g.I);
   // judul (ponsel: dua baris selalu disediakan karena panjangnya ikut h_r yang beranimasi)
   _cad10Muat(ctx,'Kantilever L = '+L+' mm, pelat '+b+'\u00a0×\u00a0'+t+' baja; rusuk '+tr.toFixed(0)+'\u00a0×\u00a0'+hr.toFixed(1)+'\u00a0mm',12,18,W-24,'rgba(226,232,240,.92)',f11,'left',14);
-  const baris=[['I_gab = '+g.I.toLocaleString('id-ID',{maximumFractionDigits:0})+' mm⁴  ('+(g.I/I0).toFixed(1)+'×\u00a0pelat)','#22d3ee',f11,0],
+  const baris=[['I<sub>gab</sub> = '+g.I.toLocaleString('id-ID',{maximumFractionDigits:0})+' mm⁴  ('+(g.I/I0).toFixed(1)+'×\u00a0pelat)','#22d3ee',f11,0],
     ['δ = F·L³/(3·E·I) = '+d1.toFixed(3)+' mm',d1<=L/250?'#00e09e':'#ef4444',f11,sempit?17:18],
     ['batas L/250 = '+(L/250).toFixed(2)+' mm · volume\u00a0+'+(100*tr*hr/(b*t)).toFixed(0)+'\u00a0%','rgba(148,163,184,.9)',f10,sempit?34:36]];
   // Label sumbu netral: templat berangka tetap agar tata letak tidak bergeser saat ȳ beranimasi.
@@ -181,16 +181,16 @@ function drawLubangMassa(){
   // angka (kanan atas; ponsel: di bawah pelat) dan batang ukur massa serta σ_maks
   const col=sm>_C10_SIZIN?'#ef4444':'#00e09e';
   const baris=[['m = '+m.toFixed(1)+' g (−'+(100*(m0-m)/m0).toFixed(1)+' %)','#22d3ee',f11,0],
-    ['Kt('+(d/b).toFixed(2)+') = '+Kt.toFixed(2)+' · σ_nom = '+sn.toFixed(1),'rgba(148,163,184,.9)',f10,sempit?17:18],
-    ['σ_maks = '+sm.toFixed(1)+' MPa'+(sm>_C10_SIZIN?' →\u00a0GAGAL':' →\u00a0lolos'),col,f11,sempit?34:36]];
+    ['K<sub>t</sub>('+(d/b).toFixed(2)+') = '+Kt.toFixed(2)+' · σ<sub>nom</sub> = '+sn.toFixed(1),'rgba(148,163,184,.9)',f10,sempit?17:18],
+    ['σ<sub>maks</sub> = '+sm.toFixed(1)+' MPa'+(sm>_C10_SIZIN?' →\u00a0GAGAL':' →\u00a0lolos'),col,f11,sempit?34:36]];
   let gx,gy,gh,dxG,wG;
   if(sempit){const yK=_cad10Kolom(ctx,12,Y(b)+40,W-24,baris); gx=16; gy=H-24; gh=Math.max(40,gy-yK-14); dxG=64; wG=30;}
   else {gx=Math.min(W*0.66,W-186); _cad10Kolom(ctx,gx,H*0.16,W-gx-8,baris); gy=H*0.80; gh=H*0.50; dxG=70; wG=34;}
   const maksS=Math.max(250,sm*1.1);
   _cad10Gauge(ctx,gx,gy,wG,gh,m,m0,'#22d3ee','massa');
-  _cad10Gauge(ctx,gx+dxG,gy,wG,gh,sm,maksS,col,'σ_maks',_C10_SIZIN);
-  _cad10Teks(ctx,'σ_izin 125',gx+dxG+wG+14,gy-gh*Math.min(1,_C10_SIZIN/maksS)+4,'#ef4444',f10);
-  _ttlTulis('lubangMassaInfo','Tiga lubang ⌀'+d.toFixed(1)+' pada pelat '+a+' × '+b+' × '+t.toFixed(0)+' menurunkan massa dari '+m0.toFixed(1)+' ke '+m.toFixed(1)+' g; tegangan nominal F/((b − d)·t) = '+sn.toFixed(2)+' MPa dikalikan Kt = '+Kt.toFixed(2)+' menjadi σ_maks = '+sm.toFixed(1)+' MPa ('+(sm>_C10_SIZIN?'melebihi':'≤')+' σ_izin 125 MPa)');
+  _cad10Gauge(ctx,gx+dxG,gy,wG,gh,sm,maksS,col,'σ<sub>maks</sub>',_C10_SIZIN);
+  _cad10Teks(ctx,'σ<sub>izin</sub> 125',gx+dxG+wG+14,gy-gh*Math.min(1,_C10_SIZIN/maksS)+4,'#ef4444',f10);
+  _ttlTulis('lubangMassaInfo','Tiga lubang ⌀'+d.toFixed(1)+' pada pelat '+a+' × '+b+' × '+t.toFixed(0)+' menurunkan massa dari '+m0.toFixed(1)+' ke '+m.toFixed(1)+' g; tegangan nominal F/((b − d)·t) = '+sn.toFixed(2)+' MPa dikalikan K<sub>t</sub> = '+Kt.toFixed(2)+' menjadi σ<sub>maks</sub> = '+sm.toFixed(1)+' MPa ('+(sm>_C10_SIZIN?'melebihi':'≤')+' σ<sub>izin</sub> 125 MPa)');
   if(_ttlJalan('lubangmassa')){_lmFrame++; requestAnimationFrame(drawLubangMassa);}
 }
 
@@ -209,7 +209,7 @@ function drawIprofil(){
   const hR=Math.cbrt(12*I/B), AR=B*hR;
   const hNow=_ttlJalan('iprofil')?hR*(0.5+0.5*Math.sin(_ipFrame/55-Math.PI/2)):hR;
   const Inow=B*hNow*hNow*hNow/12, tMaks=Math.max(Hh,hR);
-  const judul='Iterasi penampang: alias\u00a0B,\u00a0H,\u00a0t_f,\u00a0t_w\u00a0→\u00a0I_x;', judul2='persegi panjang tumbuh sampai I\u00a0sama';
+  const judul='Iterasi penampang: alias\u00a0B,\u00a0H,\u00a0t_f,\u00a0t_w\u00a0→\u00a0I<sub>x</sub>;', judul2='persegi panjang tumbuh sampai I\u00a0sama';   // notasi: kode (t_f, t_w = alias Spreadsheet)
   const yJ=sempit?_cad10Muat(ctx,judul2,12,_cad10Muat(ctx,judul,12,18,W-24,'rgba(226,232,240,.92)',f11,'left',14),W-24,'rgba(226,232,240,.92)',f11,'left',14)
     :_cad10Muat(ctx,judul+' '+judul2,12,18,W-24,'rgba(226,232,240,.92)',f11,'left',14);
   // Ponsel: kedua penampang di bawah judul, label bertingkat, lalu kolom angka di bawahnya.
@@ -225,7 +225,7 @@ function drawIprofil(){
   _ttlGaris(ctx,cx1-B/2*sk-16,cy,cx2+B/2*sk+16,cy,'#ef4444',1,[8,3,2,3]);
   _cad10Teks(ctx,'X',cx2+B/2*sk+20,cy+4,'#ef4444',"bold 10px "+_C10F);
   // label penampang; di kanvas sempit/sedang dipecah bertingkat agar tidak saling menimpa
-  const yL=cy+tMaks/2*sk+(sempit?15:18), pI='B '+B.toFixed(0)+' · H '+Hh.toFixed(0), pT='t_f '+tf.toFixed(1)+' · t_w '+tw.toFixed(1);
+  const yL=cy+tMaks/2*sk+(sempit?15:18), pI='B '+B.toFixed(0)+' · H '+Hh.toFixed(0), pT='t<sub>f</sub> '+tf.toFixed(1)+' · t<sub>w</sub> '+tw.toFixed(1);
   if(sempit){
     _cad10Tengah(ctx,'profil I',cx1,yL,W,'#22d3ee',f10); _cad10Tengah(ctx,'persegi panjang',cx2,yL,W,'#ec4899',f10);
     _cad10Tengah(ctx,pI,cx1,yL+13,W,'#22d3ee',f10); _cad10Tengah(ctx,'B × '+hNow.toFixed(1),cx2,yL+13,W,'#ec4899',f10);
@@ -239,13 +239,13 @@ function drawIprofil(){
   }
   const tx=sempit?12:sedang?W*0.57:W*0.66, dg=sempit?[0,16,35,50,68,84]:[0,18,46,64,92,110];
   _cad10Kolom(ctx,tx,sempit?yL+26+24:H*0.16,W-tx-(sempit?12:8),[
-    ['I_x = [B·H³ − (B\u00a0−\u00a0t_w)(H\u00a0−\u00a02t_f)³]/12','#22d3ee',f10,dg[0]],
+    ['I<sub>x</sub> = [B·H³ − (B\u00a0−\u00a0t<sub>w</sub>)(H\u00a0−\u00a02t<sub>f</sub>)³]/12','#22d3ee',f10,dg[0]],
     ['= '+I.toLocaleString('id-ID',{maximumFractionDigits:0})+' mm⁴, A = '+A.toFixed(0)+' mm²','#00e09e',f11,dg[1]],
     ['persegi panjang: I = '+Inow.toLocaleString('id-ID',{maximumFractionDigits:0})+' mm⁴','#ec4899',f10,dg[2]],
     ['h = '+hNow.toFixed(1)+' mm, A = '+(B*hNow).toFixed(0)+' mm²','#ec4899',f10,dg[3]],
-    ['I sama saat h = (12·I/B)^(1/3) =\u00a0'+hR.toFixed(1),'rgba(148,163,184,.9)',f10,dg[4]],
+    ['I sama saat h = (12·I/B)<sup>1/3</sup> =\u00a0'+hR.toFixed(1),'rgba(148,163,184,.9)',f10,dg[4]],
     ['→ massa '+(AR/A).toFixed(2)+'× profil I','#f59e0b',f11,dg[5]]]);
-  _ttlTulis('iprofilInfo','Profil I B = '+B.toFixed(0)+', H = '+Hh.toFixed(0)+', t_f = '+tf.toFixed(1)+', t_w = '+tw.toFixed(1)+': I_x = '+I.toFixed(0)+' mm⁴ dengan luas '+A.toFixed(0)+' mm²; persegi panjang selebar B butuh tinggi '+hR.toFixed(2)+' mm (luas '+AR.toFixed(0)+' mm², '+(AR/A).toFixed(2)+'× massa per satuan panjang) untuk momen inersia yang sama');
+  _ttlTulis('iprofilInfo','Profil I B = '+B.toFixed(0)+', H = '+Hh.toFixed(0)+', t<sub>f</sub> = '+tf.toFixed(1)+', t<sub>w</sub> = '+tw.toFixed(1)+': I<sub>x</sub> = '+I.toFixed(0)+' mm⁴ dengan luas '+A.toFixed(0)+' mm²; persegi panjang selebar B butuh tinggi '+hR.toFixed(2)+' mm (luas '+AR.toFixed(0)+' mm², '+(AR/A).toFixed(2)+'× massa per satuan panjang) untuk momen inersia yang sama');
   if(_ttlJalan('iprofil')){_ipFrame++; requestAnimationFrame(drawIprofil);}
 }
 

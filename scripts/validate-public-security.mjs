@@ -5008,6 +5008,31 @@ async function ujiMutasiTunggu() {
   }
 }
 
+// Notasi rumus di halaman modul (3 Oktober 2026, laporan dosen TTL Modul 3 Gambar 2: "V_k = V · R_k / R_seri"
+// tampil dengan garis bawah mentah). <text> SVG dan literal kanvas/readout harus memakai subskrip sungguhan
+// (pustaka.rumus_svg, helper _ttlRumus di animasi/dasar.js), dan segmen KaTeX tidak boleh terpecah.
+// Rinciannya di scripts/periksa-notasi.mjs (juga dapat dijalankan sendiri: node scripts/periksa-notasi.mjs --rinci).
+{
+  const notasi = await import(new URL("./periksa-notasi.mjs", import.meta.url));
+  let halamanNotasi = 0;
+  for (const course of notasi.KURSUS_NOTASI) {
+    if (!courseRoots.includes(course)) throw new Error(`periksa-notasi: course ${course} is not in courseRoots`);
+    const dir = path.join(root, course, "Modul");
+    for (const nama of fs.readdirSync(dir).filter((n) => /^Modul-\d+\.html$/.test(n))) {
+      const relative = path.join(course, "Modul", nama);
+      const pelanggaran = notasi.periksaNotasi(fs.readFileSync(path.join(root, relative), "utf8"));
+      if (pelanggaran.length) {
+        const p = pelanggaran[0];
+        throw new Error(`${relative}:${p.baris}: ${p.jenis} ("${p.teks}"${pelanggaran.length > 1 ? ` dan ${pelanggaran.length - 1} lagi` : ""}); tulis subskrip lewat <sub>/<sup> di sumber generator (pustaka.rumus_svg, _ttlRumus), tandai kode dengan Kode()/"// notasi: kode" — node scripts/periksa-notasi.mjs --rinci`);
+      }
+      halamanNotasi += 1;
+    }
+  }
+  if (halamanNotasi !== 14 * notasi.KURSUS_NOTASI.length) throw new Error(`periksa-notasi: expected ${14 * notasi.KURSUS_NOTASI.length} module pages, got ${halamanNotasi}`);
+  const acuan = path.join("Teknik-Tenaga-Listrik", "Modul", "Modul-3.html");
+  notasi.ujiMutasiNotasi(fs.readFileSync(path.join(root, acuan), "utf8"), acuan);
+}
+
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");
 if (/rsync -a \\\r?\n\s+--exclude='.git'/.test(workflow)) throw new Error("Pages workflow still copies repository root");
 for (const required of ["Allowlist frontend publik", "Tolak artefak sensitif", "_site/functions", "*answers.js", "*questions.js"]) {

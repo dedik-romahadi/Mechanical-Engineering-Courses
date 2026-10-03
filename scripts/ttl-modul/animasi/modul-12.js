@@ -81,8 +81,8 @@ function drawHubungSingkat(){
   ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('3 fasa: '+i3[0].toFixed(0)+' A di GI → '+i3[seg].toFixed(0)+' A di ujung',padL+6,padT+12);
   ctx.fillStyle='rgba(0,229,255,.95)'; ctx.fillText('1 fasa-tanah (NGR '+rn+' Ω): '+i1[0].toFixed(0)+' → '+i1[seg].toFixed(0)+' A',padL+6,padT+26);
   ctx.fillStyle='rgba(255,179,0,.95)'; ctx.fillText('pickup relai '+pickup+' A: jangkauan 3 fasa '+jangkau3.toFixed(1)+' km, 1 fasa-tanah '+jangkau1.toFixed(1)+' km',padL+6,padT+40);
-  ctx.fillStyle='rgba(255,255,255,.9)'; ctx.fillText('gangguan di '+(L*si/seg).toFixed(1)+' km: I_3φ = '+i3[si].toFixed(0)+' A, I_1φ = '+i1[si].toFixed(0)+' A',padL+6,padT+54);
-  _ttlTulis('hubungSingkatInfo','S_sc '+ssc+' MVA → X_s = '+xs.toFixed(3)+' Ω; penyulang '+L+' km (0,4 + j0,35 Ω/km; Z₀ ≈ 3Z₁); NGR '+rn+' Ω   |   I_sc 3 fasa: GI '+i3[0].toFixed(0)+' A, ujung '+i3[seg].toFixed(0)+' A (turun karena impedansi saluran bertambah)   |   I_sc 1 fasa-tanah dibatasi 3R_n: ujung '+i1[seg].toFixed(0)+' A   |   relai arus lebih fasa dengan pickup '+pickup+' A hanya "melihat" gangguan 3 fasa sampai '+jangkau3.toFixed(1)+' km → gangguan di luar jangkauan perlu relai tanah/recloser hilir atau pickup lebih rendah (tetapi > 1,2–1,5 × beban maks)');
+  ctx.fillStyle='rgba(255,255,255,.9)'; ctx.fillText('gangguan di '+(L*si/seg).toFixed(1)+' km: I<sub>3φ</sub> = '+i3[si].toFixed(0)+' A, I<sub>1φ</sub> = '+i1[si].toFixed(0)+' A',padL+6,padT+54);
+  _ttlTulis('hubungSingkatInfo','S<sub>sc</sub> '+ssc+' MVA → X<sub>s</sub> = '+xs.toFixed(3)+' Ω; penyulang '+L+' km (0,4 + j0,35 Ω/km; Z₀ ≈ 3Z₁); NGR '+rn+' Ω   |   I<sub>sc</sub> 3 fasa: GI '+i3[0].toFixed(0)+' A, ujung '+i3[seg].toFixed(0)+' A (turun karena impedansi saluran bertambah)   |   I<sub>sc</sub> 1 fasa-tanah dibatasi 3R<sub>n</sub>: ujung '+i1[seg].toFixed(0)+' A   |   relai arus lebih fasa dengan pickup '+pickup+' A hanya "melihat" gangguan 3 fasa sampai '+jangkau3.toFixed(1)+' km → gangguan di luar jangkauan perlu relai tanah/recloser hilir atau pickup lebih rendah (tetapi > 1,2–1,5 × beban maks)');
   if(_ttlJalan('hubungsingkat')){_hsFrame++; requestAnimationFrame(drawHubungSingkat);}
 }
 
@@ -110,11 +110,11 @@ function drawKoordinasi(){
   [[tA,'rgba(239,68,68,.95)'],[tB,'rgba(0,224,158,.95)'],[tF,'rgba(255,179,0,.95)']].forEach(([t,w])=>{if(isFinite(t)&&t<=tmax){ctx.fillStyle=w; ctx.beginPath(); ctx.arc(X(If),Y(t),5,0,Math.PI*2); ctx.fill();}});
   const margin=isFinite(tA)&&isFinite(tB)?tA-tB:NaN;
   ctx.textAlign='left'; ctx.font="600 10px 'JetBrains Mono',monospace";
-  ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('relai hulu A: I_s '+isA+' A, TMS '+tmsA.toFixed(2)+' → t('+If+' A) = '+(isFinite(tA)?tA.toFixed(3)+' s':'tidak pickup'),padL+6,padT+12);
-  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('relai hilir B: I_s '+isB+' A, TMS '+tmsB.toFixed(2)+' → t = '+(isFinite(tB)?tB.toFixed(3)+' s':'tidak pickup'),padL+6,padT+26);
-  ctx.fillStyle='rgba(255,179,0,.95)'; ctx.fillText('fuse 100 A cabang: t_lebur('+If+' A) = '+tF.toFixed(3)+' s',padL+6,padT+40);
+  ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('relai hulu A: I<sub>s</sub> '+isA+' A, TMS '+tmsA.toFixed(2)+' → t('+If+' A) = '+(isFinite(tA)?tA.toFixed(3)+' s':'tidak pickup'),padL+6,padT+12);
+  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('relai hilir B: I<sub>s</sub> '+isB+' A, TMS '+tmsB.toFixed(2)+' → t = '+(isFinite(tB)?tB.toFixed(3)+' s':'tidak pickup'),padL+6,padT+26);
+  ctx.fillStyle='rgba(255,179,0,.95)'; ctx.fillText('fuse 100 A cabang: t<sub>lebur</sub>('+If+' A) = '+tF.toFixed(3)+' s',padL+6,padT+40);
   ctx.fillStyle=isFinite(margin)&&margin>=0.3?'rgba(0,224,158,.95)':'rgba(239,68,68,.95)'; ctx.fillText('selang A − B = '+(isFinite(margin)?margin.toFixed(3)+' s':'—')+(isFinite(margin)&&margin>=0.3?' ✓ ≥ 0,3 s':' ✗ perlu ≥ 0,3 s'),padL+6,padT+54);
-  _ttlTulis('koordinasiInfo','Kurva standard inverse t = TMS·0,14/((I/I_s)^0,02 − 1); fuse cabang 100 A (I²t ≈ 3×10⁵ A²s)   |   pada I_f = '+If+' A: fuse '+tF.toFixed(3)+' s → relai B '+(isFinite(tB)?tB.toFixed(3):'∞')+' s → relai A '+(isFinite(tA)?tA.toFixed(3):'∞')+' s   |   syarat: fuse < B < A dengan selang ≥ 0,3–0,4 s (waktu PMT + kesalahan relai + margin) → '+(isFinite(margin)&&margin>=0.3?'terkoordinasi':'BELUM terkoordinasi: naikkan TMS A atau turunkan TMS B')+'   |   I_s dipilih 1,2–1,5 × beban maksimum dan < I_sc minimum di ujung zona');
+  _ttlTulis('koordinasiInfo','Kurva standard inverse t = TMS·0,14/((I/I<sub>s</sub>)<sup>0,02</sup> − 1); fuse cabang 100 A (I²t ≈ 3×10⁵ A²s)   |   pada I<sub>f</sub> = '+If+' A: fuse '+tF.toFixed(3)+' s → relai B '+(isFinite(tB)?tB.toFixed(3):'∞')+' s → relai A '+(isFinite(tA)?tA.toFixed(3):'∞')+' s   |   syarat: fuse < B < A dengan selang ≥ 0,3–0,4 s (waktu PMT + kesalahan relai + margin) → '+(isFinite(margin)&&margin>=0.3?'terkoordinasi':'BELUM terkoordinasi: naikkan TMS A atau turunkan TMS B')+'   |   I<sub>s</sub> dipilih 1,2–1,5 × beban maksimum dan < I<sub>sc</sub> minimum di ujung zona');
   if(_ttlJalan('koordinasi')){_kdFrame12++; requestAnimationFrame(drawKoordinasi);}
 }
 

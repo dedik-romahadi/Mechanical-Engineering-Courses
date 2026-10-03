@@ -422,9 +422,9 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">P = √3·V·I·cos φ</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">E = P·t</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">f = p·n/120</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">P_rugi = 3·I²·R</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">P<sub>rugi</sub> = 3·I²·R</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">I = P/(√3·V·cos φ)</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">LF = P_rata/P_puncak</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">LF = P<sub>rata</sub>/P<sub>puncak</sub></span>
     <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">η = η₁·η₂·η₃</span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">CF = E/(P·8760)</span>
   </div>
@@ -624,11 +624,11 @@ def materi():
                      "btnRantai", "toggleRantai", "rantaiInfo",
                      "<strong>📊 Cara Membaca Animasi 1:</strong> Lebar pita menyatakan energi yang tersisa pada tiap tahap, dimulai dari 100 satuan energi bahan bakar; pita merah yang turun adalah rugi di tahap itu. Transformator dianggap 98,5%.<br>Amati: (1) <strong style=\"color:var(--cyan)\">Pita menyempit paling tajam di pembangkit</strong>, karena sebagian besar energi bahan bakar terbuang sebagai panas di kondensor dan cerobong. (2) Menaikkan efisiensi pembangkit dari 38% ke 45% menambah energi sampai konsumen jauh lebih banyak daripada menaikkan efisiensi distribusi dengan besar yang sama. (3) Bandingkan angka pada readout dengan hasil soal C6 dan C12.")
     isi += anim_panel(2, "amber", r"Rugi Saluran terhadap Tegangan \(P_{rugi} = P^2R/(V_L^2\cos^2\varphi)\)", "cvRugi",
-                      [("sl_ru_p", "v_ru_p", "Daya disalurkan P (MW)", 10, 300, 5, 100, "100"), ("sl_ru_r", "v_ru_r", "Resistansi R (Ω/fasa)", 1, 20, 0.5, 5, "5.0"), ("sl_ru_v", "v_ru_v", "Tegangan V_L (kV)", 20, 500, 5, 150, "150")],
+                      [("sl_ru_p", "v_ru_p", "Daya disalurkan P (MW)", 10, 300, 5, 100, "100"), ("sl_ru_r", "v_ru_r", "Resistansi R (Ω/fasa)", 1, 20, 0.5, 5, "5.0"), ("sl_ru_v", "v_ru_v", "Tegangan V<sub>L</sub> (kV)", 20, 500, 5, 150, "150")],
                       "btnRugi", "toggleRugi", "rugiInfo",
                       "<strong>📊 Cara Membaca Animasi 2:</strong> Kurva menyatakan rugi saluran sebagai persen daya kirim untuk setiap tegangan (faktor daya 0,9); garis tegak adalah tingkat tegangan standar dan garis merah adalah batas rugi 3%. Titik berdenyut menandai tegangan pilihan Anda.<br>Amati: (1) <strong style=\"color:var(--amber)\">Menggandakan tegangan memangkas rugi menjadi seperempat</strong>. (2) Menggandakan daya pada tegangan yang sama menggandakan persentase rugi, karena rugi sebanding \\(P^2\\). (3) Cari tegangan terendah yang masih di bawah garis 3%; itulah yang dihitung soal C11.")
     isi += anim_panel(3, "violet", r"Tegangan Tiga Fasa Seimbang dan Fasornya \(v_R + v_S + v_T = 0\)", "cvFasa",
-                      [("sl_fa_f", "v_fa_f", "Frekuensi f (Hz)", 45, 55, 0.5, 50, "50.0"), ("sl_fa_v", "v_fa_v", "Tegangan fasa V_f (V rms)", 100, 300, 5, 230, "230")],
+                      [("sl_fa_f", "v_fa_f", "Frekuensi f (Hz)", 45, 55, 0.5, 50, "50.0"), ("sl_fa_v", "v_fa_v", "Tegangan fasa V<sub>f</sub> (V rms)", 100, 300, 5, 230, "230")],
                       "btnFasa", "toggleFasa", "fasaInfo",
                       "<strong>📊 Cara Membaca Animasi 3:</strong> Di kiri, tiga fasor berputar dengan jarak 120°; proyeksi vertikal ujung setiap fasor adalah nilai sesaat tegangannya, yang tergambar sebagai gelombang di kanan. Putarannya diperlambat agar dapat diikuti mata.<br>Amati: (1) Pada setiap saat, jumlah ketiga tegangan <strong style=\"color:var(--violet)\">tepat nol</strong> (garis putih mendatar), sebab itulah beban tiga fasa seimbang tidak memerlukan arus netral. (2) Nilai puncak adalah \\(\\sqrt{2}\\) kali nilai rms. (3) Menaikkan frekuensi memperpendek periode \\(T = 1/f\\).")
     isi += anim_panel(4, "green", r"Kurva Beban Harian, Faktor Beban, dan Cadangan \(LF = P_{rata}/P_{puncak}\)", "cvBeban",
@@ -795,10 +795,10 @@ TUGAS_HERO = '''<div class="hero" data-tab="tugas" style="min-height:60vh">
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">P = √3·V·I·cos φ</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">P_rugi = 3·I²·R</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">P<sub>rugi</sub> = 3·I²·R</span>
     <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">f = p·n/120</span>
     <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">T = P/ω</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">LF = P_rata/P_puncak</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">LF = P<sub>rata</sub>/P<sub>puncak</sub></span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 1 · Konsep Dasar Sistem Tenaga Listrik</div>
@@ -879,6 +879,22 @@ COMP_EZ_LABELS = ["Daya aktif satu fasa P = V·I·cos φ", "Energi dan biaya lis
 COMP_HARD_LABELS = ["Tegangan saluran minimum untuk rugi ≤ 3%", "Kebutuhan batubara PLTU per hari", "Energi dan faktor beban kurva bertingkat",
                     "Torsi poros turbin–generator", "Penghematan energi rugi 20 kV → 70 kV"]
 
+# Rumus melayang overlay login (Modul 1 adalah kerangka Modul 2–14 dan modul CAD, jadi ikut
+# terwariskan). Dipasang el.innerHTML: konstanta statis, subskrip memakai <sub> seperti teks modul.
+RUMUS_LOGIN = """const formulas = [
+    { t: 'P = V·I·cos φ',                 s: 13 },
+    { t: 'P = √3·V<sub>L</sub>·I<sub>L</sub>·cos φ',          s: 12 },
+    { t: 'E = P·t',                       s: 14 },
+    { t: 'I<sub>L</sub> = P/(√3·V<sub>L</sub>·cos φ)',        s: 11 },
+    { t: 'P<sub>rugi</sub> = 3·I²·R',               s: 13 },
+    { t: 'f = p·n/120',                   s: 14 },
+    { t: 'ω = 2π·n/60',                   s: 13 },
+    { t: 'T = P<sub>mek</sub>/ω',                   s: 13 },
+    { t: 'η = η<sub>p</sub>·η<sub>trf</sub>·η<sub>t</sub>·η<sub>d</sub>',         s: 11 },
+    { t: 'LF = P<sub>rata</sub>/P<sub>puncak</sub>',          s: 12 },
+    { t: 'CF = E/(P·8760)',               s: 12 },
+  ];"""
+
 
 # ─────────────────────────── FORUM ───────────────────────────
 FORUM_POLL_BENAR = {1: 1, 2: 2, 3: 0}
@@ -946,7 +962,7 @@ def forum_page():
             "Petunjuk: (1) Daftarkan bagian-bagian sistem pulau beserta tegangannya. (2) Bandingkan dengan rantai sistem Jawa–Bali. (3) Jelaskan satu konsekuensi dari sistem yang terisolasi.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
             "Anggap daya yang disalurkan, faktor daya, dan penghantar tidak berubah. Gunakan Persamaan (5) dan (6) untuk menjelaskan berapa kali arus dan rugi daya berubah bila tegangan dinaikkan dari 6 kV ke 20 kV. Kaitkan juga penurunan arus dengan jatuh tegangan di ujung saluran, lalu jelaskan mengapa rugi yang lebih kecil berarti solar yang lebih sedikit.",
-            ["I ∝ 1/V", "P_rugi ∝ 1/V²", "rugi → solar terbakar sia-sia"],
+            ["I ∝ 1/V", "P<sub>rugi</sub> ∝ 1/V²", "rugi → solar terbakar sia-sia"],
             "Dengan daya, faktor daya, dan penghantar yang sama, menaikkan tegangan dari 6 kV ke 20 kV membuat rugi daya saluran menjadi sekitar...",
             ["0,30 kali semula, turun sebanding tegangan", "3,33 kali semula", "0,09 kali semula, turun sebanding kuadrat tegangan", "Tetap, karena daya yang disalurkan sama"],
             "✅ Tepat! Arus turun menjadi \\(6/20 = 0{,}3\\) kali, dan rugi \\(3I^2R\\) turun sebanding kuadratnya: \\(0{,}3^2 = 0{,}09\\) kali. Rugi saluran berkurang sekitar 91%, sehingga lebih banyak energi dari solar yang terbakar benar-benar sampai ke pelanggan.",
@@ -970,8 +986,8 @@ def forum_page():
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">P_rugi ∝ 1/V²</span>
-    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">LF = P_rata/P_puncak</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">P<sub>rugi</sub> ∝ 1/V²</span>
+    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">LF = P<sub>rata</sub>/P<sub>puncak</sub></span>
     <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">CF = E/(P·8760)</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">PLTD → PLTS + baterai</span>
   </div>
