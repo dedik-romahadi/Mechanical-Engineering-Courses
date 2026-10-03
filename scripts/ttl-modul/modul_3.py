@@ -374,7 +374,7 @@ def materi():
     isi += cards([
         ("🔋", "Baterai", "Ggl bergantung kimia dan keadaan muatan (Li-ion 3,6–4,2 V/sel); hambatan dalam naik saat dingin dan saat baterai menua. Regulasi tegangan yang buruk adalah tanda baterai lemah.", None),
         ("☀️", "Panel Surya", "Bukan sumber tegangan tetap: kurva I–V-nya melengkung, dengan titik daya maksimum (MPP) yang dicari pengendali MPPT, penerapan langsung gagasan transfer daya maksimum.", None),
-        ("⚙️", "Generator DC", "Tegangan terminal turun bersama beban karena resistansi jangkar dan reaksi jangkar; regulasinya dinyatakan (\\(E - V_t\\))/\\(V_t\\).", r"\(VR = (E - V_t)/V_t\)"),
+        ("⚙️", "Generator DC", "Tegangan terminal turun bersama beban karena resistansi jangkar dan reaksi jangkar; regulasinya dinyatakan (\\(E - V_t\\))/\\(V_t\\).", r"\(\mathrm{VR} = (E - V_t)/V_t\)"),
         ("🛠️", "Pengukuran r", "Ukur tegangan tanpa beban (E) dan tegangan pada arus beban diketahui: \\(r = (E - V_t)/I\\). Cara praktis menilai baterai di lapangan.", r"\(r = (E - V_t)/I\)"),
         ("🚗", "Starter Mobil", "Motor starter menarik 150–300 A; baterai dengan r 10 mΩ turun 1,5–3 V saat start, itulah sebabnya lampu meredup sesaat.", None),
         ("⚠️", "Hubung Singkat", "Arus \\(E/r\\) pada baterai besar mencapai ribuan ampere; kabel dapat meleleh dalam hitungan detik. Sekring dan pemutus DC wajib dipasang sedekat mungkin ke baterai.", None),

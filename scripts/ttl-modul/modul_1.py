@@ -592,20 +592,20 @@ def materi():
 
     # 06
     isi = figure(6, "Kurva beban harian dan faktor beban", "Beban rendah dini hari, naik bersama aktivitas kerja, dan memuncak menjelang malam; jarak antara garis rata-rata dan garis puncak menunjukkan kapasitas yang hanya terpakai beberapa jam.", gambar6())
-    isi += formula(9, "Faktor Beban (Load Factor)", r"LF = \dfrac{P_{rata}}{P_{puncak}} = \dfrac{E_{periode}}{P_{puncak} \cdot T}",
-                   rf"\(E_{{periode}}\) = energi dalam periode \(T\) (jam). Sistem yang menyalurkan 820 MWh sehari dengan beban puncak 45 MW mempunyai \(P_{{rata}} \approx {ind(820 / 24, 2)}\) MW dan \(LF \approx {ind(LF_CONTOH, 2)}\%\).",
+    isi += formula(9, "Faktor Beban (Load Factor)", r"\mathrm{LF} = \dfrac{P_{rata}}{P_{puncak}} = \dfrac{E_{periode}}{P_{puncak} \cdot T}",
+                   rf"\(E_{{periode}}\) = energi dalam periode \(T\) (jam). Sistem yang menyalurkan 820 MWh sehari dengan beban puncak 45 MW mempunyai \(P_{{rata}} \approx {ind(820 / 24, 2)}\) MW dan \(\mathrm{{LF}} \approx {ind(LF_CONTOH, 2)}\%\).",
                    "Faktor beban yang tinggi berarti kurva beban datar: pembangkit dan jaringan terpakai merata sepanjang hari, sehingga biaya investasi per kWh lebih rendah. Faktor beban yang rendah berarti banyak kapasitas hanya dipakai beberapa jam saat puncak.",
-                   [("LF", "Faktor beban"), ("P_{rata}", "Beban rata-rata (MW)"), ("P_{puncak}", "Beban puncak (MW)"), ("E_{periode}", "Energi dalam periode yang ditinjau (MWh)"), ("T", "Lama periode (jam), 24 untuk harian")])
-    isi += formula(10, "Faktor Kapasitas Pembangkit", r"CF = \dfrac{E_{tahunan}}{P_{terpasang} \times 8760}",
-                   rf"8760 adalah jumlah jam dalam setahun. PLTS 3 MWp yang menghasilkan 4200 MWh per tahun mempunyai \(CF \approx {ind(CF_CONTOH, 2)}\%\), sedangkan PLTU beban dasar dapat mencapai 70–80% bila dioperasikan terus-menerus.",
+                   [("\\mathrm{LF}", "Faktor beban"), ("P_{rata}", "Beban rata-rata (MW)"), ("P_{puncak}", "Beban puncak (MW)"), ("E_{periode}", "Energi dalam periode yang ditinjau (MWh)"), ("T", "Lama periode (jam), 24 untuk harian")])
+    isi += formula(10, "Faktor Kapasitas Pembangkit", r"\mathrm{CF} = \dfrac{E_{tahunan}}{P_{terpasang} \times 8760}",
+                   rf"8760 adalah jumlah jam dalam setahun. PLTS 3 MWp yang menghasilkan 4200 MWh per tahun mempunyai \(\mathrm{{CF}} \approx {ind(CF_CONTOH, 2)}\%\), sedangkan PLTU beban dasar dapat mencapai 70–80% bila dioperasikan terus-menerus.",
                    "Faktor kapasitas membandingkan energi yang benar-benar dihasilkan dengan energi seandainya pembangkit bekerja penuh sepanjang tahun. Nilai rendah pada PLTS bukan tanda kerusakan; matahari memang hanya bersinar efektif beberapa jam sehari.",
-                   [("CF", "Faktor kapasitas"), ("E_{tahunan}", "Energi yang dihasilkan dalam setahun (MWh)"), ("P_{terpasang}", "Kapasitas terpasang (MW atau MWp)")])
+                   [("\\mathrm{CF}", "Faktor kapasitas"), ("E_{tahunan}", "Energi yang dihasilkan dalam setahun (MWh)"), ("P_{terpasang}", "Kapasitas terpasang (MW atau MWp)")])
     isi += cards([
         ("🌙", "Beban Dasar (Base Load)", "Bagian beban yang selalu ada sepanjang hari. Dipikul pembangkit yang murah per kWh tetapi lambat mengubah daya, seperti PLTU dan PLTP.", None),
         ("🌆", "Beban Puncak (Peak Load)", "Lonjakan beberapa jam, di banyak sistem PLN sekitar pukul 17.00–22.00. Dipikul pembangkit yang cepat dinyalakan, seperti PLTG, PLTA waduk, dan kini baterai.", None),
         ("📊", "Faktor Diversitas", "Tidak semua peralatan menyala bersamaan. Jumlah beban puncak masing-masing pelanggan selalu lebih besar daripada beban puncak gabungannya; itulah alasan trafo distribusi tidak perlu seukuran jumlah seluruh beban yang dilayaninya.", None),
-        ("🧮", "Faktor Rugi (Loss Factor)", "Karena rugi sebanding \\(I^2\\), rugi rata-rata tidak sama dengan rugi pada beban rata-rata. Energi rugi tahunan dihitung dari rugi pada beban puncak dikali 8760 jam dan faktor rugi.", r"\(E_{rugi} = P_{rugi,puncak} \times 8760 \times LsF\)"),
-    ], [("E_{rugi}", "Energi rugi tahunan (MWh)"), ("P_{rugi,puncak}", "Rugi daya pada beban puncak (MW)"), ("LsF", "Faktor rugi (loss factor), 0 sampai 1")])
+        ("🧮", "Faktor Rugi (Loss Factor)", "Karena rugi sebanding \\(I^2\\), rugi rata-rata tidak sama dengan rugi pada beban rata-rata. Energi rugi tahunan dihitung dari rugi pada beban puncak dikali 8760 jam dan faktor rugi.", r"\(E_{rugi} = P_{rugi,puncak} \times 8760 \times \mathrm{LsF}\)"),
+    ], [("E_{rugi}", "Energi rugi tahunan (MWh)"), ("P_{rugi,puncak}", "Rugi daya pada beban puncak (MW)"), ("\\mathrm{LsF}", "Faktor rugi (loss factor), 0 sampai 1")])
     rows, jam = [], 0
     for d, p in BLOK:
         rows.append([f"{jam:02d}.00–{jam + d:02d}.00", f"{d} jam", f"{ind(p, 0)} MW", f"{ind(d * p, 0)} MWh"])
@@ -631,7 +631,7 @@ def materi():
                       [("sl_fa_f", "v_fa_f", "Frekuensi f (Hz)", 45, 55, 0.5, 50, "50.0"), ("sl_fa_v", "v_fa_v", "Tegangan fasa V<sub>f</sub> (V rms)", 100, 300, 5, 230, "230")],
                       "btnFasa", "toggleFasa", "fasaInfo",
                       "<strong>📊 Cara Membaca Animasi 3:</strong> Di kiri, tiga fasor berputar dengan jarak 120°; proyeksi vertikal ujung setiap fasor adalah nilai sesaat tegangannya, yang tergambar sebagai gelombang di kanan. Putarannya diperlambat agar dapat diikuti mata.<br>Amati: (1) Pada setiap saat, jumlah ketiga tegangan <strong style=\"color:var(--violet)\">tepat nol</strong> (garis putih mendatar), sebab itulah beban tiga fasa seimbang tidak memerlukan arus netral. (2) Nilai puncak adalah \\(\\sqrt{2}\\) kali nilai rms. (3) Menaikkan frekuensi memperpendek periode \\(T = 1/f\\).")
-    isi += anim_panel(4, "green", r"Kurva Beban Harian, Faktor Beban, dan Cadangan \(LF = P_{rata}/P_{puncak}\)", "cvBeban",
+    isi += anim_panel(4, "green", r"Kurva Beban Harian, Faktor Beban, dan Cadangan \(\mathrm{LF} = P_{rata}/P_{puncak}\)", "cvBeban",
                       [("sl_be_puncak", "v_be_puncak", "Beban puncak malam (MW)", 40, 120, 1, 80, "80"), ("sl_be_dasar", "v_be_dasar", "Beban dasar dini hari (MW)", 10, 60, 1, 30, "30"), ("sl_be_kap", "v_be_kap", "Kapasitas terpasang (MW)", 60, 200, 5, 120, "120")],
                       "btnBeban", "toggleBeban", "bebanInfo",
                       "<strong>📊 Cara Membaca Animasi 4:</strong> Kurva biru adalah beban setiap jam, garis hijau beban rata-rata, garis merah beban puncak, dan garis jingga kapasitas pembangkit terpasang. Kursor tegak menyapu 24 jam.<br>Amati: (1) <strong style=\"color:var(--green)\">Menaikkan beban dasar tanpa mengubah puncak menaikkan faktor beban</strong>, karena kurva menjadi lebih datar. (2) Faktor kapasitas selalu lebih kecil daripada faktor beban bila kapasitas terpasang melebihi beban puncak. (3) Jika garis merah menyentuh garis jingga, cadangan habis dan sistem rawan padam saat satu pembangkit gangguan.")
@@ -981,7 +981,7 @@ def forum_page():
             ["LF = 2,5/4,2", "CF = 2,5/6", "puncak malam ≠ jam surya"],
             "Berapa faktor beban sistem pulau ini?",
             ["≈ 59,5%, beban rata-rata dibagi beban puncak", "≈ 168%, beban puncak dibagi beban rata-rata", "≈ 41,7%, beban rata-rata dibagi kapasitas PLTD", "≈ 70%, beban puncak dibagi kapasitas PLTD"],
-            "✅ Tepat! \\(LF = 2{,}5/4{,}2 \\approx 59{,}5\\%\\). Nilai 41,7% adalah <strong>faktor kapasitas</strong> PLTD bila ia memikul seluruh beban, besaran yang berbeda karena pembaginya kapasitas terpasang, bukan beban puncak.",
+            "✅ Tepat! \\(\\mathrm{LF} = 2{,}5/4{,}2 \\approx 59{,}5\\%\\). Nilai 41,7% adalah <strong>faktor kapasitas</strong> PLTD bila ia memikul seluruh beban, besaran yang berbeda karena pembaginya kapasitas terpasang, bukan beban puncak.",
             "❌ Faktor beban membandingkan beban rata-rata dengan beban <em>puncak</em> pada periode yang sama, sehingga nilainya tidak pernah melebihi 100%. Membagi dengan kapasitas PLTD menghasilkan faktor kapasitas, besaran yang lain. Lihat Persamaan (9) dan (10).",
             "Petunjuk: (1) Hitung faktor beban dan faktor kapasitas PLTD. (2) Bandingkan jam produksi PLTS dengan jam beban puncak. (3) Jelaskan peran baterai dan mengapa PLTD mungkin tetap diperlukan sebagai cadangan.")
     kartu = lambda teks, rgb, warna: f'      <div style="background:rgba({rgb},.05);border:1px solid rgba({rgb},.15);border-radius:10px;padding:12px 16px;font-family:\'JetBrains Mono\',monospace;font-size:13px;color:var(--{warna})">{teks}</div>'

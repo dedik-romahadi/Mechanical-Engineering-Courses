@@ -616,6 +616,8 @@ ganti("@@SHUFFLE@@", SHUFFLE_ANCHOR)
 ganti("@@SHUFFLE_KOMENTAR@@", "// Urutan opsi PG Sisken, Teknik Tenaga Listrik, dan Pemodelan CAD diacak deterministik per NIM.")
 
 TUJUAN.parent.mkdir(parents=True, exist_ok=True)
+from pustaka import koma_katex  # noqa: E402
+s = koma_katex(s)
 TUJUAN.write_text(s, encoding="utf-8", newline="")
 print(f"Modul-1 CAD ditulis: {len(s)} karakter; bagian {n_bagian}, animasi {n_animasi}; hash jajak {hash_baru}")
 
