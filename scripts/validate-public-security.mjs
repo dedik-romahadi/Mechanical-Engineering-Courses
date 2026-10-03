@@ -5063,16 +5063,18 @@ async function ujiMutasiTunggu() {
 }
 
 // Rumus KaTeX tampil benar (3 Oktober 2026, lanjutan laporan notasi): % polos, Laplace L{…} tanpa \{ \},
-// akar terpotong, kata miring tanpa \text, kurawal tak seimbang, TeX mentah di teks tampil, dan fungsi sebagai
-// pangkat/subskrip tanpa kurawal. Aturannya statis (repo tanpa node_modules); render KaTeX penuh (galat =
-// .katex-error) dijalankan CI security-validation.yml dengan katex@VERSI_KATEX di luar repo — langkah itu dan versi
-// <script> KaTeX halaman dipatok di sini. Lokal: node scripts/periksa-katex.mjs --katex <folder katex>.
+// akar terpotong, kata miring tanpa \text, kurawal tak seimbang, TeX mentah di teks tampil, fungsi sebagai
+// pangkat/subskrip tanpa kurawal, kode di rumus (\_, nama()), dan en dash/½ di mode matematika. Aturannya statis
+// (repo tanpa node_modules); render KaTeX penuh (galat = .katex-error) dijalankan CI security-validation.yml dengan
+// katex@VERSI_KATEX di luar repo — langkah itu dipatok baris demi baris beserta uji mutasinya (dikomentari, if:,
+// continue-on-error, || true, perintah tambahan ditolak), begitu pula versi <script> KaTeX halaman.
+// Lokal: node scripts/periksa-katex.mjs --katex <folder katex>.
 {
   const katex = await import(new URL("./periksa-katex.mjs", import.meta.url));
   const alurCi = fs.readFileSync(path.join(root, ".github", "workflows", "security-validation.yml"), "utf8");
-  if (!/node scripts\/periksa-katex\.mjs --katex "\$RUNNER_TEMP\/katex\/node_modules\/katex"/.test(alurCi) || !alurCi.includes('"katex@$VERSI_KATEX"')) {
-    throw new Error("security-validation.yml: langkah render KaTeX penuh (periksa-katex --katex, katex@VERSI_KATEX) hilang");
-  }
+  const masalahCi = katex.periksaLangkahCiKatex(alurCi);
+  if (masalahCi.length) throw new Error(`security-validation.yml: ${masalahCi.join("; ")}`);
+  katex.ujiLangkahCiKatex(alurCi);
   let halamanKatex = 0;
   for (const course of katex.KURSUS_KATEX) {
     if (!courseRoots.includes(course)) throw new Error(`periksa-katex: course ${course} is not in courseRoots`);

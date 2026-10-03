@@ -8,25 +8,35 @@
 // \( … \), \[ … \]; abaikan script/noscript/style/textarea/pre/code/option dan kelas ff/float-formulas),
 // per simpul teks, sesudah entitas HTML diurai. Yang ditolak:
 //   1. % polos di dalam rumus — bagi TeX itu komentar, jadi sisa rumus hilang ("± 20%" tampil "± 20"); tulis \%;
-//   2. Laplace dengan kurawal biasa (L{f(t)}, \mathcal{L}^{-1}{F(s)}, ℒ{u(t)}) — kurawal hanya pengelompok
-//      dan tidak tampil; tulis \mathcal{L}\{…\};
+//   2. Laplace dengan kurawal biasa (L{f(t)}, \mathcal{L}^{-1}{F(s)}, \mathcal{L}_t{f(t)}, ℒ{u(t)}) — kurawal hanya
+//      pengelompok dan tidak tampil; tulis \mathcal{L}\{…\};
 //   3. akar terpotong: \sqrt( … (hanya "(" yang di bawah akar), isi \sqrt{…} yang kurungnya tidak seimbang
-//      ("\sqrt{(k_1+k_3}/m"), atau √ Unicode di dalam rumus (tidak menaungi apa pun); tulis \sqrt{…};
+//      ("\sqrt{(k_1+k_3}/m"), atau √ Unicode di mode matematika (tidak menaungi apa pun); tulis \sqrt{…}. √ di
+//      dalam \text{…} adalah teks biasa dan tampil benar;
 //   4. kata ≥ 4 huruf di mode matematika tanpa \text{…}/\mathrm{…}/\operatorname{…} — tampil miring dan
-//      dibaca sebagai perkalian huruf ("Orde = 2" → O·r·d·e); subskrip/superskrip berkurawal (k_{aman}) sah;
+//      dibaca sebagai perkalian huruf ("Orde = 2" → O·r·d·e); subskrip/superskrip berkurawal (k_{aman}) dan
+//      diferensial berderet (dxdy, dudv) sah;
 //   5. kurawal { } yang tidak seimbang (KaTeX gagal mengurai dan menampilkan TeX merah);
 //   6. TeX mentah di teks tampil: pembatas yang tidak tertutup dalam satu simpul teks ("\(x = 2" lalu tag lain)
-//      atau perintah TeX di luar rumus ("\cdot", "\frac") — tampil apa adanya;
+//      atau perintah TeX di luar rumus ("\cdot", "\frac") — tampil apa adanya. Jalur berkas Windows
+//      (C:\Users\…, %APPDATA%\…, ~\…, \\server\…) bukan perintah TeX;
 //   7. fungsi KaTeX sebagai pangkat/subskrip tanpa kurawal (e^\int P dx, x_\sqrt2, e^\sin x) — KaTeX menolaknya
 //      ("Got function '\int' with no arguments as superscript") dan menampilkan TeX merah; tulis e^{\int P\,dx}.
-//      \frac, \text, \mathrm, \mathbf … memang boleh tanpa kurawal (x_\text{max}).
+//      \frac, \text, \mathrm, \mathbf … memang boleh tanpa kurawal (x_\text{max});
+//   8. kode yang diketik di dalam rumus: garis bawah \_ (\text{motor\_1\_rms}) atau pemanggilan kosong
+//      (\text{isnull()}, \text{solve\_lp}()) — kode ditulis <code>…</code> di luar KaTeX (keputusan dosen
+//      3 Oktober 2026, Pedoman §2 butir (17));
+//   9. en dash, em dash, atau ½ di mode matematika (0.1–0.15, ½ m v^2) — karakter teks tanpa metrik fon KaTeX;
+//      tulis 0.1\text{–}0.15 dan \tfrac{1}{2} (di dalam \text{…} boleh).
 // Argumen warna/URL/atribut HTML (\color{blue}, \textcolor{green}{…}, \href{…}) bukan kata matematika, dan isi
 // \text{…}/\textnormal{…}/\colorbox{…}{…} (kurawal bersarang pun) adalah teks tegak — keduanya tidak dihitung
 // sebagai kata miring; argumen matematika \textcolor{red}{Gaya} tetap diperiksa.
 // Dengan --katex <folder paket katex> setiap segmen juga dirender (throwOnError) dan galatnya dilaporkan
 // ("galat KaTeX", sama dengan .katex-error di peramban); paketnya wajib versi halaman (VERSI_KATEX). Repo publik
-// ini tanpa node_modules: validate-public-security.mjs menjalankan aturan statis 1–7, dan CI
-// (security-validation.yml) memasang katex@VERSI_KATEX di luar repo lalu menjalankan render penuh ini.
+// ini tanpa node_modules: validate-public-security.mjs menjalankan aturan statis 1–9, dan CI
+// (security-validation.yml) memasang katex@VERSI_KATEX di luar repo lalu menjalankan render penuh ini; langkah CI
+// itu dipatok baris demi baris (periksaLangkahCiKatex) — dikomentari, `if:`, `continue-on-error`, `|| true`, atau
+// perintah tambahan ditolak.
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
@@ -200,7 +210,8 @@ function kurawalSeimbang(t) {
   }
   return d === 0;
 }
-function akarTerpotong(t) {
+function akarTerpotong(rumus) {
+  const t = buangNonMatematika(rumus);                       // √ di dalam \text{…} adalah teks dan tampil benar
   if (/\\sqrt\s*\(/.test(t)) return "\\sqrt(";
   if (t.includes("√")) return "√";
   for (const m of t.matchAll(/\\sqrt\s*(?:\[[^\]]*\]\s*)?\{/g)) {
@@ -213,9 +224,31 @@ function akarTerpotong(t) {
 function kataMiring(t) {
   let s = buangNonMatematika(t).replace(/\\(?:begin|end)\s*\{[^{}]*\}/g, " ").replace(/\\[A-Za-z]+/g, " ");
   for (let i = 0; i < 3; i++) s = s.replace(/[_^]\s*\{[^{}]*\}/g, " ");
+  // Diferensial berderet (dxdy, dxdydz, dudv) bukan kata; huruf sesudah d bukan a/e/i/o, jadi "dadu" tetap kata.
+  s = s.replace(/(?<![A-Za-z])(?:d[b-df-hj-np-z]){2,}(?![A-Za-z])/g, " ");
   const m = /(?<![A-Za-z])[A-Za-z]{4,}(?![A-Za-z])/.exec(s);
   return m ? m[0] : null;
 }
+/** Kode yang diketik di rumus (aturan 8): garis bawah \_ atau pemanggilan kosong nama(). */
+function kodeDiRumus(t) {
+  const m = /\\_|[A-Za-z0-9_}]\s*\(\s*\)/.exec(t);
+  return m ? m[0] : null;
+}
+/** Karakter teks tanpa metrik KaTeX di mode matematika (aturan 9): en dash, em dash, ½. */
+function teksDiMatematika(t) {
+  const m = /[–—½]/.exec(buangNonMatematika(t));
+  return m ? m[0] : null;
+}
+// Jalur berkas Windows di teks biasa bukan perintah TeX (aturan 6): C:\Users\Nama\Documents, C:\Program Files\FreeCAD,
+// %APPDATA%\FreeCAD, ~\Documents, .\data, \\server\bagi. Segmen berspasi ("Program Files") hanya diterima bila segmen
+// sesudahnya jelas bagian jalur (huruf kapital/angka, folder yang disusul "\", atau nama berkas berekstensi), supaya
+// "C:\Users\Nama lalu tulis \frac di sini" tetap ditolak.
+const SEGMEN = String.raw`[^\\\s<>"|?*]+`;
+const RX_JALUR = new RegExp([
+  String.raw`(?<![A-Za-z0-9])[A-Za-z]:(?:\\(?:[^\\<>"|?*\n]{1,60}(?=\\(?:[A-Z0-9]|${SEGMEN}(?:\\|\.[A-Za-z0-9]{1,4}(?![A-Za-z0-9]))))|${SEGMEN}))+`,
+  String.raw`(?:%[A-Za-z_][\w()]*%|(?<![\w\\])~|(?<![\w\\.])\.{1,2})(?:\\${SEGMEN})+`,
+  String.raw`(?<![\w\\])\\\\[\w.$-]+(?:\\${SEGMEN})+`,
+].join("|"), "g");
 
 /** Daftar pelanggaran KaTeX pada satu halaman: [{baris, jenis, teks}]. `render` opsional: (tex, tampil) → pesan galat|null. */
 export function periksaKatex(html, render = null) {
@@ -224,12 +257,16 @@ export function periksaKatex(html, render = null) {
   for (const p of bagianKatex(html)) {
     if (p.jenis === "teks") {
       if (p.terbuka) catat(p, `pembatas ${p.terbuka} tanpa penutup di simpul teks yang sama (TeX tampil mentah)`, p.isi);
-      else { const m = /\\(?:[A-Za-z]{2,}|[()[\]])/.exec(p.isi); if (m) catat(p, `TeX mentah di teks tampil (${m[0]})`, p.isi.slice(Math.max(0, m.index - 30), m.index + 40)); }
+      else {
+        const isi = p.isi.replace(RX_JALUR, (j) => " ".repeat(j.length));
+        const m = /\\(?:[A-Za-z]{2,}|[()[\]])/.exec(isi);
+        if (m) catat(p, `TeX mentah di teks tampil (${m[0]})`, p.isi.slice(Math.max(0, m.index - 30), m.index + 40));
+      }
       continue;
     }
     const t = p.isi;
     if (/(^|[^\\])%/.test(t)) catat(p, "% polos di rumus (komentar TeX: sisa rumus hilang; tulis \\%)", p.mentah);
-    if (/(^|[^A-Za-z\\])(?:L|\\mathcal\s*\{L\}|ℒ)(?:\^\{?-1\}?)?\s*\{/.test(t)) catat(p, "Laplace dengan kurawal biasa (tidak tampil; tulis \\mathcal{L}\\{…\\})", p.mentah);
+    if (/(^|[^A-Za-z\\])(?:L|\\mathcal\s*\{L\}|ℒ)(?:\s*[_^]\s*(?:\{[^{}]*\}|-?[A-Za-z0-9])){0,2}\s*\{/.test(t)) catat(p, "Laplace dengan kurawal biasa (tidak tampil; tulis \\mathcal{L}\\{…\\})", p.mentah);
     const akar = akarTerpotong(t);
     if (akar) catat(p, `akar terpotong (${akar.slice(0, 40)}; tulis \\sqrt{…} utuh)`, p.mentah);
     const kata = kataMiring(t);
@@ -237,9 +274,88 @@ export function periksaKatex(html, render = null) {
     if (!kurawalSeimbang(t)) catat(p, "kurawal { } tidak seimbang", p.mentah);
     const skrip = RX_SKRIP_FUNGSI.exec(t);
     if (skrip) catat(p, `fungsi ${skrip[1]} sebagai pangkat/subskrip tanpa kurawal (galat KaTeX; tulis ${skrip[0][0]}{${skrip[1]} …})`, p.mentah);
+    const kode = kodeDiRumus(t);
+    if (kode) catat(p, `kode di rumus (${kode}; tulis <code>…</code> di luar KaTeX)`, p.mentah);
+    const huruf = teksDiMatematika(t);
+    if (huruf) catat(p, `${huruf} di mode matematika (tanpa metrik fon KaTeX; tulis ${huruf === "½" ? "\\tfrac{1}{2}" : `\\text{${huruf}}`})`, p.mentah);
     if (render) { const g = render(t, p.tampil); if (g) catat(p, `galat KaTeX: ${g}`, p.mentah); }
   }
   return hasil;
+}
+
+// Langkah CI render KaTeX penuh (.github/workflows/security-validation.yml) — satu-satunya penangkap galat parse
+// (\frac{a}, \foo x, x^, \left( tanpa \right) lolos aturan statis). Dipatok baris demi baris pada baris yang tidak
+// dikomentari: langkah ada tepat sekali, sejajar dengan langkah validator di daftar steps yang sama, dan isinya persis
+// tiga perintah ini. `if:`, `continue-on-error`, `|| true`, `; true`, perintah tambahan, atau jalur lain ditolak.
+export const NAMA_LANGKAH_CI = "Render every KaTeX formula with the pages' KaTeX version";
+const LANGKAH_CI = [
+  `- name: ${NAMA_LANGKAH_CI}`,
+  "run: |",
+  `VERSI_KATEX=$(node --input-type=module -e "import { VERSI_KATEX } from './scripts/periksa-katex.mjs'; console.log(VERSI_KATEX)")`,
+  `npm install --no-save --no-package-lock --no-audit --no-fund --prefix "$RUNNER_TEMP/katex" "katex@$VERSI_KATEX"`,
+  `node scripts/periksa-katex.mjs --katex "$RUNNER_TEMP/katex/node_modules/katex"`,
+];
+const LANGKAH_VALIDATOR = "- name: Validate frontend and Pages gates";
+const barisAktif = (b) => b.trim() !== "" && !/^\s*#/.test(b);
+/** Letak langkah render KaTeX: {mulai, akhir, indent} (akhir = indeks baris sesudah blok) atau pesan galat. */
+function letakLangkahCi(baris) {
+  const awal = baris.map((b, i) => (barisAktif(b) && b.trim() === LANGKAH_CI[0] ? i : -1)).filter((i) => i >= 0);
+  if (awal.length !== 1) return `langkah "${NAMA_LANGKAH_CI}" harus ada tepat sekali dan tidak dikomentari (ditemukan ${awal.length})`;
+  const mulai = awal[0], indent = baris[mulai].search(/\S/);
+  let akhir = mulai + 1;
+  for (let i = mulai + 1; i < baris.length; i++) {
+    if (!barisAktif(baris[i])) continue;
+    if (baris[i].search(/\S/) <= indent) break;
+    akhir = i + 1;
+  }
+  return { mulai, akhir, indent };
+}
+/** Masalah langkah CI render KaTeX pada teks security-validation.yml ([] = sah). */
+export function periksaLangkahCiKatex(yaml) {
+  const baris = yaml.split(/\r?\n/);
+  const l = letakLangkahCi(baris);
+  if (typeof l === "string") return [l];
+  const masalah = [];
+  const isi = baris.slice(l.mulai, l.akhir).filter(barisAktif).map((b) => b.trim());
+  if (isi.length !== LANGKAH_CI.length || isi.some((b, i) => b !== LANGKAH_CI[i])) {
+    const beda = isi.find((b, i) => b !== LANGKAH_CI[i]) ?? `${isi.length} baris, seharusnya ${LANGKAH_CI.length}`;
+    masalah.push(`isi langkah "${NAMA_LANGKAH_CI}" harus persis ${LANGKAH_CI.length - 1} baris (run: | + tiga perintah, tanpa if:, ` +
+      `continue-on-error, || true, atau perintah tambahan); berbeda di: ${beda}`);
+  }
+  const indentRun = baris.slice(l.mulai + 1, l.akhir).filter(barisAktif).map((b) => b.search(/\S/));
+  if (indentRun.length && (indentRun[0] !== l.indent + 2 || indentRun.slice(1).some((n) => n <= indentRun[0]))) {
+    masalah.push(`indentasi langkah "${NAMA_LANGKAH_CI}" rusak (run: harus sejajar name:, perintah di bawahnya lebih dalam)`);
+  }
+  if (!baris.some((b) => barisAktif(b) && b.trim() === LANGKAH_VALIDATOR && b.search(/\S/) === l.indent)) {
+    masalah.push(`langkah "${NAMA_LANGKAH_CI}" harus berada di daftar steps yang sama dengan "${LANGKAH_VALIDATOR.slice(8)}"`);
+  }
+  if (baris.some((b) => barisAktif(b) && /^\s*(?:-\s+)?continue-on-error\s*:/.test(b))) masalah.push("continue-on-error di security-validation.yml");
+  return masalah;
+}
+/** Uji mutasi penjaga langkah CI: langkah yang dimatikan dengan cara apa pun harus ditolak. */
+export function ujiLangkahCiKatex(yaml) {
+  if (periksaLangkahCiKatex(yaml).length) throw new Error("security-validation.yml: KaTeX CI step test needs the valid workflow");
+  const baris = yaml.split(/\r?\n/);
+  const l = letakLangkahCi(baris);
+  const ind = " ".repeat(l.indent + 2);
+  const iNode = baris.findIndex((b, i) => i >= l.mulai && i < l.akhir && b.trim() === LANGKAH_CI[4]);
+  const ubah = (fn) => { const b = baris.slice(); fn(b); return b.join("\n"); };
+  const mutasi = [
+    ["langkah dikomentari", ubah((b) => { for (let i = l.mulai; i < l.akhir; i++) if (b[i].trim()) b[i] = b[i].replace(/^(\s*)/, "$1# "); })],
+    ["langkah dihapus", ubah((b) => b.splice(l.mulai, l.akhir - l.mulai))],
+    ["if: false", ubah((b) => b.splice(l.mulai + 1, 0, `${ind}if: false`))],
+    ["if: ${{ false }} sesudah run", ubah((b) => b.splice(l.akhir, 0, `${ind}if: \${{ false }}`))],
+    ["continue-on-error", ubah((b) => b.splice(l.mulai + 1, 0, `${ind}continue-on-error: true`))],
+    ["|| true", ubah((b) => { b[iNode] += " || true"; })],
+    ["; true", ubah((b) => { b[iNode] += "; true"; })],
+    ["perintah tambahan sesudahnya", ubah((b) => b.splice(iNode + 1, 0, b[iNode].replace(/\S.*$/, "exit 0")))],
+    ["render dijadikan komentar shell", ubah((b) => { b[iNode] = b[iNode].replace(/node /, "# node "); })],
+    ["paket katex dari jalur lain", ubah((b) => { b[iNode] = b[iNode].replace("$RUNNER_TEMP/katex/node_modules/katex", "node_modules/katex"); })],
+    ["langkah dipindah ke job lain", ubah((b) => { for (let i = l.mulai; i < l.akhir; i++) b[i] = "  " + b[i]; })],
+  ];
+  for (const [nama, teks] of mutasi) {
+    if (!periksaLangkahCiKatex(teks).length) throw new Error(`security-validation.yml: KaTeX CI step guard accepted a mutated workflow (${nama})`);
+  }
 }
 
 /** Perender KaTeX opsional dari folder paket katex (mis. node_modules/katex): (tex, tampil) → pesan galat|null. */
@@ -279,6 +395,12 @@ export function ujiMutasiKatex(halamanBersih, relative) {
     ["fungsi sebagai pangkat tanpa kurawal", "<p>\\(u = e^\\int P dx\\)</p>"],
     ["akar sebagai subskrip tanpa kurawal", "<p>\\(x_\\sqrt{2} = 1\\)</p>"],
     ["kata berwarna tetap miring", "<p>\\(\\textcolor{red}{Gaya} = F\\)</p>"],
+    ["Laplace bersubskrip L_t{…}", "<p>\\(\\mathcal{L}_t{f(t)} = F(s)\\)</p>"],
+    ["kode ber-garis-bawah di rumus", "<p>Hitung mean dari \\(\\text{motor\\_1\\_rms}\\).</p>"],
+    ["pemanggilan kode di rumus", "<span class=\"rumus-notasi\">\\(\\text{isnull()}\\)</span>"],
+    ["en dash di mode matematika", "<p>\\(\\zeta \\approx 0.1–0.15\\)</p>"],
+    ["½ di mode matematika", "<p>\\(E = ½ m v^2\\)</p>"],
+    ["perintah TeX sesudah jalur berkas", "<p>Buka C:\\Users\\Nama lalu tulis \\frac di sini</p>"],
   ];
   for (const [nama, potongan] of tolak) {
     if (!periksaKatex(sisip(potongan)).length) throw new Error(`${relative}: KaTeX check accepted a mutated page (${nama})`);
@@ -295,7 +417,13 @@ export function ujiMutasiKatex(halamanBersih, relative) {
     ["warna, teks normal, teks bersarang", "<p>\\(\\color{blue} x\\), \\(\\textcolor{green}{y}\\), \\(\\textnormal{Gaya} = F\\), " +
       "\\(\\text{nilai {awal}}\\), \\(\\colorbox{yellow}{Gaya}\\)</p>"],
     ["pangkat berkurawal dan skrip yang boleh tanpa kurawal", "<p>\\(u = e^{\\int P\\, dx}\\), \\(x_\\text{max}\\), " +
-      "\\(e^\\alpha\\), \\(x^\\prime\\), \\(\\text{a\\_b}\\)</p>"],
+      "\\(e^\\alpha\\), \\(x^\\prime\\), \\(y_\\mathrm{a}\\)</p>"],
+    ["jalur berkas Windows di teks", "<p>Simpan di C:\\Users\\Nama\\Documents atau C:\\Program Files\\FreeCAD 1.0\\bin\\FreeCAD.exe, " +
+      "%APPDATA%\\FreeCAD\\Macro, ~\\Documents\\Tugas, \\\\server\\bagi\\data.</p>"],
+    ["akar Unicode di dalam \\text", "<p>\\(\\text{faktor √2}\\)</p>"],
+    ["diferensial berderet", "<p>\\(\\iint_D f\\,dxdy\\), \\(\\iiint_V \\rho\\,dxdydz\\), \\(\\int du\\,dv\\)</p>"],
+    ["kode <code> di luar rumus, rentang dan setengah yang benar", "<p><code>motor_1_rms</code>, <code>isnull()</code>, " +
+      "\\(2\\text{–}18\\ \\text{MHz}\\), \\(\\text{kV (fasa–netral)}\\), \\(\\tfrac{1}{2} m v^2\\), \\(\\frac{L_1}{L_2}\\)</p>"],
   ];
   for (const [nama, potongan] of terima) {
     const sisa = periksaKatex(sisip(potongan));

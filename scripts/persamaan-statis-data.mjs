@@ -4,7 +4,10 @@
  * Satu entri untuk satu blok rumus, URUT sesuai kemunculannya di halaman.
  * `apa` menjelaskan maksud persamaan dengan bahasa biasa, `variabel` mendaftar
  * arti tiap lambang. Notasi ditulis sebagai LaTeX supaya chip penjelasan
- * tampil dalam bentuk yang persis sama dengan persamaannya.
+ * tampil dalam bentuk yang persis sama dengan persamaannya. Notasi yang berupa
+ * kode yang diketik (nama fungsi/kolom/parameter) ditulis di antara backtick,
+ * mis. "`isnull()`", dan dirender <code> — bukan \text{class\_weight}
+ * (Pedoman §2 butir (17)–(18)).
  */
 
 /**
@@ -467,7 +470,7 @@ export const PERSAMAAN_STATIS = {
       { apa: "urutan wajib pembersihan data: hasil analisis tidak akan pernah lebih baik daripada mutu data masukannya, sehingga tiap tahap penyiapan harus dilalui sebelum pemodelan.",
         variabel: [["\\text{Inspect}", "pemeriksaan awal bentuk dan isi data"], ["\\text{Missing}", "penanganan nilai yang hilang"], ["\\text{Outlier}", "penanganan nilai menyimpang"], ["\\text{Noise}", "penghalusan gangguan acak"], ["\\text{Resample}", "penyeragaman selang waktu antar sampel"]] },
       { apa: "tiga cara memeriksa nilai yang hilang: menghitung jumlahnya per kolom, menghitung persentasenya, dan menampilkan baris mana saja yang tidak lengkap.",
-        variabel: [["\\text{isnull()}", "penanda benar untuk sel yang kosong"], ["\\text{sum()}", "jumlah sel kosong tiap kolom"], ["\\text{mean()}", "proporsi sel kosong, dikali 100 menjadi persen"], ["\\text{any(axis=1)}", "penanda baris yang memuat sedikitnya satu sel kosong"]] },
+        variabel: [["`isnull()`", "penanda benar untuk sel yang kosong"], ["`sum()`", "jumlah sel kosong tiap kolom"], ["`mean()`", "proporsi sel kosong, dikali 100 menjadi persen"], ["`any(axis=1)`", "penanda baris yang memuat sedikitnya satu sel kosong"]] },
       { apa: "penanda pencilan berbasis simpangan baku: nilai diukur jaraknya dari rata-rata dalam satuan simpangan baku, lalu dianggap menyimpang bila jaraknya melewati ambang.",
         variabel: [["z", "skor baku: jarak nilai dari rata-rata dalam satuan simpangan baku"], ["x", "nilai yang diperiksa"], ["\\mu", "rata-rata data"], ["\\sigma", "simpangan baku data"]] },
       { apa: "penanda pencilan berbasis kuartil: pagar dibangun 1,5 kali rentang antar-kuartil di luar kuartil bawah dan atas, sehingga tidak terpengaruh oleh nilai ekstrem itu sendiri.",
@@ -573,11 +576,11 @@ export const PERSAMAAN_STATIS = {
       { apa: "enam gagasan algoritma pembelajaran mesin lanjut: gabungan banyak pohon, pemetaan ke ruang berdimensi lebih tinggi, alur kerja yang mencegah kebocoran data, penilaian bebas ambang, penilaian silang, dan penyetelan hiperparameter menyeluruh.",
         variabel: [["\\text{Random Forest}", "gabungan banyak pohon keputusan"], ["\\text{Kernel trick}", "pemetaan ke ruang berdimensi lebih tinggi tanpa menghitungnya"], ["\\text{Pipeline}", "rangkaian langkah yang mencegah kebocoran data uji"], ["\\text{ROC-AUC}", "penilaian yang tidak bergantung pilihan ambang"], ["k\\text{-fold CV}", "penilaian silang k lipatan"]] },
       { apa: "enam gagasan random forest: tiap pohon dilatih pada contoh acak dan fitur acak sehingga kesalahannya tidak seragam, lalu suara terbanyaknya diambil sebagai jawaban.",
-        variabel: [["\\text{Bootstrap}", "pengambilan contoh acak berulang untuk tiap pohon"], ["\\sqrt{n}", "banyak fitur acak yang dipertimbangkan tiap pemecahan"], ["\\text{Majority voting}", "penggabungan suara seluruh pohon"], ["n_\\text{estimators}", "jumlah pohon dalam hutan"], ["\\text{OOB}", "galat taksiran dari sampel yang tidak terpilih"]] },
+        variabel: [["\\text{Bootstrap}", "pengambilan contoh acak berulang untuk tiap pohon"], ["\\sqrt{n}", "banyak fitur acak yang dipertimbangkan tiap pemecahan"], ["\\text{Majority voting}", "penggabungan suara seluruh pohon"], ["`n_estimators`", "jumlah pohon dalam hutan"], ["\\text{OOB}", "galat taksiran dari sampel yang tidak terpilih"]] },
       { apa: "enam gagasan SVM beserta alur kerjanya: pencarian pemisah bermargin terlebar, pemetaan kernel, dua hiperparameter penentu, keharusan pembakuan skala, dan pengubahan keluaran menjadi peluang.",
         variabel: [["\\text{Margin}", "lebar lorong pemisah antar-kelas yang dimaksimumkan"], ["\\text{RBF}", "kernel radial basis function"], ["C", "hiperparameter penyeimbang lebar margin dan kesalahan"], ["\\gamma", "hiperparameter jangkauan pengaruh tiap sampel"], ["\\text{StandardScaler}", "pembaku skala yang wajib mendahului SVM"]] },
       { apa: "enam gagasan penilaian lanjut dan penyetelan: kurva ROC beserta luasnya, penilaian silang berstrata, pencarian hiperparameter menyeluruh, penanganan kelas timpang, dan penyetelan ambang menurut biaya kesalahan.",
-        variabel: [["\\text{ROC}", "kurva keterjangkauan terhadap laju alarm palsu"], ["\\text{AUC}", "luas di bawah kurva ROC"], ["\\text{Stratified CV}", "penilaian silang yang menjaga proporsi kelas tiap lipatan"], ["\\text{GridSearchCV}", "pencarian hiperparameter menyeluruh berbasis penilaian silang"], ["\\text{class\\_weight}", "pembobotan kelas untuk data timpang"], ["\\text{SMOTE}", "pembangkitan sampel sintetis kelas minoritas"]] },
+        variabel: [["\\text{ROC}", "kurva keterjangkauan terhadap laju alarm palsu"], ["\\text{AUC}", "luas di bawah kurva ROC"], ["\\text{Stratified CV}", "penilaian silang yang menjaga proporsi kelas tiap lipatan"], ["\\text{GridSearchCV}", "pencarian hiperparameter menyeluruh berbasis penilaian silang"], ["`class_weight`", "pembobotan kelas untuk data timpang"], ["\\text{SMOTE}", "pembangkitan sampel sintetis kelas minoritas"]] },
     ],
   },
 };

@@ -345,6 +345,8 @@ export function tokenLatex(teks) {
   t = t.replace(/(\[|\b[NU]\()(-?\d+),(-?\d+)(?=[\])])/g, "$1$2, $3");
   t = t.replace(/(\d),(?=\d)/g, "$1\u0004");
   t = t.replace(/(?<!\\)%/g, "\\%");
+  // (7) rentang angka "10–20": en dash tidak punya metrik fon KaTeX di mode matematika -> 10\text{–}20.
+  t = t.replace(/(\d)\s*–\s*(?=\d)/g, "$1\\text{–}");
   t = t.replace(/√\(/g, " sqrt(");
   t = t.replace(/(\d)\s+x\s+(\d)/g, "$1 \\times $2");
   t = t.replace(/\|([^|]+)\|(maks|max|min)(?![A-Za-z])/g, "|$1|_{$2}");
