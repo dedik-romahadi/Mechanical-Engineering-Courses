@@ -2425,7 +2425,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 1: Power Supply Switching -->
   <div class="analogy-box reveal">
     <span class="analogy-label">⚡ Analogi 1 — Power Supply Switching (Step Voltage)</span>
-    <strong style="color:var(--violet)">Power supply switching</strong>: saat tombol on dipencet di t = 0, voltase ke beban naik dari 0 ke V₀ secara mendadak, input model: <code>V(t) = V₀·H(t)</code>. Untuk sirkuit RC dengan beban kapasitif: <code>RC·v_C'(t) + v_C(t) = V₀·H(t)</code>. Solusi via Laplace: \(v_C(t) = V_0 \cdot (1 - e^{-t/RC}) \cdot H(t)\) = klassik exponential charging curve. Engineer power supply pakai ini untuk: (a) sizing kapasitor agar mencapai stabilitas dalam waktu spec, (b) cek inrush current yang sangat besar di t = 0 (perlu fuse atau soft-start). Setiap on/off cycle adalah Heaviside step.
+    <strong style="color:var(--violet)">Power supply switching</strong>: saat tombol on dipencet di t = 0, voltase ke beban naik dari 0 ke V₀ secara mendadak, input model: <code>V(t) = V₀·H(t)</code>. Untuk sirkuit RC dengan beban kapasitif: <code>RC·v<sub>C</sub>'(t) + v<sub>C</sub>(t) = V₀·H(t)</code>. Solusi via Laplace: \(v_C(t) = V_0 \cdot (1 - e^{-t/RC}) \cdot H(t)\) = klassik exponential charging curve. Engineer power supply pakai ini untuk: (a) sizing kapasitor agar mencapai stabilitas dalam waktu spec, (b) cek inrush current yang sangat besar di t = 0 (perlu fuse atau soft-start). Setiap on/off cycle adalah Heaviside step.
   </div>
 
   <!-- Analogi 2: PWM Motor Control -->
@@ -2437,7 +2437,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 3: Digital Communication -->
   <div class="analogy-box reveal" style="border-left-color:var(--green);background:linear-gradient(135deg,rgba(0,224,158,.07),rgba(0,224,158,.03))">
     <span class="analogy-label" style="color:var(--green)">📡 Analogi 3 — Sinyal Digital UART/SPI</span>
-    <strong style="color:var(--green)">Digital communication</strong> (UART, SPI, \(I^2\)C, CAN bus) menggunakan voltase logic: 0 V (LOW) atau 3.3/5 V (HIGH). Setiap bit adalah pulse rectangular: <code>bit_i = V·[H(t − iT) − H(t − (i+1)T)]</code>. Sequence bit "10110" = kombinasi pulse berbeda. Engineer sinyal pakai Heaviside untuk: (a) analisis distorsi melalui kabel/PCB trace (RC effect), (b) signal integrity di high-speed interconnect, (c) eye diagram analysis untuk timing margin, (d) jitter analysis. Tanpa Heaviside, modeling digital signaling tidak dapat dilakukan secara matematis presisi.
+    <strong style="color:var(--green)">Digital communication</strong> (UART, SPI, \(I^2\)C, CAN bus) menggunakan voltase logic: 0 V (LOW) atau 3.3/5 V (HIGH). Setiap bit adalah pulse rectangular: <code>bit<sub>i</sub> = V·[H(t − iT) − H(t − (i+1)T)]</code>. Sequence bit "10110" = kombinasi pulse berbeda. Engineer sinyal pakai Heaviside untuk: (a) analisis distorsi melalui kabel/PCB trace (RC effect), (b) signal integrity di high-speed interconnect, (c) eye diagram analysis untuk timing margin, (d) jitter analysis. Tanpa Heaviside, modeling digital signaling tidak dapat dilakukan secara matematis presisi.
   </div>
 
   <!-- Analogi 4: Step Load Mechanical Test -->
@@ -2449,7 +2449,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 5: HVAC On/Off Control -->
   <div class="analogy-box reveal" style="border-left-color:var(--pink);background:linear-gradient(135deg,rgba(239,68,68,.07),rgba(168,85,247,.03))">
     <span class="analogy-label" style="color:var(--pink)">🌡️ Analogi 5 — HVAC Bang-Bang Control</span>
-    <strong style="color:var(--pink)">HVAC (Heating, Ventilation, Air Conditioning)</strong> tradisional pakai <em>bang-bang control</em>: AC menyala saat suhu T &gt; \(T_{\text{high}}\), mati saat T &lt; \(T_{\text{low}}\) (deadband control). Output kompresor = pulse train <code>P(t) = P₀·∑[H(t − tᵢ) − H(t − tⱼ)]</code> dengan tᵢ = waktu menyala, tⱼ = waktu mati. PD ruangan: <code>m·c·T'(t) + h·A·(T − T_∞) = P(t) + sun_load(t)</code>. Dengan Heaviside, engineer dapat: (a) hitung average energy consumption, (b) optimize duty cycle untuk efficiency, (c) prediksi temperature swing di ruangan, (d) tune PID untuk modulating control yang lebih hemat dari bang-bang. PWM modern di inverter AC adalah evolusi dari bang-bang ini.
+    <strong style="color:var(--pink)">HVAC (Heating, Ventilation, Air Conditioning)</strong> tradisional pakai <em>bang-bang control</em>: AC menyala saat suhu T &gt; \(T_{\text{high}}\), mati saat T &lt; \(T_{\text{low}}\) (deadband control). Output kompresor = pulse train <code>P(t) = P₀·∑[H(t − tᵢ) − H(t − tⱼ)]</code> dengan tᵢ = waktu menyala, tⱼ = waktu mati. PD ruangan: <code>m·c·T'(t) + h·A·(T − T<sub>∞</sub>) = P(t) + sun_load(t)</code>. Dengan Heaviside, engineer dapat: (a) hitung average energy consumption, (b) optimize duty cycle untuk efficiency, (c) prediksi temperature swing di ruangan, (d) tune PID untuk modulating control yang lebih hemat dari bang-bang. PWM modern di inverter AC adalah evolusi dari bang-bang ini.
   </div>
 
   <div class="tip-box reveal">
@@ -3145,10 +3145,10 @@ for f in (f53a, f53b, f54):
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
-        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(e^{as}/s\)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(e^{-as}/s\)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>1/(s + a)</code></div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>a/s</code></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(e^{as}/s\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(e^{-as}/s\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <code>1/(s + a)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>a/s</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc2" onclick="checkMC('mc2')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc2"></div>
@@ -3162,10 +3162,10 @@ for f in (f53a, f53b, f54):
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc3">
-        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>c·H(t − a) + c·H(t − b)</code></div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>c·[H(t − a) − H(t − b)]</code></div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>c·H(t − a)·H(t − b)</code></div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>c·H(t − (b − a))</code></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; <code>c·H(t − a) + c·H(t − b)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <code>c·[H(t − a) − H(t − b)]</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <code>c·H(t − a)·H(t − b)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>c·H(t − (b − a))</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc3" onclick="checkMC('mc3')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc3"></div>
@@ -3179,10 +3179,10 @@ for f in (f53a, f53b, f54):
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>F(s − a)</code></div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(e^{-as} \cdot F(s)\)</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(e^{as} \cdot F(s)\)</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>F(s)/(s − a)</code></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; <code>F(s − a)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(e^{-as} \cdot F(s)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(e^{as} \cdot F(s)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>F(s)/(s − a)</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc4" onclick="checkMC('mc4')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc4"></div>
@@ -3196,10 +3196,10 @@ for f in (f53a, f53b, f54):
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc5">
-        <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>1</code></div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>0</code></div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>δ(t)</code></div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>H(t)</code></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; <code>1</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <code>0</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <code>δ(t)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>H(t)</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc5" onclick="checkMC('mc5')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc5"></div>
@@ -3213,10 +3213,10 @@ for f in (f53a, f53b, f54):
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc6">
-        <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(F_{0}(s) \cdot (1 - e^{-Ts})\)</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(F_{0}(s) / (1 - e^{-Ts})\)</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(F_{0}(s) \cdot T\)</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(T / F_{0}(s)\)</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(F_{0}(s) \cdot (1 - e^{-Ts})\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(F_{0}(s) / (1 - e^{-Ts})\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(F_{0}(s) \cdot T\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(T / F_{0}(s)\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc6" onclick="checkMC('mc6')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc6"></div>
@@ -3230,10 +3230,10 @@ for f in (f53a, f53b, f54):
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc7">
-        <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>2·H(t) + 5·H(t−5)</code></div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>2·H(t) + 3·H(t−5)</code></div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>2·H(t)·H(t−5)</code></div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>H(t−5)·5</code></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; <code>2·H(t) + 5·H(t−5)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <code>2·H(t) + 3·H(t−5)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <code>2·H(t)·H(t−5)</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>H(t−5)·5</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc7" onclick="checkMC('mc7')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc7"></div>
@@ -3264,10 +3264,10 @@ for f in (f53a, f53b, f54):
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
-        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>V₀</code></div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>V₀/2</code></div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>V₀ · d</code></div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>V₀ / d</code></div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; <code>V₀</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <code>V₀/2</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <code>V₀ · d</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>V₀ / d</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc9" onclick="checkMC('mc9')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc9"></div>
@@ -3281,10 +3281,10 @@ for f in (f53a, f53b, f54):
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc10">
-        <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>0</code></div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>3/2</code></div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \((3/2) \cdot (1 - e^{-2t})\)</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(3 \cdot e^{-2t}\)</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; <code>0</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <code>3/2</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \((3/2) \cdot (1 - e^{-2t})\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(3 \cdot e^{-2t}\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc10" onclick="checkMC('mc10')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc10"></div>
@@ -3564,7 +3564,7 @@ for f in (f53a, f53b, f54):
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q">Sirkuit RC dengan time constant τ=2 menerima step input <code>v_in(t) = 10·H(t−1)</code>. Hitung <strong>\(v_{out}(5)\)</strong> (3 desimal).</div>
+        <div class="comp-q">Sirkuit RC dengan time constant τ=2 menerima step input <code>v<sub>in</sub>(t) = 10·H(t−1)</code>. Hitung <strong>\(v_{out}(5)\)</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Substitusikan nilai t yang diminta ke <code>v_out(t)</code> (perhatikan step aktif untuk t≥1) lalu evaluasi suku eksponensial dengan <code>np.exp</code>.</div>
@@ -3635,7 +3635,7 @@ for f in (f53a, f53b, f54):
     <p>
       Engineer otomasi pabrik mengembangkan <strong style="color:var(--amber)">PWM speed controller</strong> untuk motor DC 12 V (frekuensi switching 1 kHz, periode T = 1 ms) yang menggerakkan conveyor belt. Untuk soft-start menghindari arus inrush berlebih, profil <em>duty cycle</em> dirancang sebagai <strong>step bertingkat</strong>:
       <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">d(t) = 0.30·H(t) + 0.30·H(t−2) + 0.20·H(t−5)</code>
-      → duty mulai 30 % pada t=0, naik ke 60 % pada t=2 s, dan ke 80 % pada t=5 s. Tim diminta pakai <strong>Heaviside &amp; Laplace</strong> untuk: (a) konstruksi dan transformasi sinyal duty bertingkat, (b) hitung <em>average voltage</em> efektif setelah filter, dan (c) prediksi response kecepatan motor ω(t) untuk model orde-1 <code>τ·ω' + ω = K·V_avg(t)</code>.
+      → duty mulai 30 % pada t=0, naik ke 60 % pada t=2 s, dan ke 80 % pada t=5 s. Tim diminta pakai <strong>Heaviside &amp; Laplace</strong> untuk: (a) konstruksi dan transformasi sinyal duty bertingkat, (b) hitung <em>average voltage</em> efektif setelah filter, dan (c) prediksi response kecepatan motor ω(t) untuk model orde-1 <code>τ·ω' + ω = K·V<sub>avg</sub>(t)</code>.
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:16px">
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">PWM: V₀·[H(t)−H(t−\(d \cdot T)\)]</div>
@@ -3671,12 +3671,12 @@ for f in (f53a, f53b, f54):
   <div class="fq-card reveal" id="fq1">
     <div class="fq-head" onclick="toggleFQ('fq1')">
       <div class="fq-num" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--cyan)">01</div>
-      <h3>Konstruksi profil <strong>\(V_{\text{avg}}(t)\)</strong> = 12·d(t) sebagai jumlah Heaviside terbobot, lalu cari <code>V(s) = L{V_avg(t)}</code>.</h3>
+      <h3>Konstruksi profil <strong>\(V_{\text{avg}}(t)\)</strong> = 12·d(t) sebagai jumlah Heaviside terbobot, lalu cari <code>V(s) = L{V<sub>avg</sub>(t)}</code>.</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Profil duty bertingkat: <code>d(t) = 0.30·H(t) + 0.30·H(t−2) + 0.20·H(t−5)</code>. Verifikasi nilai per fase: t∈[0,2): 0.30; t∈[2,5): 0.60; t≥5: 0.80 ✓. Average voltage: <code>V_avg(t) = 12·d(t) = 3.6·H(t) + 3.6·H(t−2) + 2.4·H(t−5)</code>. Transformasi Laplace dengan linearitas + \(L{H(t-a)} = e^{-as}/s\): <strong>\(V(s) = 3.6/s + 3.6 \cdot e^{-2s}/s + 2.4 \cdot e^{-5s}/s = (1/s) \cdot (3.6 + 3.6 \cdot e^{-2s} + 2.4 \cdot e^{-5s})\)</strong>. Faktor e<sup>−as</sup> = delay operator merepresentasikan <em>kapan</em> jump terjadi. Saat s → 0: <code>s·V(s) → 3.6+3.6+2.4 = 9.6 V</code> = <em>final value</em> dari \(V_{\text{avg}}\) = 12·0.80 ✓.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Profil duty bertingkat: <code>d(t) = 0.30·H(t) + 0.30·H(t−2) + 0.20·H(t−5)</code>. Verifikasi nilai per fase: t∈[0,2): 0.30; t∈[2,5): 0.60; t≥5: 0.80 ✓. Average voltage: <code>V<sub>avg</sub>(t) = 12·d(t) = 3.6·H(t) + 3.6·H(t−2) + 2.4·H(t−5)</code>. Transformasi Laplace dengan linearitas + \(L{H(t-a)} = e^{-as}/s\): <strong>\(V(s) = 3.6/s + 3.6 \cdot e^{-2s}/s + 2.4 \cdot e^{-5s}/s = (1/s) \cdot (3.6 + 3.6 \cdot e^{-2s} + 2.4 \cdot e^{-5s})\)</strong>. Faktor e<sup>−as</sup> = delay operator merepresentasikan <em>kapan</em> jump terjadi. Saat s → 0: <code>s·V(s) → 3.6+3.6+2.4 = 9.6 V</code> = <em>final value</em> dari \(V_{\text{avg}}\) = 12·0.80 ✓.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(L{H(t-a)} = e^{-as}/s\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">d(t) = ΣcᵢH(t−aᵢ)</span>
@@ -3687,7 +3687,7 @@ for f in (f53a, f53b, f54):
           <div class="poll-q">QUICK CHECK — Mengapa setiap jump duty cycle dimodelkan sebagai <em>delta-koefisien</em> dikalikan H(t−a), bukan nilai duty absolut?</div>
           <div class="poll-opts" id="fp1">
             <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Karena Heaviside hanya bisa bernilai 0 atau 1</div>
-            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Step bertingkat = jumlah <em>kenaikan</em> berurutan; tiap H(t−a) menambahkan delta-jump pada saat t=a, sehingga total = penjumlahan jump kumulatif</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div><span class="opsi-teks">Step bertingkat = jumlah <em>kenaikan</em> berurutan; tiap H(t−a) menambahkan delta-jump pada saat t=a, sehingga total = penjumlahan jump kumulatif</span></div>
             <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Karena Laplace tidak bisa transformasi nilai konstan</div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Karena duty cycle harus dalam fraksi</div>
           </div>
@@ -3695,7 +3695,7 @@ for f in (f53a, f53b, f54):
           <div class="p-fb w" id="fp1w">❌ Inti: H(t−a) bernilai 0 sebelum t=a dan 1 setelahnya. Untuk profil bertingkat, kita tidak menulis nilai mutlak duty di tiap interval, tapi <em>kenaikan</em> (delta) di setiap titik jump. Total fungsi = penjumlahan semua jump yang sudah terjadi sampai t. Misal duty 0.30→0.60→0.80: delta = +0.30, +0.30, +0.20.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis analisis lengkap di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Tulis V_avg(t) sebagai jumlah Heaviside terbobot dengan delta-jump. (2) Verifikasi nilai per fase (t&lt;2, 2≤t&lt;5, t≥5). (3) Aplikasikan Laplace dengan linearitas + L{H(t−a)} = e^(−as)/s untuk dapat V(s). (4) Verifikasi final value V(∞) = 9.6 V dan diskusikan peran faktor e^(−as) sebagai delay operator." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis analisis lengkap di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Tulis tegangan rata-rata V(t) sebagai jumlah Heaviside terbobot dengan delta-jump. (2) Verifikasi nilai per fase (t&lt;2, 2≤t&lt;5, t≥5). (3) Aplikasikan Laplace dengan linearitas + L{H(t−a)} = e⁻ᵃˢ/s untuk dapat V(s). (4) Verifikasi final value V(∞) = 9.6 V dan diskusikan peran faktor e⁻ᵃˢ sebagai delay operator." oninput="checkForumReady()"></textarea>
         <div id="wc-fq1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -3710,7 +3710,7 @@ for f in (f53a, f53b, f54):
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Model motor orde-1: <code>τ·ω' + ω = K·V_avg(t)</code> dengan τ = 0.5 s, K = 15 rpm/V. Steady-state (ω' = 0): \(\omega _{ss} = K \cdot V_{\text{avg}}\). Per fase: t∈[0,2): \(V_{\text{avg}}\) = 3.6 → <strong>\(\omega _{ss} = 15 \cdot 3.6 = 54\) rpm</strong>. t∈[2,5): \(V_{\text{avg}}\) = 7.2 → <strong>\(\omega _{ss} = 108\) rpm</strong>. t≥5: \(V_{\text{avg}}\) = 9.6 → <strong>\(\omega _{ss} = 144\) rpm</strong>. Transfer function motor: <code>G(s) = K/(τs+1) = 15/(0.5s+1) = 30/(s+2)</code>. Untuk verifikasi <strong>second shift theorem</strong>: bila kita perlu <code>L{(t−2)·H(t−2)}</code> (e.g. ramp delayed di kontroler), pakai \(L{f(t-a) \cdot H(t-a)} = e^{-as} \cdot F(s)\) dengan f(t)=t → F(s)=1/\(s^2\). Hasil: \(L{(t-2) \cdot H(t-2)} = e^{-2s}/s^2\). Pada s=1: \(e^{-2}/1 \approx 0.135\).</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Model motor orde-1: <code>τ·ω' + ω = K·V<sub>avg</sub>(t)</code> dengan τ = 0.5 s, K = 15 rpm/V. Steady-state (ω' = 0): \(\omega _{ss} = K \cdot V_{\text{avg}}\). Per fase: t∈[0,2): \(V_{\text{avg}}\) = 3.6 → <strong>\(\omega _{ss} = 15 \cdot 3.6 = 54\) rpm</strong>. t∈[2,5): \(V_{\text{avg}}\) = 7.2 → <strong>\(\omega _{ss} = 108\) rpm</strong>. t≥5: \(V_{\text{avg}}\) = 9.6 → <strong>\(\omega _{ss} = 144\) rpm</strong>. Transfer function motor: <code>G(s) = K/(τs+1) = 15/(0.5s+1) = 30/(s+2)</code>. Untuk verifikasi <strong>second shift theorem</strong>: bila kita perlu <code>L{(t−2)·H(t−2)}</code> (e.g. ramp delayed di kontroler), pakai \(L{f(t-a) \cdot H(t-a)} = e^{-as} \cdot F(s)\) dengan f(t)=t → F(s)=1/\(s^2\). Hasil: \(L{(t-2) \cdot H(t-2)} = e^{-2s}/s^2\). Pada s=1: \(e^{-2}/1 \approx 0.135\).</p>
         <div style="background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
           💬 <em>Second Shift Theorem berlaku <strong>hanya bila</strong> argumen f digeser ke (t−a). Bila kita punya \(t \cdot H(t\)−2) (bukan (t−2)·H(t−2)), perlu <strong>trik reformulasi</strong>: tulis t = (t−2) + 2 → \(t \cdot H(t\)−2) = (t−2)·H(t−2) + 2·H(t−2). Sekarang masing-masing suku bisa dipakai second shift. Hasil: \(L{t \cdot H(t-2)} = e^{-2s}/s^2 + 2 \cdot e^{-2s}/s = e^{-2s} \cdot (1/s^2 + 2/s)\). Trik ini krusial untuk handle sinyal ramp/parabolic ditunda di control system.</em>
         </div>
@@ -3718,7 +3718,7 @@ for f in (f53a, f53b, f54):
         <div class="poll">
           <div class="poll-q">QUICK CHECK — Untuk hitung <code>L{t·H(t−2)}</code>, mengapa kita harus reformulasi t = (t−2)+2 dulu?</div>
           <div class="poll-opts" id="fp2">
-            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Karena \(t \cdot H(t\)−2) tidak punya transformasi Laplace</div>
+            <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div><span class="opsi-teks">Karena \(t \cdot H(t\)−2) tidak punya transformasi Laplace</span></div>
             <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Second shift theorem mensyaratkan bentuk f(t−a)·H(t−a), argumen f harus digeser ke (t−a), bukan t mentah</div>
             <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Karena Heaviside H(t−2) hanya valid untuk t ≥ 2</div>
             <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Karena kita perlu konversi ke domain s manual</div>
@@ -3727,7 +3727,7 @@ for f in (f53a, f53b, f54):
           <div class="p-fb w" id="fp2w">❌ Inti: bentuk standar second shift adalah f(t−a)·H(t−a) dengan f-nya digeser. \(t \cdot H(t\)−2) tidak cocok karena t belum digeser ke (t−2). Solusi: tulis t = (t−2) + 2, distribusikan ke H(t−2), lalu pisah jadi dua suku yang masing-masing bisa pakai second shift theorem.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis analisis lengkap (min. 30 kata)...&#10;&#10;Petunjuk: (1) Hitung ω_ss motor di tiap fase (3 nilai). (2) Tunjukkan derivasi second shift theorem L{(t−2)·H(t−2)} = e^(−2s)/s². (3) Demonstrasikan trik reformulasi untuk L{t·H(t−2)} (kasus argumen tidak digeser). (4) Hubungkan dengan kontrol motor: kapan trik reformulasi berguna di skenario PWM atau ramp control." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis analisis lengkap (min. 30 kata)...&#10;&#10;Petunjuk: (1) Hitung ωₛₛ motor di tiap fase (3 nilai). (2) Tunjukkan derivasi second shift theorem L{(t−2)·H(t−2)} = e⁻²ˢ/s². (3) Demonstrasikan trik reformulasi untuk L{t·H(t−2)} (kasus argumen tidak digeser). (4) Hubungkan dengan kontrol motor: kapan trik reformulasi berguna di skenario PWM atau ramp control." oninput="checkForumReady()"></textarea>
         <div id="wc-fq2" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -3737,7 +3737,7 @@ for f in (f53a, f53b, f54):
   <div class="fq-card reveal" id="fq3">
     <div class="fq-head" onclick="toggleFQ('fq3')">
       <div class="fq-num" style="background:rgba(0,224,158,.1);border:1px solid rgba(0,224,158,.2);color:var(--green)">03</div>
-      <h3>Solve PD <code>τ·ω' + ω = K·V_avg(t)</code> untuk <strong>response transient \(\omega (t)\)</strong> dengan profil step bertingkat. Diskusikan implikasi engineering soft-start.</h3>
+      <h3>Solve PD <code>τ·ω' + ω = K·V<sub>avg</sub>(t)</code> untuk <strong>response transient \(\omega (t)\)</strong> dengan profil step bertingkat. Diskusikan implikasi engineering soft-start.</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
@@ -5003,6 +5003,35 @@ function checkExportReady() {
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -5070,15 +5099,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -5117,7 +5148,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5130,7 +5161,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5928,7 +5959,7 @@ function buildForumHtml() {
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:8px;">
     <tr><td style="padding:20px 28px;">
       <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#f97316;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">1</span>Berapa waktu pendinginan alami (k = 0.04/menit) agar coran mencapai 80&deg;C? Bagaimana jika k dinaikkan ke 0.08/menit dengan kipas?</h3>
-      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Gunakan solusi T(t) = T&infin; + (T&#8320; &minus; T&infin;)&middot;e^(&minus;kt). Tentukan t saat T = 80&deg;C untuk kedua skenario.</div>
+      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Gunakan solusi T(t) = T&infin; + (T&#8320; &minus; T&infin;)&middot;e<sup>&minus;kt</sup>. Tentukan t saat T = 80&deg;C untuk kedua skenario.</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
         <div style="background:#f8f5ff;border:1px solid #c4b5fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans1}</div>
@@ -5938,7 +5969,7 @@ function buildForumHtml() {
 
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:4px;">
     <tr><td style="padding:20px 28px;">
-      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#f97316;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Jika spray mist mengubah model menjadi T' = &minus;k(T&minus;T&infin;)^1.2 (non-linier), bagaimana strategi penyelesaiannya?</h3>
+      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#f97316;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Jika spray mist mengubah model menjadi T' = &minus;k(T&minus;T&infin;)<sup>1.2</sup> (non-linier), bagaimana strategi penyelesaiannya?</h3>
       <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Pertimbangkan: substitusi u = T &minus; T&infin; menjadikan PD terpisah, bukan Bernoulli klasik. Tunjukkan langkah integrasi.</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
@@ -10932,7 +10963,7 @@ function _createForumParticleBurst(event) {
       btn.style.fontWeight = active ? '700' : '400';
       btn.style.boxShadow = active ? '0 0 12px rgba(8,191,232,.6)' : 'none';
       btn.style.transform = active ? 'scale(1.05)' : 'scale(1)';
-      btn.textContent = active ? (btn.textContent.replace(' ✓','') + ' ✓') : btn.textContent.replace(' ✓','');
+      (function (el, aktif) { var t = el.lastChild; if (t && t.nodeType === 3 && / ✓$/.test(t.nodeValue)) { t.nodeValue = t.nodeValue.slice(0, -2); if (!t.nodeValue) el.removeChild(t); } if (aktif) el.appendChild(document.createTextNode(' ✓')); })(btn, active);   // notasi-halaman.mjs: ✓ tanpa menulis ulang textContent
     });
   };
   window.m12ToggleSig = function(){
@@ -11298,7 +11329,7 @@ function _createForumParticleBurst(event) {
       lbl.style.fontWeight = active ? '700' : '400';
       lbl.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
       lbl.style.transform = active ? 'scale(1.05)' : 'scale(1)';
-      lbl.textContent = active ? (lbl.textContent.replace(' ✓','') + ' ✓') : lbl.textContent.replace(' ✓','');
+      (function (el, aktif) { var t = el.lastChild; if (t && t.nodeType === 3 && / ✓$/.test(t.nodeValue)) { t.nodeValue = t.nodeValue.slice(0, -2); if (!t.nodeValue) el.removeChild(t); } if (aktif) el.appendChild(document.createTextNode(' ✓')); })(lbl, active);   // notasi-halaman.mjs: ✓ tanpa menulis ulang textContent
     });
   };
 
