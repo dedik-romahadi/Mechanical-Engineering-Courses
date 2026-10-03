@@ -40,6 +40,7 @@ export const NOTASI_KAMUS = {
   "\\tau": "konstanta waktu", "\\tau_{tercepat}": "konstanta waktu terkecil sistem",
   "\\tau_{cl}": "konstanta waktu loop tertutup",
   "K": "gain", "wc": "frekuensi silang (rad/s)", "wd": "frekuensi teredam (rad/s)",
+  "\\omega_c": "frekuensi silang (rad/s)", "K_v": "konstanta error kecepatan",
   "wn": "frekuensi alami (rad/s)", "n": "indeks atau orde", "fase": "sudut fase (derajat/radian)",
   // ruang keadaan & model
   "x": "keadaan (atau posisi)", "A": "matriks dinamika (atau gain jalur)",

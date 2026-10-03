@@ -35,6 +35,12 @@ const SIMBOL = [
   [/\btau_cl\b/g, "\\tau_{cl}"],
   [/(?<![A-Za-z0-9\\])wn(?![A-Za-z0-9])/g, "\\omega_n"],
   [/(?<![A-Za-z0-9\\])wd(?![A-Za-z0-9])/g, "\\omega_d"],
+  // wc (frekuensi silang) dan Kv tampil "wc"/"Kv" miring seperti perkalian dua huruf.
+  [/(?<![A-Za-z0-9\\])wc(?![A-Za-z0-9])/g, "\\omega_c"],
+  [/(?<![A-Za-z0-9\\])Kv(?![A-Za-z0-9])/g, "K_v"],
+  // min(...)/max(...) sebagai fungsi ditulis tegak (\min, \max); subskrip _min/_max tidak tersentuh.
+  [/(?<![A-Za-z0-9\\_{])min(?=\s*\()/g, "\\min"],
+  [/(?<![A-Za-z0-9\\_{])max(?=\s*\()/g, "\\max"],
   [/(?<![A-Za-z0-9\\])omega(?![A-Za-z0-9])/g, "\\omega"],
   [/(?<![A-Za-z0-9\\])tau(?![A-Za-z0-9])/g, "\\tau"],
   [/(?<![A-Za-z0-9\\])pi(?![A-Za-z0-9])/g, "\\pi"],
@@ -64,6 +70,9 @@ const SIMBOL = [
 ];
 
 const PENGGANTI = [
+  // "<<"/">>" ASCII tampil sebagai dua tanda "< <" — tulis \ll/\gg.
+  [/<</g, "\\ll "],
+  [/>>/g, "\\gg "],
   [/<=>/g, "\\Leftrightarrow"],
   [/<->/g, "\\leftrightarrow"],
   // Spasi di belakang perlu supaya perintah tidak menempel pada lambang
@@ -172,7 +181,7 @@ function prosaBerlambang(teks, esc) {
 
 // Nama fungsi yang tidak punya perintah LaTeX sendiri ditulis tegak supaya
 // tidak terbaca sebagai perkalian antarhuruf.
-const FUNGSI_TEGAK = ["mean", "std", "rms", "var", "cov", "sat", "sign", "round"];
+const FUNGSI_TEGAK = ["mean", "std", "rms", "var", "cov", "sat", "sign", "round", "Re", "Im"];
 
 /** Kembalikan indeks kurung tutup yang berpasangan dengan kurung buka di `i`. */
 function pasanganKurung(t, i) {
@@ -221,7 +230,8 @@ function awalOperand(t, akhir) {
   let i = akhir;
   if (t[i - 1] === "}") { const b = bukaPasangan(i - 1, "{", "}"); if (b < 0) return i; i = b; }
   else if (t[i - 1] === ")") { const b = bukaPasangan(i - 1, "(", ")"); if (b < 0) return i; i = b; }
-  while (i > 0 && /[A-Za-z0-9_.\\]/.test(t[i - 1])) i -= 1;
+  // \u0004 = koma desimal yang diamankan tokenLatex, bagian dari angka.
+  while (i > 0 && /[A-Za-z0-9_.\\\u0004]/.test(t[i - 1])) i -= 1;
   // Pangkat dan subskrip menempel pada basisnya, jadi basisnya ikut diambil.
   if (i > 0 && (t[i - 1] === "^" || t[i - 1] === "_")) return awalOperand(t, i - 1);
   return i;
@@ -265,7 +275,9 @@ function akhirOperand(t, mulai) {
   }
   else if (t[i] === "(") { const p = pasanganKurung(t, i); return p < 0 ? -1 : p + 1; }
   else {
-    while (i < t.length && /[A-Za-z0-9.,]/.test(t[i])) i += 1;
+    // Koma polos bukan bagian operand (dulu "T/2, dengan" menjadi \frac{T}{2,});
+    // koma desimal sudah diamankan sebagai \u0004.
+    while (i < t.length && /[A-Za-z0-9.\u0004]/.test(t[i])) i += 1;
     // Argumen fungsi menempel pada namanya: Y(s)/U(s) harus mengambil "U(s)"
     // utuh sebagai penyebut, bukan "U" saja yang menyisakan "(s)" di luar.
     if (t[i] === "(") { const p = pasanganKurung(t, i); if (p >= 0) i = p + 1; }
@@ -319,6 +331,19 @@ export function tokenLatex(teks) {
   // dihasilkan sendiri oleh pengubahan pangkat dan pecahan ikut terlolos.
   let t = teks.replace(/\{/g, "\u0001").replace(/\}/g, "\u0002");
 
+  // Tampilan KaTeX (3 Oktober 2026): (1) koma desimal "5,236" diamankan (dikembalikan sebagai {,} agar KaTeX tidak
+  // menyisipkan spasi tanda baca, dan \frac tidak memotong "5,|236/0,9148");
+  // (2) % polos adalah komentar KaTeX yang menelan sisa rumus -> \%;
+  // (3) akar Unicode √( -> sqrt( agar menjadi \sqrt{..};
+  // (4) "7 x 7" -> \times; (5) |u|max -> |u|_{max};
+  // (6) satuan waktu/frekuensi sesudah angka ditulis tegak (5 rad/s), garis miringnya diamankan.
+  t = t.replace(/(\d),(?=\d)/g, "$1\u0004");
+  t = t.replace(/(?<!\\)%/g, "\\%");
+  t = t.replace(/√\(/g, " sqrt(");
+  t = t.replace(/(\d)\s+x\s+(\d)/g, "$1 \\times $2");
+  t = t.replace(/\|([^|]+)\|(maks|max|min)(?![A-Za-z])/g, "|$1|_{$2}");
+  t = t.replace(/(\d)\s+(rad\/s|rad|ms|s|Hz)(?=$|[\s,;)])/g, (m, a, s) => `${a}\\ \\text{${s.replace("/", "\u0003")}}`);
+
   // Notasi turunan waktu pada model ruang keadaan: x_dot menjadi titik di atas.
   t = t.replace(/\b([A-Za-z])_dot\b/g, "\\dot{$1}");
   t = t.replace(/\b([A-Za-z])_ddot\b/g, "\\ddot{$1}");
@@ -338,7 +363,8 @@ export function tokenLatex(teks) {
   t = t.replace(/_\(([^()]*)\)/g, "_{$1}");
   t = t.replace(/_([A-Za-z0-9]{2,})/g, "_{$1}");
   t = t.replace(/\^\(([^()]*)\)/g, "^{$1}");
-  t = t.replace(/\^(-?[A-Za-z0-9]{2,})/g, "^{$1}");
+  // ^-1 dulu hanya menaikkan tanda minus ("(sI-A)⁻1").
+  t = t.replace(/\^(-?[A-Za-z0-9]{2,}|-[A-Za-z0-9])/g, "^{$1}");
 
   // Pecahan.
   t = t.replace(/\bd([A-Za-z])\s*\/\s*d([A-Za-z])\b/g, "\\frac{d$1}{d$2}");
@@ -350,9 +376,19 @@ export function tokenLatex(teks) {
   // tegak lewat \text{} supaya tidak tampil sebagai perkalian antarhuruf.
   // Ambang tiga huruf: kata Indonesia pendek ("uji", "dan") pun bukan
   // perkalian; lambang tiga huruf yang sah sudah tersaring KATA_MATEMATIKA.
-  t = t.replace(/(^|[^\\A-Za-z_{])([A-Za-z]{3,})(?![A-Za-z}])/g, (cocok, depan, kata) => (
+  // Diferensial sesudah integral dipisah spasi tipis ("∫e dt" dulu tampil "∫edt").
+  if (/∫|\\int/.test(t)) t = t.replace(/([A-Za-z0-9)²}])\s+d([a-z])(?![A-Za-z])/g, "$1\\,d$2");
+
+  // Kata berhubung ("kira-kira") satu \text; kata di dalam argumen \frac
+  // ("1/bandwidth") ikut tegak; label linguistik dua huruf kapital yang berdiri
+  // sendiri di antara spasi (IF, PK, NK) juga teks.
+  t = t.replace(/(^|[^\\A-Za-z_{])([A-Za-z]{3,}(?:-[A-Za-z]{3,})*)(?![A-Za-z}-])/g, (cocok, depan, kata) => (
     KATA_MATEMATIKA.has(kata.toLowerCase()) ? cocok : `${depan}\\text{${kata}}`
   ));
+  t = t.replace(/(\\frac\{|\}\{)([A-Za-z]{3,})(?=\})/g, (cocok, depan, kata) => (
+    KATA_MATEMATIKA.has(kata.toLowerCase()) ? cocok : `${depan}\\text{${kata}}`
+  ));
+  t = t.replace(/(^|\s)([A-Z]{2})(?=\s+[A-Za-z\\]|\s*;)/g, "$1\\text{$2}");
 
   // Frasa kata beruntun digabung dalam satu \text supaya spasinya terjaga —
   // mode matematika menelan spasi antarperintah, sehingga "frekuensi sampling"
@@ -360,9 +396,20 @@ export function tokenLatex(teks) {
   for (let ulang = 0; ulang < 6; ulang += 1) {
     t = t.replace(/\\text\{([^{}]*)\} +\\text\{([^{}]*)\}/g, "\\text{$1 $2}");
   }
+  // Kata terakhir frasa di ujung argumen ("1/(1 + tak hingga)") ikut ke \text yang sama.
+  t = t.replace(/\\text\{([^{}]*)\} +([A-Za-z]{3,})(?=\})/g, (cocok, isi, kata) => (
+    KATA_MATEMATIKA.has(kata.toLowerCase()) ? cocok : `\\text{${isi} ${kata}}`));
+  // Spasi di sisi \text{} yang menempel ke lambang/angka dipindah ke DALAM
+  // \text — di luar, mode matematika menelannya ("Y(s)]padas=p_i", "BilaG", "ζkira").
+  const OP_SPASI = "to|approx|cdot|times|Rightarrow|Leftarrow|Leftrightarrow|leftrightarrow|le|ge|ne|pm|mp|in|ll|gg|sim|equiv|quad|qquad";
+  const OP_SET = new Set(OP_SPASI.split("|"));
+  t = t.replace(/(\\[A-Za-z]+|[A-Za-z0-9)\]}'|²³\u0002])\s+\\text\{(?! )/g, (cocok, kiri) => (
+    kiri.startsWith("\\") && OP_SET.has(kiri.slice(1)) ? cocok : `${kiri}\\text{ `));
+  t = t.replace(new RegExp(String.raw`\\text\{([^{}]*[^{} ])\}\s+(?=[A-Za-z0-9(|\u0001]|\\(?!(?:${OP_SPASI})(?![A-Za-z])))`, "g"), "\\text{$1 }");
 
   // Kurawal asal dikembalikan dalam bentuk yang dikenali KaTeX.
   t = t.replace(/\u0001/g, "\\{").replace(/\u0002/g, "\\}");
+  t = t.replace(/\u0003/g, "/").replace(/\u0004/g, "{,}");
   t = t.replace(/\\mathcal\{L\}/g, "\\mathcal{L}");
   return t.replace(/\s{2,}/g, " ").trim();
 }
@@ -443,12 +490,21 @@ export function tokenNotasi(rumusAscii, namaDikenal = new Set()) {
 
 // Inti pengekstrak, menerima LaTeX langsung — dipakai tokenNotasi (rumus ASCII
 // generator) dan halaman tulisan tangan yang rumusnya sudah berupa LaTeX.
+// Nama tegak yang tetap notasi berarti dan punya chip legenda sendiri: tokenLatex menulis Re(…) sebagai
+// \operatorname{Re} dan kata di argumen \frac ("1/bandwidth") sebagai \text{bandwidth}, padahal keduanya
+// dijelaskan NOTASI_KAMUS (bagian nyata, lebar pita). Keputusan dosen 3 Oktober 2026: chip-nya dipertahankan.
+// Nilainya bentuk tampil chip (legendaNotasi di enrich), tegak seperti di rumusnya — "\(bandwidth\)" polos
+// tampil miring sebagai perkalian sembilan huruf.
+export const NOTASI_TEGAK = new Map([["Re", "\\operatorname{Re}"], ["bandwidth", "\\text{bandwidth}"]]);
+
 export function ekstrakNotasiLatex(latex, namaDikenal = new Set()) {
   const hasil = [];
   const sudah = new Set();
   const tambah = (t) => { if (t && !sudah.has(t)) { sudah.add(t); hasil.push(t); } };
-  // Bagian \text{...} adalah prosa di dalam matematika — bukan notasi.
-  let t = latex.replace(/\\(?:text|operatorname|mathrm)\{[^{}]*\}/g, " ");
+  // Bagian \text{...} adalah prosa di dalam matematika — bukan notasi, kecuali NOTASI_TEGAK yang dikenal
+  // kamus: dilepas di tempatnya, jadi tertangkap langkah 5 di urutan yang sama seperti saat masih polos.
+  let t = latex.replace(/\\(?:text|operatorname|mathrm)\{([^{}]*)\}/g, (m, isi) => (
+    NOTASI_TEGAK.has(isi) && namaDikenal.has(isi) ? ` ${isi} ` : " "));
   // 1) Perintah non-struktural, beserta subskrip yang menempel (\tau_{cl}).
   t = t.replace(/\\([a-zA-Z]+)(_\{[^{}]*\}|_[A-Za-z0-9])?/g, (m, nama, sub) => {
     if (!STRUKTUR_LATEX.has(nama)) tambah(`\\${nama}${sub || ""}`);
