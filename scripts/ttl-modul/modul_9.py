@@ -130,7 +130,7 @@ def gambar4():
             b += arrow(x + 76, 95, x + 134, 95, "#94a3b8", 1.6)
     b += f'<circle cx="22" cy="95" r="4" fill="#00e09e"/>' + t(22, 56, "kirim", 9.5, "#00e09e") + kawat(26, 95, 34, 95)
     b += f'<circle cx="628" cy="95" r="4" fill="#ec4899"/>' + t(628, 56, "terima", 9.5, "#ec4899") + kawat(614, 95, 624, 95)
-    b += t(330, 160, "[A B; C D]_total = [A₁ B₁; C₁ D₁] · [A₂ B₂; C₂ D₂] · [A₃ B₃; C₃ D₃]  (urutan dari kirim ke terima)", 11, "#00e09e", "middle", "600")
+    b += t(330, 160, "[A B; C D]<sub>total</sub> = [A₁ B₁; C₁ D₁] · [A₂ B₂; C₂ D₂] · [A₃ B₃; C₃ D₃]  (urutan dari kirim ke terima)", 11, "#00e09e", "middle", "600")
     b += t(330, 182, "Trafo ideal a:1 → [a 0; 0 1/a];  impedansi seri Z → [1 Z; 0 1];  admitansi shunt Y → [1 0; Y 1]", 10.5, AX)
     b += t(330, 200, "Pemeriksaan tiap tahap: AD − BC = 1 (resiprokal); saluran simetris: A = D", 10.5, AX)
     b += t(330, 222, f"Contoh: saluran {ind(L_LINE, 0)} km + trafo 150/20 kV 60 MVA 10 % dihitung sebagai satu matriks, lalu V<sub>S</sub> dari V<sub>R</sub> dan I<sub>R</sub> rel 20 kV", 10.5, AX)
