@@ -1342,6 +1342,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1583,7 +1654,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <span class="ff" style="left:60%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">Orde &amp; Derajat</span>
     <span class="ff" style="left:78%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">Linier vs Non-Linier</span>
     <span class="ff" style="left:8%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">Homogen vs Non-Homogen</span>
-    <span class="ff" style="left:48%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">y = e^(2x) ?</span>
+    <span class="ff" style="left:48%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">y = e<sup>2x</sup> ?</span>
     <span class="ff" style="left:88%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">Solusi Umum: y = C₁y₁ + C₂y₂</span>
   </div>
   <div class="hero-content">
@@ -3204,7 +3275,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">Identifikasi → Metode → Solusi</div>
     </div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted)">
-      <strong>Petunjuk klasifikasi:</strong> PD 1, kedua koefisien homogen derajad 2 (<code>x²+y²</code> dan <code>2xy</code>) → <strong>HOMOGEN</strong>. Cek juga eksak: <code>M_y = 2y</code>, <code>N_x = 2y</code> → ternyata juga eksak! Bisa diselesaikan dengan kedua metode. PD 2, koefisien tidak homogen (mengandung konstanta 3 dan −4 yang berderajad 0). Cek eksak: <code>M_y = 2x = N_x</code> → <strong>EKSAK murni</strong>. PD 3, variabel sudah terpisah! <code>x</code> dan <code>sin y</code> independent. Bukan homogen (derajat tidak konsisten), tapi eksak trivial (<code>M_y = 0 = N_x</code>) → bisa juga diselesaikan dengan <strong>variabel terpisah</strong>.
+      <strong>Petunjuk klasifikasi:</strong> PD 1, kedua koefisien homogen derajad 2 (<code>x²+y²</code> dan <code>2xy</code>) → <strong>HOMOGEN</strong>. Cek juga eksak: <code>M<sub>y</sub> = 2y</code>, <code>N<sub>x</sub> = 2y</code> → ternyata juga eksak! Bisa diselesaikan dengan kedua metode. PD 2, koefisien tidak homogen (mengandung konstanta 3 dan −4 yang berderajad 0). Cek eksak: <code>M<sub>y</sub> = 2x = N<sub>x</sub></code> → <strong>EKSAK murni</strong>. PD 3, variabel sudah terpisah! <code>x</code> dan <code>sin y</code> independent. Bukan homogen (derajat tidak konsisten), tapi eksak trivial (<code>M<sub>y</sub> = 0 = N<sub>x</sub></code>) → bisa juga diselesaikan dengan <strong>variabel terpisah</strong>.
     </p>
 
     <div class="info-box" style="margin-top:18px">
@@ -3245,8 +3316,8 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
             <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>HOMOGEN dan EKSAK (keduanya)</div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Bukan homogen maupun eksak</div>
           </div>
-          <div class="p-fb r" id="fp1r">✅ Tepat! HOMOGEN: <code>g = x²+y²</code> (derajad 2), <code>h = 2xy</code> (derajad 2), derajat sama → homogen. EKSAK: <code>M_y = 2y</code>, <code>N_x = 2y</code>, sama → juga eksak. Jadi PD 1 bisa diselesaikan dengan KEDUA metode (homogen via <code>y=ux</code> ATAU eksak via rekonstruksi <code>F</code>).</div>
-          <div class="p-fb w" id="fp1w">❌ Cek dua syarat: (a) derajat homogenitas <code>g</code> dan <code>h</code> sama? (b) <code>M_y = N_x</code>? PD ini kebetulan memenuhi <strong>keduanya</strong>.</div>
+          <div class="p-fb r" id="fp1r">✅ Tepat! HOMOGEN: <code>g = x²+y²</code> (derajad 2), <code>h = 2xy</code> (derajad 2), derajat sama → homogen. EKSAK: <code>M<sub>y</sub> = 2y</code>, <code>N<sub>x</sub> = 2y</code>, sama → juga eksak. Jadi PD 1 bisa diselesaikan dengan KEDUA metode (homogen via <code>y=ux</code> ATAU eksak via rekonstruksi <code>F</code>).</div>
+          <div class="p-fb w" id="fp1w">❌ Cek dua syarat: (a) derajat homogenitas <code>g</code> dan <code>h</code> sama? (b) <code>M<sub>y</sub> = N<sub>x</sub></code>? PD ini kebetulan memenuhi <strong>keduanya</strong>.</div>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis jawaban Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: Untuk masing-masing PD 1, 2, 3, berikan: (1) cek HOMOGEN dengan derajat g dan h, (2) cek EKSAK dengan M_y dan N_x, (3) kesimpulan tipe. Buat tabel klasifikasi yang rapi." oninput="checkForumReady()"></textarea>
@@ -6252,7 +6323,7 @@ function drawSweep(){
       const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
       const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
       const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
+      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r<sub>max</sub>=${rmaxTheory.toFixed(2)}, DMF<sub>max</sub>=${dmfmaxTheory.toFixed(2)}`;
     } else {
       info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
     }
@@ -6618,7 +6689,7 @@ function drawHPB(){
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
+  ctx.fillText(`${linePos.toFixed(2)} × H²<sub>max</sub> = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
 
   // Find ω₁ and ω₂ (intersection of curve with targetY)
   // Binary search on either side of peak
@@ -6662,12 +6733,12 @@ function drawHPB(){
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
+    let html = `ζ<sub>TRUE</sub> = ${zetaTrue.toFixed(3)} · ω<sub>peak</sub> = ${omegaPeak.toFixed(2)} · H²<sub>max</sub> = ${H2max.toFixed(2)}<br>`;
     if(omega1 !== null && omega2 !== null){
       html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
       if(Math.abs(linePos - 0.5) < 0.02){
         const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
+        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ<sub>estimated</sub> = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
       } else {
         html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
       }
@@ -7720,10 +7791,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7737,7 +7808,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -10299,7 +10370,7 @@ function drawEMTog(){
   const isNum = (_emTogMode === 1);
   const color = isNum ? '#a855f7' : '#00e09e';
   ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e^(-bt/2)·cos(ωt)', 20, 30);
+  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e<sup>-bt/2</sup>·cos(ωt)', 20, 30);
 
   const padL=50, padR=20, padT=50, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
@@ -10731,7 +10802,7 @@ function _createForumParticleBurst(event) {
     // ── RIGHT: bar comparison ──
     const sx0 = splitX + 16, sx1 = W - 20, sy0 = padT + 10, sy1 = H - padB;
     ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px JetBrains Mono, monospace';
-    ctx.fillText('Test: f(P₂)/f(P₁) vs t^d', sx0, sy0);
+    ctx.fillText('Test: f(P₂)/f(P₁) vs t<sup>d</sup>', sx0, sy0);
 
     const f1 = obj.f(x0, y0);
     const f2 = obj.f(x1, y1);
@@ -10760,7 +10831,7 @@ function _createForumParticleBurst(event) {
     const xPred = sx0 + 140;
     drawBar('observed', ratioObs, '#0ea5e9', xObs);
     if (obj.isHom){
-      drawBar(`t^${obj.d}`, predicted, '#00e09e', xPred);
+      drawBar(`t<sup>${obj.d}</sup>`, predicted, '#00e09e', xPred);
       // Verdict
       const diff = Math.abs(ratioObs - predicted);
       const ok = diff < 0.1;
@@ -10778,9 +10849,9 @@ function _createForumParticleBurst(event) {
     if (infoEl){
       if (obj.isHom){
         const diff = Math.abs(ratioObs - predicted);
-        infoEl.innerHTML = `<span style="color:#0ea5e9">●</span> ${obj.label} &nbsp;|&nbsp; f(P₁)=${f1.toFixed(2)}, f(P₂)=${f2.toFixed(2)} ⇒ rasio ${ratioObs.toFixed(2)} ≈ t^${obj.d} = ${predicted.toFixed(2)} &nbsp;|&nbsp; |Δ| = ${diff.toFixed(3)}`;
+        infoEl.innerHTML = `<span style="color:#0ea5e9">●</span> ${obj.label} &nbsp;|&nbsp; f(P₁)=${f1.toFixed(2)}, f(P₂)=${f2.toFixed(2)} ⇒ rasio ${ratioObs.toFixed(2)} ≈ t<sup>${obj.d}</sup> = ${predicted.toFixed(2)} &nbsp;|&nbsp; |Δ| = ${diff.toFixed(3)}`;
       } else {
-        infoEl.innerHTML = `<span style="color:#ef4444">●</span> ${obj.label} &nbsp;|&nbsp; f(P₁)=${f1.toFixed(2)}, f(P₂)=${f2.toFixed(2)} ⇒ rasio ${ratioObs.toFixed(2)} TIDAK konsisten dengan t^d apapun`;
+        infoEl.innerHTML = `<span style="color:#ef4444">●</span> ${obj.label} &nbsp;|&nbsp; f(P₁)=${f1.toFixed(2)}, f(P₂)=${f2.toFixed(2)} ⇒ rasio ${ratioObs.toFixed(2)} TIDAK konsisten dengan t<sup>d</sup> apapun`;
       }
     }
 
@@ -11063,7 +11134,7 @@ function _createForumParticleBurst(event) {
   const M3_EXACT = {
     p1: { label: '(2xy) dx + (x²) dy',           My: (x, y) => 2*x,         Nx: (x, y) => 2*x,         exact: true,  F: '(F = x²·y)' },
     p2: { label: '(y) dx + (x) dy',              My: (x, y) => 1,            Nx: (x, y) => 1,            exact: true,  F: '(F = x·y)' },
-    p3: { label: '(y) dx + (2x) dy',             My: (x, y) => 1,            Nx: (x, y) => 2,            exact: false, F: 'M_y ≠ N_x' },
+    p3: { label: '(y) dx + (2x) dy',             My: (x, y) => 1,            Nx: (x, y) => 2,            exact: false, F: 'M<sub>y</sub> ≠ N<sub>x</sub>' },
     p4: { label: '(cos x + y) dx + (x) dy',      My: (x, y) => 1,            Nx: (x, y) => 1,            exact: true,  F: '(F = sin x + x·y)' }
   };
 
@@ -11166,7 +11237,7 @@ function _createForumParticleBurst(event) {
   const m3Apps = { which: 'spiral', t: 0, hist: [], raf: null };
 
   const M3_APPS = {
-    spiral:      { label: "Spiral Logaritmik: r = a·e^(b·θ)",        compute: t => Math.cos(t * 1.5) * Math.exp(-0.05 * t),                color: '#0ea5e9', icon: 'spiral' },
+    spiral:      { label: "Spiral Logaritmik: r = a·e<sup>b·θ</sup>",        compute: t => Math.cos(t * 1.5) * Math.exp(-0.05 * t),                color: '#0ea5e9', icon: 'spiral' },
     orbits:      { label: "Energi Orbit Konservatif: E = const",     compute: t => 0.6 + 0.3*Math.cos(t * 0.8),                              color: '#a855f7', icon: 'orbit'  },
     streamlines: { label: "Streamline 2D: ψ(x, y) = C",              compute: t => Math.sin(t * 1.2) * 0.6 + 0.2,                            color: '#00e09e', icon: 'flow'   },
     similar:     { label: "Bangun Mirip: y/x = const (scaling)",     compute: t => 0.3 + 0.6*((t * 0.4) % 1),                                color: '#ffb300', icon: 'tri'    },

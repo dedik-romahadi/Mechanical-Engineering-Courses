@@ -1239,6 +1239,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1497,9 +1568,9 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">if x &gt; T_HIGH: ALERT</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">if x &gt; T<sub>HIGH</sub>: ALERT</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">ISO 10816 zones A | B | C | D</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">Hysteresis: T_on &gt; T_off</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">Hysteresis: T<sub>on</sub> &gt; T<sub>off</sub></span>
     <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">Tier: WARN · ALERT · CRIT</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">FSM: state, transitions</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">Debounce: N consecutive</span>
@@ -1657,7 +1728,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Threshold Absolut: \(T_{\text{low}}\) &amp; \(T_{\text{high}}\)</h3>
-      <p>Bentuk paling sederhana: <code>IF rms &gt; T_high THEN ALERT</code>. Untuk fitur dua-arah (mis. tekanan oli yang tidak boleh terlalu rendah dan terlalu tinggi): <code>IF p &lt; T_low OR p &gt; T_high THEN ALERT</code>. Threshold harus <em>physical-meaningful</em>: didasarkan pada batas mekanis (yield stress, bearing fatigue limit), standar industri, atau baseline operasi normal. <strong>Hindari threshold ditebak</strong>; selalu dokumentasikan sumbernya.</p>
+      <p>Bentuk paling sederhana: <code>IF rms &gt; T<sub>high</sub> THEN ALERT</code>. Untuk fitur dua-arah (mis. tekanan oli yang tidak boleh terlalu rendah dan terlalu tinggi): <code>IF p &lt; T<sub>low</sub> OR p &gt; T<sub>high</sub> THEN ALERT</code>. Threshold harus <em>physical-meaningful</em>: didasarkan pada batas mekanis (yield stress, bearing fatigue limit), standar industri, atau baseline operasi normal. <strong>Hindari threshold ditebak</strong>; selalu dokumentasikan sumbernya.</p>
       <div class="formula">\(if x > T_{\text{high}}: alert\)</div>
     </div>
     <div class="card">
@@ -1963,7 +2034,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 06</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Visualisasi Sensor, Sampling, ISO 10816 &amp; Hysteresis</h2>
-  <p class="section-desc reveal">Lima animasi yang memvisualisasikan <strong>fondasi monitoring</strong>: (1) <em>Threshold + Hysteresis Schmitt Trigger</em>, chattering vs stable dengan dual-threshold \(T_{\text{on}}\)/T_off. (2) <em>ISO 10816 Zone Classification</em>, RMS velocity berkembang sepanjang lifetime mesin lewat zona A/B/C/D. (3) <em>Sensor Sampling &amp; Nyquist</em>, efek sampling rate ke kualitas signal recovery (under-sampling = aliasing, over-sampling = waste storage). (4) <em>Multi-Sensor Trace + DAQ Pipeline</em>, vibrasi + temperatur + arus motor di-akuisisi simultan, ditampilkan paralel sebagai input ke threshold detector. Tier alarm escalation dan FSM dibahas di animasi modul Pertemuan 13. Tujuan: membangun intuisi sebelum coding hardware setup &amp; threshold detector di Bagian 08.</p>
+  <p class="section-desc reveal">Lima animasi yang memvisualisasikan <strong>fondasi monitoring</strong>: (1) <em>Threshold + Hysteresis Schmitt Trigger</em>, chattering vs stable dengan dual-threshold \(T_{\text{on}}\)/T<sub>off</sub>. (2) <em>ISO 10816 Zone Classification</em>, RMS velocity berkembang sepanjang lifetime mesin lewat zona A/B/C/D. (3) <em>Sensor Sampling &amp; Nyquist</em>, efek sampling rate ke kualitas signal recovery (under-sampling = aliasing, over-sampling = waste storage). (4) <em>Multi-Sensor Trace + DAQ Pipeline</em>, vibrasi + temperatur + arus motor di-akuisisi simultan, ditampilkan paralel sebagai input ke threshold detector. Tier alarm escalation dan FSM dibahas di animasi modul Pertemuan 13. Tujuan: membangun intuisi sebelum coding hardware setup &amp; threshold detector di Bagian 08.</p>
 
   <!-- Animasi 1: Threshold vs Hysteresis (Chattering Demo) -->
   <div class="anim-panel reveal">
@@ -2161,7 +2232,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-jupyter">
   <div class="section-label reveal">Bagian 08</div>
   <h2 class="section-title reveal">Implementasi Python<br>Rule-Based Monitoring di Jupyter Notebook</h2>
-  <p class="section-desc reveal">Empat cell berikut membangun sistem rule-based monitoring lengkap: Cell 1 implementasi <strong>ISO 10816 zone classification</strong> + threshold check pada streaming sinyal RMS sintetis. Cell 2 implementasi <strong>HysteresisAlarm class</strong> dengan dual threshold (\(T_{\text{on}}\)/T_off) dan demonstrasi anti-chattering. Cell 3 implementasi <strong>finite state machine (FSM)</strong> lengkap dengan debouncing N consecutive samples, tier alarm (warning/alert/critical), audit log CSV. Cell 4 mendefinisikan <strong>fungsi <code>run_monitoring_pipeline()</code></strong> reusable end-to-end: input sinyal time series, output state history + alert events + dashboard visualization (matplotlib).</p>
+  <p class="section-desc reveal">Empat cell berikut membangun sistem rule-based monitoring lengkap: Cell 1 implementasi <strong>ISO 10816 zone classification</strong> + threshold check pada streaming sinyal RMS sintetis. Cell 2 implementasi <strong>HysteresisAlarm class</strong> dengan dual threshold (\(T_{\text{on}}\)/T<sub>off</sub>) dan demonstrasi anti-chattering. Cell 3 implementasi <strong>finite state machine (FSM)</strong> lengkap dengan debouncing N consecutive samples, tier alarm (warning/alert/critical), audit log CSV. Cell 4 mendefinisikan <strong>fungsi <code>run_monitoring_pipeline()</code></strong> reusable end-to-end: input sinyal time series, output state history + alert events + dashboard visualization (matplotlib).</p>
 
   <div class="info-box reveal">
     <strong>📓 Petunjuk Pengerjaan di Jupyter Notebook:</strong><br>
@@ -2736,7 +2807,7 @@ result = <span class="fn">run_monitoring_pipeline</span>(rms_demo, timestamps=ts
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">if x &gt; T: ALERT</span>
     <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">ISO 10816 zones A | B | C | D</span>
-    <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">T_on &gt; T_off (hysteresis)</span>
+    <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">T<sub>on</sub> &gt; T<sub>off</sub> (hysteresis)</span>
     <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">FSM + debounce N</span>
   </div>
   <div class="hero-content">
@@ -3027,10 +3098,10 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Untuk threshold \(T_{\text{on}}\) = 2.8 dan margin hysteresis 0.2, hitung <strong>\(T_{\text{off}}\)</strong> (threshold untuk transition kembali ke OFF). Formula: <code>T_off = T_on - margin</code>. Print nilainya.</div>
+        <div class="comp-q">Untuk threshold \(T_{\text{on}}\) = 2.8 dan margin hysteresis 0.2, hitung <strong>\(T_{\text{off}}\)</strong> (threshold untuk transition kembali ke OFF). Formula: <code>T<sub>off</sub> = T<sub>on</sub> - margin</code>. Print nilainya.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 T_off = T_on − margin. Sinyal harus turun di bawah T_off untuk kembali OFF, mencegah chattering di sekitar threshold. Substitusikan nilai dari soal.</div>
+      <div class="comp-hint">💡 T<sub>off</sub> = T<sub>on</sub> − margin. Sinyal harus turun di bawah T<sub>off</sub> untuk kembali OFF, mencegah chattering di sekitar threshold. Substitusikan nilai dari soal.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(T_{\text{off}}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
@@ -3149,7 +3220,7 @@ import pandas as pd
         <div class="comp-q"><strong>Hysteresis state simulation</strong>: dengan \(T_{\text{on}}\) = 2.8 dan \(T_{\text{off}}\) = 2.6, RMS sequence = [2.5, 2.7, 2.9, 2.7, 2.5, 2.7, 2.9]. Awal state OFF. Hitung <strong>jumlah transitions</strong> total. Print integer.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Telusuri sequence sample per sample: state berubah ke ON saat melewati T_on dan ke OFF saat turun di bawah T_off; hitung berapa kali state berubah.</div>
+      <div class="comp-hint">💡 Telusuri sequence sample per sample: state berubah ke ON saat melewati T<sub>on</sub> dan ke OFF saat turun di bawah T<sub>off</sub>; hitung berapa kali state berubah.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jumlah transitions</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
@@ -3163,10 +3234,10 @@ import pandas as pd
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q">Hitung <strong>MTTR improvement (%)</strong> kalau MTTR sebelum monitoring = 8 jam, setelah monitoring = 5.6 jam. Formula: <code>(MTTR_before − MTTR_after) / MTTR_before × 100</code>. Print persentase.</div>
+        <div class="comp-q">Hitung <strong>MTTR improvement (%)</strong> kalau MTTR sebelum monitoring = 8 jam, setelah monitoring = 5.6 jam. Formula: <code>(MTTR<sub>before</sub> − MTTR<sub>after</sub>) / MTTR<sub>before</sub> × 100</code>. Print persentase.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 MTTR improvement% = (MTTR_before − MTTR_after) ÷ MTTR_before × 100. Substitusikan nilai dari soal.</div>
+      <div class="comp-hint">💡 MTTR improvement% = (MTTR<sub>before</sub> − MTTR<sub>after</sub>) ÷ MTTR<sub>before</sub> × 100. Substitusikan nilai dari soal.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">improvement (%)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -3193,7 +3264,7 @@ import pandas as pd
         <div class="comp-q"><strong>HysteresisAlarm Class, Anti-Chattering Demo</strong>: implementasi class HysteresisAlarm dengan \(T_{\text{on}}\)=2.8, \(T_{\text{off}}\)=2.6. Generate sinyal RMS noisy: <code>np.random.seed(42); rms = 2.7 + 0.15 * np.random.randn(500)</code>. Apply class ke seluruh sinyal. Print <strong>jumlah transitions</strong> (state change). Hysteresis bertujuan menekan jumlah transisi (anti-chattering) sehingga hasilnya relatif rendah.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Implementasikan class dengan dua threshold (T_on/T_off); margin hysteresis yang lebih besar dari std noise membuat jumlah transition kecil. Hitung berapa kali state berubah di seluruh sinyal.</div>
+      <div class="comp-hint">💡 Implementasikan class dengan dua threshold (T<sub>on</sub>/T<sub>off</sub>); margin hysteresis yang lebih besar dari std noise membuat jumlah transition kecil. Hitung berapa kali state berubah di seluruh sinyal.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jumlah transitions</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="14" placeholder="Paste kode HysteresisAlarm, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
@@ -3519,7 +3590,7 @@ import pandas as pd
   <div class="float-formulas">
     <span class="ff" style="left:6%;font-size:.9rem;color:var(--violet);--dur:22s;--del:0s">✅ Tepat Waktu</span>
     <span class="ff" style="left:28%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">min f(x)</span>
-    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">x_{k+1} = x_k − α∇f</span>
+    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">x<sub>k+1</sub> = x<sub>k</sub> − α∇f</span>
     <span class="ff" style="left:70%;font-size:.7rem;color:var(--pink);--dur:24s;--del:2s">🏆 Top Skor</span>
     <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">scipy.minimize</span>
   </div>
@@ -5671,8 +5742,8 @@ function drawPhysics(){
   ctx.fillStyle = '#ef4444'; ctx.font = 'bold 10px JetBrains Mono';
   ctx.fillText('T = '+T.toFixed(1), padL+wPx-70, PYsig(T)-4);
   ctx.fillStyle = '#22c55e';
-  ctx.fillText('T_on = '+Tup.toFixed(2), 4, PYsig(Tup)+3);
-  ctx.fillText('T_off = '+Tdn.toFixed(2), 4, PYsig(Tdn)+3);
+  ctx.fillText('T<sub>on</sub> = '+Tup.toFixed(2), 4, PYsig(Tup)+3);
+  ctx.fillText('T<sub>off</sub> = '+Tdn.toFixed(2), 4, PYsig(Tdn)+3);
   ctx.fillStyle = 'rgba(56,189,248,.95)'; ctx.font = 'bold 11px JetBrains Mono';
   ctx.fillText('RMS Signal (mm/s)  σ='+noise.toFixed(2), padL, padT-6);
 
@@ -5898,7 +5969,7 @@ function drawIso(){
   ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(padL, topMid); ctx.lineTo(padL+wPx, topMid); ctx.stroke();
   ctx.fillStyle = 'rgba(168,85,247,.95)'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('Continuous signal — f_signal = '+fSig.toFixed(1)+' Hz', padL, padT-6);
+  ctx.fillText('Continuous signal — f<sub>signal</sub> = '+fSig.toFixed(1)+' Hz', padL, padT-6);
 
   // === BOTTOM: discrete samples + reconstruction (linear interp) ===
   const botMid = padT + halfH + halfH/2 + 8;
@@ -5949,7 +6020,7 @@ function drawIso(){
   ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(padL, botMid); ctx.lineTo(padL+wPx, botMid); ctx.stroke();
   ctx.fillStyle = lineCol; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('Discrete samples, f_s = '+fS.toFixed(0)+' Hz · N='+samples.length+(aliased?'  ⚠ ALIASING':''), padL, padT+halfH+10);
+  ctx.fillText('Discrete samples, f<sub>s</sub> = '+fS.toFixed(0)+' Hz · N='+samples.length+(aliased?'  ⚠ ALIASING':''), padL, padT+halfH+10);
 
   // y-axis +1/-1 ticks (top + bot)
   ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = '9px JetBrains Mono';
@@ -5964,7 +6035,7 @@ function drawIso(){
     const verdict = aliased
       ? `🔴 ALIASING, f_apparent = ${fApp.toFixed(2)} Hz (bukan ${fSig.toFixed(2)} Hz!)`
       : (fS >= 2.5*fSig ? '🟢 Aman, oversampled' : '🟡 Tepat di Nyquist limit');
-    info.innerHTML = `f_signal = <strong>${fSig.toFixed(1)} Hz</strong> · f_s = <strong>${fS.toFixed(0)} Hz</strong> · Nyquist 2·f = ${(2*fSig).toFixed(1)} Hz · Ratio f_s/f = ${(fS/Math.max(fSig,0.01)).toFixed(2)} · ${verdict}`;
+    info.innerHTML = `f<sub>signal</sub> = <strong>${fSig.toFixed(1)} Hz</strong> · f<sub>s</sub> = <strong>${fS.toFixed(0)} Hz</strong> · Nyquist 2·f = ${(2*fSig).toFixed(1)} Hz · Ratio f<sub>s</sub>/f = ${(fS/Math.max(fSig,0.01)).toFixed(2)} · ${verdict}`;
   }
 }
 
@@ -7004,7 +7075,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
   const formulas = [
     { t: 'min f(x), x ∈ ℝⁿ',                     s: 13 },
     { t: '∇f(x*) = 0',                            s: 12 },
-    { t: 'x_{k+1} = x_k − α·∇f(x_k)',             s: 11 },
+    { t: 'x<sub>k+1</sub> = x<sub>k</sub> − α·∇f(x<sub>k</sub>)',             s: 11 },
     { t: 'L = f + λᵀh + μᵀg',                    s: 12 },
     { t: 'KKT: μᵢgᵢ = 0',                         s: 11 },
     { t: 'Hessian ∇²f ⪰ 0',                      s: 11 },
@@ -7026,7 +7097,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

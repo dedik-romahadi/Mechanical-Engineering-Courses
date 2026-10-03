@@ -1239,6 +1239,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1497,14 +1568,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">RMS = √(1/N · Σx_i²)</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">Crest = x_peak / RMS</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">RMS = √(1/N · Σx<sub>i</sub>²)</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">Crest = x<sub>peak</sub> / RMS</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">σ² = (1/N) Σ(x − μ)²</span>
     <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">Kurt = E[(x−μ)⁴]/σ⁴</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">Skew = E[(x−μ)³]/σ³</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">PP = max − min</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">SF = RMS / |x|_avg</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">IF = x_peak / |x|_avg</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">SF = RMS / |x|<sub>avg</sub></span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">IF = x<sub>peak</sub> / |x|<sub>avg</sub></span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 6 &nbsp;·&nbsp; Optimalisasi &amp; Automasi &nbsp;·&nbsp; 2025/2026</div>
@@ -1720,7 +1791,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">⛰️</div>
       <h3>Peak (x<sub>peak</sub>)</h3>
-      <p>Nilai <strong>absolut maksimum</strong> dalam segmen sinyal: <code>x_peak = max(|x_i|)</code>. Sangat sensitif terhadap impak transient, lonjakan sesaat saat impak metal-on-metal di bearing rusak. Tetapi juga sensitif terhadap <em>spike noise</em>; pre-filter median/Hampel sebelum hitung peak untuk hasil robust.</p>
+      <p>Nilai <strong>absolut maksimum</strong> dalam segmen sinyal: <code>x<sub>peak</sub> = max(|x<sub>i</sub>|)</code>. Sangat sensitif terhadap impak transient, lonjakan sesaat saat impak metal-on-metal di bearing rusak. Tetapi juga sensitif terhadap <em>spike noise</em>; pre-filter median/Hampel sebelum hitung peak untuk hasil robust.</p>
       <div class="formula">\(x_{\text{peak}} = max|x|\)</div>
     </div>
     <div class="card">
@@ -1732,13 +1803,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Mean Absolute (|x|<sub>avg</sub>)</h3>
-      <p>Rata-rata <strong>nilai absolut</strong>: <code>(1/N)Σ|x_i|</code>. Mirip dengan std untuk distribusi simetris, tetapi tidak melibatkan kuadrat (lebih murah komputasi). Banyak digunakan sebagai alternatif RMS pada hardware terbatas (mikrokontroler tanpa floating-point sqrt). Hubungan dengan RMS untuk sinyal Gaussian: |x|_avg ≈ RMS · \(\sqrt{2/\pi }\) ≈ 0.798·RMS.</p>
+      <p>Rata-rata <strong>nilai absolut</strong>: <code>(1/N)Σ|x<sub>i</sub>|</code>. Mirip dengan std untuk distribusi simetris, tetapi tidak melibatkan kuadrat (lebih murah komputasi). Banyak digunakan sebagai alternatif RMS pada hardware terbatas (mikrokontroler tanpa floating-point sqrt). Hubungan dengan RMS untuk sinyal Gaussian: |x|<sub>avg</sub> ≈ RMS · \(\sqrt{2/\pi }\) ≈ 0.798·RMS.</p>
       <div class="formula">\(|x|_avg = (1/N)\Sigma |x|\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔲</div>
       <h3>Square Mean (SM)</h3>
-      <p>Rata-rata <strong>kuadrat nilai</strong>: <code>SM = (1/N)Σx_i²</code>, yang juga sama dengan <code>RMS²</code>. Beberapa standar (terutama akustik) memakai SM langsung daripada RMS karena <em>lebih mudah dihitung secara incremental</em>: <code>SM_new = SM_old + (x_new² − x_oldest²)/N</code>. Berguna untuk streaming data tanpa menyimpan window.</p>
+      <p>Rata-rata <strong>kuadrat nilai</strong>: <code>SM = (1/N)Σx<sub>i</sub>²</code>, yang juga sama dengan <code>RMS²</code>. Beberapa standar (terutama akustik) memakai SM langsung daripada RMS karena <em>lebih mudah dihitung secara incremental</em>: <code>SM<sub>new</sub> = SM<sub>old</sub> + (x<sub>new</sub>² − x<sub>oldest</sub>²)/N</code>. Berguna untuk streaming data tanpa menyimpan window.</p>
       <div class="formula">\(SM = RMS^2\)</div>
     </div>
   </div>
@@ -1796,7 +1867,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🏔️</div>
       <h3>Crest Factor (CF)</h3>
-      <p>Rasio <strong>peak terhadap RMS</strong>: <code>CF = x_peak / RMS</code>. Untuk sinyal sinusoidal murni: CF = √2 ≈ 1.414. Untuk noise Gaussian: CF ≈ 3–4. Nilai CF &gt; 4–5 menandakan adanya <em>impak transient</em>, biasanya bearing fault stadium awal. CF naik dulu sebelum RMS, sehingga merupakan <strong style="color:var(--amber)">leading indicator</strong>.</p>
+      <p>Rasio <strong>peak terhadap RMS</strong>: <code>CF = x<sub>peak</sub> / RMS</code>. Untuk sinyal sinusoidal murni: CF = √2 ≈ 1.414. Untuk noise Gaussian: CF ≈ 3–4. Nilai CF &gt; 4–5 menandakan adanya <em>impak transient</em>, biasanya bearing fault stadium awal. CF naik dulu sebelum RMS, sehingga merupakan <strong style="color:var(--amber)">leading indicator</strong>.</p>
       <div class="formula">\(CF = x_{\text{peak}} / RMS\)</div>
     </div>
     <div class="card">
@@ -1814,19 +1885,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Shape Factor (SF)</h3>
-      <p>Rasio <strong>RMS terhadap mean absolute</strong>: <code>SF = RMS / |x|_avg</code>. Untuk sinyal Gaussian: SF ≈ 1.253 (= \(\sqrt{\pi /2}\)). Naik perlahan saat ada impak, kombinasikan dengan CF untuk diagnosis lebih kuat. SF tahan terhadap noise tunggal karena denominator-nya rata-rata absolut, bukan single peak.</p>
+      <p>Rasio <strong>RMS terhadap mean absolute</strong>: <code>SF = RMS / |x|<sub>avg</sub></code>. Untuk sinyal Gaussian: SF ≈ 1.253 (= \(\sqrt{\pi /2}\)). Naik perlahan saat ada impak, kombinasikan dengan CF untuk diagnosis lebih kuat. SF tahan terhadap noise tunggal karena denominator-nya rata-rata absolut, bukan single peak.</p>
       <div class="formula">\(SF = RMS / |x|_avg\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚠️</div>
       <h3>Impulse Factor (IF)</h3>
-      <p>Rasio <strong>peak terhadap mean absolute</strong>: <code>IF = x_peak / |x|_avg</code>. Untuk Gaussian: IF ≈ 3·\(\sqrt{\pi /2}\) ≈ 3.76. Sangat tinggi (IF &gt; 10) untuk sinyal dengan impak singkat dan sangat sedikit. IF dan CF mirip secara konsep tetapi IF lebih sensitif terhadap impulsivitas karena denominator-nya lebih kecil dari RMS untuk sinyal impulsif.</p>
+      <p>Rasio <strong>peak terhadap mean absolute</strong>: <code>IF = x<sub>peak</sub> / |x|<sub>avg</sub></code>. Untuk Gaussian: IF ≈ 3·\(\sqrt{\pi /2}\) ≈ 3.76. Sangat tinggi (IF &gt; 10) untuk sinyal dengan impak singkat dan sangat sedikit. IF dan CF mirip secara konsep tetapi IF lebih sensitif terhadap impulsivitas karena denominator-nya lebih kecil dari RMS untuk sinyal impulsif.</p>
       <div class="formula">\(IF = x_{\text{peak}} / |x|_avg\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔻</div>
       <h3>Margin Factor (MF)</h3>
-      <p>Rasio <strong>peak terhadap square mean of square root</strong>: <code>MF = x_peak / [(1/N)Σ√|x|]²</code>. Lebih jarang dipakai tapi <em>sangat tahan</em> terhadap clipping atau outlier, denominator-nya kompres nilai besar. Berguna saat sensor over-saturasi pada impak besar dan Anda hanya ingin info tentang bentuk gelombang yang tidak clip.</p>
+      <p>Rasio <strong>peak terhadap square mean of square root</strong>: <code>MF = x<sub>peak</sub> / [(1/N)Σ√|x|]²</code>. Lebih jarang dipakai tapi <em>sangat tahan</em> terhadap clipping atau outlier, denominator-nya kompres nilai besar. Berguna saat sensor over-saturasi pada impak besar dan Anda hanya ingin info tentang bentuk gelombang yang tidak clip.</p>
       <div class="formula">\(MF = x_{\text{peak}} / [(1/N)\Sigma √|x|]^2\)</div>
     </div>
   </div>
@@ -2394,7 +2465,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">RMS = √(1/N · Σx²)</span>
-    <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">Crest = x_peak / RMS</span>
+    <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">Crest = x<sub>peak</sub> / RMS</span>
     <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">Kurt = E[(x−μ)⁴]/σ⁴</span>
     <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">Skew = E[(x−μ)³]/σ³</span>
   </div>
@@ -2508,7 +2579,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc3">
         <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Peak-to-peak / Mean</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Peak (|x|_max) / RMS</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Peak (|x|<sub>max</sub>) / RMS</div>
         <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; RMS / Standard deviation</div>
         <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Variance / Mean²</div>
       </div>
@@ -2698,7 +2769,7 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Hitung <strong>RMS</strong> sinyal <code>x</code> menggunakan formula <code>√[(1/N)Σx_i²]</code>. Untuk sinyal AC-coupled (mean ≈ 0), RMS harus ≈ std.</div>
+        <div class="comp-q">Hitung <strong>RMS</strong> sinyal <code>x</code> menggunakan formula <code>√[(1/N)Σx<sub>i</sub>²]</code>. Untuk sinyal AC-coupled (mean ≈ 0), RMS harus ≈ std.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 RMS = akar dari rata-rata kuadrat sinyal; gunakan <code>np.sqrt(np.mean(x**2))</code>. Untuk mean ≈ 0 nilainya mendekati std.</div>
@@ -2771,7 +2842,7 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
       </div>
       <div class="comp-hint">💡 Absolute average = rata-rata nilai absolut sinyal; gunakan <code>np.mean(np.abs(x))</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">|x|_avg</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">|x|<sub>avg</sub></strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
         <div class="stdout-box" id="stdout-c7"></div>
       </div>
@@ -2895,7 +2966,7 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C14</div>
-        <div class="comp-q">Implementasikan <strong>klasifikasi healthy vs faulty berbasis threshold</strong>: untuk dataset referensi, injeksikan 5 impak besar di indeks [100, 250, 400, 600, 850] dengan amplitudo +5.0 (single sample) menjadi <code>x_faulty</code>. Hitung kurtosis x dan \(x_{\text{faulty}}\). Laporkan <strong>selisih kurtosis</strong> (faulty − healthy), harus positif besar karena impak menambah ekor distribusi.</div>
+        <div class="comp-q">Implementasikan <strong>klasifikasi healthy vs faulty berbasis threshold</strong>: untuk dataset referensi, injeksikan 5 impak besar di indeks [100, 250, 400, 600, 850] dengan amplitudo +5.0 (single sample) menjadi <code>x<sub>faulty</sub></code>. Hitung kurtosis x dan \(x_{\text{faulty}}\). Laporkan <strong>selisih kurtosis</strong> (faulty − healthy), harus positif besar karena impak menambah ekor distribusi.</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Injeksikan spike sesuai soal ke salinan sinyal, lalu hitung selisih <code>kurtosis(..., fisher=False)</code> antara sinyal faulty dan baseline; spike besar menaikkan kurtosis tajam.</div>
@@ -6686,16 +6757,16 @@ function initLoginAnimation(_canvasId, _particlesId) {
 
   /* ── Floating time-domain feature formulas ── */
   const formulas = [
-    { t: 'RMS = √[(1/N) Σ x_i²]',              s: 11 },
+    { t: 'RMS = √[(1/N) Σ x<sub>i</sub>²]',              s: 11 },
     { t: 'CF = peak / RMS',                    s: 14 },
     { t: 'PP = max(x) − min(x)',               s: 13 },
     { t: 'K = E[(x−μ)⁴] / σ⁴',                 s: 10 },
     { t: 'γ₁ = E[(x−μ)³] / σ³',                s: 14 },
-    { t: 'SF = RMS / |x|_avg',                 s: 11 },
-    { t: 'IF = peak / |x|_avg',                s: 12 },
-    { t: '|x|_avg = (1/N) Σ |x_i|',            s: 13 },
-    { t: 'CF_sin = √2 ≈ 1.414',                s: 9 },
-    { t: 'K_gauss = 3',                        s: 11 },
+    { t: 'SF = RMS / |x|<sub>avg</sub>',                 s: 11 },
+    { t: 'IF = peak / |x|<sub>avg</sub>',                s: 12 },
+    { t: '|x|<sub>avg</sub> = (1/N) Σ |x<sub>i</sub>|',            s: 13 },
+    { t: 'CF<sub>sin</sub> = √2 ≈ 1.414',                s: 9 },
+    { t: 'K<sub>gauss</sub> = 3',                        s: 11 },
     { t: 'ISO 10816 → RMS velocity',           s: 12 },
   ];
   const fCols = [
@@ -6710,7 +6781,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

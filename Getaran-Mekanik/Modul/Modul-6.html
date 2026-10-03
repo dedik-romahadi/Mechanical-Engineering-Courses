@@ -1246,6 +1246,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1696,7 +1767,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📏</div>
       <h3>Magnitudo Gaya Efektif</h3>
       <p>Karena dua suku <em>tegak lurus dalam fase</em>, magnitudo gaya efektif: <strong>\(F_{0,\text{eff}} = Y \cdot \sqrt{k^2 + c^2\omega ^2}\)</strong>. Faktor \(\sqrt{1 + (2\zeta r}\)²) muncul jika dinormalisasi: <strong>\(F_{0,\text{eff}}/k = Y \cdot \sqrt{1 + (2\zeta r)^2}\)</strong>. Inilah sumber pembilang khas formula transmissibility.</p>
-      <div class="formula">F₀_eff = \(Y \sqrt{k^2 + c^2\omega ^2}\)</div>
+      <div class="formula">F<sub>0,eff</sub> = \(Y \sqrt{k^2 + c^2\omega ^2}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔢</div>
@@ -1790,7 +1861,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="info-box reveal">
     <strong>Mengapa Formula T<sub>d</sub> Identik dengan Force Transmissibility (Pertemuan 5)?</strong><br>
-    Inilah <em>dualitas elegant</em> getaran linear: persamaan gerak base motion (<code>m·ẍ + c·ẋ + k·x = c·ẏ + k·y</code>) menghasilkan rasio output/input identik dengan force transmissibility (<code>F_T/F₀</code>). Karena itu, satu kurva T(r,ζ) sudah cukup untuk dua aplikasi yang sama sekali berbeda, gempa di gedung dan kompresor di lantai. Konsekuensinya: aturan desain "r &gt; √2" berlaku universal untuk isolasi <em>apa pun</em>.
+    Inilah <em>dualitas elegant</em> getaran linear: persamaan gerak base motion (<code>m·ẍ + c·ẋ + k·x = c·ẏ + k·y</code>) menghasilkan rasio output/input identik dengan force transmissibility (<code>F<sub>T</sub>/F₀</code>). Karena itu, satu kurva T(r,ζ) sudah cukup untuk dua aplikasi yang sama sekali berbeda, gempa di gedung dan kompresor di lantai. Konsekuensinya: aturan desain "r &gt; √2" berlaku universal untuk isolasi <em>apa pun</em>.
   </div>
 
   <div class="warn-box reveal">
@@ -1958,7 +2029,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
           <label>Rasio Frekuensi r = ω/ωₙ — preset push buttons — <span class="ctrl-val" id="v_rp">0.80</span></label>
           <input type="hidden" id="sl_rp" value="0.8">
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <button class="rp-pbtn" onclick="setBaseR(0.5)" data-r="0.5" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">r=0.5 (Td~1, ikut)</button>
+            <button class="rp-pbtn" onclick="setBaseR(0.5)" data-r="0.5" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">r=0.5 (T<sub>d</sub>~1, ikut)</button>
             <button class="rp-pbtn" onclick="setBaseR(0.8)" data-r="0.8" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid #0ea5e9;background:#0ea5e9;color:#fff;font-weight:700;box-shadow:0 0 12px rgba(14,165,233,.6);transform:scale(1.05);transition:all .15s;">r=0.8 ✓</button>
             <button class="rp-pbtn" onclick="setBaseR(1.0)" data-r="1.0" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.10);color:#ef4444;">r=1 RESONANSI</button>
             <button class="rp-pbtn" onclick="setBaseR(1.41)" data-r="1.41" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">r=√2 crossover</button>
@@ -2160,9 +2231,9 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <table class="data-table">
       <thead><tr><th>Aplikasi</th><th>Tipe Eksitasi</th><th>m, M (kg)</th><th>ω operasi</th><th>Strategi Desain</th></tr></thead>
       <tbody>
-        <tr><td>Mobil Sedan (suspensi)</td><td>Base Motion</td><td>1500</td><td>6–60 rad/s (jalanan)</td><td>ωₙ_susp ≈ 8 rad/s, ζ = 0.25, isolasi penuh ω &gt; 12 rad/s</td></tr>
-        <tr><td>Mesin Cuci 8 kg</td><td>Rotating Unbalance</td><td>50</td><td>105 rad/s (1000 rpm)</td><td>Auto-balancer cair + ωₙ_rangka ≈ 30 rad/s (supercritical)</td></tr>
-        <tr><td>Akselerometer Smartphone</td><td>Base Motion (z relatif)</td><td>~10⁻⁹</td><td>0–500 Hz broadband</td><td>ωₙ_sensor ≈ 5 kHz, output ∝ Y·ω² (akselerasi)</td></tr>
+        <tr><td>Mobil Sedan (suspensi)</td><td>Base Motion</td><td>1500</td><td>6–60 rad/s (jalanan)</td><td>ω<sub>n,susp</sub> ≈ 8 rad/s, ζ = 0.25, isolasi penuh ω &gt; 12 rad/s</td></tr>
+        <tr><td>Mesin Cuci 8 kg</td><td>Rotating Unbalance</td><td>50</td><td>105 rad/s (1000 rpm)</td><td>Auto-balancer cair + ω<sub>n,rangka</sub> ≈ 30 rad/s (supercritical)</td></tr>
+        <tr><td>Akselerometer Smartphone</td><td>Base Motion (z relatif)</td><td>~10⁻⁹</td><td>0–500 Hz broadband</td><td>ω<sub>n,sensor</sub> ≈ 5 kHz, output ∝ Y·ω² (akselerasi)</td></tr>
         <tr><td>Mesin Press Hidraulik</td><td>Shock + Base Motion lantai</td><td>12000</td><td>~8 Hz impuls</td><td>Air spring + concrete block 60 ton (5× massa mesin)</td></tr>
         <tr><td>Turbin Uap 50 MW</td><td>Rotating Unbalance</td><td>80000</td><td>314 rad/s (3000 rpm)</td><td>ISO 1940 G2.5 balance + squeeze-film damper, supercritical</td></tr>
         <tr><td>Optical Table (lab)</td><td>Base Motion lantai</td><td>300</td><td>5–200 Hz lingkungan</td><td>Active pneumatic isolator, ωₙ ≈ 1 Hz, \(T_d\) &lt; 0.01</td></tr>
@@ -2175,14 +2246,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div>
       <h4>Dua Trap Desain yang Sering Dilakukan</h4>
       <p>
-      <strong>Trap #1 (Base Motion): Isolator terlalu kaku.</strong> Engineer pemula sering memilih rubber mount keras karena "kelihatan kuat". Tapi rubber keras = ωₙ_iso tinggi → r turun → bisa malah amplifikasi! Solusi: cek r &gt; √2 sebelum memilih.<br><br>
+      <strong>Trap #1 (Base Motion): Isolator terlalu kaku.</strong> Engineer pemula sering memilih rubber mount keras karena "kelihatan kuat". Tapi rubber keras = ω<sub>n,iso</sub> tinggi → r turun → bisa malah amplifikasi! Solusi: cek r &gt; √2 sebelum memilih.<br><br>
       <strong>Trap #2 (Rotating Unbalance): Lupa massa M = inertia block.</strong> X asimptotik = m₀·e/M. Engineer sering hanya fokus balancing (kurangi m₀·e), padahal menggandakan M juga menggandakan reduksi X. Inertia block beton/baja besar adalah <em>pasangan</em> balancing.
       </p>
     </div>
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Aturan Cepat untuk Insinyur Lapangan:</strong> Untuk <strong>base motion</strong>: targetkan r ≥ 3 untuk isolasi 90% (T<sub>d</sub> ≈ 0.10). Untuk <strong>rotating unbalance</strong>: jalankan supercritical (r ≥ 2) dengan inertia block M ≥ 5× massa rotor. Estimasi defleksi statik δ_st = g/ωₙ²: untuk ωₙ_iso = 6 rad/s, δ_st ≈ 273 mm, lalu pakai air spring; untuk ωₙ = 30 rad/s, δ_st ≈ 11 mm, silakan pakai rubber/coil composite.
+    💡 <strong>Aturan Cepat untuk Insinyur Lapangan:</strong> Untuk <strong>base motion</strong>: targetkan r ≥ 3 untuk isolasi 90% (T<sub>d</sub> ≈ 0.10). Untuk <strong>rotating unbalance</strong>: jalankan supercritical (r ≥ 2) dengan inertia block M ≥ 5× massa rotor. Estimasi defleksi statik δ<sub>st</sub> = g/ωₙ²: untuk ω<sub>n,iso</sub> = 6 rad/s, δ<sub>st</sub> ≈ 273 mm, lalu pakai air spring; untuk ωₙ = 30 rad/s, δ<sub>st</sub> ≈ 11 mm, silakan pakai rubber/coil composite.
   </div>
 
   <label class="pm-centang" data-pm="6"><input type="checkbox" disabled aria-describedby="pm-status-6"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Aplikasi Industri: Strategi Desain untuk 2 Kasus</b>.</span><em class="pm-status" id="pm-status-6"></em></label>
@@ -2700,7 +2771,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">09</div>
-        <div class="mc-q">Untuk akselerometer MEMS dengan ωₙ_sensor = 5 kHz, mengukur getaran lantai pada 60 Hz. Variabel relatif z = x − y mengikuti persamaan \(m \cdot z\)̈ + c·ż + \(k \cdot z\) = \(m \cdot Y\)·ω²·sin(ωt). Pada r = ω/ωₙ ≪ 1, perpindahan relatif Z mendekati...</div>
+        <div class="mc-q">Untuk akselerometer MEMS dengan ω<sub>n,sensor</sub> = 5 kHz, mengukur getaran lantai pada 60 Hz. Variabel relatif z = x − y mengikuti persamaan \(m \cdot z\)̈ + c·ż + \(k \cdot z\) = \(m \cdot Y\)·ω²·sin(ωt). Pada r = ω/ωₙ ≪ 1, perpindahan relatif Z mendekati...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
@@ -2783,7 +2854,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Hitung <strong>rasio redaman ζ</strong> (dimensionless) dari sistem base motion. Gunakan rumus ζ = c / (2\(\sqrt{km}\)).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Hitung redaman kritis c_c = 2\(\sqrt{km}\) dulu, lalu ζ = c/c_c untuk sistem base motion (tak berdimensi).</div>
+      <div class="comp-hint">💡 Hitung redaman kritis c<sub>c</sub> = 2\(\sqrt{km}\) dulu, lalu ζ = c/c<sub>c</sub> untuk sistem base motion (tak berdimensi).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">ζ base motion</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
@@ -2800,7 +2871,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Untuk frekuensi pondasi <strong>\(\omega = 12 rad/s\)</strong> dengan sistem base motion, hitung <strong>displacement transmissibility T<sub>d</sub></strong>. Gunakan T<sub>d</sub> = \(\sqrt{1+(2\zeta r}\)²) / \(\sqrt{(1-r^2}\)²+(2ζr)²) dengan r = ω/ωₙ.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Hitung r = ω/ωₙ, lalu T_d = \(\sqrt{\dfrac{1+(2\zeta r)^2}{(1-r^2)^2+(2\zeta r)^2}}\) dengan <code>np.sqrt</code>.</div>
+      <div class="comp-hint">💡 Hitung r = ω/ωₙ, lalu T<sub>d</sub> = \(\sqrt{\dfrac{1+(2\zeta r)^2}{(1-r^2)^2+(2\zeta r)^2}}\) dengan <code>np.sqrt</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(T_d (omega=12)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
@@ -2817,7 +2888,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Untuk ω = 12 rad/s dan amplitudo pondasi Y = 0.05 m, hitung <strong>amplitudo absolut massa X</strong> (m) untuk sistem base motion. Gunakan X = T<sub>d</sub> × Y.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Amplitudo absolut massa X = T_d · Y; pakai T_d dari soal sebelumnya dan amplitudo pondasi Y, hasil dalam meter.</div>
+      <div class="comp-hint">💡 Amplitudo absolut massa X = T<sub>d</sub> · Y; pakai T<sub>d</sub> dari soal sebelumnya dan amplitudo pondasi Y, hasil dalam meter.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">X (meter, omega=12)</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
@@ -2834,7 +2905,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Hitung <strong>T<sub>d</sub> saat resonansi</strong> (r = 1, yaitu ω = ωₙ ≈ 8.66 rad/s) untuk sistem base motion. Gunakan formula lengkap T<sub>d</sub> = \(\sqrt{1+(2\zeta }\)²) / \(\sqrt{(0}\)²+(2ζ)²) = \(\sqrt{1+(2\zeta }\)²)/(2ζ).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Saat resonansi (r=1) rumus menyederhana menjadi T_d = \(\dfrac{\sqrt{1+(2\zeta)^2}}{2\zeta}\); gunakan <code>np.sqrt</code>.</div>
+      <div class="comp-hint">💡 Saat resonansi (r=1) rumus menyederhana menjadi T<sub>d</sub> = \(\dfrac{\sqrt{1+(2\zeta)^2}}{2\zeta}\); gunakan <code>np.sqrt</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(T_d\) resonansi</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
@@ -2948,7 +3019,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Implementasikan <strong>plot kurva T<sub>d</sub>(r) base motion</strong> dan ekstrak <strong>\(r_{crossover}\)</strong> di mana T<sub>d</sub> = 1 secara numerik. Generate 5000 titik T<sub>d</sub>(r,ζ=0.1) di rentang r ∈ [0.5, 3.0]. Cari nilai r di mana T<sub>d</sub> turun melewati 1 (titik crossover). Verifikasi: harus dekat dengan √2 ≈ 1.414. Laporkan <strong>\(r_{crossover}\)</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Buat grid r dengan <code>np.linspace</code>, hitung T_d tiap titik, lalu cari di mana T_d melewati 1 dengan mendeteksi perubahan tanda (<code>np.sign</code>/<code>np.diff</code>); verifikasi dekat √2.</div>
+      <div class="comp-hint">💡 Buat grid r dengan <code>np.linspace</code>, hitung T<sub>d</sub> tiap titik, lalu cari di mana T<sub>d</sub> melewati 1 dengan mendeteksi perubahan tanda (<code>np.sign</code>/<code>np.diff</code>); verifikasi dekat √2.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook (20–40 baris) — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(r_{crossover}\)</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="10" placeholder="Paste kode Python crossover detection, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c11')"></textarea>
@@ -2965,7 +3036,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Untuk <strong>rotating unbalance</strong>, lokasi puncak R(r) berbeda dari DMF biasa: <strong>\(r_{\text{max}} = 1/\sqrt{1-2\zeta ^2}\)</strong>, sedikit di atas 1. Dengan <strong>\(scipy.optimize.minimize_{scalar}\)</strong>, cari secara numerik \(r_{\text{max}}\) yang memaksimalkan R(r) untuk ζ = 0.08. Verifikasi dengan rumus analitik. Laporkan \(r_{\text{max}}\) numerik.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Definisikan fungsi −R(r) (negatif karena meminimumkan), lalu cari minimumnya dengan <code>scipy.optimize.minimize_scalar</code>; verifikasi dengan analitik r_max = 1/\(\sqrt{1-2\zeta ^2}\).</div>
+      <div class="comp-hint">💡 Definisikan fungsi −R(r) (negatif karena meminimumkan), lalu cari minimumnya dengan <code>scipy.optimize.minimize_scalar</code>; verifikasi dengan analitik r<sub>max</sub> = 1/\(\sqrt{1-2\zeta ^2}\).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(r_{\text{max}} R\) rotating unbalance</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="10" placeholder="Paste kode Python optimasi r_max R, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -2982,7 +3053,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Lakukan <strong>frequency sweep T<sub>d</sub></strong>: hitung T<sub>d</sub> untuk <strong>1000 nilai r</strong> yang terdistribusi merata di rentang [0.1, 3.0] (ζ=0.1). Temukan <strong>T<sub>d</sub> maksimum</strong> dari grid ini. Verifikasi: harus dekat dengan T<sub>d</sub>_max analitik di r=1: T<sub>d</sub> = \(\sqrt{1+(2\zeta }\)²)/(2ζ).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Buat grid r dengan <code>np.linspace</code>, hitung T_d tiap titik, lalu ambil maksimum dengan <code>np.argmax</code>; verifikasi dengan T_d_max analitik di r=1.</div>
+      <div class="comp-hint">💡 Buat grid r dengan <code>np.linspace</code>, hitung T<sub>d</sub> tiap titik, lalu ambil maksimum dengan <code>np.argmax</code>; verifikasi dengan T<sub>d,max</sub> analitik di r=1.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(T_d\) max dari sweep</strong></span></div>
         <textarea class="code-textarea" id="code-c13" rows="10" placeholder="Paste kode Python sweep T_d, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c13')"></textarea>
@@ -3013,10 +3084,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q"><strong>Desain isolator base motion</strong>: alat presisi M = 200 kg di lantai bergetar dengan ω = 100 rad/s. Rancang isolator dengan ζ_iso = 0.05 sehingga <strong>T<sub>d</sub> ≤ 0.1</strong> (reduksi 90%). Cari nilai <strong>kekakuan isolator \(k_{\text{iso}}\)</strong> (N/m) <em>maksimum</em> yang masih memenuhi syarat T<sub>d</sub> ≤ 0.1. Gunakan <strong>iterative search</strong> dengan step kecil.</div>
+        <div class="comp-q"><strong>Desain isolator base motion</strong>: alat presisi M = 200 kg di lantai bergetar dengan ω = 100 rad/s. Rancang isolator dengan ζ<sub>iso</sub> = 0.05 sehingga <strong>T<sub>d</sub> ≤ 0.1</strong> (reduksi 90%). Cari nilai <strong>kekakuan isolator \(k_{\text{iso}}\)</strong> (N/m) <em>maksimum</em> yang masih memenuhi syarat T<sub>d</sub> ≤ 0.1. Gunakan <strong>iterative search</strong> dengan step kecil.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Untuk tiap kandidat k_iso hitung ωₙ=\(\sqrt{k_{\text{iso}}/M}\), r=ω/ωₙ, dan T_d=\(\sqrt{\dfrac{1+(2\zeta r)^2}{(1-r^2)^2+(2\zeta r)^2}}\); lakukan iterative search untuk k_iso maksimum yang masih memenuhi syarat T_d.</div>
+      <div class="comp-hint">💡 Untuk tiap kandidat k<sub>iso</sub> hitung ωₙ=\(\sqrt{k_{\text{iso}}/M}\), r=ω/ωₙ, dan T<sub>d</sub>=\(\sqrt{\dfrac{1+(2\zeta r)^2}{(1-r^2)^2+(2\zeta r)^2}}\); lakukan iterative search untuk k<sub>iso</sub> maksimum yang masih memenuhi syarat T<sub>d</sub>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(k_{\text{iso}}\) maksimum \((N/m)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c15" rows="10" placeholder="Paste kode Python iterative search isolator, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c15')"></textarea>
@@ -3095,7 +3166,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">m₀·e = 0.12 kg·m</div>
       <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">\(k_{\text{rangka}}\) = 540000 N/m</div>
       <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">ζ = 0.10</div>
-      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">ω_pompa = 60 rad/s</div>
+      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">ω<sub>pompa</sub> = 60 rad/s</div>
       <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">\(Y_{\text{lantai}}\) = 0.5 mm</div>
     </div>
     <p style="margin-top:14px;font-size:14px;color:var(--muted)">Pompa sentrifugal beroperasi di <strong style="color:var(--pink)">\(\omega = 60 rad/s\)</strong> (~573 rpm). Persamaan rotating unbalance: <code style="font-family:'JetBrains Mono',monospace;color:var(--amber)">M·ẍ + c·ẋ + k·x = m₀·e·ω²·sin(ωt)</code>. Lantai pabrik adjacent bergetar dengan amplitudo Y = 0.5 mm pada frekuensi yang sama. Forum mengajak Anda mengidentifikasi: (1) apakah pompa berputar dekat resonansi rangkanya, (2) berapa amplitudo absolut peralatan presisi di lantai akibat base motion, (3) bagaimana strategi desain ulang yang efektif.</p>
@@ -3184,13 +3255,13 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Lantai pabrik bergetar dengan Y = 0.5 mm pada ω = 60 rad/s (akibat getaran pompa). Sebuah <strong>mikroskop laboratorium</strong> dengan massa \(m_{\text{inst}}\) = 30 kg, isolator <strong>\(k_{\text{iso}} = 27000 N/m\)</strong>, ζ = 0.10 dipasang di lantai adjacent. Hitung: (1) ωₙ_inst, (2) r, (3) T<sub>d</sub>, dan (4) amplitudo absolut yang dirasakan mikroskop X = T<sub>d</sub>·Y. Apakah desain ini efektif untuk presisi mikroskop?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Lantai pabrik bergetar dengan Y = 0.5 mm pada ω = 60 rad/s (akibat getaran pompa). Sebuah <strong>mikroskop laboratorium</strong> dengan massa \(m_{\text{inst}}\) = 30 kg, isolator <strong>\(k_{\text{iso}} = 27000 N/m\)</strong>, ζ = 0.10 dipasang di lantai adjacent. Hitung: (1) ω<sub>n,inst</sub>, (2) r, (3) T<sub>d</sub>, dan (4) amplitudo absolut yang dirasakan mikroskop X = T<sub>d</sub>·Y. Apakah desain ini efektif untuk presisi mikroskop?</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(T_d = \sqrt{1+(2\zeta r}^2)/\sqrt{(1-r^2}^2+(2\zeta r)^2)\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(X = T_d \times Y\)</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Tidak ada satu jawaban tunggal, yang dinilai adalah <strong style="color:var(--green)">pemahaman base motion</strong> dan kemampuan menghubungkan T<sub>d</sub> dengan desain praktis. Hint: ωₙ_inst = \(\sqrt{27000/30}\) = 30 rad/s. Maka r = 60/30 = 2, di atas √2, isolasi efektif. T<sub>d</sub>(r=2, ζ=0.1) ≈ 0.36 → X ≈ 0.18 mm. Untuk mikroskop ini cukup, tapi untuk mikroskop elektron (perlu &lt;1 µm), perlu isolator yang lebih lunak.</em>
+          💬 <em>Tidak ada satu jawaban tunggal, yang dinilai adalah <strong style="color:var(--green)">pemahaman base motion</strong> dan kemampuan menghubungkan T<sub>d</sub> dengan desain praktis. Hint: ω<sub>n,inst</sub> = \(\sqrt{27000/30}\) = 30 rad/s. Maka r = 60/30 = 2, di atas √2, isolasi efektif. T<sub>d</sub>(r=2, ζ=0.1) ≈ 0.36 → X ≈ 0.18 mm. Untuk mikroskop ini cukup, tapi untuk mikroskop elektron (perlu &lt;1 µm), perlu isolator yang lebih lunak.</em>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis analisis Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung ωₙ_inst, r, T_d, dan X mikroskop. (2) Apakah desain ini cukup untuk presisi mikroskop optik? (3) Untuk mikroskop elektron yang lebih sensitif (target X < 1 µm), berapa T_d target dan ωₙ_inst yang baru? (4) Apa implikasi praktis terhadap pemilihan isolator (rubber vs air spring)?" oninput="checkForumReady()"></textarea>
@@ -5710,7 +5781,7 @@ function drawPhysics(){
   ctx.fillStyle = 'rgba(14,165,233,.9)'; ctx.font = '11px JetBrains Mono';
   ctx.fillText('y(t) = Y·sin(ωt)  ←  BASE MOTION', 65, 30);
   ctx.fillStyle = 'rgba(168,85,247,.9)';
-  ctx.fillText('x(t) = T_d·Y·sin(ωt − φ)  →  RESPON MASSA', 65, 50);
+  ctx.fillText('x(t) = T<sub>d</sub>·Y·sin(ωt − φ)  →  RESPON MASSA', 65, 50);
 
   // Info
   const info = document.getElementById('physicsInfo');
@@ -5723,7 +5794,7 @@ function drawPhysics(){
     else if(r > 1.414) status = '🟢 Zona Isolasi (r > √2), X < Y';
     else if(r < 0.5) status = '🔵 Zona Kaku — X ≈ Y, ikut pondasi';
     else status = '🟡 Zona Amplifikasi (r < √2) — X > Y';
-    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong style="color:var(--cyan)">T_d=${TdStr}</strong> · φ=${phiDeg.toFixed(1)}° · ${status}`;
+    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong style="color:var(--cyan)">T<sub>d</sub>=${TdStr}</strong> · φ=${phiDeg.toFixed(1)}° · ${status}`;
   }
 
   document.getElementById('v_rp').textContent = r.toFixed(2);
@@ -6067,7 +6138,7 @@ function drawIso(){
   ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 11px JetBrains Mono';
   ctx.fillText(`r = ${rCurrent.toFixed(2)}`, 18, 22);
   ctx.fillStyle = TdCurrent > 1.2 ? '#ef4444' : (TdCurrent < 0.5 ? '#00e09e' : '#facc15');
-  ctx.fillText(`T_d = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`, 18, 40);
+  ctx.fillText(`T<sub>d</sub> = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`, 18, 40);
 
   // Divider
   ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 1;
@@ -6101,7 +6172,7 @@ function drawIso(){
   }
   ctx.textAlign = 'left';
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('T_d', plotX - 38, plotY + 12);
+  ctx.fillText('T<sub>d</sub>', plotX - 38, plotY + 12);
   ctx.fillText('r = ω/ωₙ', plotX + plotW - 60, plotY + plotH + 24);
 
   // T_d = 1 horizontal line
@@ -6166,13 +6237,13 @@ function drawIso(){
   if(info){
     if(_tdSweepAnim.running){
       const pct = Math.round(_tdSweepAnim.progress * 100);
-      info.innerHTML = `🔴 Sweep berlangsung: <strong>${pct}%</strong> · r = ${rCurrent.toFixed(2)} · T_d = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`;
+      info.innerHTML = `🔴 Sweep berlangsung: <strong>${pct}%</strong> · r = ${rCurrent.toFixed(2)} · T<sub>d</sub> = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`;
     } else if(_tdSweepAnim.points.length > 0){
       const maxPt = _tdSweepAnim.points.reduce((a,b) => b.Td > a.Td ? b : a);
       const TdCross = _tdSweepAnim.points.find(p => Math.abs(p.r - Math.sqrt(2)) < 0.05);
-      info.innerHTML = `✅ Sweep selesai · Puncak <strong>r=${maxPt.r.toFixed(2)}, T_d=${maxPt.Td.toFixed(2)}</strong> · Crossover r=√2: T_d=${TdCross ? TdCross.Td.toFixed(2) : '~1.00'} (∀ζ)`;
+      info.innerHTML = `✅ Sweep selesai · Puncak <strong>r=${maxPt.r.toFixed(2)}, T<sub>d</sub>=${maxPt.Td.toFixed(2)}</strong> · Crossover r=√2: T<sub>d</sub>=${TdCross ? TdCross.Td.toFixed(2) : '~1.00'} (∀ζ)`;
     } else {
-      info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong>. Frekuensi naik dari r=0 ke r=4 dalam 10 detik. Perhatikan T_d=1 saat r=√2.`;
+      info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong>. Frekuensi naik dari r=0 ke r=4 dalam 10 detik. Perhatikan T<sub>d</sub>=1 saat r=√2.`;
     }
   }
 }
@@ -6341,7 +6412,7 @@ function drawHPB(){
     else if(r_op > Math.sqrt(2)) zone = '🟢 r > √2, di atas resonansi';
     else zone = '🟡 Mendekati resonansi';
     let rmaxStr = '';
-    if(rMaxAnalytic !== null) rmaxStr = ` · r_max(R) = 1/√(1−2ζ²) = ${rMaxAnalytic.toFixed(3)}`;
+    if(rMaxAnalytic !== null) rmaxStr = ` · r<sub>max</sub>(R) = 1/√(1−2ζ²) = ${rMaxAnalytic.toFixed(3)}`;
     info.innerHTML = `r=${r_op.toFixed(2)} · ζ=${zetaUser.toFixed(3)} · <strong style="color:var(--pink)">R=${Rstr}</strong>${rmaxStr} · ${zone}`;
   }
 }
@@ -7546,10 +7617,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7563,7 +7634,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

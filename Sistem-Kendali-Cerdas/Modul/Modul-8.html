@@ -1433,6 +1433,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1682,11 +1753,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">e(t) = r(t) − y(t)</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">T(s) = G/(1+GH)</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">L = Kp·K</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">τ_cl = τ/(1+L)</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">L = K<sub>p</sub>·K</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">τ<sub>cl</sub> = τ/(1+L)</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">S + T = 1</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">u(t) = Kp·e(t)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">u(t) = K<sub>p</sub>·e(t)</span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">G(s) = K/(τs+1)</span>
   </div>
   <div class="hero-schematic">
@@ -1824,7 +1895,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Empat Besaran yang Merangkum Seluruh Respons</h3>
   <p class="section-desc reveal">Respons sistem umpan balik terhadap perubahan setpoint dapat dirangkum oleh empat besaran yang saling melengkapi. Waktu naik menyatakan seberapa cepat keluaran menempuh sebagian besar perubahan, umumnya dari sepuluh sampai sembilan puluh persen. Waktu puncak menyatakan kapan keluaran mencapai nilai tertingginya. Overshoot menyatakan seberapa jauh keluaran melewati nilai akhirnya. Waktu menetap menyatakan kapan keluaran berhenti bergerak berarti di dalam pita toleransi. Gambar 1 mengilustrasikan gagasan ini.</p>
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 1 — Empat besaran yang merangkum seluruh respons" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,218.0 L95.5,172.0 L143.0,74.5 L190.6,30.3 L238.1,56.1 L285.6,35.8 L333.1,46.9 L392.5,41.4 L463.8,43.2 L642.0,43.2 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,218.0 L95.5,172.0 L143.0,74.5 L190.6,30.3 L238.1,56.1 L285.6,35.8 L333.1,46.9 L392.5,41.4 L463.8,43.2 L642.0,43.2" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><line x1="48" y1="43.20000000000002" x2="642" y2="43.20000000000002" stroke="#94a3b8" stroke-width="1.1" stroke-dasharray="4 4" stroke-linecap="round"/><text x="56" y="38.20000000000002" text-anchor="start" font-size="11" fill="#94a3b8" font-weight="600" font-family="'Inter',system-ui,sans-serif">Setpoint</text><text x="119.28" y="199.6" text-anchor="start" font-size="11.5" fill="#22d3ee"  font-family="'Inter',system-ui,sans-serif">t_r</text><text x="172.74" y="22.95999999999998" text-anchor="start" font-size="11.5" fill="#f97316"  font-family="'Inter',system-ui,sans-serif">M_p</text><text x="374.70000000000005" y="65.28" text-anchor="start" font-size="11.5" fill="#00e09e"  font-family="'Inter',system-ui,sans-serif">t_s</text><text x="499.44" y="24.799999999999983" text-anchor="start" font-size="11.5" fill="#fbbf24"  font-family="'Inter',system-ui,sans-serif">e_ss</text><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Respons</text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Waktu</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Keluaran</text></g></svg>
+    <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 1 — Empat besaran yang merangkum seluruh respons" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,218.0 L95.5,172.0 L143.0,74.5 L190.6,30.3 L238.1,56.1 L285.6,35.8 L333.1,46.9 L392.5,41.4 L463.8,43.2 L642.0,43.2 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,218.0 L95.5,172.0 L143.0,74.5 L190.6,30.3 L238.1,56.1 L285.6,35.8 L333.1,46.9 L392.5,41.4 L463.8,43.2 L642.0,43.2" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><line x1="48" y1="43.20000000000002" x2="642" y2="43.20000000000002" stroke="#94a3b8" stroke-width="1.1" stroke-dasharray="4 4" stroke-linecap="round"/><text x="56" y="38.20000000000002" text-anchor="start" font-size="11" fill="#94a3b8" font-weight="600" font-family="'Inter',system-ui,sans-serif">Setpoint</text><text x="119.28" y="199.6" text-anchor="start" font-size="11.5" fill="#22d3ee"  font-family="'Inter',system-ui,sans-serif">t<tspan dy="2.5" font-size="8.3">r</tspan></text><text x="172.74" y="22.95999999999998" text-anchor="start" font-size="11.5" fill="#f97316"  font-family="'Inter',system-ui,sans-serif">M<tspan dy="2.5" font-size="8.3">p</tspan></text><text x="374.70000000000005" y="65.28" text-anchor="start" font-size="11.5" fill="#00e09e"  font-family="'Inter',system-ui,sans-serif">t<tspan dy="2.5" font-size="8.3">s</tspan></text><text x="499.44" y="24.799999999999983" text-anchor="start" font-size="11.5" fill="#fbbf24"  font-family="'Inter',system-ui,sans-serif">e<tspan dy="2.5" font-size="8.3">ss</tspan></text><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Respons</text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Waktu</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Keluaran</text></g></svg>
     <figcaption><strong>Gambar 1</strong> — Empat besaran yang merangkum seluruh respons. Waktu naik mengukur kecepatan awal, lonjakan mengukur kelewatan, waktu menetap mengukur lamanya tenang, dan error tunak mengukur sisa selisih permanen.</figcaption>
   </figure>
   <p class="section-desc reveal">Keempatnya bukan besaran bebas. Pada model orde dua baku, seluruhnya ditentukan hanya oleh dua parameter, yaitu rasio redaman dan frekuensi alami. Karena itu menuntut perbaikan pada satu besaran selalu berarti perubahan pada yang lain, dan hubungan itu dapat dihitung sebelum satu percobaan pun dilakukan.</p>
@@ -1856,7 +1927,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Menolak Gangguan Berbeda dari Mengikuti Setpoint</h3>
   <p class="section-desc reveal">Sistem umpan balik menghadapi dua tuntutan yang tidak sama. Yang pertama adalah mengikuti perintah, yang kedua adalah menolak pengaruh luar. Keduanya memiliki fungsi transfer berbeda meskipun penyebutnya sama, sehingga bentuk responsnya pun berbeda. Perhatikan ilustrasinya pada Gambar 3.</p>
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 262" role="img" aria-label="Gambar 3 — Mengikuti setpoint dan menolak gangguan dinilai terpisah" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="262" fill="#0a101f"/><rect x="30" y="12" width="288" height="198" rx="12" fill="#0e1628" stroke="#243653"/><line x1="96.4" y1="44" x2="96.4" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="74.8" x2="306" y2="74.8" stroke="#243653" stroke-width="0.7"/><line x1="148.8" y1="44" x2="148.8" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="105.6" x2="306" y2="105.6" stroke="#243653" stroke-width="0.7"/><line x1="201.2" y1="44" x2="201.2" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="136.4" x2="306" y2="136.4" stroke="#243653" stroke-width="0.7"/><line x1="253.6" y1="44" x2="253.6" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="167.2" x2="306" y2="167.2" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="198" x2="303" y2="198" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="312,198 303,202.5 303,193.5" fill="#94a3b8"/><line x1="44" y1="198" x2="44" y2="47" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="44,38 48.5,47 39.5,47" fill="#94a3b8"/><path d="M44.0,198.0 L70.2,154.9 L96.4,108.7 L122.6,77.9 L154.0,60.9 L190.7,53.2 L232.6,51.7 L306.0,51.7 L306.0,198.0 L44.0,198.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M44.0,198.0 L70.2,154.9 L96.4,108.7 L122.6,77.9 L154.0,60.9 L190.7,53.2 L232.6,51.7 L306.0,51.7" fill="none" stroke="#22d3ee" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/><text x="174" y="30" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="700" font-family="'Inter',system-ui,sans-serif">Respons setpoint</text><text x="174" y="228" text-anchor="middle" font-size="11.3" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">T_r = GC/(1+GCH)</text><rect x="338" y="12" width="288" height="198" rx="12" fill="#0e1628" stroke="#243653"/><line x1="404.4" y1="44" x2="404.4" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="74.8" x2="614" y2="74.8" stroke="#243653" stroke-width="0.7"/><line x1="456.8" y1="44" x2="456.8" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="105.6" x2="614" y2="105.6" stroke="#243653" stroke-width="0.7"/><line x1="509.2" y1="44" x2="509.2" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="136.4" x2="614" y2="136.4" stroke="#243653" stroke-width="0.7"/><line x1="561.6" y1="44" x2="561.6" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="167.2" x2="614" y2="167.2" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="198" x2="611" y2="198" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="620,198 611,202.5 611,193.5" fill="#94a3b8"/><line x1="352" y1="198" x2="352" y2="47" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="352,38 356.5,47 347.5,47" fill="#94a3b8"/><path d="M352.0,59.4 L391.3,113.3 L430.6,151.8 L469.9,173.4 L496.1,176.4 L535.4,161.0 L574.7,121.0 L614.0,67.1 L614.0,198.0 L352.0,198.0 Z" fill="#f97316" fill-opacity="0.09"/><path d="M352.0,59.4 L391.3,113.3 L430.6,151.8 L469.9,173.4 L496.1,176.4 L535.4,161.0 L574.7,121.0 L614.0,67.1" fill="none" stroke="#f97316" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/><text x="482" y="30" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="700" font-family="'Inter',system-ui,sans-serif">Respons gangguan</text><text x="482" y="228" text-anchor="middle" font-size="11.3" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">T_d = G/(1+GCH)</text><text x="330" y="252" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Waktu</text><g transform="rotate(-90 13 121)"><text x="13" y="125" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Keluaran</text></g></svg>
+    <svg viewBox="0 0 660 262" role="img" aria-label="Gambar 3 — Mengikuti setpoint dan menolak gangguan dinilai terpisah" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="262" fill="#0a101f"/><rect x="30" y="12" width="288" height="198" rx="12" fill="#0e1628" stroke="#243653"/><line x1="96.4" y1="44" x2="96.4" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="74.8" x2="306" y2="74.8" stroke="#243653" stroke-width="0.7"/><line x1="148.8" y1="44" x2="148.8" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="105.6" x2="306" y2="105.6" stroke="#243653" stroke-width="0.7"/><line x1="201.2" y1="44" x2="201.2" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="136.4" x2="306" y2="136.4" stroke="#243653" stroke-width="0.7"/><line x1="253.6" y1="44" x2="253.6" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="167.2" x2="306" y2="167.2" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="198" x2="303" y2="198" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="312,198 303,202.5 303,193.5" fill="#94a3b8"/><line x1="44" y1="198" x2="44" y2="47" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="44,38 48.5,47 39.5,47" fill="#94a3b8"/><path d="M44.0,198.0 L70.2,154.9 L96.4,108.7 L122.6,77.9 L154.0,60.9 L190.7,53.2 L232.6,51.7 L306.0,51.7 L306.0,198.0 L44.0,198.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M44.0,198.0 L70.2,154.9 L96.4,108.7 L122.6,77.9 L154.0,60.9 L190.7,53.2 L232.6,51.7 L306.0,51.7" fill="none" stroke="#22d3ee" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/><text x="174" y="30" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="700" font-family="'Inter',system-ui,sans-serif">Respons setpoint</text><text x="174" y="228" text-anchor="middle" font-size="11.3" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">T<tspan dy="2.5" font-size="8.1">r</tspan><tspan dy="-2.5"> = GC/(1+GCH)</tspan></text><rect x="338" y="12" width="288" height="198" rx="12" fill="#0e1628" stroke="#243653"/><line x1="404.4" y1="44" x2="404.4" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="74.8" x2="614" y2="74.8" stroke="#243653" stroke-width="0.7"/><line x1="456.8" y1="44" x2="456.8" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="105.6" x2="614" y2="105.6" stroke="#243653" stroke-width="0.7"/><line x1="509.2" y1="44" x2="509.2" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="136.4" x2="614" y2="136.4" stroke="#243653" stroke-width="0.7"/><line x1="561.6" y1="44" x2="561.6" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="167.2" x2="614" y2="167.2" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="198" x2="611" y2="198" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="620,198 611,202.5 611,193.5" fill="#94a3b8"/><line x1="352" y1="198" x2="352" y2="47" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="352,38 356.5,47 347.5,47" fill="#94a3b8"/><path d="M352.0,59.4 L391.3,113.3 L430.6,151.8 L469.9,173.4 L496.1,176.4 L535.4,161.0 L574.7,121.0 L614.0,67.1 L614.0,198.0 L352.0,198.0 Z" fill="#f97316" fill-opacity="0.09"/><path d="M352.0,59.4 L391.3,113.3 L430.6,151.8 L469.9,173.4 L496.1,176.4 L535.4,161.0 L574.7,121.0 L614.0,67.1" fill="none" stroke="#f97316" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/><text x="482" y="30" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="700" font-family="'Inter',system-ui,sans-serif">Respons gangguan</text><text x="482" y="228" text-anchor="middle" font-size="11.3" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">T<tspan dy="2.5" font-size="8.1">d</tspan><tspan dy="-2.5"> = G/(1+GCH)</tspan></text><text x="330" y="252" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Waktu</text><g transform="rotate(-90 13 121)"><text x="13" y="125" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Keluaran</text></g></svg>
     <figcaption><strong>Gambar 3</strong> — Mengikuti setpoint dan menolak gangguan dinilai terpisah. Penyebut fungsi transfernya sama tetapi pembilangnya berbeda: penyetelan yang bagus mengejar setpoint belum tentu bagus meredam gangguan.</figcaption>
   </figure>
   <p class="section-desc reveal">Perbedaan itu berakar pada letak masuknya sinyal. Setpoint masuk di depan controller sehingga dilewatkan seluruh lintasan maju. Gangguan beban umumnya masuk di sisi masukan plant sehingga hanya dilewatkan plant, tidak melewati controller. Akibatnya pembilang kedua fungsi transfer berbeda.</p>
@@ -1942,7 +2013,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Bandwidth dan Artinya bagi Kecepatan</h3>
   <p class="section-desc reveal">Bandwidth loop tertutup menyatakan sampai frekuensi berapa sistem masih mampu mengikuti perubahan setpoint dengan cukup setia. Ia menjadi ukuran kecepatan yang bekerja di domain frekuensi, melengkapi waktu naik dan waktu menetap yang bekerja di domain waktu. Gambar 8 merangkum alurnya secara visual.</p>
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 8 — Bandwidth membatasi kecepatan dan meloloskan derau" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,70.8 L226.2,72.6 L315.3,78.2 L392.5,96.6 L463.8,129.7 L535.1,166.5 L642.0,199.6 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,70.8 L226.2,72.6 L315.3,78.2 L392.5,96.6 L463.8,129.7 L535.1,166.5 L642.0,199.6" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><line x1="48" y1="103.92" x2="642" y2="103.92" stroke="#fbbf24" stroke-width="1.1" stroke-dasharray="4 4" stroke-linecap="round"/><text x="56" y="98.92" text-anchor="start" font-size="11" fill="#fbbf24" font-weight="600" font-family="'Inter',system-ui,sans-serif">−3 dB</text><text x="380.64000000000004" y="151.76" text-anchor="start" font-size="11.5" fill="#fbbf24"  font-family="'Inter',system-ui,sans-serif">Lebar pita f_bw</text><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">|T(jω)|</text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Frekuensi</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">|T| (dB)</text></g></svg>
+    <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 8 — Bandwidth membatasi kecepatan dan meloloskan derau" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,70.8 L226.2,72.6 L315.3,78.2 L392.5,96.6 L463.8,129.7 L535.1,166.5 L642.0,199.6 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,70.8 L226.2,72.6 L315.3,78.2 L392.5,96.6 L463.8,129.7 L535.1,166.5 L642.0,199.6" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><line x1="48" y1="103.92" x2="642" y2="103.92" stroke="#fbbf24" stroke-width="1.1" stroke-dasharray="4 4" stroke-linecap="round"/><text x="56" y="98.92" text-anchor="start" font-size="11" fill="#fbbf24" font-weight="600" font-family="'Inter',system-ui,sans-serif">−3 dB</text><text x="380.64000000000004" y="151.76" text-anchor="start" font-size="11.5" fill="#fbbf24"  font-family="'Inter',system-ui,sans-serif">Lebar pita f<tspan dy="2.5" font-size="8.3">bw</tspan></text><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">|T(jω)|</text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Frekuensi</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">|T| (dB)</text></g></svg>
     <figcaption><strong>Gambar 8</strong> — Bandwidth membatasi kecepatan dan meloloskan derau. Sistem mengikuti sinyal di bawah lebar pitanya dan menyerah di atasnya; pita lebar berarti respons gesit sekaligus pintu masuk derau yang lebih lebar.</figcaption>
   </figure>
   <p class="section-desc reveal">Hubungan keduanya cukup erat sehingga dapat saling diperkirakan. Sistem yang bandwidth-nya lebar bergerak cepat di domain waktu, dan aturan kasar menghubungkan hasil kali bandwidth dengan waktu naik pada nilai yang hampir tetap. Karena itu menuntut waktu naik separuh berarti menuntut bandwidth dua kali lipat.</p>
@@ -1994,7 +2065,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Kasus tipe nol</h3>
-      <p>Error mengecil saat Kp naik namun tidak pernah nol.</p>
+      <p>Error mengecil saat K<sub>p</sub> naik namun tidak pernah nol.</p>
       <div class="formula">\(L(0) = K_p \text{berhingga} \Rightarrow e_{ss} = \frac{1}{1+K_p}\)</div>
     </div>
     <div class="card">
@@ -2013,9 +2084,9 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
     <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(E\)</span><span>Error dalam domain-s</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(s\)</span><span>Peubah Laplace</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(R\)</span><span>Suku regularisasi (atau setpoint domain-s)</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(L\)</span><span>Gain loop (atau lambang transformasi Laplace pada L{ })</span></span><span class="anim-var nw4"><span class="rumus-notasi">\(e_{ss}\)</span><span>Error tunak</span></span><span class="anim-var nw0"><span class="rumus-notasi">\(K_p\)</span><span>Gain proporsional</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(G'\)</span><span>Plant yang parameternya sudah bergeser</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(K\)</span><span>Gain</span></span></div>
   </div>
-  <p class="section-desc reveal">Kesimpulannya bersifat struktural: yang menghapus error terhadap step adalah keberadaan integrator, bukan besarnya penguatan. Menaikkan Kp pada sistem tipe nol hanya mengecilkan error sambil memperbesar risiko kejenuhan dan penurunan margin.</p>
+  <p class="section-desc reveal">Kesimpulannya bersifat struktural: yang menghapus error terhadap step adalah keberadaan integrator, bukan besarnya penguatan. Menaikkan K<sub>p</sub> pada sistem tipe nol hanya mengecilkan error sambil memperbesar risiko kejenuhan dan penurunan margin.</p>
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Contoh Terhitung: Membandingkan Dua Struktur Controller</h3>
-  <div class="info-box reveal"><strong>Diketahui:</strong> Plant G(s) = 4/(s + 2) dengan umpan balik satuan &nbsp;·&nbsp; Rancangan A memakai controller proporsional Kp = 6 &nbsp;·&nbsp; Rancangan B memakai controller integral murni Ki/s dengan Ki = 6</div>
+  <div class="info-box reveal"><strong>Diketahui:</strong> Plant G(s) = 4/(s + 2) dengan umpan balik satuan &nbsp;·&nbsp; Rancangan A memakai controller proporsional K<sub>p</sub> = 6 &nbsp;·&nbsp; Rancangan B memakai controller integral murni K<sub>i</sub>/s dengan K<sub>i</sub> = 6</div>
   <div class="cards reveal">
     <div class="card">
       <div class="card-icon">🎯</div>
@@ -2166,7 +2237,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="tip-box reveal anim-jelas">
     <strong>📊 Cara Membaca Animasi 1:</strong> Menaikkan gain membuat keluaran mengejar setpoint lebih cepat sekaligus melewatinya lebih jauh. Titik merah muda menyusuri kurva ketika animasi dijalankan.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>gain</code><span>Agresivitas controller yang Anda geser</span></span><span class="anim-var nw1"><code>ζ</code><span>Rasio redaman hasil gain itu (tertulis di bawah kurva)</span></span><span class="anim-var nw2"><code>ωn</code><span>Frekuensi alami (rad/s): tempo dasar sistem</span></span><span class="anim-var nw3"><code>y(t)</code><span>Keluaran sistem</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>gain</code><span>Agresivitas controller yang Anda geser</span></span><span class="anim-var nw1"><code>ζ</code><span>Rasio redaman hasil gain itu (tertulis di bawah kurva)</span></span><span class="anim-var nw2"><code>ω<sub>n</sub></code><span>Frekuensi alami (rad/s): tempo dasar sistem</span></span><span class="anim-var nw3"><code>y(t)</code><span>Keluaran sistem</span></span></div>
   </div>
   <div class="anim-panel reveal">
     <div class="anim-header">
@@ -2183,7 +2254,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="tip-box reveal anim-jelas">
     <strong>📊 Cara Membaca Animasi 2:</strong> Satu parameter membentuk seluruh kurva: ζ di bawah 1 berosilasi (makin kecil makin liar), tepat 1 tercepat tanpa lonjakan, di atas 1 aman tapi lamban.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>ζ</code><span>Rasio redaman: perbandingan redaman aktual terhadap redaman kritis</span></span><span class="anim-var nw1"><code>ωn</code><span>Frekuensi alami (di sini 1,6 rad/s)</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>ζ</code><span>Rasio redaman: perbandingan redaman aktual terhadap redaman kritis</span></span><span class="anim-var nw1"><code>ω<sub>n</sub></code><span>Frekuensi alami (di sini 1,6 rad/s)</span></span></div>
   </div>
   <div class="anim-panel reveal">
     <div class="anim-header">
@@ -2200,7 +2271,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="tip-box reveal anim-jelas">
     <strong>📊 Cara Membaca Animasi 3:</strong> Kurva menunjukkan seberapa setia sistem mengikuti perintah pada tiap frekuensi: di kiri (perintah lambat) diikuti penuh, melewati garis −3 dB kesetiaannya rontok. Gain besar memperluas jangkauan itu.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>L</code><span>Gain loop</span></span><span class="anim-var nw1"><code>|T| dB</code><span>Perbandingan amplitudo keluaran/perintah dalam desibel: 0 dB berarti diikuti penuh</span></span><span class="anim-var nw2"><code>f_bw</code><span>Lebar pita: frekuensi tempat kurva memotong −3 dB alias batas kemampuan mengikuti</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>L</code><span>Gain loop</span></span><span class="anim-var nw1"><code>|T| dB</code><span>Perbandingan amplitudo keluaran/perintah dalam desibel: 0 dB berarti diikuti penuh</span></span><span class="anim-var nw2"><code>f<sub>bw</sub></code><span>Lebar pita: frekuensi tempat kurva memotong −3 dB alias batas kemampuan mengikuti</span></span></div>
   </div>
   <p class="section-desc reveal">Grafik berikut memakai parameter acuan tugas modul ini. Dua kurvanya menunjukkan bahwa menaikkan gain memperbaiki error tunak sekaligus mempercepat sistem, tetapi hanya sampai batas yang ditetapkan kestabilan dan kemampuan actuator. Sajian statisnya diperlihatkan pada Gambar 10 di bawah.</p>
   <div class="anim-panel reveal">
@@ -2214,8 +2285,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     </div>
   </div>
   <div class="tip-box reveal anim-jelas">
-    <strong>📊 Cara Membaca Gambar 10:</strong> Dua kurva kinerja dibaca bersama garis spesifikasinya: error tunak harus di bawah garis kuning, waktu menetap di bawah garis merah muda. Garis ungu menandai Kp terkecil yang memenuhi keduanya.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>Kp</code><span>Gain controller pada sumbu datar</span></span><span class="anim-var nw1"><code>e_ss</code><span>Error tunak: sisa selisih permanen terhadap sasaran</span></span><span class="anim-var nw2"><code>t_s</code><span>Waktu menetap: lamanya sistem mencapai pita ±2%</span></span></div>
+    <strong>📊 Cara Membaca Gambar 10:</strong> Dua kurva kinerja dibaca bersama garis spesifikasinya: error tunak harus di bawah garis kuning, waktu menetap di bawah garis merah muda. Garis ungu menandai K<sub>p</sub> terkecil yang memenuhi keduanya.
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>K<sub>p</sub></code><span>Gain controller pada sumbu datar</span></span><span class="anim-var nw1"><code>e<sub>ss</sub></code><span>Error tunak: sisa selisih permanen terhadap sasaran</span></span><span class="anim-var nw2"><code>t<sub>s</sub></code><span>Waktu menetap: lamanya sistem mencapai pita ±2%</span></span></div>
   </div>
 
   <label class="pm-centang" data-pm="7"><input type="checkbox" disabled aria-describedby="pm-status-7"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Animasi Respons dan Karakteristik Sistem</b>.</span><em class="pm-status" id="pm-status-7"></em></label>
@@ -2463,7 +2534,7 @@ function _siskenPasangTeksPas(c,x){
     var utuh=teks, potong=false;
     // Elipsis hanya bila teks TELANJANG masih tak muat setelah menyusut —
     // jangan menghukum teks yang pas hanya karena '…' ikut ditimbang.
-    if(x.measureText(teks).width>batas){
+    if(x.measureText(teks).width>batas){teks=teks.replace(/<\/?su[bp]>/g,''); // penanda rumus NOTASI-KANVAS tak boleh terpenggal
       while(teks.length>4&&x.measureText(teks+'…').width>batas)teks=teks.slice(0,-1);
       teks+='…';potong=true;
     }
@@ -2510,7 +2581,7 @@ var idx=Math.floor((((phase||0)%1)+1)%1*(pts.length-1));
 _siskenTitik(x,sk.x(pts[idx][0]),sk.y(pts[idx][1]),7,'#ec4899');
 _siskenLegenda(x,[['keluaran y(t)','#67e8f9'],['setpoint','#fbbf24']],s.pad,s.atas-13);
 x.font='17px JetBrains Mono';x.fillStyle='#9fb2cc';
-x.fillText('gain naik → lebih cepat tapi lebih melonjak: ζ = '+z.toFixed(2)+', ωn = '+wn.toFixed(2),s.pad,s.h-13);
+x.fillText('gain naik → lebih cepat tapi lebih melonjak: ζ = '+z.toFixed(2)+', ω<sub>n</sub> = '+wn.toFixed(2),s.pad,s.h-13);
 x.textAlign='right';x.fillText('waktu →',s.w-s.pad,s.h-13);x.textAlign='left';
 };
 window.drawSiskenAnim2=function(n,phase){
@@ -2567,8 +2638,8 @@ var kpLayak=Math.max((1/eBatas-1)/K,(4*tau/tsBatas-1)/K);
 x.strokeStyle='#a78bfa';x.lineWidth=2;x.beginPath();x.moveTo(px(kpLayak),s.atas);x.lineTo(px(kpLayak),s.bawah);x.stroke();
 _siskenLegenda(x,[['error tunak','#67e8f9'],['waktu menetap','#5eead4'],['batas error 5%','#fbbf24'],['batas 2 detik','#ec4899']],s.pad,s.atas-14);
 x.font='17px JetBrains Mono';x.fillStyle='#c4b5fd';x.textAlign='center';
-x.fillText('Kp minimum ≈ '+kpLayak.toFixed(1),Math.min(Math.max(px(kpLayak),s.pad+130),s.w-s.pad-130),s.h-13);
-x.textAlign='left';x.fillStyle='#aebbd0';x.fillText('gain Kp →',s.pad,s.h-13);
+x.fillText('K<sub>p</sub> minimum ≈ '+kpLayak.toFixed(1),Math.min(Math.max(px(kpLayak),s.pad+130),s.w-s.pad-130),s.h-13);
+x.textAlign='left';x.fillStyle='#aebbd0';x.fillText('gain K<sub>p</sub> →',s.pad,s.h-13);
 };
 window.drawSiskenPeta=function(n){
   var s=_siskenSiapkan('siskenPetaCanvas'+n,40,0,0);if(!s)return;
@@ -2681,10 +2752,10 @@ document.addEventListener('DOMContentLoaded',function(){
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">L = Kp·K</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">τ_cl = τ/(1+L)</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">Mp = e^(−πζ/√(1−ζ²))</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">L = K<sub>p</sub>·K</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">τ<sub>cl</sub> = τ/(1+L)</span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">M<sub>p</sub> = e<sup>−πζ/√(1−ζ²)</sup></span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">S + T = 1</span>
   </div>
   <div class="hero-content">
@@ -3160,8 +3231,8 @@ document.addEventListener('DOMContentLoaded',function(){
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">e(t) = r(t) − y(t)</span>
-    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">L = Kp·K</span>
+    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">L = K<sub>p</sub>·K</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">on–off → ripple</span>
   </div>
   <div class="hero-content">
@@ -5889,7 +5960,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(255,179,0,.85)'; ctx.beginPath();
     ctx.arc(px,py,18,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.fillText('m',px,py+4);
-    document.getElementById('sysRealInfo').textContent=`Pendulum L=1m: ω_n = √(g/L) = ${wn.toFixed(2)} rad/s, T = ${(2*Math.PI/wn).toFixed(2)} s`;
+    document.getElementById('sysRealInfo').innerHTML=`Pendulum L=1m: ω<sub>n</sub> = √(g/L) = ${wn.toFixed(2)} rad/s, T = ${(2*Math.PI/wn).toFixed(2)} s`;
   }
   else if(_sysRealKind==='msd'){
     wn=Math.sqrt(100);
@@ -5904,13 +5975,13 @@ function drawSysReal(){
     ctx.lineTo(cx+x-30,cy); ctx.stroke();
     ctx.fillStyle='rgba(14,165,233,.85)'; ctx.fillRect(cx+x-30,cy-30,60,60);
     ctx.fillStyle='#fff'; ctx.font='bold 14px JetBrains Mono'; ctx.fillText('m',cx+x,cy+5);
-    document.getElementById('sysRealInfo').textContent=`Mass-Spring k=100 N/m, m=1 kg: ω_n = √(k/m) = ${wn.toFixed(2)} rad/s`;
+    document.getElementById('sysRealInfo').innerHTML=`Mass-Spring k=100 N/m, m=1 kg: ω<sub>n</sub> = √(k/m) = ${wn.toFixed(2)} rad/s`;
   }
   else if(_sysRealKind==='cantilever'){
     wn=2*Math.PI*1.5;
     const amp=Math.sin(2*t)*0.5;
     sigValue=amp;
-    label='y_tip(t)'; sigUnit='m';
+    label='y<sub>tip</sub>(t)'; sigUnit='m';
     ctx.fillStyle='#1e293b'; ctx.fillRect(20,cy-40,8,80);
     ctx.strokeStyle='rgba(0,224,158,.8)'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(28,cy);
@@ -5926,7 +5997,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(0,224,158,.9)';
     ctx.beginPath(); ctx.arc(28+beamL,tipY,12,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Cantilever Mode 1',cx,cy+80);
-    document.getElementById('sysRealInfo').textContent='Cantilever: ω_n = (1.875)²·√(EI/(ρAL⁴)), yaitu bending mode 1, tip mass berosilasi';
+    document.getElementById('sysRealInfo').innerHTML='Cantilever: ω<sub>n</sub> = (1.875)²·√(EI/(ρAL⁴)), yaitu bending mode 1, tip mass berosilasi';
   }
   else if(_sysRealKind==='rotor'){
     wn=2*Math.PI*1.27;
@@ -5942,13 +6013,13 @@ function drawSysReal(){
     ctx.fillStyle='#fff'; ctx.beginPath();
     ctx.arc(cx+Math.cos(spin)*20, cy+wobble+Math.sin(spin)*20, 4, 0, Math.PI*2); ctx.fill();
     ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Rotor + Bearing',cx,cy+60);
-    document.getElementById('sysRealInfo').textContent='Rotor + Bearing: ω_n = √(k_journal/m_rotor), bearing journal sebagai pegas radial';
+    document.getElementById('sysRealInfo').innerHTML='Rotor + Bearing: ω<sub>n</sub> = √(k<sub>journal</sub>/m<sub>rotor</sub>), bearing journal sebagai pegas radial';
   }
   else if(_sysRealKind==='suspension'){
     wn=2*Math.PI*1.0;
     const bump=Math.sin(wn*t)*10;
     sigValue=bump/10*0.3;
-    label='z_body(t)'; sigUnit='m';
+    label='z<sub>body</sub>(t)'; sigUnit='m';
     ctx.strokeStyle='#1e293b'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(20,cy+70+bump); ctx.lineTo(splitX-20,cy+70+bump); ctx.stroke();
     ctx.fillStyle='#0f172a';
@@ -5963,7 +6034,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(14,165,233,.9)';
     ctx.fillRect(cx-100,cy-25+bump*0.3,200,30);
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Body',cx,cy-5+bump*0.3);
-    document.getElementById('sysRealInfo').textContent='Suspensi mobil: ω_n = √(k_spring/m_body) ≈ 1-2 Hz natural ride frequency';
+    document.getElementById('sysRealInfo').innerHTML='Suspensi mobil: ω<sub>n</sub> = √(k<sub>spring</sub>/m<sub>body</sub>) ≈ 1-2 Hz natural ride frequency';
   }
 
   // Append to history (keep 200 points)
@@ -6116,8 +6187,8 @@ function drawForumCanvas() {
   ctx.strokeStyle='rgba(0,224,158,.2)'; ctx.strokeRect(padL+6, padT+8, 250, 70);
   ctx.fillStyle='#34d399'; ctx.font='bold 10px JetBrains Mono'; ctx.fillText('Pompa Sentrifugal — Velocity v(t)', padL+14, padT+22);
   ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono';
-  ctx.fillText(`RPM = ${RPM}  |  f_dominan = ${f1} Hz (1×RPM)`, padL+14, padT+36);
-  ctx.fillText(`v_RMS ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
+  ctx.fillText(`RPM = ${RPM}  |  f<sub>dominan</sub> = ${f1} Hz (1×RPM)`, padL+14, padT+36);
+  ctx.fillText(`v<sub>RMS</sub> ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
   ctx.fillText(`Hipotesis: unbalance rotor (verifikasi via FFT)`, padL+14, padT+64);
 }
 // Resize handler — redraw all active canvases
@@ -6790,7 +6861,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
   /* ── Floating physics formulas (Respons Umpan Balik) ── */
   const formulas = [
     { t: 'e(t) = r(t) − y(t)',                 s: 13 },
-    { t: 'u(t) = Kp·e(t)',                     s: 14 },
+    { t: 'u(t) = K<sub>p</sub>·e(t)',                     s: 14 },
     { t: 'G(s) = Y(s)/U(s)',                   s: 13 },
     { t: 'L(s) = C(s)G(s)',                    s: 14 },
     { t: 'T(s) = L(s)/(1+L(s))',               s: 12 },
@@ -6813,7 +6884,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

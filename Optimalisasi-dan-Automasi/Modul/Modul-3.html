@@ -1239,6 +1239,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1479,16 +1550,16 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
-      <text x="50" y="14" text-anchor="middle" fill="rgba(148,163,184,.55)" font-family="JetBrains Mono" font-size="7" font-weight="600">\(y_t\)</text>
+      <text x="50" y="14" text-anchor="middle" fill="rgba(148,163,184,.55)" font-family="JetBrains Mono" font-size="7" font-weight="600">y<tspan dy="1.5" font-size="6.3">t</tspan></text>
       <polyline points="10,30 18,22 26,28 34,18 42,24 50,14 58,22 66,16 74,26 82,20 90,24"
                 fill="none" stroke="rgba(124,77,255,.55)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" class="smd-mass"/>
-      <text x="50" y="62" text-anchor="middle" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="6" font-weight="600">\(T_t\) (trend)</text>
+      <text x="50" y="62" text-anchor="middle" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="6" font-weight="600">T<tspan dy="1.3" font-size="5.4">t</tspan><tspan dy="-1.3"> (trend)</tspan></text>
       <polyline points="10,80 20,72 30,65 40,58 50,52 60,47 70,43 80,40 90,38"
                 fill="none" stroke="rgba(0,229,255,.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <text x="50" y="112" text-anchor="middle" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="6" font-weight="600">\(S_t\) (seasonal)</text>
+      <text x="50" y="112" text-anchor="middle" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="6" font-weight="600">S<tspan dy="1.3" font-size="5.4">t</tspan><tspan dy="-1.3"> (seasonal)</tspan></text>
       <polyline points="10,132 14,126 18,132 22,138 26,132 30,126 34,132 38,138 42,132 46,126 50,132 54,138 58,132 62,126 66,132 70,138 74,132 78,126 82,132 86,138 90,132"
                 fill="none" stroke="rgba(255,179,0,.55)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" class="smd-mass"/>
-      <text x="50" y="160" text-anchor="middle" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="6" font-weight="600">\(R_t\) (residual)</text>
+      <text x="50" y="160" text-anchor="middle" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="6" font-weight="600">R<tspan dy="1.3" font-size="5.4">t</tspan><tspan dy="-1.3"> (residual)</tspan></text>
       <line x1="10" y1="180" x2="90" y2="180" stroke="rgba(148,163,184,.15)" stroke-width=".6" stroke-dasharray="2 2"/>
       <polyline points="10,182 16,178 22,181 28,179 34,183 40,180 46,177 52,182 58,178 64,183 70,179 76,181 82,178 88,182"
                 fill="none" stroke="rgba(0,230,118,.55)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="smd-mass"/>
@@ -1496,14 +1567,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">y_t = T_t + S_t + R_t</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">x'_t = log(x_t)</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">∇x_t = x_t − x_{t−1}</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">y(λ) = (x^λ − 1)/λ</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">y<sub>t</sub> = T<sub>t</sub> + S<sub>t</sub> + R<sub>t</sub></span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">x'<sub>t</sub> = log(x<sub>t</sub>)</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">∇x<sub>t</sub> = x<sub>t</sub> − x<sub>t−1</sub></span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">y(λ) = (x<sup>λ</sup> − 1)/λ</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">z = (x − μ)/σ</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">T_t = LOESS(y_t)</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">y_t = T_t · S_t · R_t</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">S_t = y_t − T_t − R_t</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">T<sub>t</sub> = LOESS(y<sub>t</sub>)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">y<sub>t</sub> = T<sub>t</sub> · S<sub>t</sub> · R<sub>t</sub></span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">S<sub>t</sub> = y<sub>t</sub> − T<sub>t</sub> − R<sub>t</sub></span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 3 &nbsp;·&nbsp; Optimalisasi &amp; Automasi &nbsp;·&nbsp; 2025/2026</div>
@@ -2340,10 +2411,10 @@ for fn in ['vibration_4motors.csv', 'vibration_4motors.parquet', 'vibration_4mot
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">y_t = T_t + S_t + R_t</span>
-    <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">x'_t = log(x_t)</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">y<sub>t</sub> = T<sub>t</sub> + S<sub>t</sub> + R<sub>t</sub></span>
+    <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">x'<sub>t</sub> = log(x<sub>t</sub>)</span>
     <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">z = (x − μ)/σ</span>
-    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">∇x_t = x_t − x_{t−1}</span>
+    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">∇x<sub>t</sub> = x<sub>t</sub> − x<sub>t−1</sub></span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 3 · Visualisasi &amp; Akuisisi Pipeline</div>
@@ -2655,7 +2726,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
         <div class="comp-q">Hitung <strong>Dynamic Range (dB)</strong> untuk ADC 16-bit. Rumus: <code>DR = 6.02·N + 1.76</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Dynamic range (dB) = 6.02 × N_bits + 1.76. Masukkan jumlah bit dari soal.</div>
+      <div class="comp-hint">💡 Dynamic range (dB) = 6.02 × N<sub>bits</sub> + 1.76. Masukkan jumlah bit dari soal.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">DR (dB)</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
@@ -2669,10 +2740,10 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C4</div>
-        <div class="comp-q">Hitung <strong>LSB (Least Significant Bit) dalam µV</strong> untuk ADC ±10V (range 20V), 16-bit. Rumus: <code>LSB = V_range / 2^N</code>, kalikan 1e6 untuk dapat µV.</div>
+        <div class="comp-q">Hitung <strong>LSB (Least Significant Bit) dalam µV</strong> untuk ADC ±10V (range 20V), 16-bit. Rumus: <code>LSB = V<sub>range</sub> / 2<sup>N</sup></code>, kalikan 1e6 untuk dapat µV.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 LSB = rentang tegangan ÷ 2^N; kalikan 1e6 untuk konversi ke µV. Masukkan rentang dan jumlah bit dari soal.</div>
+      <div class="comp-hint">💡 LSB = rentang tegangan ÷ 2<sup>N</sup>; kalikan 1e6 untuk konversi ke µV. Masukkan rentang dan jumlah bit dari soal.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">LSB (µV)</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
@@ -2815,10 +2886,10 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q">Demonstrasikan <strong>aliasing detection</strong> melalui FFT. Generate sinyal 120 Hz pure tapi sampel pada fs=100 Hz (under-Nyquist!) selama 1 detik. Hitung FFT, cetak <strong>frekuensi peak yang tampak</strong>, yang akan tampak adalah frekuensi alias <code>|f_signal − fs|</code>, BUKAN 120 Hz asli.</div>
+        <div class="comp-q">Demonstrasikan <strong>aliasing detection</strong> melalui FFT. Generate sinyal 120 Hz pure tapi sampel pada fs=100 Hz (under-Nyquist!) selama 1 detik. Hitung FFT, cetak <strong>frekuensi peak yang tampak</strong>, yang akan tampak adalah frekuensi alias <code>|f<sub>signal</sub> − fs|</code>, BUKAN 120 Hz asli.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Sampel sinyal di bawah Nyquist, lalu cari frekuensi peak via FFT (<code>rfft</code>/<code>rfftfreq</code> + <code>argmax</code>); frekuensi alias = |f_signal − \(k \cdot fs\)| untuk k integer terdekat.</div>
+      <div class="comp-hint">💡 Sampel sinyal di bawah Nyquist, lalu cari frekuensi peak via FFT (<code>rfft</code>/<code>rfftfreq</code> + <code>argmax</code>); frekuensi alias = |f<sub>signal</sub> − \(k \cdot fs\)| untuk k integer terdekat.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">alias freq (Hz)</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="12" placeholder="Paste kode aliasing demonstration lengkap, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -3125,7 +3196,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:6%;font-size:.9rem;color:var(--violet);--dur:22s;--del:0s">✅ Tepat Waktu</span>
-    <span class="ff" style="left:28%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">y_t = T + S + R</span>
+    <span class="ff" style="left:28%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">y<sub>t</sub> = T + S + R</span>
     <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">z = (x − μ)/σ</span>
     <span class="ff" style="left:70%;font-size:.7rem;color:var(--pink);--dur:24s;--del:2s">🏆 Top Skor</span>
     <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">log(y) → STL</span>
@@ -5211,7 +5282,7 @@ function drawPhysics(){
 
   // Legend
   ctx.font = '10px JetBrains Mono';
-  ctx.fillStyle = 'rgba(168,85,247,.9)'; ctx.fillText('● y_t = Tren + Musiman + Noise', x0, y0 - 6);
+  ctx.fillStyle = 'rgba(168,85,247,.9)'; ctx.fillText('● y<sub>t</sub> = Tren + Musiman + Noise', x0, y0 - 6);
   ctx.fillStyle = 'rgba(14,165,233,.9)'; ctx.fillText('  Tren', x0 + 230, y0 - 6);
   ctx.fillStyle = 'rgba(255,64,129,.9)'; ctx.fillText('  Musiman', x0 + 285, y0 - 6);
 
@@ -5436,7 +5507,7 @@ function drawIso(){
   // TOP PANEL: original series
   _grid(ctx, x0, topY, w, topH, 16, 4, '#0d1929');
   ctx.fillStyle = 'rgba(168,85,247,.9)'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('● DERET ASLI y_t (tren + musiman + noise)', x0, topY - 4);
+  ctx.fillText('● DERET ASLI y<sub>t</sub> (tren + musiman + noise)', x0, topY - 4);
 
   // Top scale: fit to range
   let bMin = base[0], bMax = base[0];
@@ -5456,9 +5527,9 @@ function drawIso(){
   _grid(ctx, x0, botY, w, botH, 16, 4, '#0d1929');
   ctx.fillStyle = d === 0 ? 'rgba(168,85,247,.9)' : (d === 1 ? 'rgba(14,165,233,.9)' : 'rgba(255,64,129,.9)');
   ctx.font = '10px JetBrains Mono';
-  const label = d === 0 ? '● SETELAH y_t (d=0 — tidak ada differencing)'
-              : d === 1 ? '● SETELAH ∇y_t = y_t − y_{t-1} (d=1)'
-                        : '● SETELAH ∇²y_t = ∇(∇y_t) (d=2 — over-differenced)';
+  const label = d === 0 ? '● SETELAH y<sub>t</sub> (d=0 — tidak ada differencing)'
+              : d === 1 ? '● SETELAH ∇y<sub>t</sub> = y<sub>t</sub> − y<sub>t−1</sub> (d=1)'
+                        : '● SETELAH ∇²y<sub>t</sub> = ∇(∇y<sub>t</sub>) (d=2 — over-differenced)';
   ctx.fillText(label, x0, botY - 4);
 
   // Mid line
@@ -5612,10 +5683,10 @@ function drawHPB(){
     ctx.stroke();
   }
 
-  drawPanel(obs,      0, 'OBSERVATION  y_t',      'rgba(168,85,247,.95)');
-  drawPanel(trend,    1, `TREND  T_t  (MA win=${win})`, 'rgba(14,165,233,.95)');
-  drawPanel(seasonal, 2, 'SEASONAL  S_t  (period=20)',  'rgba(255,64,129,.95)');
-  drawPanel(resid,    3, 'RESIDUAL  R_t = y − T − S',   'rgba(0,224,158,.95)');
+  drawPanel(obs,      0, 'OBSERVATION  y<sub>t</sub>',      'rgba(168,85,247,.95)');
+  drawPanel(trend,    1, `TREND  T<sub>t</sub>  (MA win=${win})`, 'rgba(14,165,233,.95)');
+  drawPanel(seasonal, 2, 'SEASONAL  S<sub>t</sub>  (period=20)',  'rgba(255,64,129,.95)');
+  drawPanel(resid,    3, 'RESIDUAL  R<sub>t</sub> = y − T − S',   'rgba(0,224,158,.95)');
 
   const vl = document.getElementById('v_rh'); if(vl) vl.textContent = String(win);
 }
@@ -6470,16 +6541,16 @@ function initLoginAnimation(_canvasId, _particlesId) {
 
   /* ── Floating preprocessing formulas (Transformasi & Dekomposisi) ── */
   const formulas = [
-    { t: 'y_t = T_t + S_t + R_t',              s: 11 },
-    { t: 'y_t = T_t × S_t × R_t',              s: 14 },
+    { t: 'y<sub>t</sub> = T<sub>t</sub> + S<sub>t</sub> + R<sub>t</sub>',              s: 11 },
+    { t: 'y<sub>t</sub> = T<sub>t</sub> × S<sub>t</sub> × R<sub>t</sub>',              s: 14 },
     { t: 'x\' = log(x)',                       s: 13 },
-    { t: 'y(λ) = (x^λ − 1)/λ',                 s: 10 },
-    { t: '∇x_t = x_t − x_{t−1}',               s: 14 },
+    { t: 'y(λ) = (x<sup>λ</sup> − 1)/λ',                 s: 10 },
+    { t: '∇x<sub>t</sub> = x<sub>t</sub> − x<sub>t−1</sub>',               s: 14 },
     { t: 'z = (x − μ)/σ',                      s: 11 },
-    { t: 'y_mm = (x − min)/(max − min)',       s: 12 },
-    { t: 'EMA_t = α·y_t + (1−α)·EMA_{t−1}',    s: 13 },
-    { t: 'MA_k(y_t) = (1/k)·Σy_{t−i}',         s: 9 },
-    { t: 'T_t = LOESS(y_t)',                   s: 11 },
+    { t: 'y<sub>mm</sub> = (x − min)/(max − min)',       s: 12 },
+    { t: 'EMA<sub>t</sub> = α·y<sub>t</sub> + (1−α)·EMA<sub>t−1</sub>',    s: 13 },
+    { t: 'MA<sub>k</sub>(y<sub>t</sub>) = (1/k)·Σy<sub>t−i</sub>',         s: 9 },
+    { t: 'T<sub>t</sub> = LOESS(y<sub>t</sub>)',                   s: 11 },
     { t: 'ADF p &lt; 0.05 → stasioner',        s: 12 },
   ];
   const fCols = [
@@ -6494,7 +6565,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

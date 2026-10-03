@@ -1342,6 +1342,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1579,12 +1650,12 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">L(D)·y = f(x)</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">y₂ = u(x)·y₁</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">y_p = (1/L(D))·f</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">y<sub>p</sub> = (1/L(D))·f</span>
     <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">D ≡ d/dx</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">1/(D−r)·e^(rx)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">1/(D−r)·e<sup>rx</sup></span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">L(D²)·sin(βx)</span>
     <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">deret McLaurin</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">shift: e^(αx)·v(x)</span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">shift: e<sup>αx</sup>·v(x)</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 10 &nbsp;·&nbsp; Matematika 4 &nbsp;·&nbsp; 2025/2026</div>
@@ -1647,7 +1718,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-pengertian">
   <div class="section-label reveal">Bagian 01</div>
   <h2 class="section-title reveal">Reduksi Orde &amp; Invers Operator —<br>Dua Perangkat Kerja Tambahan</h2>
-  <p class="section-desc reveal">Pertemuan 9 menyajikan <em>Koefisien Tak Tentu</em> (UC) dan <em>Variasi Parameter</em> (VoP) sebagai dua metode utama mendapatkan <code>y_p</code>. Pertemuan 10 melengkapi gudang teknik dengan <strong>dua perangkat kerja</strong> yang sangat powerful: <strong>(1) Reduksi Orde</strong>, bila satu solusi <code>y₁</code> diketahui, dapatkan solusi kedua <code>y₂ = u(x)·y₁</code> via reduksi orde PD. <strong>(2) Metode Invers Operator</strong>, notasi D-operator <code>D ≡ d/dx</code> mengubah PD <code>L(D)·y = f(x)</code> menjadi pencarian <code>y_p = (1/L(D))·f(x)</code> dengan rumus tertutup untuk f baku. Gambar 1 mengilustrasikan gagasan ini. Hubungan ini dirangkum dalam Persamaan (1) di bawah.</p>
+  <p class="section-desc reveal">Pertemuan 9 menyajikan <em>Koefisien Tak Tentu</em> (UC) dan <em>Variasi Parameter</em> (VoP) sebagai dua metode utama mendapatkan <code>y<sub>p</sub></code>. Pertemuan 10 melengkapi gudang teknik dengan <strong>dua perangkat kerja</strong> yang sangat powerful: <strong>(1) Reduksi Orde</strong>, bila satu solusi <code>y₁</code> diketahui, dapatkan solusi kedua <code>y₂ = u(x)·y₁</code> via reduksi orde PD. <strong>(2) Metode Invers Operator</strong>, notasi D-operator <code>D ≡ d/dx</code> mengubah PD <code>L(D)·y = f(x)</code> menjadi pencarian <code>y<sub>p</sub> = (1/L(D))·f(x)</code> dengan rumus tertutup untuk f baku. Gambar 1 mengilustrasikan gagasan ini. Hubungan ini dirangkum dalam Persamaan (1) di bawah.</p>
 <!-- ILUSTRASI-STATIS:1:START -->
   <figure class="ilustrasi reveal">
     <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 1 — Dua alat pelengkap untuk PD linier" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="55" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="134" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Reduksi orde</text><line x1="213" y1="39" x2="242" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="251,39 242,43.5 242,34.5" fill="#94a3b8"/><rect x="251" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="330" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">D-operator</text><line x1="409" y1="39" x2="438" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="447,39 438,43.5 438,34.5" fill="#94a3b8"/><rect x="447" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="526" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Invers operator</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Keduanya menghemat langkah bila bentuknya sesuai</text></svg>
@@ -1682,7 +1753,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">⁻¹</div>
       <h3>Invers Operator 1/L(D)</h3>
-      <p>Solusi khusus PD non-homogen secara formal: <code>y_p = (1/L(D))·f(x)</code>. Notasi ini bukan sekadar simbolik, ada <strong>aturan baku</strong> untuk menghitungnya bila f berupa <code>e^(αx)</code>, <code>sin(βx)</code>, <code>cos(βx)</code>, atau polinomial. Sangat cepat dibanding UC bila f cocok aturan.</p>
+      <p>Solusi khusus PD non-homogen secara formal: <code>y<sub>p</sub> = (1/L(D))·f(x)</code>. Notasi ini bukan sekadar simbolik, ada <strong>aturan baku</strong> untuk menghitungnya bila f berupa <code>e<sup>αx</sup></code>, <code>sin(βx)</code>, <code>cos(βx)</code>, atau polinomial. Sangat cepat dibanding UC bila f cocok aturan.</p>
       <div class="formula">\(y_p = (1/L(D)) \cdot f(x)\)</div>
     </div>
     <div class="card">
@@ -1698,7 +1769,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Kapan pakai reduksi orde?</strong> Saat soal memberikan satu solusi <code>y₁</code> (mis. "diketahui y₁ = x adalah solusi PD homogen, cari y₂"), atau saat PD homogen koefisien variabel di mana satu solusi mudah ditebak (misal y = x atau y = \(x^2\) untuk Cauchy-Euler). <strong>Kapan pakai invers operator?</strong> Saat f(x) berupa <code>e^(αx)</code>, <code>sin(βx)</code>, <code>cos(βx)</code>, atau polinomial, invers operator memberi \(y_p\) langsung tanpa tebakan UC. Keduanya saling melengkapi UC/VoP, bukan menggantikan.
+    💡 <strong>Kapan pakai reduksi orde?</strong> Saat soal memberikan satu solusi <code>y₁</code> (mis. "diketahui y₁ = x adalah solusi PD homogen, cari y₂"), atau saat PD homogen koefisien variabel di mana satu solusi mudah ditebak (misal y = x atau y = \(x^2\) untuk Cauchy-Euler). <strong>Kapan pakai invers operator?</strong> Saat f(x) berupa <code>e<sup>αx</sup></code>, <code>sin(βx)</code>, <code>cos(βx)</code>, atau polinomial, invers operator memberi \(y_p\) langsung tanpa tebakan UC. Keduanya saling melengkapi UC/VoP, bukan menggantikan.
   </div>
 
   <label class="pm-centang" data-pm="0"><input type="checkbox" disabled aria-describedby="pm-status-0"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Reduksi Orde &amp;amp; Invers Operator — Dua Perangkat Kerja Tambahan</b>.</span><em class="pm-status" id="pm-status-0"></em></label>
@@ -1750,29 +1821,29 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Aplikasi Tipikal</h3>
-      <p>(a) <em>Akar karakteristik berulang</em>: y₁ = \(e^{rx}\), p = −2r → e^(−∫p dx) = \(e^{2rx}\); y₁² = \(e^{2rx}\) → u' = 1 → u = x → y₂ = \(x e^{rx}\). Itulah dari mana faktor <em>x</em> di akar berulang berasal! (b) <em>Cauchy-Euler</em>: x²y'' + xy' − y = 0 dengan y₁ = x → y₂ = 1/x. (c) PD koefisien variabel umum.</p>
+      <p>(a) <em>Akar karakteristik berulang</em>: y₁ = \(e^{rx}\), p = −2r → e<sup>−∫p dx</sup> = \(e^{2rx}\); y₁² = \(e^{2rx}\) → u' = 1 → u = x → y₂ = \(x e^{rx}\). Itulah dari mana faktor <em>x</em> di akar berulang berasal! (b) <em>Cauchy-Euler</em>: x²y'' + xy' − y = 0 dengan y₁ = x → y₂ = 1/x. (c) PD koefisien variabel umum.</p>
       <div class="formula">\(akar berulang ← reduksi orde\)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
-    <strong>Contoh, kemudian turunkan basis berulang:</strong> Selesaikan PD homogen <code>y'' − 4y' + 4y = 0</code> bila <code>y₁ = e^(2x)</code> diketahui.<br>
+    <strong>Contoh, kemudian turunkan basis berulang:</strong> Selesaikan PD homogen <code>y'' − 4y' + 4y = 0</code> bila <code>y₁ = e<sup>2x</sup></code> diketahui.<br>
     <strong>Step 1.</strong> Standar form: y'' + \(p \cdot y\)' + \(q \cdot y\) = 0 dengan <code>p = −4</code>, <code>q = 4</code>.<br>
-    <strong>Step 2.</strong> Hitung <code>e^(−∫p dx) = e^(−∫(−4)dx) = e^(4x)</code>.<br>
-    <strong>Step 3.</strong> Hitung <code>y₁² = e^(4x)</code>.<br>
-    <strong>Step 4.</strong> Integrasi: <code>u = ∫(e^(4x)/e^(4x)) dx = ∫1·dx = x</code>.<br>
-    <strong>Step 5.</strong> <code>y₂ = u·y₁ = x·e^(2x)</code>.<br>
-    Solusi homogen lengkap: <code>y_h = (c₁ + c₂·x)·e^(2x)</code>. Cocok dengan rumus akar berulang Pertemuan 5.
+    <strong>Step 2.</strong> Hitung <code>e<sup>−∫p dx</sup> = e<sup>−∫(−4)dx</sup> = e<sup>4x</sup></code>.<br>
+    <strong>Step 3.</strong> Hitung <code>y₁² = e<sup>4x</sup></code>.<br>
+    <strong>Step 4.</strong> Integrasi: <code>u = ∫(e<sup>4x</sup>/e<sup>4x</sup>) dx = ∫1·dx = x</code>.<br>
+    <strong>Step 5.</strong> <code>y₂ = u·y₁ = x·e<sup>2x</sup></code>.<br>
+    Solusi homogen lengkap: <code>y<sub>h</sub> = (c₁ + c₂·x)·e<sup>2x</sup></code>. Cocok dengan rumus akar berulang Pertemuan 5.
   </div>
 
   <div class="info-box reveal">
     <strong>Contoh Cauchy-Euler:</strong> Diketahui <code>y₁ = x</code> adalah solusi PD <code>x²y'' − x·y' + y = 0</code> (untuk x &gt; 0). Cari y₂.<br>
     <strong>Step 1.</strong> Standar form: bagi dengan \(x^2\): <code>y'' − (1/x)y' + (1/x²)y = 0</code> → p = −1/x.<br>
-    <strong>Step 2.</strong> <code>−∫p dx = ∫(1/x)dx = ln|x|</code>; <code>e^(ln|x|) = x</code>.<br>
+    <strong>Step 2.</strong> <code>−∫p dx = ∫(1/x)dx = ln|x|</code>; <code>e<sup>ln|x|</sup> = x</code>.<br>
     <strong>Step 3.</strong> <code>y₁² = x²</code>.<br>
     <strong>Step 4.</strong> <code>u = ∫(x/x²) dx = ∫(1/x) dx = ln|x|</code>.<br>
     <strong>Step 5.</strong> <code>y₂ = u·y₁ = x·ln|x|</code>.<br>
-    Solusi lengkap: <code>y_h = c₁·x + c₂·x·ln|x|</code>.
+    Solusi lengkap: <code>y<sub>h</sub> = c₁·x + c₂·x·ln|x|</code>.
   </div>
 
   <div class="warn-box reveal">
@@ -1822,7 +1893,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Aksi pada \(e^{\alpha x}\)</h3>
-      <p>Sifat fundamental: <code>D·e^(αx) = α·e^(αx)</code>. Jadi \(D^{k} \cdot e^{\alpha x} = \alpha ^{k} \cdot e^{\alpha x}\), dan <strong>\(L(D) \cdot e^{\alpha x} = L(\alpha ) \cdot e^{\alpha x}\)</strong>. Eksponen "menyerap" operator menjadi polinomial dalam α, kunci menggali invers operator untuk f eksponensial.</p>
+      <p>Sifat fundamental: <code>D·e<sup>αx</sup> = α·e<sup>αx</sup></code>. Jadi \(D^{k} \cdot e^{\alpha x} = \alpha ^{k} \cdot e^{\alpha x}\), dan <strong>\(L(D) \cdot e^{\alpha x} = L(\alpha ) \cdot e^{\alpha x}\)</strong>. Eksponen "menyerap" operator menjadi polinomial dalam α, kunci menggali invers operator untuk f eksponensial.</p>
       <div class="formula">L(D)·\(e^{\alpha x}\) = L(α)·\(e^{\alpha x}\)</div>
     </div>
     <div class="card">
@@ -1836,19 +1907,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="info-box reveal">
     <strong>Sifat-sifat operator D yang wajib dihafal:</strong><br>
     <strong>(1) Linieritas:</strong> <code>L(D)·(αu + βv) = α·L(D)·u + β·L(D)·v</code>.<br>
-    <strong>(2) Eksponen sederhana:</strong> <code>L(D)·e^(αx) = L(α)·e^(αx)</code>.<br>
-    <strong>(3) Eksponen × fungsi (shift):</strong> <code>L(D)·[e^(αx)·v(x)] = e^(αx)·L(D + α)·v(x)</code>, operator "geser" oleh α.<br>
+    <strong>(2) Eksponen sederhana:</strong> <code>L(D)·e<sup>αx</sup> = L(α)·e<sup>αx</sup></code>.<br>
+    <strong>(3) Eksponen × fungsi (shift):</strong> <code>L(D)·[e<sup>αx</sup>·v(x)] = e<sup>αx</sup>·L(D + α)·v(x)</code>, operator "geser" oleh α.<br>
     <strong>\((4) Sin/Cos\) via \(D^2:\)</strong> <code>L(D²)·sin(βx) = L(−β²)·sin(βx)</code>; <code>L(D²)·cos(βx) = L(−β²)·cos(βx)</code>.<br>
-    <strong>(5) Polinomial × eksp:</strong> <code>L(D)·[x^k·e^(αx)]</code> dapat dihitung via shift.<br>
+    <strong>(5) Polinomial × eksp:</strong> <code>L(D)·[x<sup>k</sup>·e<sup>αx</sup>]</code> dapat dihitung via shift.<br>
     Sifat \((3)\) sangat berguna untuk \(f = e^{\alpha x} \cdot\;\text{polinomial ---}\) geser ke operator baru di mana eksponen lenyap.
   </div>
 
   <div class="info-box reveal">
     <strong>Contoh, terapkan L(D) ke berbagai f:</strong><br>
-    <strong>(a)</strong> L(D) = \(D^2\) − 3D + 2, hitung L(D)·\(e^{4x}\): pakai sifat (2), <code>= L(4)·e^(4x) = (16 − 12 + 2)·e^(4x) = 6·e^(4x)</code>.<br>
+    <strong>(a)</strong> L(D) = \(D^2\) − 3D + 2, hitung L(D)·\(e^{4x}\): pakai sifat (2), <code>= L(4)·e<sup>4x</sup> = (16 − 12 + 2)·e<sup>4x</sup> = 6·e<sup>4x</sup></code>.<br>
     <strong>(b)</strong> L(D) = \(D^2\) + 4, hitung L(D)·sin(3x): pakai sifat (4), <code>= L(−9)·sin(3x) = (−9 + 4)·sin(3x) = −5·sin(3x)</code>.<br>
     <strong>(c)</strong> L(D) = \(D^2\) + 1, hitung L(D)·cos(x): <code>= L(−1)·cos(x) = (−1 + 1)·cos(x) = 0</code>! Ini menandakan <em>resonansi</em>: cos(x) di kernel L(D), artinya cos(x) memenuhi PD homogen <code>y'' + y = 0</code>.<br>
-    <strong>(d)</strong> L(D) = \(D^2\) − 4D + 4, hitung L(D)·[\(x^2\)·\(e^{2x}\)]: pakai shift (3), <code>= e^(2x)·L(D + 2)·x² = e^(2x)·(D² + 0·D + 0)·x² = e^(2x)·D²·x² = e^(2x)·2 = 2·e^(2x)</code>.
+    <strong>(d)</strong> L(D) = \(D^2\) − 4D + 4, hitung L(D)·[\(x^2\)·\(e^{2x}\)]: pakai shift (3), <code>= e<sup>2x</sup>·L(D + 2)·x² = e<sup>2x</sup>·(D² + 0·D + 0)·x² = e<sup>2x</sup>·D²·x² = e<sup>2x</sup>·2 = 2·e<sup>2x</sup></code>.
   </div>
 
   <div class="tip-box reveal">
@@ -1885,7 +1956,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Operator invers <strong>1/L(D)</strong> didefinisikan sedemikian rupa sehingga <code>L(D)·[(1/L(D))·f] = f</code>, analog 1/x untuk perkalian biasa. Solusi khusus PD non-homogen <code>L(D)·y = f(x)</code> ditulis sebagai <strong>\(y_p = (1/L(D)) \cdot f(x)\)</strong>. Berbeda dengan UC yang butuh tebakan + substitusi, metode ini memberi \(y_p\) <em>langsung</em> via aturan baku berdasarkan bentuk f. Mirip Laplace tetapi tanpa transformasi. Gambar 4 merangkum alurnya secara visual. Rangkuman kuantitatifnya tertulis pada Persamaan (4).</p>
 <!-- ILUSTRASI-STATIS:4:START -->
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 120" role="img" aria-label="Gambar 4 — Invers operator sebagai kebalikan" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="120" fill="#0a101f"/><text x="36.8" y="48" text-anchor="end" font-size="14" fill="#00e09e" font-weight="700" font-family="'JetBrains Mono',monospace">f(x)</text><circle cx="82.8" cy="44" r="13" fill="#0e1628" stroke="#94a3b8" stroke-width="1.6"/><text x="76.8" y="40" text-anchor="middle" font-size="11" fill="#e2e8f0"  font-family="'JetBrains Mono',monospace">+</text><text x="78.8" y="56" text-anchor="middle" font-size="11" fill="#f97316"  font-family="'JetBrains Mono',monospace">−</text><line x1="40.8" y1="44" x2="60.8" y2="44" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="69.8,44 60.8,48.5 60.8,39.5" fill="#94a3b8"/><line x1="95.8" y1="44" x2="112.8" y2="44" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="121.8,44 112.8,48.5 112.8,39.5" fill="#94a3b8"/><rect x="121.8" y="22" width="130" height="44" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="186.8" y="48.333333333333336" text-anchor="middle" font-size="13" fill="#e2e8f0" font-weight="600" font-family="'JetBrains Mono',monospace">1/L(D)</text><line x1="251.8" y1="44" x2="617" y2="44" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="626,44 617,48.5 617,39.5" fill="#94a3b8"/><text x="632" y="48" text-anchor="start" font-size="14" fill="#00e09e" font-weight="700" font-family="'JetBrains Mono',monospace">y_p</text><text x="330" y="108" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Aturannya berbeda untuk eksponensial, sinus, dan polinomial</text></svg>
+    <svg viewBox="0 0 660 120" role="img" aria-label="Gambar 4 — Invers operator sebagai kebalikan" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="120" fill="#0a101f"/><text x="36.8" y="48" text-anchor="end" font-size="14" fill="#00e09e" font-weight="700" font-family="'JetBrains Mono',monospace">f(x)</text><circle cx="82.8" cy="44" r="13" fill="#0e1628" stroke="#94a3b8" stroke-width="1.6"/><text x="76.8" y="40" text-anchor="middle" font-size="11" fill="#e2e8f0"  font-family="'JetBrains Mono',monospace">+</text><text x="78.8" y="56" text-anchor="middle" font-size="11" fill="#f97316"  font-family="'JetBrains Mono',monospace">−</text><line x1="40.8" y1="44" x2="60.8" y2="44" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="69.8,44 60.8,48.5 60.8,39.5" fill="#94a3b8"/><line x1="95.8" y1="44" x2="112.8" y2="44" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="121.8,44 112.8,48.5 112.8,39.5" fill="#94a3b8"/><rect x="121.8" y="22" width="130" height="44" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="186.8" y="48.333333333333336" text-anchor="middle" font-size="13" fill="#e2e8f0" font-weight="600" font-family="'JetBrains Mono',monospace">1/L(D)</text><line x1="251.8" y1="44" x2="617" y2="44" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="626,44 617,48.5 617,39.5" fill="#94a3b8"/><text x="632" y="48" text-anchor="start" font-size="14" fill="#00e09e" font-weight="700" font-family="'JetBrains Mono',monospace">y<tspan dy="3.1" font-size="10.1">p</tspan></text><text x="330" y="108" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Aturannya berbeda untuk eksponensial, sinus, dan polinomial</text></svg>
     <figcaption><strong>Gambar 4</strong> — Invers operator sebagai kebalikan. Membagi masukan dengan operator memberi solusi partikular secara langsung, asalkan bentuk masukannya termasuk yang punya aturan baku.</figcaption>
   </figure>
 <!-- ILUSTRASI-STATIS:4:END -->
@@ -1905,13 +1976,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">⁻¹</div>
       <h3>Definisi Formal</h3>
-      <p>Operator invers <code>1/L(D)</code> didefinisikan: <code>(1/L(D))·f(x)</code> = fungsi \(y_p\) sedemikian sehingga <code>L(D)·y_p = f(x)</code>. Dengan kata lain, ia <em>membatalkan</em> aksi L(D). Mirip integrasi (yang membatalkan turunan), tetapi lebih spesifik untuk struktur L(D).</p>
+      <p>Operator invers <code>1/L(D)</code> didefinisikan: <code>(1/L(D))·f(x)</code> = fungsi \(y_p\) sedemikian sehingga <code>L(D)·y<sub>p</sub> = f(x)</code>. Dengan kata lain, ia <em>membatalkan</em> aksi L(D). Mirip integrasi (yang membatalkan turunan), tetapi lebih spesifik untuk struktur L(D).</p>
       <div class="formula">\(y_p = (1/L(D)) \cdot f\)</div>
     </div>
     <div class="card">
       <div class="card-icon">➕</div>
       <h3>Linieritas</h3>
-      <p>Invers operator <strong>linier</strong>: <code>(1/L(D))·(αf + βg) = α·(1/L(D))·f + β·(1/L(D))·g</code>. Konsekuensi: bila f = jumlah beberapa term (mis. <code>f = e^x + sin(2x)</code>), kerjakan tiap term terpisah lalu jumlahkan. Identik dengan <em>prinsip superposisi</em>.</p>
+      <p>Invers operator <strong>linier</strong>: <code>(1/L(D))·(αf + βg) = α·(1/L(D))·f + β·(1/L(D))·g</code>. Konsekuensi: bila f = jumlah beberapa term (mis. <code>f = e<sup>x</sup> + sin(2x)</code>), kerjakan tiap term terpisah lalu jumlahkan. Identik dengan <em>prinsip superposisi</em>.</p>
       <div class="formula">\(linier dalam f\)</div>
     </div>
     <div class="card">
@@ -1923,32 +1994,32 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">∫</div>
       <h3>Operator Orde 1: 1/(D − r)</h3>
-      <p>Operator dasar: <code>(1/(D − r))·f(x) = e^(rx)·∫e^(−rx)·f(x)·dx</code>. Dapat diturunkan dari PD <code>y' − r·y = f(x)</code> via faktor integrasi <code>e^(−rx)</code>. Inilah <strong>building block</strong> semua invers operator orde tinggi.</p>
-      <div class="formula">(1/(D−r))·\(f = e^{rx}\)·∫e^(−rx)f dx</div>
+      <p>Operator dasar: <code>(1/(D − r))·f(x) = e<sup>rx</sup>·∫e<sup>−rx</sup>·f(x)·dx</code>. Dapat diturunkan dari PD <code>y' − r·y = f(x)</code> via faktor integrasi <code>e<sup>−rx</sup></code>. Inilah <strong>building block</strong> semua invers operator orde tinggi.</p>
+      <div class="formula">(1/(D−r))·\(f = e^{rx}\)·∫e<sup>−rx</sup>f dx</div>
     </div>
   </div>
 
   <div class="info-box reveal">
     <strong>Tabel Invers Operator (rumus baku, wajib dihafal):</strong><br>
-    <strong>(1)</strong> <code>(1/L(D))·e^(αx) = e^(αx)/L(α)</code> &nbsp;&nbsp; bila <code>L(α) ≠ 0</code>.<br>
+    <strong>(1)</strong> <code>(1/L(D))·e<sup>αx</sup> = e<sup>αx</sup>/L(α)</code> &nbsp;&nbsp; bila <code>L(α) ≠ 0</code>.<br>
     <strong>(2)</strong> <code>(1/L(D²))·sin(βx) = sin(βx)/L(−β²)</code> &nbsp;&nbsp; bila <code>L(−β²) ≠ 0</code>.<br>
     <strong>(3)</strong> <code>(1/L(D²))·cos(βx) = cos(βx)/L(−β²)</code> &nbsp;&nbsp; bila <code>L(−β²) ≠ 0</code>.<br>
-    <strong>(4) Shift:</strong> <code>(1/L(D))·[e^(αx)·v(x)] = e^(αx)·(1/L(D + α))·v(x)</code>.<br>
+    <strong>(4) Shift:</strong> <code>(1/L(D))·[e<sup>αx</sup>·v(x)] = e<sup>αx</sup>·(1/L(D + α))·v(x)</code>.<br>
     <strong>(5) Polinomial:</strong> \((1/L(D)) \cdot x^{k}\) = ekspansi <code>1/L(D)</code> via deret McLaurin (Bagian 07).<br>
     <strong>(6) Resonansi:</strong> bila L(α) = 0 (atau L(−β²) = 0), pakai <em>kalikan x</em> trick (lihat di bawah).
   </div>
 
   <div class="info-box reveal">
     <strong>Contoh, derivasi operator dasar 1/(D − r):</strong><br>
-    Pertimbangkan <code>(D − r)·y = f(x)</code>, atau <code>y' − r·y = f(x)</code>. Faktor integrasi <code>μ(x) = e^(−rx)</code>:<br>
-    <code>d/dx[e^(−rx)·y] = e^(−rx)·f(x)</code> → <code>e^(−rx)·y = ∫e^(−rx)·f(x)·dx</code>.<br>
+    Pertimbangkan <code>(D − r)·y = f(x)</code>, atau <code>y' − r·y = f(x)</code>. Faktor integrasi <code>μ(x) = e<sup>−rx</sup></code>:<br>
+    <code>d/dx[e<sup>−rx</sup>·y] = e<sup>−rx</sup>·f(x)</code> → <code>e<sup>−rx</sup>·y = ∫e<sup>−rx</sup>·f(x)·dx</code>.<br>
     Jadi <strong>\(y = e^{rx} \cdot \int e^{-rx} \cdot f(x) \cdot dx\)</strong>. Inilah definisi operasional <code>(1/(D − r))·f</code>.<br>
-    Bila <code>f = e^(αx)</code> dengan α ≠ r: <code>y = e^(rx)·∫e^((α−r)x) dx = e^(rx)·e^((α−r)x)/(α−r) = e^(αx)/(α−r)</code>.<br>
+    Bila <code>f = e<sup>αx</sup></code> dengan α ≠ r: <code>y = e<sup>rx</sup>·∫e<sup>(α−r)x</sup> dx = e<sup>rx</sup>·e<sup>(α−r)x</sup>/(α−r) = e<sup>αx</sup>/(α−r)</code>.<br>
     Cocok dengan rumus tabel <strong>(1)</strong> di mana L(D) = D − r → L(α) = α − r.
   </div>
 
   <div class="warn-box reveal">
-    ⚠ <strong>Pitfall: kapan rumus tidak berlaku?</strong> <strong>(1)</strong> Untuk <code>(1/L(D))·e^(αx)</code>, syarat <strong>\(L(\alpha ) \ne 0\)</strong>. Bila L(α) = 0, artinya <em>\(\alpha\) adalah akar karakteristik</em> → <strong>kasus resonansi</strong>. Pakai trik kalikan x: <code>(1/L(D))·e^(αx) = x·e^(αx)/L'(α)</code> (bila α akar simple), atau <code>x²·e^(αx)/L''(α)</code> (akar berulang). <strong>(2)</strong> Untuk sin/cos, syarat <code>L(−β²) ≠ 0</code> — bila tidak, \(\pm \beta i\) adalah akar kompleks → resonansi trigonometri. Selalu cek dulu sebelum substitusi.
+    ⚠ <strong>Pitfall: kapan rumus tidak berlaku?</strong> <strong>(1)</strong> Untuk <code>(1/L(D))·e<sup>αx</sup></code>, syarat <strong>\(L(\alpha ) \ne 0\)</strong>. Bila L(α) = 0, artinya <em>\(\alpha\) adalah akar karakteristik</em> → <strong>kasus resonansi</strong>. Pakai trik kalikan x: <code>(1/L(D))·e^(αx) = x·e^(αx)/L'(α)</code> (bila α akar simple), atau <code>x²·e^(αx)/L''(α)</code> (akar berulang). <strong>(2)</strong> Untuk sin/cos, syarat <code>L(−β²) ≠ 0</code> — bila tidak, \(\pm \beta i\) adalah akar kompleks → resonansi trigonometri. Selalu cek dulu sebelum substitusi.
   </div>
 
   <label class="pm-centang" data-pm="3"><input type="checkbox" disabled aria-describedby="pm-status-3"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Invers Operator 1/L(D) — Konsep Dasar &amp;amp; Sifat</b>.</span><em class="pm-status" id="pm-status-3"></em></label>
@@ -1962,7 +2033,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Aturan utama: <strong>\((1/L(D)) \cdot e^{\alpha x} = e^{\alpha x}/L(\alpha )\)</strong> bila <code>L(α) ≠ 0</code>. Inilah keajaiban metode invers operator, solusi \(y_p\) didapat dalam <em>satu baris</em> tanpa tebakan UC + sistem aljabar. Bila L(α) = 0 (resonansi), pakai aturan <em>kalikan x</em> dengan turunan L sebagai pembagi. Gambar 5 mengilustrasikan gagasan ini. Hubungan ini dirangkum dalam Persamaan (5) di bawah.</p>
 <!-- ILUSTRASI-STATIS:5:START -->
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 5 — Aturan untuk masukan eksponensial" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="55" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="134" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">f = e^{αx}</text><line x1="213" y1="39" x2="242" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="251,39 242,43.5 242,34.5" fill="#94a3b8"/><rect x="251" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="330" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Ganti D dengan α</text><line x1="409" y1="39" x2="438" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="447,39 438,43.5 438,34.5" fill="#94a3b8"/><rect x="447" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#00e09e" stroke-width="1.6"/><text x="526" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">y_p = e^{αx}/L(α)</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">L(α) = 0 menandakan resonansi</text></svg>
+    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 5 — Aturan untuk masukan eksponensial" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="55" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="134" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">f = e<tspan dy="-4.7" font-size="9">αx</tspan></text><line x1="213" y1="39" x2="242" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="251,39 242,43.5 242,34.5" fill="#94a3b8"/><rect x="251" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="330" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Ganti D dengan α</text><line x1="409" y1="39" x2="438" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="447,39 438,43.5 438,34.5" fill="#94a3b8"/><rect x="447" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#00e09e" stroke-width="1.6"/><text x="526" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">y<tspan dy="2.8" font-size="9">p</tspan><tspan dy="-2.8"> = e</tspan><tspan dy="-4.7" font-size="9">αx</tspan><tspan dy="4.7">/L(α)</tspan></text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">L(α) = 0 menandakan resonansi</text></svg>
     <figcaption><strong>Gambar 5</strong> — Aturan untuk masukan eksponensial. Operator cukup dievaluasi pada pangkat eksponensialnya; bila hasilnya nol, aturan cadangan dengan faktor x dipakai.</figcaption>
   </figure>
 <!-- ILUSTRASI-STATIS:5:END -->
@@ -1982,25 +2053,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Aturan Standar L(α) ≠ 0</h3>
-      <p>Substitusi α ke polinomial L: <code>(1/L(D))·e^(αx) = e^(αx)/L(α)</code>. Sebab <code>L(D)·e^(αx) = L(α)·e^(αx)</code>, maka invers-nya bagi dengan L(α). <strong>Cek dulu:</strong> hitung L(α). Bila tak nol, langsung pakai rumus.</p>
+      <p>Substitusi α ke polinomial L: <code>(1/L(D))·e<sup>αx</sup> = e<sup>αx</sup>/L(α)</code>. Sebab <code>L(D)·e<sup>αx</sup> = L(α)·e<sup>αx</sup></code>, maka invers-nya bagi dengan L(α). <strong>Cek dulu:</strong> hitung L(α). Bila tak nol, langsung pakai rumus.</p>
       <div class="formula">\(e^{\alpha x}\)/L(α)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
       <h3>Resonansi Simple: L(α) = 0</h3>
-      <p>Bila <code>L(α) = 0</code> (α akar simple), rumus standar gagal (penyebut nol). <strong>Aturan revisi:</strong> kalikan dengan x dan turunkan L: <code>(1/L(D))·e^(αx) = x·e^(αx)/L′(α)</code>. Cek L′(α) ≠ 0 → akar simple, satu kali kalikan x cukup.</p>
+      <p>Bila <code>L(α) = 0</code> (α akar simple), rumus standar gagal (penyebut nol). <strong>Aturan revisi:</strong> kalikan dengan x dan turunkan L: <code>(1/L(D))·e<sup>αx</sup> = x·e<sup>αx</sup>/L′(α)</code>. Cek L′(α) ≠ 0 → akar simple, satu kali kalikan x cukup.</p>
       <div class="formula">\(x e^{\alpha x}\)/L′(α)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔂</div>
       <h3>Resonansi Berulang</h3>
-      <p>Bila <code>L(α) = 0</code> dan <code>L′(α) = 0</code> (α akar multiplisitas 2), aturan diperluas: <code>(1/L(D))·e^(αx) = x²·e^(αx)/L″(α)</code>. Pola umum: untuk akar multiplisitas m, kalikan x<sup>m</sup> dan bagi dengan L<sup>(m)</sup>(α).</p>
-      <div class="formula">x^\(m e^{\alpha x}\)/L^(m)(α)</div>
+      <p>Bila <code>L(α) = 0</code> dan <code>L′(α) = 0</code> (α akar multiplisitas 2), aturan diperluas: <code>(1/L(D))·e<sup>αx</sup> = x²·e<sup>αx</sup>/L″(α)</code>. Pola umum: untuk akar multiplisitas m, kalikan x<sup>m</sup> dan bagi dengan L<sup>(m)</sup>(α).</p>
+      <div class="formula">\(x^{m} e^{\alpha x}/L^{(m)}(\alpha)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚖</div>
       <h3>Konsistensi dengan UC</h3>
-      <p>Hasil invers operator <strong>identik</strong> dengan UC: <code>e^(αx)/L(α)</code> = \(A \cdot e^{\alpha x}\) di UC dengan <code>A = 1/L(α) = 1/(aα² + bα + c)</code>. Bedanya: invers operator memberi A langsung tanpa setting up sistem aljabar. Untuk resonansi, hasil <code>x·e^(αx)/L′(α)</code> juga cocok dengan UC tebakan \(A \cdot x\)·\(e^{\alpha x}\).</p>
+      <p>Hasil invers operator <strong>identik</strong> dengan UC: <code>e<sup>αx</sup>/L(α)</code> = \(A \cdot e^{\alpha x}\) di UC dengan <code>A = 1/L(α) = 1/(aα² + bα + c)</code>. Bedanya: invers operator memberi A langsung tanpa setting up sistem aljabar. Untuk resonansi, hasil <code>x·e<sup>αx</sup>/L′(α)</code> juga cocok dengan UC tebakan \(A \cdot x\)·\(e^{\alpha x}\).</p>
       <div class="formula">\(invers ↔ UC sama hasil\)</div>
     </div>
   </div>
@@ -2008,9 +2079,9 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="info-box reveal">
     <strong>Contoh 1 — kasus standar:</strong> Selesaikan <code>y'' − 3y' + 2y = 5·e^(4x)</code>.<br>
     <strong>Step 1.</strong> L(D) = \(D^2\) − 3D + 2. Cek <code>L(4) = 16 − 12 + 2 = 6 ≠ 0</code> → aman.<br>
-    <strong>Step 2.</strong> Pakai rumus standar: <code>y_p = (1/L(D))·5·e^(4x) = 5·e^(4x)/L(4) = 5·e^(4x)/6 = (5/6)·e^(4x)</code>.<br>
-    <strong>Step 3.</strong> \(y_h\) dari karakteristik (λ−1)(λ−2) = 0: <code>y_h = c₁·e^x + c₂·e^(2x)</code>.<br>
-    <strong>Solusi total:</strong> <code>y = c₁·e^x + c₂·e^(2x) + (5/6)·e^(4x)</code>. <em>Bandingkan: UC butuh tebak + substitusi + solve untuk A; invers operator selesai dalam 1 baris!</em>
+    <strong>Step 2.</strong> Pakai rumus standar: <code>y<sub>p</sub> = (1/L(D))·5·e<sup>4x</sup> = 5·e<sup>4x</sup>/L(4) = 5·e<sup>4x</sup>/6 = (5/6)·e<sup>4x</sup></code>.<br>
+    <strong>Step 3.</strong> \(y_h\) dari karakteristik (λ−1)(λ−2) = 0: <code>y<sub>h</sub> = c₁·e<sup>x</sup> + c₂·e<sup>2x</sup></code>.<br>
+    <strong>Solusi total:</strong> <code>y = c₁·e<sup>x</sup> + c₂·e<sup>2x</sup> + (5/6)·e<sup>4x</sup></code>. <em>Bandingkan: UC butuh tebak + substitusi + solve untuk A; invers operator selesai dalam 1 baris!</em>
   </div>
 
   <div class="info-box reveal">
@@ -2018,8 +2089,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <strong>Step 1.</strong> L(D) = \(D^2\) − 3D + 2. Cek <code>L(2) = 4 − 6 + 2 = 0</code> → <strong>resonansi!</strong><br>
     <strong>Step 2.</strong> Hitung L'(D) = 2D − 3 → <code>L'(2) = 4 − 3 = 1 ≠ 0</code> → akar simple, kalikan dengan x.<br>
     <strong>Step 3.</strong> Pakai rumus resonansi: <code>y_p = 4·x·e^(2x)/L'(2) = 4·x·e^(2x)/1 = 4x·e^(2x)</code>.<br>
-    <strong>Step 4.</strong> \(y_h\): <code>y_h = c₁·e^x + c₂·e^(2x)</code>.<br>
-    <strong>Solusi total:</strong> <code>y = c₁·e^x + c₂·e^(2x) + 4x·e^(2x)</code>. Cocok dengan hasil UC di Modul-8.
+    <strong>Step 4.</strong> \(y_h\): <code>y<sub>h</sub> = c₁·e<sup>x</sup> + c₂·e<sup>2x</sup></code>.<br>
+    <strong>Solusi total:</strong> <code>y = c₁·e<sup>x</sup> + c₂·e<sup>2x</sup> + 4x·e<sup>2x</sup></code>. Cocok dengan hasil UC di Modul-8.
   </div>
 
   <div class="info-box reveal">
@@ -2028,11 +2099,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <strong>Step 2.</strong> L''(D) = 2 → <code>L''(2) = 2 ≠ 0</code>.<br>
     <strong>Step 3.</strong> Rumus diperluas: <code>y_p = 6·x²·e^(2x)/L''(2) = 6·x²·e^(2x)/2 = 3x²·e^(2x)</code>.<br>
     <strong>Step 4.</strong> \(y_h\) = (c₁ + c₂x)·\(e^{2x}\).<br>
-    <strong>Solusi total:</strong> <code>y = (c₁ + c₂x)·e^(2x) + 3x²·e^(2x)</code>.
+    <strong>Solusi total:</strong> <code>y = (c₁ + c₂x)·e<sup>2x</sup> + 3x²·e<sup>2x</sup></code>.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Workflow optimal:</strong> <strong>\((1)\) Hitung \(L(\alpha )\)</strong>, substitusi α ke L(D). <strong>\((2)\) Bila \(L(\alpha ) \ne 0\)</strong>: pakai rumus standar <code>e^(αx)/L(α)</code>, selesai. <strong>\((3)\) Bila \(L(\alpha ) = 0\)</strong>: hitung L'(α). Bila ≠ 0, pakai <code>x·e^(αx)/L'(α)</code>. Bila = 0, lanjut ke L''(α). <strong>(4) Verifikasi</strong>: substitusi \(y_p\) ke PD asal, harus sama dengan f. Untuk \(f = K \cdot e^{\alpha x}\) (K konstanta), kalikan saja hasil dengan K.
+    💡 <strong>Workflow optimal:</strong> <strong>\((1)\) Hitung \(L(\alpha )\)</strong>, substitusi α ke L(D). <strong>\((2)\) Bila \(L(\alpha ) \ne 0\)</strong>: pakai rumus standar <code>e<sup>αx</sup>/L(α)</code>, selesai. <strong>\((3)\) Bila \(L(\alpha ) = 0\)</strong>: hitung L'(α). Bila ≠ 0, pakai <code>x·e^(αx)/L'(α)</code>. Bila = 0, lanjut ke L''(α). <strong>(4) Verifikasi</strong>: substitusi \(y_p\) ke PD asal, harus sama dengan f. Untuk \(f = K \cdot e^{\alpha x}\) (K konstanta), kalikan saja hasil dengan K.
   </div>
 
   <div class="info-box reveal" style="margin-top:18px">
@@ -2127,13 +2198,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🌊</div>
       <h3>Aturan Standar L(−β²) ≠ 0</h3>
-      <p>Substitusi <code>D² → −β²</code> dalam L: <code>(1/L(D²))·sin(βx) = sin(βx)/L(−β²)</code>. Berlaku saat L murni polinomial dalam \(D^2\) (genap saja). Mis. <code>L = D² + 9</code> dan f = sin(2x): L(−4) = −4 + 9 = 5 → <code>y_p = sin(2x)/5</code>.</p>
+      <p>Substitusi <code>D² → −β²</code> dalam L: <code>(1/L(D²))·sin(βx) = sin(βx)/L(−β²)</code>. Berlaku saat L murni polinomial dalam \(D^2\) (genap saja). Mis. <code>L = D² + 9</code> dan f = sin(2x): L(−4) = −4 + 9 = 5 → <code>y<sub>p</sub> = sin(2x)/5</code>.</p>
       <div class="formula">\(\sin(\beta x)/L(-\beta ^2)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>L Berisi D Ganjil — Kalikan Konjugat</h3>
-      <p>Bila <code>L(D) = aD² + bD + c</code> (ada suku bD), trik: pisah <code>L(D) = (aD² + c) + bD</code>. Ganti aD² → −aβ²: jadi <code>L_eff = (c − aβ²) + bD</code>. Untuk hilangkan D: kalikan dengan konjugat <code>(c − aβ²) − bD</code>, dapat <code>(c − aβ²)² − b²D²</code> = <code>(c − aβ²)² + b²β²</code>.</p>
+      <p>Bila <code>L(D) = aD² + bD + c</code> (ada suku bD), trik: pisah <code>L(D) = (aD² + c) + bD</code>. Ganti aD² → −aβ²: jadi <code>L<sub>eff</sub> = (c − aβ²) + bD</code>. Untuk hilangkan D: kalikan dengan konjugat <code>(c − aβ²) − bD</code>, dapat <code>(c − aβ²)² − b²D²</code> = <code>(c − aβ²)² + b²β²</code>.</p>
       <div class="formula">kalikan konjugat → polinomial \(D^2\) murni</div>
     </div>
     <div class="card">
@@ -2145,7 +2216,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Kombinasi Eksp × Trig</h3>
-      <p>Untuk <code>f = e^(αx)·sin(βx)</code>, pakai sifat shift: <code>(1/L(D))·e^(αx)·sin(βx) = e^(αx)·(1/L(D + α))·sin(βx)</code>, lalu terapkan aturan trig pada L(D + α). Eksponen digeser, masalah jadi murni trigonometri.</p>
+      <p>Untuk <code>f = e<sup>αx</sup>·sin(βx)</code>, pakai sifat shift: <code>(1/L(D))·e<sup>αx</sup>·sin(βx) = e<sup>αx</sup>·(1/L(D + α))·sin(βx)</code>, lalu terapkan aturan trig pada L(D + α). Eksponen digeser, masalah jadi murni trigonometri.</p>
       <div class="formula">\(shift + aturan trig\)</div>
     </div>
   </div>
@@ -2153,26 +2224,26 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="info-box reveal">
     <strong>Contoh \(1\;\text{---}\) operator murni \(D^2:\)</strong> Selesaikan <code>y'' + 4y = 3·sin(5x)</code>.<br>
     <strong>Step 1.</strong> L(D) = \(D^2\) + 4. Substitusi \(D^2\) → −25 (β=5): <code>L(−25) = −25 + 4 = −21 ≠ 0</code>.<br>
-    <strong>Step 2.</strong> Pakai rumus: <code>y_p = 3·sin(5x)/(−21) = −sin(5x)/7</code>.<br>
-    <strong>Step 3.</strong> \(y_h\): λ² + 4 = 0 → λ = ±2i → <code>y_h = c₁·cos(2x) + c₂·sin(2x)</code>.<br>
+    <strong>Step 2.</strong> Pakai rumus: <code>y<sub>p</sub> = 3·sin(5x)/(−21) = −sin(5x)/7</code>.<br>
+    <strong>Step 3.</strong> \(y_h\): λ² + 4 = 0 → λ = ±2i → <code>y<sub>h</sub> = c₁·cos(2x) + c₂·sin(2x)</code>.<br>
     <strong>Solusi total:</strong> <code>y = c₁·cos(2x) + c₂·sin(2x) − sin(5x)/7</code>.
   </div>
 
   <div class="info-box reveal">
     <strong>Contoh 2 — L berisi D ganjil:</strong> Selesaikan <code>y'' + y' − 2y = 6·sin(2x)</code>.<br>
     <strong>Step 1.</strong> L(D) = \(D^2\) + D − 2. Substitusi \(D^2\) → −4 (β=2) di suku genap: <code>= −4 + D − 2 = D − 6</code>.<br>
-    <strong>Step 2.</strong> <code>y_p = 6·sin(2x)/(D − 6)</code>. Kalikan numerator &amp; denominator dengan konjugat (D + 6):<br>
-    <code>y_p = 6·(D + 6)·sin(2x)/[(D − 6)(D + 6)] = 6·(D + 6)·sin(2x)/(D² − 36)</code>.<br>
+    <strong>Step 2.</strong> <code>y<sub>p</sub> = 6·sin(2x)/(D − 6)</code>. Kalikan numerator &amp; denominator dengan konjugat (D + 6):<br>
+    <code>y<sub>p</sub> = 6·(D + 6)·sin(2x)/[(D − 6)(D + 6)] = 6·(D + 6)·sin(2x)/(D² − 36)</code>.<br>
     <strong>Step 3.</strong> Substitusi \(D^2\) → −4 di penyebut: <code>= 6·(D + 6)·sin(2x)/(−4 − 36) = 6·(D + 6)·sin(2x)/(−40)</code>.<br>
     <strong>Step 4.</strong> <code>D·sin(2x) = 2·cos(2x)</code> → <code>(D + 6)·sin(2x) = 2cos(2x) + 6·sin(2x)</code>.<br>
-    <strong>Step 5.</strong> <code>y_p = 6·[2cos(2x) + 6sin(2x)]/(−40) = −[12cos(2x) + 36sin(2x)]/40 = −(3/10)cos(2x) − (9/10)sin(2x)</code>. Cocok dengan UC di Modul-8.
+    <strong>Step 5.</strong> <code>y<sub>p</sub> = 6·[2cos(2x) + 6sin(2x)]/(−40) = −[12cos(2x) + 36sin(2x)]/40 = −(3/10)cos(2x) − (9/10)sin(2x)</code>. Cocok dengan UC di Modul-8.
   </div>
 
   <div class="info-box reveal">
     <strong>Contoh 3 — resonansi trigonometri:</strong> Selesaikan <code>y'' + 4y = 5·sin(2x)</code>.<br>
     <strong>Step 1.</strong> L(D) = \(D^2\) + 4. Substitusi \(D^2\) → −4: <code>L(−4) = −4 + 4 = 0</code> → <strong>resonansi!</strong> ±2i adalah akar karakteristik.<br>
     <strong>Step 2.</strong> Pakai rumus resonansi: <code>(1/(D² + β²))·sin(βx) = −x·cos(βx)/(2β)</code> dengan β=2.<br>
-    <code>y_p = 5 · (−x·cos(2x)/(2·2)) = −(5/4)·x·cos(2x)</code>.<br>
+    <code>y<sub>p</sub> = 5 · (−x·cos(2x)/(2·2)) = −(5/4)·x·cos(2x)</code>.<br>
     <strong>Step 3.</strong> \(y_h\) = c₁·cos(2x) + c₂·sin(2x).<br>
     <strong>Solusi total:</strong> <code>y = c₁·cos(2x) + c₂·sin(2x) − (5/4)·x·cos(2x)</code>. Faktor x menandakan amplitudo tumbuh linier.
   </div>
@@ -2293,19 +2364,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <code>g = (D² − 4D)/3</code>; <code>g² = (D² − 4D)²/9 = (16D² − 8D³ + D⁴)/9</code>, saat dikenakan \(x^2\), suku \(D^3\), D⁴ → 0, jadi <code>g² → 16D²/9</code>.<br>
     <strong>Step 3.</strong> <code>1/L(D) ≈ (1/3)·(1 − (D² − 4D)/3 + 16D²/9) = (1/3) + (4D)/9 − D²/9 + 16D²/27</code>.<br>
     Sederhanakan koefisien \(D^2\): <code>−1/9 + 16/27 = −3/27 + 16/27 = 13/27</code>.<br>
-    <strong>Step 4.</strong> <code>y_p = (1/3 + (4/9)D + (13/27)D²)·(6x² − 7)</code>.<br>
+    <strong>Step 4.</strong> <code>y<sub>p</sub> = (1/3 + (4/9)D + (13/27)D²)·(6x² − 7)</code>.<br>
     Hitung: <code>(1/3)·(6x²−7) = 2x² − 7/3</code>; <code>(4/9)·D·(6x²−7) = (4/9)·12x = 16x/3</code>; <code>(13/27)·D²·(6x²−7) = (13/27)·12 = 52/9</code>.<br>
-    Total: <code>y_p = 2x² + 16x/3 + (−7/3 + 52/9) = 2x² + 16x/3 + (−21/9 + 52/9) = 2x² + 16x/3 + 31/9</code>. Cocok dengan UC di Modul-8!
+    Total: <code>y<sub>p</sub> = 2x² + 16x/3 + (−7/3 + 52/9) = 2x² + 16x/3 + (−21/9 + 52/9) = 2x² + 16x/3 + 31/9</code>. Cocok dengan UC di Modul-8!
   </div>
 
   <div class="info-box reveal">
     <strong>Contoh 2 — L tanpa suku konstanta:</strong> Selesaikan <code>y'' − 3y' = 6x</code>.<br>
     <strong>Step 1.</strong> L(D) = \(D^2\) − 3D = \(D \cdot (D\) − 3). Tidak punya suku konstanta → faktor keluar D.<br>
-    <strong>Step 2.</strong> <code>y_p = (1/D)·(1/(D − 3))·6x</code>.<br>
+    <strong>Step 2.</strong> <code>y<sub>p</sub> = (1/D)·(1/(D − 3))·6x</code>.<br>
     <strong>Step 3.</strong> Kerjakan dalam (1/(D − 3)) dulu. Faktor: <code>1/(D − 3) = −(1/3)·1/(1 − D/3) = −(1/3)·(1 + D/3 + D²/9 + …)</code>.<br>
     Aksi pada 6x (polinomial pangkat 1, hanya perlu suku ≤ D): <code>= −(1/3)·(1 + D/3)·6x = −(1/3)·(6x + 6/3) = −(1/3)·(6x + 2) = −2x − 2/3</code>.<br>
-    <strong>Step 4.</strong> Operator <code>1/D</code> = integrasi: <code>y_p = ∫(−2x − 2/3) dx = −x² − (2/3)x</code> (konstanta integrasi diserap \(y_h\)).<br>
-    <strong>Solusi total:</strong> <code>y = c₁ + c₂·e^(3x) − x² − (2/3)x</code>. Cocok dengan UC.
+    <strong>Step 4.</strong> Operator <code>1/D</code> = integrasi: <code>y<sub>p</sub> = ∫(−2x − 2/3) dx = −x² − (2/3)x</code> (konstanta integrasi diserap \(y_h\)).<br>
+    <strong>Solusi total:</strong> <code>y = c₁ + c₂·e<sup>3x</sup> − x² − (2/3)x</code>. Cocok dengan UC.
   </div>
 
   <div class="warn-box reveal">
@@ -2325,7 +2396,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 1: Reduksi Orde untuk Cauchy-Euler -->
   <div class="analogy-box reveal">
     <span class="analogy-label">🏗️ Analogi 1 — Reduksi Orde di PD Cauchy-Euler</span>
-    PD <strong style="color:var(--violet)">Cauchy-Euler</strong> <code>x²y'' + α·xy' + β·y = 0</code> sering muncul di balok dengan beban radial, tegangan dinding silinder, getaran torsi. Substitusi \(y = x^{m}\) memberi persamaan karakteristik <code>m(m−1) + αm + β = 0</code>. Bila akar berulang (misal m₀ ganda), reduksi orde memberi solusi kedua \(y_2 = x^{m_0} \cdot \ln|x|\), analog <code>x·e^(rx)</code> untuk akar berulang di kasus konstanta. Tanpa reduksi orde, basis kedua tidak akan ditemukan.
+    PD <strong style="color:var(--violet)">Cauchy-Euler</strong> <code>x²y'' + α·xy' + β·y = 0</code> sering muncul di balok dengan beban radial, tegangan dinding silinder, getaran torsi. Substitusi \(y = x^{m}\) memberi persamaan karakteristik <code>m(m−1) + αm + β = 0</code>. Bila akar berulang (misal m₀ ganda), reduksi orde memberi solusi kedua \(y_2 = x^{m_0} \cdot \ln|x|\), analog <code>x·e<sup>rx</sup></code> untuk akar berulang di kasus konstanta. Tanpa reduksi orde, basis kedua tidak akan ditemukan.
   </div>
 
   <!-- Analogi 2: Reduksi Orde untuk Bessel/Legendre -->
@@ -2337,7 +2408,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 3: Invers Operator di Sirkuit RLC -->
   <div class="analogy-box reveal" style="border-left-color:var(--green);background:linear-gradient(135deg,rgba(0,224,158,.07),rgba(0,224,158,.03))">
     <span class="analogy-label" style="color:var(--green)">🌡️ Analogi 3 — Invers Operator untuk Steady-State RLC</span>
-    Untuk rangkaian <strong style="color:var(--green)">RLC seri</strong> <code>L·q'' + R·q' + (1/C)·q = E₀·sin(ωt)</code>, solusi steady-state didapat <em>seketika</em> via invers operator. L(D) = LD² + RD + 1/C; substitusi \(D^2\) → −ω² (di suku genap): efektif <code>(1/C − Lω²) + RD</code>. Trik konjugat memberi <code>q_p = E₀·sin(ωt)·denom + cos·numerator)/((1/C − Lω²)² + R²ω²)</code> — formula impedansi seri klasik tanpa setup matriks UC! Engineer power system pakai trik ini untuk analisis cepat respon AC.
+    Untuk rangkaian <strong style="color:var(--green)">RLC seri</strong> <code>L·q'' + R·q' + (1/C)·q = E₀·sin(ωt)</code>, solusi steady-state didapat <em>seketika</em> via invers operator. L(D) = LD² + RD + 1/C; substitusi \(D^2\) → −ω² (di suku genap): efektif <code>(1/C − Lω²) + RD</code>. Trik konjugat memberi <code>q<sub>p</sub> = E₀·sin(ωt)·denom + cos·numerator)/((1/C − Lω²)² + R²ω²)</code> — formula impedansi seri klasik tanpa setup matriks UC! Engineer power system pakai trik ini untuk analisis cepat respon AC.
   </div>
 
   <!-- Analogi 4: Invers Operator vs Laplace -->
@@ -2353,7 +2424,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Sintesis Pertemuan 10:</strong> <strong>Reduksi orde</strong> melengkapi UC/VoP saat (a) hanya satu solusi homogen yang diketahui, (b) PD koefisien variabel, (c) akar karakteristik berulang (memberi pembuktian rumus <code>x·e^(rx)</code>). <strong>Invers operator</strong> menggantikan UC dengan kalkulasi 1-baris untuk f baku. Kedua teknik <em>tidak menggantikan</em> UC/VoP, mereka <em>melengkapi</em> kotak alat. Engineer praktis pakai semua: UC untuk f sederhana di tugas, invers operator untuk verifikasi cepat di lapangan, reduksi orde untuk PD koefisien variabel di riset, VoP untuk f arbitrary, Laplace untuk f diskontinu/syarat awal kompleks. Penguasaan kelima teknik = penguasaan PD linier orde 2.
+    💡 <strong>Sintesis Pertemuan 10:</strong> <strong>Reduksi orde</strong> melengkapi UC/VoP saat (a) hanya satu solusi homogen yang diketahui, (b) PD koefisien variabel, (c) akar karakteristik berulang (memberi pembuktian rumus <code>x·e<sup>rx</sup></code>). <strong>Invers operator</strong> menggantikan UC dengan kalkulasi 1-baris untuk f baku. Kedua teknik <em>tidak menggantikan</em> UC/VoP, mereka <em>melengkapi</em> kotak alat. Engineer praktis pakai semua: UC untuk f sederhana di tugas, invers operator untuk verifikasi cepat di lapangan, reduksi orde untuk PD koefisien variabel di riset, VoP untuk f arbitrary, Laplace untuk f diskontinu/syarat awal kompleks. Penguasaan kelima teknik = penguasaan PD linier orde 2.
   </div>
 
   <label class="pm-centang" data-pm="7"><input type="checkbox" disabled aria-describedby="pm-status-7"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Aplikasi: Reduksi Orde &amp;amp; Invers Operator di Engineering Praktis</b>.</span><em class="pm-status" id="pm-status-7"></em></label>
@@ -2387,7 +2458,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="m9ReduksiInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Formula d'Alembert: <strong>\(y_2 = y_1 \cdot \int (e^{-\int P dx}/y_1^2) dx\)</strong>. Diberikan y₁(x) (cyan), reduction menghitung y₂(x) (pink). Kedua basis solusi independen linier, Wronskian W(y₁, y₂) ≠ 0. Kasus 1: PD koefisien konstan dengan akar berulang → y₁ = \(e^{rx}\), y₂ = \(x e^{rx}\). Kasus 2: Cauchy-Euler akar berulang → y₁ = x^m, y₂ = x^\(m \cdot \ln(x)\).
+        <strong>📊 Cara Membaca:</strong> Formula d'Alembert: <strong>\(y_2 = y_1 \cdot \int (e^{-\int P dx}/y_1^2) dx\)</strong>. Diberikan y₁(x) (cyan), reduction menghitung y₂(x) (pink). Kedua basis solusi independen linier, Wronskian W(y₁, y₂) ≠ 0. Kasus 1: PD koefisien konstan dengan akar berulang → y₁ = \(e^{rx}\), y₂ = \(x e^{rx}\). Kasus 2: Cauchy-Euler akar berulang → y₁ = x<sup>m</sup>, y₂ = x<sup>m</sup>·ln(x).
       </div>
     </div>
   </div>
@@ -2493,8 +2564,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
           <label>Pilih aplikasi yang menggunakan D-operator:</label>
           <select id="m9slAppOper" onchange="window.m9SetAppOper(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:520px;margin-top:6px;">
             <option value="rlc">⚡ RLC Filter Design: H(D) = 1/(LD² + RD + 1/C)</option>
-            <option value="control">🎛️ Control System: G(s) = K/(\(s^2\) + 2ζωs + ω²)</option>
-            <option value="vibration">🌀 Mode Analysis: (\(D^2\) + ω²)·y = 0 → eigenfrequency</option>
+            <option value="control">🎛️ Control System: G(s) = K/(s² + 2ζωs + ω²)</option>
+            <option value="vibration">🌀 Mode Analysis: (D² + ω²)·y = 0 → eigenfrequency</option>
             <option value="cantilever">🏗️ Cantilever EI: D⁴y = w(x) annihilator approach</option>
             <option value="population">🐛 Population Lag: (D − k)·N = h(t)</option>
           </select>
@@ -2529,13 +2600,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🔻</div>
       <h3>Reduksi Orde via Integral</h3>
-      <p>Implementasi rumus d'Alembert: <code>y₂ = y₁·∫(e^(−∫p dx)/y₁²) dx</code> dengan <code>sp.integrate</code>. Sangat berguna saat satu solusi diketahui (mis. PD Cauchy-Euler, Bessel) dan butuh basis kedua.</p>
+      <p>Implementasi rumus d'Alembert: <code>y₂ = y₁·∫(e<sup>−∫p dx</sup>/y₁²) dx</code> dengan <code>sp.integrate</code>. Sangat berguna saat satu solusi diketahui (mis. PD Cauchy-Euler, Bessel) dan butuh basis kedua.</p>
       <div class="formula">\(d'Alembert formula\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⁻¹</div>
       <h3>Invers Operator Manual</h3>
-      <p>Substitusi <code>D → α</code> untuk eksponensial atau <code>D² → −β²</code> untuk trigonometri. Implementasi singkat sebagai fungsi Python: cek L(α) ≠ 0 lalu langsung kembalikan <code>e^(αx)/L(α)</code>. Untuk verifikasi cepat hasil tabel.</p>
+      <p>Substitusi <code>D → α</code> untuk eksponensial atau <code>D² → −β²</code> untuk trigonometri. Implementasi singkat sebagai fungsi Python: cek L(α) ≠ 0 lalu langsung kembalikan <code>e<sup>αx</sup>/L(α)</code>. Untuk verifikasi cepat hasil tabel.</p>
       <div class="formula">\(subs(D, \alpha ) \to bagi L(\alpha )\)</div>
     </div>
     <div class="card">
@@ -2815,8 +2886,8 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">y₂ = u(x)·y₁</span>
     <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">L(D) = aD² + bD + c</span>
-    <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">y_p = (1/L(D))·f(x)</span>
-    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">e^(αx)/L(α)</span>
+    <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">y<sub>p</sub> = (1/L(D))·f(x)</span>
+    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">e<sup>αx</sup>/L(α)</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 10 · Reduksi Orde &amp; Invers Operator</div>
@@ -3033,10 +3104,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
-        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>y_p = sin(2x)/0</code></div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>y_p = −x·cos(2x) · K/(2β)</code> dengan K=5, β=2</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>y_p = x·sin(2x)/2</code></div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>y_p = 5·sin(2x)</code></div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>y<sub>p</sub> = sin(2x)/0</code></div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>y<sub>p</sub> = −x·cos(2x) · K/(2β)</code> dengan K=5, β=2</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <code>y<sub>p</sub> = x·sin(2x)/2</code></div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>y<sub>p</sub> = 5·sin(2x)</code></div>
       </div>
       <button class="mc-submit" id="sub-mc9" onclick="checkMC('mc9')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc9"></div>
@@ -3075,7 +3146,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="info-box" style="margin-bottom:28px">
       <strong>📌 PD Referensi:</strong> &nbsp;\(y'' - 4y' + 4y = 6e^{2x}\)<br>
       L(D) <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">= D² − 4D + 4 = (D − 2)²</code>, &nbsp; akar berulang &nbsp; <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">m = 2 (mult. 2)</code><br>
-      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">PD ref dipilih spesial untuk Pertemuan 10: <strong>(a) Reduksi Orde</strong>, bila y₁ = \(e^{2x}\) diketahui, hitung y₂ = \(x e^{2x}\) via formula d'Alembert. <strong>(b) Invers Operator dengan resonansi berulang</strong> — α=2 adalah akar mult. 2, jadi <code>y_p = 6·x²·e^(2x)/L''(2) = 3x²·e^(2x)</code>. Solusi total: <code>y = (c₁ + c₂x)·e^(2x) + 3x²·e^(2x)</code>. Gunakan PD ini sebagai sistem referensi C1–C7. Kerjakan di Jupyter Notebook, lalu tempel kode ke kolom yang tersedia. Lihat <strong>Bagian 10</strong> untuk contoh kode Python.</span>
+      <span style="font-size:13px;color:var(--muted);margin-top:6px;display:block">PD ref dipilih spesial untuk Pertemuan 10: <strong>(a) Reduksi Orde</strong>, bila y₁ = \(e^{2x}\) diketahui, hitung y₂ = \(x e^{2x}\) via formula d'Alembert. <strong>(b) Invers Operator dengan resonansi berulang</strong> — α=2 adalah akar mult. 2, jadi <code>y_p = 6·x²·e^(2x)/L''(2) = 3x²·e^(2x)</code>. Solusi total: <code>y = (c₁ + c₂x)·e<sup>2x</sup> + 3x²·e<sup>2x</sup></code>. Gunakan PD ini sebagai sistem referensi C1–C7. Kerjakan di Jupyter Notebook, lalu tempel kode ke kolom yang tersedia. Lihat <strong>Bagian 10</strong> untuk contoh kode Python.</span>
     </div>
 
     <!-- COMP 1 — Akar L(D) PD ref -->
@@ -3170,7 +3241,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="comp-q">PD homogen ref: <code>y'' − 4y' + 4y = 0</code>, y₁ = \(e^{2x}\) diketahui. Hitung \(u(x) = \int (e^{-\int p dx}/y_1^2) dx\) dengan p = −4. Pada x=2, hitung <strong>u(2)</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Pakai rumus reduksi orde <code>u = ∫ e^(−∫p dx)/y₁² dx</code>; sederhanakan integrandnya lalu integralkan dan evaluasi di titik yang diminta.</div>
+      <div class="comp-hint">💡 Pakai rumus reduksi orde <code>u = ∫ e<sup>−∫p dx</sup>/y₁² dx</code>; sederhanakan integrandnya lalu integralkan dan evaluasi di titik yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">u(2)</strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
@@ -3218,7 +3289,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q">Untuk PD <code>y'' + 9y = 4·sin(2x)</code>, L(\(D^2\)) = \(D^2\) + 9. Substitusi \(D^2\) → −β² dengan β=2 untuk evaluasi L(−4). Invers operator: <code>y_p = 4·sin(2x)/L(−4)</code>. Hitung <strong>\(y_p(\pi /4)\)</strong> (3 desimal).</div>
+        <div class="comp-q">Untuk PD <code>y'' + 9y = 4·sin(2x)</code>, L(\(D^2\)) = \(D^2\) + 9. Substitusi \(D^2\) → −β² dengan β=2 untuk evaluasi L(−4). Invers operator: <code>y<sub>p</sub> = 4·sin(2x)/L(−4)</code>. Hitung <strong>\(y_p(\pi /4)\)</strong> (3 desimal).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Substitusikan nilai x yang diminta ke <code>y_p(x)</code> (gunakan <code>np.sin</code>, <code>np.pi</code>) lalu evaluasi.</div>
@@ -3265,10 +3336,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q">Implementasikan <strong>reduksi orde d'Alembert</strong> untuk PD homogen <code>y'' + 2y' + y = 0</code> dengan y₁ = e^(−x). Hitung u(x) via integral, susun y₂, evaluasi <strong>y₂(2)</strong> (3 desimal).</div>
+        <div class="comp-q">Implementasikan <strong>reduksi orde d'Alembert</strong> untuk PD homogen <code>y'' + 2y' + y = 0</code> dengan y₁ = e<sup>−x</sup>. Hitung u(x) via integral, susun y₂, evaluasi <strong>y₂(2)</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Hitung <code>u = ∫ e^(−∫p dx)/y₁² dx</code>, susun <code>y₂ = u·y₁</code>, lalu evaluasi di titik yang diminta.</div>
+      <div class="comp-hint">💡 Hitung <code>u = ∫ e<sup>−∫p dx</sup>/y₁² dx</code>, susun <code>y₂ = u·y₁</code>, lalu evaluasi di titik yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">y₂(2)</strong></span></div>
         <textarea class="code-textarea" id="code-c11" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
@@ -3285,7 +3356,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="comp-q">Implementasikan fungsi <strong>invers operator generik untuk \(e^{\alpha x}\)</strong>: terima \(L_{\text{poly}}\) (sebagai polinomial dalam D), α_val, K, dan tangani resonansi. Untuk PD ref \(y'' - 4y' + 4y = 6e^{2x}\): cetak <strong>\(y_p(1)\)</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Deteksi multiplisitas akar lewat L(α), L'(α), ...; untuk multiplisitas m pakai <code>y_p = K·xᵐ·e^(αx)/L^(m)(α)</code>, lalu evaluasi di titik yang diminta.</div>
+      <div class="comp-hint">💡 Deteksi multiplisitas akar lewat L(α), L'(α), ...; untuk multiplisitas m pakai <code>y<sub>p</sub> = K·xᵐ·e<sup>αx</sup>/L<sup>m</sup>(α)</code>, lalu evaluasi di titik yang diminta.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(y_p(1)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c12" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -3302,7 +3373,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="comp-q">Implementasikan invers operator dengan <strong>trik konjugat</strong> untuk PD <code>y'' + y' − 2y = 6·sin(2x)</code>. Pakai substitusi \(D^2\) → −4 dan kalikan konjugat (D+6) untuk dapatkan \(y_p\). Hitung <strong>\(y_p(0)\)</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Pakai trik konjugat operator (substitusi \(D^2\)→−β², kalikan konjugat) untuk dapat y_p, lalu substitusikan x yang diminta dan evaluasi.</div>
+      <div class="comp-hint">💡 Pakai trik konjugat operator (substitusi \(D^2\)→−β², kalikan konjugat) untuk dapat y<sub>p</sub>, lalu substitusikan x yang diminta dan evaluasi.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(y_p(0)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c13" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
@@ -3384,12 +3455,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">L(D)·x = F₀sin(ωt)</span>
     <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">L(D²) → L(−ω²)</span>
     <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">resonansi: L(−ω²)=0</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">x_p = (1/L(D))·F₀sin(ωt)</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">x<sub>p</sub> = (1/L(D))·F₀sin(ωt)</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Forum Diskusi · Pertemuan 10 · Reduksi Orde &amp; Invers Operator</div>
     <h1 class="hero-title" style="font-size:clamp(36px,5vw,60px)">Diskusi<br><em>Mesin Resonansi di Pabrik</em></h1>
-    <p class="hero-sub">Analisis kasus mesin yang bergetar tidak normal akibat eksitasi harmonik, lalu pakai notasi <strong>D-operator</strong> <code>L(D) = mD² + cD + k</code> dan <strong>metode invers operator</strong> <code>x_p = (1/L(D))·F(t)</code> untuk dapatkan steady-state response, deteksi resonansi via <code>L(−ω²) → 0</code>, dan rancang strategi mitigasi engineering.</p>
+    <p class="hero-sub">Analisis kasus mesin yang bergetar tidak normal akibat eksitasi harmonik, lalu pakai notasi <strong>D-operator</strong> <code>L(D) = mD² + cD + k</code> dan <strong>metode invers operator</strong> <code>x<sub>p</sub> = (1/L(D))·F(t)</code> untuk dapatkan steady-state response, deteksi resonansi via <code>L(−ω²) → 0</code>, dan rancang strategi mitigasi engineering.</p>
   </div>
 </div>
 
@@ -3412,7 +3483,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div style="background:rgba(236,72,153,.05);border:1px solid rgba(236,72,153,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">ω = 63 → L(−ω²) ≈ 0 (near-resonansi)</div>
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">\(x_p\) = (1/L(D))·F₀sin(ωt)</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Operasi pada <code>ω ≈ ω_n</code> = <strong>resonansi mendekati</strong>: substitusi \(D^2\) → −ω² di L(D) memberi koefisien <code>k − mω² ≈ 0</code> di komponen genap. Trik konjugat invers operator memberi steady-state dengan amplitudo memuncak. Tiga pertanyaan diskusi memandu analisis: (1) bangun L(D) dan deteksi resonansi via L(−ω²), (2) hitung \(x_p\) numerik via invers operator, (3) rancang mitigasi engineering.</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Operasi pada <code>ω ≈ ω<sub>n</sub></code> = <strong>resonansi mendekati</strong>: substitusi \(D^2\) → −ω² di L(D) memberi koefisien <code>k − mω² ≈ 0</code> di komponen genap. Trik konjugat invers operator memberi steady-state dengan amplitudo memuncak. Tiga pertanyaan diskusi memandu analisis: (1) bangun L(D) dan deteksi resonansi via L(−ω²), (2) hitung \(x_p\) numerik via invers operator, (3) rancang mitigasi engineering.</p>
 
     <div class="info-box reveal" style="margin-top:14px">
       <strong>Petunjuk Penyelesaian, Metode Invers Operator:</strong>
@@ -3452,7 +3523,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
             <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Akar L positif, sistem tidak stabil</div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Tidak ada resonansi karena ada redaman</div>
           </div>
-          <div class="p-fb r" id="fp1r">✅ Tepat! Substitusi <code>D² → −ω²</code> di L(D) genap: <code>k − mω² = 200000 − 50·3969 = 1550</code>, sangat kecil dibanding k (200000). Inilah tanda <strong>resonansi mendekati</strong>: bila c = 0 (tanpa redaman), \(L_{\text{eff}}\) = 0 dan invers operator memberi amplitudo ∞. Dengan c &gt; 0, denominator <code>(k−mω²)² + (cω)² = 1550² + 12600² ≈ 1.6×10⁸</code> didominasi cω, amplitudo besar tetapi terbatas. Akar L sendiri (λ = −2 ± 63.2i) menentukan transient yang meluruh dengan envelope e^(−2t).</div>
+          <div class="p-fb r" id="fp1r">✅ Tepat! Substitusi <code>D² → −ω²</code> di L(D) genap: <code>k − mω² = 200000 − 50·3969 = 1550</code>, sangat kecil dibanding k (200000). Inilah tanda <strong>resonansi mendekati</strong>: bila c = 0 (tanpa redaman), \(L_{\text{eff}}\) = 0 dan invers operator memberi amplitudo ∞. Dengan c &gt; 0, denominator <code>(k−mω²)² + (cω)² = 1550² + 12600² ≈ 1.6×10⁸</code> didominasi cω, amplitudo besar tetapi terbatas. Akar L sendiri (λ = −2 ± 63.2i) menentukan transient yang meluruh dengan envelope e<sup>−2t</sup>.</div>
           <div class="p-fb w" id="fp1w">❌ Pertimbangkan: substitusi \(D^2\) → −ω² = −63² = −3969 di L(D): bagian \(D^2\) genap memberi <code>k + m·(−ω²) = k − mω² = 200000 − 50·3969 = 1550</code>. Karena ini jauh lebih kecil dari k = 200000, artinya <strong>kita mendekati resonansi</strong>, yakni ω operasi dekat dengan \(\omega _n\) = \(\sqrt{k/m}\) = 63.25 rad/s.</div>
         </div>
 
@@ -5933,13 +6004,13 @@ function drawCases(){
     let rootsStr;
     if (kase === 1){
       const m1 = ((1-b) + Math.sqrt(D))/2, m2 = ((1-b) - Math.sqrt(D))/2;
-      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x^m₁ + c₂·x^m₂`;
+      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x<sup>m₁</sup> + c₂·x<sup>m₂</sup>`;
     } else if (kase === 2){
       const m = (1-b)/2;
-      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x^m`;
+      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x<sup>m</sup>`;
     } else {
       const al = (1-b)/2, be = Math.sqrt(-D)/2;
-      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x^α·[c₁cos(β ln x) + c₂sin(β ln x)]`;
+      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x<sup>α</sup>·[c₁cos(β ln x) + c₂sin(β ln x)]`;
     }
     infoEl.innerHTML = `<span style="color:${color}">●</span> PD: x²y'' + ${b.toFixed(2)}·x·y' + ${c.toFixed(2)}·y = 0 &nbsp;|&nbsp; D = (b−1)² − 4c = ${D.toFixed(2)} &nbsp;|&nbsp; ${rootsStr}`;
   }
@@ -6056,9 +6127,9 @@ function drawRoots(){
   ctx.fillText('Re(m)', px1 - 35, cy - 8);
   ctx.fillText('Im(m)', cx + 6, py0 + 12);
   ctx.fillStyle = '#00e09e';
-  ctx.fillText('x^m → 0', px0 + 8, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → 0', px0 + 8, py0 + 16);
   ctx.fillStyle = '#ef4444';
-  ctx.fillText('x^m → ∞', px1 - 65, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → ∞', px1 - 65, py0 + 16);
   ctx.fillStyle = '#94a3b8';
   for (let i = -4; i <= 4; i += 2){
     if (i === 0) continue;
@@ -6482,7 +6553,7 @@ function drawSweep(){
       const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
       const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
       const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
+      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r<sub>max</sub>=${rmaxTheory.toFixed(2)}, DMF<sub>max</sub>=${dmfmaxTheory.toFixed(2)}`;
     } else {
       info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
     }
@@ -6848,7 +6919,7 @@ function drawHPB(){
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
+  ctx.fillText(`${linePos.toFixed(2)} × H²<sub>max</sub> = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
 
   // Find ω₁ and ω₂ (intersection of curve with targetY)
   // Binary search on either side of peak
@@ -6892,12 +6963,12 @@ function drawHPB(){
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
+    let html = `ζ<sub>TRUE</sub> = ${zetaTrue.toFixed(3)} · ω<sub>peak</sub> = ${omegaPeak.toFixed(2)} · H²<sub>max</sub> = ${H2max.toFixed(2)}<br>`;
     if(omega1 !== null && omega2 !== null){
       html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
       if(Math.abs(linePos - 0.5) < 0.02){
         const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
+        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ<sub>estimated</sub> = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
       } else {
         html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
       }
@@ -7781,10 +7852,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7798,7 +7869,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -10319,7 +10390,7 @@ function drawEMTog(){
   const isNum = (_emTogMode === 1);
   const color = isNum ? '#a855f7' : '#00e09e';
   ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e^(-bt/2)·cos(ωt)', 20, 30);
+  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e<sup>-bt/2</sup>·cos(ωt)', 20, 30);
 
   const padL=50, padR=20, padT=50, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
@@ -10652,8 +10723,8 @@ function _createForumParticleBurst(event) {
   const M9_RED = {
     rep: {
       label: "y'' − 4y' + 4y = 0 (akar berulang m=2)",
-      formY1: "y₁ = e^(2x)",
-      formY2: "y₂ = x·e^(2x)",
+      formY1: "y₁ = e<sup>2x</sup>",
+      formY2: "y₂ = x·e<sup>2x</sup>",
       y1: x => Math.exp(2*x),
       y2: x => x * Math.exp(2*x),
       xMin: -1, xMax: 2.5
@@ -10879,7 +10950,7 @@ function _createForumParticleBurst(event) {
     // Title
     ctx.fillStyle = '#ff6bb3'; ctx.font = 'bold 13px JetBrains Mono, monospace';
     const opStr = opIdx <= 1 ? opLabels[opIdx] : opLabels[opIdx].replace('r', r.toFixed(2));
-    ctx.fillText(`Input: f(x) = e^(2x)·sin(x)  →  Output: ${opStr}[f]`, padL + 8, padT - 12);
+    ctx.fillText(`Input: f(x) = e<sup>2x</sup>·sin(x)  →  Output: ${opStr}[f]`, padL + 8, padT - 12);
 
     // Legend
     ctx.fillStyle = 'rgba(148,163,184,.7)'; ctx.font = 'bold 11px JetBrains Mono, monospace';
@@ -10893,9 +10964,9 @@ function _createForumParticleBurst(event) {
     if (infoEl){
       let note = '';
       if (opIdx === 2 && Math.abs(r - 2) < 0.05){
-        note = ' ⚠ (D − 2)·e^(2x)·sin(x): r=α matches → annihilator partial';
+        note = ' ⚠ (D − 2)·e<sup>2x</sup>·sin(x): r=α matches → annihilator partial';
       }
-      infoEl.innerHTML = `<span style="color:#ff6bb3">●</span> Operator <strong>${opStr}</strong> applied to f(x) = e^(2x)·sin(x)${note}`;
+      infoEl.innerHTML = `<span style="color:#ff6bb3">●</span> Operator <strong>${opStr}</strong> applied to f(x) = e<sup>2x</sup>·sin(x)${note}`;
     }
 
     requestAnimationFrame(drawM9DOper);
@@ -10923,13 +10994,13 @@ function _createForumParticleBurst(event) {
       view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)';
       knob.style.transform = 'translateX(0px)';
       lbl.style.color = 'var(--green)';
-      lbl.textContent = 'NORMAL: y_p = e^(αx)/L(α), L(α) ≠ 0';
+      lbl.innerHTML = 'NORMAL: y<sub>p</sub> = e<sup>αx</sup>/L(α), L(α) ≠ 0';
       document.getElementById('m9_alpha').value = '1.5';
     } else {
       view.style.background = 'rgba(239,68,68,.25)'; view.style.borderColor = '#ef4444';
       knob.style.transform = 'translateX(28px)';
       lbl.style.color = '#ef4444';
-      lbl.textContent = 'RESONANSI: α = 2 (akar L), pakai y_p = x·e^(2x)/L\'(2)';
+      lbl.innerHTML = 'RESONANSI: α = 2 (akar L), pakai y<sub>p</sub> = x·e<sup>2x</sup>/L\'(2)';
       document.getElementById('m9_alpha').value = '2.0';
     }
   };
@@ -11009,9 +11080,9 @@ function _createForumParticleBurst(event) {
     // Title
     ctx.fillStyle = color; ctx.font = 'bold 13px JetBrains Mono, monospace';
     const formula = isResonance
-      ? `y_p = x·e^(${alpha.toFixed(2)}x) / L'(${alpha.toFixed(2)}) = x·e^(${alpha.toFixed(2)}x) / ${Lprime.toFixed(2)}`
-      : `y_p = e^(${alpha.toFixed(2)}x) / L(${alpha.toFixed(2)}) = e^(${alpha.toFixed(2)}x) / ${Lalpha.toFixed(2)}`;
-    ctx.fillText(`PD: y'' − 5y' + 6y = e^(${alpha.toFixed(2)}x)  ${isResonance ? '⚠ RESONANSI (α=2 atau 3)' : ''}`, padL + 8, padT + 16);
+      ? `y<sub>p</sub> = x·e<sup>${alpha.toFixed(2)}x</sup> / L'(${alpha.toFixed(2)}) = x·e<sup>${alpha.toFixed(2)}x</sup> / ${Lprime.toFixed(2)}`
+      : `y<sub>p</sub> = e<sup>${alpha.toFixed(2)}x</sup> / L(${alpha.toFixed(2)}) = e<sup>${alpha.toFixed(2)}x</sup> / ${Lalpha.toFixed(2)}`;
+    ctx.fillText(`PD: y'' − 5y' + 6y = e<sup>${alpha.toFixed(2)}x</sup>  ${isResonance ? '⚠ RESONANSI (α=2 atau 3)' : ''}`, padL + 8, padT + 16);
     ctx.font = '11px JetBrains Mono, monospace';
     ctx.fillText(formula, padL + 8, padT + 32);
 
@@ -11029,8 +11100,8 @@ function _createForumParticleBurst(event) {
     const infoEl = document.getElementById('m9InvExpInfo');
     if (infoEl){
       infoEl.innerHTML = isResonance
-        ? `<span style="color:#ef4444">⚠</span> α=${alpha.toFixed(2)}: L(α)=0 → RESONANSI! Pakai aturan modifikasi y_p = x·e^(αx)/L'(α). L'=${Lprime.toFixed(2)}`
-        : `<span style="color:#00e09e">●</span> α=${alpha.toFixed(2)}: L(α)=${Lalpha.toFixed(2)} ≠ 0 → y_p = e^(αx)/L(α) bounded`;
+        ? `<span style="color:#ef4444">⚠</span> α=${alpha.toFixed(2)}: L(α)=0 → RESONANSI! Pakai aturan modifikasi y<sub>p</sub> = x·e<sup>αx</sup>/L'(α). L'=${Lprime.toFixed(2)}`
+        : `<span style="color:#00e09e">●</span> α=${alpha.toFixed(2)}: L(α)=${Lalpha.toFixed(2)} ≠ 0 → y<sub>p</sub> = e<sup>αx</sup>/L(α) bounded`;
     }
 
     m9InvExp.raf = requestAnimationFrame(drawM9InvExp);
@@ -11046,13 +11117,13 @@ function _createForumParticleBurst(event) {
   const m9InvType = { which: 'exp', t: 0, raf: null };
 
   const M9_INV = {
-    exp:    { label: '1/L(D)·e^(αx) → ganti D → α',                                  formula: '1/(D² + D + 1)·e^(2x) = e^(2x)/(4 + 2 + 1) = e^(2x)/7',
+    exp:    { label: '1/L(D)·e<sup>αx</sup> → ganti D → α',                                  formula: '1/(D² + D + 1)·e<sup>2x</sup> = e<sup>2x</sup>/(4 + 2 + 1) = e<sup>2x</sup>/7',
               fIn: x => Math.exp(2*x), fOut: x => Math.exp(2*x)/7, color: '#ff6bb3' },
     trig:   { label: '1/L(D²)·sin(βx) → ganti D² → −β²',                              formula: '1/(D² + 4)·sin(3x) = sin(3x)/(−9+4) = −sin(3x)/5',
               fIn: x => Math.sin(3*x), fOut: x => -Math.sin(3*x)/5, color: '#00e09e' },
     poly:   { label: '1/L(D)·polinomial → ekspansi McLaurin',                         formula: '1/(1 + D + D²)·x² ≈ (1 − D + 0)·x² = x² − 2x',
               fIn: x => x*x, fOut: x => x*x - 2*x, color: '#0ea5e9' },
-    mixed:  { label: 'e^(αx)·g(x) → shift theorem: 1/L(D)[e^αx·g] = e^αx·1/L(D+α)[g]', formula: '1/(D² + 4)·e^(x)sin(x) = e^x·1/((D+1)² + 4)·sin(x)',
+    mixed:  { label: 'e<sup>αx</sup>·g(x) → shift theorem: 1/L(D)[e^αx·g] = e^αx·1/L(D+α)[g]', formula: '1/(D² + 4)·e<sup>x</sup>sin(x) = e<sup>x</sup>·1/((D+1)² + 4)·sin(x)',
               fIn: x => Math.exp(x)*Math.sin(x), fOut: x => Math.exp(x)*( -Math.sin(x)/4 - Math.cos(x)/8 ), color: '#a855f7' }
   };
 
@@ -11125,7 +11196,7 @@ function _createForumParticleBurst(event) {
     }
 
     plotPanel(0, splitX, obj.fIn, 'f(x) input', '#0ea5e9');
-    plotPanel(splitX, W, obj.fOut, 'y_p output', obj.color);
+    plotPanel(splitX, W, obj.fOut, 'y<sub>p</sub> output', obj.color);
 
     // Big arrow with rule label
     ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 2;

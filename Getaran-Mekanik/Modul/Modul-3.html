@@ -1239,6 +1239,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1503,11 +1574,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">mẍ + cẋ + kx = 0</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">ωₙ = √(k/m)</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">ζ = c/(2√(km))</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">ω_d = ωₙ√(1−ζ²)</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">ω<sub>d</sub> = ωₙ√(1−ζ²)</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">T = 2π/ωₙ</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">δ = 2π·ζ/√(1−ζ²)</span>
     <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">E = ½mẋ² + ½kx²</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">t_s = 4/(ζωₙ)</span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">t<sub>s</sub> = 4/(ζωₙ)</span>
   </div>
   <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
@@ -1704,7 +1775,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📉</div>
       <h3>Bentuk Solusi Umum</h3>
-      <p>Solusi homogen ditentukan akar:<br><strong>ζ&lt;1:</strong> e^(−ζωₙt)·[\(A \cdot \cos(\)\(\omega _d\)·t) + \(B \cdot \sin(\)\(\omega _d\)·t)]<br><strong>ζ=1:</strong> (A + \(B \cdot t) \cdot e^(\)−ωₙt)<br><strong>ζ&gt;1:</strong> \(A \cdot e^(s\)₁t) + \(B \cdot e^(s\)₂t)<br>Konstanta A, B dari kondisi awal x₀, ẋ₀.</p>
+      <p>Solusi homogen ditentukan akar:<br><strong>ζ&lt;1:</strong> e<sup>−ζωₙt</sup>·[\(A \cdot \cos(\)\(\omega _d\)·t) + \(B \cdot \sin(\)\(\omega _d\)·t)]<br><strong>ζ=1:</strong> (A + \(B \cdot t) \cdot e^(\)−ωₙt)<br><strong>ζ&gt;1:</strong> \(A \cdot e^(s\)₁t) + \(B \cdot e^(s\)₂t)<br>Konstanta A, B dari kondisi awal x₀, ẋ₀.</p>
       <div class="formula">\(x(t) = f(IC, \zeta , \omega _n)\)</div>
     </div>
   </div>
@@ -1751,19 +1822,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🌊</div>
       <h3>Underdamped (0 &lt; ζ &lt; 1)</h3>
-      <p>Sistem <strong>berosilasi</strong> sambil amplitudo meluruh eksponensial. Solusi:<br><code style="font-size:11px;color:var(--cyan)">x(t) = e^(−ζωₙt)·[A·cos(ω_d·t) + B·sin(ω_d·t)]</code><br>Frekuensi getaran <strong>\(\omega _d = \omega _n\sqrt{1-\zeta ^2}\)</strong>. Sebagian besar mesin praktis (suspensi mobil ζ≈0.3, gedung ζ≈0.05) berada di regim ini.</p>
-      <div class="formula">x(t) = e^(−ζωₙt)·\(X \cdot \cos(\)\(\omega _d\)·t − φ)</div>
+      <p>Sistem <strong>berosilasi</strong> sambil amplitudo meluruh eksponensial. Solusi:<br><code style="font-size:11px;color:var(--cyan)">x(t) = e<sup>−ζωₙt</sup>·[A·cos(ω<sub>d</sub>·t) + B·sin(ω<sub>d</sub>·t)]</code><br>Frekuensi getaran <strong>\(\omega _d = \omega _n\sqrt{1-\zeta ^2}\)</strong>. Sebagian besar mesin praktis (suspensi mobil ζ≈0.3, gedung ζ≈0.05) berada di regim ini.</p>
+      <div class="formula">x(t) = e<sup>−ζωₙt</sup>·\(X \cdot \cos(\)\(\omega _d\)·t − φ)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Critically Damped (ζ = 1)</h3>
-      <p>Sistem kembali ke kesetimbangan <strong>secepat mungkin tanpa osilasi</strong>. Solusi:<br><code style="font-size:11px;color:var(--green)">x(t) = (A + B·t)·e^(−ωₙt)</code><br>Konstanta dari IC: A = x₀, B = ẋ₀ + ωₙ·x₀. Kondisi ideal untuk pintu tutup-otomatis, instrumen presisi, dan beberapa shock absorber.</p>
+      <p>Sistem kembali ke kesetimbangan <strong>secepat mungkin tanpa osilasi</strong>. Solusi:<br><code style="font-size:11px;color:var(--green)">x(t) = (A + B·t)·e<sup>−ωₙt</sup></code><br>Konstanta dari IC: A = x₀, B = ẋ₀ + ωₙ·x₀. Kondisi ideal untuk pintu tutup-otomatis, instrumen presisi, dan beberapa shock absorber.</p>
       <div class="formula">\(x(t) = (x_0 + (\dot{x}_0+\omega _nx_0) \cdot t) \cdot e^{-\omega _nt}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🐢</div>
       <h3>Overdamped (ζ &gt; 1)</h3>
-      <p>Sistem kembali <strong>tanpa osilasi tapi lebih lambat</strong> dari critical. Dua eksponensial:<br><code style="font-size:11px;color:var(--violet)">x(t) = A·e^(s₁t) + B·e^(s₂t)</code><br>Dengan <strong>\(s_1,_2 = \omega _n(-\zeta \pm \sqrt{\zeta ^2-1})\)</strong>. Sistem terlalu "kental", biasanya dihindari kecuali aplikasi specific (instrumen sangat presisi yang harus stabil sempurna).</p>
+      <p>Sistem kembali <strong>tanpa osilasi tapi lebih lambat</strong> dari critical. Dua eksponensial:<br><code style="font-size:11px;color:var(--violet)">x(t) = A·e<sup>s₁t</sup> + B·e<sup>s₂t</sup></code><br>Dengan <strong>\(s_1,_2 = \omega _n(-\zeta \pm \sqrt{\zeta ^2-1})\)</strong>. Sistem terlalu "kental", biasanya dihindari kecuali aplikasi specific (instrumen sangat presisi yang harus stabil sempurna).</p>
       <div class="formula">x(t) = \(A \cdot e^(s\)₁t) + \(B \cdot e^(s\)₂t)</div>
     </div>
     <div class="card">
@@ -1799,7 +1870,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="warn-icon">⚠️</div>
     <div>
       <h4>Perangkap Umum: Mengukur ζ dari Settling Time</h4>
-      <p>Banyak yang salah mengira "settling time" = "1/ζ". Sebenarnya, settling time praktis (kembali ke ±2% amplitudo awal) adalah <code>t_s ≈ 4/(ζ·ωₙ)</code> untuk underdamped. Untuk overdamped, didominasi oleh akar yang lebih lambat (s yang kurang negatif). Untuk membandingkan kecepatan response, gunakan <strong>\(\tau = 1/(\zeta \omega _n)\)</strong> sebagai time constant, semakin kecil τ, semakin cepat sistem mereda.</p>
+      <p>Banyak yang salah mengira "settling time" = "1/ζ". Sebenarnya, settling time praktis (kembali ke ±2% amplitudo awal) adalah <code>t<sub>s</sub> ≈ 4/(ζ·ωₙ)</code> untuk underdamped. Untuk overdamped, didominasi oleh akar yang lebih lambat (s yang kurang negatif). Untuk membandingkan kecepatan response, gunakan <strong>\(\tau = 1/(\zeta \omega _n)\)</strong> sebagai time constant, semakin kecil τ, semakin cepat sistem mereda.</p>
     </div>
   </div>
 
@@ -1834,7 +1905,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Definisi Logarithmic Decrement</h3>
-      <p>Untuk underdamped, dua puncak berurutan terpisah waktu \(T_d\) (periode teredam). Amplitudo turun dengan faktor <code>e^(−ζωₙ·T_d)</code>. <strong>δ = ln(rasio amplitudo)</strong>. Substitusi <code>ωₙ·T_d = 2π/√(1−ζ²)</code> memberikan rumus utama.</p>
+      <p>Untuk underdamped, dua puncak berurutan terpisah waktu \(T_d\) (periode teredam). Amplitudo turun dengan faktor <code>e<sup>−ζωₙ·T<sub>d</sub></sup></code>. <strong>δ = ln(rasio amplitudo)</strong>. Substitusi <code>ωₙ·T<sub>d</sub> = 2π/√(1−ζ²)</code> memberikan rumus utama.</p>
       <div class="formula">\(\delta = \ln(x_n/x_{n+1})\)</div>
     </div>
     <div class="card">
@@ -1852,7 +1923,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">⏱️</div>
       <h3>Settling Time \(t_s\)</h3>
-      <p>Waktu sistem mereda ke ±2% amplitudo awal. Dari envelope <code>e^(−ζωₙt) ≤ 0.02</code>: <strong>\(t_s \approx 4/(\zeta \cdot \omega _n) = 4 \cdot \tau\)</strong>. Untuk ±1%: \(t_s\) ≈ 4.6·τ. Time constant τ = 1/(ζωₙ), semakin kecil τ, semakin cepat sistem stabil.</p>
+      <p>Waktu sistem mereda ke ±2% amplitudo awal. Dari envelope <code>e<sup>−ζωₙt</sup> ≤ 0.02</code>: <strong>\(t_s \approx 4/(\zeta \cdot \omega _n) = 4 \cdot \tau\)</strong>. Untuk ±1%: \(t_s\) ≈ 4.6·τ. Time constant τ = 1/(ζωₙ), semakin kecil τ, semakin cepat sistem stabil.</p>
       <div class="formula">\(t_s = 4/(\zeta \cdot \omega _n)\)</div>
     </div>
   </div>
@@ -2024,8 +2095,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="logDecInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca Animasi Ini:</strong> Bayangkan Anda sedang melakukan vibration measurement di lapangan, sensor mencatat x(t), tetapi Anda tidak tahu nilai ζ sistem (parameter "tersembunyi"). Animasi ini mensimulasikan: kurva x(t) tergambar progresif, setiap puncak positif <strong>otomatis dideteksi dan dimark</strong>. Live: δ = ln(\(x_{\text{peak1}}\)/x_peak2) dihitung, lalu dikonversi ke ζ_estimated.<br>
-        <strong>Tujuan:</strong> Verifikasi bahwa metode logarithmic decrement <em>akurat</em>. (1) Geser slider untuk ubah ζ "sebenarnya". (2) Animasi restart dan deteksi puncak otomatis. (3) ζ_estimated harus mendekati ζ "sebenarnya", error tipikal &lt; 5%. (4) Untuk ζ besar (&gt; 0.3), error meningkat karena aproksimasi.
+        <strong>📊 Cara Membaca Animasi Ini:</strong> Bayangkan Anda sedang melakukan vibration measurement di lapangan, sensor mencatat x(t), tetapi Anda tidak tahu nilai ζ sistem (parameter "tersembunyi"). Animasi ini mensimulasikan: kurva x(t) tergambar progresif, setiap puncak positif <strong>otomatis dideteksi dan dimark</strong>. Live: δ = ln(\(x_{\text{peak1}}\)/x<sub>peak2</sub>) dihitung, lalu dikonversi ke ζ<sub>estimated</sub>.<br>
+        <strong>Tujuan:</strong> Verifikasi bahwa metode logarithmic decrement <em>akurat</em>. (1) Geser slider untuk ubah ζ "sebenarnya". (2) Animasi restart dan deteksi puncak otomatis. (3) ζ<sub>estimated</sub> harus mendekati ζ "sebenarnya", error tipikal &lt; 5%. (4) Untuk ζ besar (&gt; 0.3), error meningkat karena aproksimasi.
       </div>
     </div>
   </div>
@@ -2064,10 +2135,10 @@ window.jalankanDenganMuat = async function (el, label, fn) {
         <div class="ctrl-group" style="flex:1 1 100%;">
           <label>Pilih Model Redaman (Dropdown):</label>
           <select id="sl_damp_type" onchange="setDampType(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="viscous">⚙️ Viscous: \(F_d\) = -c·ẋ (linear, paling umum)</option>
-            <option value="coulomb">🔧 Coulomb: \(F_d\) = -μN·sign(ẋ) (gesekan kering, decay linier)</option>
-            <option value="quadratic">💨 Quadratic: \(F_d\) = -c·ẋ·|ẋ| (aerodinamik)</option>
-            <option value="hysteretic">🏗️ Hysteretic: \(F_d\) = -\(h \cdot x \cdot sign(\)ẋ) (structural)</option>
+            <option value="viscous">⚙️ Viscous: Fd = -c·ẋ (linear, paling umum)</option>
+            <option value="coulomb">🔧 Coulomb: Fd = -μN·sign(ẋ) (gesekan kering, decay linier)</option>
+            <option value="quadratic">💨 Quadratic: Fd = -c·ẋ·|ẋ| (aerodinamik)</option>
+            <option value="hysteretic">🏗️ Hysteretic: Fd = -h·x·sign(ẋ) (structural)</option>
           </select>
         </div>
       </div>
@@ -2735,7 +2806,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       </div>
       <div class="radio-group" id="rg-mc5">
         <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; x(t) = \(A \cdot \cos(\)ωₙt) + \(B \cdot \sin(\)ωₙt)</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; x(t) = e^(−ζωₙt)·[\(A \cdot \cos(\)\(\omega _d\)·t) + \(B \cdot \sin(\)\(\omega _d\)·t)]</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; x(t) = e<sup>−ζωₙt</sup>·[\(A \cdot \cos(\)\(\omega _d\)·t) + \(B \cdot \sin(\)\(\omega _d\)·t)]</div>
         <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; x(t) = (A + \(B \cdot t) \cdot e^(\)−ωₙt)</div>
         <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; x(t) = \(A \cdot e^(s\)₁t) + \(B \cdot e^(s\)₂t) dengan s₁,s₂ real</div>
       </div>
@@ -2875,7 +2946,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Hitung <strong>koefisien redaman kritis \(c_c\)</strong> (Ns/m). Rumus: \(c_c\) = 2\(\sqrt{km}\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Redaman kritis c_c = 2\(\sqrt{km}\) dengan <code>np.sqrt</code>; ini threshold antara underdamped dan overdamped.</div>
+      <div class="comp-hint">💡 Redaman kritis c<sub>c</sub> = 2\(\sqrt{km}\) dengan <code>np.sqrt</code>; ini threshold antara underdamped dan overdamped.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(c_c (Ns/m)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python..." oninput="onCodeInput('c2')"></textarea>
@@ -2892,7 +2963,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Sistem dengan c = 40 Ns/m. Hitung <strong>rasio redaman ζ</strong> dan tentukan klasifikasinya (under/critical/over).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Rasio redaman ζ = c/c_c; klasifikasi: ζ &lt; 1 underdamped, = 1 critical, &gt; 1 overdamped.</div>
+      <div class="comp-hint">💡 Rasio redaman ζ = c/c<sub>c</sub>; klasifikasi: ζ &lt; 1 underdamped, = 1 critical, &gt; 1 overdamped.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">ζ (dimensionless)</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python..." oninput="onCodeInput('c3')"></textarea>
@@ -2926,7 +2997,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Hitung <strong>periode teredam \(T_d\)</strong> (detik), periode satu siklus penuh untuk sistem underdamped. Rumus: \(T_d\) = 2π/\(\omega _d\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Periode teredam T_d = 2π/\(\omega _d\) (gunakan <code>np.pi</code>); sedikit lebih panjang dari Tₙ = 2π/ωₙ.</div>
+      <div class="comp-hint">💡 Periode teredam T<sub>d</sub> = 2π/\(\omega _d\) (gunakan <code>np.pi</code>); sedikit lebih panjang dari Tₙ = 2π/ωₙ.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(T_d (s)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python..." oninput="onCodeInput('c5')"></textarea>
@@ -2960,7 +3031,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Hitung <strong>settling time \(t_s\)</strong> (detik), waktu untuk sistem mereda ke ±2% amplitudo awal. Rumus: \(t_s\) = 4/(ζ·ωₙ).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Settling time (kriteria ±2%) t_s = 4/(ζ·ωₙ); aturan praktis untuk underdamped (ζ &lt; 1).</div>
+      <div class="comp-hint">💡 Settling time (kriteria ±2%) t<sub>s</sub> = 4/(ζ·ωₙ); aturan praktis untuk underdamped (ζ &lt; 1).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(t_s (s)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python..." oninput="onCodeInput('c7')"></textarea>
@@ -3029,7 +3100,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Implementasikan <strong>RK4 numerik</strong> untuk getaran bebas teredam dengan parameter sistem (m=5, k=2000, c=40), kondisi awal x₀=0.05, ẋ₀=0. Gunakan dt=0.0001, t ∈ [0, 1.0]. Hitung <strong>magnitude puncak negatif pertama</strong> (|\(x_{\text{min}}\)| dari overshoot pertama melewati x=0). Laporkan dalam meter.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Simulasikan x(t) dengan RK4, lalu cari minimum lokal pertama (overshoot negatif) dengan <code>scipy.signal.find_peaks</code> pada −x; bandingkan dengan teori |x_min| = x₀·exp(−π·ζ/\(\sqrt{1-\zeta ^2}\)).</div>
+      <div class="comp-hint">💡 Simulasikan x(t) dengan RK4, lalu cari minimum lokal pertama (overshoot negatif) dengan <code>scipy.signal.find_peaks</code> pada −x; bandingkan dengan teori |x<sub>min</sub>| = x₀·exp(−π·ζ/\(\sqrt{1-\zeta ^2}\)).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook (20–40 baris) — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(|x_{\text{min}}| (m)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="10" placeholder="Paste kode Python RK4..." oninput="onCodeInput('c11')"></textarea>
@@ -3043,10 +3114,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q">Implementasikan <strong>ekstraksi ζ via logarithmic decrement</strong> dari simulasi RK4. Gunakan parameter (m=5, k=2000, c=20 → ζ_true=0.1), x₀=0.05, t ∈ [0, 3.0]. Cari minimal 5 puncak positif via <code>find_peaks</code>, hitung δ = (1/n)·ln(x₀/xₙ), lalu ζ = δ/\(\sqrt{4\pi ^2+\delta ^2}\). Laporkan ζ yang diestimasi (harus mendekati 0.10).</div>
+        <div class="comp-q">Implementasikan <strong>ekstraksi ζ via logarithmic decrement</strong> dari simulasi RK4. Gunakan parameter (m=5, k=2000, c=20 → ζ<sub>true</sub>=0.1), x₀=0.05, t ∈ [0, 3.0]. Cari minimal 5 puncak positif via <code>find_peaks</code>, hitung δ = (1/n)·ln(x₀/xₙ), lalu ζ = δ/\(\sqrt{4\pi ^2+\delta ^2}\). Laporkan ζ yang diestimasi (harus mendekati 0.10).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Deteksi puncak hasil RK4 dengan <code>scipy.signal.find_peaks</code>, hitung δ = (1/n)·ln(x_peak0/x_peakN) memakai <code>np.log</code>, lalu konversi ke ζ = δ/\(\sqrt{4\pi ^2+\delta ^2}\).</div>
+      <div class="comp-hint">💡 Deteksi puncak hasil RK4 dengan <code>scipy.signal.find_peaks</code>, hitung δ = (1/n)·ln(x<sub>peak0</sub>/x<sub>peakN</sub>) memakai <code>np.log</code>, lalu konversi ke ζ = δ/\(\sqrt{4\pi ^2+\delta ^2}\).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">ζ (estimasi)</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="10" placeholder="Paste kode Python..." oninput="onCodeInput('c12')"></textarea>
@@ -3077,10 +3148,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C14</div>
-        <div class="comp-q">Sistem dengan <strong>dua peredam dalam SERIES</strong>: c₁ = 40 Ns/m dan c₂ = 120 Ns/m. Aturan: untuk damper series, <code>c_eq = (c₁·c₂)/(c₁+c₂)</code>. Hitung <strong>rasio redaman ζ</strong> sistem ekuivalen (m=5, k=2000).</div>
+        <div class="comp-q">Sistem dengan <strong>dua peredam dalam SERIES</strong>: c₁ = 40 Ns/m dan c₂ = 120 Ns/m. Aturan: untuk damper series, <code>c<sub>eq</sub> = (c₁·c₂)/(c₁+c₂)</code>. Hitung <strong>rasio redaman ζ</strong> sistem ekuivalen (m=5, k=2000).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Gabungkan damper seri dengan c_eq = (c₁·c₂)/(c₁+c₂), hitung c_c = 2\(\sqrt{km}\), lalu ζ = c_eq/c_c; ingat damper seri mirip resistor paralel (redaman total lebih kecil dari tiap komponen).</div>
+      <div class="comp-hint">💡 Gabungkan damper seri dengan c<sub>eq</sub> = (c₁·c₂)/(c₁+c₂), hitung c<sub>c</sub> = 2\(\sqrt{km}\), lalu ζ = c<sub>eq</sub>/c<sub>c</sub>; ingat damper seri mirip resistor paralel (redaman total lebih kecil dari tiap komponen).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">ζ (dimensionless)</strong></span></div>
         <textarea class="code-textarea" id="code-c14" rows="10" placeholder="Paste kode Python..." oninput="onCodeInput('c14')"></textarea>
@@ -3097,7 +3168,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Hitung <strong>jumlah siklus penuh</strong> (integer) sebelum amplitudo envelope turun ke 5% dari x₀ untuk sistem (ζ=0.2, ωₙ=20). Gunakan envelope <code>x_env(t)/x₀ = exp(−ζωₙt) = 0.05</code>, lalu bagi waktu dengan periode teredam \(T_d\) = 2π/\(\omega _d\). Bulatkan ke <strong>integer terdekat</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Selesaikan exp(−ζωₙ·t)=0.05 untuk t pakai <code>np.log</code>, bagi dengan periode teredam T_d=2π/\(\omega _d\), lalu bulatkan ke integer terdekat.</div>
+      <div class="comp-hint">💡 Selesaikan exp(−ζωₙ·t)=0.05 untuk t pakai <code>np.log</code>, bagi dengan periode teredam T<sub>d</sub>=2π/\(\omega _d\), lalu bulatkan ke integer terdekat.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">jumlah siklus (integer)</strong></span></div>
         <textarea class="code-textarea" id="code-c15" rows="10" placeholder="Paste kode Python..." oninput="onCodeInput('c15')"></textarea>
@@ -3151,7 +3222,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="float-formulas">
     <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">mẍ + cẋ + kx = 0</span>
     <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">ζ = c/(2√(km))</span>
-    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">ω_d = ωₙ√(1−ζ²)</span>
+    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">ω<sub>d</sub> = ωₙ√(1−ζ²)</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">δ = ln(xₙ/xₙ₊₁)</span>
   </div>
   <div class="hero-content">
@@ -3214,7 +3285,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>ζ ≈ 2.0, Overdamped</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! ωₙ = \(\sqrt{8 \times 10^{-3}/5 \times 10^{-6}}\) = √1600 = <strong>40 rad/s</strong>. \(c_c\) = 2\(\sqrt{8 \times 10^{-3} \cdot 5 \times 10^{-6}}\) = 4×10⁻⁴ \(N \cdot m \cdot s\)/rad. ζ = 4×10⁻⁵/4×10⁻⁴ = <strong>0.10 (underdamped)</strong>. \(\omega _d\) ≈ 39.8 rad/s, \(T_d\) ≈ 0.158 s. Settling time ≈ 4/(0.1·40) = 1.0 s, tapi karena observasi adalah ke "stabil" (tidak terlihat osilasi), bisa lebih lama. Konsisten dengan keluhan 4-5 siklus dan ~2.5 detik.</div>
-          <div class="p-fb w" id="fp1w">❌ Hitung step-by-step: ωₙ=\(\sqrt{k/J}\), \(c_c\)=2\(\sqrt{kJ}\), lalu ζ=c/c_c. Bandingkan dengan 1.</div>
+          <div class="p-fb w" id="fp1w">❌ Hitung step-by-step: ωₙ=\(\sqrt{k/J}\), \(c_c\)=2\(\sqrt{kJ}\), lalu ζ=c/c<sub>c</sub>. Bandingkan dengan 1.</div>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis analisis Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung ωₙ, c_c, ζ, ω_d, T_d step by step. (2) Klasifikasikan regim. (3) Hitung settling time t_s = 4/(ζωₙ). (4) Bandingkan dengan target ζ=1 — seberapa jauh? (5) Hubungkan dengan keluhan 4-5 siklus." oninput="checkForumReady()"></textarea>
@@ -3373,7 +3444,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="float-formulas">
     <span class="ff" style="left:6%;font-size:.9rem;color:var(--violet);--dur:22s;--del:0s">✅ Tepat Waktu</span>
     <span class="ff" style="left:28%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">ωₙ = √(k/m)</span>
-    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">ω_d = ωₙ√(1−ζ²)</span>
+    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">ω<sub>d</sub> = ωₙ√(1−ζ²)</span>
     <span class="ff" style="left:70%;font-size:.7rem;color:var(--pink);--dur:24s;--del:2s">🏆 Top Skor</span>
     <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">r = ω/ωₙ</span>
   </div>
@@ -5919,7 +5990,7 @@ function drawDrop(){
     const ts = zeta > 0 ? (4 / (zeta * omega_n)).toFixed(3) : '∞';
     info.innerHTML = `t = ${t.toFixed(2)}s &nbsp;|&nbsp; ζ = ${zeta.toFixed(2)} &nbsp;|&nbsp; ` +
       `<strong style="color:${warna}">${kelas}</strong> &nbsp;|&nbsp; ` +
-      `τ = ${tau} s &nbsp;|&nbsp; t_settling ≈ ${ts} s`;
+      `τ = ${tau} s &nbsp;|&nbsp; t<sub>settling</sub> ≈ ${ts} s`;
   }
 }
 
@@ -6013,7 +6084,7 @@ function drawLogDec(){
   ctx.fillText('🔬 LOGARITHMIC DECREMENT EXTRACTION', 14, 22);
   ctx.fillStyle = '#94a3b8';
   ctx.font = '10px JetBrains Mono';
-  ctx.fillText(`Sistem: m=5kg, k=2000 N/m, x₀=0.05m | ζ_true = ${zeta_true.toFixed(3)} (rahasia)`, 14, 40);
+  ctx.fillText(`Sistem: m=5kg, k=2000 N/m, x₀=0.05m | ζ<sub>true</sub> = ${zeta_true.toFixed(3)} (rahasia)`, 14, 40);
   
   // Grid
   ctx.strokeStyle = '#0d1929'; ctx.lineWidth = 1;
@@ -6123,7 +6194,7 @@ function drawLogDec(){
     );
     ctx.fillStyle = '#facc15';
     ctx.fillText(
-      `ζ_estimasi = δ/√(4π² + δ²) = ${zeta_est.toFixed(4)} | ζ_aproksimasi = δ/2π = ${zeta_approx.toFixed(4)}`,
+      `ζ<sub>estimasi</sub> = δ/√(4π² + δ²) = ${zeta_est.toFixed(4)} | ζ<sub>aproksimasi</sub> = δ/2π = ${zeta_approx.toFixed(4)}`,
       22, bottomY + 52
     );
     
@@ -6131,7 +6202,7 @@ function drawLogDec(){
     ctx.fillStyle = errorColor;
     ctx.font = 'bold 11px JetBrains Mono';
     ctx.fillText(
-      `vs ζ_true = ${zeta_true.toFixed(4)} | Error = ${error.toFixed(2)}% ${error < 5 ? '✓ Akurat' : ''}`,
+      `vs ζ<sub>true</sub> = ${zeta_true.toFixed(4)} | Error = ${error.toFixed(2)}% ${error < 5 ? '✓ Akurat' : ''}`,
       22, bottomY + 68
     );
   } else {
@@ -6312,7 +6383,7 @@ function drawSettling(){
   }
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 9px JetBrains Mono';
   ctx.textAlign = 'left';
-  ctx.fillText('t_s (s)', cpX-30, cpY+8);
+  ctx.fillText('t<sub>s</sub> (s)', cpX-30, cpY+8);
   ctx.fillText('ζ', cpX+cpW+5, cpY+cpH+5);
   
   // ── RIGHT: Mini-simulation x(t) for selected zeta ──
@@ -6409,7 +6480,7 @@ function drawSettling(){
     ctx.beginPath(); ctx.moveTo(tsX, simY); ctx.lineTo(tsX, simY+simH); ctx.stroke();
     ctx.fillStyle = '#00e09e'; ctx.font = 'bold 9px JetBrains Mono';
     ctx.textAlign = 'center';
-    ctx.fillText(`t_s = ${ts_at_sel.toFixed(2)}s`, tsX, simY-3);
+    ctx.fillText(`t<sub>s</sub> = ${ts_at_sel.toFixed(2)}s`, tsX, simY-3);
   }
   
   // Axis labels
@@ -6433,7 +6504,7 @@ function drawSettling(){
     else { kelas = 'Overdamped'; warna = '#a855f7'; }
     info.innerHTML = `ζ = ${zeta_sel.toFixed(2)} &nbsp;|&nbsp; ` +
       `<strong style="color:${warna}">${kelas}</strong> &nbsp;|&nbsp; ` +
-      `t_s = ${ts_at_sel.toFixed(3)} s &nbsp;|&nbsp; ` +
+      `t<sub>s</sub> = ${ts_at_sel.toFixed(3)} s &nbsp;|&nbsp; ` +
       `τ = ${(1/(zeta_sel*omega_n)).toFixed(3)} s`;
   }
 }
@@ -6569,10 +6640,10 @@ function drawDampType(){
     hysteretic: '#a855f7'
   };
   const labels = {
-    viscous: 'Viscous: F_d = -c·ẋ (linear, paling umum)',
-    coulomb: 'Coulomb: F_d = -μN·sign(ẋ) (gesekan kering, decay LINIER)',
-    quadratic: 'Quadratic: F_d = -c·ẋ·|ẋ| (aerodinamik, decay non-linear)',
-    hysteretic: 'Hysteretic: F_d = -h·x·sign(ẋ) (structural, ratio ≈ const)'
+    viscous: 'Viscous: F<sub>d</sub> = -c·ẋ (linear, paling umum)',
+    coulomb: 'Coulomb: F<sub>d</sub> = -μN·sign(ẋ) (gesekan kering, decay LINIER)',
+    quadratic: 'Quadratic: F<sub>d</sub> = -c·ẋ·|ẋ| (aerodinamik, decay non-linear)',
+    hysteretic: 'Hysteretic: F<sub>d</sub> = -h·x·sign(ẋ) (structural, ratio ≈ const)'
   };
 
   ctx.strokeStyle = colors[_dampType];
@@ -6606,7 +6677,7 @@ function drawDampType(){
   const info = document.getElementById('dampTypeInfo');
   if(info){
     const desc = {
-      viscous: '⚙️ Viscous damping (linear): paling sering dipakai untuk model preliminary. Decay envelope = e^(-ζωt). Persamaan analitik standar.',
+      viscous: '⚙️ Viscous damping (linear): paling sering dipakai untuk model preliminary. Decay envelope = e<sup>−ζωt</sup>. Persamaan analitik standar.',
       coulomb: '🔧 Coulomb friction: gaya kering konstan, decay <strong>linier</strong> (bukan eksponensial). Contoh: kontak logam-logam, stick-slip.',
       quadratic: '💨 Quadratic damping: ~ aerodinamik (drag), gelombang air. Decay LEBIH LAMBAT dari viscous untuk amplitudo besar.',
       hysteretic: '🏗️ Hysteretic damping: redaman struktural (internal material). Energi loss per siklus konstan → decay ratio konstan.'
@@ -6984,8 +7055,8 @@ function drawForumCanvas() {
     
     // Metric values — line 2 (θ_now di kiri, t_s di kanan)
     ctx.fillStyle = '#cbd5e1'; ctx.font = '12px JetBrains Mono';
-    ctx.fillText(`θ_now = ${(theta_now*180/Math.PI).toFixed(1)}°`, mx, my0 + 22);
-    ctx.fillText(`t_s = ${ts.toFixed(2)}s`, mx + colInnerOffset, my0 + 22);
+    ctx.fillText(`θ<sub>now</sub> = ${(theta_now*180/Math.PI).toFixed(1)}°`, mx, my0 + 22);
+    ctx.fillText(`t<sub>s</sub> = ${ts.toFixed(2)}s`, mx + colInnerOffset, my0 + 22);
     
     // Metric values — line 3 (τ di kiri, klasifikasi di kanan)
     ctx.fillText(`τ = ${tau.toFixed(2)}s`, mx, my0 + 42);
@@ -7702,10 +7773,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7719,7 +7790,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

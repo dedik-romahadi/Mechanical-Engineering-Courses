@@ -1342,6 +1342,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1580,10 +1651,10 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">aₙxⁿy⁽ⁿ⁾ + … + a₀y = 0</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">bₙmⁿ + … + b₀ = 0</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">b₂ = a₂ − 3a₃</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">y = Σ cᵢ·x^mᵢ</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">(c₁ + c₂ ln x + c₃(ln x)²)·x^m</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">y = Σ cᵢ·x<sup>mᵢ</sup></span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">(c₁ + c₂ ln x + c₃(ln x)²)·x<sup>m</sup></span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">Horner: m³ − 3m² − 6m + 8 = 0</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">y = x^m  →  ansatz</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">y = x<sup>m</sup>  →  ansatz</span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">b₃ = a₃ − 6a₄ + 11a₅ − …</span>
   </div>
   <div class="hero-content">
@@ -1593,7 +1664,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <em>Orde Tinggi —</em><br>
       <span class="hl-amber">Generalisasi Orde n</span>
     </h1>
-    <p class="hero-sub">Setelah menguasai Euler-Cauchy orde 2 di Pertemuan 6, kini kita generalisasi ke <em>orde n ≥ 3</em>: <code style="font-family:'JetBrains Mono',monospace">aₙxⁿy⁽ⁿ⁾ + … + a₁xy′ + a₀y = 0</code>. Kunci baru: <strong>rumus konversi koefisien</strong> <em>aᵢ → bᵢ</em> dan <strong>pembagian sintetis (Horner)</strong> untuk mencari akar polinomial derajat-n. Tiga kasus akar yang sama (real berbeda, berganda, kompleks) muncul dengan struktur kaya: multiplisitas hingga <em>n</em>, basis dengan <em>(ln x)^k</em>, dan pasangan kompleks berganda di orde 4+.</p>
+    <p class="hero-sub">Setelah menguasai Euler-Cauchy orde 2 di Pertemuan 6, kini kita generalisasi ke <em>orde n ≥ 3</em>: <code style="font-family:'JetBrains Mono',monospace">aₙxⁿy⁽ⁿ⁾ + … + a₁xy′ + a₀y = 0</code>. Kunci baru: <strong>rumus konversi koefisien</strong> <em>aᵢ → bᵢ</em> dan <strong>pembagian sintetis (Horner)</strong> untuk mencari akar polinomial derajat-n. Tiga kasus akar yang sama (real berbeda, berganda, kompleks) muncul dengan struktur kaya: multiplisitas hingga <em>n</em>, basis dengan <em>(ln x)<sup>k</sup></em>, dan pasangan kompleks berganda di orde 4+.</p>
     <div class="academic-roadmap" aria-label="Alur belajar modul">
       <div class="road-step"><span>01</span><strong>Pelajari</strong><small>Konsep, prinsip, dan rumus</small></div><div class="road-arrow" aria-hidden="true">→</div>
       <div class="road-step"><span>02</span><strong>Eksplorasi</strong><small>Contoh, tabel, dan animasi</small></div><div class="road-arrow" aria-hidden="true">→</div>
@@ -1647,7 +1718,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-pengertian">
   <div class="section-label reveal">Bagian 01</div>
   <h2 class="section-title reveal">Euler-Cauchy Orde Tinggi —<br>Generalisasi ke Orde n ≥ 3</h2>
-  <p class="section-desc reveal">Pertemuan 6 memperkenalkan Euler-Cauchy orde 2: <code>a·x²y″ + b·xy′ + c·y = 0</code>. Pertemuan 7 memperluas pola <strong>"pangkat x sama dengan orde turunan"</strong> ke <em>orde n sembarang</em>. Bentuk umum ini muncul pada <strong>defleksi balok orde 4</strong> (Euler-Bernoulli pada balok dengan modulus elastisitas variabel), <strong>konduksi-konveksi pada cangkang multi-layer</strong>, dan <strong>vibrasi pelat tipis</strong> dengan ketebalan polinomial. Selain ansatz <code>y = x^m</code> yang sama, kita perlu dua alat baru: <em>rumus konversi b<sub>i</sub></em> dan <em>pembagian sintetis Horner</em>. Gambar 1 mengilustrasikan gagasan ini. Hubungan ini dirangkum dalam Persamaan (1) di bawah.</p>
+  <p class="section-desc reveal">Pertemuan 6 memperkenalkan Euler-Cauchy orde 2: <code>a·x²y″ + b·xy′ + c·y = 0</code>. Pertemuan 7 memperluas pola <strong>"pangkat x sama dengan orde turunan"</strong> ke <em>orde n sembarang</em>. Bentuk umum ini muncul pada <strong>defleksi balok orde 4</strong> (Euler-Bernoulli pada balok dengan modulus elastisitas variabel), <strong>konduksi-konveksi pada cangkang multi-layer</strong>, dan <strong>vibrasi pelat tipis</strong> dengan ketebalan polinomial. Selain ansatz <code>y = x<sup>m</sup></code> yang sama, kita perlu dua alat baru: <em>rumus konversi b<sub>i</sub></em> dan <em>pembagian sintetis Horner</em>. Gambar 1 mengilustrasikan gagasan ini. Hubungan ini dirangkum dalam Persamaan (1) di bawah.</p>
 <!-- ILUSTRASI-STATIS:1:START -->
   <figure class="ilustrasi reveal">
     <svg viewBox="0 0 660 222" role="img" aria-label="Gambar 1 — Pola yang sama diperluas ke orde n" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="222" fill="#0a101f"/><line x1="92" y1="103" x2="330" y2="57" stroke="#243653" stroke-width="1"/><line x1="92" y1="103" x2="330" y2="103" stroke="#243653" stroke-width="1"/><line x1="92" y1="103" x2="330" y2="149" stroke="#243653" stroke-width="1"/><line x1="330" y1="57" x2="568" y2="103" stroke="#243653" stroke-width="1"/><line x1="330" y1="103" x2="568" y2="103" stroke="#243653" stroke-width="1"/><line x1="330" y1="149" x2="568" y2="103" stroke="#243653" stroke-width="1"/><circle cx="92" cy="103" r="13" fill="#0e1628" stroke="#00e09e" stroke-width="2"/><circle cx="330" cy="57" r="13" fill="#0e1628" stroke="#22d3ee" stroke-width="2"/><circle cx="330" cy="103" r="13" fill="#0e1628" stroke="#22d3ee" stroke-width="2"/><circle cx="330" cy="149" r="13" fill="#0e1628" stroke="#22d3ee" stroke-width="2"/><circle cx="568" cy="103" r="13" fill="#0e1628" stroke="#a855f7" stroke-width="2"/><text x="92" y="20" text-anchor="middle" font-size="11.5" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">PD orde n</text><text x="330" y="20" text-anchor="middle" font-size="11.5" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">n akar</text><text x="568" y="20" text-anchor="middle" font-size="11.5" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Solusi umum</text><text x="330" y="212" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">n akar berarti n konstanta yang harus ditentukan</text></svg>
@@ -1671,11 +1742,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📐</div>
       <h3>Pola Pangkat-Turunan</h3>
       <p>Setiap suku memiliki <strong>pangkat x sama dengan orde turunan</strong>: <code>xⁿ·y⁽ⁿ⁾</code>, <code>xⁿ⁻¹·y⁽ⁿ⁻¹⁾</code>, …, <code>x⁰·y</code>. Pola <em>\(x^{k} \cdot y^{(k)}\)</em> inilah tanda khas Euler-Cauchy yang berlaku <strong>untuk semua orde n</strong>, sama seperti orde 2, hanya jumlah suku bertambah.</p>
-      <div class="formula">x^\(k \cdot y^{k}\),  k = 0..n</div>
+      <div class="formula">\(x^{k} \cdot y^{(k)}\),  k = 0..n</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
-      <h3>Ansatz Tetap y = x^m</h3>
+      <h3>Ansatz Tetap y = x<sup>m</sup></h3>
       <p>Substitusi yang sama dengan orde 2 berlaku: \(y = x^{m}\), turunan ke-k menghasilkan \(m(m-1)(m-2)\ldots (m-k+1) \cdot x^{m-k}\). Setelah dikalikan \(x^{k}\), semua suku menjadi pangkat \(x^{m}\), bisa dibagi habis meninggalkan <strong>polinomial derajat n dalam m</strong>.</p>
       <div class="formula">\(y = x^m \implies b_{nm}ⁿ + \ldots + b_0 = 0\)</div>
     </div>
@@ -1733,7 +1804,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Substitusi y = x<sup>m</sup></h3>
       <p>Dari \(y = x^{m}\): \(y' = m \cdot x^{m-1}\), \(y'' = m(m-1) \cdot x^{m-2}\), \(y''' = m(m-1)(m-2) \cdot x^{m-3}\), …, \(y^{(k)} = m(m-1)\ldots (m-k+1) \cdot x^{m-k}\). Setelah dikalikan \(x^{k}\) dan dijumlahkan, \(x^{m}\) bisa difaktorkan keluar.</p>
-      <div class="formula">y<sup>(k)</sup> = m^(k)·x^(m−k)</div>
+      <div class="formula">y<sup>(k)</sup> = m<sup>k</sup>·x<sup>m−k</sup></div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
@@ -1796,7 +1867,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Bila polinomial karakteristik orde n memiliki <strong>n akar real berbeda</strong> m₁, m₂, …, m<sub>n</sub>, solusi umumnya adalah kombinasi linier dari n fungsi pangkat. Pencarian akar untuk n ≥ 3 menggunakan <strong>pembagian sintetis (Horner)</strong>: tebak akar rasional dari faktor a₀/aₙ, verifikasi sisa = 0, lalu reduksi derajat polinomial sampai tersisa kuadrat. Perhatikan ilustrasinya pada Gambar 3. Persamaan (3) di bawah memadatkan aturan tersebut.</p>
 <!-- ILUSTRASI-STATIS:3:START -->
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 3 — Semua akar real berbeda" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,203.3 L226.2,195.9 L374.7,181.2 L493.5,148.1 L570.7,103.9 L642.0,43.2 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,203.3 L226.2,195.9 L374.7,181.2 L493.5,148.1 L570.7,103.9 L642.0,43.2" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M48.0,208.8 L642.0,52.4" fill="none" stroke="#a855f7" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M48.0,61.6 L196.5,81.8 L345.0,107.6 L493.5,137.0 L642.0,162.8" fill="none" stroke="#f97316" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x^{m₁}</text><line x1="120.4" y1="18" x2="142.4" y2="18" stroke="#a855f7" stroke-width="3" stroke-linecap="round"/><text x="147.4" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x^{m₂}</text><line x1="192.8" y1="18" x2="214.8" y2="18" stroke="#f97316" stroke-width="3" stroke-linecap="round"/><text x="219.8" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x^{m₃}</text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">y(x)</text></g></svg>
+    <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 3 — Semua akar real berbeda" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,203.3 L226.2,195.9 L374.7,181.2 L493.5,148.1 L570.7,103.9 L642.0,43.2 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,203.3 L226.2,195.9 L374.7,181.2 L493.5,148.1 L570.7,103.9 L642.0,43.2" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M48.0,208.8 L642.0,52.4" fill="none" stroke="#a855f7" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M48.0,61.6 L196.5,81.8 L345.0,107.6 L493.5,137.0 L642.0,162.8" fill="none" stroke="#f97316" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x<tspan dy="-4.4" font-size="8.3">m₁</tspan></text><line x1="101.2" y1="18" x2="123.2" y2="18" stroke="#a855f7" stroke-width="3" stroke-linecap="round"/><text x="128.2" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x<tspan dy="-4.4" font-size="8.3">m₂</tspan></text><line x1="154.4" y1="18" x2="176.4" y2="18" stroke="#f97316" stroke-width="3" stroke-linecap="round"/><text x="181.4" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x<tspan dy="-4.4" font-size="8.3">m₃</tspan></text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">y(x)</text></g></svg>
     <figcaption><strong>Gambar 3</strong> — Semua akar real berbeda. Setiap akar menyumbang satu fungsi pangkat, dan solusinya adalah jumlahan berbobot seluruh sumbangan itu.</figcaption>
   </figure>
 <!-- ILUSTRASI-STATIS:3:END -->
@@ -1816,7 +1887,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🌿</div>
       <h3>Basis Solusi (n Fungsi)</h3>
-      <p>{x<sup>m₁</sup>, x<sup>m₂</sup>, …, x<sup>mₙ</sup>}. Wronskian Vandermonde-like: \(W \propto \prod _{i<j} (m_{j} - m_{i}) \cdot x^\Sigma mᵢ-n(n-1)/2\). Karena semua m<sub>i</sub> berbeda dan x &gt; 0, W ≠ 0, basis valid.</p>
+      <p>{x<sup>m₁</sup>, x<sup>m₂</sup>, …, x<sup>mₙ</sup>}. Wronskian Vandermonde-like: \(W \propto \prod_{i \lt j} (m_{j} - m_{i}) \cdot x^{\Sigma m_i - n(n-1)/2}\). Karena semua m<sub>i</sub> berbeda dan x &gt; 0, W ≠ 0, basis valid.</p>
       <div class="formula">\(W \propto \prod (m_j - m_i) \ne 0\)</div>
     </div>
     <div class="card">
@@ -1934,7 +2005,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-kasus2">
   <div class="section-label reveal">Bagian 04</div>
   <h2 class="section-title reveal">Kasus 2 — Akar Real Berganda<br>Multiplisitas k (k ≥ 2)</h2>
-  <p class="section-desc reveal">Pada orde 2, akar berganda paling banyak <strong>multiplisitas 2</strong>. Pada orde n, sebuah akar bisa muncul hingga <strong>multiplisitas n</strong>, misal m = 2 muncul 3 kali pada <code>(m−2)³ = 0</code>. Untuk akar dengan multiplisitas k, basis solusinya adalah <code>k</code> fungsi independen yang dibentuk dari perkalian <code>x^m</code> dengan pangkat <em>(ln x)</em>. Inilah generalisasi natural dari pola Pertemuan 6. Gambar 4 merangkum alurnya secara visual. Rangkuman kuantitatifnya tertulis pada Persamaan (4).</p>
+  <p class="section-desc reveal">Pada orde 2, akar berganda paling banyak <strong>multiplisitas 2</strong>. Pada orde n, sebuah akar bisa muncul hingga <strong>multiplisitas n</strong>, misal m = 2 muncul 3 kali pada <code>(m−2)³ = 0</code>. Untuk akar dengan multiplisitas k, basis solusinya adalah <code>k</code> fungsi independen yang dibentuk dari perkalian <code>x<sup>m</sup></code> dengan pangkat <em>(ln x)</em>. Inilah generalisasi natural dari pola Pertemuan 6. Gambar 4 merangkum alurnya secara visual. Rangkuman kuantitatifnya tertulis pada Persamaan (4).</p>
 <!-- ILUSTRASI-STATIS:4:START -->
   <figure class="ilustrasi reveal">
     <svg viewBox="0 0 660 161" role="img" aria-label="Gambar 4 — Multiplisitas menentukan banyak faktor logaritma" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="161" fill="#0a101f"/><text x="186" y="35" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Multiplisitas 1</text><rect x="196" y="16" width="128.4" height="30" rx="7" fill="#22d3ee" fill-opacity="0.82"/><text x="332.4" y="35" text-anchor="start" font-size="11.5" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">xᵐ</text><text x="186" y="78" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Multiplisitas 2</text><rect x="196" y="59" width="256.8" height="30" rx="7" fill="#a855f7" fill-opacity="0.82"/><text x="460.8" y="78" text-anchor="start" font-size="11.5" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">+ xᵐ ln x</text><text x="186" y="121" text-anchor="end" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Multiplisitas 3</text><rect x="196" y="102" width="385.2" height="30" rx="7" fill="#f97316" fill-opacity="0.82"/><text x="589.2" y="121" text-anchor="start" font-size="11.5" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">+ xᵐ (ln x)²</text></svg>
@@ -2475,7 +2546,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="m7OrdenInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Konstruksi solusi Euler-Cauchy orde n langsung dari akarnya: y = c₁·x^m₁ + c₂·x^m₂ + ... + cₙ·x^mₙ. Slider memilih akar individual. <strong>Untuk orde 3</strong> ditampilkan 3 akar; <strong>orde 4</strong> menampilkan 4 akar (m₄ otomatis dipilih). Mode dengan m &lt; 0 mendominasi saat x → 0; mode m &gt; 0 mendominasi saat x → ∞. Solusi total adalah superposisi linear semua mode.
+        <strong>📊 Cara Membaca:</strong> Konstruksi solusi Euler-Cauchy orde n langsung dari akarnya: y = c₁·x<sup>m₁</sup> + c₂·x<sup>m₂</sup> + ... + cₙ·x<sup>mₙ</sup>. Slider memilih akar individual. <strong>Untuk orde 3</strong> ditampilkan 3 akar; <strong>orde 4</strong> menampilkan 4 akar (m₄ otomatis dipilih). Mode dengan m &lt; 0 mendominasi saat x → 0; mode m &gt; 0 mendominasi saat x → ∞. Solusi total adalah superposisi linear semua mode.
       </div>
     </div>
   </div>
@@ -2501,7 +2572,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="m7RootsInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Bidang kompleks m. n akar polinomial karakteristik orde n ditandai sebagai dot dengan multiplicity ditampilkan via badge. Stable region (Re(m)&lt;0) green = mode <em>decay saat x→∞</em>; unstable (Re(m)&gt;0) red = mode <em>tumbuh saat x→∞</em>. Pasangan kompleks selalu konjugat (mirror image). Setiap akar berganda multiplisitas k menyumbang k mode independen via multiplikasi (ln x)^(0..k-1).
+        <strong>📊 Cara Membaca:</strong> Bidang kompleks m. n akar polinomial karakteristik orde n ditandai sebagai dot dengan multiplicity ditampilkan via badge. Stable region (Re(m)&lt;0) green = mode <em>decay saat x→∞</em>; unstable (Re(m)&gt;0) red = mode <em>tumbuh saat x→∞</em>. Pasangan kompleks selalu konjugat (mirror image). Setiap akar berganda multiplisitas k menyumbang k mode independen via multiplikasi (ln x)<sup>0..k-1</sup>.
       </div>
     </div>
   </div>
@@ -2584,7 +2655,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
             <option value="cantilever">🏗️ Balok Cantilever: EI·y'''' = 0, ujung kanan free</option>
             <option value="plate">🪟 Vibrasi Pelat Persegi: orde 4 di 2D (∇⁴u)</option>
             <option value="buckling">📏 Euler Buckling Column: y'''' + (P/EI)·y'' = 0</option>
-            <option value="taperedB">🪜 Balok Tirus EI(x) = \(E \cdot I\)₀·\(x^2\): Euler-Cauchy orde 4</option>
+            <option value="taperedB">🪜 Balok Tirus EI(x) = E·I₀·x²: Euler-Cauchy orde 4</option>
           </select>
         </div>
       </div>
@@ -2898,7 +2969,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">ax²y'' + bxy' + cy = 0</span>
     <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">am(m−1) + bm + c = 0</span>
     <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">D = (b−a)² − 4ac</span>
-    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">y = x^α·(c₁cos(β ln x) + c₂sin(β ln x))</span>
+    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">y = x<sup>α</sup>·(c₁cos(β ln x) + c₂sin(β ln x))</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 7 · Persamaan Euler-Cauchy Orde Tinggi Homogen</div>
@@ -3594,7 +3665,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">numpy.linalg.solve</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Hint: Untuk PD homogen dengan semua syarat batas y=y'=y''=y'''=0 di x=1 dan x=6, sistemnya akan memberi solusi trivial c₁=c₂=c₃=c₄=0 (sesuai kondisi statis tanpa beban). Untuk solusi non-trivial, perlu <strong>partikular</strong> dari beban, di luar lingkup orde tinggi homogen ini. Latihan: tambahkan <code>y(L) = δ_max</code> sebagai constraint dan analisis sensitivity.</em>
+          💬 <em>Hint: Untuk PD homogen dengan semua syarat batas y=y'=y''=y'''=0 di x=1 dan x=6, sistemnya akan memberi solusi trivial c₁=c₂=c₃=c₄=0 (sesuai kondisi statis tanpa beban). Untuk solusi non-trivial, perlu <strong>partikular</strong> dari beban, di luar lingkup orde tinggi homogen ini. Latihan: tambahkan <code>y(L) = δ<sub>max</sub></code> sebagai constraint dan analisis sensitivity.</em>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis analisis BVP lengkap (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Tulis sistem 4×4 secara explicit: matriks A dan vektor b. (2) Jelaskan setup numerik di Python (numpy.linalg.solve). (3) Bahas: untuk BVP homogen tanpa beban, solusinya trivial. Bagaimana menambahkan beban (suku partikular)? (4) Trade-off antara orde tinggi (akurat) vs orde rendah (mudah dihitung) untuk desain praktis sayap." oninput="checkForumReady()"></textarea>
@@ -6012,13 +6083,13 @@ function drawCases(){
     let rootsStr;
     if (kase === 1){
       const m1 = ((1-b) + Math.sqrt(D))/2, m2 = ((1-b) - Math.sqrt(D))/2;
-      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x^m₁ + c₂·x^m₂`;
+      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x<sup>m₁</sup> + c₂·x<sup>m₂</sup>`;
     } else if (kase === 2){
       const m = (1-b)/2;
-      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x^m`;
+      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x<sup>m</sup>`;
     } else {
       const al = (1-b)/2, be = Math.sqrt(-D)/2;
-      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x^α·[c₁cos(β ln x) + c₂sin(β ln x)]`;
+      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x<sup>α</sup>·[c₁cos(β ln x) + c₂sin(β ln x)]`;
     }
     infoEl.innerHTML = `<span style="color:${color}">●</span> PD: x²y'' + ${b.toFixed(2)}·x·y' + ${c.toFixed(2)}·y = 0 &nbsp;|&nbsp; D = (b−1)² − 4c = ${D.toFixed(2)} &nbsp;|&nbsp; ${rootsStr}`;
   }
@@ -6135,9 +6206,9 @@ function drawRoots(){
   ctx.fillText('Re(m)', px1 - 35, cy - 8);
   ctx.fillText('Im(m)', cx + 6, py0 + 12);
   ctx.fillStyle = '#00e09e';
-  ctx.fillText('x^m → 0', px0 + 8, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → 0', px0 + 8, py0 + 16);
   ctx.fillStyle = '#ef4444';
-  ctx.fillText('x^m → ∞', px1 - 65, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → ∞', px1 - 65, py0 + 16);
   ctx.fillStyle = '#94a3b8';
   for (let i = -4; i <= 4; i += 2){
     if (i === 0) continue;
@@ -6561,7 +6632,7 @@ function drawSweep(){
       const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
       const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
       const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
+      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r<sub>max</sub>=${rmaxTheory.toFixed(2)}, DMF<sub>max</sub>=${dmfmaxTheory.toFixed(2)}`;
     } else {
       info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
     }
@@ -6927,7 +6998,7 @@ function drawHPB(){
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
+  ctx.fillText(`${linePos.toFixed(2)} × H²<sub>max</sub> = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
 
   // Find ω₁ and ω₂ (intersection of curve with targetY)
   // Binary search on either side of peak
@@ -6971,12 +7042,12 @@ function drawHPB(){
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
+    let html = `ζ<sub>TRUE</sub> = ${zetaTrue.toFixed(3)} · ω<sub>peak</sub> = ${omegaPeak.toFixed(2)} · H²<sub>max</sub> = ${H2max.toFixed(2)}<br>`;
     if(omega1 !== null && omega2 !== null){
       html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
       if(Math.abs(linePos - 0.5) < 0.02){
         const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
+        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ<sub>estimated</sub> = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
       } else {
         html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
       }
@@ -7860,10 +7931,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7877,7 +7948,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -10404,7 +10475,7 @@ function drawEMTog(){
   const isNum = (_emTogMode === 1);
   const color = isNum ? '#a855f7' : '#00e09e';
   ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e^(-bt/2)·cos(ωt)', 20, 30);
+  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e<sup>-bt/2</sup>·cos(ωt)', 20, 30);
 
   const padL=50, padR=20, padT=50, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
@@ -10885,7 +10956,7 @@ function _createForumParticleBurst(event) {
 
     // Title
     ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 13px JetBrains Mono, monospace';
-    const formula = ms.map((m, k) => `${cs ? cs[k].toFixed(2) : '?'}·x^${m.toFixed(2)}`).join(' + ');
+    const formula = ms.map((m, k) => `${cs ? cs[k].toFixed(2) : '?'}·x<sup>${m.toFixed(2)}</sup>`).join(' + ');
     ctx.fillText(`Orde ${n}: y = ${formula}`, padL + 8, padT + 16);
 
     // Animated tracing dot
@@ -11351,7 +11422,7 @@ function _createForumParticleBurst(event) {
                   shape: x => (1-x)*(1-x)*(2+x)*x*x*0.6, color: '#00e09e', icon: 'cantilever' },
     plate:      { label: 'Vibrasi Pelat 2D: u = sin(πx/a)·sin(πy/b)',
                   shape: x => Math.sin(Math.PI*x), color: '#ff6bb3', icon: 'plate' },
-    buckling:   { label: 'Euler Buckling: y = sin(πx/L) [P_critical = π²EI/L²]',
+    buckling:   { label: 'Euler Buckling: y = sin(πx/L) [P<sub>critical</sub> = π²EI/L²]',
                   shape: x => Math.sin(Math.PI*x), color: '#ffb300', icon: 'buckling' },
     taperedB:   { label: 'Balok Tirus EI(x)=EI₀x²: solusi Euler-Cauchy orde 4',
                   shape: x => Math.pow(x, 2.5) - x*x, color: '#a855f7', icon: 'tapered' }

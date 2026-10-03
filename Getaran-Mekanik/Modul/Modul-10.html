@@ -1239,6 +1239,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1964,7 +2035,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📐</div>
       <h3>Step 3: Calculate r &amp; ω<sub>n</sub></h3>
       <p>Solve TR formula untuk frequency ratio r (assume ζ low ~0.05). Rule of thumb (ζ→0): TR ≈ 1/(\(r^2\)−1). r = \(\sqrt{1/TR + 1}\). Untuk TR=0.1: r ≈ 3.3. Then \(\omega _{n} = \omega _{excitation}/r\).</p>
-      <div class="formula">r = \(\sqrt{1/TR + 1}\), \(\omega _n\) = ω_ex/r</div>
+      <div class="formula">r = \(\sqrt{1/TR + 1}\), \(\omega _n\) = ω<sub>ex</sub>/r</div>
     </div>
     <div class="card">
       <div class="card-icon">🛠️</div>
@@ -2282,7 +2353,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
       <div id="cvMuRatio_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca:</strong> Geser rasio massa absorber μ = \(m_a\)/M. Lihat dua puncak baru menjauh saat μ naik.<br>
-        <strong>Insight:</strong> μ = \(m_{\text{absorber}}\) / \(m_{\text{main}}\). Kecil (μ=0.01-0.05): bandwidth sempit, isolasi tinggi pada ω_target tetapi sensitive ke detuning. Besar (μ=0.10-0.30): bandwidth lebar, robust tetapi mass penalty.
+        <strong>Insight:</strong> μ = \(m_{\text{absorber}}\) / \(m_{\text{main}}\). Kecil (μ=0.01-0.05): bandwidth sempit, isolasi tinggi pada ω<sub>target</sub> tetapi sensitive ke detuning. Besar (μ=0.10-0.30): bandwidth lebar, robust tetapi mass penalty.
       </div>
     </div>
   </div>
@@ -2310,7 +2381,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
       </div>
       <div id="cvTuning_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Toggle perbandingan tuning. Classical: \(\omega _a\) = ω_target. Den Hartog: optimal damping + slight detune.<br>
+        <strong>📊 Cara Membaca:</strong> Toggle perbandingan tuning. Classical: \(\omega _a\) = ω<sub>target</sub>. Den Hartog: optimal damping + slight detune.<br>
         <strong>Insight:</strong> Classical: hanya bekerja untuk ζ=0 (undamped main). Den Hartog: untuk damped main + accounts random vibration → equal-response design.
       </div>
     </div>
@@ -2428,7 +2499,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     ctx.fillText('|H| (log scale)', 0, 0);
     ctx.restore();
     ctx.textAlign = 'center';
-    ctx.fillText('r = ω/ω_n', W/2, H-1);
+    ctx.fillText('r = ω/ω<sub>n</sub>', W/2, H-1);
     // Plot
     const pts = 200;
     function logScale(v) { return Math.log10(Math.max(0.01, v) + 1) / Math.log10(101); }
@@ -2582,9 +2653,9 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
-        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(\omega _a\) = 2·ω_drive</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(\omega _a\) = ω_drive (tepat)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(\omega _a\) = 0.5·ω_drive</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(\omega _a\) = 2·ω<sub>drive</sub></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(\omega _a\) = ω<sub>drive</sub> (tepat)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(\omega _a\) = 0.5·ω<sub>drive</sub></div>
         <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(\omega _a\) tidak penting</div>
       </div>
       <button class="mc-submit" id="sub-mc2" onclick="checkMC('mc2')" disabled>Periksa Jawaban</button>
@@ -2634,7 +2705,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
       </div>
       <div class="radio-group" id="rg-mc5">
         <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; 1 frekuensi pribadi</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; 2 frekuensi pribadi (ω₁ < ω_tuning < ω₂) dan 1 anti-resonance</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; 2 frekuensi pribadi (ω₁ < ω<sub>tuning</sub> < ω₂) dan 1 anti-resonance</div>
         <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; 3 anti-resonances</div>
         <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Tidak ada perubahan frekuensi</div>
       </div>
@@ -2697,7 +2768,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">09</div>
-        <div class="mc-q"><strong>Static deflection</strong> isolator (δ_static) terkait dengan natural frequency: \(f_n\) ≈ ...</div>
+        <div class="mc-q"><strong>Static deflection</strong> isolator (δ<sub>static</sub>) terkait dengan natural frequency: \(f_n\) ≈ ...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
@@ -2758,7 +2829,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
         <div class="comp-q"><strong>Den Hartog optimal frequency ratio</strong> untuk μ = 0.10. Formula: \(f_{\text{opt}}\) = 1 / (1 + μ).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Terapkan rumus Den Hartog f_opt = 1/(1+μ); substitusikan nilai μ.</div>
+      <div class="comp-hint">💡 Terapkan rumus Den Hartog f<sub>opt</sub> = 1/(1+μ); substitusikan nilai μ.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c1')"></textarea>
@@ -2792,7 +2863,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
         <div class="comp-q"><strong>TMD spring stiffness</strong>: untuk struktur \(\omega _n\) = 10 rad/s, \(m_a\) = 100 kg, μ = 0.05, \(f_{\text{opt}}\) = 1/(1+μ). Hitung \(k_a\) = \(m_a\) · (\(f_{\text{opt}}\) · \(\omega _n\))².</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Hitung f_opt = 1/(1+μ), lalu \(k_a\) = \(m_a\)·(f_opt·\(\omega _n\))²; substitusikan \(m_a\), \(\omega _n\), dan μ.</div>
+      <div class="comp-hint">💡 Hitung f<sub>opt</sub> = 1/(1+μ), lalu \(k_a\) = \(m_a\)·(f<sub>opt</sub>·\(\omega _n\))²; substitusikan \(m_a\), \(\omega _n\), dan μ.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
@@ -2809,7 +2880,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
         <div class="comp-q">Untuk vibration isolator dengan <strong>natural freq \(f_n = 5 Hz\)</strong>, hitung static deflection δ (mm). Formula: δ = g/(2π·\(f_n\))².</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Static deflection δ = g/(2π·f_n)² dengan <code>np.pi</code>; kalikan 1000 untuk konversi ke mm.</div>
+      <div class="comp-hint">💡 Static deflection δ = g/(2π·f<sub>n</sub>)² dengan <code>np.pi</code>; kalikan 1000 untuk konversi ke mm.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c4" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c4')"></textarea>
@@ -2860,7 +2931,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
         <div class="comp-q">Untuk eksitasi 50 Hz dan target r = 3, hitung <strong>natural freq isolator</strong> \(f_n\) = \(f_{\text{excitation}}\) / r.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Natural freq isolator f_n = f_eksitasi/r; bagi frekuensi eksitasi dengan rasio r target.</div>
+      <div class="comp-hint">💡 Natural freq isolator f<sub>n</sub> = f<sub>eksitasi</sub>/r; bagi frekuensi eksitasi dengan rasio r target.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
@@ -2894,7 +2965,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
         <div class="comp-q"><strong>TMD damping coefficient</strong>: untuk \(m_a\) = 100 kg, \(\omega _a\) = 9.5 rad/s, \(ζ_opt\) = 0.135, hitung \(c_a\) = 2·\(m_a\)·\(\omega _a\)·\(ζ_opt\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Koefisien redaman absorber c_a = 2·\(m_a\)·\(\omega _a\)·\(ζ_opt\); substitusikan \(m_a\), \(\omega _a\), dan \(ζ_opt\).</div>
+      <div class="comp-hint">💡 Koefisien redaman absorber c<sub>a</sub> = 2·\(m_a\)·\(\omega _a\)·\(ζ_opt\); substitusikan \(m_a\), \(\omega _a\), dan \(ζ_opt\).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
@@ -2940,7 +3011,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
         <div class="comp-q"><strong>Den Hartog full design function</strong>: implementasikan den_hartog_tmd(\(m_{\text{main}}\), \(omega_n\), mu) yang return dict (\(m_a\), \(k_a\), \(c_a\)). Test dengan (1000, 10, 0.05). Return \(k_a\).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Hitung berurutan: \(m_a\) = μ·m_main, f_opt = 1/(1+μ), \(\omega _a\) = f_opt·\(\omega _n\), lalu \(k_a\) = \(m_a\)·ω_a²; kembalikan \(k_a\) dari dict desain.</div>
+      <div class="comp-hint">💡 Hitung berurutan: \(m_a\) = μ·m<sub>main</sub>, f<sub>opt</sub> = 1/(1+μ), \(\omega _a\) = f<sub>opt</sub>·\(\omega _n\), lalu \(k_a\) = \(m_a\)·ω<sub>a</sub>²; kembalikan \(k_a\) dari dict desain.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c11')"></textarea>
@@ -2957,7 +3028,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
         <div class="comp-q"><strong>FRF magnitude struktur dengan TMD</strong>: untuk sistem 2-DoF (m=1, k=100, \(m_a\)=0.05, \(k_a\)=4.535, \(c_a\)=0.13) di ω = 10 (frekuensi tuning). Hitung |\(X_{\text{main}}\) / F| via 2x2 impedance matrix Cramer rule.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Susun matriks impedansi kompleks 2×2 (Z11, Z12, Z22 dari massa, kekakuan, dan jωc), lalu pakai aturan Cramer H = Z22/det untuk |X_main/F|; pada tuning yang benar terjadi anti-resonansi.</div>
+      <div class="comp-hint">💡 Susun matriks impedansi kompleks 2×2 (Z11, Z12, Z22 dari massa, kekakuan, dan jωc), lalu pakai aturan Cramer H = Z22/det untuk |X<sub>main</sub>/F|; pada tuning yang benar terjadi anti-resonansi.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -2991,7 +3062,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
         <div class="comp-q"><strong>Optimal isolator design</strong>: untuk compressor 200 kg pada 1500 RPM, target TR = 0.1. Hitung \(omega_n\) isolator, then static deflection (mm).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Hitung r dari TR target (r ≈ \(\sqrt{1/TR+1}\)), konversi RPM ke ω eksitasi, dapat \(\omega _n\) = ω_eksitasi/r, lalu static deflection δ = g/ω_n² (konversi ke mm).</div>
+      <div class="comp-hint">💡 Hitung r dari TR target (r ≈ \(\sqrt{1/TR+1}\)), konversi RPM ke ω eksitasi, dapat \(\omega _n\) = ω<sub>eksitasi</sub>/r, lalu static deflection δ = g/ω<sub>n</sub>² (konversi ke mm).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c14" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c14')"></textarea>
@@ -3005,10 +3076,10 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q"><strong>Sensitivity analysis</strong>: TMD designed untuk \(\omega_n\) = 10 dengan μ=0.05, \(f_{\text{opt}}\)=0.952. Bila \(\omega_n\) aktual struktur bergeser ke 10.5 (5% mistuning), hitung \(f_{\text{opt}}\) aktual (= \(\omega_a / \omega_n\) baru), lalu <strong>print SELISIH-nya</strong> terhadap f_opt desain (0.952).</div>
+        <div class="comp-q"><strong>Sensitivity analysis</strong>: TMD designed untuk \(\omega_n\) = 10 dengan μ=0.05, \(f_{\text{opt}}\)=0.952. Bila \(\omega_n\) aktual struktur bergeser ke 10.5 (5% mistuning), hitung \(f_{\text{opt}}\) aktual (= \(\omega_a / \omega_n\) baru), lalu <strong>print SELISIH-nya</strong> terhadap f<sub>opt</sub> desain (0.952).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Dari desain dapat \(\omega _a\) = f_opt·\(\omega _n\), lalu f_opt aktual = \(\omega _a\)/ω_n_baru; hitung selisih f_opt desain dan aktual.</div>
+      <div class="comp-hint">💡 Dari desain dapat \(\omega _a\) = f<sub>opt</sub>·\(\omega _n\), lalu f<sub>opt</sub> aktual = \(\omega _a\)/ω<sub>n,baru</sub>; hitung selisih f<sub>opt</sub> desain dan aktual.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--pink)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c15" rows="10" placeholder="Implementasikan algoritma sesuai instruksi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c15')"></textarea>
@@ -3089,7 +3160,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">Pompa: 1500 rpm = 25 Hz</div>
       <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">Isolator: \(f_n\)=5 Hz, ζ=0.10</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Den Hartog optimal tuning: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">f_opt = ω_a/ω_n = 1/(1+μ)</code> dan <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">ζ_opt = √(3μ/(8(1+μ)³))</code>. Transmissibility isolator: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">TR = √(1+(2ζr)²) / √((1−r²)²+(2ζr)²)</code> dengan r = ω_drive / ω_n_isolator.</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Den Hartog optimal tuning: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">f<sub>opt</sub> = ω<sub>a</sub>/ω<sub>n</sub> = 1/(1+μ)</code> dan <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">ζ<sub>opt</sub> = √(3μ/(8(1+μ)³))</code>. Transmissibility isolator: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">TR = √(1+(2ζr)²) / √((1−r²)²+(2ζr)²)</code> dengan r = ω<sub>drive</sub> / ω<sub>n,isolator</sub>.</p>
   </div>
 
   <!-- Referensi Materi Bagian 04 untuk visualisasi response curve TMD -->
@@ -3115,7 +3186,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Dengan \(m_M\) = 1000 kg, \(\omega _n\) = 20 rad/s, dan μ = 0.05, hitung: (a) \(m_a\) = μ·\(m_M\), (b) frekuensi TMD optimal \(\omega _a\) = \(f_{\text{opt}}\)·\(\omega _n\), (c) \(k_a\) = \(m_a\)·ω_a², (d) damping optimal \(c_a\) = 2·\(ζ_opt\)·\(m_a\)·\(\omega _a\). Periksa dimensi tiap nilai (kg, N/m, \(N \cdot s\)/m).</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Dengan \(m_M\) = 1000 kg, \(\omega _n\) = 20 rad/s, dan μ = 0.05, hitung: (a) \(m_a\) = μ·\(m_M\), (b) frekuensi TMD optimal \(\omega _a\) = \(f_{\text{opt}}\)·\(\omega _n\), (c) \(k_a\) = \(m_a\)·ω<sub>a</sub>², (d) damping optimal \(c_a\) = 2·\(ζ_opt\)·\(m_a\)·\(\omega _a\). Periksa dimensi tiap nilai (kg, N/m, \(N \cdot s\)/m).</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(f_{\text{opt}} = 1/(1+\mu )\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(\zeta _opt = \sqrt{3\mu /(8(1+\mu }^3))\)</span>
@@ -3131,7 +3202,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>\(m_a\) = 5 kg, \(k_a\) = 2000 N/m, ζ = 0.05</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! \(m_a\) = 0.05·1000 = 50 kg. \(f_{\text{opt}}\) = 1/1.05 = 0.9524 → \(\omega _a\) = 0.9524·20 = 19.048 rad/s. \(k_a\) = 50·(19.048)² ≈ 18 141 N/m. \(ζ_opt\) = \(\sqrt{3 \cdot 0.05/(8 \cdot 1.05^3}\)) ≈ 0.127. \(c_a\) = 2·0.127·50·19.048 ≈ 242 \(N \cdot s\)/m. NB: TMD tidak di-tune ke \(\omega _n\) persis, sedikit di bawah (1/(1+μ)) agar dua puncak baru yang terbentuk sama tinggi (fixed-points Den Hartog).</div>
-          <div class="p-fb w" id="fp1w">❌ Hitung tahap demi tahap: \(m_a\) = μ·\(m_M\), \(\omega _a\) = \(\omega _n\)/(1+μ), \(k_a\) = \(m_a\)·ω_a². \(ζ_opt\) dari rumus Den Hartog ≈ 0.127 untuk μ = 5%.</div>
+          <div class="p-fb w" id="fp1w">❌ Hitung tahap demi tahap: \(m_a\) = μ·\(m_M\), \(\omega _a\) = \(\omega _n\)/(1+μ), \(k_a\) = \(m_a\)·ω<sub>a</sub>². \(ζ_opt\) dari rumus Den Hartog ≈ 0.127 untuk μ = 5%.</div>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis hasil rancangan TMD Anda (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung m_a, ω_a, k_a, ζ_opt, c_a tahap demi tahap. (2) Tunjukkan unit konsisten. (3) Jelaskan mengapa ω_a tidak persis sama dengan ω_n — fixed-points theorem Den Hartog. (4) Bandingkan dengan Taipei 101: massa TMD ~0.27% massa gedung (jauh lebih kecil dari 5%) — diskusikan mengapa." oninput="checkForumReady()"></textarea>
@@ -3149,7 +3220,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Tanpa TMD, struktur 1-DoF dengan damping struktur ζ_M ≈ 1% (gedung baja tipikal). Pada resonansi, amplification factor X/X_st = 1/(2ζ_M) = 50. Setelah TMD optimal dipasang, dua puncak respons baru terbentuk dengan tinggi sama. Hitung peak amplification baru.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Tanpa TMD, struktur 1-DoF dengan damping struktur ζ<sub>M</sub> ≈ 1% (gedung baja tipikal). Pada resonansi, amplification factor X/X<sub>st</sub> = 1/(2ζ<sub>M</sub>) = 50. Setelah TMD optimal dipasang, dua puncak respons baru terbentuk dengan tinggi sama. Hitung peak amplification baru.</p>
         <div style="background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
           💬 <em>Hint: Pada TMD optimum (Den Hartog), peak amplification = \(\sqrt{1 + 2/\mu }\). Untuk μ = 0.05: \(\sqrt{1 + 40}\) = √41 ≈ 6.40. Reduksi dari 50 → 6.40 ≈ <strong style="color:var(--green)">87% pengurangan amplitudo</strong>. Trade-off: muncul DUA puncak (bukan satu) di sekitar \(\omega _n\), sistem jadi 2-DoF, tetapi tidak ada puncak tinggi lagi di \(\omega _n\) persis.</em>
         </div>
@@ -3181,7 +3252,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Pompa beroperasi pada 1500 rpm = 25 Hz dan menghasilkan gaya unbalance harmonik. Dipasang pada isolator pegas-peredam dengan \(f_n\)_isolator = 5 Hz, ζ = 0.10. Hitung rasio frekuensi r = \(f_{\text{drive}}\)/f_n, lalu transmissibility TR. Berapa persen reduksi gaya yang ditransmisikan ke pondasi? Bandingkan dengan kriteria "good isolation" (TR &lt; 0.1).</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Pompa beroperasi pada 1500 rpm = 25 Hz dan menghasilkan gaya unbalance harmonik. Dipasang pada isolator pegas-peredam dengan \(f_n\)_isolator = 5 Hz, ζ = 0.10. Hitung rasio frekuensi r = \(f_{\text{drive}}\)/f<sub>n</sub>, lalu transmissibility TR. Berapa persen reduksi gaya yang ditransmisikan ke pondasi? Bandingkan dengan kriteria "good isolation" (TR &lt; 0.1).</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(r = \omega_{\text{drive}} / \omega_{n,\text{isolator}}\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(TR = \sqrt{1+(2\zeta r}^2)/\sqrt{(1-r^2}^2+(2\zeta r)^2)\)</span>
@@ -5798,7 +5869,7 @@ function drawPhysics(){
   ctx.fillStyle = 'rgba(14,165,233,.9)'; ctx.font = '11px JetBrains Mono';
   ctx.fillText('y(t) = Y·sin(ωt)  ←  BASE MOTION', 65, 30);
   ctx.fillStyle = 'rgba(168,85,247,.9)';
-  ctx.fillText('x(t) = T_d·Y·sin(ωt − φ)  →  RESPON MASSA', 65, 50);
+  ctx.fillText('x(t) = T<sub>d</sub>·Y·sin(ωt − φ)  →  RESPON MASSA', 65, 50);
 
   // Info
   const info = document.getElementById('physicsInfo');
@@ -5811,7 +5882,7 @@ function drawPhysics(){
     else if(r > 1.414) status = '🟢 Zona Isolasi (r > √2), X < Y';
     else if(r < 0.5) status = '🔵 Zona Kaku — X ≈ Y, ikut pondasi';
     else status = '🟡 Zona Amplifikasi (r < √2) — X > Y';
-    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong style="color:var(--cyan)">T_d=${TdStr}</strong> · φ=${phiDeg.toFixed(1)}° · ${status}`;
+    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong style="color:var(--cyan)">T<sub>d</sub>=${TdStr}</strong> · φ=${phiDeg.toFixed(1)}° · ${status}`;
   }
 
   document.getElementById('v_rp').textContent = r.toFixed(2);
@@ -6155,7 +6226,7 @@ function drawIso(){
   ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 11px JetBrains Mono';
   ctx.fillText(`r = ${rCurrent.toFixed(2)}`, 18, 22);
   ctx.fillStyle = TdCurrent > 1.2 ? '#ef4444' : (TdCurrent < 0.5 ? '#00e09e' : '#facc15');
-  ctx.fillText(`T_d = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`, 18, 40);
+  ctx.fillText(`T<sub>d</sub> = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`, 18, 40);
 
   // Divider
   ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 1;
@@ -6189,7 +6260,7 @@ function drawIso(){
   }
   ctx.textAlign = 'left';
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('T_d', plotX - 38, plotY + 12);
+  ctx.fillText('T<sub>d</sub>', plotX - 38, plotY + 12);
   ctx.fillText('r = ω/ωₙ', plotX + plotW - 60, plotY + plotH + 24);
 
   // T_d = 1 horizontal line
@@ -6254,13 +6325,13 @@ function drawIso(){
   if(info){
     if(_tdSweepAnim.running){
       const pct = Math.round(_tdSweepAnim.progress * 100);
-      info.innerHTML = `🔴 Sweep berlangsung: <strong>${pct}%</strong> · r = ${rCurrent.toFixed(2)} · T_d = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`;
+      info.innerHTML = `🔴 Sweep berlangsung: <strong>${pct}%</strong> · r = ${rCurrent.toFixed(2)} · T<sub>d</sub> = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`;
     } else if(_tdSweepAnim.points.length > 0){
       const maxPt = _tdSweepAnim.points.reduce((a,b) => b.Td > a.Td ? b : a);
       const TdCross = _tdSweepAnim.points.find(p => Math.abs(p.r - Math.sqrt(2)) < 0.05);
-      info.innerHTML = `✅ Sweep selesai · Puncak <strong>r=${maxPt.r.toFixed(2)}, T_d=${maxPt.Td.toFixed(2)}</strong> · Crossover r=√2: T_d=${TdCross ? TdCross.Td.toFixed(2) : '~1.00'} (∀ζ)`;
+      info.innerHTML = `✅ Sweep selesai · Puncak <strong>r=${maxPt.r.toFixed(2)}, T<sub>d</sub>=${maxPt.Td.toFixed(2)}</strong> · Crossover r=√2: T<sub>d</sub>=${TdCross ? TdCross.Td.toFixed(2) : '~1.00'} (∀ζ)`;
     } else {
-      info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong>. Frekuensi naik dari r=0 ke r=4 dalam 10 detik. Perhatikan T_d=1 saat r=√2.`;
+      info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong>. Frekuensi naik dari r=0 ke r=4 dalam 10 detik. Perhatikan T<sub>d</sub>=1 saat r=√2.`;
     }
   }
 }
@@ -6429,7 +6500,7 @@ function drawHPB(){
     else if(r_op > Math.sqrt(2)) zone = '🟢 r > √2, di atas resonansi';
     else zone = '🟡 Mendekati resonansi';
     let rmaxStr = '';
-    if(rMaxAnalytic !== null) rmaxStr = ` · r_max(R) = 1/√(1−2ζ²) = ${rMaxAnalytic.toFixed(3)}`;
+    if(rMaxAnalytic !== null) rmaxStr = ` · r<sub>max</sub>(R) = 1/√(1−2ζ²) = ${rMaxAnalytic.toFixed(3)}`;
     info.innerHTML = `r=${r_op.toFixed(2)} · ζ=${zetaUser.toFixed(3)} · <strong style="color:var(--pink)">R=${Rstr}</strong>${rmaxStr} · ${zone}`;
   }
 }
@@ -7436,10 +7507,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7453,7 +7524,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -10058,11 +10129,11 @@ window.toggleTuning = function(){
   if(_cvTuning_mode === 1){
     if(view){ view.style.background = '#a855f730'; view.style.borderColor = '#a855f7'; }
     if(slider) slider.style.transform = 'translateX(28px)';
-    if(lbl){ lbl.textContent = 'Den Hartog Optimal (ω_a* + ζ_a*)'; lbl.style.color = '#a855f7'; }
+    if(lbl){ lbl.innerHTML = 'Den Hartog Optimal (ω<sub>a</sub>* + ζ<sub>a</sub>*)'; lbl.style.color = '#a855f7'; }
   } else {
     if(view){ view.style.background = '#0ea5e930'; view.style.borderColor = '#0ea5e9'; }
     if(slider) slider.style.transform = 'translateX(0px)';
-    if(lbl){ lbl.textContent = 'Classical Tuning (ω_a = ω_main)'; lbl.style.color = '#0ea5e9'; }
+    if(lbl){ lbl.innerHTML = 'Classical Tuning (ω<sub>a</sub> = ω<sub>main</sub>)'; lbl.style.color = '#0ea5e9'; }
   }
   drawTuning();
 };
@@ -10077,7 +10148,7 @@ function drawTuning(){
 
   const isMode1 = (_cvTuning_mode === 1);
   const color = isMode1 ? '#a855f7' : '#0ea5e9';
-  const label = isMode1 ? 'Den Hartog Optimal (ω_a* + ζ_a*)' : 'Classical Tuning (ω_a = ω_main)';
+  const label = isMode1 ? 'Den Hartog Optimal (ω<sub>a</sub>* + ζ<sub>a</sub>*)' : 'Classical Tuning (ω<sub>a</sub> = ω<sub>main</sub>)';
 
   ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
   ctx.fillText(label, 20, 30);
@@ -10118,7 +10189,7 @@ function drawTuning(){
   ctx.shadowBlur = 0;
 
   const info = document.getElementById('cvTuning_info');
-  if(info) info.innerHTML = isMode1 ? '🟣 <strong>Den Hartog Optimal (ω_a* + ζ_a*)</strong>' : '🟢 <strong>Classical Tuning (ω_a = ω_main)</strong>';
+  if(info) info.innerHTML = isMode1 ? '🟣 <strong>Den Hartog Optimal (ω<sub>a</sub>* + ζ<sub>a</sub>*)</strong>' : '🟢 <strong>Classical Tuning (ω<sub>a</sub> = ω<sub>main</sub>)</strong>';
 }
 function _cvTuningTick(){
   drawTuning();

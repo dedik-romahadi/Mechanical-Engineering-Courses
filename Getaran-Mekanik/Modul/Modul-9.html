@@ -1239,6 +1239,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1758,7 +1829,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Unit-Norm: ||φ|| = 1</h3>
       <p>Euclidean norm = 1 (sama seperti unit vector). Default output dari <code>numpy.linalg.eig()</code>. Tidak punya physical meaning langsung, tapi mathematically convenient untuk operasi linear algebra.</p>
-      <div class="formula">||φ_i|| = \(\sqrt{\phi _i^T \phi _i}\) = 1</div>
+      <div class="formula">||φ<sub>i</sub>|| = \(\sqrt{\phi _i^T \phi _i}\) = 1</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
@@ -2092,8 +2163,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="cvNStory_info" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Geser jumlah lantai gedung, frekuensi natural ω₁ < ω₂ < ... < ω_N otomatis terhitung.<br>
-        <strong>Insight:</strong> Untuk gedung shear-building N lantai (m identik, k identik per kolom), \(\omega _i\) = 2·sin((2i-1)π/(2(2N+1)))·\(\sqrt{k/m}\). N=10 → ω_1 ≈ 0.31, ω_10 ≈ 1.99.
+        <strong>📊 Cara Membaca:</strong> Geser jumlah lantai gedung, frekuensi natural ω₁ < ω₂ < ... < ω<sub>N</sub> otomatis terhitung.<br>
+        <strong>Insight:</strong> Untuk gedung shear-building N lantai (m identik, k identik per kolom), \(\omega _i\) = 2·sin((2i-1)π/(2(2N+1)))·\(\sqrt{k/m}\). N=10 → ω<sub>1</sub> ≈ 0.31, ω<sub>10</sub> ≈ 1.99.
       </div>
     </div>
   </div>
@@ -3060,7 +3131,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   <div class="forum-scenario reveal">
     <div class="scenario-label">📋 KASUS STRUKTUR BANGUNAN</div>
     <p>
-      Sebuah <strong style="color:var(--cyan)">gedung perkantoran 3 lantai</strong> di Jakarta akan dievaluasi terhadap beban gempa zona seismik moderat. Engineer struktur memodelkan gedung sebagai sistem <strong style="color:var(--amber)">shear-building 3 DoF</strong> dengan massa lantai identik m = 5 000 kg dan kekakuan lateral antar-lantai k = 8 × 10⁶ N/m (asumsi base tetap di tanah). Catatan accelerometer lapangan menunjukkan getaran horizontal yang kuat pada beberapa frekuensi spesifik. Tim diminta: lakukan analisis modal lengkap (frekuensi pribadi \(\omega _i\), mode shape Φ_i, verifikasi ortogonalitas) lalu hitung respons modal saat input gempa diberikan sebagai percepatan dasar.
+      Sebuah <strong style="color:var(--cyan)">gedung perkantoran 3 lantai</strong> di Jakarta akan dievaluasi terhadap beban gempa zona seismik moderat. Engineer struktur memodelkan gedung sebagai sistem <strong style="color:var(--amber)">shear-building 3 DoF</strong> dengan massa lantai identik m = 5 000 kg dan kekakuan lateral antar-lantai k = 8 × 10⁶ N/m (asumsi base tetap di tanah). Catatan accelerometer lapangan menunjukkan getaran horizontal yang kuat pada beberapa frekuensi spesifik. Tim diminta: lakukan analisis modal lengkap (frekuensi pribadi \(\omega _i\), mode shape Φ<sub>i</sub>, verifikasi ortogonalitas) lalu hitung respons modal saat input gempa diberikan sebagai percepatan dasar.
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">
       <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">m₁ = m₂ = m₃ = 5 000 kg</div>
@@ -3068,9 +3139,9 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">M = diag(5000) ³ × kg</div>
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber)">\(K_{\text{tridiagonal}}\) (shear bldg)</div>
       <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">\(f_{\text{gempa}}\) dominan ≈ 2–4 Hz</div>
-      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">ζ_struktur ≈ 5%</div>
+      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">ζ<sub>struktur</sub> ≈ 5%</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Matriks kekakuan shear-building (base tetap, 3 cerita): <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">K = k·[[2,−1,0],[−1,2,−1],[0,−1,1]]</code>. Persamaan gerak: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">Mẍ + Kx = −M·1·ẍ_g(t)</code> di mana ẍ_g percepatan tanah. Forum: (1) eigenvalue → \(\omega _i\) &amp; \(f_i\), (2) mode shape + orthogonality, (3) modal superposition untuk gempa.</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Matriks kekakuan shear-building (base tetap, 3 cerita): <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">K = k·[[2,−1,0],[−1,2,−1],[0,−1,1]]</code>. Persamaan gerak: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">Mẍ + Kx = −M·1·ẍ_g(t)</code> di mana ẍ<sub>g</sub> percepatan tanah. Forum: (1) eigenvalue → \(\omega _i\) &amp; \(f_i\), (2) mode shape + orthogonality, (3) modal superposition untuk gempa.</p>
   </div>
 
   <!-- Reference visualisasi mode building -->
@@ -3125,12 +3196,12 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
   <div class="fq-card reveal" id="fq2">
     <div class="fq-head" onclick="toggleFQ('fq2')">
       <div class="fq-num" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--amber)">02</div>
-      <h3>Mode shape &amp; ortogonalitas: Tunjukkan Φ_i dan verifikasi Φ_iᵀ M Φ_j = 0 untuk i ≠ j.</h3>
+      <h3>Mode shape &amp; ortogonalitas: Tunjukkan Φ<sub>i</sub> dan verifikasi Φ<sub>i</sub>ᵀ M Φ<sub>j</sub> = 0 untuk i ≠ j.</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Ambil kolom eigenvektor V dari numpy.linalg.eig. Normalisasi terhadap lantai atas (Φ[2] = 1). Tampilkan bentuk mode 1, 2, 3 (Φ_i ∈ ℝ³). Verifikasi ortogonalitas terhadap matriks massa: Φ_iᵀ M Φ_j ≈ 0 untuk i ≠ j; ≈ m̃_i (modal mass) untuk i = j.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Ambil kolom eigenvektor V dari numpy.linalg.eig. Normalisasi terhadap lantai atas (Φ[2] = 1). Tampilkan bentuk mode 1, 2, 3 (Φ<sub>i</sub> ∈ ℝ³). Verifikasi ortogonalitas terhadap matriks massa: Φ<sub>i</sub>ᵀ M Φ<sub>j</sub> ≈ 0 untuk i ≠ j; ≈ m̃<sub>i</sub> (modal mass) untuk i = j.</p>
         <div style="background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
           💬 <em>Hint (hasil numpy, dinormalisasi ke lantai atas = 1): Φ₁ ≈ [0.445, 0.802, 1.000] (semua positif → mode "swaying", semua lantai melentur ke satu arah; lantai atas paling besar). Φ₂ ≈ [−1.247, −0.555, 1.000] (1 simpul → lantai bawah berlawanan dengan atas). Φ₃ ≈ [1.802, −2.247, 1.000] (2 simpul → lantai tengah berbalik). Cek: V[:,i]ᵀ @ M @ V[:,j] ≈ 0 untuk i ≠ j ✓.</em>
         </div>
@@ -3139,11 +3210,11 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
           <div class="poll-q">QUICK CHECK — Mengapa Mode 1 paling besar partisipasinya untuk gempa horizontal?</div>
           <div class="poll-opts" id="fp2">
             <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Karena mode 1 punya frekuensi tertinggi</div>
-            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Karena seluruh lantai bergerak searah → modal participation factor Γ_i = Φ_iᵀM·1 / Φ_iᵀMΦ_i terbesar; gempa horizontal mendorong semua massa ke arah sama</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Karena seluruh lantai bergerak searah → modal participation factor Γ<sub>i</sub> = Φ<sub>i</sub>ᵀM·1 / Φ<sub>i</sub>ᵀMΦ<sub>i</sub> terbesar; gempa horizontal mendorong semua massa ke arah sama</div>
             <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Karena ortogonalitas tidak berlaku untuk mode 1</div>
             <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Karena mode 1 punya damping nol</div>
           </div>
-          <div class="p-fb r" id="fp2r">✅ Tepat! Vektor pengaruh gempa horizontal r = [1,1,1]ᵀ. Modal participation Γ_i = Φ_iᵀMr / Φ_iᵀMΦ_i. Untuk Mode 1 (semua komponen sefase positif), pembilangnya maksimum → Γ₁ paling besar. Mode 3 (komponen berganti tanda) menghasilkan banyak kanselasi → Γ₃ kecil. Itulah mengapa praktik teknik gempa fokus pada Mode 1 (biasanya menyumbang &gt;70% respons total).</div>
+          <div class="p-fb r" id="fp2r">✅ Tepat! Vektor pengaruh gempa horizontal r = [1,1,1]ᵀ. Modal participation Γ<sub>i</sub> = Φ<sub>i</sub>ᵀMr / Φ<sub>i</sub>ᵀMΦ<sub>i</sub>. Untuk Mode 1 (semua komponen sefase positif), pembilangnya maksimum → Γ₁ paling besar. Mode 3 (komponen berganti tanda) menghasilkan banyak kanselasi → Γ₃ kecil. Itulah mengapa praktik teknik gempa fokus pada Mode 1 (biasanya menyumbang &gt;70% respons total).</div>
           <div class="p-fb w" id="fp2w">❌ Mode 1 punya frekuensi paling rendah (bukan tertinggi). Yang penting: untuk gempa horizontal, vektor r = ones(N). Modal participation factor terbesar pada mode dengan Φ paling "searah" dengan r → biasanya mode 1.</div>
         </div>
 
@@ -3165,8 +3236,8 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Transformasi koordinat fisik ke modal: x = Φq. Persamaan jadi terdesompling: <code>m̃_i q̈_i + c̃_i q̇_i + k̃_i q_i = −Γ_i m̃_i ẍ_g(t)</code> per mode. Selesaikan tiap mode dengan damping ζ = 5% (asumsi Rayleigh), lalu rekonstruksi x(t) = Φq(t). Jelaskan keuntungan metode ini dibanding integrasi langsung 3-DoF.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(x(t) = \Sigma \Phi _i \cdot q_i(t)\)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">Γ_i = Φ_iᵀMr / m̃_i</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">m̃_i = Φ_iᵀMΦ_i</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">Γ<sub>i</sub> = Φ<sub>i</sub>ᵀMr / m̃<sub>i</sub></span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">m̃<sub>i</sub> = Φ<sub>i</sub>ᵀMΦ<sub>i</sub></span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
           💬 <em>Hint: dengan Φ ternormalisasi seperti hint Q2, m̃₁ = m̃₂ = m̃₃ = 5000 kg (karena V[:,i]ᵀMV[:,i] memang konstan untuk pilihan normalisasi numpy). Untuk kasus praktis sering cukup pakai 2 mode pertama (response spectrum analysis: mode 1 dominan, mode 2 koreksi). Keuntungan: 3 ODE 1-DoF SCALAR yang independen jauh lebih murah dari 3 ODE 1-DoF terkopling, dan visualisasi kontribusi tiap mode jadi eksplisit.</em>
@@ -5780,7 +5851,7 @@ function drawPhysics(){
   ctx.fillStyle = 'rgba(14,165,233,.9)'; ctx.font = '11px JetBrains Mono';
   ctx.fillText('y(t) = Y·sin(ωt)  ←  BASE MOTION', 65, 30);
   ctx.fillStyle = 'rgba(168,85,247,.9)';
-  ctx.fillText('x(t) = T_d·Y·sin(ωt − φ)  →  RESPON MASSA', 65, 50);
+  ctx.fillText('x(t) = T<sub>d</sub>·Y·sin(ωt − φ)  →  RESPON MASSA', 65, 50);
 
   // Info
   const info = document.getElementById('physicsInfo');
@@ -5793,7 +5864,7 @@ function drawPhysics(){
     else if(r > 1.414) status = '🟢 Zona Isolasi (r > √2), X < Y';
     else if(r < 0.5) status = '🔵 Zona Kaku — X ≈ Y, ikut pondasi';
     else status = '🟡 Zona Amplifikasi (r < √2) — X > Y';
-    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong style="color:var(--cyan)">T_d=${TdStr}</strong> · φ=${phiDeg.toFixed(1)}° · ${status}`;
+    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong style="color:var(--cyan)">T<sub>d</sub>=${TdStr}</strong> · φ=${phiDeg.toFixed(1)}° · ${status}`;
   }
 
   document.getElementById('v_rp').textContent = r.toFixed(2);
@@ -6137,7 +6208,7 @@ function drawIso(){
   ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 11px JetBrains Mono';
   ctx.fillText(`r = ${rCurrent.toFixed(2)}`, 18, 22);
   ctx.fillStyle = TdCurrent > 1.2 ? '#ef4444' : (TdCurrent < 0.5 ? '#00e09e' : '#facc15');
-  ctx.fillText(`T_d = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`, 18, 40);
+  ctx.fillText(`T<sub>d</sub> = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`, 18, 40);
 
   // Divider
   ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 1;
@@ -6171,7 +6242,7 @@ function drawIso(){
   }
   ctx.textAlign = 'left';
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('T_d', plotX - 38, plotY + 12);
+  ctx.fillText('T<sub>d</sub>', plotX - 38, plotY + 12);
   ctx.fillText('r = ω/ωₙ', plotX + plotW - 60, plotY + plotH + 24);
 
   // T_d = 1 horizontal line
@@ -6236,13 +6307,13 @@ function drawIso(){
   if(info){
     if(_tdSweepAnim.running){
       const pct = Math.round(_tdSweepAnim.progress * 100);
-      info.innerHTML = `🔴 Sweep berlangsung: <strong>${pct}%</strong> · r = ${rCurrent.toFixed(2)} · T_d = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`;
+      info.innerHTML = `🔴 Sweep berlangsung: <strong>${pct}%</strong> · r = ${rCurrent.toFixed(2)} · T<sub>d</sub> = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`;
     } else if(_tdSweepAnim.points.length > 0){
       const maxPt = _tdSweepAnim.points.reduce((a,b) => b.Td > a.Td ? b : a);
       const TdCross = _tdSweepAnim.points.find(p => Math.abs(p.r - Math.sqrt(2)) < 0.05);
-      info.innerHTML = `✅ Sweep selesai · Puncak <strong>r=${maxPt.r.toFixed(2)}, T_d=${maxPt.Td.toFixed(2)}</strong> · Crossover r=√2: T_d=${TdCross ? TdCross.Td.toFixed(2) : '~1.00'} (∀ζ)`;
+      info.innerHTML = `✅ Sweep selesai · Puncak <strong>r=${maxPt.r.toFixed(2)}, T<sub>d</sub>=${maxPt.Td.toFixed(2)}</strong> · Crossover r=√2: T<sub>d</sub>=${TdCross ? TdCross.Td.toFixed(2) : '~1.00'} (∀ζ)`;
     } else {
-      info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong>. Frekuensi naik dari r=0 ke r=4 dalam 10 detik. Perhatikan T_d=1 saat r=√2.`;
+      info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong>. Frekuensi naik dari r=0 ke r=4 dalam 10 detik. Perhatikan T<sub>d</sub>=1 saat r=√2.`;
     }
   }
 }
@@ -6411,7 +6482,7 @@ function drawHPB(){
     else if(r_op > Math.sqrt(2)) zone = '🟢 r > √2, di atas resonansi';
     else zone = '🟡 Mendekati resonansi';
     let rmaxStr = '';
-    if(rMaxAnalytic !== null) rmaxStr = ` · r_max(R) = 1/√(1−2ζ²) = ${rMaxAnalytic.toFixed(3)}`;
+    if(rMaxAnalytic !== null) rmaxStr = ` · r<sub>max</sub>(R) = 1/√(1−2ζ²) = ${rMaxAnalytic.toFixed(3)}`;
     info.innerHTML = `r=${r_op.toFixed(2)} · ζ=${zetaUser.toFixed(3)} · <strong style="color:var(--pink)">R=${Rstr}</strong>${rmaxStr} · ${zone}`;
   }
 }
@@ -7418,10 +7489,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7435,7 +7506,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

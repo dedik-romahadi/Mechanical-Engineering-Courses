@@ -1348,6 +1348,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1591,7 +1662,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <span class="ff" style="left:60%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">Orde &amp; Derajat</span>
     <span class="ff" style="left:78%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">Linier vs Non-Linier</span>
     <span class="ff" style="left:8%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">Homogen vs Non-Homogen</span>
-    <span class="ff" style="left:48%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">y = e^(2x) ?</span>
+    <span class="ff" style="left:48%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">y = e<sup>2x</sup> ?</span>
     <span class="ff" style="left:88%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">Solusi Umum: y = C₁y₁ + C₂y₂</span>
   </div>
   <div class="hero-content">
@@ -1777,7 +1848,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-kasus1">
   <div class="section-label reveal">Bagian 03</div>
   <h2 class="section-title reveal">PD Linier<br>vs Non-Linier</h2>
-  <p class="section-desc reveal">Sebuah PD dikatakan <strong>linier</strong> jika memenuhi tiga syarat: (1) <code>y</code> dan semua turunannya berpangkat tepat <strong>1</strong>; (2) tidak ada perkalian antar <code>y</code> dengan turunannya (misalnya <code>y · y'</code>); (3) tidak ada fungsi non-linier dari <code>y</code> seperti <code>sin(y)</code>, <code>e^y</code>, <code>ln(y)</code>. Jika ada yang melanggar, termasuk pangkat ≥ 2, PD disebut <strong>non-linier</strong>. Perhatikan ilustrasinya pada Gambar 3. Persamaan (3) di bawah memadatkan aturan tersebut.</p>
+  <p class="section-desc reveal">Sebuah PD dikatakan <strong>linier</strong> jika memenuhi tiga syarat: (1) <code>y</code> dan semua turunannya berpangkat tepat <strong>1</strong>; (2) tidak ada perkalian antar <code>y</code> dengan turunannya (misalnya <code>y · y'</code>); (3) tidak ada fungsi non-linier dari <code>y</code> seperti <code>sin(y)</code>, <code>e<sup>y</sup></code>, <code>ln(y)</code>. Jika ada yang melanggar, termasuk pangkat ≥ 2, PD disebut <strong>non-linier</strong>. Perhatikan ilustrasinya pada Gambar 3. Persamaan (3) di bawah memadatkan aturan tersebut.</p>
 <!-- ILUSTRASI-STATIS:3:START -->
   <figure class="ilustrasi reveal">
     <svg viewBox="0 0 660 262" role="img" aria-label="Gambar 3 — Linier dan non-linier dibedakan dari bentuk sukunya" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="262" fill="#0a101f"/><rect x="30" y="12" width="288" height="198" rx="12" fill="#0e1628" stroke="#243653"/><line x1="96.4" y1="44" x2="96.4" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="74.8" x2="306" y2="74.8" stroke="#243653" stroke-width="0.7"/><line x1="148.8" y1="44" x2="148.8" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="105.6" x2="306" y2="105.6" stroke="#243653" stroke-width="0.7"/><line x1="201.2" y1="44" x2="201.2" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="136.4" x2="306" y2="136.4" stroke="#243653" stroke-width="0.7"/><line x1="253.6" y1="44" x2="253.6" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="167.2" x2="306" y2="167.2" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="198" x2="303" y2="198" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="312,198 303,202.5 303,193.5" fill="#94a3b8"/><line x1="44" y1="198" x2="44" y2="47" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="44,38 48.5,47 39.5,47" fill="#94a3b8"/><path d="M44.0,191.8 L83.3,145.6 L122.6,110.2 L175.0,81.0 L227.4,64.0 L306.0,53.2 L306.0,198.0 L44.0,198.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M44.0,191.8 L83.3,145.6 L122.6,110.2 L175.0,81.0 L227.4,64.0 L306.0,53.2" fill="none" stroke="#22d3ee" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/><text x="174" y="30" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="700" font-family="'Inter',system-ui,sans-serif">Linier</text><text x="174" y="228" text-anchor="middle" font-size="11.3" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">y dan y' berpangkat satu</text><rect x="338" y="12" width="288" height="198" rx="12" fill="#0e1628" stroke="#243653"/><line x1="404.4" y1="44" x2="404.4" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="74.8" x2="614" y2="74.8" stroke="#243653" stroke-width="0.7"/><line x1="456.8" y1="44" x2="456.8" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="105.6" x2="614" y2="105.6" stroke="#243653" stroke-width="0.7"/><line x1="509.2" y1="44" x2="509.2" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="136.4" x2="614" y2="136.4" stroke="#243653" stroke-width="0.7"/><line x1="561.6" y1="44" x2="561.6" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="167.2" x2="614" y2="167.2" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="198" x2="611" y2="198" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="620,198 611,202.5 611,193.5" fill="#94a3b8"/><line x1="352" y1="198" x2="352" y2="47" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="352,38 356.5,47 347.5,47" fill="#94a3b8"/><path d="M352.0,185.7 L430.6,179.5 L496.1,167.2 L548.5,139.5 L582.6,102.5 L614.0,51.7 L614.0,198.0 L352.0,198.0 Z" fill="#f97316" fill-opacity="0.09"/><path d="M352.0,185.7 L430.6,179.5 L496.1,167.2 L548.5,139.5 L582.6,102.5 L614.0,51.7" fill="none" stroke="#f97316" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/><text x="482" y="30" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="700" font-family="'Inter',system-ui,sans-serif">Non-linier</text><text x="482" y="228" text-anchor="middle" font-size="11.3" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Ada y², y·y', atau sin y</text><text x="330" y="252" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x</text><g transform="rotate(-90 13 121)"><text x="13" y="125" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">y(x)</text></g></svg>
@@ -2143,7 +2214,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 1 -->
   <div class="analogy-box reveal">
     <span class="analogy-label">🚗 Analogi 1 — Mobil Direm (PD Orde 1)</span>
-    Saat mobil melaju dan rem ditekan, kecepatan <code>v(t)</code> menurun sebanding dengan kecepatan saat itu (gesekan). Persamaan: <code>dv/dt = −k·v</code>. Ini adalah <strong>PD orde 1 linier homogen koefisien konstan</strong>. Solusinya: <code>v(t) = v₀·e^(−kt)</code>, kecepatan turun secara eksponensial. Inilah mengapa mobil tidak berhenti seketika, selalu ada decay halus.
+    Saat mobil melaju dan rem ditekan, kecepatan <code>v(t)</code> menurun sebanding dengan kecepatan saat itu (gesekan). Persamaan: <code>dv/dt = −k·v</code>. Ini adalah <strong>PD orde 1 linier homogen koefisien konstan</strong>. Solusinya: <code>v(t) = v₀·e<sup>−kt</sup></code>, kecepatan turun secara eksponensial. Inilah mengapa mobil tidak berhenti seketika, selalu ada decay halus.
   </div>
 
   <!-- Analogi 2 -->
@@ -2191,9 +2262,9 @@ window.jalankanDenganMuat = async function (el, label, fn) {
           <label>Pilih fungsi uji <strong>f(x)</strong>, preset push buttons:</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
             <button class="m1orde-pbtn" onclick="window.m1SetFunc('sin')" data-f="sin" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--cyan);background:var(--cyan);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(8,191,232,.6);transform:scale(1.05);transition:all .15s;">sin(x) ✓</button>
-            <button class="m1orde-pbtn" onclick="window.m1SetFunc('exp')" data-f="exp" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">e^(x/2)</button>
+            <button class="m1orde-pbtn" onclick="window.m1SetFunc('exp')" data-f="exp" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">e<sup>x/2</sup></button>
             <button class="m1orde-pbtn" onclick="window.m1SetFunc('poly')" data-f="poly" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">\(x^3\) − 2x</button>
-            <button class="m1orde-pbtn" onclick="window.m1SetFunc('damp')" data-f="damp" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">e^(−x/3)·sin(x)</button>
+            <button class="m1orde-pbtn" onclick="window.m1SetFunc('damp')" data-f="damp" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">e<sup>−x/3</sup>·sin(x)</button>
           </div>
         </div>
         <div class="ctrl-group">
@@ -2265,7 +2336,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="m1LinInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Toggle membandingkan dua PD nyata. <strong>Linier</strong> (y' + 2y = x): solusi rapi y(x) = (x − ½)/1 + Ce^(−2x), kombinasi linier dari solusi homogen. <strong>Non-Linier</strong> (y' = \(y^2\)): solusi y(x) = 1/(C − x) yang <em>blow up</em> ke ∞ pada x = C. Inilah ciri non-linieritas: solusi bisa singular dalam waktu hingga, dan superposition tidak berlaku.
+        <strong>📊 Cara Membaca:</strong> Toggle membandingkan dua PD nyata. <strong>Linier</strong> (y' + 2y = x): solusi rapi y(x) = (x − ½)/1 + Ce<sup>−2x</sup>, kombinasi linier dari solusi homogen. <strong>Non-Linier</strong> (y' = \(y^2\)): solusi y(x) = 1/(C − x) yang <em>blow up</em> ke ∞ pada x = C. Inilah ciri non-linieritas: solusi bisa singular dalam waktu hingga, dan superposition tidak berlaku.
       </div>
     </div>
   </div>
@@ -2312,11 +2383,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
         <div class="ctrl-group" style="flex:1 1 100%;">
           <label>Pilih sistem nyata yang dimodelkan dengan PD:</label>
           <select id="m1slApps" onchange="window.m1SetApps(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:480px;margin-top:6px;">
-            <option value="spring">🌀 Pegas-Massa (Mekanika) — \(m \cdot x\)'' + \(k \cdot x\) = 0</option>
+            <option value="spring">🌀 Pegas-Massa (Mekanika) — m·x'' + k·x = 0</option>
             <option value="rc">⚡ Rangkaian RC (Elektro), RC·dV/dt + V = V₀</option>
-            <option value="pop">🐛 Populasi (Biologi), dN/dt = \(r \cdot N\)</option>
+            <option value="pop">🐛 Populasi (Biologi), dN/dt = r·N</option>
             <option value="cool">🌡️ Pendinginan Newton (Termal), dT/dt = −k(T−Tₐ)</option>
-            <option value="fall">🪂 Jatuh Bebas + Drag (Fluida) — \(m \cdot dv\)/dt = mg − bv</option>
+            <option value="fall">🪂 Jatuh Bebas + Drag (Fluida) — m·dv/dt = mg − bv</option>
           </select>
         </div>
       </div>
@@ -2815,7 +2886,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Solusi Contoh 1.1: \(y = e^{2x}\). Hitung <strong>\(y(1)\)</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Substitusikan x=1 ke <code>y = e^(2x)</code> dan hitung dengan <code>math.exp</code> atau <code>np.exp</code>.</div>
+      <div class="comp-hint">💡 Substitusikan x=1 ke <code>y = e<sup>2x</sup></code> dan hitung dengan <code>math.exp</code> atau <code>np.exp</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(y(1)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
@@ -6622,7 +6693,7 @@ function drawSweep(){
       const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
       const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
       const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
+      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r<sub>max</sub>=${rmaxTheory.toFixed(2)}, DMF<sub>max</sub>=${dmfmaxTheory.toFixed(2)}`;
     } else {
       info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
     }
@@ -6988,7 +7059,7 @@ function drawHPB(){
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
+  ctx.fillText(`${linePos.toFixed(2)} × H²<sub>max</sub> = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
 
   // Find ω₁ and ω₂ (intersection of curve with targetY)
   // Binary search on either side of peak
@@ -7032,12 +7103,12 @@ function drawHPB(){
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
+    let html = `ζ<sub>TRUE</sub> = ${zetaTrue.toFixed(3)} · ω<sub>peak</sub> = ${omegaPeak.toFixed(2)} · H²<sub>max</sub> = ${H2max.toFixed(2)}<br>`;
     if(omega1 !== null && omega2 !== null){
       html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
       if(Math.abs(linePos - 0.5) < 0.02){
         const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
+        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ<sub>estimated</sub> = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
       } else {
         html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
       }
@@ -8090,10 +8161,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -8107,7 +8178,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -10670,7 +10741,7 @@ function drawEMTog(){
   const isNum = (_emTogMode === 1);
   const color = isNum ? '#a855f7' : '#00e09e';
   ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e^(-bt/2)·cos(ωt)', 20, 30);
+  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e<sup>-bt/2</sup>·cos(ωt)', 20, 30);
 
   const padL=50, padR=20, padT=50, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
@@ -11008,7 +11079,7 @@ function _createForumParticleBurst(event) {
             d1: x => Math.cos(x),
             d2: x => -Math.sin(x),
             d3: x => -Math.cos(x) },
-    exp:  { label: 'f(x) = e^(x/2)',
+    exp:  { label: 'f(x) = e<sup>x/2</sup>',
             f:  x => Math.exp(x/2),
             d1: x => 0.5*Math.exp(x/2),
             d2: x => 0.25*Math.exp(x/2),
@@ -11018,7 +11089,7 @@ function _createForumParticleBurst(event) {
             d1: x => 3*x*x - 2,
             d2: x => 6*x,
             d3: x => 6 },
-    damp: { label: 'f(x) = e^(−x/3)·sin(x)',
+    damp: { label: 'f(x) = e<sup>−x/3</sup>·sin(x)',
             f:  x => Math.exp(-x/3)*Math.sin(x),
             d1: x => Math.exp(-x/3)*(Math.cos(x) - Math.sin(x)/3),
             d2: x => Math.exp(-x/3)*(-Math.sin(x) - 2*Math.cos(x)/3 + Math.sin(x)/9),
@@ -11386,7 +11457,7 @@ function _createForumParticleBurst(event) {
     const infoEl = document.getElementById('m1LinInfo');
     if (infoEl){
       if (m1Lin.isLinear){
-        infoEl.innerHTML = `<span style="color:${color}">●</span> Closed-form: y = (x − ½)·½ + C·e^(−2x), IC y(0)=0.5 ⇒ stabil, terbatas`;
+        infoEl.innerHTML = `<span style="color:${color}">●</span> Closed-form: y = (x − ½)·½ + C·e<sup>−2x</sup>, IC y(0)=0.5 ⇒ stabil, terbatas`;
       } else {
         infoEl.innerHTML = `<span style="color:${color}">●</span> Closed-form: y = 1/(C − x), C = 2 ⇒ <strong>blow up</strong> di x = 2 (singular dalam waktu hingga)`;
       }
@@ -11404,7 +11475,7 @@ function _createForumParticleBurst(event) {
   const M1_VER = {
     cos:  { label: 'y = cos(x)', y: x => Math.cos(x), d2: x => -Math.cos(x), valid: true },
     sin:  { label: 'y = sin(x)', y: x => Math.sin(x), d2: x => -Math.sin(x), valid: true },
-    exp:  { label: 'y = e^x',    y: x => Math.exp(x),  d2: x => Math.exp(x),   valid: false },
+    exp:  { label: 'y = e<sup>x</sup>',    y: x => Math.exp(x),  d2: x => Math.exp(x),   valid: false },
     poly: { label: 'y = x²',      y: x => x*x,         d2: x => 2,             valid: false }
   };
 
@@ -11523,19 +11594,19 @@ function _createForumParticleBurst(event) {
       compute: (t) => Math.cos(2*t),
       icon: 'spring' },
     rc: {
-      label: 'RC Circuit: V(t) = V₀(1 − e^(−t/τ))', color: '#f59e0b',
+      label: 'RC Circuit: V(t) = V₀(1 − e<sup>−t/τ</sup>)', color: '#f59e0b',
       compute: (t) => 1 - Math.exp(-t/1.5),
       icon: 'rc' },
     pop: {
-      label: 'Populasi: N(t) = N₀·e^(rt)', color: '#00e09e',
+      label: 'Populasi: N(t) = N₀·e<sup>rt</sup>', color: '#00e09e',
       compute: (t) => 0.3*Math.exp(0.4*t) - 0.5,
       icon: 'pop' },
     cool: {
-      label: 'Pendinginan: T(t) = Tₐ + (T₀−Tₐ)e^(−kt)', color: '#ff6bb3',
+      label: 'Pendinginan: T(t) = Tₐ + (T₀−Tₐ)e<sup>−kt</sup>', color: '#ff6bb3',
       compute: (t) => 0.2 + 0.8*Math.exp(-0.5*t),
       icon: 'cool' },
     fall: {
-      label: 'Jatuh + Drag: v(t) = v_T(1 − e^(−t/τ))', color: '#a855f7',
+      label: 'Jatuh + Drag: v(t) = v<sub>T</sub>(1 − e<sup>−t/τ</sup>)', color: '#a855f7',
       compute: (t) => -1 + 1.8*(1 - Math.exp(-t/2)),
       icon: 'fall' }
   };

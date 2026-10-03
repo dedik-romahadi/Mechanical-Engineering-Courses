@@ -1342,6 +1342,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1580,9 +1651,9 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">a·y'' + b·y' + c·y = 0</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">a·r² + b·r + c = 0</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">D = b² − 4ac</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">y = C₁e^(r₁x) + C₂e^(r₂x)</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">y = (C₁ + C₂x)·e^(rx)</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">y = e^(αx)·(C₁cos βx + C₂sin βx)</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">y = C₁e<sup>r₁x</sup> + C₂e<sup>r₂x</sup></span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">y = (C₁ + C₂x)·e<sup>rx</sup></span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">y = e<sup>αx</sup>·(C₁cos βx + C₂sin βx)</span>
     <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">W(y₁,y₂) ≠ 0</span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">y(0) = y₀, y'(0) = v₀</span>
   </div>
@@ -1682,7 +1753,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🔢</div>
       <h3>Koefisien Konstan</h3>
-      <p>a, b, c adalah <strong>bilangan riil tetap</strong>, tidak bergantung pada x. Ini memungkinkan solusi berbentuk <code>y = e^(rx)</code>, mengubah masalah PD menjadi masalah aljabar (mencari akar).</p>
+      <p>a, b, c adalah <strong>bilangan riil tetap</strong>, tidak bergantung pada x. Ini memungkinkan solusi berbentuk <code>y = e<sup>rx</sup></code>, mengubah masalah PD menjadi masalah aljabar (mencari akar).</p>
       <div class="formula">\(a, b, c = const\)</div>
     </div>
     <div class="card">
@@ -1709,10 +1780,10 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-karakteristik">
   <div class="section-label reveal">Bagian 02</div>
   <h2 class="section-title reveal">Persamaan Karakteristik:<br>Mengubah PD Menjadi Aljabar</h2>
-  <p class="section-desc reveal">Trik elegan: <em>tebak</em> bahwa solusinya berbentuk <code>y = e^(rx)</code>, lalu substitusi ke PD. Hasilnya: PD orde 2 menjadi <strong>persamaan aljabar kuadrat</strong> yang dengan mudah dapat diselesaikan. Skemanya diperlihatkan pada Gambar 2. Bentuk ringkasnya dituliskan pada Persamaan (2).</p>
+  <p class="section-desc reveal">Trik elegan: <em>tebak</em> bahwa solusinya berbentuk <code>y = e<sup>rx</sup></code>, lalu substitusi ke PD. Hasilnya: PD orde 2 menjadi <strong>persamaan aljabar kuadrat</strong> yang dengan mudah dapat diselesaikan. Skemanya diperlihatkan pada Gambar 2. Bentuk ringkasnya dituliskan pada Persamaan (2).</p>
 <!-- ILUSTRASI-STATIS:2:START -->
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 2 — Mengubah PD menjadi persamaan aljabar" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="55" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="134" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Tebak y = e^{rx}</text><line x1="213" y1="39" x2="242" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="251,39 242,43.5 242,34.5" fill="#94a3b8"/><rect x="251" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="330" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">ar² + br + c = 0</text><line x1="409" y1="39" x2="438" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="447,39 438,43.5 438,34.5" fill="#94a3b8"/><rect x="447" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#00e09e" stroke-width="1.6"/><text x="526" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Akar r₁, r₂</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Diskriminan menentukan kasus mana yang berlaku</text></svg>
+    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 2 — Mengubah PD menjadi persamaan aljabar" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="55" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="134" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Tebak y = e<tspan dy="-4.7" font-size="9">rx</tspan></text><line x1="213" y1="39" x2="242" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="251,39 242,43.5 242,34.5" fill="#94a3b8"/><rect x="251" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="330" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">ar² + br + c = 0</text><line x1="409" y1="39" x2="438" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="447,39 438,43.5 438,34.5" fill="#94a3b8"/><rect x="447" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#00e09e" stroke-width="1.6"/><text x="526" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Akar r₁, r₂</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Diskriminan menentukan kasus mana yang berlaku</text></svg>
     <figcaption><strong>Gambar 2</strong> — Mengubah PD menjadi persamaan aljabar. Menebak solusi berbentuk eksponensial mengubah persamaan diferensial menjadi persamaan kuadrat biasa dalam r.</figcaption>
   </figure>
 <!-- ILUSTRASI-STATIS:2:END -->
@@ -1732,7 +1803,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Langkah Substitusi</h3>
-      <p>Dari <code>y = e^(rx)</code> diperoleh <code>y' = r·e^(rx)</code> dan <code>y'' = r²·e^(rx)</code>. Substitusi ke <code>a·y'' + b·y' + c·y = 0</code> dan bagi dengan <code>e^(rx)</code> (selalu ≠ 0): hasilnya persamaan karakteristik aljabar.</p>
+      <p>Dari <code>y = e<sup>rx</sup></code> diperoleh <code>y' = r·e^(rx)</code> dan <code>y'' = r²·e^(rx)</code>. Substitusi ke <code>a·y'' + b·y' + c·y = 0</code> dan bagi dengan <code>e<sup>rx</sup></code> (selalu ≠ 0): hasilnya persamaan karakteristik aljabar.</p>
       <div class="formula">\(e^{rx}\) ≠ 0 ∀ x</div>
     </div>
     <div class="card">
@@ -1756,7 +1827,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
 
   <div class="info-box reveal">
-    <strong>Mengapa <code>e^(rx)</code> bekerja?</strong> Karena <strong>turunan eksponensial = eksponensial dikali konstanta</strong>. Sifat ini membuat semua suku PD menjadi kelipatan dari <code>e^(rx)</code> setelah substitusi, sehingga bisa dibagi habis. Tidak ada fungsi lain yang punya properti se-elegan ini untuk PD koefisien konstan. Inilah sebabnya teknik ini gagal untuk koefisien variabel, di sana akan dipelajari teknik lain (Euler-Cauchy untuk koefisien polinomial).
+    <strong>Mengapa <code>e<sup>rx</sup></code> bekerja?</strong> Karena <strong>turunan eksponensial = eksponensial dikali konstanta</strong>. Sifat ini membuat semua suku PD menjadi kelipatan dari <code>e<sup>rx</sup></code> setelah substitusi, sehingga bisa dibagi habis. Tidak ada fungsi lain yang punya properti se-elegan ini untuk PD koefisien konstan. Inilah sebabnya teknik ini gagal untuk koefisien variabel, di sana akan dipelajari teknik lain (Euler-Cauchy untuk koefisien polinomial).
   </div>
 
   <div class="warn-box reveal">
@@ -1794,7 +1865,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🌿</div>
       <h3>Basis Solusi</h3>
-      <p>{y₁ = e^(r₁x), y₂ = e^(r₂x)}. Independensi linier dijamin selama r₁ ≠ r₂. Wronskian-nya <code>W = (r₂ − r₁)·e^((r₁+r₂)x) ≠ 0</code> di mana-mana.</p>
+      <p>{y₁ = e<sup>r₁x</sup>, y₂ = e<sup>r₂x</sup>}. Independensi linier dijamin selama r₁ ≠ r₂. Wronskian-nya <code>W = (r₂ − r₁)·e<sup>(r₁+r₂)x</sup> ≠ 0</code> di mana-mana.</p>
       <div class="formula">\(y_1, y_2 basis\)</div>
     </div>
     <div class="card">
@@ -1937,7 +2008,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Bila diskriminan nol, kita hanya peroleh <strong>satu akar real</strong> r = −b/(2a). Tetapi PD orde 2 butuh dua solusi independen! Bagaimana mendapatkan yang kedua? Jawabannya: <em>perkalian dengan x</em>. Inilah kasus <strong>teredam kritis (critically damped)</strong>. Gambar 4 merangkum alurnya secara visual. Rangkuman kuantitatifnya tertulis pada Persamaan (4).</p>
 <!-- ILUSTRASI-STATIS:4:START -->
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 4 — Akar berulang memerlukan faktor x" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,43.2 L119.3,103.9 L196.5,144.4 L285.6,173.8 L392.5,194.1 L511.3,205.1 L642.0,210.6 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,43.2 L119.3,103.9 L196.5,144.4 L285.6,173.8 L392.5,194.1 L511.3,205.1 L642.0,210.6" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M48.0,52.4 L137.1,116.8 L226.2,162.8 L315.3,188.6 L374.7,192.2 L463.8,173.8 L552.9,126.0 L642.0,61.6" fill="none" stroke="#f97316" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">e^{rx}</text><line x1="120.4" y1="18" x2="142.4" y2="18" stroke="#f97316" stroke-width="3" stroke-linecap="round"/><text x="147.4" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x·e^{rx}</text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">y(x)</text></g></svg>
+    <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 4 — Akar berulang memerlukan faktor x" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,43.2 L119.3,103.9 L196.5,144.4 L285.6,173.8 L392.5,194.1 L511.3,205.1 L642.0,210.6 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,43.2 L119.3,103.9 L196.5,144.4 L285.6,173.8 L392.5,194.1 L511.3,205.1 L642.0,210.6" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M48.0,52.4 L137.1,116.8 L226.2,162.8 L315.3,188.6 L374.7,192.2 L463.8,173.8 L552.9,126.0 L642.0,61.6" fill="none" stroke="#f97316" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">e<tspan dy="-4.4" font-size="8.3">rx</tspan></text><line x1="101.2" y1="18" x2="123.2" y2="18" stroke="#f97316" stroke-width="3" stroke-linecap="round"/><text x="128.2" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x·e<tspan dy="-4.4" font-size="8.3">rx</tspan></text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">y(x)</text></g></svg>
     <figcaption><strong>Gambar 4</strong> — Akar berulang memerlukan faktor x. Karena kedua akar sama, solusi kedua dikalikan x agar tetap bebas linier terhadap solusi pertama.</figcaption>
   </figure>
 <!-- ILUSTRASI-STATIS:4:END -->
@@ -2018,7 +2089,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
 
   <div class="warn-box reveal">
-    ⚠ <strong>Kesalahan klasik:</strong> Lupa faktor x pada solusi kedua, sehingga menulis <code>y = C₁e^(rx) + C₂e^(rx) = (C₁+C₂)e^(rx)</code>, efektif hanya 1 konstanta, tidak bisa memenuhi 2 syarat awal. Selalu cek diskriminan dulu sebelum menulis solusi.
+    ⚠ <strong>Kesalahan klasik:</strong> Lupa faktor x pada solusi kedua, sehingga menulis <code>y = C₁e<sup>rx</sup> + C₂e<sup>rx</sup> = (C₁+C₂)e<sup>rx</sup></code>, efektif hanya 1 konstanta, tidak bisa memenuhi 2 syarat awal. Selalu cek diskriminan dulu sebelum menulis solusi.
   </div>
 
   <div class="info-box reveal">
@@ -2120,7 +2191,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Identitas Euler</h3>
-      <p><code>e^(iθ) = cos(θ) + i·sin(θ)</code>. Substitusi ini mengubah <code>e^((α+βi)x)</code> menjadi <code>e^(αx)·[cos(βx) + i·sin(βx)]</code>. Bagian real dan imajiner masing-masing memberi solusi real yang independen.</p>
+      <p><code>e<sup>iθ</sup> = cos(θ) + i·sin(θ)</code>. Substitusi ini mengubah <code>e<sup>(α+βi)x</sup></code> menjadi <code>e<sup>αx</sup>·[cos(βx) + i·sin(βx)]</code>. Bagian real dan imajiner masing-masing memberi solusi real yang independen.</p>
       <div class="formula">\(e^{i\theta }\) = \(\cos\theta\) + \(i \sin\theta\)</div>
     </div>
     <div class="card">
@@ -2138,7 +2209,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🎵</div>
       <h3>Bentuk Alternatif</h3>
-      <p>Solusi sering ditulis dalam bentuk <strong>amplitudo-fase</strong>: <code>y(x) = A·e^(αx)·cos(βx − φ)</code>, dengan <code>A = √(C₁²+C₂²)</code> dan <code>tan(φ) = C₂/C₁</code>. Lebih intuitif untuk visualisasi getaran.</p>
+      <p>Solusi sering ditulis dalam bentuk <strong>amplitudo-fase</strong>: <code>y(x) = A·e<sup>αx</sup>·cos(βx − φ)</code>, dengan <code>A = √(C₁²+C₂²)</code> dan <code>tan(φ) = C₂/C₁</code>. Lebih intuitif untuk visualisasi getaran.</p>
       <div class="formula">\(A \cdot e^{\alpha x}\)·cos(βx−φ)</div>
     </div>
   </div>
@@ -2185,7 +2256,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Intuisi:</strong> Bayangkan pegas-massa dipukul ringan. Massa berosilasi (komponen <code>cos/sin</code>) sambil amplitudo perlahan menurun karena gesekan (komponen <code>e^(−2x)</code>). Bandingkan dengan dawai gitar yang dipetik: nada tetap konstan (β = frekuensi), tetapi suara perlahan menghilang (α &lt; 0). Frekuensi alami ini adalah <em>sifat material</em>, tidak bergantung pada amplitudo awal.
+    💡 <strong>Intuisi:</strong> Bayangkan pegas-massa dipukul ringan. Massa berosilasi (komponen <code>cos/sin</code>) sambil amplitudo perlahan menurun karena gesekan (komponen <code>e<sup>−2x</sup></code>). Bandingkan dengan dawai gitar yang dipetik: nada tetap konstan (β = frekuensi), tetapi suara perlahan menghilang (α &lt; 0). Frekuensi alami ini adalah <em>sifat material</em>, tidak bergantung pada amplitudo awal.
   </div>
 
   <div class="info-box reveal">
@@ -2313,13 +2384,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">✅</div>
       <h3>Cek Cepat 3 Kasus</h3>
-      <p><strong>D&gt;0</strong>: W = (r₂−r₁)·e^((r₁+r₂)x) ≠ 0 selama r₁≠r₂. <strong>D=0</strong>: W = \(e^{2rx}\) ≠ 0. <strong>D&lt;0</strong>: W = β·\(e^{2\alpha x}\) ≠ 0. Ketiga kasus selalu memberikan basis yang valid.</p>
+      <p><strong>D&gt;0</strong>: W = (r₂−r₁)·e<sup>(r₁+r₂)x</sup> ≠ 0 selama r₁≠r₂. <strong>D=0</strong>: W = \(e^{2rx}\) ≠ 0. <strong>D&lt;0</strong>: W = β·\(e^{2\alpha x}\) ≠ 0. Ketiga kasus selalu memberikan basis yang valid.</p>
       <div class="formula">\(3 kasus W \ne 0 ✓\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚠️</div>
       <h3>Contoh Gagal</h3>
-      <p>Bila salah menulis y₁ = \(e^{2x}\) dan y₂ = 3·\(e^{2x}\): W = \(e^{2x}\)·6e^(2x) − 3e^(2x)·2e^(2x) = 0. Bukan basis, y₂ adalah kelipatan y₁. Sering muncul saat lupa faktor x pada kasus akar berulang.</p>
+      <p>Bila salah menulis y₁ = \(e^{2x}\) dan y₂ = 3·\(e^{2x}\): W = \(e^{2x}\)·6e<sup>2x</sup> − 3e<sup>2x</sup>·2e<sup>2x</sup> = 0. Bukan basis, y₂ adalah kelipatan y₁. Sering muncul saat lupa faktor x pada kasus akar berulang.</p>
       <div class="formula">\(W = 0 \implies dependent\)</div>
     </div>
   </div>
@@ -2440,7 +2511,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 1: Door Closer -->
   <div class="analogy-box reveal">
     <span class="analogy-label">🚪 Analogi 1 — Pintu Otomatis Kantor (Critically Damped)</span>
-    Pernah memperhatikan pintu kantor yang menutup sendiri? Ada hidraulik di engselnya. Kalau hidraulik <strong style="color:var(--green)">terlalu lemah</strong> (c kecil), pintu menutup terlalu cepat dan <em>menabrak</em> bingkai (underdamped, overshoot). Kalau hidraulik <strong style="color:var(--amber)">terlalu kuat</strong> (c besar), pintu menutup sangat lambat (overdamped). Engineer mendesainnya <strong style="color:var(--violet)">tepat critically damped</strong> (D = \(c^2\) − 4mk = 0): pintu menutup secepat mungkin tanpa overshoot. Inilah persis kasus akar berulang, solusi <code>y = (C₁ + C₂t)·e^(rt)</code> kembali ke nol tanpa berosilasi.
+    Pernah memperhatikan pintu kantor yang menutup sendiri? Ada hidraulik di engselnya. Kalau hidraulik <strong style="color:var(--green)">terlalu lemah</strong> (c kecil), pintu menutup terlalu cepat dan <em>menabrak</em> bingkai (underdamped, overshoot). Kalau hidraulik <strong style="color:var(--amber)">terlalu kuat</strong> (c besar), pintu menutup sangat lambat (overdamped). Engineer mendesainnya <strong style="color:var(--violet)">tepat critically damped</strong> (D = \(c^2\) − 4mk = 0): pintu menutup secepat mungkin tanpa overshoot. Inilah persis kasus akar berulang, solusi <code>y = (C₁ + C₂t)·e<sup>rt</sup></code> kembali ke nol tanpa berosilasi.
   </div>
 
   <!-- Analogi 2: Suspension Mobil -->
@@ -2452,7 +2523,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 3: Pendulum dengan Hambatan Udara -->
   <div class="analogy-box reveal" style="border-left-color:var(--green);background:linear-gradient(135deg,rgba(0,224,158,.07),rgba(249,115,22,.03))">
     <span class="analogy-label" style="color:var(--green)">⏱️ Analogi 3 — Pendulum Jam Antik (Underdamped)</span>
-    Pendulum jam dinding antik bergoyang kiri-kanan dengan amplitudo yang perlahan mengecil, <em>persis</em> kasus akar kompleks konjugat: <code>y(t) = e^(αt)·(C₁cos(βt) + C₂sin(βt))</code>. Faktor <code>e^(αt)</code> dengan α negatif menyebabkan amplitudo meluruh secara eksponensial (envelope), sedangkan cos &amp; sin menghasilkan osilasi dengan frekuensi β. Frekuensi alami <code>ωₙ = √(g/L)</code> untuk pendulum panjang L; redaman dari hambatan udara + gesekan poros menyebabkan amplitudo turun. Inilah mengapa jam mekanik perlu <em>winding</em>, energi disuntikkan ulang untuk melawan disipasi.
+    Pendulum jam dinding antik bergoyang kiri-kanan dengan amplitudo yang perlahan mengecil, <em>persis</em> kasus akar kompleks konjugat: <code>y(t) = e<sup>αt</sup>·(C₁cos(βt) + C₂sin(βt))</code>. Faktor <code>e<sup>αt</sup></code> dengan α negatif menyebabkan amplitudo meluruh secara eksponensial (envelope), sedangkan cos &amp; sin menghasilkan osilasi dengan frekuensi β. Frekuensi alami <code>ωₙ = √(g/L)</code> untuk pendulum panjang L; redaman dari hambatan udara + gesekan poros menyebabkan amplitudo turun. Inilah mengapa jam mekanik perlu <em>winding</em>, energi disuntikkan ulang untuk melawan disipasi.
   </div>
 
   <!-- Analogi 4: Rangkaian RLC -->
@@ -2555,7 +2626,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="m5ForceInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> <strong>HOMOGEN</strong>: y'' + by' + cy = 0, solusi \(y_h\) = transient yang meluruh ke 0. <strong>NON-HOMOGEN</strong>: y'' + by' + cy = sin(ωt), solusi y = \(y_h\) + \(y_p\) (steady-state oscillation di frekuensi ω). Geser slider <code>ω</code> untuk explore <strong>resonansi</strong>, saat ω ≈ ω_natural = √c (≈ 2 di sini), amplitudo \(y_p\) melonjak dramatis. Inilah peristiwa fisik di balik runtuhnya jembatan Tacoma Narrows!
+        <strong>📊 Cara Membaca:</strong> <strong>HOMOGEN</strong>: y'' + by' + cy = 0, solusi \(y_h\) = transient yang meluruh ke 0. <strong>NON-HOMOGEN</strong>: y'' + by' + cy = sin(ωt), solusi y = \(y_h\) + \(y_p\) (steady-state oscillation di frekuensi ω). Geser slider <code>ω</code> untuk explore <strong>resonansi</strong>, saat ω ≈ ω<sub>natural</sub> = √c (≈ 2 di sini), amplitudo \(y_p\) melonjak dramatis. Inilah peristiwa fisik di balik runtuhnya jembatan Tacoma Narrows!
       </div>
     </div>
   </div>
@@ -2573,7 +2644,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
           <label>Pilih kasus akar persamaan karakteristik (radio):</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
             <input type="radio" name="m5_fund_radio" id="m5_f1" checked onchange="window.m5SetFund('distinct')" style="display:none;">
-            <label for="m5_f1" class="m5-fund-lbl" data-c="distinct" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">🔵 D &gt; 0: e^(λ₁t), e^(λ₂t) ✓</label>
+            <label for="m5_f1" class="m5-fund-lbl" data-c="distinct" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">🔵 D &gt; 0: e<sup>λ₁t</sup>, e<sup>λ₂t</sup> ✓</label>
             <input type="radio" name="m5_fund_radio" id="m5_f2" onchange="window.m5SetFund('repeated')" style="display:none;">
             <label for="m5_f2" class="m5-fund-lbl" data-c="repeated" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">🟣 D = 0: \(e^{\lambda t}\), \(t e^{\lambda t}\)</label>
             <input type="radio" name="m5_fund_radio" id="m5_f3" onchange="window.m5SetFund('complex')" style="display:none;">
@@ -2583,7 +2654,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="m5FundInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Setiap kasus akar memiliki <em>basis solusi fundamental</em> yang berbeda. Canvas plot dua kurva y₁(t) dan y₂(t) (basis), serta solusi umum y(t) = C₁y₁ + C₂y₂ dengan C₁ = C₂ = 1. <strong>D &gt; 0</strong>: dua eksponensial berbeda. <strong>D = 0</strong>: e^λt + multiplied dengan t (ada term polynomial). <strong>D &lt; 0</strong>: dua osilator berbeda fase 90° (cos vs sin). Wronskian W(y₁, y₂) ≠ 0 ⇒ basis valid.
+        <strong>📊 Cara Membaca:</strong> Setiap kasus akar memiliki <em>basis solusi fundamental</em> yang berbeda. Canvas plot dua kurva y₁(t) dan y₂(t) (basis), serta solusi umum y(t) = C₁y₁ + C₂y₂ dengan C₁ = C₂ = 1. <strong>D &gt; 0</strong>: dua eksponensial berbeda. <strong>D = 0</strong>: e<sup>λt</sup> + multiplied dengan t (ada term polynomial). <strong>D &lt; 0</strong>: dua osilator berbeda fase 90° (cos vs sin). Wronskian W(y₁, y₂) ≠ 0 ⇒ basis valid.
       </div>
     </div>
   </div>
@@ -2600,8 +2671,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
         <div class="ctrl-group" style="flex:1 1 100%;">
           <label>Pilih sistem yang dimodelkan PD orde 2 (semua bentuk: \(a \cdot y'' + b \cdot y' + c \cdot y = 0\)):</label>
           <select id="m5slApps" onchange="window.m5SetApps(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:520px;margin-top:6px;">
-            <option value="msd">🌀 Pegas-Massa-Damper — \(m \cdot x\)'' + \(b \cdot x\)' + \(k \cdot x\) = 0</option>
-            <option value="rlc">⚡ Rangkaian RLC Seri — \(L \cdot q\)'' + \(R \cdot q\)' + (1/C)·q = 0</option>
+            <option value="msd">🌀 Pegas-Massa-Damper — m·x'' + b·x' + k·x = 0</option>
+            <option value="rlc">⚡ Rangkaian RLC Seri — L·q'' + R·q' + (1/C)·q = 0</option>
             <option value="pendulum">🪀 Pendulum (Sudut Kecil) — θ'' + (g/L)·θ = 0</option>
             <option value="suspension">🚗 Suspensi Mobil, quarter-car model</option>
             <option value="building">🏢 Building Sway, gedung tinggi terhadap angin</option>
@@ -2794,7 +2865,7 @@ plt.<span class="fn">show</span>()</pre>
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">a·y'' + b·y' + c·y = 0</span>
     <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">a·r² + b·r + c = 0</span>
     <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">D = b² − 4ac</span>
-    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">y = e^(αx)·(C₁cos(βx)+C₂sin(βx))</span>
+    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">y = e<sup>αx</sup>·(C₁cos(βx)+C₂sin(βx))</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 5 · Persamaan Diferensial Linier Orde N</div>
@@ -3083,7 +3154,7 @@ plt.<span class="fn">show</span>()</pre>
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q">Solusi umum Contoh 2.1: <code>y = c₁·e^(2x) + c₂·e^(−6x)</code>. Untuk c₁ = c₂ = 1, hitung <strong>\(y(1)\)</strong>.</div>
+        <div class="comp-q">Solusi umum Contoh 2.1: <code>y = c₁·e<sup>2x</sup> + c₂·e<sup>−6x</sup></code>. Untuk c₁ = c₂ = 1, hitung <strong>\(y(1)\)</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Substitusikan nilai x yang diminta ke solusi y(x), lalu evaluasi tiap suku eksponensial dengan <code>np.exp</code>.</div>
@@ -3100,7 +3171,7 @@ plt.<span class="fn">show</span>()</pre>
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Solusi khusus Contoh 2.2 (PDF hal 8): <code>y = 14·e^((3/2)x) − 8·e^x</code>. Hitung <strong>\(y(2)\)</strong>.</div>
+        <div class="comp-q">Solusi khusus Contoh 2.2 (PDF hal 8): <code>y = 14·e<sup>(3/2)x</sup> − 8·e<sup>x</sup></code>. Hitung <strong>\(y(2)\)</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Substitusikan nilai x yang diminta ke solusi y(x), lalu evaluasi tiap suku eksponensial dengan <code>np.exp</code>.</div>
@@ -3134,7 +3205,7 @@ plt.<span class="fn">show</span>()</pre>
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">Solusi khusus Contoh 2.4 (PDF hal 9): <code>y = (4 − 5x)·e^(2x)</code>. Hitung <strong>\(y(1)\)</strong>.</div>
+        <div class="comp-q">Solusi khusus Contoh 2.4 (PDF hal 9): <code>y = (4 − 5x)·e<sup>2x</sup></code>. Hitung <strong>\(y(1)\)</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Substitusikan nilai x yang diminta ke solusi y(x), lalu evaluasi dengan <code>np.exp</code>.</div>
@@ -3185,7 +3256,7 @@ plt.<span class="fn">show</span>()</pre>
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q">Solusi khusus Contoh 2.6 (sesuai PDF hal 12): <code>y = (2cos(2x) + 5sin(2x))·e^(x/2)</code>. Hitung <strong>\(y(0.5)\)</strong>.</div>
+        <div class="comp-q">Solusi khusus Contoh 2.6 (sesuai PDF hal 12): <code>y = (2cos(2x) + 5sin(2x))·e<sup>x/2</sup></code>. Hitung <strong>\(y(0.5)\)</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Substitusikan nilai x yang diminta ke solusi y(x) (gunakan <code>np.cos</code>, <code>np.sin</code>, <code>np.exp</code>) lalu evaluasi.</div>
@@ -3202,7 +3273,7 @@ plt.<span class="fn">show</span>()</pre>
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q">Untuk solusi Contoh 2.6 <code>y = (2cos(2x) + 5sin(2x))·e^(x/2)</code>, verifikasi syarat awal dengan menghitung <strong>y'(0)</strong> menggunakan turunan analitik atau diff numerik.</div>
+        <div class="comp-q">Untuk solusi Contoh 2.6 <code>y = (2cos(2x) + 5sin(2x))·e<sup>x/2</sup></code>, verifikasi syarat awal dengan menghitung <strong>y'(0)</strong> menggunakan turunan analitik atau diff numerik.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Turunkan y(x) dengan aturan perkalian lalu evaluasi di titik yang diminta, atau pakai beda hingga terpusat <code>(y(h) − y(−h))/(2h)</code> dengan h kecil.</div>
@@ -3367,7 +3438,7 @@ plt.<span class="fn">show</span>()</pre>
   <div class="float-formulas">
     <span class="ff" style="left:10%;font-size:.9rem;color:var(--green);--dur:20s;--del:0s">a·y'' + b·y' + c·y = 0</span>
     <span class="ff" style="left:40%;font-size:.8rem;color:var(--cyan);--dur:18s;--del:7s">D = b² − 4ac</span>
-    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">y = e^(αx)·(C₁cos(βx)+C₂sin(βx))</span>
+    <span class="ff" style="left:65%;font-size:.75rem;color:var(--green);--dur:22s;--del:11s">y = e<sup>αx</sup>·(C₁cos(βx)+C₂sin(βx))</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--violet);--dur:19s;--del:5s">W(y₁,y₂) = y₁y₂' − y₁'y₂</span>
   </div>
   <div class="hero-content">
@@ -3440,7 +3511,7 @@ plt.<span class="fn">show</span>()</pre>
             <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>D = −2×10⁶ → underdamped</div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>D = 4×10⁶ → overdamped berlebihan</div>
           </div>
-          <div class="p-fb r" id="fp1r">✅ Tepat! D = 2000² − 4·400·2500 = 4,000,000 − 4,000,000 = <strong>0</strong>. Critically damped! Akar berulang r = −c/(2m) = −2000/800 = −2.5. Solusi: <code>y(t) = (C₁ + C₂·t)·e^(−2.5t)</code>. Konfig B kembali ke kesetimbangan tercepat tanpa overshoot, desain ideal!</div>
+          <div class="p-fb r" id="fp1r">✅ Tepat! D = 2000² − 4·400·2500 = 4,000,000 − 4,000,000 = <strong>0</strong>. Critically damped! Akar berulang r = −c/(2m) = −2000/800 = −2.5. Solusi: <code>y(t) = (C₁ + C₂·t)·e<sup>−2.5t</sup></code>. Konfig B kembali ke kesetimbangan tercepat tanpa overshoot, desain ideal!</div>
           <div class="p-fb w" id="fp1w">❌ Hitung kembali: D = \(c^2\) − 4mk = 2000² − 4(400)(2500). Pastikan operasi pangkat dan perkalian benar. Ingat: untuk Konfig B, c = 2000 (cek: \(c_{\text{critical}}\) = 2\(\sqrt{mk}\) = 2\(\sqrt{10^6}\) = 2000).</div>
         </div>
 
@@ -3491,7 +3562,7 @@ plt.<span class="fn">show</span>()</pre>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Solusi umum critically damped: <code style="font-family:'JetBrains Mono',monospace;color:var(--green)">y(t) = (C₁ + C₂·t)·e^(rt)</code> dengan r = −2.5. Substitusi syarat awal untuk mendapatkan C₁, C₂, lalu cari t* sehingga |y(t*)| = 0.0005 m (1% dari 0.05). Boleh menggunakan analitik ATAU numerik (scipy.integrate.solve_ivp + bisection).</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Solusi umum critically damped: <code style="font-family:'JetBrains Mono',monospace;color:var(--green)">y(t) = (C₁ + C₂·t)·e<sup>rt</sup></code> dengan r = −2.5. Substitusi syarat awal untuk mendapatkan C₁, C₂, lalu cari t* sehingga |y(t*)| = 0.0005 m (1% dari 0.05). Boleh menggunakan analitik ATAU numerik (scipy.integrate.solve_ivp + bisection).</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(y(0) = C_1\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(y'(0) = C_2 + r \cdot C_1\)</span>
@@ -6440,7 +6511,7 @@ function drawSweep(){
       const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
       const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
       const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
+      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r<sub>max</sub>=${rmaxTheory.toFixed(2)}, DMF<sub>max</sub>=${dmfmaxTheory.toFixed(2)}`;
     } else {
       info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
     }
@@ -6806,7 +6877,7 @@ function drawHPB(){
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
+  ctx.fillText(`${linePos.toFixed(2)} × H²<sub>max</sub> = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
 
   // Find ω₁ and ω₂ (intersection of curve with targetY)
   // Binary search on either side of peak
@@ -6850,12 +6921,12 @@ function drawHPB(){
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
+    let html = `ζ<sub>TRUE</sub> = ${zetaTrue.toFixed(3)} · ω<sub>peak</sub> = ${omegaPeak.toFixed(2)} · H²<sub>max</sub> = ${H2max.toFixed(2)}<br>`;
     if(omega1 !== null && omega2 !== null){
       html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
       if(Math.abs(linePos - 0.5) < 0.02){
         const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
+        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ<sub>estimated</sub> = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
       } else {
         html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
       }
@@ -7908,10 +7979,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7925,7 +7996,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -10452,7 +10523,7 @@ function drawEMTog(){
   const isNum = (_emTogMode === 1);
   const color = isNum ? '#a855f7' : '#00e09e';
   ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e^(-bt/2)·cos(ωt)', 20, 30);
+  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e<sup>-bt/2</sup>·cos(ωt)', 20, 30);
 
   const padL=50, padR=20, padT=50, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
@@ -10588,8 +10659,8 @@ function drawEMDrop(){
 
   const opts = [
     ["real_distinct", "🔵 Akar Real Berbeda (D>0) → e^(λ₁t), e^(λ₂t)"],
-    ["real_repeat", "🟢 Akar Real Berulang (D=0) → e^λt, te^λt"],
-    ["complex", "🟣 Akar Kompleks (D<0) → e^αt cos(βt)"],
+    ["real_repeat", "🟢 Akar Real Berulang (D=0) → e<sup>λt</sup>, te<sup>λt</sup>"],
+    ["complex", "🟣 Akar Kompleks (D<0) → e<sup>αt</sup> cos(βt)"],
     ["mixed", "🟠 Mixed Roots — superposisi solusi"]
   ];
   const idx = opts.findIndex(o => o[0] === _emDropMode);
@@ -10899,8 +10970,8 @@ function _createForumParticleBurst(event) {
     ctx.fillStyle = isResonance ? '#ef4444' : color;
     ctx.font = 'bold 13px JetBrains Mono, monospace';
     const title = m5Force.isHomogen
-      ? "HOMOGEN: y_h transient → 0"
-      : (isResonance ? `⚠ RESONANSI! ω ≈ ω_n = ${omega_n.toFixed(2)}` : `NON-HOMOGEN: y = y_h + y_p (steady-state)`);
+      ? "HOMOGEN: y<sub>h</sub> transient → 0"
+      : (isResonance ? `⚠ RESONANSI! ω ≈ ω<sub>n</sub> = ${omega_n.toFixed(2)}` : `NON-HOMOGEN: y = y<sub>h</sub> + y<sub>p</sub> (steady-state)`);
     ctx.fillText(title, padL + 8, padT + 16);
 
     // Info
@@ -10908,10 +10979,10 @@ function _createForumParticleBurst(event) {
     if (infoEl){
       const ampMax = yMax;
       if (m5Force.isHomogen){
-        infoEl.innerHTML = `<span style="color:${color}">●</span> Homogen, solusi y_h = transient meluruh ke 0 (hanya damping). Amplitudo max = ${ampMax.toFixed(2)}.`;
+        infoEl.innerHTML = `<span style="color:${color}">●</span> Homogen, solusi y<sub>h</sub> = transient meluruh ke 0 (hanya damping). Amplitudo max = ${ampMax.toFixed(2)}.`;
       } else {
         const resColor = isResonance ? '#ef4444' : '#ffb300';
-        infoEl.innerHTML = `<span style="color:${resColor}">●</span> Non-Homogen, ω=${omega.toFixed(2)}, ω_n=${omega_n.toFixed(2)} ⇒ amplitudo max = ${ampMax.toFixed(2)} ${isResonance ? '<strong>(RESONANSI dramatis!)</strong>' : ''}`;
+        infoEl.innerHTML = `<span style="color:${resColor}">●</span> Non-Homogen, ω=${omega.toFixed(2)}, ω<sub>n</sub>=${omega_n.toFixed(2)} ⇒ amplitudo max = ${ampMax.toFixed(2)} ${isResonance ? '<strong>(RESONANSI dramatis!)</strong>' : ''}`;
       }
     }
 
@@ -10932,21 +11003,21 @@ function _createForumParticleBurst(event) {
   const M5_FUND = {
     distinct: {
       label: "D > 0: Akar Real Berbeda — λ₁=−1, λ₂=−3",
-      formula: "y₁ = e^(−t),  y₂ = e^(−3t)",
+      formula: "y₁ = e<sup>−t</sup>,  y₂ = e<sup>−3t</sup>",
       y1: t => Math.exp(-t),
       y2: t => Math.exp(-3*t),
       colors: ['#0ea5e9', '#a855f7']
     },
     repeated: {
       label: "D = 0: Akar Real Berulang — λ = −1",
-      formula: "y₁ = e^(−t),  y₂ = t·e^(−t)",
+      formula: "y₁ = e<sup>−t</sup>,  y₂ = t·e<sup>−t</sup>",
       y1: t => Math.exp(-t),
       y2: t => t * Math.exp(-t),
       colors: ['#a855f7', '#ff6bb3']
     },
     complex: {
       label: "D < 0: Akar Kompleks — λ = −0.3 ± 2i",
-      formula: "y₁ = e^(−0.3t)·cos(2t),  y₂ = e^(−0.3t)·sin(2t)",
+      formula: "y₁ = e<sup>−0.3t</sup>·cos(2t),  y₂ = e<sup>−0.3t</sup>·sin(2t)",
       y1: t => Math.exp(-0.3*t) * Math.cos(2*t),
       y2: t => Math.exp(-0.3*t) * Math.sin(2*t),
       colors: ['#0ea5e9', '#00e09e']
