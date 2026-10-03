@@ -393,6 +393,35 @@ for (let n = 1; n <= 14; n += 1) {
   }
 }
 
+// Keluaran tokenLatex (rumus ASCII generator → LaTeX KaTeX, Pedoman §2 butir (19)). Regresi di sini lolos
+// periksa-katex (KaTeX tetap merender tanpa galat), jadi bentuk keluarannya dipatok: koma desimal {,} utuh di
+// \frac, interval/parameter distribusi bukan desimal, satuan tegak hanya untuk nilai ruas — peubah Laplace s
+// dalam "2 s + 1" dan "e^(-0,5 s)" tetap miring.
+{
+  const KASUS_TOKEN = [
+    ["5,236/0,9148", String.raw`\frac{5{,}236}{0{,}9148}`],
+    ["Kp = 0,4/30", String.raw`K_p = \frac{0{,}4}{30}`],
+    ["T/2, dengan wc", String.raw`\frac{T}{2}, \text{dengan }\omega_c`],
+    ["20%", String.raw`20\%`],
+    ["(sI-A)^-1", String.raw`(sI-A)^{-1}`],
+    ["a << b", String.raw`a \ll b`],
+    ["|u|max", String.raw`|u|_{max}`],
+    ["7 x 7", String.raw`7 \times 7`],
+    ["1/bandwidth", String.raw`\frac{1}{\text{bandwidth}}`],
+    ["Re(s)", String.raw`\operatorname{Re}(s)`],
+    ["w = 5 rad/s", String.raw`w = 5\ \text{rad/s}`],
+    ["T = 0,1 s", String.raw`T = 0{,}1\ \text{s}`],
+    ["G(s) = 1/(2 s + 1)", String.raw`G(s) = \frac{1}{2 s + 1}`],
+    ["e^(-0,5 s)", String.raw`e^{-0{,}5 s}`],
+    ["[0,1]", "[0, 1]"],
+    ["N(0,1)", "N(0, 1)"],
+  ];
+  for (const [masuk, harap] of KASUS_TOKEN) {
+    const keluar = tokenLatex(masuk);
+    if (keluar !== harap) failures.push(`tokenLatex("${masuk}") = "${keluar}", seharusnya "${harap}"`);
+  }
+}
+
 // Keunikan judul animasi lintas modul: satu judul hanya boleh muncul di satu
 // modul. Duplikat berarti animasi generik kembali dicap ke banyak modul.
 {
