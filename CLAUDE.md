@@ -373,6 +373,11 @@ repo publik ini.
   yang memuat elemen/KaTeX dibungkus satu `<span class="opsi-teks">` (`pustaka.opsi_teks`, notasi-halaman);
   Export Tugas membaca soal/pilihan lewat `_teksNotasi` (`scripts/notasi-ekspor.mjs`, sebelum
   `draft-modul.mjs`), bukan textContent. Rincian: Pedoman §2 butir **Notasi rumus** (1)–(16).
+  Rumus KaTeX yang salah tampil tanpa galat (kata miring, `L{…}` tanpa `\{`, `%` polos, akar terpotong)
+  diperbaiki lewat data yang sama (grup di awal) dan generatornya (`sisken-rumus.tokenLatex`,
+  `persamaan-statis-data.mjs`); kode yang diketik keluar dari KaTeX sebagai `<code>`. Penjaga
+  `scripts/periksa-katex.mjs` (dijalankan `validate-public-security.mjs`; `--katex <folder>` untuk render
+  penuh). Pedoman §2 butir (17)–(20).
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
   yang idempoten, bukan suntingan manual per berkas.
