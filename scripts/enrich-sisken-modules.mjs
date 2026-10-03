@@ -1436,7 +1436,9 @@ for (const [index, m] of modules.entries()) {
   // ditambahkan supaya tautan yang tersembunyi tetap dapat dijangkau tanpa
   // mengandalkan gulir mendatar yang batang gulirnya memang disembunyikan.
   const tautanSubnav = daftarBagian.map(([id, label]) => `<a href="#${id}">${label}</a>`).join("");
-  html = html.replace(/<div id="modulSubnav" class="subnav-bar show">[\s\S]*?<\/div>/,
+  // Tombol panah lama di sekitar bilah ikut diganti supaya menjalankan ulang skrip ini tidak
+  // menumpuk pasangan baru (dulu bertambah satu pasang setiap regenerasi; lihat rapikan-panah-subnav.mjs).
+  html = html.replace(/(?:<button class="subnav-geser kiri"[^>]*>[^<]*<\/button>\s*)*<div id="modulSubnav" class="subnav-bar show">[\s\S]*?<\/div>(?:\s*<button class="subnav-geser kanan"[^>]*>[^<]*<\/button>)*/,
     `<button class="subnav-geser kiri" id="subnavKiri" onclick="geserSubnav(-1)" aria-label="Geser tab ke kiri">‹</button>`
     + `<div id="modulSubnav" class="subnav-bar show">${tautanSubnav}</div>`
     + `<button class="subnav-geser kanan" id="subnavKanan" onclick="geserSubnav(1)" aria-label="Geser tab ke kanan">›</button>`);
