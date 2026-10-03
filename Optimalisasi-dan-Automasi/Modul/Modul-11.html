@@ -1652,7 +1652,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Lima Karakteristik Rule-Based Alerting</div>
-    Transparan (auditable)  \(\cdot\) Deterministik (reproducible)  \(\cdot Real-time\) (latency &lt; \(1\) detik)  \(\cdot Compliance-ready (ISO/API) \cdot\) Compute murah \((microcontroller-friendly)\)
+    Transparan (auditable)  \(\cdot\) Deterministik (reproducible)  \(\cdot \text{Real-time}\) (latency &lt; \(1\) detik)  \(\cdot \text{Compliance-ready } (\text{ISO/API}) \cdot\) Compute murah \((\text{microcontroller-friendly})\)
   <span class="formula-number">(1)</span></div>
 <!-- PERSAMAAN-STATIS:1:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1666,25 +1666,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔍</div>
       <h3>Transparan &amp; Auditable</h3>
       <p>Setiap keputusan alert bisa dijelaskan: "<em>karena rms = 8.2 mm/s &gt; threshold 7.1 mm/s, status = DANGER</em>". Auditor ISO/API hanya butuh review tabel rule. Bandingkan ML black-box (random forest, neural network) yang butuh SHAP/LIME untuk explainability. Untuk industri regulated (nuclear, aviation, medical), rule-based wajib karena <strong style="color:var(--cyan)">root-cause traceability</strong> 100% tanpa ambiguitas.</p>
-      <div class="formula">\(IF condition THEN action\)</div>
+      <div class="formula">\(\text{IF condition THEN action}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Deterministik &amp; Reproducible</h3>
       <p>Untuk input yang sama, output selalu sama, tidak ada randomness. Berbeda dari ML yang punya noise pelatihan + inference. Konsekuensi positif: bug mudah direproduksi (input X selalu trigger alert; jika tidak, ada bug). Konsekuensi negatif: tidak adaptif terhadap drift (perlu re-tune threshold manual). Modern best practice: <em>rule-based core</em> + <em>ML adaptive layer</em> (Pertemuan 14).</p>
-      <div class="formula">\(f(x_t) = const \to repeatable\)</div>
+      <div class="formula">\(f(x_t) = \text{const} \to \text{repeatable}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Real-Time &amp; Edge-Friendly</h3>
       <p>Threshold check = 1 instruksi CPU (nanodetik). Bisa berjalan di <strong>edge device</strong>: PLC, Raspberry Pi, ESP32, microcontroller 8-bit. Tidak butuh GPU, internet, atau cloud. Latency end-to-end (sensor → alert) &lt; 100 ms. Bandingkan ML inference yang biasanya butuh 10–100 ms hanya untuk forward pass + butuh memory lebih besar. Untuk safety-critical (turbine over-speed), rule-based di hardware-level (ASIC) wajib.</p>
-      <div class="formula">\(latency < 100 ms (edge)\)</div>
+      <div class="formula">\(\text{latency} &lt; 100 \text{ ms } (\text{edge})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📜</div>
       <h3>Compliance-Ready (ISO/API)</h3>
       <p>Standar industri sudah <em>menetapkan</em> threshold:<br>• <strong>ISO 10816-3</strong>: vibrasi 4 zona (A: good ≤ 1.4 mm/s, B: acceptable, C: unsatisfactory, D: danger ≥ 7.1 mm/s) untuk mesin 15–300 kW.<br>• <strong>API 670</strong>: turbomachinery vibrasi alert 6.4 mm/s, danger 12.7 mm/s.<br>• <strong>ISO 13373-3</strong>: bearing severity (kurtosis, crest factor) thresholds. Compliance audit hanya butuh tunjukkan implementation match standard.</p>
-      <div class="formula">\(ISO 10816-3 zone A | B | C | D\)</div>
+      <div class="formula">\(\text{ISO 10816-3 zone A} | B | C | D\)</div>
     </div>
   </div>
 
@@ -1715,7 +1715,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Enam Konsep Inti Threshold &amp; Zone Classification</div>
-    Threshold absolut  \(\cdot\) ISO \(10816-3\) Zona \(A/B/C/D \cdot\) Class I–IV (mesin)  \(\cdot\) Rigid \(vs\) Flexible foundation  \(\cdot\) RMS velocity \(10 Hz\;\text{--}\;1\) kHz  \(\cdot Multi-feature\) threshold (RMS \(+\) peak \(+\) kurtosis)
+    Threshold absolut  \(\cdot\) ISO \(10816-3\) Zona \(A/B/C/D \cdot\) Class I–IV (mesin)  \(\cdot\) Rigid vs Flexible foundation  \(\cdot\) RMS velocity \(10 \text{ Hz}\;\text{--}\;1\) kHz  \(\cdot \text{Multi-feature}\) threshold (RMS \(+\) peak \(+\) kurtosis)
   <span class="formula-number">(2)</span></div>
 <!-- PERSAMAAN-STATIS:2:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1729,19 +1729,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📐</div>
       <h3>Threshold Absolut: \(T_{\text{low}}\) &amp; \(T_{\text{high}}\)</h3>
       <p>Bentuk paling sederhana: <code>IF rms &gt; T<sub>high</sub> THEN ALERT</code>. Untuk fitur dua-arah (mis. tekanan oli yang tidak boleh terlalu rendah dan terlalu tinggi): <code>IF p &lt; T<sub>low</sub> OR p &gt; T<sub>high</sub> THEN ALERT</code>. Threshold harus <em>physical-meaningful</em>: didasarkan pada batas mekanis (yield stress, bearing fatigue limit), standar industri, atau baseline operasi normal. <strong>Hindari threshold ditebak</strong>; selalu dokumentasikan sumbernya.</p>
-      <div class="formula">\(if x > T_{\text{high}}: alert\)</div>
+      <div class="formula">\(\text{if } x > T_{\text{high}}: \text{alert}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏛️</div>
       <h3>ISO 10816-3 — Zone A/B/C/D</h3>
       <p>Standar internasional untuk vibrasi mesin rotasi. Pakai <strong>RMS velocity (mm/s)</strong> di band 10 Hz–1 kHz. Untuk Group 2 (medium 15–300 kW, rigid foundation): <em>A (Good) ≤ 1.4</em>, <em>B (Acceptable) 1.4–2.8</em>, <em>C (Unsatisfactory) 2.8–4.5</em>, <em>D (Danger) &gt; 4.5</em>. Mesin di zona D harus <strong>shutdown atau diperbaiki segera</strong>. Klasifikasi otomatis = lookup table sederhana di Python: <code>if rms ≤ 1.4: 'A' elif rms ≤ 2.8: 'B' elif rms ≤ 4.5: 'C' else: 'D'</code>.</p>
-      <div class="formula">\(A | B | C | D zones\)</div>
+      <div class="formula">\(A | B | C | D \text{ zones}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔧</div>
       <h3>Class I–IV (Group Mesin)</h3>
       <p>Threshold ISO 10816-3 berbeda per kelas: <em>Class I</em> (small &lt; 15 kW: motor pump kecil), <em>Class II</em> (medium 15–75 kW: blower, kompresor kecil), <em>Class III</em> (large machines on rigid foundations: turbin uap), <em>Class IV</em> (large machines on flexible foundations: paper machine, large compressor). Mesin yang sama bisa "OK" di Class IV (toleransi besar) tetapi "DANGER" di Class I (toleransi ketat). <strong style="color:var(--cyan)">Selalu cek kelas mesin sebelum pilih threshold</strong>.</p>
-      <div class="formula">\(Class I (small) \to IV (\text{large flex})\)</div>
+      <div class="formula">\(\text{Class } I (\text{small}) \to IV (\text{large flex})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏗️</div>
@@ -1753,13 +1753,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📡</div>
       <h3>RMS Velocity 10 Hz – 1 kHz</h3>
       <p>ISO 10816 spesifik mengukur <strong>RMS velocity (bukan acceleration atau displacement)</strong> di band <em>10 Hz – 1 kHz</em>. Pilihan ini berdasarkan: (1) velocity berkorelasi dengan energi kinetik vibrasi (≈ kerusakan), (2) band 10 Hz–1 kHz cover frekuensi mekanis dominan (running speed, gear meshing, bearing characteristic). Untuk mesin di luar range ini (mis. high-speed turbomachinery di 5–10 kHz), pakai standar lain (API 670: acceleration band &gt; 5 kHz).</p>
-      <div class="formula">\(RMS_v\) = \(\sqrt{mean(v^2}\)) di 10 Hz–1 kHz</div>
+      <div class="formula">\(\text{RMS}_v\) = \(\sqrt{\text{mean}(v^2)}\) di 10 Hz–1 kHz</div>
     </div>
     <div class="card">
       <div class="card-icon">🔬</div>
       <h3>Multi-Feature Threshold (RMS + Peak + Kurtosis)</h3>
       <p>Threshold tunggal (RMS) bisa miss anomali tertentu. Kombinasi multi-feature lebih sensitif: <strong>RMS</strong> deteksi unbalance/misalignment; <strong>peak amplitude</strong> deteksi impact (bearing pitting); <strong>kurtosis &gt; 4</strong> deteksi distribusi non-Gaussian (early bearing fault). Rule kombinasi: <code>IF rms &gt; T1 OR peak &gt; T2 OR kurt &gt; T3 THEN ALERT</code>. Tools: P1–P7 (extract fitur) lalu P13 (apply rule). Kompleksitas grow → next step: ML (P14).</p>
-      <div class="formula">\(multi-rule OR/AND combo\)</div>
+      <div class="formula">\(\text{multi-rule OR/AND combo}\)</div>
     </div>
   </div>
 
@@ -1808,7 +1808,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Lima Konsep Inti Hysteresis &amp; Tier Alarm</div>
-    Hysteresis \((T_{\text{on}}\) &gt; \(T_{\text{off}}) \cdot\) Schmitt trigger analogy  \(\cdot\) Tier alarm \((3\) level)  \(\cdot\) Escalation timer  \(\cdot\) Alarm flood prevention \((ANSI/ISA 18.2)\)
+    Hysteresis \((T_{\text{on}} &gt; T_{\text{off}})\) \(\cdot\) Schmitt trigger analogy  \(\cdot\) Tier alarm (3 level)  \(\cdot\) Escalation timer  \(\cdot\) Alarm flood prevention \((\text{ANSI/ISA 18.2})\)
   <span class="formula-number">(3)</span></div>
 <!-- PERSAMAAN-STATIS:3:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1822,13 +1822,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">↔️</div>
       <h3>Hysteresis: \(T_{\text{on}}\) &gt; \(T_{\text{off}}\)</h3>
       <p>Definisi: dua threshold berbeda untuk transition ke "ON" vs ke "OFF". Saat status OFF, perlu sinyal &gt; \(T_{\text{on}}\) untuk pindah ke ON. Saat status ON, sinyal harus turun di bawah \(T_{\text{off}}\) untuk kembali ke OFF. Tipikal: \(T_{\text{off}}\) = \(T_{\text{on}}\) − margin (mis. \(T_{\text{on}}\)=70, \(T_{\text{off}}\)=65). Margin 5–15% biasanya cukup. Tanpa hysteresis, sinyal di sekitar threshold ber-flip-flop sangat cepat (chattering).</p>
-      <div class="formula">\(T_{\text{on}} = 70, T_{\text{off}} = 65 (margin 5)\)</div>
+      <div class="formula">\(T_{\text{on}} = 70, T_{\text{off}} = 65 (\text{margin 5})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Schmitt Trigger Analogy</h3>
       <p>Konsep hysteresis dipakai di rangkaian elektronik <strong>Schmitt trigger</strong> (Otto Schmitt 1934), comparator dengan dua threshold. Awalnya untuk filter noise di radar WWII, sekarang dipakai di setiap microcontroller (Arduino, STM32) untuk debouncing button input. Algoritma yang sama persis bisa diterapkan untuk threshold-based monitoring di software. <strong style="color:var(--cyan)">Insight</strong>: setiap masalah noise-induced chattering punya solusi hysteresis yang elegan.</p>
-      <div class="formula">\(analog Schmitt trigger\)</div>
+      <div class="formula">\(\text{analog Schmitt trigger}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎚️</div>
@@ -1846,13 +1846,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔇</div>
       <h3>Alarm Flood Prevention (ANSI/ISA 18.2)</h3>
       <p>Bahaya nyata: <strong>alarm flood</strong>, saat 1 root cause memicu cascade puluhan alarm sekaligus, operator overwhelmed. ANSI/ISA 18.2 (Alarm Management) menetapkan <em>limit</em>: ≤ 1 alarm/10 menit per operator (steady state); ≤ 10 alarm dalam 10 menit pertama post-disturbance. Solusi: <strong>alarm grouping</strong> (suppress child alarm jika parent sudah on), <strong>shelving</strong> (operator bisa silence alarm selama window terbatas), <strong>alarm rationalization</strong> (review periodik untuk delete alarm yang tidak actionable).</p>
-      <div class="formula">\(\le 1 alarm / 10 min\)</div>
+      <div class="formula">\(\le 1 \text{ alarm} / 10 \text{ min}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎨</div>
       <h3>HMI Color Convention</h3>
       <p>Standar industri (ABB 800xA, Siemens PCS 7, Honeywell Experion) untuk warna alarm: <strong style="color:var(--green)">hijau</strong> (running normal), <strong style="color:var(--cyan)">cyan/biru</strong> (info / state change), <strong style="color:var(--amber)">kuning</strong> (warning), <strong style="color:var(--pink)">orange/oranye</strong> (alert), <strong style="color:#ef4444">merah</strong> (critical), <strong style="color:#a855f7">ungu</strong> (failure / no signal). Konsistensi warna penting untuk operator yang shift-rotate antar mesin/pabrik. Gunakan ikon (✓ ⚠ ✗) di samping warna untuk accessibility (color-blind operators).</p>
-      <div class="formula">\(green/yellow/orange/red\)</div>
+      <div class="formula">\(\text{green/yellow/orange/red}\)</div>
     </div>
   </div>
 
@@ -1918,13 +1918,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📳</div>
       <h3>Accelerometer Vibrasi</h3>
       <p>Sensor utama untuk vibrasi mesin. Dua jenis: <strong>Piezoelectric (IEPE)</strong>, high frequency response (1 Hz – 30 kHz), durable, butuh constant current excitation 4 mA. Contoh: PCB Piezotronics 352C33 (~Rp 5–15 juta). Pakai untuk industrial heavy machinery. <strong>MEMS</strong>, low frequency (DC – 1 kHz), murah, integrated chip. Contoh: ADXL355 (Rp 200K), MPU6050 (Rp 30K). Pakai untuk lab eksperimen, low-cost monitoring. Mounting wajib <em>rigid</em> (stud mount &gt; magnetic mount &gt; adhesive) untuk akurasi high frequency. Pasang di <em>bearing housing</em>, arah radial + axial.</p>
-      <div class="formula">\(IEPE 4 mA \cdot MEMS digital I2C/SPI\)</div>
+      <div class="formula">\(\text{IEPE 4 mA} \cdot \text{MEMS digital I2C/SPI}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌡️</div>
       <h3>Temperature: RTD &amp; Thermocouple</h3>
       <p><strong>RTD (Pt100/Pt1000)</strong>, resistance varies dengan suhu, accuracy ±0.1°C, range −200 to +850°C, response slow (seconds). Pakai untuk bearing temperature, oil temperature. Wiring 3-wire atau 4-wire untuk cancel lead resistance. <strong>Thermocouple (Type K, J, T)</strong>, voltage millivolt dari junction dissimilar metals, range −270 to +1372°C (Type K), response fast (millisecond), accuracy ±1°C. Pakai untuk hot gas, exhaust, kiln temperature. <em>Cold junction compensation</em> wajib. Output mV langsung butuh amplifier (gain ~100×).</p>
-      <div class="formula">\(RTD: R(T); TC: V(T)\)</div>
+      <div class="formula">\(\text{RTD: } R(T);\ \text{TC: } V(T)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
@@ -1942,13 +1942,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔌</div>
       <h3>DAQ Hardware Tiers</h3>
       <p><strong>Tier 1, Lab/Research</strong>: NI USB-6009 (Rp 5 juta, 14-bit ADC, 8 channel, 48 kS/s), NI cDAQ + IEPE module (Rp 50 juta+, 24-bit). <strong>Tier 2, Industrial</strong>: Bently Nevada 3500 series, Emerson AMS Machine Works (vibration monitoring rack-mount). <strong>Tier 3, Hobby/Prototype</strong>: Raspberry Pi + ADS1115 ADC (Rp 700K total), Arduino Uno + MPU6050 (Rp 200K total), ESP32 + accelerometer (Rp 300K, WiFi built-in). Untuk capstone project mahasiswa, Tier 3 sangat cukup. <em>Production deployment</em> butuh Tier 1/2.</p>
-      <div class="formula">\(budget vs accuracy trade-off\)</div>
+      <div class="formula">\(\text{budget vs accuracy trade-off}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
       <h3>Protokol Komunikasi Industrial</h3>
       <p>DAQ → server / SCADA pakai protokol standar: <strong>Modbus RTU</strong> (RS-485, simple, dipakai 1979–sekarang) untuk PLC. <strong>Modbus TCP</strong> (Ethernet variant). <strong>OPC UA</strong> (modern industry 4.0 standard, secure, semantic data), jadi default ABB, Siemens. <strong>MQTT</strong> (publisher/subscriber, IoT lightweight) untuk wireless sensor + cloud. <strong>HART</strong> (4–20 mA + digital overlay) untuk legacy sensor pressure/flow. Pemilihan: legacy plant → Modbus, new plant → OPC UA, IoT/wireless → MQTT. Latency: Modbus ~10–100 ms, MQTT ~50–500 ms (cloud roundtrip).</p>
-      <div class="formula">\(Modbus \cdot OPC UA \cdot MQTT\)</div>
+      <div class="formula">\(\text{Modbus} \cdot \text{OPC UA} \cdot \text{MQTT}\)</div>
     </div>
   </div>
 
@@ -2189,25 +2189,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🌪️</div>
       <h3>Wind Turbine SCADA Monitoring (Vestas)</h3>
       <p>Vestas (Denmark) memantau ribuan turbin angin di seluruh dunia via SCADA + edge gateway. Per turbin ada 200+ sensor (vibrasi nacelle, temperatur gearbox, generator current, blade pitch angle). <strong>Rule-based threshold + ISO 10816-21</strong> (specific untuk wind turbine) dipakai untuk first-line alerting. State machine track health per komponen: gearbox, generator, blade, tower. Saat alarm, sistem otomatis kurangi pitch angle (curtail power) sebelum shutdown. Reduction MTTR (mean time to repair) 30% via early warning. Tools: <strong>OSIsoft PI System</strong>, <strong>Bachmann Webmonitor</strong>, <strong>Vestas Compass</strong>.</p>
-      <div class="formula">\(200+ sensor / turbin \cdot SCADA\)</div>
+      <div class="formula">\(200+ \text{sensor / turbin} \cdot \text{SCADA}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏗️</div>
       <h3>Gedung Tinggi Smart HVAC (Siemens Building)</h3>
       <p>Burj Khalifa (Dubai), One World Trade Center (NYC), Shanghai Tower, gedung &gt; 100 lantai punya BMS (Building Management System) dengan 10,000+ data points (suhu zona, CO₂, occupancy, fan/pump status). <strong>Rule-based dengan tier alarm</strong>: warning saat CO₂ &gt; 800 ppm (kantuk), alert saat &gt; 1000 ppm (lethargy), critical &gt; 1500 ppm (kesehatan). Hysteresis 100 ppm hindari fan flapping. State machine track HVAC mode: occupied / unoccupied / pre-cool / setback. Energy saving 15–25% dari rule-based optimization vs constant operation. Standar: <strong>ASHRAE 90.1</strong>, <strong>EN 15251</strong>.</p>
-      <div class="formula">\(CO_2 tier: 800 / 1000 / 1500\)</div>
+      <div class="formula">\(CO_2 \text{ tier: } 800 / 1000 / 1500\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Power Grid Substation Monitoring (PLN, ABB)</h3>
       <p>Substation 150 kV / 500 kV memantau transformer (oil temp, dissolved gas DGA, tap-changer position), circuit breaker, busbar, lightning arrester. <strong>IEC 61850</strong> protokol untuk komunikasi rule-based logic ke IED (Intelligent Electronic Device). Threshold absolut + rate-of-change (mis. oil temp naik &gt; 5°C/menit = critical). State machine multi-level: normal → caution → emergency → trip. Di PLN, sistem ini detect 90% gangguan sebelum menjadi blackout. Vendor utama: <strong>ABB Relion</strong>, <strong>Siemens Reyrolle</strong>, <strong>Schneider Electric MiCOM</strong>.</p>
-      <div class="formula">\(IEC 61850 + IED rule logic\)</div>
+      <div class="formula">\(\text{IEC } 61850 + \text{IED rule logic}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏎️</div>
       <h3>F1 Race Car Telemetry (Mercedes-AMG, McLaren)</h3>
       <p>Mobil F1 punya 300+ sensor (suhu ban tiap sudut, brake temp 800+°C, engine RPM, KERS battery, fuel flow rate). Telemetry real-time ke pit garage via 5G/dedicated network, latency &lt; 50 ms. <strong>Rule-based monitoring agresif</strong>: tier alert untuk suhu rem (warning 700°C, critical 850°C → driver dipanggil pit), tire degradation rate (tier alarm jika &gt; X%/lap). Engineer di pit pakai dashboard custom (NVIDIA Quadro untuk visualisasi). FIA regulasi: data telemetry harus disimpan untuk audit. Sistem: <strong>MES (Mercedes Engine Software)</strong>, <strong>Mclaren Applied Telemetry</strong>.</p>
-      <div class="formula">\(300+ sensor \cdot telemetry < 50 ms\)</div>
+      <div class="formula">\(300+ \text{sensor} \cdot \text{telemetry} &lt; 50 \text{ ms}\)</div>
     </div>
   </div>
 
@@ -2605,7 +2605,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell \(4\;\text{---}\;\text{run\_monitoring\_pipeline}()\) Reusable: \(End-to-End\) Pipeline (FSM \(+\) dashboard)</span>
+      <span class="code-label">Cell \(4\;\text{---}\;\text{run\_monitoring\_pipeline}()\) Reusable: End-to-End Pipeline (FSM \(+\) dashboard)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -3429,7 +3429,7 @@ import pandas as pd
   <div class="fq-card reveal" id="fq1">
     <div class="fq-head" onclick="toggleFQ('fq1')">
       <div class="fq-num" style="background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.2);color:var(--cyan)">01</div>
-      <h3>Sensor Selection: <strong>IEPE accelerometer \((Rp 15 jt/sensor) vs\) MEMS \((Rp 200K/sensor)\)</strong>, lalu pilih mana untuk 24 sensor di Hot Strip Mill harsh environment dengan budget Rp 500 jt?</h3>
+      <h3>Sensor Selection: <strong>IEPE accelerometer (Rp 15 jt/sensor) vs MEMS (Rp 200K/sensor)</strong>, lalu pilih mana untuk 24 sensor di Hot Strip Mill harsh environment dengan budget Rp 500 jt?</h3>
       <span class="fq-arrow">›</span>
     </div>
     <div class="fq-body">
@@ -3481,7 +3481,7 @@ import pandas as pd
             <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div><span class="opsi-teks">Pakai \(f_s\) = 50 kHz untuk semua channel sepanjang waktu (overkill, miliaran sample/hari)</span></div>
             <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div><span class="opsi-teks">Pakai \(f_s\) = 100 Hz fixed (compromise, miss BPFO harmonic)</span></div>
           </div>
-          <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Tiered Sampling Strategy</strong> adalah industrial best practice. (1) <strong>\(Low-rate\) continuous \((f_s = 10 Hz)\)</strong>: hanya RMS calculation realtime, bandwidth tipis (10 Hz × 24 channel × 24 jam = 8.6M sample/hari = 35 MB/hari). Cukup untuk threshold check ISO 10816 + trend monitoring. (2) <strong>\(High-rate\) burst \((f_s = 5\) kHz, \(5\) detik tiap jam)</strong>: capture full spectrum untuk FFT analysis. Bandwidth: 5000 × 24 × 5 sec × 24 hr = 14.4M sample/hari = ~60 MB/hari. (3) <strong>Trigger-based capture</strong>: kalau RMS continuous mode threshold breach → trigger burst capture untuk diagnostic detail. (4) <strong>Anti-aliasing filter</strong>: analog 2 kHz Butterworth low-pass sebelum ADC, wajib untuk hindari aliasing high-freq noise. (5) <strong>Hardware</strong>: NI cDAQ-9174 chassis + 9234 IEPE module (4-channel × 51.2 kS/s simultaneous) Rp 50 jt = workhorse industrial setup. (6) <strong>Storage</strong>: TimescaleDB (continuous) + Parquet file (burst snapshots) di NAS Synology Rp 15 jt. <em>Pelajaran</em>: jangan over-engineer dengan 50 kHz semua waktu, bandwidth/storage/cost tidak proportional dengan diagnostic value yang didapat.</div>
+          <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Tiered Sampling Strategy</strong> adalah industrial best practice. (1) <strong>Low-rate continuous \((f_s = 10 \text{ Hz})\)</strong>: hanya RMS calculation realtime, bandwidth tipis (10 Hz × 24 channel × 24 jam = 8.6M sample/hari = 35 MB/hari). Cukup untuk threshold check ISO 10816 + trend monitoring. (2) <strong>High-rate burst (\(f_s = 5\) kHz, 5 detik tiap jam)</strong>: capture full spectrum untuk FFT analysis. Bandwidth: 5000 × 24 × 5 sec × 24 hr = 14.4M sample/hari = ~60 MB/hari. (3) <strong>Trigger-based capture</strong>: kalau RMS continuous mode threshold breach → trigger burst capture untuk diagnostic detail. (4) <strong>Anti-aliasing filter</strong>: analog 2 kHz Butterworth low-pass sebelum ADC, wajib untuk hindari aliasing high-freq noise. (5) <strong>Hardware</strong>: NI cDAQ-9174 chassis + 9234 IEPE module (4-channel × 51.2 kS/s simultaneous) Rp 50 jt = workhorse industrial setup. (6) <strong>Storage</strong>: TimescaleDB (continuous) + Parquet file (burst snapshots) di NAS Synology Rp 15 jt. <em>Pelajaran</em>: jangan over-engineer dengan 50 kHz semua waktu, bandwidth/storage/cost tidak proportional dengan diagnostic value yang didapat.</div>
           <div class="p-fb w" id="fp2w">❌ Periksa kembali. \(f_s\) = 1 Hz miss BPFO 105 Hz total. \(f_s\) = 50 kHz overkill (10 GB/hari, storage problem). \(f_s\) = 100 Hz miss harmonic. Tiered = optimal balance.</div>
         </div>
 

@@ -1609,7 +1609,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <em>Gerak</em><br>
       <span class="hl-amber">Sistem 2 DoF</span>
     </h1>
-    <p class="hero-sub">Setelah memahami frekuensi pribadi &amp; mode shape (Pertemuan 7), kini kita kembali ke <strong>fondasinya</strong>: bagaimana sebenarnya persamaan gerak matriks <code>[M]{ẍ} + [C]{ẋ} + [K]{x} = {F(t)}</code> di-<strong>derive</strong>. Modul ini bahas dua metode utama, <strong>Newton's Method</strong> (free body diagram, sum of forces) dan <strong>Lagrange's Equation</strong> (energy-based: T &amp; V), lalu solusi numerik <strong>\(solve_{\text{ivp}}\)</strong> untuk respons time-history.</p>
+    <p class="hero-sub">Setelah memahami frekuensi pribadi &amp; mode shape (Pertemuan 7), kini kita kembali ke <strong>fondasinya</strong>: bagaimana sebenarnya persamaan gerak matriks <code>[M]{ẍ} + [C]{ẋ} + [K]{x} = {F(t)}</code> di-<strong>derive</strong>. Modul ini bahas dua metode utama, <strong>Newton's Method</strong> (free body diagram, sum of forces) dan <strong>Lagrange's Equation</strong> (energy-based: T &amp; V), lalu solusi numerik <strong><code>solve_ivp</code></strong> untuk respons time-history.</p>
     <div class="academic-roadmap" aria-label="Alur belajar modul">
       <div class="road-step"><span>01</span><strong>Pelajari</strong><small>Konsep, prinsip, dan rumus</small></div><div class="road-arrow" aria-hidden="true">→</div>
       <div class="road-step"><span>02</span><strong>Eksplorasi</strong><small>Contoh, tabel, dan animasi</small></div><div class="road-arrow" aria-hidden="true">→</div>
@@ -1703,7 +1703,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Constraint &amp; DoF Effective</h3>
       <p>Bila ada constraint (mis. tidak boleh translasi axial), DoF efektif berkurang. Bandul double pendulum: tampak 4 koordinat (x₁,y₁,x₂,y₂) tapi dengan constraint panjang fix, hanya <strong>2 DoF</strong> independen (sudut θ₁, θ₂).</p>
-      <div class="formula">\(DoF_{\text{eff}} =\;\text{total coords}\;-\;\text{constraints}\)</div>
+      <div class="formula">\(\text{DoF}_{\text{eff}} =\;\text{total coords}\;-\;\text{constraints}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
@@ -1733,7 +1733,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-eom">
   <div class="section-label reveal">Bagian 02</div>
   <h2 class="section-title reveal">Newton's Method:<br>Derivasi EoM dengan Free Body Diagram</h2>
-  <p class="section-desc reveal">Metode klasik untuk derivasi persamaan gerak: <strong>tulis \(Newton's 2nd\) Law \((F = ma)\) untuk tiap massa secara terpisah</strong> dengan free body diagram (FBD). Untuk sistem 2-DoF dengan 2 massa, hasilnya 2 persamaan diferensial. Pendekatan langsung, intuitif, tetapi kompleks untuk sistem dengan constraint atau angular DoF. Skemanya diperlihatkan pada Gambar 2. Bentuk ringkasnya dituliskan pada Persamaan (2).</p>
+  <p class="section-desc reveal">Metode klasik untuk derivasi persamaan gerak: <strong>tulis Newton's 2nd Law \((F = ma)\) untuk tiap massa secara terpisah</strong> dengan free body diagram (FBD). Untuk sistem 2-DoF dengan 2 massa, hasilnya 2 persamaan diferensial. Pendekatan langsung, intuitif, tetapi kompleks untuk sistem dengan constraint atau angular DoF. Skemanya diperlihatkan pada Gambar 2. Bentuk ringkasnya dituliskan pada Persamaan (2).</p>
 <!-- ILUSTRASI-STATIS:2:START -->
   <figure class="ilustrasi reveal">
     <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 2 — Menurunkan persamaan lewat diagram benda bebas" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="38" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="96.75" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Gambar</text><text x="96.75" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Benda bebas</text><line x1="155.5" y1="39" x2="184.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="193.5,39 184.5,43.5 184.5,34.5" fill="#94a3b8"/><rect x="193.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#0ea5e9" stroke-width="1.6"/><text x="252.25" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Daftar gaya</text><text x="252.25" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Tiap massa</text><line x1="311" y1="39" x2="340" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="349,39 340,43.5 340,34.5" fill="#94a3b8"/><rect x="349" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="407.75" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">ΣF = m·a</text><text x="407.75" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Per massa</text><line x1="466.5" y1="39" x2="495.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="504.5,39 495.5,43.5 495.5,34.5" fill="#94a3b8"/><rect x="504.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="563.25" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Susun jadi</text><text x="563.25" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Matriks</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Tanda gaya pegas penghubung paling sering tertukar</text></svg>
@@ -1756,8 +1756,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Step 1: Free Body Diagram</h3>
-      <p>Untuk tiap massa, gambar diagram bebas dengan <strong>semua gaya</strong>: spring (k·Δx), damper (\(c \cdot v)\), gravitasi (mg), gaya eksternal F(t). Tentukan arah positif dengan konvensi (mis. ke kanan = +).</p>
-      <div class="formula">\(FBD per massa: \Sigma F = ma\)</div>
+      <p>Untuk tiap massa, gambar diagram bebas dengan <strong>semua gaya</strong>: spring (k·Δx), damper (\(c \cdot v\)), gravitasi (mg), gaya eksternal F(t). Tentukan arah positif dengan konvensi (mis. ke kanan = +).</p>
+      <div class="formula">\(\text{FBD per massa: } \Sigma F = ma\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
@@ -1775,13 +1775,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚡</div>
       <h3>Step 4: Rearrange ke Matrix Form</h3>
       <p>Ekspansi: <code>m₁·ẍ₁ + (k₁+k₂)x₁ − k₂·x₂ = 0</code>. Susun ke matriks: <code>[M]{ẍ} + [K]{x} = 0</code> dengan M diagonal dan K simetris. Inilah bentuk standar untuk solving numerik atau modal analysis.</p>
-      <div class="formula">\([M]{\ddot{x}} + [K]{x} = 0 (\text{matrix EoM})\)</div>
+      <div class="formula">\([M]\{\ddot{x}\} + [K]\{x\} = 0 (\text{matrix EoM})\)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
     <strong>Pola Universal Matriks K untuk Spring System</strong><br>
-    Untuk sistem rangkaian \(massa-spring\) linear \((1D\) translation):<br>
+    Untuk sistem rangkaian massa-spring linear (1D translation):<br>
     • <strong>K[i,i]</strong> = jumlah semua kekakuan pegas yang terhubung ke massa-i<br>
     • <strong>K[i,j]</strong> (off-diagonal) = <em>negatif</em> kekakuan pegas yang menghubungkan i dan j (= K[j,i], selalu simetris)<br>
     Pola ini berlaku universal untuk N-DoF, tidak perlu turun ulang dari Newton tiap kali. Cukup identifikasi connectivity graph dan apply rule.
@@ -1890,25 +1890,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Newton — Kapan Pilih?</h3>
       <p>Sistem 1-3 DoF dengan koordinat Cartesian sederhana. Pemahaman fisik (FBD) lebih intuitif. Cocok untuk pembelajaran awal &amp; verifikasi quick. Tidak ada constraint kompleks.</p>
-      <div class="formula">\(Simple translation: pilih Newton\)</div>
+      <div class="formula">\(\text{Simple translation: pilih Newton}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
       <h3>Lagrange — Kapan Pilih?</h3>
       <p>Sistem &gt; 3 DoF, atau ada angular coordinates (rotasi), atau ada constraint geometric (rigid body). Lagrangian formulation jauh lebih ringkas dan less error-prone. Standar di physics &amp; advanced dynamics.</p>
-      <div class="formula">\(Complex/angular/constrained: Lagrange\)</div>
+      <div class="formula">\(\text{Complex/angular/constrained: Lagrange}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔢</div>
       <h3>Output Identik</h3>
       <p>Untuk sistem yang sama, kedua metode HARUS menghasilkan EoM yang sama. Inilah cara verifikasi correctness, derive dengan kedua metode, bandingkan. Kalau berbeda, ada kesalahan di salah satu (biasanya sign error di Newton FBD atau missing term di Lagrange).</p>
-      <div class="formula">\(Newton EoM \equiv Lagrange EoM\)</div>
+      <div class="formula">\(\text{Newton EoM} \equiv \text{Lagrange EoM}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚀</div>
       <h3>Hamilton's Method (Advanced)</h3>
       <p>Generalisasi Lagrange: <strong>Hamilton's equations</strong> menggunakan momentum p = ∂L/∂q̇. Powerful untuk quantum mechanics, optimal control, simulation numerik orbit. Topik advanced &mdash; tidak dibahas di modul ini, tapi continuation logis dari Lagrange.</p>
-      <div class="formula">\(Hamilton: H = \Sigma p \cdot \dot{q} - L\)</div>
+      <div class="formula">\(\text{Hamilton: } H = \Sigma p \cdot \dot{q} - L\)</div>
     </div>
   </div>
 
@@ -1940,7 +1940,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Matrix EoM Standar</div>
-    \([M]{\ddot{x}} + [C]{\dot{x}} + [K]{x} = {F(t)} \cdot\) semua matrix \(N \times N\) untuk sistem \(N-DoF\)
+    \([M]\{\ddot{x}\} + [C]\{\dot{x}\} + [K]\{x\} = \{F(t)\} \cdot\) semua matrix \(N \times N\) untuk sistem \(N\text{-DoF}\)
   <span class="formula-number">(5)</span></div>
 <!-- PERSAMAAN-STATIS:5:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1966,7 +1966,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">💧</div>
       <h3>Damping Matrix [C] — Optional</h3>
       <p>Untuk undamped system, [C] = 0. Untuk Rayleigh damping (proportional): <code>[C] = α[M] + β[K]</code>. Common assumption karena memungkinkan modal decoupling (akan dibahas di Pertemuan 10).</p>
-      <div class="formula">\(C = \alpha M + \beta K (Rayleigh)\)</div>
+      <div class="formula">\(C = \alpha M + \beta K (\text{Rayleigh})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
@@ -2034,13 +2034,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎼</div>
       <h3>Modal Decoupling (Preview)</h3>
       <p>Pertemuan 10: <strong>modal analysis</strong> mentransformasi coupled physical coordinates {x} ke <em>decoupled modal coordinates</em> {η} via <code>{x} = [Φ]{η}</code>. Setelah transform, [Φ]ᵀ[K][Φ] menjadi <strong>diagonal</strong>, N independent 1-DoF problems.</p>
-      <div class="formula">\(Modal: \Phi ^T K \Phi = \operatorname{diag} (decoupled)\)</div>
+      <div class="formula">\(\text{Modal: } \Phi ^T K \Phi = \operatorname{diag} (\text{decoupled})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">💡</div>
       <h3>Implikasi untuk Solving Numerik</h3>
       <p>Coupled MDoF butuh ODE solver yang handle vector state {x, ẋ}. Library: <code>scipy.integrate.solve_ivp</code>. State vector size = 2N (position + velocity). Implementation di Bagian 08.</p>
-      <div class="formula">\(State vector: y = [x, \dot{x}] \in \mathbb{R}^{2N}\)</div>
+      <div class="formula">\(\text{State vector: } y = [x, \dot{x}] \in \mathbb{R}^{2N}\)</div>
     </div>
   </div>
 
@@ -2063,7 +2063,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-aplikasi">
   <div class="section-label reveal">Bagian 07</div>
   <h2 class="section-title reveal">Numerical Solution:<br>scipy.integrate.solve_ivp untuk MDoF</h2>
-  <p class="section-desc reveal">Setelah EoM dalam matrix form <code>[M]{ẍ} + [C]{ẋ} + [K]{x} = {F(t)}</code>, langkah berikutnya: <strong>solve numerically</strong> untuk dapat respons time-history x(t). Library Python paling robust: <strong>\(scipy.integrate.solve_{\text{ivp}}\)</strong> dengan algoritma adaptive Runge-Kutta. Bekerja untuk linear, non-linear, time-varying systems. Perhatikan ilustrasinya pada Gambar 7. Persamaan (7) di bawah memadatkan aturan tersebut.</p>
+  <p class="section-desc reveal">Setelah EoM dalam matrix form <code>[M]{ẍ} + [C]{ẋ} + [K]{x} = {F(t)}</code>, langkah berikutnya: <strong>solve numerically</strong> untuk dapat respons time-history x(t). Library Python paling robust: <strong><code>scipy.integrate.solve_ivp</code></strong> dengan algoritma adaptive Runge-Kutta. Bekerja untuk linear, non-linear, time-varying systems. Perhatikan ilustrasinya pada Gambar 7. Persamaan (7) di bawah memadatkan aturan tersebut.</p>
 <!-- ILUSTRASI-STATIS:7:START -->
   <figure class="ilustrasi reveal">
     <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 7 — Menyiapkan persamaan untuk solver numerik" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="38" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="96.75" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">EoM orde dua</text><line x1="155.5" y1="39" x2="184.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="193.5,39 184.5,43.5 184.5,34.5" fill="#94a3b8"/><rect x="193.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#0ea5e9" stroke-width="1.6"/><text x="252.25" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Ubah ke</text><text x="252.25" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">State-space</text><line x1="311" y1="39" x2="340" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="349,39 340,43.5 340,34.5" fill="#94a3b8"/><rect x="349" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="407.75" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'JetBrains Mono',monospace" data-kode="1">solve_ivp</text><line x1="466.5" y1="39" x2="495.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="504.5,39 495.5,43.5 495.5,34.5" fill="#94a3b8"/><rect x="504.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="563.25" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Ulangi</text><text x="563.25" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Dengan dt/2</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Hasil yang tidak berubah saat dt dibagi dua menandakan langkahnya cukup</text></svg>
@@ -2073,7 +2073,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Convert to 1st-Order System</div>
-    \([M]{\ddot{x}} = {F} - [C]{\dot{x}} - [K]{x} \implies \dot{y} = f(\text{t, y}), y = [x,\) ẋ]ᵀ
+    \([M]\{\ddot{x}\} = \{F\} - [C]\{\dot{x}\} - [K]\{x\} \implies \dot{y} = f(t, y),\ y = [x, \dot{x}]^T\)
   <span class="formula-number">(7)</span></div>
 <!-- PERSAMAAN-STATIS:7:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -2206,7 +2206,7 @@ EL1_simplified = sp.<span class="fn">simplify</span>(EL1)
   <div class="code-wrap reveal" style="margin-bottom:32px">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell \(3\;\text{---}\) Free Vibration Response dengan \(solve_{\text{ivp}}\)</span>
+      <span class="code-label">Cell \(3\;\text{---}\) Free Vibration Response dengan <code>solve_ivp</code></span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -2310,7 +2310,7 @@ mask = sol.t &gt; <span class="nm">8</span>
       <button onclick="window._m8setIC(3)" id="btn-m8-3" style="padding:9px 18px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.08);color:var(--amber)">▶ x1=1, x2=1 (Mode 1)</button>
     </div>
     <div id="anim-info" style="text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">
-      IC: \(x1(0)=1, x2(0)=0 \cdot\) System refs \((m=1, k=100) \cdot \omega _1=10, \omega _2 \approx 17.32 rad/s\)
+      IC: \(x1(0)=1, x2(0)=0 \cdot\) System refs \((m=1, k=100) \cdot \omega _1=10, \omega _2 \approx 17.32 \text{ rad/s}\)
     </div>
   </div>
 
@@ -2668,7 +2668,7 @@ mask = sol.t &gt; <span class="nm">8</span>
         <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; d/dt(∂L/∂\(q_i\)) − ∂L/∂q̇<sub>i</sub> = 0</span></div>
         <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; d/dt(∂L/∂q̇<sub>i</sub>) − ∂L/∂\(q_i\) = \(Q_i\)</span></div>
         <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; ∂L/∂\(q_i\) + ∂L/∂q̇<sub>i</sub> = 0</span></div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(d^2\)L/dt² = \(Q_i\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(d^2L/dt^2 = Q_i\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc4" onclick="checkMC('mc4')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc4"></div>
@@ -2906,7 +2906,7 @@ mask = sol.t &gt; <span class="nm">8</span>
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q"><strong>Convert \(2nd-order ke 1st-order\)</strong> ODE system: untuk state y = [x1, x2, v1, v2], compute initial state vector dengan x(0)=[1,0], v(0)=[0,0]. Return sum(y0).</div>
+        <div class="comp-q"><strong>Convert 2nd-order ke 1st-order</strong> ODE system: untuk state y = [x1, x2, v1, v2], compute initial state vector dengan x(0)=[1,0], v(0)=[0,0]. Return sum(y0).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Susun state vector awal dari posisi x(0) lalu kecepatan v(0) yang diberikan, kemudian jumlahkan elemennya.</div>
@@ -3232,11 +3232,11 @@ mask = sol.t &gt; <span class="nm">8</span>
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Dengan matriks M dan K yang sudah didapat, selesaikan eigenvalue problem det(K − ω²M) = 0 (gunakan <code>numpy.linalg.eig(inv(M)@K)</code>). Anda akan mendapat dua nilai ω. Identifikasi mana yang merupakan <strong>body bounce mode</strong> dan mana <strong>wheel hop mode</strong> dari mode shape-nya.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">det(K \(- \omega ^2M) = 0\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(\det(K - \omega ^2M) = 0\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(f = \omega / (2\pi )\)</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Hint (verifikasi numpy): hasil seharusnya \(\omega _1 \approx 7.62 rad/s (f_1 \approx 1.21 Hz,\) body bounce, body &amp; wheel bergerak ke arah sama) dan \(\omega _2 \approx 66.4 rad/s (f_2 \approx 10.56 Hz,\) wheel hop, body diam relatif, wheel bergetar cepat). Ini cocok dengan range industri otomotif (suspensi body \(1\;\text{--}\;2 Hz,\) wheel hop \(10\;\text{--}\;15 Hz).\)</em>
+          💬 <em>Hint (verifikasi numpy): hasil seharusnya \(\omega _1 \approx 7.62\) rad/s (\(f_1 \approx 1.21\) Hz, body bounce, body &amp; wheel bergerak ke arah sama) dan \(\omega _2 \approx 66.4\) rad/s (\(f_2 \approx 10.56\) Hz, wheel hop, body diam relatif, wheel bergetar cepat). Ini cocok dengan range industri otomotif (suspensi body 1–2 Hz, wheel hop 10–15 Hz).</em>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis hasil eigenvalue dan interpretasinya (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung dua ω dengan numpy.linalg.eig. (2) Konversi ke Hz (f = ω/2π). (3) Identifikasi mode mana adalah body bounce dan wheel hop dari mode shape (Φ). (4) Bandingkan dengan target desain industri: kenyamanan ride membutuhkan frekuensi bodi 1–2 Hz, sedangkan frekuensi roda di luar range frekuensi jalan (5–15 Hz) yang sensitif manusia." oninput="checkForumReady()"></textarea>
@@ -3295,7 +3295,7 @@ mask = sol.t &gt; <span class="nm">8</span>
         <div style="font-size:12px;color:var(--muted);line-height:1.5">
           <strong style="color:var(--text)">Cara salin (3 langkah):</strong><br>
           1) Klik tombol <strong style="color:var(--cyan)">🔍 Pilih Semua</strong> di bawah kotak HTML · 
-          \(2)\) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
+          2) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
           3) Paste di Fast Learning &gt; mode HTML.<br>
           <em style="color:var(--violet)">Tombol Copy di atas adalah opsional, jika tidak berfungsi, gunakan cara manual ini.</em>
         </div>
