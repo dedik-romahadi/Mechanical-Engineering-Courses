@@ -60,8 +60,13 @@ def catatan(baris, x=330, y0=40, warna=TX):
     return "".join(t(x, y0 + i * 18, s, 11, warna if i == 0 else AX, "start", "600" if i == 0 else "") for i, s in enumerate(baris))
 
 
+_LABEL = {}      # svg → label asli (dengan penanda <sub>/<sup>), dipakai keterangan HTML tugas_gambar_html
+
+
 def gambar_tugas(body, label, w=520, h=230):
-    return svg(w, h, body, label)
+    s = svg(w, h, body, label)
+    _LABEL[s] = label
+    return s
 
 
 def poli(pts, fill, stroke, w=1.8, dash=""):
@@ -512,7 +517,7 @@ def tugas_gambar_html(N):
     """Pembungkus untuk kartu tugas: <div class="tugas-gambar" id="gambar-cK">svg + keterangan</div>."""
     out = []
     for k, s in enumerate(tugas_gambar(N), 1):
-        lab = re.sub(r"^Tugas \d+ — ", "", re.search(r'aria-label="([^"]*)"', s).group(1))
+        lab = re.sub(r"^Tugas \d+ — ", "", _LABEL.get(s) or re.search(r'aria-label="([^"]*)"', s).group(1))
         out.append(f'<div class="tugas-gambar" id="gambar-c{k}">{s}<div class="tugas-gambar-ket">📐 Gambar acuan: {lab}. Simbol mengikuti teks tugas; angka dimensi milik Anda muncul setelah masuk.</div></div>')
     return out
 

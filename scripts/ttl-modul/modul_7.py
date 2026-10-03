@@ -4,7 +4,7 @@
 import math
 
 from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
-                     fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel)
+                     fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel, rumus_mentah)
 
 NOMOR = 7
 PERTEMUAN = 7
@@ -95,7 +95,7 @@ def gambar1():
     Y = lambda i: y0 - i / imax * (y0 - y1)
     for tt in [0, 0.5, 1, 1.5, 2, 2.5, 3]:
         b += f'<line x1="{X(tt):.1f}" y1="{y1}" x2="{X(tt):.1f}" y2="{y0}" stroke="{GRID}" stroke-width="0.7"/>' + t(X(tt), y0 + 16, f"{tt:g} s", 10.5, AX)
-    for i, c, lab in [(1 / XG2, "#ec4899", f"I″ = 1/X″ = {ind(1 / XG2, 2)} pu"), (1 / XG1, "#f59e0b", f"I′ = 1/X′ = {ind(1 / XG1, 2)} pu"), (1 / XGS, "#00e09e", f"I = 1/X_s = {ind(1 / XGS, 2)} pu")]:
+    for i, c, lab in [(1 / XG2, "#ec4899", f"I″ = 1/X″ = {ind(1 / XG2, 2)} pu"), (1 / XG1, "#f59e0b", f"I′ = 1/X′ = {ind(1 / XG1, 2)} pu"), (1 / XGS, "#00e09e", f"I = 1/X<sub>s</sub> = {ind(1 / XGS, 2)} pu")]:
         kanan = abs(i - 1 / XG1) < 1e-9
         b += f'<line x1="{x0}" y1="{Y(i):.1f}" x2="{x1}" y2="{Y(i):.1f}" stroke="{c}" stroke-width="1.2" stroke-dasharray="5 4"/>' + t(x1 - 6 if kanan else x0 + 6, Y(i) - 5, lab, 10.5, c, "end" if kanan else "start", "600")
     env = lambda tt: (1 / XG2 - 1 / XG1) * math.exp(-tt / 0.03) + (1 / XG1 - 1 / XGS) * math.exp(-tt / 1.0) + 1 / XGS
@@ -103,23 +103,23 @@ def gambar1():
     b += f'<polyline points="{pts}" fill="none" stroke="#22d3ee" stroke-width="2.6"/>'
     b += t(X(1.0), Y(env(1.0)) - 12, "selubung arus rms", 10.5, "#22d3ee", "start", "600")
     b += t(28, 112, "I (pu)", 10.5, AX)
-    b += t(347, 230, f"Generator {ind(SG, 0)} MVA/{ind(VG, 1)} kV: X″ = {ind(XG2, 2)}, X′ = {ind(XG1, 2)}, X_s = {ind(XGS, 1)} pu; T″ ≈ 0,03 s, T′ ≈ 1 s.", 11.5, AX)
+    b += t(347, 230, f"Generator {ind(SG, 0)} MVA/{ind(VG, 1)} kV: X″ = {ind(XG2, 2)}, X′ = {ind(XG1, 2)}, X<sub>s</sub> = {ind(XGS, 1)} pu; T″ ≈ 0,03 s, T′ ≈ 1 s.", 11.5, AX)
     b += t(347, 244, "PMT harus memutus arus yang masih dekat nilai subtransien", 11.5, AX)
     return svg(660, 254, b, "Gambar 1 — Selubung arus hubung singkat generator: subtransien, transien, tunak")
 
 
 def gambar2():
     b = t(165, 22, "Uji hubung singkat trafo", 12, TX, "middle", "700")
-    b += kawat(40, 70, 90, 70) + reaktor(90, 170, 70, "#a855f7", f"X_T = {ind(XT_PCT, 0)} %") + kawat(170, 70, 230, 70) + kawat(230, 70, 230, 150) + kawat(40, 150, 230, 150) + kawat(40, 70, 40, 90) + kawat(40, 130, 40, 150)
+    b += kawat(40, 70, 90, 70) + reaktor(90, 170, 70, "#a855f7", f"X<sub>T</sub> = {ind(XT_PCT, 0)} %") + kawat(170, 70, 230, 70) + kawat(230, 70, 230, 150) + kawat(40, 150, 230, 150) + kawat(40, 70, 40, 90) + kawat(40, 130, 40, 150)
     b += f'<circle cx="40" cy="110" r="16" fill="{BOX}" stroke="#f59e0b" stroke-width="2"/>' + t(40, 114, "V", 11, "#f59e0b", "middle", "700") + t(62, 114, f"{ind(VSC_T, 0)} kV", 10.5, "#f59e0b", "start", "600")
-    b += arrow(110, 96, 160, 96, "#00e09e", 1.8) + t(135, 110, "I_n", 11, "#00e09e", "middle", "600")
+    b += arrow(110, 96, 160, 96, "#00e09e", 1.8) + t(135, 110, "I<sub>n</sub>", 11, "#00e09e", "middle", "600")
     b += t(230, 170, "sekunder dihubung singkat", 10.5, AX, "end")
-    b += t(165, 196, f"{ind(XT_PCT, 0)} % dari 150 kV sudah mengalirkan I_n", 11, TX) + t(165, 212, f"→ I_sc terminal ≈ {ind(ISC_T_N, 2)} × I_n", 11, AX)
+    b += t(165, 196, f"{ind(XT_PCT, 0)} % dari 150 kV sudah mengalirkan I<sub>n</sub>", 11, TX) + t(165, 212, f"→ I<sub>sc</sub> terminal ≈ {ind(ISC_T_N, 2)} × I<sub>n</sub>", 11, AX)
     b += t(495, 22, "Refleksi impedansi lewat rasio", 12, TX, "middle", "700")
     b += kawat(360, 110, 400, 110) + f'<circle cx="418" cy="110" r="16" fill="none" stroke="#a855f7" stroke-width="2"/><circle cx="442" cy="110" r="16" fill="none" stroke="#a855f7" stroke-width="2"/>' + kawat(460, 110, 500, 110)
     b += t(430, 84, "13,8 / 150 kV", 10.5, "#a855f7", "middle", "600")
-    b += t(380, 140, f"Z_base 13,8 kV = {ind(VG ** 2 / S_B, 3)} Ω", 10.5, "#f59e0b", "middle", "600") + t(560, 140, f"Z_base 150 kV = {ind(ZB_L, 0)} Ω", 10.5, "#22d3ee", "middle", "600")
-    b += t(495, 164, f"X_T = {ind(XT_PU, 4)} pu di kedua sisi (basis 100 MVA)", 11, TX)
+    b += t(380, 140, f"Z<sub>base</sub> 13,8 kV = {ind(VG ** 2 / S_B, 3)} Ω", 10.5, "#f59e0b", "middle", "600") + t(560, 140, f"Z<sub>base</sub> 150 kV = {ind(ZB_L, 0)} Ω", 10.5, "#22d3ee", "middle", "600")
+    b += t(495, 164, f"X<sub>T</sub> = {ind(XT_PU, 4)} pu di kedua sisi (basis 100 MVA)", 11, TX)
     b += t(495, 182, f"= {ind(XT_PU * VG ** 2 / S_B, 4)} Ω sisi 13,8 kV = {ind(XT_PU * ZB_L, 2)} Ω sisi 150 kV", 10.5, AX)
     b += t(495, 212, "rasio (150/13,8)² = 118×: itulah yang dihapus per unit", 10.5, AX)
     return svg(660, 226, b, "Gambar 2 — Impedansi transformator: uji hubung singkat dan refleksi antar-sisi")
@@ -127,10 +127,10 @@ def gambar2():
 
 def gambar3():
     b = ""
-    kartu = [("Pilih basis", f"S_base = {ind(S_B, 0)} MVA (satu untuk seluruh sistem)\nV_base = tegangan nominal tiap zona (13,8 / 150 kV), berbanding rasio trafo", "#22d3ee"),
-             ("Turunkan basis lain", f"Z_base = kV²/MVA → {ind(ZB_G, 3)} Ω (13,8 kV), {ind(ZB_L, 0)} Ω (150 kV)\nI_base = S/(√3·V) → {ind(IB_G, 0)} A (13,8 kV), {ind(S_B * 1e6 / (SQ3 * 150e3), 0)} A (150 kV)", "#f59e0b"),
+    kartu = [("Pilih basis", f"S<sub>base</sub> = {ind(S_B, 0)} MVA (satu untuk seluruh sistem)\nV<sub>base</sub> = tegangan nominal tiap zona (13,8 / 150 kV), berbanding rasio trafo", "#22d3ee"),
+             ("Turunkan basis lain", f"Z<sub>base</sub> = kV²/MVA → {ind(ZB_G, 3)} Ω (13,8 kV), {ind(ZB_L, 0)} Ω (150 kV)\nI<sub>base</sub> = S/(√3·V) → {ind(IB_G, 0)} A (13,8 kV), {ind(S_B * 1e6 / (SQ3 * 150e3), 0)} A (150 kV)", "#f59e0b"),
              ("Nyatakan tiap alat", f"generator {ind(XG2, 2)} pu (rating = basis); trafo {ind(XT_PCT, 0)} % @{ind(ST, 0)} MVA → {ind(XT_PU, 4)} pu\nsaluran {ind(XL_OHM, 0)} Ω/{ind(ZB_L, 0)} Ω = {ind(XL_PU, 4)} pu", "#a855f7"),
-             ("Hitung, lalu kembalikan", f"X_th rel C = {ind(X_C, 4)} pu → S_sc = 100/{ind(X_C, 4)} = {ind(SSC_C, 0)} MVA\nI_sc = {ind(SSC_C, 0)}/(√3·150) = {ind(SSC_C / (SQ3 * 150), 3)} kA", "#00e09e")]
+             ("Hitung, lalu kembalikan", f"X<sub>th</sub> rel C = {ind(X_C, 4)} pu → S<sub>sc</sub> = 100/{ind(X_C, 4)} = {ind(SSC_C, 0)} MVA\nI<sub>sc</sub> = {ind(SSC_C, 0)}/(√3·150) = {ind(SSC_C / (SQ3 * 150), 3)} kA", "#00e09e")]
     for i, (judul, isi, c) in enumerate(kartu):
         y = 18 + i * 55
         b += f'<rect x="20" y="{y}" width="620" height="50" rx="8" fill="{BOX}" stroke="{c}" stroke-width="1.4"/>'
@@ -149,20 +149,20 @@ def gambar4():
     for i, ((x, y), Z, lab) in enumerate(zip(pts, [ZA, ZBB, ZC], ["a", "b", "c"])):
         b += kawat_berlabel(cx, cy, x, y, 20, 9)
         mx, my = (cx + x) / 2, (cy + y) / 2
-        b += f'<rect x="{mx - 20:.1f}" y="{my - 9:.1f}" width="40" height="18" rx="3" fill="{BOX}" stroke="{warna[i]}" stroke-width="1.8"/>' + t(mx, my + 4, f"Z_{lab} {ind(Z, 0)}", 9.5, warna[i], "middle", "600")
+        b += f'<rect x="{mx - 20:.1f}" y="{my - 9:.1f}" width="40" height="18" rx="3" fill="{BOX}" stroke="{warna[i]}" stroke-width="1.8"/>' + t(mx, my + 4, f"Z<sub>{lab}</sub> {ind(Z, 0)}", 9.5, warna[i], "middle", "600")
         b += f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4.5" fill="{warna[i]}"/>' + t(x + (0 if i == 0 else (-12 if i == 1 else 12)), y - 10 if i == 0 else y + 18, lab, 12, warna[i], "middle", "700")
     b += f'<circle cx="{cx}" cy="{cy}" r="3.5" fill="{AX}"/>'
-    b += t(160, 212, "Z_Δ = (Z_aZ_b + Z_bZ_c + Z_cZ_a) / Z_lawan", 10.5, AX)
+    b += t(160, 212, "Z<sub>Δ</sub> = (Z<sub>a</sub>Z<sub>b</sub> + Z<sub>b</sub>Z<sub>c</sub> + Z<sub>c</sub>Z<sub>a</sub>) / Z<sub>lawan</sub>", 10.5, AX)
     cx2 = 500
     pts2 = [(cx2, cy - r), (cx2 - r * 0.87, cy + r * 0.5), (cx2 + r * 0.87, cy + r * 0.5)]
-    for (i, j, Z, lab) in [(0, 1, ZAB, "Z_ab"), (1, 2, ZBC, "Z_bc"), (2, 0, ZCA, "Z_ca")]:
+    for (i, j, Z, lab) in [(0, 1, ZAB, "Z<sub>ab</sub>"), (1, 2, ZBC, "Z<sub>bc</sub>"), (2, 0, ZCA, "Z<sub>ca</sub>")]:
         (x1, y1), (x2, y2) = pts2[i], pts2[j]
         b += kawat_berlabel(x1, y1, x2, y2, 28, 9)
         mx, my = (x1 + x2) / 2, (y1 + y2) / 2
         b += f'<rect x="{mx - 28:.1f}" y="{my - 9:.1f}" width="56" height="18" rx="3" fill="{BOX}" stroke="#00e09e" stroke-width="1.8"/>' + t(mx, my + 4, f"{lab} {ind(Z, 1)}", 9.5, "#00e09e", "middle", "600")
     for i, ((x, y), lab) in enumerate(zip(pts2, ["a", "b", "c"])):
         b += f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4.5" fill="{warna[i]}"/>' + t(x + (0 if i == 0 else (-12 if i == 1 else 12)), y - 10 if i == 0 else y + 18, lab, 12, warna[i], "middle", "700")
-    b += t(500, 212, "Z_Y = Z_ab·Z_ca / (Z_ab + Z_bc + Z_ca), dst.", 10.5, AX)
+    b += t(500, 212, "Z<sub>Y</sub> = Z<sub>ab</sub>·Z<sub>ca</sub> / (Z<sub>ab</sub> + Z<sub>bc</sub> + Z<sub>ca</sub>), dst.", 10.5, AX)
     b += t(330, 232, f"Contoh: Y (3, 6, 9 Ω) ⇔ Δ ({ind(ZAB, 0)}, {ind(ZBC, 0)}, {ind(ZCA, 1)} Ω); pemeriksaan a–b dengan c terbuka: {ind(ZA + ZBB, 0)} Ω = {ind(ZAB * (ZBC + ZCA) / (ZAB + ZBC + ZCA), 2)} Ω", 11, AX)
     return svg(660, 242, b, "Gambar 4 — Transformasi bintang–segitiga")
 
@@ -179,7 +179,7 @@ def gambar5():
     b += kawat(380, y, 430, y) + reaktor(430, 520, y, "#00e09e", f"saluran j{ind(XL_PU, 4)}") + kawat(520, y, 570, y)
     b += rel(570, y - 50, y + 50, "#22d3ee", "rel C")
     for x, X, S in [(200, X_PAR, S_B / X_PAR), (380, X_PAR_T, S_B / X_PAR_T), (570, X_PAR_T + XL_PU, S_B / (X_PAR_T + XL_PU))]:
-        b += t(x, y + 66, f"X_th = {ind(X, 4)} pu", 10, TX, "middle", "600") + t(x, y + 80, f"S_sc = {ind(S, 0)} MVA", 10, "#00e09e", "middle", "600")
+        b += t(x, y + 66, f"X<sub>th</sub> = {ind(X, 4)} pu", 10, TX, "middle", "600") + t(x, y + 80, f"S<sub>sc</sub> = {ind(S, 0)} MVA", 10, "#00e09e", "middle", "600")
     b += t(330, 206, f"Basis 100 MVA. Dua generator paralel: {ind(XG2, 2)}‖{ind(XG2B, 2)} = {ind(X_PAR, 4)} pu;", 11, AX)
     b += t(330, 220, "tiap rel ke kanan menambah reaktansi seri sehingga MVA hubung singkat mengecil", 11, AX)
     return svg(660, 230, b, "Gambar 5 — Diagram reaktansi per unit dan reduksi ke ekuivalen Thevenin tiap rel")
@@ -201,7 +201,7 @@ def gambar6():
         b += t(X(sl) - 6 if sl < 3000 else x1 + 4, Y(min(100, sl / (SQ3 * kv))) + (14 if sl < 3000 else 4), f"{kv} kV", 10.5, c, "end" if sl < 3000 else "start", "600")
     for ka in [25, 40, 63]:
         b += f'<line x1="{x0}" y1="{Y(ka):.1f}" x2="{x1}" y2="{Y(ka):.1f}" stroke="#ec4899" stroke-width="1" stroke-dasharray="4 4"/>' + t(x1 - 4, Y(ka) - 4, f"PMT {ka} kA", 9.5, "#ec4899", "end")
-    b += t(28, 110, "I_sc", 10.5, AX) + t(330, 230, "MVA hubung singkat (sumbu mendatar) → arus hubung singkat I_sc = S_sc/(√3·V) untuk empat tingkat", 11.5, AX)
+    b += t(28, 110, "I<sub>sc</sub>", 10.5, AX) + t(330, 230, "MVA hubung singkat (sumbu mendatar) → arus hubung singkat I<sub>sc</sub> = S<sub>sc</sub>/(√3·V) untuk empat tingkat", 11.5, AX)
     b += t(330, 244, "tegangan; garis merah muda: kelas kapasitas pemutus", 11.5, AX)
     return svg(660, 254, b, "Gambar 6 — MVA hubung singkat, arus hubung singkat, dan kapasitas pemutus")
 
@@ -219,7 +219,7 @@ SUBNAV = '''<div id="modulSubnav" class="subnav-bar show">
   <a href="#m-pustaka">Referensi</a>
 </div>'''
 
-HERO_SCHEMATIC_1 = '''  <div class="hero-schematic">
+HERO_SCHEMATIC_1 = rumus_mentah('''  <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
       <circle cx="20" cy="110" r="12" fill="none" stroke="rgba(255,179,0,.6)" stroke-width="1.5"/>
       <text x="16" y="114" fill="rgba(255,179,0,.7)" font-family="JetBrains Mono" font-size="9">G</text>
@@ -228,9 +228,9 @@ HERO_SCHEMATIC_1 = '''  <div class="hero-schematic">
       <line x1="72" y1="110" x2="86" y2="110" stroke="rgba(148,163,184,.5)" stroke-width="1.5"/>
       <line x1="86" y1="86" x2="86" y2="134" stroke="rgba(0,229,255,.7)" stroke-width="3"/>
       <text x="40" y="96" fill="rgba(0,229,255,.55)" font-family="JetBrains Mono" font-size="8">jX″</text>
-      <text x="66" y="150" fill="rgba(236,72,153,.6)" font-family="JetBrains Mono" font-size="8">S_sc</text>
+      <text x="66" y="150" fill="rgba(236,72,153,.6)" font-family="JetBrains Mono" font-size="8">S<sub>sc</sub></text>
     </svg>
-  </div>'''
+  </div>''')
 
 HERO_SCHEMATIC_2 = '''  <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
@@ -253,14 +253,14 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
   </div>
 {HERO_SCHEMATIC_1}
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">Z_base = kV²/MVA</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">X_pu = X_Ω / Z_base</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">X_baru = X(S_b/S_l)(V_l/V_b)²</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">S_sc = S_base / X_th</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">Z_Δ = 3 Z_Y</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">Z<sub>base</sub> = kV²/MVA</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">X<sub>pu</sub> = X<sub>Ω</sub> / Z<sub>base</sub></span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">X<sub>baru</sub> = X(S<sub>b</sub>/S<sub>l</sub>)(V<sub>l</sub>/V<sub>b</sub>)²</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">S<sub>sc</sub> = S<sub>base</sub> / X<sub>th</sub></span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">Z<sub>Δ</sub> = 3 Z<sub>Y</sub></span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">I″ = 1/X″</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">I_base = S/(√3·V)</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">I_sc = S_sc/(√3·V)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">I<sub>base</sub> = S/(√3·V)</span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">I<sub>sc</sub> = S<sub>sc</sub>/(√3·V)</span>
   </div>
 {HERO_SCHEMATIC_2}
   <div class="hero-content">
@@ -291,14 +291,14 @@ def materi():
     m = ""
 
     # 01 — reaktansi generator
-    isi = figure(1, "Selubung arus hubung singkat generator: subtransien, transien, tunak", f"Saat terminal generator dihubung singkat, arus rms mulai dari I″ = 1/X″ = {ind(1 / XG2, 2)} pu, meluruh dalam beberapa siklus ke I′ = 1/X′, lalu dalam sekitar satu detik ke nilai tunak 1/X_s. Tiga reaktansi, tiga rentang waktu.", gambar1())
+    isi = figure(1, "Selubung arus hubung singkat generator: subtransien, transien, tunak", f"Saat terminal generator dihubung singkat, arus rms mulai dari I″ = 1/X″ = {ind(1 / XG2, 2)} pu, meluruh dalam beberapa siklus ke I′ = 1/X′, lalu dalam sekitar satu detik ke nilai tunak 1/X<sub>s</sub>. Tiga reaktansi, tiga rentang waktu.", gambar1())
     isi += formula(1, "Tiga Reaktansi Generator Sinkron", r"I'' = \dfrac{E''}{X_d''}, \qquad I' = \dfrac{E'}{X_d'}, \qquad I = \dfrac{E}{X_s}, \qquad X_d'' < X_d' < X_s",
                    rf"Generator contoh {ind(SG, 0)} MVA, {ind(VG, 1)} kV: \(X'' = {ind(XG2, 2)}\), \(X' = {ind(XG1, 2)}\), \(X_s = {ind(XGS, 1)}\) pu. Dengan tegangan pra-gangguan 1 pu, arus hubung singkat awal \({ind(1 / XG2, 2)}\) pu = \({ind(1 / XG2, 2)}\times{ind(IB_G, 0)} = {ind(ISC_G / 1000, 1)}\) kA, sedangkan tunaknya hanya \({ind(1 / XGS, 2)}\) pu, di bawah arus nominal!",
-                   "Reaktansi subtransien X″ mencerminkan belitan peredam dan permukaan rotor yang menolak perubahan fluks mendadak (konstanta waktu T″ ≈ 0,02–0,05 s); X′ mencerminkan belitan medan (T′ ≈ 0,5–2 s); X_s adalah reaktansi keadaan tunak. Studi hubung singkat untuk memilih PMT memakai X″ (arus terbesar), studi kestabilan memakai X′, dan studi aliran daya memakai X_s. Praktis: X″ 0,10–0,25 pu, X′ 0,15–0,40 pu, X_s 1,0–2,0 pu pada rating generator.",
+                   "Reaktansi subtransien X″ mencerminkan belitan peredam dan permukaan rotor yang menolak perubahan fluks mendadak (konstanta waktu T″ ≈ 0,02–0,05 s); X′ mencerminkan belitan medan (T′ ≈ 0,5–2 s); X<sub>s</sub> adalah reaktansi keadaan tunak. Studi hubung singkat untuk memilih PMT memakai X″ (arus terbesar), studi kestabilan memakai X′, dan studi aliran daya memakai X<sub>s</sub>. Praktis: X″ 0,10–0,25 pu, X′ 0,15–0,40 pu, X<sub>s</sub> 1,0–2,0 pu pada rating generator.",
                    [("X_d'', X_d', X_s", "Reaktansi subtransien, transien, sinkron sumbu d (pu)"), ("E'', E', E", "Ggl di balik tiap reaktansi (≈ 1 pu tanpa beban)"), ("I'', I', I", "Arus hubung singkat rms pada tiap tahap (pu)")])
     isi += formula(2, "Basis Rating dan Reaktansi dalam Ohm", r"Z_{base} = \dfrac{(kV_{base})^2}{MVA_{base}}, \qquad I_{base} = \dfrac{S_{base}}{\sqrt{3}\,V_{base}}, \qquad X_\Omega = X_{pu}\,Z_{base}",
                    rf"Generator contoh: \(Z_{{base}} = {ind(VG, 1)}^2/{ind(SG, 0)} = {ind(ZB_G, 4)}\) Ω, \(I_{{base}} = {ind(SG, 0)}\times10^6/(\sqrt{{3}}\times{ind(VG, 1)}\times10^3) = {ind(IB_G, 1)}\) A; \(X'' = {ind(XG2, 2)}\times{ind(ZB_G, 4)} = {ind(XG2_OHM, 4)}\) Ω. Pabrik memberikan reaktansi dalam persen atau pu pada rating alat itu sendiri; konversi ke ohm (atau ke basis lain) adalah pekerjaan kita.",
-                   "Reaktansi generator dalam ohm tampak kecil (sepersekian ohm), tetapi dibandingkan Z_base yang juga kecil ia bernilai 0,1–0,25 pu: bilangan pu-lah yang langsung memberi tahu 'berapa kali arus nominal' saat hubung singkat, tanpa perlu ohm sama sekali.",
+                   "Reaktansi generator dalam ohm tampak kecil (sepersekian ohm), tetapi dibandingkan Z<sub>base</sub> yang juga kecil ia bernilai 0,1–0,25 pu: bilangan pu-lah yang langsung memberi tahu 'berapa kali arus nominal' saat hubung singkat, tanpa perlu ohm sama sekali.",
                    [("Z_{base}", "Impedansi basis (Ω)"), ("I_{base}", "Arus basis (A)"), ("X_{pu}", "Reaktansi per unit pada basis yang dipakai")])
     isi += cards([
         ("⚡", "Arus Awal vs Tunak", "Arus hubung singkat generator turun seiring waktu: PMT yang membuka 3–5 siklus setelah gangguan memutus arus dekat nilai subtransien; relai harus disetel dengan nilai transien/tunak yang lebih kecil.", r"\(I'' \gg I\)"),
@@ -306,13 +306,13 @@ def materi():
         ("📈", "Komponen DC", "Tergantung saat gangguan terjadi, arus asimetris dengan ofset DC menambah puncak awal sampai 1,6–1,8 kali; PMT dinilai dengan faktor asimetri ini.", None),
         ("🌀", "Motor Ikut Menyumbang", "Motor induksi besar berlaku sebagai generator sesaat saat tegangan runtuh (X″ ≈ 0,17 pu) dan menambah arus hubung singkat rel pabrik beberapa siklus pertama.", None),
         ("🔩", "Rating dan Basis", "X″ = 18 % pada pelat nama berarti 0,18 pu pada MVA dan kV generator itu; angka yang sama pada basis 100 MVA berubah sebanding rasio MVA (Bagian 03).", r"\(X_{pu} \propto S_{base}\)"),
-        ("📐", "Sumbu d dan q", "Generator kutub menonjol mempunyai X_d dan X_q berbeda; untuk hubung singkat tiga fasa simetris cukup X_d″ dan X_d′ yang dipakai modul ini.", None),
+        ("📐", "Sumbu d dan q", "Generator kutub menonjol mempunyai X<sub>d</sub> dan X<sub>q</sub> berbeda; untuk hubung singkat tiga fasa simetris cukup X<sub>d</sub>″ dan X<sub>d</sub>′ yang dipakai modul ini.", None),
     ])
     isi += tabel(["Reaktansi generator", "Nilai khas (pu rating)", "Konstanta waktu", "Dipakai untuk"], [
         ["Subtransien X″", "0,10 – 0,25", "T″ ≈ 0,02 – 0,05 s", "arus putus PMT, gaya elektrodinamik rel"],
         ["Transien X′", "0,15 – 0,40", "T′ ≈ 0,5 – 2 s", "kestabilan transien, setelan relai"],
-        ["Sinkron X_s", "1,0 – 2,0", "—", "aliran daya, arus hubung singkat tunak"],
-        [f"Contoh {ind(SG, 0)} MVA/{ind(VG, 1)} kV", f"{ind(XG2, 2)} / {ind(XG1, 2)} / {ind(XGS, 1)}", "0,03 s / 1 s", f"I″ = {ind(ISC_G / 1000, 1)} kA, I_tunak = {ind(IB_G / XGS / 1000, 2)} kA"],
+        ["Sinkron X<sub>s</sub>", "1,0 – 2,0", "—", "aliran daya, arus hubung singkat tunak"],
+        [f"Contoh {ind(SG, 0)} MVA/{ind(VG, 1)} kV", f"{ind(XG2, 2)} / {ind(XG1, 2)} / {ind(XGS, 1)}", "0,03 s / 1 s", f"I″ = {ind(ISC_G / 1000, 1)} kA, I<sub>tunak</sub> = {ind(IB_G / XGS / 1000, 2)} kA"],
     ])
     isi += kotak("info-box", "<strong>📜 Sedikit Sejarah:</strong> teori reaktansi transien dan subtransien lahir dari analisis Park (1929) yang mengubah persamaan mesin sinkron ke sumbu d–q; sebelum itu arus hubung singkat generator hanya diketahui dari uji dan sering di bawah taksiran. Sistem per unit dipopulerkan insinyur AIEE pada 1920–1930-an ketika jaringan bertegangan bertingkat (2,4 → 13,8 → 138 kV) membuat perhitungan dalam ohm penuh kesalahan rasio. Papan analisis jaringan (network analyzer) 1930-an dan komputer digital 1950-an mengotomatiskan reduksi jaringan yang di sini dikerjakan tangan.")
     isi += kotak("tip-box", "💡 <strong>Cara Membaca Modul Ini:</strong> Bagian 01–02 memberi angka mentah tiap alat: reaktansi generator dan trafo. Bagian 03 memberi bahasa yang menyatukannya, per unit. Bagian 04–05 adalah alat aljabar jaringan: transformasi Y–Δ dan reduksi ke Thevenin. Bagian 06 adalah tujuannya: MVA hubung singkat, kapasitas pemutus, dan kekakuan rel. Animasi memvisualkan tiap langkah dan Python mengerjakannya dalam beberapa baris.")
@@ -332,17 +332,17 @@ def materi():
                    [("a", "Rasio belitan N₁/N₂"), ("Z_{primer}, Z_{sekunder}", "Impedansi dilihat dari sisi primer/sekunder (Ω)"), ("V_{base,1}, V_{base,2}", "Tegangan basis di kedua zona")])
     isi += cards([
         ("🔬", "Uji Hubung Singkat", "Memberi Z% dan rugi tembaga; uji rangkaian terbuka memberi rugi besi dan arus magnetisasi. Keduanya tertera di laporan uji pabrik (FAT) setiap trafo.", None),
-        ("⚖️", "Z% Kecil vs Besar", "4 % pada trafo distribusi: tegangan kaku, arus hubung singkat 25 I_n. 12 % pada trafo 150 kV: membatasi arus gangguan agar PMT 40 kA cukup.", r"\(I_{sc} = I_n/Z_{pu}\)"),
+        ("⚖️", "Z% Kecil vs Besar", "4 % pada trafo distribusi: tegangan kaku, arus hubung singkat 25 I<sub>n</sub>. 12 % pada trafo 150 kV: membatasi arus gangguan agar PMT 40 kA cukup.", r"\(I_{sc} = I_n/Z_{pu}\)"),
         ("🔁", "Paralel Trafo", "Dua trafo paralel berbagi beban berbanding terbalik Z% (Modul 2); Z% yang berbeda jauh membuat satu trafo kelebihan beban sebelum yang lain penuh.", r"\(S_k \propto 1/Z_k\)"),
         ("🎚️", "Tap Changer", "Mengubah rasio a mengubah tegangan basis efektif; dalam studi per unit, tap di luar nominal diwakili trafo ideal a:1 sisa (off-nominal tap) yang tidak lenyap.", None),
         ("🧊", "Reaktor Pembatas", "Bila arus hubung singkat rel melampaui PMT, reaktor seri (X ≈ 5–10 %) ditambahkan; perhitungannya persis menambah reaktansi seri pada Bagian 05.", None),
         ("🏭", "Trafo Pabrik", "Trafo 20 kV/400 V 1–2,5 MVA, Z 5–6 %: arus hubung singkat rel 400 V mencapai 30–60 kA; itulah asal rating PMT utama pabrik.", None),
     ])
-    isi += tabel(["Trafo", "Z% khas", "I_sc terminal (sumber tak hingga)", "Regulasi tegangan", "Catatan"], [
-        ["Distribusi 20 kV/400 V, 400 kVA – 2,5 MVA", "4 – 6 %", "17 – 25 × I_n", "kecil (±2–3 %)", "PMT 400 V 36–65 kA"],
-        ["Gardu induk 150/20 kV, 30 – 60 MVA", "10 – 12,5 %", "8 – 10 × I_n", "sedang", "membatasi I_sc rel 20 kV"],
-        ["IBT 500/150 kV, 500 MVA", "12 – 15 %", "7 – 8 × I_n", "sedang", "impedansi kadang dibuat tinggi sengaja"],
-        [f"Contoh {ind(ST, 0)} MVA, 13,8/150 kV", f"{ind(XT_PCT, 0)} %", f"{ind(ISC_T_N, 2)} × I_n", "—", f"{ind(XT_PU, 4)} pu pada 100 MVA"],
+    isi += tabel(["Trafo", "Z% khas", "I<sub>sc</sub> terminal (sumber tak hingga)", "Regulasi tegangan", "Catatan"], [
+        ["Distribusi 20 kV/400 V, 400 kVA – 2,5 MVA", "4 – 6 %", "17 – 25 × I<sub>n</sub>", "kecil (±2–3 %)", "PMT 400 V 36–65 kA"],
+        ["Gardu induk 150/20 kV, 30 – 60 MVA", "10 – 12,5 %", "8 – 10 × I<sub>n</sub>", "sedang", "membatasi I<sub>sc</sub> rel 20 kV"],
+        ["IBT 500/150 kV, 500 MVA", "12 – 15 %", "7 – 8 × I<sub>n</sub>", "sedang", "impedansi kadang dibuat tinggi sengaja"],
+        [f"Contoh {ind(ST, 0)} MVA, 13,8/150 kV", f"{ind(XT_PCT, 0)} %", f"{ind(ISC_T_N, 2)} × I<sub>n</sub>", "—", f"{ind(XT_PU, 4)} pu pada 100 MVA"],
     ])
     isi += kotak("info-box", "<strong>📊 Cara Membaca Tabel di Atas:</strong> makin besar trafo dan tegangannya, makin besar Z%-nya, bukan karena kualitas turun melainkan karena perancang sengaja membatasi arus hubung singkat sisi sekunder agar pemutus dan rel tetap terjangkau. Angka Z% adalah keputusan sistem, bukan sekadar sifat bahan. Soal C3, C5, dan C14 memakai Persamaan (3)–(4).")
     m += bagian(2, "m-trafo", "Impedansi Transformator<br>dan Refleksi Antar-Sisi",
@@ -350,21 +350,21 @@ def materi():
                 isi, "IMPEDANSI TRAFO")
 
     # 03 — per unit
-    isi = figure(3, "Empat langkah perhitungan per unit pada sistem contoh", "Pilih satu basis daya untuk seluruh sistem dan tegangan basis per zona sesuai rasio trafo; turunkan Z_base dan I_base; nyatakan setiap alat pada basis itu; hitung dalam pu; kembalikan ke ampere dan MVA di akhir.", gambar3())
+    isi = figure(3, "Empat langkah perhitungan per unit pada sistem contoh", "Pilih satu basis daya untuk seluruh sistem dan tegangan basis per zona sesuai rasio trafo; turunkan Z<sub>base</sub> dan I<sub>base</sub>; nyatakan setiap alat pada basis itu; hitung dalam pu; kembalikan ke ampere dan MVA di akhir.", gambar3())
     isi += formula(5, "Definisi Per Unit dan Basis Turunan", r"\text{besaran}_{pu} = \dfrac{\text{besaran aktual}}{\text{basis}}, \qquad Z_{base} = \dfrac{(kV_{base})^2}{MVA_{base}}, \qquad I_{base} = \dfrac{MVA_{base}\times10^3}{\sqrt{3}\,kV_{base}}\ \text{A}",
                    rf"Basis sistem {ind(S_B, 0)} MVA. Zona 13,8 kV: \(Z_{{base}} = {ind(ZB_G, 4)}\) Ω, \(I_{{base}} = {ind(IB_G, 0)}\) A. Zona 150 kV: \(Z_{{base}} = {ind(ZB_L, 0)}\) Ω, \(I_{{base}} = {ind(S_B * 1e6 / (SQ3 * 150e3), 1)}\) A. Saluran {ind(XL_OHM, 0)} Ω → \({ind(XL_OHM, 0)}/{ind(ZB_L, 0)} = {ind(XL_PU, 4)}\) pu. Hanya dua basis yang dipilih bebas (S dan V); Z dan I mengikuti.",
                    "Per unit membuat semua angka sebanding: tegangan rel 0,95–1,05 pu berapa pun kV-nya, reaktansi generator 0,1–0,25 pu berapa pun MVA-nya, arus 1 pu = beban penuh. Kesalahan ratusan kali (lupa a²) tidak mungkin terjadi, dan √3 lenyap dari sebagian besar rumus tiga fasa karena sudah termuat dalam basis.",
                    [("MVA_{base}", "Basis daya tiga fasa, satu untuk seluruh sistem"), ("kV_{base}", "Basis tegangan antar-saluran per zona"), ("Z_{base}, I_{base}", "Basis turunan (Ω, A)")])
     isi += formula(6, "Konversi Basis", r"Z_{pu,baru} = Z_{pu,lama}\left(\dfrac{S_{base,baru}}{S_{base,lama}}\right)\left(\dfrac{V_{base,lama}}{V_{base,baru}}\right)^2",
                    rf"Trafo {ind(ST, 0)} MVA, {ind(XT_PCT, 0)} % ke basis 100 MVA (kV sama): \({ind(XT_PCT / 100, 2)}\times100/{ind(ST, 0)} = {ind(XT_PU, 4)}\) pu. Generator {ind(SG, 0)} MVA, {ind(VG, 1)} kV, X″ = {ind(XG2, 2)} pu bila zona basisnya ternyata 13,2 kV: \({ind(XG2, 2)}\times(100/100)\times(13{{,}}8/13{{,}}2)^2 = {ind(XG2_NEWV, 4)}\) pu. Faktor MVA sebanding lurus, faktor kV kuadrat terbalik: rating alat yang lebih kecil daripada basis membuat pu-nya membesar.",
-                   "Setiap pabrik memberi impedansi pada rating alatnya sendiri, sedangkan studi memakai satu basis sistem (lazim 100 MVA); konversi basis adalah langkah yang paling sering dilupakan. Turunkan sendiri dari Z_Ω = Z_pu·kV²/MVA yang harus sama pada kedua basis, jangan hafalkan arah pecahannya.",
+                   "Setiap pabrik memberi impedansi pada rating alatnya sendiri, sedangkan studi memakai satu basis sistem (lazim 100 MVA); konversi basis adalah langkah yang paling sering dilupakan. Turunkan sendiri dari Z<sub>Ω</sub> = Z<sub>pu</sub>·kV²/MVA yang harus sama pada kedua basis, jangan hafalkan arah pecahannya.",
                    [("S_{base,lama}", "Biasanya rating alat (MVA)"), ("V_{base,lama}", "Tegangan rating alat (kV)"), ("S_{base,baru}, V_{base,baru}", "Basis sistem yang dipilih")])
     isi += cards([
         ("🎯", "Pilih Basis Sistem", "100 MVA hampir baku untuk transmisi; 10 MVA atau rating trafo utama untuk studi pabrik. Tegangan basis: nominal tiap zona, dihubungkan rasio trafo.", None),
         ("🧭", "Zona Tegangan", "Setiap trafo memisahkan dua zona; tegangan basis zona berikutnya = basis zona ini × rasio. Salah zona = salah a², kesalahan ratusan kali.", None),
-        ("➕", "Yang Tidak Berubah", "Rumus KVL/KCL, Thevenin, seri–paralel, Y–Δ berlaku persis dalam pu; hanya satuannya hilang. Daya pu = V_pu·I_pu tanpa √3.", r"\(S_{pu} = V_{pu} I_{pu}\)"),
-        ("🔙", "Kembali ke Aktual", "Di akhir: I = I_pu·I_base, S = S_pu·S_base, V = V_pu·V_base zona itu. Selalu tuliskan zona saat mengembalikan ke ampere.", None),
-        ("📉", "Beban dalam pu", "Beban P + jQ MVA dibagi S_base; beban impedansi Z_Ω dibagi Z_base zona; motor: X″ pada rating sendiri dikonversi seperti generator.", None),
+        ("➕", "Yang Tidak Berubah", "Rumus KVL/KCL, Thevenin, seri–paralel, Y–Δ berlaku persis dalam pu; hanya satuannya hilang. Daya pu = V<sub>pu</sub>·I<sub>pu</sub> tanpa √3.", r"\(S_{pu} = V_{pu} I_{pu}\)"),
+        ("🔙", "Kembali ke Aktual", "Di akhir: I = I<sub>pu</sub>·I<sub>base</sub>, S = S<sub>pu</sub>·S<sub>base</sub>, V = V<sub>pu</sub>·V<sub>base</sub> zona itu. Selalu tuliskan zona saat mengembalikan ke ampere.", None),
+        ("📉", "Beban dalam pu", "Beban P + jQ MVA dibagi S<sub>base</sub>; beban impedansi Z<sub>Ω</sub> dibagi Z<sub>base</sub> zona; motor: X″ pada rating sendiri dikonversi seperti generator.", None),
         ("💻", "Perangkat Lunak", "ETAP, DIgSILENT, dan PSS/E menyimpan data alat pada ratingnya dan mengonversi otomatis; memahami konversi ini yang membuat hasilnya bisa diperiksa dengan tangan.", None),
     ])
     isi += tabel(["Alat", "Data pelat nama", "Basis 100 MVA, zona", "X (pu)", "X (Ω) di zonanya"], [
@@ -382,17 +382,17 @@ def materi():
     isi = figure(4, "Transformasi bintang–segitiga", f"Tiga impedansi bintang 3, 6, 9 Ω setara dengan segitiga {ind(ZAB, 0)}, {ind(ZBC, 0)}, {ind(ZCA, 1)} Ω: resistansi yang terlihat dari setiap pasangan terminal sama pada keduanya, sehingga salah satu dapat menggantikan yang lain dalam jaringan mana pun.", gambar4())
     isi += formula(7, "Transformasi Y → Δ dan Δ → Y", r"Z_{ab} = \dfrac{Z_aZ_b + Z_bZ_c + Z_cZ_a}{Z_c}\ (\text{dst. siklik}), \qquad Z_a = \dfrac{Z_{ab}Z_{ca}}{Z_{ab} + Z_{bc} + Z_{ca}}\ (\text{dst.}), \qquad \text{seimbang: } Z_\Delta = 3Z_Y",
                    rf"Gambar 4: \(\Sigma Z_iZ_j = 3\cdot6 + 6\cdot9 + 9\cdot3 = {ind(NUM, 0)}\); \(Z_{{ab}} = {ind(NUM, 0)}/9 = {ind(ZAB, 0)}\), \(Z_{{bc}} = {ind(NUM, 0)}/3 = {ind(ZBC, 0)}\), \(Z_{{ca}} = {ind(NUM, 0)}/6 = {ind(ZCA, 1)}\) Ω. Pemeriksaan: antara a dan b dengan c terbuka, Y memberi \(3 + 6 = 9\) Ω dan Δ memberi \({ind(ZAB, 0)} \parallel ({ind(ZBC, 0)} + {ind(ZCA, 1)}) = {ind(ZAB * (ZBC + ZCA) / (ZAB + ZBC + ZCA), 2)}\) Ω ✓.",
-                   "Jaringan seperti jembatan atau rel yang dihubungkan tiga saluran (segitiga) tidak dapat direduksi seri–paralel; mengubah segitiga menjadi bintang (atau sebaliknya) membuka jalan. Rumusnya berlaku untuk impedansi kompleks apa pun; pada studi hubung singkat yang hanya memuat reaktansi, semuanya bilangan nyata dikali j. Untuk beban tiga fasa seimbang, Z_Δ = 3Z_Y adalah kasus khususnya (Modul 5).",
+                   "Jaringan seperti jembatan atau rel yang dihubungkan tiga saluran (segitiga) tidak dapat direduksi seri–paralel; mengubah segitiga menjadi bintang (atau sebaliknya) membuka jalan. Rumusnya berlaku untuk impedansi kompleks apa pun; pada studi hubung singkat yang hanya memuat reaktansi, semuanya bilangan nyata dikali j. Untuk beban tiga fasa seimbang, Z<sub>Δ</sub> = 3Z<sub>Y</sub> adalah kasus khususnya (Modul 5).",
                    [("Z_a, Z_b, Z_c", "Impedansi cabang bintang dari simpul netral ke terminal"), ("Z_{ab}, Z_{bc}, Z_{ca}", "Impedansi cabang segitiga antar-terminal")])
     isi += cards([
         ("🔀", "Kapan Dipakai", "Tiga rel saling terhubung saluran (loop), jembatan pada jaringan distribusi ring, dan beban Δ pada studi hubung singkat: ubah ke Y agar seri dengan impedansi rel.", None),
         ("🧮", "Kebalikannya", "Kadang Y → Δ lebih berguna: tiga cabang yang bertemu di simpul yang tidak diperlukan (mis. netral trafo) dihilangkan dengan menggantinya segitiga antar-terminal.", None),
-        ("⚖️", "Seimbang", "Bila ketiganya sama, Z_Δ = 3Z_Y: beban Δ 30 Ω per fasa setara Y 10 Ω per fasa; daya dan arus saluran identik.", r"\(Z_Y = Z_\Delta/3\)"),
+        ("⚖️", "Seimbang", "Bila ketiganya sama, Z<sub>Δ</sub> = 3Z<sub>Y</sub>: beban Δ 30 Ω per fasa setara Y 10 Ω per fasa; daya dan arus saluran identik.", r"\(Z_Y = Z_\Delta/3\)"),
         ("🔗", "Jembatan Wheatstone", "Empat resistor + galvanometer: tidak seri, tidak paralel; satu transformasi Δ → Y pada tiga resistor pertama meruntuhkannya menjadi seri–paralel.", None),
         ("🛰️", "Reduksi Kron", "Generalisasi Y–Δ untuk menghilangkan simpul mana pun dari matriks admitansi (eliminasi Gauss); inilah yang dilakukan program hubung singkat pada ratusan rel.", None),
         ("✅", "Pemeriksaan", "Resistansi antara dua terminal dengan terminal ketiga terbuka harus sama sebelum dan sesudah transformasi; pemeriksaan satu baris yang menangkap hampir semua salah hitung.", None),
     ])
-    isi += tabel(["Contoh", "Y (Z_a, Z_b, Z_c)", "Δ (Z_ab, Z_bc, Z_ca)", "R a–b, c terbuka"], [
+    isi += tabel(["Contoh", "Y (Z<sub>a</sub>, Z<sub>b</sub>, Z<sub>c</sub>)", "Δ (Z<sub>ab</sub>, Z<sub>bc</sub>, Z<sub>ca</sub>)", "R a–b, c terbuka"], [
         ["Gambar 4", "3, 6, 9 Ω", f"{ind(ZAB, 0)}, {ind(ZBC, 0)}, {ind(ZCA, 1)} Ω", f"{ind(ZA + ZBB, 0)} Ω"],
         ["Seimbang", "10, 10, 10 Ω", "30, 30, 30 Ω", "20 Ω"],
         ["Reaktansi saluran (pu)", "j0,05, j0,08, j0,10", f"j{ind((0.05 * 0.08 + 0.08 * 0.1 + 0.1 * 0.05) / 0.1, 3)}, j{ind((0.05 * 0.08 + 0.08 * 0.1 + 0.1 * 0.05) / 0.05, 3)}, j{ind((0.05 * 0.08 + 0.08 * 0.1 + 0.1 * 0.05) / 0.08, 4)}", "j0,13"],
@@ -404,7 +404,7 @@ def materi():
                 isi, "TRANSFORMASI Y–Δ")
 
     # 05 — reduksi jaringan
-    isi = figure(5, "Diagram reaktansi per unit dan reduksi ke ekuivalen Thevenin tiap rel", f"Dua generator paralel, trafo, dan saluran digambar sebagai reaktansi pu pada basis 100 MVA; reaktansi Thevenin di tiap rel adalah gabungan semua jalur dari sumber ke rel itu, dan MVA hubung singkatnya 100/X_th.", gambar5())
+    isi = figure(5, "Diagram reaktansi per unit dan reduksi ke ekuivalen Thevenin tiap rel", f"Dua generator paralel, trafo, dan saluran digambar sebagai reaktansi pu pada basis 100 MVA; reaktansi Thevenin di tiap rel adalah gabungan semua jalur dari sumber ke rel itu, dan MVA hubung singkatnya 100/X<sub>th</sub>.", gambar5())
     isi += formula(8, "Diagram Impedansi dan Reaktansi Thevenin Rel", r"X_{th} = \text{reaktansi dilihat dari rel gangguan dengan semua ggl dihubung singkat}; \qquad X_{seri} = \sum X_k, \quad \dfrac{1}{X_{par}} = \sum \dfrac{1}{X_k}",
                    rf"Gambar 5: generator {ind(XG2, 2)} ‖ {ind(XG2B, 2)} = \({ind(X_PAR, 4)}\) pu di rel A; + trafo {ind(XT_PU, 4)} → \({ind(X_PAR_T, 4)}\) pu di rel B; + saluran {ind(XL_PU, 4)} → \({ind(X_PAR_T + XL_PU, 4)}\) pu di rel C. Sistem satu generator (Bagian 03): rel C \(X_{{th}} = {ind(XG2, 2)} + {ind(XT_PU, 4)} + {ind(XL_PU, 4)} = {ind(X_C, 4)}\) pu.",
                    "Diagram impedansi adalah diagram satu garis yang setiap alatnya diganti reaktansi pu-nya (resistansi diabaikan pada studi hubung singkat tegangan tinggi, X/R ≫ 1). Semua generator diwakili ggl 1 pu di balik X″, dan karena semua ggl sama besar dan sefasa sebelum gangguan, mereka dapat digabung menjadi satu sumber: itulah alasan Thevenin di rel gangguan begitu sederhana.",
@@ -412,12 +412,12 @@ def materi():
     isi += cards([
         ("🗺️", "Diagram Satu Garis", "Tiga fasa seimbang digambar satu garis; generator lingkaran, trafo dua lingkaran, rel garis tebal, PMT kotak. Diagram impedansi adalah terjemahannya ke reaktansi pu.", None),
         ("🔋", "Ggl Digabung", "Sebelum gangguan semua generator ≈ 1∠0° pu (beban diabaikan), jadi sumber-sumber paralel dapat disatukan; reaktansinya diparalel seperti resistor.", r"\(E \approx 1\angle0^\circ\)"),
-        ("🔀", "Loop Jaringan", "Jaringan bermata jala (loop) memerlukan Y–Δ (Bagian 04) atau matriks Z_bus; untuk jaringan radial cukup seri–paralel dari sumber ke rel.", None),
-        ("⚖️", "Kontribusi Cabang", "Setelah X_th dan I_sc total didapat, arus tiap cabang dibagi berbanding terbalik reaktansinya (pembagi arus): menentukan arus yang lewat tiap PMT, bukan hanya di rel.", r"\(I_k = I_{sc}\dfrac{X_{par}}{X_k}\)"),
+        ("🔀", "Loop Jaringan", "Jaringan bermata jala (loop) memerlukan Y–Δ (Bagian 04) atau matriks Z<sub>bus</sub>; untuk jaringan radial cukup seri–paralel dari sumber ke rel.", None),
+        ("⚖️", "Kontribusi Cabang", "Setelah X<sub>th</sub> dan I<sub>sc</sub> total didapat, arus tiap cabang dibagi berbanding terbalik reaktansinya (pembagi arus): menentukan arus yang lewat tiap PMT, bukan hanya di rel.", r"\(I_k = I_{sc}\dfrac{X_{par}}{X_k}\)"),
         ("📉", "Rel Makin Jauh", "Setiap trafo dan saluran menambah X seri: MVA hubung singkat turun dari pembangkit ke pelanggan (Gambar 5). Rel 400 V pabrik jauh lebih 'lemah' daripada rel 150 kV.", None),
-        ("🧯", "Reaktor & Pemisahan Rel", "Dua cara menurunkan I_sc rel yang melampaui PMT: menambah reaktor seri, atau membuka kopel rel sehingga sumber tidak diparalel.", None),
+        ("🧯", "Reaktor & Pemisahan Rel", "Dua cara menurunkan I<sub>sc</sub> rel yang melampaui PMT: menambah reaktor seri, atau membuka kopel rel sehingga sumber tidak diparalel.", None),
     ])
-    isi += tabel(["Rel (Gambar 5, basis 100 MVA)", "X_th (pu)", "S_sc (MVA)", "V (kV)", "I_sc (kA)"], [
+    isi += tabel(["Rel (Gambar 5, basis 100 MVA)", "X<sub>th</sub> (pu)", "S<sub>sc</sub> (MVA)", "V (kV)", "I<sub>sc</sub> (kA)"], [
         ["A (13,8 kV), dua generator", ind(X_PAR, 4), ind(S_B / X_PAR, 0), "13,8", ind(S_B / X_PAR / (SQ3 * 13.8), 2)],
         ["B (150 kV), + trafo", ind(X_PAR_T, 4), ind(SSC_PAR, 0), "150", ind(SSC_PAR / (SQ3 * 150), 3)],
         ["C (150 kV), + saluran", ind(X_PAR_T + XL_PU, 4), ind(S_B / (X_PAR_T + XL_PU), 0), "150", ind(S_B / (X_PAR_T + XL_PU) / (SQ3 * 150), 3)],
@@ -432,49 +432,49 @@ def materi():
     isi = figure(6, "MVA hubung singkat, arus hubung singkat, dan kapasitas pemutus", "Satu MVA hubung singkat menghasilkan arus yang sangat berbeda menurut tegangan: 1000 MVA berarti 29 kA pada 20 kV tetapi hanya 3,8 kA pada 150 kV. Kapasitas pemutus (25/40/63 kA) dibandingkan dengan arus, bukan MVA.", gambar6())
     isi += formula(9, "MVA dan Arus Hubung Singkat", r"S_{sc} = \dfrac{S_{base}}{X_{th,pu}}\ (V_{pra} = 1\text{ pu}), \qquad I_{sc} = \dfrac{S_{sc}}{\sqrt{3}\,V_L} = \dfrac{I_{base}}{X_{th,pu}}, \qquad X_{sumber,pu} = \dfrac{S_{base}}{S_{sc,sumber}}",
                    rf"Rel C contoh: \(S_{{sc}} = 100/{ind(X_C, 4)} = {ind(SSC_C, 0)}\) MVA, \(I_{{sc}} = {ind(SSC_C, 0)}/(\sqrt{{3}}\times150) = {ind(SSC_C / (SQ3 * 150), 3)}\) kA. Sebaliknya, PLN memberi 'MVA hubung singkat di titik sambung' (mis. {ind(SSRC, 0)} MVA di 150 kV): itu langsung menjadi \(X_{{sumber}} = 100/{ind(SSRC, 0)} = {ind(X_SRC, 3)}\) pu, sumber Thevenin untuk studi pabrik di hilirnya.",
-                   "MVA hubung singkat adalah ukuran 'kekuatan' rel: makin besar, makin kecil X_th, makin kaku tegangan terhadap beban dan start motor, tetapi makin besar arus yang harus diputus PMT. Angka ini adalah antarmuka antara utilitas dan pelanggan: dengan satu angka, seluruh jaringan di hulu diwakili.",
-                   [("S_{sc}", "MVA hubung singkat tiga fasa"), ("X_{th,pu}", "Reaktansi Thevenin rel (pu pada S_base)"), ("I_{sc}", "Arus hubung singkat rms simetris (kA bila MVA dan kV)"), ("S_{sc,sumber}", "MVA hubung singkat yang diberikan utilitas")])
+                   "MVA hubung singkat adalah ukuran 'kekuatan' rel: makin besar, makin kecil X<sub>th</sub>, makin kaku tegangan terhadap beban dan start motor, tetapi makin besar arus yang harus diputus PMT. Angka ini adalah antarmuka antara utilitas dan pelanggan: dengan satu angka, seluruh jaringan di hulu diwakili.",
+                   [("S_{sc}", "MVA hubung singkat tiga fasa"), ("X_{th,pu}", "Reaktansi Thevenin rel (pu pada S<sub>base</sub>)"), ("I_{sc}", "Arus hubung singkat rms simetris (kA bila MVA dan kV)"), ("S_{sc,sumber}", "MVA hubung singkat yang diberikan utilitas")])
     isi += formula(10, "MVA Hubung Singkat di Hilir Trafo dan Jatuh Tegangan Start Motor", r"X_{th,2} = \dfrac{S_{base}}{S_{sc,1}} + Z_{T,pu}\dfrac{S_{base}}{S_T}, \qquad S_{sc,2} = \dfrac{S_{base}}{X_{th,2}}, \qquad \Delta V_{start} \approx \dfrac{S_{start}}{S_{sc,2}}",
-                   rf"Sumber {ind(SSRC, 0)} MVA di 150 kV, trafo {ind(ST2, 0)} MVA, {ind(XT2 * 100, 0)} %: \(X_{{th}} = {ind(X_SRC, 3)} + {ind(XT2, 2)}\times100/{ind(ST2, 0)} = {ind(X_SRC + X_T2, 4)}\) pu → \(S_{{sc}} = {ind(SSC_20, 0)}\) MVA, \(I_{{sc}} = {ind(ISC_20, 2)}\) kA di rel 20 kV: PMT 20 kV kelas 25 kA cukup. Motor 2 MW pf 0,85 dengan arus start 6× (S_start ≈ {ind(2 / 0.85 * 6, 1)} MVA) menjatuhkan tegangan rel sekitar \({ind(2 / 0.85 * 6, 1)}/{ind(SSC_20, 0)} = {ind(2 / 0.85 * 6 / SSC_20 * 100, 1)}\%\).",
-                   "Dua keputusan rekayasa mesin yang paling sering bergantung pada angka ini: (1) kapasitas pemutus pada panel yang dibeli harus melampaui I_sc rel (dengan margin dan faktor asimetri), dan (2) motor besar hanya boleh distart langsung (DOL) bila jatuh tegangan startnya di bawah 10–15 %; bila tidak, perlu soft starter atau VSD. Keduanya dihitung dari X_th rel.",
+                   rf"Sumber {ind(SSRC, 0)} MVA di 150 kV, trafo {ind(ST2, 0)} MVA, {ind(XT2 * 100, 0)} %: \(X_{{th}} = {ind(X_SRC, 3)} + {ind(XT2, 2)}\times100/{ind(ST2, 0)} = {ind(X_SRC + X_T2, 4)}\) pu → \(S_{{sc}} = {ind(SSC_20, 0)}\) MVA, \(I_{{sc}} = {ind(ISC_20, 2)}\) kA di rel 20 kV: PMT 20 kV kelas 25 kA cukup. Motor 2 MW pf 0,85 dengan arus start 6× (S<sub>start</sub> ≈ {ind(2 / 0.85 * 6, 1)} MVA) menjatuhkan tegangan rel sekitar \({ind(2 / 0.85 * 6, 1)}/{ind(SSC_20, 0)} = {ind(2 / 0.85 * 6 / SSC_20 * 100, 1)}\%\).",
+                   "Dua keputusan rekayasa mesin yang paling sering bergantung pada angka ini: (1) kapasitas pemutus pada panel yang dibeli harus melampaui I<sub>sc</sub> rel (dengan margin dan faktor asimetri), dan (2) motor besar hanya boleh distart langsung (DOL) bila jatuh tegangan startnya di bawah 10–15 %; bila tidak, perlu soft starter atau VSD. Keduanya dihitung dari X<sub>th</sub> rel.",
                    [("S_{sc,1}, S_{sc,2}", "MVA hubung singkat di rel primer dan sekunder trafo"), ("Z_{T,pu}, S_T", "Impedansi (pu rating) dan rating trafo"), ("S_{start}", "Daya semu start motor (≈ 5–7 × rating)")])
     isi += cards([
-        ("🧯", "Kapasitas Pemutus", "PMT dinilai dalam kA rms simetris (mis. 25, 31,5, 40, 50, 63 kA) pada tegangannya; I_sc rel × faktor keamanan harus di bawahnya. Menaikkan MVA sumber dapat membuat PMT lama tidak lagi memadai.", None),
-        ("🔩", "Ketahanan Dinamis", "Rel dan penopangnya harus menahan gaya elektrodinamik puncak (∝ I_p²) selama beberapa siklus; nilai puncak ≈ 2,5 × I_sc rms untuk X/R tinggi.", r"\(F \propto I_p^2\)"),
-        ("🚀", "Start Motor", "ΔV ≈ S_start/S_sc: rel 30 MVA_sc dengan motor 3 MVA start (500 kW) jatuh 10 %; lampu berkedip, kontaktor bisa lepas. Rel kuat atau soft starter.", r"\(\Delta V \approx S_{start}/S_{sc}\)"),
+        ("🧯", "Kapasitas Pemutus", "PMT dinilai dalam kA rms simetris (mis. 25, 31,5, 40, 50, 63 kA) pada tegangannya; I<sub>sc</sub> rel × faktor keamanan harus di bawahnya. Menaikkan MVA sumber dapat membuat PMT lama tidak lagi memadai.", None),
+        ("🔩", "Ketahanan Dinamis", "Rel dan penopangnya harus menahan gaya elektrodinamik puncak (∝ I<sub>p</sub>²) selama beberapa siklus; nilai puncak ≈ 2,5 × I<sub>sc</sub> rms untuk X/R tinggi.", r"\(F \propto I_p^2\)"),
+        ("🚀", "Start Motor", "ΔV ≈ S<sub>start</sub>/S<sub>sc</sub>: rel 30 MVA<sub>sc</sub> dengan motor 3 MVA start (500 kW) jatuh 10 %; lampu berkedip, kontaktor bisa lepas. Rel kuat atau soft starter.", r"\(\Delta V \approx S_{start}/S_{sc}\)"),
         ("🔌", "Pelanggan Besar", "PLN memberi MVA hubung singkat minimum dan maksimum di titik sambung; minimum untuk start motor dan flicker, maksimum untuk rating PMT.", None),
-        ("🔥", "Busur Listrik", "Energi busur (arc flash) pada panel sebanding I_sc × waktu pemutusan; MVA_sc besar menuntut pemutusan cepat dan APD sesuai IEEE 1584.", None),
+        ("🔥", "Busur Listrik", "Energi busur (arc flash) pada panel sebanding I<sub>sc</sub> × waktu pemutusan; MVA<sub>sc</sub> besar menuntut pemutusan cepat dan APD sesuai IEEE 1584.", None),
         ("🔗", "Ke Modul Berikut", "Modul 8–9 menurunkan parameter saluran (R, L, C dari geometri konduktor) yang di sini dianggap diketahui; studi hubung singkat tak simetris memerlukan komponen simetris.", None),
     ])
-    isi += tabel(["Rel", "MVA_sc", "Tegangan", "I_sc (kA)", "PMT yang cukup", "Motor DOL maks (ΔV 10 %)"], [
+    isi += tabel(["Rel", "MVA<sub>sc</sub>", "Tegangan", "I<sub>sc</sub> (kA)", "PMT yang cukup", "Motor DOL maks (ΔV 10 %)"], [
         [f"Titik sambung PLN", ind(SSRC, 0), "150 kV", ind(SSRC / (SQ3 * 150), 2), "31,5 kA", "—"],
-        [f"Rel 20 kV via trafo {ind(ST2, 0)} MVA {ind(XT2 * 100, 0)} %", ind(SSC_20, 0), "20 kV", ind(ISC_20, 2), "25 kA", f"S_start ≈ {ind(SSC_20 * 0.1, 0)} MVA (≈ {ind(SSC_20 * 0.1 / 6 * 0.85 * 1000, 0)} kW)"],
-        ["Rel 400 V via trafo 2 MVA 6 %", ind(S_B / (S_B / SSC_20 + 0.06 * S_B / 2), 1), "0,4 kV", ind(S_B / (S_B / SSC_20 + 0.06 * S_B / 2) / (SQ3 * 0.4), 1), "50 kA", f"S_start ≈ {ind(S_B / (S_B / SSC_20 + 0.06 * S_B / 2) * 0.1, 1)} MVA (≈ {ind(S_B / (S_B / SSC_20 + 0.06 * S_B / 2) * 0.1 / 6 * 0.85 * 1000, 0)} kW)"],
-        ["Rel 400 V via trafo 630 kVA 4 %", ind(S_B / (S_B / SSC_20 + 0.04 * S_B / 0.63), 1), "0,4 kV", ind(S_B / (S_B / SSC_20 + 0.04 * S_B / 0.63) / (SQ3 * 0.4), 1), "25 kA", f"S_start ≈ {ind(S_B / (S_B / SSC_20 + 0.04 * S_B / 0.63) * 0.1, 2)} MVA (≈ {ind(S_B / (S_B / SSC_20 + 0.04 * S_B / 0.63) * 0.1 / 6 * 0.85 * 1000, 0)} kW)"],
+        [f"Rel 20 kV via trafo {ind(ST2, 0)} MVA {ind(XT2 * 100, 0)} %", ind(SSC_20, 0), "20 kV", ind(ISC_20, 2), "25 kA", f"S<sub>start</sub> ≈ {ind(SSC_20 * 0.1, 0)} MVA (≈ {ind(SSC_20 * 0.1 / 6 * 0.85 * 1000, 0)} kW)"],
+        ["Rel 400 V via trafo 2 MVA 6 %", ind(S_B / (S_B / SSC_20 + 0.06 * S_B / 2), 1), "0,4 kV", ind(S_B / (S_B / SSC_20 + 0.06 * S_B / 2) / (SQ3 * 0.4), 1), "50 kA", f"S<sub>start</sub> ≈ {ind(S_B / (S_B / SSC_20 + 0.06 * S_B / 2) * 0.1, 1)} MVA (≈ {ind(S_B / (S_B / SSC_20 + 0.06 * S_B / 2) * 0.1 / 6 * 0.85 * 1000, 0)} kW)"],
+        ["Rel 400 V via trafo 630 kVA 4 %", ind(S_B / (S_B / SSC_20 + 0.04 * S_B / 0.63), 1), "0,4 kV", ind(S_B / (S_B / SSC_20 + 0.04 * S_B / 0.63) / (SQ3 * 0.4), 1), "25 kA", f"S<sub>start</sub> ≈ {ind(S_B / (S_B / SSC_20 + 0.04 * S_B / 0.63) * 0.1, 2)} MVA (≈ {ind(S_B / (S_B / SSC_20 + 0.04 * S_B / 0.63) * 0.1 / 6 * 0.85 * 1000, 0)} kW)"],
     ])
-    isi += kotak("info-box", "<strong>🏭 Catatan Praktik bagi Insinyur Mesin:</strong> sebelum membeli panel atau motor besar, dua angka harus diminta dari utilitas atau dihitung dari trafo: I_sc rel (untuk kapasitas pemutus) dan S_sc (untuk start motor). Tabel di atas memperlihatkan bahwa trafo 630 kVA pabrik kecil hanya 'kuat' sekitar 20 MVA di rel 400 V: motor 200 kW yang distart langsung sudah menjatuhkan tegangan 10 %. Soal C9, C10, C14, dan C15 memakai Persamaan (9)–(10).")
+    isi += kotak("info-box", "<strong>🏭 Catatan Praktik bagi Insinyur Mesin:</strong> sebelum membeli panel atau motor besar, dua angka harus diminta dari utilitas atau dihitung dari trafo: I<sub>sc</sub> rel (untuk kapasitas pemutus) dan S<sub>sc</sub> (untuk start motor). Tabel di atas memperlihatkan bahwa trafo 630 kVA pabrik kecil hanya 'kuat' sekitar 20 MVA di rel 400 V: motor 200 kW yang distart langsung sudah menjatuhkan tegangan 10 %. Soal C9, C10, C14, dan C15 memakai Persamaan (9)–(10).")
     m += bagian(6, "m-mvasc", "MVA Hubung Singkat<br>dan Kapasitas Pemutus",
-                "Semua reaktansi yang dikumpulkan sepanjang modul ini bermuara pada satu angka per rel: MVA hubung singkat, kebalikan reaktansi Thevenin-nya. Angka itu menentukan arus yang harus diputus pemutus, gaya yang harus ditahan rel, dan jatuh tegangan saat motor besar distart. Persamaan (9) menghitungnya dari X_th dan Persamaan (10) meneruskannya ke hilir transformator; Gambar 6 menghubungkannya dengan kelas pemutus.",
+                "Semua reaktansi yang dikumpulkan sepanjang modul ini bermuara pada satu angka per rel: MVA hubung singkat, kebalikan reaktansi Thevenin-nya. Angka itu menentukan arus yang harus diputus pemutus, gaya yang harus ditahan rel, dan jatuh tegangan saat motor besar distart. Persamaan (9) menghitungnya dari X<sub>th</sub> dan Persamaan (10) meneruskannya ke hilir transformator; Gambar 6 menghubungkannya dengan kelas pemutus.",
                 isi, "MVA HUBUNG SINGKAT")
 
     # 07 — animasi
     isi = anim_panel(1, "cyan", r"Sistem Per Unit: Basis, \(Z_{base}\), \(I_{base}\), dan Konversi Ohm ↔ pu", "cvPerUnit",
-                     [("sl_pu_s", "v_pu_s", "S_base (MVA)", 10, 500, 10, 100, "100"), ("sl_pu_kv", "v_pu_kv", "V_base (kV)", 10, 500, 1, 150, "150"), ("sl_pu_x", "v_pu_x", "Reaktansi saluran (Ω)", 1, 200, 0.5, 35, "35.0"), ("sl_pu_xpu", "v_pu_xpu", "X trafo pada ratingnya (pu)", 0.04, 0.2, 0.01, 0.12, "0.12"), ("sl_pu_s0", "v_pu_s0", "Rating trafo (MVA)", 10, 500, 10, 80, "80")],
+                     [("sl_pu_s", "v_pu_s", "S<sub>base</sub> (MVA)", 10, 500, 10, 100, "100"), ("sl_pu_kv", "v_pu_kv", "V<sub>base</sub> (kV)", 10, 500, 1, 150, "150"), ("sl_pu_x", "v_pu_x", "Reaktansi saluran (Ω)", 1, 200, 0.5, 35, "35.0"), ("sl_pu_xpu", "v_pu_xpu", "X trafo pada ratingnya (pu)", 0.04, 0.2, 0.01, 0.12, "0.12"), ("sl_pu_s0", "v_pu_s0", "Rating trafo (MVA)", 10, 500, 10, 80, "80")],
                      "btnPerUnit", "togglePerUnit", "perUnitInfo",
-                     "<strong>📊 Cara Membaca Animasi 1:</strong> Kartu kiri menurunkan Z_base dan I_base dari basis yang dipilih; batang atas membandingkan reaktansi saluran (ohm) dengan Z_base (= 1 pu), batang bawah mengonversi X trafo dari basis ratingnya ke basis sistem.<br>Amati: (1) <strong style=\"color:var(--cyan)\">Menggandakan S_base menggandakan semua nilai pu</strong> (Z_base setengahnya) tetapi tidak mengubah ohm. (2) Menaikkan V_base menurunkan pu saluran kuadratis. (3) Trafo kecil pada basis besar tampak 'besar' dalam pu. Soal C1–C6.")
+                     "<strong>📊 Cara Membaca Animasi 1:</strong> Kartu kiri menurunkan Z<sub>base</sub> dan I<sub>base</sub> dari basis yang dipilih; batang atas membandingkan reaktansi saluran (ohm) dengan Z<sub>base</sub> (= 1 pu), batang bawah mengonversi X trafo dari basis ratingnya ke basis sistem.<br>Amati: (1) <strong style=\"color:var(--cyan)\">Menggandakan S<sub>base</sub> menggandakan semua nilai pu</strong> (Z<sub>base</sub> setengahnya) tetapi tidak mengubah ohm. (2) Menaikkan V<sub>base</sub> menurunkan pu saluran kuadratis. (3) Trafo kecil pada basis besar tampak 'besar' dalam pu. Soal C1–C6.")
     isi += anim_panel(2, "amber", r"Transformasi Bintang ↔ Segitiga dengan Pemeriksaan Terminal", "cvYDelta",
-                      [("sl_yd_a", "v_yd_a", "Z_a (Ω)", 0.5, 20, 0.5, 3, "3.0"), ("sl_yd_b", "v_yd_b", "Z_b (Ω)", 0.5, 20, 0.5, 6, "6.0"), ("sl_yd_c", "v_yd_c", "Z_c (Ω)", 0.5, 20, 0.5, 9, "9.0")],
+                      [("sl_yd_a", "v_yd_a", "Z<sub>a</sub> (Ω)", 0.5, 20, 0.5, 3, "3.0"), ("sl_yd_b", "v_yd_b", "Z<sub>b</sub> (Ω)", 0.5, 20, 0.5, 6, "6.0"), ("sl_yd_c", "v_yd_c", "Z<sub>c</sub> (Ω)", 0.5, 20, 0.5, 9, "9.0")],
                       "btnYDelta", "toggleYDelta", "yDeltaInfo",
-                      "<strong>📊 Cara Membaca Animasi 2:</strong> Kiri bintang dengan tiga cabang yang Anda atur, kanan segitiga setaranya; readout memuat pemeriksaan resistansi antar-terminal dengan terminal ketiga terbuka.<br>Amati: (1) <strong style=\"color:var(--amber)\">Memperkecil Z_c memperbesar Z_ab</strong>: cabang segitiga yang berseberangan dengan cabang bintang yang kecil menjadi besar. (2) Samakan ketiganya: Z_Δ = 3Z_Y. (3) Nilai pemeriksaan pada Y dan Δ selalu sama. Soal C7, C8, dan C13.")
+                      "<strong>📊 Cara Membaca Animasi 2:</strong> Kiri bintang dengan tiga cabang yang Anda atur, kanan segitiga setaranya; readout memuat pemeriksaan resistansi antar-terminal dengan terminal ketiga terbuka.<br>Amati: (1) <strong style=\"color:var(--amber)\">Memperkecil Z<sub>c</sub> memperbesar Z<sub>ab</sub></strong>: cabang segitiga yang berseberangan dengan cabang bintang yang kecil menjadi besar. (2) Samakan ketiganya: Z<sub>Δ</sub> = 3Z<sub>Y</sub>. (3) Nilai pemeriksaan pada Y dan Δ selalu sama. Soal C7, C8, dan C13.")
     isi += anim_panel(3, "green", r"Reduksi Jaringan: Generator Paralel, Trafo, Saluran → \(X_{th}\) dan MVA Hubung Singkat Tiap Rel", "cvReduksi",
                       [("sl_rd_g1", "v_rd_g1", "X″ G1 (pu, 100 MVA)", 0.05, 0.6, 0.01, 0.18, "0.18"), ("sl_rd_g2", "v_rd_g2", "X″ G2 (pu, 100 MVA)", 0.05, 1.0, 0.01, 0.25, "0.25"), ("sl_rd_t", "v_rd_t", "X trafo (pu, 100 MVA)", 0.02, 0.5, 0.01, 0.15, "0.15"), ("sl_rd_l", "v_rd_l", "X saluran (pu, 100 MVA)", 0, 0.6, 0.005, 0.1556, "0.156")],
                       "btnReduksi", "toggleReduksi", "reduksiInfo",
-                      "<strong>📊 Cara Membaca Animasi 3:</strong> Diagram reaktansi dua generator paralel, trafo, dan saluran; di bawah tiap rel tertulis X_th dan MVA hubung singkatnya, dan titik merah berpindah menandai rel yang sedang 'diganggu'.<br>Amati: (1) <strong style=\"color:var(--green)\">Naikkan X″ G2 sampai 1,0</strong> (generator dilepas): S_sc rel A turun mendekati nilai satu generator. (2) Setiap unsur seri di kanan menurunkan S_sc rel berikutnya. (3) Readout mengembalikan MVA ke kA pada tegangan tiap rel. Soal C6, C9, C12, dan C14.")
+                      "<strong>📊 Cara Membaca Animasi 3:</strong> Diagram reaktansi dua generator paralel, trafo, dan saluran; di bawah tiap rel tertulis X<sub>th</sub> dan MVA hubung singkatnya, dan titik merah berpindah menandai rel yang sedang 'diganggu'.<br>Amati: (1) <strong style=\"color:var(--green)\">Naikkan X″ G2 sampai 1,0</strong> (generator dilepas): S<sub>sc</sub> rel A turun mendekati nilai satu generator. (2) Setiap unsur seri di kanan menurunkan S<sub>sc</sub> rel berikutnya. (3) Readout mengembalikan MVA ke kA pada tegangan tiap rel. Soal C6, C9, C12, dan C14.")
     isi += anim_panel(4, "pink", r"Arus Hubung Singkat Generator: \(X''\), \(X'\), \(X_s\) dan Konstanta Waktunya", "cvHubungSingkat",
-                      [("sl_hs_x2", "v_hs_x2", "X″ (pu)", 0.08, 0.4, 0.01, 0.18, "0.18"), ("sl_hs_x1", "v_hs_x1", "X′ (pu)", 0.1, 0.6, 0.01, 0.28, "0.28"), ("sl_hs_xd", "v_hs_xd", "X_s (pu)", 0.6, 2.5, 0.05, 1.4, "1.40"), ("sl_hs_t2", "v_hs_t2", "T″ (s)", 0.01, 0.1, 0.005, 0.03, "0.030"), ("sl_hs_t1", "v_hs_t1", "T′ (s)", 0.2, 3, 0.1, 1.0, "1.00")],
+                      [("sl_hs_x2", "v_hs_x2", "X″ (pu)", 0.08, 0.4, 0.01, 0.18, "0.18"), ("sl_hs_x1", "v_hs_x1", "X′ (pu)", 0.1, 0.6, 0.01, 0.28, "0.28"), ("sl_hs_xd", "v_hs_xd", "X<sub>s</sub> (pu)", 0.6, 2.5, 0.05, 1.4, "1.40"), ("sl_hs_t2", "v_hs_t2", "T″ (s)", 0.01, 0.1, 0.005, 0.03, "0.030"), ("sl_hs_t1", "v_hs_t1", "T′ (s)", 0.2, 3, 0.1, 1.0, "1.00")],
                       "btnHubungSingkat", "toggleHubungSingkat", "hubungSingkatInfo",
-                      "<strong>📊 Cara Membaca Animasi 4:</strong> Arus hubung singkat 50 Hz (biru) digambar bertahap di dalam selubungnya (merah muda putus-putus) yang meluruh dari I″ ke I′ lalu ke nilai tunak.<br>Amati: (1) <strong style=\"color:var(--pink)\">X″ kecil membuat lonjakan awal besar</strong> tetapi hanya beberapa siklus (T″). (2) Nilai tunak 1/X_s sering di bawah 1 pu: relai yang menunggu terlalu lama bisa tidak 'melihat' gangguan. (3) Readout memberi arus pada 3–5 siklus, saat PMT biasanya membuka. Soal C4 dan C15.")
-    isi += kotak("info-box", f"<strong>🔍 Latihan Mandiri:</strong> pada Animasi 1 atur 100 MVA, 150 kV, saluran 35 Ω: X_pu harus {ind(XL_PU, 4)} seperti Bagian 03. Pada Animasi 3 pakai nilai bawaan dan cocokkan X_th rel B = {ind(X_PAR_T, 4)} pu dan S_sc = {ind(SSC_PAR, 0)} MVA dengan Gambar 5; lalu lepaskan G2 (X″ = 1,0) dan lihat rel A melemah.")
+                      "<strong>📊 Cara Membaca Animasi 4:</strong> Arus hubung singkat 50 Hz (biru) digambar bertahap di dalam selubungnya (merah muda putus-putus) yang meluruh dari I″ ke I′ lalu ke nilai tunak.<br>Amati: (1) <strong style=\"color:var(--pink)\">X″ kecil membuat lonjakan awal besar</strong> tetapi hanya beberapa siklus (T″). (2) Nilai tunak 1/X<sub>s</sub> sering di bawah 1 pu: relai yang menunggu terlalu lama bisa tidak 'melihat' gangguan. (3) Readout memberi arus pada 3–5 siklus, saat PMT biasanya membuka. Soal C4 dan C15.")
+    isi += kotak("info-box", f"<strong>🔍 Latihan Mandiri:</strong> pada Animasi 1 atur 100 MVA, 150 kV, saluran 35 Ω: X<sub>pu</sub> harus {ind(XL_PU, 4)} seperti Bagian 03. Pada Animasi 3 pakai nilai bawaan dan cocokkan X<sub>th</sub> rel B = {ind(X_PAR_T, 4)} pu dan S<sub>sc</sub> = {ind(SSC_PAR, 0)} MVA dengan Gambar 5; lalu lepaskan G2 (X″ = 1,0) dan lihat rel A melemah.")
     m += bagian(7, "m-animasi", "Animasi Interaktif<br>Reaktansi dan Impedansi",
                 "Geser basis, reaktansi tiap alat, dan konstanta waktu generator, lalu amati bagaimana angka pu berubah, bagaimana bintang menjadi segitiga, bagaimana MVA hubung singkat menyusut dari pembangkit ke ujung saluran, dan bagaimana arus hubung singkat generator meluruh. Empat animasi ini memvisualkan Persamaan (1)–(10).",
                 isi, "ANIMASI")
@@ -556,7 +556,7 @@ plt.figure(figsize=(8, 4))
 plt.plot(t, env(t)*np.sin(2*np.pi*50*t), lw=0.6, label='i(t) simetris')
 plt.plot(t, env(t), 'r--', label='selubung'); plt.plot(t, -env(t), 'r--')
 plt.xlabel('t (s)'); plt.ylabel('I (pu)'); plt.legend(); plt.grid(True); plt.title('Arus hubung singkat generator'); plt.show()''')
-    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 03–06: X saluran {ind(XL_PU, 4)} pu, Δ ({ind(ZAB, 0)}, {ind(ZBC, 0)}, {ind(ZCA, 1)}) Ω, S_sc rel B {ind(SSC_PAR, 0)} MVA, rel 20 kV {ind(SSC_20, 0)} MVA, dan I″ generator {ind(ISC_G / 1000, 2)} kA. Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
+    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 03–06: X saluran {ind(XL_PU, 4)} pu, Δ ({ind(ZAB, 0)}, {ind(ZBC, 0)}, {ind(ZCA, 1)}) Ω, S<sub>sc</sub> rel B {ind(SSC_PAR, 0)} MVA, rel 20 kV {ind(SSC_20, 0)} MVA, dan I″ generator {ind(ISC_G / 1000, 2)} kA. Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
     m += bagian(8, "m-jupyter", "Implementasi Python<br>di Jupyter Notebook",
                 "Empat cell berikut mengerjakan seluruh contoh modul ini: basis dan konversi per unit, transformasi Y–Δ dengan pemeriksaannya, reduksi jaringan sampai MVA hubung singkat tiap rel, dan selubung arus hubung singkat generator. Salin satu cell utuh ke Jupyter Notebook (VS Code), jalankan apa adanya lebih dulu, baru ubah parameternya.",
                 isi, "IMPLEMENTASI PYTHON")
@@ -596,11 +596,11 @@ TUGAS_HERO = f'''<div class="hero" data-tab="tugas" style="min-height:60vh">
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">Z_base = kV²/MVA</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">X_baru = X(S_b/S_l)(V_l/V_b)²</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">S_sc = S_base/X_th</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">Z_ab = ΣZ_iZ_j / Z_c</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">I_sc = S_sc/(√3·V)</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">Z<sub>base</sub> = kV²/MVA</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">X<sub>baru</sub> = X(S<sub>b</sub>/S<sub>l</sub>)(V<sub>l</sub>/V<sub>b</sub>)²</span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">S<sub>sc</sub> = S<sub>base</sub>/X<sub>th</sub></span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">Z<sub>ab</sub> = ΣZ<sub>i</sub>Z<sub>j</sub> / Z<sub>c</sub></span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">I<sub>sc</sub> = S<sub>sc</sub>/(√3·V)</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan {PERTEMUAN} · {JUDUL_PANJANG}</div>
@@ -628,7 +628,7 @@ MC = [
      ["Reaktansi sinkron \\(X_s\\)", "Reaktansi transien \\(X'\\)", "Reaktansi bocor stator", "Reaktansi subtransien \\(X''\\)"],
      "Reaktansi subtransien"),
     ("<strong>Impedansi transformator 10 %</strong> berarti...",
-     ["Rugi trafo sebesar 10 % dayanya", "Sepuluh persen tegangan nominal pada primer sudah mengalirkan arus nominal saat sekunder dihubung singkat; arus hubung singkat terminal ≈ 10 × I_n", "Tegangan sekunder turun 10 % pada beban pf 1", "Trafo hanya boleh dibebani 90 %"],
+     ["Rugi trafo sebesar 10 % dayanya", "Sepuluh persen tegangan nominal pada primer sudah mengalirkan arus nominal saat sekunder dihubung singkat; arus hubung singkat terminal ≈ 10 × I<sub>n</sub>", "Tegangan sekunder turun 10 % pada beban pf 1", "Trafo hanya boleh dibebani 90 %"],
      "Makna Z% trafo"),
     ("Rel dengan <strong>MVA hubung singkat besar</strong> berarti...",
      ["Reaktansi Thevenin-nya besar dan tegangannya mudah jatuh", "Rel itu tidak boleh dipasangi pemutus", "Reaktansi Thevenin-nya kecil: rel 'kuat', tegangannya kaku terhadap beban dan start motor, tetapi arus gangguannya besar", "Frekuensinya lebih stabil"],
@@ -647,10 +647,10 @@ MC = [
      "Kegunaan MVA hubung singkat"),
 ]
 
-COMP_EZ_LABELS = ["Impedansi basis Z_base = kV²/MVA", "Arus basis I_base = S/(√3·V)", "Konversi basis MVA (kV tetap)", "Reaktansi generator dalam ohm", "Konversi basis MVA dan kV",
-                  "Reaktansi seri total per unit", "Transformasi Y → Δ (Z_ab)", "Transformasi Δ → Y (Z_a)", "MVA hubung singkat S_base/X", "Arus hubung singkat dari MVA_sc"]
-COMP_HARD_LABELS = ["Konversi basis lengkap sampai ohm", "Dua generator paralel + trafo → MVA_sc", "Δ → Y dengan terminal terbuka",
-                    "MVA_sc rel 20 kV di hilir trafo", "Arus subtransien generator (kA)"]
+COMP_EZ_LABELS = ["Impedansi basis Z<sub>base</sub> = kV²/MVA", "Arus basis I<sub>base</sub> = S/(√3·V)", "Konversi basis MVA (kV tetap)", "Reaktansi generator dalam ohm", "Konversi basis MVA dan kV",
+                  "Reaktansi seri total per unit", "Transformasi Y → Δ (Z<sub>ab</sub>)", "Transformasi Δ → Y (Z<sub>a</sub>)", "MVA hubung singkat S<sub>base</sub>/X", "Arus hubung singkat dari MVA<sub>sc</sub>"]
+COMP_HARD_LABELS = ["Konversi basis lengkap sampai ohm", "Dua generator paralel + trafo → MVA<sub>sc</sub>", "Δ → Y dengan terminal terbuka",
+                    "MVA<sub>sc</sub> rel 20 kV di hilir trafo", "Arus subtransien generator (kA)"]
 
 
 # ─────────────────────────── FORUM ───────────────────────────
@@ -681,37 +681,37 @@ FQ_JUDUL = [
     "Trafo kedua 1,6 MVA (4 %) diparalel untuk 'menguatkan' rel: apa akibatnya pada arus hubung singkat dan PMT lama?",
 ]
 FQ_RINGKAS = [
-    f"PLN memberi MVA hubung singkat {ind(SSRC_F, 0)} MVA di titik sambung 20 kV; trafo pabrik {ind(ST_F, 0)} MVA, 20/0,4 kV, Z {ind(ZT_F * 100, 0)} %. Dengan basis {ind(S_BF, 0)} MVA hitung X_sumber, X_trafo, X_th rel 400 V (Persamaan 9–10), S_sc dan I_sc di kedua rel, lalu bandingkan dengan PMT 400 V kelas 50 kA (dan faktor asimetri).",
-    f"Motor {ind(P_MOT, 0)} kW pf {ind(PF_MOT, 1)} dengan arus start {ind(K_START, 0)}× menarik S_start ≈ {ind(S_START, 2)} MVA; ΔV ≈ S_start/S_sc (Persamaan 10). Hitung jatuh tegangan pada rel 400 V, bandingkan batas 10–15 %, dan bahas pilihan soft starter/VSD atau penguatan rel.",
-    f"Trafo kedua {ind(ST2_F, 1)} MVA, Z {ind(ZT2_F * 100, 0)} % diparalel: X paralel (Persamaan 8), X_th baru, S_sc dan I_sc rel 400 V, jatuh tegangan start yang membaik, tetapi PMT 50 kA yang mungkin tidak lagi cukup; pembagian beban dua trafo ber-Z% berbeda (Modul 2).",
+    f"PLN memberi MVA hubung singkat {ind(SSRC_F, 0)} MVA di titik sambung 20 kV; trafo pabrik {ind(ST_F, 0)} MVA, 20/0,4 kV, Z {ind(ZT_F * 100, 0)} %. Dengan basis {ind(S_BF, 0)} MVA hitung X<sub>sumber</sub>, X<sub>trafo</sub>, X<sub>th</sub> rel 400 V (Persamaan 9–10), S<sub>sc</sub> dan I<sub>sc</sub> di kedua rel, lalu bandingkan dengan PMT 400 V kelas 50 kA (dan faktor asimetri).",
+    f"Motor {ind(P_MOT, 0)} kW pf {ind(PF_MOT, 1)} dengan arus start {ind(K_START, 0)}× menarik S<sub>start</sub> ≈ {ind(S_START, 2)} MVA; ΔV ≈ S<sub>start</sub>/S<sub>sc</sub> (Persamaan 10). Hitung jatuh tegangan pada rel 400 V, bandingkan batas 10–15 %, dan bahas pilihan soft starter/VSD atau penguatan rel.",
+    f"Trafo kedua {ind(ST2_F, 1)} MVA, Z {ind(ZT2_F * 100, 0)} % diparalel: X paralel (Persamaan 8), X<sub>th</sub> baru, S<sub>sc</sub> dan I<sub>sc</sub> rel 400 V, jatuh tegangan start yang membaik, tetapi PMT 50 kA yang mungkin tidak lagi cukup; pembagian beban dua trafo ber-Z% berbeda (Modul 2).",
 ]
 
 
 def forum_page():
     q1 = fq(1, "14,165,233", "cyan", FQ_JUDUL[0],
             f"Sebuah pabrik pengolahan logam berlangganan 20 kV; PLN menyatakan MVA hubung singkat di titik sambung <b>{ind(SSRC_F, 0)} MVA</b>. Trafo pabrik <b>{ind(ST_F, 0)} MVA, 20/0,4 kV, Z = {ind(ZT_F * 100, 0)} %</b> memasok rel 400 V yang PMT utamanya berkapasitas <b>50 kA</b>. Dengan basis {ind(S_BF, 0)} MVA: hitung reaktansi sumber (Persamaan 9), reaktansi trafo pada basis itu (Persamaan 6), reaktansi Thevenin rel 400 V, lalu MVA dan arus hubung singkat di rel 20 kV dan 400 V (Persamaan 9–10). Apakah PMT 50 kA memadai? Bahas pula faktor asimetri dan sumbangan motor-motor pabrik.",
-            ["X_sumber = S_base/S_sc", "X_T(basis) = Z%·S_base/S_T", "I_sc = S_sc/(√3·V)"],
+            ["X<sub>sumber</sub> = S<sub>base</sub>/S<sub>sc</sub>", "X<sub>T</sub>(basis) = Z%·S<sub>base</sub>/S<sub>T</sub>", "I<sub>sc</sub> = S<sub>sc</sub>/(√3·V)"],
             "MVA dan arus hubung singkat di rel 400 V pabrik adalah sekitar...",
             [f"{ind(SSRC_F, 0)} MVA dan {ind(SSRC_F / (SQ3 * 0.4), 0)} kA: trafo tidak membatasi arus", f"{ind(ST_F / ZT_F, 1)} MVA dan {ind(ST_F / ZT_F / (SQ3 * 0.4), 1)} kA: hanya impedansi trafo yang berperan", f"{ind(SSC_04, 1)} MVA dan {ind(ISC_04, 1)} kA: di bawah 50 kA, PMT memadai dengan margin", f"{ind(SSC_04, 1)} MVA dan {ind(SSC_04 / (SQ3 * 20), 2)} kA"],
             f"✅ Tepat! \\(X_{{sumber}} = 100/{ind(SSRC_F, 0)} = {ind(X_SRC_F, 2)}\\) pu; \\(X_T = 0{{,}}0{ind(ZT_F * 100, 0)}\\times100/{ind(ST_F, 0)} = {ind(X_T_F, 2)}\\) pu; \\(X_{{th}} = {ind(X_04, 2)}\\) pu → \\(S_{{sc}} = 100/{ind(X_04, 2)} = {ind(SSC_04, 2)}\\) MVA, \\(I_{{sc}} = {ind(SSC_04, 2)}/(\\sqrt{{3}}\\times0{{,}}4) = {ind(ISC_04, 1)}\\) kA di rel 400 V (di rel 20 kV {ind(ISC_20F, 2)} kA). PMT 50 kA cukup (margin ±10 %), tetapi sumbangan motor dan asimetri harus diperiksa.",
             "❌ Reaktansi sumber dan trafo dijumlahkan seri pada basis yang sama sebelum dibalik menjadi MVA; arus di rel 400 V dihitung dengan tegangan 0,4 kV, bukan 20 kV. Hitung \\(X_{th} = S_{base}/S_{sc,1} + Z_T S_{base}/S_T\\).",
-            "Petunjuk: (1) Hitung X_sumber, X_T, X_th. (2) Hitung S_sc dan I_sc di kedua rel. (3) Bandingkan dengan PMT 50 kA; bahas asimetri dan sumbangan motor.")
+            "Petunjuk: (1) Hitung reaktansi sumber, trafo, dan Thevenin (pu). (2) Hitung daya dan arus hubung singkat di kedua rel. (3) Bandingkan dengan PMT 50 kA; bahas asimetri dan sumbangan motor.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
-            f"Pabrik akan memasang motor kompresor <b>{ind(P_MOT, 0)} kW, pf {ind(PF_MOT, 1)}</b> yang arus startnya <b>{ind(K_START, 0)} kali</b> arus nominal, dengan start langsung (DOL). Hitung daya semu start S_start ≈ {ind(K_START, 0)} × P/pf, lalu taksir jatuh tegangan rel 400 V saat start dengan ΔV ≈ S_start/S_sc (Persamaan 10) memakai S_sc dari pertanyaan 1. Bandingkan dengan batas praktis 10–15 %: bolehkah DOL? Bahas alternatif (soft starter, star–delta, VSD) dan apa yang terjadi pada lampu dan kontaktor di pabrik saat start.",
-            ["S_start ≈ k·P/pf", "ΔV ≈ S_start/S_sc", "batas 10–15 %"],
+            f"Pabrik akan memasang motor kompresor <b>{ind(P_MOT, 0)} kW, pf {ind(PF_MOT, 1)}</b> yang arus startnya <b>{ind(K_START, 0)} kali</b> arus nominal, dengan start langsung (DOL). Hitung daya semu start S<sub>start</sub> ≈ {ind(K_START, 0)} × P/pf, lalu taksir jatuh tegangan rel 400 V saat start dengan ΔV ≈ S<sub>start</sub>/S<sub>sc</sub> (Persamaan 10) memakai S<sub>sc</sub> dari pertanyaan 1. Bandingkan dengan batas praktis 10–15 %: bolehkah DOL? Bahas alternatif (soft starter, star–delta, VSD) dan apa yang terjadi pada lampu dan kontaktor di pabrik saat start.",
+            ["S<sub>start</sub> ≈ k·P/pf", "ΔV ≈ S<sub>start</sub>/S<sub>sc</sub>", "batas 10–15 %"],
             f"Jatuh tegangan rel 400 V saat motor {ind(P_MOT, 0)} kW distart langsung adalah sekitar...",
-            [f"{ind(DV_START, 1)} % (S_start ≈ {ind(S_START, 2)} MVA terhadap S_sc ≈ {ind(SSC_04, 1)} MVA): masih di bawah batas 10 %", f"{ind(S_START / SSRC_F * 100, 2)} %: rel 400 V sekuat titik sambung 20 kV", f"{ind(P_MOT / 1000 / SSC_04 * 100, 1)} %: hanya daya nominal motor yang berperan", f"{ind(DV_START * 6, 0)} %: motor tidak mungkin distart"],
+            [f"{ind(DV_START, 1)} % (S<sub>start</sub> ≈ {ind(S_START, 2)} MVA terhadap S<sub>sc</sub> ≈ {ind(SSC_04, 1)} MVA): masih di bawah batas 10 %", f"{ind(S_START / SSRC_F * 100, 2)} %: rel 400 V sekuat titik sambung 20 kV", f"{ind(P_MOT / 1000 / SSC_04 * 100, 1)} %: hanya daya nominal motor yang berperan", f"{ind(DV_START * 6, 0)} %: motor tidak mungkin distart"],
             f"✅ Tepat! \\(S_{{start}} = {ind(K_START, 0)}\\times{ind(P_MOT, 0)}/{ind(PF_MOT, 1)} = {ind(S_START * 1000, 0)}\\) kVA; \\(\\Delta V \\approx {ind(S_START, 2)}/{ind(SSC_04, 2)} = {ind(DV_START, 1)}\\%\\). DOL masih dapat diterima (batas 10 %), tetapi setiap start membuat lampu berkedip; motor berikutnya yang lebih besar akan memerlukan soft starter/VSD atau rel yang lebih kuat.",
             "❌ Yang menjatuhkan tegangan adalah daya semu start (6× nominal dibagi pf), dan yang menahannya adalah MVA hubung singkat rel 400 V (bukan titik sambung 20 kV). Hitung \\(S_{start}\\) dulu lalu bagi dengan \\(S_{sc}\\) rel 400 V.",
-            "Petunjuk: (1) Hitung S_start. (2) Hitung ΔV terhadap S_sc rel 400 V dan bandingkan batas. (3) Bahas alternatif start dan dampak pada beban lain.")
+            "Petunjuk: (1) Hitung daya start motor. (2) Hitung ΔV terhadap daya hubung singkat rel 400 V dan bandingkan batas. (3) Bahas alternatif start dan dampak pada beban lain.")
     q3 = fq(3, "168,85,247", "violet", FQ_JUDUL[2],
-            f"Untuk 'menguatkan' rel 400 V, diusulkan memaralel trafo kedua <b>{ind(ST2_F, 1)} MVA, Z = {ind(ZT2_F * 100, 0)} %</b> dengan trafo lama. Hitung reaktansi trafo kedua pada basis {ind(S_BF, 0)} MVA, reaktansi paralel kedua trafo (Persamaan 8), X_th baru, lalu S_sc dan I_sc rel 400 V serta jatuh tegangan start motor yang baru. Bandingkan I_sc dengan PMT 50 kA yang ada. Bahas pula pembagian beban dua trafo yang Z%-nya berbeda (Modul 2: S ∝ 1/Z%) dan apa yang harus dibeli bila rel benar-benar diperkuat.",
-            ["X_par = X₁X₂/(X₁ + X₂)", "S_sc = S_base/X_th", "I_sc vs rating PMT"],
+            f"Untuk 'menguatkan' rel 400 V, diusulkan memaralel trafo kedua <b>{ind(ST2_F, 1)} MVA, Z = {ind(ZT2_F * 100, 0)} %</b> dengan trafo lama. Hitung reaktansi trafo kedua pada basis {ind(S_BF, 0)} MVA, reaktansi paralel kedua trafo (Persamaan 8), X<sub>th</sub> baru, lalu S<sub>sc</sub> dan I<sub>sc</sub> rel 400 V serta jatuh tegangan start motor yang baru. Bandingkan I<sub>sc</sub> dengan PMT 50 kA yang ada. Bahas pula pembagian beban dua trafo yang Z%-nya berbeda (Modul 2: S ∝ 1/Z%) dan apa yang harus dibeli bila rel benar-benar diperkuat.",
+            ["X<sub>par</sub> = X₁X₂/(X₁ + X₂)", "S<sub>sc</sub> = S<sub>base</sub>/X<sub>th</sub>", "I<sub>sc</sub> vs rating PMT"],
             f"Sesudah trafo kedua diparalel, arus hubung singkat rel 400 V menjadi sekitar...",
-            [f"{ind(ISC_04, 1)} kA, tidak berubah karena sumber PLN sama", f"{ind(ISC_04B, 1)} kA (S_sc ≈ {ind(SSC_04B, 1)} MVA): melampaui PMT 50 kA, harus diganti kelas 63 kA atau lebih", f"{ind(ISC_04 + ISC_04B, 0)} kA (jumlah keduanya)", f"{ind(ISC_04 / 2, 1)} kA, karena arus terbagi dua trafo"],
+            [f"{ind(ISC_04, 1)} kA, tidak berubah karena sumber PLN sama", f"{ind(ISC_04B, 1)} kA (S<sub>sc</sub> ≈ {ind(SSC_04B, 1)} MVA): melampaui PMT 50 kA, harus diganti kelas 63 kA atau lebih", f"{ind(ISC_04 + ISC_04B, 0)} kA (jumlah keduanya)", f"{ind(ISC_04 / 2, 1)} kA, karena arus terbagi dua trafo"],
             f"✅ Tepat! \\(X_{{T2}} = 0{{,}}0{ind(ZT2_F * 100, 0)}\\times100/{ind(ST2_F, 1)} = {ind(X_T2_F, 2)}\\) pu; \\(X_{{par}} = {ind(X_T_F, 1)}\\parallel{ind(X_T2_F, 1)} = {ind(X_PARF, 4)}\\) pu; \\(X_{{th}} = {ind(X_SRC_F, 1)} + {ind(X_PARF, 4)} = {ind(X_04B, 4)}\\) pu → \\(S_{{sc}} = {ind(SSC_04B, 1)}\\) MVA, \\(I_{{sc}} = {ind(ISC_04B, 1)}\\) kA. Start motor membaik (ΔV ≈ {ind(DV_START_B, 1)} %), tetapi PMT 50 kA tidak lagi cukup; rel dan kabel pun harus diperiksa. Beban terbagi ∝ 1/Z%: trafo 4 % memikul bagian lebih besar dari rasio MVA-nya.",
-            "❌ Memaralel trafo memperkecil reaktansi (paralel), sehingga MVA hubung singkat NAIK, bukan tetap atau terbagi. Hitung \\(X_{par}\\) lalu \\(S_{sc} = S_{base}/X_{th}\\) dan bandingkan I_sc dengan rating PMT.",
-            "Petunjuk: (1) Hitung X_T2, X_par, X_th baru. (2) Hitung S_sc, I_sc, ΔV start baru; bandingkan dengan 50 kA. (3) Bahas pembagian beban dan peralatan yang harus diganti.")
+            "❌ Memaralel trafo memperkecil reaktansi (paralel), sehingga MVA hubung singkat NAIK, bukan tetap atau terbagi. Hitung \\(X_{par}\\) lalu \\(S_{sc} = S_{base}/X_{th}\\) dan bandingkan I<sub>sc</sub> dengan rating PMT.",
+            "Petunjuk: (1) Hitung reaktansi trafo kedua, reaktansi paralel, dan reaktansi Thevenin baru. (2) Hitung daya dan arus hubung singkat serta ΔV start baru; bandingkan dengan 50 kA. (3) Bahas pembagian beban dan peralatan yang harus diganti.")
     kartu = lambda teks, rgb, warna: f'      <div style="background:rgba({rgb},.05);border:1px solid rgba({rgb},.15);border-radius:10px;padding:12px 16px;font-family:\'JetBrains Mono\',monospace;font-size:13px;color:var(--{warna})">{teks}</div>'
     return f'''<div class="page" id="page-forum">
 <div class="hero" data-tab="forum" style="min-height:55vh">
@@ -722,9 +722,9 @@ def forum_page():
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">X_th = S_base/S_sc + Z_T·S_base/S_T</span>
-    <span class="ff" style="left:32%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">I_sc = S_sc/(√3·V)</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">ΔV ≈ S_start/S_sc</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">X<sub>th</sub> = S<sub>base</sub>/S<sub>sc</sub> + Z<sub>T</sub>·S<sub>base</sub>/S<sub>T</sub></span>
+    <span class="ff" style="left:32%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">I<sub>sc</sub> = S<sub>sc</sub>/(√3·V)</span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">ΔV ≈ S<sub>start</sub>/S<sub>sc</sub></span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">PMT 50 kA?</span>
   </div>
   <div class="hero-content">
@@ -750,7 +750,7 @@ def forum_page():
       Sebagai mahasiswa yang baru menyelesaikan Modul {NOMOR}, Anda diminta menghitung ketiganya pada basis {ind(S_BF, 0)} MVA dan memberi rekomendasi <strong style="color:var(--cyan)">sebelum</strong> pabrik membeli apa pun.
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">
-{kartu(f"Sumber PLN: {ind(SSRC_F, 0)} MVA_sc di 20 kV", "14,165,233", "cyan")}
+{kartu(f"Sumber PLN: {ind(SSRC_F, 0)} MVA<sub>sc</sub> di 20 kV", "14,165,233", "cyan")}
 {kartu(f"Trafo: {ind(ST_F, 0)} MVA, 20/0,4 kV, Z {ind(ZT_F * 100, 0)} %", "14,165,233", "cyan")}
 {kartu("PMT 400 V: 50 kA", "14,165,233", "cyan")}
 {kartu(f"Motor baru: {ind(P_MOT, 0)} kW, pf {ind(PF_MOT, 1)}, start {ind(K_START, 0)}×", "239,68,68", "pink")}
@@ -770,7 +770,7 @@ def forum_page():
 
 
 FORUM_SKENARIO_LMS = f"Pabrik pengolahan logam berlangganan 20 kV (MVA hubung singkat PLN {ind(SSRC_F, 0)} MVA); trafo {ind(ST_F, 0)} MVA 20/0,4 kV Z {ind(ZT_F * 100, 0)} %, PMT rel 400 V 50 kA. Persoalan: cukupkah PMT; motor kompresor {ind(P_MOT, 0)} kW pf {ind(PF_MOT, 1)} start {ind(K_START, 0)}× akan distart langsung; usulan memaralel trafo kedua {ind(ST2_F, 1)} MVA Z {ind(ZT2_F * 100, 0)} %. Basis {ind(S_BF, 0)} MVA."
-FORUM_CHIPS_LMS = [f"PLN = {ind(SSRC_F, 0)} MVA_sc di 20 kV", f"trafo = {ind(ST_F, 0)} MVA, Z {ind(ZT_F * 100, 0)} %", "PMT 400 V = 50 kA", f"motor = {ind(P_MOT, 0)} kW, start {ind(K_START, 0)}×"]
+FORUM_CHIPS_LMS = [f"PLN = {ind(SSRC_F, 0)} MVA<sub>sc</sub> di 20 kV", f"trafo = {ind(ST_F, 0)} MVA, Z {ind(ZT_F * 100, 0)} %", "PMT 400 V = 50 kA", f"motor = {ind(P_MOT, 0)} kW, start {ind(K_START, 0)}×"]
 
 FORUM_KANVAS = r"""// ════════════════════════════════════════════════════════════
 // FORUM CANVAS — Arus hubung singkat rel 400 V vs kapasitas PMT (Pertemuan 7)
@@ -778,7 +778,7 @@ FORUM_KANVAS = r"""// ═══════════════════�
 function drawForumCanvas() {
   const cv = document.getElementById('cvForum'); if (!cv) return;
   const W = cv.clientWidth; if (W > 0) cv.width = W; const H = cv.height;
-  const ctx = cv.getContext('2d');
+  const ctx = (typeof _ttlRumusKtx === 'function' ? _ttlRumusKtx : c => c)(cv.getContext('2d'));  // notasi <sub>/<sup> (animasi/dasar.js)
   const bg = ctx.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#020812'); bg.addColorStop(1, '#061e1a');
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
   const Sb = 100, Xsrc = Sb / 500, Xt1 = 0.06 * Sb / 2, Xt2 = 0.04 * Sb / 1.6, Sstart = 6 * 0.3 / 0.8, PMT = 50;
@@ -798,7 +798,7 @@ function drawForumCanvas() {
     ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.fillText(Isc.toFixed(1) + ' kA · ' + Ssc.toFixed(1) + ' MVA · ΔV start ' + dV.toFixed(1) + ' %' + (Isc > PMT ? ' ⚠' : ''), Math.min(X(Isc), X(maks) - 230) + 6, y + barH / 2 + 4);
   });
   ctx.fillStyle = 'rgba(148,163,184,.7)'; ctx.font = '9px JetBrains Mono'; ctx.textAlign = 'center';
-  ctx.fillText('basis 100 MVA; X_th = X_sumber + X_trafo; I_sc = S_sc/(√3·0,4 kV); merah bila melampaui PMT', W / 2, H - 8);
+  ctx.fillText('basis 100 MVA; X<sub>th</sub> = X<sub>sumber</sub> + X<sub>trafo</sub>; I<sub>sc</sub> = S<sub>sc</sub>/(√3·0,4 kV); merah bila melampaui PMT', W / 2, H - 8);
 }
 // Resize handler — gambar ulang kanvas forum; animasi materi mengurus dirinya sendiri.
 window.addEventListener('resize', () => {

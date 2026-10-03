@@ -29,23 +29,23 @@ function drawPerUnit(){
   const Zb=kV*kV/S, Ib=S*1e6/(_SQ3_7*kV*1e3), Xpu=Xohm/Zb, XpuNew=Xpu0*S/S0, XohmT=XpuNew*Zb;
   // kiri: kartu basis
   const cw=Math.min(200,W*0.26);
-  _ttlKotak7(ctx,20,24,cw,44,'rgba(0,229,255,.95)','S_base = '+S.toFixed(0)+' MVA','V_base = '+kV.toFixed(0)+' kV');
-  _ttlKotak7(ctx,20,80,cw,44,'rgba(255,179,0,.95)','Z_base = kV²/MVA','= '+Zb.toFixed(3)+' Ω');
-  _ttlKotak7(ctx,20,136,cw,44,'rgba(168,85,247,.95)','I_base = S/(√3·V)','= '+Ib.toFixed(1)+' A');
-  _ttlKotak7(ctx,20,192,cw,44,'rgba(148,163,184,.95)','V_base tetap ⇒ Z ∝ 1/S','I_base ∝ S');
+  _ttlKotak7(ctx,20,24,cw,44,'rgba(0,229,255,.95)','S<sub>base</sub> = '+S.toFixed(0)+' MVA','V<sub>base</sub> = '+kV.toFixed(0)+' kV');
+  _ttlKotak7(ctx,20,80,cw,44,'rgba(255,179,0,.95)','Z<sub>base</sub> = kV²/MVA','= '+Zb.toFixed(3)+' Ω');
+  _ttlKotak7(ctx,20,136,cw,44,'rgba(168,85,247,.95)','I<sub>base</sub> = S/(√3·V)','= '+Ib.toFixed(1)+' A');
+  _ttlKotak7(ctx,20,192,cw,44,'rgba(148,163,184,.95)','V<sub>base</sub> tetap ⇒ Z ∝ 1/S','I<sub>base</sub> ∝ S');
   // kanan: dua batang konversi
   const bx=40+cw, bw=W-bx-20, y1=40, y2=150, bh=34;
   const fase=(Math.sin(_puFrame*0.04)+1)/2;
   ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.textAlign='left';
-  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('Saluran: '+Xohm.toFixed(1)+' Ω  →  X_pu = X_Ω / Z_base = '+Xpu.toFixed(4)+' pu',bx,y1-10);
+  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('Saluran: '+Xohm.toFixed(1)+' Ω  →  X<sub>pu</sub> = X<sub>Ω</sub> / Z<sub>base</sub> = '+Xpu.toFixed(4)+' pu',bx,y1-10);
   const skl=bw/Math.max(Xohm,Zb,1)*0.95;
   ctx.fillStyle='rgba(255,179,0,.35)'; ctx.fillRect(bx,y1,Zb*skl,bh); ctx.fillStyle='rgba(0,224,158,.85)'; ctx.fillRect(bx,y1,Xohm*skl*fase,bh);
-  ctx.fillStyle='#e2e8f0'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('Z_base '+Zb.toFixed(1)+' Ω = 1 pu',bx+4,y1+bh+14); ctx.fillText('X = '+Xohm.toFixed(1)+' Ω',bx+Math.max(4,Xohm*skl*fase-70),y1+bh/2+4);
+  ctx.fillStyle='#e2e8f0'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('Z<sub>base</sub> '+Zb.toFixed(1)+' Ω = 1 pu',bx+4,y1+bh+14); ctx.fillText('X = '+Xohm.toFixed(1)+' Ω',bx+Math.max(4,Xohm*skl*fase-70),y1+bh/2+4);
   ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.fillStyle='rgba(236,72,153,.95)'; ctx.fillText('Trafo: X = '+Xpu0.toFixed(2)+' pu pada '+S0.toFixed(0)+' MVA  →  pada '+S.toFixed(0)+' MVA: '+XpuNew.toFixed(4)+' pu  ('+XohmT.toFixed(3)+' Ω)',bx,y2-10);
   const skp=bw/Math.max(Xpu0,XpuNew,0.05)*0.95;
   ctx.fillStyle='rgba(148,163,184,.35)'; ctx.fillRect(bx,y2,Xpu0*skp,bh); ctx.fillStyle='rgba(236,72,153,.85)'; ctx.fillRect(bx,y2+bh+6,XpuNew*skp*fase,bh);
   ctx.fillStyle='#e2e8f0'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('basis lama '+S0.toFixed(0)+' MVA: '+Xpu0.toFixed(3)+' pu',bx+4,y2+bh/2+4); ctx.fillText('basis baru '+S.toFixed(0)+' MVA: '+XpuNew.toFixed(4)+' pu',bx+4,y2+bh+6+bh/2+4);
-  _ttlTulis('perUnitInfo','Z_base = '+kV.toFixed(0)+'²/'+S.toFixed(0)+' = '+Zb.toFixed(4)+' Ω;  I_base = '+Ib.toFixed(2)+' A   |   saluran '+Xohm.toFixed(1)+' Ω = '+Xpu.toFixed(4)+' pu   |   trafo '+Xpu0.toFixed(2)+' pu @'+S0.toFixed(0)+' MVA → '+XpuNew.toFixed(4)+' pu @'+S.toFixed(0)+' MVA = '+XohmT.toFixed(3)+' Ω   |   MVA hubung singkat bila hanya reaktansi trafo: '+(S/XpuNew).toFixed(1)+' MVA');
+  _ttlTulis('perUnitInfo','Z<sub>base</sub> = '+kV.toFixed(0)+'²/'+S.toFixed(0)+' = '+Zb.toFixed(4)+' Ω;  I<sub>base</sub> = '+Ib.toFixed(2)+' A   |   saluran '+Xohm.toFixed(1)+' Ω = '+Xpu.toFixed(4)+' pu   |   trafo '+Xpu0.toFixed(2)+' pu @'+S0.toFixed(0)+' MVA → '+XpuNew.toFixed(4)+' pu @'+S.toFixed(0)+' MVA = '+XohmT.toFixed(3)+' Ω   |   MVA hubung singkat bila hanya reaktansi trafo: '+(S/XpuNew).toFixed(1)+' MVA');
   if(_ttlJalan('perunit')){_puFrame++; requestAnimationFrame(drawPerUnit);}
 }
 
@@ -64,21 +64,21 @@ function drawYDelta(){
   const cx=W*0.25, cy=H/2+10, r=Math.min(H/2-40,90);
   const pts=[[cx,cy-r],[cx-r*0.87,cy+r*0.5],[cx+r*0.87,cy+r*0.5]];
   const ZY=[Za,Zb,Zc], lab=['a','b','c'];
-  pts.forEach((p,i)=>{_ttlGaris(ctx,cx,cy,p[0],p[1],'rgba(148,163,184,.7)',2); const mx=(cx+p[0])/2,my=(cy+p[1])/2; ctx.fillStyle='rgba(14,22,40,.95)'; ctx.fillRect(mx-22,my-9,44,18); ctx.strokeStyle=warna[i]; ctx.lineWidth=1.8; ctx.strokeRect(mx-22,my-9,44,18); ctx.fillStyle=warna[i]; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText('Z_'+lab[i]+' '+ZY[i].toFixed(1),mx,my+4); gambarSimpul(p[0],p[1],lab[i],warna[i]);});
+  pts.forEach((p,i)=>{_ttlGaris(ctx,cx,cy,p[0],p[1],'rgba(148,163,184,.7)',2); const mx=(cx+p[0])/2,my=(cy+p[1])/2; ctx.fillStyle='rgba(14,22,40,.95)'; ctx.fillRect(mx-22,my-9,44,18); ctx.strokeStyle=warna[i]; ctx.lineWidth=1.8; ctx.strokeRect(mx-22,my-9,44,18); ctx.fillStyle=warna[i]; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText('Z<sub>'+lab[i]+'</sub> '+ZY[i].toFixed(1),mx,my+4); gambarSimpul(p[0],p[1],lab[i],warna[i]);});
   ctx.fillStyle='rgba(148,163,184,.95)'; ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#e2e8f0'; ctx.font="600 12px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText('Bintang (Y)',cx,26);
   // panah tengah berkedip
   const a=0.5+0.5*Math.sin(_ydFrame*0.06);
   ctx.fillStyle='rgba(0,224,158,'+a.toFixed(2)+')'; ctx.font="700 22px 'JetBrains Mono',monospace"; ctx.fillText('⇄',W/2,H/2+18);
-  ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillStyle='rgba(148,163,184,.9)'; ctx.fillText('Z_Δ = Σ(Z_iZ_j)/Z_lawan',W/2,H/2+40); ctx.fillText('Z_Y = Z_iZ_j/ΣZ_Δ',W/2,H/2+54);
+  ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillStyle='rgba(148,163,184,.9)'; ctx.fillText('Z<sub>Δ</sub> = Σ(Z<sub>i</sub>Z<sub>j</sub>)/Z<sub>lawan</sub>',W/2,H/2+40); ctx.fillText('Z<sub>Y</sub> = Z<sub>i</sub>Z<sub>j</sub>/ΣZ<sub>Δ</sub>',W/2,H/2+54);
   // segitiga kanan
   const cx2=W*0.75, pts2=[[cx2,cy-r],[cx2-r*0.87,cy+r*0.5],[cx2+r*0.87,cy+r*0.5]];
-  const ZD=[[0,1,Zab,'Z_ab'],[1,2,Zbc,'Z_bc'],[2,0,Zca,'Z_ca']];
+  const ZD=[[0,1,Zab,'Z<sub>ab</sub>'],[1,2,Zbc,'Z<sub>bc</sub>'],[2,0,Zca,'Z<sub>ca</sub>']];
   ZD.forEach(([i,j,Z,l],q)=>{const p=pts2[i],s=pts2[j]; _ttlGaris(ctx,p[0],p[1],s[0],s[1],'rgba(148,163,184,.7)',2); const mx=(p[0]+s[0])/2,my=(p[1]+s[1])/2; ctx.fillStyle='rgba(14,22,40,.95)'; ctx.fillRect(mx-30,my-9,60,18); ctx.strokeStyle='rgba(0,224,158,.95)'; ctx.lineWidth=1.8; ctx.strokeRect(mx-30,my-9,60,18); ctx.fillStyle='rgba(0,224,158,.95)'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText(l+' '+Z.toFixed(1),mx,my+4);});
   pts2.forEach((p,i)=>gambarSimpul(p[0],p[1],lab[i],warna[i]));
   ctx.fillStyle='#e2e8f0'; ctx.font="600 12px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText('Segitiga (Δ)',cx2,26);
   const RabY=Za+Zb, RabD=Zab*(Zbc+Zca)/(Zab+Zbc+Zca);
-  _ttlTulis('yDeltaInfo','Σ(Z_iZ_j) = '+num.toFixed(3)+';  Z_ab = '+Zab.toFixed(4)+' Ω, Z_bc = '+Zbc.toFixed(4)+' Ω, Z_ca = '+Zca.toFixed(4)+' Ω   |   pemeriksaan: resistansi a–b dengan c terbuka = Z_a + Z_b = '+RabY.toFixed(4)+' Ω pada Y, dan Z_ab ‖ (Z_bc + Z_ca) = '+RabD.toFixed(4)+' Ω pada Δ (harus sama)'+(Math.abs(Za-Zb)<1e-9&&Math.abs(Zb-Zc)<1e-9?'   |   seimbang: Z_Δ = 3 Z_Y':''));
+  _ttlTulis('yDeltaInfo','Σ(Z<sub>i</sub>Z<sub>j</sub>) = '+num.toFixed(3)+';  Z<sub>ab</sub> = '+Zab.toFixed(4)+' Ω, Z<sub>bc</sub> = '+Zbc.toFixed(4)+' Ω, Z<sub>ca</sub> = '+Zca.toFixed(4)+' Ω   |   pemeriksaan: resistansi a–b dengan c terbuka = Z<sub>a</sub> + Z<sub>b</sub> = '+RabY.toFixed(4)+' Ω pada Y, dan Z<sub>ab</sub> ‖ (Z<sub>bc</sub> + Z<sub>ca</sub>) = '+RabD.toFixed(4)+' Ω pada Δ (harus sama)'+(Math.abs(Za-Zb)<1e-9&&Math.abs(Zb-Zc)<1e-9?'   |   seimbang: Z<sub>Δ</sub> = 3 Z<sub>Y</sub>':''));
   if(_ttlJalan('ydelta')){_ydFrame++; requestAnimationFrame(drawYDelta);}
 }
 
@@ -99,7 +99,7 @@ function drawReduksi(){
     _ttlGaris(ctx,x0+28,yy,x0+60,yy,'rgba(148,163,184,.7)',2); _ttlReaktor7(ctx,x0+60,x0+120,yy,'rgba(255,179,0,.95)',l); _ttlGaris(ctx,x0+120,yy,xA,yy,'rgba(148,163,184,.7)',2); _ttlGaris(ctx,xA,yy,xA,y,'rgba(148,163,184,.7)',2);
   });
   // rel A, trafo, rel B, saluran, rel C
-  const rel=(x,lab,X)=>{_ttlGaris(ctx,x,y-50,x,y+50,'rgba(0,229,255,.95)',5); ctx.fillStyle='rgba(0,229,255,.95)'; ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.fillText(lab,x,y-58); ctx.fillStyle='#e2e8f0'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('X_th '+X.toFixed(4),x,y+66); ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('S_sc '+(S/X).toFixed(0)+' MVA',x,y+80);};
+  const rel=(x,lab,X)=>{_ttlGaris(ctx,x,y-50,x,y+50,'rgba(0,229,255,.95)',5); ctx.fillStyle='rgba(0,229,255,.95)'; ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.fillText(lab,x,y-58); ctx.fillStyle='#e2e8f0'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('X<sub>th</sub> '+X.toFixed(4),x,y+66); ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('S<sub>sc</sub> '+(S/X).toFixed(0)+' MVA',x,y+80);};
   rel(xA,'rel A (13,8 kV)',XA);
   _ttlGaris(ctx,xA,y,xA+(xB-xA)*0.25,y,'rgba(148,163,184,.7)',2); _ttlReaktor7(ctx,xA+(xB-xA)*0.25,xA+(xB-xA)*0.75,y,'rgba(168,85,247,.95)','T X='+Xt.toFixed(2)); _ttlGaris(ctx,xA+(xB-xA)*0.75,y,xB,y,'rgba(148,163,184,.7)',2);
   rel(xB,'rel B (150 kV)',XB);
@@ -108,8 +108,8 @@ function drawReduksi(){
   // titik gangguan berkedip bergantian di tiga rel
   const idx=Math.floor((_rdFrame/90)%3), xs=[xA,xB,xC][idx], Xs=[XA,XB,XC][idx];
   const a=0.5+0.5*Math.sin(_rdFrame*0.2); ctx.fillStyle='rgba(239,68,68,'+a.toFixed(2)+')'; ctx.beginPath(); ctx.arc(xs,y+30,7,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='rgba(239,68,68,.95)'; ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText('gangguan 3φ di sini: I_sc = '+(S/Xs).toFixed(0)+' MVA / (√3·V)',xs,y+H*0.5-30>H-14?H-14:y+H*0.52);
-  _ttlTulis('reduksiInfo','X_par = '+Xg1.toFixed(2)+'‖'+Xg2.toFixed(2)+' = '+Xpar.toFixed(4)+' pu → S_sc(A) = '+(S/XA).toFixed(1)+' MVA, I_sc(13,8 kV) = '+(S/XA/(_SQ3_7*13.8)).toFixed(2)+' kA   |   + trafo '+Xt.toFixed(2)+' → X = '+XB.toFixed(4)+', S_sc(B) = '+(S/XB).toFixed(1)+' MVA, I_sc(150 kV) = '+(S/XB/(_SQ3_7*150)).toFixed(3)+' kA   |   + saluran '+Xl.toFixed(3)+' → X = '+XC.toFixed(4)+', S_sc(C) = '+(S/XC).toFixed(1)+' MVA   (basis '+S+' MVA)');
+  ctx.fillStyle='rgba(239,68,68,.95)'; ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText('gangguan 3φ di sini: I<sub>sc</sub> = '+(S/Xs).toFixed(0)+' MVA / (√3·V)',xs,y+H*0.5-30>H-14?H-14:y+H*0.52);
+  _ttlTulis('reduksiInfo','X<sub>par</sub> = '+Xg1.toFixed(2)+'‖'+Xg2.toFixed(2)+' = '+Xpar.toFixed(4)+' pu → S<sub>sc</sub>(A) = '+(S/XA).toFixed(1)+' MVA, I<sub>sc</sub>(13,8 kV) = '+(S/XA/(_SQ3_7*13.8)).toFixed(2)+' kA   |   + trafo '+Xt.toFixed(2)+' → X = '+XB.toFixed(4)+', S<sub>sc</sub>(B) = '+(S/XB).toFixed(1)+' MVA, I<sub>sc</sub>(150 kV) = '+(S/XB/(_SQ3_7*150)).toFixed(3)+' kA   |   + saluran '+Xl.toFixed(3)+' → X = '+XC.toFixed(4)+', S<sub>sc</sub>(C) = '+(S/XC).toFixed(1)+' MVA   (basis '+S+' MVA)');
   if(_ttlJalan('reduksi')){_rdFrame++; requestAnimationFrame(drawReduksi);}
 }
 
@@ -139,8 +139,8 @@ function drawHubungSingkat(){
   ctx.textAlign='left'; ctx.font="600 10px 'JetBrains Mono',monospace";
   ctx.fillStyle='rgba(236,72,153,.95)'; ctx.fillText('I″ = 1/X″ = '+I2.toFixed(2)+' pu',X(0.05),Y(I2)-6);
   ctx.fillStyle='rgba(255,179,0,.95)'; ctx.fillText('I′ = 1/X′ = '+I1.toFixed(2)+' pu',X(0.35),Y(I1)-6);
-  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('I_tunak = 1/X_s = '+I0.toFixed(2)+' pu',X(2.0),Y(I0)-6);
-  _ttlTulis('hubungSingkatInfo','Selubung arus: i(t) = (I″ − I′)e^(−t/T″) + (I′ − I) e^(−t/T′) + I   |   I″ = '+I2.toFixed(3)+' pu (untuk PMT: arus putus dievaluasi 3–5 siklus setelah gangguan ≈ '+env(0.08).toFixed(2)+' pu), I′ = '+I1.toFixed(3)+' pu, I_tunak = '+I0.toFixed(3)+' pu   |   pada t = '+tNow.toFixed(2)+' s selubung = '+env(tNow).toFixed(3)+' pu   |   komponen DC (asimetri) tidak digambar; menambah puncak awal sampai ×1,6–1,8');
+  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('I<sub>tunak</sub> = 1/X<sub>s</sub> = '+I0.toFixed(2)+' pu',X(2.0),Y(I0)-6);
+  _ttlTulis('hubungSingkatInfo','Selubung arus: i(t) = (I″ − I′)e<sup>−t/T″</sup> + (I′ − I) e<sup>−t/T′</sup> + I   |   I″ = '+I2.toFixed(3)+' pu (untuk PMT: arus putus dievaluasi 3–5 siklus setelah gangguan ≈ '+env(0.08).toFixed(2)+' pu), I′ = '+I1.toFixed(3)+' pu, I<sub>tunak</sub> = '+I0.toFixed(3)+' pu   |   pada t = '+tNow.toFixed(2)+' s selubung = '+env(tNow).toFixed(3)+' pu   |   komponen DC (asimetri) tidak digambar; menambah puncak awal sampai ×1,6–1,8');
   if(_ttlJalan('hubungsingkat')){_hsFrame++; requestAnimationFrame(drawHubungSingkat);}
 }
 

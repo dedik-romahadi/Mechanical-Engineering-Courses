@@ -92,8 +92,8 @@ def gambar():
     p = iso(0, 0, hs, cx, cy, s)
     body += t(p[0] - 56, p[1] - 30, "poros ⌀D + ei/1000 (min)", 10, AM, "middle", "600")  # lepas dari label sesumbu (Z)
     p = iso(0, -(rh + rs) / 2, hz, cx, cy, s)
-    body += _garis(p[0], p[1], p[0] - 30, p[1] + 34, GR, 0.9, "3 2") + t(p[0] - 30, p[1] + 48, "celah radial", 10, GR, "middle", "600") + t(p[0] - 30, p[1] + 63, "= c_maks / 2", 10, GR, "middle")
-    body += catatan(["Body 1: cincin, lubang ⌀(D + ES/1000)", "Body 2: poros ⌀(D + ei/1000), ei < 0", "  sesumbu, konstrain Diameter 4 desimal", "c_maks = ⌀lubang maks − ⌀poros min", "baca: c_maks = (ES − ei)/1000 (mm)"], 306, 40)  # pita x 200..330 kosong
+    body += _garis(p[0], p[1], p[0] - 30, p[1] + 34, GR, 0.9, "3 2") + t(p[0] - 30, p[1] + 48, "celah radial", 10, GR, "middle", "600") + t(p[0] - 30, p[1] + 63, "= c<sub>maks</sub> / 2", 10, GR, "middle")
+    body += catatan(["Body 1: cincin, lubang ⌀(D + ES/1000)", "Body 2: poros ⌀(D + ei/1000), ei < 0", "  sesumbu, konstrain Diameter 4 desimal", "c<sub>maks</sub> = ⌀lubang maks − ⌀poros min", "baca: c<sub>maks</sub> = (ES − ei)/1000 (mm)"], 306, 40)  # pita x 200..330 kosong
     out.append(gambar_tugas(body, "Tugas 2 — fit lubang–poros pada ukuran batas dan kelonggaran maksimum", h=250))
 
     # ── T3 — rumah berdinding tipis: Pad a × b × h, Pocket (a − 2w) × (b − 2w) sedalam p ──
@@ -137,13 +137,13 @@ def gambar():
     body += _ling(c1x, oy, 2.2, VI, "none") + _ling(c2x, oy, 2.2, VI, "none")
     body += ext(x0, y0, x0, y0 - 24) + ext(x0 + a, y0, x0 + a, y0 - 24) + dim_h(x0, x0 + a, y0 - 16, "a")
     body += ext(x0 + a, y0, x0 + a + 26, y0) + ext(x0 + a, y0 + b, x0 + a + 26, y0 + b) + dim_v(x0 + a + 18, y0, y0 + b, "b", kiri=False)
-    body += ext(c1x, oy, c1x, oy - r - 20, VI) + ext(c2x, oy, c2x, oy - r - 20, VI) + dim_h(c1x, c2x, oy - r - 13, "Ls", VI)
-    body += ext(c2x + r, oy - r, c2x + r + 30, oy - r, VI) + ext(c2x + r, oy + r, c2x + r + 30, oy + r, VI) + dim_v(c2x + r + 22, oy - r, oy + r, "ws", VI, kiri=False)
+    body += ext(c1x, oy, c1x, oy - r - 20, VI) + ext(c2x, oy, c2x, oy - r - 20, VI) + dim_h(c1x, c2x, oy - r - 13, "L<sub>s</sub>", VI)
+    body += ext(c2x + r, oy - r, c2x + r + 30, oy - r, VI) + ext(c2x + r, oy + r, c2x + r + 30, oy + r, VI) + dim_v(c2x + r + 22, oy - r, oy + r, "w<sub>s</sub>", VI, kiri=False)
     body += ext(c1x - r, oy + r, c1x - r, y0 + b + 30, GR) + ext(x0, y0 + b, x0, y0 + b + 30, GR) + dim_h(x0, c1x - r, y0 + b + 22, "e", GR, atas=False)
     body += _ling(ox, oy, 2.5, TX, "none") + t(ox, oy + r + 14, "(0, 0) pusat pelat & slot", 9, AX, "middle")
     body += t(x0 + 6, y0 + 14, "Pad t", 9.5, CY, "start")
-    body += catatan(["Sketch XY a × b simetris origin", "  → Pad t", "Slot obround di pusat:", "  Ls (pusat–pusat), lebar ws,", "  searah X → Pocket Through all",
-                     "e = ujung busur slot →", "  tepi pendek pelat", "baca: e = (a − (Ls + ws))/2 (arah X)"], 330, 40)
+    body += catatan(["Sketch XY a × b simetris origin", "  → Pad t", "Slot obround di pusat:", "  L<sub>s</sub> (pusat–pusat), lebar w<sub>s</sub>,", "  searah X → Pocket Through all",
+                     "e = ujung busur slot →", "  tepi pendek pelat", "baca: e = (a − (L<sub>s</sub> + w<sub>s</sub>))/2 (arah X)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 4 — pelat dengan slot obround dan jarak tepi e arah X"))
 
     # ── T5 — lengan R × w berputar terhadap ujungnya dekat dinding sejauh W ──
@@ -167,7 +167,7 @@ def gambar():
     body += _garis(ox, oy, ox + rc, oy, AX, 0.7, "4 3")
     body += _ling(ox, oy, 4, TX, "none") + t(ox - 4, oy + 27, "sumbu (0, 0)", 9, AX, "end")  # di bawah dimensi w
     body += _ling(ox + rc, oy, 3.5, PK, "none")
-    body += ext(ox + rc, oy + 4, ox + rc, oy + 46, GR) + ext(ox + W, oy + 100, ox + W, oy + 118, GR) + _geser(dim_h(ox + rc, ox + W, oy + 40, "c_min", GR, atas=False), "c_min", 0, 2)
+    body += ext(ox + rc, oy + 4, ox + rc, oy + 46, GR) + ext(ox + W, oy + 100, ox + W, oy + 118, GR) + _geser(dim_h(ox + rc, ox + W, oy + 40, "c<sub>min</sub>", GR, atas=False), "c<sub>min</sub>", 0, 2)
     body += ext(ox, oy - 4, ox, oy - 112) + ext(ox + W, oy - 100, ox + W, oy - 112) + dim_h(ox, ox + W, oy - 108, "W")
     body += t(ox + W + 7, oy - 118, "dinding", 9.5, AX, "middle")
     p = rot(R * 0.5, w / 2 + 12)
@@ -175,10 +175,10 @@ def gambar():
     q0, q1 = rot(0, -w / 2), rot(0, w / 2)
     body += dim_v(ox - 16, q1[1], q0[1], "w")
     body += f'<path d="M {ox + 40:.1f} {oy:.1f} A 40 40 0 0 1 {rot(40, 0)[0]:.1f} {rot(40, 0)[1]:.1f}" fill="none" stroke="{PK}" stroke-width="1.2"/>'
-    body += t(ox + 46, oy + 14, "θ*", 10.5, PK, "start", "700")
+    body += t(ox + 46, oy + 14, "θ<sup>*</sup>", 10.5, PK, "start", "700")
     # label di luar lingkaran sapuan, kiri dinding, dengan garis penunjuk ke titik sudut terjauh
     body += _garis(ox + W - 20, oy - 68, ox + rc + 2, oy - 5, PK, 0.8, "3 2") + t(ox + W - 6, oy - 72, "sudut terjauh", 9.5, PK, "end")
-    body += catatan(["Lengan: Sketch (0, −w/2)…(R, w/2)", "  → Pad; sumbu putar Z di origin", "Dinding: Part Box, muka di x = W", "Sudut lengan menyapu lingkaran", "  berjari-jari √(R² + (w/2)²)", "baca: c_min = W − √(R² + (w/2)²)"], 330, 40)
+    body += catatan(["Lengan: Sketch (0, −w/2)…(R, w/2)", "  → Pad; sumbu putar Z di origin", "Dinding: Part Box, muka di x = W", "Sudut lengan menyapu lingkaran", "  berjari-jari √(R² + (w/2)²)", "baca: c<sub>min</sub> = W − √(R² + (w/2)²)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 5 — lengan berputar dekat dinding dan jarak bebas minimum", h=258))
     return out
 

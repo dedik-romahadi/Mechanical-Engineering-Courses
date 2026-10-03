@@ -130,7 +130,7 @@ SIMBOL = {"times": "×", "cdot": "·", "le": "≤", "leq": "≤", "ge": "≥", "
           "pm": "±", "mp": "∓", "to": "→", "rightarrow": "→", "Rightarrow": "⇒", "leftrightarrow": "↔", "parallel": "∥", "angle": "∠",
           "circ": "°", "ldots": "…", "cdots": "⋯", "dots": "…", "sum": "Σ", "int": "∫", "prod": "Π", "mid": "|", "lvert": "|", "rvert": "|",
           "quad": "  ", "qquad": "    ", "%": "%", ",": " ", ";": " ", ":": " ", "!": "", " ": " ", "{": "{", "}": "}", "_": "_", "&": "&",
-          "\\": "; ", "equiv": "≡", "sim": "~", "star": "★", "bullet": "•", "prime": "′", "degree": "°", "langle": "⟨", "rangle": "⟩", "in": "∈"}
+          "\\": "; ", "equiv": "≡", "sim": "~", "star": "★", "bullet": "•", "prime": "′", "degree": "°", "langle": "⟨", "rangle": "⟩", "in": "∈", "lt": "<", "gt": ">"}
 FUNGSI = {"ln", "log", "sin", "cos", "tan", "exp", "max", "min", "arcsin", "arccos", "arctan", "sinh", "cosh", "tanh", "lim", "det", "Re", "Im"}
 
 
@@ -361,6 +361,17 @@ def teks_polos(el):
     return "".join(t for t, *_ in rapikan_runs(runs_dari(el))).replace("\n", " ").strip()
 
 
+def runs_penanda(teks, bold=False, italic=False):
+    """Teks berpenanda <sub>/<sup> (label tugas di skrip halaman) → daftar run (teks, bold, italic, skrip)."""
+    bag = re.split(r"<(sub|sup)>(.*?)</\1>", teks)
+    out = [(bag[0], bold, italic, None)] if bag[0] else []
+    for i in range(1, len(bag), 3):
+        out.append((bag[i + 1], bold, italic, bag[i]))
+        if bag[i + 2]:
+            out.append((bag[i + 2], bold, italic, None))
+    return out
+
+
 # ─────────────────────────── penulisan Word ───────────────────────────
 class Penulis:
     def __init__(self, doc):
@@ -392,13 +403,23 @@ class Penulis:
                 elif sk == "sup":
                     r.font.superscript = True
 
+    def _judul(self, p, teks, ukuran, warna, kapital=False):
+        """Judul dari teks polos atau daftar run (subskrip/superskrip rumus tetap terjaga)."""
+        for t, _, _, sk in (rapikan_runs(teks) if isinstance(teks, list) else [(teks, True, False, None)]):
+            r = p.add_run(t.upper() if kapital else t)
+            self._font(r, ukuran, True, warna=warna)
+            if sk == "sub":
+                r.font.subscript = True
+            elif sk == "sup":
+                r.font.superscript = True
+
     def heading1(self, teks):
         p = self.doc.add_paragraph()
         p.paragraph_format.space_before = Pt(16)
         p.paragraph_format.space_after = Pt(8)
         p.paragraph_format.keep_with_next = True
         p.paragraph_format.line_spacing = 1.15
-        self._font(p.add_run(teks.upper()), 14, True, warna=BIRU_H1)
+        self._judul(p, teks, 14, BIRU_H1, kapital=True)
         return p
 
     def heading2(self, teks):
@@ -407,7 +428,7 @@ class Penulis:
         p.paragraph_format.space_after = Pt(4)
         p.paragraph_format.keep_with_next = True
         p.paragraph_format.line_spacing = 1.15
-        self._font(p.add_run(teks), 12, True, warna=BIRU_H2)
+        self._judul(p, teks, 12, BIRU_H2)
         return p
 
     def para(self, runs, rata=WD_ALIGN_PARAGRAPH.JUSTIFY, ukuran=11, sesudah=6):
@@ -488,7 +509,7 @@ class Penulis:
         p.paragraph_format.space_before = Pt(6)
         p.paragraph_format.space_after = Pt(2)
         p.paragraph_format.keep_with_next = True
-        self._font(p.add_run(judul), 10, True, warna=BIRU_H2)
+        self._judul(p, judul, 10, BIRU_H2)
         p = self.doc.add_paragraph()
         pPr = p._p.get_or_add_pPr()
         pPr.append(parse_xml(f'<w:pBdr {nsdecls("w")}><w:top w:val="single" w:sz="4" w:space="6" w:color="CBD5E1"/><w:left w:val="single" w:sz="4" w:space="6" w:color="CBD5E1"/><w:bottom w:val="single" w:sz="4" w:space="6" w:color="CBD5E1"/><w:right w:val="single" w:sz="4" w:space="6" w:color="CBD5E1"/></w:pBdr>'))
@@ -542,7 +563,7 @@ def muat_modul(n):
         if not judul_sec:
             continue
         nama_label = label[0].text_content().strip() if label else ""
-        bagian.append({"id": sec.get("id"), "label": nama_label, "judul": teks_polos(judul_sec[0]),
+        bagian.append({"id": sec.get("id"), "label": nama_label, "judul": rapikan_runs(runs_dari(judul_sec[0])),
                        "desc": sec.xpath('./p[contains(@class,"section-desc")]'), "el": sec})
     tugas = {"mc": [], "comp_ez": re.findall(r"\{ id:'c\d+', label:'([^']*)', q:'' \}", mentah)[:10],
              "comp_hard": re.findall(r"\{ id:'c1[1-5]', label:'([^']*)', q:'' \}", mentah)}
@@ -550,9 +571,9 @@ def muat_modul(n):
         q = kartu.xpath('.//div[@class="mc-q"]')
         opsi = kartu.xpath('.//div[@class="radio-option"]')
         if q:
-            tugas["mc"].append((runs_dari(q[0]), [teks_polos(o) for o in opsi]))
+            tugas["mc"].append((runs_dari(q[0]), [rapikan_runs(runs_dari(o)) for o in opsi]))
     forum = {"skenario": [runs_dari(p) for p in root.xpath('//div[@id="page-forum"]//div[contains(@class,"forum-scenario")]/p')],
-             "tanya": [teks_polos(h) for h in root.xpath('//div[@id="page-forum"]//div[@class="fq-head"]/h3')]}
+             "tanya": [rapikan_runs(runs_dari(h)) for h in root.xpath('//div[@id="page-forum"]//div[@class="fq-head"]/h3')]}
     return {"n": n, "judul": judul, "hero": hero, "svgs": svgs, "bagian": bagian, "tugas": tugas, "forum": forum, "root": root}
 
 
@@ -741,7 +762,7 @@ def bangun(n, tmpdir):
                 nomor = el.xpath('.//span[@class="formula-number"]')
                 desc = el.xpath('./div[@class="formula-desc"]')
                 if label:
-                    W.heading2(teks_polos(label[0]))
+                    W.heading2(rapikan_runs(runs_dari(label[0])))
                 if utama:
                     m = re.search(r"\\\((.*)\\\)", (utama[0].text or "") + "".join(lhtml.tostring(c, encoding="unicode") for c in utama[0]), re.S)
                     latex = m.group(1) if m else teks_polos(utama[0])
@@ -771,7 +792,7 @@ def bangun(n, tmpdir):
                     h3 = kartu.xpath("./h3")
                     p = kartu.xpath("./p")
                     rumus = kartu.xpath('./div[@class="formula"]')
-                    r = [(teks_polos(h3[0]) + ": ", True, False, None)] if h3 else []
+                    r = [(t, True, i, sk) for t, _, i, sk in rapikan_runs(runs_dari(h3[0]))] + [(": ", True, False, None)] if h3 else []
                     if p:
                         r += runs_dari(p[0])
                     if rumus:
@@ -789,7 +810,7 @@ def bangun(n, tmpdir):
                 judul_anim = el.xpath('.//span[@class="anim-title"]')
                 cara = el.xpath('.//div[contains(@class,"tip-box")]')
                 if judul_anim:
-                    W.heading2(teks_polos(judul_anim[0]))
+                    W.heading2(rapikan_runs(runs_dari(judul_anim[0])))
                 W.para("Animasi ini dapat dijalankan pada halaman modul interaktif (tautan di awal dokumen); panel di bawah merangkum cara membacanya.")
                 if cara:
                     W.kotak(runs_dari(cara[0]))
@@ -797,7 +818,7 @@ def bangun(n, tmpdir):
                 label = el.xpath('.//span[@class="code-label"]')
                 pre = el.xpath(".//pre")
                 if pre:
-                    W.kode(teks_polos(label[0]) if label else "Kode", htmlmod.unescape(pre[0].text_content()))
+                    W.kode(rapikan_runs(runs_dari(label[0])) if label else "Kode", htmlmod.unescape(pre[0].text_content()))
             # elemen lain (divider, label, judul, desc) sudah ditangani
 
     # ── TUGAS & FORUM ──
@@ -809,20 +830,20 @@ def bangun(n, tmpdir):
         for k, (q, opsi) in enumerate(T["mc"], 1):
             W.para([(f"{k}. ", True, False, None)] + q, sesudah=2)
             for j, o in enumerate(opsi):
-                W.bullet([(o, False, False, None)], 10.5)
+                W.bullet(o, 10.5)
         W.heading2("Bagian B — Komputasi Mudah (Jupyter Notebook)")
         for k, lab in enumerate(T["comp_ez"], 1):
-            W.bullet([(f"C{k}: ", True, False, None), (lab, False, False, None)], 10.5)
+            W.bullet([(f"C{k}: ", True, False, None)] + runs_penanda(lab), 10.5)
         W.heading2("Bagian C — Komputasi Sulit (multi-step)")
         for k, lab in enumerate(T["comp_hard"], 11):
-            W.bullet([(f"C{k}: ", True, False, None), (lab, False, False, None)], 10.5)
+            W.bullet([(f"C{k}: ", True, False, None)] + runs_penanda(lab), 10.5)
     F = M["forum"]
     if F["tanya"]:
         W.heading1("Forum Diskusi")
         for p in F["skenario"]:
             W.para(p)
         for k, t in enumerate(F["tanya"], 1):
-            W.bullet([(f"Pertanyaan {k}: ", True, False, None), (t, False, False, None)])
+            W.bullet([(f"Pertanyaan {k}: ", True, False, None)] + t)
         W.para("Jawaban ditulis pada halaman modul interaktif (minimal 30 kata per pertanyaan) dan menjadi syarat kelengkapan modul bersama tugas.")
 
     # ── DAFTAR PUSTAKA ──

@@ -76,7 +76,7 @@ def gambar():
     body += _panah(p0[0], p0[1], p1[0], p1[1], GR, 1.2) + _panah(p1[0], p1[1], p0[0], p0[1], GR, 1.2)
     body += t(p1[0] - 10, (p0[1] + p1[1]) / 2, "L (Pad arah Z)", 10.5, GR, "end", "600")
     body += t(cx, 224, "profil cincin: dua lingkaran sepusat dalam satu sketsa", 9.5, AX, "middle")
-    body += catatan(["Body: Sketch XY dua lingkaran", "  sepusat di titik asal ⌀D, ⌀d", "  → Pad L mm searah Z", "V = (π/4)(D² − d²)·L", "m = ρ_Al·V, E = e·m (e MJ/kg)", "baca: energi terkandung (MJ)"], 330, 40)
+    body += catatan(["Body: Sketch XY dua lingkaran", "  sepusat di titik asal ⌀D, ⌀d", "  → Pad L mm searah Z", "V = (π/4)(D² − d²)·L", "m = ρ<sub>Al</sub>·V, E = e·m (e MJ/kg)", "baca: energi terkandung (MJ)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 2 — tabung aluminium ⌀D/⌀d × L dan energi terkandungnya", h=246))
 
     # ── T3 — braket L dari billet (pemanfaatan material) ─────────────────────
@@ -98,7 +98,7 @@ def gambar():
     body += dim_h(X(0), X(a3), oy + 16, "a", AM, atas=False)  # >= 6 px dari tepi bawah
     body += dim_v(X(a3) + 22, Z(c3), Z(0), "c", AM, kiri=False)
     body += t(X(a3 / 2), 30, "profil L pada bidang XZ, di-Pad sedalam b", 10, AX, "middle")
-    body += catatan(["Body: Sketch XZ profil L enam", "  titik (lebar a, tinggi c,", "  tebal kaki t) → Pad b (arah Y)", "Pembanding: Part → Box a × b × c", "U = 100·V_braket/V_billet", "baca: U (%, 3 desimal)"], 330, 40)
+    body += catatan(["Body: Sketch XZ profil L enam", "  titik (lebar a, tinggi c,", "  tebal kaki t) → Pad b (arah Y)", "Pembanding: Part → Box a × b × c", "U = 100·V<sub>braket</sub>/V<sub>billet</sub>", "baca: U (%, 3 desimal)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 3 — braket L dipesin dari billet a × b × c: pemanfaatan material U", h=246))
 
     # ── T4 — housing baja dijadikan cangkang (Thickness) ─────────────────────
@@ -135,15 +135,15 @@ def gambar():
         body += poli([bl0[i], bl0[j], bl1[j], bl1[i]], "rgba(245,158,11,.14)", "rgba(245,158,11,.7)", 1.1)
     body += poli(bl1, "rgba(245,158,11,.28)", AM, 1.8)
     p = iso(x0 + c5, y0 + c5 / 2, t5 + hc5, cx, cy, s5)
-    body += _garis(p[0], p[1], p[0] + 26, p[1] - 30, AM, 0.8, "3 2") + t(p[0] + 30, p[1] - 32, "blok Al c × c × h_c", 10, AM, "start", "600")
+    body += _garis(p[0], p[1], p[0] + 26, p[1] - 30, AM, 0.8, "3 2") + t(p[0] + 30, p[1] - 32, "blok Al c × c × h<sub>c</sub>", 10, AM, "start", "600")
     p = iso(a5 / 2, -4, 0, cx, cy, s5)
     body += t(p[0] - 6, p[1] + 18, "a", 11.5, CY, "middle", "700")
     p = iso(a5 + 4, b5 / 2, 0, cx, cy, s5)
     body += t(p[0] + 24, p[1] + 12, "b", 11.5, CY, "start", "700")  # lepas dari rusuk kanan pelat
     p = iso(0, b5, t5 / 2, cx, cy, s5)
     body += t(p[0] - 10, p[1] + 4, "t", 11.5, CY, "end", "700")
-    body += t(cx, 224, "pelat baja (ρ_st, f_st) + blok aluminium (ρ_al, f_al)", 9.5, AX, "middle")
-    body += catatan(["Body pelat: Sketch XY a × b", "  → Pad t (baja)", "Body blok: Sketch muka atas,", "  persegi c × c di pusat pelat", "  → Pad h_c (aluminium)", "Spreadsheet: Σ fᵢ·ρᵢ·Vᵢ", "baca: jejak CO₂ total (kg)"], 330, 34)
+    body += t(cx, 224, "pelat baja (ρ<sub>st</sub>, f<sub>st</sub>) + blok aluminium (ρ<sub>al</sub>, f<sub>al</sub>)", 9.5, AX, "middle")
+    body += catatan(["Body pelat: Sketch XY a × b", "  → Pad t (baja)", "Body blok: Sketch muka atas,", "  persegi c × c di pusat pelat", "  → Pad h<sub>c</sub> (aluminium)", "Spreadsheet: Σ fᵢ·ρᵢ·Vᵢ", "baca: jejak CO₂ total (kg)"], 330, 34)
     out.append(gambar_tugas(body, "Tugas 5 — rakitan pelat baja dan blok aluminium: jejak CO₂ total", h=246))
     return out
 

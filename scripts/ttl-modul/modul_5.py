@@ -68,8 +68,8 @@ def gambar1():
     pts_v = " ".join(f"{X(i / 200 * 4 * math.pi):.1f},{y0 - A * math.sin(i / 200 * 4 * math.pi):.1f}" for i in range(201))
     pts_i = " ".join(f"{X(i / 200 * 4 * math.pi):.1f},{y0 - 0.6 * A * math.sin(i / 200 * 4 * math.pi - math.radians(PHI_Z)):.1f}" for i in range(201))
     b += f'<polyline points="{pts_v}" fill="none" stroke="#f59e0b" stroke-width="2.4"/><polyline points="{pts_i}" fill="none" stroke="#22d3ee" stroke-width="2.2"/>'
-    b += f'<line x1="{x0}" y1="{y0 - A:.1f}" x2="{x1}" y2="{y0 - A:.1f}" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4 4"/>' + t(x1 + 6, y0 - A + 4, f"V_m = {ind(V_M, 1)} V", 10.5, "#f59e0b", "start", "600")
-    b += f'<line x1="{x0}" y1="{y0 - A / math.sqrt(2):.1f}" x2="{x1}" y2="{y0 - A / math.sqrt(2):.1f}" stroke="#ec4899" stroke-width="1.2" stroke-dasharray="5 3"/>' + t(x1 + 6, y0 - A / math.sqrt(2) + 4, f"V_rms = {ind(V_RMS, 0)} V", 10.5, "#ec4899", "start", "600")
+    b += f'<line x1="{x0}" y1="{y0 - A:.1f}" x2="{x1}" y2="{y0 - A:.1f}" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4 4"/>' + t(x1 + 6, y0 - A + 4, f"V<sub>m</sub> = {ind(V_M, 1)} V", 10.5, "#f59e0b", "start", "600")
+    b += f'<line x1="{x0}" y1="{y0 - A / math.sqrt(2):.1f}" x2="{x1}" y2="{y0 - A / math.sqrt(2):.1f}" stroke="#ec4899" stroke-width="1.2" stroke-dasharray="5 3"/>' + t(x1 + 6, y0 - A / math.sqrt(2) + 4, f"V<sub>rms</sub> = {ind(V_RMS, 0)} V", 10.5, "#ec4899", "start", "600")
     b += t(x1 + 6, y0 - 0.6 * A + 22, f"i(t) tertinggal φ = {ind(PHI_Z, 1)}°", 10.5, "#22d3ee", "start", "600")
     b += f'<line x1="{X(math.pi / 2):.1f}" y1="{y0 - A:.1f}" x2="{X(math.pi / 2 + math.radians(PHI_Z)):.1f}" y2="{y0 - A:.1f}" stroke="#a855f7" stroke-width="2"/>' + t((X(math.pi / 2) + X(math.pi / 2 + math.radians(PHI_Z))) / 2, y0 - A - 8, "φ", 11, "#a855f7", "middle", "700")
     b += t(260, 234, f"v(t) = {ind(V_M, 1)} sin(ωt), i(t) = {ind(I_Z * math.sqrt(2), 2)} sin(ωt − {ind(PHI_Z, 1)}°)", 11.5, AX)
@@ -81,10 +81,10 @@ def gambar2():
     b = t(150, 22, "Segitiga impedansi seri RL", 12, TX, "middle", "700")
     ox, oy, sk = 60, 170, 9.0
     b += arrow(ox, oy, ox + R_Z * sk, oy, "#22d3ee", 2.4) + t(ox + R_Z * sk / 2, oy + 16, f"R = {ind(R_Z, 0)} Ω", 11, "#22d3ee", "middle", "600")
-    b += arrow(ox + R_Z * sk, oy, ox + R_Z * sk, oy - XL_Z * sk, "#f59e0b", 2.4) + t(ox + R_Z * sk + 8, oy - XL_Z * sk / 2, f"X_L = {ind(XL_Z, 0)} Ω", 11, "#f59e0b", "start", "600")
+    b += arrow(ox + R_Z * sk, oy, ox + R_Z * sk, oy - XL_Z * sk, "#f59e0b", 2.4) + t(ox + R_Z * sk + 8, oy - XL_Z * sk / 2, f"X<sub>L</sub> = {ind(XL_Z, 0)} Ω", 11, "#f59e0b", "start", "600")
     b += arrow(ox, oy, ox + R_Z * sk, oy - XL_Z * sk, "#00e09e", 2.8) + t(ox + (XL_Z * sk / 2 + 14) * R_Z / XL_Z - 8, oy - XL_Z * sk / 2 - 14, f"|Z| = {ind(Z_Z, 0)} Ω", 11.5, "#00e09e", "end", "700")
     b += f'<path d="M {ox + 30} {oy} A 30 30 0 0 0 {ox + 30 * math.cos(math.radians(PHI_Z)):.1f} {oy - 30 * math.sin(math.radians(PHI_Z)):.1f}" fill="none" stroke="#a855f7" stroke-width="1.6"/>' + t(ox + 40, oy - 12, "φ", 11, "#a855f7", "start", "700")
-    b += t(150, 206, "Z = R + jX_L = |Z|∠φ", 11, AX) + t(150, 220, f"tan φ = X_L/R → φ = {ind(PHI_Z, 1)}°", 11, AX)
+    b += t(150, 206, "Z = R + jX<sub>L</sub> = |Z|∠φ", 11, AX) + t(150, 220, f"tan φ = X<sub>L</sub>/R → φ = {ind(PHI_Z, 1)}°", 11, AX)
     b += t(480, 22, "Diagram fasor beban RL", 12, TX, "middle", "700")
     cx, cy, r = 480, 118, 70
     b += f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{GRID}" stroke-width="1"/>'
@@ -93,7 +93,7 @@ def gambar2():
     b += arrow(cx, cy, cx + 0.75 * r * math.cos(ia), cy - 0.75 * r * math.sin(ia), "#22d3ee", 2.6) + t(cx + 40, cy + r + 4, f"I = {ind(I_Z, 0)}∠−{ind(PHI_Z, 1)}° A", 11, "#22d3ee", "start", "600")
     b += f'<path d="M {cx + 28} {cy} A 28 28 0 0 1 {cx + 28 * math.cos(ia):.1f} {cy - 28 * math.sin(ia):.1f}" fill="none" stroke="#a855f7" stroke-width="1.6"/>' + t(cx + 34, cy + 22, "φ", 11, "#a855f7", "start", "700")
     b += t(480, 206, "Arus tertinggal φ dari tegangan (induktif); fasor berputar ω rad/s", 11, AX)
-    return svg(660, 230, b, "Gambar 2 — Impedansi dan fasor beban RL")
+    return svg(660, 234, b, "Gambar 2 — Impedansi dan fasor beban RL")
 
 
 def gambar3():
@@ -122,8 +122,8 @@ def gambar4():
         b += arrow(ox, oy, ox + P_PF * sk, oy, "#22d3ee", 2.4) + t(ox + P_PF * sk / 2, oy + 16, f"P = {ind(P_PF, 0)} kW", 11, "#22d3ee", "middle", "600")
         b += arrow(ox + P_PF * sk, oy, ox + P_PF * sk, oy - Q * sk, c, 2.2) + t(ox + P_PF * sk + 8, oy - Q * sk / 2 + 4, f"Q = {ind(Q, 1)} kVAR", 11, c, "start", "600")
         b += arrow(ox, oy, ox + P_PF * sk, oy - Q * sk, c, 2.6) + t(ox + 10, oy - Q * sk / 2 - 12, f"S = {ind(S, 1)} kVA", 11, c, "start", "700")
-        b += t(ox + P_PF * sk / 2, oy - Q * sk - 12 if Q * sk > 60 else oy - 70, f"I_L = {ind(I, 1)} A", 11, TX, "middle", "600")
-    b += arrow(60 + P_PF * sk + 100, 190 - Q1_PF * sk, 60 + P_PF * sk + 100, 190 - Q2_PF * sk, "#a855f7", 2.6) + t(60 + P_PF * sk + 108, 190 - (Q1_PF + Q2_PF) * sk / 2 + 4, f"Q_C = {ind(QC_PF, 1)} kVAR", 11, "#a855f7", "start", "700")
+        b += t(ox + P_PF * sk / 2, oy - Q * sk - 12 if Q * sk > 60 else oy - 70, f"I<sub>L</sub> = {ind(I, 1)} A", 11, TX, "middle", "600")
+    b += arrow(60 + P_PF * sk + 100, 190 - Q1_PF * sk, 60 + P_PF * sk + 100, 190 - Q2_PF * sk, "#a855f7", 2.6) + t(60 + P_PF * sk + 108, 190 - (Q1_PF + Q2_PF) * sk / 2 + 4, f"Q<sub>C</sub> = {ind(QC_PF, 1)} kVAR", 11, "#a855f7", "start", "700")
     b += t(330, 224, f"Kapasitor paralel memasok {ind(QC_PF, 1)} kVAR secara lokal: P tetap, S turun {ind((1 - S2_PF / S1_PF) * 100, 0)}%, arus saluran turun dari {ind(I1_PF, 1)} A ke {ind(I2_PF, 1)} A", 11.5, AX)
     return svg(660, 236, b, "Gambar 4 — Perbaikan faktor daya dengan kapasitor paralel")
 
@@ -139,7 +139,7 @@ def gambar5():
         b += f'<rect x="{mx - 9:.1f}" y="{my - 9:.1f}" width="18" height="18" rx="3" fill="{BOX}" stroke="{c}" stroke-width="2"/>'
         b += f'<circle cx="{ex:.1f}" cy="{ey:.1f}" r="4" fill="{c}"/>' + t(ex + 12 * math.cos(math.radians(ang)), ey - 12 * math.sin(math.radians(ang)) + 4, lab, 12, c, "middle", "700")
     b += f'<circle cx="{cx}" cy="{cy}" r="4" fill="{AX}"/>' + t(cx, cy + 20, "n", 11, AX, "middle", "600")
-    b += t(160, 206, "V_L = √3·V_fasa (∠30°);  I_L = I_fasa", 11.5, TX) + t(160, 224, f"{ind(VL3, 0)} V saluran → {ind(VP3, 1)} V per fasa", 11, AX)
+    b += t(160, 206, "V<sub>L</sub> = √3·V<sub>fasa</sub> (∠30°);  I<sub>L</sub> = I<sub>fasa</sub>", 11.5, TX) + t(160, 224, f"{ind(VL3, 0)} V saluran → {ind(VP3, 1)} V per fasa", 11, AX)
     # Δ
     cx, cy = 500, 128
     pts = [(cx + 70 * math.cos(math.radians(a)), cy - 70 * math.sin(math.radians(a))) for a in (90, 210, 330)]
@@ -150,7 +150,7 @@ def gambar5():
         b += f'<rect x="{mx - 9:.1f}" y="{my - 9:.1f}" width="18" height="18" rx="3" fill="{BOX}" stroke="{c}" stroke-width="2"/>'
         ang = (90, 210, 330)[i]
         b += f'<circle cx="{x1:.1f}" cy="{y1:.1f}" r="4" fill="{c}"/>' + t(x1 + 12 * math.cos(math.radians(ang)), y1 - 12 * math.sin(math.radians(ang)) + 4, lab, 12, c, "middle", "700")
-    b += t(500, 206, "V_L = V_fasa;  I_L = √3·I_fasa (∠30°)", 11.5, TX) + t(500, 224, f"Z = {ind(RD, 0)} + j{ind(XD, 0)} Ω per fasa → I_fasa {ind(IPD, 2)} A, I_L {ind(ILD, 2)} A", 11, AX)
+    b += t(500, 206, "V<sub>L</sub> = V<sub>fasa</sub>;  I<sub>L</sub> = √3·I<sub>fasa</sub> (∠30°)", 11.5, TX) + t(500, 224, f"Z = {ind(RD, 0)} + j{ind(XD, 0)} Ω per fasa → I<sub>fasa</sub> {ind(IPD, 2)} A, I<sub>L</sub> {ind(ILD, 2)} A", 11, AX)
     return svg(660, 236, b, "Gambar 5 — Hubungan bintang dan segitiga pada beban tiga fasa seimbang")
 
 
@@ -167,8 +167,8 @@ def gambar6():
         pp = " ".join(f"{X(i / 240 * 4 * math.pi):.1f},{ya - Ap * (math.sin(i / 240 * 4 * math.pi - p * 2 * math.pi / 3) * math.sin(i / 240 * 4 * math.pi - p * 2 * math.pi / 3 - phi)) / (1.5 * PFY):.1f}" for i in range(241))
         b += f'<polyline points="{pp}" fill="none" stroke="{c}" stroke-width="1.2" stroke-opacity=".6"/>'
     ytot = ya - Ap * (1.5 * PFY) / (1.5 * PFY)
-    b += f'<line x1="{x0}" y1="{ytot:.1f}" x2="{x1}" y2="{ytot:.1f}" stroke="#00e09e" stroke-width="2.8"/>' + t(x0 + 6, ytot - 6, f"p_a + p_b + p_c = P = {ind(P3 / 1000, 2)} kW, konstan", 11, "#00e09e", "start", "700")
-    b += t(x0 + 6, yv - Av - 6, "v_a, v_b, v_c: sama besar, berselisih 120°", 11, TX, "start", "600")
+    b += f'<line x1="{x0}" y1="{ytot:.1f}" x2="{x1}" y2="{ytot:.1f}" stroke="#00e09e" stroke-width="2.8"/>' + t(x0 + 6, ytot - 6, f"p<sub>a</sub> + p<sub>b</sub> + p<sub>c</sub> = P = {ind(P3 / 1000, 2)} kW, konstan", 11, "#00e09e", "start", "700")
+    b += t(x0 + 6, yv - Av - 6, "v<sub>a</sub>, v<sub>b</sub>, v<sub>c</sub>: sama besar, berselisih 120°", 11, TX, "start", "600")
     b += t(x0 + 6, ya + 16, "daya sesaat tiap fasa (garis tipis) berayun pada 100 Hz", 10.5, AX, "start")
     b += t(340, 218, f"Beban Y {ind(RY, 0)} + j{ind(XY, 1)} Ω pada {ind(VL3, 0)} V: I = {ind(IY, 2)} A, pf = {ind(PFY, 2)};", 11.5, AX)
     b += t(340, 232, "daya total tidak berdenyut, itulah keunggulan tiga fasa untuk motor", 11.5, AX)
@@ -220,13 +220,13 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
   </div>
 {HERO_SCHEMATIC_1}
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">V_rms = V_m/√2</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">Z = R + j(X_L − X_C)</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">V<sub>rms</sub> = V<sub>m</sub>/√2</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">Z = R + j(X<sub>L</sub> − X<sub>C</sub>)</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">S = V·I* = P + jQ</span>
     <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">pf = cos φ = P/S</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">P = √3·V_L·I_L·cos φ</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">Q_C = P(tan φ₁ − tan φ₂)</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">V_L = √3·V_fasa</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">P = √3·V<sub>L</sub>·I<sub>L</sub>·cos φ</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">Q<sub>C</sub> = P(tan φ₁ − tan φ₂)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">V<sub>L</sub> = √3·V<sub>fasa</sub></span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">S² = P² + Q²</span>
   </div>
 {HERO_SCHEMATIC_2}
@@ -303,7 +303,7 @@ def materi():
         ("🧲", "Induktor", "Kumparan motor, trafo, reaktor, dan saluran panjang. \\(X_L\\) naik bersama frekuensi; pada DC nol. Arus tertinggal 90° pada induktor murni.", r"\(X_L = 2\pi f L\)"),
         ("🔋", "Kapasitor", "Bank kapasitor, kabel bawah tanah, filter. \\(X_C\\) turun bersama frekuensi; pada DC tak hingga (terbuka). Arus mendahului 90° pada kapasitor murni.", r"\(X_C = 1/(2\pi f C)\)"),
         ("🔥", "Resistor", "Pemanas, lampu pijar, dan bagian rugi setiap alat. Arus sefasa dengan tegangan; hanya R yang menyerap daya rata-rata.", r"\(\varphi = 0\)"),
-        ("⚙️", "Motor Induksi", "Terlihat dari jaringan sebagai R + jX_L dengan φ 25–45° (pf 0,7–0,9) pada beban penuh, lebih buruk saat beban ringan; itulah sumber utama kVAR industri.", None),
+        ("⚙️", "Motor Induksi", "Terlihat dari jaringan sebagai R + jX<sub>L</sub> dengan φ 25–45° (pf 0,7–0,9) pada beban penuh, lebih buruk saat beban ringan; itulah sumber utama kVAR industri.", None),
         ("🎯", "Resonansi", "Saat \\(X_L = X_C\\) impedansi seri tinggal R: arus maksimum, tegangan pada L dan C bisa jauh melampaui sumber. Diwaspadai pada bank kapasitor dengan harmonik.", r"\(f_0 = \dfrac{1}{2\pi\sqrt{LC}}\)"),
         ("📐", "Paralel", "\\(1/\\mathbf{Z}_{par} = \\sum 1/\\mathbf{Z}_k\\); kebalikan impedansi disebut admitansi \\(\\mathbf{Y}\\) (siemens). Beban-beban pada satu rel paralel, jadi arus totalnya adalah jumlah fasor arus.", r"\(\mathbf{Y} = 1/\mathbf{Z}\)"),
     ])
@@ -311,10 +311,10 @@ def materi():
         [f"R {ind(R_Z, 0)} Ω", "0", ind(R_Z, 2), "0°", ind(V_RMS / R_Z, 2), "resistif"],
         [f"R {ind(R_Z, 0)} Ω + L {ind(XL_Z / W_ * 1000, 1)} mH", ind(XL_Z, 2), ind(Z_Z, 2), f"{ind(PHI_Z, 1)}°", ind(I_Z, 2), "induktif, arus tertinggal"],
         [f"R {ind(R_Z, 0)} Ω + C 150 µF", ind(-XC_RLC, 2), ind(math.hypot(R_Z, XC_RLC), 2), f"−{ind(math.degrees(math.atan2(XC_RLC, R_Z)), 1)}°", ind(V_RMS / math.hypot(R_Z, XC_RLC), 2), "kapasitif, arus mendahului"],
-        [f"R {ind(R_Z, 0)} Ω + L 50 mH + C 150 µF", ind(X_RLC, 2), ind(Z_RLC, 2), f"{ind(PHI_RLC, 1)}°", ind(I_RLC, 2), "kapasitif (X_C > X_L)"],
+        [f"R {ind(R_Z, 0)} Ω + L 50 mH + C 150 µF", ind(X_RLC, 2), ind(Z_RLC, 2), f"{ind(PHI_RLC, 1)}°", ind(I_RLC, 2), "kapasitif (X<sub>C</sub> > X<sub>L</sub>)"],
         [f"sama, pada f = {ind(F_RES, 1)} Hz (resonansi)", "0", ind(R_Z, 2), "0°", ind(V_RMS / R_Z, 2), "arus maksimum"],
     ])
-    isi += kotak("info-box", "<strong>📊 Cara Membaca Tabel di Atas:</strong> menambah kapasitor seri pada beban RL justru <em>menaikkan</em> arus (baris 4 vs baris 2) karena X_C meniadakan sebagian X_L; pada resonansi arus mencapai maksimum V/R. Pada sistem tenaga kapasitor dipasang <em>paralel</em> (Bagian 04), yang menurunkan arus saluran; keduanya sama-sama 'kompensasi reaktif' tetapi efeknya berlawanan. Soal C2, C3, dan C11 memakai Persamaan (3)–(4).")
+    isi += kotak("info-box", "<strong>📊 Cara Membaca Tabel di Atas:</strong> menambah kapasitor seri pada beban RL justru <em>menaikkan</em> arus (baris 4 vs baris 2) karena X<sub>C</sub> meniadakan sebagian X<sub>L</sub>; pada resonansi arus mencapai maksimum V/R. Pada sistem tenaga kapasitor dipasang <em>paralel</em> (Bagian 04), yang menurunkan arus saluran; keduanya sama-sama 'kompensasi reaktif' tetapi efeknya berlawanan. Soal C2, C3, dan C11 memakai Persamaan (3)–(4).")
     m += bagian(2, "m-impedansi", "Impedansi:<br>R, L, dan C pada AC",
                 "Pada AC, kumparan dan kapasitor ikut menahan arus tanpa membuang energi, dan tahanannya bergantung frekuensi. Ketiga elemen digabung dalam satu besaran kompleks, impedansi, pada Persamaan (3), sehingga hukum Ohm kembali berlaku dalam bentuk fasor pada Persamaan (4). Gambar 2 memperlihatkan segitiga impedansi dan diagram fasor beban RL yang dipakai sepanjang modul ini.",
                 isi, "IMPEDANSI")
@@ -363,7 +363,7 @@ def materi():
         ("🌀", "Harmonik", "Kapasitor menurunkan impedansi pada frekuensi tinggi dan 'menghisap' harmonik; pada pabrik dengan banyak VSD dipakai kapasitor bereaktor (detuned) atau filter aktif.", None),
         ("🔌", "Motor Sinkron", "Motor sinkron ber-eksitasi lebih memasok Q seperti kapasitor sambil menggerakkan beban; dipakai pada kompresor dan pompa besar sebagai 'kondensor sinkron'.", None),
     ])
-    isi += tabel(["Sasaran pf (beban 60 kW dari pf 0,75)", "Q_C (kVAR)", "S sesudah (kVA)", "I sesudah (A, 400 V)", "Penurunan arus"],
+    isi += tabel(["Sasaran pf (beban 60 kW dari pf 0,75)", "Q<sub>C</sub> (kVAR)", "S sesudah (kVA)", "I sesudah (A, 400 V)", "Penurunan arus"],
                  [[f"{pf:.2f}", ind(P_PF * (TAN1 - math.tan(math.acos(pf))), 1), ind(P_PF / pf, 1), ind(P_PF / pf * 1000 / (math.sqrt(3) * VL_PF), 1), ind((1 - 0.75 / pf) * 100, 1) + "%"] for pf in [0.80, 0.85, 0.90, 0.95, 1.00]])
     isi += kotak("info-box", "<strong>📊 Cara Membaca Tabel di Atas:</strong> dari pf 0,75 ke 0,90 diperlukan 24 kVAR dan arus turun 17%; dari 0,90 ke 1,00 diperlukan 29 kVAR tambahan hanya untuk 10% penurunan lagi. Manfaat kapasitor menurun cepat mendekati pf 1, sementara risikonya naik; itulah sebabnya sasaran praktis berhenti di 0,90–0,95. Soal C8, C12, dan C13 memakai Persamaan (7)–(8).")
     m += bagian(4, "m-faktordaya", "Daya Kompleks dan<br>Perbaikan Faktor Daya",
@@ -399,17 +399,17 @@ def materi():
     isi = figure(6, "Tegangan tiga fasa dan daya sesaat total yang konstan", f"Daya sesaat tiap fasa berayun pada 100 Hz, tetapi jumlah ketiganya tetap {ind(P3 / 1000, 2)} kW setiap saat. Inilah alasan motor tiga fasa bergetar jauh lebih halus daripada motor satu fasa.", gambar6())
     isi += formula(10, "Daya Tiga Fasa Seimbang", r"P = \sqrt{3}\,V_L I_L\cos\varphi = 3\,V_{fasa}I_{fasa}\cos\varphi, \qquad Q = \sqrt{3}\,V_L I_L\sin\varphi, \qquad S = \sqrt{3}\,V_L I_L, \qquad I_L = \dfrac{P}{\sqrt{3}\,V_L\cos\varphi}",
                    rf"Beban Y Gambar 6: \(P = \sqrt{{3}}\times{ind(VL3, 0)}\times{ind(IY, 2)}\times{ind(PFY, 2)} = {ind(P3, 0)}\) W, sama dengan \(3\times{ind(IY, 2)}^2\times{ind(RY, 0)}\). Motor 30 kW, pf 0,85, 400 V: \(I_L = 30000/(\sqrt{{3}}\times400\times0{{,}}85) = {ind(30000 / (math.sqrt(3) * 400 * 0.85), 1)}\) A, angka yang menentukan kabel dan pengaman.",
-                   "Rumus √3·V_L·I_L·cos φ berlaku untuk Y maupun Δ, asalkan V_L dan I_L adalah besaran saluran; φ tetap sudut antara tegangan fasa dan arus fasa (bukan antara V_L dan I_L). Semua alat Bagian 03–04 (segitiga daya, perbaikan pf) berlaku pada total tiga fasa tanpa perubahan.",
+                   "Rumus √3·V<sub>L</sub>·I<sub>L</sub>·cos φ berlaku untuk Y maupun Δ, asalkan V<sub>L</sub> dan I<sub>L</sub> adalah besaran saluran; φ tetap sudut antara tegangan fasa dan arus fasa (bukan antara V<sub>L</sub> dan I<sub>L</sub>). Semua alat Bagian 03–04 (segitiga daya, perbaikan pf) berlaku pada total tiga fasa tanpa perubahan.",
                    [("V_L, I_L", "Tegangan saluran dan arus saluran (rms)"), ("\\cos\\varphi", "Faktor daya beban"), ("P, Q, S", "Daya total tiga fasa")])
     isi += cards([
-        ("🔩", "Motor Industri", "Motor induksi tiga fasa 0,75–500 kW: pelat nama memberi V_L, I_L, pf, dan efisiensi. Daya masuk √3·V·I·pf, daya poros = daya masuk × η.", r"\(P_{poros} = \eta\,P_{in}\)"),
+        ("🔩", "Motor Industri", "Motor induksi tiga fasa 0,75–500 kW: pelat nama memberi V<sub>L</sub>, I<sub>L</sub>, pf, dan efisiensi. Daya masuk √3·V·I·pf, daya poros = daya masuk × η.", r"\(P_{poros} = \eta\,P_{in}\)"),
         ("🔥", "Tanur dan Las", "Tanur induksi dan las resistansi adalah beban tiga fasa berdaya besar dengan pf rendah; hampir selalu dilengkapi bank kapasitor sendiri.", None),
         ("📟", "Pengukuran", "Wattmeter tiga fasa atau metode dua wattmeter (Aron): P = W₁ + W₂, Q = √3(W₁ − W₂). kWh-meter industri mencatat kWh dan kVARh sekaligus.", r"\(P = W_1 + W_2\)"),
-        ("🧯", "Pengaman dan Kabel", "Pemutus dan kabel dipilih dari I_L pada pf nyata; arus start motor 5–7× I_L nominal selama beberapa detik menentukan karakteristik pemutus (kurva D).", None),
+        ("🧯", "Pengaman dan Kabel", "Pemutus dan kabel dipilih dari I<sub>L</sub> pada pf nyata; arus start motor 5–7× I<sub>L</sub> nominal selama beberapa detik menentukan karakteristik pemutus (kurva D).", None),
         ("🔀", "Torsi Halus", "Karena p(t) total konstan, torsi motor tiga fasa tidak berdenyut; motor satu fasa memerlukan kapasitor start/run dan tetap bergetar 100 Hz.", None),
         ("🔗", "Ke Modul Berikut", "Aliran P dan Q pada saluran, jatuh tegangan, dan kompensasi reaktif (Modul 6) dibangun langsung dari Persamaan (7)–(10).", None),
     ])
-    isi += tabel(["Motor tiga fasa 400 V (pelat nama)", "P poros (kW)", "η", "pf", "P masuk (kW)", "I_L (A)"],
+    isi += tabel(["Motor tiga fasa 400 V (pelat nama)", "P poros (kW)", "η", "pf", "P masuk (kW)", "I<sub>L</sub> (A)"],
                  [[nama, ind(p, 1), ind(eta, 2), ind(pf, 2), ind(p / eta, 2), ind(p / eta * 1000 / (math.sqrt(3) * 400 * pf), 1)] for nama, p, eta, pf in
                   [("Pompa 5,5 kW", 5.5, 0.86, 0.82), ("Kompresor 15 kW", 15, 0.90, 0.85), ("Konveyor 30 kW", 30, 0.92, 0.86), ("Blower 75 kW", 75, 0.94, 0.88), ("Penggiling 160 kW", 160, 0.95, 0.89)]])
     isi += kotak("tip-box", "💡 <strong>Membaca Tabel di Atas:</strong> arus saluran motor dihitung dari daya <em>masuk</em> (poros dibagi efisiensi) dan faktor daya, bukan dari daya poros saja; mengabaikan keduanya membuat kabel kekecilan 20–30%. Aturan kasar 400 V: sekitar 2 A per kW poros. Soal C9, C10, C14, dan C15 memakai Persamaan (9)–(10).")
@@ -419,22 +419,22 @@ def materi():
 
     # 07 — animasi
     isi = anim_panel(1, "cyan", r"Tegangan, Arus, dan Daya Sesaat \(p(t) = v(t)\,i(t)\) Satu Fasa", "cvFasor",
-                     [("sl_fs_vm", "v_fs_vm", "Tegangan puncak V_m (V)", 100, 400, 0.2, 339.4, "339.4"), ("sl_fs_im", "v_fs_im", "Arus puncak I_m (A)", 1, 40, 0.2, 22.6, "22.6"), ("sl_fs_phi", "v_fs_phi", "Beda fasa φ (°, + tertinggal)", -90, 90, 1, 53, "53")],
+                     [("sl_fs_vm", "v_fs_vm", "Tegangan puncak V<sub>m</sub> (V)", 100, 400, 0.2, 339.4, "339.4"), ("sl_fs_im", "v_fs_im", "Arus puncak I<sub>m</sub> (A)", 1, 40, 0.2, 22.6, "22.6"), ("sl_fs_phi", "v_fs_phi", "Beda fasa φ (°, + tertinggal)", -90, 90, 1, 53, "53")],
                      "btnFasor", "toggleFasor", "fasorInfo",
                      "<strong>📊 Cara Membaca Animasi 1:</strong> Kuning tegangan, biru arus, hijau daya sesaat (isian = energi ke beban; di bawah nol = energi kembali ke sumber); garis merah muda adalah P rata-rata, dan fasor kecil di kanan berputar bersama gelombangnya.<br>Amati: (1) <strong style=\"color:var(--cyan)\">Pada φ = 0 daya tidak pernah negatif</strong>: semua energi bekerja. (2) Pada φ = 90° daya berayun simetris di sekitar nol: P = 0, semuanya Q. (3) Readout memberi P, Q, S, dan pf dari nilai rms. Soal C1 dan C4.")
     isi += anim_panel(2, "amber", r"Impedansi Seri RLC, Resonansi, dan Fasor \(\mathbf{V}\)–\(\mathbf{I}\) (sumber 240 V)", "cvImpedansi",
                       [("sl_im_r", "v_im_r", "R (Ω)", 1, 30, 0.5, 9, "9.0"), ("sl_im_l", "v_im_l", "L (mH)", 0, 200, 1, 50, "50"), ("sl_im_c", "v_im_c", "C (µF)", 20, 1000, 5, 150, "150"), ("sl_im_f", "v_im_f", "Frekuensi f (Hz)", 10, 100, 1, 50, "50")],
                       "btnImpedansi", "toggleImpedansi", "impedansiInfo",
-                      "<strong>📊 Cara Membaca Animasi 2:</strong> Kiri: segitiga impedansi (biru R, kuning X_L, ungu −X_C, hijau Z). Kanan: fasor tegangan dan arus berputar beserta gelombangnya; panjang fasor arus mengikuti I.<br>Amati: (1) <strong style=\"color:var(--amber)\">Geser f sampai X_L = X_C</strong> (readout f_res): Z tinggal R, arus maksimum dan sefasa. (2) Di bawah f_res beban kapasitif (arus mendahului), di atasnya induktif. (3) Memperbesar C menurunkan X_C, bukan menaikkannya. Soal C2, C3, dan C11.")
+                      "<strong>📊 Cara Membaca Animasi 2:</strong> Kiri: segitiga impedansi (biru R, kuning X<sub>L</sub>, ungu −X<sub>C</sub>, hijau Z). Kanan: fasor tegangan dan arus berputar beserta gelombangnya; panjang fasor arus mengikuti I.<br>Amati: (1) <strong style=\"color:var(--amber)\">Geser f sampai X<sub>L</sub> = X<sub>C</sub></strong> (readout f<sub>res</sub>): Z tinggal R, arus maksimum dan sefasa. (2) Di bawah f<sub>res</sub> beban kapasitif (arus mendahului), di atasnya induktif. (3) Memperbesar C menurunkan X<sub>C</sub>, bukan menaikkannya. Soal C2, C3, dan C11.")
     isi += anim_panel(3, "green", r"Segitiga Daya dan Perbaikan Faktor Daya \(Q_C = P(\tan\varphi_1 - \tan\varphi_2)\)", "cvSegitiga",
                       [("sl_sg_p", "v_sg_p", "Daya aktif P (kW)", 10, 200, 1, 60, "60"), ("sl_sg_pf1", "v_sg_pf1", "pf awal", 0.5, 0.95, 0.01, 0.75, "0.75"), ("sl_sg_pf2", "v_sg_pf2", "pf sasaran", 0.8, 1.0, 0.01, 0.95, "0.95")],
                       "btnSegitiga", "toggleSegitiga", "segitigaInfo",
-                      "<strong>📊 Cara Membaca Animasi 3:</strong> Segitiga merah adalah keadaan awal, hijau sesudah kapasitor; panah ungu adalah Q_C yang 'memotong' daya reaktif. Batang di kanan membandingkan arus saluran (400 V tiga fasa).<br>Amati: (1) <strong style=\"color:var(--green)\">P tidak berubah</strong>; hanya Q dan S yang turun. (2) Dari pf 0,9 ke 1,0 diperlukan Q_C hampir sebesar dari 0,75 ke 0,9, tetapi penurunan arusnya jauh lebih kecil. (3) Readout memberi kapasitansi per fasa untuk bank Δ. Soal C8, C12, dan C13.")
+                      "<strong>📊 Cara Membaca Animasi 3:</strong> Segitiga merah adalah keadaan awal, hijau sesudah kapasitor; panah ungu adalah Q<sub>C</sub> yang 'memotong' daya reaktif. Batang di kanan membandingkan arus saluran (400 V tiga fasa).<br>Amati: (1) <strong style=\"color:var(--green)\">P tidak berubah</strong>; hanya Q dan S yang turun. (2) Dari pf 0,9 ke 1,0 diperlukan Q<sub>C</sub> hampir sebesar dari 0,75 ke 0,9, tetapi penurunan arusnya jauh lebih kecil. (3) Readout memberi kapasitansi per fasa untuk bank Δ. Soal C8, C12, dan C13.")
     isi += anim_panel(4, "pink", r"Sistem Tiga Fasa Seimbang: Fasor, Gelombang, dan Daya Sesaat Konstan", "cvTigaFasa",
-                      [("sl_tf_vl", "v_tf_vl", "Tegangan saluran V_L (V)", 200, 700, 5, 400, "400"), ("sl_tf_il", "v_tf_il", "Arus saluran I_L (A)", 5, 60, 0.5, 18.5, "18.5"), ("sl_tf_pf", "v_tf_pf", "Faktor daya", 0.5, 1.0, 0.01, 0.8, "0.80")],
+                      [("sl_tf_vl", "v_tf_vl", "Tegangan saluran V<sub>L</sub> (V)", 200, 700, 5, 400, "400"), ("sl_tf_il", "v_tf_il", "Arus saluran I<sub>L</sub> (A)", 5, 60, 0.5, 18.5, "18.5"), ("sl_tf_pf", "v_tf_pf", "Faktor daya", 0.5, 1.0, 0.01, 0.8, "0.80")],
                       "btnTigaFasa", "toggleTigaFasa", "tigaFasaInfo",
-                      "<strong>📊 Cara Membaca Animasi 4:</strong> Kiri: fasor tegangan tiga fasa (tebal) dan arus (tipis) berputar; tengah: gelombang v_a, v_b, v_c; bawah: daya sesaat tiap fasa dan jumlahnya (garis hijau tebal).<br>Amati: (1) <strong style=\"color:var(--pink)\">Jumlah daya sesaat selalu datar</strong> berapa pun pf-nya, walau tiap fasa berayun. (2) Menurunkan pf memperbesar ayunan tiap fasa (lebih banyak Q) tanpa mengubah kedataran totalnya. (3) Readout memberi P, Q, S total dan impedansi Y setara. Soal C9, C10, dan C14.")
-    isi += kotak("info-box", f"<strong>🔍 Latihan Mandiri:</strong> pada Animasi 2 atur R = {ind(R_Z, 0)}, L = 50 mH, C = 150 µF, f = 50 Hz: |Z| harus {ind(Z_RLC, 2)} Ω dan arus mendahului {ind(-PHI_RLC, 1)}° seperti tabel Bagian 02; lalu naikkan f ke {ind(F_RES, 0)} Hz dan lihat resonansi. Pada Animasi 3 atur 60 kW, 0,75 → 0,95 dan cocokkan Q_C = {ind(QC_PF, 1)} kVAR dengan Gambar 4.")
+                      "<strong>📊 Cara Membaca Animasi 4:</strong> Kiri: fasor tegangan tiga fasa (tebal) dan arus (tipis) berputar; tengah: gelombang v<sub>a</sub>, v<sub>b</sub>, v<sub>c</sub>; bawah: daya sesaat tiap fasa dan jumlahnya (garis hijau tebal).<br>Amati: (1) <strong style=\"color:var(--pink)\">Jumlah daya sesaat selalu datar</strong> berapa pun pf-nya, walau tiap fasa berayun. (2) Menurunkan pf memperbesar ayunan tiap fasa (lebih banyak Q) tanpa mengubah kedataran totalnya. (3) Readout memberi P, Q, S total dan impedansi Y setara. Soal C9, C10, dan C14.")
+    isi += kotak("info-box", f"<strong>🔍 Latihan Mandiri:</strong> pada Animasi 2 atur R = {ind(R_Z, 0)}, L = 50 mH, C = 150 µF, f = 50 Hz: |Z| harus {ind(Z_RLC, 2)} Ω dan arus mendahului {ind(-PHI_RLC, 1)}° seperti tabel Bagian 02; lalu naikkan f ke {ind(F_RES, 0)} Hz dan lihat resonansi. Pada Animasi 3 atur 60 kW, 0,75 → 0,95 dan cocokkan Q<sub>C</sub> = {ind(QC_PF, 1)} kVAR dengan Gambar 4.")
     m += bagian(7, "m-animasi", "Animasi Interaktif<br>Jaringan AC",
                 "Geser amplitudo, fasa, elemen R-L-C, faktor daya, dan besaran tiga fasa, lalu amati fasor yang berputar, daya sesaat yang berayun, segitiga daya yang menyusut oleh kapasitor, dan jumlah daya tiga fasa yang tetap datar. Empat animasi ini memvisualkan Persamaan (1)–(10).",
                 isi, "ANIMASI")
@@ -530,7 +530,7 @@ plt.figure(figsize=(8, 4))
 for k in range(3): plt.plot(t*1e3, p[k], lw=1, label=f'p_{{"abc"[k]}}')
 plt.plot(t*1e3, sum(p), lw=2.5, color='k', label='total'); plt.xlabel('t (ms)'); plt.ylabel('W'); plt.legend(); plt.grid(True); plt.show()
 print(f"Total p(t): min {{sum(p).min():.2f}} W, maks {{sum(p).max():.2f}} W (konstan = P)")''')
-    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 02–06: |Z| RLC {ind(Z_RLC, 2)} Ω, S total dua beban {ind(S_AB, 2)} kVA, Q_C = {ind(QC_PF, 2)} kVAR, dan I_L beban Y {ind(IY, 2)} A. Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
+    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 02–06: |Z| RLC {ind(Z_RLC, 2)} Ω, S total dua beban {ind(S_AB, 2)} kVA, Q<sub>C</sub> = {ind(QC_PF, 2)} kVAR, dan I<sub>L</sub> beban Y {ind(IY, 2)} A. Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
     m += bagian(8, "m-jupyter", "Implementasi Python<br>di Jupyter Notebook",
                 "Empat cell berikut memakai bilangan kompleks Python sebagai fasor sehingga seluruh perhitungan AC modul ini, dari impedansi sampai daya tiga fasa, menjadi beberapa baris. Salin satu cell utuh ke Jupyter Notebook (VS Code), jalankan apa adanya lebih dulu, baru ubah parameternya. Setiap perhitungan diberi nomor persamaan yang dipakainya.",
                 isi, "IMPLEMENTASI PYTHON")
@@ -570,11 +570,11 @@ TUGAS_HERO = f'''<div class="hero" data-tab="tugas" style="min-height:60vh">
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">V_rms = V_m/√2</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">V<sub>rms</sub> = V<sub>m</sub>/√2</span>
     <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">S = V·I* = P + jQ</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">Q_C = P(tan φ₁ − tan φ₂)</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">P = √3·V_L·I_L·cos φ</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">Z = R + j(X_L − X_C)</span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">Q<sub>C</sub> = P(tan φ₁ − tan φ₂)</span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">P = √3·V<sub>L</sub>·I<sub>L</sub>·cos φ</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">Z = R + j(X<sub>L</sub> − X<sub>C</sub>)</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan {PERTEMUAN} · {JUDUL_PANJANG}</div>
@@ -651,8 +651,8 @@ FQ_JUDUL = [
     "Setelah bank kapasitor terpasang, ditambah motor 20 kW pf 0,8: masih amankah trafo, dan mengapa tidak dikompensasi sampai pf 1,0?",
 ]
 FQ_RINGKAS = [
-    f"Beban bengkel {ind(P_BK, 0)} kW pada pf {ind(PF_BK, 2)}, {ind(V_BK, 0)} V tiga fasa, trafo {ind(S_TRAFO, 0)} kVA. Hitung S = P/pf, Q = P tan φ, dan I_L = S/(√3·V_L) (Persamaan 6 dan 10). Bandingkan S dengan kapasitas trafo dan jelaskan mengapa Q, bukan P, yang memenuhinya.",
-    f"Sasaran pf {ind(PF_T, 2)}: Q_C = P(tan φ₁ − tan φ₂) (Persamaan 8), C per fasa bank Δ pada {ind(V_BK, 0)} V/50 Hz, S dan arus sesudahnya, kapasitas trafo yang terbebas, dan denda kVARh yang hilang. Sebutkan cara pemasangan (terpusat/step otomatis) dan risikonya.",
+    f"Beban bengkel {ind(P_BK, 0)} kW pada pf {ind(PF_BK, 2)}, {ind(V_BK, 0)} V tiga fasa, trafo {ind(S_TRAFO, 0)} kVA. Hitung S = P/pf, Q = P tan φ, dan I<sub>L</sub> = S/(√3·V<sub>L</sub>) (Persamaan 6 dan 10). Bandingkan S dengan kapasitas trafo dan jelaskan mengapa Q, bukan P, yang memenuhinya.",
+    f"Sasaran pf {ind(PF_T, 2)}: Q<sub>C</sub> = P(tan φ₁ − tan φ₂) (Persamaan 8), C per fasa bank Δ pada {ind(V_BK, 0)} V/50 Hz, S dan arus sesudahnya, kapasitas trafo yang terbebas, dan denda kVARh yang hilang. Sebutkan cara pemasangan (terpusat/step otomatis) dan risikonya.",
     f"Tambahkan motor {ind(P_MOTOR, 0)} kW pf {ind(PF_MOTOR, 1)} dengan bank kapasitor {ind(QC_BK, 1)} kVAR tetap: jumlahkan daya kompleks (Persamaan 7), hitung pf dan S baru, bandingkan lagi dengan {ind(S_TRAFO, 0)} kVA. Jelaskan mengapa kompensasi sampai pf 1,0 atau mendahului dihindari (tegangan naik, resonansi harmonik, eksitasi sendiri motor).",
 ]
 
@@ -660,23 +660,23 @@ FQ_RINGKAS = [
 def forum_page():
     q1 = fq(1, "14,165,233", "cyan", FQ_JUDUL[0],
             f"Beban bengkel permesinan (mesin bubut, frais, kompresor: semuanya motor induksi) berjumlah {ind(P_BK, 0)} kW pada faktor daya rata-rata {ind(PF_BK, 2)} tertinggal, dipasok {ind(V_BK, 0)} V tiga fasa dari trafo langganan {ind(S_TRAFO, 0)} kVA. Hitung daya semu S, daya reaktif Q, dan arus saluran (Persamaan 6 dan 10). Bandingkan S dengan kapasitas trafo: apakah benar trafo sudah kelebihan beban walau dayanya 'baru' {ind(P_BK, 0)} kW? Jelaskan dengan segitiga daya bagian mana dari arus yang tidak menghasilkan kerja, dan mengapa PLN menagih kVARh bila pf di bawah 0,85.",
-            ["S = P/pf", "Q = P·tan φ", "I_L = S/(√3·V_L)"],
+            ["S = P/pf", "Q = P·tan φ", "I<sub>L</sub> = S/(√3·V<sub>L</sub>)"],
             f"Pada pf {ind(PF_BK, 2)}, beban {ind(P_BK, 0)} kW memerlukan daya semu dan arus saluran sekitar...",
             [f"{ind(P_BK, 0)} kVA dan {ind(P_BK * 1000 / (math.sqrt(3) * V_BK), 0)} A: trafo masih longgar", f"{ind(P_BK * PF_BK, 1)} kVA dan {ind(P_BK * PF_BK * 1000 / (math.sqrt(3) * V_BK), 0)} A", f"{ind(S_BK, 1)} kVA dan {ind(I_BK, 0)} A: melampaui trafo {ind(S_TRAFO, 0)} kVA", f"{ind(S_BK, 1)} kVA dan {ind(S_BK * 1000 / V_BK, 0)} A"],
             f"✅ Tepat! \\(S = {ind(P_BK, 0)}/{ind(PF_BK, 2)} = {ind(S_BK, 2)}\\) kVA, \\(Q = {ind(P_BK, 0)}\\tan(\\arccos {ind(PF_BK, 2)}) = {ind(Q_BK, 1)}\\) kVAR, \\(I_L = {ind(S_BK, 2)}\\times10^3/(\\sqrt{{3}}\\times{ind(V_BK, 0)}) = {ind(I_BK, 1)}\\) A. Trafo {ind(S_TRAFO, 0)} kVA dipanaskan arus, bukan kW: ia sudah {ind(S_BK / S_TRAFO * 100, 0)}% terbebani, dan {ind(Q_BK, 0)} kVAR di antaranya hanya bolak-balik ke kumparan motor.",
             "❌ Trafo dinilai dalam kVA karena pemanasannya bergantung pada arus total, termasuk arus reaktif. Hitung \\(S = P/\\text{pf}\\) dulu, lalu \\(I_L = S/(\\sqrt{3}V_L)\\) dengan S dalam VA.",
-            "Petunjuk: (1) Hitung S, Q, dan φ. (2) Hitung I_L dan bandingkan S dengan 100 kVA. (3) Jelaskan peran Q dan alasan denda kVARh.")
+            "Petunjuk: (1) Hitung S, Q, dan φ. (2) Hitung arus saluran dan bandingkan S dengan 100 kVA. (3) Jelaskan peran Q dan alasan denda kVARh.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
-            f"Rancang bank kapasitor agar faktor daya bengkel naik ke {ind(PF_T, 2)} (Persamaan 8): hitung Q_C, kapasitansi per fasa bila bank disambung segitiga pada {ind(V_BK, 0)} V/50 Hz, daya semu dan arus saluran sesudahnya, serta kapasitas trafo yang terbebas. Bandingkan dengan Gambar 4 dan Animasi 3. Lalu bahas pemasangannya: satu bank tetap atau beberapa step dengan pengendali otomatis, dan apa risikonya bila bank tetap dibiarkan tersambung saat malam hari ketika hanya penerangan yang menyala.",
-            ["Q_C = P(tan φ₁ − tan φ₂)", "C_Δ = Q_C/(3ωV_L²)", "S₂ = P/pf₂"],
+            f"Rancang bank kapasitor agar faktor daya bengkel naik ke {ind(PF_T, 2)} (Persamaan 8): hitung Q<sub>C</sub>, kapasitansi per fasa bila bank disambung segitiga pada {ind(V_BK, 0)} V/50 Hz, daya semu dan arus saluran sesudahnya, serta kapasitas trafo yang terbebas. Bandingkan dengan Gambar 4 dan Animasi 3. Lalu bahas pemasangannya: satu bank tetap atau beberapa step dengan pengendali otomatis, dan apa risikonya bila bank tetap dibiarkan tersambung saat malam hari ketika hanya penerangan yang menyala.",
+            ["Q<sub>C</sub> = P(tan φ₁ − tan φ₂)", "C<sub>Δ</sub> = Q<sub>C</sub>/(3ωV<sub>L</sub>²)", "S₂ = P/pf₂"],
             f"Untuk menaikkan pf dari {ind(PF_BK, 2)} ke {ind(PF_T, 2)}, bank kapasitor yang diperlukan dan arus saluran sesudahnya sekitar...",
             [f"{ind(QC_BK, 1)} kVAR; arus turun dari {ind(I_BK, 0)} A ke {ind(I_BK2, 0)} A dan S menjadi {ind(S_BK2, 1)} kVA", f"{ind(Q_BK, 1)} kVAR (seluruh Q beban); arus turun ke {ind(P_BK * 1000 / (math.sqrt(3) * V_BK), 0)} A", f"{ind(P_BK * (PF_T - PF_BK), 1)} kVAR; arus tidak berubah karena P tetap", f"{ind(QC_BK, 1)} kW; daya aktif beban turun sebesar itu"],
             f"✅ Tepat! \\(Q_C = {ind(P_BK, 0)}(\\tan\\varphi_1 - \\tan\\varphi_2) = {ind(P_BK, 0)}({ind(math.tan(math.acos(PF_BK)), 4)} - {ind(math.tan(math.acos(PF_T)), 4)}) \\approx {ind(QC_BK, 1)}\\) kVAR; bank Δ: \\(C = {ind(C_BK, 0)}\\) µF per fasa. Sesudahnya \\(S = {ind(S_BK2, 1)}\\) kVA (trafo {ind(S_BK2 / S_TRAFO * 100, 0)}%), \\(I_L = {ind(I_BK2, 1)}\\) A: {ind(S_BK - S_BK2, 1)} kVA kapasitas trafo terbebas tanpa mengurangi satu watt pun produksi.",
             "❌ Kapasitor tidak perlu menghilangkan seluruh Q, hanya selisih sampai pf sasaran; dan ia tidak mengubah P. Hitung \\(\\tan\\varphi\\) untuk kedua pf, lalu \\(Q_C = P(\\tan\\varphi_1 - \\tan\\varphi_2)\\).",
-            "Petunjuk: (1) Hitung Q_C dan C per fasa. (2) Hitung S, I_L, dan kapasitas trafo yang terbebas. (3) Bahas step otomatis vs bank tetap dan risiko malam hari.")
+            "Petunjuk: (1) Hitung daya reaktif kapasitor dan C per fasa. (2) Hitung S, arus saluran, dan kapasitas trafo yang terbebas. (3) Bahas step otomatis vs bank tetap dan risiko malam hari.")
     q3 = fq(3, "168,85,247", "violet", FQ_JUDUL[2],
             f"Setahun kemudian bengkel menambah mesin CNC dengan motor {ind(P_MOTOR, 0)} kW pada pf {ind(PF_MOTOR, 1)} tertinggal; bank kapasitor {ind(QC_BK, 1)} kVAR tidak diubah. Jumlahkan daya kompleks seluruh beban dan kapasitor (Persamaan 7): berapa pf dan S baru, dan apakah trafo {ind(S_TRAFO, 0)} kVA masih cukup? Lalu jawab usul pemilik: 'sekalian saja pasang kapasitor lebih banyak sampai pf 1,0, bahkan lebih'. Jelaskan dengan Bagian 04 mengapa kompensasi berlebih (pf mendahului) dihindari, dan susunan apa yang Anda rekomendasikan (tambah step, pengendali otomatis, kapasitor di terminal motor besar).",
-            ["S_tot = ΣP + jΣQ", "pf = P/|S|", "Q_C berlebih → V naik"],
+            ["S<sub>tot</sub> = ΣP + jΣQ", "pf = P/|S|", "Q<sub>C</sub> berlebih → V naik"],
             f"Dengan motor {ind(P_MOTOR, 0)} kW pf {ind(PF_MOTOR, 1)} ditambahkan dan bank {ind(QC_BK, 1)} kVAR tetap, keadaan barunya sekitar...",
             [f"pf {ind(PF_T, 2)} tetap, S = {ind(P_BK3 / PF_T, 1)} kVA: trafo aman", f"P = {ind(P_BK3, 0)} kW, Q = {ind(Q_BK3, 1)} kVAR, pf ≈ {ind(PF_BK3, 2)}, S ≈ {ind(S_BK3, 1)} kVA: trafo kembali melampaui {ind(S_TRAFO, 0)} kVA", f"pf turun ke {ind(PF_BK, 2)} lagi karena motor baru membatalkan kapasitor", f"S = {ind(S_BK2 + P_MOTOR / PF_MOTOR, 1)} kVA (jumlah kVA masing-masing)"],
             f"✅ Tepat! \\(P = {ind(P_BK, 0)} + {ind(P_MOTOR, 0)} = {ind(P_BK3, 0)}\\) kW; \\(Q = {ind(Q_BK, 1)} + {ind(P_MOTOR * math.tan(math.acos(PF_MOTOR)), 1)} - {ind(QC_BK, 1)} = {ind(Q_BK3, 1)}\\) kVAR; \\(S = {ind(S_BK3, 1)}\\) kVA, pf = {ind(PF_BK3, 3)}. pf masih di atas 0,85 (tidak kena denda), tetapi S melampaui {ind(S_TRAFO, 0)} kVA: perlu step kapasitor tambahan ({ind(P_BK3 * (Q_BK3 / P_BK3 - math.tan(math.acos(PF_T))), 1)} kVAR untuk pf 0,95, S = {ind(P_BK3 / PF_T, 1)} kVA) atau trafo lebih besar. Kompensasi sampai pf 1,0 berisiko tegangan naik saat beban ringan, resonansi harmonik, dan eksitasi sendiri motor.",
@@ -693,8 +693,8 @@ def forum_page():
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">S = P/pf</span>
-    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">Q_C = P(tan φ₁ − tan φ₂)</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">I_L = S/(√3·V_L)</span>
+    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">Q<sub>C</sub> = P(tan φ₁ − tan φ₂)</span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">I<sub>L</sub> = S/(√3·V<sub>L</sub>)</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">100 kVA?</span>
   </div>
   <div class="hero-content">

@@ -31,6 +31,28 @@ function tinta(el, m) {
   const an = el.getAttribute('text-anchor') || 'start';
   KANVAS.textAlign = an === 'middle' ? 'center' : an === 'end' ? 'right' : 'left';
   const t = KANVAS.measureText(el.textContent.trim()), x = +el.getAttribute('x'), y = +el.getAttribute('y');
+  if (el.querySelector('tspan')) {
+    // Teks bersubskrip/superskrip (rumus_svg di pustaka.py): lebar dari getBBox (potongan kecil
+    // membuat measureText teks utuh terlalu lebar), tinggi = huruf dasar diperluas oleh tspan kecil
+    // yang digeser dy (kumulatif) ke bawah/atas.
+    const b = el.getBBox();
+    let naik = 0, turun = 0, d = 0;
+    const ukurPotong = (teks, gaya, geser) => {
+      if (!teks.trim()) return;
+      // diukur pada 10× ukuran lalu dibagi 10: metrik measureText dibulatkan ke piksel utuh,
+      // terlalu kasar untuk potongan subskrip 8 px yang hanya turun ±2 px.
+      const px = parseFloat(gaya.fontSize);
+      KANVAS.font = `${gaya.fontStyle} ${gaya.fontWeight} ${px * 10}px ${gaya.fontFamily}`;
+      const u = KANVAS.measureText(teks);
+      naik = Math.max(naik, u.actualBoundingBoxAscent / 10 - geser); turun = Math.max(turun, u.actualBoundingBoxDescent / 10 + geser);
+    };
+    for (const nd of el.childNodes) {
+      if (nd.nodeType === 3) ukurPotong(nd.textContent, cs, d);
+      else if (nd.tagName && nd.tagName.toLowerCase() === 'tspan') { d += parseFloat(nd.getAttribute('dy') || 0); ukurPotong(nd.textContent, getComputedStyle(nd), d); }
+    }
+    const k = [pt(m, b.x + 0.5, y - naik), pt(m, b.x + b.width - 0.5, y + turun)];
+    return [Math.min(k[0][0], k[1][0]), Math.min(k[0][1], k[1][1]), Math.max(k[0][0], k[1][0]), Math.max(k[0][1], k[1][1]), b.width];
+  }
   const c = [pt(m, x - t.actualBoundingBoxLeft, y - t.actualBoundingBoxAscent), pt(m, x + t.actualBoundingBoxRight, y + t.actualBoundingBoxDescent)];
   return [Math.min(c[0][0], c[1][0]), Math.min(c[0][1], c[1][1]), Math.max(c[0][0], c[1][0]), Math.max(c[0][1], c[1][1]), t.width];
 }

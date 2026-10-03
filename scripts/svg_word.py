@@ -12,15 +12,19 @@ MuPDF 1.29) tidak selengkap peramban, dan tiap kekurangannya tampak di Word/PDF:
 * `stroke-dasharray` diabaikan dalam bentuk apa pun, jadi garis putus-putus
   (garis sumbu, garis tersembunyi, garis bantu) tercetak sebagai garis utuh;
 * metrik font cadangannya lebih lebar daripada font peramban, sehingga label
-  panjang di tepi gambar bisa melewati viewBox.
+  panjang di tepi gambar bisa melewati viewBox;
+* `baseline-shift` dan `font-size` persen pada <tspan> diabaikan atau "bocor" ke
+  teks sesudahnya, dan teks rata tengah/kanan yang memuat <tspan> dijangkarkan per
+  potongan sehingga bertumpuk.
 
 Karena itu salinan SVG untuk Word diolah lebih dulu (`warna_mupdf`,
-`garis_putus_mupdf`) dan, bila diminta, kanvasnya diperluas seperlunya
-(`render_svg`). Halaman modul di peramban tidak ikut berubah. Kedua fungsi
+`garis_putus_mupdf`, `tspan_mupdf`) dan, bila diminta, kanvasnya diperluas seperlunya
+(`render_svg`). Halaman modul di peramban tidak ikut berubah. Fungsi-fungsi
 pengolah berhenti dengan galat jelas bila menemui bentuk yang belum didukung,
 bukan diam-diam mencetak hitam atau garis utuh.
 """
 import base64
+import html
 import math
 import re
 import struct
@@ -474,7 +478,59 @@ def garis_putus_mupdf(svg):
     return svg
 
 
-PAD_UKUR = 64          # kelebihan kanvas saat mengukur luapan isi gambar (unit viewBox)
+# ─────────────────── teks bersubskrip (<tspan>) ───────────────────
+TEKS_TSPAN = re.compile(r"<text\b((?:\s+[\w:-]+=\"[^\"]*\")*)\s*>((?:(?!</text>).)*?<tspan\b(?:(?!</text>).)*)</text>", re.S)
+POTONGAN = re.compile(r"<tspan\b((?:\s+[\w:-]+=\"[^\"]*\")*)\s*>(.*?)</tspan>|([^<]+)", re.S)
+_FONT_MUPDF = {}
+
+
+def _font_mupdf(keluarga, tebal):
+    """Font cadangan yang dipakai MuPDF untuk teks SVG: Helvetica (sans) atau Courier (mono) bawaannya."""
+    nama = ("cobo" if tebal else "cour") if "mono" in keluarga.lower() else ("hebo" if tebal else "helv")
+    if nama not in _FONT_MUPDF:
+        _FONT_MUPDF[nama] = fitz.Font(nama)
+    return _FONT_MUPDF[nama]
+
+
+def tspan_mupdf(svg):
+    """<text> ber-<tspan> yang dirata tengah/kanan → rata kiri dengan x yang sudah digeser.
+
+    Subskrip dan superskrip rumus (`rumus_svg` di pustaka.py TTL/CAD) ditulis sebagai
+    <tspan dy font-size>. Peramban menjangkarkan seluruh baris sebagai satu potongan, tetapi
+    MuPDF menjangkarkan tiap potongan sendiri-sendiri sehingga teks rata tengah/kanan yang
+    ber-tspan tercetak bertumpuk. Lebar baris diukur dengan metrik font cadangan MuPDF
+    (Helvetica/Courier bawaannya; pada uji Oktober 2026 selisihnya terhadap lebar tata
+    letak MuPDF sekitar 2 %), lalu teks digambar rata kiri mulai x - lebar/2 (atau
+    x - lebar). Teks rata kiri dan teks tanpa tspan tidak disentuh.
+    """
+    def ganti(m):
+        atr, isi = m.group(1), m.group(2)
+        a = dict(ATRIBUT.findall(atr))
+        jangkar = a.get("text-anchor", "start")
+        if jangkar not in ("middle", "end"):
+            return m.group(0)
+        if "x" not in a or " " in a["x"].strip() or "," in a["x"]:
+            raise ValueError(f"<text> ber-tspan dengan x={a.get('x')!r} belum didukung")
+        ukuran = _angka(a.get("font-size"), 12.0)
+        font = _font_mupdf(a.get("font-family", ""), a.get("font-weight", "") in ("600", "700", "800", "900", "bold"))
+        lebar = 0.0
+        for p in POTONGAN.finditer(isi):
+            if p.group(3) is not None:
+                teks, uk = p.group(3), ukuran
+            else:
+                teks, uk = p.group(2), _angka(dict(ATRIBUT.findall(p.group(1))).get("font-size"), ukuran)
+                if "<" in teks:
+                    raise ValueError("<tspan> bersarang belum didukung")
+            lebar += font.text_length(html.unescape(teks), fontsize=uk)
+        x0 = float(a["x"]) - (lebar / 2 if jangkar == "middle" else lebar)
+        atr = re.sub(r'(\s)text-anchor="[^"]*"', r'\1text-anchor="start"', atr)
+        atr = re.sub(r'(\sx=")[^"]*"', lambda q: f'{q.group(1)}{x0:.2f}"', atr, count=1)
+        return f"<text{atr}>{isi}</text>"
+
+    return TEKS_TSPAN.sub(ganti, svg)
+
+
+PAD_UKUR = 64         # kelebihan kanvas saat mengukur luapan isi gambar (unit viewBox)
 VIEWBOX = re.compile(r'viewBox="0 0 ([\d.]+) ([\d.]+)"')
 LATAR_SVG = re.compile(r'<rect x="0" y="0" width="[\d.]+" height="[\d.]+"')
 
@@ -547,7 +603,7 @@ def render_svg(svg_markup, png_path, perluas_kanvas=True):
     svg = xml_aman(svg_markup)
     if "xmlns=" not in svg[:200]:
         svg = svg.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ', 1)
-    svg = garis_putus_mupdf(warna_mupdf(svg))
+    svg = tspan_mupdf(garis_putus_mupdf(warna_mupdf(svg)))
     m = VIEWBOX.search(svg[:300])
     if perluas_kanvas and m and LATAR_SVG.search(svg[:600]):
         W, H = float(m.group(1)), float(m.group(2))

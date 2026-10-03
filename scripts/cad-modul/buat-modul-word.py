@@ -111,7 +111,7 @@ SIMBOL = {"times": "×", "cdot": "·", "le": "≤", "leq": "≤", "ge": "≥", "
           "pm": "±", "mp": "∓", "to": "→", "rightarrow": "→", "Rightarrow": "⇒", "leftrightarrow": "↔", "parallel": "∥", "angle": "∠",
           "circ": "°", "ldots": "…", "cdots": "⋯", "dots": "…", "sum": "Σ", "int": "∫", "prod": "Π", "mid": "|", "lvert": "|", "rvert": "|",
           "quad": "  ", "qquad": "    ", "%": "%", ",": " ", ";": " ", ":": " ", "!": "", " ": " ", "{": "{", "}": "}", "_": "_", "&": "&",
-          "\\": "; ", "equiv": "≡", "sim": "~", "star": "★", "bullet": "•", "prime": "′", "degree": "°", "langle": "⟨", "rangle": "⟩", "in": "∈"}
+          "\\": "; ", "equiv": "≡", "sim": "~", "star": "★", "bullet": "•", "prime": "′", "degree": "°", "langle": "⟨", "rangle": "⟩", "in": "∈", "lt": "<", "gt": ">"}
 FUNGSI = {"ln", "log", "sin", "cos", "tan", "exp", "max", "min", "arcsin", "arccos", "arctan", "sinh", "cosh", "tanh", "lim", "det", "Re", "Im"}
 
 
@@ -342,6 +342,17 @@ def teks_polos(el):
     return "".join(t for t, *_ in rapikan_runs(runs_dari(el))).replace("\n", " ").strip()
 
 
+def runs_penanda(teks, bold=False, italic=False):
+    """Teks berpenanda <sub>/<sup> (label tugas di skrip halaman) → daftar run (teks, bold, italic, skrip)."""
+    bag = re.split(r"<(sub|sup)>(.*?)</\1>", teks)
+    out = [(bag[0], bold, italic, None)] if bag[0] else []
+    for i in range(1, len(bag), 3):
+        out.append((bag[i + 1], bold, italic, bag[i]))
+        if bag[i + 2]:
+            out.append((bag[i + 2], bold, italic, None))
+    return out
+
+
 # ─────────────────────────── penulisan Word ───────────────────────────
 class Penulis:
     def __init__(self, doc):
@@ -373,13 +384,23 @@ class Penulis:
                 elif sk == "sup":
                     r.font.superscript = True
 
+    def _judul(self, p, teks, ukuran, warna, kapital=False):
+        """Judul dari teks polos atau daftar run (subskrip/superskrip rumus tetap terjaga)."""
+        for t, _, _, sk in (rapikan_runs(teks) if isinstance(teks, list) else [(teks, True, False, None)]):
+            r = p.add_run(t.upper() if kapital else t)
+            self._font(r, ukuran, True, warna=warna)
+            if sk == "sub":
+                r.font.subscript = True
+            elif sk == "sup":
+                r.font.superscript = True
+
     def heading1(self, teks):
         p = self.doc.add_paragraph()
         p.paragraph_format.space_before = Pt(16)
         p.paragraph_format.space_after = Pt(8)
         p.paragraph_format.keep_with_next = True
         p.paragraph_format.line_spacing = 1.15
-        self._font(p.add_run(teks.upper()), 14, True, warna=BIRU_H1)
+        self._judul(p, teks, 14, BIRU_H1, kapital=True)
         return p
 
     def heading2(self, teks):
@@ -388,7 +409,7 @@ class Penulis:
         p.paragraph_format.space_after = Pt(4)
         p.paragraph_format.keep_with_next = True
         p.paragraph_format.line_spacing = 1.15
-        self._font(p.add_run(teks), 12, True, warna=BIRU_H2)
+        self._judul(p, teks, 12, BIRU_H2)
         return p
 
     def para(self, runs, rata=WD_ALIGN_PARAGRAPH.JUSTIFY, ukuran=11, sesudah=6):
@@ -469,7 +490,7 @@ class Penulis:
         p.paragraph_format.space_before = Pt(6)
         p.paragraph_format.space_after = Pt(2)
         p.paragraph_format.keep_with_next = True
-        self._font(p.add_run(judul), 10, True, warna=BIRU_H2)
+        self._judul(p, judul, 10, BIRU_H2)
         p = self.doc.add_paragraph()
         pPr = p._p.get_or_add_pPr()
         pPr.append(parse_xml(f'<w:pBdr {nsdecls("w")}><w:top w:val="single" w:sz="4" w:space="6" w:color="CBD5E1"/><w:left w:val="single" w:sz="4" w:space="6" w:color="CBD5E1"/><w:bottom w:val="single" w:sz="4" w:space="6" w:color="CBD5E1"/><w:right w:val="single" w:sz="4" w:space="6" w:color="CBD5E1"/></w:pBdr>'))
@@ -535,11 +556,12 @@ def indikator(M):
     dibaca dari halaman modul yang sedang diproses.
     """
     T = M["tugas"]
-    model = "; ".join(f"T{k} {lab} ({POIN_TUGAS[k - 1]} poin)" for k, lab in enumerate(T["model"], 1))
-    return (f"menjawab benar {len(T['mc'])} soal pilihan ganda (@1 poin); "
-            f"menyerahkan {len(T['model'])} model FreeCAD — {model} — masing-masing berupa berkas .FCStd "
-            f"yang diunggah beserta satu angka bacaan geometri yang diperiksa server; "
-            f"menulis jawaban {len(M['forum']['tanya'])} pertanyaan Forum Diskusi (minimal 30 kata tiap jawaban).")
+    runs = [(f"menjawab benar {len(T['mc'])} soal pilihan ganda (@1 poin); menyerahkan {len(T['model'])} model FreeCAD — ", False, False, None)]
+    for k, lab in enumerate(T["model"], 1):
+        runs += [(("; " if k > 1 else "") + f"T{k} ", False, False, None)] + runs_penanda(lab) + [(f" ({POIN_TUGAS[k - 1]} poin)", False, False, None)]
+    runs.append((" — masing-masing berupa berkas .FCStd yang diunggah beserta satu angka bacaan geometri yang diperiksa server; "
+                 f"menulis jawaban {len(M['forum']['tanya'])} pertanyaan Forum Diskusi (minimal 30 kata tiap jawaban).", False, False, None))
+    return runs
 
 
 def _label_tugas(mentah, nama_array):
@@ -567,7 +589,7 @@ def muat_modul(n):
         if not judul_sec:
             continue
         nama_label = label[0].text_content().strip() if label else ""
-        bagian.append({"id": sec.get("id"), "label": nama_label, "judul": teks_polos(judul_sec[0]),
+        bagian.append({"id": sec.get("id"), "label": nama_label, "judul": rapikan_runs(runs_dari(judul_sec[0])),
                        "desc": sec.xpath('./p[contains(@class,"section-desc")]'), "el": sec})
     tugas = {"mc": [], "model": _label_tugas(mentah, "compEzDefs") + _label_tugas(mentah, "compHardDefs"),
              "acuan": [], "petunjuk": None}
@@ -575,7 +597,7 @@ def muat_modul(n):
         q = kartu.xpath('.//div[@class="mc-q"]')
         opsi = kartu.xpath('.//div[@class="radio-option"]')
         if q:
-            tugas["mc"].append((runs_dari(q[0]), [teks_polos(o) for o in opsi]))
+            tugas["mc"].append((runs_dari(q[0]), [rapikan_runs(runs_dari(o)) for o in opsi]))
     # Kartu tugas: teks soalnya dirakit server per NIM (hanya placeholder di HTML),
     # jadi yang dibawa ke Word adalah gambar acuan beserta keterangannya. SVG diambil
     # dari teks mentah supaya nama atribut kamel (viewBox) tidak dikecilkan parser HTML.
@@ -584,7 +606,7 @@ def muat_modul(n):
         cid = (kartu.get("id") or "").replace("card-", "")
         ket = kartu.xpath('.//div[@class="tugas-gambar-ket"]')
         tugas["acuan"].append({"id": cid, "svg": svg_acuan.get(cid),
-                               "ket": teks_polos(ket[0]) if ket else ""})
+                               "ket": rapikan_runs(runs_dari(ket[0])) if ket else []})
     petunjuk = root.xpath('//div[@id="page-tugas"]//div[contains(@class,"warn-box")]')
     if petunjuk:
         judul_p = petunjuk[0].xpath(".//h4")
@@ -592,7 +614,7 @@ def muat_modul(n):
         tugas["petunjuk"] = (teks_polos(judul_p[0]) if judul_p else "Petunjuk Pengerjaan Tugas",
                              runs_dari(isi_p[0]) if isi_p else [])
     forum = {"skenario": [runs_dari(p) for p in root.xpath('//div[@id="page-forum"]//div[contains(@class,"forum-scenario")]/p')],
-             "tanya": [teks_polos(h) for h in root.xpath('//div[@id="page-forum"]//div[@class="fq-head"]/h3')]}
+             "tanya": [rapikan_runs(runs_dari(h)) for h in root.xpath('//div[@id="page-forum"]//div[@class="fq-head"]/h3')]}
     return {"n": n, "judul": judul, "hero": hero, "svgs": svgs, "bagian": bagian, "tugas": tugas, "forum": forum, "root": root}
 
 
@@ -749,7 +771,7 @@ def bangun(n, tmpdir):
     W.bullet([(f"Sub-CPMK {sub_kode}: ", True, False, None), (sub["deskripsi"], False, False, None)])
     W.bullet([("Bahan kajian: ", True, False, None), (cakupan, False, False, None)])
     W.bullet([("Kata kunci: ", True, False, None), ("; ".join(chips) + ".", False, False, None)])
-    W.bullet([("Indikator: ", True, False, None), (indikator(M), False, False, None)])
+    W.bullet([("Indikator: ", True, False, None)] + indikator(M))
     W.bullet([("Kedudukan: ", True, False, None), (f"Pertemuan {P} dari 16, mata kuliah {SKS} SKS kelas {KELAS}; bobot penilaian Tugas {sub['bobot']['tugas']} %, UTS {sub['bobot']['uts']} %, UAS {sub['bobot']['uas']} % (SIA).", False, False, None)])
 
     # ── BAGIAN MATERI ──
@@ -782,7 +804,7 @@ def bangun(n, tmpdir):
                 nomor = el.xpath('.//span[@class="formula-number"]')
                 desc = el.xpath('./div[@class="formula-desc"]')
                 if label:
-                    W.heading2(teks_polos(label[0]))
+                    W.heading2(rapikan_runs(runs_dari(label[0])))
                 if utama:
                     m = re.search(r"\\\((.*)\\\)", (utama[0].text or "") + "".join(lhtml.tostring(c, encoding="unicode") for c in utama[0]), re.S)
                     latex = m.group(1) if m else teks_polos(utama[0])
@@ -812,7 +834,7 @@ def bangun(n, tmpdir):
                     h3 = kartu.xpath("./h3")
                     p = kartu.xpath("./p")
                     rumus = kartu.xpath('./div[@class="formula"]')
-                    r = [(teks_polos(h3[0]) + ": ", True, False, None)] if h3 else []
+                    r = [(t, True, i, sk) for t, _, i, sk in rapikan_runs(runs_dari(h3[0]))] + [(": ", True, False, None)] if h3 else []
                     if p:
                         r += runs_dari(p[0])
                     if rumus:
@@ -830,7 +852,7 @@ def bangun(n, tmpdir):
                 judul_anim = el.xpath('.//span[@class="anim-title"]')
                 cara = el.xpath('.//div[contains(@class,"tip-box")]')
                 if judul_anim:
-                    W.heading2(teks_polos(judul_anim[0]))
+                    W.heading2(rapikan_runs(runs_dari(judul_anim[0])))
                 W.para("Animasi ini dapat dijalankan pada halaman modul interaktif (tautan di awal dokumen); panel di bawah merangkum cara membacanya.")
                 if cara:
                     W.kotak(runs_dari(cara[0]))
@@ -838,7 +860,7 @@ def bangun(n, tmpdir):
                 label = el.xpath('.//span[@class="code-label"]')
                 pre = el.xpath(".//pre")
                 if pre:
-                    W.kode(teks_polos(label[0]) if label else "Kode", htmlmod.unescape(pre[0].text_content()))
+                    W.kode(rapikan_runs(runs_dari(label[0])) if label else "Kode", htmlmod.unescape(pre[0].text_content()))
             # elemen lain (divider, label, judul, desc) sudah ditangani
 
     # ── TUGAS & FORUM ──
@@ -861,10 +883,10 @@ def bangun(n, tmpdir):
         for k, (q, opsi) in enumerate(T["mc"], 1):
             W.para([(f"{k}. ", True, False, None)] + q, sesudah=2)
             for j, o in enumerate(opsi):
-                W.bullet([(o, False, False, None)], 10.5)
+                W.bullet(o, 10.5)
         W.heading2("Bagian B — Tugas Pemodelan FreeCAD (unggah .FCStd + angka bacaan)")
         for k, lab in enumerate(T["model"], 1):
-            W.para([(f"T{k}. ", True, False, None), (lab, False, False, None),
+            W.para([(f"T{k}. ", True, False, None)] + runs_penanda(lab) + [
                     (f"  ({POIN_TUGAS[k - 1]} poin)", True, False, None)], sesudah=2)
             acuan = T["acuan"][k - 1] if k - 1 < len(T["acuan"]) else None
             if acuan and acuan["svg"]:
@@ -872,14 +894,14 @@ def bangun(n, tmpdir):
                 render_svg(acuan["svg"], png)
                 W.gambar(png, 13.0)
             if acuan and acuan["ket"]:
-                W.caption([(acuan["ket"], True, False, None)])
+                W.caption([(t, True, i, sk) for t, _, i, sk in acuan["ket"]])
     F = M["forum"]
     if F["tanya"]:
         W.heading1("Forum Diskusi")
         for p in F["skenario"]:
             W.para(p)
         for k, t in enumerate(F["tanya"], 1):
-            W.bullet([(f"Pertanyaan {k}: ", True, False, None), (t, False, False, None)])
+            W.bullet([(f"Pertanyaan {k}: ", True, False, None)] + t)
         W.para("Jawaban ditulis pada halaman modul interaktif (minimal 30 kata per pertanyaan) dan menjadi syarat kelengkapan modul bersama tugas.")
 
     # ── DAFTAR PUSTAKA ──

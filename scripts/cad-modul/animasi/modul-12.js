@@ -134,8 +134,8 @@ function drawFit(){
   _cad12Kolom(ctx,[
     [['lubang: '+(12+EI/1000).toFixed(4)+' … '+(12+ES/1000).toFixed(4)+' mm'],_C12C,_F12_10,j[0]],
     [['poros : '+(12+ei/1000).toFixed(4)+' … '+(12+es/1000).toFixed(4)+' mm'],_C12A,_F12_10,j[1]],
-    [['c_maks = (ES − ei)/1000',' = '+cMaks.toFixed(4)+' mm'],warna,_F12_11,j[2]],
-    [['c_min  = (EI − es)/1000',' = '+cMin.toFixed(4)+' mm'],warna,_F12_11,j[3]],
+    [['c<sub>maks</sub> = (ES − ei)/1000',' = '+cMaks.toFixed(4)+' mm'],warna,_F12_11,j[2]],
+    [['c<sub>min</sub>  = (EI − es)/1000',' = '+cMin.toFixed(4)+' mm'],warna,_F12_11,j[3]],
     [jenis,warna,"bold 12px 'JetBrains Mono',monospace",j[4]],
     [cMin>0?'poros selalu bebas berputar':(cMaks<0?'harus dipres atau dipanaskan':'bisa longgar, bisa sesak'),_C12M,_F12_10,j[5]],
     ['contoh nominal ⌀12 mm',_C12M,_F12_10,0]],tx,ty,sempit?W-28:W-tx-8,13);
@@ -145,8 +145,8 @@ function drawFit(){
   _cad12Label(ctx,'EI 0',[[xL,Z(EI)+12,'left'],[xL,Z(EI)+19,'left'],[xL,Z(EI)-5,'left'],..._cad12Cincin(xL+12,Z(EI),10,30,-Math.PI/2)],_C12C,_F12_9);
   _cad12Label(ctx,'es '+(es<0?'−':'+')+Math.abs(es),[[xP,Z(es)+4,'left'],[xP,Z(es)-3,'left'],[xP,Z(es)+11,'left'],..._cad12Cincin(xP+16,Z(es),8,28,Math.PI/2)],_C12A,_F12_9);
   _cad12Label(ctx,'ei '+(ei<0?'−':'+')+Math.abs(ei),[[xP,Z(ei)+12,'left'],[xP,Z(ei)+4,'left'],[xP,Z(ei)+19,'left'],..._cad12Cincin(xP+16,Z(ei),8,28,-Math.PI/2)],_C12A,_F12_9);
-  _cad12Label(ctx,'c_maks',[[xa+4,yC,'left'],[xa+4,Z(0)-7,'left'],[xa+4,Z(0)+14,'left'],[xa+4,(Z(ES)+Z(0))/2+3,'left'],[xa+4,(Z(0)+Z(ei))/2+3,'left'],..._cad12Cincin(xa+20,yC,6,30,0)],warna,_F12_9);
-  _ttlTulis('fitInfo','ES = +'+ES+', EI = 0, es = '+es+', ei = '+ei+' µm → c_maks = ('+ES+' − ('+ei+'))/1000 = '+cMaks.toFixed(4)+' mm dan c_min = (0 − ('+es+'))/1000 = '+cMin.toFixed(4)+' mm — '+jenis.toLowerCase()+'. Kelonggaran maksimum selalu dibaca dari lubang terbesar bertemu poros terkecil.');
+  _cad12Label(ctx,'c<sub>maks</sub>',[[xa+4,yC,'left'],[xa+4,Z(0)-7,'left'],[xa+4,Z(0)+14,'left'],[xa+4,(Z(ES)+Z(0))/2+3,'left'],[xa+4,(Z(0)+Z(ei))/2+3,'left'],..._cad12Cincin(xa+20,yC,6,30,0)],warna,_F12_9);
+  _ttlTulis('fitInfo','ES = +'+ES+', EI = 0, es = '+es+', ei = '+ei+' µm → c<sub>maks</sub> = ('+ES+' − ('+ei+'))/1000 = '+cMaks.toFixed(4)+' mm dan c<sub>min</sub> = (0 − ('+es+'))/1000 = '+cMin.toFixed(4)+' mm — '+jenis.toLowerCase()+'. Kelonggaran maksimum selalu dibaca dari lubang terbesar bertemu poros terkecil.');
   if(_ttlJalan('fit')){_ftFrame++; requestAnimationFrame(drawFit);}
 }
 
@@ -178,7 +178,7 @@ function drawTabrak(){
   // kolom kanan (layar sempit: di bawah balok)
   const tx=sempit?14:W*0.60, ty=sempit?yLab+eL+42:H*0.22, j=sempit?[16,20,20,20]:[18,22,24,24];
   const yAkhir=_cad12Kolom(ctx,[
-    ['V_int = δ · b · h',_C12C,_F12_11,j[0]],
+    ['V<sub>int</sub> = δ · b · h',_C12C,_F12_11,j[0]],
     [d>0?('= '+_cad12Koma(d,2)+' × '+b+' × '+h):['= 0',' (tidak bertabrakan)'],_C12M,_F12_10,j[1]],
     ['= '+V.toFixed(2)+' mm³',d>0?_C12R:_C12G,"bold 12px 'JetBrains Mono',monospace",j[2]],
     [['distToShape',' = '+(d>0?'0,000 (menembus)':_cad12Koma(-d,3)+' mm')],d>0?_C12R:_C12G,_F12_10,j[3]],
@@ -198,8 +198,8 @@ function drawTabrak(){
   const sD=d>0?'δ = '+_cad12Koma(d,2):'celah = '+_cad12Koma(-d,2)+' mm', yDl=yLab+eL+18;
   ctx.font=_F12_10; const wD=ctx.measureText(sD).width/2+4, xD=Math.min(W-wD,Math.max(wD,X(a1-d/2)));
   _cad12Label(ctx,sD,[[xD,yDl,'center'],[xD+24,yDl,'center'],[xD-24,yDl,'center']],d>0?_C12R:_C12G,_F12_10);
-  _cad12Label(ctx,'V_int(δ)',[[gx+4,gy-gh+10,'left'],[gx+4,gy-gh-4,'left'],[gx+gw*0.3,gy-gh+10,'left']],_C12M,_F12_9);
-  _ttlTulis('tabrakInfo',d>0?('δ = '+_cad12Koma(d,2)+' mm: V_int = δ·b·h = '+_cad12Koma(d,2)+' × '+b+' × '+h+' = '+V.toFixed(2)+' mm³; Part Common menghasilkan solid dan distToShape bernilai 0, jadi kedua komponen benar-benar menembus.'):('Tidak ada tumpang tindih: Part Common kosong (V_int = 0) dan distToShape memberi jarak terdekat '+_cad12Koma(-d,3)+' mm — itulah kelonggaran rakit yang tersedia.'));
+  _cad12Label(ctx,'V<sub>int</sub>(δ)',[[gx+4,gy-gh+10,'left'],[gx+4,gy-gh-4,'left'],[gx+gw*0.3,gy-gh+10,'left']],_C12M,_F12_9);
+  _ttlTulis('tabrakInfo',d>0?('δ = '+_cad12Koma(d,2)+' mm: V<sub>int</sub> = δ·b·h = '+_cad12Koma(d,2)+' × '+b+' × '+h+' = '+V.toFixed(2)+' mm³; Part Common menghasilkan solid dan distToShape bernilai 0, jadi kedua komponen benar-benar menembus.'):('Tidak ada tumpang tindih: Part Common kosong (V<sub>int</sub> = 0) dan distToShape memberi jarak terdekat '+_cad12Koma(-d,3)+' mm — itulah kelonggaran rakit yang tersedia.'));
   if(_ttlJalan('tabrak')){_tbFrame++; requestAnimationFrame(drawTabrak);}
 }
 
@@ -242,7 +242,7 @@ function drawDinding(){
     ['= '+(a*bb*h).toFixed(0)+' − '+(ai*bi*p).toFixed(0),_C12M,_F12_10,j[1]],
     ['= '+V.toFixed(2)+' mm³',_C12G,"bold 12px 'JetBrains Mono',monospace",j[2]],
     [['tebal dinding w',' = '+_cad12Koma(w,2)+' mm'],warna,_F12_11,j[3]],
-    [['batas proses w_min',' = '+_cad12Koma(wMin,1)+' mm'],_C12M,_F12_10,j[4]],
+    [['batas proses w<sub>min</sub>',' = '+_cad12Koma(wMin,1)+' mm'],_C12M,_F12_10,j[4]],
     [tipis?['DI BAWAH BATAS —',' cacat isi / melengkung']:'MEMENUHI BATAS PROSES',warna,"bold 11px 'JetBrains Mono',monospace",j[5]],
     [dasarTipis?['dasar '+_cad12Koma(dasar,1)+' mm',' juga di bawah batas']:['dasar h − p',' = '+_cad12Koma(dasar,1)+' mm'],dasarTipis?_C12R:_C12M,_F12_10,0]],tx,ty,sempit?W-28:W-tx-8,13);
   // Label ukuran ditulis terakhir, di calon pertama yang tidak dilewati tepi penampang, rongga, atau panah ukur.
@@ -296,7 +296,7 @@ function drawLengan(){
   _cad12Kolom(ctx,[
     [['√(R² + (w/2)²)',' = '+rs.toFixed(3)+' mm'],_C12P,_F12_11,j[0]],
     [['W − R = '+(Wd-R).toFixed(3)+' mm',' (keliru)'],_C12M,_F12_10,j[1]],
-    ['c_min = W − √(R² + (w/2)²)',_C12C,_F12_11,j[2]],
+    ['c<sub>min</sub> = W − √(R² + (w/2)²)',_C12C,_F12_11,j[2]],
     ['      = '+cMin.toFixed(3)+' mm',cMin>0?_C12G:_C12R,"bold 12px 'JetBrains Mono',monospace",j[3]],
     [['θ* = arctan((w/2)/R)',' = '+thStar.toFixed(2)+'°'],_C12A,_F12_10,j[4]],
     [['jarak sesaat',' = '+_cad12Koma(cSaat,3)+' mm'],warna,_F12_10,j[5]],
@@ -308,7 +308,7 @@ function drawLengan(){
   _cad12Label(ctx,sTh,[[xTh,yTh,'center'],[xTh+rs*sk*0.8,yTh,'center'],[xTh-rs*sk*0.8,yTh,'center'],..._cad12Cincin(xTh,yTh-6,6,24,-Math.PI/2)],_C12M,_F12_10);
   ctx.font=_F12_9; const wSb=ctx.measureText('sumbu putar').width, xSb=Math.max(wSb+4,X(0)-6);
   _cad12Label(ctx,'sumbu putar',[[xSb,Y(0)+18,'right'],[X(0),Y(0)+18,'center'],[X(0),Y(0)-12,'center'],..._cad12Cincin(X(0),Y(0),14,rs*sk+34,tr+Math.PI)],_C12M,_F12_9);
-  _ttlTulis('lenganInfo','R = '+R+', w = '+w+', W = '+Wd+': jarak sudut terjauh ke sumbu = √('+R+'² + '+(w/2)+'²) = '+rs.toFixed(3)+' mm, sehingga c_min = '+Wd+' − '+rs.toFixed(3)+' = '+cMin.toFixed(3)+' mm pada θ* = '+thStar.toFixed(2)+'°. Memakai W − R = '+(Wd-R).toFixed(3)+' mm akan menaksir jarak bebas terlalu besar.');
+  _ttlTulis('lenganInfo','R = '+R+', w = '+w+', W = '+Wd+': jarak sudut terjauh ke sumbu = √('+R+'² + '+(w/2)+'²) = '+rs.toFixed(3)+' mm, sehingga c<sub>min</sub> = '+Wd+' − '+rs.toFixed(3)+' = '+cMin.toFixed(3)+' mm pada θ* = '+thStar.toFixed(2)+'°. Memakai W − R = '+(Wd-R).toFixed(3)+' mm akan menaksir jarak bebas terlalu besar.');
   if(_ttlJalan('lengan')){_lgFrame++; requestAnimationFrame(drawLengan);}
 }
 

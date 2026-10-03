@@ -4,7 +4,7 @@
 import math
 
 from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
-                     fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel)
+                     fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel, rumus_mentah)
 
 NOMOR = 11
 PERTEMUAN = 12
@@ -116,11 +116,11 @@ def gambar2():
     p1 = " ".join(f"{X(h + 0.5):.1f},{Y(v):.1f}" for h, v in enumerate(prof))
     p2 = " ".join(f"{X(h + 0.5):.1f},{Y(v):.1f}" for h, v in enumerate(prof2))
     lf1, lf2 = sum(prof) / 24, sum(prof2) / 24
-    b += f'<polyline points="{p1}" fill="none" stroke="#22d3ee" stroke-width="2.4"/>' + t(X(19), Y(1.0) - 8, f"rumah tangga: F_B = {ind(lf1, 2)}", 10.5, "#22d3ee", "middle", "600")
-    b += f'<polyline points="{p2}" fill="none" stroke="#f59e0b" stroke-width="2.4"/>' + t(X(11), Y(1.0) - 8, f"komersial: F_B = {ind(lf2, 2)}", 10.5, "#f59e0b", "middle", "600")
+    b += f'<polyline points="{p1}" fill="none" stroke="#22d3ee" stroke-width="2.4"/>' + t(X(19), Y(1.0) - 8, f"rumah tangga: F<sub>B</sub> = {ind(lf1, 2)}", 10.5, "#22d3ee", "middle", "600")
+    b += f'<polyline points="{p2}" fill="none" stroke="#f59e0b" stroke-width="2.4"/>' + t(X(11), Y(1.0) - 8, f"komersial: F<sub>B</sub> = {ind(lf2, 2)}", 10.5, "#f59e0b", "middle", "600")
     b += f'<line x1="{x0}" y1="{Y(lf1):.1f}" x2="{x1}" y2="{Y(lf1):.1f}" stroke="#22d3ee" stroke-width="1" stroke-dasharray="5 4"/>'
     b += f'<line x1="{x0}" y1="{Y(lf2):.1f}" x2="{x1}" y2="{Y(lf2):.1f}" stroke="#f59e0b" stroke-width="1" stroke-dasharray="5 4"/>'
-    b += t(x0, y1 - 8, "P/P_maks", 10.5, AX, "start") + t(345, 226, "Kurva beban harian ternormalisasi: puncak rumah tangga 18–20, puncak komersial 10–15;", 10.5, AX)
+    b += t(x0, y1 - 8, "P/P<sub>maks</sub>", 10.5, AX, "start") + t(345, 226, "Kurva beban harian ternormalisasi: puncak rumah tangga 18–20, puncak komersial 10–15;", 10.5, AX)
     b += t(345, 240, "garis putus = rata-rata = faktor beban. Puncak yang tidak bersamaan → keragaman", 10.5, AX)
     return svg(660, 250, b, "Gambar 2 — Kurva beban harian dua jenis pelanggan dan faktor bebannya")
 
@@ -172,7 +172,7 @@ def gambar4():
         b += kawat(x, 210, x, 232, "#00e09e", 1.4) + t(x, 244, f"J{i + 1}", 9.5, "#00e09e", "middle", "600")
     b += t(130, 258, "4 jurusan JTR 380/220 V,", 9.5, AX) + t(130, 270, "masing-masing ≤ 63 A (NH 63 A)", 9.5, AX)
     # tabel kecil kanan: pembebanan
-    kolom = [("Beban puncak", f"{ind(P_TRAFO, 0)} kW, pf {ind(PF_TRAFO, 1)}"), ("S beban", f"{ind(S_BEBAN, 0)} kVA"), ("Pembebanan", f"{ind(PEMBEBANAN, 0)} % (sasaran 60–80 %)"), ("Arus TR", f"{ind(S_BEBAN * 1000 / (SQ3 * 400), 0)} A pada 400 V"), ("Arus TM", f"{ind(S_BEBAN * 1000 / (SQ3 * 20000), 1)} A pada 20 kV"), ("Rugi trafo", "P₀ ≈ 0,4 kW + P_k ≈ 3 kW × (0,8)²")]
+    kolom = [("Beban puncak", f"{ind(P_TRAFO, 0)} kW, pf {ind(PF_TRAFO, 1)}"), ("S beban", f"{ind(S_BEBAN, 0)} kVA"), ("Pembebanan", f"{ind(PEMBEBANAN, 0)} % (sasaran 60–80 %)"), ("Arus TR", f"{ind(S_BEBAN * 1000 / (SQ3 * 400), 0)} A pada 400 V"), ("Arus TM", f"{ind(S_BEBAN * 1000 / (SQ3 * 20000), 1)} A pada 20 kV"), ("Rugi trafo", "P₀ ≈ 0,4 kW + P<sub>k</sub> ≈ 3 kW × (0,8)²")]
     for i, (k_, v_) in enumerate(kolom):
         y = 44 + i * 34
         b += f'<rect x="300" y="{y}" width="340" height="28" rx="6" fill="{BOX}" stroke="{GRID}" stroke-width="1"/>' + t(310, y + 18, k_, 10.5, TX, "start", "600") + t(630, y + 18, v_, 10, "#22d3ee", "end")
@@ -254,14 +254,14 @@ HERO_SCHEMATIC_1 = '''  <div class="hero-schematic">
     </svg>
   </div>'''
 
-HERO_SCHEMATIC_2 = '''  <div class="hero-schematic">
+HERO_SCHEMATIC_2 = rumus_mentah('''  <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
       <path d="M 10 150 L 30 140 L 45 150 L 60 100 L 75 95 L 90 130" stroke="rgba(239,68,68,.6)" stroke-width="1.6" fill="none"/>
       <line x1="10" y1="122" x2="90" y2="122" stroke="rgba(0,224,158,.6)" stroke-width="1" stroke-dasharray="3 3"/>
       <text x="12" y="80" fill="rgba(148,163,184,.55)" font-family="JetBrains Mono" font-size="8">kurva beban</text>
-      <text x="56" y="116" fill="rgba(0,224,158,.6)" font-family="JetBrains Mono" font-size="8">P_rata</text>
+      <text x="56" y="116" fill="rgba(0,224,158,.6)" font-family="JetBrains Mono" font-size="8">P<sub>rata</sub></text>
     </svg>
-  </div>'''
+  </div>''')
 
 HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="11">
   <div class="hero-waves">
@@ -273,8 +273,8 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
   </div>
 {HERO_SCHEMATIC_1}
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">F_B = E/(P_maks·T)</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">F_rugi = 0,3F_B + 0,7F_B²</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">F<sub>B</sub> = E/(P<sub>maks</sub>·T)</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">F<sub>rugi</sub> = 0,3F<sub>B</sub> + 0,7F<sub>B</sub>²</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">ΔV = √3·I·L·(r cos φ + x sin φ)</span>
     <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">SAIDI · SAIFI</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">20 kV → 380/220 V</span>
@@ -342,17 +342,17 @@ def materi():
     isi = figure(2, "Kurva beban harian dua jenis pelanggan dan faktor bebannya", "Pelanggan rumah tangga berpuncak malam (18–20), komersial berpuncak siang (10–15). Rata-rata terhadap puncak adalah faktor beban; puncak yang tidak bersamaan membuat kebutuhan gabungan lebih kecil daripada jumlah puncak masing-masing: faktor keragaman.", gambar2())
     isi += formula(2, "Empat Faktor Beban", r"F_{keb} = \dfrac{P_{maks}}{P_{terhubung}}, \quad F_{krg} = \dfrac{\sum P_{maks,i}}{P_{maks,serempak}} \ge 1, \quad F_B = \dfrac{E}{P_{maks}\,T}, \quad F_{rugi} \approx 0{,}3F_B + 0{,}7F_B^2",
                    rf"Gardu contoh: beban terhubung {ind(TERHUBUNG, 0)} kW dengan \(F_{{keb}} = {ind(DF, 2)}\) → \(P_{{maks}} = {ind(P_MAKS, 1)}\) kW. Tiga kelompok berpuncak {ind(P_IND[0], 0)}, {ind(P_IND[1], 0)}, {ind(P_IND[2], 0)} kW dengan \(F_{{krg}} = {ind(FD, 1)}\) → serempak \({ind(sum(P_IND), 0)}/{ind(FD, 1)} = {ind(P_SEREMPAK, 1)}\) kW. Energi {ind(E_BULAN, 0)} kWh/bulan pada puncak {ind(P_MAKS_LF, 0)} kW: \(F_B = {ind(E_BULAN, 0)}/({ind(P_MAKS_LF, 0)}\times720) = {ind(LF, 2)}\). Faktor beban tahunan {ind(FB_TH, 2)} → \(F_{{rugi}} = 0{{,}}3\times{ind(FB_TH, 2)} + 0{{,}}7\times{ind(FB_TH, 2)}^2 = {ind(LOSSF, 4)}\).",
-                   "Faktor kebutuhan menerjemahkan daya terpasang menjadi daya yang benar-benar ditarik (tidak semua alat menyala bersamaan); faktor keragaman menerjemahkan puncak tiap pelanggan menjadi puncak gabungan (puncak tidak bersamaan). Keduanya yang membuat trafo 100 kVA cukup untuk 80 rumah berdaya 1300 VA. Faktor beban mengukur seberapa 'rata' pemakaian; faktor rugi menerjemahkannya ke rugi rata-rata karena rugi ∝ I², dan selalu berada di antara F_B² dan F_B.",
+                   "Faktor kebutuhan menerjemahkan daya terpasang menjadi daya yang benar-benar ditarik (tidak semua alat menyala bersamaan); faktor keragaman menerjemahkan puncak tiap pelanggan menjadi puncak gabungan (puncak tidak bersamaan). Keduanya yang membuat trafo 100 kVA cukup untuk 80 rumah berdaya 1300 VA. Faktor beban mengukur seberapa 'rata' pemakaian; faktor rugi menerjemahkannya ke rugi rata-rata karena rugi ∝ I², dan selalu berada di antara F<sub>B</sub>² dan F<sub>B</sub>.",
                    [("P_{terhubung}", "Jumlah daya seluruh peralatan/pelanggan (kW)"), ("P_{maks,i}", "Kebutuhan maksimum tiap kelompok pada waktunya sendiri"), ("T", "Periode (jam): 720 sebulan, 8760 setahun")])
     isi += cards([
-        ("🏠", "Rumah Tangga", "F_keb 0,4–0,6; F_krg antar-rumah 2–3; F_B 0,3–0,5; puncak malam 18–21 saat lampu, TV, AC, dan magic com bersamaan.", None),
-        ("🏬", "Komersial", "F_keb 0,6–0,8; F_krg 1,3–1,5; F_B 0,4–0,6; puncak siang saat AC dan penerangan toko/kantor.", None),
-        ("🏭", "Industri", "F_keb 0,7–0,9 (satu shift) sampai 0,95 (tiga shift); F_B 0,5–0,85; beban paling 'rata', paling disukai utilitas.", None),
+        ("🏠", "Rumah Tangga", "F<sub>keb</sub> 0,4–0,6; F<sub>krg</sub> antar-rumah 2–3; F<sub>B</sub> 0,3–0,5; puncak malam 18–21 saat lampu, TV, AC, dan magic com bersamaan.", None),
+        ("🏬", "Komersial", "F<sub>keb</sub> 0,6–0,8; F<sub>krg</sub> 1,3–1,5; F<sub>B</sub> 0,4–0,6; puncak siang saat AC dan penerangan toko/kantor.", None),
+        ("🏭", "Industri", "F<sub>keb</sub> 0,7–0,9 (satu shift) sampai 0,95 (tiga shift); F<sub>B</sub> 0,5–0,85; beban paling 'rata', paling disukai utilitas.", None),
         ("📈", "Kebutuhan Puncak", "Ukuran trafo, penyulang, dan GI ditentukan kebutuhan serempak puncak, bukan energi; pelanggan berfaktor beban rendah 'mahal' karena memakai kapasitas tetapi sedikit kWh.", None),
-        ("🧮", "Faktor Rugi", "Beban puncak 100 kW dengan F_B 0,5 memakai energi 50 %, tetapi rugi rata-ratanya 0,325 × rugi puncak, bukan 0,5: rugi terkonsentrasi di jam puncak.", r"\(F_B^2 \le F_{rugi} \le F_B\)"),
+        ("🧮", "Faktor Rugi", "Beban puncak 100 kW dengan F<sub>B</sub> 0,5 memakai energi 50 %, tetapi rugi rata-ratanya 0,325 × rugi puncak, bukan 0,5: rugi terkonsentrasi di jam puncak.", r"\(F_B^2 \le F_{rugi} \le F_B\)"),
         ("📋", "Peramalan", "Kebutuhan per pelanggan × jumlah pelanggan ÷ faktor keragaman = kebutuhan gardu; dari sini tumbuh 5–7 %/tahun untuk perencanaan Modul 12.", None),
     ])
-    isi += tabel(["Kelompok pelanggan (PLN, khas)", "Daya per pelanggan", "F_keb", "F_krg antar-pelanggan", "kebutuhan per pelanggan saat puncak gardu", "F_B"],
+    isi += tabel(["Kelompok pelanggan (PLN, khas)", "Daya per pelanggan", "F<sub>keb</sub>", "F<sub>krg</sub> antar-pelanggan", "kebutuhan per pelanggan saat puncak gardu", "F<sub>B</sub>"],
                  [[nama, daya, ind(fk, 2), ind(fkr, 1), f"{ind(kw, 2)} kW", ind(fb, 2)] for nama, daya, fk, fkr, kw, fb in
                   [("R1 900 VA", "0,9 kVA", 0.55, 2.8, 0.9 * 0.55 * 0.9 / 2.8, 0.35), ("R1 1300 VA", "1,3 kVA", 0.5, 2.6, 1.3 * 0.5 * 0.9 / 2.6, 0.38), ("R1 2200 VA", "2,2 kVA", 0.5, 2.4, 2.2 * 0.5 * 0.9 / 2.4, 0.4),
                    ("B2 ruko 5500 VA", "5,5 kVA", 0.7, 1.6, 5.5 * 0.7 * 0.85 / 1.6, 0.5), ("I2 industri kecil 53 kVA", "53 kVA", 0.8, 1.3, 53 * 0.8 * 0.85 / 1.3, 0.6)]])
@@ -395,13 +395,13 @@ def materi():
                    [("n, d", "Jumlah pelanggan dan kebutuhan maksimum per pelanggan (kW)"), ("F_{krg}", "Faktor keragaman antar-pelanggan"), ("S_{trafo}", "Daya pengenal trafo (kVA)")])
     isi += cards([
         ("🏗️", "Jenis Gardu", "Gardu portal/cantol (tiang, ≤ 250 kVA, SUTM), gardu beton/kios (kubikel 20 kV + trafo ≤ 630 kVA, SKTM kota), gardu pelanggan TM.", None),
-        ("🔥", "Rugi Trafo", "P₀ (besi, tetap) 0,2–0,6 kW dan P_k (tembaga, ∝ pembebanan²) 1–6 kW untuk 100–400 kVA; efisiensi maksimum saat P₀ = P_k, biasanya di pembebanan 40–60 %.", r"\(P_{rugi} = P_0 + P_k\left(\tfrac{S}{S_n}\right)^2\)"),
+        ("🔥", "Rugi Trafo", "P₀ (besi, tetap) 0,2–0,6 kW dan P<sub>k</sub> (tembaga, ∝ pembebanan²) 1–6 kW untuk 100–400 kVA; efisiensi maksimum saat P₀ = P<sub>k</sub>, biasanya di pembebanan 40–60 %.", r"\(P_{rugi} = P_0 + P_k\left(\tfrac{S}{S_n}\right)^2\)"),
         ("⚖️", "Ketidakseimbangan", "Beban 1 fasa yang tidak merata antar-fasa menimbulkan arus netral, rugi tambahan, dan tegangan fasa timpang; pembagian SR per fasa dijaga seimbang (< 10–20 %).", None),
-        ("🛡️", "Proteksi", "Sisi TM: fuse cut-out (2–3 × I_n trafo) + arrester; sisi TR: NH-fuse per jurusan (≤ 0,9 × KHA kabel) yang harus putus lebih dulu daripada fuse TM (selektivitas).", None),
+        ("🛡️", "Proteksi", "Sisi TM: fuse cut-out (2–3 × I<sub>n</sub> trafo) + arrester; sisi TR: NH-fuse per jurusan (≤ 0,9 × KHA kabel) yang harus putus lebih dulu daripada fuse TM (selektivitas).", None),
         ("📏", "Letak Gardu", "Di pusat beban (titik berat beban), agar jurusan JTR ≤ 500 m dan jatuh tegangannya ≤ 5 %; gardu tambahan lebih murah daripada memperbesar JTR panjang.", None),
         ("🔧", "Pemeliharaan", "Ukur pembebanan dan tegangan per fasa saat puncak (Animasi 1), termografi sambungan, uji minyak; pembebanan > 80 % adalah pemicu penambahan gardu (sisip).", None),
     ])
-    isi += tabel(["Trafo (kVA)", "I_n TR (A) pada 400 V", "P₀ (kW)", "P_k (kW)", "Rumah 1300 VA yang dapat dilayani*", "Jurusan JTR"],
+    isi += tabel(["Trafo (kVA)", "I<sub>n</sub> TR (A) pada 400 V", "P₀ (kW)", "P<sub>k</sub> (kW)", "Rumah 1300 VA yang dapat dilayani*", "Jurusan JTR"],
                  [[str(s), ind(s * 1000 / (SQ3 * 400), 0), ind(p0, 2), ind(pk, 2), str(int(s * 0.7 * 0.9 / (1.3 * 0.5 * 0.9 / 2.6) // 1)), jur] for s, p0, pk, jur in
                   [(50, 0.19, 1.1, "1–2"), (100, 0.32, 1.75, "2–3"), (160, 0.46, 2.35, "3–4"), (250, 0.65, 3.25, "4"), (400, 0.93, 4.6, "4–6"), (630, 1.3, 6.5, "6–8")]])
     isi += kotak("info-box", "<strong>📊 Cara Membaca Tabel di Atas:</strong> *pada pembebanan 70 %, pf 0,9, kebutuhan puncak per rumah ≈ 0,225 kW (baris R1 1300 VA Bagian 02); trafo 100 kVA ≈ 280 rumah secara daya, tetapi jumlah rumah nyata dibatasi panjang JTR (≤ 500 m) sehingga 100–150 rumah per gardu lebih umum. Soal C5 dan C11 memakai Persamaan (4).")
@@ -420,7 +420,7 @@ def materi():
         ("🧮", "Ruas demi Ruas", "JTR dengan beban di beberapa titik: arus tiap ruas = jumlah arus beban di hilirnya; ΔV total = Σ ruas (Soal C12).", None),
         ("⚡", "Kabel JTR", "NFA2X (Al pilin) 3×35+25: r 0,868; 3×50+35: 0,641; 3×70+50: 0,443; 3×95+70: 0,320 Ω/km; x ≈ 0,08 Ω/km untuk semua.", None),
         ("🔥", "Rugi JTR", "Arus besar pada tegangan rendah: JTR 300 m 100 A kabel 50 mm² merugi ± 1,9 kW (beban terpusat), 2 % dari 66 kW yang disalurkan; JTR panjang adalah sumber rugi terbesar.", None),
-        ("📊", "Beban Tak Seimbang", "Arus netral I_N ≈ |I_R + a²I_S + aI_T| menambah jatuh tegangan pada fasa yang paling berat dan rugi I_N²R_N; keseimbangan adalah perbaikan termurah.", None),
+        ("📊", "Beban Tak Seimbang", "Arus netral I<sub>N</sub> ≈ |I<sub>R</sub> + a²I<sub>S</sub> + aI<sub>T</sub>| menambah jatuh tegangan pada fasa yang paling berat dan rugi I<sub>N</sub>²R<sub>N</sub>; keseimbangan adalah perbaikan termurah.", None),
         ("🔁", "Ke Modul 10", "Untuk penyulang 20 kV, kapasitor dan regulator (Modul 10) memperbaiki suku x sin φ dan profilnya; untuk JTR, yang bekerja adalah penampang, panjang, dan letak gardu.", None),
     ])
     isi += tabel(["Kabel JTR NFA2X (Al)", "r (Ω/km)", "KHA (A)", f"ΔV pada {ind(L_JTR * 1000, 0)} m, {ind(I_JTR, 0)} A pf {ind(PF_JTR, 1)} (terpusat)", "ΔV bila beban merata", "Rugi (terpusat, kW)"],
@@ -445,7 +445,7 @@ def materi():
         ("⚖️", "Keseimbangan Fasa", "Rancangan tiga fasa empat kawat hanya berlaku bila beban seimbang; bagi SR ke fasa R-S-T bergiliran dan ukur ulang setelah pelanggan bertambah.", None),
         ("🏭", "Di Pabrik", "Aturan yang sama untuk kabel dari panel utama ke mesin: PUIL membatasi ΔV total 5 % (penerangan 3 %); hitung KHA, ΔV, dan rugi seperti JTR mini.", None),
     ])
-    isi += tabel(["Pilihan rancangan JTR (300 m, 100 A pf 0,9)", "ΔV terpusat", "ΔV merata", "Rugi puncak (kW)", "E_rugi/th (F_rugi 0,3)", "Keterangan"],
+    isi += tabel(["Pilihan rancangan JTR (300 m, 100 A pf 0,9)", "ΔV terpusat", "ΔV merata", "Rugi puncak (kW)", "E<sub>rugi</sub>/th (F<sub>rugi</sub> 0,3)", "Keterangan"],
                  [[nama, f"{ind(dv_, 1)} %", f"{ind(dv_ / 2, 1)} %", ind(rg, 2), f"{ind(rg * 8760 * 0.3, 0)} kWh", ket] for nama, dv_, rg, ket in
                   [(n_, SQ3 * 100 * 0.3 * (r_ * 0.9 + 0.08 * math.sqrt(1 - 0.81)) / 380 * 100, 3 * 100 ** 2 * r_ * 0.3 / 1000, k_) for n_, r_, k_ in
                    [("Al 35 mm²", 0.868, "KHA terlampaui, ΔV > 5 %"), ("Al 50 mm²", 0.641, "ΔV merata memenuhi"), ("Al 70 mm² (standar)", 0.443, "aman, rugi rendah"), ("Al 95 mm²", 0.320, "rugi terendah, biaya +30 %")]] +
@@ -556,7 +556,7 @@ print(f"ENS = {ind(P_MW_ENS, 1).replace(",", ".")} MW x {ind(FB_ENS, 2).replace(
 I3, L3, pf3, dv_izin, rho = {ind(I_MIN, 0)}, {ind(L_MIN, 0)}, {ind(PF_MIN, 2).replace(",", ".")}, {ind(DV_MIN_PCT, 0)}/100*380, 0.0175
 A = np.sqrt(3)*I3*pf3*rho*L3/dv_izin
 print(f"A_min (Cu) = {{A:.4f}} mm2 -> standar 35 mm2; Al ({{0.0283}}): {{A*0.0283/0.0175:.2f}} mm2 -> 50 mm2")''')
-    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 02–06: P_maks {ind(P_MAKS, 1)} kW, serempak {ind(P_SEREMPAK, 1)} kW, F_rugi {ind(LOSSF, 4)}, trafo {ind(S_GARDU, 1)} kVA → 100 kVA, ΔV JTR {ind(DV_JTR_PCT, 2)} %, SAIDI {ind(SAIDI, 2)} jam, A_min {ind(A_MIN, 1)} mm². Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
+    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 02–06: P<sub>maks</sub> {ind(P_MAKS, 1)} kW, serempak {ind(P_SEREMPAK, 1)} kW, F<sub>rugi</sub> {ind(LOSSF, 4)}, trafo {ind(S_GARDU, 1)} kVA → 100 kVA, ΔV JTR {ind(DV_JTR_PCT, 2)} %, SAIDI {ind(SAIDI, 2)} jam, A<sub>min</sub> {ind(A_MIN, 1)} mm². Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
     m += bagian(8, "m-jupyter", "Implementasi Python<br>di Jupyter Notebook",
                 "Empat cell berikut mengerjakan seluruh contoh modul ini: faktor-faktor beban dari kurva harian, pemilihan trafo dan pembebanan gardu, jatuh tegangan JTR terpusat, merata, dan bertahap, serta penyulang beban merata, keandalan, dan penampang minimum. Salin satu cell utuh ke Jupyter Notebook (VS Code), jalankan apa adanya lebih dulu, baru ubah parameternya.",
                 isi, "IMPLEMENTASI PYTHON")
@@ -596,11 +596,11 @@ TUGAS_HERO = f'''<div class="hero" data-tab="tugas" style="min-height:60vh">
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">F_B = E/(P_maks·T)</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">F<sub>B</sub> = E/(P<sub>maks</sub>·T)</span>
     <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">ΔV = √3·I·L·(r cos φ + x sin φ)</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">S = n·d/(F_krg·pf)</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">SAIDI = Σ N_i t_i / N</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">A_min = √3·I·cos φ·ρL/ΔV</span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">S = n·d/(F<sub>krg</sub>·pf)</span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">SAIDI = Σ N<sub>i</sub> t<sub>i</sub> / N</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">A<sub>min</sub> = √3·I·cos φ·ρL/ΔV</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan {PERTEMUAN} · {JUDUL_PANJANG}</div>
@@ -633,8 +633,8 @@ MC = [
     ("<strong>Faktor keragaman</strong> (diversity factor) bernilai...",
      ["≥ 1, yaitu jumlah kebutuhan maksimum individu dibagi kebutuhan maksimum serempak, karena puncak tiap pelanggan tidak bersamaan", "≤ 1, yaitu kebutuhan serempak dibagi beban terhubung", "Selalu tepat 1 untuk pelanggan rumah tangga", "Negatif bila beban bersifat kapasitif"],
      "Faktor keragaman"),
-    ("Hubungan <strong>faktor rugi</strong> (loss factor) dengan faktor beban F_B adalah...",
-     ["Faktor rugi = F_B", "Faktor rugi = 1/F_B", "Faktor rugi = 1 − F_B", "F_B² ≤ faktor rugi ≤ F_B, karena rugi sebanding I²; rumus empiris 0,3F_B + 0,7F_B²"],
+    ("Hubungan <strong>faktor rugi</strong> (loss factor) dengan faktor beban F<sub>B</sub> adalah...",
+     ["Faktor rugi = F<sub>B</sub>", "Faktor rugi = 1/F<sub>B</sub>", "Faktor rugi = 1 − F<sub>B</sub>", "F<sub>B</sub>² ≤ faktor rugi ≤ F<sub>B</sub>, karena rugi sebanding I²; rumus empiris 0,3F<sub>B</sub> + 0,7F<sub>B</sub>²"],
      "Faktor rugi"),
     ("<strong>SAIDI</strong> adalah...",
      ["Jumlah gangguan per tahun dibagi panjang penyulang", "Σ (jumlah pelanggan padam × lama padam) dibagi jumlah pelanggan yang dilayani: rata-rata jam padam per pelanggan per tahun", "Energi tak tersalurkan per tahun", "Rata-rata lama tiap gangguan"],
@@ -685,7 +685,7 @@ FQ_JUDUL = [
     "Penyulang 20 kV pemasok: radial berseksi atau loop? Hitung SAIDI dan ENS keduanya, lalu tentukan yang layak untuk kawasan ini.",
 ]
 FQ_RINGKAS = [
-    f"Kebutuhan maksimum per rumah {ind(D_R, 1)} kW dengan F_krg {ind(FD_R, 1)} pf {ind(PF_R, 1)}, ruko {ind(D_K, 0)} kW F_krg {ind(FD_K, 1)} pf {ind(PF_K, 2)}: P dan S tiap kelompok (Persamaan 2 dan 4), jumlah S, pembebanan trafo 250 kVA dan ruang pertumbuhan 6 %/tahun; pertimbangkan dua gardu.",
+    f"Kebutuhan maksimum per rumah {ind(D_R, 1)} kW dengan F<sub>krg</sub> {ind(FD_R, 1)} pf {ind(PF_R, 1)}, ruko {ind(D_K, 0)} kW F<sub>krg</sub> {ind(FD_K, 1)} pf {ind(PF_K, 2)}: P dan S tiap kelompok (Persamaan 2 dan 4), jumlah S, pembebanan trafo 250 kVA dan ruang pertumbuhan 6 %/tahun; pertimbangkan dua gardu.",
     f"Jurusan {ind(L_JUR * 1000, 0)} m dengan {N_R_JUR} rumah tersebar merata: arus pangkal dari kebutuhan serempak, ΔV merata = ½·√3·I·L·(r cos φ + x sin φ) (Persamaan 5) untuk NFA2X 3×50+35 dan 3×70+50; rugi merata I²R; bandingkan dengan batas 5 % dan KHA; pertimbangkan membagi jurusan.",
     f"Radial 1 seksi vs loop 4 seksi dengan {FREQ_F} gangguan/tahun, perbaikan {ind(DUR_F, 1)} jam, isolasi {ind(ISO_F, 1)} jam: SAIDI, SAIFI (sama), CAIDI, ENS (Persamaan 3) pada beban rata-rata; sasaran SAIDI < 5 jam; nilai ENS vs biaya penyulang kedua/LBS.",
 ]
@@ -694,7 +694,7 @@ FQ_RINGKAS = [
 def forum_page():
     q1 = fq(1, "14,165,233", "cyan", FQ_JUDUL[0],
             f"Pengembang membangun perumahan <b>{N_R} rumah (daya 1300 VA)</b> dan <b>{N_K} ruko (5500 VA)</b>. Dari data PLN, kebutuhan maksimum per rumah {ind(D_R, 1)} kW dengan faktor keragaman antar-rumah {ind(FD_R, 1)} pada pf {ind(PF_R, 1)}; per ruko {ind(D_K, 0)} kW dengan faktor keragaman {ind(FD_K, 1)} pada pf {ind(PF_K, 2)}. Hitung kebutuhan serempak (kW dan kVA) tiap kelompok dan totalnya (Persamaan 2 dan 4), lalu periksa pembebanan bila dipasang satu gardu 250 kVA. Dengan pertumbuhan 6 %/tahun, berapa tahun gardu itu bertahan sebelum 80 %? Bahas apakah satu gardu di tengah atau dua gardu 160 kVA lebih baik, mengingat batas panjang jurusan JTR.",
-            ["P = n·d/F_krg", "S = P/pf", "pembebanan = S/S_trafo"],
+            ["P = n·d/F<sub>krg</sub>", "S = P/pf", "pembebanan = S/S<sub>trafo</sub>"],
             "Kebutuhan serempak total dan pembebanan trafo 250 kVA kira-kira...",
             [f"{ind(N_R * D_R + N_K * D_K, 0)} kW → {ind((N_R * D_R + N_K * D_K) / 0.9, 0)} kVA: trafo 250 kVA jauh tidak cukup", f"{ind(P_R + P_K, 1)} kW → {ind(S_TOT, 1)} kVA: pembebanan {ind(PEMB_F, 0)} %, cukup sekarang tetapi hampir tanpa ruang tumbuh", f"{ind(P_R, 1)} kW → {ind(S_R, 1)} kVA: ruko tidak perlu dihitung", f"{ind(P_R + P_K, 1)} kW → pembebanan {ind((P_R + P_K) / TRAFO_F * 100, 0)} % (kW langsung dibagi kVA)"],
             f"✅ Tepat! Rumah: \\(P = {N_R}\\times{ind(D_R, 1)}/{ind(FD_R, 1)} = {ind(P_R, 1)}\\) kW → \\({ind(S_R, 1)}\\) kVA; ruko: \\({N_K}\\times{ind(D_K, 0)}/{ind(FD_K, 1)} = {ind(P_K, 1)}\\) kW → \\({ind(S_K, 1)}\\) kVA; total {ind(S_TOT, 1)} kVA = {ind(PEMB_F, 0)} % dari 250 kVA. Pertumbuhan 6 %/tahun mencapai 80 % (200 kVA) dalam ≈ {ind(math.log(200 / S_TOT) / math.log(1.06), 1)} tahun bila belum, jadi hampir langsung; dua gardu 160 kVA (masing-masing ± {ind(S_TOT / 2, 0)} kVA, {ind(S_TOT / 2 / 160 * 100, 0)} %) memberi ruang tumbuh dan jurusan JTR lebih pendek.",
@@ -702,15 +702,15 @@ def forum_page():
             "Petunjuk: (1) Hitung P dan S rumah dan ruko. (2) Jumlahkan, hitung pembebanan 250 kVA dan tahun sampai 80 %. (3) Bandingkan satu gardu vs dua gardu dari sisi kVA dan panjang JTR.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
             f"Gardu melayani {N_JUR} jurusan JTR; jurusan terpanjang <b>{ind(L_JUR * 1000, 0)} m</b> memasok <b>{N_R_JUR} rumah</b> yang tersebar merata. Hitung arus pangkal jurusan dari kebutuhan serempak {N_R_JUR} rumah (Persamaan 4, pf {ind(PF_R, 1)}), lalu jatuh tegangan sampai ujung untuk beban merata (Persamaan 5, faktor ½) dengan kabel NFA2X 3×50+35 (r = 0,641) dan 3×70+50 (r = {ind(R70, 3)} Ω/km, x = {ind(XF, 2)}). Hitung pula rugi daya jurusan (faktor ⅓) dan bandingkan dengan batas rancangan 5 % dan KHA. Bila tidak memenuhi, usulkan pembagian jurusan atau penampang lain, dan taksir rugi energi tahunannya dengan faktor rugi 0,3.",
-            ["I = P/(√3·V·pf)", "ΔV_merata = ½·√3·I·L·(r cos φ + x sin φ)", "rugi_merata = I²R"],
+            ["I = P/(√3·V·pf)", "ΔV<sub>merata</sub> = ½·√3·I·L·(r cos φ + x sin φ)", "rugi<sub>merata</sub> = I²R"],
             f"Arus pangkal dan jatuh tegangan jurusan {ind(L_JUR * 1000, 0)} m dengan kabel 3×70+50 kira-kira...",
             [f"{ind(I_JUR * 2, 0)} A dan {ind(DV_JUR_PCT * 2, 1)} % (beban dianggap terpusat di ujung)", f"{ind(I_JUR, 0)} A dan {ind(DV_JUR_PCT * 2, 1)} %: melampaui 5 %", f"{ind(N_R_JUR * D_R * 1000 / (SQ3 * 380 * PF_R), 0)} A dan {ind(DV_JUR_PCT * N_R_JUR * D_R / (N_R_JUR * D_R / FD_R), 1)} % (tanpa faktor keragaman)", f"{ind(I_JUR, 0)} A dan {ind(DV_JUR_PCT, 2)} % (beban merata): memenuhi 5 %, rugi ≈ {ind(RUGI_JUR, 2)} kW; kabel 50 mm² memberi {ind(DV_JUR_50, 2)} %"],
             f"✅ Tepat! \\(P = {N_R_JUR}\\times{ind(D_R, 1)}/{ind(FD_R, 1)} = {ind(N_R_JUR * D_R / FD_R, 1)}\\) kW → \\(I = {ind(N_R_JUR * D_R / FD_R, 1)}\\times10^3/(\\sqrt{{3}}\\times380\\times{ind(PF_R, 1)}) = {ind(I_JUR, 1)}\\) A. Kabel 70: \\(\\Delta V = \\tfrac{{1}}{{2}}\\sqrt{{3}}\\times{ind(I_JUR, 1)}\\times{ind(L_JUR, 2)}\\times({ind(R70, 3)}\\times{ind(PF_R, 1)} + {ind(XF, 2)}\\times{ind(SINR, 3)}) = {ind(DV_JUR, 2)}\\) V = {ind(DV_JUR_PCT, 2)} %; kabel 50: {ind(DV_JUR_50, 2)} % (juga memenuhi). Rugi merata = \\({ind(I_JUR, 1)}^2\\times{ind(R70, 3)}\\times{ind(L_JUR, 2)} = {ind(RUGI_JUR, 2)}\\) kW → \\({ind(RUGI_JUR * 8760 * 0.3, 0)}\\) kWh/tahun. Standar PLN tetap 70 mm² karena pertumbuhan beban dan rugi 25 tahun.",
             "❌ Pakai kebutuhan serempak (dengan faktor keragaman), bukan daya terpasang, untuk arus pangkal; dan pakai faktor ½ karena beban tersebar merata sepanjang jurusan.",
             "Petunjuk: (1) Hitung P serempak dan I pangkal. (2) Hitung ΔV merata untuk 50 dan 70 mm², bandingkan dengan 5 % dan KHA. (3) Hitung rugi merata dan energi rugi tahunan; bahas pembagian jurusan.")
     q3 = fq(3, "168,85,247", "violet", FQ_JUDUL[2],
-            f"Penyulang 20 kV yang memasok kawasan ini mengalami rata-rata <b>{FREQ_F} gangguan per tahun</b> dengan lama perbaikan {ind(DUR_F, 1)} jam. Dua pilihan: (a) radial tanpa seksi, semua pelanggan menunggu perbaikan; (b) loop 4 seksi dengan titik NO ke penyulang tetangga: isolasi {ind(ISO_F, 1)} jam, setelah itu hanya seksi gangguan (¼ pelanggan) yang menunggu sisa perbaikan. Hitung SAIDI, SAIFI, dan CAIDI keduanya (Persamaan 3), energi tak tersalurkan pada beban rata-rata {ind(P_AVG_F * 1000, 0)} kW (F_B 0,45), dan bandingkan dengan sasaran SAIDI < 5 jam. Bahas biaya: LBS bermotor dan penyulang penghubung vs nilai ENS dan kerugian ruko/pelanggan.",
-            ["SAIDI = Σ N_i t_i / N", "SAIFI tetap = gangguan/tahun", "ENS = P_rata × SAIDI"],
+            f"Penyulang 20 kV yang memasok kawasan ini mengalami rata-rata <b>{FREQ_F} gangguan per tahun</b> dengan lama perbaikan {ind(DUR_F, 1)} jam. Dua pilihan: (a) radial tanpa seksi, semua pelanggan menunggu perbaikan; (b) loop 4 seksi dengan titik NO ke penyulang tetangga: isolasi {ind(ISO_F, 1)} jam, setelah itu hanya seksi gangguan (¼ pelanggan) yang menunggu sisa perbaikan. Hitung SAIDI, SAIFI, dan CAIDI keduanya (Persamaan 3), energi tak tersalurkan pada beban rata-rata {ind(P_AVG_F * 1000, 0)} kW (F<sub>B</sub> 0,45), dan bandingkan dengan sasaran SAIDI < 5 jam. Bahas biaya: LBS bermotor dan penyulang penghubung vs nilai ENS dan kerugian ruko/pelanggan.",
+            ["SAIDI = Σ N<sub>i</sub> t<sub>i</sub> / N", "SAIFI tetap = gangguan/tahun", "ENS = P<sub>rata</sub> × SAIDI"],
             "SAIDI radial dan loop 4 seksi pada 4 gangguan/tahun kira-kira...",
             [f"Radial {ind(SAIDI_RAD, 1)} jam vs loop {ind(SAIDI_LOOP, 2)} jam; SAIFI keduanya {FREQ_F} kali; ENS {ind(ENS_RAD, 2)} → {ind(ENS_LOOP, 2)} MWh/tahun", f"Radial {ind(SAIDI_RAD, 1)} jam vs loop 0 jam karena loop tidak pernah padam", f"Radial {ind(SAIDI_RAD / 4, 1)} jam vs loop {ind(SAIDI_RAD, 1)} jam", f"Radial {ind(SAIDI_RAD, 1)} jam vs loop {ind(SAIDI_LOOP, 2)} jam, dan SAIFI loop turun menjadi 1 kali"],
             f"✅ Tepat! Radial: \\(SAIDI = {FREQ_F}\\times{ind(DUR_F, 1)} = {ind(SAIDI_RAD, 1)}\\) jam. Loop 4 seksi: tiap gangguan semua pelanggan padam {ind(ISO_F, 1)} jam, lalu ¼ pelanggan padam \\({ind(DUR_F, 1)} - {ind(ISO_F, 1)} = {ind(DUR_F - ISO_F, 1)}\\) jam lagi → per gangguan \\({ind(ISO_F, 1)} + {ind(DUR_F - ISO_F, 1)}/4 = {ind(ISO_F + (DUR_F - ISO_F) / 4, 3)}\\) jam, setahun {ind(SAIDI_LOOP, 2)} jam (< 5 jam, memenuhi). SAIFI tetap {FREQ_F} (PMT tetap trip; menurunkannya perlu recloser/pencegahan), CAIDI {ind(DUR_F, 1)} → {ind(SAIDI_LOOP / FREQ_F, 2)} jam. ENS: \\({ind(P_AVG_F, 3)}\\times{ind(SAIDI_RAD, 1)} = {ind(ENS_RAD, 2)}\\) → {ind(ENS_LOOP, 2)} MWh/tahun; nilai kWh-nya kecil, tetapi kerugian ruko dan citra layanan yang membenarkan LBS dan penyulang penghubung.",
@@ -726,8 +726,8 @@ def forum_page():
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">S = n·d/(F_krg·pf)</span>
-    <span class="ff" style="left:32%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">ΔV_merata = ½ ΔV_terpusat</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">S = n·d/(F<sub>krg</sub>·pf)</span>
+    <span class="ff" style="left:32%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">ΔV<sub>merata</sub> = ½ ΔV<sub>terpusat</sub></span>
     <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">SAIDI &lt; 5 jam?</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">250 kVA?</span>
   </div>
@@ -745,7 +745,7 @@ def forum_page():
   <div class="forum-scenario reveal">
     <div class="scenario-label">📋 KASUS PERANCANGAN DISTRIBUSI KAWASAN PERUMAHAN</div>
     <p>
-      Sebuah pengembang membangun <strong style="color:var(--amber)">perumahan {N_R} rumah (1300 VA)</strong> dan <strong style="color:var(--amber)">{N_K} ruko (5500 VA)</strong> di pinggiran kota, dipasok dari <strong style="color:var(--cyan)">penyulang 20 kV</strong> yang melewati jalan utama. Data PLN setempat: kebutuhan maksimum {ind(D_R, 1)} kW/rumah (F_krg {ind(FD_R, 1)}, pf {ind(PF_R, 1)}) dan {ind(D_K, 0)} kW/ruko (F_krg {ind(FD_K, 1)}, pf {ind(PF_K, 2)}); pertumbuhan 6 %/tahun.
+      Sebuah pengembang membangun <strong style="color:var(--amber)">perumahan {N_R} rumah (1300 VA)</strong> dan <strong style="color:var(--amber)">{N_K} ruko (5500 VA)</strong> di pinggiran kota, dipasok dari <strong style="color:var(--cyan)">penyulang 20 kV</strong> yang melewati jalan utama. Data PLN setempat: kebutuhan maksimum {ind(D_R, 1)} kW/rumah (F<sub>krg</sub> {ind(FD_R, 1)}, pf {ind(PF_R, 1)}) dan {ind(D_K, 0)} kW/ruko (F<sub>krg</sub> {ind(FD_K, 1)}, pf {ind(PF_K, 2)}); pertumbuhan 6 %/tahun.
     </p>
     <p style="margin-top:12px">
       Tata letak menuntut {N_JUR} jurusan JTR dari gardu, yang terpanjang <strong style="color:var(--pink)">{ind(L_JUR * 1000, 0)} m dengan {N_R_JUR} rumah merata</strong>. Penyulang pemasok saat ini radial tanpa seksi dengan {FREQ_F} gangguan/tahun berdurasi {ind(DUR_F, 1)} jam; pengembang meminta jaminan <strong style="color:var(--pink)">SAIDI &lt; 5 jam</strong> untuk kawasan rukonya.
@@ -754,8 +754,8 @@ def forum_page():
       Sebagai mahasiswa yang baru menyelesaikan Modul {NOMOR}, Anda diminta menghitung trafo, kabel jurusan, dan konfigurasi penyulangnya <strong style="color:var(--cyan)">sebelum</strong> PLN menerbitkan rencana sambungan.
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">
-{kartu(f"{N_R} rumah × {ind(D_R, 1)} kW, F_krg {ind(FD_R, 1)}, pf {ind(PF_R, 1)}", "14,165,233", "cyan")}
-{kartu(f"{N_K} ruko × {ind(D_K, 0)} kW, F_krg {ind(FD_K, 1)}, pf {ind(PF_K, 2)}", "14,165,233", "cyan")}
+{kartu(f"{N_R} rumah × {ind(D_R, 1)} kW, F<sub>krg</sub> {ind(FD_R, 1)}, pf {ind(PF_R, 1)}", "14,165,233", "cyan")}
+{kartu(f"{N_K} ruko × {ind(D_K, 0)} kW, F<sub>krg</sub> {ind(FD_K, 1)}, pf {ind(PF_K, 2)}", "14,165,233", "cyan")}
 {kartu(f"Jurusan terpanjang {ind(L_JUR * 1000, 0)} m, {N_R_JUR} rumah merata", "14,165,233", "cyan")}
 {kartu(f"Penyulang: {FREQ_F} gangguan/th × {ind(DUR_F, 1)} jam; sasaran SAIDI < 5 jam", "239,68,68", "pink")}
     </div>
@@ -773,8 +773,8 @@ def forum_page():
 {q1}{q2}{q3}'''
 
 
-FORUM_SKENARIO_LMS = f"Perumahan {N_R} rumah (1300 VA; {ind(D_R, 1)} kW/rumah, F_krg {ind(FD_R, 1)}, pf {ind(PF_R, 1)}) + {N_K} ruko (5500 VA; {ind(D_K, 0)} kW/ruko, F_krg {ind(FD_K, 1)}, pf {ind(PF_K, 2)}), pertumbuhan 6 %/tahun; {N_JUR} jurusan JTR, terpanjang {ind(L_JUR * 1000, 0)} m dengan {N_R_JUR} rumah merata (NFA2X 50 atau 70 mm²); penyulang 20 kV radial {FREQ_F} gangguan/th × {ind(DUR_F, 1)} jam vs loop 4 seksi (isolasi {ind(ISO_F, 1)} jam); sasaran SAIDI < 5 jam."
-FORUM_CHIPS_LMS = [f"rumah = {N_R} × {ind(D_R, 1)} kW, F_krg {ind(FD_R, 1)}", f"ruko = {N_K} × {ind(D_K, 0)} kW, F_krg {ind(FD_K, 1)}", f"jurusan = {ind(L_JUR * 1000, 0)} m, {N_R_JUR} rumah merata", f"penyulang = {FREQ_F} gangguan/th × {ind(DUR_F, 1)} jam"]
+FORUM_SKENARIO_LMS = f"Perumahan {N_R} rumah (1300 VA; {ind(D_R, 1)} kW/rumah, F<sub>krg</sub> {ind(FD_R, 1)}, pf {ind(PF_R, 1)}) + {N_K} ruko (5500 VA; {ind(D_K, 0)} kW/ruko, F<sub>krg</sub> {ind(FD_K, 1)}, pf {ind(PF_K, 2)}), pertumbuhan 6 %/tahun; {N_JUR} jurusan JTR, terpanjang {ind(L_JUR * 1000, 0)} m dengan {N_R_JUR} rumah merata (NFA2X 50 atau 70 mm²); penyulang 20 kV radial {FREQ_F} gangguan/th × {ind(DUR_F, 1)} jam vs loop 4 seksi (isolasi {ind(ISO_F, 1)} jam); sasaran SAIDI < 5 jam."
+FORUM_CHIPS_LMS = [f"rumah = {N_R} × {ind(D_R, 1)} kW, F<sub>krg</sub> {ind(FD_R, 1)}", f"ruko = {N_K} × {ind(D_K, 0)} kW, F<sub>krg</sub> {ind(FD_K, 1)}", f"jurusan = {ind(L_JUR * 1000, 0)} m, {N_R_JUR} rumah merata", f"penyulang = {FREQ_F} gangguan/th × {ind(DUR_F, 1)} jam"]
 
 FORUM_KANVAS = r"""// ════════════════════════════════════════════════════════════
 // FORUM CANVAS — Denah pasokan perumahan dan profil tegangan jurusan JTR terpanjang (Pertemuan 12)

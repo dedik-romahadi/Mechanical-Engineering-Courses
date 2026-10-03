@@ -360,6 +360,12 @@ repo publik ini.
 - **Label navbar UTS/UAS** = label modul course-nya (`TENAGALISTRIK // UTS`,
   bukan sisa templat `GETARANMESIN`); dipasang `scripts/label-nav-ujian.mjs`
   (ada `--periksa`), CAD lewat `scripts/cad-exam/bangun.py`.
+- **Notasi rumus** (sejak 3 Okt 2026, TTL dan CAD): di sumber generator, subskrip
+  dan pangkat teks tampil ditulis `<sub>`/`<sup>` (bukan `V_k`, `E^(1/3)`); `pustaka.t()`
+  mengubahnya menjadi `<tspan>` SVG, `_ttlKanvas`/`_ttlTulis` (`animasi/dasar.js`)
+  menggambarnya di kanvas/readout; kode yang diketik → `pustaka.Kode()`/`<code>`;
+  KaTeX tetap LaTeX. Penjaga `scripts/periksa-notasi.mjs` (dijalankan
+  `validate-public-security.mjs`). Rincian: Pedoman §2 butir **Notasi rumus**.
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
   yang idempoten, bukan suntingan manual per berkas.

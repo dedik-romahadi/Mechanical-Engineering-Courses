@@ -40,20 +40,20 @@ function drawFasorSaluran(){
   const skI=VR*sk/Math.max(I,1)*0.45; const pI=[ox+Ir[0]*skI,oy-Ir[1]*skI];
   _ttlPanah6(ctx,ox,oy,pI[0],pI[1],'rgba(239,68,68,.9)',2);
   ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.textAlign='left';
-  ctx.fillStyle='rgba(0,229,255,.95)'; ctx.fillText('V_R = '+(VR/1000).toFixed(2)+' kV/fasa',pR[0]-120,pR[1]+16);
+  ctx.fillStyle='rgba(0,229,255,.95)'; ctx.fillText('V<sub>R</sub> = '+(VR/1000).toFixed(2)+' kV/fasa',pR[0]-120,pR[1]+16);
   ctx.fillStyle='rgba(255,179,0,.95)'; ctx.fillText('I·R',pRv[0]+4,pRv[1]+12);
   ctx.fillStyle='rgba(168,85,247,.95)'; ctx.fillText('j·I·X',pS[0]+6,pS[1]+2);
-  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('V_S = '+(Math.hypot(VS[0],VS[1])/1000).toFixed(2)+' kV/fasa ∠'+(Math.atan2(VS[1],VS[0])/_RAD6).toFixed(1)+'°',ox+10,pS[1]-8);
+  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('V<sub>S</sub> = '+(Math.hypot(VS[0],VS[1])/1000).toFixed(2)+' kV/fasa ∠'+(Math.atan2(VS[1],VS[0])/_RAD6).toFixed(1)+'°',ox+10,pS[1]-8);
   ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('I = '+I.toFixed(0)+' A ∠−'+(phi/_RAD6).toFixed(1)+'°',pI[0]+6,pI[1]+12);
   // panel kanan: batang jatuh tegangan
   const bx=W*0.66, bw=W-bx-20, by=30, bh=H-70;
   ctx.fillStyle='rgba(148,163,184,.85)'; ctx.font="600 11px 'JetBrains Mono',monospace"; ctx.textAlign='center'; ctx.fillText('Tegangan antar-saluran (kV)',bx+bw/2,by-10);
   const maks=Math.max(Math.hypot(VS[0],VS[1]),VR)*_SQ3/1000*1.1;
   const batang=(x,w,v,warna,label)=>{const h=v/maks*bh; ctx.fillStyle=warna; ctx.fillRect(x,by+bh-h,w,h); ctx.fillStyle='#e2e8f0'; ctx.font="11px 'JetBrains Mono',monospace"; ctx.fillText(v.toFixed(1),x+w/2,by+bh-h-6); ctx.fillStyle='rgba(148,163,184,.85)'; ctx.fillText(label,x+w/2,by+bh+16);};
-  batang(bx+bw*0.1,bw*0.32,Math.hypot(VS[0],VS[1])*_SQ3/1000,'rgba(0,224,158,.7)','V_S kirim');
-  batang(bx+bw*0.58,bw*0.32,VLL,'rgba(0,229,255,.7)','V_R terima');
+  batang(bx+bw*0.1,bw*0.32,Math.hypot(VS[0],VS[1])*_SQ3/1000,'rgba(0,224,158,.7)','V<sub>S</sub> kirim');
+  batang(bx+bw*0.58,bw*0.32,VLL,'rgba(0,229,255,.7)','V<sub>R</sub> terima');
   const VSll=Math.hypot(VS[0],VS[1])*_SQ3/1000, loss=3*I*I*R/1e6;
-  _ttlTulis('fasorSaluranInfo','I = '+I.toFixed(1)+' A;  ΔV ≈ I(R cos φ + X sin φ) = '+(dV/1000).toFixed(3)+' kV/fasa;  |V_S| = '+VSll.toFixed(2)+' kV (antar-saluran) → regulasi ≈ '+((VSll-VLL)/VLL*100).toFixed(2)+' %   |   rugi 3I²R = '+loss.toFixed(3)+' MW, η = '+(P/(P+loss)*100).toFixed(2)+' %   |   sudut daya δ = '+(Math.atan2(VS[1],VS[0])/_RAD6).toFixed(2)+'°');
+  _ttlTulis('fasorSaluranInfo','I = '+I.toFixed(1)+' A;  ΔV ≈ I(R cos φ + X sin φ) = '+(dV/1000).toFixed(3)+' kV/fasa;  |V<sub>S</sub>| = '+VSll.toFixed(2)+' kV (antar-saluran) → regulasi ≈ '+((VSll-VLL)/VLL*100).toFixed(2)+' %   |   rugi 3I²R = '+loss.toFixed(3)+' MW, η = '+(P/(P+loss)*100).toFixed(2)+' %   |   sudut daya δ = '+(Math.atan2(VS[1],VS[0])/_RAD6).toFixed(2)+'°');
   if(_ttlJalan('fasorsaluran')){_fsFrame6++; requestAnimationFrame(drawFasorSaluran);}
 }
 
@@ -99,8 +99,8 @@ function drawProfil(){
   const VRact=VLL/ (VS/VR); // tegangan terima aktual bila V_S = 132 kV
   const Zc=Math.sqrt(x/(b)), SIL=VLL*VLL/Zc;
   ctx.fillStyle='rgba(226,232,240,.9)'; ctx.textAlign='left'; ctx.font="600 11px 'JetBrains Mono',monospace";
-  ctx.fillText('V_R = '+VRact.toFixed(1)+' kV bila V_S = 132 kV ('+((VRact-VLL)/VLL*100).toFixed(1)+' %)',padL+8,padT+14);
-  _ttlTulis('profilInfo','R = '+(r*L).toFixed(1)+' Ω, X = '+(x*L).toFixed(1)+' Ω, B = '+(b*L*1e6).toFixed(0)+' µS   |   V_S = 132 kV → V_R = '+VRact.toFixed(2)+' kV ('+((VRact-VLL)/VLL*100).toFixed(2)+' %)'+(P===0?'  ⚠ efek Ferranti: tanpa beban V_R > V_S':'')+'   |   Z_c = '+Zc.toFixed(0)+' Ω, SIL = '+SIL.toFixed(1)+' MW: beban di bawah SIL menaikkan tegangan, di atas SIL menurunkannya   |   kapasitor shunt ujung terima '+Qc.toFixed(0)+' MVAR');
+  ctx.fillText('V<sub>R</sub> = '+VRact.toFixed(1)+' kV bila V<sub>S</sub> = 132 kV ('+((VRact-VLL)/VLL*100).toFixed(1)+' %)',padL+8,padT+14);
+  _ttlTulis('profilInfo','R = '+(r*L).toFixed(1)+' Ω, X = '+(x*L).toFixed(1)+' Ω, B = '+(b*L*1e6).toFixed(0)+' µS   |   V<sub>S</sub> = 132 kV → V<sub>R</sub> = '+VRact.toFixed(2)+' kV ('+((VRact-VLL)/VLL*100).toFixed(2)+' %)'+(P===0?'  ⚠ efek Ferranti: tanpa beban V<sub>R</sub> > V<sub>S</sub>':'')+'   |   Z<sub>c</sub> = '+Zc.toFixed(0)+' Ω, SIL = '+SIL.toFixed(1)+' MW: beban di bawah SIL menaikkan tegangan, di atas SIL menurunkannya   |   kapasitor shunt ujung terima '+Qc.toFixed(0)+' MVAR');
   if(_ttlJalan('profil')){_prFrame++; requestAnimationFrame(drawProfil);}
 }
 
@@ -122,8 +122,8 @@ function drawTransfer(){
   const kurva=(Pm,warna,lebar)=>{ctx.strokeStyle=warna; ctx.lineWidth=lebar; ctx.beginPath(); for(let i=0;i<=180;i++){const p=Pm*Math.sin(i*_RAD6); i?ctx.lineTo(Xd(i),Yp(p)):ctx.moveTo(Xd(i),Yp(p));} ctx.stroke();};
   kurva(Pm0,'rgba(148,163,184,.8)',1.8); kurva(Pm1,'rgba(0,224,158,.95)',2.6);
   _ttlGaris(ctx,padL,Yp(Pop),padL+plotW,Yp(Pop),'rgba(255,179,0,.9)',1.6,[5,4]);
-  ctx.textAlign='left'; ctx.fillStyle='rgba(148,163,184,.9)'; ctx.fillText('tanpa kompensasi: P_maks = '+Pm0.toFixed(0)+' MW',Xd(92),Yp(Pm0)-6);
-  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.fillText('kompensasi '+kc.toFixed(0)+' %: P_maks = '+Pm1.toFixed(0)+' MW',Xd(92),Yp(Pm1)-6);
+  ctx.textAlign='left'; ctx.fillStyle='rgba(148,163,184,.9)'; ctx.fillText('tanpa kompensasi: P<sub>maks</sub> = '+Pm0.toFixed(0)+' MW',Xd(92),Yp(Pm0)-6);
+  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.fillText('kompensasi '+kc.toFixed(0)+' %: P<sub>maks</sub> = '+Pm1.toFixed(0)+' MW',Xd(92),Yp(Pm1)-6);
   ctx.fillStyle='rgba(255,179,0,.95)'; ctx.fillText('P beban = '+Pop.toFixed(0)+' MW',padL+6,Yp(Pop)-6);
   // titik operasi berayun kecil di sekitar δ operasi
   let info='';
@@ -131,8 +131,8 @@ function drawTransfer(){
     ctx.fillStyle='#00e5ff'; ctx.beginPath(); ctx.arc(Xd(dd),Yp(Pm1*Math.sin(dd*_RAD6)),5,0,Math.PI*2); ctx.fill();
     if(Number.isFinite(d1)){ctx.fillStyle='rgba(148,163,184,.9)'; ctx.beginPath(); ctx.arc(Xd(d1),Yp(Pop),4,0,Math.PI*2); ctx.fill();}
     info='δ operasi = '+d0.toFixed(1)+'° (tanpa kompensasi '+(Number.isFinite(d1)?d1.toFixed(1)+'°':'TIDAK TERCAPAI')+');  cadangan kestabilan = '+((1-Pop/Pm1)*100).toFixed(0)+' %';}
-  else{info='⚠ P beban melampaui P_maks: tidak ada titik operasi tunak (hilang sinkron)';}
-  _ttlTulis('transferInfo','X_eff = '+X+'(1 − '+(kc/100).toFixed(2)+') = '+Xeff.toFixed(1)+' Ω;  P_maks = V²/X_eff = '+Pm1.toFixed(1)+' MW (naik '+((Pm1/Pm0-1)*100).toFixed(0)+' %)   |   '+info+'   |   Q pada δ operasi ≈ V²(1 − cos δ)/X_eff (perlu dipasok kedua ujung)');
+  else{info='⚠ P beban melampaui P<sub>maks</sub>: tidak ada titik operasi tunak (hilang sinkron)';}
+  _ttlTulis('transferInfo','X<sub>eff</sub> = '+X+'(1 − '+(kc/100).toFixed(2)+') = '+Xeff.toFixed(1)+' Ω;  P<sub>maks</sub> = V²/X<sub>eff</sub> = '+Pm1.toFixed(1)+' MW (naik '+((Pm1/Pm0-1)*100).toFixed(0)+' %)   |   '+info+'   |   Q pada δ operasi ≈ V²(1 − cos δ)/X<sub>eff</sub> (perlu dipasok kedua ujung)');
   if(_ttlJalan('transfer')){_trFrame++; requestAnimationFrame(drawTransfer);}
 }
 
@@ -164,7 +164,7 @@ function drawGelombang(){
   ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('← pantul ρV = '+(rho*V).toFixed(1)+' kV',padL+6,padT+26);
   ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('diteruskan τV = '+(tau*V).toFixed(1)+' kV →',xj+8,padT+12);
   ctx.fillStyle='rgba(148,163,184,.85)'; ctx.fillText('v₂ ≈ ½ v₁ (kabel)',xj+8,padT+26);
-  _ttlTulis('gelombangInfo','ρ = (Z₂ − Z₁)/(Z₁ + Z₂) = '+rho.toFixed(4)+',  τ = 2Z₂/(Z₁ + Z₂) = '+tau.toFixed(4)+'   |   V_pantul = '+(rho*V).toFixed(2)+' kV, V_teruskan = '+(tau*V).toFixed(2)+' kV (tegangan di sambungan = V + ρV = τV)   |   arus: I_datang = V/Z₁ = '+(V*1000/Z1).toFixed(1)+' A, I_teruskan = τV/Z₂ = '+(tau*V*1000/Z2).toFixed(1)+' A'+(Z2>Z1?'   ⚠ Z₂ > Z₁: tegangan diteruskan LEBIH BESAR dari yang datang':''));
+  _ttlTulis('gelombangInfo','ρ = (Z₂ − Z₁)/(Z₁ + Z₂) = '+rho.toFixed(4)+',  τ = 2Z₂/(Z₁ + Z₂) = '+tau.toFixed(4)+'   |   V<sub>pantul</sub> = '+(rho*V).toFixed(2)+' kV, V<sub>teruskan</sub> = '+(tau*V).toFixed(2)+' kV (tegangan di sambungan = V + ρV = τV)   |   arus: I<sub>datang</sub> = V/Z₁ = '+(V*1000/Z1).toFixed(1)+' A, I<sub>teruskan</sub> = τV/Z₂ = '+(tau*V*1000/Z2).toFixed(1)+' A'+(Z2>Z1?'   ⚠ Z₂ > Z₁: tegangan diteruskan LEBIH BESAR dari yang datang':''));
   if(_ttlJalan('gelombang')){_gwFrame++; requestAnimationFrame(drawGelombang);}
 }
 

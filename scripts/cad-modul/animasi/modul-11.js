@@ -216,9 +216,9 @@ function drawPusatMassa(){
   const V1s=V1.toLocaleString('id-ID'), jk=sempit?16:(W<640?15:18);
   _cad11Kolom(ctx,[
     [['V₁ = '+V1s+' mm³ (pelat),',' V₂ = '+V2.toFixed(0)+' mm³ (boss ⌀'+dB+' × '+hB+')'],_C11T,_F11_10,jk],
-    [['x̄ = (V₁·a/2 + V₂·x_B)/(V₁ + V₂)',' = '+xbar.toFixed(3)+' mm'],_C11G,_F11_10,jk],
-    [['z̄ = (V₁·t/2 + V₂·(t + h_B/2))','/(V₁ + V₂)',' = '+zbar.toFixed(3)+' mm'],_C11G,_F11_10,jk],
-    [['Placement boss x_B = '+xB.toFixed(1)+' mm',' (Fixed joint + Offset)'],_C11M,_F11_10,0]],sempit?14:sx,yTeks,sempit?W-28:W-sx-8,13);
+    [['x̄ = (V₁·a/2 + V₂·x<sub>B</sub>)/(V₁ + V₂)',' = '+xbar.toFixed(3)+' mm'],_C11G,_F11_10,jk],
+    [['z̄ = (V₁·t/2 + V₂·(t + h<sub>B</sub>/2))','/(V₁ + V₂)',' = '+zbar.toFixed(3)+' mm'],_C11G,_F11_10,jk],
+    [['Placement boss x<sub>B</sub> = '+xB.toFixed(1)+' mm',' (Fixed joint + Offset)'],_C11M,_F11_10,0]],sempit?14:sx,yTeks,sempit?W-28:W-sx-8,13);
   // Label yang menempel pada gambar ditulis terakhir di calon posisi pertama yang tidak dilewati garis.
   const FB="bold 10px 'JetBrains Mono',monospace", kanan=xbar<xB, rS=dB/2*skS;
   _cad11Label(ctx,'G₁',[[XS(0)-6,ZS(t/2)+4,'right'],[XS(0)-6,ZS(t/2)+12,'right'],[XS(0)-6,ZS(t)-3,'right'],..._cad11Cincin(XS(0),ZS(t/2),10,34,Math.PI)],_C11C,_F11_9);
@@ -230,7 +230,7 @@ function drawPusatMassa(){
   const sXbar='x̄ = '+xbar.toFixed(2), rT=dB/2*skT;
   _cad11Label(ctx,sXbar,sempit?[[X(xbar),oy+14,'center'],[X(xbar)+30,oy+14,'center'],[X(xbar)-30,oy+14,'center'],..._cad11Cincin(X(xbar),oy+14,8,32,0)]
     :[[X(xbar),Y(b/2)+rT+16,'center'],[X(xbar),Y(b/2)-rT-9,'center'],[X(xbar),oy+14,'center'],[X(xbar),Y(b)+13,'center'],..._cad11Cincin(X(xbar),Y(b/2),rT+10,rT+46,-Math.PI/2)],_C11G,_F11_10);
-  _ttlTulis('pusatMassaInfo','Boss pada x_B = '+xB.toFixed(1)+' mm: x̄ = '+xbar.toFixed(3)+' mm, z̄ = '+zbar.toFixed(3)+' mm dari V₁ = '+V1+' dan V₂ = '+V2.toFixed(1)+' mm³; itulah CenterOfMass dari Part.makeCompound(Shape semua link) untuk bahan seragam.');
+  _ttlTulis('pusatMassaInfo','Boss pada x<sub>B</sub> = '+xB.toFixed(1)+' mm: x̄ = '+xbar.toFixed(3)+' mm, z̄ = '+zbar.toFixed(3)+' mm dari V₁ = '+V1+' dan V₂ = '+V2.toFixed(1)+' mm³; itulah CenterOfMass dari Part.makeCompound(Shape semua link) untuk bahan seragam.');
   if(_ttlJalan('pusatmassa')){_pmFrame++; requestAnimationFrame(drawPusatMassa);}
 }
 

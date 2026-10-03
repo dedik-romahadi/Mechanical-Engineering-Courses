@@ -8,6 +8,7 @@ import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
+from pustaka import Kode  # noqa: E402  (teks SVG berupa kode yang diketik)
 from tugas_gambar import AM, AX, BL, CY, GN, GR, PK, RD, TX, VI, _panah, catatan, dim_h, dim_v, ext, gambar_tugas, iso, lingkar3d, poli, sumbu2d, sumbu3d, t  # noqa: E402,F401
 
 
@@ -44,12 +45,12 @@ def gambar():
     # penampang b × h_req
     sx, sy, sw, sh = 268, 118, 24, 34
     body += f'<rect x="{sx}" y="{sy}" width="{sw}" height="{sh}" fill="rgba(245,158,11,.18)" stroke="{AM}" stroke-width="1.6"/>'
-    body += t(sx + sw / 2, sy + sh + 14, "b", 10.5, AM, "middle", "600") + t(sx + sw + 4, sy + sh / 2 + 4, "h_req", 10.5, AM, "start", "600")
-    body += t(150, 104, "σ_maks = 6·F·L/(b·h²) ≤ σ_izin", 10, RD, "middle", "600")
-    body += t(50, 40, "Spreadsheet (alias):", 10, GR, "start", "600") + t(50, 54, "F, L, b, sigma_izin → h_req", 9.5, AX, "start")
-    body += t(150, 206, "penampang b × h_req", 9.5, AX, "middle")  # di bawah label L, bukan di garis dimensi
-    body += catatan(["Spreadsheet alias F, L, b,", "  sigma_izin (angka tanpa satuan)", "sel h_req = √(6·F·L/(b·σ_izin))", "Sketch YZ b × h → ekspresi", "  =Spreadsheet.h_req; Pad L", "baca: nilai sel h_req (mm)"], 330, 40)
-    out.append(gambar_tugas(body, "Tugas 1 — tinggi minimum kantilever h_req dari tegangan izin (Spreadsheet)"))
+    body += t(sx + sw / 2, sy + sh + 14, "b", 10.5, AM, "middle", "600") + t(sx + sw + 4, sy + sh / 2 + 4, "h<sub>req</sub>", 10.5, AM, "start", "600")
+    body += t(150, 104, "σ<sub>maks</sub> = 6·F·L/(b·h²) ≤ σ<sub>izin</sub>", 10, RD, "middle", "600")
+    body += t(50, 40, "Spreadsheet (alias):", 10, GR, "start", "600") + t(50, 54, Kode("F, L, b, sigma_izin → h_req"), 9.5, AX, "start")
+    body += t(150, 206, "penampang b × h<sub>req</sub>", 9.5, AX, "middle")  # di bawah label L, bukan di garis dimensi
+    body += catatan(["Spreadsheet alias F, L, b,", Kode("  sigma_izin (angka tanpa satuan)"), "sel h<sub>req</sub> = √(6·F·L/(b·σ<sub>izin</sub>))", "Sketch YZ b × h → ekspresi", Kode("  =Spreadsheet.h_req; Pad L"), "baca: nilai sel h<sub>req</sub> (mm)"], 330, 40)
+    out.append(gambar_tugas(body, "Tugas 1 — tinggi minimum kantilever h<sub>req</sub> dari tegangan izin (Spreadsheet)"))
     # T2 — pelat + rusuk segitiga
     cx, cy, s = 130, 185, 1.5
     a, bb, tt, r1, r2, tr = 110, 80, 10, 45, 40, 8
@@ -99,12 +100,12 @@ def gambar():
     body += f'<rect x="{x0}" y="128" width="{x1 - x0}" height="36" fill="rgba(34,211,238,.16)" stroke="{CY}" stroke-width="2"/>'
     body += _panah(240, 28, 240, 56, AM, 1.4) + t(247, 40, "F", 10.5, AM, "start", "700")
     body += _panah(240, 96, 240, 124, AM, 1.4) + t(247, 108, "F", 10.5, AM, "start", "700")
-    body += t(140, 54, "baja: E_st, tinggi h, lebar b", 9.5, AX, "middle")
-    body += t(140, 108, "aluminium: E_Al, tinggi h_Al", 9.5, CY, "middle") + t(140, 121, "= h·(E_st/E_Al)^(1/3)", 9.5, CY, "middle")
-    body += dim_v(262, 60, 84, "h", AX, kiri=False) + dim_v(262, 128, 164, "h_Al", CY, kiri=False)
+    body += t(140, 54, "baja: E<sub>st</sub>, tinggi h, lebar b", 9.5, AX, "middle")
+    body += t(140, 108, "aluminium: E<sub>Al</sub>, tinggi h<sub>Al</sub>", 9.5, CY, "middle") + t(140, 121, "= h·(E<sub>st</sub>/E<sub>Al</sub>)<sup>1/3</sup>", 9.5, CY, "middle")
+    body += dim_v(262, 60, 84, "h", AX, kiri=False) + dim_v(262, 128, 164, "h<sub>Al</sub>", CY, kiri=False)
     body += ext(x0, 164, x0, 188) + ext(x1, 164, x1, 188) + dim_h(x0, x1, 182, "L", atas=False)
-    body += t(150, 215, "E_st·I_st = E_Al·I_Al → δ sama", 10, GR, "middle", "600")
-    body += catatan(["Spreadsheet: L, b, h, E_st, E_Al,", "  h_Al = h*pow(E_st/E_Al; 1/3)", "Sketch YZ b × h_Al (ekspresi", "  =Spreadsheet.h_Al) → Pad L", "kekakuan lentur E·I sama", "baca: massa = 2,70×10⁻³ × Volume"], 330, 40)
+    body += t(150, 215, "E<sub>st</sub>·I<sub>st</sub> = E<sub>Al</sub>·I<sub>Al</sub> → δ sama", 10, GR, "middle", "600")
+    body += catatan([Kode("Spreadsheet: L, b, h, E_st, E_Al,"), Kode("  h_Al = h*pow(E_st/E_Al; 1/3)"), "Sketch YZ b × h<sub>Al</sub> (ekspresi", Kode("  =Spreadsheet.h_Al) → Pad L"), "kekakuan lentur E·I sama", "baca: massa = 2,70×10⁻³ × Volume"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 4 — kantilever baja diganti aluminium dengan kekakuan lentur sama"))
     # T5 — profil I berpusat di titik asal
     cx, cy, B2, H2, tf, tw = 150, 125, 60, 85, 16, 7
@@ -119,13 +120,13 @@ def gambar():
     # garis dimensi H digeser keluar agar tidak mencoret "(t_w/2, H/2 − t_f)"; label H di paruh bawah (tengahnya garis sumbu X)
     body += ext(cx + B2, cy - H2, cx + B2 + 30, cy - H2) + ext(cx + B2, cy + H2, cx + B2 + 30, cy + H2)
     body += _dim_v_lab(cx + B2 + 24, cy - H2, cy + H2, "H", cy + H2 / 2 + 4)
-    body += t(cx - B2 - 6, cy - H2 + tf - 3, "t_f", 10.5, AM, "end", "600")
-    body += t(cx + tw + 4, cy + 40, "t_w", 10.5, AM, "start", "600")
+    body += t(cx - B2 - 6, cy - H2 + tf - 3, "t<sub>f</sub>", 10.5, AM, "end", "600")
+    body += t(cx + tw + 4, cy + 40, "t<sub>w</sub>", 10.5, AM, "start", "600")
     body += t(cx + B2 + 4, cy - H2 - 4, "(B/2, H/2)", 9, AX, "start")
-    body += t(cx + tw + 4, cy - H2 + tf + 12, "(t_w/2, H/2 − t_f)", 9, AX, "start")
+    body += t(cx + tw + 4, cy - H2 + tf + 12, "(t<sub>w</sub>/2, H/2 − t<sub>f</sub>)", 9, AX, "start")
     body += t(cx - B2 - 4, cy + H2 + 14, "(−B/2, −H/2)", 9, AX, "start")
-    body += catatan(["Sketch XY: profil I 12 garis,", "  Symmetric terhadap titik asal", "sudut (±B/2, ±H/2) dan", "  (±t_w/2, ±(H/2 − t_f)); Pad 100", "baca: Part.Face(Wires[0])", "  .MatrixOfInertia.A11 = I_x"], 330, 40)
-    out.append(gambar_tugas(body, "Tugas 5 — profil I simetris berpusat di titik asal dan momen inersia I_x", h=246))
+    body += catatan(["Sketch XY: profil I 12 garis,", "  Symmetric terhadap titik asal", "sudut (±B/2, ±H/2) dan", "  (±t<sub>w</sub>/2, ±(H/2 − t<sub>f</sub>)); Pad 100", "baca: Part.Face(Wires[0])", "  .MatrixOfInertia.A11 = I<sub>x</sub>"], 330, 40)
+    out.append(gambar_tugas(body, "Tugas 5 — profil I simetris berpusat di titik asal dan momen inersia I<sub>x</sub>", h=246))
     return out
 
 

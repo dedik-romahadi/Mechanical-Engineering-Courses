@@ -37,10 +37,10 @@ function drawPenyulang(){
   // kapasitor
   const a=0.5+0.5*Math.sin(_pyFrame*0.08); _ttlGaris(ctx,X(pos*seg),padT,X(pos*seg),padT+plotH,'rgba(168,85,247,'+a.toFixed(2)+')',1.6,[4,3]);
   ctx.fillStyle='rgba(168,85,247,.95)'; ctx.textAlign='left'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.fillText('C '+Qc+' kVAR @ '+(pos*L).toFixed(1)+' km',X(pos*seg)+4,padT+12);
-  ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('tanpa kapasitor: V_ujung '+(V0[seg]*20).toFixed(2)+' kV, rugi '+P0.toFixed(1)+' kW',padL+6,padT+plotH-30);
-  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('dengan kapasitor: V_ujung '+(V1[seg]*20).toFixed(2)+' kV, rugi '+P1.toFixed(1)+' kW',padL+6,padT+plotH-16);
+  ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('tanpa kapasitor: V<sub>ujung</sub> '+(V0[seg]*20).toFixed(2)+' kV, rugi '+P0.toFixed(1)+' kW',padL+6,padT+plotH-30);
+  ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('dengan kapasitor: V<sub>ujung</sub> '+(V1[seg]*20).toFixed(2)+' kV, rugi '+P1.toFixed(1)+' kW',padL+6,padT+plotH-16);
   const Qb=_SQ3_10*20*Iq;
-  _ttlTulis('penyulangInfo','Beban merata: I_pangkal '+I+' A (I_P '+Ip.toFixed(1)+' A, I_Q '+Iq.toFixed(1)+' A), Q_beban = '+Qb.toFixed(0)+' kVAR; r = 0,4, x = 0,35 Ω/km   |   tanpa C: ΔV '+((1-V0[seg])*100).toFixed(2)+' %, rugi '+P0.toFixed(2)+' kW   |   C = '+Qc+' kVAR ('+(Qc/Qb*100).toFixed(0)+' % Q_beban) di '+(pos*100).toFixed(0)+' % panjang: ΔV '+((1-V1[seg])*100).toFixed(2)+' %, rugi '+P1.toFixed(2)+' kW (−'+((1-P1/P0)*100).toFixed(1)+' %)   |   optimum aturan 2/3: '+(Qb*2/3).toFixed(0)+' kVAR di 67 %');
+  _ttlTulis('penyulangInfo','Beban merata: I<sub>pangkal</sub> '+I+' A (I<sub>P</sub> '+Ip.toFixed(1)+' A, I<sub>Q</sub> '+Iq.toFixed(1)+' A), Q<sub>beban</sub> = '+Qb.toFixed(0)+' kVAR; r = 0,4, x = 0,35 Ω/km   |   tanpa C: ΔV '+((1-V0[seg])*100).toFixed(2)+' %, rugi '+P0.toFixed(2)+' kW   |   C = '+Qc+' kVAR ('+(Qc/Qb*100).toFixed(0)+' % Q<sub>beban</sub>) di '+(pos*100).toFixed(0)+' % panjang: ΔV '+((1-V1[seg])*100).toFixed(2)+' %, rugi '+P1.toFixed(2)+' kW (−'+((1-P1/P0)*100).toFixed(1)+' %)   |   optimum aturan 2/3: '+(Qb*2/3).toFixed(0)+' kVAR di 67 %');
   if(_ttlJalan('penyulang')){_pyFrame++; requestAnimationFrame(drawPenyulang);}
 }
 
@@ -64,10 +64,10 @@ function drawDuaPertiga(){
   // kurva pengurangan rugi vs posisi untuk beberapa ukuran
   const ukuran=[[0.33,'rgba(148,163,184,.7)'],[0.5,'rgba(0,229,255,.8)'],[c,'rgba(0,224,158,.95)'],[1.0,'rgba(255,179,0,.8)']];
   let best={v:-1,p:0};
-  ukuran.forEach(([cf,warna],idx)=>{ctx.strokeStyle=warna; ctx.lineWidth=cf===c?2.8:1.6; ctx.beginPath(); for(let i=0;i<=100;i++){const p=i/100; const red=1-rugiRel(cf,p)/base; if(cf===c&&red>best.v) best={v:red,p}; const yy=Y(Math.max(0,red)); i?ctx.lineTo(X(p),yy):ctx.moveTo(X(p),yy);} ctx.stroke(); ctx.fillStyle=warna; ctx.textAlign='left'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('C = '+(cf*100).toFixed(0)+' % I_Q',padL+6,padT+12+idx*13);});
+  ukuran.forEach(([cf,warna],idx)=>{ctx.strokeStyle=warna; ctx.lineWidth=cf===c?2.8:1.6; ctx.beginPath(); for(let i=0;i<=100;i++){const p=i/100; const red=1-rugiRel(cf,p)/base; if(cf===c&&red>best.v) best={v:red,p}; const yy=Y(Math.max(0,red)); i?ctx.lineTo(X(p),yy):ctx.moveTo(X(p),yy);} ctx.stroke(); ctx.fillStyle=warna; ctx.textAlign='left'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.fillText('C = '+(cf*100).toFixed(0)+' % I<sub>Q</sub>',padL+6,padT+12+idx*13);});
   const a=0.5+0.5*Math.sin(_dpFrame*0.08); ctx.fillStyle='rgba(0,224,158,'+(0.5+0.5*a).toFixed(2)+')'; ctx.beginPath(); ctx.arc(X(best.p),Y(best.v),6,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='rgba(0,224,158,.95)'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.fillText('optimum: '+(best.p*100).toFixed(0)+' %, pengurangan '+(best.v*100).toFixed(1)+' %',X(best.p)+8,Y(best.v)-8);
-  _ttlTulis('duaPertigaInfo','Sebaran beban λ = '+lam.toFixed(2)+' ('+(lam>0.99?'merata':lam<0.01?'terpusat di ujung':'campuran')+')   |   kapasitor '+(c*100).toFixed(0)+' % I_Q: letak optimum '+(best.p*100).toFixed(0)+' % panjang, pengurangan rugi reaktif '+(best.v*100).toFixed(1)+' %   |   teori beban merata: C = 2/3 I_Q di 2/3 panjang → 88,9 % (8/9); beban terpusat: C = 100 % di ujung → 100 %   |   kapasitor terlalu besar/terlalu jauh justru menaikkan rugi (arus kapasitif berlebih)');
+  _ttlTulis('duaPertigaInfo','Sebaran beban λ = '+lam.toFixed(2)+' ('+(lam>0.99?'merata':lam<0.01?'terpusat di ujung':'campuran')+')   |   kapasitor '+(c*100).toFixed(0)+' % I<sub>Q</sub>: letak optimum '+(best.p*100).toFixed(0)+' % panjang, pengurangan rugi reaktif '+(best.v*100).toFixed(1)+' %   |   teori beban merata: C = 2/3 I<sub>Q</sub> di 2/3 panjang → 88,9 % (8/9); beban terpusat: C = 100 % di ujung → 100 %   |   kapasitor terlalu besar/terlalu jauh justru menaikkan rugi (arus kapasitif berlebih)');
   if(_ttlJalan('duapertiga')){_dpFrame++; requestAnimationFrame(drawDuaPertiga);}
 }
 
@@ -97,7 +97,7 @@ function drawHarian(){
   let pfMin=1,pfMax=0,jamLead=0,tMin=0; for(let i=0;i<240;i++){const t=i/10; const q=Q(t)-Qcap(t); const pf=P(t)/Math.hypot(P(t),q); if(q<0) jamLead+=0.1; if(pf<pfMin){pfMin=pf;tMin=t;} if(pf>pfMax) pfMax=pf;}
   const tNow=(_hrFrame*0.05)%24; const qNow=Q(tNow)-Qcap(tNow); ctx.fillStyle=qNow<0?'rgba(239,68,68,.95)':'#00e5ff'; ctx.beginPath(); ctx.arc(X(tNow),Y(Q(tNow)),5,0,Math.PI*2); ctx.fill();
   ctx.textAlign='left'; ctx.font="600 10px 'JetBrains Mono',monospace"; ctx.fillStyle='rgba(239,68,68,.95)'; ctx.fillText('Q beban',padL+6,padT+12); ctx.fillStyle='rgba(0,224,158,.95)'; ctx.fillText('Q kapasitor (tetap + switched)',padL+70,padT+12); ctx.fillStyle='rgba(255,179,0,.95)'; ctx.fillText('Q dari jaringan',padL+280,padT+12);
-  ctx.fillStyle=qNow<0?'rgba(239,68,68,.95)':'#e2e8f0'; ctx.fillText(tNow.toFixed(1)+' h: P '+P(tNow).toFixed(0)+' kW, Q beban '+Q(tNow).toFixed(0)+', Q_C '+Qcap(tNow).toFixed(0)+' → jaringan '+qNow.toFixed(0)+' kVAR, pf '+(P(tNow)/Math.hypot(P(tNow),qNow)).toFixed(3)+(qNow<0?' MENDAHULUI ⚠':''),padL+6,padT+26);
+  ctx.fillStyle=qNow<0?'rgba(239,68,68,.95)':'#e2e8f0'; ctx.fillText(tNow.toFixed(1)+' h: P '+P(tNow).toFixed(0)+' kW, Q beban '+Q(tNow).toFixed(0)+', Q<sub>C</sub> '+Qcap(tNow).toFixed(0)+' → jaringan '+qNow.toFixed(0)+' kVAR, pf '+(P(tNow)/Math.hypot(P(tNow),qNow)).toFixed(3)+(qNow<0?' MENDAHULUI ⚠':''),padL+6,padT+26);
   _ttlTulis('harianInfo','Kapasitor tetap '+Qf+' kVAR + switched '+Qs+' kVAR ('+jamOn+':00–'+jamOff+':00)   |   pf di titik sambung: minimum '+pfMin.toFixed(3)+' pada '+tMin.toFixed(1)+' h, maksimum '+pfMax.toFixed(3)+'; jam dengan pf mendahului (Q negatif, tegangan naik): '+jamLead.toFixed(1)+' jam/hari   |   aturan praktis: tetap ≈ Q minimum malam, switched menutup selisih siang; kendali waktu/tegangan/VAR');
   if(_ttlJalan('harian')){_hrFrame++; requestAnimationFrame(drawHarian);}
 }
