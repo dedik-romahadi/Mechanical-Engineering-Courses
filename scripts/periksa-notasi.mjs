@@ -42,8 +42,11 @@ export function halamanNotasi(root, course) {
 }
 
 const HURUF = "A-Za-zΑ-Ωα-ω";
-export const RX_SUB = new RegExp(`(?<![A-Za-z0-9_$@.\\\\-])[${HURUF}ΔΣ″′]*[${HURUF}″′]_[${HURUF}0-9φ{(]`, "u");
-export const RX_SUP = /[A-Za-z0-9)α-ω]\^(?:\(|\{|[0-9A-Za-zα-ωΑ-Ω−-])/u;
+// Notasi bergaris bawah: dasar berupa huruf (boleh berkoefisien angka, "2x_A", dan berakhir superskrip angka,
+// "H²_max"/"x²_i"), atau penutup "]", ")", "|" ("[A B; C D]_total", "|x|_avg"). Nama berkas/kode yang dasarnya
+// berakhir angka atau bersambung garis bawah ("Tugas1_NIM_T1.FCStd", "solve_ivp" didahului ".") tidak cocok.
+export const RX_SUB = new RegExp(`(?:(?<![A-Za-z0-9_$@.\\\\-])[0-9]*[${HURUF}ΔΣ″′]*[${HURUF}″′][⁰¹²³⁴-⁹]*|[\\])|])_[${HURUF}0-9φ{(]`, "u");
+export const RX_SUP = /[A-Za-z0-9)α-ω]\^(?:\(|\{|[0-9A-Za-zα-ωΑ-Ω−∫-])/u;
 
 const ENTITAS = { amp: "&", lt: "<", gt: ">", quot: '"', nbsp: " ", minus: "−", sigma: "σ", delta: "δ", tau: "τ", rho: "ρ", eta: "η", omega: "ω", phi: "φ", theta: "θ", alpha: "α", beta: "β", gamma: "γ", mu: "μ", Delta: "Δ", Sigma: "Σ", Omega: "Ω" };
 const lepasEntitas = (s) => s.replace(/&(#x[0-9a-f]+|#\d+|[A-Za-z]+);/gi, (m, e) =>
@@ -188,6 +191,11 @@ export function ujiMutasiNotasi(halamanBersih, relative, halamanKanvas = null, r
     ["opsi PG ber-<sub> tanpa pembungkus", diAkhir(`<div class="radio-option" onclick="selectMC('mc1',this)"><div class="radio-circle"></div>(A) &nbsp; V<sub>k</sub> = V · R<sub>k</sub></div>`)],
     ["opsi jajak ber-<sub> tanpa pembungkus", diAkhir(`<div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Z<sub>c</sub> ≈ 400 Ω</div>`)],
     ["tautan subnav ber-<sub> tanpa pembungkus", diAkhir(`<div id="modulSubnav" class="subnav-bar"><a href="#m-x">Z<sub>c</sub>, SIL</a></div>`)],
+    ["subskrip sesudah kurung siku di <text> SVG", sisip(halamanBersih, '<svg viewBox="0 0 10 10"><text x="1" y="1">[A B; C D]_total = [A₁ B₁; C₁ D₁]</text></svg>')],
+    ["subskrip sesudah superskrip angka di fillText", kanvas("ctx.fillText('H²_max = ' + h.toFixed(2), 4, 4);")],
+    ["subskrip berkoefisien angka di <text> SVG", sisip(halamanBersih, '<svg viewBox="0 0 10 10"><text x="1" y="1">2x_A + 3x_B ≤ 12</text></svg>')],
+    ["subskrip sesudah nilai mutlak, literal setengah dikonversi", kanvas("el.innerHTML = 'x<sub>i</sub> → |x|_avg = ' + r;")],
+    ["pangkat integral di <text> SVG", sisip(halamanBersih, '<svg viewBox="0 0 10 10"><text x="1" y="1">μ = e^∫P dx</text></svg>')],
   ];
   for (const [nama, salinan] of tolak) {
     if (!periksaNotasi(salinan).length) throw new Error(`${relative}: notation check accepted a mutated page (${nama})`);
@@ -201,6 +209,7 @@ export function ujiMutasiNotasi(halamanBersih, relative, halamanKanvas = null, r
     ["opsi PG berpembungkus", diAkhir(`<div class="radio-option" onclick="selectMC('mc1',this)"><div class="radio-circle"></div>${BUKA_OPSI}(A) &nbsp; V<sub>k</sub> = V · R<sub>k</sub></span></div>`)],
     ["opsi jajak teks polos", diAkhir(`<div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>400 Ω, SIL 626 MW</div>`)],
     ["readout nama bergaya kode", kanvas("el.innerHTML = 'raw_alarms=<strong>3</strong> · T<sub>sample</sub>';")],
+    ["nama berkas bergaris bawah di <text> SVG", sisip(halamanBersih, '<svg viewBox="0 0 10 10"><text x="1" y="1">Tugas1_NIM_T1.FCStd</text></svg>')],
   ];
   for (const [nama, salinan] of terima) {
     const sisa = periksaNotasi(salinan);
