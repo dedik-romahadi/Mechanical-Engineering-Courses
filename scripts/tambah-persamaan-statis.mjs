@@ -26,6 +26,9 @@ const esc = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 
 // Gaya chip dan nomor persamaan disalin dari modul Sisken supaya tampilannya
 // sama persis lintas mata kuliah; halaman tulisan tangan belum memuatnya.
+// Nomor (absolut, tengah kanan) tidak boleh menimpa isi blok (temuan 4 Oktober
+// 2026: 98 tabrakan di 375 px, 21 di 1280 px): di layar lebar blok bernomor
+// diberi ruang kanan; di ponsel nomor turun ke baris sendiri, rata kanan.
 const CSS = `
 #page-modul .formula-block{position:relative}
 #page-modul .formula-number{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--cyan);opacity:.85}
@@ -37,6 +40,8 @@ const CSS = `
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 `;
 
 const FRASA = [

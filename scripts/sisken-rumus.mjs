@@ -336,13 +336,20 @@ export function tokenLatex(teks) {
   // (2) % polos adalah komentar KaTeX yang menelan sisa rumus -> \%;
   // (3) akar Unicode √( -> sqrt( agar menjadi \sqrt{..};
   // (4) "7 x 7" -> \times; (5) |u|max -> |u|_{max};
-  // (6) satuan waktu/frekuensi sesudah angka ditulis tegak (5 rad/s), garis miringnya diamankan.
+  // (6) satuan waktu/frekuensi sesudah angka ditulis tegak (5 rad/s), garis miringnya diamankan — HANYA untuk
+  //     nilai sebuah ruas (angka tepat sesudah =, ≈, ~, <, >, ≤, ≥) yang satuannya menutup ruas itu (akhir, koma,
+  //     titik koma, kurung tutup, atau disusul prosa). "G(s) = 1/(2 s + 1)" dan "e^(-0,5 s)" memuat peubah
+  //     Laplace s, bukan detik.
+  // Koma di antara dua bilangan bulat dalam interval [0,1] dan parameter distribusi N(0,1)/U(0,1) adalah pemisah,
+  // bukan koma desimal: ditulis "[0, 1]" (spasi sesudah koma) sebelum koma desimal diamankan.
+  t = t.replace(/(\[|\b[NU]\()(-?\d+),(-?\d+)(?=[\])])/g, "$1$2, $3");
   t = t.replace(/(\d),(?=\d)/g, "$1\u0004");
   t = t.replace(/(?<!\\)%/g, "\\%");
   t = t.replace(/√\(/g, " sqrt(");
   t = t.replace(/(\d)\s+x\s+(\d)/g, "$1 \\times $2");
   t = t.replace(/\|([^|]+)\|(maks|max|min)(?![A-Za-z])/g, "|$1|_{$2}");
-  t = t.replace(/(\d)\s+(rad\/s|rad|ms|s|Hz)(?=$|[\s,;)])/g, (m, a, s) => `${a}\\ \\text{${s.replace("/", "\u0003")}}`);
+  t = t.replace(/((?:=|≈|~|<|>|≤|≥)\s*-?\d[\d.\u0004]*)\s+(rad\/s|rad|ms|s|Hz)(?=\s*(?:$|[,;)\]])|\s+[A-Za-z]{3,})/g,
+    (m, a, s) => `${a}\\ \\text{${s.replace("/", "\u0003")}}`);
 
   // Notasi turunan waktu pada model ruang keadaan: x_dot menjadi titik di atas.
   t = t.replace(/\b([A-Za-z])_dot\b/g, "\\dot{$1}");
