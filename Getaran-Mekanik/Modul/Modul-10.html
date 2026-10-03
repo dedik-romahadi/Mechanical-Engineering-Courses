@@ -253,7 +253,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -968,6 +968,8 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1703,13 +1705,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🏢</div>
       <h3>Use Case Berbeda</h3>
       <p><strong>Absorber</strong>: cocok untuk eksitasi <em>narrow-band</em> (mis. mesin running di frekuensi tetap 50 Hz). <strong>Isolation</strong>: cocok untuk <em>broad-band</em> (mis. melindungi instrumen presisi dari berbagai noise environment) atau saat sumber getaran tidak bisa direduksi.</p>
-      <div class="formula">\(\text{Absorber: narrow-band; Isolation: broad-band}\)</div>
+      <div class="formula">Absorber: narrow-band; Isolation: broad-band</div>
     </div>
     <div class="card">
       <div class="card-icon">⚖️</div>
       <h3>Trade-off Klasik</h3>
       <p><strong>Absorber</strong>: efektif persis di frekuensi tuning, tapi muncul 2 puncak resonansi baru di sekitarnya yang harus dijauhi (lihat Bagian 03). <strong>Isolation</strong>: butuh ω &gt; √2 ω<sub>n</sub> isolator (di bawah ini malah amplifikasi), butuh isolator yang soft (low k).</p>
-      <div class="formula">\(\text{No free lunch, both have}\;\text{constraints}\)</div>
+      <div class="formula">No free lunch, both have constraints</div>
     </div>
   </div>
 
@@ -1875,7 +1877,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Force Transmissibility</div>
-    \(TR = \sqrt{(1 + (2\zeta r)^2) / ((1 - r^2)^2 + (2\zeta r)^2)} \cdot r = \omega /\omega _{n}, \omega _{n} = \sqrt{k/m}\)
+    \(TR = \sqrt{\frac{1 + (2\zeta r)^2}{(1 - r^2)^2 + (2\zeta r)^2}}\), \({r = \omega /\omega _{n},\ \omega _{n} = \sqrt{k/m}}\)
   <span class="formula-number">(4)</span></div>
 <!-- PERSAMAAN-STATIS:4:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1901,7 +1903,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">💧</div>
       <h3>Damping Effect — Trade-off</h3>
       <p>Damping <strong>turunkan</strong> peak di resonance (r=1), tapi <strong>naikkan</strong> TR di high frequency (r &gt;&gt; 1). Trade-off: <strong>low damping</strong> (ζ ≈ 0.05): bagus high-freq isolation, tapi peak resonance sangat tinggi. <strong>High damping</strong> (ζ ≈ 0.3): peak rendah, tapi high-freq isolation kurang.</p>
-      <div class="formula">\(\text{Low } \zeta : \text{better high-f isolation, worse resonance}\)</div>
+      <div class="formula">Low \(\zeta\): better high-f isolation, worse resonance</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
@@ -1968,13 +1970,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🚗</div>
       <h3>Use Case: Vehicle Suspension</h3>
       <p>Mobil = base motion excitation: jalan bergelombang sebagai input, body sebagai mass. Isolator: spring suspensi + shock absorber. Damping tinggi (ζ ~0.3) untuk ride comfort vs handling balance. f<sub>n</sub> design: ~1-2 Hz (frekuensi bouncing tipikal mobil).</p>
-      <div class="formula">\(\text{Car suspension: } f_n\ 1\text{–}2\text{ Hz, } \zeta\ 0.3\)</div>
+      <div class="formula">Car suspension: \(f_n\) 1–2 Hz, \(\zeta\) 0.3</div>
     </div>
     <div class="card">
       <div class="card-icon">🏢</div>
       <h3>Use Case: Seismic Base Isolation</h3>
       <p>Gedung di area gempa: pasang <strong>base isolators</strong> (laminated rubber bearings, friction pendulum) di antara gedung dan fondasi. Period gedung ter-extend dari 0.5s → 3-5s, jauh dari period gempa dominant. Reduksi acceleration lantai 70-90%.</p>
-      <div class="formula">\(\text{Seismic iso: } T\ 3\text{–}5\text{ s shifts response}\)</div>
+      <div class="formula">Seismic iso: \(T\) 3–5 s shifts response</div>
     </div>
   </div>
 
@@ -2098,13 +2100,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🌉</div>
       <h3>Millennium Bridge London</h3>
       <p>Jembatan kabel pejalan kaki dibuka 2000, langsung tutup hari pertama karena bergoyang berbahaya akibat <strong>synchronous walking</strong>. Solusi: 89 vibration dampers (37 viscous + 52 TMD) di-install. Total cost £5M. Re-buka 2002 dengan goyangan acceptable.</p>
-      <div class="formula">\(89 \text{ dampers solve synchronous walking}\)</div>
+      <div class="formula">89 dampers solve synchronous walking</div>
     </div>
     <div class="card">
       <div class="card-icon">❄️</div>
       <h3>HVAC Air Handling Unit (AHU)</h3>
       <p>AHU di rooftop besar (10-50 ton) menghasilkan vibrasi di 25-50 Hz dari fan + compressor. Standar: <strong>spring isolators</strong> dengan deflection 25-50 mm, TR target 0.05. Biaya isolator: ~5-10% AHU cost, investment kecil untuk noise dan structural protection.</p>
-      <div class="formula">\(\text{AHU iso: } 25\text{–}50\text{ mm deflection, } TR\ 0.05\)</div>
+      <div class="formula">AHU iso: 25–50 mm deflection, \(TR\) 0.05</div>
     </div>
     <div class="card">
       <div class="card-icon">🔬</div>
@@ -2894,7 +2896,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q"><strong>Force Transmissibility (TR)</strong> untuk r = 3, ζ = 0.05. Formula: TR = \(\sqrt{(1+(2\zeta r)^2)/((1-r^2)^2+(2\zeta r)^2)}\).</div>
+        <div class="comp-q"><strong>Force Transmissibility (TR)</strong> untuk r = 3, ζ = 0.05. Formula: TR = \(\sqrt{\frac{1+(2\zeta r)^2}{(1-r^2)^2+(2\zeta r)^2}}\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Terapkan TR = \(\sqrt{\dfrac{1+(2\zeta r)^2}{(1-r^2)^2+(2\zeta r)^2}}\) dengan <code>np.sqrt</code>; substitusikan r dan ζ.</div>
