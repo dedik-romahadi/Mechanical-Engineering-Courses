@@ -375,10 +375,12 @@ repo publik ini.
   `draft-modul.mjs`), bukan textContent. Rincian: Pedoman §2 butir **Notasi rumus** (1)–(16).
   Rumus KaTeX yang salah tampil tanpa galat (kata miring, `L{…}` tanpa `\{`, `%` polos, akar terpotong)
   diperbaiki lewat data yang sama (grup di awal) dan generatornya (`sisken-rumus.tokenLatex`,
-  `persamaan-statis-data.mjs`); kode yang diketik keluar dari KaTeX sebagai `<code>`. Penjaga
-  `scripts/periksa-katex.mjs` (statis di `validate-public-security.mjs`; render penuh `--katex` dijalankan CI
-  dengan `katex@VERSI_KATEX`). Prosa di kotak `.formula` kartu ditulis teks polos, bukan satu `\text{…}` utuh yang
-  tidak bisa dipatah dan terpotong di ponsel. Pedoman §2 butir (17)–(20).
+  `persamaan-statis-data.mjs`); kode yang diketik keluar dari KaTeX sebagai `<code>` (juga chip Persamaan:
+  notasi berbacktick `` `isnull()` `` di `persamaan-statis-data.mjs`). Penjaga `scripts/periksa-katex.mjs`
+  (statis di `validate-public-security.mjs`, termasuk `\_`/`nama()` dan en dash/½ di mode matematika; render penuh
+  `--katex` dijalankan CI dengan `katex@VERSI_KATEX`, langkah CI-nya dipatok baris demi baris). Prosa di kotak
+  `.formula` kartu dan daftar konsep di blok persamaan ditulis teks polos, bukan satu `\text{…}` utuh yang tidak
+  bisa dipatah dan terpotong di ponsel. Pedoman §2 butir (17)–(20).
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
   yang idempoten, bukan suntingan manual per berkas.

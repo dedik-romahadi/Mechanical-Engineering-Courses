@@ -396,9 +396,17 @@ for (let n = 1; n <= 14; n += 1) {
 // Keluaran tokenLatex (rumus ASCII generator → LaTeX KaTeX, Pedoman §2 butir (19)). Regresi di sini lolos
 // periksa-katex (KaTeX tetap merender tanpa galat), jadi bentuk keluarannya dipatok: koma desimal {,} utuh di
 // \frac, interval/parameter distribusi bukan desimal, satuan tegak hanya untuk nilai ruas — peubah Laplace s
-// dalam "2 s + 1" dan "e^(-0,5 s)" tetap miring.
+// dalam "2 s + 1" dan "e^(-0,5 s)" tetap miring. "C(s) = 2 s + 1" dan "x = 2 s^2 + 1" melewati cabang satuan (angka
+// tepat sesudah "=") tetapi ruasnya belum tertutup, jadi batas ruas itu sendiri yang dipatok; "ts = 4 s untuk" adalah
+// satuan yang disusul prosa. Rentang angka "10–20" ditulis 10\text{–}20 (en dash tanpa metrik fon di mode matematika).
 {
   const KASUS_TOKEN = [
+    ["C(s) = 2 s + 1", "C(s) = 2 s + 1"],
+    ["x = 2 s^2 + 1", "x = 2 s^2 + 1"],
+    ["ts = 4 s untuk", String.raw`ts = 4\ \text{s untuk}`],
+    ["f_s ≥ 10–20 f_bw", String.raw`f_s ≥ 10\text{–}20 f_{bw}`],
+    ["J = ∫ e² dt", String.raw`J = ∫ e²\,dt`],
+    ["u = min(u_max, Kp e)", String.raw`u = \min(u_{max}, K_p e)`],
     ["5,236/0,9148", String.raw`\frac{5{,}236}{0{,}9148}`],
     ["Kp = 0,4/30", String.raw`K_p = \frac{0{,}4}{30}`],
     ["T/2, dengan wc", String.raw`\frac{T}{2}, \text{dengan }\omega_c`],
