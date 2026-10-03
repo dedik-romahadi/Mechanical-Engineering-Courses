@@ -41,7 +41,16 @@
   const pxFont = ctx => { const m = /(\d+(?:\.\d+)?)px/.exec(ctx.font); if (!m) return 0; const s = ctx.getTransform(); return parseFloat(m[1]) * Math.sqrt(Math.abs(s.a * s.d - s.b * s.c)); };
   for (const n of ['fillText', 'strokeText']) {
     asli[n] = P[n];
-    P[n] = function (t, x, y, w) { if (this.canvas === aktif && String(t).trim()) T.push({ t: String(t), k: kotak(this, String(t), x, y), px: pxFont(this), urut: urut++, plat: !!this.__plat }); return asli[n].call(this, t, x, y, w); };
+    P[n] = function (t, x, y, w) {
+      if (this.canvas === aktif && String(t).trim()) {
+        // Potongan satu rumus bersubskrip (_ttlRumus menandai ctx.__rumus) dihitung sebagai satu teks.
+        const e = { t: String(t), k: kotak(this, String(t), x, y), px: pxFont(this), urut: urut++, plat: !!this.__plat, grup: this.__rumus || 0 };
+        const akhir = T[T.length - 1];
+        if (e.grup && akhir && akhir.grup === e.grup) { akhir.t += e.t; akhir.k = [Math.min(akhir.k[0], e.k[0]), Math.min(akhir.k[1], e.k[1]), Math.max(akhir.k[2], e.k[2]), Math.max(akhir.k[3], e.k[3])]; akhir.px = Math.min(akhir.px, e.px); }
+        else T.push(e);
+      }
+      return w === undefined ? asli[n].call(this, t, x, y) : asli[n].call(this, t, x, y, w);
+    };
   }
   const titik = (ctx, x, y) => B.push(peta(ctx, x, y));
   asli.beginPath = P.beginPath; P.beginPath = function () { this.__jalur = []; this.__kini = null; this.__awal = null; return asli.beginPath.call(this); };

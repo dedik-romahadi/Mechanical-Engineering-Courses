@@ -77,8 +77,12 @@ function prosesBerkas(berkas, daftar) {
     html = `${html.slice(0, pos)} ${frasa}</p>${blok}${html.slice(pos + 4)}`;
   }
 
-  html = html.replace(/<style id="ilustrasi-css">[\s\S]*?<\/style>\n?/, "");
-  html = html.replace("</head>", `<style id="ilustrasi-css">${CSS_ILUSTRASI}</style>\n</head>`);
+  // Blok gaya yang sudah ada diganti DI TEMPAT. Dahulu blok dibuang lalu ditempel lagi di
+  // depan </head>, sehingga setiap jalan ulang memindahkannya ke belakang blok injector lain
+  // (diff ratusan baris yang isinya sama).
+  const gaya = `<style id="ilustrasi-css">${CSS_ILUSTRASI}</style>`;
+  if (/<style id="ilustrasi-css">[\s\S]*?<\/style>/.test(html)) html = html.replace(/<style id="ilustrasi-css">[\s\S]*?<\/style>/, () => gaya);
+  else html = html.replace("</head>", () => `${gaya}\n</head>`);
   fs.writeFileSync(berkas, html);
   return daftar.length;
 }

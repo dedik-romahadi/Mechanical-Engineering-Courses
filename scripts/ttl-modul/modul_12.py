@@ -121,7 +121,7 @@ def gambar2():
     pk = 600
     b += f'<line x1="{x0}" y1="{Y(pk):.1f}" x2="{x1}" y2="{Y(pk):.1f}" stroke="#f59e0b" stroke-width="1.4" stroke-dasharray="6 4"/>' + t(x1 - 4, Y(pk) - 6, f"pickup relai fasa {pk} A", 9.5, "#f59e0b", "end", "600")
     b += f'<circle cx="{X(L_HS):.1f}" cy="{Y(i3(L_HS)):.1f}" r="5" fill="#ef4444"/>' + t(X(L_HS), Y(i3(L_HS)) - 10, f"{ind(L_HS, 0)} km: {ind(I_SC_UJUNG, 0)} A", 9.5, TX, "middle", "600")
-    b += t(x0 - 8, y1 - 8, "A", 10.5, AX, "end") + t(340, 230, f"S_sc {ind(SSC, 0)} MVA (X_s {ind(XS, 3)} Ω), 0,4 + j0,35 Ω/km, Z₀ ≈ 3Z₁; arus gangguan tanah dibatasi NGR", 10.5, AX)
+    b += t(x0 - 8, y1 - 8, "A", 10.5, AX, "end") + t(340, 230, f"S<sub>sc</sub> {ind(SSC, 0)} MVA (X<sub>s</sub> {ind(XS, 3)} Ω), 0,4 + j0,35 Ω/km, Z₀ ≈ 3Z₁; arus gangguan tanah dibatasi NGR", 10.5, AX)
     b += t(340, 244, "sehingga hampir datar dan hanya terdeteksi relai tanah (GFR) berpickup rendah", 10.5, AX)
     return svg(660, 254, b, "Gambar 2 — Arus hubung singkat tiga fasa dan satu fasa–tanah sepanjang penyulang 20 kV")
 
@@ -173,12 +173,12 @@ def gambar4():
     tA, tB, tF = idmt(IF_K, IS_HULU, TMS_HULU), T_HILIR, fuse(IF_K)
     for tt, c in [(tA, "#ef4444"), (tB, "#00e09e"), (tF, "#f59e0b")]:
         b += f'<circle cx="{X(IF_K):.1f}" cy="{Y(tt):.1f}" r="4.5" fill="{c}"/>'
-    for k, (c, lab) in enumerate([("#ef4444", f"relai GI: I_s {ind(IS_HULU, 0)} A, TMS {ind(TMS_HULU, 3)} → {ind(tA, 3)} s"),
-                                  ("#00e09e", f"recloser/relai hilir: I_s {ind(IS_HILIR, 0)} A, TMS {ind(TMS_HILIR, 2)} → {ind(tB, 3)} s"),
+    for k, (c, lab) in enumerate([("#ef4444", f"relai GI: I<sub>s</sub> {ind(IS_HULU, 0)} A, TMS {ind(TMS_HULU, 3)} → {ind(tA, 3)} s"),
+                                  ("#00e09e", f"recloser/relai hilir: I<sub>s</sub> {ind(IS_HILIR, 0)} A, TMS {ind(TMS_HILIR, 2)} → {ind(tB, 3)} s"),
                                   ("#f59e0b", f"fuse 100 A: {ind(tF * 1000, 0)} ms")]):
         yy = 150 + 14 * k                                   # kiri bawah: semua kurva berada di atas area ini
         b += f'<line x1="{x0 + 8}" y1="{yy - 4}" x2="{x0 + 24}" y2="{yy - 4}" stroke="{c}" stroke-width="2.4"/>' + t(x0 + 30, yy, lab, 9.5, c, "start", "600")
-    b += t(X(IF_K), y1 - 6, f"I_f = {ind(IF_K, 0)} A", 9.5, TX, "middle", "600")
+    b += t(X(IF_K), y1 - 6, f"I<sub>f</sub> = {ind(IF_K, 0)} A", 9.5, TX, "middle", "600")
     b += t(x0 - 8, y1 - 8, "t", 10.5, AX, "end") + t(340, 230, "Kurva waktu–arus (log–log): fuse < hilir < hulu pada setiap arus gangguan;", 10.5, AX)
     b += t(340, 244, f"selang hulu–hilir {ind(MARGIN, 1)} s pada {ind(IF_K, 0)} A dicapai dengan TMS hulu {ind(TMS_HULU, 3)}", 10.5, AX)
     return svg(660, 254, b, "Gambar 4 — Koordinasi kurva waktu–arus fuse, relai hilir, dan relai gardu induk")
@@ -287,14 +287,14 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
   </div>
 {HERO_SCHEMATIC_1}
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">I_sc = V_f/|Z_s + Z_L|</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">t = TMS·0,14/((I/I_s)^0,02 − 1)</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">I<sub>sc</sub> = V<sub>f</sub>/|Z<sub>s</sub> + Z<sub>L</sub>|</span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">t = TMS·0,14/((I/I<sub>s</sub>)<sup>0,02</sup> − 1)</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">V₂ ≈ V₁ − (PR + QX)/V₁</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">P_n = P₀(1 + g)ⁿ</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">P<sub>n</sub> = P₀(1 + g)ⁿ</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">fuse &lt; recloser &lt; relai</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">Z_s = V²/S_sc</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">3V_f/(Z₁+Z₂+Z₀+3R_n)</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">n = ln(S_cap/S₀)/ln(1+g)</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">Z<sub>s</sub> = V²/S<sub>sc</sub></span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">3V<sub>f</sub>/(Z₁+Z₂+Z₀+3R<sub>n</sub>)</span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">n = ln(S<sub>cap</sub>/S₀)/ln(1+g)</span>
   </div>
 {HERO_SCHEMATIC_2}
   <div class="hero-content">
@@ -351,19 +351,19 @@ def materi():
     isi = figure(2, "Arus hubung singkat tiga fasa dan satu fasa–tanah sepanjang penyulang 20 kV", f"Arus gangguan tiga fasa terbesar di gardu induk ({ind(I_SC_GI, 0)} A) dan turun sepanjang penyulang karena impedansi saluran bertambah; arus gangguan tanah dibatasi resistor pentanahan netral (NGR {ind(NGR, 0)} Ω) sehingga hampir datar dan kecil, dan harus dideteksi relai tanah tersendiri.", gambar2())
     isi += formula(2, "Arus Hubung Singkat pada Penyulang", r"Z_s = \dfrac{V_L^2}{S_{sc}}, \qquad I_{3\varphi}(x) = \dfrac{V_f}{|Z_s + z\,x|}, \qquad I_{1\varphi\text{-}t} = \dfrac{3V_f}{|Z_1 + Z_2 + Z_0 + 3R_n|}",
                    rf"Rel 20 kV dengan daya hubung singkat {ind(SSC, 0)} MVA: \(X_s = 400/{ind(SSC, 0)} = {ind(XS, 3)}\) Ω → \(I_{{3\varphi}}\) di gardu induk \(= {ind(VF, 0)}/{ind(XS, 3)} = {ind(I_SC_GI, 0)}\) A. Di ujung penyulang {ind(L_HS, 0)} km (0,4 + j0,35 Ω/km): \(Z = {ind(R_KM * L_HS, 1)} + j({ind(XS, 3)} + {ind(X_KM * L_HS, 1)})\), \(|Z| = {ind(Z_UJUNG, 3)}\) Ω → \({ind(I_SC_UJUNG, 0)}\) A. Gangguan satu fasa–tanah dengan NGR {ind(NGR, 0)} Ω, \(Z_1 = Z_2 = j{ind(Z1_HS, 1)}\), \(Z_0 = j{ind(Z0_HS, 1)}\) Ω: \(I = 3\times{ind(VF, 0)}/|{ind(3 * NGR, 0)} + j{ind(2 * Z1_HS + Z0_HS, 1)}| = {ind(I_1F, 0)}\) A.",
-                   "Daya hubung singkat S_sc adalah cara utilitas menyatakan 'kekuatan' sumber: makin besar S_sc makin kecil impedansi sumber dan makin besar arus gangguan (tetapi makin kaku tegangannya). Arus gangguan menentukan kapasitas pemutus (breaking capacity PMT, biasanya 12,5–25 kA pada 20 kV), setelan relai, dan I²t yang harus ditahan kabel. Pentanahan netral lewat resistor (12 Ω/1000 A untuk kabel tanah, 40 Ω/300 A untuk SUTM, 500 Ω/25 A di beberapa sistem) membatasi arus gangguan tanah yang merupakan 80 % dari semua gangguan.",
-                   [("S_{sc}", "Daya hubung singkat tiga fasa sumber (MVA)"), ("z\\,x", "Impedansi saluran per km × jarak ke titik gangguan (Ω)"), ("R_n", "Resistor pentanahan netral (Ω), tampil sebagai 3R_n pada jaringan urutan nol")])
+                   "Daya hubung singkat S<sub>sc</sub> adalah cara utilitas menyatakan 'kekuatan' sumber: makin besar S<sub>sc</sub> makin kecil impedansi sumber dan makin besar arus gangguan (tetapi makin kaku tegangannya). Arus gangguan menentukan kapasitas pemutus (breaking capacity PMT, biasanya 12,5–25 kA pada 20 kV), setelan relai, dan I²t yang harus ditahan kabel. Pentanahan netral lewat resistor (12 Ω/1000 A untuk kabel tanah, 40 Ω/300 A untuk SUTM, 500 Ω/25 A di beberapa sistem) membatasi arus gangguan tanah yang merupakan 80 % dari semua gangguan.",
+                   [("S_{sc}", "Daya hubung singkat tiga fasa sumber (MVA)"), ("z\\,x", "Impedansi saluran per km × jarak ke titik gangguan (Ω)"), ("R_n", "Resistor pentanahan netral (Ω), tampil sebagai 3R<sub>n</sub> pada jaringan urutan nol")])
     isi += cards([
         ("⚡", "Jenis Gangguan", "Satu fasa–tanah 70–80 %, dua fasa 10–15 %, dua fasa–tanah 5–10 %, tiga fasa < 5 %; tiga fasa dipakai untuk kapasitas alat, satu fasa–tanah untuk setelan relai tanah.", None),
         ("📐", "Komponen Simetris", "Gangguan tak seimbang dihitung dengan jaringan urutan positif, negatif, dan nol yang dihubung seri (1φ–tanah) atau paralel (2φ); Z₀ saluran ≈ 3 Z₁ untuk SUTM.", None),
-        ("🔌", "Sumber Lain", "Motor besar dan pembangkit tersebar menyumbang arus gangguan beberapa siklus pertama; PLTS inverter hanya ± 1,1–1,5 × I_n sehingga sulit dideteksi relai arus lebih.", None),
+        ("🔌", "Sumber Lain", "Motor besar dan pembangkit tersebar menyumbang arus gangguan beberapa siklus pertama; PLTS inverter hanya ± 1,1–1,5 × I<sub>n</sub> sehingga sulit dideteksi relai arus lebih.", None),
         ("🌡️", "Ketahanan Kabel", "Kabel XLPE Al menahan I²t ≈ (94·A)² untuk 1 s (A dalam mm²): kabel 150 mm² tahan 14 kA selama 1 s; relai harus memutus sebelum itu.", r"\(I_{1s} \approx 94\,A\ \text{(Al XLPE)}\)"),
         ("📉", "Tegangan Sag", "Selama gangguan, tegangan bus di hulu jatuh sebanding jaraknya ke gangguan; pelanggan di penyulang tetangga merasakan sag 0,1–1 s (relai/VSD trip) walau bukan penyulang mereka yang terganggu.", None),
-        ("🧭", "Lokasi Gangguan", "Dari arus gangguan yang terukur di GI dan impedansi per km, jarak gangguan ditaksir x ≈ (V_f/I − Z_s)/z: dasar fault locator pada relai modern.", None),
+        ("🧭", "Lokasi Gangguan", "Dari arus gangguan yang terukur di GI dan impedansi per km, jarak gangguan ditaksir x ≈ (V<sub>f</sub>/I − Z<sub>s</sub>)/z: dasar fault locator pada relai modern.", None),
     ])
-    isi += tabel(["Titik gangguan (S_sc 240 MVA, 0,4 + j0,35 Ω/km)", "R (Ω)", "X (Ω)", "|Z| (Ω)", "I_3φ (A)", "I_1φ–tanah, NGR 40 Ω (A)"],
+    isi += tabel(["Titik gangguan (S<sub>sc</sub> 240 MVA, 0,4 + j0,35 Ω/km)", "R (Ω)", "X (Ω)", "|Z| (Ω)", "I<sub>3φ</sub> (A)", "I<sub>1φ</sub>–tanah, NGR 40 Ω (A)"],
                  [[f"{d} km", ind(R_KM * d, 2), ind(XS + X_KM * d, 3), ind(math.hypot(R_KM * d, XS + X_KM * d), 3), ind(VF / math.hypot(R_KM * d, XS + X_KM * d), 0), ind(3 * VF / math.hypot(5 * R_KM * d + 3 * NGR, 3 * XS + 5 * X_KM * d), 0)] for d in [0, 2, 5, 8, 12, 15]])
-    isi += kotak("info-box", "<strong>📊 Cara Membaca Tabel di Atas:</strong> arus tiga fasa turun tiga kali lipat dari GI ke 15 km, sedangkan arus tanah hanya turun ± 10 % karena 3R_n = 120 Ω mendominasi. Relai fasa dengan pickup 600 A tidak melihat gangguan tanah mana pun; itulah mengapa setiap penyulang mempunyai relai tanah (GFR) berpickup 20–40 % dari relai fasa. Soal C1, C2, C10, dan C11 memakai Persamaan (2).")
+    isi += kotak("info-box", "<strong>📊 Cara Membaca Tabel di Atas:</strong> arus tiga fasa turun tiga kali lipat dari GI ke 15 km, sedangkan arus tanah hanya turun ± 10 % karena 3R<sub>n</sub> = 120 Ω mendominasi. Relai fasa dengan pickup 600 A tidak melihat gangguan tanah mana pun; itulah mengapa setiap penyulang mempunyai relai tanah (GFR) berpickup 20–40 % dari relai fasa. Soal C1, C2, C10, dan C11 memakai Persamaan (2).")
     m += bagian(2, "m-gangguan", "Arus Hubung Singkat<br>pada Penyulang",
                 "Alat proteksi hanya dapat disetel bila arus gangguan di tiap titik diketahui: paling besar di gardu induk, paling kecil di ujung penyulang, dan untuk gangguan tanah dibatasi resistor pentanahan. Persamaan (2) menghitung ketiganya dari daya hubung singkat sumber dan impedansi saluran; Gambar 2 memperlihatkan kurvanya sepanjang penyulang contoh.",
                 isi, "ARUS GANGGUAN")
@@ -371,9 +371,9 @@ def materi():
     # 03 — peralatan
     isi = figure(3, "Peralatan proteksi dan pemisah pada penyulang dan zonanya", "Relai arus lebih di gardu induk memerintah PMT, recloser membuka–menutup otomatis di tengah penyulang, sectionalizer menghitung operasi recloser lalu mengisolasi seksi, fuse cut-out melindungi cabang dan trafo, LBS untuk manuver, dan arrester untuk petir.", gambar3())
     isi += formula(3, "Fuse: Arus Nominal, I²t Lebur, dan Inrush Trafo", r"I_n = \dfrac{S}{\sqrt{3}\,V_L}, \qquad I_{fuse} \approx (2\text{–}3)\,I_n, \qquad t_{lebur} = \dfrac{I^2t_{min}}{I^2}, \qquad I^2t_{inrush} = (k\,I_n)^2\,t_{inrush} < I^2t_{min}",
-                   rf"Trafo {ind(S_TRAFO, 0)} kVA pada 20 kV: \(I_n = {ind(S_TRAFO, 0)}\times10^3/(\sqrt{{3}}\times20\,000) = {ind(I_N_TM, 2)}\) A → fuse cut-out ≈ {ind(FUSE_K, 1)} × {ind(I_N_TM, 2)} = {ind(FUSE_K * I_N_TM, 1)} A → link 50 A (tipe K). Inrush {ind(INRUSH_K, 0)} × I_n selama {ind(INRUSH_T, 1)} s: \(I^2t = ({ind(INRUSH_K * I_N_TM, 1)})^2\times{ind(INRUSH_T, 1)} = {ind(I2T_INRUSH, 0)}\) A²s, jauh di bawah I²t lebur link 50 A (± 10⁴ A²s) sehingga fuse tidak putus saat energisasi. Fuse cabang 100 A (I²t ≈ {ind(I2T_FUSE100 / 1e5, 0)}×10⁵ A²s) pada gangguan {ind(I_F_FUSE, 0)} A lebur dalam \({ind(I2T_FUSE100 / 1e5, 0)}\times10^5/{ind(I_F_FUSE, 0)}^2 = {ind(T_FUSE, 0)}\) ms.",
-                   "Fuse adalah pengaman termurah dan tercepat pada arus besar, tetapi sekali pakai dan tidak dapat membedakan gangguan temporer; karena itu ia ditempatkan di cabang dan trafo, sedangkan penyulang utama dijaga recloser dan relai yang dapat menutup kembali. Fuse tipe K (cepat) dan T (lambat) mempunyai kurva waktu–arus baku (ANSI C37.42); pemilihan link harus tahan inrush trafo dan arus beban dingin (cold load pickup 2–3 × I_n selama beberapa detik setelah pemadaman).",
-                   [("S", "Daya trafo (VA) untuk fuse trafo, atau beban cabang"), ("I^2t_{min}", "Energi lebur minimum fuse link (A²s), dari katalog"), ("k, t_{inrush}", "Faktor dan lama inrush (8–12 × I_n, 0,1 s)")])
+                   rf"Trafo {ind(S_TRAFO, 0)} kVA pada 20 kV: \(I_n = {ind(S_TRAFO, 0)}\times10^3/(\sqrt{{3}}\times20\,000) = {ind(I_N_TM, 2)}\) A → fuse cut-out ≈ {ind(FUSE_K, 1)} × {ind(I_N_TM, 2)} = {ind(FUSE_K * I_N_TM, 1)} A → link 50 A (tipe K). Inrush {ind(INRUSH_K, 0)} × I<sub>n</sub> selama {ind(INRUSH_T, 1)} s: \(I^2t = ({ind(INRUSH_K * I_N_TM, 1)})^2\times{ind(INRUSH_T, 1)} = {ind(I2T_INRUSH, 0)}\) A²s, jauh di bawah I²t lebur link 50 A (± 10⁴ A²s) sehingga fuse tidak putus saat energisasi. Fuse cabang 100 A (I²t ≈ {ind(I2T_FUSE100 / 1e5, 0)}×10⁵ A²s) pada gangguan {ind(I_F_FUSE, 0)} A lebur dalam \({ind(I2T_FUSE100 / 1e5, 0)}\times10^5/{ind(I_F_FUSE, 0)}^2 = {ind(T_FUSE, 0)}\) ms.",
+                   "Fuse adalah pengaman termurah dan tercepat pada arus besar, tetapi sekali pakai dan tidak dapat membedakan gangguan temporer; karena itu ia ditempatkan di cabang dan trafo, sedangkan penyulang utama dijaga recloser dan relai yang dapat menutup kembali. Fuse tipe K (cepat) dan T (lambat) mempunyai kurva waktu–arus baku (ANSI C37.42); pemilihan link harus tahan inrush trafo dan arus beban dingin (cold load pickup 2–3 × I<sub>n</sub> selama beberapa detik setelah pemadaman).",
+                   [("S", "Daya trafo (VA) untuk fuse trafo, atau beban cabang"), ("I^2t_{min}", "Energi lebur minimum fuse link (A²s), dari katalog"), ("k, t_{inrush}", "Faktor dan lama inrush (8–12 × I<sub>n</sub>, 0,1 s)")])
     isi += cards([
         ("🔥", "Fuse Cut-Out (FCO)", "Pemegang link fuse yang jatuh (drop-out) saat lebur sehingga terlihat dari bawah tiang; 20 kV, 100–200 A, kapasitas putus 8–12 kA; untuk trafo dan cabang.", None),
         ("🔁", "Recloser", "PMT vakum 20 kV dengan relai terpadu: buka cepat (kurva A) 1–2×, lalu buka lambat (kurva C) 1–2×, lalu lockout; interval mati 2–15 s; ± 400–800 A pengenal.", None),
@@ -395,18 +395,18 @@ def materi():
                 isi, "PERALATAN PROTEKSI")
 
     # 04 — koordinasi
-    isi = figure(4, "Koordinasi kurva waktu–arus fuse, relai hilir, dan relai gardu induk", f"Pada kurva log–log, setiap alat harus berada di atas alat di hilirnya untuk seluruh rentang arus gangguan zonanya; pada I_f = {ind(IF_K, 0)} A, fuse lebur {ind(T_FUSE * (I_F_FUSE / IF_K) ** 2, 0)} ms, relai hilir {ind(T_HILIR, 3)} s, dan relai GI {ind(T_HILIR + MARGIN, 3)} s.", gambar4())
+    isi = figure(4, "Koordinasi kurva waktu–arus fuse, relai hilir, dan relai gardu induk", f"Pada kurva log–log, setiap alat harus berada di atas alat di hilirnya untuk seluruh rentang arus gangguan zonanya; pada I<sub>f</sub> = {ind(IF_K, 0)} A, fuse lebur {ind(T_FUSE * (I_F_FUSE / IF_K) ** 2, 0)} ms, relai hilir {ind(T_HILIR, 3)} s, dan relai GI {ind(T_HILIR + MARGIN, 3)} s.", gambar4())
     isi += formula(4, "Relai IDMT dan Selang Koordinasi", r"t = TMS\times\dfrac{0{,}14}{(I/I_s)^{0{,}02} - 1}\ \text{(standard inverse)}, \qquad t_{hulu} = t_{hilir} + \Delta t,\ \Delta t = 0{,}3\text{–}0{,}4\ \text{s}, \qquad I_s = (1{,}2\text{–}1{,}5)\,I_{beban,maks}",
-                   rf"Relai dengan TMS {ind(TMS_C, 2)} melihat arus {ind(M_C, 0)} × I_s: \(t = {ind(TMS_C, 2)}\times0{{,}}14/({ind(M_C, 0)}^{{0,02}} - 1) = {ind(T_IDMT, 3)}\) s. Koordinasi: relai hilir I_s {ind(IS_HILIR, 0)} A TMS {ind(TMS_HILIR, 1)} pada gangguan {ind(IF_K, 0)} A bekerja \(t = {ind(T_HILIR, 3)}\) s; relai GI (I_s {ind(IS_HULU, 0)} A) harus bekerja pada \({ind(T_HILIR, 3)} + {ind(MARGIN, 1)} = {ind(T_HILIR + MARGIN, 3)}\) s → \(TMS = {ind(T_HILIR + MARGIN, 3)}\times(({ind(IF_K, 0)}/{ind(IS_HULU, 0)})^{{0,02}} - 1)/0{{,}}14 = {ind(TMS_HULU, 4)}\).",
+                   rf"Relai dengan TMS {ind(TMS_C, 2)} melihat arus {ind(M_C, 0)} × I<sub>s</sub>: \(t = {ind(TMS_C, 2)}\times0{{,}}14/({ind(M_C, 0)}^{{0,02}} - 1) = {ind(T_IDMT, 3)}\) s. Koordinasi: relai hilir I<sub>s</sub> {ind(IS_HILIR, 0)} A TMS {ind(TMS_HILIR, 1)} pada gangguan {ind(IF_K, 0)} A bekerja \(t = {ind(T_HILIR, 3)}\) s; relai GI (I<sub>s</sub> {ind(IS_HULU, 0)} A) harus bekerja pada \({ind(T_HILIR, 3)} + {ind(MARGIN, 1)} = {ind(T_HILIR + MARGIN, 3)}\) s → \(TMS = {ind(T_HILIR + MARGIN, 3)}\times(({ind(IF_K, 0)}/{ind(IS_HULU, 0)})^{{0,02}} - 1)/0{{,}}14 = {ind(TMS_HULU, 4)}\).",
                    "Relai IDMT (inverse definite minimum time) bekerja makin cepat pada arus makin besar, sehingga gangguan dekat sumber yang paling merusak diputus paling cepat, sementara gangguan jauh yang arusnya kecil masih sempat diputus alat hilir. Selang 0,3–0,4 s mencakup waktu buka PMT (0,05–0,1 s), kelebihan waktu relai (overshoot), dan kesalahan CT/relai. Koordinasi diperiksa pada arus gangguan maksimum di batas zona hilir (selang cukup) dan arus minimum di ujung zona (relai masih pickup).",
                    [("TMS", "Time multiplier setting (0,05–1,0), menggeser kurva ke atas"), ("I_s", "Arus setelan (pickup) relai (A primer)"), ("\\Delta t", "Selang koordinasi (grading margin)")])
     isi += cards([
-        ("📈", "Kurva IEC", "Standard inverse (0,14/…^0,02), very inverse (13,5/…^1), extremely inverse (80/…^2): makin curam makin mirip fuse, dipakai untuk koordinasi dengan fuse.", None),
+        ("📈", "Kurva IEC", "Standard inverse t = TMS·0,14/((I/I<sub>s</sub>)<sup>0,02</sup> − 1), very inverse TMS·13,5/((I/I<sub>s</sub>) − 1), extremely inverse TMS·80/((I/I<sub>s</sub>)² − 1): makin curam makin mirip fuse, dipakai untuk koordinasi dengan fuse.", None),
         ("💾", "Fuse Saving", "Recloser membuka cepat (kurva A) sebelum fuse lebur agar gangguan temporer di cabang tidak memutus fuse; bila permanen, recloser menutup dengan kurva lambat (C) dan fuse lebur.", None),
         ("🔥", "Fuse Blowing", "Alternatifnya: biarkan fuse lebur lebih dulu untuk semua gangguan cabang, sehingga penyulang utama tidak pernah 'kedip'; dipilih bila pelanggan peka terhadap sag/kedip.", None),
         ("🔗", "Fuse–Fuse", "Fuse hilir harus selesai lebur (total clearing) sebelum fuse hulu mulai lebur (min melting) × 0,75; rasio link biasanya 2–3 tingkat (mis. 25 K → 65 K).", None),
         ("⚡", "Elemen Instan (50)", "Relai instan di GI disetel > arus gangguan maksimum di batas zona hilir (mis. di recloser) agar tidak mendahului; memutus gangguan dekat GI dalam < 0,1 s.", None),
-        ("🌐", "Relai Tanah", "GFR disetel 10–40 % I_n penyulang (mis. 60–120 A) dan dikoordinasikan sendiri dengan recloser tanah; tidak boleh terganggu ketidakseimbangan beban normal.", None),
+        ("🌐", "Relai Tanah", "GFR disetel 10–40 % I<sub>n</sub> penyulang (mis. 60–120 A) dan dikoordinasikan sendiri dengan recloser tanah; tidak boleh terganggu ketidakseimbangan beban normal.", None),
     ])
     isi += tabel(["Alat (zona)", "Pickup", "Kurva / TMS", "t pada 2000 A", "t pada 800 A", "Fungsi"], [
         ["Fuse 100 K (cabang)", "≈ 150–200 A", "TCC pabrikan", f"{ind(T_FUSE * (I_F_FUSE / 2000) ** 2, 0)} ms", f"{ind(I2T_FUSE100 / 800 ** 2, 2)} s", "cabang: lebur untuk gangguan permanen"],
@@ -434,7 +434,7 @@ def materi():
         ("📊", "Ketidakpastian", "Skenario rendah/dasar/tinggi (mis. 4/6/8 %) dan analisis sensitivitas; keputusan bertahap yang dapat ditunda lebih bernilai daripada investasi besar sekaligus.", None),
         ("🎯", "Kriteria Jenuh", "Penyulang: 60–80 % KHA (cadangan manuver N-1); trafo GI: 80 % dengan cadangan trafo tetangga; gardu distribusi: 80 %; JTR: ΔV 5 %.", None),
     ])
-    isi += tabel(["Laju pertumbuhan g", "Beban th 5 (dari 5 MVA)", "Beban th 10", "Beban th 20", "T_ganda (tahun)", "Tahun jenuh 8 MVA @ 80 %"],
+    isi += tabel(["Laju pertumbuhan g", "Beban th 5 (dari 5 MVA)", "Beban th 10", "Beban th 20", "T<sub>ganda</sub> (tahun)", "Tahun jenuh 8 MVA @ 80 %"],
                  [[f"{gg * 100:.0f} %", ind(5 * (1 + gg) ** 5, 2), ind(5 * (1 + gg) ** 10, 2), ind(5 * (1 + gg) ** 20, 2), ind(math.log(2) / math.log(1 + gg), 1), ind(math.log(6.4 / 5) / math.log(1 + gg), 1)] for gg in [0.03, 0.05, 0.07, 0.10]])
     isi += kotak("tip-box", "💡 <strong>Membaca Tabel di Atas:</strong> perbedaan 3 % dan 7 % terlihat kecil setahun tetapi menjadi dua kali lipat dalam 20 tahun; salah menaksir laju pertumbuhan adalah kesalahan perencanaan yang paling mahal. Soal C6, C7, dan C14 memakai Persamaan (5).")
     m += bagian(5, "m-peramalan", "Peramalan Beban<br>dan Tahun Jenuh",
@@ -471,16 +471,16 @@ def materi():
     isi += anim_panel(2, "amber", r"Arus Hubung Singkat Sepanjang Penyulang dan Jangkauan Relai Arus Lebih", "cvHubungSingkat",
                       [("sl_hs_ssc", "v_hs_ssc", "Daya hubung singkat sumber (MVA)", 100, 600, 10, 300, "300"), ("sl_hs_l", "v_hs_l", "Panjang penyulang (km)", 5, 30, 1, 15, "15"), ("sl_hs_rn", "v_hs_rn", "NGR (Ω)", 0, 500, 4, 40, "40"), ("sl_hs_pick", "v_hs_pick", "Pickup relai fasa (A)", 200, 2000, 20, 600, "600")],
                       "btnHubungSingkat", "toggleHubungSingkat", "hubungSingkatInfo",
-                      "<strong>📊 Cara Membaca Animasi 2:</strong> Merah arus gangguan tiga fasa, cyan satu fasa–tanah, kuning putus pickup relai fasa; kilat putih berjalan menandai titik gangguan dan arusnya. Readout memberi jangkauan relai (titik terjauh yang arusnya masih ≥ pickup).<br>Amati: (1) <strong style=\"color:var(--amber)\">S_sc 100 vs 600 MVA</strong>: arus di GI berubah enam kali, di ujung hanya sedikit (impedansi saluran mendominasi). (2) NGR 0 → 500 Ω: arus tanah dari ribuan ampere ke puluhan ampere. (3) Pickup terlalu tinggi: ujung penyulang tak terjangkau. Soal C1, C2, C10, dan C11.")
+                      "<strong>📊 Cara Membaca Animasi 2:</strong> Merah arus gangguan tiga fasa, cyan satu fasa–tanah, kuning putus pickup relai fasa; kilat putih berjalan menandai titik gangguan dan arusnya. Readout memberi jangkauan relai (titik terjauh yang arusnya masih ≥ pickup).<br>Amati: (1) <strong style=\"color:var(--amber)\">S<sub>sc</sub> 100 vs 600 MVA</strong>: arus di GI berubah enam kali, di ujung hanya sedikit (impedansi saluran mendominasi). (2) NGR 0 → 500 Ω: arus tanah dari ribuan ampere ke puluhan ampere. (3) Pickup terlalu tinggi: ujung penyulang tak terjangkau. Soal C1, C2, C10, dan C11.")
     isi += anim_panel(3, "green", r"Koordinasi Kurva Waktu–Arus: Fuse, Relai Hilir, dan Relai Gardu Induk", "cvKoordinasi",
-                      [("sl_ko_isa", "v_ko_isa", "Relai hulu A: I_s (A)", 300, 1200, 20, 600, "600"), ("sl_ko_tmsa", "v_ko_tmsa", "Relai hulu A: TMS", 0.05, 1.0, 0.01, 0.3, "0.30"), ("sl_ko_isb", "v_ko_isb", "Relai hilir B: I_s (A)", 100, 800, 20, 300, "300"), ("sl_ko_tmsb", "v_ko_tmsb", "Relai hilir B: TMS", 0.05, 0.5, 0.01, 0.1, "0.10"), ("sl_ko_if", "v_ko_if", "Arus gangguan uji (A)", 400, 8000, 100, 2500, "2500")],
+                      [("sl_ko_isa", "v_ko_isa", "Relai hulu A: I<sub>s</sub> (A)", 300, 1200, 20, 600, "600"), ("sl_ko_tmsa", "v_ko_tmsa", "Relai hulu A: TMS", 0.05, 1.0, 0.01, 0.3, "0.30"), ("sl_ko_isb", "v_ko_isb", "Relai hilir B: I<sub>s</sub> (A)", 100, 800, 20, 300, "300"), ("sl_ko_tmsb", "v_ko_tmsb", "Relai hilir B: TMS", 0.05, 0.5, 0.01, 0.1, "0.10"), ("sl_ko_if", "v_ko_if", "Arus gangguan uji (A)", 400, 8000, 100, 2500, "2500")],
                       "btnKoordinasi", "toggleKoordinasi", "koordinasiInfo",
-                      "<strong>📊 Cara Membaca Animasi 3:</strong> Kurva log–log waktu terhadap arus: merah relai hulu, hijau relai hilir, kuning fuse cabang 100 A; garis vertikal arus gangguan uji dengan titik waktu kerja masing-masing; readout memeriksa selang ≥ 0,3 s.<br>Amati: (1) <strong style=\"color:var(--green)\">Turunkan TMS A</strong> sampai selang < 0,3 s: koordinasi gagal, relai GI bisa mendahului. (2) Geser arus uji ke 800 A (gangguan jauh): selang berubah karena kurva melengkung. (3) I_s B di bawah 200 A: relai hilir tidak lagi 'di atas' fuse pada arus kecil. Soal C4 dan C12.")
+                      "<strong>📊 Cara Membaca Animasi 3:</strong> Kurva log–log waktu terhadap arus: merah relai hulu, hijau relai hilir, kuning fuse cabang 100 A; garis vertikal arus gangguan uji dengan titik waktu kerja masing-masing; readout memeriksa selang ≥ 0,3 s.<br>Amati: (1) <strong style=\"color:var(--green)\">Turunkan TMS A</strong> sampai selang < 0,3 s: koordinasi gagal, relai GI bisa mendahului. (2) Geser arus uji ke 800 A (gangguan jauh): selang berubah karena kurva melengkung. (3) I<sub>s</sub> B di bawah 200 A: relai hilir tidak lagi 'di atas' fuse pada arus kecil. Soal C4 dan C12.")
     isi += anim_panel(4, "pink", r"Peramalan Beban Majemuk dan Penambahan Kapasitas Bertahap", "cvPeramalan",
                       [("sl_pr_s0", "v_pr_s0", "Beban awal (MVA)", 1, 8, 0.5, 4, "4.0"), ("sl_pr_g", "v_pr_g", "Pertumbuhan (%/tahun)", 1, 12, 1, 6, "6"), ("sl_pr_cap", "v_pr_cap", "Kapasitas awal (MVA)", 4, 12, 1, 8, "8"), ("sl_pr_tahap", "v_pr_tahap", "Penambahan tiap tahap (MVA)", 1, 10, 1, 4, "4"), ("sl_pr_batas", "v_pr_batas", "Batas pembebanan (%)", 60, 100, 5, 80, "80")],
                       "btnPeramalan", "togglePeramalan", "peramalanInfo",
                       "<strong>📊 Cara Membaca Animasi 4:</strong> Merah beban yang tumbuh majemuk (digambar tahun demi tahun), cyan kapasitas bertangga dan batas pembebanannya (putus); titik kuning saat pengembangan dilakukan.<br>Amati: (1) <strong style=\"color:var(--pink)\">g 3 % vs 10 %</strong>: jumlah pengembangan dalam 20 tahun berubah drastis. (2) Tahap kecil (1 MVA) → sering membangun; tahap besar (10 MVA) → jarang tetapi modal menganggur. (3) Batas 100 %: proyek tertunda tetapi tanpa cadangan manuver. Soal C6, C7, dan C14.")
-    isi += kotak("info-box", "<strong>🔍 Latihan Mandiri:</strong> pada Animasi 1 atur 4 bus × 0,8 MW pf 0,85 ruas 2 km dan cocokkan dengan Gambar 1. Pada Animasi 2 atur S_sc 240 MVA, 8 km, NGR 40 Ω dan cocokkan arus ujung dengan Bagian 02. Pada Animasi 3 atur B (300 A, TMS 0,1), A (500 A), arus uji 2000 A, lalu cari TMS A minimum yang memberi selang 0,4 s dan bandingkan dengan Bagian 04.")
+    isi += kotak("info-box", "<strong>🔍 Latihan Mandiri:</strong> pada Animasi 1 atur 4 bus × 0,8 MW pf 0,85 ruas 2 km dan cocokkan dengan Gambar 1. Pada Animasi 2 atur S<sub>sc</sub> 240 MVA, 8 km, NGR 40 Ω dan cocokkan arus ujung dengan Bagian 02. Pada Animasi 3 atur B (300 A, TMS 0,1), A (500 A), arus uji 2000 A, lalu cari TMS A minimum yang memberi selang 0,4 s dan bandingkan dengan Bagian 04.")
     m += bagian(7, "m-animasi", "Animasi Interaktif<br>Operasi dan Perencanaan Distribusi",
                 "Jalankan sweep aliran daya, geser daya hubung singkat dan NGR, atur setelan relai sampai terkoordinasi, lalu percepat pertumbuhan beban melawan kapasitas yang ditambah bertahap. Empat animasi ini memvisualkan Persamaan (1), (2), (4), dan (5).",
                 isi, "ANIMASI")
@@ -560,7 +560,7 @@ i, umur = {ind(I_RATE, 2).replace(",", ".")}, {N_UMUR}
 CRF = i*(1+i)**umur/((1+i)**umur - 1); print(f"CRF = {{CRF:.4f}}")
 for nama, modal, mva in [("uprating", 4, 3), ("penyulang baru", 10, 6), ("kapasitor", 0.8, 0.8), ("GI baru per penyulang", 20, 5)]:
     print(f"{{nama:22s}}: A = {{modal*CRF*1e3:7.0f}} juta/th -> {{modal*CRF*1e3/mva:6.0f}} juta/th per MVA")''')
-    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 01–06: V₂ {ind(V2_AD, 3)} kV, I_sc ujung {ind(I_SC_UJUNG, 0)} A, I_1φ {ind(I_1F, 0)} A, TMS hulu {ind(TMS_HULU, 4)}, P₁₀ {ind(P_N_F, 2)} MW, tahun jenuh {ind(N_JENUH, 2)}, CRF {ind(CRF, 4)}. Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
+    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 01–06: V₂ {ind(V2_AD, 3)} kV, I<sub>sc</sub> ujung {ind(I_SC_UJUNG, 0)} A, I<sub>1φ</sub> {ind(I_1F, 0)} A, TMS hulu {ind(TMS_HULU, 4)}, P₁₀ {ind(P_N_F, 2)} MW, tahun jenuh {ind(N_JENUH, 2)}, CRF {ind(CRF, 4)}. Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
     m += bagian(8, "m-jupyter", "Implementasi Python<br>di Jupyter Notebook",
                 "Empat cell berikut mengerjakan seluruh contoh modul ini: sweep aliran daya, arus hubung singkat tiga fasa dan tanah, fuse dan koordinasi relai IDMT, serta peramalan, tahun jenuh, dan biaya tahunan ekuivalen. Salin satu cell utuh ke Jupyter Notebook (VS Code), jalankan apa adanya lebih dulu, baru ubah parameternya.",
                 isi, "IMPLEMENTASI PYTHON")
@@ -600,11 +600,11 @@ TUGAS_HERO = f'''<div class="hero" data-tab="tugas" style="min-height:60vh">
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">I_sc = V_f/|Z_s + z·x|</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">t = TMS·0,14/((I/I_s)^0,02 − 1)</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">P_rugi = (P² + Q²)R/V²</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">n = ln(S_cap/S₀)/ln(1 + g)</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">I²t = (k·I_n)²·t</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">I<sub>sc</sub> = V<sub>f</sub>/|Z<sub>s</sub> + z·x|</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">t = TMS·0,14/((I/I<sub>s</sub>)<sup>0,02</sup> − 1)</span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">P<sub>rugi</sub> = (P² + Q²)R/V²</span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">n = ln(S<sub>cap</sub>/S₀)/ln(1 + g)</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">I²t = (k·I<sub>n</sub>)²·t</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan {PERTEMUAN} · {JUDUL_PANJANG}</div>
@@ -620,7 +620,7 @@ TUGAS_HERO = f'''<div class="hero" data-tab="tugas" style="min-height:60vh">
 
 MC = [
     ("Fungsi <strong>fuse cut-out</strong> pada gardu distribusi adalah...",
-     ["Menutup kembali penyulang secara otomatis setelah gangguan temporer", "Melebur pada arus gangguan trafo/JTR dan memisahkannya dari penyulang; dipilih 2–3 × I_n trafo agar tahan inrush", "Membatasi arus gangguan tanah lewat resistor netral", "Mengatur tegangan sekunder trafo"],
+     ["Menutup kembali penyulang secara otomatis setelah gangguan temporer", "Melebur pada arus gangguan trafo/JTR dan memisahkannya dari penyulang; dipilih 2–3 × I<sub>n</sub> trafo agar tahan inrush", "Membatasi arus gangguan tanah lewat resistor netral", "Mengatur tegangan sekunder trafo"],
      "Fuse cut-out"),
     ("<strong>Recloser</strong> dipasang pada penyulang udara karena...",
      ["Ia lebih murah daripada fuse", "Ia membatasi tegangan surja petir", "Ia menghitung operasi pengaman hulu lalu membuka saat interval mati", "Sebagian besar gangguan SUTM (70–80 %) bersifat temporer dan hilang setelah pemutusan sesaat, sehingga buka–tutup otomatis memulihkan pasokan tanpa petugas"],
@@ -629,7 +629,7 @@ MC = [
      ["Ia tidak memutus arus gangguan; ia menghitung operasi recloser di hulunya dan membuka pada interval mati setelah hitungan tercapai", "Ia memutus arus gangguan lebih cepat daripada recloser", "Ia hanya dipasang di gardu induk", "Ia memerlukan kurva waktu–arus yang dikoordinasikan dengan fuse"],
      "Sectionalizer"),
     ("Relai arus lebih <strong>IDMT</strong> (inverse definite minimum time) bekerja...",
-     ["Dalam waktu tetap berapa pun arusnya", "Seketika untuk semua arus di atas setelan", "Makin cepat untuk arus gangguan makin besar, mengikuti kurva seperti t = TMS·0,14/((I/I_s)^0,02 − 1)", "Hanya untuk gangguan satu fasa ke tanah"],
+     ["Dalam waktu tetap berapa pun arusnya", "Seketika untuk semua arus di atas setelan", "Makin cepat untuk arus gangguan makin besar, mengikuti kurva seperti t = TMS·0,14/((I/I<sub>s</sub>)<sup>0,02</sup> − 1)", "Hanya untuk gangguan satu fasa ke tanah"],
      "Relai IDMT"),
     ("Prinsip <strong>koordinasi</strong> pengaman berderet pada penyulang radial adalah...",
      ["Pengaman di gardu induk selalu bekerja lebih dulu", "Pengaman terdekat gangguan (hilir) bekerja lebih dulu; pengaman hulu diberi selang 0,3–0,4 s sebagai cadangan", "Semua pengaman bekerja serentak agar gangguan cepat hilang", "Fuse selalu disetel lebih lambat daripada relai"],
@@ -638,7 +638,7 @@ MC = [
      ["Fuse dibiarkan lebur lebih dulu untuk setiap gangguan cabang", "Fuse diganti dengan recloser kecil", "Fuse dipasang seri dua buah agar lebih tahan", "Recloser membuka cepat sebelum fuse melebur agar gangguan temporer tidak memutus fuse; bila permanen, recloser menutup dengan kurva lambat dan fuse melebur"],
      "Fuse saving"),
     ("Daya hubung singkat 250 MVA pada rel 20 kV berarti impedansi ekuivalen sumber...",
-     ["Z_s = V²/S_sc = 400/250 = 1,6 Ω, hampir seluruhnya reaktif", "Z_s = S_sc/V² = 0,625 Ω", "Z_s = V/S_sc = 0,08 Ω", "Tidak dapat ditentukan tanpa mengetahui panjang penyulang"],
+     ["Z<sub>s</sub> = V²/S<sub>sc</sub> = 400/250 = 1,6 Ω, hampir seluruhnya reaktif", "Z<sub>s</sub> = S<sub>sc</sub>/V² = 0,625 Ω", "Z<sub>s</sub> = V/S<sub>sc</sub> = 0,08 Ω", "Tidak dapat ditentukan tanpa mengetahui panjang penyulang"],
      "Impedansi sumber"),
     ("<strong>Resistor pentanahan netral</strong> (NGR) pada trafo 20 kV berfungsi...",
      ["Menaikkan arus gangguan tiga fasa agar relai lebih peka", "Menghilangkan sama sekali arus gangguan tanah", "Membatasi arus gangguan satu fasa ke tanah (mis. 40 Ω → ± 300 A) agar kerusakan dan tegangan sentuh terkendali, sambil tetap terdeteksi relai tanah", "Mengompensasi daya reaktif penyulang"],
@@ -651,9 +651,9 @@ MC = [
      "Backward/forward sweep"),
 ]
 
-COMP_EZ_LABELS = ["I_sc tiga fasa ujung penyulang", "Impedansi sumber dari S_sc", "Arus nominal TM dasar fuse cut-out", "Waktu kerja relai standard inverse", "Waktu lebur fuse dari I²t",
+COMP_EZ_LABELS = ["I<sub>sc</sub> tiga fasa ujung penyulang", "Impedansi sumber dari S<sub>sc</sub>", "Arus nominal TM dasar fuse cut-out", "Waktu kerja relai standard inverse", "Waktu lebur fuse dari I²t",
                   "Peramalan beban majemuk 8 tahun", "Tahun mencapai kapasitas penyulang", "Rugi ruas aliran daya (P²+Q²)R/V²", "Tegangan bus ujung V₁ − (PR+QX)/V₁", "Arus gangguan tanah dengan NGR"]
-COMP_HARD_LABELS = ["I_sc pada titik x km dari S_sc", "TMS relai hulu untuk selang 0,4 s", "I²t inrush trafo untuk fuse",
+COMP_HARD_LABELS = ["I<sub>sc</sub> pada titik x km dari S<sub>sc</sub>", "TMS relai hulu untuk selang 0,4 s", "I²t inrush trafo untuk fuse",
                     "Tahun pengembangan gardu (batas 80 %)", "Daya sumber lewat backward sweep"]
 
 
@@ -684,8 +684,8 @@ FQ_JUDUL = [
     f"Beban penyulang {ind(S0_F, 1)} MVA tumbuh {ind(G_FF * 100, 0)} %/tahun dengan kapasitas {ind(CAP_F, 0)} MVA: kapan jenuh, dan pengembangan apa yang Anda usulkan beserta ekonominya?",
 ]
 FQ_RINGKAS = [
-    f"S_sc {ind(SSC_F, 0)} MVA → X_s (Persamaan 2); I_sc 3 fasa di 0, {ind(L_REC, 0)}, {ind(L_F, 0)} km dengan 0,4 + j0,35 Ω/km; pickup relai fasa 1,3 × {ind(I_BEBAN_F, 0)} A = {ind(IS_F, 0)} A dibandingkan I_sc ujung; peran GFR untuk gangguan tanah (NGR 40 Ω).",
-    f"Recloser {ind(L_REC, 0)} km: I_s {ind(IS_REC, 0)} A, TMS {ind(TMS_REC, 1)}; pada I_sc di recloser hitung t_recloser (Persamaan 4), t_GI = t_rec + 0,4, TMS GI dengan I_s {ind(IS_F, 0)} A; periksa t_GI pada I_sc ujung dan pada elemen instan; bahas fuse saving untuk cabang.",
+    f"S<sub>sc</sub> {ind(SSC_F, 0)} MVA → X<sub>s</sub> (Persamaan 2); I<sub>sc</sub> 3 fasa di 0, {ind(L_REC, 0)}, {ind(L_F, 0)} km dengan 0,4 + j0,35 Ω/km; pickup relai fasa 1,3 × {ind(I_BEBAN_F, 0)} A = {ind(IS_F, 0)} A dibandingkan I<sub>sc</sub> ujung; peran GFR untuk gangguan tanah (NGR 40 Ω).",
+    f"Recloser {ind(L_REC, 0)} km: I<sub>s</sub> {ind(IS_REC, 0)} A, TMS {ind(TMS_REC, 1)}; pada I<sub>sc</sub> di recloser hitung t<sub>recloser</sub> (Persamaan 4), t<sub>GI</sub> = t<sub>rec</sub> + 0,4, TMS GI dengan I<sub>s</sub> {ind(IS_F, 0)} A; periksa t<sub>GI</sub> pada I<sub>sc</sub> ujung dan pada elemen instan; bahas fuse saving untuk cabang.",
     f"Persamaan 5: tahun jenuh 80 % dan 100 %, beban tahun ke-10; Persamaan 6: bandingkan uprating (Rp 4 M, +3 MVA), penyulang baru (Rp 10 M, +6 MVA, loop), kapasitor (Rp 0,8 M, +0,8 MVA) dengan CRF 10 %/20 th; susun urutan pengembangan bertahap.",
 ]
 
@@ -693,23 +693,23 @@ FQ_RINGKAS = [
 def forum_page():
     q1 = fq(1, "14,165,233", "cyan", FQ_JUDUL[0],
             f"Penyulang 20 kV <b>{ind(L_F, 0)} km</b> (AAAC 150: 0,4 + j0,35 Ω/km) memasok kawasan industri dengan arus beban puncak <b>{ind(I_BEBAN_F, 0)} A</b>. Rel 20 kV gardu induk mempunyai daya hubung singkat <b>{ind(SSC_F, 0)} MVA</b> (sumber reaktif murni) dan netral trafo ditanahkan lewat NGR 40 Ω. Hitung impedansi sumber dan arus hubung singkat tiga fasa di gardu induk, di titik recloser ({ind(L_REC, 0)} km), dan di ujung penyulang (Persamaan 2). Relai arus lebih fasa di GI disetel 1,3 × arus beban puncak: apakah gangguan tiga fasa di ujung masih terdeteksi? Bagaimana dengan gangguan satu fasa ke tanah di ujung, dan alat apa yang menanganinya?",
-            ["X_s = 400/S_sc", "I_sc(x) = V_f/|Z_s + z·x|", "I_s = 1,3 × I_beban"],
+            ["X<sub>s</sub> = 400/S<sub>sc</sub>", "I<sub>sc</sub>(x) = V<sub>f</sub>/|Z<sub>s</sub> + z·x|", "I<sub>s</sub> = 1,3 × I<sub>beban</sub>"],
             "Arus hubung singkat tiga fasa di ujung penyulang dan jangkauan relai fasa kira-kira...",
             [f"{ind(I_GI_F, 0)} A di mana pun sepanjang penyulang, relai pasti menjangkau", f"{ind(I_UJ_F, 0)} A, di bawah pickup {ind(IS_F, 0)} A sehingga relai GI tidak menjangkau ujung", f"{ind(I_UJ_F, 0)} A (dari {ind(I_GI_F, 0)} A di GI), masih di atas pickup {ind(IS_F, 0)} A: relai fasa menjangkau ujung; gangguan tanah (± 300 A) ditangani GFR", f"{ind(VF / (R_KM * L_F), 0)} A (hanya resistansi saluran)"],
-            f"✅ Tepat! \\(X_s = 400/{ind(SSC_F, 0)} = {ind(XS_F, 3)}\\) Ω → GI \\({ind(VF, 0)}/{ind(XS_F, 3)} = {ind(I_GI_F, 0)}\\) A; recloser \\(|{ind(R_KM * L_REC, 1)} + j{ind(XS_F + X_KM * L_REC, 3)}| = {ind(Z_REC, 3)}\\) Ω → {ind(I_REC_F, 0)} A; ujung \\(|{ind(R_KM * L_F, 1)} + j{ind(XS_F + X_KM * L_F, 3)}| = {ind(Z_UJ_F, 3)}\\) Ω → {ind(I_UJ_F, 0)} A. Pickup {ind(IS_F, 0)} A < {ind(I_UJ_F, 0)} A: gangguan tiga fasa di ujung terdeteksi ({ind(I_UJ_F / IS_F, 1)} × I_s, relai lambat tetapi bekerja). Gangguan tanah di ujung ≈ 3V_f/|120 + jX| ≈ 280 A, jauh di bawah pickup fasa → GFR berpickup ± 60–100 A yang menanganinya.",
-            "❌ Hitung Z_s = V²/S_sc dulu, lalu tambahkan impedansi saluran (resistansi dan reaktansi) sampai titik gangguan; arus turun sepanjang penyulang, dan gangguan tanah dibatasi 3R_n.",
-            "Petunjuk: (1) X_s, lalu |Z| dan I_sc di 0, 6, 12 km. (2) Bandingkan I_sc ujung dengan 1,3 × 250 A. (3) Taksir I gangguan tanah ujung dan jelaskan peran GFR.")
+            f"✅ Tepat! \\(X_s = 400/{ind(SSC_F, 0)} = {ind(XS_F, 3)}\\) Ω → GI \\({ind(VF, 0)}/{ind(XS_F, 3)} = {ind(I_GI_F, 0)}\\) A; recloser \\(|{ind(R_KM * L_REC, 1)} + j{ind(XS_F + X_KM * L_REC, 3)}| = {ind(Z_REC, 3)}\\) Ω → {ind(I_REC_F, 0)} A; ujung \\(|{ind(R_KM * L_F, 1)} + j{ind(XS_F + X_KM * L_F, 3)}| = {ind(Z_UJ_F, 3)}\\) Ω → {ind(I_UJ_F, 0)} A. Pickup {ind(IS_F, 0)} A < {ind(I_UJ_F, 0)} A: gangguan tiga fasa di ujung terdeteksi ({ind(I_UJ_F / IS_F, 1)} × I<sub>s</sub>, relai lambat tetapi bekerja). Gangguan tanah di ujung ≈ 3V<sub>f</sub>/|120 + jX| ≈ 280 A, jauh di bawah pickup fasa → GFR berpickup ± 60–100 A yang menanganinya.",
+            "❌ Hitung Z<sub>s</sub> = V²/S<sub>sc</sub> dulu, lalu tambahkan impedansi saluran (resistansi dan reaktansi) sampai titik gangguan; arus turun sepanjang penyulang, dan gangguan tanah dibatasi 3R<sub>n</sub>.",
+            "Petunjuk: (1) Xₛ, lalu |Z| dan arus hubung singkat di 0, 6, 12 km. (2) Bandingkan arus hubung singkat ujung dengan 1,3 × 250 A. (3) Taksir I gangguan tanah ujung dan jelaskan peran GFR.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
-            f"Di titik {ind(L_REC, 0)} km dipasang recloser dengan setelan I_s {ind(IS_REC, 0)} A, kurva lambat standard inverse TMS {ind(TMS_REC, 1)}. Relai GI (I_s {ind(IS_F, 0)} A, standard inverse) harus menjadi cadangan dengan selang 0,4 s pada arus gangguan di lokasi recloser (Persamaan 4). Hitung waktu recloser dan TMS relai GI yang diperlukan, lalu periksa waktu kerja relai GI untuk gangguan di ujung penyulang (arus dari pertanyaan 1) dan untuk gangguan dekat GI (apakah elemen instan 50 boleh disetel 3000 A?). Bahas juga apakah cabang-cabang berfuse di hilir recloser sebaiknya memakai skema fuse saving.",
-            ["t = TMS·0,14/((I/I_s)^0,02 − 1)", "t_GI = t_rec + 0,4", "instan GI > I_sc di recloser"],
+            f"Di titik {ind(L_REC, 0)} km dipasang recloser dengan setelan I<sub>s</sub> {ind(IS_REC, 0)} A, kurva lambat standard inverse TMS {ind(TMS_REC, 1)}. Relai GI (I<sub>s</sub> {ind(IS_F, 0)} A, standard inverse) harus menjadi cadangan dengan selang 0,4 s pada arus gangguan di lokasi recloser (Persamaan 4). Hitung waktu recloser dan TMS relai GI yang diperlukan, lalu periksa waktu kerja relai GI untuk gangguan di ujung penyulang (arus dari pertanyaan 1) dan untuk gangguan dekat GI (apakah elemen instan 50 boleh disetel 3000 A?). Bahas juga apakah cabang-cabang berfuse di hilir recloser sebaiknya memakai skema fuse saving.",
+            ["t = TMS·0,14/((I/I<sub>s</sub>)<sup>0,02</sup> − 1)", "t<sub>GI</sub> = t<sub>rec</sub> + 0,4", "instan GI > I<sub>sc</sub> di recloser"],
             "TMS relai GI dan waktu kerjanya pada gangguan ujung kira-kira...",
-            [f"TMS ≈ {ind(TMS_GI_F, 3)} (t_rec {ind(T_REC_F, 3)} s → t_GI {ind(T_REC_F + 0.4, 3)} s di recloser); pada gangguan ujung t_GI ≈ {ind(T_GI_UJ, 2)} s", f"TMS ≈ {ind(TMS_REC, 1)}, sama dengan recloser agar serentak", f"TMS ≈ {ind(TMS_GI_F * 3, 2)}; relai GI tidak perlu memperhatikan gangguan ujung", "TMS tidak dapat dihitung tanpa kurva fuse"],
-            f"✅ Tepat! Di recloser I = {ind(I_REC_F, 0)} A: \\(t_{{rec}} = {ind(TMS_REC, 1)}\\times0{{,}}14/(({ind(I_REC_F, 0)}/{ind(IS_REC, 0)})^{{0,02}} - 1) = {ind(T_REC_F, 3)}\\) s → \\(t_{{GI}} = {ind(T_REC_F + 0.4, 3)}\\) s → \\(TMS = {ind(T_REC_F + 0.4, 3)}\\times(({ind(I_REC_F, 0)}/{ind(IS_F, 0)})^{{0,02}} - 1)/0{{,}}14 = {ind(TMS_GI_F, 4)}\\). Gangguan ujung ({ind(I_UJ_F, 0)} A): \\(t_{{GI}} = {ind(T_GI_UJ, 2)}\\) s, masih dalam ketahanan konduktor; recloser yang bekerja lebih dulu ({ind(TMS_REC * 0.14 / ((I_UJ_F / IS_REC) ** 0.02 - 1), 2)} s). Elemen instan 3000 A aman karena I_sc di recloser {ind(I_REC_F, 0)} A < 3000 A: hanya gangguan < ± 2 km dari GI yang diputus seketika. Fuse saving di hilir recloser mengurangi pemutusan fuse untuk gangguan temporer, tetapi menambah kedip pada seluruh seksi hilir; untuk kawasan industri dengan VSD, fuse blowing sering lebih disukai.",
-            "❌ Selang koordinasi dihitung pada arus gangguan di lokasi pengaman hilir (recloser), bukan di GI; TMS relai GI diperoleh dengan membalik rumus IDMT pada waktu t_rec + 0,4 s.",
-            "Petunjuk: (1) t_rec pada I_sc recloser, lalu t_GI dan TMS GI. (2) Hitung t_GI pada I_sc ujung dan periksa instan 3000 A. (3) Bahas fuse saving vs blowing untuk kawasan industri.")
+            [f"TMS ≈ {ind(TMS_GI_F, 3)} (t<sub>rec</sub> {ind(T_REC_F, 3)} s → t<sub>GI</sub> {ind(T_REC_F + 0.4, 3)} s di recloser); pada gangguan ujung t<sub>GI</sub> ≈ {ind(T_GI_UJ, 2)} s", f"TMS ≈ {ind(TMS_REC, 1)}, sama dengan recloser agar serentak", f"TMS ≈ {ind(TMS_GI_F * 3, 2)}; relai GI tidak perlu memperhatikan gangguan ujung", "TMS tidak dapat dihitung tanpa kurva fuse"],
+            f"✅ Tepat! Di recloser I = {ind(I_REC_F, 0)} A: \\(t_{{rec}} = {ind(TMS_REC, 1)}\\times0{{,}}14/(({ind(I_REC_F, 0)}/{ind(IS_REC, 0)})^{{0,02}} - 1) = {ind(T_REC_F, 3)}\\) s → \\(t_{{GI}} = {ind(T_REC_F + 0.4, 3)}\\) s → \\(TMS = {ind(T_REC_F + 0.4, 3)}\\times(({ind(I_REC_F, 0)}/{ind(IS_F, 0)})^{{0,02}} - 1)/0{{,}}14 = {ind(TMS_GI_F, 4)}\\). Gangguan ujung ({ind(I_UJ_F, 0)} A): \\(t_{{GI}} = {ind(T_GI_UJ, 2)}\\) s, masih dalam ketahanan konduktor; recloser yang bekerja lebih dulu ({ind(TMS_REC * 0.14 / ((I_UJ_F / IS_REC) ** 0.02 - 1), 2)} s). Elemen instan 3000 A aman karena I<sub>sc</sub> di recloser {ind(I_REC_F, 0)} A < 3000 A: hanya gangguan < ± 2 km dari GI yang diputus seketika. Fuse saving di hilir recloser mengurangi pemutusan fuse untuk gangguan temporer, tetapi menambah kedip pada seluruh seksi hilir; untuk kawasan industri dengan VSD, fuse blowing sering lebih disukai.",
+            "❌ Selang koordinasi dihitung pada arus gangguan di lokasi pengaman hilir (recloser), bukan di GI; TMS relai GI diperoleh dengan membalik rumus IDMT pada waktu t<sub>rec</sub> + 0,4 s.",
+            "Petunjuk: (1) Waktu kerja recloser pada arus gangguan di recloser, lalu waktu kerja dan TMS relai GI. (2) Hitung waktu kerja relai GI pada arus gangguan ujung dan periksa instan 3000 A. (3) Bahas fuse saving vs blowing untuk kawasan industri.")
     q3 = fq(3, "168,85,247", "violet", FQ_JUDUL[2],
             f"Beban puncak penyulang saat ini <b>{ind(S0_F, 1)} MVA</b> dan tumbuh <b>{ind(G_FF * 100, 0)} %/tahun</b>; kapasitas termal penyulang {ind(CAP_F, 0)} MVA dengan batas kebijakan 80 %. Hitung beban 10 tahun mendatang, tahun jenuh pada batas 80 % dan 100 % (Persamaan 5). Bandingkan tiga pilihan pengembangan dengan CRF (i = 10 %, 20 tahun; Persamaan 6): uprating konduktor (Rp 4 M, +3 MVA), penyulang baru dengan loop (Rp 10 M, +6 MVA), kapasitor 2 × 1,2 MVAR (Rp 0,8 M, +0,8 MVA), lalu susun urutan pengembangan bertahap 10 tahun untuk kawasan industri ini (pertimbangkan keandalan dari Modul 11).",
-            ["P_n = P₀(1 + g)ⁿ", "n = ln(S_cap/S₀)/ln(1 + g)", "A = modal × CRF"],
+            ["P<sub>n</sub> = P₀(1 + g)ⁿ", "n = ln(S<sub>cap</sub>/S₀)/ln(1 + g)", "A = modal × CRF"],
             "Tahun jenuh batas 80 % dan beban 10 tahun mendatang kira-kira...",
             [f"{ind(N_100_F, 1)} tahun dan {ind(S0_F * (1 + G_FF * 10), 2)} MVA (pertumbuhan linier)", f"{ind(N_80_F, 1)} tahun dan {ind(S0_F + 10 * G_FF * S0_F, 2)} MVA", f"{ind(N_100_F, 1)} tahun dan {ind(S_10_F, 2)} MVA; batas 80 % tidak berpengaruh", f"{ind(N_80_F, 2)} tahun (100 %: {ind(N_100_F, 2)} tahun) dan {ind(S_10_F, 2)} MVA; kapasitor + manuver dulu, uprating ± tahun 2, penyulang baru (loop) ± tahun 6"],
             f"✅ Tepat! \\(n_{{80}} = \\ln(6{{,}}4/{ind(S0_F, 1)})/\\ln 1{{,}}07 = {ind(N_80_F, 2)}\\) tahun, \\(n_{{100}} = {ind(N_100_F, 2)}\\) tahun; \\(S_{{10}} = {ind(S0_F, 1)}\\times1{{,}}07^{{10}} = {ind(S_10_F, 2)}\\) MVA (> {ind(CAP_F, 0)} MVA). CRF = {ind(CRF, 4)}: uprating Rp {ind(4 * CRF * 1000, 0)} juta/th ({ind(4 * CRF * 1000 / 3, 0)} juta/MVA), penyulang baru Rp {ind(10 * CRF * 1000, 0)} juta/th ({ind(10 * CRF * 1000 / 6, 0)} juta/MVA + loop), kapasitor Rp {ind(0.8 * CRF * 1000, 0)} juta/th ({ind(0.8 * CRF * 1000 / 0.8, 0)} juta/MVA). Urutan wajar: kapasitor dan manuver sekarang (menunda ± 2 tahun), uprating saat mendekati 80 % (menambah ± 5 tahun), penyulang baru dengan loop menjelang tahun 6–8 karena beban tahun 10 melampaui 8 + 3 MVA dan kawasan industri memerlukan SAIDI rendah.",
@@ -725,8 +725,8 @@ def forum_page():
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">I_sc(x) = V_f/|Z_s + z·x|</span>
-    <span class="ff" style="left:32%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">t_GI = t_rec + 0,4 s</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">I<sub>sc</sub>(x) = V<sub>f</sub>/|Z<sub>s</sub> + z·x|</span>
+    <span class="ff" style="left:32%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">t<sub>GI</sub> = t<sub>rec</sub> + 0,4 s</span>
     <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">5,5 MVA × 1,07ⁿ</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">8 MVA?</span>
   </div>
@@ -739,7 +739,7 @@ def forum_page():
 
 <div class="section">
   <div class="section-label reveal cyan-label">Skenario</div>
-  <h2 class="section-title reveal">Penyulang 20 kV, {ind(L_F, 0)} km, S_sc {ind(SSC_F, 0)} MVA —<br>Proteksi Hari Ini, Kapasitas Esok</h2>
+  <h2 class="section-title reveal">Penyulang 20 kV, {ind(L_F, 0)} km, S<sub>sc</sub> {ind(SSC_F, 0)} MVA —<br>Proteksi Hari Ini, Kapasitas Esok</h2>
 
   <div class="forum-scenario reveal">
     <div class="scenario-label">📋 KASUS PROTEKSI DAN PENGEMBANGAN PENYULANG INDUSTRI</div>
@@ -753,7 +753,7 @@ def forum_page():
       Sebagai mahasiswa yang baru menyelesaikan Modul {NOMOR}, Anda diminta menghitung arus gangguan, mengoordinasikan relai dengan recloser, dan menyusun rencana pengembangan <strong style="color:var(--cyan)">sebelum</strong> rapat perencanaan tahunan.
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">
-{kartu(f"S_sc = {ind(SSC_F, 0)} MVA, NGR 40 Ω", "14,165,233", "cyan")}
+{kartu(f"S<sub>sc</sub> = {ind(SSC_F, 0)} MVA, NGR 40 Ω", "14,165,233", "cyan")}
 {kartu(f"penyulang {ind(L_F, 0)} km, recloser di km {ind(L_REC, 0)}", "14,165,233", "cyan")}
 {kartu(f"beban {ind(I_BEBAN_F, 0)} A ({ind(S0_F, 1)} MVA), g = {ind(G_FF * 100, 0)} %/th", "14,165,233", "cyan")}
 {kartu(f"kapasitas {ind(CAP_F, 0)} MVA, batas 80 %", "239,68,68", "pink")}
@@ -763,7 +763,7 @@ def forum_page():
 
   <!-- Canvas Animasi Forum -->
   <canvas id="cvForum" height="180" style="margin-bottom:12px;border-radius:12px"></canvas>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">Arus hubung singkat sepanjang penyulang {ind(L_F, 0)} km (S_sc {ind(SSC_F, 0)} MVA) dengan pickup relai GI dan letak recloser; kanan: beban {ind(S0_F, 1)} MVA × 1,07ⁿ melawan kapasitas {ind(CAP_F, 0)} MVA</p>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'JetBrains Mono',monospace;text-align:center">Arus hubung singkat sepanjang penyulang {ind(L_F, 0)} km (S<sub>sc</sub> {ind(SSC_F, 0)} MVA) dengan pickup relai GI dan letak recloser; kanan: beban {ind(S0_F, 1)} MVA × 1,07ⁿ melawan kapasitas {ind(CAP_F, 0)} MVA</p>
 
   <!-- Pertanyaan Diskusi -->
   <div class="section-label reveal">Pertanyaan Diskusi</div>
@@ -772,8 +772,8 @@ def forum_page():
 {q1}{q2}{q3}'''
 
 
-FORUM_SKENARIO_LMS = f"Penyulang 20 kV {ind(L_F, 0)} km (0,4 + j0,35 Ω/km) dari GI berdaya hubung singkat {ind(SSC_F, 0)} MVA (NGR 40 Ω), beban puncak {ind(I_BEBAN_F, 0)} A ({ind(S0_F, 1)} MVA) kawasan industri; recloser di km {ind(L_REC, 0)} (I_s {ind(IS_REC, 0)} A, TMS {ind(TMS_REC, 1)}), relai GI I_s 1,3 × beban dengan selang 0,4 s; beban tumbuh {ind(G_FF * 100, 0)} %/th terhadap kapasitas {ind(CAP_F, 0)} MVA (batas 80 %); pilihan: uprating Rp 4 M (+3 MVA), penyulang baru Rp 10 M (+6 MVA, loop), kapasitor Rp 0,8 M (+0,8 MVA); CRF 10 %/20 th."
-FORUM_CHIPS_LMS = [f"S_sc = {ind(SSC_F, 0)} MVA, NGR 40 Ω", f"penyulang = {ind(L_F, 0)} km, recloser km {ind(L_REC, 0)}", f"beban = {ind(I_BEBAN_F, 0)} A, g {ind(G_FF * 100, 0)} %/th", f"kapasitas = {ind(CAP_F, 0)} MVA @ 80 %"]
+FORUM_SKENARIO_LMS = f"Penyulang 20 kV {ind(L_F, 0)} km (0,4 + j0,35 Ω/km) dari GI berdaya hubung singkat {ind(SSC_F, 0)} MVA (NGR 40 Ω), beban puncak {ind(I_BEBAN_F, 0)} A ({ind(S0_F, 1)} MVA) kawasan industri; recloser di km {ind(L_REC, 0)} (I<sub>s</sub> {ind(IS_REC, 0)} A, TMS {ind(TMS_REC, 1)}), relai GI I<sub>s</sub> 1,3 × beban dengan selang 0,4 s; beban tumbuh {ind(G_FF * 100, 0)} %/th terhadap kapasitas {ind(CAP_F, 0)} MVA (batas 80 %); pilihan: uprating Rp 4 M (+3 MVA), penyulang baru Rp 10 M (+6 MVA, loop), kapasitor Rp 0,8 M (+0,8 MVA); CRF 10 %/20 th."
+FORUM_CHIPS_LMS = [f"S<sub>sc</sub> = {ind(SSC_F, 0)} MVA, NGR 40 Ω", f"penyulang = {ind(L_F, 0)} km, recloser km {ind(L_REC, 0)}", f"beban = {ind(I_BEBAN_F, 0)} A, g {ind(G_FF * 100, 0)} %/th", f"kapasitas = {ind(CAP_F, 0)} MVA @ 80 %"]
 
 FORUM_KANVAS = r"""// ════════════════════════════════════════════════════════════
 // FORUM CANVAS — Arus hubung singkat sepanjang penyulang industri 12 km dan beban vs kapasitas (Pertemuan 13)
@@ -781,7 +781,7 @@ FORUM_KANVAS = r"""// ═══════════════════�
 function drawForumCanvas() {
   const cv = document.getElementById('cvForum'); if (!cv) return;
   const W = cv.clientWidth; if (W > 0) cv.width = W; const H = cv.height;
-  const ctx = cv.getContext('2d');
+  const ctx = (typeof _ttlRumusKtx === 'function' ? _ttlRumusKtx : c => c)(cv.getContext('2d'));  // notasi <sub>/<sup> (animasi/dasar.js)
   const bg = ctx.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#020812'); bg.addColorStop(1, '#061e1a');
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
   const Vf = 20e3 / Math.sqrt(3), Xs = 400 / 240, r = 0.4, x = 0.35, L = 12, n = 48, pickup = 325;
@@ -796,7 +796,7 @@ function drawForumCanvas() {
   ctx.strokeStyle = 'rgba(239,68,68,1)'; ctx.lineWidth = 2.2; ctx.beginPath(); for (let i = 0; i <= n; i++) { const v = I3(L * i / n); i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)); } ctx.stroke();
   ctx.strokeStyle = 'rgba(255,179,0,.9)'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(padL, Y(pickup)); ctx.lineTo(padL + plotW, Y(pickup)); ctx.stroke(); ctx.setLineDash([]);
   ctx.strokeStyle = 'rgba(168,85,247,.9)'; ctx.beginPath(); ctx.moveTo(X(n / 2), padT); ctx.lineTo(X(n / 2), padT + plotH); ctx.stroke();
-  ctx.fillStyle = 'rgba(239,68,68,.95)'; ctx.textAlign = 'left'; ctx.fillText('I_sc: ' + I3(0).toFixed(0) + ' → ' + I3(6).toFixed(0) + ' → ' + I3(12).toFixed(0) + ' A', padL + 4, padT + 10);
+  ctx.fillStyle = 'rgba(239,68,68,.95)'; ctx.textAlign = 'left'; ctx.fillText('I<sub>sc</sub>: ' + I3(0).toFixed(0) + ' → ' + I3(6).toFixed(0) + ' → ' + I3(12).toFixed(0) + ' A', padL + 4, padT + 10);
   ctx.fillStyle = 'rgba(255,179,0,.95)'; ctx.fillText('pickup GI 1,3 × 250 = ' + pickup + ' A', padL + 4, Y(pickup) - 4);
   // kanan: beban vs kapasitas
   const pL = padL + plotW + 60, pW = W - pL - 16; if (pW < 60) return;

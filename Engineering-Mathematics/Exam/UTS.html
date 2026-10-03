@@ -1051,6 +1051,77 @@ body.ujian-mahasiswa #visitorPanel:not(.open){visibility:hidden;transition:trans
 @media(max-width:600px){.comp-header{flex-wrap:wrap}.comp-pts{flex-shrink:1}}
 </style>
 <!-- ASISTEN-UJIAN-MAHASISWA:CSS END v2 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body>
 
@@ -1237,10 +1308,10 @@ body.ujian-mahasiswa #visitorPanel:not(.open){visibility:hidden;transition:trans
 <!-- ─── SUBNAV (UTS section anchors) ─── -->
 <div id="modulSubnav" class="subnav-bar show">
   <a href="#u-petunjuk">📋 Petunjuk</a>
-  <a href="#u-bagian-a">🅐 Bagian \(A \cdot TF\)</a>
-  <a href="#u-bagian-b">🅑 Bagian \(B \cdot MC\)</a>
-  <a href="#u-bagian-c">🅒 Bagian \(C \cdot Komp\) Sedang</a>
-  <a href="#u-bagian-d">🅓 Bagian \(D \cdot Komp\) Hard</a>
+  <a href="#u-bagian-a"><span class="opsi-teks">🅐 Bagian \(A \cdot TF\)</span></a>
+  <a href="#u-bagian-b"><span class="opsi-teks">🅑 Bagian \(B \cdot MC\)</span></a>
+  <a href="#u-bagian-c"><span class="opsi-teks">🅒 Bagian \(C \cdot Komp\) Sedang</span></a>
+  <a href="#u-bagian-d"><span class="opsi-teks">🅓 Bagian \(D \cdot Komp\) Hard</span></a>
   <a href="#u-finish">🏁 Selesai</a>
 </div>
 
@@ -4412,8 +4483,8 @@ function drawForumCanvas() {
   ctx.strokeStyle='rgba(0,224,158,.2)'; ctx.strokeRect(padL+6, padT+8, 250, 70);
   ctx.fillStyle='#34d399'; ctx.font='bold 10px JetBrains Mono'; ctx.fillText('Pompa Sentrifugal — Velocity v(t)', padL+14, padT+22);
   ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono';
-  ctx.fillText(`RPM = ${RPM}  |  f_dominan = ${f1} Hz (1×RPM)`, padL+14, padT+36);
-  ctx.fillText(`v_RMS ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
+  ctx.fillText(`RPM = ${RPM}  |  f<sub>dominan</sub> = ${f1} Hz (1×RPM)`, padL+14, padT+36);
+  ctx.fillText(`v<sub>RMS</sub> ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
   ctx.fillText(`Hipotesis: unbalance rotor (verifikasi via FFT)`, padL+14, padT+64);
 }
 // Resize handler — redraw all active canvases
@@ -5092,10 +5163,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -5109,7 +5180,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

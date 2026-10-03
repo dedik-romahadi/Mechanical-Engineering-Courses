@@ -335,8 +335,8 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .radio-group{display:flex;flex-direction:column;gap:10px}
 .radio-option{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:10px;border:1px solid var(--border);cursor:pointer;transition:all .2s;font-size:14px;color:var(--text)}
 .radio-option sup,.radio-option sub{font-size:.78em;line-height:0;position:relative;margin-left:.5px;color:var(--cyan)}
-.radio-option sup{top:-0.55em}
-.radio-option sub{bottom:-0.25em}
+.radio-option > sup{top:-0.55em}
+.radio-option > sub{bottom:-0.25em}
 .radio-option:hover{border-color:rgba(249,115,22,.3);background:rgba(249,115,22,.04)}
 .radio-option.selected{border-color:var(--cyan);background:rgba(249,115,22,.06)}
 .radio-option.correct-ans{border-color:var(--green)!important;background:rgba(0,224,158,.08)!important}
@@ -1342,6 +1342,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1580,11 +1651,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">ax²y'' + bxy' + cy = 0</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">am(m−1) + bm + c = 0</span>
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">D = (b−a)² − 4ac</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">y = c₁x^m₁ + c₂x^m₂</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">y = (c₁ + c₂ ln x)x^m</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">y = x^α·(c₁cos(β ln x) + c₂sin(β ln x))</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">y = x^m  →  ansatz</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">x = e^t  →  reduksi konstan</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">y = c₁x<sup>m₁</sup> + c₂x<sup>m₂</sup></span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">y = (c₁ + c₂ ln x)x<sup>m</sup></span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">y = x<sup>α</sup>·(c₁cos(β ln x) + c₂sin(β ln x))</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">y = x<sup>m</sup>  →  ansatz</span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">x = e<sup>t</sup>  →  reduksi konstan</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 6 &nbsp;·&nbsp; Matematika 4 &nbsp;·&nbsp; 2025/2026</div>
@@ -1671,24 +1742,24 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📐</div>
       <h3>Pola Pangkat-Turunan</h3>
       <p>Setiap suku memiliki <strong>pangkat x sama dengan orde turunan</strong>: <code>x²·y''</code>, <code>x·y'</code>, <code>x⁰·y</code>. Pola "x ke pangkat orde" inilah <em>tanda khas</em> Euler-Cauchy yang harus Anda kenali instan dari soal.</p>
-      <div class="formula">x^\(k \cdot y^{k}\)</div>
+      <div class="formula">\(x^{k} \cdot y^{(k)}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>Koefisien Variabel</h3>
-      <p>Berbeda dengan Pertemuan 5 (a, b, c konstan), di sini koefisien <strong>bergantung pada x</strong>. Karena itu teknik <code>y = e^(rx)</code> tidak berlaku, kita butuh ansatz berbeda yang sesuai struktur polinomial koefisien.</p>
+      <p>Berbeda dengan Pertemuan 5 (a, b, c konstan), di sini koefisien <strong>bergantung pada x</strong>. Karena itu teknik <code>y = e<sup>rx</sup></code> tidak berlaku, kita butuh ansatz berbeda yang sesuai struktur polinomial koefisien.</p>
       <div class="formula">\(koef = ax^2, bx, c\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
-      <h3>Ansatz y = x^m</h3>
-      <p>Karena setiap turunan <code>y = x^m</code> tetap menghasilkan kelipatan <code>x^m</code>, semua suku PD reduksi ke <code>x^m × (polinomial m)</code>. Membagi <code>x^m ≠ 0</code> meninggalkan <strong>persamaan karakteristik aljabar dalam m</strong>.</p>
+      <h3>Ansatz y = x<sup>m</sup></h3>
+      <p>Karena setiap turunan <code>y = x<sup>m</sup></code> tetap menghasilkan kelipatan <code>x<sup>m</sup></code>, semua suku PD reduksi ke <code>x<sup>m</sup> × (polinomial m)</code>. Membagi <code>x<sup>m</sup> ≠ 0</code> meninggalkan <strong>persamaan karakteristik aljabar dalam m</strong>.</p>
       <div class="formula">\(y = x^m \implies alegbar\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌐</div>
       <h3>Domain x &gt; 0</h3>
-      <p>Karena <code>x^m</code> dan <code>ln x</code> hanya terdefinisi untuk <strong>x &gt; 0</strong>, semua solusi diberikan pada interval ini. Untuk <code>x &lt; 0</code> kita gunakan |x| atau substitusi t = ln|x|. Domain <code>x &gt; 0</code> sudah cukup untuk hampir semua aplikasi fisik.</p>
+      <p>Karena <code>x<sup>m</sup></code> dan <code>ln x</code> hanya terdefinisi untuk <strong>x &gt; 0</strong>, semua solusi diberikan pada interval ini. Untuk <code>x &lt; 0</code> kita gunakan |x| atau substitusi t = ln|x|. Domain <code>x &gt; 0</code> sudah cukup untuk hampir semua aplikasi fisik.</p>
       <div class="formula">\(x \in (0, \infty )\)</div>
     </div>
   </div>
@@ -1698,7 +1769,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Mengapa Pertemuan 6 menjadi penting?</strong> Pertemuan 5 memberi alat untuk PD orde 2 koefisien konstan. Pertemuan 6 memperluasnya ke <strong>kasus koefisien polinomial paling umum yang masih bisa diselesaikan secara analitik</strong>. Ini adalah jembatan ke (1) <em>Persamaan Bessel & Legendre</em> (PD orde 2 dengan singularitas, Pertemuan lanjut), (2) <em>Solusi deret pangkat</em>, dan (3) <em>Metode Frobenius</em>. Tiga kasus akar (D &gt; 0, D = 0, D &lt; 0) yang dulu Anda temui di Pertemuan 5 muncul lagi di sini, tetapi dengan struktur solusi yang berbeda: <code>x^m</code> bukan <code>e^(rx)</code>, dan <code>ln x</code> bukan <code>x</code>.
+    💡 <strong>Mengapa Pertemuan 6 menjadi penting?</strong> Pertemuan 5 memberi alat untuk PD orde 2 koefisien konstan. Pertemuan 6 memperluasnya ke <strong>kasus koefisien polinomial paling umum yang masih bisa diselesaikan secara analitik</strong>. Ini adalah jembatan ke (1) <em>Persamaan Bessel & Legendre</em> (PD orde 2 dengan singularitas, Pertemuan lanjut), (2) <em>Solusi deret pangkat</em>, dan (3) <em>Metode Frobenius</em>. Tiga kasus akar (D &gt; 0, D = 0, D &lt; 0) yang dulu Anda temui di Pertemuan 5 muncul lagi di sini, tetapi dengan struktur solusi yang berbeda: <code>x<sup>m</sup></code> bukan <code>e<sup>rx</sup></code>, dan <code>ln x</code> bukan <code>x</code>.
   </div>
 
   <label class="pm-centang" data-pm="0"><input type="checkbox" disabled aria-describedby="pm-status-0"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Persamaan Euler-Cauchy Homogen — Koefisien Variabel Polinomial</b>.</span><em class="pm-status" id="pm-status-0"></em></label>
@@ -1774,7 +1845,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Saat diskriminan <code>D = (b−a)² − 4ac &gt; 0</code>, persamaan karakteristik dalam m memberi <strong>dua akar real berbeda</strong> m₁ dan m₂. Solusi umumnya adalah <em>kombinasi linier dua fungsi pangkat</em>. Secara fisik, ini berarti respons radial menurun atau membesar dengan laju polinomial, bukan eksponensial seperti di Pertemuan 5. Perhatikan ilustrasinya pada Gambar 3. Persamaan (3) di bawah memadatkan aturan tersebut.</p>
 <!-- ILUSTRASI-STATIS:3:START -->
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 3 — Dua akar real berbeda memberi dua fungsi pangkat" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,203.3 L226.2,195.9 L374.7,181.2 L493.5,148.1 L570.7,103.9 L642.0,43.2 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,203.3 L226.2,195.9 L374.7,181.2 L493.5,148.1 L570.7,103.9 L642.0,43.2" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M48.0,208.8 L642.0,52.4" fill="none" stroke="#a855f7" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x^{m₁}</text><line x1="120.4" y1="18" x2="142.4" y2="18" stroke="#a855f7" stroke-width="3" stroke-linecap="round"/><text x="147.4" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x^{m₂}</text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">y(x)</text></g></svg>
+    <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 3 — Dua akar real berbeda memberi dua fungsi pangkat" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,203.3 L226.2,195.9 L374.7,181.2 L493.5,148.1 L570.7,103.9 L642.0,43.2 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,203.3 L226.2,195.9 L374.7,181.2 L493.5,148.1 L570.7,103.9 L642.0,43.2" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M48.0,208.8 L642.0,52.4" fill="none" stroke="#a855f7" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x<tspan dy="-4.4" font-size="8.3">m₁</tspan></text><line x1="101.2" y1="18" x2="123.2" y2="18" stroke="#a855f7" stroke-width="3" stroke-linecap="round"/><text x="128.2" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x<tspan dy="-4.4" font-size="8.3">m₂</tspan></text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">x</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">y(x)</text></g></svg>
     <figcaption><strong>Gambar 3</strong> — Dua akar real berbeda memberi dua fungsi pangkat. Solusinya jumlahan dua pangkat x; akar yang lebih besar mendominasi ketika x membesar.</figcaption>
   </figure>
 <!-- ILUSTRASI-STATIS:3:END -->
@@ -2372,7 +2443,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🌡️</div>
       <h3>BVP — Masalah Radial</h3>
-      <p>Pada konduksi panas radial: <code>T(R_dalam) = T_panas, T(R_luar) = T_dingin</code>. Pada defleksi balok berbentuk konsentris: <code>y(R_dalam) = 0, y(R_luar) = 0</code> (clamped boundaries). BVP juga sistem 2×2; selalu mungkin diselesaikan kecuali eigenvalue khusus muncul.</p>
+      <p>Pada konduksi panas radial: <code>T(R<sub>dalam</sub>) = T<sub>panas</sub>, T(R<sub>luar</sub>) = T<sub>dingin</sub></code>. Pada defleksi balok berbentuk konsentris: <code>y(R<sub>dalam</sub>) = 0, y(R<sub>luar</sub>) = 0</code> (clamped boundaries). BVP juga sistem 2×2; selalu mungkin diselesaikan kecuali eigenvalue khusus muncul.</p>
       <div class="formula">\(2 syarat = lengkap\)</div>
     </div>
   </div>
@@ -2475,13 +2546,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-animasi">
   <div class="section-label reveal">Bagian 09</div>
   <h2 class="section-title reveal">Animasi Interaktif<br>Tiga Kasus Euler-Cauchy Live</h2>
-  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 6 — Persamaan Euler-Cauchy</strong>: (1) <strong>Solver Euler-Cauchy real</strong> via substitusi y = x^m, (2) <strong>akar m</strong> di bidang kompleks dengan stability boundaries, (3) <strong>toggle Substitusi t = ln x</strong> mengubah Cauchy → koefisien konstan, (4) <strong>radio Bentuk Solusi Fundamental</strong> (x^m, x^\(m \cdot \ln\) x, x^α·cos(β ln x)), (5) <strong>dropdown aplikasi industri</strong> (pipa, balok radial, kapasitor silindris).</p>
+  <p class="section-desc reveal">Lima animasi spesifik untuk <strong>Pertemuan 6 — Persamaan Euler-Cauchy</strong>: (1) <strong>Solver Euler-Cauchy real</strong> via substitusi y = x<sup>m</sup>, (2) <strong>akar m</strong> di bidang kompleks dengan stability boundaries, (3) <strong>toggle Substitusi t = ln x</strong> mengubah Cauchy → koefisien konstan, (4) <strong>radio Bentuk Solusi Fundamental</strong> (x<sup>m</sup>, x<sup>m</sup>·ln x, x<sup>α</sup>·cos(β ln x)), (5) <strong>dropdown aplikasi industri</strong> (pipa, balok radial, kapasitor silindris).</p>
 
   <!-- Animasi 1: Euler-Cauchy Solver (M6-specific, REAL solver via y=x^m) -->
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi 1 — Solver Euler-Cauchy: <code>x²y'' + bxy' + cy = 0</code> (closed-form via y=x^m)</span>
+      <span class="anim-title">Animasi 1 — Solver Euler-Cauchy: <code>x²y'' + bxy' + cy = 0</code> (closed-form via y=x<sup>m</sup>)</span>
     </div>
     <div class="anim-body">
       <canvas id="m6cvCauchy" height="340" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
@@ -2498,7 +2569,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="m6CauchyInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Kurva = solusi <em>\(y(x)\)</em> dari PD Euler-Cauchy <code>x²y'' + b·x·y' + c·y = 0</code> dengan IVP <code>y(1)=1, y'(1)=0</code> di interval <code>x ∈ (0.1, 10)</code>. Substitusi y = x^m menghasilkan persamaan karakteristik <code>m² + (b−1)m + c = 0</code> dengan diskriminan D = (b−1)² − 4c. Warna: <strong style="color:var(--amber)">amber = D &gt; 0 (real berbeda)</strong>, <strong style="color:#a855f7">violet = D = 0 (real berulang, ada term ln x)</strong>, <strong style="color:var(--cyan)">cyan = D &lt; 0 (kompleks → osilasi log scale)</strong>.
+        <strong>📊 Cara Membaca:</strong> Kurva = solusi <em>\(y(x)\)</em> dari PD Euler-Cauchy <code>x²y'' + b·x·y' + c·y = 0</code> dengan IVP <code>y(1)=1, y'(1)=0</code> di interval <code>x ∈ (0.1, 10)</code>. Substitusi y = x<sup>m</sup> menghasilkan persamaan karakteristik <code>m² + (b−1)m + c = 0</code> dengan diskriminan D = (b−1)² − 4c. Warna: <strong style="color:var(--amber)">amber = D &gt; 0 (real berbeda)</strong>, <strong style="color:#a855f7">violet = D = 0 (real berulang, ada term ln x)</strong>, <strong style="color:var(--cyan)">cyan = D &lt; 0 (kompleks → osilasi log scale)</strong>.
       </div>
     </div>
   </div>
@@ -2523,7 +2594,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="m6MPlaneInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Bidang kompleks <em>m</em>: sumbu horizontal = Re(m), vertikal = Im(m). Dua akar <code>m₁, m₂</code> ditandai. <strong>Tanda Re(m) → behavior x^m saat x → ∞:</strong> Re(m) &gt; 0 = solusi tumbuh; Re(m) &lt; 0 = meluruh; Re(m) = 0 = osilasi pure dalam ln x. Stability boundaries: garis Re(m) = 0 (kuning).
+        <strong>📊 Cara Membaca:</strong> Bidang kompleks <em>m</em>: sumbu horizontal = Re(m), vertikal = Im(m). Dua akar <code>m₁, m₂</code> ditandai. <strong>Tanda Re(m) → behavior x<sup>m</sup> saat x → ∞:</strong> Re(m) &gt; 0 = solusi tumbuh; Re(m) &lt; 0 = meluruh; Re(m) = 0 = osilasi pure dalam ln x. Stability boundaries: garis Re(m) = 0 (kuning).
       </div>
     </div>
   </div>
@@ -2569,17 +2640,17 @@ window.jalankanDenganMuat = async function (el, label, fn) {
           <label>Pilih kasus akar persamaan karakteristik (radio):</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
             <input type="radio" name="m6_basis_radio" id="m6_b1" checked onchange="window.m6SetBasis('distinct')" style="display:none;">
-            <label for="m6_b1" class="m6-basis-lbl" data-c="distinct" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">🔵 D &gt; 0: x^m₁, x^m₂ ✓</label>
+            <label for="m6_b1" class="m6-basis-lbl" data-c="distinct" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--pink);background:rgba(255,255,255,.20);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(255,107,179,.4);transform:scale(1.05);transition:all .15s;">🔵 D &gt; 0: x<sup>m₁</sup>, x<sup>m₂</sup> ✓</label>
             <input type="radio" name="m6_basis_radio" id="m6_b2" onchange="window.m6SetBasis('repeated')" style="display:none;">
-            <label for="m6_b2" class="m6-basis-lbl" data-c="repeated" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">🟣 D = 0: x^m, x^\(m \cdot \ln(x)\)</label>
+            <label for="m6_b2" class="m6-basis-lbl" data-c="repeated" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">🟣 D = 0: x<sup>m</sup>, x<sup>m</sup>·ln(x)</label>
             <input type="radio" name="m6_basis_radio" id="m6_b3" onchange="window.m6SetBasis('complex')" style="display:none;">
-            <label for="m6_b3" class="m6-basis-lbl" data-c="complex" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">🔶 D &lt; 0: x^α·cos(β ln x), x^α·sin(β ln x)</label>
+            <label for="m6_b3" class="m6-basis-lbl" data-c="complex" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.10);color:#0ea5e9;">🔶 D &lt; 0: x<sup>α</sup>·cos(β ln x), x<sup>α</sup>·sin(β ln x)</label>
           </div>
         </div>
       </div>
       <div id="m6BasisInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Setiap kasus akar memberi <em>basis solusi fundamental</em> yang berbeda. <strong>D &gt; 0</strong>: dua pangkat berbeda x^m₁, x^m₂. <strong>D = 0</strong>: pangkat tunggal + suku ln x (lambda repeated multiplicity). <strong>D &lt; 0</strong>: x^α dengan osilasi cos/sin di skala log. Plot y₁(x), y₂(x), dan y(x) = y₁ + y₂. Wronskian non-zero ⇒ basis valid (independensi linier).
+        <strong>📊 Cara Membaca:</strong> Setiap kasus akar memberi <em>basis solusi fundamental</em> yang berbeda. <strong>D &gt; 0</strong>: dua pangkat berbeda x<sup>m₁</sup>, x<sup>m₂</sup>. <strong>D = 0</strong>: pangkat tunggal + suku ln x (lambda repeated multiplicity). <strong>D &lt; 0</strong>: x<sup>α</sup> dengan osilasi cos/sin di skala log. Plot y₁(x), y₂(x), dan y(x) = y₁ + y₂. Wronskian non-zero ⇒ basis valid (independensi linier).
       </div>
     </div>
   </div>
@@ -2596,11 +2667,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
         <div class="ctrl-group" style="flex:1 1 100%;">
           <label>Pilih aplikasi industri Euler-Cauchy:</label>
           <select id="m6slApps" onchange="window.m6SetApps(this.value)" style="padding:8px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;width:100%;max-width:520px;margin-top:6px;">
-            <option value="pipe">🌡️ Konduksi Pipa Silinder — \(r^2\)T'' + rT' = 0 → T(r) = c₁ + c₂·ln r</option>
+            <option value="pipe">🌡️ Konduksi Pipa Silinder — r²T'' + rT' = 0 → T(r) = c₁ + c₂·ln r</option>
             <option value="beam">🏗️ Balok Tirus I(x) = I₀x², x²y'' + αxy' + βy = 0</option>
             <option value="capacitor">⚡ Kapasitor Silindris, V(r) = c₁ + c₂·ln r (potensial radial)</option>
             <option value="bessel">🌐 Mode Bunyi Pipa Organ, pendekatan Euler-Cauchy dari Bessel</option>
-            <option value="stress">🔧 Tegangan Tabung Bertekanan — σ(r) = A + B/\(r^2\)</option>
+            <option value="stress">🔧 Tegangan Tabung Bertekanan — σ(r) = A + B/r²</option>
           </select>
         </div>
       </div>
@@ -2639,7 +2710,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🐍</div>
       <h3>SymPy untuk Solusi Simbolik</h3>
-      <p>Fungsi <code>sympy.dsolve()</code> menyelesaikan Euler-Cauchy secara langsung dengan output bentuk <code>C1·x^m1 + C2·x^m2</code>. SymPy mengenali PD koefisien polinomial dan otomatis menerapkan substitusi <code>y = x^m</code>.</p>
+      <p>Fungsi <code>sympy.dsolve()</code> menyelesaikan Euler-Cauchy secara langsung dengan output bentuk <code>C1·x<sup>m1</sup> + C2·x<sup>m2</sup></code>. SymPy mengenali PD koefisien polinomial dan otomatis menerapkan substitusi <code>y = x<sup>m</sup></code>.</p>
       <div class="formula">dsolve(eq, y)</div>
     </div>
     <div class="card">
@@ -2910,7 +2981,7 @@ plt.<span class="fn">show</span>()
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">ax²y'' + bxy' + cy = 0</span>
     <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">am(m−1) + bm + c = 0</span>
     <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">D = (b−a)² − 4ac</span>
-    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">y = x^α·(c₁cos(β ln x) + c₂sin(β ln x))</span>
+    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">y = x<sup>α</sup>·(c₁cos(β ln x) + c₂sin(β ln x))</span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 6 · Persamaan Euler-Cauchy Homogen</div>
@@ -2997,10 +3068,10 @@ plt.<span class="fn">show</span>()
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc1">
-        <div class="radio-option" onclick="selectMC('mc1',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(a \cdot y\)'' + \(b \cdot y\)' + \(c \cdot y\) = 0</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(a \cdot x^2 \cdot y\)'' + \(b \cdot x \cdot y\)' + \(c \cdot y\) = 0</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(a \cdot y\)'' + \(b \cdot y\)' + \(c \cdot y\) = 0</span></div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(a \cdot x^2 \cdot y\)'' + \(b \cdot x \cdot y\)' + \(c \cdot y\) = 0</span></div>
         <div class="radio-option" onclick="selectMC('mc1',this,'C')"><div class="radio-circle"></div>(C) &nbsp; y' + p(x)·y = q(x)</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(x \cdot y\)'' + y' + \(x \cdot y\) = 0</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(x \cdot y\)'' + y' + \(x \cdot y\) = 0</span></div>
       </div>
       <button class="mc-submit" id="sub-mc1" onclick="checkMC('mc1')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc1"></div>
@@ -3014,10 +3085,10 @@ plt.<span class="fn">show</span>()
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
-        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; <code>y'' − 4y' + 4y = 0</code></div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <code>x²·y'' − 3x·y' + 4y = 0</code></div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(e^{x} \cdot y'' + y = 0\)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; <code>x³·y'' + y' + y = 0</code></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; <code>y'' − 4y' + 4y = 0</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <code>x²·y'' − 3x·y' + 4y = 0</code></span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(e^{x} \cdot y'' + y = 0\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; <code>x³·y'' + y' + y = 0</code></span></div>
       </div>
       <button class="mc-submit" id="sub-mc2" onclick="checkMC('mc2')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc2"></div>
@@ -3031,10 +3102,10 @@ plt.<span class="fn">show</span>()
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc3">
-        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; y = e<sup>\(r \cdot x\)</sup></div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; y = x<sup>m</sup></div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; y = sin(\(r \cdot x)\)</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; y = polinomial \(r \cdot x^2\)</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; y = e<sup>\(r \cdot x\)</sup></span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; y = x<sup>m</sup></span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; y = sin(\(r \cdot x)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; y = polinomial \(r \cdot x^2\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc3" onclick="checkMC('mc3')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc3"></div>
@@ -3048,10 +3119,10 @@ plt.<span class="fn">show</span>()
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(m^2\) − 2m − 4 = 0</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(m^2\) − 3m − 4 = 0</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(m^2\) + 2m − 4 = 0</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(r^2\) − 2r − 4 = 0</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(m^2\) − 2m − 4 = 0</span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(m^2\) − 3m − 4 = 0</span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(m^2\) + 2m − 4 = 0</span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(r^2\) − 2r − 4 = 0</span></div>
       </div>
       <button class="mc-submit" id="sub-mc4" onclick="checkMC('mc4')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc4"></div>
@@ -3065,9 +3136,9 @@ plt.<span class="fn">show</span>()
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc5">
-        <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; y = c₁·e<sup>4x</sup> + c₂·e<sup>−x</sup></div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; y = c₁·x<sup>4</sup> + c₂·x<sup>−1</sup> = c₁x<sup>4</sup> + c₂/x</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; y = (c₁ + c₂·x)·x<sup>4</sup></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; y = c₁·e<sup>4x</sup> + c₂·e<sup>−x</sup></span></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; y = c₁·x<sup>4</sup> + c₂·x<sup>−1</sup> = c₁x<sup>4</sup> + c₂/x</span></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; y = (c₁ + c₂·x)·x<sup>4</sup></span></div>
         <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; y = c₁·cos(4 ln x) + c₂·sin(ln x)</div>
       </div>
       <button class="mc-submit" id="sub-mc5" onclick="checkMC('mc5')" disabled>Periksa Jawaban</button>
@@ -3082,10 +3153,10 @@ plt.<span class="fn">show</span>()
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc6">
-        <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div>(A) &nbsp; y = c₁·x<sup>−2</sup> + c₂·x<sup>−2</sup></div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div>(B) &nbsp; y = (c₁ + c₂·x)·x<sup>−2</sup></div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'C')"><div class="radio-circle"></div>(C) &nbsp; y = (c₁ + c₂·ln x)·x<sup>−2</sup> = (c₁ + c₂ ln x)/\(x^2\)</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'D')"><div class="radio-circle"></div>(D) &nbsp; y = c₁·e<sup>−2x</sup> + \(c_2 x \cdot e\)<sup>−2x</sup></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; y = c₁·x<sup>−2</sup> + c₂·x<sup>−2</sup></span></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; y = (c₁ + c₂·x)·x<sup>−2</sup></span></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; y = (c₁ + c₂·ln x)·x<sup>−2</sup> = (c₁ + c₂ ln x)/\(x^2\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; y = c₁·e<sup>−2x</sup> + \(c_2 x \cdot e\)<sup>−2x</sup></span></div>
       </div>
       <button class="mc-submit" id="sub-mc6" onclick="checkMC('mc6')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc6"></div>
@@ -3100,9 +3171,9 @@ plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc7">
         <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; y = c₁·cos(β·x) + c₂·sin(β·x)</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; y = e<sup>α·x</sup>·[c₁·cos(β·x) + c₂·sin(β·x)]</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; y = x<sup>α</sup>·[c₁·cos(β·ln x) + c₂·sin(β·ln x)]</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; y = (ln x)<sup>α</sup>·[c₁·cos(β·x) + c₂·sin(β·x)]</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; y = e<sup>α·x</sup>·[c₁·cos(β·x) + c₂·sin(β·x)]</span></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; y = x<sup>α</sup>·[c₁·cos(β·ln x) + c₂·sin(β·ln x)]</span></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; y = (ln x)<sup>α</sup>·[c₁·cos(β·x) + c₂·sin(β·x)]</span></div>
       </div>
       <button class="mc-submit" id="sub-mc7" onclick="checkMC('mc7')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc7"></div>
@@ -3116,9 +3187,9 @@ plt.<span class="fn">show</span>()
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc8">
-        <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div>(A) &nbsp; D = \(b^2\) − 4ac</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; D = \(b^2\) − 4ac</span></div>
         <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div>(B) &nbsp; D = (b−a)² − 4ac</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div>(C) &nbsp; D = \(b^2\) − ac</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; D = \(b^2\) − ac</span></div>
         <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div>(D) &nbsp; D = (a+b)² − 4c</div>
       </div>
       <button class="mc-submit" id="sub-mc8" onclick="checkMC('mc8')" disabled>Periksa Jawaban</button>
@@ -3133,9 +3204,9 @@ plt.<span class="fn">show</span>()
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
-        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div>(A) &nbsp; y = u(x)·e<sup>−p(x)/2</sup></div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div>(B) &nbsp; x = e<sup>t</sup></div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div>(C) &nbsp; y = \(z \cdot x\)</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; y = u(x)·e<sup>−p(x)/2</sup></span></div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; x = e<sup>t</sup></span></div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; y = \(z \cdot x\)</span></div>
         <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div>(D) &nbsp; v = y'</div>
       </div>
       <button class="mc-submit" id="sub-mc9" onclick="checkMC('mc9')" disabled>Periksa Jawaban</button>
@@ -3562,7 +3633,7 @@ plt.<span class="fn">show</span>()
           <div class="p-fb w" id="fp1w">❌ Hitung kembali: <code>m(m−1) + m·1 + 0 = m² − m + m = m² = 0</code>. Akar berulang m = 0 berarti faktor <em>ln r</em> muncul (analog dengan faktor x di PD koef konstan dengan akar berulang). Solusi <strong>tidak linier</strong>, terbukti menjadi logaritmik.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis derivasi lengkap di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Identifikasi a, b, c dari PD r²T''+rT'=0. (2) Tulis ansatz T = r^m, hitung T', T''. (3) Substitusi dan dapatkan persamaan karakteristik. (4) Cari akar dan klasifikasi. (5) Tulis solusi umum berdasarkan kasus akar berulang." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis derivasi lengkap di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Identifikasi a, b, c dari PD r²T''+rT'=0. (2) Tulis ansatz T = rᵐ, hitung T', T''. (3) Substitusi dan dapatkan persamaan karakteristik. (4) Cari akar dan klasifikasi. (5) Tulis solusi umum berdasarkan kasus akar berulang." oninput="checkForumReady()"></textarea>
         <div id="wc-fq1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -3609,9 +3680,9 @@ plt.<span class="fn">show</span>()
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Untuk lapisan isolasi (R₂ ≤ r ≤ R₃) dengan \(k_{\text{iso}}\) = 0.05 W/(\(m \cdot K)\), T(r) = c₁ + c₂·ln r tetap berlaku (Euler-Cauchy yang sama). BVP: T(R₂) = T₂, T(R₃) = T₃ = 60°C. Kontinuitas heat flux di r = R₂: <code>Q = −2π·k_iso·L·c₂_iso</code>. Cari R₃ dari sistem dua persamaan: BVP + Q-conservation.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Untuk lapisan isolasi (R₂ ≤ r ≤ R₃) dengan \(k_{\text{iso}}\) = 0.05 W/(\(m \cdot K)\), T(r) = c₁ + c₂·ln r tetap berlaku (Euler-Cauchy yang sama). BVP: T(R₂) = T₂, T(R₃) = T₃ = 60°C. Kontinuitas heat flux di r = R₂: <code>Q = −2π·k<sub>iso</sub>·L·c<sub>2,iso</sub></code>. Cari R₃ dari sistem dua persamaan: BVP + Q-conservation.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">c₂_iso = (T₃−T₂)/ln(R₃/R₂)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">c<sub>2,iso</sub> = (T₃−T₂)/ln(R₃/R₂)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(Q = -2\pi \cdot k_{\text{iso}} \cdot L \cdot c_{2,\text{iso}}\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(R_3 = R_2 \cdot \exp[2\pi \cdot k_{\text{iso}} \cdot L \cdot (T_2-T_3)/Q]\)</span>
         </div>
@@ -3619,7 +3690,7 @@ plt.<span class="fn">show</span>()
           💬 <em>Hint: untuk membatasi heat loss \(Q ke\) nilai praktis, pilih \(Q\) target (misal: \(5 kW\) per pipa, jauh lebih kecil dari \(113 kW\) tanpa isolasi). Lalu hitung \(R_3:\) <code>R₃ = 0.10 · exp[2π·0.05·50·(200−60)/5000]</code> \(\approx 0.10 \cdot \exp(0.44) \approx 0.155 m.\) Ketebalan isolasi \(= 5.5 cm.\) Bandingkan dengan kasus tanpa isolasi \((Q=113 kW)\): mengapa isolasi mengurangi heat loss \(23 \times ?\)</em>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis solusi lengkap (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Tulis BVP untuk lapisan isolasi. (2) Hubungkan dengan Q target dari Q2. (3) Cari R₃ secara analitik atau numerik (scipy bisection/brentq). (4) Bahas: bagaimana k_iso rendah bekerja di rumus Euler-Cauchy untuk mengurangi heat loss? Sebutkan satu trade-off praktis (misal: berat, biaya, ruang)." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis solusi lengkap (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Tulis BVP untuk lapisan isolasi. (2) Hubungkan dengan Q target dari Q2. (3) Cari R₃ secara analitik atau numerik (scipy bisection/brentq). (4) Bahas: bagaimana kᵢₛₒ rendah bekerja di rumus Euler-Cauchy untuk mengurangi heat loss? Sebutkan satu trade-off praktis (misal: berat, biaya, ruang)." oninput="checkForumReady()"></textarea>
         <div id="wc-fq3" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -4862,6 +4933,35 @@ function checkExportReady() {
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4929,15 +5029,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -4976,7 +5078,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -4989,7 +5091,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5778,7 +5880,7 @@ function buildForumHtml() {
       <div style="font-size:.88rem;color:#475569;margin-bottom:10px;line-height:1.65;">Blok silinder aluminium keluar die casting pada suhu 450&deg;C, didinginkan di udara pabrik (30&deg;C) menuju suhu aman 80&deg;C. Hukum Pendinginan Newton: <span style="font-family:monospace;color:#f97316;">T' + kT = kT&infin;</span>. Parameter kunci:</div>
       <div style="margin-top:10px;line-height:2.2;"><div style="display:inline-block;margin:2px 6px 2px 0;background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">T&#8320; = 450&deg;C</div>
       <div style="display:inline-block;margin:2px 6px 2px 0;background:#fef3c7;border:1px solid #fcd34d;color:#92400e;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">T&infin; = 30&deg;C</div>
-      <div style="display:inline-block;margin:2px 6px 2px 0;background:#d1fae5;border:1px solid #fdba74;color:#9a3412;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">T_aman = 80&deg;C</div>
+      <div style="display:inline-block;margin:2px 6px 2px 0;background:#d1fae5;border:1px solid #fdba74;color:#9a3412;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">T<sub>aman</sub> = 80&deg;C</div>
       <div style="display:inline-block;margin:2px 6px 2px 0;background:#ede9fe;border:1px solid #c4b5fd;color:#9a3412;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">k = 0.04 /menit</div>
     </td></tr>
   </table>
@@ -5787,7 +5889,7 @@ function buildForumHtml() {
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:8px;">
     <tr><td style="padding:20px 28px;">
       <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#f97316;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">1</span>Berapa waktu pendinginan alami (k = 0.04/menit) agar coran mencapai 80&deg;C? Bagaimana jika k dinaikkan ke 0.08/menit dengan kipas?</h3>
-      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Gunakan solusi T(t) = T&infin; + (T&#8320; &minus; T&infin;)&middot;e^(&minus;kt). Tentukan t saat T = 80&deg;C untuk kedua skenario.</div>
+      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Gunakan solusi T(t) = T&infin; + (T&#8320; &minus; T&infin;)&middot;e<sup>&minus;kt</sup>. Tentukan t saat T = 80&deg;C untuk kedua skenario.</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
         <div style="background:#f8f5ff;border:1px solid #c4b5fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans1}</div>
@@ -5797,7 +5899,7 @@ function buildForumHtml() {
 
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:4px;">
     <tr><td style="padding:20px 28px;">
-      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#f97316;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Jika spray mist mengubah model menjadi T' = &minus;k(T&minus;T&infin;)^1.2 (non-linier), bagaimana strategi penyelesaiannya?</h3>
+      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#f97316;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Jika spray mist mengubah model menjadi T' = &minus;k(T&minus;T&infin;)<sup>1.2</sup> (non-linier), bagaimana strategi penyelesaiannya?</h3>
       <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Pertimbangkan: substitusi u = T &minus; T&infin; menjadikan PD terpisah, bukan Bernoulli klasik. Tunjukkan langkah integrasi.</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
@@ -6034,13 +6136,13 @@ function drawCases(){
     let rootsStr;
     if (kase === 1){
       const m1 = ((1-b) + Math.sqrt(D))/2, m2 = ((1-b) - Math.sqrt(D))/2;
-      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x^m₁ + c₂·x^m₂`;
+      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x<sup>m₁</sup> + c₂·x<sup>m₂</sup>`;
     } else if (kase === 2){
       const m = (1-b)/2;
-      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x^m`;
+      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x<sup>m</sup>`;
     } else {
       const al = (1-b)/2, be = Math.sqrt(-D)/2;
-      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x^α·[c₁cos(β ln x) + c₂sin(β ln x)]`;
+      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x<sup>α</sup>·[c₁cos(β ln x) + c₂sin(β ln x)]`;
     }
     infoEl.innerHTML = `<span style="color:${color}">●</span> PD: x²y'' + ${b.toFixed(2)}·x·y' + ${c.toFixed(2)}·y = 0 &nbsp;|&nbsp; D = (b−1)² − 4c = ${D.toFixed(2)} &nbsp;|&nbsp; ${rootsStr}`;
   }
@@ -6157,9 +6259,9 @@ function drawRoots(){
   ctx.fillText('Re(m)', px1 - 35, cy - 8);
   ctx.fillText('Im(m)', cx + 6, py0 + 12);
   ctx.fillStyle = '#00e09e';
-  ctx.fillText('x^m → 0', px0 + 8, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → 0', px0 + 8, py0 + 16);
   ctx.fillStyle = '#ef4444';
-  ctx.fillText('x^m → ∞', px1 - 65, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → ∞', px1 - 65, py0 + 16);
   ctx.fillStyle = '#94a3b8';
   for (let i = -4; i <= 4; i += 2){
     if (i === 0) continue;
@@ -6583,7 +6685,7 @@ function drawSweep(){
       const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
       const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
       const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
+      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r<sub>max</sub>=${rmaxTheory.toFixed(2)}, DMF<sub>max</sub>=${dmfmaxTheory.toFixed(2)}`;
     } else {
       info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
     }
@@ -6949,7 +7051,7 @@ function drawHPB(){
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
+  ctx.fillText(`${linePos.toFixed(2)} × H²<sub>max</sub> = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
 
   // Find ω₁ and ω₂ (intersection of curve with targetY)
   // Binary search on either side of peak
@@ -6993,12 +7095,12 @@ function drawHPB(){
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
+    let html = `ζ<sub>TRUE</sub> = ${zetaTrue.toFixed(3)} · ω<sub>peak</sub> = ${omegaPeak.toFixed(2)} · H²<sub>max</sub> = ${H2max.toFixed(2)}<br>`;
     if(omega1 !== null && omega2 !== null){
       html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
       if(Math.abs(linePos - 0.5) < 0.02){
         const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
+        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ<sub>estimated</sub> = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
       } else {
         html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
       }
@@ -8025,10 +8127,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -8042,7 +8144,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -10569,7 +10671,7 @@ function drawEMTog(){
   const isNum = (_emTogMode === 1);
   const color = isNum ? '#a855f7' : '#00e09e';
   ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e^(-bt/2)·cos(ωt)', 20, 30);
+  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e<sup>-bt/2</sup>·cos(ωt)', 20, 30);
 
   const padL=50, padR=20, padT=50, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
@@ -11007,9 +11109,9 @@ function _createForumParticleBurst(event) {
     const infoEl = document.getElementById('m6MPlaneInfo');
     if (infoEl){
       let kaseDesc;
-      if (D > 0.05) kaseDesc = 'akar real berbeda → x^m₁, x^m₂';
-      else if (D < -0.05) kaseDesc = 'akar kompleks konjugat → x^α·cos/sin(β·ln x)';
-      else kaseDesc = 'akar real berulang → x^m, x^m·ln(x)';
+      if (D > 0.05) kaseDesc = 'akar real berbeda → x<sup>m₁</sup>, x<sup>m₂</sup>';
+      else if (D < -0.05) kaseDesc = 'akar kompleks konjugat → x<sup>α</sup>·cos/sin(β·ln x)';
+      else kaseDesc = 'akar real berulang → x<sup>m</sup>, x<sup>m</sup>·ln(x)';
       const m1str = m1.im === 0 ? m1.re.toFixed(2) : `${m1.re.toFixed(2)} + ${m1.im.toFixed(2)}i`;
       const m2str = m2.im === 0 ? m2.re.toFixed(2) : `${m2.re.toFixed(2)} − ${Math.abs(m2.im).toFixed(2)}i`;
       infoEl.innerHTML = `D = ${D.toFixed(2)} &nbsp;|&nbsp; ${kaseDesc} &nbsp;|&nbsp; m₁=${m1str}, m₂=${m2str}`;
@@ -11202,7 +11304,7 @@ function _createForumParticleBurst(event) {
       lbl.style.fontWeight = active ? '700' : '400';
       lbl.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
       lbl.style.transform = active ? 'scale(1.05)' : 'scale(1)';
-      lbl.textContent = active ? (lbl.textContent.replace(' ✓','') + ' ✓') : lbl.textContent.replace(' ✓','');
+      (function (el, aktif) { var t = el.lastChild; if (t && t.nodeType === 3 && / ✓$/.test(t.nodeValue)) { t.nodeValue = t.nodeValue.slice(0, -2); if (!t.nodeValue) el.removeChild(t); } if (aktif) el.appendChild(document.createTextNode(' ✓')); })(lbl, active);   // notasi-halaman.mjs: ✓ tanpa menulis ulang textContent
     });
   };
 
@@ -11312,7 +11414,7 @@ function _createForumParticleBurst(event) {
 
   const M6_APPS = {
     pipe:      { label: "Konduksi Pipa: T(r) = T₁ + (T₂−T₁)·ln(r/R₁)/ln(R₂/R₁)",  color: '#ff6bb3', icon: 'pipe' },
-    beam:      { label: "Balok Tirus I(x)=I₀x²: y(x) = c₁x^m₁ + c₂x^m₂",            color: '#00e09e', icon: 'beam' },
+    beam:      { label: "Balok Tirus I(x)=I₀x²: y(x) = c₁x<sup>m₁</sup> + c₂x<sup>m₂</sup>",            color: '#00e09e', icon: 'beam' },
     capacitor: { label: "Kapasitor Silindris: V(r) = c₁ + c₂·ln(r)",                color: '#0ea5e9', icon: 'cap'  },
     bessel:    { label: "Mode Bunyi Pipa Organ: pendekatan Euler-Cauchy",          color: '#ffb300', icon: 'organ'},
     stress:    { label: "Tabung Bertekanan: σ(r) = A + B/r²",                       color: '#a855f7', icon: 'tube' }
@@ -11479,7 +11581,7 @@ function _createForumParticleBurst(event) {
       }
       ctx.shadowBlur = 0;
       ctx.fillStyle = '#fff'; ctx.font = 'bold 10px JetBrains Mono, monospace'; ctx.textAlign = 'center';
-      ctx.fillText('P_in', cx, cy + 2);
+      ctx.fillText('P<sub>in</sub>', cx, cy + 2);
       ctx.textAlign = 'left';
     }
 

@@ -1242,6 +1242,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1484,16 +1555,16 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
-      <text x="50" y="14" text-anchor="middle" fill="rgba(148,163,184,.55)" font-family="JetBrains Mono" font-size="7" font-weight="600">\(y_t\)</text>
+      <text x="50" y="14" text-anchor="middle" fill="rgba(148,163,184,.55)" font-family="JetBrains Mono" font-size="7" font-weight="600">y<tspan dy="1.5" font-size="6.3">t</tspan></text>
       <polyline points="10,30 18,22 26,28 34,18 42,24 50,14 58,22 66,16 74,26 82,20 90,24"
                 fill="none" stroke="rgba(124,77,255,.55)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" class="smd-mass"/>
-      <text x="50" y="62" text-anchor="middle" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="6" font-weight="600">\(T_t\) (trend)</text>
+      <text x="50" y="62" text-anchor="middle" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="6" font-weight="600">T<tspan dy="1.3" font-size="5.4">t</tspan><tspan dy="-1.3"> (trend)</tspan></text>
       <polyline points="10,80 20,72 30,65 40,58 50,52 60,47 70,43 80,40 90,38"
                 fill="none" stroke="rgba(0,229,255,.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <text x="50" y="112" text-anchor="middle" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="6" font-weight="600">\(S_t\) (seasonal)</text>
+      <text x="50" y="112" text-anchor="middle" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="6" font-weight="600">S<tspan dy="1.3" font-size="5.4">t</tspan><tspan dy="-1.3"> (seasonal)</tspan></text>
       <polyline points="10,132 14,126 18,132 22,138 26,132 30,126 34,132 38,138 42,132 46,126 50,132 54,138 58,132 62,126 66,132 70,138 74,132 78,126 82,132 86,138 90,132"
                 fill="none" stroke="rgba(255,179,0,.55)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" class="smd-mass"/>
-      <text x="50" y="160" text-anchor="middle" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="6" font-weight="600">\(R_t\) (residual)</text>
+      <text x="50" y="160" text-anchor="middle" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="6" font-weight="600">R<tspan dy="1.3" font-size="5.4">t</tspan><tspan dy="-1.3"> (residual)</tspan></text>
       <line x1="10" y1="180" x2="90" y2="180" stroke="rgba(148,163,184,.15)" stroke-width=".6" stroke-dasharray="2 2"/>
       <polyline points="10,182 16,178 22,181 28,179 34,183 40,180 46,177 52,182 58,178 64,183 70,179 76,181 82,178 88,182"
                 fill="none" stroke="rgba(0,230,118,.55)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="smd-mass"/>
@@ -1501,14 +1572,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">y_t = T_t + S_t + R_t</span>
-    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">x'_t = log(x_t)</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">∇x_t = x_t − x_{t−1}</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">y(λ) = (x^λ − 1)/λ</span>
+    <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">y<sub>t</sub> = T<sub>t</sub> + S<sub>t</sub> + R<sub>t</sub></span>
+    <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">x'<sub>t</sub> = log(x<sub>t</sub>)</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">∇x<sub>t</sub> = x<sub>t</sub> − x<sub>t−1</sub></span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">y(λ) = (x<sup>λ</sup> − 1)/λ</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">z = (x − μ)/σ</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">T_t = LOESS(y_t)</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">y_t = T_t · S_t · R_t</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">S_t = y_t − T_t − R_t</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">T<sub>t</sub> = LOESS(y<sub>t</sub>)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">y<sub>t</sub> = T<sub>t</sub> · S<sub>t</sub> · R<sub>t</sub></span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">S<sub>t</sub> = y<sub>t</sub> − T<sub>t</sub> − R<sub>t</sub></span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Pertemuan 1 &nbsp;·&nbsp; Optimalisasi &amp; Automasi &nbsp;·&nbsp; 2025/2026</div>
@@ -2072,7 +2143,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚡</div>
       <h3>Energy Power Quality</h3>
       <p>Sensor arus &amp; tegangan motor 3-phase, sampling 25.6 kHz. Time series ini mengandung fundamental 50 Hz + harmonik (100, 150, 200, ... Hz). <strong>RMS arus</strong> = ukuran beban; <strong>RMS tegangan</strong> = supply quality; <strong>RMS harmonik</strong> = THD (Total Harmonic Distortion). THD &gt; 5% = power quality buruk → motor cepat panas, efisiensi turun. Statistik time series langsung diterjemahkan jadi keputusan teknis.</p>
-      <div class="formula">THD = \(\sqrt{\Sigma V<sub>n</sub>^2}\)/V<sub>1</sub></div>
+      <div class="formula">THD = \(\sqrt{\Sigma V_{n}^2}\)/V<sub>1</sub></div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
@@ -2358,10 +2429,10 @@ var_noise    = np.<span class="fn">var</span>(noise)
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">y_t = T_t + S_t + R_t</span>
-    <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">x'_t = log(x_t)</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--amber);--dur:20s;--del:0s">y<sub>t</sub> = T<sub>t</sub> + S<sub>t</sub> + R<sub>t</sub></span>
+    <span class="ff" style="left:35%;font-size:.85rem;color:var(--cyan);--dur:22s;--del:5s">x'<sub>t</sub> = log(x<sub>t</sub>)</span>
     <span class="ff" style="left:55%;font-size:.8rem;color:var(--pink);--dur:18s;--del:5s">z = (x − μ)/σ</span>
-    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">∇x_t = x_t − x_{t−1}</span>
+    <span class="ff" style="left:75%;font-size:.7rem;color:var(--violet);--dur:22s;--del:9s">∇x<sub>t</sub> = x<sub>t</sub> − x<sub>t−1</sub></span>
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow"><div class="pulse-dot"></div>Tugas Pertemuan 1 · Pengantar Time Series Data</div>
@@ -2456,7 +2527,7 @@ var_noise    = np.<span class="fn">var</span>(noise)
       </div>
       <div class="radio-group" id="rg-mc2">
         <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; 1 detik per sampel</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; 1 ms per sampel (Δt = 1/f<sub>s</sub> = 0.001 s)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; 1 ms per sampel (Δt = 1/f<sub>s</sub> = 0.001 s)</span></div>
         <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; 1 µs per sampel</div>
         <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; 1 menit per 1000 sampel</div>
       </div>
@@ -2472,10 +2543,10 @@ var_noise    = np.<span class="fn">var</span>(noise)
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc3">
-        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; f<sub>s</sub> = f<sub>maks</sub></div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; f<sub>s</sub> ≥ 2 · f<sub>maks</sub></div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; f<sub>s</sub> = 0.5 · f<sub>maks</sub></div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; f<sub>s</sub> = (f<sub>maks</sub>)<sup>2</sup></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; f<sub>s</sub> = f<sub>maks</sub></span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; f<sub>s</sub> ≥ 2 · f<sub>maks</sub></span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; f<sub>s</sub> = 0.5 · f<sub>maks</sub></span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; f<sub>s</sub> = (f<sub>maks</sub>)<sup>2</sup></span></div>
       </div>
       <button class="mc-submit" id="sub-mc3" onclick="checkMC('mc3')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc3"></div>
@@ -2489,8 +2560,8 @@ var_noise    = np.<span class="fn">var</span>(noise)
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Sinyal terekam dengan sempurna karena f<sub>s</sub> &gt; f<sub>signal</sub></div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <strong>Aliasing</strong>, sinyal tampak sebagai frekuensi palsu (di bawah Nyquist)</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; Sinyal terekam dengan sempurna karena f<sub>s</sub> &gt; f<sub>signal</sub></span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <strong>Aliasing</strong>, sinyal tampak sebagai frekuensi palsu (di bawah Nyquist)</span></div>
         <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Amplitudo terlihat 2× lebih besar dari aslinya</div>
         <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Phase shift 90° tanpa perubahan amplitudo</div>
       </div>
@@ -2508,7 +2579,7 @@ var_noise    = np.<span class="fn">var</span>(noise)
       <div class="radio-group" id="rg-mc5">
         <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; 10 kHz</div>
         <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; 20 kHz</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; 5 kHz (f<sub>N</sub> = f<sub>s</sub> / 2)</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; 5 kHz (f<sub>N</sub> = f<sub>s</sub> / 2)</span></div>
         <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; 1 kHz</div>
       </div>
       <button class="mc-submit" id="sub-mc5" onclick="checkMC('mc5')" disabled>Periksa Jawaban</button>
@@ -2541,7 +2612,7 @@ var_noise    = np.<span class="fn">var</span>(noise)
       </div>
       <div class="radio-group" id="rg-mc7">
         <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Mean (μ), karena sinyal AC mean-nya ≈ 0, ini tidak informatif</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <strong>RMS</strong> (Root Mean Square), menangkap energi rata-rata</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <strong>RMS</strong> (Root Mean Square), menangkap energi rata-rata</span></div>
         <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Median, robust tapi tidak terkait energi</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Mode, tidak meaningful untuk sinyal kontinu</div>
       </div>
@@ -2559,7 +2630,7 @@ var_noise    = np.<span class="fn">var</span>(noise)
       <div class="radio-group" id="rg-mc8">
         <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Bearing dalam kondisi normal, CF tinggi adalah baseline sehat</div>
         <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Sensor butuh kalibrasi karena drift</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Adanya <strong>impulsive event</strong> seperti spalling pada raceway bearing</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; Adanya <strong>impulsive event</strong> seperti spalling pada raceway bearing</span></div>
         <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Sinyal terlalu lemah untuk dianalisis</div>
       </div>
       <button class="mc-submit" id="sub-mc8" onclick="checkMC('mc8')" disabled>Periksa Jawaban</button>
@@ -2576,7 +2647,7 @@ var_noise    = np.<span class="fn">var</span>(noise)
       <div class="radio-group" id="rg-mc9">
         <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Unsatisfactory, perlu monitoring intensif</div>
         <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Unacceptable, stop produksi segera</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <strong>Baik (Good)</strong>, kondisi mesin sehat</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <strong>Baik (Good)</strong>, kondisi mesin sehat</span></div>
         <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Class boundary, tidak bisa dikategorikan</div>
       </div>
       <button class="mc-submit" id="sub-mc9" onclick="checkMC('mc9')" disabled>Periksa Jawaban</button>
@@ -2593,7 +2664,7 @@ var_noise    = np.<span class="fn">var</span>(noise)
       <div class="radio-group" id="rg-mc10">
         <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div>(A) &nbsp; 1 kHz, cukup untuk overview</div>
         <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div>(B) &nbsp; 5 kHz, tepat di Nyquist boundary</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div>(C) &nbsp; <strong>25–50 kHz</strong>, oversampling 5–10× untuk margin &amp; anti-aliasing filter design</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; <strong>25–50 kHz</strong>, oversampling 5–10× untuk margin &amp; anti-aliasing filter design</span></div>
         <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div>(D) &nbsp; 1 MHz, lebih tinggi selalu lebih baik</div>
       </div>
       <button class="mc-submit" id="sub-mc10" onclick="checkMC('mc10')" disabled>Periksa Jawaban</button>
@@ -2718,10 +2789,10 @@ x = signal + noise                              # ← Ini deret time series Anda
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C6</div>
-        <div class="comp-q">Hitung <strong>frekuensi Nyquist</strong> untuk sampling rate <strong>f<sub>s</sub> = 10000 Hz</strong>. Cetak nilai dalam Hz: <code>f_N = f_s / 2</code>.</div>
+        <div class="comp-q">Hitung <strong>frekuensi Nyquist</strong> untuk sampling rate <strong>f<sub>s</sub> = 10000 Hz</strong>. Cetak nilai dalam Hz: <code>f<sub>N</sub> = f<sub>s</sub> / 2</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Frekuensi Nyquist = f_s ÷ 2. Substitusikan sampling rate dari soal.</div>
+      <div class="comp-hint">💡 Frekuensi Nyquist = f<sub>s</sub> ÷ 2. Substitusikan sampling rate dari soal.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Nyquist</strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
@@ -2735,10 +2806,10 @@ x = signal + noise                              # ← Ini deret time series Anda
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q">Hitung <strong>periode sampling (Δt)</strong> dalam <strong>milisekon</strong> untuk sampling rate <strong>f<sub>s</sub> = 1000 Hz</strong>. <code>Δt = 1/f_s</code> dalam detik, kalikan 1000 untuk dapat ms.</div>
+        <div class="comp-q">Hitung <strong>periode sampling (Δt)</strong> dalam <strong>milisekon</strong> untuk sampling rate <strong>f<sub>s</sub> = 1000 Hz</strong>. <code>Δt = 1/f<sub>s</sub></code> dalam detik, kalikan 1000 untuk dapat ms.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Δt = 1 ÷ f_s (detik); kalikan 1000 untuk milisekon. Masukkan f_s dari soal.</div>
+      <div class="comp-hint">💡 Δt = 1 ÷ f<sub>s</sub> (detik); kalikan 1000 untuk milisekon. Masukkan f<sub>s</sub> dari soal.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Δt(ms)</strong></span></div>
         <textarea class="code-textarea" id="code-c7" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c7')"></textarea>
@@ -2752,10 +2823,10 @@ x = signal + noise                              # ← Ini deret time series Anda
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q">Hitung <strong>jumlah sampel total</strong> yang dihasilkan oleh sensor dengan sampling rate <strong>f<sub>s</sub> = 2000 Hz</strong> selama durasi <strong>5 detik</strong>. Rumus: <code>N = f_s × T</code>.</div>
+        <div class="comp-q">Hitung <strong>jumlah sampel total</strong> yang dihasilkan oleh sensor dengan sampling rate <strong>f<sub>s</sub> = 2000 Hz</strong> selama durasi <strong>5 detik</strong>. Rumus: <code>N = f<sub>s</sub> × T</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 N = f_s × T; kalikan sampling rate dengan durasi dari soal, lalu konversi ke integer.</div>
+      <div class="comp-hint">💡 N = f<sub>s</sub> × T; kalikan sampling rate dengan durasi dari soal, lalu konversi ke integer.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">N total</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
@@ -2786,10 +2857,10 @@ x = signal + noise                              # ← Ini deret time series Anda
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q">Hitung <strong>Signal-to-Noise Ratio (SNR) dalam dB</strong> dari sinyal dengan power signal \(P_s\) = 100 dan power noise \(P_n\) = 1. Rumus: <code>SNR_dB = 10·log₁₀(P_s/P_n)</code>.</div>
+        <div class="comp-q">Hitung <strong>Signal-to-Noise Ratio (SNR) dalam dB</strong> dari sinyal dengan power signal \(P_s\) = 100 dan power noise \(P_n\) = 1. Rumus: <code>SNR<sub>dB</sub> = 10·log₁₀(P<sub>s</sub>/P<sub>n</sub>)</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 SNR_dB = 10 × log₁₀(P_s ÷ P_n); pakai <code>np.log10</code> dengan power signal dan noise dari soal.</div>
+      <div class="comp-hint">💡 SNR<sub>dB</sub> = 10 × log₁₀(P<sub>s</sub> ÷ P<sub>n</sub>); pakai <code>np.log10</code> dengan power signal dan noise dari soal.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">SNR(dB)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -2813,10 +2884,10 @@ x = signal + noise                              # ← Ini deret time series Anda
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q">Implementasikan perhitungan <strong>RMS teoritis dari sinyal multi-frekuensi</strong> berdasarkan amplitudonya (rumus Parseval). Untuk dataset referensi (3 sinusoid A1=1.0, A2=0.5, A3=0.25 + noise σ=0.15), gunakan formula: <code>RMS_total = √(Σ(A_i²/2) + σ²_noise)</code>. Bandingkan dengan RMS empiris (numerik) dari deret <code>x</code>. Cetak nilai <strong>RMS teoritis</strong>.</div>
+        <div class="comp-q">Implementasikan perhitungan <strong>RMS teoritis dari sinyal multi-frekuensi</strong> berdasarkan amplitudonya (rumus Parseval). Untuk dataset referensi (3 sinusoid A1=1.0, A2=0.5, A3=0.25 + noise σ=0.15), gunakan formula: <code>RMS<sub>total</sub> = √(Σ(A<sub>i</sub>²/2) + σ²<sub>noise</sub>)</code>. Bandingkan dengan RMS empiris (numerik) dari deret <code>x</code>. Cetak nilai <strong>RMS teoritis</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Tiap sinusoid menyumbang power A_i²/2; jumlahkan semua kontribusi ditambah variansi noise (σ²), lalu akarkan untuk RMS total. Bandingkan dengan RMS numerik <code>np.sqrt(np.mean(x**2))</code>.</div>
+      <div class="comp-hint">💡 Tiap sinusoid menyumbang power A<sub>i</sub>²/2; jumlahkan semua kontribusi ditambah variansi noise (σ²), lalu akarkan untuk RMS total. Bandingkan dengan RMS numerik <code>np.sqrt(np.mean(x**2))</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">RMS teoritis</strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="12" placeholder="Paste kode perhitungan RMS teoritis lengkap (dengan generate sinyal + verifikasi numerik), lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
@@ -2830,10 +2901,10 @@ x = signal + noise                              # ← Ini deret time series Anda
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C12</div>
-        <div class="comp-q">Implementasikan <strong>demonstrasi aliasing</strong> dari awal. Generate sinyal 50 Hz murni dengan resolusi tinggi (5000 sampel/detik selama 0.1 detik) → kemudian sampel-ulang pada frekuensi <strong>under-Nyquist 60 Hz</strong>. Hitung <strong>frekuensi alias yang muncul</strong> menggunakan rumus: <code>f_alias = |f_signal - k·fs_under|</code> untuk k integer terdekat. Untuk f=50 Hz, fs=60 Hz, alias muncul di...</div>
+        <div class="comp-q">Implementasikan <strong>demonstrasi aliasing</strong> dari awal. Generate sinyal 50 Hz murni dengan resolusi tinggi (5000 sampel/detik selama 0.1 detik) → kemudian sampel-ulang pada frekuensi <strong>under-Nyquist 60 Hz</strong>. Hitung <strong>frekuensi alias yang muncul</strong> menggunakan rumus: <code>f<sub>alias</sub> = |f<sub>signal</sub> - k·fs<sub>under</sub>|</code> untuk k integer terdekat. Untuk f=50 Hz, fs=60 Hz, alias muncul di...</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Generate sinyal kontinu beresolusi tinggi, lalu downsampel ke fs under-Nyquist. Frekuensi alias = |f_signal − \(k \cdot fs\)| dengan k integer terdekat (gunakan <code>round</code>); verifikasi posisi peak dengan FFT pada hasil downsampel.</div>
+      <div class="comp-hint">💡 Generate sinyal kontinu beresolusi tinggi, lalu downsampel ke fs under-Nyquist. Frekuensi alias = |f<sub>signal</sub> − \(k \cdot fs\)| dengan k integer terdekat (gunakan <code>round</code>); verifikasi posisi peak dengan FFT pada hasil downsampel.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(f_{alias} (Hz)\)</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="12" placeholder="Paste kode demonstrasi aliasing lengkap (generate, downsampel, FFT, hitung), lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
@@ -2881,7 +2952,7 @@ x = signal + noise                              # ← Ini deret time series Anda
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q">Hitung <strong>Total Harmonic Distortion (THD)</strong> dari dataset referensi. THD adalah rasio RMS semua harmonik (A2, A3) terhadap RMS fundamental (A1), dalam persen. Rumus: <code>THD% = √(Σ A_h²/2) / (A_1/√2) × 100%</code> untuk h≥2. Cetak nilai THD dalam persen.</div>
+        <div class="comp-q">Hitung <strong>Total Harmonic Distortion (THD)</strong> dari dataset referensi. THD adalah rasio RMS semua harmonik (A2, A3) terhadap RMS fundamental (A1), dalam persen. Rumus: <code>THD% = √(Σ A<sub>h</sub>²/2) / (A<sub>1</sub>/√2) × 100%</code> untuk h≥2. Cetak nilai THD dalam persen.</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 RMS fundamental = A1/√2; RMS harmonik = \(\sqrt{\Sigma A_h^2/2}\) untuk h≥2. THD% = (RMS harmonik ÷ RMS fundamental) × 100. Aplikasi: THD penting di power quality monitoring motor.</div>
@@ -2997,14 +3068,14 @@ x = signal + noise                              # ← Ini deret time series Anda
           <div class="poll-opts" id="fp1">
             <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>1 kHz, cukup untuk kebutuhan dasar dan hemat storage</div>
             <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>3 kHz, tepat di Nyquist boundary untuk gear mesh</div>
-            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>10 kHz, oversampling ~7× di atas \(f_{\text{maks}}\) (1.5 kHz), cukup margin untuk anti-aliasing filter dan envelope analysis</div>
+            <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div><span class="opsi-teks">10 kHz, oversampling ~7× di atas \(f_{\text{maks}}\) (1.5 kHz), cukup margin untuk anti-aliasing filter dan envelope analysis</span></div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>50 kHz, selalu pakai maksimal sampling rate</div>
           </div>
           <div class="p-fb r" id="fp1r">✅ Tepat! 10 kHz adalah <strong>sweet spot praktis industri</strong> untuk vibration monitoring umum: (1) cukup di atas f<sub>maks</sub> 1.5 kHz dengan margin 5-7× untuk anti-aliasing filter design yang realistis, (2) memungkinkan future envelope analysis untuk bearing fault detection (yang butuh resolusi tinggi pada band 1-10 kHz), (3) tidak boros storage seperti 50 kHz (5× lebih banyak data tanpa benefit signifikan untuk kasus ini), (4) sesuai standar ISO 10816 untuk vibration severity assessment. Ingat Pedoman: <em>sample tinggi di edge, hitung statistik (RMS, std, CF), kirim hanya feature ke cloud</em>.</div>
           <div class="p-fb w" id="fp1w">❌ 1 kHz akan menyebabkan aliasing, gear mesh 1.5 kHz akan tampak sebagai frekuensi palsu. 3 kHz tepat di Nyquist berarti tidak ada margin untuk anti-aliasing filter (yang tidak ideal/tajam di frekuensi cut-off). 50 kHz tidak salah tapi 5× lebih boros storage tanpa benefit nyata untuk kasus monitoring umum motor 11 kW.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis rekomendasi sampling rate Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: Hitung dulu f_maks yang harus terdeteksi, terapkan Teorema Nyquist + margin praktis 5-10×. Hubungkan dengan trade-off storage dan bandwidth. Sebutkan juga: apakah anti-aliasing filter analog perlu? Pada frekuensi cut-off berapa?" oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis rekomendasi sampling rate Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: Hitung dulu fₘₐₖₛ yang harus terdeteksi, terapkan Teorema Nyquist + margin praktis 5-10×. Hubungkan dengan trade-off storage dan bandwidth. Sebutkan juga: apakah anti-aliasing filter analog perlu? Pada frekuensi cut-off berapa?" oninput="checkForumReady()"></textarea>
         <div id="wc-fq1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -3139,7 +3210,7 @@ x = signal + noise                              # ← Ini deret time series Anda
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:6%;font-size:.9rem;color:var(--violet);--dur:22s;--del:0s">✅ Tepat Waktu</span>
-    <span class="ff" style="left:28%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">y_t = T + S + R</span>
+    <span class="ff" style="left:28%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">y<sub>t</sub> = T + S + R</span>
     <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">z = (x − μ)/σ</span>
     <span class="ff" style="left:70%;font-size:.7rem;color:var(--pink);--dur:24s;--del:2s">🏆 Top Skor</span>
     <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">log(y) → STL</span>
@@ -4704,6 +4775,35 @@ function checkExportReady() {
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4771,15 +4871,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -4818,7 +4920,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -4831,7 +4933,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5751,7 +5853,7 @@ function drawPhysics(){
 
   // Legend
   ctx.font = '10px JetBrains Mono';
-  ctx.fillStyle = 'rgba(168,85,247,.9)'; ctx.fillText('● y_t = Tren + Musiman + Noise', x0, y0 - 6);
+  ctx.fillStyle = 'rgba(168,85,247,.9)'; ctx.fillText('● y<sub>t</sub> = Tren + Musiman + Noise', x0, y0 - 6);
   ctx.fillStyle = 'rgba(14,165,233,.9)'; ctx.fillText('  Tren', x0 + 230, y0 - 6);
   ctx.fillStyle = 'rgba(255,64,129,.9)'; ctx.fillText('  Musiman', x0 + 285, y0 - 6);
 
@@ -5976,7 +6078,7 @@ function drawIso(){
   // TOP PANEL: original series
   _grid(ctx, x0, topY, w, topH, 16, 4, '#0d1929');
   ctx.fillStyle = 'rgba(168,85,247,.9)'; ctx.font = '10px JetBrains Mono';
-  ctx.fillText('● DERET ASLI y_t (tren + musiman + noise)', x0, topY - 4);
+  ctx.fillText('● DERET ASLI y<sub>t</sub> (tren + musiman + noise)', x0, topY - 4);
 
   // Top scale: fit to range
   let bMin = base[0], bMax = base[0];
@@ -5996,9 +6098,9 @@ function drawIso(){
   _grid(ctx, x0, botY, w, botH, 16, 4, '#0d1929');
   ctx.fillStyle = d === 0 ? 'rgba(168,85,247,.9)' : (d === 1 ? 'rgba(14,165,233,.9)' : 'rgba(255,64,129,.9)');
   ctx.font = '10px JetBrains Mono';
-  const label = d === 0 ? '● SETELAH y_t (d=0 — tidak ada differencing)'
-              : d === 1 ? '● SETELAH ∇y_t = y_t − y_{t-1} (d=1)'
-                        : '● SETELAH ∇²y_t = ∇(∇y_t) (d=2 — over-differenced)';
+  const label = d === 0 ? '● SETELAH y<sub>t</sub> (d=0 — tidak ada differencing)'
+              : d === 1 ? '● SETELAH ∇y<sub>t</sub> = y<sub>t</sub> − y<sub>t−1</sub> (d=1)'
+                        : '● SETELAH ∇²y<sub>t</sub> = ∇(∇y<sub>t</sub>) (d=2 — over-differenced)';
   ctx.fillText(label, x0, botY - 4);
 
   // Mid line
@@ -6152,10 +6254,10 @@ function drawHPB(){
     ctx.stroke();
   }
 
-  drawPanel(obs,      0, 'OBSERVATION  y_t',      'rgba(168,85,247,.95)');
-  drawPanel(trend,    1, `TREND  T_t  (MA win=${win})`, 'rgba(14,165,233,.95)');
-  drawPanel(seasonal, 2, 'SEASONAL  S_t  (period=20)',  'rgba(255,64,129,.95)');
-  drawPanel(resid,    3, 'RESIDUAL  R_t = y − T − S',   'rgba(0,224,158,.95)');
+  drawPanel(obs,      0, 'OBSERVATION  y<sub>t</sub>',      'rgba(168,85,247,.95)');
+  drawPanel(trend,    1, `TREND  T<sub>t</sub>  (MA win=${win})`, 'rgba(14,165,233,.95)');
+  drawPanel(seasonal, 2, 'SEASONAL  S<sub>t</sub>  (period=20)',  'rgba(255,64,129,.95)');
+  drawPanel(resid,    3, 'RESIDUAL  R<sub>t</sub> = y − T − S',   'rgba(0,224,158,.95)');
 
   const vl = document.getElementById('v_rh'); if(vl) vl.textContent = String(win);
 }
@@ -7010,16 +7112,16 @@ function initLoginAnimation(_canvasId, _particlesId) {
 
   /* ── Floating preprocessing formulas (Transformasi & Dekomposisi) ── */
   const formulas = [
-    { t: 'y_t = T_t + S_t + R_t',              s: 11 },
-    { t: 'y_t = T_t × S_t × R_t',              s: 14 },
+    { t: 'y<sub>t</sub> = T<sub>t</sub> + S<sub>t</sub> + R<sub>t</sub>',              s: 11 },
+    { t: 'y<sub>t</sub> = T<sub>t</sub> × S<sub>t</sub> × R<sub>t</sub>',              s: 14 },
     { t: 'x\' = log(x)',                       s: 13 },
-    { t: 'y(λ) = (x^λ − 1)/λ',                 s: 10 },
-    { t: '∇x_t = x_t − x_{t−1}',               s: 14 },
+    { t: 'y(λ) = (x<sup>λ</sup> − 1)/λ',                 s: 10 },
+    { t: '∇x<sub>t</sub> = x<sub>t</sub> − x<sub>t−1</sub>',               s: 14 },
     { t: 'z = (x − μ)/σ',                      s: 11 },
-    { t: 'y_mm = (x − min)/(max − min)',       s: 12 },
-    { t: 'EMA_t = α·y_t + (1−α)·EMA_{t−1}',    s: 13 },
-    { t: 'MA_k(y_t) = (1/k)·Σy_{t−i}',         s: 9 },
-    { t: 'T_t = LOESS(y_t)',                   s: 11 },
+    { t: 'y<sub>mm</sub> = (x − min)/(max − min)',       s: 12 },
+    { t: 'EMA<sub>t</sub> = α·y<sub>t</sub> + (1−α)·EMA<sub>t−1</sub>',    s: 13 },
+    { t: 'MA<sub>k</sub>(y<sub>t</sub>) = (1/k)·Σy<sub>t−i</sub>',         s: 9 },
+    { t: 'T<sub>t</sub> = LOESS(y<sub>t</sub>)',                   s: 11 },
     { t: 'ADF p &lt; 0.05 → stasioner',        s: 12 },
   ];
   const fCols = [
@@ -7034,7 +7136,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

@@ -1239,6 +1239,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1700,7 +1771,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🔢</div>
       <h3>Bentuk Eksponensial Kompleks</h3>
-      <p>Lebih elegan: <code>x(t) = Σ Cₙ·e^(j2πnf₀t)</code> dengan <code>Cₙ = (1/T)∫x(t)e^(−j2πnf₀t)dt</code>. Memakai bilangan kompleks Cₙ menggabung amplitudo + fase dalam satu nilai. Inilah formulasi yang digeneralisasi ke FT &amp; FFT.</p>
+      <p>Lebih elegan: <code>x(t) = Σ Cₙ·e<sup>j2πnf₀t</sup></code> dengan <code>Cₙ = (1/T)∫x(t)e<sup>−j2πnf₀t</sup>dt</code>. Memakai bilangan kompleks Cₙ menggabung amplitudo + fase dalam satu nilai. Inilah formulasi yang digeneralisasi ke FT &amp; FFT.</p>
       <div class="formula">\(C_n \in ℂ : magnitude + phase\)</div>
     </div>
   </div>
@@ -1826,7 +1897,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>Inverse DFT (IDFT)</h3>
-      <p>Mengembalikan time-domain dari frequency-domain: <code>x[n] = (1/N) Σ X[k]·e^(+j2πkn/N)</code>. Kunci: tanda exponent <strong>+</strong> (bukan −) dan faktor 1/N. IDFT ↔ DFT membentuk pasangan invertible.</p>
+      <p>Mengembalikan time-domain dari frequency-domain: <code>x[n] = (1/N) Σ X[k]·e<sup>+j2πkn/N</sup></code>. Kunci: tanda exponent <strong>+</strong> (bukan −) dan faktor 1/N. IDFT ↔ DFT membentuk pasangan invertible.</p>
       <div class="formula">\(x[n] = IDFT(X[k])\)</div>
     </div>
   </div>
@@ -1881,13 +1952,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Twiddle Factor</h3>
-      <p>Faktor rotasi <code>W_N^k = e^(−j2πk/N)</code> yang menggabungkan dua sub-DFT. Pre-compute sekali, simpan di tabel. Strategi memori-vs-CPU klasik. Algoritma butterfly yang efisien.</p>
+      <p>Faktor rotasi <code>W<sub>N</sub><sup>k</sup> = e<sup>−j2πk/N</sup></code> yang menggabungkan dua sub-DFT. Pre-compute sekali, simpan di tabel. Strategi memori-vs-CPU klasik. Algoritma butterfly yang efisien.</p>
       <div class="formula">\(W_N^k \to "butterfly" operation\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
-      <h3>Syarat: N = 2^k</h3>
-      <p>Cooley-Tukey radix-2 paling efisien saat N = 2^k (256, 512, 1024, ...). Untuk N lain, ada algoritma Bluestein, Rader, mixed-radix, implementasi <code>numpy.fft</code> &amp; <code>scipy.fft</code> menanganinya otomatis.</p>
+      <h3>Syarat: N = 2<sup>k</sup></h3>
+      <p>Cooley-Tukey radix-2 paling efisien saat N = 2<sup>k</sup> (256, 512, 1024, ...). Untuk N lain, ada algoritma Bluestein, Rader, mixed-radix, implementasi <code>numpy.fft</code> &amp; <code>scipy.fft</code> menanganinya otomatis.</p>
       <div class="formula">\(Best: N = 2, 4, 8, 16, ..., 2^k\)</div>
     </div>
     <div class="card">
@@ -1948,7 +2019,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🌀</div>
       <h3>Aliasing: Frekuensi Palsu</h3>
-      <p>Sinyal pada f &gt; fs/2 akan "fold" balik dan muncul sebagai frekuensi <code>f_alias = |f − k·fs|</code>. Contoh: sinyal 13 kHz disampling fs=20 kHz → muncul sebagai 7 kHz palsu di spektrum. Berbahaya, diagnosis salah!</p>
+      <p>Sinyal pada f &gt; fs/2 akan "fold" balik dan muncul sebagai frekuensi <code>f<sub>alias</sub> = |f − k·fs|</code>. Contoh: sinyal 13 kHz disampling fs=20 kHz → muncul sebagai 7 kHz palsu di spektrum. Berbahaya, diagnosis salah!</p>
       <div class="formula">\(f_{\text{alias}}\) = |f − \(k \cdot fs\)|</div>
     </div>
     <div class="card">
@@ -2572,7 +2643,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div class="radio-group" id="rg-mc3">
         <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; DFT untuk sinyal continuous, FFT untuk discrete</div>
         <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; DFT lebih akurat dari FFT</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Hasil sama, FFT adalah algoritma cepat untuk hitung DFT (O(N log N) vs O(\(N^2\)))</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; Hasil sama, FFT adalah algoritma cepat untuk hitung DFT (O(N log N) vs O(\(N^2\)))</span></div>
         <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; FFT hanya bekerja untuk sinyal periodik, DFT untuk semua sinyal</div>
       </div>
       <button class="mc-submit" id="sub-mc3" onclick="checkMC('mc3')" disabled>Periksa Jawaban</button>
@@ -2872,7 +2943,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q">Hitung <strong>RMS</strong> dari sinyal sinusoidal pure x = sin(2π·100·t), fs = 1000, N = 1000. RMS = sqrt(mean(\(x^2\))).</div>
+        <div class="comp-q">Hitung <strong>RMS</strong> dari sinyal sinusoidal pure x = sin(2π·100·t), fs = 1000, N = 1000. RMS = √(mean(\(x^2\))).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 RMS = \(\sqrt{mean(x^2}\)); pakai <code>np.mean</code> pada kuadrat sinyal lalu <code>np.sqrt</code>.</div>
@@ -3053,7 +3124,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">Δf = fs/N = 1.25 Hz</div>
       <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">\(f_{\text{Nyquist}}\) = fs/2 = 2 560 Hz</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Komponen frekuensi ekspektasi: 1× = 30 Hz (rotasi motor), 2× = 60 Hz (misalignment), 3× = 90 Hz (looseness), GMF = \(n_{\text{teeth}}\) × \(f_{\text{shaft}}\) = 24 × 30 = 720 Hz (gear mesh). Spektrum DFT: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">X[k] = Σ x[n]·e^(−j2πkn/N)</code>. Aturan Nyquist: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">fs ≥ 2·f_max</code> (praktik: 2.5×).</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Komponen frekuensi ekspektasi: 1× = 30 Hz (rotasi motor), 2× = 60 Hz (misalignment), 3× = 90 Hz (looseness), GMF = \(n_{\text{teeth}}\) × \(f_{\text{shaft}}\) = 24 × 30 = 720 Hz (gear mesh). Spektrum DFT: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">X[k] = Σ x[n]·e<sup>−j2πkn/N</sup></code>. Aturan Nyquist: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">fs ≥ 2·f<sub>max</sub></code> (praktik: 2.5×).</p>
   </div>
 
   <!-- Reference visualisasi spektrum mesin -->
@@ -3090,7 +3161,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
           <div class="poll-q">QUICK CHECK — Setup fs = 5120 Hz, N = 4096 untuk diagnosis ini...</div>
           <div class="poll-opts" id="fp1">
             <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>fs terlalu rendah, GMF 720 Hz akan ter-aliasing</div>
-            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>fs cukup (\(f_{\text{Nyq}}\)=2560 Hz &gt; 720 Hz), Δf=1.25 Hz memisahkan sidebands GMF±30 Hz dengan baik (24 bin), T=0.8 s</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div><span class="opsi-teks">fs cukup (\(f_{\text{Nyq}}\)=2560 Hz &gt; 720 Hz), Δf=1.25 Hz memisahkan sidebands GMF±30 Hz dengan baik (24 bin), T=0.8 s</span></div>
             <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Δf = 1.25 Hz terlalu besar, sehingga 1× dan 2× akan menyatu</div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>N = 4096 bukan pangkat 2, tidak bisa FFT</div>
           </div>
@@ -3098,7 +3169,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
           <div class="p-fb w" id="fp1w">❌ Cek angka: \(f_{\text{Nyquist}}\) = fs/2 = 2560 Hz. Apakah lebih besar dari GMF 720 Hz? Δf = fs/N = 1.25 Hz; apakah lebih kecil dari jarak antar-fitur (30 Hz)?</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis validasi setup FFT Anda (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung f_Nyquist dan bandingkan dengan f_max yang ingin diamati (GMF=720 Hz). (2) Hitung Δf = fs/N dan bandingkan dengan jarak antar-fitur (30 Hz). (3) Hitung T = N/fs dan diskusikan apakah cukup banyak putaran shaft tertangkap. (4) Bahas trade-off: fs lebih tinggi → range frekuensi lebih luas tapi Δf jadi besar untuk N tetap." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis validasi setup FFT Anda (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung frekuensi Nyquist dan bandingkan dengan fₘₐₓ yang ingin diamati (GMF=720 Hz). (2) Hitung Δf = fs/N dan bandingkan dengan jarak antar-fitur (30 Hz). (3) Hitung T = N/fs dan diskusikan apakah cukup banyak putaran shaft tertangkap. (4) Bahas trade-off: fs lebih tinggi → range frekuensi lebih luas tapi Δf jadi besar untuk N tetap." oninput="checkForumReady()"></textarea>
         <div id="wc-fq1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -3130,7 +3201,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
           <div class="p-fb w" id="fp2w">❌ Selalu lakukan baseline measurement (motor off) sebelum diagnosis untuk memisahkan kontribusi elektromagnetik vs mekanik. Peak yang tepat di \(f_{\text{line}}\) atau 2×\(f_{\text{line}}\) wajib dicurigai sebagai electrical.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis interpretasi spektrum dan diagnosis Anda (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Daftar fingerprint umum: 1× = unbalance, 2× = misalignment, 3×/harmonik = looseness, GMF±f_shaft = gear wear, sub-sinkron = oil whirl. (2) Berikan diagnosis untuk pola yang disebut di soal (2× dominan + GMF dengan sidebands). (3) Tahap perbaikan apa yang Anda rekomendasikan? (4) Jangan lupa cek baseline / electrical contribution sebelum menyimpulkan." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis interpretasi spektrum dan diagnosis Anda (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Daftar fingerprint umum: 1× = unbalance, 2× = misalignment, 3×/harmonik = looseness, GMF ± frekuensi poros = gear wear, sub-sinkron = oil whirl. (2) Berikan diagnosis untuk pola yang disebut di soal (2× dominan + GMF dengan sidebands). (3) Tahap perbaikan apa yang Anda rekomendasikan? (4) Jangan lupa cek baseline / electrical contribution sebelum menyimpulkan." oninput="checkForumReady()"></textarea>
         <div id="wc-fq2" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -4300,6 +4371,35 @@ function checkExportReady() {
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4367,15 +4467,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -4414,7 +4516,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -4427,7 +4529,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5274,12 +5376,12 @@ function buildForumHtml() {
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#f0f4ff;border-left:4px solid #a855f7;margin-top:2px;">
     <tr><td style="padding:16px 28px;">
       <div style="font-weight:700;color:#5b35d0;margin-bottom:8px;font-size:15px;">&#128203; Skenario: Mesin Berisik &mdash; FFT Diagnosis</div>
-      <div style="font-size:.88rem;color:#475569;margin-bottom:10px;line-height:1.65;">Motor induksi 1800 rpm yang menggerakkan gearbox rasio 1:3 (n_teeth=24) berisik abnormal. Accelerometer di housing sampel fs = 5 120 Hz selama 0.8 s (N = 4 096). Target spektrum: 1&times; (30 Hz), 2&times; (60 Hz), 3&times; (90 Hz), GMF (720 Hz) &amp; sidebands GMF&plusmn;30 Hz. Lakukan validasi setup FFT, interpretasi spektrum, dan pilihan windowing.</div>
+      <div style="font-size:.88rem;color:#475569;margin-bottom:10px;line-height:1.65;">Motor induksi 1800 rpm yang menggerakkan gearbox rasio 1:3 (n<sub>teeth</sub>=24) berisik abnormal. Accelerometer di housing sampel fs = 5 120 Hz selama 0.8 s (N = 4 096). Target spektrum: 1&times; (30 Hz), 2&times; (60 Hz), 3&times; (90 Hz), GMF (720 Hz) &amp; sidebands GMF&plusmn;30 Hz. Lakukan validasi setup FFT, interpretasi spektrum, dan pilihan windowing.</div>
       <div style="margin-top:10px;line-height:2.2;"><div style="display:inline-block;margin:2px 6px 2px 0;background:#fef3c7;border:1px solid #fde68a;color:#b45309;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">Motor: 1800 rpm</div>
-      <div style="display:inline-block;margin:2px 6px 2px 0;background:#fef3c7;border:1px solid #fde68a;color:#b45309;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">n_teeth = 24, rasio 1:3</div>
+      <div style="display:inline-block;margin:2px 6px 2px 0;background:#fef3c7;border:1px solid #fde68a;color:#b45309;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">n<sub>teeth</sub> = 24, rasio 1:3</div>
       <div style="display:inline-block;margin:2px 6px 2px 0;background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">fs = 5 120 Hz, N = 4 096</div>
       <div style="display:inline-block;margin:2px 6px 2px 0;background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">&Delta;f = 1.25 Hz, T = 0.8 s</div>
-      <div style="display:inline-block;margin:2px 6px 2px 0;background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">f_Nyquist = 2 560 Hz</div>
+      <div style="display:inline-block;margin:2px 6px 2px 0;background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">f<sub>Nyquist</sub> = 2 560 Hz</div>
       <div style="display:inline-block;margin:2px 6px 2px 0;background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">GMF = 720 Hz</div>
     </td></tr>
   </table>
@@ -5288,7 +5390,7 @@ function buildForumHtml() {
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:8px;">
     <tr><td style="padding:20px 28px;">
       <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#a855f7;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">1</span>Setup FFT: Validasi fs, nperseg, dan resolusi frekuensi &Delta;f untuk diagnosis ini.</h3>
-      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Periksa f_Nyquist = fs/2 = 2560 Hz &gt; GMF 720 Hz (aman), &Delta;f = fs/N = 1.25 Hz (cukup kecil untuk memisahkan sidebands GMF&plusmn;30 Hz), T = N/fs = 0.8 s. Diskusikan trade-off fs vs &Delta;f untuk N tetap.</div>
+      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Periksa f<sub>Nyquist</sub> = fs/2 = 2560 Hz &gt; GMF 720 Hz (aman), &Delta;f = fs/N = 1.25 Hz (cukup kecil untuk memisahkan sidebands GMF&plusmn;30 Hz), T = N/fs = 0.8 s. Diskusikan trade-off fs vs &Delta;f untuk N tetap.</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
         <div style="background:#f8f5ff;border:1px solid #c4b5fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans1}</div>
@@ -5298,8 +5400,8 @@ function buildForumHtml() {
 
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:4px;">
     <tr><td style="padding:20px 28px;">
-      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#0ea5e9;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Interpretasi spektrum: Apa diagnosis dari pola 2&times; dominan + GMF &plusmn; f_shaft sidebands?</h3>
-      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Fingerprint umum: 1&times; = unbalance, 2&times; = misalignment, 3&times;/harmonik = looseness, GMF&plusmn;f_shaft = gear wear/eksentrisitas, sub-sinkron = oil whirl. Diagnosis kasus 2&times;&gt;&gt;1&times; + GMF sidebands &rarr; misalignment + gear eksentrisitas. Jangan lupa cek kontribusi elektromagnetik (peak di f_line).</div>
+      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#0ea5e9;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Interpretasi spektrum: Apa diagnosis dari pola 2&times; dominan + GMF &plusmn; f<sub>shaft</sub> sidebands?</h3>
+      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Fingerprint umum: 1&times; = unbalance, 2&times; = misalignment, 3&times;/harmonik = looseness, GMF&plusmn;f<sub>shaft</sub> = gear wear/eksentrisitas, sub-sinkron = oil whirl. Diagnosis kasus 2&times;&gt;&gt;1&times; + GMF sidebands &rarr; misalignment + gear eksentrisitas. Jangan lupa cek kontribusi elektromagnetik (peak di f<sub>line</sub>).</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
         <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans2}</div>
@@ -5765,7 +5867,7 @@ function drawPhysics(){
   ctx.fillStyle = 'rgba(14,165,233,.9)'; ctx.font = '11px JetBrains Mono';
   ctx.fillText('y(t) = Y·sin(ωt)  ←  BASE MOTION', 65, 30);
   ctx.fillStyle = 'rgba(168,85,247,.9)';
-  ctx.fillText('x(t) = T_d·Y·sin(ωt − φ)  →  RESPON MASSA', 65, 50);
+  ctx.fillText('x(t) = T<sub>d</sub>·Y·sin(ωt − φ)  →  RESPON MASSA', 65, 50);
 
   // Info
   const info = document.getElementById('physicsInfo');
@@ -5774,11 +5876,11 @@ function drawPhysics(){
     const phiDeg = phi * 180 / Math.PI;
     let status = '';
     if(Math.abs(r-1) < 0.08) status = '🔴 RESONANSI — X melonjak ≫ Y!';
-    else if(Math.abs(r-1.414) < 0.08) status = '🟡 Crossover r=√2 — T_d=1 (∀ζ)';
+    else if(Math.abs(r-1.414) < 0.08) status = '🟡 Crossover r=√2 — T<sub>d</sub>=1 (∀ζ)';
     else if(r > 1.414) status = '🟢 Zona Isolasi (r > √2), X < Y';
     else if(r < 0.5) status = '🔵 Zona Kaku — X ≈ Y, ikut pondasi';
     else status = '🟡 Zona Amplifikasi (r < √2) — X > Y';
-    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong style="color:var(--cyan)">T_d=${TdStr}</strong> · φ=${phiDeg.toFixed(1)}° · ${status}`;
+    info.innerHTML = `r=${r.toFixed(2)} · ζ=${zeta.toFixed(3)} · <strong style="color:var(--cyan)">T<sub>d</sub>=${TdStr}</strong> · φ=${phiDeg.toFixed(1)}° · ${status}`;
   }
 
   document.getElementById('v_rp').textContent = r.toFixed(2);
@@ -6122,7 +6224,7 @@ function drawIso(){
   ctx.fillStyle = '#0ea5e9'; ctx.font = 'bold 11px JetBrains Mono';
   ctx.fillText(`r = ${rCurrent.toFixed(2)}`, 18, 22);
   ctx.fillStyle = TdCurrent > 1.2 ? '#ef4444' : (TdCurrent < 0.5 ? '#00e09e' : '#facc15');
-  ctx.fillText(`T_d = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`, 18, 40);
+  ctx.fillText(`T<sub>d</sub> = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`, 18, 40);
 
   // Divider
   ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 1;
@@ -6156,7 +6258,7 @@ function drawIso(){
   }
   ctx.textAlign = 'left';
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('T_d', plotX - 38, plotY + 12);
+  ctx.fillText('T<sub>d</sub>', plotX - 38, plotY + 12);
   ctx.fillText('r = ω/ωₙ', plotX + plotW - 60, plotY + plotH + 24);
 
   // T_d = 1 horizontal line
@@ -6221,13 +6323,13 @@ function drawIso(){
   if(info){
     if(_tdSweepAnim.running){
       const pct = Math.round(_tdSweepAnim.progress * 100);
-      info.innerHTML = `🔴 Sweep berlangsung: <strong>${pct}%</strong> · r = ${rCurrent.toFixed(2)} · T_d = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`;
+      info.innerHTML = `🔴 Sweep berlangsung: <strong>${pct}%</strong> · r = ${rCurrent.toFixed(2)} · T<sub>d</sub> = ${TdCurrent > 99 ? '>99' : TdCurrent.toFixed(2)}`;
     } else if(_tdSweepAnim.points.length > 0){
       const maxPt = _tdSweepAnim.points.reduce((a,b) => b.Td > a.Td ? b : a);
       const TdCross = _tdSweepAnim.points.find(p => Math.abs(p.r - Math.sqrt(2)) < 0.05);
-      info.innerHTML = `✅ Sweep selesai · Puncak <strong>r=${maxPt.r.toFixed(2)}, T_d=${maxPt.Td.toFixed(2)}</strong> · Crossover r=√2: T_d=${TdCross ? TdCross.Td.toFixed(2) : '~1.00'} (∀ζ)`;
+      info.innerHTML = `✅ Sweep selesai · Puncak <strong>r=${maxPt.r.toFixed(2)}, T<sub>d</sub>=${maxPt.Td.toFixed(2)}</strong> · Crossover r=√2: T<sub>d</sub>=${TdCross ? TdCross.Td.toFixed(2) : '~1.00'} (∀ζ)`;
     } else {
-      info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong>. Frekuensi naik dari r=0 ke r=4 dalam 10 detik. Perhatikan T_d=1 saat r=√2.`;
+      info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong>. Frekuensi naik dari r=0 ke r=4 dalam 10 detik. Perhatikan T<sub>d</sub>=1 saat r=√2.`;
     }
   }
 }
@@ -6396,7 +6498,7 @@ function drawHPB(){
     else if(r_op > Math.sqrt(2)) zone = '🟢 r > √2, di atas resonansi';
     else zone = '🟡 Mendekati resonansi';
     let rmaxStr = '';
-    if(rMaxAnalytic !== null) rmaxStr = ` · r_max(R) = 1/√(1−2ζ²) = ${rMaxAnalytic.toFixed(3)}`;
+    if(rMaxAnalytic !== null) rmaxStr = ` · r<sub>max</sub>(R) = 1/√(1−2ζ²) = ${rMaxAnalytic.toFixed(3)}`;
     info.innerHTML = `r=${r_op.toFixed(2)} · ζ=${zetaUser.toFixed(3)} · <strong style="color:var(--pink)">R=${Rstr}</strong>${rmaxStr} · ${zone}`;
   }
 }
@@ -7403,10 +7505,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -7420,7 +7522,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

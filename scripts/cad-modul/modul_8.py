@@ -10,6 +10,7 @@ import sys
 
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
+from pustaka import Kode  # noqa: E402  (teks SVG berupa kode yang diketik)
 from pustaka import (AX, GRID, TX, anim_panel, arrow, bagian, box, cards, chip, figure, formula, fq, ind, kode, kotak,  # noqa: E402
                      mc_block, pm_ref, svg, t, tabel, teks2)
 from tugas_gambar import AM, BL, CY, GN, PK, RD, _panah, dim_h, dim_v, ext  # noqa: E402
@@ -94,11 +95,11 @@ def gambar1():
     b += arrow(284, 96, 284, 90, "#ef4444")
     b += t(452, 124, "belum konvergen → perhalus mesh, ulangi", 10, "#ef4444", "middle")
     b += t(40, 144, "Pohon Analysis di dokumen:", 11, TX, "start", "600")
-    for i, s_ in enumerate(["Analysis", "  ├ CalculiXCcxTools (solver)", "  ├ MaterialSolid (baja)", "  ├ FEMMeshGmsh", "  ├ ConstraintFixed · ConstraintForce", "  └ CCX_Results ← hasil yang dibaca"]):
+    for i, s_ in enumerate(["Analysis", "  ├ CalculiXCcxTools (solver)", "  ├ MaterialSolid (baja)", "  ├ FEMMeshGmsh", "  ├ ConstraintFixed · ConstraintForce", Kode("  └ CCX_Results ← hasil yang dibaca")]):
         b += t(40, 160 + i * 14, s_, 10, "#00e09e" if i == 5 else AX, "start")
     b += t(452, 150, "Persamaan yang diselesaikan:", 11, TX, "start", "600")
     b += t(452, 168, "[K]{u} = {F}  (statik)", 10.5, "#22d3ee", "start")
-    b += t(452, 184, "[K_T]{T} = {Q}  (termal tunak)", 10.5, "#f59e0b", "start")
+    b += t(452, 184, "[K<sub>T</sub>]{T} = {Q}  (termal tunak)", 10.5, "#f59e0b", "start")
     b += t(452, 200, "([K] − ω²[M]){φ} = 0  (frekuensi)", 10.5, "#a855f7", "start")
     b += t(452, 216, "u = perpindahan simpul → ε → σ", 10, AX, "start")
     b += teks2(340, 246, "Simulasi bukan langkah tunggal: model dibagi menjadi elemen, dibebani, diselesaikan, lalu hasilnya diuji terhadap rumus sebelum dipercaya", 11, AX, maks=76)
@@ -117,10 +118,10 @@ def gambar2():
     xs = [330, 456, 582]
     for (a, s, c), x in zip([("berkas .inp", "simpul, elemen,", "#22d3ee"), ("ccx (CalculiX)", "menyusun [K],", "#00e09e"), ("berkas .frd", "u, σ, T, mode", "#a855f7")], xs):
         b += box(x, 40, 86, 50, [a, s], c, 10.5)
-    b += t(373, 106, "material, beban", 9.5, AX, "middle") + t(499, 106, "menyelesaikan", 9.5, AX, "middle") + t(625, 106, "→ CCX_Results", 9.5, AX, "middle")
+    b += t(373, 106, "material, beban", 9.5, AX, "middle") + t(499, 106, "menyelesaikan", 9.5, AX, "middle") + t(625, 106, Kode("→ CCX_Results"), 9.5, AX, "middle")
     b += arrow(416, 65, 456, 65) + arrow(542, 65, 582, 65)
     b += t(452, 140, "Analysis Type pada solver:", 11, TX, "start", "600")
-    for i, (a, c) in enumerate([("static — [K]{u} = {F}, hasil u, ε, σ", "#22d3ee"), ("frequency — mode & f_n (perlu ρ)", "#a855f7"), ("thermomech — suhu T dan ekspansi", "#f59e0b"), ("buckling — beban kritis (Modul 9)", "#ec4899")]):
+    for i, (a, c) in enumerate([("static — [K]{u} = {F}, hasil u, ε, σ", "#22d3ee"), ("frequency — mode & f<sub>n</sub> (perlu ρ)", "#a855f7"), ("thermomech — suhu T dan ekspansi", "#f59e0b"), ("buckling — beban kritis (Modul 9)", "#ec4899")]):
         b += t(452, 158 + i * 16, a, 10, c, "start")
     b += t(452, 226, "Solver lain: Elmer, Mystran, Z88", 9.5, AX, "start")
     b += teks2(340, 250, "FEM Workbench mengumpulkan semua masukan dalam Analysis; CalculiX yang dijalankan dari FreeCAD membaca .inp dan mengembalikan .frd", 11, AX, maks=76)
@@ -284,10 +285,10 @@ def gambar6():
     b += t(432, 84, f"ΔT = {DT_E} K → q = {ind(Q_E, 2)} W", 10.5, "#00e09e", "start")
     b += t(432, 100, "A = b·h (m²), L (m) — satuan SI", 9.5, AX, "start")
     b += t(432, 130, "Frekuensi contoh (kantilever):", 11, TX, "start", "600")
-    b += t(432, 148, "f_n = (β_n²/2π)·√(EI/ρA)/L²", 10.5, "#a855f7", "start")
+    b += t(432, 148, "f<sub>n</sub> = (β<sub>n</sub>²/2π)·√(EI/ρA)/L²", 10.5, "#a855f7", "start")
     for i, (fn, bn) in enumerate(zip(F_MODE, BETA)):
         b += t(432, 166 + i * 16, f"β{['₁', '₂', '₃'][i]} = {ind(bn, 4)} → f{['₁', '₂', '₃'][i]} = {ind(fn, 1)} Hz", 10, "#00e09e" if i == 0 else AX, "start")
-    b += t(432, 222, "FEM: CCX_Mode1_Results → EigenmodeFrequency", 9.5, AX, "start")
+    b += t(432, 222, Kode("FEM: CCX_Mode1_Results → EigenmodeFrequency"), 9.5, AX, "start")
     b += t(432, 238, "resonansi bila f putaran mesin ≈ f₁", 9.5, "#ef4444", "start")
     b += teks2(340, 276, "Termal tunak dan frekuensi memakai Analysis yang sama dengan statik; yang berubah hanya Analysis Type, constraint, dan properti material", 11, AX, maks=76)
     return svg(680, 302, b, "Gambar 6 — Hantaran kalor batang dan mode getar pertama kantilever")
@@ -482,14 +483,14 @@ def materi():
     isi += cards([
         ("🧩", "Diskretisasi", "Benda kontinu dibagi menjadi elemen kecil (tetrahedron) yang terhubung di simpul. Di dalam elemen, perpindahan dianggap mengikuti fungsi sederhana (linear atau kuadratik), sehingga masalah diferensial berubah menjadi sistem persamaan aljabar.", "kontinu → elemen"),
         ("⚖️", "Kesetimbangan", "Kekakuan tiap elemen dirakit menjadi matriks global [K]; gaya luar dan tumpuan membentuk {F} dan syarat batas; solver menyelesaikan [K]{u} = {F} untuk perpindahan simpul u, lalu menurunkan regangan ε dan tegangan σ.", "[K]{u} = {F}"),
-        ("🎯", "Tiga jenis analisis", "Statik (u, σ akibat beban), termal (T dan q akibat beda suhu), dan frekuensi (mode getar dan f_n tanpa beban). FreeCAD 1.0 juga menyediakan buckling (Modul 9). Kinematika rakitan bukan urusan FEM, melainkan Assembly Workbench (Modul 11).", "static · thermomech · frequency"),
+        ("🎯", "Tiga jenis analisis", "Statik (u, σ akibat beban), termal (T dan q akibat beda suhu), dan frekuensi (mode getar dan f<sub>n</sub> tanpa beban). FreeCAD 1.0 juga menyediakan buckling (Modul 9). Kinematika rakitan bukan urusan FEM, melainkan Assembly Workbench (Modul 11).", "static · thermomech · frequency"),
         ("🔍", "Validasi", "Hasil FEM tidak otomatis benar: mesh kasar, tumpuan keliru, atau satuan tertukar memberi angka yang meyakinkan tetapi salah. Selalu bandingkan dengan rumus tertutup (δ, σ, q, f₁) pada kasus sederhana sebelum menyimulasikan bentuk rumit.", "FEM vs rumus"),
     ])
     isi += tabel(["Jenis analisis", "Masukan khas", "Keluaran", "Rumus pembanding di modul ini"],
                  [["<strong>Statik linear</strong>", "E, ν; Fixed; Force/Pressure", "Perpindahan u, regangan, von Mises, tegangan utama", "δ = F·L³/(3·E·I); σ = F/A; σ = 6·F·L/(b·h²)"],
                   ["<strong>Termal tunak</strong>", "k (dan c, α); Temperature/Heat flux", "Suhu T tiap simpul, fluks kalor", "q = k·A·ΔT/L (Fourier)"],
-                  ["<strong>Frekuensi</strong>", "E, ν, ρ; Fixed (tanpa beban)", "Frekuensi alami f_n dan bentuk mode", "f₁ = (β₁²/2π)·√(E·I/(ρ·A))/L²"],
-                  ["<strong>Buckling</strong>", "E, ν; beban tekan", "Faktor beban kritis", "P_cr = π²·E·I/L² (Modul 9)"]])
+                  ["<strong>Frekuensi</strong>", "E, ν, ρ; Fixed (tanpa beban)", "Frekuensi alami f<sub>n</sub> dan bentuk mode", "f₁ = (β₁²/2π)·√(E·I/(ρ·A))/L²"],
+                  ["<strong>Buckling</strong>", "E, ν; beban tekan", "Faktor beban kritis", "P<sub>cr</sub> = π²·E·I/L² (Modul 9)"]])
     isi += formula(1, "Persamaan Kesetimbangan Elemen Hingga", r"[K]\{u\} = \{F\}, \qquad k_{batang} = \frac{E\,A}{L}",
                    r"\([K]\) = matriks kekakuan global (rakitan kekakuan elemen) &nbsp;·&nbsp; \(\{u\}\) = perpindahan simpul &nbsp;·&nbsp; \(\{F\}\) = gaya simpul. Untuk satu elemen batang aksial, kekakuannya \(E A / L\): contoh batang " + f"{B_E} × {H_E} × {L_E}" + r" mm baja: \(k = 210000 \times 450 / 180 = " + ind(E_MPA * A_T / L_E, 0) + r"\) N/mm.",
                    "Setiap elemen berperilaku seperti pegas multi-arah; menyambungkan ribuan pegas menghasilkan sistem persamaan besar yang diselesaikan solver. Perpindahan adalah hasil primer; tegangan diturunkan dari turunan perpindahan, sehingga tegangan lebih peka terhadap mesh daripada perpindahan. Itulah sebabnya validasi tegangan memerlukan mesh lebih halus daripada validasi defleksi.",
@@ -516,7 +517,7 @@ def materi():
     m += bagian(2, "m-workbench", "FEM Workbench dan Solver CalculiX:<br>Objek, Perintah, dan Jalur Berkas", "Semua yang dibutuhkan satu simulasi dikumpulkan dalam kontainer Analysis. Bagian ini memetakan objek-objeknya, perintah toolbar, cara menjalankan CalculiX, dan cara membaca hasilnya.", isi, "FEM WORKBENCH DAN CALCULIX")
 
     # 03 — Material dan properti
-    isi = tabel(["Material (kartu FreeCAD)", "E (MPa)", "ν", "ρ (kg/m³)", "k (W/(m·K))", "α (10⁻⁶/K)", "σ_y (MPa)"],
+    isi = tabel(["Material (kartu FreeCAD)", "E (MPa)", "ν", "ρ (kg/m³)", "k (W/(m·K))", "α (10⁻⁶/K)", "σ<sub>y</sub> (MPa)"],
                 [["<strong>Steel-Generic</strong> (baja)", "210000", "0,30", "7850", "50", "12", "≈ 250 (S235)"],
                  ["<strong>AlMg3F24</strong> (aluminium)", "70000", "0,33", "2700", "237", "23", "≈ 180"],
                  ["<strong>Kuningan</strong> (CuZn37)", "100000", "0,34", "8400", "120", "20", "≈ 200"],
@@ -548,7 +549,7 @@ def materi():
                       [("sl_ms_n", "v_ms_n", "Jumlah elemen sepanjang tebal h", 1, 8, 1, 4, "4"),
                        ("sl_ms_orde", "v_ms_orde", "Orde elemen (1 tet4 · 2 tet10)", 1, 2, 1, 2, "2 (tet10)")],
                       "btnMesh", "toggleMesh", "infoMesh",
-                      "<strong>Cara membaca:</strong> mesh kantilever bertambah halus dari 1 sampai n elemen sepanjang tebal (PAUSE menahan mesh terhalus). Kolom kanan menaksir jumlah elemen tet dan rasio δ_FEM/δ_teori: tet4 mendekati 1 perlahan (terlalu kaku), tet10 hampir langsung konvergen. Kurva ini ilustratif; angka sesungguhnya diperoleh dari praktik Bagian 09.")
+                      "<strong>Cara membaca:</strong> mesh kantilever bertambah halus dari 1 sampai n elemen sepanjang tebal (PAUSE menahan mesh terhalus). Kolom kanan menaksir jumlah elemen tet dan rasio δ<sub>FEM</sub>/δ<sub>teori</sub>: tet4 mendekati 1 perlahan (terlalu kaku), tet10 hampir langsung konvergen. Kurva ini ilustratif; angka sesungguhnya diperoleh dari praktik Bagian 09.")
     isi += cards([
         ("📐", "Aturan ukuran awal", "Ukuran elemen maksimum ≈ setengah tebal terkecil agar ada ≥ 2 elemen tet10 melintasi tebal (≥ 4 untuk tet4). Kantilever tebal 15 mm: mulai 7,5 mm, uji 5 dan 2,5 mm.", "≈ h/2"),
         ("📉", "Uji konvergensi", "Jalankan tiga mesh makin halus; bila δ atau σ maks berubah < 2% antar mesh, hasil dianggap konvergen. Tegangan konvergen lebih lambat daripada perpindahan.", "Δ < 2%"),
@@ -561,7 +562,7 @@ def materi():
     isi = figure(4, "Jenis tumpuan dan beban pada kantilever, batang tarik, dan muka bertekanan", "Fixed mengunci muka tumpuan; Force memberi gaya total pada muka (dibagi rata ke simpul); Pressure memberi tekanan per luas; Temperature dan Heat flux dipakai analisis termal.", gambar4())
     isi += tabel(["Constraint", "Acuan", "Nilai dan satuan", "Dipakai pada tugas"],
                  [["<strong>Fixed</strong>", "Muka / rusuk / titik", "— (semua u = 0)", "T1–T5: muka ujung x = 0"],
-                  ["<strong>Displacement</strong>", "Muka / rusuk / titik", "u_x, u_y, u_z (mm) atau kunci arah", "Simetri, tumpuan rol"],
+                  ["<strong>Displacement</strong>", "Muka / rusuk / titik", "u<sub>x</sub>, u<sub>y</sub>, u<sub>z</sub> (mm) atau kunci arah", "Simetri, tumpuan rol"],
                   ["<strong>Force</strong>", "Muka / rusuk / titik", "Gaya total (N) + arah normal/rusuk; Reversed", "T1, T2 (−Z), T3 (+X)"],
                   ["<strong>Pressure</strong>", "Muka", "Tekanan (MPa); Reversed = tarik", "Bejana, dudukan"],
                   ["<strong>Self weight</strong>", "seluruh model", "Arah gravitasi", "Rangka besar"],
@@ -617,7 +618,7 @@ def materi():
                       "<strong>Cara membaca:</strong> batang 30 × 15 mm diberi suhu T₁ di kiri dan T₂ = T₁ − ΔT di kanan; warna dan grafik T(x) menunjukkan gradien linear, titik-titik yang bergerak menggambarkan fluks kalor yang lajunya sebanding q = kAΔT/L (PAUSE menahan). Geser k ke 237 (aluminium) atau 400 (tembaga) dan amati q berlipat.")
     isi += formula(6, "Frekuensi Alami Kantilever", r"f_{n} = \frac{\beta_{n}^{2}}{2\pi}\sqrt{\frac{E\,I}{\rho\,A}}\;\frac{1}{L^{2}}, \qquad \beta_{1} = 1{,}875104,\ \beta_{2} = 4{,}694091,\ \beta_{3} = 7{,}854757",
                    r"\(E\) dalam Pa, \(\rho\) dalam kg/m³, \(I = b h^{3}/12\) dan \(A = b h\) dalam m⁴ dan m², \(L\) dalam m. Karena \(I/A = h^{2}/12\), \(\sqrt{EI/(\rho A)} = h\sqrt{E/(12\rho)} = h \times " + ind(C_GEL, 1) + r"\) m/s untuk baja. Contoh kantilever " + f"{L_E} × {B_E} × {H_E}" + r" mm: \(f_1 = " + ind(F_MODE[0], 1) + r"\) Hz.",
-                   "Analisis frequency menyelesaikan ([K] − ω²[M]){φ} = 0: tanpa beban, hanya kekakuan dan massa. Mode pertama adalah lentur pada arah tebal terkecil (arah lemah); mode kedua biasanya lentur pada arah lebar dengan rasio b/h, lalu mode kedua arah tebal pada β₂. FEM tet10 memberi f₁ dalam 1–2% dari rumus. Resonansi terjadi bila frekuensi eksitasi (putaran mesin ÷ 60) mendekati f_n. Inilah bacaan Tugas 5.",
+                   "Analisis frequency menyelesaikan ([K] − ω²[M]){φ} = 0: tanpa beban, hanya kekakuan dan massa. Mode pertama adalah lentur pada arah tebal terkecil (arah lemah); mode kedua biasanya lentur pada arah lebar dengan rasio b/h, lalu mode kedua arah tebal pada β₂. FEM tet10 memberi f₁ dalam 1–2% dari rumus. Resonansi terjadi bila frekuensi eksitasi (putaran mesin ÷ 60) mendekati f<sub>n</sub>. Inilah bacaan Tugas 5.",
                    [("f_n", "Frekuensi alami mode ke-n (Hz)"), (r"\beta_n", "Akar persamaan frekuensi kantilever"), ("E, \\rho", "Modulus (Pa) dan massa jenis (kg/m³)"), ("I, A", "Momen inersia (m⁴) dan luas (m²)"), ("L", "Panjang (m)")])
     isi += anim_panel(4, "violet", "Mode getar pertama kantilever (dan mode 2–3)", "cvGetar",
                       [("sl_gt_L", "v_gt_L", "Panjang L (mm)", 100, 300, 5, 180, "180"),
@@ -630,7 +631,7 @@ def materi():
                   ["Material wajib", "k (E, ν, ρ, α, c terisi)", "E, ν, ρ", "—"],
                   ["Constraint", "Temperature ×2 muka ujung + Initial temperature", "Fixed saja, tanpa beban", "Joint Assembly (Revolute, Slider)"],
                   ["Hasil", "CCX_Results → Temperature (Min/Max)", "CCX_Mode1_Results … Mode5 → EigenmodeFrequency", "Gerak mekanisme, jarak, tabrakan"],
-                  ["Pembanding", "q = k·A·ΔT/L", "f_n = (β_n²/2π)·√(EI/ρA)/L²", "x = r·cosθ + √(l² − r²sin²θ)"]])
+                  ["Pembanding", "q = k·A·ΔT/L", "f<sub>n</sub> = (β<sub>n</sub>²/2π)·√(EI/ρA)/L²", "x = r·cosθ + √(l² − r²sin²θ)"]])
     isi += kotak("info-box", "<strong>🔗 Kinematik bukan FEM:</strong> pertanyaan “sejauh mana lengan bergerak” dan “apakah komponen bertabrakan saat berputar” dijawab Assembly Workbench FreeCAD 1.0 dengan joint dan solver kinematik (Modul 11), bukan CalculiX. FEM menjawab kekuatan, kekakuan, suhu, dan getaran komponen pada posisi tertentu; gabungan keduanya (posisi kritis dari kinematika → beban untuk FEM) adalah praktik industri.")
     m += bagian(7, "m-termal", "Analisis Termal dan Frekuensi:<br>Suhu, Laju Kalor, dan Mode Getar", "Dengan Analysis yang sama, mengganti Analysis Type membuka dua pertanyaan baru: seberapa cepat kalor mengalir dan pada frekuensi berapa komponen beresonansi. Bagian ini membahas keduanya beserta rumus pembandingnya, dan menempatkan kinematika pada tempatnya.", isi, "TERMAL DAN FREKUENSI")
 
@@ -732,7 +733,7 @@ for n, beta in enumerate([{BETA[0]}, {BETA[1]}, {BETA[2]}], 1):
     refs += pm_ref(2, "amber", "249,115,22", "G. Dhondt", "CalculiX CrunchiX User's Manual, version 2.21", ". 2023 (dhondt.de).", "Rujukan solver: jenis analisis (static, frequency, heat transfer), format .inp/.frd, dan elemen C3D10.")
     refs += pm_ref(3, "violet", "168,85,247", "D. L. Logan", "A First Course in the Finite Element Method", ", 6th ed. Cengage, 2017.", "Dasar FEM: matriks kekakuan, perakitan [K]{u} = {F}, elemen batang dan balok, konvergensi mesh.")
     refs += pm_ref(4, "green", "0,224,158", "R. C. Hibbeler", "Mechanics of Materials", ", 10th ed. Pearson, 2017.", "Rumus pembanding: tegangan aksial F/A, lentur Mc/I, dan defleksi kantilever FL³/(3EI).")
-    refs += pm_ref(5, "pink", "236,72,153", "S. S. Rao", "Mechanical Vibrations", ", 6th ed. Pearson, 2017; dan F. P. Incropera dkk., <em>Fundamentals of Heat and Mass Transfer</em>, 7th ed. Wiley, 2011.", "Frekuensi alami kantilever (β_n) dan hukum Fourier untuk hantaran kalor batang.")
+    refs += pm_ref(5, "pink", "236,72,153", "S. S. Rao", "Mechanical Vibrations", ", 6th ed. Pearson, 2017; dan F. P. Incropera dkk., <em>Fundamentals of Heat and Mass Transfer</em>, 7th ed. Wiley, 2011.", "Frekuensi alami kantilever (β<sub>n</sub>) dan hukum Fourier untuk hantaran kalor batang.")
     m += f'''<!-- ═══ PUSTAKA ═══ -->
 <hr class="divider">
 <div class="section" id="m-pustaka" style="padding-bottom:40px">
@@ -838,8 +839,8 @@ def forum_page():
             "Braket dudukan silinder hidrolik dari pelat S355 tebal 20 mm menerima gaya 18 kN dari silinder dan dibaut ke rangka lewat empat lubang ⌀17. Sebelumnya braket diuji fisik sampai patah (tiga prototipe, dua minggu). Susun Analysis-nya (Bagian 02–05): geometri dari Part Design, kartu material dan properti yang wajib terisi untuk statik, mesh Gmsh orde 2 dengan ukuran awal dan Mesh Region di sekitar lubang, Fixed pada muka lubang baut, Force 18 kN pada muka dudukan silinder, lalu rencana uji konvergensi tiga mesh. Jelaskan mengapa Force pada rusuk atau titik ditolak.",
             ["S355, tebal 20, 4 × ⌀17", "F = 18 kN pada muka dudukan", "mesh tet10 + Mesh Region"],
             "Masukan minimum agar analisis statik linear braket dapat dijalankan dan dipercaya adalah...",
-            ["Material dengan σ_y saja dan mesh orde 1 yang sangat kasar", "Material dengan E dan ν, mesh orde 2 dengan uji konvergensi, Fixed pada muka baut, dan Force total pada muka (bukan rusuk/titik)", "Cukup geometri dan Force; tumpuan ditebak solver", "Temperature constraint di semua muka"],
-            "✅ Tepat! Statik linear memerlukan E dan ν, mesh tet10 yang diuji konvergensinya, tumpuan pada muka yang benar-benar terikat, dan gaya total pada muka agar tidak timbul singularitas. σ_y baru dipakai saat menilai faktor keamanan (Modul 9).",
+            ["Material dengan σ<sub>y</sub> saja dan mesh orde 1 yang sangat kasar", "Material dengan E dan ν, mesh orde 2 dengan uji konvergensi, Fixed pada muka baut, dan Force total pada muka (bukan rusuk/titik)", "Cukup geometri dan Force; tumpuan ditebak solver", "Temperature constraint di semua muka"],
+            "✅ Tepat! Statik linear memerlukan E dan ν, mesh tet10 yang diuji konvergensinya, tumpuan pada muka yang benar-benar terikat, dan gaya total pada muka agar tidak timbul singularitas. σ<sub>y</sub> baru dipakai saat menilai faktor keamanan (Modul 9).",
             "❌ Tanpa E dan ν solver gagal; mesh orde 1 kasar memberi braket yang terlalu kaku; tumpuan tidak pernah ditebak solver; Temperature untuk analisis termal. Lihat Bagian 03–05 dan Animasi 1.",
             "Petunjuk: (1) Daftarkan objek Analysis dan properti material. (2) Tentukan mesh awal, Mesh Region, dan tiga ukuran untuk konvergensi. (3) Jelaskan tumpuan dan beban beserta alasannya.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
@@ -855,7 +856,7 @@ def forum_page():
             ["⌀40 × 300, ΔT = 100 K, k = 50", "thermomech + frequency", "1500–3000 rpm = 25–50 Hz"],
             "Agar analisis frequency poros memberi f₁ yang benar dan analisis thermomech memberi gradien suhu, yang wajib ada adalah...",
             ["frequency: ρ terisi dan Fixed tanpa beban; thermomech: k terisi, dua Temperature di dua ujung, Initial temperature, dan Thermo Mech Steady State aktif", "frequency: Force sebesar berat poros; thermomech: Pressure pada muka panas", "Keduanya cukup geometri dan mesh tanpa material", "frequency memerlukan Temperature, thermomech memerlukan ρ"],
-            "✅ Tepat! Matriks massa memerlukan ρ dan mode hanya bermakna bila ada tumpuan; analisis termal tunak memerlukan k, dua suhu batas, suhu awal, dan mode steady state. Resonansi dinilai dengan membandingkan f_putaran = rpm/60 terhadap f₁.",
+            "✅ Tepat! Matriks massa memerlukan ρ dan mode hanya bermakna bila ada tumpuan; analisis termal tunak memerlukan k, dua suhu batas, suhu awal, dan mode steady state. Resonansi dinilai dengan membandingkan f<sub>putaran</sub> = rpm/60 terhadap f₁.",
             "❌ Force dan Pressure tidak berperan pada frekuensi/termal; material selalu wajib; Temperature tidak dibutuhkan frequency dan ρ tidak dibutuhkan termal tunak. Lihat Bagian 07 dan Animasi 3–4.",
             "Petunjuk: (1) Daftarkan constraint dan properti tiap analisis. (2) Hitung q dan f₁ dengan rumus (satuan SI). (3) Nilai jarak f₁ dari 25–50 Hz dan usulkan perubahan bila terlalu dekat.")
     kartu = lambda teks, rgb, warna: f'      <div style="background:rgba({rgb},.05);border:1px solid rgba({rgb},.15);border-radius:10px;padding:12px 16px;font-family:\'JetBrains Mono\',monospace;font-size:13px;color:var(--{warna})">{teks}</div>'

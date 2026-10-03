@@ -335,8 +335,8 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .radio-group{display:flex;flex-direction:column;gap:10px}
 .radio-option{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:10px;border:1px solid var(--border);cursor:pointer;transition:all .2s;font-size:14px;color:var(--text)}
 .radio-option sup,.radio-option sub{font-size:.78em;line-height:0;position:relative;margin-left:.5px;color:var(--cyan)}
-.radio-option sup{top:-0.55em}
-.radio-option sub{bottom:-0.25em}
+.radio-option > sup{top:-0.55em}
+.radio-option > sub{bottom:-0.25em}
 .radio-option:hover{border-color:rgba(249,115,22,.3);background:rgba(249,115,22,.04)}
 .radio-option.selected{border-color:var(--cyan);background:rgba(249,115,22,.06)}
 .radio-option.correct-ans{border-color:var(--green)!important;background:rgba(0,224,158,.08)!important}
@@ -1342,6 +1342,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1556,7 +1627,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <!-- ─── SUBNAV (only visible when Modul tab is active) ─── -->
 <div id="modulSubnav" class="subnav-bar show">
   <a href="#m-pengertian">Pengertian</a>
-  <a href="#m-karakteristik">\(y_h + y_p\)</a>
+  <a href="#m-karakteristik"><span class="opsi-teks">\(y_h + y_p\)</span></a>
   <a href="#m-kasus1">UC: Polinomial</a>
   <a href="#m-kasus2">UC: Eksp/Trig</a>
   <a href="#m-kasus3">Resonansi</a>
@@ -1712,7 +1783,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Strategi menyelesaikan PD non-homogen ada dua langkah: <strong>(1)</strong> selesaikan PD homogen \(ay'' + by' + cy = 0\) untuk dapatkan <em>\(y_h = c_1y_1 + c_2y_2\)</em> (sudah dikuasai dari Pertemuan 5). <strong>(2)</strong> cari satu solusi khusus <em>\(y_p\)</em> yang memenuhi PD lengkap. Untuk metode UC, tebakan \(y_p\) mengikuti pola sederhana berdasarkan bentuk f(x). Berikut tabel ansatz wajib hafal. Skemanya diperlihatkan pada Gambar 2. Bentuk ringkasnya dituliskan pada Persamaan (2).</p>
 <!-- ILUSTRASI-STATIS:2:START -->
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 2 — Solusi lengkap dirakit dari dua bagian" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="55" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="134" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Cari y_h</text><line x1="213" y1="39" x2="242" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="251,39 242,43.5 242,34.5" fill="#94a3b8"/><rect x="251" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="330" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Cari y_p</text><line x1="409" y1="39" x2="438" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="447,39 438,43.5 438,34.5" fill="#94a3b8"/><rect x="447" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#00e09e" stroke-width="1.6"/><text x="526" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">y = y_h + y_p</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Konstanta ditentukan setelah keduanya digabung</text></svg>
+    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 2 — Solusi lengkap dirakit dari dua bagian" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="55" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="134" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Cari y<tspan dy="2.8" font-size="9">h</tspan></text><line x1="213" y1="39" x2="242" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="251,39 242,43.5 242,34.5" fill="#94a3b8"/><rect x="251" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="330" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Cari y<tspan dy="2.8" font-size="9">p</tspan></text><line x1="409" y1="39" x2="438" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="447,39 438,43.5 438,34.5" fill="#94a3b8"/><rect x="447" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#00e09e" stroke-width="1.6"/><text x="526" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">y = y<tspan dy="2.8" font-size="9">h</tspan><tspan dy="-2.8"> + y</tspan><tspan dy="2.8" font-size="9">p</tspan></text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Konstanta ditentukan setelah keduanya digabung</text></svg>
     <figcaption><strong>Gambar 2</strong> — Solusi lengkap dirakit dari dua bagian. Bagian homogen menggambarkan watak alami sistem, bagian partikular menggambarkan tanggapannya terhadap masukan; keduanya dijumlahkan.</figcaption>
   </figure>
 <!-- ILUSTRASI-STATIS:2:END -->
@@ -2273,7 +2344,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Bila f(x) di luar tabel UC (mengandung \(\tan, \sec, \ln, 1/x\), atau bentuk lain), pakai <strong>Variasi Parameter</strong>. Ide: cari \(y_p\) berbentuk \(y_p = u_1(x) \cdot y_1 + u_2(x) \cdot y_2\) di mana \(y_1\), \(y_2\) basis homogen dan \(u_1\), \(u_2\) <em>fungsi</em> (bukan konstanta seperti di \(y_h\)). Tentukan \(u_1\)′, \(u_2\)′ via integral Wronskian, lalu integrasi. Skemanya diperlihatkan pada Gambar 6. Bentuk ringkasnya dituliskan pada Persamaan (6).</p>
 <!-- ILUSTRASI-STATIS:6:START -->
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 6 — Metode yang berlaku untuk masukan apa pun" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="38" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="96.75" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Solusi</text><text x="96.75" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Homogen y₁, y₂</text><line x1="155.5" y1="39" x2="184.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="193.5,39 184.5,43.5 184.5,34.5" fill="#94a3b8"/><rect x="193.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#0ea5e9" stroke-width="1.6"/><text x="252.25" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Hitung</text><text x="252.25" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Wronskian</text><line x1="311" y1="39" x2="340" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="349,39 340,43.5 340,34.5" fill="#94a3b8"/><rect x="349" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="407.75" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Integralkan</text><line x1="466.5" y1="39" x2="495.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="504.5,39 495.5,43.5 495.5,34.5" fill="#94a3b8"/><rect x="504.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="563.25" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Rakit y_p</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Lebih umum daripada UC, tetapi integralnya lebih berat</text></svg>
+    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 6 — Metode yang berlaku untuk masukan apa pun" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="38" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="96.75" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Solusi</text><text x="96.75" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Homogen y₁, y₂</text><line x1="155.5" y1="39" x2="184.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="193.5,39 184.5,43.5 184.5,34.5" fill="#94a3b8"/><rect x="193.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#0ea5e9" stroke-width="1.6"/><text x="252.25" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Hitung</text><text x="252.25" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Wronskian</text><line x1="311" y1="39" x2="340" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="349,39 340,43.5 340,34.5" fill="#94a3b8"/><rect x="349" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="407.75" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Integralkan</text><line x1="466.5" y1="39" x2="495.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="504.5,39 495.5,43.5 495.5,34.5" fill="#94a3b8"/><rect x="504.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="563.25" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Rakit y<tspan dy="2.8" font-size="9">p</tspan></text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Lebih umum daripada UC, tetapi integralnya lebih berat</text></svg>
     <figcaption><strong>Gambar 6</strong> — Metode yang berlaku untuk masukan apa pun. Ketika bentuk masukan tidak masuk daftar tebakan baku, variasi parameter tetap memberi jalan lewat integral Wronskian.</figcaption>
   </figure>
 <!-- ILUSTRASI-STATIS:6:END -->
@@ -2573,7 +2644,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
             <button class="m8f-pbtn" onclick="window.m8SetForce('const')" data-f="const" style="padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:2px solid var(--cyan);background:var(--cyan);color:#fff;font-weight:700;box-shadow:0 0 12px rgba(8,191,232,.6);transform:scale(1.05);transition:all .15s;">f=4 (constant) ✓</button>
             <button class="m8f-pbtn" onclick="window.m8SetForce('poly')" data-f="poly" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(255,179,0,.4);background:rgba(255,179,0,.10);color:var(--amber);">f=\(x^2\)+1 (polinomial)</button>
-            <button class="m8f-pbtn" onclick="window.m8SetForce('exp')" data-f="exp" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">f=e^(0.5x)</button>
+            <button class="m8f-pbtn" onclick="window.m8SetForce('exp')" data-f="exp" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(0,224,158,.4);background:rgba(0,224,158,.10);color:var(--green);">f=e<sup>0.5x</sup></button>
             <button class="m8f-pbtn" onclick="window.m8SetForce('sin')" data-f="sin" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.10);color:#a855f7;">f=2·sin(1.5x)</button>
             <button class="m8f-pbtn" onclick="window.m8SetForce('reson')" data-f="reson" style="padding:6px 14px;border-radius:6px;transition:all .15s;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.10);color:#ef4444;">⚠ f=2·sin(2x) RESONANSI</button>
           </div>
@@ -2695,14 +2766,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
             <option value="motor">🌀 Mesin Bergetar: m · x'' + b · x' + k · x = F₀·sin(ωt)</option>
             <option value="rlc_ac">⚡ RLC + AC: L · q'' + R · q' + (1/C)·q = V₀·sin(ωt)</option>
             <option value="pendulum">🪀 Driven Pendulum: θ'' + γ·θ' + ω₀²·θ = A · cos(ωt)</option>
-            <option value="quake">🏢 Building + Earthquake: x'' + 2ζω·x' + ω²·x = \(a_g\)(t)</option>
+            <option value="quake">🏢 Building + Earthquake: x'' + 2ζω·x' + ω²·x = ag(t)</option>
             <option value="cable">🌉 Suspended Cable: y'' + (T/L)·y = w(x)</option>
           </select>
         </div>
       </div>
       <div id="m8AppNHInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a855f7"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Lima aplikasi forced vibration nyata. Layout split: kiri = visualisasi sistem fisik bergerak (mesin oscillating, rangkaian RLC dengan AC source, pendulum driven, gedung dengan ground excitation, cable dengan distributed load), kanan = signal trace dengan transient + steady-state. Saat ω forcing → ω_natural, terjadi resonansi, paling berbahaya di engineering struktural.
+        <strong>📊 Cara Membaca:</strong> Lima aplikasi forced vibration nyata. Layout split: kiri = visualisasi sistem fisik bergerak (mesin oscillating, rangkaian RLC dengan AC source, pendulum driven, gedung dengan ground excitation, cable dengan distributed load), kanan = signal trace dengan transient + steady-state. Saat ω forcing → ω<sub>natural</sub>, terjadi resonansi, paling berbahaya di engineering struktural.
       </div>
     </div>
   </div>
@@ -3120,10 +3191,10 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc1">
-        <div class="radio-option" onclick="selectMC('mc1',this,'A')"><div class="radio-circle"></div>(A) &nbsp; y = \(y_h\) saja</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(y = y_h + y_p\), \(y_h\) = solusi homogen, \(y_p\) = solusi khusus</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'C')"><div class="radio-circle"></div>(C) &nbsp; y = \(y_p\) saja</div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'D')"><div class="radio-circle"></div>(D) &nbsp; y = \(y_h\) × \(y_p\)</div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; y = \(y_h\) saja</span></div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(y = y_h + y_p\), \(y_h\) = solusi homogen, \(y_p\) = solusi khusus</span></div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; y = \(y_p\) saja</span></div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; y = \(y_h\) × \(y_p\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc1" onclick="checkMC('mc1')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc1"></div>
@@ -3137,10 +3208,10 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc2">
-        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(y_p = Ax^2\)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(y_p = Ax^2 + Bx + C\)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(y_p = A \cdot e^{x}\)</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(y_p = A \cdot x^3\)</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(y_p = Ax^2\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(y_p = Ax^2 + Bx + C\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(y_p = A \cdot e^{x}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(y_p = A \cdot x^3\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc2" onclick="checkMC('mc2')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc2"></div>
@@ -3154,10 +3225,10 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc3">
-        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(y_p = A \cdot e^{4x}\)</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(y_p = A \cdot x \cdot e^{4x}\)</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(y_p = A + B \cdot e^{4x}\)</div>
-        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(y_p = A \cdot \cos(4x)\)</div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(y_p = A \cdot e^{4x}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(y_p = A \cdot x \cdot e^{4x}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(y_p = A + B \cdot e^{4x}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc3',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(y_p = A \cdot \cos(4x)\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc3" onclick="checkMC('mc3')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc3"></div>
@@ -3171,10 +3242,10 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(y_p = A \cdot \sin(2x)\)</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(y_p = A \cdot \cos(2x) + B \cdot \sin(2x)\)</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(y_p = A \cdot \sin(2x) + B \cdot \sin(4x)\)</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(y_p = A \cdot e^{2x}\)</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(y_p = A \cdot \sin(2x)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(y_p = A \cdot \cos(2x) + B \cdot \sin(2x)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(y_p = A \cdot \sin(2x) + B \cdot \sin(4x)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(y_p = A \cdot e^{2x}\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc4" onclick="checkMC('mc4')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc4"></div>
@@ -3188,10 +3259,10 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc5">
-        <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(y_p = A \cdot e^{2x}\)</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(y_p = A \cdot x \cdot e^{2x}\)</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(y_p = A \cdot x^2 \cdot e^{2x}\)</div>
-        <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(y_p = A \cdot \sin(2x)\)</div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(y_p = A \cdot e^{2x}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(y_p = A \cdot x \cdot e^{2x}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(y_p = A \cdot x^2 \cdot e^{2x}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc5',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(y_p = A \cdot \sin(2x)\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc5" onclick="checkMC('mc5')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc5"></div>
@@ -3205,10 +3276,10 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc6">
-        <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(y_p = A \cdot e^{2x}\)</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(y_p = A \cdot x \cdot e^{2x}\)</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(y_p = A \cdot x^2 \cdot e^{2x}\)</div>
-        <div class="radio-option" onclick="selectMC('mc6',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(y_p = A \cdot x^3 \cdot e^{2x}\)</div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(y_p = A \cdot e^{2x}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(y_p = A \cdot x \cdot e^{2x}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(y_p = A \cdot x^2 \cdot e^{2x}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc6',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(y_p = A \cdot x^3 \cdot e^{2x}\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc6" onclick="checkMC('mc6')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc6"></div>
@@ -3222,10 +3293,10 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc7">
-        <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(u_1 = \int (y_1 \cdot g/W) dx\)</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(u_1 = -\int (y_2 \cdot g/W) dx\)</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(u_1 = \int (y_2 \cdot g \cdot W) dx\)</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(u_1 = y_1 \cdot g\)</div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(u_1 = \int (y_1 \cdot g/W) dx\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(u_1 = -\int (y_2 \cdot g/W) dx\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(u_1 = \int (y_2 \cdot g \cdot W) dx\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(u_1 = y_1 \cdot g\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc7" onclick="checkMC('mc7')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc7"></div>
@@ -3239,10 +3310,10 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc8">
-        <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(f = 5e^{3x}\)</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(f = \sin(2x) + 3x\)</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(f = \sec(x)\)</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(f = x^2 \cdot e^{x}\)</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(f = 5e^{3x}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(f = \sin(2x) + 3x\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(f = \sec(x)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(f = x^2 \cdot e^{x}\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc8" onclick="checkMC('mc8')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc8"></div>
@@ -3256,10 +3327,10 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
-        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(y_p = A \cdot e^{x}\)</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(y_p = A \cdot e^{x} + B \cdot \cos(2x) + C \cdot \sin(2x)\)</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(y_p = A \cdot e^{x} \cdot \sin(2x)\)</div>
-        <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(y_p = A \cdot \sin(2x)\)</div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(y_p = A \cdot e^{x}\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(y_p = A \cdot e^{x} + B \cdot \cos(2x) + C \cdot \sin(2x)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(y_p = A \cdot e^{x} \cdot \sin(2x)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc9',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(y_p = A \cdot \sin(2x)\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc9" onclick="checkMC('mc9')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc9"></div>
@@ -3273,10 +3344,10 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc10">
-        <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div>(A) &nbsp; \(y_h(0) = 1\)</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div>(B) &nbsp; \(y_p(0) = 1\)</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div>(C) &nbsp; \(y(0) = y_h(0) + y_p(0) = 1\)</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div>(D) &nbsp; \(y_h(0) - y_p(0) = 1\)</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(y_h(0) = 1\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(y_p(0) = 1\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(y(0) = y_h(0) + y_p(0) = 1\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(y_h(0) - y_p(0) = 1\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc10" onclick="checkMC('mc10')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc10"></div>
@@ -3675,7 +3746,7 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
           <div class="poll-q">QUICK CHECK — Apa karakter \(y_h\) (transient) dari sistem ini?</div>
           <div class="poll-opts" id="fp1">
             <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Eksponensial murni meluruh (akar real negatif)</div>
-            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Osilasi teredam — \(e^{-2t} \cdot [c_1\cos(63.2t) + c_2\sin(63.2t)]\)</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div><span class="opsi-teks">Osilasi teredam — \(e^{-2t} \cdot [c_1\cos(63.2t) + c_2\sin(63.2t)]\)</span></div>
             <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Eksponensial tumbuh (akar real positif)</div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Osilasi konstan tanpa redaman</div>
           </div>
@@ -3683,7 +3754,7 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
           <div class="p-fb w" id="fp1w">❌ Hitung diskriminan: D = \(b^2\) − 4ac = 16 − 16000 = −15984 &lt; 0 → akar <em>kompleks konjugat</em>. Karena Re(λ) = −2 (negatif), envelope eksponensial \(e^{-2t}\) meluruh; bagian imajiner β = 63.2 memberi osilasi. Hasilnya: <strong>osilasi teredam</strong>.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis analisis lengkap di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Bagi PD ke standar form. (2) Hitung diskriminan, identifikasi kasus akar. (3) Tulis y_h secara explisit. (4) Bahas karakter transient: meluruh, tumbuh, atau osilasi konstan." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis analisis lengkap di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Bagi PD ke standar form. (2) Hitung diskriminan, identifikasi kasus akar. (3) Tulis yₕ secara explisit. (4) Bahas karakter transient: meluruh, tumbuh, atau osilasi konstan." oninput="checkForumReady()"></textarea>
         <div id="wc-fq1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -3707,7 +3778,7 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
           <div class="poll-q">QUICK CHECK — Mengapa amplitudo SUPER besar pada ω = 63 (mendekati \(\omega _n\))?</div>
           <div class="poll-opts" id="fp2">
             <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Karena gaya F₀ yang lebih besar dari biasa</div>
-            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Resonansi: penyebut (k − mω²) sangat kecil saat ω ≈ \(\omega _n\)</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div><span class="opsi-teks">Resonansi: penyebut (k − mω²) sangat kecil saat ω ≈ \(\omega _n\)</span></div>
             <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Karena redaman terlalu besar</div>
             <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Bukan resonansi, hanya respon biasa</div>
           </div>
@@ -3715,7 +3786,7 @@ y_total = c1*sp.<span class="fn">exp</span>(x) + c2*x*sp.<span class="fn">exp</s
           <div class="p-fb w" id="fp2w">❌ Periksa rumus amplitudo: \(X = F_0/\sqrt{(k-m\omega ^2)^2 + (c\omega )^2}\). Saat \(\omega \approx \omega _n = \sqrt{k/m}\), \(k - m\omega ^2 \approx 0\), jadi penyebut mengecil dramatis. Inilah definisi <strong>resonansi</strong>: input pada frekuensi natural mengamplifikasi respon hingga tingkat berbahaya.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis perhitungan UC lengkap (min. 30 kata)...&#10;&#10;Petunjuk: (1) Tulis sistem aljabar untuk A, B dari substitusi UC. (2) Hitung amplitudo X = √(A² + B²) numerik. (3) Hitung phase shift φ. (4) Bahas mengapa amplitudo besar pada ω ≈ ω_n — kaitkan dengan rumus penyebut." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis perhitungan UC lengkap (min. 30 kata)...&#10;&#10;Petunjuk: (1) Tulis sistem aljabar untuk A, B dari substitusi UC. (2) Hitung amplitudo X = √(A² + B²) numerik. (3) Hitung phase shift φ. (4) Bahas mengapa amplitudo besar pada ω ≈ ωₙ — kaitkan dengan rumus penyebut." oninput="checkForumReady()"></textarea>
         <div id="wc-fq2" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -4988,6 +5059,35 @@ function checkExportReady() {
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -5055,15 +5155,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -5102,7 +5204,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5115,7 +5217,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5904,7 +6006,7 @@ function buildForumHtml() {
       <div style="font-size:.88rem;color:#475569;margin-bottom:10px;line-height:1.65;">Blok silinder aluminium keluar die casting pada suhu 450&deg;C, didinginkan di udara pabrik (30&deg;C) menuju suhu aman 80&deg;C. Hukum Pendinginan Newton: <span style="font-family:monospace;color:#f97316;">T' + kT = kT&infin;</span>. Parameter kunci:</div>
       <div style="margin-top:10px;line-height:2.2;"><div style="display:inline-block;margin:2px 6px 2px 0;background:#fce7f3;border:1px solid #f9a8d4;color:#be185d;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">T&#8320; = 450&deg;C</div>
       <div style="display:inline-block;margin:2px 6px 2px 0;background:#fef3c7;border:1px solid #fcd34d;color:#92400e;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">T&infin; = 30&deg;C</div>
-      <div style="display:inline-block;margin:2px 6px 2px 0;background:#d1fae5;border:1px solid #fdba74;color:#9a3412;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">T_aman = 80&deg;C</div>
+      <div style="display:inline-block;margin:2px 6px 2px 0;background:#d1fae5;border:1px solid #fdba74;color:#9a3412;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">T<sub>aman</sub> = 80&deg;C</div>
       <div style="display:inline-block;margin:2px 6px 2px 0;background:#ede9fe;border:1px solid #c4b5fd;color:#9a3412;padding:3px 10px;border-radius:12px;font-size:.78rem;font-family:monospace;;margin-bottom:4px;">k = 0.04 /menit</div>
     </td></tr>
   </table>
@@ -5913,7 +6015,7 @@ function buildForumHtml() {
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:8px;">
     <tr><td style="padding:20px 28px;">
       <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#f97316;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">1</span>Berapa waktu pendinginan alami (k = 0.04/menit) agar coran mencapai 80&deg;C? Bagaimana jika k dinaikkan ke 0.08/menit dengan kipas?</h3>
-      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Gunakan solusi T(t) = T&infin; + (T&#8320; &minus; T&infin;)&middot;e^(&minus;kt). Tentukan t saat T = 80&deg;C untuk kedua skenario.</div>
+      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Gunakan solusi T(t) = T&infin; + (T&#8320; &minus; T&infin;)&middot;e<sup>&minus;kt</sup>. Tentukan t saat T = 80&deg;C untuk kedua skenario.</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
         <div style="background:#f8f5ff;border:1px solid #c4b5fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans1}</div>
@@ -5923,7 +6025,7 @@ function buildForumHtml() {
 
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:4px;">
     <tr><td style="padding:20px 28px;">
-      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#f97316;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Jika spray mist mengubah model menjadi T' = &minus;k(T&minus;T&infin;)^1.2 (non-linier), bagaimana strategi penyelesaiannya?</h3>
+      <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#f97316;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">2</span>Jika spray mist mengubah model menjadi T' = &minus;k(T&minus;T&infin;)<sup>1.2</sup> (non-linier), bagaimana strategi penyelesaiannya?</h3>
       <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Pertimbangkan: substitusi u = T &minus; T&infin; menjadikan PD terpisah, bukan Bernoulli klasik. Tunjukkan langkah integrasi.</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
@@ -6160,13 +6262,13 @@ function drawCases(){
     let rootsStr;
     if (kase === 1){
       const m1 = ((1-b) + Math.sqrt(D))/2, m2 = ((1-b) - Math.sqrt(D))/2;
-      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x^m₁ + c₂·x^m₂`;
+      rootsStr = `m₁ = ${m1.toFixed(3)}, m₂ = ${m2.toFixed(3)} → y = c₁·x<sup>m₁</sup> + c₂·x<sup>m₂</sup>`;
     } else if (kase === 2){
       const m = (1-b)/2;
-      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x^m`;
+      rootsStr = `m = ${m.toFixed(3)} (berulang) → y = (c₁ + c₂·ln x)·x<sup>m</sup>`;
     } else {
       const al = (1-b)/2, be = Math.sqrt(-D)/2;
-      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x^α·[c₁cos(β ln x) + c₂sin(β ln x)]`;
+      rootsStr = `m = ${al.toFixed(3)} ± ${be.toFixed(3)}i → y = x<sup>α</sup>·[c₁cos(β ln x) + c₂sin(β ln x)]`;
     }
     infoEl.innerHTML = `<span style="color:${color}">●</span> PD: x²y'' + ${b.toFixed(2)}·x·y' + ${c.toFixed(2)}·y = 0 &nbsp;|&nbsp; D = (b−1)² − 4c = ${D.toFixed(2)} &nbsp;|&nbsp; ${rootsStr}`;
   }
@@ -6283,9 +6385,9 @@ function drawRoots(){
   ctx.fillText('Re(m)', px1 - 35, cy - 8);
   ctx.fillText('Im(m)', cx + 6, py0 + 12);
   ctx.fillStyle = '#00e09e';
-  ctx.fillText('x^m → 0', px0 + 8, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → 0', px0 + 8, py0 + 16);
   ctx.fillStyle = '#ef4444';
-  ctx.fillText('x^m → ∞', px1 - 65, py0 + 16);
+  ctx.fillText('x<sup>m</sup> → ∞', px1 - 65, py0 + 16);
   ctx.fillStyle = '#94a3b8';
   for (let i = -4; i <= 4; i += 2){
     if (i === 0) continue;
@@ -6709,7 +6811,7 @@ function drawSweep(){
       const maxPt = _sweepAnim.collectedPoints.reduce((a,b) => b.dmf > a.dmf ? b : a);
       const rmaxTheory = Math.sqrt(Math.max(0.001, 1 - 2*zeta*zeta));
       const dmfmaxTheory = 1/(2*zeta*Math.sqrt(1-zeta*zeta));
-      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r_max=${rmaxTheory.toFixed(2)}, DMF_max=${dmfmaxTheory.toFixed(2)}`;
+      info.innerHTML = `✅ Sweep selesai · Puncak teramati di <strong>r=${maxPt.r.toFixed(2)}, DMF=${maxPt.dmf.toFixed(2)}</strong> · Teoretis: r<sub>max</sub>=${rmaxTheory.toFixed(2)}, DMF<sub>max</sub>=${dmfmaxTheory.toFixed(2)}`;
     } else {
       info.innerHTML = `▶️ Tekan <strong>START SWEEP</strong> untuk memulai. Frekuensi akan naik dari 0 hingga 2.5·ωₙ dalam 8 detik.`;
     }
@@ -7075,7 +7177,7 @@ function drawHPB(){
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText(`${linePos.toFixed(2)} × H²_max = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
+  ctx.fillText(`${linePos.toFixed(2)} × H²<sub>max</sub> = ${targetY.toFixed(2)}`, padL+plotW-140, sy(targetY)-4);
 
   // Find ω₁ and ω₂ (intersection of curve with targetY)
   // Binary search on either side of peak
@@ -7119,12 +7221,12 @@ function drawHPB(){
   // Info
   const info = document.getElementById('hpbInfo');
   if(info){
-    let html = `ζ_TRUE = ${zetaTrue.toFixed(3)} · ω_peak = ${omegaPeak.toFixed(2)} · H²_max = ${H2max.toFixed(2)}<br>`;
+    let html = `ζ<sub>TRUE</sub> = ${zetaTrue.toFixed(3)} · ω<sub>peak</sub> = ${omegaPeak.toFixed(2)} · H²<sub>max</sub> = ${H2max.toFixed(2)}<br>`;
     if(omega1 !== null && omega2 !== null){
       html += `Δω = ω₂ − ω₁ = <strong>${deltaOmega.toFixed(3)}</strong> rad/s`;
       if(Math.abs(linePos - 0.5) < 0.02){
         const err = Math.abs(zetaEst - zetaTrue)/zetaTrue * 100;
-        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ_estimated = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
+        html += ` · <strong style="color:#00e09e">Q = ${Q.toFixed(2)}</strong> · <strong style="color:#facc15">ζ<sub>estimated</sub> = ${zetaEst.toFixed(4)}</strong> (error ${err.toFixed(1)}%)`;
       } else {
         html += ` · ⚠️ Geser garis ke <strong>0.50</strong> untuk mengukur ζ secara benar (half-power method)`;
       }
@@ -8008,10 +8110,10 @@ function initLoginAnimation(_canvasId, _particlesId) {
     { t: 'r = ω/ωₙ',                   s: 14 },
     { t: 'φ = arctan(2ζr/(1−r²))',     s: 11 },
     { t: 'X = F₀·DMF/k',                s: 12 },
-    { t: 'DMF_res = 1/(2ζ)',           s: 13 },
+    { t: 'DMF<sub>res</sub> = 1/(2ζ)',           s: 13 },
     { t: 'Tᵣ = √(1+(2ζr)²)/√((1−r²)²+(2ζr)²)', s: 9 },
-    { t: 'x(t) = x_transien + x_steady', s: 11 },
-    { t: 'E_d = π·c·ω·X²',             s: 12 },
+    { t: 'x(t) = x<sub>transien</sub> + x<sub>steady</sub>', s: 11 },
+    { t: 'E<sub>d</sub> = π·c·ω·X²',             s: 12 },
   ];
   const fCols = [
     'rgba(129,140,248,.22)',   // indigo
@@ -8025,7 +8127,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',
@@ -10546,7 +10648,7 @@ function drawEMTog(){
   const isNum = (_emTogMode === 1);
   const color = isNum ? '#a855f7' : '#00e09e';
   ctx.fillStyle = color; ctx.font = 'bold 14px JetBrains Mono';
-  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e^(-bt/2)·cos(ωt)', 20, 30);
+  ctx.fillText(isNum ? '⚙️ NUMERICAL: y(t+dt) = y(t) + dt·f(t,y)' : '🧮 ANALYTICAL: y(t) = e<sup>-bt/2</sup>·cos(ωt)', 20, 30);
 
   const padL=50, padR=20, padT=50, padB=40;
   const plotW = W-padL-padR, plotH = H-padT-padB;
@@ -10880,9 +10982,9 @@ function _createForumParticleBurst(event) {
   const M8_FORCE = {
     const: { label: 'f = 4',                f: x => 4,                                desc: 'constant' },
     poly:  { label: 'f = x² + 1',            f: x => x*x + 1,                           desc: 'polinomial' },
-    exp:   { label: 'f = e^(0.5x)',          f: x => Math.exp(0.5*x),                   desc: 'eksponensial' },
+    exp:   { label: 'f = e<sup>0.5x</sup>',          f: x => Math.exp(0.5*x),                   desc: 'eksponensial' },
     sin:   { label: 'f = 2·sin(1.5x)',       f: x => 2*Math.sin(1.5*x),                 desc: 'sinusoidal (non-res)' },
-    reson: { label: 'f = 2·sin(2x)',         f: x => 2*Math.sin(2*x),                   desc: 'RESONANSI ω=ω_n=2' }
+    reson: { label: 'f = 2·sin(2x)',         f: x => 2*Math.sin(2*x),                   desc: 'RESONANSI ω=ω<sub>n</sub>=2' }
   };
 
   window.m8SetForce = function(key){
@@ -10897,7 +10999,7 @@ function _createForumParticleBurst(event) {
       btn.style.fontWeight = active ? '700' : '400';
       btn.style.boxShadow = active ? `0 0 12px ${isReson ? 'rgba(239,68,68,.6)' : 'rgba(8,191,232,.6)'}` : 'none';
       btn.style.transform = active ? 'scale(1.05)' : 'scale(1)';
-      btn.textContent = active ? (btn.textContent.replace(' ✓','') + ' ✓') : btn.textContent.replace(' ✓','');
+      (function (el, aktif) { var t = el.lastChild; if (t && t.nodeType === 3 && / ✓$/.test(t.nodeValue)) { t.nodeValue = t.nodeValue.slice(0, -2); if (!t.nodeValue) el.removeChild(t); } if (aktif) el.appendChild(document.createTextNode(' ✓')); })(btn, active);   // notasi-halaman.mjs: ✓ tanpa menulis ulang textContent
     });
   };
   window.m8ToggleDecomp = function(){
@@ -10980,9 +11082,9 @@ function _createForumParticleBurst(event) {
 
     // Plot 3 curves: y_h (cyan), y_p (pink), y_total (white)
     const arrs = [
-      { data: yHom,  color: '#0ea5e9', label: 'y_h (transient)', width: 2 },
-      { data: yPart, color: '#ff6bb3', label: 'y_p (steady)',     width: 2 },
-      { data: yTot,  color: '#fff',     label: 'y = y_h + y_p',   width: 3 }
+      { data: yHom,  color: '#0ea5e9', label: 'y<sub>h</sub> (transient)', width: 2 },
+      { data: yPart, color: '#ff6bb3', label: 'y<sub>p</sub> (steady)',     width: 2 },
+      { data: yTot,  color: '#fff',     label: 'y = y<sub>h</sub> + y<sub>p</sub>',   width: 3 }
     ];
     for (let k = 0; k < arrs.length; k++){
       const obj2 = arrs[k];
@@ -11025,7 +11127,7 @@ function _createForumParticleBurst(event) {
     // Info
     const infoEl = document.getElementById('m8DecompInfo');
     if (infoEl){
-      infoEl.innerHTML = `<span style="color:${isReson ? '#ef4444' : '#fff'}">●</span> f(x) = ${obj.label} (${obj.desc}) &nbsp;|&nbsp; ω_n = √4 = 2 &nbsp;|&nbsp; t=${m8Decomp.t.toFixed(2)}, y_total=${yTot[iDot].toFixed(2)}`;
+      infoEl.innerHTML = `<span style="color:${isReson ? '#ef4444' : '#fff'}">●</span> f(x) = ${obj.label} (${obj.desc}) &nbsp;|&nbsp; ω<sub>n</sub> = √4 = 2 &nbsp;|&nbsp; t=${m8Decomp.t.toFixed(2)}, y<sub>total</sub>=${yTot[iDot].toFixed(2)}`;
     }
 
     if (m8Decomp.running) m8Decomp.raf = requestAnimationFrame(drawM8Decomp);
@@ -11039,13 +11141,13 @@ function _createForumParticleBurst(event) {
 
   const M8_ANSATZ = [
     { type: 'polinomial', f: { fn: x => x*x + 2*x + 1, label: 'f = x² + 2x + 1' },
-                          yp: { fn: x => 0.25*x*x + 0.5*x + 0.5, label: 'y_p = Ax² + Bx + C' } },
-    { type: 'eksponensial', f: { fn: x => Math.exp(0.5*x), label: 'f = e^(0.5x)' },
-                            yp: { fn: x => 0.235*Math.exp(0.5*x), label: 'y_p = A·e^(0.5x)' } },
+                          yp: { fn: x => 0.25*x*x + 0.5*x + 0.5, label: 'y<sub>p</sub> = Ax² + Bx + C' } },
+    { type: 'eksponensial', f: { fn: x => Math.exp(0.5*x), label: 'f = e<sup>0.5x</sup>' },
+                            yp: { fn: x => 0.235*Math.exp(0.5*x), label: 'y<sub>p</sub> = A·e<sup>0.5x</sup>' } },
     { type: 'trigonometri', f: { fn: x => 2*Math.sin(1.5*x), label: 'f = 2·sin(1.5x)' },
-                            yp: { fn: x => 1.05*Math.sin(1.5*x) + 0.31*Math.cos(1.5*x), label: 'y_p = A·sin(1.5x) + B·cos(1.5x)' } },
-    { type: 'produk', f: { fn: x => x * Math.exp(0.5*x), label: 'f = x·e^(0.5x)' },
-                     yp: { fn: x => (0.18*x - 0.16)*Math.exp(0.5*x), label: 'y_p = (Ax + B)·e^(0.5x)' } }
+                            yp: { fn: x => 1.05*Math.sin(1.5*x) + 0.31*Math.cos(1.5*x), label: 'y<sub>p</sub> = A·sin(1.5x) + B·cos(1.5x)' } },
+    { type: 'produk', f: { fn: x => x * Math.exp(0.5*x), label: 'f = x·e<sup>0.5x</sup>' },
+                     yp: { fn: x => (0.18*x - 0.16)*Math.exp(0.5*x), label: 'y<sub>p</sub> = (Ax + B)·e<sup>0.5x</sup>' } }
   ];
 
   function drawM8Ansatz(){
@@ -11162,14 +11264,14 @@ function _createForumParticleBurst(event) {
       view.style.background = 'rgba(0,224,158,.25)'; view.style.borderColor = 'var(--green)';
       knob.style.transform = 'translateX(0px)';
       lbl.style.color = 'var(--green)';
-      lbl.textContent = 'NORMAL: ω ≠ ω_n (steady-state bounded)';
+      lbl.innerHTML = 'NORMAL: ω ≠ ω<sub>n</sub> (steady-state bounded)';
       // Set slider to non-resonance
       document.getElementById('m8_omega').value = '1.5';
     } else {
       view.style.background = 'rgba(239,68,68,.25)'; view.style.borderColor = '#ef4444';
       knob.style.transform = 'translateX(28px)';
       lbl.style.color = '#ef4444';
-      lbl.textContent = 'RESONANSI: ω = ω_n = 2 (amplitudo tumbuh)';
+      lbl.innerHTML = 'RESONANSI: ω = ω<sub>n</sub> = 2 (amplitudo tumbuh)';
       document.getElementById('m8_omega').value = '2.0';
     }
   };
@@ -11261,7 +11363,7 @@ function _createForumParticleBurst(event) {
     ctx.shadowBlur = 0;
 
     ctx.fillStyle = color; ctx.font = 'bold 13px JetBrains Mono, monospace';
-    ctx.fillText(`y'' + 4y = sin(${omega.toFixed(2)}·t)  ${isResonance ? '⚠ RESONANSI (ω=ω_n)' : `(ω_n=${omega_n})`}`, padL + 8, padT + 16);
+    ctx.fillText(`y'' + 4y = sin(${omega.toFixed(2)}·t)  ${isResonance ? '⚠ RESONANSI (ω=ω<sub>n</sub>)' : `(ω<sub>n</sub>=${omega_n})`}`, padL + 8, padT + 16);
 
     ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono, monospace';
     ctx.fillText('t', px1 + 5, ty(0) + 4);
@@ -11278,8 +11380,8 @@ function _createForumParticleBurst(event) {
     const infoEl = document.getElementById('m8ResInfo');
     if (infoEl){
       infoEl.innerHTML = isResonance
-        ? `<span style="color:#ef4444">⚠</span> RESONANSI: ω=${omega.toFixed(2)} = ω_n=${omega_n}, y_p = −x·cos(2x)/4 → amplitudo TUMBUH LINEAR! Faktor x dari aturan UC resonansi.`
-        : `<span style="color:#00e09e">●</span> Normal: ω=${omega.toFixed(2)} ≠ ω_n=${omega_n}, y_p = sin(${omega.toFixed(2)}t)/(4-${(omega*omega).toFixed(2)}) bounded.`;
+        ? `<span style="color:#ef4444">⚠</span> RESONANSI: ω=${omega.toFixed(2)} = ω<sub>n</sub>=${omega_n}, y<sub>p</sub> = −x·cos(2x)/4 → amplitudo TUMBUH LINEAR! Faktor x dari aturan UC resonansi.`
+        : `<span style="color:#00e09e">●</span> Normal: ω=${omega.toFixed(2)} ≠ ω<sub>n</sub>=${omega_n}, y<sub>p</sub> = sin(${omega.toFixed(2)}t)/(4-${(omega*omega).toFixed(2)}) bounded.`;
     }
 
     m8Res.raf = requestAnimationFrame(drawM8Resonance);
@@ -11299,10 +11401,10 @@ function _createForumParticleBurst(event) {
       label: 'Undetermined Coefficients',
       steps: [
         '1. Identifikasi bentuk f(x) → tabel ansatz',
-        '2. Tulis y_p sebagai bentuk umum dengan koefisien',
-        '3. Hitung y_p\', y_p\', substitusi ke PD',
+        '2. Tulis y<sub>p</sub> sebagai bentuk umum dengan koefisien',
+        '3. Hitung y<sub>p</sub>\', y<sub>p</sub>\'\', substitusi ke PD',
         '4. Solve sistem aljabar untuk koefisien',
-        '5. y = y_h + y_p'
+        '5. y = y<sub>h</sub> + y<sub>p</sub>'
       ],
       complexity: 'Cepat (untuk f sederhana)',
       color: '#ff6bb3'
@@ -11310,11 +11412,11 @@ function _createForumParticleBurst(event) {
     vop: {
       label: 'Variation of Parameters',
       steps: [
-        '1. Solve PD homogen → y_h = c₁y₁ + c₂y₂',
+        '1. Solve PD homogen → y<sub>h</sub> = c₁y₁ + c₂y₂',
         '2. Hitung Wronskian W = y₁y₂\' − y₂y₁\'',
         '3. u₁\' = −y₂·f / W, u₂\' = y₁·f / W',
         '4. Integrate: u₁ = ∫u₁\' dx, u₂ = ∫u₂\' dx',
-        '5. y_p = u₁·y₁ + u₂·y₂'
+        '5. y<sub>p</sub> = u₁·y₁ + u₂·y₂'
       ],
       complexity: 'Universal (untuk f sembarang)',
       color: '#00e09e'
@@ -11324,9 +11426,9 @@ function _createForumParticleBurst(event) {
       steps: [
         '1. Tulis PD sebagai L[y] = f, L = D² + bD + c',
         '2. Faktorkan: L = (D − r₁)(D − r₂)',
-        '3. y_p = (1/L)·f via partial fractions',
-        '4. (1/(D − r))·f = e^(rx)·∫e^(−rx)·f dx',
-        '5. Compose hasil → y_p'
+        '3. y<sub>p</sub> = (1/L)·f via partial fractions',
+        '4. (1/(D − r))·f = e<sup>rx</sup>·∫e<sup>−rx</sup>·f dx',
+        '5. Compose hasil → y<sub>p</sub>'
       ],
       complexity: 'Algebraic (untuk koefisien konstan)',
       color: '#0ea5e9'
@@ -11356,7 +11458,7 @@ function _createForumParticleBurst(event) {
       lbl.style.fontWeight = active ? '700' : '400';
       lbl.style.boxShadow = active ? '0 0 12px rgba(255,107,179,.4)' : 'none';
       lbl.style.transform = active ? 'scale(1.05)' : 'scale(1)';
-      lbl.textContent = active ? (lbl.textContent.replace(' ✓','') + ' ✓') : lbl.textContent.replace(' ✓','');
+      (function (el, aktif) { var t = el.lastChild; if (t && t.nodeType === 3 && / ✓$/.test(t.nodeValue)) { t.nodeValue = t.nodeValue.slice(0, -2); if (!t.nodeValue) el.removeChild(t); } if (aktif) el.appendChild(document.createTextNode(' ✓')); })(lbl, active);   // notasi-halaman.mjs: ✓ tanpa menulis ulang textContent
     });
   };
 

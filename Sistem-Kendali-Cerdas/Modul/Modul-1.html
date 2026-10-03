@@ -1339,6 +1339,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1600,11 +1671,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">e(t) = r(t) − y(t)</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">T(s) = G/(1+GH)</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">L = Kp·K</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">τ_cl = τ/(1+L)</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">L = K<sub>p</sub>·K</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">τ<sub>cl</sub> = τ/(1+L)</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">S + T = 1</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">u(t) = Kp·e(t)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">u(t) = K<sub>p</sub>·e(t)</span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">G(s) = K/(τs+1)</span>
   </div>
   <div class="hero-schematic">
@@ -2075,7 +2146,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <canvas id="cvStep" height="280"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Gain controller Kp — <span class="ctrl-val" id="v_st_kp">4.0</span></label>
+          <label>Gain controller K<sub>p</sub> — <span class="ctrl-val" id="v_st_kp">4.0</span></label>
           <input type="range" id="sl_st_kp" min="0.2" max="20" step="0.2" value="4">
         </div>
         <div class="ctrl-group">
@@ -2109,7 +2180,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
           <input type="range" id="sl_lp_d" min="0" max="0.8" step="0.05" value="0.3">
         </div>
         <div class="ctrl-group">
-          <label>Gain controller Kp — <span class="ctrl-val" id="v_lp_kp">4.0</span></label>
+          <label>Gain controller K<sub>p</sub> — <span class="ctrl-val" id="v_lp_kp">4.0</span></label>
           <input type="range" id="sl_lp_kp" min="0.2" max="20" step="0.2" value="4">
         </div>
         <button class="btn-anim" id="btnLoop" onclick="toggleLoop()">⏸ PAUSE</button>
@@ -2152,11 +2223,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <canvas id="cvDesign" height="280"></canvas>
       <div class="ctrl-row">
         <div class="ctrl-group">
-          <label>Kp terpilih — <span class="ctrl-val" id="v_dz_kp">4.0</span></label>
+          <label>K<sub>p</sub> terpilih — <span class="ctrl-val" id="v_dz_kp">4.0</span></label>
           <input type="range" id="sl_dz_kp" min="0.2" max="20" step="0.2" value="4">
         </div>
         <div class="ctrl-group">
-          <label>Target e_ss maksimum — <span class="ctrl-val" id="v_dz_tgt">0.05</span></label>
+          <label>Target e<sub>ss</sub> maksimum — <span class="ctrl-val" id="v_dz_tgt">0.05</span></label>
           <input type="range" id="sl_dz_tgt" min="0.01" max="0.30" step="0.01" value="0.05">
         </div>
         <button class="btn-anim" id="btnDesign" onclick="toggleDesign()">⏸ PAUSE</button>
@@ -2182,7 +2253,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
           <input type="range" id="sl_oo_hys" min="0.01" max="0.20" step="0.01" value="0.05">
         </div>
         <div class="ctrl-group">
-          <label>Gain proporsional Kp — <span class="ctrl-val" id="v_oo_kp">4.0</span></label>
+          <label>Gain proporsional K<sub>p</sub> — <span class="ctrl-val" id="v_oo_kp">4.0</span></label>
           <input type="range" id="sl_oo_kp" min="0.5" max="20" step="0.5" value="4">
         </div>
         <button class="btn-anim" id="btnOnOff" onclick="toggleOnOff()">⏸ PAUSE</button>
@@ -2359,7 +2430,7 @@ plt.<span class="fn">grid</span>(<span class="kw">True</span>); plt.<span class=
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell 3 — Kurva Perancangan: Sapuan Kp dan Pencarian Kp Minimum</span>
+      <span class="code-label">Cell 3 — Kurva Perancangan: Sapuan K<sub>p</sub> dan Pencarian K<sub>p</sub> Minimum</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -2512,10 +2583,10 @@ akar = np.<span class="fn">roots</span>([<span class="nm">1</span>, a1, a0])
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">L = Kp·K</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">τ_cl = τ/(1+L)</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">Mp = e^(−πζ/√(1−ζ²))</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">L = K<sub>p</sub>·K</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">τ<sub>cl</sub> = τ/(1+L)</span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">M<sub>p</sub> = e<sup>−πζ/√(1−ζ²)</sup></span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">S + T = 1</span>
   </div>
   <div class="hero-content">
@@ -2644,10 +2715,10 @@ akar = np.<span class="fn">roots</span>([<span class="nm">1</span>, a1, a0])
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
-        <div class="radio-option" onclick="selectMC('mc4',this)"><div class="radio-circle"></div>(A) &nbsp; \(e(t) = r(t) - y(t)\)</div>
-        <div class="radio-option" onclick="selectMC('mc4',this)"><div class="radio-circle"></div>(B) &nbsp; \(e(t) = r(t) + y(t)\)</div>
-        <div class="radio-option" onclick="selectMC('mc4',this)"><div class="radio-circle"></div>(C) &nbsp; \(e(t) = y(t) - u(t)\)</div>
-        <div class="radio-option" onclick="selectMC('mc4',this)"><div class="radio-circle"></div>(D) &nbsp; \(e(t) = r(t) \cdot y(t)\)</div>
+        <div class="radio-option" onclick="selectMC('mc4',this)"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; \(e(t) = r(t) - y(t)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this)"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(e(t) = r(t) + y(t)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this)"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; \(e(t) = y(t) - u(t)\)</span></div>
+        <div class="radio-option" onclick="selectMC('mc4',this)"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; \(e(t) = r(t) \cdot y(t)\)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc4" onclick="checkMC('mc4')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc4"></div>
@@ -3080,8 +3151,8 @@ akar = np.<span class="fn">roots</span>([<span class="nm">1</span>, a1, a0])
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">e(t) = r(t) − y(t)</span>
-    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">L = Kp·K</span>
+    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">L = K<sub>p</sub>·K</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">on–off → ripple</span>
   </div>
   <div class="hero-content">
@@ -3202,9 +3273,9 @@ akar = np.<span class="fn">roots</span>([<span class="nm">1</span>, a1, a0])
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Anggap oven dimodelkan sebagai plant orde satu dengan gain <strong>K = 2</strong> dan controller proporsional <strong>K<sub>p</sub> = 4</strong>. Hitung error tunaknya memakai \(e_{ss} = 1/(1+K_pK)\), lalu jelaskan artinya secara fisik: pada suhu berapa oven akhirnya diam kalau setpoint-nya 180 °C? Bahas juga apakah menaikkan \(K_p\) terus-menerus adalah solusi yang baik, dan apa yang sebenarnya dibutuhkan agar error benar-benar nol.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.18);color:var(--violet);padding:6px 12px;border-radius:8px;">e_ss = 1/(1+L)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.18);color:var(--violet);padding:6px 12px;border-radius:8px;">L = Kp·K</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.18);color:var(--violet);padding:6px 12px;border-radius:8px;">integral → e_ss = 0</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.18);color:var(--violet);padding:6px 12px;border-radius:8px;">e<sub>ss</sub> = 1/(1+L)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.18);color:var(--violet);padding:6px 12px;border-radius:8px;">L = K<sub>p</sub>·K</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.18);color:var(--violet);padding:6px 12px;border-radius:8px;">integral → e<sub>ss</sub> = 0</span>
         </div>
 
         <div class="poll">
@@ -3219,7 +3290,7 @@ akar = np.<span class="fn">roots</span>([<span class="nm">1</span>, a1, a0])
           <div class="p-fb w" id="fp3w">❌ Perhatikan bedanya: \(8/9\) adalah nilai <em>keluaran</em> \(T = L/(1+L)\), sedangkan yang ditanya adalah <em>error</em> \(S = 1/(1+L)\). Keduanya berjumlah tepat 1. Dan opsi "nol" keliru; justru itu alasan PID dibutuhkan.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis jawaban diskusi Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung L dan e_ss. (2) Terjemahkan ke satuan fisik, misalnya oven diam di suhu berapa? (3) Jelaskan mengapa menaikkan Kp terus bukan solusi ideal. (4) Sebutkan apa yang dibutuhkan agar error benar-benar nol." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis jawaban diskusi Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung L dan eₛₛ. (2) Terjemahkan ke satuan fisik, misalnya oven diam di suhu berapa? (3) Jelaskan mengapa menaikkan Kₚ terus bukan solusi ideal. (4) Sebutkan apa yang dibutuhkan agar error benar-benar nol." oninput="checkForumReady()"></textarea>
         <div id="wc-fq3" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -4881,6 +4952,35 @@ window._setBtnState = _setBtnState;
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4948,15 +5048,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -4995,7 +5097,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5008,7 +5110,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5853,7 +5955,7 @@ function buildForumHtml() {
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:4px;">
     <tr><td style="padding:20px 28px;">
       <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#00e09e;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">3</span>Kalau diganti ke kontrol proporsional, apa yang membaik &mdash; dan apa yang tetap bermasalah?</h3>
-      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Hitung gain loop L dan error tunak e_ss untuk kontrol proporsional. Terjemahkan hasilnya ke satuan fisik: oven akhirnya diam di suhu berapa? Jelaskan mengapa menaikkan Kp terus-menerus bukan solusi ideal, dan sebutkan aksi apa yang dibutuhkan agar error benar-benar nol.</div>
+      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">Hitung gain loop L dan error tunak e<sub>ss</sub> untuk kontrol proporsional. Terjemahkan hasilnya ke satuan fisik: oven akhirnya diam di suhu berapa? Jelaskan mengapa menaikkan K<sub>p</sub> terus-menerus bukan solusi ideal, dan sebutkan aksi apa yang dibutuhkan agar error benar-benar nol.</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#00e09e;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
         <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans3}</div>
@@ -6013,7 +6115,7 @@ function drawForumCanvas() {
   const xErr = padL + plotW - 52;
   ctx.beginPath(); ctx.moveTo(xErr, sy(SP)); ctx.lineTo(xErr, sy(yInf)); ctx.stroke();
   ctx.fillStyle = 'rgba(239,68,68,.9)'; ctx.font = '9px JetBrains Mono';
-  ctx.fillText('e_ss', xErr + 5, (sy(SP) + sy(yInf)) / 2 + 3);
+  ctx.fillText('e<sub>ss</sub>', xErr + 5, (sy(SP) + sy(yInf)) / 2 + 3);
 
   // Legenda
   ctx.fillStyle = 'rgba(236,72,153,.95)'; ctx.font = '10px JetBrains Mono';
@@ -6028,7 +6130,7 @@ function drawForumCanvas() {
   ctx.fillText('Oven Konveyor — Suhu T(t)', padL + 14, padT + 22);
   ctx.fillStyle = '#94a3b8'; ctx.font = '9px JetBrains Mono';
   ctx.fillText(`on-off: ripple ±${HYS} °C  |  jeda sensor 45 s`, padL + 14, padT + 36);
-  ctx.fillText(`proporsional: L = ${L}, e_ss = 1/(1+L) = ${(1 / (1 + L)).toFixed(4)}`, padL + 14, padT + 50);
+  ctx.fillText(`proporsional: L = ${L}, e<sub>ss</sub> = 1/(1+L) = ${(1 / (1 + L)).toFixed(4)}`, padL + 14, padT + 50);
   ctx.fillText(`diam di ${yInf.toFixed(1)} °C, masih di bawah setpoint`, padL + 14, padT + 64);
 }
 // Resize handler — redraw all active canvases
@@ -10742,7 +10844,7 @@ function drawStep(){
   ctx.fillStyle='rgba(0,224,158,.8)'; ctx.fillText('y(∞) = '+Kcl.toFixed(4),x0+plotW-118,Y(Kcl)-6);
 
   const info=e('stepInfo');
-  if(info) info.textContent='L = '+L.toFixed(2)+'   |   T = L/(1+L) = '+Kcl.toFixed(4)+'   |   tau_cl = '+tau_cl.toFixed(4)+' s   |   e_ss = '+ess.toFixed(4)+'   |   t_s ≈ '+(4*tau_cl).toFixed(3)+' s';
+  if(info) info.innerHTML='L = '+L.toFixed(2)+'   |   T = L/(1+L) = '+Kcl.toFixed(4)+'   |   τ<sub>cl</sub> = '+tau_cl.toFixed(4)+' s   |   e<sub>ss</sub> = '+ess.toFixed(4)+'   |   t<sub>s</sub> ≈ '+(4*tau_cl).toFixed(3)+' s';
 
   if(!_stepPaused){_stepFrame++; requestAnimationFrame(drawStep);}
 }
@@ -10972,10 +11074,10 @@ function drawDesign(){
   ctx.strokeStyle='rgba(148,163,184,.45)'; ctx.lineWidth=1.2;
   ctx.beginPath(); ctx.moveTo(x0,padT); ctx.lineTo(x0,y0); ctx.lineTo(x0+plotW,y0); ctx.stroke();
   ctx.fillStyle='rgba(148,163,184,.6)'; ctx.font="10px 'JetBrains Mono',monospace";
-  ctx.fillText('Kp',x0+plotW/2,y0+24);
+  ctx.fillText('K<sub>p</sub>',x0+plotW/2,y0+24);
   ctx.fillText('0',x0-4,y0+16); ctx.fillText(String(KpMax),x0+plotW-10,y0+16);
-  ctx.fillStyle='rgba(0,224,158,.75)'; ctx.fillText('e_ss',8,padT+4);
-  ctx.fillStyle='rgba(255,179,0,.75)'; ctx.fillText('t_s (s)',W-46,padT+4);
+  ctx.fillStyle='rgba(0,224,158,.75)'; ctx.fillText('e<sub>ss</sub>',8,padT+4);
+  ctx.fillStyle='rgba(255,179,0,.75)'; ctx.fillText('t<sub>s</sub> (s)',W-46,padT+4);
 
   // kurva e_ss
   ctx.strokeStyle='rgba(0,224,158,.95)'; ctx.lineWidth=2.4; ctx.beginPath();
@@ -10989,14 +11091,14 @@ function drawDesign(){
   // garis target e_ss
   ctx.strokeStyle='rgba(239,68,68,.8)'; ctx.lineWidth=1.6; ctx.setLineDash([6,4]);
   ctx.beginPath(); ctx.moveTo(x0,Yess(tgt)); ctx.lineTo(x0+plotW,Yess(tgt)); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle='rgba(239,68,68,.9)'; ctx.fillText('target e_ss = '+tgt.toFixed(2),x0+6,Yess(tgt)-6);
+  ctx.fillStyle='rgba(239,68,68,.9)'; ctx.fillText('target e<sub>ss</sub> = '+tgt.toFixed(2),x0+6,Yess(tgt)-6);
 
   // Kp minimum yang memenuhi target
   const KpMin=(1/tgt-1)/K;
   if(KpMin<=KpMax){
     ctx.strokeStyle='rgba(236,72,153,.85)'; ctx.lineWidth=1.6; ctx.setLineDash([3,3]);
     ctx.beginPath(); ctx.moveTo(X(KpMin),padT); ctx.lineTo(X(KpMin),y0); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle='rgba(236,72,153,.95)'; ctx.fillText('Kp min = '+KpMin.toFixed(2),X(KpMin)+6,padT+14);
+    ctx.fillStyle='rgba(236,72,153,.95)'; ctx.fillText('K<sub>p</sub> min = '+KpMin.toFixed(2),X(KpMin)+6,padT+14);
   }
 
   // penanda Kp terpilih (berdenyut)
@@ -11008,7 +11110,7 @@ function drawDesign(){
   ctx.beginPath(); ctx.moveTo(X(KpSel),padT); ctx.lineTo(X(KpSel),y0); ctx.stroke();
 
   const info=e('designInfo');
-  if(info) info.textContent='Kp = '+KpSel.toFixed(1)+'  →  e_ss = '+essSel.toFixed(4)+'   |   t_s = '+tsSel.toFixed(3)+' s   |   Kp minimum utk target '+tgt.toFixed(2)+' = '+KpMin.toFixed(2)+(essSel<=tgt?'   ✓ memenuhi':'   ✗ belum memenuhi');
+  if(info) info.innerHTML='K<sub>p</sub> = '+KpSel.toFixed(1)+'  →  e<sub>ss</sub> = '+essSel.toFixed(4)+'   |   t<sub>s</sub> = '+tsSel.toFixed(3)+' s   |   K<sub>p</sub> minimum utk target '+tgt.toFixed(2)+' = '+KpMin.toFixed(2)+(essSel<=tgt?'   ✓ memenuhi':'   ✗ belum memenuhi');
 
   if(!_dzPaused){_dzFrame++; requestAnimationFrame(drawDesign);}
 }

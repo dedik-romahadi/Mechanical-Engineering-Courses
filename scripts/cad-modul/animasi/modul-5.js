@@ -209,10 +209,10 @@ function drawRevolve(){
   const az=35, el=24, A=az*Math.PI/180, E=el*Math.PI/180;
   const Vpenuh=Math.PI*(ro*ro-ri*ri)*h, V=Vpenuh*phi/360;
   // Keterangan kanan/bawah: [bagian teks (dipecah di sini bila tidak muat), warna, px, jarak baris, jarak atas].
-  const ket=[[['A_profil = (r_o − r_i)·h','= '+((ro-ri)*h).toFixed(1)],'#f59e0b',11,18],
-             [['V(360°) = π(r_o² − r_i²)h'],'#22d3ee',11,18],
+  const ket=[[['A<sub>profil</sub> = (r<sub>o</sub> − r<sub>i</sub>)·h','= '+((ro-ri)*h).toFixed(1)],'#f59e0b',11,18],
+             [['V(360°) = π(r<sub>o</sub>² − r<sub>i</sub>²)h'],'#22d3ee',11,18],
              [['= '+Vpenuh.toLocaleString('id-ID',{maximumFractionDigits:1})+' mm³'],'#00e09e',11,18],
-             [['Pappus: 2π·ȳ·A,','ȳ = (r_i + r_o)/2 = '+((ri+ro)/2).toFixed(1)],'rgba(148,163,184,.85)',10,14,2],
+             [['Pappus: 2π·ȳ·A,','ȳ = (r<sub>i</sub> + r<sub>o</sub>)/2 = '+((ri+ro)/2).toFixed(1)],'rgba(148,163,184,.85)',10,14,2],
              [['V('+phi.toFixed(0)+'°) = '+V.toFixed(1)],'rgba(148,163,184,.85)',10,14]];
   const judulRv=p=>['Revolution '+p.toFixed(0)+'° profil ('+ri+'…'+ro+')\u00a0×\u00a0'+h,'pada XZ terhadap sumbu Z'];
   // Sumbu X dan Y menjulur sampai 12 px di luar garis siluet samping silinder, sumbu Z 14 px di atas pelek
@@ -257,7 +257,7 @@ function drawRevolve(){
     _cad5Judul(ctx,judul,12,18,W-24,14);
     _cad5TulisBlok(ctx,ket,tx,ty,W-24);
   }
-  _ttlTulis('revolveInfo','Bus berongga r_i = '+ri+', r_o = '+ro+', h = '+h+': V = π·('+ro+'² − '+ri+'²)·'+h+' = '+Vpenuh.toFixed(2)+' mm³; sama dengan teorema Pappus 2π × '+((ri+ro)/2).toFixed(2)+' × '+((ro-ri)*h).toFixed(1)+' = '+(2*Math.PI*(ri+ro)/2*(ro-ri)*h).toFixed(2));
+  _ttlTulis('revolveInfo','Bus berongga r<sub>i</sub> = '+ri+', r<sub>o</sub> = '+ro+', h = '+h+': V = π·('+ro+'² − '+ri+'²)·'+h+' = '+Vpenuh.toFixed(2)+' mm³; sama dengan teorema Pappus 2π × '+((ri+ro)/2).toFixed(2)+' × '+((ro-ri)*h).toFixed(1)+' = '+(2*Math.PI*(ri+ro)/2*(ro-ri)*h).toFixed(2));
   if(_ttlJalan('revolve')){_rvFrame++; requestAnimationFrame(drawRevolve);}
 }
 

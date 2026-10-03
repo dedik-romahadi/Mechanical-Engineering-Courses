@@ -1035,7 +1035,7 @@ doc.recompute()
 <span class="sp-kw">print</span>(<span class="sp-str">f"Hello FreeCAD! Area = {{r.Shape.Area:.2f}} mm^2, keliling = {{r.Shape.Length:.2f}} mm"</span>)
 <span class="sp-cm"># Keluaran yang diharapkan: Area = 5000.00 mm^2, keliling = 300.00 mm</span></pre></div>
           </div>
-          <p style="margin-top:1rem;font-size:.9rem;">✅ Jika tercetak <strong>Area = 5000.00 mm^2</strong> → setup Anda <strong style="color:var(--sp-c2)">SUKSES</strong>! Satuan, workbench, dan console sudah siap untuk tugas pemodelan.</p>
+          <p style="margin-top:1rem;font-size:.9rem;">✅ Jika tercetak <strong><code>Area = 5000.00 mm^2</code></strong> → setup Anda <strong style="color:var(--sp-c2)">SUKSES</strong>! Satuan, workbench, dan console sudah siap untuk tugas pemodelan.</p>
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@
 import math
 
 from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula, teks2,
-                     fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel)
+                     fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel, rumus_mentah)
 
 NOMOR = 3
 PERTEMUAN = 3
@@ -61,20 +61,20 @@ def gambar2():
     b += t(165, 26, "Seri: arus sama, tegangan terbagi", 12, TX, "middle", "700")
     b += f'<line x1="40" y1="70" x2="290" y2="70" stroke="{AX}" stroke-width="2"/><line x1="40" y1="70" x2="40" y2="150" stroke="{AX}" stroke-width="2"/><line x1="40" y1="150" x2="290" y2="150" stroke="{AX}" stroke-width="2"/><line x1="290" y1="70" x2="290" y2="150" stroke="{AX}" stroke-width="2"/>'
     for i, (x, c) in enumerate([(90, "#22d3ee"), (165, "#a855f7"), (240, "#00e09e")]):
-        b += f'<rect x="{x - 20}" y="60" width="40" height="20" rx="3" fill="{BOX}" stroke="{c}" stroke-width="2"/>' + t(x, 52, f"R{i + 1}", 11, c, "middle", "600")
+        b += f'<rect x="{x - 20}" y="60" width="40" height="20" rx="3" fill="{BOX}" stroke="{c}" stroke-width="2"/>' + t(x, 52, "R" + "₁₂₃"[i], 11, c, "middle", "600")
     b += '<line x1="30" y1="104" x2="50" y2="104" stroke="#f59e0b" stroke-width="4"/><line x1="35" y1="118" x2="45" y2="118" stroke="#f59e0b" stroke-width="4"/>'
-    b += t(165, 176, "R_seri = R₁ + R₂ + R₃", 12, TX)
-    b += t(165, 194, "V_k = V · R_k / R_seri", 11, AX)
+    b += t(165, 176, "R<sub>seri</sub> = R₁ + R₂ + R₃", 12, TX)
+    b += t(165, 194, "V<sub>k</sub> = V · R<sub>k</sub> / R<sub>seri</sub>", 11, AX)
     # paralel (kanan)
     b += t(495, 26, "Paralel: tegangan sama, arus terbagi", 12, TX, "middle", "700")
     b += f'<line x1="370" y1="60" x2="620" y2="60" stroke="{AX}" stroke-width="2"/><line x1="370" y1="160" x2="620" y2="160" stroke="{AX}" stroke-width="2"/><line x1="370" y1="60" x2="370" y2="160" stroke="{AX}" stroke-width="2"/>'
     for i, (x, c) in enumerate([(450, "#22d3ee"), (530, "#a855f7"), (610, "#00e09e")]):
         b += f'<line x1="{x}" y1="60" x2="{x}" y2="88" stroke="{AX}" stroke-width="2"/><line x1="{x}" y1="132" x2="{x}" y2="160" stroke="{AX}" stroke-width="2"/>'
-        b += f'<rect x="{x - 10}" y="88" width="20" height="44" rx="3" fill="{BOX}" stroke="{c}" stroke-width="2"/>' + t(x + 16, 114, f"R{i + 1}", 11, c, "start", "600")
+        b += f'<rect x="{x - 10}" y="88" width="20" height="44" rx="3" fill="{BOX}" stroke="{c}" stroke-width="2"/>' + t(x + 16, 114, "R" + "₁₂₃"[i], 11, c, "start", "600")
     b += '<line x1="360" y1="104" x2="380" y2="104" stroke="#f59e0b" stroke-width="4"/><line x1="365" y1="118" x2="375" y2="118" stroke="#f59e0b" stroke-width="4"/>'
-    b += t(495, 184, "1/R_par = 1/R₁ + 1/R₂ + 1/R₃", 12, TX)
-    b += t(495, 202, "I_k = V / R_k", 11, AX)
-    return svg(660, 212, b, "Gambar 2 — Hubungan seri dan paralel")
+    b += t(495, 184, "1/R<sub>par</sub> = 1/R₁ + 1/R₂ + 1/R₃", 12, TX)
+    b += t(495, 202, "I<sub>k</sub> = V / R<sub>k</sub>", 11, AX)
+    return svg(660, 216, b, "Gambar 2 — Hubungan seri dan paralel")
 
 
 def gambar3():
@@ -110,7 +110,7 @@ def gambar4():
     pts_r = " ".join(f"{X(i):.1f},{Y(i * i * R):.1f}" for i in range(0, 61, 2))
     b += f'<polyline points="{pts_b}" fill="none" stroke="#00e09e" stroke-width="2.4"/>'
     b += f'<polyline points="{pts_r}" fill="none" stroke="#ef4444" stroke-width="2.4"/>'
-    for k, (c, lab) in enumerate([("#00e09e", "P_beban = 48·I"), ("#ef4444", "P_rugi = I²·R")]):
+    for k, (c, lab) in enumerate([("#00e09e", "P<sub>beban</sub> = 48·I"), ("#ef4444", "P<sub>rugi</sub> = I²·R")]):
         yy = (Y(3000) + Y(2400)) / 2 + 4 + k * (Y(1800) - Y(2400))
         b += f'<line x1="{x0 + 14}" y1="{yy - 4:.1f}" x2="{x0 + 34}" y2="{yy - 4:.1f}" stroke="{c}" stroke-width="2.4"/>' + t(x0 + 40, yy, lab, 11.5, c, "start", "600")
     b += t(28, 118, "W", 11, AX)
@@ -136,10 +136,10 @@ def gambar5():
     pts = " ".join(f"{X(RL):.1f},{Ye(RL / (r + RL) * 100):.1f}" for RL in [i / 100 for i in range(2, 501, 4)])
     b += f'<polyline points="{pts}" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 4"/>'
     b += f'<line x1="{X(r):.1f}" y1="{y1}" x2="{X(r):.1f}" y2="{y0}" stroke="#ec4899" stroke-width="1.3" stroke-dasharray="4 4"/>'
-    b += f'<circle cx="{X(r):.1f}" cy="{Y(Pmax):.1f}" r="5" fill="#ec4899"/>' + t(X(r) + 6, y1 - 8, f"R_L = r: P_maks = {ind(Pmax, 0)} W, η = 50%", 11.5, "#ec4899", "start", "600")
-    b += t(X(3.6), Ye(78) - 14, "η = R_L/(r+R_L)", 11, "#f59e0b", "start", "600")
-    b += t(347, 244, f"E = {ind(E, 0)} V, r = {ind(r, 0)} Ω: daya beban (hijau) memuncak saat R_L = r, tetapi efisiensi (jingga) baru tinggi bila R_L ≫ r", 12, AX)
-    return svg(660, 254, b, "Gambar 5 — Transfer daya maksimum dan efisiensi terhadap R_L")
+    b += f'<circle cx="{X(r):.1f}" cy="{Y(Pmax):.1f}" r="5" fill="#ec4899"/>' + t(X(r) + 6, y1 - 8, f"R<sub>L</sub> = r: P<sub>maks</sub> = {ind(Pmax, 0)} W, η = 50%", 11.5, "#ec4899", "start", "600")
+    b += t(X(3.6), Ye(78) - 14, "η = R<sub>L</sub>/(r+R<sub>L</sub>)", 11, "#f59e0b", "start", "600")
+    b += t(347, 244, f"E = {ind(E, 0)} V, r = {ind(r, 0)} Ω: daya beban (hijau) memuncak saat R<sub>L</sub> = r, tetapi efisiensi (jingga) baru tinggi bila R<sub>L</sub> ≫ r", 12, AX)
+    return svg(660, 258, b, "Gambar 5 — Transfer daya maksimum dan efisiensi terhadap R<sub>L</sub>")
 
 
 def gambar6():
@@ -191,17 +191,17 @@ HERO_SCHEMATIC_1 = '''  <div class="hero-schematic">
     </svg>
   </div>'''
 
-HERO_SCHEMATIC_2 = '''  <div class="hero-schematic">
+HERO_SCHEMATIC_2 = rumus_mentah('''  <div class="hero-schematic">
     <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
       <path d="M 12 190 C 20 60, 34 44, 46 48 C 62 54, 78 100, 90 130" fill="none" stroke="rgba(0,224,158,.5)" stroke-width="1.6"/>
       <line x1="12" y1="190" x2="12" y2="30" stroke="rgba(148,163,184,.4)" stroke-width="1.2"/>
       <line x1="12" y1="190" x2="92" y2="190" stroke="rgba(148,163,184,.4)" stroke-width="1.2"/>
       <circle cx="46" cy="48" r="3" fill="rgba(236,72,153,.7)"/>
-      <text x="52" y="44" fill="rgba(236,72,153,.6)" font-family="JetBrains Mono" font-size="8">R_L = r</text>
-      <text x="40" y="206" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="8">R_L</text>
+      <text x="52" y="44" fill="rgba(236,72,153,.6)" font-family="JetBrains Mono" font-size="8">R<sub>L</sub> = r</text>
+      <text x="40" y="206" fill="rgba(148,163,184,.45)" font-family="JetBrains Mono" font-size="8">R<sub>L</sub></text>
       <text x="4" y="24" fill="rgba(0,224,158,.55)" font-family="JetBrains Mono" font-size="8">P</text>
     </svg>
-  </div>'''
+  </div>''')
 
 HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="03">
   <div class="hero-waves">
@@ -215,11 +215,11 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">V = I·R</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">P = I²·R = V²/R</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">ΣI_simpul = 0</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">ΣV_loop = 0</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">1/R_par = Σ 1/R_k</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">P_maks = E²/(4r)</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">V_t = E − I·r</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">ΣI<sub>simpul</sub> = 0</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">ΣV<sub>loop</sub> = 0</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">1/R<sub>par</sub> = Σ 1/R<sub>k</sub></span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">P<sub>maks</sub> = E²/(4r)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">V<sub>t</sub> = E − I·r</span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">ΔV = I·ρ·2L/A</span>
   </div>
 {HERO_SCHEMATIC_2}
@@ -353,7 +353,7 @@ def materi():
         ("🎯", "Sasaran Rancangan", "Praktik lazim: jatuh tegangan kabel ≤ 3% pada cabang dan ≤ 5% total dari sumber ke beban terjauh; efisiensi kabel ≥ 95%.", None),
         ("🔋", "Efisiensi Baterai", "Baterai pun punya hambatan dalam; saat diisi dan dikosongkan sebagian energi hilang sebagai panas \\(I^2 r\\). Pengisian cepat berarti rugi lebih besar.", None),
     ])
-    isi += tabel(["Tegangan sistem", "Arus untuk 2,4 kW", "Rugi pada R_sal = 0,12 Ω", "Efisiensi"], [
+    isi += tabel(["Tegangan sistem", "Arus untuk 2,4 kW", "Rugi pada R<sub>sal</sub> = 0,12 Ω", "Efisiensi"], [
         [f"{v} V", ind(2400 / v, 1) + " A", ind((2400 / v) ** 2 * 0.12, 1) + " W", ind(2400 / (2400 + (2400 / v) ** 2 * 0.12) * 100, 2) + "%"] for v in [12, 24, 48, 96, 400]
     ])
     isi += kotak("info-box", "<strong>📊 Cara Membaca Tabel di Atas:</strong> daya beban dan kabel sama, hanya tegangan sistem yang berubah. Pada 12 V, 2,4 kW memerlukan 200 A dan rugi 4,8 kW, lebih besar daripada bebannya sendiri; pada 48 V rugi tinggal 300 W; pada 400 V hampir tak terasa. Inilah alasan sistem daya besar tidak pernah berjalan pada tegangan rendah, dan pilihan tegangan adalah keputusan pertama dalam merancang sistem DC.")
@@ -362,7 +362,7 @@ def materi():
                 isi, "DAYA DAN EFISIENSI")
 
     # 05 — sumber nyata & transfer daya maksimum
-    isi = figure(5, "Transfer daya maksimum dan efisiensi terhadap R_L", "Daya ke beban memuncak saat resistansi beban sama dengan hambatan dalam sumber, tetapi pada titik itu separuh daya terbuang di dalam sumber; sistem tenaga bekerja jauh di kanan titik ini.", gambar5())
+    isi = figure(5, "Transfer daya maksimum dan efisiensi terhadap R<sub>L</sub>", "Daya ke beban memuncak saat resistansi beban sama dengan hambatan dalam sumber, tetapi pada titik itu separuh daya terbuang di dalam sumber; sistem tenaga bekerja jauh di kanan titik ini.", gambar5())
     isi += formula(8, "Sumber Nyata: Tegangan Terminal", r"V_t = E - I\,r, \qquad I_{sc} = \dfrac{E}{r}",
                    rf"Baterai 12,6 V dengan hambatan dalam {ind(R_BAT, 2)} Ω: saat memasok 60 A, \(V_t = 12{{,}}6 - 60\times{ind(R_BAT, 2)} = 9{{,}}6\) V; arus hubung singkatnya \(12{{,}}6/{ind(R_BAT, 2)} = 252\) A. Tegangan terminal turun linear terhadap arus.",
                    "Tidak ada sumber yang ideal: baterai, panel surya, dan generator semuanya 'melemah' saat dibebani. Hambatan dalam yang kecil (baterai starter mobil: miliohm) berarti tegangan stabil dan arus hubung singkat sangat besar, ratusan sampai ribuan ampere.",
@@ -411,11 +411,11 @@ def materi():
     isi = anim_panel(1, "cyan", r"Jaringan Seri–Paralel: Reduksi, Arus, dan Tegangan \(R_1 + (R_2 \parallel R_3)\)", "cvSeriParalel",
                      [("sl_sp_v", "v_sp_v", "Tegangan sumber V (V)", 12, 96, 1, 48, "48"), ("sl_sp_r1", "v_sp_r1", "R₁ seri (Ω)", 0.5, 20, 0.5, 4, "4.0"), ("sl_sp_r2", "v_sp_r2", "R₂ paralel (Ω)", 1, 40, 0.5, 12, "12.0"), ("sl_sp_r3", "v_sp_r3", "R₃ paralel (Ω)", 1, 40, 0.5, 6, "6.0")],
                      "btnSeriParalel", "toggleSeriParalel", "seriParalelInfo",
-                     "<strong>📊 Cara Membaca Animasi 1:</strong> Titik-titik bergerak menggambarkan arus; makin rapat, makin besar arusnya. Readout menunjukkan hasil reduksi dan pemeriksaan KCL/KVL.<br>Amati: (1) <strong style=\"color:var(--cyan)\">Memperkecil R₃ menarik lebih banyak arus ke cabangnya</strong> dan memperkecil R_par, sehingga arus total naik dan tegangan pada R₁ ikut naik. (2) V₁ + V_par selalu sama dengan V (KVL) dan I₂ + I₃ selalu sama dengan I (KCL). (3) Soal C12 memakai jaringan ini.")
+                     "<strong>📊 Cara Membaca Animasi 1:</strong> Titik-titik bergerak menggambarkan arus; makin rapat, makin besar arusnya. Readout menunjukkan hasil reduksi dan pemeriksaan KCL/KVL.<br>Amati: (1) <strong style=\"color:var(--cyan)\">Memperkecil R₃ menarik lebih banyak arus ke cabangnya</strong> dan memperkecil R<sub>par</sub>, sehingga arus total naik dan tegangan pada R₁ ikut naik. (2) V₁ + V<sub>par</sub> selalu sama dengan V (KVL) dan I₂ + I₃ selalu sama dengan I (KCL). (3) Soal C12 memakai jaringan ini.")
     isi += anim_panel(2, "amber", r"Transfer Daya Maksimum dan Efisiensi terhadap \(R_L\)", "cvTransfer",
                       [("sl_td_e", "v_td_e", "Ggl sumber E (V)", 6, 48, 1, 24, "24"), ("sl_td_r", "v_td_r", "Hambatan dalam r (Ω)", 0.1, 3, 0.05, 1.0, "1.00")],
                       "btnTransfer", "toggleTransfer", "transferInfo",
-                      "<strong>📊 Cara Membaca Animasi 2:</strong> Kurva hijau adalah daya beban, kurva jingga putus-putus efisiensi, sumbu mendatar R_L dalam kelipatan r; titik-titik menyapu R_L dari kecil ke besar.<br>Amati: (1) <strong style=\"color:var(--amber)\">Daya memuncak tepat di R_L = r</strong> dengan nilai E²/4r, dan efisiensi di sana 50%. (2) Memperkecil r menaikkan puncak daya dengan cepat (∝ 1/r). (3) Di R_L = 4r efisiensi sudah 80% walau daya tinggal 64% dari puncak; sistem tenaga memilih wilayah ini. Soal C11 dan C15.")
+                      "<strong>📊 Cara Membaca Animasi 2:</strong> Kurva hijau adalah daya beban, kurva jingga putus-putus efisiensi, sumbu mendatar R<sub>L</sub> dalam kelipatan r; titik-titik menyapu R<sub>L</sub> dari kecil ke besar.<br>Amati: (1) <strong style=\"color:var(--amber)\">Daya memuncak tepat di R<sub>L</sub> = r</strong> dengan nilai E²/4r, dan efisiensi di sana 50%. (2) Memperkecil r menaikkan puncak daya dengan cepat (∝ 1/r). (3) Di R<sub>L</sub> = 4r efisiensi sudah 80% walau daya tinggal 64% dari puncak; sistem tenaga memilih wilayah ini. Soal C11 dan C15.")
     isi += anim_panel(3, "green", r"Jatuh Tegangan Kabel DC dan Pemilihan Penampang \(\Delta V = I\rho\,2L/A\)", "cvKabel",
                       [("sl_kb_i", "v_kb_i", "Arus beban I (A)", 5, 100, 1, 25, "25"), ("sl_kb_l", "v_kb_l", "Panjang satu arah L (m)", 5, 100, 1, 30, "30"), ("sl_kb_b", "v_kb_b", "Batas jatuh tegangan (%)", 1, 8, 0.5, 3, "3.0")],
                       "btnKabel", "toggleKabel", "kabelInfo",
@@ -423,8 +423,8 @@ def materi():
     isi += anim_panel(4, "pink", r"Sumber Nyata: Tegangan Terminal dan Daya terhadap Arus \(V_t = E - Ir\)", "cvSumber",
                       [("sl_sn_e", "v_sn_e", "Ggl E (V)", 6, 60, 0.2, 12.6, "12.6"), ("sl_sn_r", "v_sn_r", "Hambatan dalam r (Ω)", 0.005, 0.5, 0.005, 0.05, "0.050"), ("sl_sn_imax", "v_sn_imax", "Rentang arus tampilan (A)", 20, 400, 10, 120, "120")],
                       "btnSumber", "toggleSumber", "sumberInfo",
-                      "<strong>📊 Cara Membaca Animasi 4:</strong> Garis biru adalah tegangan terminal yang turun linear terhadap arus; kurva hijau putus-putus adalah daya yang diterima beban.<br>Amati: (1) <strong style=\"color:var(--pink)\">Memperbesar r membuat garis tegangan lebih curam</strong>; sumber 'lemah' cepat kehilangan tegangan. (2) Daya beban memuncak di I = E/2r (setengah arus hubung singkat), titik yang sama dengan R_L = r. (3) Readout menampilkan arus hubung singkat E/r, angka yang menentukan sekring di dekat baterai. Soal C8.")
-    isi += kotak("info-box", "<strong>🔍 Latihan Mandiri:</strong> pada Animasi 3 atur 25 A, 30 m, batas 3%: kabel yang dipilih harus 25 mm², sesuai Bagian 06. Naikkan batas ke 5% dan lihat kabel mana yang kini cukup. Lalu pada Animasi 2 cari R_L yang memberi efisiensi 90% dan bandingkan dayanya dengan puncak.")
+                      "<strong>📊 Cara Membaca Animasi 4:</strong> Garis biru adalah tegangan terminal yang turun linear terhadap arus; kurva hijau putus-putus adalah daya yang diterima beban.<br>Amati: (1) <strong style=\"color:var(--pink)\">Memperbesar r membuat garis tegangan lebih curam</strong>; sumber 'lemah' cepat kehilangan tegangan. (2) Daya beban memuncak di I = E/2r (setengah arus hubung singkat), titik yang sama dengan R<sub>L</sub> = r. (3) Readout menampilkan arus hubung singkat E/r, angka yang menentukan sekring di dekat baterai. Soal C8.")
+    isi += kotak("info-box", "<strong>🔍 Latihan Mandiri:</strong> pada Animasi 3 atur 25 A, 30 m, batas 3%: kabel yang dipilih harus 25 mm², sesuai Bagian 06. Naikkan batas ke 5% dan lihat kabel mana yang kini cukup. Lalu pada Animasi 2 cari R<sub>L</sub> yang memberi efisiensi 90% dan bandingkan dayanya dengan puncak.")
     m += bagian(7, "m-animasi", "Animasi Interaktif<br>Jaringan DC",
                 "Geser parameter dan amati langsung bagaimana arus terbagi di jaringan seri–paralel, di mana daya beban memuncak dan berapa efisiensinya, bagaimana panjang dan penampang kabel menentukan jatuh tegangan, serta bagaimana sumber nyata melemah saat dibebani. Empat animasi ini menghubungkan Persamaan (1)–(10) dengan keputusan rancangan yang nyata.",
                 isi, "ANIMASI")
@@ -465,7 +465,7 @@ print(f"V1 = {V1:.4f} V, V_par = {V_par:.4f} V  -> KVL: V1 + V_par = {V1 + V_par
 print(f"I2 = {I2:.4f} A, I3 = {I3:.4f} A     -> KCL: I2 + I3 = {I2 + I3:.4f} A")
 P = {"R1": I**2*R1, "R2": I2**2*R2, "R3": I3**2*R3}
 print(f"Daya tiap resistor: {P};  jumlah = {sum(P.values()):.4f} W = V*I = {V*I:.4f} W")''')
-    isi += kode("Cell 3 — Efisiensi Penyaluran, Transfer Daya Maksimum, dan Kurva P_L(R_L)", '''import numpy as np
+    isi += kode("Cell 3 — Efisiensi Penyaluran, Transfer Daya Maksimum, dan Kurva P<sub>L</sub>(R<sub>L</sub>)", '''import numpy as np
 import matplotlib.pyplot as plt
 
 # Efisiensi penyaluran (Persamaan 7)
@@ -501,7 +501,7 @@ print(f"Kabel dipilih = {cukup[0]} mm^2" if cukup.size else "Perlu kabel > 50 mm
 for A in [6, 16, 25]:
     dV = 2 * rho_Cu * L * I / A
     print(f"{A:3.0f} mm^2: dV = {dV:.4f} V ({dV/V_sistem*100:.2f} %), rugi = {I*dV:.2f} W, eta = {V_sistem*I/(V_sistem*I+I*dV)*100:.3f} %")''')
-    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan angka di Bagian 03–06: I = {ind(I_REF, 3)} A pada jaringan contoh, P_maks = 144 W untuk sumber 24 V/1 Ω, dan kabel 25 mm² untuk 25 A sejauh 30 m. Cell 2–4 memuat pola penyelesaian soal Hard C11–C15; pahami langkahnya, jangan hanya menyalin angkanya.")
+    isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan angka di Bagian 03–06: I = {ind(I_REF, 3)} A pada jaringan contoh, P<sub>maks</sub> = 144 W untuk sumber 24 V/1 Ω, dan kabel 25 mm² untuk 25 A sejauh 30 m. Cell 2–4 memuat pola penyelesaian soal Hard C11–C15; pahami langkahnya, jangan hanya menyalin angkanya.")
     m += bagian(8, "m-jupyter", "Implementasi Python<br>di Jupyter Notebook",
                 "Empat cell berikut adalah fondasi kode untuk mengerjakan tugas. Salin satu cell utuh ke Jupyter Notebook (VS Code), jalankan apa adanya lebih dulu, baru ubah parameternya. Setiap perhitungan diberi nomor persamaan yang dipakainya supaya dapat ditelusuri kembali ke materi.",
                 isi, "IMPLEMENTASI PYTHON")
@@ -542,9 +542,9 @@ TUGAS_HERO = f'''<div class="hero" data-tab="tugas" style="min-height:60vh">
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">V = I·R</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">1/R_par = Σ 1/R_k</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">P_maks = E²/(4r)</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">V_t = E − I·r</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">1/R<sub>par</sub> = Σ 1/R<sub>k</sub></span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">P<sub>maks</sub> = E²/(4r)</span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">V<sub>t</sub> = E − I·r</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">ΔV = I·ρ·2L/A</span>
   </div>
   <div class="hero-content">
@@ -595,7 +595,7 @@ MC = [
 COMP_EZ_LABELS = ["Arus dari hukum Ohm", "Daya P = I²R", "Arus rangkaian seri", "Resistansi paralel tiga resistor", "Pembagi tegangan",
                   "Pembagi arus dua cabang", "Energi lampu DC sebulan", "Tegangan terminal sumber nyata", "Efisiensi penyaluran DC", "Jatuh tegangan kabel pergi-pulang"]
 COMP_HARD_LABELS = ["Transfer daya maksimum E²/(4r)", "Daya pada R₃ dalam jaringan seri–paralel", "Penampang kabel minimum untuk ΔV ≤ 3%",
-                    "Tegangan beban paralel di ujung saluran", "Efisiensi R_L/(r + R_L)"]
+                    "Tegangan beban paralel di ujung saluran", "Efisiensi R<sub>L</sub>/(r + R<sub>L</sub>)"]
 
 
 # ─────────────────────────── FORUM ───────────────────────────
@@ -623,7 +623,7 @@ FQ_RINGKAS = [
 def forum_page():
     q1 = fq(1, "14,165,233", "cyan", FQ_JUDUL[0],
             f"Jumlahkan daya ketiga beban dan hitung arus total pada 48 V (KCL, Persamaan 2 dan 5). Lalu hitung dua jatuh tegangan: pada hambatan dalam baterai (0,04 Ω, Persamaan 8) dan pada kabel 6 mm² sepanjang 25 m pergi-pulang (Persamaan 10). Berapa tegangan yang benar-benar sampai ke lampu, dan berapa persen penurunannya dari 48 V? Jelaskan mengapa lampu terang lagi begitu bor dimatikan.",
-            ["I = ΣP / V", "ΔV_bat = I·r", "ΔV_kabel = I·ρ·2L/A"],
+            ["I = ΣP / V", "ΔV<sub>bat</sub> = I·r", "ΔV<sub>kabel</sub> = I·ρ·2L/A"],
             "Jatuh tegangan pada kabel 6 mm² sepanjang 25 m (pergi-pulang) saat ketiga beban menyala adalah sekitar...",
             ["0,38 V, dapat diabaikan", "1,44 V, tepat pada batas 3%", f"{ind(DV_6, 2)} V, sekitar {ind(DV_6 / 48 * 100, 0)}% dari 48 V", "12,8 V, separuh tegangan sistem"],
             f"✅ Tepat! \\(I = {P_BENGKEL}/48 \\approx {ind(I_BENGKEL, 2)}\\) A; \\(\\Delta V = {ind(I_BENGKEL, 2)}\\times0{{,}}0172\\times50/6 \\approx {ind(DV_6, 2)}\\) V. Ditambah \\(I r = {ind(DV_BAT, 2)}\\) V di baterai, lampu hanya menerima \\(\\approx {ind(V_LAMPU_6, 1)}\\) V: jauh di bawah 46,56 V (batas 3%). Saat bor mati arus turun dan tegangan pulih.",
@@ -639,12 +639,12 @@ def forum_page():
             "Petunjuk: (1) Hitung ΔV dan rugi untuk kabel 16 mm², untuk jarak 8 m, dan untuk 96 V. (2) Bandingkan biaya dan kepraktisan. (3) Beri rekomendasi dengan alasan.")
     q3 = fq(3, "168,85,247", "violet", FQ_JUDUL[2],
             f"Seorang teman berpendapat: 'agar daya maksimum, resistansi beban bengkel harus disamakan dengan hambatan dalam baterai 0,04 Ω'. Hitung daya maksimum itu (Persamaan 9), arus yang mengalir, dan efisiensinya, lalu bandingkan dengan arus kerja bengkel sekitar {ind(I_BENGKEL, 0)} A. Jelaskan mengapa pendapat itu keliru untuk sistem tenaga, dan kapan teorema transfer daya maksimum justru berguna (misalnya pada MPPT panel surya).",
-            ["P_maks = E²/(4r)", "I = E/(2r)", "η = R_L/(r+R_L)"],
-            "Pada transfer daya maksimum (R_L = r = 0,04 Ω), baterai 48 V akan mengalirkan arus dan bekerja pada efisiensi...",
+            ["P<sub>maks</sub> = E²/(4r)", "I = E/(2r)", "η = R<sub>L</sub>/(r+R<sub>L</sub>)"],
+            "Pada transfer daya maksimum (R<sub>L</sub> = r = 0,04 Ω), baterai 48 V akan mengalirkan arus dan bekerja pada efisiensi...",
             ["600 A pada efisiensi 100%", "600 A pada efisiensi 50%, dengan 14,4 kW terbuang di dalam baterai", f"{ind(I_BENGKEL, 0)} A pada efisiensi 95%", "0 A, karena beban sama dengan hambatan dalam"],
             "✅ Tepat! \\(I = E/2r = 48/0{,}08 = 600\\) A dan \\(P_{maks} = 48^2/(4\\times0{,}04) = 14{,}4\\) kW ke beban, tetapi 14,4 kW lainnya memanaskan baterai (η = 50%). Kabel dan baterai akan rusak. Sistem tenaga bekerja pada \\(R_L \\gg r\\): arus puluhan ampere dengan efisiensi di atas 95%.",
             "❌ Pada \\(R_L = r\\) separuh daya terbuang di hambatan dalam, sehingga efisiensinya hanya 50%, dan arusnya \\(E/2r\\), ratusan ampere untuk baterai ber-r kecil. Hitung dulu \\(I = E/2r\\).",
-            "Petunjuk: (1) Hitung P_maks, I, dan η pada R_L = r. (2) Bandingkan dengan arus kerja bengkel. (3) Jelaskan mengapa sistem tenaga memilih R_L ≫ r, dan sebutkan kapan teorema ini berguna.")
+            "Petunjuk: (1) Hitung Pₘₐₖₛ, I, dan η saat resistansi beban sama dengan r. (2) Bandingkan dengan arus kerja bengkel. (3) Jelaskan mengapa sistem tenaga memilih resistansi beban ≫ r, dan sebutkan kapan teorema ini berguna.")
     kartu = lambda teks, rgb, warna: f'      <div style="background:rgba({rgb},.05);border:1px solid rgba({rgb},.15);border-radius:10px;padding:12px 16px;font-family:\'JetBrains Mono\',monospace;font-size:13px;color:var(--{warna})">{teks}</div>'
     return f'''<div class="page" id="page-forum">
 <div class="hero" data-tab="forum" style="min-height:55vh">
@@ -657,7 +657,7 @@ def forum_page():
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">I = ΣP/V</span>
     <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">ΔV = I·ρ·2L/A</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">V_t = E − I·r</span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">V<sub>t</sub> = E − I·r</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">6 mm² → 16 mm²?</span>
   </div>
   <div class="hero-content">

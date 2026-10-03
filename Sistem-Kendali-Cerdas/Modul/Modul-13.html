@@ -1433,6 +1433,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1682,11 +1753,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">e(t) = r(t) − y(t)</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">T(s) = G/(1+GH)</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">L = Kp·K</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">τ_cl = τ/(1+L)</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">L = K<sub>p</sub>·K</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">τ<sub>cl</sub> = τ/(1+L)</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">S + T = 1</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">u(t) = Kp·e(t)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">u(t) = K<sub>p</sub>·e(t)</span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">G(s) = K/(τs+1)</span>
   </div>
   <div class="hero-schematic">
@@ -1787,7 +1858,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Rule base</h3>
-      <p>Aturan IF–THEN menghubungkan kondisi error dan delta-error dengan aksi.</p>
+      <p>Aturan IF–THEN menghubungkan kondisi error dan perubahan error (Δe) dengan aksi.</p>
       <div class="formula">\(IF e=P \text{AND} de=N \text{THEN} u=PM\)</div>
     </div>
     <div class="card">
@@ -1808,7 +1879,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <table>
       <caption class="table-caption"><span class="anim-dot" aria-hidden="true"></span><span class="anim-title">Tabel 1 — Ringkasan konsep inti beserta bentuk matematisnya</span></caption>
       <thead><tr><th>Konsep</th><th>Bentuk / Rumus</th><th>Yang perlu diingat</th></tr></thead>
-      <tbody><tr><td>Fuzzifikasi</td><td>\(μ_A(x)∈[0,1]\)</td><td>Input crisp diubah menjadi derajat keanggotaan 0–1 pada beberapa himpunan linguistik.</td></tr><tr><td>Rule base</td><td>\(IF e=P \text{AND} de=N \text{THEN} u=PM\)</td><td>Aturan IF–THEN menghubungkan kondisi error dan delta-error dengan aksi.</td></tr><tr><td>Inferensi</td><td>\(α=min(μ_e,μ_{de})\)</td><td>Operator AND/OR dan implication menggabungkan kekuatan aturan.</td></tr><tr><td>Defuzzifikasi</td><td>\(u = \frac{(Σ α_i \cdot z_i)}{Σ α_i}\)</td><td>Output fuzzy diubah menjadi nilai actuator, misalnya centroid atau weighted average.</td></tr></tbody>
+      <tbody><tr><td>Fuzzifikasi</td><td>\(μ_A(x)∈[0,1]\)</td><td>Input crisp diubah menjadi derajat keanggotaan 0–1 pada beberapa himpunan linguistik.</td></tr><tr><td>Rule base</td><td>\(IF e=P \text{AND} de=N \text{THEN} u=PM\)</td><td>Aturan IF–THEN menghubungkan kondisi error dan perubahan error (Δe) dengan aksi.</td></tr><tr><td>Inferensi</td><td>\(α=min(μ_e,μ_{de})\)</td><td>Operator AND/OR dan implication menggabungkan kekuatan aturan.</td></tr><tr><td>Defuzzifikasi</td><td>\(u = \frac{(Σ α_i \cdot z_i)}{Σ α_i}\)</td><td>Output fuzzy diubah menjadi nilai actuator, misalnya centroid atau weighted average.</td></tr></tbody>
     </table>
   </div>
   <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
@@ -1883,7 +1954,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Penyetelan dan Pengujian Controller Fuzzy</h3>
   <p class="section-desc reveal">Penyetelan fuzzy dilakukan pada tiga tempat: rentang semesta pembicaraan tiap masukan dan keluaran, bentuk serta letak fungsi keanggotaan, dan isi basis aturan. Praktik yang tertib menetapkan rentang lebih dahulu dari data operasi, lalu menyusun aturan, dan baru terakhir menghaluskan fungsi keanggotaan. Gambar 5 mengilustrasikan gagasan ini.</p>
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 5 — Penyetelan dipindahkan ke faktor penskalaan" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="38" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="96.75" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Normalkan</text><text x="96.75" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Semesta −1…1</text><line x1="155.5" y1="39" x2="184.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="193.5,39 184.5,43.5 184.5,34.5" fill="#94a3b8"/><rect x="193.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#0ea5e9" stroke-width="1.6"/><text x="252.25" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Setel Ke,</text><text x="252.25" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Kde, Ku</text><line x1="311" y1="39" x2="340" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="349,39 340,43.5 340,34.5" fill="#94a3b8"/><rect x="349" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="407.75" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Uji per wilayah</text><line x1="466.5" y1="39" x2="495.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="504.5,39 495.5,43.5 495.5,34.5" fill="#94a3b8"/><rect x="504.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="563.25" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Bandingkan</text><text x="563.25" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Dgn PID</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Skala adalah kenop utamanya</text></svg>
+    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 5 — Penyetelan dipindahkan ke faktor penskalaan" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="38" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="96.75" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Normalkan</text><text x="96.75" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Semesta −1…1</text><line x1="155.5" y1="39" x2="184.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="193.5,39 184.5,43.5 184.5,34.5" fill="#94a3b8"/><rect x="193.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#0ea5e9" stroke-width="1.6"/><text x="252.25" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Setel K<tspan dy="2.5" font-size="8.3">e</tspan><tspan dy="-2.5">,</tspan></text><text x="252.25" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">K<tspan dy="2.5" font-size="8.3">de</tspan><tspan dy="-2.5">, K</tspan><tspan dy="2.5" font-size="8.3">u</tspan></text><line x1="311" y1="39" x2="340" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="349,39 340,43.5 340,34.5" fill="#94a3b8"/><rect x="349" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="407.75" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Uji per wilayah</text><line x1="466.5" y1="39" x2="495.5" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="504.5,39 495.5,43.5 495.5,34.5" fill="#94a3b8"/><rect x="504.5" y="16" width="117.5" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="563.25" y="36" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Bandingkan</text><text x="563.25" y="51" text-anchor="middle" font-size="11.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Dgn PID</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Skala adalah kenop utamanya</text></svg>
     <figcaption><strong>Gambar 5</strong> — Penyetelan dipindahkan ke faktor penskalaan. Semesta dinormalkan ke −1…1 sehingga seluruh penyetelan terkumpul di tiga faktor skala; menyetel fuzzy menjadi semirip menyetel gain PID.</figcaption>
   </figure>
   <p class="section-desc reveal">Faktor penskalaan pada masukan dan keluaran berperan mirip penguatan pada PID. Menaikkan penskalaan error setara menaikkan aksi proporsional, dan menaikkan penskalaan laju error setara menaikkan aksi turunan. Menyadari kesetaraan ini membuat penyetelan awal jauh lebih terarah.</p>
@@ -1895,7 +1966,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Menetapkan Semesta Pembicaraan dan Faktor Penskalaan</h3>
   <p class="section-desc reveal">Sebelum satu aturan pun ditulis, rentang setiap masukan dan keluaran perlu ditetapkan. Rentang inilah yang disebut semesta pembicaraan, dan menetapkannya sembarangan membuat seluruh penyetelan berikutnya berjalan di atas dasar yang salah. Skemanya diperlihatkan pada Gambar 6.</p>
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 240" role="img" aria-label="Gambar 6 — Semesta pembicaraan menentukan kepekaan" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="240" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="68.4" x2="642" y2="68.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="102.8" x2="642" y2="102.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="137.2" x2="642" y2="137.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="171.6" x2="642" y2="171.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="206" x2="642" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="206" x2="641" y2="206" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,206 641,210.5 641,201.5" fill="#94a3b8"/><line x1="48" y1="206" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,206.0 L48.0,34.0 L196.5,206.0" fill="none" stroke="#0ea5e9" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><text x="78" y="26" text-anchor="middle" font-size="11.5" fill="#0ea5e9" font-weight="700" font-family="'JetBrains Mono',monospace">NB</text><path d="M48.0,206.0 L196.5,34.0 L345.0,206.0" fill="none" stroke="#00e09e" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><text x="196.5" y="26" text-anchor="middle" font-size="11.5" fill="#00e09e" font-weight="700" font-family="'JetBrains Mono',monospace">NK</text><path d="M196.5,206.0 L345.0,34.0 L493.5,206.0" fill="none" stroke="#f97316" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><text x="345" y="26" text-anchor="middle" font-size="11.5" fill="#f97316" font-weight="700" font-family="'JetBrains Mono',monospace">Z</text><path d="M345.0,206.0 L493.5,34.0 L642.0,206.0" fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><text x="493.5" y="26" text-anchor="middle" font-size="11.5" fill="#a855f7" font-weight="700" font-family="'JetBrains Mono',monospace">PK</text><path d="M493.5,206.0 L642.0,34.0 L642.0,206.0" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><text x="612" y="26" text-anchor="middle" font-size="11.5" fill="#ef4444" font-weight="700" font-family="'JetBrains Mono',monospace">PB</text><line x1="226.2" y1="34" x2="226.2" y2="206" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4 4" stroke-linecap="round"/><text x="233.2" y="198" text-anchor="start" font-size="11" fill="#fbbf24"  font-family="'Inter',system-ui,sans-serif">Letak ditentukan Ke</text><text x="345" y="233" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Error × Ke</text><g transform="rotate(-90 15 120)"><text x="15" y="124" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Keanggotaan</text></g></svg>
+    <svg viewBox="0 0 660 240" role="img" aria-label="Gambar 6 — Semesta pembicaraan menentukan kepekaan" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="240" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="68.4" x2="642" y2="68.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="102.8" x2="642" y2="102.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="137.2" x2="642" y2="137.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="171.6" x2="642" y2="171.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="206" x2="642" y2="206" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="206" x2="641" y2="206" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,206 641,210.5 641,201.5" fill="#94a3b8"/><line x1="48" y1="206" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,206.0 L48.0,34.0 L196.5,206.0" fill="none" stroke="#0ea5e9" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><text x="78" y="26" text-anchor="middle" font-size="11.5" fill="#0ea5e9" font-weight="700" font-family="'JetBrains Mono',monospace">NB</text><path d="M48.0,206.0 L196.5,34.0 L345.0,206.0" fill="none" stroke="#00e09e" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><text x="196.5" y="26" text-anchor="middle" font-size="11.5" fill="#00e09e" font-weight="700" font-family="'JetBrains Mono',monospace">NK</text><path d="M196.5,206.0 L345.0,34.0 L493.5,206.0" fill="none" stroke="#f97316" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><text x="345" y="26" text-anchor="middle" font-size="11.5" fill="#f97316" font-weight="700" font-family="'JetBrains Mono',monospace">Z</text><path d="M345.0,206.0 L493.5,34.0 L642.0,206.0" fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><text x="493.5" y="26" text-anchor="middle" font-size="11.5" fill="#a855f7" font-weight="700" font-family="'JetBrains Mono',monospace">PK</text><path d="M493.5,206.0 L642.0,34.0 L642.0,206.0" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><text x="612" y="26" text-anchor="middle" font-size="11.5" fill="#ef4444" font-weight="700" font-family="'JetBrains Mono',monospace">PB</text><line x1="226.2" y1="34" x2="226.2" y2="206" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4 4" stroke-linecap="round"/><text x="233.2" y="198" text-anchor="start" font-size="11" fill="#fbbf24"  font-family="'Inter',system-ui,sans-serif">Letak ditentukan K<tspan dy="2.4" font-size="8">e</tspan></text><text x="345" y="233" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Error × K<tspan dy="2.6" font-size="8.6">e</tspan></text><g transform="rotate(-90 15 120)"><text x="15" y="124" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Keanggotaan</text></g></svg>
     <figcaption><strong>Gambar 6</strong> — Semesta pembicaraan menentukan kepekaan. Faktor skala masukan menggeser di mana nilai terukur jatuh pada semesta; salah skala membuat semua pembacaan menumpuk di satu himpunan dan aturan lain tak pernah aktif.</figcaption>
   </figure>
   <p class="section-desc reveal">Rentang masukan diambil dari data operasi nyata, bukan dari perkiraan. Untuk error, rentangnya kira-kira sebesar simpangan terbesar yang wajar terjadi; untuk laju error, sebesar laju perubahan tercepat yang pernah teramati. Rentang yang terlalu lebar membuat sebagian besar keadaan terkumpul di sekitar nol sehingga aksi kontrolnya lemah.</p>
@@ -2005,7 +2076,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <p class="section-desc reveal">Perhatikan penyebutnya berupa jumlah seluruh kekuatan aturan. Bila basis aturan tidak lengkap sehingga pada suatu keadaan tidak ada aturan yang aktif, penyebutnya menjadi nol dan keluarannya tidak terdefinisi; inilah alasan pemeriksaan kelengkapan bersifat wajib, bukan anjuran.</p>
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Contoh Terhitung: Keluaran pada Dua Masukan</h3>
-  <div class="info-box reveal"><strong>Diketahui:</strong> Error e = 3,0 dengan mu(Nol) = 0,4 dan mu(Positif Kecil) = 0,6 &nbsp;·&nbsp; Laju error de = -1,0 dengan mu(Nol) = 0,7 dan mu(Negatif Kecil) = 0,3 &nbsp;·&nbsp; Aturan memakai operasi minimum untuk hubungan dan; pusat keluaran: Nol = 0, Positif Kecil = 5, Negatif Kecil = -5</div>
+  <div class="info-box reveal"><strong>Diketahui:</strong> Error e = 3,0 dengan μ(Nol) = 0,4 dan μ(Positif Kecil) = 0,6 &nbsp;·&nbsp; Laju error de = -1,0 dengan μ(Nol) = 0,7 dan μ(Negatif Kecil) = 0,3 &nbsp;·&nbsp; Aturan memakai operasi minimum untuk hubungan dan; pusat keluaran: Nol = 0, Positif Kecil = 5, Negatif Kecil = -5</div>
   <div class="cards reveal">
     <div class="card">
       <div class="card-icon">🎯</div>
@@ -2455,7 +2526,7 @@ function _siskenPasangTeksPas(c,x){
     var utuh=teks, potong=false;
     // Elipsis hanya bila teks TELANJANG masih tak muat setelah menyusut —
     // jangan menghukum teks yang pas hanya karena '…' ikut ditimbang.
-    if(x.measureText(teks).width>batas){
+    if(x.measureText(teks).width>batas){teks=teks.replace(/<\/?su[bp]>/g,''); // penanda rumus NOTASI-KANVAS tak boleh terpenggal
       while(teks.length>4&&x.measureText(teks+'…').width>batas)teks=teks.slice(0,-1);
       teks+='…';potong=true;
     }
@@ -2698,10 +2769,10 @@ document.addEventListener('DOMContentLoaded',function(){
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">L = Kp·K</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">τ_cl = τ/(1+L)</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">Mp = e^(−πζ/√(1−ζ²))</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">L = K<sub>p</sub>·K</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">τ<sub>cl</sub> = τ/(1+L)</span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">M<sub>p</sub> = e<sup>−πζ/√(1−ζ²)</sup></span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">S + T = 1</span>
   </div>
   <div class="hero-content">
@@ -3177,8 +3248,8 @@ document.addEventListener('DOMContentLoaded',function(){
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">e(t) = r(t) − y(t)</span>
-    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">L = Kp·K</span>
+    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">L = K<sub>p</sub>·K</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">on–off → ripple</span>
   </div>
   <div class="hero-content">
@@ -4798,6 +4869,35 @@ window._setBtnState = _setBtnState;
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4865,15 +4965,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -4912,7 +5014,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -4925,7 +5027,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5906,7 +6008,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(255,179,0,.85)'; ctx.beginPath();
     ctx.arc(px,py,18,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.fillText('m',px,py+4);
-    document.getElementById('sysRealInfo').textContent=`Pendulum L=1m: ω_n = √(g/L) = ${wn.toFixed(2)} rad/s, T = ${(2*Math.PI/wn).toFixed(2)} s`;
+    document.getElementById('sysRealInfo').innerHTML=`Pendulum L=1m: ω<sub>n</sub> = √(g/L) = ${wn.toFixed(2)} rad/s, T = ${(2*Math.PI/wn).toFixed(2)} s`;
   }
   else if(_sysRealKind==='msd'){
     wn=Math.sqrt(100);
@@ -5921,13 +6023,13 @@ function drawSysReal(){
     ctx.lineTo(cx+x-30,cy); ctx.stroke();
     ctx.fillStyle='rgba(14,165,233,.85)'; ctx.fillRect(cx+x-30,cy-30,60,60);
     ctx.fillStyle='#fff'; ctx.font='bold 14px JetBrains Mono'; ctx.fillText('m',cx+x,cy+5);
-    document.getElementById('sysRealInfo').textContent=`Mass-Spring k=100 N/m, m=1 kg: ω_n = √(k/m) = ${wn.toFixed(2)} rad/s`;
+    document.getElementById('sysRealInfo').innerHTML=`Mass-Spring k=100 N/m, m=1 kg: ω<sub>n</sub> = √(k/m) = ${wn.toFixed(2)} rad/s`;
   }
   else if(_sysRealKind==='cantilever'){
     wn=2*Math.PI*1.5;
     const amp=Math.sin(2*t)*0.5;
     sigValue=amp;
-    label='y_tip(t)'; sigUnit='m';
+    label='y<sub>tip</sub>(t)'; sigUnit='m';
     ctx.fillStyle='#1e293b'; ctx.fillRect(20,cy-40,8,80);
     ctx.strokeStyle='rgba(0,224,158,.8)'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(28,cy);
@@ -5943,7 +6045,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(0,224,158,.9)';
     ctx.beginPath(); ctx.arc(28+beamL,tipY,12,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Cantilever Mode 1',cx,cy+80);
-    document.getElementById('sysRealInfo').textContent='Cantilever: ω_n = (1.875)²·√(EI/(ρAL⁴)), yaitu bending mode 1, tip mass berosilasi';
+    document.getElementById('sysRealInfo').innerHTML='Cantilever: ω<sub>n</sub> = (1.875)²·√(EI/(ρAL⁴)), yaitu bending mode 1, tip mass berosilasi';
   }
   else if(_sysRealKind==='rotor'){
     wn=2*Math.PI*1.27;
@@ -5959,13 +6061,13 @@ function drawSysReal(){
     ctx.fillStyle='#fff'; ctx.beginPath();
     ctx.arc(cx+Math.cos(spin)*20, cy+wobble+Math.sin(spin)*20, 4, 0, Math.PI*2); ctx.fill();
     ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Rotor + Bearing',cx,cy+60);
-    document.getElementById('sysRealInfo').textContent='Rotor + Bearing: ω_n = √(k_journal/m_rotor), bearing journal sebagai pegas radial';
+    document.getElementById('sysRealInfo').innerHTML='Rotor + Bearing: ω<sub>n</sub> = √(k<sub>journal</sub>/m<sub>rotor</sub>), bearing journal sebagai pegas radial';
   }
   else if(_sysRealKind==='suspension'){
     wn=2*Math.PI*1.0;
     const bump=Math.sin(wn*t)*10;
     sigValue=bump/10*0.3;
-    label='z_body(t)'; sigUnit='m';
+    label='z<sub>body</sub>(t)'; sigUnit='m';
     ctx.strokeStyle='#1e293b'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(20,cy+70+bump); ctx.lineTo(splitX-20,cy+70+bump); ctx.stroke();
     ctx.fillStyle='#0f172a';
@@ -5980,7 +6082,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(14,165,233,.9)';
     ctx.fillRect(cx-100,cy-25+bump*0.3,200,30);
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Body',cx,cy-5+bump*0.3);
-    document.getElementById('sysRealInfo').textContent='Suspensi mobil: ω_n = √(k_spring/m_body) ≈ 1-2 Hz natural ride frequency';
+    document.getElementById('sysRealInfo').innerHTML='Suspensi mobil: ω<sub>n</sub> = √(k<sub>spring</sub>/m<sub>body</sub>) ≈ 1-2 Hz natural ride frequency';
   }
 
   // Append to history (keep 200 points)
@@ -6133,8 +6235,8 @@ function drawForumCanvas() {
   ctx.strokeStyle='rgba(0,224,158,.2)'; ctx.strokeRect(padL+6, padT+8, 250, 70);
   ctx.fillStyle='#34d399'; ctx.font='bold 10px JetBrains Mono'; ctx.fillText('Pompa Sentrifugal — Velocity v(t)', padL+14, padT+22);
   ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono';
-  ctx.fillText(`RPM = ${RPM}  |  f_dominan = ${f1} Hz (1×RPM)`, padL+14, padT+36);
-  ctx.fillText(`v_RMS ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
+  ctx.fillText(`RPM = ${RPM}  |  f<sub>dominan</sub> = ${f1} Hz (1×RPM)`, padL+14, padT+36);
+  ctx.fillText(`v<sub>RMS</sub> ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
   ctx.fillText(`Hipotesis: unbalance rotor (verifikasi via FFT)`, padL+14, padT+64);
 }
 // Resize handler — redraw all active canvases
@@ -6807,7 +6909,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
   /* ── Floating physics formulas (Kontrol Logika Fuzzy) ── */
   const formulas = [
     { t: 'e(t) = r(t) − y(t)',                 s: 13 },
-    { t: 'u(t) = Kp·e(t)',                     s: 14 },
+    { t: 'u(t) = K<sub>p</sub>·e(t)',                     s: 14 },
     { t: 'G(s) = Y(s)/U(s)',                   s: 13 },
     { t: 'L(s) = C(s)G(s)',                    s: 14 },
     { t: 'T(s) = L(s)/(1+L(s))',               s: 12 },
@@ -6830,7 +6932,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

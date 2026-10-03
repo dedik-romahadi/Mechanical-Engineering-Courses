@@ -132,11 +132,11 @@ def gambar():
     body += t(cx0, cy0 + 14, "⌀d₀", 10, CY, "middle", "600")  # di bawah titik pusat
     # label lubang induk di luar bibir flens (dua baris) dengan garis penunjuk; label lingkaran baut di bawah flens
     body += f'<line x1="{cx0 + rbc + rb + 2}" y1="{cy0}" x2="{cx0 + R + 3}" y2="{cy0}" stroke="{GR}" stroke-width=".8" stroke-dasharray="3 2"/>'
-    body += t(cx0 + R + 6, cy0 - 2, "n × ⌀d_b", 10, GR, "start", "600") + t(cx0 + R + 6, cy0 + 13, "(induk)", 10, GR, "start", "600")
+    body += t(cx0 + R + 6, cy0 - 2, "n × ⌀d<sub>b</sub>", 10, GR, "start", "600") + t(cx0 + R + 6, cy0 + 13, "(induk)", 10, GR, "start", "600")
     body += f'<line x1="{cx0}" y1="{cy0 + rbc + 2}" x2="{cx0}" y2="{cy0 + R + 7}" stroke="{AM}" stroke-width=".8" stroke-dasharray="3 2"/>'
-    body += t(cx0, cy0 + R + 20, "lingkaran baut ⌀D_bc", 10, AM, "middle", "600")
+    body += t(cx0, cy0 + R + 20, "lingkaran baut ⌀D<sub>bc</sub>", 10, AM, "middle", "600")
     body += f'<circle cx="{cx0}" cy="{cy0}" r="2" fill="{TX}"/>'
-    body += catatan(["Sketch XY: Circle ⌀D → Pad h", "Muka atas: Circle ⌀d₀ sepusat →", "  Pocket Through all", "Muka atas: Circle ⌀d_b pada", "  (D_bc/2, 0) → Pocket Through all", "  → PolarPattern n × 360° (sumbu Z)", "baca: Body.Shape.Volume"], 330, 36)
+    body += catatan(["Sketch XY: Circle ⌀D → Pad h", "Muka atas: Circle ⌀d₀ sepusat →", "  Pocket Through all", "Muka atas: Circle ⌀d<sub>b</sub> pada", "  (D<sub>bc</sub>/2, 0) → Pocket Through all", "  → PolarPattern n × 360° (sumbu Z)", "baca: Body.Shape.Volume"], 330, 36)
     out.append(gambar_tugas(body, "Tugas 4 — flens dengan lubang pusat dan pola polar n lubang baut", h=256))
     # ── T5: pelat + boss + Draft Clone berskala k → Part Union ──
     cx, cy, s = 140, 205, 1.15
@@ -150,7 +150,7 @@ def gambar():
     body += _sil(a / 4, b / 2, tt, tt + hB, dB / 2, cx, cy, s, AM)
     body += _sil(3 * a / 4, b / 2, tt, tt + k * hB, k * dB / 2, cx, cy, s, GR, "rgba(0,224,158,.07)")
     p = iso(a / 4, b / 2, tt + hB, cx, cy, s)
-    body += t(p[0] - dB / 2 * s - 6, p[1] - 4, "Boss ⌀d_B × h_B", 10, AM, "end", "600")
+    body += t(p[0] - dB / 2 * s - 6, p[1] - 4, "Boss ⌀d<sub>B</sub> × h<sub>B</sub>", 10, AM, "end", "600")
     p = iso(3 * a / 4, b / 2, tt + k * hB, cx, cy, s)
     body += t(p[0], p[1] - 18, "Clone: Scale k", 10, GR, "middle", "600")
     p = iso(a / 2, -4, 0, cx, cy, s)
@@ -159,7 +159,7 @@ def gambar():
     body += t(p[0], p[1] + 18, "(a/4, b/2)", 9, AX, "middle")
     p = iso(3 * a / 4, b / 2, tt, cx, cy, s)
     body += t(p[0] - 8, p[1] + 20, "(3a/4, b/2)", 9, AX, "middle")
-    body += catatan(["Body Pelat: a × b → Pad t", "Body Boss: ⌀d_B → Pad h_B,", "  Placement (a/4, b/2, t)", "Draft Clone Boss: Scale (k,k,k),", "  Placement (3a/4, b/2, t)", "Part → Boolean → Union ketiganya", "baca: Fusion.Shape.Volume"], 330, 36)
+    body += catatan(["Body Pelat: a × b → Pad t", "Body Boss: ⌀d<sub>B</sub> → Pad h<sub>B</sub>,", "  Placement (a/4, b/2, t)", "Draft Clone Boss: Scale (k,k,k),", "  Placement (3a/4, b/2, t)", "Part → Boolean → Union ketiganya", "baca: Fusion.Shape.Volume"], 330, 36)
     out.append(gambar_tugas(body, "Tugas 5 — pelat, boss, dan Draft Clone berskala k disatukan Union", h=250))
     return out
 

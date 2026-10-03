@@ -111,9 +111,9 @@ def gambar2():
     b += t(p[0] + 10, p[1] + 4, f"Part Extrude L = {L} (arah Z)", 10.5, "#22d3ee", "start")
     b += t(452, 56, "Part Extrude:", 11, "#22d3ee", "start", "600")
     b += t(452, 74, "Direction Normal · Length L · Solid", 10, AX, "start")
-    b += t(452, 104, "A_L = W·t + (H − t)·t", 11, TX, "start")
+    b += t(452, 104, "A<sub>L</sub> = W·t + (H − t)·t", 11, TX, "start")
     b += t(452, 122, f"= {ind(A_L, 0)} mm²", 10.5, "#00e09e", "start")
-    b += t(452, 152, "V = L·A_L", 11, TX, "start")
+    b += t(452, 152, "V = L·A<sub>L</sub>", 11, TX, "start")
     b += t(452, 170, f"= {ind(V_L, 1)} mm³", 10.5, "#00e09e", "start")
     b += t(452, 200, "Boolean: Cut · Fuse · Common", 10, AX, "start")
     b += teks2(340, 246, "Kontur 2D dari Draft (Make Face) ditebalkan Part Extrude menjadi solid; hasilnya bebas dipadukan lewat Boolean dengan solid lain", 11, AX, maks=70)
@@ -139,16 +139,16 @@ def gambar3():
     b += t(cx + 44, cy - 24, "360°/n", 10, "#ec4899", "start", "600")     # di celah lingkaran baut, bebas dari tepi flens
     b += t(cx, cy - R - 8, "⌀D (Pad h)", 10.5, "#22d3ee")
     b += t(cx, cy + 4, "⌀d₀", 10, "#22d3ee")
-    b += t(cx + R + 8, cy + 4, "n × ⌀d_b (induk hijau)", 10, "#00e09e", "start")      # di luar tepi flens, sebaris lubang induk
-    b += t(cx, cy + rbc + 12, "lingkaran baut ⌀D_bc", 10, "#f59e0b")                  # di antara lingkaran baut dan tepi flens
+    b += t(cx + R + 8, cy + 4, "n × ⌀d<sub>b</sub> (induk hijau)", 10, "#00e09e", "start")      # di luar tepi flens, sebaris lubang induk
+    b += t(cx, cy + rbc + 12, "lingkaran baut ⌀D<sub>bc</sub>", 10, "#f59e0b")                  # di antara lingkaran baut dan tepi flens
     b += t(440, 50, "Pocket + PolarPattern:", 11, "#a855f7", "start", "600")
     b += t(440, 68, "Axis Z · Angle 360° · Occurrences n", 10, AX, "start")
-    b += t(440, 98, "V = h·(π/4)(D² − d₀² − n·d_b²)", 11, TX, "start")
+    b += t(440, 98, "V = h·(π/4)(D² − d₀² − n·d<sub>b</sub>²)", 11, TX, "start")
     b += t(440, 116, f"= {ind(V_FLENS, 1)} mm³ (h = {H_F})", 10.5, "#00e09e", "start")
     b += t(440, 146, f"sudut antar lubang 360°/n = {360 // N_F}°", 10, AX, "start")
-    b += t(440, 164, "D_bc = (D + d₀)/2 pada contoh", 10, AX, "start")
+    b += t(440, 164, "D<sub>bc</sub> = (D + d₀)/2 pada contoh", 10, AX, "start")
     b += t(440, 194, "Occurrences 6 → 8: semua lubang ikut", 10, AX, "start")
-    b += teks2(340, 258, "Satu lubang induk disketsa pada lingkaran baut, lalu PolarPattern menyalinnya n kali; mengubah n atau D_bc memperbarui seluruh pola", 11, AX, maks=70)
+    b += teks2(340, 258, "Satu lubang induk disketsa pada lingkaran baut, lalu PolarPattern menyalinnya n kali; mengubah n atau D<sub>bc</sub> memperbarui seluruh pola", 11, AX, maks=70)
     return svg(680, 284, b, "Gambar 3 — Flens cakram: lubang pusat dan pola polar n lubang baut")
 
 
@@ -238,15 +238,15 @@ def gambar6():
     b += _silinder(a / 4, bb / 2, tt, tt + hB, dB / 2, cx, cy, s, "#f59e0b")
     b += _silinder(3 * a / 4, bb / 2, tt, tt + k * hB, k * dB / 2, cx, cy, s, "#00e09e")
     p = _iso(a / 4, bb / 2, tt + hB, cx, cy, s)
-    b += t(p[0] - dB / 2 * s - 8, p[1] - 6, "Body Boss ⌀d_B × h_B", 10, "#f59e0b", "end")
+    b += t(p[0] - dB / 2 * s - 8, p[1] - 6, "Body Boss ⌀d<sub>B</sub> × h<sub>B</sub>", 10, "#f59e0b", "end")
     p = _iso(3 * a / 4, bb / 2, tt + k * hB, cx, cy, s)
-    b += t(p[0] + 4, p[1] - 22, "Clone: Scale k → ⌀k·d_B × k·h_B", 10, "#00e09e")
+    b += t(p[0] + 4, p[1] - 22, "Clone: Scale k → ⌀k·d<sub>B</sub> × k·h<sub>B</sub>", 10, "#00e09e")
     p = _iso(a / 2, -3, 0, cx, cy, s)             # di bawah rusuk bawah-depan pelat
     b += t(p[0] + 4, p[1] + 26, "Pelat a × b × t (Pad)", 10.5, "#22d3ee")
     b += t(440, 50, "Draft Clone + Part Union:", 11, "#00e09e", "start", "600")
     b += t(440, 68, "Clone mengikuti asal; Scale (k, k, k)", 10, AX, "start")
-    b += t(440, 98, "V_clone = k³·V_boss", 11, TX, "start")
-    b += t(440, 116, "V = abt + (π/4)d_B²h_B(1 + k³)", 11, TX, "start")
+    b += t(440, 98, "V<sub>clone</sub> = k³·V<sub>boss</sub>", 11, TX, "start")
+    b += t(440, 116, "V = abt + (π/4)d<sub>B</sub>²h<sub>B</sub>(1 + k³)", 11, TX, "start")
     b += t(440, 134, f"= {ind(V_RAKIT, 1)} mm³", 10.5, "#00e09e", "start")
     b += t(440, 164, "App::Link: geometri asal, Scale 1", 10, AX, "start")
     b += t(440, 182, "Placement: (a/4, b/2, t) · (3a/4, b/2, t)", 10, AX, "start")
@@ -367,8 +367,8 @@ def gambar7():
              (12, "PolarPattern Axis Base Z · Angle 360°", AX, ""),
              (12, f"Occurrences {N_F} (lubang induk hijau)", AX, ""),
              (0, "Boss (Body): Placement Base =", PK, "600"),
-             (12, f"(D_bc/2·cos 30°, D_bc/2·sin 30°, {H_F})", AX, ""),
-             (12, f"D_bc/2 = {ind(DBC_F / 2, 0)} (jari-jari lingkaran baut)", AX, ""),
+             (12, f"(D<sub>bc</sub>/2·cos 30°, D<sub>bc</sub>/2·sin 30°, {H_F})", AX, ""),
+             (12, f"D<sub>bc</sub>/2 = {ind(DBC_F / 2, 0)} (jari-jari lingkaran baut)", AX, ""),
              (0, "Link ×2: Placement sudut 150° dan 270°", PK, "600"),
              (0, "Part Braket: Rotation Axis (1,0,0), 90°", CY, "600"),
              (0, "Baja ρ = 7,85 g/cm³", AX, ""),
@@ -440,7 +440,7 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
     <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">Loft ruled</span>
     <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">Thickness t</span>
     <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">App::Link</span>
-    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">V_clone = k³·V</span>
+    <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">V<sub>clone</sub> = k³·V</span>
     <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">Placement.Base.x</span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">Part → Union</span>
   </div>
@@ -514,10 +514,10 @@ def materi():
     m += bagian(2, "m-2d3d", "Dari 2D ke 3D:<br>Draft/Sketch → Part Extrude dan Boolean", "Kontur 2D yang sudah dikuasai pada Modul 1–4 tidak terbuang: Part Extrude menebalkannya menjadi solid dan Boolean memadukannya dengan solid lain. Bagian ini membahas parameter Extrude, syarat profil, dan rumus volume prisma profil L.", isi, "2D KE 3D")
 
     # 03 — Pola fitur
-    isi = figure(3, "Flens cakram: lubang pusat dan pola polar n lubang baut", f"Cakram ⌀{D_F} × {H_F} dengan lubang pusat ⌀{D0_F} dan {N_F} lubang baut ⌀{DB_F} pada lingkaran baut ⌀{ind(DBC_F, 0)}; volumenya h·(π/4)(D² − d₀² − n·d_b²) = {ind(V_FLENS, 1)} mm³.", gambar3())
+    isi = figure(3, "Flens cakram: lubang pusat dan pola polar n lubang baut", f"Cakram ⌀{D_F} × {H_F} dengan lubang pusat ⌀{D0_F} dan {N_F} lubang baut ⌀{DB_F} pada lingkaran baut ⌀{ind(DBC_F, 0)}; volumenya h·(π/4)(D² − d₀² − n·d<sub>b</sub>²) = {ind(V_FLENS, 1)} mm³.", gambar3())
     isi += formula(2, "Volume Flens Berpola Polar", r"V = h\,\frac{\pi}{4}\left(D^{2} - d_0^{2} - n\,d_b^{2}\right)",
-                   r"\(D\) = diameter cakram &nbsp;·&nbsp; \(h\) = tebal (Pad) &nbsp;·&nbsp; \(d_0\) = diameter lubang pusat &nbsp;·&nbsp; \(n\) = jumlah lubang baut (Occurrences) &nbsp;·&nbsp; \(d_b\) = diameter lubang baut. Contoh " + f"D = {D_F}, h = {H_F}, d₀ = {D0_F}, n = {N_F}, d_b = {DB_F}" + r": \(V = " + ind(V_FLENS, 1) + r"\) mm³.",
-                   "Setiap lubang tembus membuang silinder (π/4)·d²·h. PolarPattern menyalin Pocket lubang baut n kali dengan sudut 360°/n, sehingga suku n·d_b² muncul otomatis; posisi lingkaran baut D_bc tidak memengaruhi volume selama lubang tidak saling memotong dan tidak keluar dari cakram. Rumus ini yang memeriksa Tugas 4.",
+                   r"\(D\) = diameter cakram &nbsp;·&nbsp; \(h\) = tebal (Pad) &nbsp;·&nbsp; \(d_0\) = diameter lubang pusat &nbsp;·&nbsp; \(n\) = jumlah lubang baut (Occurrences) &nbsp;·&nbsp; \(d_b\) = diameter lubang baut. Contoh " + f"D = {D_F}, h = {H_F}, d₀ = {D0_F}, n = {N_F}, d<sub>b</sub> = {DB_F}" + r": \(V = " + ind(V_FLENS, 1) + r"\) mm³.",
+                   "Setiap lubang tembus membuang silinder (π/4)·d²·h. PolarPattern menyalin Pocket lubang baut n kali dengan sudut 360°/n, sehingga suku n·d<sub>b</sub>² muncul otomatis; posisi lingkaran baut D<sub>bc</sub> tidak memengaruhi volume selama lubang tidak saling memotong dan tidak keluar dari cakram. Rumus ini yang memeriksa Tugas 4.",
                    [("V", "Volume flens (mm³)"), ("D, h", "Diameter dan tebal cakram (mm)"), ("d_0", "Diameter lubang pusat (mm)"), ("n", "Jumlah lubang baut"), ("d_b", "Diameter lubang baut (mm)")])
     isi += tabel(["Pola (Part Design)", "Masukan", "Hasil", "Catatan"],
                  [["<strong>LinearPattern</strong>", "Fitur asal, Direction (sumbu/rusuk), Length, Occurrences", "Deret salinan sepanjang garis", "Mode Overall length atau Offset (jarak antar salinan) pada 1.0"],
@@ -529,11 +529,11 @@ def materi():
                       [("sl_po_n", "v_po_n", "Jumlah lubang n (Occurrences)", 3, 12, 1, 6, "6"),
                        ("sl_po_D", "v_po_D", "Diameter cakram D (mm)", 60, 140, 1, 90, "90"),
                        ("sl_po_d0", "v_po_d0", "Diameter lubang pusat d₀ (mm)", 10, 50, 1, 26, "26"),
-                       ("sl_po_db", "v_po_db", "Diameter lubang baut d_b (mm)", 4, 14, 1, 7, "7"),
+                       ("sl_po_db", "v_po_db", "Diameter lubang baut d<sub>b</sub> (mm)", 4, 14, 1, 7, "7"),
                        ("sl_po_h", "v_po_h", "Tebal cakram h (mm)", 5, 30, 1, 10, "10")],
                       "btnPolar", "togglePolar", "polarInfo",
-                      "<strong>Cara membaca:</strong> lubang induk hijau disketsa pada lingkaran baut D_bc = (D + d₀)/2; PolarPattern menyalinnya satu per satu mengelilingi sumbu Z dengan sudut 360°/n (PAUSE menahan pola lengkap). Volume di kanan mengikuti Persamaan (2); tambah n dan perhatikan suku n·d_b² membesar.")
-    isi += kotak("warning-box", "⚠️ <strong>Pola yang gagal:</strong> salinan yang saling tumpang tindih atau keluar dari solid membuat PolarPattern/LinearPattern menolak (“transformed shape does not intersect support” atau hasil kosong). Periksa D_bc terhadap d₀ dan D: lubang baut harus berada di antara tepi lubang pusat dan tepi cakram dengan sisa daging cukup, dan Occurrences × d_b tidak boleh melebihi keliling lingkaran baut.")
+                      "<strong>Cara membaca:</strong> lubang induk hijau disketsa pada lingkaran baut D<sub>bc</sub> = (D + d₀)/2; PolarPattern menyalinnya satu per satu mengelilingi sumbu Z dengan sudut 360°/n (PAUSE menahan pola lengkap). Volume di kanan mengikuti Persamaan (2); tambah n dan perhatikan suku n·d<sub>b</sub>² membesar.")
+    isi += kotak("warning-box", "⚠️ <strong>Pola yang gagal:</strong> salinan yang saling tumpang tindih atau keluar dari solid membuat PolarPattern/LinearPattern menolak (“transformed shape does not intersect support” atau hasil kosong). Periksa D<sub>bc</sub> terhadap d₀ dan D: lubang baut harus berada di antara tepi lubang pusat dan tepi cakram dengan sisa daging cukup, dan Occurrences × d<sub>b</sub> tidak boleh melebihi keliling lingkaran baut.")
     m += bagian(3, "m-pola", "Pola Fitur:<br>LinearPattern, PolarPattern, Mirrored, MultiTransform", "Lubang baut, sirip, gigi, dan slot berulang tidak digambar satu per satu. Bagian ini membahas empat pola Part Design, parameternya, syarat agar pola berhasil, dan rumus volume flens berlubang yang dipakai Tugas 4.", isi, "POLA FITUR")
 
     # 04 — Loft dan Sweep lanjutan
@@ -567,7 +567,7 @@ def materi():
                    [("V", "Volume cangkang (mm³)"), ("a, b, h", "Ukuran luar balok (mm)"), ("t", "Tebal dinding (mm)")])
     isi += formula(5, "Muka Tirus (Draft) dan Penyusutan Sisi", r"a_{atas} = a - 2h\tan\alpha, \qquad b_{atas} = b - 2h\tan\alpha",
                    r"\(\alpha\) = sudut tirus terhadap arah tarik &nbsp;·&nbsp; \(h\) = tinggi muka yang dimiringkan. Contoh " + f"a = {A_S}, b = {B_S}, h = {H_S}, α = {ALPHA}°" + r": \(a_{atas} = " + ind(A_S - SUSUT, 2) + r"\), \(b_{atas} = " + ind(B_S - SUSUT, 2) + r"\) mm.",
-                   "Draft memutar setiap muka pilihan sebesar α mengelilingi garis potongnya dengan bidang netral (neutral plane), biasanya muka dasar. Balok yang diberi tirus pada keempat sisi menjadi loft ruled antara a × b dan a_atas × b_atas, sehingga volumenya mengikuti Persamaan (3). Pad dengan Taper angle memberi hasil yang sama saat ekstrusi.",
+                   "Draft memutar setiap muka pilihan sebesar α mengelilingi garis potongnya dengan bidang netral (neutral plane), biasanya muka dasar. Balok yang diberi tirus pada keempat sisi menjadi loft ruled antara a × b dan a<sub>atas</sub> × b<sub>atas</sub>, sehingga volumenya mengikuti Persamaan (3). Pad dengan Taper angle memberi hasil yang sama saat ekstrusi.",
                    [(r"\alpha", "Sudut tirus (°)"), ("h", "Tinggi muka miring (mm)"), ("a_{atas}, b_{atas}", "Sisi atas setelah tirus (mm)")])
     isi += tabel(["Fitur dressing", "Masukan", "Opsi", "Tips"],
                  [["<strong>Thickness</strong>", "Muka yang dibuang (satu atau lebih); Thickness t", "Mode Skin/Pipe/RectoVerso · Join Arc/Intersection · Reversed", "Buat setelah semua Pad/Pocket; t harus lebih kecil dari fillet terkecil pada muka"],
@@ -622,7 +622,7 @@ def materi():
         ("🏗️", "Sub-assembly bertingkat", "Part “Stasiun” berisi Part “Braket” yang berisi Body Flens dan Link Boss; Placement tiap lapis ditumpuk. Memindahkan Stasiun memindahkan semua tanpa mengubah Placement isinya.", "Part di dalam Part"),
         ("📏", "Memeriksa rakitan", "Std Measure Distance antar muka dua komponen, Part → Check geometry, dan Boolean Common (irisan harus kosong) memastikan komponen tidak saling menembus; volume Union harus sama dengan jumlah volume komponen.", "Common = kosong"),
     ])
-    isi += kotak("tip-box", "💡 <strong>Ekspresi yang tahan perubahan:</strong> simpan a, b, t, d_B, h_B, k pada Spreadsheet beralias, ikat konstrain sketsa dan Placement ke alias itu, lalu ubah satu sel untuk menguji: boss tetap di seperempat panjang pelat, clone tetap di tiga perempat, dan volume Union berubah sesuai Persamaan (6). Tugas 5 boleh dikerjakan tanpa Spreadsheet, tetapi ekspresi mencegah boss keluar dari pelat saat dimensi diubah.")
+    isi += kotak("tip-box", "💡 <strong>Ekspresi yang tahan perubahan:</strong> simpan <code>a, b, t, d_B, h_B, k</code> pada Spreadsheet beralias, ikat konstrain sketsa dan Placement ke alias itu, lalu ubah satu sel untuk menguji: boss tetap di seperempat panjang pelat, clone tetap di tiga perempat, dan volume Union berubah sesuai Persamaan (6). Tugas 5 boleh dikerjakan tanpa Spreadsheet, tetapi ekspresi mencegah boss keluar dari pelat saat dimensi diubah.")
     m += bagian(7, "m-rakit", "Sub-Assembly Sederhana:<br>Placement dan Ekspresi", "Beberapa Body, Link, dan Clone menjadi rakitan ketika posisinya diatur dan saling terikat. Bagian ini membahas Placement (Base, Rotation), Part container bertingkat, ekspresi dan Spreadsheet untuk posisi parametrik, serta cara memeriksa rakitan sebelum dibaca volumenya.", isi, "SUB-ASSEMBLY")
 
     # 08 — Python console
@@ -713,10 +713,10 @@ print(f"Posisi global boss = {{boss.getGlobalPlacement().Base}}  (Placement Part
     langkah = [("1", "Dekomposisi dan Body Flens", f"Tulis daftar fitur: cakram, lubang pusat, pola lubang baut, boss ×3, rakitan. Part Design → Create body “Flens” → Sketch XY lingkaran ⌀{D_F} berpusat di origin (konstrain Coincident + Diameter) → Pad {H_F} mm."),
                ("2", "Lubang pusat", f"Klik muka atas → Create sketch → lingkaran ⌀{D0_F} sepusat → Pocket Through all. Baca Body.Shape.Volume dan bandingkan dengan (π/4)(D² − d₀²)·h."),
                ("3", "Lubang baut + PolarPattern", f"Sketch di muka atas: satu lingkaran ⌀{DB_F} berpusat di ({ind(DBC_F / 2, 0)}, 0) (konstrain Distance dari origin + Point on horizontal axis) → Pocket Through all → PolarPattern: Axis Base Z, Angle 360°, Occurrences {N_F}. Cocokkan volume dengan Persamaan (2) = {ind(V_FLENS, 1)} mm³."),
-               ("4", "Boss sekali saja", f"Create body “Boss” → Sketch XY lingkaran ⌀{DB_C} di origin → Pad {HB_C}. Atur Placement Body Boss ke (0, 0, {H_F}) lalu geser ke sudut 30° pada lingkaran baut: Base = (D_bc/2·cos 30°, D_bc/2·sin 30°, {H_F}) dengan ekspresi."),
+               ("4", "Boss sekali saja", f"Create body “Boss” → Sketch XY lingkaran ⌀{DB_C} di origin → Pad {HB_C}. Atur Placement Body Boss ke (0, 0, {H_F}) lalu geser ke sudut 30° pada lingkaran baut: Base = (D<sub>bc</sub>/2·cos 30°, D<sub>bc</sub>/2·sin 30°, {H_F}) dengan ekspresi."),
                ("5", "Link boss ×2", "Pilih Body Boss → Std LinkMake dua kali; beri Placement pada sudut 150° dan 270° (ekspresi cos/sin) sehingga tiga boss berselang-seling dengan enam lubang baut. Ubah diameter sketsa boss → ketiga boss ikut berubah."),
                ("6", "Part container dan rakitan", "Std Part “Braket” → seret Flens, Boss, dan dua Link ke dalamnya. Ubah Placement Part: Rotation Axis (1,0,0) Angle 90° sehingga flens berdiri tegak. Part → Boolean → Union (Flens + Boss + Link) → volume total = flens + 3 × boss."),
-               ("7", "Periksa dan simpan", "Boolean Common Boss–Flens harus kosong (tidak menembus); Std Measure Distance antar boss = D_bc·sin 60°. Hitung massa baja (ρ = 7,85 g/cm³) dari Fusion.Shape.Volume/1000; Ctrl+S → <code>Latihan7_NIM.FCStd</code>.")]
+               ("7", "Periksa dan simpan", "Boolean Common Boss–Flens harus kosong (tidak menembus); Std Measure Distance antar boss = D<sub>bc</sub>·sin 60°. Hitung massa baja (ρ = 7,85 g/cm³) dari Fusion.Shape.Volume/1000; Ctrl+S → <code>Latihan7_NIM.FCStd</code>.")]
     isi = figure(7, "Gambar kerja braket flens: cakram, pola lubang baut, dan boss", f"Tampak atas dan tampak depan benda yang dibangun pada praktik ini, semua ukuran dalam mm: cakram ⌀{D_F} × {H_F} dengan lubang pusat ⌀{D0_F} (langkah 1–2), {N_F} lubang ⌀{DB_F} berpola polar dengan lubang induk di ({ind(DBC_F / 2, 0)}, 0) (langkah 3), dan tiga boss ⌀{DB_C} × {HB_C} di lingkaran baut (langkah 4–5). Catatan kanan bawah merangkum nilai PolarPattern, Placement, rotasi Part, dan massa jenis yang diketik pada langkah 3–7.", gambar7())
     isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
@@ -729,7 +729,7 @@ print(f"Posisi global boss = {{boss.getGlobalPlacement().Base}}  (Placement Part
     isi += "  </div>\n"
     isi += tabel(["Gejala", "Penyebab yang sering", "Perbaikan"],
                  [["Part Extrude menghasilkan permukaan tanpa Volume", "Wire terbuka, Make Face false, atau Create solid tidak dicentang", "Tutup wire (Close), Make Face = true, centang Create solid"],
-                  ["PolarPattern kosong / pesan “does not intersect support”", "Lubang induk keluar cakram atau salinan saling memotong", "Perkecil d_b atau Occurrences; pastikan D_bc di antara d₀ dan D"],
+                  ["PolarPattern kosong / pesan “does not intersect support”", "Lubang induk keluar cakram atau salinan saling memotong", "Perkecil d<sub>b</sub> atau Occurrences; pastikan D<sub>bc</sub> di antara d₀ dan D"],
                   ["Loft terpuntir atau menyilang", "Urutan/jumlah titik kedua profil berbeda", "Gambar kedua profil dengan urutan titik sama; jumlah tepi sama"],
                   ["Volume loft tidak cocok rumus", "Ruled surface tidak dicentang (B-spline) atau profil tidak sepusat", "Centang Ruled; konstrain Symmetric ke origin"],
                   ["Thickness gagal atau membesar ke luar", "t > radius fillet; muka tak bersebelahan; arah terbalik", "Kecilkan t; buat fillet setelah shell; balikkan Reversed"],
@@ -838,7 +838,7 @@ FQ_JUDUL = [
     "App::Link, Draft Clone, atau salin-tempel untuk boss berulang di tiga stasiun, dan bagaimana Placement berekspresi menjaga rakitan?",
 ]
 FQ_RINGKAS = [
-    "Susun daftar fitur braket flens (Pad, Pocket pusat, Pocket baut + PolarPattern, boss) dan hitung volumenya dengan Persamaan (2). Jelaskan mengapa enam Pocket terpisah gagal mengikuti perubahan D_bc.",
+    "Susun daftar fitur braket flens (Pad, Pocket pusat, Pocket baut + PolarPattern, boss) dan hitung volumenya dengan Persamaan (2). Jelaskan mengapa enam Pocket terpisah gagal mengikuti perubahan D<sub>bc</sub>.",
     "Modelkan corong transisi persegi → persegi sebagai Loft ruled lalu Thickness, hitung volume solid dengan Persamaan (3) dan cangkang dengan Persamaan (4), dan jelaskan mengapa Pad bertingkat memberi volume yang salah.",
     "Bandingkan salin-tempel, App::Link, dan Draft Clone untuk enam boss di tiga stasiun; tetapkan Placement berekspresi dan hitung volume Union dengan Persamaan (6).",
 ]
@@ -849,10 +849,10 @@ def forum_page():
             "Braket flens stasiun pengisian dipesin dari baja: cakram ⌀120 × 12 mm dengan lubang pusat ⌀40 dan enam lubang baut ⌀9 pada lingkaran baut ⌀90, ditambah tiga boss ⌀16 × 10 di antara lubang. Susun pohon fiturnya (Bagian 01–03): sketsa apa pada muka mana, Pocket tipe apa, PolarPattern dengan sumbu dan Occurrences berapa. Hitung volume flens (tanpa boss) dengan Persamaan (2). Jelaskan mengapa percobaan pertama, enam Pocket digambar satu per satu, gagal mengikuti ketika pelanggan mengubah lingkaran baut ⌀90 → ⌀96.",
             ["cakram ⌀120 × 12, ⌀40", "6 × ⌀9 pada ⌀90", "PolarPattern 360°/6"],
             "Keunggulan PolarPattern untuk enam lubang baut dibanding enam Pocket terpisah adalah...",
-            ["Enam Pocket terpisah lebih presisi karena tiap lubang dikonstrain sendiri", "Satu sketsa induk pada lingkaran baut + Occurrences n: mengubah n atau D_bc memperbarui semua lubang sekaligus", "PolarPattern hanya dapat dipakai untuk lubang pusat", "Tidak ada bedanya karena volumenya sama"],
+            ["Enam Pocket terpisah lebih presisi karena tiap lubang dikonstrain sendiri", "Satu sketsa induk pada lingkaran baut + Occurrences n: mengubah n atau D<sub>bc</sub> memperbarui semua lubang sekaligus", "PolarPattern hanya dapat dipakai untuk lubang pusat", "Tidak ada bedanya karena volumenya sama"],
             "✅ Tepat! PolarPattern menyalin Pocket induk n kali mengelilingi sumbu; lingkaran baut cukup diubah pada sketsa induk (satu konstrain) dan jumlah lubang pada Occurrences, sehingga seluruh pola dihitung ulang. Volumenya tetap mengikuti Persamaan (2).",
             "❌ Enam Pocket terpisah berarti enam konstrain posisi yang harus diubah satu per satu; PolarPattern berlaku untuk fitur apa pun, bukan hanya lubang pusat. Lihat Bagian 03 dan Animasi 2.",
-            "Petunjuk: (1) Tulis pohon fitur berurutan. (2) Hitung volume dengan Persamaan (2). (3) Jelaskan apa yang terjadi pada enam Pocket terpisah saat D_bc berubah.")
+            "Petunjuk: (1) Tulis pohon fitur berurutan. (2) Hitung volume dengan Persamaan (2). (3) Jelaskan apa yang terjadi pada enam Pocket terpisah saat diameter lingkaran baut berubah.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
             "Corong pengumpan (hopper) berbentuk transisi persegi 200 × 200 di atas ke persegi 80 × 80 di bawah setinggi 150 mm, dibuat dari pelat baja tahan karat 1,5 mm; pelindung rantai berupa kotak 300 × 120 × 80 terbuka satu sisi dari pelat 2 mm. Tentukan fitur yang tepat (Bagian 04–05): Loft ruled dua sketsa sepusat lalu Thickness dengan muka atas dan bawah dibuang untuk corong; Pad lalu Thickness untuk pelindung. Hitung volume solid corong dengan Persamaan (3), volume cangkang pelindung dengan Persamaan (4), dan taksir massanya (ρ = 7,9 g/cm³). Jelaskan mengapa corong yang dibuat Pad bertingkat dan pelindung yang dimodelkan pejal memberi massa yang jauh melenceng.",
             ["corong 200² → 80², h 150, t 1,5", "pelindung 300 × 120 × 80, t 2", "ρ 7,9 g/cm³"],

@@ -1239,6 +1239,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1657,7 +1728,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Dataset Structure: X (matrix) &amp; y (vector)</h3>
-      <p>Format standar tabular: matrix <code>X ∈ ℝ^(n×d)</code> dengan n = sample count, d = feature count; vector <code>y ∈ ℝ^n</code> (regresi) atau <code>y ∈ {0, 1, …, K-1}^n</code> (klasifikasi K-kelas). Contoh: 1000 sample × 8 fitur = X shape (1000, 8). Pandas DataFrame format: <code>df = pd.DataFrame(X, columns=feature_names); df['label'] = y</code>. Format CSV/Parquet untuk persistence. <strong>Label binary</strong> (healthy=0, fault=1) untuk binary classification; <strong>multi-class</strong> (healthy/bearing/imbalance/looseness) untuk diagnostik tipe fault.</p>
+      <p>Format standar tabular: matrix <code>X ∈ ℝ<sup>n×d</sup></code> dengan n = sample count, d = feature count; vector <code>y ∈ ℝ<sup>n</sup></code> (regresi) atau <code>y ∈ {0, 1, …, K-1}<sup>n</sup></code> (klasifikasi K-kelas). Contoh: 1000 sample × 8 fitur = X shape (1000, 8). Pandas DataFrame format: <code>df = pd.DataFrame(X, columns=feature_names); df['label'] = y</code>. Format CSV/Parquet untuk persistence. <strong>Label binary</strong> (healthy=0, fault=1) untuk binary classification; <strong>multi-class</strong> (healthy/bearing/imbalance/looseness) untuk diagnostik tipe fault.</p>
       <div class="formula">\(X[n, d], y[n]\)</div>
     </div>
     <div class="card">
@@ -2700,7 +2771,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc2">
         <div class="radio-option" onclick="selectMC('mc2',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Bergantung pada threshold tetap 0.5</div>
-        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div>(B) &nbsp; <em>Threshold-independent</em>, mengukur kemampuan model me-ranking sampel positif di atas negatif (probabilitas fault acak &gt; healthy acak). 0.5 = acak, 1.0 = sempurna</div>
+        <div class="radio-option" onclick="selectMC('mc2',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; <em>Threshold-independent</em>, mengukur kemampuan model me-ranking sampel positif di atas negatif (probabilitas fault acak &gt; healthy acak). 0.5 = acak, 1.0 = sempurna</span></div>
         <div class="radio-option" onclick="selectMC('mc2',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Hanya berlaku untuk data seimbang sempurna</div>
         <div class="radio-option" onclick="selectMC('mc2',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Selalu sama dengan accuracy</div>
       </div>
@@ -2734,7 +2805,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc4">
         <div class="radio-option" onclick="selectMC('mc4',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Menghapus sebagian besar kelas mayoritas secara acak</div>
-        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Membuat sampel <em>sintetis</em> kelas minoritas via interpolasi antar tetangga terdekat (bukan duplikasi), menambah variasi tanpa overfitting duplikat</div>
+        <div class="radio-option" onclick="selectMC('mc4',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; Membuat sampel <em>sintetis</em> kelas minoritas via interpolasi antar tetangga terdekat (bukan duplikasi), menambah variasi tanpa overfitting duplikat</span></div>
         <div class="radio-option" onclick="selectMC('mc4',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Mengganti label minoritas menjadi mayoritas</div>
         <div class="radio-option" onclick="selectMC('mc4',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Menaikkan learning rate</div>
       </div>
@@ -2785,7 +2856,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc7">
         <div class="radio-option" onclick="selectMC('mc7',this,'A')"><div class="radio-circle"></div>(A) &nbsp; FN dan FP selalu berbiaya sama</div>
-        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div>(B) &nbsp; FN = kerusakan/kecelakaan tak terdeteksi (downtime, bahaya, biaya besar), sedangkan FP hanya inspeksi tambahan, sehingga optimasi mengutamakan <em>recall</em></div>
+        <div class="radio-option" onclick="selectMC('mc7',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; FN = kerusakan/kecelakaan tak terdeteksi (downtime, bahaya, biaya besar), sedangkan FP hanya inspeksi tambahan, sehingga optimasi mengutamakan <em>recall</em></span></div>
         <div class="radio-option" onclick="selectMC('mc7',this,'C')"><div class="radio-circle"></div>(C) &nbsp; FP menyebabkan ledakan, FN tidak berdampak apa pun</div>
         <div class="radio-option" onclick="selectMC('mc7',this,'D')"><div class="radio-circle"></div>(D) &nbsp; FN hanya relevan di regresi</div>
       </div>
@@ -2804,7 +2875,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="radio-option" onclick="selectMC('mc8',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Keduanya identik</div>
         <div class="radio-option" onclick="selectMC('mc8',this,'B')"><div class="radio-circle"></div>(B) &nbsp; RF melatih pohon secara sekuensial pada residual</div>
         <div class="radio-option" onclick="selectMC('mc8',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Gradient Boosting tidak memakai pohon keputusan</div>
-        <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div>(D) &nbsp; RF = <em>bagging</em> pohon paralel (vote/average → kurangi varians); Gradient Boosting = pohon <em>sekuensial</em> yang tiap pohon mengoreksi error pohon sebelumnya (→ kurangi bias)</div>
+        <div class="radio-option" onclick="selectMC('mc8',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; RF = <em>bagging</em> pohon paralel (vote/average → kurangi varians); Gradient Boosting = pohon <em>sekuensial</em> yang tiap pohon mengoreksi error pohon sebelumnya (→ kurangi bias)</span></div>
       </div>
       <button class="mc-submit" id="sub-mc8" onclick="checkMC('mc8')" disabled>Periksa Jawaban</button>
       <div class="feedback" id="fb-mc8"></div>
@@ -2837,7 +2908,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div class="radio-group" id="rg-mc10">
         <div class="radio-option" onclick="selectMC('mc10',this,'A')"><div class="radio-circle"></div>(A) &nbsp; Tidak perlu dipantau, model valid selamanya</div>
         <div class="radio-option" onclick="selectMC('mc10',this,'B')"><div class="radio-circle"></div>(B) &nbsp; Mengganti model dengan rule-based setiap hari</div>
-        <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div>(C) &nbsp; Memantau distribusi input &amp; metrik kinerja; bila terdeteksi drift (AUC turun, distribusi fitur bergeser) → trigger <em>retraining</em> dengan data terbaru</div>
+        <div class="radio-option" onclick="selectMC('mc10',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; Memantau distribusi input &amp; metrik kinerja; bila terdeteksi drift (AUC turun, distribusi fitur bergeser) → trigger <em>retraining</em> dengan data terbaru</span></div>
         <div class="radio-option" onclick="selectMC('mc10',this,'D')"><div class="radio-circle"></div>(D) &nbsp; Menambah jumlah kelas target</div>
       </div>
       <button class="mc-submit" id="sub-mc10" onclick="checkMC('mc10')" disabled>Periksa Jawaban</button>
@@ -3240,7 +3311,7 @@ import pandas as pd
           <div class="poll-q">QUICK CHECK — Strategi paling tepat untuk imbalanced PdM dataset?</div>
           <div class="poll-opts" id="fp1">
             <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Pakai accuracy sebagai metric utama, kalau &gt; 95% berarti model bagus</div>
-            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>Evaluasi pakai <strong>F1 / Recall / ROC-AUC</strong> (bukan accuracy). Training pakai <code>class_weight='balanced'</code> di RandomForest atau SMOTE oversampling pada training set saja (jangan di test). Plus stratified k-fold CV untuk preserve class ratio. Optimasi threshold prediksi via precision-recall curve sesuai cost asymmetry</div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div><span class="opsi-teks">Evaluasi pakai <strong>F1 / Recall / ROC-AUC</strong> (bukan accuracy). Training pakai <code>class_weight='balanced'</code> di RandomForest atau SMOTE oversampling pada training set saja (jangan di test). Plus stratified k-fold CV untuk preserve class ratio. Optimasi threshold prediksi via precision-recall curve sesuai cost asymmetry</span></div>
             <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>Hapus semua sample healthy supaya 50/50, biar model belajar fault pattern saja</div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>Tidak perlu apa-apa, sklearn handle otomatis</div>
           </div>
@@ -3272,15 +3343,15 @@ import pandas as pd
           <div class="poll-q">QUICK CHECK — Strategi optimasi cost-sensitive untuk safety-critical PdM?</div>
           <div class="poll-opts" id="fp2">
             <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>Maximize precision saja, biar operator tidak terganggu false alarm</div>
-            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div>Cost-sensitive: tentukan FN_cost &amp; FP_cost (mis. 400:1), pilih threshold yang minimize <strong>expected cost</strong> total. Pakai <strong>\(F-beta\) score \((\beta =2)\)</strong> untuk weight recall lebih tinggi. Plus dual-layer: ML high-recall (catch all candidate) → rule-based filter second-pass (reduce false alarm) → operator dashboard dengan SHAP explanation untuk verify cepat. Monitor alarm fatigue rate sebagai KPI</div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div><span class="opsi-teks">Cost-sensitive: tentukan FN<sub>cost</sub> &amp; FP<sub>cost</sub> (mis. 400:1), pilih threshold yang minimize <strong>expected cost</strong> total. Pakai <strong>\(F-beta\) score \((\beta =2)\)</strong> untuk weight recall lebih tinggi. Plus dual-layer: ML high-recall (catch all candidate) → rule-based filter second-pass (reduce false alarm) → operator dashboard dengan SHAP explanation untuk verify cepat. Monitor alarm fatigue rate sebagai KPI</span></div>
             <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>Maximize accuracy saja, model handle automatically</div>
             <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Lower threshold ke 0.1 supaya catch semua fault, tidak peduli false alarm</div>
           </div>
-          <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Cost-Sensitive PdM Optimization</strong> adalah inti production deployment. (1) <strong>Cost matrix</strong>: FN cost = unplanned shutdown loss + safety risk + reputation damage (~Rp 2 miliar). FP cost = inspector time + minor disruption (~Rp 5 juta). Rasio ~400:1. (2) <strong>Expected cost minimization</strong>: <code>E[cost] = FN_count × FN_cost + FP_count × FP_cost</code>. Tune threshold untuk minimize ini, BUKAN accuracy. (3) <strong>F-beta score</strong>: <code>F_β = (1+β²) PR / (β²P + R)</code>. β=2 → weight recall 4× lebih dari precision. β=0.5 → weight precision 4× dari recall. Untuk PdM safety-critical: β=2 atau β=3. (4) <strong>Dual-layer architecture</strong>: ML layer (high-recall, threshold 0.3) → rule-based filter (e.g., require ML prediction + RMS persistence ≥ 5 menit) → operator dashboard dengan SHAP explanation. Filter reduce false alarm 50–80% tanpa lose recall. (5) <strong>Alarm fatigue KPI</strong>: track "alarm acknowledged within 5 min rate" dan "alarm dismissed without action rate". Kalau dismissed > 70% → operator effectively ignore alarm = system useless. (6) <strong>Pupuk Kaltim improvement</strong>: 0.78 precision masih marginal, ditingkatkan ke 0.88 dengan rule-based filter (require RMS &gt; 1.4 mm/s + ML score &gt; 0.5). Recall preserved 0.91. Operator complaint turun 60%.</div>
+          <div class="p-fb r" id="fp2r">✅ Tepat! <strong>Cost-Sensitive PdM Optimization</strong> adalah inti production deployment. (1) <strong>Cost matrix</strong>: FN cost = unplanned shutdown loss + safety risk + reputation damage (~Rp 2 miliar). FP cost = inspector time + minor disruption (~Rp 5 juta). Rasio ~400:1. (2) <strong>Expected cost minimization</strong>: <code>E[cost] = FN<sub>count</sub> × FN<sub>cost</sub> + FP<sub>count</sub> × FP<sub>cost</sub></code>. Tune threshold untuk minimize ini, BUKAN accuracy. (3) <strong>F-beta score</strong>: <code>F<sub>β</sub> = (1+β²) PR / (β²P + R)</code>. β=2 → weight recall 4× lebih dari precision. β=0.5 → weight precision 4× dari recall. Untuk PdM safety-critical: β=2 atau β=3. (4) <strong>Dual-layer architecture</strong>: ML layer (high-recall, threshold 0.3) → rule-based filter (e.g., require ML prediction + RMS persistence ≥ 5 menit) → operator dashboard dengan SHAP explanation. Filter reduce false alarm 50–80% tanpa lose recall. (5) <strong>Alarm fatigue KPI</strong>: track "alarm acknowledged within 5 min rate" dan "alarm dismissed without action rate". Kalau dismissed > 70% → operator effectively ignore alarm = system useless. (6) <strong>Pupuk Kaltim improvement</strong>: 0.78 precision masih marginal, ditingkatkan ke 0.88 dengan rule-based filter (require RMS &gt; 1.4 mm/s + ML score &gt; 0.5). Recall preserved 0.91. Operator complaint turun 60%.</div>
           <div class="p-fb w" id="fp2w">❌ Periksa kembali. Maximize precision = miss banyak fault. Maximize accuracy = irrelevant untuk imbalanced. Threshold 0.1 = alarm flood lebih buruk. Cost-sensitive + F-beta + dual-layer adalah jawaban produksi.</div>
         </div>
 
-        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis analisis cost-sensitive trade-off Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung FN_cost vs FP_cost untuk PdM (rasio asymmetry). (2) F-beta score: kapan β=2 vs β=0.5. (3) Threshold optimization via precision-recall curve. (4) Dual-layer architecture (ML + rule-based filter). (5) Alarm fatigue KPI sebagai indikator system trust. (6) Real Pupuk Kaltim numbers." oninput="checkForumReady()"></textarea>
+        <textarea class="fq-textarea" id="ans-fq2" placeholder="Tulis analisis cost-sensitive trade-off Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung biaya FN vs biaya FP untuk PdM (rasio asymmetry). (2) F-beta score: kapan β=2 vs β=0.5. (3) Threshold optimization via precision-recall curve. (4) Dual-layer architecture (ML + rule-based filter). (5) Alarm fatigue KPI sebagai indikator system trust. (6) Real Pupuk Kaltim numbers." oninput="checkForumReady()"></textarea>
         <div id="wc-fq2" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">0 / min 30 kata</div>
       </div>
     </div>
@@ -3385,7 +3456,7 @@ import pandas as pd
   <div class="float-formulas">
     <span class="ff" style="left:6%;font-size:.9rem;color:var(--violet);--dur:22s;--del:0s">✅ Tepat Waktu</span>
     <span class="ff" style="left:28%;font-size:.75rem;color:var(--pink);--dur:18s;--del:4s">min f(x)</span>
-    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">x_{k+1} = x_k − α∇f</span>
+    <span class="ff" style="left:52%;font-size:.85rem;color:var(--amber);--dur:20s;--del:8s">x<sub>k+1</sub> = x<sub>k</sub> − α∇f</span>
     <span class="ff" style="left:70%;font-size:.7rem;color:var(--pink);--dur:24s;--del:2s">🏆 Top Skor</span>
     <span class="ff" style="left:85%;font-size:.8rem;color:var(--cyan);--dur:16s;--del:11s">scipy.minimize</span>
   </div>
@@ -4430,6 +4501,35 @@ function checkExportReady() {
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4497,15 +4597,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -4544,7 +4646,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -4557,7 +4659,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5826,8 +5928,8 @@ function drawIso(){
   for(let i=0;i<nCols;i++) ctx.fillText(nEstValues[i], padL+i*cellW+cellW/2-12, H-padB+14);
   for(let j=0;j<nRows;j++) ctx.fillText(depthValues[j], padL-22, padT+j*cellH+cellH/2+4);
   ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 10px JetBrains Mono';
-  ctx.fillText('n_estimators →', W/2-50, H-12);
-  ctx.save(); ctx.translate(14, H/2); ctx.rotate(-Math.PI/2); ctx.fillText('max_depth →', -40, 0); ctx.restore();
+  ctx.fillText('n_estimators →', W/2-50, H-12);   // notasi: kode
+  ctx.save(); ctx.translate(14, H/2); ctx.rotate(-Math.PI/2); ctx.fillText('max_depth →', -40, 0); ctx.restore();   // notasi: kode
 
   // Color bar legend
   const cbX = W - padR + 14, cbW = 18, cbH = hPx;
@@ -5844,7 +5946,7 @@ function drawIso(){
 
   // Title
   ctx.fillStyle = '#a855f7'; ctx.font = 'bold 11px JetBrains Mono';
-  ctx.fillText('GridSearchCV — RandomForest (n_estimators × max_depth)', padL, padT-10);
+  ctx.fillText('GridSearchCV — RandomForest (n_estimators × max_depth)', padL, padT-10);   // notasi: kode
 
   // Update slider displays
   document.getElementById('v_ri').textContent = `${nIdx} (n=${nEstValues[nIdx]})`;
@@ -6916,7 +7018,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
   const formulas = [
     { t: 'min f(x), x ∈ ℝⁿ',                     s: 13 },
     { t: '∇f(x*) = 0',                            s: 12 },
-    { t: 'x_{k+1} = x_k − α·∇f(x_k)',             s: 11 },
+    { t: 'x<sub>k+1</sub> = x<sub>k</sub> − α·∇f(x<sub>k</sub>)',             s: 11 },
     { t: 'L = f + λᵀh + μᵀg',                    s: 12 },
     { t: 'KKT: μᵢgᵢ = 0',                         s: 11 },
     { t: 'Hessian ∇²f ⪰ 0',                      s: 11 },
@@ -6938,7 +7040,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

@@ -1433,6 +1433,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1682,11 +1753,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">e(t) = r(t) − y(t)</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">T(s) = G/(1+GH)</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">L = Kp·K</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">τ_cl = τ/(1+L)</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">L = K<sub>p</sub>·K</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">τ<sub>cl</sub> = τ/(1+L)</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">S + T = 1</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">u(t) = Kp·e(t)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">u(t) = K<sub>p</sub>·e(t)</span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">G(s) = K/(τs+1)</span>
   </div>
   <div class="hero-schematic">
@@ -1824,7 +1895,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Tiga Aksi, Tiga Pertanyaan Berbeda</h3>
   <p class="section-desc reveal">Controller PID menjumlahkan tiga aksi yang bekerja atas error yang sama namun menjawab pertanyaan berbeda. Aksi proporsional menjawab seberapa besar error saat ini. Aksi integral menjawab seberapa lama error itu bertahan. Aksi turunan menjawab ke arah mana error sedang bergerak. Gambar 1 mengilustrasikan gagasan ini.</p>
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 1 — Tiga aksi menjawab tiga pertanyaan waktu" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="55" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="134" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">P: sekarang</text><line x1="213" y1="39" x2="242" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="251,39 242,43.5 242,34.5" fill="#94a3b8"/><rect x="251" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="330" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">I: masa lalu</text><line x1="409" y1="39" x2="438" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="447,39 438,43.5 438,34.5" fill="#94a3b8"/><rect x="447" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="526" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">D: arah berikutnya</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">u = Kp·e + Ki·∫e + Kd·de/dt</text></svg>
+    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 1 — Tiga aksi menjawab tiga pertanyaan waktu" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="55" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="134" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">P: sekarang</text><line x1="213" y1="39" x2="242" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="251,39 242,43.5 242,34.5" fill="#94a3b8"/><rect x="251" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="330" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">I: masa lalu</text><line x1="409" y1="39" x2="438" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="447,39 438,43.5 438,34.5" fill="#94a3b8"/><rect x="447" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="526" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">D: arah berikutnya</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">u = K<tspan dy="2.6" font-size="8.6">p</tspan><tspan dy="-2.6">·e + K</tspan><tspan dy="2.6" font-size="8.6">i</tspan><tspan dy="-2.6">·∫e + K</tspan><tspan dy="2.6" font-size="8.6">d</tspan><tspan dy="-2.6">·de/dt</tspan></text></svg>
     <figcaption><strong>Gambar 1</strong> — Tiga aksi menjawab tiga pertanyaan waktu. P menjawab keadaan sekarang, I menghapus bias masa lalu, D mengantisipasi arah berikutnya; PID adalah tiga jawaban yang dijumlahkan.</figcaption>
   </figure>
   <p class="section-desc reveal">Aksi proporsional memberi respons segera yang sebanding dengan error. Menaikkannya mempercepat sistem dan mengecilkan error tunak, namun memperbesar overshoot dan mendekatkan sistem ke batas kestabilan. Aksi ini sendirian tidak dapat menghapus error tunak pada plant tanpa integrator.</p>
@@ -1840,7 +1911,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Bentuk Baku dan Arti Fisik Parameternya</h3>
   <p class="section-desc reveal">Selain bentuk penjumlahan tiga gain, PID sering dinyatakan dalam bentuk baku yang memakai waktu integral dan waktu turunan. Bentuk ini lebih disukai di dunia proses karena kedua parameternya bersatuan waktu sehingga dapat dibandingkan langsung dengan dinamika plant. Skemanya diperlihatkan pada Gambar 2.</p>
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 262" role="img" aria-label="Gambar 2 — Arti fisik gain terasa langsung di respons" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="262" fill="#0a101f"/><rect x="30" y="12" width="288" height="198" rx="12" fill="#0e1628" stroke="#243653"/><line x1="96.4" y1="44" x2="96.4" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="74.8" x2="306" y2="74.8" stroke="#243653" stroke-width="0.7"/><line x1="148.8" y1="44" x2="148.8" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="105.6" x2="306" y2="105.6" stroke="#243653" stroke-width="0.7"/><line x1="201.2" y1="44" x2="201.2" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="136.4" x2="306" y2="136.4" stroke="#243653" stroke-width="0.7"/><line x1="253.6" y1="44" x2="253.6" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="167.2" x2="306" y2="167.2" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="198" x2="303" y2="198" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="312,198 303,202.5 303,193.5" fill="#94a3b8"/><line x1="44" y1="198" x2="44" y2="47" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="44,38 48.5,47 39.5,47" fill="#94a3b8"/><path d="M44.0,198.0 L83.3,170.3 L122.6,139.5 L175.0,105.6 L227.4,81.0 L266.7,68.6 L306.0,62.5 L306.0,198.0 L44.0,198.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M44.0,198.0 L83.3,170.3 L122.6,139.5 L175.0,105.6 L227.4,81.0 L266.7,68.6 L306.0,62.5" fill="none" stroke="#22d3ee" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/><text x="174" y="30" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="700" font-family="'Inter',system-ui,sans-serif">Kp kecil</text><text x="174" y="228" text-anchor="middle" font-size="11.3" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Aman, lamban, sisa error</text><rect x="338" y="12" width="288" height="198" rx="12" fill="#0e1628" stroke="#243653"/><line x1="404.4" y1="44" x2="404.4" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="74.8" x2="614" y2="74.8" stroke="#243653" stroke-width="0.7"/><line x1="456.8" y1="44" x2="456.8" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="105.6" x2="614" y2="105.6" stroke="#243653" stroke-width="0.7"/><line x1="509.2" y1="44" x2="509.2" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="136.4" x2="614" y2="136.4" stroke="#243653" stroke-width="0.7"/><line x1="561.6" y1="44" x2="561.6" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="167.2" x2="614" y2="167.2" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="198" x2="611" y2="198" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="620,198 611,202.5 611,193.5" fill="#94a3b8"/><line x1="352" y1="198" x2="352" y2="47" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="352,38 356.5,47 347.5,47" fill="#94a3b8"/><path d="M352.0,198.0 L373.0,159.5 L393.9,77.9 L414.9,40.9 L435.8,62.5 L456.8,45.5 L477.8,54.8 L504.0,50.2 L535.4,51.7 L614.0,51.7 L614.0,198.0 L352.0,198.0 Z" fill="#f97316" fill-opacity="0.09"/><path d="M352.0,198.0 L373.0,159.5 L393.9,77.9 L414.9,40.9 L435.8,62.5 L456.8,45.5 L477.8,54.8 L504.0,50.2 L535.4,51.7 L614.0,51.7" fill="none" stroke="#f97316" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/><text x="482" y="30" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="700" font-family="'Inter',system-ui,sans-serif">Kp besar</text><text x="482" y="228" text-anchor="middle" font-size="11.3" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Cepat, mulai berdering</text><text x="330" y="252" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Waktu</text><g transform="rotate(-90 13 121)"><text x="13" y="125" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Keluaran</text></g></svg>
+    <svg viewBox="0 0 660 262" role="img" aria-label="Gambar 2 — Arti fisik gain terasa langsung di respons" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="262" fill="#0a101f"/><rect x="30" y="12" width="288" height="198" rx="12" fill="#0e1628" stroke="#243653"/><line x1="96.4" y1="44" x2="96.4" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="74.8" x2="306" y2="74.8" stroke="#243653" stroke-width="0.7"/><line x1="148.8" y1="44" x2="148.8" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="105.6" x2="306" y2="105.6" stroke="#243653" stroke-width="0.7"/><line x1="201.2" y1="44" x2="201.2" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="136.4" x2="306" y2="136.4" stroke="#243653" stroke-width="0.7"/><line x1="253.6" y1="44" x2="253.6" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="167.2" x2="306" y2="167.2" stroke="#243653" stroke-width="0.7"/><line x1="44" y1="198" x2="303" y2="198" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="312,198 303,202.5 303,193.5" fill="#94a3b8"/><line x1="44" y1="198" x2="44" y2="47" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="44,38 48.5,47 39.5,47" fill="#94a3b8"/><path d="M44.0,198.0 L83.3,170.3 L122.6,139.5 L175.0,105.6 L227.4,81.0 L266.7,68.6 L306.0,62.5 L306.0,198.0 L44.0,198.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M44.0,198.0 L83.3,170.3 L122.6,139.5 L175.0,105.6 L227.4,81.0 L266.7,68.6 L306.0,62.5" fill="none" stroke="#22d3ee" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/><text x="174" y="30" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="700" font-family="'Inter',system-ui,sans-serif">K<tspan dy="2.8" font-size="9">p</tspan><tspan dy="-2.8"> kecil</tspan></text><text x="174" y="228" text-anchor="middle" font-size="11.3" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Aman, lamban, sisa error</text><rect x="338" y="12" width="288" height="198" rx="12" fill="#0e1628" stroke="#243653"/><line x1="404.4" y1="44" x2="404.4" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="74.8" x2="614" y2="74.8" stroke="#243653" stroke-width="0.7"/><line x1="456.8" y1="44" x2="456.8" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="105.6" x2="614" y2="105.6" stroke="#243653" stroke-width="0.7"/><line x1="509.2" y1="44" x2="509.2" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="136.4" x2="614" y2="136.4" stroke="#243653" stroke-width="0.7"/><line x1="561.6" y1="44" x2="561.6" y2="198" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="167.2" x2="614" y2="167.2" stroke="#243653" stroke-width="0.7"/><line x1="352" y1="198" x2="611" y2="198" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="620,198 611,202.5 611,193.5" fill="#94a3b8"/><line x1="352" y1="198" x2="352" y2="47" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/><polygon points="352,38 356.5,47 347.5,47" fill="#94a3b8"/><path d="M352.0,198.0 L373.0,159.5 L393.9,77.9 L414.9,40.9 L435.8,62.5 L456.8,45.5 L477.8,54.8 L504.0,50.2 L535.4,51.7 L614.0,51.7 L614.0,198.0 L352.0,198.0 Z" fill="#f97316" fill-opacity="0.09"/><path d="M352.0,198.0 L373.0,159.5 L393.9,77.9 L414.9,40.9 L435.8,62.5 L456.8,45.5 L477.8,54.8 L504.0,50.2 L535.4,51.7 L614.0,51.7" fill="none" stroke="#f97316" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/><text x="482" y="30" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="700" font-family="'Inter',system-ui,sans-serif">K<tspan dy="2.8" font-size="9">p</tspan><tspan dy="-2.8"> besar</tspan></text><text x="482" y="228" text-anchor="middle" font-size="11.3" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Cepat, mulai berdering</text><text x="330" y="252" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Waktu</text><g transform="rotate(-90 13 121)"><text x="13" y="125" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Keluaran</text></g></svg>
     <figcaption><strong>Gambar 2</strong> — Arti fisik gain terasa langsung di respons. Gain kecil sopan tetapi lamban; gain besar gesit tetapi mulai melampaui sasaran — parameter PID adalah kenop pertukaran, bukan angka keramat.</figcaption>
   </figure>
   <p class="section-desc reveal">Waktu integral menyatakan berapa lama aksi integral memerlukan waktu untuk menyumbang sebesar sumbangan aksi proporsional pada error tetap. Nilai yang kecil berarti aksi integral agresif. Aturan kasar yang lazim menetapkannya sebanding dengan konstanta waktu dominan plant.</p>
@@ -1856,7 +1927,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Penyetelan: Dari Aturan Praktis ke Penyetelan Berbasis Model</h3>
   <p class="section-desc reveal">Metode Ziegler-Nichols memberi titik awal dari dua percobaan sederhana. Cara pertama menaikkan penguatan proporsional sampai sistem berosilasi dengan amplitudo tetap, lalu mencatat penguatan kritis dan periode osilasinya. Cara kedua memakai respons step lintasan terbuka untuk menaksir gain, konstanta waktu, dan dead time. Perhatikan ilustrasinya pada Gambar 3.</p>
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 140" role="img" aria-label="Gambar 3 — Penyetelan Ziegler-Nichols membaca batas osilasi" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="140" fill="#0a101f"/><line x1="34" y1="64" x2="573" y2="64" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="582,64 573,68.5 573,59.5" fill="#94a3b8"/><text x="588" y="68" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Urutan</text><circle cx="56" cy="64" r="6" fill="#22d3ee" stroke="#0a101f" stroke-width="1.6"/><line x1="56" y1="64" x2="56" y2="50" stroke="#22d3ee" stroke-width="1.2" stroke-linecap="round"/><text x="56" y="28" text-anchor="middle" font-size="11.6" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Naikkan gain</text><circle cx="217" cy="64" r="6" fill="#f97316" stroke="#0a101f" stroke-width="1.6"/><line x1="217" y1="64" x2="217" y2="78" stroke="#f97316" stroke-width="1.2" stroke-linecap="round"/><text x="217" y="108" text-anchor="middle" font-size="11.6" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Osilasi tetap</text><text x="217" y="94" text-anchor="middle" font-size="10.6" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Catat Ku &amp; Tu</text><circle cx="378" cy="64" r="6" fill="#22d3ee" stroke="#0a101f" stroke-width="1.6"/><line x1="378" y1="64" x2="378" y2="50" stroke="#22d3ee" stroke-width="1.2" stroke-linecap="round"/><text x="378" y="28" text-anchor="middle" font-size="11.6" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Pakai tabel ZN</text><circle cx="516" cy="64" r="6" fill="#00e09e" stroke="#0a101f" stroke-width="1.6"/><line x1="516" y1="64" x2="516" y2="78" stroke="#00e09e" stroke-width="1.2" stroke-linecap="round"/><text x="516" y="108" text-anchor="middle" font-size="11.6" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Haluskan di lapangan</text></svg>
+    <svg viewBox="0 0 660 140" role="img" aria-label="Gambar 3 — Penyetelan Ziegler-Nichols membaca batas osilasi" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="140" fill="#0a101f"/><line x1="34" y1="64" x2="573" y2="64" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="582,64 573,68.5 573,59.5" fill="#94a3b8"/><text x="588" y="68" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">Urutan</text><circle cx="56" cy="64" r="6" fill="#22d3ee" stroke="#0a101f" stroke-width="1.6"/><line x1="56" y1="64" x2="56" y2="50" stroke="#22d3ee" stroke-width="1.2" stroke-linecap="round"/><text x="56" y="28" text-anchor="middle" font-size="11.6" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Naikkan gain</text><circle cx="217" cy="64" r="6" fill="#f97316" stroke="#0a101f" stroke-width="1.6"/><line x1="217" y1="64" x2="217" y2="78" stroke="#f97316" stroke-width="1.2" stroke-linecap="round"/><text x="217" y="108" text-anchor="middle" font-size="11.6" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Osilasi tetap</text><text x="217" y="94" text-anchor="middle" font-size="10.6" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Catat K<tspan dy="2.3" font-size="8">u</tspan><tspan dy="-2.3"> &amp; T</tspan><tspan dy="2.3" font-size="8">u</tspan></text><circle cx="378" cy="64" r="6" fill="#22d3ee" stroke="#0a101f" stroke-width="1.6"/><line x1="378" y1="64" x2="378" y2="50" stroke="#22d3ee" stroke-width="1.2" stroke-linecap="round"/><text x="378" y="28" text-anchor="middle" font-size="11.6" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Pakai tabel ZN</text><circle cx="516" cy="64" r="6" fill="#00e09e" stroke="#0a101f" stroke-width="1.6"/><line x1="516" y1="64" x2="516" y2="78" stroke="#00e09e" stroke-width="1.2" stroke-linecap="round"/><text x="516" y="108" text-anchor="middle" font-size="11.6" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">Haluskan di lapangan</text></svg>
     <figcaption><strong>Gambar 3</strong> — Penyetelan Ziegler-Nichols membaca batas osilasi. Gain dinaikkan sampai sistem berosilasi tetap, gain kritis dan periodenya dicatat, lalu tabel memberi titik awal yang kemudian dihaluskan di lapangan.</figcaption>
   </figure>
   <p class="section-desc reveal">Yang perlu disadari, aturan ini dirancang untuk mengejar peredaman seperempat amplitudo, yang menghasilkan respons cukup agresif dengan overshoot sekitar dua puluh sampai lima puluh persen. Untuk banyak penerapan modern hasil itu terlalu berayun, sehingga aturan ini lebih tepat dipakai sebagai titik awal daripada nilai akhir.</p>
@@ -1911,8 +1982,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Menyetel di Lapangan dengan Urutan yang Aman</h3>
   <p class="section-desc reveal">Penyetelan di perangkat menuntut urutan yang berbeda dari perancangan di atas kertas, karena setiap langkah membawa risiko nyata. Prinsipnya bergerak dari yang paling aman menuju yang paling agresif, dengan jalan keluar yang selalu siap. Skemanya diperlihatkan pada Gambar 6.</p>
   <figure class="ilustrasi reveal">
-    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 6 — Urutan menyetel yang aman di lapangan" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="55" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="134" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">P dulu</text><line x1="213" y1="39" x2="242" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="251,39 242,43.5 242,34.5" fill="#94a3b8"/><rect x="251" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="330" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">I dari Ti besar</text><line x1="409" y1="39" x2="438" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="447,39 438,43.5 438,34.5" fill="#94a3b8"/><rect x="447" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="526" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">D terakhir bila perlu</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Uji respons gangguan di tiap tahap</text></svg>
-    <figcaption><strong>Gambar 6</strong> — Urutan menyetel yang aman di lapangan. P dinaikkan dulu sampai respons hidup, aksi I ditambahkan dari Ti besar untuk menghapus sisa, dan D masuk terakhir hanya bila memang diperlukan.</figcaption>
+    <svg viewBox="0 0 660 104" role="img" aria-label="Gambar 6 — Urutan menyetel yang aman di lapangan" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="104" fill="#0a101f"/><rect x="55" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#22d3ee" stroke-width="1.6"/><text x="134" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">P dulu</text><line x1="213" y1="39" x2="242" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="251,39 242,43.5 242,34.5" fill="#94a3b8"/><rect x="251" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#a855f7" stroke-width="1.6"/><text x="330" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">I dari T<tspan dy="2.8" font-size="9">i</tspan><tspan dy="-2.8"> besar</tspan></text><line x1="409" y1="39" x2="438" y2="39" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round"/><polygon points="447,39 438,43.5 438,34.5" fill="#94a3b8"/><rect x="447" y="16" width="158" height="46" rx="9" fill="#0e1628" stroke="#f97316" stroke-width="1.6"/><text x="526" y="43.166666666666664" text-anchor="middle" font-size="12.5" fill="#e2e8f0" font-weight="600" font-family="'Inter',system-ui,sans-serif">D terakhir bila perlu</text><text x="330" y="92" text-anchor="middle" font-size="12" fill="#94a3b8"  font-family="'Inter',system-ui,sans-serif">Uji respons gangguan di tiap tahap</text></svg>
+    <figcaption><strong>Gambar 6</strong> — Urutan menyetel yang aman di lapangan. P dinaikkan dulu sampai respons hidup, aksi I ditambahkan dari T<sub>i</sub> besar untuk menghapus sisa, dan D masuk terakhir hanya bila memang diperlukan.</figcaption>
   </figure>
   <p class="section-desc reveal">Mulai dengan aksi proporsional saja, aksi integral dan turunan dinolkan. Naikkan penguatan bertahap sambil mengamati respons terhadap perubahan setpoint kecil, sampai muncul osilasi ringan yang mereda. Catat nilai itu; ia menjadi acuan untuk seluruh langkah berikutnya.</p>
   <p class="section-desc reveal">Baru kemudian aksi integral ditambahkan, dimulai dari waktu integral yang besar lalu diperkecil bertahap. Waktu integral yang terlalu kecil akan menampakkan diri sebagai ayunan lambat yang berkepanjangan, dan itulah tanda untuk mundur satu langkah.</p>
@@ -1998,70 +2069,70 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Bentuk baku orde dua</h3>
-      <p>Seluruh persamaan dibagi tau.</p>
+      <p>Seluruh persamaan dibagi τ.</p>
       <div class="formula">\(s^2 + (1+K \cdot K_p)/\tau \cdot s + K \cdot \frac{K_i}{\tau} = 0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧭</div>
       <h3>Cocokkan suku konstanta</h3>
-      <p>Frekuensi alami menentukan Ki.</p>
+      <p>Frekuensi alami menentukan K<sub>i</sub>.</p>
       <div class="formula">\(\omega_n^2 = K \cdot \frac{K_i}{\tau} \Rightarrow K_i = \tau \cdot \frac{\omega_n^2}{K}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧪</div>
       <h3>Cocokkan koefisien s</h3>
-      <p>Rasio redaman menentukan Kp.</p>
+      <p>Rasio redaman menentukan K<sub>p</sub>.</p>
       <div class="formula">\(2 \cdot \zeta \cdot \omega_n = (1 + K \cdot K_p)/\tau \Rightarrow K_p = (2 \cdot \zeta \cdot \omega_n \cdot \tau - 1)/K\)</div>
     </div>
   </div>
   <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
     <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(\tau\)</span><span>Konstanta waktu</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(K_p\)</span><span>Gain proporsional</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(K_i\)</span><span>Gain integral</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(G\)</span><span>Fungsi transfer plant</span></span><span class="anim-var nw4"><span class="rumus-notasi">\(K\)</span><span>Gain</span></span><span class="anim-var nw0"><span class="rumus-notasi">\(s\)</span><span>Peubah Laplace</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(C\)</span><span>Fungsi transfer controller</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(L\)</span><span>Gain loop (atau lambang transformasi Laplace pada L{ })</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(\omega_n\)</span><span>Frekuensi alami (rad/s)</span></span><span class="anim-var nw4"><span class="rumus-notasi">\(\zeta\)</span><span>Rasio redaman</span></span></div>
   </div>
-  <p class="section-desc reveal">Kedua parameter kini diperoleh langsung dari z dan wn, yang sendiri diturunkan dari batas overshoot dan waktu menetap. Perhatikan Kp dapat bernilai negatif bila wn yang diminta terlalu kecil, pertanda spesifikasinya sendiri tidak masuk akal untuk plant tersebut.</p>
+  <p class="section-desc reveal">Kedua parameter kini diperoleh langsung dari ζ dan ω<sub>n</sub>, yang sendiri diturunkan dari batas overshoot dan waktu menetap. Perhatikan K<sub>p</sub> dapat bernilai negatif bila ω<sub>n</sub> yang diminta terlalu kecil, pertanda spesifikasinya sendiri tidak masuk akal untuk plant tersebut.</p>
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Contoh Terhitung: Merancang PI dari Spesifikasi</h3>
-  <div class="info-box reveal"><strong>Diketahui:</strong> Plant G(s) = 2/(5s + 1), yaitu K = 2 dan tau = 5 detik &nbsp;·&nbsp; Spesifikasi: overshoot maksimum 10 persen dan waktu menetap maksimum 4 detik pada pita dua persen</div>
+  <div class="info-box reveal"><strong>Diketahui:</strong> Plant G(s) = 2/(5s + 1), yaitu K = 2 dan τ = 5 detik &nbsp;·&nbsp; Spesifikasi: overshoot maksimum 10 persen dan waktu menetap maksimum 4 detik pada pita dua persen</div>
   <div class="cards reveal">
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Rasio redaman dari overshoot</h3>
-      <p>Batas overshoot menetapkan z.</p>
+      <p>Batas overshoot menetapkan ζ.</p>
       <div class="formula">\(\zeta = -\ln(0,10)/\sqrt{\pi^2 + \ln(0,10)^2} = 0,5912\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Frekuensi alami dari waktu menetap</h3>
-      <p>Tuntutan kecepatan menetapkan wn.</p>
+      <p>Tuntutan kecepatan menetapkan ω<sub>n</sub>.</p>
       <div class="formula">\(\omega_n = \frac{4}{\zeta \cdot t_s} = \frac{4}{0,5912 \cdot 4} = 1,6917\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
-      <h3>Hitung Ki</h3>
+      <h3>Hitung K<sub>i</sub></h3>
       <p>Memakai hasil pencocokan suku konstanta.</p>
       <div class="formula">\(K_i = \tau \cdot \frac{\omega_n^2}{K} = 5 \cdot 2,\frac{8619}{2} = 7,1547\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
-      <h3>Hitung Kp</h3>
+      <h3>Hitung K<sub>p</sub></h3>
       <p>Memakai hasil pencocokan koefisien s.</p>
       <div class="formula">\(K_p = (2 \cdot \zeta \cdot \omega_n \cdot \tau - 1)/K = (2 \cdot 0,5912 \cdot 1,6917 \cdot 5 - 1)/2\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧭</div>
-      <h3>Selesaikan Kp</h3>
-      <p>Perhatikan 2*z*wn = 4/t_s = 1, sehingga 2*z*wn*tau = 5.</p>
+      <h3>Selesaikan K<sub>p</sub></h3>
+      <p>Perhatikan 2ζω<sub>n</sub> = 4/t<sub>s</sub> = 1, sehingga 2ζω<sub>n</sub>τ = 5.</p>
       <div class="formula">\(= (10,0 - 1)/2 = 4,5\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧪</div>
       <h3>Periksa waktu integral</h3>
-      <p>Jauh lebih kecil daripada tau = 5 s, artinya aksi integral memang agresif.</p>
+      <p>Jauh lebih kecil daripada τ = 5 s, artinya aksi integral memang agresif.</p>
       <div class="formula">\(T_i = \frac{K_p}{K_i} = 4,\frac{5}{7,1547} = 0,629 s\)</div>
     </div>
   </div>
   <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
     <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(\zeta\)</span><span>Rasio redaman</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(\pi\)</span><span>Konstanta lingkaran 3,14159…</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(\omega_n\)</span><span>Frekuensi alami (rad/s)</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(t_s\)</span><span>Waktu menetap (pita ±2%)</span></span><span class="anim-var nw4"><span class="rumus-notasi">\(\tau\)</span><span>Konstanta waktu</span></span><span class="anim-var nw0"><span class="rumus-notasi">\(K_i\)</span><span>Gain integral</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(K\)</span><span>Gain</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(K_p\)</span><span>Gain proporsional</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(T_i\)</span><span>Waktu integral (detik)</span></span><span class="anim-var nw4"><span class="rumus-notasi">\(s\)</span><span>Peubah Laplace</span></span></div>
   </div>
-  <div class="tip-box reveal">✅ <strong>Jawaban.</strong> Diperoleh Kp = 4,5 dan Ki = 7,1547. Nilai ini titik awal, bukan nilai akhir: sebelum dipakai, sinyal kendali pada saat awal harus diperiksa terhadap batas actuator, dan aksi integral yang agresif menuntut anti-windup yang benar-benar bekerja.</div>
+  <div class="tip-box reveal">✅ <strong>Jawaban.</strong> Diperoleh K<sub>p</sub> = 4,5 dan K<sub>i</sub> = 7,1547. Nilai ini titik awal, bukan nilai akhir: sebelum dipakai, sinyal kendali pada saat awal harus diperiksa terhadap batas actuator, dan aksi integral yang agresif menuntut anti-windup yang benar-benar bekerja.</div>
 
   <label class="pm-centang" data-pm="4"><input type="checkbox" disabled aria-describedby="pm-status-4"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Penurunan Rumus dan Contoh Terselesaikan</b>.</span><em class="pm-status" id="pm-status-4"></em></label>
 </div>
@@ -2084,7 +2155,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🔁</div>
       <h3>Menyamakan bentuk baku dengan bentuk tiga gain</h3>
-      <p>Pada bentuk baku, mengubah Kp ikut mengubah kekuatan integral dan turunan. Memindahkan parameter antarperangkat tanpa memeriksa bentuknya menghasilkan perilaku yang jauh berbeda.</p>
+      <p>Pada bentuk baku, mengubah K<sub>p</sub> ikut mengubah kekuatan integral dan turunan. Memindahkan parameter antarperangkat tanpa memeriksa bentuknya menghasilkan perilaku yang jauh berbeda.</p>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
@@ -2156,7 +2227,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="anim-body">
       <canvas id="siskenAnim1Canvas9" width="1000" height="400" aria-label="Animasi 1 — Tiga Suku PID Bekerja Bersama"></canvas>
       <div class="ctrl-row"><div class="ctrl-group">
-          <label>Gain integral Ki — <span class="ctrl-val" id="siskenAnim1Nilai9">1.2</span></label>
+          <label>Gain integral K<sub>i</sub> — <span class="ctrl-val" id="siskenAnim1Nilai9">1.2</span></label>
           <input id="siskenAnim1Geser9" type="range" min="0" max="4" step="0.1" value="1.2" oninput="drawSiskenAnim1(9)">
         </div>
         <button class="btn-anim" onclick="toggleSiskenAnimation(9)">▶ Jalankan Animasi</button></div>
@@ -2164,7 +2235,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="tip-box reveal anim-jelas">
     <strong>📊 Cara Membaca Animasi 1:</strong> Keluaran (cyan) adalah kerja tiga suku sekaligus: P memikul beban saat error masih besar, I mengambil alih beban tunak, dan D hanya bersuara ketika error berubah cepat.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>e</code><span>Error: sasaran dikurangi keluaran</span></span><span class="anim-var nw1"><code>Kp, Ki, Kd</code><span>Gain suku P, I, dan D</span></span><span class="anim-var nw2"><code>suku P = Kp·e</code><span>Koreksi sebanding error saat ini</span></span><span class="anim-var nw3"><code>suku I = Ki·∫e dt</code><span>Akumulasi seluruh error yang pernah ada</span></span><span class="anim-var nw4"><code>suku D = Kd·de/dt</code><span>Rem terhadap laju perubahan error (ketiga suku dibagi 6 agar sekanvas)</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>e</code><span>Error: sasaran dikurangi keluaran</span></span><span class="anim-var nw1"><code>K<sub>p</sub>, K<sub>i</sub>, K<sub>d</sub></code><span>Gain suku P, I, dan D</span></span><span class="anim-var nw2"><code>suku P = K<sub>p</sub>·e</code><span>Koreksi sebanding error saat ini</span></span><span class="anim-var nw3"><code>suku I = K<sub>i</sub>·∫e dt</code><span>Akumulasi seluruh error yang pernah ada</span></span><span class="anim-var nw4"><code>suku D = K<sub>d</sub>·de/dt</code><span>Rem terhadap laju perubahan error (ketiga suku dibagi 6 agar sekanvas)</span></span></div>
   </div>
   <div class="anim-panel reveal">
     <div class="anim-header">
@@ -2174,14 +2245,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="anim-body">
       <canvas id="siskenAnim2Canvas9" width="1000" height="400" aria-label="Animasi 2 — Aksi Integral Menghapus Error Tunak"></canvas>
       <div class="ctrl-row"><div class="ctrl-group">
-          <label>Gain integral Ki — <span class="ctrl-val" id="siskenAnim2Nilai9">0.00</span></label>
+          <label>Gain integral K<sub>i</sub> — <span class="ctrl-val" id="siskenAnim2Nilai9">0.00</span></label>
           <input id="siskenAnim2Geser9" type="range" min="0" max="3" step="0.05" value="0" oninput="drawSiskenAnim2(9)">
         </div></div>
     </div>
   </div>
   <div class="tip-box reveal anim-jelas">
     <strong>📊 Cara Membaca Animasi 2:</strong> Gangguan tetap menekan keluaran, dan controller P menyisakan offset permanen, sebab ia butuh error agar menghasilkan sinyal. Suku I mengakumulasi error itu terus-menerus sampai celahnya tertutup habis.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>Ki</code><span>Gain integral yang Anda geser</span></span><span class="anim-var nw1"><code>gangguan</code><span>Beban tetap −0,4 yang menekan masukan plant</span></span><span class="anim-var nw2"><code>offset</code><span>Sisa error yang tidak akan pernah dihapus oleh P sendirian</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>K<sub>i</sub></code><span>Gain integral yang Anda geser</span></span><span class="anim-var nw1"><code>gangguan</code><span>Beban tetap −0,4 yang menekan masukan plant</span></span><span class="anim-var nw2"><code>offset</code><span>Sisa error yang tidak akan pernah dihapus oleh P sendirian</span></span></div>
   </div>
   <div class="anim-panel reveal">
     <div class="anim-header">
@@ -2191,20 +2262,20 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="anim-body">
       <canvas id="siskenAnim3Canvas9" width="1000" height="400" aria-label="Animasi 3 — Aksi Derivatif Meredam Lonjakan"></canvas>
       <div class="ctrl-row"><div class="ctrl-group">
-          <label>Gain derivatif Kd — <span class="ctrl-val" id="siskenAnim3Nilai9">0.00</span></label>
+          <label>Gain derivatif K<sub>d</sub> — <span class="ctrl-val" id="siskenAnim3Nilai9">0.00</span></label>
           <input id="siskenAnim3Geser9" type="range" min="0" max="2.5" step="0.05" value="0" oninput="drawSiskenAnim3(9)">
         </div></div>
     </div>
   </div>
   <div class="tip-box reveal anim-jelas">
-    <strong>📊 Cara Membaca Animasi 3:</strong> Tanpa D plant ini melonjak jauh. Menaikkan Kd menambahkan rem yang menahan laju keluaran sehingga lonjakan menyusut; berlebihan sedikit, sistem berubah jadi lamban.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>Kd</code><span>Gain derivatif yang Anda geser</span></span><span class="anim-var nw1"><code>1/(s(s+1))</code><span>Plant ber-integrator: gampang melonjak</span></span><span class="anim-var nw2"><code>Mp</code><span>Lonjakan yang sedang dipadamkan (angka di bawah kurva)</span></span></div>
+    <strong>📊 Cara Membaca Animasi 3:</strong> Tanpa D plant ini melonjak jauh. Menaikkan K<sub>d</sub> menambahkan rem yang menahan laju keluaran sehingga lonjakan menyusut; berlebihan sedikit, sistem berubah jadi lamban.
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>K<sub>d</sub></code><span>Gain derivatif yang Anda geser</span></span><span class="anim-var nw1"><code>1/(s(s+1))</code><span>Plant ber-integrator: gampang melonjak</span></span><span class="anim-var nw2"><code>M<sub>p</sub></code><span>Lonjakan yang sedang dipadamkan (angka di bawah kurva)</span></span></div>
   </div>
   <p class="section-desc reveal">Peta hafalan tuning manual: arah pengaruh menaikkan tiap gain terhadap empat sifat respons. Ini pegangan awal sebelum menyetel, bukan hukum mutlak, karena interaksi antar suku tetap harus diperiksa lewat simulasi. Sajian statisnya diperlihatkan pada Gambar 10 di bawah.</p>
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Gambar 10 — Arah Pengaruh Menaikkan Kp, Ki, Kd</span>
+      <span class="anim-title">Gambar 10 — Arah Pengaruh Menaikkan K<sub>p</sub>, K<sub>i</sub>, K<sub>d</sub></span>
     </div>
     <div class="anim-body">
       <canvas id="siskenGrafikCanvas9" width="1000" height="300" aria-label="Gambar 10 — Arah Pengaruh Menaikkan Kp, Ki, Kd"></canvas>
@@ -2213,7 +2284,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="tip-box reveal anim-jelas">
     <strong>📊 Cara Membaca Gambar 10:</strong> Peta hafalan sebelum menyetel: baris adalah gain yang dinaikkan, kolom akibatnya. Hijau menguntungkan, merah muda harga yang harus dibayar, tanda ~ pengaruh kecil.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>Kp / Ki / Kd</code><span>Tiga gain PID</span></span><span class="anim-var nw1"><code>kestabilan</code><span>Jarak sistem dari mulai berosilasi liar</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><code>K<sub>p</sub> / K<sub>i</sub> / K<sub>d</sub></code><span>Tiga gain PID</span></span><span class="anim-var nw1"><code>kestabilan</code><span>Jarak sistem dari mulai berosilasi liar</span></span></div>
   </div>
 
   <label class="pm-centang" data-pm="7"><input type="checkbox" disabled aria-describedby="pm-status-7"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Animasi Respons dan Karakteristik Sistem</b>.</span><em class="pm-status" id="pm-status-7"></em></label>
@@ -2467,7 +2538,7 @@ function _siskenPasangTeksPas(c,x){
     var utuh=teks, potong=false;
     // Elipsis hanya bila teks TELANJANG masih tak muat setelah menyusut —
     // jangan menghukum teks yang pas hanya karena '…' ikut ditimbang.
-    if(x.measureText(teks).width>batas){
+    if(x.measureText(teks).width>batas){teks=teks.replace(/<\/?su[bp]>/g,''); // penanda rumus NOTASI-KANVAS tak boleh terpenggal
       while(teks.length>4&&x.measureText(teks+'…').width>batas)teks=teks.slice(0,-1);
       teks+='…';potong=true;
     }
@@ -2520,7 +2591,7 @@ _siskenJalur(x,sk,ty,'#67e8f9',3.2);
 var idx=Math.floor((((phase||0)%1)+1)%1*(ty.length-1));
 _siskenTitik(x,sk.x(ty[idx][0]),sk.y(ty[idx][1]),6,'#a78bfa');
 _siskenLegenda(x,[['keluaran y','#67e8f9'],['suku P/6','#fbbf24'],['suku I/6','#5eead4'],['suku D/6','#ec4899']],s.pad,s.atas-13);
-_siskenBawah(x,s,'P memikul awal, I mengambil alih beban tunak, D hanya bicara saat e berubah (Kp=4, Kd=0.6)','waktu →');
+_siskenBawah(x,s,'P memikul awal, I mengambil alih beban tunak, D hanya bicara saat e berubah (K<sub>p</sub>=4, K<sub>d</sub>=0.6)','waktu →');
 };
 window.drawSiskenAnim2=function(n,phase){
   var v=_siskenNilai('siskenAnim2',n,2); if(v===null)return;
@@ -2535,7 +2606,7 @@ var pOnly=sim(0), dgn=sim(v);
 _siskenJalur(x,sk,pOnly,'rgba(103,132,168,.6)',2);
 _siskenJalur(x,sk,dgn,'#67e8f9',3);
 var akhir=dgn[dgn.length-1][1], celah=1-akhir;
-_siskenLegenda(x,[['P saja (Kp=3)','rgba(103,132,168,.95)'],['PI dengan Ki ini','#67e8f9'],['setpoint','#fbbf24']],s.pad,s.atas-13);
+_siskenLegenda(x,[['P saja (K<sub>p</sub>=3)','rgba(103,132,168,.95)'],['PI dengan K<sub>i</sub> ini','#67e8f9'],['setpoint','#fbbf24']],s.pad,s.atas-13);
 _siskenBawah(x,s,'gangguan tetap −0.4 · sisa error: '+(100*celah).toFixed(1)+'%'+(celah<0.02?', lalu integral menutupnya sampai nol':', sedangkan P saja berhenti di '+(100*(1-pOnly[pOnly.length-1][1])).toFixed(0)+'%'),'waktu →',celah<0.02?'#5eead4':'#9fb2cc');
 };
 window.drawSiskenAnim3=function(n,phase){
@@ -2552,8 +2623,8 @@ _siskenGarisDatar(x,s,sk.y(1),'#fbbf24');
 var tanpa=sim(0), dgn=sim(v);
 _siskenJalur(x,sk,tanpa.pts,'rgba(103,132,168,.6)',2);
 _siskenJalur(x,sk,dgn.pts,'#67e8f9',3);
-_siskenLegenda(x,[['tanpa D','rgba(103,132,168,.95)'],['dengan Kd ini','#67e8f9'],['setpoint','#fbbf24']],s.pad,s.atas-13);
-_siskenBawah(x,s,'plant 1/(s(s+1)), Kp=8 · lonjakan: '+(100*(tanpa.puncak-1)).toFixed(0)+'% → '+(100*Math.max(0,dgn.puncak-1)).toFixed(0)+'%'+(v>1.8?', tanda Kd berlebih mulai melambatkan':''),'waktu →');
+_siskenLegenda(x,[['tanpa D','rgba(103,132,168,.95)'],['dengan K<sub>d</sub> ini','#67e8f9'],['setpoint','#fbbf24']],s.pad,s.atas-13);
+_siskenBawah(x,s,'plant 1/(s(s+1)), K<sub>p</sub>=8 · lonjakan: '+(100*(tanpa.puncak-1)).toFixed(0)+'% → '+(100*Math.max(0,dgn.puncak-1)).toFixed(0)+'%'+(v>1.8?', tanda K<sub>d</sub> berlebih mulai melambatkan':''),'waktu →');
 };
 window.drawSiskenGrafik=function(n){
 var s=_siskenSiapkan('siskenGrafikCanvas'+n,36,26,6); if(!s)return;
@@ -2696,10 +2767,10 @@ document.addEventListener('DOMContentLoaded',function(){
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">L = Kp·K</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">τ_cl = τ/(1+L)</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">Mp = e^(−πζ/√(1−ζ²))</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">L = K<sub>p</sub>·K</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">τ<sub>cl</sub> = τ/(1+L)</span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">M<sub>p</sub> = e<sup>−πζ/√(1−ζ²)</sup></span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">S + T = 1</span>
   </div>
   <div class="hero-content">
@@ -2773,7 +2844,7 @@ document.addEventListener('DOMContentLoaded',function(){
 </div>
 <div class="radio-group" id="rg-mc2">
 <div class="radio-option" onclick="selectMC('mc2',this)"><div class="radio-circle"></div>(A) &nbsp; Bentuk baku tidak memiliki aksi turunan</div>
-<div class="radio-option" onclick="selectMC('mc2',this)"><div class="radio-circle"></div>(B) &nbsp; Pada bentuk baku, mengubah Kp ikut mengubah kekuatan aksi integral dan turunan</div>
+<div class="radio-option" onclick="selectMC('mc2',this)"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; Pada bentuk baku, mengubah K<sub>p</sub> ikut mengubah kekuatan aksi integral dan turunan</span></div>
 <div class="radio-option" onclick="selectMC('mc2',this)"><div class="radio-circle"></div>(C) &nbsp; Bentuk baku hanya berlaku untuk sistem digital</div>
 <div class="radio-option" onclick="selectMC('mc2',this)"><div class="radio-circle"></div>(D) &nbsp; Keduanya identik dalam segala hal</div>
 </div>
@@ -3175,8 +3246,8 @@ document.addEventListener('DOMContentLoaded',function(){
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">e(t) = r(t) − y(t)</span>
-    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">L = Kp·K</span>
+    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">L = K<sub>p</sub>·K</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">on–off → ripple</span>
   </div>
   <div class="hero-content">
@@ -3189,8 +3260,8 @@ document.addEventListener('DOMContentLoaded',function(){
 <h2 class="section-title reveal">Aturan Praktis yang Diterapkan Tanpa Memeriksa</h2>
 <div class="forum-scenario reveal">
 <div class="scenario-label">📋 KASUS INDUSTRI</div>
-<p style="margin-top:12px">Seorang teknisi menyetel kendali aliran memakai metode Ziegler-Nichols. Uji penguatan kritis memberi <strong style="color:var(--cyan)">Ku = 8</strong> dengan periode osilasi <strong>Tu = 2 detik</strong>, dan tabel PID diterapkan apa adanya: Kp = 4,8 ; Ti = 1,0 detik ; Td = 0,25 detik.</p><p style="margin-top:12px">Pada perubahan setpoint kecil, hasilnya memuaskan. Namun ketika operator menaikkan setpoint <strong style="color:var(--amber)">tiga satuan sekaligus</strong>, katup langsung membuka penuh dan bertahan di sana cukup lama, lalu aliran <strong style="color:var(--pink)">melonjak jauh melewati sasaran</strong> sebelum akhirnya turun. Kejadian itu berulang setiap kali perubahan setpoint besar dilakukan.</p><p style="margin-top:12px">Pemeriksaan menemukan actuator hanya mampu mengeluarkan <strong>5 satuan</strong>, sementara aksi proporsional saja pada saat awal sudah menuntut 4,8 dikali 3. Program controller tidak memuat penanganan apa pun untuk keadaan actuator mentok.</p>
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px"><div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Ku / Tu: 8 / 2 s</div><div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Kp ZN: 4,8</div><div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Batas actuator: 5 satuan</div><div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Perubahan setpoint: 3 satuan</div></div>
+<p style="margin-top:12px">Seorang teknisi menyetel kendali aliran memakai metode Ziegler-Nichols. Uji penguatan kritis memberi <strong style="color:var(--cyan)">K<sub>u</sub> = 8</strong> dengan periode osilasi <strong>T<sub>u</sub> = 2 detik</strong>, dan tabel PID diterapkan apa adanya: K<sub>p</sub> = 4,8 ; T<sub>i</sub> = 1,0 detik ; T<sub>d</sub> = 0,25 detik.</p><p style="margin-top:12px">Pada perubahan setpoint kecil, hasilnya memuaskan. Namun ketika operator menaikkan setpoint <strong style="color:var(--amber)">tiga satuan sekaligus</strong>, katup langsung membuka penuh dan bertahan di sana cukup lama, lalu aliran <strong style="color:var(--pink)">melonjak jauh melewati sasaran</strong> sebelum akhirnya turun. Kejadian itu berulang setiap kali perubahan setpoint besar dilakukan.</p><p style="margin-top:12px">Pemeriksaan menemukan actuator hanya mampu mengeluarkan <strong>5 satuan</strong>, sementara aksi proporsional saja pada saat awal sudah menuntut 4,8 dikali 3. Program controller tidak memuat penanganan apa pun untuk keadaan actuator mentok.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px"><div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">K<sub>u</sub> / T<sub>u</sub>: 8 / 2 s</div><div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">K<sub>p</sub> ZN: 4,8</div><div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Batas actuator: 5 satuan</div><div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Perubahan setpoint: 3 satuan</div></div>
 </div>
 <div class="section-label reveal" style="margin-top:34px">Pertanyaan Diskusi</div>
 <h2 class="section-title reveal" style="margin-bottom:28px">Diskusikan<br>Tiga Hal Ini</h2>
@@ -3202,12 +3273,12 @@ document.addEventListener('DOMContentLoaded',function(){
 </div>
 <div class="fq-body">
   <div class="fq-inner">
-    <p style="color:var(--muted);font-size:14px;margin-bottom:14px">1) Hitung Kp, Ti, dan Td menurut Ziegler-Nichols dari Ku dan Tu. 2) Tetapkan spesifikasi overshoot dan waktu menetap yang wajar lalu turunkan z dan wn. 3) Hitung parameter dari letak pole yang dituju. 4) Bandingkan kedua himpunan parameter dan jelaskan mana yang lebih agresif pada tiap aksinya.</p>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:14px">1) Hitung K<sub>p</sub>, T<sub>i</sub>, dan T<sub>d</sub> menurut Ziegler-Nichols dari K<sub>u</sub> dan T<sub>u</sub>. 2) Tetapkan spesifikasi overshoot dan waktu menetap yang wajar lalu turunkan ζ dan ω<sub>n</sub>. 3) Hitung parameter dari letak pole yang dituju. 4) Bandingkan kedua himpunan parameter dan jelaskan mana yang lebih agresif pada tiap aksinya.</p>
     <div class="poll">
       <div class="poll-q">QUICK CHECK — Keluaran aksi proporsional pada saat awal untuk perubahan setpoint 3 satuan adalah...</div>
       <div class="poll-opts" id="fp1"><div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>1,6 satuan</div><div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div>4,8 satuan</div><div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div>14,4 satuan sehingga actuator jenuh hampir tiga kali batasnya</div><div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div>5 satuan, tepat di batas</div></div>
       <div class="p-fb r" id="fp1r">✅ Tepat. Pada saat awal seluruh perubahan setpoint menjadi error, sehingga u(0) = 4,8 x 3 = 14,4 sementara batasnya hanya 5. Aksi integral dan turunan bahkan belum diperhitungkan.</div>
-      <div class="p-fb w" id="fp1w">❌ Pada saat awal seluruh perubahan setpoint menjadi error, sehingga aksi proporsional bernilai Kp dikali besar perubahan itu, bukan Kp saja.</div>
+      <div class="p-fb w" id="fp1w">❌ Pada saat awal seluruh perubahan setpoint menjadi error, sehingga aksi proporsional bernilai K<sub>p</sub> dikali besar perubahan itu, bukan K<sub>p</sub> saja.</div>
     </div>
     <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis jawaban diskusi Anda di sini (minimal 30 kata)…" oninput="checkForumReady()"></textarea>
     <div id="wc-fq1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right">0 / min 30 kata</div>
@@ -3243,9 +3314,9 @@ document.addEventListener('DOMContentLoaded',function(){
     <p style="color:var(--muted);font-size:14px;margin-bottom:14px">1) Sebutkan sasaran yang dikejar aturan itu dan overshoot yang menyertainya. 2) Sebutkan keadaan ketika aturan itu tidak layak dipakai apa adanya. 3) Jelaskan pemeriksaan apa yang wajib dilakukan sebelum parameter hasil tabel dipasang. 4) Simpulkan cara memakainya yang bertanggung jawab.</p>
     <div class="poll">
       <div class="poll-q">QUICK CHECK — Langkah perbaikan yang paling tepat didahulukan adalah...</div>
-      <div class="poll-opts" id="fp3"><div class="p-opt" onclick="voteForum(3,this,0)"><div class="p-circle"></div>Menurunkan Kp sampai lonjakan hilang</div><div class="p-opt" onclick="voteForum(3,this,1)"><div class="p-circle"></div>Menerapkan anti-windup dan pembatasan keluaran, lalu meninjau ulang penyetelan</div><div class="p-opt" onclick="voteForum(3,this,2)"><div class="p-circle"></div>Mengganti actuator dengan yang lebih besar</div><div class="p-opt" onclick="voteForum(3,this,3)"><div class="p-circle"></div>Menghapus aksi turunan</div></div>
-      <div class="p-fb r" id="fp3r">✅ Tepat. Menurunkan Kp memang mengurangi gejala, tetapi mengorbankan kinerja pada seluruh keadaan lain demi menutupi satu keadaan yang seharusnya ditangani anti-windup.</div>
-      <div class="p-fb w" id="fp3w">❌ Gejalanya berasal dari penumpukan integral saat jenuh, bukan dari Kp yang terlalu besar secara umum. Menangani sebabnya lebih tepat daripada menurunkan kinerja di semua keadaan.</div>
+      <div class="poll-opts" id="fp3"><div class="p-opt" onclick="voteForum(3,this,0)"><div class="p-circle"></div><span class="opsi-teks">Menurunkan K<sub>p</sub> sampai lonjakan hilang</span></div><div class="p-opt" onclick="voteForum(3,this,1)"><div class="p-circle"></div>Menerapkan anti-windup dan pembatasan keluaran, lalu meninjau ulang penyetelan</div><div class="p-opt" onclick="voteForum(3,this,2)"><div class="p-circle"></div>Mengganti actuator dengan yang lebih besar</div><div class="p-opt" onclick="voteForum(3,this,3)"><div class="p-circle"></div>Menghapus aksi turunan</div></div>
+      <div class="p-fb r" id="fp3r">✅ Tepat. Menurunkan K<sub>p</sub> memang mengurangi gejala, tetapi mengorbankan kinerja pada seluruh keadaan lain demi menutupi satu keadaan yang seharusnya ditangani anti-windup.</div>
+      <div class="p-fb w" id="fp3w">❌ Gejalanya berasal dari penumpukan integral saat jenuh, bukan dari K<sub>p</sub> yang terlalu besar secara umum. Menangani sebabnya lebih tepat daripada menurunkan kinerja di semua keadaan.</div>
     </div>
     <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis jawaban diskusi Anda di sini (minimal 30 kata)…" oninput="checkForumReady()"></textarea>
     <div id="wc-fq3" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;text-align:right">0 / min 30 kata</div>
@@ -3622,7 +3693,7 @@ function buildForumHtml() {
   <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;margin-top:8px;">
     <tr><td style="padding:20px 28px;">
       <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;line-height:1.55;font-weight:700;"><span style="display:inline-block;background:#a855f7;color:#fff;padding:3px 12px;border-radius:6px;font-weight:700;font-size:13px;margin-right:8px;">1</span>Hitung dan bandingkan penyetelan Ziegler-Nichols dengan penyetelan berbasis spesifikasi untuk kasus ini</h3>
-      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">1) Hitung Kp, Ti, dan Td menurut Ziegler-Nichols dari Ku dan Tu. 2) Tetapkan spesifikasi overshoot dan waktu menetap yang wajar lalu turunkan z dan wn. 3) Hitung parameter dari letak pole yang dituju. 4) Bandingkan kedua himpunan parameter dan jelaskan mana yang lebih agresif pada tiap aksinya.</div>
+      <div style="font-size:.82rem;color:#64748b;margin-bottom:14px;padding-left:40px;font-style:italic;">1) Hitung K<sub>p</sub>, T<sub>i</sub>, dan T<sub>d</sub> menurut Ziegler-Nichols dari K<sub>u</sub> dan T<sub>u</sub>. 2) Tetapkan spesifikasi overshoot dan waktu menetap yang wajar lalu turunkan ζ dan ω<sub>n</sub>. 3) Hitung parameter dari letak pole yang dituju. 4) Bandingkan kedua himpunan parameter dan jelaskan mana yang lebih agresif pada tiap aksinya.</div>
       <div style="margin-left:40px;margin-top:10px;">
         <div style="font-size:.7rem;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">&#9998; JAWABAN</div>
         <div style="background:#f8f5ff;border:1px solid #c4b5fd;border-radius:8px;padding:14px 16px;font-size:.88rem;color:#1e293b;line-height:1.75;min-height:48px;">${ans1}</div>
@@ -4796,6 +4867,35 @@ window._setBtnState = _setBtnState;
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4863,15 +4963,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -4910,7 +5012,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -4923,7 +5025,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5904,7 +6006,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(255,179,0,.85)'; ctx.beginPath();
     ctx.arc(px,py,18,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.fillText('m',px,py+4);
-    document.getElementById('sysRealInfo').textContent=`Pendulum L=1m: ω_n = √(g/L) = ${wn.toFixed(2)} rad/s, T = ${(2*Math.PI/wn).toFixed(2)} s`;
+    document.getElementById('sysRealInfo').innerHTML=`Pendulum L=1m: ω<sub>n</sub> = √(g/L) = ${wn.toFixed(2)} rad/s, T = ${(2*Math.PI/wn).toFixed(2)} s`;
   }
   else if(_sysRealKind==='msd'){
     wn=Math.sqrt(100);
@@ -5919,13 +6021,13 @@ function drawSysReal(){
     ctx.lineTo(cx+x-30,cy); ctx.stroke();
     ctx.fillStyle='rgba(14,165,233,.85)'; ctx.fillRect(cx+x-30,cy-30,60,60);
     ctx.fillStyle='#fff'; ctx.font='bold 14px JetBrains Mono'; ctx.fillText('m',cx+x,cy+5);
-    document.getElementById('sysRealInfo').textContent=`Mass-Spring k=100 N/m, m=1 kg: ω_n = √(k/m) = ${wn.toFixed(2)} rad/s`;
+    document.getElementById('sysRealInfo').innerHTML=`Mass-Spring k=100 N/m, m=1 kg: ω<sub>n</sub> = √(k/m) = ${wn.toFixed(2)} rad/s`;
   }
   else if(_sysRealKind==='cantilever'){
     wn=2*Math.PI*1.5;
     const amp=Math.sin(2*t)*0.5;
     sigValue=amp;
-    label='y_tip(t)'; sigUnit='m';
+    label='y<sub>tip</sub>(t)'; sigUnit='m';
     ctx.fillStyle='#1e293b'; ctx.fillRect(20,cy-40,8,80);
     ctx.strokeStyle='rgba(0,224,158,.8)'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(28,cy);
@@ -5941,7 +6043,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(0,224,158,.9)';
     ctx.beginPath(); ctx.arc(28+beamL,tipY,12,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Cantilever Mode 1',cx,cy+80);
-    document.getElementById('sysRealInfo').textContent='Cantilever: ω_n = (1.875)²·√(EI/(ρAL⁴)), yaitu bending mode 1, tip mass berosilasi';
+    document.getElementById('sysRealInfo').innerHTML='Cantilever: ω<sub>n</sub> = (1.875)²·√(EI/(ρAL⁴)), yaitu bending mode 1, tip mass berosilasi';
   }
   else if(_sysRealKind==='rotor'){
     wn=2*Math.PI*1.27;
@@ -5957,13 +6059,13 @@ function drawSysReal(){
     ctx.fillStyle='#fff'; ctx.beginPath();
     ctx.arc(cx+Math.cos(spin)*20, cy+wobble+Math.sin(spin)*20, 4, 0, Math.PI*2); ctx.fill();
     ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Rotor + Bearing',cx,cy+60);
-    document.getElementById('sysRealInfo').textContent='Rotor + Bearing: ω_n = √(k_journal/m_rotor), bearing journal sebagai pegas radial';
+    document.getElementById('sysRealInfo').innerHTML='Rotor + Bearing: ω<sub>n</sub> = √(k<sub>journal</sub>/m<sub>rotor</sub>), bearing journal sebagai pegas radial';
   }
   else if(_sysRealKind==='suspension'){
     wn=2*Math.PI*1.0;
     const bump=Math.sin(wn*t)*10;
     sigValue=bump/10*0.3;
-    label='z_body(t)'; sigUnit='m';
+    label='z<sub>body</sub>(t)'; sigUnit='m';
     ctx.strokeStyle='#1e293b'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(20,cy+70+bump); ctx.lineTo(splitX-20,cy+70+bump); ctx.stroke();
     ctx.fillStyle='#0f172a';
@@ -5978,7 +6080,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(14,165,233,.9)';
     ctx.fillRect(cx-100,cy-25+bump*0.3,200,30);
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Body',cx,cy-5+bump*0.3);
-    document.getElementById('sysRealInfo').textContent='Suspensi mobil: ω_n = √(k_spring/m_body) ≈ 1-2 Hz natural ride frequency';
+    document.getElementById('sysRealInfo').innerHTML='Suspensi mobil: ω<sub>n</sub> = √(k<sub>spring</sub>/m<sub>body</sub>) ≈ 1-2 Hz natural ride frequency';
   }
 
   // Append to history (keep 200 points)
@@ -6131,8 +6233,8 @@ function drawForumCanvas() {
   ctx.strokeStyle='rgba(0,224,158,.2)'; ctx.strokeRect(padL+6, padT+8, 250, 70);
   ctx.fillStyle='#34d399'; ctx.font='bold 10px JetBrains Mono'; ctx.fillText('Pompa Sentrifugal — Velocity v(t)', padL+14, padT+22);
   ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono';
-  ctx.fillText(`RPM = ${RPM}  |  f_dominan = ${f1} Hz (1×RPM)`, padL+14, padT+36);
-  ctx.fillText(`v_RMS ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
+  ctx.fillText(`RPM = ${RPM}  |  f<sub>dominan</sub> = ${f1} Hz (1×RPM)`, padL+14, padT+36);
+  ctx.fillText(`v<sub>RMS</sub> ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
   ctx.fillText(`Hipotesis: unbalance rotor (verifikasi via FFT)`, padL+14, padT+64);
 }
 // Resize handler — redraw all active canvases
@@ -6805,7 +6907,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
   /* ── Floating physics formulas (Perancangan PID) ── */
   const formulas = [
     { t: 'e(t) = r(t) − y(t)',                 s: 13 },
-    { t: 'u(t) = Kp·e(t)',                     s: 14 },
+    { t: 'u(t) = K<sub>p</sub>·e(t)',                     s: 14 },
     { t: 'G(s) = Y(s)/U(s)',                   s: 13 },
     { t: 'L(s) = C(s)G(s)',                    s: 14 },
     { t: 'T(s) = L(s)/(1+L(s))',               s: 12 },
@@ -6828,7 +6930,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

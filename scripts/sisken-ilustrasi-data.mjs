@@ -2,7 +2,9 @@
  * Spesifikasi ilustrasi badan penjelasan, satu entri per sub-bagian materi
  * (selaras indeks MATERI[n].deep). Judul TANPA nomor — nomor gambar dipasang
  * generator sesuai urutan tampil di halaman. Caption menjelaskan apa yang
- * terlihat, bukan mengulang judul.
+ * terlihat, bukan mengulang judul. Notasi rumus pada teks gambar memakai
+ * penanda "t<sub>s</sub>", "e<sup>at</sup>" (dirender sebagai <tspan> oleh
+ * sisken-ilustrasi.mjs), bukan "t_s" atau "e^(at)" yang tampil mentah.
  */
 
 export const GAMBAR_MODUL = {
@@ -68,7 +70,7 @@ export const GAMBAR_MODUL = {
       p: { langkah: [{ t: "x''(t)", warna: "#22d3ee" }, { t: "s²X(s) − s·x(0) − x'(0)", warna: "#a855f7" }], catat: "kondisi awal terbawa otomatis di suku pengurang" } },
     { jenis: "alur", judul: "Pecahan parsial membongkar respons menjadi suku dikenal",
       caption: "Fungsi rumit dipecah menjadi jumlahan suku sederhana yang tiap-tiap inversinya sudah dihafal dari tabel.",
-      p: { langkah: ["F(s) rumit", "Pecah per pole", "Tiap suku ↔ e^(at)", "Jumlahkan"], catat: "satu teknik untuk hampir semua inversi" } },
+      p: { langkah: ["F(s) rumit", "Pecah per pole", "Tiap suku ↔ e<sup>at</sup>", "Jumlahkan"], catat: "satu teknik untuk hampir semua inversi" } },
     { jenis: "polezero", judul: "Peta pole menentukan nasib respons",
       caption: "Pole di kiri sumbu meluruh dan stabil; sepasang pole kompleks menyumbang osilasi; satu pole di kanan sudah cukup membuat seluruh respons membesar.",
       p: { pole: [[-2.2, 1.4], [-2.2, -1.4], [-3.6, 0], [1.4, 0, "tak stabil"]], zero: [], catat: "kestabilan dibaca dari letak pole, tanpa menyelesaikan PD" } },
@@ -182,10 +184,10 @@ export const GAMBAR_MODUL = {
   "7": [
     { jenis: "kurva", judul: "Satu kurva step memuat semua besaran bukti",
       caption: "Waktu naik, lonjakan maksimum, waktu menetap, dan error tunak semuanya terbaca dari satu grafik; membaca angka-angka ini adalah keterampilan inti bab ini.",
-      p: { sumbuX: "waktu", sumbuY: "keluaran", kurva: [{ preset: "step-lonjak", label: "respons step" }], garisY: [{ v: 0.95, label: "setpoint" }], anotasi: [{ u: 0.2, v: 1.06, teks: "lonjakan Mp", warna: "#f97316" }, { u: 0.13, v: 0.1, teks: "waktu naik", warna: "#22d3ee" }, { u: 0.62, v: 0.83, teks: "menetap di pita ±2%", warna: "#00e09e" }] } },
+      p: { sumbuX: "waktu", sumbuY: "keluaran", kurva: [{ preset: "step-lonjak", label: "respons step" }], garisY: [{ v: 0.95, label: "setpoint" }], anotasi: [{ u: 0.2, v: 1.06, teks: "lonjakan M<sub>p</sub>", warna: "#f97316" }, { u: 0.13, v: 0.1, teks: "waktu naik", warna: "#22d3ee" }, { u: 0.62, v: 0.83, teks: "menetap di pita ±2%", warna: "#00e09e" }] } },
     { jenis: "kurva", judul: "Parameter model disimpulkan dari bentuk osilasi",
       caption: "Besar lonjakan menyingkap rasio redaman, jarak antar puncak menyingkap frekuensi teredam; dua pengukuran penggaris memberi model orde dua lengkap.",
-      p: { sumbuX: "waktu", sumbuY: "keluaran", kurva: [{ preset: "osilasi-teredam", label: "respons terukur" }], anotasi: [{ u: 0.1, v: 0.95, teks: "tinggi lonjakan → ζ", warna: "#f97316" }, { u: 0.36, v: 0.72, teks: "jarak puncak → ωd", warna: "#fbbf24" }] } },
+      p: { sumbuX: "waktu", sumbuY: "keluaran", kurva: [{ preset: "osilasi-teredam", label: "respons terukur" }], anotasi: [{ u: 0.1, v: 0.95, teks: "tinggi lonjakan → ζ", warna: "#f97316" }, { u: 0.36, v: 0.72, teks: "jarak puncak → ω<sub>d</sub>", warna: "#fbbf24" }] } },
     { jenis: "banding", judul: "Pola respons menunjuk sumber masalahnya",
       caption: "Dering yang tidak kunjung reda menunjuk gain terlalu tinggi; melampaui lalu kembali perlahan menunjuk aksi integral berlebih — pola adalah diagnosis.",
       p: { kiri: { judul: "Gain terlalu tinggi", preset: "osilasi-tetap", warna: "#ef4444", catat: "berdering terus" }, kanan: { judul: "Integral berlebih", preset: "step-lonjak", warna: "#f97316", catat: "melampaui, pulang perlahan" } } },
@@ -212,13 +214,13 @@ export const GAMBAR_MODUL = {
   "8": [
     { jenis: "kurva", judul: "Empat besaran yang merangkum seluruh respons",
       caption: "Waktu naik mengukur kecepatan awal, lonjakan mengukur kelewatan, waktu menetap mengukur lamanya tenang, dan error tunak mengukur sisa selisih permanen.",
-      p: { sumbuX: "waktu", sumbuY: "keluaran", kurva: [{ preset: "step-lonjak", label: "respons" }], garisY: [{ v: 0.95, label: "setpoint" }], anotasi: [{ u: 0.12, v: 0.1, teks: "t_r", warna: "#22d3ee" }, { u: 0.21, v: 1.06, teks: "M_p", warna: "#f97316" }, { u: 0.55, v: 0.83, teks: "t_s", warna: "#00e09e" }, { u: 0.76, v: 1.05, teks: "e_ss", warna: "#fbbf24" }] } },
+      p: { sumbuX: "waktu", sumbuY: "keluaran", kurva: [{ preset: "step-lonjak", label: "respons" }], garisY: [{ v: 0.95, label: "setpoint" }], anotasi: [{ u: 0.12, v: 0.1, teks: "t<sub>r</sub>", warna: "#22d3ee" }, { u: 0.21, v: 1.06, teks: "M<sub>p</sub>", warna: "#f97316" }, { u: 0.55, v: 0.83, teks: "t<sub>s</sub>", warna: "#00e09e" }, { u: 0.76, v: 1.05, teks: "e<sub>ss</sub>", warna: "#fbbf24" }] } },
     { jenis: "kurva", judul: "Tipe sistem menentukan sisa error tunak",
       caption: "Sistem tipe 0 selalu menyisakan selisih terhadap setpoint; kehadiran satu integrator (tipe 1) menghapus sisa itu untuk masukan step.",
       p: { sumbuX: "waktu", sumbuY: "keluaran", kurva: [{ preset: "step-tunak-kurang", label: "tipe 0: bersisa" }, { preset: "step-mulus", label: "tipe 1: menutup penuh", warna: "#00e09e" }], garisY: [{ v: 0.95, label: "setpoint" }] } },
     { jenis: "banding", judul: "Mengikuti setpoint dan menolak gangguan dinilai terpisah",
       caption: "Penyebut fungsi transfernya sama tetapi pembilangnya berbeda: penyetelan yang bagus mengejar setpoint belum tentu bagus meredam gangguan.",
-      p: { kiri: { judul: "Respons setpoint", preset: "step-mulus", catat: "T_r = GC/(1+GCH)" }, kanan: { judul: "Respons gangguan", preset: "lembah", warna: "#f97316", catat: "T_d = G/(1+GCH)" } } },
+      p: { kiri: { judul: "Respons setpoint", preset: "step-mulus", catat: "T<sub>r</sub> = GC/(1+GCH)" }, kanan: { judul: "Respons gangguan", preset: "lembah", warna: "#f97316", catat: "T<sub>d</sub> = G/(1+GCH)" } } },
     { jenis: "polezero", judul: "Margin kestabilan adalah jarak ke tepi",
       caption: "Sistem yang stabil tetapi polenya merapat ke sumbu imajiner hidup tanpa cadangan; margin mengukur seberapa jauh parameter boleh bergeser sebelum jatuh.",
       p: { pole: [[-2.8, 1], [-2.8, -1], [-0.4, 2], [-0.4, -2, "nyaris jatuh"]], zero: [], catat: "stabil saja tidak cukup; ukur jaraknya" } },
@@ -233,7 +235,7 @@ export const GAMBAR_MODUL = {
       p: { langkah: ["Susun koefisien", "Isi tabel Routh", "Baca kolom pertama", "Ganti tanda = pole kanan"], catat: "kestabilan tanpa menyelesaikan polinomial" } },
     { jenis: "kurva", judul: "Bandwidth membatasi kecepatan dan meloloskan derau",
       caption: "Sistem mengikuti sinyal di bawah lebar pitanya dan menyerah di atasnya; pita lebar berarti respons gesit sekaligus pintu masuk derau yang lebih lebar.",
-      p: { sumbuX: "frekuensi", sumbuY: "|T| (dB)", kurva: [{ pts: [[0, 0.8], [0.3, 0.79], [0.45, 0.76], [0.58, 0.66], [0.7, 0.48], [0.82, 0.28], [1, 0.1]], label: "|T(jω)|" }], garisY: [{ v: 0.62, label: "−3 dB", warna: "#fbbf24" }], anotasi: [{ u: 0.56, v: 0.36, teks: "lebar pita f_bw", warna: "#fbbf24" }] } },
+      p: { sumbuX: "frekuensi", sumbuY: "|T| (dB)", kurva: [{ pts: [[0, 0.8], [0.3, 0.79], [0.45, 0.76], [0.58, 0.66], [0.7, 0.48], [0.82, 0.28], [1, 0.1]], label: "|T(jω)|" }], garisY: [{ v: 0.62, label: "−3 dB", warna: "#fbbf24" }], anotasi: [{ u: 0.56, v: 0.36, teks: "lebar pita f<sub>bw</sub>", warna: "#fbbf24" }] } },
     { jenis: "alur", judul: "Urutan merancang yang menghindari jalan buntu",
       caption: "Struktur dipilih dulu, sasaran pole atau margin ditetapkan, baru parameter dihitung, lalu diperiksa terhadap aktuator, derau, dan margin sebelum diuji.",
       p: { langkah: ["Struktur", "Sasaran pole/margin", "Hitung parameter", "Periksa aktuator & derau", "Uji"], catat: "mundur satu tahap lebih murah daripada mengulang semua" } },
@@ -242,13 +244,13 @@ export const GAMBAR_MODUL = {
   "9": [
     { jenis: "alur", judul: "Tiga aksi menjawab tiga pertanyaan waktu",
       caption: "P menjawab keadaan sekarang, I menghapus bias masa lalu, D mengantisipasi arah berikutnya; PID adalah tiga jawaban yang dijumlahkan.",
-      p: { langkah: [{ t: "P: sekarang", warna: "#22d3ee" }, { t: "I: masa lalu", warna: "#a855f7" }, { t: "D: arah berikutnya", warna: "#f97316" }], catat: "u = Kp·e + Ki·∫e + Kd·de/dt" } },
+      p: { langkah: [{ t: "P: sekarang", warna: "#22d3ee" }, { t: "I: masa lalu", warna: "#a855f7" }, { t: "D: arah berikutnya", warna: "#f97316" }], catat: "u = K<sub>p</sub>·e + K<sub>i</sub>·∫e + K<sub>d</sub>·de/dt" } },
     { jenis: "banding", judul: "Arti fisik gain terasa langsung di respons",
       caption: "Gain kecil sopan tetapi lamban; gain besar gesit tetapi mulai melampaui sasaran — parameter PID adalah kenop pertukaran, bukan angka keramat.",
-      p: { kiri: { judul: "Kp kecil", preset: "step-lambat", catat: "aman, lamban, sisa error" }, kanan: { judul: "Kp besar", preset: "step-lonjak", warna: "#f97316", catat: "cepat, mulai berdering" } } },
+      p: { kiri: { judul: "K<sub>p</sub> kecil", preset: "step-lambat", catat: "aman, lamban, sisa error" }, kanan: { judul: "K<sub>p</sub> besar", preset: "step-lonjak", warna: "#f97316", catat: "cepat, mulai berdering" } } },
     { jenis: "timeline", judul: "Penyetelan Ziegler-Nichols membaca batas osilasi",
       caption: "Gain dinaikkan sampai sistem berosilasi tetap, gain kritis dan periodenya dicatat, lalu tabel memberi titik awal yang kemudian dihaluskan di lapangan.",
-      p: { titik: [{ u: 0, label: "naikkan gain" }, { u: 0.35, label: "osilasi tetap", sub: "catat Ku & Tu", warna: "#f97316" }, { u: 0.7, label: "pakai tabel ZN", warna: "#22d3ee" }, { u: 1, label: "haluskan di lapangan", warna: "#00e09e" }], sumbu: "urutan" } },
+      p: { titik: [{ u: 0, label: "naikkan gain" }, { u: 0.35, label: "osilasi tetap", sub: "catat K<sub>u</sub> & T<sub>u</sub>", warna: "#f97316" }, { u: 0.7, label: "pakai tabel ZN", warna: "#22d3ee" }, { u: 1, label: "haluskan di lapangan", warna: "#00e09e" }], sumbu: "urutan" } },
     { jenis: "kurva", judul: "Pembatasan keluaran dan pengurasan akumulator berpasangan",
       caption: "Saat permintaan melewati batas aktuator, keluaran nyata terpotong; selisih antara yang diminta dan yang keluar dipakai menguras akumulator integral.",
       p: { sumbuX: "waktu", sumbuY: "sinyal kendali", kurva: [{ preset: "jenuh", label: "u nyata (terpotong)" }, { pts: [[0, 0.05], [0.2, 0.5], [0.35, 0.85], [0.5, 1.02], [0.62, 1.08], [0.75, 1.02], [1, 0.98]], label: "u diminta", warna: "#ef4444", putus: true }], garisY: [{ v: 0.9, label: "batas aktuator", warna: "#fbbf24" }] } },
@@ -257,7 +259,7 @@ export const GAMBAR_MODUL = {
       p: { langkah: ["D pada pengukuran", "Bobot setpoint", "Filter turunan"], catat: "tiga varian yang paling sering diperlukan di lapangan" } },
     { jenis: "alur", judul: "Urutan menyetel yang aman di lapangan",
       caption: "P dinaikkan dulu sampai respons hidup, aksi I ditambahkan dari Ti besar untuk menghapus sisa, dan D masuk terakhir hanya bila memang diperlukan.",
-      p: { langkah: [{ t: "P dulu", warna: "#22d3ee" }, { t: "I dari Ti besar", warna: "#a855f7" }, { t: "D terakhir bila perlu", warna: "#f97316" }], catat: "uji respons gangguan di tiap tahap" } },
+      p: { langkah: [{ t: "P dulu", warna: "#22d3ee" }, { t: "I dari T<sub>i</sub> besar", warna: "#a855f7" }, { t: "D terakhir bila perlu", warna: "#f97316" }], catat: "uji respons gangguan di tiap tahap" } },
     { jenis: "blok", judul: "Loop bersarang disetel dari dalam ke luar",
       caption: "Loop dalam yang cepat dirapikan lebih dahulu dengan loop luar manual; loop luar kemudian melihat loop dalam seolah bagian dari plant yang sudah patuh.",
       p: { kotak: ["C luar", "C dalam", "Plant"], umpan: true, catat: "loop dalam ≥ 5× lebih cepat dari loop luar" } },
@@ -314,7 +316,7 @@ export const GAMBAR_MODUL = {
       p: { sumbuX: "ketersediaan data", sumbuY: "ketersediaan model", wilayah: [{ poly: [[0.05, 0.55], [0.95, 0.55], [0.95, 0.95], [0.05, 0.95]], warna: "#22d3ee", label: "klasik / PID", pusat: [0.5, 0.78] }, { poly: [[0.55, 0.05], [0.95, 0.05], [0.95, 0.5], [0.55, 0.5]], warna: "#a855f7", label: "ANN", pusat: [0.75, 0.28] }, { poly: [[0.05, 0.05], [0.5, 0.05], [0.5, 0.5], [0.05, 0.5]], warna: "#f97316", label: "fuzzy", pusat: [0.26, 0.28] }] } },
     { jenis: "tangga", judul: "Metrik keberhasilan tidak ikut berganti mode",
       caption: "Lonjakan, waktu menetap, error tunak, dan margin tetap menjadi hakim yang sama; metode secerdas apa pun dinilai dengan penggaris klasik yang sama.",
-      p: { batang: [{ label: "Lonjakan Mp", nilai: 0.6 }, { label: "Waktu menetap t_s", nilai: 0.7 }, { label: "Error tunak e_ss", nilai: 0.5 }, { label: "Margin kestabilan", nilai: 0.8 }], catat: "ukuran tidak berubah, yang berubah cara mencapainya" } },
+      p: { batang: [{ label: "Lonjakan M<sub>p</sub>", nilai: 0.6 }, { label: "Waktu menetap t<sub>s</sub>", nilai: 0.7 }, { label: "Error tunak e<sub>ss</sub>", nilai: 0.5 }, { label: "Margin kestabilan", nilai: 0.8 }], catat: "ukuran tidak berubah, yang berubah cara mencapainya" } },
     { jenis: "kurva", judul: "Penjadwalan gain sebagai batas bawah pembanding",
       caption: "Gain yang dijadwalkan terhadap titik operasi menangani banyak nonlinieritas dengan cara yang sepenuhnya klasik; metode cerdas baru berhak dipakai bila mengalahkan pembanding sederhana ini.",
       p: { sumbuX: "titik operasi (beban)", sumbuY: "gain terpasang", kurva: [{ pts: [[0, 0.75], [0.2, 0.75], [0.2, 0.55], [0.45, 0.55], [0.45, 0.4], [0.7, 0.4], [0.7, 0.3], [1, 0.3]], label: "K dijadwalkan" }], anotasi: [{ u: 0.32, v: 0.68, teks: "tiap daerah punya gain sendiri", warna: "#94a3b8" }] } },
@@ -374,10 +376,10 @@ export const GAMBAR_MODUL = {
       p: { kiri: { judul: "Permukaan PD linier", preset: "naik-linier", catat: "kemiringan sama di mana-mana" }, kanan: { judul: "Permukaan fuzzy", preset: "sigmoid", warna: "#a855f7", catat: "lembut dekat nol, tegas di tepi" } } },
     { jenis: "alur", judul: "Penyetelan dipindahkan ke faktor penskalaan",
       caption: "Semesta dinormalkan ke −1…1 sehingga seluruh penyetelan terkumpul di tiga faktor skala; menyetel fuzzy menjadi semirip menyetel gain PID.",
-      p: { langkah: ["Normalkan semesta −1…1", "Setel Ke, Kde, Ku", "Uji per wilayah", "Bandingkan dgn PID"], catat: "skala adalah kenop utamanya" } },
+      p: { langkah: ["Normalkan semesta −1…1", "Setel K<sub>e</sub>, K<sub>de</sub>, K<sub>u</sub>", "Uji per wilayah", "Bandingkan dgn PID"], catat: "skala adalah kenop utamanya" } },
     { jenis: "fuzzy", judul: "Semesta pembicaraan menentukan kepekaan",
       caption: "Faktor skala masukan menggeser di mana nilai terukur jatuh pada semesta; salah skala membuat semua pembacaan menumpuk di satu himpunan dan aturan lain tak pernah aktif.",
-      p: { label: ["NB", "NK", "Z", "PK", "PB"], sumbuX: "error × Ke", uContoh: 0.3, labelContoh: "letak ditentukan Ke" } },
+      p: { label: ["NB", "NK", "Z", "PK", "PB"], sumbuX: "error × K<sub>e</sub>", uContoh: 0.3, labelContoh: "letak ditentukan K<sub>e</sub>" } },
     { jenis: "banding", judul: "Dua bentuk inferensi untuk dua kebutuhan",
       caption: "Mamdani menghasilkan himpunan keluaran yang mudah dibaca manusia; Sugeno menghasilkan fungsi tegas yang ringan dihitung dan rapi untuk optimasi.",
       p: { kiri: { judul: "Mamdani", kurva: [{ pts: [[0.15, 0], [0.5, 1], [0.85, 0]] }], catat: "keluaran = himpunan, lalu dipadatkan" }, kanan: { judul: "Sugeno", kurva: [{ pts: [[0, 0.62], [1, 0.62]], warna: "#f97316" }], catat: "keluaran = fungsi tegas" } } },
@@ -410,10 +412,10 @@ export const GAMBAR_MODUL = {
       p: { batang: [{ label: "ITAE (error berbobot waktu)", nilai: 0.7, tanda: "w1" }, { label: "Energi aktuator ∫u²", nilai: 0.5, tanda: "w2" }, { label: "Penalti lonjakan", nilai: 0.4, tanda: "w3" }, { label: "Denda pelanggaran batas", nilai: 0.85, warna: "#ef4444", tanda: "keras" }], catat: "yang tidak ditulis akan dieksploitasi pencarian" } },
     { jenis: "populasi", judul: "Populasi menyebar lalu mengumpul ke optimum",
       caption: "Generasi awal menjelajah luas; seleksi dan persilangan menggiring generasi berikutnya mengumpul di sekitar parameter terbaik tanpa pernah memakai turunan.",
-      p: { gen: 3, sumbuX: "Kp", sumbuY: "Ki", labelTarget: "setelan terbaik" } },
+      p: { gen: 3, sumbuX: "K<sub>p</sub>", sumbuY: "K<sub>i</sub>", labelTarget: "setelan terbaik" } },
     { jenis: "peta", judul: "Kendala membentuk wilayah sah pencarian",
       caption: "Kandidat di luar wilayah sah dikenai denda bertingkat atau diperbaiki ke batas terdekat; pilihan penanganan disesuaikan dengan jenis kendalanya.",
-      p: { sumbuX: "Kp", sumbuY: "Ki", wilayah: [{ poly: [[0.12, 0.1], [0.75, 0.1], [0.6, 0.75], [0.12, 0.75]], warna: "#00e09e", label: "wilayah sah", pusat: [0.38, 0.42] }], titik: [{ u: 0.85, v: 0.6, label: "kena denda", warna: "#ef4444" }, { u: 0.6, v: 0.72, label: "diperbaiki ke batas", warna: "#fbbf24" }] } },
+      p: { sumbuX: "K<sub>p</sub>", sumbuY: "K<sub>i</sub>", wilayah: [{ poly: [[0.12, 0.1], [0.75, 0.1], [0.6, 0.75], [0.12, 0.75]], warna: "#00e09e", label: "wilayah sah", pusat: [0.38, 0.42] }], titik: [{ u: 0.85, v: 0.6, label: "kena denda", warna: "#ef4444" }, { u: 0.6, v: 0.72, label: "diperbaiki ke batas", warna: "#fbbf24" }] } },
     { jenis: "alur", judul: "Dari hasil optimasi menjadi sistem yang dipercaya",
       caption: "Parameter juara diuji ulang di simulasi penuh, lalu di perangkat secara bertahap, dan dipantau dengan jalur mundur siap; angka terbaik di layar belum tentu terbaik di lantai pabrik.",
       p: { langkah: ["Juara GA", "Uji simulasi penuh", "Uji perangkat bertahap", "Pantau + fallback"], catat: "optimasi selesai bukan berarti pekerjaan selesai" } },

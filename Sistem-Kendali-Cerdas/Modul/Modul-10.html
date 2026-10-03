@@ -1433,6 +1433,77 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- NOTASI-KANVAS:START v1 -->
+<script>
+/* Notasi rumus di kanvas (scripts/notasi-halaman.mjs). Teks fillText/strokeText/measureText yang memuat
+   <sub>…</sub> atau <sup>…</sup> digambar sebagai subskrip/superskrip sungguhan; teks lain tidak berubah. */
+(function () {
+  var P = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+  if (!P || P.__notasiKanvas) return;
+  var isi = P.fillText, garis = P.strokeText, ukur = P.measureText;
+  // Tanpa membedakan huruf besar/kecil: label yang di-toUpperCase() ("E<SUB>TOTAL</SUB>") tetap dikenali.
+  function ada(s) { return typeof s === 'string' && /<su[bp]>/i.test(s); }
+  function potong(s) {
+    var rx = /<(sub|sup)>([\s\S]*?)<\/\1>/gi, out = [], i = 0, m;
+    while ((m = rx.exec(s))) {
+      if (m.index > i) out.push([s.slice(i, m.index), 0]);
+      out.push([m[2], m[1].toLowerCase() === 'sub' ? 1 : -1]);
+      i = rx.lastIndex;
+    }
+    if (i < s.length) out.push([s.slice(i), 0]);
+    return out;
+  }
+  function tata(ctx, s) {
+    var f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var mm = /(\d+(?:\.\d+)?)px/.exec(f), px = mm ? parseFloat(mm[1]) : 10;
+    var kecil = f.replace(/\d+(?:\.\d+)?px/, Math.max(px * 0.72, Math.min(px, 8)).toFixed(2) + 'px');
+    var dyA = -ukur.call(ctx, 'x').alphabeticBaseline;          // garis dasar alfabetik relatif ke y
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var W = 0, pot = potong(s).map(function (p) {
+      ctx.font = p[1] ? kecil : f;
+      var m = ukur.call(ctx, p[0]);
+      var o = { t: p[0], font: ctx.font, x: W, g: p[1] === 1 ? 0.22 * px : (p[1] === -1 ? -0.38 * px : 0), m: m };
+      W += m.width; return o;
+    });
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+    var s0 = al === 'center' ? -W / 2 : ((al === 'right' || al === 'end') ? -W : 0);
+    return { pot: pot, W: W, s0: s0, dyA: dyA };
+  }
+  function gambar(ctx, s, x, y, w, asli) {
+    var t = tata(ctx, s), f = ctx.font, al = ctx.textAlign, bl = ctx.textBaseline;
+    var k = (typeof w === 'number' && w > 0 && t.W > w) ? w / t.W : 1;   // maxWidth: dipadatkan merata
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i]; ctx.font = p.font;
+      if (k === 1) asli.call(ctx, p.t, x + t.s0 * k + p.x, y + t.dyA + p.g);
+      else asli.call(ctx, p.t, x + (t.s0 + p.x) * k, y + t.dyA + p.g, Math.max(1, p.m.width * k));
+    }
+    ctx.font = f; ctx.textAlign = al; ctx.textBaseline = bl;
+  }
+  function ukurRumus(ctx, s) {
+    var t = tata(ctx, s), kiri = Infinity, kanan = -Infinity, naik = -Infinity, turun = -Infinity;
+    for (var i = 0; i < t.pot.length; i++) {
+      var p = t.pot[i];
+      kiri = Math.min(kiri, t.s0 + p.x - p.m.actualBoundingBoxLeft); kanan = Math.max(kanan, t.s0 + p.x + p.m.actualBoundingBoxRight);
+      naik = Math.max(naik, p.m.actualBoundingBoxAscent - p.g - t.dyA); turun = Math.max(turun, p.m.actualBoundingBoxDescent + p.g + t.dyA);
+    }
+    var b = t.pot.length ? t.pot[0].m : {};
+    return { width: t.W, actualBoundingBoxLeft: -kiri, actualBoundingBoxRight: kanan, actualBoundingBoxAscent: naik,
+      actualBoundingBoxDescent: turun, fontBoundingBoxAscent: b.fontBoundingBoxAscent, fontBoundingBoxDescent: b.fontBoundingBoxDescent };
+  }
+  P.fillText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, isi);
+    return arguments.length > 3 ? isi.call(this, t, x, y, w) : isi.call(this, t, x, y);
+  };
+  P.strokeText = function (t, x, y, w) {
+    if (ada(t)) return gambar(this, t, x, y, w, garis);
+    return arguments.length > 3 ? garis.call(this, t, x, y, w) : garis.call(this, t, x, y);
+  };
+  P.measureText = function (t) { return ada(t) ? ukurRumus(this, t) : ukur.call(this, t); };
+  P.__notasiKanvas = 1;
+})();
+</script>
+<!-- NOTASI-KANVAS:END v1 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1682,11 +1753,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">e(t) = r(t) − y(t)</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">T(s) = G/(1+GH)</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">L = Kp·K</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">τ_cl = τ/(1+L)</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">L = K<sub>p</sub>·K</span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">τ<sub>cl</sub> = τ/(1+L)</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">S + T = 1</span>
-    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">u(t) = Kp·e(t)</span>
+    <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">u(t) = K<sub>p</sub>·e(t)</span>
     <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">G(s) = K/(τs+1)</span>
   </div>
   <div class="hero-schematic">
@@ -1799,7 +1870,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Mason</h3>
-      <p>Delta menggabungkan loop tunggal, pasangan, tripel non-touching secara inklusi–eksklusi.</p>
+      <p>Δ menggabungkan loop tunggal, pasangan, tripel non-touching secara inklusi–eksklusi.</p>
       <div class="formula">\(T=ΣP_kΔ_k/Δ\)</div>
     </div>
   </div>
@@ -1808,7 +1879,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <table>
       <caption class="table-caption"><span class="anim-dot" aria-hidden="true"></span><span class="anim-title">Tabel 1 — Ringkasan konsep inti beserta bentuk matematisnya</span></caption>
       <thead><tr><th>Konsep</th><th>Bentuk / Rumus</th><th>Yang perlu diingat</th></tr></thead>
-      <tbody><tr><td>Forward path</td><td>\(P_k=\text{produk branch}\)</td><td>Lintasan dari input ke output yang tidak melewati node lebih dari sekali.</td></tr><tr><td>Loop</td><td>\(L_i=\text{produk}\) branch loop</td><td>Lintasan tertutup yang kembali ke node awal tanpa mengulang node lain.</td></tr><tr><td>Non-touching loops</td><td>\(L_i \cdot L_j\)</td><td>Dua loop tidak bersentuhan jika tidak berbagi node.</td></tr><tr><td>Mason</td><td>\(T=ΣP_kΔ_k/Δ\)</td><td>Delta menggabungkan loop tunggal, pasangan, tripel non-touching secara inklusi–eksklusi.</td></tr></tbody>
+      <tbody><tr><td>Forward path</td><td>\(P_k=\text{produk branch}\)</td><td>Lintasan dari input ke output yang tidak melewati node lebih dari sekali.</td></tr><tr><td>Loop</td><td>\(L_i=\text{produk}\) branch loop</td><td>Lintasan tertutup yang kembali ke node awal tanpa mengulang node lain.</td></tr><tr><td>Non-touching loops</td><td>\(L_i \cdot L_j\)</td><td>Dua loop tidak bersentuhan jika tidak berbagi node.</td></tr><tr><td>Mason</td><td>\(T=ΣP_kΔ_k/Δ\)</td><td>Δ menggabungkan loop tunggal, pasangan, tripel non-touching secara inklusi–eksklusi.</td></tr></tbody>
     </table>
   </div>
   <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
@@ -2021,7 +2092,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <p class="section-desc reveal">Kesesuaian ini menunjukkan rumus umpan balik yang biasa dipakai sebenarnya kasus khusus aturan Mason. Keunggulan Mason baru terasa ketika lintasan maju lebih dari satu atau loop saling bersilangan, keadaan yang membuat reduksi bertahap menjadi berbelit.</p>
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Contoh Terhitung: Dua Loop yang Tidak Bersentuhan</h3>
-  <div class="info-box reveal"><strong>Diketahui:</strong> Lintasan maju tunggal dengan gain P1 = G1*G2*G3 &nbsp;·&nbsp; Loop pertama L1 = -G1*H1 berada di bagian awal lintasan &nbsp;·&nbsp; Loop kedua L2 = -G3*H2 berada di bagian akhir lintasan &nbsp;·&nbsp; Kedua loop tidak berbagi simpul mana pun</div>
+  <div class="info-box reveal"><strong>Diketahui:</strong> Lintasan maju tunggal dengan gain P<sub>1</sub> = G<sub>1</sub>G<sub>2</sub>G<sub>3</sub> &nbsp;·&nbsp; Loop pertama L<sub>1</sub> = −G<sub>1</sub>H<sub>1</sub> berada di bagian awal lintasan &nbsp;·&nbsp; Loop kedua L<sub>2</sub> = −G<sub>3</sub>H<sub>2</sub> berada di bagian akhir lintasan &nbsp;·&nbsp; Kedua loop tidak berbagi simpul mana pun</div>
   <div class="cards reveal">
     <div class="card">
       <div class="card-icon">🎯</div>
@@ -2069,7 +2140,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
     <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(L\)</span><span>Gain loop (atau lambang transformasi Laplace pada L{ })</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(G\)</span><span>Fungsi transfer plant</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(H\)</span><span>Fungsi transfer sensor</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(\Delta\)</span><span>Determinan grafik</span></span><span class="anim-var nw4"><span class="rumus-notasi">\(\Delta_1\)</span><span>Determinan sisa jalur 1</span></span><span class="anim-var nw0"><span class="rumus-notasi">\(T\)</span><span>Fungsi transfer loop tertutup</span></span></div>
   </div>
-  <div class="tip-box reveal">✅ <strong>Jawaban.</strong> Bentuk terfaktor pada penyebut mengandung makna fisik: karena kedua loop tidak berinteraksi, sistem berperilaku seperti dua subsistem berumpan balik yang dipasang seri. Bila suku hasil kali loop terlupakan, penyebutnya menjadi 1 + G1*H1 + G3*H2 yang tidak dapat difaktorkan, dan letak pole yang dihitung akan meleset, sebuah kekeliruan yang tidak akan terdeteksi oleh pemeriksaan gain arus searah sederhana.</div>
+  <div class="tip-box reveal">✅ <strong>Jawaban.</strong> Bentuk terfaktor pada penyebut mengandung makna fisik: karena kedua loop tidak berinteraksi, sistem berperilaku seperti dua subsistem berumpan balik yang dipasang seri. Bila suku hasil kali loop terlupakan, penyebutnya menjadi 1 + G<sub>1</sub>H<sub>1</sub> + G<sub>3</sub>H<sub>2</sub> yang tidak dapat difaktorkan, dan letak pole yang dihitung akan meleset, sebuah kekeliruan yang tidak akan terdeteksi oleh pemeriksaan gain arus searah sederhana.</div>
 
   <label class="pm-centang" data-pm="4"><input type="checkbox" disabled aria-describedby="pm-status-4"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Penurunan Rumus dan Contoh Terselesaikan</b>.</span><em class="pm-status" id="pm-status-4"></em></label>
 </div>
@@ -2470,7 +2541,7 @@ function _siskenPasangTeksPas(c,x){
     var utuh=teks, potong=false;
     // Elipsis hanya bila teks TELANJANG masih tak muat setelah menyusut —
     // jangan menghukum teks yang pas hanya karena '…' ikut ditimbang.
-    if(x.measureText(teks).width>batas){
+    if(x.measureText(teks).width>batas){teks=teks.replace(/<\/?su[bp]>/g,''); // penanda rumus NOTASI-KANVAS tak boleh terpenggal
       while(teks.length>4&&x.measureText(teks+'…').width>batas)teks=teks.slice(0,-1);
       teks+='…';potong=true;
     }
@@ -2721,10 +2792,10 @@ document.addEventListener('DOMContentLoaded',function(){
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">L = Kp·K</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">τ_cl = τ/(1+L)</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">Mp = e^(−πζ/√(1−ζ²))</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">L = K<sub>p</sub>·K</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">τ<sub>cl</sub> = τ/(1+L)</span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">M<sub>p</sub> = e<sup>−πζ/√(1−ζ²)</sup></span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">S + T = 1</span>
   </div>
   <div class="hero-content">
@@ -3200,8 +3271,8 @@ document.addEventListener('DOMContentLoaded',function(){
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">e(t) = r(t) − y(t)</span>
-    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e_ss = 1/(1+L)</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">L = Kp·K</span>
+    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">e<sub>ss</sub> = 1/(1+L)</span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">L = K<sub>p</sub>·K</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">on–off → ripple</span>
   </div>
   <div class="hero-content">
@@ -4821,6 +4892,35 @@ window._setBtnState = _setBtnState;
 
 // ── EXPORT TUGAS HTML ──
 async function exportTugasHtml() {
+  // NOTASI-EKSPOR BEGIN v1 — dipasang scripts/notasi-ekspor.mjs
+  // textContent menempelkan subskrip/pangkat ke huruf dasarnya (Z<sub>baru</sub> → "Zbaru") dan membaca KaTeX
+  // dua kali, sehingga rumus di dokumen ekspor terbaca salah. Subskrip satu karakter/angka → huruf subskrip
+  // Unicode (Vₖ, Y₁₁), selain itu "_" (Z_baru); pangkat angka/tanda → superskrip (x², 10⁻³), selain itu
+  // "^"/"^(…)"; KaTeX → sumber LaTeX-nya.
+  function _teksNotasi(el) {
+    if (!el) return '';
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ',
+      l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', T: 'ᵀ' };
+    var c = el.cloneNode(true);
+    var kx = c.querySelectorAll('.katex');
+    for (var k = 0; k < kx.length; k++) {
+      var a = kx[k].querySelector('annotation');
+      kx[k].parentNode.replaceChild(document.createTextNode(a ? a.textContent : kx[k].textContent), kx[k]);
+    }
+    var ns = c.querySelectorAll('sub, sup');
+    for (var i = ns.length - 1; i >= 0; i--) {
+      var e = ns[i], t = e.textContent, sub = e.tagName.toLowerCase() === 'sub', peta = sub ? SUB : SUP, u = '';
+      var unik = t.length === 1 || /^[0-9+\-−=()]+$/.test(t);
+      for (var j = 0; j < t.length && u !== null; j++) u = peta[t.charAt(j)] ? u + peta[t.charAt(j)] : null;
+      if (!unik || u === null || !t) u = (sub ? '_' : '^') + (/^[A-Za-z0-9α-ωΑ-Ω]+$/.test(t) && (sub || t.length === 1) ? t : '(' + t + ')');
+      e.parentNode.replaceChild(document.createTextNode(u), e);
+    }
+    return c.textContent.trim();
+  }
+  // NOTASI-EKSPOR END v1
   if (window._previewExportGuard()) return;
   const identity = getIdentityLocal();
   const name = identity ? identity.nama : 'Mahasiswa';
@@ -4888,15 +4988,17 @@ async function exportTugasHtml() {
     const correctOpt = rg?.querySelector('.radio-option.correct-ans');
     let selectedText, isCorrect;
     if (sel) {
-      selectedText = sel.textContent.trim();
+      selectedText = _teksNotasi(sel);
       isCorrect    = sel.classList.contains('correct-ans');
     } else if (mcAnswered[id]) {
       isCorrect    = (mcScores[id] || 0) > 0;
       // PILIHAN-PG-EKSPOR BEGIN v1 — dipasang scripts/pulihkan-pilihan-pg.mjs
       // Teks pilihan tidak diketahui (record lama tanpa selections): jawaban
-      // benar tidak boleh dilaporkan sebagai "pilihan salah".
+      // benar tidak boleh dilaporkan sebagai "pilihan salah". Teks pilihan dibaca
+      // lewat _teksNotasi (blok NOTASI-EKSPOR, scripts/notasi-ekspor.mjs) bila
+      // ada, supaya subskrip/pangkat rumus tidak menempel ke huruf dasarnya.
       selectedText = isCorrect && correctOpt
-        ? correctOpt.textContent.trim()
+        ? (typeof _teksNotasi === 'function' ? _teksNotasi(correctOpt) : correctOpt.textContent.trim())
         : (isCorrect
           ? '(Sudah dijawab benar — teks pilihan tidak tersedia)'
           : '(Sudah dijawab, tetapi pilihan salah)');
@@ -4935,7 +5037,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.mc-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -4948,7 +5050,7 @@ async function exportTugasHtml() {
     for (const n of nums) {
       if (n.textContent.trim() === numText) {
         const q = n.parentElement && n.parentElement.querySelector('.comp-q');
-        if (q) return q.textContent.trim();
+        if (q) return _teksNotasi(q);
       }
     }
     return null;
@@ -5929,7 +6031,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(255,179,0,.85)'; ctx.beginPath();
     ctx.arc(px,py,18,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.fillText('m',px,py+4);
-    document.getElementById('sysRealInfo').textContent=`Pendulum L=1m: ω_n = √(g/L) = ${wn.toFixed(2)} rad/s, T = ${(2*Math.PI/wn).toFixed(2)} s`;
+    document.getElementById('sysRealInfo').innerHTML=`Pendulum L=1m: ω<sub>n</sub> = √(g/L) = ${wn.toFixed(2)} rad/s, T = ${(2*Math.PI/wn).toFixed(2)} s`;
   }
   else if(_sysRealKind==='msd'){
     wn=Math.sqrt(100);
@@ -5944,13 +6046,13 @@ function drawSysReal(){
     ctx.lineTo(cx+x-30,cy); ctx.stroke();
     ctx.fillStyle='rgba(14,165,233,.85)'; ctx.fillRect(cx+x-30,cy-30,60,60);
     ctx.fillStyle='#fff'; ctx.font='bold 14px JetBrains Mono'; ctx.fillText('m',cx+x,cy+5);
-    document.getElementById('sysRealInfo').textContent=`Mass-Spring k=100 N/m, m=1 kg: ω_n = √(k/m) = ${wn.toFixed(2)} rad/s`;
+    document.getElementById('sysRealInfo').innerHTML=`Mass-Spring k=100 N/m, m=1 kg: ω<sub>n</sub> = √(k/m) = ${wn.toFixed(2)} rad/s`;
   }
   else if(_sysRealKind==='cantilever'){
     wn=2*Math.PI*1.5;
     const amp=Math.sin(2*t)*0.5;
     sigValue=amp;
-    label='y_tip(t)'; sigUnit='m';
+    label='y<sub>tip</sub>(t)'; sigUnit='m';
     ctx.fillStyle='#1e293b'; ctx.fillRect(20,cy-40,8,80);
     ctx.strokeStyle='rgba(0,224,158,.8)'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(28,cy);
@@ -5966,7 +6068,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(0,224,158,.9)';
     ctx.beginPath(); ctx.arc(28+beamL,tipY,12,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Cantilever Mode 1',cx,cy+80);
-    document.getElementById('sysRealInfo').textContent='Cantilever: ω_n = (1.875)²·√(EI/(ρAL⁴)), yaitu bending mode 1, tip mass berosilasi';
+    document.getElementById('sysRealInfo').innerHTML='Cantilever: ω<sub>n</sub> = (1.875)²·√(EI/(ρAL⁴)), yaitu bending mode 1, tip mass berosilasi';
   }
   else if(_sysRealKind==='rotor'){
     wn=2*Math.PI*1.27;
@@ -5982,13 +6084,13 @@ function drawSysReal(){
     ctx.fillStyle='#fff'; ctx.beginPath();
     ctx.arc(cx+Math.cos(spin)*20, cy+wobble+Math.sin(spin)*20, 4, 0, Math.PI*2); ctx.fill();
     ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Rotor + Bearing',cx,cy+60);
-    document.getElementById('sysRealInfo').textContent='Rotor + Bearing: ω_n = √(k_journal/m_rotor), bearing journal sebagai pegas radial';
+    document.getElementById('sysRealInfo').innerHTML='Rotor + Bearing: ω<sub>n</sub> = √(k<sub>journal</sub>/m<sub>rotor</sub>), bearing journal sebagai pegas radial';
   }
   else if(_sysRealKind==='suspension'){
     wn=2*Math.PI*1.0;
     const bump=Math.sin(wn*t)*10;
     sigValue=bump/10*0.3;
-    label='z_body(t)'; sigUnit='m';
+    label='z<sub>body</sub>(t)'; sigUnit='m';
     ctx.strokeStyle='#1e293b'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.moveTo(20,cy+70+bump); ctx.lineTo(splitX-20,cy+70+bump); ctx.stroke();
     ctx.fillStyle='#0f172a';
@@ -6003,7 +6105,7 @@ function drawSysReal(){
     ctx.fillStyle='rgba(14,165,233,.9)';
     ctx.fillRect(cx-100,cy-25+bump*0.3,200,30);
     ctx.fillStyle='#fff'; ctx.font='bold 11px JetBrains Mono'; ctx.fillText('Body',cx,cy-5+bump*0.3);
-    document.getElementById('sysRealInfo').textContent='Suspensi mobil: ω_n = √(k_spring/m_body) ≈ 1-2 Hz natural ride frequency';
+    document.getElementById('sysRealInfo').innerHTML='Suspensi mobil: ω<sub>n</sub> = √(k<sub>spring</sub>/m<sub>body</sub>) ≈ 1-2 Hz natural ride frequency';
   }
 
   // Append to history (keep 200 points)
@@ -6156,8 +6258,8 @@ function drawForumCanvas() {
   ctx.strokeStyle='rgba(0,224,158,.2)'; ctx.strokeRect(padL+6, padT+8, 250, 70);
   ctx.fillStyle='#34d399'; ctx.font='bold 10px JetBrains Mono'; ctx.fillText('Pompa Sentrifugal — Velocity v(t)', padL+14, padT+22);
   ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono';
-  ctx.fillText(`RPM = ${RPM}  |  f_dominan = ${f1} Hz (1×RPM)`, padL+14, padT+36);
-  ctx.fillText(`v_RMS ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
+  ctx.fillText(`RPM = ${RPM}  |  f<sub>dominan</sub> = ${f1} Hz (1×RPM)`, padL+14, padT+36);
+  ctx.fillText(`v<sub>RMS</sub> ≈ ${A1.toFixed(1)} mm/s  |  ISO 10816: zone D`, padL+14, padT+50);
   ctx.fillText(`Hipotesis: unbalance rotor (verifikasi via FFT)`, padL+14, padT+64);
 }
 // Resize handler — redraw all active canvases
@@ -6830,7 +6932,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
   /* ── Floating physics formulas (Aturan Mason) ── */
   const formulas = [
     { t: 'e(t) = r(t) − y(t)',                 s: 13 },
-    { t: 'u(t) = Kp·e(t)',                     s: 14 },
+    { t: 'u(t) = K<sub>p</sub>·e(t)',                     s: 14 },
     { t: 'G(s) = Y(s)/U(s)',                   s: 13 },
     { t: 'L(s) = C(s)G(s)',                    s: 14 },
     { t: 'T(s) = L(s)/(1+L(s))',               s: 12 },
@@ -6853,7 +6955,7 @@ function initLoginAnimation(_canvasId, _particlesId) {
     const dur = 22 + Math.random() * 20;
     const rot = (Math.random() - 0.5) * 20;
     el.className   = 'ov-formula';
-    el.textContent = f.t;
+    el.innerHTML = f.t;
     Object.assign(el.style, {
       left:    (4 + Math.random() * 88) + '%',
       fontSize: f.s + 'px',

@@ -103,8 +103,8 @@ def gambar3():
     b += t(X(1) + 4, y1 + 12, "beban penuh", 11, "#ef4444", "start")
     b += f'<circle cx="{X(X_OPT):.1f}" cy="{Y(eta_x(X_OPT)):.1f}" r="5" fill="#ec4899"/>'
     b += t(X(X_OPT) + 8, Y(eta_x(X_OPT)) - 8, f"η maks {ind(ETA_OPT, 2)}% pada {ind(X_OPT * 100, 1)}% beban", 11.5, "#ec4899", "start")
-    b += t(345, 240, f"Trafo {ind(S_TRAFO, 0)} kVA, P_Fe = {ind(P_FE, 1)} kW, P_Cu = {ind(P_CU, 1)} kW, cos φ = 0,85 — efisiensi terhadap beban", 12, AX)
-    return svg(660, 250, b, "Gambar 3 — Kurva efisiensi transformator terhadap beban")
+    b += t(345, 240, f"Trafo {ind(S_TRAFO, 0)} kVA, P<sub>Fe</sub> = {ind(P_FE, 1)} kW, P<sub>Cu</sub> = {ind(P_CU, 1)} kW, cos φ = 0,85 — efisiensi terhadap beban", 12, AX)
+    return svg(660, 254, b, "Gambar 3 — Kurva efisiensi transformator terhadap beban")
 
 
 ACSR = [("70", 240, 0.41), ("150", 385, 0.19), ("240", 530, 0.12), ("400", 720, 0.07)]
@@ -234,12 +234,12 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
   <div class="float-formulas">
     <span class="ff" style="left:4%;font-size:1rem;color:var(--cyan);--dur:18s;--del:0s">S = √3·V·I</span>
     <span class="ff" style="left:18%;font-size:.85rem;color:var(--violet);--dur:22s;--del:4s">a = N₁/N₂ = V₁/V₂</span>
-    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">P_rugi = P_Fe + x²·P_Cu</span>
-    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">x_opt = √(P_Fe/P_Cu)</span>
-    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">I_sc = I_n / Z_pu</span>
+    <span class="ff" style="left:35%;font-size:.75rem;color:var(--amber);--dur:16s;--del:8s">P<sub>rugi</sub> = P<sub>Fe</sub> + x²·P<sub>Cu</sub></span>
+    <span class="ff" style="left:50%;font-size:.9rem;color:var(--pink);--dur:20s;--del:2s">x<sub>opt</sub> = √(P<sub>Fe</sub>/P<sub>Cu</sub>)</span>
+    <span class="ff" style="left:68%;font-size:.8rem;color:var(--green);--dur:24s;--del:6s">I<sub>sc</sub> = I<sub>n</sub> / Z<sub>pu</sub></span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--cyan);--dur:17s;--del:10s">R = ρ·L/A</span>
     <span class="ff" style="left:12%;font-size:.65rem;color:var(--violet);--dur:19s;--del:12s">VR ≈ R cos φ + X sin φ</span>
-    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">S_i ∝ S_rating/Z%</span>
+    <span class="ff" style="left:62%;font-size:.7rem;color:var(--amber);--dur:21s;--del:14s">S<sub>i</sub> ∝ S<sub>rating</sub>/Z%</span>
   </div>
 {HERO_SCHEMATIC_2}
   <div class="hero-content">
@@ -433,7 +433,7 @@ def materi():
     isi = cards([
         ("📛", "Rating Daya", "kVA/MVA untuk trafo dan generator, kW untuk motor, A untuk PMT dan rel. Nilai kontinu pada suhu lingkungan rancangan (lazim 40 °C); di lingkungan lebih panas rating diturunkan (derating).", None),
         ("🔤", "Tegangan dan Rasio", "Tegangan pengenal setiap sisi, tap yang tersedia (±2×2,5%), dan tingkat isolasi (BIL) yang menyatakan ketahanan terhadap surja petir.", None),
-        ("📐", "Impedansi dan Rugi", "Z% (trafo), X_d (generator), rugi tanpa beban dan rugi beban penuh (W). Dari angka ini dihitung efisiensi, regulasi, dan arus hubung singkat.", None),
+        ("📐", "Impedansi dan Rugi", "Z% (trafo), X<sub>d</sub> (generator), rugi tanpa beban dan rugi beban penuh (W). Dari angka ini dihitung efisiensi, regulasi, dan arus hubung singkat.", None),
         ("🌡️", "Kelas Isolasi dan Suhu", "Kelas A (105 °C), E, B (130 °C), F (155 °C), H (180 °C): suhu tertinggi yang boleh dicapai isolasi. Kenaikan suhu (temperature rise) diukur di atas suhu lingkungan.", None),
         ("💧", "Pendinginan dan Proteksi Fisik", "Kode ONAN/ONAF/OFAF untuk trafo; IC untuk motor; IP (mis. IP54, IP65) untuk ketahanan terhadap debu dan air pada panel dan motor.", None),
         ("🔗", "Kelompok Vektor dan Frekuensi", "Dyn5, YNyn0, dan sejenisnya menyatakan hubungan belitan serta geser fasa; wajib sama untuk trafo paralel. Frekuensi 50 Hz; peralatan 60 Hz tidak boleh dipakai begitu saja.", None),
@@ -443,7 +443,7 @@ def materi():
         ["Tegangan", "20 000 / 400 V, tap ±2×2,5%", "rasio, penyetelan tegangan"],
         ["Kelompok vektor", "Dyn5", "syarat paralel, sistem pentanahan"],
         ["Impedansi", "4,0%", "arus hubung singkat sisi 400 V ≈ 14,4 kA"],
-        ["Rugi tanpa beban / rugi beban", "610 W / 4600 W", "efisiensi, x_opt ≈ 36%"],
+        ["Rugi tanpa beban / rugi beban", "610 W / 4600 W", "efisiensi, x<sub>opt</sub> ≈ 36%"],
         ["Pendinginan / kenaikan suhu", "ONAN / 60 K", "derating di lingkungan panas"],
     ])
     isi += kotak("tip-box", "💡 <strong>Membaca Papan Nama Trafo di Atas:</strong> arus nominal 400 V = 400 kVA/(√3·400 V) ≈ 577 A; arus hubung singkat ≈ 577/0,04 ≈ 14,4 kA, jadi ACB di panel harus berkemampuan pemutusan di atas itu (misalnya 25 kA). Efisiensi maksimum di √(610/4600) ≈ 36% beban, cocok dengan trafo perumahan yang beban rata-ratanya rendah. Semua angka ini turun dari Persamaan (1), (6), dan (9).")
@@ -458,7 +458,7 @@ def materi():
                      "btnRasio", "toggleRasio", "rasioInfo",
                      "<strong>📊 Cara Membaca Animasi 1:</strong> Primer 20 kV di kiri, sekunder di kanan; jumlah lingkaran lilitan sebanding N₁ dan N₂, partikel menggambarkan arus (makin cepat dan besar, makin besar arusnya).<br>Amati: (1) <strong style=\"color:var(--cyan)\">Memperbesar N₂ menaikkan V₂</strong> dan menurunkan I₂ untuk beban yang sama. (2) Hasil kali V·I di kedua sisi selalu sama dengan S beban: trafo menukar tegangan dengan arus, bukan mengubah daya. (3) Bandingkan hasil di readout dengan soal C1 dan C2.")
     isi += anim_panel(2, "amber", r"Kurva Efisiensi Transformator \(\eta(x)\) dan Titik \(x_{opt}\)", "cvEfisiensi",
-                      [("sl_ef_fe", "v_ef_fe", "Rugi inti P_Fe (kW)", 0.3, 3, 0.05, 1.0, "1.00"), ("sl_ef_cu", "v_ef_cu", "Rugi tembaga beban penuh P_Cu (kW)", 1, 12, 0.1, 6.0, "6.00"), ("sl_ef_pf", "v_ef_pf", "Faktor daya beban", 0.5, 1, 0.01, 0.85, "0.85")],
+                      [("sl_ef_fe", "v_ef_fe", "Rugi inti P<sub>Fe</sub> (kW)", 0.3, 3, 0.05, 1.0, "1.00"), ("sl_ef_cu", "v_ef_cu", "Rugi tembaga beban penuh P<sub>Cu</sub> (kW)", 1, 12, 0.1, 6.0, "6.00"), ("sl_ef_pf", "v_ef_pf", "Faktor daya beban", 0.5, 1, 0.01, 0.85, "0.85")],
                       "btnEfisiensi", "toggleEfisiensi", "efisiensiInfo",
                       "<strong>📊 Cara Membaca Animasi 2:</strong> Kurva hijau adalah efisiensi trafo 630 kVA terhadap fraksi beban; titik merah muda menandai beban efisiensi maksimum, titik biru menyapu beban dari kecil ke lebih beban.<br>Amati: (1) <strong style=\"color:var(--amber)\">Memperbesar rugi inti menggeser puncak ke beban lebih tinggi</strong>, memperbesar rugi tembaga menggesernya ke beban lebih rendah, sesuai \\(x_{opt}=\\sqrt{P_{Fe}/P_{Cu}}\\). (2) Menurunkan faktor daya menurunkan seluruh kurva, karena rugi tetap tetapi daya aktif yang disalurkan berkurang. (3) Soal C4, C11, dan C12 memakai kurva ini.")
     isi += anim_panel(3, "pink", r"Arus Hubung Singkat Trafo dan Pemilihan Rating PMT \(I_{sc} = I_n/Z_{pu}\)", "cvHubungSingkat",
@@ -601,10 +601,10 @@ TUGAS_HERO = f'''<div class="hero" data-tab="tugas" style="min-height:60vh">
     </svg>
   </div>
   <div class="float-formulas">
-    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">I_n = S/(√3·V)</span>
-    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">η = xS cos φ/(xS cos φ + P_Fe + x²P_Cu)</span>
-    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">I_sc = I_n/Z_pu</span>
-    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">S_i ∝ S_r/Z%</span>
+    <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">I<sub>n</sub> = S/(√3·V)</span>
+    <span class="ff" style="left:28%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">η = xS cos φ/(xS cos φ + P<sub>Fe</sub> + x²P<sub>Cu</sub>)</span>
+    <span class="ff" style="left:48%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">I<sub>sc</sub> = I<sub>n</sub>/Z<sub>pu</sub></span>
+    <span class="ff" style="left:68%;font-size:.75rem;color:var(--pink);--dur:21s;--del:3s">S<sub>i</sub> ∝ S<sub>r</sub>/Z%</span>
     <span class="ff" style="left:85%;font-size:.7rem;color:var(--green);--dur:22s;--del:11s">VR ≈ R cos φ + X sin φ</span>
   </div>
   <div class="hero-content">
@@ -654,9 +654,9 @@ MC = [
 ]
 
 COMP_EZ_LABELS = ["Arus nominal sekunder trafo distribusi", "Tegangan sekunder dari rasio lilitan", "Daya semu S dari P dan cos φ", "Efisiensi trafo pada beban sebagian",
-                  "Daya mekanik penggerak generator", "Resistansi konduktor aluminium", "Arus hubung singkat rel dari MVA_sc", "Arus hubung singkat sisi 20 kV dari Z% trafo",
+                  "Daya mekanik penggerak generator", "Resistansi konduktor aluminium", "Arus hubung singkat rel dari MVA<sub>sc</sub>", "Arus hubung singkat sisi 20 kV dari Z% trafo",
                   "Arus rel dari tiga penyulang", "Jatuh tegangan penyulang (%)"]
-COMP_HARD_LABELS = ["Efisiensi maksimum trafo (x_opt)", "Efisiensi harian (all-day) trafo", "Pembagian beban trafo paralel",
+COMP_HARD_LABELS = ["Efisiensi maksimum trafo (x<sub>opt</sub>)", "Efisiensi harian (all-day) trafo", "Pembagian beban trafo paralel",
                     "Arus puncak tahun ke-10 untuk pemilihan konduktor", "Regulasi tegangan trafo orde pertama"]
 
 
@@ -692,15 +692,15 @@ def forum_page():
             "Petunjuk: (1) Urutkan komponen dari GI ke motor beserta fungsinya. (2) Hitung S pada cos φ 0,78 dan 0,95. (3) Simpulkan apakah trafo 1600 kVA cukup, dengan atau tanpa kapasitor.")
     q2 = fq(2, "249,115,22", "amber", FQ_JUDUL[1],
             f"Hitung arus nominal sisi 400 V trafo 3150 kVA, lalu arus hubung singkatnya dari impedansi 6,5% dengan menganggap sumber 20 kV tak terhingga (Persamaan 9). Jelaskan apa yang harus dipenuhi ACB utama dan MCCB cabang di panel (kemampuan pemutusan), dan mengapa arus gangguan di sisi 400 V jauh lebih besar daripada di sisi 20 kV padahal dayanya sama (Bagian 05–06).",
-            ["I_n = S/(√3·V)", "I_sc = I_n/Z_pu", "kemampuan pemutusan ≥ I_sc"],
+            ["I<sub>n</sub> = S/(√3·V)", "I<sub>sc</sub> = I<sub>n</sub>/Z<sub>pu</sub>", "kemampuan pemutusan ≥ I<sub>sc</sub>"],
             "Arus hubung singkat di terminal 400 V trafo 3150 kVA, Z 6,5% (sumber tak terhingga) adalah sekitar...",
             [f"{ind(IN_3150 / 1000, 2)} kA, sama dengan arus nominalnya", f"{ind(ISC_3150, 1)} kA, sehingga ACB utama harus berkemampuan pemutusan di atas itu", "6,5 kA, sesuai impedansi persennya", "2,05 kA, karena arus terbagi ke tiga fasa"],
             f"✅ Tepat! \\(I_n = 3150\\times10^3/(\\sqrt{{3}}\\times400) \\approx {ind(IN_3150, 0)}\\) A dan \\(I_{{sc}} = {ind(IN_3150, 0)}/0{{,}}065 \\approx {ind(ISC_3150 * 1000, 0)}\\) A ≈ {ind(ISC_3150, 1)} kA. ACB utama harus berkemampuan pemutusan di atas itu (misalnya 80 kA); MCCB cabang yang dekat panel juga menghadapi arus sebesar ini.",
             "❌ Arus hubung singkat adalah arus nominal <em>dibagi</em> impedansi per unit (0,065), jadi belasan kali arus nominal. Hitung dulu \\(I_n\\) di sisi 400 V, lalu bagi dengan 0,065.",
-            "Petunjuk: (1) Hitung I_n sisi 400 V. (2) Hitung I_sc = I_n/Z_pu. (3) Jelaskan syarat kemampuan pemutusan ACB/MCCB dan mengapa sisi 400 V menghadapi arus gangguan terbesar.")
+            "Petunjuk: (1) Hitung Iₙ sisi 400 V. (2) Hitung arus hubung singkat = Iₙ/Zₚᵤ. (3) Jelaskan syarat kemampuan pemutusan ACB/MCCB dan mengapa sisi 400 V menghadapi arus gangguan terbesar.")
     q3 = fq(3, "168,85,247", "violet", FQ_JUDUL[2],
             f"Opsi B memparalelkan trafo lama T1 (1600 kVA, Z 6%) dengan trafo baru T2 (1600 kVA, Z 5%). Bagilah beban {ind(S_BUTUH_078, 0)} kVA (tanpa kapasitor) memakai Persamaan (10), tentukan trafo mana yang lebih beban, dan hitung beban total maksimum tanpa ada yang lebih beban. Bandingkan dengan opsi A (satu trafo 3150 kVA): mana yang Anda rekomendasikan, dengan alasan teknis dan praktis (cadangan saat perawatan, ruang, biaya)?",
-            ["S_i ∝ S_r/Z%", "Z kecil → bagian lebih besar", "N-1: satu trafo dirawat"],
+            ["S<sub>i</sub> ∝ S<sub>r</sub>/Z%", "Z kecil → bagian lebih besar", "N-1: satu trafo dirawat"],
             f"Pada beban {ind(S_BUTUH_078, 0)} kVA, pembagian antara T1 (Z 6%) dan T2 (Z 5%) menghasilkan...",
             ["Keduanya tepat 50%, karena ratingnya sama", "T1 lebih beban, karena impedansinya lebih besar", "Keduanya di bawah 100%, karena kapasitas gabungan 3200 kVA", f"T2 memikul sekitar {ind(BP2, 0)} kVA ({ind(BP2 / 16, 0)}%), lebih beban, walau kapasitas gabungan 3200 kVA"],
             f"✅ Tepat! \\(S_1/Z_1 = {ind(KP1, 1)}\\), \\(S_2/Z_2 = {ind(KP2, 0)}\\); T2 memikul \\({ind(S_BUTUH_078, 0)}\\times{ind(KP2, 0)}/{ind(KP1 + KP2, 1)} \\approx {ind(BP2, 0)}\\) kVA, lebih beban, sementara T1 baru {ind((S_BUTUH_078 - BP2) / 16, 0)}%. Trafo dengan Z lebih kecil selalu menarik bagian lebih besar.",
@@ -717,8 +717,8 @@ def forum_page():
   </div>
   <div class="float-formulas">
     <span class="ff" style="left:8%;font-size:.9rem;color:var(--cyan);--dur:19s;--del:0s">S = P/cos φ</span>
-    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">I_sc = I_n/Z_pu</span>
-    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">S_i ∝ S_r/Z%</span>
+    <span class="ff" style="left:30%;font-size:.8rem;color:var(--violet);--dur:23s;--del:5s">I<sub>sc</sub> = I<sub>n</sub>/Z<sub>pu</sub></span>
+    <span class="ff" style="left:55%;font-size:.85rem;color:var(--amber);--dur:17s;--del:9s">S<sub>i</sub> ∝ S<sub>r</sub>/Z%</span>
     <span class="ff" style="left:78%;font-size:.75rem;color:var(--green);--dur:21s;--del:3s">1600 → 3150 kVA?</span>
   </div>
   <div class="hero-content">
