@@ -6,6 +6,20 @@ import { spawnSync } from "node:child_process";
 import { uraiSkripInline, deklarasiLeksikal, pemakaian, fungsiTingkatAtas, panggilanTingkatAtas, namaGlobal, presenceSaatMuat, presenceAutoLogin } from "./pemindai-deklarasi.mjs";
 
 const root = process.cwd();
+// Tombol panah bilah subnav: paling banyak satu #subnavKiri dan satu #subnavKanan per halaman modul;
+// Sisken Modul 2–14 (bilah bagiannya meluber) wajib tepat satu pasang mengapit #modulSubnav.
+function periksaPanahSubnav(html, relative, course, modulNo) {
+  const kiri = (html.match(/id="subnavKiri"/g) || []).length;
+  const kanan = (html.match(/id="subnavKanan"/g) || []).length;
+  if (kiri > 1 || kanan > 1) throw new Error(`${relative}: tombol panah subnav ganda (${kiri} kiri / ${kanan} kanan) — jalankan node scripts/rapikan-panah-subnav.mjs`);
+  if (course === "Sistem-Kendali-Cerdas" && modulNo >= 2) {
+    if (kiri !== 1 || kanan !== 1) throw new Error(`${relative}: tombol panah subnav harus tepat satu pasang (${kiri} kiri / ${kanan} kanan)`);
+    if (!/<button class="subnav-geser kiri"[^>]*>[^<]*<\/button>\s*<div id="modulSubnav" class="subnav-bar show">[\s\S]*?<\/div>\s*<button class="subnav-geser kanan"/.test(html)) {
+      throw new Error(`${relative}: tombol panah subnav tidak mengapit #modulSubnav`);
+    }
+  }
+}
+
 const courseRoots = ["Engineering-Mathematics", "Getaran-Mekanik", "Optimalisasi-dan-Automasi", "Sistem-Kendali-Cerdas", "Teknik-Tenaga-Listrik", "Pemodelan-Computer-Aided-Design"];
 const forbiddenBackendArtifacts = [
   "functions",
@@ -387,6 +401,9 @@ for (const course of courseRoots) {
     // Kunci identitas skrip klasik (getIdentityLocal, _draftKey, LK friksi) =
     // LOCAL_IDENTITY halaman (scripts/samakan-kunci-identitas.mjs, 29 September 2026).
     periksaKunciIdentitasModul(modul, relative, course, modulNo);
+    // Tombol panah bilah subnav tepat satu pasang (scripts/rapikan-panah-subnav.mjs, 3 Oktober 2026):
+    // enrich-sisken-modules.mjs dulu menumpuk satu pasang setiap regenerasi (sampai 76 dengan id sama).
+    periksaPanahSubnav(modul, relative, course, modulNo);
     kunciIdentitasModul += 1;
     // Pilihan quick check Forum tersimpan (hanya lewat saveModulPoll) dan
     // dipulihkan (scripts/simpan-pilihan-poll.mjs v2).
