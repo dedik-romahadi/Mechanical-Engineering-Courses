@@ -20,7 +20,10 @@
 //      <code>, …) atau KaTeX tanpa SATU pembungkus <span class="opsi-teks">: induknya display:flex, jadi tiap
 //      elemen menjadi flex item tersendiri (subskrip tidak turun, rumus terpecah, terpotong di ponsel);
 //   7. literal string di skrip yang setengah dikonversi: memuat penanda <sub>/<sup> sekaligus notasi mentah
-//      (mis. 'e<sup>αx</sup>·g → … e^αx·1/L'), kecuali baris "// notasi: kode".
+//      (mis. 'e<sup>αx</sup>·g → … e^αx·1/L'), kecuali baris "// notasi: kode";
+//   8. segmen KaTeX \( … \) yang memuat ^( atau _(: KaTeX hanya menaikkan/menurunkan satu token, jadi
+//      "e^(−ωₙt)" tampil e⁽−ωₙt), dan segmen yang terpotong di tengah pangkat ("\(A \cdot e^(s\)₁t)") tampil
+//      e⁽s₁t); tulis ^{…}/_{…} di KaTeX atau <sup>/<sub> di luar KaTeX.
 // Teks HTML biasa tidak diperiksa di sini (notasi di <code>/<pre>/KaTeX sah, dan nama parameter kode
 // seperti n_estimators boleh tampil); generator TTL/CAD/Sisken dan notasi-halaman.mjs menjaganya.
 import fs from "node:fs";
@@ -116,6 +119,13 @@ export function periksaNotasi(html) {
     }
     pos += simpul.length;
   }
+  // 8. pangkat/subskrip KaTeX berkurung biasa: KaTeX hanya menaikkan/menurunkan satu token, jadi
+  //    "e^(−ωₙt)" tampil e⁽−ωₙt) dan "z^(1/(1-n))" tampil z⁽1/(1−n)); tulis ^{…}/_{…}
+  const sePanjang = html.replace(/<(script|style|pre|code|textarea|kbd|samp|title)\b[\s\S]*?<\/\1\s*>/gi, (m) => m.replace(/[^\n]/g, " "));
+  for (const seg of sePanjang.matchAll(/\\\(([\s\S]*?)\\\)/g)) {
+    if (/<[A-Za-z!/]/.test(seg[1])) continue;                 // lintas tag: sudah ditolak butir 5
+    if (/[\^_]\(/.test(seg[1])) hasil.push({ baris: baris(html, seg.index), jenis: "pangkat/subskrip KaTeX ^( / _( (hanya \"(\" yang naik/turun; tulis ^{…})", teks: seg[0].slice(0, 90) });
+  }
   // 6. opsi PG/jajak dan tautan subnav (induk display:flex): isi ber-elemen/KaTeX dibungkus satu span.opsi-teks
   const butuhBungkus = (isi) => (isi.includes("<") || isi.includes("\\(")) && !(isi.startsWith(BUKA_OPSI) && isi.endsWith("</span>"));
   for (const m of tanpaSkrip.matchAll(/<div class="(?:radio-option|p-opt)"[^>\n]*><div class="(?:radio|p)-circle"><\/div>((?:(?!<\/?div\b)[^\n])*?)<\/div>/g)) {
@@ -196,6 +206,8 @@ export function ujiMutasiNotasi(halamanBersih, relative, halamanKanvas = null, r
     ["subskrip berkoefisien angka di <text> SVG", sisip(halamanBersih, '<svg viewBox="0 0 10 10"><text x="1" y="1">2x_A + 3x_B ≤ 12</text></svg>')],
     ["subskrip sesudah nilai mutlak, literal setengah dikonversi", kanvas("el.innerHTML = 'x<sub>i</sub> → |x|_avg = ' + r;")],
     ["pangkat integral di <text> SVG", sisip(halamanBersih, '<svg viewBox="0 0 10 10"><text x="1" y="1">μ = e^∫P dx</text></svg>')],
+    ["KaTeX terpotong di tengah pangkat ^(", diAkhir("<p>x(t) = \\(A \\cdot e^(s\\)₁t) + \\(B \\cdot e^(s\\)₂t)</p>")],
+    ["KaTeX berpangkat ^( berkurung biasa", diAkhir('<div class="formula">\\(y = z^(1/(1-n))\\)</div>')],
   ];
   for (const [nama, salinan] of tolak) {
     if (!periksaNotasi(salinan).length) throw new Error(`${relative}: notation check accepted a mutated page (${nama})`);
@@ -206,6 +218,7 @@ export function ujiMutasiNotasi(halamanBersih, relative, halamanKanvas = null, r
     ["baris notasi: kode", kanvas("ctx.fillText('Spreadsheet r, h_r, d', 4, 4);   // notasi: kode")],
     ["penanda kanvas dengan helper", kanvas("ctx.fillText('R<sub>L</sub> = r', 4, 4);")],
     ["KaTeX utuh", diAkhir("<p>\\(V_1 = 4\\) dan \\(\\sum_{k \\lt i}\\)</p>")],
+    ["KaTeX berpangkat kurawal", diAkhir("<p>\\(y = z^{1/(1-n)}\\) dan \\(y^{(k)} = m(m-1)\\ldots(m-k+1)\\, x^{m-k}\\)</p>")],
     ["opsi PG berpembungkus", diAkhir(`<div class="radio-option" onclick="selectMC('mc1',this)"><div class="radio-circle"></div>${BUKA_OPSI}(A) &nbsp; V<sub>k</sub> = V · R<sub>k</sub></span></div>`)],
     ["opsi jajak teks polos", diAkhir(`<div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>400 Ω, SIL 626 MW</div>`)],
     ["readout nama bergaya kode", kanvas("el.innerHTML = 'raw_alarms=<strong>3</strong> · T<sub>sample</sub>';")],
