@@ -27,13 +27,21 @@
 //      (\text{isnull()}, \text{solve\_lp}()) — kode ditulis <code>…</code> di luar KaTeX (keputusan dosen
 //      3 Oktober 2026, Pedoman §2 butir (17));
 //   9. en dash, em dash, atau ½ di mode matematika (0.1–0.15, ½ m v^2) — karakter teks tanpa metrik fon KaTeX;
-//      tulis 0.1\text{–}0.15 dan \tfrac{1}{2} (di dalam \text{…} boleh).
+//      tulis 0.1\text{–}0.15 dan \tfrac{1}{2} (di dalam \text{…} boleh);
+//  10. (course berkoma desimal Indonesia, KURSUS_KOMA_DESIMAL) "angka,angka" tanpa spasi di mode matematika — KaTeX
+//      menganggap koma tanda baca dan menambah spasi tipis ("0,849" tampil "0, 849"); tulis 0{,}849. Daftar dan
+//      koordinat ditulis berspasi (A(0, 0), [0, 1]); subskrip _{1,2,3} dan isi \text{…} sah. Course bertitik desimal
+//      (Matematika 4, Getaran, Optimalisasi) memakai koma hanya sebagai pemisah ([[1,0],[0,1]], \{1,-3\}), jadi
+//      aturan ini tidak berlaku di sana (keputusan dosen (1): pemisah desimal per course);
+//  11. (TTL dan CAD, KURSUS_AKRONIM) akronim tiga huruf kapital miring di mode matematika (SIL, GMD, MVA_{base},
+//      TMS) — tampil seperti perkalian tiga lambang; tulis \mathrm{SIL}. Empat huruf atau lebih sudah ditolak aturan 4;
+//      subskrip berkurawal (n_{PQ}) sah. Sisken tidak: G C H di T_r = GC/(1+GCH) memang perkalian fungsi alih.
 // Argumen warna/URL/atribut HTML (\color{blue}, \textcolor{green}{…}, \href{…}) bukan kata matematika, dan isi
 // \text{…}/\textnormal{…}/\colorbox{…}{…} (kurawal bersarang pun) adalah teks tegak — keduanya tidak dihitung
 // sebagai kata miring; argumen matematika \textcolor{red}{Gaya} tetap diperiksa.
 // Dengan --katex <folder paket katex> setiap segmen juga dirender (throwOnError) dan galatnya dilaporkan
 // ("galat KaTeX", sama dengan .katex-error di peramban); paketnya wajib versi halaman (VERSI_KATEX). Repo publik
-// ini tanpa node_modules: validate-public-security.mjs menjalankan aturan statis 1–9, dan CI
+// ini tanpa node_modules: validate-public-security.mjs menjalankan aturan statis 1–11, dan CI
 // (security-validation.yml) memasang katex@VERSI_KATEX di luar repo lalu menjalankan render penuh ini; langkah CI
 // itu dipatok baris demi baris (periksaLangkahCiKatex) — dikomentari, `if:`, `continue-on-error`, `|| true`, atau
 // perintah tambahan ditolak.
@@ -43,11 +51,16 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { halamanNotasi } from "./periksa-notasi.mjs";
 
-// Course yang rumusnya sudah dirapikan dan dijaga. Teknik Tenaga Listrik menyusul bersama fase D rencana
-// perbaikan KaTeX (generator pustaka.py: akronim SAIFI/SAIDI miring, label "C · Komp" UTS/UAS, judul sel
-// test_setup.ipynb Modul 1); Pemodelan CAD sudah lolos aturan ini.
+// Course yang rumusnya dijaga: keenam course (96 halaman modul dan ujian). Teknik Tenaga Listrik dan Pemodelan CAD
+// dirapikan di generatornya (fase D, 4 Oktober 2026: pustaka.koma_katex dan \mathrm{…} untuk akronim).
 export const KURSUS_KATEX = ["Engineering-Mathematics", "Getaran-Mekanik", "Optimalisasi-dan-Automasi", "Sistem-Kendali-Cerdas",
-  "Pemodelan-Computer-Aided-Design"];
+  "Teknik-Tenaga-Listrik", "Pemodelan-Computer-Aided-Design"];
+// Aturan 10: course yang menulis koma desimal Indonesia di rumus (Sisken lewat sisken-rumus.tokenLatex, TTL/CAD lewat
+// pustaka.koma_katex). Aturan 11: course generator TTL/CAD (akronim teknik di rumus ditulis \mathrm{…}).
+export const KURSUS_KOMA_DESIMAL = ["Sistem-Kendali-Cerdas", "Teknik-Tenaga-Listrik", "Pemodelan-Computer-Aided-Design"];
+export const KURSUS_AKRONIM = ["Teknik-Tenaga-Listrik", "Pemodelan-Computer-Aided-Design"];
+/** Opsi aturan per course untuk periksaKatex (aturan 10 dan 11). */
+export const opsiKursus = (course) => ({ komaDesimal: KURSUS_KOMA_DESIMAL.includes(course), akronim: KURSUS_AKRONIM.includes(course) });
 export const halamanKatex = halamanNotasi;
 // Versi <script> KaTeX halaman (cdnjs …/KaTeX/0.16.9/). Render --katex wajib memakai versi yang sama.
 export const VERSI_KATEX = "0.16.9";
@@ -239,6 +252,28 @@ function teksDiMatematika(t) {
   const m = /[–—½]/.exec(buangNonMatematika(t));
   return m ? m[0] : null;
 }
+/** True bila posisi i di `s` berada di dalam subskrip berkurawal _{…} (kurawal ter-escape \{ \} dilewati). */
+function diSubskrip(s, i) {
+  const tumpuk = [];
+  for (let k = 0; k < i; k++) {
+    if (s[k] === "\\") { k += 1; continue; }
+    if (s[k] === "{") tumpuk.push(s[k - 1] === "_"); else if (s[k] === "}") tumpuk.pop();
+  }
+  return tumpuk.some(Boolean);
+}
+/** Koma desimal tanpa {,} di mode matematika (aturan 10): "0,849", juga sesudah {,} ("1{,}2,3") dan di pangkat. */
+function komaTanpaKurawal(t) {
+  const s = buangNonMatematika(t);
+  for (const m of s.matchAll(/(?<![\d,])\d+,\d+/g)) if (!diSubskrip(s, m.index)) return m[0];
+  return null;
+}
+/** Akronim tiga huruf kapital miring di mode matematika (aturan 11); skrip berkurawal dan perintah TeX dibuang. */
+function akronimMiring(t) {
+  let s = buangNonMatematika(t).replace(/\\(?:begin|end)\s*\{[^{}]*\}/g, " ").replace(/\\[A-Za-z]+/g, " ");
+  for (let i = 0; i < 3; i++) s = s.replace(/[_^]\s*\{[^{}]*\}/g, " ");
+  const m = /(?<![A-Za-z])[A-Z]{3}(?![A-Za-z])/.exec(s);
+  return m ? m[0] : null;
+}
 // Jalur berkas Windows di teks biasa bukan perintah TeX (aturan 6): C:\Users\Nama\Documents, C:\Program Files\FreeCAD,
 // %APPDATA%\FreeCAD, ~\Documents, .\data, \\server\bagi. Segmen berspasi ("Program Files") hanya diterima bila segmen
 // sesudahnya jelas bagian jalur (huruf kapital/angka, folder yang disusul "\", atau nama berkas berekstensi), supaya
@@ -250,8 +285,9 @@ const RX_JALUR = new RegExp([
   String.raw`(?<![\w\\])\\\\[\w.$-]+(?:\\${SEGMEN})+`,
 ].join("|"), "g");
 
-/** Daftar pelanggaran KaTeX pada satu halaman: [{baris, jenis, teks}]. `render` opsional: (tex, tampil) → pesan galat|null. */
-export function periksaKatex(html, render = null) {
+/** Daftar pelanggaran KaTeX pada satu halaman: [{baris, jenis, teks}]. `render` opsional: (tex, tampil) → pesan galat|null.
+ *  `opsi` = opsiKursus(course): {komaDesimal, akronim} menyalakan aturan 10 dan 11. */
+export function periksaKatex(html, render = null, opsi = {}) {
   const hasil = [];
   const catat = (p, jenis, teks) => hasil.push({ baris: p.baris, jenis, teks: String(teks).replace(/\s+/g, " ").slice(0, 100) });
   for (const p of bagianKatex(html)) {
@@ -278,6 +314,10 @@ export function periksaKatex(html, render = null) {
     if (kode) catat(p, `kode di rumus (${kode}; tulis <code>…</code> di luar KaTeX)`, p.mentah);
     const huruf = teksDiMatematika(t);
     if (huruf) catat(p, `${huruf} di mode matematika (tanpa metrik fon KaTeX; tulis ${huruf === "½" ? "\\tfrac{1}{2}" : `\\text{${huruf}}`})`, p.mentah);
+    const koma = opsi.komaDesimal ? komaTanpaKurawal(t) : null;
+    if (koma) catat(p, `koma desimal ${koma} tanpa {,} (tampil "${koma.replace(",", ", ")}"; tulis ${koma.replace(",", "{,}")}, daftar/koordinat berspasi)`, p.mentah);
+    const akronim = opsi.akronim ? akronimMiring(t) : null;
+    if (akronim) catat(p, `akronim "${akronim}" miring di mode matematika (tulis \\mathrm{${akronim}})`, p.mentah);
     if (render) { const g = render(t, p.tampil); if (g) catat(p, `galat KaTeX: ${g}`, p.mentah); }
   }
   return hasil;
@@ -371,9 +411,13 @@ export function buatRender(folderKatex) {
   };
 }
 
-/** Uji mutasi: pemeriksa harus menolak rumus yang tampil salah dan menerima bentuk yang benar. */
+/** Uji mutasi: pemeriksa harus menolak rumus yang tampil salah dan menerima bentuk yang benar. Mutasi aturan 10–11
+ *  memakai opsi course berkoma desimal/TTL-CAD; acuannya harus bersih juga dengan opsi itu. */
 export function ujiMutasiKatex(halamanBersih, relative) {
-  if (periksaKatex(halamanBersih).length) throw new Error(`${relative}: KaTeX mutation test needs a clean page`);
+  const KOMA = { komaDesimal: true }, AKRONIM = { akronim: true }, SEMUA = { komaDesimal: true, akronim: true };
+  if (periksaKatex(halamanBersih).length || periksaKatex(halamanBersih, null, SEMUA).length) {
+    throw new Error(`${relative}: KaTeX mutation test needs a clean page`);
+  }
   const akhir = halamanBersih.lastIndexOf("</body>");
   if (akhir < 0) throw new Error(`${relative}: KaTeX mutation test needs </body>`);
   const sisip = (potongan) => halamanBersih.slice(0, akhir) + potongan + "\n" + halamanBersih.slice(akhir);
@@ -401,9 +445,15 @@ export function ujiMutasiKatex(halamanBersih, relative) {
     ["en dash di mode matematika", "<p>\\(\\zeta \\approx 0.1–0.15\\)</p>"],
     ["½ di mode matematika", "<p>\\(E = ½ m v^2\\)</p>"],
     ["perintah TeX sesudah jalur berkas", "<p>Buka C:\\Users\\Nama lalu tulis \\frac di sini</p>"],
+    ["koma desimal tanpa {,}", "<p>Contoh: \\(\\eta_{total} \\approx 33,59\\%\\).</p>", KOMA],
+    ["koma desimal di pangkat", "<p>\\(t = 0{,}14/(5^{0,02} - 1)\\)</p>", KOMA],
+    ["daftar tanpa spasi sesudah {,}", "<p>\\(x = 1{,}2,3\\)</p>", KOMA],
+    ["koma desimal di blok persamaan", "<div class=\"formula-main\">\\(\\mathrm{GMR} = 0,7788\\,r\\)</div>", KOMA],
+    ["akronim miring", "<p>\\(SIL = V_L^2/Z_c\\)</p>", AKRONIM],
+    ["akronim bersubskrip miring", "<p>\\(Z_{base} = (\\mathrm{kV}_{base})^2/MVA_{base}\\)</p>", AKRONIM],
   ];
-  for (const [nama, potongan] of tolak) {
-    if (!periksaKatex(sisip(potongan)).length) throw new Error(`${relative}: KaTeX check accepted a mutated page (${nama})`);
+  for (const [nama, potongan, opsi] of tolak) {
+    if (!periksaKatex(sisip(potongan), null, opsi).length) throw new Error(`${relative}: KaTeX check accepted a mutated page (${nama})`);
   }
   const terima = [
     ["Laplace benar", "<p>\\(\\mathcal{L}\\{f(t)\\} = F(s)\\), \\(\\mathcal{L}^{-1}\\{F(s)\\} = f(t)\\)</p>"],
@@ -424,9 +474,15 @@ export function ujiMutasiKatex(halamanBersih, relative) {
     ["diferensial berderet", "<p>\\(\\iint_D f\\,dxdy\\), \\(\\iiint_V \\rho\\,dxdydz\\), \\(\\int du\\,dv\\)</p>"],
     ["kode <code> di luar rumus, rentang dan setengah yang benar", "<p><code>motor_1_rms</code>, <code>isnull()</code>, " +
       "\\(2\\text{–}18\\ \\text{MHz}\\), \\(\\text{kV (fasa–netral)}\\), \\(\\tfrac{1}{2} m v^2\\), \\(\\frac{L_1}{L_2}\\)</p>"],
+    ["koma desimal {,}, subskrip daftar, koordinat, interval, teks", "<p>\\(\\eta \\approx 33{,}59\\%\\), \\(\\sigma_{1,2,3}\\), " +
+      "\\(A(0, 0)\\), \\([0, 1]\\), \\(\\text{1,5 kV}\\), \\(1.234{,}5\\), \\(t^{0{,}02}\\), \\(B(a,0)\\)</p>", SEMUA],
+    ["akronim tegak, subskrip kapital, dua huruf", "<p>\\(\\mathrm{SIL} = V_L^2/Z_c\\), \\(\\mathrm{MVA}_{base}\\), " +
+      "\\(2n_{PQ} + n_{PV}\\), \\(\\mathbf{Z}_{ABC}\\), \\(d(A, BC)\\), \\(\\text{CAIDI}\\)</p>", SEMUA],
+    ["koma pemisah dan perkalian fungsi alih di course lain", "<p>\\(M = [[1,0],[0,1]]\\), \\(\\{1,-3,-6,8\\}\\), " +
+      "\\(T_r = \\frac{GC}{1+GCH}\\)</p>"],
   ];
-  for (const [nama, potongan] of terima) {
-    const sisa = periksaKatex(sisip(potongan));
+  for (const [nama, potongan, opsi] of terima) {
+    const sisa = periksaKatex(sisip(potongan), null, opsi);
     if (sisa.length) throw new Error(`${relative}: KaTeX check rejected a valid page (${nama}): ${sisa[0].jenis} — ${sisa[0].teks}`);
   }
 }
@@ -442,7 +498,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   for (const k of kursus.length ? kursus : KURSUS_KATEX) {
     for (const rel of halamanKatex(root, k)) {
       const html = fs.readFileSync(path.join(root, rel), "utf8");
-      const h = periksaKatex(html, render);
+      const h = periksaKatex(html, render, opsiKursus(k));
       segmen += bagianKatex(html).filter((p) => p.jenis === "rumus").length;
       total += h.length;
       jumlah += 1;
