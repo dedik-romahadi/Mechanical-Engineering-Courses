@@ -29,13 +29,46 @@ const esc = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 // tinggal di sisken-rumus.mjs supaya hanya ada satu daftar pengecualian.
 const K = kapitalAwal;
 
+// Notasi rumus di teks data ditulis dengan penanda <sub>…</sub>/<sup>…</sup> (mis. "y<sub>p</sub> =
+// e<sup>αx</sup>/L(α)"), bukan garis bawah/tanda ^ mentah yang tampil apa adanya di SVG. rumusSvg()
+// mengubahnya menjadi <tspan> dengan dy dan ukuran mutlak (0,72×, tidak di bawah 8 unit; turun 0,22 /
+// naik 0,38 ukuran huruf) — sama dengan pustaka.rumus_svg TTL/CAD. Kode yang memang diketik ditulis
+// "<code>solve_ivp</code>" dan dirender apa adanya dengan data-kode="1" (periksa-notasi.mjs).
+const PENANDA = /<(sub|sup)>([\s\S]*?)<\/\1>/g;
+const angka = (v) => String(Math.round(v * 10) / 10);
+/** Teks tanpa penanda — untuk menaksir lebar label. */
+export const polos = (t) => String(t).replace(/<\/?(?:sub|sup|code)>/g, "");
+
+function rumusSvg(t, size) {
+  const s = String(t);
+  if (!/<su[bp]>/.test(s)) return esc(s);
+  const kecil = Math.max(size * 0.72, Math.min(size * 0.9, 8));
+  let out = ""; let pos = 0; let kembali = 0;
+  for (const m of s.matchAll(PENANDA)) {
+    const sebelum = s.slice(pos, m.index);
+    if (sebelum) { out += kembali ? `<tspan dy="${angka(kembali)}">${esc(sebelum)}</tspan>` : esc(sebelum); kembali = 0; }
+    const geser = Math.round(size * (m[1] === "sub" ? 0.22 : -0.38) * 10) / 10;
+    out += `<tspan dy="${angka(geser + kembali)}" font-size="${angka(kecil)}">${esc(m[2])}</tspan>`;
+    kembali = -geser;
+    pos = m.index + m[0].length;
+  }
+  const sisa = s.slice(pos);
+  if (sisa) out += kembali ? `<tspan dy="${angka(kembali)}">${esc(sisa)}</tspan>` : esc(sisa);
+  if (/<\/?su[bp]>/.test(out.replace(/<tspan[^>]*>|<\/tspan>/g, ""))) throw new Error(`Penanda rumus tidak seimbang: ${s}`);
+  return out;
+}
+
 function teks(x, y, t, o = {}) {
   const a = o.anchor || "start";
   const s = o.size || 12;
   const f = o.fill || C.muted;
   const w = o.weight ? `font-weight="${o.weight}"` : "";
+  const kode = /^<code>([\s\S]*)<\/code>$/.exec(String(t));
+  if (kode) {
+    return `<text x="${x}" y="${y}" text-anchor="${a}" font-size="${s}" fill="${f}" ${w} font-family="'JetBrains Mono',monospace" data-kode="1">${esc(kode[1])}</text>`;
+  }
   const mono = o.mono ? "font-family=\"'JetBrains Mono',monospace\"" : "font-family=\"'Inter',system-ui,sans-serif\"";
-  const isi = o.mono ? esc(t) : esc(K(t));
+  const isi = o.mono ? rumusSvg(t, s) : rumusSvg(K(t), s);
   return `<text x="${x}" y="${y}" text-anchor="${a}" font-size="${s}" fill="${f}" ${w} ${mono}>${isi}</text>`;
 }
 
@@ -96,7 +129,7 @@ function barisLegenda(x0, y, entri) {
   for (const [label, warna, putus] of entri) {
     g += garis(lx, y, lx + 22, y, warna, { tebal: 3, putus: putus ? "5 4" : "" });
     g += teks(lx + 27, y + 4, label, { size: 11.5, fill: C.teks });
-    lx += 34 + String(label).length * 6.4;
+    lx += 34 + polos(label).length * 6.4;
   }
   return g;
 }
@@ -198,7 +231,7 @@ function gBlok(p) {
   // Label masukan yang panjang ("Proses") butuh margin kiri lebih lebar agar
   // tidak menimpa lingkaran penjumlah maupun terpotong tepi kanvas.
   const masuk = p.masuk || "r";
-  const mulai = Math.max(60, 34 + masuk.length * 8.2);
+  const mulai = Math.max(60, 34 + polos(masuk).length * 8.2);
   const akhirX = W - 60;
   const lebar = Math.min(130, (akhirX - mulai - 90 - nK * 30) / nK + 30);
   let g = latar(h);
@@ -269,17 +302,17 @@ function gAlur(p) {
       // spasi terdekat tengah; ukuran huruf baru menyusut bila masih kurang.
       // Label yang meluber pernah menabrak panah penghubung di sebelahnya.
       const wKotak = (typeof t === "object" && t.warna) || warna[idx % 6];
-      const butuh = String(isi).length * 6.7;
+      const butuh = polos(isi).length * 6.7;
       if (butuh > lebar - 14 && String(isi).includes(" ")) {
         const kata = String(isi).split(" ");
         let baris1 = kata[0]; let baris2 = kata.slice(1).join(" ");
         let terbaik = Infinity;
         for (let k = 1; k < kata.length; k += 1) {
           const atas2 = kata.slice(0, k).join(" "); const bawah2 = kata.slice(k).join(" ");
-          const beda = Math.abs(atas2.length - bawah2.length);
+          const beda = Math.abs(polos(atas2).length - polos(bawah2).length);
           if (beda < terbaik) { terbaik = beda; baris1 = atas2; baris2 = bawah2; }
         }
-        const terpanjang = Math.max(baris1.length, baris2.length) * 6.2;
+        const terpanjang = Math.max(polos(baris1).length, polos(baris2).length) * 6.2;
         const uk2 = terpanjang > lebar - 12 ? Math.max(9, 11.5 * ((lebar - 12) / terpanjang)) : 11.5;
         g += `<rect x="${xs[i]}" y="${y}" width="${lebar}" height="${tinggi}" rx="9" fill="${C.panel}" stroke="${wKotak}" stroke-width="1.6"/>`
           + teks(xs[i] + lebar / 2, y + tinggi / 2 - 3, baris1, { anchor: "middle", size: uk2, fill: C.teks, weight: 600 })

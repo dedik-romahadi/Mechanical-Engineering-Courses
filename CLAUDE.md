@@ -360,11 +360,15 @@ repo publik ini.
 - **Label navbar UTS/UAS** = label modul course-nya (`TENAGALISTRIK // UTS`,
   bukan sisa templat `GETARANMESIN`); dipasang `scripts/label-nav-ujian.mjs`
   (ada `--periksa`), CAD lewat `scripts/cad-exam/bangun.py`.
-- **Notasi rumus** (sejak 3 Okt 2026, TTL dan CAD): di sumber generator, subskrip
+- **Notasi rumus** (sejak 3 Okt 2026, keenam course): di sumber generator, subskrip
   dan pangkat teks tampil ditulis `<sub>`/`<sup>` (bukan `V_k`, `E^(1/3)`); `pustaka.t()`
   mengubahnya menjadi `<tspan>` SVG, `_ttlKanvas`/`_ttlTulis` (`animasi/dasar.js`)
   menggambarnya di kanvas/readout; kode yang diketik → `pustaka.Kode()`/`<code>`;
-  KaTeX tetap LaTeX. Penjaga `scripts/periksa-notasi.mjs` (dijalankan
+  KaTeX tetap LaTeX. Sisken 2–14: `sisken-rumus.rapikanNotasiHtml` di enrich
+  (wn, Kp, tau, exp(), a*b → ω<sub>n</sub>, K<sub>p</sub>, τ, e<sup>…</sup>, a·b).
+  Halaman tulisan tangan dan UTS/UAS: `scripts/notasi-halaman.mjs` + data JSON
+  berjangkar unik, blok `NOTASI-KANVAS` untuk kanvas (`--periksa`, sebelum
+  `draft-modul.mjs`). Penjaga `scripts/periksa-notasi.mjs` (96 halaman, dijalankan
   `validate-public-security.mjs`). Rincian: Pedoman §2 butir **Notasi rumus**.
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
