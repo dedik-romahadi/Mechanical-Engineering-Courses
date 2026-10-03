@@ -853,7 +853,7 @@ def mc_block():
     <div class="q-type-badge badge-mc">🅐 BAGIAN A — Pilihan Ganda · 10 Soal · @1 Poin</div>
 '''
     for i, (q, opsi, _) in enumerate(MC, 1):
-        rows = "\n".join(f'        <div class="radio-option" onclick="selectMC(\'mc{i}\',this)"><div class="radio-circle"></div>({"ABCD"[k]}) &nbsp; {o}</div>' for k, o in enumerate(opsi))
+        rows = "\n".join(f'        <div class="radio-option" onclick="selectMC(\'mc{i}\',this)"><div class="radio-circle"></div>{opsi_teks("(" + "ABCD"[k] + ") &nbsp; " + o)}</div>' for k, o in enumerate(opsi))
         out += f'''
     <!-- MC {i} -->
     <div class="mc-card reveal">
@@ -900,12 +900,20 @@ RUMUS_LOGIN = """const formulas = [
 FORUM_POLL_BENAR = {1: 1, 2: 2, 3: 0}
 
 
+def opsi_teks(s):
+    """Isi opsi PG/jajak dan tautan subnav (induknya display:flex). Bila memuat elemen (<sub>, <sup>, <code>,
+    <strong>, …) atau KaTeX, isinya dibungkus SATU <span class="opsi-teks">: tanpa pembungkus tiap elemen
+    menjadi flex item tersendiri — subskrip tidak turun, ada celah 10–12 px di tengah rumus, dan di layar
+    sempit teks opsi terpotong. textContent tidak berubah (selectMC, kunci, ekspor tetap cocok)."""
+    return f'<span class="opsi-teks">{s}</span>' if ("<" in s or "\\(" in s) else s
+
+
 def chip(teks, rgb, warna):
     return f'<span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;background:rgba({rgb},.07);border:1px solid rgba({rgb},.18);color:var(--{warna});padding:6px 12px;border-radius:8px;">{teks}</span>'
 
 
 def fq(n, rgb, warna, judul, isi, chips, poll_q, opsi, fb_r, fb_w, placeholder):
-    ops = "\n".join(f'            <div class="p-opt" onclick="voteForum({n},this,{k})"><div class="p-circle"></div>{o}</div>' for k, o in enumerate(opsi))
+    ops = "\n".join(f'            <div class="p-opt" onclick="voteForum({n},this,{k})"><div class="p-circle"></div>{opsi_teks(o)}</div>' for k, o in enumerate(opsi))
     ch = "\n".join("          " + chip(c, rgb, warna) for c in chips)
     return f'''  <!-- Pertanyaan {n} -->
   <div class="fq-card reveal" id="fq{n}">

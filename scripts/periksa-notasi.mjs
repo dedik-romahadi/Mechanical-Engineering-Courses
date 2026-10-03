@@ -15,7 +15,12 @@
 //      kecuali baris bertanda "// notasi: kode" (alias/parameter yang diketik);
 //   4. literal kanvas berpenanda <sub>/<sup> di halaman tanpa helper kanvas (penanda tampil mentah);
 //   5. segmen KaTeX \( … \) yang terpecah lintas simpul teks (mis. <sub> atau "<" telanjang masuk ke
-//      dalamnya), karena auto-render hanya mencari pembatas di dalam satu simpul teks.
+//      dalamnya), karena auto-render hanya mencari pembatas di dalam satu simpul teks;
+//   6. isi opsi PG/jajak (.radio-option/.p-opt) dan tautan #modulSubnav yang memuat elemen (<sub>, <sup>,
+//      <code>, …) atau KaTeX tanpa SATU pembungkus <span class="opsi-teks">: induknya display:flex, jadi tiap
+//      elemen menjadi flex item tersendiri (subskrip tidak turun, rumus terpecah, terpotong di ponsel);
+//   7. literal string di skrip yang setengah dikonversi: memuat penanda <sub>/<sup> sekaligus notasi mentah
+//      (mis. 'e<sup>αx</sup>·g → … e^αx·1/L'), kecuali baris "// notasi: kode".
 // Teks HTML biasa tidak diperiksa di sini (notasi di <code>/<pre>/KaTeX sah, dan nama parameter kode
 // seperti n_estimators boleh tampil); generator TTL/CAD/Sisken dan notasi-halaman.mjs menjaganya.
 import fs from "node:fs";
@@ -38,7 +43,7 @@ export function halamanNotasi(root, course) {
 
 const HURUF = "A-Za-zΑ-Ωα-ω";
 export const RX_SUB = new RegExp(`(?<![A-Za-z0-9_$@.\\\\-])[${HURUF}ΔΣ″′]*[${HURUF}″′]_[${HURUF}0-9φ{(]`, "u");
-export const RX_SUP = /[A-Za-z0-9)α-ω]\^(?:\(|\{|[0-9A-Za-z−-])/u;
+export const RX_SUP = /[A-Za-z0-9)α-ω]\^(?:\(|\{|[0-9A-Za-zα-ωΑ-Ω−-])/u;
 
 const ENTITAS = { amp: "&", lt: "<", gt: ">", quot: '"', nbsp: " ", minus: "−", sigma: "σ", delta: "δ", tau: "τ", rho: "ρ", eta: "η", omega: "ω", phi: "φ", theta: "θ", alpha: "α", beta: "β", gamma: "γ", mu: "μ", Delta: "Δ", Sigma: "Σ", Omega: "Ω" };
 const lepasEntitas = (s) => s.replace(/&(#x[0-9a-f]+|#\d+|[A-Za-z]+);/gi, (m, e) =>
@@ -92,7 +97,7 @@ export function periksaNotasi(html) {
       if (/\/\/ notasi: kode/.test(js.slice(c.index, akhirBaris < 0 ? undefined : akhirBaris))) continue;
       for (const lit of literal(arg)) {
         const polos = lit.replace(/<\/?su[bp]>/g, "");
-        if (RX_SUB.test(polos) || RX_SUP.test(polos) || /[A-Za-zΑ-Ωα-ω]_$/u.test(polos)) hasil.push({ baris: baris(html, awal + c.index), jenis: `notasi mentah di ${c[1]}`, teks: lit.slice(0, 90) });   // 'Z_'+lab: subskrip bersambung
+        if (RX_SUB.test(polos) || RX_SUP.test(polos) || /[A-Za-zΑ-Ωα-ω]_$/u.test(polos) || /^[_^][A-Za-zΑ-Ωα-ω0-9({]/u.test(polos)) hasil.push({ baris: baris(html, awal + c.index), jenis: `notasi mentah di ${c[1]}`, teks: lit.slice(0, 90) });   // 'Z_'+lab: subskrip bersambung
         if (/<su[bp]>/.test(lit) && !adaHelper) hasil.push({ baris: baris(html, awal + c.index), jenis: `penanda <sub>/<sup> di ${c[1]} tanpa helper kanvas (_ttlRumusKtx/NOTASI-KANVAS)`, teks: lit.slice(0, 90) });
       }
     }
@@ -108,8 +113,37 @@ export function periksaNotasi(html) {
     }
     pos += simpul.length;
   }
+  // 6. opsi PG/jajak dan tautan subnav (induk display:flex): isi ber-elemen/KaTeX dibungkus satu span.opsi-teks
+  const butuhBungkus = (isi) => (isi.includes("<") || isi.includes("\\(")) && !(isi.startsWith(BUKA_OPSI) && isi.endsWith("</span>"));
+  for (const m of tanpaSkrip.matchAll(/<div class="(?:radio-option|p-opt)"[^>\n]*><div class="(?:radio|p)-circle"><\/div>((?:(?!<\/?div\b)[^\n])*?)<\/div>/g)) {
+    if (butuhBungkus(m[1])) hasil.push({ baris: baris(html, m.index), jenis: `isi opsi ber-elemen/KaTeX tanpa pembungkus ${BUKA_OPSI} (flex item terpecah)`, teks: m[1].slice(0, 90) });
+  }
+  for (const nav of tanpaSkrip.matchAll(/<div id="modulSubnav"[^>]*>([\s\S]*?)<\/div>/g)) {
+    for (const a of nav[1].matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/g)) {
+      if (butuhBungkus(a[1])) hasil.push({ baris: baris(html, nav.index), jenis: `tautan #modulSubnav ber-elemen tanpa pembungkus ${BUKA_OPSI}`, teks: a[1].slice(0, 90) });
+    }
+  }
+  // 7. literal string skrip yang setengah dikonversi (penanda <sub>/<sup> dan notasi mentah sekaligus)
+  const RX_AI = /<!-- AI-CHAT-AGENT:BEGIN[\s\S]*?<!-- AI-CHAT-AGENT:END[^>]*-->/;
+  const tanpaAi = html.replace(RX_AI, (m) => m.replace(/[^\n]/g, " "));
+  for (const s of tanpaAi.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
+    const awal = s.index + s[0].indexOf(s[1]);
+    let off = 0;
+    for (const brs of s[1].split("\n")) {
+      if (/<su[bp]>/.test(brs) && !/\/\/ notasi: kode/.test(brs)) {
+        for (const lit of literal(brs)) {
+          if (!/<su[bp]>/.test(lit)) continue;
+          // KaTeX, tag, dan nama bergaya kode (dasar ≥ 3 huruf kecil: raw_alarms, solve_ivp) tidak dihitung
+          const polos = lit.replace(/\\\([\s\S]*?\\\)/g, " ").replace(/<[^>]*>/g, "").replace(/\b[a-z]{3,}(?:_[a-z0-9]+)+\b/g, " ");
+          if (RX_SUB.test(polos) || RX_SUP.test(polos)) hasil.push({ baris: baris(html, awal + off), jenis: "literal skrip setengah dikonversi (penanda <sub>/<sup> dan notasi mentah)", teks: lit.slice(0, 90) });
+        }
+      }
+      off += brs.length + 1;
+    }
+  }
   return hasil;
 }
+const BUKA_OPSI = '<span class="opsi-teks">';
 
 /**
  * Uji mutasi: pemeriksa harus menolak notasi mentah dan menerima pengecualian yang sah.
@@ -149,6 +183,11 @@ export function ujiMutasiNotasi(halamanBersih, relative, halamanKanvas = null, r
     ["fillText berpangkat ^", kanvas("ctx.fillText('y = e^(-at)', 4, 4);")],
     ["KaTeX dipecah <sub>", diAkhir("<p>Contoh \\(V<sub>1</sub> = 4\\) V.</p>")],
     ["KaTeX dengan < telanjang", diAkhir("<p>\\(\\sum_{k<i} Y_{ik}\\)</p>")],
+    ["fillText bersambung ternary", kanvas("ctx.fillText('GMR'+(n>1?'_b':'')+' = '+g, 4, 4);")],
+    ["literal skrip setengah dikonversi", kanvas("el.innerHTML = 'e<sup>αx</sup>·g → e^αx·1/L(D+α)[g]';")],
+    ["opsi PG ber-<sub> tanpa pembungkus", diAkhir(`<div class="radio-option" onclick="selectMC('mc1',this)"><div class="radio-circle"></div>(A) &nbsp; V<sub>k</sub> = V · R<sub>k</sub></div>`)],
+    ["opsi jajak ber-<sub> tanpa pembungkus", diAkhir(`<div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>Z<sub>c</sub> ≈ 400 Ω</div>`)],
+    ["tautan subnav ber-<sub> tanpa pembungkus", diAkhir(`<div id="modulSubnav" class="subnav-bar"><a href="#m-x">Z<sub>c</sub>, SIL</a></div>`)],
   ];
   for (const [nama, salinan] of tolak) {
     if (!periksaNotasi(salinan).length) throw new Error(`${relative}: notation check accepted a mutated page (${nama})`);
@@ -159,6 +198,9 @@ export function ujiMutasiNotasi(halamanBersih, relative, halamanKanvas = null, r
     ["baris notasi: kode", kanvas("ctx.fillText('Spreadsheet r, h_r, d', 4, 4);   // notasi: kode")],
     ["penanda kanvas dengan helper", kanvas("ctx.fillText('R<sub>L</sub> = r', 4, 4);")],
     ["KaTeX utuh", diAkhir("<p>\\(V_1 = 4\\) dan \\(\\sum_{k \\lt i}\\)</p>")],
+    ["opsi PG berpembungkus", diAkhir(`<div class="radio-option" onclick="selectMC('mc1',this)"><div class="radio-circle"></div>${BUKA_OPSI}(A) &nbsp; V<sub>k</sub> = V · R<sub>k</sub></span></div>`)],
+    ["opsi jajak teks polos", diAkhir(`<div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div>400 Ω, SIL 626 MW</div>`)],
+    ["readout nama bergaya kode", kanvas("el.innerHTML = 'raw_alarms=<strong>3</strong> · T<sub>sample</sub>';")],
   ];
   for (const [nama, salinan] of terima) {
     const sisa = periksaNotasi(salinan);

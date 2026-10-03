@@ -854,7 +854,7 @@ def forum_page():
             ["Indeks f·ρ/E<sup>1/3</sup> terkecil, sehingga baja unggul meski jauh lebih berat daripada aluminium", "Massa terkecil, sehingga aluminium selalu unggul", "Modulus elastisitas terbesar, sehingga baja unggul tanpa perlu menghitung massa", "Harga bahan per kilogram terendah"],
             "✅ Tepat! Pada kekakuan sama, massa sebanding ρ/E<sup>1/3</sup> sehingga jejaknya sebanding f·ρ/E<sup>1/3</sup>. Aluminium menang pada massa tetapi kalah telak pada jejak bahan karena faktor emisinya enam kali lipat — kecuali memakai aluminium daur ulang.",
             "❌ Massa terkecil tidak sama dengan jejak terkecil bila faktor emisinya berbeda jauh; modulus saja tidak menentukan massa; harga bukan ukuran emisi. Lihat Persamaan (7), Gambar 6, dan Animasi 4.",
-            "Petunjuk: (1) Hitung h, massa, dan CO₂ kedua material. (2) Bandingkan indeks f·ρ/E^(1/3), termasuk versi daur ulang. (3) Tulis klaim beserta batas sistem dan apa yang tidak dihitung.")
+            "Petunjuk: (1) Hitung h, massa, dan CO₂ kedua material. (2) Bandingkan indeks f·ρ/∛E, termasuk versi daur ulang. (3) Tulis klaim beserta batas sistem dan apa yang tidak dihitung.")
     kartu = lambda teks, rgb, warna: f'      <div style="background:rgba({rgb},.05);border:1px solid rgba({rgb},.15);border-radius:10px;padding:12px 16px;font-family:\'JetBrains Mono\',monospace;font-size:13px;color:var(--{warna})">{teks}</div>'
     return f'''<div class="page" id="page-forum">
 <div class="hero" data-tab="forum" style="min-height:55vh">
