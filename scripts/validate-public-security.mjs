@@ -5063,15 +5063,24 @@ async function ujiMutasiTunggu() {
 }
 
 // Rumus KaTeX tampil benar (3 Oktober 2026, lanjutan laporan notasi): % polos, Laplace L{…} tanpa \{ \},
-// akar terpotong, kata miring tanpa \text, kurawal tak seimbang, dan TeX mentah di teks tampil. Aturannya
-// statis (repo tanpa node_modules); render KaTeX penuh: node scripts/periksa-katex.mjs --katex <folder katex>.
+// akar terpotong, kata miring tanpa \text, kurawal tak seimbang, TeX mentah di teks tampil, dan fungsi sebagai
+// pangkat/subskrip tanpa kurawal. Aturannya statis (repo tanpa node_modules); render KaTeX penuh (galat =
+// .katex-error) dijalankan CI security-validation.yml dengan katex@VERSI_KATEX di luar repo — langkah itu dan versi
+// <script> KaTeX halaman dipatok di sini. Lokal: node scripts/periksa-katex.mjs --katex <folder katex>.
 {
   const katex = await import(new URL("./periksa-katex.mjs", import.meta.url));
+  const alurCi = fs.readFileSync(path.join(root, ".github", "workflows", "security-validation.yml"), "utf8");
+  if (!/node scripts\/periksa-katex\.mjs --katex "\$RUNNER_TEMP\/katex\/node_modules\/katex"/.test(alurCi) || !alurCi.includes('"katex@$VERSI_KATEX"')) {
+    throw new Error("security-validation.yml: langkah render KaTeX penuh (periksa-katex --katex, katex@VERSI_KATEX) hilang");
+  }
   let halamanKatex = 0;
   for (const course of katex.KURSUS_KATEX) {
     if (!courseRoots.includes(course)) throw new Error(`periksa-katex: course ${course} is not in courseRoots`);
     for (const relative of katex.halamanKatex(root, course)) {
-      const pelanggaran = katex.periksaKatex(fs.readFileSync(path.join(root, relative), "utf8"));
+      const html = fs.readFileSync(path.join(root, relative), "utf8");
+      const versiLain = [...html.matchAll(/KaTeX\/(\d+\.\d+\.\d+)\//g)].map((m) => m[1]).filter((v) => v !== katex.VERSI_KATEX);
+      if (versiLain.length) throw new Error(`${relative}: memuat KaTeX ${versiLain[0]}, padahal pemeriksa dan CI merender dengan ${katex.VERSI_KATEX} (VERSI_KATEX di scripts/periksa-katex.mjs)`);
+      const pelanggaran = katex.periksaKatex(html);
       if (pelanggaran.length) {
         const p = pelanggaran[0];
         throw new Error(`${relative}:${p.baris}: ${p.jenis} ("${p.teks}"${pelanggaran.length > 1 ? ` dan ${pelanggaran.length - 1} lagi` : ""}); perbaiki lewat scripts/notasi-halaman-data.json (halaman tulisan tangan) atau generatornya — node scripts/periksa-katex.mjs --rinci`);

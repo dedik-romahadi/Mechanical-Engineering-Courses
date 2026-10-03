@@ -16,10 +16,17 @@
 //      dibaca sebagai perkalian huruf ("Orde = 2" → O·r·d·e); subskrip/superskrip berkurawal (k_{aman}) sah;
 //   5. kurawal { } yang tidak seimbang (KaTeX gagal mengurai dan menampilkan TeX merah);
 //   6. TeX mentah di teks tampil: pembatas yang tidak tertutup dalam satu simpul teks ("\(x = 2" lalu tag lain)
-//      atau perintah TeX di luar rumus ("\cdot", "\frac") — tampil apa adanya.
+//      atau perintah TeX di luar rumus ("\cdot", "\frac") — tampil apa adanya;
+//   7. fungsi KaTeX sebagai pangkat/subskrip tanpa kurawal (e^\int P dx, x_\sqrt2, e^\sin x) — KaTeX menolaknya
+//      ("Got function '\int' with no arguments as superscript") dan menampilkan TeX merah; tulis e^{\int P\,dx}.
+//      \frac, \text, \mathrm, \mathbf … memang boleh tanpa kurawal (x_\text{max}).
+// Argumen warna/URL/atribut HTML (\color{blue}, \textcolor{green}{…}, \href{…}) bukan kata matematika, dan isi
+// \text{…}/\textnormal{…}/\colorbox{…}{…} (kurawal bersarang pun) adalah teks tegak — keduanya tidak dihitung
+// sebagai kata miring; argumen matematika \textcolor{red}{Gaya} tetap diperiksa.
 // Dengan --katex <folder paket katex> setiap segmen juga dirender (throwOnError) dan galatnya dilaporkan
-// ("galat KaTeX", sama dengan .katex-error di peramban). Repo publik ini tanpa node_modules, jadi CI menjalankan
-// aturan statis 1–6 saja; render dijalankan saat memeriksa perubahan secara lokal.
+// ("galat KaTeX", sama dengan .katex-error di peramban); paketnya wajib versi halaman (VERSI_KATEX). Repo publik
+// ini tanpa node_modules: validate-public-security.mjs menjalankan aturan statis 1–7, dan CI
+// (security-validation.yml) memasang katex@VERSI_KATEX di luar repo lalu menjalankan render penuh ini.
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
@@ -32,6 +39,8 @@ import { halamanNotasi } from "./periksa-notasi.mjs";
 export const KURSUS_KATEX = ["Engineering-Mathematics", "Getaran-Mekanik", "Optimalisasi-dan-Automasi", "Sistem-Kendali-Cerdas",
   "Pemodelan-Computer-Aided-Design"];
 export const halamanKatex = halamanNotasi;
+// Versi <script> KaTeX halaman (cdnjs …/KaTeX/0.16.9/). Render --katex wajib memakai versi yang sama.
+export const VERSI_KATEX = "0.16.9";
 
 const ENTITAS = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: "\u00a0", middot: "·", mdash: "—", ndash: "–", minus: "−",
   times: "×", deg: "°", infin: "∞", rarr: "→", rArr: "⇒", asymp: "≈", sup2: "²", sup3: "³", oslash: "ø", ge: "≥", le: "≤", ne: "≠",
@@ -134,7 +143,55 @@ export function bagianKatex(html) {
   return hasil;
 }
 
-const TEKS_TEGAK = /\\(?:text|textrm|textbf|textit|textsf|texttt|textup|mathrm|mathbf|mathit|mathsf|mathtt|operatorname\*?|mbox|hbox)\s*\{[^{}]*\}/g;
+// Perintah berisi teks tegak (bukan mode matematika): argumennya dibuang utuh dengan kurawal seimbang
+// (\text{nilai {awal}}). ARG_NON_MATEMATIKA: banyaknya argumen yang bukan matematika — warna, URL, atribut HTML,
+// ditambah argumen teks \colorbox/\fcolorbox; argumen matematika sesudahnya (\textcolor{red}{Gaya}) tetap diperiksa.
+const TEKS_TEGAK = new Set(["text", "textrm", "textbf", "textit", "textsf", "texttt", "textup", "textmd", "textnormal", "emph",
+  "mathrm", "mathbf", "mathit", "mathsf", "mathtt", "operatorname", "operatorname*", "mbox", "hbox"]);
+const ARG_NON_MATEMATIKA = { color: 1, textcolor: 1, colorbox: 2, fcolorbox: 3, href: 1, url: 1, htmlClass: 1, htmlId: 1,
+  htmlStyle: 1, htmlData: 1 };
+/** Indeks sesudah satu argumen TeX yang dimulai di `i` ({…} seimbang, \perintah, atau satu karakter). */
+function lewatiArgumen(t, i) {
+  while (i < t.length && /\s/.test(t[i])) i += 1;
+  if (t[i] === "{") {
+    for (let j = i, d = 0; j < t.length; j++) {
+      if (t[j] === "\\") { j += 1; continue; }
+      if (t[j] === "{") d += 1; else if (t[j] === "}") { d -= 1; if (d === 0) return j + 1; }
+    }
+    return t.length;
+  }
+  if (t[i] === "\\") { const m = /^\\(?:[A-Za-z]+|.)/.exec(t.slice(i)); return i + (m ? m[0].length : 1); }
+  return Math.min(t.length, i + 1);
+}
+/** Buang perintah teks tegak beserta isinya dan argumen non-matematika (warna, URL, atribut HTML). */
+function buangNonMatematika(t) {
+  let out = "", pos = 0, m;
+  const rx = /\\([A-Za-z]+\*?)/g;
+  while ((m = rx.exec(t))) {
+    const n = TEKS_TEGAK.has(m[1]) ? 1 : (ARG_NON_MATEMATIKA[m[1]] || 0);
+    if (!n) continue;
+    let j = m.index + m[0].length;
+    for (let k = 0; k < n; k++) j = lewatiArgumen(t, j);
+    out += t.slice(pos, m.index) + " ";
+    pos = j;
+    rx.lastIndex = j;
+  }
+  return out + t.slice(pos);
+}
+// Fungsi KaTeX yang tidak boleh menjadi pangkat/subskrip tanpa kurawal (diuji pada katex 0.16.9: "Got function
+// '\…' with no arguments as superscript"). Yang boleh tidak dicantumkan: \frac, \dfrac, \tfrac, \binom, \text…,
+// \mathrm, \mathbf, \mathcal, \mathbb, … serta lambang biasa (\alpha, \infty, \prime, \cdot).
+const FUNGSI_TANPA_KURAWAL = ("int iint iiint oint oiint oiiint intop smallint sum prod coprod bigcup bigcap bigvee bigwedge " +
+  "bigodot bigoplus bigotimes biguplus bigsqcup lim liminf limsup varliminf varlimsup max min sup inf det gcd Pr arg deg dim " +
+  "exp hom ker lg ln log sin cos tan cot sec csc sinh cosh tanh coth arcsin arccos arctan sqrt hat bar vec dot ddot tilde " +
+  "check breve acute grave mathring widehat widetilde widecheck overline underline overbrace underbrace overrightarrow " +
+  "overleftarrow overleftrightarrow underrightarrow utilde left right middle big Big bigg Bigg bigl bigr Bigl Bigr biggl " +
+  "biggr Biggl Biggr operatorname operatornamewithlimits color textcolor colorbox fcolorbox displaystyle textstyle " +
+  "scriptstyle scriptscriptstyle boldsymbol bm pmb quad qquad enspace hspace kern mkern mskip phantom hphantom vphantom " +
+  "stackrel overset underset not cancel bcancel xcancel sout boxed fbox cfrac mathop mathbin mathrel mathord mathopen " +
+  "mathclose mathpunct mathinner llap rlap clap mathllap mathrlap mathclap raisebox hbox vcenter vdots href url htmlClass " +
+  "htmlId htmlStyle htmlData").split(" ");
+const RX_SKRIP_FUNGSI = new RegExp(String.raw`(?<!\\)[\^_]\s*(\\(?:${FUNGSI_TANPA_KURAWAL.join("|")})(?![A-Za-z])|\\[,;:!])`);
 function kurawalSeimbang(t) {
   let d = 0;
   for (let i = 0; i < t.length; i++) {
@@ -154,7 +211,7 @@ function akarTerpotong(t) {
   return null;
 }
 function kataMiring(t) {
-  let s = t.replace(TEKS_TEGAK, " ").replace(/\\(?:begin|end)\s*\{[^{}]*\}/g, " ").replace(/\\[A-Za-z]+/g, " ");
+  let s = buangNonMatematika(t).replace(/\\(?:begin|end)\s*\{[^{}]*\}/g, " ").replace(/\\[A-Za-z]+/g, " ");
   for (let i = 0; i < 3; i++) s = s.replace(/[_^]\s*\{[^{}]*\}/g, " ");
   const m = /(?<![A-Za-z])[A-Za-z]{4,}(?![A-Za-z])/.exec(s);
   return m ? m[0] : null;
@@ -178,6 +235,8 @@ export function periksaKatex(html, render = null) {
     const kata = kataMiring(t);
     if (kata) catat(p, `kata "${kata}" miring di mode matematika (tulis \\text{…})`, p.mentah);
     if (!kurawalSeimbang(t)) catat(p, "kurawal { } tidak seimbang", p.mentah);
+    const skrip = RX_SKRIP_FUNGSI.exec(t);
+    if (skrip) catat(p, `fungsi ${skrip[1]} sebagai pangkat/subskrip tanpa kurawal (galat KaTeX; tulis ${skrip[0][0]}{${skrip[1]} …})`, p.mentah);
     if (render) { const g = render(t, p.tampil); if (g) catat(p, `galat KaTeX: ${g}`, p.mentah); }
   }
   return hasil;
@@ -186,6 +245,7 @@ export function periksaKatex(html, render = null) {
 /** Perender KaTeX opsional dari folder paket katex (mis. node_modules/katex): (tex, tampil) → pesan galat|null. */
 export function buatRender(folderKatex) {
   const katex = createRequire(import.meta.url)(path.resolve(folderKatex));
+  if (katex.version !== VERSI_KATEX) throw new Error(`paket katex ${katex.version}, halaman memakai KaTeX ${VERSI_KATEX}`);
   return (tex, tampil) => {
     const warn = console.warn;
     console.warn = () => {};          // "No character metrics for '½'": fon cadangan, bukan galat (halaman: strict false)
@@ -216,6 +276,9 @@ export function ujiMutasiKatex(halamanBersih, relative) {
     ["pembatas tanpa penutup", "<p>Hasil \\(x = <strong>2</strong>\\)</p>"],
     ["perintah TeX di teks", "<p>Gaya F = m \\cdot a</p>"],
     ["rumus tampilan dengan % polos", "<div>$$P = 50%$$</div>"],
+    ["fungsi sebagai pangkat tanpa kurawal", "<p>\\(u = e^\\int P dx\\)</p>"],
+    ["akar sebagai subskrip tanpa kurawal", "<p>\\(x_\\sqrt{2} = 1\\)</p>"],
+    ["kata berwarna tetap miring", "<p>\\(\\textcolor{red}{Gaya} = F\\)</p>"],
   ];
   for (const [nama, potongan] of tolak) {
     if (!periksaKatex(sisip(potongan)).length) throw new Error(`${relative}: KaTeX check accepted a mutated page (${nama})`);
@@ -229,6 +292,10 @@ export function ujiMutasiKatex(halamanBersih, relative) {
     ["rumus melayang ff", "<div class=\"float-formulas\"><span class=\"ff\">L{f} \\cdot</span></div>"],
     ["opsi select", "<select><option>\\(L{f}\\)<option>√(g/L)</select>"],
     ["himpunan", "<p>\\(\\{x \\mid x > 0\\}\\) dan \\(\\begin{bmatrix} a & b \\end{bmatrix}\\)</p>"],
+    ["warna, teks normal, teks bersarang", "<p>\\(\\color{blue} x\\), \\(\\textcolor{green}{y}\\), \\(\\textnormal{Gaya} = F\\), " +
+      "\\(\\text{nilai {awal}}\\), \\(\\colorbox{yellow}{Gaya}\\)</p>"],
+    ["pangkat berkurawal dan skrip yang boleh tanpa kurawal", "<p>\\(u = e^{\\int P\\, dx}\\), \\(x_\\text{max}\\), " +
+      "\\(e^\\alpha\\), \\(x^\\prime\\), \\(\\text{a\\_b}\\)</p>"],
   ];
   for (const [nama, potongan] of terima) {
     const sisa = periksaKatex(sisip(potongan));
