@@ -6,6 +6,22 @@ import { spawnSync } from "node:child_process";
 import { uraiSkripInline, deklarasiLeksikal, pemakaian, fungsiTingkatAtas, panggilanTingkatAtas, namaGlobal, presenceSaatMuat, presenceAutoLogin } from "./pemindai-deklarasi.mjs";
 
 const root = process.cwd();
+// CSS kartu tugas Pemodelan CAD (.berkas-row, .nilai-input, .tugas-gambar) wajib berada di <head> halaman, tepat satu
+// kali. Dulu bangun-modul-1.py memasangnya lewat jangkar "</style>\n</head>" yang jatuh di dalam templat JS popup
+// "Copy Forum HTML", sehingga di 14 modul CAD kolom angka/berkas tampil bergaya bawaan peramban.
+function periksaCssTugasCad(html, relative, course) {
+  if (course !== "Pemodelan-Computer-Aided-Design") return;
+  const blok = html.match(/<style id="cad-tugas-style">/g) || [];
+  if (blok.length !== 1) throw new Error(`${relative}: <style id="cad-tugas-style"> harus tepat satu (ditemukan ${blok.length})`);
+  const kepala = html.indexOf("</head>");
+  const badan = html.indexOf("<body");
+  if (kepala < 0 || badan < 0 || kepala > badan) throw new Error(`${relative}: </head> pertama harus mendahului <body>`);
+  if (html.indexOf('<style id="cad-tugas-style">') > kepala) throw new Error(`${relative}: CSS kartu tugas CAD harus di <head> halaman, bukan di body/string JS (scripts/cad-modul/bangun-modul-1.py)`);
+  for (const kelas of [".berkas-row{", ".berkas-input{", ".nilai-input{", ".tugas-gambar{"]) {
+    if (!html.slice(0, kepala).includes(kelas)) throw new Error(`${relative}: ${kelas} tidak ada di <head> halaman`);
+  }
+}
+
 // Tombol panah bilah subnav: paling banyak satu #subnavKiri dan satu #subnavKanan per halaman modul;
 // Sisken Modul 2–14 (bilah bagiannya meluber) wajib tepat satu pasang mengapit #modulSubnav.
 function periksaPanahSubnav(html, relative, course, modulNo) {
@@ -404,6 +420,8 @@ for (const course of courseRoots) {
     // Tombol panah bilah subnav tepat satu pasang (scripts/rapikan-panah-subnav.mjs, 3 Oktober 2026):
     // enrich-sisken-modules.mjs dulu menumpuk satu pasang setiap regenerasi (sampai 76 dengan id sama).
     periksaPanahSubnav(modul, relative, course, modulNo);
+    // CSS kartu tugas CAD harus ada di <head> halaman (bangun-modul-1.py; 4 Oktober 2026).
+    periksaCssTugasCad(modul, relative, course);
     kunciIdentitasModul += 1;
     // Pilihan quick check Forum tersimpan (hanya lewat saveModulPoll) dan
     // dipulihkan (scripts/simpan-pilihan-poll.mjs v2).

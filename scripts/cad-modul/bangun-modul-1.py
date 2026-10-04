@@ -549,8 +549,16 @@ CSS_TUGAS = '''<style id="cad-tugas-style">
 .tugas-gambar svg{width:100%;max-width:560px;height:auto;display:block;margin:0 auto;border-radius:10px;border:1px solid var(--border)}
 .tugas-gambar-ket{font-size:11.5px;color:var(--muted);text-align:center;margin-top:6px;line-height:1.5}
 </style>
-</head>'''
-ganti("</style>\n</head>", "</style>\n" + CSS_TUGAS)
+'''
+# CSS kartu tugas dipasang di <head> HALAMAN. Jangkar lama "</style>\n</head>" (1x) ternyata jatuh di dalam templat JS
+# popup "Copy Forum HTML" (dokumen terpisah, ada di body halaman), sehingga .berkas-row, .nilai-input, dan .tugas-gambar
+# tidak pernah berlaku di 14 modul CAD (kolom angka/berkas tampil bergaya bawaan peramban). </head> PERTAMA di berkas
+# adalah milik halaman; </head> lainnya ada di string JS.
+_kepala = s.index("</head>")
+assert _kepala < s.index("<body"), "</head> pertama harus mendahului <body>"
+assert 'id="cad-tugas-style"' not in s
+s = s[:_kepala] + CSS_TUGAS + s[_kepala:]
+assert s.index('id="cad-tugas-style"') < s.index("<body")
 
 # ── 8. Callable unggah, pengacakan PG, rumus melayang login/hasil ──
 ganti("const _generateExportCodeCallable = httpsCallable(_functions, 'generateExportCode');\nwindow._generateExportCodeCallable = _generateExportCodeCallable;",
