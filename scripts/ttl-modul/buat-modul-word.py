@@ -130,7 +130,9 @@ SIMBOL = {"times": "×", "cdot": "·", "le": "≤", "leq": "≤", "ge": "≥", "
           "pm": "±", "mp": "∓", "to": "→", "rightarrow": "→", "Rightarrow": "⇒", "leftrightarrow": "↔", "parallel": "∥", "angle": "∠",
           "circ": "°", "ldots": "…", "cdots": "⋯", "dots": "…", "sum": "Σ", "int": "∫", "prod": "Π", "mid": "|", "lvert": "|", "rvert": "|",
           "quad": "  ", "qquad": "    ", "%": "%", ",": " ", ";": " ", ":": " ", "!": "", " ": " ", "{": "{", "}": "}", "_": "_", "&": "&",
-          "\\": "; ", "equiv": "≡", "sim": "~", "star": "★", "bullet": "•", "prime": "′", "degree": "°", "langle": "⟨", "rangle": "⟩", "in": "∈", "lt": "<", "gt": ">"}
+          "\\": "; ", "equiv": "≡", "sim": "~", "star": "★", "bullet": "•", "prime": "′", "degree": "°", "langle": "⟨", "rangle": "⟩", "in": "∈", "lt": "<", "gt": ">",
+          # Titik patah dan ukuran kurung KaTeX (\allowbreak, \bigl[ … \bigr]) tidak tampil di Word.
+          "allowbreak": "", "big": "", "Big": "", "bigl": "", "bigr": "", "Bigl": "", "Bigr": ""}
 FUNGSI = {"ln", "log", "sin", "cos", "tan", "exp", "max", "min", "arcsin", "arccos", "arctan", "sinh", "cosh", "tanh", "lim", "det", "Re", "Im"}
 
 
