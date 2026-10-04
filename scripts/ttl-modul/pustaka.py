@@ -224,10 +224,82 @@ def notasi(pairs):
     return f'<div class="anim-var-list" aria-label="Arti tiap notasi">{spans}</div>'
 
 
+def pecah_rumus(latex):
+    r"""Titik patah baris untuk rumus bernomor (.formula-main) yang panjang: di ponsel rumus yang tak bisa dipatah
+    meluap dari kotaknya atau digulir mendatar, dan di layar lebih lebar nomor persamaan "(n)" (absolut di kanan)
+    menimpa bagian yang melebihi kotak. \allowbreak tidak terlihat selama rumus muat satu baris; hanya di
+    kedalaman nol (di luar kurawal, \left…\right, dan \begin…\end) karena KaTeX hanya mematahkan baris di sana.
+      1. \qquad dan \quad disusul \allowbreak (pemisah antar-bagian rumus);
+      2. "\ " (spasi tak terpatahkan KaTeX) disusul \allowbreak bila didahului koma atau diikuti \text{…} sepanjang
+         >= 8 karakter (rumus + keterangan);
+      3. \text{…} polos (tanpa kurawal/perintah di dalamnya): spasi di awal/ujungnya dikeluarkan menjadi "\ "
+         (spasi di ujung \text{…} runtuh di ujung baris .base KaTeX, jadi tak boleh ada sebelum titik patah) dan
+         yang lebih panjang dari 30 karakter dipecah per kelompok kata (12 karakter ke atas), disambung
+         "\ \allowbreak". Prosa panjang tetap lebih baik di teks biasa (Pedoman §2 butir (17)-(21)); pemecahan
+         ini hanya menjaga rumus lama yang sudah memuatnya agar tidak meluap."""
+    out, i, n = [], 0, len(latex)
+    dalam = lingkup = 0
+    sudah = r"\s*\\allowbreak(?![A-Za-z])"
+    while i < n:
+        c = latex[i]
+        if c == "{":
+            dalam += 1
+        elif c == "}":
+            dalam -= 1
+        elif c == "\\":
+            cmd = re.match(r"\\(?:[A-Za-z]+|.)", latex[i:], re.S).group(0)
+            if cmd in ("\\left", "\\begin"):
+                lingkup += 1
+            elif cmd in ("\\right", "\\end"):
+                lingkup -= 1
+            polos = dalam == 0 and lingkup == 0
+            if polos and cmd in ("\\qquad", "\\quad"):
+                out.append(cmd)
+                i += len(cmd)
+                if not re.match(sudah, latex[i:]):
+                    out.append("\\allowbreak")
+                continue
+            if polos and cmd == "\\ ":
+                out.append(cmd)
+                i += len(cmd)
+                teks = re.match(r"\s*\\text\{([^{}\\$%~]*)\}", latex[i:])
+                if (out[-2:-1] == [","] or (teks and len(teks.group(1).strip()) >= 8)) and not re.match(sudah, latex[i:]):
+                    out.append("\\allowbreak ")
+                continue
+            if polos and cmd == "\\text" and latex.startswith("{", i + len(cmd)):
+                k = latex.find("}", i + len(cmd) + 1)
+                isi = latex[i + len(cmd) + 1:k] if k > 0 else ""
+                if k > 0 and isi.strip() and not re.search(r"[{\\$%~]", isi):
+                    awal, akhir, inti = isi.startswith(" "), isi.endswith(" "), isi.strip()
+                    kelompok, kini = [], ""
+                    for kata in inti.split(" "):
+                        kini = f"{kini} {kata}" if kini else kata
+                        if len(inti) > 30 and len(kini) >= 12:
+                            kelompok.append(kini)
+                            kini = ""
+                    if kini:
+                        kelompok.append(kini)
+                    if len(kelompok) > 1 or awal or akhir:
+                        potongan = ("\\ \\allowbreak " if awal and out else "") + "\\ \\allowbreak ".join("\\text{" + g + "}" for g in kelompok)
+                        i = k + 1
+                        if akhir:
+                            potongan += "\\ "
+                            if not re.match(sudah, latex[i:]):
+                                potongan += "\\allowbreak "
+                        out.append(potongan)
+                        continue
+            out.append(cmd)
+            i += len(cmd)
+            continue
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+
 def formula(no, label, latex, desc, penjelasan, pairs):
     return f'''  <div class="formula-block reveal">
     <div class="formula-label">{label}</div>
-    <div class="formula-main">\\({latex}\\)<span class="formula-number">({no})</span></div>
+    <div class="formula-main">\\({pecah_rumus(latex)}\\)<span class="formula-number">({no})</span></div>
     <div class="formula-desc">{desc}</div>
   </div>
   <div class="tip-box reveal rumus-jelas">

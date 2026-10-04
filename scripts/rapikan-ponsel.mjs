@@ -2,11 +2,12 @@
  * Merapikan tampilan ponsel (<= 640 px) halaman modul dan ujian keenam course:
  * rumus, kode, dan label panjang tidak boleh meluap, terpotong, atau saling menimpa.
  *
- * Satu blok <style id="rapikan-ponsel"> (dibungkus komentar RAPIKAN-PONSEL:START/END) dipasang di <head> ke-96 halaman (14 modul + UTS + UAS
- * per course). Semua aturan berada di dalam @media (max-width:640px), jadi tata letak desktop
- * dan tablet (>= 641 px) tidak berubah sama sekali. Pemindai Chrome (lebar 320/375/414 px)
- * menjadi dasar daftar aturan; alasan tiap aturan ada di komentar CSS di bawah dan di
- * Pedoman-Modul.md §2 butir (22).
+ * Satu blok <style id="rapikan-ponsel"> + <script id="rapikan-ponsel-js"> (dibungkus komentar RAPIKAN-PONSEL:START/END) dipasang di <head>
+ * ke-96 halaman (14 modul + UTS + UAS per course). Hampir semua aturan berada di dalam @media (max-width:640px) (Setup 560/360), jadi
+ * tata letak tablet dan desktop tidak berubah; pengecualiannya sengaja dan sempit: paritas .comp-q (tanpa media), label sel kode
+ * di <= 900 px (baris sendiri) dan >= 901 px (lebar dibatasi agar tidak menimpa titik hias/bahasa/Copy; hanya label yang
+ * memang menimpa yang berubah). Pemindai Chrome (lebar 320/375/414 px, sapuan 641-1280 px) menjadi dasar daftar
+ * aturan; alasan tiap aturan ada di komentar CSS di bawah dan di Pedoman-Modul.md §2 butir (22).
  *
  * Idempoten: blok yang sudah ada diganti DI TEMPAT (bukan dibuang lalu dipasang ulang di ujung
  * <head>), supaya penyuntik lain yang juga menulis sebelum </head> tidak berebut urutan. Blok
@@ -34,13 +35,23 @@ export const KURSUS = [
   "Teknik-Tenaga-Listrik",
 ];
 export const PENANDA = "rapikan-ponsel";
-export const VERSI = 1;
+export const VERSI = 2;
 
 /** Isi CSS (tanpa pembungkus <style>). Setiap aturan dibatasi @media (max-width:640px); Setup memakai 560/360. */
 export const CSS = `
-/* RAPIKAN-PONSEL v${VERSI} — tampilan ponsel; di atas 640 px hanya baris paritas .comp-q di bawah yang berlaku */
+/* RAPIKAN-PONSEL v${VERSI} — tampilan ponsel; di atas 640 px hanya paritas .comp-q dan dua blok label sel kode (<= 900 px dan >= 901 px) yang berlaku */
 /* (2) Paritas keenam course: kartu soal komputasi boleh menyempit dan patah kata (Matematika 4, Getaran, Optimalisasi, Sisken sudah punya; TTL dan CAD baru). */
 .comp-q{min-width:0;overflow-wrap:break-word}
+/* (4) Label sel kode, tablet (<= 900 px): label ditengahkan absolut di bar bertumpuk dengan titik hias, bahasa, dan Copy (sapuan 641-900 px: 274 header di 641, 180 di 768, 73 di 900). Bar membungkus dan label turun ke baris sendiri. */
+@media (max-width:900px){
+.code-header{flex-wrap:wrap;row-gap:6px}
+.code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}
+.code-header .code-copy{margin-left:auto}
+}
+/* (4) Label sel kode, laptop (>= 901 px): tetap ditengahkan, tetapi selebar-lebarnya bar dikurangi dua kali kluster kiri terlebar (titik hias + pil "Python (FreeCAD)" CAD = 206 px + jarak); label yang lebih panjang membungkus 2-3 baris, bukan menimpa (30 header di 1024, 12 di 1100, 1 di 1280). Label yang muat tidak berubah. */
+@media (min-width:901px){
+.code-header .code-label{width:max-content;max-width:calc(100% - 436px);white-space:normal;text-align:center;line-height:1.3;overflow-wrap:anywhere}
+}
 @media (max-width:640px){
 /* (1) Persamaan bernomor TTL/CAD/Sisken: nomor turun ke baris sendiri (rata kanan) supaya tidak menimpa rumus yang terbungkus. */
 .formula-main{padding-right:0;overflow-x:auto}
@@ -53,13 +64,15 @@ export const CSS = `
 .mc-q,.tf-q,.comp-q{min-width:0;overflow-wrap:anywhere;overflow-x:auto;padding-block:.45em;margin-block:-.45em}
 .radio-option,.p-opt{min-width:0;overflow-wrap:anywhere}
 .radio-option>span,.p-opt>span{min-width:0;overflow-x:auto;padding-block:.4em;margin-block:-.4em}
-/* (4) Label sel kode: judul turun ke baris sendiri dan membungkus, bukan ditengahkan absolut di atas tombol. */
-.code-header{flex-wrap:wrap;row-gap:6px}
-.code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}
-.code-header .code-copy{margin-left:auto}
+/* (2b) Kepala kartu soal komputasi: nomor + poin di baris pertama, teks soal selebar kartu di baris kedua (kolom teks hanya 110-180 px bila sebaris dengan nomor dan poin). */
+.comp-header{flex-wrap:wrap;row-gap:8px}
+.comp-num{order:0}
+.comp-pts{order:1;margin-left:auto}
+.comp-q{order:2;flex:1 1 100%}
 /* (5) Kode, tautan, dan label panjang di teks; kisi inline selebar >= 220 px; judul hero; tab navigasi Modul 1. */
 :not(pre)>code{overflow-wrap:anywhere}
 .reference-card{overflow-wrap:anywhere}
+.card :is(p,li){overflow-wrap:anywhere}
 .reference-card>*{min-width:0}
 .anim-var>span:last-child{min-width:0;overflow-wrap:anywhere}
 .anim-var>code{white-space:normal;overflow-wrap:anywhere;min-width:0;flex-shrink:1}
@@ -68,7 +81,7 @@ export const CSS = `
 [style*="minmax(240px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))!important}
 [style*="minmax(260px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))!important}
 [style*="minmax(280px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important}
-#page-modul .academic-hero .hero-title,h1.hero-title{font-size:clamp(34px,11.5vw,62px);overflow-wrap:anywhere}
+#page-modul .academic-hero .hero-title,h1.hero-title{font-size:clamp(34px,11.5vw,50px);overflow-wrap:anywhere}
 nav{padding-left:12px;padding-right:12px;gap:8px}
 nav .nav-tabs{gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}
 nav .nav-tabs::-webkit-scrollbar{display:none}
@@ -110,11 +123,41 @@ html :is(#page-setup,#page-python) .sp-cbh-copy{padding:.3rem .5rem}
 }
 `;
 
+/**
+ * Strip tab navigasi Modul 1 (Setup Python, Pembagian Kelompok, Modul, Tugas, Forum, Hasil: 609 px dalam kotak 335 px di 375 px)
+ * digulir mendatar; tab aktif ("Modul", ke-3) terpotong di tepi kanan dan tak ada petunjuk gulir. Skrip kecil ini menaruh tab
+ * aktif di tengah strip saat halaman dibuka dan tiap kelas tab berganti (switchTab), hanya di <= 640 px dan hanya bila strip
+ * memang bisa digulir. Tanpa nama global (IIFE), tanpa mengubah skrip halaman.
+ */
+export const JS = `
+/* RAPIKAN-PONSEL v${VERSI}: tab navigasi aktif di tengah strip (<= 640 px) */
+(function () {
+  var mq = window.matchMedia && window.matchMedia('(max-width:640px)');
+  function tengahkan() {
+    if (!mq || !mq.matches) return;
+    var tab = document.querySelector('nav .nav-tabs .nav-tab.active');
+    var strip = tab && tab.parentNode;
+    if (!strip || strip.scrollWidth <= strip.clientWidth + 1) return;
+    var a = tab.getBoundingClientRect(), b = strip.getBoundingClientRect();
+    strip.scrollLeft += (a.left - b.left) - (strip.clientWidth - a.width) / 2;
+  }
+  function pasang() {
+    var strip = document.querySelector('nav .nav-tabs');
+    if (!strip) return;
+    tengahkan();
+    if (window.MutationObserver) new MutationObserver(tengahkan).observe(strip, { attributes: true, attributeFilter: ['class'], subtree: true });
+    window.addEventListener('resize', tengahkan);
+    window.addEventListener('load', tengahkan);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pasang); else pasang();
+})();
+`;
+
 // Blok dibungkus komentar START/END seperti injector lain (NOTASI-KANVAS, EFEK-JAWABAN): akhir <head> tetap diawali komentar,
-// bukan "</style>\n</head>" — jangkar generator (cad-modul/bangun-modul-1.py menuntut "</style>\n</head>" tepat satu kali di
-// kerangka TTL Modul 1) tidak boleh ikut terkena.
+// bukan "</style>\n</head>" (jangkar lama cad-modul/bangun-modul-1.py; sejak #987 generator itu memakai </head> pertama halaman,
+// tetapi pembungkus komentar dipertahankan agar penanda dan pemeriksaan blok seragam dengan injector lain).
 const NAMA_BLOK = PENANDA.toUpperCase();
-const BLOK = (eol) => `<!-- ${NAMA_BLOK}:START v${VERSI} -->${eol}<style id="${PENANDA}">${CSS.replace(/\n/g, eol)}</style>${eol}<!-- ${NAMA_BLOK}:END v${VERSI} -->`;
+const BLOK = (eol) => `<!-- ${NAMA_BLOK}:START v${VERSI} -->${eol}<style id="${PENANDA}">${CSS.replace(/\n/g, eol)}</style>${eol}<script id="${PENANDA}-js">${JS.replace(/\n/g, eol)}</script>${eol}<!-- ${NAMA_BLOK}:END v${VERSI} -->`;
 const RX_BLOK = new RegExp(`<!-- ${NAMA_BLOK}:START[^>]*-->[\\s\\S]*?<!-- ${NAMA_BLOK}:END[^>]*-->`);
 const RX_CHAT = /<!-- AI-CHAT-AGENT:BEGIN[\s\S]*?<!-- AI-CHAT-AGENT:END[^>]*-->/g;
 
