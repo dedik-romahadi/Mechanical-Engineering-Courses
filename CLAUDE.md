@@ -368,8 +368,8 @@ repo publik ini.
   (wn, Kp, tau, exp(), a*b → ω<sub>n</sub>, K<sub>p</sub>, τ, e<sup>…</sup>, a·b).
   Halaman tulisan tangan dan UTS/UAS: `scripts/notasi-halaman.mjs` + data JSON
   berjangkar unik, blok `NOTASI-KANVAS` untuk kanvas (`--periksa`, sebelum
-  `draft-modul.mjs`). Penjaga `scripts/periksa-notasi.mjs` (96 halaman, dijalankan
-  `validate-public-security.mjs`). Opsi PG/jajak dan tautan subnav (induk `display:flex`)
+  `draft-modul.mjs`; jangkarnya juga ditagih `validate-public-security.mjs`). Penjaga `scripts/periksa-notasi.mjs`
+  (96 halaman, dijalankan `validate-public-security.mjs`). Opsi PG/jajak dan tautan subnav (induk `display:flex`)
   yang memuat elemen/KaTeX dibungkus satu `<span class="opsi-teks">` (`pustaka.opsi_teks`, notasi-halaman);
   Export Tugas membaca soal/pilihan lewat `_teksNotasi` (`scripts/notasi-ekspor.mjs`, sebelum
   `draft-modul.mjs`), bukan textContent. Rincian: Pedoman §2 butir **Notasi rumus** (1)–(16).
@@ -379,8 +379,9 @@ repo publik ini.
   akronim di `modul_N.py` ditulis `\mathrm{SIL}`); kode yang diketik keluar dari KaTeX sebagai `<code>` (juga chip Persamaan:
   notasi berbacktick `` `isnull()` `` di `persamaan-statis-data.mjs`). Penjaga `scripts/periksa-katex.mjs`
   (keenam course, statis di `validate-public-security.mjs`, termasuk `\_`/`nama()`, en dash/½ di mode matematika, koma
-  desimal tanpa `{,}` di Sisken/TTL/CAD, dan akronim miring di TTL/CAD — tiga huruf kapital dan daftar
-  `AKRONIM_DIJAGA` (`SF`, `kV`, `CO_2`, …), dipatok validator bersama daftar course-nya; render penuh
+  desimal tanpa `{,}` di Sisken/TTL/CAD, dan akronim miring di TTL/CAD — tiga huruf kapital dan daftar per course
+  `AKRONIM_DIJAGA_KURSUS` (TTL `kV`, `CF`, …; CAD `SF`, `CO_2`; nama titik/ruas `\overline{PQ}`, `\angle ABC`,
+  `d(A, CF)` sah), dipatok validator bersama daftar course-nya; render penuh
   `--katex` dijalankan CI dengan `katex@VERSI_KATEX`, langkah CI-nya dipatok baris demi baris). Prosa di kotak
   `.formula` kartu dan daftar konsep di blok persamaan ditulis teks polos, bukan satu `\text{…}` utuh yang tidak
   bisa dipatah dan terpotong di ponsel. Pedoman §2 butir (17)–(21).

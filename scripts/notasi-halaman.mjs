@@ -34,7 +34,9 @@
  * Pakai (dari root repo; bagian dari urutan injector kanonik, Pedoman §2/§17.1):
  *   node scripts/notasi-halaman.mjs             # pasang
  *   node scripts/notasi-halaman.mjs --periksa   # laporan saja; keluar 1 bila ada yang akan berubah/ditolak
- * Pemeriksa notasinya: scripts/periksa-notasi.mjs (dipanggil validate-public-security.mjs).
+ * Pemeriksa notasinya: scripts/periksa-notasi.mjs (dipanggil validate-public-security.mjs). Pemeriksaan --periksa yang
+ * sama (rencanaNotasi) juga dijalankan validate-public-security.mjs beserta uji mutasi label tulisan tangan TTL, karena
+ * label yang dikeluarkan dari KaTeX ("10 Soal · @2", "Terminal — <code>ttl</code>") hanya dijaga jangkar pasangan ini.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -185,22 +187,39 @@ export function terapkan(html, pasangan) {
   return { html: out, dipasang, sudah, ditolak };
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+/** Pasangan per halaman (urutan grup data), termasuk halaman `kanvas` tanpa pasangan: Map rel → [[lama, baru], …]. */
+export function pasanganPerHalaman(data = DATA) {
   const perHalaman = new Map();
-  for (const g of DATA.grup) {
+  for (const g of data.grup) {
     for (const rel of g.halaman) {
       if (!perHalaman.has(rel)) perHalaman.set(rel, []);
       perHalaman.get(rel).push(...g.ganti);
     }
   }
-  for (const rel of DATA.kanvas) if (!perHalaman.has(rel)) perHalaman.set(rel, []);
-  const kanvas = new Set(DATA.kanvas);
-  const hasil = [], salah = [];
+  for (const rel of data.kanvas) if (!perHalaman.has(rel)) perHalaman.set(rel, []);
+  return perHalaman;
+}
+
+/**
+ * Keluaran injector untuk seluruh data tanpa menulis apa pun: {berubah: [[rel, berkas, html]], salah: [], rekap, jumlah}.
+ * Halaman yang `berubah` belum memuat pasangan/struktur/blok kanvasnya; `salah` = jangkar yang ditolak (hilang, ganda,
+ * atau lama dan baru sama-sama ada), berkas yang tidak ada, atau blok AI-CHAT-AGENT yang berubah. Dipakai `--periksa` dan
+ * validate-public-security.mjs (label tulisan tangan yang dikembalikan ke KaTeX — "10 Soal · @2", "Terminal — ttl" —
+ * tidak ditolak periksa-katex/periksa-notasi, hanya oleh jangkar ini). `hanya` membatasi halaman, `baca(rel, berkas)`
+ * menggantikan pembacaan berkas (uji mutasi validator).
+ */
+export function rencanaNotasi({ akar = root, data = DATA, hanya = null, baca = null } = {}) {
+  const perHalaman = pasanganPerHalaman(data);
+  const kanvas = new Set(data.kanvas);
+  const berubah = [], salah = [];
   const rekap = { pasangan: 0, kanvas: 0, struktur: 0 };
+  let jumlah = 0;
   for (const [rel, pasangan] of [...perHalaman].sort()) {
-    const f = path.join(root, rel);
-    if (!fs.existsSync(f)) { salah.push(`${rel}: berkas tidak ada`); continue; }
-    const asli = fs.readFileSync(f, "utf8");
+    if (hanya && !hanya.includes(rel)) continue;
+    jumlah += 1;
+    const f = path.join(akar, rel);
+    if (!baca && !fs.existsSync(f)) { salah.push(`${rel}: berkas tidak ada`); continue; }
+    const asli = baca ? baca(rel, f) : fs.readFileSync(f, "utf8");
     const polos = lepasBungkus(asli);
     const r = terapkan(polos, pasangan);
     if (r.ditolak.length) { salah.push(...r.ditolak.map((d) => `${rel}: ${d}`)); continue; }
@@ -214,14 +233,20 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const ai0 = asli.match(RX_AI), ai1 = html.match(RX_AI);
     if ((ai0 && ai0[0]) !== (ai1 && ai1[0])) { salah.push(`${rel}: blok AI-CHAT-AGENT berubah`); continue; }
     rekap.pasangan += r.dipasang;
-    if (html !== asli) hasil.push([f, html]);
+    if (html !== asli) berubah.push([rel, f, html]);
   }
+  return { berubah, salah, rekap, jumlah };
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const { berubah, salah, rekap, jumlah } = rencanaNotasi();
+  const hasil = berubah.map(([, f, html]) => [f, html]);
   if (salah.length) {
     for (const s of salah) console.error(`DITOLAK ${s}`);
     console.error(`${salah.length} jangkar/halaman ditolak; tidak ada berkas yang ditulis.`);
     process.exit(1);
   }
   if (!periksa) for (const [f, html] of hasil) fs.writeFileSync(f, html);
-  console.log(`${hasil.length} dari ${perHalaman.size} halaman ${periksa ? "akan diperbarui" : "diperbarui"}: ${JSON.stringify(rekap)}`);
+  console.log(`${hasil.length} dari ${jumlah} halaman ${periksa ? "akan diperbarui" : "diperbarui"}: ${JSON.stringify(rekap)}`);
   if (periksa && hasil.length > 0) process.exitCode = 1;
 }
