@@ -5196,25 +5196,30 @@ async function ujiMutasiTunggu() {
   const halamanPonsel = rp.daftarHalaman();
   if (halamanPonsel.length !== 16 * courseRoots.length) throw new Error(`rapikan-ponsel: expected ${16 * courseRoots.length} module/exam pages, got ${halamanPonsel.length}`);
   // Aturan wajib dipatok di sini, terpisah dari skrip: menghapusnya dari CSS skrip (lalu menjalankan ulang skrip) mematikan
-  // perbaikannya tanpa satu halaman pun gagal.
-  const WAJIB_PONSEL = [
+  // perbaikannya tanpa satu halaman pun gagal. Dua daftar: WAJIB_UTAMA (diberi nama) dan WAJIB_LAIN (selebihnya, bernama selektornya);
+  // gabungan keduanya meliputi SETIAP aturan di blok selain pembuka @media (putaran 3: dulu hanya separuh yang dipatok, jadi aturan
+  // opsi PG, .fq-body, atau baris modal Atur Jadwal bisa dihapus tanpa ditolak).
+  const WAJIB_UTAMA = [
     ["nomor persamaan turun ke baris sendiri", ".formula-main>.formula-number{position:static;display:block;text-align:right;transform:none;margin-top:2px}"],
     ["isi .formula-main tanpa ruang nomor", ".formula-main{padding-right:0;overflow-x:auto}"],
     ["rumus tak terpatahkan digulir di kotaknya", "#page-modul .formula-block{overflow-x:auto;padding-left:14px;padding-right:14px}"],
     ["kotak rumus kartu digulir", "#page-modul .card .formula{max-width:100%;overflow-x:auto;overflow-y:hidden}"],
+    ["petunjuk gulir: bilah tipis tetap tampak", ".formula-main::-webkit-scrollbar,#page-modul .formula-block::-webkit-scrollbar,#page-modul .card .formula::-webkit-scrollbar{height:5px}"],
     ["kartu soal boleh menyempit dan patah kata", ".mc-q,.tf-q,.comp-q{min-width:0;overflow-wrap:anywhere;overflow-x:auto;padding-block:.45em;margin-block:-.45em}"],
     ["opsi PG boleh menyempit", ".radio-option>span,.p-opt>span{min-width:0;overflow-x:auto;padding-block:.4em;margin-block:-.4em}"],
     ["paritas .comp-q (di luar media)", ".comp-q{min-width:0;overflow-wrap:break-word}"],
     ["label sel kode membungkus", ".code-header{flex-wrap:wrap;row-gap:6px}"],
     ["label sel kode turun ke baris sendiri", ".code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}"],
-    ["label sel kode laptop tidak menimpa kluster kiri/kanan", ".code-header .code-label{width:max-content;max-width:calc(100% - 436px);white-space:normal;text-align:center;line-height:1.3;overflow-wrap:anywhere}"],
+    ["label sel kode laptop tidak menimpa kluster kiri/kanan", ".code-header .code-label{width:max-content;max-width:calc(100% - 284px);white-space:normal;text-align:center;overflow-wrap:anywhere}"],
     ["kepala kartu komputasi membungkus", ".comp-header{flex-wrap:wrap;row-gap:8px}"],
     ["poin kartu komputasi di baris pertama", ".comp-pts{order:1;margin-left:auto}"],
     ["teks soal komputasi selebar kartu", ".comp-q{order:2;flex:1 1 100%}"],
     ["kode inline patah kata", ":not(pre)>code{overflow-wrap:anywhere}"],
     ["kartu pustaka patah kata", ".reference-card{overflow-wrap:anywhere}"],
     ["paragraf dan butir kartu patah kata", ".card :is(p,li){overflow-wrap:anywhere}"],
-    ["judul hero tidak membesar di atas 50 px", "font-size:clamp(34px,11.5vw,50px)"],
+    ["legenda notasi: chip simbol boleh pindah baris", ".anim-var{flex-wrap:wrap;row-gap:6px}"],
+    ["legenda notasi: deskripsi tak terjepit di bawah 9rem", ".anim-var>span:last-child{flex:1 1 auto;min-width:min(9rem,100%);overflow-wrap:break-word}"],
+    ["judul hero hanya diperkecil lewat --ponsel-hero", "h1.hero-title[style*=\"--ponsel-hero\"]{font-size:var(--ponsel-hero)!important}"],
     ["kisi inline 260 px", "[style*=\"minmax(260px,1fr)\"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))!important}"],
     ["tab navigasi digulir", "nav .nav-tabs{gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}"],
     ["label kolom kode soal membungkus", ".input-label{flex-wrap:wrap;row-gap:2px}"],
@@ -5224,9 +5229,54 @@ async function ujiMutasiTunggu() {
     ["Setup: tombol Copy tidak menyusut", "html :is(#page-setup,#page-python) .sp-cbh-copy{flex:0 0 auto;white-space:nowrap}"],
     ["Setup: kolom langkah dilebarkan", "html :is(#page-setup,#page-python) .sp-step{padding-left:46px}"],
   ];
-  // Satu-satunya blok di luar @media (max-width:640px) yang diizinkan, dipatok persis: tablet <= 900 px (label sel kode turun ke
-  // baris sendiri) dan laptop >= 901 px (lebar label dibatasi). Melebarkan media-nya (mis. min-width:641px) mengubah tata letak
-  // yang sekarang tidak bertumpuk, jadi ditolak.
+  const WAJIB_LAIN = [
+    ".code-header .code-copy{margin-left:auto}",
+    ".formula-main::-webkit-scrollbar-track,#page-modul .formula-block::-webkit-scrollbar-track,#page-modul .card .formula::-webkit-scrollbar-track{background:rgba(148,163,184,.14);border-radius:3px}",
+    ".formula-main::-webkit-scrollbar-thumb,#page-modul .formula-block::-webkit-scrollbar-thumb,#page-modul .card .formula::-webkit-scrollbar-thumb{background:rgba(148,163,184,.6);border-radius:3px}",
+    ".radio-option,.p-opt{min-width:0;overflow-wrap:anywhere}",
+    ".comp-num{order:0}",
+    ".reference-card>*{min-width:0}",
+    ".anim-var>code{white-space:normal;overflow-wrap:anywhere;min-width:0;flex-shrink:1}",
+    ".fq-body{overflow-x:auto}",
+    "[style*=\"minmax(220px,1fr)\"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))!important}",
+    "[style*=\"minmax(240px,1fr)\"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))!important}",
+    "[style*=\"minmax(280px,1fr)\"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important}",
+    "nav{padding-left:12px;padding-right:12px;gap:8px}",
+    "nav .nav-tabs::-webkit-scrollbar{display:none}",
+    "nav .nav-tab{flex:0 0 auto;padding-left:8px;padding-right:8px}",
+    ".cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}",
+    ".anim-title{min-width:0;overflow-wrap:anywhere}",
+    ".input-label>span{min-width:0;max-width:100%;overflow-wrap:anywhere}",
+    ".analogy-label{max-width:100%;flex-wrap:wrap}",
+    "#scheduleOverlay .visitor-modal>div[style*=\"display:flex\"]{flex-wrap:wrap}",
+    "#scheduleOverlay .visitor-modal>div[style*=\"display:flex\"]>div{min-width:0;flex:1 1 130px!important}",
+    "#scheduleOverlay .v-input{min-width:0;max-width:100%}",
+    ".berkas-input{min-width:0;max-width:100%}",
+    "html .pm-centang .pm-status{white-space:normal;flex:0 1 auto;min-width:0;max-width:calc(100% - 42px)}",
+    "html :is(#page-setup,#page-python) .sp-wrap{padding:0 12px}",
+    "html :is(#page-setup,#page-python) .sp-timeline::before{left:16px}",
+    "html :is(#page-setup,#page-python) .sp-dot{left:2px;width:28px;height:28px;font-size:.8rem}",
+    "html :is(#page-setup,#page-python) .sp-head{padding:1.1rem 1rem .5rem}",
+    "html :is(#page-setup,#page-python) .sp-body{padding:.5rem 1rem 1.25rem}",
+    "html :is(#page-setup,#page-python) .sp-body a{overflow-wrap:anywhere}",
+    "html :is(#page-setup,#page-python) .sp-cbh-dots{display:none}",
+    "html :is(#page-setup,#page-python) .sp-cbd{padding:.9rem 1rem}",
+    "nav .nav-tab{padding-left:6px;padding-right:6px}",
+    "html :is(#page-setup,#page-python) .sp-step{padding-left:38px}",
+    "html :is(#page-setup,#page-python) .sp-body{padding:.5rem .75rem 1rem}",
+    "html :is(#page-setup,#page-python) .sp-cbh{padding:.5rem .6rem}",
+    "html :is(#page-setup,#page-python) .sp-cbh-copy{padding:.3rem .5rem}",
+  ];
+  const WAJIB_PONSEL = [...WAJIB_UTAMA, ...WAJIB_LAIN.map((aturan) => [aturan.slice(0, aturan.indexOf("{")).slice(0, 90), aturan])];
+  // Angka label sel kode per course (tepi kanan kluster kiri bar: titik hias + pil bahasa, px; Chrome 1280 px): dipatok di sini
+  // supaya mengubahnya (mis. kembali ke satu angka 436 px untuk semua course, yang menimpa header yang tidak bertabrakan) ditolak.
+  const KIRI_WAJIB = { standar: 140, "Engineering-Mathematics": 154, "Pemodelan-Computer-Aided-Design": 206 };
+  if (rp.KIRI_STANDAR !== KIRI_WAJIB.standar || rp.JARAK_LABEL !== 2 || JSON.stringify(rp.KIRI_KURSUS) !== JSON.stringify({ "Engineering-Mathematics": 154, "Pemodelan-Computer-Aided-Design": 206 })) {
+    throw new Error("rapikan-ponsel: KIRI_STANDAR/KIRI_KURSUS/JARAK_LABEL berbeda dari angka yang dipatok validator (Pedoman §2 butir (22)(d))");
+  }
+  // Blok di luar @media (max-width:640px) yang diizinkan, dipatok persis: tablet <= 900 px (label sel kode turun ke baris
+  // sendiri) dan laptop >= 901 px (lebar label dibatasi per course). Melebarkan media-nya (mis. min-width:641px) mengubah tata
+  // letak yang sekarang tidak bertabrakan, jadi ditolak.
   const BLOK_TABLET = [
     "@media (max-width:900px){",
     ".code-header{flex-wrap:wrap;row-gap:6px}",
@@ -5234,12 +5284,13 @@ async function ujiMutasiTunggu() {
     ".code-header .code-copy{margin-left:auto}",
     "}",
   ].join("\n");
-  const BLOK_LAPTOP = [
+  const blokLaptop = (kiri) => [
     "@media (min-width:901px){",
-    ".code-header .code-label{width:max-content;max-width:calc(100% - 436px);white-space:normal;text-align:center;line-height:1.3;overflow-wrap:anywhere}",
+    `.code-header .code-label{width:max-content;max-width:calc(100% - ${2 * (kiri + 2)}px);white-space:normal;text-align:center;overflow-wrap:anywhere}`,
     "}",
   ].join("\n");
-  const TANPA_MEDIA = [".comp-q{min-width:0;overflow-wrap:break-word}", BLOK_TABLET, BLOK_LAPTOP];
+  const BLOK_LAPTOP = blokLaptop(KIRI_WAJIB.standar);
+  const TANPA_MEDIA = [".comp-q{min-width:0;overflow-wrap:break-word}", BLOK_TABLET, ...Object.values(KIRI_WAJIB).map(blokLaptop)];
   // Skrip kecil di blok (tab navigasi aktif ke tengah strip): hanya di <= 640 px, hanya membaca DOM navigasi dan menggeser
   // scrollLeft strip — tanpa jaringan, penyimpanan, HTML dinamis, atau eval.
   const WAJIB_JS = [
@@ -5248,19 +5299,33 @@ async function ujiMutasiTunggu() {
     ["hanya strip yang bisa digulir", "strip.scrollWidth <= strip.clientWidth + 1"],
     ["menggeser scrollLeft strip", "strip.scrollLeft +="],
     ["mengamati hanya atribut class", "attributeFilter: ['class']"],
+    ["judul hero: hanya satu properti kustom", "h.style.setProperty('--ponsel-hero',"],
+    ["judul hero: properti dilepas lebih dulu (di > 640 px tetap lepas)", "h.style.removeProperty('--ponsel-hero');"],
+    ["judul hero: hanya di <= 640 px", "if (!mq || !mq.matches || !h.clientWidth) continue;"],
+    ["judul hero: hanya diperkecil, tak pernah di bawah 22 px", "Math.max(22, Math.floor(fs * kotak / isi * 98) / 100)"],
+    ["judul hero: batas terkecil kotak h1 dan kotak isi .hero (anak flex melebar)", "Math.min(h.clientWidth, sedia(h))"],
   ];
   const periksaJsPonsel = (js) => {
     const masalah = [];
     for (const [nama, potongan] of WAJIB_JS) if (!js.includes(potongan)) masalah.push(`skrip ponsel: ${nama} hilang`);
     const terlarang = /\b(?:fetch|XMLHttpRequest|WebSocket|eval|Function|localStorage|sessionStorage|indexedDB)\b|\.cookie\b|\binnerHTML\b|\bdocument\.write\b|\bimport\s*\(|\bscrollIntoView\b|\.focus\s*\(/.exec(js);
     if (terlarang) masalah.push(`skrip ponsel memakai ${terlarang[0]}`);
+    // Setiap MutationObserver.observe(...) hanya boleh mengamati atribut class (jumlah panggilan = jumlah attributeFilter: ['class']); style/teks tidak diamati (pasHero menulis style).
+    if ((js.match(/\.observe\(/g) || []).length !== (js.match(/attributeFilter: \['class'\]/g) || []).length) masalah.push("skrip ponsel: tiap observe() harus berfilter atribut class");
     if ((js.match(/<\/?script/gi) || []).length) masalah.push("skrip ponsel memuat tag script");
     return masalah;
   };
-  const periksaCssPonsel = (css) => {
+  // `kiri`: tepi kanan kluster kiri bar sel kode course yang dicek; aturan wajib label laptop ditulis untuk course standar (284 px) dan disesuaikan.
+  const cadangan = (kiri) => 2 * (kiri + 2);
+  const periksaCssPonsel = (css, kiri = KIRI_WAJIB.standar) => {
     const masalah = [];
-    for (const [nama, aturan] of WAJIB_PONSEL) if (!css.includes(aturan)) masalah.push(`aturan wajib hilang: ${nama}`);
+    for (const [nama, aturan] of WAJIB_PONSEL) {
+      const wajib = aturan.replace(`calc(100% - ${cadangan(KIRI_WAJIB.standar)}px)`, () => `calc(100% - ${cadangan(kiri)}px)`);
+      if (!css.includes(wajib)) masalah.push(`aturan wajib hilang: ${nama}`);
+    }
     const t = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    // Ukuran asli judul hero tidak boleh diubah (putaran 1 membesarkannya 24% di 435-640 px): hanya var(--ponsel-hero) yang diisi skrip untuk judul yang tak muat.
+    if (/hero-title[^{}]*\{[^}]*font-size:(?!var\(--ponsel-hero\))/.test(t)) masalah.push("ukuran font judul hero diubah selain lewat var(--ponsel-hero)");
     let dalam = 0, awal = 0;
     const atas = [];
     for (let i = 0; i < t.length; i += 1) {
@@ -5276,10 +5341,10 @@ async function ujiMutasiTunggu() {
     }
     return masalah;
   };
-  const cssAcuan = [...periksaCssPonsel(rp.CSS), ...periksaJsPonsel(rp.JS)];
+  const cssAcuan = [...periksaCssPonsel(rp.CSS), ...Object.values(KIRI_WAJIB).flatMap((kiri) => periksaCssPonsel(rp.buatCss(kiri), kiri)), ...periksaJsPonsel(rp.JS)];
   if (cssAcuan.length) throw new Error(`rapikan-ponsel: CSS/JS skrip ditolak: ${cssAcuan[0]}${cssAcuan.length > 1 ? ` (dan ${cssAcuan.length - 1} lagi)` : ""}`);
   for (const relative of halamanPonsel) {
-    const masalah = rp.periksaPonsel(fs.readFileSync(path.join(root, relative), "utf8"));
+    const masalah = rp.periksaPonsel(fs.readFileSync(path.join(root, relative), "utf8"), relative);
     if (masalah.length) throw new Error(`${relative}: ${masalah[0]} — node scripts/rapikan-ponsel.mjs (urutan injector, Pedoman §17.1)`);
   }
   // Uji mutasi: halaman acuan (TTL Modul 2, turunan kerangka) dan CSS skrip yang dirusak harus ditolak.
@@ -5299,7 +5364,19 @@ async function ujiMutasiTunggu() {
   ];
   for (const [nama, salinan] of mutasiHalaman) {
     if (salinan === html) throw new Error(`${acuan}: uji mutasi rapikan-ponsel "${nama}" tidak mengubah halaman`);
-    if (!rp.periksaPonsel(salinan).length) throw new Error(`${acuan}: rapikan-ponsel menerima halaman bermutasi (${nama})`);
+    if (!rp.periksaPonsel(salinan, acuan).length) throw new Error(`${acuan}: rapikan-ponsel menerima halaman bermutasi (${nama})`);
+  }
+  // Angka label sel kode per course (Pedoman §2 butir (22)(d)): halaman CAD/Matematika 4 yang memakai angka standar, atau halaman
+  // TTL yang memakai angka CAD (satu angka untuk semua course mengubah header yang tidak bertabrakan), harus ditolak.
+  for (const [berkas, benar, salah] of [
+    [path.join("Pemodelan-Computer-Aided-Design", "Modul", "Modul-2.html"), cadangan(KIRI_WAJIB["Pemodelan-Computer-Aided-Design"]), cadangan(KIRI_WAJIB.standar)],
+    [path.join("Engineering-Mathematics", "Modul", "Modul-2.html"), cadangan(KIRI_WAJIB["Engineering-Mathematics"]), cadangan(KIRI_WAJIB.standar)],
+    [acuan, cadangan(KIRI_WAJIB.standar), cadangan(KIRI_WAJIB["Pemodelan-Computer-Aided-Design"])],
+  ]) {
+    const isi = fs.readFileSync(path.join(root, berkas), "utf8");
+    const patokan = `max-width:calc(100% - ${benar}px)`;
+    if (!isi.includes(patokan)) throw new Error(`${berkas}: blok ponsel tidak memuat ${patokan} (angka label sel kode course ini, Pedoman §2 butir (22)(d))`);
+    if (!rp.periksaPonsel(isi.replace(patokan, () => `max-width:calc(100% - ${salah}px)`), berkas).length) throw new Error(`${berkas}: rapikan-ponsel menerima angka label sel kode course lain (calc(100% - ${salah}px))`);
   }
   const mutasiCss = [
     ...WAJIB_PONSEL.map(([nama, aturan]) => [`hapus aturan: ${nama}`, rp.CSS.replace(aturan, () => "")]),
@@ -5308,14 +5385,16 @@ async function ujiMutasiTunggu() {
     ["pembuka @media dibuang", rp.CSS.replace("@media (max-width:640px){", () => "")],
     ["blok tablet diperlebar ke 1100 px", rp.CSS.replace("@media (max-width:900px){", () => "@media (max-width:1100px){")],
     ["blok laptop diperluas ke 641 px", rp.CSS.replace("@media (min-width:901px){", () => "@media (min-width:641px){")],
-    ["blok laptop ikut mengubah lebar maksimum label", rp.CSS.replace("max-width:calc(100% - 436px)", () => "max-width:calc(100% - 300px)")],
+    ["blok laptop ikut mengubah lebar maksimum label", rp.CSS.replace("max-width:calc(100% - 284px)", () => "max-width:calc(100% - 300px)")],
+    ["ukuran judul hero diubah tanpa --ponsel-hero", rp.CSS.replace("h1.hero-title[style*=\"--ponsel-hero\"]{font-size:var(--ponsel-hero)!important}", (a) => a + "\nh1.hero-title{font-size:clamp(34px,11.5vw,62px)}")],
   ];
   for (const [nama, css] of mutasiCss) {
     if (css === rp.CSS) throw new Error(`rapikan-ponsel: uji mutasi CSS "${nama}" tidak mengubah CSS`);
     if (!periksaCssPonsel(css).length) throw new Error(`rapikan-ponsel: periksaCssPonsel menerima CSS bermutasi (${nama})`);
   }
   const mutasiJs = [
-    ...WAJIB_JS.map(([nama, potongan]) => [`hapus: ${nama}`, rp.JS.replace(potongan, () => "")]),
+    ...WAJIB_JS.map(([nama, potongan]) => [`hapus: ${nama}`, rp.JS.split(potongan).join("")]),
+    ["pengamat tanpa attributeFilter class (satu dari dua)", rp.JS.replace("{ attributes: true, attributeFilter: ['class'], subtree: true }", () => "{ attributes: true, subtree: true }")],
     ["jaringan", rp.JS.replace("function pasang() {", () => "function pasang() { fetch('/x');")],
     ["innerHTML", rp.JS.replace("function pasang() {", () => "function pasang() { document.body.innerHTML = '';")],
     ["scrollIntoView menggulir halaman", rp.JS.replace("function pasang() {", () => "function pasang() { document.body.scrollIntoView();")],
