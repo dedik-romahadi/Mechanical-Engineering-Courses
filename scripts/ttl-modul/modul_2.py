@@ -340,10 +340,10 @@ def materi():
                    rf"Trafo contoh: \(x_{{opt}} = \sqrt{{{ind(P_FE, 1)}/{ind(P_CU, 1)}}} \approx {ind(X_OPT, 3)}\), yakni sekitar {ind(X_OPT * 100, 0)}% beban, dengan \(\eta_{{maks}} \approx {ind(ETA_OPT, 2)}\%\). Pada titik itu rugi total tepat \(2P_{{Fe}}\).",
                    "Efisiensi maksimum tercapai saat rugi yang tetap sama besar dengan rugi yang berubah, hasil menurunkan Persamaan (5) terhadap x. Perancang trafo distribusi sengaja menaruh titik ini di sekitar beban rata-rata harian, bukan di beban penuh.",
                    [("x_{opt}", "Fraksi beban dengan efisiensi tertinggi"), ("P_{Fe}", "Rugi inti"), ("P_{Cu}", "Rugi tembaga beban penuh")])
-    isi += formula(7, "Regulasi Tegangan (Pendekatan Orde Pertama)", r"VR \approx R_{\%}\cos\varphi + X_{\%}\sin\varphi \qquad (\text{beban tertinggal})",
-                   rf"\(R_\%\) dan \(X_\%\) adalah resistansi dan reaktansi ekuivalen pada basis rating. Trafo dengan \(R_\% = 1\), \(X_\% = 5{{,}}5\) pada beban penuh \(\cos\varphi = 0{{,}}8\) tertinggal mempunyai \(VR \approx 1\times0{{,}}8 + 5{{,}}5\times0{{,}}6 = {ind(VR_CONTOH, 1)}\%\).",
+    isi += formula(7, "Regulasi Tegangan (Pendekatan Orde Pertama)", r"\mathrm{VR} \approx R_{\%}\cos\varphi + X_{\%}\sin\varphi \qquad (\text{beban tertinggal})",
+                   rf"\(R_\%\) dan \(X_\%\) adalah resistansi dan reaktansi ekuivalen pada basis rating. Trafo dengan \(R_\% = 1\), \(X_\% = 5{{,}}5\) pada beban penuh \(\cos\varphi = 0{{,}}8\) tertinggal mempunyai \(\mathrm{{VR}} \approx 1\times0{{,}}8 + 5{{,}}5\times0{{,}}6 = {ind(VR_CONTOH, 1)}\%\).",
                    "Regulasi menyatakan seberapa jauh tegangan sekunder turun dari tanpa beban ke beban penuh. Reaktansi bocor (bagian terbesar dari Z%) yang menentukannya pada beban induktif; pada beban kapasitif tegangan justru bisa naik.",
-                   [("VR", "Regulasi tegangan (%)"), ("R_\\%", "Resistansi ekuivalen (% basis rating)"), ("X_\\%", "Reaktansi ekuivalen (% basis rating)"), (r"\varphi", "Sudut faktor daya beban")])
+                   [("\\mathrm{VR}", "Regulasi tegangan (%)"), ("R_\\%", "Resistansi ekuivalen (% basis rating)"), ("X_\\%", "Reaktansi ekuivalen (% basis rating)"), (r"\varphi", "Sudut faktor daya beban")])
     isi += cards([
         ("🧱", "Inti dan Belitan", "Inti baja silikon berlaminasi menekan rugi eddy; belitan tembaga/aluminium berisolasi kertas-minyak. Kelompok vektor (mis. Dyn5, YNyn0) menyatakan hubungan belitan dan geser fasa.", None),
         ("🛢️", "Minyak dan Pendinginan", "Minyak mengisolasi sekaligus membawa panas ke radiator. Kode ONAN (minyak-udara alami) sampai OFWF (minyak-air dipaksa) menyatakan cara pendinginan; rating bisa naik bila pendinginan dipaksa.", None),

@@ -22,6 +22,7 @@ import sys
 SCR = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCR))
 import modul_1 as K  # noqa: E402
+from pustaka import koma_katex  # noqa: E402
 
 REPO = SCR.parent.parent
 HALAMAN = REPO / "Teknik-Tenaga-Listrik" / "Modul" / "Modul-1.html"
@@ -112,6 +113,7 @@ if "<sub>" in K.RUMUS_LOGIN or "<sup>" in K.RUMUS_LOGIN:
     s = s.replace("    el.textContent = f.t;\n", "    el.innerHTML = f.t;\n")
     assert s.count("    el.innerHTML = f.t;\n") == 1
 
+s = koma_katex(s)
 berubah = s != CENTANG.sub("", asli)
 if "--periksa" in sys.argv:
     print(f"Modul-1 TTL {'AKAN BERUBAH' if berubah else 'sudah sesuai'} dengan modul_1.py")
