@@ -622,7 +622,7 @@ MC = [
      ["\\(Z_{base} = \\mathrm{MVA}_{base}/\\mathrm{kV}_{base}^2\\)", "\\(Z_{base} = \\mathrm{kV}_{base}/\\mathrm{MVA}_{base}\\)", "\\(Z_{base} = \\mathrm{kV}_{base}^2/\\mathrm{MVA}_{base}\\)", "\\(Z_{base} = \\sqrt{3}\\,\\mathrm{kV}_{base}/\\mathrm{MVA}_{base}\\)"],
      "Impedansi basis"),
     ("Mengonversi reaktansi per unit dari basis lama ke basis baru dilakukan dengan...",
-     ["\\(X_{baru} = X_{lama}\\,(S_{baru}/S_{lama})\\,(V_{lama}/V_{baru})^2\\)", "\\(X_{baru} = X_{lama}\\,(S_{lama}/S_{baru})\\,(V_{baru}/V_{lama})^2\\)", "\\(X_{baru} = X_{lama}\\,(S_{baru}/S_{lama})\\)  selalu, berapa pun tegangannya", "\\(X_{baru} = X_{lama}\\,(V_{baru}/V_{lama})\\)"],
+     ["\\(X_{baru} = X_{lama}\\,(S_{baru}/S_{lama})\\,\\allowbreak(V_{lama}/V_{baru})^2\\)", "\\(X_{baru} = X_{lama}\\,(S_{lama}/S_{baru})\\,\\allowbreak(V_{baru}/V_{lama})^2\\)", "\\(X_{baru} = X_{lama}\\,(S_{baru}/S_{lama})\\)  selalu, berapa pun tegangannya", "\\(X_{baru} = X_{lama}\\,(V_{baru}/V_{lama})\\)"],
      "Konversi basis"),
     ("Di antara reaktansi generator sinkron, yang <strong>terkecil</strong> dan menentukan arus hubung singkat sesaat awal adalah...",
      ["Reaktansi sinkron \\(X_s\\)", "Reaktansi transien \\(X'\\)", "Reaktansi bocor stator", "Reaktansi subtransien \\(X''\\)"],
