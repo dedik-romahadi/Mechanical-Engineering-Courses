@@ -1339,6 +1339,115 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- RAPIKAN-PONSEL:START v2 -->
+<style id="rapikan-ponsel">
+/* RAPIKAN-PONSEL v2 — tampilan ponsel; di atas 640 px hanya paritas .comp-q dan dua blok label sel kode (<= 900 px dan >= 901 px) yang berlaku */
+/* (2) Paritas keenam course: kartu soal komputasi boleh menyempit dan patah kata (Matematika 4, Getaran, Optimalisasi, Sisken sudah punya; TTL dan CAD baru). */
+.comp-q{min-width:0;overflow-wrap:break-word}
+/* (4) Label sel kode, tablet (<= 900 px): label ditengahkan absolut di bar bertumpuk dengan titik hias, bahasa, dan Copy (sapuan 641-900 px: 274 header di 641, 180 di 768, 73 di 900). Bar membungkus dan label turun ke baris sendiri. */
+@media (max-width:900px){
+.code-header{flex-wrap:wrap;row-gap:6px}
+.code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}
+.code-header .code-copy{margin-left:auto}
+}
+/* (4) Label sel kode, laptop (>= 901 px): tetap ditengahkan, tetapi selebar-lebarnya bar dikurangi dua kali kluster kiri terlebar (titik hias + pil "Python (FreeCAD)" CAD = 206 px + jarak); label yang lebih panjang membungkus 2-3 baris, bukan menimpa (30 header di 1024, 12 di 1100, 1 di 1280). Label yang muat tidak berubah. */
+@media (min-width:901px){
+.code-header .code-label{width:max-content;max-width:calc(100% - 436px);white-space:normal;text-align:center;line-height:1.3;overflow-wrap:anywhere}
+}
+@media (max-width:640px){
+/* (1) Persamaan bernomor TTL/CAD/Sisken: nomor turun ke baris sendiri (rata kanan) supaya tidak menimpa rumus yang terbungkus. */
+.formula-main{padding-right:0;overflow-x:auto}
+.formula-main>.formula-number{position:static;display:block;text-align:right;transform:none;margin-top:2px}
+/* Rumus yang tak bisa dipatah (satu pecahan/akar panjang) digulir mendatar di dalam kotaknya, bukan keluar kotak. */
+#page-modul .formula-block{overflow-x:auto;padding-left:14px;padding-right:14px}
+#page-modul .card .formula{max-width:100%;overflow-x:auto;overflow-y:hidden}
+/* (2) Kartu soal Tugas/UTS/UAS: anak flex boleh menyempit, teks/kode tak terpatahkan dipatah, rumus selebar kartu digulir. */
+/* padding-block + margin-block negatif: subskrip/pangkat yang menjulur sedikit di luar kotak baris tetap di dalam kotak gulir (tanpa batang gulir tegak), letak teks tidak bergeser. */
+.mc-q,.tf-q,.comp-q{min-width:0;overflow-wrap:anywhere;overflow-x:auto;padding-block:.45em;margin-block:-.45em}
+.radio-option,.p-opt{min-width:0;overflow-wrap:anywhere}
+.radio-option>span,.p-opt>span{min-width:0;overflow-x:auto;padding-block:.4em;margin-block:-.4em}
+/* (2b) Kepala kartu soal komputasi: nomor + poin di baris pertama, teks soal selebar kartu di baris kedua (kolom teks hanya 110-180 px bila sebaris dengan nomor dan poin). */
+.comp-header{flex-wrap:wrap;row-gap:8px}
+.comp-num{order:0}
+.comp-pts{order:1;margin-left:auto}
+.comp-q{order:2;flex:1 1 100%}
+/* (5) Kode, tautan, dan label panjang di teks; kisi inline selebar >= 220 px; judul hero; tab navigasi Modul 1. */
+:not(pre)>code{overflow-wrap:anywhere}
+.reference-card{overflow-wrap:anywhere}
+.card :is(p,li){overflow-wrap:anywhere}
+.reference-card>*{min-width:0}
+.anim-var>span:last-child{min-width:0;overflow-wrap:anywhere}
+.anim-var>code{white-space:normal;overflow-wrap:anywhere;min-width:0;flex-shrink:1}
+.fq-body{overflow-x:auto}
+[style*="minmax(220px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))!important}
+[style*="minmax(240px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))!important}
+[style*="minmax(260px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))!important}
+[style*="minmax(280px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important}
+#page-modul .academic-hero .hero-title,h1.hero-title{font-size:clamp(34px,11.5vw,50px);overflow-wrap:anywhere}
+nav{padding-left:12px;padding-right:12px;gap:8px}
+nav .nav-tabs{gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}
+nav .nav-tabs::-webkit-scrollbar{display:none}
+nav .nav-tab{flex:0 0 auto;padding-left:8px;padding-right:8px}
+.cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.anim-title{min-width:0;overflow-wrap:anywhere}
+/* Label kolom kode soal komputasi, label analogi, dan panduan Export: membungkus, bukan keluar kartu (terlihat di 320 px). */
+.input-label{flex-wrap:wrap;row-gap:2px}
+.input-label>span{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.analogy-label{max-width:100%;flex-wrap:wrap}
+.score-export-copy{min-width:0!important}
+#scheduleOverlay .visitor-modal>div[style*="display:flex"]{flex-wrap:wrap}
+#scheduleOverlay .visitor-modal>div[style*="display:flex"]>div{min-width:0;flex:1 1 130px!important}
+#scheduleOverlay .v-input{min-width:0;max-width:100%}
+.berkas-input{min-width:0;max-width:100%}
+html .pm-centang .pm-status{white-space:normal;flex:0 1 auto;min-width:0;max-width:calc(100% - 42px)}
+}
+@media (max-width:560px){
+/* (3) Setup: kolom langkah sempit (±150 px di basis) — lebarkan kartu, sembunyikan tiga titik hias, dan jaga Copy sebaris. */
+html :is(#page-setup,#page-python) .sp-wrap{padding:0 12px}
+html :is(#page-setup,#page-python) .sp-timeline::before{left:16px}
+html :is(#page-setup,#page-python) .sp-step{padding-left:46px}
+html :is(#page-setup,#page-python) .sp-dot{left:2px;width:28px;height:28px;font-size:.8rem}
+html :is(#page-setup,#page-python) .sp-head{padding:1.1rem 1rem .5rem}
+html :is(#page-setup,#page-python) .sp-body{padding:.5rem 1rem 1.25rem}
+html :is(#page-setup,#page-python) .sp-body a{overflow-wrap:anywhere}
+html :is(#page-setup,#page-python) .sp-cbh{flex-wrap:nowrap;gap:.5rem;padding:.5rem .8rem}
+html :is(#page-setup,#page-python) .sp-cbh-left{flex:1 1 0;min-width:0}
+html :is(#page-setup,#page-python) .sp-cbh-dots{display:none}
+html :is(#page-setup,#page-python) .sp-cbh-copy{flex:0 0 auto;white-space:nowrap}
+html :is(#page-setup,#page-python) .sp-cbd{padding:.9rem 1rem}
+}
+@media (max-width:360px){
+nav .nav-tab{padding-left:6px;padding-right:6px}
+html :is(#page-setup,#page-python) .sp-step{padding-left:38px}
+html :is(#page-setup,#page-python) .sp-body{padding:.5rem .75rem 1rem}
+html :is(#page-setup,#page-python) .sp-cbh{padding:.5rem .6rem}
+html :is(#page-setup,#page-python) .sp-cbh-copy{padding:.3rem .5rem}
+}
+</style>
+<script id="rapikan-ponsel-js">
+/* RAPIKAN-PONSEL v2: tab navigasi aktif di tengah strip (<= 640 px) */
+(function () {
+  var mq = window.matchMedia && window.matchMedia('(max-width:640px)');
+  function tengahkan() {
+    if (!mq || !mq.matches) return;
+    var tab = document.querySelector('nav .nav-tabs .nav-tab.active');
+    var strip = tab && tab.parentNode;
+    if (!strip || strip.scrollWidth <= strip.clientWidth + 1) return;
+    var a = tab.getBoundingClientRect(), b = strip.getBoundingClientRect();
+    strip.scrollLeft += (a.left - b.left) - (strip.clientWidth - a.width) / 2;
+  }
+  function pasang() {
+    var strip = document.querySelector('nav .nav-tabs');
+    if (!strip) return;
+    tengahkan();
+    if (window.MutationObserver) new MutationObserver(tengahkan).observe(strip, { attributes: true, attributeFilter: ['class'], subtree: true });
+    window.addEventListener('resize', tengahkan);
+    window.addEventListener('load', tengahkan);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pasang); else pasang();
+})();
+</script>
+<!-- RAPIKAN-PONSEL:END v2 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1681,7 +1790,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </figure>
   <div class="formula-block reveal">
     <div class="formula-label">Rugi Daya dan Tegangan Transmisi</div>
-    <div class="formula-main">\(I = \dfrac{P}{\sqrt{3}\,V_L\cos\varphi}, \qquad P_{rugi} = 3I^2R = \dfrac{P^2 R}{V_L^2\cos^2\varphi} \;\propto\; \dfrac{1}{V_L^2}\)<span class="formula-number">(1)</span></div>
+    <div class="formula-main">\(I = \dfrac{P}{\sqrt{3}\,V_L\cos\varphi}, \qquad\allowbreak P_{rugi} = 3I^2R = \dfrac{P^2 R}{V_L^2\cos^2\varphi} \;\propto\; \dfrac{1}{V_L^2}\)<span class="formula-number">(1)</span></div>
     <div class="formula-desc">PLTU 300 MW, 120 km, ACSR 240 (R = 9,6 Ω): pada 150 kV \(I = 1.283\) A dan rugi \(47{,}4\) MW (15,8 %); pada 275 kV \(14{,}1\) MW; pada 500 kV \(4{,}3\) MW (1,4 %). Setiap penggandaan tegangan membagi rugi empat.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -1756,7 +1865,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </figure>
   <div class="formula-block reveal">
     <div class="formula-label">Resistansi Konduktor: Bahan, Suhu, dan Efek Kulit</div>
-    <div class="formula-main">\(R_{20} = \dfrac{\rho\,\ell}{A}, \qquad R_T = R_{20}\,[1 + \alpha(T - 20)], \qquad R_{ac} \approx (1{,}02\ldots1{,}05)\,R_{dc}\)<span class="formula-number">(2)</span></div>
+    <div class="formula-main">\(R_{20} = \dfrac{\rho\,\ell}{A}, \qquad\allowbreak R_T = R_{20}\,[1 + \alpha(T - 20)], \qquad\allowbreak R_{ac} \approx (1{,}02\ldots1{,}05)\,R_{dc}\)<span class="formula-number">(2)</span></div>
     <div class="formula-desc">ACSR 240/40 (Al 240 mm²): \(R_{20} = 0{,}0282\times1000/240 = 0{,}1175\) Ω/km; pada suhu kerja 75 °C \(R_{75} = 0{,}1175(1 + 0{,}00403\times55) = 0{,}1435\) Ω/km (+22 %); dengan efek kulit \(R_{ac} \approx 0{,}1464\) Ω/km. Tabel katalog memberi R<sub>ac</sub> pada 20 °C dan 75 °C; studi rugi memakai suhu kerja.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -1833,7 +1942,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </figure>
   <div class="formula-block reveal">
     <div class="formula-label">Distribusi Tegangan dan Efisiensi Rentengan</div>
-    <div class="formula-main">\(V_{m+1} = (1 + k)\,V_m + k\sum_{j \lt m} V_j, \qquad \eta_{string} = \dfrac{V_{string}}{n\,V_{maks}}\times100\%, \qquad k = \dfrac{C_{menara}}{C_{piring}}\)<span class="formula-number">(3)</span></div>
+    <div class="formula-main">\(V_{m+1} = (1 + k)\,V_m + k\sum_{j \lt m} V_j, \qquad\allowbreak \eta_{string} = \dfrac{V_{string}}{n\,V_{maks}}\times100\%, \qquad\allowbreak k = \dfrac{C_{menara}}{C_{piring}}\)<span class="formula-number">(3)</span></div>
     <div class="formula-desc">Contoh 5 piring, k = 0,11, saluran 150 kV (\(V_{fasa} = 86{,}6\) kV): tegangan dari piring terjauh ke terdekat konduktor 11,60, 12,88, 15,57, 19,98, 26,58 kV; efisiensi \(86{,}6/(5\times26{,}58) = 65{,}2\%\). Pada rentengan panjang (24 piring, 500 kV) efisiensi jatuh ke 50–60 % tanpa cincin perata.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -1905,7 +2014,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </figure>
   <div class="formula-block reveal">
     <div class="formula-label">Andongan Parabola, Panjang Konduktor, dan Jarak Bebas</div>
-    <div class="formula-main">\(S = \dfrac{w\,L^2}{8\,T}, \qquad \ell \approx L + \dfrac{8S^2}{3L}, \qquad h_{bebas} = H - S \ \ge\ h_{min}\)<span class="formula-number">(4)</span></div>
+    <div class="formula-main">\(S = \dfrac{w\,L^2}{8\,T}, \qquad\allowbreak \ell \approx L + \dfrac{8S^2}{3L}, \qquad\allowbreak h_{bebas} = H - S \ \ge\ h_{min}\)<span class="formula-number">(4)</span></div>
     <div class="formula-desc">Gambar 5: \(S = 9\times350^2/(8\times25.000) = 5{,}513\) m; panjang konduktor \(350 + 8\times5{,}51^2/(3\times350) = 350{,}23\) m; jarak bebas \(30 - 5{,}51 = 24{,}49\) m terhadap syarat 8–9 m (SUTT 150 kV di atas tanah biasa). Pendekatan parabola berlaku bila S ≪ L; untuk gawang sungai > 1 km dipakai kurva katenari.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -1976,7 +2085,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </figure>
   <div class="formula-block reveal">
     <div class="formula-label">Tegangan Kritis Korona (Peek)</div>
-    <div class="formula-main">\(V_c = 21{,}1\,m\,\delta\,r\,\ln\dfrac{D}{r}\ \text{kV (rms, fasa–netral)}, \qquad \delta = \dfrac{3{,}92\,p}{273 + t}, \qquad r_{eq} = \sqrt[n]{n\,r\,s^{\,n-1}}\)<span class="formula-number">(5)</span></div>
+    <div class="formula-main">\(V_c = 21{,}1\,m\,\delta\,r\,\ln\dfrac{D}{r}\ \allowbreak \text{kV (rms, fasa–netral)}, \qquad\allowbreak \delta = \dfrac{3{,}92\,p}{273 + t}, \qquad\allowbreak r_{eq} = \sqrt[n]{n\,r\,s^{\,n-1}}\)<span class="formula-number">(5)</span></div>
     <div class="formula-desc">Konduktor tunggal r = 1,05 cm, D = 500 cm, m = 0,87, δ = 1: \(V_c = 21{,}1\times0{,}87\times1{,}05\times\ln(500/1{,}05) = 118{,}8\) kV. Tegangan fasa 150 kV = 86,6 kV (aman), 275 kV = 158,8 kV (korona). Berkas 2 × r dengan jarak 40 cm: \(r_{eq} = \sqrt{2\times1{,}05\times40} = 9{,}17\) cm → \(V_c = 672{,}8\) kV.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -1985,7 +2094,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="formula-block reveal">
     <div class="formula-label">Rugi Korona (Peek)</div>
-    <div class="formula-main">\(P_{korona} = \dfrac{241}{\delta}\,(f + 25)\sqrt{\dfrac{r}{D}}\,(V - V_c)^2\times10^{-5}\ \text{kW/km/fasa}\)<span class="formula-number">(6)</span></div>
+    <div class="formula-main">\(P_{korona} = \dfrac{241}{\delta}\,(f + 25)\sqrt{\dfrac{r}{D}}\,(V - V_c)^2\times10^{-5}\ \allowbreak \text{kW/km/fasa}\)<span class="formula-number">(6)</span></div>
     <div class="formula-desc">Konduktor tunggal pada 275 kV: \((V - V_c) = 158{,}8 - 118{,}8 = 39{,}9\) kV; \(P = 241\times75\times\sqrt{1{,}05/500}\times39{,}9^2\times10^{-5} = 13{,}20\) kW/km/fasa, atau \(7.922\) kW untuk 3 fasa × 200 km: kecil dibanding rugi tembaga, tetapi saat hujan bisa 5–10 kali dan gangguan radionya yang tidak dapat diterima.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -2053,7 +2162,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Semua bagian sebelumnya bertemu pada satu keputusan: pada tegangan berapa saluran dibangun. Persamaan (7) memberi penaksir empiris dari daya dan jarak, dan Persamaan (8) memeriksa tiga batas kemampuan saluran: termal, jatuh tegangan, dan kestabilan. Tabel di bagian ini mengulang contoh PLTU 300 MW untuk empat tingkat tegangan.</p>
   <div class="formula-block reveal">
     <div class="formula-label">Tegangan Transmisi Ekonomis (Empiris)</div>
-    <div class="formula-main">\(V_{ek} \approx 5{,}5\sqrt{\dfrac{L}{1{,}6} + \dfrac{P}{100}}\ \text{kV}\ (L\ \text{km}, P\ \text{kW}), \qquad \text{lalu dibulatkan ke tegangan standar}\)<span class="formula-number">(7)</span></div>
+    <div class="formula-main">\(V_{ek} \approx 5{,}5\sqrt{\dfrac{L}{1{,}6} + \dfrac{P}{100}}\ \text{kV}\ (L\ \text{km}, P\ \text{kW}), \qquad\allowbreak \text{lalu dibulatkan}\ \allowbreak \text{ke tegangan standar}\)<span class="formula-number">(7)</span></div>
     <div class="formula-desc">PLTU 300 MW, 120 km: \(V_{ek} \approx 5{,}5\sqrt{120/1{,}6 + 300.000/100} = 305\) kV → dibulatkan ke 275 kV (atau 150 kV dua sirkit bila jaringan setempat 150 kV). Rumus ini hanya penaksir awal; keputusan akhir dari perbandingan biaya seumur hidup.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -2062,7 +2171,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="formula-block reveal">
     <div class="formula-label">Tiga Batas Kemampuan Saluran</div>
-    <div class="formula-main">\(P_{termal} = \sqrt{3}\,V_L I_{maks}\cos\varphi, \qquad P_{tegangan} \approx \dfrac{P\,\Delta V_{izin}}{\Delta V}, \qquad P_{stabilitas} = \dfrac{V_S V_R}{X}\sin\delta_{maks}\)<span class="formula-number">(8)</span></div>
+    <div class="formula-main">\(P_{termal} = \sqrt{3}\,V_L I_{maks}\cos\varphi, \qquad\allowbreak P_{tegangan} \approx \dfrac{P\,\Delta V_{izin}}{\Delta V}, \qquad\allowbreak P_{stabilitas} = \dfrac{V_S V_R}{X}\sin\delta_{maks}\)<span class="formula-number">(8)</span></div>
     <div class="formula-desc">ACSR 240 pada 150 kV: \(P_{termal} = \sqrt{3}\times150\times600\times0{,}95 = 148\) MW per sirkit. PLTU 300 MW pada 150 kV memerlukan dua sirkit dan tetap rugi 24 MW per sirkit; pada 275 kV berkas 2 × 240 (ampacity ±1100 A) satu sirkit sudah 498 MW dengan rugi 14,1 MW.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
