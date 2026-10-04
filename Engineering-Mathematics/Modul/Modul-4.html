@@ -355,7 +355,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card:hover{border-color:rgba(249,115,22,.2)}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(249,115,22,.1);padding:1px 6px;border-radius:4px}
@@ -1068,6 +1068,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1737,13 +1740,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📐</div>
       <h3>Kondisi Linier</h3>
       <p>Suku \(y\) dan \(y'\) hanya muncul dalam pangkat satu dan tidak saling dikalikan. \(P(x)\) dan \(Q(x)\) boleh fungsi rumit dari \(x\), yang penting keduanya bebas dari \(y\).</p>
-      <div class="formula">\(y, y' pangkat 1\)</div>
+      <div class="formula">\(y, y' \text{ pangkat } 1\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔑</div>
       <h3>Faktor Integrasi</h3>
       <p>Kunci utamanya adalah \(u(x) = e^{\int P(x)\,dx}\). Mengalikan kedua ruas dengan \(u\) membuat ruas kiri menjadi turunan dari produk \([y\cdot u]'\).</p>
-      <div class="formula">\(u = e^\int P dx\)</div>
+      <div class="formula">\(u = e^{\int P\, dx}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">∫</div>
@@ -1755,13 +1758,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Syarat Awal</h3>
       <p>Jika diberikan \(y(x_0) = y_0\), substitusikan ke penyelesaian umum untuk menentukan konstanta \(c\). Hasilnya adalah penyelesaian khusus (particular solution).</p>
-      <div class="formula">\(y(x_0) = y_0 \to cari c\)</div>
+      <div class="formula">\(y(x_0) = y_0 \to \text{cari } c\)</div>
     </div>
   </div>
 
   <div class="info-box reveal">
     <strong>Mengapa faktor integrasi bekerja?</strong><br>
-    Aturan produk turunan: \([y \cdot u]' = y'u + yu'.\) Kita ingin mengubah ruas kiri \((y' +\) Py)\cdot \(u\) menjadi bentuk [y\cdot \(u]'.\) Syaratnya: \(u' =\) P\cdot \(u,\) yang berarti \(\frac{du}{u} =\) P\,dx \(\to \ln u = \int\) P\,dx \(\to u = e^{\int P\,dx}.\) Dengan pilihan \(u\) ini, seluruh PD tinggal diintegralkan sekali.
+    Aturan produk turunan: \([y \cdot u]' = y'u + yu'.\) Kita ingin mengubah ruas kiri \((y' + Py)\cdot u\) menjadi bentuk \([y\cdot u]'.\) Syaratnya: \(u' = P\cdot u,\) yang berarti \(\frac{du}{u} = P\,dx \to \ln u = \int P\,dx \to u = e^{\int P\,dx}.\) Dengan pilihan \(u\) ini, seluruh PD tinggal diintegralkan sekali.
   </div>
 
   <div class="tip-box reveal">
@@ -1810,7 +1813,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal" style="border-color:rgba(0,224,158,.3);margin-top:32px">
     <div class="label" style="color:var(--green)">Contoh 5.1</div>
-    \(xy' + (1 -\) x)y \(= 4xe^{x} \ln x\)
+    \(xy' + (1 - x)y = 4xe^{x} \ln x\)
   </div>
   <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:1.9">
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
@@ -1876,14 +1879,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <strong style="color:#fff">Langkah \(4\;\text{---}\) Hitung Integran \(Q \cdot u\) dan Integralkan</strong><br>
     <span style="color:var(--muted);font-size:13px">Substitusi <code>w = cos x</code>, <code>dw = −sin x dx</code> mengubah integran menjadi <code>−2w² dw</code>, bentuk pangkat sederhana.</span><br>
     \(Q \cdot u = 2 \cdot \sin x \cdot \cos x \cdot \sin x = 2 \cdot \sin^2x \cdot \cos x\)<br>
-    \(\int 2 \cdot \cos^2x \cdot \sin x dx = -⅔ \cdot \cos^3x\)<br>
+    \(\int 2 \cdot \cos^2x \cdot \sin x dx = -\tfrac{2}{3} \cdot \cos^3x\)<br>
     <br>
 
     <strong style="color:#fff">Langkah \(5\;\text{---}\) Tulis Solusi Umum \(y \cdot u = \int Q \cdot u dx + c\)</strong><br>
     <span style="color:var(--muted);font-size:13px">Konstanta sembarang <code>c</code> tetap muncul karena PD orde 1 selalu menghasilkan satu konstanta.</span><br>
     <br>
 
-    <strong style="color:var(--cyan)">✓ Solusi Umum:   \(y \cdot \sin x = -⅔ \cdot \cos^3x + c\)</strong>
+    <strong style="color:var(--cyan)">✓ Solusi Umum:   \(y \cdot \sin x = -\tfrac{2}{3} \cdot \cos^3x + c\)</strong>
   </div>
 
   <p class="reveal" style="margin-top:14px">
@@ -1916,7 +1919,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
     <strong style="color:#fff">Langkah 4 — Integralkan Ruas Kanan dan Tulis Solusi Umum</strong><br>
     <span style="color:var(--muted);font-size:13px">Setelah penyederhanaan <code>Q·u</code>, integrasi memerlukan integral parsial. Hasilnya dikemas dalam bentuk <code>y·u = … + c</code>.</span><br>
-    Solusi umum:   \(y \cdot e^{-x} = (1 - x) \cdot [c - e^{-x}(1 +\) x)]<br>
+    Solusi umum:   \(y \cdot e^{-x} = (1 - x) \cdot [c - e^{-x}(1 + x)]\)<br>
     <br>
 
     <strong style="color:#fff">Langkah \(5\;\text{---}\) Terapkan Syarat Awal \(y(0) = 24\)</strong><br>
@@ -1924,7 +1927,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     \(24 = (1) \cdot [c - 1 \cdot (1)] \implies c = 25\)<br>
     <br>
 
-    <strong style="color:var(--cyan)">✓ Solusi Khusus:   \(y \cdot e^{-x} = (1 - x) \cdot [25 - e^{-x}(1 +\) x)]</strong>
+    <strong style="color:var(--cyan)">✓ Solusi Khusus:   \(y \cdot e^{-x} = (1 - x) \cdot [25 - e^{-x}(1 + x)]\)</strong>
   </div>
 
   <p class="reveal" style="margin-top:14px">
@@ -1962,7 +1965,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Kenapa \(n \neq 0, 1\)?</h3>
-      <p>Jika \(n = 0\), PD menjadi \(y' + Py = Q\), PD linier biasa. Jika \(n = 1\), suku \(Qy\) bisa dipindah: \(y' + (\text{P - Q})y = 0\), juga linier. Baru menarik saat \(n = 2, 3, -1, \tfrac{1}{2}, \ldots\)</p>
+      <p>Jika \(n = 0\), PD menjadi \(y' + Py = Q\), PD linier biasa. Jika \(n = 1\), suku \(Qy\) bisa dipindah: \(y' + (P - Q)y = 0\), juga linier. Baru menarik saat \(n = 2, 3, -1, \tfrac{1}{2}, \ldots\)</p>
       <div class="formula">\(n = 2, 3, -1, \tfrac{1}{2}\ldots\)</div>
     </div>
     <div class="card">
@@ -1993,7 +1996,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
 
     <strong style="color:#fff">Langkah \(1\;\text{---}\) Bawa ke Bentuk Baku Bernoulli \(y' + P(x) \cdot y = Q(x) \cdot y^{n}\)</strong><br>
-    <span style="color:var(--muted);font-size:13px">Bagi seluruh PD dengan <code>x</code> agar koefisien <code>y'</code> menjadi \(1\) dan PD terbaca seperti template Bernoulli, yaitu PD linier dengan tambahan \(y^{n} di\) ruas kanan.</span><br>
+    <span style="color:var(--muted);font-size:13px">Bagi seluruh PD dengan <code>x</code> agar koefisien <code>y'</code> menjadi \(1\) dan PD terbaca seperti template Bernoulli, yaitu PD linier dengan tambahan \(y^{n}\) di ruas kanan.</span><br>
     Bagi dengan \(x: y' + (1/x) \cdot y = y^3 \cdot x \cdot \ln x\)<br>
     Identifikasi:     \(P = 1/x, Q = x \cdot \ln x, n = 3\)<br>
     <br>
@@ -2004,14 +2007,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <br>
 
     <strong style="color:#fff">Langkah 3 — Substitusi z = y<sup>1−n</sup> = y<sup>−2</sup></strong><br>
-    <span style="color:var(--muted);font-size:13px">Turunkan \(z = y^{-2}: z' = -2 \cdot y^{-3} \cdot y'.\) Maka \(y^{-3} \cdot y' = -½ \cdot z'.\) Substitusi mengubah \(PD\;\text{non}\;-linier\) menjadi PD linier dalam \(z.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">Turunkan \(z = y^{-2}: z' = -2 \cdot y^{-3} \cdot y'.\) Maka \(y^{-3} \cdot y' = -\tfrac{1}{2} \cdot z'.\) Substitusi mengubah PD non-linier menjadi PD linier dalam \(z.\)</span><br>
     \(z' - (2/x) \cdot z = -2x \cdot \ln x\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 4 — Selesaikan PD Linier dalam z (Faktor Integrasi)</strong><br>
     <span style="color:var(--muted);font-size:13px">\(P_{z} = -2/x \to \int P_{z} dx = -2 \cdot \ln x \to\) faktor integrasi \(u = e^{-2 \ln x} = x^{-2}.\) Lalu \((z \cdot u)' = Q_{z} \cdot u = -2(1/x) \cdot \ln x.\)</span><br>
     u = x<sup>−2</sup><br>
-    \(z/x^2 = \int (-2 \cdot \ln x/x) dx =\) −(ln \(x)^2 + c\)<br>
+    \(z/x^2 = \int (-2 \cdot \ln x/x) dx = -(\ln x)^2 + c\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 5 — Substitusi Balik z = y<sup>−2</sup></strong><br>
@@ -2034,17 +2037,17 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="label" style="text-align:left">Penyelesaian Bernoulli (n = 4)</div>
 
     <strong style="color:#fff">Langkah 1 — Identifikasi Bentuk Bernoulli</strong><br>
-    <span style="color:var(--muted);font-size:13px">PD sudah berbentuk baku \(y' + P(x) \cdot y = Q(x) \cdot y^{n}.\) Karena pangkat \(y^{4} di\) ruas kanan \(\ne 0,1,\) ini Bernoulli dengan \(n = 4.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">PD sudah berbentuk baku \(y' + P(x) \cdot y = Q(x) \cdot y^{n}.\) Karena pangkat \(y^{4}\) di ruas kanan \(\ne 0,1,\) ini Bernoulli dengan \(n = 4.\)</span><br>
     \(P = \tan x, Q = \sin x \cdot \sec^{4}x, n = 4\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 2 — Bagi dengan y<sup>n</sup> = y<sup>4</sup></strong><br>
-    <span style="color:var(--muted);font-size:13px">Pembagian ini memunculkan \(y^{-4} \cdot y' di\) kiri, bentuk yang siap diubah dengan substitusi \(z = y^{1-n} = y^{-3}.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">Pembagian ini memunculkan \(y^{-4} \cdot y'\) di kiri, bentuk yang siap diubah dengan substitusi \(z = y^{1-n} = y^{-3}.\)</span><br>
     \(y^{-4} \cdot y' + y^{-3} \cdot \tan x = \sin x \cdot \sec^{4}x\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 3 — Substitusi z = y<sup>−3</sup></strong><br>
-    <span style="color:var(--muted);font-size:13px">Turunkan \(z = y^{-3}: z' = -3 \cdot y^{-4} \cdot y' \implies y^{-4} \cdot y' = -⅓ \cdot z'.\) Kalikan PD dengan \(-3\) untuk dapat bentuk linier baku dalam \(z.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">Turunkan \(z = y^{-3}: z' = -3 \cdot y^{-4} \cdot y' \implies y^{-4} \cdot y' = -\tfrac{1}{3} \cdot z'.\) Kalikan PD dengan \(-3\) untuk dapat bentuk linier baku dalam \(z.\)</span><br>
     \(z' - 3 \cdot z \cdot \tan x = -3 \cdot \sin x \cdot \sec^{4}x\)<br>
     <br>
 
@@ -2087,7 +2090,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
     <strong style="color:#fff">Langkah \(2\;\text{---}\) Substitusi \(w = y^3\)</strong><br>
     <span style="color:var(--muted);font-size:13px">Dengan <code>w = y³</code>, suku <code>3y²·y'</code> berubah jadi <code>w'</code> dan <code>y³</code> jadi <code>w</code>. PD non-linier asli berubah menjadi PD linier orde satu dalam w.</span><br>
-    \(w' + (1/x) \cdot w = 6x \cdot \ln x (PD\) linier orde satu)<br>
+    \(w' + (1/x) \cdot w = 6x \cdot \ln x\) (PD linier orde satu)<br>
     <br>
 
     <strong style="color:#fff">Langkah 3 — Tentukan Faktor Integrasi</strong><br>
@@ -2097,15 +2100,15 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
     <strong style="color:#fff">Langkah 4 — Integralkan Ruas Kanan</strong><br>
     <span style="color:var(--muted);font-size:13px">\(Q_{w} \cdot u = 6x \cdot \ln x \cdot x = 6x^2 \cdot \ln x.\) Gunakan integral parsial: pilih \(u = \ln x, dv = 6x^2 dx.\)</span><br>
-    \(\int 6x^2 \cdot \ln x dx = 2x^3 \cdot \ln x - ⅔ \cdot x^3\)<br>
+    \(\int 6x^2 \cdot \ln x dx = 2x^3 \cdot \ln x - \tfrac{2}{3} \cdot x^3\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 5 — Tulis Solusi dan Substitusi Balik</strong><br>
     <span style="color:var(--muted);font-size:13px">Hasil dalam <code>w</code>: \(w \cdot x = \int Q_{w} \cdot u dx + c.\) Ganti kembali <code>w = y³</code> untuk dapat solusi dalam variabel asli.</span><br>
-    \(w \cdot x = 2x^3 \cdot \ln x - ⅔ \cdot x^3 + c\)<br>
+    \(w \cdot x = 2x^3 \cdot \ln x - \tfrac{2}{3} \cdot x^3 + c\)<br>
     <br>
 
-    <strong style="color:var(--cyan)">✓ Solusi Umum:   \(y^3 \cdot x = 2x^3 \cdot \ln x - ⅔ \cdot x^3 + c\)</strong>
+    <strong style="color:var(--cyan)">✓ Solusi Umum:   \(y^3 \cdot x = 2x^3 \cdot \ln x - \tfrac{2}{3} \cdot x^3 + c\)</strong>
   </div>
 
   <p class="reveal" style="margin-top:14px">
@@ -2144,7 +2147,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔍</div>
       <h3>Langkah 1: Kenali Polanya</h3>
       <p>PD hanya memuat dua turunan <strong>berurutan</strong>: \(y^{(n)}\) dan \(y^{(n-1)}\). Suku \(y\), \(y'\), …, \(y^{(n-2)}\) semuanya absen.</p>
-      <div class="formula">\(contoh: y'' - (1/x)y' = x \ln x\)</div>
+      <div class="formula">\(\text{contoh}: y'' - (1/x)y' = x \ln x\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
@@ -2180,17 +2183,17 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
     <strong style="color:#fff">Langkah 2 — Substitusi w = y'</strong><br>
     <span style="color:var(--muted);font-size:13px">PD orde 2 berubah menjadi PD orde 1 dalam w. Ini "mereduksi orde", strategi standar untuk PD tanpa y eksplisit.</span><br>
-    \(w' - (1/x) \cdot w = x \cdot \ln x (PD\) linier orde \(1)\)<br>
+    \(w' - (1/x) \cdot w = x \cdot \ln x\) (PD linier orde \(1\))<br>
     <br>
 
     <strong style="color:#fff">Langkah 3 — Tentukan Faktor Integrasi</strong><br>
-    <span style="color:var(--muted);font-size:13px">\(P = -1/x \to \int P dx =\) −ln \(x \to u = e^{-\ln x} = 1/x.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">\(P = -1/x \to \int P dx = -\ln x \to u = e^{-\ln x} = 1/x.\)</span><br>
     u = 1/x<br>
     <br>
 
     <strong style="color:#fff">Langkah 4 — Integralkan Ruas Kanan untuk Dapatkan w</strong><br>
-    <span style="color:var(--muted);font-size:13px">\(Q \cdot u = x \cdot \ln x \cdot (1/x) = \ln x.\) Integralnya menggunakan integral parsial: \(u = \ln x, dv = dx \to\) ∫ln \(x dx = x \cdot \ln x - x.\)</span><br>
-    \(w/x =\) ∫ln \(x dx + c_1 = x \cdot \ln x - x + c_1\)<br>
+    <span style="color:var(--muted);font-size:13px">\(Q \cdot u = x \cdot \ln x \cdot (1/x) = \ln x.\) Integralnya menggunakan integral parsial: \(u = \ln x, dv = dx \to \int \ln x dx = x \cdot \ln x - x.\)</span><br>
+    \(w/x = \int \ln x dx + c_1 = x \cdot \ln x - x + c_1\)<br>
     \(y' = w = x^2 \cdot \ln x - x^2 + c_1 \cdot x\)<br>
     <br>
 
@@ -2217,7 +2220,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
     <strong style="color:#fff">Langkah 1 — Reduksi Orde dengan Substitusi w = y''</strong><br>
     <span style="color:var(--muted);font-size:13px">PD hanya memuat <code>y'''</code> dan <code>y''</code> — tidak ada <code>y</code> atau <code>y'</code>. Substitusi <code>w = y''</code> ⟹ <code>w' = y'''</code> menurunkan orde dari 3 ke 1.</span><br>
-    \(w' - w = x \cdot e^{x} (PD\) linier orde \(1)\)<br>
+    \(w' - w = x \cdot e^{x}\) (PD linier orde \(1\))<br>
     \(P = -1, Q = x \cdot e^{x}\)<br>
     <br>
 
@@ -2229,30 +2232,30 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <strong style="color:#fff">Langkah 3 — Selesaikan PD Linier untuk w</strong><br>
     <span style="color:var(--muted);font-size:13px">\(Q \cdot u = x \cdot e^{x} \cdot e^{-x} = x.\) Integral <code>∫x dx = x²/2</code>. Kalikan kembali dengan \(1/u = e^{x}.\)</span><br>
     \(w \cdot e^{-x} = x^2/2 + c_0\)<br>
-    \(w = ½ \cdot x^2 \cdot e^{x} + c_0 \cdot e^{x}\)<br>
+    \(w = \tfrac{1}{2} \cdot x^2 \cdot e^{x} + c_0 \cdot e^{x}\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 4 — Terapkan Syarat Awal y''(0) = 4 untuk c₀</strong><br>
     <span style="color:var(--muted);font-size:13px">Pada x = 0: w(0) = 0 + c₀ = 4 ⟹ c₀ = 4. Substitusi konstanta segera setelah didapat agar tidak menumpuk.</span><br>
     \(w(0) = 4 \implies c_0 = 4\)<br>
-    \(y'' = ½ \cdot x^2 \cdot e^{x} + 4 \cdot e^{x}\)<br>
+    \(y'' = \tfrac{1}{2} \cdot x^2 \cdot e^{x} + 4 \cdot e^{x}\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 5 — Integralkan Sekali untuk Dapatkan y'</strong><br>
     <span style="color:var(--muted);font-size:13px">Integralkan <code>y''</code> terhadap \(x.\) Integral parsial \(\int x^2 \cdot e^{x} dx = (x^2 - 2x + 2) \cdot e^{x}.\) Terapkan \(y'(0) = 2.\)</span><br>
-    \(y' = (½x^2 - x + 1) \cdot e^{x} + 4 \cdot e^{x} + c_1\)<br>
+    \(y' = (\tfrac{1}{2}x^2 - x + 1) \cdot e^{x} + 4 \cdot e^{x} + c_1\)<br>
     \(y'(0) = 2: (1 + 4) + c_1 = 2 \implies c_1 = -3\) (intermediet, dikemas ulang)<br>
-    Bentuk rapi:   \(y' = ½x^2 \cdot e^{x} - 2x \cdot e^{x} + 7 \cdot e^{x} + c_1\)<br>
+    Bentuk rapi:   \(y' = \tfrac{1}{2}x^2 \cdot e^{x} - 2x \cdot e^{x} + 7 \cdot e^{x} + c_1\)<br>
     Apply y'(0) = 2:&nbsp; 7 + c₁ = 2&nbsp;&nbsp;⟹&nbsp;&nbsp; c₁ = 2 (untuk suku <code>2x</code> di bawah)<br>
     <br>
 
     <strong style="color:#fff">Langkah 6 — Integralkan Sekali Lagi untuk Dapatkan y</strong><br>
     <span style="color:var(--muted);font-size:13px">Integral parsial \(\int x \cdot e^{x} dx = (x - 1) \cdot e^{x}\) dan \(\int e^{x} dx = e^{x}.\) Terapkan \(y(0) = 1\) untuk dapat \(c_2.\)</span><br>
-    \(y = ½x^2 \cdot e^{x} - 2x \cdot e^{x} + 7 \cdot e^{x} + 2x + c_2\)<br>
+    \(y = \tfrac{1}{2}x^2 \cdot e^{x} - 2x \cdot e^{x} + 7 \cdot e^{x} + 2x + c_2\)<br>
     \(y(0) = 1: 7 + c_2 = 1 \implies c_2 = -6\)<br>
     <br>
 
-    <strong style="color:var(--cyan)">✓ Solusi Khusus:   \(y = ½x^2 \cdot e^{x} - 2x \cdot e^{x} + 7 \cdot e^{x} + 2x - 6\)</strong>
+    <strong style="color:var(--cyan)">✓ Solusi Khusus:   \(y = \tfrac{1}{2}x^2 \cdot e^{x} - 2x \cdot e^{x} + 7 \cdot e^{x} + 2x - 6\)</strong>
   </div>
 
   <p class="reveal" style="margin-top:14px">
@@ -2271,12 +2274,12 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="analogy-box reveal" style="border-left-color:var(--violet)">
     <span class="analogy-label" style="color:var(--violet)">💊 Analogi 1 — Obat di Dalam Tubuh</span>
-    Konsentrasi obat dalam darah \(y(t)\) berubah karena dua proses: infus \(terus-menerus\) memasukkan obat dengan laju \(Q(t),\) sementara ginjal membuangnya secara proporsional dengan laju P\cdot \(y.\) Persamaan \(y' + Py = Q\) menggambarkan keseimbangan \(masuk-keluar\) ini, identik dengan PD linier orde satu.
+    Konsentrasi obat dalam darah \(y(t)\) berubah karena dua proses: infus terus-menerus memasukkan obat dengan laju \(Q(t),\) sementara ginjal membuangnya secara proporsional dengan laju \(P\cdot y.\) Persamaan \(y' + Py = Q\) menggambarkan keseimbangan masuk-keluar ini, identik dengan PD linier orde satu.
   </div>
 
   <div class="analogy-box reveal" style="border-left-color:var(--amber)">
     <span class="analogy-label" style="color:var(--amber)">🔥 Analogi 2 — Kopi yang Mendingin</span>
-    Hukum Pendinginan Newton: kecepatan pendinginan sebanding dengan selisih suhu kopi dan suhu ruangan. \(T' = -k(T - T_{\;\text{amb}\;}) \to T' + kT = kT_{\;\text{amb}\;}.\) Ini PD linier dengan \(P = k\) konstan dan \(Q = kT_{\;\text{amb}\;}.\) Faktor integrasi sederhana \(e^{kt}\) langsung memberi solusi eksponensial yang kita amati: kopi mendingin cepat di awal, kemudian \(pelan-pelan\) mendekati suhu ruang.
+    Hukum Pendinginan Newton: kecepatan pendinginan sebanding dengan selisih suhu kopi dan suhu ruangan. \(T' = -k(T - T_{\;\text{amb}\;}) \to T' + kT = kT_{\;\text{amb}\;}.\) Ini PD linier dengan \(P = k\) konstan dan \(Q = kT_{\;\text{amb}\;}.\) Faktor integrasi sederhana \(e^{kt}\) langsung memberi solusi eksponensial yang kita amati: kopi mendingin cepat di awal, kemudian pelan-pelan mendekati suhu ruang.
   </div>
 
   <div class="analogy-box reveal" style="border-left-color:var(--green)">
@@ -2291,7 +2294,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="analogy-box reveal" style="border-left-color:var(--pink)">
     <span class="analogy-label" style="color:var(--pink)">⚡ Analogi 5 — Rangkaian RC</span>
-    Kapasitor yang diisi melalui resistor: RC\cdot \(V' + V = V_s \to V' + \tfrac{1}{RC}V = \tfrac{V_s}{RC}.\) Ini PD linier dengan \(P = \tfrac{1}{RC}\) dan \(Q\) tergantung sinyal sumber \(V_s(t).\) Jika \(V_s\) konstan, kita dapat kurva pengisian eksponensial klasik. Jika \(V_s = V_0\sin\omega t, Q\) menjadi sinusoidal, dan solusinya melibatkan integral yang menarik secara matematika.
+    Kapasitor yang diisi melalui resistor: \(RC\cdot V' + V = V_s \to V' + \tfrac{1}{RC}V = \tfrac{V_s}{RC}.\) Ini PD linier dengan \(P = \tfrac{1}{RC}\) dan \(Q\) tergantung sinyal sumber \(V_s(t).\) Jika \(V_s\) konstan, kita dapat kurva pengisian eksponensial klasik. Jika \(V_s = V_0\sin\omega t, Q\) menjadi sinusoidal, dan solusinya melibatkan integral yang menarik secara matematika.
   </div>
 
   <div class="analogy-box reveal" style="border-left-color:var(--violet)">
@@ -2325,8 +2328,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca Grafik Ini:</strong>
-        Sumbu \(X = x,\) Sumbu \(Y = y.\) Solusi umum \(y = \tfrac{1}{5}e^{2x} + Ce^{-3x}\) adalah keluarga kurva, setiap \(C\) memberi satu kurva. Kurva \(abu-abu =\) solusi partikular \((C=0).\) Kurva warna \(=\) solusi saat Anda geser slider.
-        Amati: \((1)\) Saat \(C\) &gt; \(0\) kurva melonjak ke atas untuk \(x\) &lt; \(0; (2)\) Semua kurva bertemu \(di x \to \infty\) karena \(Ce^{-3x} \to 0; (3)\) Bagian \(e^{2x}\) mendominasi pertumbuhan kanan.
+        Sumbu \(X = x,\) Sumbu \(Y = y.\) Solusi umum \(y = \tfrac{1}{5}e^{2x} + Ce^{-3x}\) adalah keluarga kurva, setiap \(C\) memberi satu kurva. Kurva abu-abu \(=\) solusi partikular \((C=0).\) Kurva warna \(=\) solusi saat Anda geser slider.
+        Amati: \((1)\) Saat \(C\) &gt; \(0\) kurva melonjak ke atas untuk \(x\) &lt; \(0; (2)\) Semua kurva bertemu di \(x \to \infty\) karena \(Ce^{-3x} \to 0; (3)\) Bagian \(e^{2x}\) mendominasi pertumbuhan kanan.
       </div>
     </div>
   </div>
@@ -2347,7 +2350,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca Grafik Ini:</strong>
-        Sumbu \(X = x,\) Sumbu \(Y =\) nilai. Garis \(putus-putus\) ungu \(=\) y\cdot \(u(x);\) garis tebal cyan \(= y(x)\) akhir; garis tipis amber \(=\) faktor integrasi \(u = e^{Px}.\) Ketika \(P\) membesar, \(u\) tumbuh lebih cepat, tetapi setelah dibagi, \(y\) tetap terkendali. Ini menunjukkan bagaimana faktor integrasi "meluruskan" \(PD\;\text{non}\;-separable\) menjadi bisa diintegralkan.
+        Sumbu \(X = x,\) Sumbu \(Y =\) nilai. Garis putus-putus ungu \(= y\cdot u(x);\) garis tebal cyan \(= y(x)\) akhir; garis tipis amber \(=\) faktor integrasi \(u = e^{Px}.\) Ketika \(P\) membesar, \(u\) tumbuh lebih cepat, tetapi setelah dibagi, \(y\) tetap terkendali. Ini menunjukkan bagaimana faktor integrasi "meluruskan" PD non-separable menjadi bisa diintegralkan.
       </div>
     </div>
   </div>
@@ -2368,7 +2371,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca Grafik Ini:</strong>
-        Panel atas \(=\) kurva \(y(x)\) (solusi \(\text{non}\;-linier,\) bentuk Bernoulli). Panel bawah \(=\) kurva \(z(x) = y^{1-n}\) (versi terlinierkan). Perhatikan: saat \(n\) berubah, bentuk \(y\) sangat berbeda tetapi \(z\) tetap tampak "halus" dan lebih mudah diintegralkan; inilah kekuatan substitusi Bernoulli: mengubah masalah \(\text{non}\;-linier\) menjadi linier yang terselesaikan.
+        Panel atas \(=\) kurva \(y(x)\) (solusi non-linier, bentuk Bernoulli). Panel bawah \(=\) kurva \(z(x) = y^{1-n}\) (versi terlinierkan). Perhatikan: saat \(n\) berubah, bentuk \(y\) sangat berbeda tetapi \(z\) tetap tampak "halus" dan lebih mudah diintegralkan; inilah kekuatan substitusi Bernoulli: mengubah masalah non-linier menjadi linier yang terselesaikan.
       </div>
     </div>
   </div>
@@ -2377,7 +2380,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--green)"></div>
-      <span class="anim-title">Animasi \(4\;\text{---}\) Reduksi Orde: \(y'' ke w'\)</span>
+      <span class="anim-title">Animasi \(4\;\text{---}\) Reduksi Orde: \(y''\) ke \(w'\)</span>
     </div>
     <div class="anim-body">
       <canvas id="cvReduksi" height="300"></canvas>
@@ -3136,7 +3139,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         💡 Pakai rumus massa garam <code>y(t) = V·c<sub>in</sub>(1 − e<sup>−rt/V</sup>)</code>, substitusikan t yang diminta lalu evaluasi.
       </div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(y(50)\) dalam \(kg\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(y(50)\) dalam kg</strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
@@ -3167,7 +3170,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q">Gunakan <strong>\(scipy.integrate.solve_{\text{ivp}}\)</strong> untuk menyelesaikan PD linier <code style="font-family:'JetBrains Mono',monospace">y' + 2y = 4</code> dengan syarat awal <strong>\(y(0) = 0\)</strong>, dari t = 0 sampai t = 2. Print <strong>nilai y pada t = 2</strong> (dengan 4 angka desimal).</div>
+        <div class="comp-q">Gunakan <strong><code>scipy.integrate.solve_ivp</code></strong> untuk menyelesaikan PD linier <code style="font-family:'JetBrains Mono',monospace">y' + 2y = 4</code> dengan syarat awal <strong>\(y(0) = 0\)</strong>, dari t = 0 sampai t = 2. Print <strong>nilai y pada t = 2</strong> (dengan 4 angka desimal).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">
@@ -3341,7 +3344,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
 </div><!-- end section -->
 
 <footer>
-  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Tugas 4 — PD Linier Orde \(N \cdot Matematika\) 4 · S1 Teknik Mesin · Universitas Mercu Buana</p>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Tugas 4 — PD Linier Orde N · Matematika 4 · S1 Teknik Mesin · Universitas Mercu Buana</p>
 </footer>
 </div><!-- end page-tugas -->
 
@@ -3444,7 +3447,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Model baru bukan linier lagi, pangkat 1.2 pada \((T-T_\infty)\) membuatnya mirip Bernoulli. Pertimbangkan: apakah substitusi tertentu dapat melinierkan? Atau perlukah pendekatan numerik langsung dengan RK4?</p>
         <div style="background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
-          💬 <em>Pertimbangkan: Substitusi \(u = T - T_\infty\) mengubah PD menjadi \(u' = -ku^{1.2}.\) Ini adalah PD terpisah, bukan Bernoulli klasik (tidak ada suku linier), tetapi dapat diselesaikan dengan memisahkan variabel: \(u^{-1.2} du = -k\, dt.\) Alternatif: \(solve_{\text{ivp}}\) dengan \(RK45\) untuk validasi numerik.</em>
+          💬 <em>Pertimbangkan: Substitusi \(u = T - T_\infty\) mengubah PD menjadi \(u' = -ku^{1.2}.\) Ini adalah PD terpisah, bukan Bernoulli klasik (tidak ada suku linier), tetapi dapat diselesaikan dengan memisahkan variabel: \(u^{-1.2} du = -k\, dt.\) Alternatif: <code>solve_ivp</code> dengan RK45 untuk validasi numerik.</em>
         </div>
 
         <div class="poll">
@@ -3547,7 +3550,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
 </div><!-- end section -->
 
 <footer>
-  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Forum 4 — PD Linier Orde \(N \cdot Matematika\) 4 · S1 Teknik Mesin · Universitas Mercu Buana</p>
+  <p>© 2026 · <a href="#">Dedik Romahadi</a> · Forum 4 — PD Linier Orde N · Matematika 4 · S1 Teknik Mesin · Universitas Mercu Buana</p>
 </footer>
 </div><!-- end page-forum -->
 

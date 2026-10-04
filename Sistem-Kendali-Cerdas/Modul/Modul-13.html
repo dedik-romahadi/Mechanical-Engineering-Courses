@@ -256,7 +256,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -1853,19 +1853,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Fuzzifikasi</h3>
       <p>Input crisp diubah menjadi derajat keanggotaan 0–1 pada beberapa himpunan linguistik.</p>
-      <div class="formula">\(μ_A(x)∈[0,1]\)</div>
+      <div class="formula">\(μ_A(x)∈[0, 1]\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Rule base</h3>
       <p>Aturan IF–THEN menghubungkan kondisi error dan perubahan error (Δe) dengan aksi.</p>
-      <div class="formula">\(IF e=P \text{AND} de=N \text{THEN} u=PM\)</div>
+      <div class="formula">\(\text{IF }e=P\text{ AND }de=N\text{ THEN }u=PM\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
       <h3>Inferensi</h3>
       <p>Operator AND/OR dan implication menggabungkan kekuatan aturan.</p>
-      <div class="formula">\(α=min(μ_e,μ_{de})\)</div>
+      <div class="formula">\(α=\min(μ_e,μ_{de})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
@@ -1879,7 +1879,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <table>
       <caption class="table-caption"><span class="anim-dot" aria-hidden="true"></span><span class="anim-title">Tabel 1 — Ringkasan konsep inti beserta bentuk matematisnya</span></caption>
       <thead><tr><th>Konsep</th><th>Bentuk / Rumus</th><th>Yang perlu diingat</th></tr></thead>
-      <tbody><tr><td>Fuzzifikasi</td><td>\(μ_A(x)∈[0,1]\)</td><td>Input crisp diubah menjadi derajat keanggotaan 0–1 pada beberapa himpunan linguistik.</td></tr><tr><td>Rule base</td><td>\(IF e=P \text{AND} de=N \text{THEN} u=PM\)</td><td>Aturan IF–THEN menghubungkan kondisi error dan perubahan error (Δe) dengan aksi.</td></tr><tr><td>Inferensi</td><td>\(α=min(μ_e,μ_{de})\)</td><td>Operator AND/OR dan implication menggabungkan kekuatan aturan.</td></tr><tr><td>Defuzzifikasi</td><td>\(u = \frac{(Σ α_i \cdot z_i)}{Σ α_i}\)</td><td>Output fuzzy diubah menjadi nilai actuator, misalnya centroid atau weighted average.</td></tr></tbody>
+      <tbody><tr><td>Fuzzifikasi</td><td>\(μ_A(x)∈[0, 1]\)</td><td>Input crisp diubah menjadi derajat keanggotaan 0–1 pada beberapa himpunan linguistik.</td></tr><tr><td>Rule base</td><td>\(\text{IF }e=P\text{ AND }de=N\text{ THEN }u=PM\)</td><td>Aturan IF–THEN menghubungkan kondisi error dan perubahan error (Δe) dengan aksi.</td></tr><tr><td>Inferensi</td><td>\(α=\min(μ_e,μ_{de})\)</td><td>Operator AND/OR dan implication menggabungkan kekuatan aturan.</td></tr><tr><td>Defuzzifikasi</td><td>\(u = \frac{(Σ α_i \cdot z_i)}{Σ α_i}\)</td><td>Output fuzzy diubah menjadi nilai actuator, misalnya centroid atau weighted average.</td></tr></tbody>
     </table>
   </div>
   <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
@@ -1914,11 +1914,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Struktur tabel itu memiliki pola yang bermakna. Diagonalnya biasanya berisi keluaran nol karena error dan lajunya saling meniadakan, sementara sudut-sudutnya berisi aksi paling kuat. Pola ini membuat pemeriksaan kelengkapan menjadi mudah secara visual.</p>
   <p class="section-desc reveal">Kelengkapan dan konsistensi wajib diperiksa. Basis aturan harus mencakup seluruh kombinasi yang mungkin agar tidak ada keadaan yang tidak menghasilkan keluaran, dan tidak boleh memuat dua aturan yang memberi kesimpulan berlawanan untuk kondisi yang sama. Hubungan ini dirangkum dalam Persamaan (1) di bawah.</p>
   <div class="formula-block reveal">
-    <div class="formula-main">Aturan: \(\text{error} = A, d(\text{error}) = B \to \text{keluaran} = C\)<br>\(7 x 7 = 49 \text{aturan}\)<span class="formula-number">(1)</span></div>
+    <div class="formula-main">Aturan: \(\text{error} = A, d(\text{error}) = B \to \text{keluaran} = C\)<br>\(7 \times 7 = 49\text{ aturan}\)<span class="formula-number">(1)</span></div>
   </div>
   <div class="tip-box reveal rumus-jelas">
     <strong>📐 Persamaan (1)</strong> — Bentuk baku satu aturan fuzzy: sepasang kondisi kata-kata (error dan laju perubahannya) memetakan ke satu keluaran kata-kata. Hitungan kanannya konsekuensi kombinatorik: 7 tingkat untuk tiap masukan berarti 49 sel aturan yang semuanya harus terisi dan konsisten; itulah alasan praktisi sering cukup memakai 5, bahkan 3 tingkat.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(\text{error}\)</span><span>Selisih setpoint terhadap keluaran</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(d(\text{error})\)</span><span>Laju perubahan error</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(A, B, C\)</span><span>Label linguistik: Negatif Besar … Nol … Positif Besar</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(7 x 7\)</span><span>Banyak kombinasi aturan bila tiap masukan punya 7 label</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(\text{error}\)</span><span>Selisih setpoint terhadap keluaran</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(d(\text{error})\)</span><span>Laju perubahan error</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(A, B, C\)</span><span>Label linguistik: Negatif Besar … Nol … Positif Besar</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(7 \times 7\)</span><span>Banyak kombinasi aturan bila tiap masukan punya 7 label</span></span></div>
   </div>
   <h3 class="reveal" style="font-size:23px;color:#e7eefc;margin:34px 0 14px;font-family:'Playfair Display',serif">Tiga Tahap Pemrosesan</h3>
   <p class="section-desc reveal">Tahap pertama, fuzzifikasi, mengubah nilai terukur menjadi derajat keanggotaan pada setiap himpunan masukan. Satu nilai temperatur menghasilkan beberapa derajat sekaligus, umumnya dua yang tidak nol bila fungsi keanggotaannya bertumpang tindih secara wajar. Perhatikan ilustrasinya pada Gambar 3.</p>
@@ -2032,13 +2032,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Nilai terukur</h3>
       <p>Satu bilangan tegas dari sensor.</p>
-      <div class="formula">\(\text{Error} e = 2,0\) pada semesta -10 sampai 10</div>
+      <div class="formula">\(\text{Error }e = 2{,}0\) pada semesta -10 sampai 10</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Fuzzifikasi</h3>
       <p>Dua himpunan aktif karena fungsi keanggotaannya bertumpang tindih.</p>
-      <div class="formula">\(\mu(\text{Nol}) = 0,6 ; \mu(\text{Positif Kecil}) = 0,4\)</div>
+      <div class="formula">\(\mu(\text{Nol}) = 0{,}6 ; \mu(\text{Positif Kecil}) = 0{,}4\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
@@ -2062,13 +2062,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🧪</div>
       <h3>Defuzzifikasi berbobot</h3>
       <p>Rata-rata berbobot kekuatan aturan.</p>
-      <div class="formula">\(u = \frac{(0,6 \cdot 0 + 0,4 \cdot 5)}{0,6 + 0,4}\)</div>
+      <div class="formula">\(u = \frac{(0{,}6 \cdot 0 + 0{,}4 \cdot 5)}{0{,}6 + 0{,}4}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Hasil akhir</h3>
       <p>Satu bilangan tegas siap dikirim ke actuator.</p>
-      <div class="formula">\(u = 2,\frac{0}{1,0} = 2,0\)</div>
+      <div class="formula">\(u = \frac{2{,}0}{1{,}0} = 2{,}0\)</div>
     </div>
   </div>
   <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
@@ -2082,47 +2082,47 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Aturan 1</h3>
       <p>Operasi minimum mengambil yang terlemah.</p>
-      <div class="formula">\(e \text{Nol dan} de \text{Nol} \to u \text{Nol}; \text{kekuatan} min(0,4 ; 0,7) = 0,4\)</div>
+      <div class="formula">\(e\text{ Nol dan }de\text{ Nol} \to u\text{ Nol}; \text{kekuatan }\min(0{,}4 ; 0{,}7) = 0{,}4\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Aturan 2</h3>
       <p>Aturan terkuat pada keadaan ini.</p>
-      <div class="formula">\(e PK \text{dan} de \text{Nol} \to u PK; \text{kekuatan} min(0,6 ; 0,7) = 0,6\)</div>
+      <div class="formula">\(e\text{ PK dan }de\text{ Nol} \to u\text{ PK}; \text{kekuatan }\min(0{,}6 ; 0{,}7) = 0{,}6\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
       <h3>Aturan 3</h3>
       <p>Laju error negatif menarik keluaran ke bawah.</p>
-      <div class="formula">\(e \text{Nol dan} de NK \to u NK; \text{kekuatan} min(0,4 ; 0,3) = 0,3\)</div>
+      <div class="formula">\(e\text{ Nol dan }de\text{ NK} \to u\text{ NK}; \text{kekuatan }\min(0{,}4 ; 0{,}3) = 0{,}3\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Aturan 4</h3>
       <p>Kedua pengaruh saling meniadakan.</p>
-      <div class="formula">\(e PK \text{dan} de NK \to u \text{Nol}; \text{kekuatan} min(0,6 ; 0,3) = 0,3\)</div>
+      <div class="formula">\(e\text{ PK dan }de\text{ NK} \to u\text{ Nol}; \text{kekuatan }\min(0{,}6 ; 0{,}3) = 0{,}3\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧭</div>
       <h3>Hitung pembilang</h3>
       <p>Jumlah kekuatan dikali pusat keluarannya.</p>
-      <div class="formula">\(0,4 \cdot 0 + 0,6 \cdot 5 + 0,3 \cdot (-5) + 0,3 \cdot 0 = 1,5\)</div>
+      <div class="formula">\(0{,}4 \cdot 0 + 0{,}6 \cdot 5 + 0{,}3 \cdot (-5) + 0{,}3 \cdot 0 = 1{,}5\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧪</div>
       <h3>Hitung penyebut</h3>
       <p>Jumlah seluruh kekuatan aturan.</p>
-      <div class="formula">\(0,4 + 0,6 + 0,3 + 0,3 = 1,6\)</div>
+      <div class="formula">\(0{,}4 + 0{,}6 + 0{,}3 + 0{,}3 = 1{,}6\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Defuzzifikasi</h3>
       <p>Rata-rata berbobot.</p>
-      <div class="formula">\(u = 1,\frac{5}{1,6} = 0,9375\)</div>
+      <div class="formula">\(u = \frac{1{,}5}{1{,}6} = 0{,}9375\)</div>
     </div>
   </div>
   <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(de\)</span><span>Perubahan kecil error</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(e\)</span><span>Error: setpoint dikurangi keluaran</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(u\)</span><span>Sinyal kendali</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(P\)</span><span>Label fuzzy Positif</span></span><span class="anim-var nw4"><span class="rumus-notasi">\(K\)</span><span>Gain</span></span><span class="anim-var nw0"><span class="rumus-notasi">\(N\)</span><span>Label fuzzy Negatif</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(de\)</span><span>Perubahan kecil error</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(e\)</span><span>Error: setpoint dikurangi keluaran</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(u\)</span><span>Sinyal kendali</span></span></div>
   </div>
   <div class="tip-box reveal">✅ <strong>Jawaban.</strong> Keluaran 0,9375. Perhatikan bahwa meskipun error cukup besar dan condong ke Positif Kecil, keluarannya jauh lebih kecil daripada pusat himpunan Positif Kecil yang bernilai 5. Penyebabnya laju error yang negatif: sistem sudah bergerak menuju setpoint, sehingga aturan-aturan yang mengandung Negatif Kecil menahan aksi. Inilah wujud aksi turunan pada controller fuzzy, muncul dari basis aturan tanpa satu pun rumus turunan.</div>
 

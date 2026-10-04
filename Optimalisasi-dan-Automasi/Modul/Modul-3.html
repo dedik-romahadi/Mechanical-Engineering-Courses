@@ -253,7 +253,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(255,64,129,.1);border:1px solid rgba(255,64,129,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(255,64,129,.07);border:1px solid rgba(255,64,129,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -968,6 +968,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1671,19 +1674,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔢</div>
       <h3>ADC: Resolution &amp; Rate</h3>
       <p>ADC (Analog-to-Digital Converter) mengubah V analog ke nilai digital. Dua parameter kunci: <strong>resolusi (bit)</strong> — 12-bit = 4096 level, 16-bit = 65536, 24-bit = 16M (DR ~144 dB); <strong>sampling rate</strong>, fs harus ≥ 2×\(f_{\text{max}}\) sinyal (Nyquist). Trade-off: resolusi tinggi + rate tinggi = data besar &amp; mahal. Pilih sesuai aplikasi.</p>
-      <div class="formula">\(DR(dB) \approx 6.02 \cdot N + 1.76\)</div>
+      <div class="formula">\(DR(\text{dB}) \approx 6.02 \cdot N + 1.76\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
       <h3>Edge Device &amp; Bus</h3>
       <p>Setelah ADC, data digital ditangani <strong>edge controller</strong>: STM32, ESP32, Raspberry Pi, atau industrial gateway. Bus komunikasi: I2C/SPI (sensor on-board), Modbus RTU/TCP, Ethernet/IP, MQTT untuk cloud. Edge device sering melakukan <em>preprocessing</em> (RMS, FFT) untuk reduce bandwidth, silakan kirim feature, bukan raw data.</p>
-      <div class="formula">\(BW = fs \cdot bits \cdot channels\)</div>
+      <div class="formula">\(BW = fs \cdot \text{bits} \cdot \text{channels}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">☁️</div>
       <h3>Storage &amp; Cloud</h3>
       <p>Data mengalir ke storage: <strong>edge buffer</strong> (RAM/Flash, hari-mingguan), <strong>local server</strong> (TimescaleDB, InfluxDB), <strong>cloud platform</strong> (AWS Timestream, Azure IoT). Pilih berdasarkan: latensi yang dapat ditoleransi (real-time vs batch), retention period, query patterns (aggregate vs detail). Tier storage = practical pattern.</p>
-      <div class="formula">\(latency vs retention\)</div>
+      <div class="formula">\(\text{latency vs retention}\)</div>
     </div>
   </div>
 
@@ -1714,7 +1717,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Pemilihan ADC, Range &amp; Resolusi</div>
-    LSB \(= V_{range} / 2^{N} \cdot SNR_{quantization} = 6.02 \cdot N + 1.76 dB\)
+    LSB \(= V_{range} / 2^{N} \cdot \text{SNR}_{quantization} = 6.02 \cdot N + 1.76 \text{ dB}\)
   <span class="formula-number">(2)</span></div>
 <!-- PERSAMAAN-STATIS:2:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1728,7 +1731,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📍</div>
       <h3>Akselerometer Vibration</h3>
       <p>Tipe utama: <strong>IEPE/ICP</strong> (industri standar, output 100 mV/g, range 0.5 Hz–10 kHz), <strong>MEMS</strong> (murah, integrated, range DC–1 kHz). Untuk vibration motor: pilih bandwidth ≥ 5× rotational speed dan ≥ 2× ekspektasi bearing fault frequency. Mounting kritis: stud (terbaik), magnetic (cukup), adhesive (buruk untuk frekuensi tinggi).</p>
-      <div class="formula">\(100 mV/g (IEPE)\)</div>
+      <div class="formula">\(100 \text{ mV/g } (\text{IEPE})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌡️</div>
@@ -1789,7 +1792,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Bandwidth &amp; Storage Calculation</div>
-    \(BW (B/s) = fs \cdot (bits/8) \cdot\) channels  \(\cdot\) Storage \(= BW \cdot\) duration
+    \(BW (B/s) = fs \cdot (\text{bits}/8) \cdot\) channels  \(\cdot\) Storage \(= BW \cdot\) duration
   <span class="formula-number">(3)</span></div>
 <!-- PERSAMAAN-STATIS:3:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1803,25 +1806,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">💾</div>
       <h3>Edge Buffer (Hari)</h3>
       <p>Raw data disimpan di edge device (NVMe SSD industrial, 256–1TB) sebagai <strong>circular buffer</strong>, hari ke-15 menimpa hari ke-1. Format: binary (terbaca cepat) atau Parquet (compressed columnar). Edge buffer melayani query investigasi (mis. "tunjukkan vibration motor-3 1 jam sebelum trip").</p>
-      <div class="formula">\(FIFO: hari N \to hari N+15\)</div>
+      <div class="formula">\(\text{FIFO: hari } N \to \text{hari } N+15\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🗄️</div>
       <h3>Time Series Database</h3>
       <p>TSDB dirancang khusus untuk data berurutan-waktu: <strong>InfluxDB</strong>, <strong>TimescaleDB</strong> (PostgreSQL extension), <strong>Prometheus</strong>, <strong>QuestDB</strong>. Mendukung downsampling otomatis (raw → 1-min → 1-hour aggregates), retention policy per tier, dan query syntax time-aware (range, window, fill).</p>
-      <div class="formula">\(SELECT mean(rms) FROM ... GROUP BY time(1h)\)</div>
+      <div class="formula"><code>SELECT mean(rms) FROM ... GROUP BY time(1h)</code></div>
     </div>
     <div class="card">
       <div class="card-icon">📤</div>
       <h3>Streaming Protocol</h3>
       <p>Untuk real-time monitoring: <strong>MQTT</strong> (lightweight pub/sub, QoS 0-2, ideal IoT), <strong>Kafka</strong> (high throughput, replay capable, enterprise), <strong>OPC UA</strong> (industri standard, complex info modeling). MQTT cukup untuk 10s of motors; Kafka untuk 1000s. Pilih berdasarkan scale &amp; durability requirements.</p>
-      <div class="formula">\(QoS: 0=fire\&forget, 2=exactly once\)</div>
+      <div class="formula">\(\text{QoS: } 0=\text{fire}\&amp;\text{forget, } 2=\text{exactly once}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Aggregation Strategy</h3>
       <p>Pattern populer untuk vibration: edge hitung <strong>RMS, peak, CF per 1 detik</strong> dari raw 10 kHz → kirim ke cloud (1 nilai/detik = 86k nilai/hari, sangat ringan). Raw data tetap di edge untuk forensic analysis bila ada anomali. Cloud-side aggregate lagi: 1-min, 1-hour, 1-day untuk dashboard. Hemat bandwidth, hemat storage, tetap actionable.</p>
-      <div class="formula">\(edge: 10kHz \to cloud: 1Hz\)</div>
+      <div class="formula">\(\text{edge: } 10\text{kHz} \to \text{cloud: } 1\text{Hz}\)</div>
     </div>
   </div>
 
@@ -1878,25 +1881,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📈</div>
       <h3>Line Plot — Default</h3>
       <p>Line plot adalah <strong>visualisasi default</strong> untuk time series, y vs t. Best practice: (1) sampling display ≤ 10k titik (downsample dengan max/min preservation untuk plot panjang), (2) title yang informatif (apa, kapan, dari mana), (3) y-axis dengan unit eksplisit, (4) grid alpha rendah (0.3) untuk readability, (5) jika multi-line, pakai colormap yang accessible (viridis, bukan rainbow).</p>
-      <div class="formula">\(plt.plot(\text{t, y}); plt.grid()\)</div>
+      <div class="formula"><code>plt.plot(t, y); plt.grid()</code></div>
     </div>
     <div class="card">
       <div class="card-icon">🌈</div>
       <h3>Spectrogram</h3>
       <p>Spectrogram = <strong>FFT bergulir di window</strong>, menampilkan bagaimana frekuensi sinyal berubah seiring waktu. Sumbu: t (horizontal) × f (vertikal), warna = amplitudo. Sangat berguna untuk: motor startup/shutdown analysis (frekuensi naik-turun), bearing degradation (peak frekuensi muncul perlahan), gear mesh modulation. Pakai <code>scipy.signal.spectrogram</code>.</p>
-      <div class="formula">\(spectrogram(\text{x, fs})\)</div>
+      <div class="formula"><code>spectrogram(x, fs)</code></div>
     </div>
     <div class="card">
       <div class="card-icon">🟦</div>
       <h3>Heatmap (Multi-Sensor)</h3>
       <p>Untuk pabrik dengan 100+ motor, line plot semua sensor jadi clutter. <strong>Heatmap</strong> dengan baris=sensor, kolom=waktu, warna=metric (mis. RMS) jauh lebih readable. Pattern abnormal langsung terlihat sebagai band warna yang mencolok. Pair dengan annotation otomatis (label sensor di luar threshold). Tooling: matplotlib <code>imshow</code>, seaborn <code>heatmap</code>, plotly.</p>
-      <div class="formula">\(heatmap(rms_{matrix})\)</div>
+      <div class="formula"><code>heatmap(rms_matrix)</code></div>
     </div>
     <div class="card">
       <div class="card-icon">📦</div>
       <h3>Boxplot &amp; Violin</h3>
       <p>Statistical plots untuk membandingkan <strong>distribusi</strong> sinyal antar shift, antar bulan, antar mesin. Boxplot: median, quartile, outlier. Violin: kombinasi boxplot + density estimate (lebih informatif tapi lebih kompleks). Sangat efektif untuk identifikasi <em>shift drift</em> (mean shift, variance change) yang tidak terlihat di line plot harian.</p>
-      <div class="formula">\(boxplot per shift\)</div>
+      <div class="formula">\(\text{boxplot per shift}\)</div>
     </div>
   </div>
 
@@ -1941,37 +1944,37 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎤</div>
       <h3>Mikrofon Studio Rekaman</h3>
       <p>Setup mikrofon studio = <em>sensor chain industrial</em>: mic → preamp (gain) → audio interface (ADC) → DAW software (storage). Tiap tahap bisa hancurkan kualitas: mic murah → SNR rendah; gain salah → clipping; bit rate kurang → quantization noise. Persis seperti sensor industri: akselerometer murah, op-amp salah, ADC under-resolved.</p>
-      <div class="formula">\(mic \to preamp \to ADC \to DAW\)</div>
+      <div class="formula">\(\text{mic} \to \text{preamp} \to \text{ADC} \to \text{DAW}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📷</div>
       <h3>Kamera DSLR vs HP</h3>
       <p>Sensor full-frame DSLR vs sensor kecil HP: <strong>dynamic range</strong> berbeda. DSLR 14-bit RAW = 16384 level cahaya, detail di bayangan &amp; highlight terjaga. HP 8-bit JPEG = 256 level, easily clipped. Persis seperti pilihan ADC: 24-bit untuk vibration high-end (DR 144 dB), 12-bit untuk monitoring kasar.</p>
-      <div class="formula">\(DR = 6.02 \cdot N + 1.76 dB\)</div>
+      <div class="formula">\(DR = 6.02 \cdot N + 1.76 \text{ dB}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
       <h3>Streaming Netflix vs Download</h3>
       <p>Netflix <strong>streaming</strong>: bandwidth pendek tapi continuous, buffer kecil (latency rendah, langsung tonton). <strong>Download</strong>: bandwidth besar, simpan sekali pakai berkali-kali (offline access). Persis seperti edge buffer (streaming) vs cloud archive (download). Pilih sesuai pola akses.</p>
-      <div class="formula">\(streaming vs storage trade-off\)</div>
+      <div class="formula">\(\text{streaming vs storage trade-off}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🗺️</div>
       <h3>Google Maps Zoom Levels</h3>
       <p>Google Maps <strong>tiered tiles</strong>: zoom dunia = 1 tile blur, zoom kota = ratusan tiles, zoom street = jutaan tiles. Saat zoom out, server tidak streaming detail rumah, kasih agregasi. Persis seperti time series tiered storage: hourly aggregate untuk dashboard daerah luas, raw 10 kHz untuk forensic zoom in.</p>
-      <div class="formula">\(level-of-detail by zoom\)</div>
+      <div class="formula">\(\text{level-of-detail by zoom}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📺</div>
       <h3>Dashboard Pesawat / Mobil</h3>
       <p>Dashboard mobil = <em>visualisasi multi-sensor real-time</em>. Speedometer (1 Hz update cukup), tachometer (10 Hz responsif), warning light (binary status), engine temp (1 Hz, stabil). Setiap sensor pakai visualisasi berbeda sesuai karakter datanya. Persis seperti Grafana dashboard: gauge untuk current value, trend untuk history, alert untuk threshold.</p>
-      <div class="formula">\(visualization fits data character\)</div>
+      <div class="formula">visualization fits data character</div>
     </div>
     <div class="card">
       <div class="card-icon">🌡️</div>
       <h3>Termometer vs Thermal Imaging</h3>
       <p><strong>Termometer klinis</strong>: 1 angka per pengukuran, akurat tapi single-point. <strong>Thermal imaging camera</strong>: matriks 480×640 piksel temperatur, lihat distribusi spatial. Persis seperti single sensor (line plot) vs sensor array (heatmap). Beda kasus, beda visualisasi optimal.</p>
-      <div class="formula">\(scalar vs spatial\)</div>
+      <div class="formula">\(\text{scalar vs spatial}\)</div>
     </div>
   </div>
 
@@ -2016,7 +2019,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi \(2\;\text{---}\) Aliasing Demo: Saat \(Fs\) &lt; \(2 \cdot Fsignal\) (Nyquist Theorem)</span>
+      <span class="anim-title">Animasi \(2\;\text{---}\) Aliasing Demo: Saat \(Fs\) &lt; 2 · Fsignal (Nyquist Theorem)</span>
     </div>
     <div class="anim-body">
       <canvas id="m3optAlias" height="300" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
@@ -2049,7 +2052,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div id="m3optQInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet)"></div>
       <div class="tip-box" style="margin-top:16px">
-        <strong>📊 Cara Membaca:</strong> Layout split: kiri = analog signal vs quantized staircase (n-bit ADC = 2ⁿ levels). Kanan = quantization error histogram. <strong>n=2 (4 levels)</strong>: heavy staircase, error besar. <strong>n=12 (4096 levels)</strong>: nearly continuous, error minimal (LSB ≈ FullScale/2ⁿ). <strong>SQNR \(\approx 6.02n + 1.76 dB\)</strong>: setiap +1 bit = +6 dB SNR. Engineering implication: n=16 untuk audio HiFi, n=24 untuk vibration analysis.
+        <strong>📊 Cara Membaca:</strong> Layout split: kiri = analog signal vs quantized staircase (n-bit ADC = 2ⁿ levels). Kanan = quantization error histogram. <strong>n=2 (4 levels)</strong>: heavy staircase, error besar. <strong>n=12 (4096 levels)</strong>: nearly continuous, error minimal (LSB ≈ FullScale/2ⁿ). <strong>SQNR \(\approx 6.02n + 1.76 \text{ dB}\)</strong>: setiap +1 bit = +6 dB SNR. Engineering implication: n=16 untuk audio HiFi, n=24 untuk vibration analysis.
       </div>
     </div>
   </div>
@@ -2124,25 +2127,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🏭</div>
       <h3>Vibration Monitoring Pabrik Semen</h3>
       <p>20+ motor mill grinding, 1-15 MW. Setup: <strong>IEPE accelerometer</strong> per motor, <strong>16-bit ADC fs=25 kHz</strong>, edge gateway hitung RMS+CF per detik, kirim via <strong>MQTT ke InfluxDB</strong>. Dashboard <strong>Grafana</strong>: line plot RMS 24h + heatmap 30-day overview semua motor. Alert tier: notice (RMS&gt;2.8), warning (&gt;4.5), critical (&gt;7.1) sesuai ISO 10816 kelas II.</p>
-      <div class="formula">\(25 kHz \cdot 16-bit \cdot MQTT\)</div>
+      <div class="formula">\(25 \text{ kHz} \cdot 16\text{-bit} \cdot \text{MQTT}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌾</div>
       <h3>SCADA Kelapa Sawit</h3>
       <p>Pabrik kelapa sawit: ratusan sensor temperatur (RTD/TC), pressure (4-20mA), level (ultrasonic). Setup: <strong>PLC Allen-Bradley</strong> dengan analog input modules, fs=1 Hz, scan time 100ms. Komunikasi <strong>Modbus TCP → SCADA Wonderware</strong>. Dashboard: P&amp;ID dengan live values per tag. Storage: SQL Server historian, retention 5 tahun untuk compliance.</p>
-      <div class="formula">\(1 Hz \cdot 16-bit \cdot Modbus\)</div>
+      <div class="formula">\(1 \text{ Hz} \cdot 16\text{-bit} \cdot \text{Modbus}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Power Quality Gardu Distribusi</h3>
       <p>Gardu distribusi 20 kV: 3-phase voltage + current. Setup: <strong>CT/PT trafo</strong> step-down → <strong>20 kHz simultaneous-sampling 16-bit ADC</strong> → real-time FFT untuk THD, harmonik (sampai orde 50). <strong>IEC 61850</strong> protocol untuk integrasi dengan SCADA grid. Output: power quality metrics per 10 menit (sesuai standar EN 50160).</p>
-      <div class="formula">\(20 kHz \cdot IEC 61850\)</div>
+      <div class="formula">\(20 \text{ kHz} \cdot \text{IEC 61850}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏥</div>
       <h3>Patient Monitor ICU</h3>
       <p>ICU patient monitor: ECG (500 Hz, 12-bit), SpO2 (1 Hz), NIBP (event-based), temp (0.1 Hz). <strong>Multi-rate sampling</strong> di satu device, challenge: sinkronisasi timestamp lintas sensor. Storage: <strong>HL7 FHIR</strong> di hospital information system. Visualization: dashboard waveform 5 detik live + trend metrics 1 jam. Alert berbasis algoritma per metric.</p>
-      <div class="formula">\(multi-rate sync\)</div>
+      <div class="formula">\(\text{multi-rate sync}\)</div>
     </div>
   </div>
 
@@ -2623,7 +2626,7 @@ for fn in ['vibration_4motors.csv', 'vibration_4motors.parquet', 'vibration_4mot
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">09</div>
-        <div class="mc-q">Streaming protocol yang tepat untuk monitoring <strong>\(10s of\) motors</strong> di pabrik dengan latency rendah dan resource gateway terbatas adalah...</div>
+        <div class="mc-q">Streaming protocol yang tepat untuk monitoring <strong>\(10s \text{ of}\) motors</strong> di pabrik dengan latency rendah dan resource gateway terbatas adalah...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc9">
@@ -2711,7 +2714,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
       </div>
       <div class="comp-hint">💡 Storage = bandwidth × durasi (detik), lalu bagi 1024² untuk konversi ke MB. Masukkan nilai dari soal.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Storage \(1h (MB)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">Storage 1h (MB)</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
@@ -2757,12 +2760,12 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q">Dari dataset referensi, hitung <strong>mean dari \(\text{motor\_1\_rms}\)</strong>. Cetak <code>np.mean(df['motor_1_rms'])</code>.</div>
+        <div class="comp-q">Dari dataset referensi, hitung <strong>mean dari <code>motor_1_rms</code></strong>. Cetak <code>np.mean(df['motor_1_rms'])</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Gunakan <code>df['motor_1_rms'].mean()</code> untuk menghitung rata-rata kolom tersebut.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(mean(motor_1)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)"><code>mean(motor_1)</code></strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python (termasuk dataset referensi), lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
         <div class="stdout-box" id="stdout-c5"></div>
       </div>
@@ -2774,12 +2777,12 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C6</div>
-        <div class="comp-q">Hitung <strong>nilai maksimum dari \(\text{motor\_2\_rms}\)</strong>. Karena ada event injected, max akan jauh di atas baseline.</div>
+        <div class="comp-q">Hitung <strong>nilai maksimum dari <code>motor_2_rms</code></strong>. Karena ada event injected, max akan jauh di atas baseline.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Gunakan <code>df['motor_2_rms'].max()</code> untuk menemukan nilai puncak kolom tersebut.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(max(motor_2)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)"><code>max(motor_2)</code></strong></span></div>
         <textarea class="code-textarea" id="code-c6" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c6')"></textarea>
         <div class="stdout-box" id="stdout-c6"></div>
       </div>
@@ -2791,7 +2794,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q">Hitung <strong>jumlah titik di \(\text{motor\_2\_rms}\) yang melebihi \(2.8\ mm/s\)</strong> (threshold ISO 10816 warning). Pakai boolean indexing: <code>(df['motor_2_rms'] &gt; 2.8).sum()</code>.</div>
+        <div class="comp-q">Hitung <strong>jumlah titik di <code>motor_2_rms</code> yang melebihi 2.8 mm/s</strong> (threshold ISO 10816 warning). Pakai boolean indexing: <code>(df['motor_2_rms'] &gt; 2.8).sum()</code>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Buat mask boolean dengan kondisi <code>df['motor_2_rms'] &gt; threshold</code> lalu jumlahkan dengan <code>.sum()</code> untuk menghitung jumlah sampel yang memenuhi.</div>
@@ -2813,7 +2816,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
       </div>
       <div class="comp-hint">💡 Gunakan <code>df.resample('5min').max()</code> lalu hitung jumlah baris hasilnya dengan <code>len()</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(len(df_5min)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)"><code>len(df_5min)</code></strong></span></div>
         <textarea class="code-textarea" id="code-c8" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c8')"></textarea>
         <div class="stdout-box" id="stdout-c8"></div>
       </div>
@@ -2830,7 +2833,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
       </div>
       <div class="comp-hint">💡 Hitung nilai maksimum tiap kolom dengan <code>df.max()</code>, lalu hitung berapa kolom yang melebihi threshold dengan kondisi boolean + <code>.sum()</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(count_{motors}\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)"><code>count_motors</code></strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
         <div class="stdout-box" id="stdout-c9"></div>
       </div>
@@ -3044,7 +3047,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Sensor &amp; ADC selection adalah <em>foundational decisions</em>, sulit di-undo setelah procurement. Rancang spesifikasi: (1) tipe akselerometer untuk 30 motor (mempertimbangkan range frekuensi yang berbeda untuk RPM 720 vs 2900), (2) sampling rate &amp; ADC resolusi yang sesuai untuk vibration vs slow process (suhu/pressure), (3) edge gateway architecture (centralized vs per-line vs per-motor). Diskusikan trade-off cost vs reliability vs scalability ke 100+ motor tahun 2.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">IEPE \(100mV/g\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">IEPE 100mV/g</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">fs vibration: 25–50 kHz</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">fs process: 1–10 Hz</span>
         </div>
@@ -3078,7 +3081,7 @@ df = pd.DataFrame(data, index=pd.date_range('2026-01-01 08:00:00', periods=N, fr
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Bagas perlu balance antara: (a) <em>real-time access</em> untuk dashboard (millisecond latency), (b) <em>historical analytics</em> 1 tahun (bulanan reliability review), (c) <em>compliance archive</em> 5 tahun (audit). Total data volume bisa terabytes, naive single-tier storage akan boros &amp; lambat. Rancang strategy: pilih TSDB (InfluxDB/TimescaleDB/Prometheus), tier hot/warm/cold, downsampling policy, retention per tier. Justifikasi pilihan dengan estimasi cost.</p>
         <div style="background:rgba(255,179,0,.04);border:1px solid rgba(255,179,0,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
-          💬 <em>Pertimbangkan: \(30\) motor \(\times\) edge feature \(1 Hz\) (RMS, peak, \(CF,\) kurtosis) \(= 4\;\text{nilai}\;/detik/motor = ~10\) juta \(\text{nilai}\;/hari. 70\) process sensor \(\times 1 Hz = 6\) juta \(\text{nilai}\;/hari.\) Total \(~16M points/day.\) Hot tier \((1\) bulan, raw): butuh \(~500M\) points di SSD. Warm tier \((1\) tahun, downsampled \(1-min): ~9M\) points. Cold tier \((5\) tahun, downsampled \(1-hour): ~14M\) points. Tier policy menghemat \(>10 \times\) storage cost \(vs\) simpan raw selama \(5\) tahun.</em>
+          💬 <em>Pertimbangkan: 30 motor × edge feature 1 Hz (RMS, peak, CF, kurtosis) = 4 nilai/detik/motor = ~10 juta nilai/hari. 70 process sensor × 1 Hz = 6 juta nilai/hari. Total ~16M points/day. Hot tier (1 bulan, raw): butuh ~500M points di SSD. Warm tier (1 tahun, downsampled 1-min): ~9M points. Cold tier (5 tahun, downsampled 1-hour): ~14M points. Tier policy menghemat &gt;10× storage cost vs simpan raw selama 5 tahun.</em>
         </div>
 
         <div class="poll">

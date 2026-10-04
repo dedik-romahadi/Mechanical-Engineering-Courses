@@ -26,6 +26,9 @@ const esc = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 
 // Gaya chip dan nomor persamaan disalin dari modul Sisken supaya tampilannya
 // sama persis lintas mata kuliah; halaman tulisan tangan belum memuatnya.
+// Nomor (absolut, tengah kanan) tidak boleh menimpa isi blok (temuan 4 Oktober
+// 2026: 98 tabrakan di 375 px, 21 di 1280 px): di layar lebar blok bernomor
+// diberi ruang kanan; di ponsel nomor turun ke baris sendiri, rata kanan.
 const CSS = `
 #page-modul .formula-block{position:relative}
 #page-modul .formula-number{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--cyan);opacity:.85}
@@ -37,6 +40,9 @@ const CSS = `
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 `;
 
 const FRASA = [
@@ -52,13 +58,24 @@ const RX_RUJUKAN = / (?:Hubungan ini dirangkum dalam Persamaan \(\d+\) di bawah\
 const RX_KOTAK = /\n?<!-- PERSAMAAN-STATIS:\d+:START -->[\s\S]*?<!-- PERSAMAAN-STATIS:\d+:END -->/g;
 const RX_NOMOR = /<span class="formula-number">\(\d+\)<\/span>/g;
 
+/**
+ * Isi chip notasi: rumus KaTeX, atau kode yang diketik bila notasinya ditulis di antara backtick di data
+ * (`isnull()`, `class_weight`) — kode ditulis <code>, bukan \text{…\_…} (keputusan dosen 3 Oktober 2026,
+ * Pedoman §2 butir (17)).
+ */
+function chipNotasi(notasi) {
+  if (/^`[^`]+`$/.test(notasi)) return `<code>${esc(notasi.slice(1, -1))}</code>`;
+  if (notasi.includes("`")) throw new Error(`Notasi kode harus utuh di antara backtick: ${notasi}`);
+  return `\\(${notasi}\\)`;
+}
+
 /** Kotak penjelasan: maksud persamaan plus arti tiap notasinya. */
 function kotakJelas(spec, nomor) {
   if (!spec.apa || !spec.variabel?.length) {
     throw new Error(`Persamaan (${nomor}) tanpa penjelasan atau daftar notasi`);
   }
   const chips = spec.variabel.map(([notasi, arti], i) =>
-    `<span class="anim-var nw${i % 5}"><span class="rumus-notasi">\\(${notasi}\\)</span><span>${esc(kapitalAwal(arti))}</span></span>`).join("");
+    `<span class="anim-var nw${i % 5}"><span class="rumus-notasi">${chipNotasi(notasi)}</span><span>${esc(kapitalAwal(arti))}</span></span>`).join("");
   return `  <div class="tip-box reveal rumus-jelas">
     <strong>📐 Persamaan (${nomor})</strong> — ${esc(kapitalAwal(spec.apa))}
     <div class="anim-var-list" aria-label="Arti tiap notasi">${chips}</div>

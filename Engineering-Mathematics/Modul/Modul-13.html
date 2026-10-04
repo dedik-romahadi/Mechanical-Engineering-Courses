@@ -356,7 +356,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(249,115,22,.1);padding:1px 6px;border-radius:4px}
@@ -1071,6 +1071,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1748,19 +1751,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔑</div>
       <h3>Mengapa Perlu PFD?</h3>
       <p>Tabel L⁻¹ hanya berisi pecahan dasar: \(1/(s-a) \leftrightarrow e^{at}\), \(1/(s-a)^2 \leftrightarrow t \cdot e^{at}\), <code>ω/(s²+ω²) ↔ sin(ωt)</code>, dll. Fungsi rasional yang lebih kompleks (akar majemuk, kuadratik tak tereduksi) <strong>tidak ada di tabel</strong>, mustahil di-invers tanpa terlebih dahulu memecahnya menjadi jumlah pecahan dasar. PFD = <em>jembatan</em> antara hasil aljabar di domain s dengan tabel L⁻¹.</p>
-      <div class="formula">\(F(s) \to \Sigma F_i(s) \to tabel\)</div>
+      <div class="formula">\(F(s) \to \Sigma F_i(s) \to \text{tabel}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧩</div>
       <h3>Tiga Jenis Faktor Q(s)</h3>
       <p>Sembarang polinomial Q(s) dapat difaktorkan atas bilangan riil menjadi tiga bentuk: <strong>(i) faktor linear berbeda</strong> <code>(s−a)</code>, <strong>(ii) faktor linear berulang</strong> \((s-a)^{k}\), dan <strong>(iii) faktor kuadratik tak tereduksi</strong> <code>(s²+ps+q)</code> dengan diskriminan negatif. Tiap jenis memberi pola dekomposisi tersendiri; itulah inti tiga kasus PFD yang kita pelajari.</p>
-      <div class="formula">\(3 jenis faktor \to 3 pola dekomposisi\)</div>
+      <div class="formula">\(3 \text{ jenis faktor} \to 3 \text{ pola dekomposisi}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Aplikasi Multi-Bidang</h3>
       <p>PFD bukan sekadar trik matematis, ia muncul di banyak konteks engineering: <strong>(a) Inversi Laplace</strong> untuk solve PD orde n, <strong>(b) Integral fungsi rasional</strong> di kalkulus lanjut, <strong>(c) Transfer function decomposition</strong> di control system (state-space realization, modal analysis), <strong>(d) Signal processing</strong> (filter design, Z-transform inverse). Satu teknik, banyak aplikasi.</p>
-      <div class="formula">\(Solve PD \cdot \int dx \cdot TF \cdot Filter\)</div>
+      <div class="formula">\(\text{Solve PD} \cdot \int dx \cdot \text{TF} \cdot \text{Filter}\)</div>
     </div>
   </div>
 
@@ -1790,7 +1793,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Algoritma Pra-PFD: Long Division &amp; Faktorisasi</div>
-    Step \(1:\) deg(P) \(\ge\) deg(Q)?  \(\to\) long division  \(\cdot\) Step \(2:\) faktorkan \(Q(s)\) atas \(\mathbb{R} \cdot\) Step \(3:\) klasifikasi faktor \((\;\text{linear}\;/\;\text{berulang}\;/kuadratik)\)
+    Step \(1:\) deg(P) \(\ge\) deg(Q)?  \(\to\) long division  · Step \(2:\) faktorkan \(Q(s)\) atas \(\mathbb{R}\) · Step \(3:\) klasifikasi faktor (linear / berulang / kuadratik)
   <span class="formula-number">(2)</span></div>
 <!-- PERSAMAAN-STATIS:2:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1804,7 +1807,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚖</div>
       <h3>Syarat deg P &lt; deg Q</h3>
       <p>PFD <strong>hanya berlaku</strong> untuk fungsi rasional <em>proper</em> (pembilang berderajat lebih rendah). Contoh proper: <code>(s+1)/[(s−2)(s+3)]</code> deg(num)=1, deg(den)=2 ✓. Contoh <em>improper</em>: <code>(s²+1)/(s−2)</code> deg(num)=deg(den)=1 ✗. Untuk improper, lakukan polynomial long division terlebih dahulu.</p>
-      <div class="formula">\(deg P < deg Q\)</div>
+      <div class="formula">\(\deg P < \deg Q\)</div>
     </div>
     <div class="card">
       <div class="card-icon">➗</div>
@@ -1822,7 +1825,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Tiga Kasus PFD</h3>
       <p>Setiap faktor di Q(s) memberi pola dekomposisi tersendiri: <strong>(K1) Faktor linear berbeda</strong> <code>(s−a)</code> → <code>A/(s−a)</code>. <strong>(K2) Faktor linear berulang</strong> \((s-a)^{k}\) → \(A_1/(s-a) + A_2/(s-a)^2 + ... + Aₖ/(s-a)^{k}\). <strong>(K3) Faktor kuadratik tak tereduksi</strong> <code>(s²+ps+q)</code> → <code>(As+B)/(s²+ps+q)</code>. Total: jumlah term sama dengan deg(Q).</p>
-      <div class="formula">\(3 kasus \to template dekomposisi\)</div>
+      <div class="formula">\(3 \text{ kasus} \to \text{template dekomposisi}\)</div>
     </div>
   </div>
 
@@ -1868,7 +1871,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Template PFD untuk Faktor Linear Berbeda</div>
-    \(F(s) = P(s)/[(s-a_1)(s-a_2)\ldots (s-a_n)] = A_1/(s-a_1) + A_2/(s-a_2) + \ldots + A_n/(s-a_n); L^{-1}{Aᵢ/(s-aᵢ)} = Aᵢ \cdot e^{aᵢt}\)
+    \(F(s) = P(s)/[(s-a_1)(s-a_2)\ldots (s-a_n)] = A_1/(s-a_1) + A_2/(s-a_2) + \ldots + A_n/(s-a_n); \mathcal{L}^{-1}\{Aᵢ/(s-aᵢ)\} = Aᵢ \cdot e^{aᵢt}\)
   <span class="formula-number">(3)</span></div>
 <!-- PERSAMAAN-STATIS:3:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1893,14 +1896,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Cover-Up Rule (Preview)</h3>
-      <p>Shortcut untuk faktor linear berbeda: <strong>tutup faktor (s−aᵢ)</strong> di penyebut, lalu evaluasi sisa F(s) pada <code>s = aᵢ</code>. Hasilnya = Aᵢ. Rumus: \(Aᵢ = \lim_{s \to aᵢ} (s-aᵢ) \cdot F(s) = P(aᵢ)/\prod ⱼ \ne ᵢ(aᵢ-aⱼ)\). Detail di Bagian 06. Sangat cepat untuk soal ujian.</p>
+      <p>Shortcut untuk faktor linear berbeda: <strong>tutup faktor (s−aᵢ)</strong> di penyebut, lalu evaluasi sisa F(s) pada <code>s = aᵢ</code>. Hasilnya = Aᵢ. Rumus: \(Aᵢ = \lim_{s \to aᵢ} (s-aᵢ) \cdot F(s) = P(aᵢ)/\prod_{j \ne i}(aᵢ-aⱼ)\). Detail di Bagian 06. Sangat cepat untuk soal ujian.</p>
       <div class="formula">Aᵢ = (s−aᵢ)·F(s)|<sub>s=aᵢ</sub></div>
     </div>
     <div class="card">
       <div class="card-icon">🎵</div>
       <h3>Inversi ke Domain t</h3>
-      <p>Tiap term hasil PFD langsung di-invers via tabel: \(L^{-1}{A/(s-a)} = A \cdot e^{at}\). Total: \(f(t) = A_1 \cdot e^{a_1t} + A_2 \cdot e^{a_2t} + \ldots + A_n \cdot e^{a_{nt}}\). Sistem dengan akar berbeda menghasilkan <em>jumlah eksponensial</em> dengan time constant berbeda, natural mode masing-masing.</p>
-      <div class="formula">\(f(t) = \Sigma A_i \cdot e^{a_{it}}\)</div>
+      <p>Tiap term hasil PFD langsung di-invers via tabel: \(\mathcal{L}^{-1}\{A/(s-a)\} = A \cdot e^{at}\). Total: \(f(t) = A_1 \cdot e^{a_1t} + A_2 \cdot e^{a_2t} + \ldots + A_n \cdot e^{a_n t}\). Sistem dengan akar berbeda menghasilkan <em>jumlah eksponensial</em> dengan time constant berbeda, natural mode masing-masing.</p>
+      <div class="formula">\(f(t) = \Sigma A_i \cdot e^{a_i t}\)</div>
     </div>
   </div>
 
@@ -1949,7 +1952,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
 
     <strong style="color:#fff">Langkah 1 — Faktorkan penyebut</strong><br>
-    <span style="color:var(--muted);font-size:13px">Tujuannya menemukan akar (pole) dari \(Q(s).\) Pakai rumus kuadrat atau \(coba-coba: 6 = 2 \cdot 3\) dan \(2+3 = 5,\) jadi langsung dapat dua faktor linear berbeda.</span><br>
+    <span style="color:var(--muted);font-size:13px">Tujuannya menemukan akar (pole) dari \(Q(s).\) Pakai rumus kuadrat atau coba-coba: \(6 = 2 \cdot 3\) dan \(2+3 = 5,\) jadi langsung dapat dua faktor linear berbeda.</span><br>
     Faktorisasi:    \(s^2 - 5s + 6 = (s - 2)(s - 3) \implies\) akar: \(s = 2, 3\)<br>
     <br>
 
@@ -1969,7 +1972,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <br>
 
     <strong style="color:#fff">Langkah 5 — Tulis PFD final dan invers Laplace</strong><br>
-    <span style="color:var(--muted);font-size:13px">Pakai pasangan baku \(\mathcal{L}^{-1}\{1/(\text{s - a})\} = e^{at}\) untuk tiap suku. Tiap pole memberi mode eksponensial dengan eksponen sama dengan akarnya.</span><br>
+    <span style="color:var(--muted);font-size:13px">Pakai pasangan baku \(\mathcal{L}^{-1}\{1/(s - a)\} = e^{at}\) untuk tiap suku. Tiap pole memberi mode eksponensial dengan eksponen sama dengan akarnya.</span><br>
     PFD:&nbsp;&nbsp; F(s) = 9/(s − 3) − 7/(s − 2)<br>
     <br>
 
@@ -2010,7 +2013,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <br>
 
     <strong style="color:#fff">Langkah 6 — Susun PFD dan invers Laplace tiap suku</strong><br>
-    <span style="color:var(--muted);font-size:13px">Pakai pasangan baku \(\mathcal{L}^{-1}\{1/(\text{s - a})\} = e^{at}.\) Tiga pole real berbeda \(\to\) tiga mode eksponensial yang superposisi.</span><br>
+    <span style="color:var(--muted);font-size:13px">Pakai pasangan baku \(\mathcal{L}^{-1}\{1/(s - a)\} = e^{at}.\) Tiga pole real berbeda \(\to\) tiga mode eksponensial yang superposisi.</span><br>
     PFD:&nbsp;&nbsp; F(s) = 3/(s + 1) − 5/(s − 1) + 3/(s − 2)<br>
     <br>
 
@@ -2031,13 +2034,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <br>
 
     <strong style="color:#fff">Langkah 2 — Transformasi input ke domain s</strong><br>
-    <span style="color:var(--muted);font-size:13px">Pakai pasangan baku \(ℒ{e^{at}} = 1/(s-a)\) untuk forcing eksponensial. Faktor \(4\) keluar dari linearitas Laplace.</span><br>
-    \(R(s) = ℒ{4e^{t}} = 4/(s - 1)\)<br>
+    <span style="color:var(--muted);font-size:13px">Pakai pasangan baku \(ℒ\{e^{at}\} = 1/(s-a)\) untuk forcing eksponensial. Faktor \(4\) keluar dari linearitas Laplace.</span><br>
+    \(R(s) = ℒ\{4e^{t}\} = 4/(s - 1)\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 3 — Bentuk Y(s) lewat shortcut Laplace</strong><br>
-    <span style="color:var(--muted);font-size:13px">Bentuk umum: \(H(s) \cdot Y(s) = R(s) + G(s),\) dengan \(G(s)\) berisi suku awal dari kondisi \(y(0), y'(0). Y(s) =\) [R(s) \(+ G(s)]/H(s).\) Pole baru \(s=1\) muncul dari input \((di\) samping pole sistem \(2\) dan \(3).\)</span><br>
-    \(Y(s) = R(s)/H(s) + G(s)/H(s) \implies\) pole \(di s = 1, 2, 3\)<br>
+    <span style="color:var(--muted);font-size:13px">Bentuk umum: \(H(s) \cdot Y(s) = R(s) + G(s),\) dengan \(G(s)\) berisi suku awal dari kondisi \(y(0), y'(0).\) \(Y(s) = [R(s) + G(s)]/H(s).\) Pole baru \(s=1\) muncul dari input (di samping pole sistem \(2\) dan \(3\)).</span><br>
+    \(Y(s) = R(s)/H(s) + G(s)/H(s) \implies\) pole di \(s = 1, 2, 3\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 4 — Pecahan parsial pada tiga pole</strong><br>
@@ -2070,7 +2073,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Template PFD untuk Faktor Linear Berulang (s−a)<sup>k</sup></div>
-    \(P(s)/(s-a)^{k} = A_1/(s-a) + A_2/(s-a)^2 + \ldots + Aₖ/(s-a)^{k}; L^{-1}{1/(s-a)^{n}} = t^{n-1} \cdot e^{at}/(n-1)!\)
+    \(P(s)/(s-a)^{k} = A_1/(s-a) + A_2/(s-a)^2 + \ldots + Aₖ/(s-a)^{k}; \mathcal{L}^{-1}\{1/(s-a)^{n}\} = t^{n-1} \cdot e^{at}/(n-1)!\)
   <span class="formula-number">(4)</span></div>
 <!-- PERSAMAAN-STATIS:4:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -2169,7 +2172,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <br>
 
     <strong style="color:#fff">Langkah 4 — Template PFD untuk multiplicity 4</strong><br>
-    <span style="color:var(--muted);font-size:13px">Aturan multiplisitas: faktor \((\text{s - a})^{k}\) menghasilkan \(k\) suku \(berturut-turut 1/(s-a), 1/(s-a)^2, \ldots , 1/(s-a)^{k}.\) Tidak boleh skip pangkat, semua pangkat \(1\) sampai \(4\) wajib ada.</span><br>
+    <span style="color:var(--muted);font-size:13px">Aturan multiplisitas: faktor \((s - a)^{k}\) menghasilkan \(k\) suku berturut-turut \(1/(s-a), 1/(s-a)^2, \ldots , 1/(s-a)^{k}.\) Tidak boleh skip pangkat, semua pangkat \(1\) sampai \(4\) wajib ada.</span><br>
     \(Y(s) = A_{1}/(s - 2) + A_{2}/(s - 2)^2 + A_{3}/(s - 2)^3 + A_{4}/(s - 2)^{4}\)<br>
     <br>
 
@@ -2235,7 +2238,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📐</div>
       <h3>Hitung A, B, C</h3>
       <p>Cover-up rule (klasik) <strong>tidak berlaku</strong> langsung untuk faktor kuadratik. Metode: kalikan kedua sisi dengan Q(s), ekspansi ke polinomial dalam s, samakan koefisien tiap pangkat. Alternatif: pakai cover-up untuk faktor linear yang ada, lalu substitusi nilai s spesifik untuk dapat sisanya. Cara terbaik untuk kompleks: SymPy <code>sp.apart()</code> yang otomatis.</p>
-      <div class="formula">\(samakan koefisien polinomial\)</div>
+      <div class="formula">\(\text{samakan koefisien polinomial}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
@@ -2300,7 +2303,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Cover-Up Rule (Heaviside Method) untuk Faktor Linear</div>
-    \(Aᵢ = \lim_{s \to aᵢ} (s-aᵢ) \cdot F(s) = P(aᵢ) /\) Q′(aᵢ);    "Tutup (s−aᵢ), substitusi \(s = aᵢ ke\) sisa"
+    \(Aᵢ = \lim_{s \to aᵢ} (s-aᵢ) \cdot F(s) = P(aᵢ) / Q'(aᵢ)\);    "Tutup (s−aᵢ), substitusi \(s = aᵢ\) ke sisa"
   <span class="formula-number">(6)</span></div>
 <!-- PERSAMAAN-STATIS:6:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -2326,13 +2329,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚠</div>
       <h3>Batasan: Hanya Linear Non-Berulang</h3>
       <p>Cover-up <strong>tidak langsung</strong> berlaku untuk: <strong>(a) faktor linear berulang</strong>, beri Aₖ pangkat tertinggi saja, untuk koefisien lain perlu turunan; <strong>(b) faktor kuadratik tak tereduksi</strong>, tidak ada faktor (s−aᵢ) tunggal untuk ditutup. Untuk kasus ini, tetap pakai samakan koefisien atau metode lain.</p>
-      <div class="formula">\(linear non-berulang\;\text{only}\)</div>
+      <div class="formula">\(\text{linear non-berulang only}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚀</div>
       <h3>Speedup di Ujian</h3>
       <p>Cover-up adalah teknik <strong>tercepat</strong> untuk faktor linear non-berulang. Mis. <code>1/[s(s−1)(s+2)]</code>: A=1/[(0−1)(0+2)]=−1/2; B=1/[1·(1+2)]=1/3; C=1/[(−2)(−2−1)]=1/6. Tiga koefisien dalam 30 detik tanpa setup persamaan. Sangat efisien untuk ujian dengan time limit.</p>
-      <div class="formula">\(3 koefisien \cdot 30 detik\)</div>
+      <div class="formula">\(3 \text{ koefisien} \cdot 30 \text{ detik}\)</div>
     </div>
   </div>
 
@@ -2366,7 +2369,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <strong>Contoh 3 — kombinasi linear berulang &amp; cover-up:</strong> <code>F(s) = 2/[s(s+1)²]</code>.<br>
     Template: <code>F = A/s + B/(s+1) + C/(s+1)²</code>.<br>
     Cover-up A: tutup s, evaluasi s=0 → <code>A = 2/(0+1)² = 2</code>.<br>
-    <em>\(Cover-up Aₖ\) untuk pangkat tertinggi \((s+1)^2:\)</em> tutup (s+1)², evaluasi s=−1 → <code>C = 2/(−1) = −2</code>.<br>
+    <em>Cover-up \(Aₖ\) untuk pangkat tertinggi \((s+1)^2:\)</em> tutup (s+1)², evaluasi s=−1 → <code>C = 2/(−1) = −2</code>.<br>
     Untuk B: <strong>tidak bisa cover-up langsung</strong>, lalu pakai turunan atau samakan koefisien. Kalikan dengan s(s+1)²: <code>2 = A(s+1)² + Bs(s+1) + Cs</code>. Samakan koefisien \(s^2\): <code>0 = A + B → B = −2</code>.<br>
     Hasil: <code>F(s) = 2/s − 2/(s+1) − 2/(s+1)²</code>. Inversi: \(f(t) = 2 - 2e^{-t} - 2t \cdot e^{-t}\).
   </div>
@@ -2419,13 +2422,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">③</div>
       <h3>Step 3: Template &amp; Koefisien</h3>
       <p>Tulis template PFD sesuai jenis tiap faktor: <strong>linear</strong> → A/(s−a); <strong>linear berulang</strong> → A₁/(s−a) + A₂/(s−a)² + …; <strong>kuadratik</strong> → (Bs+C)/(\(s^2\)+ps+q). Hitung koefisien: cover-up untuk linear non-berulang, samakan koefisien polinomial untuk faktor berulang dan kuadratik.</p>
-      <div class="formula">\(cover-up + samakan koefisien\)</div>
+      <div class="formula">\(\text{cover-up} + \text{samakan koefisien}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">④</div>
       <h3>Step 4: Tabel Inversi</h3>
       <p>Tiap term di-invers via tabel L⁻¹: \(1/(s-a) \leftrightarrow e^{at}\); \(1/(s-a)^{n} \leftrightarrow t^{n-1}e^{at}/(n-1)!\); \((s+\alpha )/[(s+\alpha )^2+\omega ^2] \leftrightarrow e^{-\alpha t}\cos(\omega t)\); \(\omega /[(s+\alpha )^2+\omega ^2] \leftrightarrow e^{-\alpha t}\sin(\omega t)\). Susun: \(f(t) = \Sigma Aᵢ \cdot e^{aᵢt} + \Sigma tⁿe^{at} + \Sigma e^{-\alpha t} \cdot\;\text{trig}\;(\omega t)\).</p>
-      <div class="formula">\(f(t) = \Sigma tabel \cdot koefisien\)</div>
+      <div class="formula">\(f(t) = \Sigma \text{ tabel} \cdot \text{koefisien}\)</div>
     </div>
   </div>
 
@@ -2484,7 +2487,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 1: Solve PD Orde Tinggi -->
   <div class="analogy-box reveal">
     <span class="analogy-label">📐 Aplikasi 1, Solve PD Orde Tinggi via Laplace + PFD</span>
-    Setelah Laplace mengubah PD orde n menjadi aljabar, hasil <code>Y(s) = N(s)/D(s)</code> hampir selalu berupa fungsi rasional kompleks dengan deg(D) = n. <strong style="color:var(--violet)">Tanpa PFD, tidak mungkin invers \(ke y(t)\)</strong>. Mis. solve <code>y′′′+6y′′+11y′+6y = 0, y(0)=1, y′(0)=0, y′′(0)=0</code>: karakteristik faktor jadi <code>(s+1)(s+2)(s+3)</code>; <code>Y(s) = (s²+6s+11)/[(s+1)(s+2)(s+3)]</code>; cover-up beri A=3, B=−3, C=1; inversi: \(y(t) = 3e^{-t} - 3e^{-2t} + e^{-3t}\). Sistem orde berapapun, langkah sama: faktorkan, PFD, tabel.
+    Setelah Laplace mengubah PD orde n menjadi aljabar, hasil <code>Y(s) = N(s)/D(s)</code> hampir selalu berupa fungsi rasional kompleks dengan deg(D) = n. <strong style="color:var(--violet)">Tanpa PFD, tidak mungkin invers ke \(y(t)\)</strong>. Mis. solve <code>y′′′+6y′′+11y′+6y = 0, y(0)=1, y′(0)=0, y′′(0)=0</code>: karakteristik faktor jadi <code>(s+1)(s+2)(s+3)</code>; <code>Y(s) = (s²+6s+11)/[(s+1)(s+2)(s+3)]</code>; cover-up beri A=3, B=−3, C=1; inversi: \(y(t) = 3e^{-t} - 3e^{-2t} + e^{-3t}\). Sistem orde berapapun, langkah sama: faktorkan, PFD, tabel.
   </div>
 
   <!-- Analogi 2: Integral Fungsi Rasional -->
@@ -2702,7 +2705,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📊</div>
       <h3>Visualisasi Mode Decomposition</h3>
       <p>Setelah PFD memberi suku <code>Aᵢ/(s−aᵢ)</code>, plot tiap mode \(Aᵢ \cdot e^{aᵢt}\) terpisah dengan matplotlib, superposisi memberi total f(t). Visualisasi membantu intuisi: tiap akar Q(s) memberi satu mode, kontribusi diatur oleh residu Aᵢ.</p>
-      <div class="formula">\(plot per-mode +\;\text{total}\)</div>
+      <div class="formula">\(\text{plot per-mode} +\;\text{total}\)</div>
     </div>
   </div>
 

@@ -253,7 +253,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -968,6 +968,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1709,7 +1712,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔬</div>
       <h3>Mengapa Penting di Getaran Mesin?</h3>
       <p>Bearing rusak menghasilkan frekuensi karakteristik (BPFO, BPFI, BSF). Gear mesh muncul di N×rpm. Unbalance di 1×rpm. Misalignment di 2×rpm. Tanpa Fourier, semua bercampur di waveform, tidak diagnosable.</p>
-      <div class="formula">\(Frekuensi = Sidik Jari Kerusakan\)</div>
+      <div class="formula">\(\text{Frekuensi} = \text{Sidik Jari Kerusakan}\)</div>
     </div>
   </div>
 
@@ -1754,7 +1757,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📐</div>
       <h3>Frekuensi Dasar f₀</h3>
       <p><code>f₀ = 1/T</code>, frekuensi terendah dalam dekomposisi. Komponen lain selalu kelipatan integer: <code>f₀, 2f₀, 3f₀, ...</code> Ini disebut <strong>harmonik</strong>: f₀ = harmonik 1, 2f₀ = harmonik 2, dst.</p>
-      <div class="formula">\(f_0 = fundamental frequency\)</div>
+      <div class="formula">\(f_0 = \text{fundamental frequency}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
@@ -1766,13 +1769,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🌊</div>
       <h3>Square Wave Decomposition</h3>
       <p>Square wave klasik = jumlah ganjil-only harmonik: <code>x(t) = (4/π)[sin(ω₀t) + sin(3ω₀t)/3 + sin(5ω₀t)/5 + ...]</code>. Semakin banyak harmonik, semakin tajam corner-nya; itulah Gibbs phenomenon.</p>
-      <div class="formula">\(Square = ganjil harmonik dengan amplitudo \propto 1/n\)</div>
+      <div class="formula">Square = ganjil harmonik dengan amplitudo \(\propto 1/n\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔢</div>
       <h3>Bentuk Eksponensial Kompleks</h3>
       <p>Lebih elegan: <code>x(t) = Σ Cₙ·e<sup>j2πnf₀t</sup></code> dengan <code>Cₙ = (1/T)∫x(t)e<sup>−j2πnf₀t</sup>dt</code>. Memakai bilangan kompleks Cₙ menggabung amplitudo + fase dalam satu nilai. Inilah formulasi yang digeneralisasi ke FT &amp; FFT.</p>
-      <div class="formula">\(C_n \in ℂ : magnitude + phase\)</div>
+      <div class="formula">\(C_n \in ℂ : \text{magnitude} + \text{phase}\)</div>
     </div>
   </div>
 
@@ -1823,19 +1826,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚡</div>
       <h3>Pulse → Spectrum Lebar</h3>
       <p>Pulse waktu pendek (sharp spike) memiliki spektrum yang <strong>lebar</strong>, energi tersebar ke banyak frekuensi. Sebaliknya: pulse panjang lebih sempit di spektrum. Inilah <strong>uncertainty principle</strong>: Δt × Δf ≥ konstanta.</p>
-      <div class="formula">\(Sempit di t ⇌ Lebar di f\)</div>
+      <div class="formula">\(\text{Sempit di } t ⇌ \text{Lebar di } f\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>Sin/Cos Murni → Delta Function</h3>
       <p><code>x(t) = sin(2πf₀t)</code> memiliki <code>X(f) = (j/2)[δ(f+f₀) − δ(f−f₀)]</code>. Spektrum jadi 2 spike di ±f₀. Inilah pondasi: setiap "frekuensi tunggal" muncul sebagai spike di spektrum FT.</p>
-      <div class="formula">\(Sin/Cos ⇌ Spike di \pm f_0\)</div>
+      <div class="formula">\(\text{Sin/Cos} ⇌ \text{Spike di} \pm f_0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
       <h3>Sifat Linearitas</h3>
       <p><code>FT[a·x(t) + b·y(t)] = a·X(f) + b·Y(f)</code>. Sehingga spektrum sinyal gabungan = jumlah spektrum komponen. Ini mengapa diagnosis getaran bekerja, kita bisa <strong>identifikasi tiap kerusakan secara terpisah</strong> di spektrum walaupun semua bercampur di waveform.</p>
-      <div class="formula">\(FT linear \to komponen terpisah\)</div>
+      <div class="formula">\(FT \text{ linear} \to \text{komponen terpisah}\)</div>
     </div>
   </div>
 
@@ -1886,7 +1889,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚖️</div>
       <h3>Symmetry untuk Sinyal Real</h3>
       <p>Bila x[n] real (umumnya iya untuk sinyal getaran), maka <code>X[N−k] = X*[k]</code> (conjugate). Akibatnya: hanya N/2+1 nilai yang independen, sisanya redundant. Plot magnitude FFT biasanya hanya 0 sampai N/2.</p>
-      <div class="formula">\(|X[k]|\;\text{simetris}\;di sekitar N/2\)</div>
+      <div class="formula">\(|X[k]|\;\text{simetris}\;\text{di sekitar } N/2\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⏱️</div>
@@ -1898,7 +1901,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔄</div>
       <h3>Inverse DFT (IDFT)</h3>
       <p>Mengembalikan time-domain dari frequency-domain: <code>x[n] = (1/N) Σ X[k]·e<sup>+j2πkn/N</sup></code>. Kunci: tanda exponent <strong>+</strong> (bukan −) dan faktor 1/N. IDFT ↔ DFT membentuk pasangan invertible.</p>
-      <div class="formula">\(x[n] = IDFT(X[k])\)</div>
+      <div class="formula">\(x[n] = \text{IDFT}(X[k])\)</div>
     </div>
   </div>
 
@@ -1933,7 +1936,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Kompleksitas: DFT vs FFT</div>
-    DFT: \(O(N^2) \cdot\) FFT: \(O(N \cdot \log_2N) \cdot\) Speedup: \(N/\log_2N (~1000 \times\) untuk \(N = 65536)\)
+    DFT: \(O(N^2) \cdot\) FFT: \(O(N \cdot \log_2N) \cdot\) Speedup: \(N/\log_2N\) (~1000× untuk \(N = 65536\))
   <span class="formula-number">(5)</span></div>
 <!-- PERSAMAAN-STATIS:5:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1947,25 +1950,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🧬</div>
       <h3>Divide-and-Conquer</h3>
       <p>FFT membagi N-point DFT menjadi <strong>dua</strong> N/2-point DFT (sample genap dan ganjil), lalu menggabungnya dengan twiddle factors. Diulang rekursif sampai DFT ukuran 2. Total layer: log₂N.</p>
-      <div class="formula">\(DFT_N = \text{combine}(DFT_{N/2,\text{even}}, DFT_{N/2,\text{odd}})\)</div>
+      <div class="formula">\(\text{DFT}_N = \text{combine}(\text{DFT}_{N/2,\text{even}},\allowbreak \text{DFT}_{N/2,\text{odd}})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Twiddle Factor</h3>
       <p>Faktor rotasi <code>W<sub>N</sub><sup>k</sup> = e<sup>−j2πk/N</sup></code> yang menggabungkan dua sub-DFT. Pre-compute sekali, simpan di tabel. Strategi memori-vs-CPU klasik. Algoritma butterfly yang efisien.</p>
-      <div class="formula">\(W_N^k \to "butterfly" operation\)</div>
+      <div class="formula">\(W_N^k \to "\text{butterfly}" \text{ operation}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Syarat: N = 2<sup>k</sup></h3>
       <p>Cooley-Tukey radix-2 paling efisien saat N = 2<sup>k</sup> (256, 512, 1024, ...). Untuk N lain, ada algoritma Bluestein, Rader, mixed-radix, implementasi <code>numpy.fft</code> &amp; <code>scipy.fft</code> menanganinya otomatis.</p>
-      <div class="formula">\(Best: N = 2, 4, 8, 16, ..., 2^k\)</div>
+      <div class="formula">\(\text{Best: } N = 2, 4, 8, 16, ..., 2^k\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌍</div>
       <h3>Dampak Industri</h3>
       <p>Tanpa FFT: tidak ada vibration analyzer real-time, tidak ada MP3/AAC (audio compression), tidak ada JPEG (image compression yang pakai DCT, kerabat FFT), tidak ada 4G/5G (OFDM modulation), tidak ada MRI (k-space reconstruction).</p>
-      <div class="formula">\(FFT = enabler of modern signal processing\)</div>
+      <div class="formula">FFT = enabler of modern signal processing</div>
     </div>
   </div>
 
@@ -2000,7 +2003,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Nyquist Sampling Theorem</div>
-    \(fs \ge 2 \cdot fmax ⟺\) fmax \(\le fs/2\) (Nyquist frequency)
+    \(fs \ge 2 \cdot f_{max} ⟺\) fmax \(\le fs/2\) (Nyquist frequency)
   <span class="formula-number">(6)</span></div>
 <!-- PERSAMAAN-STATIS:6:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -2026,13 +2029,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🛡️</div>
       <h3>Anti-Aliasing Filter</h3>
       <p>Filter <strong>lowpass</strong> analog sebelum ADC yang memotong sinyal di atas fs/2. Vibration analyzer industri selalu punya AAF built-in. Tanpa AAF, frekuensi tinggi noise/EMI bisa muncul sebagai komponen palsu.</p>
-      <div class="formula">\(AAF: cutoff = fs/2.5 (margin)\)</div>
+      <div class="formula">\(\text{AAF: cutoff} = fs/2.5 (\text{margin})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Pemilihan fs Praktis</h3>
       <p>Aturan praktis untuk getaran mesin: <strong>fs = 2.56 × fmax target</strong>. Kalau analisis sampai 10 kHz (high-frequency bearing), pakai fs ≥ 25.6 kHz. Faktor 2.56 (bukan 2) memberi margin untuk filter roll-off realistis.</p>
-      <div class="formula">\(fs = 2.56 \times fmax (\text{industry rule})\)</div>
+      <div class="formula">\(fs = 2.56 \times f_{max}\ (\text{industry rule})\)</div>
     </div>
   </div>
 
@@ -2063,7 +2066,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Windowing Process</div>
-    \(x_{windowed}[n] =\) x[n] \(\cdot\) w[n]  \(\cdot X_{windowed} = FFT(x_{windowed})\)
+    \(x_{windowed}[n] =\) x[n] \(\cdot\) w[n]  \(\cdot X_{windowed} = \text{FFT}(x_{windowed})\)
   <span class="formula-number">(7)</span></div>
 <!-- PERSAMAAN-STATIS:7:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -2077,25 +2080,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔲</div>
       <h3>Rectangular (No Window)</h3>
       <p>w[n] = 1 untuk semua n. Tidak meratakan tepi → leakage terbesar. Hanya cocok untuk sinyal transient yang sudah natural-zero di tepi (impact, hammer test).</p>
-      <div class="formula">\(Resolusi tertajam, leakage terburuk\)</div>
+      <div class="formula">Resolusi tertajam, leakage terburuk</div>
     </div>
     <div class="card">
       <div class="card-icon">🔔</div>
       <h3>Hann (Hanning)</h3>
       <p><code>w[n] = 0.5·(1 − cos(2πn/N))</code>, bell-shape sederhana. Default umum untuk sinyal getaran rotor steady-state. Trade-off bagus antara resolusi dan side-lobe suppression.</p>
-      <div class="formula">\(Hann: bell, side-lobe -31 dB\)</div>
+      <div class="formula">\(\text{Hann: bell, side-lobe} -31 \text{ dB}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Hamming</h3>
       <p><code>w[n] = 0.54 − 0.46·cos(2πn/N)</code>, mirip Hann tapi tepi tidak tepat nol. Side-lobe lebih rendah (−43 dB), main-lobe sedikit lebih lebar. Cocok untuk sinyal dengan komponen frekuensi sangat dekat.</p>
-      <div class="formula">\(Hamming: side-lobe -43 dB\)</div>
+      <div class="formula">\(\text{Hamming: side-lobe} -43 \text{ dB}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌟</div>
       <h3>Flat-Top</h3>
       <p>Window khusus untuk <strong>amplitude accuracy</strong>. Side-lobe paling rendah, tapi main-lobe lebar. Cocok saat ingin baca amplitudo akurat (mis. kalibrasi sensor), bukan untuk diagnosis frekuensi presisi.</p>
-      <div class="formula">\(Flat-top: amplitude accuracy\)</div>
+      <div class="formula">\(\text{Flat-top: amplitude accuracy}\)</div>
     </div>
   </div>
 
@@ -2946,7 +2949,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="comp-q">Hitung <strong>RMS</strong> dari sinyal sinusoidal pure x = sin(2π·100·t), fs = 1000, N = 1000. RMS = √(mean(\(x^2\))).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 RMS = \(\sqrt{mean(x^2}\)); pakai <code>np.mean</code> pada kuadrat sinyal lalu <code>np.sqrt</code>.</div>
+      <div class="comp-hint">💡 RMS = \(\sqrt{\text{mean}(x^2)}\); pakai <code>np.mean</code> pada kuadrat sinyal lalu <code>np.sqrt</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -3184,7 +3187,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Pelajari "fingerprint" gangguan mesin umum: <strong>1× dominan</strong> = unbalance, <strong>2× dominan</strong> = misalignment, <strong>3× &amp; harmonik</strong> = mechanical looseness, <strong>GMF dengan sidebands \(\pm f_{\text{shaft}}\)</strong> = gear wear/eksentrisitas (modulasi amplitudo karena gigi tidak seragam), <strong>peak \(\text{non}\;-sinkron 0.4\;\text{--}\;0.5 \times f_{\text{shaft}}\)</strong> = oil whirl. Apa diagnosis untuk kasus dimana spektrum menunjukkan 1× kecil, 2× = 4× amplitudo 1×, dan GMF dengan dua sidebands kuat di ±30 Hz?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Pelajari "fingerprint" gangguan mesin umum: <strong>1× dominan</strong> = unbalance, <strong>2× dominan</strong> = misalignment, <strong>3× &amp; harmonik</strong> = mechanical looseness, <strong>GMF dengan sidebands \(\pm f_{\text{shaft}}\)</strong> = gear wear/eksentrisitas (modulasi amplitudo karena gigi tidak seragam), <strong>peak \(\text{non-sinkron } 0.4\text{–}0.5 \times f_{\text{shaft}}\)</strong> = oil whirl. Apa diagnosis untuk kasus dimana spektrum menunjukkan 1× kecil, 2× = 4× amplitudo 1×, dan GMF dengan dua sidebands kuat di ±30 Hz?</p>
         <div style="background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
           💬 <em>Hint: 2× &gt;&gt; 1× → tanda khas <strong>misalignment</strong> antara motor dan gearbox shaft. GMF dengan sidebands di ±\(f_{\text{shaft}}\) → tanda <strong>gear eksentrisitas</strong> atau wear lokal pada satu gigi (gigi tertentu engage tiap satu putaran shaft, modulasi periodik). Diagnosis ganda: lakukan re-alignment (laser alignment) sebagai langkah pertama, lalu inspeksi visual gear.</em>
         </div>
@@ -3219,7 +3222,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Sinyal getaran 0.8 s di kasus ini tidak mengandung jumlah putaran yang bulat per komponen frekuensi (mis. 1× = 30 Hz × 0.8 s = 24 putaran, kebetulan bulat untuk 1×, tetapi tidak untuk frekuensi non-integer). Tanpa windowing → spectral leakage. Jelaskan: (a) mengapa Hann lebih baik daripada rectangular, (b) trade-off Hann vs Flat-top vs Hamming, (c) ACF Hann = 2.0 berarti apa.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(x_w[n] = w[n] \cdot x[n]\)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(ACF_{Hann} = 2.0\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(\text{ACF}_{Hann} = 2.0\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(w_{Hann}[n] = 0.5(1 - \cos(2\pi n/N))\)</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
@@ -3282,7 +3285,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div style="font-size:12px;color:var(--muted);line-height:1.5">
           <strong style="color:var(--text)">Cara salin (3 langkah):</strong><br>
           1) Klik tombol <strong style="color:var(--cyan)">🔍 Pilih Semua</strong> di bawah kotak HTML · 
-          \(2)\) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
+          2) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
           3) Paste di Fast Learning &gt; mode HTML.<br>
           <em style="color:var(--violet)">Tombol Copy di atas adalah opsional, jika tidak berfungsi, gunakan cara manual ini.</em>
         </div>

@@ -22,6 +22,14 @@ jobs:
       - name: Validate frontend and Pages gates
         run: node scripts/validate-public-security.mjs
 
+      - name: Render every KaTeX formula with the pages' KaTeX version
+        # The repository has no node_modules: install the exact KaTeX version the pages load (VERSI_KATEX)
+        # outside the checkout, then render every formula segment (a parse error = .katex-error in the browser).
+        run: |
+          VERSI_KATEX=$(node --input-type=module -e "import { VERSI_KATEX } from './scripts/periksa-katex.mjs'; console.log(VERSI_KATEX)")
+          npm install --no-save --no-package-lock --no-audit --no-fund --prefix "$RUNNER_TEMP/katex" "katex@$VERSI_KATEX"
+          node scripts/periksa-katex.mjs --katex "$RUNNER_TEMP/katex/node_modules/katex"
+
       - name: Validate modern academic module design
         run: node scripts/validate-all-course-modern-design.mjs
 

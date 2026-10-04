@@ -253,7 +253,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(255,64,129,.1);border:1px solid rgba(255,64,129,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(255,64,129,.07);border:1px solid rgba(255,64,129,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -968,6 +968,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1671,7 +1674,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📊</div>
       <h3>Mengapa Filter Diperlukan</h3>
       <p>Tanpa filter: <strong style="color:var(--pink)">RMS bias ke atas</strong> (noise menambah energi palsu), <strong>peak detection error</strong> (noise spike disangka event), <strong>FFT noisy</strong> (sulit identifikasi frekuensi sejati), <strong>autocorrelation menurun</strong> (noise acak menipiskan struktur). Filter memisahkan sinyal yang lambat berubah dari noise yang cepat berubah.</p>
-      <div class="formula">\(y' = filter(y)\)</div>
+      <div class="formula">\(y' = \text{filter}(y)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚖️</div>
@@ -1746,7 +1749,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚠️</div>
       <h3>Kelemahan MA</h3>
       <p>(1) <strong style="color:var(--pink)">Bobot uniform</strong>, semua titik dalam window dianggap sama penting (kurang adaptif). (2) <strong>Boundary effect</strong>, k/2 titik di awal &amp; akhir tidak ada output (NaN). (3) <strong>Frequency response yang buruk</strong>, bocor (sidelobes) di domain frekuensi, tidak ideal untuk separasi pita. (4) <strong>Lag pada trailing MA</strong>, bisa delay deteksi event.</p>
-      <div class="formula">\(lag \approx (k-1)/2 sampel\)</div>
+      <div class="formula">\(\text{lag} \approx (k-1)/2 \text{ sampel}\)</div>
     </div>
   </div>
 
@@ -1790,7 +1793,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Exponential Moving Average (Recursive Form)</div>
-    \(EMA_{t} = \alpha \cdot x_{t} + (1-\alpha ) \cdot EMA_{t-1} \cdot \alpha \in (0, 1]\)
+    \(\text{EMA}_{t} = \alpha \cdot x_{t} + (1-\alpha ) \cdot \text{EMA}_{t-1} \cdot \alpha \in (0, 1]\)
   <span class="formula-number">(3)</span></div>
 <!-- PERSAMAAN-STATIS:3:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1870,7 +1873,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Savitzky-Golay &amp; Median Filter</div>
-    SG: \(y'_{t} = polyfit(x_{t \pm k}, p)|_{t} \cdot\) Median: \(y'_{t} = median(x_{t \pm k})\)
+    SG: \(y'_{t} = \text{polyfit}(x_{t \pm k}, p)|_{t} \cdot\) Median: \(y'_{t} = \text{median}(x_{t \pm k})\)
   <span class="formula-number">(4)</span></div>
 <!-- PERSAMAAN-STATIS:4:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1884,7 +1887,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📐</div>
       <h3>Savitzky-Golay (SG) Filter</h3>
       <p>Untuk tiap titik t, fit polinomial orde <strong>p</strong> (biasanya 2 atau 3) pada window <strong>\(2k+1\)</strong> titik di sekitarnya menggunakan <em>least squares</em>. Output adalah nilai polinomial pada pusat window. Hasil: smoothing yang <strong style="color:var(--violet)">menjaga bentuk peak/lembah</strong> jauh lebih baik daripada MA. Dipakai luas di spektroskopi, signal processing, vibration analysis.</p>
-      <div class="formula">\(savgol_{\text{filter}}(\text{x, w, p})\)</div>
+      <div class="formula"><code>savgol_filter(x, w, p)</code></div>
     </div>
     <div class="card">
       <div class="card-icon">🛡️</div>
@@ -1902,7 +1905,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚖️</div>
       <h3>Kapan Pakai Yang Mana</h3>
       <p><strong>MA</strong>: noise gaussian, prefer simplicity. <strong>EMA</strong>: real-time, perlu adaptif. <strong>SG</strong>: peak/feature preservation penting (spektroskopi, vibration peak detection). <strong>Median</strong>: outlier/spike noise, salt-and-pepper noise di sensor. Bisa <em>chained</em>: median filter dulu untuk hapus spike, lalu SG untuk smoothing, pipeline standard di vibration preprocessing.</p>
-      <div class="formula">\(median \to SG (chained)\)</div>
+      <div class="formula">\(\text{median} \to SG (\text{chained})\)</div>
     </div>
   </div>
 
@@ -1912,7 +1915,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <tbody>
         <tr><td style="color:var(--cyan)">Moving Average</td><td>Gaussian, broadband</td><td>❌ tumpul</td><td>✅ trailing</td><td>O(N) ringan</td></tr>
         <tr><td style="color:var(--amber)">EMA</td><td>Gaussian, slow drift</td><td>❌ tumpul</td><td>✅ one-pass</td><td>O(N) sangat ringan</td></tr>
-        <tr><td style="color:var(--violet)">Savitzky-Golay</td><td>Gaussian, signal-preserving</td><td>✅ baik</td><td>⚠ butuh window</td><td>O(\(N \cdot w \cdot p)\) sedang</td></tr>
+        <tr><td style="color:var(--violet)">Savitzky-Golay</td><td>Gaussian, signal-preserving</td><td>✅ baik</td><td>⚠ butuh window</td><td>\(O(N \cdot w \cdot p)\) sedang</td></tr>
         <tr><td style="color:var(--pink)">Median</td><td>Impulse, salt-pepper</td><td>✅ sempurna untuk spike</td><td>⚠ butuh window</td><td>O(\(N \cdot w \cdot \log\) w) berat</td></tr>
       </tbody>
     </table>
@@ -1942,7 +1945,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎧</div>
       <h3>Noise-Cancelling Headphone</h3>
       <p>Headphone NC merekam suara lingkungan (noise) lalu menghasilkan <em>antiphase signal</em> untuk membatalkannya, pas seperti filter membuang komponen frekuensi yang tidak diinginkan. Mahal headphone yang baik = filter yang akurat (cuts noise tanpa merusak musik). Headphone murah = filter buruk (musik ikut "tertumpuk" dengan noise).</p>
-      <div class="formula">\(music = signal - noisê\)</div>
+      <div class="formula">\(\text{music} = \text{signal} - \text{noisê}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🥽</div>
@@ -1960,19 +1963,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📸</div>
       <h3>Shutter Speed Eksposur</h3>
       <p>Shutter speed kamera = <em>integration window</em> filter. Shutter cepat (1/1000 detik) menangkap momen tajam dengan noise (sedikit foton, banyak grain). Shutter lambat (1 detik) merata-ratakan banyak foton, gambar halus tanpa noise tapi <em>motion blur</em> jika ada gerakan. Mirip MA: window kecil = noisy responsif; window besar = halus tapi miss transient cepat.</p>
-      <div class="formula">\(w_{window} ↔ shutter_{time}\)</div>
+      <div class="formula"><code>w_window</code> ↔ <code>shutter_time</code></div>
     </div>
     <div class="card">
       <div class="card-icon">🎨</div>
       <h3>Photoshop: Gaussian vs Median Blur</h3>
       <p>Photoshop menawarkan dua jenis blur. <strong style="color:var(--cyan)">Gaussian Blur</strong> = MA spasial, meratakan piksel sekitar untuk smooth tapi merusak edge (mirip MA tumpulkan peak). <strong style="color:var(--pink)">Median Blur</strong> menghapus noise titik (debu, scratch) tanpa merusak edge, persis seperti median filter di time series untuk hapus impulse noise.</p>
-      <div class="formula">\(median \ne mean\)</div>
+      <div class="formula">\(\text{median} \ne \text{mean}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎚️</div>
       <h3>Audacity: Denoise Audio</h3>
       <p>Saat Anda merekam podcast dengan noise AC, Audacity menggunakan kombinasi filter: <strong>spectral subtraction</strong> (mirip Wiener filter), <strong>median</strong> (untuk klik/pop), dan <strong>SG-like smoothing</strong> (untuk preserve karakter suara). Pipeline ini sama seperti vibration preprocessing: median dulu untuk impulse, lalu SG untuk smoothing yang pertahankan peak frekuensi mesin.</p>
-      <div class="formula">\(median \to SG \to output\)</div>
+      <div class="formula">\(\text{median} \to SG \to \text{output}\)</div>
     </div>
   </div>
 
@@ -2021,7 +2024,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--amber)"></div>
-      <span class="anim-title">Animasi \(2\;\text{---}\) EMA: Slider \(\alpha\) untuk Responsivitas \(vs\) Smoothing</span>
+      <span class="anim-title">Animasi \(2\;\text{---}\) EMA: Slider \(\alpha\) untuk Responsivitas vs Smoothing</span>
     </div>
     <div class="anim-body">
       <canvas id="m2optEMA" height="300" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
@@ -2143,13 +2146,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📈</div>
       <h3>Spectral Peak Preservation (SG)</h3>
       <p>Saat menganalisis spektrum vibration untuk identifikasi bearing fault frequencies (BPFI, BPFO, BSF, FTF), <strong>Savitzky-Golay (w=11, p=3)</strong> di domain time menjaga amplitudo peak FFT, kritis untuk severity assessment. MA akan tumpulkan peak dan membuat severity terlihat lebih ringan dari aktualnya, menyebabkan failure terlewatkan.</p>
-      <div class="formula">\(savgol_{\text{filter}}(x, 11, 3)\)</div>
+      <div class="formula"><code>savgol_filter(x, 11, 3)</code></div>
     </div>
     <div class="card">
       <div class="card-icon">🛡️</div>
       <h3>Spike Removal (Median)</h3>
       <p>Sensor vibration kadang menghasilkan spike palsu dari EMI (relay switching, inverter PWM) atau impact mekanis non-relevan (drop tool nearby). <strong>Median filter (w=5)</strong> menghapus spike ini tanpa merusak sinyal vibration sejati. Pasangkan SEBELUM RMS calculation untuk mendapat hasil yang representatif. Catatan: jangan terapkan median di sinyal yang ingin Anda <em>pertahankan</em> impulse-nya (mis. shock detection).</p>
-      <div class="formula">\(median(x[t \pm 2])\)</div>
+      <div class="formula">\(\text{median}(x[t \pm 2])\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
@@ -2515,7 +2518,7 @@ plt.xlabel('Waktu (s)'); plt.tight_layout(); plt.show()</code></pre>
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">03</div>
-        <div class="mc-q">Pada formula <strong>\(EMA_{t} = \alpha \cdot x_{t} + (1-\alpha ) \cdot EMA_{t-1}\)</strong>, jika α = 0.5 maka...</div>
+        <div class="mc-q">Pada formula <strong>\(\text{EMA}_{t} = \alpha \cdot x_{t} + (1-\alpha ) \cdot \text{EMA}_{t-1}\)</strong>, jika α = 0.5 maka...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc3">
@@ -2699,7 +2702,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       </div>
       <div class="comp-hint">💡 Pakai <code>np.convolve</code> dengan kernel <code>np.ones(k)/k</code> dan <code>mode='same'</code>, lalu ambil rata-rata hasilnya dengan <code>np.mean</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(mean(MA_10)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)"><code>mean(MA_10)</code></strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
         <div class="stdout-box" id="stdout-c2"></div>
       </div>
@@ -2716,7 +2719,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       </div>
       <div class="comp-hint">💡 Terapkan moving average dengan <code>np.convolve</code> (kernel <code>np.ones(k)/k</code>), lalu hitung std sampel dengan <code>np.std(..., ddof=1)</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(std(MA_50)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)"><code>std(MA_50)</code></strong></span></div>
         <textarea class="code-textarea" id="code-c3" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c3')"></textarea>
         <div class="stdout-box" id="stdout-c3"></div>
       </div>
@@ -2779,7 +2782,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q">Terapkan <strong>Median filter dengan \(kernel_{size}=5\)</strong> dari <code>scipy.signal</code>. Cetak <strong>nilai pada indeks 100</strong> (lokasi spike pertama). Median filter akan SEPENUHNYA menghapus spike (tidak seperti MA yang hanya mengurangi).</div>
+        <div class="comp-q">Terapkan <strong>Median filter dengan <code>kernel_size=5</code></strong> dari <code>scipy.signal</code>. Cetak <strong>nilai pada indeks 100</strong> (lokasi spike pertama). Median filter akan SEPENUHNYA menghapus spike (tidak seperti MA yang hanya mengurangi).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Gunakan <code>scipy.signal.medfilt</code> dengan kernel_size dari soal, lalu ambil nilai pada indeks spike yang diminta.</div>
@@ -2835,7 +2838,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       </div>
       <div class="comp-hint">💡 Terapkan moving average k=25 dengan <code>np.convolve</code>, lalu hitung RMS hasilnya dengan <code>np.sqrt</code>/<code>np.mean</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(RMS(MA_25)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)"><code>RMS(MA_25)</code></strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
         <div class="stdout-box" id="stdout-c10"></div>
       </div>
@@ -2862,7 +2865,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       </div>
       <div class="comp-hint">💡 Loop tiap titik i, ambil window centered <code>y[max(0,i-7):min(N,i+8)]</code> dan hitung mean-nya untuk mengisi out[i]; akhirnya ambil rata-rata seluruh out.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(mean(MA_{manual})\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)"><code>mean(MA_manual)</code></strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="12" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
         <div class="stdout-box" id="stdout-c11"></div>
       </div>
@@ -2879,7 +2882,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       </div>
       <div class="comp-hint">💡 Inisialisasi EMA[0] = mean dari 10 titik pertama, lalu iterasi rumus rekursif EMAᵢ = α·yᵢ + (1−α)·EMAᵢ₋₁; ambil nilai pada indeks yang diminta.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(EMA_{manual}[100]\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)"><code>EMA_manual[100]</code></strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="12" placeholder="Paste kode EMA dari awal (recursive, dengan custom init), lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
         <div class="stdout-box" id="stdout-c12"></div>
       </div>
@@ -3066,7 +3069,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Setelah pipeline filter di atas, Sari masih ingin baseline halus untuk monitoring trend kondisi motor harian. Pilih α yang tepat untuk kasus ini. Pertimbangkan: sampling rate fs=5 kHz, durasi monitoring berhari-hari, kebutuhan sensitivitas terhadap perubahan slow degradation tapi robust terhadap fluctuation jangka pendek operasional. Jelaskan rasionya dengan menggunakan rumus α = 2/(N+1).</p>
         <div style="background:rgba(255,179,0,.04);border:1px solid rgba(255,179,0,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
-          💬 <em>Pertimbangkan: dengan \(fs=5\) kHz, \(1\) detik \(= 5000\) sampel. \(\alpha =0.1 \to\) effective \(N \approx 19\) sampel \(\approx 4 ms\) (sangat pendek!). Untuk daily trending, biasanya butuh time constant \(berhari-hari.\) Hitung: \(1\) hari \(= 4.32 \times 10^8\) sampel. \(\alpha\) yang tepat untuk trend harian \(\approx 10^{-7}\), alias terlalu kecil! Solusi: lakukan EMA pada AGREGASI hourly (RMS per \(1\) jam \(= 1 sampel/jam),\) bukan raw data. \(\alpha =0.1\) pada agregat hourly \(=\) effective \(N=19\) jam \(\approx 1\) hari.</em>
+          💬 <em>Pertimbangkan: dengan \(fs=5\) kHz, \(1\) detik \(= 5000\) sampel. \(\alpha =0.1 \to\) effective \(N \approx 19\) sampel \(\approx 4\) ms (sangat pendek!). Untuk daily trending, biasanya butuh time constant berhari-hari. Hitung: \(1\) hari \(= 4.32 \times 10^8\) sampel. \(\alpha\) yang tepat untuk trend harian \(\approx 10^{-7}\), alias terlalu kecil! Solusi: lakukan EMA pada AGREGASI hourly (RMS per 1 jam = 1 sampel/jam), bukan raw data. \(\alpha =0.1\) pada agregat hourly \(=\) effective \(N=19\) jam \(\approx 1\) hari.</em>
         </div>
 
         <div class="poll">
@@ -3077,7 +3080,7 @@ y = clean + noise + spikes                        # ← deret yang akan difilter
             <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>EMA α=10⁻⁶ pada raw, agar match time scale berhari-hari</div>
             <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>Lupakan EMA, kemudian pakai fixed threshold ISO saja</div>
           </div>
-          <div class="p-fb r" id="fp2r">✅ Tepat! Hierarchy aggregation adalah pendekatan industri standar: (1) di edge, hitung RMS per 1-second window pada raw 5 kHz, (2) agregasi jadi \(RMS_{\text{max}}\) per 1-hour window (1 sampel/jam, mengurangi data ratio 18000:1), (3) EMA dengan α=0.05-0.1 pada agregat hourly → effective window 1-2 hari, sangat cocok untuk trend monitoring kondisi motor. Pendekatan ini juga hemat bandwidth (kirim hanya 1 nilai per jam ke cloud) &amp; meaningful (RMS adalah quantity utama untuk ISO 10816).</div>
+          <div class="p-fb r" id="fp2r">✅ Tepat! Hierarchy aggregation adalah pendekatan industri standar: (1) di edge, hitung RMS per 1-second window pada raw 5 kHz, (2) agregasi jadi \(\text{RMS}_{\text{max}}\) per 1-hour window (1 sampel/jam, mengurangi data ratio 18000:1), (3) EMA dengan α=0.05-0.1 pada agregat hourly → effective window 1-2 hari, sangat cocok untuk trend monitoring kondisi motor. Pendekatan ini juga hemat bandwidth (kirim hanya 1 nilai per jam ke cloud) &amp; meaningful (RMS adalah quantity utama untuk ISO 10816).</div>
           <div class="p-fb w" id="fp2w">❌ α=0.5 pada raw data terlalu cepat berubah (effective N=3 sampel = 0.6 ms). α=10⁻⁶ matematis benar tapi menyebabkan overflow numerik dan tidak praktis. Tanpa EMA sama sekali = miss trend gradual; fixed threshold ISO baik untuk klasifikasi tapi tidak menangkap drift perlahan.</div>
         </div>
 

@@ -253,7 +253,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -968,6 +968,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1703,13 +1706,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🏢</div>
       <h3>Use Case Berbeda</h3>
       <p><strong>Absorber</strong>: cocok untuk eksitasi <em>narrow-band</em> (mis. mesin running di frekuensi tetap 50 Hz). <strong>Isolation</strong>: cocok untuk <em>broad-band</em> (mis. melindungi instrumen presisi dari berbagai noise environment) atau saat sumber getaran tidak bisa direduksi.</p>
-      <div class="formula">\(Absorber: narrow-band; Isolation: broad-band\)</div>
+      <div class="formula">Absorber: narrow-band; Isolation: broad-band</div>
     </div>
     <div class="card">
       <div class="card-icon">⚖️</div>
       <h3>Trade-off Klasik</h3>
       <p><strong>Absorber</strong>: efektif persis di frekuensi tuning, tapi muncul 2 puncak resonansi baru di sekitarnya yang harus dijauhi (lihat Bagian 03). <strong>Isolation</strong>: butuh ω &gt; √2 ω<sub>n</sub> isolator (di bawah ini malah amplifikasi), butuh isolator yang soft (low k).</p>
-      <div class="formula">\(No free lunch, both have\;\text{constraints}\)</div>
+      <div class="formula">No free lunch, both have constraints</div>
     </div>
   </div>
 
@@ -1740,7 +1743,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Den Hartog Optimal Tuning Formulas</div>
-    \(f_{opt} = 1 / (1 + \mu ) \cdot \zeta _{opt} = \sqrt{3\mu / (8(1 + \mu }^3))\)
+    \(f_{opt} = 1 / (1 + \mu ) \cdot \zeta _{opt} = \sqrt{3\mu / (8(1 + \mu )^3)}\)
   <span class="formula-number">(2)</span></div>
 <!-- PERSAMAAN-STATIS:2:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1765,14 +1768,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">💧</div>
       <h3>Optimal Damping: ζ<sub>opt</sub></h3>
-      <p>Damping ratio absorber yang minimize peak response: \(\zeta _{opt} = \sqrt{3\mu /(8(1+\mu }^3))\). Untuk μ=0.05: ζ<sub>opt</sub>=0.135 (13.5%), moderate damping. Implementasi: pilih c<sub>a</sub> dengan formula \(c_{a} = 2 \cdot m_{a} \cdot \omega _{a} \cdot \zeta _{opt}\).</p>
-      <div class="formula">\(ζ_opt\) = \(\sqrt{3\mu /(8(1+\mu }\)³))</div>
+      <p>Damping ratio absorber yang minimize peak response: \(\zeta _{opt} = \sqrt{3\mu /(8(1+\mu )^3)}\). Untuk μ=0.05: ζ<sub>opt</sub>=0.135 (13.5%), moderate damping. Implementasi: pilih c<sub>a</sub> dengan formula \(c_{a} = 2 \cdot m_{a} \cdot \omega _{a} \cdot \zeta _{opt}\).</p>
+      <div class="formula">\(ζ_{opt} = \sqrt{3\mu /(8(1+\mu )^3)}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Reduction Factor</h3>
-      <p>Dengan tuning optimal Den Hartog, peak amplitude struktur utama dapat direduksi hingga: \(X_{max}/X_{static} \approx \sqrt{(2 + \mu }/\mu )\). Untuk μ=0.05: ratio = 6.3 (bandingkan tanpa absorber yang infinite di resonance). <strong>Reduksi 80-95%</strong> di puncak resonansi.</p>
-      <div class="formula">\(X_{\text{max}}\) ≈ \(X_{\text{static}}\) · \(\sqrt{(2+\mu }\)/μ)</div>
+      <p>Dengan tuning optimal Den Hartog, peak amplitude struktur utama dapat direduksi hingga: \(X_{max}/X_{static} \approx \sqrt{(2 + \mu )/\mu }\). Untuk μ=0.05: ratio = 6.3 (bandingkan tanpa absorber yang infinite di resonance). <strong>Reduksi 80-95%</strong> di puncak resonansi.</p>
+      <div class="formula">\(X_{\text{max}} \approx X_{\text{static}} \cdot \sqrt{(2+\mu )/\mu }\)</div>
     </div>
   </div>
 
@@ -1822,25 +1825,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📉</div>
       <h3>Anti-Resonance @ ω<sub>tuning</sub></h3>
       <p>Pada frekuensi tuning ω<sub>a</sub>=ω<sub>tuning</sub>, response struktur utama (<strong>tanpa damping</strong>) <strong>theoretically zero</strong>, TMD bergerak out-of-phase dan secara perfect membatalkan gaya eksitasi. Inilah magic vibration absorber.</p>
-      <div class="formula">\(X(\omega _tuning) = 0 (undamped)\)</div>
+      <div class="formula">\(X(\omega _{tuning}) = 0 (\text{undamped})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>Dua Puncak Baru (Resonance 1 &amp; 2)</h3>
       <p>2-DoF system memiliki 2 frekuensi pribadi: ω<sub>1</sub> &lt; ω<sub>tuning</sub> &lt; ω<sub>2</sub>. Pada tiap ω<sub>i</sub>, response infinite tanpa damping. Dengan damping ζ<sub>opt</sub>, kedua puncak ter-cap di amplitude finite tapi tetap perlu dihindari sebagai eksitasi.</p>
-      <div class="formula">\(\omega _1 < \omega _tuning < \omega _2\)</div>
+      <div class="formula">\(\omega _1 &lt; \omega _{tuning} &lt; \omega _2\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔍</div>
       <h3>Pole-Zero Pattern</h3>
       <p>FRF transfer function <code>H(s) = N(s)/D(s)</code>. Numerator zero di \(s^2\) = −ω<sub>a</sub>² → anti-resonance. Denominator zero di \(s^2\) = −ω<sub>1</sub>², −ω<sub>2</sub>² → resonance. Spacing antara ω<sub>1</sub> dan ω<sub>2</sub> tergantung mass ratio μ.</p>
-      <div class="formula">\(Zeros at \omega _a, Poles at \omega _1 \& \omega _2\)</div>
+      <div class="formula">\(\text{Zeros at } \omega _a, \text{Poles at } \omega _1 \&amp; \omega _2\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚖️</div>
       <h3>Optimal Damping Effect</h3>
       <p>Tanpa damping: anti-resonance perfect (X=0) tapi 2 puncak infinite. Dengan damping terlalu besar: TMD "kunci" bersama struktur, tidak bekerja. <strong>ζ<sub>opt</sub></strong> Den Hartog: trade-off perfect, kedua puncak <strong>sama tinggi</strong>, tidak ada satu yang dominan.</p>
-      <div class="formula">\(\zeta _opt \to equal peak heights\)</div>
+      <div class="formula">\(\zeta _{opt} \to \text{equal peak heights}\)</div>
     </div>
   </div>
 
@@ -1875,7 +1878,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Force Transmissibility</div>
-    \(TR = \sqrt{(1 + (2\zeta r}^2) / ((1 - r^2)^2 + (2\zeta r)^2)) \cdot r = \omega /\omega _{n}, \omega _{n} = \sqrt{k/m}\)
+    \(TR = \sqrt{\frac{1 + (2\zeta r)^2}{(1 - r^2)^2 + (2\zeta r)^2}}\), \({r = \omega /\omega _{n},\ \omega _{n} = \sqrt{k/m}}\)
   <span class="formula-number">(4)</span></div>
 <!-- PERSAMAAN-STATIS:4:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1889,25 +1892,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📐</div>
       <h3>Three Frequency Regions</h3>
       <p><strong>r &lt; 1</strong>: TR ≈ 1 (isolator ineffective, gaya transmit sepenuhnya).<br><strong>r = 1</strong>: resonance, TR puncak (sangat berbahaya, hindari).<br><strong>\(r\) &gt; \(\sqrt{2}\)</strong>: TR &lt; 1 (isolator <em>efektif</em>, gaya direduksi).<br>Untuk isolation, design selalu di region r &gt; √2.</p>
-      <div class="formula">\(Effective: r > \sqrt{2} (1.414)\)</div>
+      <div class="formula">\(\text{Effective: } r > \sqrt{2} (1.414)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🛡️</div>
       <h3>Soft Spring = Better Isolation</h3>
       <p>Untuk r besar (TR kecil), butuh ω<sub>n</sub> = \(\sqrt{k/m}\) <strong>kecil</strong> (di bawah ω eksitasi). Implementasi: <strong>k spring kecil (soft)</strong> atau m massa besar. Spring soft: rubber mount, coil spring lembut. Konsekuensi: deflection statis besar.</p>
-      <div class="formula">\(k small \to \omega _n small \to r large \to TR small\)</div>
+      <div class="formula">\(k \text{ small} \to \omega _n \text{ small} \to r \text{ large} \to TR \text{ small}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">💧</div>
       <h3>Damping Effect — Trade-off</h3>
       <p>Damping <strong>turunkan</strong> peak di resonance (r=1), tapi <strong>naikkan</strong> TR di high frequency (r &gt;&gt; 1). Trade-off: <strong>low damping</strong> (ζ ≈ 0.05): bagus high-freq isolation, tapi peak resonance sangat tinggi. <strong>High damping</strong> (ζ ≈ 0.3): peak rendah, tapi high-freq isolation kurang.</p>
-      <div class="formula">\(Low \zeta : better high-f isolation, worse resonance\)</div>
+      <div class="formula">Low \(\zeta\): better high-f isolation, worse resonance</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Target TR untuk Industrial</h3>
       <p>Industrial standard: <strong>TR ≤ 0.1</strong> (90% reduction) untuk equipment sensitif. <strong>TR ≤ 0.05</strong> (95% reduction) untuk lab/precision. Achieved dengan r ≥ 4 (eksitasi 4× di atas isolator natural frequency). Mis. eksitasi 50 Hz → ω<sub>n</sub> isolator ≤ 12.5 Hz.</p>
-      <div class="formula">\(TR \le 0.1 standard, \le 0.05 precision\)</div>
+      <div class="formula">\(TR \le 0.1 \text{ standard,} \le 0.05 \text{ precision}\)</div>
     </div>
   </div>
 
@@ -1956,25 +1959,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔬</div>
       <h3>Use Case: Lab Equipment Protection</h3>
       <p>Microscope, timbangan presisi, atomic force microscope (AFM) tidak boleh terganggu getaran lantai (foot traffic, AC fan, mesin lain di lab). Pasang <strong>vibration isolation table</strong> dengan isolator soft (f<sub>n</sub> ~1-2 Hz) untuk reject vibrasi 5+ Hz.</p>
-      <div class="formula">\(Lab AFM: f_n < 2 Hz, TR < 0.05\)</div>
+      <div class="formula">\(\text{Lab AFM: } f_n &lt; 2 \text{ Hz, } TR &lt; 0.05\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏭</div>
       <h3>Use Case: Sensitive Manufacturing</h3>
       <p>Semiconductor lithography stepper, electron beam lithography butuh isolator sangat soft. Vibrasi lantai 1 μm bisa membuat misalignment ratusan nm di chip, defect yield drop. Custom <strong>active isolation tables</strong> dengan piezo actuator + accelerometer feedback.</p>
-      <div class="formula">\(Active iso: TR < 0.001 in 1-100 Hz\)</div>
+      <div class="formula">\(\text{Active iso: } TR &lt; 0.001 \text{ in 1-100 Hz}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚗</div>
       <h3>Use Case: Vehicle Suspension</h3>
       <p>Mobil = base motion excitation: jalan bergelombang sebagai input, body sebagai mass. Isolator: spring suspensi + shock absorber. Damping tinggi (ζ ~0.3) untuk ride comfort vs handling balance. f<sub>n</sub> design: ~1-2 Hz (frekuensi bouncing tipikal mobil).</p>
-      <div class="formula">\(Car suspension: f_n 1-2 Hz, \zeta 0.3\)</div>
+      <div class="formula">Car suspension: \(f_n\) 1–2 Hz, \(\zeta\) 0.3</div>
     </div>
     <div class="card">
       <div class="card-icon">🏢</div>
       <h3>Use Case: Seismic Base Isolation</h3>
       <p>Gedung di area gempa: pasang <strong>base isolators</strong> (laminated rubber bearings, friction pendulum) di antara gedung dan fondasi. Period gedung ter-extend dari 0.5s → 3-5s, jauh dari period gempa dominant. Reduksi acceleration lantai 70-90%.</p>
-      <div class="formula">\(Seismic iso: T 3-5s shifts response\)</div>
+      <div class="formula">Seismic iso: \(T\) 3–5 s shifts response</div>
     </div>
   </div>
 
@@ -2023,7 +2026,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📋</div>
       <h3>Step 1: Identify Excitation</h3>
       <p>Catat frekuensi sumber getaran. Single-source: f<sub>excitation</sub> dari mesin spec (mis. 1750 RPM motor = 29.2 Hz). Multi-source: pilih frekuensi lowest dari range yang harus di-isolate (lower freq harder to isolate).</p>
-      <div class="formula">\(f_{\text{min}} from source list\)</div>
+      <div class="formula">\(f_{\text{min}} \text{ from source list}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
@@ -2041,7 +2044,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🛠️</div>
       <h3>Step 4: Spec Isolator</h3>
       <p>Calculate static deflection target: \(\delta = g/\omega _{n}^2 = 9.81/\omega _{n}^2\) (m). Convert ke isolator selection: pilih spring/rubber/air dengan deflection rating sesuai. Verify deflection &lt; max yield untuk safety.</p>
-      <div class="formula">\(\delta = g/\omega _n^2 \to spec\;\text{spring}\)</div>
+      <div class="formula">\(\delta = g/\omega _n^2 \to \text{spec}\;\text{spring}\)</div>
     </div>
   </div>
 
@@ -2078,7 +2081,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Aplikasi Spectrum</div>
-    Building TMD (very low \(f) \cdot\) Industrial Mounting (HVAC, motors) \(\cdot\) Vehicle Suspension \(\cdot\) Lab Precision Iso
+    Building TMD (very low \(f\)) \(\cdot\) Industrial Mounting (HVAC, motors) \(\cdot\) Vehicle Suspension \(\cdot\) Lab Precision Iso
   <span class="formula-number">(7)</span></div>
 <!-- PERSAMAAN-STATIS:7:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -2092,25 +2095,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🏗️</div>
       <h3>Taipei 101 &amp; Burj Khalifa TMD</h3>
       <p>Gedung supertall membutuhkan TMD untuk reduksi vibrasi angin/gempa. Taipei 101: 660 ton ball pendulum, period 7-9 sec. Burj Khalifa: tidak pakai single TMD karena ground shape, melainkan <strong>tuned liquid damper</strong> (TLD), kolam air di top.</p>
-      <div class="formula">\(Taipei 101: 660t ball, T 7-9s\)</div>
+      <div class="formula">\(\text{Taipei 101: 660t ball, } T\ 7\text{–}9\text{ s}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌉</div>
       <h3>Millennium Bridge London</h3>
       <p>Jembatan kabel pejalan kaki dibuka 2000, langsung tutup hari pertama karena bergoyang berbahaya akibat <strong>synchronous walking</strong>. Solusi: 89 vibration dampers (37 viscous + 52 TMD) di-install. Total cost £5M. Re-buka 2002 dengan goyangan acceptable.</p>
-      <div class="formula">\(89 dampers solve synchronous walking\)</div>
+      <div class="formula">89 dampers solve synchronous walking</div>
     </div>
     <div class="card">
       <div class="card-icon">❄️</div>
       <h3>HVAC Air Handling Unit (AHU)</h3>
       <p>AHU di rooftop besar (10-50 ton) menghasilkan vibrasi di 25-50 Hz dari fan + compressor. Standar: <strong>spring isolators</strong> dengan deflection 25-50 mm, TR target 0.05. Biaya isolator: ~5-10% AHU cost, investment kecil untuk noise dan structural protection.</p>
-      <div class="formula">\(AHU iso: 25-50mm deflection, TR 0.05\)</div>
+      <div class="formula">AHU iso: 25–50 mm deflection, \(TR\) 0.05</div>
     </div>
     <div class="card">
       <div class="card-icon">🔬</div>
       <h3>Semiconductor Lithography</h3>
       <p>Lithography stepper (ASML EUV: $200M per machine) butuh <strong>active vibration isolation</strong> dengan TR &lt; 0.001 di 0.1-100 Hz. Multi-stage: pneumatic isolator (passive) + piezo actuator dengan accelerometer feedback. Critical: chip 5nm node tidak akan yield tanpa ini.</p>
-      <div class="formula">\(EUV: active iso TR < 0.001\)</div>
+      <div class="formula">\(\text{EUV: active iso } TR &lt; 0.001\)</div>
     </div>
   </div>
 
@@ -2374,7 +2377,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
               <span id="cvTuning_view" style="position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
                 <span style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
-              <span id="cvTuning_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#0ea5e9;font-weight:700;">Classical Tuning \((\omega _a = \omega _main)\)</span>
+              <span id="cvTuning_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#0ea5e9;font-weight:700;">Classical Tuning \((\omega _a = \omega _{main})\)</span>
             </span>
           </div>
         </div>
@@ -2683,7 +2686,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     <div class="mc-card reveal">
       <div class="mc-header">
         <div class="mc-num">04</div>
-        <div class="mc-q">Den Hartog optimal damping <strong>\(ζ_opt\)</strong> dengan mass ratio μ = 0.05 adalah sekitar...</div>
+        <div class="mc-q">Den Hartog optimal damping <strong>\(ζ_{opt}\)</strong> dengan mass ratio μ = 0.05 adalah sekitar...</div>
         <div class="mc-pts">1 poin</div>
       </div>
       <div class="radio-group" id="rg-mc4">
@@ -2843,10 +2846,10 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C2</div>
-        <div class="comp-q"><strong>Den Hartog optimal damping</strong> untuk μ = 0.10. Formula: \(ζ_opt\) = \(\sqrt{3\mu / (8(1+\mu }\)³)).</div>
+        <div class="comp-q"><strong>Den Hartog optimal damping</strong> untuk μ = 0.10. Formula: \(ζ_{opt} = \sqrt{3\mu / (8(1+\mu )^3)}\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Terapkan \(ζ_opt\) = \(\sqrt{3\mu /(8(1+\mu }\)³)) dengan <code>np.sqrt</code>; substitusikan μ.</div>
+      <div class="comp-hint">💡 Terapkan \(ζ_{opt} = \sqrt{3\mu /(8(1+\mu )^3)}\) dengan <code>np.sqrt</code>; substitusikan μ.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
@@ -2877,7 +2880,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C4</div>
-        <div class="comp-q">Untuk vibration isolator dengan <strong>natural freq \(f_n = 5 Hz\)</strong>, hitung static deflection δ (mm). Formula: δ = g/(2π·\(f_n\))².</div>
+        <div class="comp-q">Untuk vibration isolator dengan <strong>natural freq \(f_n = 5 \text{ Hz}\)</strong>, hitung static deflection δ (mm). Formula: δ = g/(2π·\(f_n\))².</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Static deflection δ = g/(2π·f<sub>n</sub>)² dengan <code>np.pi</code>; kalikan 1000 untuk konversi ke mm.</div>
@@ -2894,7 +2897,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C5</div>
-        <div class="comp-q"><strong>Force Transmissibility (TR)</strong> untuk r = 3, ζ = 0.05. Formula: TR = \(\sqrt{(1+(2\zeta r}\)²)/((1-\(r^2\))²+(2ζr)²)).</div>
+        <div class="comp-q"><strong>Force Transmissibility (TR)</strong> untuk r = 3, ζ = 0.05. Formula: TR = \(\sqrt{\frac{1+(2\zeta r)^2}{(1-r^2)^2+(2\zeta r)^2}}\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Terapkan TR = \(\sqrt{\dfrac{1+(2\zeta r)^2}{(1-r^2)^2+(2\zeta r)^2}}\) dengan <code>np.sqrt</code>; substitusikan r dan ζ.</div>
@@ -2962,10 +2965,10 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C9</div>
-        <div class="comp-q"><strong>TMD damping coefficient</strong>: untuk \(m_a\) = 100 kg, \(\omega _a\) = 9.5 rad/s, \(ζ_opt\) = 0.135, hitung \(c_a\) = 2·\(m_a\)·\(\omega _a\)·\(ζ_opt\).</div>
+        <div class="comp-q"><strong>TMD damping coefficient</strong>: untuk \(m_a\) = 100 kg, \(\omega _a\) = 9.5 rad/s, \(ζ_{opt}\) = 0.135, hitung \(c_a\) = 2·\(m_a\)·\(\omega _a\)·\(ζ_{opt}\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Koefisien redaman absorber c<sub>a</sub> = 2·\(m_a\)·\(\omega _a\)·\(ζ_opt\); substitusikan \(m_a\), \(\omega _a\), dan \(ζ_opt\).</div>
+      <div class="comp-hint">💡 Koefisien redaman absorber c<sub>a</sub> = 2·\(m_a\)·\(\omega _a\)·\(ζ_{opt}\); substitusikan \(m_a\), \(\omega _a\), dan \(ζ_{opt}\).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
@@ -2979,10 +2982,10 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q">Reduction factor TMD: <strong>\(X_{\text{max}} / X_{\text{static}} \approx \sqrt{(2+\mu }/\mu )\)</strong> dengan tuning Den Hartog optimal. Untuk μ = 0.05, hitung ratio.</div>
+        <div class="comp-q">Reduction factor TMD: <strong>\(X_{\text{max}} / X_{\text{static}} \approx \sqrt{(2+\mu )/\mu }\)</strong> dengan tuning Den Hartog optimal. Untuk μ = 0.05, hitung ratio.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Terapkan reduction factor \(\sqrt{(2+\mu }\)/μ) dengan <code>np.sqrt</code>; substitusikan μ.</div>
+      <div class="comp-hint">💡 Terapkan reduction factor \(\sqrt{(2+\mu )/\mu }\) dengan <code>np.sqrt</code>; substitusikan μ.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
@@ -3008,7 +3011,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q"><strong>Den Hartog full design function</strong>: implementasikan den_hartog_tmd(\(m_{\text{main}}\), \(omega_n\), mu) yang return dict (\(m_a\), \(k_a\), \(c_a\)). Test dengan (1000, 10, 0.05). Return \(k_a\).</div>
+        <div class="comp-q"><strong>Den Hartog full design function</strong>: implementasikan den_hartog_tmd(\(m_{\text{main}}\), \(\omega_n\), mu) yang return dict (\(m_a\), \(k_a\), \(c_a\)). Test dengan (1000, 10, 0.05). Return \(k_a\).</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Hitung berurutan: \(m_a\) = μ·m<sub>main</sub>, f<sub>opt</sub> = 1/(1+μ), \(\omega _a\) = f<sub>opt</sub>·\(\omega _n\), lalu \(k_a\) = \(m_a\)·ω<sub>a</sub>²; kembalikan \(k_a\) dari dict desain.</div>
@@ -3059,7 +3062,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C14</div>
-        <div class="comp-q"><strong>Optimal isolator design</strong>: untuk compressor 200 kg pada 1500 RPM, target TR = 0.1. Hitung \(omega_n\) isolator, then static deflection (mm).</div>
+        <div class="comp-q"><strong>Optimal isolator design</strong>: untuk compressor 200 kg pada 1500 RPM, target TR = 0.1. Hitung \(\omega_n\) isolator, then static deflection (mm).</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Hitung r dari TR target (r ≈ \(\sqrt{1/TR+1}\)), konversi RPM ke ω eksitasi, dapat \(\omega _n\) = ω<sub>eksitasi</sub>/r, lalu static deflection δ = g/ω<sub>n</sub>² (konversi ke mm).</div>
@@ -3150,7 +3153,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
   <div class="forum-scenario reveal">
     <div class="scenario-label">📋 KASUS DESAIN PERLINDUNGAN GETARAN</div>
     <p>
-      Inspirasi dari <strong style="color:var(--cyan)">Taipei 101 (660-ton TMD di lantai 87)</strong>, tim akan mendesain Tuned Mass Damper untuk sebuah struktur skala lab. Massa utama (model 1-DoF setara satu mode dominan struktur) \(m_M\) = 1 000 kg dengan kekakuan \(k_M\) = 400 000 N/m → \(\omega _n\) ≈ 20 rad/s (≈ 3.18 Hz, mirip frekuensi pribadi gedung tinggi langsing). Beban angin harmonik menghasilkan eksitasi pada ω = \(\omega _n\) → resonansi. Pertanyaan: dengan rasio massa <strong style="color:var(--amber)">\(\mu = m_a/m_M = 5%\)</strong>, rancang TMD optimal (Den Hartog tuning) dan hitung amplification factor sebelum vs sesudah. Bagian kedua: untuk kasus isolasi getaran sebuah <strong style="color:var(--amber)">pompa 1500 rpm (25 Hz)</strong> di atas isolator pegas-peredam dengan \(f_n\)_isolator = 5 Hz dan ζ = 0.10, hitung transmissibility &amp; efektivitas isolasi.
+      Inspirasi dari <strong style="color:var(--cyan)">Taipei 101 (660-ton TMD di lantai 87)</strong>, tim akan mendesain Tuned Mass Damper untuk sebuah struktur skala lab. Massa utama (model 1-DoF setara satu mode dominan struktur) \(m_M\) = 1 000 kg dengan kekakuan \(k_M\) = 400 000 N/m → \(\omega _n\) ≈ 20 rad/s (≈ 3.18 Hz, mirip frekuensi pribadi gedung tinggi langsing). Beban angin harmonik menghasilkan eksitasi pada ω = \(\omega _n\) → resonansi. Pertanyaan: dengan rasio massa <strong style="color:var(--amber)">\(\mu = m_a/m_M = 5\%\)</strong>, rancang TMD optimal (Den Hartog tuning) dan hitung amplification factor sebelum vs sesudah. Bagian kedua: untuk kasus isolasi getaran sebuah <strong style="color:var(--amber)">pompa 1500 rpm (25 Hz)</strong> di atas isolator pegas-peredam dengan \(f_n\)_isolator = 5 Hz dan ζ = 0.10, hitung transmissibility &amp; efektivitas isolasi.
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px">
       <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">\(m_M\) = 1 000 kg</div>
@@ -3186,10 +3189,10 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Dengan \(m_M\) = 1000 kg, \(\omega _n\) = 20 rad/s, dan μ = 0.05, hitung: (a) \(m_a\) = μ·\(m_M\), (b) frekuensi TMD optimal \(\omega _a\) = \(f_{\text{opt}}\)·\(\omega _n\), (c) \(k_a\) = \(m_a\)·ω<sub>a</sub>², (d) damping optimal \(c_a\) = 2·\(ζ_opt\)·\(m_a\)·\(\omega _a\). Periksa dimensi tiap nilai (kg, N/m, \(N \cdot s\)/m).</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Dengan \(m_M\) = 1000 kg, \(\omega _n\) = 20 rad/s, dan μ = 0.05, hitung: (a) \(m_a\) = μ·\(m_M\), (b) frekuensi TMD optimal \(\omega _a\) = \(f_{\text{opt}}\)·\(\omega _n\), (c) \(k_a\) = \(m_a\)·ω<sub>a</sub>², (d) damping optimal \(c_a\) = 2·\(ζ_{opt}\)·\(m_a\)·\(\omega _a\). Periksa dimensi tiap nilai (kg, N/m, \(N \cdot s\)/m).</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(f_{\text{opt}} = 1/(1+\mu )\)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(\zeta _opt = \sqrt{3\mu /(8(1+\mu }^3))\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(\zeta _{opt} = \sqrt{3\mu /(8(1+\mu )^3)}\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(k_a = m_a \cdot \omega _a^2\)</span>
         </div>
 
@@ -3197,12 +3200,12 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
           <div class="poll-q">QUICK CHECK — Nilai parameter TMD optimal yang benar adalah...</div>
           <div class="poll-opts" id="fp1">
             <div class="p-opt" onclick="voteForum(1,this,0)"><div class="p-circle"></div><span class="opsi-teks">\(m_a\) = 500 kg, \(k_a\) = 200 000 N/m, \(c_a\) = 1000 \(N \cdot s\)/m</span></div>
-            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div><span class="opsi-teks">\(m_a\) = 50 kg, \(k_a\) ≈ 18 141 N/m, \(ζ_opt\) ≈ 0.127, \(c_a\) ≈ 242 \(N \cdot s\)/m</span></div>
+            <div class="p-opt" onclick="voteForum(1,this,1)"><div class="p-circle"></div><span class="opsi-teks">\(m_a\) = 50 kg, \(k_a\) ≈ 18 141 N/m, \(ζ_{opt}\) ≈ 0.127, \(c_a\) ≈ 242 \(N \cdot s\)/m</span></div>
             <div class="p-opt" onclick="voteForum(1,this,2)"><div class="p-circle"></div><span class="opsi-teks">\(m_a\) = 50 kg, \(k_a\) = 20 000 N/m (tuned tepat ke \(\omega _n\))</span></div>
             <div class="p-opt" onclick="voteForum(1,this,3)"><div class="p-circle"></div><span class="opsi-teks">\(m_a\) = 5 kg, \(k_a\) = 2000 N/m, ζ = 0.05</span></div>
           </div>
-          <div class="p-fb r" id="fp1r">✅ Tepat! \(m_a\) = 0.05·1000 = 50 kg. \(f_{\text{opt}}\) = 1/1.05 = 0.9524 → \(\omega _a\) = 0.9524·20 = 19.048 rad/s. \(k_a\) = 50·(19.048)² ≈ 18 141 N/m. \(ζ_opt\) = \(\sqrt{3 \cdot 0.05/(8 \cdot 1.05^3}\)) ≈ 0.127. \(c_a\) = 2·0.127·50·19.048 ≈ 242 \(N \cdot s\)/m. NB: TMD tidak di-tune ke \(\omega _n\) persis, sedikit di bawah (1/(1+μ)) agar dua puncak baru yang terbentuk sama tinggi (fixed-points Den Hartog).</div>
-          <div class="p-fb w" id="fp1w">❌ Hitung tahap demi tahap: \(m_a\) = μ·\(m_M\), \(\omega _a\) = \(\omega _n\)/(1+μ), \(k_a\) = \(m_a\)·ω<sub>a</sub>². \(ζ_opt\) dari rumus Den Hartog ≈ 0.127 untuk μ = 5%.</div>
+          <div class="p-fb r" id="fp1r">✅ Tepat! \(m_a\) = 0.05·1000 = 50 kg. \(f_{\text{opt}}\) = 1/1.05 = 0.9524 → \(\omega _a\) = 0.9524·20 = 19.048 rad/s. \(k_a\) = 50·(19.048)² ≈ 18 141 N/m. \(ζ_{opt} = \sqrt{3 \cdot 0.05/(8 \cdot 1.05^3)}\) ≈ 0.127. \(c_a\) = 2·0.127·50·19.048 ≈ 242 \(N \cdot s\)/m. NB: TMD tidak di-tune ke \(\omega _n\) persis, sedikit di bawah (1/(1+μ)) agar dua puncak baru yang terbentuk sama tinggi (fixed-points Den Hartog).</div>
+          <div class="p-fb w" id="fp1w">❌ Hitung tahap demi tahap: \(m_a\) = μ·\(m_M\), \(\omega _a\) = \(\omega _n\)/(1+μ), \(k_a\) = \(m_a\)·ω<sub>a</sub>². \(ζ_{opt}\) dari rumus Den Hartog ≈ 0.127 untuk μ = 5%.</div>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq1" placeholder="Tulis hasil rancangan TMD Anda (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung mₐ, ωₐ, kₐ, ζₒₚₜ, cₐ tahap demi tahap. (2) Tunjukkan unit konsisten. (3) Jelaskan mengapa ωₐ tidak persis sama dengan ωₙ — fixed-points theorem Den Hartog. (4) Bandingkan dengan Taipei 101: massa TMD ~0.27% massa gedung (jauh lebih kecil dari 5%) — diskusikan mengapa." oninput="checkForumReady()"></textarea>
@@ -3255,10 +3258,10 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Pompa beroperasi pada 1500 rpm = 25 Hz dan menghasilkan gaya unbalance harmonik. Dipasang pada isolator pegas-peredam dengan \(f_n\)_isolator = 5 Hz, ζ = 0.10. Hitung rasio frekuensi r = \(f_{\text{drive}}\)/f<sub>n</sub>, lalu transmissibility TR. Berapa persen reduksi gaya yang ditransmisikan ke pondasi? Bandingkan dengan kriteria "good isolation" (TR &lt; 0.1).</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(r = \omega_{\text{drive}} / \omega_{n,\text{isolator}}\)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(TR = \sqrt{1+(2\zeta r}^2)/\sqrt{(1-r^2}^2+(2\zeta r)^2)\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(TR = \sqrt{1+(2\zeta r)^2}/\sqrt{(1-r^2)^2+(2\zeta r)^2}\)</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Hint: r = 25/5 = 5 (di zone isolasi karena r &gt; √2 ≈ 1.41). Numerator \(\sqrt{1+(2 \cdot 0.1 \cdot 5}\)²) = \(\sqrt{1+1}\) = √2. Denominator \(\sqrt{(1-25}\)² + 1) = \(\sqrt{576+1}\) ≈ 24.02. TR ≈ √2/24.02 ≈ <strong style="color:var(--green)">0.0589 → ~5.89% gaya ditransmisikan, isolasi 94.1%</strong>. Memenuhi kriteria good isolation (&lt; 10%). Catatan: damping tinggi memperburuk isolasi pada r &gt; √2 (kontra-intuitif!); itulah mengapa isolator industrial sering pakai damping rendah.</em>
+          💬 <em>Hint: r = 25/5 = 5 (di zone isolasi karena r &gt; √2 ≈ 1.41). Numerator \(\sqrt{1+(2 \cdot 0.1 \cdot 5)^2}\) = \(\sqrt{1+1}\) = √2. Denominator \(\sqrt{(1-25)^2 + 1}\) = \(\sqrt{576+1}\) ≈ 24.02. TR ≈ √2/24.02 ≈ <strong style="color:var(--green)">0.0589 → ~5.89% gaya ditransmisikan, isolasi 94.1%</strong>. Memenuhi kriteria good isolation (&lt; 10%). Catatan: damping tinggi memperburuk isolasi pada r &gt; √2 (kontra-intuitif!); itulah mengapa isolator industrial sering pakai damping rendah.</em>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis perhitungan isolasi getaran Anda (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Hitung r = (frekuensi penggerak)/(fₙ isolator) dan verifikasi r &gt; √2 (syarat untuk isolasi). (2) Substitusi ke rumus TR, hitung numerik. (3) Konversi ke % isolasi = 100·(1−TR). (4) Diskusikan paradoks damping: pada zone isolasi (r &gt; √2), damping yang lebih BESAR justru MEMPERBURUK isolasi — beda dengan zona resonansi di mana damping selalu membantu." oninput="checkForumReady()"></textarea>
@@ -3317,7 +3320,7 @@ spec = <span class="fn">design_isolator</span>(mass_kg=<span class="nm">200</spa
         <div style="font-size:12px;color:var(--muted);line-height:1.5">
           <strong style="color:var(--text)">Cara salin (3 langkah):</strong><br>
           1) Klik tombol <strong style="color:var(--cyan)">🔍 Pilih Semua</strong> di bawah kotak HTML · 
-          \(2)\) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
+          2) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
           3) Paste di Fast Learning &gt; mode HTML.<br>
           <em style="color:var(--violet)">Tombol Copy di atas adalah opsional, jika tidak berfungsi, gunakan cara manual ini.</em>
         </div>

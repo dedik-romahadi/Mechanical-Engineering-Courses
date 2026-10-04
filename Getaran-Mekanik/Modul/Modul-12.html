@@ -253,7 +253,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -968,6 +968,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1691,25 +1694,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📊</div>
       <h3>Time-Domain vs Frequency-Domain</h3>
       <p>Frequency-domain (FFT) memberi tahu <em>frekuensi mana</em> yang aktif. Time-domain memberi tahu <em>seberapa parah</em> getaran-nya secara overall. Keduanya komplementer: time-domain untuk severity, FFT untuk diagnosis penyebab.</p>
-      <div class="formula">\(Severity ↔ Time | Cause ↔ Frequency\)</div>
+      <div class="formula">\(\text{Severity} ↔ \text{Time} | \text{Cause} ↔ \text{Frequency}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Indikator Cepat Tanpa Komputasi Berat</h3>
       <p>RMS, peak, crest, kurtosis dihitung dari sample mentah dengan operasi sederhana (mean, max, var). Tidak perlu FFT, tidak perlu windowing. Bisa dihitung embedded di sensor ADC dengan latency rendah, cocok untuk <strong>online monitoring real-time</strong>.</p>
-      <div class="formula">\(Compute O(N), sangat cepat\)</div>
+      <div class="formula">\(\text{Compute } O(N), \text{sangat cepat}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏭</div>
       <h3>Standar Industri</h3>
       <p>ISO 10816 (& penggantinya ISO 20816) menggunakan <strong>RMS velocity (mm/s)</strong> sebagai indikator utama untuk klasifikasi severity. Angka tunggal yang mudah dibaca operator: berapa mm/s? Cek tabel zone A-D. Ada di hampir semua vibration meter handheld.</p>
-      <div class="formula">\(RMS velocity (mm/s) \to Zone A-D\)</div>
+      <div class="formula">\(\text{RMS velocity } (\text{mm/s}) \to \text{Zone A-D}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚠️</div>
       <h3>Jenis Defect dari Statistik Bentuk</h3>
       <p>Crest factor &amp; kurtosis sensitif terhadap <em>impulsive defect</em>, bearing fault, gear pitting, looseness, yang menghasilkan spike tajam. Sinyal mesin sehat: distribusi Gaussian (kurtosis ≈ 3). Sinyal dengan impact: kurtosis tinggi (5-50+).</p>
-      <div class="formula">\(Kurtosis > 4 = warning impulsive defect\)</div>
+      <div class="formula">\(\text{Kurtosis} > 4 = \text{warning impulsive defect}\)</div>
     </div>
   </div>
 
@@ -1744,12 +1747,12 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Definisi RMS untuk Sinyal Diskrit</div>
-    RMS \(= \sqrt{ (1/N} \cdot \Sigma x[i]^2 )\) untuk \(i = 0, 1, ..., N-1\)
+    RMS \(= \sqrt{ (1/N) \cdot \Sigma x[i]^2 }\) untuk \(i = 0, 1, ..., N-1\)
   <span class="formula-number">(2)</span></div>
 <!-- PERSAMAAN-STATIS:2:START -->
   <div class="tip-box reveal rumus-jelas">
     <strong>📐 Persamaan (2)</strong> — Nilai efektif menyatakan kandungan energi getaran; karena semua sampel dikuadratkan lebih dahulu, nilainya tidak terpengaruh oleh tanda simpangan.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(RMS\)</span><span>Nilai efektif getaran</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(x[i]\)</span><span>Sampel ke-i</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(N\)</span><span>Jumlah sampel</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(\text{RMS}\)</span><span>Nilai efektif getaran</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(x[i]\)</span><span>Sampel ke-i</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(N\)</span><span>Jumlah sampel</span></span></div>
   </div>
 <!-- PERSAMAAN-STATIS:2:END -->
 
@@ -1758,13 +1761,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚡</div>
       <h3>Hubungan dengan Energi</h3>
       <p>RMS² = average power. Untuk sinyal velocity v(t), kinetic energy density ∝ \(v^2\). RMS-nya adalah ukuran "average velocity magnitude" yang konsisten dengan energi mekanik. Inilah mengapa ISO pakai RMS, bukan peak.</p>
-      <div class="formula">\(P_{\text{avg}} = RMS^2/Z (\text{resistive analogy})\)</div>
+      <div class="formula">\(P_{\text{avg}} = \text{RMS}^2/Z (\text{resistive analogy})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
       <h3>RMS Sinusoidal vs General</h3>
-      <p>Untuk sinusoidal murni \(A \cdot \sin(\)ωt): RMS = A/√2 ≈ 0.707·A. Untuk sinyal real (campuran): hitung dari definisi diskrit. Konstanta 0.707 hanya berlaku sinusoidal, jangan dipakai untuk waveform kompleks.</p>
-      <div class="formula">\(Sin: RMS = peak / \sqrt{2}\)</div>
+      <p>Untuk sinusoidal murni \(A \cdot \sin(\omega t)\): RMS = A/√2 ≈ 0.707·A. Untuk sinyal real (campuran): hitung dari definisi diskrit. Konstanta 0.707 hanya berlaku sinusoidal, jangan dipakai untuk waveform kompleks.</p>
+      <div class="formula">\(\text{Sin: RMS} = \text{peak} / \sqrt{2}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
@@ -1776,7 +1779,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🏭</div>
       <h3>Satuan untuk ISO Standard</h3>
       <p>ISO 10816 spesifik menggunakan <strong>RMS velocity dalam mm/s</strong> (bukan acceleration g atau displacement μm). Mengapa velocity? Karena RMS velocity relatif <em>flat</em> terhadap frekuensi untuk mesin tipikal, satu angka cocok untuk berbagai rpm.</p>
-      <div class="formula">\(v_{\text{RMS}} (mm/s) = standar industri\)</div>
+      <div class="formula">\(v_{\text{RMS}} (\text{mm/s}) = \text{standar industri}\)</div>
     </div>
   </div>
 
@@ -1812,7 +1815,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <!-- PERSAMAAN-STATIS:3:START -->
   <div class="tip-box reveal rumus-jelas">
     <strong>📐 Persamaan (3)</strong> — Indikator puncak menangkap kejadian sesaat: nilai puncak membaca simpangan terbesar, sedangkan puncak-ke-puncak membaca rentang penuhnya.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(Peak\)</span><span>Simpangan mutlak terbesar</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(Peak\text{-}to\text{-}Peak\)</span><span>Selisih nilai maksimum dan minimum</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(x[i]\)</span><span>Sampel ke-i</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(\text{Peak}\)</span><span>Simpangan mutlak terbesar</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(\text{Peak-to-Peak}\)</span><span>Selisih nilai maksimum dan minimum</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(x[i]\)</span><span>Sampel ke-i</span></span></div>
   </div>
 <!-- PERSAMAAN-STATIS:3:END -->
 
@@ -1827,19 +1830,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">↕️</div>
       <h3>Peak-to-Peak (Total Excursion)</h3>
       <p>Selisih max − min. Untuk sinusoidal symmetric: P-P = 2·peak = 2·A. Sering dipakai untuk <strong>displacement</strong> (μm, mil), clearance &amp; rubbing assessment. Standar ISO untuk displacement biasanya pakai P-P, sementara velocity pakai RMS.</p>
-      <div class="formula">\(P-P = max(x) - min(x)\)</div>
+      <div class="formula">\(\text{P-P} = \max(x) - \min(x)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚠️</div>
       <h3>Sensitivitas terhadap Outlier</h3>
       <p>Satu spike noise (mis. EMI dari power line) bisa membuat peak melonjak, <strong>false alarm</strong>. Solusi: gunakan <strong>peak filtered</strong> atau <strong>peak per cycle</strong> untuk averaging. Untuk monitoring presisi, RMS lebih reliable.</p>
-      <div class="formula">\(Outlier sensitivity = high\)</div>
+      <div class="formula">\(\text{Outlier sensitivity} = \text{high}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🛠️</div>
       <h3>Peak/RMS Ratio = Crest Factor</h3>
       <p>Rasio peak terhadap RMS sangat informatif (Bagian 04). Sinyal sehat: crest ≈ 1.4 (sinusoidal limit). Sinyal dengan impact: crest tinggi (3-10+). Inilah cara membedakan "loud but smooth" vs "loud and impulsive".</p>
-      <div class="formula">\(Crest = Peak / RMS (Bagian 04)\)</div>
+      <div class="formula">\(\text{Crest} = \text{Peak / RMS } (\text{Bagian 04})\)</div>
     </div>
   </div>
 
@@ -1877,7 +1880,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <!-- PERSAMAAN-STATIS:4:START -->
   <div class="tip-box reveal rumus-jelas">
     <strong>📐 Persamaan (4)</strong> — Crest factor membandingkan puncak terhadap nilai efektif; pada sinyal sinus murni nilainya tetap, dan kenaikannya menandakan munculnya denyut tajam.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(CF\)</span><span>Crest factor</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(Peak\)</span><span>Nilai puncak</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(RMS\)</span><span>Nilai efektif</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(\sqrt{2}\)</span><span>Nilai acuan untuk sinus murni</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(CF\)</span><span>Crest factor</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(\text{Peak}\)</span><span>Nilai puncak</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(\text{RMS}\)</span><span>Nilai efektif</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(\sqrt{2}\)</span><span>Nilai acuan untuk sinus murni</span></span></div>
   </div>
 <!-- PERSAMAAN-STATIS:4:END -->
 
@@ -1885,7 +1888,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>CF Sinusoidal Murni = √2</h3>
-      <p>Untuk x(t) = \(A \cdot \sin(\)ωt): peak = A, RMS = A/√2. CF = A / (A/√2) = √2 ≈ 1.41. Inilah <strong>baseline minimum</strong>, sinyal real tidak bisa lebih rendah dari ini (kalau ya, ada masalah).</p>
+      <p>Untuk x(t) = \(A \cdot \sin(\omega t)\): peak = A, RMS = A/√2. CF = A / (A/√2) = √2 ≈ 1.41. Inilah <strong>baseline minimum</strong>, sinyal real tidak bisa lebih rendah dari ini (kalau ya, ada masalah).</p>
       <div class="formula">\(\text{CF}_{\sin} = \sqrt{2}\)</div>
     </div>
     <div class="card">
@@ -1898,13 +1901,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚡</div>
       <h3>CF Impulsive Signal &gt; 5</h3>
       <p>Sinyal dengan spike tajam (bearing inner race fault, gear pitting): peak naik drastis, RMS naik sedikit (karena durasi spike pendek). CF = 5-15 tipikal untuk early-stage bearing fault.</p>
-      <div class="formula">\(CF > 5 = impulsive defect warning\)</div>
+      <div class="formula">\(CF > 5 = \text{impulsive defect warning}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📉</div>
       <h3>CF Drop = Late-Stage Failure</h3>
       <p>Anehnya, ketika bearing defect menjadi sangat parah (multi-spike, distributed damage), <strong>CF turun lagi</strong> ke ~3 karena banyak spike membesarkan RMS. Trajectory CF: <em>naik dulu (early), turun lagi (advanced)</em>. Plot trend CF vs waktu critical untuk maintenance decision.</p>
-      <div class="formula">\(CF early high \to late low (\text{failure progression})\)</div>
+      <div class="formula">\(CF \text{ early high} \to \text{late low } (\text{failure progression})\)</div>
     </div>
   </div>
 
@@ -1939,7 +1942,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Definisi Kurtosis (Normalized 4th Moment)</div>
-    Kurtosis \(=\) E[(x \(- \mu )^4] / \sigma ^4 \cdot\) Excess Kurtosis \(=\) Kurtosis \(- 3\)
+    Kurtosis \(= E[(x - \mu )^4] / \sigma ^4 \cdot\) Excess Kurtosis \(=\) Kurtosis \(- 3\)
   <span class="formula-number">(5)</span></div>
 <!-- PERSAMAAN-STATIS:5:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1953,25 +1956,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📊</div>
       <h3>Distribusi Gaussian → K = 3</h3>
       <p>Sinyal acak Gaussian (white noise) memiliki kurtosis tepat 3. Inilah baseline, semua interpretasi kurtosis relatif terhadap angka ini. Sinyal mesin sehat tipikal K ≈ 2.8-3.2.</p>
-      <div class="formula">\(Gaussian: K = 3 (excess = 0)\)</div>
+      <div class="formula">\(\text{Gaussian: } K = 3 (\text{excess} = 0)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Impulsive Signal → K &gt;&gt; 3</h3>
       <p>Bearing fault menghasilkan spike pendek tapi tinggi tiap rotating period, distribusi non-Gaussian dengan tail panjang. Kurtosis 5-15 = early-stage. Kurtosis &gt; 20 = advanced fault. Sangat sensitif tapi reliable.</p>
-      <div class="formula">\(K > 5 = impulsive warning\)</div>
+      <div class="formula">\(K > 5 = \text{impulsive warning}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📉</div>
       <h3>Distribusi Flat → K &lt; 3</h3>
       <p>Sinyal sinusoidal murni: K = 1.5. Sinyal uniform random: K = 1.8. Distribusi "flat" (tidak ada extreme outlier) memiliki K rendah. Mesin running smoothly dengan dominasi sinusoidal harmonik akan memiliki K sedikit di bawah 3.</p>
-      <div class="formula">\(Sin: K = 1.5; Uniform: K \approx 1.8\)</div>
+      <div class="formula">\(\text{Sin: } K = 1.5; \text{Uniform: } K \approx 1.8\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔬</div>
       <h3>Spectral Kurtosis (Lanjutan)</h3>
       <p>Kurtosis dihitung per frequency band setelah filter, disebut <strong>Spectral Kurtosis (SK)</strong>. Membantu identifikasi <em>frekuensi mana</em> yang impulsif. Algoritma <strong>Kurtogram</strong> (Antoni 2007) auto-detect frequency band optimal untuk envelope analysis (Pertemuan 14).</p>
-      <div class="formula">\(SK(f) \to kurtogram \to optimal band\)</div>
+      <div class="formula">\(SK(f) \to \text{kurtogram} \to \text{optimal band}\)</div>
     </div>
   </div>
 
@@ -2021,14 +2024,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Standard Deviation (σ)</h3>
-      <p>σ = \(\sqrt{variance}\). Untuk zero-mean signal, σ = RMS. Untuk sinyal dengan DC, σ &lt; RMS. Indikator spread/dispersion. Python: <code>np.std(x)</code>.</p>
+      <p>σ = \(\sqrt{\text{variance}}\). Untuk zero-mean signal, σ = RMS. Untuk sinyal dengan DC, σ &lt; RMS. Indikator spread/dispersion. Python: <code>np.std(x)</code>.</p>
       <div class="formula">\(\sigma ^2 = (1/N) \Sigma (x[i] - \mu )^2\)</div>
     </div>
     <div class="card">
       <div class="card-icon">↔️</div>
       <h3>Skewness — Asymmetry</h3>
       <p>Momen orde-3: γ₁ = E[(x−μ)³]/σ³. Sinyal symmetric (mesin normal): γ₁ ≈ 0. Sinyal dengan defect arah satu (mis. crack pada gear tooth): γ₁ ≠ 0. Less commonly used than kurtosis tapi diagnostic.</p>
-      <div class="formula">\(|\gamma _1| > 0.5 = directional bias\)</div>
+      <div class="formula">\(|\gamma _1| > 0.5 = \text{directional bias}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
@@ -2070,7 +2073,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <!-- PERSAMAAN-STATIS:7:START -->
   <div class="tip-box reveal rumus-jelas">
     <strong>📐 Persamaan (7)</strong> — Standar ISO memetakan nilai getaran ke empat zona, dari mesin yang baru dipasang sampai kondisi yang menuntut penghentian segera.
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(Zone\ A\)</span><span>Mesin baru dipasang</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(Zone\ B\)</span><span>Layak beroperasi terus</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(Zone\ C\)</span><span>Perlu tindakan terjadwal</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(Zone\ D\)</span><span>Berbahaya, hentikan</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(\text{Zone A}\)</span><span>Mesin baru dipasang</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(\text{Zone B}\)</span><span>Layak beroperasi terus</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(\text{Zone C}\)</span><span>Perlu tindakan terjadwal</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(\text{Zone D}\)</span><span>Berbahaya, hentikan</span></span></div>
   </div>
 <!-- PERSAMAAN-STATIS:7:END -->
 
@@ -2079,25 +2082,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🟢</div>
       <h3>Zone A — Excellent (Newly Commissioned)</h3>
       <p>Vibrasi sangat rendah, kondisi mesin seperti baru. Untuk mesin medium (Class II): RMS velocity ≤ 1.12 mm/s. Continue normal operation, no maintenance needed.</p>
-      <div class="formula">\(Class II: \le 1.12 mm/s (\text{Zone A})\)</div>
+      <div class="formula">Class II: ≤ 1.12 mm/s (Zone A)</div>
     </div>
     <div class="card">
       <div class="card-icon">🟡</div>
       <h3>Zone B — Acceptable (Long-Term Operation)</h3>
       <p>Vibrasi acceptable untuk operasi jangka panjang. Class II: 1.12–2.8 mm/s. Continue operation, monitor periodically (mis. monthly inspection).</p>
-      <div class="formula">\(Class II: 1.12-2.8 mm/s (\text{Zone B})\)</div>
+      <div class="formula">Class II: 1.12–2.8 mm/s (Zone B)</div>
     </div>
     <div class="card">
       <div class="card-icon">🟠</div>
       <h3>Zone C — Unsatisfactory (Limited Operation)</h3>
       <p>Vibrasi terlalu tinggi untuk operasi normal. Class II: 2.8–4.5 mm/s. Schedule maintenance dalam waktu dekat. Limited operation OK sampai schedule available.</p>
-      <div class="formula">\(Class II: 2.8-4.5 mm/s (\text{Zone C})\)</div>
+      <div class="formula">Class II: 2.8–4.5 mm/s (Zone C)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔴</div>
       <h3>Zone D — Damaging (Immediate Shutdown)</h3>
       <p>Vibrasi berbahaya yang akan menyebabkan kerusakan. Class II: &gt; 4.5 mm/s. <strong>Immediate shutdown</strong>. Identifikasi penyebab via FFT diagnosis sebelum restart.</p>
-      <div class="formula">\(Class II: > 4.5 mm/s (\text{Zone D})\)</div>
+      <div class="formula">Class II: &gt; 4.5 mm/s (Zone D)</div>
     </div>
   </div>
 
@@ -2812,10 +2815,10 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C1</div>
-        <div class="comp-q">Hitung <strong>RMS</strong> dari array <code>x = [1, 2, 3, 4, 5]</code>. Formula: RMS = \(\sqrt{mean(x^2}\)).</div>
+        <div class="comp-q">Hitung <strong>RMS</strong> dari array <code>x = [1, 2, 3, 4, 5]</code>. Formula: RMS = \(\sqrt{\text{mean}(x^2)}\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 RMS = \(\sqrt{mean(x^2}\)); susun array dengan <code>np.array</code>, kuadratkan, pakai <code>np.mean</code> lalu <code>np.sqrt</code>.</div>
+      <div class="comp-hint">💡 RMS = \(\sqrt{\text{mean}(x^2)}\); susun array dengan <code>np.array</code>, kuadratkan, pakai <code>np.mean</code> lalu <code>np.sqrt</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c1')"></textarea>
@@ -2832,7 +2835,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Generate sinyal <code>x = sin(2π·50·t)</code> dengan fs=1000, durasi 1 detik. Hitung <strong>RMS</strong>.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Bentuk sinyal dengan <code>np.sin</code>, lalu hitung RMS = \(\sqrt{mean(x^2}\)) memakai <code>np.mean</code> dan <code>np.sqrt</code>.</div>
+      <div class="comp-hint">💡 Bentuk sinyal dengan <code>np.sin</code>, lalu hitung RMS = \(\sqrt{\text{mean}(x^2)}\) memakai <code>np.mean</code> dan <code>np.sqrt</code>.</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c2" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c2')"></textarea>
@@ -2883,7 +2886,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div class="comp-q">Hitung <strong>Crest Factor</strong> untuk sinyal sin pure: x = sin(2π·50·t), fs=1000, N=1000.</div>
         <div class="comp-pts">2 poin</div>
       </div>
-      <div class="comp-hint">💡 Crest factor = peak/RMS; hitung peak dengan <code>np.max(np.abs(...))</code> dan RMS dengan \(\sqrt{mean(x^2}\)).</div>
+      <div class="comp-hint">💡 Crest factor = peak/RMS; hitung peak dengan <code>np.max(np.abs(...))</code> dan RMS dengan \(\sqrt{\text{mean}(x^2)}\).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">jawaban</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
@@ -3302,7 +3305,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
         <div style="font-size:12px;color:var(--muted);line-height:1.5">
           <strong style="color:var(--text)">Cara salin (3 langkah):</strong><br>
           1) Klik tombol <strong style="color:var(--cyan)">🔍 Pilih Semua</strong> di bawah kotak HTML · 
-          \(2)\) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
+          2) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
           3) Paste di Fast Learning &gt; mode HTML.<br>
           <em style="color:var(--violet)">Tombol Copy di atas adalah opsional, jika tidak berfungsi, gunakan cara manual ini.</em>
         </div>

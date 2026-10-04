@@ -4,7 +4,7 @@ import path from "node:path";
 import { MATERI } from "./sisken-materi.mjs";
 import { FORUM } from "./sisken-forum.mjs";
 import { PUSTAKA } from "./sisken-pustaka.mjs";
-import { rumusLatex as _rumusLatex, tokenLatex, tokenNotasi, adaPersamaanInti, notasiTeks, rapikanNotasiHtml } from "./sisken-rumus.mjs";
+import { rumusLatex as _rumusLatex, tokenLatex, tokenNotasi, adaPersamaanInti, notasiTeks, rapikanNotasiHtml, NOTASI_TEGAK } from "./sisken-rumus.mjs";
 import { renderIlustrasi, CSS_ILUSTRASI, kapitalAwal } from "./sisken-ilustrasi.mjs";
 import { GAMBAR_MODUL } from "./sisken-ilustrasi-data.mjs";
 import { PENJELASAN_RUMUS, NOTASI_KAMUS } from "./sisken-rumus-jelas.mjs";
@@ -160,7 +160,7 @@ const modules = [
     title: "Sistem Kontrol Logika Fuzzy",
     sub: "Sub-CPMK 5.3 — Merancang variabel linguistik, membership function, rule base, inferensi, dan defuzzifikasi",
     intro: "Fuzzy control memetakan istilah seperti 'error besar positif' dan 'perubahan cepat' menjadi aksi kontrol numerik. Kekuatan utamanya adalah interpretabilitas dan kemampuan menangkap heuristik operator tanpa model plant presisi.",
-    concepts: [["Fuzzifikasi", "Input crisp diubah menjadi derajat keanggotaan 0–1 pada beberapa himpunan linguistik.", "μ_A(x)∈[0,1]"], ["Rule base", "Aturan IF–THEN menghubungkan kondisi error dan perubahan error (Δe) dengan aksi.", "IF e=P AND de=N THEN u=PM"], ["Inferensi", "Operator AND/OR dan implication menggabungkan kekuatan aturan.", "α=min(μ_e,μ_de)"], ["Defuzzifikasi", "Output fuzzy diubah menjadi nilai actuator, misalnya centroid atau weighted average.", "u = (Σ α_i*z_i)/(Σ α_i)" ]],
+    concepts: [["Fuzzifikasi", "Input crisp diubah menjadi derajat keanggotaan 0–1 pada beberapa himpunan linguistik.", "μ_A(x)∈[0, 1]"], ["Rule base", "Aturan IF–THEN menghubungkan kondisi error dan perubahan error (Δe) dengan aksi.", "IF e=P AND de=N THEN u=PM"], ["Inferensi", "Operator AND/OR dan implication menggabungkan kekuatan aturan.", "α=min(μ_e,μ_de)"], ["Defuzzifikasi", "Output fuzzy diubah menjadi nilai actuator, misalnya centroid atau weighted average.", "u = (Σ α_i*z_i)/(Σ α_i)" ]],
     steps: ["Tentukan rentang dan scaling input", "Rancang membership function overlap", "Susun rule table lengkap", "Uji surface, saturasi, dan noise"],
     analogies: [["Bahasa sehari-hari", "Kata 'agak panas' tidak biner; memiliki derajat yang berubah halus."], ["Mengatur keran", "Aksi tidak hanya ON/OFF, tetapi sedikit, sedang, atau banyak berdasarkan kondisi."], ["Operator senior", "Rule base merekam keputusan yang biasanya tersimpan sebagai intuisi."]],
     industries: [["Crane", "Fuzzy meredam swing berdasarkan sudut dan kecepatan ayun."], ["Air conditioning", "Mengatur compressor dan fan dari error suhu serta kelembapan."], ["Water level", "Valve diatur halus berdasarkan level dan laju perubahan."]],
@@ -171,7 +171,7 @@ const modules = [
     title: "Optimasi Kontrol dengan Algoritma Genetika",
     sub: "Sub-CPMK 5.4 — Mengoptimalkan parameter controller melalui kromosom, fitness, seleksi, crossover, dan mutasi",
     intro: "Genetic Algorithm mencari parameter controller tanpa memerlukan turunan objective. Metode ini cocok untuk objective nonlinier, diskrit, multi-puncak, atau berbasis simulasi, tetapi memerlukan evaluasi banyak kandidat dan desain fitness yang tidak dapat dieksploitasi secara keliru.",
-    concepts: [["Kromosom", "Satu kandidat menyimpan parameter controller, misalnya [Kp, Ki, Kd].", "θ=[K_p,K_i,K_d]"], ["Fitness", "Objective menggabungkan tracking error, overshoot, settling, control effort, dan penalti constraint.", "J=w1IAE+w2M_p+w3∫u²dt"], ["Seleksi & crossover", "Kandidat baik lebih mungkin menjadi parent; crossover mengombinasikan informasi antarsolusi.", "child=αp1+(1-α)p2"], ["Mutasi & elitisme", "Mutasi menjaga keragaman; elitisme mempertahankan solusi terbaik agar tidak hilang.", "θ'=θ+N(0,σ)" ]],
+    concepts: [["Kromosom", "Satu kandidat menyimpan parameter controller, misalnya [Kp, Ki, Kd].", "θ=[K_p,K_i,K_d]"], ["Fitness", "Objective menggabungkan tracking error, overshoot, settling, control effort, dan penalti constraint.", "J=w1 IAE+w2 M_p+w3 ∫u² dt"], ["Seleksi & crossover", "Kandidat baik lebih mungkin menjadi parent; crossover mengombinasikan informasi antarsolusi.", "child=αp1+(1-α)p2"], ["Mutasi & elitisme", "Mutasi menjaga keragaman; elitisme mempertahankan solusi terbaik agar tidak hilang.", "θ'=θ+N(0,σ)" ]],
     steps: ["Tentukan bounds dan fitness", "Inisialisasi populasi beragam", "Seleksi, crossover, mutasi, repair", "Validasi solusi terbaik pada skenario baru"],
     analogies: [["Pemuliaan tanaman", "Karakter baik dipilih dan dikombinasikan lintas generasi."], ["Turnamen desain", "Banyak rancangan diuji; terbaik dipertahankan, sebagian dimodifikasi."], ["Eksplorasi resep", "Mutasi mencoba kombinasi yang tidak terpikirkan tetapi tetap dalam batas aman."]],
     industries: [["PID tuning", "GA mengoptimalkan tracking dan effort pada model nonlinear."], ["Energy management", "Parameter dispatch dicari di bawah constraint kapasitas dan biaya."], ["Trajectory planning", "Waypoint atau spline dioptimalkan untuk waktu, energi, dan collision avoidance."]],
@@ -670,7 +670,8 @@ function legendaNotasi(daftarRumus) {
     // Perintah yang WAJIB berargumen tidak boleh tampil telanjang — KaTeX
     // menolaknya dan menampilkan teks mentah merah (\sqrt, \mathcal).
     const TAMPIL = { "ᵀ": "{}^{T}", "\\mathcal": "\\mathcal{L}", "\\sqrt": "\\sqrt{x}", "\\frac": "\\frac{a}{b}" };
-    const latexTok = TAMPIL[tk] || tk;
+    // Nama tegak (Re, bandwidth) ditampilkan tegak seperti di rumusnya, bukan huruf miring berderet.
+    const latexTok = TAMPIL[tk] || NOTASI_TEGAK.get(tk) || tk;
     return `<span class="anim-var nw${iw % 5}"><span class="rumus-notasi">\\(${latexTok}\\)</span><span>${esc(kapitalAwal(arti))}</span></span>`;
   }).join("");
   return `\n  <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>

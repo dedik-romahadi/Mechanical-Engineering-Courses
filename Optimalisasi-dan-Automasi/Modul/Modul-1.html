@@ -256,7 +256,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(255,64,129,.1);border:1px solid rgba(255,64,129,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(255,64,129,.07);border:1px solid rgba(255,64,129,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -971,6 +971,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1682,7 +1685,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔁</div>
       <h3>Pola Berulang (Periodik)</h3>
       <p>Banyak sinyal mesin adalah <strong>periodik</strong>, getaran berulang setiap rotasi poros, suhu naik turun mengikuti shift kerja, beban bergeser sesuai musim produksi. Memahami periode dan amplitudo sinyal periodik adalah dasar untuk semua analisis selanjutnya: FFT, deteksi anomali, prediksi.</p>
-      <div class="formula">x(t) = \(A \cdot \sin(2\)πft + φ)</div>
+      <div class="formula">x(t) = \(A \cdot \sin(2\pi f t + \varphi)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌪️</div>
@@ -1794,7 +1797,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Lima Statistik Fundamental Time Series</div>
-    \(\mu = (1/N)\Sigma x_{i} \cdot\) RMS \(= \sqrt{(1/N}\Sigma x_{i}^2) \cdot \sigma = \sqrt{(1/N}\Sigma (x_{i}-\mu )^2) \cdot CF = Peak/RMS\)
+    \(\mu = (1/N)\Sigma x_{i} \cdot\) RMS \(= \sqrt{(1/N)\Sigma x_{i}^2} \cdot \sigma = \sqrt{(1/N)\Sigma (x_{i}-\mu )^2} \cdot CF = \text{Peak/RMS}\)
   <span class="formula-number">(3)</span></div>
 <!-- PERSAMAAN-STATIS:3:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1814,19 +1817,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚡</div>
       <h3>RMS (Root Mean Square)</h3>
       <p><strong>Akar kuadrat dari rata-rata kuadrat</strong>. Tidak seperti mean, RMS <em>tidak nol</em> meski sinyalnya berosilasi. RMS adalah ukuran <strong>energi efektif</strong> sinyal, secara fisis setara dengan nilai DC yang menghasilkan daya yang sama. Untuk monitoring getaran mesin, RMS adalah metrik utama: standar ISO 10816 mendefinisikan kelas kondisi mesin berdasarkan RMS getaran.</p>
-      <div class="formula">RMS = \(\sqrt{(1/N}\)Σx<sub>i</sub>²)</div>
+      <div class="formula">RMS = \(\sqrt{(1/N)\Sigma x_i^2}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Standard Deviation (σ)</h3>
       <p>Akar dari <strong>varians</strong>, ukuran sebaran data terhadap mean. Untuk sinyal yang mean-nya nol, σ ≈ RMS. σ tinggi pada konteks yang biasanya stabil = <em>variabilitas tidak normal</em>, indikator awal kegagalan. Aturan praktis: residual yang lebih besar dari 3·σ dianggap outlier (asumsi distribusi normal).</p>
-      <div class="formula">σ = \(\sqrt{Var(x}\))</div>
+      <div class="formula">σ = \(\sqrt{\operatorname{Var}(x)}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>Peak &amp; Crest Factor</h3>
       <p><strong>Peak</strong> = nilai absolut maksimum dalam suatu jendela waktu. <strong>Crest Factor (CF)</strong> = Peak/RMS, rasio yang sensitif terhadap <em>impulsive event</em> seperti benturan atau spalling pada bearing. Sinyal sinusoidal murni: CF = √2 ≈ 1.41. CF tinggi (>4) menandakan ada lonjakan tidak normal, meskipun RMS keseluruhan masih dalam batas.</p>
-      <div class="formula">\(CF = max|x| / RMS\)</div>
+      <div class="formula">\(CF = \max|x| / \text{RMS}\)</div>
     </div>
   </div>
 
@@ -2149,7 +2152,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📡</div>
       <h3>SCADA &amp; IoT Multi-Sensor</h3>
       <p>Pabrik modern punya puluhan PLC + ratusan sensor mengirim time series ke SCADA. Setiap sensor butuh <strong style="color:var(--green)">sampling rate berbeda</strong>: vibration 10 kHz, current 5 kHz, temperature 1 Hz, level 0.1 Hz. Bandwidth jaringan terbatas → strategi: <em>sample tinggi di edge, hitung statistik (RMS, std), kirim hanya feature ke cloud</em>. Pemahaman dasar time series memungkinkan arsitektur IoT yang efisien.</p>
-      <div class="formula">\(edge \to feature \to cloud\)</div>
+      <div class="formula">\(\text{edge} \to \text{feature} \to \text{cloud}\)</div>
     </div>
   </div>
 
@@ -2906,7 +2909,7 @@ x = signal + noise                              # ← Ini deret time series Anda
       </div>
       <div class="comp-hint">💡 Generate sinyal kontinu beresolusi tinggi, lalu downsampel ke fs under-Nyquist. Frekuensi alias = |f<sub>signal</sub> − \(k \cdot fs\)| dengan k integer terdekat (gunakan <code>round</code>); verifikasi posisi peak dengan FFT pada hasil downsampel.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(f_{alias} (Hz)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(f_{alias} (\text{Hz})\)</strong></span></div>
         <textarea class="code-textarea" id="code-c12" rows="12" placeholder="Paste kode demonstrasi aliasing lengkap (generate, downsampel, FFT, hitung), lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
         <div class="stdout-box" id="stdout-c12"></div>
       </div>
@@ -3344,13 +3347,15 @@ x = signal + noise                              # ← Ini deret time series Anda
 
 #page-setup .sp-cb{background:#080e18;border:1px solid var(--sp-bd);border-radius:14px;margin:1rem 0;overflow:hidden}
 #page-setup .sp-cbh{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.2rem;background:rgba(255,255,255,.02);border-bottom:1px solid var(--sp-bd)}
-#page-setup .sp-cbh-left{display:flex;align-items:center;gap:.5rem}
+#page-setup .sp-cbh-left{display:flex;align-items:center;gap:.5rem;min-width:0}
 #page-setup .sp-cbh-dots{display:flex;gap:5px}
 #page-setup .sp-cbh-dots span{width:9px;height:9px;border-radius:50%}
 #page-setup .sp-cbh-dots span:nth-child(1){background:#ff5f57}
 #page-setup .sp-cbh-dots span:nth-child(2){background:#febc2e}
 #page-setup .sp-cbh-dots span:nth-child(3){background:#28c840}
-#page-setup .sp-cbh-title{font-size:.75rem;font-weight:600;color:var(--sp-t3)}
+#page-setup .sp-cbh-title{font-size:.75rem;font-weight:600;color:var(--sp-t3);min-width:0;overflow-wrap:anywhere}
+#page-setup .sp-cbh-title code{font-size:inherit;padding:0 .3em}
+#page-setup .sp-cbh{flex-wrap:wrap;row-gap:.35rem}
 #page-setup .sp-cbh-copy{padding:.3rem .7rem;background:rgba(255,255,255,.05);border:1px solid var(--sp-bd);color:var(--sp-t3);border-radius:6px;cursor:pointer;font-size:.7rem;font-family:inherit;transition:all .3s}
 #page-setup .sp-cbh-copy:hover{background:rgba(16,185,129,.15);color:var(--sp-c2);border-color:rgba(16,185,129,.3)}
 #page-setup .sp-cbd{padding:1.2rem 1.4rem;overflow-x:auto}
@@ -3523,7 +3528,7 @@ python -m ipykernel install --user --name optoauto --display-name "Python (Optim
           <p style="margin-bottom:1rem;">Buat file baru <code>test_setup.ipynb</code> di VS Code, pastikan kernel <strong>Python (Optimalisasi &amp; Automasi)</strong> dipilih, lalu paste &amp; run cell di bawah:</p>
           <div class="sp-cb">
             <div class="sp-cbh">
-              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">\(test_{setup}.ipynb\;\text{---}\) Cell \(1\)</span></div>
+              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title"><code>test_setup.ipynb</code> — Cell 1</span></div>
               <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
             </div>
             <div class="sp-cbd"><pre><span class="sp-kw">import</span> numpy <span class="sp-kw">as</span> np

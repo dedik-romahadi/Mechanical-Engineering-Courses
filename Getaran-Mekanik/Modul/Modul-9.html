@@ -253,7 +253,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -968,6 +968,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1691,19 +1694,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🏢</div>
       <h3>MDoF di Dunia Nyata</h3>
       <p>Gedung 10 lantai = 10 DoF translasi (per lantai). Jembatan suspension = 100+ DoF. Sayap pesawat (FEM) = 10⁴-10⁶ DoF. Setiap struktur kompleks intrinsik adalah MDoF, analisis 1-DoF/2-DoF hanyalah simplifikasi pedagogis.</p>
-      <div class="formula">\(Real structure: N = 10 - 10^6 DoF\)</div>
+      <div class="formula">\(\text{Real structure: } N = 10 - 10^6 \text{ DoF}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Idea Sentral: Decoupling</h3>
       <p>Persamaan gerak MDoF asli kompleks: <code>[M]{ẍ} + [K]{x} = {F}</code>, N persamaan saling terkait (coupled). Modal analysis transforms ke <strong>N persamaan independen (decoupled)</strong>, masing-masing seperti 1-DoF sederhana. Setelah decouple, solve trivial.</p>
-      <div class="formula">\(Coupled MDoF \to N independent 1-DoF\)</div>
+      <div class="formula">\(\text{Coupled MDoF} \to N \text{ independent 1-DoF}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
       <h3>Tiga Tahap Modal Analysis</h3>
       <p>(1) <strong>Solve eigenvalue problem</strong>: dapatkan N frekuensi pribadi ω<sub>i</sub> &amp; N mode shape φ<sub>i</sub>. (2) <strong>Modal transformation</strong>: ubah koordinat fisik {x} ke koordinat modal {η} via [Φ]. (3) <strong>Solve N independent equations</strong> in η, lalu transform balik.</p>
-      <div class="formula">\(Eigen \to Transform \to Solve \to Inverse\)</div>
+      <div class="formula">\(\text{Eigen} \to \text{Transform} \to \text{Solve} \to \text{Inverse}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎼</div>
@@ -1740,7 +1743,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Generalized Eigenvalue Problem</div>
-    \([K]{\phi } = \omega ^2[M]{\phi } ⟺\) det([K] \(- \omega ^2[M]) = 0\)
+    \([K]\{\phi \} = \omega ^2[M]\{\phi \} ⟺ \det([K] - \omega ^2[M]) = 0\)
   <span class="formula-number">(2)</span></div>
 <!-- PERSAMAAN-STATIS:2:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1760,19 +1763,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔢</div>
       <h3>N Eigenvalues = N Frekuensi Pribadi</h3>
       <p>Polinomial det([K]−ω²[M])=0 berderajat N → N akar untuk ω². Akar selalu positif (untuk K positive definite, system stable) → N nilai ω<sub>i</sub> positif. Konvensi: ordered ω<sub>1</sub> &lt; ω<sub>2</sub> &lt; ... &lt; ω<sub>N</sub>.</p>
-      <div class="formula">\(N values: \omega _1 < \omega _2 < ... < \omega _N\)</div>
+      <div class="formula">\(N \text{ values: } \omega _1 &lt; \omega _2 &lt; ... &lt; \omega _N\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Setiap ω<sub>i</sub> Punya Mode Shape φ<sub>i</sub></h3>
-      <p>Untuk tiap eigenvalue ω<sub>i</sub>², solve \(([K] - \omega _{i}^2[M]) \cdot {\phi _{i}} = 0\) untuk vektor non-trivial φ<sub>i</sub> (mode shape). Mode shape adalah vektor N-dim, menjelaskan pola gerak relatif tiap massa di mode i.</p>
-      <div class="formula">\(([K] - \omega _i^2[M]){\phi _i} = 0\)</div>
+      <p>Untuk tiap eigenvalue ω<sub>i</sub>², solve \(([K] - \omega _{i}^2[M]) \cdot \{\phi _{i}\} = 0\) untuk vektor non-trivial φ<sub>i</sub> (mode shape). Mode shape adalah vektor N-dim, menjelaskan pola gerak relatif tiap massa di mode i.</p>
+      <div class="formula">\(([K] - \omega _i^2[M])\{\phi _i\} = 0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Komputasi Modern</h3>
       <p>Untuk MDoF besar (N &gt; 100), pakai <strong>iterative algorithms</strong>: Lanczos, Arnoldi, subspace iteration. Library: scipy.sparse.linalg.eigsh(), MATLAB eigs(). Hanya hitung beberapa eigenvalue terendah (lowest modes paling penting untuk dinamika).</p>
-      <div class="formula">\(For large N:\;\text{only}\;solve k < N modes\)</div>
+      <div class="formula">\(\text{For large N:}\;\text{only}\;\text{solve } k &lt; N \text{ modes}\)</div>
     </div>
   </div>
 
@@ -1823,7 +1826,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📏</div>
       <h3>Max-Normalized: φ<sub>max</sub> = 1</h3>
       <p>Element terbesar di mode shape = 1 (atau −1). Mudah interpretasi visual: mode shape directly readable sebagai "rasio relative ke titik dengan amplitudo terbesar". Default umum di textbook untuk pedagogis.</p>
-      <div class="formula">\(max(|\phi _i|) = 1\)</div>
+      <div class="formula">\(\max(|\phi _i|) = 1\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
@@ -1834,8 +1837,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>Konversi Antar Konvensi</h3>
-      <p>Mudah convert: hitung scaling factor untuk current mode, divide dengan target normalization. Mass-normalized: \(\phi _{norm} = \phi / \sqrt{\phi ^{T}M\phi }\). Max-norm: \(\phi _{norm} = \phi / max(|\phi |)\). Engineer harus konsisten dalam satu analisis.</p>
-      <div class="formula">\(\phi _normalized = \phi / scaling_{factor}\)</div>
+      <p>Mudah convert: hitung scaling factor untuk current mode, divide dengan target normalization. Mass-normalized: \(\phi _{norm} = \phi / \sqrt{\phi ^{T}M\phi }\). Max-norm: \(\phi _{norm} = \phi / \max(|\phi |)\). Engineer harus konsisten dalam satu analisis.</p>
+      <div class="formula">\(\phi _{normalized} = \phi / \text{scaling}_{factor}\)</div>
     </div>
   </div>
 
@@ -1885,19 +1888,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔗</div>
       <h3>Orthogonal terhadap M (Mass Orthogonality)</h3>
       <p>\(\phi _{i}^{T}[M]\phi _{j} = 0\) untuk i ≠ j. Bukti via eigenvalue equation: kalikan satu equation dengan φ<sub>j</sub>ᵀ, transposed equation dengan φ<sub>i</sub>, subtract. Karena ω<sub>i</sub> ≠ ω<sub>j</sub>, terbukti orthogonal.</p>
-      <div class="formula">\(M-orthogonal: \phi _i^T M \phi _j = 0\)</div>
+      <div class="formula">\(M\text{-orthogonal}: \phi _i^T M \phi _j = 0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔧</div>
       <h3>Orthogonal terhadap K (Stiffness Orthogonality)</h3>
       <p>Sama analoginya: \(\phi _{i}^{T}[K]\phi _{j} = 0\) untuk i ≠ j. Konsekuensi langsung dari M-orthogonality dan eigenvalue equation. Kedua orthogonality ini bersamaan disebut "M-K orthogonality".</p>
-      <div class="formula">\(K-orthogonal: \phi _i^T K \phi _j = 0\)</div>
+      <div class="formula">\(K\text{-orthogonal}: \phi _i^T K \phi _j = 0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌐</div>
       <h3>Bukan Geometric Orthogonality</h3>
       <p>Hati-hati: mode shape <strong>tidak</strong> orthogonal dalam sense biasa (φ<sub>i</sub>ᵀφ<sub>j</sub> = 0). Hanya orthogonal terhadap M dan K. Ini disebut "M-orthogonality" atau "weighted orthogonality", generalization dari orthogonality biasa.</p>
-      <div class="formula">\(\phi _i^T \phi _j \ne 0 generally (\text{NOT geometric ortho})\)</div>
+      <div class="formula">\(\phi _i^T \phi _j \ne 0\) generally (NOT geometric ortho)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
@@ -1934,7 +1937,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Modal Matrix Construction &amp; Transformation</div>
-    [Φ] \(= [\phi _{1} \phi _{2} ... \phi _{N}] \cdot {x} = [\Phi ]{\eta } \cdot {\eta } = [\Phi ]^{-1}{x}\)
+    [Φ] \(= [\phi _{1} \phi _{2} ... \phi _{N}] \cdot \{x\} = [\Phi ]\{\eta \} \cdot \{\eta \} = [\Phi ]^{-1}\{x\}\)
   <span class="formula-number">(5)</span></div>
 <!-- PERSAMAAN-STATIS:5:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1948,13 +1951,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📊</div>
       <h3>Konstruksi Modal Matrix</h3>
       <p>Stack N mode shape (column vectors) menjadi matriks N×N. Kolom 1 = mode 1, kolom 2 = mode 2, dst. Python: <code>Phi = eigvecs</code> (output <code>scipy.linalg.eigh</code> sudah dalam format ini).</p>
-      <div class="formula">\(Phi[:, i] = mode shape i\)</div>
+      <div class="formula">\(\Phi[:, i] = \text{mode shape } i\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>Forward Transformation: x → η</h3>
-      <p>Modal coordinates: \({\eta } = [\Phi ]^{-1}{x}\). Untuk mass-normalized [Φ]: <code>{η} = [Φ]ᵀ[M]{x}</code> (lebih stable, karena [Φ]ᵀ[M] adalah inverse dari [Φ]). η<sub>i</sub> = participation amplitude mode i.</p>
-      <div class="formula">\(\eta _i = \phi _i^T M x (mass-normalized)\)</div>
+      <p>Modal coordinates: \(\{\eta \} = [\Phi ]^{-1}\{x\}\). Untuk mass-normalized [Φ]: <code>{η} = [Φ]ᵀ[M]{x}</code> (lebih stable, karena [Φ]ᵀ[M] adalah inverse dari [Φ]). η<sub>i</sub> = participation amplitude mode i.</p>
+      <div class="formula">\(\eta _i = \phi _i^T M x (\text{mass-normalized})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
@@ -1965,8 +1968,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Diagonalization Effect</h3>
-      <p>Modal transformation membuat matriks [M] dan [K] menjadi <strong>diagonal</strong>: \([\Phi ]^{T}[M][\Phi ] = diag(m_{i})\), \([\Phi ]^{T}[K][\Phi ] = diag(k_{i})\). Inilah essence decoupling, semua off-diagonal terms (yang menyebabkan coupling) menjadi nol.</p>
-      <div class="formula">\(\Phi ^T M \Phi = M_{\text{diag}} (decoupled)\)</div>
+      <p>Modal transformation membuat matriks [M] dan [K] menjadi <strong>diagonal</strong>: \([\Phi ]^{T}[M][\Phi ] = \text{diag}(m_{i})\), \([\Phi ]^{T}[K][\Phi ] = \text{diag}(k_{i})\). Inilah essence decoupling, semua off-diagonal terms (yang menyebabkan coupling) menjadi nol.</p>
+      <div class="formula">\(\Phi ^T M \Phi = M_{\text{diag}} (\text{decoupled})\)</div>
     </div>
   </div>
 
@@ -1977,11 +1980,11 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <code>[Φ]ᵀ[M][Φ]{η̈} + [Φ]ᵀ[K][Φ]{η} = [Φ]ᵀ{F(t)}</code><br>
     Karena diagonalization: jadi N independent equations:<br>
     <strong>m<sub>i</sub>η̈<sub>i</sub> + k<sub>i</sub>η<sub>i</sub> = f<sub>i</sub>(t)</strong> &nbsp;untuk i = 1, 2, ..., N<br>
-    Setiap modal equation \(=\) standard \(1-DoF\) undamped oscillator dengan \(\omega _{i}^2 = k_{i}/m_{i}.\) Solve \(N\) independent ODEs (super easy), lalu transform balik ke physical via \({x} = [\Phi ]{\eta }.\) Inilah magic \(of\) modal analysis.
+    Setiap modal equation \(=\) standard 1-DoF undamped oscillator dengan \(\omega _{i}^2 = k_{i}/m_{i}.\) Solve \(N\) independent ODEs (super easy), lalu transform balik ke physical via \(\{x\} = [\Phi ]\{\eta \}.\) Inilah magic of modal analysis.
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Modal Participation Factor:</strong> Untuk excitation tertentu (mis. seismic ground motion), modal participation factor \(\Gamma _{i} = \phi _{i}^{T}[M]{r}/(\phi _{i}^{T}[M]\phi _{i})\) dimana {r} = arah excitation. Mengukur seberapa kuat mode i ter-excite oleh load tersebut. Mode dengan Γ tinggi paling penting untuk dipertimbangkan dalam response analysis. Standard di seismic design.
+    💡 <strong>Modal Participation Factor:</strong> Untuk excitation tertentu (mis. seismic ground motion), modal participation factor \(\Gamma _{i} = \phi _{i}^{T}[M]\{r\}/(\phi _{i}^{T}[M]\phi _{i})\) dimana {r} = arah excitation. Mengukur seberapa kuat mode i ter-excite oleh load tersebut. Mode dengan Γ tinggi paling penting untuk dipertimbangkan dalam response analysis. Standard di seismic design.
   </div>
 
   <label class="pm-centang" data-pm="4"><input type="checkbox" disabled aria-describedby="pm-status-4"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Modal Matrix [Φ] &amp;amp; Coordinate Transformation: Dari {x} Fisik ke {η} Modal</b>.</span><em class="pm-status" id="pm-status-4"></em></label>
@@ -2002,7 +2005,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Modal Superposition Equation</div>
-    \({x(t)} = \Sigma \phi _{i} \cdot \eta _{i}(t) \cdot \eta _{i}(t)\) dari independent modal ODE
+    \(\{x(t)\} = \Sigma \phi _{i} \cdot \eta _{i}(t) \cdot \eta _{i}(t)\) dari independent modal ODE
   <span class="formula-number">(6)</span></div>
 <!-- PERSAMAAN-STATIS:6:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -2015,38 +2018,38 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📋</div>
       <h3>Workflow Step-by-Step</h3>
-      <p>(1) Solve eigenvalue → ω<sub>i</sub>, φ<sub>i</sub>. (2) Mass-normalize mode shapes. (3) Compute modal force \(f_{i}(t) = \phi _{i}^{T}{F(t)}\). (4) Solve modal equation untuk η<sub>i</sub>(t) (1-DoF, easy!). (5) Superpose: {x(t)} = Σ φ<sub>i</sub>·η<sub>i</sub>(t).</p>
-      <div class="formula">\(5 steps: eig \to norm \to modal F \to solve \to sum\)</div>
+      <p>(1) Solve eigenvalue → ω<sub>i</sub>, φ<sub>i</sub>. (2) Mass-normalize mode shapes. (3) Compute modal force \(f_{i}(t) = \phi _{i}^{T}\{F(t)\}\). (4) Solve modal equation untuk η<sub>i</sub>(t) (1-DoF, easy!). (5) Superpose: {x(t)} = Σ φ<sub>i</sub>·η<sub>i</sub>(t).</p>
+      <div class="formula">\(5 \text{ steps: eig} \to \text{norm} \to \text{modal } F \to \text{solve} \to \text{sum}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎚️</div>
       <h3>Modal Truncation (Mode Truncation)</h3>
       <p>Untuk MDoF besar (N=100+), tidak perlu hitung semua N mode. <strong>Truncate</strong> ke beberapa mode dominan saja (mis. mode 1-5). Akurasi 95% untuk loading dominasi low-frequency (gempa, angin). Komputasi <strong>10-100× lebih cepat</strong> dari direct integration.</p>
-      <div class="formula">\(Truncate to k modes (k << N)\)</div>
+      <div class="formula">\(\text{Truncate to } k \text{ modes } (k &lt;&lt; N)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">💧</div>
       <h3>Rayleigh Damping (Proportional)</h3>
       <p>Damping matrix <code>[C] = α[M] + β[K]</code>. Sifat: [C] juga diagonalized oleh [Φ] (modal damping). Tiap mode i punya damping ratio ζ<sub>i</sub> independent. Modal equation dengan damping: \(\ddot{\eta}_{i} + 2\zeta _{i}\omega _{i}\dot{\eta}_{i} + \omega _{i}^2\eta _{i} = f_{i}(t)\).</p>
-      <div class="formula">\(C = \alpha M + \beta K (Rayleigh)\)</div>
+      <div class="formula">\(C = \alpha M + \beta K (\text{Rayleigh})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Comparison vs Direct Integration</h3>
       <p>Direct integration (Newmark, Wilson-θ): solve coupled ODE [M]{ẍ}+[C]{ẋ}+[K]{x}={F} step by step. <strong>Pros</strong>: handle non-linear, non-proportional damping. <strong>Cons</strong>: lambat (O(\(N^2\)) per step). <strong>Modal superposition</strong>: super cepat, tapi limited ke linear + Rayleigh damping. Pilih sesuai kebutuhan.</p>
-      <div class="formula">\(Modal: fast linear; Direct: slow general\)</div>
+      <div class="formula">Modal: fast linear; Direct: slow general</div>
     </div>
   </div>
 
   <div class="info-box reveal">
     <strong>Use Case Praktis: Seismic Response Building</strong><br>
     Building 20 lantai (N=20 DoF). Loading: ground acceleration earthquake. Workflow:<br>
-    \(1)\) Solve \(20\) eigenvalues, get \(\omega _{1}=1.5 Hz\) (first mode), \(\omega _{2}=4.5 Hz,\) dst.<br>
+    1) Solve 20 eigenvalues, get \(\omega _{1}=1.5\) Hz (first mode), \(\omega _{2}=4.5\) Hz, dst.<br>
     2) Mass-normalize semua 20 mode shape.<br>
     3) Compute modal participation untuk arah horizontal: Γ<sub>1</sub>=1.4, Γ<sub>2</sub>=−0.5, Γ<sub>3</sub>=0.3, dst.<br>
-    \(4)\) Truncate \(ke 3\) modes pertama \((\Gamma _{i}^2\) &gt; \(5%\) total).<br>
-    \(5)\) Solve \(3\) modal ODE dengan modal force \(= \Gamma _{i} \cdot a_{ground}(t).\)<br>
-    \(6)\) Superpose: \(x(t) = \Sigma \Gamma _{i} \cdot \phi _{i} \cdot \eta _{i}(t).\)<br>
+    4) Truncate ke 3 modes pertama (\(\Gamma _{i}^2 &gt; 5\%\) total).<br>
+    5) Solve 3 modal ODE dengan modal force \(= \Gamma _{i} \cdot a_{ground}(t)\).<br>
+    6) Superpose: \(x(t) = \Sigma \Gamma _{i} \cdot \phi _{i} \cdot \eta _{i}(t)\).<br>
     Get inter-story drift, base shear, max acceleration per lantai. Standard practice di structural engineering software (ETABS, SAP2000).
   </div>
 
@@ -2072,7 +2075,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Standard Industry Tools</div>
-    ETABS (gedung) \(\cdot SAP2000\) (general structure) \(\cdot Abaqus/Nastran\) (aerospace) \(\cdot\) ANSYS (mechanical)
+    ETABS (gedung) \(\cdot \text{SAP2000}\) (general structure) \(\cdot \text{Abaqus/Nastran}\) (aerospace) \(\cdot\) ANSYS (mechanical)
   <span class="formula-number">(7)</span></div>
 <!-- PERSAMAAN-STATIS:7:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -2086,25 +2089,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🏢</div>
       <h3>Tall Building (Burj Khalifa, Petronas)</h3>
       <p>828 m Burj Khalifa dimodelkan sebagai 100+ DoF. Mode 1 = sway lateral (T ≈ 11 sec), mode 2 = perpendicular sway, mode 3 = torsional. Wind load &amp; seismic dianalisis dengan modal superposition. Tuned mass damper (Bagian 07 Modul-7) di-tune ke f<sub>1</sub>.</p>
-      <div class="formula">\(Burj Khalifa T_1 \approx 11 \sec (\text{very low f})\)</div>
+      <div class="formula">\(\text{Burj Khalifa } T_1 \approx 11 \sec (\text{very low f})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌉</div>
       <h3>Long-Span Bridge (Tacoma, Akashi)</h3>
       <p>Tacoma Narrows 1940: collapsed karena resonansi vortex shedding dengan mode torsional bridge. Lesson: modal analysis WAJIB include torsional modes. Akashi Kaikyo (1991 m): 200+ DoF analysis, modes 1-20 considered.</p>
-      <div class="formula">\(Tacoma: torsional flutter at \omega _5\)</div>
+      <div class="formula">\(\text{Tacoma: torsional flutter at } \omega _5\)</div>
     </div>
     <div class="card">
       <div class="card-icon">✈️</div>
       <h3>Aircraft Wing (Aeroelastic Flutter)</h3>
       <p>Wing pesawat = continuous structure di-discretize jadi 1000-100000 DoF FEM. Modal analysis identify mode bending vs torsion. <strong>Flutter</strong>: coupling unstable antara dua mode pada speed kritis. Wajib dihindari di certification.</p>
-      <div class="formula">\(Flutter at V_{\text{critical}} from modal coupling\)</div>
+      <div class="formula">Flutter at \(V_{\text{critical}}\) from modal coupling</div>
     </div>
     <div class="card">
       <div class="card-icon">🚗</div>
       <h3>Vehicle Body NVH Analysis</h3>
       <p>Body mobil = 10⁵-10⁶ DoF FEM. Modal analysis identify resonance frequencies yang dapat dirasakan penumpang sebagai noise/vibration. Optimization: shift mode frequencies away dari engine excitation (idle, cruising).</p>
-      <div class="formula">\(NVH: shift modes to f > 200 Hz\)</div>
+      <div class="formula">\(\text{NVH: shift modes to } f > 200 \text{ Hz}\)</div>
     </div>
   </div>
 
@@ -2841,7 +2844,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Mass-normalize mode shape: untuk eigvec phi=[1, 1] dan M=I, hitung scaling factor c agar \(c \cdot phi\) mass-normalized (cᵀMc = 1).</div>
+        <div class="comp-q">Mass-normalize mode shape: untuk eigvec phi=[1, 1] dan M=I, hitung scaling factor c agar \(c \cdot \phi\) mass-normalized (cᵀMc = 1).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Faktor mass-normalize c = 1/\(\sqrt{\phi ^{T}M\phi }\); hitung φᵀMφ dengan operator @ lalu pakai <code>np.sqrt</code>.</div>
@@ -3169,7 +3172,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Susun K = 8e6·[[2,−1,0],[−1,2,−1],[0,−1,1]] dan M = 5000·I. Selesaikan eigenvalue problem dengan <code>numpy.linalg.eig(inv(M) @ K)</code>. Ambil akar kuadrat → \(\omega _i\), lalu konversi ke Hz. Bandingkan dengan rentang frekuensi gempa dominan 2–4 Hz.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">det(K \(- \omega ^2M) = 0\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(\det(K - \omega ^2M) = 0\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(f_i = \omega _i / (2\pi )\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(T_i = 2\pi / \omega _i\)</span>
         </div>
@@ -3299,7 +3302,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div style="font-size:12px;color:var(--muted);line-height:1.5">
           <strong style="color:var(--text)">Cara salin (3 langkah):</strong><br>
           1) Klik tombol <strong style="color:var(--cyan)">🔍 Pilih Semua</strong> di bawah kotak HTML · 
-          \(2)\) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
+          2) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
           3) Paste di Fast Learning &gt; mode HTML.<br>
           <em style="color:var(--violet)">Tombol Copy di atas adalah opsional, jika tidak berfungsi, gunakan cara manual ini.</em>
         </div>

@@ -356,7 +356,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(249,115,22,.1);padding:1px 6px;border-radius:4px}
@@ -1071,6 +1071,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1728,7 +1731,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Lima Konsep Aplikasi Laplace yang Wajib Dikuasai</div>
-    \(H(t-a) ⇌ e^{-as}/s \cdot \delta (t-a) ⇌ e^{-as} \cdot H(s) = Y(s)/U(s) \cdot L{f*g} = F(s) \cdot G(s) \cdot\) sistem coupled di domain \(s\)
+    \(H(t-a) ⇌ e^{-as}/s\) · \(\delta (t-a) ⇌ e^{-as}\) · \(H(s) = Y(s)/U(s)\) · \(\mathcal{L}\{f*g\} = F(s) \cdot G(s)\) · sistem coupled di domain \(s\)
   <span class="formula-number">(1)</span></div>
 <!-- PERSAMAAN-STATIS:1:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1741,14 +1744,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📈</div>
       <h3>Heaviside Step H(t−a)</h3>
-      <p>Fungsi step <strong>Heaviside</strong> adalah representasi matematis dari sinyal mendadak (saklar dinyalakan, beban tiba-tiba, voltase step). Berbentuk 0 untuk t &lt; a, 1 untuk t ≥ a. Transformasi: \(L{H(t-a)} = e^{-as}/s\). Faktor \(e^{-as}\) = delay di domain s.</p>
-      <div class="formula">\(L{H(t-a)} = e^{-as}/s\)</div>
+      <p>Fungsi step <strong>Heaviside</strong> adalah representasi matematis dari sinyal mendadak (saklar dinyalakan, beban tiba-tiba, voltase step). Berbentuk 0 untuk t &lt; a, 1 untuk t ≥ a. Transformasi: \(\mathcal{L}\{H(t-a)\} = e^{-as}/s\). Faktor \(e^{-as}\) = delay di domain s.</p>
+      <div class="formula">\(\mathcal{L}\{H(t-a)\} = e^{-as}/s\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Dirac Delta δ(t−a)</h3>
-      <p>Fungsi <strong>impulse Dirac</strong> = "spike" instantan di t = a dengan luas 1. Model untuk hammer test, lightning strike, momentum impact. Transformasi: \(L{\delta (t-a)} = e^{-as}\). Inilah <em>impulse response</em>, building block untuk semua respons sistem linier.</p>
-      <div class="formula">\(L{\delta (t-a)} = e^{-as}\)</div>
+      <p>Fungsi <strong>impulse Dirac</strong> = "spike" instantan di t = a dengan luas 1. Model untuk hammer test, lightning strike, momentum impact. Transformasi: \(\mathcal{L}\{\delta (t-a)\} = e^{-as}\). Inilah <em>impulse response</em>, building block untuk semua respons sistem linier.</p>
+      <div class="formula">\(\mathcal{L}\{\delta (t-a)\} = e^{-as}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
@@ -1760,7 +1763,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">∫</div>
       <h3>Konvolusi y = h*u</h3>
       <p><strong>Teorema konvolusi</strong>: <code>L{f*g} = F(s)·G(s)</code>, perkalian di domain s = konvolusi di domain t. Konsekuensi: untuk sistem dengan transfer function H(s), <code>y(t) = h(t)*u(t) = ∫₀<sup>t</sup> h(τ)·u(t−τ)·dτ</code>. Respons ke input arbitrary = konvolusi impulse response dengan input.</p>
-      <div class="formula">\(L{f*g} = F(s) \cdot G(s)\)</div>
+      <div class="formula">\(\mathcal{L}\{f*g\} = F(s) \cdot G(s)\)</div>
     </div>
   </div>
 
@@ -1769,7 +1772,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Strategi belajar Pertemuan 12:</strong> <strong>(1) Pahami visualisasi</strong>, gambar Heaviside step (tangga di t=a), Dirac delta (panah panjang dengan area 1). <strong>(2) Hafal pasangan tabel baru</strong>: \(L{H(t-a) \cdot f(t-a)} = e^{-as} \cdot F(s)\) (second shift). <strong>(3) Pikirkan sistem sebagai blok H(s)</strong>, input → block → output, semua di domain s. <strong>(4) Konvolusi visual</strong>, bayangkan sliding integral antara dua fungsi. <strong>(5) Latih dengan SymPy</strong>: <code>sp.Heaviside(t-a)</code>, <code>sp.DiracDelta(t-a)</code>, <code>sp.laplace_transform()</code>.
+    💡 <strong>Strategi belajar Pertemuan 12:</strong> <strong>(1) Pahami visualisasi</strong>, gambar Heaviside step (tangga di t=a), Dirac delta (panah panjang dengan area 1). <strong>(2) Hafal pasangan tabel baru</strong>: \(\mathcal{L}\{H(t-a) \cdot f(t-a)\} = e^{-as} \cdot F(s)\) (second shift). <strong>(3) Pikirkan sistem sebagai blok H(s)</strong>, input → block → output, semua di domain s. <strong>(4) Konvolusi visual</strong>, bayangkan sliding integral antara dua fungsi. <strong>(5) Latih dengan SymPy</strong>: <code>sp.Heaviside(t-a)</code>, <code>sp.DiracDelta(t-a)</code>, <code>sp.laplace_transform()</code>.
   </div>
 
   <label class="pm-centang" data-pm="0"><input type="checkbox" disabled aria-describedby="pm-status-0"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Penerapan Laplace — Toolkit Engineering Lanjut</b>.</span><em class="pm-status" id="pm-status-0"></em></label>
@@ -1780,7 +1783,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-karakteristik">
   <div class="section-label reveal">Bagian 02</div>
   <h2 class="section-title reveal">Heaviside Step H(t−a) —<br>Input Mendadak di Domain Laplace</h2>
-  <p class="section-desc reveal">Fungsi <strong>Heaviside step H(t−a)</strong> = representasi matematis dari sinyal yang mendadak <em>menyala di t = a</em>: 0 sebelum t = a, 1 setelahnya. Sangat penting untuk modeling input nyata: voltase saklar, gaya step load, kontrol on/off, sinyal digital. Transformasi Laplace: <strong>\(L{H(t-a)} = e^{-as}/s\)</strong>. Faktor \(e^{-as}\) = <em>delay operator</em> di domain s. Skemanya diperlihatkan pada Gambar 2. Bentuk ringkasnya dituliskan pada Persamaan (2).</p>
+  <p class="section-desc reveal">Fungsi <strong>Heaviside step H(t−a)</strong> = representasi matematis dari sinyal yang mendadak <em>menyala di t = a</em>: 0 sebelum t = a, 1 setelahnya. Sangat penting untuk modeling input nyata: voltase saklar, gaya step load, kontrol on/off, sinyal digital. Transformasi Laplace: <strong>\(\mathcal{L}\{H(t-a)\} = e^{-as}/s\)</strong>. Faktor \(e^{-as}\) = <em>delay operator</em> di domain s. Skemanya diperlihatkan pada Gambar 2. Bentuk ringkasnya dituliskan pada Persamaan (2).</p>
 <!-- ILUSTRASI-STATIS:2:START -->
   <figure class="ilustrasi reveal">
     <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 2 — Fungsi tangga menyalakan masukan pada waktu tertentu" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,208.8 L273.7,208.8 L285.6,52.4 L642.0,52.4 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,208.8 L273.7,208.8 L285.6,52.4 L642.0,52.4" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><text x="297.48" y="153.60000000000002" text-anchor="start" font-size="11.5" fill="#fbbf24"  font-family="'Inter',system-ui,sans-serif">Menyala di t = a</text><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">H(t−a)</text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">t</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">H(t−a)</text></g></svg>
@@ -1804,25 +1807,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📈</div>
       <h3>Definisi Step Function</h3>
       <p>Heaviside step <code>H(t−a)</code> = unit step function yang aktif di t = a. Untuk a = 0: <code>H(t)</code> = step di origin. Untuk a &gt; 0: step ditunda a detik. Visual: tangga yang naik dari 0 ke 1 di t = a. Kemiringan tak-terhingga (step instan).</p>
-      <div class="formula">\(H(t-a) = step di t = a\)</div>
+      <div class="formula">\(H(t-a) = \text{step di } t = a\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
       <h3>Transformasi Heaviside</h3>
-      <p>Dari definisi integral: \(L{H(t-a)} = \int _0^\infty e^{-st} \cdot H(t-a) dt = \int _a^\infty e^{-st} dt = e^{-as}/s\). Kasus a = 0: <code>L{H(t)} = 1/s</code> = sama dengan <code>L{1}</code> (untuk t &gt; 0, H(t) = 1).</p>
-      <div class="formula">\(L{H(t-a)} = e^{-as}/s\)</div>
+      <p>Dari definisi integral: \(\mathcal{L}\{H(t-a)\} = \int _0^\infty e^{-st} \cdot H(t-a) dt = \int _a^\infty e^{-st} dt = e^{-as}/s\). Kasus a = 0: <code>L{H(t)} = 1/s</code> = sama dengan <code>L{1}</code> (untuk t &gt; 0, H(t) = 1).</p>
+      <div class="formula">\(\mathcal{L}\{H(t-a)\} = e^{-as}/s\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⏩</div>
       <h3>Second Shift Theorem</h3>
-      <p><strong>Teorema penting</strong>: \(L{f(t-a) \cdot H(t-a)} = e^{-as} \cdot F(s)\). Fungsi yang aktif di t = a dengan bentuk f(t−a) (digeser) → faktor \(e^{-as} \cdot F(s)\) di domain s. Berguna untuk fungsi yang menyala dengan delay: cos(ω(t−a))·H(t−a), sin(ω(t−a))·H(t−a), polinomial dengan delay.</p>
-      <div class="formula">\(L{f(t-a)H(t-a)} = e^{-as}F(s)\)</div>
+      <p><strong>Teorema penting</strong>: \(\mathcal{L}\{f(t-a) \cdot H(t-a)\} = e^{-as} \cdot F(s)\). Fungsi yang aktif di t = a dengan bentuk f(t−a) (digeser) → faktor \(e^{-as} \cdot F(s)\) di domain s. Berguna untuk fungsi yang menyala dengan delay: cos(ω(t−a))·H(t−a), sin(ω(t−a))·H(t−a), polinomial dengan delay.</p>
+      <div class="formula">\(\mathcal{L}\{f(t-a)H(t-a)\} = e^{-as}F(s)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Konstruksi Sinyal Kompleks</h3>
-      <p>Heaviside step adalah <em>building block</em>: kombinasi step memberi rectangular pulse, gigi gergaji, square wave. Mis. <strong>pulse 0&lt;t&lt;5</strong>: <code>p(t) = H(t) − H(t−5)</code>; transformasi: \(L{p(t)} = (1 - e^{-5s})/s\). Pulse +H(t-10) − H(t-15): pulse kedua di t∈[10,15].</p>
-      <div class="formula">\(pulse = H(t) - H(t-d)\)</div>
+      <p>Heaviside step adalah <em>building block</em>: kombinasi step memberi rectangular pulse, gigi gergaji, square wave. Mis. <strong>pulse 0&lt;t&lt;5</strong>: <code>p(t) = H(t) − H(t−5)</code>; transformasi: \(\mathcal{L}\{p(t)\} = (1 - e^{-5s})/s\). Pulse +H(t-10) − H(t-15): pulse kedua di t∈[10,15].</p>
+      <div class="formula">\(\text{pulse} = H(t) - H(t-d)\)</div>
     </div>
   </div>
 
@@ -1837,13 +1840,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="info-box reveal">
     <strong>Contoh 1 — fungsi step dengan delay:</strong> Hitung <code>L{5·H(t−3)}</code>.<br>
-    Linearitas: \(L{5 \cdot H(t-3)} = 5 \cdot L{H(t-3)} = 5 \cdot e^{-3s}/s.\)<br>
+    Linearitas: \(\mathcal{L}\{5 \cdot H(t-3)\} = 5 \cdot \mathcal{L}\{H(t-3)\} = 5 \cdot e^{-3s}/s.\)<br>
     Faktor <code>5</code> adalah magnitude step, \(e^{-3s}\) adalah delay 3 detik di domain s.<br>
     <strong>Contoh 2 — pulse:</strong> Hitung <code>L{2·[H(t) − H(t−4)]}</code>.<br>
     \(= 2 \cdot (1/s - e^{-4s}/s) = (2/s) \cdot (1 - e^{-4s}).\)<br>
     Pulse magnitudo 2 selama 4 detik.<br>
     <strong>Contoh 3 — second shift:</strong> Hitung <code>L{(t−2)²·H(t−2)}</code>.<br>
-    Pakai second shift theorem: <code>F(s) = L{t²} = 2/s³</code>; \(L{(t-2)^2 \cdot H(t-2)} = e^{-2s} \cdot 2/s^3\).
+    Pakai second shift theorem: <code>F(s) = L{t²} = 2/s³</code>; \(\mathcal{L}\{(t-2)^2 \cdot H(t-2)\} = e^{-2s} \cdot 2/s^3\).
   </div>
 
   <div class="warn-box reveal">
@@ -1858,7 +1861,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-kasus1">
   <div class="section-label reveal">Bagian 03</div>
   <h2 class="section-title reveal">Dirac Delta δ(t−a) —<br>Impulse &amp; Hammer Test</h2>
-  <p class="section-desc reveal"><strong>Dirac delta function δ(t−a)</strong> = "spike" instantan di t = a dengan luas integral = 1. Bukan fungsi biasa (matematis: distribusi/generalized function), tetapi sangat penting untuk model <em>impulse</em>: hammer test struktur, lightning strike di sirkuit, momentum impact di sistem mekanik. Transformasi Laplace: <strong>\(L{\delta (t-a)} = e^{-as}\)</strong>. Saat a = 0: <code>L{δ(t)} = 1</code>, paling sederhana. Perhatikan ilustrasinya pada Gambar 3. Persamaan (3) di bawah memadatkan aturan tersebut.</p>
+  <p class="section-desc reveal"><strong>Dirac delta function δ(t−a)</strong> = "spike" instantan di t = a dengan luas integral = 1. Bukan fungsi biasa (matematis: distribusi/generalized function), tetapi sangat penting untuk model <em>impulse</em>: hammer test struktur, lightning strike di sirkuit, momentum impact di sistem mekanik. Transformasi Laplace: <strong>\(\mathcal{L}\{\delta (t-a)\} = e^{-as}\)</strong>. Saat a = 0: <code>L{δ(t)} = 1</code>, paling sederhana. Perhatikan ilustrasinya pada Gambar 3. Persamaan (3) di bawah memadatkan aturan tersebut.</p>
 <!-- ILUSTRASI-STATIS:3:START -->
   <figure class="ilustrasi reveal">
     <svg viewBox="0 0 660 252" role="img" aria-label="Gambar 3 — Impuls sebagai pukulan sesaat" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="660" height="252" fill="#0a101f"/><line x1="48" y1="34" x2="48" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="107.4" y1="34" x2="107.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="166.8" y1="34" x2="166.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="226.2" y1="34" x2="226.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="285.6" y1="34" x2="285.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="345" y1="34" x2="345" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="404.4" y1="34" x2="404.4" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="463.8" y1="34" x2="463.8" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="523.2" y1="34" x2="523.2" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="582.6" y1="34" x2="582.6" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="642" y1="34" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="34" x2="642" y2="34" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="70.8" x2="642" y2="70.8" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="107.6" x2="642" y2="107.6" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="144.4" x2="642" y2="144.4" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="181.2" x2="642" y2="181.2" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="642" y2="218" stroke="#243653" stroke-width="0.7"/><line x1="48" y1="218" x2="641" y2="218" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="650,218 641,222.5 641,213.5" fill="#94a3b8"/><line x1="48" y1="218" x2="48" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-linecap="round"/><polygon points="48,26 52.5,35 43.5,35" fill="#94a3b8"/><path d="M48.0,208.8 L273.7,208.8 L285.6,43.2 L297.5,208.8 L642.0,208.8 L642.0,218.0 L48.0,218.0 Z" fill="#22d3ee" fill-opacity="0.09"/><path d="M48.0,208.8 L273.7,208.8 L285.6,43.2 L297.5,208.8 L642.0,208.8" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><text x="315.3" y="85.52000000000001" text-anchor="start" font-size="11.5" fill="#fbbf24"  font-family="'Inter',system-ui,sans-serif">Luas = 1</text><line x1="48" y1="18" x2="70" y2="18" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/><text x="75" y="22" text-anchor="start" font-size="11.5" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">δ(t−a)</text><text x="345" y="245" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">t</text><g transform="rotate(-90 15 126)"><text x="15" y="130" text-anchor="middle" font-size="12" fill="#e2e8f0"  font-family="'Inter',system-ui,sans-serif">δ(t−a)</text></g></svg>
@@ -1868,7 +1871,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Definisi Dirac Delta dan Sifat Sifting</div>
-    \(\delta (t-a): \int _{-\infty }^\infty \delta (t-a) dt = 1, \int _{-\infty }^\infty f(t) \cdot \delta (t-a) dt = f(a)\) (sifting);    \(L{\delta (t-a)} = e^{-as}\)
+    \(\delta (t-a): \int _{-\infty }^\infty \delta (t-a) dt = 1, \int _{-\infty }^\infty f(t) \cdot \delta (t-a) dt = f(a)\) (sifting);    \(\mathcal{L}\{\delta (t-a)\} = e^{-as}\)
   <span class="formula-number">(3)</span></div>
 <!-- PERSAMAAN-STATIS:3:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1882,25 +1885,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚡</div>
       <h3>Definisi Dirac Delta</h3>
       <p><strong>δ(t−a)</strong> = limit dari fungsi narrow rectangular pulse: tinggi → ∞, lebar → 0, luas = 1. Visual: panah vertikal di t = a dengan label "1". Bukan fungsi biasa, tetapi <em>distribusi</em> Schwartz. Operasi: <code>∫f(t)·δ(t−a) dt = f(a)</code> (sifting property: δ "menyaring" nilai f di t=a).</p>
-      <div class="formula">\(\delta (t-a) = "spike" di t=a\)</div>
+      <div class="formula">\(\delta (t-a) = \text{“spike” di } t=a\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Transformasi Laplace</h3>
-      <p>Dari sifting: \(L{\delta (t-a)} = \int _0^\infty e^{-st} \cdot \delta (t-a) dt = e^{-as}\) untuk a ≥ 0. Untuk a = 0: <code>L{δ(t)} = 1</code>. <em>Paling sederhana</em> di antara semua transformasi! Inilah mengapa impulse response sangat fundamental untuk karakterisasi sistem.</p>
-      <div class="formula">\(L{\delta (t-a)} = e^{-as}\)</div>
+      <p>Dari sifting: \(\mathcal{L}\{\delta (t-a)\} = \int _0^\infty e^{-st} \cdot \delta (t-a) dt = e^{-as}\) untuk a ≥ 0. Untuk a = 0: <code>L{δ(t)} = 1</code>. <em>Paling sederhana</em> di antara semua transformasi! Inilah mengapa impulse response sangat fundamental untuk karakterisasi sistem.</p>
+      <div class="formula">\(\mathcal{L}\{\delta (t-a)\} = e^{-as}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔨</div>
       <h3>Impulse Response h(t)</h3>
       <p>Untuk PD <code>L(D)·y = δ(t)</code> dengan IVP nol, solusi y(t) disebut <strong>impulse response h(t)</strong>. Diperoleh via Laplace: <code>L(D)·y = δ(t) → P(s)·H(s) = 1 → H(s) = 1/P(s)</code>, lalu invers Laplace. Inilah <em>fingerprint</em> sistem.</p>
-      <div class="formula">\(h(t) = L^{-1}{1/P(s)}\)</div>
+      <div class="formula">\(h(t) = \mathcal{L}^{-1}\{1/P(s)\}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔬</div>
       <h3>Aplikasi Engineering</h3>
       <p><strong>Hammer test</strong>: pukul struktur dengan palu instrumented, ukur respons getarnya; itulah h(t). FFT dari h(t) memberi <em>frequency response</em>. <strong>Modal analysis</strong>: identifikasi frekuensi natural dari peak FFT. <strong>System identification</strong>: dari h(t) terukur, estimasi parameter sistem (m, c, k atau R, L, C).</p>
-      <div class="formula">\(FFT[h(t)] \to frequency response\)</div>
+      <div class="formula">\(\text{FFT}[h(t)] \to \text{frequency response}\)</div>
     </div>
   </div>
 
@@ -1918,7 +1921,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <strong>Contoh 1 — solve PD dengan input impulse:</strong> Selesaikan <code>y'' + 4y' + 13y = δ(t)</code> dengan <code>y(0) = 0, y'(0) = 0</code>.<br>
     <strong>Step 1.</strong> Transformasi Laplace: <code>(s² + 4s + 13)·Y(s) = 1</code> (karena <code>L{δ(t)} = 1</code>).<br>
     <strong>Step 2.</strong> Solve: <code>Y(s) = 1/(s² + 4s + 13)</code>. Lengkapi kuadrat: <code>1/[(s+2)² + 9]</code>.<br>
-    <strong>Step 3.</strong> Invers Laplace via tabel + first shift: \(L^{-1}{\omega /[(s-a)^2 + \omega ^2]} = e^{at} \cdot \sin(\omega t)\). Adjust faktor: <code>1/[(s+2)² + 9] = (1/3)·3/[(s+2)² + 9]</code>.<br>
+    <strong>Step 3.</strong> Invers Laplace via tabel + first shift: \(\mathcal{L}^{-1}\{\omega /[(s-a)^2 + \omega ^2]\} = e^{at} \cdot \sin(\omega t)\). Adjust faktor: <code>1/[(s+2)² + 9] = (1/3)·3/[(s+2)² + 9]</code>.<br>
     <strong>Solusi:</strong> \(h(t) = (1/3) \cdot e^{-2t} \cdot \sin(3t)\) = impulse response sistem ini. Pole −2 ± 3j → underdamped.
   </div>
 
@@ -1926,7 +1929,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <strong>Contoh 2 — impulse di t = 2 detik:</strong> Selesaikan <code>y'' + 9y = δ(t − 2)</code> dengan IVP nol.<br>
     <strong>Step 1.</strong> Transformasi: \((s^2 + 9) \cdot Y = e^{-2s}\).<br>
     <strong>Step 2.</strong> \(Y(s) = e^{-2s}/(s^2 + 9)\).<br>
-    <strong>Step 3.</strong> Pakai second shift theorem: \(L^{-1}{e^{-as} \cdot F(s)} = f(t-a) \cdot H(t-a)\). Di sini <code>F(s) = 1/(s²+9) = (1/3)·3/(s²+9)</code> → <code>f(t) = (1/3)·sin(3t)</code>.<br>
+    <strong>Step 3.</strong> Pakai second shift theorem: \(\mathcal{L}^{-1}\{e^{-as} \cdot F(s)\} = f(t-a) \cdot H(t-a)\). Di sini <code>F(s) = 1/(s²+9) = (1/3)·3/(s²+9)</code> → <code>f(t) = (1/3)·sin(3t)</code>.<br>
     <strong>Solusi:</strong> <code>y(t) = (1/3)·sin(3(t−2))·H(t−2)</code>, sistem mulai berosilasi pada frekuensi natural 3 rad/s setelah impulse di t=2.
   </div>
 
@@ -1972,7 +1975,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📍</div>
       <h3>Pole &amp; Zero</h3>
       <p><strong>Pole</strong> = akar denominator D(s). Menentukan <em>karakter dinamik</em>: real negatif → decay, real positif → unstable, kompleks → osilasi. <strong>Zero</strong> = akar numerator N(s). Menentukan <em>frekuensi yang difilter</em> (transmission zero). Lokasi pole/zero di s-plane mengungkap sifat sistem secara visual.</p>
-      <div class="formula">\(stabilitas: Re(pole) < 0\)</div>
+      <div class="formula">\(\text{stabilitas}: \operatorname{Re}(\text{pole}) < 0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
@@ -1984,7 +1987,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🌊</div>
       <h3>Frequency Response H(jω)</h3>
       <p>Substitusi <code>s = jω</code> di H(s) memberi <strong>frequency response</strong> H(jω). Magnitude |H(jω)| = gain pada frekuensi ω; phase ∠H(jω) = phase shift. Plot di Bode (log-log magnitude + linear phase) mengungkap perilaku filter (low-pass, high-pass, band-pass, notch). Inilah jembatan ke teori sinyal.</p>
-      <div class="formula">\(|H(j\omega )|, ∠H(j\omega ) = Bode plot\)</div>
+      <div class="formula">\(|H(j\omega )|, ∠H(j\omega ) = \text{Bode plot}\)</div>
     </div>
   </div>
 
@@ -2026,7 +2029,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Definisi Konvolusi dan Teorema Konvolusi</div>
-    (f*g)(t) \(= \int _0^t f(\tau ) \cdot g(t-\tau ) \cdot d\tau ; L{f*g} = F(s) \cdot G(s); y(t) = h(t)*u(t)\) (response sistem)
+    \((f*g)(t) = \int _0^t f(\tau ) \cdot g(t-\tau ) \cdot d\tau ; \mathcal{L}\{f*g\} = F(s) \cdot G(s); y(t) = h(t)*u(t)\) (response sistem)
   <span class="formula-number">(5)</span></div>
 <!-- PERSAMAAN-STATIS:5:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -2045,8 +2048,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Teorema Konvolusi</h3>
-      <p><strong>\(L{f*g} = F(s) \cdot G(s)\)</strong>. Bukti dari definisi: tukar urutan integrasi ganda. Kebalikan: <code>L⁻¹{F(s)·G(s)} = f(t)*g(t)</code>, bila Y(s) = perkalian dua F(s) yang invers individualnya diketahui, hasil di domain t = konvolusi mereka. Sangat berguna untuk invers Laplace bila pecahan parsial sulit.</p>
-      <div class="formula">\(L{f*g} = F(s) \cdot G(s)\)</div>
+      <p><strong>\(\mathcal{L}\{f*g\} = F(s) \cdot G(s)\)</strong>. Bukti dari definisi: tukar urutan integrasi ganda. Kebalikan: <code>L⁻¹{F(s)·G(s)} = f(t)*g(t)</code>, bila Y(s) = perkalian dua F(s) yang invers individualnya diketahui, hasil di domain t = konvolusi mereka. Sangat berguna untuk invers Laplace bila pecahan parsial sulit.</p>
+      <div class="formula">\(\mathcal{L}\{f*g\} = F(s) \cdot G(s)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
@@ -2065,12 +2068,12 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="info-box reveal">
     <strong>Contoh 1 — invers via konvolusi:</strong> Hitung <code>L⁻¹{1/(s·(s+2))}</code>.<br>
     <strong>Cara 1 (pecahan parsial):</strong> <code>1/(s(s+2)) = (1/2)/s − (1/2)/(s+2)</code> → \((1/2) \cdot (1 - e^{-2t})\).<br>
-    <strong>Cara 2 (konvolusi):</strong> Tulis sebagai produk: <code>(1/s)·(1/(s+2))</code>. <code>L⁻¹{1/s} = 1</code>; \(L^{-1}{1/(s+2)} = e^{-2t}\). Konvolusi: \(1*e^{-2t} = \int _0^t 1 \cdot e^{-2(t-\tau )} d\tau = e^{-2t} \cdot \int _0^t e^{2\tau } d\tau = e^{-2t} \cdot [e^{2t}-1]/2 = (1-e^{-2t})/2\). ✓ Konsisten!
+    <strong>Cara 2 (konvolusi):</strong> Tulis sebagai produk: <code>(1/s)·(1/(s+2))</code>. <code>L⁻¹{1/s} = 1</code>; \(\mathcal{L}^{-1}\{1/(s+2)\} = e^{-2t}\). Konvolusi: \(1*e^{-2t} = \int _0^t 1 \cdot e^{-2(t-\tau )} d\tau = e^{-2t} \cdot \int _0^t e^{2\tau } d\tau = e^{-2t} \cdot [e^{2t}-1]/2 = (1-e^{-2t})/2\). ✓ Konsisten!
   </div>
 
   <div class="info-box reveal">
     <strong>Contoh 2 — output sistem ke input arbitrary:</strong> Sistem dengan \(h(t) = e^{-t} \cdot H(t)\) menerima input ramp <code>u(t) = t·H(t)</code>. Output:<br>
-    \(y(t) = h(t)*u(t) = \int _0^t e^{-\tau } \cdot (t-\tau ) \cdot\) d\tau \(= (t-\tau +1) \cdot e^{-\tau }|_0^t = (1) \cdot e^{-t} - (t+1) \cdot 1 \cdot (-1) = e^{-t} + t - 1.\)<br>
+    \(y(t) = h(t)*u(t) = \int _0^t e^{-\tau } \cdot (t-\tau ) \cdot d\tau = (t-\tau +1) \cdot e^{-\tau }|_0^t = (1) \cdot e^{-t} - (t+1) \cdot 1 \cdot (-1) = e^{-t} + t - 1.\)<br>
     <strong>Verifikasi via Laplace:</strong> <code>H(s) = 1/(s+1)</code>, <code>U(s) = 1/s²</code>, <code>Y(s) = 1/[s²(s+1)]</code>. Pecahan parsial: <code>= 1/s² − 1/s + 1/(s+1)</code> → \(y(t) = t - 1 + e^{-t}\). ✓ Cocok.
   </div>
 
@@ -2118,7 +2121,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">3️⃣</div>
       <h3>PD Orde 3</h3>
       <p>Untuk PD <code>y''' + ay'' + by' + cy = f(t)</code>, transformasi: <code>L{y'''} = s³Y − s²y(0) − sy'(0) − y''(0)</code>. Butuh <strong>3 syarat awal</strong>: y(0), y'(0), y''(0). Setelah aljabar: <code>(s³+as²+bs+c)·Y(s) = …</code> — denominator polinomial pangkat 3.</p>
-      <div class="formula">\(3 syarat awal\;\text{untuk}\;orde 3\)</div>
+      <div class="formula">\(3 \text{ syarat awal untuk orde } 3\)</div>
     </div>
     <div class="card">
       <div class="card-icon">4️⃣</div>
@@ -2247,7 +2250,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Sistem PD Coupled di Domain Laplace</div>
-    \({x'(t) = a \cdot x + b \cdot y + f(t); y'(t) = c \cdot x + d \cdot y + g(t)} \implies\) matriks \({[s-a, -b; -c, s-d] \cdot [X(s); Y(s)] = [F(s)+x(0); G(s)+y(0)]}\)
+    \(\{x'(t) = a \cdot x + b \cdot y + f(t); y'(t) = c \cdot x + d \cdot y + g(t)\} \implies\) matriks \(\{[s-a, -b; -c, s-d] \cdot [X(s); Y(s)] = [F(s)+x(0); G(s)+y(0)]\}\)
   <span class="formula-number">(7)</span></div>
 <!-- PERSAMAAN-STATIS:7:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -2267,7 +2270,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📊</div>
       <h3>Bentuk Matriks</h3>
       <p>Setelah transformasi: <code>(sI − A)·X(s) = X(0) + F(s)</code> dengan A matriks koefisien sistem, X(s) = [X₁(s), X₂(s), …]ᵀ vektor Laplace state, X(0) = vektor IVP, F(s) = vektor input Laplace. <strong>Matriks (sI − A)</strong> = generalisasi polinomial karakteristik untuk sistem.</p>
-      <div class="formula">\((\text{sI - A})X = X_0 + F\)</div>
+      <div class="formula">\((sI - A)X = X_0 + F\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧮</div>
@@ -2279,7 +2282,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Eigenvalue &amp; Stabilitas</h3>
       <p>Akar dari <code>det(sI − A) = 0</code> = eigenvalue λ<sub>i</sub> matriks A. Identik dengan akar karakteristik untuk sistem single PD. <strong>Sistem stabil</strong> bila <em>semua</em> eigenvalue Re(λ<sub>i</sub>) &lt; 0. Bila ada satu eigenvalue dengan Re ≥ 0 → unstable. Konektor langsung antara aljabar matriks (linear algebra) dengan teori sistem dinamis.</p>
-      <div class="formula">\(\det(sI-A)=0 \to eigenvalue\)</div>
+      <div class="formula">\(\det(sI-A)=0 \to \text{eigenvalue}\)</div>
     </div>
   </div>
 
@@ -2427,7 +2430,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
               <span id="m11_tf_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
                 <span id="m11_tf_knob" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
-              <span id="m11_tf_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">BODE PLOT: \(|H(j\omega )| dB vs\) frekuensi</span>
+              <span id="m11_tf_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">BODE PLOT: \(|H(j\omega )|\) dB vs frekuensi</span>
             </button>
           </div>
         </div>
@@ -2529,7 +2532,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Transfer Function</h3>
       <p>Pakai <code>scipy.signal.TransferFunction(num, den)</code> untuk representasi sistem. Pole/zero: <code>sys.poles</code>, <code>sys.zeros</code>. Step response: <code>scipy.signal.step(sys)</code>. Bode plot: <code>scipy.signal.bode(sys)</code>.</p>
-      <div class="formula">\(signal.TransferFunction(N,D)\)</div>
+      <div class="formula"><code>signal.TransferFunction(N,D)</code></div>
     </div>
     <div class="card">
       <div class="card-icon">🔗</div>
@@ -3414,7 +3417,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q">Aplikasi <strong>final value theorem</strong>: \(\lim_{t \to \infty } y(t) = \lim_{s \to 0} s \cdot Y(s)\). Untuk transfer function H(s) = 5/(\(s^2\)+4s+13) dengan input step <code>U(s) = 1/s</code>, output Y(s) = H(s)/s = 5/[\(s \cdot (s^2\)+4s+13)]. Hitung <strong>\(\text{steady}\;-\;\text{state}\) value \(y(\infty )\)</strong> (3 desimal).</div>
+        <div class="comp-q">Aplikasi <strong>final value theorem</strong>: \(\lim_{t \to \infty } y(t) = \lim_{s \to 0} s \cdot Y(s)\). Untuk transfer function H(s) = 5/(\(s^2\)+4s+13) dengan input step <code>U(s) = 1/s</code>, output Y(s) = H(s)/s = 5/[\(s \cdot (s^2\)+4s+13)]. Hitung <strong>steady-state value \(y(\infty )\)</strong> (3 desimal).</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Final value theorem: hitung <code>lim<sub>s→0</sub> s·Y(s)</code> dengan menyederhanakan ekspresi lalu evaluasi pada s=0.</div>
@@ -3485,7 +3488,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
     <p>
       Engineer maintenance pabrik melakukan <strong style="color:var(--amber)">hammer test (impulse test)</strong> pada bracket mesin centrifugal yang dicurigai bermasalah. Bracket dipukul dengan <em>instrumented hammer</em> (input ≈ impulse Dirac), respons getarnya diukur dengan accelerometer di titik yang sama. Hasil pengukuran h(t) menunjukkan osilasi peluruh:
       \(h(t) \approx A \cdot e^{-\sigma t} \cdot \sin(\omega _{d} \cdot t)\)
-      dengan <strong>σ = 2 (decay rate)</strong>, <strong>\(\omega _{d} = 3 rad/s\) (damped frequency)</strong>, A ≈ 0.33. Tim diminta pakai <strong>Transformasi Laplace</strong> untuk: (a) cari transfer function H(s), (b) identifikasi pole sistem, (c) verifikasi dengan dsolve PD asal, dan (d) bandingkan dengan FFT untuk frequency response.
+      dengan <strong>σ = 2 (decay rate)</strong>, <strong>\(\omega _{d} = 3\ \text{rad/s}\) (damped frequency)</strong>, A ≈ 0.33. Tim diminta pakai <strong>Transformasi Laplace</strong> untuk: (a) cari transfer function H(s), (b) identifikasi pole sistem, (c) verifikasi dengan dsolve PD asal, dan (d) bandingkan dengan FFT untuk frequency response.
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:16px">
       <div style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Input: F(t) = F₀·δ(t) (hammer)</div>
@@ -3515,7 +3518,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
 
     <strong style="color:#fff">Langkah 2 — Lengkapi Kuadrat (Completing the Square)</strong><br>
     <span style="color:var(--muted);font-size:13px">Sebagai informasi: completing the square mengubah <code>s² + bs + c</code> jadi <code>(s + b/2)² + (c − b²/4)</code>. Trik ini dipakai bila diskriminan negatif (akar kompleks), bentuk akhir mencocokkan tabel Laplace untuk \(e^{at} \cdot \sin/\cos.\)</span><br>
-    \(s^2 + 6s + 13 = s^2 + 6s + 9 + 4 = (s + 3)^2 + 4 \implies\) bentuk \((\text{s - a})^2 + \omega ^2\) dengan \(a = -3, \omega = 2\)<br>
+    \(s^2 + 6s + 13 = s^2 + 6s + 9 + 4 = (s + 3)^2 + 4 \implies\) bentuk \((s - a)^2 + \omega ^2\) dengan \(a = -3, \omega = 2\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 3 — Identifikasi Akar Kompleks Konjugat</strong><br>
@@ -3524,7 +3527,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
     <br>
 
     <strong style="color:#fff">Langkah 4 — Tulis Bentuk Umum Solusi</strong><br>
-    <span style="color:var(--muted);font-size:13px">Akar kompleks \(s = \sigma \pm\) j\omega \(_{d}\) selalu memberi solusi berbentuk \(e^{\sigma t} \cdot (A \cdot \cos \omega _{d}t + B \cdot \sin \omega _{d}t)\), yaitu eksponensial dikalikan kombinasi \(\sin\) dan \(\cos.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">Akar kompleks \(s = \sigma \pm j\omega _{d}\) selalu memberi solusi berbentuk \(e^{\sigma t} \cdot (A \cdot \cos \omega _{d}t + B \cdot \sin \omega _{d}t)\), yaitu eksponensial dikalikan kombinasi \(\sin\) dan \(\cos.\)</span><br>
     \(y(t) = e^{-3t} \cdot (A \cdot \cos 2t + B \cdot \sin 2t)\)<br>
     <br>
 
@@ -3594,7 +3597,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">PD: <code>m·ẍ + c·ẋ + k·x = F(t)</code> → transfer function <code>H(s) = 1/(ms² + cs + k)</code>. Bandingkan dengan <code>1/(s² + 4s + 13)</code>: koefisien \(s^2\) adalah m, koefisien s adalah c, koefisien konstan adalah k. Dengan m = 1: <strong>\(c = 4 N \cdot s/m, k = 13 N/m\)</strong>. Frekuensi natural \(\omega _{n} = \sqrt{k/m} = \sqrt{1}3 \approx 3.61 rad/s\). Damping ratio <code>ζ = c/(2√(mk)) = 4/(2√13) = 2/√13 ≈ 0.555</code>. Dibandingkan dengan damped frequency: \(\omega _{d} = \omega _{n} \cdot \sqrt{1-\zeta ^2} = 3.61 \cdot \sqrt{1-0.308} = 3.61 \cdot 0.832 = 3.0 rad/s\) ✓ cocok dengan pole imajiner!</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">PD: <code>m·ẍ + c·ẋ + k·x = F(t)</code> → transfer function <code>H(s) = 1/(ms² + cs + k)</code>. Bandingkan dengan <code>1/(s² + 4s + 13)</code>: koefisien \(s^2\) adalah m, koefisien s adalah c, koefisien konstan adalah k. Dengan m = 1: <strong>\(c = 4\ \text{N} \cdot \text{s/m}, k = 13\ \text{N/m}\)</strong>. Frekuensi natural \(\omega _{n} = \sqrt{k/m} = \sqrt{13} \approx 3.61\ \text{rad/s}\). Damping ratio <code>ζ = c/(2√(mk)) = 4/(2√13) = 2/√13 ≈ 0.555</code>. Dibandingkan dengan damped frequency: \(\omega _{d} = \omega _{n} \cdot \sqrt{1-\zeta ^2} = 3.61 \cdot \sqrt{1-0.308} = 3.61 \cdot 0.832 = 3.0\ \text{rad/s}\) ✓ cocok dengan pole imajiner!</p>
         <div style="background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
           💬 <em>Hubungan pole ↔ parameter: untuk pole s = −σ ± jω<sub>d</sub>: <strong>\(\sigma = c/(2m)\)</strong> = 4/2 = 2 ✓; <strong>\(\omega _{n}^2 = k/m\)</strong> → ω<sub>n</sub> = √13; <strong>\(\zeta = \sigma /\omega _{n}\)</strong> = 2/3.61 ≈ 0.55 (underdamped, 0 &lt; ζ &lt; 1). Sistem akan settling time ≈ 4/σ = 2 detik, dengan overshoot ≈ exp(−πζ/\(\sqrt{1-\zeta ^2}\)) ≈ 13%. Inilah <em>system identification</em> dari hammer test: dari output (h(t) terukur) ke parameter sistem (m, c, k).</em>
         </div>
@@ -3634,7 +3637,7 @@ print(sp.apart(Ys, s))   # 3/(s - 1) + 1/(s - 2)</pre>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">settling 2 s</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Implikasi maintenance: (a) <strong>Bracket stabil</strong> (Re(pole) = −2 &lt; 0), getar akan meluruh, tidak akan runaway. (b) <strong>Settling time 2 s</strong>, setiap kali mesin start/stop, getar bracket settle dalam 2 detik. Bila operasi cycle pendek (misal &lt;1 s), bracket tidak sempat settle, perlu damper. (c) <strong>\(\omega _{d} = 3 rad/s ( \approx 0.48 Hz)\)</strong>, frekuensi rendah, jauh dari frekuensi natural mesin (biasanya 25–50 Hz untuk centrifugal pump). Aman dari resonansi. (d) <strong>Overshoot 13%</strong>, bracket akan deflect 13% lebih besar dari static deflection saat mesin start. Cek apakah overshoot ini melebihi clearance ke komponen lain. (e) <strong>Recommendation</strong>: monitoring h(t) berkala untuk deteksi degradasi (pole shifting bisa mengindikasikan loose bolt, crack, atau bearing failure).</em>
+          💬 <em>Implikasi maintenance: (a) <strong>Bracket stabil</strong> (Re(pole) = −2 &lt; 0), getar akan meluruh, tidak akan runaway. (b) <strong>Settling time 2 s</strong>, setiap kali mesin start/stop, getar bracket settle dalam 2 detik. Bila operasi cycle pendek (misal &lt;1 s), bracket tidak sempat settle, perlu damper. (c) <strong>\(\omega _{d} = 3\ \text{rad/s}\ ( \approx 0.48\ \text{Hz})\)</strong>, frekuensi rendah, jauh dari frekuensi natural mesin (biasanya 25–50 Hz untuk centrifugal pump). Aman dari resonansi. (d) <strong>Overshoot 13%</strong>, bracket akan deflect 13% lebih besar dari static deflection saat mesin start. Cek apakah overshoot ini melebihi clearance ke komponen lain. (e) <strong>Recommendation</strong>: monitoring h(t) berkala untuk deteksi degradasi (pole shifting bisa mengindikasikan loose bolt, crack, atau bearing failure).</em>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis perhitungan konvolusi dan implikasi maintenance (min. 30 kata)...&#10;&#10;Petunjuk: (1) Setup konvolusi x(t) = h(t)*u(t) dengan h dari hammer test dan u = step. (2) Hitung integral atau pakai scipy.signal.convolve. (3) Identifikasi karakteristik response: steady state, overshoot, settling time. (4) Diskusikan implikasi engineering: stabilitas bracket, recommendation maintenance, dan nilai monitoring berkala." oninput="checkForumReady()"></textarea>

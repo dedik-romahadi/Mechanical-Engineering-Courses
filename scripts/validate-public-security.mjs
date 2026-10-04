@@ -5062,6 +5062,39 @@ async function ujiMutasiTunggu() {
   ekspor.ujiTeksNotasi();
 }
 
+// Rumus KaTeX tampil benar (3 Oktober 2026, lanjutan laporan notasi): % polos, Laplace L{…} tanpa \{ \},
+// akar terpotong, kata miring tanpa \text, kurawal tak seimbang, TeX mentah di teks tampil, fungsi sebagai
+// pangkat/subskrip tanpa kurawal, kode di rumus (\_, nama()), dan en dash/½ di mode matematika. Aturannya statis
+// (repo tanpa node_modules); render KaTeX penuh (galat = .katex-error) dijalankan CI security-validation.yml dengan
+// katex@VERSI_KATEX di luar repo — langkah itu dipatok baris demi baris beserta uji mutasinya (dikomentari, if:,
+// continue-on-error, || true, perintah tambahan ditolak), begitu pula versi <script> KaTeX halaman.
+// Lokal: node scripts/periksa-katex.mjs --katex <folder katex>.
+{
+  const katex = await import(new URL("./periksa-katex.mjs", import.meta.url));
+  const alurCi = fs.readFileSync(path.join(root, ".github", "workflows", "security-validation.yml"), "utf8");
+  const masalahCi = katex.periksaLangkahCiKatex(alurCi);
+  if (masalahCi.length) throw new Error(`security-validation.yml: ${masalahCi.join("; ")}`);
+  katex.ujiLangkahCiKatex(alurCi);
+  let halamanKatex = 0;
+  for (const course of katex.KURSUS_KATEX) {
+    if (!courseRoots.includes(course)) throw new Error(`periksa-katex: course ${course} is not in courseRoots`);
+    for (const relative of katex.halamanKatex(root, course)) {
+      const html = fs.readFileSync(path.join(root, relative), "utf8");
+      const versiLain = [...html.matchAll(/KaTeX\/(\d+\.\d+\.\d+)\//g)].map((m) => m[1]).filter((v) => v !== katex.VERSI_KATEX);
+      if (versiLain.length) throw new Error(`${relative}: memuat KaTeX ${versiLain[0]}, padahal pemeriksa dan CI merender dengan ${katex.VERSI_KATEX} (VERSI_KATEX di scripts/periksa-katex.mjs)`);
+      const pelanggaran = katex.periksaKatex(html);
+      if (pelanggaran.length) {
+        const p = pelanggaran[0];
+        throw new Error(`${relative}:${p.baris}: ${p.jenis} ("${p.teks}"${pelanggaran.length > 1 ? ` dan ${pelanggaran.length - 1} lagi` : ""}); perbaiki lewat scripts/notasi-halaman-data.json (halaman tulisan tangan) atau generatornya — node scripts/periksa-katex.mjs --rinci`);
+      }
+      halamanKatex += 1;
+    }
+  }
+  if (halamanKatex !== 16 * katex.KURSUS_KATEX.length) throw new Error(`periksa-katex: expected ${16 * katex.KURSUS_KATEX.length} module/exam pages, got ${halamanKatex}`);
+  const acuan = path.join("Getaran-Mekanik", "Modul", "Modul-4.html");
+  katex.ujiMutasiKatex(fs.readFileSync(path.join(root, acuan), "utf8"), acuan);
+}
+
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");
 if (/rsync -a \\\r?\n\s+--exclude='.git'/.test(workflow)) throw new Error("Pages workflow still copies repository root");
 for (const required of ["Allowlist frontend publik", "Tolak artefak sensitif", "_site/functions", "*answers.js", "*questions.js"]) {
