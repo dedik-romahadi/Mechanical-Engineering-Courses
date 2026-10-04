@@ -6,8 +6,8 @@
  * ke-96 halaman (14 modul + UTS + UAS per course). Hampir semua aturan berada di dalam @media (max-width:640px) (Setup 560/360), jadi
  * tata letak tablet dan desktop tidak berubah; pengecualiannya sengaja dan sempit: paritas .comp-q (tanpa media), label sel kode
  * di <= 900 px (baris sendiri) dan >= 901 px (lebar dibatasi agar tidak menimpa titik hias/bahasa/Copy; hanya label yang
- * memang menimpa yang berubah). Pemindai Chrome (lebar 320/375/414 px, sapuan 641-1280 px) menjadi dasar daftar
- * aturan; alasan tiap aturan ada di komentar CSS di bawah dan di Pedoman-Modul.md §2 butir (22).
+ * memang menimpa yang berubah, jadi batasnya per course: lihat KIRI_KURSUS). Pemindai Chrome (lebar 320/375/414 px, sapuan
+ * 641-1280 px) menjadi dasar daftar aturan; alasan tiap aturan ada di komentar CSS di bawah dan di Pedoman-Modul.md §2 butir (22).
  *
  * Idempoten: blok yang sudah ada diganti DI TEMPAT (bukan dibuang lalu dipasang ulang di ujung
  * <head>), supaya penyuntik lain yang juga menulis sebelum </head> tidak berebut urutan. Blok
@@ -18,7 +18,8 @@
  *   node scripts/rapikan-ponsel.mjs --periksa  lapor saja; kode keluar 1 bila ada yang berbeda
  *
  * Halaman TTL/CAD dibangun generator dari kerangka TTL Modul 1: blok ini ikut terwaris lewat
- * bangun.py dan tetap dijalankan di akhir rantai (sebelum draft-modul.mjs, urutan Pedoman §17.1).
+ * bangun.py dan tetap dijalankan di akhir rantai (sebelum draft-modul.mjs, urutan Pedoman §17.1);
+ * angka label sel kode per course (CAD, Matematika 4) ditulis ulang di tempat oleh skrip ini, bukan oleh generator.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -35,10 +36,26 @@ export const KURSUS = [
   "Teknik-Tenaga-Listrik",
 ];
 export const PENANDA = "rapikan-ponsel";
-export const VERSI = 2;
+export const VERSI = 3;
 
-/** Isi CSS (tanpa pembungkus <style>). Setiap aturan dibatasi @media (max-width:640px); Setup memakai 560/360. */
-export const CSS = `
+/**
+ * Tepi kanan kluster kiri bar sel kode (titik hias + pil bahasa, px dari tepi kiri bar) per course, diukur di Chrome 1280 px pada
+ * ke-96 halaman basis: pil "Python" membuatnya 140 px, "Python" Matematika 4 154 px (pil lebih lebar), "Python (FreeCAD)" CAD 206 px;
+ * kluster kanan (Copy) hanya 92 px. Label ditengahkan di bar, jadi tabrakan terjadi bila lebar label > lebar bar - 2 x tepi itu;
+ * batas lebar label di >= 901 px adalah lebar bar - 2 x (tepi + JARAK_LABEL), JARAK_LABEL = 2 px hanya untuk pembulatan ukuran (jarak
+ * 8 px memenggal label yang masih muat dengan celah 3-7 px: 15 header di 901 px, 4 di 1024 px). Satu angka untuk semua course (dulu
+ * 436 px, dari pil CAD) mengubah header yang tidak bertabrakan di course lain (label sebaris menjadi dua baris), jadi tiap course
+ * memakai angkanya sendiri. line-height label tidak diubah: label yang muat tampil identik piksel demi piksel dengan basis.
+ */
+export const KIRI_STANDAR = 140;
+export const KIRI_KURSUS = { "Engineering-Mathematics": 154, "Pemodelan-Computer-Aided-Design": 206 };
+export const JARAK_LABEL = 2;
+export const kursusDari = (rel) => String(rel || "").replace(/\\/g, "/").split("/")[0];
+export const kiriKursus = (rel) => KIRI_KURSUS[kursusDari(rel)] ?? KIRI_STANDAR;
+export const cadanganLabel = (kiri) => 2 * (kiri + JARAK_LABEL);
+
+/** Isi CSS (tanpa pembungkus <style>) untuk course dengan kluster kiri `kiri` px. Setiap aturan dibatasi @media (max-width:640px); Setup memakai 560/360. */
+export const buatCss = (kiri = KIRI_STANDAR) => `
 /* RAPIKAN-PONSEL v${VERSI} — tampilan ponsel; di atas 640 px hanya paritas .comp-q dan dua blok label sel kode (<= 900 px dan >= 901 px) yang berlaku */
 /* (2) Paritas keenam course: kartu soal komputasi boleh menyempit dan patah kata (Matematika 4, Getaran, Optimalisasi, Sisken sudah punya; TTL dan CAD baru). */
 .comp-q{min-width:0;overflow-wrap:break-word}
@@ -48,9 +65,9 @@ export const CSS = `
 .code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}
 .code-header .code-copy{margin-left:auto}
 }
-/* (4) Label sel kode, laptop (>= 901 px): tetap ditengahkan, tetapi selebar-lebarnya bar dikurangi dua kali kluster kiri terlebar (titik hias + pil "Python (FreeCAD)" CAD = 206 px + jarak); label yang lebih panjang membungkus 2-3 baris, bukan menimpa (30 header di 1024, 12 di 1100, 1 di 1280). Label yang muat tidak berubah. */
+/* (4) Label sel kode, laptop (>= 901 px): tetap ditengahkan, tetapi selebar-lebarnya bar dikurangi dua kali (tepi kanan kluster kiri course ini = ${kiri} px, titik hias + pil bahasa, + ${JARAK_LABEL} px); label yang lebih panjang membungkus 2 baris (di dalam bar 46 px; line-height tidak diubah), bukan menimpa. Label yang muat tidak berubah satu piksel pun. */
 @media (min-width:901px){
-.code-header .code-label{width:max-content;max-width:calc(100% - 436px);white-space:normal;text-align:center;line-height:1.3;overflow-wrap:anywhere}
+.code-header .code-label{width:max-content;max-width:calc(100% - ${cadanganLabel(kiri)}px);white-space:normal;text-align:center;overflow-wrap:anywhere}
 }
 @media (max-width:640px){
 /* (1) Persamaan bernomor TTL/CAD/Sisken: nomor turun ke baris sendiri (rata kanan) supaya tidak menimpa rumus yang terbungkus. */
@@ -59,6 +76,10 @@ export const CSS = `
 /* Rumus yang tak bisa dipatah (satu pecahan/akar panjang) digulir mendatar di dalam kotaknya, bukan keluar kotak. */
 #page-modul .formula-block{overflow-x:auto;padding-left:14px;padding-right:14px}
 #page-modul .card .formula{max-width:100%;overflow-x:auto;overflow-y:hidden}
+/* Petunjuk gulir: ponsel menyembunyikan bilah gulir ber-overlay, jadi rumus yang digulir tampak terpotong di tepi kanan. Gaya ::-webkit-scrollbar membuat bilah tipis tetap tampak (Chrome/Safari); tanpa gulir tidak ada bilah dan tinggi kotak tidak berubah. */
+.formula-main::-webkit-scrollbar,#page-modul .formula-block::-webkit-scrollbar,#page-modul .card .formula::-webkit-scrollbar{height:5px}
+.formula-main::-webkit-scrollbar-track,#page-modul .formula-block::-webkit-scrollbar-track,#page-modul .card .formula::-webkit-scrollbar-track{background:rgba(148,163,184,.14);border-radius:3px}
+.formula-main::-webkit-scrollbar-thumb,#page-modul .formula-block::-webkit-scrollbar-thumb,#page-modul .card .formula::-webkit-scrollbar-thumb{background:rgba(148,163,184,.6);border-radius:3px}
 /* (2) Kartu soal Tugas/UTS/UAS: anak flex boleh menyempit, teks/kode tak terpatahkan dipatah, rumus selebar kartu digulir. */
 /* padding-block + margin-block negatif: subskrip/pangkat yang menjulur sedikit di luar kotak baris tetap di dalam kotak gulir (tanpa batang gulir tegak), letak teks tidak bergeser. */
 .mc-q,.tf-q,.comp-q{min-width:0;overflow-wrap:anywhere;overflow-x:auto;padding-block:.45em;margin-block:-.45em}
@@ -74,14 +95,17 @@ export const CSS = `
 .reference-card{overflow-wrap:anywhere}
 .card :is(p,li){overflow-wrap:anywhere}
 .reference-card>*{min-width:0}
-.anim-var>span:last-child{min-width:0;overflow-wrap:anywhere}
+/* Legenda notasi animasi: chip simbol (KaTeX, tak bisa menyusut) di baris sendiri bila deskripsinya tidak muat di sampingnya; deskripsi tidak pernah terjepit di bawah 9rem (dulu kolom 2-40 px, satu huruf per baris). */
+.anim-var{flex-wrap:wrap;row-gap:6px}
+.anim-var>span:last-child{flex:1 1 auto;min-width:min(9rem,100%);overflow-wrap:break-word}
 .anim-var>code{white-space:normal;overflow-wrap:anywhere;min-width:0;flex-shrink:1}
 .fq-body{overflow-x:auto}
 [style*="minmax(220px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))!important}
 [style*="minmax(240px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))!important}
 [style*="minmax(260px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))!important}
 [style*="minmax(280px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important}
-#page-modul .academic-hero .hero-title,h1.hero-title{font-size:clamp(34px,11.5vw,50px);overflow-wrap:anywhere}
+/* Judul hero: ukuran asli halaman TIDAK diubah; hanya judul yang memuat kata terlalu lebar untuk kotaknya diperkecil seperlunya oleh rapikan-ponsel-js lewat --ponsel-hero. */
+h1.hero-title[style*="--ponsel-hero"]{font-size:var(--ponsel-hero)!important}
 nav{padding-left:12px;padding-right:12px;gap:8px}
 nav .nav-tabs{gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}
 nav .nav-tabs::-webkit-scrollbar{display:none}
@@ -122,15 +146,25 @@ html :is(#page-setup,#page-python) .sp-cbh{padding:.5rem .6rem}
 html :is(#page-setup,#page-python) .sp-cbh-copy{padding:.3rem .5rem}
 }
 `;
+/** CSS standar (kluster kiri 140 px); Matematika 4 dan CAD memakai angkanya sendiri lewat buatCss(kiriKursus(rel)). */
+export const CSS = buatCss();
 
 /**
- * Strip tab navigasi Modul 1 (Setup Python, Pembagian Kelompok, Modul, Tugas, Forum, Hasil: 609 px dalam kotak 335 px di 375 px)
+ * (a) Strip tab navigasi Modul 1 (Setup Python, Pembagian Kelompok, Modul, Tugas, Forum, Hasil: 609 px dalam kotak 335 px di 375 px)
  * digulir mendatar; tab aktif ("Modul", ke-3) terpotong di tepi kanan dan tak ada petunjuk gulir. Skrip kecil ini menaruh tab
  * aktif di tengah strip saat halaman dibuka dan tiap kelas tab berganti (switchTab), hanya di <= 640 px dan hanya bila strip
- * memang bisa digulir. Tanpa nama global (IIFE), tanpa mengubah skrip halaman.
+ * memang bisa digulir.
+ * (b) Judul hero (h1.hero-title): ukuran asli halaman dipertahankan; hanya judul yang memuat kata tak terpatahkan lebih lebar dari
+ * kotaknya (Hyperparameter, Memaksimalkan, Transmissibility, ... di 22 halaman pada 375 px) diperkecil secukupnya lewat
+ * properti --ponsel-hero (aturan CSS-nya ada di atas), diukur dengan font yang benar-benar terpasang (Playfair Display dimuat dari
+ * jaringan, jadi diulang saat font siap, saat ukuran berubah, dan saat halaman/tab berganti). Batasnya yang terkecil dari kotak h1
+ * dan kotak isi .hero: .hero-content adalah anak flex yang MELEBAR mengikuti kata terlebar (min-content), jadi h1 tidak "meluap"
+ * dari kotaknya sendiri tetapi menggeser seluruh hero keluar layar (CAD Modul 3 Tugas di 320 px: x = -8, terpotong 8 px per sisi).
+ * Di > 640 px properti itu dilepas.
+ * Tanpa nama global (IIFE), tanpa mengubah skrip halaman.
  */
 export const JS = `
-/* RAPIKAN-PONSEL v${VERSI}: tab navigasi aktif di tengah strip (<= 640 px) */
+/* RAPIKAN-PONSEL v${VERSI}: tab navigasi aktif di tengah strip dan judul hero yang tak muat (<= 640 px) */
 (function () {
   var mq = window.matchMedia && window.matchMedia('(max-width:640px)');
   function tengahkan() {
@@ -141,23 +175,54 @@ export const JS = `
     var a = tab.getBoundingClientRect(), b = strip.getBoundingClientRect();
     strip.scrollLeft += (a.left - b.left) - (strip.clientWidth - a.width) / 2;
   }
+  function sedia(h) {
+    var hero = h.closest && h.closest('.hero');
+    if (!hero) return h.clientWidth;
+    var s = getComputedStyle(hero);
+    return hero.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight);
+  }
+  function pasHero() {
+    var judul = document.querySelectorAll('h1.hero-title');
+    for (var i = 0; i < judul.length; i++) {
+      var h = judul[i];
+      h.style.removeProperty('--ponsel-hero');
+      if (!mq || !mq.matches || !h.clientWidth) continue;
+      for (var n = 0; n < 6; n++) {
+        var kotak = Math.min(h.clientWidth, sedia(h)), isi = Math.max(h.scrollWidth, h.getBoundingClientRect().width);
+        var fs = parseFloat(getComputedStyle(h).fontSize);
+        if (!(isi > kotak + 1) || !(fs > 22)) break;
+        h.style.setProperty('--ponsel-hero', Math.max(22, Math.floor(fs * kotak / isi * 98) / 100) + 'px');
+      }
+    }
+  }
+  var tunda = 0;
+  function rapikan() {
+    if (tunda) return;
+    tunda = (window.requestAnimationFrame || window.setTimeout)(function () { tunda = 0; tengahkan(); pasHero(); });
+  }
   function pasang() {
     var strip = document.querySelector('nav .nav-tabs');
-    if (!strip) return;
     tengahkan();
-    if (window.MutationObserver) new MutationObserver(tengahkan).observe(strip, { attributes: true, attributeFilter: ['class'], subtree: true });
-    window.addEventListener('resize', tengahkan);
-    window.addEventListener('load', tengahkan);
+    pasHero();
+    if (window.MutationObserver) {
+      var amati = new MutationObserver(rapikan);
+      if (strip) amati.observe(strip, { attributes: true, attributeFilter: ['class'], subtree: true });
+      var halaman = document.querySelectorAll('.page');
+      for (var i = 0; i < halaman.length; i++) amati.observe(halaman[i], { attributes: true, attributeFilter: ['class'] });
+    }
+    window.addEventListener('resize', rapikan);
+    window.addEventListener('load', rapikan);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(rapikan);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pasang); else pasang();
 })();
 `;
 
-// Blok dibungkus komentar START/END seperti injector lain (NOTASI-KANVAS, EFEK-JAWABAN): akhir <head> tetap diawali komentar,
-// bukan "</style>\n</head>" (jangkar lama cad-modul/bangun-modul-1.py; sejak #987 generator itu memakai </head> pertama halaman,
-// tetapi pembungkus komentar dipertahankan agar penanda dan pemeriksaan blok seragam dengan injector lain).
+// Blok dibungkus komentar START/END seperti injector lain (NOTASI-KANVAS, EFEK-JAWABAN): akhir <head> tetap diawali komentar.
+// Pembungkus itu hanya untuk keseragaman penanda dan pemeriksaan blok (RX_BLOK/periksaPonsel), bukan syarat generator CAD:
+// sejak #987 cad-modul/bangun-modul-1.py memakai </head> pertama halaman, bukan jangkar "</style>\n</head>".
 const NAMA_BLOK = PENANDA.toUpperCase();
-const BLOK = (eol) => `<!-- ${NAMA_BLOK}:START v${VERSI} -->${eol}<style id="${PENANDA}">${CSS.replace(/\n/g, eol)}</style>${eol}<script id="${PENANDA}-js">${JS.replace(/\n/g, eol)}</script>${eol}<!-- ${NAMA_BLOK}:END v${VERSI} -->`;
+const BLOK = (eol, kiri = KIRI_STANDAR) => `<!-- ${NAMA_BLOK}:START v${VERSI} -->${eol}<style id="${PENANDA}">${buatCss(kiri).replace(/\n/g, eol)}</style>${eol}<script id="${PENANDA}-js">${JS.replace(/\n/g, eol)}</script>${eol}<!-- ${NAMA_BLOK}:END v${VERSI} -->`;
 const RX_BLOK = new RegExp(`<!-- ${NAMA_BLOK}:START[^>]*-->[\\s\\S]*?<!-- ${NAMA_BLOK}:END[^>]*-->`);
 const RX_CHAT = /<!-- AI-CHAT-AGENT:BEGIN[\s\S]*?<!-- AI-CHAT-AGENT:END[^>]*-->/g;
 
@@ -170,10 +235,10 @@ export function daftarHalaman() {
   return h;
 }
 
-/** Hasil pemasangan pada teks halaman (murni; dipakai juga oleh validator). */
-export function pasang(html) {
+/** Hasil pemasangan pada teks halaman `rel` (murni; dipakai juga oleh validator). `rel` menentukan angka label sel kode course. */
+export function pasang(html, rel) {
   const eol = html.includes("\r\n") ? "\r\n" : "\n";
-  const blok = BLOK(eol);
+  const blok = BLOK(eol, kiriKursus(rel));
   if (RX_BLOK.test(html)) return html.replace(RX_BLOK, () => blok);
   const i = html.indexOf("</head>");
   const b = html.indexOf("<body");
@@ -184,14 +249,17 @@ export function pasang(html) {
   return `${sebelum}${blok}${eol}${html.slice(i)}`;
 }
 
-/** Masalah blok ponsel pada teks halaman (kosong = sesuai): tepat satu blok, di <head>, isinya sama dengan CSS skrip ini. */
-export function periksaPonsel(html) {
+/** Masalah blok ponsel pada teks halaman `rel` (kosong = sesuai): tepat satu blok (dan satu <style>/<script> berpenanda), di <head>, isinya sama dengan CSS skrip ini untuk course-nya. */
+export function periksaPonsel(html, rel) {
   const blok = [...html.matchAll(new RegExp(RX_BLOK.source, "g"))];
   if (blok.length !== 1) return [`${blok.length} blok ${NAMA_BLOK} (harus tepat satu)`];
   const masalah = [];
+  const sisa = (id) => (html.match(new RegExp(`<(?:style|script)[^>]*\\bid=["']${id}["']`, "g")) || []).length;
+  if (sisa(PENANDA) !== 1) masalah.push(`${sisa(PENANDA)} <style id="${PENANDA}"> (harus tepat satu, di dalam blok berpenanda)`);
+  if (sisa(`${PENANDA}-js`) !== 1) masalah.push(`${sisa(`${PENANDA}-js`)} <script id="${PENANDA}-js"> (harus tepat satu, di dalam blok berpenanda)`);
   const kepala = html.indexOf("</head>");
   if (kepala < 0 || blok[0].index > kepala) masalah.push("blok berada di luar <head>");
-  if (blok[0][0] !== BLOK(html.includes("\r\n") ? "\r\n" : "\n")) masalah.push("isi blok berbeda dari CSS scripts/rapikan-ponsel.mjs (jalankan node scripts/rapikan-ponsel.mjs)");
+  if (blok[0][0] !== BLOK(html.includes("\r\n") ? "\r\n" : "\n", kiriKursus(rel))) masalah.push("isi blok berbeda dari CSS scripts/rapikan-ponsel.mjs (jalankan node scripts/rapikan-ponsel.mjs)");
   return masalah;
 }
 
@@ -203,7 +271,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     const berkas = path.join(root, rel);
     if (!fs.existsSync(berkas)) throw new Error(`Berkas tidak ada: ${rel}`);
     const lama = fs.readFileSync(berkas, "utf8");
-    const baru = pasang(lama);
+    const baru = pasang(lama, rel);
     if ((lama.match(RX_CHAT) || []).join("\n") !== (baru.match(RX_CHAT) || []).join("\n")) throw new Error(`${rel}: blok AI-CHAT-AGENT berubah`);
     if (baru !== lama) {
       berubah += 1;

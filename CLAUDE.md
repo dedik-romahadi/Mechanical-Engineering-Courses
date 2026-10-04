@@ -386,14 +386,15 @@ repo publik ini.
   `.formula` kartu dan daftar konsep di blok persamaan ditulis teks polos, bukan satu `\text{…}` utuh yang tidak
   bisa dipatah dan terpotong di ponsel. Pedoman §2 butir (17)–(21).
 - **Tampilan ponsel** (sejak 4 Okt 2026): satu blok `<style id="rapikan-ponsel">` + `<script id="rapikan-ponsel-js">` (komentar
-  `RAPIKAN-PONSEL:START`/`END v2`) di `<head>` ke-96 halaman modul/ujian dipasang `scripts/rapikan-ponsel.mjs` (ada `--periksa`;
+  `RAPIKAN-PONSEL:START`/`END v3`) di `<head>` ke-96 halaman modul/ujian dipasang `scripts/rapikan-ponsel.mjs` (ada `--periksa`;
   sesudah `notasi-halaman.mjs`, sebelum `draft-modul.mjs`; di-regenerasi bersama rantai TTL/CAD). Aturannya di
   `@media (max-width:640px)` (Setup 560/360) kecuali paritas `.comp-q{min-width:0;…}` dan dua blok label sel kode (`<= 900 px` baris
-  sendiri, `>= 901 px` lebar dibatasi) yang dipatok persis: nomor persamaan `.formula-main` turun ke baris sendiri, kartu soal/opsi PG/
+  sendiri, `>= 901 px` lebar dibatasi, angkanya per course 284/312/416 px) yang dipatok persis: nomor persamaan `.formula-main` turun ke baris sendiri, kartu soal/opsi PG/
   rumus lebar digulir mendatar di wadahnya, kepala kartu komputasi membungkus, label sel kode dan bar judul Setup membungkus, tab
-  navigasi digulir (skrip kecil menaruh tab aktif di tengah). Rumus bernomor TTL/CAD memperoleh titik patah baris otomatis dari
+  navigasi digulir (skrip kecil menaruh tab aktif di tengah dan memperkecil hanya judul hero yang kata terlebarnya tak muat; ukuran
+  judul lain tidak diubah), legenda notasi `.anim-var` membungkus. Rumus bernomor TTL/CAD memperoleh titik patah baris otomatis dari
   `pecah_rumus` di `pustaka.py` (`\qquad\allowbreak`, `\text{…}` panjang dipecah; rumus baru tak perlu dipecah manual);
-  penjaganya `validate-public-security.mjs` (25 aturan CSS + 5 potongan skrip wajib + uji mutasi). Pemisah daftar `\cdot` antar-teks
+  penjaganya `validate-public-security.mjs` (64 aturan CSS + 10 potongan skrip wajib + uji mutasi). Pemisah daftar `\cdot` antar-teks
   ditulis di luar KaTeX (`A \(\cdot\) B`) atau `;\quad`. Pedoman §2 butir (22)–(24).
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
