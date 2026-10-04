@@ -519,10 +519,10 @@ def materi():
 
     # 04 — Faktor keamanan
     isi = figure(4, "Skala tegangan, tegangan izin, dan faktor keamanan terhadap luluh", f"Kantilever contoh: σ<sub>maks</sub> = {ind(SIG_C, 0)} MPa terhadap σ<sub>y</sub> = {SIG_Y} MPa memberi SF = {ind(SF_C, 2)}; dengan SF target 2, tegangan izin σ<sub>y</sub>/2 = {SIG_Y // 2} MPa masih jauh di atas tegangan kerja.", gambar4())
-    isi += formula(3, "Faktor Keamanan terhadap Luluh", r"SF = \frac{\sigma_y}{\sigma_{maks}} = \frac{\sigma_y\, b\, h^{2}}{6\,F\,L}, \qquad \sigma_{izin} = \frac{\sigma_y}{SF_{target}}",
-                   r"\(\sigma_y\) = kekuatan luluh (S235: 250 MPa) &nbsp;·&nbsp; \(\sigma_{maks}\) = tegangan von Mises maksimum yang sudah konvergen. Contoh: \(SF = " + f"{SIG_Y}/{ind(SIG_C, 0)} = " + ind(SF_C, 3) + r"\).",
+    isi += formula(3, "Faktor Keamanan terhadap Luluh", r"\mathrm{SF} = \frac{\sigma_y}{\sigma_{maks}} = \frac{\sigma_y\, b\, h^{2}}{6\,F\,L}, \qquad \sigma_{izin} = \frac{\sigma_y}{\mathrm{SF}_{target}}",
+                   r"\(\sigma_y\) = kekuatan luluh (S235: 250 MPa) &nbsp;·&nbsp; \(\sigma_{maks}\) = tegangan von Mises maksimum yang sudah konvergen. Contoh: \(\mathrm{SF} = " + f"{SIG_Y}/{ind(SIG_C, 0)} = " + ind(SF_C, 3) + r"\).",
                    "Faktor keamanan adalah rasio kapasitas terhadap tuntutan. Untuk material ulet kapasitasnya σ<sub>y</sub> dan tuntutannya von Mises maksimum; hasilnya harus ≥ SF target yang dipilih menurut ketidakpastian beban, material, dan model. Bacaan Tugas 2 adalah SF dari σ<sub>maks</sub> analitis; SF versi FEM (σ<sub>y</sub>/σ<sub>vm,maks</sub>) ditulis di dokumen sebagai pembanding.",
-                   [("SF", "Faktor keamanan (tanpa satuan)"), (r"\sigma_y", "Kekuatan luluh (MPa)"), (r"\sigma_{maks}", "Tegangan maksimum (MPa)"), (r"\sigma_{izin}", "Tegangan izin (MPa)"), ("SF_{target}", "Faktor keamanan yang disyaratkan")])
+                   [("\\mathrm{SF}", "Faktor keamanan (tanpa satuan)"), (r"\sigma_y", "Kekuatan luluh (MPa)"), (r"\sigma_{maks}", "Tegangan maksimum (MPa)"), (r"\sigma_{izin}", "Tegangan izin (MPa)"), ("\\mathrm{SF}_{target}", "Faktor keamanan yang disyaratkan")])
     isi += tabel(["Keadaan desain", "SF target", "Alasan"],
                  [["Beban, material, dan model diketahui pasti; uji prototipe lengkap", "1,25–1,5", "Ketidakpastian kecil; struktur pesawat, komponen teroptimasi"],
                   ["Beban statik terdefinisi, material bersertifikat, FEM tervalidasi", "2–2,5", "Praktik umum mesin industri"],
@@ -570,10 +570,10 @@ def materi():
                        ("sl_kt_F", "v_kt_F", "Gaya tarik F (N)", 1000, 10000, 100, 5000, "5000")],
                       "btnKtLubang", "toggleKtLubang", "infoKtLubang",
                       "<strong>Cara membaca:</strong> lubang membesar-mengecil (PAUSE menahan d dari slider) sementara titik pada kurva K<sub>t</sub>(d/W) ikut bergeser; distribusi merah pada penampang bersih memuncak di tepi lubang. K<sub>t</sub> turun saat d/W naik, tetapi σ<sub>nom</sub> naik lebih cepat sehingga σ<sub>maks</sub> tetap membesar; tebal t = 5 mm.")
-    isi += formula(5, "Beban Kritis Tekuk Euler (Kolom Sendi–Sendi)", r"P_{cr} = \frac{\pi^{2} E I}{(K L)^{2}}, \qquad I_{lemah} = \frac{b\,h^{3}}{12}, \qquad SF_{tekuk} = \frac{P_{cr}}{P}",
+    isi += formula(5, "Beban Kritis Tekuk Euler (Kolom Sendi–Sendi)", r"P_{cr} = \frac{\pi^{2} E I}{(K L)^{2}}, \qquad I_{lemah} = \frac{b\,h^{3}}{12}, \qquad \mathrm{SF}_{tekuk} = \frac{P_{cr}}{P}",
                    r"\(K\) = faktor panjang efektif (sendi–sendi 1; jepit–jepit 0,5; jepit–bebas 2) &nbsp;·&nbsp; \(I_{lemah}\) = momen inersia terkecil penampang. Contoh kolom " + f"L = {L_K}, {B_K} × {H_K}" + r": \(P_{cr} = " + ind(P_CR, 1) + r"\) N, tegangan hanya \(" + ind(SIG_K, 1) + r"\) MPa.",
                    "Kolom langsing yang ditekan tidak gagal karena luluh, melainkan menekuk ke samping pada sumbu inersia terkecil ketika beban mencapai P<sub>cr</sub>; tegangannya saat itu P<sub>cr</sub>/A bisa jauh di bawah σ<sub>y</sub>, sehingga kontur von Mises statik terlihat aman. FEM memerlukan analisis Buckling (CalculiX) yang memberi buckling factor: P<sub>cr</sub> ≈ faktor × beban yang dipasang. Bacaan Tugas 5 adalah P<sub>cr</sub> Euler sebagai pembanding faktor itu.",
-                   [("P_{cr}", "Beban kritis tekuk (N)"), ("E", "Modulus elastisitas (MPa)"), ("I_{lemah}", "Momen inersia sumbu lemah (mm⁴)"), ("K L", "Panjang efektif kolom (mm)"), ("SF_{tekuk}", "Faktor keamanan tekuk")])
+                   [("P_{cr}", "Beban kritis tekuk (N)"), ("E", "Modulus elastisitas (MPa)"), ("I_{lemah}", "Momen inersia sumbu lemah (mm⁴)"), ("K L", "Panjang efektif kolom (mm)"), ("\\mathrm{SF}_{tekuk}", "Faktor keamanan tekuk")])
     isi += anim_panel(4, "violet", "Tekuk kolom sendi–sendi terhadap beban P", "cvTekuk",
                       [("sl_tk_L", "v_tk_L", "Panjang kolom L (mm)", 200, 800, 10, 500, "500"),
                        ("sl_tk_h", "v_tk_h", "Tebal h (mm)", 4, 20, 0.5, 10, "10"),

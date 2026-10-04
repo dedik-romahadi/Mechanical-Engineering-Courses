@@ -531,10 +531,10 @@ def materi():
 
     # 05 — Jejak material, energi, CO₂
     isi = figure(5, "Alur jejak material: dari Shape.Volume ke massa, energi terkandung, dan CO₂", f"Rakitan dudukan (pelat baja {A_JK} × {B_JK} × {T_JK} mm dan blok aluminium {C_JK} × {C_JK} × {H_JK} mm) bermassa {ind(M_JK, 3)} kg: energi terkandung {ind(E_JK, 1)} MJ dan jejak karbon {ind(CO2_JK, 3)} kg CO₂ — seluruhnya berasal dari dua angka Shape.Volume.", gambar5())
-    isi += formula(4, "Energi Terkandung dan Jejak Karbon Rakitan", r"E = e\,m = e\,\rho\,V, \qquad CO_2 = \sum_i f_i\,\rho_i\,V_i",
-                   r"\(e\) = energi terkandung spesifik (MJ/kg) &nbsp;·&nbsp; \(f\) = faktor emisi (kg CO₂/kg) &nbsp;·&nbsp; \(V_i\) = volume Body ke-i (mm³). Contoh rakitan dudukan: \(CO_2 = " + ind(FC_ST, 1) + r" \times " + ind(M_JK_ST, 3) + r" + " + ind(FC_AL, 1) + r" \times " + ind(M_JK_AL, 3) + r" = " + ind(CO2_JK, 3) + r"\) kg.",
+    isi += formula(4, "Energi Terkandung dan Jejak Karbon Rakitan", r"E = e\,m = e\,\rho\,V, \qquad \mathrm{CO}_2 = \sum_i f_i\,\rho_i\,V_i",
+                   r"\(e\) = energi terkandung spesifik (MJ/kg) &nbsp;·&nbsp; \(f\) = faktor emisi (kg CO₂/kg) &nbsp;·&nbsp; \(V_i\) = volume Body ke-i (mm³). Contoh rakitan dudukan: \(\mathrm{CO}_2 = " + ind(FC_ST, 1) + r" \times " + ind(M_JK_ST, 3) + r" + " + ind(FC_AL, 1) + r" \times " + ind(M_JK_AL, 3) + r" = " + ind(CO2_JK, 3) + r"\) kg.",
                    "Dua konstanta material mengubah volume menjadi angka lingkungan: energi terkandung e dan faktor emisi f. Keduanya berlaku per kilogram, jadi urutannya selalu volume → massa → jejak. Untuk rakitan, penjumlahan dilakukan per material, bukan per komponen, karena satu Body dapat memakai material berbeda dari tetangganya. Persamaan ini dipakai Tugas 2 dan Tugas 5.",
-                   [("E", "Energi terkandung (MJ)"), ("e", "Energi spesifik material (MJ/kg)"), ("CO_2", "Jejak karbon (kg CO₂)"), ("f", "Faktor emisi (kg CO₂/kg)"), ("V_i", "Volume Body ke-i (mm³)")])
+                   [("E", "Energi terkandung (MJ)"), ("e", "Energi spesifik material (MJ/kg)"), ("\\mathrm{CO}_2", "Jejak karbon (kg CO₂)"), ("f", "Faktor emisi (kg CO₂/kg)"), ("V_i", "Volume Body ke-i (mm³)")])
     isi += tabel(["Besaran", "Rumus", "Satuan yang harus dijaga", "Contoh rakitan dudukan"],
                  [["Volume", "<code>Body.Shape.Volume</code>", "mm³", f"{ind(V_JK_ST, 0)} + {ind(V_JK_AL, 0)} mm³"],
                   ["Massa", "m = ρ·V", "ρ kg/mm³ (7,85 × 10⁻⁶ · 2,7 × 10⁻⁶) → kg", f"{ind(M_JK_ST, 3)} + {ind(M_JK_AL, 3)} = {ind(M_JK, 3)} kg"],
