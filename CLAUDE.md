@@ -385,6 +385,14 @@ repo publik ini.
   `--katex` dijalankan CI dengan `katex@VERSI_KATEX`, langkah CI-nya dipatok baris demi baris). Prosa di kotak
   `.formula` kartu dan daftar konsep di blok persamaan ditulis teks polos, bukan satu `\text{…}` utuh yang tidak
   bisa dipatah dan terpotong di ponsel. Pedoman §2 butir (17)–(21).
+- **Tampilan ponsel** (sejak 4 Okt 2026): satu blok `<style id="rapikan-ponsel">` (komentar `RAPIKAN-PONSEL:START`/`END`) di `<head>`
+  ke-96 halaman modul/ujian dipasang `scripts/rapikan-ponsel.mjs` (ada `--periksa`; sesudah `notasi-halaman.mjs`, sebelum
+  `draft-modul.mjs`; di-regenerasi bersama rantai TTL/CAD). Semua aturannya di `@media (max-width:640px)` (Setup 560/360) kecuali
+  paritas `.comp-q{min-width:0;…}`: nomor persamaan `.formula-main` turun ke baris sendiri, kartu soal/opsi PG/rumus lebar
+  digulir mendatar di wadahnya, label sel kode dan bar judul Setup membungkus, tab navigasi digulir. Rumus panjang di
+  generator tidak perlu dipecah manual; penjaganya `validate-public-security.mjs` (19 aturan wajib + uji mutasi). Blok `<style>`
+  tanpa komentar pembungkus di ujung `<head>` membuat `cad-modul/bangun-modul-1.py` berhenti (jangkar `</style>\n</head>` tepat
+  satu). Pemisah daftar `\cdot` antar-teks ditulis di luar KaTeX (`A \(\cdot\) B`) atau `;\quad`. Pedoman §2 butir (22)–(23).
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
   yang idempoten, bukan suntingan manual per berkas.

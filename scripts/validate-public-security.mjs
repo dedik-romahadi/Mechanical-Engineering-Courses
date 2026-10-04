@@ -5181,6 +5181,93 @@ async function ujiMutasiTunggu() {
   katex.ujiMutasiKatex(fs.readFileSync(path.join(root, acuan), "utf8"), acuan);
 }
 
+// Tampilan ponsel (4 Oktober 2026, tinjauan dosen "perbaiki semua"): pemindaian Chrome 96 halaman di 375 px menemukan
+// nomor persamaan TTL/CAD yang menimpa rumus (.formula-main), kartu soal tanpa min-width:0, bar judul Setup yang
+// memenggal nama berkas, label sel kode yang bertumpuk dan terpotong, tab navigasi Modul 1 yang keluar layar, tautan/kode/
+// label panjang yang terpotong kartu, dan kisi inline selebar >= 260 px. Satu blok <style id="rapikan-ponsel"> dipasang
+// scripts/rapikan-ponsel.mjs di <head> keenam course (14 modul + UTS + UAS); seluruh aturannya di dalam @media (max-width:640px)
+// atau lebih sempit, kecuali paritas `.comp-q`, sehingga desktop dan tablet tidak berubah. Pedoman §2 butir (22).
+{
+  const rp = await import(new URL("./rapikan-ponsel.mjs", import.meta.url));
+  if ([...rp.KURSUS].sort().join() !== [...courseRoots].sort().join()) throw new Error("rapikan-ponsel: KURSUS harus sama dengan courseRoots (keenam course)");
+  const halamanPonsel = rp.daftarHalaman();
+  if (halamanPonsel.length !== 16 * courseRoots.length) throw new Error(`rapikan-ponsel: expected ${16 * courseRoots.length} module/exam pages, got ${halamanPonsel.length}`);
+  // Aturan wajib dipatok di sini, terpisah dari skrip: menghapusnya dari CSS skrip (lalu menjalankan ulang skrip) mematikan
+  // perbaikannya tanpa satu halaman pun gagal.
+  const WAJIB_PONSEL = [
+    ["nomor persamaan turun ke baris sendiri", ".formula-main>.formula-number{position:static;display:block;text-align:right;transform:none;margin-top:2px}"],
+    ["isi .formula-main tanpa ruang nomor", ".formula-main{padding-right:0;overflow-x:auto}"],
+    ["rumus tak terpatahkan digulir di kotaknya", "#page-modul .formula-block{overflow-x:auto;padding-left:14px;padding-right:14px}"],
+    ["kotak rumus kartu digulir", "#page-modul .card .formula{max-width:100%;overflow-x:auto;overflow-y:hidden}"],
+    ["kartu soal boleh menyempit dan patah kata", ".mc-q,.tf-q,.comp-q{min-width:0;overflow-wrap:anywhere;overflow-x:auto;padding-block:.45em;margin-block:-.45em}"],
+    ["opsi PG boleh menyempit", ".radio-option>span,.p-opt>span{min-width:0;overflow-x:auto;padding-block:.4em;margin-block:-.4em}"],
+    ["paritas .comp-q (di luar media)", ".comp-q{min-width:0;overflow-wrap:break-word}"],
+    ["label sel kode membungkus", ".code-header{flex-wrap:wrap;row-gap:6px}"],
+    ["label sel kode turun ke baris sendiri", ".code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}"],
+    ["kode inline patah kata", ":not(pre)>code{overflow-wrap:anywhere}"],
+    ["kartu pustaka patah kata", ".reference-card{overflow-wrap:anywhere}"],
+    ["kisi inline 260 px", "[style*=\"minmax(260px,1fr)\"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))!important}"],
+    ["tab navigasi digulir", "nav .nav-tabs{gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}"],
+    ["label kolom kode soal membungkus", ".input-label{flex-wrap:wrap;row-gap:2px}"],
+    ["panduan Export tidak memaksa lebar 240 px", ".score-export-copy{min-width:0!important}"],
+    ["Setup: Copy tetap sebaris", "html :is(#page-setup,#page-python) .sp-cbh{flex-wrap:nowrap;gap:.5rem;padding:.5rem .8rem}"],
+    ["Setup: judul boleh menyempit", "html :is(#page-setup,#page-python) .sp-cbh-left{flex:1 1 0;min-width:0}"],
+    ["Setup: tombol Copy tidak menyusut", "html :is(#page-setup,#page-python) .sp-cbh-copy{flex:0 0 auto;white-space:nowrap}"],
+    ["Setup: kolom langkah dilebarkan", "html :is(#page-setup,#page-python) .sp-step{padding-left:46px}"],
+  ];
+  const TANPA_MEDIA = [".comp-q{min-width:0;overflow-wrap:break-word}"];
+  const periksaCssPonsel = (css) => {
+    const masalah = [];
+    for (const [nama, aturan] of WAJIB_PONSEL) if (!css.includes(aturan)) masalah.push(`aturan wajib hilang: ${nama}`);
+    const t = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    let dalam = 0, awal = 0;
+    const atas = [];
+    for (let i = 0; i < t.length; i += 1) {
+      if (t[i] === "{") dalam += 1;
+      else if (t[i] === "}") { dalam -= 1; if (dalam === 0) { atas.push(t.slice(awal, i + 1).trim()); awal = i + 1; } if (dalam < 0) break; }
+    }
+    if (dalam !== 0 || t.slice(awal).trim()) masalah.push("kurung kurawal CSS tidak seimbang");
+    for (const a of atas) {
+      const media = /^@media \(max-width:(\d+)px\)\{/.exec(a);
+      if (media) { if (Number(media[1]) > 640) masalah.push(`@media (max-width:${media[1]}px) melebihi 640 px — mengubah tablet/desktop`); }
+      else if (!TANPA_MEDIA.includes(a)) masalah.push(`aturan di luar @media (max-width:640px): ${a.slice(0, 60)}`);
+    }
+    return masalah;
+  };
+  const cssAcuan = periksaCssPonsel(rp.CSS);
+  if (cssAcuan.length) throw new Error(`rapikan-ponsel: CSS skrip ditolak: ${cssAcuan[0]}${cssAcuan.length > 1 ? ` (dan ${cssAcuan.length - 1} lagi)` : ""}`);
+  for (const relative of halamanPonsel) {
+    const masalah = rp.periksaPonsel(fs.readFileSync(path.join(root, relative), "utf8"));
+    if (masalah.length) throw new Error(`${relative}: ${masalah[0]} — node scripts/rapikan-ponsel.mjs (urutan injector, Pedoman §17.1)`);
+  }
+  // Uji mutasi: halaman acuan (TTL Modul 2, turunan kerangka) dan CSS skrip yang dirusak harus ditolak.
+  const acuan = path.join("Teknik-Tenaga-Listrik", "Modul", "Modul-2.html");
+  const html = fs.readFileSync(path.join(root, acuan), "utf8");
+  const blok = html.match(/<!-- RAPIKAN-PONSEL:START[\s\S]*?<!-- RAPIKAN-PONSEL:END[^>]*-->/)[0];
+  const mutasiHalaman = [
+    ["blok dihapus", html.replace(blok, () => "")],
+    ["pembungkus komentar dibuang (akhir <head> menjadi </style>, jangkar cad-modul/bangun-modul-1.py)", html.replace(blok, () => blok.replace(/<!--[^>]*-->\r?\n?/g, ""))],
+    ["blok digandakan", html.replace(blok, () => blok + "\n" + blok)],
+    ["blok dipindah ke <body>", html.replace(blok, () => "").replace("</body>", () => blok + "</body>")],
+    ["label sel kode kembali ditengahkan absolut", html.replace(blok, () => blok.replace(".code-header .code-label{position:static;", () => ".code-header .code-label{position:absolute;"))],
+    ["aturan keluar dari @media", html.replace(blok, () => blok.replace("@media (max-width:640px){", () => "@media (max-width:900px){"))],
+  ];
+  for (const [nama, salinan] of mutasiHalaman) {
+    if (salinan === html) throw new Error(`${acuan}: uji mutasi rapikan-ponsel "${nama}" tidak mengubah halaman`);
+    if (!rp.periksaPonsel(salinan).length) throw new Error(`${acuan}: rapikan-ponsel menerima halaman bermutasi (${nama})`);
+  }
+  const mutasiCss = [
+    ...WAJIB_PONSEL.map(([nama, aturan]) => [`hapus aturan: ${nama}`, rp.CSS.replace(aturan, () => "")]),
+    ["@media (max-width:640px) diperlebar ke 900 px", rp.CSS.replace("@media (max-width:640px){", () => "@media (max-width:900px){")],
+    ["aturan baru di luar @media", rp.CSS + "\nbody{overflow-x:hidden}\n"],
+    ["pembuka @media dibuang", rp.CSS.replace("@media (max-width:640px){", () => "")],
+  ];
+  for (const [nama, css] of mutasiCss) {
+    if (css === rp.CSS) throw new Error(`rapikan-ponsel: uji mutasi CSS "${nama}" tidak mengubah CSS`);
+    if (!periksaCssPonsel(css).length) throw new Error(`rapikan-ponsel: periksaCssPonsel menerima CSS bermutasi (${nama})`);
+  }
+}
+
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");
 if (/rsync -a \\\r?\n\s+--exclude='.git'/.test(workflow)) throw new Error("Pages workflow still copies repository root");
 for (const required of ["Allowlist frontend publik", "Tolak artefak sensitif", "_site/functions", "*answers.js", "*questions.js"]) {
