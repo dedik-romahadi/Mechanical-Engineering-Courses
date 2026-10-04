@@ -379,7 +379,8 @@ repo publik ini.
   akronim di `modul_N.py` ditulis `\mathrm{SIL}`); kode yang diketik keluar dari KaTeX sebagai `<code>` (juga chip Persamaan:
   notasi berbacktick `` `isnull()` `` di `persamaan-statis-data.mjs`). Penjaga `scripts/periksa-katex.mjs`
   (keenam course, statis di `validate-public-security.mjs`, termasuk `\_`/`nama()`, en dash/½ di mode matematika, koma
-  desimal tanpa `{,}` di Sisken/TTL/CAD, dan akronim tiga huruf miring di TTL/CAD; render penuh
+  desimal tanpa `{,}` di Sisken/TTL/CAD, dan akronim miring di TTL/CAD — tiga huruf kapital dan daftar
+  `AKRONIM_DIJAGA` (`SF`, `kV`, `CO_2`, …), dipatok validator bersama daftar course-nya; render penuh
   `--katex` dijalankan CI dengan `katex@VERSI_KATEX`, langkah CI-nya dipatok baris demi baris). Prosa di kotak
   `.formula` kartu dan daftar konsep di blok persamaan ditulis teks polos, bukan satu `\text{…}` utuh yang tidak
   bisa dipatah dan terpotong di ponsel. Pedoman §2 butir (17)–(21).

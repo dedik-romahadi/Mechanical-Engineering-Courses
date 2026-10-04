@@ -30,12 +30,19 @@
 //      tulis 0.1\text{–}0.15 dan \tfrac{1}{2} (di dalam \text{…} boleh);
 //  10. (course berkoma desimal Indonesia, KURSUS_KOMA_DESIMAL) "angka,angka" tanpa spasi di mode matematika — KaTeX
 //      menganggap koma tanda baca dan menambah spasi tipis ("0,849" tampil "0, 849"); tulis 0{,}849. Daftar dan
-//      koordinat ditulis berspasi (A(0, 0), [0, 1]); subskrip _{1,2,3} dan isi \text{…} sah. Course bertitik desimal
-//      (Matematika 4, Getaran, Optimalisasi) memakai koma hanya sebagai pemisah ([[1,0],[0,1]], \{1,-3\}), jadi
-//      aturan ini tidak berlaku di sana (keputusan dosen (1): pemisah desimal per course);
-//  11. (TTL dan CAD, KURSUS_AKRONIM) akronim tiga huruf kapital miring di mode matematika (SIL, GMD, MVA_{base},
-//      TMS) — tampil seperti perkalian tiga lambang; tulis \mathrm{SIL}. Empat huruf atau lebih sudah ditolak aturan 4;
-//      subskrip berkurawal (n_{PQ}) sah. Sisken tidak: G C H di T_r = GC/(1+GCH) memang perkalian fungsi alih.
+//      koordinat ditulis berspasi (A(0, 0), [0, 1]); subskrip _{1,2,3} dan isi perintah mode teks (\text{…},
+//      \textrm{…}, \operatorname{…}) sah. Isi \mathrm{…}/\mathbf{…}/\mathit{…} tetap mode matematika — KaTeX menampilkan
+//      \mathrm{0,5} sebagai "0, 5" — jadi diperiksa. Course bertitik desimal (Matematika 4, Getaran, Optimalisasi)
+//      memakai koma hanya sebagai pemisah ([[1,0],[0,1]], \{1,-3\}), jadi aturan ini tidak berlaku di sana (keputusan
+//      dosen (1): pemisah desimal per course);
+//  11. (TTL dan CAD, KURSUS_AKRONIM) akronim miring di mode matematika — tampil seperti perkalian lambang; tulis
+//      \mathrm{SIL}. Ditolak: tiga huruf kapital (SIL, GMD, MVA_{base}, TMS; empat huruf atau lebih sudah ditolak
+//      aturan 4) dan akronim pendek yang ditegakkan fase D (AKRONIM_DIJAGA: SF, LF, CF, LsF, VR, PV, PQ, kV, CO_2).
+//      Daftar pendeknya eksplisit karena dua huruf kapital di rumus TTL/CAD biasanya perkalian atau ruas (EI, FL, IR,
+//      BC, AD). Subskrip/superskrip berkurawal (n_{PQ}) dan isi \mathrm/\mathbf/\text sah; isi \mathit/\textit/\emph
+//      tetap miring, jadi diperiksa. Sisken tidak: G C H di T_r = GC/(1+GCH) memang perkalian fungsi alih.
+//      Label tulisan tangan yang dikeluarkan dari KaTeX (UTS/UAS "10 Soal · @2", judul bar Setup "Terminal — ttl")
+//      tidak dijaga aturan ini; pasangannya di notasi-halaman-data.json (node scripts/notasi-halaman.mjs --periksa).
 // Argumen warna/URL/atribut HTML (\color{blue}, \textcolor{green}{…}, \href{…}) bukan kata matematika, dan isi
 // \text{…}/\textnormal{…}/\colorbox{…}{…} (kurawal bersarang pun) adalah teks tegak — keduanya tidak dihitung
 // sebagai kata miring; argumen matematika \textcolor{red}{Gaya} tetap diperiksa.
@@ -59,6 +66,9 @@ export const KURSUS_KATEX = ["Engineering-Mathematics", "Getaran-Mekanik", "Opti
 // pustaka.koma_katex). Aturan 11: course generator TTL/CAD (akronim teknik di rumus ditulis \mathrm{…}).
 export const KURSUS_KOMA_DESIMAL = ["Sistem-Kendali-Cerdas", "Teknik-Tenaga-Listrik", "Pemodelan-Computer-Aided-Design"];
 export const KURSUS_AKRONIM = ["Teknik-Tenaga-Listrik", "Pemodelan-Computer-Aided-Design"];
+// Aturan 11, akronim pendek yang ditegakkan fase D (\mathrm{…} di modul_N.py TTL/CAD) dan tidak tertangkap pola tiga
+// huruf kapital. "CO_2" berarti CO yang disusul subskrip 2. Validator mematok isi ketiga daftar ini.
+export const AKRONIM_DIJAGA = ["SF", "LF", "CF", "LsF", "VR", "PV", "PQ", "kV", "CO_2"];
 /** Opsi aturan per course untuk periksaKatex (aturan 10 dan 11). */
 export const opsiKursus = (course) => ({ komaDesimal: KURSUS_KOMA_DESIMAL.includes(course), akronim: KURSUS_AKRONIM.includes(course) });
 export const halamanKatex = halamanNotasi;
@@ -171,6 +181,11 @@ export function bagianKatex(html) {
 // ditambah argumen teks \colorbox/\fcolorbox; argumen matematika sesudahnya (\textcolor{red}{Gaya}) tetap diperiksa.
 const TEKS_TEGAK = new Set(["text", "textrm", "textbf", "textit", "textsf", "texttt", "textup", "textmd", "textnormal", "emph",
   "mathrm", "mathbf", "mathit", "mathsf", "mathtt", "operatorname", "operatorname*", "mbox", "hbox"]);
+// Aturan 10: hanya perintah mode teks (koma di dalamnya tidak berspasi). \mathrm/\mathbf/\mathit/\mathsf/\mathtt tetap
+// mode matematika: \mathrm{0,5} tampil "0, 5". \operatorname{0,5} dirender sebagai satu identifier tanpa spasi.
+const MODE_TEKS = new Set([...TEKS_TEGAK].filter((n) => !n.startsWith("math")));
+// Aturan 11: isi yang tampil tegak. \mathit/\textit/\emph tetap miring, jadi akronim di dalamnya diperiksa.
+const TEGAK_AKRONIM = new Set([...TEKS_TEGAK].filter((n) => !["mathit", "textit", "emph"].includes(n)));
 const ARG_NON_MATEMATIKA = { color: 1, textcolor: 1, colorbox: 2, fcolorbox: 3, href: 1, url: 1, htmlClass: 1, htmlId: 1,
   htmlStyle: 1, htmlData: 1 };
 /** Indeks sesudah satu argumen TeX yang dimulai di `i` ({…} seimbang, \perintah, atau satu karakter). */
@@ -186,12 +201,13 @@ function lewatiArgumen(t, i) {
   if (t[i] === "\\") { const m = /^\\(?:[A-Za-z]+|.)/.exec(t.slice(i)); return i + (m ? m[0].length : 1); }
   return Math.min(t.length, i + 1);
 }
-/** Buang perintah teks tegak beserta isinya dan argumen non-matematika (warna, URL, atribut HTML). */
-function buangNonMatematika(t) {
+/** Buang perintah teks tegak (`tegak`, bawaan TEKS_TEGAK) beserta isinya dan argumen non-matematika (warna, URL,
+ *  atribut HTML). */
+function buangNonMatematika(t, tegak = TEKS_TEGAK) {
   let out = "", pos = 0, m;
   const rx = /\\([A-Za-z]+\*?)/g;
   while ((m = rx.exec(t))) {
-    const n = TEKS_TEGAK.has(m[1]) ? 1 : (ARG_NON_MATEMATIKA[m[1]] || 0);
+    const n = tegak.has(m[1]) ? 1 : (ARG_NON_MATEMATIKA[m[1]] || 0);
     if (!n) continue;
     let j = m.index + m[0].length;
     for (let k = 0; k < n; k++) j = lewatiArgumen(t, j);
@@ -252,24 +268,33 @@ function teksDiMatematika(t) {
   const m = /[–—½]/.exec(buangNonMatematika(t));
   return m ? m[0] : null;
 }
-/** True bila posisi i di `s` berada di dalam subskrip berkurawal _{…} (kurawal ter-escape \{ \} dilewati). */
-function diSubskrip(s, i) {
+/** True bila posisi i di `s` berada di dalam skrip berkurawal — subskrip _{…}, atau juga superskrip ^{…} bila `pangkat`
+ *  (kurawal ter-escape \{ \} dilewati). */
+function diSubskrip(s, i, pangkat = false) {
   const tumpuk = [];
   for (let k = 0; k < i; k++) {
     if (s[k] === "\\") { k += 1; continue; }
-    if (s[k] === "{") tumpuk.push(s[k - 1] === "_"); else if (s[k] === "}") tumpuk.pop();
+    if (s[k] === "{") tumpuk.push(s[k - 1] === "_" || (pangkat && s[k - 1] === "^")); else if (s[k] === "}") tumpuk.pop();
   }
   return tumpuk.some(Boolean);
 }
-/** Koma desimal tanpa {,} di mode matematika (aturan 10): "0,849", juga sesudah {,} ("1{,}2,3") dan di pangkat. */
+/** Koma desimal tanpa {,} di mode matematika (aturan 10): "0,849", juga sesudah {,} ("1{,}2,3"), di pangkat, dan di
+ *  \mathrm{…}/\mathbf{…}; isi perintah mode teks dan subskrip berkurawal dilewati. */
 function komaTanpaKurawal(t) {
-  const s = buangNonMatematika(t);
+  const s = buangNonMatematika(t, MODE_TEKS);
   for (const m of s.matchAll(/(?<![\d,])\d+,\d+/g)) if (!diSubskrip(s, m.index)) return m[0];
   return null;
 }
-/** Akronim tiga huruf kapital miring di mode matematika (aturan 11); skrip berkurawal dan perintah TeX dibuang. */
+// AKRONIM_DIJAGA sebagai pola: "CO_2" → CO yang disusul _2 atau _{2}.
+const RX_AKRONIM_DIJAGA = new RegExp(String.raw`(?<![A-Za-z])(?:${AKRONIM_DIJAGA.map((a) => {
+  const [dasar, sub] = a.split("_");
+  return sub ? String.raw`${dasar}(?=\s*_\s*(?:${sub}|\{\s*${sub}\s*\}))` : dasar;
+}).join("|")})(?![A-Za-z])`, "g");
+/** Akronim miring di mode matematika (aturan 11): akronim pendek AKRONIM_DIJAGA di luar skrip berkurawal, atau tiga huruf
+ *  kapital; isi \mathrm/\mathbf/\text dibuang, isi \mathit/\textit/\emph tidak (tetap miring). */
 function akronimMiring(t) {
-  let s = buangNonMatematika(t).replace(/\\(?:begin|end)\s*\{[^{}]*\}/g, " ").replace(/\\[A-Za-z]+/g, " ");
+  let s = buangNonMatematika(t, TEGAK_AKRONIM).replace(/\\(?:begin|end)\s*\{[^{}]*\}/g, " ").replace(/\\[A-Za-z]+/g, " ");
+  for (const m of s.matchAll(RX_AKRONIM_DIJAGA)) if (!diSubskrip(s, m.index, true)) return m[0];
   for (let i = 0; i < 3; i++) s = s.replace(/[_^]\s*\{[^{}]*\}/g, " ");
   const m = /(?<![A-Za-z])[A-Z]{3}(?![A-Za-z])/.exec(s);
   return m ? m[0] : null;
@@ -449,8 +474,16 @@ export function ujiMutasiKatex(halamanBersih, relative) {
     ["koma desimal di pangkat", "<p>\\(t = 0{,}14/(5^{0,02} - 1)\\)</p>", KOMA],
     ["daftar tanpa spasi sesudah {,}", "<p>\\(x = 1{,}2,3\\)</p>", KOMA],
     ["koma desimal di blok persamaan", "<div class=\"formula-main\">\\(\\mathrm{GMR} = 0,7788\\,r\\)</div>", KOMA],
+    ["koma desimal di \\mathrm (tetap mode matematika)", "<p>\\(\\mathrm{0,5}\\)</p>", KOMA],
+    ["koma desimal di \\mathbf", "<p>\\(\\mathbf{F} = \\mathbf{0,5}\\,\\mathbf{a}\\)</p>", KOMA],
     ["akronim miring", "<p>\\(SIL = V_L^2/Z_c\\)</p>", AKRONIM],
     ["akronim bersubskrip miring", "<p>\\(Z_{base} = (\\mathrm{kV}_{base})^2/MVA_{base}\\)</p>", AKRONIM],
+    ["akronim di \\mathit tetap miring", "<p>\\(\\mathit{SIL} = V_L^2/Z_c\\)</p>", AKRONIM],
+    ["akronim dua huruf bersubskrip", "<p>\\(SF_{target} = 2{,}5\\)</p>", AKRONIM],
+    ["akronim huruf kecil bersubskrip", "<p>\\(Z_{base} = (kV_{base})^2/\\mathrm{MVA}_{base}\\)</p>", AKRONIM],
+    ["CO_2 berkurawal", "<p>\\(CO_{2} = \\sum_i f_i\\,\\rho_i\\,V_i\\)</p>", AKRONIM],
+    // Setiap akronim pendek yang dijaga: bentuk miringnya ditolak (bentuk \mathrm-nya diterima, daftar terima).
+    ...AKRONIM_DIJAGA.map((a) => [`akronim pendek ${a} miring`, `<p>Contoh: \\(${a} = 0{,}5 \\cdot x\\).</p>`, AKRONIM]),
   ];
   for (const [nama, potongan, opsi] of tolak) {
     if (!periksaKatex(sisip(potongan), null, opsi).length) throw new Error(`${relative}: KaTeX check accepted a mutated page (${nama})`);
@@ -478,6 +511,11 @@ export function ujiMutasiKatex(halamanBersih, relative) {
       "\\(A(0, 0)\\), \\([0, 1]\\), \\(\\text{1,5 kV}\\), \\(1.234{,}5\\), \\(t^{0{,}02}\\), \\(B(a,0)\\)</p>", SEMUA],
     ["akronim tegak, subskrip kapital, dua huruf", "<p>\\(\\mathrm{SIL} = V_L^2/Z_c\\), \\(\\mathrm{MVA}_{base}\\), " +
       "\\(2n_{PQ} + n_{PV}\\), \\(\\mathbf{Z}_{ABC}\\), \\(d(A, BC)\\), \\(\\text{CAIDI}\\)</p>", SEMUA],
+    ["akronim pendek tegak, perkalian dua huruf, koma di mode teks", "<p>\\(\\mathrm{SF}_{target}\\), " +
+      "\\((\\mathrm{kV}_{base})^2\\), \\(\\mathrm{CO}_2\\), \\(\\text{bus PV}\\), \\(x^{PQ}\\), \\(EI\\), \\(F L\\), \\(I R\\), " +
+      "\\(\\textrm{0,5}\\), \\(\\operatorname{f}(0{,}5)\\), \\(\\mathrm{0{,}5}\\), \\(CO = r\\)</p>", SEMUA],
+    ...AKRONIM_DIJAGA.map((a) => [`akronim pendek ${a} tegak`, `<p>Contoh: \\(\\mathrm{${a.split("_")[0]}}${a.includes("_") ? "_" +
+      a.split("_")[1] : ""} = 0{,}5 \\cdot x\\).</p>`, SEMUA]),
     ["koma pemisah dan perkalian fungsi alih di course lain", "<p>\\(M = [[1,0],[0,1]]\\), \\(\\{1,-3,-6,8\\}\\), " +
       "\\(T_r = \\frac{GC}{1+GCH}\\)</p>"],
   ];

@@ -5078,11 +5078,26 @@ async function ujiMutasiTunggu() {
   katex.ujiLangkahCiKatex(alurCi);
   const tanpaKatex = courseRoots.filter((course) => !katex.KURSUS_KATEX.includes(course));
   if (tanpaKatex.length) throw new Error(`periksa-katex: KURSUS_KATEX tidak memuat ${tanpaKatex.join(", ")} (keenam course dijaga sejak fase D, 4 Oktober 2026)`);
+  // Opsi aturan 10–11 per course dipatok di sini, terpisah dari periksa-katex.mjs: mengurangi KURSUS_KOMA_DESIMAL,
+  // KURSUS_AKRONIM, atau AKRONIM_DIJAGA di sana mematikan aturannya tanpa satu halaman pun gagal (keputusan dosen (1):
+  // pemisah desimal per course; fase D, 4 Oktober 2026: akronim TTL/CAD ditulis \mathrm{…}).
+  const KOMA_DIPATOK = ["Sistem-Kendali-Cerdas", "Teknik-Tenaga-Listrik", "Pemodelan-Computer-Aided-Design"];
+  const AKRONIM_DIPATOK = ["Teknik-Tenaga-Listrik", "Pemodelan-Computer-Aided-Design"];
+  const AKRONIM_PENDEK_DIPATOK = ["SF", "LF", "CF", "LsF", "VR", "PV", "PQ", "kV", "CO_2"];
+  for (const course of courseRoots) {
+    const opsi = katex.opsiKursus(course);
+    if (opsi.komaDesimal !== KOMA_DIPATOK.includes(course)) throw new Error(`periksa-katex: opsiKursus("${course}").komaDesimal harus ${KOMA_DIPATOK.includes(course)} (aturan 10; KURSUS_KOMA_DESIMAL dipatok: ${KOMA_DIPATOK.join(", ")})`);
+    if (opsi.akronim !== AKRONIM_DIPATOK.includes(course)) throw new Error(`periksa-katex: opsiKursus("${course}").akronim harus ${AKRONIM_DIPATOK.includes(course)} (aturan 11; KURSUS_AKRONIM dipatok: ${AKRONIM_DIPATOK.join(", ")})`);
+  }
+  const pendekHilang = AKRONIM_PENDEK_DIPATOK.filter((a) => !katex.AKRONIM_DIJAGA.includes(a));
+  if (pendekHilang.length) throw new Error(`periksa-katex: AKRONIM_DIJAGA tidak memuat ${pendekHilang.join(", ")} (akronim yang ditegakkan fase D)`);
+  const contohKursus = new Map();
   let halamanKatex = 0;
   for (const course of katex.KURSUS_KATEX) {
     if (!courseRoots.includes(course)) throw new Error(`periksa-katex: course ${course} is not in courseRoots`);
     for (const relative of katex.halamanKatex(root, course)) {
       const html = fs.readFileSync(path.join(root, relative), "utf8");
+      if (!contohKursus.has(course)) contohKursus.set(course, [relative, html]);
       const versiLain = [...html.matchAll(/KaTeX\/(\d+\.\d+\.\d+)\//g)].map((m) => m[1]).filter((v) => v !== katex.VERSI_KATEX);
       if (versiLain.length) throw new Error(`${relative}: memuat KaTeX ${versiLain[0]}, padahal pemeriksa dan CI merender dengan ${katex.VERSI_KATEX} (VERSI_KATEX di scripts/periksa-katex.mjs)`);
       const pelanggaran = katex.periksaKatex(html, null, katex.opsiKursus(course));
@@ -5094,6 +5109,17 @@ async function ujiMutasiTunggu() {
     }
   }
   if (halamanKatex !== 16 * katex.KURSUS_KATEX.length) throw new Error(`periksa-katex: expected ${16 * katex.KURSUS_KATEX.length} module/exam pages, got ${halamanKatex}`);
+  // Mutasi dengan opsiKursus(course) sungguhan pada satu halaman tiap course (bukan opsi eksplisit seperti
+  // ujiMutasiKatex): koma desimal ditolak tepat di course KOMA_DIPATOK, akronim miring tepat di course AKRONIM_DIPATOK.
+  for (const [course, [relative, html]] of contohKursus) {
+    const akhir = html.lastIndexOf("</body>");
+    if (akhir < 0) throw new Error(`${relative}: KaTeX course-option mutation test needs </body>`);
+    const ditolak = (potongan) => katex.periksaKatex(html.slice(0, akhir) + potongan + "\n" + html.slice(akhir), null, katex.opsiKursus(course)).length > 0;
+    if (ditolak("<p>\\(x = 0,849\\)</p>") !== KOMA_DIPATOK.includes(course)) throw new Error(`${relative}: periksa-katex dengan opsiKursus("${course}") ${KOMA_DIPATOK.includes(course) ? "menerima" : "menolak"} koma desimal 0,849 tanpa {,}`);
+    for (const a of ["SIL", "MVA_{base}", ...AKRONIM_PENDEK_DIPATOK]) {
+      if (ditolak(`<p>\\(${a} = 2{,}5\\)</p>`) !== AKRONIM_DIPATOK.includes(course)) throw new Error(`${relative}: periksa-katex dengan opsiKursus("${course}") ${AKRONIM_DIPATOK.includes(course) ? "menerima" : "menolak"} akronim miring ${a}`);
+    }
+  }
   const acuan = path.join("Getaran-Mekanik", "Modul", "Modul-4.html");
   katex.ujiMutasiKatex(fs.readFileSync(path.join(root, acuan), "utf8"), acuan);
 }
