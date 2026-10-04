@@ -378,46 +378,124 @@ def nama_berkas_word(nomor, judul):
 # "0,849" tampil "0, 849" (dan bercampur dengan konstanta 0{,}7788 yang ditulis manual di
 # rumus yang sama). Dipanggil SEKALI pada HTML akhir sebelum ditulis: di dalam setiap
 # segmen \( … \) teks tampil, "angka,angka" menjadi "angka{,}angka", kecuali di dalam
-# \text{…} dan di dalam subskrip _{…} (daftar indeks seperti \sigma_{1,2,3}); pangkat
-# ^{0,02} ikut diubah. Koordinat/daftar ditulis berspasi "A(0, 0)" agar tidak ikut diubah
-# (tampilan KaTeX-nya identik). Yang tidak dirender auto-render tidak disentuh: blok
-# AI-CHAT-AGENT, <script>, <style>, komentar HTML, <pre>, <code>, <textarea>; segmen tidak
-# melewati tag (auto-render bekerja per simpul teks). Idempoten: "0{,}849" tidak cocok
-# lagi (juga angka sesudah {,}). buat-modul-word.py mengubah {,} kembali menjadi ",".
-_KOMA_LEWATI = re.compile(
-    r"<!-- AI-CHAT-AGENT:BEGIN[\s\S]*?<!-- AI-CHAT-AGENT:END[^>]*-->|<!--[\s\S]*?-->"
-    r"|<(script|style|pre|code|textarea)\b[\s\S]*?</\1\s*>", re.I)
+# perintah mode teks (\text{…} berkurawal bersarang pun, \textrm, \operatorname, …) dan di
+# dalam subskrip _{…} (daftar indeks seperti \sigma_{1,2,3}, juga x_{\text{a} 1,2}); pangkat
+# ^{0,02} dan isi \mathrm{…}/\mathbf{…} (mode matematika, koma tetap berspasi) ikut diubah.
+# Koordinat/daftar ditulis berspasi "A(0, 0)" agar tidak ikut diubah (tampilan KaTeX-nya
+# identik). Hanya simpul teks yang dirender auto-render halaman yang disentuh: tag dan
+# atributnya, komentar HTML, blok AI-CHAT-AGENT, <script>, <style>, <noscript>, <template>,
+# <textarea>, <pre>, <code>, <option>, dan elemen berkelas ff/float-formulas (ignoredTags
+# dan ignoredClasses halaman) dilewati; segmen tidak melewati tag (auto-render bekerja per
+# simpul teks). Idempoten: "0{,}849" tidak cocok lagi (juga angka sesudah {,}).
+# buat-modul-word.py mengubah {,} kembali menjadi ",".
+_KOMA_TOKEN = re.compile(
+    r"<!-- AI-CHAT-AGENT:BEGIN|<!--|<([A-Za-z][\w-]*)\b([^>]*)>|<[/!?][^>]*>")
+_KOMA_MENTAH = ("script", "style", "textarea", "noscript", "template")
+_KOMA_BERSARANG = ("pre", "code")
+_KOMA_KELAS = ("ff", "float-formulas")
 _KOMA_SEG = re.compile(r"\\\(([^<]+?)\\\)")
-_KOMA_TEKS = re.compile(r"(\\text\s*\{[^{}]*\})")
+_KOMA_MODE_TEKS = re.compile(
+    r"\\(?:text(?:rm|bf|it|sf|tt|up|md|normal)?|emph|mbox|hbox|operatorname\*?)(?![A-Za-z])\s*\{")
 _KOMA_ANGKA = re.compile(r"(?<![\d,])(?<!\{,\})(\d+),(\d+)")
 
 
+def _ujung_elemen(html, i, tag):
+    """Indeks sesudah penutup elemen `tag` yang dibuka di i (elemen bernama sama bersarang dihitung)."""
+    rx = re.compile(r"<(/?)%s\b[^>]*>" % re.escape(tag), re.I)
+    d = 0
+    for m in rx.finditer(html, i):
+        if m.group(1):
+            d -= 1
+            if d == 0:
+                return m.end()
+        elif not m.group(0).endswith("/>"):
+            d += 1
+    return len(html)
+
+
+def _ujung_lewati(html, m):
+    """Indeks sesudah token m; bila m membuka bagian yang tidak dirender, sesudah bagian itu."""
+    t = m.group(0)
+    if t.startswith("<!-- AI-CHAT-AGENT:BEGIN"):
+        k = html.find("<!-- AI-CHAT-AGENT:END", m.end())
+        k = html.find("-->", k) if k >= 0 else -1
+        return len(html) if k < 0 else k + 3
+    if t == "<!--":
+        k = html.find("-->", m.end())
+        return len(html) if k < 0 else k + 3
+    tag = (m.group(1) or "").lower()
+    if not tag:
+        return m.end()
+    if tag in _KOMA_MENTAH:
+        k = html.lower().find("</" + tag, m.end())
+        return len(html) if k < 0 else html.index(">", k) + 1
+    if tag == "option":                                   # </option> boleh tidak ditulis
+        n = re.compile(r"</option\s*>|<option\b|</select\s*>|</datalist\s*>", re.I).search(html, m.end())
+        return len(html) if not n else (n.end() if n.group(0).lower().startswith("</option") else n.start())
+    kelas = re.search(r"\bclass\s*=\s*\"([^\"]*)\"", m.group(2) or "", re.I)
+    if tag in _KOMA_BERSARANG or (kelas and any(k in _KOMA_KELAS for k in kelas.group(1).split())):
+        return _ujung_elemen(html, m.start(), tag)
+    return m.end()
+
+
+def _topeng_teks(s):
+    """Isi perintah mode teks diganti spasi (kurawal bersarang dihitung); panjang dan kurawal luarnya tetap."""
+    out = list(s)
+    for m in _KOMA_MODE_TEKS.finditer(s):
+        j, d = m.end() - 1, 0
+        while j < len(s):
+            if s[j] == "\\":
+                j += 2
+                continue
+            if s[j] == "{":
+                d += 1
+            elif s[j] == "}":
+                d -= 1
+                if d == 0:
+                    break
+            j += 1
+        for k in range(m.end(), min(j, len(s))):
+            out[k] = " "
+    return "".join(out)
+
+
 def _di_subskrip(s, i):
-    """True bila posisi i berada di dalam _{…} yang belum tertutup."""
-    tumpuk = []
-    for k in range(i):
+    """True bila posisi i berada di dalam _{…} yang belum tertutup (\\{ dan \\} dilewati)."""
+    tumpuk, k = [], 0
+    while k < i:
+        if s[k] == "\\":
+            k += 2
+            continue
         if s[k] == "{":
             tumpuk.append(k > 0 and s[k - 1] == "_")
         elif s[k] == "}" and tumpuk:
             tumpuk.pop()
+        k += 1
     return any(tumpuk)
 
 
 def _koma_segmen(m):
-    bagian = _KOMA_TEKS.split(m.group(1))
-    for i in range(0, len(bagian), 2):
-        b = bagian[i]
-        bagian[i] = _KOMA_ANGKA.sub(
-            lambda n, b=b: n.group(0) if _di_subskrip(b, n.start()) else n.group(1) + "{,}" + n.group(2), b)
-    return "\\(" + "".join(bagian) + "\\)"
+    isi = m.group(1)
+    topeng = _topeng_teks(isi)
+    out, pos = [], 0
+    for n in _KOMA_ANGKA.finditer(topeng):
+        if _di_subskrip(topeng, n.start()):
+            continue
+        out.append(isi[pos:n.end(1)] + "{,}" + isi[n.start(2):n.end(2)])
+        pos = n.end()
+    return "\\(" + "".join(out) + isi[pos:] + "\\)"
 
 
 def koma_katex(html):
     """Koma desimal di dalam segmen KaTeX \\( … \\) ditulis {,} (lihat keterangan di atas)."""
-    out, pos = [], 0
-    for m in _KOMA_LEWATI.finditer(html):
-        out.append(_KOMA_SEG.sub(_koma_segmen, html[pos:m.start()]))
-        out.append(m.group(0))
-        pos = m.end()
-    out.append(_KOMA_SEG.sub(_koma_segmen, html[pos:]))
+    out, i = [], 0
+    while True:
+        m = _KOMA_TOKEN.search(html, i)
+        if not m:
+            break
+        out.append(_KOMA_SEG.sub(_koma_segmen, html[i:m.start()]))
+        akhir = _ujung_lewati(html, m)
+        out.append(html[m.start():akhir])
+        i = akhir
+    out.append(_KOMA_SEG.sub(_koma_segmen, html[i:]))
     return "".join(out)
