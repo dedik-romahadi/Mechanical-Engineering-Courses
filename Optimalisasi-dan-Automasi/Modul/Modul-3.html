@@ -1313,6 +1313,115 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- NOTASI-KANVAS:END v1 -->
+<!-- RAPIKAN-PONSEL:START v2 -->
+<style id="rapikan-ponsel">
+/* RAPIKAN-PONSEL v2 — tampilan ponsel; di atas 640 px hanya paritas .comp-q dan dua blok label sel kode (<= 900 px dan >= 901 px) yang berlaku */
+/* (2) Paritas keenam course: kartu soal komputasi boleh menyempit dan patah kata (Matematika 4, Getaran, Optimalisasi, Sisken sudah punya; TTL dan CAD baru). */
+.comp-q{min-width:0;overflow-wrap:break-word}
+/* (4) Label sel kode, tablet (<= 900 px): label ditengahkan absolut di bar bertumpuk dengan titik hias, bahasa, dan Copy (sapuan 641-900 px: 274 header di 641, 180 di 768, 73 di 900). Bar membungkus dan label turun ke baris sendiri. */
+@media (max-width:900px){
+.code-header{flex-wrap:wrap;row-gap:6px}
+.code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}
+.code-header .code-copy{margin-left:auto}
+}
+/* (4) Label sel kode, laptop (>= 901 px): tetap ditengahkan, tetapi selebar-lebarnya bar dikurangi dua kali kluster kiri terlebar (titik hias + pil "Python (FreeCAD)" CAD = 206 px + jarak); label yang lebih panjang membungkus 2-3 baris, bukan menimpa (30 header di 1024, 12 di 1100, 1 di 1280). Label yang muat tidak berubah. */
+@media (min-width:901px){
+.code-header .code-label{width:max-content;max-width:calc(100% - 436px);white-space:normal;text-align:center;line-height:1.3;overflow-wrap:anywhere}
+}
+@media (max-width:640px){
+/* (1) Persamaan bernomor TTL/CAD/Sisken: nomor turun ke baris sendiri (rata kanan) supaya tidak menimpa rumus yang terbungkus. */
+.formula-main{padding-right:0;overflow-x:auto}
+.formula-main>.formula-number{position:static;display:block;text-align:right;transform:none;margin-top:2px}
+/* Rumus yang tak bisa dipatah (satu pecahan/akar panjang) digulir mendatar di dalam kotaknya, bukan keluar kotak. */
+#page-modul .formula-block{overflow-x:auto;padding-left:14px;padding-right:14px}
+#page-modul .card .formula{max-width:100%;overflow-x:auto;overflow-y:hidden}
+/* (2) Kartu soal Tugas/UTS/UAS: anak flex boleh menyempit, teks/kode tak terpatahkan dipatah, rumus selebar kartu digulir. */
+/* padding-block + margin-block negatif: subskrip/pangkat yang menjulur sedikit di luar kotak baris tetap di dalam kotak gulir (tanpa batang gulir tegak), letak teks tidak bergeser. */
+.mc-q,.tf-q,.comp-q{min-width:0;overflow-wrap:anywhere;overflow-x:auto;padding-block:.45em;margin-block:-.45em}
+.radio-option,.p-opt{min-width:0;overflow-wrap:anywhere}
+.radio-option>span,.p-opt>span{min-width:0;overflow-x:auto;padding-block:.4em;margin-block:-.4em}
+/* (2b) Kepala kartu soal komputasi: nomor + poin di baris pertama, teks soal selebar kartu di baris kedua (kolom teks hanya 110-180 px bila sebaris dengan nomor dan poin). */
+.comp-header{flex-wrap:wrap;row-gap:8px}
+.comp-num{order:0}
+.comp-pts{order:1;margin-left:auto}
+.comp-q{order:2;flex:1 1 100%}
+/* (5) Kode, tautan, dan label panjang di teks; kisi inline selebar >= 220 px; judul hero; tab navigasi Modul 1. */
+:not(pre)>code{overflow-wrap:anywhere}
+.reference-card{overflow-wrap:anywhere}
+.card :is(p,li){overflow-wrap:anywhere}
+.reference-card>*{min-width:0}
+.anim-var>span:last-child{min-width:0;overflow-wrap:anywhere}
+.anim-var>code{white-space:normal;overflow-wrap:anywhere;min-width:0;flex-shrink:1}
+.fq-body{overflow-x:auto}
+[style*="minmax(220px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))!important}
+[style*="minmax(240px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))!important}
+[style*="minmax(260px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))!important}
+[style*="minmax(280px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important}
+#page-modul .academic-hero .hero-title,h1.hero-title{font-size:clamp(34px,11.5vw,50px);overflow-wrap:anywhere}
+nav{padding-left:12px;padding-right:12px;gap:8px}
+nav .nav-tabs{gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}
+nav .nav-tabs::-webkit-scrollbar{display:none}
+nav .nav-tab{flex:0 0 auto;padding-left:8px;padding-right:8px}
+.cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.anim-title{min-width:0;overflow-wrap:anywhere}
+/* Label kolom kode soal komputasi, label analogi, dan panduan Export: membungkus, bukan keluar kartu (terlihat di 320 px). */
+.input-label{flex-wrap:wrap;row-gap:2px}
+.input-label>span{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.analogy-label{max-width:100%;flex-wrap:wrap}
+.score-export-copy{min-width:0!important}
+#scheduleOverlay .visitor-modal>div[style*="display:flex"]{flex-wrap:wrap}
+#scheduleOverlay .visitor-modal>div[style*="display:flex"]>div{min-width:0;flex:1 1 130px!important}
+#scheduleOverlay .v-input{min-width:0;max-width:100%}
+.berkas-input{min-width:0;max-width:100%}
+html .pm-centang .pm-status{white-space:normal;flex:0 1 auto;min-width:0;max-width:calc(100% - 42px)}
+}
+@media (max-width:560px){
+/* (3) Setup: kolom langkah sempit (±150 px di basis) — lebarkan kartu, sembunyikan tiga titik hias, dan jaga Copy sebaris. */
+html :is(#page-setup,#page-python) .sp-wrap{padding:0 12px}
+html :is(#page-setup,#page-python) .sp-timeline::before{left:16px}
+html :is(#page-setup,#page-python) .sp-step{padding-left:46px}
+html :is(#page-setup,#page-python) .sp-dot{left:2px;width:28px;height:28px;font-size:.8rem}
+html :is(#page-setup,#page-python) .sp-head{padding:1.1rem 1rem .5rem}
+html :is(#page-setup,#page-python) .sp-body{padding:.5rem 1rem 1.25rem}
+html :is(#page-setup,#page-python) .sp-body a{overflow-wrap:anywhere}
+html :is(#page-setup,#page-python) .sp-cbh{flex-wrap:nowrap;gap:.5rem;padding:.5rem .8rem}
+html :is(#page-setup,#page-python) .sp-cbh-left{flex:1 1 0;min-width:0}
+html :is(#page-setup,#page-python) .sp-cbh-dots{display:none}
+html :is(#page-setup,#page-python) .sp-cbh-copy{flex:0 0 auto;white-space:nowrap}
+html :is(#page-setup,#page-python) .sp-cbd{padding:.9rem 1rem}
+}
+@media (max-width:360px){
+nav .nav-tab{padding-left:6px;padding-right:6px}
+html :is(#page-setup,#page-python) .sp-step{padding-left:38px}
+html :is(#page-setup,#page-python) .sp-body{padding:.5rem .75rem 1rem}
+html :is(#page-setup,#page-python) .sp-cbh{padding:.5rem .6rem}
+html :is(#page-setup,#page-python) .sp-cbh-copy{padding:.3rem .5rem}
+}
+</style>
+<script id="rapikan-ponsel-js">
+/* RAPIKAN-PONSEL v2: tab navigasi aktif di tengah strip (<= 640 px) */
+(function () {
+  var mq = window.matchMedia && window.matchMedia('(max-width:640px)');
+  function tengahkan() {
+    if (!mq || !mq.matches) return;
+    var tab = document.querySelector('nav .nav-tabs .nav-tab.active');
+    var strip = tab && tab.parentNode;
+    if (!strip || strip.scrollWidth <= strip.clientWidth + 1) return;
+    var a = tab.getBoundingClientRect(), b = strip.getBoundingClientRect();
+    strip.scrollLeft += (a.left - b.left) - (strip.clientWidth - a.width) / 2;
+  }
+  function pasang() {
+    var strip = document.querySelector('nav .nav-tabs');
+    if (!strip) return;
+    tengahkan();
+    if (window.MutationObserver) new MutationObserver(tengahkan).observe(strip, { attributes: true, attributeFilter: ['class'], subtree: true });
+    window.addEventListener('resize', tengahkan);
+    window.addEventListener('load', tengahkan);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pasang); else pasang();
+})();
+</script>
+<!-- RAPIKAN-PONSEL:END v2 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1717,7 +1826,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Pemilihan ADC, Range &amp; Resolusi</div>
-    LSB \(= V_{range} / 2^{N} \cdot \text{SNR}_{quantization} = 6.02 \cdot N + 1.76 \text{ dB}\)
+    LSB \(= V_{range} / 2^{N};\quad \text{SNR}_{quantization} = 6.02 \cdot N + 1.76 \text{ dB}\)
   <span class="formula-number">(2)</span></div>
 <!-- PERSAMAAN-STATIS:2:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -2127,19 +2236,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🏭</div>
       <h3>Vibration Monitoring Pabrik Semen</h3>
       <p>20+ motor mill grinding, 1-15 MW. Setup: <strong>IEPE accelerometer</strong> per motor, <strong>16-bit ADC fs=25 kHz</strong>, edge gateway hitung RMS+CF per detik, kirim via <strong>MQTT ke InfluxDB</strong>. Dashboard <strong>Grafana</strong>: line plot RMS 24h + heatmap 30-day overview semua motor. Alert tier: notice (RMS&gt;2.8), warning (&gt;4.5), critical (&gt;7.1) sesuai ISO 10816 kelas II.</p>
-      <div class="formula">\(25 \text{ kHz} \cdot 16\text{-bit} \cdot \text{MQTT}\)</div>
+      <div class="formula">25 kHz \(\cdot\) 16-bit \(\cdot\) MQTT</div>
     </div>
     <div class="card">
       <div class="card-icon">🌾</div>
       <h3>SCADA Kelapa Sawit</h3>
       <p>Pabrik kelapa sawit: ratusan sensor temperatur (RTD/TC), pressure (4-20mA), level (ultrasonic). Setup: <strong>PLC Allen-Bradley</strong> dengan analog input modules, fs=1 Hz, scan time 100ms. Komunikasi <strong>Modbus TCP → SCADA Wonderware</strong>. Dashboard: P&amp;ID dengan live values per tag. Storage: SQL Server historian, retention 5 tahun untuk compliance.</p>
-      <div class="formula">\(1 \text{ Hz} \cdot 16\text{-bit} \cdot \text{Modbus}\)</div>
+      <div class="formula">1 Hz \(\cdot\) 16-bit \(\cdot\) Modbus</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Power Quality Gardu Distribusi</h3>
       <p>Gardu distribusi 20 kV: 3-phase voltage + current. Setup: <strong>CT/PT trafo</strong> step-down → <strong>20 kHz simultaneous-sampling 16-bit ADC</strong> → real-time FFT untuk THD, harmonik (sampai orde 50). <strong>IEC 61850</strong> protocol untuk integrasi dengan SCADA grid. Output: power quality metrics per 10 menit (sesuai standar EN 50160).</p>
-      <div class="formula">\(20 \text{ kHz} \cdot \text{IEC 61850}\)</div>
+      <div class="formula">20 kHz \(\cdot\) IEC 61850</div>
     </div>
     <div class="card">
       <div class="card-icon">🏥</div>
