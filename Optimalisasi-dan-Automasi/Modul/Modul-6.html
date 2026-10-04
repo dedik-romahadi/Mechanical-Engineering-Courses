@@ -253,7 +253,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(255,64,129,.1);border:1px solid rgba(255,64,129,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(255,64,129,.07);border:1px solid rgba(255,64,129,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -968,6 +968,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1652,7 +1655,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Lima Fitur Domain Waktu Paling Fundamental</div>
-    Mean \(\mu \cdot\) RMS  \(\cdot Peak-to-Peak \cdot\) Crest Factor  \(\cdot\) Kurtosis
+    Mean \(\mu \cdot\) RMS  \(\cdot \text{Peak-to-Peak} \cdot\) Crest Factor  \(\cdot\) Kurtosis
   <span class="formula-number">(1)</span></div>
 <!-- PERSAMAAN-STATIS:1:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1666,25 +1669,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚡</div>
       <h3>Padatkan 100 000 Sampel → 12 Angka</h3>
       <p>Sebuah sensor accelerometer pada bearing dengan sampling 25 kHz menghasilkan <strong>100 000 sampel dalam 4 detik</strong>. Tidak mungkin membandingkan dua segmen langsung sample-by-sample. Fitur domain waktu menyaring inti informasinya menjadi <em>vektor 12 angka</em>, cukup untuk model klasifikasi <em>healthy / outer-race fault / inner-race fault</em> (lihat dataset CWRB).</p>
-      <div class="formula">\(x \in \mathbb{R}^N \to \phi \in \mathbb{R}^12\)</div>
+      <div class="formula">\(x \in \mathbb{R}^N \to \phi \in \mathbb{R}^{12}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Tetap di Domain Waktu</h3>
       <p>Berbeda dengan Pertemuan 7 (FFT, spektrum), fitur domain waktu <strong>tidak butuh transformasi Fourier</strong>. Hanya operasi statistik dasar: rata-rata, akar kuadrat, momen ke-3 dan ke-4. Komputasinya O(N), <strong style="color:var(--green)">sangat cepat</strong>, cocok untuk monitoring real-time edge device dengan budget komputasi terbatas.</p>
-      <div class="formula">\(O(N), real-time ready\)</div>
+      <div class="formula">\(O(N), \text{real-time ready}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔬</div>
       <h3>Sensitif terhadap Kerusakan Spesifik</h3>
       <p>Setiap fitur menangkap <em>jenis anomali berbeda</em>. <strong>RMS</strong> naik saat amplitudo getaran membesar (unbalance, misalignment). <strong>Crest factor</strong> dan <strong>kurtosis</strong> melonjak saat ada <em>impak transient</em> kecil (early bearing fault), bahkan sebelum RMS terpengaruh. Inilah mengapa engineer condition monitoring menggabungkan beberapa fitur sekaligus.</p>
-      <div class="formula">\(tiap fitur = sensor anomali berbeda\)</div>
+      <div class="formula">\(\text{tiap fitur} = \text{sensor anomali berbeda}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Input Standar untuk Machine Learning</h3>
       <p>Hampir semua algoritma klasifikasi (SVM, Random Forest, XGBoost, Neural Network) menerima <em>vektor fitur</em>, bukan time series mentah. Ekstraksi fitur domain waktu adalah <strong>jembatan wajib</strong> antara raw data dan modeling, sama wajibnya dengan tokenisasi pada NLP. Kombinasikan dengan fitur frekuensi (Pertemuan 7) untuk hasil terbaik.</p>
-      <div class="formula">\(raw \to \phi (x) \to model\)</div>
+      <div class="formula">\(\text{raw} \to \phi (x) \to \text{model}\)</div>
     </div>
   </div>
 
@@ -1715,7 +1718,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Empat Statistik Orde Rendah (untuk N sampel x₁…\(x_N\))</div>
-    \(\mu = (1/N)\Sigma x_{i} \cdot \sigma ^2 = (1/N)\Sigma (x_{i}-\mu )^2 \cdot \sigma = √\sigma ^2 \cdot\) RMS \(= \sqrt{(1/N)\Sigma x_{i}^2}\)
+    \(\mu = (1/N)\Sigma x_{i} \cdot \sigma ^2 = (1/N)\Sigma (x_{i}-\mu )^2 \cdot \sigma = \sqrt{\sigma ^2} \cdot\) RMS \(= \sqrt{(1/N)\Sigma x_{i}^2}\)
   <span class="formula-number">(2)</span></div>
 <!-- PERSAMAAN-STATIS:2:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1741,13 +1744,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚡</div>
       <h3>RMS (Root Mean Square)</h3>
       <p>Fitur <strong>paling fundamental</strong> dalam analisis vibrasi industri. RMS adalah <em>akar dari rata-rata kuadrat</em>, secara fisik representasi <strong style="color:var(--cyan)">energi sinyal per unit waktu</strong>. ISO 10816 menetapkan ambang batas vibrasi mesin <em>dalam satuan RMS velocity (mm/s)</em>: di bawah 1.8 mm/s = good, 4.5–7.1 mm/s = warning, &gt;11.2 mm/s = stop.</p>
-      <div class="formula">\(RMS = √[(1/N)\Sigma x^2]\)</div>
+      <div class="formula">\(\text{RMS} = \sqrt{(1/N)\Sigma x^2}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
       <h3>Hubungan RMS, Std, Mean</h3>
-      <p>Identitas penting: <strong>\(RMS^2 = \mu ^2 + \sigma ^2\)</strong>. Untuk sinyal AC-coupled (μ = 0), <code>RMS = σ</code> persis. Untuk sinyal dengan DC offset, RMS sedikit lebih besar dari σ. Hubungan ini sering dipakai untuk <em>cross-check</em> implementasi: jika RMS &lt; σ, ada bug dalam kode!</p>
-      <div class="formula">\(RMS^2 = \mu ^2 + \sigma ^2\)</div>
+      <p>Identitas penting: <strong>\(\text{RMS}^2 = \mu ^2 + \sigma ^2\)</strong>. Untuk sinyal AC-coupled (μ = 0), <code>RMS = σ</code> persis. Untuk sinyal dengan DC offset, RMS sedikit lebih besar dari σ. Hubungan ini sering dipakai untuk <em>cross-check</em> implementasi: jika RMS &lt; σ, ada bug dalam kode!</p>
+      <div class="formula">\(\text{RMS}^2 = \mu ^2 + \sigma ^2\)</div>
     </div>
   </div>
 
@@ -1792,25 +1795,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⛰️</div>
       <h3>Peak (x<sub>peak</sub>)</h3>
       <p>Nilai <strong>absolut maksimum</strong> dalam segmen sinyal: <code>x<sub>peak</sub> = max(|x<sub>i</sub>|)</code>. Sangat sensitif terhadap impak transient, lonjakan sesaat saat impak metal-on-metal di bearing rusak. Tetapi juga sensitif terhadap <em>spike noise</em>; pre-filter median/Hampel sebelum hitung peak untuk hasil robust.</p>
-      <div class="formula">\(x_{\text{peak}} = max|x|\)</div>
+      <div class="formula">\(x_{\text{peak}} = \max|x|\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📏</div>
       <h3>Peak-to-Peak (PP)</h3>
       <p>Selisih nilai <em>maksimum dan minimum</em>: <code>PP = max(x) − min(x)</code>. Lebih informatif dari peak tunggal karena menangkap <em>rentang amplitudo penuh</em> sinyal. Untuk sinyal AC-coupled simetris, PP ≈ 2·\(x_{\text{peak}}\). Banyak displacement sensor mengukur dalam mils PP atau µm PP, bukan RMS.</p>
-      <div class="formula">\(PP = max - min\)</div>
+      <div class="formula">\(PP = \max - \min\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Mean Absolute (|x|<sub>avg</sub>)</h3>
       <p>Rata-rata <strong>nilai absolut</strong>: <code>(1/N)Σ|x<sub>i</sub>|</code>. Mirip dengan std untuk distribusi simetris, tetapi tidak melibatkan kuadrat (lebih murah komputasi). Banyak digunakan sebagai alternatif RMS pada hardware terbatas (mikrokontroler tanpa floating-point sqrt). Hubungan dengan RMS untuk sinyal Gaussian: |x|<sub>avg</sub> ≈ RMS · \(\sqrt{2/\pi }\) ≈ 0.798·RMS.</p>
-      <div class="formula">\(|x|_avg = (1/N)\Sigma |x|\)</div>
+      <div class="formula">\(|x|_{avg} = (1/N)\Sigma |x|\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔲</div>
       <h3>Square Mean (SM)</h3>
       <p>Rata-rata <strong>kuadrat nilai</strong>: <code>SM = (1/N)Σx<sub>i</sub>²</code>, yang juga sama dengan <code>RMS²</code>. Beberapa standar (terutama akustik) memakai SM langsung daripada RMS karena <em>lebih mudah dihitung secara incremental</em>: <code>SM<sub>new</sub> = SM<sub>old</sub> + (x<sub>new</sub>² − x<sub>oldest</sub>²)/N</code>. Berguna untuk streaming data tanpa menyimpan window.</p>
-      <div class="formula">\(SM = RMS^2\)</div>
+      <div class="formula">\(SM = \text{RMS}^2\)</div>
     </div>
   </div>
 
@@ -1833,7 +1836,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Hubungan Antarfitur (sinyal Gaussian noise):</strong> Untuk sinyal noise putih Gaussian: \(|x|_{avg} \approx 0.798 \cdot RMS\), \(x_{peak} \approx 3 \cdot RMS\) (3-sigma rule), <code>PP ≈ 6·RMS</code>. Deviasi dari rasio-rasio ini menandakan <em>sinyal non-Gaussian</em>, biasanya karena ada komponen impulsif atau periodik. Sangat berguna untuk <em>quick health check</em> sebelum menghitung fitur orde tinggi yang lebih mahal.
+    💡 <strong>Hubungan Antarfitur (sinyal Gaussian noise):</strong> Untuk sinyal noise putih Gaussian: \(|x|_{avg} \approx 0.798 \cdot \text{RMS}\), \(x_{peak} \approx 3 \cdot \text{RMS}\) (3-sigma rule), <code>PP ≈ 6·RMS</code>. Deviasi dari rasio-rasio ini menandakan <em>sinyal non-Gaussian</em>, biasanya karena ada komponen impulsif atau periodik. Sangat berguna untuk <em>quick health check</em> sebelum menghitung fitur orde tinggi yang lebih mahal.
   </div>
 
   <label class="pm-centang" data-pm="2"><input type="checkbox" disabled aria-describedby="pm-status-2"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Bentuk Sinyal: Peak, Peak-to-Peak, Mean Absolute, Square Mean</b>.</span><em class="pm-status" id="pm-status-2"></em></label>
@@ -1868,37 +1871,37 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🏔️</div>
       <h3>Crest Factor (CF)</h3>
       <p>Rasio <strong>peak terhadap RMS</strong>: <code>CF = x<sub>peak</sub> / RMS</code>. Untuk sinyal sinusoidal murni: CF = √2 ≈ 1.414. Untuk noise Gaussian: CF ≈ 3–4. Nilai CF &gt; 4–5 menandakan adanya <em>impak transient</em>, biasanya bearing fault stadium awal. CF naik dulu sebelum RMS, sehingga merupakan <strong style="color:var(--amber)">leading indicator</strong>.</p>
-      <div class="formula">\(CF = x_{\text{peak}} / RMS\)</div>
+      <div class="formula">\(CF = x_{\text{peak}} / \text{RMS}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Kurtosis (Kurt)</h3>
       <p>Momen <strong>orde-4</strong> ternormalisasi: <code>Kurt = E[(x−μ)⁴]/σ⁴</code>. Mengukur <em>"ketebalan ekor"</em> distribusi. Sinyal Gaussian: Kurt = 3. Sinyal dengan banyak spike (impulsif): Kurt ≫ 3. Kurtosis adalah <strong style="color:var(--cyan)">fitur paling sensitif</strong> untuk deteksi early bearing fault, bisa naik 5–10× sebelum kerusakan kelihatan di trend RMS.</p>
-      <div class="formula">\(Kurt = E[(x-\mu )^4]/\sigma ^4\)</div>
+      <div class="formula">\(\text{Kurt} = E[(x-\mu )^4]/\sigma ^4\)</div>
     </div>
     <div class="card">
       <div class="card-icon">↔️</div>
       <h3>Skewness (Skew)</h3>
       <p>Momen <strong>orde-3</strong> ternormalisasi: <code>Skew = E[(x−μ)³]/σ³</code>. Mengukur <em>asimetri</em> distribusi. Sinyal vibrasi sehat (Gaussian/sinusoidal) memiliki Skew ≈ 0. Skewness ≠ 0 menandakan sinyal asimetris, misalnya akibat clipping (sinyal sensor over-saturasi) atau impak satu arah (gear meshing).</p>
-      <div class="formula">\(Skew = E[(x-\mu )^3]/\sigma ^3\)</div>
+      <div class="formula">\(\text{Skew} = E[(x-\mu )^3]/\sigma ^3\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Shape Factor (SF)</h3>
       <p>Rasio <strong>RMS terhadap mean absolute</strong>: <code>SF = RMS / |x|<sub>avg</sub></code>. Untuk sinyal Gaussian: SF ≈ 1.253 (= \(\sqrt{\pi /2}\)). Naik perlahan saat ada impak, kombinasikan dengan CF untuk diagnosis lebih kuat. SF tahan terhadap noise tunggal karena denominator-nya rata-rata absolut, bukan single peak.</p>
-      <div class="formula">\(SF = RMS / |x|_avg\)</div>
+      <div class="formula">\(SF = \text{RMS} / |x|_{avg}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚠️</div>
       <h3>Impulse Factor (IF)</h3>
       <p>Rasio <strong>peak terhadap mean absolute</strong>: <code>IF = x<sub>peak</sub> / |x|<sub>avg</sub></code>. Untuk Gaussian: IF ≈ 3·\(\sqrt{\pi /2}\) ≈ 3.76. Sangat tinggi (IF &gt; 10) untuk sinyal dengan impak singkat dan sangat sedikit. IF dan CF mirip secara konsep tetapi IF lebih sensitif terhadap impulsivitas karena denominator-nya lebih kecil dari RMS untuk sinyal impulsif.</p>
-      <div class="formula">\(IF = x_{\text{peak}} / |x|_avg\)</div>
+      <div class="formula">\(IF = x_{\text{peak}} / |x|_{avg}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔻</div>
       <h3>Margin Factor (MF)</h3>
       <p>Rasio <strong>peak terhadap square mean of square root</strong>: <code>MF = x<sub>peak</sub> / [(1/N)Σ√|x|]²</code>. Lebih jarang dipakai tapi <em>sangat tahan</em> terhadap clipping atau outlier, denominator-nya kompres nilai besar. Berguna saat sensor over-saturasi pada impak besar dan Anda hanya ingin info tentang bentuk gelombang yang tidak clip.</p>
-      <div class="formula">\(MF = x_{\text{peak}} / [(1/N)\Sigma √|x|]^2\)</div>
+      <div class="formula">\(MF = x_{\text{peak}} / [(1/N)\Sigma \sqrt{|x|}]^2\)</div>
     </div>
   </div>
 
@@ -2142,25 +2145,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🛠️</div>
       <h3>Bearing Condition Monitoring</h3>
       <p>Akselerometer pada housing bearing motor industri sampling 25 kHz, 4-detik segmen. Tiap segmen menghasilkan vektor 12 fitur domain waktu. Trend <strong style="color:var(--cyan)">RMS</strong> menunjukkan deteorasi keseluruhan; <strong>Crest Factor</strong> dan <strong>Kurtosis</strong> melonjak di stadium awal (saat <em>spalling</em> mikro mulai); kombinasi ini di-feed ke threshold-based atau ML classifier untuk klasifikasi healthy / inner-race / outer-race / ball fault.</p>
-      <div class="formula">\(x \to [RMS, CF, Kurt, ...] \to klasifikasi\)</div>
+      <div class="formula">\(x \to [\text{RMS, } CF, \text{Kurt,} ...] \to \text{klasifikasi}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Gearbox Tooth Fault Detection</h3>
       <p>Defect pada gigi gear menghasilkan <em>impak periodik</em> tepat pada frekuensi mesh. Di domain waktu: <strong style="color:var(--amber)">peak-to-peak</strong> dan <strong>kurtosis</strong> meningkat tajam saat ada chipped/cracked tooth. Sensitif jauh sebelum komponen itu gagal, ideal untuk planning maintenance window. Wind turbine industry hidup dari fitur-fitur ini (lihat dataset NREL gearbox fault).</p>
-      <div class="formula">\(PP, Kurt \to tooth fault flag\)</div>
+      <div class="formula">\(PP, \text{Kurt} \to \text{tooth fault flag}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌬️</div>
       <h3>Wind Turbine Blade Anomaly</h3>
       <p>Sensor strain gauge di akar blade turbin angin menghasilkan deret time-series 50 Hz. <strong style="color:var(--violet)">Skewness</strong> sinyal naik saat ada <em>icing buildup</em> asimetris di salah satu blade, gaya aerodinamika menjadi tidak seimbang. Sistem SCADA pakai threshold skewness untuk trigger ice-removal protocol sebelum kerusakan struktural terjadi.</p>
-      <div class="formula">\(Skew > 0.5 \to icing alarm\)</div>
+      <div class="formula">\(\text{Skew} > 0.5 \to \text{icing alarm}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚂</div>
       <h3>Railway Wheel-Track Health</h3>
       <p>Akselerometer di gerbong kereta cepat (high-speed train) memantau kondisi <em>roda + rel</em>. Deret vibrasi vertikal: <strong style="color:var(--green)">RMS naik</strong> = wheel flat atau rail corrugation; <strong>impulse factor naik</strong> = rail joint defect. Algoritma onboard (edge computing) menghitung 12 fitur tiap 100 m dan trigger maintenance work order otomatis untuk segmen rel tertentu.</p>
-      <div class="formula">\(12 fitur per 100 m segment\)</div>
+      <div class="formula">\(\text{12 fitur per 100 m segment}\)</div>
     </div>
   </div>
 
@@ -2335,7 +2338,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell \(4\;\text{---}\) Fungsi \(extract_{features}()\) Reusable \(+\) Trajectory Degradasi Bearing</span>
+      <span class="code-label">Cell \(4\;\text{---}\) Fungsi <code>extract_features()</code> Reusable \(+\) Trajectory Degradasi Bearing</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -2545,7 +2548,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="radio-group" id="rg-mc1">
         <div class="radio-option" onclick="selectMC('mc1',this,'A')"><div class="radio-circle"></div><span class="opsi-teks">(A) &nbsp; (1/N) Σ |\(x_i\)|</span></div>
-        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; √[(1/N) Σ \(x_i\)²]</span></div>
+        <div class="radio-option" onclick="selectMC('mc1',this,'B')"><div class="radio-circle"></div><span class="opsi-teks">(B) &nbsp; \(\sqrt{(1/N) \Sigma x_i^2}\)</span></div>
         <div class="radio-option" onclick="selectMC('mc1',this,'C')"><div class="radio-circle"></div><span class="opsi-teks">(C) &nbsp; max|\(x_i\)| − min|\(x_i\)|</span></div>
         <div class="radio-option" onclick="selectMC('mc1',this,'D')"><div class="radio-circle"></div><span class="opsi-teks">(D) &nbsp; (1/N) Σ \(x_i\)</span></div>
       </div>
@@ -2854,7 +2857,7 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q">Hitung <strong>Shape Factor</strong> sinyal <code>x</code>: \(SF = RMS / |x|_{avg}\).</div>
+        <div class="comp-q">Hitung <strong>Shape Factor</strong> sinyal <code>x</code>: \(SF = \text{RMS} / |x|_{avg}\).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Shape Factor = RMS ÷ absolute average; bagi RMS dengan rata-rata nilai absolut sinyal.</div>
@@ -2915,12 +2918,12 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C11</div>
-        <div class="comp-q">Implementasikan <strong>fungsi \(extract_{features}(x)\) reusable</strong> yang mengembalikan dictionary berisi 12 fitur domain waktu: mean, std, rms, peak, pp, abs_mean, square_mean, crest_factor, shape_factor, impulse_factor, kurtosis, skewness. Pakai <code>scipy.stats.kurtosis(x, fisher=False)</code> dan <code>scipy.stats.skew(x)</code>. Terapkan pada dataset referensi. Laporkan <strong>nilai \(impulse_{factor}\)</strong>.</div>
+        <div class="comp-q">Implementasikan <strong>fungsi <code>extract_features(x)</code> reusable</strong> yang mengembalikan dictionary berisi 12 fitur domain waktu: mean, std, rms, peak, pp, abs_mean, square_mean, crest_factor, shape_factor, impulse_factor, kurtosis, skewness. Pakai <code>scipy.stats.kurtosis(x, fisher=False)</code> dan <code>scipy.stats.skew(x)</code>. Terapkan pada dataset referensi. Laporkan <strong>nilai <code>impulse_factor</code></strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Bangun fungsi yang mengembalikan dict berisi tiap fitur (mean, std, rms, dst); Impulse Factor = peak ÷ absolute average (nilai absolut maksimum dibagi rata-rata nilai absolut).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(impulse_{factor}\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)"><code>impulse_factor</code></strong></span></div>
         <textarea class="code-textarea" id="code-c11" rows="12" placeholder="Paste kode fungsi extract_features() lengkap + invocation, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c11')"></textarea>
         <div class="stdout-box" id="stdout-c11"></div>
       </div>
@@ -2949,10 +2952,10 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C13</div>
-        <div class="comp-q">Implementasikan <strong>U-shape detection algorithm</strong>: dari trajectory crest factor sepanjang lifetime bearing (50 segmen), deteksi indeks puncak (early-fault) dan akhir trajectory (severe). Generate trajectory dengan formula CF(p) = 3 + 8·\(p \cdot \exp(\)−4p) + noise(0,0.2), p ∈ linspace(0,1,50), seed=42. Laporkan <strong>indeks segmen dengan CF puncak</strong> (argmax dari trajectory).</div>
+        <div class="comp-q">Implementasikan <strong>U-shape detection algorithm</strong>: dari trajectory crest factor sepanjang lifetime bearing (50 segmen), deteksi indeks puncak (early-fault) dan akhir trajectory (severe). Generate trajectory dengan formula CF(p) = 3 + 8·\(p \cdot \exp(-4p)\) + noise(0,0.2), p ∈ linspace(0,1,50), seed=42. Laporkan <strong>indeks segmen dengan CF puncak</strong> (argmax dari trajectory).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Bangun trajectory crest factor sesuai model di soal, lalu cari indeks puncaknya dengan <code>np.argmax</code>; puncak teoretis ada di turunan nol dari suku \(p \cdot \exp(\)−4p).</div>
+      <div class="comp-hint">💡 Bangun trajectory crest factor sesuai model di soal, lalu cari indeks puncaknya dengan <code>np.argmax</code>; puncak teoretis ada di turunan nol dari suku \(p \cdot \exp(-4p)\).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">argmax indeks</strong></span></div>
         <textarea class="code-textarea" id="code-c13" rows="10" placeholder="Paste kode U-shape detection lengkap, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c13')"></textarea>
@@ -3124,7 +3127,7 @@ x = np.sin(2*np.pi*i/100) + 0.5*((-1)**i)
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">RMS naik +18%, sementara CF naik +81% dan Kurtosis +139%. Mengapa kurtosis lebih sensitif dari RMS? Jelaskan secara matematis (gunakan sifat orde momen) dan secara fisik (apa yang sedang terjadi di bearing). Lalu rancang strategi monitoring multi-fitur yang memanfaatkan sensitivitas berbeda.</p>
         <div style="background:rgba(255,64,129,.04);border:1px solid rgba(255,64,129,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
-          💬 <em>Petunjuk matematis: RMS \(= \sqrt{\;\text{orde}\;2},\) Kurtosis \(=\) orde \(4\) ternormalisasi. Pangkat lebih tinggi \(\to\) lebih responsif terhadap nilai ekstrem. Single spike amplitudo \(5 \times rata-rata:\) kontribusi \(ke RMS^2 ~25,\) kontribusi \(ke moment-4 ~625.\) Inilah mengapa kurtosis "melonjak" pertama saat ada impak transient kecil.</em>
+          💬 <em>Petunjuk matematis: RMS \(= \sqrt{\;\text{orde}\;2},\) Kurtosis \(=\) orde \(4\) ternormalisasi. Pangkat lebih tinggi \(\to\) lebih responsif terhadap nilai ekstrem. Single spike amplitudo 5 × rata-rata: kontribusi ke \(\text{RMS}^2\) ~25, kontribusi ke moment-4 ~625. Inilah mengapa kurtosis "melonjak" pertama saat ada impak transient kecil.</em>
         </div>
 
         <div class="poll">

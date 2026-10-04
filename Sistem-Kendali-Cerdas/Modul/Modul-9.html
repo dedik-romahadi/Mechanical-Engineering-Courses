@@ -256,7 +256,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -1859,7 +1859,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⚙️</div>
       <h3>Integral</h3>
       <p>Mengakumulasi error sehingga offset tunak hilang, namun dapat memperlambat dan menyebabkan windup.</p>
-      <div class="formula">\(u_I=K_i∫e dt\)</div>
+      <div class="formula">\(u_I=K_i∫e\,dt\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
@@ -1879,7 +1879,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <table>
       <caption class="table-caption"><span class="anim-dot" aria-hidden="true"></span><span class="anim-title">Tabel 1 — Ringkasan konsep inti beserta bentuk matematisnya</span></caption>
       <thead><tr><th>Konsep</th><th>Bentuk / Rumus</th><th>Yang perlu diingat</th></tr></thead>
-      <tbody><tr><td>Proporsional</td><td>\(u_P = K_p \cdot e\)</td><td>Meningkatkan respons terhadap error saat ini; gain terlalu tinggi menurunkan robustness.</td></tr><tr><td>Integral</td><td>\(u_I=K_i∫e dt\)</td><td>Mengakumulasi error sehingga offset tunak hilang, namun dapat memperlambat dan menyebabkan windup.</td></tr><tr><td>Derivatif</td><td>\(u_D=K_d \frac{de}{dt}\)</td><td>Merespons laju perubahan untuk menambah redaman; sensitif terhadap noise.</td></tr><tr><td>Tuning</td><td>\(K_p,T_i,T_d\)</td><td>Ziegler–Nichols, IMC, relay, dan optimization adalah titik awal yang harus divalidasi terhadap batas plant.</td></tr></tbody>
+      <tbody><tr><td>Proporsional</td><td>\(u_P = K_p \cdot e\)</td><td>Meningkatkan respons terhadap error saat ini; gain terlalu tinggi menurunkan robustness.</td></tr><tr><td>Integral</td><td>\(u_I=K_i∫e\,dt\)</td><td>Mengakumulasi error sehingga offset tunak hilang, namun dapat memperlambat dan menyebabkan windup.</td></tr><tr><td>Derivatif</td><td>\(u_D=K_d \frac{de}{dt}\)</td><td>Merespons laju perubahan untuk menambah redaman; sensitif terhadap noise.</td></tr><tr><td>Tuning</td><td>\(K_p,T_i,T_d\)</td><td>Ziegler–Nichols, IMC, relay, dan optimization adalah titik awal yang harus divalidasi terhadap batas plant.</td></tr></tbody>
     </table>
   </div>
   <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
@@ -1934,7 +1934,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Penyetelan berbasis model bekerja dari arah berlawanan. Spesifikasi diterjemahkan menjadi letak pole yang dituju, lalu parameter controller dihitung agar pole loop tertutup mendarat di sana. Cara ini menuntut model yang cukup baik, namun memberi kendali langsung atas overshoot dan waktu menetap.</p>
   <p class="section-desc reveal">Apa pun metodenya, penyetelan tidak berhenti di simulasi. Nilai hasil hitungan dipakai sebagai titik awal, lalu diperiksa di perangkat dengan menaikkan agresivitas bertahap sambil mengamati sinyal kendali. Yang menghentikan proses bukan grafik yang indah, melainkan tercapainya spesifikasi tanpa menjenuhkan actuator dan tanpa memperkuat derau berlebihan. Persamaan (3) di bawah memadatkan aturan tersebut.</p>
   <div class="formula-block reveal">
-    <div class="formula-main">Ziegler-Nichols: \(K_p = 0,6 \cdot K_u, T_i = 0,5 \cdot T_u, T_d = 0,125 \cdot T_u\)<span class="formula-number">(3)</span></div>
+    <div class="formula-main">Ziegler-Nichols: \(K_p = 0{,}6 \cdot K_u, T_i = 0{,}5 \cdot T_u, T_d = 0{,}125 \cdot T_u\)<span class="formula-number">(3)</span></div>
   </div>
   <div class="tip-box reveal rumus-jelas">
     <strong>📐 Persamaan (3)</strong> — Resep penyetelan klasik dari eksperimen ambang: naikkan gain P murni sampai sistem berosilasi tetap, lalu catat gain kritisnya \(K_u\) dan periode osilasinya \(T_u\), kemudian ketiga parameter PID dibaca dari tabel ini. Hasilnya agresif (lonjakan ±25%); pakai sebagai titik awal yang kemudian dihaluskan, bukan jawaban akhir.
@@ -2020,7 +2020,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Langkah pertama yang benar bukan menyetel melainkan memeriksa apakah dead time-nya dapat dikurangi. Memindahkan sensor lebih dekat ke titik yang dikendalikan, memperpendek jalur perpipaan, atau mempercepat sampling sering memberi perbaikan yang jauh melampaui hasil penyetelan mana pun.</p>
   <p class="section-desc reveal">Bila dead time memang tidak dapat dikurangi, struktur prediktor memakai model plant untuk memperkirakan akibat tindakan sebelum akibat itu terukur. Sistem menjadi jauh lebih agresif secara aman, dengan syarat modelnya cukup tepat, sebab bila model meleset, keunggulannya cepat hilang. Bentuk ringkasnya dituliskan pada Persamaan (6).</p>
   <div class="formula-block reveal">
-    <div class="formula-main">\(\frac{L}{\tau} \text{besar} \Rightarrow\) penguatan aman mengecil; kurangi \(L\) dulu sebelum menyetel<span class="formula-number">(6)</span></div>
+    <div class="formula-main">\(\frac{L}{\tau}\text{ besar} \Rightarrow\) penguatan aman mengecil; kurangi \(L\) dulu sebelum menyetel<span class="formula-number">(6)</span></div>
   </div>
   <div class="tip-box reveal rumus-jelas">
     <strong>📐 Persamaan (6)</strong> — Rasio \(\frac{L}{\tau}\) adalah indeks kesulitan proses: makin besar porsi waktu mati dibanding konstanta waktunya, makin kecil gain yang masih aman, sekaligus makin sia-sia penyetelan canggih. Urutan kerja yang benar: perangi dulu waktu matinya (pindahkan sensor, percepat komunikasi), baru setel; menyetel keras pada L besar hanya mengundang osilasi.
@@ -2096,41 +2096,41 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Rasio redaman dari overshoot</h3>
       <p>Batas overshoot menetapkan ζ.</p>
-      <div class="formula">\(\zeta = -\ln(0,10)/\sqrt{\pi^2 + \ln(0,10)^2} = 0,5912\)</div>
+      <div class="formula">\(\zeta = -\ln(0{,}10)/\sqrt{\pi^2 + \ln(0{,}10)^2} = 0{,}5912\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Frekuensi alami dari waktu menetap</h3>
       <p>Tuntutan kecepatan menetapkan ω<sub>n</sub>.</p>
-      <div class="formula">\(\omega_n = \frac{4}{\zeta \cdot t_s} = \frac{4}{0,5912 \cdot 4} = 1,6917\)</div>
+      <div class="formula">\(\omega_n = \frac{4}{\zeta \cdot t_s} = \frac{4}{0{,}5912 \cdot 4} = 1{,}6917\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
       <h3>Hitung K<sub>i</sub></h3>
       <p>Memakai hasil pencocokan suku konstanta.</p>
-      <div class="formula">\(K_i = \tau \cdot \frac{\omega_n^2}{K} = 5 \cdot 2,\frac{8619}{2} = 7,1547\)</div>
+      <div class="formula">\(K_i = \tau \cdot \frac{\omega_n^2}{K} = 5 \cdot \frac{2{,}8619}{2} = 7{,}1547\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Hitung K<sub>p</sub></h3>
       <p>Memakai hasil pencocokan koefisien s.</p>
-      <div class="formula">\(K_p = (2 \cdot \zeta \cdot \omega_n \cdot \tau - 1)/K = (2 \cdot 0,5912 \cdot 1,6917 \cdot 5 - 1)/2\)</div>
+      <div class="formula">\(K_p = (2 \cdot \zeta \cdot \omega_n \cdot \tau - 1)/K = (2 \cdot 0{,}5912 \cdot 1{,}6917 \cdot 5 - 1)/2\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧭</div>
       <h3>Selesaikan K<sub>p</sub></h3>
       <p>Perhatikan 2ζω<sub>n</sub> = 4/t<sub>s</sub> = 1, sehingga 2ζω<sub>n</sub>τ = 5.</p>
-      <div class="formula">\(= (10,0 - 1)/2 = 4,5\)</div>
+      <div class="formula">\(= (10{,}0 - 1)/2 = 4{,}5\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧪</div>
       <h3>Periksa waktu integral</h3>
       <p>Jauh lebih kecil daripada τ = 5 s, artinya aksi integral memang agresif.</p>
-      <div class="formula">\(T_i = \frac{K_p}{K_i} = 4,\frac{5}{7,1547} = 0,629 s\)</div>
+      <div class="formula">\(T_i = \frac{K_p}{K_i} = \frac{4{,}5}{7{,}1547} = 0{,}629\ \text{s}\)</div>
     </div>
   </div>
   <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>
-    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(\zeta\)</span><span>Rasio redaman</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(\pi\)</span><span>Konstanta lingkaran 3,14159…</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(\omega_n\)</span><span>Frekuensi alami (rad/s)</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(t_s\)</span><span>Waktu menetap (pita ±2%)</span></span><span class="anim-var nw4"><span class="rumus-notasi">\(\tau\)</span><span>Konstanta waktu</span></span><span class="anim-var nw0"><span class="rumus-notasi">\(K_i\)</span><span>Gain integral</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(K\)</span><span>Gain</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(K_p\)</span><span>Gain proporsional</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(T_i\)</span><span>Waktu integral (detik)</span></span><span class="anim-var nw4"><span class="rumus-notasi">\(s\)</span><span>Peubah Laplace</span></span></div>
+    <div class="anim-var-list" aria-label="Arti tiap notasi"><span class="anim-var nw0"><span class="rumus-notasi">\(\zeta\)</span><span>Rasio redaman</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(\pi\)</span><span>Konstanta lingkaran 3,14159…</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(\omega_n\)</span><span>Frekuensi alami (rad/s)</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(t_s\)</span><span>Waktu menetap (pita ±2%)</span></span><span class="anim-var nw4"><span class="rumus-notasi">\(\tau\)</span><span>Konstanta waktu</span></span><span class="anim-var nw0"><span class="rumus-notasi">\(K_i\)</span><span>Gain integral</span></span><span class="anim-var nw1"><span class="rumus-notasi">\(K\)</span><span>Gain</span></span><span class="anim-var nw2"><span class="rumus-notasi">\(K_p\)</span><span>Gain proporsional</span></span><span class="anim-var nw3"><span class="rumus-notasi">\(T_i\)</span><span>Waktu integral (detik)</span></span></div>
   </div>
   <div class="tip-box reveal">✅ <strong>Jawaban.</strong> Diperoleh K<sub>p</sub> = 4,5 dan K<sub>i</sub> = 7,1547. Nilai ini titik awal, bukan nilai akhir: sebelum dipakai, sinyal kendali pada saat awal harus diperiksa terhadap batas actuator, dan aksi integral yang agresif menuntut anti-windup yang benar-benar bekerja.</div>
 

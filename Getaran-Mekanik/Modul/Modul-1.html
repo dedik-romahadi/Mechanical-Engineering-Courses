@@ -256,7 +256,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -972,6 +972,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1772,13 +1775,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📏</div>
       <h3>Perpindahan (Displacement)</h3>
       <p>Posisi instan benda dari titik keseimbangan. Satuan: <strong>mm atau µm</strong>. Paling informatif untuk getaran <strong>frekuensi rendah</strong> (di bawah 10 Hz). Sensor: proximity probe (eddy current).</p>
-      <div class="formula">\(x(t) [mm]\)</div>
+      <div class="formula">\(x(t) [\text{mm}]\)</div>
     </div>
     <div class="card">
       <div class="card-icon">💨</div>
       <h3>Kecepatan (Velocity)</h3>
       <p>Turunan pertama perpindahan. Satuan: <strong>mm/s</strong>. Indikator utama kerusakan bearing dan gearbox, paling efektif untuk frekuensi <strong>10–1000 Hz</strong>. Standar industri: ISO 10816 (level kelas mesin). Sensor: velocity transducer.</p>
-      <div class="formula">\(v_{\text{max}} = A\omega [mm/s]\)</div>
+      <div class="formula">\(v_{\text{max}} = A\omega [\text{mm/s}]\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
@@ -1790,7 +1793,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📈</div>
       <h3>RMS vs Peak vs Peak-to-Peak</h3>
       <p>Tiga cara mengukur "besar" getaran. <strong>Peak</strong> = nilai maksimum, <strong>Peak-to-Peak</strong> = jarak puncak ke lembah (2A untuk sinusoidal), <strong>RMS</strong> = root-mean-square (\(A/\sqrt{2}\) untuk sinusoidal). Industri umumnya pakai RMS untuk overall vibration level.</p>
-      <div class="formula">\(RMS = A/\sqrt{2} \approx 0.707 \cdot A\)</div>
+      <div class="formula">\(\text{RMS} = A/\sqrt{2} \approx 0.707 \cdot A\)</div>
     </div>
   </div>
 
@@ -1948,13 +1951,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🚗</div>
       <h3>Suspensi Mobil</h3>
       <p>Saat melewati polisi tidur, mobil terangkat lalu turun, tetapi <strong>tidak terus berosilasi</strong> berkat shock absorber (damper). Sistem mobil dirancang sebagai underdamped (\(\zeta \approx 0.3\)): satu osilasi kecil lalu balik stabil. Terlalu banyak damping = kasar, terlalu sedikit = "boat-feeling".</p>
-      <div class="formula">\(\zeta \approx 0.3 (optimal)\)</div>
+      <div class="formula">\(\zeta \approx 0.3 (\text{optimal})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🥁</div>
       <h3>Gendang/Drum yang Dipukul</h3>
       <p>Membran drum mengalami <strong>gangguan awal</strong> (pukulan), lalu berosilasi pada frekuensi alaminya menghasilkan suara. Drum besar = membran lebih berat = frekuensi lebih rendah = nada bass. Drum kecil = frekuensi tinggi = nada treble. Pure free vibration dengan damping akustik.</p>
-      <div class="formula">f ∝ \(\sqrt{tegangan/massa}\)</div>
+      <div class="formula">f ∝ \(\sqrt{\text{tegangan/massa}}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⏰</div>
@@ -1966,7 +1969,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🌉</div>
       <h3>Jembatan Tacoma Narrows (1940)</h3>
       <p>Contoh klasik <strong>resonansi destruktif</strong>: angin dengan frekuensi tertentu memicu mode getaran torsional jembatan. Karena redaman struktur sangat rendah, amplitudo membesar terus hingga jembatan runtuh. Pelajaran: dalam desain struktur, harus dianalisis SEMUA mode getaran natural untuk dihindari frekuensi eksitasi yang mungkin terjadi.</p>
-      <div class="formula">\(\omega _eksitasi \to \omega _n \Rightarrow runtuh\)</div>
+      <div class="formula">\(\omega _{eksitasi} \to \omega _n \Rightarrow \text{runtuh}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎸</div>
@@ -1994,7 +1997,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--cyan)"></div>
-      <span class="anim-title">Animasi \(1\;\text{---}\) Simple Harmonic Motion: \(Mass-Spring\) Oscillation \(x(t) = A \cdot \cos(\omega _nt)\)</span>
+      <span class="anim-title">Animasi \(1\;\text{---}\) Simple Harmonic Motion: Mass-Spring Oscillation \(x(t) = A \cdot \cos(\omega _nt)\)</span>
     </div>
     <div class="anim-body">
       <canvas id="cvSHM" height="280"></canvas>
@@ -2047,9 +2050,9 @@ window.jalankanDenganMuat = async function (el, label, fn) {
         <button class="btn-anim" id="btnPhase" onclick="togglePhase()">⏸ PAUSE</button>
       </div>
       <div style="margin-top:10px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;font-family:'JetBrains Mono',monospace">
-        <span style="color:#0ea5e9">\(── x(t) = A \cdot \cos(\omega t)\) [perpindahan, \(m]\)</span>
-        <span style="color:#f97316">\(── v(t) = -A \cdot \omega \cdot \sin(\omega t)\) [kecepatan, \(m/s]\)</span>
-        <span style="color:#ef4444">\(── a(t) = -A \cdot \omega ^2 \cdot \cos(\omega t)\) [percepatan, \(m/s^2]\)</span>
+        <span style="color:#0ea5e9">── \(x(t) = A \cdot \cos(\omega t)\) [perpindahan, m]</span>
+        <span style="color:#f97316">── \(v(t) = -A \cdot \omega \cdot \sin(\omega t)\) [kecepatan, m/s]</span>
+        <span style="color:#ef4444">── \(a(t) = -A \cdot \omega ^2 \cdot \cos(\omega t)\) [percepatan, m/s²]</span>
       </div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca Grafik Ini:</strong> Tiga kurva sinusoidal yang menunjukkan parameter getaran sebagai fungsi waktu, dinormalisasi agar terlihat dalam satu skala.<br>
@@ -2177,19 +2180,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔍</div>
       <h3>Predictive Maintenance</h3>
       <p>Monitoring getaran rutin (bulanan, mingguan, atau real-time) untuk mendeteksi <strong>kerusakan mesin sebelum terjadi</strong>. Setiap jenis fault (unbalance, misalignment, bearing defect) punya <em>tanda tangan frekuensi</em> khas yang muncul di spektrum getaran. Hemat hingga 30–40% biaya maintenance dibanding reactive maintenance.</p>
-      <div class="formula">\(ISO 10816 \cdot ISO 13373\)</div>
+      <div class="formula">\(\text{ISO } 10816 \cdot \text{ISO 13373}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚖️</div>
       <h3>Balancing Rotor</h3>
-      <p>Rotor yang tidak seimbang menghasilkan gaya sentrifugal periodik → getaran pada frekuensi \(1 \times RPM\). Balancing (static + dynamic) meminimalkan amplitudo getaran. Kritis untuk turbin, impeller pompa, kipas industri, dan rotor motor listrik. Tanpa balancing yang baik, bearing aus 3–5× lebih cepat.</p>
-      <div class="formula">\(G-grade (ISO 1940)\)</div>
+      <p>Rotor yang tidak seimbang menghasilkan gaya sentrifugal periodik → getaran pada frekuensi 1 × RPM. Balancing (static + dynamic) meminimalkan amplitudo getaran. Kritis untuk turbin, impeller pompa, kipas industri, dan rotor motor listrik. Tanpa balancing yang baik, bearing aus 3–5× lebih cepat.</p>
+      <div class="formula">\(\text{G-grade (ISO 1940)}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Machine Alignment</h3>
-      <p>Misalignment poros (motor–pompa, motor–gearbox) menghasilkan getaran pada \(2 \times RPM\) di arah aksial. Alignment yang buruk → stress tambahan di bearing, kopling aus, seal bocor. Teknik modern: laser alignment dengan toleransi 0.05 mm/mm.</p>
-      <div class="formula">\(Angular + Offset error\)</div>
+      <p>Misalignment poros (motor–pompa, motor–gearbox) menghasilkan getaran pada 2 × RPM di arah aksial. Alignment yang buruk → stress tambahan di bearing, kopling aus, seal bocor. Teknik modern: laser alignment dengan toleransi 0.05 mm/mm.</p>
+      <div class="formula">\(\text{Angular} + \text{Offset error}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🚨</div>
@@ -2201,7 +2204,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🏥</div>
       <h3>Diagnostik Medis</h3>
       <p>Stetoskop adalah <em>vibration sensor</em> untuk deteksi kelainan jantung dan paru. Ultrasonografi memanfaatkan gelombang mekanik frekuensi tinggi. Terapi: ultrasonic untuk fisioterapi, USG untuk scan jaringan, semua aplikasi getaran terkontrol di bidang medis.</p>
-      <div class="formula">\(2–18 MHz (USG)\)</div>
+      <div class="formula">\(2\text{–}18 \text{ MHz } (\text{USG})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚠️</div>
@@ -2759,7 +2762,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="comp-hint">💡 Gunakan rumus ωₙ = \(\sqrt{k/m}\) dengan <code>np.sqrt</code>; substitusikan nilai m dan k sistem referensi, hasil dalam rad/s.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(\omega _n (rad/s)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(\omega _n (\text{rad/s})\)</strong></span></div>
         <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;import numpy as np&#10;m, k = 5, 2000&#10;omega_n = np.sqrt(k/m)&#10;print(f'omega_n = {omega_n:.4f} rad/s')" oninput="onCodeInput('c1')"></textarea>
         <div class="stdout-box" id="stdout-c1"></div>
       </div>
@@ -2827,7 +2830,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="comp-hint">💡 Gunakan \(\omega _d\) = ωₙ·\(\sqrt{1-\zeta ^2}\); butuh nilai ωₙ dan ζ dari soal sebelumnya.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(\omega _d (rad/s)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(\omega _d (\text{rad/s})\)</strong></span></div>
         <textarea class="code-textarea" id="code-c5" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c5')"></textarea>
         <div class="stdout-box" id="stdout-c5"></div>
       </div>
@@ -2895,7 +2898,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="comp-hint">💡 Konversi RPM ke rad/s dengan ω = 2π·(RPM/60); gunakan <code>np.pi</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(\omega\) motor \((rad/s)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(\omega\) motor (rad/s)</strong></span></div>
         <textarea class="code-textarea" id="code-c9" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c9')"></textarea>
         <div class="stdout-box" id="stdout-c9"></div>
       </div>
@@ -2993,7 +2996,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="comp-hint">💡 Selesaikan envelope 0.05 = exp(−ζωₙ·t) untuk t dengan logaritma natural (<code>np.log</code>): t = −ln(0.05)/(ζ·ωₙ).</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(t_{settling} 5% (s)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(t_{settling}\ 5\%\ (\text{s})\)</strong></span></div>
         <textarea class="code-textarea" id="code-c14" rows="10" placeholder="Paste kode Python settling time, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c14')"></textarea>
         <div class="stdout-box" id="stdout-c14"></div>
       </div>
@@ -3008,7 +3011,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="comp-q"><strong>Energi getaran</strong>: untuk sistem referensi (m=5, k=2000) yang berosilasi dengan amplitudo A = 0.05 m pada frekuensi naturalnya, hitung <strong>energi total maksimum</strong> sistem (Joule). Energi total getaran bebas = ½·\(k \cdot A^2\) (energi potensial maksimum saat x = A) = ½·\(m \cdot v\)_max² (energi kinetik maksimum saat x = 0).</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Energi total getaran bebas = ½·\(k \cdot A^2\) (energi potensial maksimum); bisa diverifikasi lewat ½·\(m \cdot (A\)·ωₙ)².</div>
+      <div class="comp-hint">💡 Energi total getaran bebas = ½·\(k \cdot A^2\) (energi potensial maksimum); bisa diverifikasi lewat ½·\(m \cdot (A \cdot \omega_n)^2\).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">E total (Joule)</strong></span></div>
         <textarea class="code-textarea" id="code-c15" rows="10" placeholder="Paste kode Python energi getaran, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c15')"></textarea>
@@ -3090,7 +3093,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Massa pompa: 120 kg</div>
       <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink)">Frekuensi dominan: 25 Hz</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Pengukuran <strong style="color:var(--cyan)">\(v_{\text{RMS}} = 8.2 mm/s\)</strong> berarti getaran termasuk kategori <strong style="color:var(--amber)">"unsatisfactory" (D zone)</strong> menurut ISO 10816 untuk pompa berukuran ini. Frekuensi dominan dari analisis sederhana adalah <strong style="color:var(--pink)">25 Hz</strong>, sangat dekat dengan frekuensi putar motor (1500 RPM = 25 Hz). Forum ini mengajak Anda mendiagnosa apakah ini gejala <strong>unbalance, misalignment, atau resonansi</strong>, dan mengusulkan langkah investigasi awal.</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Pengukuran <strong style="color:var(--cyan)">\(v_{\text{RMS}} = 8.2 \text{ mm/s}\)</strong> berarti getaran termasuk kategori <strong style="color:var(--amber)">"unsatisfactory" (D zone)</strong> menurut ISO 10816 untuk pompa berukuran ini. Frekuensi dominan dari analisis sederhana adalah <strong style="color:var(--pink)">25 Hz</strong>, sangat dekat dengan frekuensi putar motor (1500 RPM = 25 Hz). Forum ini mengajak Anda mendiagnosa apakah ini gejala <strong>unbalance, misalignment, atau resonansi</strong>, dan mengusulkan langkah investigasi awal.</p>
   </div>
 
   <!-- Canvas Animasi Forum -->
@@ -3242,7 +3245,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div style="font-size:12px;color:var(--muted);line-height:1.5">
           <strong style="color:var(--text)">Langkah:</strong>
           1) Klik tombol <strong style="color:var(--cyan)">Pilih Semua</strong> di bawah · 
-          \(2)\) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
+          2) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
           3) Paste di Fast Learning &gt; mode HTML.
         </div>
       </div>
@@ -3324,13 +3327,15 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
 
 #page-setup .sp-cb{background:#080e18;border:1px solid var(--sp-bd);border-radius:14px;margin:1rem 0;overflow:hidden}
 #page-setup .sp-cbh{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.2rem;background:rgba(255,255,255,.02);border-bottom:1px solid var(--sp-bd)}
-#page-setup .sp-cbh-left{display:flex;align-items:center;gap:.5rem}
+#page-setup .sp-cbh-left{display:flex;align-items:center;gap:.5rem;min-width:0}
 #page-setup .sp-cbh-dots{display:flex;gap:5px}
 #page-setup .sp-cbh-dots span{width:9px;height:9px;border-radius:50%}
 #page-setup .sp-cbh-dots span:nth-child(1){background:#ff5f57}
 #page-setup .sp-cbh-dots span:nth-child(2){background:#febc2e}
 #page-setup .sp-cbh-dots span:nth-child(3){background:#28c840}
-#page-setup .sp-cbh-title{font-size:.75rem;font-weight:600;color:var(--sp-t3)}
+#page-setup .sp-cbh-title{font-size:.75rem;font-weight:600;color:var(--sp-t3);min-width:0;overflow-wrap:anywhere}
+#page-setup .sp-cbh-title code{font-size:inherit;padding:0 .3em}
+#page-setup .sp-cbh{flex-wrap:wrap;row-gap:.35rem}
 #page-setup .sp-cbh-copy{padding:.3rem .7rem;background:rgba(255,255,255,.05);border:1px solid var(--sp-bd);color:var(--sp-t3);border-radius:6px;cursor:pointer;font-size:.7rem;font-family:inherit;transition:all .3s}
 #page-setup .sp-cbh-copy:hover{background:rgba(16,185,129,.15);color:var(--sp-c2);border-color:rgba(16,185,129,.3)}
 #page-setup .sp-cbd{padding:1.2rem 1.4rem;overflow-x:auto}
@@ -3444,7 +3449,7 @@ python --version</pre></div>
           <p style="margin-bottom:1rem;">Library inti untuk komputasi getaran: NumPy (array), SciPy (ODE & FFT), SymPy (analitik), Matplotlib (plot), pandas (data), Jupyter (notebook), control (sistem dinamik).</p>
           <div class="sp-cb">
             <div class="sp-cbh">
-              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Terminal \(\text{---}\;getaran_{mekanik}\) environment</span></div>
+              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Terminal — <code>getaran_mekanik</code> environment</span></div>
               <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
             </div>
             <div class="sp-cbd"><pre><span class="sp-cm"># Library numerik & visualisasi</span>
@@ -3503,7 +3508,7 @@ python -m ipykernel install --user --name getaran_mekanik --display-name "Python
           <p style="margin-bottom:1rem;">Buat file baru <code>test_setup.ipynb</code> di VS Code, pastikan kernel <strong>Python (Getaran Mekanik)</strong> dipilih, lalu paste &amp; run cell di bawah:</p>
           <div class="sp-cb">
             <div class="sp-cbh">
-              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">\(test_{setup}.ipynb\;\text{---}\) Cell \(1\)</span></div>
+              <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title"><code>test_setup.ipynb</code> — Cell 1</span></div>
               <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
             </div>
             <div class="sp-cbd"><pre><span class="sp-kw">import</span> numpy <span class="sp-kw">as</span> np

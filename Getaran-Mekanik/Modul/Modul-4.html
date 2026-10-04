@@ -253,7 +253,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -980,6 +980,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1721,7 +1724,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Parameter Dinamik Kunci</h3>
       <p>Tiga bilangan tak berdimensi yang menentukan perilaku: rasio frekuensi \(r = \omega/\omega_n\), rasio redaman \(\zeta = c/(2\sqrt{km})\), dan DMF (Dynamic Magnification Factor). Semua perilaku respons bisa dipetakan dari tiga bilangan ini.</p>
-      <div class="formula">\(r, \zeta , DMF\)</div>
+      <div class="formula">\(r, \zeta , \text{DMF}\)</div>
     </div>
   </div>
 
@@ -1766,7 +1769,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📉</div>
       <h3>Bagian Transien</h3>
       <p>Solusi homogen persamaan, sama dengan respons getaran bebas teredam. Bergantung pada kondisi awal (\(x_0, \dot{x}_0\)) dan meluruh dengan laju \(e^{-\zeta\omega_n t}\). Pada sistem teredam, bagian ini menghilang setelah beberapa siklus.</p>
-      <div class="formula">\(x_{\text{tr}}\) = e⁻ᶻωₙᵗ(A \(\cos \omega\)\(d \cdot t\) + B \(\sin \omega\)\(d \cdot t)\)</div>
+      <div class="formula">\(x_{\text{tr}} = e^{-\zeta\omega_n t}(A \cos \omega_d t + B \sin \omega_d t)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">♾️</div>
@@ -1778,7 +1781,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⏳</div>
       <h3>Build-Up Awal</h3>
       <p>Di awal gerakan, transien + steady-state bersuperposisi dan bisa menghasilkan amplitudo lebih besar dari \(X\) steady-state. Fenomena ini disebut <em>build-up</em>, sangat berbahaya di dekat resonansi.</p>
-      <div class="formula">\(x_{\text{max}} > X_{steady} saat awal\)</div>
+      <div class="formula">\(x_{\text{max}} > X_{steady} \text{ saat awal}\)</div>
     </div>
   </div>
 
@@ -1820,7 +1823,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal" style="margin-top:-8px">
     <div class="label">Sudut Fase</div>
-    \(\phi =\) arctan[ \(2\zeta r / (1 - r^2) ] (0 \le \phi \le 180^\circ )\)
+    \(\phi = \arctan[2\zeta r / (1 - r^2)]\ (0 \le \phi \le 180^\circ )\)
   <span class="formula-number">(4)</span></div>
 <!-- PERSAMAAN-STATIS:4:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1871,7 +1874,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📡</div>
       <h3>Identifikasi Resonansi</h3>
       <p>Resonansi terjadi saat \(r = \omega/\omega_n \approx 1\). Gejala: amplitudo getaran naik drastis, suara dengungan kuat, temperature naik, baut-baut mulai longgar. Cara deteksi: sweep frekuensi, analisis FFT sinyal vibrasi.</p>
-      <div class="formula">\(\omega _eksitasi \approx \omega _n\)</div>
+      <div class="formula">\(\omega _{eksitasi} \approx \omega _n\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔧</div>
@@ -1883,13 +1886,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🌊</div>
       <h3>Tambah Redaman</h3>
       <p>Meningkatkan \(\zeta\) mengurangi DMF puncak: \(\text{DMF}_{\text{max}} = 1/(2\zeta)\). Namun redaman tidak mengubah posisi resonansi (\(r=1\)), hanya "memperhalus" puncaknya. Efektif untuk sistem yang harus melewati resonansi saat start/stop.</p>
-      <div class="formula">\(DMF_{\text{res}} = 1/(2\zeta )\)</div>
+      <div class="formula">\(\text{DMF}_{\text{res}} = 1/(2\zeta )\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
       <h3>Ubah Kecepatan Operasi</h3>
       <p>Jika mesin beroperasi mendekati resonansi, pertimbangkan mengubah kecepatan putar motor. Zona aman operasi: jauh dari \(\omega_n \pm 20\%\). Pada start/stop mesin besar (turbine), lakukan "coast through" resonansi dengan cepat.</p>
-      <div class="formula">\(\omega _op \ne \omega _n \pm 20%\)</div>
+      <div class="formula">\(\omega _{op} \ne \omega _n \pm 20\%\)</div>
     </div>
   </div>
 
@@ -1922,13 +1925,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 3 -->
   <div class="analogy-box reveal" style="border-left-color:var(--green);background:linear-gradient(135deg,rgba(0,224,158,.07),rgba(14,165,233,.03))">
     <span class="analogy-label" style="color:var(--green)">🚗 Analogi 3 — Mobil di Jalan Berbatu</span>
-    Mobil melewati jalanan dengan \(gelombang-gelombang\) (polisi tidur berjajar) sepanjang \(10\) meter. Kecepatan tertentu akan membuat frekuensi benturan \((f = v/L)\) sama persis dengan frekuensi alami suspensi mobil. Saat kecepatan ini, suspensi bergetar ekstrem, mobilnya "menari" keras (resonansi!). Kurangi atau tambah kecepatan, getaran mereda \((r \neq 1).\) Ini juga mengapa helikopter harus "melewati" kecepatan putar rotor tertentu secepat mungkin saat start, agar tidak terlalu lama berada di zona resonansi. Nilai \(\varphi = 90^\circ\) saat resonansi berarti gaya suspensi selalu mendorong tepat saat massa berada di kecepatan maksimum, kondisi transfer energi paling efisien.
+    Mobil melewati jalanan dengan gelombang-gelombang (polisi tidur berjajar) sepanjang \(10\) meter. Kecepatan tertentu akan membuat frekuensi benturan \((f = v/L)\) sama persis dengan frekuensi alami suspensi mobil. Saat kecepatan ini, suspensi bergetar ekstrem, mobilnya "menari" keras (resonansi!). Kurangi atau tambah kecepatan, getaran mereda \((r \neq 1).\) Ini juga mengapa helikopter harus "melewati" kecepatan putar rotor tertentu secepat mungkin saat start, agar tidak terlalu lama berada di zona resonansi. Nilai \(\varphi = 90^\circ\) saat resonansi berarti gaya suspensi selalu mendorong tepat saat massa berada di kecepatan maksimum, kondisi transfer energi paling efisien.
   </div>
 
   <!-- Analogi 4 -->
   <div class="analogy-box reveal" style="border-left-color:var(--cyan);background:linear-gradient(135deg,rgba(14,165,233,.07),rgba(168,85,247,.03))">
     <span class="analogy-label" style="color:var(--cyan)">🎧 Analogi 4 — Noise-Canceling Headphone &amp; Transmissibility</span>
-    Headphone \(noise-canceling\) bekerja dengan prinsip yang mirip isolasi getaran aktif: menghasilkan gelombang suara berlawanan fase (\varphi \(= 180^\circ )\) untuk membatalkan kebisingan. Tapi bahkan headphone pasif biasa (busa, karet) sudah meredam suara frekuensi tinggi karena mekanisme \(massa-\;\text{pegas}\;-\;\text{redaman}\;.\) Busa telinga \(=\) isolator dengan \(\omega_n\) rendah. Kebisingan mesin jet (frekuensi tinggi) \(\to r \gg \sqrt{2} \to T_r \ll 1 \to\) suara terisolasi efektif. Suara pesawat rendah (bass) \(\to r\) kecil \(\to T_r \approx 1 \to\) masuk ke telinga (itulah mengapa dengung mesin masih terasa!). Inilah mengapa isolasi getaran harus dirancang untuk \(r\) &gt; \(\sqrt{2}\) agar efektif.
+    Headphone noise-canceling bekerja dengan prinsip yang mirip isolasi getaran aktif: menghasilkan gelombang suara berlawanan fase (\(\varphi = 180^\circ\)) untuk membatalkan kebisingan. Tapi bahkan headphone pasif biasa (busa, karet) sudah meredam suara frekuensi tinggi karena mekanisme massa-pegas-redaman. Busa telinga \(=\) isolator dengan \(\omega_n\) rendah. Kebisingan mesin jet (frekuensi tinggi) \(\to r \gg \sqrt{2} \to T_r \ll 1 \to\) suara terisolasi efektif. Suara pesawat rendah (bass) \(\to r\) kecil \(\to T_r \approx 1 \to\) masuk ke telinga (itulah mengapa dengung mesin masih terasa!). Inilah mengapa isolasi getaran harus dirancang untuk \(r\) &gt; \(\sqrt{2}\) agar efektif.
   </div>
 
   <!-- Analogi 5 -->
@@ -1999,7 +2002,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div id="dmfInfo" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)"></div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca Grafik Ini:</strong> Sumbu X = \(r\) (rasio frekuensi \(\omega/\omega_n\), dari 0 hingga 2.5). Sumbu Y kiri = DMF (amplifikasi amplitudo). Garis merah putus-putus di \(r=1\) menandai resonansi. Garis hijau di \(r=\sqrt{2}\) menandai batas isolasi transmissibility.<br>
-        Amati: \((1)\) Semakin kecil \(\zeta,\) puncak DMF semakin tinggi dan tajam. \((2)\) Semua kurva bertemu \(di DMF=1\) saat \(r=0\) (statis). \((3)\) Saat \(r \gg 1,\) semua kurva mendekati \(0\;\text{---}\) massa tidak bergerak mengikuti gaya frekuensi tinggi. \((4)\) Garis \(putus-putus\) (fase \(\varphi)\) naik dari \(0^\circ ke 180^\circ\;\text{---}\) laju kenaikan paling cepat di dekat resonansi.
+        Amati: \((1)\) Semakin kecil \(\zeta,\) puncak DMF semakin tinggi dan tajam. \((2)\) Semua kurva bertemu di \(\text{DMF}=1\) saat \(r=0\) (statis). \((3)\) Saat \(r \gg 1,\) semua kurva mendekati \(0\;\text{---}\) massa tidak bergerak mengikuti gaya frekuensi tinggi. \((4)\) Garis putus-putus (fase \(\varphi\)) naik dari \(0^\circ\) ke \(180^\circ\) — laju kenaikan paling cepat di dekat resonansi.
       </div>
     </div>
   </div>
@@ -2024,8 +2027,8 @@ window.jalankanDenganMuat = async function (el, label, fn) {
         <button class="btn-anim" id="btnResp" onclick="toggleResp()">⏸ PAUSE</button>
       </div>
       <div style="margin-top:10px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;font-family:'JetBrains Mono',monospace">
-        <span style="color:#f97316">\(──\) Gaya eksitasi \(F(t) = F_0\sin(\omega t)\)</span>
-        <span style="color:#0ea5e9">\(──\) Respons \(\text{steady}\;-\;\text{state}\;x(t) = X \sin(\omega t-\phi )\)</span>
+        <span style="color:#f97316">── Gaya eksitasi \(F(t) = F_0\sin(\omega t)\)</span>
+        <span style="color:#0ea5e9">── Respons steady-state \(x(t) = X \sin(\omega t-\phi )\)</span>
       </div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca Grafik Ini:</strong> Kurva amber = gaya eksitasi \(F(t)\) (normalisasi); kurva cyan = respons perpindahan \(x(t)\) steady-state. Perhatikan pergeseran fase: respons tertinggal \(\varphi\) dari eksitasi.<br>
@@ -2058,7 +2061,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca Grafik Ini:</strong> Dihitung dengan metode numerik Runge-Kutta orde 4 (RK4), metode yang sama yang digunakan di Jupyter Notebook (lihat Bagian 08 Cell 3). Sumbu X = waktu (0 hingga 30 s). Amplop merah putus-putus = nilai steady-state teoritis \(\pm X\).<br>
-        Amati: \((1) Di\) awal \((t\) kecil), respons berosilasi tidak beraturan; ini fase transien. \((2)\) Secara bertahap, amplitudo "menyesuaikan diri" ke nilai \(\text{steady}\;-\;\text{state}\) (amplop merah). \((3)\) Semakin kecil \(\zeta,\) semakin lama transien berlangsung sebelum mencapai \(\text{steady}\;-\;\text{state}\;. (4)\) Saat \(r \approx 1\) dan \(\zeta\) kecil, awal respons bisa jauh melampaui amplop \(\text{steady}\;-\;\text{state ---}\) inilah kondisi berbahaya saat mesin dinyalakan.
+        Amati: (1) Di awal (\(t\) kecil), respons berosilasi tidak beraturan; ini fase transien. \((2)\) Secara bertahap, amplitudo "menyesuaikan diri" ke nilai steady-state (amplop merah). \((3)\) Semakin kecil \(\zeta,\) semakin lama transien berlangsung sebelum mencapai steady-state. (4) Saat \(r \approx 1\) dan \(\zeta\) kecil, awal respons bisa jauh melampaui amplop steady-state — inilah kondisi berbahaya saat mesin dinyalakan.
       </div>
     </div>
   </div>
@@ -2092,7 +2095,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       </div>
       <div class="tip-box" style="margin-top:16px">
         <strong>📊 Cara Membaca Grafik Ini:</strong> Sumbu Y = Transmissibility \(T_r\) (rasio getaran yang diteruskan ke fondasi). Garis putus-putus horizontal = \(T_r = 1\) (batas). Garis hijau vertikal = \(r = \sqrt{2} \approx 1.414\).<br>
-        Interpretasi: (1) <strong style="color:var(--pink)">Area kiri \(r=\sqrt{2}\)</strong>: \(T_r &gt; 1\), semua isolator justru MEMPERBESAR getaran ke fondasi. (2) <strong style="color:var(--green)">Area kanan \(r=\sqrt{2}\)</strong>: \(T_r &lt; 1\), isolasi efektif, getaran berkurang sebelum mencapai fondasi. (3) Di area isolasi (\(r&gt;\sqrt{2}\)): kurva dengan \(\zeta\) LEBIH KECIL memberikan isolasi LEBIH BAIK. Ini berlawanan dengan intuisi, terlalu banyak redaman justru buruk untuk isolasi di frekuensi tinggi. (4) Kesimpulan desain: gunakan isolator lunak (\(k\) kecil → \(\omega_n\) kecil → \(r\) besar) dengan redaman cukup (\(\zeta \approx 0.1–0.15\)) untuk mesin berfrekuensi tinggi.
+        Interpretasi: (1) <strong style="color:var(--pink)">Area kiri \(r=\sqrt{2}\)</strong>: \(T_r &gt; 1\), semua isolator justru MEMPERBESAR getaran ke fondasi. (2) <strong style="color:var(--green)">Area kanan \(r=\sqrt{2}\)</strong>: \(T_r &lt; 1\), isolasi efektif, getaran berkurang sebelum mencapai fondasi. (3) Di area isolasi (\(r&gt;\sqrt{2}\)): kurva dengan \(\zeta\) LEBIH KECIL memberikan isolasi LEBIH BAIK. Ini berlawanan dengan intuisi, terlalu banyak redaman justru buruk untuk isolasi di frekuensi tinggi. (4) Kesimpulan desain: gunakan isolator lunak (\(k\) kecil → \(\omega_n\) kecil → \(r\) besar) dengan redaman cukup (\(\zeta \approx 0.1\text{–}0.15\)) untuk mesin berfrekuensi tinggi.
       </div>
     </div>
   </div>
@@ -2156,7 +2159,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">✅</div>
       <h3>Isolasi Efektif (r &gt; √2)</h3>
-      <p>\(T_r &lt; 1\). Mesin beroperasi jauh di atas frekuensi natural isolator. Semakin besar \(r\), semakin efektif isolasi. Target praktis: \(r \geq 2–3\) untuk \(T_r \leq 0.2\) (isolasi 80%).</p>
+      <p>\(T_r &lt; 1\). Mesin beroperasi jauh di atas frekuensi natural isolator. Semakin besar \(r\), semakin efektif isolasi. Target praktis: \(r \geq 2\text{–}3\) untuk \(T_r \leq 0.2\) (isolasi 80%).</p>
       <div class="formula">\(r > \sqrt{2} \to Tᵣ < 1 ✓\)</div>
     </div>
     <div class="card">
@@ -2175,7 +2178,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📱</div>
       <h3>Contoh Aplikasi</h3>
       <p>AC split rumah tangga dipasang pada penyangga karet (isolator). Mesin cetak offset menggunakan isolator pneumatik. Lantai laboratorium presisi menggunakan meja berisi pasir atau isolator aktif untuk meredam getaran tanah.</p>
-      <div class="formula">\(Karet \to Baja \to Pneumatik\)</div>
+      <div class="formula">\(\text{Karet} \to \text{Baja} \to \text{Pneumatik}\)</div>
     </div>
   </div>
 
@@ -2698,7 +2701,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="comp-hint">💡 Gunakan ωₙ = \(\sqrt{k/m}\) dengan <code>np.sqrt</code>; substitusikan k dan m sistem referensi, hasil dalam rad/s.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(\omega _n (rad/s)\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--amber)">\(\omega _n (\text{rad/s})\)</strong></span></div>
         <textarea class="code-textarea" id="code-c1" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi&#10;&#10;Contoh:&#10;import numpy as np&#10;m, k = 5, 2000&#10;omega_n = np.sqrt(k/m)&#10;print(f'omega_n = {omega_n:.4f} rad/s')" oninput="onCodeInput('c1')"></textarea>
         <div class="stdout-box" id="stdout-c1"></div>
       </div>
@@ -2727,7 +2730,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C3</div>
-        <div class="comp-q">Untuk frekuensi eksitasi <strong>\(\omega = 18 rad/s\)</strong>, hitung <strong>DMF</strong> menggunakan parameter sistem referensi. Hitung juga r = ω/ωₙ terlebih dahulu.</div>
+        <div class="comp-q">Untuk frekuensi eksitasi <strong>\(\omega = 18 \text{ rad/s}\)</strong>, hitung <strong>DMF</strong> menggunakan parameter sistem referensi. Hitung juga r = ω/ωₙ terlebih dahulu.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Hitung dulu rasio frekuensi r = ω/ωₙ, lalu terapkan rumus DMF = \(\dfrac{1}{\sqrt{(1-r^2)^2+(2\zeta r)^2}}\) dengan <code>np.sqrt</code>.</div>
@@ -2795,7 +2798,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C7</div>
-        <div class="comp-q">Hitung <strong>DMF maksimum</strong> yang mungkin terjadi pada sistem referensi. Gunakan rumus \(DMF_{\text{max}}\) = 1 / (2ζ\(\sqrt{1 - \zeta ^2}\)) dan tentukan juga nilai r yang menghasilkan DMF maksimum ini (\(r_{\text{max}}\) = \(\sqrt{1 - 2\zeta ^2}\)).</div>
+        <div class="comp-q">Hitung <strong>DMF maksimum</strong> yang mungkin terjadi pada sistem referensi. Gunakan rumus \(\text{DMF}_{\text{max}}\) = 1 / (2ζ\(\sqrt{1 - \zeta ^2}\)) dan tentukan juga nilai r yang menghasilkan DMF maksimum ini (\(r_{\text{max}}\) = \(\sqrt{1 - 2\zeta ^2}\)).</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 r yang memaksimalkan DMF adalah r<sub>max</sub> = \(\sqrt{1-2\zeta ^2}\), dan DMF maksimum = 1/(2ζ\(\sqrt{1-\zeta ^2}\)); pakai <code>np.sqrt</code>.</div>
@@ -2812,7 +2815,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C8</div>
-        <div class="comp-q">Hitung <strong>Transmissibility Tᵣ</strong> pada frekuensi ω = 18 rad/s. Gunakan Tᵣ = \(\sqrt{1+(2\zeta r}\)²) / \(\sqrt{(1-r^2}\)²+(2ζr)²). Apakah isolasi efektif pada frekuensi ini?</div>
+        <div class="comp-q">Hitung <strong>Transmissibility Tᵣ</strong> pada frekuensi ω = 18 rad/s. Gunakan Tᵣ = \(\sqrt{\frac{1+(2\zeta r)^2}{(1-r^2)^2+(2\zeta r)^2}}\). Apakah isolasi efektif pada frekuensi ini?</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Transmissibility Tᵣ = \(\sqrt{\dfrac{1+(2\zeta r)^2}{(1-r^2)^2+(2\zeta r)^2}}\) dengan <code>np.sqrt</code>; isolasi efektif bila Tᵣ &lt; 1.</div>
@@ -2846,7 +2849,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q">Untuk frekuensi eksitasi <strong>\(\omega = 25 rad/s\)</strong> (di atas resonansi, r = 1.25), hitung <strong>amplitudo steady-state X</strong> (m) menggunakan parameter sistem referensi.</div>
+        <div class="comp-q">Untuk frekuensi eksitasi <strong>\(\omega = 25 \text{ rad/s}\)</strong> (di atas resonansi, r = 1.25), hitung <strong>amplitudo steady-state X</strong> (m) menggunakan parameter sistem referensi.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 Hitung r = ω/ωₙ (di sini r &gt; 1), lalu X = (F₀/k)·DMF; bandingkan X dengan X<sub>st</sub> dan pikirkan maknanya secara fisik.</div>
@@ -2914,7 +2917,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
       </div>
       <div class="comp-hint">💡 Buat grid frekuensi dengan <code>np.linspace</code>, hitung DMF tiap titik, lalu cari puncaknya dengan <code>np.argmax</code> untuk membaca ω dan DMF maksimum dari grid.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(DMF_{\text{max}}\) dari sweep</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(\text{DMF}_{\text{max}}\) dari sweep</strong></span></div>
         <textarea class="code-textarea" id="code-c13" rows="10" placeholder="Paste kode Python sweep dari Jupyter Notebook, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c13')"></textarea>
         <div class="stdout-box" id="stdout-c13"></div>
       </div>
@@ -2929,7 +2932,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div class="comp-q">Analisa <strong>energi</strong>: dari simulasi RK4 sistem di C11 (m=5, c=40, k=2000, F₀=100, ω=18), hitung <strong>rata-rata daya disipasi</strong> (watt) pada steady-state (t ∈ [5, 10] s). Formula: <code>P(t) = c·ẋ²(t)</code>, dan rata-ratakan secara numerik dengan <code>np.trapz</code> atau <code>np.mean</code>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
-      <div class="comp-hint">💡 Dari simulasi RK4 simpan array ẋ, ambil steady-state (t&gt;5), hitung daya sesaat P = c·ẋ², lalu rata-ratakan dengan <code>np.mean</code> atau <code>np.trapz</code>; verifikasi dengan P<sub>avg</sub> = ½·\(c \cdot (\)ωX)².</div>
+      <div class="comp-hint">💡 Dari simulasi RK4 simpan array ẋ, ambil steady-state (t&gt;5), hitung daya sesaat P = c·ẋ², lalu rata-ratakan dengan <code>np.mean</code> atau <code>np.trapz</code>; verifikasi dengan P<sub>avg</sub> = ½·\(c \cdot (\omega X)^2\).</div>
       <div class="comp-code-wrap">
         <div class="input-label"><span class="col-badge col-badge-code" style="background:rgba(236,72,153,.2);color:var(--pink)">Python — Hard</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() nilai <strong style="color:var(--pink)">\(P_{\text{avg}}\) (watt)</strong></span></div>
         <textarea class="code-textarea" id="code-c14" rows="10" placeholder="Paste kode Python daya disipasi, lalu klik ▶ Run &amp; Validasi" oninput="onCodeInput('c14')"></textarea>
@@ -3049,7 +3052,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Dari parameter sistem (m=1800 kg, k=9.5×10⁷ N/m, c=41400 Ns/m), hitung <strong>frekuensi natural \(\omega _n\)</strong> dan <strong>rasio redaman ζ</strong>. Lalu bandingkan rasio frekuensi <strong>\(r = \omega /\omega _n\)</strong> untuk kedua kondisi operasi (1800 RPM dan 2200 RPM). Kondisi mana yang lebih dekat dengan resonansi?</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(\omega _n = \sqrt{k/m}\)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(\omega = RPM/60 \times 2\pi\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(\omega = \text{RPM}/60 \times 2\pi\)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">\(r = \omega /\omega _n\)</span>
         </div>
 
@@ -3080,22 +3083,22 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Hitung <strong>DMF</strong>, <strong>amplitudo X</strong>, dan <strong>transmissibility Tᵣ</strong> untuk kedua kondisi operasi (1800 RPM dan 2200 RPM). Bandingkan rasio \(DMF_{\text{baru}}\)/DMF<sub>lama</sub> dengan klaim operator "amplitudo naik 5× lipat". Apa juga yang terjadi pada gaya yang ditransmisikan ke fondasi (\(F_T\))?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Hitung <strong>DMF</strong>, <strong>amplitudo X</strong>, dan <strong>transmissibility Tᵣ</strong> untuk kedua kondisi operasi (1800 RPM dan 2200 RPM). Bandingkan rasio \(\text{DMF}_{\text{baru}}\)/DMF<sub>lama</sub> dengan klaim operator "amplitudo naik 5× lipat". Apa juga yang terjadi pada gaya yang ditransmisikan ke fondasi (\(F_T\))?</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);color:var(--amber);padding:6px 12px;border-radius:8px;">DMF \(= 1/\sqrt{(1-r^2}^2 + (2\zeta r)^2)\)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);color:var(--amber);padding:6px 12px;border-radius:8px;">\(X = (F_0/k) \cdot DMF\)</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);color:var(--amber);padding:6px 12px;border-radius:8px;">\(Tᵣ = \sqrt{1+(2\zeta r}^2)/\sqrt{(1-r^2}^2+(2\zeta r)^2)\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);color:var(--amber);padding:6px 12px;border-radius:8px;">DMF \(= 1/\sqrt{(1-r^2)^2 + (2\zeta r)^2}\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);color:var(--amber);padding:6px 12px;border-radius:8px;">\(X = (F_0/k) \cdot \text{DMF}\)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);color:var(--amber);padding:6px 12px;border-radius:8px;">\(Tᵣ = \sqrt{1+(2\zeta r)^2}/\sqrt{(1-r^2)^2+(2\zeta r)^2}\)</span>
         </div>
 
         <div class="poll">
-          <div class="poll-q">QUICK CHECK — Apa rasio \(DMF_{\text{baru}}\)/DMF<sub>lama</sub> yang Anda dapat?</div>
+          <div class="poll-q">QUICK CHECK — Apa rasio \(\text{DMF}_{\text{baru}}\)/DMF<sub>lama</sub> yang Anda dapat?</div>
           <div class="poll-opts" id="fp2">
             <div class="p-opt" onclick="voteForum(2,this,0)"><div class="p-circle"></div>1.5×, klaim operator "5× lipat" terlalu dramatis</div>
-            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div><span class="opsi-teks">~3.35× (\(DMF_{\text{lama}}\)≈3.0, \(DMF_{\text{baru}}\)≈9.94 di resonansi). Klaim "5×" kira-kira tepat secara magnitude</span></div>
+            <div class="p-opt" onclick="voteForum(2,this,1)"><div class="p-circle"></div><span class="opsi-teks">~3.35× (\(\text{DMF}_{\text{lama}}\)≈3.0, \(\text{DMF}_{\text{baru}}\)≈9.94 di resonansi). Klaim "5×" kira-kira tepat secara magnitude</span></div>
             <div class="p-opt" onclick="voteForum(2,this,2)"><div class="p-circle"></div>10×, DMF berlipat-lipat saat dekat resonansi</div>
             <div class="p-opt" onclick="voteForum(2,this,3)"><div class="p-circle"></div>0.5×, getaran justru BERKURANG di resonansi</div>
           </div>
-          <div class="p-fb r" id="fp2r">✅ Tepat! Untuk r=0.820, ζ=0.05: \(DMF_{\text{lama}}\) = 1/\(\sqrt{(1-0.673}\)² + (2·0.05·0.82)²) = 1/\(\sqrt{0.107 + 0.0067}\) ≈ <strong>2.97</strong>. Untuk r=1.003: \(DMF_{\text{baru}}\) ≈ <strong>9.94</strong> (≈ 1/(2ζ) = 10 di resonansi). Rasio = 9.94/2.97 ≈ 3.35×, magnitude konsisten dengan klaim "5×". Amplitudo \(X_{\text{baru}}\) = (4500/9.5e7)·9.94 ≈ <strong>0.471 mm</strong> vs \(X_{\text{lama}}\) ≈ 0.141 mm. T<sub>r,baru</sub> ≈ 9.99 → \(F_T\) = 4500·9.99 ≈ <strong>44.9 kN</strong> (vs 13.4 kN lama); itulah yang menyebabkan retakan beton!</div>
+          <div class="p-fb r" id="fp2r">✅ Tepat! Untuk r=0.820, ζ=0.05: \(\text{DMF}_{\text{lama}}\) = 1/\(\sqrt{(1-0.673)^2 + (2 \cdot 0.05 \cdot 0.82)^2}\) = 1/\(\sqrt{0.107 + 0.0067}\) ≈ <strong>2.97</strong>. Untuk r=1.003: \(\text{DMF}_{\text{baru}}\) ≈ <strong>9.94</strong> (≈ 1/(2ζ) = 10 di resonansi). Rasio = 9.94/2.97 ≈ 3.35×, magnitude konsisten dengan klaim "5×". Amplitudo \(X_{\text{baru}}\) = (4500/9.5e7)·9.94 ≈ <strong>0.471 mm</strong> vs \(X_{\text{lama}}\) ≈ 0.141 mm. T<sub>r,baru</sub> ≈ 9.99 → \(F_T\) = 4500·9.99 ≈ <strong>44.9 kN</strong> (vs 13.4 kN lama); itulah yang menyebabkan retakan beton!</div>
           <div class="p-fb w" id="fp2w">❌ Substitusi r dan ζ ke rumus DMF, lalu hitung X = (F₀/k)·DMF. Untuk transmissibility, gunakan rumus Tᵣ.</div>
         </div>
 
@@ -3184,7 +3187,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()
         <div style="font-size:12px;color:var(--muted);line-height:1.5">
           <strong style="color:var(--text)">Cara salin (3 langkah):</strong><br>
           1) Klik tombol <strong style="color:var(--cyan)">🔍 Pilih Semua</strong> di bawah kotak HTML · 
-          \(2)\) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
+          2) Tekan <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Ctrl+C</kbd> (atau <kbd style="padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px">Cmd+C</kbd> di Mac) \(\cdot\)
           3) Paste di Fast Learning &gt; mode HTML.<br>
           <em style="color:var(--violet)">Tombol Copy di atas adalah opsional, jika tidak berfungsi, gunakan cara manual ini.</em>
         </div>

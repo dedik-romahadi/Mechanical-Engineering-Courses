@@ -356,7 +356,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(249,115,22,.1);padding:1px 6px;border-radius:4px}
@@ -1071,6 +1071,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1963,7 +1966,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
     <strong style="color:#fff">Langkah 1 — Identifikasi Bentuk Variabel Terpisah</strong><br>
     <span style="color:var(--muted);font-size:13px">Ruas kanan <code>2xy</code> adalah produk <code>2x · y</code>, fungsi-x kali fungsi-y. PD bisa langsung dipisahkan.</span><br>
-    \(dy/dx = 2x \cdot y\) (produk \(fungsi-x\) dan \(fungsi-y) ✓\)<br>
+    \(dy/dx = 2x \cdot y\) (produk fungsi-\(x\) dan fungsi-\(y\)) ✓<br>
     <br>
 
     <strong style="color:#fff">Langkah 2 — Pisahkan Variabel</strong><br>
@@ -2241,12 +2244,12 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <strong style="color:#fff">Langkah 3 — Tentukan Konstanta k dari Data</strong><br>
     <span style="color:var(--muted);font-size:13px">Gunakan data ukur (T = 80°C saat t = 10) untuk mendapat k. Logaritma natural memisahkan k dari eksponensial.</span><br>
     \(T(10) = 80: 80 = 30 + 70 \cdot e^{-10k} \implies e^{-10k} = 50/70 = 5/7\)<br>
-    Hitung \(k: k = (1/10) \cdot \ln(7/5) \approx 0,034 /\) menit<br>
+    Hitung \(k: k = (1/10) \cdot \ln(7/5) \approx 0{,}034 /\) menit<br>
     <br>
 
     <strong style="color:#fff">Langkah 4 — Hitung Kuantitas yang Ditanya</strong><br>
     <span style="color:var(--muted);font-size:13px">Substitusi t = 20 untuk T(20); selesaikan T(t) = 50 untuk waktu kapan suhu mencapai 50°C; ambil limit t → ∞ untuk asimptot.</span><br>
-    \(T(20): T(20) = 30 + 70 \cdot e^{-0,68} \approx 65,75^\circ C\)<br>
+    \(T(20): T(20) = 30 + 70 \cdot e^{-0{,}68} \approx 65{,}75^\circ C\)<br>
     Waktu \(T = 50: 50 = 30 + 70 \cdot e^{-kt} \implies t \approx 37\) menit<br>
     Asimptot:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; T → 30°C saat t → ∞<br>
     <br>
@@ -2271,7 +2274,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <!-- Analogi 1 -->
   <div class="analogy-box reveal">
     <span class="analogy-label">☕ Analogi 1 — Kopi Mendingin</span>
-    Kopi panas yang baru diseduh akan mendingin menuju suhu ruangan. Jika selisih awal besar (kopi sangat panas), pendinginan terjadi cepat di awal; ketika suhu kopi mendekati suhu ruangan, pendinginan melambat. \(PD: dT/dt = -k(T - T_{m})\), yaitu variabel terpisah, solusi eksponensial. Inilah mengapa kopi yang awalnya turun cepat dari \(90^\circ C ke 60^\circ C,\) butuh lebih lama lagi turun dari \(60^\circ C ke 30^\circ C\;\text{---}\) perilaku khas eksponensial decay.
+    Kopi panas yang baru diseduh akan mendingin menuju suhu ruangan. Jika selisih awal besar (kopi sangat panas), pendinginan terjadi cepat di awal; ketika suhu kopi mendekati suhu ruangan, pendinginan melambat. PD: \(dT/dt = -k(T - T_{m})\), yaitu variabel terpisah, solusi eksponensial. Inilah mengapa kopi yang awalnya turun cepat dari \(90^\circ C\) ke \(60^\circ C\), butuh lebih lama lagi turun dari \(60^\circ C\) ke \(30^\circ C\) — perilaku khas eksponensial decay.
   </div>
 
   <!-- Analogi 2 -->
@@ -2464,7 +2467,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 <div class="section" id="m-aplikasi">
   <div class="section-label reveal">Bagian 10</div>
   <h2 class="section-title reveal">Solusi PD<br>dengan Python &amp; SymPy</h2>
-  <p class="section-desc reveal">Python dengan <strong>SymPy</strong> bisa menyelesaikan PD variabel terpisah secara simbolik via <code>dsolve</code>; <strong>\(scipy.integrate.solve_{\text{ivp}}\)</strong> menyelesaikan numerik. Berikut implementasi tiga contoh utama.</p>
+  <p class="section-desc reveal">Python dengan <strong>SymPy</strong> bisa menyelesaikan PD variabel terpisah secara simbolik via <code>dsolve</code>; <strong><code>scipy.integrate.solve_ivp</code></strong> menyelesaikan numerik. Berikut implementasi tiga contoh utama.</p>
 
   <div class="code-wrap reveal">
     <div class="code-header">
@@ -2493,7 +2496,7 @@ sol_ic = sp.<span class="fn">dsolve</span>(sp.<span class="fn">diff</span>(y(x),
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell \(2\;\text{---}\) Newton Cooling Numerik dengan \(scipy.solve_{\text{ivp}}\)</span>
+      <span class="code-label">Cell \(2\;\text{---}\) Newton Cooling Numerik dengan <code>scipy.solve_ivp</code></span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -2602,7 +2605,7 @@ plt.<span class="fn">show</span>()</pre>
     <div class="reference-card" style="display:flex;gap:16px;padding:18px 22px;background:rgba(239,68,68,.05);border:1px solid rgba(220,38,38,.15);border-left:3px solid var(--pink);border-radius:10px;align-items:flex-start">
       <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--pink);flex-shrink:0;min-width:32px">[5]</span>
       <div style="font-size:14px;line-height:1.7">
-        SciPy Development Team. <em style="color:#fff">\(scipy.integrate.solve_{\text{ivp}}\) Documentation</em>. 2024.
+        SciPy Development Team. <em style="color:#fff"><code>scipy.integrate.solve_ivp</code> Documentation</em>. 2024.
         <br><span style="color:var(--muted);font-size:13px"><a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html" style="color:var(--cyan)" target="_blank">docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html</a></span>
       </div>
     </div>
@@ -3149,7 +3152,7 @@ plt.<span class="fn">show</span>()</pre>
     <div class="comp-card comp-hard reveal">
       <div class="comp-header">
         <div class="comp-num">C15</div>
-        <div class="comp-q">Pertumbuhan populasi logistik <code>dN/dt = 0.5 N(1 − N/1000)</code>, <code>N(0)=10</code>. Pakai <strong>\(scipy.solve_{\text{ivp}}\)</strong>, hitung <strong>N(20)</strong>.</div>
+        <div class="comp-q">Pertumbuhan populasi logistik <code>dN/dt = 0.5 N(1 − N/1000)</code>, <code>N(0)=10</code>. Pakai <strong><code>scipy.solve_ivp</code></strong>, hitung <strong>N(20)</strong>.</div>
         <div class="comp-pts">4 poin</div>
       </div>
       <div class="comp-hint">💡 Definisikan laju pertumbuhan logistik <code>rN(1−N/K)</code>, integrasikan dengan <code>solve_ivp</code>, lalu evaluasi di t yang diminta.</div>
@@ -3279,7 +3282,7 @@ plt.<span class="fn">show</span>()</pre>
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Untuk PD 1 dan PD 2: tunjukkan <strong>3 langkah lengkap</strong>: (1) pisahkan variabel, (2) integrasikan kedua ruas, (3) terapkan syarat awal untuk menentukan konstanta. Lalu verifikasi solusi dengan substitusi balik.</p>
         <div style="background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
-          💬 <em>Tip teknis: \(PD 1\) menghasilkan \(y = e^{x^2} (super-\;\text{eksponensial}\;). PD 2\) (Newton Cooling) menghasilkan \(T(t) = 20 + 80e^{-0.1t}.\) Kedua solusi punya pola eksponensial, pola universal untuk PD variabel terpisah dengan \(growth/decay.\)</em>
+          💬 <em>Tip teknis: PD 1 menghasilkan \(y = e^{x^2}\) (super-eksponensial). PD 2 (Newton Cooling) menghasilkan \(T(t) = 20 + 80e^{-0.1t}.\) Kedua solusi punya pola eksponensial, pola universal untuk PD variabel terpisah dengan growth/decay.</em>
         </div>
 
         <div class="poll">

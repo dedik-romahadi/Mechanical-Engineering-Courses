@@ -356,7 +356,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(249,115,22,.1);padding:1px 6px;border-radius:4px}
@@ -1071,6 +1071,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1754,13 +1757,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📐</div>
       <h3>Koefisien Euler-Fourier</h3>
       <p>Tiga formula utama untuk koefisien: \(a_{0} = (2/T) \cdot \int _{0}^{T} f(t) dt\) (DC component / rata-rata), \(a_{n} = (2/T) \cdot \int _{0}^{T} f(t) \cdot \cos(n\omega t) dt\), \(b_{n} = (2/T) \cdot \int _{0}^{T} f(t) \cdot \sin(n\omega t) dt\). Diturunkan dari <em>ortogonalitas</em> trigonometri (Bagian 02). Kunci penghitungan: integral satu periode.</p>
-      <div class="formula">\(a_0, a_n, b_n\;\text{via}\;integral\)</div>
+      <div class="formula">\(a_0, a_n, b_n\text{ via integral}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌐</div>
       <h3>Aplikasi Multi-Bidang</h3>
       <p>Fourier ada di mana-mana: <strong>(a) Vibration analysis</strong>, spektrum getaran mengidentifikasi frekuensi natural mesin, deteksi kerusakan bearing/gear; <strong>(b) Signal processing</strong>, filter design, audio equalizer; <strong>(c) Power system</strong>, analisis harmonik THD; <strong>(d) Image/video compression</strong>, DCT (Discrete Cosine Transform); <strong>(e) Quantum mechanics</strong>, wave packet decomposition. Satu teori, ratusan aplikasi.</p>
-      <div class="formula">\(Vibration \cdot DSP \cdot Power \cdot Image\)</div>
+      <div class="formula">\(\text{Vibration} \cdot \text{DSP} \cdot \text{Power} \cdot \text{Image}\)</div>
     </div>
   </div>
 
@@ -1769,7 +1772,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
 
   <div class="tip-box reveal">
-    💡 <strong>Strategi belajar Pertemuan 15:</strong> <strong>(1) Visualisasi dulu</strong>, gambar f(t) periodik dan beberapa harmonik <code>cos(ωt), cos(2ωt), …</code> di atas satu plot. Lihat bagaimana superposisi memberi sinyal kompleks. <strong>(2) Identifikasi simetri</strong> sebelum integrate, fungsi <em>genap</em> (f(−t)=f(t)) → semua bₙ=0; fungsi <em>ganjil</em> → semua aₙ=0 dan a₀=0. Hemat banyak waktu. <strong>(3) Tabel ortogonalitas</strong>, hafal: <code>∫sin·cos = 0</code>, <code>∫sin·sin = 0 (m≠n) atau T/2 (m=n)</code>. Kunci derivasi koefisien. <strong>(4) Bentuk eksponensial</strong> kompleks (Bagian 06) jauh lebih kompak untuk DSP, biasakan transisi cos/sin ↔ \(e^{j\omega t}\). <strong>\((5)\) SymPy \(fourier_{series} +\) NumPy FFT</strong>, biasakan dua tools: simbolik untuk pemahaman, numerik untuk aplikasi nyata.
+    💡 <strong>Strategi belajar Pertemuan 15:</strong> <strong>(1) Visualisasi dulu</strong>, gambar f(t) periodik dan beberapa harmonik <code>cos(ωt), cos(2ωt), …</code> di atas satu plot. Lihat bagaimana superposisi memberi sinyal kompleks. <strong>(2) Identifikasi simetri</strong> sebelum integrate, fungsi <em>genap</em> (f(−t)=f(t)) → semua bₙ=0; fungsi <em>ganjil</em> → semua aₙ=0 dan a₀=0. Hemat banyak waktu. <strong>(3) Tabel ortogonalitas</strong>, hafal: <code>∫sin·cos = 0</code>, <code>∫sin·sin = 0 (m≠n) atau T/2 (m=n)</code>. Kunci derivasi koefisien. <strong>(4) Bentuk eksponensial</strong> kompleks (Bagian 06) jauh lebih kompak untuk DSP, biasakan transisi cos/sin ↔ \(e^{j\omega t}\). <strong>\((5)\) SymPy <code>fourier_series</code> + NumPy FFT</strong>, biasakan dua tools: simbolik untuk pemahaman, numerik untuk aplikasi nyata.
   </div>
 
   <label class="pm-centang" data-pm="0"><input type="checkbox" disabled aria-describedby="pm-status-0"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Deret Fourier — Bahasa Universal untuk Sinyal Periodik</b>.</span><em class="pm-status" id="pm-status-0"></em></label>
@@ -1810,7 +1813,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">⊥</div>
       <h3>Ortogonalitas Trigonometri</h3>
       <p><em>Ortogonal</em> = "tegak lurus" dalam ruang fungsi: <code>∫f·g dt = 0</code>. Sistem <code>{1, cos(nωt), sin(nωt)}</code> membentuk <em>basis ortogonal</em> di ruang fungsi periodik dengan periode T. Inilah alasan koefisien Fourier dapat dihitung dengan integral spesifik, tiap harmonik "ditangkap" terpisah.</p>
-      <div class="formula">\(\int trig \cdot trig = 0 atau T/2\)</div>
+      <div class="formula">\(\int \text{trig} \cdot \text{trig} = 0 \text{ atau } T/2\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧮</div>
@@ -1822,7 +1825,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📊</div>
       <h3>DC Component (a<sub>0</sub>)</h3>
       <p>Konstanta \(a_{0}/2\) = nilai rata-rata sinyal di satu periode. Formula: \(a_{0} = (2/T) \cdot \int _{0}^{T} f(t) dt\). Faktor 1/2 di depan adalah konvensi yang membuat formula a<sub>n</sub> dan a<sub>0</sub> seragam. Untuk sinyal AC (zero-mean): a<sub>0</sub>=0. Untuk pulse 0/V₀ duty 50%: a<sub>0</sub>/2 = V₀/2.</p>
-      <div class="formula">\(a_0/2 = avg(f)\)</div>
+      <div class="formula">\(a_0/2 = \operatorname{avg}(f)\)</div>
     </div>
   </div>
 
@@ -1893,7 +1896,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📈</div>
       <h3>DC Component a<sub>0</sub></h3>
       <p>Konstanta = <strong>nilai rata-rata sinyal di satu periode</strong>. Formula: \(a_{0} = (2/T) \cdot \int _{0}^{T} f(t) dt\) → DC offset = \(a_{0}/2\). Untuk square wave amplitudo A duty 50%: \(a_{0} = A\), DC = A/2. Untuk sinyal AC zero-mean (sin(ωt), sawtooth simetris): \(a_{0} = 0\).</p>
-      <div class="formula">\(a_0/2 = avg(f)\)</div>
+      <div class="formula">\(a_0/2 = \operatorname{avg}(f)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
@@ -1911,7 +1914,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📊</div>
       <h3>Spektrum Diskrit</h3>
       <p>Plot |a<sub>n</sub>|, |b<sub>n</sub>| vs n memberi <strong>spektrum amplitudo diskrit</strong>: visualisasi kontribusi tiap harmonik. Square wave: harmonik ganjil dengan envelope 1/n (decay lambat, kaya harmonik). Triangular: harmonik ganjil dengan envelope 1/\(n^2\) (decay cepat). Pola decay menentukan "kecerahan" sinyal.</p>
-      <div class="formula">\(spektrum: |a_n|, |b_n| vs n\)</div>
+      <div class="formula">\(\text{spektrum}: |a_n|, |b_n| \text{ vs } n\)</div>
     </div>
   </div>
 
@@ -1957,7 +1960,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
     <strong style="color:#fff">Langkah 1 — Cek simetri fungsi</strong><br>
     <span style="color:var(--muted);font-size:13px">Square wave bernilai −k di kiri origin dan +k di kanan origin. f(−x) = −f(x), jadi <em>ganjil</em>. Konsekuensi: semua koefisien cosinus (a<sub>0</sub> dan a<sub>n</sub>) langsung nol, hemat setengah pekerjaan.</span><br>
-    Simetri:    \(f(-x) =\) −f(x)  \(\implies\) ganjil  \(\implies a_{0} = 0, a_{n} = 0\)<br>
+    Simetri:    \(f(-x) = -f(x)\)  \(\implies\) ganjil  \(\implies a_{0} = 0, a_{n} = 0\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 2 — Tulis rumus Euler untuk b<sub>n</sub></strong><br>
@@ -1966,7 +1969,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <br>
 
     <strong style="color:#fff">Langkah 3 — Hitung integral pada [0, π]</strong><br>
-    <span style="color:var(--muted);font-size:13px">Pada \([0, \pi ] f(x) = +k\) konstan, jadi integral menjadi \(k \cdot \int \sin(nx)dx = k \cdot [-\cos(nx)/n]\) dari \(0 ke \pi = (k/n) \cdot (1 - \cos n\pi ).\) Faktor \(2/T = 1/\pi di\) depan.</span><br>
+    <span style="color:var(--muted);font-size:13px">Pada \([0, \pi ] f(x) = +k\) konstan, jadi integral menjadi \(k \cdot \int \sin(nx)dx = k \cdot [-\cos(nx)/n]\) dari \(0\) ke \(\pi = (k/n) \cdot (1 - \cos n\pi ).\) Faktor \(2/T = 1/\pi\) di depan.</span><br>
     Hasil integral:   \(b_{n} = (2k/(n\pi )) \cdot (1 - \cos n\pi )\)<br>
     <br>
 
@@ -1982,7 +1985,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
     <strong style="color:#fff">Langkah 6 — Substitusi x = π/2 untuk turunkan Leibniz</strong><br>
     <span style="color:var(--muted);font-size:13px">Pada x = π/2 (titik kontinu), Dirichlet menjamin deret konvergen ke nilai fungsi = k. sin(π/2) = 1, sin(3π/2) = −1, sin(5π/2) = 1, dst. Bagi kedua sisi dengan k lalu dengan 4/π untuk dapatkan identitas Leibniz.</span><br>
-    Konvergensi \(di x = \pi /2: k = (4k/\pi ) \cdot [1 - 1/3 + 1/5 - 1/7 + \ldots ]\)<br>
+    Konvergensi di \(x = \pi /2: k = (4k/\pi ) \cdot [1 - 1/3 + 1/5 - 1/7 + \ldots ]\)<br>
     <br>
 
     <strong style="color:var(--cyan)">✓ Identitas Leibniz:&nbsp;&nbsp; 1 − 1/3 + 1/5 − 1/7 + … = π/4</strong>
@@ -2002,28 +2005,28 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <br>
 
     <strong style="color:#fff">Langkah 2 — Hitung a<sub>0</sub>/2 (nilai rata-rata)</strong><br>
-    <span style="color:var(--muted);font-size:13px">Komponen \(DC =\) nilai \(rata-rata\) fungsi pada satu periode. Untuk |x| pada \([-\pi , \pi ]: rata-rata = (1/2\pi ) \cdot \int _{-\pi }^{\pi }|x|dx = (1/\pi ) \cdot \int _{0}^{\pi }x dx = \pi /2.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">Komponen DC \(=\) nilai rata-rata fungsi pada satu periode. Untuk |x| pada \([-\pi , \pi ]\): rata-rata \(= (1/2\pi ) \cdot \int _{-\pi }^{\pi }|x|dx = (1/\pi ) \cdot \int _{0}^{\pi }x dx = \pi /2.\)</span><br>
     a<sub>0</sub>/2 = π/2<br>
     <br>
 
     <strong style="color:#fff">Langkah 3 — Hitung a<sub>n</sub> dengan integration by parts</strong><br>
-    <span style="color:var(--muted);font-size:13px">Karena |x| genap, pakai shortcut \(a_{n} = (2/\pi ) \cdot \int _{0}^{\pi } x \cdot \cos(nx) dx.\) Pakai integration \(by\) parts: \(u=x, dv=\cos(nx)dx \to\) hasilnya menjadi \((\cos n\pi - 1)/n^2\) (suku boundary \(di x=\pi ).\)</span><br>
+    <span style="color:var(--muted);font-size:13px">Karena |x| genap, pakai shortcut \(a_{n} = (2/\pi ) \cdot \int _{0}^{\pi } x \cdot \cos(nx) dx.\) Pakai integration by parts: \(u=x, dv=\cos(nx)dx \to\) hasilnya menjadi \((\cos n\pi - 1)/n^2\) (suku boundary di \(x=\pi\)).</span><br>
     \(a_{n} = (2/\pi ) \cdot \int _{0}^{\pi } x \cdot \cos(nx) dx = (2/(\pi n^2)) \cdot (\cos n\pi - 1)\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 4 — Evaluasi untuk n ganjil/genap</strong><br>
-    <span style="color:var(--muted);font-size:13px">\(\cos n\pi = (-1)^{n}. n\) genap \(\to \cos n\pi = 1 \to a_{n} = 0. n\) ganjil \(\to \cos n\pi = -1 \to\) faktor \((-1-1) = -2 \to a_{n} = -4/(\pi n^2).\) Decay \(1/n^2\) jauh lebih cepat dari square wave (yang \(1/n)\); itu sebabnya triangular halus tanpa Gibbs ekstrem.</span><br>
+    <span style="color:var(--muted);font-size:13px">\(\cos n\pi = (-1)^{n}.\) \(n\) genap \(\to \cos n\pi = 1 \to a_{n} = 0.\) \(n\) ganjil \(\to \cos n\pi = -1 \to\) faktor \((-1-1) = -2 \to a_{n} = -4/(\pi n^2).\) Decay \(1/n^2\) jauh lebih cepat dari square wave (yang \(1/n)\); itu sebabnya triangular halus tanpa Gibbs ekstrem.</span><br>
     a<sub>1</sub> = −4/π,&nbsp;&nbsp; a<sub>3</sub> = −4/(9π),&nbsp;&nbsp; a<sub>5</sub> = −4/(25π),&nbsp;&nbsp; a<sub>genap</sub> = 0<br>
     <br>
 
     <strong style="color:#fff">Langkah 5 — Susun Deret Fourier lengkap</strong><br>
-    <span style="color:var(--muted);font-size:13px">Komponen \(DC \pi /2\) ditambah jumlah harmonik cosinus ganjil. Tanda minus berasal dari \(a_{n}\) negatif. Pola \(1/n^2\) adalah signature fungsi triangular.</span><br>
+    <span style="color:var(--muted);font-size:13px">Komponen DC \(\pi /2\) ditambah jumlah harmonik cosinus ganjil. Tanda minus berasal dari \(a_{n}\) negatif. Pola \(1/n^2\) adalah signature fungsi triangular.</span><br>
     \(f(x) = \pi /2 - (4/\pi ) \cdot [\cos x + \cos(3x)/9 + \cos(5x)/25 + \ldots ]\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 6 — Substitusi x = 0 untuk turunkan Basel</strong><br>
     <span style="color:var(--muted);font-size:13px">Pada x = 0 (titik kontinu), Dirichlet menjamin deret konvergen ke f(0) = 0. cos(0) = cos(0) = … = 1, jadi semua suku cosinus jadi 1. Pindahkan π/2 ke sisi kanan dan susun untuk dapatkan deret kebalikan kuadrat ganjil.</span><br>
-    Konvergensi \(di x = 0: \pi /2 = (4/\pi ) \cdot [1 + 1/9 + 1/25 + \ldots ]\)<br>
+    Konvergensi di \(x = 0: \pi /2 = (4/\pi ) \cdot [1 + 1/9 + 1/25 + \ldots ]\)<br>
     <br>
 
     <strong style="color:var(--cyan)">✓ Identitas Basel:   \(\Sigma 1/(2n - 1)^2 = \pi ^2/8\)</strong>
@@ -2048,7 +2051,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Aturan Simetri untuk Koefisien Fourier</div>
-    \(f(-t) = f(t)\) (genap) \(\to b_{n} = 0;\) deret cosine murni \(\cdot f(-t) =\) −f(t) (ganjil) \(\to a_{0}=0, a_{n}=0;\) deret sine murni
+    \(f(-t) = f(t)\) (genap) \(\to b_{n} = 0;\) deret cosine murni · \(f(-t) = -f(t)\) (ganjil) \(\to a_{0}=0, a_{n}=0;\) deret sine murni
   <span class="formula-number">(4)</span></div>
 <!-- PERSAMAAN-STATIS:4:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -2080,7 +2083,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📏</div>
       <h3>Half-Range Expansion</h3>
       <p>Untuk f(t) yang hanya didefinisikan di <code>[0, L]</code> (bukan periodik penuh), kita bisa <em>perluas</em> ke fungsi periodik dengan periode 2L: <strong>(a) Half-range cosine</strong>: ekstensi genap, \(f(t) = a_{0}/2 + \Sigma a_{n} \cdot \cos(n\pi t/L)\); <strong>(b) Half-range sine</strong>: ekstensi ganjil, \(f(t) = \Sigma b_{n} \cdot \sin(n\pi t/L)\). Kunci untuk solving PDE (heat equation, wave equation).</p>
-      <div class="formula">\(f(t) di [0, L] \to \cos atau \sin\;\text{only}\)</div>
+      <div class="formula">\(f(t) \text{ di } [0, L] \to \cos \text{ atau } \sin\;\text{only}\)</div>
     </div>
   </div>
 
@@ -2151,25 +2154,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">✅</div>
       <h3>Konvergensi di Titik Kontinu</h3>
       <p>Bila f(t) <strong>kontinu di titik t<sub>0</sub></strong>: deret Fourier konvergen ke \(f(t_{0})\) tepat. Mis. di t = π/2, square wave bernilai 1; deret Fourier <code>(4/π)·[sin(π/2) + sin(3π/2)/3 + …] = (4/π)·[1 − 1/3 + 1/5 − …] = 1</code> (Leibniz formula).</p>
-      <div class="formula">\(f kontinu \to S(t) \to f(t)\)</div>
+      <div class="formula">\(f \text{ kontinu} \to S(t) \to f(t)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">↔️</div>
       <h3>Konvergensi di Diskontinuitas</h3>
       <p>Bila f(t) <strong>diskontinu di t<sub>0</sub></strong>: deret Fourier konvergen ke <strong>rata-rata jump</strong>: \(S(t_{0}) = [f(t_{0}⁻) + f(t_{0}⁺)]/2\). Mis. square wave di t = π: jump dari +1 ke −1; deret Fourier = (1+(−1))/2 = 0. Tidak konvergen ke +1 atau −1, tetapi ke nilai tengah.</p>
-      <div class="formula">\(S(jump) = avg(\text{left, right})\)</div>
+      <div class="formula">\(S(\text{jump}) = \operatorname{avg}(\text{left, right})\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
       <h3>Fenomena Gibbs</h3>
       <p>Deret Fourier <em>terpotong</em> (truncated) untuk fungsi diskontinu memiliki <strong>overshoot ~9%</strong> di sekitar diskontinuitas, fenomena Gibbs. Tidak hilang dengan menambah lebih banyak harmonik (hanya <em>menyempit</em>). Konsekuensi praktis: signal reconstruction dengan deret Fourier terpotong selalu punya artifact di edge. Solusi: windowing atau filter design hati-hati.</p>
-      <div class="formula">\(overshoot Gibbs \approx 9%\)</div>
+      <div class="formula">\(\text{overshoot Gibbs} \approx 9\%\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>Teorema Parseval</h3>
       <p><strong>Konservasi energi</strong> antara domain waktu dan domain frekuensi: \((1/T) \cdot \int _{0}^{T}|f(t)|^2 dt = (a_{0}/2)^2 + (1/2) \cdot \Sigma (a_{n}^2 + b_{n}^2)\). RMS² sinyal = jumlah RMS² semua harmonik. Aplikasi: hitung total harmonic distortion (THD), distribusi energi dalam spektrum, signal-to-noise ratio.</p>
-      <div class="formula">\(\Sigma |a_n|^2 = energi sinyal\)</div>
+      <div class="formula">\(\Sigma |a_n|^2 = \text{energi sinyal}\)</div>
     </div>
   </div>
 
@@ -2189,7 +2192,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="info-box reveal">
     <strong>Contoh aplikasi Parseval, RMS sinyal:</strong> Square wave amplitudo A periode T (zero-mean, duty 50%).<br>
     Domain waktu: <code>RMS² = (1/T)·∫|f|² dt = (1/T)·∫A² dt = A²</code> (karena |f|=A selalu).<br>
-    Domain frekuensi: \(RMS^2 = \Sigma (b_{n}^2/2) = (1/2) \cdot \Sigma (4A/(n\pi ))^2\) untuk n ganjil = <code>(8A²/π²)·Σ(1/n²)</code> = <code>(8A²/π²)·(π²/8) = A²</code> ✓.<br>
+    Domain frekuensi: \(\text{RMS}^2 = \Sigma (b_{n}^2/2) = (1/2) \cdot \Sigma (4A/(n\pi ))^2\) untuk n ganjil = <code>(8A²/π²)·Σ(1/n²)</code> = <code>(8A²/π²)·(π²/8) = A²</code> ✓.<br>
     Identitas \(\Sigma _{n\;\text{ganjil}\;} 1/n^2 = \pi ^2/8\) (Euler), konsisten. Verifikasi konservasi energi.
   </div>
 
@@ -2244,14 +2247,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">🔄</div>
       <h3>Konversi cos/sin ↔ Eksponensial</h3>
-      <p>Hubungan dengan trigonometri: \(c_{0} = a_{0}/2\); \(c_{n} = (a_{n} - j \cdot b_{n})/2\) untuk n &gt; 0; \(c_{-n} = c_{n}* = (a_{n} + j \cdot b_{n})/2\) untuk n &gt; 0. Sebaliknya: \(a_{n} = 2 \cdot Re(c_{n})\), \(b_{n} = -2 \cdot Im(c_{n})\). Konjugat simetri \(c_{-n} = c_{n}*\) untuk f(t) riil.</p>
+      <p>Hubungan dengan trigonometri: \(c_{0} = a_{0}/2\); \(c_{n} = (a_{n} - j \cdot b_{n})/2\) untuk n &gt; 0; \(c_{-n} = c_{n}* = (a_{n} + j \cdot b_{n})/2\) untuk n &gt; 0. Sebaliknya: \(a_{n} = 2 \cdot \operatorname{Re}(c_{n})\), \(b_{n} = -2 \cdot \operatorname{Im}(c_{n})\). Konjugat simetri \(c_{-n} = c_{n}*\) untuk f(t) riil.</p>
       <div class="formula">cₙ = (aₙ − \(j \cdot b\)ₙ)/2</div>
     </div>
     <div class="card">
       <div class="card-icon">📡</div>
       <h3>Spektrum Magnitudo &amp; Fase</h3>
       <p>Tiap koefisien <strong>c<sub>n</sub> = |c<sub>n</sub>|·e<sup>jφ<sub>n</sub></sup></strong> punya magnitudo dan fase. Plot |c<sub>n</sub>| vs n = <em>magnitudo spektrum</em> (energi tiap harmonik). Plot φ<sub>n</sub> vs n = <em>fase spektrum</em>. Bersama memberi karakterisasi lengkap sinyal di domain frekuensi. FFT modern (numpy.fft) bekerja di basis ini.</p>
-      <div class="formula">\(|c_n|, \phi _n = arg(c_n)\)</div>
+      <div class="formula">\(|c_n|, \phi _n = \arg(c_n)\)</div>
     </div>
   </div>
 
@@ -2263,7 +2266,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="info-box reveal">
     <strong>Derivasi formula c<sub>n</sub>:</strong> Mulai dari \(f(t) = \Sigma c_{k} \cdot e^{jk\omega t}\). Kalikan dengan \(e^{-jn\omega t}\) dan integrate <code>[0, T]</code>:<br>
     \(\int f(t) \cdot e^{-jn\omega t} dt = \Sigma c_{k} \cdot \int e^{j(k-n)\omega t} dt.\)<br>
-    Integral \(\int _{0}^{T}e^{j(k-n)\omega t} dt:\) untuk \(k \ne n,\) integran adalah eksponensial kompleks dengan frekuensi \(\text{non}\;-zero,\) integral di satu periode \(= 0\) (ortogonalitas eksponensial). Untuk \(k = n:\) integran \(= 1,\) integral \(= T.\)<br>
+    Integral \(\int _{0}^{T}e^{j(k-n)\omega t} dt:\) untuk \(k \ne n,\) integran adalah eksponensial kompleks dengan frekuensi non-zero, integral di satu periode \(= 0\) (ortogonalitas eksponensial). Untuk \(k = n:\) integran \(= 1,\) integral \(= T.\)<br>
     Maka \(\int f(t) \cdot e^{-jn\omega t} dt = c_{n} \cdot T \to c_{n} = (1/T) \cdot \int _{0}^{T} f(t) \cdot e^{-jn\omega t} dt ✓.\)
   </div>
 
@@ -2315,26 +2318,26 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Spektrum Amplitudo</h3>
-      <p>Plot <strong>\(|c_{n}| vs n \cdot \omega _0\)</strong> (atau A<sub>n</sub> = \(\sqrt{a_{n}^2 + b_{n}^2}\) untuk bentuk trigonometri). Bar plot diskrit pada frekuensi harmonik. Tinggi tiap bar = kontribusi frekuensi tersebut. <strong>Square wave</strong>: bar tinggi di harmonik 1, 3, 5, … dengan envelope 1/n. <strong>Triangular</strong>: bar tinggi di harmonik 1, 3, 5, … dengan envelope 1/\(n^2\) (decay cepat).</p>
-      <div class="formula">\(|c_n| vs n \cdot \omega _0\)</div>
+      <p>Plot <strong>\(|c_{n}|\) vs \(n \cdot \omega _0\)</strong> (atau A<sub>n</sub> = \(\sqrt{a_{n}^2 + b_{n}^2}\) untuk bentuk trigonometri). Bar plot diskrit pada frekuensi harmonik. Tinggi tiap bar = kontribusi frekuensi tersebut. <strong>Square wave</strong>: bar tinggi di harmonik 1, 3, 5, … dengan envelope 1/n. <strong>Triangular</strong>: bar tinggi di harmonik 1, 3, 5, … dengan envelope 1/\(n^2\) (decay cepat).</p>
+      <div class="formula">\(|c_n| \text{ vs } n \cdot \omega _0\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📐</div>
       <h3>Spektrum Fase</h3>
-      <p>Plot <strong>\(\phi _{n} = arg(c_{n}) vs n \cdot \omega _0\)</strong>. Memberi informasi <em>timing</em> harmonik. Untuk fungsi genap (cos-only): semua φ<sub>n</sub> = 0 atau ±π. Untuk fungsi ganjil (sin-only): semua φ<sub>n</sub> = ±π/2. Untuk fungsi general: fase variabel, penting di filter design dan audio (group delay).</p>
-      <div class="formula">\(\phi _n = arg(c_n)\)</div>
+      <p>Plot <strong>\(\phi _{n} = \arg(c_{n})\) vs \(n \cdot \omega _0\)</strong>. Memberi informasi <em>timing</em> harmonik. Untuk fungsi genap (cos-only): semua φ<sub>n</sub> = 0 atau ±π. Untuk fungsi ganjil (sin-only): semua φ<sub>n</sub> = ±π/2. Untuk fungsi general: fase variabel, penting di filter design dan audio (group delay).</p>
+      <div class="formula">\(\phi _n = \arg(c_n)\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📉</div>
       <h3>Decay Rate &amp; Smoothness</h3>
-      <p><strong>Smoothness sinyal ↔ decay rate spektrum</strong>: (a) Diskontinu (square wave): \(|c_{n}| ~ 1/n\), decay lambat, kaya harmonik tinggi (terdengar harsh); (b) Kontinu tetapi tidak smooth (triangular |t|): \(|c_{n}| ~ 1/n^2\); (c) Smooth (analytic): decay eksponensial \(|c_{n}| ~ e^{-\alpha n}\). Decay rate = ukuran kekayaan harmonik.</p>
-      <div class="formula">\(smoothness ↔ 1/n^k decay\)</div>
+      <p><strong>Smoothness sinyal ↔ decay rate spektrum</strong>: (a) Diskontinu (square wave): \(|c_{n}| \sim 1/n\), decay lambat, kaya harmonik tinggi (terdengar harsh); (b) Kontinu tetapi tidak smooth (triangular |t|): \(|c_{n}| \sim 1/n^2\); (c) Smooth (analytic): decay eksponensial \(|c_{n}| \sim e^{-\alpha n}\). Decay rate = ukuran kekayaan harmonik.</p>
+      <div class="formula">\(\text{smoothness} ↔ 1/n^k \text{ decay}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔬</div>
       <h3>Aplikasi Spektrum</h3>
       <p><strong>Vibration analysis</strong>: spektrum getaran mesin → frekuensi natural; deteksi peak baru = wear/damage. <strong>Audio</strong>: spektrum suara → identifikasi nada, harmonisitas. <strong>Power quality</strong>: spektrum tegangan/arus → THD (Total Harmonic Distortion). <strong>EEG/ECG</strong>: spektrum sinyal medis → diagnostic. Hampir semua field engineering pakai spectral analysis.</p>
-      <div class="formula">\(vibration \cdot audio \cdot power \cdot medical\)</div>
+      <div class="formula">\(\text{vibration} \cdot \text{audio} \cdot \text{power} \cdot \text{medical}\)</div>
     </div>
   </div>
 
@@ -2404,7 +2407,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <!-- Aplikasi 4: Communications & Modulation -->
   <div class="analogy-box reveal" style="border-left-color:var(--amber);background:linear-gradient(135deg,rgba(249,115,22,.07),rgba(249,115,22,.03))">
-    <span class="analogy-label" style="color:var(--amber)">\(📡\) Aplikasi \(4\;\text{---}\) Communications: \(AM/FM\) &amp; OFDM \((5G)\)</span>
+    <span class="analogy-label" style="color:var(--amber)">📡 Aplikasi \(4\;\text{---}\) Communications: AM/FM &amp; OFDM (5G)</span>
     <strong style="color:var(--amber)">Telekomunikasi</strong> = <em>frekuensi-domain engineering</em>. AM (Amplitude Modulation): sinyal informasi dimodulasi ke carrier frequency tinggi; demodulasi via Fourier filter. FM (Frequency Modulation): variasi frequency carrier sebanding dengan amplitudo informasi. Modern: <strong>OFDM (Orthogonal Frequency Division Multiplexing)</strong> di Wi-Fi, 4G/5G, bagi data ke ribuan sub-carrier ortogonal (basis Fourier!), tiap sub-carrier kirim symbol kecil. Robust terhadap multipath fading, efisien spectrum. Tanpa OFDM (= Fourier applied), Wi-Fi modern tidak akan beroperasi pada speed Gbps. Setiap byte yang Anda download via 5G melibatkan FFT/IFFT ribuan kali per detik.
   </div>
 
@@ -2594,19 +2597,19 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🌊</div>
       <h3>Sintesis &amp; Konvergensi</h3>
       <p>Plot \(S_{N}(t) = a_{0}/2 + \Sigma _{n=1}^{N}[a_{n}\cos + b_{n}\sin]\) untuk berbagai N (5, 10, 50, 100). Amati konvergensi ke f(t) di titik kontinu, dan fenomena Gibbs di diskontinuitas. Visualisasi powerful untuk pemahaman.</p>
-      <div class="formula">\(S_N(t) \to f(t) saat N \to \infty\)</div>
+      <div class="formula">\(S_N(t) \to f(t) \text{ saat } N \to \infty\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚡</div>
       <h3>FFT Numerik</h3>
       <p><code>numpy.fft.fft(x)</code> menghitung Discrete Fourier Transform untuk array N sample. Output: N koefisien kompleks. <code>numpy.fft.fftfreq(N, d=dt)</code> beri frekuensi di tiap bin. Tools wajib untuk DSP dan vibration analysis.</p>
-      <div class="formula">\(numpy.fft.fft\)</div>
+      <div class="formula"><code>numpy.fft.fft</code></div>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Spektrum Bar Plot</h3>
       <p>Visualisasi spektrum amplitudo: <code>plt.bar(freqs, np.abs(X))</code>. Atau scaling dB: <code>20*np.log10(np.abs(X))</code>. Spektrum fase: <code>np.angle(X)</code>. Identifikasi peak frekuensi dominant, harmonik, sub-harmonik untuk vibration/audio analysis.</p>
-      <div class="formula">\(|X(f)| vs f spectrum plot\)</div>
+      <div class="formula">\(|X(f)| \text{ vs } f \text{ spectrum plot}\)</div>
     </div>
   </div>
 
@@ -2847,7 +2850,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
 
   <div class="info-box reveal" style="margin-top:18px">
     <strong>Verifikasi Komputasi Square Wave dengan SymPy (Reproduksi Contoh 2.1):</strong>
-    Bandingkan hasil integral manual \(b_{n} = (2k/(n\pi )) \cdot (1 - \cos\) n\pi ) dengan output simbolik SymPy dan derivasi numerik identitas Leibniz.
+    Bandingkan hasil integral manual \(b_{n} = (2k/(n\pi )) \cdot (1 - \cos n\pi )\) dengan output simbolik SymPy dan derivasi numerik identitas Leibniz.
     <pre style="background:rgba(0,0,0,.3);padding:10px;border-radius:6px;font-size:12px;margin:8px 0;overflow:auto">import sympy as sp
 x, n, k = sp.symbols('x n k', positive=True)
 # Square wave -k on [-pi,0], +k on [0,pi]
@@ -2923,7 +2926,7 @@ for nn in (1,2,3,4,5):
       <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--violet);flex-shrink:0;min-width:32px">[7]</span>
       <div style="font-size:14px;line-height:1.7">
         Markoni. <em style="color:#fff">Pengantar Dasar Matematika Rekayasa</em>, 1st Edition. Yogyakarta: Graha Ilmu, 2014.
-        <br><span style="color:var(--muted);font-size:13px">Referensi pendamping modul PDF Mercu Buana, pembahasan deret Fourier untuk fungsi periodik dengan periode arbitrer \(2L,\) koefisien \(Euler-Fourier,\) simetri \(\text{genap}\;/\;\text{ganjil}\;,\) dan derivasi identitas deret tak hingga.</span>
+        <br><span style="color:var(--muted);font-size:13px">Referensi pendamping modul PDF Mercu Buana, pembahasan deret Fourier untuk fungsi periodik dengan periode arbitrer \(2L,\) koefisien Euler-Fourier, simetri \(\text{genap}\;/\;\text{ganjil}\;,\) dan derivasi identitas deret tak hingga.</span>
       </div>
     </div>
   </div>
@@ -3365,12 +3368,12 @@ for nn in (1,2,3,4,5):
     <div class="comp-card reveal">
       <div class="comp-header">
         <div class="comp-num">C10</div>
-        <div class="comp-q">Untuk square wave amplitudo 1 (zero-mean), hitung <strong>\(RMS^2\)</strong> (energi) di domain waktu.</div>
+        <div class="comp-q">Untuk square wave amplitudo 1 (zero-mean), hitung <strong>\(\text{RMS}^2\)</strong> (energi) di domain waktu.</div>
         <div class="comp-pts">2 poin</div>
       </div>
       <div class="comp-hint">💡 RMS² adalah <code>(1/T)∫|f|² dt</code> atas satu periode; perhatikan nilai |f|² untuk square wave. Bisa diverifikasi via teorema Parseval di domain frekuensi.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(RMS^2\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(\text{RMS}^2\)</strong></span></div>
         <textarea class="code-textarea" id="code-c10" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c10')"></textarea>
         <div class="stdout-box" id="stdout-c10"></div>
       </div>
@@ -3417,7 +3420,7 @@ for nn in (1,2,3,4,5):
       </div>
       <div class="comp-hint">💡 Sampling sinyal pada grid waktu, ambil <code>np.fft.fft</code> dan <code>np.fft.fftfreq</code>, lalu cari frekuensi di puncak magnitudo (paruh positif) dengan <code>np.argmax</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(peak_{freq}\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)"><code>peak_freq</code></strong></span></div>
         <textarea class="code-textarea" id="code-c12" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c12')"></textarea>
         <div class="stdout-box" id="stdout-c12"></div>
       </div>
@@ -3468,7 +3471,7 @@ for nn in (1,2,3,4,5):
       </div>
       <div class="comp-hint">💡 Sama seperti soal FFT sebelumnya tetapi sinyalnya komposit; cari frekuensi pada puncak magnitudo terbesar dengan <code>np.argmax</code>.</div>
       <div class="comp-code-wrap">
-        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)">\(peak_{freq}\)</strong></span></div>
+        <div class="input-label"><span class="col-badge col-badge-code">Python</span> Kode Jupyter Notebook — <span style="color:var(--muted);font-size:10px">print() <strong style="color:var(--amber)"><code>peak_freq</code></strong></span></div>
         <textarea class="code-textarea" id="code-c15" placeholder="Paste kode Python dari Jupyter Notebook Anda di sini, lalu klik ▶ Run & Validasi" oninput="onCodeInput('c15')"></textarea>
         <div class="stdout-box" id="stdout-c15"></div>
       </div>

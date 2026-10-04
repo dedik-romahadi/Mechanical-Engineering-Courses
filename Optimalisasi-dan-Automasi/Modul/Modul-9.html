@@ -253,7 +253,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(255,64,129,.1);border:1px solid rgba(255,64,129,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(255,64,129,.07);border:1px solid rgba(255,64,129,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -968,6 +968,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1666,13 +1669,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📈</div>
       <h3>Non-Linearitas — Wajah Asli Engineering</h3>
       <p>Sebagian besar masalah teknik mesin <em>tidak</em> linier: drag <code>F<sub>d</sub> = ½·ρ·Cd·A·v²</code>, energi kinetik <code>E = ½mv²</code>, daya pompa berbentuk parabolik, biaya rugi gesek tergantung kuadrat kecepatan. Kalau dipaksa LP, hasilnya akan <strong style="color:var(--cyan)">overestimate atau underestimate</strong> ekstrim saat skala besar. NLP menerima fungsi non-linier apapun selama bisa dievaluasi numerik (dan ideally turunan tersedia analitik).</p>
-      <div class="formula">\(f: \mathbb{R}ⁿ \to \mathbb{R}, non-linier\)</div>
+      <div class="formula">\(f: \mathbb{R}ⁿ \to \mathbb{R}, \text{non-linier}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Optimum Lokal vs Global</h3>
       <p>Untuk fungsi <strong>konveks</strong>, sembarang minimum lokal = global minimum (sifat seperti LP). Untuk fungsi <em>non-konveks</em> (multi-modal, banyak lembah), iterasi gradient bisa <strong style="color:var(--pink)">terjebak di lokal minimum</strong>. Solusi: (1) start dari banyak titik awal, (2) gunakan metaheuristik (GA, PSO, Pertemuan 11), (3) cek konveksitas dengan Hessian semi-definit positif <code>∇²f ⪰ 0</code>.</p>
-      <div class="formula">\(∇^2f(x*) ≻ 0 \to strict min\)</div>
+      <div class="formula">\(∇^2f(x^*) ≻ 0 \to \text{strict } \min\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔻</div>
@@ -1684,7 +1687,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🐍</div>
       <h3>Implementasi: scipy.optimize.minimize</h3>
       <p>Python via <code>scipy.optimize.minimize(fun, x0, method=...)</code>. Method tersedia: <code>'BFGS'</code> (default unconstrained, quasi-Newton), <code>'Newton-CG'</code>, <code>'L-BFGS-B'</code> (bounds), <code>'SLSQP'</code> (kendala umum), <code>'trust-constr'</code> (modern, robust). Bila gradient analitik tersedia, <strong style="color:var(--amber)">selalu sediakan via <code>jac=...</code></strong> — 5–50× lebih cepat &amp; akurat daripada finite difference.</p>
-      <div class="formula">\(minimize(f, x0, jac=∇f)\)</div>
+      <div class="formula"><code>minimize(f, x0, jac=∇f)</code></div>
     </div>
   </div>
 
@@ -1778,7 +1781,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
   <div class="formula-block reveal">
     <div class="label">Empat Komponen Newton-Type Methods</div>
-    Newton step \(d_k = -[\nabla^2 f]^{-1} \cdot \nabla f \cdot\) Hessian \(\nabla^2 f(x) \cdot\) BFGS update \(H_{k+1} \approx H_k + ... \cdot L-BFGS\) (limited memory)
+    Newton step \(d_k = -[\nabla^2 f]^{-1} \cdot \nabla f \cdot\) Hessian \(\nabla^2 f(x) \cdot\) BFGS update \(H_{k+1} \approx H_k + ... \cdot L\text{-BFGS}\) (limited memory)
   <span class="formula-number">(3)</span></div>
 <!-- PERSAMAAN-STATIS:3:START -->
   <div class="tip-box reveal rumus-jelas">
@@ -1804,7 +1807,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">💾</div>
       <h3>L-BFGS — Limited Memory</h3>
       <p>BFGS simpan matrix <code>n×n</code>, tidak feasible untuk n &gt; 10⁵. <strong>L-BFGS</strong> simpan hanya <em>m terakhir pasangan (s, y)</em>, m=5–20. Memori O(mn), per-iterasi O(mn). Standar deep learning (sebelum SGD/Adam dominan), parameter identification, ML besar. SciPy: <code>method='L-BFGS-B'</code> juga support kendala bounds.</p>
-      <div class="formula">memory = \(m \cdot (s\), y) pairs</div>
+      <div class="formula">memory = \(m \cdot (s, y)\) pairs</div>
     </div>
     <div class="card">
       <div class="card-icon">⚠️</div>
@@ -1874,7 +1877,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔓</div>
       <h3>Complementary Slackness — Active vs Inactive</h3>
       <p>Untuk inequality <code>gⱼ(x) ≤ 0</code> dan multiplier <code>μⱼ ≥ 0</code>, KKT menuntut <strong>\(\mu ⱼ \cdot\) gⱼ(x*) \(= 0\)</strong>. Konsekuensi: di optimum, <em>kendala aktif</em> (gⱼ = 0) → multiplier μⱼ bisa &gt; 0; <em>kendala tidak aktif</em> (gⱼ &lt; 0) → harus μⱼ = 0. Ini cara natural untuk klasifikasi mana kendala "binding". <strong style="color:var(--cyan)">Shadow price</strong> di NLP = μⱼ optimal.</p>
-      <div class="formula">\(\mu _j \cdot g_j(x*) = 0, ∀j\)</div>
+      <div class="formula">\(\mu _j \cdot g_j(x^*) = 0, ∀j\)</div>
     </div>
     <div class="card">
       <div class="card-icon">💰</div>
@@ -1892,7 +1895,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>SQP — Sequential Quadratic Programming</h3>
       <p>Pada tiap iterasi, aproksimasi NLP dengan <strong>QP subproblem</strong>: quadratic objective + linier kendala. Solve QP, gunakan solusi sebagai arah descent untuk masalah asli, line search untuk step size. Konvergensi super-linier ke titik KKT. <strong style="color:var(--green)">Standar industri</strong> untuk NLP berkendala. SciPy: <code>method='SLSQP'</code>. Robust, support equality + inequality + bounds.</p>
-      <div class="formula">\(QP step: min \tfrac{1}{2}d^{T}Hd + ∇f^{T}d s.t. Jd \le -g\)</div>
+      <div class="formula">\(\text{QP step: } \min \tfrac{1}{2}d^{T}Hd + ∇f^{T}d \text{ s.t. } Jd \le -g\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔧</div>
@@ -2141,25 +2144,25 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔧</div>
       <h3>Design Parameter Optimization</h3>
       <p>Desain pegas suspensi mobil: cari <em>diameter wire d, jumlah lilitan N, tinggi bebas L</em> agar massa minimum dengan kendala (1) tegangan ≤ allowable, (2) deflection target ≥ ride comfort, (3) frequency natural di luar zona resonansi (5–15 Hz). Fungsi objektif <code>m = ρ·π·(d²/4)·L·N</code> non-linier; tegangan torsion juga non-linier dalam d. SLSQP atau trust-constr menyelesaikan dalam detik. Dipakai oleh Mercedes, BMW, Toyota suspensi engineers. Tools: ANSYS Workbench Optimization, MATLAB Optimization Toolbox.</p>
-      <div class="formula">\(min m(d,N,L) s.t. \sigma \le \sigma _y\)</div>
+      <div class="formula">\(\min m(d,N,L) \text{ s.t. } \sigma \le \sigma _y\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎛️</div>
       <h3>PID/MPC Controller Tuning</h3>
       <p>Tune kontroler PID <code>K<sub>p</sub>, K<sub>i</sub>, K<sub>d</sub></code> agar respons sistem mekanik <em>cepat tanpa overshoot</em>. <strong>NLP non-linier</strong>: minimize ITAE (Integral of Time × Absolute Error) atau ISE; kendala: stability (eigenvalue closed-loop di kiri), overshoot ≤ 5%, settling time ≤ 2 s. Solver: scipy SLSQP atau Nelder-Mead (kalau gradient sulit dihitung). Untuk MPC, NLP dijalankan setiap sample time (~10 ms), robot industrial, drone autopilot, kendaraan otonom semua bergantung pada ini. Library: <code>do-mpc</code>, <code>CasADi</code> (auto-diff super cepat).</p>
-      <div class="formula">\(min \int |e(t)| \cdot t dt s.t. stability\)</div>
+      <div class="formula">\(\min \int |e(t)| \cdot t dt \text{ s.t. stability}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🏗️</div>
       <h3>Topology Optimization (FEM)</h3>
       <p>Cari <em>distribusi material</em> dalam volume desain agar struktur paling ringan dengan stiffness target. SIMP (Solid Isotropic Material Penalization): variabel = density tiap element ρₑ ∈ [0,1]; objektif min compliance <code>uᵀKu</code>; kendala volume fraction Σρₑ·vₑ ≤ \(V_{\text{target}}\). NLP dengan ribuan variabel, gradient via <em>sensitivity analysis</em> (adjoint method). Hasilnya: desain bertulang yang topologinya sangat optimal, printer-friendly. Dipakai di Boeing 787 brackets, BMW iX gearbox, Tesla giga-castings. Tools: Altair OptiStruct, Siemens NX Topology, Autodesk Fusion 360 Generative Design.</p>
-      <div class="formula">\(min u^{T}Ku s.t. \Sigma \rho ₑvₑ \le V*\)</div>
+      <div class="formula">\(\min u^{T}Ku \text{ s.t. } \Sigma \rho ₑvₑ \le V^*\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🤖</div>
       <h3>Robot Trajectory &amp; Optimal Control</h3>
       <p>Robot lengan industri pick-and-place: gerakkan end-effector dari titik A ke B dengan <em>waktu minimum</em> sambil hindari obstacle dan menjaga torque motor &lt; rating. <strong>NLP berkendala</strong>: variabel = joint angles q(t) didiskretisasi pada N waypoints; objektif min Σ Δt; kendala kinematic, dynamic, collision avoidance, joint limits. Auto-diff via CasADi memberi gradient analitik untuk masalah dengan ratusan variabel. Sama untuk drone path planning, autonomous vehicle, surgical robot, manipulator KUKA &amp; Universal Robots.</p>
-      <div class="formula">\(min T s.t. dynamics, joint limits\)</div>
+      <div class="formula">\(\min T\) s.t. dynamics, joint limits</div>
     </div>
   </div>
 
@@ -2412,7 +2415,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell \(4\;\text{---}\;\text{solve\_design\_nlp}()\) Reusable: \(Multi-Start +\) Gradient Validation untuk \(\text{Non}\;-Konveks\)</span>
+      <span class="code-label">Cell \(4\;\text{---}\) <code>solve_design_nlp()</code> Reusable: Multi-Start + Gradient Validation untuk Non-Konveks</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -2548,7 +2551,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
       <div style="font-size:14px;line-height:1.7">
         S. Boyd &amp; L. Vandenberghe. <em style="color:#fff">Convex Optimization</em>. Cambridge University Press, 2004.
         <br><a href="https://web.stanford.edu/~boyd/cvxbook/" target="_blank" style="color:var(--violet);font-family:'JetBrains Mono',monospace;font-size:12px">▶ web.stanford.edu/~boyd/cvxbook/ (PDF gratis legal)</a>
-        <br><span style="color:var(--muted);font-size:13px">Buku konvex optimization paling berpengaruh. Konsep konveksitas, Lagrangian dual, KKT, \(sub-gradient,\) interior point, semua dengan rigor matematis &amp; aplikasi engineering. Wajib untuk \(EE364A\) Stanford.</span>
+        <br><span style="color:var(--muted);font-size:13px">Buku konvex optimization paling berpengaruh. Konsep konveksitas, Lagrangian dual, KKT, sub-gradient, interior point, semua dengan rigor matematis &amp; aplikasi engineering. Wajib untuk \(EE364A\) Stanford.</span>
       </div>
     </div>
     <div class="reference-card" style="display:flex;gap:16px;padding:18px 22px;background:rgba(255,64,129,.05);border:1px solid rgba(255,64,129,.15);border-left:3px solid var(--amber);border-radius:10px;align-items:flex-start">
@@ -3206,7 +3209,7 @@ from scipy.optimize import minimize
       <div style="background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan)">Spacing: L ≥ \(N \cdot d\) (avoid solid)</div>
       <div style="background:rgba(0,224,158,.05);border:1px solid rgba(0,224,158,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)">Solver SLSQP: m* ≈ 41 g (tegangan + defleksi binding)</div>
     </div>
-    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Pertanyaan kritis: hasil <code>scipy.minimize</code> menunjukkan <em>tegangan dan defleksi keduanya BINDING</em> (g(x*) ≈ 0), kedua kendala aktif di optimum. Spacing slack (L &gt; \(N \cdot d)\). <strong style="color:var(--amber)">Lagrange multiplier μ<sub>stress</sub> ≈ 0.18, μ<sub>deflection</sub> ≈ 1.45</strong> menunjukkan defleksi adalah kendala lebih "ketat". Beberapa pertanyaan: (a) bagaimana interpretasi multiplier untuk decisi engineering, apa artinya secara fisik? (b) jika manajemen ingin lebih ringan 10%, kendala mana harus di-relaks dan apa risikonya? (c) apakah masalah ini konveks? Bisakah kita yakin solusi global atau perlu multi-start? (d) bagaimana validasi asumsi (mis. shear modulus G konstan vs temperature-dependent)?</p>
+    <p style="margin-top:14px;font-size:14px;color:var(--muted)">Pertanyaan kritis: hasil <code>scipy.minimize</code> menunjukkan <em>tegangan dan defleksi keduanya BINDING</em> (g(x*) ≈ 0), kedua kendala aktif di optimum. Spacing slack (\(L &gt; N \cdot d\)). <strong style="color:var(--amber)">Lagrange multiplier μ<sub>stress</sub> ≈ 0.18, μ<sub>deflection</sub> ≈ 1.45</strong> menunjukkan defleksi adalah kendala lebih "ketat". Beberapa pertanyaan: (a) bagaimana interpretasi multiplier untuk decisi engineering, apa artinya secara fisik? (b) jika manajemen ingin lebih ringan 10%, kendala mana harus di-relaks dan apa risikonya? (c) apakah masalah ini konveks? Bisakah kita yakin solusi global atau perlu multi-start? (d) bagaimana validasi asumsi (mis. shear modulus G konstan vs temperature-dependent)?</p>
   </div>
 
   <!-- Canvas Animasi Forum -->
@@ -3226,7 +3229,7 @@ from scipy.optimize import minimize
     </div>
     <div class="fq-body">
       <div class="fq-inner">
-        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Hasil <code>scipy.minimize</code> SLSQP menunjukkan g<sub>stress</sub>(x*) ≈ 0 dan g<sub>defl</sub>(x*) ≈ 0, kedua kendala <em>aktif</em> di solusi optimal. Multiplier Lagrange μ<sub>stress</sub> &gt; 0 dan μ<sub>defl</sub> &gt; 0. Spacing slack (L − \(N \cdot d)\) &gt; 0 (tidak binding). Apa arti fisik dari kedua kendala binding ini? Kenapa tidak ada slack di salah satu? Apa yang terjadi kalau kedua kendala dilepas (relaxed) sedikit?</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Hasil <code>scipy.minimize</code> SLSQP menunjukkan g<sub>stress</sub>(x*) ≈ 0 dan g<sub>defl</sub>(x*) ≈ 0, kedua kendala <em>aktif</em> di solusi optimal. Multiplier Lagrange μ<sub>stress</sub> &gt; 0 dan μ<sub>defl</sub> &gt; 0. Spacing slack (L − \(N \cdot d\)) &gt; 0 (tidak binding). Apa arti fisik dari kedua kendala binding ini? Kenapa tidak ada slack di salah satu? Apa yang terjadi kalau kedua kendala dilepas (relaxed) sedikit?</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">τ<sub>max</sub> = τ<sub>y</sub> (yield)</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);color:var(--cyan);padding:6px 12px;border-radius:8px;">δ = δ<sub>target</sub> (deflection min)</span>
@@ -3300,7 +3303,7 @@ from scipy.optimize import minimize
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">fatigue endurance</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Tidak ada jawaban tunggal, yang dinilai pemahaman batasan model. Pertimbangan: \((1)\) Wahl factor <code>K<sub>w</sub> = (4C−1)/(4C−4) + 0.615/C</code> dengan \(C = D/d \to\) tegangan effective &gt; nominal; abaikan kalau \(d/D\) moderate. \((2)\) Fatigue: pakai \(\tau _endurance = 0.4 \cdot \tau _y \to\) safety factor \(1.5 \times . (3)\) Buckling: kendala tambahan \(L/d\) &lt; \(6\) (Faires criterion). \((4)\) Stochastic loading \(F \pm \sigma \to reliability-based\) design dengan reliability index \(\beta \ge 3. (5)\) Manufacturing tolerance \(\pm 0.05 mm di d \to\) robust optimization minimize \(worst-\;\text{case}\;. (6)\) Workflow: NLP deterministic untuk baseline, lalu Monte Carlo ribuan run dengan parameter random untuk reliability assessment, lalu \(re-design\) dengan margin lebih besar kalau \(Pf\) &gt; \(1e-4.\)</em>
+          💬 <em>Tidak ada jawaban tunggal, yang dinilai pemahaman batasan model. Pertimbangan: \((1)\) Wahl factor <code>K<sub>w</sub> = (4C−1)/(4C−4) + 0.615/C</code> dengan \(C = D/d \to\) tegangan effective &gt; nominal; abaikan kalau \(d/D\) moderate. \((2)\) Fatigue: pakai \(\tau _{endurance} = 0.4 \cdot \tau _y \to\) safety factor 1.5×. (3) Buckling: kendala tambahan \(L/d\) &lt; \(6\) (Faires criterion). \((4)\) Stochastic loading \(F \pm \sigma\) → reliability-based design dengan reliability index \(\beta \ge 3\). (5) Manufacturing tolerance ±0.05 mm di \(d\) → robust optimization minimize worst-case. (6) Workflow: NLP deterministic untuk baseline, lalu Monte Carlo ribuan run dengan parameter random untuk reliability assessment, lalu re-design dengan margin lebih besar kalau \(Pf\) &gt; 1e-4.</em>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis analisis validasi asumsi Anda di sini (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Identifikasi minimal 3 asumsi yang mungkin runtuh di kasus pegas ini. (2) Untuk tiap asumsi, jelaskan dampak ke desain (mass naik X%, atau risiko failure naik Y%). (3) Tools alternatif: Wahl factor, fatigue criteria, buckling, Monte Carlo, Robust Optimization, Reliability-Based Design Optimization. (4) Workflow rekomendasi: deterministic NLP → uncertainty quantification → re-optimization. (5) Kapan stop iterasi (acceptable risk vs cost)?" oninput="checkForumReady()"></textarea>

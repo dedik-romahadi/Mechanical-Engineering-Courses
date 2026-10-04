@@ -256,7 +256,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(168,85,247,.1);padding:1px 6px;border-radius:4px}
@@ -1934,7 +1934,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Inilah alasan umpan balik begitu berharga sekaligus begitu berbahaya. Berharga karena penyebut yang berubah memungkinkan perancang memindahkan pole ke tempat yang dikehendaki, menekan sensitivitas terhadap perubahan parameter plant, dan mengurangi pengaruh gangguan. Berbahaya karena penyebut yang sama dapat memiliki akar di sebelah kanan sumbu imajiner, dan ketika itu terjadi sistem yang semula stabil menjadi tidak stabil.</p>
   <p class="section-desc reveal">Ketika gain loop jauh lebih besar daripada satu, fungsi transfer tertutup mendekati kebalikan dari fungsi transfer umpan balik. Kesimpulan ini penting dan sering mengejutkan: pada penguatan tinggi, perilaku sistem lebih ditentukan oleh sensor pada jalur umpan balik daripada oleh plant itu sendiri. Karena itu kualitas dan kalibrasi sensor menjadi penentu kinerja yang tidak bisa ditawar. Persamaan (3) di bawah memadatkan aturan tersebut.</p>
   <div class="formula-block reveal">
-    <div class="formula-main">\(G_{eq} = G1 \pm G2\)<br>\(T = \frac{G}{1 + G \cdot H}\)<br>\(\text{Bila} G \cdot H >> 1 \text{maka} T \approx \frac{1}{H}\)<span class="formula-number">(3)</span></div>
+    <div class="formula-main">\(G_{eq} = G1 \pm G2\)<br>\(T = \frac{G}{1 + G \cdot H}\)<br>\(\text{Bila }G \cdot H \gg 1\text{ maka }T \approx \frac{1}{H}\)<span class="formula-number">(3)</span></div>
   </div>
   <div class="tip-box reveal rumus-jelas">
     <strong>📐 Persamaan (3)</strong> — Tiga rumus penyusun diagram: paralel dijumlahkan, loop tertutup memakai rumus baku \(\frac{G}{1 + G \cdot H}\), dan konsekuensi terpentingnya di ruas kanan, yaitu saat gain loop sangat besar, perilaku sistem ditentukan oleh sensor \(H\), bukan oleh plant. Itulah mengapa kualitas sensor menentukan kualitas kendali.
@@ -1957,7 +1957,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <p class="section-desc reveal">Setiap langkah pemindahan berpotensi menimbulkan kekeliruan tanda, dan kekeliruan tanda pada umpan balik mengubah kesimpulan kestabilan secara total. Karena itu setiap hasil reduksi perlu diperiksa dengan dua uji sederhana yang murah: memeriksa gain arus searah dengan mengevaluasi pada s sama dengan nol, dan memeriksa apakah satuan keluaran terhadap masukan masuk akal secara fisik.</p>
   <p class="section-desc reveal">Pada sistem dengan banyak lintasan, aturan Mason memberi jalan yang lebih ringkas karena hasilnya diperoleh langsung tanpa reduksi bertahap. Metode itu dibahas tersendiri pada modul selanjutnya; yang perlu ditegaskan di sini adalah bahwa keduanya harus memberi jawaban yang sama, sehingga salah satunya dapat dipakai untuk memeriksa yang lain. Rangkuman kuantitatifnya tertulis pada Persamaan (4).</p>
   <div class="formula-block reveal">
-    <div class="formula-main">Cabang dipindah ke hulu blok G: sisipkan \(G\)<br>ke hilir: \(\text{sisipkan} \frac{1}{G}\)<span class="formula-number">(4)</span></div>
+    <div class="formula-main">Cabang dipindah ke hulu blok G: sisipkan \(G\)<br>ke hilir: \(\text{sisipkan }\frac{1}{G}\)<span class="formula-number">(4)</span></div>
   </div>
   <div class="tip-box reveal rumus-jelas">
     <strong>📐 Persamaan (4)</strong> — Aturan pemindahan titik cabang saat merapikan diagram: sinyal yang dicabangkan harus tetap sama nilainya. Pindah melawan arah (ke hulu) berarti sinyal belum melewati \(G\), jadi cabangnya harus diberi \(G\); pindah searah (ke hilir) berarti sudah terlanjur dikali \(G\), jadi dikompensasi \(\frac{1}{G}\).
@@ -2120,7 +2120,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🧪</div>
       <h3>Periksa gain arus searah</h3>
       <p>Bandingkan dengan terbuka: G(0) = 15/4 = 3,75. Umpan balik menurunkan gain seperti yang diharapkan.</p>
-      <div class="formula">\(T(0) = \frac{15}{7} = 2,143\)</div>
+      <div class="formula">\(T(0) = \frac{15}{7} = 2{,}143\)</div>
     </div>
   </div>
   <div class="tip-box reveal rumus-jelas"><strong>🔤 Arti notasi:</strong>

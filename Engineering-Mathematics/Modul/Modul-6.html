@@ -356,7 +356,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,.02)}
 .comp-card.comp-hard .comp-pts{background:rgba(236,72,153,.12);border-color:rgba(236,72,153,.3);color:var(--pink);font-weight:700}
 .comp-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .comp-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;width:36px;height:36px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1}
+.comp-q{font-size:15px;color:#e2e8f0;font-weight:500;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .comp-pts{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);color:var(--amber);flex-shrink:0}
 .comp-hint{background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.2);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--muted)}
 .comp-hint code{font-family:'JetBrains Mono',monospace;color:var(--violet);font-size:12px;background:rgba(249,115,22,.1);padding:1px 6px;border-radius:4px}
@@ -1071,6 +1071,9 @@ pre{padding:22px;font-family:'JetBrains Mono',monospace;font-size:13px;line-heig
 #page-modul .anim-var.nw3{--na:249,115,22;--nt:#ffc59b}
 #page-modul .anim-var.nw4{--na:14,165,233;--nt:#a5dcff}
 #page-modul .rumus-notasi{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--nt);background:rgba(var(--na),.14);border:1px solid rgba(var(--na),.38);border-radius:8px;padding:3px 10px;white-space:nowrap}
+#page-modul .rumus-notasi code{font:inherit;color:inherit;background:none;border:0;padding:0}
+@media (min-width:641px){#page-modul .formula-block:has(> .formula-number){padding-right:52px}}
+@media (max-width:640px){#page-modul .formula-number{position:relative;right:auto;top:auto;transform:none;display:block;text-align:right;margin-top:2px}}
 </style>
 <!-- EFEK-MEMUAT:START v2 -->
 <style>
@@ -1748,13 +1751,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🔄</div>
       <h3>Koefisien Variabel</h3>
       <p>Berbeda dengan Pertemuan 5 (a, b, c konstan), di sini koefisien <strong>bergantung pada x</strong>. Karena itu teknik <code>y = e<sup>rx</sup></code> tidak berlaku, kita butuh ansatz berbeda yang sesuai struktur polinomial koefisien.</p>
-      <div class="formula">\(koef = ax^2, bx, c\)</div>
+      <div class="formula">\(\text{koef} = ax^2, bx, c\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Ansatz y = x<sup>m</sup></h3>
       <p>Karena setiap turunan <code>y = x<sup>m</sup></code> tetap menghasilkan kelipatan <code>x<sup>m</sup></code>, semua suku PD reduksi ke <code>x<sup>m</sup> × (polinomial m)</code>. Membagi <code>x<sup>m</sup> ≠ 0</code> meninggalkan <strong>persamaan karakteristik aljabar dalam m</strong>.</p>
-      <div class="formula">\(y = x^m \implies alegbar\)</div>
+      <div class="formula">\(y = x^m \implies \text{alegbar}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌐</div>
@@ -1827,7 +1830,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
 
   <div class="info-box reveal">
-    <strong>Mengapa \(y = x^{m}\) bekerja untuk \(Euler-Cauchy?\)</strong> Pola koefisien <code>x²</code>, <code>x</code>, <code>1</code> di Euler-Cauchy <em>persis cocok</em> dengan turunan \(x^{m}\) yang menghasilkan \(x^{m-2}\), \(x^{m-1}\), \(x^{m}\). Kalikan dengan koefisien <code>x²</code>, <code>x</code>, <code>1</code> dan semua suku menjadi pangkat \(x^{m}\), bisa dibagi habis. Inilah <em>kunci elegant</em> teknik ini: ansatz \(x^{m}\) adalah pasangan alami untuk koefisien \(x^{k}\).
+    <strong>Mengapa \(y = x^{m}\) bekerja untuk Euler-Cauchy?</strong> Pola koefisien <code>x²</code>, <code>x</code>, <code>1</code> di Euler-Cauchy <em>persis cocok</em> dengan turunan \(x^{m}\) yang menghasilkan \(x^{m-2}\), \(x^{m-1}\), \(x^{m}\). Kalikan dengan koefisien <code>x²</code>, <code>x</code>, <code>1</code> dan semua suku menjadi pangkat \(x^{m}\), bisa dibagi habis. Inilah <em>kunci elegant</em> teknik ini: ansatz \(x^{m}\) adalah pasangan alami untuk koefisien \(x^{k}\).
   </div>
 
   <div class="warn-box reveal">
@@ -1866,7 +1869,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🌿</div>
       <h3>Basis Solusi</h3>
       <p>{y₁ = x<sup>m₁</sup>, y₂ = x<sup>m₂</sup>}. Independensi linier dijamin selama m₁ ≠ m₂. Wronskian-nya \(W = (m_2 - m_1) \cdot x^{m_1+m_2-1} \ne 0\) di seluruh <code>x &gt; 0</code>.</p>
-      <div class="formula">\(y_1, y_2 basis\)</div>
+      <div class="formula">\(y_1, y_2 \text{ basis}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">📉</div>
@@ -1896,7 +1899,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
 
     <strong style="color:#fff">Langkah 1 — Identifikasi Koefisien</strong><br>
-    <span style="color:var(--muted);font-size:13px">Bentuk standar \(Euler-Cauchy ax^2y'' + bxy' + cy = 0;\) baca koefisien \(a, b, c\) untuk persamaan karakteristik.</span><br>
+    <span style="color:var(--muted);font-size:13px">Bentuk standar Euler-Cauchy \(ax^2y'' + bxy' + cy = 0;\) baca koefisien \(a, b, c\) untuk persamaan karakteristik.</span><br>
     Bentuk:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a = 1,&nbsp; b = −2,&nbsp; c = −4<br>
     <br>
 
@@ -1942,7 +1945,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
 
     <strong style="color:#fff">Langkah 1 — Identifikasi Koefisien</strong><br>
-    <span style="color:var(--muted);font-size:13px">Bentuk standar \(Euler-Cauchy ax^2y'' + bxy' + cy = 0;\) baca \(a, b, c.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">Bentuk standar Euler-Cauchy \(ax^2y'' + bxy' + cy = 0;\) baca \(a, b, c.\)</span><br>
     Bentuk:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a = 1,&nbsp; b = −4,&nbsp; c = 6<br>
     <br>
 
@@ -1972,7 +1975,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
 
     <strong style="color:#fff">Langkah 1 — Bentuk Persamaan Karakteristik &amp; Faktorkan</strong><br>
-    <span style="color:var(--muted);font-size:13px">Substitusi \(y = x^{m} ke 2x^2y'' - 5xy' + 3y = 0\) memberi \(2m(m-1) - 5m + 3 = 0;\) faktorkan.</span><br>
+    <span style="color:var(--muted);font-size:13px">Substitusi \(y = x^{m}\) ke \(2x^2y'' - 5xy' + 3y = 0\) memberi \(2m(m-1) - 5m + 3 = 0;\) faktorkan.</span><br>
     Karakteristik:    \(2m^2 - 7m + 3 = 0\)<br>
     Faktor:        \((2m - 1)(m - 3) = 0 \implies m_1 = 1/2, m_2 = 3\)<br>
     <br>
@@ -1984,13 +1987,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
     <strong style="color:#fff">Langkah 3 — Hitung Turunan Pertama</strong><br>
     <span style="color:var(--muted);font-size:13px">Turunan pangkat: \((x^{n})' = n \cdot x^{n-1};\) perlu untuk syarat \(y'(1) = 3.\)</span><br>
-    Turunan:        \(y'(x) = ½c_1 \cdot x^{-1/2} + 3c_2 \cdot x^2\)<br>
+    Turunan:        \(y'(x) = \tfrac{1}{2}c_1 \cdot x^{-1/2} + 3c_2 \cdot x^2\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 4 — Terapkan Syarat Awal</strong><br>
     <span style="color:var(--muted);font-size:13px">Substitusi x = 1 menyederhanakan x<sup>n</sup> = 1; hasil sistem 2×2 dalam c₁, c₂.</span><br>
     y(1) = 16:&nbsp;&nbsp;&nbsp;&nbsp; c₁ + c₂ = 16<br>
-    \(y'(1) = 3: ½c_1 + 3c_2 = 3 \implies c_1 = 18, c_2 = -2\)<br>
+    \(y'(1) = 3: \tfrac{1}{2}c_1 + 3c_2 = 3 \implies c_1 = 18, c_2 = -2\)<br>
     <br>
 
     <strong style="color:var(--cyan)">✓ Solusi Khusus:   \(y(x) = 18 \cdot \sqrt{x} - 2 \cdot x^3\)</strong>
@@ -2034,13 +2037,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📐</div>
       <h3>Reduksi Orde — Verifikasi</h3>
       <p>Pendekatan formal: cari y₂ = u(x)·x<sup>m</sup>. Substitusi ke PD asli dan simplifikasi menghasilkan <code>x²·u'' + x·u' = 0</code> ⟺ <code>(xu')' = 0</code>. Integrasi pertama: <code>xu' = const</code>. Integrasi kedua: <code>u(x) = ln x</code>. Jadi y₂ = x<sup>m</sup>·ln x, terbukti.</p>
-      <div class="formula">\(u'' bukan const, tapi 1/x\)</div>
+      <div class="formula">\(u'' \text{ bukan const, tapi } 1/x\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌡️</div>
       <h3>Aplikasi Fisik</h3>
       <p><strong>Stress tangensial pada cangkang silinder homogen</strong> menghasilkan persamaan dengan akar berulang. Solusi <code>c₁ + c₂ ln x</code> (dengan m=0) muncul pada model harga aset Black-Scholes saat <em>volatilitas-rate-bunga match</em>, kasus borderline dalam matematika keuangan.</p>
-      <div class="formula">\(m berulang: borderline\)</div>
+      <div class="formula">\(m \text{ berulang}: \text{borderline}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🧪</div>
@@ -2058,7 +2061,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
 
     <strong style="color:#fff">Langkah 1 — Identifikasi Koefisien</strong><br>
-    <span style="color:var(--muted);font-size:13px">Bentuk standar \(Euler-Cauchy ax^2y'' + bxy' + cy = 0;\) baca koefisien untuk persamaan karakteristik.</span><br>
+    <span style="color:var(--muted);font-size:13px">Bentuk standar Euler-Cauchy \(ax^2y'' + bxy' + cy = 0;\) baca koefisien untuk persamaan karakteristik.</span><br>
     Bentuk:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a = 1,&nbsp; b = 5,&nbsp; c = 4<br>
     <br>
 
@@ -2074,7 +2077,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <br>
 
     <strong style="color:#fff">Langkah 4 — Tulis Solusi Umum</strong><br>
-    <span style="color:var(--muted);font-size:13px">Akar berganda \(di Euler-Cauchy\) butuh basis \({x^{m}, x^{m} \cdot \ln x};\) faktor \(\ln x\) menjamin independensi linier.</span><br>
+    <span style="color:var(--muted);font-size:13px">Akar berganda di Euler-Cauchy butuh basis \(\{x^{m}, x^{m} \cdot \ln x\};\) faktor \(\ln x\) menjamin independensi linier.</span><br>
     Solusi umum:   \(y(x) = (c_1 + c_2 \cdot \ln x) \cdot x^{-2} = (c_1 + c_2 \cdot \ln x)/x^2\)<br>
     <br>
 
@@ -2105,7 +2108,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
 
     <strong style="color:#fff">Langkah 1 — Bentuk Persamaan Karakteristik</strong><br>
-    <span style="color:var(--muted);font-size:13px">Substitusi \(y = x^{m} ke 4x^2y'' - 8xy' + 9y = 0\) menghasilkan \(4m(m-1) - 8m + 9 = 0.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">Substitusi \(y = x^{m}\) ke \(4x^2y'' - 8xy' + 9y = 0\) menghasilkan \(4m(m-1) - 8m + 9 = 0.\)</span><br>
     Karakteristik:    \(4m^2 - 12m + 9 = 0\)<br>
     <br>
 
@@ -2115,7 +2118,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <br>
 
     <strong style="color:#fff">Langkah 3 — Tulis Solusi Umum</strong><br>
-    <span style="color:var(--muted);font-size:13px">Akar berganda \(di Euler-Cauchy\) butuh basis \({x^{m}, x^{m} \cdot \ln x};\) faktor \(\ln x\) memberi independensi linier.</span><br>
+    <span style="color:var(--muted);font-size:13px">Akar berganda di Euler-Cauchy butuh basis \(\{x^{m}, x^{m} \cdot \ln x\};\) faktor \(\ln x\) memberi independensi linier.</span><br>
     <br>
 
     <strong style="color:var(--cyan)">✓ Solusi Umum:   \(y(x) = (c_1 + c_2 \cdot \ln x) \cdot x^{3/2}\)</strong>
@@ -2130,13 +2133,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
 
     <strong style="color:#fff">Langkah 1 — Bentuk Persamaan Karakteristik &amp; Faktorkan</strong><br>
-    <span style="color:var(--muted);font-size:13px">Substitusi \(y = x^{m} ke x^2y'' - 7xy' + 16y = 0\) memberi \(m(m-1) - 7m + 16 = 0; D = 0 \to\) akar berganda.</span><br>
+    <span style="color:var(--muted);font-size:13px">Substitusi \(y = x^{m}\) ke \(x^2y'' - 7xy' + 16y = 0\) memberi \(m(m-1) - 7m + 16 = 0; D = 0 \to\) akar berganda.</span><br>
     Karakteristik:    \(m^2 - 8m + 16 = 0\)<br>
     Faktor:        \((m - 4)^2 = 0 \implies m = 4\) (berganda)<br>
     <br>
 
     <strong style="color:#fff">Langkah 2 — Tulis Solusi Umum</strong><br>
-    <span style="color:var(--muted);font-size:13px">Akar berganda \(di Euler-Cauchy:\) basis \({x^{m}, x^{m} \cdot \ln x};\) faktor \(\ln x\) menjamin independensi linier.</span><br>
+    <span style="color:var(--muted);font-size:13px">Akar berganda di Euler-Cauchy: basis \(\{x^{m}, x^{m} \cdot \ln x\};\) faktor \(\ln x\) menjamin independensi linier.</span><br>
     Solusi umum:   \(y(x) = (c_1 + c_2 \cdot \ln x) \cdot x^4\)<br>
     <br>
 
@@ -2191,14 +2194,14 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="card">
       <div class="card-icon">📊</div>
       <h3>Komponen α dan β</h3>
-      <p><strong>\(\alpha = (a-b)/(2a)\)</strong>: bagian real, mengontrol <em>amplop polinomial</em> x<sup>α</sup>. <strong>\(\beta = √|D|/(2a)\)</strong>: bagian imajiner, adalah <em>frekuensi osilasi dalam ln x</em>. Periode logaritmik = 2π/β; dalam x periode <em>tidak konstan</em>, semakin panjang saat x membesar.</p>
-      <div class="formula">\(\alpha =Re, \beta =Im\)</div>
+      <p><strong>\(\alpha = (a-b)/(2a)\)</strong>: bagian real, mengontrol <em>amplop polinomial</em> x<sup>α</sup>. <strong>\(\beta = \sqrt{|D|}/(2a)\)</strong>: bagian imajiner, adalah <em>frekuensi osilasi dalam ln x</em>. Periode logaritmik = 2π/β; dalam x periode <em>tidak konstan</em>, semakin panjang saat x membesar.</p>
+      <div class="formula">\(\alpha =\operatorname{Re}, \beta =\operatorname{Im}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌊</div>
       <h3>Osilasi Logaritmik</h3>
       <p>Karakter unik: amplitudo tergantung pangkat x (polynomial decay/growth), frekuensi tergantung ln x (semakin lambat saat x besar). Berbeda total dari osilasi periodik biasa! Misalnya pada interval <code>x ∈ [1, 100]</code>, jumlah siklus = β·ln(100)/(2π), bukan β/(2π).</p>
-      <div class="formula">\(freq \to 0 saat x \to \infty\)</div>
+      <div class="formula">\(\text{freq} \to 0 \text{ saat } x \to \infty\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🎵</div>
@@ -2216,7 +2219,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
 
     <strong style="color:#fff">Langkah 1 — Identifikasi Koefisien</strong><br>
-    <span style="color:var(--muted);font-size:13px">Bentuk standar \(Euler-Cauchy ax^2y'' + bxy' + cy = 0;\) baca \(a, b, c.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">Bentuk standar Euler-Cauchy \(ax^2y'' + bxy' + cy = 0;\) baca \(a, b, c.\)</span><br>
     Bentuk:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a = 1,&nbsp; b = 1,&nbsp; c = 4<br>
     <br>
 
@@ -2231,7 +2234,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <br>
 
     <strong style="color:#fff">Langkah 4 — Tulis Solusi Real</strong><br>
-    <span style="color:var(--muted);font-size:13px">Akar \(\alpha \pm \beta i \to\) solusi real \(x^{\alpha } \cdot [c_1 \cdot \cos(\beta \cdot \ln x) + c_2 \cdot \sin(\beta \cdot \ln\) x)]; \(di Euler-Cauchy\) osilasi terjadi dalam \(\ln x,\) bukan \(x.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">Akar \(\alpha \pm \beta i \to\) solusi real \(x^{\alpha } \cdot [c_1 \cdot \cos(\beta \cdot \ln x) + c_2 \cdot \sin(\beta \cdot \ln x)];\) di Euler-Cauchy osilasi terjadi dalam \(\ln x,\) bukan \(x.\)</span><br>
     Solusi umum:   \(y(x) = c_1 \cdot \cos(2 \cdot \ln x) + c_2 \cdot \sin(2 \cdot \ln x)\)<br>
     <br>
 
@@ -2262,7 +2265,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
 
     <strong style="color:#fff">Langkah 1 — Identifikasi Koefisien</strong><br>
-    <span style="color:var(--muted);font-size:13px">Bentuk standar \(Euler-Cauchy ax^2y'' + bxy' + cy = 0;\) baca \(a, b, c.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">Bentuk standar Euler-Cauchy \(ax^2y'' + bxy' + cy = 0;\) baca \(a, b, c.\)</span><br>
     Bentuk:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a = 1,&nbsp; b = 7,&nbsp; c = 25<br>
     <br>
 
@@ -2278,7 +2281,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 
     <strong style="color:#fff">Langkah 4 — Cari Akar Kompleks</strong><br>
     <span style="color:var(--muted);font-size:13px">Rumus kuadrat \(m = (-b \pm \sqrt{D})/(2a);\) pisahkan menjadi \(\alpha\) (real) dan \(\beta\) (imajiner positif).</span><br>
-    Akar:        \(m = (-6 \pm √-64)/2 = -3 \pm 4i \implies \alpha = -3, \beta = 4\)<br>
+    Akar:        \(m = (-6 \pm \sqrt{-64})/2 = -3 \pm 4i \implies \alpha = -3, \beta = 4\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 5 — Tulis Solusi Real</strong><br>
@@ -2297,12 +2300,12 @@ window.jalankanDenganMuat = async function (el, label, fn) {
     <div class="label" style="text-align:left">Penyelesaian Langkah-demi-Langkah</div>
 
     <strong style="color:#fff">Langkah 1 — Bentuk Persamaan Karakteristik</strong><br>
-    <span style="color:var(--muted);font-size:13px">Substitusi \(y = x^{m} ke x^2y'' - 5xy' + 13y = 0\) memberi \(m(m-1) - 5m + 13 = 0.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">Substitusi \(y = x^{m}\) ke \(x^2y'' - 5xy' + 13y = 0\) memberi \(m(m-1) - 5m + 13 = 0.\)</span><br>
     Karakteristik:    \(m^2 - 6m + 13 = 0\)<br>
     <br>
 
     <strong style="color:#fff">Langkah 2 — Hitung Diskriminan &amp; Cari Akar Kompleks</strong><br>
-    <span style="color:var(--muted);font-size:13px">\(D\) &lt; \(0 \to\) akar kompleks konjugat. Pakai rumus kuadrat: \(m = (6 \pm √-16)/2 = 3 \pm 2i.\)</span><br>
+    <span style="color:var(--muted);font-size:13px">\(D\) &lt; \(0 \to\) akar kompleks konjugat. Pakai rumus kuadrat: \(m = (6 \pm \sqrt{-16})/2 = 3 \pm 2i.\)</span><br>
     Diskriminan:&nbsp;&nbsp; D = 36 − 52 = −16 &lt; 0<br>
     Akar:        \(m = 3 \pm 2i \implies \alpha = 3, \beta = 2\)<br>
     <br>
@@ -2367,7 +2370,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📋</div>
       <h3>Teorema Independensi</h3>
       <p>Bila y₁, y₂ adalah solusi dari PD orde 2 homogen di interval I dan <strong>W(x₀) ≠ 0</strong> untuk suatu x₀ ∈ I, maka {y₁, y₂} <em>independen linier</em> dan membentuk <strong>basis solusi</strong>. Untuk Euler-Cauchy interval default <code>I = (0, ∞)</code>.</p>
-      <div class="formula">\(W \ne 0 \implies basis\)</div>
+      <div class="formula">\(W \ne 0 \implies \text{basis}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🔁</div>
@@ -2379,13 +2382,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">✅</div>
       <h3>Cek 3 Kasus Euler-Cauchy</h3>
       <p><strong>D&gt;0</strong>: W = (m₂−m₁)·x<sup>m₁+m₂−1</sup> ≠ 0 untuk x &gt; 0 selama m₁≠m₂. <strong>D=0</strong>: W = x<sup>2m−1</sup> ≠ 0. <strong>D&lt;0</strong>: W = β·x<sup>2α−1</sup> ≠ 0. Semua kasus memberikan basis yang valid di domain x &gt; 0.</p>
-      <div class="formula">\(3 kasus W \ne 0 ✓\)</div>
+      <div class="formula">\(3 \text{ kasus } W \ne 0 ✓\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚠️</div>
       <h3>Contoh Gagal</h3>
       <p>Bila salah menulis y₁ = \(x^2\) dan y₂ = 3x²: W = \(x^2\)·6x − 3x²·2x = 0. Bukan basis, y₂ kelipatan y₁. Sering muncul saat lupa faktor <em>ln x</em> pada kasus akar berulang Euler-Cauchy (analog dengan lupa <em>x</em> di kasus akar berulang Pertemuan 5).</p>
-      <div class="formula">\(W = 0 \implies dependent\)</div>
+      <div class="formula">\(W = 0 \implies \text{dependent}\)</div>
     </div>
   </div>
 
@@ -2426,7 +2429,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📝</div>
       <h3>Langkah Solusi IVP</h3>
       <p>(1) Selesaikan persamaan karakteristik <code>am(m−1) + bm + c = 0</code>. (2) Tulis solusi umum sesuai 3 kasus akar. (3) Hitung y'(x), silakan pakai aturan rantai untuk <code>ln x</code>: <code>(ln x)' = 1/x</code>. (4) Substitusi syarat, sistem linier 2×2 dalam c₁, c₂. (5) Selesaikan sistem.</p>
-      <div class="formula">\(5 langkah \to y khusus\)</div>
+      <div class="formula">\(5 \text{ langkah} \to y \text{ khusus}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">⚙️</div>
@@ -2438,13 +2441,13 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">🎯</div>
       <h3>Trik x₀ = 1</h3>
       <p>Bila syarat boleh dipilih, <strong>pilih x₀ = 1</strong>: \(x^{m}=1\), <code>ln 1 = 0</code>, <code>cos(β·0)=1</code>, <code>sin(β·0)=0</code>, sistem 2×2 menjadi <em>diagonal</em>. Ekstrak c₁ dan c₂ langsung tanpa eliminasi rumit. Inilah mengapa banyak buku memberi syarat di x = 1.</p>
-      <div class="formula">\(x_0=1 \to matriks diagonal\)</div>
+      <div class="formula">\(x_0=1 \to \text{matriks diagonal}\)</div>
     </div>
     <div class="card">
       <div class="card-icon">🌡️</div>
       <h3>BVP — Masalah Radial</h3>
       <p>Pada konduksi panas radial: <code>T(R<sub>dalam</sub>) = T<sub>panas</sub>, T(R<sub>luar</sub>) = T<sub>dingin</sub></code>. Pada defleksi balok berbentuk konsentris: <code>y(R<sub>dalam</sub>) = 0, y(R<sub>luar</sub>) = 0</code> (clamped boundaries). BVP juga sistem 2×2; selalu mungkin diselesaikan kecuali eigenvalue khusus muncul.</p>
-      <div class="formula">\(2 syarat = lengkap\)</div>
+      <div class="formula">\(2 \text{ syarat} = \text{lengkap}\)</div>
     </div>
   </div>
 
@@ -2578,7 +2581,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   <div class="anim-panel reveal">
     <div class="anim-header">
       <div class="anim-dot" style="background:var(--pink)"></div>
-      <span class="anim-title">Animasi \(2\;\text{---}\) Akar \(m di\) Bidang Kompleks: \(m^2 + (b-1)m + c = 0\)</span>
+      <span class="anim-title">Animasi \(2\;\text{---}\) Akar \(m\) di Bidang Kompleks: \(m^2 + (b-1)m + c = 0\)</span>
     </div>
     <div class="anim-body">
       <canvas id="m6cvMPlane" height="320" style="width:100%;display:block;background:#020812;border-radius:10px"></canvas>
@@ -2615,7 +2618,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
               <span id="m6_subst_view" style="display:inline-block;position:relative;width:54px;height:26px;background:rgba(0,224,158,.25);border:2px solid var(--green);border-radius:26px;transition:all .2s;">
                 <span id="m6_subst_knob" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;transform:translateX(0px);"></span>
               </span>
-              <span id="m6_subst_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">\(x-domain: y(x),\) kurva tidak periodik</span>
+              <span id="m6_subst_label" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700;">\(x\)-domain: \(y(x)\), kurva tidak periodik</span>
             </button>
           </div>
         </div>
@@ -2717,7 +2720,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
       <div class="card-icon">📊</div>
       <h3>SciPy via Substitusi Logaritmik</h3>
       <p>Untuk solusi numerik, gunakan substitusi <code>t = ln x</code> mengubah Euler-Cauchy ke koefisien konstan: <code>Ÿ + (b−1)Ẏ + cY = 0</code>. Lalu <code>solve_ivp</code> di domain t, dan <code>y(x) = Y(ln x)</code> di domain x.</p>
-      <div class="formula">\(t = \ln x \to koef konstan\)</div>
+      <div class="formula">\(t = \ln x \to \text{koef konstan}\)</div>
     </div>
   </div>
 
@@ -2793,7 +2796,7 @@ plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">show</span>()</
   <div class="code-wrap reveal">
     <div class="code-header">
       <div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
-      <span class="code-label">Cell \(3\;\text{---}\) Solusi Numerik via Substitusi \(t = \ln x\) (SciPy \(solve_{\text{ivp}})\)</span>
+      <span class="code-label">Cell \(3\;\text{---}\) Solusi Numerik via Substitusi \(t = \ln x\) (SciPy <code>solve_ivp</code>)</span>
       <span class="code-lang">Python</span>
       <button class="code-copy" onclick="cpC(this)">📋 Copy</button>
     </div>
@@ -2894,9 +2897,9 @@ plt.<span class="fn">show</span>()
 
   <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2">
     <div class="label" style="text-align:left">Validasi Tiga Kasus dengan numpy.roots()</div>
-    Akar real berbeda      \((x^2y'' - 4xy' + 6y = 0): numpy.roots([1, -5, 6]) \implies [3, 2] \implies y = C_1 \cdot x^2 + C_2 \cdot x^3\)<br>
-    Akar berganda           \((4x^2y'' - 8xy' + 9y = 0): numpy.roots([4, -12, 9]) \implies [1.5, 1.5] \implies y = (C_1 + C_2 \cdot \ln x) \cdot x^{3/2}\)<br>
-    Akar kompleks          \((x^2y'' + 7xy' + 25y = 0): numpy.roots([1, 6, 25]) \implies [-3 \pm 4j] \implies y = [C_1 \cdot \cos(4 \cdot \ln x) + C_2 \cdot \sin(4 \cdot \ln x)] \cdot x^{-3}\)
+    Akar real berbeda      \((x^2y'' - 4xy' + 6y = 0)\): <code>numpy.roots([1, -5, 6])</code> \(\implies [3, 2] \implies y = C_1 \cdot x^2 + C_2 \cdot x^3\)<br>
+    Akar berganda           \((4x^2y'' - 8xy' + 9y = 0)\): <code>numpy.roots([4, -12, 9])</code> \(\implies [1.5, 1.5] \implies y = (C_1 + C_2 \cdot \ln x) \cdot x^{3/2}\)<br>
+    Akar kompleks          \((x^2y'' + 7xy' + 25y = 0)\): <code>numpy.roots([1, 6, 25])</code> \(\implies [-3 \pm 4j] \implies y = [C_1 \cdot \cos(4 \cdot \ln x) + C_2 \cdot \sin(4 \cdot \ln x)] \cdot x^{-3}\)
   </div>
 
   <p class="reveal" style="margin-top:14px;font-size:14px;color:var(--muted)">
@@ -2926,7 +2929,7 @@ plt.<span class="fn">show</span>()
       <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--amber);flex-shrink:0;min-width:32px">[2]</span>
       <div style="font-size:14px;line-height:1.7">
         Zill, Dennis G. &amp; Wright, Warren S. <em style="color:#fff">Differential Equations with Boundary-Value Problems</em>, 9th Edition. Boston: Cengage, 2017.
-        <br><span style="color:var(--muted);font-size:13px">Section \(4.7\;\text{---}\;Cauchy-Euler\) Equation. Reduksi via \(x = e^{t}\) dan kasus akar berulang dengan \(\ln x.\)</span>
+        <br><span style="color:var(--muted);font-size:13px">Section 4.7 — Cauchy-Euler Equation. Reduksi via \(x = e^{t}\) dan kasus akar berulang dengan \(\ln x.\)</span>
       </div>
     </div>
     <div class="reference-card" style="display:flex;gap:16px;padding:18px 22px;background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-left:3px solid var(--violet);border-radius:10px;align-items:flex-start">
@@ -2961,7 +2964,7 @@ plt.<span class="fn">show</span>()
       <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--violet);flex-shrink:0;min-width:32px">[7]</span>
       <div style="font-size:14px;line-height:1.7">
         Markoni. <em style="color:#fff">Pengantar Dasar Matematika Rekayasa</em>, 1st Edition. Yogyakarta: Graha Ilmu, 2014.
-        <br><span style="color:var(--muted);font-size:13px">Referensi pendamping modul PDF Mercu Buana, penurunan persamaan karakteristik \(Euler-Cauchy\) via substitusi \(y = x^m\) dan aplikasi pada masalah radial.</span>
+        <br><span style="color:var(--muted);font-size:13px">Referensi pendamping modul PDF Mercu Buana, penurunan persamaan karakteristik Euler-Cauchy via substitusi \(y = x^m\) dan aplikasi pada masalah radial.</span>
       </div>
     </div>
   </div>
@@ -3049,7 +3052,7 @@ plt.<span class="fn">show</span>()
 
   <div class="formula-block reveal" style="text-align:left;font-size:13.5px;line-height:2;margin-bottom:24px">
     <div class="label" style="text-align:left">Karakteristik &amp; Tiga Bentuk Solusi Umum</div>
-    Karakteristik:             \(am(m-1) + bm + c = 0 ⟺ am^2 +\) (b−a)m \(+ c = 0\)<br>
+    Karakteristik:             \(am(m-1) + bm + c = 0 ⟺ am^2 + (b-a)m + c = 0\)<br>
     Diskriminan:              \(D = (b-a)^2 - 4ac\)<br>
     \(D\) &gt; \(0\) (akar real berbeda):   \(y = c_1 \cdot x^{m_1} + c_2 \cdot x^{m_2}\)<br>
     \(D = 0\) (akar berganda):       \(y = (c_1 + c_2 \cdot \ln x) \cdot x^{m}\)<br>
@@ -3650,7 +3653,7 @@ plt.<span class="fn">show</span>()
       <div class="fq-inner">
         <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Untuk lapisan logam saja (R₁ = 0.05 m, R₂ = 0.10 m, T₁ = 200°C), asumsikan T₂ awalnya diketahui = 195°C (sedikit lebih dingin karena ada heat flux keluar). Gunakan BVP T(R₁) = T₁, T(R₂) = T₂ pada solusi <code>T(r) = c₁ + c₂·ln r</code>. Lalu hitung heat flux total <strong>\(Q = -k \cdot A \cdot dT/dr \cdot L\)</strong> per panjang pipa, dengan A = 2π·r dan L = 50 m, \(k_{\text{logam}}\) = 50 W/(\(m \cdot K)\).</p>
         <div style="background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:12px">
-          💬 <em>Pertimbangkan: dari BVP, \(c_2 = (T_2-T_1)/\ln(R_2/R_1) = (195-200)/\ln(2) = -7.21 K.\) Heat flux: \(Q = -2\pi \cdot k \cdot L \cdot c_2 = -2\pi \cdot 50 \cdot 50 \cdot (-7.21) \approx 113,250 W = 113.3 kW\) per pipa. Karena profil logaritmik, \(dT/dr = c_2/r\) tidak konstan, gradien lebih curam \(di r\) kecil.</em>
+          💬 <em>Pertimbangkan: dari BVP, \(c_2 = (T_2-T_1)/\ln(R_2/R_1) = (195-200)/\ln(2) = -7.21\ \text{K}.\) Heat flux: \(Q = -2\pi \cdot k \cdot L \cdot c_2 = -2\pi \cdot 50 \cdot 50 \cdot (-7.21) \approx 113{,}250\ \text{W} = 113.3\ \text{kW}\) per pipa. Karena profil logaritmik, \(dT/dr = c_2/r\) tidak konstan, gradien lebih curam di \(r\) kecil.</em>
         </div>
 
         <div class="poll">
@@ -3687,7 +3690,7 @@ plt.<span class="fn">show</span>()
           <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,224,158,.07);border:1px solid rgba(0,224,158,.18);color:var(--green);padding:6px 12px;border-radius:8px;">\(R_3 = R_2 \cdot \exp[2\pi \cdot k_{\text{iso}} \cdot L \cdot (T_2-T_3)/Q]\)</span>
         </div>
         <div style="background:rgba(0,224,158,.04);border:1px solid rgba(0,224,158,.18);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);">
-          💬 <em>Hint: untuk membatasi heat loss \(Q ke\) nilai praktis, pilih \(Q\) target (misal: \(5 kW\) per pipa, jauh lebih kecil dari \(113 kW\) tanpa isolasi). Lalu hitung \(R_3:\) <code>R₃ = 0.10 · exp[2π·0.05·50·(200−60)/5000]</code> \(\approx 0.10 \cdot \exp(0.44) \approx 0.155 m.\) Ketebalan isolasi \(= 5.5 cm.\) Bandingkan dengan kasus tanpa isolasi \((Q=113 kW)\): mengapa isolasi mengurangi heat loss \(23 \times ?\)</em>
+          💬 <em>Hint: untuk membatasi heat loss \(Q\) ke nilai praktis, pilih \(Q\) target (misal: \(5\ \text{kW}\) per pipa, jauh lebih kecil dari \(113\ \text{kW}\) tanpa isolasi). Lalu hitung \(R_3:\) <code>R₃ = 0.10 · exp[2π·0.05·50·(200−60)/5000]</code> \(\approx 0.10 \cdot \exp(0.44) \approx 0.155\ \text{m}.\) Ketebalan isolasi \(= 5.5\ \text{cm}.\) Bandingkan dengan kasus tanpa isolasi \((Q=113\ \text{kW})\): mengapa isolasi mengurangi heat loss \(23 \times ?\)</em>
         </div>
 
         <textarea class="fq-textarea" id="ans-fq3" placeholder="Tulis solusi lengkap (minimal 30 kata)...&#10;&#10;Petunjuk: (1) Tulis BVP untuk lapisan isolasi. (2) Hubungkan dengan Q target dari Q2. (3) Cari R₃ secara analitik atau numerik (scipy bisection/brentq). (4) Bahas: bagaimana kᵢₛₒ rendah bekerja di rumus Euler-Cauchy untuk mengurangi heat loss? Sebutkan satu trade-off praktis (misal: berat, biaya, ruang)." oninput="checkForumReady()"></textarea>
