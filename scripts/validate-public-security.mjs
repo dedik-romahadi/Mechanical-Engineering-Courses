@@ -5181,6 +5181,360 @@ async function ujiMutasiTunggu() {
   katex.ujiMutasiKatex(fs.readFileSync(path.join(root, acuan), "utf8"), acuan);
 }
 
+// Tampilan ponsel (4 Oktober 2026, tinjauan dosen "perbaiki semua"): pemindaian Chrome 96 halaman di 375 px menemukan
+// nomor persamaan TTL/CAD yang menimpa rumus (.formula-main), kartu soal tanpa min-width:0, bar judul Setup yang
+// memenggal nama berkas, label sel kode yang bertumpuk dan terpotong, tab navigasi Modul 1 yang keluar layar, tautan/kode/
+// label panjang yang terpotong kartu, dan kisi inline selebar >= 260 px. Satu blok <style id="rapikan-ponsel"> + <script
+// id="rapikan-ponsel-js"> dipasang scripts/rapikan-ponsel.mjs di <head> keenam course (14 modul + UTS + UAS); seluruh aturannya di
+// dalam @media (max-width:640px) atau lebih sempit, kecuali paritas `.comp-q` dan dua blok label sel kode yang dipatok persis
+// (<= 900 px: SEMUA header sel kode memakai baris label sendiri dan kartu soal/opsi PG memecah token tak terpatahkan;
+// >= 901 px: lebar label dibatasi agar tidak menimpa titik hias/bahasa/Copy). Putaran 2 (sapuan 641-1280 px): header sel kode
+// bertumpuk di 641-1100 px, jadi dua blok itu ada; desktop (>= 901 px) tidak berubah selain label yang memang bertabrakan.
+// Putaran 4 (peninjauan kembali): kotak catatan/judul bagian patah kata, kepala kartu PG/BS membungkus, papan Top Akses satu
+// kolom, ruang 4 px untuk julur KaTeX di wadah gulir. Skrip kecilnya menaruh tab navigasi aktif di tengah strip, hanya di
+// <= 640 px. Pedoman §2 butir (22).
+{
+  const rp = await import(new URL("./rapikan-ponsel.mjs", import.meta.url));
+  if ([...rp.KURSUS].sort().join() !== [...courseRoots].sort().join()) throw new Error("rapikan-ponsel: KURSUS harus sama dengan courseRoots (keenam course)");
+  const halamanPonsel = rp.daftarHalaman();
+  if (halamanPonsel.length !== 16 * courseRoots.length) throw new Error(`rapikan-ponsel: expected ${16 * courseRoots.length} module/exam pages, got ${halamanPonsel.length}`);
+  // Aturan wajib dipatok di sini, terpisah dari skrip: menghapusnya dari CSS skrip (lalu menjalankan ulang skrip) mematikan
+  // perbaikannya tanpa satu halaman pun gagal. Dua daftar: WAJIB_UTAMA (diberi nama) dan WAJIB_LAIN (selebihnya, bernama selektornya);
+  // gabungan keduanya meliputi SETIAP aturan di blok selain pembuka @media (putaran 3: dulu hanya separuh yang dipatok, jadi aturan
+  // opsi PG, .fq-body, atau baris modal Atur Jadwal bisa dihapus tanpa ditolak).
+  const WAJIB_UTAMA = [
+    ["nomor persamaan turun ke baris sendiri", ".formula-main>.formula-number{position:static;display:block;text-align:right;transform:none;margin-top:2px}"],
+    ["isi .formula-main tanpa ruang nomor", ".formula-main{padding-right:0;overflow-x:auto}"],
+    ["rumus tak terpatahkan digulir di kotaknya", "#page-modul .formula-block{overflow-x:auto;padding-left:14px;padding-right:14px}"],
+    ["kotak rumus kartu digulir", "#page-modul .card .formula{max-width:100%;overflow-x:auto;overflow-y:hidden}"],
+    ["petunjuk gulir: bilah tipis tetap tampak", ".formula-main::-webkit-scrollbar,#page-modul .formula-block::-webkit-scrollbar,#page-modul .card .formula::-webkit-scrollbar{height:5px}"],
+    ["kartu soal boleh menyempit dan patah kata", ".mc-q,.tf-q,.comp-q{min-width:0;overflow-wrap:anywhere;overflow-x:auto;padding-block:.45em;margin-block:-.45em;padding-right:4px;margin-right:-4px}"],
+    ["opsi PG boleh menyempit", ".radio-option>span,.p-opt>span{min-width:0;overflow-x:auto;padding-block:.4em;margin-block:-.4em;padding-right:4px;margin-right:-4px}"],
+    ["kartu soal PG/BS dan opsi PG memecah token tak terpatahkan di semua lebar (di luar media)", ".mc-q,.tf-q,.p-opt,.radio-option{min-width:0;overflow-wrap:anywhere}"],
+    ["kotak umpan balik: teks dipatah, rumus digulir", ".p-fb,.feedback{overflow-wrap:anywhere;overflow-x:auto}"],
+    ["kepala kartu PG/BS membungkus", ".mc-header,.tf-header{flex-wrap:wrap;row-gap:8px}"],
+    ["poin kartu PG/BS di baris pertama", ".mc-pts,.tf-pts{order:1;margin-left:auto}"],
+    ["teks soal PG/BS selebar kartu", ".mc-q,.tf-q{order:2;flex:1 1 100%}"],
+    ["paritas .comp-q (di luar media)", ".comp-q{min-width:0;overflow-wrap:break-word}"],
+    ["label sel kode membungkus", ".code-header{flex-wrap:wrap;row-gap:6px}"],
+    ["label sel kode turun ke baris sendiri", ".code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}"],
+    ["label sel kode laptop tidak menimpa kluster kiri/kanan", ".code-header .code-label{width:max-content;max-width:calc(100% - 284px);white-space:normal;text-align:center;overflow-wrap:anywhere}"],
+    ["kepala kartu komputasi membungkus", ".comp-header{flex-wrap:wrap;row-gap:8px}"],
+    ["poin kartu komputasi di baris pertama", ".comp-pts{order:1;margin-left:auto}"],
+    ["teks soal komputasi selebar kartu", ".comp-q{order:2;flex:1 1 100%}"],
+    ["kode inline patah kata", ":not(pre)>code{overflow-wrap:anywhere}"],
+    ["kartu pustaka patah kata", ".reference-card{overflow-wrap:anywhere}"],
+    ["paragraf dan butir kartu patah kata", ".card :is(p,li){overflow-wrap:anywhere}"],
+    ["kotak catatan patah kata", ".info-box,.tip-box,.warn-box,.warning-box,.analogy-box{overflow-wrap:anywhere}"],
+    ["judul bagian, deskripsi bagian, dan petunjuk soal patah kata", "h2,h3,.section-desc,.comp-hint{overflow-wrap:anywhere}"],
+    ["papan Top Skor/Top Akses satu kolom", "#leaderboardPanel>div:first-child{grid-template-columns:minmax(0,1fr)!important}"],
+    ["legenda notasi: chip simbol boleh pindah baris", ".anim-var{flex-wrap:wrap;row-gap:6px}"],
+    ["legenda notasi: deskripsi tak terjepit di bawah 9rem", ".anim-var>span:last-child{flex:1 1 auto;min-width:min(9rem,100%);overflow-wrap:break-word}"],
+    ["judul hero hanya diperkecil lewat --ponsel-hero", "h1.hero-title[style*=\"--ponsel-hero\"]{font-size:var(--ponsel-hero)!important}"],
+    ["kisi inline 260 px", "[style*=\"minmax(260px,1fr)\"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))!important}"],
+    ["tab navigasi digulir", "nav .nav-tabs{gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}"],
+    ["label kolom kode soal membungkus", ".input-label{flex-wrap:wrap;row-gap:2px}"],
+    ["panduan Export tidak memaksa lebar 240 px", ".score-export-copy{min-width:0!important}"],
+    ["Setup: Copy tetap sebaris", "html :is(#page-setup,#page-python) .sp-cbh{flex-wrap:nowrap;gap:.5rem;padding:.5rem .8rem}"],
+    ["Setup: judul boleh menyempit", "html :is(#page-setup,#page-python) .sp-cbh-left{flex:1 1 0;min-width:0}"],
+    ["Setup: tombol Copy tidak menyusut", "html :is(#page-setup,#page-python) .sp-cbh-copy{flex:0 0 auto;white-space:nowrap}"],
+    ["Setup: kolom langkah dilebarkan", "html :is(#page-setup,#page-python) .sp-step{padding-left:46px}"],
+  ];
+  const WAJIB_LAIN = [
+    ".code-header .code-copy{margin-left:auto}",
+    ".comp-q{overflow-wrap:anywhere}",
+    ".formula-main::-webkit-scrollbar-track,#page-modul .formula-block::-webkit-scrollbar-track,#page-modul .card .formula::-webkit-scrollbar-track{background:rgba(148,163,184,.14);border-radius:3px}",
+    ".formula-main::-webkit-scrollbar-thumb,#page-modul .formula-block::-webkit-scrollbar-thumb,#page-modul .card .formula::-webkit-scrollbar-thumb{background:rgba(148,163,184,.6);border-radius:3px}",
+    ".radio-option,.p-opt{min-width:0;overflow-wrap:anywhere}",
+    ".comp-num{order:0}",
+    ".mc-num,.tf-num{order:0}",
+    ".reference-card>*{min-width:0}",
+    ".anim-var>code{white-space:normal;overflow-wrap:anywhere;min-width:0;flex-shrink:1}",
+    ".fq-body{overflow-x:auto}",
+    "[style*=\"minmax(220px,1fr)\"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))!important}",
+    "[style*=\"minmax(240px,1fr)\"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))!important}",
+    "[style*=\"minmax(280px,1fr)\"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important}",
+    "nav{padding-left:12px;padding-right:12px;gap:8px}",
+    "nav .nav-tabs::-webkit-scrollbar{display:none}",
+    "nav .nav-tab{flex:0 0 auto;padding-left:8px;padding-right:8px}",
+    ".cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}",
+    ".anim-title{min-width:0;overflow-wrap:anywhere}",
+    ".input-label>span{min-width:0;max-width:100%;overflow-wrap:anywhere}",
+    ".analogy-label{max-width:100%;flex-wrap:wrap}",
+    "#scheduleOverlay .visitor-modal>div[style*=\"display:flex\"]{flex-wrap:wrap}",
+    "#scheduleOverlay .visitor-modal>div[style*=\"display:flex\"]>div{min-width:0;flex:1 1 130px!important}",
+    "#scheduleOverlay .v-input{min-width:0;max-width:100%}",
+    ".berkas-input{min-width:0;max-width:100%}",
+    "html .pm-centang .pm-status{white-space:normal;flex:0 1 auto;min-width:0;max-width:calc(100% - 42px)}",
+    "html :is(#page-setup,#page-python) .sp-wrap{padding:0 12px}",
+    "html :is(#page-setup,#page-python) .sp-timeline::before{left:16px}",
+    "html :is(#page-setup,#page-python) .sp-dot{left:2px;width:28px;height:28px;font-size:.8rem}",
+    "html :is(#page-setup,#page-python) .sp-head{padding:1.1rem 1rem .5rem}",
+    "html :is(#page-setup,#page-python) .sp-body{padding:.5rem 1rem 1.25rem}",
+    "html :is(#page-setup,#page-python) .sp-body a{overflow-wrap:anywhere}",
+    "html :is(#page-setup,#page-python) .sp-cbh-dots{display:none}",
+    "html :is(#page-setup,#page-python) .sp-cbd{padding:.9rem 1rem}",
+    "nav .nav-tab{padding-left:6px;padding-right:6px}",
+    "html :is(#page-setup,#page-python) .sp-step{padding-left:38px}",
+    "html :is(#page-setup,#page-python) .sp-body{padding:.5rem .75rem 1rem}",
+    "html :is(#page-setup,#page-python) .sp-cbh{padding:.5rem .6rem}",
+    "html :is(#page-setup,#page-python) .sp-cbh-copy{padding:.3rem .5rem}",
+  ];
+  const WAJIB_PONSEL = [...WAJIB_UTAMA, ...WAJIB_LAIN.map((aturan) => [aturan.slice(0, aturan.indexOf("{")).slice(0, 90), aturan])];
+  // Angka label sel kode per course (tepi kanan kluster kiri bar: titik hias + pil bahasa, px; Chrome 1280 px): dipatok di sini
+  // supaya mengubahnya (mis. kembali ke satu angka 436 px untuk semua course, yang menimpa header yang tidak bertabrakan) ditolak.
+  const KIRI_WAJIB = { standar: 140, "Engineering-Mathematics": 154, "Pemodelan-Computer-Aided-Design": 206 };
+  if (rp.KIRI_STANDAR !== KIRI_WAJIB.standar || rp.JARAK_LABEL !== 2 || JSON.stringify(rp.KIRI_KURSUS) !== JSON.stringify({ "Engineering-Mathematics": 154, "Pemodelan-Computer-Aided-Design": 206 })) {
+    throw new Error("rapikan-ponsel: KIRI_STANDAR/KIRI_KURSUS/JARAK_LABEL berbeda dari angka yang dipatok validator (Pedoman §2 butir (22)(d))");
+  }
+  // Blok di luar @media (max-width:640px) yang diizinkan, dipatok persis: tablet <= 900 px (label sel kode turun ke baris
+  // sendiri; kartu soal dan opsi PG boleh menyempit dan memecah token tak terpatahkan) dan laptop >= 901 px (lebar label dibatasi
+  // per course). Melebarkan media-nya (mis. min-width:641px) mengubah tata letak yang sekarang tidak bertabrakan, jadi ditolak.
+  const BLOK_TABLET = [
+    "@media (max-width:900px){",
+    ".code-header{flex-wrap:wrap;row-gap:6px}",
+    ".code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}",
+    ".code-header .code-copy{margin-left:auto}",
+    ".comp-q{overflow-wrap:anywhere}",
+    "}",
+  ].join("\n");
+  const blokLaptop = (kiri) => [
+    "@media (min-width:901px){",
+    `.code-header .code-label{width:max-content;max-width:calc(100% - ${2 * (kiri + 2)}px);white-space:normal;text-align:center;overflow-wrap:anywhere}`,
+    "}",
+  ].join("\n");
+  const BLOK_LAPTOP = blokLaptop(KIRI_WAJIB.standar);
+  const TANPA_MEDIA = [".comp-q{min-width:0;overflow-wrap:break-word}", ".mc-q,.tf-q,.p-opt,.radio-option{min-width:0;overflow-wrap:anywhere}", BLOK_TABLET, ...Object.values(KIRI_WAJIB).map(blokLaptop)];
+  // Isi tiap blok @media (max-width:640/560/360px) dipatok persis (putaran 5): aturan tambahan di blok itu (mis. penimpa "!important"
+  // sesudah aturan wajib, yang lolos dari cek "aturan wajib ada") dan aturan wajib yang dipindah ke @media yang lebih sempit/lebar
+  // ditolak. Daftarnya diturunkan dari WAJIB_PONSEL: yang sudah ada di blok tanpa media/tablet/laptop (TANPA_MEDIA) tidak termasuk,
+  // lima aturan Setup 360 px dan sisa aturan Setup 560 px dipisahkan, selebihnya di blok 640 px. Urutan antar-aturan tidak dipatok.
+  const WAJIB_360 = [
+    "nav .nav-tab{padding-left:6px;padding-right:6px}",
+    "html :is(#page-setup,#page-python) .sp-step{padding-left:38px}",
+    "html :is(#page-setup,#page-python) .sp-body{padding:.5rem .75rem 1rem}",
+    "html :is(#page-setup,#page-python) .sp-cbh{padding:.5rem .6rem}",
+    "html :is(#page-setup,#page-python) .sp-cbh-copy{padding:.3rem .5rem}",
+  ];
+  const SETUP = "html :is(#page-setup,#page-python)";
+  const semuaWajib = WAJIB_PONSEL.map(([, aturan]) => aturan);
+  const WAJIB_BLOK = {
+    360: WAJIB_360,
+    560: semuaWajib.filter((a) => a.startsWith(SETUP) && !WAJIB_360.includes(a)),
+    640: semuaWajib.filter((a) => !TANPA_MEDIA.some((b) => b.includes(a)) && !a.startsWith(SETUP) && !WAJIB_360.includes(a)),
+  };
+  const bagiAturan = (isi) => {
+    const hasil = [];
+    let d = 0, mulai = 0;
+    for (let i = 0; i < isi.length; i += 1) {
+      if (isi[i] === "{") d += 1;
+      else if (isi[i] === "}") { d -= 1; if (d === 0) { hasil.push(isi.slice(mulai, i + 1).trim()); mulai = i + 1; } }
+    }
+    return hasil;
+  };
+  // Skrip kecil di blok (tab navigasi aktif ke tengah strip): hanya di <= 640 px, hanya membaca DOM navigasi dan menggeser
+  // scrollLeft strip — tanpa jaringan, penyimpanan, HTML dinamis, atau eval.
+  const WAJIB_JS = [
+    ["hanya di <= 640 px", "window.matchMedia('(max-width:640px)')"],
+    ["berhenti bila media tidak cocok", "if (!mq || !mq.matches) return;"],
+    ["hanya strip yang bisa digulir", "strip.scrollWidth <= strip.clientWidth + 1"],
+    ["menggeser scrollLeft strip", "strip.scrollLeft +="],
+    ["mengamati hanya atribut class", "attributeFilter: ['class']"],
+    ["judul hero: hanya satu properti kustom", "h.style.setProperty('--ponsel-hero',"],
+    ["judul hero: properti dilepas lebih dulu (di > 640 px tetap lepas)", "h.style.removeProperty('--ponsel-hero');"],
+    ["judul hero: hanya di <= 640 px", "if (!mq || !mq.matches || !h.clientWidth) continue;"],
+    ["judul hero: hanya diperkecil, tak pernah di bawah 22 px", "Math.max(22, Math.floor(fs * kotak / isi * 98) / 100)"],
+    ["judul hero: batas terkecil kotak h1 dan kotak isi .hero (anak flex melebar)", "Math.min(h.clientWidth, sedia(h))"],
+  ];
+  const periksaJsPonsel = (js) => {
+    const masalah = [];
+    for (const [nama, potongan] of WAJIB_JS) if (!js.includes(potongan)) masalah.push(`skrip ponsel: ${nama} hilang`);
+    const terlarang = /\b(?:fetch|XMLHttpRequest|WebSocket|eval|Function|localStorage|sessionStorage|indexedDB)\b|\.cookie\b|\binnerHTML\b|\bdocument\.write\b|\bimport\s*\(|\bscrollIntoView\b|\.focus\s*\(/.exec(js);
+    if (terlarang) masalah.push(`skrip ponsel memakai ${terlarang[0]}`);
+    // Setiap MutationObserver.observe(...) hanya boleh mengamati atribut class (jumlah panggilan = jumlah attributeFilter: ['class']); style/teks tidak diamati (pasHero menulis style).
+    if ((js.match(/\.observe\(/g) || []).length !== (js.match(/attributeFilter: \['class'\]/g) || []).length) masalah.push("skrip ponsel: tiap observe() harus berfilter atribut class");
+    if ((js.match(/<\/?script/gi) || []).length) masalah.push("skrip ponsel memuat tag script");
+    return masalah;
+  };
+  // `kiri`: tepi kanan kluster kiri bar sel kode course yang dicek; aturan wajib label laptop ditulis untuk course standar (284 px) dan disesuaikan.
+  const cadangan = (kiri) => 2 * (kiri + 2);
+  const periksaCssPonsel = (css, kiri = KIRI_WAJIB.standar) => {
+    const masalah = [];
+    for (const [nama, aturan] of WAJIB_PONSEL) {
+      const wajib = aturan.replace(`calc(100% - ${cadangan(KIRI_WAJIB.standar)}px)`, () => `calc(100% - ${cadangan(kiri)}px)`);
+      if (!css.includes(wajib)) masalah.push(`aturan wajib hilang: ${nama}`);
+    }
+    const t = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    // Ukuran asli judul hero tidak boleh diubah (putaran 1 membesarkannya 24% di 435-640 px): hanya var(--ponsel-hero) yang diisi skrip untuk judul yang tak muat.
+    if (/hero-title[^{}]*\{[^}]*font-size:(?!var\(--ponsel-hero\))/.test(t)) masalah.push("ukuran font judul hero diubah selain lewat var(--ponsel-hero)");
+    let dalam = 0, awal = 0;
+    const atas = [];
+    for (let i = 0; i < t.length; i += 1) {
+      if (t[i] === "{") dalam += 1;
+      else if (t[i] === "}") { dalam -= 1; if (dalam === 0) { atas.push(t.slice(awal, i + 1).trim()); awal = i + 1; } if (dalam < 0) break; }
+    }
+    if (dalam !== 0 || t.slice(awal).trim()) masalah.push("kurung kurawal CSS tidak seimbang");
+    for (const a of atas) {
+      if (TANPA_MEDIA.includes(a.replace(/\r\n/g, "\n"))) continue;
+      const media = /^@media \(max-width:(\d+)px\)\{/.exec(a);
+      if (media) { if (Number(media[1]) > 640) masalah.push(`@media (max-width:${media[1]}px) melebihi 640 px dan bukan blok tablet yang dipatok — mengubah tablet/desktop`); }
+      else masalah.push(`aturan di luar @media (max-width:640px): ${a.slice(0, 60)}`);
+    }
+    const perLebar = {};
+    for (const a of atas) {
+      const m = /^@media \(max-width:(\d+)px\)\{/.exec(a);
+      if (m) (perLebar[m[1]] ||= []).push(a);
+    }
+    for (const lebar of Object.keys(perLebar)) if (!(lebar in WAJIB_BLOK) && Number(lebar) <= 640 && !perLebar[lebar].every((a) => TANPA_MEDIA.includes(a))) masalah.push(`@media (max-width:${lebar}px) tidak dikenal (hanya 640, 560, dan 360 px)`);
+    for (const [lebar, wajib] of Object.entries(WAJIB_BLOK)) {
+      const blok = perLebar[lebar] || [];
+      if (blok.length !== 1) { masalah.push(`@media (max-width:${lebar}px) harus tepat satu blok, ada ${blok.length}`); continue; }
+      const sisa = [...wajib];
+      for (const aturan of bagiAturan(blok[0].slice(blok[0].indexOf("{") + 1, blok[0].lastIndexOf("}")))) {
+        const i = sisa.indexOf(aturan);
+        if (i >= 0) sisa.splice(i, 1);
+        else masalah.push(`aturan tak dikenal di @media (max-width:${lebar}px): ${aturan.slice(0, 70)} (aturan baru dipatok di validator; penimpa dan pemindahan antar-@media ditolak)`);
+      }
+      for (const aturan of sisa) masalah.push(`aturan wajib tidak di @media (max-width:${lebar}px): ${aturan.slice(0, 70)}`);
+    }
+    return masalah;
+  };
+  const cssAcuan = [...periksaCssPonsel(rp.CSS), ...Object.values(KIRI_WAJIB).flatMap((kiri) => periksaCssPonsel(rp.buatCss(kiri), kiri)), ...periksaJsPonsel(rp.JS)];
+  if (cssAcuan.length) throw new Error(`rapikan-ponsel: CSS/JS skrip ditolak: ${cssAcuan[0]}${cssAcuan.length > 1 ? ` (dan ${cssAcuan.length - 1} lagi)` : ""}`);
+  for (const relative of halamanPonsel) {
+    const masalah = rp.periksaPonsel(fs.readFileSync(path.join(root, relative), "utf8"), relative);
+    if (masalah.length) throw new Error(`${relative}: ${masalah[0]} — node scripts/rapikan-ponsel.mjs (urutan injector, Pedoman §17.1)`);
+  }
+  // Uji mutasi: halaman acuan (TTL Modul 2, turunan kerangka) dan CSS skrip yang dirusak harus ditolak.
+  const acuan = path.join("Teknik-Tenaga-Listrik", "Modul", "Modul-2.html");
+  const html = fs.readFileSync(path.join(root, acuan), "utf8");
+  const blok = html.match(/<!-- RAPIKAN-PONSEL:START[\s\S]*?<!-- RAPIKAN-PONSEL:END[^>]*-->/)[0];
+  const mutasiHalaman = [
+    ["blok dihapus", html.replace(blok, () => "")],
+    ["pembungkus komentar dibuang", html.replace(blok, () => blok.replace(/<!--[^>]*-->\r?\n?/g, ""))],
+    ["blok digandakan", html.replace(blok, () => blok + "\n" + blok)],
+    ["blok dipindah ke <body>", html.replace(blok, () => "").replace("</body>", () => blok + "</body>")],
+    ["label sel kode tablet kembali ditengahkan absolut", html.replace(blok, () => blok.replace(".code-header .code-label{position:static;", () => ".code-header .code-label{position:absolute;"))],
+    ["aturan keluar dari @media", html.replace(blok, () => blok.replace("@media (max-width:640px){", () => "@media (max-width:900px){"))],
+    ["label sel kode laptop diperluas ke tablet", html.replace(blok, () => blok.replace("@media (min-width:901px){", () => "@media (min-width:641px){"))],
+    ["skrip ponsel aktif di semua lebar", html.replace(blok, () => blok.replace("window.matchMedia('(max-width:640px)')", () => "window.matchMedia('(max-width:5000px)')"))],
+    ["skrip ponsel dibuang", html.replace(blok, () => blok.replace(/<script id="rapikan-ponsel-js">[\s\S]*?<\/script>\r?\n?/, ""))],
+  ];
+  for (const [nama, salinan] of mutasiHalaman) {
+    if (salinan === html) throw new Error(`${acuan}: uji mutasi rapikan-ponsel "${nama}" tidak mengubah halaman`);
+    if (!rp.periksaPonsel(salinan, acuan).length) throw new Error(`${acuan}: rapikan-ponsel menerima halaman bermutasi (${nama})`);
+  }
+  // Angka label sel kode per course (Pedoman §2 butir (22)(d)): halaman CAD/Matematika 4 yang memakai angka standar, atau halaman
+  // TTL yang memakai angka CAD (satu angka untuk semua course mengubah header yang tidak bertabrakan), harus ditolak.
+  for (const [berkas, benar, salah] of [
+    [path.join("Pemodelan-Computer-Aided-Design", "Modul", "Modul-2.html"), cadangan(KIRI_WAJIB["Pemodelan-Computer-Aided-Design"]), cadangan(KIRI_WAJIB.standar)],
+    [path.join("Engineering-Mathematics", "Modul", "Modul-2.html"), cadangan(KIRI_WAJIB["Engineering-Mathematics"]), cadangan(KIRI_WAJIB.standar)],
+    [acuan, cadangan(KIRI_WAJIB.standar), cadangan(KIRI_WAJIB["Pemodelan-Computer-Aided-Design"])],
+  ]) {
+    const isi = fs.readFileSync(path.join(root, berkas), "utf8");
+    const patokan = `max-width:calc(100% - ${benar}px)`;
+    if (!isi.includes(patokan)) throw new Error(`${berkas}: blok ponsel tidak memuat ${patokan} (angka label sel kode course ini, Pedoman §2 butir (22)(d))`);
+    if (!rp.periksaPonsel(isi.replace(patokan, () => `max-width:calc(100% - ${salah}px)`), berkas).length) throw new Error(`${berkas}: rapikan-ponsel menerima angka label sel kode course lain (calc(100% - ${salah}px))`);
+  }
+  const mutasiCss = [
+    ...WAJIB_PONSEL.map(([nama, aturan]) => [`hapus aturan: ${nama}`, rp.CSS.replace(aturan, () => "")]),
+    ["@media (max-width:640px) diperlebar ke 900 px", rp.CSS.replace("@media (max-width:640px){", () => "@media (max-width:900px){")],
+    ["aturan baru di luar @media", rp.CSS + "\nbody{overflow-x:hidden}\n"],
+    ["pembuka @media dibuang", rp.CSS.replace("@media (max-width:640px){", () => "")],
+    ["blok tablet diperlebar ke 1100 px", rp.CSS.replace("@media (max-width:900px){", () => "@media (max-width:1100px){")],
+    ["blok laptop diperluas ke 641 px", rp.CSS.replace("@media (min-width:901px){", () => "@media (min-width:641px){")],
+    ["blok laptop ikut mengubah lebar maksimum label", rp.CSS.replace("max-width:calc(100% - 284px)", () => "max-width:calc(100% - 300px)")],
+    ["aturan penimpa !important ditambahkan di blok 640 px (nomor persamaan kembali absolut)", rp.CSS.replace("@media (max-width:640px){", (a) => a + "\n.formula-main>.formula-number{position:absolute!important}")],
+    ["aturan penimpa tanpa !important ditambahkan di blok 640 px (padding nomor kembali 60 px)", rp.CSS.replace("@media (max-width:640px){", (a) => a + "\n.formula-main{padding-right:60px}")],
+    ["blok @media (max-width:640px) kedua menimpa", rp.CSS + "\n@media (max-width:640px){\n.formula-main{padding-right:60px}\n}\n"],
+    ["aturan wajib .fq-body dipindah ke @media (max-width:360px)", rp.CSS.replace(".fq-body{overflow-x:auto}\n", "").replace("@media (max-width:360px){", (a) => a + "\n.fq-body{overflow-x:auto}")],
+    ["aturan wajib .formula-main dipindah ke @media (max-width:560px)", rp.CSS.replace(".formula-main{padding-right:0;overflow-x:auto}\n", "").replace("@media (max-width:560px){", (a) => a + "\n.formula-main{padding-right:0;overflow-x:auto}")],
+    ["aturan wajib Setup 560 px dipindah ke blok 640 px", rp.CSS.replace("html :is(#page-setup,#page-python) .sp-wrap{padding:0 12px}\n", "").replace("@media (max-width:640px){", (a) => a + "\nhtml :is(#page-setup,#page-python) .sp-wrap{padding:0 12px}")],
+    ["aturan baru di blok 360 px", rp.CSS.replace("@media (max-width:360px){", (a) => a + "\n.formula-main{overflow-x:visible}")],
+    ["@media (max-width:480px) tak dikenal", rp.CSS + "\n@media (max-width:480px){\n.formula-main{padding-right:60px}\n}\n"],
+    ["ukuran judul hero diubah tanpa --ponsel-hero", rp.CSS.replace("h1.hero-title[style*=\"--ponsel-hero\"]{font-size:var(--ponsel-hero)!important}", (a) => a + "\nh1.hero-title{font-size:clamp(34px,11.5vw,62px)}")],
+  ];
+  for (const [nama, css] of mutasiCss) {
+    if (css === rp.CSS) throw new Error(`rapikan-ponsel: uji mutasi CSS "${nama}" tidak mengubah CSS`);
+    if (!periksaCssPonsel(css).length) throw new Error(`rapikan-ponsel: periksaCssPonsel menerima CSS bermutasi (${nama})`);
+  }
+  const mutasiJs = [
+    ...WAJIB_JS.map(([nama, potongan]) => [`hapus: ${nama}`, rp.JS.split(potongan).join("")]),
+    ["pengamat tanpa attributeFilter class (satu dari dua)", rp.JS.replace("{ attributes: true, attributeFilter: ['class'], subtree: true }", () => "{ attributes: true, subtree: true }")],
+    ["jaringan", rp.JS.replace("function pasang() {", () => "function pasang() { fetch('/x');")],
+    ["innerHTML", rp.JS.replace("function pasang() {", () => "function pasang() { document.body.innerHTML = '';")],
+    ["scrollIntoView menggulir halaman", rp.JS.replace("function pasang() {", () => "function pasang() { document.body.scrollIntoView();")],
+  ];
+  for (const [nama, js] of mutasiJs) {
+    if (js === rp.JS) throw new Error(`rapikan-ponsel: uji mutasi JS "${nama}" tidak mengubah skrip`);
+    if (!periksaJsPonsel(js).length) throw new Error(`rapikan-ponsel: periksaJsPonsel menerima skrip bermutasi (${nama})`);
+  }
+
+  // Rumus bernomor TTL/CAD (.formula-main) bertitik patah: pustaka.pecah_rumus (kedua pustaka.py dan modul_1.py TTL) menyisipkan
+  // \allowbreak sesudah \qquad/\quad dan memecah \text{…} yang lebih panjang dari 30 karakter. Tanpa itu satu rumus lebar tak bisa
+  // dipatah: di ponsel meluap/digulir sampai 700 px, dan di layar lebih lebar nomor persamaan "(n)" (absolut di kanan) menimpa
+  // bagian yang melebihi kotak (TTL Modul 13 Persamaan (4) di 1280 px). Hanya kedalaman nol (di luar kurawal, \left…\right,
+  // \begin…\end) yang diperiksa, sama dengan KaTeX yang hanya mematahkan baris di sana. Pedoman §2 butir (24).
+  const rumusTanpaTitikPatah = (latex) => {
+    const masalah = [];
+    let dalam = 0, lingkup = 0;
+    for (let i = 0; i < latex.length; i += 1) {
+      const c = latex[i];
+      if (c === "{") dalam += 1;
+      else if (c === "}") dalam -= 1;
+      else if (c === "\\") {
+        const cmd = /^\\(?:[A-Za-z]+|[\s\S])/.exec(latex.slice(i))[0];
+        if (cmd === "\\left" || cmd === "\\begin") lingkup += 1;
+        else if (cmd === "\\right" || cmd === "\\end") lingkup -= 1;
+        else if (dalam === 0 && lingkup === 0) {
+          if ((cmd === "\\qquad" || cmd === "\\quad") && !/^\s*\\allowbreak(?![A-Za-z])/.test(latex.slice(i + cmd.length))) masalah.push(`${cmd} tanpa \\allowbreak`);
+          if (cmd === "\\text" && latex[i + cmd.length] === "{") {
+            const k = latex.indexOf("}", i + cmd.length + 1);
+            const isi = k > 0 ? latex.slice(i + cmd.length + 1, k) : "";
+            if (k > 0 && !/[{\\$%~]/.test(isi) && isi.trim().length > 30) masalah.push(`\\text{${isi.trim().slice(0, 24)}…} sepanjang ${isi.trim().length} karakter tidak dipecah`);
+          }
+        }
+        i += cmd.length - 1;
+      }
+    }
+    return masalah;
+  };
+  const RX_FORMULA_MAIN = /<div class="formula-main">\\\(([\s\S]*?)\\\)<span class="formula-number">/g;
+  const KURSUS_BERNOMOR = ["Teknik-Tenaga-Listrik", "Pemodelan-Computer-Aided-Design"];
+  for (const berkas of ["scripts/ttl-modul/pustaka.py", "scripts/cad-modul/pustaka.py", "scripts/ttl-modul/modul_1.py"]) {
+    const sumber = fs.readFileSync(path.join(root, berkas), "utf8");
+    if (!sumber.includes("{pecah_rumus(latex)}")) throw new Error(`${berkas}: formula() harus memanggil pecah_rumus(latex) (titik patah rumus bernomor, Pedoman §2 butir (24))`);
+    if (berkas.endsWith("pustaka.py") && !sumber.includes("def pecah_rumus(latex):")) throw new Error(`${berkas}: def pecah_rumus(latex) hilang`);
+  }
+  let jumlahBernomor = 0;
+  let contohBernomor = null;
+  for (const course of KURSUS_BERNOMOR) {
+    for (let n = 1; n <= 14; n += 1) {
+      const relative = path.join(course, "Modul", `Modul-${n}.html`);
+      const isi = fs.readFileSync(path.join(root, relative), "utf8");
+      for (const m of isi.matchAll(RX_FORMULA_MAIN)) {
+        jumlahBernomor += 1;
+        const masalah = rumusTanpaTitikPatah(m[1]);
+        if (masalah.length) throw new Error(`${relative}: persamaan bernomor tanpa titik patah baris: ${masalah[0]} — python scripts/${course === "Teknik-Tenaga-Listrik" ? "ttl" : "cad"}-modul/bangun.py ${n} (pustaka.pecah_rumus)`);
+        if (!contohBernomor && /\\qquad\\allowbreak/.test(m[1])) contohBernomor = [relative, m[1]];
+      }
+    }
+  }
+  if (jumlahBernomor < 180) throw new Error(`persamaan bernomor TTL/CAD: hanya ${jumlahBernomor} ditemukan (harap >= 180, ada 195 saat ditulis); pola .formula-main berubah?`);
+  if (!contohBernomor) throw new Error("persamaan bernomor TTL/CAD: tak satu pun memuat \\qquad\\allowbreak");
+  // Uji mutasi: pemeriksa menolak \qquad tanpa \allowbreak dan \text{…} panjang yang tidak dipecah.
+  const [, rumusContoh] = contohBernomor;
+  const mutasiRumus = [
+    ["\\qquad tanpa \\allowbreak", rumusContoh.replace("\\qquad\\allowbreak", () => "\\qquad")],
+    ["\\text{…} panjang tidak dipecah", `${rumusContoh}, \\text{teks keterangan yang sangat panjang tanpa pemecahan}`],
+  ];
+  for (const [nama, rumus] of mutasiRumus) {
+    if (rumus === rumusContoh) throw new Error(`uji mutasi persamaan bernomor "${nama}" tidak mengubah rumus`);
+    if (!rumusTanpaTitikPatah(rumus).length) throw new Error(`rumusTanpaTitikPatah menerima rumus bermutasi (${nama})`);
+  }
+  if (rumusTanpaTitikPatah(rumusContoh).length) throw new Error("rumusTanpaTitikPatah menolak rumus acuan yang sah");
+}
+
 const workflow = fs.readFileSync(path.join(root, ".github", "workflows", "deploy-slides.yml"), "utf8");
 if (/rsync -a \\\r?\n\s+--exclude='.git'/.test(workflow)) throw new Error("Pages workflow still copies repository root");
 for (const required of ["Allowlist frontend publik", "Tolak artefak sensitif", "_site/functions", "*answers.js", "*questions.js"]) {

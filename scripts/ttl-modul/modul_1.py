@@ -3,6 +3,8 @@
 # dan sengaja tidak sama dengan varian soal parametrik mana pun.
 import math
 
+from pustaka import pecah_rumus  # noqa: E402  (titik patah baris rumus bernomor; Pedoman §2 butir (24))
+
 SQ3 = math.sqrt(3)
 
 
@@ -214,7 +216,7 @@ def notasi(pairs):
 def formula(no, label, latex, desc, penjelasan, pairs):
     return f'''  <div class="formula-block reveal">
     <div class="formula-label">{label}</div>
-    <div class="formula-main">\\({latex}\\)<span class="formula-number">({no})</span></div>
+    <div class="formula-main">\\({pecah_rumus(latex)}\\)<span class="formula-number">({no})</span></div>
     <div class="formula-desc">{desc}</div>
   </div>
   <div class="tip-box reveal rumus-jelas">

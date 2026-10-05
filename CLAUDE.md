@@ -385,6 +385,28 @@ repo publik ini.
   `--katex` dijalankan CI dengan `katex@VERSI_KATEX`, langkah CI-nya dipatok baris demi baris). Prosa di kotak
   `.formula` kartu dan daftar konsep di blok persamaan ditulis teks polos, bukan satu `\text{…}` utuh yang tidak
   bisa dipatah dan terpotong di ponsel. Pedoman §2 butir (17)–(21).
+- **Tampilan ponsel** (sejak 4 Okt 2026; putaran 5 pada 5 Okt): satu blok `<style id="rapikan-ponsel">` + `<script id="rapikan-ponsel-js">`
+  (komentar `RAPIKAN-PONSEL:START`/`END v5`) di `<head>` ke-96 halaman modul/ujian dipasang `scripts/rapikan-ponsel.mjs` (ada
+  `--periksa`; sesudah `notasi-halaman.mjs`, sebelum `draft-modul.mjs`; di-regenerasi bersama rantai TTL/CAD). Aturannya di
+  `@media (max-width:640px)` (Setup 560/360) kecuali empat bagian yang dipatok persis: paritas `.comp-q{min-width:0;…}`, kartu soal
+  PG/BS dan opsi PG yang boleh menyempit dan memecah token tak terpatahkan (`.mc-q,.tf-q,.p-opt,.radio-option`, semua lebar; hanya
+  soal yang memuat token melebihi lebar kartunya yang berbeda), blok tablet `<= 900 px` (SEMUA header sel kode memakai baris label
+  sendiri, jadi tablet berubah di tiap header: tinggi header di 768 px 46 → ±71 px; keputusan dosen, alternatifnya Pedoman §2
+  butir (22) putaran 5) dan blok laptop `>= 901 px` (lebar label dibatasi, angkanya per course 284/312/416 px; desktop tidak
+  berubah selain label yang memang bertabrakan). Isinya: nomor persamaan `.formula-main`
+  turun ke baris sendiri, kartu soal/opsi PG/rumus lebar digulir mendatar di wadahnya, kepala kartu komputasi/PG/benar-salah
+  membungkus (nomor + poin di baris pertama), label sel kode dan bar judul Setup membungkus, kotak catatan/judul bagian/deskripsi
+  bagian patah kata, papan Top Skor/Top Akses satu kolom, tab navigasi digulir (skrip kecil menaruh tab aktif di tengah dan
+  memperkecil hanya judul hero yang kata terlebarnya tak muat; ukuran judul lain tidak diubah), legenda notasi `.anim-var`
+  membungkus. Rumus bernomor TTL/CAD memperoleh titik patah baris otomatis dari `pecah_rumus` di `pustaka.py`
+  (`\qquad\allowbreak`, `\text{…}` panjang dipecah; rumus baru tak perlu dipecah manual); penjaganya `validate-public-security.mjs`
+  (74 aturan CSS wajib, isi tiap blok `@media (max-width:640/560/360px)` dicocokkan persis sehingga aturan penimpa dan aturan
+  yang dipindah antar-`@media` ditolak, 10 potongan skrip wajib + uji mutasi). Kotak umpan balik (`.p-fb`, `.feedback`) memecah
+  teks dan menggulir rumus lebar. Sisa yang dicatat (Pedoman §2 butir (22), putaran 4–5): di 375 px satu
+  keterangan tabel Optimalisasi Modul 12 yang dipotong elipsis oleh CSS halaman itu sendiri; di 320 px enam rumus 2–15 px di
+  dalam padding kotak (lima `.formula-desc` TTL, satu petunjuk forum Getaran Modul 7) dan label tile statistik/header roster tab
+  Hasil (CSS inline halaman, sama dengan basis). Pemisah daftar `\cdot` antar-teks ditulis
+  di luar KaTeX (`A \(\cdot\) B`) atau `;\quad`. Pedoman §2 butir (22)–(24).
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
   yang idempoten, bukan suntingan manual per berkas.
