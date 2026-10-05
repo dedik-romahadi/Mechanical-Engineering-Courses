@@ -4,10 +4,11 @@
  *
  * Satu blok <style id="rapikan-ponsel"> + <script id="rapikan-ponsel-js"> (dibungkus komentar RAPIKAN-PONSEL:START/END) dipasang di <head>
  * ke-96 halaman (14 modul + UTS + UAS per course). Hampir semua aturan berada di dalam @media (max-width:640px) (Setup 560/360), jadi
- * tata letak tablet dan desktop tidak berubah; pengecualiannya sengaja dan sempit: paritas .comp-q (tanpa media), label sel kode
- * di <= 900 px (baris sendiri) dan >= 901 px (lebar dibatasi agar tidak menimpa titik hias/bahasa/Copy; hanya label yang
- * memang menimpa yang berubah, jadi batasnya per course: lihat KIRI_KURSUS). Pemindai Chrome (lebar 320/375/414 px, sapuan
- * 641-1280 px) menjadi dasar daftar aturan; alasan tiap aturan ada di komentar CSS di bawah dan di Pedoman-Modul.md §2 butir (22).
+ * tata letak desktop tidak berubah; pengecualiannya sengaja dan sempit: paritas .comp-q (tanpa media), blok tablet <= 900 px (semua
+ * header sel kode memakai baris label sendiri; kartu soal dan opsi PG boleh menyempit dan memecah token tak terpatahkan) dan label
+ * sel kode >= 901 px (lebar dibatasi agar tidak menimpa titik hias/bahasa/Copy; hanya label yang memang menimpa yang berubah, jadi
+ * batasnya per course: lihat KIRI_KURSUS). Pemindai Chrome (lebar 320/375/414 px, sapuan 641-1280 px) menjadi dasar daftar aturan;
+ * alasan tiap aturan ada di komentar CSS di bawah dan di Pedoman-Modul.md §2 butir (22).
  *
  * Idempoten: blok yang sudah ada diganti DI TEMPAT (bukan dibuang lalu dipasang ulang di ujung
  * <head>), supaya penyuntik lain yang juga menulis sebelum </head> tidak berebut urutan. Blok
@@ -36,7 +37,7 @@ export const KURSUS = [
   "Teknik-Tenaga-Listrik",
 ];
 export const PENANDA = "rapikan-ponsel";
-export const VERSI = 3;
+export const VERSI = 4;
 
 /**
  * Tepi kanan kluster kiri bar sel kode (titik hias + pil bahasa, px dari tepi kiri bar) per course, diukur di Chrome 1280 px pada
@@ -56,14 +57,16 @@ export const cadanganLabel = (kiri) => 2 * (kiri + JARAK_LABEL);
 
 /** Isi CSS (tanpa pembungkus <style>) untuk course dengan kluster kiri `kiri` px. Setiap aturan dibatasi @media (max-width:640px); Setup memakai 560/360. */
 export const buatCss = (kiri = KIRI_STANDAR) => `
-/* RAPIKAN-PONSEL v${VERSI} — tampilan ponsel; di atas 640 px hanya paritas .comp-q dan dua blok label sel kode (<= 900 px dan >= 901 px) yang berlaku */
+/* RAPIKAN-PONSEL v${VERSI} — tampilan ponsel; di atas 640 px hanya paritas .comp-q, blok tablet (<= 900 px) dan blok label sel kode laptop (>= 901 px) yang berlaku */
 /* (2) Paritas keenam course: kartu soal komputasi boleh menyempit dan patah kata (Matematika 4, Getaran, Optimalisasi, Sisken sudah punya; TTL dan CAD baru). */
 .comp-q{min-width:0;overflow-wrap:break-word}
-/* (4) Label sel kode, tablet (<= 900 px): label ditengahkan absolut di bar bertumpuk dengan titik hias, bahasa, dan Copy (sapuan 641-900 px: 274 header di 641, 180 di 768, 73 di 900). Bar membungkus dan label turun ke baris sendiri. */
+/* (4) Label sel kode, tablet (<= 900 px): label ditengahkan absolut di bar bertumpuk dengan titik hias, bahasa, dan Copy (sapuan 641-900 px: 274 header di 641, 180 di 768, 73 di 900). Bar membungkus dan label turun ke baris sendiri; ini berlaku untuk SEMUA header sel kode di tablet (yang tidak bertabrakan di basis pun memakai baris label sendiri, tinggi header 46 -> ±71 px di 768 px). */
+/* (2c) Kartu soal Tugas/UTS/UAS di tablet: token tak terpatahkan (jalur berkas, URL, nama fungsi) di soal dari backend melebarkan dokumen di 641-900 px (soal tiruan: scrollWidth 855-925 di 768 px); anak flex boleh menyempit dan token dipatah. Teks biasa tidak berubah. */
 @media (max-width:900px){
 .code-header{flex-wrap:wrap;row-gap:6px}
 .code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}
 .code-header .code-copy{margin-left:auto}
+.mc-q,.tf-q,.comp-q,.p-opt,.radio-option{min-width:0;overflow-wrap:anywhere}
 }
 /* (4) Label sel kode, laptop (>= 901 px): tetap ditengahkan, tetapi selebar-lebarnya bar dikurangi dua kali (tepi kanan kluster kiri course ini = ${kiri} px, titik hias + pil bahasa, + ${JARAK_LABEL} px); label yang lebih panjang membungkus 2 baris (di dalam bar 46 px; line-height tidak diubah), bukan menimpa. Label yang muat tidak berubah satu piksel pun. */
 @media (min-width:901px){
@@ -82,9 +85,15 @@ export const buatCss = (kiri = KIRI_STANDAR) => `
 .formula-main::-webkit-scrollbar-thumb,#page-modul .formula-block::-webkit-scrollbar-thumb,#page-modul .card .formula::-webkit-scrollbar-thumb{background:rgba(148,163,184,.6);border-radius:3px}
 /* (2) Kartu soal Tugas/UTS/UAS: anak flex boleh menyempit, teks/kode tak terpatahkan dipatah, rumus selebar kartu digulir. */
 /* padding-block + margin-block negatif: subskrip/pangkat yang menjulur sedikit di luar kotak baris tetap di dalam kotak gulir (tanpa batang gulir tegak), letak teks tidak bergeser. */
-.mc-q,.tf-q,.comp-q{min-width:0;overflow-wrap:anywhere;overflow-x:auto;padding-block:.45em;margin-block:-.45em}
+/* padding-right + margin-right negatif 4 px: KaTeX menjulur 1-4 px di luar kotak teks; tanpa ruang itu wadah gulir muncul dengan bilah 15 px di peramban desktop berbilah klasik (jendela sempit, layar terbagi) padahal tak ada yang perlu digulir. Letak teks tidak bergeser. */
+.mc-q,.tf-q,.comp-q{min-width:0;overflow-wrap:anywhere;overflow-x:auto;padding-block:.45em;margin-block:-.45em;padding-right:4px;margin-right:-4px}
 .radio-option,.p-opt{min-width:0;overflow-wrap:anywhere}
-.radio-option>span,.p-opt>span{min-width:0;overflow-x:auto;padding-block:.4em;margin-block:-.4em}
+.radio-option>span,.p-opt>span{min-width:0;overflow-x:auto;padding-block:.4em;margin-block:-.4em;padding-right:4px;margin-right:-4px}
+/* (2d) Kepala kartu pilihan ganda dan benar/salah (sama dengan kepala kartu komputasi): nomor + poin di baris pertama, teks soal selebar kartu di baris kedua; sebaris dengan nomor dan poin kolom teks hanya 74-117 px dan memenggal kata di tengah (Matematika 4 Modul 10 di 320 px: "Transform/asi"). */
+.mc-header,.tf-header{flex-wrap:wrap;row-gap:8px}
+.mc-num,.tf-num{order:0}
+.mc-pts,.tf-pts{order:1;margin-left:auto}
+.mc-q,.tf-q{order:2;flex:1 1 100%}
 /* (2b) Kepala kartu soal komputasi: nomor + poin di baris pertama, teks soal selebar kartu di baris kedua (kolom teks hanya 110-180 px bila sebaris dengan nomor dan poin). */
 .comp-header{flex-wrap:wrap;row-gap:8px}
 .comp-num{order:0}
@@ -94,6 +103,11 @@ export const buatCss = (kiri = KIRI_STANDAR) => `
 :not(pre)>code{overflow-wrap:anywhere}
 .reference-card{overflow-wrap:anywhere}
 .card :is(p,li){overflow-wrap:anywhere}
+/* Kotak catatan di luar .card (daftar tautan pustaka CAD: "Body/Pad/Pocket/..." sepanjang 360-500 px), judul bagian, deskripsi bagian, dan petunjuk soal: kata tak terpatahkan dipatah, bukan keluar kotak/layar (CAD Modul 5 dan 7 di 375 px, Getaran Modul 8 dan Optimalisasi Modul 12 di 320 px). Judul hero sengaja tidak termasuk (diatur --ponsel-hero). */
+.info-box,.tip-box,.warn-box,.warning-box,.analogy-box{overflow-wrap:anywhere}
+h2,h3,.section-desc,.comp-hint{overflow-wrap:anywhere}
+/* Papan Top Skor / Top Akses tab Hasil: kisi inline 1fr 1fr melebar mengikuti nama + NIM + poin (230 + 260 px di 375 px) dan kartu kanan terpotong; satu kolom di ponsel. */
+#leaderboardPanel>div:first-child{grid-template-columns:minmax(0,1fr)!important}
 .reference-card>*{min-width:0}
 /* Legenda notasi animasi: chip simbol (KaTeX, tak bisa menyusut) di baris sendiri bila deskripsinya tidak muat di sampingnya; deskripsi tidak pernah terjepit di bawah 9rem (dulu kolom 2-40 px, satu huruf per baris). */
 .anim-var{flex-wrap:wrap;row-gap:6px}
@@ -120,6 +134,7 @@ nav .nav-tab{flex:0 0 auto;padding-left:8px;padding-right:8px}
 #scheduleOverlay .visitor-modal>div[style*="display:flex"]{flex-wrap:wrap}
 #scheduleOverlay .visitor-modal>div[style*="display:flex"]>div{min-width:0;flex:1 1 130px!important}
 #scheduleOverlay .v-input{min-width:0;max-width:100%}
+/* Kolom berkas CAD: efektif di UTS/UAS CAD (tanpanya melebihi kartu 22-25 px di 320 px). Di 14 modul CAD aturan ini kalah urutan dari CSS kartu tugas CAD (blok cad-tugas-style, sesudah blok ponsel di head; min-width:220px, muat di kartu >= 248 px), jadi tanpa dampak di sana. */
 .berkas-input{min-width:0;max-width:100%}
 html .pm-centang .pm-status{white-space:normal;flex:0 1 auto;min-width:0;max-width:calc(100% - 42px)}
 }

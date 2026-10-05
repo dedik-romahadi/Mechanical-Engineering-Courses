@@ -5187,9 +5187,12 @@ async function ujiMutasiTunggu() {
 // label panjang yang terpotong kartu, dan kisi inline selebar >= 260 px. Satu blok <style id="rapikan-ponsel"> + <script
 // id="rapikan-ponsel-js"> dipasang scripts/rapikan-ponsel.mjs di <head> keenam course (14 modul + UTS + UAS); seluruh aturannya di
 // dalam @media (max-width:640px) atau lebih sempit, kecuali paritas `.comp-q` dan dua blok label sel kode yang dipatok persis
-// (<= 900 px: label turun ke baris sendiri; >= 901 px: lebar label dibatasi agar tidak menimpa titik hias/bahasa/Copy). Putaran 2
-// (sapuan 641-1280 px): header sel kode bertumpuk di 641-1100 px, jadi dua blok itu ada; selebihnya tablet dan desktop tidak
-// berubah. Skrip kecilnya menaruh tab navigasi aktif di tengah strip, hanya di <= 640 px. Pedoman §2 butir (22).
+// (<= 900 px: SEMUA header sel kode memakai baris label sendiri dan kartu soal/opsi PG memecah token tak terpatahkan;
+// >= 901 px: lebar label dibatasi agar tidak menimpa titik hias/bahasa/Copy). Putaran 2 (sapuan 641-1280 px): header sel kode
+// bertumpuk di 641-1100 px, jadi dua blok itu ada; desktop (>= 901 px) tidak berubah selain label yang memang bertabrakan.
+// Putaran 4 (peninjauan kembali): kotak catatan/judul bagian patah kata, kepala kartu PG/BS membungkus, papan Top Akses satu
+// kolom, ruang 4 px untuk julur KaTeX di wadah gulir. Skrip kecilnya menaruh tab navigasi aktif di tengah strip, hanya di
+// <= 640 px. Pedoman §2 butir (22).
 {
   const rp = await import(new URL("./rapikan-ponsel.mjs", import.meta.url));
   if ([...rp.KURSUS].sort().join() !== [...courseRoots].sort().join()) throw new Error("rapikan-ponsel: KURSUS harus sama dengan courseRoots (keenam course)");
@@ -5205,8 +5208,12 @@ async function ujiMutasiTunggu() {
     ["rumus tak terpatahkan digulir di kotaknya", "#page-modul .formula-block{overflow-x:auto;padding-left:14px;padding-right:14px}"],
     ["kotak rumus kartu digulir", "#page-modul .card .formula{max-width:100%;overflow-x:auto;overflow-y:hidden}"],
     ["petunjuk gulir: bilah tipis tetap tampak", ".formula-main::-webkit-scrollbar,#page-modul .formula-block::-webkit-scrollbar,#page-modul .card .formula::-webkit-scrollbar{height:5px}"],
-    ["kartu soal boleh menyempit dan patah kata", ".mc-q,.tf-q,.comp-q{min-width:0;overflow-wrap:anywhere;overflow-x:auto;padding-block:.45em;margin-block:-.45em}"],
-    ["opsi PG boleh menyempit", ".radio-option>span,.p-opt>span{min-width:0;overflow-x:auto;padding-block:.4em;margin-block:-.4em}"],
+    ["kartu soal boleh menyempit dan patah kata", ".mc-q,.tf-q,.comp-q{min-width:0;overflow-wrap:anywhere;overflow-x:auto;padding-block:.45em;margin-block:-.45em;padding-right:4px;margin-right:-4px}"],
+    ["opsi PG boleh menyempit", ".radio-option>span,.p-opt>span{min-width:0;overflow-x:auto;padding-block:.4em;margin-block:-.4em;padding-right:4px;margin-right:-4px}"],
+    ["kartu soal tablet memecah token tak terpatahkan", ".mc-q,.tf-q,.comp-q,.p-opt,.radio-option{min-width:0;overflow-wrap:anywhere}"],
+    ["kepala kartu PG/BS membungkus", ".mc-header,.tf-header{flex-wrap:wrap;row-gap:8px}"],
+    ["poin kartu PG/BS di baris pertama", ".mc-pts,.tf-pts{order:1;margin-left:auto}"],
+    ["teks soal PG/BS selebar kartu", ".mc-q,.tf-q{order:2;flex:1 1 100%}"],
     ["paritas .comp-q (di luar media)", ".comp-q{min-width:0;overflow-wrap:break-word}"],
     ["label sel kode membungkus", ".code-header{flex-wrap:wrap;row-gap:6px}"],
     ["label sel kode turun ke baris sendiri", ".code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}"],
@@ -5217,6 +5224,9 @@ async function ujiMutasiTunggu() {
     ["kode inline patah kata", ":not(pre)>code{overflow-wrap:anywhere}"],
     ["kartu pustaka patah kata", ".reference-card{overflow-wrap:anywhere}"],
     ["paragraf dan butir kartu patah kata", ".card :is(p,li){overflow-wrap:anywhere}"],
+    ["kotak catatan patah kata", ".info-box,.tip-box,.warn-box,.warning-box,.analogy-box{overflow-wrap:anywhere}"],
+    ["judul bagian, deskripsi bagian, dan petunjuk soal patah kata", "h2,h3,.section-desc,.comp-hint{overflow-wrap:anywhere}"],
+    ["papan Top Skor/Top Akses satu kolom", "#leaderboardPanel>div:first-child{grid-template-columns:minmax(0,1fr)!important}"],
     ["legenda notasi: chip simbol boleh pindah baris", ".anim-var{flex-wrap:wrap;row-gap:6px}"],
     ["legenda notasi: deskripsi tak terjepit di bawah 9rem", ".anim-var>span:last-child{flex:1 1 auto;min-width:min(9rem,100%);overflow-wrap:break-word}"],
     ["judul hero hanya diperkecil lewat --ponsel-hero", "h1.hero-title[style*=\"--ponsel-hero\"]{font-size:var(--ponsel-hero)!important}"],
@@ -5235,6 +5245,7 @@ async function ujiMutasiTunggu() {
     ".formula-main::-webkit-scrollbar-thumb,#page-modul .formula-block::-webkit-scrollbar-thumb,#page-modul .card .formula::-webkit-scrollbar-thumb{background:rgba(148,163,184,.6);border-radius:3px}",
     ".radio-option,.p-opt{min-width:0;overflow-wrap:anywhere}",
     ".comp-num{order:0}",
+    ".mc-num,.tf-num{order:0}",
     ".reference-card>*{min-width:0}",
     ".anim-var>code{white-space:normal;overflow-wrap:anywhere;min-width:0;flex-shrink:1}",
     ".fq-body{overflow-x:auto}",
@@ -5275,13 +5286,14 @@ async function ujiMutasiTunggu() {
     throw new Error("rapikan-ponsel: KIRI_STANDAR/KIRI_KURSUS/JARAK_LABEL berbeda dari angka yang dipatok validator (Pedoman §2 butir (22)(d))");
   }
   // Blok di luar @media (max-width:640px) yang diizinkan, dipatok persis: tablet <= 900 px (label sel kode turun ke baris
-  // sendiri) dan laptop >= 901 px (lebar label dibatasi per course). Melebarkan media-nya (mis. min-width:641px) mengubah tata
-  // letak yang sekarang tidak bertabrakan, jadi ditolak.
+  // sendiri; kartu soal dan opsi PG boleh menyempit dan memecah token tak terpatahkan) dan laptop >= 901 px (lebar label dibatasi
+  // per course). Melebarkan media-nya (mis. min-width:641px) mengubah tata letak yang sekarang tidak bertabrakan, jadi ditolak.
   const BLOK_TABLET = [
     "@media (max-width:900px){",
     ".code-header{flex-wrap:wrap;row-gap:6px}",
     ".code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}",
     ".code-header .code-copy{margin-left:auto}",
+    ".mc-q,.tf-q,.comp-q,.p-opt,.radio-option{min-width:0;overflow-wrap:anywhere}",
     "}",
   ].join("\n");
   const blokLaptop = (kiri) => [
