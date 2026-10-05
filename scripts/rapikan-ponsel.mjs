@@ -4,9 +4,9 @@
  *
  * Satu blok <style id="rapikan-ponsel"> + <script id="rapikan-ponsel-js"> (dibungkus komentar RAPIKAN-PONSEL:START/END) dipasang di <head>
  * ke-96 halaman (14 modul + UTS + UAS per course). Hampir semua aturan berada di dalam @media (max-width:640px) (Setup 560/360), jadi
- * tata letak desktop tidak berubah; pengecualiannya sengaja dan sempit: paritas .comp-q (tanpa media), blok tablet <= 900 px (semua
- * header sel kode memakai baris label sendiri; kartu soal dan opsi PG boleh menyempit dan memecah token tak terpatahkan) dan label
- * sel kode >= 901 px (lebar dibatasi agar tidak menimpa titik hias/bahasa/Copy; hanya label yang memang menimpa yang berubah, jadi
+ * tata letak desktop tidak berubah; pengecualiannya sengaja dan sempit: paritas .comp-q dan kartu soal PG/BS + opsi PG yang boleh
+ * menyempit dan memecah token tak terpatahkan (tanpa media; hanya soal yang memuat token melebihi lebar kartunya yang berbeda),
+ * blok tablet <= 900 px (semua header sel kode memakai baris label sendiri) dan label sel kode >= 901 px (lebar dibatasi agar tidak menimpa titik hias/bahasa/Copy; hanya label yang memang menimpa yang berubah, jadi
  * batasnya per course: lihat KIRI_KURSUS). Pemindai Chrome (lebar 320/375/414 px, sapuan 641-1280 px) menjadi dasar daftar aturan;
  * alasan tiap aturan ada di komentar CSS di bawah dan di Pedoman-Modul.md §2 butir (22).
  *
@@ -37,7 +37,7 @@ export const KURSUS = [
   "Teknik-Tenaga-Listrik",
 ];
 export const PENANDA = "rapikan-ponsel";
-export const VERSI = 4;
+export const VERSI = 5;
 
 /**
  * Tepi kanan kluster kiri bar sel kode (titik hias + pil bahasa, px dari tepi kiri bar) per course, diukur di Chrome 1280 px pada
@@ -57,16 +57,17 @@ export const cadanganLabel = (kiri) => 2 * (kiri + JARAK_LABEL);
 
 /** Isi CSS (tanpa pembungkus <style>) untuk course dengan kluster kiri `kiri` px. Setiap aturan dibatasi @media (max-width:640px); Setup memakai 560/360. */
 export const buatCss = (kiri = KIRI_STANDAR) => `
-/* RAPIKAN-PONSEL v${VERSI} — tampilan ponsel; di atas 640 px hanya paritas .comp-q, blok tablet (<= 900 px) dan blok label sel kode laptop (>= 901 px) yang berlaku */
+/* RAPIKAN-PONSEL v${VERSI} — tampilan ponsel; di atas 640 px hanya paritas .comp-q, kartu soal/opsi PG yang boleh menyempit, blok tablet (<= 900 px) dan blok label sel kode laptop (>= 901 px) yang berlaku */
 /* (2) Paritas keenam course: kartu soal komputasi boleh menyempit dan patah kata (Matematika 4, Getaran, Optimalisasi, Sisken sudah punya; TTL dan CAD baru). */
 .comp-q{min-width:0;overflow-wrap:break-word}
+/* (2c) Kartu soal PG/BS dan opsi PG Tugas/UTS/UAS di SEMUA lebar: token tak terpatahkan (jalur berkas, URL, nama fungsi) di soal dari backend melebarkan dokumen (soal tiruan: scrollWidth 855-925 di 768 px, 953-958 di 901 px bila blok ini hanya berlaku <= 900 px); anak flex boleh menyempit dan token dipatah. Teks biasa tidak berubah, jadi tata letak desktop tetap (hanya soal yang memuat token melebihi lebar kartunya yang berbeda). */
+.mc-q,.tf-q,.p-opt,.radio-option{min-width:0;overflow-wrap:anywhere}
 /* (4) Label sel kode, tablet (<= 900 px): label ditengahkan absolut di bar bertumpuk dengan titik hias, bahasa, dan Copy (sapuan 641-900 px: 274 header di 641, 180 di 768, 73 di 900). Bar membungkus dan label turun ke baris sendiri; ini berlaku untuk SEMUA header sel kode di tablet (yang tidak bertabrakan di basis pun memakai baris label sendiri, tinggi header 46 -> ±71 px di 768 px). */
-/* (2c) Kartu soal Tugas/UTS/UAS di tablet: token tak terpatahkan (jalur berkas, URL, nama fungsi) di soal dari backend melebarkan dokumen di 641-900 px (soal tiruan: scrollWidth 855-925 di 768 px); anak flex boleh menyempit dan token dipatah. Teks biasa tidak berubah. */
 @media (max-width:900px){
 .code-header{flex-wrap:wrap;row-gap:6px}
 .code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}
 .code-header .code-copy{margin-left:auto}
-.mc-q,.tf-q,.comp-q,.p-opt,.radio-option{min-width:0;overflow-wrap:anywhere}
+.comp-q{overflow-wrap:anywhere}
 }
 /* (4) Label sel kode, laptop (>= 901 px): tetap ditengahkan, tetapi selebar-lebarnya bar dikurangi dua kali (tepi kanan kluster kiri course ini = ${kiri} px, titik hias + pil bahasa, + ${JARAK_LABEL} px); label yang lebih panjang membungkus 2 baris (di dalam bar 46 px; line-height tidak diubah), bukan menimpa. Label yang muat tidak berubah satu piksel pun. */
 @media (min-width:901px){
@@ -114,6 +115,8 @@ h2,h3,.section-desc,.comp-hint{overflow-wrap:anywhere}
 .anim-var>span:last-child{flex:1 1 auto;min-width:min(9rem,100%);overflow-wrap:break-word}
 .anim-var>code{white-space:normal;overflow-wrap:anywhere;min-width:0;flex-shrink:1}
 .fq-body{overflow-x:auto}
+/* Kotak umpan balik latihan dan soal (.p-fb di Tugas/Forum, .feedback di kartu PG/BS/komputasi dan ujian; tampil sesudah menjawab): teks monospasi tanpa spasi ("BPFO = 4.5·29.17·(1−0.2034)", nama berkas) dan KaTeX tak terpatahkan (akar atau pecahan panjang) melewati tepi kotaknya di 375 px (Getaran Modul 13 #fp1r +14 px, Modul 4 #fp2r +10 px; di 320 px Matematika 4 Modul 8 #fp2w +16 px, TTL Modul 9 dan 10 #fp3r); teks dipatah, rumus yang tak bisa dipatah digulir di dalam kotak. */
+.p-fb,.feedback{overflow-wrap:anywhere;overflow-x:auto}
 [style*="minmax(220px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))!important}
 [style*="minmax(240px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))!important}
 [style*="minmax(260px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))!important}

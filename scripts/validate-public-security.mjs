@@ -5210,7 +5210,8 @@ async function ujiMutasiTunggu() {
     ["petunjuk gulir: bilah tipis tetap tampak", ".formula-main::-webkit-scrollbar,#page-modul .formula-block::-webkit-scrollbar,#page-modul .card .formula::-webkit-scrollbar{height:5px}"],
     ["kartu soal boleh menyempit dan patah kata", ".mc-q,.tf-q,.comp-q{min-width:0;overflow-wrap:anywhere;overflow-x:auto;padding-block:.45em;margin-block:-.45em;padding-right:4px;margin-right:-4px}"],
     ["opsi PG boleh menyempit", ".radio-option>span,.p-opt>span{min-width:0;overflow-x:auto;padding-block:.4em;margin-block:-.4em;padding-right:4px;margin-right:-4px}"],
-    ["kartu soal tablet memecah token tak terpatahkan", ".mc-q,.tf-q,.comp-q,.p-opt,.radio-option{min-width:0;overflow-wrap:anywhere}"],
+    ["kartu soal PG/BS dan opsi PG memecah token tak terpatahkan di semua lebar (di luar media)", ".mc-q,.tf-q,.p-opt,.radio-option{min-width:0;overflow-wrap:anywhere}"],
+    ["kotak umpan balik: teks dipatah, rumus digulir", ".p-fb,.feedback{overflow-wrap:anywhere;overflow-x:auto}"],
     ["kepala kartu PG/BS membungkus", ".mc-header,.tf-header{flex-wrap:wrap;row-gap:8px}"],
     ["poin kartu PG/BS di baris pertama", ".mc-pts,.tf-pts{order:1;margin-left:auto}"],
     ["teks soal PG/BS selebar kartu", ".mc-q,.tf-q{order:2;flex:1 1 100%}"],
@@ -5241,6 +5242,7 @@ async function ujiMutasiTunggu() {
   ];
   const WAJIB_LAIN = [
     ".code-header .code-copy{margin-left:auto}",
+    ".comp-q{overflow-wrap:anywhere}",
     ".formula-main::-webkit-scrollbar-track,#page-modul .formula-block::-webkit-scrollbar-track,#page-modul .card .formula::-webkit-scrollbar-track{background:rgba(148,163,184,.14);border-radius:3px}",
     ".formula-main::-webkit-scrollbar-thumb,#page-modul .formula-block::-webkit-scrollbar-thumb,#page-modul .card .formula::-webkit-scrollbar-thumb{background:rgba(148,163,184,.6);border-radius:3px}",
     ".radio-option,.p-opt{min-width:0;overflow-wrap:anywhere}",
@@ -5293,7 +5295,7 @@ async function ujiMutasiTunggu() {
     ".code-header{flex-wrap:wrap;row-gap:6px}",
     ".code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}",
     ".code-header .code-copy{margin-left:auto}",
-    ".mc-q,.tf-q,.comp-q,.p-opt,.radio-option{min-width:0;overflow-wrap:anywhere}",
+    ".comp-q{overflow-wrap:anywhere}",
     "}",
   ].join("\n");
   const blokLaptop = (kiri) => [
@@ -5302,7 +5304,34 @@ async function ujiMutasiTunggu() {
     "}",
   ].join("\n");
   const BLOK_LAPTOP = blokLaptop(KIRI_WAJIB.standar);
-  const TANPA_MEDIA = [".comp-q{min-width:0;overflow-wrap:break-word}", BLOK_TABLET, ...Object.values(KIRI_WAJIB).map(blokLaptop)];
+  const TANPA_MEDIA = [".comp-q{min-width:0;overflow-wrap:break-word}", ".mc-q,.tf-q,.p-opt,.radio-option{min-width:0;overflow-wrap:anywhere}", BLOK_TABLET, ...Object.values(KIRI_WAJIB).map(blokLaptop)];
+  // Isi tiap blok @media (max-width:640/560/360px) dipatok persis (putaran 5): aturan tambahan di blok itu (mis. penimpa "!important"
+  // sesudah aturan wajib, yang lolos dari cek "aturan wajib ada") dan aturan wajib yang dipindah ke @media yang lebih sempit/lebar
+  // ditolak. Daftarnya diturunkan dari WAJIB_PONSEL: yang sudah ada di blok tanpa media/tablet/laptop (TANPA_MEDIA) tidak termasuk,
+  // lima aturan Setup 360 px dan sisa aturan Setup 560 px dipisahkan, selebihnya di blok 640 px. Urutan antar-aturan tidak dipatok.
+  const WAJIB_360 = [
+    "nav .nav-tab{padding-left:6px;padding-right:6px}",
+    "html :is(#page-setup,#page-python) .sp-step{padding-left:38px}",
+    "html :is(#page-setup,#page-python) .sp-body{padding:.5rem .75rem 1rem}",
+    "html :is(#page-setup,#page-python) .sp-cbh{padding:.5rem .6rem}",
+    "html :is(#page-setup,#page-python) .sp-cbh-copy{padding:.3rem .5rem}",
+  ];
+  const SETUP = "html :is(#page-setup,#page-python)";
+  const semuaWajib = WAJIB_PONSEL.map(([, aturan]) => aturan);
+  const WAJIB_BLOK = {
+    360: WAJIB_360,
+    560: semuaWajib.filter((a) => a.startsWith(SETUP) && !WAJIB_360.includes(a)),
+    640: semuaWajib.filter((a) => !TANPA_MEDIA.some((b) => b.includes(a)) && !a.startsWith(SETUP) && !WAJIB_360.includes(a)),
+  };
+  const bagiAturan = (isi) => {
+    const hasil = [];
+    let d = 0, mulai = 0;
+    for (let i = 0; i < isi.length; i += 1) {
+      if (isi[i] === "{") d += 1;
+      else if (isi[i] === "}") { d -= 1; if (d === 0) { hasil.push(isi.slice(mulai, i + 1).trim()); mulai = i + 1; } }
+    }
+    return hasil;
+  };
   // Skrip kecil di blok (tab navigasi aktif ke tengah strip): hanya di <= 640 px, hanya membaca DOM navigasi dan menggeser
   // scrollLeft strip — tanpa jaringan, penyimpanan, HTML dinamis, atau eval.
   const WAJIB_JS = [
@@ -5351,6 +5380,23 @@ async function ujiMutasiTunggu() {
       if (media) { if (Number(media[1]) > 640) masalah.push(`@media (max-width:${media[1]}px) melebihi 640 px dan bukan blok tablet yang dipatok — mengubah tablet/desktop`); }
       else masalah.push(`aturan di luar @media (max-width:640px): ${a.slice(0, 60)}`);
     }
+    const perLebar = {};
+    for (const a of atas) {
+      const m = /^@media \(max-width:(\d+)px\)\{/.exec(a);
+      if (m) (perLebar[m[1]] ||= []).push(a);
+    }
+    for (const lebar of Object.keys(perLebar)) if (!(lebar in WAJIB_BLOK) && Number(lebar) <= 640 && !perLebar[lebar].every((a) => TANPA_MEDIA.includes(a))) masalah.push(`@media (max-width:${lebar}px) tidak dikenal (hanya 640, 560, dan 360 px)`);
+    for (const [lebar, wajib] of Object.entries(WAJIB_BLOK)) {
+      const blok = perLebar[lebar] || [];
+      if (blok.length !== 1) { masalah.push(`@media (max-width:${lebar}px) harus tepat satu blok, ada ${blok.length}`); continue; }
+      const sisa = [...wajib];
+      for (const aturan of bagiAturan(blok[0].slice(blok[0].indexOf("{") + 1, blok[0].lastIndexOf("}")))) {
+        const i = sisa.indexOf(aturan);
+        if (i >= 0) sisa.splice(i, 1);
+        else masalah.push(`aturan tak dikenal di @media (max-width:${lebar}px): ${aturan.slice(0, 70)} (aturan baru dipatok di validator; penimpa dan pemindahan antar-@media ditolak)`);
+      }
+      for (const aturan of sisa) masalah.push(`aturan wajib tidak di @media (max-width:${lebar}px): ${aturan.slice(0, 70)}`);
+    }
     return masalah;
   };
   const cssAcuan = [...periksaCssPonsel(rp.CSS), ...Object.values(KIRI_WAJIB).flatMap((kiri) => periksaCssPonsel(rp.buatCss(kiri), kiri)), ...periksaJsPonsel(rp.JS)];
@@ -5398,6 +5444,14 @@ async function ujiMutasiTunggu() {
     ["blok tablet diperlebar ke 1100 px", rp.CSS.replace("@media (max-width:900px){", () => "@media (max-width:1100px){")],
     ["blok laptop diperluas ke 641 px", rp.CSS.replace("@media (min-width:901px){", () => "@media (min-width:641px){")],
     ["blok laptop ikut mengubah lebar maksimum label", rp.CSS.replace("max-width:calc(100% - 284px)", () => "max-width:calc(100% - 300px)")],
+    ["aturan penimpa !important ditambahkan di blok 640 px (nomor persamaan kembali absolut)", rp.CSS.replace("@media (max-width:640px){", (a) => a + "\n.formula-main>.formula-number{position:absolute!important}")],
+    ["aturan penimpa tanpa !important ditambahkan di blok 640 px (padding nomor kembali 60 px)", rp.CSS.replace("@media (max-width:640px){", (a) => a + "\n.formula-main{padding-right:60px}")],
+    ["blok @media (max-width:640px) kedua menimpa", rp.CSS + "\n@media (max-width:640px){\n.formula-main{padding-right:60px}\n}\n"],
+    ["aturan wajib .fq-body dipindah ke @media (max-width:360px)", rp.CSS.replace(".fq-body{overflow-x:auto}\n", "").replace("@media (max-width:360px){", (a) => a + "\n.fq-body{overflow-x:auto}")],
+    ["aturan wajib .formula-main dipindah ke @media (max-width:560px)", rp.CSS.replace(".formula-main{padding-right:0;overflow-x:auto}\n", "").replace("@media (max-width:560px){", (a) => a + "\n.formula-main{padding-right:0;overflow-x:auto}")],
+    ["aturan wajib Setup 560 px dipindah ke blok 640 px", rp.CSS.replace("html :is(#page-setup,#page-python) .sp-wrap{padding:0 12px}\n", "").replace("@media (max-width:640px){", (a) => a + "\nhtml :is(#page-setup,#page-python) .sp-wrap{padding:0 12px}")],
+    ["aturan baru di blok 360 px", rp.CSS.replace("@media (max-width:360px){", (a) => a + "\n.formula-main{overflow-x:visible}")],
+    ["@media (max-width:480px) tak dikenal", rp.CSS + "\n@media (max-width:480px){\n.formula-main{padding-right:60px}\n}\n"],
     ["ukuran judul hero diubah tanpa --ponsel-hero", rp.CSS.replace("h1.hero-title[style*=\"--ponsel-hero\"]{font-size:var(--ponsel-hero)!important}", (a) => a + "\nh1.hero-title{font-size:clamp(34px,11.5vw,62px)}")],
   ];
   for (const [nama, css] of mutasiCss) {
