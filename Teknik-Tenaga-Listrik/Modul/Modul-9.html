@@ -1339,6 +1339,170 @@ window.jalankanDenganMuat = async function (el, label, fn) {
 })();
 </script>
 <!-- EFEK-JAWABAN:END v1 -->
+<!-- RAPIKAN-PONSEL:START v5 -->
+<style id="rapikan-ponsel">
+/* RAPIKAN-PONSEL v5 — tampilan ponsel; di atas 640 px hanya paritas .comp-q, kartu soal/opsi PG yang boleh menyempit, blok tablet (<= 900 px) dan blok label sel kode laptop (>= 901 px) yang berlaku */
+/* (2) Paritas keenam course: kartu soal komputasi boleh menyempit dan patah kata (Matematika 4, Getaran, Optimalisasi, Sisken sudah punya; TTL dan CAD baru). */
+.comp-q{min-width:0;overflow-wrap:break-word}
+/* (2c) Kartu soal PG/BS dan opsi PG Tugas/UTS/UAS di SEMUA lebar: token tak terpatahkan (jalur berkas, URL, nama fungsi) di soal dari backend melebarkan dokumen (soal tiruan: scrollWidth 855-925 di 768 px, 953-958 di 901 px bila blok ini hanya berlaku <= 900 px); anak flex boleh menyempit dan token dipatah. Teks biasa tidak berubah, jadi tata letak desktop tetap (hanya soal yang memuat token melebihi lebar kartunya yang berbeda). */
+.mc-q,.tf-q,.p-opt,.radio-option{min-width:0;overflow-wrap:anywhere}
+/* (4) Label sel kode, tablet (<= 900 px): label ditengahkan absolut di bar bertumpuk dengan titik hias, bahasa, dan Copy (sapuan 641-900 px: 274 header di 641, 180 di 768, 73 di 900). Bar membungkus dan label turun ke baris sendiri; ini berlaku untuk SEMUA header sel kode di tablet (yang tidak bertabrakan di basis pun memakai baris label sendiri, tinggi header 46 -> ±71 px di 768 px). */
+@media (max-width:900px){
+.code-header{flex-wrap:wrap;row-gap:6px}
+.code-header .code-label{position:static;transform:none;order:9;flex:1 1 100%;white-space:normal;overflow-wrap:anywhere}
+.code-header .code-copy{margin-left:auto}
+.comp-q{overflow-wrap:anywhere}
+}
+/* (4) Label sel kode, laptop (>= 901 px): tetap ditengahkan, tetapi selebar-lebarnya bar dikurangi dua kali (tepi kanan kluster kiri course ini = 140 px, titik hias + pil bahasa, + 2 px); label yang lebih panjang membungkus 2 baris (di dalam bar 46 px; line-height tidak diubah), bukan menimpa. Label yang muat tidak berubah satu piksel pun. */
+@media (min-width:901px){
+.code-header .code-label{width:max-content;max-width:calc(100% - 284px);white-space:normal;text-align:center;overflow-wrap:anywhere}
+}
+@media (max-width:640px){
+/* (1) Persamaan bernomor TTL/CAD/Sisken: nomor turun ke baris sendiri (rata kanan) supaya tidak menimpa rumus yang terbungkus. */
+.formula-main{padding-right:0;overflow-x:auto}
+.formula-main>.formula-number{position:static;display:block;text-align:right;transform:none;margin-top:2px}
+/* Rumus yang tak bisa dipatah (satu pecahan/akar panjang) digulir mendatar di dalam kotaknya, bukan keluar kotak. */
+#page-modul .formula-block{overflow-x:auto;padding-left:14px;padding-right:14px}
+#page-modul .card .formula{max-width:100%;overflow-x:auto;overflow-y:hidden}
+/* Petunjuk gulir: ponsel menyembunyikan bilah gulir ber-overlay, jadi rumus yang digulir tampak terpotong di tepi kanan. Gaya ::-webkit-scrollbar membuat bilah tipis tetap tampak (Chrome/Safari); tanpa gulir tidak ada bilah dan tinggi kotak tidak berubah. */
+.formula-main::-webkit-scrollbar,#page-modul .formula-block::-webkit-scrollbar,#page-modul .card .formula::-webkit-scrollbar{height:5px}
+.formula-main::-webkit-scrollbar-track,#page-modul .formula-block::-webkit-scrollbar-track,#page-modul .card .formula::-webkit-scrollbar-track{background:rgba(148,163,184,.14);border-radius:3px}
+.formula-main::-webkit-scrollbar-thumb,#page-modul .formula-block::-webkit-scrollbar-thumb,#page-modul .card .formula::-webkit-scrollbar-thumb{background:rgba(148,163,184,.6);border-radius:3px}
+/* (2) Kartu soal Tugas/UTS/UAS: anak flex boleh menyempit, teks/kode tak terpatahkan dipatah, rumus selebar kartu digulir. */
+/* padding-block + margin-block negatif: subskrip/pangkat yang menjulur sedikit di luar kotak baris tetap di dalam kotak gulir (tanpa batang gulir tegak), letak teks tidak bergeser. */
+/* padding-right + margin-right negatif 4 px: KaTeX menjulur 1-4 px di luar kotak teks; tanpa ruang itu wadah gulir muncul dengan bilah 15 px di peramban desktop berbilah klasik (jendela sempit, layar terbagi) padahal tak ada yang perlu digulir. Letak teks tidak bergeser. */
+.mc-q,.tf-q,.comp-q{min-width:0;overflow-wrap:anywhere;overflow-x:auto;padding-block:.45em;margin-block:-.45em;padding-right:4px;margin-right:-4px}
+.radio-option,.p-opt{min-width:0;overflow-wrap:anywhere}
+.radio-option>span,.p-opt>span{min-width:0;overflow-x:auto;padding-block:.4em;margin-block:-.4em;padding-right:4px;margin-right:-4px}
+/* (2d) Kepala kartu pilihan ganda dan benar/salah (sama dengan kepala kartu komputasi): nomor + poin di baris pertama, teks soal selebar kartu di baris kedua; sebaris dengan nomor dan poin kolom teks hanya 74-117 px dan memenggal kata di tengah (Matematika 4 Modul 10 di 320 px: "Transform/asi"). */
+.mc-header,.tf-header{flex-wrap:wrap;row-gap:8px}
+.mc-num,.tf-num{order:0}
+.mc-pts,.tf-pts{order:1;margin-left:auto}
+.mc-q,.tf-q{order:2;flex:1 1 100%}
+/* (2b) Kepala kartu soal komputasi: nomor + poin di baris pertama, teks soal selebar kartu di baris kedua (kolom teks hanya 110-180 px bila sebaris dengan nomor dan poin). */
+.comp-header{flex-wrap:wrap;row-gap:8px}
+.comp-num{order:0}
+.comp-pts{order:1;margin-left:auto}
+.comp-q{order:2;flex:1 1 100%}
+/* (5) Kode, tautan, dan label panjang di teks; kisi inline selebar >= 220 px; judul hero; tab navigasi Modul 1. */
+:not(pre)>code{overflow-wrap:anywhere}
+.reference-card{overflow-wrap:anywhere}
+.card :is(p,li){overflow-wrap:anywhere}
+/* Kotak catatan di luar .card (daftar tautan pustaka CAD: "Body/Pad/Pocket/..." sepanjang 360-500 px), judul bagian, deskripsi bagian, dan petunjuk soal: kata tak terpatahkan dipatah, bukan keluar kotak/layar (CAD Modul 5 dan 7 di 375 px, Getaran Modul 8 dan Optimalisasi Modul 12 di 320 px). Judul hero sengaja tidak termasuk (diatur --ponsel-hero). */
+.info-box,.tip-box,.warn-box,.warning-box,.analogy-box{overflow-wrap:anywhere}
+h2,h3,.section-desc,.comp-hint{overflow-wrap:anywhere}
+/* Papan Top Skor / Top Akses tab Hasil: kisi inline 1fr 1fr melebar mengikuti nama + NIM + poin (230 + 260 px di 375 px) dan kartu kanan terpotong; satu kolom di ponsel. */
+#leaderboardPanel>div:first-child{grid-template-columns:minmax(0,1fr)!important}
+.reference-card>*{min-width:0}
+/* Legenda notasi animasi: chip simbol (KaTeX, tak bisa menyusut) di baris sendiri bila deskripsinya tidak muat di sampingnya; deskripsi tidak pernah terjepit di bawah 9rem (dulu kolom 2-40 px, satu huruf per baris). */
+.anim-var{flex-wrap:wrap;row-gap:6px}
+.anim-var>span:last-child{flex:1 1 auto;min-width:min(9rem,100%);overflow-wrap:break-word}
+.anim-var>code{white-space:normal;overflow-wrap:anywhere;min-width:0;flex-shrink:1}
+.fq-body{overflow-x:auto}
+/* Kotak umpan balik latihan dan soal (.p-fb di Tugas/Forum, .feedback di kartu PG/BS/komputasi dan ujian; tampil sesudah menjawab): teks monospasi tanpa spasi ("BPFO = 4.5·29.17·(1−0.2034)", nama berkas) dan KaTeX tak terpatahkan (akar atau pecahan panjang) melewati tepi kotaknya di 375 px (Getaran Modul 13 #fp1r +14 px, Modul 4 #fp2r +10 px; di 320 px Matematika 4 Modul 8 #fp2w +16 px, TTL Modul 9 dan 10 #fp3r); teks dipatah, rumus yang tak bisa dipatah digulir di dalam kotak. */
+.p-fb,.feedback{overflow-wrap:anywhere;overflow-x:auto}
+[style*="minmax(220px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))!important}
+[style*="minmax(240px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))!important}
+[style*="minmax(260px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))!important}
+[style*="minmax(280px,1fr)"]{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important}
+/* Judul hero: ukuran asli halaman TIDAK diubah; hanya judul yang memuat kata terlalu lebar untuk kotaknya diperkecil seperlunya oleh rapikan-ponsel-js lewat --ponsel-hero. */
+h1.hero-title[style*="--ponsel-hero"]{font-size:var(--ponsel-hero)!important}
+nav{padding-left:12px;padding-right:12px;gap:8px}
+nav .nav-tabs{gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}
+nav .nav-tabs::-webkit-scrollbar{display:none}
+nav .nav-tab{flex:0 0 auto;padding-left:8px;padding-right:8px}
+.cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.anim-title{min-width:0;overflow-wrap:anywhere}
+/* Label kolom kode soal komputasi, label analogi, dan panduan Export: membungkus, bukan keluar kartu (terlihat di 320 px). */
+.input-label{flex-wrap:wrap;row-gap:2px}
+.input-label>span{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.analogy-label{max-width:100%;flex-wrap:wrap}
+.score-export-copy{min-width:0!important}
+#scheduleOverlay .visitor-modal>div[style*="display:flex"]{flex-wrap:wrap}
+#scheduleOverlay .visitor-modal>div[style*="display:flex"]>div{min-width:0;flex:1 1 130px!important}
+#scheduleOverlay .v-input{min-width:0;max-width:100%}
+/* Kolom berkas CAD: efektif di UTS/UAS CAD (tanpanya melebihi kartu 22-25 px di 320 px). Di 14 modul CAD aturan ini kalah urutan dari CSS kartu tugas CAD (blok cad-tugas-style, sesudah blok ponsel di head; min-width:220px, muat di kartu >= 248 px), jadi tanpa dampak di sana. */
+.berkas-input{min-width:0;max-width:100%}
+html .pm-centang .pm-status{white-space:normal;flex:0 1 auto;min-width:0;max-width:calc(100% - 42px)}
+}
+@media (max-width:560px){
+/* (3) Setup: kolom langkah sempit (±150 px di basis) — lebarkan kartu, sembunyikan tiga titik hias, dan jaga Copy sebaris. */
+html :is(#page-setup,#page-python) .sp-wrap{padding:0 12px}
+html :is(#page-setup,#page-python) .sp-timeline::before{left:16px}
+html :is(#page-setup,#page-python) .sp-step{padding-left:46px}
+html :is(#page-setup,#page-python) .sp-dot{left:2px;width:28px;height:28px;font-size:.8rem}
+html :is(#page-setup,#page-python) .sp-head{padding:1.1rem 1rem .5rem}
+html :is(#page-setup,#page-python) .sp-body{padding:.5rem 1rem 1.25rem}
+html :is(#page-setup,#page-python) .sp-body a{overflow-wrap:anywhere}
+html :is(#page-setup,#page-python) .sp-cbh{flex-wrap:nowrap;gap:.5rem;padding:.5rem .8rem}
+html :is(#page-setup,#page-python) .sp-cbh-left{flex:1 1 0;min-width:0}
+html :is(#page-setup,#page-python) .sp-cbh-dots{display:none}
+html :is(#page-setup,#page-python) .sp-cbh-copy{flex:0 0 auto;white-space:nowrap}
+html :is(#page-setup,#page-python) .sp-cbd{padding:.9rem 1rem}
+}
+@media (max-width:360px){
+nav .nav-tab{padding-left:6px;padding-right:6px}
+html :is(#page-setup,#page-python) .sp-step{padding-left:38px}
+html :is(#page-setup,#page-python) .sp-body{padding:.5rem .75rem 1rem}
+html :is(#page-setup,#page-python) .sp-cbh{padding:.5rem .6rem}
+html :is(#page-setup,#page-python) .sp-cbh-copy{padding:.3rem .5rem}
+}
+</style>
+<script id="rapikan-ponsel-js">
+/* RAPIKAN-PONSEL v5: tab navigasi aktif di tengah strip dan judul hero yang tak muat (<= 640 px) */
+(function () {
+  var mq = window.matchMedia && window.matchMedia('(max-width:640px)');
+  function tengahkan() {
+    if (!mq || !mq.matches) return;
+    var tab = document.querySelector('nav .nav-tabs .nav-tab.active');
+    var strip = tab && tab.parentNode;
+    if (!strip || strip.scrollWidth <= strip.clientWidth + 1) return;
+    var a = tab.getBoundingClientRect(), b = strip.getBoundingClientRect();
+    strip.scrollLeft += (a.left - b.left) - (strip.clientWidth - a.width) / 2;
+  }
+  function sedia(h) {
+    var hero = h.closest && h.closest('.hero');
+    if (!hero) return h.clientWidth;
+    var s = getComputedStyle(hero);
+    return hero.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight);
+  }
+  function pasHero() {
+    var judul = document.querySelectorAll('h1.hero-title');
+    for (var i = 0; i < judul.length; i++) {
+      var h = judul[i];
+      h.style.removeProperty('--ponsel-hero');
+      if (!mq || !mq.matches || !h.clientWidth) continue;
+      for (var n = 0; n < 6; n++) {
+        var kotak = Math.min(h.clientWidth, sedia(h)), isi = Math.max(h.scrollWidth, h.getBoundingClientRect().width);
+        var fs = parseFloat(getComputedStyle(h).fontSize);
+        if (!(isi > kotak + 1) || !(fs > 22)) break;
+        h.style.setProperty('--ponsel-hero', Math.max(22, Math.floor(fs * kotak / isi * 98) / 100) + 'px');
+      }
+    }
+  }
+  var tunda = 0;
+  function rapikan() {
+    if (tunda) return;
+    tunda = (window.requestAnimationFrame || window.setTimeout)(function () { tunda = 0; tengahkan(); pasHero(); });
+  }
+  function pasang() {
+    var strip = document.querySelector('nav .nav-tabs');
+    tengahkan();
+    pasHero();
+    if (window.MutationObserver) {
+      var amati = new MutationObserver(rapikan);
+      if (strip) amati.observe(strip, { attributes: true, attributeFilter: ['class'], subtree: true });
+      var halaman = document.querySelectorAll('.page');
+      for (var i = 0; i < halaman.length; i++) amati.observe(halaman[i], { attributes: true, attributeFilter: ['class'] });
+    }
+    window.addEventListener('resize', rapikan);
+    window.addEventListener('load', rapikan);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(rapikan);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pasang); else pasang();
+})();
+</script>
+<!-- RAPIKAN-PONSEL:END v5 -->
 </head>
 <body class="modern-academic-design">
 
@@ -1677,7 +1841,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </figure>
   <div class="formula-block reveal">
     <div class="formula-label">Induktansi Saluran Tiga Fasa Tertransposisi</div>
-    <div class="formula-main">\(L = 2\times10^{-7}\ln\dfrac{\mathrm{GMD}}{\mathrm{GMR}}\ \text{H/m} = 0{,}2\ln\dfrac{\mathrm{GMD}}{\mathrm{GMR}}\ \text{mH/km}, \qquad \mathrm{GMD} = \sqrt[3]{D_{ab}D_{bc}D_{ca}}, \qquad \mathrm{GMR} = 0{,}7788\,r\ (\text{pejal})\)<span class="formula-number">(1)</span></div>
+    <div class="formula-main">\(L = 2\times10^{-7}\ln\dfrac{\mathrm{GMD}}{\mathrm{GMR}}\ \text{H/m} = 0{,}2\ln\dfrac{\mathrm{GMD}}{\mathrm{GMR}}\ \text{mH/km}, \qquad\allowbreak \mathrm{GMD} = \sqrt[3]{D_{ab}D_{bc}D_{ca}}, \qquad\allowbreak \mathrm{GMR} = 0{,}7788\,r\ (\text{pejal})\)<span class="formula-number">(1)</span></div>
     <div class="formula-desc">Susunan mendatar D = 6 m: \(\mathrm{GMD} = \sqrt[3]{6\cdot6\cdot12} = 7{,}560\) m; \(\mathrm{GMR} = 0{,}7788\times1{,}09 = 0{,}849\) cm; \(L = 0{,}2\ln(756{,}0/0{,}849) = 1{,}3584\) mH/km; \(x = 2\pi\cdot50\cdot L = 0{,}4267\) Ω/km. Untuk ACSR berlapis, GMR diambil dari tabel pabrikan (sedikit berbeda dari 0,7788 r).</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -1686,7 +1850,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="formula-block reveal">
     <div class="formula-label">Resistansi dan Impedansi Seri per Kilometer</div>
-    <div class="formula-main">\(z = r_{ac} + jx = r_{ac} + j\,2\pi f L\ \ \Omega/\text{km}, \qquad Z = z\,\ell\)<span class="formula-number">(2)</span></div>
+    <div class="formula-main">\(z = r_{ac} + jx = r_{ac} + j\,2\pi f L\ \ \Omega/\text{km}, \qquad\allowbreak Z = z\,\ell\)<span class="formula-number">(2)</span></div>
     <div class="formula-desc">ACSR 240: \(r_{ac} \approx 0{,}12\) Ω/km pada 75 °C (Modul 8), \(x = 0{,}4267\) Ω/km → \(z = 0{,}12 + j0{,}427\) Ω/km; untuk 200 km, \(Z = 24 + j85{,}3\) Ω. Perbandingan x/r ≈ 3,6: pada saluran tinggi reaktansi mendominasi, itulah sebabnya studi aliran daya dan hubung singkat sering mengabaikan R.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -1761,7 +1925,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </figure>
   <div class="formula-block reveal">
     <div class="formula-label">Kapasitansi Saluran dan Arus Pengisian</div>
-    <div class="formula-main">\(C = \dfrac{2\pi\varepsilon_0}{\ln(\mathrm{GMD}/r)} = \dfrac{0{,}05563}{\ln(\mathrm{GMD}/r)}\ \mu\text{F/km (fasa–netral)}, \qquad y = jb = j\,2\pi f C, \qquad I_C = \dfrac{V_L}{\sqrt{3}}\,b\,\ell\)<span class="formula-number">(3)</span></div>
+    <div class="formula-main">\(C = \dfrac{2\pi\varepsilon_0}{\ln(\mathrm{GMD}/r)} = \dfrac{0{,}05563}{\ln(\mathrm{GMD}/r)}\ \mu\text{F/km (fasa–netral)}, \qquad\allowbreak y = jb = j\,2\pi f C, \qquad\allowbreak I_C = \dfrac{V_L}{\sqrt{3}}\,b\,\ell\)<span class="formula-number">(3)</span></div>
     <div class="formula-desc">Susunan contoh: \(C = 0{,}05563/\ln(756{,}0/1{,}09) = 8{,}504\) nF/km; \(b = 2\pi\cdot50\cdot C = 2{,}672\) µS/km; 200 km pada 150 kV menarik arus pengisian \(86{,}6\times10^3\times534{,}3\times10^{-6} = 46{,}3\) A per fasa dan membangkitkan \(12{,}02\) MVAR.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -1770,7 +1934,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="formula-block reveal">
     <div class="formula-label">Konduktor Berkas: GMR dan Jari-jari Efektif</div>
-    <div class="formula-main">\(\mathrm{GMR}_b = \sqrt[n]{n\,\mathrm{GMR}\,s^{\,n-1}}, \qquad r_b = \sqrt[n]{n\,r\,s^{\,n-1}}, \qquad L = 0{,}2\ln\dfrac{\mathrm{GMD}}{\mathrm{GMR}_b}, \quad C = \dfrac{0{,}05563}{\ln(\mathrm{GMD}/r_b)}\)<span class="formula-number">(4)</span></div>
+    <div class="formula-main">\(\mathrm{GMR}_b = \sqrt[n]{n\,\mathrm{GMR}\,s^{\,n-1}}, \qquad\allowbreak r_b = \sqrt[n]{n\,r\,s^{\,n-1}}, \qquad\allowbreak L = 0{,}2\ln\dfrac{\mathrm{GMD}}{\mathrm{GMR}_b}, \quad\allowbreak C = \dfrac{0{,}05563}{\ln(\mathrm{GMD}/r_b)}\)<span class="formula-number">(4)</span></div>
     <div class="formula-desc">Berkas dua (s = 40 cm): \(\mathrm{GMR}_b = \sqrt{0{,}849\times40} = 5{,}83\) cm, \(r_b = \sqrt{1{,}09\times40} = 6{,}60\) cm → \(L = 0{,}9731\) mH/km, \(C = 11{,}735\) nF/km. Untuk berkas 3 dan 4 (segitiga/bujur sangkar bersisi s) rumus akar-n yang sama berlaku.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -1842,7 +2006,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </figure>
   <div class="formula-block reveal">
     <div class="formula-label">Nominal-π: Persamaan Ujung Kirim</div>
-    <div class="formula-main">\(\mathbf{V}_S = \left(1 + \tfrac{YZ}{2}\right)\mathbf{V}_R + Z\,\mathbf{I}_R, \qquad \mathbf{I}_S = Y\left(1 + \tfrac{YZ}{4}\right)\mathbf{V}_R + \left(1 + \tfrac{YZ}{2}\right)\mathbf{I}_R\)<span class="formula-number">(5)</span></div>
+    <div class="formula-main">\(\mathbf{V}_S = \left(1 + \tfrac{YZ}{2}\right)\mathbf{V}_R + Z\,\mathbf{I}_R, \qquad\allowbreak \mathbf{I}_S = Y\left(1 + \tfrac{YZ}{4}\right)\mathbf{V}_R + \left(1 + \tfrac{YZ}{2}\right)\mathbf{I}_R\)<span class="formula-number">(5)</span></div>
     <div class="formula-desc">Saluran contoh: \(Z = 24 + j85{,}3\) Ω, \(Y = j534{,}3\) µS; beban 60 MW pf 0,9 pada 132 kV: \(I_R = 291{,}6\angle{-25{,}8^\circ}\) A; \(V_S = 162{,}37\) kV, \(I_S = 270{,}0\) A (lebih kecil daripada I<sub>R</sub> karena kapasitor memasok sebagian arus reaktif); regulasi 25,87 %.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -1913,7 +2077,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </figure>
   <div class="formula-block reveal">
     <div class="formula-label">Konstanta Rangkaian Umum dan Kaskade</div>
-    <div class="formula-main">\(\begin{bmatrix}\mathbf{V}_S\\ \mathbf{I}_S\end{bmatrix} = \begin{bmatrix}A & B\\ C & D\end{bmatrix}\begin{bmatrix}\mathbf{V}_R\\ \mathbf{I}_R\end{bmatrix}, \qquad AD - BC = 1, \qquad \begin{bmatrix}A&B\\C&D\end{bmatrix}_{tot} = \prod_k \begin{bmatrix}A_k&B_k\\C_k&D_k\end{bmatrix}\)<span class="formula-number">(6)</span></div>
+    <div class="formula-main">\(\begin{bmatrix}\mathbf{V}_S\\ \mathbf{I}_S\end{bmatrix} = \begin{bmatrix}A & B\\ C & D\end{bmatrix}\begin{bmatrix}\mathbf{V}_R\\ \mathbf{I}_R\end{bmatrix}, \qquad\allowbreak AD - BC = 1, \qquad\allowbreak \begin{bmatrix}A&B\\C&D\end{bmatrix}_{tot} = \prod_k \begin{bmatrix}A_k&B_k\\C_k&D_k\end{bmatrix}\)<span class="formula-number">(6)</span></div>
     <div class="formula-desc">Nominal-π contoh: \(A = D = 0{,}9772 + j0{,}0064\), \(B = 24 + j85{,}3\) Ω, \(C = j528{,}22\) µS; \(AD - BC = 1{,}00000 + j0{,}000000\) ✓. Trafo 150/20 kV (a = 7,5) di ujung terima dengan reaktansi 20 Ω (sisi 150 kV): \([A\ B; C\ D]_{trafo} = [1\ j20; 0\ 1]\cdot[a\ 0; 0\ 1/a]\).</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -1987,7 +2151,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </figure>
   <div class="formula-block reveal">
     <div class="formula-label">Saluran Panjang: Konstanta Propagasi dan Impedansi Karakteristik</div>
-    <div class="formula-main">\(\gamma = \sqrt{zy} = \alpha + j\beta\ (\text{per km}), \qquad Z_c = \sqrt{\dfrac{z}{y}}, \qquad \text{tanpa rugi: } \beta = \omega\sqrt{LC}, \ Z_c = \sqrt{\dfrac{L}{C}}, \ v = \dfrac{1}{\sqrt{LC}}, \ \lambda = \dfrac{2\pi}{\beta}\)<span class="formula-number">(7)</span></div>
+    <div class="formula-main">\(\gamma = \sqrt{zy} = \alpha + j\beta\ (\text{per km}), \qquad\allowbreak Z_c = \sqrt{\dfrac{z}{y}}, \qquad\allowbreak \text{tanpa rugi:}\ \allowbreak  \beta = \omega\sqrt{LC}, \ Z_c = \sqrt{\dfrac{L}{C}}, \ v = \dfrac{1}{\sqrt{LC}}, \ \lambda = \dfrac{2\pi}{\beta}\)<span class="formula-number">(7)</span></div>
     <div class="formula-desc">Saluran contoh (tanpa rugi): \(\beta = \sqrt{0{,}4267\times2{,}672\times10^{-6}} = 1{,}0677\times10^{-3}\) rad/km, \(Z_c = \sqrt{0{,}4267/2{,}672\times10^{-6}} = 399{,}7\) Ω, \(\lambda = 2\pi/\beta = 5.885\) km, \(v = \lambda f = 294\times10^3\) km/s. Dengan R = 0,12 Ω/km: \(\gamma = 0{,}1487\times10^{-3} + j1{,}0780\times10^{-3}\) per km, \(Z_c = 403{,}5 - j55{,}7\) Ω.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -1996,7 +2160,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </div>
   <div class="formula-block reveal">
     <div class="formula-label">ABCD Saluran Panjang dan π-Ekuivalen</div>
-    <div class="formula-main">\(A = D = \cosh\gamma\ell, \quad B = Z_c\sinh\gamma\ell, \quad C = \dfrac{\sinh\gamma\ell}{Z_c}; \qquad Z' = Z_c\sinh\gamma\ell, \quad \dfrac{Y'}{2} = \dfrac{\tanh(\gamma\ell/2)}{Z_c}\)<span class="formula-number">(8)</span></div>
+    <div class="formula-main">\(A = D = \cosh\gamma\ell, \quad\allowbreak B = Z_c\sinh\gamma\ell, \quad\allowbreak C = \dfrac{\sinh\gamma\ell}{Z_c}; \qquad\allowbreak Z' = Z_c\sinh\gamma\ell, \quad\allowbreak \dfrac{Y'}{2} = \dfrac{\tanh(\gamma\ell/2)}{Z_c}\)<span class="formula-number">(8)</span></div>
     <div class="formula-desc">Tanpa rugi, cosh(jβℓ) = cos βℓ dan sinh(jβℓ) = j sin βℓ. Saluran 400 km: \(\beta\ell = 0{,}4271\) rad, \(A = \cos\beta\ell = 0{,}9102\), \(Z' = jZ_c\sin\beta\ell = j165{,}6\) Ω (nominal \(x\ell = 170{,}7\) Ω), \(Y'/2 = j\tan(\beta\ell/2)/Z_c = j542{,}6\) µS (nominal \(b\ell/2 = 534{,}3\) µS). π-ekuivalen adalah nominal-π dengan Z dan Y yang 'dikoreksi' sehingga tepat pada frekuensi dasar.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
@@ -2069,7 +2233,7 @@ window.jalankanDenganMuat = async function (el, label, fn) {
   </figure>
   <div class="formula-block reveal">
     <div class="formula-label">Profil Tegangan Saluran Tanpa Rugi dan SIL</div>
-    <div class="formula-main">\(\mathbf{V}(x) = \mathbf{V}_R\cos\beta x + jZ_c\,\mathbf{I}_R\sin\beta x, \qquad \mathrm{SIL} = \dfrac{V_L^2}{Z_c}, \qquad \text{beban} = \mathrm{SIL} \Rightarrow |V(x)| = |V_R|\ \forall x\)<span class="formula-number">(9)</span></div>
+    <div class="formula-main">\(\mathbf{V}(x) = \mathbf{V}_R\cos\beta x + jZ_c\,\mathbf{I}_R\sin\beta x, \qquad\allowbreak \mathrm{SIL} = \dfrac{V_L^2}{Z_c}, \qquad\allowbreak \text{beban} = \mathrm{SIL} \Rightarrow |V(x)| = |V_R|\ \forall x\)<span class="formula-number">(9)</span></div>
     <div class="formula-desc">Saluran contoh: \(\mathrm{SIL} = 150^2/400 = 56{,}3\) MW (500 kV dengan berkas 4, Z<sub>c</sub> ≈ 240 Ω: ± 1040 MW). Pada beban resistif tepat SIL, \(Z_c I_R = V_R\) sehingga \(|V(x)| = |V_R|\sqrt{\cos^2\beta x + \sin^2\beta x} = |V_R|\): tidak ada jatuh maupun kenaikan tegangan sepanjang saluran, dan Q yang dibangkitkan kapasitansi tepat sama dengan yang diserap induktansi di tiap titik.</div>
   </div>
   <div class="tip-box reveal rumus-jelas">
