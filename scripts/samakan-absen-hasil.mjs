@@ -1,21 +1,25 @@
 /**
- * Tab Hasil (96 halaman: 84 modul + UTS/UAS enam course): "Jumlah Absen" tidak
- * boleh menghitung akun simulasi dosen.
+ * Tab Hasil (96 halaman: 84 modul + UTS/UAS enam course): "Jumlah Kehadiran" dan
+ * "Jumlah Absen" harus sama dengan status di tabel di bawahnya.
  *
- * MASALAHNYA. Akun simulasi dosen (SIM_NIMS, mis. 41399999901) tercantum di
- * students.json tiap course. Jumlah Mahasiswa (totalMhs) dan tabel Hasil
- * (renderVisitors) menyaringnya, tetapi loop Hadir/Absen di updateLeaderboard
- * melintasi seluruh masterStudents tanpa menyaring. Sesudah jadwal berakhir
- * akun itu (0 poin) terhitung Bolos, sehingga "Jumlah Absen" lebih besar satu
- * daripada jumlah nama Bolos di tabel (mis. CAD Modul 3: Absen 5, nama 4).
+ * ATURAN (keputusan dosen, 6 Oktober 2026):
+ *   Hadir = punya poin (Tepat Waktu ATAU Terlambat; Terlambat tetap mengerjakan,
+ *           poinnya hanya dikali 0,65)
+ *   Absen = tanpa poin DAN jadwal sudah berakhir (= baris Bolos)
+ *   Belum = tanpa poin dan jadwal masih aktif (tidak dihitung)
+ * sehingga Jumlah Mahasiswa = Hadir + Belum + Absen, dan Absen = jumlah nama Bolos.
+ * Akun simulasi dosen (SIM_NIMS) dilewati, sama dengan totalMhs dan tabel.
  *
- * YANG DILAKUKAN. Loop statistik melewati akun simulasi dengan isSimulasiNim,
- * sama dengan totalMhs dan tabel. Aturan Hadir/Terlambat/Absen lainnya tidak
- * berubah.
+ * MASALAH YANG DIPERBAIKI (dua tahap).
+ * (1) Akun simulasi ada di students.json tiap course; totalMhs dan tabel menyaringnya
+ *     tetapi loop Hadir/Absen tidak, jadi sesudah jadwal berakhir ia terhitung Bolos
+ *     (CAD Modul 3: Absen 5, nama 4). PR #991.
+ * (2) Loop lama menghitung mahasiswa Terlambat sebagai Absen, padahal tabel
+ *     menandainya "Terlambat" (bukan "Bolos"). Kini Terlambat dihitung Hadir.
  *
- * Idempoten: blok bertanda ditimpa di tempat; jalan kedua melaporkan 0 halaman.
- * Salinan konflik OneDrive (*-DEDIK-PC.html) dilewati. Generator TTL/CAD dan
- * enrich Sisken membangun halaman dari Modul-1/templatnya, jadi jalankan
+ * Idempoten: blok bertanda (versi apa pun) ditimpa di tempat; jalan kedua melaporkan
+ * 0 halaman. Salinan konflik OneDrive (*-DEDIK-PC.html) dilewati. Generator TTL/CAD
+ * dan enrich Sisken membangun halaman dari Modul-1/templatnya, jadi jalankan
  * `--periksa` sesudah regenerasi; harus 0.
  *
  * Pakai:
@@ -31,27 +35,20 @@ const periksa = process.argv.includes("--periksa");
 
 const RX_LAMA = /  let hadir = 0, absen = 0;\n  for\(const s of masterStudents\)\{\n[\s\S]*?\n  \}\n(?=  const setTxt)/;
 const RX_BLOK = /  \/\/ SAMAKAN-ABSEN-HASIL BEGIN[^\n]*\n[\s\S]*?  \/\/ SAMAKAN-ABSEN-HASIL END[^\n]*\n/;
-export const BLOK = `  // SAMAKAN-ABSEN-HASIL BEGIN v1 — dipasang scripts/samakan-absen-hasil.mjs
-  // Akun simulasi dosen ada di roster tetapi tidak dihitung di totalMhs dan
-  // tidak tampil di tabel; ia juga tidak boleh masuk Hadir/Absen (dulu: Absen
-  // lebih besar satu daripada jumlah nama Bolos).
+export const BLOK = `  // SAMAKAN-ABSEN-HASIL BEGIN v2 — dipasang scripts/samakan-absen-hasil.mjs
+  // Aturan yang sama dengan status di tabel Hasil (renderVisitors):
+  //   Hadir = punya poin (Tepat Waktu atau Terlambat);
+  //   Absen = tanpa poin DAN jadwal sudah berakhir (= baris Bolos).
+  // Akun simulasi dosen ada di roster tetapi tidak dihitung di totalMhs dan tidak
+  // tampil di tabel, jadi dilewati juga di sini.
   let hadir = 0, absen = 0;
   for(const s of masterStudents){
     if(isSimulasiNim(s.nim)) continue;
     const v = visitMap[s.nim];
-    const hasP = v && ((v.points || 0) > 0);
-    const late = hasP && (typeof isLate === 'function') && isLate(v.timestamp);
-    if(hasP && !late){
-      hadir++;   // Tepat Waktu: punya poin + tidak terlambat
-    } else if(late){
-      absen++;   // Terlambat: dihitung sebagai absen
-    } else if(schedEnded){
-      absen++;   // Bolos: tidak punya poin + jadwal sudah berakhir
-                 //        (mencakup tidak-akses maupun akses-tapi-0-poin)
-    }
-    // else: Belum (jadwal masih aktif, belum berhasil dapat poin) — tidak dihitung
+    if(v && (v.points || 0) > 0) hadir++;
+    else if(schedEnded) absen++;
   }
-  // SAMAKAN-ABSEN-HASIL END v1
+  // SAMAKAN-ABSEN-HASIL END v2
 `;
 
 const hitungRx = (s, rx) => (s.match(new RegExp(rx.source, "g")) || []).length;

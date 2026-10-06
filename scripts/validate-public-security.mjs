@@ -22,21 +22,22 @@ function periksaCssTugasCad(html, relative, course) {
   }
 }
 
-// "Jumlah Absen" tab Hasil tidak menghitung akun simulasi dosen (scripts/samakan-absen-hasil.mjs):
-// satu blok bertanda, dijalankan di sandbox dengan roster rekaan yang memuat akun simulasi.
-// Hasilnya harus sama dengan roster tanpa akun itu (totalMhs dan tabel juga menyaringnya).
+// "Jumlah Kehadiran"/"Jumlah Absen" tab Hasil mengikuti status tabel (scripts/samakan-absen-hasil.mjs):
+// Hadir = punya poin (Tepat Waktu atau Terlambat), Absen = tanpa poin + jadwal berakhir (= Bolos), akun
+// simulasi tidak dihitung. Blok bertanda dijalankan di sandbox dengan roster rekaan.
 function periksaStatistikAbsen(html, relative) {
   const m = html.match(/  \/\/ SAMAKAN-ABSEN-HASIL BEGIN[^\n]*\n([^]*?)  \/\/ SAMAKAN-ABSEN-HASIL END[^\n]*\n/);
   if (!m || (html.match(/SAMAKAN-ABSEN-HASIL BEGIN/g) || []).length !== 1) throw new Error(`${relative}: tepat satu blok SAMAKAN-ABSEN-HASIL diperlukan; run node scripts/samakan-absen-hasil.mjs`);
+  if (!m[0].includes("BEGIN v2")) throw new Error(`${relative}: blok SAMAKAN-ABSEN-HASIL bukan v2 (Terlambat harus Hadir); run node scripts/samakan-absen-hasil.mjs`);
   const hitung = (roster, jadwalBerakhir) => {
     const kunjungan = { A: { points: 5, timestamp: "tepat" }, B: { points: 3, timestamp: "telat" }, C: { points: 0, timestamp: "tepat" }, SIM: { points: 0, timestamp: "tepat" } };
     return new Function("masterStudents", "visitMap", "schedEnded", "isSimulasiNim", "isLate", m[1] + "\nreturn [hadir, absen].join('/');")(
       roster.map((nim) => ({ nim })), kunjungan, jadwalBerakhir, (nim) => nim === "SIM", (t) => t === "telat");
   };
-  for (const berakhir of [false, true]) {
+  // A tepat waktu, B terlambat (keduanya Hadir), C 0 poin pernah akses, D tidak pernah akses, SIM akun simulasi.
+  for (const [berakhir, harapan] of [[false, "2/0"], [true, "2/2"]]) {
     const dengan = hitung(["A", "B", "C", "D", "SIM"], berakhir);
-    const tanpa = hitung(["A", "B", "C", "D"], berakhir);
-    if (dengan !== tanpa) throw new Error(`${relative}: akun simulasi ikut dihitung di statistik Hadir/Absen (${dengan} dengan, ${tanpa} tanpa akun itu; jadwal ${berakhir ? "berakhir" : "aktif"})`);
+    if (dengan !== harapan) throw new Error(`${relative}: statistik Hadir/Absen ${dengan} untuk jadwal ${berakhir ? "berakhir" : "aktif"}, harusnya ${harapan} (Terlambat = Hadir; Absen = Bolos; akun simulasi tidak dihitung)`);
   }
 }
 
