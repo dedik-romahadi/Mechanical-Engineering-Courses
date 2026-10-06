@@ -7805,8 +7805,13 @@ function updateLeaderboard(visitors, schedExpired){
   //   (non-overlapping).
   const totalMhs = masterStudents.filter(s=>!isSimulasiNim(s.nim)).length;
   const schedEnded = !!schedExpired;
+  // SAMAKAN-ABSEN-HASIL BEGIN v1 — dipasang scripts/samakan-absen-hasil.mjs
+  // Akun simulasi dosen ada di roster tetapi tidak dihitung di totalMhs dan
+  // tidak tampil di tabel; ia juga tidak boleh masuk Hadir/Absen (dulu: Absen
+  // lebih besar satu daripada jumlah nama Bolos).
   let hadir = 0, absen = 0;
   for(const s of masterStudents){
+    if(isSimulasiNim(s.nim)) continue;
     const v = visitMap[s.nim];
     const hasP = v && ((v.points || 0) > 0);
     const late = hasP && (typeof isLate === 'function') && isLate(v.timestamp);
@@ -7820,6 +7825,7 @@ function updateLeaderboard(visitors, schedExpired){
     }
     // else: Belum (jadwal masih aktif, belum berhasil dapat poin) — tidak dihitung
   }
+  // SAMAKAN-ABSEN-HASIL END v1
   const setTxt = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = String(val); };
   setTxt('statTotalMhs', totalMhs);
   setTxt('statHadir', hadir);
