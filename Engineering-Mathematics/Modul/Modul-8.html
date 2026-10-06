@@ -8974,27 +8974,20 @@ function updateLeaderboard(visitors, schedExpired){
   //   (non-overlapping).
   const totalMhs = masterStudents.filter(s=>!isSimulasiNim(s.nim)).length;
   const schedEnded = !!schedExpired;
-  // SAMAKAN-ABSEN-HASIL BEGIN v1 — dipasang scripts/samakan-absen-hasil.mjs
-  // Akun simulasi dosen ada di roster tetapi tidak dihitung di totalMhs dan
-  // tidak tampil di tabel; ia juga tidak boleh masuk Hadir/Absen (dulu: Absen
-  // lebih besar satu daripada jumlah nama Bolos).
+  // SAMAKAN-ABSEN-HASIL BEGIN v2 — dipasang scripts/samakan-absen-hasil.mjs
+  // Aturan yang sama dengan status di tabel Hasil (renderVisitors):
+  //   Hadir = punya poin (Tepat Waktu atau Terlambat);
+  //   Absen = tanpa poin DAN jadwal sudah berakhir (= baris Bolos).
+  // Akun simulasi dosen ada di roster tetapi tidak dihitung di totalMhs dan tidak
+  // tampil di tabel, jadi dilewati juga di sini.
   let hadir = 0, absen = 0;
   for(const s of masterStudents){
     if(isSimulasiNim(s.nim)) continue;
     const v = visitMap[s.nim];
-    const hasP = v && ((v.points || 0) > 0);
-    const late = hasP && (typeof isLate === 'function') && isLate(v.timestamp);
-    if(hasP && !late){
-      hadir++;   // Tepat Waktu: punya poin + tidak terlambat
-    } else if(late){
-      absen++;   // Terlambat: dihitung sebagai absen
-    } else if(schedEnded){
-      absen++;   // Bolos: tidak punya poin + jadwal sudah berakhir
-                 //        (mencakup tidak-akses maupun akses-tapi-0-poin)
-    }
-    // else: Belum (jadwal masih aktif, belum berhasil dapat poin) — tidak dihitung
+    if(v && (v.points || 0) > 0) hadir++;
+    else if(schedEnded) absen++;
   }
-  // SAMAKAN-ABSEN-HASIL END v1
+  // SAMAKAN-ABSEN-HASIL END v2
   const setTxt = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = String(val); };
   setTxt('statTotalMhs', totalMhs);
   setTxt('statHadir', hadir);
