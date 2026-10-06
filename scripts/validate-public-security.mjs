@@ -22,6 +22,24 @@ function periksaCssTugasCad(html, relative, course) {
   }
 }
 
+// "Jumlah Absen" tab Hasil tidak menghitung akun simulasi dosen (scripts/samakan-absen-hasil.mjs):
+// satu blok bertanda, dijalankan di sandbox dengan roster rekaan yang memuat akun simulasi.
+// Hasilnya harus sama dengan roster tanpa akun itu (totalMhs dan tabel juga menyaringnya).
+function periksaStatistikAbsen(html, relative) {
+  const m = html.match(/  \/\/ SAMAKAN-ABSEN-HASIL BEGIN[^\n]*\n([^]*?)  \/\/ SAMAKAN-ABSEN-HASIL END[^\n]*\n/);
+  if (!m || (html.match(/SAMAKAN-ABSEN-HASIL BEGIN/g) || []).length !== 1) throw new Error(`${relative}: tepat satu blok SAMAKAN-ABSEN-HASIL diperlukan; run node scripts/samakan-absen-hasil.mjs`);
+  const hitung = (roster, jadwalBerakhir) => {
+    const kunjungan = { A: { points: 5, timestamp: "tepat" }, B: { points: 3, timestamp: "telat" }, C: { points: 0, timestamp: "tepat" }, SIM: { points: 0, timestamp: "tepat" } };
+    return new Function("masterStudents", "visitMap", "schedEnded", "isSimulasiNim", "isLate", m[1] + "\nreturn [hadir, absen].join('/');")(
+      roster.map((nim) => ({ nim })), kunjungan, jadwalBerakhir, (nim) => nim === "SIM", (t) => t === "telat");
+  };
+  for (const berakhir of [false, true]) {
+    const dengan = hitung(["A", "B", "C", "D", "SIM"], berakhir);
+    const tanpa = hitung(["A", "B", "C", "D"], berakhir);
+    if (dengan !== tanpa) throw new Error(`${relative}: akun simulasi ikut dihitung di statistik Hadir/Absen (${dengan} dengan, ${tanpa} tanpa akun itu; jadwal ${berakhir ? "berakhir" : "aktif"})`);
+  }
+}
+
 // Tombol panah bilah subnav: paling banyak satu #subnavKiri dan satu #subnavKanan per halaman modul;
 // Sisken Modul 2–14 (bilah bagiannya meluber) wajib tepat satu pasang mengapit #modulSubnav.
 function periksaPanahSubnav(html, relative, course, modulNo) {
@@ -420,6 +438,7 @@ for (const course of courseRoots) {
     // Tombol panah bilah subnav tepat satu pasang (scripts/rapikan-panah-subnav.mjs, 3 Oktober 2026):
     // enrich-sisken-modules.mjs dulu menumpuk satu pasang setiap regenerasi (sampai 76 dengan id sama).
     periksaPanahSubnav(modul, relative, course, modulNo);
+    periksaStatistikAbsen(modul, relative);
     // CSS kartu tugas CAD harus ada di <head> halaman (bangun-modul-1.py; 4 Oktober 2026).
     periksaCssTugasCad(modul, relative, course);
     kunciIdentitasModul += 1;
@@ -3242,6 +3261,7 @@ for (const course of courseRoots) {
     // yang tidak pernah didefinisikan (selalu false), menimpa statistik benar
     // dari renderVisitors.
     if (exam.includes("_scheduleExpired")) throw new Error(`${relative}: undefined _scheduleExpired is used again (lecturer Absen stats go stale after the roster loads)`);
+    periksaStatistikAbsen(exam, relative);
     if ((exam.match(/updateLeaderboard\(/g) || []).length !== 2) {
       throw new Error(`${relative}: updateLeaderboard must only be defined once and called once (from renderVisitors, with schedExpired from the current schedule)`);
     }
