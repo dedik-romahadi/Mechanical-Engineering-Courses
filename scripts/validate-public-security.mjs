@@ -63,6 +63,46 @@ function periksaBobotUjian(html, relative) {
   if (beda.length || baris.length !== Object.keys(sia).length) throw new Error(`${relative}: tabel bobot Sub-CPMK tidak sama dengan berkas asesmen SIA (beda: ${beda.join(", ") || "jumlah baris"}); run node scripts/bobot-ujian-obe.mjs`);
 }
 
+// Keaktifan di kelas (scripts/keaktifan-kelas.mjs, 13 Okt 2026): halaman percobaan wajib memuat
+// blok lengkap; halaman modul lain tidak boleh memuatnya sebelum disetujui (mis. ikut tersalin
+// generator CAD dari Modul 1). Fungsi murni penerapan bonus diuji di sandbox.
+const KEAKTIFAN_HALAMAN = new Set(["Pemodelan-Computer-Aided-Design/Modul/Modul-1.html"]);
+function periksaKeaktifanKelas(html, relative) {
+  const ada = html.includes("KEAKTIFAN-KELAS:DATA BEGIN") || html.includes("keaktifan-kelas-style");
+  if (!KEAKTIFAN_HALAMAN.has(relative)) {
+    if (ada) throw new Error(`${relative}: blok KEAKTIFAN-KELAS hanya untuk halaman percobaan; tambahkan halaman ke HALAMAN di scripts/keaktifan-kelas.mjs dan KEAKTIFAN_HALAMAN di validator bila sudah disetujui`);
+    return;
+  }
+  const hit = (t) => html.split(t).length - 1;
+  for (const t of ["KEAKTIFAN-KELAS:CSS v1", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v1", 'id="aktifList"', 'id="baris-keaktifan"', "const _bonusAktif =", "🔥 Keaktifan kelas: <strong>+"]) {
+    if (hit(t) !== 1) throw new Error(`${relative}: penanda keaktifan ${t} muncul ${hit(t)}x, harusnya 1; run node scripts/keaktifan-kelas.mjs`);
+  }
+  if (hit("latestVisitors=_keaktifanTerapkan(") !== 2 || html.includes("latestVisitors=data ? Object.values(data) : [];")) {
+    throw new Error(`${relative}: data kunjungan harus melewati _keaktifanTerapkan (2x) agar bonus keaktifan ikut tabel/Top Skor/statistik`);
+  }
+  const kepala = "function keaktifanTerapkanMurni(list, modul, roster, total, isSim) {";
+  const iAwal = html.indexOf(kepala);
+  const iAkhir = iAwal < 0 ? -1 : html.indexOf("\n}\n", iAwal);
+  if (iAwal < 0 || iAkhir < 0) throw new Error(`${relative}: fungsi keaktifanTerapkanMurni tidak ditemukan`);
+  const terapkan = new Function("KEAKTIFAN_BONUS_FRAKSI", html.slice(iAwal, iAkhir + 3) + "return keaktifanTerapkanMurni;")(0.1);
+  const W = "2026-10-13T12:40:00.000Z";
+  const roster = [{ nim: "1", nama: "A" }, { nim: "2", nama: "B" }, { nim: "3", nama: "C" }, { nim: "41399999901", nama: "SIM" }];
+  const modulAktif = { mhs_1: { aktif: true, waktu: W }, mhs_3: { aktif: true, waktu: W }, mhs_41399999901: { aktif: true, waktu: W }, mhs_9: { aktif: true, waktu: W } };
+  const daftar = [{ nim: "1", role: "student", points: 48 }, { nim: "2", role: "student", points: 20 }, { nim: "DOSEN", role: "dosen" }];
+  const out = terapkan(daftar, modulAktif, roster, 50, (n) => n === "41399999901");
+  const cari = (nim) => out.find((v) => v && String(v.nim) === nim);
+  const salah = [];
+  if (cari("1").points !== 50 || cari("1").poinTanpaKeaktifan !== 48 || cari("1").aktifKelas !== true) salah.push("48+5 harus dibatasi 50");
+  if (cari("2").points !== 20 || cari("2").aktifKelas) salah.push("tanpa centang poin tetap");
+  if (!cari("3") || cari("3").points !== 5 || cari("3").tanpaKunjungan !== true || cari("3").nama !== "C") salah.push("dicentang tanpa kunjungan harus tampil dengan 5 poin");
+  if (cari("41399999901") || cari("9")) salah.push("akun simulasi / NIM di luar roster tidak boleh ditambahkan");
+  if (cari("DOSEN").points !== undefined) salah.push("record dosen tidak boleh diubah");
+  if (daftar[0].points !== 48) salah.push("data mentah tidak boleh diubah di tempat");
+  const dua = terapkan([{ nim: "1", role: "student", points: 40 }], { mhs_1: { aktif: true, waktu: W } }, roster, 50, () => false);
+  if (dua[0].points !== 45) salah.push("40+5 harus 45 (+10 nilai)");
+  if (salah.length) throw new Error(`${relative}: keaktifanTerapkanMurni salah: ${salah.join("; ")}`);
+}
+
 // Tombol panah bilah subnav: paling banyak satu #subnavKiri dan satu #subnavKanan per halaman modul;
 // Sisken Modul 2–14 (bilah bagiannya meluber) wajib tepat satu pasang mengapit #modulSubnav.
 function periksaPanahSubnav(html, relative, course, modulNo) {
@@ -461,6 +501,7 @@ for (const course of courseRoots) {
     // Tombol panah bilah subnav tepat satu pasang (scripts/rapikan-panah-subnav.mjs, 3 Oktober 2026):
     // enrich-sisken-modules.mjs dulu menumpuk satu pasang setiap regenerasi (sampai 76 dengan id sama).
     periksaPanahSubnav(modul, relative, course, modulNo);
+    periksaKeaktifanKelas(modul, relative);
     periksaStatistikAbsen(modul, relative);
     // CSS kartu tugas CAD harus ada di <head> halaman (bangun-modul-1.py; 4 Oktober 2026).
     periksaCssTugasCad(modul, relative, course);
