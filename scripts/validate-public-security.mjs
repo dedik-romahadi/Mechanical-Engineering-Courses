@@ -63,23 +63,22 @@ function periksaBobotUjian(html, relative) {
   if (beda.length || baris.length !== Object.keys(sia).length) throw new Error(`${relative}: tabel bobot Sub-CPMK tidak sama dengan berkas asesmen SIA (beda: ${beda.join(", ") || "jumlah baris"}); run node scripts/bobot-ujian-obe.mjs`);
 }
 
-// Keaktifan di kelas (scripts/keaktifan-kelas.mjs, 13 Okt 2026): halaman percobaan wajib memuat
-// blok lengkap; halaman modul lain tidak boleh memuatnya sebelum disetujui (mis. ikut tersalin
-// generator CAD dari Modul 1). Fungsi murni penerapan bonus diuji di sandbox.
-const KEAKTIFAN_HALAMAN = new Set(["Pemodelan-Computer-Aided-Design/Modul/Modul-1.html"]);
+// Keaktifan di kelas (scripts/keaktifan-kelas.mjs, 13 Okt 2026): percobaan CAD Modul 1 lalu diterapkan
+// ke SEMUA halaman modul. Setiap halaman modul wajib memuat blok lengkap dengan kunci kursus RTDB yang
+// sama dengan DB_PATH-nya; fungsi murni penerapan bonus diuji di sandbox.
 function periksaKeaktifanKelas(html, relative) {
-  const ada = html.includes("KEAKTIFAN-KELAS:DATA BEGIN") || html.includes("keaktifan-kelas-style");
-  if (!KEAKTIFAN_HALAMAN.has(relative)) {
-    if (ada) throw new Error(`${relative}: blok KEAKTIFAN-KELAS hanya untuk halaman percobaan; tambahkan halaman ke HALAMAN di scripts/keaktifan-kelas.mjs dan KEAKTIFAN_HALAMAN di validator bila sudah disetujui`);
-    return;
-  }
   const hit = (t) => html.split(t).length - 1;
-  for (const t of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v3", 'id="aktifList"', 'id="baris-keaktifan"', "const _bonusAktif =", "🔥 Keaktifan kelas: <strong>+"]) {
+  for (const t of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v3", 'id="aktifList"', 'id="baris-keaktifan"', "const _bonusAktif =", 'data-nim="${escH(String(s.nim))}"']) {
     if (hit(t) !== 1) throw new Error(`${relative}: penanda keaktifan ${t} muncul ${hit(t)}x, harusnya 1; run node scripts/keaktifan-kelas.mjs`);
   }
-  if (hit("latestVisitors=_keaktifanTerapkan(") !== 2 || html.includes("latestVisitors=data ? Object.values(data) : [];")) {
-    throw new Error(`${relative}: data kunjungan harus melewati _keaktifanTerapkan (2x) agar bonus keaktifan ikut tabel/Top Skor/statistik`);
+  if (hit("🔥 Keaktifan kelas: <strong>+") > 1) throw new Error(`${relative}: baris keaktifan di ringkasan ekspor muncul lebih dari sekali`);
+  if (hit("latestVisitors=_keaktifanTerapkan(") < 1 || /latestVisitors\s*=\s*data \? Object\.values\(data\) : \[\];/.test(html)) {
+    throw new Error(`${relative}: data kunjungan harus melewati _keaktifanTerapkan agar bonus keaktifan ikut tabel/Top Skor/statistik`);
   }
+  const db = html.match(/const DB_PATH = `visitors\/([^/`]+)\/\$\{MODULE_ID\}`;/);
+  let kursus = db ? db[1] : null;
+  if (kursus === "${COURSE_ID}") kursus = (html.match(/const COURSE_ID\s*=\s*['"]([a-z0-9_]+)['"]/) || [])[1] || null;
+  if (!kursus || hit(`const KEAKTIFAN_KURSUS = '${kursus}';`) !== 1) throw new Error(`${relative}: KEAKTIFAN_KURSUS harus sama dengan kursus DB_PATH (${kursus})`);
   const kepala = "function keaktifanTerapkanMurni(list, modul, roster, total, isSim) {";
   const iAwal = html.indexOf(kepala);
   const iAkhir = iAwal < 0 ? -1 : html.indexOf("\n}\n", iAwal);
