@@ -18,7 +18,8 @@
  *   KEAKTIFAN-KELAS:CSS    <style> di <head>: lencana "Aktif", sakelar dosen, kartu papan
  *   KEAKTIFAN-KELAS:KARTU  kartu "Keaktifan di Kelas" sesudah kartu Top Akses (kisi 3 kolom);
  *                          v2: semua mahasiswa aktif, urut nama, tanpa peringkat/medali;
- *                          v3: tinggi daftar 3 baris seperti Top Skor/Top Akses, sisanya digulir
+ *                          v3: tinggi daftar 3 baris seperti Top Skor/Top Akses, sisanya digulir;
+ *                          v4: pil "+5 Poin" (bonus per pertemuan aktif, dijumlahkan) menggantikan "N× aktif"
  *   KEAKTIFAN-KELAS:DATA   skrip modul: langganan keaktifan/, penerapan bonus, hiasan baris,
  *                          sakelar dosen, papan peringkat, window._bonusKeaktifanSaya
  *   + data-nim pada baris tabel Hasil, latestVisitors melewati _keaktifanTerapkan,
@@ -76,7 +77,7 @@ const KARTU = `
         </div>
         <!-- KEAKTIFAN-KELAS:KARTU END v1 -->`;
 
-const DATA = (kursus) => `// KEAKTIFAN-KELAS:DATA BEGIN v3 — dipasang scripts/keaktifan-kelas.mjs
+const DATA = (kursus) => `// KEAKTIFAN-KELAS:DATA BEGIN v4 — dipasang scripts/keaktifan-kelas.mjs
 // Centang dosen "aktif di kelas" per mahasiswa per pertemuan (+10 nilai = 10% skala modul,
 // nilai tetap maksimal 100). keaktifan/<kursus>/<pertemuan>/mhs_<NIM> = {aktif:true, waktu}:
 // dibaca publik, ditulis hanya sesi admin dosen. Bonus dijumlahkan ke poin saat data
@@ -111,6 +112,8 @@ let _keaktifanKursus = {};
 let _keaktifanModul = {};
 let _visitorsMentah = [];
 let _visitorsDiterima = false;
+// Pemformat angka sendiri: _fmtPts tidak selalu terjangkau dari skrip ini (Sisken: di skrip modul lain).
+function _keaktifanFmt(n) { const r = Math.round((Number(n) || 0) * 100) / 100; return String(r).replace('.', ','); }
 function _keaktifanTotal() { return (window.SCORE_CONFIG && Number(window.SCORE_CONFIG.TOTAL)) || 50; }
 function _keaktifanTerapkan(list) {
   _visitorsMentah = list || [];
@@ -156,8 +159,8 @@ function _keaktifanKartu() {
     .sort((a, b) => String(a.s.nama).localeCompare(String(b.s.nama), 'id'));
   const ini = Object.keys(_keaktifanModul || {}).filter((k) => _keaktifanAktif(k.slice(4)) && !isSimulasiNim(k.slice(4))).length;
   if (!daftar.length) { el.innerHTML = '<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>'; return; }
-  el.innerHTML = '<div class="ka-daftar">' + daftar.map((x) => '<div class="ka-baris"><span class="ka-ikon">🔥</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escH(x.s.nama) + '</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">' + escH(x.nim) + '</div></div><span class="ka-jumlah">' + x.n + '× aktif</span></div>').join('') + '</div>'
-    + '<div class="ka-kaki"><b style="color:#f9a8d4">' + daftar.length + '</b> mahasiswa aktif · pertemuan ini: <b style="color:#f9a8d4">' + ini + '</b> · +10 nilai per pertemuan' + (daftar.length > 3 ? ' · <span style="color:#f9a8d4">gulir untuk melihat semua ↓</span>' : '') + '</div>';
+  el.innerHTML = '<div class="ka-daftar">' + daftar.map((x) => '<div class="ka-baris"><span class="ka-ikon">🔥</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escH(x.s.nama) + '</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">' + escH(x.nim) + '</div></div><span class="ka-jumlah" title="' + x.n + ' pertemuan aktif">+' + _keaktifanFmt(x.n * _keaktifanTotal() * KEAKTIFAN_BONUS_FRAKSI) + ' Poin</span></div>').join('') + '</div>'
+    + '<div class="ka-kaki"><b style="color:#f9a8d4">' + daftar.length + '</b> mahasiswa aktif · pertemuan ini: <b style="color:#f9a8d4">' + ini + '</b> · +5 poin (= +10 nilai) per pertemuan' + (daftar.length > 3 ? ' · <span style="color:#f9a8d4">gulir untuk melihat semua ↓</span>' : '') + '</div>';
 }
 function _keaktifanHias() {
   const body = document.getElementById('visitorTableBody');
@@ -231,7 +234,7 @@ const _keaktifanTungguRoster = setInterval(() => {
   if (body) new MutationObserver(() => _keaktifanHias()).observe(body, { childList: true });
   if (_auth && typeof _auth.onAuthStateChanged === 'function') _auth.onAuthStateChanged(() => _keaktifanHias());
 })();
-// KEAKTIFAN-KELAS:DATA END v3
+// KEAKTIFAN-KELAS:DATA END v4
 `;
 
 const SKOR_AKTIF = `\n      <div id="baris-keaktifan">Keaktifan kelas: <span id="scoreAktif" style="color:#f472b6">0</span>/5 poin</div>`;
@@ -331,7 +334,7 @@ function proses(rel) {
     if (m && m.length === 1) html = html.replace(m[0], () => m[0] + EKSPOR_TAMBAH);
   }
   // penjaga
-  for (const tanda of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v3", 'id="aktifList"', 'data-nim="${escH(String(s.nim))}"', 'id="baris-keaktifan"', "const _bonusAktif ="]) {
+  for (const tanda of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v4", 'id="aktifList"', 'data-nim="${escH(String(s.nim))}"', 'id="baris-keaktifan"', "const _bonusAktif ="]) {
     if (hitung(html, tanda) !== 1) throw new Error(`penanda ${tanda} muncul ${hitung(html, tanda)}x`);
   }
   if (hitung(html, `const KEAKTIFAN_KURSUS = '${kursus}';`) !== 1) throw new Error("KEAKTIFAN_KURSUS tidak sama dengan DB_PATH");

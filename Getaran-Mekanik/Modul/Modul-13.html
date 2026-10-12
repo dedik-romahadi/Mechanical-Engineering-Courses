@@ -8464,7 +8464,7 @@ function updateLeaderboard(visitors, schedExpired){
 fetchMasterStudents();
 
 let latestVisitors=[];
-// KEAKTIFAN-KELAS:DATA BEGIN v3 — dipasang scripts/keaktifan-kelas.mjs
+// KEAKTIFAN-KELAS:DATA BEGIN v4 — dipasang scripts/keaktifan-kelas.mjs
 // Centang dosen "aktif di kelas" per mahasiswa per pertemuan (+10 nilai = 10% skala modul,
 // nilai tetap maksimal 100). keaktifan/<kursus>/<pertemuan>/mhs_<NIM> = {aktif:true, waktu}:
 // dibaca publik, ditulis hanya sesi admin dosen. Bonus dijumlahkan ke poin saat data
@@ -8499,6 +8499,8 @@ let _keaktifanKursus = {};
 let _keaktifanModul = {};
 let _visitorsMentah = [];
 let _visitorsDiterima = false;
+// Pemformat angka sendiri: _fmtPts tidak selalu terjangkau dari skrip ini (Sisken: di skrip modul lain).
+function _keaktifanFmt(n) { const r = Math.round((Number(n) || 0) * 100) / 100; return String(r).replace('.', ','); }
 function _keaktifanTotal() { return (window.SCORE_CONFIG && Number(window.SCORE_CONFIG.TOTAL)) || 50; }
 function _keaktifanTerapkan(list) {
   _visitorsMentah = list || [];
@@ -8544,8 +8546,8 @@ function _keaktifanKartu() {
     .sort((a, b) => String(a.s.nama).localeCompare(String(b.s.nama), 'id'));
   const ini = Object.keys(_keaktifanModul || {}).filter((k) => _keaktifanAktif(k.slice(4)) && !isSimulasiNim(k.slice(4))).length;
   if (!daftar.length) { el.innerHTML = '<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>'; return; }
-  el.innerHTML = '<div class="ka-daftar">' + daftar.map((x) => '<div class="ka-baris"><span class="ka-ikon">🔥</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escH(x.s.nama) + '</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">' + escH(x.nim) + '</div></div><span class="ka-jumlah">' + x.n + '× aktif</span></div>').join('') + '</div>'
-    + '<div class="ka-kaki"><b style="color:#f9a8d4">' + daftar.length + '</b> mahasiswa aktif · pertemuan ini: <b style="color:#f9a8d4">' + ini + '</b> · +10 nilai per pertemuan' + (daftar.length > 3 ? ' · <span style="color:#f9a8d4">gulir untuk melihat semua ↓</span>' : '') + '</div>';
+  el.innerHTML = '<div class="ka-daftar">' + daftar.map((x) => '<div class="ka-baris"><span class="ka-ikon">🔥</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escH(x.s.nama) + '</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">' + escH(x.nim) + '</div></div><span class="ka-jumlah" title="' + x.n + ' pertemuan aktif">+' + _keaktifanFmt(x.n * _keaktifanTotal() * KEAKTIFAN_BONUS_FRAKSI) + ' Poin</span></div>').join('') + '</div>'
+    + '<div class="ka-kaki"><b style="color:#f9a8d4">' + daftar.length + '</b> mahasiswa aktif · pertemuan ini: <b style="color:#f9a8d4">' + ini + '</b> · +5 poin (= +10 nilai) per pertemuan' + (daftar.length > 3 ? ' · <span style="color:#f9a8d4">gulir untuk melihat semua ↓</span>' : '') + '</div>';
 }
 function _keaktifanHias() {
   const body = document.getElementById('visitorTableBody');
@@ -8619,7 +8621,7 @@ const _keaktifanTungguRoster = setInterval(() => {
   if (body) new MutationObserver(() => _keaktifanHias()).observe(body, { childList: true });
   if (_auth && typeof _auth.onAuthStateChanged === 'function') _auth.onAuthStateChanged(() => _keaktifanHias());
 })();
-// KEAKTIFAN-KELAS:DATA END v3
+// KEAKTIFAN-KELAS:DATA END v4
 function initVisitor(){
   // ─── Schedule listener (Pedoman §9.5) — schedule-gated access control ───
   // Subscribe ke SCHEDULE_PATH dengan onValue (real-time). Setiap perubahan

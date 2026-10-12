@@ -68,7 +68,7 @@ function periksaBobotUjian(html, relative) {
 // sama dengan DB_PATH-nya; fungsi murni penerapan bonus diuji di sandbox.
 function periksaKeaktifanKelas(html, relative) {
   const hit = (t) => html.split(t).length - 1;
-  for (const t of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v3", 'id="aktifList"', 'id="baris-keaktifan"', "const _bonusAktif =", 'data-nim="${escH(String(s.nim))}"']) {
+  for (const t of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v4", 'id="aktifList"', 'id="baris-keaktifan"', "const _bonusAktif =", 'data-nim="${escH(String(s.nim))}"']) {
     if (hit(t) !== 1) throw new Error(`${relative}: penanda keaktifan ${t} muncul ${hit(t)}x, harusnya 1; run node scripts/keaktifan-kelas.mjs`);
   }
   if (hit("🔥 Keaktifan kelas: <strong>+") > 1) throw new Error(`${relative}: baris keaktifan di ringkasan ekspor muncul lebih dari sekali`);
