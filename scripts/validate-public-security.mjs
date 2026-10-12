@@ -41,6 +41,28 @@ function periksaStatistikAbsen(html, relative) {
   }
 }
 
+// Blok "Cara hitung nilai & bobot Sub-CPMK" (details#obeInfo) di halaman UTS/UAS: total bobot dan
+// pasangan Sub-CPMK/bobot harus sama dengan berkas asesmen SIA (<Kursus>/Attributes/Asesmen-*.json).
+// 12 Okt 2026: Sisken UTS/UAS dan TTL UTS membawa tabel salinan lama (scripts/bobot-ujian-obe.mjs).
+function periksaBobotUjian(html, relative) {
+  const kursus = relative.split("/")[0];
+  const jenis = /UTS\.html$/.test(relative) ? "uts" : "uas";
+  const dir = path.join(root, kursus, "Attributes");
+  const berkas = fs.existsSync(dir) ? fs.readdirSync(dir).find((n) => /^Asesmen-.*\.json$/.test(n)) : null;
+  if (!berkas) throw new Error(`${relative}: berkas asesmen ${kursus}/Attributes/Asesmen-*.json tidak ditemukan`);
+  const a = JSON.parse(fs.readFileSync(path.join(dir, berkas), "utf8"));
+  const sia = {};
+  for (const sc of a.sub_cpmk) { const b = (sc.bobot || {})[jenis] || 0; if (b) sia[sc.kode.replace("Sub-CPMK ", "")] = b; }
+  const blok = (html.match(/<details[^>]*id="obeInfo"[^]*?<\/details>/) || [])[0];
+  if (!blok) throw new Error(`${relative}: blok details#obeInfo (bobot Sub-CPMK) tidak ditemukan`);
+  const tot = (blok.match(/total bobot Σ <b>(\d+)%<\/b>/) || [])[1];
+  if (Number(tot) !== a.asesmen.total_per_komponen[jenis]) throw new Error(`${relative}: total bobot ${tot}% di blok obeInfo, berkas asesmen SIA ${a.asesmen.total_per_komponen[jenis]}%; run node scripts/bobot-ujian-obe.mjs`);
+  const baris = [...blok.matchAll(/<tr><td style="padding:2px 0">([\d.]+)<\/td><td align="right" style="padding:2px 0">(\d+)%<\/td>/g)].map((m) => [m[1], Number(m[2])]);
+  const halaman = Object.fromEntries(baris);
+  const beda = [...new Set([...Object.keys(halaman), ...Object.keys(sia)])].filter((k) => halaman[k] !== sia[k]);
+  if (beda.length || baris.length !== Object.keys(sia).length) throw new Error(`${relative}: tabel bobot Sub-CPMK tidak sama dengan berkas asesmen SIA (beda: ${beda.join(", ") || "jumlah baris"}); run node scripts/bobot-ujian-obe.mjs`);
+}
+
 // Tombol panah bilah subnav: paling banyak satu #subnavKiri dan satu #subnavKanan per halaman modul;
 // Sisken Modul 2–14 (bilah bagiannya meluber) wajib tepat satu pasang mengapit #modulSubnav.
 function periksaPanahSubnav(html, relative, course, modulNo) {
@@ -3263,6 +3285,7 @@ for (const course of courseRoots) {
     // dari renderVisitors.
     if (exam.includes("_scheduleExpired")) throw new Error(`${relative}: undefined _scheduleExpired is used again (lecturer Absen stats go stale after the roster loads)`);
     periksaStatistikAbsen(exam, relative);
+    periksaBobotUjian(exam, relative);
     if ((exam.match(/updateLeaderboard\(/g) || []).length !== 2) {
       throw new Error(`${relative}: updateLeaderboard must only be defined once and called once (from renderVisitors, with schedExpired from the current schedule)`);
     }
