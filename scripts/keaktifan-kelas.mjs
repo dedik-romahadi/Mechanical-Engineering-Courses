@@ -4,8 +4,8 @@
  * PERMINTAAN DOSEN (13 Oktober 2026). Di tab Hasil, dosen dapat mencentang mahasiswa yang
  * aktif di kelas. Centang menambah 10 nilai (= 5 dari 50 poin modul; nilai tetap maksimal
  * 100). Mahasiswa melihat status aktif dirinya dan temannya; papan "Keaktifan di Kelas"
- * tampil di samping Top Skor dan Top Akses. Percobaan di Pemodelan CAD Modul 1 dahulu,
- * lalu diterapkan ke semua modul bila sudah disetujui (tambahkan halaman ke HALAMAN).
+ * tampil di samping Top Skor dan Top Akses. Percobaan di Pemodelan CAD Modul 1, lalu
+ * diterapkan ke SEMUA 84 halaman modul (enam kursus) atas persetujuan dosen 13 Okt 2026.
  *
  * DATA. keaktifan/<kursus>/<pertemuan>/mhs_<NIM> = { aktif: true, waktu } — dibaca publik,
  * ditulis/dihapus hanya sesi admin dosen (database.rules.json backend; sesi dibuat saat
@@ -35,10 +35,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const periksa = process.argv.includes("--periksa");
 
-// Halaman yang memakai fitur ini dan kunci kursus RTDB-nya.
-const HALAMAN = {
-  "Pemodelan-Computer-Aided-Design/Modul/Modul-1.html": "pemodelan_cad",
-};
+// Daftar halaman: semua <Kursus>/Modul/Modul-N.html (dipindai di bawah); kunci kursus RTDB dibaca dari DB_PATH halaman.
 
 const CSS = `<style id="keaktifan-kelas-style">/* KEAKTIFAN-KELAS:CSS v3 — dipasang scripts/keaktifan-kelas.mjs */
 .lencana-aktif{display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:2px 10px 2px 7px;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.04em;color:#fff;white-space:nowrap;background:linear-gradient(135deg,#f97316,#ec4899 55%,#8b5cf6);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 4px 14px rgba(236,72,153,.32);animation:la-denyut 2.4s ease-in-out infinite}
@@ -237,37 +234,49 @@ const _keaktifanTungguRoster = setInterval(() => {
 // KEAKTIFAN-KELAS:DATA END v3
 `;
 
-const SKOR_BARIS = `<div>Tugas 4–5: <span id="scoreCompHard" style="color:var(--pink)">0</span>/22 poin</div>`;
 const SKOR_AKTIF = `\n      <div id="baris-keaktifan">Keaktifan kelas: <span id="scoreAktif" style="color:#f472b6">0</span>/5 poin</div>`;
-const TOTAL_LAMA = `  const total = mc + ezComp + hardComp;`;
-const TOTAL_BARU = `  // KEAKTIFAN-KELAS: bonus centang dosen (+10 nilai), total tetap dibatasi skala modul.
-  const _bonusAktif = (typeof window._bonusKeaktifanSaya === 'function') ? window._bonusKeaktifanSaya() : 0;
-  const total = Math.min(mc + ezComp + hardComp + _bonusAktif, SCORE_CONFIG.TOTAL);`;
-const SET_LAMA = `  set('scoreCompHard', _fmtPts(hardComp));`;
-const SET_BARU = `${SET_LAMA}
-  set('scoreAktif',    _fmtPts(_bonusAktif));
-  { const _ba = document.getElementById('baris-keaktifan'); if (_ba) _ba.classList.toggle('aktif', _bonusAktif > 0); }`;
-const EKSPOR_LAMA = '<span class="score-mini">Tugas 4–5: <strong>${_fmtPts(compHard)}/${SCORE_CONFIG.COMP_HARD_TOTAL}</strong></span>';
-const EKSPOR_BARU = EKSPOR_LAMA + "${(typeof window._bonusKeaktifanSaya === 'function' && window._bonusKeaktifanSaya() > 0) ? '<span class=\"score-mini\">🔥 Keaktifan kelas: <strong>+' + _fmtPts(window._bonusKeaktifanSaya()) + '</strong></span>' : ''}";
+// Baris rincian skor "Komp Hard"/"Tugas 4–5" (markup berbeda antar kursus; satu baris berisi id scoreCompHard).
+const RX_SKOR_HARD = /\n[ \t]*<div>[^\n]*id="scoreCompHard"[^\n]*<\/div>/g;
+// Total updateScore: mc + (ezComp|compEz) + (hardComp|compHard).
+const RX_TOTAL = /\n([ \t]*)const total = mc \+ (ezComp|compEz) \+ (hardComp|compHard);\n/g;
+const SET_SKOR = (ind) => `\n${ind}// KEAKTIFAN-KELAS:SKOR — baris "Keaktifan kelas" di bilah skor.\n${ind}{ const _sa = document.getElementById('scoreAktif'); if (_sa) _sa.textContent = _fmtPts(_bonusAktif); const _ba = document.getElementById('baris-keaktifan'); if (_ba) _ba.classList.toggle('aktif', _bonusAktif > 0); }`;
+// Ringkasan ekspor HTML (opsional; total resmi dari server sudah memuat bonus).
+const RX_EKSPOR = /<span class="score-mini">[^\n<]*<strong>\$\{_fmtPts\(compHard\)\}[^\n]*?<\/span>/g;
+const EKSPOR_TAMBAH = "${(typeof window._bonusKeaktifanSaya === 'function' && window._bonusKeaktifanSaya() > 0) ? '<span class=\"score-mini\">🔥 Keaktifan kelas: <strong>+' + _fmtPts(window._bonusKeaktifanSaya()) + '</strong></span>' : ''}";
 const GRID_LAMA = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 20px 8px;';
 const GRID_BARU = 'display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:16px 20px 8px;';
 const SANTAI = '<div id="santaiList" style="font-size:.8rem;color:#e2e8f0;min-height:60px;">⏳ Memuat...</div>\n        </div>';
 const BARIS_LAMA = 'return `<div class="vt-row${absenClass}" style="${rowBg}">';
 const BARIS_BARU = 'return `<div class="vt-row${absenClass}" data-nim="${escH(String(s.nim))}" style="${rowBg}">';
-const LV_LAMA = 'latestVisitors=data ? Object.values(data) : [];renderVisitors(latestVisitors);';
-const LV_BARU = 'latestVisitors=_keaktifanTerapkan(data ? Object.values(data) : []);renderVisitors(latestVisitors);';
+const RX_LV = /latestVisitors\s*=\s*data \? Object\.values\(data\) : \[\];/g;
+const LV_BARU = 'latestVisitors=_keaktifanTerapkan(data ? Object.values(data) : []);';
 
 const RX_CSS = /<style id="keaktifan-kelas-style">[\s\S]*?<\/style>\n/;
 const RX_KARTU = /\n {8}<!-- KEAKTIFAN-KELAS:KARTU BEGIN[\s\S]*?KEAKTIFAN-KELAS:KARTU END v\d+ -->/;
 const RX_DATA = /\/\/ KEAKTIFAN-KELAS:DATA BEGIN[\s\S]*?\/\/ KEAKTIFAN-KELAS:DATA END v\d+\n/;
 
 const hitung = (s, sub) => s.split(sub).length - 1;
+const hitungRx = (s, rx) => (s.match(new RegExp(rx.source, "g")) || []).length;
 
-function proses(rel, kursus) {
+/** Kunci kursus RTDB dari DB_PATH halaman (Matematika 4 memakai konstanta COURSE_ID). */
+function kursusHalaman(html) {
+  const m = html.match(/const DB_PATH = `visitors\/([^/`]+)\/\$\{MODULE_ID\}`;/);
+  if (!m) throw new Error("DB_PATH tidak ditemukan");
+  if (m[1] === "${COURSE_ID}") {
+    const c = html.match(/const COURSE_ID\s*=\s*['"]([a-z0-9_]+)['"]/);
+    if (!c) throw new Error("COURSE_ID tidak ditemukan");
+    return c[1];
+  }
+  if (!/^[a-z0-9_]+$/.test(m[1])) throw new Error(`kursus DB_PATH tidak wajar: ${m[1]}`);
+  return m[1];
+}
+
+function proses(rel) {
   const f = path.join(root, rel);
   let html = fs.readFileSync(f, "utf8");
   const awal = html;
   if (html.includes("\r")) throw new Error("berkas memuat CR");
+  const kursus = kursusHalaman(html);
   const satu = (lama, baru, sudahTanda) => {
     if (html.includes(sudahTanda)) return;
     const n = hitung(html, lama);
@@ -283,11 +292,8 @@ function proses(rel, kursus) {
   else { if (hitung(html, SANTAI) !== 1) throw new Error("kartu Top Akses tidak ditemukan"); html = html.replace(SANTAI, () => SANTAI + KARTU); }
   // tabel, data kunjungan
   satu(BARIS_LAMA, BARIS_BARU, BARIS_BARU);
-  if (!html.includes(LV_BARU)) {
-    if (hitung(html, LV_LAMA) !== 2) throw new Error(`latestVisitors=... muncul ${hitung(html, LV_LAMA)}x, harusnya 2`);
-    html = html.split(LV_LAMA).join(LV_BARU);
-  }
-  if (hitung(html, LV_LAMA) !== 0 || hitung(html, LV_BARU) !== 2) throw new Error("penugasan latestVisitors harus melewati _keaktifanTerapkan (2x)");
+  html = html.replace(RX_LV, () => LV_BARU);
+  if (hitungRx(html, RX_LV) !== 0 || hitung(html, LV_BARU) < 1) throw new Error("penugasan latestVisitors harus melewati _keaktifanTerapkan");
   // skrip data
   if (RX_DATA.test(html)) html = html.replace(RX_DATA, () => DATA(kursus));
   else {
@@ -295,24 +301,59 @@ function proses(rel, kursus) {
     if (hitung(html, a) !== 1) throw new Error("let latestVisitors=[] tidak unik");
     html = html.replace(a, () => a + DATA(kursus));
   }
-  // bilah skor + ekspor
-  satu(SKOR_BARIS, SKOR_BARIS + SKOR_AKTIF, 'id="baris-keaktifan"');
-  satu(TOTAL_LAMA, TOTAL_BARU, "const _bonusAktif =");
-  satu(SET_LAMA + "\n", SET_BARU + "\n", "set('scoreAktif',");
-  satu(EKSPOR_LAMA, EKSPOR_BARU, "🔥 Keaktifan kelas: <strong>+");
+  // bilah skor: baris keaktifan
+  if (!html.includes('id="baris-keaktifan"')) {
+    const m = html.match(RX_SKOR_HARD);
+    if (!m || m.length !== 1) throw new Error(`baris skor scoreCompHard muncul ${m ? m.length : 0}x, harusnya 1`);
+    html = html.replace(m[0], () => m[0] + SKOR_AKTIF);
+  }
+  // updateScore: bonus pada total + tampilan baris keaktifan
+  if (!html.includes("const _bonusAktif =")) {
+    const m = [...html.matchAll(RX_TOTAL)];
+    if (m.length !== 1) throw new Error(`const total = mc + ... muncul ${m.length}x, harusnya 1`);
+    const [utuh, ind, ez, hard] = m[0];
+    const baru = `\n${ind}// KEAKTIFAN-KELAS: bonus centang dosen (+10 nilai), total tetap dibatasi skala modul.\n${ind}const _bonusAktif = (typeof window._bonusKeaktifanSaya === 'function') ? window._bonusKeaktifanSaya() : 0;\n${ind}const total = Math.min(mc + ${ez} + ${hard} + _bonusAktif, (typeof SCORE_CONFIG !== 'undefined' && SCORE_CONFIG.TOTAL) || 50);\n`;
+    const i = m[0].index;
+    html = html.slice(0, i) + baru + html.slice(i + utuh.length);
+  }
+  if (!html.includes("set('scoreAktif',") && !html.includes("KEAKTIFAN-KELAS:SKOR")) {
+    const i0 = html.indexOf("const _bonusAktif =");
+    const i1 = html.indexOf("'scoreCompHard'", i0);
+    if (i1 < 0 || i1 - i0 > 3000) throw new Error("penulis scoreCompHard di updateScore tidak ditemukan");
+    const i2 = html.indexOf("\n", i1);
+    const awalBaris = html.lastIndexOf("\n", i1) + 1;
+    const ind = html.slice(awalBaris).match(/^[ \t]*/)[0];
+    html = html.slice(0, i2) + SET_SKOR(ind) + html.slice(i2);
+  }
+  // ringkasan ekspor (opsional)
+  if (!html.includes("🔥 Keaktifan kelas: <strong>+")) {
+    const m = html.match(RX_EKSPOR);
+    if (m && m.length === 1) html = html.replace(m[0], () => m[0] + EKSPOR_TAMBAH);
+  }
   // penjaga
-  for (const tanda of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v3", 'id="aktifList"', 'data-nim="${escH(String(s.nim))}"']) {
+  for (const tanda of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v3", 'id="aktifList"', 'data-nim="${escH(String(s.nim))}"', 'id="baris-keaktifan"', "const _bonusAktif ="]) {
     if (hitung(html, tanda) !== 1) throw new Error(`penanda ${tanda} muncul ${hitung(html, tanda)}x`);
   }
+  if (hitung(html, `const KEAKTIFAN_KURSUS = '${kursus}';`) !== 1) throw new Error("KEAKTIFAN_KURSUS tidak sama dengan DB_PATH");
   return html === awal ? null : html;
 }
 
+// Semua halaman <Kursus>/Modul/Modul-N.html (salinan konflik OneDrive *-DEDIK-PC dilewati).
+const HALAMAN = [];
+for (const k of fs.readdirSync(root, { withFileTypes: true })) {
+  if (!k.isDirectory()) continue;
+  const dir = path.join(root, k.name, "Modul");
+  if (!fs.existsSync(dir)) continue;
+  for (const nama of fs.readdirSync(dir)) if (/^Modul-\d+\.html$/.test(nama)) HALAMAN.push(`${k.name}/Modul/${nama}`);
+}
+if (HALAMAN.length !== 84) throw new Error(`harap 84 halaman modul, ditemukan ${HALAMAN.length}`);
+
 let n = 0;
-for (const [rel, kursus] of Object.entries(HALAMAN)) {
+for (const rel of HALAMAN.sort()) {
   let h;
-  try { h = proses(rel, kursus); } catch (e) { throw new Error(`${rel}: ${e.message}`); }
+  try { h = proses(rel); } catch (e) { throw new Error(`${rel}: ${e.message}`); }
   if (h === null) continue;
   n += 1;
   if (!periksa) fs.writeFileSync(path.join(root, rel), h);
 }
-console.log(`${n} dari ${Object.keys(HALAMAN).length} halaman ${periksa ? "akan diperbarui" : "diperbarui"}`);
+console.log(`${n} dari ${HALAMAN.length} halaman ${periksa ? "akan diperbarui" : "diperbarui"}`);
