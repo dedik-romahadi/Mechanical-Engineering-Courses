@@ -74,7 +74,7 @@ function periksaKeaktifanKelas(html, relative) {
     return;
   }
   const hit = (t) => html.split(t).length - 1;
-  for (const t of ["KEAKTIFAN-KELAS:CSS v1", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v1", 'id="aktifList"', 'id="baris-keaktifan"', "const _bonusAktif =", "🔥 Keaktifan kelas: <strong>+"]) {
+  for (const t of ["KEAKTIFAN-KELAS:CSS v2", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v2", 'id="aktifList"', 'id="baris-keaktifan"', "const _bonusAktif =", "🔥 Keaktifan kelas: <strong>+"]) {
     if (hit(t) !== 1) throw new Error(`${relative}: penanda keaktifan ${t} muncul ${hit(t)}x, harusnya 1; run node scripts/keaktifan-kelas.mjs`);
   }
   if (hit("latestVisitors=_keaktifanTerapkan(") !== 2 || html.includes("latestVisitors=data ? Object.values(data) : [];")) {
