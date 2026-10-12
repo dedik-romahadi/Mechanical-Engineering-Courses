@@ -17,7 +17,8 @@
  * YANG DIPASANG (semua bertanda, idempoten; jalan kedua melaporkan 0 halaman):
  *   KEAKTIFAN-KELAS:CSS    <style> di <head>: lencana "Aktif", sakelar dosen, kartu papan
  *   KEAKTIFAN-KELAS:KARTU  kartu "Keaktifan di Kelas" sesudah kartu Top Akses (kisi 3 kolom);
- *                          v2: semua mahasiswa aktif, urut nama, tanpa peringkat/medali
+ *                          v2: semua mahasiswa aktif, urut nama, tanpa peringkat/medali;
+ *                          v3: tinggi daftar 3 baris seperti Top Skor/Top Akses, sisanya digulir
  *   KEAKTIFAN-KELAS:DATA   skrip modul: langganan keaktifan/, penerapan bonus, hiasan baris,
  *                          sakelar dosen, papan peringkat, window._bonusKeaktifanSaya
  *   + data-nim pada baris tabel Hasil, latestVisitors melewati _keaktifanTerapkan,
@@ -39,7 +40,7 @@ const HALAMAN = {
   "Pemodelan-Computer-Aided-Design/Modul/Modul-1.html": "pemodelan_cad",
 };
 
-const CSS = `<style id="keaktifan-kelas-style">/* KEAKTIFAN-KELAS:CSS v2 — dipasang scripts/keaktifan-kelas.mjs */
+const CSS = `<style id="keaktifan-kelas-style">/* KEAKTIFAN-KELAS:CSS v3 — dipasang scripts/keaktifan-kelas.mjs */
 .lencana-aktif{display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:2px 10px 2px 7px;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.04em;color:#fff;white-space:nowrap;background:linear-gradient(135deg,#f97316,#ec4899 55%,#8b5cf6);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 4px 14px rgba(236,72,153,.32);animation:la-denyut 2.4s ease-in-out infinite}
 .lencana-aktif .la-api{display:inline-block;transform-origin:50% 90%;animation:la-api 1.3s ease-in-out infinite}
 .lencana-aktif .la-plus{font-weight:700;opacity:.85;font-size:.62rem}
@@ -59,7 +60,8 @@ const CSS = `<style id="keaktifan-kelas-style">/* KEAKTIFAN-KELAS:CSS v2 — dip
 .kartu-aktif .ka-judul{position:relative;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;background:linear-gradient(90deg,#fb923c,#f472b6,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
 .kartu-aktif .ka-jumlah{display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;white-space:nowrap;color:#fbcfe8;background:rgba(236,72,153,.16)}
 .kartu-aktif .ka-kaki{position:relative;margin-top:8px;font-size:.66rem;color:#94a3b8}
-.kartu-aktif .ka-daftar{max-height:240px;overflow-y:auto;margin-right:-6px;padding-right:6px;scrollbar-width:thin;scrollbar-color:rgba(236,72,153,.45) transparent}
+/* Tinggi daftar = 3 baris (± 52 px per baris, sama dengan baris Top Skor/Top Akses); sisanya digulir. */
+.kartu-aktif .ka-daftar{max-height:156px;overflow-y:auto;overscroll-behavior:contain;margin-right:-6px;padding-right:6px;scrollbar-width:thin;scrollbar-color:rgba(236,72,153,.45) transparent}
 .kartu-aktif .ka-baris{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .kartu-aktif .ka-baris:last-child{border-bottom:none}
 .kartu-aktif .ka-ikon{font-size:.95rem;flex-shrink:0;filter:drop-shadow(0 0 6px rgba(249,115,22,.45))}
@@ -77,7 +79,7 @@ const KARTU = `
         </div>
         <!-- KEAKTIFAN-KELAS:KARTU END v1 -->`;
 
-const DATA = (kursus) => `// KEAKTIFAN-KELAS:DATA BEGIN v2 — dipasang scripts/keaktifan-kelas.mjs
+const DATA = (kursus) => `// KEAKTIFAN-KELAS:DATA BEGIN v3 — dipasang scripts/keaktifan-kelas.mjs
 // Centang dosen "aktif di kelas" per mahasiswa per pertemuan (+10 nilai = 10% skala modul,
 // nilai tetap maksimal 100). keaktifan/<kursus>/<pertemuan>/mhs_<NIM> = {aktif:true, waktu}:
 // dibaca publik, ditulis hanya sesi admin dosen. Bonus dijumlahkan ke poin saat data
@@ -158,7 +160,7 @@ function _keaktifanKartu() {
   const ini = Object.keys(_keaktifanModul || {}).filter((k) => _keaktifanAktif(k.slice(4)) && !isSimulasiNim(k.slice(4))).length;
   if (!daftar.length) { el.innerHTML = '<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>'; return; }
   el.innerHTML = '<div class="ka-daftar">' + daftar.map((x) => '<div class="ka-baris"><span class="ka-ikon">🔥</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escH(x.s.nama) + '</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">' + escH(x.nim) + '</div></div><span class="ka-jumlah">' + x.n + '× aktif</span></div>').join('') + '</div>'
-    + '<div class="ka-kaki"><b style="color:#f9a8d4">' + daftar.length + '</b> mahasiswa aktif · pertemuan ini: <b style="color:#f9a8d4">' + ini + '</b> · +10 nilai per pertemuan</div>';
+    + '<div class="ka-kaki"><b style="color:#f9a8d4">' + daftar.length + '</b> mahasiswa aktif · pertemuan ini: <b style="color:#f9a8d4">' + ini + '</b> · +10 nilai per pertemuan' + (daftar.length > 3 ? ' · <span style="color:#f9a8d4">gulir untuk melihat semua ↓</span>' : '') + '</div>';
 }
 function _keaktifanHias() {
   const body = document.getElementById('visitorTableBody');
@@ -232,7 +234,7 @@ const _keaktifanTungguRoster = setInterval(() => {
   if (body) new MutationObserver(() => _keaktifanHias()).observe(body, { childList: true });
   if (_auth && typeof _auth.onAuthStateChanged === 'function') _auth.onAuthStateChanged(() => _keaktifanHias());
 })();
-// KEAKTIFAN-KELAS:DATA END v2
+// KEAKTIFAN-KELAS:DATA END v3
 `;
 
 const SKOR_BARIS = `<div>Tugas 4–5: <span id="scoreCompHard" style="color:var(--pink)">0</span>/22 poin</div>`;
@@ -299,7 +301,7 @@ function proses(rel, kursus) {
   satu(SET_LAMA + "\n", SET_BARU + "\n", "set('scoreAktif',");
   satu(EKSPOR_LAMA, EKSPOR_BARU, "🔥 Keaktifan kelas: <strong>+");
   // penjaga
-  for (const tanda of ["KEAKTIFAN-KELAS:CSS v2", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v2", 'id="aktifList"', 'data-nim="${escH(String(s.nim))}"']) {
+  for (const tanda of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v3", 'id="aktifList"', 'data-nim="${escH(String(s.nim))}"']) {
     if (hitung(html, tanda) !== 1) throw new Error(`penanda ${tanda} muncul ${hitung(html, tanda)}x`);
   }
   return html === awal ? null : html;
