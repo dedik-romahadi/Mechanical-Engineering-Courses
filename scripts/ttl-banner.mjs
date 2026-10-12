@@ -26,7 +26,7 @@ const BASE = "https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Te
 
 // ---------- konfigurasi yang berubah dari pekan ke pekan ----------
 export const PUBLISHED = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; // nomor modul yang halamannya sudah terbit
-export const EXAM_PUBLISHED = { UTS: true, UAS: true };
+export const EXAM_PUBLISHED = { UTS: false, UAS: true };
 // Tautan room Google Meet per pertemuan TMV — diisi PADA PEKANNYA setelah aktivitas
 // Google Meet™ for Moodle dibuat lewat UI form LMS (room dibuat otomatis oleh plugin).
 // Pertemuan yang belum ada di sini memakai tombol nonaktif "Google Meet belum dibuka".
