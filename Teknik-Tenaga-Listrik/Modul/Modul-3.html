@@ -1669,10 +1669,13 @@ div.hk-ikon{display:block}
 .hk-kolom:hover .hk-kena{fill:rgba(148,163,184,.1)}
 .hk-tren-garis{fill:none;stroke:#fbbf24;stroke-width:2;stroke-linejoin:round;pointer-events:none}
 .hk-tren-titik{fill:#fbbf24;stroke:#0f172a;stroke-width:1.5;pointer-events:none}
+.hk-batang.hk-berlangsung{fill-opacity:.4;stroke:#38bdf8;stroke-width:1;stroke-dasharray:3 2}
+.hk-batang.hk-ini.hk-berlangsung{stroke:#f472b6}
+.hk-tren-titik.hk-berlangsung{fill:#0f172a;stroke:#fbbf24}
 .hk-tren-kosong{fill:#64748b}
 .hk-tren-gagal{fill:#fb7185;font-size:13px;font-weight:800;text-anchor:middle}
 .hk-sumbu-ini{fill:#f9a8d4;font-weight:700}
-.hk-c-hadir{--hk:#38bdf8}.hk-c-ini{--hk:#f472b6}.hk-c-nilai{--hk:#fbbf24}
+.hk-c-hadir{--hk:#38bdf8}.hk-c-ini{--hk:#f472b6}.hk-c-nilai{--hk:#fbbf24}.hk-c-jalan{--hk:rgba(56,189,248,.4)}
 .hk-legenda-baris .hk-c-nilai::before{border-radius:50%}
 .hk-baris-soal{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr) 3.2em;align-items:center;gap:8px;margin:6px 0;font-size:.76rem;color:#cbd5e1}
 .hk-tumpuk{display:flex;height:12px;border-radius:6px;overflow:hidden;background:#2a3548}
@@ -7993,7 +7996,7 @@ onValue(ref(db, DB_PATH), (snap) => {
 // Statistik Kelas tab Hasil: ikon bergerak + lima grafik agregat (SVG/HTML buatan sendiri, tanpa pustaka).
 // Angka = aturan tabel Hasil + statistik Hadir/Absen (status yang sama); nama tidak pernah ditampilkan;
 // tidak menulis Firebase dan tidak berlangganan node baru. Satu-satunya akses Firebase: hkTrenBaca (G5) membaca
-// SEKALI node publik visitors pertemuan lain kursus ini (cache, paling cepat 10 menit sekali dimuat ulang).
+// SEKALI node publik visitors + jadwal pertemuan lain kursus ini (cache, paling cepat 10 menit sekali dimuat ulang).
 // Setiap galat ditangkap di sini (hkMulai/hkAman) agar sisa skrip modul tetap berjalan.
 // HASIL-KEREN:MURNI BEGIN
 const HK_MIN_PESERTA = 5;
@@ -8116,32 +8119,64 @@ function hkGerbangSoalMurni(peserta, schedEnded, dosen) {
 function hkGerbangJenisMurni(pesertaJenis, dosen) { return dosen === true || Number(pesertaJenis) >= HK_MIN_PESERTA; }
 // Rincian per soal hanya untuk dosen (jawaban modul tetap diterima sesudah deadline).
 function hkGerbangRinciMurni(gerbang, dosen) { return gerbang === 'tampil' && dosen === true; }
-// Jalur node visitors pertemuan N kursus ini, diturunkan dari DB_PATH (= <akar><MODULE_ID>) dan MODULE_ID
-// (<awalan><nomor>): null bila bentuknya lain atau nomor di luar 1–14.
-function hkTrenJalurMurni(dbPath, modulId) {
-  const p = String(dbPath || ''), id = String(modulId || '');
-  const m = /^(.*?)(\d+)$/.exec(id);
-  if (!m || !m[1] || p.length <= id.length || p.slice(p.length - id.length) !== id) return null;
-  const ini = Number(m[2]);
-  if (!(ini >= 1 && ini <= 14)) return null;
-  return { akar: p.slice(0, p.length - id.length), awalan: m[1], ini: ini };
+// Kolom tren = 14 modul: Modul 1–7 = Pertemuan 1–7, Modul 8–14 = Pertemuan 9–15 (pertemuan 8 = UTS).
+function hkTrenPertemuanMurni(slot) { return slot <= 7 ? slot : slot + 1; }
+// Jalur 14 kolom tren, diturunkan dari DB_PATH (= <akar><MODULE_ID>), MODULE_ID (<awalan><nomor>), SCHEDULE_PATH
+// (= <akarJadwal><PERTEMUAN>/schedule) dan PERTEMUAN (<awalanJadwal><nomor pertemuan>). Segmen visitors: awalan
+// MODULE_ID + nomor pertemuan bila awalannya sama dengan PERTEMUAN (kursus "pertemuan-N": tanpa pertemuan 8),
+// selain itu + nomor modul (Matematika 4 "modul-N"). Hasil { ini: kolom halaman ini (1–14), kolom: [{ slot, no,
+// visitors, jadwal }] }; null bila bentuknya lain atau MODULE_ID/PERTEMUAN tidak cocok dengan satu kolom.
+function hkTrenJalurMurni(dbPath, modulId, jadwalPath, pertemuanId) {
+  const p = String(dbPath || ''), id = String(modulId || ''), jp = String(jadwalPath || ''), pid = String(pertemuanId || '');
+  const m = /^(.*?)(\d+)$/.exec(id), mp = /^(.*?)(\d+)$/.exec(pid);
+  if (!m || !m[1] || !mp || !mp[1] || p.length <= id.length || p.slice(p.length - id.length) !== id) return null;
+  const ekor = pid + '/schedule';
+  if (jp.length <= ekor.length || jp.slice(jp.length - ekor.length) !== ekor) return null;
+  const akar = p.slice(0, p.length - id.length), akarJadwal = jp.slice(0, jp.length - ekor.length);
+  const ikutPertemuan = m[1] === mp[1];
+  const kolom = [];
+  let ini = null;
+  for (let slot = 1; slot <= 14; slot += 1) {
+    const no = hkTrenPertemuanMurni(slot);
+    const seg = m[1] + (ikutPertemuan ? no : slot);
+    if (seg === id) ini = slot;
+    kolom.push({ slot: slot, no: no, visitors: akar + seg, jadwal: akarJadwal + mp[1] + no + '/schedule' });
+  }
+  if (ini === null || kolom[ini - 1].no !== Number(mp[2])) return null;
+  return { ini: ini, kolom: kolom };
 }
-// Tren kelas per pertemuan 1–14. peta[no] = { baca: 'ok', data: node visitors pertemuan itu (objek/larik/null) },
-// { baca: 'gagal' }, atau tidak ada (masih memuat). Hadir = mahasiswa daftar (bukan simulasi) yang punya rekaman
-// non-dosen/non-tamu dengan poin > 0 (cermin SAMAKAN-ABSEN v2: Hadir = punya poin). Nilai = round(poin/total*100)
-// dari poin TUGAS mentah (tanpa bonus keaktifan/forum) agar sebanding antarpertemuan; rekaman ganda: poin terbesar.
-// status: 'ada' (sedikitnya satu rekaman mahasiswa daftar), 'kosong' (belum berlangsung), 'gagal', 'memuat'.
-function hkTrenMurni(peta, roster, isSim, total, ini) {
+// Jadwal mentah settings/.../schedule -> { mulai, akhir } (ms; NaN bila tidak ada), aturan _normalizeModuleScheduleWib:
+// due "YYYY-MM-DDTHH:mm" (WIB) menang atas end; mulai = due - duration hari bila duration > 0.
+function hkTrenJadwalMurni(s) {
+  const j = (s && typeof s === 'object') ? s : {};
+  const due = /^(\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d)$/.exec(String(j.due || ''));
+  const akhir = due ? Date.parse(due[1] + ':00+07:00') : hkMsIsoMurni(j.end);
+  const durasi = Number(j.duration);
+  const mulai = (due && Number.isFinite(durasi) && durasi > 0) ? akhir - durasi * 86400000 : hkMsIsoMurni(j.start);
+  return { mulai: mulai, akhir: akhir };
+}
+// Tren kelas per kolom 1–14 (label = nomor pertemuan). peta[slot] = { baca: 'ok', data: node visitors (objek/larik/
+// null), jadwal: node schedule mentah/ternormalisasi atau null }, { baca: 'gagal' }, atau tidak ada (masih memuat).
+// Hadir = mahasiswa daftar (bukan simulasi) yang punya rekaman non-dosen/non-tamu dengan poin TUGAS mentah > 0 (tanpa
+// bonus keaktifan/forum, jadi bisa lebih kecil dari kartu Kehadiran). Nilai = round(poin/total*100) dari poin tugas
+// mentah agar sebanding antarpertemuan; rekaman ganda: poin terbesar.
+// status: 'ada' (selesai, sedikitnya satu rekaman mahasiswa daftar), 'berlangsung' (jadwal belum berakhir pada kini
+// dan sudah ada rekaman atau sudah dibuka; angka sementara, tidak ikut rata-rata/terendah), 'kosong' (belum
+// berlangsung), 'gagal', 'memuat'. Jadwal tidak diketahui = dianggap selesai bila ada rekaman.
+function hkTrenMurni(peta, roster, isSim, total, ini, kini) {
   const dalam = new Set((roster || []).filter((s) => s && !isSim(s.nim)).map((s) => String(s.nim)));
   const r = dalam.size;
   const tot = Number(total) > 0 ? Number(total) : 50;
+  const sekarang = Number(kini);
   const per = [];
-  for (let no = 1; no <= 14; no += 1) {
-    const e = (peta || {})[no];
-    const x = { no: no, ini: no === ini, status: 'memuat', hadir: 0, roster: r, pct: null, rata: null };
+  for (let slot = 1; slot <= 14; slot += 1) {
+    const e = (peta || {})[slot];
+    const x = { slot: slot, no: hkTrenPertemuanMurni(slot), ini: slot === ini, status: 'memuat', hadir: 0, roster: r, pct: null, rata: null };
     per.push(x);
     if (!e) continue;
     if (e.baca !== 'ok') { x.status = 'gagal'; continue; }
+    const jd = hkTrenJadwalMurni(e.jadwal);
+    const jalan = Number.isFinite(sekarang) && Number.isFinite(jd.akhir) && jd.akhir > sekarang;
     const d = e.data;
     const daftar = Array.isArray(d) ? d : (d && typeof d === 'object') ? Object.keys(d).map((k) => d[k]) : [];
     const poin = Object.create(null);
@@ -8153,9 +8188,9 @@ function hkTrenMurni(peta, roster, isSim, total, ini) {
       if (!(nim in poin) || p > poin[nim]) poin[nim] = p;
     }
     const nims = Object.keys(poin);
-    if (!nims.length) { x.status = 'kosong'; continue; }
+    if (!nims.length && !(jalan && Number.isFinite(jd.mulai) && jd.mulai <= sekarang)) { x.status = 'kosong'; continue; }
     const nilai = nims.filter((n) => poin[n] > 0).map((n) => Math.max(0, Math.min(100, Math.round(poin[n] / tot * 100))));
-    x.status = 'ada';
+    x.status = jalan ? 'berlangsung' : 'ada';
     x.hadir = nilai.length;
     x.pct = r ? x.hadir / r * 100 : 0;
     x.rata = nilai.length ? nilai.reduce((a, b) => a + b, 0) / nilai.length : null;
@@ -8164,7 +8199,7 @@ function hkTrenMurni(peta, roster, isSim, total, ini) {
   const bernilai = ada.filter((x) => x.rata !== null);
   let terendah = null;
   ada.forEach((x) => { if (!terendah || x.pct < terendah.pct) terendah = x; });
-  return { per: per, roster: r, berdata: ada.length,
+  return { per: per, roster: r, berdata: ada.length, berlangsung: per.filter((x) => x.status === 'berlangsung').length,
     rataHadir: ada.length ? ada.reduce((a, x) => a + x.pct, 0) / ada.length : null,
     rataNilai: bernilai.length ? bernilai.reduce((a, x) => a + x.rata, 0) / bernilai.length : null,
     terendah: terendah ? terendah.no : null,
@@ -8445,10 +8480,10 @@ function hkJadwalkan(paksa) {
 // G5 Tren: jalur node pertemuan lain (sekali per halaman) dan baca-sekali ber-cache.
 const HK_TREN_SEGAR_MS = 600000;
 const HK_TREN_TUNGGU_MS = 20000;
-const HK_TREN = { jalur: null, peta: {}, waktu: 0, gen: 0, baca: 0 };
+const HK_TREN = { jalur: null, peta: {}, jadwal: {}, waktu: 0, gen: 0, baca: 0 };
 function hkTrenJalur() {
   if (HK_TREN.jalur === null) {
-    try { HK_TREN.jalur = hkTrenJalurMurni(DB_PATH, MODULE_ID) || false; } catch (e) { HK_TREN.jalur = false; }
+    try { HK_TREN.jalur = hkTrenJalurMurni(DB_PATH, MODULE_ID, SCHEDULE_PATH, PERTEMUAN) || false; } catch (e) { HK_TREN.jalur = false; }
   }
   return HK_TREN.jalur;
 }
@@ -8469,9 +8504,10 @@ function hkTrenBaca(jalur, ok, gagal) {
     else galat();
   } catch (e) { galat(); }
 }
-// Dipanggil hkGambar (tab Hasil aktif + panel terbuka): node 13 pertemuan lain dibaca sekali, lalu dimuat ulang
-// paling cepat HK_TREN_SEGAR_MS sesudahnya (tab dibuka ulang / data berubah sesudah 10 menit). Data lama tetap
-// tampil selama memuat ulang; baca yang menggantung dianggap gagal sesudah HK_TREN_TUNGGU_MS.
+// Dipanggil hkGambar (tab Hasil aktif + panel terbuka): node visitors + jadwal 13 pertemuan lain dibaca sekali, lalu
+// dimuat ulang paling cepat HK_TREN_SEGAR_MS sesudahnya (tab dibuka ulang / data berubah sesudah 10 menit). Data lama
+// tetap tampil selama memuat ulang dan TIDAK ditimpa oleh baca ulang yang gagal; baca yang menggantung dianggap gagal
+// sesudah HK_TREN_TUNGGU_MS, tetapi hasil 'ok' yang tiba sesudahnya (generasi yang sama) tetap diterima.
 function hkTrenMuat() {
   const j = hkTrenJalur();
   if (!j) return;
@@ -8481,19 +8517,26 @@ function hkTrenMuat() {
   HK_TREN.gen += 1;
   const gen = HK_TREN.gen;
   const tunggu = {};
-  const tuntas = (no, isi) => {
-    if (gen !== HK_TREN.gen || !tunggu[no]) return;
-    delete tunggu[no];
-    HK_TREN.peta[no] = isi;
+  const tuntas = (w, isi) => {
+    if (gen !== HK_TREN.gen || (!tunggu[w.kunci] && isi.baca !== 'ok')) return;
+    delete tunggu[w.kunci];
+    const lama = w.wadah[w.slot];
+    if (isi.baca !== 'ok' && lama && lama.baca === 'ok') return;
+    w.wadah[w.slot] = isi;
     hkJadwalkan(false);
   };
-  for (let no = 1; no <= 14; no += 1) {
-    if (no === j.ini) continue;
-    tunggu[no] = true;
+  const kerja = [];
+  j.kolom.forEach((k) => {
+    if (k.slot === j.ini) return;
+    kerja.push({ kunci: 'v' + k.slot, slot: k.slot, jalur: k.visitors, wadah: HK_TREN.peta });
+    kerja.push({ kunci: 'j' + k.slot, slot: k.slot, jalur: k.jadwal, wadah: HK_TREN.jadwal });
+  });
+  kerja.forEach((w) => {
+    tunggu[w.kunci] = w;
     HK_TREN.baca += 1;
-    hkTrenBaca(j.akar + j.awalan + no, (v) => tuntas(no, { baca: 'ok', data: v }), () => tuntas(no, { baca: 'gagal' }));
-  }
-  setTimeout(hkAman(() => { Object.keys(tunggu).forEach((no) => tuntas(no, { baca: 'gagal' })); }), HK_TREN_TUNGGU_MS);
+    hkTrenBaca(w.jalur, (v) => tuntas(w, { baca: 'ok', data: v }), () => tuntas(w, { baca: 'gagal' }));
+  });
+  setTimeout(hkAman(() => { Object.keys(tunggu).forEach((k) => tuntas(tunggu[k], { baca: 'gagal' })); }), HK_TREN_TUNGGU_MS);
 }
 function hkKonfigSoal() {
   let c = window.SCORE_CONFIG || null;
@@ -8533,15 +8576,19 @@ function hkRingkasan(kini) {
   const dosen = !!(_auth && _auth.currentUser);
   const gerbang = hkGerbangSoalMurni(soal.peserta, schedExpired, dosen);
   const rinci = hkGerbangRinciMurni(gerbang, dosen);
-  // Tren: pertemuan lain dari cache baca-sekali; pertemuan ini dari rekaman mentah langsung halaman (poin tugas).
+  // Tren: pertemuan lain dari cache baca-sekali (visitors + jadwal; jadwal gagal/tidak ada = tidak diketahui);
+  // pertemuan ini dari rekaman mentah langsung halaman (poin tugas) + currentSchedule.
   const jalur = hkTrenJalur();
   let tren = null;
   if (jalur) {
     const peta = {};
-    Object.keys(HK_TREN.peta).forEach((no) => { peta[no] = HK_TREN.peta[no]; });
-    if (_visitorsDiterima) peta[jalur.ini] = { baca: 'ok', data: Array.isArray(_visitorsMentah) ? _visitorsMentah : [] };
+    Object.keys(HK_TREN.peta).forEach((slot) => {
+      const jd = HK_TREN.jadwal[slot];
+      peta[slot] = { baca: HK_TREN.peta[slot].baca, data: HK_TREN.peta[slot].data, jadwal: (jd && jd.baca === 'ok') ? jd.data : null };
+    });
+    if (_visitorsDiterima) peta[jalur.ini] = { baca: 'ok', data: Array.isArray(_visitorsMentah) ? _visitorsMentah : [], jadwal: j || null };
     else delete peta[jalur.ini];
-    tren = hkTrenMurni(peta, roster, isSimulasiNim, total, jalur.ini);
+    tren = hkTrenMurni(peta, roster, isSimulasiNim, total, jalur.ini, kini);
   }
   const saya = hkSaya(st);
   const menit = kurva.sekarangDalam ? Math.floor(kini / 60000) : 0;
@@ -8844,9 +8891,9 @@ function hkGambarSoal(R) {
 function hkTrenPct(p) { return Math.round(p.pct || 0); }
 function hkTrenJudul(p) {
   const ini = p.ini ? ' (pertemuan ini)' : '';
-  if (p.status === 'ada') {
-    return 'Pertemuan ' + p.no + ': hadir ' + p.hadir + '/' + p.roster + ' (' + hkTrenPct(p) + '%), rata-rata nilai tugas ' +
-      (p.rata === null ? '–' : hkFmtMurni(p.rata, 1)) + ini;
+  if (p.status === 'ada' || p.status === 'berlangsung') {
+    return 'Pertemuan ' + p.no + (p.status === 'berlangsung' ? ' (sedang berlangsung, sementara)' : '') + ': hadir ' + p.hadir + '/' + p.roster +
+      ' (' + hkTrenPct(p) + '%), rata-rata nilai tugas ' + (p.rata === null ? '–' : hkFmtMurni(p.rata, 1)) + ini;
   }
   if (p.status === 'kosong') return 'Pertemuan ' + p.no + ': belum berlangsung (belum ada data)' + ini;
   if (p.status === 'gagal') return 'Pertemuan ' + p.no + ': data tidak termuat' + ini;
@@ -8858,7 +8905,7 @@ function hkGambarTren(R, W) {
   if (!isi) return;
   const t = R.tren;
   if (!t) { hkKosong(isi, 'Tren per pertemuan tidak tersedia di halaman ini.'); hkKet(ket, []); return; }
-  if (!t.berdata && !t.gagal) {
+  if (!t.berdata && !t.gagal && !t.berlangsung) {
     hkKosong(isi, t.memuat ? '⏳ Memuat data pertemuan…' : 'Belum ada pertemuan yang berjalan.');
     hkKet(ket, []);
     return;
@@ -8871,8 +8918,8 @@ function hkGambarTren(R, W) {
   const lebarBatang = slot * 0.62;
   const pendek = slot < 26;
   const svg = hkSvg('hkTrenSvg', W, H, 'Tren kelas per pertemuan',
-    'Persentase hadir dan rata-rata nilai tugas (0–100) per pertemuan: ' + t.per.map((p) => p.no + ' ' + (p.status === 'ada'
-      ? 'hadir ' + hkTrenPct(p) + '%, nilai ' + (p.rata === null ? '–' : hkFmtMurni(p.rata, 1))
+    'Persentase hadir dan rata-rata nilai tugas (0–100) per pertemuan: ' + t.per.map((p) => p.no + ' ' + ((p.status === 'ada' || p.status === 'berlangsung')
+      ? (p.status === 'berlangsung' ? 'sedang berlangsung, ' : '') + 'hadir ' + hkTrenPct(p) + '%, nilai ' + (p.rata === null ? '–' : hkFmtMurni(p.rata, 1))
       : p.status === 'kosong' ? 'belum berlangsung' : p.status === 'gagal' ? 'tidak termuat' : 'memuat') + (p.ini ? ' (ini)' : '')).join('; ') + '.');
   [0, 50, 100].forEach((v) => {
     svg.appendChild(hkS('line', { class: 'hk-garis-grid', x1: kiri, x2: W - kanan, y1: hkAngka(y(v)), y2: hkAngka(y(v)) }));
@@ -8885,13 +8932,14 @@ function hkGambarTren(R, W) {
     const g = hkS('g', { class: 'hk-kolom' + (p.ini ? ' hk-kolom-ini' : '') });
     g.appendChild(hkS('title', null, hkTrenJudul(p)));
     g.appendChild(hkS('rect', { class: 'hk-kena', x: hkAngka(x0), y: atas, width: hkAngka(slot), height: tinggi + bawah }));
-    if (p.status === 'ada') {
+    if (p.status === 'ada' || p.status === 'berlangsung') {
+      const jalan = p.status === 'berlangsung';
       const h = p.pct / 100 * tinggi;
-      const b = hkS('rect', { class: 'hk-batang' + (p.ini ? ' hk-ini' : ''), x: hkAngka(xc - lebarBatang / 2), y: hkAngka(dasar - h),
+      const b = hkS('rect', { class: 'hk-batang' + (p.ini ? ' hk-ini' : '') + (jalan ? ' hk-berlangsung' : ''), x: hkAngka(xc - lebarBatang / 2), y: hkAngka(dasar - h),
         width: hkAngka(lebarBatang), height: hkAngka(h), rx: 2 });
       b.style.animationDelay = (i * 30) + 'ms';
       g.appendChild(b);
-      if (p.rata !== null) titik.push({ no: p.no, x: xc, y: y(p.rata) });
+      if (p.rata !== null) titik.push({ slot: p.slot, jalan: jalan, x: xc, y: y(p.rata) });
     } else if (p.status === 'kosong') {
       g.appendChild(hkS('rect', { class: 'hk-tren-kosong', x: hkAngka(xc - lebarBatang / 2), y: dasar - 2, width: hkAngka(lebarBatang), height: 2 }));
       g.appendChild(hkS('text', { class: 'hk-sumbu', x: hkAngka(xc), y: dasar - 6, 'text-anchor': 'middle' }, '–'));
@@ -8903,20 +8951,30 @@ function hkGambarTren(R, W) {
     g.appendChild(hkS('text', { class: 'hk-sumbu' + (p.ini ? ' hk-sumbu-ini' : ''), x: hkAngka(xc), y: H - 6, 'text-anchor': 'middle' }, (pendek ? '' : 'P') + p.no));
     svg.appendChild(g);
   });
-  // Garis nilai hanya menyambung pertemuan berurutan yang sama-sama punya nilai.
+  // Garis nilai hanya menyambung kolom berurutan yang sama-sama punya nilai final (bukan yang sedang berlangsung).
   let jalur = '';
-  titik.forEach((q, i) => { jalur += (i && titik[i - 1].no === q.no - 1 ? 'L' : 'M') + hkAngka(q.x) + ',' + hkAngka(q.y); });
+  titik.forEach((q, i) => {
+    const sambung = i && !q.jalan && !titik[i - 1].jalan && titik[i - 1].slot === q.slot - 1;
+    if (!q.jalan) jalur += (sambung ? 'L' : 'M') + hkAngka(q.x) + ',' + hkAngka(q.y);
+  });
   if (jalur) svg.appendChild(hkS('path', { class: 'hk-tren-garis', d: jalur }));
-  titik.forEach((q) => svg.appendChild(hkS('circle', { class: 'hk-tren-titik', cx: hkAngka(q.x), cy: hkAngka(q.y), r: 3.2 })));
+  titik.forEach((q) => svg.appendChild(hkS('circle', { class: 'hk-tren-titik' + (q.jalan ? ' hk-berlangsung' : ''), cx: hkAngka(q.x), cy: hkAngka(q.y), r: 3.2 })));
   const leg = hkEl('div', { class: 'hk-legenda-baris', 'aria-hidden': 'true' });
-  [['hadir', 'Hadir (%)'], ['ini', 'Pertemuan ini'], ['nilai', 'Rata-rata nilai tugas (0–100)']].forEach((x) => leg.appendChild(hkEl('span', { class: 'hk-c-' + x[0] }, x[1])));
+  const legenda = [['hadir', 'Hadir (%)'], ['ini', 'Pertemuan ini'], ['nilai', 'Rata-rata nilai tugas (0–100)']];
+  if (t.berlangsung) legenda.push(['jalan', 'Sedang berlangsung (sementara)']);
+  legenda.forEach((x) => leg.appendChild(hkEl('span', { class: 'hk-c-' + x[0] }, x[1])));
   hkGanti(isi, svg, leg);
   const bag = [];
+  const ketJalan = t.berlangsung ? ' (+' + t.berlangsung + ' sedang berlangsung, belum dihitung)' : '';
   if (t.berdata) {
     bag.push(['Rata-rata kehadiran ', { b: hkFmtMurni(t.rataHadir, 0) + '%' }, ' dan nilai tugas ', { b: t.rataNilai === null ? '–' : hkFmtMurni(t.rataNilai, 1) },
-      ' dari ' + t.berdata + ' pertemuan yang sudah berjalan' + (t.berdata > 1 ? '; kehadiran terendah di Pertemuan ' + t.terendah + '.' : '.')]);
+      ' dari ' + t.berdata + ' pertemuan yang sudah selesai' + ketJalan + (t.berdata > 1 ? '; kehadiran terendah di Pertemuan ' + t.terendah + '.' : '.')]);
+  } else if (t.berlangsung) bag.push('Belum ada pertemuan yang selesai; ' + t.berlangsung + ' pertemuan sedang berlangsung (angka sementara).');
+  bag.push('Dihitung tanpa bonus keaktifan/forum agar sebanding antarpertemuan: hadir = mahasiswa di daftar yang punya poin tugas di pertemuan itu, nilai = rata-rata poin tugas mereka (skala 0–100).');
+  const pIni = t.per.find((p) => p.ini);
+  if (pIni && (pIni.status === 'ada' || pIni.status === 'berlangsung') && !R.memuat && !R.gagal && R.st && pIni.hadir !== R.st.hadir) {
+    bag.push('Pertemuan ini: ' + pIni.hadir + ' hadir menurut poin tugas; kartu Kehadiran (' + R.st.hadir + ') juga menghitung mahasiswa yang hanya mendapat bonus keaktifan/forum.');
   }
-  bag.push('Hadir = mahasiswa di daftar yang punya poin tugas di pertemuan itu; nilai = rata-rata poin tugas mereka (skala 0–100) tanpa bonus keaktifan/forum, agar sebanding antarpertemuan.');
   if (t.memuat) bag.push('Memuat ' + t.memuat + ' pertemuan…');
   if (t.gagal) bag.push('! = data ' + t.gagal + ' pertemuan tidak termuat; dicoba lagi saat tab Hasil dibuka sesudah 10 menit.');
   hkKet(ket, bag);
