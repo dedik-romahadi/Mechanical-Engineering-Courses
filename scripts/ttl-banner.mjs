@@ -160,17 +160,23 @@ const btnMati = (ikon, teks, mt = 6) => `<span role="button" aria-disabled="true
 const GAYA_MODUL = "margin-top:7px;padding:8px 10px;border-radius:10px;background:linear-gradient(135deg,#0891b2,#4f46e5 62%,#7e22ce);box-shadow:0 8px 22px rgba(79,70,229,.35);";
 const GAYA_MEET = "margin-top:6px;padding:8px 10px;border-radius:10px;background:#0f766e;border:1px solid #2dd4bf;";
 
+// Forum 2 poin (scripts/forum-poin.mjs): modul yang dibuka sejak 15 Okt 2026 = Tugas 48 + Forum 2.
+const FORUM_POIN_SEJAK = "2026-10-15";
+
 // ---------- banner pertemuan (modul) ----------
 export function bannerPertemuan(k) {
   const m = MODUL.find((x) => x.n === k.modul);
   const t = TIPE[k.tipe];
   const dl = deadlineIso(k.tgl);
   const terbit = PUBLISHED.includes(m.n);
+  const forumBaru = k.tgl >= FORUM_POIN_SEJAK;
+  const soal = forumBaru ? "Kerjakan 25 soal / 48 poin" : "Kerjakan 25 soal / 50 poin";
+  const forum = forumBaru ? "Jawab 3 diskusi Forum (2 poin)" : "Jawab 3 diskusi Forum";
   const alur = k.tipe === "TMV"
-    ? "1. Ikuti TMV lewat Google Meet<br>2. Baca materi dan contoh<br>3. Kerjakan 25 soal / 50 poin<br>4. Jawab 3 diskusi Forum<br>5. Export HTML dan submit di LMS"
+    ? `1. Ikuti TMV lewat Google Meet<br>2. Baca materi dan contoh<br>3. ${soal}<br>4. ${forum}<br>5. Export HTML dan submit di LMS`
     : k.tipe === "TMK"
-      ? `1. Hadir di ruang ${RUANG}<br>2. Baca materi dan contoh<br>3. Kerjakan 25 soal / 50 poin<br>4. Jawab 3 diskusi Forum<br>5. Export HTML dan submit di LMS`
-      : "1. Baca materi dan contoh<br>2. Jalankan simulasi Python<br>3. Kerjakan 25 soal / 50 poin<br>4. Jawab 3 diskusi Forum<br>5. Export HTML dan submit di LMS";
+      ? `1. Hadir di ruang ${RUANG}<br>2. Baca materi dan contoh<br>3. ${soal}<br>4. ${forum}<br>5. Export HTML dan submit di LMS`
+      : `1. Baca materi dan contoh<br>2. Jalankan simulasi Python<br>3. ${soal}<br>4. ${forum}<br>5. Export HTML dan submit di LMS`;
   const tiba = sudahTiba(k.tgl);
   const tombolModul = terbit && tiba
     ? btnAktif(`${BASE}/Modul/Modul-${m.n}.html`, "&#128214;", `Buka Modul, Tugas,<br>dan Forum ${m.n} &rarr;`, GAYA_MODUL)
@@ -405,7 +411,7 @@ export function bannerIntroduction() {
         <td width="33.33%" valign="top" style="background:#161b3a;border:1px solid #4338ca;border-radius:11px;padding:10px 12px;">
           <div style="font-size:11px;font-weight:900;color:#c4b5fd;margin-bottom:10px;">ATURAN MODUL</div>
           <div style="font-size:10px;color:#e0e7ff;line-height:1.55;">
-            Setiap soal hanya dapat dijawab <strong style="color:#fff;">satu kali</strong>. Materi dibaca berurutan (kotak centang tiap bagian) sebelum Tugas dan Forum terbuka; modul berikutnya terbuka setelah modul sebelumnya tuntas. Modul tetap dapat dikerjakan setelah deadline, tetapi <strong style="color:#fcd34d;">poin setiap soal dipotong 35%</strong> (dikalikan 0,65) dan soal Comp Hard tidak mendapat partial credit.
+            Mulai Pertemuan 5: <strong style="color:#fff;">Tugas 48 poin + Forum diskusi 2 poin</strong> (3 jawaban Forum, masing-masing minimal 30 kata, wajib sebelum Export). Setiap soal hanya dapat dijawab <strong style="color:#fff;">satu kali</strong>. Materi dibaca berurutan (kotak centang tiap bagian) sebelum Tugas dan Forum terbuka; modul berikutnya terbuka setelah modul sebelumnya tuntas. Modul tetap dapat dikerjakan setelah deadline, tetapi <strong style="color:#fcd34d;">poin setiap soal dipotong 35%</strong> (dikalikan 0,65) dan soal Comp Hard tidak mendapat partial credit.
           </div>
         </td>
         <td width="33.33%" valign="top" style="background:#32162f;border:1px solid #9d174d;border-radius:11px;padding:10px 12px;">

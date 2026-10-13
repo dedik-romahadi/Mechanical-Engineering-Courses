@@ -177,9 +177,13 @@ export function bannerPertemuan(k) {
   const dl = deadlineIso(tglTampil);
   const terbit = PUBLISHED.includes(m.n);
   const catatanPindah = k.aktual ? `<br>&#128204; Dipindah dari jadwal kalender <strong style="color:#fff;">${fmtPanjang(k.tgl)}</strong>` : "";
+  // Forum 2 poin mulai Pertemuan 5 (scripts/forum-poin.mjs, batas CAD 12 Okt 2026): tugas diskalakan ke 48.
+  const forumBaru = k.p >= 5;
+  const tugas = forumBaru ? "Buat 5 tugas pemodelan, unggah .FCStd + angka bacaan (40 poin; total tugas diskalakan ke 48 poin)" : "Buat 5 tugas pemodelan, unggah .FCStd + angka bacaan (40 poin)";
+  const forum = forumBaru ? "Jawab 3 diskusi Forum (2 poin)" : "Jawab 3 diskusi Forum";
   const alur = k.tipe === "TMV"
-    ? "1. Ikuti TMV lewat Google Meet<br>2. Baca materi dan contoh FreeCAD<br>3. Kerjakan 10 PG (10 poin)<br>4. Buat 5 tugas pemodelan, unggah .FCStd + angka bacaan (40 poin)<br>5. Jawab 3 diskusi Forum<br>6. Export HTML dan submit di LMS"
-    : "1. Baca materi dan contoh FreeCAD<br>2. Kerjakan 10 PG (10 poin)<br>3. Buat 5 tugas pemodelan, unggah .FCStd + angka bacaan (40 poin)<br>4. Jawab 3 diskusi Forum<br>5. Export HTML dan submit di LMS";
+    ? `1. Ikuti TMV lewat Google Meet<br>2. Baca materi dan contoh FreeCAD<br>3. Kerjakan 10 PG (10 poin)<br>4. ${tugas}<br>5. ${forum}<br>6. Export HTML dan submit di LMS`
+    : `1. Baca materi dan contoh FreeCAD<br>2. Kerjakan 10 PG (10 poin)<br>3. ${tugas}<br>4. ${forum}<br>5. Export HTML dan submit di LMS`;
   const tiba = sudahTiba(tglTampil);
   const tombolModul = terbit && tiba
     ? btnAktif(`${BASE}/Modul/Modul-${m.n}.html`, "&#128214;", `Buka Modul, Tugas,<br>dan Forum ${m.n} &rarr;`, GAYA_MODUL)
@@ -421,7 +425,7 @@ export function bannerIntroduction() {
         <td width="33.33%" valign="top" style="background:#161b3a;border:1px solid #4338ca;border-radius:11px;padding:10px 12px;">
           <div style="font-size:11px;font-weight:900;color:#c4b5fd;margin-bottom:10px;">ATURAN MODUL</div>
           <div style="font-size:10px;color:#e0e7ff;line-height:1.55;">
-            Tiap modul: 10 pilihan ganda (10 poin) + 5 tugas pemodelan FreeCAD (40 poin). Setiap soal hanya dapat dijawab <strong style="color:#fff;">satu kali</strong>; tugas pemodelan dinilai setelah berkas <strong style="color:#fff;">.FCStd</strong> diunggah dan angka bacaannya diisi. Materi dibaca berurutan sebelum Tugas dan Forum terbuka; modul berikutnya terbuka setelah modul sebelumnya tuntas. Setelah deadline modul tetap dapat dikerjakan, tetapi <strong style="color:#fcd34d;">poin setiap soal dipotong 35%</strong> (dikalikan 0,65).
+            Tiap modul: 10 pilihan ganda (10 poin) + 5 tugas pemodelan FreeCAD (40 poin). Mulai Pertemuan 5: <strong style="color:#fff;">total tugas diskalakan ke 48 poin + Forum diskusi 2 poin</strong> (3 jawaban Forum, masing-masing minimal 30 kata, wajib sebelum Export). Setiap soal hanya dapat dijawab <strong style="color:#fff;">satu kali</strong>; tugas pemodelan dinilai setelah berkas <strong style="color:#fff;">.FCStd</strong> diunggah dan angka bacaannya diisi. Materi dibaca berurutan sebelum Tugas dan Forum terbuka; modul berikutnya terbuka setelah modul sebelumnya tuntas. Setelah deadline modul tetap dapat dikerjakan, tetapi <strong style="color:#fcd34d;">poin setiap soal dipotong 35%</strong> (dikalikan 0,65).
           </div>
         </td>
         <td width="33.33%" valign="top" style="background:#32162f;border:1px solid #9d174d;border-radius:11px;padding:10px 12px;">
