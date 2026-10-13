@@ -21,7 +21,13 @@
  *                          v3: tinggi daftar 3 baris seperti Top Skor/Top Akses, sisanya digulir;
  *                          v4: pil "+5 Poin" (bonus per pertemuan aktif, dijumlahkan) menggantikan "N× aktif"
  *   KEAKTIFAN-KELAS:DATA   skrip modul: langganan keaktifan/, penerapan bonus, hiasan baris,
- *                          sakelar dosen, papan peringkat, window._bonusKeaktifanSaya
+ *                          sakelar dosen, papan peringkat, window._bonusKeaktifanSaya;
+ *                          v5 (13 Okt 2026, aturan "forum 2 poin"): keaktifanTerapkanMurni menerima
+ *                          parameter ke-6 opsional `batas` (default = total; pemanggilan 5 argumen
+ *                          tetap persis seperti v4) dan daftar kunjungan dihitung lewat
+ *                          _keaktifanHitung(): bila blok FORUM-POIN (scripts/forum-poin.mjs) memasang
+ *                          window._forumPipa, urutannya skala tugas -> keaktifan (batas total-2) ->
+ *                          poin forum; tanpa blok itu / modul aturan lama = v4.
  *   + data-nim pada baris tabel Hasil, latestVisitors melewati _keaktifanTerapkan,
  *     baris "Keaktifan kelas" di bilah skor (updateScore) dan ringkasan ekspor HTML.
  *
@@ -77,16 +83,18 @@ const KARTU = `
         </div>
         <!-- KEAKTIFAN-KELAS:KARTU END v1 -->`;
 
-const DATA = (kursus) => `// KEAKTIFAN-KELAS:DATA BEGIN v4 — dipasang scripts/keaktifan-kelas.mjs
+const DATA = (kursus) => `// KEAKTIFAN-KELAS:DATA BEGIN v5 — dipasang scripts/keaktifan-kelas.mjs
 // Centang dosen "aktif di kelas" per mahasiswa per pertemuan (+10 nilai = 10% skala modul,
 // nilai tetap maksimal 100). keaktifan/<kursus>/<pertemuan>/mhs_<NIM> = {aktif:true, waktu}:
 // dibaca publik, ditulis hanya sesi admin dosen. Bonus dijumlahkan ke poin saat data
 // kunjungan dibaca (tabel Hasil, Top Skor, statistik); backend memakai aturan yang sama
-// untuk kode ekspor dan rekap OBE.
+// untuk kode ekspor dan rekap OBE. v5: \`batas\` opsional (default = total) membatasi poin
+// sesudah bonus; aturan "forum 2 poin" (blok FORUM-POIN) memakai batas = total - 2.
 const KEAKTIFAN_KURSUS = '${kursus}';
 const KEAKTIFAN_BONUS_FRAKSI = 0.1;
-function keaktifanTerapkanMurni(list, modul, roster, total, isSim) {
+function keaktifanTerapkanMurni(list, modul, roster, total, isSim, batas) {
   const bonus = total * KEAKTIFAN_BONUS_FRAKSI;
+  const maks = (batas === undefined || batas === null) ? total : batas;
   const ada = new Set();
   const out = (list || []).map((v) => {
     if (!v || v.role === 'dosen' || v.role === 'guest') return v;
@@ -94,7 +102,7 @@ function keaktifanTerapkanMurni(list, modul, roster, total, isSim) {
     const rec = (modul || {})['mhs_' + v.nim];
     if (!rec || rec.aktif !== true) return v;
     const asli = Number(v.points) || 0;
-    return Object.assign({}, v, { points: Math.min(asli + bonus, total), poinTanpaKeaktifan: asli, aktifKelas: true });
+    return Object.assign({}, v, { points: Math.min(asli + bonus, maks), poinTanpaKeaktifan: asli, aktifKelas: true });
   });
   // Dicentang tetapi belum pernah membuka modul: tetap tampil dengan bonusnya.
   for (const [kunci, rec] of Object.entries(modul || {})) {
@@ -104,7 +112,7 @@ function keaktifanTerapkanMurni(list, modul, roster, total, isSim) {
     const s = (roster || []).find((x) => String(x.nim) === nim);
     if (!s) continue;
     out.push({ nama: s.nama, nim: nim, role: 'student', timestamp: rec.waktu, lastVisit: rec.waktu, visitCount: 0,
-      points: Math.min(bonus, total), poinTanpaKeaktifan: 0, aktifKelas: true, tanpaKunjungan: true });
+      points: Math.min(bonus, maks), poinTanpaKeaktifan: 0, aktifKelas: true, tanpaKunjungan: true });
   }
   return out;
 }
@@ -115,10 +123,18 @@ let _visitorsDiterima = false;
 // Pemformat angka sendiri: _fmtPts tidak selalu terjangkau dari skrip ini (Sisken: di skrip modul lain).
 function _keaktifanFmt(n) { const r = Math.round((Number(n) || 0) * 100) / 100; return String(r).replace('.', ','); }
 function _keaktifanTotal() { return (window.SCORE_CONFIG && Number(window.SCORE_CONFIG.TOTAL)) || 50; }
+// v5: blok FORUM-POIN (scripts/forum-poin.mjs) memasang window._forumPipa yang memakai fungsi
+// ini dengan urutan aturan forum 2 poin; tanpa blok itu (atau modul aturan lama) hasilnya = v4.
+function _keaktifanHitung() {
+  if (typeof window._forumPipa === 'function') {
+    try { return window._forumPipa(_visitorsMentah); } catch (e) { console.warn('[Keaktifan] pipa forum gagal:', e); }
+  }
+  return keaktifanTerapkanMurni(_visitorsMentah, _keaktifanModul, masterStudents, _keaktifanTotal(), isSimulasiNim);
+}
 function _keaktifanTerapkan(list) {
   _visitorsMentah = list || [];
   _visitorsDiterima = true;
-  return keaktifanTerapkanMurni(_visitorsMentah, _keaktifanModul, masterStudents, _keaktifanTotal(), isSimulasiNim);
+  return _keaktifanHitung();
 }
 function _keaktifanAktif(nim) { const r = _keaktifanModul['mhs_' + nim]; return !!(r && r.aktif === true); }
 window._bonusKeaktifanSaya = function () {
@@ -129,7 +145,7 @@ window._bonusKeaktifanSaya = function () {
 function _keaktifanSegarkan() {
   // Render ulang hanya sesudah data kunjungan pertama tiba (hindari tabel kosong sesaat).
   if (_visitorsDiterima) {
-    latestVisitors = keaktifanTerapkanMurni(_visitorsMentah, _keaktifanModul, masterStudents, _keaktifanTotal(), isSimulasiNim);
+    latestVisitors = _keaktifanHitung();
     try { renderVisitors(latestVisitors); } catch (e) { console.warn('[Keaktifan] render gagal:', e); }
   }
   _keaktifanKartu();
@@ -234,7 +250,7 @@ const _keaktifanTungguRoster = setInterval(() => {
   if (body) new MutationObserver(() => _keaktifanHias()).observe(body, { childList: true });
   if (_auth && typeof _auth.onAuthStateChanged === 'function') _auth.onAuthStateChanged(() => _keaktifanHias());
 })();
-// KEAKTIFAN-KELAS:DATA END v4
+// KEAKTIFAN-KELAS:DATA END v5
 `;
 
 const SKOR_AKTIF = `\n      <div id="baris-keaktifan">Keaktifan kelas: <span id="scoreAktif" style="color:#f472b6">0</span>/5 poin</div>`;
@@ -334,7 +350,7 @@ function proses(rel) {
     if (m && m.length === 1) html = html.replace(m[0], () => m[0] + EKSPOR_TAMBAH);
   }
   // penjaga
-  for (const tanda of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v4", 'id="aktifList"', 'data-nim="${escH(String(s.nim))}"', 'id="baris-keaktifan"', "const _bonusAktif ="]) {
+  for (const tanda of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v5", 'id="aktifList"', 'data-nim="${escH(String(s.nim))}"', 'id="baris-keaktifan"', "const _bonusAktif ="]) {
     if (hitung(html, tanda) !== 1) throw new Error(`penanda ${tanda} muncul ${hitung(html, tanda)}x`);
   }
   if (hitung(html, `const KEAKTIFAN_KURSUS = '${kursus}';`) !== 1) throw new Error("KEAKTIFAN_KURSUS tidak sama dengan DB_PATH");
