@@ -45,7 +45,7 @@
  *   Animasi siaga tak berujung (v3: semua ikon) dijeda per bagian di luar layar; semua mati di
  *   prefers-reduced-motion (juga .ff/.pulse-dot hero tab Hasil, kilau ::after, angkat hover).
  *
- * CAKUPAN: percobaan PERCOBAAN (TTL Modul 3). Halaman di luar HALAMAN dicabut bloknya (cabut), jadi
+ * CAKUPAN: semua 84 halaman modul sejak 13 Okt 2026 (sebelumnya percobaan PERCOBAAN = TTL Modul 3). Halaman di luar HALAMAN dicabut bloknya (cabut), jadi
  * mengosongkan HALAMAN = rollback; rollout = HALAMAN = semuaHalaman() dan validator HASIL_KEREN_SEMUA.
  *
  * URUTAN RANTAI (Pedoman §17.1): … → keaktifan-kelas.mjs → forum-poin.mjs → … → samakan-absen-hasil.mjs →
@@ -74,7 +74,8 @@ export const KURSUS = [
   "Pemodelan-Computer-Aided-Design",
 ];
 export const PERCOBAAN = ["Teknik-Tenaga-Listrik/Modul/Modul-3.html"];
-export const HALAMAN = PERCOBAAN;
+// Rollout ke semua 84 halaman modul atas persetujuan dosen 13 Okt 2026 (percobaan TTL Modul 3 sebelumnya).
+export const HALAMAN = semuaHalaman();
 
 export const CSS = String.raw`<style id="hasil-keren-style">/* HASIL-KEREN:CSS v3 — dipasang scripts/hasil-keren.mjs (ikon bergerak + desain + grafik kelas tab Hasil) */
 @keyframes hkMuncul{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
