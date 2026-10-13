@@ -1580,7 +1580,7 @@ html :is(#page-setup,#page-python) .sp-cbh-copy{padding:.3rem .5rem}
 })();
 </script>
 <!-- RAPIKAN-PONSEL:END v5 -->
-<style id="keaktifan-kelas-style">/* KEAKTIFAN-KELAS:CSS v3 — dipasang scripts/keaktifan-kelas.mjs */
+<style id="keaktifan-kelas-style">/* KEAKTIFAN-KELAS:CSS v4 — dipasang scripts/keaktifan-kelas.mjs */
 .lencana-aktif{display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:2px 10px 2px 7px;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.04em;color:#fff;white-space:nowrap;background:linear-gradient(135deg,#f97316,#ec4899 55%,#8b5cf6);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 4px 14px rgba(236,72,153,.32);animation:la-denyut 2.4s ease-in-out infinite}
 .lencana-aktif .la-api{display:inline-block;transform-origin:50% 90%;animation:la-api 1.3s ease-in-out infinite}
 .lencana-aktif .la-plus{font-weight:700;opacity:.85;font-size:.62rem}
@@ -1599,6 +1599,9 @@ html :is(#page-setup,#page-python) .sp-cbh-copy{padding:.3rem .5rem}
 .kartu-aktif::before{content:"";position:absolute;top:-50px;right:-40px;width:130px;height:130px;background:radial-gradient(circle,rgba(236,72,153,.22),transparent 70%);pointer-events:none}
 .kartu-aktif .ka-judul{position:relative;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;background:linear-gradient(90deg,#fb923c,#f472b6,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
 .kartu-aktif .ka-jumlah{display:inline-block;padding:2px 8px;border-radius:8px;font-size:.68rem;font-weight:700;white-space:nowrap;color:#fbcfe8;background:rgba(236,72,153,.16)}
+/* v4: pil "—" = tidak dicentang di pertemuan ini (redup; kontras teks >= 4.7:1 di atas kartu). */
+.kartu-aktif .ka-jumlah.ka-nol{min-width:2.4em;text-align:center;font-weight:600;color:#aab7ca;background:rgba(148,163,184,.1)}
+.kartu-aktif .ka-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 .kartu-aktif .ka-kaki{position:relative;margin-top:8px;font-size:.66rem;color:#94a3b8}
 /* Tinggi daftar = 3 baris (± 52 px per baris, sama dengan baris Top Skor/Top Akses); sisanya digulir. */
 .kartu-aktif .ka-daftar{max-height:156px;overflow-y:auto;overscroll-behavior:contain;margin-right:-6px;padding-right:6px;scrollbar-width:thin;scrollbar-color:rgba(236,72,153,.45) transparent}
@@ -9056,13 +9059,14 @@ function updateLeaderboard(visitors, schedExpired){
 fetchMasterStudents();
 
 let latestVisitors=[];
-// KEAKTIFAN-KELAS:DATA BEGIN v5 — dipasang scripts/keaktifan-kelas.mjs
+// KEAKTIFAN-KELAS:DATA BEGIN v6 — dipasang scripts/keaktifan-kelas.mjs
 // Centang dosen "aktif di kelas" per mahasiswa per pertemuan (+10 nilai = 10% skala modul,
 // nilai tetap maksimal 100). keaktifan/<kursus>/<pertemuan>/mhs_<NIM> = {aktif:true, waktu}:
 // dibaca publik, ditulis hanya sesi admin dosen. Bonus dijumlahkan ke poin saat data
 // kunjungan dibaca (tabel Hasil, Top Skor, statistik); backend memakai aturan yang sama
 // untuk kode ekspor dan rekap OBE. v5: `batas` opsional (default = total) membatasi poin
 // sesudah bonus; aturan "forum 2 poin" (blok FORUM-POIN) memakai batas = total - 2.
+// v6: pil papan = bonus pertemuan ini saja ("+5 Poin" / "—"); total sekursus di tooltip.
 const KEAKTIFAN_KURSUS = 'math4';
 const KEAKTIFAN_BONUS_FRAKSI = 0.1;
 function keaktifanTerapkanMurni(list, modul, roster, total, isSim, batas) {
@@ -9141,15 +9145,27 @@ function _keaktifanKartu() {
     }
   }
   // Semua mahasiswa yang pernah dicentang di kursus ini, urut nama (tanpa peringkat/medali;
-  // permintaan dosen 13 Okt 2026). Jumlah pertemuan aktif tetap ditampilkan per baris.
+  // permintaan dosen 13 Okt 2026). v6 (opsi 1 dosen): pil = bonus pertemuan INI saja
+  // ("+5 Poin" bila dicentang di pertemuan ini, "—" bila tidak); jumlah pertemuan aktif
+  // sekursus dan totalnya di tooltip (title) dan teks pembaca layar (.ka-sr); jumlah pertemuan
+  // aktif juga tampak kecil di samping NIM (.ka-n) agar terbaca di ponsel (tanpa tooltip).
+  const bonus = _keaktifanTotal() * KEAKTIFAN_BONUS_FRAKSI;
   const daftar = Object.entries(hitung)
-    .map(([nim, h]) => ({ nim, n: h.n, s: masterStudents.find((x) => String(x.nim) === nim) }))
+    .map(([nim, h]) => ({ nim, n: h.n, ini: _keaktifanAktif(nim), s: masterStudents.find((x) => String(x.nim) === nim) }))
     .filter((x) => x.s)
     .sort((a, b) => String(a.s.nama).localeCompare(String(b.s.nama), 'id'));
-  const ini = Object.keys(_keaktifanModul || {}).filter((k) => _keaktifanAktif(k.slice(4)) && !isSimulasiNim(k.slice(4))).length;
+  // Angka "pertemuan ini" = jumlah pil "+5 Poin" yang tampil (hanya mahasiswa roster).
+  const ini = daftar.filter((x) => x.ini).length;
   if (!daftar.length) { el.innerHTML = '<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>'; return; }
-  el.innerHTML = '<div class="ka-daftar">' + daftar.map((x) => '<div class="ka-baris"><span class="ka-ikon">🔥</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escH(x.s.nama) + '</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">' + escH(x.nim) + '</div></div><span class="ka-jumlah" title="' + x.n + ' pertemuan aktif">+' + _keaktifanFmt(x.n * _keaktifanTotal() * KEAKTIFAN_BONUS_FRAKSI) + ' Poin</span></div>').join('') + '</div>'
-    + '<div class="ka-kaki"><b style="color:#f9a8d4">' + daftar.length + '</b> mahasiswa aktif · pertemuan ini: <b style="color:#f9a8d4">' + ini + '</b> · +5 poin (= +10 nilai) per pertemuan' + (daftar.length > 3 ? ' · <span style="color:#f9a8d4">gulir untuk melihat semua ↓</span>' : '') + '</div>';
+  const pil = (x) => {
+    const sekursus = 'Aktif di ' + x.n + ' pertemuan kursus ini (total +' + _keaktifanFmt(x.n * bonus) + ' poin)';
+    const tip = (x.ini ? 'Aktif di pertemuan ini (+' + _keaktifanFmt(bonus) + ' poin). ' : 'Tidak dicentang aktif di pertemuan ini. ') + sekursus;
+    return x.ini
+      ? '<span class="ka-jumlah" title="' + tip + '">+' + _keaktifanFmt(bonus) + ' Poin<span class="ka-sr"> pertemuan ini. ' + sekursus + '</span></span>'
+      : '<span class="ka-jumlah ka-nol" title="' + tip + '"><span aria-hidden="true">—</span><span class="ka-sr">' + tip + '</span></span>';
+  };
+  el.innerHTML = '<div class="ka-daftar">' + daftar.map((x) => '<div class="ka-baris"><span class="ka-ikon">🔥</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escH(x.s.nama) + '</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">' + escH(x.nim) + '<span class="ka-n"> · ' + x.n + ' pertemuan aktif</span></div></div>' + pil(x) + '</div>').join('') + '</div>'
+    + '<div class="ka-kaki"><b style="color:#f9a8d4">' + daftar.length + '</b> mahasiswa aktif di kursus ini · pertemuan ini: <b style="color:#f9a8d4">' + ini + '</b> · pil = bonus pertemuan ini (+' + _keaktifanFmt(bonus) + ' poin = +' + _keaktifanFmt(KEAKTIFAN_BONUS_FRAKSI * 100) + ' nilai)' + (daftar.length > 3 ? ' · <span style="color:#f9a8d4">gulir untuk melihat semua ↓</span>' : '') + '</div>';
 }
 function _keaktifanHias() {
   const body = document.getElementById('visitorTableBody');
@@ -9223,7 +9239,7 @@ const _keaktifanTungguRoster = setInterval(() => {
   if (body) new MutationObserver(() => _keaktifanHias()).observe(body, { childList: true });
   if (_auth && typeof _auth.onAuthStateChanged === 'function') _auth.onAuthStateChanged(() => _keaktifanHias());
 })();
-// KEAKTIFAN-KELAS:DATA END v5
+// KEAKTIFAN-KELAS:DATA END v6
 // FORUM-POIN:DATA BEGIN v4 — dipasang scripts/forum-poin.mjs
 // Aturan "forum 2 poin" (kontrak dosen 13 Okt 2026) untuk modul yang dibuka sejak FORUM_POIN_MULAI:
 // tugas diskalakan x(total-2)/total, bonus keaktifan dibatasi total-2, forum diskusi = 2 x pengali

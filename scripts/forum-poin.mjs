@@ -45,7 +45,7 @@
  *   FORUM-POIN:SKOR   updateScore: total = window._forumSkorSaya(...) bila aturan baru aktif,
  *                     selain itu rumus lama apa adanya
  *   FORUM-POIN:EKSPOR ringkasan Export HTML: "Forum diskusi x/2" (aturan baru saja)
- *   FORUM-POIN:DATA   (v4) skrip modul sesudah blok KEAKTIFAN-KELAS:DATA (v5): langganan publik
+ *   FORUM-POIN:DATA   (v4) skrip modul sesudah blok KEAKTIFAN-KELAS:DATA (v5+): langganan publik
  *                     forum/<kursus>/<MODULE_ID>, fungsi murni forumTerapkanMurni (tabel Hasil,
  *                     Top Skor, statistik lewat window._forumPipa -> _keaktifanHitung),
  *                     forumSkorMurni (bilah skor), klaim klaimPoinForum sesudah progres server
@@ -501,7 +501,12 @@ const RX_CSS = /<style id="forum-poin-style">[\s\S]*?<\/style>\n/;
 const RX_PANEL = /\n[ \t]*<div id="forumPoinStatus"[^\n]*<\/div>/g;
 const RX_BARIS = /\n[ \t]*<div id="baris-forum"[^\n]*<\/div>/g;
 const RX_DATA = /\/\/ FORUM-POIN:DATA BEGIN[\s\S]*?\/\/ FORUM-POIN:DATA END v\d+\n/;
-const ANKER_DATA = /\/\/ KEAKTIFAN-KELAS:DATA END v5\n/;
+// Toleran versi (v5+; 13 Okt 2026): yang dibutuhkan blok ini adalah tanda tangan
+// keaktifanTerapkanMurni (parameter `batas`) dan pipa _keaktifanHitung -> window._forumPipa
+// (keduanya diperiksa di proses()), bukan tampilan papan; perubahan tampilan KEAKTIFAN-KELAS
+// (mis. DATA v6: pil bonus pertemuan ini) tidak perlu menyentuh skrip ini.
+const ANKER_DATA = /\/\/ KEAKTIFAN-KELAS:DATA END v\d+\n/;
+const KEAKTIFAN_PIPA = "function _keaktifanHitung() {\n  if (typeof window._forumPipa === 'function') {";
 
 const hitung = (s, sub) => s.split(sub).length - 1;
 
@@ -575,12 +580,13 @@ function proses(rel) {
     html = html.replace(RX_EKSPOR_TEKS, (_, a, b) => a + EKSPOR_TEKS + b);
   }
 
-  // 6. Blok DATA sesudah KEAKTIFAN-KELAS:DATA v5 (skrip modul yang sama)
+  // 6. Blok DATA sesudah KEAKTIFAN-KELAS:DATA v5+ (skrip modul yang sama; jangkar toleran versi)
   html = html.replace(RX_DATA, "");
   {
     const m = html.match(ANKER_DATA);
-    if (!m || hitung(html, m[0]) !== 1) throw new Error("KEAKTIFAN-KELAS:DATA END v5 tidak ditemukan tepat sekali (jalankan keaktifan-kelas.mjs dulu)");
-    if (!html.includes("function keaktifanTerapkanMurni(list, modul, roster, total, isSim, batas) {")) throw new Error("keaktifanTerapkanMurni belum v5 (parameter batas)");
+    if (!m || (html.match(new RegExp(ANKER_DATA.source, "g")) || []).length !== 1) throw new Error("KEAKTIFAN-KELAS:DATA END tidak ditemukan tepat sekali (jalankan keaktifan-kelas.mjs dulu)");
+    if (!html.includes("function keaktifanTerapkanMurni(list, modul, roster, total, isSim, batas) {")) throw new Error("keaktifanTerapkanMurni belum v5+ (parameter batas)");
+    if (hitung(html, KEAKTIFAN_PIPA) !== 1) throw new Error("_keaktifanHitung belum memakai window._forumPipa (KEAKTIFAN-KELAS:DATA v5+)");
     const j = html.indexOf(m[0]) + m[0].length;
     html = html.slice(0, j) + DATA(kursus) + html.slice(j);
     const skrip = skripPemuat(html, j);
