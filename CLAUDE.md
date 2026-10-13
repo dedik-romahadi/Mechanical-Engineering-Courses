@@ -238,7 +238,7 @@ repo publik ini.
 - **Efek & skrip penyuntik.** Emoji/suara jawaban, efek memuat, friction,
   pengecualian akun simulasi, lapisan overlay login, progres modul, kunci
   identitas skrip klasik, draft materi, dan ikon bergerak + grafik Statistik
-  Kelas tab Hasil (`hasil-keren.mjs`, percobaan TTL Modul 3; `--periksa`,
+  Kelas tab Hasil (`hasil-keren.mjs`, semua 84 halaman modul; `--periksa`,
   `--uji-jangkar`) disuntikkan oleh skrip idempoten di `scripts/`
   yang wajib dijalankan ulang setelah regenerasi modul (daftar di Pedoman
   §17.1). Regenerasi Sisken bukan satu perintah (Pedoman §6.4).

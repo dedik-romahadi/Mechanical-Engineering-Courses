@@ -492,8 +492,9 @@ async function ujiRuntimeForumPoin() {
 // sintaks/lemparan menghentikan login, tabel, penilaian, dan chat), penjaga keselamatan (try/catch hkMulai,
 // deteksi fitur, hkPulihkan), reduced-motion, animasi tak berujung yang dipatok, aksesibilitas, fungsi murni di
 // sandbox (silang dengan blok SAMAKAN-ABSEN v2), lalu uji mutasi dan uji runtime node:vm.
-const HASIL_KEREN_HALAMAN = new Set(["Teknik-Tenaga-Listrik/Modul/Modul-3.html"]);
-const HASIL_KEREN_SEMUA = false;
+// Rollout 13 Okt 2026: semua 84 halaman modul (percobaan TTL Modul 3 disetujui dosen).
+const HASIL_KEREN_SEMUA = true;
+const HASIL_KEREN_HALAMAN = new Set(hkSemua());
 if ([...HASIL_KEREN_HALAMAN].sort().join("|") !== [...HK_HALAMAN].sort().join("|")) {
   throw new Error(`HASIL_KEREN_HALAMAN validator (${[...HASIL_KEREN_HALAMAN].join(", ")}) harus sama dengan HALAMAN scripts/hasil-keren.mjs (${HK_HALAMAN.join(", ")})`);
 }
@@ -1027,8 +1028,16 @@ function ujiMutasiHasilKeren() {
   }
   {
     const gm = "Getaran-Mekanik/Modul/Modul-1.html";
-    const terpasang = hkPasang(fs.readFileSync(path.join(root, gm), "utf8"), gm);
-    if (!gagal(() => periksaHasilKeren(terpasang, gm, false))) throw new Error(`${gm}: validator menerima blok HASIL-KEREN di halaman bukan percobaan`);
+    const isi = fs.readFileSync(path.join(root, gm), "utf8");
+    if (HASIL_KEREN_SEMUA) {
+      // Sesudah rollout semua halaman wajib memuat blok: halaman yang bloknya dicabut harus ditolak.
+      const dicabut = hkCabut(isi);
+      if (dicabut === isi) throw new Error(`${gm}: uji mutasi HASIL-KEREN butuh halaman yang memuat blok (rollout)`);
+      if (!gagal(() => periksaHasilKeren(dicabut, gm, false))) throw new Error(`${gm}: validator menerima halaman tanpa blok HASIL-KEREN sesudah rollout`);
+    } else {
+      const terpasang = hkPasang(isi, gm);
+      if (!gagal(() => periksaHasilKeren(terpasang, gm, false))) throw new Error(`${gm}: validator menerima blok HASIL-KEREN di halaman bukan percobaan`);
+    }
   }
   const blok = { css: HK_CSS, panel: HK_PANEL, data: HK_DATA };
   if (periksaIsiHasilKeren(blok, html).length) throw new Error("ujiMutasiHasilKeren: isi blok acuan ditolak");
