@@ -33,7 +33,7 @@ const BASE = "https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Pe
 const RPS_URL = "https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Unduhan-Gabungan/RPS-Pemodelan-Computer-Aided-Design.pdf";
 
 // ---------- konfigurasi yang berubah dari pekan ke pekan ----------
-export const PUBLISHED = [1, 2, 3, 4]; // nomor modul yang halamannya sudah terbit
+export const PUBLISHED = [1, 2, 3, 4, 5]; // nomor modul yang halamannya sudah terbit
 export const EXAM_PUBLISHED = { UTS: false, UAS: false };
 // Jadwal resmi ujian menurut web SIA (dosen, 12 Okt 2026) dan durasi pengerjaan (keputusan dosen, 12 Okt 2026).
 // Ujian yang tidak ada di sini (UAS) tetap menulis "mengikuti jadwal resmi di web SIA" dan durasi 180 + 120 menit.
@@ -43,7 +43,7 @@ export const JADWAL_UJIAN = {
 // Tautan room Google Meet per pertemuan TMV — diisi PADA PEKANNYA setelah aktivitas
 // Google Meet™ for Moodle dibuat lewat UI form LMS (room dibuat otomatis oleh plugin).
 // Pertemuan yang belum ada di sini memakai tombol nonaktif "Google Meet belum dibuka".
-export const MEET_URL = { 1: "https://meet.google.com/nbb-etyg-pho", 3: "https://meet.google.com/qno-rehc-efb" };
+export const MEET_URL = { 1: "https://meet.google.com/nbb-etyg-pho", 3: "https://meet.google.com/qno-rehc-efb", 5: "https://meet.google.com/idm-ejrj-sbp" };
 export const WA_URL = "https://chat.whatsapp.com/Dr6Jsi67Ey3Cb9jRHYUZGu"; // grup WhatsApp kelas CAD (dosen, 21 Sep 2026); null = tombol tidak ditampilkan
 export const HARI_KULIAH = "Selasa";
 export const JAM = "19:30–22:00 WIB";
