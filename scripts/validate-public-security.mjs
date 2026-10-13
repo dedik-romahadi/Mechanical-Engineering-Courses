@@ -533,6 +533,10 @@ const HK_IKON_KELAS = ["hk-i-tab", "hk-i-aktivitas", "hk-i-kalender", "hk-i-hapu
 const HK_IKON_TANPA_SIAGA = ["hk-i-hapus"];
 const HK_JEDA_WAJIB = [".hk-jeda .hk-ikon", ".hk-jeda .hk-ikon::after", ".hk-jeda #rajinList>div>span:first-child", ".hk-jeda .ka-ikon"];
 const HK_PROP_KEYFRAMES = new Set(["transform", "opacity", "scale", "stroke-dashoffset"]);
+// Ikon daftar papan (bukan .hk-ikon) yang wajib punya aturan siaga dengan selektor persis ini.
+const HK_SIAGA_DAFTAR = ["#rajinList>div>span:first-child", "#aktifList .ka-ikon"];
+// Deklarasi yang boleh ada di blok reduced-motion: hanya pemati (tidak ada gerak baru, tidak ada infinite).
+const HK_RM_DEKLARASI = new Set(["animation:none!important", "display:none!important", "transition:none!important", "translate:none!important", "scale:none!important"]);
 let hasilKerenHalaman = 0;
 let hasilKerenContoh = null;
 const hasilKerenJangkarGagal = [];
@@ -594,6 +598,22 @@ function periksaIsiHasilKeren(blok, html) {
   }
   // Gerak v3: lihat periksaGerakHasilKeren (HK_IKON_KELAS).
   masalah.push(...periksaGerakHasilKeren(css, panel, data));
+  // Review v3 (warna/kontras): penimpa warna inline tabel berspesifisitas (0,1,0) lewat :where(#visitorTableBody), jadi
+  // warna hover bawaan baris (.vt-row:hover .vt-num/.vt-name …!important, (0,3,0)) tetap menang; NIM/teks kosong
+  // daftar Keaktifan ikut dicerahkan (>= 4,5:1); pil status sebaris (nowrap) hanya > 640 px.
+  if (/(^|[\s,}])#visitorTableBody\s+\[style\*=/m.test(css)) masalah.push("penimpa warna inline tabel harus :where(#visitorTableBody) [style*=…] (spesifisitas ber-ID mengalahkan warna hover baris)");
+  for (const t of [':where(#visitorTableBody) [style*="color:#64748b"]{color:#8391a7!important}', ':where(#visitorTableBody) [style*="color:#475569"]{color:#7b8aa0!important}']) {
+    if (!css.includes(t)) masalah.push(`CSS harus memuat ${t}`);
+  }
+  {
+    const kontras = (css.match(/^([^{\n]*)\{color:#8f9db3!important\}$/m) || [])[1] || "";
+    for (const t of ['#rajinList div[style*="color:#64748b"]', '#santaiList div[style*="color:#64748b"]', '#aktifList div[style*="color:#64748b"]', "#rajinList>span", "#santaiList>span", "#aktifList>span"]) {
+      if (!kontras.split(",").includes(t)) masalah.push(`aturan kontras {color:#8f9db3!important} harus memuat ${t}`);
+    }
+  }
+  for (const baris of css.split("\n")) {
+    if (/\.vt-status>span\{[^}]*white-space:\s*nowrap/.test(baris) && !baris.startsWith("@media (min-width:641px){")) masalah.push("pil status tabel hanya boleh white-space:nowrap di @media (min-width:641px) (ponsel: tabel tidak bertambah lebar)");
+  }
   if (!/^\.hk-panel\[hidden\]\{display:none!important\}$/m.test(css)) masalah.push("CSS harus menyembunyikan .hk-panel[hidden] (panel tampil hanya sesudah inisialisasi berhasil)");
   if (!panel.includes('<details class="hk-panel" id="hkPanel" open hidden>')) masalah.push("PANEL harus mulai hidden (dibuka skrip sesudah inisialisasi berhasil)");
   // Fungsi murni: tanpa DOM/waktu/acak/penyimpanan; diuji di sandbox.
@@ -609,15 +629,23 @@ function periksaIsiHasilKeren(blok, html) {
 
 /** Selektor -> { subjek: selektor sederhana senyawa terakhir (tanpa pseudo-kelas/*), pe: ::pseudo-elemen, token: #id/.kelas di seluruh selektor }. */
 function hkUraiSelektor(sel) {
-  const bagian = sel.replace(/\([^)]*\)/g, "()").split(/\s*[\s>+~]\s*/).filter(Boolean);
+  const polos = sel.replace(/\([^)]*\)/g, "()");
+  const bagian = polos.split(/\s*[\s>+~]\s*/).filter(Boolean);
   const subjek = bagian[bagian.length - 1] || "";
   const sederhana = (t) => (t.replace(/::[\w-]+/, "").replace(/:[\w-]+(\(\))?/g, "").match(/[#.]?[\w-]+|\*|\[[^\]]*\]/g) || []);
+  const kelas = (t) => sederhana(t).filter((x) => /^[#.]/.test(x));
   return { subjek: sederhana(subjek).filter((x) => x !== "*"), pe: (subjek.match(/::[\w-]+/) || [""])[0],
-    token: bagian.flatMap((t) => sederhana(t).filter((x) => /^[#.]/.test(x))) };
+    token: bagian.flatMap(kelas), leluhur: bagian.slice(0, -1).flatMap(kelas), saudara: /[+~]/.test(polos) };
 }
-/** Selektor reduced-motion r mencakup selektor beranimasi s: pseudo-elemen sama, subjek r ⊆ subjek s, #id/.kelas r ⊆ s. */
+/**
+ * Selektor reduced-motion r mencakup selektor beranimasi s: pseudo-elemen sama, subjek r ⊆ subjek s, #id/.kelas r ⊆ s.
+ * Kombinator saudara (+ ~, di luar tanda kurung) tidak pernah dianggap tercakup (".hk-panel *" tidak mencocokkan
+ * ".hk-panel~div"); r ber-subjek * hanya mencakup s yang token leluhur r-nya ada di leluhur s (bukan di subjek s).
+ */
 function hkTercakup(r, s) {
   const R = hkUraiSelektor(r), S = hkUraiSelektor(s);
+  if (R.saudara || S.saudara) return false;
+  if (!R.subjek.length && !R.leluhur.every((x) => S.leluhur.includes(x))) return false;
   return R.pe === S.pe && R.subjek.every((x) => S.subjek.includes(x)) && R.token.every((x) => S.token.includes(x));
 }
 /** Gerak v3 blok HASIL-KEREN (lihat komentar HK_IKON_KELAS); kosong = sesuai. */
@@ -649,11 +677,17 @@ function periksaGerakHasilKeren(css, panel, data) {
   const aturan = (teks) => [...teks.replace(/@(?:media|supports)[^{]*\{/g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)]
     .map((m) => ({ sel: m[1].trim().split(/,(?![^(]*\))/).map((x) => x.trim()).filter(Boolean), dek: m[2] }));
   const rmTeks = tanpaKf.slice(iRm, zRm + 2);
+  if (/\binfinite\b/.test(rmTeks)) masalah.push("blok reduced-motion tidak boleh memuat animasi tak berujung");
   for (const t of ["animation:none!important", "#page-hasil .hk-ikon", "#page-hasil .hk-ikon::after", "#rajinList>div>span:first-child", "#page-hasil .pulse-dot", "#page-hasil .float-formulas", "translate:none!important"]) {
     if (!rmTeks.includes(t)) masalah.push(`blok reduced-motion CSS tidak memuat ${t}`);
   }
   const luar = aturan(tanpaKf.slice(0, iRm) + tanpaKf.slice(zRm + 2));
   const rm = aturan(rmTeks);
+  for (const a of rm) {
+    for (const d of a.dek.split(";").map((x) => x.replace(/\s+/g, "")).filter(Boolean)) {
+      if (!HK_RM_DEKLARASI.has(d)) masalah.push(`blok reduced-motion hanya boleh mematikan (${[...HK_RM_DEKLARASI].join(", ")}); ditemukan ${d} pada ${a.sel[0]}`);
+    }
+  }
   // Tak berujung hanya hkSiaga* 3–7 dtk; delay siaga antarikon (--hk-gerak) berbeda-beda.
   const delaySiaga = new Map();
   for (const a of luar) {
@@ -687,6 +721,29 @@ function periksaGerakHasilKeren(css, panel, data) {
     if (!luar.some((a) => a.sel.some((x) => rx.test(x) && !/:hover|:focus/.test(x)) && /(?:^|;)\s*(?:--hk-gerak|animation)\s*:\s*hkSiaga\w+[^;]*\binfinite\b/.test(a.dek))) {
       masalah.push(`ikon .${k} harus punya animasi siaga tak berujung (hkSiaga*) lewat kelasnya`);
     }
+  }
+  // Kaskade (review v3): satu aturan siaga per kelas tidak cukup bila aturan lain menimpanya. Setiap --hk-gerak harus
+  // siaga tak berujung; setiap aturan non-hover yang menyetel animation pada ikon harus tetap memuat siaganya;
+  // animation:none, longhand animation-* (kecuali -delay) dan play-state selain jeda dilarang di luar reduced-motion.
+  const siagaTakBerujung = (v) => v.split(/,(?![^(]*\))/).some((b) => /\bhkSiaga\w+/.test(b) && /\binfinite\b/.test(b));
+  const subjekIkon = (x) => /(?:\.(?:hk-ikon|hk-i-[a-z]+|ka-ikon)(?![\w-])[^\s>+~]*|#rajinList\S*>div(?::nth-child\(\d+\))?>span:first-child)$/.test(x.replace(/::[\w-]+$/, ""));
+  for (const a of luar) {
+    const hover = a.sel.every((x) => /:hover|:focus/.test(x));
+    for (const d of a.dek.split(";")) {
+      const i = d.indexOf(":");
+      if (i < 0) continue;
+      const prop = d.slice(0, i).trim(), nilai = d.slice(i + 1).trim();
+      if (prop === "--hk-gerak" && !siagaTakBerujung(nilai)) masalah.push(`--hk-gerak harus memuat siaga hkSiaga* tak berujung (${a.sel.join(", ")}: ${nilai})`);
+      if (prop === "animation" && /^none\b/.test(nilai)) masalah.push(`animation:none hanya boleh di blok reduced-motion (${a.sel.join(", ")})`);
+      if (/^animation-(name|duration|iteration-count|timing-function|fill-mode|direction)$/.test(prop)) masalah.push(`longhand ${prop} tidak boleh dipakai di luar blok reduced-motion (${a.sel.join(", ")})`);
+      if (prop === "animation-play-state" && !(nilai === "paused!important" && a.sel.every((x) => x.startsWith(".hk-jeda")))) masalah.push(`animation-play-state hanya boleh paused!important di aturan .hk-jeda (${a.sel.join(", ")}: ${nilai})`);
+      if (prop === "animation" && !hover && a.sel.some(subjekIkon) && !/var\(--hk-gerak/.test(nilai) && !siagaTakBerujung(nilai)) {
+        masalah.push(`animasi ikon harus tetap memuat siaganya (var(--hk-gerak) atau hkSiaga* infinite): ${a.sel.filter(subjekIkon).join(", ")}`);
+      }
+    }
+  }
+  for (const t of HK_SIAGA_DAFTAR) {
+    if (!luar.some((a) => a.sel.includes(t) && siagaTakBerujung((a.dek.match(/(?:^|;)\s*animation\s*:([^;]*)/) || [])[1] || ""))) masalah.push(`ikon daftar ${t} harus punya animasi siaga tak berujung (hkSiaga*)`);
   }
   for (const t of ["#page-hasil.active .hk-ikon", "#tab-hasil.active .hk-ikon"]) {
     if (!luar.some((a) => a.sel.includes(t) && /animation:\s*var\(--hk-gerak/.test(a.dek))) masalah.push(`${t} harus memakai animation:var(--hk-gerak,none)`);
@@ -993,6 +1050,23 @@ function ujiMutasiHasilKeren() {
     ["jeda tanpa ikon", { css: ganti(HK_CSS, ".hk-jeda .hk-ikon,.hk-jeda .hk-ikon::after,", ".hk-jeda .hk-ikon::after,", "jeda") }],
     ["background-position di @keyframes", { css: ganti(HK_CSS, "@keyframes hkKilauLintas{from{transform:translateX(0) skewX(-18deg)}", "@keyframes hkKilauLintas{from{transform:translateX(0) skewX(-18deg);background-position:0 0}", "bgpos") }],
     ["box-shadow di @keyframes hk", { css: ganti(HK_CSS, "@keyframes hkPudar{from{opacity:0}", "@keyframes hkPudar{from{opacity:0;box-shadow:0 0 4px #fff}", "keyframes") }],
+    // Review v3 (ketahanan): kaskade siaga, isi blok reduced-motion, kombinator saudara; (visual) warna/kontras/nowrap.
+    ["infinite di blok reduced-motion", { css: ganti(HK_CSS, ".hk-panel *,.hk-panel>summary::after{transition:none!important}\n", ".hk-panel *,.hk-panel>summary::after{transition:none!important}\n#page-hasil .hk-ikon::before{animation:hkSentil .2s infinite}\n", "rm-infinite") }],
+    ["animasi baru di blok reduced-motion", { css: ganti(HK_CSS, ".hk-panel *,.hk-panel>summary::after{transition:none!important}\n", ".hk-panel *,.hk-panel>summary::after{transition:none!important}\n#page-hasil .hk-ikon{animation:hkPop 1s!important}\n", "rm-gerak") }],
+    ["reduced-motion: animation:none tanpa !important", { css: ganti(HK_CSS, "#page-hasil .pulse-dot,.hk-panel,.hk-panel *{animation:none!important}", "#page-hasil .pulse-dot,.hk-panel,.hk-panel *{animation:none}", "rm-penting") }],
+    ["--hk-gerak:none menimpa siaga ❌", { css: ganti(HK_CSS, ".hk-panel[hidden]{display:none!important}", ".hk-i-absen{--hk-gerak:none}\n.hk-panel[hidden]{display:none!important}", "kaskade-a") }],
+    ["animation:none lebih spesifik pada ❌", { css: ganti(HK_CSS, ".hk-panel[hidden]{display:none!important}", "#page-hasil.active .hk-ikon.hk-i-absen{animation:none}\n.hk-panel[hidden]{display:none!important}", "kaskade-b") }],
+    ["siaga ❌ ditimpa animasi masuk saja", { css: ganti(HK_CSS, ".hk-panel[hidden]{display:none!important}", ".hk-i-absen{--hk-gerak:hkGoyang .6s ease-in-out .7s 1 backwards}\n.hk-panel[hidden]{display:none!important}", "kaskade-c") }],
+    ["siaga 🥇🥈🥉 dibuang", { css: ganti(HK_CSS, "#rajinList>div>span:first-child{animation:hkSiagaMedali 4.8s ease-in-out var(--hk-fase,.6s) infinite}\n", "", "kaskade-d") }],
+    ["siaga 🔥 daftar Keaktifan dibuang", { css: ganti(HK_CSS, "#aktifList .ka-ikon{animation:hkSiagaNyala 3.4s ease-in-out var(--hk-fase,.9s) infinite}\n", "", "kaskade-e") }],
+    ["jeda dibatalkan play-state running", { css: ganti(HK_CSS, ".hk-panel[hidden]{display:none!important}", "#page-hasil .hk-jeda .hk-ikon{animation-play-state:running!important}\n.hk-panel[hidden]{display:none!important}", "kaskade-f") }],
+    ["animasi masuk saja pada 🥇 baris pertama", { css: ganti(HK_CSS, ".hk-panel[hidden]{display:none!important}", "#rajinList>div:nth-child(1)>span:first-child{animation:hkPop .5s}\n.hk-panel[hidden]{display:none!important}", "kaskade-g") }],
+    ["longhand animation-name pada ikon", { css: ganti(HK_CSS, ".hk-panel[hidden]{display:none!important}", "#page-hasil .hk-ikon.hk-i-hadir{animation-name:hkPop}\n.hk-panel[hidden]{display:none!important}", "kaskade-h") }],
+    ["saudara .hk-panel~div beranimasi", { css: ganti(HK_CSS, ".hk-panel[hidden]{display:none!important}", "#leaderboardPanel .hk-panel~div{animation:hkPudar 1s}\n.hk-panel[hidden]{display:none!important}", "saudara-a") }],
+    ["saudara #rajinList~div span beranimasi", { css: ganti(HK_CSS, ".hk-panel[hidden]{display:none!important}", "#rajinList~div span{animation:hkPudar 1s}\n.hk-panel[hidden]{display:none!important}", "saudara-b") }],
+    ["warna tabel ber-ID (hover baris kalah)", { css: ganti(HK_CSS, ':where(#visitorTableBody) [style*="color:#64748b"]', '#visitorTableBody [style*="color:#64748b"]', "warna-id") }],
+    ["NIM Keaktifan tidak dicerahkan", { css: ganti(HK_CSS, ',#aktifList div[style*="color:#64748b"]', "", "kontras-aktif") }],
+    ["pil status nowrap di ponsel", { css: ganti(HK_CSS, "#visitorTableBody .vt-status>span{border-radius:999px!important;", "#visitorTableBody .vt-status>span{border-radius:999px!important;white-space:nowrap;", "nowrap") }],
     ["kelas ikon PANEL dibuang", { panel: ganti(HK_PANEL, '<span class="hk-ikon hk-i-kepingan" aria-hidden="true">', '<span class="hk-ikon" aria-hidden="true">', "panel-kelas") }],
     ["panel tidak mulai hidden", { panel: ganti(HK_PANEL, " open hidden>", " open>", "hidden") }],
     ["innerHTML di DATA", { data: ganti(HK_DATA, "function hkGanti(el) {\n", "function hkGanti(el) {\n  el.innerHTML = '';\n", "innerHTML") }],
@@ -1031,10 +1105,12 @@ function ujiMutasiHasilKeren() {
     ["try per kartu dibuang", ganti(ganti(HK_DATA, "    try {\n      if (umum) {", "    {\n      if (umum) {", "kartu-a"),
       "    } catch (e) {\n      HK_KARTU[id] = '';\n      hkGagal(e);\n      hkKosong(document.getElementById(id + 'Isi'), '⚠ Grafik tidak bisa digambar.');\n    }\n", "    }\n", "kartu-b")],
     ["auth tanpa penjaga", ganti(HK_DATA, "    if (_auth && typeof _auth.onAuthStateChanged === 'function') _auth.onAuthStateChanged(", "    _auth.onAuthStateChanged(", "auth")],
-    ["IntersectionObserver mengamati seluruh papan", ganti(HK_DATA, "        bagian.forEach((b) => io.observe(b));", "        io.observe(papan);", "io")],
-    ["IntersectionObserver hanya kisi papan (v2)", ganti(HK_DATA, "[papan && papan.children[0], papan && papan.children[1], panel]", "[papan && papan.children[0]]", "io-v2")],
+    ["IntersectionObserver mengamati seluruh papan", ganti(HK_DATA, "        HK_BAGIAN.forEach((b) => io.observe(b));", "        io.observe(papan);", "io")],
+    ["IntersectionObserver hanya kisi papan (v2)", ganti(HK_DATA, "[papan && papan.children[0], papan && papan.children[1], panel, kepala, id('scheduleInfo'), id('scheduleMissingDosen')]", "[papan && papan.children[0]]", "io-v2")],
+    ["IntersectionObserver tanpa kepala seksi/jadwal/banner (v3 awal)", ganti(HK_DATA, ", panel, kepala, id('scheduleInfo'), id('scheduleMissingDosen')]", ", panel]", "io-v3")],
+    ["kepala seksi = wadah papan diamati", ganti(HK_DATA, "      for (let p = papan; p && kepala; p = p.parentNode) if (p === kepala) kepala = null;\n", "      kepala = halaman.children[1] || kepala;\n", "io-wadah")],
     ["hk-jeda dipasang di #leaderboardPanel", ganti(HK_DATA, "if (e.target && e.target.classList) e.target.classList.toggle('hk-jeda', !e.isIntersecting);", "papan.classList.toggle('hk-jeda', !e.isIntersecting);", "io-papan")],
-    ["hkPulihkan tidak melepas hk-jeda bagian", ganti(HK_DATA, "  coba(() => { const p = document.getElementById('leaderboardPanel'); if (p) for (let i = 0; i < p.children.length; i += 1) p.children[i].classList.remove('hk-jeda'); });\n", "", "jeda-pulih")],
+    ["hkPulihkan tidak melepas hk-jeda bagian", ganti(HK_DATA, "  HK_BAGIAN.forEach((b) => coba(() => b.classList.remove('hk-jeda')));\n", "", "jeda-pulih")],
     ["fase ikon daftar tidak diset", ganti(HK_DATA, "          hkFase(el, x);\n", "", "fase")],
     ["fase ikon daftar lewat animationDelay (v2)", ganti(HK_DATA, "s.style.setProperty('--hk-fase', ", "s.style.animationDelay = (", "fase-v2")],
     ["fase tanpa jarak antarikon", ganti(HK_DATA, "(((kini - i * 400) % periode + periode) % periode)", "((kini % periode + periode) % periode)", "fase-jarak")],
@@ -1490,13 +1566,18 @@ function ujiRuntimeHasilKeren(html, relative, DATA) {
     const kunci = () => t.id("hkSoalIsi").children[0].children.filter((e) => e.classList.contains("hk-terkunci")).map((e) => e.textContent);
     cek(barisJenis() === 1 && kunci().length === 2 && kunci().every((x) => /^🔒 .*: kurang dari 5 penjawab$/.test(x)),
       `mahasiswa: jenis dengan < 5 penjawab harus dikunci (batang ${barisJenis()}, kunci ${JSON.stringify(kunci())})`);
-    // v3: IntersectionObserver mengamati tiga bagian (kisi papan, kisi statistik, #hkPanel); hk-jeda dipasang pada
-    // bagian yang keluar layar itu saja (bukan #leaderboardPanel, yang juga memuat #hkPanel).
+    // v3: IntersectionObserver mengamati enam bagian (kisi papan, kisi statistik, #hkPanel, kepala seksi = induk pil 👥
+    // dan judul, #scheduleInfo 📅, #scheduleMissingDosen ⚠️/🕐); hk-jeda dipasang pada bagian yang keluar layar itu saja
+    // (bukan #leaderboardPanel, yang juga memuat #hkPanel; bukan wadah yang memuat papan).
     const papan = t.id("leaderboardPanel");
     const io = t.d.io[0];
-    const bagian = [papan.children[0], papan.children[1], t.id("hkPanel")];
-    cek(t.d.io.length === 1 && io.target.length === 3 && bagian.every((b, i) => io.target[i] === b) && papan.children[0] !== t.id("hkPanel") && papan.children[1] !== t.id("hkPanel"),
-      "IntersectionObserver harus mengamati kisi papan, kisi statistik, dan #hkPanel (tepat tiga, bukan #leaderboardPanel)");
+    const seksi = t.semua().find((e) => e.classList.contains("hk-judul-seksi"));
+    const bagian = [papan.children[0], papan.children[1], t.id("hkPanel"), seksi && seksi.parentNode, t.id("scheduleInfo"), t.id("scheduleMissingDosen")];
+    const leluhurPapan = [];
+    for (let p = papan; p; p = p.parentNode) leluhurPapan.push(p);
+    cek(t.d.io.length === 1 && io.target.length === 6 && bagian.every((b, i) => b && io.target[i] === b) && papan.children[0] !== t.id("hkPanel") && papan.children[1] !== t.id("hkPanel")
+      && !bagian.some((b) => leluhurPapan.includes(b)) && seksi.parentNode.children.some((c) => c.classList.contains("hk-pil")),
+      "IntersectionObserver harus mengamati kisi papan, kisi statistik, #hkPanel, kepala seksi (pil 👥), #scheduleInfo, #scheduleMissingDosen (tepat enam, tanpa leluhur papan)");
     if (io) {
       for (const b of bagian) {
         io.cb([{ isIntersecting: false, target: b }]);
@@ -1611,8 +1692,8 @@ function ujiRuntimeHasilKeren(html, relative, DATA) {
     cek(g0 >= 1, "(c) gambar awal harus ada");
     const io = t.d.io[0];
     if (io) io.target.forEach((b) => io.cb([{ isIntersecting: false, target: b }]));
-    const bagianC = [t.id("leaderboardPanel").children[0], t.id("leaderboardPanel").children[1], t.id("hkPanel")];
-    cek(bagianC.every((b) => b.classList.contains("hk-jeda")), "(c) hk-jeda harus terpasang di ketiga bagian sebelum galat");
+    const bagianC = io ? io.target.slice() : [];
+    cek(bagianC.length === 6 && bagianC.every((b) => b.classList.contains("hk-jeda")), "(c) hk-jeda harus terpasang di keenam bagian sebelum galat");
     t.sb._keaktifanTotal = () => { throw new Error("uji galat runtime"); };
     // Tab dibuka ulang tepat sebelum galat: hk-masuk (daftar/tabel) dan hk-baru masih terpasang saat fitur mati
     // (timer pelepasnya lewat hkAman, jadi tidak jalan lagi sesudah mati) -> hanya hkPulihkan yang bisa melepasnya.
