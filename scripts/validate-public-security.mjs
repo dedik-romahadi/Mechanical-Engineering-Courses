@@ -127,7 +127,8 @@ function ujiKartuKeaktifan(html, relative) {
   const kursusNode = {
     "pertemuan-1": { mhs_2: { aktif: true, waktu: W }, mhs_3: { aktif: true, waktu: W }, mhs_41399999901: { aktif: true, waktu: W }, mhs_9: { aktif: true, waktu: W } },
     "pertemuan-2": { mhs_2: { aktif: true, waktu: W }, mhs_1: { aktif: false, waktu: W } },
-    "pertemuan-3": { mhs_3: { aktif: true, waktu: W }, mhs_4: { aktif: true, waktu: W }, mhs_41399999901: { aktif: true, waktu: W }, mhs_1: { aktif: false, waktu: W } },
+    // mhs_9 = NIM di luar roster (mis. mahasiswa keluar sesudah dicentang): tidak boleh ikut angka "pertemuan ini".
+    "pertemuan-3": { mhs_3: { aktif: true, waktu: W }, mhs_4: { aktif: true, waktu: W }, mhs_41399999901: { aktif: true, waktu: W }, mhs_1: { aktif: false, waktu: W }, mhs_9: { aktif: true, waktu: W } },
   };
   const roster = [{ nim: "1", nama: "Ani" }, { nim: "2", nama: "Budi" }, { nim: "3", nama: "Citra" }, { nim: "4", nama: "Agus" }, { nim: "41399999901", nama: "Simulasi" }];
   const papan = (modulId) => {
@@ -143,6 +144,7 @@ function ujiKartuKeaktifan(html, relative) {
         nama: (b.match(/text-overflow:ellipsis;">([^<]*)</) || [])[1],
         kelas: (pil.match(/^<span class="([^"]*)"/) || [])[1],
         judul: (pil.match(/ title="([^"]*)"/) || [])[1] || "",
+        nTampak: (b.match(/<span class="ka-n"> · (\d+) pertemuan aktif<\/span>/) || [])[1],
         tampak: pil.replace(/<span class="ka-sr">[\s\S]*?<\/span>/g, "").replace(/<[^>]*>/g, "").trim(),
       };
     });
@@ -158,9 +160,10 @@ function ujiKartuKeaktifan(html, relative) {
     const [aktif, n] = h;
     if (aktif && (b.tampak !== "+5 Poin" || b.kelas !== "ka-jumlah")) salah.push(`${b.nama} aktif di pertemuan ini: pil harus "+5 Poin" (dapat "${b.tampak}", kelas ${b.kelas})`);
     if (!aktif && (b.tampak !== "—" || b.kelas !== "ka-jumlah ka-nol")) salah.push(`${b.nama} tidak aktif di pertemuan ini: pil harus "—" redup (dapat "${b.tampak}", kelas ${b.kelas})`);
+    if (b.nTampak !== String(n)) salah.push(`${b.nama}: jumlah pertemuan aktif sekursus (${n}) harus tampak di samping NIM untuk ponsel (dapat ${b.nTampak})`);
     if (!b.judul.includes(`Aktif di ${n} pertemuan kursus ini (total +${n * 5} poin)`)) salah.push(`${b.nama}: tooltip harus memuat jumlah pertemuan aktif sekursus (${n}) dan totalnya (dapat "${b.judul}")`);
   }
-  if (!/^<b[^>]*>3<\/b> mahasiswa aktif/.test(p3.kaki) || !/pertemuan ini: <b[^>]*>2<\/b>/.test(p3.kaki)) salah.push("kaki papan harus menyebut 3 mahasiswa aktif dan pertemuan ini: 2 (tanpa akun simulasi)");
+  if (!/^<b[^>]*>3<\/b> mahasiswa aktif/.test(p3.kaki) || !/pertemuan ini: <b[^>]*>2<\/b>/.test(p3.kaki)) salah.push("kaki papan harus menyebut 3 mahasiswa aktif dan pertemuan ini: 2 (= jumlah pil +5 Poin; tanpa akun simulasi/NIM luar roster)");
   if (!p3.kaki.includes("pil = bonus pertemuan ini")) salah.push('kaki papan harus menjelaskan "pil = bonus pertemuan ini"');
   // Pertemuan tanpa centang: semua pil "—"; pertemuan 2: hanya Budi "+5 Poin".
   const p4 = papan("pertemuan-4");

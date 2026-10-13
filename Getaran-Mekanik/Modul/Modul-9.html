@@ -8553,13 +8553,15 @@ function _keaktifanKartu() {
   // Semua mahasiswa yang pernah dicentang di kursus ini, urut nama (tanpa peringkat/medali;
   // permintaan dosen 13 Okt 2026). v6 (opsi 1 dosen): pil = bonus pertemuan INI saja
   // ("+5 Poin" bila dicentang di pertemuan ini, "—" bila tidak); jumlah pertemuan aktif
-  // sekursus dan totalnya di tooltip (title) dan teks pembaca layar (.ka-sr).
+  // sekursus dan totalnya di tooltip (title) dan teks pembaca layar (.ka-sr); jumlah pertemuan
+  // aktif juga tampak kecil di samping NIM (.ka-n) agar terbaca di ponsel (tanpa tooltip).
   const bonus = _keaktifanTotal() * KEAKTIFAN_BONUS_FRAKSI;
   const daftar = Object.entries(hitung)
     .map(([nim, h]) => ({ nim, n: h.n, ini: _keaktifanAktif(nim), s: masterStudents.find((x) => String(x.nim) === nim) }))
     .filter((x) => x.s)
     .sort((a, b) => String(a.s.nama).localeCompare(String(b.s.nama), 'id'));
-  const ini = Object.keys(_keaktifanModul || {}).filter((k) => _keaktifanAktif(k.slice(4)) && !isSimulasiNim(k.slice(4))).length;
+  // Angka "pertemuan ini" = jumlah pil "+5 Poin" yang tampil (hanya mahasiswa roster).
+  const ini = daftar.filter((x) => x.ini).length;
   if (!daftar.length) { el.innerHTML = '<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>'; return; }
   const pil = (x) => {
     const sekursus = 'Aktif di ' + x.n + ' pertemuan kursus ini (total +' + _keaktifanFmt(x.n * bonus) + ' poin)';
@@ -8568,7 +8570,7 @@ function _keaktifanKartu() {
       ? '<span class="ka-jumlah" title="' + tip + '">+' + _keaktifanFmt(bonus) + ' Poin<span class="ka-sr"> pertemuan ini. ' + sekursus + '</span></span>'
       : '<span class="ka-jumlah ka-nol" title="' + tip + '"><span aria-hidden="true">—</span><span class="ka-sr">' + tip + '</span></span>';
   };
-  el.innerHTML = '<div class="ka-daftar">' + daftar.map((x) => '<div class="ka-baris"><span class="ka-ikon">🔥</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escH(x.s.nama) + '</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">' + escH(x.nim) + '</div></div>' + pil(x) + '</div>').join('') + '</div>'
+  el.innerHTML = '<div class="ka-daftar">' + daftar.map((x) => '<div class="ka-baris"><span class="ka-ikon">🔥</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escH(x.s.nama) + '</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">' + escH(x.nim) + '<span class="ka-n"> · ' + x.n + ' pertemuan aktif</span></div></div>' + pil(x) + '</div>').join('') + '</div>'
     + '<div class="ka-kaki"><b style="color:#f9a8d4">' + daftar.length + '</b> mahasiswa aktif di kursus ini · pertemuan ini: <b style="color:#f9a8d4">' + ini + '</b> · pil = bonus pertemuan ini (+' + _keaktifanFmt(bonus) + ' poin = +' + _keaktifanFmt(KEAKTIFAN_BONUS_FRAKSI * 100) + ' nilai)' + (daftar.length > 3 ? ' · <span style="color:#f9a8d4">gulir untuk melihat semua ↓</span>' : '') + '</div>';
 }
 function _keaktifanHias() {
