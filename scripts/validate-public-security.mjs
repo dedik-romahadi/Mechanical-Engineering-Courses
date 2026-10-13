@@ -4,6 +4,7 @@ import path from "node:path";
 import vm from "node:vm";
 import { spawnSync } from "node:child_process";
 import { uraiSkripInline, deklarasiLeksikal, pemakaian, fungsiTingkatAtas, panggilanTingkatAtas, namaGlobal, presenceSaatMuat, presenceAutoLogin } from "./pemindai-deklarasi.mjs";
+import { HALAMAN as HK_HALAMAN, CSS as HK_CSS, PANEL as HK_PANEL, DATA as HK_DATA, pasang as hkPasang, cabut as hkCabut, semuaHalaman as hkSemua, RX_SINTAKS_BARU as HK_RX_SINTAKS } from "./hasil-keren.mjs";
 
 const root = process.cwd();
 // CSS kartu tugas Pemodelan CAD (.berkas-row, .nilai-input, .tugas-gambar) wajib berada di <head> halaman, tepat satu
@@ -415,6 +416,833 @@ async function ujiRuntimeForumPoin() {
   if (salah.length) throw new Error(`${relative}: runtime forum 2 poin salah: ${salah.join("; ")}; run node scripts/forum-poin.mjs`);
 }
 
+// Hasil Keren (scripts/hasil-keren.mjs, permintaan dosen 13 Okt 2026): ikon bergerak + lima grafik agregat di tab
+// Hasil. Percobaan dulu (HASIL_KEREN_HALAMAN = HALAMAN injector; rollout: HASIL_KEREN_SEMUA = true, 84 halaman).
+// Halaman percobaan wajib memuat tiga blok bertanda identik byte demi byte di posisinya; halaman lain wajib
+// TIDAK memuatnya, tetapi jangkarnya diuji (pasang di memori) agar rollout tidak macet. Isi blok diperiksa:
+// token terlarang, sintaks tidak lebih baru dari skrip modul (blok DATA ada di skrip modul inti: satu galat
+// sintaks/lemparan menghentikan login, tabel, penilaian, dan chat), penjaga keselamatan (try/catch hkMulai,
+// deteksi fitur, hkPulihkan), reduced-motion, animasi tak berujung yang dipatok, aksesibilitas, fungsi murni di
+// sandbox (silang dengan blok SAMAKAN-ABSEN v2), lalu uji mutasi dan uji runtime node:vm.
+const HASIL_KEREN_HALAMAN = new Set(["Teknik-Tenaga-Listrik/Modul/Modul-3.html"]);
+const HASIL_KEREN_SEMUA = false;
+if ([...HASIL_KEREN_HALAMAN].sort().join("|") !== [...HK_HALAMAN].sort().join("|")) {
+  throw new Error(`HASIL_KEREN_HALAMAN validator (${[...HASIL_KEREN_HALAMAN].join(", ")}) harus sama dengan HALAMAN scripts/hasil-keren.mjs (${HK_HALAMAN.join(", ")})`);
+}
+if (hkSemua().length !== 84) throw new Error(`scripts/hasil-keren.mjs semuaHalaman() harus 84 halaman modul, ditemukan ${hkSemua().length}`);
+if (HASIL_KEREN_SEMUA && HK_HALAMAN.length !== 84) throw new Error("HASIL_KEREN_SEMUA: HALAMAN scripts/hasil-keren.mjs harus berisi ke-84 halaman modul");
+const HK_PENANDA = ["HASIL-KEREN:CSS v1", "HASIL-KEREN:PANEL BEGIN v1", "HASIL-KEREN:PANEL END v1", "HASIL-KEREN:DATA BEGIN v1",
+  "HASIL-KEREN:DATA END v1", "HASIL-KEREN:MURNI BEGIN", "HASIL-KEREN:MURNI END", 'id="hkPanel"'];
+const HK_TOKEN_TERLARANG = /\binnerHTML\b|\bouterHTML\b|insertAdjacentHTML|\bdocument\.write\b|\beval\b|new Function|\bfetch\b|XMLHttpRequest|localStorage|sessionStorage|indexedDB|\.cookie\b|<\/script|\bonValue\(|\bref\(|\bset\(|\bupdateLeaderboard\b|setAttribute\(\s*['"]on/;
+// Literal yang dilarang di isi blok (D.1): kunci kursus, sisa token generator, token yang dihitung validator lain,
+// penanda penyuntik lain, dan teks yang wajib unik di halaman.
+const HK_LITERAL_TERLARANG = ["math4", "getaran_mekanik", "optoauto", "pemodelan_cad", "sistem_kendali_cerdas", "teknik_tenaga_listrik",
+  "Modul 1 ", "Pertemuan 1 ", "Tugas 1 ", "pertemuan-1", 'class="hero"', "anim-panel", "code-wrap", "data-tab=", "</script", "updateLeaderboard",
+  "function renderVisitors(visitors){", "SAMAKAN-ABSEN-HASIL", "KEAKTIFAN-KELAS:", "FORUM-POIN:", "RAPIKAN-PONSEL", "LEADERBOARD-MODUL-SEKALI",
+  "_scheduleExpired", "window._forumRingkasEkspor("];
+// Lantai sintaks = skrip modul TTL M3 (tanpa ?., ??, ||=): juga ||=/&&= (Safari 14), 1_000 (Safari 13),
+// #privat (Safari 14.1), static {} (Safari 16.4). Harus sama dengan RX_SINTAKS_BARU scripts/hasil-keren.mjs.
+const HK_SINTAKS_BARU = /\\[pP]\{|\(\?<|\?\.(?!\d)|\?\?|\|\|=|&&=|\b\d+_\d|\.#[A-Za-z_$]|\bstatic\s*\{/;
+if (HK_SINTAKS_BARU.source !== HK_RX_SINTAKS.source) throw new Error("HK_SINTAKS_BARU validator harus sama dengan RX_SINTAKS_BARU scripts/hasil-keren.mjs");
+// Penjaga wajib dicocokkan pada DATA tanpa komentar (teks penjaga di komentar tidak dihitung).
+const HK_WAJIB_DATA = ["(function hkMulai() {\n  try {", "typeof ResizeObserver === 'function'", "typeof IntersectionObserver === 'function'",
+  "typeof _auth.onAuthStateChanged === 'function'", "typeof mq.addEventListener === 'function'", "hkPulihkan()",
+  "matchMedia('(prefers-reduced-motion: reduce)')", "'role', 'img'", "'title'", "'desc'", "aria-hidden"];
+const HK_INFINITE = ["#page-hasil .hk-i-api", "#rajinList>div:first-child>span:first-child", "#rajinList.hk-masuk>div:first-child>span:first-child"];
+let hasilKerenHalaman = 0;
+let hasilKerenContoh = null;
+const hasilKerenJangkarGagal = [];
+
+/** Masalah struktur blok HASIL-KEREN di halaman berblok (kosong = sesuai). */
+function periksaStrukturHasilKeren(html) {
+  const masalah = [];
+  const hit = (t) => html.split(t).length - 1;
+  for (const t of HK_PENANDA) if (hit(t) !== 1) masalah.push(`penanda ${t} muncul ${hit(t)}x, harusnya 1`);
+  if (!html.includes(HK_CSS + "\n")) masalah.push("isi blok CSS berbeda dari scripts/hasil-keren.mjs");
+  if (!html.includes(HK_PANEL)) masalah.push("isi blok PANEL berbeda dari scripts/hasil-keren.mjs");
+  if (!html.includes(HK_DATA)) masalah.push("isi blok DATA berbeda dari scripts/hasil-keren.mjs");
+  const kepala = html.indexOf("</head>"), badan = html.indexOf("<body"), css = html.indexOf('<style id="hasil-keren-style">');
+  if (!(css > html.indexOf("<head") && kepala > css && badan > kepala)) masalah.push("CSS harus di <head> dokumen (sebelum </head> yang mendahului <body>)");
+  const panel = html.indexOf("<!-- HASIL-KEREN:PANEL BEGIN"), absen = html.indexOf('id="statAbsen"'), no = html.indexOf('<div style="width:44px;flex-shrink:0;">No</div>');
+  if (!(absen > 0 && panel > absen && no > panel)) masalah.push("PANEL harus di antara #statAbsen dan kepala tabel (anak terakhir #leaderboardPanel)");
+  if (hit("// FORUM-POIN:DATA END v4\n// HASIL-KEREN:DATA BEGIN v1") !== 1) masalah.push("blok DATA harus tepat sesudah FORUM-POIN:DATA END v4");
+  const iData = html.indexOf("// HASIL-KEREN:DATA BEGIN");
+  const aSkrip = html.lastIndexOf("<script", iData), zSkrip = html.indexOf("</script>", iData);
+  const skrip = iData < 0 || aSkrip < 0 || zSkrip < 0 || html.lastIndexOf("</script>", iData) > aSkrip ? "" : html.slice(aSkrip, zSkrip);
+  if (!skrip.startsWith('<script type="module">') || !skrip.includes("let latestVisitors=[];")) masalah.push("blok DATA harus di <script type=\"module\"> yang sama dengan let latestVisitors=[];");
+  if ((html.match(/updateLeaderboard\(/g) || []).length !== 2) masalah.push("updateLeaderboard( harus tepat 2x");
+  return masalah;
+}
+
+/** Masalah isi blok HASIL-KEREN (token, sintaks, penjaga keselamatan, gerak, aksesibilitas, fungsi murni); kosong = sesuai. */
+function periksaIsiHasilKeren(blok, html) {
+  const masalah = [];
+  const { css, panel, data } = blok;
+  for (const [nama, isi] of [["CSS", css], ["PANEL", panel], ["DATA", data]]) {
+    for (const t of HK_LITERAL_TERLARANG) if (isi.includes(t)) masalah.push(`blok ${nama} memuat ${JSON.stringify(t)}`);
+  }
+  const terlarang = data.match(HK_TOKEN_TERLARANG);
+  if (terlarang) masalah.push(`blok DATA memuat token terlarang ${JSON.stringify(terlarang[0])}`);
+  if (/latestVisitors\s*=/.test(data)) masalah.push("blok DATA tidak boleh menugasi latestVisitors");
+  const baru = data.match(HK_SINTAKS_BARU);
+  if (baru) masalah.push(`blok DATA memakai sintaks lebih baru dari skrip modul (${JSON.stringify(baru[0])}; Safari lama gagal mem-parse seluruh skrip modul)`);
+  const kode = data.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:\\])\/\/.*$/gm, "$1");
+  for (const t of HK_WAJIB_DATA) if (!kode.includes(t)) masalah.push(`blok DATA tidak memuat penjaga/aksesibilitas wajib ${JSON.stringify(t)}`);
+  const tanpaAman = kode.match(/new (?:MutationObserver|ResizeObserver|IntersectionObserver)\((?!hkAman\()/);
+  if (tanpaAman) masalah.push(`callback pengamat harus dibungkus hkAman (${JSON.stringify(tanpaAman[0])})`);
+  // Gerak: blok reduced-motion, animasi tak berujung dipatok, keyframes hanya transform/opacity (+ stroke).
+  const iRm = css.indexOf("@media (prefers-reduced-motion:reduce){");
+  const rm = iRm < 0 ? "" : css.slice(iRm, css.indexOf("\n}\n", iRm) + 2);
+  for (const t of ["animation:none!important", "#page-hasil .hk-ikon", "#rajinList>div>span:first-child", "#page-hasil .pulse-dot", "#page-hasil .float-formulas"]) {
+    if (!rm.includes(t)) masalah.push(`blok reduced-motion CSS tidak memuat ${t}`);
+  }
+  const tanpaKeyframes = css.replace(/^<style[^>]*>/, "").replace(/<\/style>$/, "").replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/@keyframes\s+[\w-]+\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, "").replace(/@media[^{]*\{/g, "").replace(/^\}$/gm, "");
+  const takBerujung = [];
+  for (const m of tanpaKeyframes.matchAll(/([^{}]+)\{([^{}]*)\}/g)) if (/\binfinite\b/.test(m[2])) takBerujung.push(...m[1].split(",").map((s) => s.trim()));
+  if (takBerujung.sort().join("|") !== [...HK_INFINITE].sort().join("|") || (css.match(/\binfinite\b/g) || []).length !== HK_INFINITE.length) {
+    masalah.push(`animasi tak berujung harus tepat ${HK_INFINITE.join(", ")} (ditemukan: ${takBerujung.join(", ") || "-"})`);
+  }
+  for (const m of css.matchAll(/@keyframes\s+(hk[\w-]*)\{((?:[^{}]*\{[^{}]*\})*[^{}]*)\}/g)) {
+    if (/box-shadow|filter/.test(m[2])) masalah.push(`@keyframes ${m[1]} tidak boleh menganimasikan box-shadow/filter`);
+  }
+  if (!/^\.hk-panel\[hidden\]\{display:none!important\}$/m.test(css)) masalah.push("CSS harus menyembunyikan .hk-panel[hidden] (panel tampil hanya sesudah inisialisasi berhasil)");
+  if (!panel.includes('<details class="hk-panel" id="hkPanel" open hidden>')) masalah.push("PANEL harus mulai hidden (dibuka skrip sesudah inisialisasi berhasil)");
+  // Fungsi murni: tanpa DOM/waktu/acak/penyimpanan; diuji di sandbox.
+  const aM = data.indexOf("// HASIL-KEREN:MURNI BEGIN"), zM = data.indexOf("// HASIL-KEREN:MURNI END");
+  if (aM < 0 || zM < aM) { masalah.push("potongan HASIL-KEREN:MURNI tidak ditemukan"); return masalah; }
+  const murni = data.slice(aM, zM + "// HASIL-KEREN:MURNI END".length);
+  const kotor = murni.match(/\b(document|window|localStorage|sessionStorage|fetch|innerHTML)\b|Date\.now|new Date\(\)|Math\.random/);
+  if (kotor) masalah.push(`fungsi murni HASIL-KEREN memakai ${kotor[0]}`);
+  for (const baris of murni.split("\n")) if (/^\s+function /.test(baris)) masalah.push("fungsi murni HASIL-KEREN harus di kolom 0");
+  try { masalah.push(...ujiMurniHasilKeren(murni, html).map((m) => `fungsi murni HASIL-KEREN salah: ${m}`)); } catch (e) { masalah.push(`fungsi murni HASIL-KEREN melempar: ${e.message}`); }
+  return masalah;
+}
+
+/** Kasus sandbox fungsi murni (spesifikasi terkoreksi E.3); mengembalikan daftar kesalahan. */
+function ujiMurniHasilKeren(murni, html) {
+  const M = new Function(murni + "\nreturn { hkMsIsoMurni, hkStatusKelasMurni, hkDistribusiNilaiMurni, hkKurvaMurni, hkMarkerMurni, hkSoalMurni, hkGerbangSoalMurni, hkGerbangJenisMurni, hkGerbangRinciMurni, hkKeaktifanTrenMurni, hkForumRingkasMurni, hkUbahBarisMurni, hkTanggaMurni, hkFmtMurni };")();
+  const salah = [];
+  const sama = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const isSim = (n) => String(n) === "41399999901";
+  const isLate = (t) => t === "telat";
+  const roster = ["1", "2", "3", "4", "5", "6", "41399999901"].map((nim) => ({ nim }));
+  const V = [
+    { nim: "1", role: "student", points: 50, timestamp: "tepat", poinPertama: "2026-10-03T01:00:00Z", scoredQuestions: "mc1,mc2_mc_used,c1_comp,c11_comp_partial" },
+    { nim: "2", points: 40.4, timestamp: "telat", pointTimestamp: "2026-10-11T00:00:00+07:00", scoredQuestions: "mc1,c1_comp_used", role: "student" },
+    { nim: "3", points: 0, timestamp: "tepat", scoredQuestions: "", role: "student" },
+    { nim: "5", points: 2, timestamp: "tepat", tanpaKunjungan: true, role: "student" },
+    { nim: "1", points: 0, timestamp: "tepat", role: "student" },
+    { nim: "41399999901", points: 30, role: "student" },
+    { nim: "9", points: 45, role: "student" },
+    { nim: "6", role: "dosen", points: 50 },
+    { nim: "4", role: "guest", points: 10 },
+  ];
+  const salinan = JSON.stringify(V);
+  const aktif = M.hkStatusKelasMurni(V, roster, false, isSim, isLate, 50);
+  const tamat = M.hkStatusKelasMurni(V, roster, true, isSim, isLate, 50);
+  const ringkas = (r) => [r.total, r.tepat, r.terlambat, r.belum, r.bolos, r.hadir, r.absen].join("/");
+  if (ringkas(aktif) !== "6/2/1/3/0/3/0") salah.push(`status jadwal aktif ${ringkas(aktif)}, harusnya 6/2/1/3/0/3/0 (total/tepat/terlambat/belum/bolos/hadir/absen)`);
+  if (ringkas(tamat) !== "6/2/1/0/3/3/3") salah.push(`status jadwal berakhir ${ringkas(tamat)}, harusnya 6/2/1/0/3/3/3`);
+  const nilai = (r, nim) => (r.baris.find((b) => b.nim === nim) || {}).nilai;
+  if ([nilai(tamat, "1"), nilai(tamat, "2"), nilai(tamat, "5")].join() !== "100,81,4") salah.push("nilai NIM 1/2/5 harus 100/81/4");
+  if (JSON.stringify(V) !== salinan) salah.push("data kunjungan mentah tidak boleh diubah");
+  // Silang dengan blok SAMAKAN-ABSEN-HASIL v2 halaman (visitMap seperti papan hasil: dosen/tamu/simulasi dibuang, NIM pertama).
+  const blokSamakan = html.match(/  \/\/ SAMAKAN-ABSEN-HASIL BEGIN[^\n]*\n([^]*?)  \/\/ SAMAKAN-ABSEN-HASIL END[^\n]*\n/);
+  if (!blokSamakan) salah.push("blok SAMAKAN-ABSEN-HASIL tidak ditemukan untuk uji silang");
+  else {
+    const visitMap = {};
+    for (const v of V) if (v.role !== "dosen" && v.role !== "guest" && !isSim(v.nim) && !visitMap[v.nim]) visitMap[v.nim] = v;
+    for (const [berakhir, r] of [[false, aktif], [true, tamat]]) {
+      const hasil = new Function("masterStudents", "visitMap", "schedEnded", "isSimulasiNim", "isLate", blokSamakan[1] + "\nreturn [hadir, absen].join('/');")(roster, visitMap, berakhir, isSim, isLate);
+      if (hasil !== r.hadir + "/" + r.absen) salah.push(`Hadir/Absen grafik ${r.hadir}/${r.absen} beda dengan blok SAMAKAN-ABSEN ${hasil} (jadwal ${berakhir ? "berakhir" : "aktif"})`);
+    }
+  }
+  // Distribusi nilai.
+  const d = M.hkDistribusiNilaiMurni(tamat.baris);
+  if (!(d.n === 3 && sama(d.keranjang, [1, 0, 0, 0, 0, 0, 0, 0, 1, 1]) && d.rata === 61.7 && d.median === 81 && d.min === 4 && d.maks === 100 && d.tanpaNilai === 3)) {
+    salah.push(`distribusi ${JSON.stringify(d)} harus n 3, keranjang [1,0,0,0,0,0,0,0,1,1], rata 61.7, median 81, min 4, maks 100, tanpaNilai 3`);
+  }
+  if (M.hkDistribusiNilaiMurni([{ status: "tepat", nilai: 60 }, { status: "terlambat", nilai: 100 }]).median !== 80) salah.push("median genap [60, 100] harus 80");
+  const kosong = M.hkDistribusiNilaiMurni([]);
+  if (kosong.n !== 0 || kosong.rata !== null || kosong.median !== null) salah.push("distribusi kosong: n 0, rata null, median null");
+  const pecahan = M.hkStatusKelasMurni([{ nim: "1", role: "student", points: 0.2, timestamp: "tepat" }], [{ nim: "1" }], true, isSim, isLate, 50);
+  if (pecahan.tepat !== 1 || pecahan.baris[0].nilai !== 0 || M.hkDistribusiNilaiMurni(pecahan.baris).keranjang[0] !== 1) salah.push("poin 0,2: Tepat Waktu, nilai 0, masuk keranjang 0");
+  // Kurva kumulatif.
+  const BUKA = Date.parse("2026-10-02T16:59:00Z"), DUE = Date.parse("2026-10-09T16:59:00Z"), NOW = Date.parse("2026-10-13T00:00:00Z");
+  const L = Date.parse("2026-10-10T17:00:00Z"), BATAS = DUE + (DUE - BUKA);
+  const k = M.hkKurvaMurni(tamat.baris, BUKA, DUE, NOW);
+  if (!(k.ada && k.n === 2 && k.sebelum === 1 && k.sesudah === 1 && k.sesudahTepat === 0 && k.hanyaBonus === 1 && k.tanpaWaktu === 0 && k.terpotong === 0
+    && k.titik[0].t === Date.parse("2026-10-03T01:00:00Z") && Math.abs(k.x1 - (L + (L - BUKA) * 0.03)) <= 1 && k.x0 === BUKA && k.sekarangDalam === false
+    && k.sumberPertama === 1 && k.sumberAkhir === 1 && k.total === 6)) {
+    salah.push(`kurva dasar ${JSON.stringify(Object.assign({}, k, { titik: k.titik.length }))} tidak sesuai`);
+  }
+  const tambah = (b) => M.hkKurvaMurni(tamat.baris.concat([Object.assign({ nim: "x", status: "tepat" }, b)]), BUKA, DUE, NOW);
+  const kA = tambah({ poinPertama: "2026-10-01T00:00:00Z" });
+  if (kA.titik[0].t !== BUKA || kA.sebelum !== 2 || kA.sumberPertama !== 2) salah.push("waktu sebelum buka harus dijepit ke buka");
+  const kB = tambah({ poinPertama: "2026-10-10T00:00:00Z" });
+  if (kB.sesudahTepat !== 1 || kB.sesudah !== 2) salah.push("pengerjaan Tepat Waktu sesudah deadline harus sesudahTepat 1");
+  for (const s of ["kemarin", "2026-10-01 00:00"]) {
+    const kC = tambah({ poinPertama: s });
+    if (kC.tanpaWaktu !== 1 || kC.n !== 2 || kC.sumberPertama !== 1 || kC.sumberAkhir !== 1) salah.push(`waktu ${JSON.stringify(s)} (bukan ISO berzona) harus tanpaWaktu`);
+  }
+  const kE = tambah({ poinPertama: "2026-12-01T00:00:00Z" });
+  if (kE.terpotong !== 1 || Math.abs(kE.x1 - (BATAS + (BATAS - BUKA) * 0.03)) > 1) salah.push("waktu jauh sesudah batas harus terpotong di tepi kanan");
+  if (M.hkKurvaMurni(tamat.baris, NaN, DUE, NOW).ada !== false) salah.push("bukaMs NaN harus ada:false");
+  if (M.hkKurvaMurni(tamat.baris, BUKA, DUE, Date.parse("2026-10-05T00:00:00Z")).sekarangDalam !== true) salah.push("sekarang di dalam jendela harus sekarangDalam");
+  if (!Number.isNaN(M.hkMsIsoMurni("2026-10-01 00:00")) || M.hkMsIsoMurni("2026-10-11T00:00:00+07:00") !== L) salah.push("hkMsIsoMurni hanya menerima ISO berzona");
+  // Penanda per soal.
+  const st = M.hkMarkerMurni("mc1,mc2_mc_used,c1_comp,c11_comp_partial,c2_comp_used,c3_comp_ulang,c4_comp_ulang,c4_comp,c5_comp_ulang,c5_comp_used,tf1,ce1,xyz");
+  if (!sama(Object.keys(st).map((q) => q + ":" + st[q]).sort(), ["c11:parsial", "c1:benar", "c2:salah", "c3:ulang", "c4:benar", "c5:salah", "mc1:benar", "mc2:salah"].sort())) salah.push(`hkMarkerMurni ${JSON.stringify(st)} tidak sesuai`);
+  const bs = ["mc1,mc2_mc_used,c1_comp,c11_comp_partial", "mc1,c1_comp_used", "", "tf1,ce1", "c3_comp_ulang,c4_comp_ulang,c4_comp,c5_comp_ulang,c5_comp_used"].map((scored) => ({ scored }));
+  const jenis = (j) => [j.n, j.benar, j.parsial, j.salah, j.ulang, j.belum].join("/");
+  const s1 = M.hkSoalMurni(bs, { mc: 10, ez: 10, hard: 5 });
+  if (s1.peserta !== 3 || jenis(s1.jenis.pg) !== "10/2/0/1/0/27" || jenis(s1.jenis.ez) !== "10/2/0/2/1/25" || jenis(s1.jenis.hard) !== "5/0/1/0/0/14" || s1.soal.length !== 25) {
+    salah.push(`hkSoalMurni skema umum: peserta ${s1.peserta}, pg ${jenis(s1.jenis.pg)}, ez ${jenis(s1.jenis.ez)}, hard ${jenis(s1.jenis.hard)}`);
+  }
+  const s2 = M.hkSoalMurni(bs, { mc: 10, ez: 3, hard: 2 });
+  if (s2.peserta !== 3 || jenis(s2.jenis.ez) !== "3/1/0/1/1/6" || jenis(s2.jenis.hard) !== "2/1/0/1/0/4" || s2.soal.some((q) => q.id === "c11")) {
+    salah.push(`hkSoalMurni skema tugas CAD: peserta ${s2.peserta}, ez ${jenis(s2.jenis.ez)}, hard ${jenis(s2.jenis.hard)}`);
+  }
+  const pj = (r) => [r.jenis.pg.peserta, r.jenis.ez.peserta, r.jenis.hard.peserta].join("/");
+  if (pj(s1) !== "2/3/1" || pj(s2) !== "2/3/1") salah.push(`penjawab per jenis (pg/ez/hard) ${pj(s1)} dan ${pj(s2)}, harusnya 2/3/1`);
+  // 4 mahasiswa hanya PG + 1 mahasiswa PG dan Hard: peserta 5 (gerbang tampil), tetapi batang Hard = hasil satu orang -> dikunci.
+  const s3 = M.hkSoalMurni(["mc1", "mc1", "mc1_mc_used", "mc2", "mc1,c11_comp_partial"].map((scored) => ({ scored })), { mc: 10, ez: 10, hard: 5 });
+  if (s3.peserta !== 5 || pj(s3) !== "5/0/1" || M.hkGerbangSoalMurni(s3.peserta, true, false) !== "tampil") salah.push(`kasus 5 PG + 1 Hard: peserta ${s3.peserta}, per jenis ${pj(s3)}`);
+  if (M.hkGerbangJenisMurni(s3.jenis.hard.peserta, false) !== false || M.hkGerbangJenisMurni(s3.jenis.pg.peserta, false) !== true) salah.push("batang per jenis untuk mahasiswa: Hard (1 penjawab) dikunci, PG (5 penjawab) tampil");
+  for (const [p, dosen, harap] of [[4, false, false], [5, false, true], [0, true, true], [1, true, true]]) {
+    if (M.hkGerbangJenisMurni(p, dosen) !== harap) salah.push(`gerbang jenis (${p}, ${dosen}) harus ${harap}`);
+  }
+  for (const [p, akhir, dosen, harap] of [[0, true, false, "kosong"], [4, true, false, "sedikit"], [5, false, false, "tunggu"], [5, true, false, "tampil"], [1, false, true, "tampil"], [0, false, true, "kosong"]]) {
+    if (M.hkGerbangSoalMurni(p, akhir, dosen) !== harap) salah.push(`gerbang (${p}, ${akhir}, ${dosen}) harus ${harap}`);
+  }
+  for (const [g, dosen, harap] of [["tampil", true, true], ["tampil", false, false], ["sedikit", true, false]]) {
+    if (M.hkGerbangRinciMurni(g, dosen) !== harap) salah.push(`rincian per soal (${g}, ${dosen}) harus ${harap} (hanya dosen)`);
+  }
+  // Tren keaktifan per pertemuan.
+  const node = { "pertemuan-1": { mhs_1: { aktif: true }, mhs_41399999901: { aktif: true }, mhs_9: { aktif: true }, mhs_2: { aktif: false } },
+    "pertemuan-3": { mhs_1: { aktif: true }, mhs_2: { aktif: true } }, "pertemuan-30": { mhs_3: { aktif: true } } };
+  const tr = M.hkKeaktifanTrenMurni(node, roster, isSim, "pertemuan-3");
+  if (!(tr.per.length === 14 && tr.per[0].n === 1 && tr.per[1].n === 0 && tr.per[2].n === 2 && tr.per[2].sekarang === true && tr.per.slice(3).every((x) => x.n === 0 && !x.sekarang) && tr.total === 6 && tr.adaData === true)) {
+    salah.push(`tren keaktifan ${JSON.stringify(tr.per.map((x) => x.n))} tidak sesuai`);
+  }
+  const trM = M.hkKeaktifanTrenMurni({ "modul-1": { mhs_1: { aktif: true } } }, roster, isSim, "modul-3");
+  if (trM.per[0].n !== 1 || !trM.per[2].sekarang) salah.push("tren keaktifan kunci modul-N (Matematika 4) harus berjalan");
+  if (M.hkKeaktifanTrenMurni({}, roster, isSim, "pertemuan-3").adaData !== false) salah.push("tren keaktifan kosong harus adaData false");
+  const fr = M.hkForumRingkasMurni({ mhs_1: { pengali: 1 }, mhs_2: { pengali: 0.65 }, mhs_3: { pengali: 0 }, mhs_41399999901: { pengali: 1 }, mhs_9: { pengali: 1 }, x: { pengali: 1 } }, roster, isSim);
+  if (fr.klaim !== 2 || fr.penuh !== 1 || fr.sebagian !== 1) salah.push(`ringkasan forum ${JSON.stringify(fr)} harus klaim 2, penuh 1, sebagian 1`);
+  for (const [a, b, harap] of [[{}, { a: "1" }, []], [{ a: "1", b: "2" }, { a: "1", b: "3", c: "4" }, ["b", "c"]], [{ a: "1" }, {}, []]]) {
+    if (!sama(M.hkUbahBarisMurni(a, b), harap)) salah.push(`hkUbahBarisMurni(${JSON.stringify(a)}, ${JSON.stringify(b)}) harus ${JSON.stringify(harap)}`);
+  }
+  for (const [m, harap] of [[0, [0, 1]], [3, [0, 1, 2, 3]], [5, [0, 1, 2, 3, 4, 5]], [7, [0, 4, 8]], [16, [0, 8, 16]]]) {
+    if (!sama(M.hkTanggaMurni(m), harap)) salah.push(`hkTanggaMurni(${m}) harus ${JSON.stringify(harap)}`);
+  }
+  for (const [n, des, harap] of [[93.4762, 1, "93,5"], [100, 1, "100"], [0.65, 2, "0,65"], [null, 1, "0"]]) {
+    if (M.hkFmtMurni(n, des) !== harap) salah.push(`hkFmtMurni(${n}, ${des}) harus ${harap}`);
+  }
+  return salah;
+}
+
+/** Halaman modul: percobaan wajib berblok lengkap; halaman lain wajib tanpa blok (jangkarnya diuji di memori). */
+function periksaHasilKeren(html, relative, catat = true) {
+  const saran = "; run node scripts/hasil-keren.mjs";
+  if (!(HASIL_KEREN_SEMUA || HASIL_KEREN_HALAMAN.has(relative))) {
+    for (const t of ["HASIL-KEREN", "hasil-keren-style", 'id="hkPanel"']) {
+      if (html.includes(t)) throw new Error(`${relative}: blok HASIL-KEREN hanya untuk halaman percobaan (memuat ${t}); tambahkan ke HALAMAN di scripts/hasil-keren.mjs dan HASIL_KEREN_HALAMAN${saran}`);
+    }
+    if (catat) { try { hkPasang(html, relative); } catch (e) { hasilKerenJangkarGagal.push(`${relative}: ${e.message}`); } }
+    return;
+  }
+  const masalah = periksaStrukturHasilKeren(html);
+  if (!masalah.length) {
+    try { if (hkPasang(html, relative) !== html) masalah.push("halaman belum mutakhir (pasang mengubah halaman)"); } catch (e) { masalah.push(`pasang gagal: ${e.message}`); }
+    const c = hkCabut(html);
+    if (/HASIL-KEREN|hasil-keren-style|id="hkPanel"/.test(c)) masalah.push("cabut tidak membuang semua blok");
+    try { masalah.push(...periksaStrukturHasilKeren(hkPasang(c, relative)).map((m) => `sesudah cabut lalu pasang: ${m}`)); } catch (e) { masalah.push(`pasang sesudah cabut gagal: ${e.message}`); }
+  }
+  const ambil = (awal, akhir) => { const a = html.indexOf(awal), z = html.indexOf(akhir, a); return a < 0 || z < 0 ? "" : html.slice(a, z + akhir.length); };
+  masalah.push(...periksaIsiHasilKeren({
+    css: ambil('<style id="hasil-keren-style">', "</style>"),
+    panel: ambil("      <!-- HASIL-KEREN:PANEL BEGIN", "<!-- HASIL-KEREN:PANEL END v1 -->\n"),
+    data: ambil("// HASIL-KEREN:DATA BEGIN", "// HASIL-KEREN:DATA END v1\n"),
+  }, html));
+  if (masalah.length) throw new Error(`${relative}: HASIL-KEREN: ${masalah.join("; ")}${saran}`);
+  if (catat) {
+    hasilKerenHalaman += 1;
+    if (!hasilKerenContoh) hasilKerenContoh = { html, relative };
+  }
+}
+
+/** Uji mutasi: halaman/blok yang dirusak harus ditolak; halaman dengan <style> lain sesudah CSS HASIL-KEREN harus lolos. */
+function ujiMutasiHasilKeren() {
+  if (!hasilKerenContoh) throw new Error("ujiMutasiHasilKeren: tidak ada halaman percobaan");
+  const { html, relative } = hasilKerenContoh;
+  const gagal = (f) => { try { f(); return false; } catch (e) { return true; } };
+  const ganti = (teks, a, b, nama) => { if (!teks.includes(a)) throw new Error(`uji mutasi HASIL-KEREN "${nama}": teks acuan tidak ditemukan`); return teks.replace(a, () => b); };
+  for (const [nama, salinan] of [
+    ["blok DATA dihapus", ganti(html, HK_DATA, "", "DATA")],
+    ["PANEL digandakan", ganti(html, HK_PANEL, HK_PANEL + HK_PANEL, "PANEL")],
+    ["CSS dipindah ke <body>", ganti(html, HK_CSS + "\n", "", "CSS").replace("</body>", () => HK_CSS + "\n</body>")],
+  ]) {
+    if (!gagal(() => periksaHasilKeren(salinan, relative, false))) throw new Error(`${relative}: validator menerima halaman HASIL-KEREN bermutasi (${nama})`);
+  }
+  {
+    const gm = "Getaran-Mekanik/Modul/Modul-1.html";
+    const terpasang = hkPasang(fs.readFileSync(path.join(root, gm), "utf8"), gm);
+    if (!gagal(() => periksaHasilKeren(terpasang, gm, false))) throw new Error(`${gm}: validator menerima blok HASIL-KEREN di halaman bukan percobaan`);
+  }
+  const blok = { css: HK_CSS, panel: HK_PANEL, data: HK_DATA };
+  if (periksaIsiHasilKeren(blok, html).length) throw new Error("ujiMutasiHasilKeren: isi blok acuan ditolak");
+  for (const [nama, ubah] of [
+    ["blok reduced-motion dibuang", { css: HK_CSS.replace(/@media \(prefers-reduced-motion:reduce\)\{[\s\S]*?\n\}\n/, "") }],
+    ["infinite pada .hk-i-trofi", { css: ganti(HK_CSS, "animation:hkAyun 1.1s ease-in-out .45s 2}", "animation:hkAyun 1.1s ease-in-out .45s infinite}", "trofi") }],
+    ["box-shadow di @keyframes hk", { css: ganti(HK_CSS, "@keyframes hkPudar{from{opacity:0}", "@keyframes hkPudar{from{opacity:0;box-shadow:0 0 4px #fff}", "keyframes") }],
+    ["panel tidak mulai hidden", { panel: ganti(HK_PANEL, " open hidden>", " open>", "hidden") }],
+    ["innerHTML di DATA", { data: ganti(HK_DATA, "function hkGanti(el) {\n", "function hkGanti(el) {\n  el.innerHTML = '';\n", "innerHTML") }],
+    ["terlambat dihitung bolos", { data: ganti(HK_DATA, "isLate(v.timestamp) ? 'terlambat'", "isLate(v.timestamp) ? 'bolos'", "status") }],
+    ["HK_MIN_PESERTA = 1", { data: ganti(HK_DATA, "const HK_MIN_PESERTA = 5;", "const HK_MIN_PESERTA = 1;", "ambang") }],
+    ["rincian per soal untuk semua", { data: ganti(HK_DATA, "return gerbang === 'tampil' && dosen === true;", "return gerbang === 'tampil';", "rinci") }],
+    ["?. di DATA", { data: ganti(HK_DATA, "function hkPersen(a, b) {", "function hkPersen(a, b) { void (a?.b);", "opsional") }],
+    ["\\p{L} di DATA", { data: ganti(HK_DATA, "function hkSimbol(s) {", "function hkSimbol(s) { if (/\\p{L}/u.test(s)) return false;", "unicode") }],
+    ["try { dibuang dari hkMulai", { data: ganti(HK_DATA, "(function hkMulai() {\n  try {", "(function hkMulai() {\n  {", "try") }],
+    ["deteksi ResizeObserver dibuang", { data: HK_DATA.split("typeof ResizeObserver === 'function'").join("true") }],
+    ["renderVisitors di komentar DATA", { data: ganti(HK_DATA, "// HASIL-KEREN:MURNI BEGIN", "// function renderVisitors(visitors){ (salinan)\n// HASIL-KEREN:MURNI BEGIN", "renderVisitors") }],
+    ["fungsi murni memakai Date.now", { data: ganti(HK_DATA, "function hkFmtMurni(n, desimal) {", "function hkFmtMurni(n, desimal) {\n  if (Date.now() < 0) return '';", "murni") }],
+    ["||= di DATA", { data: ganti(HK_DATA, "function hkGagal(e) {\n  HK.galat += 1;", "function hkGagal(e) {\n  HK.galat ||= 0;\n  HK.galat += 1;", "||=") }],
+    ["pemisah angka di DATA", { data: ganti(HK_DATA, "}), 1600);", "}), 1_600);", "pemisah") }],
+    ["gerbang per jenis dibuang", { data: ganti(HK_DATA, "return dosen === true || Number(pesertaJenis) >= HK_MIN_PESERTA;", "return true;", "jenis") }],
+    ["MutationObserver tanpa hkAman", { data: ganti(HK_DATA, "const o = new MutationObserver(hkAman(fn));", "const o = new MutationObserver(fn);", "amati") }],
+    ["penjaga ResizeObserver di komentar", { data: ganti(HK_DATA, "    if (typeof ResizeObserver === 'function') {\n      const ro", "    // typeof ResizeObserver === 'function'\n    {\n      const ro", "ro-komentar") }],
+    ["penjaga auth di komentar", { data: ganti(HK_DATA, "    if (_auth && typeof _auth.onAuthStateChanged === 'function') _auth.onAuthStateChanged(", "    /* typeof _auth.onAuthStateChanged === 'function' */\n    _auth.onAuthStateChanged(", "auth-komentar") }],
+  ]) {
+    const b = Object.assign({}, blok, ubah);
+    if (b.css === blok.css && b.panel === blok.panel && b.data === blok.data) throw new Error(`uji mutasi HASIL-KEREN "${nama}" tidak mengubah blok`);
+    if (!periksaIsiHasilKeren(b, html).length) throw new Error(`${relative}: validator menerima isi blok HASIL-KEREN bermutasi (${nama})`);
+  }
+  // Mutasi perilaku yang lolos pemeriksaan statis harus ditolak uji runtime (jalur galat/pemulihan, pengamat, penjaga).
+  for (const [nama, data] of [
+    ["hkGagal tidak memulihkan (galat >= 300)", ganti(HK_DATA, "if (HK.galat >= 3 && !HK.mati) hkPulihkan();", "if (HK.galat >= 300 && !HK.mati) hkPulihkan();", "galat")],
+    ["hkPulihkan tidak menyembunyikan panel", ganti(HK_DATA, "  coba(() => { const p = document.getElementById('hkPanel'); if (p) p.hidden = true; });\n", "", "sembunyi")],
+    ["hkPulihkan tidak memutus pengamat", ganti(HK_DATA, "  while (HK_PENGAMAT.length) { const o = HK_PENGAMAT.pop(); coba(() => o.disconnect()); }\n", "", "putus")],
+    ["hkPulihkan tidak melepas hk-masuk/hk-jeda", ganti(HK_DATA, "    if (el) el.classList.remove('hk-masuk', 'hk-jeda');\n", "    if (el) void 0;\n", "lepas")],
+    ["hkAman tanpa try", ganti(HK_DATA, "    try { return fn.apply(this, arguments); } catch (e) { hkGagal(e); return undefined; }", "    return fn.apply(this, arguments);", "aman")],
+    ["try per kartu dibuang", ganti(ganti(HK_DATA, "    try {\n      if (umum) {", "    {\n      if (umum) {", "kartu-a"),
+      "    } catch (e) {\n      HK_KARTU[id] = '';\n      hkGagal(e);\n      hkKosong(document.getElementById(id + 'Isi'), '⚠ Grafik tidak bisa digambar.');\n    }\n", "    }\n", "kartu-b")],
+    ["auth tanpa penjaga", ganti(HK_DATA, "    if (_auth && typeof _auth.onAuthStateChanged === 'function') _auth.onAuthStateChanged(", "    _auth.onAuthStateChanged(", "auth")],
+    ["IntersectionObserver mengamati seluruh papan", ganti(HK_DATA, "        io.observe(kisi);", "        io.observe(papan);", "io")],
+    ["hk-baru tidak dilepas", ganti(HK_DATA, "              setTimeout(hkAman(() => r.classList.remove('hk-baru')), 1500);\n", "", "baru")],
+  ]) {
+    if (!gagal(() => ujiRuntimeHasilKeren(html, relative, data))) throw new Error(`${relative}: uji runtime menerima blok DATA HASIL-KEREN bermutasi (${nama})`);
+  }
+  // Positif: <style> penyuntik lain disisip sebelum </head> (sesudah CSS HASIL-KEREN) tidak membuat halaman ditolak
+  // (CSS diganti di tempat; posisi diperiksa, bukan bolak-balik byte).
+  const lain = html.replace("</head>", () => '<style id="uji-lain"></style>\n</head>');
+  try { periksaHasilKeren(lain, relative, false); } catch (e) { throw new Error(`${relative}: <style> lain sesudah CSS HASIL-KEREN harus tetap lolos: ${e.message}`); }
+}
+
+/**
+ * DOM tiruan kecil untuk uji runtime blok HASIL-KEREN:DATA di node:vm (pola ujiRuntimeForumPoin):
+ * elemen/teks, atribut, classList, style, MutationObserver yang dikirim manual, jam virtual
+ * (setTimeout/requestAnimationFrame/Date.now), dan pengurai HTML sederhana untuk markup tab Hasil halaman.
+ */
+function domUjiHasilKeren(opsi) {
+  const NS_SVG = "http://www.w3.org/2000/svg";
+  const pengamat = [];
+  const jam = { kini: opsi.kini, antre: [], id: 0 };
+  const catat = (target, jenis, nama) => {
+    for (const o of pengamat) {
+      for (const [node, op] of o.amatan) {
+        let cocok = node === target;
+        if (!cocok && op.subtree) for (let p = target.parentNode; p; p = p.parentNode) if (p === node) { cocok = true; break; }
+        if (!cocok) continue;
+        if (jenis === "childList" && !op.childList) continue;
+        if (jenis === "attributes" && (!op.attributes || (op.attributeFilter && !op.attributeFilter.includes(nama)))) continue;
+        if (jenis === "characterData" && !op.characterData) continue;
+        o.antre.push({ type: jenis, target, attributeName: nama || null });
+        break;
+      }
+    }
+  };
+  class Simpul {
+    constructor() { this.parentNode = null; this.childNodes = []; }
+    get firstChild() { return this.childNodes[0] || null; }
+    get nextSibling() { const p = this.parentNode; return p ? p.childNodes[p.childNodes.indexOf(this) + 1] || null : null; }
+  }
+  class Teks extends Simpul {
+    constructor(t) { super(); this.nodeType = 3; this._t = String(t); }
+    get nodeValue() { return this._t; }
+    set nodeValue(v) { this._t = String(v); catat(this, "characterData"); }
+    get textContent() { return this._t; }
+    set textContent(v) { this.nodeValue = v; }
+  }
+  class Elemen extends Simpul {
+    constructor(tag, ns) {
+      super();
+      this.nodeType = 1;
+      this.namespaceURI = ns || "http://www.w3.org/1999/xhtml";
+      this.tagName = ns === NS_SVG ? tag : String(tag).toUpperCase();
+      this._a = {};
+      this._dengar = {};
+      const el = this;
+      const gaya = {};
+      this.style = new Proxy(gaya, {
+        get(t, k) {
+          if (k === "cssText") return el._a.style || "";
+          if (k === "setProperty") return (n, v) => { t[n] = String(v); };
+          if (k === "removeProperty") return (n) => { delete t[n]; };
+          return k in t ? t[k] : "";
+        },
+        set(t, k, v) { if (k === "cssText") el.setAttribute("style", v); else t[k] = String(v); return true; },
+      });
+      const daftar = () => String(el._a.class || "").split(/\s+/).filter(Boolean);
+      this.classList = {
+        contains: (k) => daftar().includes(k),
+        add: (...k) => { const a = daftar(); for (const x of k) if (!a.includes(x)) a.push(x); el.setAttribute("class", a.join(" ")); },
+        remove: (...k) => { el.setAttribute("class", daftar().filter((x) => !k.includes(x)).join(" ")); },
+        toggle: (k, v) => { const mau = v === undefined ? !daftar().includes(k) : !!v; if (mau) el.classList.add(k); else el.classList.remove(k); return mau; },
+      };
+    }
+    get children() { return this.childNodes.filter((n) => n.nodeType === 1); }
+    get firstElementChild() { return this.children[0] || null; }
+    get previousElementSibling() { const p = this.parentNode; if (!p) return null; const s = p.children; return s[s.indexOf(this) - 1] || null; }
+    get id() { return this._a.id || ""; }
+    set id(v) { this.setAttribute("id", v); }
+    get className() { return this._a.class || ""; }
+    set className(v) { this.setAttribute("class", v); }
+    get hidden() { return "hidden" in this._a; }
+    set hidden(v) { if (v) this.setAttribute("hidden", ""); else this.removeAttribute("hidden"); }
+    get open() { return "open" in this._a; }
+    set open(v) { if (v) this.setAttribute("open", ""); else this.removeAttribute("open"); }
+    get clientWidth() { return (opsi.lebar && opsi.lebar[this.id]) || 0; }
+    get offsetWidth() { return this.clientWidth; }
+    get textContent() { return this.childNodes.map((n) => n.textContent).join(""); }
+    set textContent(v) {
+      for (const c of this.childNodes) c.parentNode = null;
+      this.childNodes = String(v) === "" ? [] : [new Teks(v)];
+      for (const c of this.childNodes) c.parentNode = this;
+      catat(this, "childList");
+    }
+    getAttribute(n) { return n in this._a ? this._a[n] : null; }
+    setAttribute(n, v) { this._a[n] = String(v); catat(this, "attributes", n); }
+    removeAttribute(n) { if (n in this._a) { delete this._a[n]; catat(this, "attributes", n); } }
+    hasAttribute(n) { return n in this._a; }
+    _lepas(c) { const i = this.childNodes.indexOf(c); if (i >= 0) this.childNodes.splice(i, 1); c.parentNode = null; }
+    insertBefore(c, ref) {
+      if (c.parentNode) c.parentNode._lepas(c);
+      const i = ref ? this.childNodes.indexOf(ref) : -1;
+      if (ref && i < 0) throw new Error("insertBefore: ref bukan anak");
+      if (i < 0) this.childNodes.push(c); else this.childNodes.splice(i, 0, c);
+      c.parentNode = this;
+      catat(this, "childList");
+      return c;
+    }
+    appendChild(c) { return this.insertBefore(c, null); }
+    removeChild(c) { if (c.parentNode !== this) throw new Error("removeChild: bukan anak"); this._lepas(c); catat(this, "childList"); return c; }
+    replaceChildren(...anak) {
+      for (const c of this.childNodes) c.parentNode = null;
+      this.childNodes = [];
+      for (const c of anak) { if (c.parentNode) c.parentNode._lepas(c); this.childNodes.push(c); c.parentNode = this; }
+      catat(this, "childList");
+    }
+    insertAdjacentElement(pos, el) {
+      if (opsi.sisipGagal && opsi.sisipGagal === this.id) throw new Error("insertAdjacentElement uji gagal");
+      if (pos !== "afterend" || !this.parentNode) throw new Error("insertAdjacentElement: hanya afterend");
+      this.parentNode.insertBefore(el, this.nextSibling);
+      return el;
+    }
+    addEventListener(t, f) { (this._dengar[t] = this._dengar[t] || []).push(f); }
+    removeEventListener(t, f) { this._dengar[t] = (this._dengar[t] || []).filter((x) => x !== f); }
+    picu(t) { for (const f of (this._dengar[t] || []).slice()) f({ type: t, target: this }); }
+    getTotalLength() { return 321.5; }
+  }
+  const semua = function* (akar) { for (const c of akar.children) { yield c; yield* semua(c); } };
+  const akar = new Elemen("body");
+  const dok = {
+    body: akar,
+    createElement: (t) => new Elemen(t),
+    createElementNS: (ns, t) => new Elemen(t, ns),
+    createTextNode: (t) => new Teks(t),
+    getElementById: (id) => {
+      if (opsi.tanpaElemen) return null;
+      if (opsi.idGagal && opsi.idGagal === id) throw new Error(`getElementById(${id}) uji gagal`);
+      for (const e of semua(akar)) if (e.id === id) return e; return null; },
+  };
+  const ent = (s) => s.replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+  const VOID = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]);
+  function urai(induk, teks) {
+    const tumpuk = [induk];
+    const rx = /<!--[\s\S]*?-->|<\/([a-zA-Z][\w-]*)\s*>|<([a-zA-Z][\w-]*)((?:\s+[^\s=/>]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?)*)\s*(\/?)>|([^<]+)/g;
+    let m;
+    while ((m = rx.exec(teks))) {
+      const atas = tumpuk[tumpuk.length - 1];
+      if (m[0].startsWith("<!--")) continue;
+      if (m[1]) {
+        for (let i = tumpuk.length - 1; i > 0; i -= 1) if (tumpuk[i].tagName.toLowerCase() === m[1].toLowerCase()) { tumpuk.length = i; break; }
+        continue;
+      }
+      if (m[2]) {
+        const svg = m[2].toLowerCase() === "svg" || atas.namespaceURI === NS_SVG;
+        const el = svg ? new Elemen(m[2], NS_SVG) : new Elemen(m[2]);
+        for (const a of (m[3] || "").matchAll(/([^\s=/>]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g)) {
+          el._a[a[1]] = ent(a[2] !== undefined ? a[2] : a[3] !== undefined ? a[3] : a[4] !== undefined ? a[4] : "");
+        }
+        atas.childNodes.push(el);
+        el.parentNode = atas;
+        if (!m[4] && !VOID.has(m[2].toLowerCase())) tumpuk.push(el);
+        continue;
+      }
+      const t = new Teks(ent(m[5]));
+      atas.childNodes.push(t);
+      t.parentNode = atas;
+    }
+  }
+  class PengamatMutasi {
+    constructor(cb) { this.cb = cb; this.amatan = []; this.antre = []; pengamat.push(this); }
+    observe(node, op) { if (!node) throw new Error("observe: node kosong"); this.amatan.push([node, op || {}]); }
+    disconnect() { this.amatan = []; this.antre = []; }
+    takeRecords() { const r = this.antre; this.antre = []; return r; }
+  }
+  const kirimMutasi = () => {
+    for (let putaran = 0; putaran < 50; putaran += 1) {
+      let ada = false;
+      for (const o of pengamat) {
+        if (!o.antre.length) continue;
+        const r = o.antre;
+        o.antre = [];
+        ada = true;
+        o.cb(r, o);
+      }
+      if (!ada) return;
+    }
+    throw new Error("mutasi berulang tanpa henti (pengamat memicu dirinya sendiri)");
+  };
+  const setTimeoutU = (fn, ms) => { jam.id += 1; jam.antre.push({ id: jam.id, t: jam.kini + Math.max(0, Number(ms) || 0), fn }); return jam.id; };
+  const clearTimeoutU = (id) => { jam.antre = jam.antre.filter((x) => x.id !== id); };
+  const majukan = (ms) => {
+    const akhir = jam.kini + ms;
+    for (;;) {
+      kirimMutasi();
+      jam.antre.sort((a, b) => (a.t - b.t) || (a.id - b.id));
+      const x = jam.antre[0];
+      if (!x || x.t > akhir) break;
+      jam.antre.shift();
+      jam.kini = Math.max(jam.kini, x.t);
+      x.fn(jam.kini);
+    }
+    jam.kini = akhir;
+    kirimMutasi();
+  };
+  class DateU extends Date {
+    constructor(...a) { if (a.length) super(...a); else super(jam.kini); }
+    static now() { return jam.kini; }
+  }
+  const ro = [];
+  const io = [];
+  class PengamatUkuran { constructor(cb) { this.cb = cb; this.putus = false; ro.push(this); } observe() {} disconnect() { this.putus = true; } }
+  class PengamatPotong {
+    constructor(cb) { this.cb = cb; this.target = []; this.putus = false; io.push(this); }
+    observe(node) { this.target.push(node); }
+    disconnect() { this.target = []; this.putus = true; }
+  }
+  return { dok, akar, urai, Elemen, Teks, jam, majukan, kirimMutasi, DateU, PengamatMutasi, PengamatUkuran, PengamatPotong, ro, io, pengamat, semua: () => [...semua(akar)], setTimeoutU, clearTimeoutU };
+}
+
+/**
+ * Uji runtime blok HASIL-KEREN:DATA (pilot): wajib — (a) tanpa elemen/pengamat tidak melempar dan skrip sesudahnya
+ * tetap jalan; (a') tanpa pengamat dan dengan _auth tanpa onAuthStateChanged/null tetap menggambar tanpa peringatan;
+ * (b) penyisipan angka bayangan gagal -> tampilan asli pulih (tanpa hk-sr, panel tersembunyi); (c) tiga galat runtime
+ * sesudah panel tampil -> hkPulihkan (pengamat diputus, kelas gerak dilepas, panel tersembunyi, tidak menggambar lagi);
+ * (d) galat satu kartu tidak menggagalkan kartu lain. ujiMutasiHasilKeren menjalankan fungsi ini pada DATA bermutasi.
+ * Juga (syarat rollout, dijalankan sekarang): 18 ikon, 30 pemicu = 1 gambar, tab tersembunyi = 0 gambar, render
+ * ulang sesudah jendela buka tab tanpa hk-masuk (hanya hk-baru pada baris berubah), reduced-motion tanpa
+ * hk-masuk/hk-baru, SVG ber-role img + <title>, angka donat = kartu statistik, gerbang dosen G3/G4, keadaan memuat.
+ */
+function ujiRuntimeHasilKeren(html, relative, DATA) {
+  const salah = [];
+  const awalHasil = html.indexOf('<div class="page" id="page-hasil">');
+  const akhirHasil = html.indexOf("</div><!-- end page-hasil -->", awalHasil);
+  const tombol = (html.match(/<button class="nav-tab" id="tab-hasil"[^>]*>[^<]*<\/button>/) || [])[0];
+  if (awalHasil < 0 || akhirHasil < 0 || !tombol) throw new Error(`${relative}: markup tab Hasil untuk uji runtime HASIL-KEREN tidak ditemukan`);
+  const markup = `<nav><div class="nav-tabs">${tombol}</div></nav>` + html.slice(awalHasil, akhirHasil + 6);
+  const MULAI = Date.parse("2026-10-13T05:00:00.000Z");
+  const JADWAL = { start: "2026-10-02T16:59:00.000Z", end: "2026-10-09T16:59:00.000Z", due: "2026-10-09T23:59", duration: 7 };
+  const ROSTER = ["1", "2", "3", "4", "5", "6", "41399999901"].map((nim) => ({ nim, nama: "Mhs " + nim }));
+  const KUNJUNGAN = () => [
+    { nim: "1", nama: "x", role: "student", points: 50, timestamp: "2026-10-03T01:00:00.000Z", visitCount: 3, poinPertama: "2026-10-03T01:05:00.000Z", scoredQuestions: "mc1,mc2,c1_comp,c11_comp" },
+    { nim: "2", nama: "x", role: "student", points: 40.4, timestamp: "2026-10-10T01:00:00.000Z", visitCount: 1, pointTimestamp: "2026-10-10T17:00:00.000Z", scoredQuestions: "mc1,mc2_mc_used,c1_comp_used" },
+    { nim: "3", nama: "x", role: "student", points: 45, timestamp: "2026-10-05T01:00:00.000Z", visitCount: 2, poinPertama: "2026-10-11T00:00:00.000Z", scoredQuestions: "mc1,c2_comp" },
+    { nim: "4", nama: "x", role: "student", points: 30, timestamp: "2026-10-04T01:00:00.000Z", visitCount: 2, poinPertama: "2026-10-06T00:00:00.000Z", scoredQuestions: "mc3,c3_comp_partial" },
+    { nim: "5", nama: "x", role: "student", points: 0, timestamp: "2026-10-05T01:00:00.000Z", visitCount: 1, scoredQuestions: "mc1_mc_used" },
+    { nim: "41399999901", nama: "x", role: "student", points: 50, timestamp: "2026-10-03T01:00:00.000Z" },
+    { nim: "DOSEN", nama: "x", role: "dosen", points: 50, timestamp: "2026-10-03T01:00:00.000Z" },
+  ];
+  function buat(opsi) {
+    const d = domUjiHasilKeren({ kini: MULAI, lebar: { hkPanel: 910, hkStatusIsi: 420, hkNilaiIsi: 420, hkWaktuIsi: 880, hkSoalIsi: 420, hkAktifIsi: 420 }, ...opsi });
+    d.urai(d.akar, markup);
+    const peringatan = [];
+    const sb = {
+      console: { warn: (...a) => peringatan.push(a.map((x) => (x && x.stack) || String(x)).join(" ")), log() {}, error: (...a) => peringatan.push(a.map(String).join(" ")) },
+      Date: d.DateU, Math, Number, String, JSON, Object, Array, Set, Map, RegExp, Error, TypeError, Promise, Proxy,
+      setTimeout: d.setTimeoutU, clearTimeout: d.clearTimeoutU,
+      requestAnimationFrame: (fn) => d.setTimeoutU(() => fn(d.jam.kini), 16), cancelAnimationFrame: d.clearTimeoutU,
+      document: d.dok,
+      MutationObserver: opsi.tanpaPengamat ? undefined : d.PengamatMutasi,
+      ResizeObserver: opsi.tanpaPengamat ? undefined : d.PengamatUkuran,
+      IntersectionObserver: opsi.tanpaPengamat ? undefined : d.PengamatPotong,
+      matchMedia: (q) => ({ matches: !!opsi.diam && /reduce/.test(q), addListener() {} }),
+      SCORE_CONFIG: { MC_COUNT: 10, COMP_EZ_COUNT: 10, COMP_HARD_COUNT: 5, TOTAL: 50 },
+      _previewMode: false, latestVisitors: [], masterStudents: [], masterFetchDone: false, _visitorsDiterima: false, currentSchedule: null,
+      isSimulasiNim: (n) => String(n) === "41399999901", _keaktifanTotal: () => 50, KEAKTIFAN_BONUS_FRAKSI: 0.1,
+      _keaktifanKursus: { "pertemuan-1": { mhs_1: { aktif: true }, mhs_2: { aktif: true } }, "pertemuan-3": { mhs_4: { aktif: true } } },
+      _forumModul: {}, MODULE_ID: "pertemuan-3", forumAturanAktif: () => false,
+      _auth: "auth" in opsi ? opsi.auth : { currentUser: null, _cb: [], onAuthStateChanged(cb) { this._cb.push(cb); cb(this.currentUser); return () => {}; } },
+      getIdentityLocal: () => sb.__identitas, __identitas: null, __lanjut: false,
+    };
+    sb.window = sb;
+    vm.createContext(sb);
+    sb.isLate = (t) => !!(sb.currentSchedule && sb.currentSchedule.end) && new d.DateU(t).getTime() > new d.DateU(sb.currentSchedule.end).getTime();
+    const id = (x) => d.dok.getElementById(x);
+    // Tiruan renderVisitors/updateLeaderboard: statistik (aturan SAMAKAN v2), papan, dan baris tabel ditulis ulang.
+    const render = () => {
+      const peta = {};
+      for (const v of sb.latestVisitors) if (v.role !== "dosen" && v.role !== "guest" && !sb.isSimulasiNim(v.nim) && !peta[v.nim]) peta[v.nim] = v;
+      const ended = !!(sb.currentSchedule && d.jam.kini > Date.parse(sb.currentSchedule.end));
+      let hadir = 0, absen = 0;
+      const baris = [];
+      for (const s of sb.masterStudents) {
+        if (sb.isSimulasiNim(s.nim)) continue;
+        const v = peta[s.nim];
+        const punya = !!v && (v.points || 0) > 0;
+        if (punya) hadir += 1; else if (ended) absen += 1;
+        const r = d.dok.createElement("div");
+        r.setAttribute("class", "vt-row");
+        r.setAttribute("data-nim", s.nim);
+        r.textContent = s.nama + " " + s.nim + " " + (v ? v.points : 0);
+        baris.push(r);
+      }
+      id("statTotalMhs").textContent = String(sb.masterStudents.filter((s) => !sb.isSimulasiNim(s.nim)).length);
+      id("statHadir").textContent = String(hadir);
+      id("statAbsen").textContent = String(absen);
+      const medali = d.dok.createElement("div");
+      medali.appendChild(d.dok.createElement("span")).textContent = "🥇";
+      id("rajinList").replaceChildren(medali);
+      id("santaiList").replaceChildren(d.dok.createElement("div"));
+      id("visitorTableBody").replaceChildren(...baris);
+      d.kirimMutasi();
+    };
+    const muat = () => {
+      sb.masterStudents = ROSTER; sb.masterFetchDone = true; sb._visitorsDiterima = true;
+      sb.currentSchedule = Object.assign({}, JADWAL); sb.latestVisitors = KUNJUNGAN();
+      render();
+    };
+    const jalan = () => vm.runInContext('"use strict";\n' + DATA + "\n__lanjut = true;", sb, { filename: relative + "#HASIL-KEREN:DATA" });
+    const bukaTab = (buka) => { const h = id("page-hasil"); if (buka) h.classList.add("active"); else h.classList.remove("active"); d.kirimMutasi(); };
+    const gambar = () => Number(id("hkPanel") && id("hkPanel").getAttribute("data-hk-gambar")) || 0;
+    const kelas = (x, k) => !!(id(x) && id(x).classList.contains(k));
+    return { d, sb, id, render, muat, jalan, bukaTab, gambar, kelas, peringatan, semua: d.semua };
+  }
+  const cek = (kondisi, pesan) => { if (!kondisi) salah.push(pesan); };
+  // (a) Wajib: tanpa elemen dan tanpa MutationObserver/ResizeObserver/IntersectionObserver -> tidak melempar.
+  {
+    const t = buat({ tanpaElemen: true, tanpaPengamat: true });
+    try { t.jalan(); } catch (e) { salah.push(`(a) blok DATA melempar tanpa elemen/pengamat: ${e.message}`); }
+    cek(t.sb.__lanjut === true, "(a) kode sesudah blok DATA harus tetap berjalan (tanpa elemen/pengamat)");
+  }
+  // (a') Elemen ada, pengamat tidak ada (peramban lama), _auth tanpa onAuthStateChanged atau null: tetap tidak
+  // melempar, tanpa peringatan, dan panel tetap menggambar (tab Hasil sudah aktif saat skrip berjalan).
+  for (const [nama, auth] of [["_auth tanpa onAuthStateChanged", { currentUser: null }], ["_auth null", null]]) {
+    const t = buat({ tanpaPengamat: true, auth });
+    t.muat();
+    t.bukaTab(true);
+    try { t.jalan(); } catch (e) { salah.push(`(a') blok DATA melempar tanpa pengamat (${nama}): ${e.message}`); }
+    cek(t.sb.__lanjut === true, `(a') kode sesudah blok DATA harus tetap berjalan tanpa pengamat (${nama})`);
+    t.d.majukan(300);
+    cek(t.gambar() === 1, `(a') tanpa pengamat (${nama}) panel tetap menggambar (dapat ${t.gambar()})`);
+    cek(t.peringatan.length === 0, `(a') tanpa pengamat (${nama}) tidak boleh ada peringatan: ${t.peringatan[0]}`);
+  }
+  // (b) Wajib: insertAdjacentElement #statHadir melempar -> dipulihkan (tanpa hk-sr, tanpa bayangan, panel tersembunyi).
+  {
+    const t = buat({ sisipGagal: "statHadir" });
+    try { t.jalan(); } catch (e) { salah.push(`(b) blok DATA melempar saat penyisipan gagal: ${e.message}`); }
+    cek(t.sb.__lanjut === true, "(b) kode sesudah blok DATA harus tetap berjalan saat penyisipan angka gagal");
+    cek(!t.semua().some((e) => e.classList.contains("hk-sr")), "(b) hk-sr harus dilepas sesudah kegagalan (angka asli terlihat lagi)");
+    cek(!t.semua().some((e) => e.classList.contains("hk-angka")), "(b) angka bayangan harus dibuang sesudah kegagalan");
+    cek(t.id("hkPanel") && t.id("hkPanel").hidden === true, "(b) panel harus tetap tersembunyi sesudah kegagalan");
+    cek(t.peringatan.some((p) => p.includes("[HasilKeren]")), "(b) kegagalan harus dicatat console.warn [HasilKeren]");
+  }
+  // Alur normal (gerak diizinkan, tab mula-mula tidak aktif).
+  {
+    const t = buat({});
+    t.jalan();
+    cek(t.sb.__lanjut === true, "kode sesudah blok DATA harus berjalan");
+    cek(t.id("hkPanel").hidden === false, "panel harus tampil sesudah inisialisasi berhasil");
+    const ikon = t.semua().filter((e) => e.classList.contains("hk-ikon")).length;
+    cek(ikon === 18, `jumlah .hk-ikon ${ikon}, harusnya 18 (7 dibungkus + 5 ditandai + 6 di PANEL)`);
+    cek(t.semua().filter((e) => e.classList.contains("hk-angka")).length === 3, "tiga angka bayangan statistik harus terpasang");
+    cek(t.id("aktifList").previousElementSibling.classList.contains("hk-ka-judul"), "judul Keaktifan harus diberi hk-ka-judul");
+    t.muat();
+    t.d.majukan(2000);
+    cek(t.gambar() === 0, "tab Hasil tidak aktif: grafik tidak boleh digambar");
+    t.bukaTab(true);
+    cek(t.kelas("visitorTableBody", "hk-masuk"), "membuka tab: tabel harus diberi hk-masuk");
+    t.d.majukan(300);
+    cek(t.gambar() === 1, `membuka tab: harus tepat 1 gambar (ada ${t.gambar()})`);
+    cek(t.kelas("hkPanel", "hk-masuk"), "gambar pertama sesudah tab dibuka harus memakai animasi masuk panel");
+    for (const isi of ["hkStatusIsi", "hkNilaiIsi", "hkWaktuIsi", "hkAktifIsi"]) {
+      const svg = t.id(isi).children[0] && (t.id(isi).children[0].tagName === "svg" ? t.id(isi).children[0] : t.id(isi).children[0].children[0]);
+      cek(svg && svg.tagName === "svg" && svg.getAttribute("role") === "img" && svg.children.some((c) => c.tagName === "title") && svg.children.some((c) => c.tagName === "desc"),
+        `${isi}: SVG harus ber-role img dengan <title> dan <desc>`);
+    }
+    const donat = t.semua().find((e) => e.getAttribute("class") === "hk-donat-angka");
+    cek(donat && donat.textContent === t.id("statHadir").textContent + "/" + t.id("statTotalMhs").textContent, `pusat donat (${donat && donat.textContent}) harus = statistik Hadir/Total`);
+    cek(t.id("hkSub").textContent === "6 mahasiswa · 4 hadir (67%) · rata-rata nilai 82,8", `#hkSub tidak sesuai: ${t.id("hkSub").textContent}`);
+    cek(/Sebelum deadline: 2 dari 6 mahasiswa \(33%\)\. Sesudah deadline: 2\./.test(t.id("hkWaktuKet").textContent), `keterangan G3 tidak sesuai: ${t.id("hkWaktuKet").textContent}`);
+    cek(!/berstatus Tepat Waktu/.test(t.id("hkWaktuKet").textContent), "kalimat 'sesudah deadline tetapi Tepat Waktu' hanya untuk dosen");
+    cek(t.semua().some((e) => e.classList.contains("hk-baris-soal")) && !t.semua().some((e) => e.classList.contains("hk-rinci")), "mahasiswa (jadwal berakhir, 5 penjawab): batang per jenis tanpa rincian per soal");
+    // Penjawab per jenis: PG 5, Easy–Medium 4, Hard 1 -> mahasiswa hanya melihat batang PG; dua jenis lain dikunci.
+    const barisJenis = () => t.id("hkSoalIsi").children[0].children.filter((e) => e.classList.contains("hk-baris-soal")).length;
+    const kunci = () => t.id("hkSoalIsi").children[0].children.filter((e) => e.classList.contains("hk-terkunci")).map((e) => e.textContent);
+    cek(barisJenis() === 1 && kunci().length === 2 && kunci().every((x) => /^🔒 .*: kurang dari 5 penjawab$/.test(x)),
+      `mahasiswa: jenis dengan < 5 penjawab harus dikunci (batang ${barisJenis()}, kunci ${JSON.stringify(kunci())})`);
+    // IntersectionObserver mengamati kisi papan (bukan seluruh #leaderboardPanel yang juga berisi #hkPanel).
+    const papan = t.id("leaderboardPanel");
+    const io = t.d.io[0];
+    const isiPanel = (n) => { for (let p = t.id("hkPanel"); p; p = p.parentNode) if (p === n) return true; return false; };
+    cek(t.d.io.length === 1 && io.target.length === 1 && io.target[0] !== papan && !isiPanel(io.target[0]) && io.target[0].parentNode === papan,
+      "IntersectionObserver harus mengamati kisi papan (anak #leaderboardPanel yang tidak memuat #hkPanel)");
+    if (io) {
+      io.cb([{ isIntersecting: false, target: io.target[0] }]);
+      cek(papan.classList.contains("hk-jeda"), "kisi papan di luar layar: #leaderboardPanel harus diberi hk-jeda");
+      io.cb([{ isIntersecting: true, target: io.target[0] }]);
+      cek(!papan.classList.contains("hk-jeda"), "kisi papan terlihat lagi: hk-jeda harus dilepas");
+    }
+    cek(t.semua().some((e) => e.classList.contains("hk-kurva")), "G3 harus memuat kurva");
+    // Angka bayangan menghitung naik lalu sama dengan angka asli.
+    t.d.majukan(1000);
+    for (const x of ["statTotalMhs", "statHadir", "statAbsen"]) cek(t.id(x).nextSibling.textContent === t.id(x).textContent, `angka bayangan ${x} harus sama dengan angka asli`);
+    // Sesudah jendela buka tab: render ulang tanpa hk-masuk; hanya baris yang berubah diberi hk-baru.
+    t.d.majukan(2000);
+    t.sb.latestVisitors = KUNJUNGAN().map((v) => (v.nim === "4" ? Object.assign(v, { points: 35 }) : v));
+    t.render();
+    cek(!t.kelas("visitorTableBody", "hk-masuk"), "render ulang sesudah tab terbuka tidak boleh menambah hk-masuk");
+    const baru = t.semua().filter((e) => e.classList.contains("hk-baru")).map((e) => e.getAttribute("data-nim"));
+    cek(baru.join() === "4", `hanya baris yang berubah diberi hk-baru (dapat: ${baru.join() || "-"})`);
+    const medali = t.id("rajinList").children[0].children[0];
+    cek(/^-?\d+ms$/.test(String(medali.style.animationDelay)), `🥇 yang dirender ulang harus melanjutkan fase jam dinding (animationDelay ${medali.style.animationDelay || "-"})`);
+    t.d.majukan(1600);
+    cek(!t.semua().some((e) => e.classList.contains("hk-baru")), "hk-baru harus dilepas sesudah sorotan selesai (tidak berkedip lagi saat tab dibuka ulang)");
+    // 30 pemicu berdekatan (data berubah) -> tepat 1 gambar.
+    t.d.majukan(1500);
+    const g0 = t.gambar();
+    for (let i = 0; i < 30; i += 1) {
+      t.sb.latestVisitors = KUNJUNGAN().map((v) => (v.nim === "4" ? Object.assign(v, { points: 20 + i * 0.5 }) : v));
+      t.render();
+      t.d.majukan(30);
+    }
+    t.d.majukan(1500);
+    cek(t.gambar() - g0 === 1, `30 pemicu dalam < 1 dtk harus menghasilkan 1 gambar (dapat ${t.gambar() - g0})`);
+    // Data sama (render 30 dtk) -> tidak menggambar ulang.
+    const g1 = t.gambar();
+    t.render();
+    t.d.majukan(1500);
+    cek(t.gambar() === g1, "render ulang tanpa perubahan data tidak boleh menggambar ulang");
+    // Gerbang dosen.
+    t.sb._auth.currentUser = { uid: "uji" };
+    t.sb._auth._cb.forEach((f) => f(t.sb._auth.currentUser));
+    t.d.majukan(1500);
+    cek(t.semua().some((e) => e.classList.contains("hk-rinci")), "dosen: rincian per soal harus tampil");
+    cek(barisJenis() === 3 && kunci().length === 0, `dosen: ketiga batang per jenis harus tampil (batang ${barisJenis()}, kunci ${kunci().length})`);
+    cek(t.semua().some((e) => e.classList.contains("hk-lencana-dosen")), "dosen: lencana 'tampilan dosen' harus tampil bila ada jenis yang dikunci untuk mahasiswa");
+    cek(/berstatus Tepat Waktu/.test(t.id("hkWaktuKet").textContent), "dosen: kalimat 'sesudah deadline tetapi Tepat Waktu' harus tampil");
+    // Tab ditutup -> tidak menggambar.
+    t.bukaTab(false);
+    const g2 = t.gambar();
+    t.sb.latestVisitors = KUNJUNGAN().map((v) => (v.nim === "1" ? Object.assign(v, { points: 10 }) : v));
+    t.render();
+    t.d.majukan(2000);
+    cek(t.gambar() === g2, "tab tidak aktif: perubahan data tidak boleh menggambar");
+    cek(t.peringatan.length === 0, `alur normal tidak boleh memunculkan peringatan: ${t.peringatan[0]}`);
+  }
+  // Reduced motion: tanpa hk-masuk/hk-baru, angka langsung final.
+  {
+    const t = buat({ diam: true });
+    t.jalan();
+    t.muat();
+    t.bukaTab(true);
+    t.d.majukan(300);
+    cek(t.gambar() === 1, "reduced-motion: tab dibuka tetap menggambar");
+    cek(!t.semua().some((e) => e.classList.contains("hk-masuk")), "reduced-motion: tidak boleh ada hk-masuk");
+    cek(t.id("statHadir").nextSibling.textContent === t.id("statHadir").textContent, "reduced-motion: angka bayangan langsung final");
+    t.d.majukan(2000);
+    t.sb.latestVisitors = KUNJUNGAN().map((v) => (v.nim === "4" ? Object.assign(v, { points: 35 }) : v));
+    t.render();
+    cek(!t.semua().some((e) => e.classList.contains("hk-baru")), "reduced-motion: tidak boleh ada hk-baru");
+    cek(t.peringatan.length === 0, `reduced-motion tidak boleh memunculkan peringatan: ${t.peringatan[0]}`);
+  }
+  // Memuat: data kunjungan belum diterima -> "Memuat", animasi masuk menunggu gambar lengkap pertama.
+  {
+    const t = buat({});
+    t.jalan();
+    t.sb.masterStudents = ROSTER; t.sb.masterFetchDone = true; t.sb.currentSchedule = Object.assign({}, JADWAL);
+    t.bukaTab(true);
+    t.d.majukan(300);
+    cek(/Memuat/.test(t.id("hkSub").textContent), `memuat: #hkSub harus "Memuat" (dapat ${t.id("hkSub").textContent})`);
+    cek(!t.kelas("hkPanel", "hk-masuk"), "memuat: animasi masuk panel belum boleh dipakai");
+    t.d.majukan(2000);
+    t.sb._visitorsDiterima = true; t.sb.latestVisitors = KUNJUNGAN();
+    t.render();
+    t.d.majukan(300);
+    cek(t.kelas("hkPanel", "hk-masuk"), "gambar lengkap pertama sesudah memuat harus memakai animasi masuk");
+    cek(t.peringatan.length === 0, `memuat tidak boleh memunculkan peringatan: ${t.peringatan[0]}`);
+  }
+  // (c) Wajib: tiga galat runtime sesudah panel tampil (jalur hkAman -> hkGagal -> hkPulihkan) -> fitur mati sendiri,
+  // tampilan asli kembali, semua pengamat diputus, galat dicatat sekali, dan tidak ada gambar/sorotan lagi.
+  {
+    const t = buat({});
+    t.jalan();
+    t.muat();
+    t.bukaTab(true);
+    t.d.majukan(1500);
+    const g0 = t.gambar();
+    cek(g0 >= 1, "(c) gambar awal harus ada");
+    const io = t.d.io[0];
+    if (io) io.cb([{ isIntersecting: false, target: io.target[0] }]);
+    cek(t.kelas("leaderboardPanel", "hk-jeda"), "(c) hk-jeda harus terpasang sebelum galat");
+    t.sb._keaktifanTotal = () => { throw new Error("uji galat runtime"); };
+    for (let i = 0; i < 3; i += 1) {
+      t.sb.latestVisitors = KUNJUNGAN().map((v) => (v.nim === "4" ? Object.assign(v, { points: 21 + i }) : v));
+      t.render();
+      t.d.majukan(1500);
+    }
+    cek(t.id("hkPanel").hidden === true, "(c) sesudah 3 galat panel harus disembunyikan");
+    cek(!t.semua().some((e) => e.classList.contains("hk-sr")), "(c) sesudah 3 galat hk-sr harus dilepas");
+    cek(!t.semua().some((e) => e.classList.contains("hk-angka")), "(c) sesudah 3 galat angka bayangan harus dibuang");
+    cek(!t.semua().some((e) => e.classList.contains("hk-masuk") || e.classList.contains("hk-jeda") || e.classList.contains("hk-baru")), "(c) sesudah 3 galat hk-masuk/hk-jeda/hk-baru harus dilepas");
+    cek(t.d.pengamat.length >= 7 && t.d.pengamat.every((o) => o.amatan.length === 0), "(c) sesudah 3 galat semua MutationObserver harus diputus");
+    cek(t.d.ro.every((o) => o.putus) && t.d.io.every((o) => o.putus), "(c) sesudah 3 galat ResizeObserver/IntersectionObserver harus diputus");
+    cek(t.peringatan.length === 1 && t.peringatan[0].includes("[HasilKeren]"), `(c) galat harus dicatat tepat sekali (dapat ${t.peringatan.length})`);
+    t.sb._keaktifanTotal = () => 50;
+    t.sb.latestVisitors = KUNJUNGAN();
+    t.render();
+    t.d.majukan(1500);
+    cek(t.gambar() === g0, "(c) sesudah mati tidak boleh menggambar lagi");
+    cek(!t.semua().some((e) => e.classList.contains("hk-baru")), "(c) sesudah mati baris tabel tidak boleh disorot lagi");
+  }
+  // (d) Galat di satu kartu hanya mematikan kartu itu (try per kartu): kartu lain tetap digambar.
+  {
+    const t = buat({ idGagal: "hkAktifKet" });
+    t.jalan();
+    t.muat();
+    t.bukaTab(true);
+    t.d.majukan(300);
+    cek(t.gambar() === 1, `(d) galat satu kartu tidak boleh menggagalkan gambar (dapat ${t.gambar()})`);
+    cek(/Grafik tidak bisa digambar/.test(t.id("hkAktifIsi").textContent), "(d) kartu yang galat harus menampilkan '⚠ Grafik tidak bisa digambar.'");
+    cek(t.id("hkSoalIsi").children[0] && t.id("hkSoalIsi").children[0].children.some((e) => e.classList.contains("hk-baris-soal")), "(d) kartu lain tetap digambar");
+    cek(t.id("hkPanel").hidden === false && t.peringatan.length === 1, `(d) satu galat: panel tetap tampil, satu peringatan (dapat ${t.peringatan.length})`);
+  }
+  if (salah.length) throw new Error(`${relative}: runtime HASIL-KEREN salah: ${salah.join("; ")}; run node scripts/hasil-keren.mjs`);
+}
+
 // Tombol panah bilah subnav: paling banyak satu #subnavKiri dan satu #subnavKanan per halaman modul;
 // Sisken Modul 2–14 (bilah bagiannya meluber) wajib tepat satu pasang mengapit #modulSubnav.
 function periksaPanahSubnav(html, relative, course, modulNo) {
@@ -817,6 +1645,8 @@ for (const course of courseRoots) {
     // Forum 2 poin (scripts/forum-poin.mjs, 13 Okt 2026).
     periksaForumPoin(modul, relative);
     periksaStatistikAbsen(modul, relative);
+    // Hasil Keren (scripts/hasil-keren.mjs, 13 Okt 2026): halaman percobaan berblok lengkap, halaman lain tanpa blok.
+    periksaHasilKeren(modul, relative);
     // CSS kartu tugas CAD harus ada di <head> halaman (bangun-modul-1.py; 4 Oktober 2026).
     periksaCssTugasCad(modul, relative, course);
     kunciIdentitasModul += 1;
@@ -838,6 +1668,14 @@ if (penjagaForum.halaman !== 84) throw new Error(`Expected 84 modul pages with P
 await ujiMutasiPenjagaForum();
 if (forumPoinHalaman !== 84) throw new Error(`Expected 84 module pages with the FORUM-POIN DATA v3 block (forum 2 poin), found ${forumPoinHalaman}`);
 await ujiRuntimeForumPoin();
+if (hasilKerenJangkarGagal.length) throw new Error(`HASIL-KEREN: jangkar belum siap untuk rollout (pasang di memori gagal): ${hasilKerenJangkarGagal.join(" | ")}; perbaiki scripts/hasil-keren.mjs`);
+if (hasilKerenHalaman !== (HASIL_KEREN_SEMUA ? 84 : HASIL_KEREN_HALAMAN.size)) throw new Error(`Expected ${HASIL_KEREN_SEMUA ? 84 : HASIL_KEREN_HALAMAN.size} module pages with the HASIL-KEREN v1 blocks, found ${hasilKerenHalaman}`);
+{
+  const { html, relative } = hasilKerenContoh;
+  const akhir = "// HASIL-KEREN:DATA END v1\n";
+  ujiRuntimeHasilKeren(html, relative, html.slice(html.indexOf("// HASIL-KEREN:DATA BEGIN"), html.indexOf(akhir) + akhir.length));
+}
+ujiMutasiHasilKeren();
 if (kunciIdentitasModul !== 84) throw new Error(`Expected 84 module pages with a checked classic identity key, found ${kunciIdentitasModul}`);
 ujiMutasiKunciIdentitas();
 if (draftModulHalaman !== 84 || draftModulId.size !== 84) throw new Error(`Expected 84 module pages with a working per-module draft (unique MODUL_ID), found ${draftModulHalaman} pages / ${draftModulId.size} ids`);
