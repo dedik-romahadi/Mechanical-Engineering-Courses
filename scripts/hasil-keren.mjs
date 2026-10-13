@@ -15,7 +15,17 @@
  *   visitors = awalan MODULE_ID + nomor pertemuan (kursus "pertemuan-N") atau nomor modul (Matematika 4 "modul-N").
  *   Pertemuan yang jadwalnya belum berakhir = "sedang berlangsung": batang digambar redup, tidak ikut rata-rata.
  *
- * YANG DIPASANG (tiga blok bertanda v2, isi identik di setiap halaman):
+ * v3 (13 Okt 2026, permintaan dosen "ikon judul papan sedikit lebih besar, setiap ikon bisa bergerak, desain lebih keren"):
+ *   ikon judul papan/kartu grafik ±1,4× dalam lencana bercahaya; ke-18 .hk-ikon punya animasi SIAGA tak berujung
+ *   (@keyframes hkSiaga*, 3–7 dtk, fase gerak singkat lalu diam, delay berbeda; 🗑 Reset tetap hanya saat hover), juga
+ *   🥇🥈🥉 dan 🔥 daftar Keaktifan (fase jam dinding --hk-fase agar tidak tersentak saat papan ditulis ulang); dijeda per
+ *   bagian di luar layar (kisi papan, kisi statistik, panel grafik, kepala seksi, kartu jadwal, banner dosen); kartu kaca bergradien + bingkai gradien, angka
+ *   statistik gradien, kilau sekali saat tab dibuka, header tabel tegas, cahaya kiri baris menurut status. Semua lewat
+ *   CSS + kelas runtime; markup halaman tidak diedit; semua gerak mati di prefers-reduced-motion.
+ *   Review v3: warna tabel diganti lewat :where(#visitorTableBody) (hover bawaan baris tetap menang), NIM Keaktifan
+ *   dicerahkan, pil status sebaris hanya > 640 px, lencana kepala papan sejajar ikon saat judul membungkus, halo 👥.
+ *
+ * YANG DIPASANG (tiga blok bertanda v3, isi identik di setiap halaman):
  *   HASIL-KEREN:CSS    <style id="hasil-keren-style"> di <head> dokumen. Bila sudah ada, DIGANTI DI TEMPAT
  *                      (tidak dibuang lalu disisip ulang di ujung <head>), jadi penyuntik lain yang menulis
  *                      sebelum </head> tidak berebut urutan; hanya disisip sebelum </head> bila belum ada.
@@ -32,8 +42,8 @@
  *   per pertemuan (% hadir + rata-rata nilai tugas P1–P7, P9–P15; 13 Okt 2026 menggantikan grafik keaktifan, yang
  *   sudah ada di papan Keaktifan di Kelas). Animasi masuk hanya saat tab dibuka; pembaruan data hanya menyorot
  *   baris yang berubah.
- *   Dua animasi tak berujung (🔥 judul Top Akses, 🥇) dijeda di luar layar; semua mati di
- *   prefers-reduced-motion (juga .ff/.pulse-dot hero tab Hasil).
+ *   Animasi siaga tak berujung (v3: semua ikon) dijeda per bagian di luar layar; semua mati di
+ *   prefers-reduced-motion (juga .ff/.pulse-dot hero tab Hasil, kilau ::after, angkat hover).
  *
  * CAKUPAN: percobaan PERCOBAAN (TTL Modul 3). Halaman di luar HALAMAN dicabut bloknya (cabut), jadi
  * mengosongkan HALAMAN = rollback; rollout = HALAMAN = semuaHalaman() dan validator HASIL_KEREN_SEMUA.
@@ -54,7 +64,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-export const VERSI = 2;
+export const VERSI = 3;
 export const KURSUS = [
   "Engineering-Mathematics",
   "Getaran-Mekanik",
@@ -66,29 +76,77 @@ export const KURSUS = [
 export const PERCOBAAN = ["Teknik-Tenaga-Listrik/Modul/Modul-3.html"];
 export const HALAMAN = PERCOBAAN;
 
-export const CSS = String.raw`<style id="hasil-keren-style">/* HASIL-KEREN:CSS v2 — dipasang scripts/hasil-keren.mjs (ikon bergerak + grafik kelas tab Hasil) */
+export const CSS = String.raw`<style id="hasil-keren-style">/* HASIL-KEREN:CSS v3 — dipasang scripts/hasil-keren.mjs (ikon bergerak + desain + grafik kelas tab Hasil) */
 @keyframes hkMuncul{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes hkPop{0%{opacity:0;transform:scale(.3)}60%{opacity:1;transform:scale(1.2)}100%{opacity:1;transform:scale(1)}}
 @keyframes hkSentil{0%,100%{transform:scale(1) rotate(0)}40%{transform:scale(1.14) rotate(-4deg)}70%{transform:scale(.97) rotate(2deg)}}
 @keyframes hkAyun{0%,100%{transform:rotate(0)}20%{transform:rotate(-16deg)}40%{transform:rotate(12deg)}60%{transform:rotate(-7deg)}80%{transform:rotate(3deg)}}
-@keyframes hkApi{0%,100%{transform:scale(1,1) translateY(0)}25%{transform:scale(1.06,.94) translateY(1px)}50%{transform:scale(.94,1.1) translateY(-2px)}75%{transform:scale(1.04,.97) translateY(0)}}
 @keyframes hkLambai{0%,60%,100%{transform:rotate(0)}10%,30%{transform:rotate(16deg)}20%,40%{transform:rotate(-8deg)}}
 @keyframes hkLompat{0%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}50%{transform:translateY(0)}70%{transform:translateY(-3px)}}
 @keyframes hkDenyut{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
 @keyframes hkGoyang{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-11deg)}40%,80%{transform:rotate(11deg)}}
 @keyframes hkBalik{0%{opacity:0;transform:perspective(160px) rotateX(-90deg)}60%{opacity:1;transform:perspective(160px) rotateX(14deg)}100%{opacity:1;transform:none}}
-@keyframes hkMengambang{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-6deg)}}
-@keyframes hkPutar{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes hkNaik{0%,100%{scale:1}45%{scale:1.32}}
+@keyframes hkKilauLintas{from{transform:translateX(0) skewX(-18deg)}to{transform:translateX(420%) skewX(-18deg)}}
 @keyframes hkTumbuhY{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 @keyframes hkTumbuhX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes hkPudar{from{opacity:0}to{opacity:1}}
 @keyframes hkSegar{from{opacity:.4}to{opacity:1}}
 @keyframes hkSorot{from{opacity:1}to{opacity:0}}
 @keyframes hkGores{from{stroke-dashoffset:var(--hk-pjg)}to{stroke-dashoffset:0}}
-.hk-ikon{display:inline-block;transform-origin:50% 60%;backface-visibility:hidden}
+@keyframes hkSiagaTrofi{0%,32%,100%{transform:rotate(0)}6%{transform:rotate(-14deg)}12%{transform:rotate(11deg)}18%{transform:rotate(-7deg)}24%{transform:rotate(3deg)}}
+@keyframes hkSiagaKilau{0%,30%,56%,100%{opacity:0;transform:scale(.2) rotate(0)}40%{opacity:1;transform:scale(1) rotate(45deg)}48%{opacity:.6;transform:scale(.7) rotate(80deg)}}
+@keyframes hkSiagaApi{0%,40%,100%{opacity:1;transform:none}6%{transform:scale(1.14,1.08) translateY(-1px)}12%{opacity:.82;transform:scale(.96,1.04)}18%{opacity:1;transform:translateY(-2px) scale(1.1,1.18)}26%{opacity:.9;transform:scale(.98)}34%{opacity:1;transform:scale(1.04)}}
+@keyframes hkSiagaLambai{0%,30%,100%{transform:rotate(0)}5%,15%{transform:rotate(18deg)}10%,20%{transform:rotate(-8deg)}25%{transform:rotate(6deg)}}
+@keyframes hkSiagaAngguk{0%,28%,100%{transform:translateY(0)}7%{transform:translateY(-4px)}14%{transform:translateY(0)}21%{transform:translateY(-2px)}}
+@keyframes hkSiagaDenyut{0%,26%,100%{transform:scale(1)}7%{transform:scale(1.18)}14%{transform:scale(.95)}20%{transform:scale(1.07)}}
+@keyframes hkSiagaGeleng{0%,18%,100%{transform:rotate(0)}3%,9%{transform:rotate(-10deg)}6%,12%{transform:rotate(10deg)}15%{transform:rotate(-4deg)}}
+@keyframes hkSiagaBalik{0%{transform:perspective(160px) rotateX(0)}14%,100%{transform:perspective(160px) rotateX(-360deg)}}
+@keyframes hkSiagaSasaran{0%,30%,100%{transform:scale(1) rotate(0)}8%{transform:scale(1.18) rotate(-12deg)}16%{transform:scale(.95) rotate(6deg)}23%{transform:scale(1.05) rotate(0)}}
+@keyframes hkSiagaPantul{0%,32%,100%{transform:scale(1)}6%{transform:scale(1.08,.78)}13%{transform:translateY(-2px) scale(.94,1.22)}20%{transform:scale(1.04,.92)}26%{transform:scale(1)}}
+@keyframes hkSiagaDetak{0%,34%,100%{transform:rotate(0)}3%,8%{transform:rotate(12deg)}11%,16%{transform:rotate(-12deg)}19%,24%{transform:rotate(12deg)}27%,31%{transform:rotate(-4deg)}}
+@keyframes hkSiagaGoyang{0%,28%,100%{transform:rotate(0) translate(0,0)}6%{transform:rotate(-10deg) translate(-1px,-1px)}12%{transform:rotate(8deg) translate(1px,0)}18%{transform:rotate(-5deg)}23%{transform:rotate(2deg)}}
+@keyframes hkSiagaNaik{0%,30%,100%{transform:translateY(0) rotate(0)}8%{transform:translateY(-4px) rotate(-6deg)}16%{transform:translateY(1px) rotate(0)}23%{transform:translateY(-2px) rotate(-2deg)}}
+@keyframes hkSiagaAwas{0%,30%,100%{transform:scale(1)}6%,18%{transform:scale(1.16)}12%,24%{transform:scale(1)}}
+@keyframes hkSiagaJam{0%{transform:rotate(0)}18%,100%{transform:rotate(360deg)}}
+@keyframes hkSiagaMedali{0%,36%,100%{transform:translateY(0) rotate(0)}9%{transform:translateY(-3px) rotate(-10deg)}18%{transform:translateY(0) rotate(6deg)}27%{transform:rotate(-2deg)}}
+@keyframes hkSiagaNyala{0%,40%,100%{opacity:1;transform:none}8%{transform:scale(1.12,1.18) translateY(-1px)}16%{opacity:.8;transform:scale(.95,1.02)}24%{opacity:1;transform:scale(1.06,1.12)}32%{transform:scale(1)}}
+.hk-ikon{display:inline-block;transform-origin:50% 60%;backface-visibility:hidden;transition:scale .3s cubic-bezier(.34,1.56,.64,1)}
 div.hk-ikon{display:block}
 .hk-sr{position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;border:0!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important}
 .hk-angka{font-variant-numeric:tabular-nums}
+.hk-i-tab{--hk-gerak:hkSiagaPantul 3.6s ease-in-out 1s infinite,hkLompat .7s ease-out backwards}
+.hk-i-aktivitas{--hk-gerak:hkSiagaAngguk 4.2s ease-in-out 2.1s infinite,hkLompat .8s ease-out .3s 2 backwards}
+.hk-i-kalender{--hk-gerak:hkSiagaBalik 6.4s ease-in-out 1.4s infinite,hkBalik .7s cubic-bezier(.2,.8,.2,1) .25s backwards}
+.hk-i-peringatan{--hk-gerak:hkSiagaAwas 3.6s ease-in-out 3.4s infinite,hkDenyut 1s ease-in-out .3s 3 backwards}
+.hk-i-jam{--hk-gerak:hkSiagaJam 6s ease-in-out 1.5s infinite}
+.hk-i-trofi{--hk-gerak:hkSiagaTrofi 5s ease-in-out 2.8s infinite,hkAyun 1.1s ease-in-out .45s 2 backwards}
+.hk-i-api{--hk-gerak:hkSiagaApi 3.4s ease-in-out .7s infinite}
+.hk-i-tangan{--hk-gerak:hkSiagaLambai 4.6s ease-in-out 3.5s infinite,hkLambai 1.4s ease-in-out .55s 2 backwards}
+.hk-i-mhs{--hk-gerak:hkSiagaAngguk 4.2s ease-in-out 1.45s infinite,hkLompat .8s ease-out .5s 1 backwards}
+.hk-i-hadir{--hk-gerak:hkSiagaDenyut 3.8s ease-in-out 3.6s infinite,hkDenyut .9s ease-in-out .6s 3 backwards}
+.hk-i-absen{--hk-gerak:hkSiagaGeleng 5.6s ease-in-out 1.6s infinite,hkGoyang .6s ease-in-out .7s 1 backwards}
+.hk-i-grafik{--hk-gerak:hkSiagaNaik 4.8s ease-in-out 1.2s infinite}
+.hk-i-sasaran{--hk-gerak:hkSiagaSasaran 4.4s ease-in-out 1.9s infinite}
+.hk-i-batang{--hk-gerak:hkSiagaPantul 3.6s ease-in-out 2.4s infinite}
+.hk-i-waktu{--hk-gerak:hkSiagaDetak 5s ease-out 2.9s infinite}
+.hk-i-kepingan{--hk-gerak:hkSiagaGoyang 5.2s ease-in-out 3.2s infinite}
+.hk-i-tren{--hk-gerak:hkSiagaNaik 4.8s ease-in-out 3.8s infinite}
+.hk-i-tab,.hk-i-batang{transform-origin:50% 100%}
+.hk-i-trofi,.hk-i-api{transform-origin:50% 90%}
+.hk-i-tangan{transform-origin:25% 90%}
+.hk-i-jam,.hk-i-sasaran{transform-origin:50% 50%}
+.hk-i-kalender{backface-visibility:visible}
+#tab-hasil.active .hk-ikon,#tab-hasil:hover .hk-ikon,#tab-hasil:focus-visible .hk-ikon{animation:var(--hk-gerak,none)}
+#page-hasil.active .hk-ikon{animation:var(--hk-gerak,none)}
+#page-hasil.active .hk-ikon.hk-naik{animation:var(--hk-gerak,none),hkNaik .55s ease-out}
+#page-hasil.active .hk-panel.hk-masuk .hk-judul .hk-ikon,#page-hasil.active .hk-panel.hk-masuk>summary .hk-ikon{animation:var(--hk-gerak,none),hkPop .5s cubic-bezier(.2,.8,.2,1) .45s backwards}
+#page-hasil #resetBtnHasil:hover .hk-ikon,#page-hasil #resetBtnHasil:focus-visible .hk-ikon{animation:hkGoyang .5s ease-in-out 1}
+.hk-i-trofi{position:relative}
+.hk-i-trofi::after{content:"";position:absolute;top:-.14em;right:-.22em;width:.62em;height:.62em;border-radius:50%;background:radial-gradient(circle,#fff 0 14%,rgba(254,240,138,.85) 26%,rgba(253,224,71,0) 64%);opacity:0;pointer-events:none}
+#page-hasil.active .hk-ikon.hk-i-trofi::after{animation:hkSiagaKilau 5s ease-in-out 2.8s infinite}
+#leaderboardPanel>div:first-child>div:hover .hk-ikon,#leaderboardPanel>div:nth-child(2)>div:hover .hk-ikon,.hk-kartu:hover .hk-judul .hk-ikon,.hk-panel>summary:hover .hk-ikon,#rajinList>div:hover>span:first-child,#aktifList .ka-baris:hover .ka-ikon{scale:1.18}
+.hk-jeda .hk-ikon,.hk-jeda .hk-ikon::after,.hk-jeda #rajinList>div>span:first-child,.hk-jeda .ka-ikon,.hk-jeda>div::after{animation-play-state:paused!important}
 #page-hasil.active #leaderboardPanel>div:first-child>div,#page-hasil.active #leaderboardPanel>div:nth-child(2)>div,#page-hasil.active .hk-panel{animation:hkMuncul .5s cubic-bezier(.2,.8,.2,1) both}
 #page-hasil.active #leaderboardPanel>div:first-child>div:nth-child(2){animation-delay:.07s}
 #page-hasil.active #leaderboardPanel>div:first-child>div:nth-child(3){animation-delay:.14s}
@@ -96,32 +154,70 @@ div.hk-ikon{display:block}
 #page-hasil.active #leaderboardPanel>div:nth-child(2)>div:nth-child(2){animation-delay:.26s}
 #page-hasil.active #leaderboardPanel>div:nth-child(2)>div:nth-child(3){animation-delay:.32s}
 #page-hasil.active .hk-panel{animation-delay:.38s}
-#tab-hasil .hk-i-tab{transform-origin:50% 100%}
-#tab-hasil:hover .hk-i-tab,#tab-hasil:focus-visible .hk-i-tab,#tab-hasil.active .hk-i-tab{animation:hkLompat .7s ease-out 1}
-#page-hasil.active .hk-i-aktivitas{animation:hkLompat .8s ease-out .3s 2}
-#page-hasil.active .hk-i-kalender{animation:hkBalik .7s cubic-bezier(.2,.8,.2,1) .25s both}
-#resetBtnHasil:hover .hk-i-hapus,#resetBtnHasil:focus-visible .hk-i-hapus{animation:hkGoyang .5s ease-in-out 1}
-#page-hasil.active .hk-i-peringatan{animation:hkDenyut 1s ease-in-out .3s 3}
-#scheduleMissingDosen button:hover .hk-i-jam,#scheduleMissingDosen button:focus-visible .hk-i-jam{animation:hkPutar .8s ease-in-out 1}
-#page-hasil.active .hk-i-trofi{transform-origin:50% 90%;animation:hkAyun 1.1s ease-in-out .45s 2}
-#page-hasil .hk-i-api{transform-origin:50% 90%;animation:hkApi 1.6s ease-in-out infinite}
-#page-hasil.active .hk-i-tangan{transform-origin:25% 90%;animation:hkLambai 1.4s ease-in-out .55s 2}
-#page-hasil.active .hk-i-mhs{animation:hkLompat .8s ease-out .5s 1}
-#page-hasil.active .hk-i-hadir{animation:hkDenyut .9s ease-in-out .6s 3}
-#page-hasil.active .hk-i-absen{animation:hkGoyang .6s ease-in-out .7s 1}
-#page-hasil.active .hk-ikon.hk-naik{animation:hkPop .55s ease-out 1}
-#page-hasil.active .hk-i-absen.hk-naik{animation:hkGoyang .55s ease-in-out 2}
-#leaderboardPanel>div:first-child>div>div:first-child:hover .hk-ikon{animation:hkSentil .5s ease-out 1}
+#leaderboardPanel>div:first-child>div:nth-child(1){--hk-a:251,191,36}
+#leaderboardPanel>div:first-child>div:nth-child(2){--hk-a:249,115,22}
+#leaderboardPanel>div:first-child>div:nth-child(3){--hk-a:236,72,153}
+#leaderboardPanel>div:nth-child(2)>div:nth-child(1){--hk-a:56,189,248}
+#leaderboardPanel>div:nth-child(2)>div:nth-child(2){--hk-a:0,224,158}
+#leaderboardPanel>div:nth-child(2)>div:nth-child(3){--hk-a:239,68,68}
+#scheduleInfo{--hk-a:168,85,247}
+#leaderboardPanel>div:first-child>div,#scheduleInfo{background:radial-gradient(130% 100% at 100% 0%,rgba(var(--hk-a),.17),rgba(var(--hk-a),0) 58%) padding-box,linear-gradient(165deg,rgba(255,255,255,.055),rgba(255,255,255,.012) 42%,rgba(255,255,255,0)) padding-box,linear-gradient(#111a2a,#0d1524) padding-box,linear-gradient(135deg,rgba(var(--hk-a),.75),rgba(148,163,184,.16) 40%,rgba(148,163,184,.09) 65%,rgba(139,92,246,.55)) border-box!important;border-color:transparent!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 28px -16px rgba(0,0,0,.8),0 0 26px -14px rgba(var(--hk-a),.55);transition:box-shadow .35s ease,translate .35s cubic-bezier(.2,.8,.2,1)}
+#leaderboardPanel>div:nth-child(2)>div{background:radial-gradient(circle at 50% 32px,rgba(var(--hk-a),.32),rgba(var(--hk-a),0) 46px) padding-box,linear-gradient(90deg,rgba(var(--hk-a),0),rgba(var(--hk-a),.95),rgba(var(--hk-a),0)) center bottom/100% 2px no-repeat padding-box,linear-gradient(165deg,rgba(255,255,255,.05),rgba(255,255,255,.01) 45%,rgba(255,255,255,0)) padding-box,linear-gradient(#111a2a,#0d1524) padding-box,linear-gradient(150deg,rgba(var(--hk-a),.7),rgba(148,163,184,.14) 45%,rgba(148,163,184,.08) 70%,rgba(var(--hk-a),.35)) border-box!important;border-color:transparent!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 28px -16px rgba(0,0,0,.8),0 0 26px -14px rgba(var(--hk-a),.55);transition:box-shadow .35s ease,translate .35s cubic-bezier(.2,.8,.2,1)}
+#leaderboardPanel>div:first-child>div:hover,#leaderboardPanel>div:nth-child(2)>div:hover,.hk-kartu:hover{translate:0 -2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 18px 34px -16px rgba(0,0,0,.85),0 0 30px -8px rgba(var(--hk-a),.55)}
+#leaderboardPanel>div:nth-child(2)>div::after{content:"";position:absolute;top:0;bottom:0;left:-50%;width:40%;background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.16) 50%,rgba(255,255,255,0));transform:skewX(-18deg);pointer-events:none}
+#page-hasil.active #leaderboardPanel>div:nth-child(2)>div::after{animation:hkKilauLintas 1.2s cubic-bezier(.4,0,.2,1) .7s 1 both}
+#page-hasil.active #leaderboardPanel>div:nth-child(2)>div:nth-child(2)::after{animation-delay:.85s}
+#page-hasil.active #leaderboardPanel>div:nth-child(2)>div:nth-child(3)::after{animation-delay:1s}
+#leaderboardPanel>div:nth-child(2) .hk-ikon{font-size:1.7rem!important;line-height:1.3}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+#statTotalMhs,#statHadir,#statAbsen,#leaderboardPanel .hk-angka{background-image:linear-gradient(180deg,#fff 6%,currentColor 78%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#leaderboardPanel .hk-kepala-teks{background:linear-gradient(90deg,#fef3c7,#fbbf24 55%,#f59e0b);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#leaderboardPanel>div:first-child>div:nth-child(2) .hk-kepala-teks{background-image:linear-gradient(90deg,#fed7aa,#fb923c 50%,#f97316)}
+.hk-judul-seksi{background:linear-gradient(90deg,#fff 0%,#e0f7ff 38%,#67e8f9 72%,#c4b5fd);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hk-panel-judul{background:linear-gradient(90deg,#67e8f9,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+}
+#leaderboardPanel .hk-angka{filter:drop-shadow(0 0 10px rgba(var(--hk-a),.35))}
+#leaderboardPanel .hk-kepala{position:relative;display:flex;align-items:flex-start;gap:10px;min-height:32px}
+#leaderboardPanel .hk-kepala>:not(.hk-ikon){align-self:center}
+#leaderboardPanel .hk-kepala::before{content:"";position:absolute;left:0;top:0;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.16),rgba(var(--hk-a),.24) 48%,rgba(var(--hk-a),.08) 76%);box-shadow:0 0 0 1px rgba(var(--hk-a),.55),0 0 18px -2px rgba(var(--hk-a),.6);pointer-events:none}
+#leaderboardPanel .hk-kepala>.hk-ikon{position:relative;z-index:1;flex:0 0 32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:1.4em;line-height:1;letter-spacing:0}
 .kartu-aktif .ka-judul.hk-ka-judul{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#f9a8d4}
 .kartu-aktif .ka-judul .hk-ka-teks{background:linear-gradient(90deg,#fb923c,#f472b6,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
-#rajinList>div>span:first-child{display:inline-block}
-#aktifList .ka-ikon{display:inline-block;transform-origin:50% 90%}
-#rajinList.hk-masuk>div>span:first-child,#santaiList.hk-masuk>div>span:first-child,#aktifList.hk-masuk .ka-ikon{animation:hkPop .5s cubic-bezier(.2,.8,.2,1) both}
-#rajinList.hk-masuk>div:nth-child(2)>span:first-child,#santaiList.hk-masuk>div:nth-child(2)>span:first-child,#aktifList.hk-masuk .ka-baris:nth-child(2) .ka-ikon{animation-delay:.1s}
-#rajinList.hk-masuk>div:nth-child(3)>span:first-child,#santaiList.hk-masuk>div:nth-child(3)>span:first-child,#aktifList.hk-masuk .ka-baris:nth-child(n+3) .ka-ikon{animation-delay:.2s}
-#rajinList>div:first-child>span:first-child{animation:hkMengambang 2.8s ease-in-out .6s infinite}
-#rajinList.hk-masuk>div:first-child>span:first-child{animation:hkPop .5s cubic-bezier(.2,.8,.2,1) both,hkMengambang 2.8s ease-in-out .6s infinite}
-#aktifList .ka-baris:hover .ka-ikon{animation:hkApi .8s ease-in-out 2}
+#page-hasil .hk-pil{background:linear-gradient(90deg,rgba(255,255,255,.07),rgba(139,92,246,.12)) padding-box,linear-gradient(#0f1726,#0f1726) padding-box,linear-gradient(90deg,currentColor,#a78bfa 55%,#ec4899) border-box!important;border-color:transparent!important;box-shadow:0 0 18px -6px currentColor,inset 0 1px 0 rgba(255,255,255,.06)}
+#page-hasil .hk-pil .hk-ikon{font-size:1.25em;letter-spacing:0}
+.hk-i-mhs,.hk-i-aktivitas{filter:drop-shadow(0 0 1px rgba(255,255,255,.75)) drop-shadow(0 0 7px rgba(var(--hk-a,6,214,160),.6))}
+.hk-judul-seksi{width:fit-content;max-width:100%;filter:drop-shadow(0 0 16px rgba(34,211,238,.22))}
+.hk-judul-seksi::after{content:"";display:block;width:72px;height:3px;margin-top:10px;border-radius:3px;background:linear-gradient(90deg,#22d3ee,#8b5cf6,#ec4899)}
+#page-hasil h1.hero-title{text-shadow:0 0 26px rgba(34,211,238,.28),0 0 64px rgba(139,92,246,.25)}
+#scheduleInfo>.hk-ikon{filter:drop-shadow(0 0 8px rgba(168,85,247,.5))}
+#scheduleInfo>div>div:first-child{filter:brightness(1.3)}
+.hk-kartu-tabel{background:radial-gradient(90% 50% at 0% 0%,rgba(34,211,238,.09),rgba(34,211,238,0) 60%) padding-box,radial-gradient(70% 40% at 100% 0%,rgba(139,92,246,.1),rgba(139,92,246,0) 60%) padding-box,linear-gradient(#141e2f,#0e1625) padding-box,linear-gradient(160deg,rgba(34,211,238,.45),rgba(148,163,184,.12) 30%,rgba(148,163,184,.08) 70%,rgba(139,92,246,.45)) border-box!important;border-color:transparent!important;box-shadow:0 24px 60px -30px rgba(0,0,0,.85),0 0 44px -26px rgba(34,211,238,.45)}
+#leaderboardPanel+div{background:linear-gradient(180deg,#1c2739,#141e2f)!important;color:#a3b3c9!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 -1px 0 rgba(34,211,238,.22)}
+#rajinList div[style*="color:#64748b"],#santaiList div[style*="color:#64748b"],#aktifList div[style*="color:#64748b"],#rajinList>span,#santaiList>span,#aktifList>span{color:#8f9db3!important}
+#visitorTableBody{scrollbar-width:thin;scrollbar-color:rgba(34,211,238,.35) transparent}
+:where(#visitorTableBody) [style*="color:#64748b"]{color:#8391a7!important}
+:where(#visitorTableBody) [style*="color:#475569"]{color:#7b8aa0!important}
+#visitorTableBody .vt-row{transition:background .3s,border-color .3s,box-shadow .3s}
+#visitorTableBody .vt-row.hk-st-tepat{--hk-st:0,224,158}
+#visitorTableBody .vt-row.hk-st-terlambat{--hk-st:251,113,133}
+#visitorTableBody .vt-row.hk-st-belum{--hk-st:148,163,184}
+#visitorTableBody .vt-row.hk-st-bolos{--hk-st:239,68,68}
+#visitorTableBody .vt-row[class*="hk-st-"]:hover{border-left-color:rgb(var(--hk-st));box-shadow:inset 140px 0 80px -80px rgba(var(--hk-st),.24),inset 0 1px 0 rgba(255,255,255,.03)}
+#visitorTableBody .vt-status>span{border-radius:999px!important;letter-spacing:.02em;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 2px 8px -4px rgba(0,0,0,.6)}
+@media (min-width:641px){#visitorTableBody .vt-status>span{white-space:nowrap}}
+#rajinList>div>span:first-child{display:inline-block;transition:scale .3s cubic-bezier(.34,1.56,.64,1)}
+#aktifList .ka-ikon{display:inline-block;transform-origin:50% 90%;transition:scale .3s cubic-bezier(.34,1.56,.64,1)}
+#rajinList>div>span:first-child{animation:hkSiagaMedali 4.8s ease-in-out var(--hk-fase,.6s) infinite}
+#rajinList>div:nth-child(2)>span:first-child{animation-delay:var(--hk-fase,1s)}
+#rajinList>div:nth-child(3)>span:first-child{animation-delay:var(--hk-fase,1.4s)}
+#aktifList .ka-ikon{animation:hkSiagaNyala 3.4s ease-in-out var(--hk-fase,.9s) infinite}
+#rajinList.hk-masuk>div>span:first-child{animation:hkSiagaMedali 4.8s ease-in-out var(--hk-fase,.6s) infinite,hkPop .5s cubic-bezier(.2,.8,.2,1) backwards}
+#aktifList.hk-masuk .ka-ikon{animation:hkSiagaNyala 3.4s ease-in-out var(--hk-fase,.9s) infinite,hkPop .5s cubic-bezier(.2,.8,.2,1) backwards}
+#santaiList.hk-masuk>div>span:first-child{animation:hkPop .5s cubic-bezier(.2,.8,.2,1) both}
+#rajinList.hk-masuk>div:nth-child(2)>span:first-child,#aktifList.hk-masuk .ka-baris:nth-child(2) .ka-ikon{animation-delay:var(--hk-fase,1s),.1s}
+#rajinList.hk-masuk>div:nth-child(3)>span:first-child,#aktifList.hk-masuk .ka-baris:nth-child(n+3) .ka-ikon{animation-delay:var(--hk-fase,1.4s),.2s}
+#santaiList.hk-masuk>div:nth-child(2)>span:first-child{animation-delay:.1s}
+#santaiList.hk-masuk>div:nth-child(3)>span:first-child{animation-delay:.2s}
 #visitorTableBody.hk-masuk .vt-row{animation:hkMuncul .4s ease-out both}
 #visitorTableBody.hk-masuk .vt-row:nth-child(2){animation-delay:.03s}
 #visitorTableBody.hk-masuk .vt-row:nth-child(3){animation-delay:.06s}
@@ -138,30 +234,41 @@ div.hk-ikon{display:block}
 #visitorTableBody .vt-row.hk-baru{position:relative}
 #visitorTableBody .vt-row.hk-baru::after{content:"";position:absolute;top:0;right:0;bottom:0;left:0;background:rgba(56,189,248,.14);pointer-events:none;animation:hkSorot 1.4s ease-out both}
 #visitorTableBody .vt-row:hover .vt-status>span{animation:hkSentil .45s ease-out 1}
-#leaderboardPanel.hk-jeda .hk-i-api,#leaderboardPanel.hk-jeda #rajinList span{animation-play-state:paused}
 .hk-panel[hidden]{display:none!important}
-.hk-panel{margin:0 20px 16px;border:1px solid #2a3548;border-radius:16px;background:linear-gradient(180deg,rgba(14,165,233,.05),rgba(255,255,255,.015))}
-.hk-panel>summary{list-style:none;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;cursor:pointer;font-size:.72rem;font-weight:700;color:#38bdf8;text-transform:uppercase;letter-spacing:.1em;border-radius:16px}
+.hk-panel{--hk-a:34,211,238;margin:0 20px 16px;border:1px solid transparent;border-radius:18px;background:radial-gradient(120% 60% at 0% 0%,rgba(34,211,238,.08),rgba(34,211,238,0) 55%) padding-box,linear-gradient(#111a2a,#0d1524) padding-box,linear-gradient(150deg,rgba(34,211,238,.55),rgba(148,163,184,.14) 35%,rgba(148,163,184,.08) 70%,rgba(139,92,246,.5)) border-box;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 18px 40px -24px rgba(0,0,0,.8)}
+.hk-panel>summary{position:relative;list-style:none;display:flex;align-items:center;gap:4px 10px;flex-wrap:wrap;padding:14px 40px 14px 16px;cursor:pointer;font-size:.72rem;font-weight:700;color:#38bdf8;text-transform:uppercase;letter-spacing:.1em;border-radius:18px;background:linear-gradient(90deg,rgba(34,211,238,.6),rgba(139,92,246,.45) 50%,rgba(236,72,153,0)) left bottom/100% 1px no-repeat}
+.hk-panel:not([open])>summary{background-size:0 0}
 .hk-panel>summary::-webkit-details-marker{display:none}
-.hk-panel>summary::after{content:"▾";margin-left:auto;color:#94a3b8;transition:transform .25s}
+.hk-panel>summary::before{content:"";position:absolute;left:16px;top:14px;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.15),rgba(34,211,238,.22) 48%,rgba(34,211,238,.07) 76%);box-shadow:0 0 0 1px rgba(34,211,238,.5),0 0 16px -2px rgba(34,211,238,.55);pointer-events:none}
+.hk-panel>summary>.hk-ikon{position:relative;z-index:1;flex:0 0 30px;height:30px;display:inline-flex;align-items:center;justify-content:center;font-size:1.4em;line-height:1;letter-spacing:0}
+.hk-panel>summary::after{content:"▾";position:absolute;right:16px;top:19px;color:#94a3b8;transition:transform .25s}
 .hk-panel:not([open])>summary::after{transform:rotate(-90deg)}
 .hk-panel>summary:focus-visible{outline:2px solid #38bdf8;outline-offset:2px}
+.hk-panel-judul{color:#67e8f9}
 .hk-sub{font-weight:600;text-transform:none;letter-spacing:0;color:#94a3b8;font-size:.78rem}
-.hk-kisi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0 12px 12px}
-.hk-kartu{margin:0;min-width:0;background:rgba(255,255,255,.025);border:1px solid #2a3548;border-radius:14px;padding:12px 14px}
+.hk-kisi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px}
+#hkStatus{--hk-a:244,114,182}
+#hkNilai{--hk-a:56,189,248}
+#hkWaktu{--hk-a:251,191,36}
+#hkSoal{--hk-a:167,139,250}
+#hkTren{--hk-a:6,214,160}
+.hk-kartu{margin:0;min-width:0;border:1px solid transparent;border-radius:14px;padding:12px 14px;background:radial-gradient(110% 70% at 100% 0%,rgba(var(--hk-a),.12),rgba(var(--hk-a),0) 60%) padding-box,linear-gradient(165deg,rgba(255,255,255,.045),rgba(255,255,255,.01) 45%,rgba(255,255,255,0)) padding-box,linear-gradient(#141d2e,#101827) padding-box,linear-gradient(140deg,rgba(var(--hk-a),.6),rgba(148,163,184,.14) 40%,rgba(148,163,184,.08) 70%,rgba(var(--hk-a),.3)) border-box;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 10px 24px -16px rgba(0,0,0,.8);transition:box-shadow .35s ease,translate .35s cubic-bezier(.2,.8,.2,1)}
 .hk-lebar{grid-column:1/-1}
-.hk-judul{display:flex;align-items:center;gap:8px;font-size:.7rem;font-weight:700;color:#e2e8f0;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
-.hk-tanya{margin:0 0 8px;font-size:.72rem;color:#94a3b8}
+.hk-judul{position:relative;display:flex;align-items:center;gap:10px;min-height:28px;font-size:.7rem;font-weight:700;color:#e2e8f0;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.hk-judul::before{content:"";position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.15),rgba(var(--hk-a),.22) 48%,rgba(var(--hk-a),.07) 76%);box-shadow:0 0 0 1px rgba(var(--hk-a),.5),0 0 14px -2px rgba(var(--hk-a),.5);pointer-events:none}
+.hk-judul{flex-wrap:wrap}
+.hk-judul>.hk-ikon{position:relative;z-index:1;flex:0 0 28px;height:28px;display:inline-flex;align-items:center;justify-content:center;font-size:1.4em;line-height:1;letter-spacing:0}
+.hk-tanya{margin:0 0 8px;font-size:.72rem;color:#9aa8bd}
 .hk-isi{position:relative;min-height:120px}
 .hk-isi svg{display:block;width:100%;height:auto;overflow:visible}
 .hk-kosong{display:flex;align-items:center;justify-content:center;min-height:120px;text-align:center;font-size:.8rem;color:#94a3b8;padding:8px}
-.hk-ket{margin:8px 0 0;font-size:.72rem;line-height:1.5;color:#94a3b8}
+.hk-ket{margin:8px 0 0;font-size:.72rem;line-height:1.5;color:#9aa8bd}
 .hk-ket b{color:#e2e8f0}
 .hk-c-tepat{--hk:#00e09e}.hk-c-terlambat{--hk:#fb7185}.hk-c-belum{--hk:#94a3b8}.hk-c-bolos{--hk:#ef4444}
 .hk-c-benar{--hk:#00e09e}.hk-c-parsial{--hk:#fbbf24}.hk-c-salah{--hk:#fb7185}.hk-c-ulang{--hk:#a78bfa}.hk-c-kosong{--hk:#64748b}
 .hk-donat{display:flex;align-items:center;gap:16px}
 .hk-donat svg{width:132px;flex-shrink:0}
-.hk-cincin{fill:none;stroke:#2a3548;stroke-width:14}
+.hk-cincin{fill:none;stroke:#26324a;stroke-width:14}
 .hk-seg{fill:none;stroke:var(--hk);stroke-width:14;transition:stroke-dasharray .8s cubic-bezier(.2,.8,.2,1),stroke-dashoffset .8s cubic-bezier(.2,.8,.2,1)}
 .hk-donat-angka{fill:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;text-anchor:middle;dominant-baseline:middle}
 .hk-donat-label{fill:#94a3b8;font-size:10.5px;letter-spacing:.1em;text-anchor:middle}
@@ -172,7 +279,7 @@ div.hk-ikon{display:block}
 .hk-legenda .hk-nol,.hk-legenda .hk-nol .hk-jml{color:#94a3b8}
 .hk-legenda .hk-nol .hk-warna{opacity:.45}
 .hk-sumbu{fill:#94a3b8;font-size:11px}
-.hk-garis-grid{stroke:#2a3548;stroke-width:1}
+.hk-garis-grid{stroke:#26324a;stroke-width:1}
 .hk-batang{fill:#38bdf8}
 .hk-batang.hk-anda{fill:#00e09e}
 .hk-batang.hk-ini{fill:#f472b6}
@@ -201,10 +308,10 @@ div.hk-ikon{display:block}
 .hk-c-hadir{--hk:#38bdf8}.hk-c-ini{--hk:#f472b6}.hk-c-nilai{--hk:#fbbf24}.hk-c-jalan{--hk:rgba(56,189,248,.4)}
 .hk-legenda-baris .hk-c-nilai::before{border-radius:50%}
 .hk-baris-soal{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr) 3.2em;align-items:center;gap:8px;margin:6px 0;font-size:.76rem;color:#cbd5e1}
-.hk-tumpuk{display:flex;height:12px;border-radius:6px;overflow:hidden;background:#2a3548}
+.hk-tumpuk{display:flex;height:12px;border-radius:6px;overflow:hidden;background:#26324a}
 .hk-tumpuk>span{display:block;height:100%;background:var(--hk)}
 .hk-pct{text-align:right;font-family:'JetBrains Mono',monospace;font-weight:700;color:#e2e8f0}
-.hk-legenda-baris{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:6px;font-size:.7rem;color:#94a3b8}
+.hk-legenda-baris{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:6px;font-size:.7rem;color:#9aa8bd}
 .hk-legenda-baris span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px;background:var(--hk)}
 .hk-rinci{margin-top:8px}
 .hk-rinci>summary{cursor:pointer;font-size:.74rem;color:#38bdf8}
@@ -213,70 +320,77 @@ div.hk-ikon{display:block}
 .hk-terkunci{margin:6px 0;font-size:.76rem;color:#94a3b8}
 .hk-sulit{color:#fbbf24}
 .hk-lencana-dosen{display:inline-block;margin-left:auto;padding:1px 8px;border-radius:999px;font-size:.68rem;color:#bae6fd;background:rgba(56,189,248,.14);text-transform:none;letter-spacing:0}
-.hk-panel.hk-masuk .hk-judul .hk-ikon,.hk-panel.hk-masuk>summary .hk-ikon{animation:hkPop .5s cubic-bezier(.2,.8,.2,1) .45s both}
 .hk-panel.hk-masuk .hk-batang{transform-box:fill-box;transform-origin:50% 100%;animation:hkTumbuhY .6s cubic-bezier(.2,.8,.2,1) both}
 .hk-panel.hk-masuk .hk-tumpuk{transform-origin:0 50%;animation:hkTumbuhX .7s cubic-bezier(.2,.8,.2,1) both}
 .hk-panel.hk-masuk .hk-kurva{stroke-dasharray:var(--hk-pjg);animation:hkGores 1.1s ease-out .15s both}
 .hk-panel.hk-masuk .hk-area{animation:hkPudar .8s ease-out .5s both}
 .hk-panel.hk-masuk .hk-tren-garis,.hk-panel.hk-masuk .hk-tren-titik{animation:hkPudar .8s ease-out .45s both}
-.hk-segar{animation:hkSegar .35s ease-out}
+.hk-panel .hk-segar{animation:hkSegar .35s ease-out}
 @media (max-width:640px){
 .hk-panel{margin:0 12px 12px}
-.hk-kisi{grid-template-columns:minmax(0,1fr);padding:0 8px 8px}
+.hk-kisi{grid-template-columns:minmax(0,1fr);gap:10px;padding:10px 8px 8px}
 .hk-kartu{padding:12px}
 .hk-donat{flex-direction:column;align-items:stretch}
 .hk-donat svg{width:120px;margin:0 auto}
 .hk-baris-soal,.hk-rinci .hk-baris-soal{grid-template-columns:minmax(0,1fr) 3.2em}
 .hk-baris-soal>.hk-tumpuk{grid-column:1/-1;grid-row:2}
+#leaderboardPanel .hk-kepala{min-height:28px}
+#leaderboardPanel .hk-kepala::before{width:28px;height:28px}
+#leaderboardPanel .hk-kepala>.hk-ikon{flex-basis:28px;height:28px}
+.hk-sub{flex-basis:100%;padding-left:40px}
+#leaderboardPanel>div:nth-child(2) .hk-ikon{font-size:1.5rem!important}
+#leaderboardPanel>div:nth-child(2)>div>div:last-child{letter-spacing:.04em!important}
 }
 @media (prefers-reduced-motion:reduce){
-#tab-hasil .hk-ikon,#page-hasil .hk-ikon,#page-hasil.active #leaderboardPanel>div:first-child>div,#page-hasil.active #leaderboardPanel>div:nth-child(2)>div,#page-hasil.active .hk-panel,#rajinList>div>span:first-child,#santaiList>div>span:first-child,#aktifList .ka-ikon,#visitorTableBody .vt-row,#visitorTableBody .vt-status>span,#page-hasil .pulse-dot,.hk-panel,.hk-panel *{animation:none!important}
-#page-hasil .float-formulas,#visitorTableBody .vt-row.hk-baru::after{display:none!important}
+#tab-hasil .hk-ikon,#page-hasil .hk-ikon,#page-hasil .hk-ikon::after,#page-hasil.active #leaderboardPanel>div:first-child>div,#page-hasil.active #leaderboardPanel>div:nth-child(2)>div,#leaderboardPanel>div:nth-child(2)>div::after,#page-hasil.active .hk-panel,#rajinList>div>span:first-child,#santaiList>div>span:first-child,#aktifList .ka-ikon,#visitorTableBody .vt-row,#visitorTableBody .vt-status>span,#page-hasil .pulse-dot,.hk-panel,.hk-panel *{animation:none!important}
+#page-hasil .float-formulas,#visitorTableBody .vt-row.hk-baru::after,#page-hasil .hk-ikon::after,#leaderboardPanel>div:nth-child(2)>div::after{display:none!important}
+#leaderboardPanel>div>div,#scheduleInfo,.hk-kartu,#tab-hasil .hk-ikon,#page-hasil .hk-ikon,#rajinList>div>span:first-child,#aktifList .ka-ikon,#visitorTableBody .vt-row{transition:none!important;translate:none!important;scale:none!important}
 .hk-panel *,.hk-panel>summary::after{transition:none!important}
 }
 </style>`;
 
-export const PANEL = String.raw`      <!-- HASIL-KEREN:PANEL BEGIN v2 — dipasang scripts/hasil-keren.mjs -->
+export const PANEL = String.raw`      <!-- HASIL-KEREN:PANEL BEGIN v3 — dipasang scripts/hasil-keren.mjs -->
       <details class="hk-panel" id="hkPanel" open hidden>
-        <summary><span class="hk-ikon hk-i-grafik" aria-hidden="true">📈</span>Statistik Kelas<span class="hk-sub" id="hkSub">⏳ Memuat…</span></summary>
+        <summary><span class="hk-ikon hk-i-grafik" aria-hidden="true">📈</span><span class="hk-panel-judul">Statistik Kelas</span><span class="hk-sub" id="hkSub">⏳ Memuat…</span></summary>
         <div class="hk-kisi">
           <figure class="hk-kartu" id="hkStatus" aria-labelledby="hkStatusJudul">
-            <figcaption class="hk-judul" id="hkStatusJudul"><span class="hk-ikon" aria-hidden="true">🎯</span>Status Kehadiran</figcaption>
+            <figcaption class="hk-judul" id="hkStatusJudul"><span class="hk-ikon hk-i-sasaran" aria-hidden="true">🎯</span>Status Kehadiran</figcaption>
             <p class="hk-tanya">Berapa yang sudah mengerjakan, terlambat, belum, atau bolos?</p>
             <div class="hk-isi" id="hkStatusIsi"><div class="hk-kosong">⏳ Memuat…</div></div>
             <p class="hk-ket" id="hkStatusKet"></p>
           </figure>
           <figure class="hk-kartu" id="hkNilai" aria-labelledby="hkNilaiJudul">
-            <figcaption class="hk-judul" id="hkNilaiJudul"><span class="hk-ikon" aria-hidden="true">📊</span>Sebaran Nilai</figcaption>
+            <figcaption class="hk-judul" id="hkNilaiJudul"><span class="hk-ikon hk-i-batang" aria-hidden="true">📊</span>Sebaran Nilai</figcaption>
             <p class="hk-tanya">Bagaimana nilai kelas tersebar (0–100)?</p>
             <div class="hk-isi" id="hkNilaiIsi"><div class="hk-kosong">⏳ Memuat…</div></div>
             <p class="hk-ket" id="hkNilaiKet"></p>
           </figure>
           <figure class="hk-kartu hk-lebar" id="hkWaktu" aria-labelledby="hkWaktuJudul">
-            <figcaption class="hk-judul" id="hkWaktuJudul"><span class="hk-ikon" aria-hidden="true">⏱️</span>Progres Pengerjaan</figcaption>
+            <figcaption class="hk-judul" id="hkWaktuJudul"><span class="hk-ikon hk-i-waktu" aria-hidden="true">⏱️</span>Progres Pengerjaan</figcaption>
             <p class="hk-tanya">Kapan mahasiswa mengerjakan, dibanding jadwal buka dan deadline?</p>
             <div class="hk-isi" id="hkWaktuIsi"><div class="hk-kosong">⏳ Memuat…</div></div>
             <p class="hk-ket" id="hkWaktuKet"></p>
           </figure>
           <figure class="hk-kartu" id="hkSoal" aria-labelledby="hkSoalJudul">
-            <figcaption class="hk-judul" id="hkSoalJudul"><span class="hk-ikon" aria-hidden="true">🧩</span>Ketuntasan per Jenis Soal</figcaption>
+            <figcaption class="hk-judul" id="hkSoalJudul"><span class="hk-ikon hk-i-kepingan" aria-hidden="true">🧩</span>Ketuntasan per Jenis Soal</figcaption>
             <p class="hk-tanya">Bagian mana yang paling banyak dijawab benar?</p>
             <div class="hk-isi" id="hkSoalIsi"><div class="hk-kosong">⏳ Memuat…</div></div>
             <p class="hk-ket" id="hkSoalKet"></p>
           </figure>
           <figure class="hk-kartu" id="hkTren" aria-labelledby="hkTrenJudul">
-            <figcaption class="hk-judul" id="hkTrenJudul"><span class="hk-ikon" aria-hidden="true">📈</span>Tren Kelas per Pertemuan</figcaption>
+            <figcaption class="hk-judul" id="hkTrenJudul"><span class="hk-ikon hk-i-tren" aria-hidden="true">📈</span>Tren Kelas per Pertemuan</figcaption>
             <p class="hk-tanya">Bagaimana kehadiran dan nilai kelas dari pertemuan ke pertemuan?</p>
             <div class="hk-isi" id="hkTrenIsi"><div class="hk-kosong">⏳ Memuat…</div></div>
             <p class="hk-ket" id="hkTrenKet"></p>
           </figure>
         </div>
       </details>
-      <!-- HASIL-KEREN:PANEL END v2 -->
+      <!-- HASIL-KEREN:PANEL END v3 -->
 `;
 
-export const DATA = String.raw`// HASIL-KEREN:DATA BEGIN v2 — dipasang scripts/hasil-keren.mjs
+export const DATA = String.raw`// HASIL-KEREN:DATA BEGIN v3 — dipasang scripts/hasil-keren.mjs
 // Statistik Kelas tab Hasil: ikon bergerak + lima grafik agregat (SVG/HTML buatan sendiri, tanpa pustaka).
+// v3: kelas desain (kepala papan, pil, judul seksi, kartu tabel, status baris), fase ikon daftar, jeda per bagian.
 // Angka = aturan tabel Hasil + statistik Hadir/Absen (status yang sama); nama tidak pernah ditampilkan;
 // tidak menulis Firebase dan tidak berlangganan node baru. Satu-satunya akses Firebase: hkTrenBaca (G5) membaca
 // SEKALI node publik visitors + jadwal pertemuan lain kursus ini (cache, paling cepat 10 menit sekali dimuat ulang).
@@ -511,6 +625,8 @@ const HK = { mati: false, galat: 0, diam: false, aktif: false, masuk: true, masu
              timer: 0, tunggu: 0, raf: 0, lebar: 0, gambar: 0, beda: 0, angka: {}, baris: {}, lepas: {} };
 // Pengamat yang dibuat blok ini (diputus hkPulihkan) dan tanda tangan isi per kartu grafik.
 const HK_PENGAMAT = [];
+// Bagian yang diamati IntersectionObserver (hk-jeda = animasi siaga di dalamnya dijeda); dilepas hkPulihkan.
+const HK_BAGIAN = [];
 const HK_KARTU = {};
 const HK_SEGAR = {};
 const HK_STATUS = [['tepat', '✅', 'Tepat Waktu'], ['terlambat', '⏰', 'Terlambat'], ['belum', '⏳', 'Belum'], ['bolos', '❌', 'Bolos']];
@@ -545,6 +661,8 @@ function hkPulihkan() {
     const el = document.getElementById(id);
     if (el) el.classList.remove('hk-masuk', 'hk-jeda');
   }));
+  // hk-jeda juga dipasang pada bagian lain yang diamati (kisi papan/statistik tanpa id, kepala seksi, jadwal, banner).
+  HK_BAGIAN.forEach((b) => coba(() => b.classList.remove('hk-jeda')));
   coba(() => hkBarisTabel().forEach((r) => r.classList.remove('hk-baru')));
   coba(() => { const p = document.getElementById('hkPanel'); if (p) p.hidden = true; });
 }
@@ -595,36 +713,78 @@ function hkTandaiIkon(el, kelas) {
   el.setAttribute('aria-hidden', 'true');
 }
 function hkSpanPertama(el) { const a = el && el.firstElementChild; return (a && a.tagName === 'SPAN') ? a : null; }
+// Judul papan menjadi kepala berlencana (.hk-kepala): teks sesudah ikon dibungkus span bergradien (ikon tetap berwarna).
+function hkKepala(judul, sisa, kelasTeks) {
+  if (!judul || !sisa || sisa.parentNode !== judul) return;
+  const teks = document.createElement('span');
+  teks.className = kelasTeks;
+  judul.insertBefore(teks, sisa);
+  teks.appendChild(sisa);
+  judul.classList.add('hk-kepala');
+}
+// Hiasan ikon + kelas desain (v3). Hanya kelas/span/variabel CSS; teks, urutan, dan perilaku elemen asli tetap.
 function hkHiasIkon() {
   const id = (x) => document.getElementById(x);
   const pasang = (f) => { try { f(); } catch (e) { try { console.warn('[HasilKeren] ikon:', e); } catch (e2) { /* diam */ } } };
   pasang(() => hkBungkusIkon(id('tab-hasil'), 'hk-i-tab', false));
   pasang(() => {
     const h2 = hkCari(id('page-hasil'), (c) => c.tagName === 'H2' && String(c.textContent).trim() === 'Performa Mahasiswa');
-    if (h2) hkBungkusIkon(h2.previousElementSibling, 'hk-i-aktivitas', true);
+    if (!h2) return;
+    h2.classList.add('hk-judul-seksi');
+    const pil = h2.previousElementSibling;
+    hkBungkusIkon(pil, 'hk-i-aktivitas', true);
+    if (pil && pil.tagName === 'SPAN') pil.classList.add('hk-pil');
   });
   pasang(() => hkTandaiIkon(hkSpanPertama(id('scheduleInfo')), 'hk-i-kalender'));
   pasang(() => hkBungkusIkon(id('resetBtnHasil'), 'hk-i-hapus', true));
   pasang(() => hkTandaiIkon(hkSpanPertama(id('scheduleMissingDosen')), 'hk-i-peringatan'));
   pasang(() => hkBungkusIkon(hkCari(id('scheduleMissingDosen'), (c) => c.tagName === 'BUTTON'), 'hk-i-jam', true));
-  pasang(() => { const el = id('rajinList'); hkBungkusIkon(el && el.previousElementSibling, 'hk-i-trofi', false); });
-  pasang(() => { const el = id('santaiList'); hkBungkusIkon(el && el.previousElementSibling, 'hk-i-api', false); });
+  pasang(() => { const el = id('rajinList'); const j = el && el.previousElementSibling; hkKepala(j, hkBungkusIkon(j, 'hk-i-trofi', false), 'hk-kepala-teks'); });
+  pasang(() => { const el = id('santaiList'); const j = el && el.previousElementSibling; hkKepala(j, hkBungkusIkon(j, 'hk-i-api', false), 'hk-kepala-teks'); });
   pasang(() => {
     const el = id('aktifList');
     const judul = el && el.previousElementSibling;
     const sisa = hkBungkusIkon(judul, 'hk-i-tangan', false);
-    if (!sisa || !hkKelas(judul, 'ka-judul')) return;
     // .ka-judul bergradien lewat background-clip:text: gradien pindah ke span teks agar ikon tetap berwarna.
-    const teks = document.createElement('span');
-    teks.className = 'hk-ka-teks';
-    judul.insertBefore(teks, sisa);
-    teks.appendChild(sisa);
-    judul.classList.add('hk-ka-judul');
+    const ka = hkKelas(judul, 'ka-judul');
+    hkKepala(judul, sisa, ka ? 'hk-ka-teks' : 'hk-kepala-teks');
+    if (sisa && ka) judul.classList.add('hk-ka-judul');
   });
+  pasang(() => { const p = id('leaderboardPanel'); if (p && p.parentNode && p.parentNode.classList) p.parentNode.classList.add('hk-kartu-tabel'); });
   [['statTotalMhs', 'hk-i-mhs'], ['statHadir', 'hk-i-hadir'], ['statAbsen', 'hk-i-absen']].forEach((p) => pasang(() => {
     const el = id(p[0]);
     hkTandaiIkon(el && el.previousElementSibling, p[1]);
+    // Warna aksen kartu = warna angka asli kursus (mis. Matematika oranye); bawaan CSS bila tidak terbaca.
+    const w = /^rgba?\((\d+), ?(\d+), ?(\d+)/.exec(String((el && el.style && el.style.color) || ''));
+    const kartu = el && el.parentNode;
+    if (w && kartu && kartu.style && typeof kartu.style.setProperty === 'function') kartu.style.setProperty('--hk-a', w[1] + ',' + w[2] + ',' + w[3]);
   }));
+}
+// Ikon daftar papan yang ditulis ulang tiap render (🥇🥈🥉, 🔥 Keaktifan) melanjutkan fase jam dinding lewat --hk-fase
+// (hanya animasi siaga; periode = durasi CSS hkSiagaMedali/hkSiagaNyala), jadi tidak tersentak ke posisi awal.
+const HK_FASE = { rajinList: 4800, aktifList: 3400 };
+function hkFase(el, x) {
+  const periode = HK_FASE[x];
+  if (!el || !periode) return;
+  const ikon = [];
+  if (x === 'rajinList') {
+    for (let i = 0; i < el.children.length; i += 1) { const s = hkSpanPertama(el.children[i]); if (s) ikon.push(s); }
+  } else {
+    const kumpul = (n) => { for (let i = 0; i < n.children.length; i += 1) { const c = n.children[i]; if (hkKelas(c, 'ka-ikon')) ikon.push(c); else kumpul(c); } };
+    kumpul(el);
+  }
+  const kini = Date.now();
+  ikon.forEach((s, i) => { s.style.setProperty('--hk-fase', String(-(((kini - i * 400) % periode + periode) % periode)) + 'ms'); });
+}
+// Kelas status baris tabel (cahaya kiri saat hover) dari awal teks pil status; teks dan struktur tabel tidak diubah.
+const HK_ST_BARIS = [['✅', 'tepat'], ['⏰', 'terlambat'], ['⏳', 'belum'], ['❌', 'bolos']];
+function hkTandaiStatus() {
+  hkBarisTabel().forEach((r) => {
+    const s = hkCari(r, (c) => hkKelas(c, 'vt-status'));
+    const t = s ? String(s.textContent).trim() : '';
+    const k = HK_ST_BARIS.find((p) => t.indexOf(p[0]) === 0);
+    if (k && !hkKelas(r, 'hk-st-' + k[1])) r.classList.add('hk-st-' + k[1]);
+  });
 }
 // Angka bayangan statistik (hitung naik) tanpa merebut textContent milik kartu statistik asli:
 // pengamat dulu, lalu bayangan disisipkan, baru angka asli disembunyikan visual (hk-sr).
@@ -1366,7 +1526,9 @@ function hkGambar() {
       // Dibuat sesudah pengamat tabel milik blok keaktifan: lencana/sakelar sudah terpasang saat teks baris dibaca.
       const tbody = id('visitorTableBody');
       HK.baris = hkPetaBaris();
+      hkTandaiStatus();
       amati(tbody, { childList: true }, () => {
+        hkTandaiStatus();
         const peta = hkPetaBaris();
         if (HK.masukDaftar) hkKelasMasuk(tbody);
         else {
@@ -1387,12 +1549,8 @@ function hkGambar() {
         const el = id(x);
         amati(el, { childList: true }, () => {
           if (HK.masukDaftar) hkKelasMasuk(el);
-          else {
-            el.classList.remove('hk-masuk');
-            // 🥇 baru (papan ditulis ulang tiap render) melanjutkan fase jam dinding, tidak tersentak ke posisi diam.
-            const medali = x === 'rajinList' ? hkSpanPertama(el.firstElementChild) : null;
-            if (medali) medali.style.animationDelay = (-(Date.now() % 2800)) + 'ms';
-          }
+          else el.classList.remove('hk-masuk');
+          hkFase(el, x);
           if (x === 'aktifList') hkJadwalkan(false);
         });
       });
@@ -1412,13 +1570,20 @@ function hkGambar() {
       HK_PENGAMAT.push(ro);
     }
     if (typeof IntersectionObserver === 'function') {
+      // Animasi siaga dijeda per bagian yang di luar layar: kisi papan (🏆/🔥/🙋 + daftar), kisi statistik (👥/✅/❌)
+      // dan panel grafik, juga kepala seksi (pil 👥 + judul), kartu jadwal (📅) dan banner dosen (⚠️/🕐) di atas papan.
+      // hk-jeda dipasang pada bagian yang diamati itu sendiri, bukan pada #leaderboardPanel (yang juga memuat
+      // #hkPanel, jadi selalu "terlihat" selama grafik dibaca). Tanpa IntersectionObserver: tetap jalan.
       const papan = id('leaderboardPanel');
-      // Yang diamati kisi papan (🏆/🔥/🙋) saja: #hkPanel juga anak #leaderboardPanel, jadi seluruh papan tetap
-      // "terlihat" selama grafik dibaca walau 🔥 dan 🥇 sudah jauh di atas layar.
-      const kisi = papan && papan.firstElementChild;
-      if (kisi && kisi.id !== 'hkPanel') {
-        const io = new IntersectionObserver(hkAman((isi) => { isi.forEach((e) => papan.classList.toggle('hk-jeda', !e.isIntersecting)); }));
-        io.observe(kisi);
+      const seksi = hkCari(halaman, (c) => hkKelas(c, 'hk-judul-seksi'));
+      let kepala = seksi && seksi.parentNode !== halaman ? seksi.parentNode : null;
+      // Kepala seksi yang ternyata memuat papan (markup lain) tidak diamati: hk-jeda-nya akan menjeda papan yang terlihat.
+      for (let p = papan; p && kepala; p = p.parentNode) if (p === kepala) kepala = null;
+      [papan && papan.children[0], papan && papan.children[1], panel, kepala, id('scheduleInfo'), id('scheduleMissingDosen')]
+        .forEach((b) => { if (b && b.classList && HK_BAGIAN.indexOf(b) < 0) HK_BAGIAN.push(b); });
+      if (HK_BAGIAN.length) {
+        const io = new IntersectionObserver(hkAman((isi) => { isi.forEach((e) => { if (e.target && e.target.classList) e.target.classList.toggle('hk-jeda', !e.isIntersecting); }); }));
+        HK_BAGIAN.forEach((b) => io.observe(b));
         HK_PENGAMAT.push(io);
       }
     }
@@ -1429,7 +1594,7 @@ function hkGambar() {
     try { console.warn('[HasilKeren] dimatikan:', e); hkPulihkan(); } catch (e2) { /* diam */ }
   }
 })();
-// HASIL-KEREN:DATA END v2
+// HASIL-KEREN:DATA END v3
 `;
 
 export const RX_CSS = /<style id="hasil-keren-style">\/\* HASIL-KEREN:CSS v\d+[\s\S]*?<\/style>\n/;
@@ -1440,7 +1605,7 @@ const ANKER_DATA = /\/\/ FORUM-POIN:DATA END v\d+\n/;
 // Toleran versi KEAKTIFAN-KELAS (v5+; 13 Okt 2026): blok ini membaca _visitorsMentah/_keaktifanTotal
 // (dijaga DEPENDENSI_SKRIP), bukan tampilan papan, jadi DATA v6 (pil bonus pertemuan ini) tidak mengubahnya.
 const RX_KEAKTIFAN_FORUM = /\/\/ KEAKTIFAN-KELAS:DATA END v\d+\n\/\/ FORUM-POIN:DATA BEGIN v4/g;
-const FORUM_HK = "// FORUM-POIN:DATA END v4\n// HASIL-KEREN:DATA BEGIN v2";
+const FORUM_HK = "// FORUM-POIN:DATA END v4\n// HASIL-KEREN:DATA BEGIN v3";
 export const DEPENDENSI = [
   "let latestVisitors=[];", "function renderVisitors(visitors){", "// SAMAKAN-ABSEN-HASIL BEGIN v2", "const KEAKTIFAN_KURSUS = '",
   "let masterFetchDone", "let _visitorsDiterima = false;", "const _auth = getAuth(app);",
@@ -1450,8 +1615,8 @@ export const DEPENDENSI = [
 const DEPENDENSI_SKRIP = ["let latestVisitors=[];", "function renderVisitors(visitors){", "function isLate(", "let currentSchedule",
   "let masterStudents", "let _visitorsMentah = [];", "const MODULE_ID = ", "const DB_PATH = `", "const db = getDatabase(app);", "const isSimulasiNim = ",
   "function _keaktifanTotal("];
-export const PENANDA = ["HASIL-KEREN:CSS v2", "HASIL-KEREN:PANEL BEGIN v2", "HASIL-KEREN:PANEL END v2", "HASIL-KEREN:DATA BEGIN v2",
-  "HASIL-KEREN:DATA END v2", "HASIL-KEREN:MURNI BEGIN", "HASIL-KEREN:MURNI END", 'id="hkPanel"'];
+export const PENANDA = ["HASIL-KEREN:CSS v3", "HASIL-KEREN:PANEL BEGIN v3", "HASIL-KEREN:PANEL END v3", "HASIL-KEREN:DATA BEGIN v3",
+  "HASIL-KEREN:DATA END v3", "HASIL-KEREN:MURNI BEGIN", "HASIL-KEREN:MURNI END", 'id="hkPanel"'];
 // Isi blok identik di setiap halaman: tanpa literal kursus/nomor modul (generator TTL/CAD mengganti token itu
 // dan melaporkan sisa "Modul 1 "/"Pertemuan 1 "), tanpa token yang dihitung validator lain, tanpa penanda
 // penyuntik lain, dan (DATA) tanpa sintaks lebih baru dari skrip modul (\p{}, lookbehind/named group, ?., ??, ||=, &&=, 1_000, .#privat, static {}).
