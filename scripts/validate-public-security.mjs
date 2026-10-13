@@ -66,10 +66,11 @@ function periksaBobotUjian(html, relative) {
 
 // Keaktifan di kelas (scripts/keaktifan-kelas.mjs, 13 Okt 2026): percobaan CAD Modul 1 lalu diterapkan
 // ke SEMUA halaman modul. Setiap halaman modul wajib memuat blok lengkap dengan kunci kursus RTDB yang
-// sama dengan DB_PATH-nya; fungsi murni penerapan bonus diuji di sandbox.
+// sama dengan DB_PATH-nya; fungsi murni penerapan bonus diuji di sandbox. DATA v6 / CSS v4 (opsi 1
+// dosen, 13 Okt 2026): pil papan = bonus pertemuan INI saja — diuji lewat ujiKartuKeaktifan.
 function periksaKeaktifanKelas(html, relative) {
   const hit = (t) => html.split(t).length - 1;
-  for (const t of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v5", 'id="aktifList"', 'id="baris-keaktifan"', "const _bonusAktif =", 'data-nim="${escH(String(s.nim))}"']) {
+  for (const t of ["KEAKTIFAN-KELAS:CSS v4", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v6", "// KEAKTIFAN-KELAS:DATA END v6\n", ".kartu-aktif .ka-jumlah.ka-nol{", 'id="aktifList"', 'id="baris-keaktifan"', "const _bonusAktif =", 'data-nim="${escH(String(s.nim))}"']) {
     if (hit(t) !== 1) throw new Error(`${relative}: penanda keaktifan ${t} muncul ${hit(t)}x, harusnya 1; run node scripts/keaktifan-kelas.mjs`);
   }
   if (hit("🔥 Keaktifan kelas: <strong>+") > 1) throw new Error(`${relative}: baris keaktifan di ringkasan ekspor muncul lebih dari sekali`);
@@ -106,6 +107,67 @@ function periksaKeaktifanKelas(html, relative) {
   if (tiga[0].points !== 48 || !tiga.find((v) => v.nim === "3" && v.points === 5)) salah.push("batas 48: 46+5 harus 48, dicentang tanpa kunjungan 5");
   if (terapkan([{ nim: "1", role: "student", points: 48 }], { mhs_1: { aktif: true, waktu: W } }, roster, 50, () => false, null)[0].points !== 50) salah.push("batas null harus = total");
   if (salah.length) throw new Error(`${relative}: keaktifanTerapkanMurni salah: ${salah.join("; ")}`);
+  ujiKartuKeaktifan(html, relative);
+}
+
+// Papan "Keaktifan di Kelas" (KEAKTIFAN-KELAS:DATA v6, opsi 1 dosen 13 Okt 2026): _keaktifanKartu
+// halaman dijalankan dengan DOM tiruan. Daftar = semua mahasiswa roster yang pernah dicentang di
+// kursus (tanpa akun simulasi / NIM luar roster), urut nama; pil = bonus pertemuan INI saja
+// ("+5 Poin" bila dicentang di pertemuan ini, "—" redup bila tidak — bukan total sekursus);
+// jumlah pertemuan aktif sekursus + totalnya ada di tooltip; kaki papan tidak menyiratkan pil = total.
+function ujiKartuKeaktifan(html, relative) {
+  const potong = (kepala, akhir) => {
+    const a = html.indexOf(kepala);
+    const z = a < 0 ? -1 : html.indexOf(akhir, a);
+    if (a < 0 || z < 0 || html.indexOf(kepala, a + 1) >= 0) throw new Error(`${relative}: ${kepala} tidak ditemukan tepat sekali (KEAKTIFAN-KELAS:DATA v6); run node scripts/keaktifan-kelas.mjs`);
+    return html.slice(a, z + akhir.length);
+  };
+  const sumber = potong("function _keaktifanFmt(n) {", "\n") + potong("function _keaktifanAktif(nim) {", "\n") + potong("function _keaktifanKartu() {", "\n}\n");
+  const W = "2026-10-13T12:40:00.000Z";
+  const kursusNode = {
+    "pertemuan-1": { mhs_2: { aktif: true, waktu: W }, mhs_3: { aktif: true, waktu: W }, mhs_41399999901: { aktif: true, waktu: W }, mhs_9: { aktif: true, waktu: W } },
+    "pertemuan-2": { mhs_2: { aktif: true, waktu: W }, mhs_1: { aktif: false, waktu: W } },
+    "pertemuan-3": { mhs_3: { aktif: true, waktu: W }, mhs_4: { aktif: true, waktu: W }, mhs_41399999901: { aktif: true, waktu: W }, mhs_1: { aktif: false, waktu: W } },
+  };
+  const roster = [{ nim: "1", nama: "Ani" }, { nim: "2", nama: "Budi" }, { nim: "3", nama: "Citra" }, { nim: "4", nama: "Agus" }, { nim: "41399999901", nama: "Simulasi" }];
+  const papan = (modulId) => {
+    const el = { innerHTML: "" };
+    const doc = { getElementById: (x) => (x === "aktifList" ? el : null) };
+    const esc = (x) => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    new Function("document", "masterStudents", "_keaktifanKursus", "_keaktifanModul", "isSimulasiNim", "escH", "_keaktifanTotal", "KEAKTIFAN_BONUS_FRAKSI",
+      sumber + "return _keaktifanKartu;")(doc, roster, kursusNode, kursusNode[modulId] || {}, (n) => String(n) === "41399999901", esc, () => 50, 0.1)();
+    const [daftar, kaki] = el.innerHTML.split('<div class="ka-kaki">');
+    const baris = daftar.split('<div class="ka-baris">').slice(1).map((b) => {
+      const pil = (b.match(/<span class="ka-jumlah[^"]*"[\s\S]*$/) || [""])[0];
+      return {
+        nama: (b.match(/text-overflow:ellipsis;">([^<]*)</) || [])[1],
+        kelas: (pil.match(/^<span class="([^"]*)"/) || [])[1],
+        judul: (pil.match(/ title="([^"]*)"/) || [])[1] || "",
+        tampak: pil.replace(/<span class="ka-sr">[\s\S]*?<\/span>/g, "").replace(/<[^>]*>/g, "").trim(),
+      };
+    });
+    return { baris, kaki: kaki || "" };
+  };
+  const salah = [];
+  const p3 = papan("pertemuan-3");
+  if (p3.baris.map((b) => b.nama).join(",") !== "Agus,Budi,Citra") salah.push(`daftar harus Agus,Budi,Citra (urut nama, tanpa simulasi/NIM luar roster/yang tidak pernah dicentang), dapat ${p3.baris.map((b) => b.nama).join(",")}`);
+  const harap = { Agus: [true, 1], Budi: [false, 2], Citra: [true, 2] };
+  for (const b of p3.baris) {
+    const h = harap[b.nama];
+    if (!h) continue;
+    const [aktif, n] = h;
+    if (aktif && (b.tampak !== "+5 Poin" || b.kelas !== "ka-jumlah")) salah.push(`${b.nama} aktif di pertemuan ini: pil harus "+5 Poin" (dapat "${b.tampak}", kelas ${b.kelas})`);
+    if (!aktif && (b.tampak !== "—" || b.kelas !== "ka-jumlah ka-nol")) salah.push(`${b.nama} tidak aktif di pertemuan ini: pil harus "—" redup (dapat "${b.tampak}", kelas ${b.kelas})`);
+    if (!b.judul.includes(`Aktif di ${n} pertemuan kursus ini (total +${n * 5} poin)`)) salah.push(`${b.nama}: tooltip harus memuat jumlah pertemuan aktif sekursus (${n}) dan totalnya (dapat "${b.judul}")`);
+  }
+  if (!/^<b[^>]*>3<\/b> mahasiswa aktif/.test(p3.kaki) || !/pertemuan ini: <b[^>]*>2<\/b>/.test(p3.kaki)) salah.push("kaki papan harus menyebut 3 mahasiswa aktif dan pertemuan ini: 2 (tanpa akun simulasi)");
+  if (!p3.kaki.includes("pil = bonus pertemuan ini")) salah.push('kaki papan harus menjelaskan "pil = bonus pertemuan ini"');
+  // Pertemuan tanpa centang: semua pil "—"; pertemuan 2: hanya Budi "+5 Poin".
+  const p4 = papan("pertemuan-4");
+  if (p4.baris.length !== 3 || p4.baris.some((b) => b.tampak !== "—") || !/pertemuan ini: <b[^>]*>0<\/b>/.test(p4.kaki)) salah.push("pertemuan tanpa centang: semua pil harus \"—\" dan pertemuan ini: 0");
+  const p2 = papan("pertemuan-2");
+  if (p2.baris.map((b) => b.nama + "=" + b.tampak).join(",") !== "Agus=—,Budi=+5 Poin,Citra=—") salah.push(`pertemuan 2: pil harus Agus=—,Budi=+5 Poin,Citra=— (dapat ${p2.baris.map((b) => b.nama + "=" + b.tampak).join(",")})`);
+  if (salah.length) throw new Error(`${relative}: papan Keaktifan di Kelas (pil bonus pertemuan ini) salah: ${salah.join("; ")}; run node scripts/keaktifan-kelas.mjs`);
 }
 
 // Forum 2 poin (scripts/forum-poin.mjs, kontrak dosen 13 Okt 2026): modul yang dibuka sejak
@@ -138,7 +200,10 @@ function periksaForumPoin(html, relative) {
   // v4: batas per kursus (Pemodelan CAD mulai Pertemuan 5, sama dengan backend FORUM_POIN_MULAI_KURSUS).
   const mulaiHarus = FORUM_POIN_MULAI_KURSUS[kursus] || "2026-10-15T00:00:00+07:00";
   if (hit(`const FORUM_POIN_MULAI = '${mulaiHarus}';`) !== 1) throw new Error(`${relative}: FORUM_POIN_MULAI harus ${mulaiHarus} untuk ${kursus}${saran}`);
-  if (hit("// KEAKTIFAN-KELAS:DATA END v5\n// FORUM-POIN:DATA BEGIN v4") !== 1) throw new Error(`${relative}: blok FORUM-POIN:DATA harus tepat sesudah KEAKTIFAN-KELAS:DATA v5${saran}`);
+  // Jangkar toleran versi KEAKTIFAN-KELAS (v5+; versinya sendiri diwajibkan periksaKeaktifanKelas):
+  // blok forum hanya butuh keaktifanTerapkanMurni(…, batas) dan _keaktifanHitung -> window._forumPipa.
+  if ((html.match(/\/\/ KEAKTIFAN-KELAS:DATA END v\d+\n\/\/ FORUM-POIN:DATA BEGIN v4/g) || []).length !== 1) throw new Error(`${relative}: blok FORUM-POIN:DATA harus tepat sesudah KEAKTIFAN-KELAS:DATA END${saran}`);
+  if (hit("function _keaktifanHitung() {\n  if (typeof window._forumPipa === 'function') {") !== 1) throw new Error(`${relative}: _keaktifanHitung harus memakai window._forumPipa (KEAKTIFAN-KELAS:DATA v5+)${saran}`);
   const aData = html.indexOf("// FORUM-POIN:DATA BEGIN v4"), zData = html.indexOf("// FORUM-POIN:DATA END v4");
   const data = html.slice(aData, zData);
   // v2+: aturan tidak lagi dari currentSchedule yang dinormalisasi halaman (jadwal mentah + kunjungan).

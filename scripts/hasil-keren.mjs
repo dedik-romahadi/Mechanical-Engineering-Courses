@@ -1238,7 +1238,9 @@ export const RX_PANEL = / {6}<!-- HASIL-KEREN:PANEL BEGIN v\d+[^\n]*\n[\s\S]*? {
 export const RX_DATA = /\/\/ HASIL-KEREN:DATA BEGIN v\d+[^\n]*\n[\s\S]*?\/\/ HASIL-KEREN:DATA END v\d+\n/;
 const ANKER_PANEL = /(Jumlah Absen<\/div>\n {8}<\/div>\n {6}<\/div>\n)( {4}<\/div>\n {4}<div style="display:flex;padding:14px 24px;)/;
 const ANKER_DATA = /\/\/ FORUM-POIN:DATA END v\d+\n/;
-const KEAKTIFAN_FORUM = "// KEAKTIFAN-KELAS:DATA END v5\n// FORUM-POIN:DATA BEGIN v4";
+// Toleran versi KEAKTIFAN-KELAS (v5+; 13 Okt 2026): blok ini membaca _keaktifanKursus/_keaktifanTotal
+// (dijaga DEPENDENSI_SKRIP), bukan tampilan papan, jadi DATA v6 (pil bonus pertemuan ini) tidak mengubahnya.
+const RX_KEAKTIFAN_FORUM = /\/\/ KEAKTIFAN-KELAS:DATA END v\d+\n\/\/ FORUM-POIN:DATA BEGIN v4/g;
 const FORUM_HK = "// FORUM-POIN:DATA END v4\n// HASIL-KEREN:DATA BEGIN v1";
 export const DEPENDENSI = [
   "let latestVisitors=[];", "function renderVisitors(visitors){", "// SAMAKAN-ABSEN-HASIL BEGIN v2", "const KEAKTIFAN_KURSUS = '",
@@ -1352,7 +1354,7 @@ function pasangSekali(html, rel) {
   // 4. Pascasyarat.
   for (const t of PENANDA) if (hitung(h, t) !== 1) throw new Error(`penanda ${t} muncul ${hitung(h, t)}x, harusnya 1`);
   if ((h.match(/updateLeaderboard\(/g) || []).length !== 2) throw new Error("updateLeaderboard( harus tepat 2x");
-  if (hitung(h, KEAKTIFAN_FORUM) !== 1) throw new Error("pasangan KEAKTIFAN-KELAS END v5 / FORUM-POIN BEGIN v4 harus berdampingan tepat sekali");
+  if (hitungRx(h, RX_KEAKTIFAN_FORUM) !== 1) throw new Error("pasangan KEAKTIFAN-KELAS END v5+ / FORUM-POIN BEGIN v4 harus berdampingan tepat sekali");
   if (hitung(h, FORUM_HK) !== 1) throw new Error("blok HASIL-KEREN:DATA harus tepat sesudah FORUM-POIN:DATA END v4");
   return h;
 }
