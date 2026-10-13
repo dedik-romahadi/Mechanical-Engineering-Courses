@@ -117,10 +117,13 @@ function periksaKeaktifanKelas(html, relative) {
 // pra-buka, tanaman klien tanpa auth) — tetap aturan lama (cermin _adaPengerjaanSebelumForum); alasan
 // klaim 'dicabut' ditampilkan dan di-cache seperti 'kurang' (ujiRuntimeForumPoin).
 const FORUM_POIN_PENANDA = [["FORUM-POIN:CSS v1", 1], ['data-forum-poin="panel v1"', 1], ['data-forum-poin="baris v1"', 1], ["FORUM-POIN:SKOR v1", 1],
-  ["FORUM-POIN:DATA BEGIN v3", 1], ["FORUM-POIN:DATA END v3", 1], ["window._forumRingkasEkspor(", 1], ['id="forumPoinStatus"', 1], ['id="baris-forum"', 1], ['id="scoreForum"', 1],
-  ["const FORUM_POIN_MULAI = '2026-10-15T00:00:00+07:00';", 1], ["const FORUM_POIN = 2;", 1], ["httpsCallable(_functions, 'klaimPoinForum')", 1],
+  ["FORUM-POIN:DATA BEGIN v4", 1], ["FORUM-POIN:DATA END v4", 1], ["window._forumRingkasEkspor(", 1], ['id="forumPoinStatus"', 1], ['id="baris-forum"', 1], ['id="scoreForum"', 1],
+  ["const FORUM_POIN = 2;", 1], ["httpsCallable(_functions, 'klaimPoinForum')", 1],
   ["onValue(ref(db, 'forum/' + FORUM_KURSUS + '/' + MODULE_ID)", 1], ["onValue(ref(db, SCHEDULE_PATH), (snap) => {\n  const v = snap.val();\n  _forumJadwalMentah", 1],
   ["onValue(ref(db, DB_PATH), (snap) => {\n  _forumPengerjaanLama = forumPengerjaanLamaMurni(snap.val(), isSimulasiNim);", 1]];
+// Batas khusus per kursus (identik backend functions/index.js FORUM_POIN_MULAI_KURSUS).
+const FORUM_POIN_MULAI_KURSUS = { pemodelan_cad: "2026-10-12T12:00:00+07:00" };
+const FORUM_POIN_MULAI_BAWAAN_BARIS = "const FORUM_POIN_MULAI = '2026-10-15T00:00:00+07:00';";
 let forumPoinHalaman = 0;
 let forumPoinContoh = null;
 function periksaForumPoin(html, relative) {
@@ -131,13 +134,16 @@ function periksaForumPoin(html, relative) {
   let kursus = db ? db[1] : null;
   if (kursus === "${COURSE_ID}") kursus = (html.match(/const COURSE_ID\s*=\s*['"]([a-z0-9_]+)['"]/) || [])[1] || null;
   if (!kursus || hit(`const FORUM_KURSUS = '${kursus}';`) !== 1) throw new Error(`${relative}: FORUM_KURSUS harus sama dengan kursus DB_PATH (${kursus})${saran}`);
-  if (hit("// KEAKTIFAN-KELAS:DATA END v5\n// FORUM-POIN:DATA BEGIN v3") !== 1) throw new Error(`${relative}: blok FORUM-POIN:DATA harus tepat sesudah KEAKTIFAN-KELAS:DATA v5${saran}`);
-  const aData = html.indexOf("// FORUM-POIN:DATA BEGIN v3"), zData = html.indexOf("// FORUM-POIN:DATA END v3");
+  // v4: batas per kursus (Pemodelan CAD mulai Pertemuan 5, sama dengan backend FORUM_POIN_MULAI_KURSUS).
+  const mulaiHarus = FORUM_POIN_MULAI_KURSUS[kursus] || "2026-10-15T00:00:00+07:00";
+  if (hit(`const FORUM_POIN_MULAI = '${mulaiHarus}';`) !== 1) throw new Error(`${relative}: FORUM_POIN_MULAI harus ${mulaiHarus} untuk ${kursus}${saran}`);
+  if (hit("// KEAKTIFAN-KELAS:DATA END v5\n// FORUM-POIN:DATA BEGIN v4") !== 1) throw new Error(`${relative}: blok FORUM-POIN:DATA harus tepat sesudah KEAKTIFAN-KELAS:DATA v5${saran}`);
+  const aData = html.indexOf("// FORUM-POIN:DATA BEGIN v4"), zData = html.indexOf("// FORUM-POIN:DATA END v4");
   const data = html.slice(aData, zData);
   // v2+: aturan tidak lagi dari currentSchedule yang dinormalisasi halaman (jadwal mentah + kunjungan).
-  if (data.includes("currentSchedule")) throw new Error(`${relative}: blok FORUM-POIN:DATA v3 tidak boleh membaca currentSchedule (aturan dari jadwal mentah + kunjungan)${saran}`);
+  if (data.includes("currentSchedule")) throw new Error(`${relative}: blok FORUM-POIN:DATA v4 tidak boleh membaca currentSchedule (aturan dari jadwal mentah + kunjungan)${saran}`);
   for (const t of ["h.alasan === 'dicabut'", "Poin forum dicabut dosen — perbaiki/ubah jawaban forum lalu simpan untuk dinilai ulang", "st.hasil.alasan === 'kurang' || st.hasil.alasan === 'dicabut'", "bagian.push(_forumAlasanEkspor());"]) {
-    if (!data.includes(t)) throw new Error(`${relative}: blok FORUM-POIN:DATA v3 tidak memuat ${t} (alasan 'dicabut')${saran}`);
+    if (!data.includes(t)) throw new Error(`${relative}: blok FORUM-POIN:DATA v4 tidak memuat ${t} (alasan 'dicabut')${saran}`);
   }
   for (const t of ["window.addEventListener('progres-modul:diterapkan'", "window.addEventListener('progres-modul:forum-tersimpan'"]) {
     if (data.split(t).length !== 2) throw new Error(`${relative}: blok FORUM-POIN:DATA harus mendengarkan ${t} tepat sekali (klaim sesudah progres diterapkan / forum tersimpan)${saran}`);
@@ -153,7 +159,14 @@ function periksaForumPoin(html, relative) {
   // Fungsi murni: dari FORUM_POIN_MULAI sampai sebelum keadaan runtime.
   const aMurni = data.indexOf("const FORUM_POIN_MULAI = "), zMurni = data.indexOf("let _forumModul = {};");
   if (aMurni < 0 || zMurni < aMurni) throw new Error(`${relative}: fungsi murni FORUM-POIN tidak ditemukan${saran}`);
-  const f = new Function(data.slice(aMurni, zMurni) + "return { forumAturanBaruMurni, forumBukaMsMurni, forumPengerjaanLamaMurni, forumPoinRekMurni, forumSkorMurni, forumTerapkanMurni };")();
+  const f = new Function(data.slice(aMurni, zMurni).replace(/const FORUM_POIN_MULAI = '[^']+';/, FORUM_POIN_MULAI_BAWAAN_BARIS) + "return { forumAturanBaruMurni, forumBukaMsMurni, forumPengerjaanLamaMurni, forumPoinRekMurni, forumSkorMurni, forumTerapkanMurni };")();
+  if (FORUM_POIN_MULAI_KURSUS[kursus]) {
+    // Batas kursus sendiri: jadwal CAD P5 (buka 12 Okt 23:59 WIB) baru, P4 (5 Okt) lama.
+    const fk = new Function(data.slice(aMurni, zMurni) + "return forumAturanBaruMurni;")();
+    if (fk({ due: "2026-10-19T23:59", duration: 7, start: "2026-10-12T16:59:00.000Z" }, false) !== true || fk({ due: "2026-10-12T23:59", duration: 7, start: "2026-10-05T16:59:00.000Z" }, false) !== false) {
+      throw new Error(`${relative}: batas forum kursus ${kursus} tidak berlaku (P5 baru, P4 lama)${saran}`);
+    }
+  }
   const kepala = "function keaktifanTerapkanMurni(list, modul, roster, total, isSim, batas) {";
   const iK = html.indexOf(kepala);
   const aktifMurni = new Function("KEAKTIFAN_BONUS_FRAKSI", html.slice(iK, html.indexOf("\n}\n", iK) + 3) + "return keaktifanTerapkanMurni;")(0.1);
@@ -282,7 +295,7 @@ function periksaForumPoin(html, relative) {
 }
 
 /**
- * Uji perilaku runtime blok FORUM-POIN:DATA v3 (satu halaman; blok DATA identik di 84 halaman kecuali
+ * Uji perilaku runtime blok FORUM-POIN:DATA v4 (satu halaman; blok DATA identik di 84 halaman kecuali
  * FORUM_KURSUS, dijaga penanda di atas) di sandbox node:vm dengan DOM/Firebase tiruan:
  *   - aturan dari jadwal MENTAH + data kunjungan mentah (belum diterima / ada pengerjaan lama -> lama;
  *     hanya simulasi/dosen lama atau login lama tanpa pengerjaan -> baru; jadwal due-duration
@@ -294,7 +307,7 @@ function periksaForumPoin(html, relative) {
 async function ujiRuntimeForumPoin() {
   if (!forumPoinContoh) throw new Error("ujiRuntimeForumPoin: tidak ada halaman contoh");
   const { html, relative } = forumPoinContoh;
-  const data = html.slice(html.indexOf("// FORUM-POIN:DATA BEGIN v3"), html.indexOf("// FORUM-POIN:DATA END v3"));
+  const data = html.slice(html.indexOf("// FORUM-POIN:DATA BEGIN v4"), html.indexOf("// FORUM-POIN:DATA END v4")).replace(/const FORUM_POIN_MULAI = '[^']+';/, FORUM_POIN_MULAI_BAWAAN_BARIS);
   const iK = html.indexOf("function keaktifanTerapkanMurni(");
   const keaktifan = html.slice(iK, html.indexOf("\n}\n", iK) + 3);
   const JALUR = { forum: "forum/k/pertemuan-3", jadwal: "settings/k/pertemuan-3/schedule", kunjungan: "visitors/k/pertemuan-3" };
@@ -326,7 +339,7 @@ async function ujiRuntimeForumPoin() {
     vm.runInContext(keaktifan + "\n" + data, sb);
     const kirim = (t, detail) => (pendengar[t] || []).forEach((fn) => fn({ detail }));
     const tunggu = async () => { for (let i = 0; i < 6; i++) { await new Promise((r) => setImmediate(r)); while (sb.__antre.length) sb.__antre.shift()(); } };
-    const snap = (jalur, v) => { if (!dengar[jalur]) throw new Error(`${relative}: blok FORUM-POIN:DATA v3 tidak berlangganan ${jalur}`); dengar[jalur]({ val: () => v }); };
+    const snap = (jalur, v) => { if (!dengar[jalur]) throw new Error(`${relative}: blok FORUM-POIN:DATA v4 tidak berlangganan ${jalur}`); dengar[jalur]({ val: () => v }); };
     return { sb, el, log, kirim, tunggu, snap };
   }
   const salah = [];

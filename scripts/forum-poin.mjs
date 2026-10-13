@@ -4,7 +4,9 @@
  * ATURAN. Berlaku per modul (amandemen v3, 13 Okt 2026; identik backend _aturanForumUntuk):
  * aktif HANYA bila
  *   (1) jadwal mentah settings/<kursus>/<pertemuan>/schedule ada dan waktu bukanya >= FORUM_POIN_MULAI
- *       (2026-10-15T00:00:00+07:00). Waktu buka = forumBukaMsMurni(jadwal), cermin backend
+ *       (2026-10-15T00:00:00+07:00; batas khusus per kursus di MULAI_KURSUS — Pemodelan CAD mulai
+ *       Pertemuan 5, 2026-10-12T12:00:00+07:00, permintaan dosen 13 Okt 2026; identik backend
+ *       FORUM_POIN_MULAI_KURSUS). Waktu buka = forumBukaMsMurni(jadwal), cermin backend
  *       _moduleOpenMs (= evalSchedule mode modul = _normalizeModuleScheduleWib halaman): `start`
  *       wajib string; due (WIB "YYYY-MM-DDTHH:MM") - duration hari bila keduanya sah, selain itu
  *       `start`; DAN
@@ -43,7 +45,7 @@
  *   FORUM-POIN:SKOR   updateScore: total = window._forumSkorSaya(...) bila aturan baru aktif,
  *                     selain itu rumus lama apa adanya
  *   FORUM-POIN:EKSPOR ringkasan Export HTML: "Forum diskusi x/2" (aturan baru saja)
- *   FORUM-POIN:DATA   (v3) skrip modul sesudah blok KEAKTIFAN-KELAS:DATA (v5): langganan publik
+ *   FORUM-POIN:DATA   (v4) skrip modul sesudah blok KEAKTIFAN-KELAS:DATA (v5): langganan publik
  *                     forum/<kursus>/<MODULE_ID>, fungsi murni forumTerapkanMurni (tabel Hasil,
  *                     Top Skor, statistik lewat window._forumPipa -> _keaktifanHitung),
  *                     forumSkorMurni (bilah skor), klaim klaimPoinForum sesudah progres server
@@ -53,6 +55,7 @@
  *                     SCHEDULE_PATH dan DB_PATH); alasan klaim 'dicabut' (cabutPoinForum) tampil
  *                     di panel Forum dan di-cache seperti 'kurang' (klaim ulang hanya bila teks
  *                     tersimpan berubah / event forum-tersimpan); gerbang Export menyebut alasannya.
+ *                     v4: FORUM_POIN_MULAI per kursus (MULAI_KURSUS; CAD mulai Pertemuan 5).
  *                     v3: penguncian aturan lama dari bukti PENGERJAAN tulisan server (poinPertama /
  *                     pointTimestamp ISO berzona), bukan `timestamp` kunjungan — identik backend.
  *
@@ -81,7 +84,12 @@ const CSS = `<style id="forum-poin-style">/* FORUM-POIN:CSS v1 — dipasang scri
 `;
 
 const PANEL = (ind) => `\n${ind}<div id="forumPoinStatus" class="forum-poin-status" data-forum-poin="panel v1" style="display:none" aria-live="polite"></div>`;
-const BARIS = (ind) => `\n${ind}<div id="baris-forum" data-forum-poin="baris v1" style="display:none" title="Modul yang dibuka sejak 15 Okt 2026: nilai tugas diskalakan ×48/50, forum diskusi 2 poin">Forum diskusi: <span id="scoreForum" style="color:#34d399">0</span>/2 poin</div>`;
+// Batas mulai aturan forum per kursus (slug RTDB); kursus lain FORUM_POIN_MULAI bawaan.
+const MULAI_BAWAAN = "2026-10-15T00:00:00+07:00";
+const MULAI_KURSUS = { pemodelan_cad: "2026-10-12T12:00:00+07:00" };
+const MULAI_TEKS = { pemodelan_cad: "Pertemuan 5 (12 Okt 2026)" };
+const mulaiKursus = (k) => MULAI_KURSUS[k] || MULAI_BAWAAN;
+const BARIS = (ind, kursus) => `\n${ind}<div id="baris-forum" data-forum-poin="baris v1" style="display:none" title="Modul yang dibuka sejak ${MULAI_TEKS[kursus] || "15 Okt 2026"}: nilai tugas diskalakan ×48/50, forum diskusi 2 poin">Forum diskusi: <span id="scoreForum" style="color:#34d399">0</span>/2 poin</div>`;
 const EKSPOR_MINI = "${(typeof window._forumRingkasEkspor === 'function') ? window._forumRingkasEkspor('mini') : ''}";
 const EKSPOR_TEKS = "${(typeof window._forumRingkasEkspor === 'function') ? window._forumRingkasEkspor('teks') : ''}";
 // Sisipan ringkasan ekspor keaktifan (scripts/keaktifan-kelas.mjs) — 82 halaman.
@@ -94,7 +102,7 @@ const SKOR = (ind, mentah, asli) => `\n${ind}// FORUM-POIN:SKOR v1 — aturan fo
 const RX_TOTAL = /\n([ \t]*)const total = (Math\.min\((mc \+ \w+ \+ \w+) \+ _bonusAktif, [^\n]*\));\n/g;
 const RX_SKOR_BLOK = /\n([ \t]*)\/\/ FORUM-POIN:SKOR v\d+[^\n]*\n[ \t]*const _forumTotal = [^\n]*\n[ \t]*const total = _forumTotal !== null \? _forumTotal : ([^\n]*);\n/g;
 
-const DATA = (kursus) => `// FORUM-POIN:DATA BEGIN v3 — dipasang scripts/forum-poin.mjs
+const DATA = (kursus) => `// FORUM-POIN:DATA BEGIN v4 — dipasang scripts/forum-poin.mjs
 // Aturan "forum 2 poin" (kontrak dosen 13 Okt 2026) untuk modul yang dibuka sejak FORUM_POIN_MULAI:
 // tugas diskalakan x(total-2)/total, bonus keaktifan dibatasi total-2, forum diskusi = 2 x pengali
 // bila node forum/<kursus>/<pertemuan>/mhs_<NIM> ada ({waktu, pengali}; dibaca publik, ditulis hanya
@@ -104,7 +112,7 @@ const DATA = (kursus) => `// FORUM-POIN:DATA BEGIN v3 — dipasang scripts/forum
 // bukan timestamp kunjungan — tetap aturan lama (v3).
 // Modul tanpa jadwal, dibuka lebih awal, atau sudah dikerjakan sebelum batas: aturan lama persis
 // (keaktifanTerapkanMurni 5 argumen, bilah skor lama).
-const FORUM_POIN_MULAI = '2026-10-15T00:00:00+07:00';
+const FORUM_POIN_MULAI = '${mulaiKursus(kursus)}';
 const FORUM_POIN_MULAI_MS = Date.parse(FORUM_POIN_MULAI);
 const FORUM_POIN = 2;
 const FORUM_KURSUS = '${kursus}';
@@ -486,7 +494,7 @@ onValue(ref(db, DB_PATH), (snap) => {
   _forumPengerjaanLama = forumPengerjaanLamaMurni(snap.val(), isSimulasiNim);
   _forumAturanBerubah();
 }, (err) => console.warn('[Forum] baca kunjungan gagal:', err && err.message));
-// FORUM-POIN:DATA END v3
+// FORUM-POIN:DATA END v4
 `;
 
 const RX_CSS = /<style id="forum-poin-style">[\s\S]*?<\/style>\n/;
@@ -544,7 +552,7 @@ function proses(rel) {
     const m = [...html.matchAll(/\n([ \t]*)<div id="baris-keaktifan">[^\n]*<\/div>/g)];
     if (m.length !== 1) throw new Error(`#baris-keaktifan muncul ${m.length}x, harusnya 1 (jalankan keaktifan-kelas.mjs dulu)`);
     const j = m[0].index + m[0][0].length;
-    html = html.slice(0, j) + BARIS(m[0][1]) + html.slice(j);
+    html = html.slice(0, j) + BARIS(m[0][1], kursus) + html.slice(j);
   }
 
   // 4. updateScore: total lewat window._forumSkorSaya (rumus lama dipertahankan apa adanya)
@@ -582,10 +590,11 @@ function proses(rel) {
   }
 
   // penjaga
-  for (const [tanda, n] of [["FORUM-POIN:CSS v1", 1], ['data-forum-poin="panel v1"', 1], ['data-forum-poin="baris v1"', 1], ["FORUM-POIN:SKOR v1", 1], ["FORUM-POIN:DATA BEGIN v3", 1], ["FORUM-POIN:DATA END v3", 1], ["window._forumRingkasEkspor(", 1], ['id="forumPoinStatus"', 1], ['id="baris-forum"', 1], ['id="scoreForum"', 1]]) {
+  for (const [tanda, n] of [["FORUM-POIN:CSS v1", 1], ['data-forum-poin="panel v1"', 1], ['data-forum-poin="baris v1"', 1], ["FORUM-POIN:SKOR v1", 1], ["FORUM-POIN:DATA BEGIN v4", 1], ["FORUM-POIN:DATA END v4", 1], ["window._forumRingkasEkspor(", 1], ['id="forumPoinStatus"', 1], ['id="baris-forum"', 1], ['id="scoreForum"', 1]]) {
     if (hitung(html, tanda) !== n) throw new Error(`penanda ${tanda} muncul ${hitung(html, tanda)}x, harusnya ${n}`);
   }
   if (hitung(html, `const FORUM_KURSUS = '${kursus}';`) !== 1) throw new Error("FORUM_KURSUS tidak sama dengan DB_PATH");
+  if (hitung(html, `const FORUM_POIN_MULAI = '${mulaiKursus(kursus)}';`) !== 1) throw new Error("FORUM_POIN_MULAI tidak sesuai kursus");
   return html === awal ? null : html;
 }
 
@@ -607,4 +616,4 @@ for (const rel of HALAMAN.sort()) {
   n += 1;
   if (!periksa) fs.writeFileSync(path.join(root, rel), h);
 }
-console.log(`${n} dari ${HALAMAN.length} halaman ${periksa ? "akan diperbarui" : "diperbarui"} (FORUM-POIN DATA v3)`);
+console.log(`${n} dari ${HALAMAN.length} halaman ${periksa ? "akan diperbarui" : "diperbarui"} (FORUM-POIN DATA v4)`);
