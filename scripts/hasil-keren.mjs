@@ -1,14 +1,17 @@
 /**
  * Hasil Keren — ikon bergerak + lima grafik agregat kelas di tab Hasil halaman modul
- * (permintaan dosen 13 Okt 2026; spesifikasi terkoreksi v1).
+ * (permintaan dosen 13 Okt 2026; spesifikasi terkoreksi v1; v2 13 Okt 2026: G5 = tren kelas per pertemuan).
  *
- * DATA YANG DIPAKAI (semuanya sudah ada di halaman; tidak ada node Firebase baru, tidak ada penulisan):
- *   latestVisitors (sesudah pipa keaktifan + forum), masterStudents (roster), currentSchedule (jadwal
- *   ternormalisasi), _keaktifanKursus, _forumModul, MODULE_ID, _keaktifanTotal(), KEAKTIFAN_BONUS_FRAKSI,
- *   _visitorsDiterima, _auth (gerbang tampilan dosen). Definisi status/Hadir/Absen = tabel Hasil +
- *   blok SAMAKAN-ABSEN-HASIL v2. Nama mahasiswa tidak pernah ditampilkan di grafik.
+ * DATA YANG DIPAKAI (tidak ada penulisan Firebase, tidak ada langganan baru):
+ *   latestVisitors (sesudah pipa keaktifan + forum), _visitorsMentah (rekaman mentah pertemuan ini = poin
+ *   tugas tanpa bonus), masterStudents (roster), currentSchedule (jadwal ternormalisasi), MODULE_ID, DB_PATH,
+ *   _keaktifanTotal(), _visitorsDiterima, _auth (gerbang tampilan dosen). Definisi status/Hadir/Absen = tabel
+ *   Hasil + blok SAMAKAN-ABSEN-HASIL v2. Nama mahasiswa tidak pernah ditampilkan di grafik.
+ *   Satu-satunya akses Firebase (hkTrenBaca, G5): node publik visitors/<kursus>/<segmen-N> pertemuan LAIN dibaca
+ *   SEKALI (get, cadangan onValue onlyOnce) saat panel pertama kali digambar dengan tab Hasil aktif, di-cache,
+ *   dimuat ulang paling cepat 10 menit sekali; galat baca satu pertemuan = pertemuan itu "tidak termuat".
  *
- * YANG DIPASANG (tiga blok bertanda v1, isi identik di setiap halaman):
+ * YANG DIPASANG (tiga blok bertanda v2, isi identik di setiap halaman):
  *   HASIL-KEREN:CSS    <style id="hasil-keren-style"> di <head> dokumen. Bila sudah ada, DIGANTI DI TEMPAT
  *                      (tidak dibuang lalu disisip ulang di ujung <head>), jadi penyuntik lain yang menulis
  *                      sebelum </head> tidak berebut urutan; hanya disisip sebelum </head> bila belum ada.
@@ -21,8 +24,10 @@
  *                      ResizeObserver/IntersectionObserver/MutationObserver/matchMedia dideteksi dulu, galat
  *                      -> hkPulihkan() (tampilan asli kembali); sintaks tidak lebih baru dari skrip modul.
  *   Grafik: G1 status (donat), G2 sebaran nilai, G3 progres pengerjaan, G4 ketuntasan per jenis soal
- *   (mahasiswa: sesudah jadwal berakhir dan >= 5 penjawab; rincian per soal hanya dosen), G5 keaktifan
- *   per pertemuan. Animasi masuk hanya saat tab dibuka; pembaruan data hanya menyorot baris yang berubah.
+ *   (mahasiswa: sesudah jadwal berakhir dan >= 5 penjawab; rincian per soal hanya dosen), G5 tren kelas
+ *   per pertemuan (% hadir + rata-rata nilai tugas P1–P14; 13 Okt 2026 menggantikan grafik keaktifan, yang
+ *   sudah ada di papan Keaktifan di Kelas). Animasi masuk hanya saat tab dibuka; pembaruan data hanya menyorot
+ *   baris yang berubah.
  *   Dua animasi tak berujung (🔥 judul Top Akses, 🥇) dijeda di luar layar; semua mati di
  *   prefers-reduced-motion (juga .ff/.pulse-dot hero tab Hasil).
  *
@@ -45,7 +50,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-export const VERSI = 1;
+export const VERSI = 2;
 export const KURSUS = [
   "Engineering-Mathematics",
   "Getaran-Mekanik",
@@ -57,7 +62,7 @@ export const KURSUS = [
 export const PERCOBAAN = ["Teknik-Tenaga-Listrik/Modul/Modul-3.html"];
 export const HALAMAN = PERCOBAAN;
 
-export const CSS = String.raw`<style id="hasil-keren-style">/* HASIL-KEREN:CSS v1 — dipasang scripts/hasil-keren.mjs (ikon bergerak + grafik kelas tab Hasil) */
+export const CSS = String.raw`<style id="hasil-keren-style">/* HASIL-KEREN:CSS v2 — dipasang scripts/hasil-keren.mjs (ikon bergerak + grafik kelas tab Hasil) */
 @keyframes hkMuncul{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes hkPop{0%{opacity:0;transform:scale(.3)}60%{opacity:1;transform:scale(1.2)}100%{opacity:1;transform:scale(1)}}
 @keyframes hkSentil{0%,100%{transform:scale(1) rotate(0)}40%{transform:scale(1.14) rotate(-4deg)}70%{transform:scale(.97) rotate(2deg)}}
@@ -167,7 +172,6 @@ div.hk-ikon{display:block}
 .hk-batang{fill:#38bdf8}
 .hk-batang.hk-anda{fill:#00e09e}
 .hk-batang.hk-ini{fill:#f472b6}
-.hk-batang.hk-lain{fill:#a78bfa}
 .hk-label-batang{fill:#e2e8f0;font-size:11px;font-weight:700;text-anchor:middle}
 .hk-rata{stroke:#fbbf24;stroke-width:1.5;stroke-dasharray:4 3}
 .hk-teks-rata{fill:#fbbf24;font-size:10.5px;font-weight:700}
@@ -180,6 +184,15 @@ div.hk-ikon{display:block}
 .hk-teks-deadline{fill:#fb7185;font-size:10.5px;font-weight:700}
 .hk-teks-sekarang{fill:#fbbf24;font-size:10.5px;font-weight:700}
 .hk-titik{fill:#00e09e}
+.hk-kena{fill:transparent}
+.hk-kolom:hover .hk-kena{fill:rgba(148,163,184,.1)}
+.hk-tren-garis{fill:none;stroke:#fbbf24;stroke-width:2;stroke-linejoin:round;pointer-events:none}
+.hk-tren-titik{fill:#fbbf24;stroke:#0f172a;stroke-width:1.5;pointer-events:none}
+.hk-tren-kosong{fill:#64748b}
+.hk-tren-gagal{fill:#fb7185;font-size:13px;font-weight:800;text-anchor:middle}
+.hk-sumbu-ini{fill:#f9a8d4;font-weight:700}
+.hk-c-hadir{--hk:#38bdf8}.hk-c-ini{--hk:#f472b6}.hk-c-nilai{--hk:#fbbf24}
+.hk-legenda-baris .hk-c-nilai::before{border-radius:50%}
 .hk-baris-soal{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr) 3.2em;align-items:center;gap:8px;margin:6px 0;font-size:.76rem;color:#cbd5e1}
 .hk-tumpuk{display:flex;height:12px;border-radius:6px;overflow:hidden;background:#2a3548}
 .hk-tumpuk>span{display:block;height:100%;background:var(--hk)}
@@ -198,6 +211,7 @@ div.hk-ikon{display:block}
 .hk-panel.hk-masuk .hk-tumpuk{transform-origin:0 50%;animation:hkTumbuhX .7s cubic-bezier(.2,.8,.2,1) both}
 .hk-panel.hk-masuk .hk-kurva{stroke-dasharray:var(--hk-pjg);animation:hkGores 1.1s ease-out .15s both}
 .hk-panel.hk-masuk .hk-area{animation:hkPudar .8s ease-out .5s both}
+.hk-panel.hk-masuk .hk-tren-garis,.hk-panel.hk-masuk .hk-tren-titik{animation:hkPudar .8s ease-out .45s both}
 .hk-segar{animation:hkSegar .35s ease-out}
 @media (max-width:640px){
 .hk-panel{margin:0 12px 12px}
@@ -215,7 +229,7 @@ div.hk-ikon{display:block}
 }
 </style>`;
 
-export const PANEL = String.raw`      <!-- HASIL-KEREN:PANEL BEGIN v1 — dipasang scripts/hasil-keren.mjs -->
+export const PANEL = String.raw`      <!-- HASIL-KEREN:PANEL BEGIN v2 — dipasang scripts/hasil-keren.mjs -->
       <details class="hk-panel" id="hkPanel" open hidden>
         <summary><span class="hk-ikon hk-i-grafik" aria-hidden="true">📈</span>Statistik Kelas<span class="hk-sub" id="hkSub">⏳ Memuat…</span></summary>
         <div class="hk-kisi">
@@ -243,21 +257,22 @@ export const PANEL = String.raw`      <!-- HASIL-KEREN:PANEL BEGIN v1 — dipasa
             <div class="hk-isi" id="hkSoalIsi"><div class="hk-kosong">⏳ Memuat…</div></div>
             <p class="hk-ket" id="hkSoalKet"></p>
           </figure>
-          <figure class="hk-kartu" id="hkAktif" aria-labelledby="hkAktifJudul">
-            <figcaption class="hk-judul" id="hkAktifJudul"><span class="hk-ikon" aria-hidden="true">🙋</span>Keaktifan di Kelas per Pertemuan</figcaption>
-            <p class="hk-tanya">Berapa mahasiswa yang dicentang aktif di tiap pertemuan?</p>
-            <div class="hk-isi" id="hkAktifIsi"><div class="hk-kosong">⏳ Memuat…</div></div>
-            <p class="hk-ket" id="hkAktifKet"></p>
+          <figure class="hk-kartu" id="hkTren" aria-labelledby="hkTrenJudul">
+            <figcaption class="hk-judul" id="hkTrenJudul"><span class="hk-ikon" aria-hidden="true">📈</span>Tren Kelas per Pertemuan</figcaption>
+            <p class="hk-tanya">Bagaimana kehadiran dan nilai kelas dari pertemuan ke pertemuan?</p>
+            <div class="hk-isi" id="hkTrenIsi"><div class="hk-kosong">⏳ Memuat…</div></div>
+            <p class="hk-ket" id="hkTrenKet"></p>
           </figure>
         </div>
       </details>
-      <!-- HASIL-KEREN:PANEL END v1 -->
+      <!-- HASIL-KEREN:PANEL END v2 -->
 `;
 
-export const DATA = String.raw`// HASIL-KEREN:DATA BEGIN v1 — dipasang scripts/hasil-keren.mjs
+export const DATA = String.raw`// HASIL-KEREN:DATA BEGIN v2 — dipasang scripts/hasil-keren.mjs
 // Statistik Kelas tab Hasil: ikon bergerak + lima grafik agregat (SVG/HTML buatan sendiri, tanpa pustaka).
 // Angka = aturan tabel Hasil + statistik Hadir/Absen (status yang sama); nama tidak pernah ditampilkan;
-// tidak menulis Firebase dan tidak berlangganan node baru (hanya membaca keadaan halaman).
+// tidak menulis Firebase dan tidak berlangganan node baru. Satu-satunya akses Firebase: hkTrenBaca (G5) membaca
+// SEKALI node publik visitors pertemuan lain kursus ini (cache, paling cepat 10 menit sekali dimuat ulang).
 // Setiap galat ditangkap di sini (hkMulai/hkAman) agar sisa skrip modul tetap berjalan.
 // HASIL-KEREN:MURNI BEGIN
 const HK_MIN_PESERTA = 5;
@@ -380,35 +395,59 @@ function hkGerbangSoalMurni(peserta, schedEnded, dosen) {
 function hkGerbangJenisMurni(pesertaJenis, dosen) { return dosen === true || Number(pesertaJenis) >= HK_MIN_PESERTA; }
 // Rincian per soal hanya untuk dosen (jawaban modul tetap diterima sesudah deadline).
 function hkGerbangRinciMurni(gerbang, dosen) { return gerbang === 'tampil' && dosen === true; }
-function hkKeaktifanTrenMurni(kursusNode, roster, isSim, modulId) {
-  const m = /^(.*?)(\d+)$/.exec(String(modulId || ''));
-  const awalan = m ? m[1] : '';
-  const ini = m ? Number(m[2]) : 0;
+// Jalur node visitors pertemuan N kursus ini, diturunkan dari DB_PATH (= <akar><MODULE_ID>) dan MODULE_ID
+// (<awalan><nomor>): null bila bentuknya lain atau nomor di luar 1–14.
+function hkTrenJalurMurni(dbPath, modulId) {
+  const p = String(dbPath || ''), id = String(modulId || '');
+  const m = /^(.*?)(\d+)$/.exec(id);
+  if (!m || !m[1] || p.length <= id.length || p.slice(p.length - id.length) !== id) return null;
+  const ini = Number(m[2]);
+  if (!(ini >= 1 && ini <= 14)) return null;
+  return { akar: p.slice(0, p.length - id.length), awalan: m[1], ini: ini };
+}
+// Tren kelas per pertemuan 1–14. peta[no] = { baca: 'ok', data: node visitors pertemuan itu (objek/larik/null) },
+// { baca: 'gagal' }, atau tidak ada (masih memuat). Hadir = mahasiswa daftar (bukan simulasi) yang punya rekaman
+// non-dosen/non-tamu dengan poin > 0 (cermin SAMAKAN-ABSEN v2: Hadir = punya poin). Nilai = round(poin/total*100)
+// dari poin TUGAS mentah (tanpa bonus keaktifan/forum) agar sebanding antarpertemuan; rekaman ganda: poin terbesar.
+// status: 'ada' (sedikitnya satu rekaman mahasiswa daftar), 'kosong' (belum berlangsung), 'gagal', 'memuat'.
+function hkTrenMurni(peta, roster, isSim, total, ini) {
   const dalam = new Set((roster || []).filter((s) => s && !isSim(s.nim)).map((s) => String(s.nim)));
+  const r = dalam.size;
+  const tot = Number(total) > 0 ? Number(total) : 50;
   const per = [];
   for (let no = 1; no <= 14; no += 1) {
-    let n = 0;
-    for (const [k, rec] of Object.entries((kursusNode || {})[awalan + no] || {})) {
-      if (k.indexOf('mhs_') !== 0 || !rec || rec.aktif !== true) continue;
-      const nim = k.slice(4);
-      if (!isSim(nim) && dalam.has(nim)) n += 1;
+    const e = (peta || {})[no];
+    const x = { no: no, ini: no === ini, status: 'memuat', hadir: 0, roster: r, pct: null, rata: null };
+    per.push(x);
+    if (!e) continue;
+    if (e.baca !== 'ok') { x.status = 'gagal'; continue; }
+    const d = e.data;
+    const daftar = Array.isArray(d) ? d : (d && typeof d === 'object') ? Object.keys(d).map((k) => d[k]) : [];
+    const poin = Object.create(null);
+    for (const v of daftar) {
+      if (!v || typeof v !== 'object' || v.role === 'dosen' || v.role === 'guest') continue;
+      const nim = String(v.nim);
+      if (isSim(nim) || !dalam.has(nim)) continue;
+      const p = Number(v.points) || 0;
+      if (!(nim in poin) || p > poin[nim]) poin[nim] = p;
     }
-    per.push({ no, n, sekarang: no === ini });
+    const nims = Object.keys(poin);
+    if (!nims.length) { x.status = 'kosong'; continue; }
+    const nilai = nims.filter((n) => poin[n] > 0).map((n) => Math.max(0, Math.min(100, Math.round(poin[n] / tot * 100))));
+    x.status = 'ada';
+    x.hadir = nilai.length;
+    x.pct = r ? x.hadir / r * 100 : 0;
+    x.rata = nilai.length ? nilai.reduce((a, b) => a + b, 0) / nilai.length : null;
   }
-  return { per, total: dalam.size, adaData: per.some((x) => x.n > 0) };
-}
-function hkForumRingkasMurni(modulForum, roster, isSim) {
-  const dalam = new Set((roster || []).filter((s) => s && !isSim(s.nim)).map((s) => String(s.nim)));
-  const r = { klaim: 0, penuh: 0, sebagian: 0 };
-  for (const [k, rec] of Object.entries(modulForum || {})) {
-    if (k.indexOf('mhs_') !== 0 || !rec || typeof rec !== 'object') continue;
-    const nim = k.slice(4);
-    const p = Number(rec.pengali);
-    if (isSim(nim) || !dalam.has(nim) || !(p > 0 && p <= 1)) continue;
-    r.klaim += 1;
-    if (p === 1) r.penuh += 1; else r.sebagian += 1;
-  }
-  return r;
+  const ada = per.filter((x) => x.status === 'ada');
+  const bernilai = ada.filter((x) => x.rata !== null);
+  let terendah = null;
+  ada.forEach((x) => { if (!terendah || x.pct < terendah.pct) terendah = x; });
+  return { per: per, roster: r, berdata: ada.length,
+    rataHadir: ada.length ? ada.reduce((a, x) => a + x.pct, 0) / ada.length : null,
+    rataNilai: bernilai.length ? bernilai.reduce((a, x) => a + x.rata, 0) / bernilai.length : null,
+    terendah: terendah ? terendah.no : null,
+    gagal: per.filter((x) => x.status === 'gagal').length, memuat: per.filter((x) => x.status === 'memuat').length };
 }
 // NIM baris tabel yang teksnya berubah sejak render sebelumnya (render pertama: tidak ada).
 function hkUbahBarisMurni(lama, baru) {
@@ -682,6 +721,59 @@ function hkJadwalkan(paksa) {
     HK.raf = (typeof requestAnimationFrame === 'function') ? requestAnimationFrame(jalan) : setTimeout(jalan, 16);
   }), jeda);
 }
+// G5 Tren: jalur node pertemuan lain (sekali per halaman) dan baca-sekali ber-cache.
+const HK_TREN_SEGAR_MS = 600000;
+const HK_TREN_TUNGGU_MS = 20000;
+const HK_TREN = { jalur: null, peta: {}, waktu: 0, gen: 0, baca: 0 };
+function hkTrenJalur() {
+  if (HK_TREN.jalur === null) {
+    try { HK_TREN.jalur = hkTrenJalurMurni(DB_PATH, MODULE_ID) || false; } catch (e) { HK_TREN.jalur = false; }
+  }
+  return HK_TREN.jalur;
+}
+// Satu-satunya akses Firebase blok ini: baca SEKALI satu node publik (tanpa langganan, tanpa tulis) lewat get()
+// modul, atau onValue onlyOnce bila get tidak ada. Galat apa pun (lemparan/penolakan) -> gagal(), bukan hkGagal:
+// satu pertemuan yang tidak termuat tidak menggagalkan panel.
+function hkTrenBaca(jalur, ok, gagal) {
+  let selesai = false;
+  const sekali = (f) => hkAman(function (x) { if (selesai) return; selesai = true; f(x); });
+  const berhasil = sekali((snap) => ok((snap && typeof snap.val === 'function') ? snap.val() : null));
+  const galat = sekali(() => gagal());
+  try {
+    const r = ref(db, jalur);
+    if (typeof get === 'function') {
+      const p = get(r);
+      if (p && typeof p.then === 'function') p.then(berhasil, galat); else galat();
+    } else if (typeof onValue === 'function') onValue(r, berhasil, galat, { onlyOnce: true });
+    else galat();
+  } catch (e) { galat(); }
+}
+// Dipanggil hkGambar (tab Hasil aktif + panel terbuka): node 13 pertemuan lain dibaca sekali, lalu dimuat ulang
+// paling cepat HK_TREN_SEGAR_MS sesudahnya (tab dibuka ulang / data berubah sesudah 10 menit). Data lama tetap
+// tampil selama memuat ulang; baca yang menggantung dianggap gagal sesudah HK_TREN_TUNGGU_MS.
+function hkTrenMuat() {
+  const j = hkTrenJalur();
+  if (!j) return;
+  const kini = Date.now();
+  if (HK_TREN.waktu && kini - HK_TREN.waktu < HK_TREN_SEGAR_MS) return;
+  HK_TREN.waktu = kini;
+  HK_TREN.gen += 1;
+  const gen = HK_TREN.gen;
+  const tunggu = {};
+  const tuntas = (no, isi) => {
+    if (gen !== HK_TREN.gen || !tunggu[no]) return;
+    delete tunggu[no];
+    HK_TREN.peta[no] = isi;
+    hkJadwalkan(false);
+  };
+  for (let no = 1; no <= 14; no += 1) {
+    if (no === j.ini) continue;
+    tunggu[no] = true;
+    HK_TREN.baca += 1;
+    hkTrenBaca(j.akar + j.awalan + no, (v) => tuntas(no, { baca: 'ok', data: v }), () => tuntas(no, { baca: 'gagal' }));
+  }
+  setTimeout(hkAman(() => { Object.keys(tunggu).forEach((no) => tuntas(no, { baca: 'gagal' })); }), HK_TREN_TUNGGU_MS);
+}
 function hkKonfigSoal() {
   let c = window.SCORE_CONFIG || null;
   if (!c) { try { c = SCORE_CONFIG; } catch (e) { c = null; } }
@@ -720,16 +812,20 @@ function hkRingkasan(kini) {
   const dosen = !!(_auth && _auth.currentUser);
   const gerbang = hkGerbangSoalMurni(soal.peserta, schedExpired, dosen);
   const rinci = hkGerbangRinciMurni(gerbang, dosen);
-  const aktif = hkKeaktifanTrenMurni(_keaktifanKursus, roster, isSimulasiNim, MODULE_ID);
-  let forum = null;
-  try {
-    if (typeof forumAturanAktif === 'function' && forumAturanAktif() === true) forum = hkForumRingkasMurni(_forumModul, roster, isSimulasiNim);
-  } catch (e) { forum = null; }
+  // Tren: pertemuan lain dari cache baca-sekali; pertemuan ini dari rekaman mentah langsung halaman (poin tugas).
+  const jalur = hkTrenJalur();
+  let tren = null;
+  if (jalur) {
+    const peta = {};
+    Object.keys(HK_TREN.peta).forEach((no) => { peta[no] = HK_TREN.peta[no]; });
+    if (_visitorsDiterima) peta[jalur.ini] = { baca: 'ok', data: Array.isArray(_visitorsMentah) ? _visitorsMentah : [] };
+    else delete peta[jalur.ini];
+    tren = hkTrenMurni(peta, roster, isSimulasiNim, total, jalur.ini);
+  }
   const saya = hkSaya(st);
   const menit = kurva.sekarangDalam ? Math.floor(kini / 60000) : 0;
   return { memuat: memuat, gagal: gagal, jadwal: jadwal, adaDeadline: adaDeadline, schedExpired: schedExpired, bukaMs: bukaMs, dueMs: dueMs, st: st, dist: dist,
-    kurva: kurva, cfg: cfg, soal: soal, dosen: dosen, gerbang: gerbang, rinci: rinci, aktif: aktif, forum: forum, saya: saya,
-    menit: menit, bonus: total * KEAKTIFAN_BONUS_FRAKSI };
+    kurva: kurva, cfg: cfg, soal: soal, dosen: dosen, gerbang: gerbang, rinci: rinci, tren: tren, saya: saya, menit: menit };
 }
 function hkTanpaBaris(k, v) { return k === 'baris' ? undefined : v; }
 function hkLebar(id) { const el = document.getElementById(id); return el ? Math.round(el.clientWidth || 0) : 0; }
@@ -1023,47 +1119,85 @@ function hkGambarSoal(R) {
   else bag.push('Rincian per soal hanya untuk dosen.');
   hkKet(ket, bag);
 }
-// G5 Keaktifan di Kelas per Pertemuan (node keaktifan kursus yang sudah dilanggan halaman).
-function hkGambarAktif(R, W) {
-  const isi = document.getElementById('hkAktifIsi');
-  const ket = document.getElementById('hkAktifKet');
+// G5 Tren Kelas per Pertemuan: batang = % hadir, titik + garis = rata-rata nilai tugas (sumbu sama 0–100).
+function hkTrenPct(p) { return Math.round(p.pct || 0); }
+function hkTrenJudul(p) {
+  const ini = p.ini ? ' (pertemuan ini)' : '';
+  if (p.status === 'ada') {
+    return 'Pertemuan ' + p.no + ': hadir ' + p.hadir + '/' + p.roster + ' (' + hkTrenPct(p) + '%), rata-rata nilai tugas ' +
+      (p.rata === null ? '–' : hkFmtMurni(p.rata, 1)) + ini;
+  }
+  if (p.status === 'kosong') return 'Pertemuan ' + p.no + ': belum berlangsung (belum ada data)' + ini;
+  if (p.status === 'gagal') return 'Pertemuan ' + p.no + ': data tidak termuat' + ini;
+  return 'Pertemuan ' + p.no + ': memuat…' + ini;
+}
+function hkGambarTren(R, W) {
+  const isi = document.getElementById('hkTrenIsi');
+  const ket = document.getElementById('hkTrenKet');
   if (!isi) return;
-  const a = R.aktif;
-  const bag = [];
-  const ini = a.per.find((p) => p.sekarang);
-  const nIni = ini ? ini.n : 0;
-  if (a.adaData) bag.push('Pertemuan ini: ' + nIni + ' dari ' + a.total + ' mahasiswa (' + hkPersen(nIni, a.total) + '%). +' + hkFmtMurni(R.bonus, 2) + ' poin per centang.');
-  if (R.forum) bag.push('💬 Forum diskusi pertemuan ini: ' + R.forum.klaim + ' klaim (' + R.forum.penuh + ' penuh, ' + R.forum.sebagian + ' dengan pengali < 1).');
-  if (!a.adaData) {
-    hkKosong(isi, "Belum ada centang keaktifan di kursus ini. Dosen mencentang 'Aktif di kelas' di tabel di bawah.");
-    hkKet(ket, bag);
+  const t = R.tren;
+  if (!t) { hkKosong(isi, 'Tren per pertemuan tidak tersedia di halaman ini.'); hkKet(ket, []); return; }
+  if (!t.berdata && !t.gagal) {
+    hkKosong(isi, t.memuat ? '⏳ Memuat data pertemuan…' : 'Belum ada pertemuan yang berjalan.');
+    hkKet(ket, []);
     return;
   }
-  const H = 150, kiri = 22, kanan = 6, atas = 16, bawah = 22;
+  const H = 176, kiri = 30, kanan = 6, atas = 14, bawah = 22;
   const slot = (W - kiri - kanan) / 14;
   const tinggi = H - atas - bawah;
-  const tangga = hkTanggaMurni(Math.max.apply(null, a.per.map((p) => p.n)));
-  const puncak = tangga[tangga.length - 1];
-  const y = (v) => atas + (1 - v / puncak) * tinggi;
-  const svg = hkSvg('hkAktifSvg', W, H, 'Keaktifan di kelas per pertemuan',
-    'Jumlah mahasiswa yang dicentang aktif per pertemuan: ' + a.per.map((p) => p.no + ': ' + p.n).join(', ') + '. Pertemuan ini: ' + nIni + '.');
-  tangga.forEach((t) => {
-    svg.appendChild(hkS('line', { class: 'hk-garis-grid', x1: kiri, x2: W - kanan, y1: hkAngka(y(t)), y2: hkAngka(y(t)) }));
-    svg.appendChild(hkS('text', { class: 'hk-sumbu', x: kiri - 5, y: hkAngka(y(t) + 4), 'text-anchor': 'end' }, t));
+  const dasar = atas + tinggi;
+  const y = (v) => atas + (1 - v / 100) * tinggi;
+  const lebarBatang = slot * 0.62;
+  const pendek = slot < 26;
+  const svg = hkSvg('hkTrenSvg', W, H, 'Tren kelas per pertemuan',
+    'Persentase hadir dan rata-rata nilai tugas (0–100) per pertemuan: ' + t.per.map((p) => p.no + ' ' + (p.status === 'ada'
+      ? 'hadir ' + hkTrenPct(p) + '%, nilai ' + (p.rata === null ? '–' : hkFmtMurni(p.rata, 1))
+      : p.status === 'kosong' ? 'belum berlangsung' : p.status === 'gagal' ? 'tidak termuat' : 'memuat') + (p.ini ? ' (ini)' : '')).join('; ') + '.');
+  [0, 50, 100].forEach((v) => {
+    svg.appendChild(hkS('line', { class: 'hk-garis-grid', x1: kiri, x2: W - kanan, y1: hkAngka(y(v)), y2: hkAngka(y(v)) }));
+    svg.appendChild(hkS('text', { class: 'hk-sumbu', x: kiri - 5, y: hkAngka(y(v) + 4), 'text-anchor': 'end' }, v));
   });
-  a.per.forEach((p, i) => {
-    const x = kiri + i * slot + slot * 0.18;
-    const w = slot * 0.64;
-    const h = p.n / puncak * tinggi;
-    const r = hkS('rect', { class: 'hk-batang ' + (p.sekarang ? 'hk-ini' : 'hk-lain'), x: hkAngka(x), y: hkAngka(atas + tinggi - h), width: hkAngka(w), height: hkAngka(h), rx: 2 });
-    r.style.animationDelay = (i * 30) + 'ms';
-    r.appendChild(hkS('title', null, 'Pertemuan ' + p.no + ': ' + p.n + ' mahasiswa aktif' + (p.sekarang ? ' (pertemuan ini)' : '')));
-    svg.appendChild(r);
-    if (p.n > 0) svg.appendChild(hkS('text', { class: 'hk-label-batang', x: hkAngka(x + w / 2), y: hkAngka(atas + tinggi - h - 4) }, p.n));
-    if (p.sekarang) svg.appendChild(hkS('text', { class: 'hk-label-batang', x: hkAngka(x + w / 2), y: hkAngka(atas + tinggi - h - (p.n > 0 ? 17 : 4)) }, 'ini'));
-    svg.appendChild(hkS('text', { class: 'hk-sumbu', x: hkAngka(x + w / 2), y: H - 6, 'text-anchor': 'middle' }, p.no));
+  const titik = [];
+  t.per.forEach((p, i) => {
+    const x0 = kiri + i * slot;
+    const xc = x0 + slot / 2;
+    const g = hkS('g', { class: 'hk-kolom' + (p.ini ? ' hk-kolom-ini' : '') });
+    g.appendChild(hkS('title', null, hkTrenJudul(p)));
+    g.appendChild(hkS('rect', { class: 'hk-kena', x: hkAngka(x0), y: atas, width: hkAngka(slot), height: tinggi + bawah }));
+    if (p.status === 'ada') {
+      const h = p.pct / 100 * tinggi;
+      const b = hkS('rect', { class: 'hk-batang' + (p.ini ? ' hk-ini' : ''), x: hkAngka(xc - lebarBatang / 2), y: hkAngka(dasar - h),
+        width: hkAngka(lebarBatang), height: hkAngka(h), rx: 2 });
+      b.style.animationDelay = (i * 30) + 'ms';
+      g.appendChild(b);
+      if (p.rata !== null) titik.push({ no: p.no, x: xc, y: y(p.rata) });
+    } else if (p.status === 'kosong') {
+      g.appendChild(hkS('rect', { class: 'hk-tren-kosong', x: hkAngka(xc - lebarBatang / 2), y: dasar - 2, width: hkAngka(lebarBatang), height: 2 }));
+      g.appendChild(hkS('text', { class: 'hk-sumbu', x: hkAngka(xc), y: dasar - 6, 'text-anchor': 'middle' }, '–'));
+    } else if (p.status === 'gagal') {
+      g.appendChild(hkS('text', { class: 'hk-tren-gagal', x: hkAngka(xc), y: dasar - 6 }, '!'));
+    } else {
+      g.appendChild(hkS('text', { class: 'hk-sumbu', x: hkAngka(xc), y: dasar - 6, 'text-anchor': 'middle' }, '…'));
+    }
+    g.appendChild(hkS('text', { class: 'hk-sumbu' + (p.ini ? ' hk-sumbu-ini' : ''), x: hkAngka(xc), y: H - 6, 'text-anchor': 'middle' }, (pendek ? '' : 'P') + p.no));
+    svg.appendChild(g);
   });
-  hkGanti(isi, svg);
+  // Garis nilai hanya menyambung pertemuan berurutan yang sama-sama punya nilai.
+  let jalur = '';
+  titik.forEach((q, i) => { jalur += (i && titik[i - 1].no === q.no - 1 ? 'L' : 'M') + hkAngka(q.x) + ',' + hkAngka(q.y); });
+  if (jalur) svg.appendChild(hkS('path', { class: 'hk-tren-garis', d: jalur }));
+  titik.forEach((q) => svg.appendChild(hkS('circle', { class: 'hk-tren-titik', cx: hkAngka(q.x), cy: hkAngka(q.y), r: 3.2 })));
+  const leg = hkEl('div', { class: 'hk-legenda-baris', 'aria-hidden': 'true' });
+  [['hadir', 'Hadir (%)'], ['ini', 'Pertemuan ini'], ['nilai', 'Rata-rata nilai tugas (0–100)']].forEach((x) => leg.appendChild(hkEl('span', { class: 'hk-c-' + x[0] }, x[1])));
+  hkGanti(isi, svg, leg);
+  const bag = [];
+  if (t.berdata) {
+    bag.push(['Rata-rata kehadiran ', { b: hkFmtMurni(t.rataHadir, 0) + '%' }, ' dan nilai tugas ', { b: t.rataNilai === null ? '–' : hkFmtMurni(t.rataNilai, 1) },
+      ' dari ' + t.berdata + ' pertemuan yang sudah berjalan' + (t.berdata > 1 ? '; kehadiran terendah di Pertemuan ' + t.terendah + '.' : '.')]);
+  }
+  bag.push('Hadir = mahasiswa di daftar yang punya poin tugas di pertemuan itu; nilai = rata-rata poin tugas mereka (skala 0–100) tanpa bonus keaktifan/forum, agar sebanding antarpertemuan.');
+  if (t.memuat) bag.push('Memuat ' + t.memuat + ' pertemuan…');
+  if (t.gagal) bag.push('! = data ' + t.gagal + ' pertemuan tidak termuat; dicoba lagi saat tab Hasil dibuka sesudah 10 menit.');
   hkKet(ket, bag);
 }
 function hkSubjudul(R, umum) {
@@ -1091,10 +1225,12 @@ function hkGambar() {
     HK.kotor = true;
     return;
   }
+  // Node pertemuan lain dibaca hanya bila panel benar-benar terlihat (sekali, lalu paling cepat 10 menit sekali).
+  hkTrenMuat();
   const kini = Date.now();
   const R = hkRingkasan(kini);
-  const lebar = { nilai: Math.max(120, hkLebar('hkNilaiIsi')), waktu: Math.max(160, hkLebar('hkWaktuIsi')), aktif: Math.max(120, hkLebar('hkAktifIsi')) };
-  const tanda = JSON.stringify(R, hkTanpaBaris) + '|' + lebar.nilai + ',' + lebar.waktu + ',' + lebar.aktif;
+  const lebar = { nilai: Math.max(120, hkLebar('hkNilaiIsi')), waktu: Math.max(160, hkLebar('hkWaktuIsi')), tren: Math.max(160, hkLebar('hkTrenIsi')) };
+  const tanda = JSON.stringify(R, hkTanpaBaris) + '|' + lebar.nilai + ',' + lebar.waktu + ',' + lebar.tren;
   const masuk = HK.masuk && !R.memuat;
   if (tanda === HK.tanda && !masuk) { hkSelaraskanAngka(); return; }
   const animasi = masuk && !HK.diam;
@@ -1104,14 +1240,14 @@ function hkGambar() {
     hkNilai: [umum, R.dist, R.saya, lebar.nilai],
     hkWaktu: [umum, R.kurva, R.dueMs, R.dosen, R.menit, lebar.waktu],
     hkSoal: [umum, R.soal, R.cfg, R.gerbang, R.rinci, R.dosen, R.schedExpired],
-    hkAktif: [umum, R.aktif, R.forum, R.bonus, lebar.aktif],
+    hkTren: [umum, R.tren, lebar.tren],
   };
   const gambar = {
     hkStatus: () => hkGambarStatus(R, animasi),
     hkNilai: () => hkGambarNilai(R, lebar.nilai),
     hkWaktu: () => hkGambarWaktu(R, lebar.waktu, kini),
     hkSoal: () => hkGambarSoal(R),
-    hkAktif: () => hkGambarAktif(R, lebar.aktif),
+    hkTren: () => hkGambarTren(R, lebar.tren),
   };
   // Efek segar hanya bila datanya berubah: garis Sekarang yang maju tiap menit menggambar ulang G3 tanpa efek.
   const efek = { hkWaktu: [umum, R.kurva, R.dueMs, R.dosen, lebar.waktu] };
@@ -1144,6 +1280,7 @@ function hkGambar() {
   hkSelaraskanAngka();
   HK.gambar += 1;
   panel.setAttribute('data-hk-gambar', String(HK.gambar));
+  panel.setAttribute('data-hk-tren-baca', String(HK_TREN.baca));
   hkPeriksaDiri(R);
 }
 // Satu-satunya kode tingkat atas: seluruh tubuh di dalam try; galat apa pun memulihkan tampilan asli
@@ -1230,7 +1367,7 @@ function hkGambar() {
     try { console.warn('[HasilKeren] dimatikan:', e); hkPulihkan(); } catch (e2) { /* diam */ }
   }
 })();
-// HASIL-KEREN:DATA END v1
+// HASIL-KEREN:DATA END v2
 `;
 
 export const RX_CSS = /<style id="hasil-keren-style">\/\* HASIL-KEREN:CSS v\d+[\s\S]*?<\/style>\n/;
@@ -1238,20 +1375,21 @@ export const RX_PANEL = / {6}<!-- HASIL-KEREN:PANEL BEGIN v\d+[^\n]*\n[\s\S]*? {
 export const RX_DATA = /\/\/ HASIL-KEREN:DATA BEGIN v\d+[^\n]*\n[\s\S]*?\/\/ HASIL-KEREN:DATA END v\d+\n/;
 const ANKER_PANEL = /(Jumlah Absen<\/div>\n {8}<\/div>\n {6}<\/div>\n)( {4}<\/div>\n {4}<div style="display:flex;padding:14px 24px;)/;
 const ANKER_DATA = /\/\/ FORUM-POIN:DATA END v\d+\n/;
-// Toleran versi KEAKTIFAN-KELAS (v5+; 13 Okt 2026): blok ini membaca _keaktifanKursus/_keaktifanTotal
+// Toleran versi KEAKTIFAN-KELAS (v5+; 13 Okt 2026): blok ini membaca _visitorsMentah/_keaktifanTotal
 // (dijaga DEPENDENSI_SKRIP), bukan tampilan papan, jadi DATA v6 (pil bonus pertemuan ini) tidak mengubahnya.
 const RX_KEAKTIFAN_FORUM = /\/\/ KEAKTIFAN-KELAS:DATA END v\d+\n\/\/ FORUM-POIN:DATA BEGIN v4/g;
-const FORUM_HK = "// FORUM-POIN:DATA END v4\n// HASIL-KEREN:DATA BEGIN v1";
+const FORUM_HK = "// FORUM-POIN:DATA END v4\n// HASIL-KEREN:DATA BEGIN v2";
 export const DEPENDENSI = [
   "let latestVisitors=[];", "function renderVisitors(visitors){", "// SAMAKAN-ABSEN-HASIL BEGIN v2", "const KEAKTIFAN_KURSUS = '",
-  "function forumAturanAktif() {", "let masterFetchDone", "let _visitorsDiterima = false;", "const _auth = getAuth(app);",
+  "let masterFetchDone", "let _visitorsDiterima = false;", "const _auth = getAuth(app);",
   'id="visitorTableBody"', 'id="statHadir"', 'id="rajinList"', 'id="aktifList"', 'id="page-hasil"',
 ];
 // Harus berada di skrip modul yang sama dengan blok DATA (dibaca sebagai identifier bebas).
 const DEPENDENSI_SKRIP = ["let latestVisitors=[];", "function renderVisitors(visitors){", "function isLate(", "let currentSchedule",
-  "let masterStudents", "let _keaktifanKursus", "let _forumModul", "const MODULE_ID = ", "const isSimulasiNim = ", "function _keaktifanTotal("];
-export const PENANDA = ["HASIL-KEREN:CSS v1", "HASIL-KEREN:PANEL BEGIN v1", "HASIL-KEREN:PANEL END v1", "HASIL-KEREN:DATA BEGIN v1",
-  "HASIL-KEREN:DATA END v1", "HASIL-KEREN:MURNI BEGIN", "HASIL-KEREN:MURNI END", 'id="hkPanel"'];
+  "let masterStudents", "let _visitorsMentah = [];", "const MODULE_ID = ", "const DB_PATH = `", "const db = getDatabase(app);", "const isSimulasiNim = ",
+  "function _keaktifanTotal("];
+export const PENANDA = ["HASIL-KEREN:CSS v2", "HASIL-KEREN:PANEL BEGIN v2", "HASIL-KEREN:PANEL END v2", "HASIL-KEREN:DATA BEGIN v2",
+  "HASIL-KEREN:DATA END v2", "HASIL-KEREN:MURNI BEGIN", "HASIL-KEREN:MURNI END", 'id="hkPanel"'];
 // Isi blok identik di setiap halaman: tanpa literal kursus/nomor modul (generator TTL/CAD mengganti token itu
 // dan melaporkan sisa "Modul 1 "/"Pertemuan 1 "), tanpa token yang dihitung validator lain, tanpa penanda
 // penyuntik lain, dan (DATA) tanpa sintaks lebih baru dari skrip modul (\p{}, lookbehind/named group, ?., ??, ||=, &&=, 1_000, .#privat, static {}).
