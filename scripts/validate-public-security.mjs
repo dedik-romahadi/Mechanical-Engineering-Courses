@@ -68,7 +68,7 @@ function periksaBobotUjian(html, relative) {
 // sama dengan DB_PATH-nya; fungsi murni penerapan bonus diuji di sandbox.
 function periksaKeaktifanKelas(html, relative) {
   const hit = (t) => html.split(t).length - 1;
-  for (const t of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v4", 'id="aktifList"', 'id="baris-keaktifan"', "const _bonusAktif =", 'data-nim="${escH(String(s.nim))}"']) {
+  for (const t of ["KEAKTIFAN-KELAS:CSS v3", "KEAKTIFAN-KELAS:KARTU BEGIN v1", "KEAKTIFAN-KELAS:DATA BEGIN v5", 'id="aktifList"', 'id="baris-keaktifan"', "const _bonusAktif =", 'data-nim="${escH(String(s.nim))}"']) {
     if (hit(t) !== 1) throw new Error(`${relative}: penanda keaktifan ${t} muncul ${hit(t)}x, harusnya 1; run node scripts/keaktifan-kelas.mjs`);
   }
   if (hit("🔥 Keaktifan kelas: <strong>+") > 1) throw new Error(`${relative}: baris keaktifan di ringkasan ekspor muncul lebih dari sekali`);
@@ -79,7 +79,8 @@ function periksaKeaktifanKelas(html, relative) {
   let kursus = db ? db[1] : null;
   if (kursus === "${COURSE_ID}") kursus = (html.match(/const COURSE_ID\s*=\s*['"]([a-z0-9_]+)['"]/) || [])[1] || null;
   if (!kursus || hit(`const KEAKTIFAN_KURSUS = '${kursus}';`) !== 1) throw new Error(`${relative}: KEAKTIFAN_KURSUS harus sama dengan kursus DB_PATH (${kursus})`);
-  const kepala = "function keaktifanTerapkanMurni(list, modul, roster, total, isSim) {";
+  // v5 (13 Okt 2026): parameter ke-6 opsional `batas` (default = total) untuk aturan forum 2 poin.
+  const kepala = "function keaktifanTerapkanMurni(list, modul, roster, total, isSim, batas) {";
   const iAwal = html.indexOf(kepala);
   const iAkhir = iAwal < 0 ? -1 : html.indexOf("\n}\n", iAwal);
   if (iAwal < 0 || iAkhir < 0) throw new Error(`${relative}: fungsi keaktifanTerapkanMurni tidak ditemukan`);
@@ -99,7 +100,306 @@ function periksaKeaktifanKelas(html, relative) {
   if (daftar[0].points !== 48) salah.push("data mentah tidak boleh diubah di tempat");
   const dua = terapkan([{ nim: "1", role: "student", points: 40 }], { mhs_1: { aktif: true, waktu: W } }, roster, 50, () => false);
   if (dua[0].points !== 45) salah.push("40+5 harus 45 (+10 nilai)");
+  // v5: batas eksplisit (aturan forum 2 poin: total - 2 = 48); batas null/undefined = total.
+  const tiga = terapkan([{ nim: "1", role: "student", points: 46 }], { mhs_1: { aktif: true, waktu: W }, mhs_3: { aktif: true, waktu: W } }, roster, 50, () => false, 48);
+  if (tiga[0].points !== 48 || !tiga.find((v) => v.nim === "3" && v.points === 5)) salah.push("batas 48: 46+5 harus 48, dicentang tanpa kunjungan 5");
+  if (terapkan([{ nim: "1", role: "student", points: 48 }], { mhs_1: { aktif: true, waktu: W } }, roster, 50, () => false, null)[0].points !== 50) salah.push("batas null harus = total");
   if (salah.length) throw new Error(`${relative}: keaktifanTerapkanMurni salah: ${salah.join("; ")}`);
+}
+
+// Forum 2 poin (scripts/forum-poin.mjs, kontrak dosen 13 Okt 2026): modul yang dibuka sejak
+// FORUM_POIN_MULAI memakai tugas x48/50 + keaktifan (batas 48) + forum 2 x pengali; modul lain aturan
+// lama persis. Setiap halaman modul wajib memuat semua penanda, kunci kursus = DB_PATH, dan fungsi
+// murninya diuji di sandbox dengan contoh kontrak. DATA v3 (amandemen 13 Okt 2026, identik backend
+// _aturanForumUntuk): waktu buka dari jadwal MENTAH (cermin _moduleOpenMs = _normalizeModuleScheduleWib
+// halaman) dan modul yang sudah DIKERJAKAN mahasiswa (bukan simulasi/dosen) sebelum FORUM_POIN_MULAI —
+// bukti poinPertama/pointTimestamp tulisan server, ISO berzona; bukan `timestamp` kunjungan (login
+// pra-buka, tanaman klien tanpa auth) — tetap aturan lama (cermin _adaPengerjaanSebelumForum); alasan
+// klaim 'dicabut' ditampilkan dan di-cache seperti 'kurang' (ujiRuntimeForumPoin).
+const FORUM_POIN_PENANDA = [["FORUM-POIN:CSS v1", 1], ['data-forum-poin="panel v1"', 1], ['data-forum-poin="baris v1"', 1], ["FORUM-POIN:SKOR v1", 1],
+  ["FORUM-POIN:DATA BEGIN v3", 1], ["FORUM-POIN:DATA END v3", 1], ["window._forumRingkasEkspor(", 1], ['id="forumPoinStatus"', 1], ['id="baris-forum"', 1], ['id="scoreForum"', 1],
+  ["const FORUM_POIN_MULAI = '2026-10-15T00:00:00+07:00';", 1], ["const FORUM_POIN = 2;", 1], ["httpsCallable(_functions, 'klaimPoinForum')", 1],
+  ["onValue(ref(db, 'forum/' + FORUM_KURSUS + '/' + MODULE_ID)", 1], ["onValue(ref(db, SCHEDULE_PATH), (snap) => {\n  const v = snap.val();\n  _forumJadwalMentah", 1],
+  ["onValue(ref(db, DB_PATH), (snap) => {\n  _forumPengerjaanLama = forumPengerjaanLamaMurni(snap.val(), isSimulasiNim);", 1]];
+let forumPoinHalaman = 0;
+let forumPoinContoh = null;
+function periksaForumPoin(html, relative) {
+  const hit = (t) => html.split(t).length - 1;
+  const saran = "; run node scripts/forum-poin.mjs";
+  for (const [t, n] of FORUM_POIN_PENANDA) if (hit(t) !== n) throw new Error(`${relative}: penanda forum 2 poin ${t} muncul ${hit(t)}x, harusnya ${n}${saran}`);
+  const db = html.match(/const DB_PATH = `visitors\/([^/`]+)\/\$\{MODULE_ID\}`;/);
+  let kursus = db ? db[1] : null;
+  if (kursus === "${COURSE_ID}") kursus = (html.match(/const COURSE_ID\s*=\s*['"]([a-z0-9_]+)['"]/) || [])[1] || null;
+  if (!kursus || hit(`const FORUM_KURSUS = '${kursus}';`) !== 1) throw new Error(`${relative}: FORUM_KURSUS harus sama dengan kursus DB_PATH (${kursus})${saran}`);
+  if (hit("// KEAKTIFAN-KELAS:DATA END v5\n// FORUM-POIN:DATA BEGIN v3") !== 1) throw new Error(`${relative}: blok FORUM-POIN:DATA harus tepat sesudah KEAKTIFAN-KELAS:DATA v5${saran}`);
+  const aData = html.indexOf("// FORUM-POIN:DATA BEGIN v3"), zData = html.indexOf("// FORUM-POIN:DATA END v3");
+  const data = html.slice(aData, zData);
+  // v2+: aturan tidak lagi dari currentSchedule yang dinormalisasi halaman (jadwal mentah + kunjungan).
+  if (data.includes("currentSchedule")) throw new Error(`${relative}: blok FORUM-POIN:DATA v3 tidak boleh membaca currentSchedule (aturan dari jadwal mentah + kunjungan)${saran}`);
+  for (const t of ["h.alasan === 'dicabut'", "Poin forum dicabut dosen — perbaiki/ubah jawaban forum lalu simpan untuk dinilai ulang", "st.hasil.alasan === 'kurang' || st.hasil.alasan === 'dicabut'", "bagian.push(_forumAlasanEkspor());"]) {
+    if (!data.includes(t)) throw new Error(`${relative}: blok FORUM-POIN:DATA v3 tidak memuat ${t} (alasan 'dicabut')${saran}`);
+  }
+  for (const t of ["window.addEventListener('progres-modul:diterapkan'", "window.addEventListener('progres-modul:forum-tersimpan'"]) {
+    if (data.split(t).length !== 2) throw new Error(`${relative}: blok FORUM-POIN:DATA harus mendengarkan ${t} tepat sekali (klaim sesudah progres diterapkan / forum tersimpan)${saran}`);
+  }
+  if (/saveModulForum|PENJAGA-FORUM/.test(data)) throw new Error(`${relative}: blok FORUM-POIN:DATA tidak boleh mengirim forum (saveModulForum milik PROGRES-MODUL)`);
+  // updateScore: rumus lama dipertahankan apa adanya sebagai cabang aturan lama.
+  const iSkor = html.indexOf("// FORUM-POIN:SKOR v1");
+  const fUS = html.lastIndexOf("function updateScore(", iSkor);
+  if (fUS < 0 || iSkor - fUS > 1500 || html.slice(fUS, iSkor).includes("\n}\n")) throw new Error(`${relative}: FORUM-POIN:SKOR harus di dalam updateScore${saran}`);
+  if (!/\n[ \t]*const _forumTotal = \(typeof window\._forumSkorSaya === 'function'\) \? window\._forumSkorSaya\(mc \+ \w+ \+ \w+, _bonusAktif\) : null;\n[ \t]*const total = _forumTotal !== null \? _forumTotal : Math\.min\(mc \+ \w+ \+ \w+ \+ _bonusAktif, [^\n]*\);\n/.test(html.slice(iSkor, iSkor + 800))) {
+    throw new Error(`${relative}: updateScore harus memakai _forumSkorSaya dengan rumus keaktifan lama sebagai cabang aturan lama${saran}`);
+  }
+  // Fungsi murni: dari FORUM_POIN_MULAI sampai sebelum keadaan runtime.
+  const aMurni = data.indexOf("const FORUM_POIN_MULAI = "), zMurni = data.indexOf("let _forumModul = {};");
+  if (aMurni < 0 || zMurni < aMurni) throw new Error(`${relative}: fungsi murni FORUM-POIN tidak ditemukan${saran}`);
+  const f = new Function(data.slice(aMurni, zMurni) + "return { forumAturanBaruMurni, forumBukaMsMurni, forumPengerjaanLamaMurni, forumPoinRekMurni, forumSkorMurni, forumTerapkanMurni };")();
+  const kepala = "function keaktifanTerapkanMurni(list, modul, roster, total, isSim, batas) {";
+  const iK = html.indexOf(kepala);
+  const aktifMurni = new Function("KEAKTIFAN_BONUS_FRAKSI", html.slice(iK, html.indexOf("\n}\n", iK) + 3) + "return keaktifanTerapkanMurni;")(0.1);
+  const salah = [];
+  const dekat = (a, b) => typeof a === "number" && Math.abs(a - b) < 1e-9;
+  // Aktivasi per tanggal buka (start ISO).
+  for (const [jadwal, harap] of [[null, false], [{}, false], [{ start: "bukan tanggal" }, false], [{ start: "2026-10-14T16:59:59.999Z" }, false],
+    [{ start: "2026-10-14T17:00:00.000Z" }, true], [{ start: "2026-10-15T00:00:00+07:00" }, true], [{ start: "2026-10-20T08:00:00.000Z", end: "2026-10-27T08:00:00.000Z" }, true]]) {
+    if (f.forumAturanBaruMurni(jadwal) !== harap) salah.push(`aktivasi ${JSON.stringify(jadwal)} harus ${harap}`);
+  }
+  // v2: waktu buka dari jadwal mentah seperti backend _moduleOpenMs (due WIB - duration hari bila sah).
+  for (const [jadwal, harap] of [
+    [{ start: "2026-10-01T00:00:00.000Z", due: "2026-10-22T23:59", duration: 7 }, true],     // start lama, due-7 hari = 15 Okt 23:59 WIB
+    [{ start: "2026-10-20T00:00:00.000Z", due: "2026-10-21T23:59", duration: 7 }, false],    // start baru, due-7 hari = 14 Okt 23:59 WIB
+    [{ start: "2026-10-20T00:00:00.000Z", due: "2026-10-21T23:59" }, true],                   // tanpa duration -> start
+    [{ start: "2026-10-01T00:00:00.000Z", due: "2026-10-21 23:59", duration: 7 }, false],    // due tidak sah -> start
+    [{ start: "2026-10-01T00:00:00.000Z", due: "2026-10-22T23:59", duration: 0 }, false],    // duration 0 -> start
+    [{ due: "2026-10-30T23:59", duration: 7 }, false],                                         // start wajib string (backend)
+    [{ start: "", due: "2026-10-30T23:59", duration: 7 }, false],                            // start kosong -> NaN (backend !s.start)
+    [{ start: 1792000000000, due: "2026-10-30T23:59", duration: 7 }, false],
+    [{ start: "2026-10-08T00:00:00+07:00", due: "2026-10-22T00:00", duration: "7" }, true],
+  ]) {
+    if (f.forumAturanBaruMurni(jadwal, false) !== harap) salah.push(`aktivasi jadwal mentah ${JSON.stringify(jadwal)} harus ${harap}`);
+  }
+  // Cermin _normalizeModuleScheduleWib halaman: untuk jadwal ber-start string, waktu bukanya sama.
+  {
+    const iW = html.indexOf("function _wibStringToDate(value) {"), iN = html.indexOf("function _normalizeModuleScheduleWib(schedule) {");
+    if (iW < 0 || iN < 0) throw new Error(`${relative}: _wibStringToDate/_normalizeModuleScheduleWib tidak ditemukan`);
+    const norm = new Function(html.slice(iW, html.indexOf("\n}\n", iW) + 3) + html.slice(iN, html.indexOf("\n}\n", iN) + 3) + "return _normalizeModuleScheduleWib;")();
+    for (const j of [{ start: "2026-10-01T00:00:00.000Z", due: "2026-10-22T23:59", duration: 7 }, { start: "2026-10-20T00:00:00.000Z", due: "2026-10-21T23:59" },
+      { start: "2026-10-16T09:30:00.000Z" }, { start: "2026-10-01T00:00:00.000Z", due: "2026-10-21 23:59", duration: 7 }, { start: "2026-10-08T00:00:00+07:00", due: "2026-10-22T00:00", duration: "14" },
+      { start: "2026-10-01T00:00:00.000Z", due: "2026-10-22T23:59", duration: -3 }]) {
+      const a = Date.parse(norm(j).start), b = f.forumBukaMsMurni(j);
+      if (a !== b) salah.push(`waktu buka ${JSON.stringify(j)}: halaman ${a} != forumBukaMsMurni ${b}`);
+    }
+  }
+  // v3: PENGERJAAN mahasiswa sebelum FORUM_POIN_MULAI mengunci aturan lama (kunci mhs_*, role student,
+  // bukan akun simulasi; poinPertama/pointTimestamp tulisan server, ISO berzona) — tabel ini identik
+  // dengan uji backend _adaPengerjaanSebelumForum (scripts/verify-forum-poin.js butir 11).
+  {
+    const sim = (n) => String(n) === "41399999901";
+    const LAMA = "2026-10-14T16:59:59.999Z", TEPAT = "2026-10-14T17:00:00.000Z", BARU = "2026-10-20T03:00:00.000Z";
+    // Record kunjungan; `kerja` = waktu penilaian server (pointTimestamp), null = belum dikerjakan.
+    const mhs = (nim, timestamp, kerja, lain) => Object.assign({ nama: "M", nim, role: "student", timestamp, lastVisit: timestamp, visitCount: 2,
+      points: kerja ? 10 : 0, scoredQuestions: kerja ? "mc1" : "" }, kerja ? { pointTimestamp: kerja } : {}, lain || {});
+    const kasus = [
+      ["kosong", null, false], ["objek kosong", {}, false],
+      ["dikerjakan 1 ms sebelum batas", { mhs_1: mhs("1", LAMA, LAMA) }, true],
+      ["dikerjakan 8 Okt", { mhs_1: mhs("1", "2026-10-08T03:00:00.000Z", "2026-10-08T03:00:00.000Z") }, true],
+      ["dikerjakan tepat batas", { mhs_1: mhs("1", TEPAT, TEPAT) }, false],
+      ["dikerjakan sesudah batas", { mhs_1: mhs("1", BARU, BARU) }, false],
+      ["poinPertama lama, pointTimestamp baru", { mhs_1: mhs("1", BARU, BARU, { poinPertama: "2026-10-10T03:00:00.000Z" }) }, true],
+      ["poinPertama saja", { mhs_1: mhs("1", BARU, null, { poinPertama: LAMA }) }, true],
+      ["poinPertama baru", { mhs_1: mhs("1", BARU, BARU, { poinPertama: "2026-10-16T03:00:00.000Z" }) }, false],
+      ["campuran", { mhs_1: mhs("1", BARU, BARU), mhs_2: mhs("2", "2026-10-10T03:00:00.000Z", "2026-10-10T03:00:00.000Z") }, true],
+      // timestamp/lastVisit (tulisan klien) tidak mengunci: login pra-buka, tanaman tanpa auth.
+      ["login 13 Okt sebelum modul dibuka, tanpa pengerjaan", { mhs_1: mhs("1", "2026-10-13T03:00:00.000Z", null) }, false],
+      ["tanaman timestamp/lastVisit lama", { mhs_1: mhs("1", "2020-01-01T00:00", null, { lastVisit: LAMA }) }, false],
+      ["tanaman NIM palsu", { mhs_999: mhs("999", "2026-10-01T00:00:00.000Z", null) }, false],
+      ["akun simulasi (kunci)", { mhs_41399999901: mhs("41399999901", LAMA, LAMA) }, false],
+      ["akun simulasi (field nim)", { mhs_9: mhs("41399999901", LAMA, LAMA) }, false],
+      ["kunci dosen", { dosen: mhs("DOSEN", LAMA, LAMA, { role: "dosen" }) }, false],
+      ["role dosen", { mhs_1: mhs("1", LAMA, LAMA, { role: "dosen" }) }, false],
+      ["role guest", { mhs_1: mhs("1", LAMA, LAMA, { role: "guest" }) }, false],
+      ["tanpa role", { mhs_1: { points: 40, pointTimestamp: LAMA } }, false],
+      ["kunci bukan mhs_", { dosen_x: mhs("1", LAMA, LAMA), guest_1: mhs("1", LAMA, LAMA) }, false],
+      ["pointTimestamp angka", { mhs_1: mhs("1", LAMA, null, { pointTimestamp: Date.parse(LAMA) }) }, false],
+      ["offset +07:00 sebelum batas", { mhs_1: mhs("1", LAMA, "2026-10-14T23:59:59+07:00") }, true],
+      ["offset +07:00 tepat batas", { mhs_1: mhs("1", LAMA, "2026-10-15T00:00+07:00") }, false],
+      ["tanpa detik, berzona", { mhs_1: mhs("1", LAMA, "2026-10-14T16:59Z") }, true],
+      ["semua bentuk campuran", { mhs_41399999901: mhs("41399999901", LAMA, LAMA), dosen: mhs("DOSEN", LAMA, LAMA, { role: "dosen" }),
+        mhs_1: mhs("1", BARU, BARU), mhs_2: mhs("2", "2026-10-10T03:00:00.000Z", "2026-10-10T03:00:00.000Z") }, true],
+    ];
+    // String tanpa zona / non-ISO / presisi berlebih diabaikan (hasil tidak bergantung zona waktu browser).
+    for (const s of ["2026-10-14T20:00:00", "2026-10-14T20:00", "Oct 14 2026 20:00", "2026-10-14", "bukan tanggal", "2026-10-14 16:00:00Z", "2026-10-14T16:00:00.0000Z"]) {
+      kasus.push([`diabaikan: ${s}`, { mhs_1: mhs("1", s, s, { poinPertama: s }) }, false]);
+    }
+    for (const [nama, data, harap] of kasus) {
+      const r = f.forumPengerjaanLamaMurni(data, sim);
+      if (r !== harap) salah.push(`pengerjaan lama "${nama}" = ${r}, harusnya ${harap}`);
+    }
+    const jBaru = { start: "2026-10-20T00:00:00.000Z", due: "2026-10-27T23:59", duration: 7 };
+    if (f.forumAturanBaruMurni(jBaru, f.forumPengerjaanLamaMurni({ mhs_1: mhs("1", LAMA, LAMA) }, sim)) !== false) salah.push("start >= batas tetapi ada pengerjaan sebelum batas harus aturan lama");
+    if (f.forumAturanBaruMurni(jBaru, f.forumPengerjaanLamaMurni({ mhs_1: mhs("1", BARU, BARU) }, sim)) !== true) salah.push("start >= batas tanpa pengerjaan lama harus aturan baru");
+    if (f.forumAturanBaruMurni(jBaru, f.forumPengerjaanLamaMurni({ mhs_1: mhs("1", LAMA, null) }, sim)) !== true) salah.push("login lama tanpa pengerjaan tidak boleh mengunci aturan lama");
+    if (f.forumAturanBaruMurni(jBaru, f.forumPengerjaanLamaMurni({ mhs_41399999901: mhs("41399999901", LAMA, LAMA), mhs_7: mhs("7", LAMA, LAMA, { role: "dosen" }) }, sim)) !== true) salah.push("pengerjaan lama akun simulasi/dosen tidak boleh mengunci aturan lama");
+  }
+  for (const [rec, harap] of [[null, 0], [{ pengali: 1, waktu: "x" }, 2], [{ pengali: 0.65, waktu: "x" }, 1.3], [{ pengali: 0 }, 0], [{ pengali: 1.5 }, 0], [{ waktu: "x" }, 0]]) {
+    if (!dekat(f.forumPoinRekMurni(rec), harap)) salah.push(`poin forum ${JSON.stringify(rec)} harus ${harap}`);
+  }
+  // Contoh kontrak butir 4 (bilah skor): raw, bonus keaktifan, poin forum -> resmi.
+  for (const [raw, bonus, forum, harap] of [[50, 0, 0, 48], [50, 0, 2, 50], [40, 0, 2, 40.4], [40, 5, 2, 45.4], [50, 0, 1.3, 49.3], [46, 5, 2, 50], [0, 0, 2, 2], [50, 5, 0, 48]]) {
+    if (!dekat(f.forumSkorMurni(raw, bonus, forum, 50), harap)) salah.push(`forumSkorMurni(${raw}, ${bonus}, ${forum}) = ${f.forumSkorMurni(raw, bonus, forum, 50)}, harusnya ${harap}`);
+  }
+  // Daftar kunjungan (tabel Hasil/Top Skor/statistik).
+  const W = "2026-10-20T03:00:00.000Z";
+  const roster = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "SIM"].map((nim) => ({ nim, nama: "Mhs " + nim }));
+  const isSim = (n) => n === "SIM";
+  const mentah = [["A", 50], ["B", 50], ["C", 40], ["D", 40], ["E", 50], ["F", 46], ["G", 0]].map(([nim, points]) => ({ nim, role: "student", points }));
+  mentah.push({ nim: "DOSEN", role: "dosen", points: 7 });
+  const salinan = JSON.stringify(mentah);
+  const tepat = { pengali: 1, waktu: W };
+  const forumNode = { mhs_B: tepat, mhs_C: tepat, mhs_D: tepat, mhs_E: { pengali: 0.65, waktu: W }, mhs_F: tepat, mhs_G: tepat, mhs_H: tepat, mhs_SIM: tepat, mhs_X: tepat };
+  const aktifNode = { mhs_D: { aktif: true, waktu: W }, mhs_F: { aktif: true, waktu: W }, mhs_I: { aktif: true, waktu: W } };
+  const baru = f.forumTerapkanMurni(mentah, forumNode, aktifNode, roster, 50, isSim, true, aktifMurni);
+  const cari = (l, nim) => l.find((v) => v && String(v.nim) === nim);
+  for (const [nim, harap] of [["A", 48], ["B", 50], ["C", 40.4], ["D", 45.4], ["E", 49.3], ["F", 50], ["G", 2], ["H", 2], ["I", 5]]) {
+    const v = cari(baru, nim);
+    if (!v || !dekat(v.points, harap)) salah.push(`aturan baru ${nim} = ${v && v.points}, harusnya ${harap}`);
+  }
+  if (!cari(baru, "H") || cari(baru, "H").tanpaKunjungan !== true) salah.push("poin forum tanpa kunjungan harus tampil (tanpaKunjungan)");
+  if (cari(baru, "SIM") || cari(baru, "X")) salah.push("akun simulasi / NIM di luar roster tidak boleh ditambahkan");
+  if (cari(baru, "DOSEN").points !== 7) salah.push("record dosen tidak boleh diubah");
+  if (JSON.stringify(mentah) !== salinan) salah.push("data mentah tidak boleh diubah di tempat");
+  // Aturan lama: hasil persis keaktifanTerapkanMurni 5 argumen (forum diabaikan, batas = total).
+  const lama = f.forumTerapkanMurni(mentah, forumNode, aktifNode, roster, 50, isSim, false, aktifMurni);
+  if (JSON.stringify(lama) !== JSON.stringify(aktifMurni(mentah, aktifNode, roster, 50, isSim))) salah.push("aturan lama harus sama persis dengan keaktifanTerapkanMurni 5 argumen");
+  for (const [nim, harap] of [["A", 50], ["B", 50], ["D", 45], ["F", 50], ["G", 0], ["I", 5]]) {
+    const v = cari(lama, nim);
+    if (!v || v.points !== harap) salah.push(`aturan lama ${nim} = ${v && v.points}, harusnya ${harap}`);
+  }
+  if (cari(lama, "H")) salah.push("aturan lama: node forum tidak boleh menambah baris");
+  if (salah.length) throw new Error(`${relative}: forum 2 poin salah: ${salah.join("; ")}${saran}`);
+  forumPoinHalaman += 1;
+  if (!forumPoinContoh) forumPoinContoh = { html, relative };
+}
+
+/**
+ * Uji perilaku runtime blok FORUM-POIN:DATA v3 (satu halaman; blok DATA identik di 84 halaman kecuali
+ * FORUM_KURSUS, dijaga penanda di atas) di sandbox node:vm dengan DOM/Firebase tiruan:
+ *   - aturan dari jadwal MENTAH + data kunjungan mentah (belum diterima / ada pengerjaan lama -> lama;
+ *     hanya simulasi/dosen lama atau login lama tanpa pengerjaan -> baru; jadwal due-duration
+ *     menentukan waktu buka);
+ *   - alasan klaim 'dicabut': teks panel, gerbang Export dan alert menyebut alasannya, hasil di-cache
+ *     (progres diterapkan dengan teks sama tidak memanggil klaim lagi; event forum-tersimpan dan teks
+ *     tersimpan yang berubah memanggil lagi); node milik sendiri hilang -> klaim sekali lagi.
+ */
+async function ujiRuntimeForumPoin() {
+  if (!forumPoinContoh) throw new Error("ujiRuntimeForumPoin: tidak ada halaman contoh");
+  const { html, relative } = forumPoinContoh;
+  const data = html.slice(html.indexOf("// FORUM-POIN:DATA BEGIN v3"), html.indexOf("// FORUM-POIN:DATA END v3"));
+  const iK = html.indexOf("function keaktifanTerapkanMurni(");
+  const keaktifan = html.slice(iK, html.indexOf("\n}\n", iK) + 3);
+  const JALUR = { forum: "forum/k/pertemuan-3", jadwal: "settings/k/pertemuan-3/schedule", kunjungan: "visitors/k/pertemuan-3" };
+  const kata = (n, awal) => Array.from({ length: n }, (_, i) => (awal || "kata") + i).join(" ");
+  function buat(me, klaim) {
+    const el = {};
+    const elemen = (id, init) => (el[id] = Object.assign({ id, textContent: "", innerHTML: "", className: "", disabled: false, style: { display: "none" }, value: "",
+      classList: { _s: new Set(), toggle(c, v) { if (v) this._s.add(c); else this._s.delete(c); } } }, init || {}));
+    ["baris-forum", "scoreForum", "forumPoinStatus", "btn-score-export", "export-blocked-msg"].forEach((id) => elemen(id));
+    ["fq1", "fq2", "fq3"].forEach((k, i) => elemen("ans-" + k, { value: kata(31, "w" + i) }));
+    const pendengar = {}, dengar = {}, log = { klaim: 0, alert: [], ekspor: 0 };
+    const sb = {
+      console: { warn() {}, log() {} }, Date, Math, Number, String, JSON, Object, Set, Array, Promise, RegExp,
+      MODULE_ID: "pertemuan-3", SCHEDULE_PATH: JALUR.jadwal, DB_PATH: JALUR.kunjungan, masterStudents: [{ nim: "1", nama: "A" }], _keaktifanModul: {},
+      KEAKTIFAN_BONUS_FRAKSI: 0.1, isSimulasiNim: (n) => String(n) === "41399999901", escH: (x) => String(x).replace(/</g, "&lt;"),
+      getIdentityLocal: () => me, _keaktifanTotal: () => 50, _keaktifanSegarkan: () => {}, _setBtnState: (b, ok) => { b.disabled = !ok; },
+      ref: (_db, p) => p, db: {}, _functions: {},
+      onValue: (p, cb) => { dengar[String(p).replace(/^forum\/[a-z0-9_]+\//, "forum/k/")] = cb; },
+      httpsCallable: () => async () => { log.klaim += 1; return { data: klaim(log.klaim) }; },
+      setInterval: () => 0, setTimeout: (fn) => { sb.__antre.push(fn); return 0; }, __antre: [], alert: (m) => log.alert.push(m),
+      document: { getElementById: (id) => el[id] || null },
+    };
+    sb.window = sb;
+    sb._sessionPinHash = "h".repeat(64); sb.MODUL_ID = "kursus-modul-3"; sb._previewMode = false;
+    sb.addEventListener = (t, fn) => { (pendengar[t] = pendengar[t] || []).push(fn); };
+    sb.checkExportReady = function () { el["btn-score-export"].disabled = false; el["export-blocked-msg"].textContent = "⚠ Link Google Drive belum diisi"; };
+    sb.exportTugasHtml = function () { log.ekspor += 1; };
+    vm.createContext(sb);
+    vm.runInContext(keaktifan + "\n" + data, sb);
+    const kirim = (t, detail) => (pendengar[t] || []).forEach((fn) => fn({ detail }));
+    const tunggu = async () => { for (let i = 0; i < 6; i++) { await new Promise((r) => setImmediate(r)); while (sb.__antre.length) sb.__antre.shift()(); } };
+    const snap = (jalur, v) => { if (!dengar[jalur]) throw new Error(`${relative}: blok FORUM-POIN:DATA v3 tidak berlangganan ${jalur}`); dengar[jalur]({ val: () => v }); };
+    return { sb, el, log, kirim, tunggu, snap };
+  }
+  const salah = [];
+  const MHS = { role: "student", nim: "1", nama: "A" };
+  const jBaru = { start: "2026-10-20T00:00:00.000Z", due: "2026-10-27T23:59", duration: 7 };
+  // Record kunjungan yang sudah dinilai server pada `timestamp` (pointTimestamp = poinPertama = timestamp).
+  const kunj = (nim, timestamp, role) => ({ nama: "M", nim, role: role || "student", timestamp, lastVisit: timestamp, visitCount: 1, points: 50,
+    scoredQuestions: "mc1", pointTimestamp: timestamp, poinPertama: timestamp });
+  // Login tanpa pengerjaan (tanpa poin): hanya timestamp/lastVisit tulisan klien.
+  const login = (nim, timestamp) => ({ nama: "M", nim, role: "student", timestamp, lastVisit: timestamp, visitCount: 1, points: 0, scoredQuestions: "" });
+  const LAMA = "2026-10-10T03:00:00.000Z", BARU = "2026-10-20T03:00:00.000Z";
+  // 1. Aturan dari jadwal mentah + kunjungan mentah (dosen melihat: tanpa klaim).
+  {
+    const t = buat({ role: "dosen", nama: "D" }, () => { throw new Error("dosen tidak boleh klaim"); });
+    const pipa = () => t.sb._forumPipa([{ nim: "1", role: "student", points: 50 }])[0].points;
+    t.snap(JALUR.jadwal, jBaru);
+    if (pipa() !== 50) salah.push("data kunjungan belum diterima harus aturan lama");
+    t.snap(JALUR.kunjungan, { mhs_1: kunj("1", BARU), mhs_2: kunj("2", LAMA) });
+    if (pipa() !== 50) salah.push("start >= batas + pengerjaan mahasiswa sebelum batas harus aturan lama");
+    t.snap(JALUR.kunjungan, { mhs_1: kunj("1", BARU), mhs_41399999901: kunj("41399999901", LAMA), mhs_3: kunj("3", LAMA, "dosen") });
+    if (pipa() !== 48) salah.push("tanpa pengerjaan mahasiswa lama (simulasi/dosen diabaikan) harus aturan baru (50 -> 48)");
+    t.snap(JALUR.kunjungan, { mhs_1: kunj("1", BARU), mhs_2: login("2", LAMA), mhs_999: login("999", "2020-01-01T00:00") });
+    if (pipa() !== 48) salah.push("login sebelum batas tanpa pengerjaan / tanaman tidak boleh mengunci aturan lama (50 -> 48)");
+    t.snap(JALUR.jadwal, { start: "2026-10-20T00:00:00.000Z", due: "2026-10-21T23:59", duration: 7 });
+    if (pipa() !== 50) salah.push("waktu buka due - duration < batas harus aturan lama walau start >= batas");
+    t.snap(JALUR.jadwal, null);
+    if (pipa() !== 50) salah.push("tanpa jadwal harus aturan lama");
+  }
+  // 2. Mahasiswa, kunjungan lama: tidak klaim, bilah skor lama.
+  {
+    const t = buat(MHS, () => { throw new Error("aturan lama tidak boleh klaim"); });
+    t.snap(JALUR.jadwal, jBaru); t.snap(JALUR.kunjungan, { mhs_2: kunj("2", LAMA) });
+    await t.tunggu();
+    if (t.sb._forumSkorSaya(50, 0) !== null) salah.push("bilah skor modul yang dikerjakan sebelum batas harus rumus lama (null)");
+    if (t.log.klaim !== 0) salah.push("modul yang dikerjakan sebelum batas tidak boleh memanggil klaimPoinForum");
+  }
+  // 3. Alasan 'dicabut'.
+  {
+    let jawab = () => ({ aktif: true, forumPoin: 0, alasan: "dicabut" });
+    const t = buat(MHS, (n) => jawab(n));
+    t.snap(JALUR.jadwal, jBaru); t.snap(JALUR.kunjungan, { mhs_1: kunj("1", BARU) }); t.snap(JALUR.forum, {});
+    const forum = { fq1: kata(31, "a"), fq2: kata(31, "b"), fq3: kata(31, "c") };
+    t.kirim("progres-modul:diterapkan", { ok: true, progres: { forumAturan: true, forumPoin: 0, forumPengali: null, forum } });
+    await t.tunggu();
+    const nKlaim = t.log.klaim;
+    if (nKlaim < 1) salah.push("klaim harus dipanggil sesudah progres diterapkan");
+    if (!/Poin forum dicabut dosen — perbaiki\/ubah jawaban forum lalu simpan untuk dinilai ulang/.test(t.el.forumPoinStatus.innerHTML)) salah.push("panel Forum harus menampilkan alasan dicabut");
+    if ((t.el.forumPoinStatus.innerHTML.match(/Poin forum/g) || []).length !== 1) salah.push(`panel Forum dicabut tidak boleh mengulang frasa "Poin forum" (${t.el.forumPoinStatus.innerHTML})`);
+    t.sb.checkExportReady();
+    const msg = t.el["export-blocked-msg"].textContent;
+    if (!t.el["btn-score-export"].disabled || !/dicabut dosen/.test(msg) || !/Link Google Drive belum diisi/.test(msg) || (msg.match(/Forum diskusi/g) || []).length !== 1) salah.push(`gerbang Export harus menahan dan menyebut alasan dicabut sekali (${msg})`);
+    t.sb.exportTugasHtml();
+    if (t.log.ekspor !== 0 || !/dicabut dosen/.test(t.log.alert.join(" "))) salah.push("exportTugasHtml harus ditahan dengan alasan dicabut");
+    t.kirim("progres-modul:diterapkan", { ok: true, progres: { forumAturan: true, forumPoin: 0, forumPengali: null, forum } });
+    await t.tunggu();
+    if (t.log.klaim !== nKlaim) salah.push("hasil 'dicabut' harus di-cache: progres dengan teks tersimpan sama tidak boleh memanggil klaim lagi");
+    t.kirim("progres-modul:forum-tersimpan", { jawaban: forum });
+    await t.tunggu();
+    if (t.log.klaim !== nKlaim + 1) salah.push("event forum-tersimpan harus memanggil klaim lagi");
+    jawab = () => ({ aktif: true, forumPoin: 2, pengali: 1, waktu: BARU, baru: true });
+    t.kirim("progres-modul:diterapkan", { ok: true, progres: { forumAturan: true, forumPoin: 0, forumPengali: null, forum: Object.assign({}, forum, { fq1: kata(40, "z") }) } });
+    await t.tunggu();
+    if (t.log.klaim !== nKlaim + 2) salah.push("teks tersimpan berubah harus memanggil klaim lagi");
+    if (t.sb._forumSkorSaya(50, 0) !== 50 || t.el["btn-score-export"].disabled) salah.push("klaim sukses sesudah dicabut harus memberi 2 poin dan membuka gerbang");
+    // Node milik sendiri dicabut saat halaman terbuka -> klaim sekali lagi -> alasan dicabut tampil.
+    jawab = () => ({ aktif: true, forumPoin: 0, alasan: "dicabut" });
+    t.snap(JALUR.forum, { mhs_1: { pengali: 1, waktu: BARU } });
+    t.snap(JALUR.forum, {});
+    await t.tunggu();
+    if (t.log.klaim !== nKlaim + 3 || !/Poin forum dicabut dosen/.test(t.el.forumPoinStatus.innerHTML)) salah.push("node forum sendiri hilang harus memicu klaim ulang dan menampilkan alasan dicabut");
+    if (t.sb._forumSkorSaya(50, 0) !== 48) salah.push("sesudah dicabut bilah skor harus 48 (tanpa forum)");
+  }
+  if (salah.length) throw new Error(`${relative}: runtime forum 2 poin salah: ${salah.join("; ")}; run node scripts/forum-poin.mjs`);
 }
 
 // Tombol panah bilah subnav: paling banyak satu #subnavKiri dan satu #subnavKanan per halaman modul;
@@ -501,6 +801,8 @@ for (const course of courseRoots) {
     // enrich-sisken-modules.mjs dulu menumpuk satu pasang setiap regenerasi (sampai 76 dengan id sama).
     periksaPanahSubnav(modul, relative, course, modulNo);
     periksaKeaktifanKelas(modul, relative);
+    // Forum 2 poin (scripts/forum-poin.mjs, 13 Okt 2026).
+    periksaForumPoin(modul, relative);
     periksaStatistikAbsen(modul, relative);
     // CSS kartu tugas CAD harus ada di <head> halaman (bangun-modul-1.py; 4 Oktober 2026).
     periksaCssTugasCad(modul, relative, course);
@@ -521,6 +823,8 @@ for (const course of courseRoots) {
 }
 if (penjagaForum.halaman !== 84) throw new Error(`Expected 84 modul pages with PROGRES-MODUL:PENJAGA-FORUM, found ${penjagaForum.halaman}`);
 await ujiMutasiPenjagaForum();
+if (forumPoinHalaman !== 84) throw new Error(`Expected 84 module pages with the FORUM-POIN DATA v3 block (forum 2 poin), found ${forumPoinHalaman}`);
+await ujiRuntimeForumPoin();
 if (kunciIdentitasModul !== 84) throw new Error(`Expected 84 module pages with a checked classic identity key, found ${kunciIdentitasModul}`);
 ujiMutasiKunciIdentitas();
 if (draftModulHalaman !== 84 || draftModulId.size !== 84) throw new Error(`Expected 84 module pages with a working per-module draft (unique MODUL_ID), found ${draftModulHalaman} pages / ${draftModulId.size} ids`);

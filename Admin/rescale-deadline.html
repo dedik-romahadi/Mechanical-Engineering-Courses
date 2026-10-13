@@ -293,6 +293,18 @@ function jendelaSusulan(s){
   const ms = Date.parse(w.end);
   return `  [jendela susulan: ${Number.isFinite(ms) ? fmtWib(ms) : w.end} + ${Number(w.extension) || 0} menit]`;
 }
+// Poin forum (Forum 2 poin; modul saja): node forum/<kursus>/<pertemuan>/mhs_<NIM> yang pengalinya
+// disesuaikan rescaleModulLatePenalty terhadap deadline acuan (waktu klaim <= deadline -> 1, selain
+// itu pengali terlambat). Respons tanpa forumDisesuaikan (ujian / backend lama) -> tanpa baris.
+function ringkasForum(d, pratinjau){
+  if (!d || typeof d.forumDisesuaikan !== 'number') return [];
+  const out = ['', `💬 Poin forum ${pratinjau ? 'yang akan disesuaikan' : 'disesuaikan'}: ${d.forumDisesuaikan}`];
+  (Array.isArray(d.forum) ? d.forum : []).forEach(f=>{
+    const ms = Date.parse(f && f.waktu);
+    out.push(`• ${String((f && f.nimKey) || '').replace(/^mhs_/,'')}  pengali forum: ${f && f.pengaliLama} → ${f && f.pengaliBaru}  (klaim ${Number.isFinite(ms) ? fmtWib(ms) : (f && f.waktu)})`);
+  });
+  return out;
+}
 // start jadwal ujian terpilih (ms), null bila belum ada, atau NaN bila gagal dibaca.
 async function bacaMulaiUjian(){
   // settings/<course> terbaca publik tanpa login (sama dengan halaman ujian);
@@ -415,7 +427,10 @@ window.doRescale = async function(){
     }
     lines.push('');
     if(d.students.length === 0){
-      lines.push('(Tidak ada poin yang perlu disesuaikan — semua sudah sesuai deadline ini.)');
+      // Forum disesuaikan tetapi tidak ada attempt tugas: jangan klaim "tidak ada yang disesuaikan".
+      lines.push(d.forumDisesuaikan > 0
+        ? '(Tidak ada poin attempt tugas yang perlu disesuaikan — hanya poin forum, lihat di bawah.)'
+        : '(Tidak ada poin yang perlu disesuaikan — semua sudah sesuai deadline ini.)');
     } else {
       d.students.forEach(s=>{
         lines.push(`• ${s.nimKey.replace(/^mhs_/,'')}  poin: ${s.pointsBefore} → ${s.pointsAfter}${jendelaSusulan(s)}`);
@@ -425,6 +440,7 @@ window.doRescale = async function(){
         });
       });
     }
+    lines.push(...ringkasForum(d, false));
     res.className='result ok'; res.style.display='block'; res.textContent=lines.join('\n');
   }catch(e){
     console.error('[rescale] error:', e);
@@ -492,7 +508,10 @@ window.doDiagnose = async function(){
       if(peringatan) lines.push(``, peringatan);
     }
     lines.push(``);
-    if(d.totalStudents === 0 && d.totalAdjusted === 0){
+    if(d.totalStudents === 0 && d.totalAdjusted === 0 && d.forumDisesuaikan > 0){
+      // Tidak ada attempt tugas yang berubah, tetapi poin forum akan disesuaikan (rincian di bawah).
+      lines.push('Attempt tugas: tidak ada yang berubah. Hanya poin forum yang akan disesuaikan (klik "Hitung Ulang Penalti" untuk menerapkan):');
+    } else if(d.totalStudents === 0 && d.totalAdjusted === 0){
       lines.push('⚠ KENAPA 0?');
       lines.push(`  (a) Belum ada mahasiswa submit jawaban ${exam ? 'ujian' : 'modul'} ini, ATAU`);
       lines.push('  (b) Semua attempt sudah sesuai deadline ini (tidak ada yg penalti).');
@@ -506,6 +525,7 @@ window.doDiagnose = async function(){
         lines.push(`• ${s.nimKey.replace(/^mhs_/,'')}  poin: ${s.pointsBefore} → ${s.pointsAfter}${jendelaSusulan(s)}`);
       });
     }
+    lines.push(...ringkasForum(d, true));
     res.className='result ok'; res.style.display='block'; res.textContent=lines.join('\n');
   }catch(e){
     console.error('[diagnose] error:', e);
