@@ -499,9 +499,14 @@ if ([...HASIL_KEREN_HALAMAN].sort().join("|") !== [...HK_HALAMAN].sort().join("|
 }
 if (hkSemua().length !== 84) throw new Error(`scripts/hasil-keren.mjs semuaHalaman() harus 84 halaman modul, ditemukan ${hkSemua().length}`);
 if (HASIL_KEREN_SEMUA && HK_HALAMAN.length !== 84) throw new Error("HASIL_KEREN_SEMUA: HALAMAN scripts/hasil-keren.mjs harus berisi ke-84 halaman modul");
-const HK_PENANDA = ["HASIL-KEREN:CSS v1", "HASIL-KEREN:PANEL BEGIN v1", "HASIL-KEREN:PANEL END v1", "HASIL-KEREN:DATA BEGIN v1",
-  "HASIL-KEREN:DATA END v1", "HASIL-KEREN:MURNI BEGIN", "HASIL-KEREN:MURNI END", 'id="hkPanel"'];
-const HK_TOKEN_TERLARANG = /\binnerHTML\b|\bouterHTML\b|insertAdjacentHTML|\bdocument\.write\b|\beval\b|new Function|\bfetch\b|XMLHttpRequest|localStorage|sessionStorage|indexedDB|\.cookie\b|<\/script|\bonValue\(|\bref\(|\bset\(|\bupdateLeaderboard\b|setAttribute\(\s*['"]on/;
+const HK_PENANDA = ["HASIL-KEREN:CSS v2", "HASIL-KEREN:PANEL BEGIN v2", "HASIL-KEREN:PANEL END v2", "HASIL-KEREN:DATA BEGIN v2",
+  "HASIL-KEREN:DATA END v2", "HASIL-KEREN:MURNI BEGIN", "HASIL-KEREN:MURNI END", 'id="hkPanel"'];
+const HK_TOKEN_TERLARANG = /\binnerHTML\b|\bouterHTML\b|insertAdjacentHTML|\bdocument\.write\b|\beval\b|new Function|\bfetch\b|XMLHttpRequest|localStorage|sessionStorage|indexedDB|\.cookie\b|<\/script|\bset\(|\bupdateLeaderboard\b|setAttribute\(\s*['"]on/;
+// Akses Firebase (v2, 13 Okt 2026): hanya di hkTrenBaca, yang membaca SEKALI satu node publik (get, cadangan onValue
+// onlyOnce). Di luar fungsi itu (tanpa komentar) tidak boleh ada panggilan Firebase apa pun; di dalamnya hanya tiga
+// panggilan baca persis ini (tanpa tulis, tanpa langganan).
+const HK_FIREBASE = /(?<![\w$.])(?:onValue|ref|get|set|update|remove|push|runTransaction|onDisconnect|child|query|off)\(/;
+const HK_BACA_TREN = ["ref(db, jalur)", "get(r)", "onValue(r, berhasil, galat, { onlyOnce: true })"];
 // Literal yang dilarang di isi blok (D.1): kunci kursus, sisa token generator, token yang dihitung validator lain,
 // penanda penyuntik lain, dan teks yang wajib unik di halaman.
 const HK_LITERAL_TERLARANG = ["math4", "getaran_mekanik", "optoauto", "pemodelan_cad", "sistem_kendali_cerdas", "teknik_tenaga_listrik",
@@ -533,7 +538,7 @@ function periksaStrukturHasilKeren(html) {
   if (!(css > html.indexOf("<head") && kepala > css && badan > kepala)) masalah.push("CSS harus di <head> dokumen (sebelum </head> yang mendahului <body>)");
   const panel = html.indexOf("<!-- HASIL-KEREN:PANEL BEGIN"), absen = html.indexOf('id="statAbsen"'), no = html.indexOf('<div style="width:44px;flex-shrink:0;">No</div>');
   if (!(absen > 0 && panel > absen && no > panel)) masalah.push("PANEL harus di antara #statAbsen dan kepala tabel (anak terakhir #leaderboardPanel)");
-  if (hit("// FORUM-POIN:DATA END v4\n// HASIL-KEREN:DATA BEGIN v1") !== 1) masalah.push("blok DATA harus tepat sesudah FORUM-POIN:DATA END v4");
+  if (hit("// FORUM-POIN:DATA END v4\n// HASIL-KEREN:DATA BEGIN v2") !== 1) masalah.push("blok DATA harus tepat sesudah FORUM-POIN:DATA END v4");
   const iData = html.indexOf("// HASIL-KEREN:DATA BEGIN");
   const aSkrip = html.lastIndexOf("<script", iData), zSkrip = html.indexOf("</script>", iData);
   const skrip = iData < 0 || aSkrip < 0 || zSkrip < 0 || html.lastIndexOf("</script>", iData) > aSkrip ? "" : html.slice(aSkrip, zSkrip);
@@ -558,6 +563,24 @@ function periksaIsiHasilKeren(blok, html) {
   for (const t of HK_WAJIB_DATA) if (!kode.includes(t)) masalah.push(`blok DATA tidak memuat penjaga/aksesibilitas wajib ${JSON.stringify(t)}`);
   const tanpaAman = kode.match(/new (?:MutationObserver|ResizeObserver|IntersectionObserver)\((?!hkAman\()/);
   if (tanpaAman) masalah.push(`callback pengamat harus dibungkus hkAman (${JSON.stringify(tanpaAman[0])})`);
+  {
+    const aB = kode.indexOf("function hkTrenBaca(jalur, ok, gagal) {"), zB = aB < 0 ? -1 : kode.indexOf("\n}\n", aB);
+    if (aB < 0 || zB < 0) masalah.push("fungsi baca tren hkTrenBaca(jalur, ok, gagal) tidak ditemukan");
+    else {
+      const baca = kode.slice(aB, zB + 2);
+      const luar = kode.slice(0, aB) + kode.slice(zB + 2);
+      const fbLuar = luar.match(HK_FIREBASE);
+      if (fbLuar) masalah.push(`panggilan Firebase di luar hkTrenBaca: ${JSON.stringify(fbLuar[0])}`);
+      let sisa = baca;
+      for (const t of HK_BACA_TREN) {
+        if (sisa.split(t).length !== 2) masalah.push(`hkTrenBaca harus memuat tepat sekali ${JSON.stringify(t)}`);
+        sisa = sisa.split(t).join("");
+      }
+      const fbDalam = sisa.match(HK_FIREBASE);
+      if (fbDalam) masalah.push(`hkTrenBaca hanya boleh membaca sekali (ditemukan ${JSON.stringify(fbDalam[0])})`);
+      if (luar.split("hkTrenBaca(").length !== 2) masalah.push("hkTrenBaca harus dipanggil tepat di satu tempat (hkTrenMuat)");
+    }
+  }
   // Gerak: blok reduced-motion, animasi tak berujung dipatok, keyframes hanya transform/opacity (+ stroke).
   const iRm = css.indexOf("@media (prefers-reduced-motion:reduce){");
   const rm = iRm < 0 ? "" : css.slice(iRm, css.indexOf("\n}\n", iRm) + 2);
@@ -589,7 +612,7 @@ function periksaIsiHasilKeren(blok, html) {
 
 /** Kasus sandbox fungsi murni (spesifikasi terkoreksi E.3); mengembalikan daftar kesalahan. */
 function ujiMurniHasilKeren(murni, html) {
-  const M = new Function(murni + "\nreturn { hkMsIsoMurni, hkStatusKelasMurni, hkDistribusiNilaiMurni, hkKurvaMurni, hkMarkerMurni, hkSoalMurni, hkGerbangSoalMurni, hkGerbangJenisMurni, hkGerbangRinciMurni, hkKeaktifanTrenMurni, hkForumRingkasMurni, hkUbahBarisMurni, hkTanggaMurni, hkFmtMurni };")();
+  const M = new Function(murni + "\nreturn { hkMsIsoMurni, hkStatusKelasMurni, hkDistribusiNilaiMurni, hkKurvaMurni, hkMarkerMurni, hkSoalMurni, hkGerbangSoalMurni, hkGerbangJenisMurni, hkGerbangRinciMurni, hkTrenPertemuanMurni, hkTrenJalurMurni, hkTrenJadwalMurni, hkTrenMurni, hkUbahBarisMurni, hkTanggaMurni, hkFmtMurni };")();
   const salah = [];
   const sama = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   const isSim = (n) => String(n) === "41399999901";
@@ -687,18 +710,88 @@ function ujiMurniHasilKeren(murni, html) {
   for (const [g, dosen, harap] of [["tampil", true, true], ["tampil", false, false], ["sedikit", true, false]]) {
     if (M.hkGerbangRinciMurni(g, dosen) !== harap) salah.push(`rincian per soal (${g}, ${dosen}) harus ${harap} (hanya dosen)`);
   }
-  // Tren keaktifan per pertemuan.
-  const node = { "pertemuan-1": { mhs_1: { aktif: true }, mhs_41399999901: { aktif: true }, mhs_9: { aktif: true }, mhs_2: { aktif: false } },
-    "pertemuan-3": { mhs_1: { aktif: true }, mhs_2: { aktif: true } }, "pertemuan-30": { mhs_3: { aktif: true } } };
-  const tr = M.hkKeaktifanTrenMurni(node, roster, isSim, "pertemuan-3");
-  if (!(tr.per.length === 14 && tr.per[0].n === 1 && tr.per[1].n === 0 && tr.per[2].n === 2 && tr.per[2].sekarang === true && tr.per.slice(3).every((x) => x.n === 0 && !x.sekarang) && tr.total === 6 && tr.adaData === true)) {
-    salah.push(`tren keaktifan ${JSON.stringify(tr.per.map((x) => x.n))} tidak sesuai`);
+  // Tren kelas per pertemuan (G5 v2): hadir = mahasiswa daftar dengan poin tugas mentah > 0; nilai = round(poin/total*100).
+  // Kolom = Modul 1–14 = Pertemuan 1–7, 9–15 (pertemuan 8 = UTS, tidak ada node visitors-nya; review 13 Okt 2026).
+  if ([1, 7, 8, 14].map(M.hkTrenPertemuanMurni).join() !== "1,7,9,15") salah.push("hkTrenPertemuanMurni: Modul 1/7/8/14 = Pertemuan 1/7/9/15");
+  const SJ = (k, n) => `settings/${k}/pertemuan-${n}/schedule`;
+  const segV = (j) => j.kolom.map((k) => k.visitors.split("/").pop()).join();
+  const P_SEG = "pertemuan-1,pertemuan-2,pertemuan-3,pertemuan-4,pertemuan-5,pertemuan-6,pertemuan-7,pertemuan-9,pertemuan-10,pertemuan-11,pertemuan-12,pertemuan-13,pertemuan-14,pertemuan-15";
+  const jl = M.hkTrenJalurMurni("visitors/kursus_uji/pertemuan-3", "pertemuan-3", SJ("kursus_uji", 3), "pertemuan-3");
+  if (!(jl && jl.ini === 3 && jl.kolom.length === 14 && segV(jl) === P_SEG && jl.kolom.every((k) => k.visitors.startsWith("visitors/kursus_uji/"))
+    && jl.kolom[7].jadwal === SJ("kursus_uji", 9) && jl.kolom[13].no === 15)) salah.push(`hkTrenJalurMurni pertemuan-3 ${JSON.stringify(jl)}`);
+  const j15 = M.hkTrenJalurMurni("visitors/kursus_uji/pertemuan-15", "pertemuan-15", SJ("kursus_uji", 15), "pertemuan-15");
+  if (!(j15 && j15.ini === 14 && segV(j15) === P_SEG)) salah.push(`hkTrenJalurMurni pertemuan-15 (Modul 14) harus kolom 14 tanpa pertemuan-8 (dapat ${JSON.stringify(j15)})`);
+  const j9 = M.hkTrenJalurMurni("visitors/kursus_uji/pertemuan-9", "pertemuan-9", SJ("kursus_uji", 9), "pertemuan-9");
+  if (!(j9 && j9.ini === 8)) salah.push(`hkTrenJalurMurni pertemuan-9 (Modul 8) harus kolom 8 (dapat ${JSON.stringify(j9)})`);
+  const jm = M.hkTrenJalurMurni("visitors/math_uji/modul-12", "modul-12", SJ("math_uji", 13), "pertemuan-13");
+  if (!(jm && jm.ini === 12 && segV(jm) === Array.from({ length: 14 }, (_, i) => "modul-" + (i + 1)).join() && jm.kolom[11].jadwal === SJ("math_uji", 13) && jm.kolom[7].jadwal === SJ("math_uji", 9))) {
+    salah.push(`hkTrenJalurMurni modul-12 (Matematika 4: visitors modul-N, jadwal pertemuan-P) ${JSON.stringify(jm)}`);
   }
-  const trM = M.hkKeaktifanTrenMurni({ "modul-1": { mhs_1: { aktif: true } } }, roster, isSim, "modul-3");
-  if (trM.per[0].n !== 1 || !trM.per[2].sekarang) salah.push("tren keaktifan kunci modul-N (Matematika 4) harus berjalan");
-  if (M.hkKeaktifanTrenMurni({}, roster, isSim, "pertemuan-3").adaData !== false) salah.push("tren keaktifan kosong harus adaData false");
-  const fr = M.hkForumRingkasMurni({ mhs_1: { pengali: 1 }, mhs_2: { pengali: 0.65 }, mhs_3: { pengali: 0 }, mhs_41399999901: { pengali: 1 }, mhs_9: { pengali: 1 }, x: { pengali: 1 } }, roster, isSim);
-  if (fr.klaim !== 2 || fr.penuh !== 1 || fr.sebagian !== 1) salah.push(`ringkasan forum ${JSON.stringify(fr)} harus klaim 2, penuh 1, sebagian 1`);
+  for (const [p, id, jp, pid] of [["visitors/x/pertemuan-3", "pertemuan-4", SJ("x", 4), "pertemuan-4"], ["visitors/x/pertemuan-8", "pertemuan-8", SJ("x", 8), "pertemuan-8"],
+    ["visitors/x/pertemuan-16", "pertemuan-16", SJ("x", 16), "pertemuan-16"], ["visitors/x/3", "3", SJ("x", 3), "3"], ["pertemuan-3", "pertemuan-3", SJ("x", 3), "pertemuan-3"],
+    ["visitors/x/pertemuan", "pertemuan", SJ("x", 3), "pertemuan"], ["visitors/x/pertemuan-3", "pertemuan-3", "settings/x/pertemuan-4/schedule", "pertemuan-3"],
+    ["visitors/x/modul-8", "modul-8", SJ("x", 8), "pertemuan-8"], ["visitors/x/pertemuan-3", "pertemuan-3", undefined, undefined]]) {
+    if (M.hkTrenJalurMurni(p, id, jp, pid) !== null) salah.push(`hkTrenJalurMurni(${p}, ${id}, ${jp}, ${pid}) harus null`);
+  }
+  {
+    const a = M.hkTrenJadwalMurni({ due: "2026-10-16T23:59", duration: 7, end: "2026-01-01T00:00:00.000Z", start: "2026-01-01T00:00:00.000Z" });
+    const b = M.hkTrenJadwalMurni({ end: "2026-10-16T16:59:00.000Z", start: "2026-10-09T16:59:00.000Z" });
+    const c = M.hkTrenJadwalMurni(null);
+    if (!(a.akhir === Date.parse("2026-10-16T16:59:00.000Z") && a.mulai === Date.parse("2026-10-09T16:59:00.000Z") && b.akhir === a.akhir && b.mulai === a.mulai
+      && Number.isNaN(c.akhir) && Number.isNaN(c.mulai) && Number.isNaN(M.hkTrenJadwalMurni({ end: "2026-10-16T16:59" }).akhir))) salah.push(`hkTrenJadwalMurni (due WIB menang, end tanpa zona ditolak) ${JSON.stringify([a, b, c])}`);
+  }
+  const ok = (data) => ({ baca: "ok", data });
+  const petaTren = {
+    1: ok({ mhs_1: { nim: "1", role: "student", points: 50 }, mhs_2: { nim: "2", role: "student", points: 25 }, mhs_mhs_2: { nim: "2", role: "student", points: 10 },
+      mhs_3: { nim: "3", role: "student", points: 0 }, mhs_41399999901: { nim: "41399999901", role: "student", points: 50 },
+      dosen: { nim: "4", role: "dosen", points: 50 }, tamu: { nim: "5", role: "guest", points: 40 }, mhs_9: { nim: "9", role: "student", points: 50 } }),
+    2: ok([{ nim: "1", role: "student", points: 40 }, { nim: "6", role: "student", points: 0.2 }]),
+    3: ok([{ nim: "1", role: "student", points: 50 }, { nim: "2", role: "student", points: 50 }, { nim: "3", role: "student", points: 50 }, { nim: "4", role: "student", points: "47" }]),
+    4: ok({ a: { nim: "41399999901", role: "student", points: 50 }, b: { nim: "9", role: "student", points: 50 }, c: { nim: "4", role: "dosen", points: 50 }, d: { nim: "5", role: "guest", points: 9 } }),
+    5: { baca: "gagal" },
+    6: ok([{ nim: "1", role: "student", points: 0 }]),
+  };
+  for (let no = 7; no <= 13; no += 1) petaTren[no] = ok(null);
+  const salinanTren = JSON.stringify(petaTren);
+  const tren = M.hkTrenMurni(petaTren, roster, isSim, 50, 3);
+  const kol = (p) => [p.status, p.hadir, p.roster, p.pct === null ? "-" : Math.round(p.pct * 100) / 100, p.rata === null ? "-" : Math.round(p.rata * 100) / 100, p.ini ? "ini" : ""].join("/");
+  const harapTren = ["ada/2/6/33.33/75/", "ada/2/6/33.33/40/", "ada/4/6/66.67/98.5/ini", "kosong/0/6/-/-/", "gagal/0/6/-/-/", "ada/0/6/0/-/",
+    ...Array(7).fill("kosong/0/6/-/-/"), "memuat/0/6/-/-/"];
+  if (tren.per.length !== 14 || tren.per.map(kol).join("|") !== harapTren.join("|")) salah.push(`hkTrenMurni per pertemuan ${tren.per.map(kol).join("|")}`);
+  if (tren.per.map((p) => p.no).join() !== "1,2,3,4,5,6,7,9,10,11,12,13,14,15" || tren.per.map((p) => p.slot).join() !== "1,2,3,4,5,6,7,8,9,10,11,12,13,14") salah.push(`hkTrenMurni label kolom harus pertemuan 1–7, 9–15 (dapat ${tren.per.map((p) => p.no).join()})`);
+  if (!(tren.berdata === 4 && Math.abs(tren.rataHadir - 100 / 3) < 1e-9 && Math.abs(tren.rataNilai - 213.5 / 3) < 1e-9 && tren.terendah === 6 && tren.gagal === 1 && tren.memuat === 1 && tren.roster === 6)) {
+    salah.push(`ringkasan tren ${JSON.stringify(Object.assign({}, tren, { per: tren.per.length }))} harus berdata 4, rataHadir 33,33, rataNilai 71,17, terendah 6, gagal 1, memuat 1`);
+  }
+  if (JSON.stringify(petaTren) !== salinanTren) salah.push("hkTrenMurni tidak boleh mengubah data mentah");
+  const tren40 = M.hkTrenMurni({ 1: petaTren[1] }, roster, isSim, 40, 1);
+  if (tren40.per[0].rata !== 81.5 || !tren40.per[0].ini) salah.push(`total 40: nilai NIM 1/2 = 100 (dijepit)/63, rata 81,5 (dapat ${tren40.per[0].rata})`);
+  const trenKosong = M.hkTrenMurni(Object.assign({ 3: ok([]) }, ...Array.from({ length: 14 }, (_, i) => ({ [i + 1]: ok(null) }))), roster, isSim, 50, 3);
+  if (!(trenKosong.berdata === 0 && trenKosong.rataHadir === null && trenKosong.rataNilai === null && trenKosong.terendah === null && trenKosong.per.every((p) => p.status === "kosong") && trenKosong.per[2].ini)) {
+    salah.push("tren semua kosong: berdata 0, rata null, terendah null, semua 'kosong'");
+  }
+  const trenMuat = M.hkTrenMurni({}, roster, isSim, 50, 3);
+  if (!(trenMuat.memuat === 14 && trenMuat.berdata === 0 && trenMuat.per.every((p) => p.status === "memuat"))) salah.push("tren tanpa data: semua 'memuat'");
+  {
+    // Pertemuan yang jadwalnya belum berakhir = 'berlangsung': digambar, tetapi tidak ikut rata-rata/terendah (review 13 Okt 2026:
+    // TTL P4 masih berjalan sampai 16 Okt dan sempat disebut "kehadiran terendah").
+    const KINI = Date.parse("2026-10-13T05:00:00.000Z");
+    const jalanJ = { due: "2026-10-16T23:59", duration: 7, start: "2026-10-09T16:59:00.000Z", end: "2026-10-16T16:59:00.000Z" };
+    const selesaiJ = { start: "2026-10-02T16:59:00.000Z", end: "2026-10-09T16:59:00.000Z" };
+    const nantiJ = { start: "2026-10-16T16:59:00.000Z", end: "2026-10-23T16:59:00.000Z" };
+    const pj = Object.assign({}, petaTren, { 3: Object.assign({}, petaTren[3], { jadwal: selesaiJ }), 4: ok([{ nim: "1", role: "student", points: 10 }, { nim: "2", role: "student", points: 0 }]),
+      5: ok(null), 6: ok(null), 7: ok([]) });
+    pj[4].jadwal = jalanJ; pj[5].jadwal = jalanJ; pj[6].jadwal = nantiJ; pj[7].jadwal = { due: "2026-10-13T23:59", duration: 7 };
+    const tj = M.hkTrenMurni(pj, roster, isSim, 50, 3, KINI);
+    const st = tj.per.map((p) => p.status).slice(0, 7).join();
+    if (st !== "ada,ada,ada,berlangsung,berlangsung,kosong,berlangsung" || tj.berlangsung !== 3 || tj.berdata !== 3 || tj.terendah !== 1 && tj.terendah !== 2
+      || Math.abs(tj.rataHadir - (100 / 3 + 100 / 3 + 200 / 3) / 3) > 1e-9 || tj.per[3].hadir !== 1 || tj.per[3].rata !== 20) {
+      salah.push(`tren berlangsung: status ${st}, berlangsung ${tj.berlangsung}, berdata ${tj.berdata}, terendah ${tj.terendah}, rataHadir ${tj.rataHadir}, P4 ${JSON.stringify(tj.per[3])}`);
+    }
+    const tTanpaKini = M.hkTrenMurni(pj, roster, isSim, 50, 3);
+    if (tTanpaKini.berlangsung !== 0) salah.push("tren tanpa kini: tidak ada yang 'berlangsung'");
+    const tSelesai = M.hkTrenMurni(pj, roster, isSim, 50, 3, Date.parse("2026-10-17T00:00:00.000Z"));
+    if (tSelesai.per[3].status !== "ada" || tSelesai.berlangsung !== 1 || tSelesai.per[4].status !== "kosong") salah.push(`tren sesudah jadwal berakhir: P4 'ada', P5 'kosong' (dapat ${tSelesai.per[3].status}/${tSelesai.per[4].status}/${tSelesai.berlangsung})`);
+  }
   for (const [a, b, harap] of [[{}, { a: "1" }, []], [{ a: "1", b: "2" }, { a: "1", b: "3", c: "4" }, ["b", "c"]], [{ a: "1" }, {}, []]]) {
     if (!sama(M.hkUbahBarisMurni(a, b), harap)) salah.push(`hkUbahBarisMurni(${JSON.stringify(a)}, ${JSON.stringify(b)}) harus ${JSON.stringify(harap)}`);
   }
@@ -711,9 +804,36 @@ function ujiMurniHasilKeren(murni, html) {
   return salah;
 }
 
+/**
+ * Jalur tren (G5) di halaman ini dengan hkTrenJalurMurni scripts/hasil-keren.mjs: kolom halaman ini = nomor modul,
+ * node visitors kolom itu = DB_PATH halaman, jadwalnya = SCHEDULE_PATH, dan tidak ada kolom yang membaca pertemuan-8
+ * (UTS) atau pertemuan-16 (review 13 Okt 2026: Modul 8–14 = pertemuan-9..15 di kursus non-Matematika 4).
+ */
+let HK_JALUR_MURNI = null;
+function periksaJalurTrenHalaman(html, relative) {
+  if (!HK_JALUR_MURNI) {
+    const a = HK_DATA.indexOf("function hkTrenPertemuanMurni("), b = HK_DATA.indexOf("function hkTrenJadwalMurni(");
+    if (a < 0 || b < a) throw new Error("scripts/hasil-keren.mjs: hkTrenPertemuanMurni/hkTrenJalurMurni tidak ditemukan");
+    HK_JALUR_MURNI = new Function(HK_DATA.slice(a, b) + "\nreturn hkTrenJalurMurni;")();
+  }
+  const nilai = (nama, t) => { const m = new RegExp("^const " + nama + " = " + (t ? "`([^`]*)`" : "'([^']*)'") + ";", "m").exec(html); return m ? m[1] : null; };
+  const konst = { MODULE_ID: nilai("MODULE_ID"), PERTEMUAN: nilai("PERTEMUAN"), COURSE_ID: nilai("COURSE_ID") };
+  const isi = (t) => (t === null ? null : t.replace(/\$\{(\w+)\}/g, (_, k) => (konst[k] == null ? "\u0000" : konst[k])));
+  const db = isi(nilai("DB_PATH", true)), sj = isi(nilai("SCHEDULE_PATH", true));
+  const modulNo = Number((/Modul-(\d+)\.html$/.exec(relative) || [])[1]);
+  const j = HK_JALUR_MURNI(db, konst.MODULE_ID, sj, konst.PERTEMUAN);
+  const salah = !j ? "jalur null (tren tidak tersedia)" : j.ini !== modulNo ? `kolom halaman ini ${j.ini}, harusnya ${modulNo}`
+    : j.kolom[j.ini - 1].visitors !== db ? `visitors kolom ini ${j.kolom[j.ini - 1].visitors} != DB_PATH ${db}`
+    : j.kolom[j.ini - 1].jadwal !== sj ? `jadwal kolom ini ${j.kolom[j.ini - 1].jadwal} != SCHEDULE_PATH ${sj}`
+    : j.kolom.some((k) => /\/pertemuan-(8|1[6-9]|[2-9]\d)(\/|$)/.test(k.visitors) || /\/pertemuan-(8|1[6-9]|[2-9]\d)\//.test(k.jadwal)) ? "membaca pertemuan-8 (UTS) atau di luar pertemuan 1–15"
+    : new Set(j.kolom.map((k) => k.visitors)).size !== 14 ? "segmen visitors ganda" : "";
+  if (salah) throw new Error(`${relative}: jalur tren HASIL-KEREN salah: ${salah}; perbaiki hkTrenJalurMurni di scripts/hasil-keren.mjs`);
+}
+
 /** Halaman modul: percobaan wajib berblok lengkap; halaman lain wajib tanpa blok (jangkarnya diuji di memori). */
 function periksaHasilKeren(html, relative, catat = true) {
   const saran = "; run node scripts/hasil-keren.mjs";
+  if (catat) periksaJalurTrenHalaman(html, relative);
   if (!(HASIL_KEREN_SEMUA || HASIL_KEREN_HALAMAN.has(relative))) {
     for (const t of ["HASIL-KEREN", "hasil-keren-style", 'id="hkPanel"']) {
       if (html.includes(t)) throw new Error(`${relative}: blok HASIL-KEREN hanya untuk halaman percobaan (memuat ${t}); tambahkan ke HALAMAN di scripts/hasil-keren.mjs dan HASIL_KEREN_HALAMAN${saran}`);
@@ -731,8 +851,8 @@ function periksaHasilKeren(html, relative, catat = true) {
   const ambil = (awal, akhir) => { const a = html.indexOf(awal), z = html.indexOf(akhir, a); return a < 0 || z < 0 ? "" : html.slice(a, z + akhir.length); };
   masalah.push(...periksaIsiHasilKeren({
     css: ambil('<style id="hasil-keren-style">', "</style>"),
-    panel: ambil("      <!-- HASIL-KEREN:PANEL BEGIN", "<!-- HASIL-KEREN:PANEL END v1 -->\n"),
-    data: ambil("// HASIL-KEREN:DATA BEGIN", "// HASIL-KEREN:DATA END v1\n"),
+    panel: ambil("      <!-- HASIL-KEREN:PANEL BEGIN", "<!-- HASIL-KEREN:PANEL END v2 -->\n"),
+    data: ambil("// HASIL-KEREN:DATA BEGIN", "// HASIL-KEREN:DATA END v2\n"),
   }, html));
   if (masalah.length) throw new Error(`${relative}: HASIL-KEREN: ${masalah.join("; ")}${saran}`);
   if (catat) {
@@ -782,6 +902,11 @@ function ujiMutasiHasilKeren() {
     ["MutationObserver tanpa hkAman", { data: ganti(HK_DATA, "const o = new MutationObserver(hkAman(fn));", "const o = new MutationObserver(fn);", "amati") }],
     ["penjaga ResizeObserver di komentar", { data: ganti(HK_DATA, "    if (typeof ResizeObserver === 'function') {\n      const ro", "    // typeof ResizeObserver === 'function'\n    {\n      const ro", "ro-komentar") }],
     ["penjaga auth di komentar", { data: ganti(HK_DATA, "    if (_auth && typeof _auth.onAuthStateChanged === 'function') _auth.onAuthStateChanged(", "    /* typeof _auth.onAuthStateChanged === 'function' */\n    _auth.onAuthStateChanged(", "auth-komentar") }],
+    ["onValue tren tanpa onlyOnce (langganan)", { data: ganti(HK_DATA, "onValue(r, berhasil, galat, { onlyOnce: true })", "onValue(r, berhasil, galat, {})", "onlyOnce") }],
+    ["ref( di luar hkTrenBaca", { data: ganti(HK_DATA, "  HK_TREN.waktu = kini;\n", "  HK_TREN.waktu = kini;\n  void ref(db, 'uji');\n", "ref-luar") }],
+    ["tulis di hkTrenBaca", { data: ganti(HK_DATA, "    const r = ref(db, jalur);\n", "    const r = ref(db, jalur);\n    update(r, {});\n", "tulis") }],
+    ["tren: poin 0 dihitung hadir", { data: ganti(HK_DATA, "nims.filter((n) => poin[n] > 0)", "nims.filter((n) => poin[n] >= 0)", "poin0") }],
+    ["tren: NIM di luar daftar ikut dihitung", { data: ganti(HK_DATA, "      if (isSim(nim) || !dalam.has(nim)) continue;\n      const p = Number(v.points) || 0;", "      if (isSim(nim)) continue;\n      const p = Number(v.points) || 0;", "luar") }],
   ]) {
     const b = Object.assign({}, blok, ubah);
     if (b.css === blok.css && b.panel === blok.panel && b.data === blok.data) throw new Error(`uji mutasi HASIL-KEREN "${nama}" tidak mengubah blok`);
@@ -799,6 +924,26 @@ function ujiMutasiHasilKeren() {
     ["auth tanpa penjaga", ganti(HK_DATA, "    if (_auth && typeof _auth.onAuthStateChanged === 'function') _auth.onAuthStateChanged(", "    _auth.onAuthStateChanged(", "auth")],
     ["IntersectionObserver mengamati seluruh papan", ganti(HK_DATA, "        io.observe(kisi);", "        io.observe(papan);", "io")],
     ["hk-baru tidak dilepas", ganti(HK_DATA, "              setTimeout(hkAman(() => r.classList.remove('hk-baru')), 1500);\n", "", "baru")],
+    ["tren dibaca ulang tiap gambar (tanpa cache 10 menit)", ganti(HK_DATA, "  if (HK_TREN.waktu && kini - HK_TREN.waktu < HK_TREN_SEGAR_MS) return;\n", "", "cache")],
+    ["tren dibaca sebelum panel terlihat", ganti(ganti(HK_DATA, "  // Node pertemuan lain dibaca hanya bila panel benar-benar terlihat (sekali, lalu paling cepat 10 menit sekali).\n  hkTrenMuat();\n", "", "muat-a"),
+      "function hkGambar() {\n", "function hkGambar() {\n  hkTrenMuat();\n", "muat-b")],
+    ["lemparan get tidak ditangkap", ganti(HK_DATA, "  } catch (e) { galat(); }\n}", "  } catch (e) { throw e; }\n}", "tangkap")],
+    ["penolakan get dianggap galat kode", ganti(HK_DATA, "  const galat = sekali(() => gagal());", "  const galat = sekali(() => { throw new Error('uji tren'); });", "tolak")],
+    ["baca menggantung tidak pernah gagal", ganti(HK_DATA, "  setTimeout(hkAman(() => { Object.keys(tunggu).forEach((k) => tuntas(tunggu[k], { baca: 'gagal' })); }), HK_TREN_TUNGGU_MS);\n", "", "gantung")],
+    // Review 13 Okt 2026 (ketahanan tren): mutasi berikut dulu lolos validator.
+    ["muat ulang mengosongkan data lama", ganti(HK_DATA, "  HK_TREN.gen += 1;\n", "  HK_TREN.gen += 1;\n  HK_TREN.peta = {};\n", "kosongkan")],
+    ["cache 5 menit", ganti(HK_DATA, "const HK_TREN_SEGAR_MS = 600000;", "const HK_TREN_SEGAR_MS = 300000;", "segar-5")],
+    ["cache 75 detik", ganti(HK_DATA, "const HK_TREN_SEGAR_MS = 600000;", "const HK_TREN_SEGAR_MS = 75000;", "segar-75")],
+    ["hkAman dibuang dari sekali dan timer tren", ganti(ganti(HK_DATA, "  const sekali = (f) => hkAman(function (x) { if (selesai) return; selesai = true; f(x); });",
+      "  const sekali = (f) => function (x) { if (selesai) return; selesai = true; f(x); };", "sekali"),
+      "  setTimeout(hkAman(() => { Object.keys(tunggu).forEach((k) => tuntas(tunggu[k], { baca: 'gagal' })); }), HK_TREN_TUNGGU_MS);",
+      "  setTimeout(() => { Object.keys(tunggu).forEach((k) => tuntas(tunggu[k], { baca: 'gagal' })); }, HK_TREN_TUNGGU_MS);", "timer")],
+    ["hasil generasi lama diterima", ganti(HK_DATA, "    if (gen !== HK_TREN.gen || (!tunggu[w.kunci] && isi.baca !== 'ok')) return;", "    if (!tunggu[w.kunci] && isi.baca !== 'ok') return;", "gen")],
+    ["kegagalan menimpa data lama", ganti(HK_DATA, "    if (isi.baca !== 'ok' && lama && lama.baca === 'ok') return;\n", "", "timpa")],
+    ["sukses terlambat dibuang", ganti(HK_DATA, "    if (gen !== HK_TREN.gen || (!tunggu[w.kunci] && isi.baca !== 'ok')) return;", "    if (gen !== HK_TREN.gen || !tunggu[w.kunci]) return;", "terlambat")],
+    ["segmen visitors = awalan + nomor modul (membaca pertemuan-8)", ganti(HK_DATA, "    const seg = m[1] + (ikutPertemuan ? no : slot);", "    const seg = m[1] + slot;", "seg")],
+    ["jadwal pertemuan lain tidak dipakai", ganti(HK_DATA, "jadwal: (jd && jd.baca === 'ok') ? jd.data : null };", "jadwal: null };", "jadwal")],
+    ["pertemuan berlangsung ikut rata-rata", ganti(HK_DATA, "    x.status = jalan ? 'berlangsung' : 'ada';", "    x.status = 'ada';", "berlangsung")],
   ]) {
     if (!gagal(() => ujiRuntimeHasilKeren(html, relative, data))) throw new Error(`${relative}: uji runtime menerima blok DATA HASIL-KEREN bermutasi (${nama})`);
   }
@@ -1020,7 +1165,9 @@ function domUjiHasilKeren(opsi) {
  * tetap jalan; (a') tanpa pengamat dan dengan _auth tanpa onAuthStateChanged/null tetap menggambar tanpa peringatan;
  * (b) penyisipan angka bayangan gagal -> tampilan asli pulih (tanpa hk-sr, panel tersembunyi); (c) tiga galat runtime
  * sesudah panel tampil -> hkPulihkan (pengamat diputus, kelas gerak dilepas, panel tersembunyi, tidak menggambar lagi);
- * (d) galat satu kartu tidak menggagalkan kartu lain. ujiMutasiHasilKeren menjalankan fungsi ini pada DATA bermutasi.
+ * (d) galat satu kartu tidak menggagalkan kartu lain; (e) G5 Tren: node pertemuan lain dibaca hanya saat panel terlihat,
+ * sekali per pembukaan (cache 10 menit), get melempar/ditolak/menggantung hanya menandai pertemuan itu, tanpa get
+ * memakai onValue onlyOnce. ujiMutasiHasilKeren menjalankan fungsi ini pada DATA bermutasi.
  * Juga (syarat rollout, dijalankan sekarang): 18 ikon, 30 pemicu = 1 gambar, tab tersembunyi = 0 gambar, render
  * ulang sesudah jendela buka tab tanpa hk-masuk (hanya hk-baru pada baris berubah), reduced-motion tanpa
  * hk-masuk/hk-baru, SVG ber-role img + <title>, angka donat = kartu statistik, gerbang dosen G3/G4, keadaan memuat.
@@ -1044,10 +1191,36 @@ function ujiRuntimeHasilKeren(html, relative, DATA) {
     { nim: "41399999901", nama: "x", role: "student", points: 50, timestamp: "2026-10-03T01:00:00.000Z" },
     { nim: "DOSEN", nama: "x", role: "dosen", points: 50, timestamp: "2026-10-03T01:00:00.000Z" },
   ];
+  // Node visitors pertemuan lain (G5 Tren). P3 = pertemuan ini (data langsung _visitorsMentah = KUNJUNGAN()).
+  // Kolom 8–14 = pertemuan-9..15 (pertemuan-8 = UTS tidak pernah dibaca); jadwal pertemuan lain dari AKAR_JADWAL.
+  const AKAR_TREN = "visitors/kursus_uji/pertemuan-";
+  const AKAR_JADWAL = "settings/kursus_uji/pertemuan-";
+  const NO_LAIN = [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
+  const TREN = {
+    [AKAR_TREN + 1]: { mhs_1: { nim: "1", role: "student", points: 45 }, mhs_2: { nim: "2", role: "student", points: 40 }, mhs_3: { nim: "3", role: "student", points: 30 },
+      mhs_4: { nim: "4", role: "student", points: 0 }, mhs_5: { nim: "5", role: "student", points: 50 }, mhs_41399999901: { nim: "41399999901", role: "student", points: 50 },
+      dosen: { nim: "DOSEN", role: "dosen", points: 50 }, mhs_9: { nim: "9", role: "student", points: 50 } },
+    [AKAR_TREN + 2]: { mhs_1: { nim: "1", role: "student", points: 50 }, mhs_2: { nim: "2", role: "student", points: 20 }, tamu: { nim: "6", role: "guest", points: 50 } },
+    [AKAR_TREN + 4]: { mhs_1: { nim: "1", role: "student", points: 25 } },
+  };
   function buat(opsi) {
-    const d = domUjiHasilKeren({ kini: MULAI, lebar: { hkPanel: 910, hkStatusIsi: 420, hkNilaiIsi: 420, hkWaktuIsi: 880, hkSoalIsi: 420, hkAktifIsi: 420 }, ...opsi });
+    const d = domUjiHasilKeren({ kini: MULAI, lebar: { hkPanel: 910, hkStatusIsi: 420, hkNilaiIsi: 420, hkWaktuIsi: 880, hkSoalIsi: 420, hkTrenIsi: 420 }, ...opsi });
     d.urai(d.akar, markup);
     const peringatan = [];
+    // get() tiruan: thenable yang selesai lewat jam virtual; gagalTren[jalur] = "lempar" | "tolak" | "gantung" | "valLempar"
+    // (snap.val() melempar); tundaTren[jalur] = ms (default 40). Data diambil SAAT dipanggil dari opsi.TREN (bila ada) atau
+    // TREN, jadi uji bisa mengubah data/mode di tengah jalan (opsi dibaca ulang tiap panggilan).
+    const tren = { panggil: [], onValue: [] };
+    const nilaiTren = (p) => { const sumber = opsi.TREN || TREN; const isi = JSON.stringify(sumber[p] === undefined ? null : sumber[p]); return { val: () => JSON.parse(isi) }; };
+    const getU = (r) => {
+      tren.panggil.push(r.p);
+      const mode = (opsi.gagalTren || {})[r.p];
+      const tunda = (opsi.tundaTren || {})[r.p] || 40;
+      if (mode === "lempar") throw new Error("uji: get melempar");
+      const snap = mode === "valLempar" ? { val: () => { throw new Error("uji: val melempar"); } } : nilaiTren(r.p);
+      return { then(ok, err) { d.setTimeoutU(() => { if (mode === "tolak") err(new Error("uji: get ditolak")); else if (mode !== "gantung") ok(snap); }, tunda); } };
+    };
+    const onValueU = (r, ok, err, op) => { tren.onValue.push({ p: r.p, op }); d.setTimeoutU(() => ok(nilaiTren(r.p)), 40); return () => {}; };
     const sb = {
       console: { warn: (...a) => peringatan.push(a.map((x) => (x && x.stack) || String(x)).join(" ")), log() {}, error: (...a) => peringatan.push(a.map(String).join(" ")) },
       Date: d.DateU, Math, Number, String, JSON, Object, Array, Set, Map, RegExp, Error, TypeError, Promise, Proxy,
@@ -1060,9 +1233,9 @@ function ujiRuntimeHasilKeren(html, relative, DATA) {
       matchMedia: (q) => ({ matches: !!opsi.diam && /reduce/.test(q), addListener() {} }),
       SCORE_CONFIG: { MC_COUNT: 10, COMP_EZ_COUNT: 10, COMP_HARD_COUNT: 5, TOTAL: 50 },
       _previewMode: false, latestVisitors: [], masterStudents: [], masterFetchDone: false, _visitorsDiterima: false, currentSchedule: null,
-      isSimulasiNim: (n) => String(n) === "41399999901", _keaktifanTotal: () => 50, KEAKTIFAN_BONUS_FRAKSI: 0.1,
-      _keaktifanKursus: { "pertemuan-1": { mhs_1: { aktif: true }, mhs_2: { aktif: true } }, "pertemuan-3": { mhs_4: { aktif: true } } },
-      _forumModul: {}, MODULE_ID: "pertemuan-3", forumAturanAktif: () => false,
+      isSimulasiNim: (n) => String(n) === "41399999901", _keaktifanTotal: () => 50, _visitorsMentah: [],
+      MODULE_ID: "pertemuan-3", DB_PATH: AKAR_TREN + "3", PERTEMUAN: "pertemuan-3", SCHEDULE_PATH: AKAR_JADWAL + "3/schedule", db: { uji: true }, ref: (dbx, p) => ({ p, db: dbx }),
+      get: opsi.tanpaGet ? undefined : getU, onValue: onValueU,
       _auth: "auth" in opsi ? opsi.auth : { currentUser: null, _cb: [], onAuthStateChanged(cb) { this._cb.push(cb); cb(this.currentUser); return () => {}; } },
       getIdentityLocal: () => sb.__identitas, __identitas: null, __lanjut: false,
     };
@@ -1100,14 +1273,14 @@ function ujiRuntimeHasilKeren(html, relative, DATA) {
     };
     const muat = () => {
       sb.masterStudents = ROSTER; sb.masterFetchDone = true; sb._visitorsDiterima = true;
-      sb.currentSchedule = Object.assign({}, JADWAL); sb.latestVisitors = KUNJUNGAN();
+      sb.currentSchedule = Object.assign({}, JADWAL); sb.latestVisitors = KUNJUNGAN(); sb._visitorsMentah = KUNJUNGAN();
       render();
     };
     const jalan = () => vm.runInContext('"use strict";\n' + DATA + "\n__lanjut = true;", sb, { filename: relative + "#HASIL-KEREN:DATA" });
     const bukaTab = (buka) => { const h = id("page-hasil"); if (buka) h.classList.add("active"); else h.classList.remove("active"); d.kirimMutasi(); };
     const gambar = () => Number(id("hkPanel") && id("hkPanel").getAttribute("data-hk-gambar")) || 0;
     const kelas = (x, k) => !!(id(x) && id(x).classList.contains(k));
-    return { d, sb, id, render, muat, jalan, bukaTab, gambar, kelas, peringatan, semua: d.semua };
+    return { d, sb, id, render, muat, jalan, bukaTab, gambar, kelas, peringatan, tren, opsi, semua: d.semua };
   }
   const cek = (kondisi, pesan) => { if (!kondisi) salah.push(pesan); };
   // (a) Wajib: tanpa elemen dan tanpa MutationObserver/ResizeObserver/IntersectionObserver -> tidak melempar.
@@ -1115,6 +1288,7 @@ function ujiRuntimeHasilKeren(html, relative, DATA) {
     const t = buat({ tanpaElemen: true, tanpaPengamat: true });
     try { t.jalan(); } catch (e) { salah.push(`(a) blok DATA melempar tanpa elemen/pengamat: ${e.message}`); }
     cek(t.sb.__lanjut === true, "(a) kode sesudah blok DATA harus tetap berjalan (tanpa elemen/pengamat)");
+    cek(t.tren.panggil.length === 0, "(a) tanpa elemen: node pertemuan lain tidak boleh dibaca");
   }
   // (a') Elemen ada, pengamat tidak ada (peramban lama), _auth tanpa onAuthStateChanged atau null: tetap tidak
   // melempar, tanpa peringatan, dan panel tetap menggambar (tab Hasil sudah aktif saat skrip berjalan).
@@ -1156,7 +1330,7 @@ function ujiRuntimeHasilKeren(html, relative, DATA) {
     t.d.majukan(300);
     cek(t.gambar() === 1, `membuka tab: harus tepat 1 gambar (ada ${t.gambar()})`);
     cek(t.kelas("hkPanel", "hk-masuk"), "gambar pertama sesudah tab dibuka harus memakai animasi masuk panel");
-    for (const isi of ["hkStatusIsi", "hkNilaiIsi", "hkWaktuIsi", "hkAktifIsi"]) {
+    for (const isi of ["hkStatusIsi", "hkNilaiIsi", "hkWaktuIsi", "hkTrenIsi"]) {
       const svg = t.id(isi).children[0] && (t.id(isi).children[0].tagName === "svg" ? t.id(isi).children[0] : t.id(isi).children[0].children[0]);
       cek(svg && svg.tagName === "svg" && svg.getAttribute("role") === "img" && svg.children.some((c) => c.tagName === "title") && svg.children.some((c) => c.tagName === "desc"),
         `${isi}: SVG harus ber-role img dengan <title> dan <desc>`);
@@ -1298,15 +1472,152 @@ function ujiRuntimeHasilKeren(html, relative, DATA) {
   }
   // (d) Galat di satu kartu hanya mematikan kartu itu (try per kartu): kartu lain tetap digambar.
   {
-    const t = buat({ idGagal: "hkAktifKet" });
+    const t = buat({ idGagal: "hkTrenKet" });
     t.jalan();
     t.muat();
     t.bukaTab(true);
     t.d.majukan(300);
     cek(t.gambar() === 1, `(d) galat satu kartu tidak boleh menggagalkan gambar (dapat ${t.gambar()})`);
-    cek(/Grafik tidak bisa digambar/.test(t.id("hkAktifIsi").textContent), "(d) kartu yang galat harus menampilkan '⚠ Grafik tidak bisa digambar.'");
+    cek(/Grafik tidak bisa digambar/.test(t.id("hkTrenIsi").textContent), "(d) kartu yang galat harus menampilkan '⚠ Grafik tidak bisa digambar.'");
     cek(t.id("hkSoalIsi").children[0] && t.id("hkSoalIsi").children[0].children.some((e) => e.classList.contains("hk-baris-soal")), "(d) kartu lain tetap digambar");
     cek(t.id("hkPanel").hidden === false && t.peringatan.length === 1, `(d) satu galat: panel tetap tampil, satu peringatan (dapat ${t.peringatan.length})`);
+  }
+  // (e) G5 Tren: node pertemuan lain dibaca hanya saat panel terlihat, sekali per pembukaan (cache 10 menit);
+  // isi kolom/keterangan dari data uji; galat baca satu node hanya menandai pertemuan itu.
+  const judulTren = (t) => t.semua().filter((e) => e.tagName === "g" && e.classList.contains("hk-kolom"))
+    .map((g) => (g.children.find((c) => c.tagName === "title") || { textContent: "" }).textContent);
+  const lain = NO_LAIN.map((n) => AKAR_TREN + n).join();
+  const lainJadwal = NO_LAIN.map((n) => AKAR_JADWAL + n + "/schedule").join();
+  const bacaV = (t) => t.tren.panggil.filter((p) => p.startsWith(AKAR_TREN));
+  const bacaJ = (t) => t.tren.panggil.filter((p) => p.startsWith(AKAR_JADWAL));
+  {
+    const t = buat({});
+    t.jalan();
+    t.muat();
+    t.d.majukan(2000);
+    cek(t.tren.panggil.length === 0, `(e) tab Hasil belum dibuka: node pertemuan lain tidak boleh dibaca (dibaca ${t.tren.panggil.length})`);
+    t.bukaTab(true);
+    t.d.majukan(1500);
+    cek(bacaV(t).join() === lain && bacaJ(t).join() === lainJadwal && t.tren.panggil.length === 26,
+      `(e) membuka tab: node visitors + jadwal 13 pertemuan lain dibaca sekali, tanpa pertemuan ini dan tanpa pertemuan-8 (dapat ${t.tren.panggil.join()})`);
+    cek(!t.tren.panggil.some((p) => /pertemuan-8(\/|$)/.test(p)), "(e) pertemuan-8 (UTS) tidak boleh dibaca");
+    const t0 = t.d.jam.kini;
+    const j = judulTren(t);
+    cek(j.length === 14 && j[0] === "Pertemuan 1: hadir 4/6 (67%), rata-rata nilai tugas 82,5" && j[1] === "Pertemuan 2: hadir 2/6 (33%), rata-rata nilai tugas 70"
+      && j[2] === "Pertemuan 3: hadir 4/6 (67%), rata-rata nilai tugas 82,8 (pertemuan ini)" && j[3] === "Pertemuan 4: hadir 1/6 (17%), rata-rata nilai tugas 50"
+      && j[4] === "Pertemuan 5: belum berlangsung (belum ada data)" && j[7] === "Pertemuan 9: belum berlangsung (belum ada data)"
+      && j[13] === "Pertemuan 15: belum berlangsung (belum ada data)", `(e) judul kolom tren tidak sesuai: ${JSON.stringify(j)}`);
+    const ket = t.id("hkTrenKet").textContent;
+    cek(ket.startsWith("Rata-rata kehadiran 46% dan nilai tugas 71,3 dari 4 pertemuan yang sudah selesai; kehadiran terendah di Pertemuan 4.") && /tanpa bonus keaktifan\/forum/.test(ket)
+      && !/Memuat|tidak termuat|berlangsung|kartu Kehadiran/.test(ket), `(e) keterangan tren tidak sesuai: ${ket}`);
+    const garis = t.semua().find((e) => e.classList.contains("hk-tren-garis"));
+    cek(garis && garis.getAttribute("d").split("M").length === 2 && garis.getAttribute("d").split("L").length === 4 && t.semua().filter((e) => e.classList.contains("hk-tren-titik")).length === 4,
+      "(e) garis nilai harus menyambung P1–P4 (4 titik, satu ruas)");
+    cek(t.semua().filter((e) => e.classList.contains("hk-batang") && e.classList.contains("hk-ini")).length === 1, "(e) batang pertemuan ini harus disorot (hk-ini) tepat satu");
+    for (let i = 0; i < 5; i += 1) {
+      t.sb.latestVisitors = KUNJUNGAN().map((v) => (v.nim === "4" ? Object.assign(v, { points: 31 + i }) : v));
+      t.render();
+      t.d.majukan(1500);
+    }
+    t.bukaTab(false); t.d.majukan(60000); t.bukaTab(true); t.d.majukan(1500);
+    cek(t.tren.panggil.length === 26, `(e) gambar ulang dan tab dibuka ulang < 10 menit tidak boleh membaca ulang (dibaca ${t.tren.panggil.length})`);
+    // Batas bawah cache benar-benar 10 menit: dibuka ulang 9 menit 58 dtk sesudah baca pertama -> belum dibaca ulang.
+    t.bukaTab(false); t.d.majukan(t0 + 598000 - t.d.jam.kini); t.bukaTab(true); t.d.majukan(500);
+    cek(t.tren.panggil.length === 26, `(e) tab dibuka ulang 9 mnt 58 dtk sesudah baca pertama tidak boleh membaca ulang (dibaca ${t.tren.panggil.length})`);
+    // Muat ulang sesudah 10 menit: semua baca menggantung/ditolak -> data lama tetap tampil (selama dan sesudah memuat).
+    const OPSI = t.opsi;
+    OPSI.gagalTren = Object.fromEntries([...NO_LAIN.map((n) => [AKAR_TREN + n, n === 1 ? "tolak" : "gantung"]), ...NO_LAIN.map((n) => [AKAR_JADWAL + n + "/schedule", "gantung"])]);
+    t.bukaTab(false); t.d.majukan(600000); t.bukaTab(true); t.d.majukan(1500);
+    cek(t.tren.panggil.length === 52, `(e) tab dibuka ulang sesudah 10 menit: dibaca ulang sekali (dibaca ${t.tren.panggil.length}, harusnya 52)`);
+    let jl = judulTren(t);
+    cek(jl[0] === j[0] && jl[1] === j[1] && jl[3] === j[3], `(e) selama/sesudah muat ulang yang gagal, data lama P1/P2/P4 harus tetap (dapat ${JSON.stringify(jl.slice(0, 4))})`);
+    t.d.majukan(20000);
+    jl = judulTren(t);
+    cek(jl[0] === j[0] && jl[1] === j[1] && jl[3] === j[3] && /dari 4 pertemuan yang sudah selesai/.test(t.id("hkTrenKet").textContent) && !/tidak termuat/.test(t.id("hkTrenKet").textContent),
+      `(e) muat ulang gagal/menggantung tidak boleh menimpa data lama yang benar (dapat ${JSON.stringify(jl.slice(0, 4))}; ${t.id("hkTrenKet").textContent})`);
+    cek(t.peringatan.length === 0, `(e) tren tidak boleh memunculkan peringatan: ${t.peringatan[0]}`);
+  }
+  {
+    // Sukses terlambat (> 20 dtk) diterima tanpa baca tambahan; snap.val() yang melempar tidak lolos ke luar (hkAman).
+    const t = buat({ tundaTren: { [AKAR_TREN + 2]: 25000 }, gagalTren: { [AKAR_TREN + 4]: "valLempar" } });
+    t.jalan();
+    t.muat();
+    t.bukaTab(true);
+    try {
+      t.d.majukan(1500);
+      t.d.majukan(20000);
+      cek(judulTren(t)[1] === "Pertemuan 2: data tidak termuat", `(e''') baca P2 > 20 dtk: sementara 'tidak termuat' (dapat ${judulTren(t)[1]})`);
+      t.d.majukan(5000);
+    } catch (e) { salah.push(`(e''') galat di callback baca tren lolos ke luar (hkAman): ${e.message}`); }
+    const j = judulTren(t);
+    cek(j[1] === "Pertemuan 2: hadir 2/6 (33%), rata-rata nilai tugas 70" && t.tren.panggil.length === 26, `(e''') sukses terlambat harus diterima tanpa baca tambahan (dapat ${j[1]}, ${t.tren.panggil.length} baca)`);
+    cek(j[3] === "Pertemuan 4: data tidak termuat" && t.id("hkPanel").hidden === false, `(e''') snap.val() melempar: P4 'tidak termuat', panel tetap tampil (dapat ${j[3]})`);
+  }
+  {
+    // Hasil generasi lama yang tiba sesudah muat ulang tidak boleh menimpa data baru.
+    const TREN2 = JSON.parse(JSON.stringify(TREN));
+    const opsi = { TREN: TREN2, tundaTren: { [AKAR_TREN + 2]: 700000 } };
+    const t = buat(opsi);
+    t.jalan();
+    t.muat();
+    t.bukaTab(true);
+    t.d.majukan(1500);
+    opsi.TREN = JSON.parse(JSON.stringify(TREN));
+    opsi.TREN[AKAR_TREN + 2] = { mhs_1: { nim: "1", role: "student", points: 50 } };
+    opsi.tundaTren = {};
+    t.bukaTab(false); t.d.majukan(600000); t.bukaTab(true); t.d.majukan(1500);
+    const baru = judulTren(t)[1];
+    t.d.majukan(120000);
+    cek(baru === "Pertemuan 2: hadir 1/6 (17%), rata-rata nilai tugas 100" && judulTren(t)[1] === baru, `(e''') hasil generasi lama menimpa data baru (dapat ${baru} lalu ${judulTren(t)[1]})`);
+  }
+  {
+    // Pertemuan yang masih berlangsung (jadwal P4 berakhir sesudah kini) digambar tetapi tidak ikut rata-rata/terendah;
+    // hadir kartu (dengan bonus) yang berbeda dari hadir tren dijelaskan.
+    const TRENJ = Object.assign(JSON.parse(JSON.stringify(TREN)), { [AKAR_JADWAL + "4/schedule"]: { due: "2026-10-16T23:59", duration: 7, start: "2026-10-09T16:59:00.000Z", end: "2026-10-16T16:59:00.000Z" },
+      [AKAR_JADWAL + "1/schedule"]: { due: "2026-10-02T23:59", duration: 7 } });
+    const t = buat({ TREN: TRENJ });
+    t.jalan();
+    t.muat();
+    t.sb.latestVisitors = KUNJUNGAN().map((v) => (v.nim === "5" ? Object.assign(v, { points: 5, tanpaKunjungan: true }) : v));
+    t.render();
+    t.bukaTab(true);
+    t.d.majukan(1500);
+    const j = judulTren(t);
+    const ket = t.id("hkTrenKet").textContent;
+    cek(j[3] === "Pertemuan 4 (sedang berlangsung, sementara): hadir 1/6 (17%), rata-rata nilai tugas 50" && j[0].startsWith("Pertemuan 1: hadir 4/6"), `(e4) judul pertemuan berlangsung: ${JSON.stringify(j.slice(0, 4))}`);
+    cek(ket.startsWith("Rata-rata kehadiran 56% dan nilai tugas 78,4 dari 3 pertemuan yang sudah selesai (+1 sedang berlangsung, belum dihitung); kehadiran terendah di Pertemuan 2."),
+      `(e4) keterangan dengan pertemuan berlangsung: ${ket}`);
+    cek(/Pertemuan ini: 4 hadir menurut poin tugas; kartu Kehadiran \(5\) juga menghitung mahasiswa yang hanya mendapat bonus keaktifan\/forum\./.test(ket), `(e4) beda hadir kartu vs tren harus dijelaskan: ${ket}`);
+    cek(t.semua().filter((e) => e.classList.contains("hk-batang") && e.classList.contains("hk-berlangsung")).length === 1, "(e4) batang pertemuan berlangsung harus bertanda hk-berlangsung tepat satu");
+    cek(t.peringatan.length === 0, `(e4) tidak boleh ada peringatan: ${t.peringatan[0]}`);
+  }
+  {
+    const t = buat({ gagalTren: { [AKAR_TREN + 2]: "lempar", [AKAR_TREN + 4]: "tolak", [AKAR_TREN + 5]: "gantung" } });
+    t.jalan();
+    t.muat();
+    t.bukaTab(true);
+    t.d.majukan(1500);
+    let j = judulTren(t);
+    cek(j[1] === "Pertemuan 2: data tidak termuat" && j[3] === "Pertemuan 4: data tidak termuat" && j[4] === "Pertemuan 5: memuat…" && j[0].startsWith("Pertemuan 1: hadir 4/6"),
+      `(e') get melempar/ditolak: hanya pertemuan itu "tidak termuat" (dapat ${JSON.stringify(j.slice(0, 5))})`);
+    cek(t.semua().filter((e) => e.classList.contains("hk-tren-gagal")).length === 2, "(e') dua kolom gagal harus bertanda '!'");
+    cek(/data 2 pertemuan tidak termuat/.test(t.id("hkTrenKet").textContent) && /dari 2 pertemuan yang sudah selesai; kehadiran terendah di Pertemuan 1\./.test(t.id("hkTrenKet").textContent),
+      `(e') keterangan galat tren: ${t.id("hkTrenKet").textContent}`);
+    t.d.majukan(20000);
+    j = judulTren(t);
+    cek(j[4] === "Pertemuan 5: data tidak termuat", `(e') baca yang menggantung dianggap tidak termuat sesudah 20 dtk (dapat ${j[4]})`);
+    cek(t.id("hkPanel").hidden === false && t.peringatan.length === 0 && t.id("hkSoalIsi").children[0] && t.id("hkSoalIsi").children[0].children.some((e) => e.classList.contains("hk-baris-soal")),
+      `(e') galat baca tidak boleh mematikan panel/kartu lain atau memunculkan peringatan (${t.peringatan[0] || "-"})`);
+  }
+  {
+    const t = buat({ tanpaGet: true });
+    t.jalan();
+    t.muat();
+    t.bukaTab(true);
+    t.d.majukan(1500);
+    cek(t.tren.onValue.length === 26 && t.tren.onValue.every((x) => x.op && x.op.onlyOnce === true), `(e'') tanpa get: cadangan onValue harus onlyOnce untuk 26 node (dapat ${t.tren.onValue.length})`);
+    cek(judulTren(t)[0] === "Pertemuan 1: hadir 4/6 (67%), rata-rata nilai tugas 82,5", "(e'') tanpa get: kolom tetap terisi lewat onValue onlyOnce");
+    cek(t.peringatan.length === 0, `(e'') tanpa get tidak boleh ada peringatan: ${t.peringatan[0]}`);
   }
   if (salah.length) throw new Error(`${relative}: runtime HASIL-KEREN salah: ${salah.join("; ")}; run node scripts/hasil-keren.mjs`);
 }
@@ -1737,10 +2048,10 @@ await ujiMutasiPenjagaForum();
 if (forumPoinHalaman !== 84) throw new Error(`Expected 84 module pages with the FORUM-POIN DATA v3 block (forum 2 poin), found ${forumPoinHalaman}`);
 await ujiRuntimeForumPoin();
 if (hasilKerenJangkarGagal.length) throw new Error(`HASIL-KEREN: jangkar belum siap untuk rollout (pasang di memori gagal): ${hasilKerenJangkarGagal.join(" | ")}; perbaiki scripts/hasil-keren.mjs`);
-if (hasilKerenHalaman !== (HASIL_KEREN_SEMUA ? 84 : HASIL_KEREN_HALAMAN.size)) throw new Error(`Expected ${HASIL_KEREN_SEMUA ? 84 : HASIL_KEREN_HALAMAN.size} module pages with the HASIL-KEREN v1 blocks, found ${hasilKerenHalaman}`);
+if (hasilKerenHalaman !== (HASIL_KEREN_SEMUA ? 84 : HASIL_KEREN_HALAMAN.size)) throw new Error(`Expected ${HASIL_KEREN_SEMUA ? 84 : HASIL_KEREN_HALAMAN.size} module pages with the HASIL-KEREN v2 blocks, found ${hasilKerenHalaman}`);
 {
   const { html, relative } = hasilKerenContoh;
-  const akhir = "// HASIL-KEREN:DATA END v1\n";
+  const akhir = "// HASIL-KEREN:DATA END v2\n";
   ujiRuntimeHasilKeren(html, relative, html.slice(html.indexOf("// HASIL-KEREN:DATA BEGIN"), html.indexOf(akhir) + akhir.length));
 }
 ujiMutasiHasilKeren();
