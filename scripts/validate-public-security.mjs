@@ -2313,6 +2313,45 @@ if (hasilKerenHalaman !== (HASIL_KEREN_SEMUA ? 84 : HASIL_KEREN_HALAMAN.size)) t
   ujiRuntimeHasilKeren(html, relative, html.slice(html.indexOf("// HASIL-KEREN:DATA BEGIN"), html.indexOf(akhir) + akhir.length));
 }
 ujiMutasiHasilKeren();
+// VIDEO-PRAKTIK: rekaman layar Praktik Terbimbing modul CAD (scripts/video-praktik.mjs + video-praktik-data.mjs).
+// Berkas video dilayani statis dari folder kursus; pemutar hanya memakai jalur relatif dan tidak memanggil host luar.
+{
+  const { KURSUS: vpKursus, VIDEO_PRAKTIK: vpDaftar } = await import("./video-praktik-data.mjs");
+  const { pasang: vpPasang } = await import("./video-praktik.mjs");
+  for (const v of vpDaftar) {
+    const rel = `${vpKursus}/Modul/Modul-${v.modul}.html`;
+    const html = fs.readFileSync(path.join(root, rel), "utf8");
+    const awal = html.split("<!-- VIDEO-PRAKTIK:BLOK BEGIN").length - 1;
+    const akhir = html.split("<!-- VIDEO-PRAKTIK:BLOK END").length - 1;
+    if (awal !== 1 || akhir !== 1) throw new Error(`VIDEO-PRAKTIK: ${rel} harus memuat tepat satu blok (BEGIN ${awal}, END ${akhir}); jalankan node scripts/video-praktik.mjs`);
+    if (vpPasang(html, v) !== html) throw new Error(`VIDEO-PRAKTIK: blok di ${rel} tidak sama dengan keluaran scripts/video-praktik.mjs; jalankan skrip itu`);
+    const b0 = html.indexOf("<!-- VIDEO-PRAKTIK:BLOK BEGIN");
+    const b1 = html.indexOf("<!-- VIDEO-PRAKTIK:BLOK END");
+    const blokVideo = html.slice(b0, b1);
+    const iPr = html.indexOf('id="m-praktik"');
+    const iPu = html.indexOf('id="m-pustaka"');
+    if (!(iPr >= 0 && iPr < b0 && b1 < iPu)) throw new Error(`VIDEO-PRAKTIK: blok di ${rel} harus berada di dalam #m-praktik`);
+    if (/https?:\/\//i.test(blokVideo)) throw new Error(`VIDEO-PRAKTIK: blok di ${rel} tidak boleh memuat host luar`);
+    for (const f of [v.berkas, v.poster]) {
+      const berkas = path.join(root, vpKursus, "Video", f);
+      const ukuran = fs.existsSync(berkas) ? fs.statSync(berkas).size : -1;
+      if (ukuran < 1024) throw new Error(`VIDEO-PRAKTIK: ${vpKursus}/Video/${f} tidak ada atau kosong`);
+      if (ukuran > 60 * 1024 * 1024) throw new Error(`VIDEO-PRAKTIK: ${vpKursus}/Video/${f} melebihi 60 MB (batas wajar Pages)`);
+      if (!blokVideo.includes(`../Video/${f}`)) throw new Error(`VIDEO-PRAKTIK: ${rel} tidak merujuk ../Video/${f}`);
+    }
+    const kepala = Buffer.alloc(12);
+    const fd = fs.openSync(path.join(root, vpKursus, "Video", v.berkas), "r");
+    fs.readSync(fd, kepala, 0, 12, 0);
+    fs.closeSync(fd);
+    if (kepala.subarray(4, 8).toString("latin1") !== "ftyp") throw new Error(`VIDEO-PRAKTIK: ${v.berkas} bukan berkas MP4 (tanda ftyp tidak ada)`);
+    const waktu = v.bab.map((x) => x[1]);
+    if (waktu.some((t, i) => !(t >= 0) || (i > 0 && t <= waktu[i - 1]))) throw new Error(`VIDEO-PRAKTIK: waktu bab modul ${v.modul} harus menaik`);
+    if (!html.includes('id="video-praktik-style"')) throw new Error(`VIDEO-PRAKTIK: ${rel} tidak memuat CSS video-praktik-style`);
+    // Uji mutasi: tanpa blok, pemasang harus memasangnya lagi (bukan diam).
+    const tanpa = html.replace(/[ \t]*<!-- VIDEO-PRAKTIK:BLOK BEGIN[\s\S]*?<!-- VIDEO-PRAKTIK:BLOK END v\d+ -->\n/, "");
+    if (tanpa === html || vpPasang(tanpa, v) !== html) throw new Error(`VIDEO-PRAKTIK: uji mutasi gagal — pemasang tidak memulihkan blok di ${rel}`);
+  }
+}
 if (kunciIdentitasModul !== 84) throw new Error(`Expected 84 module pages with a checked classic identity key, found ${kunciIdentitasModul}`);
 ujiMutasiKunciIdentitas();
 if (draftModulHalaman !== 84 || draftModulId.size !== 84) throw new Error(`Expected 84 module pages with a working per-module draft (unique MODUL_ID), found ${draftModulHalaman} pages / ${draftModulId.size} ids`);
