@@ -24,6 +24,23 @@ export const VIDEO_PRAKTIK = [
     ],
   },
   {
+    modul: 2,
+    berkas: "Modul-2-Praktik-Flens-Delapan-Baut.mp4",
+    poster: "Modul-2-Praktik-Flens-Delapan-Baut.jpg",
+    judul: "Flens Pelat Delapan Baut",
+    durasi: "4:48",
+    bab: [
+      ["1 · Dokumen dan bidang kerja", 4],
+      ["2 · Layer", 15.7],
+      ["3 · Garis konstruksi", 31.2],
+      ["4 · Kontur flens", 71.7],
+      ["5 · Lubang baut dan Polar Array", 111.5],
+      ["6 · Cut dan luas", 134.3],
+      ["7 · Dimensi", 173.5],
+      ["7 · Sudut, layer, simpan", 220.8],
+    ],
+  },
+  {
     modul: 5,
     berkas: "Modul-5-Praktik-Braket-L.mp4",
     poster: "Modul-5-Praktik-Braket-L.jpg",
