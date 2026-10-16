@@ -10,6 +10,20 @@ export const KURSUS = "Pemodelan-Computer-Aided-Design";
 
 export const VIDEO_PRAKTIK = [
   {
+    modul: 1,
+    berkas: "Modul-1-Praktik-Pelat-Berlubang.mp4",
+    poster: "Modul-1-Praktik-Pelat-Berlubang.jpg",
+    judul: "Pelat Berlubang",
+    durasi: "1:43",
+    bab: [
+      ["1–2 · Dokumen dan bidang kerja", 4],
+      ["3 · Pelat", 15.4],
+      ["4 · Lubang", 30.6],
+      ["5 · Cut", 55.9],
+      ["6–7 · Luas dan simpan", 80.2],
+    ],
+  },
+  {
     modul: 5,
     berkas: "Modul-5-Praktik-Braket-L.mp4",
     poster: "Modul-5-Praktik-Braket-L.jpg",
