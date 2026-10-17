@@ -200,4 +200,20 @@ export const VIDEO_PRAKTIK = [
       ["7 · Gerak, validasi, simpan", 101.4],
     ],
   },
+  {
+    modul: 13,
+    berkas: "Modul-13-Praktik-Housing-Jejak.mp4",
+    poster: "Modul-13-Praktik-Housing-Jejak.jpg",
+    judul: "Housing Ringan Berlabel Jejak",
+    durasi: "2:10",
+    bab: [
+      ["1 · Body housing dan Spreadsheet", 4],
+      ["2 · Massa pejal", 14.9],
+      ["3 · Cangkang Thickness", 28.7],
+      ["4 · Sapuan tebal dinding", 45.4],
+      ["5 · Neraca jejak", 61.9],
+      ["6 · Alternatif material", 86.7],
+      ["7 · Dokumentasi dan simpan", 106.7],
+    ],
+  },
 ];
