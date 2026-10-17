@@ -104,4 +104,18 @@ export const VIDEO_PRAKTIK = [
       ["7 · Massa dan simpan", 277.1],
     ],
   },
+  {
+    modul: 7,
+    berkas: "Modul-7-Praktik-Braket-Flens.mp4",
+    poster: "Modul-7-Praktik-Braket-Flens.jpg",
+    judul: "Braket Flens dengan Pola Lubang dan Link Boss",
+    durasi: "2:43",
+    bab: [
+      ["1–2 · Body Flens dan lubang pusat", 4],
+      ["3 · Lubang baut dan PolarPattern", 56.9],
+      ["4 · Boss sekali saja", 94.5],
+      ["5–6 · Link dan Part container", 119.9],
+      ["7 · Periksa dan simpan", 140.9],
+    ],
+  },
 ];
