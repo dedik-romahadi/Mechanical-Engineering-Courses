@@ -151,4 +151,20 @@ export const VIDEO_PRAKTIK = [
       ["7 · Kesimpulan dan simpan", 119],
     ],
   },
+  {
+    modul: 10,
+    berkas: "Modul-10-Praktik-Braket-Iteratif.mp4",
+    poster: "Modul-10-Praktik-Braket-Iteratif.jpg",
+    judul: "Braket Iteratif dari Tegangan ke Massa",
+    durasi: "2:57",
+    bab: [
+      ["1 · Model parametrik", 4],
+      ["2 · FEM iterasi 0", 19.3],
+      ["3 · Fillet daerah kritis", 44.4],
+      ["4 · Rusuk untuk kekakuan", 73.9],
+      ["5 · Pengurangan massa", 102.3],
+      ["6 · Alternatif material", 130.8],
+      ["7 · Tabel iterasi dan simpan", 151.7],
+    ],
+  },
 ];
