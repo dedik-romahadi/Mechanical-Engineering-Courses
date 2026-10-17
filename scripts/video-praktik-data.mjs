@@ -135,4 +135,20 @@ export const VIDEO_PRAKTIK = [
       ["7 · Frekuensi dan simpan", 165.9],
     ],
   },
+  {
+    modul: 9,
+    berkas: "Modul-9-Praktik-Pelat-Berlubang-FEM.mp4",
+    poster: "Modul-9-Praktik-Pelat-Berlubang-FEM.jpg",
+    judul: "Pelat Berlubang Tarik",
+    durasi: "2:19",
+    bab: [
+      ["1 · Model pelat", 4],
+      ["2 · Analysis dan material", 17.5],
+      ["3 · Tumpuan dan beban", 25.4],
+      ["4 · Mesh awal", 37.5],
+      ["5 · Membaca hasil", 55.5],
+      ["6 · Konvergensi", 80.7],
+      ["7 · Kesimpulan dan simpan", 119],
+    ],
+  },
 ];
