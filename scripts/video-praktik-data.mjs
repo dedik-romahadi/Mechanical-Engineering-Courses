@@ -28,7 +28,7 @@ export const VIDEO_PRAKTIK = [
     berkas: "Modul-2-Praktik-Flens-Delapan-Baut.mp4",
     poster: "Modul-2-Praktik-Flens-Delapan-Baut.jpg",
     judul: "Flens Pelat Delapan Baut",
-    durasi: "4:48",
+    durasi: "4:56",
     bab: [
       ["1 · Dokumen dan bidang kerja", 4],
       ["2 · Layer", 15.7],
@@ -38,6 +38,7 @@ export const VIDEO_PRAKTIK = [
       ["6 · Cut dan luas", 134.3],
       ["7 · Dimensi", 173.5],
       ["7 · Sudut, layer, simpan", 220.8],
+      ["7 · Rapikan dimensi", 280.8],
     ],
   },
   {
@@ -61,14 +62,15 @@ export const VIDEO_PRAKTIK = [
     berkas: "Modul-4-Praktik-Gambar-Kerja-Pelat.mp4",
     poster: "Modul-4-Praktik-Gambar-Kerja-Pelat.jpg",
     judul: "Gambar Kerja Pelat Berpinggul",
-    durasi: "4:32",
+    durasi: "4:39",
     bab: [
       ["1 · Dokumen, layer, gaya", 4],
       ["2 · Kontur dan lubang", 39.6],
       ["3 · Dimensi ukuran", 92.8],
       ["4 · Teks dan label", 165.1],
-      ["5–6 · Periksa dan TechDraw", 217.4],
-      ["7 · Simpan dan ekspor", 246.3],
+      ["4 · Rapikan letak", 217.4],
+      ["5–6 · Periksa dan TechDraw", 224.9],
+      ["7 · Simpan dan ekspor", 253.8],
     ],
   },
   {
