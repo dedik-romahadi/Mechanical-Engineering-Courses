@@ -184,4 +184,20 @@ export const VIDEO_PRAKTIK = [
       ["7 · TechDraw dan simpan", 133.6],
     ],
   },
+  {
+    modul: 12,
+    berkas: "Modul-12-Praktik-Audit-Dokumen.mp4",
+    poster: "Modul-12-Praktik-Audit-Dokumen.jpg",
+    judul: "Audit Satu Dokumen dari Fit sampai Gerak",
+    durasi: "2:11",
+    bab: [
+      ["1 · Siapkan dua komponen", 4],
+      ["2 · Ukur tabrakan", 20.1],
+      ["3 · Perbaiki lalu verifikasi", 34.9],
+      ["4 · Fit pada ukuran batas", 49.9],
+      ["5 · Rumah berdinding tipis", 67.9],
+      ["6 · Slot dan jarak tepi", 84.7],
+      ["7 · Gerak, validasi, simpan", 101.4],
+    ],
+  },
 ];
