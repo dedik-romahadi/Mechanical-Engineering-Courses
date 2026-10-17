@@ -57,6 +57,21 @@ export const VIDEO_PRAKTIK = [
     ],
   },
   {
+    modul: 4,
+    berkas: "Modul-4-Praktik-Gambar-Kerja-Pelat.mp4",
+    poster: "Modul-4-Praktik-Gambar-Kerja-Pelat.jpg",
+    judul: "Gambar Kerja Pelat Berpinggul",
+    durasi: "4:32",
+    bab: [
+      ["1 · Dokumen, layer, gaya", 4],
+      ["2 · Kontur dan lubang", 39.6],
+      ["3 · Dimensi ukuran", 92.8],
+      ["4 · Teks dan label", 165.1],
+      ["5–6 · Periksa dan TechDraw", 217.4],
+      ["7 · Simpan dan ekspor", 246.3],
+    ],
+  },
+  {
     modul: 5,
     berkas: "Modul-5-Praktik-Braket-L.mp4",
     poster: "Modul-5-Praktik-Braket-L.jpg",
