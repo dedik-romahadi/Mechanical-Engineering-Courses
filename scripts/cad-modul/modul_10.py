@@ -85,16 +85,16 @@ A_REKT_I = B_I * H_REKT_I
 H_REKT_A = A_PROFIL / B_I
 I_REKT_A = B_I * H_REKT_A ** 3 / 12
 # Bagian 09 — praktik terbimbing braket L: teks langkah dan Gambar 7 memakai angka yang sama
-PR_T, PR_R, PR_F = 8, 2, 2000                         # alias Spreadsheet iterasi 0: tebal t, fillet r, gaya F (N)
+PR_T, PR_R, PR_F = 8, 2, 1000                         # alias Spreadsheet iterasi 0: tebal t, fillet r, gaya F (N)
 PR_KAKI, PR_TEGAK, PR_LEBAR = 100, 80, 50             # braket L 100 × 80, lebar Pad 50
 PR_BAUT, PR_MESH = 9, 3                               # lubang baut 2 × ⌀9 di kaki; ukuran mesh Gmsh (mm)
 PR_R_ITER = (2, 6, 10)                                # langkah 3: radius fillet sudut dalam
-PR_DELTA = 0.4                                        # batas defleksi δ_maks (mm)
+PR_DELTA = 0.25                                       # batas defleksi δ_maks (mm)
 PR_RUSUK, PR_RUSUK_PAD, PR_FILLET_RUSUK = 40, 5, 2    # langkah 4: kaki segitiga 40 × hr, Pad 5 simetris, fillet 2
 PR_HR_ITER = (20, 30)                                 # langkah 4: tinggi rusuk hr
 PR_D_ITER = (15, 20, 25)                              # langkah 5: diameter lubang penghemat massa d
 PR_SY_BAJA, PR_SY_AL, PR_SF = MATERIAL[0][3], MATERIAL[2][3], 2   # σ_y baja dan aluminium (MPa), SF minimum
-PR_TEBAL_AL = f"=Spreadsheet.t * pow({E_ST // E_AL}; 1/3)"        # langkah 6: tebal aluminium berkekakuan sama
+PR_TEBAL_AL = f"=Spreadsheet.tebal * pow({E_ST // E_AL}; 1/3)"        # langkah 6: tebal aluminium berkekakuan sama
 
 
 def _urut(v):
@@ -480,7 +480,7 @@ HERO_SCHEMATIC_2 = '''  <div class="hero-schematic">
       <path d="M 25 40 H 75 V 52 H 56 V 128 H 75 V 140 H 25 V 128 H 44 V 52 H 25 Z" fill="rgba(0,229,255,.12)" stroke="rgba(0,229,255,.55)" stroke-width="1.4"/>
       <line x1="14" y1="90" x2="86" y2="90" stroke="rgba(239,68,68,.55)" stroke-width="1" stroke-dasharray="6 2 2 2"/>
       <rect x="30" y="160" width="40" height="14" fill="rgba(255,179,0,.2)" stroke="rgba(255,179,0,.6)" stroke-width="1"/>
-      <text x="50" y="171" text-anchor="middle" fill="rgba(255,179,0,.8)" font-family="JetBrains Mono" font-size="7">=Spreadsheet.h</text>
+      <text x="50" y="171" text-anchor="middle" fill="rgba(255,179,0,.8)" font-family="JetBrains Mono" font-size="7">=Spreadsheet.tinggi</text>
       <text x="50" y="205" text-anchor="middle" fill="rgba(124,77,255,.6)" font-family="JetBrains Mono" font-size="8">I = BH³/12 − …</text>
     </svg>
   </div>'''
@@ -619,20 +619,20 @@ def materi():
                    [("h_{Al}", "Tinggi balok aluminium (mm)"), ("E_{st}, E_{Al}", "Modulus elastisitas baja dan aluminium (MPa)"), ("m_{Al}", "Massa balok aluminium (g)"), ("\\rho_{Al}", "Massa jenis aluminium (g/mm³)")])
     isi += tabel(["Material", "E (MPa)", "ρ (g/cm³)", "σ<sub>y</sub> (MPa)", "E/ρ (kekakuan spesifik, tarik)", "E<sup>1/3</sup>/ρ (lentur pelat)", f"Massa balok kaku-sama (g, contoh {L_M} × {B_M})"],
                  [[nama, ind(E, 0), ind(rho, 2), ind(sy, 0), ind(E / 1000 / rho, 1), ind((E / 1000) ** (1 / 3) / rho, 2), ind(rho * L_M * B_M * H_M * (E_ST / E) ** (1 / 3) / 1000, 0)] for nama, E, rho, sy in MATERIAL])
-    isi += kotak("info-box", "<strong>🧪 Material di FreeCAD 1.0:</strong> Body → tab Data → <em>Material</em> (Material Editor) mengisi ρ, E, dan ν sekaligus untuk bacaan massa dan untuk FEM; ganti material di satu tempat, lalu Analysis memakai nilai yang sama. Untuk substitusi aluminium, tinggi diikat ekspresi <code>=Spreadsheet.h * pow(Spreadsheet.E_st / Spreadsheet.E_Al; 1/3)</code> agar E·I tetap saat material berganti.")
+    isi += kotak("info-box", "<strong>🧪 Material di FreeCAD 1.0:</strong> Body → tab Data → <em>Material</em> (Material Editor) mengisi ρ, E, dan ν sekaligus untuk bacaan massa dan untuk FEM; ganti material di satu tempat, lalu Analysis memakai nilai yang sama. Untuk substitusi aluminium, tinggi diikat ekspresi <code>=Spreadsheet.tinggi * pow(Spreadsheet.E_st / Spreadsheet.E_Al; 1/3)</code> agar E·I tetap saat material berganti.")
     isi += kotak("warning-box", "⚠️ <strong>Kekakuan sama ≠ kekuatan sama:</strong> aluminium yang 44 % lebih tinggi memikul tegangan lentur σ = 6FL/(b·h²) yang 48 % lebih kecil daripada baja, tetapi σ<sub>y</sub>-nya juga lebih rendah (240 vs 250 MPa); untuk beban dinamis, batas lelah aluminium jauh lebih rendah dan tidak memiliki batas ketahanan. Periksa SF lentur dan lelah sebelum mengganti material.")
     m += bagian(5, "m-material", "Pemilihan Material:<br>Kekakuan Spesifik dan Massa Minimum", "Mengganti material adalah tuas optimasi yang mengubah semua angka sekaligus. Bagian ini membandingkan baja, aluminium, titanium, dan magnesium pada kekakuan lentur sama, memperkenalkan indeks E<sup>1/3</sup>/ρ, dan menunjukkan syarat yang harus diperiksa ulang.", isi, "PEMILIHAN MATERIAL")
 
     # 06 — Spreadsheet dan ekspresi
     isi = tabel(["Sel", "Alias", "Isi", "Keterangan"],
-                [["A1 / B1", "F", str(F_H), "beban ujung (N), angka tanpa satuan"],
+                [["A1 / B1", "<code>gaya</code>", str(F_H), "beban ujung (N), angka tanpa satuan"],
                  ["A2 / B2", "L", str(L_H), "panjang kantilever (mm)"],
                  ["A3 / B3", "b", str(B_H), "lebar penampang (mm)"],
                  ["A4 / B4", "<code>sigma_izin</code>", str(S_IZIN), "σ<sub>y</sub>/SF = 250/2"],
-                 ["A5 / B5", "<code>h_req</code>", "<code>=sqrt(6*F*L/(b*sigma_izin))</code>", f"hasil {ind(H_REQ, 3)}; Persamaan (3)"],
-                 ["A6 / B6", "h", "<code>=ceil(h_req)</code>", f"dibulatkan ke atas → {H_PILIH}"],
-                 ["A7 / B7", "delta", "<code>=4*F*L^3/(210000*b*h^3)</code>", f"δ = {ind(DELTA_PILIH, 3)} mm; periksa ≤ L/250 = {ind(L_H / 250, 2)}"],
-                 ["A8 / B8", "massa", "<code>=7.85e-3*L*b*h</code>", "g; baris ini dicatat tiap iterasi"]])
+                 ["A5 / B5", "<code>h_req</code>", "<code>=sqrt(6*gaya*L/(b*sigma_izin))</code>", f"hasil {ind(H_REQ, 3)}; Persamaan (3)"],
+                 ["A6 / B6", "<code>tinggi</code>", "<code>=ceil(h_req)</code>", f"dibulatkan ke atas → {H_PILIH}"],
+                 ["A7 / B7", "delta", "<code>=4*gaya*L^3/(210000*b*tinggi^3)</code>", f"δ = {ind(DELTA_PILIH, 3)} mm; periksa ≤ L/250 = {ind(L_H / 250, 2)}"],
+                 ["A8 / B8", "massa", "<code>=7.85e-3*L*b*tinggi</code>", "g; baris ini dicatat tiap iterasi"]])
     isi += cards([
         ("🏷️", "Alias", "Klik kanan sel → Properties → Alias (huruf, angka, garis bawah; tanpa spasi). Alias membuat ekspresi terbaca: <code>Spreadsheet.h_req</code>, bukan <code>Spreadsheet.B5</code>.", "Set alias"),
         ("ƒ", "Ekspresi di fitur", "Pada konstrain sketsa atau properti Pad, klik ikon f(x) lalu tulis <code>=Spreadsheet.h</code>; nilai menjadi biru/terkunci dan mengikuti sel. Satuan: sel tanpa satuan diperlakukan mm/derajat.", "=Spreadsheet.h"),
@@ -645,7 +645,7 @@ def materi():
                        ("sl_ip_tf", "v_ip_tf", "Tebal sayap t<sub>f</sub> (mm)", 3, 12, 0.5, 6, "6"),
                        ("sl_ip_tw", "v_ip_tw", "Tebal badan t<sub>w</sub> (mm)", 3, 10, 0.5, 5, "5")],
                       "btnIprofil", "toggleIprofil", "iprofilInfo",
-                      "<strong>Cara membaca:</strong> empat slider berperan sebagai alias Spreadsheet <code>B, H, t_f, t_w</code>; profil I di kiri menghitung ulang I<sub>x</sub> (Persamaan 6) dan luasnya. Persegi panjang di kanan tumbuh sampai momen inersianya sama (PAUSE menahan tinggi akhir); bandingkan luas keduanya: itulah rasio massa per satuan panjang untuk kekakuan yang sama.")
+                      "<strong>Cara membaca:</strong> empat slider berperan sebagai alias Spreadsheet <code>B, Htot, t_f, t_w</code>; profil I di kiri menghitung ulang I<sub>x</sub> (Persamaan 6) dan luasnya. Persegi panjang di kanan tumbuh sampai momen inersianya sama (PAUSE menahan tinggi akhir); bandingkan luas keduanya: itulah rasio massa per satuan panjang untuk kekakuan yang sama.")
     isi += kotak("tip-box", "💡 <strong>Urutan yang aman:</strong> (1) buat Spreadsheet dan semua alias dahulu; (2) baru sketsa dan ikat konstrainnya; (3) recompute (Ctrl+R) setelah mengubah sel; (4) hindari melingkar: sel tidak boleh membaca properti fitur yang bergantung pada sel itu. Bila ekspresi merah, periksa nama alias (huruf besar-kecil berbeda) dan pemisah argumen.")
     m += bagian(6, "m-spreadsheet", "Spreadsheet dan Ekspresi:<br>Model yang Siap Diiterasi", "Iterasi hanya cepat bila mengubah satu sel menghitung ulang seluruh model. Bagian ini membangun Spreadsheet beralias untuk kasus kantilever, mengikat konstrain sketsa dengan ekspresi, dan menyiapkan tabel iterasi sebagai dokumentasi optimasi.", isi, "SPREADSHEET DAN EKSPRESI")
     # 07 — Penampang optimal
@@ -667,9 +667,9 @@ def materi():
     isi = kode("Python console — Spreadsheet beralias dan loop parameter tinggi h (σ, δ, massa)", f'''import FreeCAD as App, math
 doc = App.newDocument("Latihan10")
 sh = doc.addObject("Spreadsheet::Sheet", "Spreadsheet")
-for baris, (alias, nilai) in enumerate([("F", {F_H}), ("L", {L_H}), ("b", {B_H}), ("sigma_izin", {S_IZIN})], start=1):
+for baris, (alias, nilai) in enumerate([("gaya", {F_H}), ("L", {L_H}), ("b", {B_H}), ("sigma_izin", {S_IZIN})], start=1):
     sh.set(f"A{{baris}}", alias); sh.set(f"B{{baris}}", str(nilai)); sh.setAlias(f"B{{baris}}", alias)
-sh.set("A5", "h_req"); sh.set("B5", "=sqrt(6*F*L/(b*sigma_izin))"); sh.setAlias("B5", "h_req")
+sh.set("A5", "h_req"); sh.set("B5", "=sqrt(6*gaya*L/(b*sigma_izin))"); sh.setAlias("B5", "h_req")
 doc.recompute()
 print(f"h_req dari Spreadsheet = {{sh.get('h_req'):.3f}} mm")                    # {ind(H_REQ, 3)}
 F, L, b, E = {F_H}, {L_H}, {B_H}, {E_ST}
@@ -717,13 +717,13 @@ Part.show(f.extrude(V(0,0,100)), "BatangI")''', "Python (FreeCAD)")
     m += bagian(8, "m-python", "Python Console:<br>Loop Parameter dan Pemeriksaan Rumus", "Cell pertama membuat Spreadsheet beralias lewat API dan menyapu tinggi h untuk menemukan penampang minimum; cell kedua menghitung rusuk dan lubang; cell ketiga membaca momen inersia profil I dari MatrixOfInertia dan menghitung substitusi material.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Model parametrik", f"Spreadsheet: alias t = {PR_T}, r = {PR_R}, hr = 0, d = 0, F = {PR_F}. Body: braket L {PR_KAKI} × {PR_TEGAK} (lebar {PR_LEBAR}) dengan Sketch tebal =Spreadsheet.t, lubang baut 2 × ⌀{PR_BAUT} di kaki, fillet sudut dalam radius =Spreadsheet.r. Recompute, catat massa baja (Volume × {ind(RHO_ST * 1000, 2)}×10⁻³)."),
-               ("2", "FEM iterasi 0", f"FEM Workbench (Modul 8): Analysis, material Steel, mesh Gmsh {PR_MESH} mm, Fixed di muka kaki berlubang, Force F pada tepi kaki tegak, solve CalculiX. Catat σ<sub>vm,maks</sub> (di sudut dalam), δ<sub>maks</sub>, massa pada baris iterasi 0 Spreadsheet."),
-               ("3", "Fillet daerah kritis", f"Ubah r: {_urut(PR_R_ITER)}; recompute dan solve ulang tiap kali. Catat σ<sub>maks</sub>: turun mengikuti K<sub>t</sub> (Bagian 02) tanpa perubahan massa berarti. Pilih r yang memberi SF = {PR_SY_BAJA}/σ<sub>maks</sub> ≥ {PR_SF}."),
-               ("4", "Rusuk untuk kekakuan", f"Bila δ<sub>maks</sub> > {ind(PR_DELTA, 1)} mm: sketsa segitiga rusuk pada bidang tengah (kaki {PR_RUSUK} × hr), Pad {PR_RUSUK_PAD} mm simetris; ubah hr = {_urut(PR_HR_ITER)}. Catat δ turun (Bagian 03) dan σ baru di pertemuan rusuk–pelat; beri fillet {PR_FILLET_RUSUK} mm di sana."),
+    langkah = [("1", "Model parametrik", f"Spreadsheet: alias <code>tebal</code> = {PR_T}, <code>r</code> = {PR_R}, <code>hr</code> = 0, <code>d</code> = 0, <code>gaya</code> = {PR_F} (jangan memakai <code>t</code> atau <code>F</code>: FreeCAD menolaknya sebagai alias karena sama dengan satuan ton dan farad). Body: braket L {PR_KAKI} × {PR_TEGAK} (lebar {PR_LEBAR}) dengan Sketch tebal =Spreadsheet.tebal, lubang baut 2 × ⌀{PR_BAUT} di kaki, fillet sudut dalam radius =Spreadsheet.r. Recompute, catat massa baja (Volume × {ind(RHO_ST * 1000, 2)}×10⁻³)."),
+               ("2", "FEM iterasi 0", f"FEM Workbench (Modul 8): Analysis, material Steel, mesh Gmsh {PR_MESH} mm, Fixed di muka kaki berlubang, Force =Spreadsheet.gaya pada tepi kaki tegak, solve CalculiX. Catat σ<sub>vm,maks</sub> (di sudut dalam), δ<sub>maks</sub>, massa pada baris iterasi 0 Spreadsheet."),
+               ("3", "Fillet daerah kritis", f"Ubah r: {_urut(PR_R_ITER)}; recompute dan solve ulang tiap kali. Catat σ<sub>maks</sub>: turun mengikuti K<sub>t</sub> (Bagian 02) tanpa perubahan massa berarti. Pilih r yang memberi SF = {PR_SY_BAJA}/σ<sub>maks</sub> ≥ {PR_SF} (pada gaya = {PR_F} N dan tebal = {PR_T} mm, r = {PR_R_ITER[2]} memberi σ<sub>maks</sub> ≈ {ind(PR_SY_BAJA / PR_SF, 0)} MPa; bila SF masih < {PR_SF}, perbesar r atau tebal)."),
+               ("4", "Rusuk untuk kekakuan", f"Bila δ<sub>maks</sub> > {ind(PR_DELTA, 2)} mm: sketsa segitiga rusuk pada bidang tengah (kaki {PR_RUSUK} × hr), Pad {PR_RUSUK_PAD} mm simetris; ubah hr = {_urut(PR_HR_ITER)}. Catat δ turun (Bagian 03) dan σ baru di pertemuan rusuk–pelat; beri fillet {PR_FILLET_RUSUK} mm di sana."),
                ("5", "Pengurangan massa", f"Tambah lubang ⌀d di daerah biru kontur (dekat sumbu netral kaki tegak): d = {_urut(PR_D_ITER)}. Berhenti saat σ<sub>maks</sub> mendekati {S_IZIN} MPa atau massa sudah ≤ target (Bagian 04)."),
                ("6", "Alternatif material", f"Duplikat dokumen; material Aluminium, tebal {PR_TEBAL_AL}. Solve: δ hampir sama, massa ≈ setengah, periksa σ<sub>maks</sub> ≤ {PR_SY_AL}/{PR_SF} = {PR_SY_AL // PR_SF} MPa (Bagian 05)."),
-               ("7", "Tabel iterasi dan simpan", f"Lengkapi tabel iterasi (r, hr, d, material, σ, δ, massa, SF); pilih desain dengan SF ≥ {PR_SF}, δ ≤ {ind(PR_DELTA, 1)} mm, massa terkecil. Ctrl+S → <code>Latihan10_NIM.FCStd</code>.")]
+               ("7", "Tabel iterasi dan simpan", f"Lengkapi tabel iterasi (r, hr, d, material, σ, δ, massa, SF); pilih desain dengan SF ≥ {PR_SF}, δ ≤ {ind(PR_DELTA, 2)} mm, massa terkecil; bila belum ada kombinasi yang memenuhi keduanya, catat kombinasi terbaik dan usulkan perbaikan (mis. fillet pertemuan rusuk, tebal lebih besar). Ctrl+S → <code>Latihan10_NIM.FCStd</code>.")]
     isi = figure(7, "Gambar kerja braket L iteratif: ukuran awal dan parameter yang diubah tiap langkah",
                  f"Satuan mm; gaya dalam N dan tegangan dalam MPa. Kiri: profil L yang disketsa pada langkah 1 (braket {PR_KAKI} × {PR_TEGAK}, tebal t = {PR_T}) "
                  f"dengan fillet sudut dalam r = {PR_R} yang dinaikkan menjadi {PR_R_ITER[1]} lalu {PR_R_ITER[2]} pada langkah 3 (busur merah muda), Fixed di muka kaki berlubang, "
@@ -741,8 +741,9 @@ Part.show(f.extrude(V(0,0,100)), "BatangI")''', "Python (FreeCAD)")
     isi += "  </div>\n"
     isi += tabel(["Gejala", "Penyebab yang sering", "Perbaikan"],
                  [["Ekspresi merah: “Invalid alias” / “Unknown alias”", "Alias belum dibuat, salah huruf besar-kecil, atau memakai spasi", "Set alias dahulu di Spreadsheet; nama persis sama"],
+                  ["“Invalid alias” padahal nama sudah benar (mis. <code>t</code>, <code>F</code>, <code>h</code>, <code>H</code>)", "Alias sama dengan nama satuan FreeCAD: t = ton, F = farad, h = jam, H = henry (juga T, W, N, M, K, m, l, A, V, S, G, g, e, s)", "Pakai nama lebih panjang: <code>tebal</code>, <code>gaya</code>, <code>tinggi</code>, <code>Htot</code>; lalu tulis ekspresi dengan nama itu"],
                   ["Model tidak berubah setelah sel diedit", "Belum recompute", "Ctrl+R (Std Refresh); pastikan ikon fitur tidak biru-tanda"],
-                  ["Fillet gagal setelah r diperbesar", "r melebihi setengah tebal/lebar rusuk yang dipilih", "Batasi r di Spreadsheet: =min(r; t/2 − 0.5)"],
+                  ["Fillet gagal setelah r diperbesar", "r melebihi setengah tebal/lebar rusuk yang dipilih", "Batasi r di Spreadsheet: =min(r; tebal/2 − 0.5)"],
                   ["Pad rusuk keluar dari pelat / tidak menyatu", "Arah Pad normal bidang XZ menuju −Y", "Centang Reversed atau pakai Symmetric; periksa Body.Shape satu solid"],
                   ["Lubang LinearPattern keluar tepi pelat", "Overall Length terlalu besar", "Length = a/2 untuk 3 lubang di a/4…3a/4; diameter ≤ b/2"],
                   ["MatrixOfInertia.A11 tidak sama rumus", "Profil tidak berpusat di titik asal, atau wire terbuka", "Konstrain Symmetric ke origin; Part.Face(Wires[0]) harus tertutup"],
@@ -822,7 +823,7 @@ MC = [
      ["Dikalikan 3<sup>1/3</sup> ≈ 1,44 sehingga massanya sekitar setengah massa baja", "Dikalikan 3 sehingga massanya sama dengan baja", "Dibagi 3 karena aluminium lebih ringan", "Tetap, karena kekakuan hanya bergantung pada ρ"],
      "Substitusi material"),
     ("<strong>Alias</strong> pada Spreadsheet FreeCAD berguna untuk...",
-     ["Mengunci sel agar tidak bisa diedit", "Mengubah satuan seluruh dokumen", "Memberi nama sel (mis. <code>F</code>, <code>L</code>, <code>h_req</code>) agar dapat dirujuk ekspresi di properti fitur atau konstrain sketsa, seperti <code>=Spreadsheet.h_req</code>", "Menyalin sel ke dokumen lain"],
+     ["Mengunci sel agar tidak bisa diedit", "Mengubah satuan seluruh dokumen", "Memberi nama sel (mis. <code>gaya</code>, <code>L</code>, <code>h_req</code>) agar dapat dirujuk ekspresi di properti fitur atau konstrain sketsa, seperti <code>=Spreadsheet.h_req</code>", "Menyalin sel ke dokumen lain"],
      "Alias Spreadsheet"),
     ("Tinggi minimum kantilever persegi panjang (lebar b, beban ujung F, panjang L) agar σ<sub>maks</sub> ≤ σ<sub>izin</sub> adalah...",
      ["h<sub>req</sub> = 6·F·L/(b·σ<sub>izin</sub>)", "h<sub>req</sub> = √(6·F·L/(b·σ<sub>izin</sub>))", "h<sub>req</sub> = (F·L³/(3·E·b))<sup>1/3</sup>", "h<sub>req</sub> = b·σ<sub>izin</sub>/(6·F·L)"],
@@ -852,7 +853,7 @@ FQ_JUDUL = [
 FQ_RINGKAS = [
     "Dari hasil FEM (σ<sub>maks</sub> 215 MPa di bahu pivot, σ<sub>y</sub> 240 MPa) tentukan K<sub>t</sub> yang bekerja, hitung radius fillet yang membawa SF ke ≥ 2 dengan Persamaan (1), dan jelaskan mengapa mesh di fillet harus dihaluskan sebelum angkanya dipercaya.",
     "Bandingkan rusuk vs penebalan lengan untuk menurunkan δ dari 3,4 ke ≤ 1,7 mm dengan Persamaan (2) dan δ ∝ 1/I; tetapkan daerah aman untuk lubang penghemat massa dan periksa σ<sub>maks</sub> tepi lubang dengan Persamaan (4).",
-    "Susun Spreadsheet beralias (<code>r, h_r, d, B, H, t_f, t_w</code>), hitung ukuran penampang dari dua batas (Persamaan 3 dan 6), bandingkan lengan aluminium dan baja pada kekakuan sama (Persamaan 5), lalu pilih desain akhir dengan tabel iterasi.",
+    "Susun Spreadsheet beralias (<code>r, h_r, d, B, Htot, t_f, t_w</code>), hitung ukuran penampang dari dua batas (Persamaan 3 dan 6), bandingkan lengan aluminium dan baja pada kekakuan sama (Persamaan 5), lalu pilih desain akhir dengan tabel iterasi.",
 ]
 
 
@@ -874,8 +875,8 @@ def forum_page():
             "❌ Massa dan redaman tidak mengubah defleksi statis; panjang lengan ditentukan geometri sepeda; E adalah sifat material. Lihat Persamaan (2) dan Animasi 2.",
             "Petunjuk: (1) Hitung I sebelum/sesudah untuk kedua usulan. (2) Bandingkan δ dan massa. (3) Tetapkan daerah lubang dari kontur von Mises dan periksa Kt.")
     q3 = fq(3, "168,85,247", "violet", FQ_JUDUL[2],
-            "Manajemen menetapkan target akhir: SF ≥ 2, δ ≤ 1,7 mm, massa ≤ 2,0 kg (sekarang 2,6 kg), dan model harus parametrik agar varian rangka berikutnya cepat dibuat. Susun Spreadsheet beralias (<code>r, h_r, d, B, H, t_f, t_w</code>) dan ekspresi yang mengikat sketsa (Bagian 06); tentukan tinggi minimum penampang dari dua batas (Persamaan 3 dan h<sub>δ</sub>, Bagian 07); bandingkan penampang kotak/I terhadap pelat pejal dengan Persamaan (6); dan nilai apakah lengan baja setipis 1/1,44 kali (Persamaan 5, Bagian 05) lebih ringan atau lebih berat daripada aluminium.",
-            ["alias <code>r, h_r, d, B, H, t_f, t_w</code>", "h<sub>req</sub> vs h<sub>δ</sub> · I profil", "Al vs baja: kekakuan sama"],
+            "Manajemen menetapkan target akhir: SF ≥ 2, δ ≤ 1,7 mm, massa ≤ 2,0 kg (sekarang 2,6 kg), dan model harus parametrik agar varian rangka berikutnya cepat dibuat. Susun Spreadsheet beralias (<code>r, h_r, d, B, Htot, t_f, t_w</code>) dan ekspresi yang mengikat sketsa (Bagian 06); tentukan tinggi minimum penampang dari dua batas (Persamaan 3 dan h<sub>δ</sub>, Bagian 07); bandingkan penampang kotak/I terhadap pelat pejal dengan Persamaan (6); dan nilai apakah lengan baja setipis 1/1,44 kali (Persamaan 5, Bagian 05) lebih ringan atau lebih berat daripada aluminium.",
+            ["alias <code>r, h_r, d, B, Htot, t_f, t_w</code>", "h<sub>req</sub> vs h<sub>δ</sub> · I profil", "Al vs baja: kekakuan sama"],
             "Untuk kekakuan lentur sama, lengan aluminium dibandingkan lengan baja...",
             ["Harus 1,44× lebih tinggi tetapi massanya sekitar setengah massa baja", "Sama tinggi dan sama berat", "Boleh lebih tipis karena E-nya lebih kecil", "Selalu lebih berat karena perlu lebih banyak bahan"],
             "✅ Tepat! E·I sama ⇒ h<sub>Al</sub> = h·(E<sub>st</sub>/E<sub>Al</sub>)<sup>1/3</sup> = 1,44·h; massa ∝ ρ·h sehingga m<sub>Al</sub>/m<sub>st</sub> = 2,70 × 1,44/7,85 ≈ 0,50. Syaratnya ada ruang untuk tinggi ekstra dan σ<sub>maks</sub> tetap di bawah σ<sub>y</sub> aluminium.",
