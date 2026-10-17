@@ -393,8 +393,8 @@ def gambar7():
             (f"kendala: δ ≤ {ind(D_R, 1)} pada F = {ind(F_R, 0)} N", TX, ""),
             (Kode("alias: gaya, L, b, d_izin, E, rho, f_co2"), TX, ""),
             (Kode("konstrain =Spreadsheet.b dan =Spreadsheet.tinggi"), TX, ""),
-            (Kode("sel h = (4*F*L^3/(E*b*d_izin))^(1/3)"), TX, ""),
-            (Kode("massa = rho × Volume, CO2 = f_co2 × massa"), TX, "")]
+            (Kode("tinggi = (4*gaya*L^3/(E*b*d_izin))^(1/3)"), TX, ""),
+            (Kode("massa = rho*b*L*tinggi*1e-9; co2 = f_co2*massa"), TX, "")]
     kanan = [("Sapuan dan alternatif (langkah 4–6)", CY, "600"),
              (f"sapu h {H_SAPU[0]} … {H_SAPU[1]}; selisih > {ind(TOL_SAPU, 1)} % = satuan salah", TX, ""),
              ("A baja pejal: datum (iterasi 0)", TX, ""),
@@ -517,10 +517,10 @@ def materi():
     isi += tabel(["Sel", "Alias", "Isi", "Nilai untuk contoh", "Dipakai oleh"],
                  [["B1", "V0", str(int(V0)), f"{ind(V0, 0)} mm³", "sel r"],
                   ["B2", "r", "<code>=(V0 / (2 * pi))^(1/3)</code>", f"{ind(R_OPT, 4)} mm", "konstrain Radius sketsa"],
-                  ["B3", "h", "<code>=2 * r</code>", f"{ind(H_OPT, 4)} mm", "Length pada Pad"],
-                  ["B4", "A", "<code>=6 * pi * r^2</code>", f"{ind(A_OPT, 2)} mm²", "pembanding Shape.Area"],
+                  ["B3", "<code>tinggi</code>", "<code>=2 * r</code>", f"{ind(H_OPT, 4)} mm", "Length pada Pad"],
+                  ["B4", "<code>luas</code>", "<code>=6 * pi * r^2</code>", f"{ind(A_OPT, 2)} mm²", "pembanding Shape.Area"],
                   ["B6", "<code>d_izin</code>", str(ind(D_KA, 1)), f"{ind(D_KA, 1)} mm", "sel <code>h_req</code>"],
-                  ["B7", "<code>h_req</code>", "<code>=(4 * F * L^3 / (E * b * d_izin))^(1/3)</code>", f"{ind(H_REQ_AL, 3)} mm", "tinggi sketsa kantilever"]])
+                  ["B7", "<code>h_req</code>", "<code>=(4 * gaya * L^3 / (E * b * d_izin))^(1/3)</code>", f"{ind(H_REQ_AL, 3)} mm", "tinggi sketsa kantilever"]])
     isi += formula(2, "Tinggi atau Tebal Minimum dari Kendala Defleksi", r"\delta = \frac{F L^{3}}{3EI} = \frac{4FL^{3}}{E\,b\,h^{3}} \le \delta_{izin} \quad\Rightarrow\quad h_{req} = \left(\frac{4FL^{3}}{E\,b\,\delta_{izin}}\right)^{1/3}",
                    r"Kantilever penampang persegi panjang \(b \times h\) dengan \(I = bh^{3}/12\); \(F\) beban ujung, \(L\) panjang, \(E\) modulus elastisitas. Contoh aluminium \(E = " + ind(E_AL, 0) + r"\) MPa, \(b = " + str(B_KA) + r"\) mm, \(F = " + str(F_KA) + r"\) N, \(L = " + str(L_KA) + r"\) mm, \(\delta_{izin} = " + ind(D_KA, 1) + r"\) mm: \(h_{req} = " + ind(H_REQ_AL, 3) + r"\) mm.",
                    "Karena massa balok sebanding dengan h sedangkan defleksi sebanding dengan 1/h³, tinggi terkecil yang masih memenuhi δ<sub>izin</sub> adalah desain bermassa minimum untuk kendala itu: kendala defleksi aktif tepat di h<sub>req</sub>. Menaikkan h sedikit di atas h<sub>req</sub> hanya menambah massa; menurunkannya sedikit langsung melanggar kendala. Di Spreadsheet, tulis pangkat pecahan sebagai <code>^(1/3)</code> dan lepas satuan (angka polos) agar ekspresi menerima pangkat tersebut.",
@@ -692,11 +692,11 @@ Part.show(tabung, "TabungKakuSama")''', "Python (FreeCAD)")
     # 09 — Praktik terbimbing
     langkah = [("1", "Rumuskan masalahnya", f"Tulis di lembar pertama Spreadsheet: fungsi tujuan (massa dan jejak CO₂ lengan braket), variabel desain (material dan tinggi h), kendala (δ ≤ {ind(D_R, 1)} mm pada F = {ind(F_R, 0)} N, L = {L_R} mm, b = {B_R} mm), serta batas variabel (h ≤ {H_MAKS} mm karena ruang pasang). Beri alias <code>gaya, L, b, d_izin, E, rho, f_co2</code> (bukan <code>F</code>: FreeCAD menolak alias yang sama dengan satuan, mis. <code>F</code>, <code>t</code>, <code>h</code>, <code>A</code>)."),
                ("2", "Bangun model parametrik", "Body baru: Sketch YZ persegi panjang b × h dengan kedua konstrain terikat ekspresi <code>=Spreadsheet.b</code> dan <code>=Spreadsheet.tinggi</code>, lalu Pad <code>=Spreadsheet.L</code>. Pastikan sketsa fully constrained dan nilai konstrain berwarna biru."),
-               ("3", "Hitung tinggi dari kendala", "Tambahkan sel <code>h = (4*F*L^3/(E*b*d_izin))^(1/3)</code>. Ctrl+R, lalu catat h, Shape.Volume, massa = rho × Volume, dan CO₂ = <code>f_co2</code> × massa untuk baja sebagai iterasi 0 (datum)."),
-               ("4", "Sapu parameter", f"Jalankan cell kedua Bagian 08 dengan angka kasus ini untuk menyapu h dari {H_SAPU[0]} sampai {H_SAPU[1]} mm; tandai h terkecil yang masih memenuhi δ ≤ {ind(D_R, 1)} mm dan cocokkan dengan nilai sel h. Selisih di atas {ind(TOL_SAPU, 1)} % berarti ada satuan yang salah."),
+               ("3", "Hitung tinggi dari kendala", "Tambahkan sel beralias <code>tinggi</code> = <code>=(4*gaya*L^3/(E*b*d_izin))^(1/3)</code> (sel yang dirujuk konstrain langkah 2; aliasnya bukan <code>h</code>), lalu <code>massa</code> = <code>=rho*b*L*tinggi*1e-9</code> (kg; rho dalam kg/m³) dan <code>co2</code> = <code>=f_co2*massa</code>. Ctrl+R, cocokkan massa dengan <code>Body.Shape.Volume</code> × rho × 10⁻⁹ di Python console (bukan di sel, agar tidak melingkar), dan catat sebagai iterasi 0 (datum) baja."),
+               ("4", "Sapu parameter", f"Jalankan cell kedua Bagian 08 dengan angka kasus ini untuk menyapu h dari {H_SAPU[0]} sampai {H_SAPU[1]} mm; tandai h terkecil yang masih memenuhi δ ≤ {ind(D_R, 1)} mm dan cocokkan dengan nilai sel <code>tinggi</code>. Selisih di atas {ind(TOL_SAPU, 1)} % berarti ada satuan yang salah."),
                ("5", "Bandingkan alternatif", f"Kolom kedua Spreadsheet: aluminium ({TEKS_AL}). Kolom ketiga: baja berusuk dengan massa {FAKTOR_RUSUK * 100:.0f} % pelat pejal pada I setara. Hitung h, massa, dan CO₂ ketiganya berdampingan."),
                ("6", "Matriks keputusan", f"Lembar kedua: lima kriteria dengan bobot {TEKS_BOBOT}, nilai −1, 0, +1 terhadap datum baja pejal, lalu skor berbobot Persamaan (6). Tulis satu kalimat alasan untuk setiap tanda − yang diberikan."),
-               ("7", "Dokumentasikan dan simpan", "TechDraw: Page + tiga pandangan desain pemenang, dimensi pada h dan b, catatan berisi massa, jejak CO₂, dan faktor emisi yang dipakai. Ctrl+S → <code>Latihan14_NIM.FCStd</code>.")]
+               ("7", "Dokumentasikan dan simpan", "TechDraw: Page + tiga pandangan desain pemenang (untuk B, misalnya profil I tinggi 58, flens 100 × 16, badan 8 mm: I ≥ pejal, massa ±61 %), dimensi pada h dan b, catatan berisi massa, jejak CO₂, dan faktor emisi yang dipakai. Ctrl+S → <code>Latihan14_NIM.FCStd</code>.")]
     isi = figure(7, "Gambar kerja lengan braket kantilever dengan variabel desain h",
                  f"Ukuran dalam mm, gaya dalam N. Lengan pejal b × h × L dijepit pada bidang Sketch YZ dan memikul "
                  f"F = {ind(F_R, 0)} N di ujung bebas dengan kendala lendutan ujung δ ≤ {ind(D_R, 1)} (langkah 1); penampangnya "

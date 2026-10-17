@@ -216,4 +216,20 @@ export const VIDEO_PRAKTIK = [
       ["7 · Dokumentasi dan simpan", 106.7],
     ],
   },
+  {
+    modul: 14,
+    berkas: "Modul-14-Praktik-Lengan-Braket.mp4",
+    poster: "Modul-14-Praktik-Lengan-Braket.jpg",
+    judul: "Optimasi Lengan Braket dari Rumusan sampai Laporan",
+    durasi: "2:22",
+    bab: [
+      ["1 · Rumuskan masalahnya", 4],
+      ["2 · Model parametrik", 18.5],
+      ["3 · Tinggi dari kendala", 33.3],
+      ["4 · Sapu parameter", 48.5],
+      ["5 · Bandingkan alternatif", 69.4],
+      ["6 · Matriks keputusan", 85],
+      ["7 · TechDraw dan simpan", 100.4],
+    ],
+  },
 ];

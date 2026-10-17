@@ -31,7 +31,7 @@ def gambar():
     body += dim_v(cx + rx + 26, ytop, ybot, "h = 2r", kiri=False)
     body += t(cx, 31, "volume V₀ ditetapkan (mm³)", 9.5, GR, "middle")  # di atas label r
     body += t(cx, 212, "luas A = 2πr² + 2πrh = 6πr²", 9.5, AX, "middle")
-    body += catatan(["Spreadsheet alias:", Kode("  V0 (mm³, angka polos)"), Kode("  r = (V0/(2*pi))^(1/3)"), Kode("  tinggi = 2*r  (hasil optimasi)"), "Sketch XY: Circle pusat (0,0),", "  Radius = Spreadsheet.r", "Pad Length = Spreadsheet.h", "baca: Shape.Area (mm²)"], 330, 40)
+    body += catatan(["Spreadsheet alias:", Kode("  V0 (mm³, angka polos)"), Kode("  r = (V0/(2*pi))^(1/3)"), Kode("  tinggi = 2*r  (hasil optimasi)"), "Sketch XY: Circle pusat (0,0),", "  Radius = Spreadsheet.r", "Pad Length = Spreadsheet.tinggi", "baca: Shape.Area (mm²)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 1 — kaleng silinder tertutup bervolume tetap dengan luas permukaan minimum", h=240))
     # T2 — kantilever aluminium: tinggi minimum dari kendala defleksi
     x0, x1, yt, yb = 50, 250, 112, 146
