@@ -118,4 +118,21 @@ export const VIDEO_PRAKTIK = [
       ["7 · Periksa dan simpan", 140.9],
     ],
   },
+  {
+    modul: 8,
+    berkas: "Modul-8-Praktik-Kantilever-FEM.mp4",
+    poster: "Modul-8-Praktik-Kantilever-FEM.jpg",
+    judul: "Kantilever Statik, Termal, dan Frekuensi",
+    durasi: "3:10",
+    bab: [
+      ["1 · Geometri dan massa", 4],
+      ["2 · Analysis dan material", 28.6],
+      ["3 · Tumpuan dan beban", 39],
+      ["4 · Mesh Gmsh", 50.8],
+      ["5 · Solver statik", 65.3],
+      ["6 · Validasi dan konvergensi", 87.8],
+      ["7 · Termal", 128.4],
+      ["7 · Frekuensi dan simpan", 154.1],
+    ],
+  },
 ];
