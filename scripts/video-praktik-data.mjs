@@ -167,4 +167,21 @@ export const VIDEO_PRAKTIK = [
       ["7 · Tabel iterasi dan simpan", 168.1],
     ],
   },
+  {
+    modul: 11,
+    berkas: "Modul-11-Praktik-Rakitan-Engkol-Peluncur.mp4",
+    poster: "Modul-11-Praktik-Rakitan-Engkol-Peluncur.jpg",
+    judul: "Rakitan Engkol-Peluncur",
+    durasi: "2:40",
+    bab: [
+      ["1 · Komponen", 4],
+      ["2 · Rakitan dan acuan", 27.5],
+      ["3 · Joint engkol", 45.7],
+      ["4 · Joint batang dan peluncur", 62],
+      ["5 · Kunci dan ukur", 80.4],
+      ["6 · Clearance dan tabrakan", 97.2],
+      ["7 · BOM dan massa", 116],
+      ["7 · TechDraw dan simpan", 129.7],
+    ],
+  },
 ];
