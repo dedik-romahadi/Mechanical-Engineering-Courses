@@ -360,8 +360,8 @@ def gambar7():
              (f"massa pejal (garis dasar) = {ind(M_SOLID, 0)} g", TX, ""),
              (Kode("Thickness: =Jejak.t_dinding, Skin, ke dalam"), TX, ""),
              ("sapuan t<sub>dinding</sub>: " + ", ".join(str(v) for v in T_SAPU), PK, "600"),
-             (Kode("V_body = Body.Shape.Volume"), TX, ""),
-             (Kode("co2 = f_st * rho_st * V_body"), TX, ""),
+             (Kode("Neraca: V_body = Body.Shape.Volume"), TX, ""),
+             (Kode("co2 = Jejak.f_st * Jejak.rho_st * V_body"), TX, ""),
              ("alternatif: aluminium, tinggi dari Pers. (2)", AX, "")]
     for i, (s_, c, w) in enumerate(baris):
         out += t(384, y0 + i * 15.5, s_, 11 if i == 0 else 10.5, c, "start", w)
@@ -587,7 +587,7 @@ def materi():
                  ["B7", "<code>m_total</code>", "<code>=rho_st * V_pelat + rho_al * V_blok</code>", "kg"],
                  ["B8", "<code>co2_total</code>", "<code>=f_st * rho_st * V_pelat + f_al * rho_al * V_blok</code>", "kg CO₂"]])
     isi += cards([
-        ("🔗", "Alias dua arah", "Sel beralias dapat dirujuk ekspresi properti model (<code>=Jejak.t_dinding</code>) dan sekaligus membaca model (<code>=Body.Shape.Volume</code>). Satu berkas berisi geometri sekaligus neraca jejaknya.", "=Jejak.co2_total"),
+        ("🔗", "Dua lembar, satu arah", "Lembar parameter (<code>Jejak</code>) dibaca model lewat ekspresi properti (<code>=Jejak.t_dinding</code>); lembar kedua (<code>Neraca</code>) membaca model (<code>=Body.Shape.Volume</code>). Bila satu lembar melakukan keduanya, dependensinya melingkar: sel tampil <code>#PENDING</code> dan tidak ikut berubah.", "Jejak → Body → Neraca"),
         ("🧮", "Satu sumber kebenaran", "Konstanta material ditulis sekali di Spreadsheet, tidak diketik ulang di tiap rumus. Mengganti f aluminium primer menjadi daur ulang cukup satu sel dan seluruh tabel ikut berubah.", "ubah 1 sel"),
         ("📊", "Tabel iterasi", "Simpan tiap alternatif sebagai satu baris: massa, energi, jejak, dan catatan. Inilah dokumentasi keputusan yang diminta pada laporan tugas dan pada audit pelanggan.", "1 alternatif = 1 baris"),
         ("🧾", "Sumber data", "Tulis sumber setiap konstanta (basis data material, laporan pemasok, tahun). Angka tanpa sumber tidak dapat dipertahankan saat ditanya pembeli.", "cantumkan sumber"),
@@ -655,9 +655,9 @@ for nama, E, rho in [("Baja", {E_ST}, 7.85e-3), ("Aluminium", {E_AL}, 2.70e-3), 
                ("2", "Massa pejal sebagai garis dasar", f"Di Python console: <code>Body.Shape.Volume</code> lalu massa = {RHO_ST_TEKS} × V. Catat sebagai baris pertama tabel iterasi ({ind(M_SOLID, 0)} g untuk ukuran contoh). Tanpa garis dasar, penghematan tidak dapat diklaim."),
                ("3", "Cangkang dengan Thickness", "Pilih muka ATAS → Part Design → Thickness, Thickness diikat ekspresi <code>=Jejak.t_dinding</code>, Mode Skin, arah ke dalam. Baca volume dan massa baru; bandingkan dengan Persamaan (5)."),
                ("4", "Sapuan tebal dinding", f"Ubah <code>t_dinding</code> menjadi {', '.join(str(v) for v in T_SAPU[:-1])}, lalu {T_SAPU[-1]} mm dan catat massanya tiap kali. Perhatikan kapan penghematan mulai melandai dan kapan Thickness mulai gagal."),
-               ("5", "Neraca jejak", f"Tambahkan sel <code>V_body</code> = <code>=Body.Shape.Volume</code> dan <code>co2</code> = <code>=f_st * rho_st * V_body</code>. Ubah satu dimensi sketsa dan pastikan angka jejak ikut berubah tanpa mengetik ulang apa pun."),
+               ("5", "Neraca jejak", f"Tambahkan Spreadsheet kedua bernama <code>Neraca</code> (bukan di <code>Jejak</code>, karena Jejak sudah dibaca Thickness) berisi <code>V_body</code> = <code>=Body.Shape.Volume</code> dan <code>co2</code> = <code>=Jejak.f_st * Jejak.rho_st * V_body</code>. Ubah satu dimensi sketsa dan pastikan angka jejak ikut berubah tanpa mengetik ulang apa pun."),
                ("6", "Alternatif material", f"Duplikat baris tabel untuk aluminium: tinggi penampang disesuaikan agar kekakuan sama (Persamaan 2), ρ dan f diganti. Bandingkan massa dan jejaknya — perhatikan bahwa massa turun tetapi jejak dapat naik."),
-               ("7", "Dokumentasi dan simpan", "Tulis kesimpulan satu paragraf pada sel catatan Spreadsheet: alternatif terpilih, penghematan massa, penghematan jejak, dan batas yang dijaga. Ctrl+S → <code>Latihan13_NIM.FCStd</code>.")]
+               ("7", "Dokumentasi dan simpan", "Tulis kesimpulan satu paragraf pada sel catatan Spreadsheet <code>Neraca</code>: alternatif terpilih, penghematan massa, penghematan jejak, dan batas yang dijaga. Ctrl+S → <code>Latihan13_NIM.FCStd</code>.")]
     isi = figure(7, "Gambar kerja housing baja yang dijadikan cangkang Thickness",
                  f"Ukuran dalam mm, massa dalam gram. Isometrik di kiri adalah benda jadi: sketsa XY {A_CG} × {B_CG} dengan sudut "
                  f"kiri-bawah di titik asal, lalu Pad {H_CG} (langkah 1). Penampang di kanan menunjukkan dinding dan dasar setebal "
@@ -678,6 +678,8 @@ for nama, E, rho in [("Baja", {E_ST}, 7.85e-3), ("Aluminium", {E_AL}, 2.70e-3), 
                   ["Massa cangkang sama dengan massa pejal", "Membaca <code>Pad.Shape.Volume</code>, bukan <code>Body.Shape.Volume</code> (Tip)", "Baca Body; Std Measure Volume dengan memilih Body"],
                   ["Jejak CO₂ meleset 1000 kali", "ρ dalam g/mm³ dipakai bersama f per kilogram", "Pakai ρ kg/mm³ (7,85 × 10⁻⁶) bila hasil diminta dalam kg"],
                   ["Angka Spreadsheet tidak berubah saat model diubah", "Sel berisi angka ketik, bukan ekspresi <code>=Body.Shape.Volume</code>", "Ganti menjadi ekspresi; recompute dokumen (F5)"],
+                  ["Sel <code>V_body</code> tampil <code>#PENDING</code> dan jejak tidak ikut berubah", "<code>V_body</code> ditulis di <code>Jejak</code>, padahal Jejak sudah dibaca Thickness: dependensi melingkar", "Pindahkan <code>V_body</code> dan <code>co2</code> ke lembar kedua <code>Neraca</code>"],
+                  ["<code>rho_st</code> tampil 0,00", "Spreadsheet membulatkan tampilan ke dua desimal", "Nilai tetap 7,85e-6; lihat kolom Content saat sel dipilih"],
                   ["U lebih besar dari 100 %", "V<sub>billet</sub> diambil lebih kecil dari kotak pembatas komponen", "Billet minimal seukuran <code>Shape.BoundBox</code> braket"],
                   ["Massa aluminium lebih ringan tetapi jejak naik", "Faktor emisi aluminium primer enam kali baja", "Gunakan kandungan daur ulang; bandingkan pada fungsi yang sama"],
                   ["Volume tabung tidak sesuai rumus", "Dua lingkaran tidak sepusat atau profil bukan cincin", "Konstrain Coincident pusat ke origin; periksa profil sebelum Pad"]])
