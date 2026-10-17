@@ -139,7 +139,7 @@ def gambar1():
 
 def gambar2():
     b = ""
-    baris = [("alias", "isi sel"), ("V0", "500000"), ("r", Kode("=(V0/(2*pi))^(1/3)")), ("h", Kode("=2*r")), ("A", Kode("=6*pi*r^2"))]
+    baris = [("alias", "isi sel"), ("V0", "500000"), ("r", Kode("=(V0/(2*pi))^(1/3)")), ("tinggi", Kode("=2*r")), ("luas", Kode("=6*pi*r^2"))]
     b += t(138, 40, "Spreadsheet (alias)", 11, "#22d3ee", "middle", "600")
     for i, (a_, c_) in enumerate(baris):
         y = 52 + i * 24
@@ -391,8 +391,8 @@ def gambar7():
             ("tujuan: minimumkan massa dan jejak CO₂", TX, ""),
             ("variabel desain: material dan tinggi h", PK, ""),
             (f"kendala: δ ≤ {ind(D_R, 1)} pada F = {ind(F_R, 0)} N", TX, ""),
-            (Kode("alias: F, L, b, d_izin, E, rho, f_co2"), TX, ""),
-            (Kode("konstrain =Spreadsheet.b dan =Spreadsheet.h"), TX, ""),
+            (Kode("alias: gaya, L, b, d_izin, E, rho, f_co2"), TX, ""),
+            (Kode("konstrain =Spreadsheet.b dan =Spreadsheet.tinggi"), TX, ""),
             (Kode("sel h = (4*F*L^3/(E*b*d_izin))^(1/3)"), TX, ""),
             (Kode("massa = rho × Volume, CO2 = f_co2 × massa"), TX, "")]
     kanan = [("Sapuan dan alternatif (langkah 4–6)", CY, "600"),
@@ -439,7 +439,7 @@ HERO_SCHEMATIC_2 = '''  <div class="hero-schematic">
       <circle cx="52" cy="144" r="4" fill="rgba(0,224,158,.8)"/>
       <line x1="16" y1="150" x2="88" y2="150" stroke="rgba(239,68,68,.45)" stroke-width="1" stroke-dasharray="5 3"/>
       <rect x="28" y="176" width="44" height="14" fill="rgba(255,179,0,.2)" stroke="rgba(255,179,0,.6)" stroke-width="1"/>
-      <text x="50" y="187" text-anchor="middle" fill="rgba(255,179,0,.8)" font-family="JetBrains Mono" font-size="7">=Spreadsheet.t</text>
+      <text x="50" y="187" text-anchor="middle" fill="rgba(255,179,0,.8)" font-family="JetBrains Mono" font-size="7">=Spreadsheet.tebal</text>
       <text x="50" y="210" text-anchor="middle" fill="rgba(124,77,255,.6)" font-family="JetBrains Mono" font-size="8">min f(x)</text>
     </svg>
   </div>'''
@@ -513,7 +513,7 @@ def materi():
     m += bagian(1, "m-formulasi", "Formulasi Optimasi:<br>Tujuan, Variabel, dan Kendala", "Optimasi dimulai jauh sebelum model dibuka: dengan menuliskan apa yang diminimumkan, apa yang boleh diubah, dan apa yang tidak boleh dilanggar. Bagian ini menetapkan bentuk baku itu dan menunjukkan mengapa optimum selalu bersandar pada kendala.", isi, "FORMULASI OPTIMASI")
 
     # 02 — Optimasi parametrik dengan Spreadsheet
-    isi = figure(2, "Spreadsheet beralias mengendalikan geometri lewat ekspresi", f"Sel V0, r, h, dan A diberi alias; radius sketsa dan panjang Pad mengambil nilainya lewat ekspresi <code>=Spreadsheet.r</code> dan <code>=Spreadsheet.h</code>. Mengubah V₀ menghitung ulang seluruh model, dan Shape.Area langsung memberi luas minimum {ind(A_OPT, 2)} mm².", gambar2())
+    isi = figure(2, "Spreadsheet beralias mengendalikan geometri lewat ekspresi", f"Sel V0, r, tinggi, dan luas diberi alias; radius sketsa dan panjang Pad mengambil nilainya lewat ekspresi <code>=Spreadsheet.r</code> dan <code>=Spreadsheet.tinggi</code>. (Jangan memakai <code>h</code> atau <code>A</code> sebagai alias: FreeCAD menolaknya karena sama dengan satuan jam dan ampere.) Mengubah V₀ menghitung ulang seluruh model, dan Shape.Area langsung memberi luas minimum {ind(A_OPT, 2)} mm².", gambar2())
     isi += tabel(["Sel", "Alias", "Isi", "Nilai untuk contoh", "Dipakai oleh"],
                  [["B1", "V0", str(int(V0)), f"{ind(V0, 0)} mm³", "sel r"],
                   ["B2", "r", "<code>=(V0 / (2 * pi))^(1/3)</code>", f"{ind(R_OPT, 4)} mm", "konstrain Radius sketsa"],
@@ -536,7 +536,7 @@ def materi():
                        ("sl_kl_r", "v_kl_r", "Jari-jari r (mm)", 20, 90, 1, 43, "43")],
                       "btnKaleng", "toggleKaleng", "kalengInfo",
                       "<strong>Cara membaca:</strong> jari-jari menyapu kiri–kanan sementara tinggi menyesuaikan diri agar volume tetap V₀ (PAUSE menahan nilai slider r). Kurva di kanan adalah A(r) = 2πr² + 2V₀/r; titik hijau adalah minimumnya di r<sup>*</sup> = (V₀/2π)<sup>1/3</sup>, tempat tinggi kaleng tepat sama dengan diameternya. Perhatikan kurva yang datar di sekitar minimum: salah 2–3 mm hampir tidak menambah bahan.")
-    isi += kotak("warning-box", "⚠️ <strong>Ekspresi melingkar:</strong> sel Spreadsheet boleh dibaca oleh fitur, tetapi sel <em>tidak boleh</em> membaca properti fitur yang bergantung pada sel itu sendiri (mis. <code>Pad.Length</code> yang sudah terikat <code>=Spreadsheet.h</code>). FreeCAD akan menolak dengan pesan <em>cyclic dependency</em> dan seluruh dokumen berhenti menghitung. Bacaan hasil (Shape.Area, Shape.Volume) dibaca lewat Python console atau Std Measure, bukan dimasukkan kembali ke sel yang mengendalikan geometri.")
+    isi += kotak("warning-box", "⚠️ <strong>Ekspresi melingkar:</strong> sel Spreadsheet boleh dibaca oleh fitur, tetapi sel <em>tidak boleh</em> membaca properti fitur yang bergantung pada sel itu sendiri (mis. <code>Pad.Length</code> yang sudah terikat <code>=Spreadsheet.tinggi</code>). FreeCAD akan menolak dengan pesan <em>cyclic dependency</em> dan seluruh dokumen berhenti menghitung. Bacaan hasil (Shape.Area, Shape.Volume) dibaca lewat Python console atau Std Measure, bukan dimasukkan kembali ke sel yang mengendalikan geometri.")
     m += bagian(2, "m-spreadsheet", "Optimasi Parametrik:<br>Spreadsheet, Alias, dan Ekspresi", "Model yang tidak bisa dihitung ulang tidak bisa dioptimasi. Bagian ini membangun rantai sel beralias → ekspresi → geometri untuk kaleng bervolume tetap dan kantilever berkendala defleksi, lengkap dengan aturan penulisan pangkat pecahan.", isi, "SPREADSHEET PARAMETRIK")
 
     # 03 — Studi parameter dengan Python
@@ -605,7 +605,7 @@ def materi():
         ("🔍", "Uji kepekaan", "Geser bobot ±0,05 dan periksa apakah pemenangnya bertahan. Keputusan yang berubah karena pergeseran kecil berarti belum cukup data, bukan berarti kedua desain setara.", "Δw = ±0,05"),
         ("📝", "Catat alasan penilaian", "Setiap tanda − harus punya kalimat alasannya (mis. “rusuk menuntut satu operasi las tambahan”). Tanpa alasan, matriks berubah menjadi selera yang berangka.", "alasan per sel"),
     ])
-    isi += kotak("info-box", "<strong>🧱 Tiga alternatif itu di FreeCAD:</strong> jangan membuat tiga dokumen terpisah. Buat satu Spreadsheet berisi alias <code>E</code>, <code>rho</code>, <code>f_co2</code>, lalu tiga kolom nilai untuk baja pejal, baja berusuk, dan aluminium; sel <code>h</code>, <code>massa</code>, dan <code>CO2</code> menghitung ketiganya berdampingan. Model 3D cukup dibuat untuk alternatif yang menang, sedangkan dua lainnya cukup diwakili angka di Spreadsheet — itulah gunanya model parametrik: alternatif dievaluasi tanpa harus digambar semuanya.")
+    isi += kotak("info-box", "<strong>🧱 Tiga alternatif itu di FreeCAD:</strong> jangan membuat tiga dokumen terpisah. Buat satu Spreadsheet berisi alias <code>E</code>, <code>rho</code>, <code>f_co2</code>, lalu tiga kolom nilai untuk baja pejal, baja berusuk, dan aluminium; sel <code>tinggi</code>, <code>massa</code>, dan <code>CO2</code> menghitung ketiganya berdampingan. Model 3D cukup dibuat untuk alternatif yang menang, sedangkan dua lainnya cukup diwakili angka di Spreadsheet — itulah gunanya model parametrik: alternatif dievaluasi tanpa harus digambar semuanya.")
     m += bagian(5, "m-alternatif", "Perbandingan Alternatif Desain:<br>Matriks Keputusan Berbobot", "Sering kali lebih dari satu desain memenuhi semua kendala. Bagian ini membandingkan tiga alternatif lengan braket dengan kriteria dan bobot yang disepakati lebih dahulu, lalu menghitung skor berbobotnya terhadap satu datum.", isi, "ALTERNATIF DESAIN")
 
     # 06 — Kendala lingkungan dalam fungsi tujuan
@@ -649,11 +649,11 @@ def materi():
     isi = kode("Python console — Spreadsheet beralias untuk kaleng bervolume tetap dan bacaan luas", f'''import FreeCAD as App, Part, math
 doc = App.newDocument("Latihan14")
 sh = doc.addObject("Spreadsheet::Sheet", "Spreadsheet")
-sel = [("V0", "{int(V0)}"), ("r", "=(V0 / (2 * pi))^(1/3)"), ("h", "=2 * r"), ("A", "=6 * pi * r^2")]
+sel = [("V0", "{int(V0)}"), ("r", "=(V0 / (2 * pi))^(1/3)"), ("tinggi", "=2 * r"), ("luas", "=6 * pi * r^2")]
 for baris, (alias, nilai) in enumerate(sel, start=1):
     sh.set(f"A{{baris}}", alias); sh.set(f"B{{baris}}", nilai); sh.setAlias(f"B{{baris}}", alias)
 doc.recompute()                                           # tanpa ini, sel rumus masih kosong
-r, h, A = float(sh.get("r")), float(sh.get("h")), float(sh.get("A"))
+r, h, A = float(sh.get("r")), float(sh.get("tinggi")), float(sh.get("luas"))
 print(f"r* = {{r:.4f}} mm, h* = {{h:.4f}} mm, A rumus = {{A:.2f}} mm2")   # {ind(R_OPT, 4)}, {ind(H_OPT, 4)}, {ind(A_OPT, 2)}
 kaleng = Part.makeCylinder(r, h)
 print(f"Volume model {{kaleng.Volume:.1f}} mm3 (target {int(V0)}), Shape.Area {{kaleng.Area:.2f}} mm2")
@@ -690,8 +690,8 @@ Part.show(tabung, "TabungKakuSama")''', "Python (FreeCAD)")
     m += bagian(8, "m-python", "Python Console:<br>Spreadsheet, Sapuan Parameter, dan Pembanding", "Cell pertama membangun Spreadsheet beralias untuk kaleng lewat API dan membaca luasnya; cell kedua menyapu tebal pelat terhadap dua kendala dan menunjuk kendala aktif; cell ketiga membandingkan tabung dengan poros pejal serta jejak CO₂ dua material pada kekakuan sama.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Rumuskan masalahnya", f"Tulis di lembar pertama Spreadsheet: fungsi tujuan (massa dan jejak CO₂ lengan braket), variabel desain (material dan tinggi h), kendala (δ ≤ {ind(D_R, 1)} mm pada F = {ind(F_R, 0)} N, L = {L_R} mm, b = {B_R} mm), serta batas variabel (h ≤ {H_MAKS} mm karena ruang pasang). Beri alias <code>F, L, b, d_izin, E, rho, f_co2</code>."),
-               ("2", "Bangun model parametrik", "Body baru: Sketch YZ persegi panjang b × h dengan kedua konstrain terikat ekspresi <code>=Spreadsheet.b</code> dan <code>=Spreadsheet.h</code>, lalu Pad <code>=Spreadsheet.L</code>. Pastikan sketsa fully constrained dan nilai konstrain berwarna biru."),
+    langkah = [("1", "Rumuskan masalahnya", f"Tulis di lembar pertama Spreadsheet: fungsi tujuan (massa dan jejak CO₂ lengan braket), variabel desain (material dan tinggi h), kendala (δ ≤ {ind(D_R, 1)} mm pada F = {ind(F_R, 0)} N, L = {L_R} mm, b = {B_R} mm), serta batas variabel (h ≤ {H_MAKS} mm karena ruang pasang). Beri alias <code>gaya, L, b, d_izin, E, rho, f_co2</code> (bukan <code>F</code>: FreeCAD menolak alias yang sama dengan satuan, mis. <code>F</code>, <code>t</code>, <code>h</code>, <code>A</code>)."),
+               ("2", "Bangun model parametrik", "Body baru: Sketch YZ persegi panjang b × h dengan kedua konstrain terikat ekspresi <code>=Spreadsheet.b</code> dan <code>=Spreadsheet.tinggi</code>, lalu Pad <code>=Spreadsheet.L</code>. Pastikan sketsa fully constrained dan nilai konstrain berwarna biru."),
                ("3", "Hitung tinggi dari kendala", "Tambahkan sel <code>h = (4*F*L^3/(E*b*d_izin))^(1/3)</code>. Ctrl+R, lalu catat h, Shape.Volume, massa = rho × Volume, dan CO₂ = <code>f_co2</code> × massa untuk baja sebagai iterasi 0 (datum)."),
                ("4", "Sapu parameter", f"Jalankan cell kedua Bagian 08 dengan angka kasus ini untuk menyapu h dari {H_SAPU[0]} sampai {H_SAPU[1]} mm; tandai h terkecil yang masih memenuhi δ ≤ {ind(D_R, 1)} mm dan cocokkan dengan nilai sel h. Selisih di atas {ind(TOL_SAPU, 1)} % berarti ada satuan yang salah."),
                ("5", "Bandingkan alternatif", f"Kolom kedua Spreadsheet: aluminium ({TEKS_AL}). Kolom ketiga: baja berusuk dengan massa {FAKTOR_RUSUK * 100:.0f} % pelat pejal pada I setara. Hitung h, massa, dan CO₂ ketiganya berdampingan."),
@@ -721,7 +721,7 @@ Part.show(tabung, "TabungKakuSama")''', "Python (FreeCAD)")
                   [f"t<sub>req</sub> hasil sapuan jauh di atas {ind(T_REQ, 1)} mm", "δ<sub>izin</sub> atau E memakai satuan berbeda (m vs mm, GPa vs MPa)", "Samakan ke N, mm, MPa; periksa E = 210.000 MPa, bukan 210"],
                   ["Massa FreeCAD berbeda dari ρ × Volume", "Material Body belum diatur atau ρ dalam kg/m³", "Body → Material, atau hitung 7,85×10⁻⁶ kg/mm³ × Volume(mm³)"],
                   ["Skor matriks berubah-ubah tiap kali dihitung", "Bobot ditetapkan setelah melihat angka", "Sepakati bobot lebih dahulu, lalu uji kepekaan ±0,05"]])
-    isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) Spreadsheet berisi alias yang diminta tugas dan sel rumusnya (<code>r</code>/<code>h</code>/<code>A</code>, <code>h_req</code>, <code>d_o</code>, <code>t_req</code>, massa, CO₂); (2) konstrain sketsa terikat ekspresi (nilai biru) dan sketsa fully constrained; (3) Body satu solid dengan pohon fitur sesuai tugas (Sketch → Pad, dua lingkaran sepusat untuk tabung); (4) angka bacaan diambil dari sel Spreadsheet atau Shape sesuai label, dengan jumlah desimal yang diminta; (5) satuan konsisten N–mm–MPa; (6) berkas tersimpan lewat Ctrl+S dengan nama tanpa spasi.")
+    isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) Spreadsheet berisi alias yang diminta tugas dan sel rumusnya (<code>r</code>/<code>tinggi</code>/<code>luas</code>, <code>h_req</code>, <code>d_o</code>, <code>t_req</code>, massa, CO₂); (2) konstrain sketsa terikat ekspresi (nilai biru) dan sketsa fully constrained; (3) Body satu solid dengan pohon fitur sesuai tugas (Sketch → Pad, dua lingkaran sepusat untuk tabung); (4) angka bacaan diambil dari sel Spreadsheet atau Shape sesuai label, dengan jumlah desimal yang diminta; (5) satuan konsisten N–mm–MPa; (6) berkas tersimpan lewat Ctrl+S dengan nama tanpa spasi.")
     isi += kotak("info-box", "<strong>🎓 Penutup semester — Pertemuan 15:</strong> modul ini menutup rangkaian CPMK 5 (desain berkelanjutan dan optimasi): Modul 13 memperkenalkan siklus hidup, pemilihan material, dan jejak bahan (Sub-CPMK 5.1), sedangkan Modul 14 menjadikannya kriteria keputusan yang dihitung dari model parametrik (Sub-CPMK 5.2). Bersama CPMK 1–2 (sketsa, pemodelan, proyeksi), CPMK 3 (simulasi dan evaluasi), dan CPMK 4 (perakitan serta perbaikan desain), semuanya menjadi bahan <strong>Ujian Akhir Semester</strong>: siapkan ringkasan rumus tiap modul, satu berkas .FCStd contoh dari tiap CPMK, dan tabel iterasi terakhir Anda sebagai bahan belajar. Jangan lupa menuntaskan forum dan kelima tugas modul ini sebelum jadwal UAS dibuka.")
     m += bagian(9, "m-praktik", "Praktik Terbimbing:<br>Optimasi Lengan Braket dari Rumusan sampai Laporan", "Tujuh langkah berikut menjalankan satu putaran optimasi utuh pada lengan braket rak: merumuskan masalah, membangun model parametrik, menghitung tinggi dari kendala, menyapu parameter, membandingkan tiga alternatif, menyusun matriks keputusan, dan mendokumentasikannya di TechDraw.", isi, "PRAKTIK TERBIMBING")
 

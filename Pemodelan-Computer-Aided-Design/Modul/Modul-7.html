@@ -2634,7 +2634,7 @@ div.hk-ikon{display:block}
         <tr><td>Rotation Axis</td><td>Sumbu putar (vektor satuan)</td><td>Axis (0,0,1) untuk putaran sekitar Z</td><td><code>&lt;&lt;Boss&gt;&gt;.Placement.Rotation.Axis</code></td></tr>
         <tr><td>Rotation Angle</td><td>Sudut (°)</td><td>Angle</td><td><code>360 / Param.n</code></td></tr>
         <tr><td>Ekspresi (fx)</td><td>Rumus yang mengikat properti</td><td>Klik ikon fx di properti; rujuk objek lain dengan &lt;&lt;Label&gt;&gt;</td><td><code>Placement.Base.z = &lt;&lt;Pelat&gt;&gt;.Pad.Length</code></td></tr>
-        <tr><td>Spreadsheet alias</td><td>Parameter terpusat</td><td>Spreadsheet → alias sel (a, b, t, k)</td><td><code>Param.k</code> pada Scale Clone</td></tr>
+        <tr><td>Spreadsheet alias</td><td>Parameter terpusat</td><td>Spreadsheet → alias sel (a, b, tebal, k)</td><td><code>Param.k</code> pada Scale Clone</td></tr>
       </tbody>
     </table>
   </div>
@@ -2665,7 +2665,7 @@ div.hk-ikon{display:block}
     </div>
   </div>
   <div class="tip-box reveal">
-    💡 <strong>Ekspresi yang tahan perubahan:</strong> simpan <code>a, b, t, d_B, h_B, k</code> pada Spreadsheet beralias, ikat konstrain sketsa dan Placement ke alias itu, lalu ubah satu sel untuk menguji: boss tetap di seperempat panjang pelat, clone tetap di tiga perempat, dan volume Union berubah sesuai Persamaan (6). Tugas 5 boleh dikerjakan tanpa Spreadsheet, tetapi ekspresi mencegah boss keluar dari pelat saat dimensi diubah.
+    💡 <strong>Ekspresi yang tahan perubahan:</strong> simpan <code>a, b, tebal, d_B, h_B, k</code> pada Spreadsheet beralias (hindari alias <code>t</code> atau <code>h</code>: FreeCAD menolak nama yang sama dengan satuan), ikat konstrain sketsa dan Placement ke alias itu, lalu ubah satu sel untuk menguji: boss tetap di seperempat panjang pelat, clone tetap di tiga perempat, dan volume Union berubah sesuai Persamaan (6). Tugas 5 boleh dikerjakan tanpa Spreadsheet, tetapi ekspresi mencegah boss keluar dari pelat saat dimensi diubah.
   </div>
 
   <label class="pm-centang" data-pm="6"><input type="checkbox" disabled aria-describedby="pm-status-6"><span class="pm-teks">Saya sudah mempelajari dan memahami bagian ini — <b>Sub-Assembly Sederhana: Placement dan Ekspresi</b>.</span><em class="pm-status" id="pm-status-6"></em></label>
@@ -2753,7 +2753,7 @@ doc = App.ActiveDocument or App.<span class="fn">newDocument</span>(<span class=
 V = App.Vector
 a, b, t, dB, hB, k = <span class="nm">80</span>, <span class="nm">45</span>, <span class="nm">6</span>, <span class="nm">14</span>, <span class="nm">10</span>, <span class="nm">1.5</span>
 ss = doc.<span class="fn">addObject</span>(<span class="st">"Spreadsheet::Sheet"</span>, <span class="st">"Param"</span>)
-<span class="kw">for</span> i, (nama, nilai) <span class="kw">in</span> enumerate([(<span class="st">"a"</span>, a), (<span class="st">"b"</span>, b), (<span class="st">"t"</span>, t), (<span class="st">"k"</span>, k)], <span class="nm">1</span>):
+<span class="kw">for</span> i, (nama, nilai) <span class="kw">in</span> enumerate([(<span class="st">"a"</span>, a), (<span class="st">"b"</span>, b), (<span class="st">"tebal"</span>, t), (<span class="st">"k"</span>, k)], <span class="nm">1</span>):
     ss.<span class="fn">set</span>(<span class="st">f"A{i}"</span>, nama); ss.<span class="fn">set</span>(<span class="st">f"B{i}"</span>, str(nilai)); ss.<span class="fn">setAlias</span>(<span class="st">f"B{i}"</span>, nama)
 xy = lambda body: [o <span class="kw">for</span> o <span class="kw">in</span> body.Origin.OriginFeatures if o.Role == <span class="st">"XY_Plane"</span>][<span class="nm">0</span>]
 <span class="kw">def</span> body_pad(nama, geom, tinggi):
@@ -4751,7 +4751,7 @@ function updateScore() {
   const _bonusAktif = (typeof window._bonusKeaktifanSaya === 'function') ? window._bonusKeaktifanSaya() : 0;
   // FORUM-POIN:SKOR v1 — aturan forum 2 poin (scripts/forum-poin.mjs); null = aturan lama (rumus di bawah, tidak berubah).
   const _forumTotal = (typeof window._forumSkorSaya === 'function') ? window._forumSkorSaya(mc + ezComp + hardComp, _bonusAktif) : null;
-  const total = _forumTotal !== null ? _forumTotal : Math.min(mc + ezComp + hardComp + _bonusAktif, (typeof SCORE_CONFIG !== 'undefined' && SCORE_CONFIG.TOTAL) || 50);
+  const total = _forumTotal !== null ? _forumTotal : Math.min(mc + ezComp + hardComp + _bonusAktif, SCORE_CONFIG.TOTAL);
   const nilai = pointsToScore(total);   // 0..100, menggunakan SCORE_CONFIG.TOTAL
 
   const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
@@ -4760,8 +4760,8 @@ function updateScore() {
   set('scoreMC',       _fmtPts(mc));
   set('scoreCompEz',   _fmtPts(ezComp));
   set('scoreCompHard', _fmtPts(hardComp));
-  // KEAKTIFAN-KELAS:SKOR — baris "Keaktifan kelas" di bilah skor.
-  { const _sa = document.getElementById('scoreAktif'); if (_sa) _sa.textContent = _fmtPts(_bonusAktif); const _ba = document.getElementById('baris-keaktifan'); if (_ba) _ba.classList.toggle('aktif', _bonusAktif > 0); }
+  set('scoreAktif',    _fmtPts(_bonusAktif));
+  { const _ba = document.getElementById('baris-keaktifan'); if (_ba) _ba.classList.toggle('aktif', _bonusAktif > 0); }
   const fill = document.getElementById('scoreFill');
   if (fill) fill.style.width = nilai + '%';
 }

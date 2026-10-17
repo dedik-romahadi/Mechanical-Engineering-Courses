@@ -31,7 +31,7 @@ def gambar():
     body += dim_v(cx + rx + 26, ytop, ybot, "h = 2r", kiri=False)
     body += t(cx, 31, "volume V₀ ditetapkan (mm³)", 9.5, GR, "middle")  # di atas label r
     body += t(cx, 212, "luas A = 2πr² + 2πrh = 6πr²", 9.5, AX, "middle")
-    body += catatan(["Spreadsheet alias:", Kode("  V0 (mm³, angka polos)"), Kode("  r = (V0/(2*pi))^(1/3)"), Kode("  h = 2*r  (hasil optimasi)"), "Sketch XY: Circle pusat (0,0),", "  Radius = Spreadsheet.r", "Pad Length = Spreadsheet.h", "baca: Shape.Area (mm²)"], 330, 40)
+    body += catatan(["Spreadsheet alias:", Kode("  V0 (mm³, angka polos)"), Kode("  r = (V0/(2*pi))^(1/3)"), Kode("  tinggi = 2*r  (hasil optimasi)"), "Sketch XY: Circle pusat (0,0),", "  Radius = Spreadsheet.r", "Pad Length = Spreadsheet.h", "baca: Shape.Area (mm²)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 1 — kaleng silinder tertutup bervolume tetap dengan luas permukaan minimum", h=240))
     # T2 — kantilever aluminium: tinggi minimum dari kendala defleksi
     x0, x1, yt, yb = 50, 250, 112, 146
@@ -45,7 +45,7 @@ def gambar():
     body += dim_v(x1 + 12, yt, yb, "h<sub>req</sub>", CY, kiri=False)
     body += t(150, 180, "defleksi ujung δ ≤ δ<sub>izin</sub> (kendala)", 9.5, VI, "middle")
     body += ext(x0, yb, x0, 202) + ext(x1, 160, x1, 202) + dim_h(x0, x1, 196, "L", atas=False)
-    body += catatan(["Spreadsheet alias F, L, b, E,", Kode("  d_izin (aluminium E = 70000)"), Kode("sel h_req ="), Kode("  (4*F*L^3/(E*b*d_izin))^(1/3)"), "Sketch YZ b × h<sub>req</sub>, kedua", "  dimensi berekspresi → Pad L", "baca: nilai sel h<sub>req</sub> (mm)"], 330, 40)
+    body += catatan(["Spreadsheet alias gaya, L, b, E,", Kode("  d_izin (aluminium E = 70000)"), Kode("sel h_req ="), Kode("  (4*gaya*L^3/(E*b*d_izin))^(1/3)"), "Sketch YZ b × h<sub>req</sub>, kedua", "  dimensi berekspresi → Pad L", "baca: nilai sel h<sub>req</sub> (mm)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 2 — kantilever aluminium: tinggi minimum dari kendala defleksi", h=240))
     # T3 — tabung pengganti poros pejal dengan momen inersia sama
     cy = 118
@@ -72,7 +72,7 @@ def gambar():
     body += dim_v(x1 + 12, yt, yb, "t<sub>req</sub>", CY, kiri=False)
     body += t(150, 172, "lebar b tegak lurus bidang gambar", 9.5, AX, "middle")
     body += ext(x0, yb, x0, 200) + ext(x1, yb, x1, 200) + dim_h(x0, x1, 194, "L", atas=False)
-    body += catatan(["Spreadsheet alias F, L, b, E,", Kode("  s_izin, d_izin (baja)"), Kode("t_sigma = (6*F*L/(b*s_izin))^(1/2)"), Kode("t_delta ="), Kode("  (4*F*L^3/(E*b*d_izin))^(1/3)"), Kode("t_req = max(t_sigma; t_delta)"), "Sketch YZ b × t<sub>req</sub> → Pad L", "baca: nilai sel t<sub>req</sub> (mm)"], 330, 40)
+    body += catatan(["Spreadsheet alias gaya, L, b, E,", Kode("  s_izin, d_izin (baja)"), Kode("t_sigma = (6*gaya*L/"), Kode("  (b*s_izin))^(1/2)"), Kode("t_delta ="), Kode("  (4*gaya*L^3/(E*b*d_izin))^(1/3)"), Kode("t_req = max(t_sigma; t_delta)"), "Sketch YZ b × t<sub>req</sub> → Pad L", "baca: nilai sel t<sub>req</sub> (mm)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 4 — pelat kantilever dengan kendala tegangan dan defleksi sekaligus", h=240))
     # T5 — pilihan material berjejak karbon terkecil pada kekakuan sama
     x0, x1 = 50, 250
@@ -86,7 +86,7 @@ def gambar():
     body += t(140, 102, "kekakuan sama: E<sub>st</sub>·I<sub>st</sub> = E<sub>Al</sub>·I<sub>Al</sub>", 9.5, GR, "middle")
     body += ext(x0, 160, x0, 196) + ext(x1, 160, x1, 196) + dim_h(x0, x1, 190, "L", atas=False)
     body += t(140, 222, "jejak CO₂ = f × ρ × b·L·h", 9.5, AM, "middle", "600")
-    body += catatan(["Spreadsheet alias F, L, b,", Kode("  d_izin; tiap material:"), Kode("  h = (4*F*L^3/(E*b*d_izin))"), Kode("       ^(1/3)"), Kode("  massa = rho*b*L*h  (kg)"), Kode("  CO2 = f*massa"), "modelkan balok ALUMINIUM", "  b × h<sub>Al</sub> → Pad L", "baca: jejak CO₂ Al (kg)"], 330, 40)
+    body += catatan(["Spreadsheet alias gaya, L, b,", Kode("  d_izin; tiap material:"), Kode("  tinggi ="), Kode("  (4*gaya*L^3/(E*b*d_izin))^(1/3)"), Kode("  massa = rho*b*L*tinggi  (kg)"), Kode("  CO2 = f*massa"), "modelkan balok ALUMINIUM", "  b × h<sub>Al</sub> → Pad L", "baca: jejak CO₂ Al (kg)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 5 — pilihan material berjejak karbon terkecil pada kekakuan lentur sama", h=246))
     return out
 

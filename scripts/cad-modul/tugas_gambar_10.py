@@ -47,9 +47,9 @@ def gambar():
     body += f'<rect x="{sx}" y="{sy}" width="{sw}" height="{sh}" fill="rgba(245,158,11,.18)" stroke="{AM}" stroke-width="1.6"/>'
     body += t(sx + sw / 2, sy + sh + 14, "b", 10.5, AM, "middle", "600") + t(sx + sw + 4, sy + sh / 2 + 4, "h<sub>req</sub>", 10.5, AM, "start", "600")
     body += t(150, 104, "σ<sub>maks</sub> = 6·F·L/(b·h²) ≤ σ<sub>izin</sub>", 10, RD, "middle", "600")
-    body += t(50, 40, "Spreadsheet (alias):", 10, GR, "start", "600") + t(50, 54, Kode("F, L, b, sigma_izin → h_req"), 9.5, AX, "start")
+    body += t(50, 40, "Spreadsheet (alias):", 10, GR, "start", "600") + t(50, 54, Kode("gaya, L, b, sigma_izin → h_req"), 9.5, AX, "start")
     body += t(150, 206, "penampang b × h<sub>req</sub>", 9.5, AX, "middle")  # di bawah label L, bukan di garis dimensi
-    body += catatan(["Spreadsheet alias F, L, b,", Kode("  sigma_izin (angka tanpa satuan)"), "sel h<sub>req</sub> = √(6·F·L/(b·σ<sub>izin</sub>))", "Sketch YZ b × h → ekspresi", Kode("  =Spreadsheet.h_req; Pad L"), "baca: nilai sel h<sub>req</sub> (mm)"], 330, 40)
+    body += catatan(["Spreadsheet alias gaya, L, b,", Kode("  sigma_izin (angka tanpa satuan)"), "sel h<sub>req</sub> = √(6·gaya·L/(b·σ<sub>izin</sub>))", "Sketch YZ b × h → ekspresi", Kode("  =Spreadsheet.h_req; Pad L"), "baca: nilai sel h<sub>req</sub> (mm)"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 1 — tinggi minimum kantilever h<sub>req</sub> dari tegangan izin (Spreadsheet)"))
     # T2 — pelat + rusuk segitiga
     cx, cy, s = 130, 185, 1.5
@@ -105,7 +105,7 @@ def gambar():
     body += dim_v(262, 60, 84, "h", AX, kiri=False) + dim_v(262, 128, 164, "h<sub>Al</sub>", CY, kiri=False)
     body += ext(x0, 164, x0, 188) + ext(x1, 164, x1, 188) + dim_h(x0, x1, 182, "L", atas=False)
     body += t(150, 215, "E<sub>st</sub>·I<sub>st</sub> = E<sub>Al</sub>·I<sub>Al</sub> → δ sama", 10, GR, "middle", "600")
-    body += catatan([Kode("Spreadsheet: L, b, h, E_st, E_Al,"), Kode("  h_Al = h*pow(E_st/E_Al; 1/3)"), "Sketch YZ b × h<sub>Al</sub> (ekspresi", Kode("  =Spreadsheet.h_Al) → Pad L"), "kekakuan lentur E·I sama", "baca: massa = 2,70×10⁻³ × Volume"], 330, 40)
+    body += catatan([Kode("Spreadsheet: L, b, tinggi,"), Kode("  E_st, E_Al; h_Al ="), Kode("  tinggi*pow(E_st/E_Al; 1/3)"), "Sketch YZ b × h<sub>Al</sub> (ekspresi", Kode("  =Spreadsheet.h_Al) → Pad L"), "kekakuan lentur E·I sama", "baca: massa = 2,70×10⁻³ × Volume"], 330, 40)
     out.append(gambar_tugas(body, "Tugas 4 — kantilever baja diganti aluminium dengan kekakuan lentur sama"))
     # T5 — profil I berpusat di titik asal
     cx, cy, B2, H2, tf, tw = 150, 125, 60, 85, 16, 7

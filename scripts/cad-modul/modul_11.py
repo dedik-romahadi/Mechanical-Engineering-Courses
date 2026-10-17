@@ -620,7 +620,7 @@ def materi():
                  ["3. Masukkan", "Insert Link → pilih Body", "App::Link di dalam Assembly, Placement awal = titik asal"],
                  ["4. Acuan diam", "Klik kanan link pelat → Toggle grounded", "GroundedJoint pada link itu"],
                  ["5. Ikat", "Create Joint → pilih acuan komponen A lalu B", "Objek joint di grup Joints; solver memindahkan komponen yang tidak grounded"],
-                 ["6. Atur posisi tepat", "Properti joint Offset / Rotation, atau Placement link", "Ekspresi boleh merujuk Spreadsheet (mis. C = Spreadsheet.C)"]])
+                 ["6. Atur posisi tepat", "Properti joint Offset / Rotation, atau Placement link", "Ekspresi boleh merujuk Spreadsheet (mis. offsetC = Spreadsheet.offsetC; alias <code>C</code> ditolak FreeCAD karena sama dengan satuan coulomb)"]])
     isi += cards([
         ("📎", "Link vs Clone vs Copy", "App::Link (Assembly) merujuk objek asli; Draft Clone menyalin bentuk parametrik dengan skala; Copy memutus hubungan. Rakitan selalu memakai link agar perubahan komponen mengalir ke semua rakitan.", "Link → hidup"),
         ("📂", "Komponen dari berkas lain", "Buka berkas komponen, lalu Insert Link dari dokumen rakitan memilih objek di dokumen lain; FreeCAD menyimpan tautan berkas relatif. Pindahkan berkas bersama-sama agar tautan tidak putus.", "xlink"),
