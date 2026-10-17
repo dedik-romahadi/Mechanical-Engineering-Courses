@@ -41,6 +41,22 @@ export const VIDEO_PRAKTIK = [
     ],
   },
   {
+    modul: 3,
+    berkas: "Modul-3-Praktik-Panel-Heksagon.mp4",
+    poster: "Modul-3-Praktik-Panel-Heksagon.jpg",
+    judul: "Panel Heksagon dengan Tiga Transformasi",
+    durasi: "2:51",
+    bab: [
+      ["1 · Dokumen dan panel", 4],
+      ["2 · Heksagon induk", 26.9],
+      ["3 · Salin dengan Move", 41.2],
+      ["4 · Putar salinan", 70.5],
+      ["5 · Skala salinan", 103.7],
+      ["6 · Ukur dan periksa", 142.7],
+      ["7 · Simpan", 154.5],
+    ],
+  },
+  {
     modul: 5,
     berkas: "Modul-5-Praktik-Braket-L.mp4",
     poster: "Modul-5-Praktik-Braket-L.jpg",
