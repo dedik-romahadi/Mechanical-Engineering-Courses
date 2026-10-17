@@ -1830,6 +1830,19 @@ div.hk-ikon{display:block}
 .hk-panel *,.hk-panel>summary::after{transition:none!important}
 }
 </style>
+<style id="video-praktik-style">/* VIDEO-PRAKTIK:CSS v1 — dipasang scripts/video-praktik.mjs */
+.video-praktik{margin:22px 0 26px;border:1px solid var(--border,#243653);border-radius:14px;background:var(--surface,#080f1e);overflow:hidden}
+.video-praktik .vp-kepala{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:14px 18px 10px}
+.video-praktik .vp-ikon{font-size:1.25rem;line-height:1}
+.video-praktik .vp-judul{font-weight:800;font-size:1rem;color:var(--cyan,#67e8f9)}
+.video-praktik .vp-meta{margin-left:auto;font-size:.78rem;color:var(--muted,#aebbd0)}
+.video-praktik video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#000}
+.video-praktik .vp-bab{display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px 6px}
+.video-praktik .vp-bab button{font:inherit;font-size:.78rem;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;color:var(--cyan,#67e8f9);background:transparent;border:1px solid var(--border,#243653)}
+.video-praktik .vp-bab button:hover,.video-praktik .vp-bab button:focus-visible{background:rgba(103,232,249,.12);border-color:var(--cyan,#67e8f9);outline:none}
+.video-praktik .vp-cat{margin:0;padding:6px 18px 14px;font-size:.8rem;line-height:1.5;color:var(--muted,#aebbd0)}
+@media (max-width:600px){.video-praktik .vp-meta{margin-left:0;width:100%}.video-praktik .vp-kepala{padding:12px 14px 8px}.video-praktik .vp-bab{padding:10px 14px 4px}.video-praktik .vp-cat{padding:6px 14px 12px}}
+</style>
 </head>
 <body class="modern-academic-design">
 
@@ -2309,7 +2322,7 @@ div.hk-ikon{display:block}
         <tr><td>3. Masukkan</td><td>Insert Link → pilih Body</td><td>App::Link di dalam Assembly, Placement awal = titik asal</td></tr>
         <tr><td>4. Acuan diam</td><td>Klik kanan link pelat → Toggle grounded</td><td>GroundedJoint pada link itu</td></tr>
         <tr><td>5. Ikat</td><td>Create Joint → pilih acuan komponen A lalu B</td><td>Objek joint di grup Joints; solver memindahkan komponen yang tidak grounded</td></tr>
-        <tr><td>6. Atur posisi tepat</td><td>Properti joint Offset / Rotation, atau Placement link</td><td>Ekspresi boleh merujuk Spreadsheet (mis. C = Spreadsheet.C)</td></tr>
+        <tr><td>6. Atur posisi tepat</td><td>Properti joint Offset / Rotation, atau Placement link</td><td>Ekspresi boleh merujuk Spreadsheet (mis. offsetC = Spreadsheet.offsetC; alias <code>C</code> ditolak FreeCAD karena sama dengan satuan coulomb)</td></tr>
       </tbody>
     </table>
   </div>
@@ -4691,7 +4704,7 @@ function updateScore() {
   const _bonusAktif = (typeof window._bonusKeaktifanSaya === 'function') ? window._bonusKeaktifanSaya() : 0;
   // FORUM-POIN:SKOR v1 — aturan forum 2 poin (scripts/forum-poin.mjs); null = aturan lama (rumus di bawah, tidak berubah).
   const _forumTotal = (typeof window._forumSkorSaya === 'function') ? window._forumSkorSaya(mc + ezComp + hardComp, _bonusAktif) : null;
-  const total = _forumTotal !== null ? _forumTotal : Math.min(mc + ezComp + hardComp + _bonusAktif, (typeof SCORE_CONFIG !== 'undefined' && SCORE_CONFIG.TOTAL) || 50);
+  const total = _forumTotal !== null ? _forumTotal : Math.min(mc + ezComp + hardComp + _bonusAktif, SCORE_CONFIG.TOTAL);
   const nilai = pointsToScore(total);   // 0..100, menggunakan SCORE_CONFIG.TOTAL
 
   const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
@@ -4700,8 +4713,8 @@ function updateScore() {
   set('scoreMC',       _fmtPts(mc));
   set('scoreCompEz',   _fmtPts(ezComp));
   set('scoreCompHard', _fmtPts(hardComp));
-  // KEAKTIFAN-KELAS:SKOR — baris "Keaktifan kelas" di bilah skor.
-  { const _sa = document.getElementById('scoreAktif'); if (_sa) _sa.textContent = _fmtPts(_bonusAktif); const _ba = document.getElementById('baris-keaktifan'); if (_ba) _ba.classList.toggle('aktif', _bonusAktif > 0); }
+  set('scoreAktif',    _fmtPts(_bonusAktif));
+  { const _ba = document.getElementById('baris-keaktifan'); if (_ba) _ba.classList.toggle('aktif', _bonusAktif > 0); }
   const fill = document.getElementById('scoreFill');
   if (fill) fill.style.width = nilai + '%';
 }

@@ -615,14 +615,14 @@ def materi():
                   ["Rotation Axis", "Sumbu putar (vektor satuan)", "Axis (0,0,1) untuk putaran sekitar Z", "<code>&lt;&lt;Boss&gt;&gt;.Placement.Rotation.Axis</code>"],
                   ["Rotation Angle", "Sudut (°)", "Angle", "<code>360 / Param.n</code>"],
                   ["Ekspresi (fx)", "Rumus yang mengikat properti", "Klik ikon fx di properti; rujuk objek lain dengan &lt;&lt;Label&gt;&gt;", "<code>Placement.Base.z = &lt;&lt;Pelat&gt;&gt;.Pad.Length</code>"],
-                  ["Spreadsheet alias", "Parameter terpusat", "Spreadsheet → alias sel (a, b, t, k)", "<code>Param.k</code> pada Scale Clone"]])
+                  ["Spreadsheet alias", "Parameter terpusat", "Spreadsheet → alias sel (a, b, tebal, k)", "<code>Param.k</code> pada Scale Clone"]])
     isi += cards([
         ("⚓", "Komponen dasar (ground)", "Tetapkan satu komponen (pelat/rangka) pada Placement identitas sebagai acuan; komponen lain diposisikan relatif terhadapnya. Tanpa acuan, seluruh rakitan bisa bergeser bersama tanpa disadari.", "Placement = identitas"),
         ("🧮", "Urutan transformasi", "FreeCAD memutar dulu, lalu menggeser: boss yang diputar 90° terhadap X di titik asal lokalnya baru dipindahkan ke Base. Putar objek di titik asalnya sendiri sebelum memberi translasi agar hasilnya mudah ditebak.", "R lalu T"),
         ("🏗️", "Sub-assembly bertingkat", "Part “Stasiun” berisi Part “Braket” yang berisi Body Flens dan Link Boss; Placement tiap lapis ditumpuk. Memindahkan Stasiun memindahkan semua tanpa mengubah Placement isinya.", "Part di dalam Part"),
         ("📏", "Memeriksa rakitan", "Std Measure Distance antar muka dua komponen, Part → Check geometry, dan Boolean Common (irisan harus kosong) memastikan komponen tidak saling menembus; volume Union harus sama dengan jumlah volume komponen.", "Common = kosong"),
     ])
-    isi += kotak("tip-box", "💡 <strong>Ekspresi yang tahan perubahan:</strong> simpan <code>a, b, t, d_B, h_B, k</code> pada Spreadsheet beralias, ikat konstrain sketsa dan Placement ke alias itu, lalu ubah satu sel untuk menguji: boss tetap di seperempat panjang pelat, clone tetap di tiga perempat, dan volume Union berubah sesuai Persamaan (6). Tugas 5 boleh dikerjakan tanpa Spreadsheet, tetapi ekspresi mencegah boss keluar dari pelat saat dimensi diubah.")
+    isi += kotak("tip-box", "💡 <strong>Ekspresi yang tahan perubahan:</strong> simpan <code>a, b, tebal, d_B, h_B, k</code> pada Spreadsheet beralias (hindari alias <code>t</code> atau <code>h</code>: FreeCAD menolak nama yang sama dengan satuan), ikat konstrain sketsa dan Placement ke alias itu, lalu ubah satu sel untuk menguji: boss tetap di seperempat panjang pelat, clone tetap di tiga perempat, dan volume Union berubah sesuai Persamaan (6). Tugas 5 boleh dikerjakan tanpa Spreadsheet, tetapi ekspresi mencegah boss keluar dari pelat saat dimensi diubah.")
     m += bagian(7, "m-rakit", "Sub-Assembly Sederhana:<br>Placement dan Ekspresi", "Beberapa Body, Link, dan Clone menjadi rakitan ketika posisinya diatur dan saling terikat. Bagian ini membahas Placement (Base, Rotation), Part container bertingkat, ekspresi dan Spreadsheet untuk posisi parametrik, serta cara memeriksa rakitan sebelum dibaca volumenya.", isi, "SUB-ASSEMBLY")
 
     # 08 — Python console
@@ -677,7 +677,7 @@ doc = App.ActiveDocument or App.newDocument("Latihan7")
 V = App.Vector
 a, b, t, dB, hB, k = {A_C}, {B_C}, {T_C}, {DB_C}, {HB_C}, {K_C}
 ss = doc.addObject("Spreadsheet::Sheet", "Param")
-for i, (nama, nilai) in enumerate([("a", a), ("b", b), ("t", t), ("k", k)], 1):
+for i, (nama, nilai) in enumerate([("a", a), ("b", b), ("tebal", t), ("k", k)], 1):
     ss.set(f"A{{i}}", nama); ss.set(f"B{{i}}", str(nilai)); ss.setAlias(f"B{{i}}", nama)
 xy = lambda body: [o for o in body.Origin.OriginFeatures if o.Role == "XY_Plane"][0]
 def body_pad(nama, geom, tinggi):
