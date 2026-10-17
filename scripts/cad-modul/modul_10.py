@@ -85,12 +85,12 @@ A_REKT_I = B_I * H_REKT_I
 H_REKT_A = A_PROFIL / B_I
 I_REKT_A = B_I * H_REKT_A ** 3 / 12
 # Bagian 09 — praktik terbimbing braket L: teks langkah dan Gambar 7 memakai angka yang sama
-PR_T, PR_R, PR_F = 8, 2, 1000                         # alias Spreadsheet iterasi 0: tebal t, fillet r, gaya F (N)
+PR_T, PR_R, PR_F = 8, 2, 900                          # alias Spreadsheet iterasi 0: tebal t, fillet r, gaya F (N)
 PR_KAKI, PR_TEGAK, PR_LEBAR = 100, 80, 50             # braket L 100 × 80, lebar Pad 50
 PR_BAUT, PR_MESH = 9, 3                               # lubang baut 2 × ⌀9 di kaki; ukuran mesh Gmsh (mm)
 PR_R_ITER = (2, 6, 10)                                # langkah 3: radius fillet sudut dalam
-PR_DELTA = 0.25                                       # batas defleksi δ_maks (mm)
-PR_RUSUK, PR_RUSUK_PAD, PR_FILLET_RUSUK = 40, 5, 2    # langkah 4: kaki segitiga 40 × hr, Pad 5 simetris, fillet 2
+PR_DELTA = 0.20                                       # batas defleksi δ_maks (mm)
+PR_RUSUK, PR_RUSUK_PAD, PR_FILLET_RUSUK = 40, 5, 5    # langkah 4: kaki segitiga 40 × hr, Pad 5 simetris, fillet 5
 PR_HR_ITER = (20, 30)                                 # langkah 4: tinggi rusuk hr
 PR_D_ITER = (15, 20, 25)                              # langkah 5: diameter lubang penghemat massa d
 PR_SY_BAJA, PR_SY_AL, PR_SF = MATERIAL[0][3], MATERIAL[2][3], 2   # σ_y baja dan aluminium (MPa), SF minimum
@@ -430,16 +430,16 @@ def gambar7():
     b += ext(*P(-1, 0, 0), *P(-12, 0, 0)) + ext(*P(-1, W, 0), *P(-12, W, 0))
     b += _dim_miring(P(-9, 0, 0), P(-9, W, 0), f"{W}", geser=(-8, 8), anchor="end")
     # (d) catatan per langkah: angka yang diketik di Spreadsheet/FEM dan kriteria berhenti
-    kol = [(20, [(1, CY, f"Spreadsheet: t = {T}, r = {PR_R}, hr = 0, d = 0, F = {PR_F}"),
+    kol = [(20, [(1, CY, f"Spreadsheet: tebal = {T}, r = {PR_R}, hr = 0, d = 0, gaya = {PR_F}"),
                  (0, CY, f"massa baja = Volume × {ind(RHO_ST * 1000, 2)}×10⁻³"),
                  (2, CY, f"Steel, mesh Gmsh {PR_MESH}; Fixed + Force F"),
                  (3, PK, f"pilih r dengan SF = {PR_SY_BAJA}/σ<sub>maks</sub> ≥ {PR_SF}"),
-                 (4, GR, f"rusuk bila δ<sub>maks</sub> > {ind(PR_DELTA, 1)}; fillet {PR_FILLET_RUSUK} di rusuk–pelat")]),
+                 (4, GR, f"rusuk bila δ<sub>maks</sub> > {ind(PR_DELTA, 2)}; fillet {PR_FILLET_RUSUK} di rusuk–pelat")]),
            (352, [(5, VI, f"⌀d: berhenti saat σ<sub>maks</sub> ≈ {S_IZIN} MPa"),
                   (0, VI, "atau massa sudah ≤ target"),
                   (6, TX, f"Aluminium: tebal {PR_TEBAL_AL}"),
                   (0, TX, f"periksa σ<sub>maks</sub> ≤ {PR_SY_AL}/{PR_SF} = {PR_SY_AL // PR_SF} MPa"),
-                  (7, TX, f"pilih SF ≥ {PR_SF}, δ ≤ {ind(PR_DELTA, 1)}, massa terkecil")])]
+                  (7, TX, f"pilih SF ≥ {PR_SF}, δ ≤ {ind(PR_DELTA, 2)}, massa terkecil")])]
     for x0, baris in kol:
         for i, (no, warna, teks) in enumerate(baris):
             yy = 272 + i * 17 + 14
@@ -719,8 +719,8 @@ Part.show(f.extrude(V(0,0,100)), "BatangI")''', "Python (FreeCAD)")
     # 09 — Praktik terbimbing
     langkah = [("1", "Model parametrik", f"Spreadsheet: alias <code>tebal</code> = {PR_T}, <code>r</code> = {PR_R}, <code>hr</code> = 0, <code>d</code> = 0, <code>gaya</code> = {PR_F} (jangan memakai <code>t</code> atau <code>F</code>: FreeCAD menolaknya sebagai alias karena sama dengan satuan ton dan farad). Body: braket L {PR_KAKI} × {PR_TEGAK} (lebar {PR_LEBAR}) dengan Sketch tebal =Spreadsheet.tebal, lubang baut 2 × ⌀{PR_BAUT} di kaki, fillet sudut dalam radius =Spreadsheet.r. Recompute, catat massa baja (Volume × {ind(RHO_ST * 1000, 2)}×10⁻³)."),
                ("2", "FEM iterasi 0", f"FEM Workbench (Modul 8): Analysis, material Steel, mesh Gmsh {PR_MESH} mm, Fixed di muka kaki berlubang, Force =Spreadsheet.gaya pada tepi kaki tegak, solve CalculiX. Catat σ<sub>vm,maks</sub> (di sudut dalam), δ<sub>maks</sub>, massa pada baris iterasi 0 Spreadsheet."),
-               ("3", "Fillet daerah kritis", f"Ubah r: {_urut(PR_R_ITER)}; recompute dan solve ulang tiap kali. Catat σ<sub>maks</sub>: turun mengikuti K<sub>t</sub> (Bagian 02) tanpa perubahan massa berarti. Pilih r yang memberi SF = {PR_SY_BAJA}/σ<sub>maks</sub> ≥ {PR_SF} (pada gaya = {PR_F} N dan tebal = {PR_T} mm, r = {PR_R_ITER[2]} memberi σ<sub>maks</sub> ≈ {ind(PR_SY_BAJA / PR_SF, 0)} MPa; bila SF masih < {PR_SF}, perbesar r atau tebal)."),
-               ("4", "Rusuk untuk kekakuan", f"Bila δ<sub>maks</sub> > {ind(PR_DELTA, 2)} mm: sketsa segitiga rusuk pada bidang tengah (kaki {PR_RUSUK} × hr), Pad {PR_RUSUK_PAD} mm simetris; ubah hr = {_urut(PR_HR_ITER)}. Catat δ turun (Bagian 03) dan σ baru di pertemuan rusuk–pelat; beri fillet {PR_FILLET_RUSUK} mm di sana."),
+               ("3", "Fillet daerah kritis", f"Ubah r: {_urut(PR_R_ITER)}; recompute dan solve ulang tiap kali. Catat σ<sub>maks</sub>: turun mengikuti K<sub>t</sub> (Bagian 02) tanpa perubahan massa berarti. Pilih r yang memberi SF = {PR_SY_BAJA}/σ<sub>maks</sub> ≥ {PR_SF} (pada gaya = {PR_F} N dan tebal = {PR_T} mm, r = {PR_R_ITER[2]} memberi σ<sub>maks</sub> ≈ 113 MPa dan SF ≈ 2,2, sedangkan r = {PR_R_ITER[1]} baru SF ≈ 1,9; bila SF masih < {PR_SF}, perbesar r atau tebal)."),
+               ("4", "Rusuk untuk kekakuan", f"Bila δ<sub>maks</sub> > {ind(PR_DELTA, 2)} mm: sketsa segitiga rusuk pada bidang tengah (kaki {PR_RUSUK} × hr), Pad {PR_RUSUK_PAD} mm simetris; ubah hr = {_urut(PR_HR_ITER)}. Catat δ turun (Bagian 03). Di pertemuan rusuk–pelat tegangan naik lagi; beri fillet {PR_FILLET_RUSUK} mm di sana, lalu haluskan mesh dua kali (mis. 4 → 3 → 2,4 mm) dan catat σ<sub>maks</sub> hanya bila perubahannya < 5 %. Di sudut tajam tanpa fillet σ terus naik saat mesh dihaluskan (singularitas), jadi angkanya tidak boleh dipakai."),
                ("5", "Pengurangan massa", f"Tambah lubang ⌀d di daerah biru kontur (dekat sumbu netral kaki tegak): d = {_urut(PR_D_ITER)}. Berhenti saat σ<sub>maks</sub> mendekati {S_IZIN} MPa atau massa sudah ≤ target (Bagian 04)."),
                ("6", "Alternatif material", f"Duplikat dokumen; material Aluminium, tebal {PR_TEBAL_AL}. Solve: δ hampir sama, massa ≈ setengah, periksa σ<sub>maks</sub> ≤ {PR_SY_AL}/{PR_SF} = {PR_SY_AL // PR_SF} MPa (Bagian 05)."),
                ("7", "Tabel iterasi dan simpan", f"Lengkapi tabel iterasi (r, hr, d, material, σ, δ, massa, SF); pilih desain dengan SF ≥ {PR_SF}, δ ≤ {ind(PR_DELTA, 2)} mm, massa terkecil; bila belum ada kombinasi yang memenuhi keduanya, catat kombinasi terbaik dan usulkan perbaikan (mis. fillet pertemuan rusuk, tebal lebih besar). Ctrl+S → <code>Latihan10_NIM.FCStd</code>.")]
