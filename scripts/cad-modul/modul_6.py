@@ -41,6 +41,9 @@ H_DEKAT, H_JAUH = H_OBJ * F_CAM / D_DEKAT, H_OBJ * F_CAM / D_JAUH
 # Praktik terbimbing (Bagian 09): balok bertingkat berlubang. Teks langkah dan gambar7 memakai konstanta yang sama.
 BT_A, BT_H, BT_NA, BT_NH = 120, 80, 60, 30              # profil tangga XZ: lebar, tinggi, anak tangga lebar × tinggi (dibuang di kanan-atas)
 BT_B, BT_D, BT_SKALA = 60, 20, "1:2"                     # Pad (kedalaman), ⌀ lubang tembus di muka atas tingkat rendah, skala lembar
+BT_HX = 90                                               # pusat lubang: x 90 (30 dari tepi kanan), y = BT_B/2
+LUAS_DEPAN_BT = BT_A * BT_H - BT_NA * BT_NH              # muka depan 7.800 mm²
+LUAS_POTONG_BT = LUAS_DEPAN_BT - BT_D * (BT_H - BT_NH)  # potongan A-A: 6.800 mm²
 
 
 # ─────────────────────────── gambar ───────────────────────────
@@ -393,13 +396,13 @@ def gambar7():
     A, H, NA, NH, B, D = BT_A, BT_H, BT_NA, BT_NH, BT_B, BT_D
     zr, xs = H - NH, A - NA                   # tinggi tingkat rendah, x tepi anak tangga
     hd = B / 2                                # pusat lubang pada bidang A-A (langkah 5 & 7: slice di tengah kedalaman)
-    hx = xs + NA / 2                          # posisi X lubang hanya ilustrasi: langkah 1 tidak memberinya, jadi tidak didimensi
+    hx = BT_HX                                # pusat lubang: x 90 (30 dari tepi kanan), y di tengah kedalaman
     k = 1.2                                   # px per mm untuk pandangan ortografik
     X = lambda x: 80 + x * k                  # pandangan Depan dan Atas
     Z = lambda z: 250 - z * k                 # pandangan Depan, Kanan, dan A-A
     DT = lambda d: 112 - d * k                # pandangan Atas: d = 0 tepi depan (dekat pandangan Depan)
     DR = lambda d: 284 + d * k                # pandangan Kanan: d = 0 tepi kiri
-    XS = lambda x: 544 - x * k                # potongan A-A dilihat ke arah −Y: sumbu X terbalik
+    XS = lambda x: 400 + x * k                # potongan A-A dilihat ke arah +Y, searah pandangan Depan (tidak terbalik)
     prof = [(0, 0), (A, 0), (A, zr), (xs, zr), (xs, H), (0, H)]
     tersembunyi = ((4, 3), f'stroke="{CY}" stroke-opacity=".85" stroke-width="1"')     # garis tersembunyi
     sumbu = ((8, 3, 2, 3), f'stroke="{RD}" stroke-width=".9"')                          # garis sumbu (rantai)
@@ -413,9 +416,9 @@ def gambar7():
     b += ext(X(0), Z(0) + 3, X(0), Z(0) + 28) + ext(X(A), Z(0) + 3, X(A), Z(0) + 28) + dim_h(X(0), X(A), Z(0) + 22, str(A))
     b += ext(X(0) - 3, Z(0), X(0) - 28, Z(0)) + ext(X(0) - 3, Z(H), X(0) - 28, Z(H)) + dim_v(X(0) - 22, Z(H), Z(0), str(H))
     yt = Z(H) - 16
-    b += ext(X(xs), Z(H) - 3, X(xs), yt - 6) + ext(X(A), Z(zr) - 3, X(A), yt - 6) + dim_h(X(xs), X(A), yt, str(NA))
+    b += ext(X(0), Z(H) - 3, X(0), yt - 6) + ext(X(xs), Z(H) - 3, X(xs), yt - 6) + dim_h(X(0), X(xs), yt, str(xs))
     xr = X(A) + 18
-    b += ext(X(xs) + 3, Z(H), xr + 6, Z(H)) + ext(X(A) + 3, Z(zr), xr + 6, Z(zr)) + dim_v(xr, Z(H), Z(zr), str(NH), kiri=False)
+    b += ext(X(A) + 3, Z(0), xr + 6, Z(0)) + ext(X(A) + 3, Z(zr), xr + 6, Z(zr)) + dim_v(xr, Z(zr), Z(0), str(zr), kiri=False)
     b += t(X(A / 2), Z(0) + 44, "Depan (dari −Y)", 10.5, AX, "middle", "600")
     # ── Atas (di atas Depan, sudut ketiga) ──
     b += _poli7([(X(0), DT(0)), (X(A), DT(0)), (X(A), DT(B)), (X(0), DT(B))])
@@ -423,26 +426,15 @@ def gambar7():
     rl = D / 2 * k
     b += f'<circle cx="{X(hx):.1f}" cy="{DT(hd):.1f}" r="{rl:.1f}" fill="#0a101f" stroke="{CY}" stroke-width="1.6"/>'
     b += garis(X(hx), DT(hd) - rl - 7, X(hx), DT(hd) + rl + 7, sumbu)
-    # garis potong A-A: rantai tipis, ujung tebal, panah menunjuk arah pandang (−Y = ke bawah pada pandangan Atas)
+    # garis potong A-A: rantai tipis, ujung tebal, panah menunjuk arah pandang (+Y = ke atas pada pandangan Atas)
     ya = DT(hd)
     b += garis(X(0), ya, X(A), ya, ((10, 3, 2, 3), f'stroke="{PK}" stroke-width=".9"'))
-    for xa, xb in ((X(0) - 10, X(0)), (X(A), X(A) + 10)):
+    for xa, xb in ((X(0) - 8, X(0)), (X(A), X(A) + 8)):
         b += f'<line x1="{xa:.1f}" y1="{ya:.1f}" x2="{xb:.1f}" y2="{ya:.1f}" stroke="{PK}" stroke-width="2.4"/>'
         xm = (xa + xb) / 2
-        b += _panah(xm, ya - 18, xm, ya - 2, PK, 1.4) + t(xm, ya - 24, "A", 11, PK, "middle", "700")
-    # 30: bidang A-A (= pusat lubang) dari tepi depan; 60 (kedalaman) ada di pandangan Kanan
-    xd = X(0) - 22
-    b += ext(X(0) - 3, DT(0), xd - 6, DT(0)) + ext(X(0) - 13, ya, xd - 6, ya) + dim_v(xd, ya, DT(0), f"{B // 2}")
-    # diameter lubang: garis diameter miring 60°, diteruskan ke luar tepi belakang
-    ang = math.radians(60)
-    q0 = (X(hx) - rl * math.cos(ang), ya + rl * math.sin(ang))
-    q1 = (X(hx) + rl * math.cos(ang), ya - rl * math.sin(ang))
-    q2 = (X(hx) + (ya - DT(B) + 10) / math.tan(ang), DT(B) - 10)
-    b += f'<line x1="{q0[0]:.1f}" y1="{q0[1]:.1f}" x2="{q2[0]:.1f}" y2="{q2[1]:.1f}" stroke="{AM}" stroke-width="1"/>'
-    b += f'<line x1="{q2[0]:.1f}" y1="{q2[1]:.1f}" x2="{q2[0] + 10:.1f}" y2="{q2[1]:.1f}" stroke="{AM}" stroke-width="1"/>'
-    b += _kepala(q0[0], q0[1], -math.cos(ang), math.sin(ang)) + _kepala(q1[0], q1[1], math.cos(ang), -math.sin(ang))
-    b += t(q2[0] + 14, q2[1] + 4, f"⌀{D}", 11, AM, "start", "600")
-    b += t(X(0) + 2, DT(0) + 18, "Atas", 10.5, AX, "start", "600")
+        b += _panah(xm, ya - 2, xm, ya - 16, PK, 1.4) + t(xm, ya - 20, "A", 11, PK, "middle", "700")
+    # pandangan Atas memuat garis potong A-A: tidak diberi dimensi (dimensi lubang ada di potongan, kedalaman di Kanan)
+    b += t(X(A / 2), DT(B) - 10, "Atas", 10.5, AX, "middle", "600")
     # ── Kanan (di kanan Depan) ──
     b += _poli7([(DR(0), Z(0)), (DR(B), Z(0)), (DR(B), Z(H)), (DR(0), Z(H))])
     b += f'<line x1="{DR(0):.1f}" y1="{Z(zr):.1f}" x2="{DR(B):.1f}" y2="{Z(zr):.1f}" stroke="{CY}" stroke-width="1.2"/>'
@@ -451,14 +443,17 @@ def gambar7():
     b += garis(DR(hd), Z(0) + 6, DR(hd), Z(zr) - 6, sumbu)
     b += ext(DR(0), Z(0) + 3, DR(0), Z(0) + 28) + ext(DR(B), Z(0) + 3, DR(B), Z(0) + 28) + dim_h(DR(0), DR(B), Z(0) + 22, str(B))
     b += t(DR(B / 2), Z(0) + 44, "Kanan", 10.5, AX, "middle", "600")
-    # ── Potongan A-A (bidang y = tengah kedalaman, dilihat ke −Y) ──
-    kiri = [(XS(A), Z(0)), (XS(hx + D / 2), Z(0)), (XS(hx + D / 2), Z(zr)), (XS(A), Z(zr))]
-    kanan = [(XS(hx - D / 2), Z(0)), (XS(0), Z(0)), (XS(0), Z(H)), (XS(xs), Z(H)), (XS(xs), Z(zr)), (XS(hx - D / 2), Z(zr))]
+    # ── Potongan A-A (bidang y = tengah kedalaman, dilihat ke +Y seperti pandangan Depan) ──
+    kiri = [(XS(0), Z(0)), (XS(hx - D / 2), Z(0)), (XS(hx - D / 2), Z(zr)), (XS(xs), Z(zr)), (XS(xs), Z(H)), (XS(0), Z(H))]
+    kanan = [(XS(hx + D / 2), Z(0)), (XS(A), Z(0)), (XS(A), Z(zr)), (XS(hx + D / 2), Z(zr))]
     b += _poli7(kiri, GR, ".10", 1.6) + _poli7(kanan, GR, ".10", 1.6)
-    b += _arsir45(XS(A), Z(zr), XS(hx + D / 2), Z(0))
-    b += _arsir45(XS(hx - D / 2), Z(zr), XS(xs), Z(0)) + _arsir45(XS(xs), Z(H), XS(0), Z(0))
+    b += _arsir45(XS(0), Z(H), XS(xs), Z(0)) + _arsir45(XS(xs), Z(zr), XS(hx - D / 2), Z(0))
+    b += _arsir45(XS(hx + D / 2), Z(zr), XS(A), Z(0))
     b += garis(XS(hx), Z(0) + 6, XS(hx), Z(zr) - 6, sumbu)
-    b += t(XS(A / 2), Z(H) - 10, "A-A (dilihat ke arah −Y)", 10.5, PK, "middle", "700")
+    ys = Z(H) - 16
+    b += ext(XS(0), Z(H) - 3, XS(0), ys - 6) + ext(XS(hx - D / 2), Z(zr) - 3, XS(hx - D / 2), ys - 6) + ext(XS(hx + D / 2), Z(zr) - 3, XS(hx + D / 2), ys - 6)
+    b += dim_h(XS(0), XS(hx - D / 2), ys, f"{hx - D / 2:g}") + dim_h(XS(hx - D / 2), XS(hx + D / 2), ys, f"⌀{D}")
+    b += t(XS(A / 2), Z(0) + 20, "POTONGAN A-A", 10.5, PK, "middle", "700")
     # ── Isometrik, Direction (1, −1, 1): Depan di kiri-bawah, Kanan di kanan ──
     si, cx, cy = 0.8, 548, 112
     P = lambda x, d, z: _iso(d, -x, z, cx, cy, si, 45, 35.264)
@@ -469,8 +464,8 @@ def gambar7():
     b += '<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in el) + f'" fill="#0a101f" stroke="{CY}" stroke-width="1"/>'
     b += _poli7([P(A, 0, 0), P(A, B, 0), P(A, B, zr), P(A, 0, zr)], CY, ".14", 1.2)
     b += _poli7([P(x, 0, z) for x, z in prof], CY, ".10", 1.2)
-    b += t(598, 28, "Isometrik (1, −1, 1)", 10.5, AX, "middle", "600")
-    o = (482, 104)
+    b += t(584, 28, "Isometrik padat (1, −1, 1), 1:2", 10.5, AX, "middle", "600")
+    o = (466, 66)
     for (vx, vd, vz), warna, nama in [((1, 0, 0), RD, "X"), ((0, 1, 0), GN, "Y"), ((0, 0, 1), BL, "Z")]:
         p, q = P(26 * vx, 26 * vd, 26 * vz), P(0, 0, 0)
         e = (o[0] + (p[0] - q[0]) / si * 0.9, o[1] + (p[1] - q[1]) / si * 0.9)
@@ -805,15 +800,19 @@ Part.show(sh, "BalokBerlubang"); Part.show(baji, "Baji")''', "Python (FreeCAD)")
     m += bagian(8, "m-python", "Python Console:<br>Membaca Tampilan dan Geometri", "Cell pertama membaca kotak pembatas dan diagonal ruang lalu mengendalikan kamera (isometrik, Fit, perspektif); cell kedua memutar Placement dan membaca XLength serta mengatur transparansi dan warna; cell ketiga menghitung luas potongan lewat slice, luas muka depan, dan luas muka miring baji.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Model balok bertingkat berlubang", f"Body → Sketch XZ: profil tangga 6 titik ({BT_A} lebar, {BT_H} tinggi; anak tangga {BT_NA} × {BT_NH} dibuang di kanan-atas), fully constrained → Pad {BT_B}. Sketch di muka atas tingkat rendah: lingkaran ⌀{BT_D} → Pocket Through all."),
-               ("2", "Pandangan dan kamera", "Tekan 0, 1, 2, 3 lalu V, F; bandingkan V, O dan V, P dengan memutar model (Navigation cube). Simpan sudut kerja lewat View → Freeze display → Save views."),
-               ("3", "Lembar dan Projection Group", f"TechDraw → Insert Page using Template (A4 Landscape ISO). Pilih Body → Insert Projection Group: Front dari arah −Y, centang Top dan Right, Projection Type Third Angle, Scale Custom {BT_SKALA}. Geser grup ke tengah lembar."),
-               ("4", "Pandangan isometrik", "Pada Projection Group centang FrontTopRight (iso) atau Insert View dengan Direction (1, −1, 1). Perhatikan rusuk digambar skala penuh, bukan 0,816."),
-               ("5", "Section View A-A", "Pilih pandangan Top → Insert Section View: bidang melalui pusat lubang sejajar X, arah panah ke −Y, nama A. Tambahkan Hatch pada muka potongan dan periksa bagian di balik bidang."),
-               ("6", "Dimensi, simbol, ekspor", "Beri dimensi Length pada lebar dan tinggi, Diameter pada lubang; tulis metode proyeksi dan skala pada kepala gambar (simbol kerucut terpancung). Export Page as PDF."),
-               ("7", "Bacaan dan simpan", f"Di Python: luas muka depan (Face.Area), BoundBox.DiagonalLength, luas potongan lewat slice pada bidang tengah kedalaman, y = (BoundBox.YMin + BoundBox.YMax)/2 = −{BT_B // 2} (Pad dari sketsa XZ mengarah ke −Y); putar Body 25° terhadap Z dan baca XLength, lalu kembalikan ke 0°. Ctrl+S → <code>Latihan6_NIM.FCStd</code> (lembar TechDraw ikut tersimpan).")]
+    langkah = [("1", "Model balok bertingkat berlubang", f"File → New Document; Part Design → New Body; Sketch → New Sketch → <strong>XZ-plane</strong>, lalu tekan 1 (Front) karena sketsa XZ tampil dari belakang. Polyline dari titik asal: profil tangga kasar 6 titik. Dimensi: tepi bawah {BT_A}, tepi kiri {BT_H}, tepi atas tingkat tinggi {BT_A - BT_NA}, tepi kanan {BT_H - BT_NH} → Fully constrained; seret angka yang jatuh di dalam profil ke luar. Close → Pad {BT_B}, centang <em>Reversed</em> agar benda tumbuh ke +Y dan muka depannya tetap di bidang XZ. Lubang: Sketch → New Sketch → XY-plane, lalu <strong>Sketch → Toggle Section View</strong> (bagian benda di atas bidang sketsa disembunyikan); Circle → Diameter {BT_D}, Horizontal {BT_HX}, Vertical {BT_B // 2}; Close → Pocket Through all, centang Reversed. Volume {ind(LUAS_DEPAN_BT * BT_B - math.pi * (BT_D / 2) ** 2 * (BT_H - BT_NH), 2)} mm³."),
+               ("2", "Pandangan dan kamera", "Di area 3D tekan 1 (Front), 2 (Top), 3 (Right), 0 (isometrik). V lalu P: kamera perspektif (rusuk sejajar tampak menguncup); V lalu O: kembali ortografik untuk kerja dan TechDraw; V lalu F: tampilkan semua."),
+               ("3", "Lembar dan Projection Group", f"Workbench TechDraw → Page → New Page From Template → <a href=\"../Template/A4_Landscape_ISO5457_sudut_ketiga.svg\" download>A4_Landscape_ISO5457_sudut_ketiga.svg</a> (template ISO A4 FreeCAD dengan simbol sudut ketiga; unduh dulu). Pilih Body → TechDraw Views → <strong>Projection Group</strong>: tombol Front (arah depan dokumen), Projection <em>Third angle</em>, centang Top dan Right, Scale Custom {BT_SKALA}, X/Y spacing 25 → OK. Data → X 75, Y 100, Recompute: pandangan Atas di atas Depan, Kanan di kanan, lega dari bingkai dan kepala gambar."),
+
+               ("4", "Isometrik padat", "Di tab 3D: pilih Body → View → <strong>Material</strong> → Standard → Metal → Steel → <em>Steel-S275JR</em> → Close (material benda beserta sifat fisiknya). Karena tampilan bawaan baja FreeCAD hampir hitam, pilih lagi Body → View → Appearance → material tampilan <em>Silver</em> (abu-abu logam), tekan 0 lalu Fit All. Di lembar: TechDraw → Views From Other Workbenches → <strong>Active View</strong>, centang <em>No background</em> → OK: citra 3D berbayang masuk ke lembar. Data → Scale 0,761 agar lebar benda 63,6 mm (isometrik 1:2 = ½ × 180 × cos 30° × 0,816), X 172, Y 160 di atas pandangan Kanan."),
+
+               ("5", "Section View A-A", f"Pilih pandangan Top → TechDraw Views → <strong>Section View</strong>: tombol <em>Looking up</em> dulu (arah pandang +Y, searah pandangan Depan; kotak Identifier baru aktif setelah arah dipilih), lalu Identifier A; titik asal bidang potong (60, {BT_B // 2}, 40) melewati pusat lubang → OK. Data → X 245, Y 100 (sebaris dengan Depan dan Kanan); <em>Caption</em> “POTONGAN A-A”. Muka potongan diarsir otomatis."),
+
+               ("6", "Kepala gambar dan dimensi", f"Klik kolom kepala gambar: Title, Created by, Approved by (nama dosen pengampu), Document type, Part Material (ganti teks contoh template “Stainless steel Mat.No. 1.4301” dengan nama material yang dipasang: <em>Steel-S275JR</em>), Scale “1 : 2”. Klik tepi lubang di pandangan Atas → Circle Centerlines. Pandangan Atas memuat garis potong A-A, jadi <strong>tidak diberi dimensi</strong> (angka akan menumpuk teks A-A). Depan: {BT_A} (bawah) dan {BT_A - BT_NA} (atas) dengan Length, {BT_H} (kiri) dan {BT_H - BT_NH} (kanan) dengan Vertical Length; Kanan: kedalaman {BT_B} di bawah; Potongan A-A: rantai di atas, tepi kiri ke tepi celah {BT_HX - BT_D // 2} lalu lebar celah {BT_D} → Format/Organize Dimensions → <em>Insert ⌀ Prefix</em> menjadi ⌀{BT_D}. Seret angka sehingga semua garis dimensi berjarak sama, 12 mm dari benda: angka dimensi di kanan benda berada di antara benda dan garisnya, jadi jarak ini memberi celah yang cukup."),
+
+               ("7", "Bacaan, simpan, ekspor", f"Python console: luas muka depan <code>[round(f.Area, 2) for f in App.ActiveDocument.Body.Shape.Faces if abs(f.CenterOfMass.y) &lt; 1e-6]</code> → {ind(LUAS_DEPAN_BT, 1)} mm²; luas potongan A-A pada y = {BT_B // 2}: <code>import Part</code> lalu <code>round(sum(Part.Face(w).Area for w in App.ActiveDocument.Body.Shape.slice(App.Vector(0, 1, 0), {BT_B // 2})), 2)</code> → {ind(LUAS_POTONG_BT, 1)} mm² (= {ind(LUAS_DEPAN_BT, 0)} − {BT_D} × {BT_H - BT_NH}). Ctrl+S → <code>Latihan6_NIM.FCStd</code> (lembar TechDraw ikut tersimpan); File → Export PDF → <code>Latihan6_NIM.pdf</code>.")]
     isi = figure(7, "Gambar kerja target praktik: balok bertingkat berlubang",
-                 f"Satuan mm; lembar A4 sudut ketiga skala {BT_SKALA} (langkah 3 dan 6). Balok dari langkah 1: profil tangga {BT_A} × {BT_H} dengan anak tangga {BT_NA} × {BT_NH} dibuang di kanan-atas, Pad {BT_B}, dan lubang ⌀{BT_D} tembus di muka atas tingkat rendah. Isometrik memakai arah (1, −1, 1) (langkah 4); potongan A-A melalui pusat lubang, {BT_B // 2} dari muka depan, dilihat ke arah −Y (langkah 5) sehingga kiri-kanannya terbalik terhadap pandangan Depan.",
+                 f"Satuan mm; lembar A4 sudut ketiga skala {BT_SKALA} (langkah 3 dan 6). Balok dari langkah 1: profil tangga {BT_A} × {BT_H} dengan anak tangga {BT_NA} × {BT_NH} dibuang di kanan-atas, Pad {BT_B}, dan lubang ⌀{BT_D} tembus di muka atas tingkat rendah. Isometrik memakai arah (1, −1, 1) (langkah 4); potongan A-A melalui pusat lubang, {BT_B // 2} dari muka depan, dilihat ke arah +Y (langkah 5) sehingga susunannya sama dengan pandangan Depan. Lubang ⌀{BT_D} berpusat {BT_A - BT_HX} dari tepi kanan di tengah kedalaman.",
                  gambar7())
     isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
