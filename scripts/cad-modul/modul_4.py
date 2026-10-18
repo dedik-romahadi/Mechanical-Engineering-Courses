@@ -257,19 +257,15 @@ def gambar7():
     x1, x2 = X(0) - 20, X(0) - 50
     b += ext(X(0) - 3, Y(0), x2 - 6, Y(0)) + ext(X(0) - 3, Y(bb), x2 - 6, Y(bb)) + ext(cx - ps - 2, cy, x1 - 6, cy)
     b += dim_v(x1, cy, Y(0), str(hy)) + dim_v(x2, Y(bb), Y(0), str(bb))
-    # dua kaki chamfer: mendatar di atas, tegak di kanan
-    xa, xb, ya, yb = X(a - c), X(a), Y(bb), Y(bb - c)
-    yk, xk = ya - 24, xb + 22
-    b += ext(xa, ya - 3, xa, yk - 6) + ext(xb, yb - 3, xb, yk - 6) + dim_h(xa, xb, yk, str(c))
-    b += ext(xb + 3, yb, xk + 6, yb) + ext(xa + 3, ya, xk + 6, ya) + dim_v(xk, ya, yb, str(c), kiri=False)
-    # angular 45° antara sisi atas dan perpanjangan chamfer (sektor 45° di luar pelat)
-    ra = 30
-    b += ext(xa, ya, xa - 38 * math.cos(math.pi / 4), ya - 38 * math.sin(math.pi / 4))
-    p0 = (xa - ra, ya)
-    p1 = (xa - ra * math.cos(math.pi / 4), ya - ra * math.sin(math.pi / 4))
-    b += f'<path d="M {p0[0]:.1f} {p0[1]:.1f} A {ra} {ra} 0 0 1 {p1[0]:.1f} {p1[1]:.1f}" fill="none" stroke="{AM}" stroke-width="1"/>'
-    b += _kepala(p0[0], p0[1], 0, 1) + _kepala(p1[0], p1[1], math.cos(math.pi / 4), -math.sin(math.pi / 4))
-    b += t(xa - 44, ya - 14, "45°", 11, AM, "middle", "600")
+    # sudut dalam 135° antara sisi atas dan chamfer (Draft Dimension mengukur sudut di antara dua tepi yang ada)
+    xa, ya = X(a - c), Y(bb)
+    ra = 12 * s
+    P = lambda r_, a_: (xa + r_ * math.cos(math.radians(a_)), ya + r_ * math.sin(math.radians(a_)))   # sudut layar (y ke bawah)
+    (x0, y0), (x1, y1) = P(ra, 180), P(ra, 45)
+    b += f'<path d="M {x0:.1f} {y0:.1f} A {ra:.1f} {ra:.1f} 0 0 0 {x1:.1f} {y1:.1f}" fill="none" stroke="{AM}" stroke-width="1"/>'
+    b += _kepala(x0, y0, 0, -1) + _kepala(x1, y1, math.cos(math.radians(45)), -math.sin(math.radians(45)))
+    lx, ly = P(ra + 13, 112.5)
+    b += t(lx, ly + 4, f"{180 - 45}°", 11, AM, "middle", "600")
     # diameter lubang
     ang = math.radians(35)
     q0 = (cx - r * math.cos(ang), cy + r * math.sin(ang))
@@ -280,12 +276,13 @@ def gambar7():
     b += _kepala(q0[0], q0[1], -math.cos(ang), math.sin(ang)) + _kepala(q1[0], q1[1], math.cos(ang), -math.sin(ang))
     b += t(q2[0] + 14, q2[1] + 4, f"⌀{d}", 11, AM, "start", "600")
     # Draft Label berpanah ke sisi chamfer (langkah 4)
-    pl = (xa + 0.4 * (xb - xa), ya + 0.4 * (yb - ya))
+    xb, yb = X(a), Y(bb - c)
+    pl = (xa + 0.5 * (xb - xa), ya + 0.5 * (yb - ya))
     ujung = (pl[0] + 70, pl[1] - 69)
     b += _panah(ujung[0], ujung[1], pl[0], pl[1], AM, 1) + f'<line x1="{ujung[0]:.1f}" y1="{ujung[1]:.1f}" x2="{ujung[0] + 12:.1f}" y2="{ujung[1]:.1f}" stroke="{AM}" stroke-width="1"/>'
     b += t(ujung[0] + 16, ujung[1] + 4, f"C{c} × 45°", 11, AM, "start", "600")
-    # Draft Text dua baris (langkah 4): isinya ditulis mahasiswa
-    b += t(430, 232, "Bahan: …", 11, AM, "start") + t(430, 250, "Toleransi umum: …", 11, AM, "start")
+    # Draft Text dua baris (langkah 4)
+    b += t(X(a) + 14, Y(12) - 4, "Bahan: S275JR", 11, AM, "start") + t(X(a) + 14, Y(12) + 13, "Toleransi umum: ISO 2768-m", 11, AM, "start")
     # legenda layer
     lx, ly = 470, 96
     b += t(lx, ly - 22, "Layer:", 11, TX, "start", "600")
@@ -487,7 +484,7 @@ def materi():
     isi = tabel(["Properti gaya", "Arti", "Nilai lazim A4/A3", "Tempat mengatur"],
                 [["FontName / FontSize", "Jenis dan tinggi huruf (mm kertas)", "Sans, 3,5", "AnnotationStyle; ViewObject dimensi"],
                  ["ArrowType / ArrowSize", "Bentuk (Dot, Circle, Arrow, Tick) dan ukuran panah", "Arrow, 2–3", "AnnotationStyle"],
-                 ["Decimals", "Angka di belakang koma", "2 (0 untuk sudut bulat)", "AnnotationStyle; Preferences → Draft"],
+                 ["Decimals", "Angka di belakang koma", "0 bila semua ukuran bulat (120, bukan 120,00); 2 bila ada pecahan", "AnnotationStyle; Preferences → Draft"],
                  ["ShowUnit / UnitOverride", "Menampilkan satuan atau memaksa satuan", "ShowUnit false (mm tersirat)", "AnnotationStyle"],
                  ["ExtLines / DimOvershoot / ExtOvershoot", "Panjang garis perpanjangan dan lewatannya", "1,2 mm", "AnnotationStyle"],
                  ["TextSpacing", "Jarak teks dari garis dimensi", "1 mm", "AnnotationStyle"],
@@ -571,15 +568,15 @@ print(f"Pelat chamfer = {{bersih.Area:.2f}} mm^2 (rumus {{{A_C}*{B_C}-{C_C}**2/2
     m += bagian(8, "m-python", "Python Console:<br>Dimensi, Label, dan Angka Pemeriksa", "Draft.make_linear_dimension, make_radial_dimension_obj, make_label, dan make_text adalah padanan skrip alat anotasi. Tiga cell berikut membuat anotasi lewat skrip dan menghitung luas-luas yang diminta tugas.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Siapkan dokumen dan layer", "Ctrl+N, Draft, Top (XY), mm. Buat layer Kontur, Sumbu, dan Dimensi. Draft → Annotation styles… buat gaya ISO-A4: FontSize 3,5; ArrowSize 2; Decimals 2; ShowUnit off."),
-               ("2", "Kontur dan lubang", f"Pada layer Kontur: Draft Wire pelat {A_C} × {B_C} dengan chamfer C{C_C} di sudut kanan-atas (lihat Gambar 1), Draft Circle ⌀{D_C} di ({A_C // 2}, {B_C // 2}), Part Cut. Pada layer Sumbu: dua Draft Line sumbu lubang, gaya Dashdot."),
-               ("3", "Dimensi ukuran", f"Pada layer Dimensi: linear {A_C} (bawah) dan {B_C} (kiri), posisi lubang {A_C // 2} dan {B_C // 2} sebagai baseline dari sudut kiri-bawah, diameter ⌀{D_C}, dua kaki chamfer {C_C}, angular 45°. Terapkan gaya ISO-A4 pada semuanya."),
-               ("4", "Teks dan label", f"Draft Label Custom “C{C_C} × 45°” berpanah ke sisi chamfer; Draft Text dua baris: bahan dan toleransi umum. Masukkan ke layer Dimensi."),
-               ("5", "Periksa angka", f"Python console: App.ActiveDocument.Cut.Shape.Area → {ind(LUAS_CHAMFER, 2)} mm². Sembunyikan layer Dimensi (Spasi) dan pastikan kontur tetap bersih."),
-               ("6", "Lembar TechDraw", "TechDraw → Page Default; pilih objek Cut → Insert View; Scale 1:1; isi kepala gambar (judul, bahan, skala, nama); tambahkan TechDraw Length dimension untuk membandingkan dengan Draft Dimension."),
-               ("7", "Simpan dan ekspor", "Ctrl+S → <code>Latihan4_NIM.FCStd</code>; TechDraw → Export page as PDF sebagai latihan (PDF tidak diunggah, .FCStd yang diunggah).")]
+    langkah = [("1", "Siapkan dokumen, layer, dan gaya", "Workbench Draft. Edit → Preferences → Draft → Grid and Snapping: hapus centang <em>Always show the grid</em> dan <em>Show the grid during commands</em> agar grid tidak tampil sama sekali. File → New Document, working plane Top (XY); snap Endpoint dan Center aktif. Buat layer (Utilities → New Layer): <strong>Kontur</strong> Line Width 3; <strong>Sumbu</strong> Line Width 1, Draw Style Dashdot, warna merah; <strong>Dimensi</strong> Line Width 1. Annotation → Annotation Styles → <em>Add new…</em> “ISO-A4”: Font size 3,5; Start/End arrow type Arrow, ukuran 1; Show unit mati; Number of decimals 0 (semua ukuran bulat, jadi tampil 120, bukan 120,00)."),
+               ("2", "Kontur, lubang, dan sumbu", f"Klik kanan layer Kontur → <strong>Activate Layer</strong> (objek Draft baru langsung masuk layer ini). Rectangle dengan Make face dari (0, 0, 0) ke ({A_C}, {B_C}, 0). Circle Make face: arahkan kursor ke face persegi panjang; snap Center memberi titik tengahnya ({A_C // 2}, {B_C // 2}); radius {D_C // 2}. Segitiga C{C_C}: Drafting → Polyline (Make face), titik pertama snap Endpoint di sudut ({A_C}, {B_C}), centang <strong>Relative</strong>, ketik (−{C_C}, 0) dan ({C_C}, −{C_C}), lalu Close. Workbench Part → Boolean → Cut: persegi panjang − segitiga, lalu hasilnya − lingkaran → Cut001; masukkan ke layer Kontur. Aktifkan layer Sumbu, Line (Relative dimatikan) dari ({A_C // 2 - 15}, {B_C // 2}) ke ({A_C // 2 + 15}, {B_C // 2}), lalu Rotate + Copy 90° dengan pusat diklik di tepi lubang (snap Center) → sumbu tegak."),
+               ("3", "Dimensi ukuran", f"Aktifkan layer Dimensi. Annotation → Dimension: {A_C} (dua sudut bawah) dan {B_C} (dua sudut kiri); baseline {A_C // 2} dan {B_C // 2} dari titik asal ke pusat lubang sambil <strong>menahan Shift</strong> agar dimensi mendatar atau tegak; mode Select Edge pada tepi lubang → ⌀{D_C}; Select Edge sisi atas lalu Alt+klik chamfer → sudut dalam {180 - 45}° (= 180° − 45°; Draft hanya mengukur sudut di antara dua tepi yang ada). Pilih semua dimensi → View → Annotation Style = ISO-A4. Angka ⌀{D_C} dipindah keluar lubang lewat View → Text Position (74, 45) agar tidak menimpa garis sumbu."),
+               ("4", "Teks dan label", f"Annotation → Label: klik tengah chamfer, klik ujung penunjuk, klik letak teks; Data → Custom Text = “C{C_C} × 45°” (kaki {C_C} mm dan sudut 45° dalam satu catatan). Annotation → Text: “Bahan: S275JR” ⏎ “Toleransi umum: ISO 2768-m” ⏎ ⏎. Label dan Text → Annotation Style ISO-A4; keduanya otomatis berada di layer Dimensi."),
+               ("5", "Periksa angka", f"Python console: App.ActiveDocument.Cut001.Shape.Area → {ind(LUAS_CHAMFER, 2)} mm². Pilih layer Dimensi, tekan Spasi untuk menyembunyikan semua anotasi (kontur tetap bersih), lalu Spasi lagi untuk menampilkannya."),
+               ("6", "Lembar TechDraw", f"Workbench TechDraw → Page → <strong>New Page From Template</strong> → ISO/A4_Landscape_ISO5457_minimal.svg. Pilih Cut001 → TechDraw Views → New View, tombol kamera (arah Top dari tampilan 3D) → OK; Data → X 150, Y 132 (tengah area gambar, lega dari garis tepi dan kepala gambar), lalu Recompute. Klik kolom kepala gambar: Title, Created by, Approved by (nama dosen pengampu), Part Material. Klik tepi lubang → Centerlines/Threading → <strong>Circle Centerlines</strong>. Dimensi lembar: tepi bawah → Length ({A_C}); tepi kiri → Vertical Length ({B_C}); tepi kiri + garis sumbu tegak → Horizontal Length ({A_C // 2}); tepi bawah + garis sumbu mendatar → Vertical Length ({B_C // 2}); tepi lubang → Diameter (⌀{D_C}); dua titik ujung chamfer → Format/Organize Dimensions → <strong>Horizontal Chamfer Dimension</strong> ({C_C} × 45°). Seret setiap angka ke tempatnya: berjenjang, tidak menempel garis benda, tidak saling menumpuk."),
+               ("7", "Simpan dan ekspor", "Ctrl+S → <code>Latihan4_NIM.FCStd</code>; File → Export PDF → <code>Latihan4_NIM.pdf</code> sebagai latihan (PDF tidak diunggah, .FCStd yang diunggah).")]
     isi = figure(7, "Gambar kerja target praktik: pelat berpinggul berlubang",
-                 f"Satuan mm; tampak Top (XY) dengan titik asal (0, 0) di sudut kiri-bawah pelat. Kontur {A_C} × {B_C}, chamfer C{C_C}, dan lubang ⌀{D_C} di ({A_C // 2}, {B_C // 2}) dibuat pada langkah 2; dimensi {A_C}, {B_C}, baseline {A_C // 2} dan {B_C // 2}, ⌀{D_C}, dua kaki {C_C}, dan sudut 45° pada langkah 3; Label “C{C_C} × 45°” dan Draft Text dua baris (bahan, toleransi umum) pada langkah 4.",
+                 f"Satuan mm; tampak Top (XY) dengan titik asal (0, 0) di sudut kiri-bawah pelat. Kontur {A_C} × {B_C}, chamfer C{C_C}, dan lubang ⌀{D_C} di ({A_C // 2}, {B_C // 2}) dibuat pada langkah 2; dimensi {A_C}, {B_C}, baseline {A_C // 2} dan {B_C // 2}, ⌀{D_C} (angkanya di luar lubang), dan sudut dalam {180 - 45}° antara sisi atas dan chamfer pada langkah 3; Label “C{C_C} × 45°” (kaki {C_C} mm, sudut 45°) dan Draft Text dua baris (bahan, toleransi umum) pada langkah 4. Garis sumbu lubang berada di layer Sumbu (Dashdot).",
                  gambar7())
     isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
@@ -594,7 +591,7 @@ print(f"Pelat chamfer = {{bersih.Area:.2f}} mm^2 (rumus {{{A_C}*{B_C}-{C_C}**2/2
                  [["Dimensi menampilkan 0 atau tidak muncul", "Dua titik yang diklik sama, atau garis dimensi belum ditempatkan", "Ulangi: dua titik berbeda lalu klik ketiga untuk posisi"],
                   ["Lubang tampil R bukan ⌀", "Properti Diameter false", "Set Diameter = true pada dimensi radial"],
                   ["Angka dimensi terlalu besar/kecil", "FontSize tidak seragam", "Terapkan AnnotationStyle ISO-A4 ke semua dimensi"],
-                  ["Sudut angular menampilkan 135°", "Busur dimensi ditempatkan di sisi luar", "Pindahkan titik penempatan ke dalam sudut 45°"],
+                  ["Sudut chamfer tampil 225°, bukan 135°", "Busur dimensi diletakkan di luar pelat (sudut refleks)", "Letakkan titik busur di dalam pelat, di antara sisi atas dan chamfer"],
                   ["Label tanpa garis penunjuk", "Titik target dan titik teks sama", "Klik target di fitur, lalu titik teks agak jauh"],
                   ["Dimensi ikut terekspor ke DXF laser", "Dimensi tidak di layer Dimensi", "Pindahkan ke layer Dimensi dan sembunyikan saat ekspor"],
                   ["View TechDraw kosong", "Objek yang dipilih bukan face/solid, atau arah view salah", "Pilih objek Cut (face), Direction (0, 0, 1)"]])
