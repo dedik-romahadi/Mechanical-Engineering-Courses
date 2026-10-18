@@ -555,9 +555,9 @@ for o in doc.Objects:                                     # semua objek pada poh
     # 09 — Praktik terbimbing
     langkah = [("1", "Siapkan dokumen", "File → New (Ctrl+N). Pilih workbench <strong>Draft</strong>. Periksa Preferences → General → Units = Standard (mm). Tekan <strong>2</strong> untuk pandangan Top."),
                ("2", "Atur bidang kerja", "Toolbar Draft → tombol working plane → pilih <strong>Top (XY)</strong>. Pastikan snap <em>endpoint</em> dan <em>center</em> aktif, snap lain boleh dimatikan."),
-               ("3", "Gambar pelat", f"Draft → Rectangle. Ketik 0 ⏎ 0 ⏎ 0 ⏎ untuk sudut pertama, lalu masukkan Length {A_CONTOH} dan Height {B_CONTOH} pada panel Tasks. Di tab Data, pastikan <em>Make Face = true</em>."),
+               ("3", "Gambar pelat", f"Draft → Rectangle. Ketik 0 ⏎ 0 ⏎ 0 ⏎ untuk sudut pertama, lalu untuk sudut kedua (relatif terhadap sudut pertama) ketik ΔX {A_CONTOH} ⏎ ΔY {B_CONTOH} ⏎ ΔZ 0 ⏎ pada panel Tasks. Di tab Data, pastikan <em>Make Face = true</em>."),
                ("4", "Gambar lubang", f"Draft → Circle. Pusat ({A_CONTOH // 4}, {B_CONTOH // 2}) radius {D_CONTOH / 2:g}; ulangi untuk pusat ({3 * A_CONTOH // 4}, {B_CONTOH // 2}). Nama objek: Circle dan Circle001."),
-               ("5", "Buang lubang", "Pindah ke workbench <strong>Part</strong>. Pilih Rectangle, Ctrl+klik Circle → Part → Boolean → Cut. Pilih Cut, Ctrl+klik Circle001 → Cut lagi. Hasil: Cut001."),
+               ("5", "Buang lubang", "Pindah ke workbench <strong>Part</strong>. Pilih Rectangle, Ctrl+klik Circle → Part → Boolean → Cut. Bila muncul peringatan <em>Non-solids selected</em>, pilih Yes. Pilih Cut, Ctrl+klik Circle001 → Cut lagi. Hasil: Cut001."),
                ("6", "Baca luas", f"Buka Python console: <code>App.ActiveDocument.Cut001.Shape.Area</code> → {ind(LUAS_BERSIH_CONTOH, 2)} mm². Bandingkan dengan Persamaan (4)."),
                ("7", "Simpan dan periksa", "Ctrl+S → <code>Latihan1_NIM.FCStd</code>. Buka berkas dengan pengarsip ZIP dan pastikan ada Document.xml. Berkas seperti inilah yang diunggah pada tab Tugas.")]
     isi = figure(7, "Benda kerja praktik terbimbing: pelat berlubang", "Pandangan atas pada bidang Top (XY), satuan mm. Sudut kiri-bawah pelat berada di titik asal (0, 0); ukuran pelat diketik pada langkah 3, pusat dan radius kedua lubang pada langkah 4, lalu kedua lubang dibuang dengan Cut pada langkah 5.", gambar7())
@@ -1021,7 +1021,7 @@ Python 3.11.x, Qt 5.15.x / 6.x</pre></div>
           <div><div class="sp-label">Langkah 4</div><div class="sp-title">Uji Model Pertama — Hello FreeCAD!</div></div>
         </div>
         <div class="sp-body">
-          <p style="margin-bottom:1rem;">Gambar satu persegi panjang lewat antarmuka: <strong>Draft → Rectangle</strong>, ketik <code>0</code> ⏎ <code>0</code> ⏎ <code>0</code> ⏎ untuk sudut pertama, lalu masukkan Length <code>100</code> dan Height <code>50</code>. Pilih objek Rectangle di pohon dokumen dan lihat tab <strong>Data</strong>: properti <em>Area</em> harus menunjukkan <strong>5000 mm²</strong>. Kemudian jalankan cell berikut di Python console untuk membaca angka yang sama lewat skrip:</p>
+          <p style="margin-bottom:1rem;">Gambar satu persegi panjang lewat antarmuka: <strong>Draft → Rectangle</strong>, ketik <code>0</code> ⏎ <code>0</code> ⏎ <code>0</code> ⏎ untuk sudut pertama, lalu untuk sudut kedua ketik ΔX <code>100</code> ⏎ ΔY <code>50</code> ⏎ ΔZ <code>0</code> ⏎. Pilih objek Rectangle di pohon dokumen dan lihat tab <strong>Data</strong>: properti <em>Area</em> harus menunjukkan <strong>5000 mm²</strong>. Kemudian jalankan cell berikut di Python console untuk membaca angka yang sama lewat skrip:</p>
           <div class="sp-cb">
             <div class="sp-cbh">
               <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Python console FreeCAD</span></div>
