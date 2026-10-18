@@ -35,6 +35,11 @@ RHO_BAJA = 7.85
 # Praktik terbimbing (Bagian 09): braket L. Teks langkah dan gambar7 memakai konstanta yang sama.
 BR_A, BR_B, BR_T = 80, 60, 12                            # profil L: panjang kaki mendatar, tinggi kaki tegak, tebal
 BR_L, BR_D, BR_R, BR_C = 40, 9, 6, 2                     # Pad, ⌀ dua lubang, fillet dalam R, chamfer luar
+BR_HX, BR_HZ = 49, (10, 30)                             # pusat lubang: x dari titik asal, z dari muka belakang (Pad 0..40)
+BR_T2 = 15                                               # langkah 6: tebal kaki mendatar diubah sementara
+LUAS_L_BR = BR_A * BR_T + BR_T * (BR_B - BR_T)          # luas profil L sebelum fillet/chamfer
+PAD_BR = LUAS_L_BR * BR_L
+POCKET_BR = PAD_BR - 2 * math.pi * (BR_D / 2) ** 2 * BR_T
 
 
 # ─────────────────────────── gambar ───────────────────────────
@@ -301,9 +306,8 @@ def gambar7():
             b += '<polygon points="' + " ".join(f"{px:.1f},{py:.1f}" for px, py in muka) + f'" fill="{CY}" fill-opacity=".10" {garis}/>'
     busur = [P(*kont[i], 0) for i in sorted(fillet)] + [P(*kont[max(fillet) + 1], 0)]
     b += '<polyline points="' + " ".join(f"{px:.1f},{py:.1f}" for px, py in busur) + f'" fill="none" stroke="{CY}" stroke-opacity=".7" stroke-width="1"/>'
-    # dua lubang tembus pada muka atas kaki mendatar (y = tebal). Posisinya hanya ilustrasi:
-    # langkah 3 tidak memberi angka posisi, jadi gambar tidak mendimensinya.
-    lubang = [(49, 10), (49, 30)]
+    # dua lubang tembus pada kaki mendatar; pusat sama dengan langkah 3 (sketsa XZ)
+    lubang = [(BR_HX, z) for z in BR_HZ]
     for hx, hz in lubang:
         el = [P(hx + d / 2 * math.cos(k / 36 * 2 * math.pi), tt, hz + d / 2 * math.sin(k / 36 * 2 * math.pi)) for k in range(36)]
         b += '<polygon points="' + " ".join(f"{px:.1f},{py:.1f}" for px, py in el) + f'" fill="#0a101f" stroke="{CY}" stroke-width="1.2"/>'
@@ -326,6 +330,7 @@ def gambar7():
     ek = (tip[0] + 22, tip[1] - 52)
     b += _panah(ek[0], ek[1], tip[0], tip[1], AM, 1) + f'<line x1="{ek[0]:.1f}" y1="{ek[1]:.1f}" x2="{ek[0] + 10:.1f}" y2="{ek[1]:.1f}" stroke="{AM}" stroke-width="1"/>'
     b += t(ek[0] + 14, ek[1] + 4, f"2 × ⌀{d} tembus", 11, AM, "start", "600")
+    b += t(ek[0] + 14, ek[1] + 19, f"x {BR_HX}; z {BR_HZ[0]}/{BR_HZ[1]}", 10.5, AM, "start")
     # arah sumbu isometrik
     o = (612, 300)
     for (vx, vy, vz), warna, nama in [((1, 0, 0), RD, "X"), ((0, 1, 0), GN, "Y"), ((0, 0, 1), BL, "Z")]:
@@ -618,15 +623,15 @@ Part.show(akhir, "PorosChamfer")''', "Python (FreeCAD)")
     m += bagian(8, "m-python", "Python Console:<br>Membangun dan Memeriksa Solid", "Cell pertama membangun Body, sketsa terkonstrain, Pad, dan Pocket lewat API Part Design; dua cell berikutnya memeriksa rumus Revolution, Pipe, Fillet, dan Chamfer dengan Part API, lalu menghitung massa.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Body dan sketsa dasar", f"Part Design → Create body → Create sketch → XY. Gambar profil L braket: polyline 6 titik ({BR_A} × {BR_B}, tebal {BR_T}), konstrain coincident, H/V, jangkar ke origin, dimensi sampai Fully constrained. Close."),
-               ("2", "Pad", f"Pad Length {BR_L} mm. Baca Body.Shape.Volume di Python console dan bandingkan dengan luas profil × {BR_L}."),
-               ("3", "Lubang", f"Klik muka atas kaki mendatar → Create sketch → dua lingkaran ⌀{BR_D} (konstrain Diameter, posisi dari tepi) → Pocket Through all. Volume berkurang 2 × π·{ind(BR_D / 2, 1)}² × {BR_T}."),
-               ("4", "Fillet dalam", f"Pilih rusuk dalam siku L (satu rusuk sepanjang {BR_L} mm) → Fillet R{BR_R}. Volume bertambah? Ya: fillet dalam mengisi sudut dalam dengan bahan; hitung selisihnya lewat Shape.Volume."),
-               ("5", "Chamfer luar", f"Pilih dua rusuk luar ujung kaki → Chamfer {BR_C} mm. Periksa pohon fitur: Sketch, Pad, Sketch001, Pocket, Fillet, Chamfer; Tip = Chamfer."),
-               ("6", "Ubah parameter", f"Buka Sketch, ubah tebal {BR_T} → 15, Close, recompute: semua fitur mengikuti tanpa dibuat ulang. Kembalikan ke {BR_T}."),
-               ("7", "Massa dan simpan", "Hitung massa aluminium (ρ = 2,70 g/cm³) dari Volume/1000; V lalu F; Ctrl+S → <code>Latihan5_NIM.FCStd</code>.")]
+    langkah = [("1", "Body dan sketsa dasar", f"File → New Document; Part Design → New Body; Sketch → New Sketch → XY-plane. <strong>Polyline</strong>: klik pertama tepat di titik asal (Coincident otomatis), lalu gambar profil L kasar 6 titik; konstrain Horizontal/Vertical terpasang otomatis. Tekan Esc sekali untuk keluar dari Polyline. Pilih tepi bawah → Horizontal Dimension <strong>{BR_A}</strong>: dimensi pertama menskalakan seluruh profil; Fit All. Tepi kiri → Vertical Dimension {BR_B}; tepi kanan kaki mendatar → Vertical {BR_T}; tepi atas kaki tegak → Horizontal {BR_T}. Seret angka yang jatuh di dalam profil ke luar agar semua dimensi berjarak sama (±7 mm). Panel Sketch Edit menulis <em>Fully constrained</em> → Close."),
+               ("2", "Pad", f"Pilih Sketch → Additive Features → Pad, Length {BR_L} → OK; tekan 0 untuk tampilan isometrik. Python console: <code>round(App.ActiveDocument.Body.Shape.Volume, 2)</code> → {ind(PAD_BR, 1)} mm³ = luas profil {ind(LUAS_L_BR, 0)} mm² × {BR_L}."),
+               ("3", "Lubang", f"Sketch → New Sketch → <strong>XZ-plane</strong> (muka luar kaki mendatar), lalu tekan 1 (Front) karena sketsa XZ ditampilkan dari belakang. Circle From Center dua kali, Esc. Tepi lingkaran → Diameter Dimension {BR_D}; dua lingkaran → Equal; pusat pertama → Horizontal {BR_HX} dan Vertical {BR_HZ[0]}; dua pusat → Vertical Constraint; pusat kedua → Vertical {BR_HZ[1]}. Fully constrained → Close. Pilih Sketch001 → Pocket, Type <strong>Through all</strong>: volume {ind(POCKET_BR, 2)} mm³ (berkurang 2 × π·{ind(BR_D / 2, 1)}² × {BR_T})."),
+               ("4", "Fillet dalam", f"Rusuk dalam siku tertutup dinding pada tampilan isometrik biasa: klik sudut belakang-kanan-atas navigation cube. Pilih rusuk dalam (sepanjang {BR_L} mm) → Dress-Up Features → Fillet, Radius {BR_R} → OK. Volume <em>bertambah</em> menjadi 60.222,21 mm³: fillet dalam mengisi sudut dengan bahan ≈ (1 − π/4)·{BR_R}²·{BR_L} = {ind((1 - math.pi / 4) * BR_R ** 2 * BR_L, 2)} mm³."),
+               ("5", "Chamfer luar", f"Klik rusuk luar ujung kaki mendatar, Ctrl+klik rusuk luar ujung kaki tegak → Chamfer, Size {BR_C} → OK. Pohon fitur: Sketch, Pad, Sketch001, Pocket, Fillet, Chamfer; Tip = Chamfer."),
+               ("6", "Ubah parameter", f"Klik ganda Sketch, klik ganda angka tebal kaki mendatar {BR_T} → {BR_T2}, Close: Pad, Pocket, Fillet, dan Chamfer mengikuti tanpa dibuat ulang (volume 67.840,51 mm³). Kembalikan ke {BR_T} dengan cara yang sama: 60.062,21 mm³."),
+               ("7", "Massa dan simpan", "Python console: <code>round(App.ActiveDocument.Body.Shape.Volume * 2.70 / 1000, 2)</code> → 162,17 g (aluminium, ρ = 2,70 g/cm³). V lalu F; Ctrl+S → <code>Latihan5_NIM.FCStd</code>.")]
     isi = figure(7, "Target praktik: braket L tiga dimensi",
-                 f"Satuan mm. Kiri: profil pada bidang XY dengan titik asal (0, 0) di sudut luar siku, yaitu polyline 6 titik {BR_A} × {BR_B} tebal {BR_T} (langkah 1) setelah fillet dalam R{BR_R} (langkah 4) dan chamfer C{BR_C} pada dua rusuk luar ujung kaki (langkah 5). Kanan: isometrik setelah Pad {BR_L} (langkah 2) dan dua lubang ⌀{BR_D} tembus di muka atas kaki mendatar (langkah 3).",
+                 f"Satuan mm. Kiri: profil pada bidang XY dengan titik asal (0, 0) di sudut luar siku, yaitu polyline 6 titik {BR_A} × {BR_B} tebal {BR_T} (langkah 1) setelah fillet dalam R{BR_R} (langkah 4) dan chamfer C{BR_C} pada dua rusuk luar ujung kaki (langkah 5). Kanan: isometrik setelah Pad {BR_L} (langkah 2) dan dua lubang ⌀{BR_D} tembus pada kaki mendatar, pusat x {BR_HX} dan z {BR_HZ[0]}/{BR_HZ[1]} dari sketsa XZ (langkah 3).",
                  gambar7())
     isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
@@ -644,7 +649,9 @@ Part.show(akhir, "PorosChamfer")''', "Python (FreeCAD)")
                   ["Revolution gagal: “profile crosses axis”", "Profil memotong sumbu", "Geser profil agar menempel/menjauh dari sumbu"],
                   ["Pipe terpuntir atau tipis", "Profil tidak tegak lurus lintasan, atau r ≥ R", "Profil pada bidang yang memuat ujung lintasan; radius profil lebih kecil dari radius busur"],
                   ["Fillet gagal", "Radius terlalu besar untuk rusuk yang dipilih", "Kecilkan radius; fillet rusuk terpendek terakhir"],
-                  ["Volume Pad tidak berubah setelah Pocket", "Membaca Pad.Shape, bukan Body.Shape", "Baca Body.Shape.Volume (Tip)"]])
+                  ["Volume Pad tidak berubah setelah Pocket", "Membaca Pad.Shape, bukan Body.Shape", "Baca Body.Shape.Volume (Tip)"],
+                  ["Dialog dimensi muncul lagi saat mengklik geometri lain", "Alat dimensi Sketcher masih aktif (mode kontinu)", "Tekan Esc sekali setelah memberi dimensi; Esc kedua menutup sketsa"],
+                  ["Lingkaran sketsa XZ tidak bisa diklik", "Sketsa XZ ditampilkan dari belakang, tertutup benda", "Tekan 1 (Front) selama menyunting sketsa"]])
     isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) satu Body dengan pohon fitur sesuai permintaan (Sketch → Pad/Revolution/Pipe → Pocket → Fillet/Chamfer); (2) semua sketsa fully constrained; (3) bidang sketsa benar (XY untuk Pad, XZ untuk Revolution terhadap Z); (4) volume dibaca dari Body (Tip), 2 desimal; (5) berkas .FCStd tersimpan lewat Ctrl+S, nama tanpa spasi.")
     m += bagian(9, "m-praktik", "Praktik Terbimbing:<br>Braket L Tiga Dimensi", "Tujuh langkah berikut membangun braket siku 3D lengkap dengan Pad, Pocket, Fillet, dan Chamfer, menunjukkan sifat parametrik pohon fitur, dan menghitung massanya; ditutup tabel gejala dan perbaikan.", isi, "PRAKTIK TERBIMBING")
 
