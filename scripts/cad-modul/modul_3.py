@@ -29,7 +29,11 @@ A_CIRC = N_H * R_H ** 2 * math.tan(math.pi / N_H)
 A_SKALA = K_H ** 2 * A_IN
 W_PNL, H_PNL = 300, 200         # praktik 09: batas panel, sudut kiri-bawahnya di titik asal (0, 0)
 PX_H, PY_H = 60, 60             # praktik 09: pusat heksagon induk
-ROT_H, ROT2_H = 30, 90          # praktik 09: Rotate (Copy) induk di pusatnya sendiri; Rotate salinan pertama di (0, 0)
+ROT_H, ROT2_H = 30, 90          # praktik 09: Rotate salinan kedua di pusatnya sendiri; Rotate salinan pertama di (0, 0)
+PR_H, PS_H = (60, 150), (220, 100)   # praktik 09: tujuan Move (Copy) salinan yang diputar dan yang diskalakan
+_c2, _s2 = math.cos(math.radians(ROT2_H)), math.sin(math.radians(ROT2_H))
+PG_H = ((PX_H + DX_C) * _c2 - (PY_H + DY_C) * _s2, (PX_H + DX_C) * _s2 + (PY_H + DY_C) * _c2)  # salinan pertama setelah Rotate di (0, 0)
+XMIN_G = PG_H[0] - R_H * math.cos(math.radians(30))   # BoundBox.XMin salinan itu (titik sudut 150°/210°)
 A_T, C_T, H_T = 120, 40, 70
 G_T = ((A_T + C_T) / 3, H_T / 3)
 CG_T = math.hypot(C_T - G_T[0], H_T - G_T[1])
@@ -242,14 +246,19 @@ def _putus(pts, pola=(8, 3, 2, 3)):
     return " ".join(d)
 
 
+def _bul(v):
+    return str(round(v)).replace('-', '−')
+
+
 def gambar7():
     """Gambar kerja praktik terbimbing (bagian 09): panel heksagon dengan tiga transformasi, pandangan atas Top (XY).
 
     Ukuran memakai konstanta yang sama dengan teks langkah 1–5 (W_PNL, H_PNL, N_H, R_H, PX_H, PY_H,
-    DX_C, DY_C, ROT_H, ROT2_H, K_H), jadi gambar dan langkah tidak dapat berbeda angka. Orientasi
-    heksagon mengikuti Draft Polygon FreeCAD: titik sudut pertama searah sumbu +X dari pusatnya.
+    DX_C, DY_C, PR_H, PS_H, ROT_H, ROT2_H, K_H), jadi gambar dan langkah tidak dapat berbeda angka.
+    Orientasi heksagon mengikuti Draft Polygon FreeCAD: titik sudut pertama searah sumbu +X dari
+    pusatnya. Setiap salinan berdiri sendiri (tidak menimpa induk), sama seperti di video praktik.
     """
-    s, ox, oy = 1.3, 208, 308                   # skala px/mm; titik asal (0, 0) = sudut kiri-bawah panel
+    s, ox, oy = 1.25, 200, 306                  # skala px/mm; titik asal (0, 0) = sudut kiri-bawah panel
     X = lambda x: ox + x * s
     Y = lambda y: oy - y * s
 
@@ -258,65 +267,59 @@ def gambar7():
 
     def poli(pts, warna, isi, w=2):
         return f'<polygon points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="{warna}" fill-opacity="{isi}" stroke="{warna}" stroke-width="{w}"/>'
-    mx, my = PX_H + DX_C, PY_H + DY_C            # pusat salinan Move
-    c2, s2 = math.cos(math.radians(ROT2_H)), math.sin(math.radians(ROT2_H))
-    gx, gy = mx * c2 - my * s2, mx * s2 + my * c2  # pusat salinan Move setelah Rotate ROT2_H° terhadap (0, 0)
-    h0, h1 = heks(PX_H, PY_H, R_H, 0), heks(mx, my, R_H, 0)
-    h2, h3, h4 = heks(PX_H, PY_H, R_H, ROT_H), heks(PX_H, PY_H, K_H * R_H, 0), heks(gx, gy, R_H, ROT2_H)
-    b = f'<rect x="{X(0):.1f}" y="{Y(H_PNL):.1f}" width="{W_PNL * s:.1f}" height="{H_PNL * s:.1f}" fill="{AX}" fill-opacity=".04" stroke="{AX}" stroke-width="1.4"/>'
-    b += poli(h3, VI, ".08", 1.8) + poli(h0, CY, ".16") + poli(h2, PK, ".08", 1.8) + poli(h1, GR, ".14")
-    b += f'<path d="{_putus(h4 + h4[:1], (7, 4))}" fill="none" stroke="{GR}" stroke-width="1.8"/>'
-    # Rotate ROT2_H° salinan Move terhadap sudut panel (0, 0): busur lintasan pusatnya (langkah 4)
-    rr, a0 = math.hypot(mx, my), math.degrees(math.atan2(my, mx))
-    busur = [(X(rr * math.cos(math.radians(a0 + ROT2_H * k / 60))), Y(rr * math.sin(math.radians(a0 + ROT2_H * k / 60)))) for k in range(61)]
-    b += f'<path d="{_putus(busur[:-3], (7, 4))}" fill="none" stroke="{GR}" stroke-width="1.2"/>' + _panah(*busur[-4], *busur[-1], GR, 1.2)
-    b += t(X(gx), Y(gy - R_H) + 18, f"hasil Rotate {ROT2_H}°", 10.5, GR, "middle", "600") + t(X(gx), Y(gy - R_H) + 33, "pusat (0, 0)", 10.5, GR, "middle")
-    # vektor Move (langkah 3) dan titik pusat
-    b += _panah(X(PX_H), Y(PY_H), X(mx) - 3, Y(my) + 2, GR, 1.2)
-    b += f'<circle cx="{X(PX_H):.1f}" cy="{Y(PY_H):.1f}" r="2.5" fill="{TX}"/><circle cx="{X(mx):.1f}" cy="{Y(my):.1f}" r="2.5" fill="{TX}"/>'
-    b += t(X(mx + R_H) + 8, Y(my) + 4, "Move (Copy)", 10.5, GR, "start", "600")
-    # ukuran panel (langkah 1)
-    b += ext(X(0), Y(0) + 4, X(0), Y(0) + 32) + ext(X(W_PNL), Y(0) + 4, X(W_PNL), Y(0) + 32)
-    b += dim_h(X(0), X(W_PNL), Y(0) + 26, f"{W_PNL}")
-    b += ext(X(W_PNL) + 4, Y(H_PNL), X(W_PNL) + 30, Y(H_PNL)) + ext(X(W_PNL) + 4, Y(0), X(W_PNL) + 30, Y(0))
-    b += dim_v(X(W_PNL) + 24, Y(H_PNL), Y(0), f"{H_PNL}", kiri=False)
-    # pusat induk dari titik asal lalu vektor Move, berantai (langkah 2–3)
-    b += ext(X(0), Y(H_PNL) - 4, X(0), Y(H_PNL) - 28) + ext(X(PX_H), Y(PY_H) - 6, X(PX_H), Y(H_PNL) - 28) + ext(X(mx), Y(my) - 6, X(mx), Y(H_PNL) - 28)
-    b += dim_h(X(0), X(PX_H), Y(H_PNL) - 22, f"{PX_H}") + dim_h(X(PX_H), X(mx), Y(H_PNL) - 22, f"{DX_C}")
-    b += ext(X(0) - 4, Y(0), X(0) - 28, Y(0)) + ext(X(PX_H) - 6, Y(PY_H), X(0) - 28, Y(PY_H)) + ext(X(mx) - 6, Y(my), X(0) - 28, Y(my))
-    b += dim_v(X(0) - 22, Y(PY_H), Y(0), f"{PY_H}") + dim_v(X(0) - 22, Y(my), Y(PY_H), f"{DY_C}")
+    (rx, ry), (sx, sy), (gx, gy) = PR_H, PS_H, PG_H
+    h0, h2 = heks(PX_H, PY_H, R_H, 0), heks(rx, ry, R_H, ROT_H)
+    h3, h4 = heks(sx, sy, K_H * R_H, 0), heks(gx, gy, R_H, ROT2_H)
+    # panel = layer Konstruksi: abu-abu putus-putus, garis tipis
+    sudut = [(X(0), Y(0)), (X(W_PNL), Y(0)), (X(W_PNL), Y(H_PNL)), (X(0), Y(H_PNL)), (X(0), Y(0))]
+    b = f'<path d="{_putus(sudut, (7, 4))}" fill="none" stroke="{AX}" stroke-width="1"/>'
+    b += poli(h0, CY, ".16") + poli(h2, PK, ".12") + poli(h3, VI, ".10") + poli(h4, GR, ".12")
+    for cx_, cy_ in ((PX_H, PY_H), (rx, ry), (sx, sy), (gx, gy)):
+        b += f'<circle cx="{X(cx_):.1f}" cy="{Y(cy_):.1f}" r="2.3" fill="{TX}"/>'
+    # nama objek di dalam heksagonnya
+    b += t(X(PX_H), Y(PY_H) - 10, "Induk", 10.5, CY, "middle", "700")
+    b += t(X(rx), Y(ry) + 20, f"Rotate {ROT_H}°", 10.5, PK, "middle", "700")
+    b += t(X(sx), Y(sy) + 20, f"Scale k = {ind(K_H, 1)}", 10.5, VI, "middle", "700")
+    b += t(X(gx), Y(gy) + 18, f"Rotate {ROT2_H}°", 10.5, GR, "middle", "700")
+    b += t(10, Y(gy - R_H) + 20, f"salinan Move ({PX_H + DX_C}, {PY_H + DY_C})", 10.5, GR, "start", "600")
+    b += t(10, Y(gy - R_H) + 35, "diputar terhadap (0, 0)", 10.5, GR, "start")
+    b += t(10, Y(gy - R_H) + 50, f"→ pusat ({_bul(gx)}, {_bul(gy)})", 10.5, GR, "start")
     # radius induk: pusat → titik sudut 240° (inscribed: titik sudut pada lingkaran R_H)
     vx, vy = h0[4]
     b += _panah(X(PX_H), Y(PY_H), vx, vy, AM, 1)
     b += t(X(PX_H) + 9, (Y(PY_H) + vy) / 2 - 0.5, f"R{R_H}", 11, AM, "middle", "600")
-    # sudut Rotate (Copy): titik sudut kedua induk (av) → titik sudut padanannya pada salinan (av + ROT_H)
-    ra, av = 70 * s, 360 / N_H
-    for a_ in (av, av + ROT_H):
-        p0 = (X(PX_H + (R_H + 2) * math.cos(math.radians(a_))), Y(PY_H + (R_H + 2) * math.sin(math.radians(a_))))
-        p1 = (X(PX_H) + (ra + 6) * math.cos(math.radians(a_)), Y(PY_H) - (ra + 6) * math.sin(math.radians(a_)))
-        b += ext(*p0, *p1)
-    P = lambda r_, a_: (X(PX_H) + r_ * math.cos(math.radians(a_)), Y(PY_H) - r_ * math.sin(math.radians(a_)))
-    (x0, y0), (x1, y1) = P(ra, av), P(ra, av + ROT_H)
+    # sudut Rotate: acuan mendatar dari pusat salinan → titik sudut pertamanya (ROT_H°)
+    ra = (R_H + 14) * s
+    P = lambda r_, a_: (X(rx) + r_ * math.cos(math.radians(a_)), Y(ry) - r_ * math.sin(math.radians(a_)))
+    for a_ in (0, ROT_H):
+        b += ext(*P(R_H * s * (math.cos(math.radians(30)) if a_ == 0 else 1) + 2, a_), *P(ra + 6, a_))
+    (x0, y0), (x1, y1) = P(ra, 0), P(ra, ROT_H)
     b += f'<path d="M {x0:.1f} {y0:.1f} A {ra:.1f} {ra:.1f} 0 0 0 {x1:.1f} {y1:.1f}" fill="none" stroke="{AM}" stroke-width="1"/>'
     d7 = math.degrees(7 / ra)
-    for a_ujung, a_dasar in ((av, av + d7), (av + ROT_H, av + ROT_H - d7)):
+    for a_ujung, a_dasar in ((0, d7), (ROT_H, ROT_H - d7)):
         (tx, ty), (bx, by) = P(ra, a_ujung), P(ra, a_dasar)
         ux, uy = 3 * math.cos(math.radians(a_dasar)), -3 * math.sin(math.radians(a_dasar))
         b += f'<polygon points="{tx:.1f},{ty:.1f} {bx + ux:.1f},{by + uy:.1f} {bx - ux:.1f},{by - uy:.1f}" fill="{AM}"/>'
-    lx, ly = P(ra + 13, av + ROT_H / 2)
+    lx, ly = P(ra + 14, ROT_H / 2)
     b += t(lx, ly + 4, f"{ROT_H}°", 11, AM, "middle", "600")
-    # nama objek dengan garis penunjuk ke bagian yang hanya dimiliki objek itu
-    kx = X(mx) - 16
-    for (px_, py_), baris, warna, yy in ((h3[0], [f"Scale (Copy), k = {K_H}"], VI, Y(PY_H) + 10), (h2[5], ["Rotate (Copy)"], PK, Y(PY_H) + 28),
-                                         (h0[5], ["Polygon induk,", f"{N_H} sisi, inscribed"], CY, Y(PY_H) + 46)):
-        b += f'<line x1="{kx - 3:.1f}" y1="{yy - 4:.1f}" x2="{px_:.1f}" y2="{py_:.1f}" stroke="{warna}" stroke-width="1"/><circle cx="{px_:.1f}" cy="{py_:.1f}" r="2.2" fill="{warna}"/>'
-        b += "".join(t(kx, yy + 15 * i, teks, 10.5, warna, "start", "600") for i, teks in enumerate(baris))
+    # ukuran panel (langkah 1)
+    b += ext(X(0), Y(0) + 4, X(0), Y(0) + 32) + ext(X(W_PNL), Y(0) + 4, X(W_PNL), Y(0) + 32)
+    b += dim_h(X(0), X(W_PNL), Y(0) + 26, f"{W_PNL}")
+    b += ext(X(W_PNL) + 4, Y(H_PNL), X(W_PNL) + 63, Y(H_PNL)) + ext(X(W_PNL) + 4, Y(0), X(W_PNL) + 63, Y(0))
+    b += dim_v(X(W_PNL) + 57, Y(H_PNL), Y(0), f"{H_PNL}", kiri=False)
+    # letak pusat: X berantai di atas panel, Y berantai di kiri dan kanan panel
+    b += ext(X(0), Y(H_PNL) - 4, X(0), Y(H_PNL) - 28) + ext(X(rx), Y(ry) - 8, X(rx), Y(H_PNL) - 28) + ext(X(sx), Y(sy) - 8, X(sx), Y(H_PNL) - 28)
+    b += dim_h(X(0), X(PX_H), Y(H_PNL) - 22, f"{PX_H}") + dim_h(X(PX_H), X(sx), Y(H_PNL) - 22, f"{sx - PX_H}")
+    b += ext(X(0) - 4, Y(0), X(0) - 28, Y(0)) + ext(X(PX_H) - 8, Y(PY_H), X(0) - 28, Y(PY_H)) + ext(X(rx) - 8, Y(ry), X(0) - 28, Y(ry))
+    b += dim_v(X(0) - 22, Y(PY_H), Y(0), f"{PY_H}") + dim_v(X(0) - 22, Y(ry), Y(PY_H), f"{ry - PY_H}")
+    b += ext(X(sx) + 8, Y(sy), X(W_PNL) + 24, Y(sy))
+    b += dim_v(X(W_PNL) + 18, Y(sy), Y(0), f"{sy}", kiri=False)
     # titik asal dan arah sumbu
     b += _panah(X(0), Y(0), X(0) + 36, Y(0), RD, 1.6) + _panah(X(0), Y(0), X(0), Y(0) - 36, GN, 1.6)
     b += t(X(0) + 40, Y(0) + 15, "X", 11, RD, "start", "700") + t(X(0) - 7, Y(0) - 32, "Y", 11, GN, "end", "700")
     b += f'<circle cx="{X(0):.1f}" cy="{Y(0):.1f}" r="3" fill="{TX}"/>' + t(X(0) - 8, Y(0) + 17, "(0, 0)", 10.5, TX, "end", "600")
     b += t(664, 22, "Satuan: mm", 10.5, AX, "end")
-    return svg(680, 352, b, "Gambar 7 — Gambar kerja panel heksagon dengan tiga transformasi")
+    return svg(680, 350, b, "Gambar 7 — Gambar kerja panel heksagon dengan tiga transformasi")
 
 
 # ─────────────────────────── kerangka halaman ───────────────────────────
@@ -569,14 +572,14 @@ doc.recompute()''', "Python (FreeCAD)")
     m += bagian(8, "m-python", "Python Console:<br>Memeriksa Posisi dan Transformasi", "Draft.move, Draft.rotate, dan Draft.scale adalah padanan skrip dari tiga alat transformasi. Tiga cell berikut membuat bentuk dasar, mentransformasinya, dan membaca angka yang sama dengan yang diminta tugas.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Siapkan dokumen", f"Ctrl+N, workbench Draft, working plane Top (XY), satuan mm. Gambar Draft Rectangle {W_PNL} × {H_PNL} mm sebagai batas panel (layer Konstruksi bila mau)."),
-               ("2", "Heksagon induk", f"Draft Polygon {N_H} sisi, DrawMode inscribed, radius {R_H} mm, pusat ({PX_H}, {PY_H}), Make Face. Baca Area = {ind(A_IN, 2)} mm² di tab Data."),
-               ("3", "Salin dengan Move", f"Draft Move (Copy) dari pusat heksagon ke ({PX_H} + {DX_C}, {PY_H} + {DY_C}). Std Measure Distance antara kedua pusat harus {ind(PINDAH_C, 3)} mm."),
-               ("4", "Putar salinan", f"Draft Rotate (Copy) heksagon induk {ROT_H}° dengan pusat di pusatnya sendiri: hasilnya heksagon “bergigi” yang tumpang tindih; lalu Rotate lagi salinan pertama {ROT2_H}° dengan pusat sudut panel (0, 0) dan amati Placement.Base-nya berubah."),
-               ("5", "Skala", f"Draft Scale (Copy) heksagon induk k = {K_H} dengan pusat di pusatnya. Baca Area = {ind(A_SKALA, 2)} mm² dan pastikan pusatnya tidak bergeser."),
-               ("6", "Ukur dan periksa", f"Std Measure Angle antara sisi heksagon asal dan hasil rotasi {ROT_H}°; Python console: BoundBox tiap objek untuk memastikan semuanya di dalam panel {W_PNL} × {H_PNL}."),
-               ("7", "Simpan", "V lalu F, Ctrl+S → <code>Latihan3_NIM.FCStd</code>. Buka pohon dokumen: pastikan ada objek Rectangle, Polygon, dan salinan hasil Move/Rotate/Scale.")]
-    isi = figure(7, "Benda kerja praktik terbimbing: panel heksagon dengan tiga transformasi", "Pandangan atas pada bidang Top (XY), satuan mm. Sudut kiri-bawah panel berada di titik asal (0, 0). Panel dibuat pada langkah 1, heksagon induk pada langkah 2 (satu titik sudutnya searah sumbu +X, seperti keluaran Draft Polygon), salinan Move pada langkah 3, salinan Rotate pada langkah 4, dan salinan Scale pada langkah 5. Heksagon bergaris putus di luar panel adalah posisi salinan Move setelah diputar terhadap titik asal (0, 0) pada langkah 4.", gambar7())
+    langkah = [("1", "Siapkan dokumen dan layer", f"File → New Document, workbench Draft, working plane Top (XY); klik area 3D lalu tekan 2. Aktifkan snap Endpoint dan Center, lalu Utilities → Toggle Grid untuk menyembunyikan grid. Buat dua layer (Utilities → New Layer): <strong>Kontur</strong> dengan Line Width 3 dan <strong>Konstruksi</strong> dengan Line Width 1, Draw Style Dashed, Line Color #8c8c8c. Gambar Draft Rectangle tanpa Make face dari (0, 0, 0) dengan ΔX {W_PNL} dan ΔY {H_PNL} sebagai batas panel, lalu Add to Layer → Konstruksi."),
+               ("2", "Heksagon induk", f"Drafting → Polygon, Make face aktif, Sides {N_H}, pusat ({PX_H}, {PY_H}, 0), Radius {R_H} ⏎. Pilih heksagon di pohon dokumen; di tab Data terbaca Draw Mode = inscribed dan Area = {ind(A_IN, 2)} mm². Masukkan heksagon ke layer Kontur."),
+               ("3", "Salin dengan Move", f"Pilih heksagon → Modification → Move, centang Copy, klik titik dasar di pusatnya (snap Center), lalu ketik tujuan ({PX_H + DX_C}, {PY_H + DY_C}, 0) = ({PX_H} + {DX_C}, {PY_H} + {DY_C}). Periksa jaraknya dengan Annotation → Dimension: klik pusat induk, klik pusat salinan, letakkan garisnya; di tab View ubah Decimals menjadi 3 sehingga terbaca {ind(PINDAH_C, 3)} mm. Dimensi bantu ini lalu dihapus."),
+               ("4", "Putar", f"Move + Copy heksagon induk ke ({PR_H[0]}, {PR_H[1]}, 0), sehingga salinan kedua tidak menimpa induk. Pilih salinan itu → Modification → Rotate, Copy dimatikan, klik pusatnya sebagai pusat putar, Base angle 0 ⏎, Rotation {ROT_H} ⏎: Placement → Angle = {ROT_H}°. Lalu Rotate salinan pertama {ROT2_H}° (tanpa Copy) dengan pusat sudut panel (0, 0): Placement → Position berubah menjadi ({_bul(PG_H[0])}, {_bul(PG_H[1])}), keluar dari panel."),
+               ("5", "Skala", f"Move + Copy heksagon induk ke ({PS_H[0]}, {PS_H[1]}, 0). Pilih salinan ketiga → Modification → Scale, klik pusatnya sebagai titik dasar, centang Uniform scaling, Copy dimatikan, faktor {ind(K_H, 1)}, OK. Hasilnya objek baru yang dimasukkan ke layer Kontur; di Python console pusatnya tetap ({PS_H[0]}, {PS_H[1]}) dan Area = {ind(A_SKALA, 2)} mm² = {ind(K_H, 1)}² × {ind(A_IN, 2)}."),
+               ("6", "Periksa BoundBox", f"Python console: baca Shape.BoundBox (XMin, YMax) tiap heksagon. Salinan yang diputar {ROT2_H}° terhadap (0, 0) memiliki XMin {ind(XMIN_G, 1)} mm, di luar panel; heksagon lain berada di dalam panel {W_PNL} × {H_PNL}."),
+               ("7", "Simpan", "V lalu F, Ctrl+S → <code>Latihan3_NIM.FCStd</code>. Pohon dokumen memuat Rectangle, heksagon induk, dan salinan hasil Move/Rotate/Scale.")]
+    isi = figure(7, "Benda kerja praktik terbimbing: panel heksagon dengan tiga transformasi", f"Pandangan atas pada bidang Top (XY), satuan mm. Sudut kiri-bawah panel (layer Konstruksi, abu-abu putus-putus) berada di titik asal (0, 0). Heksagon induk dibuat pada langkah 2 (satu titik sudutnya searah sumbu +X, seperti keluaran Draft Polygon). Setiap transformasi dikerjakan pada salinan Move tersendiri agar tidak menimpa induk: salinan di ({PR_H[0]}, {PR_H[1]}) diputar {ROT_H}° pada pusatnya (langkah 4), salinan di ({PS_H[0]}, {PS_H[1]}) diskalakan {ind(K_H, 1)} kali (langkah 5), dan salinan Move langkah 3 diputar {ROT2_H}° terhadap (0, 0) sehingga keluar dari panel.", gambar7())
     isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
@@ -595,7 +598,7 @@ doc.recompute()''', "Python (FreeCAD)")
                   ["Pusat lingkaran tidak di titik berat", "Koordinat G dibulatkan", "Ketik G dengan 3 desimal atau snap ke Draft Point di G"],
                   ["BoundBox.YMax tidak sesuai", "Rotasi dilakukan dengan pusat bukan (0,0)", "Ulangi Rotate dengan pusat tepat di titik asal"]])
     isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) bidang kerja Top (XY), satuan mm; (2) transformasi dilakukan dengan alat Draft (Move/Rotate/Scale), bukan mengetik ulang koordinat, agar objek salinan tampak di pohon dokumen; (3) Copy sesuai permintaan tiap tugas; (4) DrawMode poligon inscribed; (5) angka dibaca dengan 3 desimal untuk jarak dan YMax; (6) berkas .FCStd tersimpan lewat Ctrl+S, nama tanpa spasi.")
-    m += bagian(9, "m-praktik", "Praktik Terbimbing:<br>Panel Heksagon dengan Tiga Transformasi", "Tujuh langkah berikut memakai bentuk dasar, pengukuran, dan ketiga transformasi pada satu panel: heksagon induk digandakan dengan Move, diputar, dan diskalakan, lalu diperiksa dengan Std Measure dan BoundBox.", isi, "PRAKTIK TERBIMBING")
+    m += bagian(9, "m-praktik", "Praktik Terbimbing:<br>Panel Heksagon dengan Tiga Transformasi", "Tujuh langkah berikut memakai bentuk dasar, pengukuran, dan ketiga transformasi pada satu panel: heksagon induk digandakan dengan Move, salinannya diputar dan diskalakan, lalu diperiksa lewat dimensi, properti, dan BoundBox.", isi, "PRAKTIK TERBIMBING")
 
     refs = pm_ref(1, "cyan", "14,165,233", "M. Lombard", "Mastering SolidWorks", ". Wiley, 2019.", "Rujukan utama RPS: bab sketsa 2D (entitas dasar, hubungan geometris) dan transformasi sketsa (move, rotate, scale, copy).")
     refs += pm_ref(2, "amber", "249,115,22", "B. Monroy &amp; R. A. Cook", "Autodesk Inventor 2021 Essentials Plus", ". Sybex, 2021.", "Rujukan utama RPS: alat ukur (Measure) dan penempatan geometri dengan koordinat presisi.")
