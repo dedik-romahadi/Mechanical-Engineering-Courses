@@ -354,12 +354,12 @@ def _bulat(cx, cy, r, warna, isi=0.0, w=1.3, isi_warna=None, dash="", op=1.0):
     return f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="{isi_warna or warna}" fill-opacity="{isi:g}" stroke="{warna}" stroke-width="{w}"{d}{o}/>'
 
 
-def _tautan(x0, y0, jarak, s, warna, r_ujung=7):
-    """Pelat penghubung (engkol/batang) tampak atas: obround + dua lubang; lubang pertama di (x0, y0).
-    Jari-jari ujung r_ujung hanya untuk gambar (lebar pelat tidak ditetapkan langkah, jadi tanpa ukuran)."""
-    R, x1 = r_ujung * s, x0 + jarak * s
-    d = f"M {x0:.1f} {y0 - R:.1f} H {x1:.1f} A {R:.1f} {R:.1f} 0 0 1 {x1:.1f} {y0 + R:.1f} H {x0:.1f} A {R:.1f} {R:.1f} 0 0 1 {x0:.1f} {y0 - R:.1f} Z"
-    out = f'<path d="{d}" fill="{warna}" fill-opacity=".18" stroke="{warna}" stroke-width="1.5"/>'
+def _tautan(x0, y0, jarak, s, warna, ujung=10, lebar=16):
+    """Pelat penghubung (engkol/batang) tampak atas: persegi panjang lebar 16 yang ujungnya 10 mm melewati
+    pusat lubang (sketsa langkah 1), dua lubang; lubang pertama di (x0, y0)."""
+    x1 = x0 + jarak * s
+    out = (f'<rect x="{x0 - ujung * s:.1f}" y="{y0 - lebar / 2 * s:.1f}" width="{(jarak + 2 * ujung) * s:.1f}" '
+           f'height="{lebar * s:.1f}" fill="{warna}" fill-opacity=".18" stroke="{warna}" stroke-width="1.5"/>')
     for xx in (x0, x1):
         out += _bulat(xx, y0, PR_LUBANG / 2 * s, warna, 1, 1.3, isi_warna=BG)
     return out
@@ -382,18 +382,18 @@ def gambar7():
     a_, b_, tb = PR_DASAR
     pl, pw, ph = PR_PELUNCUR
     rl = PR_LUBANG / 2
-    # (a) Rakitan tampak atas (skema kinematik) dengan Revolute engkol dikunci pada θ
+    # (a) Rakitan tampak atas (skema kinematik) dengan engkol dikunci Angle Joint pada θ
     s, Ox, Oy = 2.0, 96, 146
     X = lambda x: Ox + x * s  # noqa: E731
     Y = lambda y: Oy - y * s  # noqa: E731
     ax, ay, bx = r * math.cos(th), r * math.sin(th), X_PEL
-    b += t(200, 24, f"Rakitan tampak atas — Revolute engkol dikunci {TH_ENG}°", 11, TX, "middle", "600")
-    for yy in (-11, 11):                              # alur rel dasar (lebar tidak ditetapkan langkah)
-        b += _lurus(X(45), Y(yy), X(140), Y(yy), CY, 1.1, "6 3", 0.8)
+    b += t(200, 24, f"Rakitan tampak atas — Angle Joint engkol {TH_ENG}°", 11, TX, "middle", "600")
+    for yy in (-10, 10):                              # alur rel dasar lebar 20 mulai x = 40 (berlanjut ke x = 190)
+        b += _lurus(X(40), Y(yy), X(140), Y(yy), CY, 1.1, "6 3", 0.8)
     for k in range(10):
-        xx = X(47) + k * 19
-        b += _lurus(xx, Y(-11) + 1, xx - 6, Y(-11) + 8, CY, 0.8, "", 0.6)
-    b += t(X(140) + 2, Y(-11) + 24, "alur rel dasar", 10, CY, "end")
+        xx = X(42) + k * 19
+        b += _lurus(xx, Y(-10) + 1, xx - 6, Y(-10) + 8, CY, 0.8, "", 0.6)
+    b += t(X(140) + 2, Y(-10) + 24, "alur rel dasar", 10, CY, "end")
     b += _lurus(X(-32), Y(0), X(140) + 6, Y(0), RD, 0.8, "8 3 2 3", 0.8)
     b += _bidang([(X(0), Y(0)), (X(0) - 9, Y(0) + 15), (X(0) + 9, Y(0) + 15)], AX, 0.25, 1.1)   # dasar grounded di O
     for k in range(4):
@@ -422,18 +422,18 @@ def gambar7():
     # (b) Hubungan rakitan per langkah
     xn, yy = 404, 44
     baris = [("Joint (langkah 2–4)", TX, True),
-             ("dasar: Toggle grounded (acuan diam)", AX, False),
-             ("O: Revolute engkol ↔ lubang poros dasar", AX, False),
+             ("dasar: Ground Part? Yes (acuan diam)", AX, False),
+             ("O: Revolute dasar ↔ engkol", AX, False),
              ("A: Revolute engkol ↔ batang", AX, False),
-             ("B: Revolute batang ↔ lubang peluncur", AX, False),
-             ("Slider: muka bawah peluncur ↔ alur rel", AX, False),
+             ("Slider: lantai alur ↔ tepi bawah peluncur", AX, False),
+             ("B: Revolute batang ↔ peluncur", AX, False),
              ("sisa derajat kebebasan F = 1", GR, False),
              ("Kunci dan ukur (langkah 5)", TX, True),
-             (f"Angle Min = Angle Max = {TH_ENG}°", AX, False),
-             (f"Std Measure O → B: x = {ind(X_PEL, 3)}", GR, False),
+             (f"Angle Joint dasar ↔ engkol = {TH_ENG}°", AX, False),
+             (f"konsol: x peluncur = {ind(X_PEL, 3)}", GR, False),
              ("Uji (langkah 6–7)", TX, True),
-             ("θ = 0° dan 180°: Common batang–dasar = 0", AX, False),
-             (f"pin ⌀{PR_LUBANG} ↔ lubang peluncur: kelonggaran", AX, False),
+             (f"θ = 0°: x = l + r = {L_BAT + R_ENG}", AX, False),
+             ("Intersection batang–dasar: volume 0", AX, False),
              ("BOM + Balloon 1–4 = nomor komponen", AX, False)]
     for teks, warna, judul in baris:
         if judul and yy > 44:
@@ -443,29 +443,33 @@ def gambar7():
     # (c) Komponen tampak atas; lubang pertama tiap Body di titik asalnya
     ytj, yk, sk = 268, 306, 1.6
     sd, dx0 = 0.72, 34
-    Xd = lambda x: dx0 + (x + 40) * sd  # noqa: E731   (O digambar 40 dari ujung kiri: letaknya tidak ditetapkan langkah)
+    Xd = lambda x: dx0 + (x + 10) * sd  # noqa: E731   (O 10 mm dari ujung kiri pelat dasar)
     b += _lencana(26, ytj - 4, 1, CY) + t(40, ytj, f"Dasar, tebal {tb}", 10.5, CY, "start", "600")
-    b += f'<rect x="{Xd(-40):.1f}" y="{yk - b_ / 2 * sd:.1f}" width="{a_ * sd:.1f}" height="{b_ * sd:.1f}" fill="{CY}" fill-opacity=".10" stroke="{CY}" stroke-width="1.4"/>'
-    for yy2 in (-11, 11):
-        b += _lurus(Xd(45), yk - yy2 * sd, Xd(160), yk - yy2 * sd, CY, 1, "5 3", 0.8)
+    b += f'<rect x="{Xd(-10):.1f}" y="{yk - b_ / 2 * sd:.1f}" width="{a_ * sd:.1f}" height="{b_ * sd:.1f}" fill="{CY}" fill-opacity=".10" stroke="{CY}" stroke-width="1.4"/>'
+    for yy2 in (-10, 10):                             # alur rel 150 × 20, x = 40..190
+        b += _lurus(Xd(40), yk - yy2 * sd, Xd(190), yk - yy2 * sd, CY, 1, "5 3", 0.8)
     b += _bulat(Xd(0), yk, rl * sd + 0.5, CY, 1, 1.2, isi_warna=BG) + _asal(Xd(0), yk)
     b += t(Xd(0) + 4, yk + b_ / 2 * sd - 4, "O", 10, TX, "start", "700")
-    b += ext(Xd(-40), yk + b_ / 2 * sd + 3, Xd(-40), yk + 46) + ext(Xd(160), yk + b_ / 2 * sd + 3, Xd(160), yk + 46)
-    b += dim_h(Xd(-40), Xd(160), yk + 40, f"{a_}")
-    b += ext(Xd(160) + 3, yk - b_ / 2 * sd, Xd(160) + 20, yk - b_ / 2 * sd) + ext(Xd(160) + 3, yk + b_ / 2 * sd, Xd(160) + 20, yk + b_ / 2 * sd)
-    b += dim_v(Xd(160) + 14, yk - b_ / 2 * sd, yk + b_ / 2 * sd, f"{b_}", kiri=False)
+    b += ext(Xd(-10), yk + b_ / 2 * sd + 3, Xd(-10), yk + 46) + ext(Xd(190), yk + b_ / 2 * sd + 3, Xd(190), yk + 46)
+    b += dim_h(Xd(-10), Xd(190), yk + 40, f"{a_}")
+    b += ext(Xd(190) + 3, yk - b_ / 2 * sd, Xd(190) + 20, yk - b_ / 2 * sd) + ext(Xd(190) + 3, yk + b_ / 2 * sd, Xd(190) + 20, yk + b_ / 2 * sd)
+    b += dim_v(Xd(190) + 14, yk - b_ / 2 * sd, yk + b_ / 2 * sd, f"{b_}", kiri=False)
     ex = 256
     b += _lencana(ex - 20, ytj - 4, 2, AM) + t(ex - 6, ytj, f"Engkol, tebal {PR_TEBAL}", 10.5, AM, "start", "600")
     b += _tautan(ex, yk, r, sk, AM) + _asal(ex, yk)
     b += t(ex + r * sk / 2 + 8, yk - 21, f"2 × ⌀{PR_LUBANG}", 10, AM, "middle", "600")
     b += ext(ex, yk + 8, ex, yk + 36) + ext(ex + r * sk, yk + 8, ex + r * sk, yk + 36)
     b += dim_h(ex, ex + r * sk, yk + 30, f"{r}")
+    b += ext(ex - 10 * sk, yk + 8 * sk + 3, ex - 10 * sk, yk + 52) + ext(ex + (r + 10) * sk, yk + 8 * sk + 3, ex + (r + 10) * sk, yk + 52)
+    b += dim_h(ex - 10 * sk, ex + (r + 10) * sk, yk + 46, f"{r + 20}")
     bx0 = 362
     b += _lencana(bx0 - 4, ytj - 4, 3, CY) + t(bx0 + 10, ytj, f"Batang, tebal {PR_TEBAL}", 10.5, CY, "start", "600")
     b += _tautan(bx0, yk, l, sk, CY) + _asal(bx0, yk)
     b += t(bx0 + l * sk / 2, yk - 21, f"2 × ⌀{PR_LUBANG}", 10, CY, "middle", "600")
     b += ext(bx0, yk + 8, bx0, yk + 36) + ext(bx0 + l * sk, yk + 8, bx0 + l * sk, yk + 36)
     b += dim_h(bx0, bx0 + l * sk, yk + 30, f"{l}")
+    b += ext(bx0 - 10 * sk, yk + 8 * sk + 3, bx0 - 10 * sk, yk + 52) + ext(bx0 + (l + 10) * sk, yk + 8 * sk + 3, bx0 + (l + 10) * sk, yk + 52)
+    b += dim_h(bx0 - 10 * sk, bx0 + (l + 10) * sk, yk + 46, f"{l + 20}")
     px0 = 590
     b += _lencana(px0 - 62, ytj - 4, 4, VI) + t(px0 - 48, ytj, f"Peluncur, tinggi {ph}", 10.5, VI, "start", "600")
     b += f'<rect x="{px0 - pl / 2 * sk:.1f}" y="{yk - pw / 2 * sk:.1f}" width="{pl * sk:.1f}" height="{pw * sk:.1f}" rx="2" fill="{VI}" fill-opacity=".22" stroke="{VI}" stroke-width="1.5"/>'
@@ -706,7 +710,7 @@ def materi():
     isi = figure(6, "Pusat massa gabungan pelat dan boss serta geometri transmisi sabuk dua puli", f"Kiri: pelat {A_P} × {B_P} × {T_P} dan boss ⌀{D_BOSS} × {H_BOSS} berbahan sama; pusat massa gabungan G berada pada z̄ = {ind(Z_BAR, 2)} mm, di antara G₁ (z = {ind(T_P / 2, 1)}) dan G₂ (z = {ind(T_P + H_BOSS / 2, 1)}). Kanan: sabuk terbuka pada puli ⌀{D1_P} dan ⌀{D2_P} berjarak C = {C_P}; L ≈ {ind(L_SABUK, 2)} mm.", gambar6())
     isi += formula(4, "Massa Total dan Pusat Massa Rakitan", r"m = \sum_i \rho_i V_i, \qquad \bar{z} = \frac{\sum_i V_i\,z_i}{\sum_i V_i}\ \ (\rho\ \text{sama}), \qquad \bar{z}_{pelat+boss} = \frac{V_1\,\tfrac{t}{2} + V_2\left(t + \tfrac{h_B}{2}\right)}{V_1 + V_2}",
                    r"\(V_i, z_i\) = volume dan koordinat pusat massa tiap komponen (pada Placement rakitan) &nbsp;·&nbsp; \(t\) = tebal pelat &nbsp;·&nbsp; \(h_B\) = tinggi boss. Contoh: \(V_1 = " + ind(V_PELAT, 0) + r"\), \(V_2 = " + ind(V_BOSS, 1) + r"\) → \(\bar{z} = " + ind(Z_BAR, 3) + r"\) mm; massa baja rakitan pelat + pin " + f"{A_P} × {B_P} × {T_P}, ⌀{D_PIN} × {L_PIN}" + r": \(m = " + ind(V_RAKIT / 1000 * RHO_BAJA, 1) + r"\) g.",
-                   "Pusat massa rakitan adalah rata-rata pusat massa komponen tertimbang massanya; untuk bahan seragam cukup tertimbang volume. Di FreeCAD, Part.makeCompound dari Shape tiap link (yang sudah memuat Placement) memberi CenterOfMass gabungan langsung; bila bahan berbeda, hitung Σρ·V·z / Σρ·V dari CenterOfMass tiap link. Angka ini menentukan pemilihan motor, keseimbangan, dan titik angkat rakitan.",
+                   "Pusat massa rakitan adalah rata-rata pusat massa komponen tertimbang massanya; untuk bahan seragam cukup tertimbang volume. Di FreeCAD, Part.makeCompound dari Shape tiap link (yang sudah memuat Placement) memberi pusat massa gabungan lewat CenterOfGravity (Compound tidak punya CenterOfMass); bila bahan berbeda, hitung Σρ·V·z / Σρ·V dari CenterOfMass tiap link. Angka ini menentukan pemilihan motor, keseimbangan, dan titik angkat rakitan.",
                    [("m", "Massa total rakitan (g)"), (r"\rho_i", "Massa jenis komponen i (g/cm³)"), ("V_i", "Volume komponen i (mm³)"), ("z_i", "Koordinat z pusat massa komponen i (mm)"), (r"\bar{z}", "Pusat massa gabungan (mm)")])
     isi += formula(5, "Panjang Sabuk Terbuka dan Rasio Putaran", r"L = 2C + \frac{\pi\,(D_1 + D_2)}{2} + \frac{(D_2 - D_1)^{2}}{4C}, \qquad i = \frac{n_1}{n_2} = \frac{D_2}{D_1}",
                    r"\(C\) = jarak pusat puli &nbsp;·&nbsp; \(D_1, D_2\) = diameter puli penggerak dan yang digerakkan &nbsp;·&nbsp; \(n\) = putaran (rpm). Contoh " + f"D₁ = {D1_P}, D₂ = {D2_P}, C = {C_P}" + r": \(L = " + ind(L_SABUK, 2) + r"\) mm (panjang singgung tepat " + ind(L_SABUK_TEPAT, 2) + r" mm), \(i = " + f"{I_SABUK:g}" + r"\), \(n_2 = " + ind(N1_RPM / I_SABUK, 0) + r"\) rpm dari \(n_1 = 1450\).",
@@ -714,7 +718,7 @@ def materi():
                    [("L", "Panjang sabuk (mm)"), ("C", "Jarak pusat puli (mm)"), ("D_1, D_2", "Diameter puli (mm)"), ("i", "Rasio putaran"), ("n_1, n_2", "Putaran puli (rpm)")])
     isi += tabel(["Besaran rakitan", "Std Measure / GUI", "Python console", "Dipakai untuk"],
                  [["Volume total", "Volume tiap link dijumlahkan", "<code>sum(l.Shape.Volume for l in links)</code>", "Massa, biaya bahan (Tugas 1)"],
-                  ["Pusat massa gabungan", "—", "<code>Part.makeCompound([l.Shape …]).CenterOfMass</code>", "Keseimbangan, titik angkat (Tugas 3)"],
+                  ["Pusat massa gabungan", "—", "<code>Part.makeCompound([l.Shape …]).CenterOfGravity</code>", "Keseimbangan, titik angkat (Tugas 3)"],
                   ["Kelonggaran", "Distance dua muka silinder", "<code>a.distToShape(b)[0]</code>", "Suaian poros-lubang (Tugas 2)"],
                   ["Posisi komponen", "Distance titik asal → pusat pin", "<code>link.Placement.Base</code>", "Posisi peluncur (Tugas 4)"],
                   ["Panjang sabuk", "Length tiap edge sketsa", "<code>sketch.Shape.Length</code>", "Pemilihan sabuk standar (Tugas 5)"],
@@ -742,7 +746,7 @@ doc.recompute()
 bentuk = [l.Shape for l in (lp, ln)]                                  # Shape link sudah memuat Placement rakitan
 print(f"V total = {{sum(s.Volume for s in bentuk):.2f}} mm^3")          # {ind(V_RAKIT, 2)}
 comp = Part.makeCompound(bentuk)
-print(f"Pusat massa gabungan = ({{comp.CenterOfMass.x:.3f}}, {{comp.CenterOfMass.y:.3f}}, {{comp.CenterOfMass.z:.3f}})")
+print(f"Pusat massa gabungan = ({{comp.CenterOfGravity.x:.3f}}, {{comp.CenterOfGravity.y:.3f}}, {{comp.CenterOfGravity.z:.3f}})")   # Compound: CenterOfGravity
 print(f"Massa baja = {{comp.Volume/1000*{RHO_BAJA}:.1f}} g; BoundBox = {{comp.BoundBox}}")
 # Grounding dan joint dibuat di GUI (Toggle grounded, Create Joint); solver mengisi Placement seperti baris di atas''', "Python (FreeCAD)")
     isi += kode("Python console — posisi peluncur x(θ) dan menggerakkan rakitan lewat Placement link", f'''import FreeCAD as App, math
@@ -785,19 +789,19 @@ print(f"Sudut lilit puli kecil = {{180 - 2*math.degrees(beta):.2f}} deg (>= 120 
     m += bagian(8, "m-python", "Python Console:<br>Link, Placement, dan Pemeriksaan Rakitan", "Cell pertama membangun rakitan pelat–pin lewat App::Link dan Placement lalu membaca volume total dan pusat massa; cell kedua menghitung x(θ) dan menggerakkan engkol-peluncur; cell ketiga memeriksa kelonggaran, interferensi, dan panjang sabuk.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Komponen", f"Buat empat Body di satu dokumen: dasar (pelat {' × '.join(map(str, PR_DASAR))} dengan alur rel), engkol (pelat tebal {PR_TEBAL} dengan dua lubang ⌀{PR_LUBANG} berjarak {R_ENG}), batang (pelat tebal {PR_TEBAL} dengan dua lubang ⌀{PR_LUBANG} berjarak {L_BAT}), peluncur (blok {' × '.join(map(str, PR_PELUNCUR))} berlubang ⌀{PR_LUBANG}). Pusat lubang pertama tiap komponen di titik asalnya."),
-               ("2", "Rakitan dan acuan", "Assembly → Create Assembly. Insert Link keempat Body. Klik kanan link dasar → Toggle grounded. Move part untuk menjauhkan komponen agar mudah dipilih."),
-               ("3", "Joint engkol", "Create Joint → Revolute: klik lubang engkol pertama lalu lubang poros pada dasar (titik asal). Engkol kini berputar bebas: coba seret dengan Move part."),
-               ("4", "Joint batang dan peluncur", "Revolute lubang engkol kedua ↔ lubang batang pertama; Revolute lubang batang kedua ↔ lubang peluncur; Slider muka bawah peluncur ↔ alur rel dasar (sumbu X). Solve: seret engkol, peluncur bergerak bolak-balik (F = 1)."),
-               ("5", "Kunci dan ukur", f"Pada Revolute engkol–dasar aktifkan Angle Min = Angle Max = {TH_ENG}° → solve. Std Measure Distance titik asal → pusat lubang peluncur; bandingkan dengan Persamaan (2): {ind(X_PEL, 3)} mm untuk r = {R_ENG}, l = {L_BAT}."),
-               ("6", "Clearance dan tabrakan", f"Buka kunci sudut, seret engkol ke 0° dan 180°; Part Common antara batang dan dasar harus bervolume nol. Std Measure Distance pin ⌀{PR_LUBANG} terhadap lubang peluncur memberi kelonggaran radial."),
-               ("7", "BOM, massa, simpan", "Assembly → Bill of Materials; TechDraw: Insert View pada Assembly + Balloon 1–4 + Spreadsheet View BOM. Python: makeCompound seluruh link → Volume dan CenterOfMass. Ctrl+S → <code>Latihan11_NIM.FCStd</code>.")]
+    langkah = [("1", "Komponen", f"Part Design → New Body, F2: ganti nama “Dasar”; Sketch → New Sketch → XY-plane. Rectangle dengan <em>on-view parameters</em>: ketik sudut −10, −30 (Tab, Enter) lalu panjang 200 dan lebar 60 — konstrain terpasang otomatis; Circle From Center: pusat 0, 0, diameter {PR_LUBANG} → Close → Pad 10. Alur rel: klik muka atas → New Sketch, Rectangle mulai 40, −10 berukuran 150 × 20 → Pocket 8 (volume dasar 95.497,35 mm³). Body berikutnya dengan cara yang sama: Engkol (persegi −10, −8, 45 × 16; lubang di 0, 0 dan {R_ENG}, 0; Pad {PR_TEBAL}), Batang (−10, −8, 110 × 16; lubang di 0, 0 dan {L_BAT}, 0; Pad {PR_TEBAL}), Peluncur (−15, −10, {PR_PELUNCUR[0]} × {PR_PELUNCUR[1]}; lubang di 0, 0; Pad {PR_PELUNCUR[2]}). Pusat lubang pertama tiap komponen di titik asalnya. Konsol: volume keempat Body 95.497,35; 3.716,81; 9.956,81; 10.994,69 mm³."),
+               ("2", "Rakitan dan acuan", "Workbench Assembly → New Assembly → Insert: <strong>Component</strong>. Klik Dasar di daftar → <em>Ground Part?</em> Yes (dasar menjadi acuan diam), lalu Engkol, Batang, Peluncur → OK. Sembunyikan Body Peluncur yang masih tampak (Space); tekan 2 (Top) lalu seret tiap komponen menjauh dengan mouse agar tepi lubangnya mudah diklik."),
+               ("3", "Joint engkol", "Assembly → <strong>Revolute Joint</strong>: tekan 2, klik tepi atas lubang dasar (titik asal O); tekan 5 (Bottom), klik tepi bawah lubang engkol pertama → OK: engkol duduk di atas dasar. Klik tepi lingkaran di luar titik sambungnya (mis. 135°), bukan di titik (r, 0) yang berupa vertex. Seret ujung engkol: engkol berputar bebas."),
+               ("4", "Joint batang dan peluncur", "Putar dulu engkol ke sekitar 30°: pada 0° engkol, batang, dan peluncur segaris (titik mati) sehingga mekanisme yang tersambung di sana tidak bisa diseret. Revolute tepi atas lubang engkol kedua (A) ↔ tepi bawah lubang batang pertama. <strong>Slider</strong>: tepi lantai alur tertutup muka dinding — klik kanan di atasnya → <em>Clarify Selection</em> (pilih lewat keyboard ↓ Enter agar kursor tetap di tempat) → Edge → Pocket (Edge…); tekan 5 dan Ctrl+klik tepi bawah peluncur yang sejajar alur → Assembly → Slider Joint → OK. Revolute tepi atas lubang batang kedua ↔ tepi atas lubang peluncur (B). Seret peluncur sedikit sepanjang alur: engkol dan batang ikut bergerak (F = 1)."),
+               ("5", "Kunci dan ukur", f"Assembly → <strong>Angle Joint</strong>: tepi panjang dasar (y = −30) dan tepi panjang engkol, Angle {TH_ENG}° → OK (batas sudut Revolute hanya membatasi, tidak memutar). Konsol: <code>Placement.Base.x</code> link peluncur = {ind(X_PEL, 3)} mm, sama dengan Persamaan (2) untuk r = {R_ENG}, l = {L_BAT}."),
+               ("6", "Titik mati dan tabrakan", f"Klik ganda joint Angle → 0°: x = {L_BAT + R_ENG} = l + r (titik mati luar); kembalikan ke {TH_ENG}°. Solver memilih susunan terdekat: perubahan sudut yang jauh (mis. 120°) bisa melompat ke susunan cermin (peluncur di x negatif), jadi ubah sudut bertahap; langkah peluncur 2r = {2 * R_ENG} mm. Workbench Part: pilih link batang lalu Ctrl+klik link dasar → Boolean → <strong>Intersection</strong>: volume Common 0 (tidak bertabrakan). Common hanya alat periksa: klik ruang kosong lalu Ctrl+Z membatalkannya, sehingga Common tidak ikut BOM dan urutan serta tampilan kedua link kembali seperti semula."),
+               ("7", "BOM, gambar, massa, simpan", "Tekan 2 (Top) di tampilan 3D. Assembly → <strong>Bill of Materials</strong>: hapus kolom kosong Description dan File Name (pilih, Delete) → OK (Index, Name, Quantity). TechDraw: New Page From Template ISO/A4_Landscape_ISO5457_minimal; pilih Assembly → New View, tombol kamera (arah Top) → OK, Data X 140, Y 125; buka tab Page. Annotations → <strong>Balloon Annotation</strong>: klik tiap komponen sesuai urutan BOM (1 Dasar, 2 Engkol, 3 Batang, 4 Peluncur), lalu seret gelembungnya ke tempat lapang; pilih Bill_of_Materials → Spreadsheet View, Data Cell End C5, Scale 0,9, X 62, Y 58; kepala gambar: Title “Rakitan Engkol-Peluncur”, Created by (nama dan NIM Anda), Approved by (nama dosen pengampu), Document type “Gambar Rakitan”, Part Material “Baja S275JR”. Konsol: <code>s = Part.makeCompound([Part.getShape(o) for o in App.ActiveDocument.Assembly.Group if o.TypeId == 'App::Link'])</code> → Volume 120.165,66 mm³, CenterOfGravity, massa baja 943,3 g. Ctrl+S → <code>Latihan11_NIM.FCStd</code>; File → Export PDF → <code>Latihan11_NIM.pdf</code>.")]
     isi = figure(7, "Gambar kerja rakitan engkol-peluncur: komponen, joint, dan ukuran yang dipakai langkah",
-                 f"Satuan mm. Atas: skema rakitan tampak atas dengan Revolute engkol–dasar dikunci {TH_ENG}° (langkah 5); O, A, dan B adalah pusat lubang ⌀{PR_LUBANG} "
+                 f"Satuan mm. Atas: skema rakitan tampak atas dengan engkol dikunci Angle Joint {TH_ENG}° (langkah 5); O, A, dan B adalah pusat lubang ⌀{PR_LUBANG} "
                  f"yang disambung Revolute (langkah 3–4), peluncur bergeser pada alur rel sumbu X (Slider), sehingga jarak O → B = x = {ind(X_PEL, 3)} untuk r = {R_ENG} dan l = {L_BAT}; "
-                 "titik 0° dan 180° pada lintasan pin A adalah posisi uji tabrakan langkah 6. Bawah: keempat Body langkah 1 bernomor seperti Balloon 1–4, "
-                 "dengan panah merah-hijau di titik asal Body (pusat lubang pertama). Langkah tidak menetapkan letak lubang poros pada pelat dasar, ukuran alur rel, "
-                 "dan lebar pelat engkol/batang, jadi bagian itu digambar tanpa ukuran.", gambar7())
+                 f"titik 0° dan 180° pada lintasan pin A adalah titik mati luar dan dalam (x = {L_BAT + R_ENG} dan {L_BAT - R_ENG}; langkah 6 memakai 0°). Bawah: keempat Body langkah 1 bernomor seperti Balloon 1–4, "
+                 "dengan panah merah-hijau di titik asal Body (pusat lubang pertama): pelat dasar mulai 10 mm di kiri O, alur rel 150 × 20 sedalam 8 mulai x = 40, "
+                 "engkol dan batang selebar 16, peluncur 30 × 20.", gambar7())
     isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
@@ -808,16 +812,22 @@ print(f"Sudut lilit puli kecil = {{180 - 2*math.degrees(beta):.2f}} deg (>= 120 
 '''
     isi += "  </div>\n"
     isi += tabel(["Gejala", "Penyebab yang sering", "Perbaikan"],
-                 [["Semua komponen melayang bersama saat Move part", "Tidak ada komponen grounded", "Toggle grounded pada dasar"],
+                 [["Semua komponen melayang bersama saat diseret", "Tidak ada komponen grounded (Ground Part? dijawab No)", "Klik kanan link dasar → Toggle grounded"],
+                  ["Joint menangkap titik, bukan lingkaran lubang", "Klik jatuh di vertex sambungan lingkaran (r, 0)", "Klik tepi lingkaran di sisi lain, mis. 135°"],
+                  ["Tepi lantai alur tidak bisa diklik", "Muka dinding alur selalu menang saat pemilihan", "Klik kanan → Clarify Selection → Edge → Pocket (Edge…), lalu Ctrl+klik tepi peluncur"],
+                  ["Mekanisme tidak bergerak saat diseret", "Joint terakhir dibuat saat engkol 0° (titik mati), atau gerak seret terlalu pendek", "Putar engkol ±30° sebelum menyambung; seret peluncur sepanjang alur"],
+                  ["Angle Min/Max diisi tetapi engkol tidak berputar", "Batas sudut hanya membatasi gerak, tidak menggerakkan", "Angle Joint dasar ↔ engkol dengan nilai sudut"],
+                  ["Peluncur melompat ke x negatif saat sudut diubah", "Solver pindah ke susunan cermin pada perubahan sudut besar", "Ctrl+Z, lalu ubah sudut bertahap"],
                   ["Komponen tidak mau bergerak padahal seharusnya bisa", "Joint ganda / Fixed tak sengaja / dua komponen grounded", "Hapus joint berlebih; hitung F dengan Persamaan (1)"],
                   ["Joint dibuat tetapi komponen terbalik (pin menembus ke bawah)", "Arah sumbu Z JCS berlawanan", "Tombol Flip pada dialog joint, atau Rotation 180° pada Offset"],
                   ["Solver gagal / peringatan over-constrained", "Joint saling bertentangan (mis. Revolute + Slider pada pasangan sama)", "Hapus salah satu; sisakan joint sesuai DOF yang diinginkan"],
-                  ["Peluncur bergeser miring, bukan searah X", "Slider dibuat pada muka yang tidak sejajar rel", "Pilih rusuk/alur rel sebagai acuan Slider; periksa sumbu JCS"],
-                  ["Batang menabrak dasar pada θ tertentu", "Panjang batang/engkol atau posisi rel tidak cocok", "Ubah dimensi sketsa komponen; uji ulang Part Common di titik mati"],
+                  ["Peluncur bergeser miring, bukan searah X", "Slider dibuat pada tepi yang tidak sejajar rel", "Pilih tepi lantai alur dan tepi peluncur yang sama-sama searah X"],
+                  ["Batang menabrak dasar pada θ tertentu", "Panjang batang/engkol atau posisi rel tidak cocok", "Ubah dimensi sketsa komponen; uji ulang Intersection di titik mati"],
+                  ["Common ikut di BOM atau urutan Balloon berubah", "Intersection pada link membuat Common di dalam Assembly; menghapusnya memindahkan kedua link ke akhir", "Batalkan Intersection dengan Ctrl+Z sesudah membaca volumenya, sebelum Bill of Materials"],
                   ["Volume rakitan hanya satu komponen", "Shape dibaca dari Body, bukan link, atau compound satu objek", "makeCompound dari Shape semua link"],
                   ["Pandangan TechDraw kosong", "Yang dipilih grup Joints / link belum di-solve", "Pilih objek Assembly, solve, lalu Insert View"]])
     isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) objek Assembly memuat link semua komponen dan grup Joints berisi joint yang diminta; (2) tepat satu komponen grounded (kecuali diminta lain); (3) DOF sisa sesuai (Tugas 1–3, 5: 0 atau seperti diminta; Tugas 4: 1 lalu dikunci pada θ); (4) angka bacaan diambil setelah solve dan dalam satuan mm dengan jumlah desimal yang diminta; (5) berkas .FCStd tersimpan lewat Ctrl+S, nama tanpa spasi, komponen dari berkas lain ikut diunggah bila ada.")
-    m += bagian(9, "m-praktik", "Praktik Terbimbing:<br>Rakitan Engkol-Peluncur", "Tujuh langkah berikut membangun mekanisme engkol-peluncur lengkap: komponen, rakitan dan acuan diam, empat joint, penguncian sudut dan pengukuran posisi, uji clearance dan tabrakan, BOM dan massa; ditutup tabel gejala dan daftar periksa.", isi, "PRAKTIK TERBIMBING")
+    m += bagian(9, "m-praktik", "Praktik Terbimbing:<br>Rakitan Engkol-Peluncur", "Tujuh langkah berikut membangun mekanisme engkol-peluncur lengkap: komponen, rakitan dan acuan diam, empat joint, penguncian sudut dan pengukuran posisi, titik mati dan uji tabrakan, BOM, gambar rakitan, dan massa; ditutup tabel gejala dan daftar periksa.", isi, "PRAKTIK TERBIMBING")
 
     refs = pm_ref(1, "cyan", "14,165,233", "FreeCAD Community", "FreeCAD 1.0 Documentation: Assembly Workbench (Create Assembly, Insert Link, Toggle Grounded, Create Joint, Bill of Materials), App Link, Std Measure", " (wiki.freecad.org), 2024–2026.", "Acuan nama perintah, jenis joint, properti Offset/Rotation/Angle Min-Max, dan API App::Link/Placement yang dipakai di cell Python.")
     refs += pm_ref(2, "amber", "249,115,22", "M. Lombard", "Mastering SolidWorks", ". Wiley, 2019.", "Rujukan utama RPS: bab assemblies (mates, degrees of freedom, in-context design, BOM, exploded views); konsepnya sama pada Assembly FreeCAD.")
@@ -945,7 +955,7 @@ def forum_page():
             "Manajer proyek meminta gambar rakitan dengan balloon dan BOM untuk pembelian, massa total dan pusat massa modul untuk memilih motor dan menempatkan kaki rangka, serta panjang sabuk dari puli motor ⌀60 ke puli engkol ⌀180 berjarak 250 mm. Susun BOM (Bagian 06), hitung massa dan pusat massa dari model (Bagian 07, Persamaan (4)), lalu panjang sabuk dan rasio putaran dengan Persamaan (5); jelaskan mengapa pusat massa yang jauh dari sumbu engkol mengganggu.",
             ["balloon + BOM", "Σρ·V · CenterOfMass", "⌀60 → ⌀180, C = 250"],
             "Massa total dan pusat massa rakitan paling tepat dibaca dari...",
-            ["Body komponen terbesar saja", "Placement objek Assembly", "Jumlah panjang sabuk dan jumlah komponen", "Jumlah ρᵢ·Vᵢ tiap link dan rata-rata pusat massa tertimbang (Part.makeCompound(...).CenterOfMass untuk bahan seragam)"],
+            ["Body komponen terbesar saja", "Placement objek Assembly", "Jumlah panjang sabuk dan jumlah komponen", "Jumlah ρᵢ·Vᵢ tiap link dan rata-rata pusat massa tertimbang (Part.makeCompound(...).CenterOfGravity untuk bahan seragam)"],
             "✅ Tepat! Massa adalah jumlah ρ·V semua link pada Placement rakitannya, dan pusat massa gabungan adalah rata-rata tertimbang massa; makeCompound dari Shape tiap link membacanya langsung untuk bahan seragam.",
             "❌ Komponen terbesar saja mengabaikan yang lain, Placement Assembly bukan besaran massa, dan panjang sabuk tidak berkaitan. Lihat Bagian 07 dan Animasi 2.",
             "Petunjuk: (1) Susun BOM dengan nomor balloon. (2) Hitung m dan z̄ rakitan. (3) Hitung L dan i sabuk, lalu jelaskan efek pusat massa terhadap getaran.")
