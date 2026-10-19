@@ -395,7 +395,7 @@ def gambar7():
     cxp, s4 = 318, 3.2
     b += _judul(240, 22, 2, "Fit ekstrem (langkah 4)", VI)
     yp0, yp1 = 56, 56 + L_POROS * s4
-    yc0 = (yp0 + yp1) / 2 - H_CINCIN * s4 / 2          # letak aksial cincin tidak ditetapkan langkah: digambar di tengah
+    yc0 = yp1 - H_CINCIN * s4                          # cincin Pad 10 dari bidang XY, sama dengan pangkal poros
     yc1 = yc0 + H_CINCIN * s4
     rp, rh, ro = 17, 20, 34                            # px: celah dibesar-besarkan; ⌀ luar cincin tidak ditetapkan langkah
     b += f'<rect x="{cxp - rp:.1f}" y="{yp0:.1f}" width="{2 * rp:.1f}" height="{yp1 - yp0:.1f}" fill="{AM}" fill-opacity=".22" stroke="{AM}" stroke-width="1.5"/>'
@@ -438,7 +438,7 @@ def gambar7():
     pp = P(a / 2 + 6, bb / 2, h - p)
     b += _lurus(pp[0], pp[1], 592, 60, VI, 0.8)
     b += t(646, 43, f"Pocket {a - 2 * w} × {bb - 2 * w}", 10.5, VI, "end", "700")
-    b += t(646, 58, f"dalam {p}, Symmetric", 10, VI, "end")
+    b += t(646, 58, f"dalam {p}, berpusat", 10, VI, "end")
     pp = P(a - w / 2, bb * 0.35, h)
     b += _lurus(pp[0], pp[1], 588, 92, PK, 0.8) + t(592, 96, f"dinding {ind(W_H, 1)}", 10.5, PK, "start", "600")
     pp = P(a - w - 8, w + 10, h - p)
@@ -506,11 +506,11 @@ def gambar7():
     b += ext(Ox, Oy + 6, Ox, yw + 6) + ext(xw, yc + 8, xw, yw + 6)
     b += dim_h(Ox, xw, yw, f"x = {W_DIND}")
     b += t(572, 266, f"tebal lengan {T_LENGAN}", 10.5, AX, "start")
-    b += t(572, 283, "sumbu putar Z", 10.5, AX, "start")
-    b += t(572, 298, "di titik asal", 10.5, AX, "start")
+    b += t(572, 283, "dinding: Cube", 10.5, AX, "start")
+    b += t(572, 298, "10 × 100 × 20", 10.5, AX, "start")
     b += t(572, 317, "Check Geometry", 10.5, AX, "start")
-    b += t(572, 332, "semua Body", 10.5, AX, "start")
-    b += t(572, 347, "bersih", 10.5, AX, "start")
+    b += t(572, 332, "8 solid,", 10.5, AX, "start")
+    b += t(572, 347, "0 invalid", 10.5, AX, "start")
     b += t(660, 366, "Satuan: mm", 10, AX, "end")
     return svg(680, 380, b, "Gambar 7 — Audit satu dokumen: tabrakan, fit, dinding tipis, jarak tepi, dan jarak bebas gerak")
 
@@ -826,20 +826,20 @@ print(f"isValid = {rumah.isValid()}, dinding {wd} mm, dasar {h-p} mm")
     m += bagian(8, "m-python", "Python Console:<br>Pemeriksaan yang Berjalan Sendiri", "Cell pertama memeriksa tabrakan seluruh pasangan komponen sekaligus; cell kedua menghitung ukuran batas dan kelonggaran fit lalu membuktikannya pada model; cell ketiga memindai satu putaran gerak lengan, menghitung volume rumah berdinding tipis, dan memvalidasi geometrinya.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Siapkan dua komponen", f"Buat dokumen baru. Part &rarr; Primitives &rarr; Box A berukuran {A1_I} × {B_I} × {H_I} mm di titik asal, lalu Box B berukuran {A2_I} × {B_I} × {H_I} mm dengan Placement Position x = {ind(A1_I - DELTA_I, 1)} mm sehingga B menumpang A sejauh δ = {ind(DELTA_I, 1)} mm."),
-               ("2", "Ukur tabrakan", f"Pilih A dan B &rarr; Part &rarr; Boolean &rarr; Common. Baca Common.Shape.Volume (atau Std Measure Volume): {ind(V_INT, 2)} mm³, sama dengan δ·b·h. Catat sebagai nilai “sebelum”, lalu batalkan Boolean dengan Ctrl+Z."),
-               ("3", "Perbaiki lalu verifikasi", "Ubah Placement Position x milik B menjadi tepat di ujung A sehingga keduanya hanya bersinggungan. Ulangi Common: volumenya harus 0 mm³, dan <code>A.distToShape(B)[0]</code> bernilai 0 karena bersentuhan. Beri jarak rakit kecil bila memang diinginkan celah."),
-               ("4", "Modelkan keadaan fit ekstrem", f"Body baru: cincin (Sketch dua lingkaran sepusat, lubang pada ukuran maksimum ⌀{ind(LUB_MAKS, 4)}) di-Pad {H_CINCIN} mm, dan poros pada ukuran minimum ⌀{ind(POR_MIN, 4)} di-Pad {L_POROS} mm, sesumbu. Std Measure Distance antara dua muka silinder memberi celah radial {ind(C_MAKS / 2, 4)} mm; kalikan dua menjadi c<sub>maks</sub> = {ind(C_MAKS, 4)} mm."),
-               ("5", "Rumah berdinding tipis", f"Body baru: Sketch {A_H} × {B_H} mm &rarr; Pad {H_H} mm. Pada muka atas, Sketch {A_H - 2 * W_H} × {B_H - 2 * W_H} mm yang dipusatkan dengan konstrain Symmetric &rarr; Pocket Dimension {P_H} mm. Periksa tebal dinding {ind(W_H, 1)} mm dan dasar {ind(DASAR_H, 1)} mm dengan Std Measure; volume solid harus {ind(V_RUMAH, 2)} mm³."),
-               ("6", "Slot dan jarak tepi", f"Body baru: pelat {A_S} × {B_S} × {T_S} mm simetris terhadap origin &rarr; Pad. Pada muka atas gambar satu slot obround (alat Slot) dengan jarak pusat-ke-pusat {LS_S} mm dan lebar {WS_S} mm &rarr; Pocket Through all. Std Measure dari ujung busur ke tepi pendek pelat memberi e = {ind(E_X, 3)} mm, di atas batas 1,5·t = {ind(E_BATAS, 1)} mm."),
-               ("7", "Gerak, validasi, simpan", f"Body lengan {R_L} × {W_L} × {T_LENGAN} mm dengan sumbu putar Z di titik asal, dan dinding Part Box yang muka dalamnya di x = {W_DIND} mm. Putar Placement Angle ke θ<sup>*</sup> = {ind(TH_KRITIS, 2)}° lalu Std Measure Distance sudut lengan &rarr; muka dinding: {ind(C_MIN_L, 3)} mm. Jalankan Part &rarr; Check Geometry pada semua Body (harus bersih), lalu Ctrl+S ke <code>Latihan12_NIM.FCStd</code>.")]
+    langkah = [("1", "Siapkan dua komponen", f"Buat dokumen baru. Edit &rarr; Preferences &rarr; General: <em>Number of decimals</em> = 3 &rarr; OK, agar ukuran batas dan celah terbaca utuh. Workbench Part: Part &rarr; Primitives &rarr; Cube, F2 ganti nama “A”, tab Data: Length {A1_I}, Width {B_I}, Height {H_I}. Cube kedua “B”: {A2_I} × {B_I} × {H_I}, Placement &rarr; Position &rarr; x = {ind(A1_I - DELTA_I, 1)} (ketik koma), sehingga B menumpang A sejauh δ = {ind(DELTA_I, 1)} mm."),
+               ("2", "Ukur tabrakan", f"Pilih A lalu Ctrl+klik B &rarr; Part &rarr; Boolean &rarr; Intersection. Konsol: <code>round(App.ActiveDocument.Common.Shape.Volume, 2)</code> = {ind(V_INT, 2)} mm³, sama dengan δ·b·h. Catat sebagai nilai “sebelum”, lalu klik ruang kosong dan Ctrl+Z untuk membatalkan Common."),
+               ("3", "Perbaiki lalu verifikasi", f"Pilih B, Position x = {A1_I} (tepat di ujung A). Ulangi Intersection: volume Common 0 mm³; konsol <code>A, B = [App.ActiveDocument.getObjectsByLabel(n)[0].Shape for n in ('A', 'B')]</code> lalu <code>A.distToShape(B)[0]</code> = 0 karena bersentuhan. Ctrl+Z, sembunyikan A dan B (Space), lalu klik ruang kosong: New Body yang dijalankan saat objek masih terpilih ditolak (“Bad base feature”)."),
+               ("4", "Modelkan keadaan fit ekstrem", f"Part Design &rarr; New Body “Cincin”: Sketch XY-plane, Circle From Center pusat 0, 0 diameter 24, lalu lingkaran kedua diameter {ind(LUB_MAKS, 3)} (ukuran maksimum lubang) &rarr; Pad {H_CINCIN}. New Body “Poros”: lingkaran 0, 0 diameter {ind(POR_MIN, 3)} (ukuran minimum poros) &rarr; Pad {L_POROS}. Muka lubang cincin tertutup poros: klik kanan di atasnya &rarr; Clarify Selection &rarr; Face &rarr; Pad (Face…), lalu Ctrl+klik muka poros di atas cincin &rarr; Tools &rarr; <strong>Measure</strong>: {ind(C_MAKS / 2 * 1000, 3)} µm = {ind(C_MAKS / 2, 4)} mm (celah radial) &rarr; Save &rarr; Close. c<sub>maks</sub> = 2 × {ind(C_MAKS / 2, 4)} = {ind(C_MAKS, 3)} mm."),
+               ("5", "Rumah berdinding tipis", f"New Body “Rumah”: Sketch XY, <strong>Centered Rectangle</strong> pusat 0, 0 ukuran {A_H} × {B_H} &rarr; Pad {H_H}. Klik muka atas &rarr; New Sketch &rarr; Centered Rectangle pusat 0, 0 ukuran {A_H - 2 * W_H} × {B_H - 2 * W_H} (pusat sama: dinding rata) &rarr; Pocket {P_H}. Konsol: volume {ind(V_RUMAH, 2)} mm³. Tekan 2, klik tepi atas luar lalu Ctrl+klik tepi atas dalam satu dinding &rarr; Measure {ind(W_H, 3)} mm; klik lantai Pocket, tekan 5, Ctrl+klik muka bawah &rarr; Measure {ind(DASAR_H, 3)} mm."),
+               ("6", "Slot dan jarak tepi", f"New Body “Pelat”: Centered Rectangle {A_S} × {B_S} &rarr; Pad {T_S}. Klik muka atas &rarr; New Sketch &rarr; <strong>Slot</strong>: titik awal −{LS_S // 2}, 0; panjang {LS_S}, sudut 0; isian ketiga adalah jari-jari, ketik {WS_S // 2} (lebar {WS_S}). Sudut 0 tidak menjadi konstrain: pilih garis slot di daftar Elements &rarr; Horizontal Constraint (Fully constrained) &rarr; Pocket <em>Through all</em>. Tekan 2, klik tepi busur ujung slot lalu Ctrl+klik tepi pendek pelat &rarr; Measure e = {ind(E_X, 3)} mm, di atas batas 1,5·t = {ind(E_BATAS, 1)} mm."),
+               ("7", "Gerak, validasi, simpan", f"New Body “Lengan”: Rectangle sudut 0, −{W_L // 2} ukuran {R_L} × {W_L} &rarr; Pad {T_LENGAN} (sumbu putar Z di titik asal). Workbench Part: Cube “Dinding” 10 × 100 × 20 di Position x = {W_DIND}, y = −50 (muka dalam di x = {W_DIND}). Pilih Body Lengan &rarr; Placement &rarr; Angle = θ<sup>*</sup> = 9,7275° (= {ind(TH_KRITIS, 2)}°). Tekan 2, klik sudut lengan terjauh (vertex), tekan 6, Ctrl+klik muka dalam dinding &rarr; Measure {ind(C_MIN_L, 3)} mm. Pilih kedelapan solid &rarr; Part &rarr; <strong>Check Geometry</strong> &rarr; Run check: 0 invalid shapes. Ctrl+S ke <code>Latihan12_NIM.FCStd</code>.")]
     isi = figure(7, "Gambar kerja audit satu dokumen: tabrakan, fit, dinding tipis, jarak tepi, dan jarak bebas gerak",
                  f"Satuan mm; volume dalam mm³. Nomor 1–5 mengikuti langkah: (1) Box A {A1_I} × {B_I} × {H_I} dan Box B {A2_I} × {B_I} × {H_I} menumpang δ = {ind(DELTA_I, 1)} "
                  f"sehingga Common = {ind(V_INT, 2)} mm³, lalu nol setelah B digeser ke ujung A; (2) cincin berlubang ⌀{ind(LUB_MAKS, 4)} (batas maksimum ⌀{D_FIT} H7) "
-                 f"dan poros ⌀{ind(POR_MIN, 4)} (batas minimum g6) sesumbu, celahnya digambar diperbesar; (3) rumah {A_H} × {B_H} × {H_H} dengan Pocket "
+                 f"dan poros ⌀{ind(POR_MIN, 4)} (batas minimum g6) sesumbu dari bidang XY, celahnya digambar diperbesar (diameter luar cincin 24 tidak memengaruhi fit); (3) rumah {A_H} × {B_H} × {H_H} dengan Pocket "
                  f"{A_H - 2 * W_H} × {B_H - 2 * W_H} sedalam {P_H}; (4) pelat {A_S} × {B_S} × {T_S} dengan slot berjarak pusat {LS_S} dan lebar {WS_S}, serta jarak tepi e; "
-                 f"(5) lengan {R_L} × {W_L} × {T_LENGAN} diputar θ<sup>*</sup> = {ind(TH_KRITIS, 2)}° di depan dinding pada x = {W_DIND}. Diameter luar dan letak aksial cincin, "
-                 "serta ukuran Part Box dinding, tidak ditetapkan langkah, jadi digambar tanpa ukuran.", gambar7())
+                 f"(5) lengan {R_L} × {W_L} × {T_LENGAN} diputar θ<sup>*</sup> = {ind(TH_KRITIS, 2)}° di depan dinding (Cube 10 × 100 × 20) yang muka dalamnya pada x = {W_DIND}. "
+                 "Setiap jarak diukur dengan Tools → Measure pada 3 desimal dan tersimpan sebagai objek Distance di grup Measurements.", gambar7())
     isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
         isi += f'''    <div class="card">
@@ -850,11 +850,16 @@ print(f"isValid = {rumah.isValid()}, dinding {wd} mm, dasar {h-p} mm")
 '''
     isi += "  </div>\n"
     isi += tabel(["Gejala", "Penyebab yang sering", "Perbaikan"],
-                 [["Common menghasilkan objek kosong padahal jelas menumpang", "Yang dipilih objek induk yang sudah termakan Boolean sebelumnya, atau salah satu bukan solid", "Batalkan Boolean terdahulu; periksa Check Geometry kedua bentuk"],
+                 [["New Body menolak dengan pesan “Bad base feature”", "Masih ada objek terpilih saat New Body (dijadikan base feature)", "Klik ruang kosong dulu, lalu Part Design → New Body"],
+                  ["Measure menampilkan 0,02 mm untuk celah 0,0175 mm", "Tampilan bawaan 2 desimal", "Edit → Preferences → General → Number of decimals = 3"],
+                  ["Muka lubang cincin tidak bisa diklik", "Tertutup muka poros yang lebih dekat ke kamera", "Klik kanan → Clarify Selection → Face → Pad (Face…), lalu Ctrl+klik muka kedua"],
+                  ["Sketsa slot tetap under-constrained", "Sudut 0° pada on-view parameters tidak menjadi konstrain", "Pilih garis slot di daftar Elements → Horizontal Constraint"],
+                  ["Slot dua kali lebih lebar", "Isian ketiga alat Slot adalah jari-jari, bukan lebar", "Ketik setengah lebar (9 untuk lebar 18)"],
+                  ["Common menghasilkan objek kosong padahal jelas menumpang", "Yang dipilih objek induk yang sudah termakan Boolean sebelumnya, atau salah satu bukan solid", "Batalkan Boolean terdahulu; periksa Check Geometry kedua bentuk"],
                   ["Volume Common jauh dari δ·b·h", "Placement B juga bergeser arah Y atau Z, sehingga penampang bersama mengecil", "Nolkan y dan z pada Placement Position; ukur ulang"],
                   ["Std Measure Distance memberi 0 padahal tampak ada celah", "Yang terpilih muka yang bersinggungan, bukan pasangan muka yang dimaksud", "Perbesar tampilan, pilih muka lewat pohon atau tekan Space untuk menyembunyikan komponen penghalang"],
                   ["Kelonggaran terbaca setengah dari perkiraan", "Yang diukur celah radial, sedangkan yang diminta kelonggaran diametral", "Kalikan dua: c<sub>diametral</sub> = 2 × celah radial"],
-                  ["Pocket tidak berpusat sehingga dinding tidak sama tebal", "Sketch Pocket hanya diberi jarak dari dua sisi", "Pakai konstrain Symmetric terhadap sumbu sketsa, atau beri jarak w dari keempat tepi"],
+                  ["Pocket tidak berpusat sehingga dinding tidak sama tebal", "Sketch Pocket hanya diberi jarak dari dua sisi", "Pakai Centered Rectangle berpusat 0, 0 (konstrain Symmetric terpasang otomatis), atau beri jarak w dari keempat tepi"],
                   ["Jarak tepi slot terbaca lebih besar daripada hitungan", "Yang diukur dari pusat busur, bukan dari ujung busur", "Ukur dari titik ujung slot; ujungnya di ±(L<sub>s</sub> + w<sub>s</sub>)/2"],
                   ["Lengan menembus dinding padahal W &gt; R", "Yang dipakai W − R, bukan memperhitungkan sudut ujung lengan", "Pakai √(R² + (w/2)²) sesuai Persamaan (6)"],
                   ["Pocket membelah benda menjadi dua solid", "Kedalaman p melebihi tinggi h, atau dinding w terlalu besar", "Kembalikan p &lt; h dan (a − 2w) &gt; 0; jalankan Check Geometry"]])
