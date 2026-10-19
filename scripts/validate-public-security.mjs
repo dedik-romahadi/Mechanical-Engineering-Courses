@@ -2228,6 +2228,11 @@ for (const course of courseRoots) {
     ]) {
       if (!modul.includes(required)) throw new Error(`${relative}: module contract missing ${required}`);
     }
+    // Urutan tab: Modul → Forum → Tugas → Hasil (dosen, 19 Okt 2026); dipasang scripts/urut-tab-forum.mjs.
+    const posForum = modul.indexOf('id="tab-forum"'), posTugas = modul.indexOf('id="tab-tugas"');
+    if (posForum < 0 || posTugas < 0 || posForum > posTugas) {
+      throw new Error(`${relative}: tab Forum harus berada sebelum tab Tugas (jalankan scripts/urut-tab-forum.mjs)`);
+    }
     if (modul.includes(">🔄 Ganti Peran</button>")) {
       throw new Error(`${relative}: legacy Ganti Peran label must be Log Out`);
     }
