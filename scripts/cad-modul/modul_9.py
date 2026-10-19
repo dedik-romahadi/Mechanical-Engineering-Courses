@@ -352,14 +352,14 @@ def gambar7():
 
     # ── catatan: nilai yang diketik pada langkah 2, 4, 6, 7 ──
     xn, yn = 470, 182
-    baris = [(0, "Material Steel:", TX, "600"),
+    baris = [(0, "Material Steel-S235JR:", TX, "600"),
              (10, f"E = {E_ST} MPa · ν = {NU_ST}", AX, ""),              # ν bertitik: ikut format teks langkah 2
              (0, "Mesh Gmsh:", TX, "600"),
-             (10, "Element order 2 · Max size 4", AX, ""),
-             (0, "Solver CalculiX Standard", TX, "600"),
+             (10, "Element order 2nd · Maximum size 4", AX, ""),
+             (0, "Solver CalculiX (Static)", TX, "600"),
              (0, "Konvergensi:", TX, "600"),
-             (10, "MeshRegion 1 pada muka silinder", AX, ""),
-             (10, "lubang, atau Max size 2 global;", AX, ""),
+             (10, "Maximum size 4 → 2 → 1,5 mm", AX, ""),
+             (10, "(hemat: MeshRegion 1 di lubang);", AX, ""),
              (10, "perubahan σ<sub>maks</sub> &lt; 5 %", AX, ""),
              (0, "Spreadsheet:", TX, "600"),
              (10, f"SF = {SIG_Y}/σ<sub>vm,maks</sub>", AX, "")]
@@ -658,13 +658,13 @@ for (h0, n0, s0, u0), (h1, n1, s1, u1) in zip(hasil, hasil[1:]):
     m += bagian(8, "m-python", "Python Console:<br>Post-Processing Hasil", "Cell pertama membaca objek hasil: maksimum, minimum, lokasi node, dan tegangan di luar zona singular; cell kedua menghitung seluruh pembanding analitis modul beserta kesalahan relatif; cell ketiga mengotomatiskan studi konvergensi mesh.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Model pelat", f"Part Design → Body → Sketch XY persegi panjang {W_P} × 180 (sudut di origin, fully constrained) → Pad {T_P}. Sketch di muka atas: lingkaran ⌀{D_P} berpusat (90, {W_P // 2}) → Pocket Through all."),
-               ("2", "Analysis dan material", f"FEM Workbench → Analysis container → Material solid: Steel (E = {E_ST} MPa, ν = {NU_ST}). Periksa kartu material menampilkan satuan MPa, bukan Pa."),
-               ("3", "Tumpuan dan beban", f"Constraint Fixed pada muka ujung x = 0; Constraint Force {F_P} N arah +X pada muka ujung x = 180 (tarik). Arah gaya: pilih muka, Direction = normal muka, balik bila perlu."),
-               ("4", "Mesh awal", "FEM mesh from shape by Gmsh: Element order 2, Max size 4 mm → Apply. Catat jumlah elemen. Solver CalculiX Standard → Write input → Run."),
-               ("5", "Membaca hasil", f"Klik dua kali CCX_Results → von Mises: catat maksimum dan lokasinya (tepi lubang, sisi atas/bawah). Bandingkan dengan K<sub>t</sub>·σ<sub>nom</sub> = {ind(SIG_MAKS_P, 2)} MPa; hitung e. Baca juga Displacement maks."),
-               ("6", "Konvergensi", "Tambahkan FEM MeshRegion 1 mm pada muka silinder lubang (atau Max size 2 mm global), mesh ulang, solve ulang. Perubahan σ<sub>maks</sub> harus < 5 %; bila belum, haluskan sekali lagi. Isi tabel analitis vs FEM."),
-               ("7", "Kesimpulan dan simpan", f"SF = {SIG_Y}/σ<sub>vm,maks</sub>; tuliskan σ<sub>maks</sub> analitis, FEM, e, SF pada Spreadsheet di dokumen. Ctrl+S → <code>Latihan9_NIM.FCStd</code> (hasil ikut tersimpan bila objek hasil tidak dihapus).")]
+    langkah = [("1", "Model pelat", f"File → New Document; Part Design → New Body; Sketch → New Sketch → XY-plane: <strong>Rectangle</strong> dari titik asal → Horizontal Dimension 180 (seluruh persegi panjang ikut terskala), Vertical Dimension {W_P} → Fully constrained → Close → Pad {T_P}. Klik muka atas → Sketch → New Sketch: lingkaran → Diameter {D_P}, pusat Horizontal 90 dan Vertical {W_P // 2} → Pocket Through all. Volume 53.116,43 mm³ = 180 · {W_P} · {T_P} − π · 7,5² · {T_P}."),
+               ("2", "Analysis dan material", f"Workbench FEM → Model → New Analysis → Model → Materials → Solid Material: Standard → Metal → Steel → <strong>Steel-S235JR</strong> (E = 210 GPa = {E_ST} MPa, ν = {NU_ST}; baja S235 dengan σ<sub>y</sub> = {SIG_Y} MPa) → OK. Panel menampilkan E dalam GPa: 210 GPa = 210000 MPa, bukan 210000 Pa."),
+               ("3", "Tumpuan dan beban", f"Model → Mechanical Boundary Conditions and Loads → <strong>Fixed Boundary Condition</strong>: tekan 6 (Left), Add, klik muka ujung x = 0 → OK. <strong>Force Load</strong>: tekan 3 (Right), Add, klik muka ujung x = 180, Force {F_P} N → OK. Tanpa Direction, gaya mengikuti normal muka (+X, keluar): pelat tertarik."),
+               ("4", "Mesh awal", "Pilih Body → Mesh → <strong>Mesh From Shape by Gmsh</strong>: Element order 2nd, Maximum size 4 mm → Apply → OK: 11.972 simpul, 5.843 elemen. Solve → Solver CalculiX; klik ganda SolverCcxTools → Static → Write .inp File → Run CalculiX → Close."),
+               ("5", "Membaca hasil", f"Sembunyikan Body dan mesh; Pipeline_CCX_Results → View → Field = <em>von Mises Stress</em>: tegangan tertinggi (merah) di tepi lubang, sisi atas dan bawah. Python console: <code>round(max(App.ActiveDocument.CCX_Results.vonMises), 2)</code> → 50,5 MPa; Displacement maks 0,015 mm. Bandingkan dengan K<sub>t</sub>·σ<sub>nom</sub> = {ind(SIG_MAKS_P, 2)} MPa; hitung e."),
+               ("6", "Konvergensi", "Klik ganda FEMMeshGmsh → Maximum size 2 → Apply → OK, jalankan solver lagi: 34.615 elemen, σ<sub>maks</sub> = 52,81 MPa (+4,6 %); 1,5 mm: 84.696 elemen, 54,35 MPa (+2,9 %): perubahan makin kecil dan &lt; 5 %. Cara yang lebih hemat elemen: FEM MeshRegion 1 mm hanya pada muka silinder lubang."),
+               ("7", "Kesimpulan dan simpan", f"Workbench Spreadsheet → Spreadsheet → <strong>New Spreadsheet</strong>, F2 ganti nama “Ringkasan”, klik ganda. Kolom A: sigma analitis, sigma FEM, e (%), SF; kolom B: {ind(SIG_MAKS_P, 2).replace(',', '.')}, 54.35, <code>=(B2 - B1) / B1 * 100</code> → 0,97 %, <code>={SIG_Y} / B2</code> → SF = 4,60. Kembali ke tab 3D, Ctrl+S → <code>Latihan9_NIM.FCStd</code> (hasil ikut tersimpan bila objek hasil tidak dihapus).")]
     isi = figure(7, "Gambar kerja pelat berlubang tarik: geometri, tumpuan, beban, dan mesh", f"Tampak atas dan tampak depan pelat dari langkah 1, ukuran dalam mm: panjang dan lebar pelat, tebal Pad {T_P}, lubang ⌀{D_P}, dan posisi pusat lubang dari titik asal (0, 0). Fixed di muka x = 0 dan F = {F_P} N arah +X di muka ujung lainnya sesuai langkah 3; catatan kanan memuat material, mesh, konvergensi, dan SF yang diketik pada langkah 2, 4, 6, dan 7.", gambar7())
     isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
