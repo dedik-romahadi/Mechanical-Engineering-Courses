@@ -31,6 +31,7 @@
   button.mini{width:auto;margin:0;padding:6px 12px;font-size:12px;font-weight:700;border-radius:8px;
     background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.4);color:var(--cyan)}
   button.mini:hover:not(:disabled){background:rgba(0,229,255,.22)}
+  button.mini-cabut{width:auto;margin:4px 0 0;padding:6px 10px;font-size:12px;font-weight:700;border-radius:8px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.45);color:#fca5a5;cursor:pointer}
   .warn{background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.3);border-radius:10px;
     padding:12px 14px;font-size:13px;color:#ffd27a;margin-bottom:18px}
   .result{margin-top:18px;padding:16px;border-radius:10px;font-size:13.5px;display:none;white-space:pre-wrap;
@@ -52,7 +53,7 @@
 <body>
 <div class="wrap">
   <h1>🧊 Berkas Tugas Pemodelan CAD</h1>
-  <div class="sub">Admin-only. Daftar dan unduh berkas FreeCAD (.FCStd) yang diunggah mahasiswa pada tugas pemodelan, beserta status penilaian angka bacaannya. Berkas tersimpan di bucket privat; pengunduhan lewat callable <code>unduhBerkasTugas</code> dengan sesi admin.</div>
+  <div class="sub">Admin-only. Daftar dan unduh berkas FreeCAD (.FCStd) yang diunggah mahasiswa pada tugas pemodelan, beserta status penilaian angka bacaannya, dan berkas hasil Praktik Terbimbing (Bagian 09, 3 poin; .FCStd + PDF bila wajib) beserta status pemeriksaan otomatisnya. Berkas tersimpan di bucket privat; pengunduhan lewat callable <code>unduhBerkasTugas</code> dengan sesi admin.</div>
 
   <div class="warn">
     ⚠ Berkas yang diunduh adalah versi terakhir yang diunggah mahasiswa (versi lama dihapus saat diganti). Setelah tugas dinilai, berkas terkunci dan ringkasan (nama, ukuran, SHA-256) dibekukan di ledger — cocokkan SHA-256 di kolom "Berkas" dengan ringkasan pada tab Hasil bila ada keraguan.
@@ -112,6 +113,7 @@ async function authenticateAdmin(password){
 }
 const daftarBerkasTugas = httpsCallable(functions, 'daftarBerkasTugas');
 const unduhBerkasTugas = httpsCallable(functions, 'unduhBerkasTugas');
+const cabutPoinPraktik = httpsCallable(functions, 'cabutPoinPraktik');
 
 const courseEl = document.getElementById('course');
 const modulEl  = document.getElementById('modul');
@@ -158,7 +160,10 @@ const fmtWaktu = (iso) => {
   if (!Number.isFinite(d.getTime())) return esc(iso || '—');
   return d.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', hourCycle: 'h23', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB';
 };
-const labelStatus = (s) => s === 'correct' ? ['✅ benar', 'st-correct'] : s === 'partial' ? ['△ partial', 'st-partial'] : s === 'wrong' ? ['✗ salah', 'st-wrong'] : ['belum dinilai', 'st-belum'];
+const labelStatus = (s) => s === 'correct' || s === 'praktik-lolos' ? ['✅ ' + (s === 'correct' ? 'benar' : 'praktik lolos'), 'st-correct'] : s === 'partial' ? ['△ partial', 'st-partial']
+  : s === 'wrong' || s === 'praktik-belum-sesuai' ? ['✗ ' + (s === 'wrong' ? 'salah' : 'belum sesuai'), 'st-wrong'] : s === 'praktik-dicabut' ? ['⛔ dicabut dosen', 'st-wrong'] : ['belum dinilai', 'st-belum'];
+// Praktik terbimbing (qId praktik / praktik-pdf): unduhan bertahap (berkas FEM bisa ±60 MB) dan cabut poin.
+const labelTugas = (q) => q === 'praktik' ? 'Praktik' : q === 'praktik-pdf' ? 'Praktik PDF' : 'T' + String(q).replace(/^c/, '');
 
 let _barisTerakhir = [];
 window.muatDaftar = async function(){
@@ -185,12 +190,12 @@ window.muatDaftar = async function(){
       html += `<tr>
         <td class="mono">${esc(x.nim)}</td>
         <td>${esc(x.nama)}</td>
-        <td class="mono">T${esc(String(x.qId).replace(/^c/, ''))}</td>
+        <td class="mono">${esc(labelTugas(x.qId))}</td>
         <td class="mono">${esc(x.namaBerkas)}<br><span style="color:var(--muted)">${fmtKB(x.size)} · v${esc(x.versi)} · ${esc(String(x.sha256 || '').slice(0, 16))}…</span></td>
         <td>${fmtWaktu(x.uploadedAt)}</td>
-        <td class="${cls}">${lbl}</td>
+        <td class="${cls}">${lbl}${x.gagal && x.gagal.length ? '<br><span style="color:var(--muted)">syarat gagal: ' + esc(x.gagal.join(', ')) + '</span>' : ''}</td>
         <td class="mono">${x.scoreDelta === null || x.scoreDelta === undefined ? '—' : esc(x.scoreDelta)}</td>
-        <td><button class="mini" onclick="unduh(${i})">⬇ Unduh</button></td>
+        <td><button class="mini" onclick="unduh(${i})">⬇ Unduh</button>${x.status === 'praktik-lolos' && x.qId === 'praktik' ? ` <button class="mini-cabut" onclick="cabutPraktik(${i})">⛔ Cabut</button>` : ''}</td>
       </tr>`;
     });
     html += '</tbody></table>';
@@ -210,12 +215,19 @@ window.unduh = async function(i){
   if (tombol) { tombol.disabled = true; tombol.textContent = '⏳'; }
   try {
     await authenticateAdmin(document.getElementById('pw').value);
-    const r = await unduhBerkasTugas({ ...target, qId: x.qId, nim: String(x.nim) });
-    const d = r.data || {};
-    const bin = atob(d.dataBase64 || '');
-    const bytes = new Uint8Array(bin.length);
-    for (let k = 0; k < bin.length; k += 1) bytes[k] = bin.charCodeAt(k);
-    const blob = new Blob([bytes], { type: d.contentType || 'application/octet-stream' });
+    const potongan = [];
+    let d = {};
+    for (let ke = 0; ; ke += 1) {
+      const r = await unduhBerkasTugas(Object.assign({ ...target, qId: x.qId, nim: String(x.nim) }, x.praktik ? { ke } : {}));
+      d = r.data || {};
+      const bin = atob(d.dataBase64 || '');
+      const bytes = new Uint8Array(bin.length);
+      for (let k = 0; k < bin.length; k += 1) bytes[k] = bin.charCodeAt(k);
+      potongan.push(bytes);
+      if (!d.jumlahPotong || ke + 1 >= d.jumlahPotong) break;
+      if (tombol) tombol.textContent = '⏳ ' + Math.round((ke + 1) / d.jumlahPotong * 100) + '%';
+    }
+    const blob = new Blob(potongan, { type: d.contentType || 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = `${x.nim}_${modulId}_${x.qId}_${d.namaBerkas || x.namaBerkas}`;
@@ -225,6 +237,17 @@ window.unduh = async function(i){
     showMsg('err', 'Gagal mengunduh: ' + (e.message || e) + (e.code ? ` [${e.code}]` : ''));
   } finally {
     if (tombol) { tombol.disabled = false; tombol.textContent = '⬇ Unduh'; }
+  }
+};
+window.cabutPraktik = async function(i){
+  const x = _barisTerakhir[i]; if (!x) return;
+  if (!confirm(`Cabut poin praktik ${x.nim} (${x.nama}) untuk ${idBerkas()}? Berkas yang sama tidak akan dinilai lagi; mahasiswa harus membuat ulang praktiknya.`)) return;
+  try {
+    await authenticateAdmin(document.getElementById('pw').value);
+    const r = await cabutPoinPraktik({ modulId: idBerkas(), nim: String(x.nim) });
+    showMsg('ok', (r.data && r.data.dihapus ? 'Poin praktik dicabut: ' : 'Tidak ada poin praktik untuk ') + x.nim + '. Muat ulang daftar untuk melihat statusnya.');
+  } catch (e) {
+    showMsg('err', 'Gagal mencabut: ' + (e.message || e) + (e.code ? ` [${e.code}]` : ''));
   }
 };
 function showMsg(cls, msg){ const res=document.getElementById('result'); res.className='result '+cls; res.style.display='block'; res.textContent=(cls==='err'?'⚠ ':'')+msg; }

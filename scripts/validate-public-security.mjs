@@ -4,6 +4,7 @@ import path from "node:path";
 import vm from "node:vm";
 import { spawnSync } from "node:child_process";
 import { uraiSkripInline, deklarasiLeksikal, pemakaian, fungsiTingkatAtas, panggilanTingkatAtas, namaGlobal, presenceSaatMuat, presenceAutoLogin } from "./pemindai-deklarasi.mjs";
+import { pasang as praktikPasang, BERKRITERIA as PRAKTIK_BERKRITERIA, PRAKTIK_POIN_MULAI as PRAKTIK_MULAI, KURSUS_FOLDER as PRAKTIK_FOLDER } from "./praktik-poin.mjs";
 import { HALAMAN as HK_HALAMAN, CSS as HK_CSS, PANEL as HK_PANEL, DATA as HK_DATA, pasang as hkPasang, cabut as hkCabut, semuaHalaman as hkSemua, RX_SINTAKS_BARU as HK_RX_SINTAKS } from "./hasil-keren.mjs";
 
 const root = process.cwd();
@@ -482,6 +483,185 @@ async function ujiRuntimeForumPoin() {
     if (t.sb._forumSkorSaya(50, 0) !== 48) salah.push("sesudah dicabut bilah skor harus 48 (tanpa forum)");
   }
   if (salah.length) throw new Error(`${relative}: runtime forum 2 poin salah: ${salah.join("; ")}; run node scripts/forum-poin.mjs`);
+}
+
+// Praktik terbimbing 3 poin (scripts/praktik-poin.mjs, kontrak dosen 19 Okt 2026): 14 halaman modul CAD wajib
+// memuat kartu unggah Bagian 09, baris bilah skor, dan blok DATA (sesudah HASIL-KEREN:DATA END, skrip modul
+// yang sama dengan FORUM-POIN) persis keluaran injector (pasang idempoten); halaman kursus lain tanpa blok.
+// Fungsi murni dan pembungkus _forumSkorSaya/_forumPipa/_forumRingkasEkspor diuji di sandbox
+// (ujiRuntimePraktikPoin) dengan contoh kontrak Tugas 45 + Forum 2 + Praktik 3.
+const PRAKTIK_PENANDA = ["PRAKTIK-POIN:CSS v1", 'data-praktik-poin="kartu v1"', 'data-praktik-poin="baris v1"', "PRAKTIK-POIN:DATA BEGIN v1",
+  "PRAKTIK-POIN:DATA END v1", 'id="praktikKartu"', 'id="scorePraktik"', "PRAKTIK-POIN:MURNI BEGIN", "httpsCallable(_functions, 'unggahPraktik'"];
+let praktikHalaman = 0;
+let praktikContoh = null;
+function periksaPraktikPoin(html, relative) {
+  const hit = (t) => html.split(t).length - 1;
+  const m = new RegExp(`^${PRAKTIK_FOLDER}/Modul/Modul-(\\d+)\\.html$`).exec(relative);
+  if (!m) {
+    for (const t of PRAKTIK_PENANDA) if (hit(t)) throw new Error(`${relative}: blok praktik terbimbing (${t}) hanya untuk modul Pemodelan CAD`);
+    return;
+  }
+  const n = Number(m[1]);
+  const saran = "; run node scripts/praktik-poin.mjs";
+  for (const t of PRAKTIK_PENANDA) if (hit(t) !== 1) throw new Error(`${relative}: penanda praktik ${t} muncul ${hit(t)}x, harusnya 1${saran}`);
+  if (hit(`const PRAKTIK_NOMOR = ${n};`) !== 1) throw new Error(`${relative}: PRAKTIK_NOMOR bukan ${n}${saran}`);
+  if (hit(`const PRAKTIK_BERKRITERIA = ${PRAKTIK_BERKRITERIA.includes(n)};`) !== 1) throw new Error(`${relative}: PRAKTIK_BERKRITERIA tidak sesuai daftar BERKRITERIA${saran}`);
+  if (hit(`const PRAKTIK_POIN_MULAI = '${PRAKTIK_MULAI}';`) !== 1) throw new Error(`${relative}: PRAKTIK_POIN_MULAI tidak sesuai${saran}`);
+  const iHk = html.indexOf("// HASIL-KEREN:DATA END v");
+  const iPr = html.indexOf("// PRAKTIK-POIN:DATA BEGIN v1");
+  if (iHk < 0 || iPr < iHk || html.slice(iHk, iPr).split("\n").length !== 2) throw new Error(`${relative}: blok PRAKTIK-POIN:DATA harus tepat sesudah HASIL-KEREN:DATA END${saran}`);
+  if (praktikPasang(html, n) !== html) throw new Error(`${relative}: blok praktik tidak sama dengan keluaran injector${saran}`);
+  praktikHalaman += 1;
+  if (n === 6) praktikContoh = { html, relative };
+}
+
+async function ujiRuntimePraktikPoin() {
+  if (!praktikContoh) throw new Error("ujiRuntimePraktikPoin: halaman contoh CAD Modul 6 tidak ada");
+  const { html, relative } = praktikContoh;
+  const potong = (a, b) => html.slice(html.indexOf(a), html.indexOf(b));
+  const forum = potong("// FORUM-POIN:DATA BEGIN v4", "// FORUM-POIN:DATA END v4").replace(/const FORUM_POIN_MULAI = '[^']+';/, FORUM_POIN_MULAI_BAWAAN_BARIS);
+  const praktik = potong("// PRAKTIK-POIN:DATA BEGIN v1", "// PRAKTIK-POIN:DATA END v1");
+  const iK = html.indexOf("function keaktifanTerapkanMurni(");
+  const keaktifan = html.slice(iK, html.indexOf("\n}\n", iK) + 3);
+  const salah = [];
+  // Fungsi murni: contoh kontrak.
+  {
+    const sb = { Date, Math, Number, String, Object, Set, Array, RegExp, KEAKTIFAN_BONUS_FRAKSI: 0.1 };
+    vm.createContext(sb);
+    vm.runInContext(potong("const PRAKTIK_POIN = 3;", "// PRAKTIK-POIN:MURNI BEGIN") + potong("// PRAKTIK-POIN:MURNI BEGIN", "// PRAKTIK-POIN:MURNI END") + "\n" + keaktifan, sb);
+    const kasus = [[[50, 0, 2, 3, 50], 50], [[50, 0, 2, 0, 50], 47], [[40, 0, 2, 3, 50], 41], [[40, 5, 2, 3, 50], 46], [[50, 0, 2, 1.95, 50], 48.95], [[0, 0, 2, 3, 50], 5], [[46, 5, 2, 3, 50], 50], [[50, 0, 0, 0, 50], 45]];
+    for (const [arg, harap] of kasus) if (sb.praktikSkorMurni(...arg) !== harap) salah.push(`praktikSkorMurni(${arg}) = ${sb.praktikSkorMurni(...arg)}, harap ${harap}`);
+    const isSim = (n) => String(n) === "41399999901";
+    const roster = [{ nim: "1", nama: "A" }, { nim: "2", nama: "B" }, { nim: "41399999901", nama: "S" }];
+    const rec = (p) => ({ waktu: "2026-10-21T03:00:00.000Z", pengali: p });
+    const out = sb.praktikTerapkanMurni([{ nim: "1", role: "student", points: 40 }, { nim: "41399999901", role: "student", points: 50 }, { role: "dosen", points: 0 }],
+      { mhs_1: rec(1) }, { mhs_1: { aktif: true } }, { mhs_1: rec(1), mhs_2: rec(0.65), mhs_41399999901: rec(1) }, roster, 50, isSim, sb.keaktifanTerapkanMurni);
+    const poin = Object.fromEntries(out.filter((v) => v && v.nim).map((v) => [v.nim, v.points]));
+    if (poin["1"] !== 46) salah.push(`tabel: raw 40 + aktif + forum + praktik harus 46 (dapat ${poin["1"]})`);
+    if (poin["2"] !== 1.95) salah.push(`tabel: praktik terlambat tanpa kunjungan harus 1,95 (dapat ${poin["2"]})`);
+    const iso = (s) => ({ mhs_1: { role: "student", nim: "1", poinPertama: s } });
+    if (sb.praktikPengerjaanLamaMurni(iso("2026-10-18T10:00:00.000Z"), isSim) !== true) salah.push("pengerjaan 18 Okt harus mengunci aturan lama");
+    if (sb.praktikPengerjaanLamaMurni(iso("2026-10-20T10:00:00.000Z"), isSim) !== false) salah.push("pengerjaan 20 Okt tidak mengunci");
+    if (sb.praktikPengerjaanLamaMurni(iso("2026-10-18T10:00"), isSim) !== false) salah.push("waktu tanpa zona diabaikan");
+    if (sb.praktikPengerjaanLamaMurni({ mhs_41399999901: { role: "student", nim: "41399999901", poinPertama: "2026-10-18T10:00:00.000Z" } }, isSim) !== false) salah.push("akun simulasi diabaikan");
+    const buka = (s) => Date.parse(s);
+    if (sb.praktikAturanKelasMurni(true, true, buka("2026-10-19T16:59:00Z"), false) !== true) salah.push("M6 (buka 19 Okt 23:59 WIB) harus aktif");
+    if (sb.praktikAturanKelasMurni(true, true, buka("2026-10-12T16:59:00Z"), false) !== false) salah.push("M5 (buka 12 Okt) tidak aktif");
+    if (sb.praktikAturanKelasMurni(false, true, buka("2026-10-26T16:59:00Z"), false) !== false) salah.push("modul tanpa kriteria tidak aktif");
+    if (sb.praktikAturanKelasMurni(true, false, buka("2026-10-26T16:59:00Z"), false) !== false) salah.push("tanpa aturan forum tidak aktif");
+    if (sb.praktikAturanKelasMurni(true, true, buka("2026-10-26T16:59:00Z"), null) !== false) salah.push("data kunjungan belum diterima: tidak aktif");
+  }
+  // Runtime: blok keaktifan + FORUM-POIN + PRAKTIK-POIN dalam satu konteks (DOM, Firebase, callable tiruan).
+  function buat(me, jawabPraktik) {
+    const el = {};
+    const elemen = (id, init) => (el[id] = Object.assign({ id, textContent: "", innerHTML: "", className: "", disabled: false, style: { display: "none" }, value: "", files: [],
+      _klik: [], addEventListener(t, fn) { if (t === "click") this._klik.push(fn); },
+      classList: { _s: new Set(), toggle(c, v) { if (v) this._s.add(c); else this._s.delete(c); }, contains(c) { return this._s.has(c); } } }, init || {}));
+    ["baris-forum", "scoreForum", "forumPoinStatus", "btn-score-export", "export-blocked-msg", "baris-praktik", "scorePraktik", "praktikKartu", "praktikPil", "praktikTeks",
+      "praktikSyarat", "praktikBerkas", "praktikPilihPdf", "praktikFcstd", "praktikPdf", "praktikAksi", "praktikTombol", "praktikUlang", "praktikProgres", "praktikBar", "praktikPesan"].forEach((id) => elemen(id));
+    ["fq1", "fq2", "fq3"].forEach((k) => elemen("ans-" + k, { value: "" }));
+    const pendengar = {}, dengar = {}, log = { praktik: [] };
+    const sb = {
+      console: { warn() {}, log() {} }, Date, Math, Number, String, JSON, Object, Set, Array, Promise, RegExp, Uint8Array,
+      MODULE_ID: "pertemuan-6", SCHEDULE_PATH: "settings/k/pertemuan-6/schedule", DB_PATH: "visitors/k/pertemuan-6", masterStudents: [{ nim: "1", nama: "A" }, { nim: "2", nama: "B" }], _keaktifanModul: {},
+      KEAKTIFAN_BONUS_FRAKSI: 0.1, isSimulasiNim: (n) => String(n) === "41399999901", escH: (x) => String(x).replace(/</g, "&lt;"),
+      getIdentityLocal: () => me, _keaktifanTotal: () => 50, _keaktifanSegarkan: () => {}, _setBtnState: (b, ok) => { b.disabled = !ok; },
+      ref: (_db, p) => p, db: {}, _functions: {},
+      onValue: (p, cb) => { const k = String(p).replace(/^(forum|praktik)\/[a-z0-9_]+\//, "$1/k/"); (dengar[k] = dengar[k] || []).push(cb); },
+      httpsCallable: (_f, nama) => async (d) => {
+        if (nama === "klaimPoinForum") return { data: { aktif: true, forumPoin: 0, alasan: "kurang", rincian: {} } };
+        log.praktik.push(d);
+        return { data: jawabPraktik(d, log.praktik.length) };
+      },
+      setInterval: () => 0, setTimeout: (fn) => { sb.__antre.push(fn); return 0; }, __antre: [], alert() {},
+      FileReader: class { readAsDataURL(blob) { this.result = "data:application/octet-stream;base64," + blob.b64; this.onload(); } },
+      crypto: { getRandomValues: (a) => { for (let i = 0; i < a.length; i++) a[i] = (i * 37 + log.praktik.length * 11) % 256; return a; } },
+      document: { getElementById: (id) => el[id] || null },
+    };
+    sb.window = sb;
+    sb._sessionPinHash = "h".repeat(64); sb.MODUL_ID = "pemodelan_cad-modul-6"; sb._previewMode = false;
+    sb.addEventListener = (t, fn) => { (pendengar[t] = pendengar[t] || []).push(fn); };
+    sb.checkExportReady = function () { el["btn-score-export"].disabled = false; };
+    sb.exportTugasHtml = function () {};
+    vm.createContext(sb);
+    vm.runInContext(keaktifan + "\n" + forum + "\n" + praktik, sb);
+    const kirim = (t, detail) => (pendengar[t] || []).forEach((fn) => fn({ detail }));
+    const tunggu = async () => { for (let i = 0; i < 12; i++) { await new Promise((r) => setImmediate(r)); while (sb.__antre.length) sb.__antre.shift()(); } };
+    const snap = (jalur, v) => { if (!dengar[jalur]) throw new Error(`${relative}: blok tidak berlangganan ${jalur}`); dengar[jalur].forEach((cb) => cb({ val: () => v })); };
+    return { sb, el, log, kirim, tunggu, snap };
+  }
+  const J = { praktik: "praktik/k/pertemuan-6", forum: "forum/k/pertemuan-6", jadwal: "settings/k/pertemuan-6/schedule", kunjungan: "visitors/k/pertemuan-6" };
+  const jM6 = { start: "2026-10-19T16:59:00.000Z", due: "2026-10-26T23:59", duration: 7 };
+  const jM5 = { start: "2026-10-12T16:59:00.000Z", due: "2026-10-19T23:59", duration: 7 };
+  const kunj = (nim, t, p) => ({ nama: "M", nim, role: "student", timestamp: t, lastVisit: t, visitCount: 1, points: p, scoredQuestions: "mc1", pointTimestamp: t, poinPertama: t });
+  const rec = (p) => ({ waktu: "2026-10-21T03:00:00.000Z", pengali: p });
+  // 1. Dosen: tabel Hasil memakai aturan praktik dari jadwal/kunjungan mentah.
+  {
+    const t = buat({ role: "dosen", nama: "D" }, () => { throw new Error("dosen tidak boleh unggah"); });
+    const pipa = (list) => t.sb._forumPipa(list || [{ nim: "1", role: "student", points: 50 }]);
+    t.snap(J.jadwal, jM6); t.snap(J.kunjungan, { mhs_1: kunj("1", "2026-10-20T03:00:00.000Z", 50) }); t.snap(J.forum, {}); t.snap(J.praktik, {});
+    if (pipa()[0].points !== 45) salah.push(`M6 tanpa forum/praktik: 50 → 45 (dapat ${pipa()[0].points})`);
+    t.snap(J.forum, { mhs_1: rec(1) }); t.snap(J.praktik, { mhs_1: rec(1), mhs_2: rec(1) });
+    const o = pipa();
+    if (o[0].points !== 50) salah.push(`M6 forum + praktik: 50 (dapat ${o[0].points})`);
+    if (!o.some((v) => v.nim === "2" && v.points === 3 && v.tanpaKunjungan)) salah.push("praktik tanpa kunjungan harus tampil dengan 3 poin");
+    if (t.el.praktikKartu.style.display !== "" || !/Tugas 45 \+ Forum 2 \+ Praktik 3/.test(t.el.praktikTeks.innerHTML)) salah.push("dosen: kartu praktik informatif harus tampil");
+    if (t.el.praktikBerkas.style.display !== "none") salah.push("dosen tidak boleh melihat pilihan berkas");
+    t.snap(J.jadwal, jM5);
+    if (pipa()[0].points !== 50 || pipa()[0].poinPraktik !== undefined) salah.push("M5 (dibuka 12 Okt): aturan forum saja, node praktik diabaikan");
+    if (t.el.praktikKartu.style.display !== "none") salah.push("M5: kartu praktik tersembunyi");
+    t.snap(J.jadwal, jM6); t.snap(J.kunjungan, { mhs_1: kunj("1", "2026-10-18T03:00:00.000Z", 50) });
+    if (pipa()[0].poinPraktik !== undefined) salah.push("dikerjakan sebelum 19 Okt: aturan praktik terkunci lama");
+  }
+  // 2. Mahasiswa: putusan server, bilah skor, unggah bertahap, ekspor.
+  {
+    const jawab = (d) => (d.ke < d.jumlah - 1 ? { ok: true, ke: d.ke, diterima: true }
+      : { ok: true, aktif: true, lolos: d.jenis === "pdf", praktikPoin: d.jenis === "pdf" ? 3 : 0, pengali: d.jenis === "pdf" ? 1 : null, waktu: "2026-10-21T03:00:00.000Z",
+        menunggu: d.jenis === "pdf" ? [] : ["pdf"], rincian: [{ id: "label", teks: "L", ok: true, info: "" }, { id: "pdf", teks: "PDF", ok: d.jenis === "pdf", info: "" }],
+        berkas: { jenis: d.jenis, namaBerkas: d.namaBerkas, size: d.ukuran } });
+    const t = buat({ role: "student", nim: "1", nama: "A" }, jawab);
+    t.snap(J.jadwal, jM6); t.snap(J.kunjungan, { mhs_1: kunj("1", "2026-10-20T03:00:00.000Z", 50) }); t.snap(J.forum, {}); t.snap(J.praktik, {});
+    const syarat = [{ id: "label", teks: "Nama dokumen" }, { id: "volume", teks: "Volume" }, { id: "pdf", teks: "PDF" }];
+    t.kirim("progres-modul:diterapkan", { ok: true, progres: { forumAturan: true, forumPoin: 0, forumPengali: null, forum: {},
+      praktikAturan: true, praktikPoin: 0, praktikPengali: null, praktikJenis: ["fcstd", "pdf"], praktikPotongBytes: 6291456, praktikMaksMB: { fcstd: 100, pdf: 20 },
+      praktikSyarat: syarat, praktikBerkas: {}, praktikPeriksa: { lolos: false, rincian: [{ id: "volume", ok: false, info: "terbaca 468.000,00 mm³" }] } } });
+    await t.tunggu();
+    if (t.sb._forumSkorSaya(50, 0) !== 45) salah.push(`bilah skor M6 tanpa forum/praktik: 45 (dapat ${t.sb._forumSkorSaya(50, 0)})`);
+    if (t.el["baris-praktik"].style.display !== "" || t.el.praktikKartu.style.display !== "") salah.push("mahasiswa: baris dan kartu praktik tampil");
+    if (!/468\.000,00/.test(t.el.praktikSyarat.innerHTML) || !/❌/.test(t.el.praktikSyarat.innerHTML)) salah.push("hasil periksa per syarat harus tampil (❌ + angka terbaca)");
+    if (t.el.praktikPilihPdf.style.display !== "") salah.push("Modul ber-PDF: pilihan PDF tampil");
+    if (!/Latihan6_1\.FCStd/.test(t.el.praktikTeks.innerHTML)) salah.push("teks kartu menyebut nama berkas Latihan6_<NIM>.FCStd");
+    const berkas = (nama, size) => ({ name: nama, size, slice: (a, b) => ({ b64: "QUJD", size: Math.min(b, size) - a }) });
+    t.el.praktikFcstd.files = [berkas("Latihan6_1.FCStd", 7 * 1048576)];
+    t.el.praktikPdf.files = [berkas("Latihan6_1.pdf", 300000)];
+    t.el.praktikTombol._klik.forEach((fn) => fn());
+    await t.tunggu();
+    const panggil = t.log.praktik;
+    if (panggil.length !== 3 || panggil[0].jumlah !== 2 || panggil[1].ke !== 1 || panggil[2].jenis !== "pdf" || panggil[0].sesi === panggil[2].sesi || panggil[0].pinHash !== "h".repeat(64)
+      || panggil[0].modulId !== "pemodelan_cad-modul-6" || panggil[0].ukuran !== 7 * 1048576)
+      salah.push(`unggah bertahap: 2 potongan .FCStd + 1 PDF dengan sesi berbeda (dapat ${JSON.stringify(panggil.map((x) => [x.jenis, x.ke, x.jumlah, x.sesi]))})`);
+    if (!/Lolos/.test(t.el.praktikPesan.innerHTML) || t.sb._forumSkorSaya(50, 0) !== 48) salah.push(`sesudah lolos: pesan Lolos dan bilah skor 48 (dapat ${t.sb._forumSkorSaya(50, 0)}, pesan ${t.el.praktikPesan.innerHTML})`);
+    if (!/Praktik terbimbing: <strong>3\/3/.test(t.sb._forumRingkasEkspor("mini"))) salah.push("ringkasan Export menyebut Praktik terbimbing 3/3");
+    if (t.el.praktikBerkas.style.display !== "none") salah.push("sesudah lolos pilihan berkas disembunyikan (terkunci)");
+    // Node dicabut dosen saat halaman terbuka → poin 0 lagi.
+    t.snap(J.praktik, { mhs_1: rec(1) }); t.snap(J.praktik, {});
+    if (t.sb._forumSkorSaya(50, 0) !== 45) salah.push("node praktik sendiri hilang (cabut/reset) → bilah skor 45");
+    // Backend tanpa fitur praktik: rumus forum persis.
+    const t2 = buat({ role: "student", nim: "1", nama: "A" }, () => ({}));
+    t2.snap(J.jadwal, jM6); t2.snap(J.kunjungan, { mhs_1: kunj("1", "2026-10-20T03:00:00.000Z", 50) }); t2.snap(J.forum, {}); t2.snap(J.praktik, {});
+    t2.kirim("progres-modul:diterapkan", { ok: true, progres: { forumAturan: true, forumPoin: 0, forumPengali: null, forum: {} } });
+    await t2.tunggu();
+    if (t2.sb._forumSkorSaya(50, 0) !== 48 || t2.el.praktikKartu.style.display !== "none") salah.push("backend lama (tanpa praktikAturan): Tugas 48 + Forum 2, kartu tersembunyi");
+    // Galat tetap (failed-precondition) tidak diulang; pesan tampil.
+    const t3 = buat({ role: "student", nim: "1", nama: "A" }, () => { const e = new Error("Akses modul belum dibuka"); e.code = "functions/failed-precondition"; throw e; });
+    t3.snap(J.jadwal, jM6); t3.snap(J.kunjungan, {}); t3.snap(J.forum, {}); t3.snap(J.praktik, {});
+    t3.kirim("progres-modul:diterapkan", { ok: true, progres: { forumAturan: true, praktikAturan: true, praktikJenis: ["fcstd"], praktikSyarat: syarat } });
+    t3.el.praktikFcstd.files = [berkas("Latihan6_1.FCStd", 1000)];
+    t3.el.praktikTombol._klik.forEach((fn) => fn());
+    await t3.tunggu();
+    if (t3.log.praktik.length !== 1 || !/belum dibuka/.test(t3.el.praktikPesan.innerHTML)) salah.push(`galat tetap: satu panggilan, pesan server tampil (dapat ${t3.log.praktik.length}, ${t3.el.praktikPesan.innerHTML})`);
+  }
+  if (salah.length) throw new Error(`${relative}: runtime praktik terbimbing salah: ${salah.join("; ")}; run node scripts/praktik-poin.mjs`);
 }
 
 // Hasil Keren (scripts/hasil-keren.mjs, permintaan dosen 13 Okt 2026): ikon bergerak + lima grafik agregat di tab
@@ -2286,6 +2466,8 @@ for (const course of courseRoots) {
     periksaKeaktifanKelas(modul, relative);
     // Forum 2 poin (scripts/forum-poin.mjs, 13 Okt 2026).
     periksaForumPoin(modul, relative);
+    // Praktik terbimbing 3 poin (scripts/praktik-poin.mjs, 19 Okt 2026): 14 modul CAD saja.
+    periksaPraktikPoin(modul, relative);
     periksaStatistikAbsen(modul, relative);
     // Hasil Keren (scripts/hasil-keren.mjs, 13 Okt 2026): halaman percobaan berblok lengkap, halaman lain tanpa blok.
     periksaHasilKeren(modul, relative);
@@ -2310,6 +2492,8 @@ if (penjagaForum.halaman !== 84) throw new Error(`Expected 84 modul pages with P
 await ujiMutasiPenjagaForum();
 if (forumPoinHalaman !== 84) throw new Error(`Expected 84 module pages with the FORUM-POIN DATA v3 block (forum 2 poin), found ${forumPoinHalaman}`);
 await ujiRuntimeForumPoin();
+if (praktikHalaman !== 14) throw new Error(`Expected 14 Pemodelan CAD module pages with the PRAKTIK-POIN v1 blocks, found ${praktikHalaman}`);
+await ujiRuntimePraktikPoin();
 if (hasilKerenJangkarGagal.length) throw new Error(`HASIL-KEREN: jangkar belum siap untuk rollout (pasang di memori gagal): ${hasilKerenJangkarGagal.join(" | ")}; perbaiki scripts/hasil-keren.mjs`);
 if (hasilKerenHalaman !== (HASIL_KEREN_SEMUA ? 84 : HASIL_KEREN_HALAMAN.size)) throw new Error(`Expected ${HASIL_KEREN_SEMUA ? 84 : HASIL_KEREN_HALAMAN.size} module pages with the HASIL-KEREN v3 blocks, found ${hasilKerenHalaman}`);
 {

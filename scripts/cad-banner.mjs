@@ -178,12 +178,16 @@ export function bannerPertemuan(k) {
   const terbit = PUBLISHED.includes(m.n);
   const catatanPindah = k.aktual ? `<br>&#128204; Dipindah dari jadwal kalender <strong style="color:#fff;">${fmtPanjang(k.tgl)}</strong>` : "";
   // Forum 2 poin mulai Pertemuan 5 (scripts/forum-poin.mjs, batas CAD 12 Okt 2026): tugas diskalakan ke 48.
+  // Praktik terbimbing 3 poin mulai Pertemuan 6 / Modul 6 (scripts/praktik-poin.mjs, batas 19 Okt 2026): tugas ke 45.
   const forumBaru = k.p >= 5;
-  const tugas = forumBaru ? "Buat 5 tugas pemodelan, unggah .FCStd + angka bacaan (40 poin; total tugas diskalakan ke 48 poin)" : "Buat 5 tugas pemodelan, unggah .FCStd + angka bacaan (40 poin)";
+  const praktikBaru = k.modul >= 6;
+  const skala = praktikBaru ? 45 : 48;
+  const tugas = forumBaru ? `Buat 5 tugas pemodelan, unggah .FCStd + angka bacaan (40 poin; total tugas diskalakan ke ${skala} poin)` : "Buat 5 tugas pemodelan, unggah .FCStd + angka bacaan (40 poin)";
   const forum = forumBaru ? "Jawab 3 diskusi Forum (2 poin)" : "Jawab 3 diskusi Forum";
-  const alur = k.tipe === "TMV"
-    ? `1. Ikuti TMV lewat Google Meet<br>2. Baca materi dan contoh FreeCAD<br>3. Kerjakan 10 PG (10 poin)<br>4. ${tugas}<br>5. ${forum}<br>6. Export HTML dan submit di LMS`
-    : `1. Baca materi dan contoh FreeCAD<br>2. Kerjakan 10 PG (10 poin)<br>3. ${tugas}<br>4. ${forum}<br>5. Export HTML dan submit di LMS`;
+  const praktik = praktikBaru ? "Unggah hasil Praktik Terbimbing di akhir Bagian 09 (3 poin)" : "";
+  const langkah = (k.tipe === "TMV" ? ["Ikuti TMV lewat Google Meet"] : [])
+    .concat(["Baca materi dan contoh FreeCAD"], praktik ? [praktik] : [], ["Kerjakan 10 PG (10 poin)", tugas, forum, "Export HTML dan submit di LMS"]);
+  const alur = langkah.map((x, i) => `${i + 1}. ${x}`).join("<br>");
   const tiba = sudahTiba(tglTampil);
   const tombolModul = terbit && tiba
     ? btnAktif(`${BASE}/Modul/Modul-${m.n}.html`, "&#128214;", `Buka Modul, Tugas,<br>dan Forum ${m.n} &rarr;`, GAYA_MODUL)

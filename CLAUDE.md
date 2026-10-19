@@ -225,6 +225,11 @@ repo publik ini.
   kirim ulang maksimal 65%, tanpa partial — juga saat rescale, sejak cabang
   backend `fix/rescale-cad-kirim-ulang` di-deploy, Pedoman §5.4); UTS 30 / UAS 31 soal tanpa TF
   (bobot tipe PG 1, tugas unggah 2, rakitan `c11` 6 dengan partial 3).
+  Nilai modul (forum, sejak 15 Okt 2026; CAD sejak Pertemuan 5): Tugas 48 + Forum 2. **Praktik
+  terbimbing CAD** (sejak Modul 6, 19 Okt 2026; semester berikutnya semua modul berkriteria): Tugas 45 +
+  Forum 2 + Praktik 3 — unggah `Latihan<N>_<NIM>.FCStd` (+ PDF TechDraw bila rekamannya sampai
+  TechDraw) di kartu Bagian 09, diperiksa server (`unggahPraktik`, kriteria backend `cad-praktik.js`),
+  kirim ulang tanpa penalti, lolos terlambat ×0,65; dipasang `scripts/praktik-poin.mjs` (Pedoman §17.1).
 - **Progres materi berurutan** (sejak 22 Agu 2026): kotak centang per bagian,
   tab Tugas/Forum/Hasil terkunci sampai lengkap, login modul *n* ditolak bila
   modul *n*−1 belum lengkap (centang + tugas + forum). Rincian: Pedoman §6.7.
