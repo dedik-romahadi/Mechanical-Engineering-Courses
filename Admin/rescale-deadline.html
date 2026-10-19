@@ -303,6 +303,14 @@ function ringkasForum(d, pratinjau){
     const ms = Date.parse(f && f.waktu);
     out.push(`• ${String((f && f.nimKey) || '').replace(/^mhs_/,'')}  pengali forum: ${f && f.pengaliLama} → ${f && f.pengaliBaru}  (klaim ${Number.isFinite(ms) ? fmtWib(ms) : (f && f.waktu)})`);
   });
+  // Poin praktik terbimbing (Pemodelan CAD, 3 poin): node praktik/<kursus>/<pertemuan>/mhs_<NIM>, aturan sama.
+  if (typeof d.praktikDisesuaikan === 'number' && d.praktikDisesuaikan > 0) {
+    out.push('', `🛠 Poin praktik terbimbing ${pratinjau ? 'yang akan disesuaikan' : 'disesuaikan'}: ${d.praktikDisesuaikan}`);
+    (Array.isArray(d.praktik) ? d.praktik : []).forEach(f=>{
+      const ms = Date.parse(f && f.waktu);
+      out.push(`• ${String((f && f.nimKey) || '').replace(/^mhs_/,'')}  pengali praktik: ${f && f.pengaliLama} → ${f && f.pengaliBaru}  (lolos ${Number.isFinite(ms) ? fmtWib(ms) : (f && f.waktu)})`);
+    });
+  }
   return out;
 }
 // start jadwal ujian terpilih (ms), null bila belum ada, atau NaN bila gagal dibaca.
@@ -428,8 +436,8 @@ window.doRescale = async function(){
     lines.push('');
     if(d.students.length === 0){
       // Forum disesuaikan tetapi tidak ada attempt tugas: jangan klaim "tidak ada yang disesuaikan".
-      lines.push(d.forumDisesuaikan > 0
-        ? '(Tidak ada poin attempt tugas yang perlu disesuaikan — hanya poin forum, lihat di bawah.)'
+      lines.push(d.forumDisesuaikan > 0 || d.praktikDisesuaikan > 0
+        ? '(Tidak ada poin attempt tugas yang perlu disesuaikan — hanya poin forum/praktik, lihat di bawah.)'
         : '(Tidak ada poin yang perlu disesuaikan — semua sudah sesuai deadline ini.)');
     } else {
       d.students.forEach(s=>{
@@ -508,9 +516,9 @@ window.doDiagnose = async function(){
       if(peringatan) lines.push(``, peringatan);
     }
     lines.push(``);
-    if(d.totalStudents === 0 && d.totalAdjusted === 0 && d.forumDisesuaikan > 0){
-      // Tidak ada attempt tugas yang berubah, tetapi poin forum akan disesuaikan (rincian di bawah).
-      lines.push('Attempt tugas: tidak ada yang berubah. Hanya poin forum yang akan disesuaikan (klik "Hitung Ulang Penalti" untuk menerapkan):');
+    if(d.totalStudents === 0 && d.totalAdjusted === 0 && (d.forumDisesuaikan > 0 || d.praktikDisesuaikan > 0)){
+      // Tidak ada attempt tugas yang berubah, tetapi poin forum/praktik akan disesuaikan (rincian di bawah).
+      lines.push('Attempt tugas: tidak ada yang berubah. Hanya poin forum/praktik yang akan disesuaikan (klik "Hitung Ulang Penalti" untuk menerapkan):');
     } else if(d.totalStudents === 0 && d.totalAdjusted === 0){
       lines.push('⚠ KENAPA 0?');
       lines.push(`  (a) Belum ada mahasiswa submit jawaban ${exam ? 'ujian' : 'modul'} ini, ATAU`);
