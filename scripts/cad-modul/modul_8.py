@@ -95,7 +95,7 @@ def gambar1():
     b += arrow(284, 96, 284, 90, "#ef4444")
     b += t(452, 124, "belum konvergen → perhalus mesh, ulangi", 10, "#ef4444", "middle")
     b += t(40, 144, "Pohon Analysis di dokumen:", 11, TX, "start", "600")
-    for i, s_ in enumerate(["Analysis", "  ├ CalculiXCcxTools (solver)", "  ├ MaterialSolid (baja)", "  ├ FEMMeshGmsh", "  ├ ConstraintFixed · ConstraintForce", Kode("  └ CCX_Results ← hasil yang dibaca")]):
+    for i, s_ in enumerate(["Analysis", "  ├ SolverCcxTools (solver)", "  ├ MaterialSolid (baja)", "  ├ FEMMeshGmsh", "  ├ ConstraintFixed · ConstraintForce", Kode("  └ CCX_Results ← hasil yang dibaca")]):
         b += t(40, 160 + i * 14, s_, 10, "#00e09e" if i == 5 else AX, "start")
     b += t(452, 150, "Persamaan yang diselesaikan:", 11, TX, "start", "600")
     b += t(452, 168, "[K]{u} = {F}  (statik)", 10.5, "#22d3ee", "start")
@@ -288,8 +288,9 @@ def gambar6():
     b += t(432, 148, "f<sub>n</sub> = (β<sub>n</sub>²/2π)·√(EI/ρA)/L²", 10.5, "#a855f7", "start")
     for i, (fn, bn) in enumerate(zip(F_MODE, BETA)):
         b += t(432, 166 + i * 16, f"β{['₁', '₂', '₃'][i]} = {ind(bn, 4)} → f{['₁', '₂', '₃'][i]} = {ind(fn, 1)} Hz", 10, "#00e09e" if i == 0 else AX, "start")
-    b += t(432, 222, Kode("FEM: CCX_Mode1_Results → EigenmodeFrequency"), 9.5, AX, "start")
-    b += t(432, 238, "resonansi bila f putaran mesin ≈ f₁", 9.5, "#ef4444", "start")
+    b += t(432, 222, Kode("FEM: CCX_EigenMode_1_Results"), 9.5, AX, "start")
+    b += t(442, 236, Kode("→ EigenmodeFrequency"), 9.5, AX, "start")
+    b += t(432, 252, "resonansi bila f putaran mesin ≈ f₁", 9.5, "#ef4444", "start")
     b += teks2(340, 276, "Termal tunak dan frekuensi memakai Analysis yang sama dengan statik; yang berubah hanya Analysis Type, constraint, dan properti material", 11, AX, maks=76)
     return svg(680, 302, b, "Gambar 6 — Hantaran kalor batang dan mode getar pertama kantilever")
 
@@ -373,15 +374,15 @@ def gambar7():
     xn, yn = 436, 176
     baris = [(0, f"Part Box {L_E} × {B_E} × {H_E}", CY, "600"),
              (10, "(Length searah X)", AX, ""),
-             (0, "Material Steel-Generic:", TX, "600"),
+             (0, "Steel-Generic, diubah:", TX, "600"),
              (10, "E = 210000 MPa · ν = 0,30", AX, ""),              # literal, sama persis dengan teks langkah 2
              (10, "ρ = 7850 kg/m³ · k = 50 W/(m·K)", AX, ""),
              (0, "Mesh Gmsh: Element Order 2nd", TX, "600"),
-             (10, f"Max element size {H_E / 2:g} → 5 → 2,5", AX, ""),   # 7.5 bertitik: ikut format teks langkah 4
+             (10, f"Maximum size {ind(H_E / 2, 1)} → 5 → 2,5", AX, ""),
              (10, "(uji sekali: Element Order 1st)", AX, ""),
-             (0, "Analysis Type (CalculiX):", TX, "600"),
-             (10, "static → thermomech (steady)", AX, ""),
-             (10, "→ frequency (Fixed saja, tanpa beban)", AX, "")]
+             (0, "Analisis SolverCcxTools:", TX, "600"),
+             (10, "Static → Thermo mechanical", AX, ""),
+             (10, "→ Frequency (Fixed saja, tanpa beban)", AX, "")]
     for i, (dx, s_, c, w_) in enumerate(baris):
         b += t(xn + dx, yn + i * 16, s_, 10.5, c, "start", w_)
     b += t(660, 356, "Satuan: mm", 10.5, AM, "end", "600")
@@ -501,15 +502,15 @@ def materi():
     # 02 — FEM Workbench dan CalculiX
     isi = figure(2, "Objek FEM Workbench di dalam Analysis dan jalur solver CalculiX", "Material, mesh, constraint, dan solver hidup di dalam kontainer Analysis; saat dijalankan, FreeCAD menulis .inp, memanggil ccx, dan membaca .frd menjadi CCX_Results.", gambar2())
     isi += tabel(["Objek", "Perintah toolbar FEM", "Isi / parameter penting", "Nama di pohon"],
-                 [["Analysis", "Analysis container", "Wadah satu kasus; boleh lebih dari satu per dokumen", "<code>Analysis</code>"],
-                  ["Solver", "Solver CalculiX Standard", "Analysis Type (static, frequency, thermomech, buckling, check); Eigenmodes Count; Thermo Mech Steady State", "<code>CalculiXCcxTools</code>"],
-                  ["Material", "Material for solid", "Kartu material (Steel-Generic, AlMg3F24, ABS-Generic…) atau isian manual E, ν, ρ, k, α, c", "<code>MaterialSolid</code>"],
-                  ["Mesh", "FEM mesh from shape by Gmsh / Netgen", "Shape, Element Order, Characteristic Length Max/Min, Mesh Regions", "<code>FEMMeshGmsh</code>"],
-                  ["Constraint", "Constraint fixed / force / pressure / temperature / …", "References (muka, rusuk, titik) + nilai + arah", "<code>ConstraintFixed</code>, <code>ConstraintForce</code>"],
-                  ["Result", "dibuat solver", "DisplacementLengths, vonMises, PrincipalMax, Temperature; Show result & Post pipeline", "<code>CCX_Results</code>, <code>CCX_Mode1_Results</code>"]])
+                 [["Analysis", "New Analysis", "Wadah satu kasus; boleh lebih dari satu per dokumen", "<code>Analysis</code>"],
+                  ["Solver", "Solver CalculiX", "Analysis Type (static, frequency, thermomech, buckling, check); Eigenmodes Count; Thermo Mech Steady State", "<code>SolverCcxTools</code>"],
+                  ["Material", "Solid Material", "Kartu material (Steel-Generic, AlMg3F24, ABS-Generic…) atau isian manual E, ν, ρ, k, α, c", "<code>MaterialSolid</code>"],
+                  ["Mesh", "Mesh From Shape by Gmsh / Netgen", "Shape, Element order, Maximum/Minimum size, Mesh Regions", "<code>FEMMeshGmsh</code>"],
+                  ["Constraint", "Fixed Boundary Condition / Force Load / Pressure Load / Temperature Boundary Condition / …", "References (muka, rusuk, titik) + nilai + arah", "<code>ConstraintFixed</code>, <code>ConstraintForce</code>"],
+                  ["Result", "dibuat solver", "DisplacementLengths, vonMises, PrincipalMax, Temperature; Show result & Post pipeline", "<code>CCX_Results</code>, <code>CCX_EigenMode_1_Results</code>"]])
     isi += cards([
         ("🧮", "CalculiX (ccx)", "Solver elemen hingga sumber terbuka karya G. Dhondt dengan format masukan bergaya Abaqus. FreeCAD menuliskan berkas .inp lengkap (simpul, elemen, material, *BOUNDARY, *CLOAD) ke direktori kerja, menjalankan ccx, lalu membaca .frd.", ".inp → ccx → .frd"),
-        ("▶️", "Menjalankan solver", "Klik ganda CalculiXCcxTools → panel Tasks: Write .inp file → Run CalculiX. Log di panel menunjukkan “CalculiX done without error”. Tombol Run solver di toolbar melakukan keduanya sekaligus.", "Write · Run"),
+        ("▶️", "Menjalankan solver", "Klik ganda SolverCcxTools → panel Tasks: Write .inp file → Run CalculiX. Log di panel menunjukkan “CalculiX done without error”. Perintah Solve → Run Solver melakukan keduanya sekaligus.", "Write · Run"),
         ("📊", "Membaca hasil", "Klik ganda CCX_Results → Show result: pilih Displacement Magnitude, von Mises, atau Temperature; geser Displacement factor untuk memperbesar deformasi tampilan. Tab Data memuat daftar angka tiap simpul.", "Show result"),
         ("🧪", "Post pipeline (VTK)", "Post pipeline from result menampilkan kontur berwarna dengan filter (Warp, Clip, Cut, Scalar clip) untuk melihat bagian dalam solid. Modul 9 membahas evaluasi hasil lebih dalam.", "Modul 9"),
     ])
@@ -630,7 +631,7 @@ def materi():
                  [["Analysis Type", "thermomech + Thermo Mech Steady State", "frequency, Eigenmodes Count 5", "— (bukan FEM)"],
                   ["Material wajib", "k (E, ν, ρ, α, c terisi)", "E, ν, ρ", "—"],
                   ["Constraint", "Temperature ×2 muka ujung + Initial temperature", "Fixed saja, tanpa beban", "Joint Assembly (Revolute, Slider)"],
-                  ["Hasil", "CCX_Results → Temperature (Min/Max)", "CCX_Mode1_Results … Mode5 → EigenmodeFrequency", "Gerak mekanisme, jarak, tabrakan"],
+                  ["Hasil", "CCX_Results → Temperature (Min/Max)", "CCX_EigenMode_1_Results … EigenMode_5 → EigenmodeFrequency", "Gerak mekanisme, jarak, tabrakan"],
                   ["Pembanding", "q = k·A·ΔT/L", "f<sub>n</sub> = (β<sub>n</sub>²/2π)·√(EI/ρA)/L²", "x = r·cosθ + √(l² − r²sin²θ)"]])
     isi += kotak("info-box", "<strong>🔗 Kinematik bukan FEM:</strong> pertanyaan “sejauh mana lengan bergerak” dan “apakah komponen bertabrakan saat berputar” dijawab Assembly Workbench FreeCAD 1.0 dengan joint dan solver kinematik (Modul 11), bukan CalculiX. FEM menjawab kekuatan, kekakuan, suhu, dan getaran komponen pada posisi tertentu; gabungan keduanya (posisi kritis dari kinematika → beban untuk FEM) adalah praktik industri.")
     m += bagian(7, "m-termal", "Analisis Termal dan Frekuensi:<br>Suhu, Laju Kalor, dan Mode Getar", "Dengan Analysis yang sama, mengganti Analysis Type membuka dua pertanyaan baru: seberapa cepat kalor mengalir dan pada frekuensi berapa komponen beresonansi. Bagian ini membahas keduanya beserta rumus pembandingnya, dan menempatkan kinematika pada tempatnya.", isi, "TERMAL DAN FREKUENSI")
@@ -641,7 +642,7 @@ doc = App.newDocument("Latihan8")
 balok = doc.addObject("Part::Box", "Balok"); balok.Length, balok.Width, balok.Height = {L_E}, {B_E}, {H_E}
 doc.recompute()
 an = ObjectsFem.makeAnalysis(doc, "Analysis")
-solver = ObjectsFem.makeSolverCalculiXCcxTools(doc, "CalculiXCcxTools"); an.addObject(solver)
+solver = ObjectsFem.makeSolverSolverCcxTools(doc, "SolverCcxTools"); an.addObject(solver)
 solver.AnalysisType = "static"; solver.GeometricalNonlinearity = "linear"
 mat = ObjectsFem.makeMaterialSolid(doc, "MaterialSolid"); an.addObject(mat)
 m = mat.Material
@@ -700,13 +701,13 @@ for n, beta in enumerate([{BETA[0]}, {BETA[1]}, {BETA[2]}], 1):
     m += bagian(8, "m-python", "Python Console:<br>ObjectsFem dari Analysis sampai Hasil", "Cell pertama membangun Analysis kantilever lengkap dengan ObjectsFem dan mesh Gmsh; cell kedua menjalankan CalculiX dari Python dan membandingkan δ serta σ dengan rumus; cell ketiga mengubah Analysis Type menjadi termal dan frekuensi beserta rumus pembandingnya.", isi, "PYTHON CONSOLE")
 
     # 09 — Praktik terbimbing
-    langkah = [("1", "Geometri dan massa", f"Part → Box {L_E} × {B_E} × {H_E} mm (Length searah X). Baca Shape.Volume, hitung massa baja 7,85×10⁻³ × V = {ind(M_E, 2)} g; ini bacaan Tugas 1."),
-               ("2", "Analysis dan material", "FEM Workbench → Analysis container → Material for solid → kartu Steel-Generic; periksa E = 210000 MPa, ν = 0,30, ρ = 7850 kg/m³, k = 50 W/(m·K)."),
-               ("3", "Tumpuan dan beban", f"Constraint fixed → muka x = 0. Constraint force → muka x = L, {F_E} N, arah −Z (pilih muka atas sebagai arah, centang Reversed bila perlu). Perhatikan panah di 3D view."),
-               ("4", "Mesh Gmsh", f"FEM mesh from shape by Gmsh → Element Order 2nd, Max element size {H_E / 2:g} mm → Apply. Catat jumlah elemen dan simpul di properti mesh."),
-               ("5", "Solver statik", "Klik ganda CalculiXCcxTools → Analysis Type static → Write .inp file → Run CalculiX; tunggu “done without error”. Show result → Displacement Magnitude; baca nilai maksimum."),
-               ("6", "Validasi dan konvergensi", f"δ rumus = {ind(DELTA_E, 4)} mm, σ rumus = {ind(SIGMA_E, 1)} MPa. Hitung kesalahan relatif; ulangi dengan mesh 5 dan 2,5 mm sampai perubahan < 2%. Coba Element Order 1st sekali untuk melihat tet4 yang terlalu kaku."),
-               ("7", "Termal, frekuensi, simpan", f"Ganti beban dengan Temperature {300 + DT_E} K di muka x = 0 dan 300 K di muka x = L, + Initial temperature 300 K, Analysis Type thermomech (steady) → baca Temperature; lalu frequency (hapus constraint suhu) → f₁ ≈ {ind(F_MODE[0], 1)} Hz. Ctrl+S → <code>Latihan8_NIM.FCStd</code>.")]
+    langkah = [("1", "Geometri dan massa", f"File → New Document; workbench Part → Part → Primitives → <strong>Cube</strong>. Pilih Cube → Data: Length {L_E} (searah X), Width {B_E}, Height {H_E}. Python console: <code>round(App.ActiveDocument.Box.Shape.Volume, 2)</code> → {ind(V_E, 0)} mm³; massa baja <code>round(App.ActiveDocument.Box.Shape.Volume * 7.85e-3, 2)</code> → {ind(M_E, 2)} g; ini bacaan Tugas 1."),
+               ("2", "Analysis dan material", "Workbench FEM → Model → <strong>New Analysis</strong>. Model → Materials → <strong>Solid Material</strong>: buka daftar → Standard → Metal → Steel → <em>Steel-Generic</em>. Kartu bawaan FreeCAD 1.1 berisi E = 200 GPa dan ρ = 7900 kg/m³; centang <em>Use this task panel</em> lalu ketik Young's modulus 210 GPa (E = 210000 MPa) dan Density 7850 kg/m³, nilai baja yang dipakai modul ini; ν = 0,30 dan k = 50 W/(m·K) tetap → OK."),
+               ("3", "Tumpuan dan beban", f"Model → Mechanical Boundary Conditions and Loads → <strong>Fixed Boundary Condition</strong>: tekan 6 (Left), Add, klik muka x = 0 → OK. <strong>Force Load</strong>: tekan 0, klik muka atas lalu tombol Direction (acuan arah +Z); tekan 3 (Right), Add, klik muka x = L; Force {F_E} N, centang <em>Reverse direction</em> → panah menunjuk ke bawah (−Z) → OK."),
+               ("4", "Mesh Gmsh", f"Pilih Cube → Mesh → <strong>Mesh From Shape by Gmsh</strong>: Element order 2nd, Maximum size {ind(H_E / 2, 1)} mm → Apply → OK. Python console: <code>(App.ActiveDocument.FEMMeshGmsh.FemMesh.NodeCount, App.ActiveDocument.FEMMeshGmsh.FemMesh.VolumeCount)</code> → 2.360 simpul, 1.166 elemen."),
+               ("5", "Solver statik", "Solve → <strong>Solver CalculiX</strong>; klik ganda SolverCcxTools → Static → Write .inp File → Run CalculiX: “CalculiX done without error!” → Close. Sembunyikan Cube dan CCX_Results_Mesh (Space); pilih Pipeline_CCX_Results → View → Field = <em>Displacement Magnitude</em> (skala warna dalam meter). <code>round(max(App.ActiveDocument.CCX_Results.DisplacementLengths), 4)</code> → 0,5452 mm."),
+               ("6", "Validasi dan konvergensi", f"δ rumus = {ind(DELTA_E, 4)} mm, σ rumus = {ind(SIGMA_E, 1)} MPa. Klik ganda FEMMeshGmsh → Maximum size 5 → Apply → OK, jalankan solver lagi: 3.885 elemen, δ = 0,546 mm; 2,5 mm: 27.152 elemen, δ = 0,5464 mm (kesalahan 0,4 % terhadap rumus, perubahan antar-mesh &lt; 0,1 %). Coba Element order 1st (tet4) 7,5 mm sekali: δ = 0,2958 mm, terlalu kaku. Kembalikan ke 2nd, 5 mm."),
+               ("7", "Termal, frekuensi, simpan", f"Tampilkan Cube, hapus ConstraintForce. Thermal Boundary Conditions and Loads → <strong>Temperature Boundary Condition</strong> {300 + DT_E} K di muka x = 0 dan 300 K di muka x = L, + Initial Temperature 300 K; solver <em>Thermo mechanical</em> → Temperature 300–{300 + DT_E} K (Pipeline Field = Temperature). Results → Purge Results, hapus kedua constraint suhu (Fixed tetap), SolverCcxTools → Data → Eigenmodes Count 5, solver <em>Frequency</em> → f₁ = 387,8 Hz (rumus ≈ {ind(F_MODE[0], 1)} Hz), f₂ = 761,3 Hz, f₃ = 2.355,7 Hz. Ctrl+S → <code>Latihan8_NIM.FCStd</code>.")]
     isi = figure(7, "Gambar kerja kantilever: geometri, tumpuan, beban, suhu, dan material", f"Tampak depan (bidang XZ) dan muka x = L (bidang YZ) balok {L_E} × {B_E} × {H_E} dari langkah 1, ukuran dalam mm. Panel A dan B memperlihatkan Fixed di muka x = 0 dan F = {F_E} N arah −Z di muka x = L (langkah 3), panel C suhu kedua muka ujung untuk analisis termal (langkah 7), dan catatan kanan memuat material, mesh, serta Analysis Type yang diketik pada langkah 2 dan 4–7.", gambar7())
     isi += '  <div class="cards reveal">\n'
     for no, judul, teks in langkah:
@@ -726,7 +727,7 @@ for n, beta in enumerate([{BETA[0]}, {BETA[1]}, {BETA[2]}], 1):
                   ["Suhu seragam / tidak ada gradien", "Hanya satu Temperature constraint atau bukan steady state", "Dua constraint suhu di dua muka; Thermo Mech Steady State aktif"],
                   ["Frekuensi 0 Hz atau sangat kecil", "Tanpa Fixed (benda bebas: 6 mode kaku) atau ρ salah satuan", "Tambahkan Fixed; ρ = 7850 kg/m³"],
                   ["Mesh gagal / Gmsh tidak ditemukan", "Path Gmsh belum diatur (paket non-resmi)", "Edit → Preferences → FEM → Gmsh binary; paket resmi 1.0 sudah membawanya"]])
-    isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) satu Analysis berisi MaterialSolid (properti terisi), FEMMeshGmsh orde 2, constraint sesuai tugas, dan CalculiXCcxTools dengan Analysis Type yang benar; (2) hasil CCX_Results (atau CCX_Mode1_Results) ada di pohon setelah Run; (3) angka yang diisikan adalah nilai ANALITIS dengan desimal sesuai label, dihitung dari dimensi varian Anda; (4) selisih FEM terhadap rumus sudah Anda periksa (< 5%); (5) berkas .FCStd tersimpan lewat Ctrl+S, nama tanpa spasi.")
+    isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) satu Analysis berisi MaterialSolid (properti terisi), FEMMeshGmsh orde 2, constraint sesuai tugas, dan SolverCcxTools dengan Analysis Type yang benar; (2) hasil CCX_Results (atau CCX_EigenMode_1_Results) ada di pohon setelah Run; (3) angka yang diisikan adalah nilai ANALITIS dengan desimal sesuai label, dihitung dari dimensi varian Anda; (4) selisih FEM terhadap rumus sudah Anda periksa (< 5%); (5) berkas .FCStd tersimpan lewat Ctrl+S, nama tanpa spasi.")
     m += bagian(9, "m-praktik", "Praktik Terbimbing:<br>Kantilever Statik, Termal, dan Frekuensi", "Tujuh langkah berikut membangun Analysis kantilever contoh dari geometri sampai validasi, menguji konvergensi mesh, lalu mengubahnya menjadi analisis termal dan frekuensi; ditutup tabel gejala dan daftar periksa.", isi, "PRAKTIK TERBIMBING")
 
     refs = pm_ref(1, "cyan", "14,165,233", "FreeCAD Community", "FreeCAD 1.0 Documentation: FEM Workbench (Analysis, Material, Mesh Gmsh/Netgen, Constraints, Solver CalculiX, Results, Post pipeline), FEM Tutorial, FEM Scripting", " (wiki.freecad.org), 2024–2026.", "Acuan nama objek, parameter solver, dan API ObjectsFem/femtools yang dipakai di cell Python.")
