@@ -12780,11 +12780,72 @@ _ttlMulai();
   if (sections.length && 'IntersectionObserver' in window) {
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => entry.target.classList.toggle('is-in-view', entry.isIntersecting));
-      const visible = entries.filter(entry => entry.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
-      if (visible) setCurrent(visible.target.id);
     }, {rootMargin:'-118px 0px -58% 0px', threshold:[0,.15,.35]});
     sections.forEach(section => observer.observe(section));
+  }
+  if (sections.length) {
+    // Sorotan subnav = bagian terakhir yang tepi atasnya sudah melewati garis baca tepat di bawah subnav.
+    // Bukan intersectionRatio: rasio itu relatif terhadap tinggi bagian, sehingga bagian panjang (mis.
+    // Praktik dengan video) kalah oleh sisa bagian sebelumnya. Klik subnav langsung menyorot tujuannya
+    // selama gulir menuju bagian itu berlangsung.
+    let tujuan = null, tujuanSampai = 0, antre = 0;
+    const garisBaca = () => {
+      const nav = document.getElementById('modulSubnav');
+      return Math.max(118, nav ? nav.getBoundingClientRect().bottom : 0) + 24;
+    };
+    const hitung = () => {
+      if (!page.classList.contains('active')) return;
+      if (tujuan && performance.now() < tujuanSampai) { setCurrent(tujuan); return; }
+      tujuan = null;
+      const y = garisBaca();
+      let aktif = sections[0];
+      for (const section of sections) { if (section.getBoundingClientRect().top <= y) aktif = section; else break; }
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+        const akhir = [...sections].reverse().find(section => section.getBoundingClientRect().top < window.innerHeight);
+        if (akhir) aktif = akhir;
+      }
+      setCurrent(aktif.id);
+    };
+    const jadwal = () => { cancelAnimationFrame(antre); antre = requestAnimationFrame(hitung); };
+    window.addEventListener('scroll', jadwal, {passive:true});
+    window.addEventListener('resize', jadwal);
+    // Klik subnav: tujuan langsung disorot. Konten yang baru dimuat (gambar, video, animasi) bisa
+    // memanjangkan bagian di atas selama gulir sehingga gulir berhenti sebelum tujuan; setelah gulir
+    // diam, posisinya dikoreksi (maks. 8 kali). Input pengguna (roda, sentuh, tombol) membatalkannya.
+    let klikKe = 0;
+    const batalKlik = () => { klikKe++; tujuanSampai = 0; };
+    ['wheel', 'touchstart', 'keydown'].forEach(ev => window.addEventListener(ev, batalKlik, {passive:true}));
+    links.forEach(link => link.addEventListener('click', () => {
+      const id = link.getAttribute('href').slice(1);
+      const target = document.getElementById(id);
+      const ke = ++klikKe;
+      tujuan = id;
+      tujuanSampai = performance.now() + 1500;
+      setCurrent(id);
+      let coba = 0, yLalu = -1, diam = 0;
+      const koreksi = () => {
+        if (ke !== klikKe || !target) return;
+        const y = window.scrollY;
+        diam = Math.abs(y - yLalu) < 1 ? diam + 1 : 0;
+        yLalu = y;
+        if (diam < 3) { tujuanSampai = Math.max(tujuanSampai, performance.now() + 400); setTimeout(koreksi, 120); return; }
+        const selisih = target.getBoundingClientRect().top - (parseFloat(getComputedStyle(target).scrollMarginTop) || 0);
+        const diDasar = window.innerHeight + y >= document.documentElement.scrollHeight - 4;
+        if (Math.abs(selisih) > 8 && !(selisih > 0 && diDasar) && coba < 8) {
+          coba++;
+          diam = 0;
+          tujuanSampai = performance.now() + 1500;
+          target.scrollIntoView({behavior:'smooth', block:'start'});
+          setTimeout(koreksi, 120);
+          return;
+        }
+        tujuanSampai = 0;
+        jadwal();
+      };
+      setTimeout(koreksi, 120);
+    }));
     setCurrent(sections[0].id);
+    jadwal();
   }
   syncVisibility();
 
