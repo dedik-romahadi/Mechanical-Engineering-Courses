@@ -50,7 +50,7 @@ export function blok(v) {
     .join("\n      ");
   return `  <!-- VIDEO-PRAKTIK:BLOK BEGIN v1 -->
   <div class="video-praktik reveal" id="video-praktik">
-    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: ${v.judul}</span><span class="vp-meta">FreeCAD · ${v.durasi} · caption teks, dengan backsound</span></div>
+    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: ${v.judul}</span><span class="vp-meta">FreeCAD · ${v.durasi}</span></div>
     <video id="${id}" controls preload="none" playsinline poster="../Video/${v.poster}" aria-label="Rekaman layar FreeCAD: praktik terbimbing ${v.judul}">
       <source src="../Video/${v.berkas}" type="video/mp4">
       Peramban Anda tidak mendukung pemutar video. Ikuti tujuh langkah tertulis di bawah.

@@ -40,6 +40,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { SYARAT_PRAKTIK } from "./praktik-syarat-data.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const periksa = process.argv.includes("--periksa");
@@ -106,6 +107,8 @@ const PRAKTIK_POIN_MULAI = '${PRAKTIK_POIN_MULAI}';
 const PRAKTIK_POIN_MULAI_MS = Date.parse(PRAKTIK_POIN_MULAI);
 const PRAKTIK_NOMOR = ${n};
 const PRAKTIK_BERKRITERIA = ${BERKRITERIA.includes(n) ? "true" : "false"};
+// Daftar syarat untuk tampilan dosen/tamu (baca saja; cermin daftarSyarat backend, scripts/praktik-syarat-data.mjs).
+const PRAKTIK_SYARAT_BACA = ${JSON.stringify(BERKRITERIA.includes(n) ? SYARAT_PRAKTIK[n] || [] : [])};
 // PRAKTIK-POIN:MURNI BEGIN
 function praktikPoinRekMurni(rec) {
   if (!rec || typeof rec !== 'object') return 0;
@@ -250,7 +253,8 @@ function _praktikRender() {
   const namaFc = 'Latihan' + PRAKTIK_NOMOR + '_' + (me ? me.nim : 'NIM') + '.FCStd';
   if (teks) {
     if (!me) {
-      teks.innerHTML = 'Mahasiswa mengunggah hasil akhir praktik di atas (<b>Latihan' + PRAKTIK_NOMOR + '_NIM.FCStd</b>, ditambah PDF lembar TechDraw bila rekamannya sampai TechDraw). Server memeriksa berkas terhadap hasil video; lolos = 3 poin (×0,65 bila lewat tenggat). Nilai modul: Tugas 45 + Forum 2 + Praktik 3.';
+      teks.innerHTML = 'Mahasiswa mengunggah hasil akhir praktik di atas (<b>Latihan' + PRAKTIK_NOMOR + '_NIM.FCStd</b>, ditambah PDF lembar TechDraw bila rekamannya sampai TechDraw). Server memeriksa berkas terhadap hasil video; lolos = 3 poin (×0,65 bila lewat tenggat). Nilai modul: Tugas 45 + Forum 2 + Praktik 3.'
+        + '<br><i>Kolom unggah berkas tampil saat mahasiswa masuk dengan NIM-nya. Daftar syarat yang diperiksa server (baca saja):</i>';
     } else if (lolos) {
       teks.innerHTML = '✅ Praktik lolos: <b>' + _forumFmt(info.poin) + '/' + PRAKTIK_POIN + ' poin</b>' + (info.pengali && info.pengali < 1 ? ' — terlambat (×' + _forumFmt(info.pengali) + ')' : ' — tepat waktu')
         + (info.waktu ? ' · ' + escH(_praktikWaktu(info.waktu)) : '') + (info.simulasi ? ' · akun simulasi: tidak disimpan' : '') + '. Berkasnya dikunci; poin ini tetap.';
@@ -264,7 +268,8 @@ function _praktikRender() {
     const hasil = {};
     const per = _praktikServer.periksa;
     for (const r of ((per && per.rincian) || [])) hasil[r.id] = r;
-    const daftar = (_praktikServer.syarat && _praktikServer.syarat.length) ? _praktikServer.syarat : [];
+    const daftar = (_praktikServer.syarat && _praktikServer.syarat.length) ? _praktikServer.syarat
+      : (!me ? PRAKTIK_SYARAT_BACA.map((t, i) => ({ id: 'baca' + i, teks: t })) : []);
     const tambahan = ((per && per.rincian) || []).filter((r) => !daftar.some((s) => s.id === r.id));
     ul.innerHTML = daftar.concat(tambahan).map((s) => {
       const r = hasil[s.id];
