@@ -37,6 +37,9 @@
  *                          pil "+5 Poin" (hanya NIM roster). Jumlah pertemuan aktif sekursus juga
  *                          tampak kecil di samping NIM (".ka-n", untuk ponsel tanpa tooltip).
  *                          Fungsi murni & pipa tidak berubah.
+ *                          CSS v4 (20 Okt 2026, permintaan dosen): baris "Keaktifan kelas" di bilah skor
+ *                          disembunyikan (#baris-keaktifan{display:none}); bonus tetap dihitung di total,
+ *                          tabel Hasil, papan, dan ringkasan ekspor. Elemennya tetap ada sebagai patokan.
  *   + data-nim pada baris tabel Hasil, latestVisitors melewati _keaktifanTerapkan,
  *     baris "Keaktifan kelas" di bilah skor (updateScore) dan ringkasan ekspor HTML.
  *
@@ -81,8 +84,9 @@ const CSS = `<style id="keaktifan-kelas-style">/* KEAKTIFAN-KELAS:CSS v4 — dip
 .kartu-aktif .ka-baris{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .kartu-aktif .ka-baris:last-child{border-bottom:none}
 .kartu-aktif .ka-ikon{font-size:.95rem;flex-shrink:0;filter:drop-shadow(0 0 6px rgba(249,115,22,.45))}
-#baris-keaktifan.aktif{color:#f9a8d4;font-weight:700}
-#baris-keaktifan.aktif::after{content:" 🔥"}
+/* Bilah skor: baris "Keaktifan kelas" tidak ditampilkan (permintaan dosen 20 Okt 2026); bonusnya tetap
+   masuk total. Elemennya dipertahankan sebagai patokan baris Forum/Praktik (forum-poin.mjs). */
+#baris-keaktifan{display:none}
 @media (prefers-reduced-motion:reduce){.lencana-aktif,.lencana-aktif .la-api{animation:none}}
 </style>
 `;
