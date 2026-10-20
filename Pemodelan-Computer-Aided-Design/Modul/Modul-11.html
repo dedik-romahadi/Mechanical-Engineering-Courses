@@ -1837,6 +1837,7 @@ div.hk-ikon{display:block}
 .video-praktik .vp-ikon{font-size:1.25rem;line-height:1}
 .video-praktik .vp-judul{font-weight:800;font-size:1rem;color:var(--cyan,#67e8f9)}
 .video-praktik .vp-meta{margin-left:auto;font-size:.78rem;color:var(--muted,#aebbd0)}
+.video-praktik .vp-tayang{white-space:nowrap}
 .video-praktik video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#000}
 .video-praktik .vp-bab{display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px 6px}
 .video-praktik .vp-bab button{font:inherit;font-size:.78rem;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;color:var(--cyan,#67e8f9);background:transparent;border:1px solid var(--border,#243653)}
@@ -2801,7 +2802,7 @@ L_dekat = <span class="nm">2</span>*C + math.pi*(D1+D2)/<span class="nm">2</span
   </figure>
   <!-- VIDEO-PRAKTIK:BLOK BEGIN v1 -->
   <div class="video-praktik reveal" id="video-praktik">
-    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: Rakitan Engkol-Peluncur</span><span class="vp-meta">FreeCAD · 19:15</span></div>
+    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: Rakitan Engkol-Peluncur</span><span class="vp-meta">FreeCAD · 19:15<span class="vp-tayang" data-tayang="modul-11" hidden></span></span></div>
     <video id="vp-m11" controls preload="none" playsinline poster="../Video/Modul-11-Praktik-Rakitan-Engkol-Peluncur.jpg" aria-label="Rekaman layar FreeCAD: praktik terbimbing Rakitan Engkol-Peluncur">
       <source src="../Video/Modul-11-Praktik-Rakitan-Engkol-Peluncur.mp4" type="video/mp4">
       Peramban Anda tidak mendukung pemutar video. Ikuti tujuh langkah tertulis di bawah.
@@ -14501,5 +14502,40 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 })();
 </script>
 <!-- PILIHAN-POLL-FORUM:END v2 -->
+<script type="module" id="video-praktik-tayang">
+// VIDEO-PRAKTIK:TAYANG v1 — dipasang scripts/video-praktik.mjs
+import { getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+(function () {
+  var video = document.getElementById('vp-m11');
+  var label = document.querySelector('.video-praktik [data-tayang="modul-11"]');
+  if (!video || !label) return;
+  var JALUR = 'tayang/pemodelan_cad/modul-11';
+  var db = null;
+  function sambung() {
+    if (!db) { try { db = getDatabase(getApp()); } catch (e) { db = null; } }
+    return db;
+  }
+  function tampil(n) {
+    label.textContent = ' · 👁 ' + (Number(n) || 0).toLocaleString('id-ID') + ' kali ditonton';
+    label.hidden = false;
+  }
+  (function baca(coba) {
+    var d = sambung();
+    if (!d) { if (coba < 20) setTimeout(function () { baca(coba + 1); }, 500); return; }
+    onValue(ref(d, JALUR), function (s) { tampil(s.val()); }, function () {});
+  })(0);
+  // Satu hitungan per pemutaran: putar pertama sesudah halaman dibuka dan tiap putar ulang sesudah
+  // video selesai. Jeda lalu lanjut, lompat bab, dan menggeser waktu tidak dihitung lagi.
+  var sedangTayang = false;
+  video.addEventListener('play', function () {
+    if (sedangTayang) return;
+    sedangTayang = true;
+    var d = sambung();
+    if (d) runTransaction(ref(d, JALUR), function (n) { return (Number(n) || 0) + 1; }).catch(function () {});
+  });
+  video.addEventListener('ended', function () { sedangTayang = false; });
+})();
+</script>
 </body>
 </html>
