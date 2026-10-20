@@ -2,8 +2,8 @@
  * Praktik terbimbing 3 poin — Pemodelan CAD (kontrak dosen 19 Okt 2026: Tugas 45 + Forum 2 + Praktik 3).
  *
  * ATURAN (identik backend functions/index.js _aturanPraktikUntuk/_poinResmiModul, cad-praktik.js):
- * berlaku untuk modul CAD yang (1) punya kriteria praktik (PRAKTIK_BERKRITERIA: Modul 1–10; Modul 11–14
- * menyusul bersama rekaman GUI-nya — tambahkan nomornya di BERKRITERIA DAN di backend cad-praktik.js),
+ * berlaku untuk modul CAD yang (1) punya kriteria praktik (PRAKTIK_BERKRITERIA: Modul 1–14; modul baru
+ * ditambahkan nomornya di BERKRITERIA DAN di backend cad-praktik.js),
  * (2) waktu bukanya ≥ PRAKTIK_POIN_MULAI (2026-10-19T00:00:00+07:00 = sesudah Modul 5 dibuka, sebelum
  * Modul 6), dan (3) belum dikerjakan mahasiswa sebelum batas itu — pola yang sama dengan forum
  * (forumBukaMsMurni + bukti poinPertama/pointTimestamp tulisan server). Aturan praktik selalu bersama
@@ -47,7 +47,7 @@ const periksa = process.argv.includes("--periksa");
 export const KURSUS_FOLDER = "Pemodelan-Computer-Aided-Design";
 export const PRAKTIK_POIN_MULAI = "2026-10-19T00:00:00+07:00";
 // Modul yang punya kriteria praktik di backend (functions/modules/cad-praktik.js KRITERIA).
-export const BERKRITERIA = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+export const BERKRITERIA = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
 const CSS = `<style id="praktik-poin-style">/* PRAKTIK-POIN:CSS v1 — dipasang scripts/praktik-poin.mjs */
 #baris-praktik.aktif{color:#fcd34d;font-weight:700}
