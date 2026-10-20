@@ -1837,6 +1837,7 @@ div.hk-ikon{display:block}
 .video-praktik .vp-ikon{font-size:1.25rem;line-height:1}
 .video-praktik .vp-judul{font-weight:800;font-size:1rem;color:var(--cyan,#67e8f9)}
 .video-praktik .vp-meta{margin-left:auto;font-size:.78rem;color:var(--muted,#aebbd0)}
+.video-praktik .vp-tayang{white-space:nowrap}
 .video-praktik video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#000}
 .video-praktik .vp-bab{display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px 6px}
 .video-praktik .vp-bab button{font:inherit;font-size:.78rem;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;color:var(--cyan,#67e8f9);background:transparent;border:1px solid var(--border,#243653)}
@@ -2674,7 +2675,7 @@ doc.<span class="fn">recompute</span>()</pre>
   </figure>
   <!-- VIDEO-PRAKTIK:BLOK BEGIN v1 -->
   <div class="video-praktik reveal" id="video-praktik">
-    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: Panel Heksagon dengan Tiga Transformasi</span><span class="vp-meta">FreeCAD · 6:47</span></div>
+    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: Panel Heksagon dengan Tiga Transformasi</span><span class="vp-meta">FreeCAD · 6:47<span class="vp-tayang" data-tayang="modul-3" hidden></span></span></div>
     <video id="vp-m3" controls preload="none" playsinline poster="../Video/Modul-3-Praktik-Panel-Heksagon.jpg" aria-label="Rekaman layar FreeCAD: praktik terbimbing Panel Heksagon dengan Tiga Transformasi">
       <source src="../Video/Modul-3-Praktik-Panel-Heksagon.mp4" type="video/mp4">
       Peramban Anda tidak mendukung pemutar video. Ikuti tujuh langkah tertulis di bawah.
@@ -14291,5 +14292,40 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 })();
 </script>
 <!-- PILIHAN-POLL-FORUM:END v2 -->
+<script type="module" id="video-praktik-tayang">
+// VIDEO-PRAKTIK:TAYANG v1 — dipasang scripts/video-praktik.mjs
+import { getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+(function () {
+  var video = document.getElementById('vp-m3');
+  var label = document.querySelector('.video-praktik [data-tayang="modul-3"]');
+  if (!video || !label) return;
+  var JALUR = 'tayang/pemodelan_cad/modul-3';
+  var db = null;
+  function sambung() {
+    if (!db) { try { db = getDatabase(getApp()); } catch (e) { db = null; } }
+    return db;
+  }
+  function tampil(n) {
+    label.textContent = ' · 👁 ' + (Number(n) || 0).toLocaleString('id-ID') + ' kali ditonton';
+    label.hidden = false;
+  }
+  (function baca(coba) {
+    var d = sambung();
+    if (!d) { if (coba < 20) setTimeout(function () { baca(coba + 1); }, 500); return; }
+    onValue(ref(d, JALUR), function (s) { tampil(s.val()); }, function () {});
+  })(0);
+  // Satu hitungan per pemutaran: putar pertama sesudah halaman dibuka dan tiap putar ulang sesudah
+  // video selesai. Jeda lalu lanjut, lompat bab, dan menggeser waktu tidak dihitung lagi.
+  var sedangTayang = false;
+  video.addEventListener('play', function () {
+    if (sedangTayang) return;
+    sedangTayang = true;
+    var d = sambung();
+    if (d) runTransaction(ref(d, JALUR), function (n) { return (Number(n) || 0) + 1; }).catch(function () {});
+  });
+  video.addEventListener('ended', function () { sedangTayang = false; });
+})();
+</script>
 </body>
 </html>

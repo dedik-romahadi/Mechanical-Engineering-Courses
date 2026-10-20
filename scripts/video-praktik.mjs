@@ -9,6 +9,13 @@
  *   VIDEO-PRAKTIK:CSS    <style id="video-praktik-style"> di <head>
  *   VIDEO-PRAKTIK:BLOK   kartu pemutar <video controls preload="none" poster> + tombol bab (lompat
  *                        ke langkah 1..7) tepat sebelum kartu langkah di #m-praktik, sesudah Gambar 7
+ *   VIDEO-PRAKTIK:TAYANG <script type="module" id="video-praktik-tayang"> sebelum </body> (20 Okt 2026,
+ *                        permintaan dosen): jumlah tayang di kepala kartu ("· 👁 N kali ditonton"),
+ *                        dibaca langsung (onValue) dari RTDB tayang/pemodelan_cad/modul-<N>; tiap
+ *                        pemutaran menambah 1 lewat runTransaction (putar pertama sesudah halaman dibuka
+ *                        dan tiap putar ulang sesudah video selesai; jeda lalu lanjut tidak dihitung).
+ *                        Siapa pun boleh menambah (tanpa login); aturan RTDB hanya menerima +1
+ *                        (backend database.rules.json, scripts/verify-tayang-video.js).
  * Berkas video dan poster: Pemodelan-Computer-Aided-Design/Video/ (lihat video-praktik-data.mjs).
  * Tanpa pustaka, tanpa host luar; skrip bab hanya mengatur currentTime.
  *
@@ -33,6 +40,7 @@ export const CSS = `<style id="video-praktik-style">${CSS_AWAL}
 .video-praktik .vp-ikon{font-size:1.25rem;line-height:1}
 .video-praktik .vp-judul{font-weight:800;font-size:1rem;color:var(--cyan,#67e8f9)}
 .video-praktik .vp-meta{margin-left:auto;font-size:.78rem;color:var(--muted,#aebbd0)}
+.video-praktik .vp-tayang{white-space:nowrap}
 .video-praktik video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#000}
 .video-praktik .vp-bab{display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px 6px}
 .video-praktik .vp-bab button{font:inherit;font-size:.78rem;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;color:var(--cyan,#67e8f9);background:transparent;border:1px solid var(--border,#243653)}
@@ -50,7 +58,7 @@ export function blok(v) {
     .join("\n      ");
   return `  <!-- VIDEO-PRAKTIK:BLOK BEGIN v1 -->
   <div class="video-praktik reveal" id="video-praktik">
-    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: ${v.judul}</span><span class="vp-meta">FreeCAD · ${v.durasi}</span></div>
+    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: ${v.judul}</span><span class="vp-meta">FreeCAD · ${v.durasi}<span class="vp-tayang" data-tayang="modul-${v.modul}" hidden></span></span></div>
     <video id="${id}" controls preload="none" playsinline poster="../Video/${v.poster}" aria-label="Rekaman layar FreeCAD: praktik terbimbing ${v.judul}">
       <source src="../Video/${v.berkas}" type="video/mp4">
       Peramban Anda tidak mendukung pemutar video. Ikuti tujuh langkah tertulis di bawah.
@@ -66,11 +74,60 @@ export function blok(v) {
 
 const RX_BLOK = /[ \t]*<!-- VIDEO-PRAKTIK:BLOK BEGIN v\d+ -->[\s\S]*?<!-- VIDEO-PRAKTIK:BLOK END v\d+ -->\n/;
 const RX_CSS = /<style id="video-praktik-style">[\s\S]*?<\/style>\n?/;
+const RX_TAYANG = /<script type="module" id="video-praktik-tayang">[\s\S]*?<\/script>\n/;
+
+// Penghitung tayang: skrip modul terpisah di akhir <body>, sesudah skrip modul utama yang memanggil
+// initializeApp (getApp() sudah tersedia); blok video sendiri tetap tanpa host luar.
+export function tayang(v) {
+  return `<script type="module" id="video-praktik-tayang">
+// VIDEO-PRAKTIK:TAYANG v1 — dipasang scripts/video-praktik.mjs
+import { getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+(function () {
+  var video = document.getElementById('vp-m${v.modul}');
+  var label = document.querySelector('.video-praktik [data-tayang="modul-${v.modul}"]');
+  if (!video || !label) return;
+  var JALUR = 'tayang/pemodelan_cad/modul-${v.modul}';
+  var db = null;
+  function sambung() {
+    if (!db) { try { db = getDatabase(getApp()); } catch (e) { db = null; } }
+    return db;
+  }
+  function tampil(n) {
+    label.textContent = ' · 👁 ' + (Number(n) || 0).toLocaleString('id-ID') + ' kali ditonton';
+    label.hidden = false;
+  }
+  (function baca(coba) {
+    var d = sambung();
+    if (!d) { if (coba < 20) setTimeout(function () { baca(coba + 1); }, 500); return; }
+    onValue(ref(d, JALUR), function (s) { tampil(s.val()); }, function () {});
+  })(0);
+  // Satu hitungan per pemutaran: putar pertama sesudah halaman dibuka dan tiap putar ulang sesudah
+  // video selesai. Jeda lalu lanjut, lompat bab, dan menggeser waktu tidak dihitung lagi.
+  var sedangTayang = false;
+  video.addEventListener('play', function () {
+    if (sedangTayang) return;
+    sedangTayang = true;
+    var d = sambung();
+    if (d) runTransaction(ref(d, JALUR), function (n) { return (Number(n) || 0) + 1; }).catch(function () {});
+  });
+  video.addEventListener('ended', function () { sedangTayang = false; });
+})();
+</script>
+`;
+}
 
 export function pasang(html, v) {
   let out = html;
   // CSS sekali di <head>
   out = RX_CSS.test(out) ? out.replace(RX_CSS, () => CSS + "\n") : out.replace("</head>", () => CSS + "\n</head>");
+  // penghitung tayang: ganti yang ada, atau sisipkan tepat sebelum </body> terakhir
+  if (RX_TAYANG.test(out)) out = out.replace(RX_TAYANG, () => tayang(v));
+  else {
+    const b = out.lastIndexOf("</body>");
+    if (b < 0) throw new Error(`modul ${v.modul}: </body> tidak ditemukan`);
+    out = out.slice(0, b) + tayang(v) + out.slice(b);
+  }
   // blok: ganti yang ada, atau sisipkan sebelum kartu langkah pertama di #m-praktik
   if (RX_BLOK.test(out)) return out.replace(RX_BLOK, () => blok(v));
   const i = out.indexOf('id="m-praktik"');
