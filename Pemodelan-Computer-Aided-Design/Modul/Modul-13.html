@@ -2770,7 +2770,7 @@ L, bb, h0, E0, rho0 = <span class="nm">700</span>, <span class="nm">60</span>, <
   </figure>
   <!-- VIDEO-PRAKTIK:BLOK BEGIN v1 -->
   <div class="video-praktik reveal" id="video-praktik">
-    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: Housing Ringan Berlabel Jejak</span><span class="vp-meta">FreeCAD · 10:54 · caption teks, dengan backsound</span></div>
+    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: Housing Ringan Berlabel Jejak</span><span class="vp-meta">FreeCAD · 10:54</span></div>
     <video id="vp-m13" controls preload="none" playsinline poster="../Video/Modul-13-Praktik-Housing-Jejak.jpg" aria-label="Rekaman layar FreeCAD: praktik terbimbing Housing Ringan Berlabel Jejak">
       <source src="../Video/Modul-13-Praktik-Housing-Jejak.mp4" type="video/mp4">
       Peramban Anda tidak mendukung pemutar video. Ikuti tujuh langkah tertulis di bawah.
@@ -9215,6 +9215,8 @@ const PRAKTIK_POIN_MULAI = '2026-10-19T00:00:00+07:00';
 const PRAKTIK_POIN_MULAI_MS = Date.parse(PRAKTIK_POIN_MULAI);
 const PRAKTIK_NOMOR = 13;
 const PRAKTIK_BERKRITERIA = true;
+// Daftar syarat untuk tampilan dosen/tamu (baca saja; cermin daftarSyarat backend, scripts/praktik-syarat-data.mjs).
+const PRAKTIK_SYARAT_BACA = ["Berkas disimpan dari FreeCAD dengan nama Latihan13_<NIM Anda>.FCStd (File → Save As)","Housing Pad 160 × 120 × 80 (1.536.000 mm³) menjadi cangkang Thickness 5 mm: volume Body 298.500 mm³","Thickness Mode Skin, ke dalam, tebal diikat ekspresi =Jejak.t_dinding","Spreadsheet Jejak: alias rho_st 7,85e-6, f_st 2, t_dinding 5, rho_al 2,7e-6, f_al 12, t_al = rumus kekakuan setara","Spreadsheet Neraca: V_body =Body.Shape.Volume, co2, m_st, m_al, co2_al sebagai rumus, dan sel catatan kesimpulan","Dokumen milik sendiri: tidak sama dengan berkas praktik mahasiswa lain"];
 // PRAKTIK-POIN:MURNI BEGIN
 function praktikPoinRekMurni(rec) {
   if (!rec || typeof rec !== 'object') return 0;
@@ -9359,7 +9361,8 @@ function _praktikRender() {
   const namaFc = 'Latihan' + PRAKTIK_NOMOR + '_' + (me ? me.nim : 'NIM') + '.FCStd';
   if (teks) {
     if (!me) {
-      teks.innerHTML = 'Mahasiswa mengunggah hasil akhir praktik di atas (<b>Latihan' + PRAKTIK_NOMOR + '_NIM.FCStd</b>, ditambah PDF lembar TechDraw bila rekamannya sampai TechDraw). Server memeriksa berkas terhadap hasil video; lolos = 3 poin (×0,65 bila lewat tenggat). Nilai modul: Tugas 45 + Forum 2 + Praktik 3.';
+      teks.innerHTML = 'Mahasiswa mengunggah hasil akhir praktik di atas (<b>Latihan' + PRAKTIK_NOMOR + '_NIM.FCStd</b>, ditambah PDF lembar TechDraw bila rekamannya sampai TechDraw). Server memeriksa berkas terhadap hasil video; lolos = 3 poin (×0,65 bila lewat tenggat). Nilai modul: Tugas 45 + Forum 2 + Praktik 3.'
+        + '<br><i>Kolom unggah berkas tampil saat mahasiswa masuk dengan NIM-nya. Daftar syarat yang diperiksa server (baca saja):</i>';
     } else if (lolos) {
       teks.innerHTML = '✅ Praktik lolos: <b>' + _forumFmt(info.poin) + '/' + PRAKTIK_POIN + ' poin</b>' + (info.pengali && info.pengali < 1 ? ' — terlambat (×' + _forumFmt(info.pengali) + ')' : ' — tepat waktu')
         + (info.waktu ? ' · ' + escH(_praktikWaktu(info.waktu)) : '') + (info.simulasi ? ' · akun simulasi: tidak disimpan' : '') + '. Berkasnya dikunci; poin ini tetap.';
@@ -9373,7 +9376,8 @@ function _praktikRender() {
     const hasil = {};
     const per = _praktikServer.periksa;
     for (const r of ((per && per.rincian) || [])) hasil[r.id] = r;
-    const daftar = (_praktikServer.syarat && _praktikServer.syarat.length) ? _praktikServer.syarat : [];
+    const daftar = (_praktikServer.syarat && _praktikServer.syarat.length) ? _praktikServer.syarat
+      : (!me ? PRAKTIK_SYARAT_BACA.map((t, i) => ({ id: 'baca' + i, teks: t })) : []);
     const tambahan = ((per && per.rincian) || []).filter((r) => !daftar.some((s) => s.id === r.id));
     ul.innerHTML = daftar.concat(tambahan).map((s) => {
       const r = hasil[s.id];

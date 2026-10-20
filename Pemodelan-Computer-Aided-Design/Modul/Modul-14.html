@@ -2799,7 +2799,7 @@ Part.<span class="fn">show</span>(tabung, <span class="st">"TabungKakuSama"</spa
   </figure>
   <!-- VIDEO-PRAKTIK:BLOK BEGIN v1 -->
   <div class="video-praktik reveal" id="video-praktik">
-    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: Optimasi Lengan Braket dari Rumusan sampai Laporan</span><span class="vp-meta">FreeCAD · 23:11 · caption teks, dengan backsound</span></div>
+    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: Optimasi Lengan Braket dari Rumusan sampai Laporan</span><span class="vp-meta">FreeCAD · 23:11</span></div>
     <video id="vp-m14" controls preload="none" playsinline poster="../Video/Modul-14-Praktik-Lengan-Braket.jpg" aria-label="Rekaman layar FreeCAD: praktik terbimbing Optimasi Lengan Braket dari Rumusan sampai Laporan">
       <source src="../Video/Modul-14-Praktik-Lengan-Braket.mp4" type="video/mp4">
       Peramban Anda tidak mendukung pemutar video. Ikuti tujuh langkah tertulis di bawah.
@@ -9261,6 +9261,8 @@ const PRAKTIK_POIN_MULAI = '2026-10-19T00:00:00+07:00';
 const PRAKTIK_POIN_MULAI_MS = Date.parse(PRAKTIK_POIN_MULAI);
 const PRAKTIK_NOMOR = 14;
 const PRAKTIK_BERKRITERIA = true;
+// Daftar syarat untuk tampilan dosen/tamu (baca saja; cermin daftarSyarat backend, scripts/praktik-syarat-data.mjs).
+const PRAKTIK_SYARAT_BACA = ["Berkas disimpan dari FreeCAD dengan nama Latihan14_<NIM Anda>.FCStd (File → Save As)","Spreadsheet: rumusan (sel teks), alias gaya 4000, L 700, b 100, d_izin 1,5, E 210000, rho 7850, f_co2 2","Sel tinggi = rumus kendala lendutan (55,851 mm), massa 30,69 kg, co2 61,38 kg","Body pejal 3.909.602 mm³: konstrain sketsa terikat Spreadsheet.b dan Spreadsheet.tinggi, Pad =Spreadsheet.L","Alternatif berupa rumus: h_al 80,55, m_al 15,22, co2_al 182,69, m_rusuk 18,41, co2_rusuk 36,83","Spreadsheet Matriks: skor berbobot B +0,15 dan C −0,35 berupa rumus, dan sel catatan pemenang","Body desain B profil I 100 × 58 (flens 16, badan 8) sepanjang 700: volume 2.385.600 mm³ dengan Pocket","Lembar sudut ketiga: template sudut_ketiga, Projection Group Third angle 1 : 4 (Front, Top, Right), minimal 3 dimensi, dan catatan","Kepala gambar: Approved by Dedik Romahadi, Part Material Baja S275JR, Scale 1 : 4, Created by memuat NIM Anda","PDF lembar TechDraw: satu halaman A4 lanskap, diekspor dari FreeCAD (File → Export PDF)","Dokumen milik sendiri: tidak sama dengan berkas praktik mahasiswa lain"];
 // PRAKTIK-POIN:MURNI BEGIN
 function praktikPoinRekMurni(rec) {
   if (!rec || typeof rec !== 'object') return 0;
@@ -9405,7 +9407,8 @@ function _praktikRender() {
   const namaFc = 'Latihan' + PRAKTIK_NOMOR + '_' + (me ? me.nim : 'NIM') + '.FCStd';
   if (teks) {
     if (!me) {
-      teks.innerHTML = 'Mahasiswa mengunggah hasil akhir praktik di atas (<b>Latihan' + PRAKTIK_NOMOR + '_NIM.FCStd</b>, ditambah PDF lembar TechDraw bila rekamannya sampai TechDraw). Server memeriksa berkas terhadap hasil video; lolos = 3 poin (×0,65 bila lewat tenggat). Nilai modul: Tugas 45 + Forum 2 + Praktik 3.';
+      teks.innerHTML = 'Mahasiswa mengunggah hasil akhir praktik di atas (<b>Latihan' + PRAKTIK_NOMOR + '_NIM.FCStd</b>, ditambah PDF lembar TechDraw bila rekamannya sampai TechDraw). Server memeriksa berkas terhadap hasil video; lolos = 3 poin (×0,65 bila lewat tenggat). Nilai modul: Tugas 45 + Forum 2 + Praktik 3.'
+        + '<br><i>Kolom unggah berkas tampil saat mahasiswa masuk dengan NIM-nya. Daftar syarat yang diperiksa server (baca saja):</i>';
     } else if (lolos) {
       teks.innerHTML = '✅ Praktik lolos: <b>' + _forumFmt(info.poin) + '/' + PRAKTIK_POIN + ' poin</b>' + (info.pengali && info.pengali < 1 ? ' — terlambat (×' + _forumFmt(info.pengali) + ')' : ' — tepat waktu')
         + (info.waktu ? ' · ' + escH(_praktikWaktu(info.waktu)) : '') + (info.simulasi ? ' · akun simulasi: tidak disimpan' : '') + '. Berkasnya dikunci; poin ini tetap.';
@@ -9419,7 +9422,8 @@ function _praktikRender() {
     const hasil = {};
     const per = _praktikServer.periksa;
     for (const r of ((per && per.rincian) || [])) hasil[r.id] = r;
-    const daftar = (_praktikServer.syarat && _praktikServer.syarat.length) ? _praktikServer.syarat : [];
+    const daftar = (_praktikServer.syarat && _praktikServer.syarat.length) ? _praktikServer.syarat
+      : (!me ? PRAKTIK_SYARAT_BACA.map((t, i) => ({ id: 'baca' + i, teks: t })) : []);
     const tambahan = ((per && per.rincian) || []).filter((r) => !daftar.some((s) => s.id === r.id));
     ul.innerHTML = daftar.concat(tambahan).map((s) => {
       const r = hasil[s.id];

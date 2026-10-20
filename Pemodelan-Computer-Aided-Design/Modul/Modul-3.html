@@ -2673,7 +2673,7 @@ doc.<span class="fn">recompute</span>()</pre>
   </figure>
   <!-- VIDEO-PRAKTIK:BLOK BEGIN v1 -->
   <div class="video-praktik reveal" id="video-praktik">
-    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: Panel Heksagon dengan Tiga Transformasi</span><span class="vp-meta">FreeCAD · 6:47 · caption teks, dengan backsound</span></div>
+    <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: Panel Heksagon dengan Tiga Transformasi</span><span class="vp-meta">FreeCAD · 6:47</span></div>
     <video id="vp-m3" controls preload="none" playsinline poster="../Video/Modul-3-Praktik-Panel-Heksagon.jpg" aria-label="Rekaman layar FreeCAD: praktik terbimbing Panel Heksagon dengan Tiga Transformasi">
       <source src="../Video/Modul-3-Praktik-Panel-Heksagon.mp4" type="video/mp4">
       Peramban Anda tidak mendukung pemutar video. Ikuti tujuh langkah tertulis di bawah.
@@ -9108,6 +9108,8 @@ const PRAKTIK_POIN_MULAI = '2026-10-19T00:00:00+07:00';
 const PRAKTIK_POIN_MULAI_MS = Date.parse(PRAKTIK_POIN_MULAI);
 const PRAKTIK_NOMOR = 3;
 const PRAKTIK_BERKRITERIA = true;
+// Daftar syarat untuk tampilan dosen/tamu (baca saja; cermin daftarSyarat backend, scripts/praktik-syarat-data.mjs).
+const PRAKTIK_SYARAT_BACA = ["Berkas disimpan dari FreeCAD dengan nama Latihan3_<NIM Anda>.FCStd (File → Save As)","Heksagon induk R 40 di (60, 60): luas 4.156,92 mm²","Salinan Move yang diputar 90° terhadap titik asal: berpusat di (−105, 140)","Salinan kedua di (60, 150) diputar 30°","Hasil Scale ×1,5 di (220, 100): luas 9.353,07 mm²","Panel Rectangle 300 × 200 mm","Dokumen milik sendiri: tidak sama dengan berkas praktik mahasiswa lain"];
 // PRAKTIK-POIN:MURNI BEGIN
 function praktikPoinRekMurni(rec) {
   if (!rec || typeof rec !== 'object') return 0;
@@ -9252,7 +9254,8 @@ function _praktikRender() {
   const namaFc = 'Latihan' + PRAKTIK_NOMOR + '_' + (me ? me.nim : 'NIM') + '.FCStd';
   if (teks) {
     if (!me) {
-      teks.innerHTML = 'Mahasiswa mengunggah hasil akhir praktik di atas (<b>Latihan' + PRAKTIK_NOMOR + '_NIM.FCStd</b>, ditambah PDF lembar TechDraw bila rekamannya sampai TechDraw). Server memeriksa berkas terhadap hasil video; lolos = 3 poin (×0,65 bila lewat tenggat). Nilai modul: Tugas 45 + Forum 2 + Praktik 3.';
+      teks.innerHTML = 'Mahasiswa mengunggah hasil akhir praktik di atas (<b>Latihan' + PRAKTIK_NOMOR + '_NIM.FCStd</b>, ditambah PDF lembar TechDraw bila rekamannya sampai TechDraw). Server memeriksa berkas terhadap hasil video; lolos = 3 poin (×0,65 bila lewat tenggat). Nilai modul: Tugas 45 + Forum 2 + Praktik 3.'
+        + '<br><i>Kolom unggah berkas tampil saat mahasiswa masuk dengan NIM-nya. Daftar syarat yang diperiksa server (baca saja):</i>';
     } else if (lolos) {
       teks.innerHTML = '✅ Praktik lolos: <b>' + _forumFmt(info.poin) + '/' + PRAKTIK_POIN + ' poin</b>' + (info.pengali && info.pengali < 1 ? ' — terlambat (×' + _forumFmt(info.pengali) + ')' : ' — tepat waktu')
         + (info.waktu ? ' · ' + escH(_praktikWaktu(info.waktu)) : '') + (info.simulasi ? ' · akun simulasi: tidak disimpan' : '') + '. Berkasnya dikunci; poin ini tetap.';
@@ -9266,7 +9269,8 @@ function _praktikRender() {
     const hasil = {};
     const per = _praktikServer.periksa;
     for (const r of ((per && per.rincian) || [])) hasil[r.id] = r;
-    const daftar = (_praktikServer.syarat && _praktikServer.syarat.length) ? _praktikServer.syarat : [];
+    const daftar = (_praktikServer.syarat && _praktikServer.syarat.length) ? _praktikServer.syarat
+      : (!me ? PRAKTIK_SYARAT_BACA.map((t, i) => ({ id: 'baca' + i, teks: t })) : []);
     const tambahan = ((per && per.rincian) || []).filter((r) => !daftar.some((s) => s.id === r.id));
     ul.innerHTML = daftar.concat(tambahan).map((s) => {
       const r = hasil[s.id];
