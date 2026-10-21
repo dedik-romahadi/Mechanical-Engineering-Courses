@@ -2506,7 +2506,7 @@ ujiMutasiHasilKeren();
 // Berkas video dilayani statis dari folder kursus; pemutar hanya memakai jalur relatif dan tidak memanggil host luar.
 {
   const { KURSUS: vpKursus, VIDEO_PRAKTIK: vpDaftar } = await import("./video-praktik-data.mjs");
-  const { pasang: vpPasang } = await import("./video-praktik.mjs");
+  const { pasang: vpPasang, halaman: vpHalaman, halamanTonton: vpTonton, configFirebase: vpConfig } = await import("./video-praktik.mjs");
   for (const v of vpDaftar) {
     const rel = `${vpKursus}/Modul/Modul-${v.modul}.html`;
     const html = fs.readFileSync(path.join(root, rel), "utf8");
@@ -2539,6 +2539,13 @@ ujiMutasiHasilKeren();
     // Uji mutasi: tanpa blok, pemasang harus memasangnya lagi (bukan diam).
     const tanpa = html.replace(/[ \t]*<!-- VIDEO-PRAKTIK:BLOK BEGIN[\s\S]*?<!-- VIDEO-PRAKTIK:BLOK END v\d+ -->\n/, "");
     if (tanpa === html || vpPasang(tanpa, v) !== html) throw new Error(`VIDEO-PRAKTIK: uji mutasi gagal — pemasang tidak memulihkan blok di ${rel}`);
+    // Halaman tonton publik (tujuan tombol Bagikan): persis keluaran pemasang, tanpa login/admin/PIN.
+    const relTonton = `${vpKursus}/Video/${vpHalaman(v)}`;
+    if (!blokVideo.includes(`data-tonton="../Video/${vpHalaman(v)}"`)) throw new Error(`VIDEO-PRAKTIK: tombol Bagikan di ${rel} harus menuju ../Video/${vpHalaman(v)}`);
+    const tonton = fs.existsSync(path.join(root, relTonton)) ? fs.readFileSync(path.join(root, relTonton), "utf8") : null;
+    if (tonton !== vpTonton(v, vpConfig(html))) throw new Error(`VIDEO-PRAKTIK: ${relTonton} tidak ada atau berbeda dari keluaran scripts/video-praktik.mjs; jalankan skrip itu`);
+    if (/createAdminSession|verifyPin|firebase-auth|firebase-functions|pins\/|httpsCallable/.test(tonton)) throw new Error(`VIDEO-PRAKTIK: ${relTonton} adalah halaman publik dan tidak boleh memuat jalur login/admin`);
+    if (!tonton.includes(`src="${v.berkas}"`) || !tonton.includes(`'tayang/pemodelan_cad/modul-${v.modul}'`)) throw new Error(`VIDEO-PRAKTIK: ${relTonton} harus memutar ${v.berkas} dan memakai penghitung tayang yang sama`);
   }
 }
 // VIDEO-SIMULASI: video penjelasan simulasi modul TTL (scripts/video-simulasi.mjs + video-simulasi-data.mjs)

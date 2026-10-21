@@ -18,6 +18,10 @@
  *                        (backend database.rules.json, scripts/verify-tayang-video.js).
  * Video bernarasi (21 Okt 2026, pilot Modul 1; `narasi: true` di data): klip FreeCAD yang sama, gambar ditahan
  * sampai narasi Edge TTS id-ID-ArdiNeural tiap caption selesai; catatan panel menyebut narasi suara.
+ * VIDEO-PRAKTIK:BAGIKAN (21 Okt 2026, permintaan dosen, sama dengan video simulasi TTL): tombol "Bagikan video" di
+ *                        kartu (ponsel: lembar bagikan bawaan; desktop: salin tautan) menuju halaman tonton publik
+ *                        <KURSUS>/Video/Modul-<N>-Praktik.html yang ditulis utuh oleh skrip ini (tanpa login, tanpa
+ *                        createAdminSession; video, bab, penghitung tayang yang sama). Penerima langsung menonton.
  * Berkas video dan poster: Pemodelan-Computer-Aided-Design/Video/ (lihat video-praktik-data.mjs).
  * Tanpa pustaka, tanpa host luar; skrip bab hanya mengatur currentTime.
  *
@@ -32,12 +36,15 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { KURSUS, VIDEO_PRAKTIK } from "./video-praktik-data.mjs";
 
+export const SITUS = "https://dedik-romahadi.github.io/Mechanical-Engineering-Courses";
+export const halaman = (v) => `Modul-${v.modul}-Praktik.html`;
+const FIREBASE = "https://www.gstatic.com/firebasejs/12.11.0";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const periksa = process.argv.includes("--periksa");
 
 const CSS_AWAL = "/* VIDEO-PRAKTIK:CSS v1 — dipasang scripts/video-praktik.mjs */";
-export const CSS = `<style id="video-praktik-style">${CSS_AWAL}
-.video-praktik{margin:22px 0 26px;border:1px solid var(--border,#243653);border-radius:14px;background:var(--surface,#080f1e);overflow:hidden}
+const ATURAN = `.video-praktik{margin:22px 0 26px;border:1px solid var(--border,#243653);border-radius:14px;background:var(--surface,#080f1e);overflow:hidden}
 .video-praktik .vp-kepala{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:14px 18px 10px}
 .video-praktik .vp-ikon{font-size:1.25rem;line-height:1}
 .video-praktik .vp-judul{font-weight:800;font-size:1rem;color:var(--cyan,#67e8f9)}
@@ -48,29 +55,64 @@ export const CSS = `<style id="video-praktik-style">${CSS_AWAL}
 .video-praktik .vp-bab button{font:inherit;font-size:.78rem;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;color:var(--cyan,#67e8f9);background:transparent;border:1px solid var(--border,#243653)}
 .video-praktik .vp-bab button:hover,.video-praktik .vp-bab button:focus-visible{background:rgba(103,232,249,.12);border-color:var(--cyan,#67e8f9);outline:none}
 .video-praktik .vp-cat{margin:0;padding:6px 18px 14px;font-size:.8rem;line-height:1.5;color:var(--muted,#aebbd0)}
-@media (max-width:600px){.video-praktik .vp-meta{margin-left:0;width:100%}.video-praktik .vp-kepala{padding:12px 14px 8px}.video-praktik .vp-bab{padding:10px 14px 4px}.video-praktik .vp-cat{padding:6px 14px 12px}}
+.video-praktik .vp-aksi{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:6px 18px 4px}
+.video-praktik .vp-bagikan{font:inherit;font-size:.78rem;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;color:#0b1220;background:var(--cyan,#67e8f9);border:1px solid var(--cyan,#67e8f9)}
+.video-praktik .vp-bagikan:hover,.video-praktik .vp-bagikan:focus-visible{color:var(--cyan,#67e8f9);background:rgba(103,232,249,.12);outline:none}
+.video-praktik .vp-pesan{font-size:.78rem;color:var(--muted,#aebbd0)}
+@media (max-width:600px){.video-praktik .vp-meta{margin-left:0;width:100%}.video-praktik .vp-kepala{padding:12px 14px 8px}.video-praktik .vp-bab{padding:10px 14px 4px}.video-praktik .vp-aksi{padding-left:14px;padding-right:14px}.video-praktik .vp-cat{padding:6px 14px 12px}}`;
+export const CSS = `<style id="video-praktik-style">${CSS_AWAL}
+${ATURAN}
 </style>`;
 
 const fmt = (d) => `${Math.floor(d / 60)}:${String(Math.floor(d % 60)).padStart(2, "0")}`;
 
-export function blok(v) {
+const penjelasan = (v) => v.narasi
+  ? "Penjelasan berupa narasi suara dan caption teks; musik latar mengecil saat narasi berbicara."
+  : "Penjelasan berupa caption teks; musik latar hanya penghias (bisa dimatikan lewat tombol volume).";
+
+// Kartu pemutar, dipakai halaman modul (dasar "../Video/") dan halaman tonton (dasar "").
+function kartu(v, dasar, catatan, reveal) {
   const id = `vp-m${v.modul}`;
   const tombol = v.bab
     .map(([label, t]) => `<button type="button" data-t="${t}" onclick="var v=document.getElementById('${id}');v.currentTime=${t};v.play()" aria-label="Lompat ke langkah ${label} (${fmt(t)})">${label} <span aria-hidden="true">· ${fmt(t)}</span></button>`)
     .join("\n      ");
-  return `  <!-- VIDEO-PRAKTIK:BLOK BEGIN v1 -->
-  <div class="video-praktik reveal" id="video-praktik">
+  return `  <div class="video-praktik${reveal ? " reveal" : ""}" id="video-praktik">
     <div class="vp-kepala"><span class="vp-ikon" aria-hidden="true">🎬</span><span class="vp-judul">Rekaman layar: ${v.judul}</span><span class="vp-meta">FreeCAD · ${v.durasi}<span class="vp-tayang" data-tayang="modul-${v.modul}" hidden></span></span></div>
-    <video id="${id}" controls preload="none" playsinline poster="../Video/${v.poster}" aria-label="Rekaman layar FreeCAD: praktik terbimbing ${v.judul}">
-      <source src="../Video/${v.berkas}" type="video/mp4">
-      Peramban Anda tidak mendukung pemutar video. Ikuti tujuh langkah tertulis di bawah.
+    <video id="${id}" controls preload="none" playsinline poster="${dasar}${v.poster}" aria-label="Rekaman layar FreeCAD: praktik terbimbing ${v.judul}">
+      <source src="${dasar}${v.berkas}" type="video/mp4">
+      Peramban Anda tidak mendukung pemutar video. Ikuti langkah tertulis di halaman modul.
     </video>
     <div class="vp-bab" role="group" aria-label="Lompat ke langkah">
       ${tombol}
     </div>
-    <p class="vp-cat">Video memperlihatkan jendela FreeCAD saja dan mengikuti tujuh langkah di bawah dengan angka yang sama. ${v.narasi ? "Penjelasan berupa narasi suara dan caption teks; musik latar mengecil saat narasi berbicara." : "Penjelasan berupa caption teks; musik latar hanya penghias (bisa dimatikan lewat tombol volume)."} Tekan spasi untuk menjeda video bila perlu mengetik angkanya.</p>
-  </div>
-<!-- VIDEO-PRAKTIK:BLOK END v1 -->
+    <div class="vp-aksi"><button type="button" class="vp-bagikan" data-tonton="${dasar}${halaman(v)}" data-judul="Video praktik CAD Modul ${v.modul}: ${v.judul}" onclick="window._vpBagikan&&window._vpBagikan(this)">🔗 Bagikan video</button><span class="vp-pesan" role="status" aria-live="polite"></span></div>
+    <p class="vp-cat">${catatan}</p>
+  </div>`;
+}
+
+// Tombol Bagikan (skrip klasik, tanpa host luar): tetap jalan walau skrip Firebase gagal dimuat.
+const BAGIKAN = `<script id="video-praktik-bagikan">
+window._vpBagikan = function (btn) {
+  var url = new URL(btn.getAttribute('data-tonton'), location.href);
+  url.hash = ''; url.search = '';
+  var tautan = url.href, judul = btn.getAttribute('data-judul') || document.title;
+  var pesan = btn.parentNode.querySelector('.vp-pesan');
+  function beri(t) { if (!pesan) return; pesan.textContent = t; clearTimeout(btn._vpT); btn._vpT = setTimeout(function () { pesan.textContent = ''; }, 4000); }
+  function manual() { window.prompt('Salin tautan video ini:', tautan); }
+  var sentuh = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
+  if (sentuh && navigator.share) { navigator.share({ title: judul, text: judul, url: tautan }).catch(function () {}); return; }
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(tautan).then(function () { beri('✓ Tautan disalin — tempel di WhatsApp atau grup kelas. Penerima bisa langsung menonton tanpa login.'); }, manual);
+  } else manual();
+};
+</script>`;
+
+export function blok(v) {
+  const catatan = `Video memperlihatkan jendela FreeCAD saja dan mengikuti langkah di bawah dengan angka yang sama. ${penjelasan(v)} Tekan spasi untuk menjeda video bila perlu mengetik angkanya. Tombol Bagikan menyalin tautan halaman tonton; penerima bisa langsung menonton tanpa login.`;
+  return `  <!-- VIDEO-PRAKTIK:BLOK BEGIN v2 -->
+${kartu(v, "../Video/", catatan, true)}
+${BAGIKAN}
+<!-- VIDEO-PRAKTIK:BLOK END v2 -->
 `;
 }
 
@@ -78,13 +120,11 @@ const RX_BLOK = /[ \t]*<!-- VIDEO-PRAKTIK:BLOK BEGIN v\d+ -->[\s\S]*?<!-- VIDEO-
 const RX_CSS = /<style id="video-praktik-style">[\s\S]*?<\/style>\n?/;
 const RX_TAYANG = /<script type="module" id="video-praktik-tayang">[\s\S]*?<\/script>\n/;
 
-// Penghitung tayang: skrip modul terpisah di akhir <body>, sesudah skrip modul utama yang memanggil
-// initializeApp (getApp() sudah tersedia); blok video sendiri tetap tanpa host luar.
-export function tayang(v) {
-  return `<script type="module" id="video-praktik-tayang">
-// VIDEO-PRAKTIK:TAYANG v1 — dipasang scripts/video-praktik.mjs
-import { getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+// Penghitung tayang. `app` = ekspresi aplikasi Firebase: getApp() di halaman modul (skrip modul utama memanggil
+// initializeApp), initializeApp(config) di halaman tonton. Blok video sendiri tetap tanpa host luar.
+function hitung(v, impor, app) {
+  return `${impor}
+import { getDatabase, ref, onValue, runTransaction } from "${FIREBASE}/firebase-database.js";
 (function () {
   var video = document.getElementById('vp-m${v.modul}');
   var label = document.querySelector('.video-praktik [data-tayang="modul-${v.modul}"]');
@@ -92,7 +132,7 @@ import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.c
   var JALUR = 'tayang/pemodelan_cad/modul-${v.modul}';
   var db = null;
   function sambung() {
-    if (!db) { try { db = getDatabase(getApp()); } catch (e) { db = null; } }
+    if (!db) { try { db = getDatabase(${app}); } catch (e) { db = null; } }
     return db;
   }
   function tampil(n) {
@@ -114,8 +154,71 @@ import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.c
     if (d) runTransaction(ref(d, JALUR), function (n) { return (Number(n) || 0) + 1; }).catch(function () {});
   });
   video.addEventListener('ended', function () { sedangTayang = false; });
-})();
+})();`;
+}
+
+export function tayang(v) {
+  return `<script type="module" id="video-praktik-tayang">
+// VIDEO-PRAKTIK:TAYANG v1 — dipasang scripts/video-praktik.mjs
+${hitung(v, `import { getApp } from "${FIREBASE}/firebase-app.js";`, "getApp()")}
 </script>
+`;
+}
+
+export function configFirebase(html) {
+  const m = /\nconst firebaseConfig = (\{[^}]*\});\n/.exec(html);
+  if (!m) throw new Error("firebaseConfig tidak ditemukan di halaman modul");
+  return m[1];
+}
+
+export function halamanTonton(v, config) {
+  const url = `${SITUS}/${KURSUS}/Video/${halaman(v)}`;
+  const ringkas = `Rekaman layar FreeCAD praktik terbimbing Pemodelan CAD Modul ${v.modul}: ${v.judul}, langkah demi langkah dengan angka yang sama dengan halaman modul.`;
+  const catatan = `Video memperlihatkan jendela FreeCAD saja. ${penjelasan(v)} Untuk mengunggah berkas praktik, buka modulnya (mahasiswa login dengan NIM dan PIN).`;
+  return `<!DOCTYPE html>
+<!-- VIDEO-PRAKTIK:TONTON v1 — ditulis scripts/video-praktik.mjs; jangan disunting manual -->
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Praktik Modul ${v.modul} — ${v.judul} | Pemodelan CAD</title>
+<meta name="description" content="${ringkas}">
+<meta name="theme-color" content="#070b16">
+<meta property="og:type" content="video.other">
+<meta property="og:title" content="Video Praktik CAD Modul ${v.modul}: ${v.judul}">
+<meta property="og:description" content="${ringkas} Tonton langsung tanpa login.">
+<meta property="og:image" content="${SITUS}/${KURSUS}/Video/${v.poster}">
+<meta property="og:url" content="${url}">
+<style>
+:root{--bg:#070b16;--surface:#080f1e;--border:#243653;--cyan:#67e8f9;--muted:#aebbd0;--teks:#e6edf7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--teks);font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55}
+main{max-width:1080px;margin:0 auto;padding:28px 16px 40px}
+.kicker{margin:0 0 6px;font-size:.75rem;font-weight:700;letter-spacing:.12em;color:var(--cyan)}
+h1{margin:0 0 8px;font-size:clamp(1.4rem,3.6vw,2.1rem);line-height:1.2}
+.ringkas{margin:0;color:var(--muted)}
+.lanjut{margin:18px 0 0;font-size:.9rem;color:var(--muted)}
+.lanjut a{color:var(--cyan)}
+footer{margin-top:28px;font-size:.78rem;color:var(--muted)}
+${ATURAN}
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">PEMODELAN CAD · MODUL ${v.modul} · PRAKTIK TERBIMBING</p>
+  <h1>${v.judul}</h1>
+  <p class="ringkas">${ringkas}</p>
+${kartu(v, "", catatan, false)}
+  <p class="lanjut">Mahasiswa: <a href="../Modul/Modul-${v.modul}.html#m-praktik">buka Modul ${v.modul}</a> untuk mengerjakan praktik dan mengunggah berkasnya.</p>
+  <footer>Dedik Romahadi · Teknik Mesin, Universitas Mercu Buana</footer>
+</main>
+${BAGIKAN}
+<script type="module" id="video-praktik-tayang">
+// VIDEO-PRAKTIK:TAYANG v1 — halaman tonton publik
+${hitung(v, `import { initializeApp } from "${FIREBASE}/firebase-app.js";`, `initializeApp(${config})`)}
+</script>
+</body>
+</html>
 `;
 }
 
@@ -148,15 +251,20 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       const p = path.join(root, KURSUS, "Video", f);
       if (!fs.existsSync(p) || fs.statSync(p).size < 1024) throw new Error(`berkas tidak ada/kosong: ${path.relative(root, p)}`);
     }
-    const halaman = path.join(root, KURSUS, "Modul", `Modul-${v.modul}.html`);
-    const lama = fs.readFileSync(halaman, "utf8");
-    const baru = pasang(lama, v);
-    const beda = baru !== lama;
-    console.log(`${path.relative(root, halaman)}: ${beda ? (periksa ? "perlu dipasang" : "dipasang") : "sudah terpasang"}`);
-    if (beda) {
-      berubah += 1;
-      if (!periksa) fs.writeFileSync(halaman, baru);
+    const berkasModul = path.join(root, KURSUS, "Modul", `Modul-${v.modul}.html`);
+    const lama = fs.readFileSync(berkasModul, "utf8");
+    for (const [berkas, isiLama, baru] of [
+      [berkasModul, lama, pasang(lama, v)],
+      [path.join(root, KURSUS, "Video", halaman(v)), null, halamanTonton(v, configFirebase(lama))],
+    ]) {
+      const sebelum = isiLama ?? (fs.existsSync(berkas) ? fs.readFileSync(berkas, "utf8") : null);
+      const beda = baru !== sebelum;
+      console.log(`${path.relative(root, berkas)}: ${beda ? (periksa ? "perlu dipasang" : "dipasang") : "sudah terpasang"}`);
+      if (beda) {
+        berubah += 1;
+        if (!periksa) fs.writeFileSync(berkas, baru);
+      }
     }
   }
-  console.log(`${berubah} halaman ${periksa ? "perlu diubah" : "diubah"}`);
+  console.log(`${berubah} berkas ${periksa ? "perlu diubah" : "diubah"}`);
 }
