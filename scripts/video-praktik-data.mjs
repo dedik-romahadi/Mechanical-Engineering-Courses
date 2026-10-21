@@ -83,16 +83,16 @@ export const VIDEO_PRAKTIK = [
     berkas: "Modul-6-Praktik-Balok-Bertingkat.mp4",
     poster: "Modul-6-Praktik-Balok-Bertingkat.jpg",
     judul: "Gambar Kerja Balok Bertingkat",
-    durasi: "13:03",
+    durasi: "13:04",
     narasi: true, // 21 Okt 2026: versi bernarasi (komposisi PraktikModul6Narasi)
     bab: [
       ["1 · Model balok", 4],
-      ["2 · Pandangan dan kamera", 251.5],
-      ["3 · Lembar dan Projection Group", 281],
-      ["4 · Isometrik padat", 370.8],
-      ["5 · Section View A-A", 466.7],
-      ["6 · Kepala gambar dan dimensi", 521.9],
-      ["7 · Bacaan, simpan, ekspor", 712.3],
+      ["2 · Pandangan dan kamera", 251.4],
+      ["3 · Lembar dan Projection Group", 280.8],
+      ["4 · Isometrik padat", 371.5],
+      ["5 · Section View A-A", 467.5],
+      ["6 · Kepala gambar dan dimensi", 522.7],
+      ["7 · Bacaan, simpan, ekspor", 713.1],
     ],
   },
   {
