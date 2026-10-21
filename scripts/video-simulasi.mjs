@@ -68,7 +68,7 @@ function kartu(v, dasar, indent, catatan) {
     .map(([label, t]) => `<button type="button" data-t="${t}" onclick="var v=document.getElementById('${id}');v.currentTime=${t};v.play()" aria-label="Lompat ke bab ${label} (${fmt(t)})">${label} <span aria-hidden="true">· ${fmt(t)}</span></button>`)
     .join(`\n${indent}    `);
   return `${indent}<div class="video-simulasi reveal" id="video-simulasi">
-${indent}  <div class="vs-kepala"><span class="vs-ikon" aria-hidden="true">🎬</span><span class="vs-judul">Video penjelasan simulasi: ${v.judul}</span><span class="vs-meta">Narasi + caption · ${v.durasi}<span class="vs-tayang" data-tayang="modul-${v.modul}" hidden></span></span></div>
+${indent}  <div class="vs-kepala"><span class="vs-ikon" aria-hidden="true">🎬</span><span class="vs-judul">Video penjelasan simulasi: ${v.judul}</span><span class="vs-meta">TTL Modul ${v.modul} · ${v.durasi}<span class="vs-tayang" data-tayang="modul-${v.modul}" hidden></span></span></div>
 ${indent}  <video id="${id}" controls preload="none" playsinline poster="${dasar}${v.poster}" aria-label="Video penjelasan simulasi Modul ${v.modul}: ${v.judul}">
 ${indent}    <source src="${dasar}${v.berkas}" type="video/mp4">
 ${indent}    Peramban Anda tidak mendukung pemutar video.
