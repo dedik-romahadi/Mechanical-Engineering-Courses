@@ -2541,6 +2541,51 @@ ujiMutasiHasilKeren();
     if (tanpa === html || vpPasang(tanpa, v) !== html) throw new Error(`VIDEO-PRAKTIK: uji mutasi gagal — pemasang tidak memulihkan blok di ${rel}`);
   }
 }
+// VIDEO-SIMULASI: video penjelasan simulasi modul TTL (scripts/video-simulasi.mjs + video-simulasi-data.mjs)
+// dan halaman tonton publiknya (tujuan tombol Bagikan, tanpa login). Kartu di halaman modul hanya memakai
+// jalur relatif; halaman tonton ditulis utuh oleh pemasang dan tidak boleh memuat jalur login/admin.
+{
+  const { KURSUS: vsKursus, COURSE_ID: vsCourse, VIDEO_SIMULASI: vsDaftar } = await import("./video-simulasi-data.mjs");
+  const { pasang: vsPasang, halamanTonton: vsTonton, configFirebase: vsConfig } = await import("./video-simulasi.mjs");
+  for (const v of vsDaftar) {
+    const rel = `${vsKursus}/Modul/Modul-${v.modul}.html`;
+    const html = fs.readFileSync(path.join(root, rel), "utf8");
+    const awal = html.split("<!-- VIDEO-SIMULASI:BLOK BEGIN").length - 1;
+    const akhir = html.split("<!-- VIDEO-SIMULASI:BLOK END").length - 1;
+    if (awal !== 1 || akhir !== 1) throw new Error(`VIDEO-SIMULASI: ${rel} harus memuat tepat satu blok (BEGIN ${awal}, END ${akhir}); jalankan node scripts/video-simulasi.mjs`);
+    if (vsPasang(html, v) !== html) throw new Error(`VIDEO-SIMULASI: blok di ${rel} tidak sama dengan keluaran scripts/video-simulasi.mjs; jalankan skrip itu`);
+    const b0 = html.indexOf("<!-- VIDEO-SIMULASI:BLOK BEGIN");
+    const b1 = html.indexOf("<!-- VIDEO-SIMULASI:BLOK END");
+    const blokVideo = html.slice(b0, b1);
+    const iAn = html.indexOf('id="m-animasi"');
+    const iPanel = html.indexOf('<div class="anim-panel', iAn);
+    if (!(iAn >= 0 && iAn < b0 && b1 < iPanel)) throw new Error(`VIDEO-SIMULASI: blok di ${rel} harus berada di #m-animasi, sebelum panel animasi pertama`);
+    if (/https?:\/\//i.test(blokVideo)) throw new Error(`VIDEO-SIMULASI: blok di ${rel} tidak boleh memuat host luar`);
+    if (!html.includes(`'tayang/${vsCourse}/modul-${v.modul}'`)) throw new Error(`VIDEO-SIMULASI: ${rel} tidak memuat penghitung tayang tayang/${vsCourse}/modul-${v.modul}`);
+    for (const f of [v.berkas, v.poster]) {
+      const berkas = path.join(root, vsKursus, "Video", f);
+      const ukuran = fs.existsSync(berkas) ? fs.statSync(berkas).size : -1;
+      if (ukuran < 1024) throw new Error(`VIDEO-SIMULASI: ${vsKursus}/Video/${f} tidak ada atau kosong`);
+      if (ukuran > 60 * 1024 * 1024) throw new Error(`VIDEO-SIMULASI: ${vsKursus}/Video/${f} melebihi 60 MB (batas wajar Pages)`);
+      if (!blokVideo.includes(`../Video/${f}`)) throw new Error(`VIDEO-SIMULASI: ${rel} tidak merujuk ../Video/${f}`);
+    }
+    const kepala = Buffer.alloc(12);
+    const fd = fs.openSync(path.join(root, vsKursus, "Video", v.berkas), "r");
+    fs.readSync(fd, kepala, 0, 12, 0);
+    fs.closeSync(fd);
+    if (kepala.subarray(4, 8).toString("latin1") !== "ftyp") throw new Error(`VIDEO-SIMULASI: ${v.berkas} bukan berkas MP4 (tanda ftyp tidak ada)`);
+    const waktu = v.bab.map((x) => x[1]);
+    if (waktu.some((t, i) => !(t >= 0) || (i > 0 && t <= waktu[i - 1]))) throw new Error(`VIDEO-SIMULASI: waktu bab modul ${v.modul} harus menaik`);
+    const tanpa = html.replace(/[ \t]*<!-- VIDEO-SIMULASI:BLOK BEGIN[\s\S]*?<!-- VIDEO-SIMULASI:BLOK END v\d+ -->\n/, "");
+    if (tanpa === html || vsPasang(tanpa, v) !== html) throw new Error(`VIDEO-SIMULASI: uji mutasi gagal — pemasang tidak memulihkan blok di ${rel}`);
+    // Halaman tonton publik: persis keluaran pemasang, tanpa login/admin/PIN, merujuk video di folder yang sama.
+    const relTonton = `${vsKursus}/Video/${v.halaman}`;
+    const tonton = fs.existsSync(path.join(root, relTonton)) ? fs.readFileSync(path.join(root, relTonton), "utf8") : null;
+    if (tonton !== vsTonton(v, vsConfig(html))) throw new Error(`VIDEO-SIMULASI: ${relTonton} tidak ada atau berbeda dari keluaran scripts/video-simulasi.mjs; jalankan skrip itu`);
+    if (/createAdminSession|verifyPin|firebase-auth|firebase-functions|pins\/|httpsCallable/.test(tonton)) throw new Error(`VIDEO-SIMULASI: ${relTonton} adalah halaman publik dan tidak boleh memuat jalur login/admin`);
+    if (!tonton.includes(`src="${v.berkas}"`) || !tonton.includes(`'tayang/${vsCourse}/modul-${v.modul}'`)) throw new Error(`VIDEO-SIMULASI: ${relTonton} harus memutar ${v.berkas} dan memakai penghitung tayang yang sama`);
+  }
+}
 if (kunciIdentitasModul !== 84) throw new Error(`Expected 84 module pages with a checked classic identity key, found ${kunciIdentitasModul}`);
 ujiMutasiKunciIdentitas();
 if (draftModulHalaman !== 84 || draftModulId.size !== 84) throw new Error(`Expected 84 module pages with a working per-module draft (unique MODUL_ID), found ${draftModulHalaman} pages / ${draftModulId.size} ids`);
