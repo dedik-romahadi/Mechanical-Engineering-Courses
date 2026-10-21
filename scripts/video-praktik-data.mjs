@@ -21,10 +21,10 @@ export const VIDEO_PRAKTIK = [
       ["1 · Siapkan dokumen", 4],
       ["2 · Bidang kerja", 37.1],
       ["3 · Pelat", 52.1],
-      ["4 · Lubang", 91.9],
+      ["4 · Lubang", 91.8],
       ["5 · Cut", 130.8],
       ["6 · Baca luas", 180.7],
-      ["7 · Simpan", 200.1],
+      ["7 · Simpan", 200.2],
     ],
   },
   {
@@ -106,10 +106,10 @@ export const VIDEO_PRAKTIK = [
       ["1 · Body dan sketsa", 4],
       ["2 · Pad", 118],
       ["3 · Lubang", 154.1],
-      ["4 · Fillet dalam", 309.6],
-      ["5 · Chamfer luar", 350.8],
-      ["6 · Ubah parameter", 383.7],
-      ["7 · Massa dan simpan", 444.8],
+      ["4 · Fillet dalam", 309.5],
+      ["5 · Chamfer luar", 350.7],
+      ["6 · Ubah parameter", 383.6],
+      ["7 · Massa dan simpan", 444.7],
     ],
   },
   {
@@ -134,7 +134,7 @@ export const VIDEO_PRAKTIK = [
     berkas: "Modul-8-Praktik-Kantilever-FEM.mp4",
     poster: "Modul-8-Praktik-Kantilever-FEM.jpg",
     judul: "Kantilever Statik, Termal, dan Frekuensi",
-    durasi: "11:46",
+    durasi: "11:45",
     narasi: true, // 21 Okt 2026: versi bernarasi (komposisi PraktikModul8Narasi)
     bab: [
       ["1 · Geometri dan massa", 4],
@@ -142,9 +142,9 @@ export const VIDEO_PRAKTIK = [
       ["3 · Tumpuan dan beban", 115.7],
       ["4 · Mesh Gmsh", 193.1],
       ["5 · Solver statik", 230.2],
-      ["6 · Validasi dan konvergensi", 297.2],
-      ["7 · Termal", 485.9],
-      ["7 · Frekuensi dan simpan", 622.3],
+      ["6 · Validasi dan konvergensi", 296.9],
+      ["7 · Termal", 485.7],
+      ["7 · Frekuensi dan simpan", 621.9],
     ],
   },
   {
@@ -152,7 +152,7 @@ export const VIDEO_PRAKTIK = [
     berkas: "Modul-9-Praktik-Pelat-Berlubang-FEM.mp4",
     poster: "Modul-9-Praktik-Pelat-Berlubang-FEM.jpg",
     judul: "Pelat Berlubang Tarik",
-    durasi: "11:25",
+    durasi: "11:24",
     narasi: true, // 21 Okt 2026: versi bernarasi (komposisi PraktikModul9Narasi)
     bab: [
       ["1 · Model pelat", 4],
@@ -160,8 +160,8 @@ export const VIDEO_PRAKTIK = [
       ["3 · Tumpuan dan beban", 232],
       ["4 · Mesh awal dan solver", 296.5],
       ["5 · Membaca hasil", 357.9],
-      ["6 · Konvergensi", 406.5],
-      ["7 · Kesimpulan dan simpan", 587.2],
+      ["6 · Konvergensi", 406.2],
+      ["7 · Kesimpulan dan simpan", 586.9],
     ],
   },
   {
@@ -211,12 +211,12 @@ export const VIDEO_PRAKTIK = [
     narasi: true, // 21 Okt 2026: versi bernarasi (komposisi PraktikModul12Narasi)
     bab: [
       ["1–2 · Tabrakan A–B", 4],
-      ["3 · Perbaiki lalu verifikasi", 129.1],
-      ["4 · Fit ekstrem ⌀12 H7/g6", 197.1],
-      ["5 · Rumah berdinding tipis", 392.5],
-      ["6 · Slot dan jarak tepi", 608.8],
-      ["7 · Jarak bebas gerak", 801.2],
-      ["7 · Check Geometry dan simpan", 980.4],
+      ["3 · Perbaiki lalu verifikasi", 128.9],
+      ["4 · Fit ekstrem ⌀12 H7/g6", 196.9],
+      ["5 · Rumah berdinding tipis", 392.3],
+      ["6 · Slot dan jarak tepi", 608.6],
+      ["7 · Jarak bebas gerak", 801],
+      ["7 · Check Geometry dan simpan", 980.2],
     ],
   },
   {
