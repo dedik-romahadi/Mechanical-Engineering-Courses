@@ -2,6 +2,7 @@
  * Data rekaman layar Praktik Terbimbing (Bagian 09) tiap modul CAD.
  * Dibaca scripts/video-praktik.mjs (pemasang) dan scripts/validate-public-security.mjs (validator).
  *
+ * `narasi: true` = video bernarasi suara (Edge TTS id-ID-ArdiNeural) + caption; catatan panel menyesuaikan.
  * `bab` = [label, detik mulai]; waktu mengikuti komposisi Remotion (repo video terpisah,
  * C:\Video-Remotion, komposisi PraktikModul<N>). Berkas MP4 + poster JPG berada di
  * Pemodelan-Computer-Aided-Design/Video/ dan ikut tersebar lewat rsync folder kursus di deploy-slides.yml.
@@ -14,15 +15,16 @@ export const VIDEO_PRAKTIK = [
     berkas: "Modul-1-Praktik-Pelat-Berlubang.mp4",
     poster: "Modul-1-Praktik-Pelat-Berlubang.jpg",
     judul: "Pelat Berlubang",
-    durasi: "3:01",
+    durasi: "3:43",
+    narasi: true, // 21 Okt 2026: versi bernarasi (komposisi PraktikModul1Narasi)
     bab: [
       ["1 · Siapkan dokumen", 4],
-      ["2 · Bidang kerja", 31.9],
-      ["3 · Pelat", 45.3],
-      ["4 · Lubang", 72.1],
-      ["5 · Cut", 106.7],
-      ["6 · Baca luas", 146.4],
-      ["7 · Simpan", 160.3],
+      ["2 · Bidang kerja", 37.1],
+      ["3 · Pelat", 52.1],
+      ["4 · Lubang", 91.9],
+      ["5 · Cut", 130.8],
+      ["6 · Baca luas", 180.7],
+      ["7 · Simpan", 200.1],
     ],
   },
   {

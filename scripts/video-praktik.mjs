@@ -16,6 +16,8 @@
  *                        dan tiap putar ulang sesudah video selesai; jeda lalu lanjut tidak dihitung).
  *                        Siapa pun boleh menambah (tanpa login); aturan RTDB hanya menerima +1
  *                        (backend database.rules.json, scripts/verify-tayang-video.js).
+ * Video bernarasi (21 Okt 2026, pilot Modul 1; `narasi: true` di data): klip FreeCAD yang sama, gambar ditahan
+ * sampai narasi Edge TTS id-ID-ArdiNeural tiap caption selesai; catatan panel menyebut narasi suara.
  * Berkas video dan poster: Pemodelan-Computer-Aided-Design/Video/ (lihat video-praktik-data.mjs).
  * Tanpa pustaka, tanpa host luar; skrip bab hanya mengatur currentTime.
  *
@@ -66,7 +68,7 @@ export function blok(v) {
     <div class="vp-bab" role="group" aria-label="Lompat ke langkah">
       ${tombol}
     </div>
-    <p class="vp-cat">Video memperlihatkan jendela FreeCAD saja dan mengikuti tujuh langkah di bawah dengan angka yang sama. Penjelasan berupa caption teks; musik latar hanya penghias (bisa dimatikan lewat tombol volume). Tekan spasi untuk menjeda video bila perlu mengetik angkanya.</p>
+    <p class="vp-cat">Video memperlihatkan jendela FreeCAD saja dan mengikuti tujuh langkah di bawah dengan angka yang sama. ${v.narasi ? "Penjelasan berupa narasi suara dan caption teks; musik latar mengecil saat narasi berbicara." : "Penjelasan berupa caption teks; musik latar hanya penghias (bisa dimatikan lewat tombol volume)."} Tekan spasi untuk menjeda video bila perlu mengetik angkanya.</p>
   </div>
 <!-- VIDEO-PRAKTIK:BLOK END v1 -->
 `;
