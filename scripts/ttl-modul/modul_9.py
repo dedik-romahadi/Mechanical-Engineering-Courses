@@ -4,7 +4,7 @@
 import cmath
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
+from pustaka import (py, AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel)
 
 NOMOR = 9
@@ -455,16 +455,16 @@ def parameter(D_m, r_cm, n=1, s_cm=40.0, f=50.0):
     return dict(GMD=GMD, GMRb=GMRb*100, rb=rb*100, L=L, C=C, x=x, b=b, Zc=np.sqrt(x/(b*1e-6)))
 
 for n in [1, 2, 4]:
-    p = parameter({ind(D_M, 0)}.0, {ind(R_CM, 2).replace(",", ".")}, n)
+    p = parameter({py(D_M, 0)}.0, {py(R_CM, 2)}, n)
     print(f"berkas {{n}}: GMD = {{p['GMD']:.3f}} m, GMR_b = {{p['GMRb']:.3f}} cm, L = {{p['L']:.4f}} mH/km, C = {{p['C']:.3f}} nF/km, x = {{p['x']:.4f}} ohm/km, b = {{p['b']:.3f}} uS/km, Zc = {{p['Zc']:.1f}} ohm, SIL150 = {{150**2/p['Zc']:.1f}} MW")''')
     isi += kode("Cell 2 — Nominal-π dan Konstanta ABCD: V<sub>S</sub>, I<sub>S</sub>, Regulasi, Efisiensi", f'''import numpy as np, cmath
 
-r_ac, x, b, L = {ind(R_AC, 2).replace(",", ".")}, {ind(X_KM, 4).replace(",", ".")}, {ind(B_KM * 1e6, 3).replace(",", ".")}e-6, {ind(L_LINE, 0)}.0
+r_ac, x, b, L = {py(R_AC, 2)}, {py(X_KM, 4)}, {py(B_KM * 1e6, 3)}e-6, {py(L_LINE, 0)}.0
 Z, Y = (r_ac + 1j*x)*L, 1j*b*L
 A = 1 + Y*Z/2;  B = Z;  C = Y*(1 + Y*Z/4);  D = A          # Persamaan 5–6
 print(f"A = {{A:.5f}}, B = {{B:.2f}} ohm, C = {{C*1e6:.3f}} uS; AD - BC = {{A*D - B*C:.6f}}")
 
-VLL, P, pf = 132e3, {ind(P_LOAD, 0)}e6, {ind(PF_LOAD, 1).replace(",", ".")}
+VLL, P, pf = 132e3, {py(P_LOAD, 0)}e6, {py(PF_LOAD, 1)}
 V_R = VLL/np.sqrt(3) + 0j
 I_R = P/(3*abs(V_R)*pf)*cmath.exp(-1j*np.arccos(pf))
 V_S = A*V_R + B*I_R;  I_S = C*V_R + D*I_R
@@ -478,7 +478,7 @@ M = M_line @ M_trafo
 print(f"ABCD gabungan: A = {{M[0,0]:.4f}}, B = {{M[0,1]:.2f}}, C = {{M[1,0]*1e6:.2f}} uS, D = {{M[1,1]:.4f}}; AD - BC = {{np.linalg.det(M):.5f}}")''')
     isi += kode("Cell 3 — Saluran Panjang: γ, Z<sub>c</sub>, cosh/sinh, π-Ekuivalen, dan Perbandingan dengan Nominal-π", f'''import numpy as np, cmath
 
-r_ac, x, b = {ind(R_AC, 2).replace(",", ".")}, {ind(X_KM, 4).replace(",", ".")}, {ind(B_KM * 1e6, 3).replace(",", ".")}e-6
+r_ac, x, b = {py(R_AC, 2)}, {py(X_KM, 4)}, {py(B_KM * 1e6, 3)}e-6
 z, y = r_ac + 1j*x, 1j*b
 gamma, Zc = cmath.sqrt(z*y), cmath.sqrt(z/y)                # Persamaan 7
 print(f"gamma = {{gamma.real*1e3:.4f}}e-3 + j{{gamma.imag*1e3:.4f}}e-3 /km, Zc = {{Zc:.1f}} ohm, lambda = {{2*np.pi/gamma.imag:.0f}} km")
@@ -492,7 +492,7 @@ for L in [100, 200, 400, 600]:
     isi += kode("Cell 4 — Profil Tegangan Saluran Tanpa Rugi terhadap Beban (× SIL)", f'''import numpy as np
 import matplotlib.pyplot as plt
 
-x, b, L, VLL = {ind(X_KM, 4).replace(",", ".")}, {ind(B_KM * 1e6, 3).replace(",", ".")}e-6, {ind(L_LONG, 0)}.0, 500.0
+x, b, L, VLL = {py(X_KM, 4)}, {py(B_KM * 1e6, 3)}e-6, {py(L_LONG, 0)}.0, 500.0
 beta, Zc = np.sqrt(x*b), np.sqrt(x/b)
 SIL = VLL**2/Zc
 print(f"beta = {{beta*1e3:.4f}}e-3 rad/km, Zc = {{Zc:.1f}} ohm, SIL = {{SIL:.1f}} MW, beta*L = {{beta*L:.4f}} rad")

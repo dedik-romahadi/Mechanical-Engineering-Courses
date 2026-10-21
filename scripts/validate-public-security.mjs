@@ -2548,6 +2548,28 @@ ujiMutasiHasilKeren();
     if (!tonton.includes(`src="${v.berkas}"`) || !tonton.includes(`'tayang/pemodelan_cad/modul-${v.modul}'`)) throw new Error(`VIDEO-PRAKTIK: ${relTonton} harus memutar ${v.berkas} dan memakai penghitung tayang yang sama`);
   }
 }
+// ANGKA-KODE: angka di dalam blok kode (<pre>) yang disalin mahasiswa tidak boleh memakai pemisah ribuan gaya
+// Indonesia. Generator TTL dulu menulis ind(2000.0, 0) ke kode: "2.000.0" (SyntaxError) dan "14.000" (Python membacanya
+// 14.0, nilai salah) di Modul 7, 8, 10, 11, 12 (21 Okt 2026). Generator kini memakai pustaka.py py() untuk kode.
+for (const course of courseRoots) {
+  for (const sub of ["Modul", "Exam"]) {
+    const dir = path.join(root, course, sub);
+    if (!fs.existsSync(dir)) continue;
+    for (const name of fs.readdirSync(dir).filter((x) => /^(Modul-\d+|UTS|UAS)\.html$/.test(x))) {
+      const rel = `${course}/${sub}/${name}`;
+      const html = fs.readFileSync(path.join(dir, name), "utf8");
+      for (const m of html.matchAll(/<pre>([\s\S]*?)<\/pre>/g)) {
+        const kode = m[1].replace(/<[^>]+>/g, "");
+        for (const baris of kode.split("\n")) {
+          const tanpaKomentar = baris.split("#")[0].replace(/f?"[^"]*"|'[^']*'/g, "");
+          if (/(?<![\d.\w])[1-9]\d{0,2}\.\d{3}\.\d|(?<![\d.\w])[1-9]\d{0,2}\.000(?![\d.e])/.test(tanpaKomentar)) {
+            throw new Error(`ANGKA-KODE: ${rel}: angka berpemisah ribuan di kode Python "${baris.trim()}"; tulis tanpa pemisah (pustaka.py py(), bukan ind())`);
+          }
+        }
+      }
+    }
+  }
+}
 // VIDEO-SIMULASI: video penjelasan simulasi modul TTL (scripts/video-simulasi.mjs + video-simulasi-data.mjs)
 // dan halaman tonton publiknya (tujuan tombol Bagikan, tanpa login). Kartu di halaman modul hanya memakai
 // jalur relatif; halaman tonton ditulis utuh oleh pemasang dan tidak boleh memuat jalur login/admin.

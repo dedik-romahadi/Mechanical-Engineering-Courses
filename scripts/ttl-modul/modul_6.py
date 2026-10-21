@@ -5,7 +5,7 @@
 import cmath
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
+from pustaka import (py, AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel, rumus_mentah)
 
 NOMOR = 6
@@ -501,10 +501,10 @@ def materi():
     isi = kotak("info-box", "<strong>📦 Paket yang Diperlukan:</strong> <code style=\"font-family:'JetBrains Mono',monospace;color:var(--cyan)\">numpy</code> dan <code style=\"font-family:'JetBrains Mono',monospace;color:var(--cyan)\">matplotlib</code>; bilangan kompleks Python (<code>1j</code>) dipakai sebagai fasor. Untuk soal tugas, yang dinilai adalah <strong>nilai numerik yang Anda <code>print()</code></strong>; perhatikan satuan pada label soal (V per fasa vs kV antar-saluran, W vs MW, µF) dan jangan membulatkan di tengah perhitungan.")
     isi += kode("Cell 1 — Saluran Pendek: Fasor V<sub>S</sub>, Jatuh Tegangan, Regulasi, dan Efisiensi", f'''import numpy as np, cmath
 
-VLL, L = {ind(VLL, 0)}e3, {ind(L_KM, 0)}.0                      # V antar-saluran, km
-r, x = {ind(R_KM, 1).replace(",", ".")}, {ind(X_KM, 1).replace(",", ".")}                                # ohm/km
+VLL, L = {py(VLL, 0)}e3, {py(L_KM, 0)}.0                      # V antar-saluran, km
+r, x = {py(R_KM, 1)}, {py(X_KM, 1)}                                # ohm/km
 R, X = r*L, x*L
-P, pf = {ind(P_LOAD, 0)}e6, {ind(PF_LOAD, 1).replace(",", ".")}
+P, pf = {py(P_LOAD, 0)}e6, {py(PF_LOAD, 1)}
 V_R = VLL/np.sqrt(3) + 0j                          # acuan 0 deg, per fasa
 I = P/(3*abs(V_R)*pf) * cmath.exp(-1j*np.arccos(pf))   # tertinggal
 V_S = V_R + I*(R + 1j*X)                            # Persamaan 1 & 3
@@ -515,7 +515,7 @@ rugi = 3*abs(I)**2*R
 print(f"Regulasi (pendek) = {{(abs(V_S)-abs(V_R))/abs(V_R)*100:.3f}} %; rugi = {{rugi/1e6:.4f}} MW; eta = {{P/(P+rugi)*100:.4f}} %")''')
     isi += kode("Cell 2 — Saluran Menengah Nominal-π: ABCD, V<sub>S</sub>, Regulasi, dan Efek Ferranti", f'''import numpy as np, cmath
 
-VLL, R, X, B = {ind(VLL, 0)}e3, {ind(R_L, 0)}.0, {ind(X_L, 0)}.0, {ind(B_L * 1e6, 0)}e-6      # ohm, ohm, siemens (total)
+VLL, R, X, B = {py(VLL, 0)}e3, {py(R_L, 0)}.0, {py(X_L, 0)}.0, {py(B_L * 1e6, 0)}e-6      # ohm, ohm, siemens (total)
 Z, Y = R + 1j*X, 1j*B
 A = 1 + Y*Z/2;  Bc = Z;  C = Y*(1 + Y*Z/4);  D = A          # Persamaan 2
 print(f"A = {{A:.5f}} (|A| = {{abs(A):.5f}}), B = {{Bc}}, C = {{C:.3e}} S; cek AD - BC = {{A*D - Bc*C:.6f}}")
@@ -526,7 +526,7 @@ def ujung_kirim(P_MW, pf, tertinggal=True):
     V_S = A*V_R + Bc*I_R;  I_S = C*V_R + D*I_R
     return V_S, I_S, I_R
 
-for P_MW, pf in [(30, 0.9), ({ind(P_LOAD, 0)}, {ind(PF_LOAD, 1).replace(",", ".")}), ({ind(P_LOAD, 0)}, 1.0), (100, 0.9)]:
+for P_MW, pf in [(30, 0.9), ({py(P_LOAD, 0)}, {py(PF_LOAD, 1)}), ({py(P_LOAD, 0)}, 1.0), (100, 0.9)]:
     V_S, I_S, I_R = ujung_kirim(P_MW, pf)
     V_R_nl = abs(V_S)/abs(A)                                 # Persamaan 5
     VR_pct = (V_R_nl - VLL/np.sqrt(3))/(VLL/np.sqrt(3))*100
@@ -537,7 +537,7 @@ print(f"Tanpa beban (V_S = 132 kV): V_R = {{132/abs(A):.3f}} kV -> Ferranti +{{(
 import matplotlib.pyplot as plt
 
 # ═══ Kapasitor shunt di ujung terima (Persamaan 7) ═══
-P, pf1, pf2 = {ind(P_LOAD, 0)}.0, {ind(PF_LOAD, 1).replace(",", ".")}, {ind(PF2, 2).replace(",", ".")}
+P, pf1, pf2 = {py(P_LOAD, 0)}.0, {py(PF_LOAD, 1)}, {py(PF2, 2)}
 Qc = P*(np.tan(np.arccos(pf1)) - np.tan(np.arccos(pf2)))
 print(f"Q_C = {{Qc:.3f}} MVAR; arus saluran turun {{(1 - pf1/pf2)*100:.1f}} %")
 L_km, C_km = 1.2e-3, 0.0095e-6
@@ -545,7 +545,7 @@ Zc = np.sqrt(L_km/C_km);  SIL = 132**2/Zc
 print(f"Z_c = {{Zc:.2f}} ohm, SIL = {{SIL:.2f}} MW; beban {{P:.0f}} MW = {{P/SIL:.2f}} SIL")
 
 # ═══ Kompensasi seri (Persamaan 8) ═══
-V, X = {ind(V_SER, 0)}.0, {ind(X_SER, 0)}.0
+V, X = {py(V_SER, 0)}.0, {py(X_SER, 0)}.0
 for k in [0, 0.2, 0.4, 0.6]:
     Xeff = X*(1 - k);  Pmax = V**2/Xeff
     print(f"k = {{k:.1f}}: X_eff = {{Xeff:.1f}} ohm, P_maks = {{Pmax:.1f}} MW, delta(400 MW) = {{np.degrees(np.arcsin(400/Pmax)):.2f}} deg")
@@ -563,8 +563,8 @@ print(f"Z_c = {{Zc:.2f}} ohm, v = {{v/1e3:.1f}} x10^3 km/s = {{v/1e3:.1f}} m/us"
 
 def koef(Z1, Z2):
     rho = (Z2 - Z1)/(Z1 + Z2);  return rho, 1 + rho
-V = {ind(V_SURJA, 0)}.0
-for nama, Z1, Z2 in [("udara->kabel", {ind(Z1_S, 0)}, {ind(Z2_S, 0)}), ("kabel->udara", {ind(Z2_S, 0)}, {ind(Z1_S, 0)}), ("udara->terbuka", {ind(Z1_S, 0)}, 1e12), ("udara->trafo", {ind(Z1_S, 0)}, 5000)]:
+V = {py(V_SURJA, 0)}.0
+for nama, Z1, Z2 in [("udara->kabel", {py(Z1_S, 0)}, {py(Z2_S, 0)}), ("kabel->udara", {py(Z2_S, 0)}, {py(Z1_S, 0)}), ("udara->terbuka", {py(Z1_S, 0)}, 1e12), ("udara->trafo", {py(Z1_S, 0)}, 5000)]:
     rho, tau = koef(Z1, Z2)
     print(f"{{nama:15s}}: rho = {{rho:+.4f}}, tau = {{tau:.4f}}, V_pantul = {{rho*V:+.2f}} kV, V_teruskan = {{tau*V:.2f}} kV")
 

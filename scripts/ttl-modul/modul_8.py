@@ -3,7 +3,7 @@
 # gambar konsisten, dan sengaja berbeda dari varian soal.
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
+from pustaka import (py, AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel)
 
 NOMOR = 8
@@ -478,7 +478,7 @@ def materi():
     isi = kotak("info-box", "<strong>📦 Paket yang Diperlukan:</strong> <code style=\"font-family:'JetBrains Mono',monospace;color:var(--cyan)\">numpy</code> dan <code style=\"font-family:'JetBrains Mono',monospace;color:var(--cyan)\">matplotlib</code>. Untuk soal tugas, yang dinilai adalah <strong>nilai numerik yang Anda <code>print()</code></strong>; perhatikan satuan pada label soal (MW, Ω/km, kV, m, mm², kW) dan jangan membulatkan di tengah perhitungan.")
     isi += kode("Cell 1 — Rugi Daya terhadap Tegangan dan Resistansi Konduktor", f'''import numpy as np
 
-P, pf, L, r_km = {ind(P_EX, 0)}e6, {ind(PF_EX, 1).replace(",", ".")}, {ind(L_EX, 0)}.0, {ind(R_KM, 2).replace(",", ".")}
+P, pf, L, r_km = {py(P_EX, 0)}e6, {py(PF_EX, 1)}, {py(L_EX, 0)}.0, {py(R_KM, 2)}
 R = r_km*L
 for VL in [70, 150, 275, 500]:
     I = P/(np.sqrt(3)*VL*1e3*pf)
@@ -486,7 +486,7 @@ for VL in [70, 150, 275, 500]:
     print(f"{{VL:3d}} kV: I = {{I:7.1f}} A, rugi = {{rugi:7.2f}} MW ({{rugi/(P/1e6)*100:5.2f}} %), eta = {{P/1e6/(P/1e6 + rugi)*100:.2f}} %")
 
 # resistansi ACSR 240/40 (Persamaan 2)
-rho, alpha, A = 0.0282, 0.00403, {ind(A_ACSR, 0)}.0
+rho, alpha, A = 0.0282, 0.00403, {py(A_ACSR, 0)}.0
 R20 = rho*1000/A
 R75 = R20*(1 + alpha*(75 - 20))
 print(f"R20 = {{R20:.4f}} ohm/km, R75 = {{R75:.4f}} ohm/km (+{{(R75/R20-1)*100:.1f}} %), R_ac75 = {{R75*1.02:.4f}} ohm/km")
@@ -501,15 +501,15 @@ def rentengan(n, k, V_fasa):
     return V, V_fasa/(n*V.max())*100
 
 V_fasa = 150/np.sqrt(3)
-for n, k in [({N_PIRING}, {ind(K_ISO, 2).replace(",", ".")}), (10, 0.11), (10, 0.05), (24, 0.1)]:
+for n, k in [({N_PIRING}, {py(K_ISO, 2)}), (10, 0.11), (10, 0.05), (24, 0.1)]:
     V, eta = rentengan(n, k, V_fasa if n < 20 else 500/np.sqrt(3))
     print(f"n = {{n:2d}}, k = {{k:.2f}}: piring terdekat konduktor {{V[-1]:6.2f}} kV ({{V[-1]/V.sum()*100:5.1f}} %), efisiensi {{eta:5.1f}} %")
-V, eta = rentengan({N_PIRING}, {ind(K_ISO, 2).replace(",", ".")}, V_fasa)
+V, eta = rentengan({N_PIRING}, {py(K_ISO, 2)}, V_fasa)
 print("tegangan tiap piring (dari menara ke konduktor):", np.round(V, 2))''')
     isi += kode("Cell 3 — Andongan, Panjang Konduktor, Jarak Bebas, dan Pengaruh Suhu", f'''import numpy as np
 import matplotlib.pyplot as plt
 
-w, L, T, H = {ind(W_KOND, 0)}.0, {ind(SPAN, 0)}.0, {ind(T_TARIK, 0)}.0, {ind(H_MENARA, 0)}.0   # N/m, m, N, m
+w, L, T, H = {py(W_KOND, 0)}.0, {py(SPAN, 0)}.0, {py(T_TARIK, 0)}.0, {py(H_MENARA, 0)}.0   # N/m, m, N, m
 S = w*L**2/(8*T)                                         # Persamaan 4
 panjang = L + 8*S**2/(3*L)
 print(f"S = {{S:.3f}} m, panjang konduktor = {{panjang:.2f}} m, jarak bebas = {{H - S:.2f}} m")
@@ -532,7 +532,7 @@ def r_eq(n, r, s=40.0):                                  # jari-jari efektif ber
 def rugi_peek(V, Vc, r, D, f=50, delta=1.0):             # Persamaan 6, kW/km/fasa
     return 0.0 if V <= Vc else 241/delta*(f + 25)*np.sqrt(r/D)*(V - Vc)**2*1e-5
 
-r, D = {ind(R_KOR, 2).replace(",", ".")}, {ind(D_KOR, 0)}.0
+r, D = {py(R_KOR, 2)}, {py(D_KOR, 0)}.0
 for VL in [150, 275]:
     Vf = VL/np.sqrt(3)
     for n in [1, 2]:

@@ -3,7 +3,7 @@
 # gambar konsisten, dan sengaja berbeda dari varian soal.
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
+from pustaka import (py, AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel, rumus_mentah)
 
 NOMOR = 10
@@ -437,7 +437,7 @@ def materi():
     isi += kode("Cell 1 — Kapasitor Shunt: Q<sub>C</sub>, Arus, Rugi, dan Kapasitas Terbebas", f'''import numpy as np
 
 tanpf = lambda pf: np.tan(np.arccos(pf))
-P, pf1, pf2, VL, R = {ind(P_LOAD, 0)}e6, {ind(PF1, 1).replace(",", ".")}, {ind(PF2, 2).replace(",", ".")}, 20e3, {ind(R_L, 1).replace(",", ".")}
+P, pf1, pf2, VL, R = {py(P_LOAD, 0)}e6, {py(PF1, 1)}, {py(PF2, 2)}, 20e3, {py(R_L, 1)}
 Qc = P*(tanpf(pf1) - tanpf(pf2))/1e3                          # kVAR (Persamaan 2)
 I1, I2 = P/(np.sqrt(3)*VL*pf1), P/(np.sqrt(3)*VL*pf2)
 L1, L2 = 3*I1**2*R/1e3, 3*I2**2*R/1e3                          # kW
@@ -449,12 +449,12 @@ for pf in [0.6, 0.7, 0.8, 0.9, 0.95, 1.0]:
     isi += kode("Cell 2 — Jatuh Tegangan, Kenaikan oleh Kapasitor, dan Profil Penyulang Beban Merata", f'''import numpy as np
 import matplotlib.pyplot as plt
 
-VL, R, X = 20e3, {ind(R_L, 1).replace(",", ".")}, {ind(X_L, 1).replace(",", ".")}
+VL, R, X = 20e3, {py(R_L, 1)}, {py(X_L, 1)}
 Vf = VL/np.sqrt(3)
 def dV(I, pf, R, X): return I*(R*pf + X*np.sqrt(1 - pf**2))   # Persamaan 3
-I1, I2 = {ind(I1, 2).replace(",", ".")}, {ind(I2, 2).replace(",", ".")}
-print(f"dV sebelum = {{dV(I1, {ind(PF1, 1).replace(",", ".")}, R, X):.1f}} V ({{dV(I1, {ind(PF1, 1).replace(",", ".")}, R, X)/Vf*100:.2f}} %), sesudah = {{dV(I2, {ind(PF2, 2).replace(",", ".")}, R, X):.1f}} V ({{dV(I2, {ind(PF2, 2).replace(",", ".")}, R, X)/Vf*100:.2f}} %)")
-Qc = {ind(QC, 1).replace(",", ".")}e3
+I1, I2 = {py(I1, 2)}, {py(I2, 2)}
+print(f"dV sebelum = {{dV(I1, {py(PF1, 1)}, R, X):.1f}} V ({{dV(I1, {py(PF1, 1)}, R, X)/Vf*100:.2f}} %), sesudah = {{dV(I2, {py(PF2, 2)}, R, X):.1f}} V ({{dV(I2, {py(PF2, 2)}, R, X)/Vf*100:.2f}} %)")
+Qc = {py(QC, 1)}e3
 print(f"kenaikan oleh kapasitor = Qc*X/V^2 = {{Qc*X/VL**2*100:.3f}} %  (I_C = {{Qc/(np.sqrt(3)*VL):.1f}} A)")
 
 # profil beban merata 10 km, 200 A pf 0,8, kapasitor di posisi p
@@ -488,27 +488,27 @@ for c in [1/3, 1/2, 2/3, 1.0]:
 print(f"Teori: 2/3 di 2/3 -> 8/9 = {{8/9*100:.1f}} %")
 
 # penyulang contoh beban merata (Persamaan 4)
-I0, pf, VL, R = {ind(I_MERATA, 0)}.0, {ind(PF_M, 1).replace(",", ".")}, 20.0, {ind(R_L, 1).replace(",", ".")}
+I0, pf, VL, R = {py(I_MERATA, 0)}.0, {py(PF_M, 1)}, 20.0, {py(R_L, 1)}
 Iq = I0*np.sqrt(1 - pf**2); Q = np.sqrt(3)*VL*Iq
 print(f"I_Q = {{Iq:.1f}} A, Q_beban = {{Q:.0f}} kVAR, kapasitor optimum = {{2/3*Q:.0f}} kVAR; rugi reaktif merata = I_Q^2 R = {{Iq**2*R/1e3:.2f}} kW -> berkurang {{8/9*Iq**2*R/1e3:.2f}} kW")
 print(f"Dua kapasitor: masing-masing {{2/5*Q:.0f}} kVAR di 20 % dan 60 % -> pengurangan {{24/25*100:.0f}} %")''')
     isi += kode("Cell 4 — Regulator Bertingkat, Penghematan Energi Tahunan, dan Bank Kapasitor", f'''import numpy as np
 
 # regulator (Persamaan 5)
-V_rel, V_ujung, step = {ind(V_REL, 1).replace(",", ".")}, {ind(V_UJUNG, 1).replace(",", ".")}, 0.00625
+V_rel, V_ujung, step = {py(V_REL, 1)}, {py(V_UJUNG, 1)}, 0.00625
 n_rel = (20 - V_rel)/(step*20)
 n_ujung = np.log(19.8/V_ujung)/np.log(1 + step)
 print(f"rel {{V_rel}} -> 20 kV: n = {{n_rel:.2f}} -> {{int(np.ceil(n_rel))}} tingkat; ujung {{V_ujung}} -> 19,8 kV: n = {{n_ujung:.2f}} -> {{int(np.ceil(n_ujung))}} tingkat (rel menjadi {{V_rel*(1+step)**np.ceil(n_ujung):.2f}} kV)")
 print(f"tap trafo +2,5 %: V2 = {{19.5e3/(50*1.025):.1f}} V; tap -2,5 %: {{19.5e3/(50*0.975):.1f}} V (V1 = 19,5 kV)")
 
 # ekonomi (Persamaan 6)
-L1, L2, F_beban = {ind(LOSS1, 2).replace(",", ".")}, {ind(LOSS2, 2).replace(",", ".")}, 0.5
+L1, L2, F_beban = {py(LOSS1, 2)}, {py(LOSS2, 2)}, 0.5
 F_rugi = 0.3*F_beban + 0.7*F_beban**2
 E = (L1 - L2)*8760*F_rugi
 print(f"faktor rugi = {{F_rugi:.3f}}; hemat = {{E/1e3:.1f}} MWh/tahun = Rp {{E*1200/1e6:.0f}} juta/tahun @ Rp 1.200/kWh")
 
 # bank kapasitor delta 20 kV
-Qc, VL, w = {ind(QC, 1).replace(",", ".")}e3, 20e3, 2*np.pi*50
+Qc, VL, w = {py(QC, 1)}e3, 20e3, 2*np.pi*50
 print(f"bank {{Qc/1e3:.0f}} kVAR: I = {{Qc/(np.sqrt(3)*VL):.2f}} A; C per fasa (delta) = {{Qc/(3*w*VL**2)*1e6:.3f}} uF; pada 19 kV hanya memberi {{Qc/1e3*(19/20)**2:.0f}} kVAR")''')
     isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 02–06: Q<sub>C</sub> = {ind(QC, 0)} kVAR, rugi {ind(LOSS1, 0)} → {ind(LOSS2, 0)} kW, ΔV {ind(DV1 / VF * 100, 1)} → {ind(DV2 / VF * 100, 1)} %, kapasitor optimum {ind(QC_23, 0)} kVAR, dan {math.ceil(N_LOG)} tingkat regulator. Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")
     m += bagian(8, "m-jupyter", "Implementasi Python<br>di Jupyter Notebook",
