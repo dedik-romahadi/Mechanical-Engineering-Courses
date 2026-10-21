@@ -7,6 +7,12 @@ import re
 SQ3 = math.sqrt(3)
 
 
+def py(x, d=2):
+    """Angka untuk kode Python yang diketik/disalin mahasiswa: titik desimal, TANPA pemisah ribuan.
+    Jangan pakai ind() di dalam kode: ind(2000.0, 0) = "2.000" menjadi 2.0 (atau SyntaxError "2.000.0")."""
+    return f"{x:.{d}f}"
+
+
 def ind(x, d=2):
     """Angka gaya Indonesia: koma desimal, titik ribuan."""
     s = f"{x:,.{d}f}"

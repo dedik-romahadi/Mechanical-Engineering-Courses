@@ -3,7 +3,7 @@
 # teks, tabel, dan gambar konsisten, dan sengaja berbeda dari varian soal.
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
+from pustaka import (py, AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel, rumus_mentah)
 
 NOMOR = 7
@@ -488,17 +488,17 @@ def i_base(kV, MVA):  return MVA*1e6/(np.sqrt(3)*kV*1e3) # A
 def konversi(Xpu, S_lama, V_lama, S_baru, V_baru):       # Persamaan 6
     return Xpu*(S_baru/S_lama)*(V_lama/V_baru)**2
 
-S_base = {ind(S_B, 0)}.0
-for zona, kV in [("13,8 kV", {ind(VG, 1).replace(",", ".")}), ("150 kV", 150.0), ("20 kV", 20.0)]:
+S_base = {py(S_B, 0)}.0
+for zona, kV in [("13,8 kV", {py(VG, 1)}), ("150 kV", 150.0), ("20 kV", 20.0)]:
     print(f"zona {{zona:8s}}: Z_base = {{z_base(kV, S_base):9.4f}} ohm, I_base = {{i_base(kV, S_base):9.2f}} A")
 
 # generator {ind(SG, 0)} MVA {ind(VG, 1)} kV X'' = {ind(XG2, 2)}; trafo {ind(ST, 0)} MVA {ind(XT_PCT, 0)} %; saluran {ind(XL_OHM, 0)} ohm @150 kV
-Xg = konversi({ind(XG2, 2).replace(",", ".")}, {ind(SG, 0)}, {ind(VG, 1).replace(",", ".")}, S_base, {ind(VG, 1).replace(",", ".")})
-Xt = konversi({ind(XT_PCT / 100, 2).replace(",", ".")}, {ind(ST, 0)}, 150, S_base, 150)
-Xl = {ind(XL_OHM, 0)}/z_base(150, S_base)
-print(f"X_g = {{Xg:.4f}} pu ({{Xg*z_base({ind(VG, 1).replace(",", ".")}, S_base):.4f}} ohm), X_t = {{Xt:.4f}} pu, X_saluran = {{Xl:.4f}} pu")
-print(f"X_t dalam ohm: {{Xt*z_base({ind(VG, 1).replace(",", ".")}, S_base):.4f}} ohm sisi 13,8 kV, {{Xt*z_base(150, S_base):.2f}} ohm sisi 150 kV (rasio {{(150/{ind(VG, 1).replace(",", ".")})**2:.1f}})")
-print(f"Generator pada zona basis 13,2 kV: {{konversi({ind(XG2, 2).replace(",", ".")}, {ind(SG, 0)}, {ind(VG, 1).replace(",", ".")}, S_base, 13.2):.4f}} pu")''')
+Xg = konversi({py(XG2, 2)}, {py(SG, 0)}, {py(VG, 1)}, S_base, {py(VG, 1)})
+Xt = konversi({py(XT_PCT / 100, 2)}, {py(ST, 0)}, 150, S_base, 150)
+Xl = {py(XL_OHM, 0)}/z_base(150, S_base)
+print(f"X_g = {{Xg:.4f}} pu ({{Xg*z_base({py(VG, 1)}, S_base):.4f}} ohm), X_t = {{Xt:.4f}} pu, X_saluran = {{Xl:.4f}} pu")
+print(f"X_t dalam ohm: {{Xt*z_base({py(VG, 1)}, S_base):.4f}} ohm sisi 13,8 kV, {{Xt*z_base(150, S_base):.2f}} ohm sisi 150 kV (rasio {{(150/{py(VG, 1)})**2:.1f}})")
+print(f"Generator pada zona basis 13,2 kV: {{konversi({py(XG2, 2)}, {py(SG, 0)}, {py(VG, 1)}, S_base, 13.2):.4f}} pu")''')
     isi += kode("Cell 2 — Transformasi Bintang–Segitiga dan Pemeriksaannya", f'''import numpy as np
 
 def y_ke_delta(Za, Zb, Zc):                      # Persamaan 7
@@ -508,7 +508,7 @@ def delta_ke_y(Zab, Zbc, Zca):
     s = Zab + Zbc + Zca
     return Zab*Zca/s, Zab*Zbc/s, Zbc*Zca/s       # Za, Zb, Zc
 
-Za, Zb, Zc = {ind(ZA, 0)}.0, {ind(ZBB, 0)}.0, {ind(ZC, 0)}.0
+Za, Zb, Zc = {py(ZA, 0)}.0, {py(ZBB, 0)}.0, {py(ZC, 0)}.0
 Zab, Zbc, Zca = y_ke_delta(Za, Zb, Zc)
 print(f"Y ({{Za}}, {{Zb}}, {{Zc}}) -> Delta ({{Zab:.4f}}, {{Zbc:.4f}}, {{Zca:.4f}})")
 print(f"balik: {{delta_ke_y(Zab, Zbc, Zca)}}")
@@ -520,27 +520,27 @@ print(f"R_ab (c terbuka): Y = {{R_ab_Y:.4f}}, Delta = {{R_ab_D:.4f}} -> {{'sama'
 print("Delta j(12, 18, 15) -> Y", [f"{{z:.4f}}" for z in delta_ke_y(12j, 18j, 15j)])''')
     isi += kode("Cell 3 — Reduksi Jaringan Per Unit dan MVA Hubung Singkat Tiap Rel", f'''import numpy as np
 
-S_base = {ind(S_B, 0)}.0
+S_base = {py(S_B, 0)}.0
 def par(*X): return 1/sum(1/x for x in X)
 def sc(X_th, kV): return S_base/X_th, S_base/X_th/(np.sqrt(3)*kV)   # MVA, kA (Persamaan 9)
 
-Xg1, Xg2, Xt, Xl = {ind(XG2, 2).replace(",", ".")}, {ind(XG2B, 2).replace(",", ".")}, {ind(XT_PU, 4).replace(",", ".")}, {ind(XL_PU, 4).replace(",", ".")}
+Xg1, Xg2, Xt, Xl = {py(XG2, 2)}, {py(XG2B, 2)}, {py(XT_PU, 4)}, {py(XL_PU, 4)}
 X_A = par(Xg1, Xg2);  X_B = X_A + Xt;  X_C = X_B + Xl
-for nama, X, kV in [("A", X_A, {ind(VG, 1).replace(",", ".")}), ("B", X_B, 150), ("C", X_C, 150)]:
+for nama, X, kV in [("A", X_A, {py(VG, 1)}), ("B", X_B, 150), ("C", X_C, 150)]:
     S, I = sc(X, kV)
     print(f"rel {{nama}}: X_th = {{X:.4f}} pu, S_sc = {{S:.1f}} MVA, I_sc = {{I:.3f}} kA @ {{kV}} kV")
 # kontribusi tiap generator pada gangguan di rel A (pembagi arus)
-S_A, I_A = sc(X_A, {ind(VG, 1).replace(",", ".")})
+S_A, I_A = sc(X_A, {py(VG, 1)})
 print(f"kontribusi G1 = {{I_A*X_A/Xg1:.3f}} kA, G2 = {{I_A*X_A/Xg2:.3f}} kA (jumlah {{I_A:.3f}} kA)")
 # MVA hubung singkat di hilir trafo dari MVA sumber (Persamaan 10)
-S_sc1, S_T, Z_T = {ind(SSRC, 0)}.0, {ind(ST2, 0)}.0, {ind(XT2, 2).replace(",", ".")}
+S_sc1, S_T, Z_T = {py(SSRC, 0)}.0, {py(ST2, 0)}.0, {py(XT2, 2)}
 X_th2 = S_base/S_sc1 + Z_T*S_base/S_T
 print(f"rel 20 kV: X_th = {{X_th2:.4f}} pu, S_sc = {{S_base/X_th2:.1f}} MVA, I_sc = {{S_base/X_th2/(np.sqrt(3)*20):.2f}} kA")''')
     isi += kode("Cell 4 — Arus Hubung Singkat Generator: Selubung dan Nilai pada Saat Pemutusan", f'''import numpy as np
 import matplotlib.pyplot as plt
 
-S, kV = {ind(SG, 0)}.0, {ind(VG, 1).replace(",", ".")}
-Xd2, Xd1, Xd = {ind(XG2, 2).replace(",", ".")}, {ind(XG1, 2).replace(",", ".")}, {ind(XGS, 1).replace(",", ".")}
+S, kV = {py(SG, 0)}.0, {py(VG, 1)}
+Xd2, Xd1, Xd = {py(XG2, 2)}, {py(XG1, 2)}, {py(XGS, 1)}
 Td2, Td1 = 0.03, 1.0
 I_base = S*1e6/(np.sqrt(3)*kV*1e3)
 I2, I1, I0 = 1/Xd2, 1/Xd1, 1/Xd                        # pu (Persamaan 1)

@@ -3,7 +3,7 @@
 # teks, tabel, dan gambar konsisten, dan sengaja berbeda dari varian soal.
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula, teks2,
+from pustaka import (py, AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula, teks2,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel)
 
 NOMOR = 12
@@ -505,13 +505,13 @@ def sweep(beban_mw, pf, r, x, V1=20.0, iterasi=4):
 
 V, P_in, rugi = sweep([0.8]*4, 0.85, 0.8, 0.7)
 # Persamaan 1 pada ruas tunggal
-P, Q, R, X, V1 = {ind(P_AD, 0)}, {ind(Q_AD, 1).replace(",", ".")}, {ind(R_AD, 1).replace(",", ".")}, {ind(X_AD, 1).replace(",", ".")}, 20.0
+P, Q, R, X, V1 = {py(P_AD, 0)}, {py(Q_AD, 1)}, {py(R_AD, 1)}, {py(X_AD, 1)}, 20.0
 print(f"V2 = {{V1 - (P*R + Q*X)/V1:.4f}} kV; rugi (R = 2,4) = {{(P**2 + Q**2)/V1**2*2.4*1e3:.4f}} kW")
-I = P/{ind(PF_AD, 1).replace(",", ".")}*1e6/(np.sqrt(3)*20e3); print(f"backward sweep: I = {{I:.2f}} A, rugi = {{3*I**2*R/1e3:.2f}} kW, P_sumber = {{P + 3*I**2*R/1e6:.4f}} MW")''')
+I = P/{py(PF_AD, 1)}*1e6/(np.sqrt(3)*20e3); print(f"backward sweep: I = {{I:.2f}} A, rugi = {{3*I**2*R/1e3:.2f}} kW, P_sumber = {{P + 3*I**2*R/1e6:.4f}} MW")''')
     isi += kode("Cell 2 — Arus Hubung Singkat Sepanjang Penyulang dan Gangguan Tanah dengan NGR", f'''import numpy as np
 import matplotlib.pyplot as plt
 
-Vf = 20e3/np.sqrt(3); S_sc = {ind(SSC, 0)}; Xs = 400/S_sc
+Vf = 20e3/np.sqrt(3); S_sc = {py(SSC, 0)}; Xs = 400/S_sc
 r, x = 0.4, 0.35
 print(f"X_s = {{Xs:.4f}} ohm; I_sc di GI = {{Vf/Xs:.1f}} A")
 def I3(d): return Vf/abs(complex(r*d, Xs + x*d))                         # Persamaan 2
@@ -519,21 +519,21 @@ def I1(d, Rn): return 3*Vf/abs(complex(5*r*d + 3*Rn, 3*Xs + 5*x*d))       # Z0 s
 for d in [0, 2, 5, 8, 12, 15]:
     print(f"{{d:2d}} km: I_3f = {{I3(d):7.1f}} A, I_1f-tanah (NGR 40) = {{I1(d, 40):6.1f}} A, (NGR 12) = {{I1(d, 12):6.1f}} A")
 # NGR di titik gangguan dengan Z1 = Z2 = j2,5, Z0 = j7,5
-Rn = {ind(NGR, 0)}; print(f"I_1f = 3Vf/|3Rn + j12.5| = {{3*Vf/abs(complex(3*Rn, 12.5)):.4f}} A")
+Rn = {py(NGR, 0)}; print(f"I_1f = 3Vf/|3Rn + j12.5| = {{3*Vf/abs(complex(3*Rn, 12.5)):.4f}} A")
 d = np.linspace(0, 15, 151)
 plt.figure(figsize=(7, 3.5)); plt.plot(d, [I3(v) for v in d], 'r', label='3 fasa'); plt.plot(d, [I1(v, 40) for v in d], 'c', label='1 fasa-tanah NGR 40')
 plt.axhline(600, ls=':', color='orange', label='pickup 600 A'); plt.xlabel('km'); plt.ylabel('A'); plt.legend(); plt.grid(True); plt.show()''')
     isi += kode("Cell 3 — Fuse, Relai IDMT, dan Koordinasi TMS", f'''import numpy as np
 
 # fuse trafo (Persamaan 3)
-S = {ind(S_TRAFO, 0)}e3; In = S/(np.sqrt(3)*20e3)
+S = {py(S_TRAFO, 0)}e3; In = S/(np.sqrt(3)*20e3)
 print(f"I_n TM = {{In:.4f}} A -> fuse ~ {{2.5*In:.1f}} A; inrush 10 x 0,1 s: I2t = {{(10*In)**2*0.1:.1f}} A2s")
 print(f"fuse 100 A (I2t 3e5) pada 2000 A lebur dalam {{3e5/2000**2*1e3:.2f}} ms")
 
 # relai standard inverse (Persamaan 4)
 def t_si(I, Is, TMS): return TMS*0.14/((I/Is)**0.02 - 1)
-print(f"TMS {ind(TMS_C, 2).replace(",", ".")}, I = 4 Is: t = {{t_si(4, 1, {ind(TMS_C, 2).replace(",", ".")}):.4f}} s")
-If, Is_B, TMS_B, Is_A, margin = {ind(IF_K, 0)}, {ind(IS_HILIR, 0)}, {ind(TMS_HILIR, 1).replace(",", ".")}, {ind(IS_HULU, 0)}, {ind(MARGIN, 1).replace(",", ".")}
+print(f"TMS {py(TMS_C, 2)}, I = 4 Is: t = {{t_si(4, 1, {py(TMS_C, 2)}):.4f}} s")
+If, Is_B, TMS_B, Is_A, margin = {py(IF_K, 0)}, {py(IS_HILIR, 0)}, {py(TMS_HILIR, 1)}, {py(IS_HULU, 0)}, {py(MARGIN, 1)}
 tB = t_si(If, Is_B, TMS_B); tA = tB + margin
 TMS_A = tA*((If/Is_A)**0.02 - 1)/0.14
 print(f"t_B = {{tB:.4f}} s -> t_A = {{tA:.4f}} s -> TMS_A = {{TMS_A:.5f}}")
@@ -542,11 +542,11 @@ for I in [800, 1200, 2000, 4000]:
     isi += kode("Cell 4 — Peramalan Beban, Tahun Jenuh, dan Biaya Tahunan Ekuivalen", f'''import numpy as np
 
 # Persamaan 5
-P0, g, n = {ind(P0_F, 0)}, {ind(G_F, 2).replace(",", ".")}, {N_F}
+P0, g, n = {py(P0_F, 0)}, {py(G_F, 2)}, {N_F}
 print(f"P_{{n}} = {{P0*(1+g)**n:.4f}} MW; waktu ganda = {{np.log(2)/np.log(1+g):.2f}} tahun (aturan 70: {{70/(g*100):.1f}})")
-S0, cap = {ind(S0_J, 1).replace(",", ".")}, {ind(CAP_J, 0)}
+S0, cap = {py(S0_J, 1)}, {py(CAP_J, 0)}
 print(f"tahun jenuh 100 % = {{np.log(cap/S0)/np.log(1+g):.4f}}; 80 % = {{np.log(0.8*cap/S0)/np.log(1+g):.4f}}")
-print(f"gardu 250 kVA berbeban {ind(S0_G, 0)} kVA, g 6 %: n = {{np.log(200/{ind(S0_G, 0)})/np.log(1.06):.4f}} tahun")
+print(f"gardu 250 kVA berbeban {py(S0_G, 0)} kVA, g 6 %: n = {{np.log(200/{py(S0_G, 0)})/np.log(1.06):.4f}} tahun")
 
 # kapasitas bertahap 20 tahun
 kap, tambah = cap, []
@@ -556,7 +556,7 @@ for th in range(21):
 print(f"pengembangan +4 MVA pada tahun {{tambah}}; kapasitas akhir {{kap}} MVA untuk beban {{S0*(1+g)**20:.2f}} MVA")
 
 # Persamaan 6: CRF dan biaya tahunan ekuivalen
-i, umur = {ind(I_RATE, 2).replace(",", ".")}, {N_UMUR}
+i, umur = {py(I_RATE, 2)}, {N_UMUR}
 CRF = i*(1+i)**umur/((1+i)**umur - 1); print(f"CRF = {{CRF:.4f}}")
 for nama, modal, mva in [("uprating", 4, 3), ("penyulang baru", 10, 6), ("kapasitor", 0.8, 0.8), ("GI baru per penyulang", 20, 5)]:
     print(f"{{nama:22s}}: A = {{modal*CRF*1e3:7.0f}} juta/th -> {{modal*CRF*1e3/mva:6.0f}} juta/th per MVA")''')

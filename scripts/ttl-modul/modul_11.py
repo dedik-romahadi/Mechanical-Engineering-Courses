@@ -3,7 +3,7 @@
 # tabel, dan gambar konsisten, dan sengaja berbeda dari varian soal.
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
+from pustaka import (py, AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel, rumus_mentah)
 
 NOMOR = 11
@@ -494,7 +494,7 @@ print(f"faktor beban = {{F_B:.4f}}, faktor rugi = {{F_rugi:.4f}} (batas F_B^2 = 
 print(f"faktor keragaman antar-kelompok = {{F_krg:.4f}}; trafo minimum pada pf 0,9 = {{P_maks/0.9:.1f}} kVA")
 
 # contoh Persamaan 2
-print(f"P_maks gardu = {ind(DF, 2).replace(",", ".")} x {ind(TERHUBUNG, 0)} = {{{ind(DF, 2).replace(",", ".")}*{ind(TERHUBUNG, 0)}:.2f}} kW; serempak = (80+60+45)/1.4 = {{(80+60+45)/1.4:.4f}} kW")
+print(f"P_maks gardu = {py(DF, 2)} x {py(TERHUBUNG, 0)} = {{{py(DF, 2)}*{py(TERHUBUNG, 0)}:.2f}} kW; serempak = (80+60+45)/1.4 = {{(80+60+45)/1.4:.4f}} kW")
 print(f"F_B bulanan = 36000/(100*720) = {{36000/(100*720):.4f}}; F_rugi(0,55) = {{0.3*0.55+0.7*0.55**2:.5f}}")''')
     isi += kode("Cell 2 — Pemilihan Trafo Gardu dan Pembebanan", f'''import numpy as np
 
@@ -509,8 +509,8 @@ for n, d, fk, pf in [(80, 1.3, 2.0, 0.9), (150, 1.3, 2.6, 0.9), (240, 1.3, 2.5, 
     print(f"{{n:4d}} pelanggan x {{d}} kW, F_krg {{fk}}: P = {{P:.2f}} kW, S = {{S:.2f}} kVA -> trafo {{St}} kVA (pembebanan awal {{pemb:.1f}} %)")
 
 # gardu contoh {ind(S_TRAFO, 0)} kVA berbeban {ind(P_TRAFO, 0)} kW pf {ind(PF_TRAFO, 1)}
-S = {ind(P_TRAFO, 0)}/{ind(PF_TRAFO, 1).replace(",", ".")}
-print(f"S beban = {{S:.2f}} kVA, pembebanan = {{S/{ind(S_TRAFO, 0)}*100:.2f}} %, I_TR = {{S*1e3/(np.sqrt(3)*400):.1f}} A, I_TM = {{S*1e3/(np.sqrt(3)*20e3):.2f}} A")
+S = {py(P_TRAFO, 0)}/{py(PF_TRAFO, 1)}
+print(f"S beban = {{S:.2f}} kVA, pembebanan = {{S/{py(S_TRAFO, 0)}*100:.2f}} %, I_TR = {{S*1e3/(np.sqrt(3)*400):.1f}} A, I_TM = {{S*1e3/(np.sqrt(3)*20e3):.2f}} A")
 P0, Pk = 0.65, 3.25   # rugi besi dan tembaga trafo 250 kVA (kW)
 for pemb in [0.3, 0.5, 0.7, 0.9, 1.1]:
     print(f"pembebanan {{pemb*100:3.0f}} %: rugi trafo = {{P0 + Pk*pemb**2:.2f}} kW, efisiensi = {{(250*pemb*0.9)/(250*pemb*0.9 + P0 + Pk*pemb**2)*100:.2f}} %")''')
@@ -521,7 +521,7 @@ KABEL = {{35: 0.868, 50: 0.641, 70: 0.443, 95: 0.320}}   # r (ohm/km) NFA2X Al; 
 x = 0.08
 def dV_LL(I, L_km, r, pf): return np.sqrt(3)*I*L_km*(r*pf + x*np.sqrt(1 - pf**2))   # Persamaan 5
 
-I, L, pf = {ind(I_JTR, 0)}, {ind(L_JTR, 2).replace(",", ".")}, {ind(PF_JTR, 1).replace(",", ".")}
+I, L, pf = {py(I_JTR, 0)}, {py(L_JTR, 2)}, {py(PF_JTR, 1)}
 for A, r in KABEL.items():
     dv = dV_LL(I, L, r, pf)
     print(f"Al {{A:3d}} mm2: dV terpusat = {{dv:6.2f}} V ({{dv/380*100:.2f}} %), merata = {{dv/2/380*100:.2f}} %, rugi terpusat = {{3*I**2*r*L/1e3:.3f}} kW, merata = {{I**2*r*L/1e3:.3f}} kW")
@@ -538,22 +538,22 @@ plt.xlabel('m'); plt.ylabel('V antar-saluran'); plt.legend(); plt.grid(True); pl
     isi += kode("Cell 4 — Penyulang Beban Merata, Rugi Energi, Keandalan, dan Penampang Minimum", f'''import numpy as np
 
 # penyulang 20 kV beban merata (Persamaan 5)
-I, L, r, x, pf = {ind(I_M, 0)}, {ind(L_M, 0)}, 0.4, 0.35, {ind(PF_M, 1).replace(",", ".")}
+I, L, r, x, pf = {py(I_M, 0)}, {py(L_M, 0)}, 0.4, 0.35, {py(PF_M, 1)}
 Vf = 20e3/np.sqrt(3)
 dV = 0.5*I*L*(r*pf + x*np.sqrt(1 - pf**2))
 print(f"dV merata = {{dV:.2f}} V = {{dV/Vf*100:.4f}} % (terpusat {{2*dV/Vf*100:.4f}} %)")
-I2, L2 = {ind(I_PY, 0)}, {ind(L_PY, 0)}
+I2, L2 = {py(I_PY, 0)}, {py(L_PY, 0)}
 rugi = I2**2*r*L2/1e3
-print(f"rugi merata {{L2}} km {{I2}} A = {{rugi:.2f}} kW (terpusat {{3*rugi:.2f}} kW); E_rugi = {{rugi*8760*{ind(F_RUGI_PY, 1).replace(",", ".")}:.0f}} kWh/th = Rp {{rugi*8760*{ind(F_RUGI_PY, 1).replace(",", ".")}*1200/1e6:.1f}} juta")
+print(f"rugi merata {{L2}} km {{I2}} A = {{rugi:.2f}} kW (terpusat {{3*rugi:.2f}} kW); E_rugi = {{rugi*8760*{py(F_RUGI_PY, 1)}:.0f}} kWh/th = Rp {{rugi*8760*{py(F_RUGI_PY, 1)}*1200/1e6:.1f}} juta")
 
 # keandalan (Persamaan 3)
-N, plg_kali, plg_jam = {PEL}, {ind(PEL_KALI, 0)}, {ind(PEL_JAM, 0)}
+N, plg_kali, plg_jam = {PEL}, {py(PEL_KALI, 0)}, {py(PEL_JAM, 0)}
 SAIFI, SAIDI = plg_kali/N, plg_jam/N
 print(f"SAIFI = {{SAIFI:.4f}} kali, SAIDI = {{SAIDI:.4f}} jam, CAIDI = {{SAIDI/SAIFI:.4f}} jam, ASAI = {{(1 - SAIDI/8760)*100:.4f}} %")
-print(f"ENS = {ind(P_MW_ENS, 1).replace(",", ".")} MW x {ind(FB_ENS, 2).replace(",", ".")} x SAIDI = {{{ind(P_MW_ENS, 1).replace(",", ".")}*{ind(FB_ENS, 2).replace(",", ".")}*SAIDI:.4f}} MWh/tahun")
+print(f"ENS = {py(P_MW_ENS, 1)} MW x {py(FB_ENS, 2)} x SAIDI = {{{py(P_MW_ENS, 1)}*{py(FB_ENS, 2)}*SAIDI:.4f}} MWh/tahun")
 
 # penampang minimum (Persamaan 6)
-I3, L3, pf3, dv_izin, rho = {ind(I_MIN, 0)}, {ind(L_MIN, 0)}, {ind(PF_MIN, 2).replace(",", ".")}, {ind(DV_MIN_PCT, 0)}/100*380, 0.0175
+I3, L3, pf3, dv_izin, rho = {py(I_MIN, 0)}, {py(L_MIN, 0)}, {py(PF_MIN, 2)}, {py(DV_MIN_PCT, 0)}/100*380, 0.0175
 A = np.sqrt(3)*I3*pf3*rho*L3/dv_izin
 print(f"A_min (Cu) = {{A:.4f}} mm2 -> standar 35 mm2; Al ({{0.0283}}): {{A*0.0283/0.0175:.2f}} mm2 -> 50 mm2")''')
     isi += kotak("tip-box", f"💡 <strong>Sebelum Mengerjakan Tugas:</strong> jalankan keempat cell dan cocokkan dengan Bagian 02–06: P<sub>maks</sub> {ind(P_MAKS, 1)} kW, serempak {ind(P_SEREMPAK, 1)} kW, F<sub>rugi</sub> {ind(LOSSF, 4)}, trafo {ind(S_GARDU, 1)} kVA → 100 kVA, ΔV JTR {ind(DV_JTR_PCT, 2)} %, SAIDI {ind(SAIDI, 2)} jam, A<sub>min</sub> {ind(A_MIN, 1)} mm². Cell 1–4 memuat pola penyelesaian soal Hard C11–C15; ubah angkanya sesuai soal Anda, jangan hanya menyalin.")

@@ -3,7 +3,7 @@
 # gambar konsisten, dan sengaja berbeda dari varian soal.
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
+from pustaka import (py, AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel)
 
 NOMOR = 5
@@ -445,7 +445,7 @@ def materi():
 
 deg = np.pi/180
 # ═══ Sinusoid dan rms (Persamaan 1) ═══
-Vm, f = {ind(V_M, 1).replace(",", ".")}, 50.0
+Vm, f = {py(V_M, 1)}, 50.0
 w = 2*np.pi*f
 Vrms = Vm/np.sqrt(2)
 print(f"V_rms = {{Vrms:.4f}} V; omega = {{w:.4f}} rad/s; periode = {{1000/f:.1f}} ms")
@@ -455,11 +455,11 @@ def fasor(besar, sudut_deg): return cmath.rect(besar, sudut_deg*deg)
 def polar(z): return abs(z), cmath.phase(z)/deg
 
 V = fasor(240, 0)
-R, L, C = {ind(R_Z, 0)}.0, 50e-3, 150e-6
+R, L, C = {py(R_Z, 0)}.0, 50e-3, 150e-6
 XL, XC = w*L, 1/(w*C)
 Z_RL  = R + 1j*XL                       # beban RL Gambar 2 (tanpa C)
 Z_RLC = R + 1j*(XL - XC)                # RLC seri
-for nama, Z in [("RL", R + 1j*{ind(XL_Z, 0)}.0), ("RLC", Z_RLC)]:
+for nama, Z in [("RL", R + 1j*{py(XL_Z, 0)}.0), ("RLC", Z_RLC)]:
     I = V/Z
     print(f"{{nama:4s}}: |Z| = {{abs(Z):.4f}} ohm, sudut = {{polar(Z)[1]:.3f}} deg, I = {{abs(I):.4f}} A pada {{polar(I)[1]:.3f}} deg")
 print(f"X_L = {{XL:.4f}} ohm, X_C = {{XC:.4f}} ohm, f_res = {{1/(2*np.pi*np.sqrt(L*C)):.3f}} Hz")
@@ -470,7 +470,7 @@ print(f"V_R + V_L + V_C = {{abs(I*R + I*1j*XL - I*1j*XC):.4f}} V (= 240)")''')
 
 deg = np.pi/180
 # ═══ Segitiga daya beban RL (Persamaan 5–6) ═══
-V, I, phi = 240.0, {ind(I_Z, 0)}.0, {ind(PHI_Z, 2).replace(",", ".")}
+V, I, phi = 240.0, {py(I_Z, 0)}.0, {py(PHI_Z, 2)}
 P, Q, S = V*I*np.cos(phi*deg), V*I*np.sin(phi*deg), V*I
 print(f"P = {{P:.2f}} W, Q = {{Q:.2f}} VAR, S = {{S:.2f}} VA, pf = {{P/S:.4f}}; cek S^2 = P^2 + Q^2: {{np.hypot(P, Q):.2f}}")
 
@@ -479,8 +479,8 @@ def S_kompleks(P_kW, pf, tertinggal=True):
     Q = P_kW*np.tan(np.arccos(pf))
     return P_kW + 1j*(Q if tertinggal else -Q)
 
-S_A = S_kompleks({ind(PA, 0)}, {ind(PFA, 1).replace(",", ".")}, True)     # induktif
-S_B = S_kompleks({ind(PB, 0)}, {ind(PFB, 1).replace(",", ".")}, False)    # kapasitif (mendahului)
+S_A = S_kompleks({py(PA, 0)}, {py(PFA, 1)}, True)     # induktif
+S_B = S_kompleks({py(PB, 0)}, {py(PFB, 1)}, False)    # kapasitif (mendahului)
 S_tot = S_A + S_B
 print(f"S_A = {{S_A:.3f}} kVA, S_B = {{S_B:.3f}} kVA")
 print(f"Total: P = {{S_tot.real:.4f}} kW, Q = {{S_tot.imag:.4f}} kVAR, S = {{abs(S_tot):.4f}} kVA, pf = {{S_tot.real/abs(S_tot):.4f}}")
@@ -488,7 +488,7 @@ print(f"Bukan jumlah kVA: {{abs(S_A) + abs(S_B):.4f}} kVA")''')
     isi += kode("Cell 3 — Perbaikan Faktor Daya: kVAR, Kapasitansi, dan Arus Saluran", f'''import numpy as np
 import matplotlib.pyplot as plt
 
-P, pf1, pf2, VL, f = {ind(P_PF, 0)}.0, {ind(PF1, 2).replace(",", ".")}, {ind(PF2, 2).replace(",", ".")}, {ind(VL_PF, 0)}.0, 50.0
+P, pf1, pf2, VL, f = {py(P_PF, 0)}.0, {py(PF1, 2)}, {py(PF2, 2)}, {py(VL_PF, 0)}.0, 50.0
 tan1, tan2 = np.tan(np.arccos(pf1)), np.tan(np.arccos(pf2))
 Qc = P*(tan1 - tan2)                                   # kVAR (Persamaan 8)
 S1, S2 = P/pf1, P/pf2
@@ -505,9 +505,9 @@ plt.axvline(pf1, ls=':', color='tab:red'); plt.xlabel('pf sasaran'); plt.legend(
     isi += kode("Cell 4 — Tiga Fasa Seimbang: Y, Δ, Daya, dan Daya Sesaat Konstan", f'''import numpy as np
 import matplotlib.pyplot as plt
 
-VL = {ind(VL3, 0)}.0
+VL = {py(VL3, 0)}.0
 # ═══ Beban Y (Persamaan 9–10) ═══
-Z_Y = {ind(RY, 0)} + {ind(XY, 1).replace(",", ".")}j
+Z_Y = {py(RY, 0)} + {py(XY, 1)}j
 V_fasa = VL/np.sqrt(3)
 I_Y = V_fasa/abs(Z_Y)
 pf = Z_Y.real/abs(Z_Y)
@@ -515,7 +515,7 @@ P = np.sqrt(3)*VL*I_Y*pf
 print(f"Y : V_fasa = {{V_fasa:.3f}} V, I_L = I_fasa = {{I_Y:.4f}} A, pf = {{pf:.4f}}, P = {{P:.2f}} W (= 3 I^2 R = {{3*I_Y**2*Z_Y.real:.2f}}), Q = {{3*I_Y**2*Z_Y.imag:.2f}} VAR")
 
 # ═══ Beban delta ═══
-Z_D = {ind(RD, 0)} + {ind(XD, 0)}j
+Z_D = {py(RD, 0)} + {py(XD, 0)}j
 I_fasa = VL/abs(Z_D); I_L = np.sqrt(3)*I_fasa
 print(f"D : I_fasa = {{I_fasa:.4f}} A, I_L = {{I_L:.4f}} A, P = {{3*I_fasa**2*Z_D.real:.2f}} W")
 

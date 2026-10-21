@@ -3,7 +3,7 @@
 # sini agar teks, tabel, dan gambar konsisten, dan sengaja berbeda dari varian soal.
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula, teks2,
+from pustaka import (py, AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula, teks2,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel, rumus_mentah)
 
 NOMOR = 4
@@ -488,7 +488,7 @@ def materi():
     isi += kode("Cell 1 — Analisis Nodal Dua Sumber, Arus Cabang, dan Neraca Daya", f'''import numpy as np
 
 # ═══ Jaringan Gambar 3 (Persamaan 4–5) ═══
-E1, R1, E2, R2, R3 = {ind(E1N, 0).replace(",", ".")}.0, {ind(R1N, 0)}.0, {ind(E2N, 0)}.0, {ind(R2N, 0)}.0, {ind(R3N, 0)}.0
+E1, R1, E2, R2, R3 = {py(E1N, 0)}.0, {py(R1N, 0)}.0, {py(E2N, 0)}.0, {py(R2N, 0)}.0, {py(R3N, 0)}.0
 G = 1/R1 + 1/R2 + 1/R3
 V = (E1/R1 + E2/R2) / G                       # tegangan simpul
 I1, I2, I3 = (E1 - V)/R1, (E2 - V)/R2, V/R3
@@ -499,12 +499,12 @@ P_resistor = I1**2*R1 + I2**2*R2 + I3**2*R3
 print(f"Neraca daya: sumber {{P_sumber:.4f}} W = resistor {{P_resistor:.4f}} W")
 
 # ═══ Dua ggl seri (Persamaan 1) ═══
-E1s, E2s, R = {ind(E1S, 0)}.0, {ind(E2S, 1).replace(",", ".")}, {ind(RS, 0)}.0
+E1s, E2s, R = {py(E1S, 0)}.0, {py(E2S, 1)}, {py(RS, 0)}.0
 print(f"Seri aiding: I = {{(E1s + E2s)/R:.4f}} A;  opposing: I = {{(E1s - E2s)/R:.4f}} A")''')
     isi += kode("Cell 2 — Analisis Mesh dengan Matriks dan Teorema Superposisi", f'''import numpy as np
 
 # ═══ Mesh dua loop, Gambar 2 (Persamaan 3): R I = E ═══
-E1, R1, E2, R2, R3 = {ind(E1M, 0)}.0, {ind(R1M, 0)}.0, {ind(E2M, 0)}.0, {ind(R2M, 0)}.0, {ind(R3M, 0)}.0
+E1, R1, E2, R2, R3 = {py(E1M, 0)}.0, {py(R1M, 0)}.0, {py(E2M, 0)}.0, {py(R2M, 0)}.0, {py(R3M, 0)}.0
 Rm = np.array([[R1 + R3, -R3],
                [-R3,     R2 + R3]])           # diagonal: jumlah R di loop; silang: -R bersama
 Em = np.array([E1, E2])                       # ggl bertanda searah arus loop (searah jarum jam)
@@ -518,7 +518,7 @@ def nodal(E1, R1, E2, R2, R3):
     V = (E1/R1 + E2/R2) / (1/R1 + 1/R2 + 1/R3)
     return V, (E1 - V)/R1, (E2 - V)/R2, V/R3
 
-E1, R1, E2, R2, R3 = {ind(E1N, 0)}.0, {ind(R1N, 0)}.0, {ind(E2N, 0)}.0, {ind(R2N, 0)}.0, {ind(R3N, 0)}.0
+E1, R1, E2, R2, R3 = {py(E1N, 0)}.0, {py(R1N, 0)}.0, {py(E2N, 0)}.0, {py(R2N, 0)}.0, {py(R3N, 0)}.0
 _, _, _, I3a = nodal(E1, R1, 0.0, R2, R3)     # hanya E1 (E2 -> kawat)
 _, _, _, I3b = nodal(0.0, R1, E2, R2, R3)     # hanya E2 (E1 -> kawat)
 _, _, _, I3  = nodal(E1, R1, E2, R2, R3)      # lengkap
@@ -528,7 +528,7 @@ print(f"Daya R3: benar {{I3**2*R3:.4f}} W, jumlah daya tiap langkah {{(I3a**2 + 
 import matplotlib.pyplot as plt
 
 # ═══ Gambar 5 (Persamaan 7–8): sumber E, R1 seri R2, terminal pada R2 lewat R3 ═══
-E, R1, R2, R3 = {ind(ET, 0)}.0, {ind(R1T, 0)}.0, {ind(R2T, 0)}.0, {ind(R3T, 0)}.0
+E, R1, R2, R3 = {py(ET, 0)}.0, {py(R1T, 0)}.0, {py(R2T, 0)}.0, {py(R3T, 0)}.0
 V_th = E * R2 / (R1 + R2)                     # terminal terbuka: tidak ada arus di R3
 R_th = R1*R2/(R1 + R2) + R3                   # sumber dihubung singkat
 I_N  = V_th / R_th
@@ -553,19 +553,19 @@ def rel_paralel(E, r, R_L=None, I_beban=None):
     return V, (E - V)/r
 
 # ═══ Gambar 6: dua baterai, beban resistif ═══
-V, I = rel_paralel([{ind(E1P, 1).replace(",", ".")}, {ind(E2P, 1).replace(",", ".")}], [{ind(R1P, 2).replace(",", ".")}, {ind(R2P, 2).replace(",", ".")}], R_L={ind(RLP, 1).replace(",", ".")})
+V, I = rel_paralel([{py(E1P, 1)}, {py(E2P, 1)}], [{py(R1P, 2)}, {py(R2P, 2)}], R_L={py(RLP, 1)})
 print(f"V rel = {{V:.4f}} V;  I1 = {{I[0]:.4f}} A, I2 = {{I[1]:.4f}} A, I_L = {{I.sum():.4f}} A")
 for k, Ik in enumerate(I, 1):
     print(f"  sumber {{k}}: {{'memasok' if Ik > 0 else 'DIISI (menyerap)'}} {{abs(Ik):.3f}} A")
 
 # ═══ Arus sirkulasi tanpa beban (Persamaan 10) ═══
-E1, r1, E2, r2 = {ind(E1P, 1).replace(",", ".")}, {ind(R1P, 2).replace(",", ".")}, {ind(E2P, 1).replace(",", ".")}, {ind(R2P, 2).replace(",", ".")}
+E1, r1, E2, r2 = {py(E1P, 1)}, {py(R1P, 2)}, {py(E2P, 1)}, {py(R2P, 2)}
 I_sirk = (E1 - E2) / (r1 + r2)
 print(f"Tanpa beban: I_sirk = {{I_sirk:.4f}} A, rugi = {{I_sirk**2*(r1 + r2):.4f}} W terus-menerus")
 
 # ═══ Dua generator, beban arus tetap ═══
-V, I = rel_paralel([{ind(EG1, 0)}, {ind(EG2, 0)}], [{ind(RG1, 1).replace(",", ".")}, {ind(RG2, 1).replace(",", ".")}], I_beban={ind(IG, 0)})
-print(f"Generator: V rel = {{V:.4f}} V, I_G1 = {{I[0]:.4f}} A, I_G2 = {{I[1]:.4f}} A, P_G1 = {{{ind(EG1, 0)}*I[0]:.2f}} W, P_G2 = {{{ind(EG2, 0)}*I[1]:.2f}} W")
+V, I = rel_paralel([{py(EG1, 0)}, {py(EG2, 0)}], [{py(RG1, 1)}, {py(RG2, 1)}], I_beban={py(IG, 0)})
+print(f"Generator: V rel = {{V:.4f}} V, I_G1 = {{I[0]:.4f}} A, I_G2 = {{I[1]:.4f}} A, P_G1 = {{{py(EG1, 0)}*I[0]:.2f}} W, P_G2 = {{{py(EG2, 0)}*I[1]:.2f}} W")
 
 # ═══ Ekuivalen Thevenin sumber paralel ═══
 E_eq = (E1/r1 + E2/r2) / (1/r1 + 1/r2);  r_eq = 1 / (1/r1 + 1/r2)

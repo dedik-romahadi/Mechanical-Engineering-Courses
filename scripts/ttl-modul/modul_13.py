@@ -3,7 +3,7 @@
 # dan sengaja berbeda dari varian soal.
 import math
 
-from pustaka import (AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula, teks2,
+from pustaka import (py, AX, BOX, GRID, TX, anim_panel, arrow, bagian, box, cards, figure, formula, teks2,
                      fq, ind, kode, kotak, mc_block, pm_ref, svg, t, tabel, rumus_mentah)
 
 NOMOR = 13
@@ -454,14 +454,14 @@ for V in [500, 150, 20, 13.8, 6.6, 0.4]:
 def konversi(X_lama, S_lama, S_baru, V_lama=1.0, V_baru=1.0):
     """Persamaan 3: X_baru = X_lama (S_baru/S_lama) (V_lama/V_baru)^2"""
     return X_lama*(S_baru/S_lama)*(V_lama/V_baru)**2
-Xg = konversi({ind(XG_OWN, 2).replace(",", ".")}, {ind(SG, 0)}, S_base); Xt1 = konversi({ind(XT_OWN, 2).replace(",", ".")}, {ind(ST, 0)}, S_base)
-XL = {ind(XL_OHM, 0)}/dasar(150)[0]; Xt2 = konversi(0.08, 30, S_base); Xm = konversi(0.2, 4, S_base, 6.3, 6.6)
+Xg = konversi({py(XG_OWN, 2)}, {py(SG, 0)}, S_base); Xt1 = konversi({py(XT_OWN, 2)}, {py(ST, 0)}, S_base)
+XL = {py(XL_OHM, 0)}/dasar(150)[0]; Xt2 = konversi(0.08, 30, S_base); Xm = konversi(0.2, 4, S_base, 6.3, 6.6)
 print(f"X_g = {{Xg:.5f}}, X_t1 = {{Xt1:.5f}}, X_L = {{XL:.5f}}, X_t2 = {{Xt2:.5f}}, X_m = {{Xm:.5f}} pu (dasar 100 MVA)")
 print(f"contoh soal: 0,12 pu @ 50 MVA -> {{konversi(0.12, 50, 100):.5f}} pu @ 100 MVA; 45 ohm @ 150 kV -> {{45/225:.5f}} pu")''')
     isi += kode("Cell 2 — Diagram Reaktansi dan Arus Hubung Singkat Tiap Rel", f'''import numpy as np
 
 S_base = 100.0
-Xg, Xt1, XL, Xt2, Xm = {ind(XG, 2).replace(",", ".")}, {ind(XT, 2).replace(",", ".")}, {ind(XL, 2).replace(",", ".")}, {ind(0.08 * S_B / 30, 5).replace(",", ".")}, {ind(XM, 5).replace(",", ".")}
+Xg, Xt1, XL, Xt2, Xm = {py(XG, 2)}, {py(XT, 2)}, {py(XL, 2)}, {py(0.08 * S_B / 30, 5)}, {py(XM, 5)}
 rel = {{"rel 1 (13,8 kV)": (Xg, 13.8), "rel 2 (150 kV)": (Xg + Xt1, 150), "rel 3 (150 kV)": (Xg + Xt1 + XL, 150), "rel 4 (6,6 kV)": (Xg + Xt1 + XL + Xt2, 6.6)}}
 for nama, (Xth, V) in rel.items():                                    # Persamaan 5
     Ib = S_base*1e6/(np.sqrt(3)*V*1e3); Isc = 1/Xth
@@ -470,7 +470,7 @@ for nama, (Xth, V) in rel.items():                                    # Persamaa
 Xkiri = Xg + Xt1 + XL + Xt2; Xth4 = Xkiri*Xm/(Xkiri + Xm)
 print(f"rel 4 + motor: X_th = {{Xth4:.5f}} pu, I_sc = {{1/Xth4:.4f}} pu (sistem {{1/Xkiri:.4f}} + motor {{1/Xm:.4f}})")
 # dua jalur paralel (Persamaan 5)
-XA, XB = {ind(XA, 1).replace(",", ".")}, {ind(XB, 1).replace(",", ".")}
+XA, XB = {py(XA, 1)}, {py(XB, 1)}
 Xp = XA*XB/(XA + XB); print(f"paralel: X_th = {{Xp:.5f}}, I_sc = {{1/Xp:.4f}} pu = I_A {{1/XA:.4f}} + I_B {{1/XB:.4f}}; S_sc = {{S_base/Xp:.2f}} MVA")''')
     isi += kode("Cell 3 — Fasor dalam Per Unit: V<sub>s</sub> = V<sub>r</sub> + I·Z dan Arus Beban", f'''import numpy as np
 import matplotlib.pyplot as plt
@@ -481,13 +481,13 @@ def Vs_dari(I_pu, pf, R, X, lead=False):
     I = I_pu*np.exp(1j*phi); Vs = Vr + I*(R + 1j*X)
     return Vs, I
 for pf, lead in [(1.0, False), (0.9, False), (0.7, False), (0.9, True)]:
-    Vs, I = Vs_dari({ind(I_PU, 1).replace(",", ".")}, pf, {ind(R_PU, 2).replace(",", ".")}, {ind(X_PU, 2).replace(",", ".")}, lead)
+    Vs, I = Vs_dari({py(I_PU, 1)}, pf, {py(R_PU, 2)}, {py(X_PU, 2)}, lead)
     print(f"pf {{pf}} {{'mendahului' if lead else 'tertinggal'}}: V_s = {{abs(Vs):.5f}} < {{np.degrees(np.angle(Vs)):.2f}} deg, regulasi {{(abs(Vs)-1)*100:.2f}} %")
 # Persamaan 6: arus beban pu
-S, pf, V = {ind(S_LOAD, 0)}, {ind(PF_LOAD, 1).replace(",", ".")}, {ind(V_LOAD, 2).replace(",", ".")}
+S, pf, V = {py(S_LOAD, 0)}, {py(PF_LOAD, 1)}, {py(V_LOAD, 2)}
 I = S/100/V; print(f"beban {{S}} MVA pf {{pf}} pada {{V}} pu: |I| = {{I:.5f}} pu = {{I*100e6/(np.sqrt(3)*150e3):.1f}} A (150 kV)")
 # soal: beban resistif I pu, |V_s| = sqrt((1+IR)^2 + (IX)^2)
-I0, R, X = {ind(I_PU, 1).replace(",", ".")}, {ind(R_PU, 2).replace(",", ".")}, {ind(X_PU, 2).replace(",", ".")}
+I0, R, X = {py(I_PU, 1)}, {py(R_PU, 2)}, {py(X_PU, 2)}
 print(f"|V_s| resistif = {{np.hypot(1 + I0*R, I0*X):.5f}} pu")
 Vs, I = Vs_dari(0.8, 0.9, 0.04, 0.16)
 plt.figure(figsize=(6, 4)); plt.quiver([0, 0, 1], [0, 0, 0], [Vr.real, I.real, (Vs-Vr).real], [Vr.imag, I.imag, (Vs-Vr).imag], color=['g', 'orange', 'r'], angles='xy', scale_units='xy', scale=1)
