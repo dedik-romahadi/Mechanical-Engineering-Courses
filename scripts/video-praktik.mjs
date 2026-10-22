@@ -66,9 +66,10 @@ ${ATURAN}
 
 const fmt = (d) => `${Math.floor(d / 60)}:${String(Math.floor(d % 60)).padStart(2, "0")}`;
 
+// Video bernarasi tidak diberi kalimat penjelasan (permintaan dosen 22 Okt 2026); diakhiri spasi bila ada.
 const penjelasan = (v) => v.narasi
-  ? "Penjelasan berupa narasi suara dan caption teks; musik latar mengecil saat narasi berbicara."
-  : "Penjelasan berupa caption teks; musik latar hanya penghias (bisa dimatikan lewat tombol volume).";
+  ? ""
+  : "Penjelasan berupa caption teks; musik latar hanya penghias (bisa dimatikan lewat tombol volume). ";
 
 // Kartu pemutar, dipakai halaman modul (dasar "../Video/") dan halaman tonton (dasar "").
 function kartu(v, dasar, catatan, reveal) {
@@ -108,7 +109,7 @@ window._vpBagikan = function (btn) {
 </script>`;
 
 export function blok(v) {
-  const catatan = `Video memperlihatkan jendela FreeCAD saja dan mengikuti langkah di bawah dengan angka yang sama. ${penjelasan(v)} Tekan spasi untuk menjeda video bila perlu mengetik angkanya. Tombol Bagikan menyalin tautan halaman tonton; penerima bisa langsung menonton tanpa login.`;
+  const catatan = `Video memperlihatkan jendela FreeCAD saja dan mengikuti langkah di bawah dengan angka yang sama. ${penjelasan(v)}Tekan spasi untuk menjeda video bila perlu mengetik angkanya. Tombol Bagikan menyalin tautan halaman tonton; penerima bisa langsung menonton tanpa login.`;
   return `  <!-- VIDEO-PRAKTIK:BLOK BEGIN v2 -->
 ${kartu(v, "../Video/", catatan, true)}
 ${BAGIKAN}
@@ -174,7 +175,7 @@ export function configFirebase(html) {
 export function halamanTonton(v, config) {
   const url = `${SITUS}/${KURSUS}/Video/${halaman(v)}`;
   const ringkas = `Rekaman layar FreeCAD praktik terbimbing Pemodelan CAD Modul ${v.modul}: ${v.judul}, langkah demi langkah dengan angka yang sama dengan halaman modul.`;
-  const catatan = `Video memperlihatkan jendela FreeCAD saja. ${penjelasan(v)} Untuk mengunggah berkas praktik, buka modulnya (mahasiswa login dengan NIM dan PIN).`;
+  const catatan = `Video memperlihatkan jendela FreeCAD saja. ${penjelasan(v)}Untuk mengunggah berkas praktik, buka modulnya (mahasiswa login dengan NIM dan PIN).`;
   return `<!DOCTYPE html>
 <!-- VIDEO-PRAKTIK:TONTON v1 — ditulis scripts/video-praktik.mjs; jangan disunting manual -->
 <html lang="id">
