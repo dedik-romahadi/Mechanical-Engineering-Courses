@@ -88,7 +88,7 @@ export const VIDEO_PRAKTIK = [
     bab: [
       ["1 · Model balok", 4],
       ["2 · Pandangan dan kamera", 251.4],
-      ["3 · Lembar dan Projection Group", 280.8],
+      ["3 · Lembar dan Projection Group", 280.9],
       ["4 · Isometrik padat", 371.5],
       ["5 · Section View A-A", 467.5],
       ["6 · Kepala gambar dan dimensi", 522.7],
