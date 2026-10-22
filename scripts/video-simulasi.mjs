@@ -98,12 +98,13 @@ window._vsBagikan = function (btn) {
 };
 </script>`;
 
-const CATATAN_MODUL = "Video ini merekam halaman modul ini: lima animasi di bawah dan cell Python di Bagian 09 dijelaskan dengan narasi suara dan caption, memakai angka yang sama. Jeda video lalu coba sendiri slidernya. Tombol Bagikan menyalin tautan halaman tonton; penerima bisa langsung menonton tanpa login.";
-const CATATAN_TONTON = "Video ini merekam halaman Modul 1 Teknik Tenaga Listrik: lima animasi interaktif dan cell Python dijelaskan dengan narasi suara dan caption. Untuk mencoba animasinya sendiri, buka modulnya (mahasiswa login dengan NIM dan PIN).";
+const KATA = ["nol", "satu", "dua", "tiga", "empat", "lima", "enam"];
+const catatanModul = (v) => `Video ini merekam halaman modul ini: ${KATA[v.animasi]} animasi di bawah dan cell Python di Bagian ${v.bagianPython} dijelaskan dengan narasi suara dan caption, memakai angka yang sama. Jeda video lalu coba sendiri slidernya. Tombol Bagikan menyalin tautan halaman tonton; penerima bisa langsung menonton tanpa login.`;
+const catatanTonton = (v) => `Video ini merekam halaman Modul ${v.modul} Teknik Tenaga Listrik: ${KATA[v.animasi]} animasi interaktif dan cell Python dijelaskan dengan narasi suara dan caption. Untuk mencoba animasinya sendiri, buka modulnya (mahasiswa login dengan NIM dan PIN).`;
 
 export function blok(v) {
   return `  <!-- VIDEO-SIMULASI:BLOK BEGIN v1 -->
-${kartu(v, "../Video/", "  ", CATATAN_MODUL)}
+${kartu(v, "../Video/", "  ", catatanModul(v))}
 ${BAGIKAN}
 <!-- VIDEO-SIMULASI:BLOK END v1 -->
 `;
@@ -197,7 +198,7 @@ ${ATURAN}
   <p class="kicker">TEKNIK TENAGA LISTRIK · MODUL ${v.modul} · PENJELASAN SIMULASI</p>
   <h1>${v.judul}</h1>
   <p class="ringkas">${v.ringkas}</p>
-${kartu(v, "", "  ", CATATAN_TONTON)}
+${kartu(v, "", "  ", catatanTonton(v))}
   <p class="lanjut">Mahasiswa: <a href="../Modul/Modul-${v.modul}.html#m-animasi">buka Modul ${v.modul}</a> untuk mencoba animasinya dan mengerjakan tugas.</p>
   <footer>Dedik Romahadi · Teknik Mesin, Universitas Mercu Buana</footer>
 </main>
