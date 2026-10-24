@@ -2615,6 +2615,27 @@ for (const course of courseRoots) {
     if (!tonton.includes(`src="${v.berkas}"`) || !tonton.includes(`'tayang/${vsCourse}/modul-${v.modul}'`)) throw new Error(`VIDEO-SIMULASI: ${relTonton} harus memutar ${v.berkas} dan memakai penghitung tayang yang sama`);
   }
 }
+// VIDEO-SIMULASI vs VIDEO-MATERI (dosen, 24 Okt 2026: "Hapus video simulasi karena sudah ada di video materi"):
+// modul bervideo materi tidak memuat kartu/CSS/penghitung video simulasi, MP4/JPG simulasinya tidak ada lagi, dan
+// halaman tonton simulasi lamanya hanya pengalih ke halaman tonton video materi.
+{
+  const { KURSUS: vsKursus, VIDEO_SIMULASI: vsDaftar } = await import("./video-simulasi-data.mjs");
+  const { VIDEO_MATERI: vmDaftar } = await import("./video-materi-data.mjs");
+  const { pasang: vsPasang, lepas: vsLepas, halamanLama: vsLama, halamanPindah: vsPindah } = await import("./video-simulasi.mjs");
+  const folderVideo = path.join(root, vsKursus, "Video");
+  for (const m of vmDaftar) {
+    if (vsDaftar.some((v) => v.modul === m.modul)) throw new Error(`VIDEO-SIMULASI: modul ${m.modul} punya video materi; entrinya harus dihapus dari scripts/video-simulasi-data.mjs`);
+    const rel = `${vsKursus}/Modul/Modul-${m.modul}.html`;
+    const html = fs.readFileSync(path.join(root, rel), "utf8");
+    if (/VIDEO-SIMULASI|video-simulasi|_vsBagikan/.test(html)) throw new Error(`VIDEO-SIMULASI: ${rel} punya video materi dan tidak boleh memuat video simulasi; jalankan node scripts/video-simulasi.mjs`);
+    if (vsLepas(vsPasang(html, { ...vsDaftar[0], modul: m.modul })) !== html) throw new Error(`VIDEO-SIMULASI: uji mutasi gagal — pelepas tidak membuang kartu simulasi dari ${rel} dengan bersih`);
+    const sisa = fs.readdirSync(folderVideo).filter((f) => f.startsWith(`Modul-${m.modul}-Simulasi-`));
+    if (sisa.length) throw new Error(`VIDEO-SIMULASI: berkas video simulasi modul ${m.modul} harus dihapus: ${sisa.join(", ")}`);
+    const relLama = `${vsKursus}/Video/${vsLama(m.modul)}`;
+    const lama = fs.existsSync(path.join(root, relLama)) ? fs.readFileSync(path.join(root, relLama), "utf8") : null;
+    if (lama !== vsPindah(m)) throw new Error(`VIDEO-SIMULASI: ${relLama} harus berupa halaman pengalih ke ${m.halaman} keluaran scripts/video-simulasi.mjs; jalankan skrip itu`);
+  }
+}
 // VIDEO-MATERI: video penjelasan materi lengkap modul TTL (scripts/video-materi.mjs + video-materi-data.mjs),
 // panel sendiri di antara hitung mundur dan Bagian 01, plus halaman tonton publiknya (tanpa login).
 {

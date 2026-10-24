@@ -25,6 +25,13 @@
  *
  * Regenerasi modul (scripts/ttl-modul/bangun.py N) membuang blok ini: jalankan ulang skrip ini sesudahnya.
  *
+ * MODUL BERVIDEO MATERI (24 Oktober 2026, dosen: "Hapus video simulasi karena sudah ada di video materi").
+ * Video materi (scripts/video-materi.mjs) menjelaskan Bagian 01 sampai akhir, termasuk animasi dan cell
+ * Python, jadi modul yang tercantum di VIDEO_MATERI tidak memakai video simulasi: modulnya tidak boleh ada di
+ * VIDEO_SIMULASI, ketiga penanda di atas dibuang dari halaman modulnya, dan halaman tonton lama
+ * (Modul-<N>-Simulasi.html, tautan yang mungkin sudah dibagikan) diganti halaman pengalih ke halaman tonton
+ * video materi. MP4/JPG simulasinya dihapus dari repo.
+ *
  * Pakai:
  *   node scripts/video-simulasi.mjs            # terapkan
  *   node scripts/video-simulasi.mjs --periksa  # laporan saja
@@ -33,6 +40,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { KURSUS, COURSE_ID, SITUS, VIDEO_SIMULASI } from "./video-simulasi-data.mjs";
+import { VIDEO_MATERI } from "./video-materi-data.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const periksa = process.argv.includes("--periksa");
@@ -235,6 +243,39 @@ export function pasang(html, v) {
   return out.slice(0, awalBaris) + blok(v) + out.slice(awalBaris);
 }
 
+// Modul bervideo materi: buang kartu, CSS, dan penghitung tayang video simulasi dari halaman modul.
+export function lepas(html) {
+  return html.replace(RX_BLOK, "").replace(RX_CSS, "").replace(RX_TAYANG, "");
+}
+
+export const halamanLama = (modul) => `Modul-${modul}-Simulasi.html`;
+
+// Pengganti halaman tonton simulasi lama: tautan yang sudah dibagikan tetap jalan, menuju video materi.
+export function halamanPindah(m) {
+  const tujuan = m.halaman;
+  return `<!DOCTYPE html>
+<!-- VIDEO-SIMULASI:PINDAH v1 — ditulis scripts/video-simulasi.mjs; jangan disunting manual -->
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Materi Modul ${m.modul} — ${m.judul} | Teknik Tenaga Listrik</title>
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="0; url=${tujuan}">
+<link rel="canonical" href="${SITUS}/${KURSUS}/Video/${tujuan}">
+<style>body{margin:0;background:#070b16;color:#e6edf7;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55}main{max-width:640px;margin:0 auto;padding:40px 16px}a{color:#67e8f9}</style>
+</head>
+<body>
+<main>
+  <p>Video simulasi Modul ${m.modul} sekarang menjadi bagian dari video penjelasan materi Modul ${m.modul} (Bagian 07–08).</p>
+  <p><a href="${tujuan}">Buka video materi Modul ${m.modul}</a></p>
+</main>
+<script>location.replace(${JSON.stringify(tujuan)});</script>
+</body>
+</html>
+`;
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   let berubah = 0;
   const tulis = (berkas, baru) => {
@@ -255,6 +296,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const html = fs.readFileSync(halaman, "utf8");
     tulis(halaman, pasang(html, v));
     tulis(path.join(root, KURSUS, "Video", v.halaman), halamanTonton(v, configFirebase(html)));
+  }
+  for (const m of VIDEO_MATERI) {
+    if (VIDEO_SIMULASI.some((v) => v.modul === m.modul)) throw new Error(`modul ${m.modul} punya video materi; hapus entrinya dari VIDEO_SIMULASI`);
+    const halaman = path.join(root, KURSUS, "Modul", `Modul-${m.modul}.html`);
+    tulis(halaman, lepas(fs.readFileSync(halaman, "utf8")));
+    tulis(path.join(root, KURSUS, "Video", halamanLama(m.modul)), halamanPindah(m));
   }
   console.log(`${berubah} berkas ${periksa ? "perlu diubah" : "diubah"}`);
 }
