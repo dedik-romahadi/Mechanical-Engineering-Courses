@@ -6,6 +6,9 @@
  * C:\Video-Remotion, komposisi SimulasiTTL<N>). Berkas MP4 + poster JPG + halaman tonton publik
  * (`halaman`, tanpa login, tujuan tombol Bagikan) berada di Teknik-Tenaga-Listrik/Video/ dan ikut
  * tersebar lewat rsync folder kursus di deploy-slides.yml.
+ *
+ * Modul yang punya video materi (video-materi-data.mjs) tidak dicantumkan di sini: Modul 6 dihapus
+ * 24 Oktober 2026 karena animasi dan cell Python-nya sudah dijelaskan di video materinya (Bagian 07–08).
  */
 export const KURSUS = "Teknik-Tenaga-Listrik";
 export const COURSE_ID = "teknik_tenaga_listrik";
@@ -102,24 +105,6 @@ export const VIDEO_SIMULASI = [
       ["3 · Impedansi RLC", 169.7],
       ["4 · Faktor daya", 301.7],
       ["5 · Tiga fasa", 428.5],
-    ],
-  },
-  {
-    modul: 6,
-    berkas: "Modul-6-Simulasi-Saluran-Transmisi.mp4",
-    poster: "Modul-6-Simulasi-Saluran-Transmisi.jpg",
-    halaman: "Modul-6-Simulasi.html",
-    judul: "Saluran Transmisi Tenaga Listrik",
-    durasi: "9:14",
-    animasi: 4,
-    bagianPython: "08",
-    ringkas: "Empat animasi interaktif dan empat cell Python Modul 6: diagram fasor saluran pendek, profil tegangan dan efek Ferranti, kurva P–δ dengan kompensasi seri, dan gelombang berjalan.",
-    bab: [
-      ["1 · Pembuka", 4],
-      ["2 · Saluran pendek", 39.8],
-      ["3 · Profil tegangan", 162.9],
-      ["4 · Kurva P–δ", 294.2],
-      ["5 · Gelombang berjalan", 435.3],
     ],
   },
   {

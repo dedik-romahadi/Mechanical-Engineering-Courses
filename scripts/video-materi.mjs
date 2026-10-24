@@ -12,7 +12,10 @@
  *   VIDEO-MATERI:BLOK  panel pemutar <video controls preload="none" poster> + tombol bab + tombol Bagikan,
  *                      sesudah blok hitung mundur dan sebelum komentar/garis pembuka Bagian 01
  * Belum ada penghitung tayang: aturan RTDB (backend database.rules.json) hanya menerima kunci
- * tayang/<course>/modul-<N>, yang sudah dipakai video simulasi.
+ * tayang/<course>/modul-<N>, yang dipakai video simulasi.
+ * Modul yang punya video materi tidak lagi memakai video simulasi (dosen, 24 Oktober 2026): Bagian 07–08 sudah
+ * ada di video ini. Pelepasan kartu simulasinya dan halaman pengalih tautan lamanya ditangani
+ * scripts/video-simulasi.mjs; jalankan skrip itu sesudah menambah modul di video-materi-data.mjs.
  * HALAMAN TONTON: <KURSUS>/Video/<halaman> ditulis utuh oleh skrip ini (jangan disunting manual).
  *
  * Regenerasi modul (scripts/ttl-modul/bangun.py N) membuang blok ini: jalankan ulang skrip ini sesudahnya.
