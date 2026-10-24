@@ -2615,6 +2615,48 @@ for (const course of courseRoots) {
     if (!tonton.includes(`src="${v.berkas}"`) || !tonton.includes(`'tayang/${vsCourse}/modul-${v.modul}'`)) throw new Error(`VIDEO-SIMULASI: ${relTonton} harus memutar ${v.berkas} dan memakai penghitung tayang yang sama`);
   }
 }
+// VIDEO-MATERI: video penjelasan materi lengkap modul TTL (scripts/video-materi.mjs + video-materi-data.mjs),
+// panel sendiri di antara hitung mundur dan Bagian 01, plus halaman tonton publiknya (tanpa login).
+{
+  const { KURSUS: vmKursus, VIDEO_MATERI: vmDaftar } = await import("./video-materi-data.mjs");
+  const { pasang: vmPasang, halamanTonton: vmTonton } = await import("./video-materi.mjs");
+  for (const v of vmDaftar) {
+    const rel = `${vmKursus}/Modul/Modul-${v.modul}.html`;
+    const html = fs.readFileSync(path.join(root, rel), "utf8");
+    const awal = html.split("<!-- VIDEO-MATERI:BLOK BEGIN").length - 1;
+    const akhir = html.split("<!-- VIDEO-MATERI:BLOK END").length - 1;
+    if (awal !== 1 || akhir !== 1) throw new Error(`VIDEO-MATERI: ${rel} harus memuat tepat satu blok (BEGIN ${awal}, END ${akhir}); jalankan node scripts/video-materi.mjs`);
+    if (vmPasang(html, v) !== html) throw new Error(`VIDEO-MATERI: blok di ${rel} tidak sama dengan keluaran scripts/video-materi.mjs; jalankan skrip itu`);
+    const b0 = html.indexOf("<!-- VIDEO-MATERI:BLOK BEGIN");
+    const b1 = html.indexOf("<!-- VIDEO-MATERI:BLOK END");
+    const blokVideo = html.slice(b0, b1);
+    const iCd = html.indexOf("<!-- COUNTDOWN -->");
+    const iB1 = html.indexOf('<div class="section" id="m-', iCd);
+    if (!(iCd >= 0 && iCd < b0 && b1 < iB1)) throw new Error(`VIDEO-MATERI: blok di ${rel} harus berada di antara hitung mundur dan Bagian 01`);
+    if (/https?:\/\//i.test(blokVideo)) throw new Error(`VIDEO-MATERI: blok di ${rel} tidak boleh memuat host luar`);
+    for (const f of [v.berkas, v.poster]) {
+      const berkas = path.join(root, vmKursus, "Video", f);
+      const ukuran = fs.existsSync(berkas) ? fs.statSync(berkas).size : -1;
+      if (ukuran < 1024) throw new Error(`VIDEO-MATERI: ${vmKursus}/Video/${f} tidak ada atau kosong`);
+      if (ukuran > 60 * 1024 * 1024) throw new Error(`VIDEO-MATERI: ${vmKursus}/Video/${f} melebihi 60 MB (batas wajar Pages)`);
+      if (!blokVideo.includes(`../Video/${f}`)) throw new Error(`VIDEO-MATERI: ${rel} tidak merujuk ../Video/${f}`);
+    }
+    const kepala = Buffer.alloc(12);
+    const fd = fs.openSync(path.join(root, vmKursus, "Video", v.berkas), "r");
+    fs.readSync(fd, kepala, 0, 12, 0);
+    fs.closeSync(fd);
+    if (kepala.subarray(4, 8).toString("latin1") !== "ftyp") throw new Error(`VIDEO-MATERI: ${v.berkas} bukan berkas MP4 (tanda ftyp tidak ada)`);
+    const waktu = v.bab.map((x) => x[1]);
+    if (waktu.some((t, i) => !(t >= 0) || (i > 0 && t <= waktu[i - 1]))) throw new Error(`VIDEO-MATERI: waktu bab modul ${v.modul} harus menaik`);
+    const tanpa = html.replace(/<!-- VIDEO-MATERI:BLOK BEGIN[\s\S]*?<!-- VIDEO-MATERI:BLOK END v\d+ -->\n/, "");
+    if (tanpa === html || vmPasang(tanpa, v) !== html) throw new Error(`VIDEO-MATERI: uji mutasi gagal — pemasang tidak memulihkan blok di ${rel}`);
+    const relTonton = `${vmKursus}/Video/${v.halaman}`;
+    const tonton = fs.existsSync(path.join(root, relTonton)) ? fs.readFileSync(path.join(root, relTonton), "utf8") : null;
+    if (tonton !== vmTonton(v)) throw new Error(`VIDEO-MATERI: ${relTonton} tidak ada atau berbeda dari keluaran scripts/video-materi.mjs; jalankan skrip itu`);
+    if (/createAdminSession|verifyPin|firebase-auth|firebase-functions|pins\/|httpsCallable/.test(tonton)) throw new Error(`VIDEO-MATERI: ${relTonton} adalah halaman publik dan tidak boleh memuat jalur login/admin`);
+    if (!tonton.includes(`src="${v.berkas}"`)) throw new Error(`VIDEO-MATERI: ${relTonton} harus memutar ${v.berkas}`);
+  }
+}
 if (kunciIdentitasModul !== 84) throw new Error(`Expected 84 module pages with a checked classic identity key, found ${kunciIdentitasModul}`);
 ujiMutasiKunciIdentitas();
 if (draftModulHalaman !== 84 || draftModulId.size !== 84) throw new Error(`Expected 84 module pages with a working per-module draft (unique MODUL_ID), found ${draftModulHalaman} pages / ${draftModulId.size} ids`);
