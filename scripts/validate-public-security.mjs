@@ -2638,7 +2638,9 @@ for (const course of courseRoots) {
       const berkas = path.join(root, vmKursus, "Video", f);
       const ukuran = fs.existsSync(berkas) ? fs.statSync(berkas).size : -1;
       if (ukuran < 1024) throw new Error(`VIDEO-MATERI: ${vmKursus}/Video/${f} tidak ada atau kosong`);
-      if (ukuran > 60 * 1024 * 1024) throw new Error(`VIDEO-MATERI: ${vmKursus}/Video/${f} melebihi 60 MB (batas wajar Pages)`);
+      // Video materi ±25–30 menit dikodekan sama dengan video simulasi (CRF 31, audio 128 kbps) atas permintaan dosen
+      // (24 Okt 2026: versi 2-pass ≤ 60 MB kurang jernih) → ±75 MB; batas 95 MB menjaga jarak dari batas keras GitHub 100 MB.
+      if (ukuran > 95 * 1024 * 1024) throw new Error(`VIDEO-MATERI: ${vmKursus}/Video/${f} melebihi 95 MB (batas keras GitHub 100 MB per berkas)`);
       if (!blokVideo.includes(`../Video/${f}`)) throw new Error(`VIDEO-MATERI: ${rel} tidak merujuk ../Video/${f}`);
     }
     const kepala = Buffer.alloc(12);
