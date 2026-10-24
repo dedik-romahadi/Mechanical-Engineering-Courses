@@ -151,8 +151,11 @@ lewat `courseRoots` seperti course lain. Rincian: Pedoman §2.
 Root: `Admin/` (alat dosen: rescale-deadline, recompute-obe-score, reset-soal,
 verify-export-code, analyze-victims, berkas-tugas), `Template-Modul-Word-dan-PPT/` (template
 resmi BOP — Pedoman §15), `Unduhan-Gabungan/` (PDF gabungan), `PDD-UKTPT/`
-(portofolio Serdos, bukan mata kuliah), `scripts/` (generator, injector,
-validator), `index.html`, `Pedoman-Modul.md`, `Pedoman-Slides.md`.
+(portofolio Serdos, bukan mata kuliah), `Tugas-Akhir/` (Pemeriksa Format TA:
+halaman + `pemeriksa-inti.js`, berjalan sepenuhnya di peramban, CSP `connect-src 'none'`;
+uji `scripts/uji-pemeriksa-ta.mjs`, ikut CI; pedoman dan templat sumbernya rahasia di repo
+privat `kurikulum-teknik-mesin/tugas-akhir/` — jangan menyalin .docx/.pdf-nya ke sini),
+`scripts/` (generator, injector, validator), `index.html`, `Pedoman-Modul.md`, `Pedoman-Slides.md`.
 Cloud Functions, rules, bank soal, dan seed berada di repo privat
 `dedik-romahadi/Mechanical-Engineering-Courses-Backend`; jangan menyalinnya ke
 repo publik ini.

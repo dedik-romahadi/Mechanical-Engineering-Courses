@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Naskah diperiksa sepenuhnya di peramban: halaman ini tidak boleh mengirim data ke mana pun (connect-src 'none'). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Pemeriksa Format Tugas Akhir — Teknik Mesin UMB</title>
+<meta name="description" content="Periksa naskah Tugas Akhir (.docx) terhadap Pedoman Teknis Penyusunan dan Penulisan TA Universitas Mercu Buana 2025: margin, huruf, spasi, urutan bagian, penomoran, abstrak, dan kebahasaan. Hasilnya naskah bersorot kuning dengan komentar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060a10; --surface:#0d1520; --card:#0b121d; --border:#1a2840;
+  --text:#cdd6e8; --muted:#8296b4; --cyan:#22d3ee; --emerald:#06d6a0; --sky:#38bdf8;
+  --gagal:#f87171; --perhatian:#fbbf24; --lulus:#34d399; --info:#38bdf8; --manual:#a78bfa;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Source Sans 3',system-ui,sans-serif;line-height:1.6;min-height:100vh;overflow-x:hidden}
+::selection{background:rgba(34,211,238,.28)}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:4px}
+a{color:var(--cyan)}
+.glow{position:fixed;border-radius:50%;filter:blur(120px);opacity:.14;pointer-events:none;z-index:0}
+.glow.g1{width:520px;height:520px;background:var(--cyan);top:-200px;left:-160px}
+.glow.g2{width:460px;height:460px;background:var(--emerald);bottom:-180px;right:-140px}
+main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:28px 16px 40px}
+.kembali{display:inline-block;font-size:.85rem;color:var(--muted);text-decoration:none;margin-bottom:22px}
+.kembali:hover{color:var(--cyan)}
+.hero{text-align:center;margin-bottom:28px}
+.kicker{display:inline-block;font-size:.74rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);border:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.08);border-radius:999px;padding:5px 14px;margin-bottom:14px}
+h1{font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(1.8rem,5vw,2.8rem);line-height:1.15;background:linear-gradient(100deg,#e8eefb 20%,var(--cyan) 60%,var(--emerald) 95%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px}
+.hero p{color:var(--muted);max-width:680px;margin:0 auto}
+.kartu{background:linear-gradient(180deg,var(--surface),var(--card));border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:18px}
+.privasi{display:flex;gap:12px;align-items:flex-start;font-size:.92rem;border-color:rgba(6,214,160,.35);background:rgba(6,214,160,.06)}
+.privasi b{color:#e8eefb}
+.unggah{display:block;border:2px dashed #2a3f60;border-radius:14px;padding:30px 16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+.unggah:hover,.unggah.seret{border-color:var(--cyan);background:rgba(34,211,238,.05)}
+.unggah strong{display:block;font-size:1.1rem;color:#e8eefb;margin-bottom:4px}
+.unggah span{color:var(--muted);font-size:.9rem}
+.unggah input{position:absolute;width:1px;height:1px;opacity:0}
+.baris{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:14px}
+label.pilih{font-size:.9rem;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+select{background:#08101b;color:var(--text);border:1px solid var(--border);border-radius:9px;padding:7px 10px;font:inherit;font-size:.9rem}
+.status{margin-top:12px;font-size:.92rem;color:var(--muted);min-height:1.4em}
+.status.galat{color:var(--gagal)}
+button,.tombol{font:inherit;font-weight:700;font-size:.92rem;border-radius:10px;padding:10px 16px;cursor:pointer;border:1px solid transparent;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.utama{background:linear-gradient(135deg,var(--emerald),#0ea5a4);color:#03140f}
+.utama:disabled{opacity:.6;cursor:wait}
+.kedua{background:rgba(34,211,238,.08);border-color:rgba(34,211,238,.4);color:var(--cyan)}
+.ringkas{display:grid;gap:14px}
+.judulBerkas{font-size:1.05rem;color:#e8eefb;font-weight:700;word-break:break-word}
+.meta{font-size:.85rem;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 12px;font-size:.85rem;font-weight:700;border:1px solid}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.c-gagal{color:var(--gagal);border-color:rgba(248,113,113,.45);background:rgba(248,113,113,.08)}
+.c-perhatian{color:var(--perhatian);border-color:rgba(251,191,36,.45);background:rgba(251,191,36,.08)}
+.c-lulus{color:var(--lulus);border-color:rgba(52,211,153,.45);background:rgba(52,211,153,.08)}
+.c-info{color:var(--info);border-color:rgba(56,189,248,.45);background:rgba(56,189,248,.08)}
+.c-manual{color:var(--manual);border-color:rgba(167,139,250,.45);background:rgba(167,139,250,.08)}
+.bagianList{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.bagianList span{font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:2px 8px;color:var(--text);background:rgba(255,255,255,.03)}
+.bagianList span em{font-style:normal;color:var(--muted)}
+.catatan{font-size:.85rem;color:var(--muted);border-left:3px solid var(--border);padding-left:10px}
+.grup{margin-bottom:14px}
+.grup>h2{font-size:1.02rem;color:#e8eefb;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline;margin-bottom:10px}
+.grup>h2 small{font-size:.8rem;font-weight:600;color:var(--muted)}
+.butir{border-top:1px solid var(--border);padding:10px 0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+.butir:first-of-type{border-top:none}
+.lencana{grid-row:span 3;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;border:1px solid;margin-top:2px}
+.butir h3{font-size:.96rem;color:#e8eefb;font-weight:700}
+.butir h3 .ref{font-weight:600;font-size:.75rem;color:var(--muted);margin-left:6px;white-space:nowrap}
+.butir p{font-size:.9rem;color:var(--text)}
+.butir details{font-size:.85rem}
+.butir summary{cursor:pointer;color:var(--cyan);font-weight:600}
+.butir ul{list-style:none;margin-top:6px;display:grid;gap:4px}
+.butir li{color:var(--text);word-break:break-word}
+.butir li b{color:var(--muted);font-weight:600;margin-right:6px}
+.sembunyi-lulus .butir.s-lulus,.sembunyi-lulus .grup.semua-lulus{display:none}
+.kosong{display:none}
+footer{position:relative;z-index:1;text-align:center;color:var(--muted);font-size:.8rem;padding:24px 16px 32px;border-top:1px solid var(--border);margin-top:30px}
+@media (prefers-reduced-motion:no-preference){main{animation:naik .5s ease-out}@keyframes naik{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}}
+@media (max-width:560px){.kartu{padding:16px}.unggah{padding:22px 12px}}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--card:#fff;--border:#ccc;--text:#111;--muted:#444}
+  body{background:#fff;color:#111}.glow,.kembali,.unggah-kartu,.privasi,.aksi,footer{display:none!important}
+  h1{-webkit-text-fill-color:#111;background:none;color:#111}.grup,.butir{break-inside:avoid}.butir h3,.judulBerkas,.grup>h2{color:#111}
+  details>ul{display:grid!important}
+}
+</style>
+</head>
+<body>
+<div class="glow g1" aria-hidden="true"></div>
+<div class="glow g2" aria-hidden="true"></div>
+<main>
+  <a class="kembali" href="../index.html">← Beranda perkuliahan</a>
+  <header class="hero">
+    <span class="kicker">Layanan Tugas Akhir · S1 Teknik Mesin</span>
+    <h1>Pemeriksa Format Tugas Akhir</h1>
+    <p>Periksa naskah .docx terhadap Pedoman Teknis Penyusunan dan Penulisan Tugas Akhir Universitas Mercu Buana (Agustus 2025) dan templat TA skema Publikasi Ilmiah. Hasilnya: laporan di halaman ini dan naskah Anda dengan <b>sorotan kuning</b> pada teks yang perlu diperbaiki serta <b>komentar</b> berisi penjelasannya.</p>
+  </header>
+
+  <section class="kartu privasi" aria-label="Privasi">
+    <span aria-hidden="true">🔒</span>
+    <div><b>Naskah tidak diunggah ke mana pun.</b> Pemeriksaan berjalan sepenuhnya di peramban Anda; halaman ini bahkan dikunci agar tidak bisa mengirim data ke internet. Berkas hasil dibuat di perangkat Anda sendiri.</div>
+  </section>
+
+  <section class="kartu unggah-kartu" aria-label="Pilih naskah">
+    <label class="unggah" id="zona">
+      <input type="file" id="berkas" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+      <strong>Pilih atau seret naskah .docx ke sini</strong>
+      <span>Naskah lengkap dari sampul sampai lampiran. Berkas .doc lama atau PDF: simpan dulu sebagai .docx.</span>
+    </label>
+    <div class="baris">
+      <label class="pilih">Skema TA
+        <select id="skema">
+          <option value="otomatis">Kenali otomatis</option>
+          <option value="publikasi">Publikasi Ilmiah (templat 2025)</option>
+          <option value="skripsi">Skripsi / berbasis bab</option>
+        </select>
+      </label>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section id="hasil" class="kosong" aria-label="Hasil pemeriksaan">
+    <div class="kartu ringkas">
+      <div>
+        <div class="judulBerkas" id="namaBerkas"></div>
+        <div class="meta" id="meta"></div>
+      </div>
+      <div class="chips" id="hitungan"></div>
+      <div class="aksi baris">
+        <button class="utama" id="unduh" type="button">⬇ Unduh naskah bertanda (.docx)</button>
+        <button class="kedua" id="cetak" type="button">🖨 Cetak laporan</button>
+        <label class="pilih"><input type="checkbox" id="tampilLulus"> Tampilkan yang sudah sesuai</label>
+      </div>
+      <div>
+        <div class="meta">Bagian yang dikenali (halaman ke-):</div>
+        <div class="bagianList" id="bagian"></div>
+      </div>
+      <p class="catatan" id="catatanHal"></p>
+    </div>
+    <div id="daftarGrup" class="sembunyi-lulus"></div>
+  </section>
+</main>
+<footer>
+  Pemeriksaan otomatis ini membantu, bukan pengganti pemeriksaan pembimbing dan program studi.<br>
+  Acuan: Pedoman Teknis Penyusunan dan Penulisan Tugas Akhir Mahasiswa UMB (SK Rektor No. 01/032/Skep/VIII/2025) dan templat TA S1 skema Publikasi Ilmiah 2025.<br>
+  Templat resmi: <a href="https://bit.ly/templateTA25" rel="noopener noreferrer" target="_blank">bit.ly/templateTA25</a> (masuk dengan email UMB) · Program Studi S1 Teknik Mesin, Universitas Mercu Buana
+</footer>
+<noscript><p style="text-align:center;padding:12px">Aktifkan JavaScript untuk memakai pemeriksa ini.</p></noscript>
+<script src="pemeriksa-inti.js?v=1.0.0"></script>
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const PT = window.PemeriksaTA;
+  const STATUS = {
+    gagal: { ikon: '✕', label: 'perlu diperbaiki' }, perhatian: { ikon: '!', label: 'perlu perhatian' },
+    info: { ikon: 'i', label: 'info' }, manual: { ikon: '☐', label: 'periksa sendiri' }, lulus: { ikon: '✓', label: 'sudah sesuai' },
+  };
+  const URUT_STATUS = ['gagal', 'perhatian', 'info', 'manual', 'lulus'];
+  const URUT_GRUP = ['umum', 'struktur', 'nomor', 'sampul', 'judul', 'pernyataan', 'turnitin', 'loa', 'pengesahan', 'kataPengantar', 'persetujuan',
+    'abstrak', 'abstract', 'daftarIsi', 'daftarTabel', 'daftarGambar', 'daftarLampiran', 'isi', 'naskah', 'pustaka', 'lampiran', 'bahasa', 'bersih', 'manual'];
+  let bytesTerakhir = null, namaTerakhir = '', hasilTerakhir = null, blobBertanda = null;
+
+  function el(tag, attrs, ...anak) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === 'class') e.className = v; else if (k === 'text') e.textContent = v; else e.setAttribute(k, v);
+    }
+    for (const a of anak) if (a != null) e.append(a instanceof Node ? a : document.createTextNode(String(a)));
+    return e;
+  }
+  const status = (teks, galat) => { $('status').textContent = teks; $('status').classList.toggle('galat', !!galat); };
+
+  async function inflateRaw(data) {
+    const s = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new Uint8Array(await new Response(s).arrayBuffer());
+  }
+  async function deflateRaw(data) {
+    if (typeof CompressionStream === 'undefined') throw new Error('tanpa kompresi');
+    const s = new Blob([data]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    return new Uint8Array(await new Response(s).arrayBuffer());
+  }
+
+  async function periksa() {
+    if (!bytesTerakhir) return;
+    if (typeof DecompressionStream === 'undefined') { status('Peramban ini terlalu lama. Pakai Chrome, Edge, Firefox, atau Safari versi terbaru.', true); return; }
+    status('Memeriksa naskah…');
+    blobBertanda = null;
+    try {
+      const t0 = performance.now();
+      hasilTerakhir = await PT.periksa(bytesTerakhir, { inflateRaw, skema: $('skema').value });
+      tampilkan(hasilTerakhir);
+      status(`Selesai dalam ${((performance.now() - t0) / 1000).toFixed(1)} detik.`);
+    } catch (e) {
+      console.error(e);
+      $('hasil').classList.add('kosong');
+      status(e && e.name === 'GalatBerkas' ? e.message : 'Naskah tidak dapat dibaca: ' + (e && e.message ? e.message : e), true);
+    }
+  }
+
+  function tampilkan(h) {
+    $('hasil').classList.remove('kosong');
+    $('namaBerkas').textContent = namaTerakhir;
+    const m = h.meta;
+    const skema = m.skema === 'publikasi' ? 'Publikasi Ilmiah' : 'Skripsi / berbasis bab';
+    $('meta').textContent = `Skema ${skema}${$('skema').value === 'otomatis' ? ' (dikenali otomatis)' : ''} · ${m.halamanWord || m.halamanTerhitung} halaman · ${m.kata.toLocaleString('id-ID')} kata` + (m.aplikasi ? ` · disimpan dengan ${m.aplikasi}` : '');
+    const hit = $('hitungan');
+    hit.replaceChildren(...URUT_STATUS.filter((s) => h.ringkas[s]).map((s) => el('span', { class: 'chip c-' + s }, `${STATUS[s].ikon} ${h.ringkas[s]} ${STATUS[s].label}`)));
+    $('bagian').replaceChildren(...h.bagian.map((b) => el('span', {}, b.label + ' ', el('em', { text: b.hal }))));
+    $('catatanHal').textContent = m.andal
+      ? 'Nomor halaman pada laporan mengikuti tata letak terakhir yang disimpan Microsoft Word ("hal." = urutan halaman fisik; "tertulis" = nomor yang tercetak).'
+      : 'Berkas ini tidak menyimpan posisi pindah halaman dari Word, jadi nomor halaman (±) hanya perkiraan dari page break. Untuk hasil tepat, buka dan simpan ulang naskah di Microsoft Word.';
+    const perGrup = new Map();
+    for (const t of h.temuan) { if (!perGrup.has(t.grup)) perGrup.set(t.grup, []); perGrup.get(t.grup).push(t); }
+    const kartu = [];
+    for (const g of URUT_GRUP) {
+      const daftar = perGrup.get(g);
+      if (!daftar) continue;
+      daftar.sort((a, b) => URUT_STATUS.indexOf(a.status) - URUT_STATUS.indexOf(b.status));
+      const n = (s) => daftar.filter((t) => t.status === s).length;
+      const ket = [n('gagal') && `${n('gagal')} perbaiki`, n('perhatian') && `${n('perhatian')} perhatian`, n('lulus') && `${n('lulus')} sesuai`].filter(Boolean).join(' · ');
+      const semuaLulus = daftar.every((t) => t.status === 'lulus');
+      const isi = el('section', { class: 'kartu grup' + (semuaLulus ? ' semua-lulus' : '') }, el('h2', {}, PT.GRUP[g] || g, el('small', { text: ket })));
+      for (const t of daftar) {
+        const butir = el('div', { class: 'butir s-' + t.status },
+          el('span', { class: 'lencana c-' + t.status, title: STATUS[t.status].label, 'aria-label': STATUS[t.status].label }, STATUS[t.status].ikon),
+          el('h3', {}, t.judul, t.ref ? el('span', { class: 'ref', text: t.ref }) : null),
+          t.pesan ? el('p', { text: t.pesan }) : null);
+        if (t.rincian && t.rincian.length) {
+          const ul = el('ul', {}, ...t.rincian.map((r) => el('li', {}, r.hal ? el('b', { text: r.hal }) : null, r.teks || '')));
+          butir.append(el('details', {}, el('summary', { text: `Lihat ${t.rincian.length} lokasi` }), ul));
+        }
+        isi.append(butir);
+      }
+      kartu.push(isi);
+    }
+    $('daftarGrup').replaceChildren(...kartu);
+  }
+
+  async function unduh() {
+    if (!bytesTerakhir) return;
+    const tombol = $('unduh');
+    tombol.disabled = true;
+    try {
+      if (!blobBertanda) {
+        status('Menyiapkan naskah bertanda…');
+        // Model hasil pemeriksaan diubah saat menulis sorotan, jadi periksa ulang dari bytes asli.
+        const segar = await PT.periksa(bytesTerakhir, { inflateRaw, skema: $('skema').value });
+        const out = await segar.buatDocxBertanda(deflateRaw);
+        blobBertanda = new Blob([out.bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+        status(`Naskah bertanda siap: ${out.jumlahSorot} sorotan kuning dan ${out.jumlahKomentar} komentar.`);
+      }
+      const a = el('a', { href: URL.createObjectURL(blobBertanda), download: namaTerakhir.replace(/\.docx$/i, '') + ' - diperiksa.docx' });
+      document.body.append(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    } catch (e) {
+      console.error(e);
+      status('Gagal membuat naskah bertanda: ' + (e && e.message ? e.message : e), true);
+    } finally { tombol.disabled = false; }
+  }
+
+  async function terimaBerkas(f) {
+    if (!f) return;
+    if (!/\.docx$/i.test(f.name)) { status('Pilih berkas berakhiran .docx.', true); return; }
+    if (f.size > 60 * 1024 * 1024) { status('Berkas lebih dari 60 MB. Kompres gambar (File → Compress Pictures) lalu coba lagi.', true); return; }
+    namaTerakhir = f.name;
+    bytesTerakhir = new Uint8Array(await f.arrayBuffer());
+    await periksa();
+  }
+
+  $('berkas').addEventListener('change', (e) => terimaBerkas(e.target.files[0]));
+  $('skema').addEventListener('change', periksa);
+  $('unduh').addEventListener('click', unduh);
+  $('cetak').addEventListener('click', () => {
+    document.querySelectorAll('#daftarGrup details').forEach((d) => { d.open = true; });
+    window.print();
+  });
+  $('tampilLulus').addEventListener('change', (e) => $('daftarGrup').classList.toggle('sembunyi-lulus', !e.target.checked));
+  const zona = $('zona');
+  ['dragenter', 'dragover'].forEach((t) => zona.addEventListener(t, (e) => { e.preventDefault(); zona.classList.add('seret'); }));
+  ['dragleave', 'drop'].forEach((t) => zona.addEventListener(t, (e) => { e.preventDefault(); zona.classList.remove('seret'); }));
+  zona.addEventListener('drop', (e) => terimaBerkas(e.dataTransfer.files[0]));
+  if (!PT) status('Skrip pemeriksa gagal dimuat. Muat ulang halaman.', true);
+})();
+</script>
+</body>
+</html>
