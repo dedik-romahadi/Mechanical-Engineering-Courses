@@ -2639,8 +2639,9 @@ for (const course of courseRoots) {
 // VIDEO-MATERI: video penjelasan materi lengkap modul TTL (scripts/video-materi.mjs + video-materi-data.mjs),
 // panel sendiri di antara hitung mundur dan Bagian 01, plus halaman tonton publiknya (tanpa login).
 {
-  const { KURSUS: vmKursus, VIDEO_MATERI: vmDaftar } = await import("./video-materi-data.mjs");
-  const { pasang: vmPasang, halamanTonton: vmTonton } = await import("./video-materi.mjs");
+  const { KURSUS: vmKursus, COURSE_ID: vmCourse, VIDEO_MATERI: vmDaftar } = await import("./video-materi-data.mjs");
+  const { pasang: vmPasang, halamanTonton: vmTonton, detikVideo: vmDetik, AMBANG: vmAmbang } = await import("./video-materi.mjs");
+  const { configFirebase: vmConfig } = await import("./video-simulasi.mjs");
   for (const v of vmDaftar) {
     const rel = `${vmKursus}/Modul/Modul-${v.modul}.html`;
     const html = fs.readFileSync(path.join(root, rel), "utf8");
@@ -2655,6 +2656,13 @@ for (const course of courseRoots) {
     const iB1 = html.indexOf('<div class="section" id="m-', iCd);
     if (!(iCd >= 0 && iCd < b0 && b1 < iB1)) throw new Error(`VIDEO-MATERI: blok di ${rel} harus berada di antara hitung mundur dan Bagian 01`);
     if (/https?:\/\//i.test(blokVideo)) throw new Error(`VIDEO-MATERI: blok di ${rel} tidak boleh memuat host luar`);
+    const jalurTayang = `'tayang/${vmCourse}/modul-${v.modul}'`;
+    if (html.split('<script type="module" id="video-materi-tayang">').length !== 2 || !html.includes(jalurTayang)) throw new Error(`VIDEO-MATERI: ${rel} harus memuat tepat satu penghitung tayang ${jalurTayang}`);
+    // Kotak yang ditahan pelacak tontonan (_pmSyarat[0]) harus kotak Bagian 01, yang pertama sesudah panel ini.
+    const iKotak = html.indexOf('<label class="pm-centang"');
+    if (!(iKotak > b1) || !html.startsWith('<label class="pm-centang" data-pm="0">', iKotak)) throw new Error(`VIDEO-MATERI: kotak centang pertama (data-pm="0") di ${rel} harus sesudah panel video materi`);
+    if (!blokVideo.includes("window._pmSyarat[0] = function")) throw new Error(`VIDEO-MATERI: ${rel} harus menahan kotak Bagian 01 lewat window._pmSyarat[0]`);
+    ujiPelacakTontonan(blokVideo, v, rel);
     for (const f of [v.berkas, v.poster]) {
       const berkas = path.join(root, vmKursus, "Video", f);
       const ukuran = fs.existsSync(berkas) ? fs.statSync(berkas).size : -1;
@@ -2675,9 +2683,59 @@ for (const course of courseRoots) {
     if (tanpa === html || vmPasang(tanpa, v) !== html) throw new Error(`VIDEO-MATERI: uji mutasi gagal — pemasang tidak memulihkan blok di ${rel}`);
     const relTonton = `${vmKursus}/Video/${v.halaman}`;
     const tonton = fs.existsSync(path.join(root, relTonton)) ? fs.readFileSync(path.join(root, relTonton), "utf8") : null;
-    if (tonton !== vmTonton(v)) throw new Error(`VIDEO-MATERI: ${relTonton} tidak ada atau berbeda dari keluaran scripts/video-materi.mjs; jalankan skrip itu`);
+    if (tonton !== vmTonton(v, vmConfig(html))) throw new Error(`VIDEO-MATERI: ${relTonton} tidak ada atau berbeda dari keluaran scripts/video-materi.mjs; jalankan skrip itu`);
     if (/createAdminSession|verifyPin|firebase-auth|firebase-functions|pins\/|httpsCallable/.test(tonton)) throw new Error(`VIDEO-MATERI: ${relTonton} adalah halaman publik dan tidak boleh memuat jalur login/admin`);
-    if (!tonton.includes(`src="${v.berkas}"`)) throw new Error(`VIDEO-MATERI: ${relTonton} harus memutar ${v.berkas}`);
+    if (!tonton.includes(`src="${v.berkas}"`) || !tonton.includes(jalurTayang)) throw new Error(`VIDEO-MATERI: ${relTonton} harus memutar ${v.berkas} dan memakai penghitung tayang yang sama`);
+  }
+  // Pelacak tontonan (VIDEO-MATERI:TONTON) dengan video/DOM/localStorage tiruan: hanya detik yang benar-benar
+  // diputar dihitung, kotak Bagian 01 tertahan sampai AMBANG, tersimpan per NIM, dan tidak terbawa ke NIM lain.
+  function ujiPelacakTontonan(blokVideo, v, rel) {
+    const AWAL = '<script id="video-materi-tonton">';
+    const t0 = blokVideo.indexOf(AWAL), t1 = t0 < 0 ? -1 : blokVideo.indexOf("</script>", t0);
+    if (t0 < 0 || t1 < 0) throw new Error(`VIDEO-MATERI: ${rel} tidak memuat pelacak tontonan (script#video-materi-tonton)`);
+    const kode = blokVideo.slice(t0 + AWAL.length, t1);
+    const gagal = (pesan) => { throw new Error(`VIDEO-MATERI: pelacak tontonan ${rel}: ${pesan}`); };
+    const N = vmDetik(v), simpanan = {};
+    const jalankan = (identitas) => {
+      const dengarVideo = {}, dengarWin = {}, info = { hidden: true, textContent: "", classList: { toggle() {} } };
+      const video = { currentTime: 0, paused: true, seeking: false, addEventListener: (j, fn) => { (dengarVideo[j] = dengarVideo[j] || []).push(fn); } };
+      const k = { syaratDipicu: 0, info, video, identitas };
+      const win = {
+        MODUL_ID: "uji-materi", _previewMode: false,
+        getIdentityLocal: () => k.identitas,
+        localStorage: { getItem: (x) => (x in simpanan ? simpanan[x] : null), setItem: (x, y) => { simpanan[x] = String(y); } },
+        document: { getElementById: (id) => (id === `vm-m${v.modul}` ? video : id === `vm-progres-m${v.modul}` ? info : null), querySelector: () => null },
+        addEventListener: (j, fn) => { (dengarWin[j] = dengarWin[j] || []).push(fn); },
+        dispatchEvent: (e) => { if (e.type === "progres-modul:syarat") k.syaratDipicu += 1; return true; },
+        Event: function (j) { this.type = j; },
+      };
+      win.window = win;
+      vm.runInNewContext(kode, win);
+      const picu = (j) => (dengarVideo[j] || []).forEach((fn) => fn());
+      k.syarat = () => win._pmSyarat && win._pmSyarat[0] && win._pmSyarat[0]();
+      k.putar = (dari, sampai) => {
+        video.paused = false; video.currentTime = dari; picu("play");
+        for (let t = dari; t <= sampai; t += 0.25) { video.currentTime = t; picu("timeupdate"); }
+        video.paused = true; picu("pause");
+      };
+      k.lompat = (ke) => { video.seeking = true; picu("seeking"); video.currentTime = ke; video.seeking = false; picu("timeupdate"); };
+      return k;
+    };
+    const mhs = { nim: "41300000123", role: "student" };
+    const a = jalankan(mhs);
+    if (!/tonton video materi/.test(String(a.syarat() || "")) || a.info.hidden) gagal("mahasiswa yang belum menonton harus tertahan dan melihat progres menonton");
+    // Geser waktu ke dekat akhir tidak dihitung; detik yang dilewati tidak ikut.
+    a.putar(0, 5); a.lompat(N - 20); a.putar(N - 20, N - 1);
+    if (!a.syarat()) gagal("melompat ke akhir video tidak boleh membuka kotak Bagian 01");
+    const batas = Math.ceil(vmAmbang * N);
+    a.putar(0, batas - 40);
+    if (!a.syarat()) gagal(`kurang dari ${Math.round(vmAmbang * 100)}% detik tertonton tidak boleh membuka kotak Bagian 01`);
+    const picuSebelum = a.syaratDipicu;
+    a.putar(batas - 40, N - 21);
+    if (a.syarat() !== null || a.syaratDipicu <= picuSebelum || !/sudah ditonton/.test(a.info.textContent)) gagal(`${Math.round(vmAmbang * 100)}% detik tertonton harus membuka kotak Bagian 01 dan memicu 'progres-modul:syarat'`);
+    if (jalankan(mhs).syarat() !== null) gagal("tontonan harus tersimpan per NIM dan pulih sesudah muat ulang");
+    if (!jalankan({ nim: "41300000999", role: "student" }).syarat()) gagal("tontonan satu NIM tidak boleh terbawa ke NIM lain");
+    if (!jalankan({ nama: "DOSEN", role: "dosen" }).info.hidden) gagal("baris progres menonton hanya untuk mahasiswa");
   }
 }
 if (kunciIdentitasModul !== 84) throw new Error(`Expected 84 module pages with a checked classic identity key, found ${kunciIdentitasModul}`);
@@ -3887,7 +3945,7 @@ async function simulasiPenjagaForum(pm, relative) {
   const alir = async () => { for (let i = 0; i < 6; i += 1) await new Promise((r) => setImmediate(r)); };
   const buat = (opsi = {}) => {
     let jam = 0, idT = 0, toastEl = null;
-    const timer = [], panggilan = [], tertunda = [], tabDibuka = [], gagalSimpan = [], kabar = [], tersimpan = [];
+    const timer = [], panggilan = [], tertunda = [], tabDibuka = [], gagalSimpan = [], kabar = [], tersimpan = [], dengar = {};
     const kelas = () => { const s = new Set(); return { toggle: (k, v) => ((v === undefined ? !s.has(k) : v) ? s.add(k) : s.delete(k)), add: (...k) => k.forEach((x) => s.add(x)), remove: (...k) => k.forEach((x) => s.delete(x)), contains: (k) => s.has(k) }; };
     const kotak = [0, 1].map(() => {
       const input = { checked: false, disabled: true, ubah: null, addEventListener: (jenis, fn) => { if (jenis === "change") input.ubah = fn; } }, st = { textContent: "" };
@@ -3919,6 +3977,8 @@ async function simulasiPenjagaForum(pm, relative) {
       setTimeout: (fn, ms) => { idT += 1; timer.push({ id: idT, at: jam + (Number(ms) || 0), fn }); return idT; },
       clearTimeout: (id) => { const i = timer.findIndex((t) => t.id === id); if (i >= 0) timer.splice(i, 1); },
       getApp: () => ({}), getFunctions: () => ({}),
+      // Pendengar event window (mis. 'progres-modul:syarat', butir 9) dipicu skenario lewat picu().
+      addEventListener: (jenis, fn) => { (dengar[jenis] = dengar[jenis] || []).push(fn); },
       // Kait 'progres-modul:diterapkan' untuk PILIHAN-POLL-FORUM: keadaan tab Forum dan textarea saat dikirim.
       CustomEvent: function (jenis, init) { this.type = jenis; this.detail = init && init.detail; },
       // 'progres-modul:forum-tersimpan' (PENJAGA-FORUM v2) dicatat terpisah: detail {jawaban} sesudah kiriman sukses.
@@ -3948,7 +4008,8 @@ async function simulasiPenjagaForum(pm, relative) {
     };
     const ketik = (q, v) => { el["ans-" + q].value = v; win.checkForumReady(); };
     return {
-      win, el, panggilan, majukan, ketik, tabDibuka, gagalSimpan, kabar, tersimpan,
+      win, el, kotak, panggilan, majukan, ketik, tabDibuka, gagalSimpan, kabar, tersimpan,
+      picu: (jenis) => (dengar[jenis] || []).forEach((fn) => fn({ type: jenis })),
       simpan: () => panggilan.filter((p) => p.nama === "saveModulForum"),
       progres: () => panggilan.filter((p) => p.nama === "getModulProgress").length,
       terkunci: (t) => el["tab-" + t].classList.contains("pm-terkunci"),
@@ -4000,6 +4061,31 @@ async function simulasiPenjagaForum(pm, relative) {
     if (s.simpan().length) gagal(nama, `three empty answers were sent ${ringkas(s)}`);
     s.ketik("fq1", "jawaban pertama saya"); await s.majukan(2000);
     if (s.simpan().length !== 1 || s.simpan()[0].data.jawaban.fq1 !== "jawaban pertama saya") gagal(nama, `typing after progress was applied must be sent ${ringkas(s)}`);
+  }
+  {
+    // Syarat tambahan kotak (window._pmSyarat, butir 9; dipakai video materi TTL): kotak giliran tetap
+    // nonaktif dengan alasannya selama syarat belum terpenuhi, centangnya tidak dikirim, dan event
+    // 'progres-modul:syarat' membukanya begitu syarat terpenuhi.
+    const s = buat(), nama = "syarat kotak";
+    let alasan = "🎬 tonton video materi dulu · 12%";
+    s.win._pmSyarat = { 0: () => alasan };
+    s.win._loadScoredQuestions();
+    await s.jawab({ centang: 0, total: 2, akses: { boleh: true }, forum: {}, forumSelesai: false });
+    const k0 = s.kotak[0];
+    if (!k0.input.disabled || !k0.classList.contains("pm-nonaktif") || k0.querySelector("em").textContent !== alasan) gagal(nama, "a box whose condition is unmet must stay disabled and show the reason");
+    await s.centangKotak(0);
+    if (s.panggilan.some((p) => p.nama === "setModulCentang") || k0.input.checked) gagal(nama, "ticking a box whose condition is unmet must not be sent");
+    alasan = null; s.picu("progres-modul:syarat");
+    if (k0.input.disabled || k0.classList.contains("pm-nonaktif")) gagal(nama, "'progres-modul:syarat' must re-render and enable the box once its condition is met");
+    await s.centangKotak(0);
+    if (s.panggilan.filter((p) => p.nama === "setModulCentang").length !== 1) gagal(nama, "the box must be tickable once its condition is met");
+  }
+  {
+    // Dosen/Preview (mode bebas) tidak digerbang syarat tambahan.
+    const s = buat(), nama = "syarat mode bebas";
+    s.win._pmSyarat = { 0: () => "syarat" };
+    s.picu("progres-modul:syarat");
+    if (s.kotak[0].input.disabled) gagal(nama, "lecturer/preview (free) mode must not be gated by _pmSyarat");
   }
   {
     // Galat sementara → berhenti tanpa kiriman, coba ulang 3 detik, lalu pulih tanpa gema.

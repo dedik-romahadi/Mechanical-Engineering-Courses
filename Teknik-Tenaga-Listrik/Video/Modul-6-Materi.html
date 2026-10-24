@@ -29,6 +29,7 @@ footer{margin-top:28px;font-size:.78rem;color:var(--muted)}
 .video-materi .vm-ikon{font-size:1.3rem;line-height:1}
 .video-materi .vm-judul{font-weight:800;font-size:1.05rem;color:var(--cyan,#67e8f9)}
 .video-materi .vm-meta{margin-left:auto;font-size:.78rem;color:var(--muted,#aebbd0)}
+.video-materi .vm-tayang{white-space:nowrap}
 .video-materi video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#000}
 .video-materi .vm-bab{display:flex;flex-wrap:wrap;gap:8px;padding:12px 20px 6px}
 .video-materi .vm-bab button,.video-materi .vm-bagikan{font:inherit;font-size:.78rem;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;color:var(--cyan,#67e8f9);background:transparent;border:1px solid var(--border,#243653)}
@@ -38,7 +39,9 @@ footer{margin-top:28px;font-size:.78rem;color:var(--muted)}
 .video-materi .vm-bagikan:hover,.video-materi .vm-bagikan:focus-visible{color:var(--cyan,#67e8f9)}
 .video-materi .vm-pesan{font-size:.78rem;color:var(--muted,#aebbd0)}
 .video-materi .vm-cat{margin:0;padding:6px 20px 16px;font-size:.8rem;line-height:1.5;color:var(--muted,#aebbd0)}
-@media (max-width:600px){.video-materi-luar{padding:28px 16px 0}.video-materi .vm-meta{margin-left:0;width:100%}.video-materi .vm-kepala{padding:12px 14px 8px}.video-materi .vm-bab,.video-materi .vm-aksi{padding-left:14px;padding-right:14px}.video-materi .vm-cat{padding:6px 14px 12px}}
+.video-materi .vm-progres{margin:4px 20px 0;padding:8px 12px;border-radius:10px;font-size:.82rem;line-height:1.5;color:#fde68a;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35)}
+.video-materi .vm-progres.vm-tuntas{color:#9ff3d2;background:rgba(0,224,158,.1);border-color:rgba(0,224,158,.4)}
+@media (max-width:600px){.video-materi-luar{padding:28px 16px 0}.video-materi .vm-meta{margin-left:0;width:100%}.video-materi .vm-kepala{padding:12px 14px 8px}.video-materi .vm-bab,.video-materi .vm-aksi{padding-left:14px;padding-right:14px}.video-materi .vm-cat{padding:6px 14px 12px}.video-materi .vm-progres{margin:4px 14px 0}}
 </style>
 </head>
 <body>
@@ -47,7 +50,7 @@ footer{margin-top:28px;font-size:.78rem;color:var(--muted)}
   <h1>Aliran Daya dan Transien Saluran Transmisi</h1>
   <p class="ringkas">Penjelasan seluruh materi Modul 6 dari Bagian 01 sampai 08: model saluran, aliran daya dan jatuh tegangan, regulasi dan efisiensi, kompensasi shunt dan seri, gelombang berjalan, lalu animasi dan cell Python.</p>
   <div class="video-materi reveal" id="video-materi">
-    <div class="vm-kepala"><span class="vm-ikon" aria-hidden="true">🎓</span><span class="vm-judul">Video penjelasan materi: Aliran Daya dan Transien Saluran Transmisi</span><span class="vm-meta">TTL Modul 6 · Bagian 01–08 · 26:38</span></div>
+    <div class="vm-kepala"><span class="vm-ikon" aria-hidden="true">🎓</span><span class="vm-judul">Video penjelasan materi: Aliran Daya dan Transien Saluran Transmisi</span><span class="vm-meta">TTL Modul 6 · Bagian 01–08 · 26:38<span class="vm-tayang" data-tayang="modul-6" hidden></span></span></div>
     <video id="vm-m6" controls preload="none" playsinline poster="Modul-6-Materi-Saluran-Transmisi.jpg" aria-label="Video penjelasan materi Modul 6: Aliran Daya dan Transien Saluran Transmisi">
       <source src="Modul-6-Materi-Saluran-Transmisi.mp4" type="video/mp4">
       Peramban Anda tidak mendukung pemutar video.
@@ -82,6 +85,50 @@ window._vmBagikan = function (btn) {
     navigator.clipboard.writeText(tautan).then(function () { beri('✓ Tautan disalin — tempel di WhatsApp atau grup kelas. Penerima bisa langsung menonton tanpa login.'); }, manual);
   } else manual();
 };
+</script>
+<script type="module" id="video-materi-tayang">
+// VIDEO-MATERI:TAYANG v1 — halaman tonton publik
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+(function () {
+  var video = document.getElementById('vm-m6');
+  var label = document.querySelector('.video-materi [data-tayang="modul-6"]');
+  if (!video || !label) return;
+  var JALUR = 'tayang/teknik_tenaga_listrik/modul-6';
+  var db = null;
+  function sambung() {
+    if (!db) { try { db = getDatabase(initializeApp({
+  apiKey: "AIzaSyDvgpxKxXSOFHwFTxWZeCA9IxmgYBM6lW8",
+  authDomain: "getaran-mekanik.firebaseapp.com",
+  databaseURL: "https://getaran-mekanik-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "getaran-mekanik",
+  storageBucket: "getaran-mekanik.firebasestorage.app",
+  messagingSenderId: "430886299733",
+  appId: "1:430886299733:web:0edecd5d4adf73e7440cdc",
+  measurementId: "G-NBMYLXXF18"
+})); } catch (e) { db = null; } }
+    return db;
+  }
+  function tampil(n) {
+    label.textContent = ' · 👁 ' + (Number(n) || 0).toLocaleString('id-ID') + ' kali ditonton';
+    label.hidden = false;
+  }
+  (function baca(coba) {
+    var d = sambung();
+    if (!d) { if (coba < 20) setTimeout(function () { baca(coba + 1); }, 500); return; }
+    onValue(ref(d, JALUR), function (s) { tampil(s.val()); }, function () {});
+  })(0);
+  // Satu hitungan per pemutaran: putar pertama sesudah halaman dibuka dan tiap putar ulang sesudah
+  // video selesai. Jeda lalu lanjut, lompat bab, dan menggeser waktu tidak dihitung lagi.
+  var sedangTayang = false;
+  video.addEventListener('play', function () {
+    if (sedangTayang) return;
+    sedangTayang = true;
+    var d = sambung();
+    if (d) runTransaction(ref(d, JALUR), function (n) { return (Number(n) || 0) + 1; }).catch(function () {});
+  });
+  video.addEventListener('ended', function () { sedangTayang = false; });
+})();
 </script>
 </body>
 </html>
