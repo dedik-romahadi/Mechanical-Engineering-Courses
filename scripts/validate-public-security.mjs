@@ -2663,6 +2663,11 @@ for (const course of courseRoots) {
     if (!(iKotak > b1) || !html.startsWith('<label class="pm-centang" data-pm="0">', iKotak)) throw new Error(`VIDEO-MATERI: kotak centang pertama (data-pm="0") di ${rel} harus sesudah panel video materi`);
     if (!blokVideo.includes("window._pmSyarat[0] = function")) throw new Error(`VIDEO-MATERI: ${rel} harus menahan kotak Bagian 01 lewat window._pmSyarat[0]`);
     ujiPelacakTontonan(blokVideo, v, rel);
+    // Tontonan disimpan di server (saveModulTonton) lewat module script sendiri di luar blok (impor gstatic).
+    const AWAL_SIMPAN = '<script type="module" id="video-materi-simpan">';
+    const s0 = html.indexOf(AWAL_SIMPAN), s1 = s0 < 0 ? -1 : html.indexOf("</script>", s0);
+    if (html.split(AWAL_SIMPAN).length !== 2 || s1 < 0 || !html.slice(s0, s1).includes("panggil('saveModulTonton'")) throw new Error(`VIDEO-MATERI: ${rel} harus memuat tepat satu penyimpan tontonan (script#video-materi-simpan, saveModulTonton)`);
+    await ujiSimpanTontonan(blokVideo, html.slice(s0 + AWAL_SIMPAN.length, s1), v, rel);
     for (const f of [v.berkas, v.poster]) {
       const berkas = path.join(root, vmKursus, "Video", f);
       const ukuran = fs.existsSync(berkas) ? fs.statSync(berkas).size : -1;
@@ -2686,6 +2691,76 @@ for (const course of courseRoots) {
     if (tonton !== vmTonton(v, vmConfig(html))) throw new Error(`VIDEO-MATERI: ${relTonton} tidak ada atau berbeda dari keluaran scripts/video-materi.mjs; jalankan skrip itu`);
     if (/createAdminSession|verifyPin|firebase-auth|firebase-functions|pins\/|httpsCallable/.test(tonton)) throw new Error(`VIDEO-MATERI: ${relTonton} adalah halaman publik dan tidak boleh memuat jalur login/admin`);
     if (!tonton.includes(`src="${v.berkas}"`) || !tonton.includes(jalurTayang)) throw new Error(`VIDEO-MATERI: ${relTonton} harus memutar ${v.berkas} dan memakai penghitung tayang yang sama`);
+  }
+  // Pelacak + penyimpan server (VIDEO-MATERI:TONTON + VIDEO-MATERI:SIMPAN) dalam satu konteks dengan Firebase tiruan:
+  // peta server dari getModulProgress digabung, detik baru dikirim sekali (bitset base64, bit rendah lebih dulu),
+  // dibatasi → dijadwalkan ulang 60 detik, not-found menghentikan kiriman, tanpa sesi PIN tidak mengirim.
+  async function ujiSimpanTontonan(blokVideo, kodeSimpan, v, rel) {
+    const AWAL = '<script id="video-materi-tonton">';
+    const t0 = blokVideo.indexOf(AWAL);
+    const kodeTonton = blokVideo.slice(t0 + AWAL.length, blokVideo.indexOf("</script>", t0));
+    const kode = kodeSimpan.replace(/^import \{[^}]*\} from "https:\/\/www\.gstatic\.com\/firebasejs\/[^"]+";\r?\n/gm, "");
+    if (/^\s*import\b/m.test(kode)) throw new Error(`VIDEO-MATERI: penyimpan tontonan ${rel}: impor tak terduga`);
+    const gagal = (pesan) => { throw new Error(`VIDEO-MATERI: penyimpan tontonan ${rel}: ${pesan}`); };
+    const N = vmDetik(v), BYTE = Math.ceil(N / 8);
+    const b64 = (a, b) => { const buf = Buffer.alloc(BYTE); for (let i = a; i <= b; i += 1) buf[i >> 3] |= 1 << (i & 7); return buf.toString("base64"); };
+    const bitDari = (s) => { const buf = Buffer.from(s, "base64"); return (i) => (buf[i >> 3] >> (i & 7)) & 1; };
+    const alir = async () => { for (let i = 0; i < 6; i += 1) await new Promise((r) => setImmediate(r)); };
+    const dengarVideo = {}, dengarWin = {}, panggilan = [], jawaban = [], timer = [];
+    const video = { currentTime: 0, paused: true, seeking: false, addEventListener: (j, fn) => { (dengarVideo[j] = dengarVideo[j] || []).push(fn); } };
+    const simpanan = {};
+    const win = {
+      MODUL_ID: "uji-materi", _previewMode: false, _sessionPinHash: "d".repeat(64),
+      getIdentityLocal: () => ({ nim: "41300000123", role: "student" }),
+      localStorage: { getItem: (x) => (x in simpanan ? simpanan[x] : null), setItem: (x, y) => { simpanan[x] = String(y); } },
+      document: { getElementById: (id) => (id === `vm-m${v.modul}` ? video : null), querySelector: () => null, addEventListener() {}, visibilityState: "visible" },
+      addEventListener: (j, fn) => { (dengarWin[j] = dengarWin[j] || []).push(fn); },
+      dispatchEvent: () => true, Event: function (j) { this.type = j; },
+      atob: (x) => Buffer.from(x, "base64").toString("latin1"), btoa: (x) => Buffer.from(x, "latin1").toString("base64"),
+      setTimeout: (fn, ms) => { timer.push({ fn, ms }); return timer.length; }, clearTimeout() {}, setInterval() {},
+      getApp: () => ({}), getFunctions: () => ({}),
+      httpsCallable: (fx, nama) => (data) => {
+        panggilan.push({ nama, data: JSON.parse(JSON.stringify(data)) });
+        const j = jawaban.shift() || { data: { peta: data.peta, detik: N } };
+        return j.galat ? Promise.reject(Object.assign(new Error(j.galat), { code: j.galat })) : Promise.resolve(j);
+      },
+    };
+    win.window = win;
+    vm.runInNewContext(kodeTonton, win);
+    vm.runInNewContext(kode, win);
+    const picu = (j) => (dengarVideo[j] || []).forEach((fn) => fn());
+    const putar = (dari, sampai) => {
+      video.paused = false; video.currentTime = dari; picu("play");
+      for (let t = dari; t <= sampai; t += 0.25) { video.currentTime = t; picu("timeupdate"); }
+      video.paused = true; picu("pause");
+    };
+    const diterapkan = (progres) => (dengarWin["progres-modul:diterapkan"] || []).forEach((fn) => fn({ detail: { ok: true, progres } }));
+    const syarat = () => win._pmSyarat[0]();
+    // Peta server (perangkat lain) dipulihkan; tanpa detik baru tidak ada kiriman.
+    diterapkan({ tontonMateri: { peta: b64(0, 999), detik: N } });
+    await alir();
+    if (!/· 62%/.test(String(syarat())) || panggilan.length) gagal(`peta server harus digabung tanpa kiriman ulang (syarat ${syarat()}, ${panggilan.length} panggilan)`);
+    // Detik baru → satu kiriman berisi gabungan; jeda kedua tanpa detik baru tidak mengirim.
+    putar(1000, 1200); await alir();
+    if (panggilan.length !== 1 || panggilan[0].nama !== "saveModulTonton" || panggilan[0].data.modulId !== "uji-materi" || panggilan[0].data.nim !== "41300000123") gagal(`detik baru harus dikirim sekali ke saveModulTonton: ${JSON.stringify(panggilan.map((x) => x.nama))}`);
+    const ada = bitDari(panggilan[0].data.peta);
+    if (Buffer.from(panggilan[0].data.peta, "base64").length !== BYTE || !ada(0) || !ada(999) || !ada(1200) || ada(1300)) gagal("peta kiriman harus bitset base64 gabungan (bit rendah lebih dulu)");
+    picu("pause"); await alir();
+    if (panggilan.length !== 1) gagal("tanpa detik baru tidak boleh mengirim lagi");
+    // Dibatasi server → dijadwalkan ulang 60 detik.
+    jawaban.push({ data: { peta: b64(0, 1250), detik: N, dibatasi: true } });
+    putar(1201, 1300); await alir();
+    if (panggilan.length !== 2 || !timer.some((t) => t.ms === 60000)) gagal("kiriman yang dibatasi server harus dijadwalkan ulang 60 detik");
+    // Tanpa sesi PIN: tidak mengirim.
+    const pin = win._sessionPinHash; win._sessionPinHash = null;
+    putar(1301, 1350); await alir();
+    if (panggilan.length !== 2) gagal("tanpa sesi PIN tidak boleh mengirim");
+    win._sessionPinHash = pin;
+    // Backend tanpa callable (not-found): berhenti mengirim.
+    jawaban.push({ galat: "functions/not-found" });
+    putar(1351, 1400); await alir();
+    putar(1401, 1450); await alir();
+    if (panggilan.length !== 3) gagal(`not-found harus menghentikan kiriman (${panggilan.length} panggilan)`);
   }
   // Pelacak tontonan (VIDEO-MATERI:TONTON) dengan video/DOM/localStorage tiruan: hanya detik yang benar-benar
   // diputar dihitung, kotak Bagian 01 tertahan sampai AMBANG, tersimpan per NIM, dan tidak terbawa ke NIM lain.
