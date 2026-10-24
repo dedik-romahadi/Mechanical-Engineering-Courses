@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <title>Pemeriksa Format Tugas Akhir — Teknik Mesin UMB</title>
-<meta name="description" content="Periksa naskah Tugas Akhir (.docx) terhadap Pedoman Teknis Penyusunan dan Penulisan TA Universitas Mercu Buana 2025: margin, huruf, spasi, urutan bagian, penomoran, abstrak, dan kebahasaan. Hasilnya naskah bersorot kuning dengan komentar.">
+<meta name="description" content="Periksa naskah Tugas Akhir (.docx) terhadap Pedoman Teknis Penyusunan dan Penulisan TA Universitas Mercu Buana 2025: margin, huruf, spasi, urutan bagian, penomoran, abstrak, salah ketik, dan kebahasaan. Hasilnya naskah bersorot kuning dengan komentar.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -148,10 +148,11 @@ footer{position:relative;z-index:1;text-align:center;color:var(--muted);font-siz
 <footer>
   Pemeriksaan otomatis ini membantu, bukan pengganti pemeriksaan pembimbing dan program studi.<br>
   Acuan: Pedoman Teknis Penyusunan dan Penulisan Tugas Akhir Mahasiswa UMB (SK Rektor No. 01/032/Skep/VIII/2025) dan templat TA S1 skema Publikasi Ilmiah 2025.<br>
-  Templat resmi: <a href="https://bit.ly/templateTA25" rel="noopener noreferrer" target="_blank">bit.ly/templateTA25</a> (masuk dengan email UMB) · Program Studi S1 Teknik Mesin, Universitas Mercu Buana
+  Templat resmi: <a href="https://bit.ly/templateTA25" rel="noopener noreferrer" target="_blank">bit.ly/templateTA25</a> (masuk dengan email UMB) · Program Studi S1 Teknik Mesin, Universitas Mercu Buana<br>
+  Kamus ejaan: hunspell-id (<a href="kamus/sumber/LICENSE-id_ID.txt">LGPL-3.0</a>) dan SCOWL en_US (<a href="kamus/sumber/README-en_US.txt">lisensi</a>), dari LibreOffice/dictionaries, ditambah istilah Teknik Mesin.
 </footer>
 <noscript><p style="text-align:center;padding:12px">Aktifkan JavaScript untuk memakai pemeriksa ini.</p></noscript>
-<script src="pemeriksa-inti.js?v=1.0.0"></script>
+<script src="pemeriksa-inti.js?v=1.1.0"></script>
 <script>
 (() => {
   'use strict';
@@ -186,14 +187,33 @@ footer{position:relative;z-index:1;text-align:center;color:var(--muted);font-siz
     return new Uint8Array(await new Response(s).arrayBuffer());
   }
 
+  // Kamus ejaan (±1 MB) dimuat sebagai <script> dari situs ini sendiri — fetch() ditutup CSP —
+  // dan hanya saat naskah pertama dipilih. Gagal muat → pemeriksaan tetap jalan tanpa cek ejaan.
+  let janjiKamus = null;
+  function muatKamus() {
+    if (!janjiKamus) {
+      const muat = (kode) => new Promise((ok, gagal) => {
+        const s = el('script', { src: `kamus/kamus-${kode}.js?v=${PT.VERSI}` });
+        s.onload = ok; s.onerror = gagal;
+        document.head.append(s);
+      });
+      janjiKamus = Promise.all([muat('id_ID'), muat('en_US')])
+        .then(() => ({ id: PT.kamusDariData(window.KamusTA.id_ID), en: PT.kamusDariData(window.KamusTA.en_US) }))
+        .catch((e) => { console.error(e); return null; });
+    }
+    return janjiKamus;
+  }
+
   async function periksa() {
     if (!bytesTerakhir) return;
     if (typeof DecompressionStream === 'undefined') { status('Peramban ini terlalu lama. Pakai Chrome, Edge, Firefox, atau Safari versi terbaru.', true); return; }
+    status('Memuat kamus ejaan…');
+    const kamus = await muatKamus();
     status('Memeriksa naskah…');
     blobBertanda = null;
     try {
       const t0 = performance.now();
-      hasilTerakhir = await PT.periksa(bytesTerakhir, { inflateRaw, skema: $('skema').value });
+      hasilTerakhir = await PT.periksa(bytesTerakhir, { inflateRaw, skema: $('skema').value, kamus });
       tampilkan(hasilTerakhir);
       status(`Selesai dalam ${((performance.now() - t0) / 1000).toFixed(1)} detik.`);
     } catch (e) {
@@ -250,7 +270,7 @@ footer{position:relative;z-index:1;text-align:center;color:var(--muted);font-siz
       if (!blobBertanda) {
         status('Menyiapkan naskah bertanda…');
         // Model hasil pemeriksaan diubah saat menulis sorotan, jadi periksa ulang dari bytes asli.
-        const segar = await PT.periksa(bytesTerakhir, { inflateRaw, skema: $('skema').value });
+        const segar = await PT.periksa(bytesTerakhir, { inflateRaw, skema: $('skema').value, kamus: await muatKamus() });
         const out = await segar.buatDocxBertanda(deflateRaw);
         blobBertanda = new Blob([out.bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
         status(`Naskah bertanda siap: ${out.jumlahSorot} sorotan kuning dan ${out.jumlahKomentar} komentar.`);

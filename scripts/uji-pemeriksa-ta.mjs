@@ -16,6 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import zlib from 'node:zlib';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -45,6 +46,25 @@ const PT = ctx.PemeriksaTA;
 cek(html.includes(`pemeriksa-inti.js?v=${PT.VERSI}`), `versi skrip di halaman sama dengan VERSI inti (${PT.VERSI})`);
 const inflateRaw = async (d) => new Uint8Array(zlib.inflateRawSync(d));
 const deflateRaw = async (d) => new Uint8Array(zlib.deflateRawSync(d));
+
+// Kamus ejaan: berkas peramban harus sama dengan hasil bangun ulang dari kamus/sumber/.
+const bangun = spawnSync(process.execPath, [path.join(root, 'scripts', 'bangun-kamus-ta.mjs'), '--periksa'], { encoding: 'utf8' });
+cek(bangun.status === 0, 'kamus/kamus-*.js mutakhir terhadap kamus/sumber/', bangun.stderr.trim());
+for (const kode of ['id_ID', 'en_US']) vm.runInContext(fs.readFileSync(path.join(root, 'Tugas-Akhir', 'kamus', `kamus-${kode}.js`), 'utf8'), ctx);
+const kamus = { id: PT.kamusDariData(ctx.KamusTA.id_ID), en: PT.kamusDariData(ctx.KamusTA.en_US) };
+for (const n of ['LICENSE-id_ID.txt', 'README-en_US.txt']) cek(fs.existsSync(path.join(root, 'Tugas-Akhir', 'kamus', 'sumber', n)), `lisensi kamus ikut: ${n}`);
+{
+  // Imbuhan Hunspell: awalan + akhiran (circumfix me-…-kan, di-…-kan), akhiran lapis kedua (-nya).
+  const benar = 'menggunakan menggunakannya digunakan dilakukan pengujian perancangan keberhasilan memperlihatkan dikembangkan dianalisis pengukuran menghasilkan dipertahankan getaran sistem frekuensi'.split(' ');
+  const tolak = benar.filter((w) => !kamus.id.cek(w));
+  cek(!tolak.length, 'kamus id_ID menerima kata berimbuhan', tolak.join(' '));
+  for (const [salah, harapan] of [['pengujain', 'pengujian'], ['dilakuakn', 'dilakukan'], ['perancanagn', 'perancangan'], ['getran', 'getaran'], ['menggunkan', 'menggunakan']]) {
+    const s = kamus.id.saran(salah);
+    cek(!kamus.id.cek(salah) && s[0] === harapan, `salah ketik "${salah}" ditolak, saran pertama "${harapan}"`, JSON.stringify(s));
+  }
+  cek(kamus.en.cek('vibration') && kamus.en.cek('maintenance') && !kamus.en.cek('vibraton'), 'kamus en_US menerima/menolak dengan benar');
+  cek(kamus.id.cek('parametrik') && kamus.en.cek('underdamped'), 'istilah teknik tambahan termuat');
+}
 
 /* ---------------------------------------------------------------- pembangun .docx */
 
@@ -139,7 +159,8 @@ function naskahPublikasi(o = {}) {
   ].join('');
   const kp = [
     judulBagian('KATA PENGANTAR'), kosong,
-    prosa('Puji syukur saya panjatkan kepada Tuhan Yang Maha Esa karena atas berkat dan rahmat-Nya saya dapat menyelesaikan Tugas Akhir ini dengan baik. Penulisan Tugas Akhir ini dilakukan untuk memenuhi salah satu syarat mencapai gelar Sarjana Teknik pada Program Studi Teknik Mesin.' + (o.bahasa ? ' Pengujian  dilakukan pada data data hasil analisa di lakukan dengan beban 10kg secara online sehingga hasil ,dan kalimat ini selesai. kemudian Dan pembahasan berlanjut.' : '')),
+    prosa('Puji syukur saya panjatkan kepada Tuhan Yang Maha Esa karena atas berkat dan rahmat-Nya saya dapat menyelesaikan Tugas Akhir ini dengan baik. Penulisan Tugas Akhir ini dilakukan untuk memenuhi salah satu syarat mencapai gelar Sarjana Teknik pada Program Studi Teknik Mesin.' + (o.bahasa ? ' Pengujian  dilakukan pada data data hasil analisa di lakukan dengan beban 10kg secara online sehingga hasil ,dan kalimat ini selesai. kemudian Dan pembahasan berlanjut.' : '') +
+      (o.typo ? ' Tahap pengujain alat dilakuakn di laboratorium dengan pompa yang dipasang pada rangka.' : '')),
     prosa('Saya mengucapkan terima kasih kepada pihak-pihak berikut:'),
     ...(o.urutanKP ? [
       prosa('Dr. Siti Rahayu, M.T. selaku Dekan Fakultas Teknik;'),
@@ -245,7 +266,7 @@ function naskahSkripsi(o = {}) {
 
 /* ---------------------------------------------------------------- pengujian */
 
-const periksa = (bytes, opsi = {}) => PT.periksa(bytes, Object.assign({ inflateRaw, tahunSekarang: 2026 }, opsi));
+const periksa = (bytes, opsi = {}) => PT.periksa(bytes, Object.assign({ inflateRaw, tahunSekarang: 2026, kamus }, opsi));
 const temukan = (h, grup, judul) => h.temuan.filter((t) => t.grup === grup && (judul instanceof RegExp ? judul.test(t.judul) : t.judul.includes(judul)));
 const gagalSaja = (h) => h.temuan.filter((t) => t.status === 'gagal').map((t) => `${t.grup}: ${t.judul} — ${t.pesan.slice(0, 120)}`);
 function harap(h, grup, judul, status, nama) {
@@ -330,6 +351,21 @@ cek(temukan(baik, 'bahasa', 'Huruf pertama kalimat').length === 0, 'kebahasaan: 
   temukan(baik, 'bahasa', 'Huruf pertama kalimat').flatMap((t) => t.rincian.map((x) => x.teks)).join(' | '));
 const { out: outBhs } = await bolakBalik(naskahPublikasi({ bahasa: true }), 'publikasi berkesalahan bahasa');
 cek(outBhs.jumlahSorot >= 9, `kebahasaan: sorotan tertulis (${outBhs.jumlahSorot})`);
+
+// Ejaan: naskah patuh tanpa salah ketik maupun istilah asing tegak; salah ketik tertangkap dan bersaran.
+cek(temukan(baik, 'bahasa', /salah ketik|Istilah asing/).length === 0, 'ejaan: naskah patuh tanpa salah ketik/istilah asing',
+  temukan(baik, 'bahasa', /salah ketik|Istilah asing/).flatMap((t) => t.rincian.map((x) => x.teks)).join(' | '));
+{
+  const h = await periksa(naskahPublikasi({ typo: true }));
+  const t = temukan(h, 'bahasa', 'Kemungkinan salah ketik')[0];
+  const teks = t ? t.rincian.map((x) => x.teks).join(' | ') : '';
+  cek(t && t.status === 'gagal' && /pengujain → pengujian/.test(teks) && /dilakuakn → dilakukan/.test(teks), 'ejaan: salah ketik tertangkap dengan saran', teks);
+  cek(t && t.tanda.length === 2 && t.tanda.every((x) => x.hl), 'ejaan: tiap salah ketik disorot');
+  const tanpa = await periksa(naskahPublikasi({ typo: true }), { kamus: null });
+  cek(!temukan(tanpa, 'bahasa', 'Kemungkinan salah ketik').length && temukan(tanpa, 'bahasa', 'Salah ketik (typo)').some((x) => x.status === 'manual'),
+    'ejaan: tanpa kamus, salah ketik menjadi butir periksa sendiri');
+  await bolakBalik(naskahPublikasi({ typo: true }), 'publikasi bersalah ketik');
+}
 
 try { await periksa(new Uint8Array([0xD0, 0xCF, 0x11, 0xE0, 0, 0, 0, 0])); cek(false, '.doc lama ditolak'); }
 catch (e) { cek(e.kode === 'ole', '.doc lama ditolak dengan pesan simpan sebagai .docx', e.message); }
