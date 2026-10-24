@@ -349,7 +349,7 @@ const kasus = [
   ['7 kata kunci', { kunci7: true }, 'abstrak', '7 kata kunci', 'gagal'],
   ['tanpa LoA', { tanpaLoA: true }, 'struktur', 'Bagian wajib belum ada', 'gagal'],
   ['urutan tertukar', { tukarUrutan: true }, 'struktur', 'Urutan bagian tidak sesuai', 'gagal'],
-  ['sisa petunjuk templat', { placeholder: true }, 'bersih', 'Sisa petunjuk templat', 'gagal'],
+  ['sisa petunjuk template', { placeholder: true }, 'bersih', 'Sisa petunjuk template', 'gagal'],
   ['track changes', { revisi: true }, 'bersih', 'Masih ada Track Changes', 'gagal'],
   ['bagian awal angka Latin', { awalDesimal: true }, 'nomor', 'Bagian awal belum bernomor romawi kecil', 'gagal'],
   ['judul bertanda tanya', { judul: 'BAGAIMANA MEMANTAU GETARAN POMPA?' }, 'sampul', 'Judul tidak sesuai ketentuan', 'gagal'],
@@ -406,19 +406,19 @@ await bolakBalik(naskahSkripsi({ subbabDalam: true, kapsiTitik: true }), 'skrips
 
 // Tiga skema S1 (Pedoman 3.20): susunan dan isi menurut templat 5.1/5.2/5.3.
 harap(skripsi, 'sampul', 'Menyebut skema Skripsi', 'lulus', 'sampul menyebut TUGAS AKHIR SKRIPSI');
-harap(skripsi, 'isi', 'Susunan lima bab sesuai templat', 'lulus', 'lima bab templat 5.1');
-harap(skripsi, 'isi', 'Subbab BAB I lengkap', 'lulus', 'subbab BAB I templat');
+harap(skripsi, 'isi', 'Susunan lima bab sesuai template', 'lulus', 'lima bab template 5.1');
+harap(skripsi, 'isi', 'Subbab BAB I lengkap', 'lulus', 'subbab BAB I template');
 harap(skripsi, 'isi', 'Baris pertama paragraf menjorok 1 cm', 'lulus', 'inden baris pertama 1 cm');
-harap(skripsi, 'lampiran', 'Lampiran memuat isi yang dicontohkan templat', 'lulus', 'lampiran bimbingan dan CV');
+harap(skripsi, 'lampiran', 'Lampiran memuat isi yang dicontohkan template', 'lulus', 'lampiran bimbingan dan CV');
 harap(baik, 'sampul', 'Menyebut skema Publikasi Ilmiah', 'lulus', 'sampul menyebut PUBLIKASI ILMIAH');
 {
   const aplikatif = await periksa(naskahSkripsi({ jenis: 'APLIKATIF' }));
   cek(aplikatif.meta.skema === 'aplikatif', 'sampul "TUGAS AKHIR APLIKATIF" dikenali sebagai skema aplikatif', aplikatif.meta.skema);
   cek(gagalSaja(aplikatif).length === 0, 'naskah aplikatif patuh: tanpa temuan gagal', gagalSaja(aplikatif).join('\n    '));
   harap(aplikatif, 'isi', /^Isi ± \d+ halaman/, 'info', 'aplikatif: ketentuan 65–90 halaman tidak dikenakan');
-  harap(aplikatif, 'isi', 'Susunan lima bab sesuai templat', 'lulus', 'aplikatif memakai susunan bab templat 5.2');
+  harap(aplikatif, 'isi', 'Susunan lima bab sesuai template', 'lulus', 'aplikatif memakai susunan bab template 5.2');
   harap(await periksa(naskahSkripsi({ jenis: 'APLIKATIF' }), { skema: 'skripsi' }), 'sampul', 'Jenis TA tidak sesuai skema', 'gagal', 'sampul aplikatif diperiksa sebagai skripsi');
-  harap(await periksa(naskahSkripsi({ tigaBab: true })), 'isi', 'Susunan bab berbeda dengan templat', 'perhatian', 'tiga bab');
+  harap(await periksa(naskahSkripsi({ tigaBab: true })), 'isi', 'Susunan bab berbeda dengan template', 'perhatian', 'tiga bab');
   harap(await periksa(naskahSkripsi({ tanpaInden: true })), 'isi', 'Baris pertama paragraf tidak menjorok 1 cm', 'perhatian', 'tanpa inden baris pertama');
 }
 
@@ -435,14 +435,14 @@ for (const [nama, skemaHarap, jumlahBagian] of TEMPLAT) {
   if (!fs.existsSync(berkasTemplat)) continue;
   const bytes = new Uint8Array(fs.readFileSync(berkasTemplat));
   const h = await periksa(bytes);
-  cek(h.meta.skema === skemaHarap, `templat ${skemaHarap}: skema dikenali otomatis`, h.meta.skema);
-  cek(h.bagian.length === jumlahBagian, `templat ${skemaHarap}: ${jumlahBagian} bagian dikenali`, h.bagian.map((b) => b.kunci).join(','));
-  harap(h, 'bersih', 'Sisa petunjuk templat', 'gagal', `templat ${skemaHarap}: petunjuk templat ditandai`);
-  harap(h, 'sampul', `Menyebut skema ${PT.SKEMA[skemaHarap].nama}`, 'lulus', `templat ${skemaHarap}: jenis TA di sampul`);
-  await bolakBalik(bytes, `templat ${skemaHarap}`);
+  cek(h.meta.skema === skemaHarap, `template ${skemaHarap}: skema dikenali otomatis`, h.meta.skema);
+  cek(h.bagian.length === jumlahBagian, `template ${skemaHarap}: ${jumlahBagian} bagian dikenali`, h.bagian.map((b) => b.kunci).join(','));
+  harap(h, 'bersih', 'Sisa petunjuk template', 'gagal', `template ${skemaHarap}: petunjuk template ditandai`);
+  harap(h, 'sampul', `Menyebut skema ${PT.SKEMA[skemaHarap].nama}`, 'lulus', `template ${skemaHarap}: jenis TA di sampul`);
+  await bolakBalik(bytes, `template ${skemaHarap}`);
   diujiTemplat++;
 }
-console.log(diujiTemplat ? `${diujiTemplat} templat resmi ikut diuji.` : 'Templat resmi tidak tersedia di mesin ini; uji templat dilewati.');
+console.log(diujiTemplat ? `${diujiTemplat} template resmi ikut diuji.` : 'Template resmi tidak tersedia di mesin ini; uji template dilewati.');
 
 console.log(`${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);
