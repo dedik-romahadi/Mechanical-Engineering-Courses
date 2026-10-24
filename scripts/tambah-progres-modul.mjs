@@ -73,8 +73,9 @@
  *      alasannya tampil di label statusnya; event window
  *      'progres-modul:syarat' merender ulang. Dipakai video materi TTL
  *      (scripts/video-materi.mjs): kotak Bagian 01 aktif setelah videonya
- *      ditonton. Dosen/Preview (mode bebas) tidak digerbang syarat ini, dan
- *      server tidak memeriksanya (setModulCentang hanya menagih urutan).
+ *      ditonton. Dosen/Preview (mode bebas) tidak digerbang syarat ini. Kait
+ *      ini hanya tampilan; penegakannya urusan server (untuk video materi:
+ *      setModulCentang + saveModulTonton, VIDEO_MATERI_WAJIB backend).
  *
  * Dosen, Mode Preview, dan akun simulasi tidak digerbang (kotak bisa
  * dicentang bebas, tidak disimpan). UTS/UAS tidak disentuh.

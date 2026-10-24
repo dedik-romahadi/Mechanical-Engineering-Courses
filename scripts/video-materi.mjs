@@ -15,6 +15,8 @@
  *   VIDEO-MATERI:TAYANG <script type="module" id="video-materi-tayang"> sebelum </body>: jumlah tayang dari RTDB
  *                      tayang/teknik_tenaga_listrik/modul-<N> (onValue), +1 per pemutaran lewat runTransaction,
  *                      sama dengan video simulasi (scripts/video-simulasi.mjs).
+ *   VIDEO-MATERI:SIMPAN <script type="module" id="video-materi-simpan"> sebelum </body>: tontonan disimpan di server
+ *                      (callable saveModulTonton) dan dipulihkan dari getModulProgress — lihat WAJIB MENONTON.
  * Modul yang punya video materi tidak lagi memakai video simulasi (dosen, 24 Oktober 2026): Bagian 07–08 sudah
  * ada di video ini. Pelepasan kartu simulasinya dan halaman pengalih tautan lamanya ditangani
  * scripts/video-simulasi.mjs; jalankan skrip itu sesudah menambah modul di video-materi-data.mjs. Karena itu
@@ -27,8 +29,15 @@
  * putar bebas) dan menyimpannya di localStorage per NIM + MODUL_ID. Selama kurang dari AMBANG (90%) detik
  * video tertonton, window._pmSyarat[0] mengembalikan alasan, sehingga runtime PROGRES-MODUL
  * (scripts/tambah-progres-modul.mjs butir 9) menahan kotak itu. Mahasiswa yang sudah mencentang Bagian 01
- * tidak terpengaruh. Hanya di peramban: server (setModulCentang) tidak memeriksanya, dan tontonan di perangkat
- * lain yang belum dicentang di sana tidak terbawa.
+ * tidak terpengaruh.
+ * DISIMPAN DI SERVER (dosen, 24 Oktober 2026: "Buat menonton video disimpan di server"). Petanya (bitset base64,
+ * bit i = detik ke-i, bit rendah lebih dulu) dikirim ke callable saveModulTonton (backend VIDEO_MATERI_WAJIB,
+ * `detik` = detikVideo(), `ambang` = AMBANG — dicocokkan verify-tonton-materi.js backend) saat video dijeda/selesai,
+ * tiap 15 detik selama diputar, dan saat halaman ditutup; peta server dari getModulProgress (event
+ * 'progres-modul:diterapkan') digabung ke peta lokal, jadi tontonan terbawa ke perangkat lain. Server menolak
+ * centang Bagian 01 (setModulCentang) sampai tontonan TERSIMPAN mencapai ambang, dan membatasi laju (detik
+ * tersimpan ≤ 2,5 × waktu sejak simpanan pertama + 60 detik); kiriman yang dibatasi diulang 60 detik kemudian.
+ * Menambah video materi = entri VIDEO_MATERI_WAJIB backend + deploy functions SEBELUM halaman ini dipasang.
  * HALAMAN TONTON: <KURSUS>/Video/<halaman> ditulis utuh oleh skrip ini (jangan disunting manual).
  *
  * Regenerasi modul (scripts/ttl-modul/bangun.py N) membuang blok ini: jalankan ulang skrip ini sesudahnya.
@@ -113,16 +122,17 @@ window._vmBagikan = function (btn) {
 };
 </script>`;
 
-const catatanModul = (v) => `Video ini menjelaskan seluruh materi modul ini, dari Bagian 01 sampai Bagian ${v.bagianAkhir}, dengan narasi suara dan caption: konsep, gambar, rumus beserta contoh angkanya, tabel, lalu animasi dan cell Python. Tonton dulu, lalu pelajari tiap bagian di bawah dan centang bila sudah paham. Kotak centang Bagian 01 aktif setelah video ini ditonton minimal ${Math.round(AMBANG * 100)}% (bagian yang dilompati tidak dihitung). Tombol Bagikan menyalin tautan halaman tonton; penerima bisa langsung menonton tanpa login.`;
+const catatanModul = (v) => `Video ini menjelaskan seluruh materi modul ini, dari Bagian 01 sampai Bagian ${v.bagianAkhir}, dengan narasi suara dan caption: konsep, gambar, rumus beserta contoh angkanya, tabel, lalu animasi dan cell Python. Tonton dulu, lalu pelajari tiap bagian di bawah dan centang bila sudah paham. Kotak centang Bagian 01 aktif setelah video ini ditonton minimal ${Math.round(AMBANG * 100)}% (bagian yang dilompati tidak dihitung); progres menonton tersimpan di server, jadi bisa dilanjutkan di perangkat lain. Tombol Bagikan menyalin tautan halaman tonton; penerima bisa langsung menonton tanpa login.`;
 const catatanTonton = (v) => `Video ini menjelaskan seluruh materi Modul ${v.modul} Teknik Tenaga Listrik, dari Bagian 01 sampai Bagian ${v.bagianAkhir}, dengan narasi suara dan caption. Untuk mencoba animasinya dan mengerjakan tugas, buka modulnya (mahasiswa login dengan NIM dan PIN).`;
 
 // Lama video dalam detik dari `durasi` "m:ss" (+1 untuk pecahan detik terakhir): panjang peta detik tontonan.
 export const detikVideo = (v) => { const [m, d] = v.durasi.split(":").map(Number); return m * 60 + d + 1; };
 
-// Pelacak tontonan (skrip klasik, tanpa host luar) + syarat kotak Bagian 01 untuk runtime PROGRES-MODUL.
+// Pelacak tontonan (skrip klasik, tanpa host luar) + syarat kotak Bagian 01 untuk runtime PROGRES-MODUL +
+// antarmuka window._vmTonton untuk penyimpan server (simpanTonton).
 function tonton(v) {
   return `<script id="video-materi-tonton">
-// VIDEO-MATERI:TONTON v1 — kotak centang Bagian 01 aktif setelah video ini ditonton (scripts/video-materi.mjs)
+// VIDEO-MATERI:TONTON v2 — kotak centang Bagian 01 aktif setelah video ini ditonton (scripts/video-materi.mjs)
 (function () {
   var video = document.getElementById('vm-m${v.modul}');
   var info = document.getElementById('vm-progres-m${v.modul}');
@@ -169,6 +179,24 @@ function tonton(v) {
     var p = bagian();
     return p >= AMBANG ? null : '🎬 tonton video materi dulu · ' + Math.floor(p * 100) + '%';
   };
+  // Untuk VIDEO-MATERI:SIMPAN: peta milik NIM yang login (null bila bukan mahasiswa) dan penggabungan peta
+  // server (bitset base64, bit i = detik ke-i, bit rendah lebih dulu). Detik tidak pernah dihapus.
+  window._vmTonton = {
+    detik: DETIK,
+    nim: saya,
+    peta: function () { muat(); return nimPeta ? peta : null; },
+    gabung: function (b64) {
+      muat();
+      if (!nimPeta || typeof b64 !== 'string') return;
+      var s;
+      try { s = atob(b64); } catch (e) { return; }
+      var n = 0;
+      for (var i = 0; i < DETIK && (i >> 3) < s.length; i++) {
+        if (((s.charCodeAt(i >> 3) >> (i & 7)) & 1) && !peta[i]) { peta[i] = 1; n++; }
+      }
+      if (n) { simpan(); tampil(); }
+    }
+  };
   function tandai(a, b) {
     muat();
     var n = 0;
@@ -195,13 +223,13 @@ function tonton(v) {
 }
 
 export function blok(v) {
-  return `<!-- VIDEO-MATERI:BLOK BEGIN v2 -->
+  return `<!-- VIDEO-MATERI:BLOK BEGIN v3 -->
 <div class="video-materi-luar">
 ${kartu(v, "../Video/", "  ", catatanModul(v), true)}
 </div>
 ${BAGIKAN}
 ${tonton(v)}
-<!-- VIDEO-MATERI:BLOK END v2 -->
+<!-- VIDEO-MATERI:BLOK END v3 -->
 `;
 }
 
@@ -240,6 +268,74 @@ import { getDatabase, ref, onValue, runTransaction } from "${FIREBASE}/firebase-
   });
   video.addEventListener('ended', function () { sedangTayang = false; });
 })();`;
+}
+
+// Penyimpan tontonan di server: kirim peta lokal ke saveModulTonton bila ada detik yang belum tersimpan, gabungkan
+// peta server (respons dan getModulProgress) ke peta lokal. not-found/failed-precondition/invalid-argument
+// menghentikan kiriman (backend tanpa callable atau modul tanpa video wajib); galat PIN sesi diurus
+// JAWABAN-PRIVAT/PROGRES-MODUL; galat sementara dicoba ulang 5/15/30/60 detik.
+export function simpanTonton(v) {
+  return `<script type="module" id="video-materi-simpan">
+// VIDEO-MATERI:SIMPAN v1 — tontonan video materi disimpan di server; dipasang scripts/video-materi.mjs
+import { getApp } from "${FIREBASE}/firebase-app.js";
+import { getFunctions, httpsCallable } from "${FIREBASE}/firebase-functions.js";
+(function () {
+  var video = document.getElementById('vm-m${v.modul}');
+  var T = window._vmTonton;
+  if (!video || !T) return;
+  var fx = null, server = null, nimServer = null, sibuk = false, mati = false, gagal = 0, tunda = null;
+  function panggil(nama, data) {
+    if (!fx) fx = getFunctions(getApp(), 'asia-southeast1');
+    return httpsCallable(fx, nama)(data).then(function (r) { return (r && r.data) || {}; });
+  }
+  function bit(s, i) { return (i >> 3) < s.length ? (s.charCodeAt(i >> 3) >> (i & 7)) & 1 : 0; }
+  // Ada detik yang sudah ditonton di sini tetapi belum tersimpan di server (peta server milik NIM ini)?
+  function adaBaru(p) {
+    if (nimServer !== T.nim()) { server = null; nimServer = T.nim(); }
+    for (var i = 0; i < T.detik; i++) if (p[i] && !(server && bit(server, i))) return true;
+    return false;
+  }
+  function keBase64(p) {
+    var b = new Uint8Array(Math.ceil(T.detik / 8)), s = '';
+    for (var i = 0; i < T.detik; i++) if (p[i]) b[i >> 3] |= 1 << (i & 7);
+    for (var j = 0; j < b.length; j++) s += String.fromCharCode(b[j]);
+    return btoa(s);
+  }
+  function terima(t) {
+    if (!t || typeof t.peta !== 'string' || t.detik !== T.detik) return;
+    try { server = atob(t.peta); nimServer = T.nim(); } catch (e) { return; }
+    T.gabung(t.peta);
+  }
+  function jadwal(ms) { clearTimeout(tunda); tunda = setTimeout(kirim, ms); }
+  function kirim() {
+    var nim = T.nim(), h = window._sessionPinHash, p = T.peta();
+    if (mati || sibuk || !nim || !h || !p || !adaBaru(p)) return;
+    sibuk = true;
+    panggil('saveModulTonton', { modulId: window.MODUL_ID, nim: nim, pinHash: h, peta: keBase64(p) }).then(function (r) {
+      gagal = 0;
+      terima(r);
+      if (r.dibatasi) jadwal(60000);   // batas laju server: sisanya diterima setelah waktu berjalan
+    }, function (e) {
+      var k = String((e && e.code) || '');
+      if (k.indexOf('functions/') === 0) k = k.slice(10);
+      if (k === 'not-found' || k === 'failed-precondition' || k === 'invalid-argument') { mati = true; return; }
+      if (k === 'unauthenticated' || k === 'resource-exhausted') return;
+      if (gagal < 4) jadwal([5000, 15000, 30000, 60000][gagal++]);
+    }).then(function () { sibuk = false; });
+  }
+  video.addEventListener('pause', kirim);
+  video.addEventListener('ended', kirim);
+  setInterval(function () { if (!video.paused) kirim(); }, 15000);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') kirim(); });
+  window.addEventListener('pagehide', kirim);
+  window.addEventListener('progres-modul:diterapkan', function (ev) {
+    var p = ev && ev.detail && ev.detail.progres;
+    if (p && p.tontonMateri) terima(p.tontonMateri);
+    kirim();
+  });
+})();
+</script>
+`;
 }
 
 export function tayang(v) {
@@ -304,6 +400,7 @@ ${hitung(v, `import { initializeApp } from "${FIREBASE}/firebase-app.js";`, `ini
 const RX_BLOK = /<!-- VIDEO-MATERI:BLOK BEGIN v\d+ -->[\s\S]*?<!-- VIDEO-MATERI:BLOK END v\d+ -->\n/;
 const RX_CSS = /<style id="video-materi-style">[\s\S]*?<\/style>\n?/;
 const RX_TAYANG = /<script type="module" id="video-materi-tayang">[\s\S]*?<\/script>\n/;
+const RX_SIMPAN = /<script type="module" id="video-materi-simpan">[\s\S]*?<\/script>\n/;
 
 // Titik sisip: awal baris komentar/garis pertama sesudah blok hitung mundur (sebelum Bagian 01).
 export function titikSisip(html, modul) {
@@ -319,11 +416,11 @@ export function titikSisip(html, modul) {
 export function pasang(html, v) {
   let out = html;
   out = RX_CSS.test(out) ? out.replace(RX_CSS, () => CSS + "\n") : out.replace("</head>", () => CSS + "\n</head>");
-  if (RX_TAYANG.test(out)) out = out.replace(RX_TAYANG, () => tayang(v));
-  else {
+  for (const [rx, isi] of [[RX_TAYANG, tayang(v)], [RX_SIMPAN, simpanTonton(v)]]) {
+    if (rx.test(out)) { out = out.replace(rx, () => isi); continue; }
     const b = out.lastIndexOf("</body>");
     if (b < 0) throw new Error(`modul ${v.modul}: </body> tidak ditemukan`);
-    out = out.slice(0, b) + tayang(v) + out.slice(b);
+    out = out.slice(0, b) + isi + out.slice(b);
   }
   if (RX_BLOK.test(out)) return out.replace(RX_BLOK, () => blok(v));
   const i = titikSisip(out, v.modul);
