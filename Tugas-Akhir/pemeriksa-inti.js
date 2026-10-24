@@ -13,7 +13,7 @@
 (function (global) {
 'use strict';
 
-const VERSI = '1.1.0';
+const VERSI = '1.2.0';
 const W_URI = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const PENULIS_KOMENTAR = 'Pemeriksa Format TA';
 
@@ -847,9 +847,42 @@ const RX_BAGIAN = [
   ['lampiran', /^LAMPIRAN( ?- ?LAMPIRAN)?$/],
 ];
 const RX_BAB = /^BAB\s+([IVXLC]+|\d+)\b\.?\s*(.*)$/;
+// Tiga skema TA jenjang Sarjana (Pedoman 3.20). Templat 5.1 (Skripsi) dan 5.2 (Aplikatif)
+// sama isinya; bedanya hanya kata jenis TA di sampul dan halaman judul.
+const SKEMA = {
+  skripsi: { nama: 'Skripsi', jenis: 'SKRIPSI', berbab: true, templat: 'Templat 5.1' },
+  aplikatif: { nama: 'Aplikatif', jenis: 'APLIKATIF', berbab: true, templat: 'Templat 5.2' },
+  publikasi: { nama: 'Publikasi Ilmiah', jenis: 'PUBLIKASI ILMIAH', berbab: false, templat: 'Templat 5.3' },
+};
+const URUTAN_BERBAB = ['sampul', 'judul', 'pernyataan', 'turnitin', 'pengesahan', 'kataPengantar', 'persetujuan', 'abstrak', 'abstract', 'daftarIsi', 'daftarTabel', 'daftarGambar', 'daftarLampiran', 'bab', 'daftarPustaka', 'lampiran'];
 const URUTAN = {
   publikasi: ['sampul', 'judul', 'pernyataan', 'turnitin', 'loa', 'pengesahan', 'kataPengantar', 'persetujuan', 'abstrak', 'abstract', 'daftarIsi', 'daftarTabel', 'daftarGambar', 'daftarLampiran', 'naskah', 'lampiran'],
-  skripsi: ['sampul', 'judul', 'pernyataan', 'turnitin', 'pengesahan', 'kataPengantar', 'persetujuan', 'abstrak', 'abstract', 'daftarIsi', 'daftarTabel', 'daftarGambar', 'daftarLampiran', 'bab', 'daftarPustaka', 'lampiran'],
+  skripsi: URUTAN_BERBAB,
+  aplikatif: URUTAN_BERBAB,
+};
+// Susunan bab dan subbab BAB I pada templat 5.1/5.2. Penamaan bab boleh disesuaikan prodi
+// (Pedoman 3.15), jadi perbedaannya dilaporkan sebagai perhatian.
+const BAB_TEMPLAT = [
+  ['PENDAHULUAN', /PENDAHULUAN/],
+  ['TINJAUAN PUSTAKA / LANDASAN TEORI / KAJIAN PUSTAKA', /TINJAUAN PUSTAKA|LANDASAN TEORI|KAJIAN PUSTAKA|STUDI PUSTAKA|DASAR TEORI/],
+  ['METODE / METODOLOGI PENELITIAN / PERANCANGAN', /METODE|METODOLOGI|PERANCANGAN/],
+  ['HASIL DAN PEMBAHASAN', /HASIL|PEMBAHASAN|ANALISIS/],
+  ['KESIMPULAN DAN SARAN', /KESIMPULAN|PENUTUP/],
+];
+// Jenis skema yang tertulis pada baris-baris sampul/halaman judul (huruf kapital, dinormalkan).
+function jenisSkemaDari(baris) {
+  const t = baris.join(' | ');
+  if (/\bAPLIKATIF\b/.test(t)) return 'aplikatif';
+  if (/\bPUBLIKASI ILMIAH\b/.test(t)) return 'publikasi';
+  if (/\bSKRIPSI\b/.test(t)) return 'skripsi';
+  return null;
+}
+const SUBBAB_BAB1 = [['Latar Belakang', /LATAR BELAKANG/], ['Perumusan Masalah', /(PERUMUSAN|RUMUSAN) MASALAH/], ['Tujuan', /TUJUAN/], ['Manfaat/Kontribusi', /MANFAAT|KONTRIBUSI/]];
+const LAMPIRAN_CV = ['Curriculum Vitae', /CURR?ICULUM\s+VIT|RIWAYAT HIDUP|\bCV\b/];
+const LAMPIRAN_TEMPLAT = {
+  skripsi: [['Bukti Bimbingan Tugas Akhir', /BIMBINGAN/], LAMPIRAN_CV],
+  aplikatif: [['Bukti Bimbingan Tugas Akhir', /BIMBINGAN/], LAMPIRAN_CV],
+  publikasi: [['Bukti Bimbingan', /BIMBINGAN/], ['Bukti Korespondensi', /KORESPONDENSI/], ['Laporan Status Publikasi', /STATUS PUBLIKASI/], LAMPIRAN_CV],
 };
 const OPSIONAL = new Set(['daftarTabel', 'daftarGambar', 'daftarLampiran']);
 const AWAL = new Set(['judul', 'pernyataan', 'turnitin', 'loa', 'pengesahan', 'kataPengantar', 'persetujuan', 'abstrak', 'abstract', 'daftarIsi', 'daftarTabel', 'daftarGambar', 'daftarLampiran']);
@@ -929,28 +962,34 @@ function kenaliBagian(model) {
   const bagianTemu = Object.entries(temu).map(([k, p]) => ({ kunci: k, judul: p }));
   for (const b of bab) bagianTemu.push({ kunci: 'bab', judul: b.p, bab: b });
   bagianTemu.sort((a, b) => a.judul.i - b.judul.i);
+  // Sampul = halaman pertama; halaman judul = halaman yang memuat "Diajukan ..." sebelum
+  // judul bagian pertama. Dibandingkan menurut urutan paragraf, bukan nomor halaman saja:
+  // berkas yang tidak disimpan Word tidak menyimpan posisi pindah halaman, sehingga halaman
+  // judul dan halaman pernyataan bisa terbaca sebagai satu halaman.
+  const iPertama = bagianTemu.length ? bagianTemu[0].judul.i : P.length;
   const halPertamaBagian = bagianTemu.length ? bagianTemu[0].judul.hal : model.totalHal;
-  let halJudul = null, halSampul = null;
-  if (pDiajukan && pDiajukan.hal < halPertamaBagian) {
-    halJudul = pDiajukan.hal;
-    if (halJudul > 0) halSampul = 0;
-  } else if (halPertamaBagian >= 2) { halSampul = 0; halJudul = 1; }
-  else if (halPertamaBagian === 1) halSampul = 0;
+  const awalHal = (h) => { const p = P.find((q) => q.hal === h); return p ? p.i : null; };
   const daftar = [];
-  if (halSampul != null) {
-    const ps = P.filter((p) => p.hal === halSampul);
-    if (ps.length) daftar.push({ kunci: 'sampul', judul: null, mulai: ps[0].i, halaman: true });
-  }
-  if (halJudul != null) {
-    const ps = P.filter((p) => p.hal === halJudul);
-    if (ps.length) daftar.push({ kunci: 'judul', judul: null, mulai: ps[0].i, halaman: true, pDiajukan });
+  if (pDiajukan && pDiajukan.i < iPertama) {
+    if (pDiajukan.hal > 0) daftar.push({ kunci: 'sampul', judul: null, mulai: 0, halaman: true });
+    daftar.push({ kunci: 'judul', judul: null, mulai: pDiajukan.hal > 0 ? awalHal(pDiajukan.hal) : 0, halaman: true, pDiajukan });
+  } else if (halPertamaBagian >= 1 && iPertama > 0) {
+    daftar.push({ kunci: 'sampul', judul: null, mulai: 0, halaman: true });
+    if (halPertamaBagian >= 2 && awalHal(1) != null) daftar.push({ kunci: 'judul', judul: null, mulai: awalHal(1), halaman: true, pDiajukan: null });
   }
   let batasLalu = daftar.length ? daftar[daftar.length - 1].mulai : -1;
   for (const b of bagianTemu) {
     const h = b.judul;
     let mulai = h.i;
-    while (mulai - 1 > batasLalu && P[mulai - 1].hal === h.hal && P[mulai - 1].tabel == null && !(P[mulai].kerasSebelum && !P[mulai].kosong)) mulai--;
-    while (mulai < h.i && P[mulai].kosong) mulai++;
+    // Hanya Abstrak/Abstract yang punya baris di atas judulnya (judul TA dan nama penulis).
+    if (b.kunci === 'abstrak' || b.kunci === 'abstract') {
+      let berisi = 0;
+      while (mulai - 1 > batasLalu && P[mulai - 1].hal === h.hal && P[mulai - 1].tabel == null && !(P[mulai].kerasSebelum && !P[mulai].kosong)) {
+        if (!P[mulai - 1].kosong && ++berisi > 4) break;
+        mulai--;
+      }
+      while (mulai < h.i && P[mulai].kosong) mulai++;
+    }
     b.mulai = mulai;
     batasLalu = h.i;
     daftar.push(b);
@@ -1065,6 +1104,7 @@ function periksaModel(model, opsi) {
   const bagian = model.bagian.daftar;
   const cariB = (k) => bagian.find((b) => b.kunci === k) || null;
   const skema = model.skema;
+  const berbab = SKEMA[skema].berbab;
   const babList = bagian.filter((b) => b.kunci === 'bab');
   const B = Object.fromEntries(bagian.filter((b) => b.kunci !== 'bab').map((b) => [b.kunci, b]));
   const dalam = (b, i) => b && i >= b.mulai && i <= b.akhir;
@@ -1208,7 +1248,7 @@ function periksaModel(model, opsi) {
   {
     const urutan = URUTAN[skema];
     const ada = new Set(bagian.map((b) => b.kunci));
-    const hilang = urutan.filter((k) => !ada.has(k) && !OPSIONAL.has(k) && !(skema === 'skripsi' && k === 'lampiran'));
+    const hilang = urutan.filter((k) => !ada.has(k) && !OPSIONAL.has(k) && !(berbab && k === 'lampiran'));
     const pertama = bagian.find((b) => b.kunci !== 'sampul' && b.kunci !== 'judul') || bagian[0];
     if (!hilang.length) tambah(S, 'lulus', 'Semua bagian wajib ada', 'Pedoman 2.1–2.3', `Ditemukan ${bagian.length} bagian: ` + bagian.map((b) => b.label).join(', ') + '.');
     else tambah(S, 'gagal', 'Bagian wajib belum ada', 'Pedoman 2.1–2.3',
@@ -1217,8 +1257,8 @@ function periksaModel(model, opsi) {
     if (ada.has('lampiran') && !ada.has('daftarLampiran')) tambah(S, 'perhatian', 'Daftar Lampiran belum ada', 'Pedoman 2.1', 'Naskah memiliki Lampiran, tetapi Daftar Lampiran tidak ditemukan.');
     const kapsiTabel = P.some((p) => !dikecualikan(p.i) && !p.toc && /^Tabel\s+\d/i.test(p.teks.trim()) && !dalam(B.daftarTabel, p.i) && !dalam(B.daftarIsi, p.i));
     const kapsiGambar = P.some((p) => !dikecualikan(p.i) && !p.toc && /^Gambar\s+\d/i.test(p.teks.trim()) && !dalam(B.daftarGambar, p.i) && !dalam(B.daftarIsi, p.i));
-    if (skema === 'skripsi' && kapsiTabel && !ada.has('daftarTabel')) tambah(S, 'perhatian', 'Daftar Tabel belum ada', 'Pedoman 2.1', 'Naskah memuat tabel bernomor, tetapi Daftar Tabel tidak ditemukan.');
-    if (skema === 'skripsi' && kapsiGambar && !ada.has('daftarGambar')) tambah(S, 'perhatian', 'Daftar Gambar belum ada', 'Pedoman 2.1', 'Naskah memuat gambar bernomor, tetapi Daftar Gambar tidak ditemukan.');
+    if (berbab && kapsiTabel && !ada.has('daftarTabel')) tambah(S, 'perhatian', 'Daftar Tabel belum ada', 'Pedoman 2.1', 'Naskah memuat tabel bernomor, tetapi Daftar Tabel tidak ditemukan.');
+    if (berbab && kapsiGambar && !ada.has('daftarGambar')) tambah(S, 'perhatian', 'Daftar Gambar belum ada', 'Pedoman 2.1', 'Naskah memuat gambar bernomor, tetapi Daftar Gambar tidak ditemukan.');
   }
   {
     const urutan = URUTAN[skema];
@@ -1245,7 +1285,9 @@ function periksaModel(model, opsi) {
       (p.lunakSebelum ? lunak : tanpa).push(b);
     }
     if (!tanpa.length && !lunak.length) tambah(S, 'lulus', 'Setiap bagian dimulai di halaman baru', 'Pedoman 3.15', 'Semua bagian diawali pemisah halaman (page/section break).');
-    if (tanpa.length) tambah(S, 'gagal', 'Bagian tidak dimulai di halaman baru', 'Pedoman 3.15',
+    // Tanpa penanda tata letak Word, halaman yang pindah karena penuh tidak terlihat: lunakkan.
+    if (tanpa.length) tambah(S, model.andal ? 'gagal' : 'perhatian', 'Bagian tidak dimulai di halaman baru', 'Pedoman 3.15',
+      (model.andal ? '' : 'Tidak ada pemisah halaman sebelum bagian ini; berkas tidak disimpan dengan Microsoft Word sehingga perpindahan halaman karena teks penuh tidak terbaca. ') +
       'Sisipkan pemisah halaman sebelum judul bagian (Insert → Page Break, atau Layout → Breaks → Next Page).',
       tanpa.map((b) => rinci(b.mulai, b.label)), tanpa.map((b) => ({ p: b.judul ? b.judul.i : b.mulai, hl: true, komentar: `${b.label} belum dimulai di halaman baru. Sisipkan Page Break atau Section Break (Next Page) sebelum judul ini.` })));
     if (lunak.length) tambah(S, 'perhatian', 'Pindah halaman karena teks penuh', 'Pedoman 3.15',
@@ -1342,7 +1384,7 @@ function periksaModel(model, opsi) {
       `Nomor halaman diletakkan ${[...new Set(salahLetak.map((x) => (x.tab ? 'dengan tab' : ({ left: 'kiri', center: 'tengah' })[x.jc] || x.jc)))].join('/')} di ${rentang(salahLetak.map((x) => x.h))}. Letakkan di sudut kanan bawah (halaman pertama bab boleh di tengah).`,
       [], [{ p: pPadaHal(salahLetak[0].h), hl: false, komentar: 'Nomor halaman semestinya di sudut kanan bawah, 2 cm dari tepi bawah dan 3 cm dari tepi kanan (Pedoman 3.4).' }]);
     if (imbuhan.length) tambah(N, 'gagal', 'Nomor halaman berimbuhan', 'Pedoman 3.4', `Nomor halaman tidak boleh diberi imbuhan (mis. "Halaman", "-"). Ditemukan: "${imbuhan[0].s}".`, []);
-    if (skema === 'skripsi' && babList.length) {
+    if (berbab && babList.length) {
       const tidakTengah = babList.filter((b) => { const n = pg[P[b.mulai].hal]; return !(n && n.tampil && n.info.jc === 'center' && n.jenis === 'first'); });
       if (tidakTengah.length) tambah(N, 'perhatian', 'Nomor halaman pertama bab belum di tengah', 'Pedoman 3.4.2',
         'Halaman pertama setiap bab bernomor di tengah bawah (2,5 cm dari tepi bawah): pakai Different First Page di section bab, lalu letakkan nomor di tengah.',
@@ -1381,6 +1423,14 @@ function periksaModel(model, opsi) {
     if (!hilang.length) tambah(grup, 'lulus', 'Unsur lengkap', 'Pedoman 3.5', 'Memuat logo, judul, jenis TA, nama, NIM, prodi, fakultas, universitas, tempat, dan tahun.');
     else tambah(grup, 'gagal', 'Unsur belum lengkap', 'Pedoman 3.5', 'Belum ditemukan: ' + hilang.join(', ') + '.', [],
       [{ p: idx[0], hl: false, komentar: `${nama[0].toUpperCase() + nama.slice(1)} belum memuat: ${hilang.join(', ')} (Pedoman 3.5).` }]);
+    // Templat: "TUGAS AKHIR" lalu jenis skemanya (SKRIPSI / APLIKATIF / PUBLIKASI ILMIAH).
+    const jenisDitulis = jenisSkemaDari(teks);
+    const iJenisSkema = idx.find((i) => /\b(SKRIPSI|APLIKATIF|PUBLIKASI ILMIAH)\b/.test(normJudul(P[i].teks)));
+    if (jenisDitulis === skema) tambah(grup, 'lulus', `Menyebut skema ${SKEMA[skema].nama}`, SKEMA[skema].templat, `"TUGAS AKHIR ${SKEMA[skema].jenis}".`);
+    else if (jenisDitulis) tambah(grup, 'gagal', 'Jenis TA tidak sesuai skema', 'Pedoman 3.20',
+      `${nama[0].toUpperCase() + nama.slice(1)} menyebut skema ${SKEMA[jenisDitulis].nama}, sedangkan pemeriksaan memakai skema ${SKEMA[skema].nama}. Pilih skema yang benar di halaman pemeriksa, atau perbaiki tulisan jenis TA.`,
+      [rinci(iJenisSkema)], [{ p: iJenisSkema, hl: true, komentar: `Jenis TA tertulis ${SKEMA[jenisDitulis].nama}, padahal naskah diperiksa sebagai skema ${SKEMA[skema].nama} (Pedoman 3.20).` }]);
+    else tambah(grup, 'perhatian', 'Skema TA belum disebut', SKEMA[skema].templat, `Templat menulis "TUGAS AKHIR" diikuti nama skema "${SKEMA[skema].jenis}".`);
     const iJenis = idx.find((i) => /^(TUGAS AKHIR|SKRIPSI|TESIS|DISERTASI|LAPORAN MAGANG)/.test(normJudul(P[i].teks)));
     const baris = idx.filter((i) => (iJenis == null || i < iJenis) && P[i].teks.trim() && !/^\(?UKURAN/i.test(P[i].teks.trim()));
     const judulTA = baris.map((i) => P[i].teks.replace(/\s+/g, ' ').trim()).join(' ').trim();
@@ -1585,7 +1635,7 @@ function periksaModel(model, opsi) {
     const tanpaNo = entri.filter((i) => !/([ivxlcdm]+|\d+)\s*$/i.test(P[i].teks.trim()) && !/^BAB\s/i.test(P[i].teks.trim()));
     if (entri.length && tanpaNo.length) tambah('daftarIsi', 'perhatian', 'Entri tanpa nomor halaman', 'Pedoman 2.1.9', `${tanpaNo.length} entri tidak mencantumkan nomor halaman.`, tanpaNo.slice(0, 15).map((i) => rinci(i)));
     cekSpasi('daftarIsi', entri, 1, 'Pedoman 3.13');
-    if (skema === 'skripsi') {
+    if (berbab) {
       const babEntri = entri.filter((i) => /^BAB\s+[IVXLC]+/i.test(P[i].teks.trim()));
       const salah = babEntri.filter((i) => rasio(P[i], 'tebal') < 0.9 || !hurufBesar(P[i]));
       if (babEntri.length && salah.length) tambah('daftarIsi', 'gagal', 'Judul bab di daftar isi belum tebal kapital', 'Pedoman 3.13', 'Judul setiap bab di daftar isi ditulis tebal dan kapital.', salah.map((i) => rinci(i)),
@@ -1613,7 +1663,7 @@ function periksaModel(model, opsi) {
     cekSpasi(k, entri, 1, 'Pedoman 3.14');
   }
 
-  /* ---------- Isi: bab (skema skripsi) ---------- */
+  /* ---------- Isi: bab (skema Skripsi dan Aplikatif) ---------- */
   if (babList.length) {
     const salah = [];
     babList.forEach((b, k) => {
@@ -1646,14 +1696,45 @@ function periksaModel(model, opsi) {
     if (!terlaluDalam.length) tambah('isi', 'lulus', 'Subbab maksimal 2 tingkat', 'Pedoman 3.15', 'Tidak ada subbab lebih dalam dari X.Y.Z.');
     else tambah('isi', 'gagal', 'Subbab lebih dari 2 tingkat', 'Pedoman 3.15', 'Tingkatan subbab maksimal 2 (mis. 1.1.1). Rincian lebih lanjut memakai huruf a., b., c.',
       terlaluDalam.map((i) => rinci(i)), terlaluDalam.map((i, n) => ({ p: i, hl: true, komentar: n === 0 ? 'Subbab maksimal 2 tingkat (1.1.1). Ubah rincian ini menjadi butir berhuruf a., b., c. (Pedoman 3.15).' : null })));
+    // Susunan bab templat 5.1/5.2: Pendahuluan, Tinjauan Pustaka, Metode, Hasil dan Pembahasan, Kesimpulan.
+    if (berbab) {
+      const judulBab = babList.map((b) => normJudul(b.bab.sisa || (b.baris[1] != null ? P[b.baris[1]].teks : '')));
+      const beda = BAB_TEMPLAT.map(([nama, rx], k) => ({ k, nama, ada: judulBab[k], cocok: judulBab[k] != null && rx.test(judulBab[k]) })).filter((x) => !x.cocok);
+      if (!beda.length && babList.length === BAB_TEMPLAT.length) tambah('isi', 'lulus', 'Susunan lima bab sesuai templat', SKEMA[skema].templat, judulBab.map((t, k) => `BAB ${angkaRomawi(k + 1)} ${t}`).join('; ') + '.');
+      else tambah('isi', 'perhatian', 'Susunan bab berbeda dengan templat', SKEMA[skema].templat,
+        `Templat memuat lima bab: ${BAB_TEMPLAT.map(([n], k) => `BAB ${angkaRomawi(k + 1)} ${n}`).join('; ')}. ` +
+        (babList.length !== BAB_TEMPLAT.length ? `Naskah memuat ${babList.length} bab. ` : '') + 'Nama bab boleh disesuaikan kebijakan prodi (Pedoman 3.15).',
+        beda.map((x) => (babList[x.k] ? rinci(babList[x.k].judul.i, `BAB ${angkaRomawi(x.k + 1)}: "${x.ada}" — templat: ${x.nama}`) : { p: babList[babList.length - 1].judul.i, hal: '', teks: `BAB ${angkaRomawi(x.k + 1)} ${x.nama} tidak ada` })));
+      const b1 = babList[0];
+      const teksSub = b1.isi.filter((i) => /^1\.\d+\.?\s+\S/.test(P[i].teks.trim())).map((i) => normJudul(P[i].teks)).join(' | ');
+      const subBelum = SUBBAB_BAB1.filter(([, rx]) => !rx.test(teksSub)).map(([n]) => n);
+      if (!subBelum.length) tambah('isi', 'lulus', 'Subbab BAB I lengkap', SKEMA[skema].templat, SUBBAB_BAB1.map(([n]) => n).join(', ') + '.');
+      else tambah('isi', 'perhatian', 'Subbab BAB I belum lengkap', SKEMA[skema].templat, `Templat memuat subbab ${SUBBAB_BAB1.map(([n]) => n).join(', ')}; belum ditemukan: ${subBelum.join(', ')}.`);
+    }
+    const prosaIsi = dalamIsi.filter((i) => P[i].tabel == null && !P[i].toc && hitungKata(P[i].teks) >= 15 && !RX_KAPSI.test(P[i].teks.trim()));
+    // Gaya "Isi Paragraf" templat 5.1: baris pertama menjorok 1 cm (567 twip). Daftar bernomor dan kutipan menjorok dikecualikan.
+    if (berbab) {
+      const biasa = prosaIsi.filter((i) => !P[i].bernomor && P[i].gantung === 0 && P[i].kiri < 300);
+      const salahInden = biasa.filter((i) => Math.abs(P[i].awal - 567) > 85);
+      if (biasa.length && !salahInden.length) tambah('isi', 'lulus', 'Baris pertama paragraf menjorok 1 cm', SKEMA[skema].templat, 'Sesuai gaya Isi Paragraf pada templat.');
+      else if (salahInden.length) tambah('isi', 'perhatian', 'Baris pertama paragraf tidak menjorok 1 cm', SKEMA[skema].templat,
+        `${salahInden.length} paragraf isi tidak menjorok 1 cm di baris pertama seperti gaya Isi Paragraf templat (Paragraph → Special: First line, 1 cm).`,
+        salahInden.slice(0, 20).map((i) => rinci(i, `menjorok ${cm(P[i].awal)} cm — ${kutip(P[i].teks, 50)}`)));
+    }
+    // Paragraf isi yang seluruhnya tebal/miring biasanya terbawa dari judul atau salinan berkas lain.
+    const tebalMiring = prosaIsi.filter((i) => rasio(P[i], 'tebal') > 0.9 || rasio(P[i], 'miring') > 0.9);
+    if (tebalMiring.length) tambah('isi', 'perhatian', 'Isi paragraf seluruhnya tebal atau miring', 'Templat',
+      'Pada templat, teks isi bab ditulis Times New Roman 12 tegak biasa; huruf tebal dipakai untuk judul, miring untuk istilah asing.',
+      tebalMiring.slice(0, 20).map((i) => rinci(i)), tandaParagraf(tebalMiring, 'Paragraf isi ini seluruhnya tebal/miring. Teks isi ditulis tegak biasa (Ctrl+B dan Ctrl+I untuk mematikan).'));
     const awalIsi = P[babList[0].mulai];
     const akhirIsi = B.daftarPustaka ? P[B.daftarPustaka.akhir] : P[babList[babList.length - 1].akhir];
     const jml = akhirIsi.halAkhir - awalIsi.hal + 1;
-    if (model.andal) {
+    if (skema !== 'skripsi') tambah('isi', 'info', `Isi ± ${jml} halaman`, 'Pedoman 3.3', `Pedoman 3.3 tidak menetapkan jumlah halaman untuk skema ${SKEMA[skema].nama}; ketentuan 65–90 halaman berlaku untuk skripsi.`);
+    else if (model.andal) {
       if (jml >= 65 && jml <= 90) tambah('isi', 'lulus', `${jml} halaman (65–90)`, 'Pedoman 3.3', 'Jumlah halaman BAB I s.d. Daftar Pustaka sesuai.');
       else tambah('isi', 'perhatian', `Isi ${jml} halaman`, 'Pedoman 3.3', 'Skripsi 65–90 halaman dihitung dari BAB I sampai Daftar Pustaka (kecuali penelitian kualitatif).');
     } else tambah('isi', 'info', 'Jumlah halaman isi', 'Pedoman 3.3', `± ${jml} halaman menurut pemisah halaman yang tersimpan; simpan ulang dengan Microsoft Word agar terhitung tepat. Ketentuan: 65–90 halaman.`);
-    cekSpasi('isi', dalamIsi.filter((i) => P[i].tabel == null && hitungKata(P[i].teks) >= 15 && !RX_KAPSI.test(P[i].teks.trim())), 1.5, 'Pedoman 3.2');
+    cekSpasi('isi', prosaIsi, 1.5, 'Pedoman 3.2');
     cekKeteranganTabelGambar(babList);
   }
   function cekKeteranganTabelGambar(daftarBab) {
@@ -1767,8 +1848,10 @@ function periksaModel(model, opsi) {
     if (/^\s*(CITATION|BIBLIOGRAPHY)\b/im.test(semua)) alat.push('fitur sitasi Word');
     const grup = B.daftarPustaka ? 'pustaka' : (B.naskah ? 'naskah' : 'umum');
     if (alat.some((a) => a !== 'fitur sitasi Word')) tambah(grup, 'lulus', 'Sitasi dibuat dengan reference manager', 'Pedoman 3.18', 'Terdeteksi: ' + alat.join(', ') + '.');
+    // Templat 5.1/5.2: "Gunakan reference manager seperti Mendeley atau Zotero, atau fitur References dari MS Word".
+    else if (alat.length && berbab) tambah(grup, 'lulus', 'Sitasi memakai fitur References Word', SKEMA[skema].templat, 'Templat skema ini mengizinkan Mendeley, Zotero, atau fitur References MS Word.');
     else if (alat.length) tambah(grup, 'perhatian', 'Sitasi memakai fitur bawaan Word', 'Pedoman 3.18', 'Pedoman mewajibkan reference manager seperti Mendeley atau Zotero.');
-    else tambah(grup, skema === 'skripsi' ? 'gagal' : 'perhatian', 'Reference manager tidak terdeteksi', 'Pedoman 3.18',
+    else tambah(grup, berbab ? 'gagal' : 'perhatian', 'Reference manager tidak terdeteksi', 'Pedoman 3.18',
       'Tidak ditemukan field sitasi Mendeley/Zotero. Kutipan dan daftar pustaka wajib dibuat dengan reference manager (bila naskah ditempel ulang, field-nya hilang).');
   }
 
@@ -1781,6 +1864,12 @@ function periksaModel(model, opsi) {
         [{ p: b.judul.i, hl: false, komentar: 'Mahasiswa wajib melampirkan kertas kerja penyusunan publikasi ilmiah (templat).' }]);
       else tambah('lampiran', 'lulus', 'Lampiran berisi', 'Templat', 'Bagian lampiran tidak kosong.');
     }
+    // Isi lampiran yang dicontohkan templat skema ini, dicari di Daftar Lampiran dan bagian Lampiran.
+    const teksLampiran = [...(B.daftarLampiran ? B.daftarLampiran.isi : []), ...b.isi].map((i) => normJudul(P[i].teks)).join(' | ');
+    const belum = LAMPIRAN_TEMPLAT[skema].filter(([, rx]) => !rx.test(teksLampiran)).map(([n]) => n);
+    if (!belum.length) tambah('lampiran', 'lulus', 'Lampiran memuat isi yang dicontohkan templat', SKEMA[skema].templat, LAMPIRAN_TEMPLAT[skema].map(([n]) => n).join(', ') + '.');
+    else tambah('lampiran', 'perhatian', 'Lampiran belum memuat isi yang dicontohkan templat', SKEMA[skema].templat,
+      'Belum ditemukan: ' + belum.join(', ') + '. Isi dan urutan lampiran mengikuti kebijakan fakultas (Pedoman 3.19); pedoman 2.3.2 menyebut Curriculum Vitae penulis.');
     const judulLampiran = b.isi.filter((i) => /^Lampiran\s+\d+/i.test(P[i].teks.trim()) && P[i].tabel == null);
     const tidakKanan = judulLampiran.filter((i) => P[i].jc !== 'right');
     if (judulLampiran.length) {
@@ -2607,8 +2696,11 @@ async function periksa(bytes, opsi = {}) {
   model.nomor = simulasiNomor(model, hf, genapGanjil);
   model.bagian = kenaliBagian(model);
   const ada = (k) => model.bagian.daftar.some((b) => b.kunci === k);
-  const skemaOtomatis = ada('naskah') || ada('loa') ? 'publikasi' : (ada('bab') ? 'skripsi' : 'publikasi');
-  model.skema = opsi.skema === 'publikasi' || opsi.skema === 'skripsi' ? opsi.skema : skemaOtomatis;
+  // Skema otomatis: nama skema yang tertulis di sampul/halaman judul, lalu susunan bagiannya.
+  const barisSampul = model.bagian.daftar.filter((b) => b.kunci === 'sampul' || b.kunci === 'judul')
+    .flatMap((b) => range(b.mulai, b.akhir)).map((i) => normJudul(model.paragraf[i].teks));
+  const skemaOtomatis = jenisSkemaDari(barisSampul) || (ada('naskah') || ada('loa') ? 'publikasi' : (ada('bab') ? 'skripsi' : 'publikasi'));
+  model.skema = SKEMA[opsi.skema] ? opsi.skema : skemaOtomatis;
 
   const tahunSekarang = opsi.tahunSekarang || new Date().getFullYear();
   const temuan = periksaModel(model, { tahunSekarang });
@@ -2658,7 +2750,7 @@ const GRUP = {
 function ringkasTeks(meta, ringkas, temuan) {
   const gagal = temuan.filter((t) => t.status === 'gagal').map((t) => `• ${GRUP[t.grup] || t.grup}: ${t.judul}`);
   return `Hasil Pemeriksa Format TA (${new Date().toLocaleDateString('id-ID')}): ${ringkas.gagal} perlu diperbaiki, ${ringkas.perhatian} perlu perhatian, ${ringkas.lulus} sudah sesuai. ` +
-    `Skema: ${meta.skema === 'publikasi' ? 'Publikasi Ilmiah' : 'Skripsi/berbasis bab'}. Teks bersorot kuning perlu diperbaiki; komentar menjelaskan aturannya. ` +
+    `Skema: ${SKEMA[meta.skema].nama}. Teks bersorot kuning perlu diperbaiki; komentar menjelaskan aturannya. ` +
     'Pemeriksaan otomatis ini membantu, bukan pengganti pemeriksaan pembimbing dan prodi.' + (gagal.length ? '\nPerlu diperbaiki:\n' + gagal.slice(0, 25).join('\n') : '');
 }
 function butirManual(skema) {
@@ -2672,7 +2764,7 @@ function butirManual(skema) {
     m('Jarak judul dan isi', 'Pedoman 3.7–3.13', 'Jarak antara judul bagian dan isinya 2 × 2 spasi.'),
     m('Format daftar pustaka dan kutipan', 'Pedoman 3.18', 'APA edisi ketujuh; jurnal diutamakan terindeks internasional, Sinta, Scopus, atau WoS.'),
   ];
-  if (skema === 'skripsi') daftar.push(m('Notasi dan singkatan', 'Pedoman 3.16', 'Daftar notasi/singkatan ditulis dengan huruf aslinya dan disusun menurut abjad (huruf kecil, huruf besar, lalu simbol).'));
+  if (SKEMA[skema].berbab) daftar.push(m('Notasi dan singkatan', 'Pedoman 3.16', 'Daftar notasi/singkatan ditulis dengan huruf aslinya dan disusun menurut abjad (huruf kecil, huruf besar, lalu simbol).'));
   return daftar;
 }
 
@@ -2685,5 +2777,5 @@ function bahasaTeks(daftarTeks, kamus, kumpulTakDikenal) {
   return temuan;
 }
 
-global.PemeriksaTA = { periksa, buatKamus, kamusDariData, VERSI, GalatBerkas, LABEL, GRUP, _uji: { uraiXml, serialXml, bukaZip, tulisZip, crc32, bukanTitleCase, bahasa, bahasaTeks, TIDAK_BAKU, ISTILAH_ASING } };
+global.PemeriksaTA = { periksa, buatKamus, kamusDariData, VERSI, GalatBerkas, LABEL, GRUP, SKEMA, _uji: { uraiXml, serialXml, bukaZip, tulisZip, crc32, bukanTitleCase, bahasa, bahasaTeks, TIDAK_BAKU, ISTILAH_ASING } };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
