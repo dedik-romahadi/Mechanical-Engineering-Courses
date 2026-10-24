@@ -7,6 +7,7 @@
  * tombol Bagikan) berada di Teknik-Tenaga-Listrik/Video/ dan ikut tersebar lewat rsync folder kursus.
  */
 export const KURSUS = "Teknik-Tenaga-Listrik";
+export const COURSE_ID = "teknik_tenaga_listrik";
 export const SITUS = "https://dedik-romahadi.github.io/Mechanical-Engineering-Courses";
 
 export const VIDEO_MATERI = [

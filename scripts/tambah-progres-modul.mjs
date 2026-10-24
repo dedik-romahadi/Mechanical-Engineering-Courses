@@ -66,6 +66,15 @@
  *      dikirim (butir 6) tidak berubah; komentar di dalam sub-blok ("salinan
  *      tersinkron") menyebut tujuan yang sama dan sengaja tidak disunting agar
  *      penanda PENJAGA-FORUM tetap v2.
+ *   9. (24 Oktober 2026) Syarat tambahan per kotak: window._pmSyarat[i] =
+ *      fungsi yang mengembalikan alasan singkat (teks) selama kotak ke-i
+ *      belum boleh dicentang mahasiswa/akun simulasi, atau null bila boleh.
+ *      Kotak giliran yang syaratnya belum terpenuhi tetap nonaktif dan
+ *      alasannya tampil di label statusnya; event window
+ *      'progres-modul:syarat' merender ulang. Dipakai video materi TTL
+ *      (scripts/video-materi.mjs): kotak Bagian 01 aktif setelah videonya
+ *      ditonton. Dosen/Preview (mode bebas) tidak digerbang syarat ini, dan
+ *      server tidak memeriksanya (setModulCentang hanya menagih urutan).
  *
  * Dosen, Mode Preview, dan akun simulasi tidak digerbang (kotak bisa
  * dicentang bebas, tidak disimpan). UTS/UAS tidak disentuh.
@@ -181,6 +190,12 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
   function muatBebas() { try { var v = parseInt(localStorage.getItem(KUNCI_BEBAS), 10); return Number.isFinite(v) ? Math.max(0, Math.min(total, v)) : 0; } catch (e) { return 0; } }
   var bebas = true;         // dosen/preview/simulasi: tidak digerbang, tidak disimpan
   var sibuk = false;
+  // Syarat tambahan kotak ke-i (butir 9 komentar skrip): alasan selama belum boleh, null bila boleh.
+  function syarat(i) {
+    var f = window._pmSyarat && window._pmSyarat[i];
+    if (bebas || typeof f !== 'function') return null;
+    try { return f() || null; } catch (e) { return null; }
+  }
 
   var toastEl = null, toastTimer = null;
   function toast(pesan, lama) {
@@ -193,13 +208,15 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     kotak.forEach(function (el, i) {
       var cb = el.querySelector('input'), st = el.querySelector('.pm-status');
       var selesai = i < centang, giliran = i === centang;
+      var tahan = giliran ? syarat(i) : null;
       cb.checked = selesai;
       // Berurutan untuk SEMUA peran: hanya kotak giliran yang aktif. Pada mode
       // bebas (dosen/preview/simulasi) kotak terakhir boleh dibatalkan untuk uji coba.
       cb.disabled = (bebas || akunSimulasi()) ? !(giliran || i === centang - 1) : !giliran;
+      if (tahan) cb.disabled = true;
       el.classList.toggle('pm-selesai', selesai);
-      el.classList.toggle('pm-nonaktif', !selesai && !giliran);
-      if (st) st.textContent = selesai ? '✓ dipahami' : (giliran ? 'bagian ' + (i + 1) + ' dari ' + total : 'selesaikan bagian sebelumnya');
+      el.classList.toggle('pm-nonaktif', (!selesai && !giliran) || !!tahan);
+      if (st) st.textContent = selesai ? '✓ dipahami' : (tahan || (giliran ? 'bagian ' + (i + 1) + ' dari ' + total : 'selesaikan bagian sebelumnya'));
     });
     // Tab Tugas/Forum/Hasil terkunci untuk mahasiswa & akun simulasi sampai
     // centang lengkap; dosen/preview (mode bebas) tidak dikunci. Mode bebas
@@ -257,6 +274,8 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         return;
       }
       if (i !== centang || sibuk) { cb.checked = i < centang; return; }
+      var alasan = syarat(i);
+      if (alasan) { cb.checked = false; toast('🔒 ' + alasan); render(); return; }
       sibuk = true; cb.disabled = true;
       var d = dasar(); d.index = i; d.total = total;
       panggil('setModulCentang', d).then(function (r) {
@@ -479,6 +498,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     };
   }
 
+  window.addEventListener('progres-modul:syarat', function () { render(); });
   centang = muatBebas();
   render();
 })();
