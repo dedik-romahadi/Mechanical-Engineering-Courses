@@ -84,6 +84,7 @@ function p(isi, o = {}) {
   if (o.pbb) pp.push('<w:pageBreakBefore/>');
   pp.push(`<w:spacing w:after="${o.after || 0}" w:line="${Math.round((o.line || 1) * 240)}" w:lineRule="auto"/>`);
   if (o.hanging) pp.push(`<w:ind w:left="720" w:hanging="720"/>`);
+  if (o.inden) pp.push('<w:ind w:firstLine="567"/>');
   if (o.jc) pp.push(`<w:jc w:val="${o.jc}"/>`);
   if (o.sect) pp.push(o.sect);
   const runs = Array.isArray(isi) ? isi.join('') : (isi === '' ? '' : r(isi, o));
@@ -196,6 +197,9 @@ function naskahPublikasi(o = {}) {
   const body = [
     halamanJudul(false),
     p('', { sect: sect({ fmt: 'lowerRoman', titlePg: true, footerFirst: 'rIdF2', footer: 'rIdF2' }) }),
+    // o.andal: penanda tata letak Word di awal halaman judul (tidak menambah halaman),
+    // sehingga naskah dianggap disimpan Microsoft Word.
+    o.andal ? '<w:p><w:r><w:lastRenderedPageBreak/></w:r></w:p>' : '',
     halamanJudul(true), pb,
     judulBagian('HALAMAN PERNYATAAN KARYA SENDIRI'), kosong,
     p('Saya yang bertanda tangan di bawah ini:', { line: 2 }), p('Nama\t: Budi Santoso', { line: 2 }), p('NIM\t: 41320010001', { line: 2 }),
@@ -222,11 +226,12 @@ function naskahPublikasi(o = {}) {
   return paketDocx(body);
 }
 
+// Naskah berbab mengikuti templat 5.1 (Skripsi); o.jenis = 'APLIKATIF' meniru templat 5.2, yang sama isinya.
 function naskahSkripsi(o = {}) {
   const baris = (t) => p(t, { jc: 'center', b: true, sz: 14 });
   const judulBagian = (t) => p(t, { jc: 'center', b: true });
-  const prosa = (t, x = {}) => p(t, Object.assign({ jc: 'both', line: 1.5 }, x));
-  const halamanJudul = (diajukan) => [p([gambar(3.5, 3)], { jc: 'center' }), baris(JUDUL), baris('SKRIPSI'),
+  const prosa = (t, x = {}) => p(t, Object.assign({ jc: 'both', line: 1.5, inden: !o.tanpaInden }, x));
+  const halamanJudul = (diajukan) => [p([gambar(3.5, 3)], { jc: 'center' }), baris(JUDUL), baris('TUGAS AKHIR'), baris(o.jenis || 'SKRIPSI'),
     diajukan ? p('Diajukan Sebagai Salah Satu Syarat Untuk Memperoleh Gelar Sarjana', { jc: 'center', b: true }) : '',
     baris('BUDI SANTOSO'), baris('41320010001'), baris('PROGRAM STUDI TEKNIK MESIN'), baris('FAKULTAS TEKNIK'), baris('UNIVERSITAS MERCU BUANA'), baris('JAKARTA'), baris('2026')].join('');
   const tabel = `<w:tbl><w:tblPr><w:jc w:val="center"/></w:tblPr><w:tr><w:tc>${p('Kondisi')}</w:tc><w:tc>${p('Amplitudo')}</w:tc></w:tr><w:tr><w:tc>${p('Normal')}</w:tc><w:tc>${p('0,8')}</w:tc></w:tr></w:tbl>`;
@@ -234,6 +239,20 @@ function naskahSkripsi(o = {}) {
     ? ['Wahyudi, B. (2024). Analisis getaran mesin. Jurnal Teknik Mesin, 12(2), 45–52.', 'Anggraini, D. (2025). Perawatan prediktif. Jurnal Rekayasa, 8(1), 1–9.']
     : ['Anggraini, D. (2025). Perawatan prediktif. Jurnal Rekayasa, 8(1), 1–9.', 'Wahyudi, B. (2024). Analisis getaran mesin. Jurnal Teknik Mesin, 12(2), 45–52.'];
   if (o.pustakaLama) pustaka.push('Zainal, A. (1999). Dasar getaran mekanik. Penerbit Teknik.', 'Zulkifli, B. (2001). Mesin fluida. Penerbit Teknik.', 'Zuhri, C. (2002). Teori bantalan. Penerbit Teknik.');
+  const bab = [['I', 'PENDAHULUAN'], ['II', 'TINJAUAN PUSTAKA'], ['III', 'METODE PENELITIAN'], ['IV', 'HASIL DAN PEMBAHASAN'], ['V', 'KESIMPULAN DAN SARAN']].slice(0, o.tigaBab ? 3 : 5);
+  const isiBab = {
+    I: [p('1.1 Latar Belakang', { b: true }), prosa(teksKata(KALIMAT_ID, 60)),
+      p('1.1.1 Kondisi Pompa di Industri', { b: true }), prosa(teksKata(KALIMAT_ID, 40)),
+      o.subbabDalam ? p('1.1.1.1 Batasan Rinci', { b: true }) : '',
+      p(o.kapsiTitik ? 'Tabel 1.1. Data Pengujian Getaran' : 'Tabel 1.1 Data Pengujian Getaran', { jc: 'center' }), tabel,
+      p('Sumber: Data pengujian', { sz: 10 }),
+      p([gambar(10, 6)], { jc: 'center' }), p('Gambar 1.1 Skema Alat Uji', { jc: 'center' }),
+      p('1.2 Perumusan Masalah', { b: true }), prosa(teksKata(KALIMAT_ID, 30)),
+      p('1.3 Tujuan Penelitian', { b: true }), prosa(teksKata(KALIMAT_ID, 30)),
+      p('1.4 Manfaat Penelitian', { b: true }), prosa(teksKata(KALIMAT_ID, 30))],
+    II: [p('2.1 Getaran Mesin', { b: true }), p([r(teksKata(KALIMAT_ID, 50) + ' '), zotero('(Wahyudi, 2024)')], { jc: 'both', line: 1.5, inden: !o.tanpaInden })],
+  };
+  const isiDaftar = ['KATA PENGANTAR\tvi', 'ABSTRAK\tviii', 'ABSTRACT\tix', ...bab.map(([n, j], k) => `BAB ${n} ${j}\t${k * 2 + 1}`), 'DAFTAR PUSTAKA\t11', 'LAMPIRAN\t12'];
   const body = [
     halamanJudul(false), p('', { sect: sect({ fmt: 'lowerRoman', titlePg: true, footerFirst: 'rIdF2', footer: 'rIdF2' }) }),
     halamanJudul(true), pb,
@@ -241,24 +260,23 @@ function naskahSkripsi(o = {}) {
     pb, judulBagian('HALAMAN SURAT KETERANGAN HASIL UJI TURNITIN'), p('Tingkat kemiripan sebesar 12%.'),
     pb, judulBagian('HALAMAN PENGESAHAN'), p('Telah berhasil dipertahankan pada sidang tanggal 20 Agustus 2026 dan diterima sebagai persyaratan memperoleh gelar Sarjana pada Program Studi Teknik Mesin.', { jc: 'both' }),
     p('Pembimbing, Dekan Fakultas Teknik, Ketua Program Studi Teknik Mesin, NIDN 0312345678'),
-    pb, judulBagian('KATA PENGANTAR'), prosa('Puji syukur saya panjatkan kepada Tuhan Yang Maha Esa karena atas berkat dan rahmat-Nya saya dapat menyelesaikan skripsi ini. Terima kasih kepada Rektor, Dekan, Ketua Program Studi, dan Pembimbing yang telah membantu penyusunan skripsi ini.'),
+    pb, judulBagian('KATA PENGANTAR'), prosa('Puji syukur saya panjatkan kepada Tuhan Yang Maha Esa karena atas berkat dan rahmat-Nya saya dapat menyelesaikan Tugas Akhir ini. Terima kasih kepada Rektor, Dekan, Ketua Program Studi, dan Pembimbing yang telah membantu penyusunan Tugas Akhir ini.'),
     pb, p('HALAMAN PERNYATAAN PERSETUJUAN PUBLIKASI', { jc: 'center', b: true }), p('TUGAS AKHIR DI REPOSITORI UMB', { jc: 'center', b: true }),
     prosa('Saya memberikan izin kepada Universitas Mercu Buana untuk menyimpan, mengelola, dan memublikasikan Tugas Akhir saya untuk kepentingan akademis.'),
     pb, p(JUDUL, { jc: 'center', b: true }), p('BUDI SANTOSO', { jc: 'center', b: true }), judulBagian('ABSTRAK'), p(teksKata(KALIMAT_ID, 260), { jc: 'both' }), p('Kata Kunci: getaran, pompa, bantalan', { b: true }),
     pb, p('VIBRATION MONITORING OF CENTRIFUGAL PUMPS', { jc: 'center', b: true }), p('BUDI SANTOSO', { jc: 'center', b: true }), judulBagian('ABSTRACT'), p(teksKata(KALIMAT_EN, 260), { jc: 'both', i: true }), p('Keywords: vibration, pump, bearing', { b: true, i: true }),
-    pb, judulBagian('DAFTAR ISI'), ...['KATA PENGANTAR\tvi', 'ABSTRAK\tviii', 'ABSTRACT\tix', 'BAB I PENDAHULUAN\t1', 'BAB II TINJAUAN PUSTAKA\t3', 'DAFTAR PUSTAKA\t5'].map((t) => p(/^BAB/.test(t) ? t : t, /^BAB/.test(t) ? { b: true } : {})),
+    pb, judulBagian('DAFTAR ISI'), ...isiDaftar.map((t) => p(t, /^BAB/.test(t) ? { b: true } : {})),
     pb, judulBagian('DAFTAR TABEL'), p('Tabel 1.1 Data Pengujian Getaran\t2'),
     pb, judulBagian('DAFTAR GAMBAR'), p('Gambar 1.1 Skema Alat Uji\t2'),
+    pb, judulBagian('DAFTAR LAMPIRAN'), p('Lampiran 1. Bukti Bimbingan Tugas Akhir\t12'), p('Lampiran 2. Curriculum Vitae\t13'),
     p('', { sect: sect({ fmt: 'lowerRoman', start: 1 }) }),
-    judulBagian('BAB I'), judulBagian('PENDAHULUAN'),
-    p('1.1 Latar Belakang', { b: true }), prosa(teksKata(KALIMAT_ID, 60)),
-    p('1.1.1 Rumusan Masalah', { b: true }), prosa(teksKata(KALIMAT_ID, 40)),
-    o.subbabDalam ? p('1.1.1.1 Batasan Rinci', { b: true }) : '',
-    p(o.kapsiTitik ? 'Tabel 1.1. Data Pengujian Getaran' : 'Tabel 1.1 Data Pengujian Getaran', { jc: 'center' }), tabel,
-    p('Sumber: Data pengujian', { sz: 10 }),
-    p([gambar(10, 6)], { jc: 'center' }), p('Gambar 1.1 Skema Alat Uji', { jc: 'center' }),
-    pb, judulBagian('BAB II'), judulBagian('TINJAUAN PUSTAKA'), p('2.1 Getaran Mesin', { b: true }), p([r(teksKata(KALIMAT_ID, 50) + ' '), zotero('(Wahyudi, 2024)')], { jc: 'both', line: 1.5 }),
+    ...bab.flatMap(([n, j], k) => [k ? pb : '', judulBagian('BAB ' + n), judulBagian(j),
+      ...(isiBab[n] || [p(`${k + 1}.1 Uraian`, { b: true }), prosa(teksKata(KALIMAT_ID, 40))])]),
     pb, judulBagian('DAFTAR PUSTAKA'), ...pustaka.map((t) => p(t, { hanging: true, line: 1.5, jc: 'both' })),
+    pb, judulBagian('LAMPIRAN'), p('Lampiran 1. Bukti Bimbingan Tugas Akhir', { jc: 'right' }),
+    prosa('Catatan bimbingan memuat tanggal, topik yang dibahas, dan paraf dosen pembimbing pada setiap pertemuan selama penyusunan Tugas Akhir.'),
+    pb, p('Lampiran 2. Curriculum Vitae', { jc: 'right' }),
+    prosa('Budi Santoso lahir di Jakarta dan menempuh pendidikan sarjana pada Program Studi Teknik Mesin Universitas Mercu Buana sejak tahun 2022.'),
     sect({ start: 1 }),
   ].join('');
   return paketDocx(body);
@@ -337,7 +355,8 @@ const kasus = [
   ['judul bertanda tanya', { judul: 'BAGAIMANA MEMANTAU GETARAN POMPA?' }, 'sampul', 'Judul tidak sesuai ketentuan', 'gagal'],
   ['urutan terima kasih', { urutanKP: true }, 'kataPengantar', 'Urutan ucapan terima kasih tidak sesuai', 'gagal'],
   ['turnitin 35%', { turnitin35: true }, 'turnitin', 'Kemiripan 35% melebihi 30%', 'gagal'],
-  ['kata pengantar tanpa page break', { tanpaPutusKP: true }, 'struktur', 'Bagian tidak dimulai di halaman baru', 'gagal'],
+  ['kata pengantar tanpa page break (berkas Word)', { tanpaPutusKP: true, andal: true }, 'struktur', 'Bagian tidak dimulai di halaman baru', 'gagal'],
+  ['kata pengantar tanpa page break (bukan Word)', { tanpaPutusKP: true }, 'struktur', 'Bagian tidak dimulai di halaman baru', 'perhatian'],
 ];
 for (const [nama, o, grup, judul, status] of kasus) harap(await periksa(naskahPublikasi(o)), grup, judul, status, nama);
 
@@ -385,19 +404,45 @@ harap(await periksa(naskahSkripsi({ pustakaAcak: true })), 'pustaka', 'Belum uru
 harap(await periksa(naskahSkripsi({ pustakaLama: true })), 'pustaka', /^Sumber terbaru baru/, 'gagal', 'pustaka lama');
 await bolakBalik(naskahSkripsi({ subbabDalam: true, kapsiTitik: true }), 'skripsi bercacat');
 
-// Templat resmi (privat): hanya bila tersedia di mesin ini.
-const templat = process.env.TEMPLAT_TA || path.join(root, '..', 'kurikulum-teknik-mesin', 'tugas-akhir', 'Template-TA-S1-Publikasi-Ilmiah-UMB-2025.docx');
-if (fs.existsSync(templat)) {
-  const bytes = new Uint8Array(fs.readFileSync(templat));
-  const h = await periksa(bytes);
-  cek(h.bagian.length === 16, 'templat resmi: 16 bagian dikenali', h.bagian.map((b) => b.kunci).join(','));
-  harap(h, 'bersih', 'Sisa petunjuk templat', 'gagal', 'templat resmi: petunjuk templat ditandai');
-  harap(h, 'bersih', 'Kotak label templat belum dihapus', 'gagal', 'templat resmi: kotak label ditandai');
-  await bolakBalik(bytes, 'templat resmi');
-  console.log('Templat resmi ikut diuji.');
-} else {
-  console.log('Templat resmi tidak tersedia di mesin ini; uji templat dilewati.');
+// Tiga skema S1 (Pedoman 3.20): susunan dan isi menurut templat 5.1/5.2/5.3.
+harap(skripsi, 'sampul', 'Menyebut skema Skripsi', 'lulus', 'sampul menyebut TUGAS AKHIR SKRIPSI');
+harap(skripsi, 'isi', 'Susunan lima bab sesuai templat', 'lulus', 'lima bab templat 5.1');
+harap(skripsi, 'isi', 'Subbab BAB I lengkap', 'lulus', 'subbab BAB I templat');
+harap(skripsi, 'isi', 'Baris pertama paragraf menjorok 1 cm', 'lulus', 'inden baris pertama 1 cm');
+harap(skripsi, 'lampiran', 'Lampiran memuat isi yang dicontohkan templat', 'lulus', 'lampiran bimbingan dan CV');
+harap(baik, 'sampul', 'Menyebut skema Publikasi Ilmiah', 'lulus', 'sampul menyebut PUBLIKASI ILMIAH');
+{
+  const aplikatif = await periksa(naskahSkripsi({ jenis: 'APLIKATIF' }));
+  cek(aplikatif.meta.skema === 'aplikatif', 'sampul "TUGAS AKHIR APLIKATIF" dikenali sebagai skema aplikatif', aplikatif.meta.skema);
+  cek(gagalSaja(aplikatif).length === 0, 'naskah aplikatif patuh: tanpa temuan gagal', gagalSaja(aplikatif).join('\n    '));
+  harap(aplikatif, 'isi', /^Isi ± \d+ halaman/, 'info', 'aplikatif: ketentuan 65–90 halaman tidak dikenakan');
+  harap(aplikatif, 'isi', 'Susunan lima bab sesuai templat', 'lulus', 'aplikatif memakai susunan bab templat 5.2');
+  harap(await periksa(naskahSkripsi({ jenis: 'APLIKATIF' }), { skema: 'skripsi' }), 'sampul', 'Jenis TA tidak sesuai skema', 'gagal', 'sampul aplikatif diperiksa sebagai skripsi');
+  harap(await periksa(naskahSkripsi({ tigaBab: true })), 'isi', 'Susunan bab berbeda dengan templat', 'perhatian', 'tiga bab');
+  harap(await periksa(naskahSkripsi({ tanpaInden: true })), 'isi', 'Baris pertama paragraf tidak menjorok 1 cm', 'perhatian', 'tanpa inden baris pertama');
 }
+
+// Templat resmi (privat, repo kurikulum-teknik-mesin): hanya bila tersedia di mesin ini.
+const dirTemplat = process.env.TEMPLAT_TA_DIR || path.join(root, '..', 'kurikulum-teknik-mesin', 'tugas-akhir');
+const TEMPLAT = [
+  ['Template-TA-S1-Skripsi-UMB-2025.docx', 'skripsi', 17],
+  ['Template-TA-S1-Aplikatif-UMB-2025.docx', 'aplikatif', 17],
+  ['Template-TA-S1-Publikasi-Ilmiah-UMB-2025.docx', 'publikasi', 16],
+];
+let diujiTemplat = 0;
+for (const [nama, skemaHarap, jumlahBagian] of TEMPLAT) {
+  const berkasTemplat = path.join(dirTemplat, nama);
+  if (!fs.existsSync(berkasTemplat)) continue;
+  const bytes = new Uint8Array(fs.readFileSync(berkasTemplat));
+  const h = await periksa(bytes);
+  cek(h.meta.skema === skemaHarap, `templat ${skemaHarap}: skema dikenali otomatis`, h.meta.skema);
+  cek(h.bagian.length === jumlahBagian, `templat ${skemaHarap}: ${jumlahBagian} bagian dikenali`, h.bagian.map((b) => b.kunci).join(','));
+  harap(h, 'bersih', 'Sisa petunjuk templat', 'gagal', `templat ${skemaHarap}: petunjuk templat ditandai`);
+  harap(h, 'sampul', `Menyebut skema ${PT.SKEMA[skemaHarap].nama}`, 'lulus', `templat ${skemaHarap}: jenis TA di sampul`);
+  await bolakBalik(bytes, `templat ${skemaHarap}`);
+  diujiTemplat++;
+}
+console.log(diujiTemplat ? `${diujiTemplat} templat resmi ikut diuji.` : 'Templat resmi tidak tersedia di mesin ini; uji templat dilewati.');
 
 console.log(`${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);
