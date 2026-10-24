@@ -13,7 +13,7 @@
 (function (global) {
 'use strict';
 
-const VERSI = '1.0.0';
+const VERSI = '1.1.0';
 const W_URI = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const PENULIS_KOMENTAR = 'Pemeriksa Format TA';
 
@@ -1903,7 +1903,229 @@ const SINGKATAN_TITIK = /(?:^|[\s(])(dll|dsb|dst|dkk|et al|mis|yth|no|hlm|hal|vo
 const SATUAN = 'kg|g|mg|ton|mm|cm|m|km|µm|um|nm|s|ms|µs|min|jam|Hz|kHz|MHz|GHz|rpm|N|kN|MN|Pa|kPa|MPa|GPa|bar|psi|W|kW|MW|Wh|kWh|V|kV|mV|A|mA|kA|J|kJ|MJ|°C|K|L|mL|dB|VA|kVA|MVA|Nm|kgf|lb';
 const RX_SATUAN = new RegExp('(?<![\\p{L}\\p{N}.,])(\\d+(?:[.,]\\d+)?)(' + SATUAN + ')(?![\\p{L}\\p{N}])', 'gu');
 
-function periksaBahasa(model, temuan) {
+/* ================================================================ Kamus ejaan (Hunspell) */
+
+// Pengecek ejaan bergaya Hunspell, cukup untuk kamus hunspell-id (id_ID) dan
+// SCOWL (en_US) di Tugas-Akhir/kamus/: FLAG long/num/karakter, PFX/SFX bersyarat,
+// cross product, kelas lanjutan (awalan yang diizinkan akhiran, akhiran lapis
+// kedua seperti -nya/-lah), CIRCUMFIX, NEEDAFFIX, FORBIDDENWORD, ONLYINCOMPOUND,
+// ICONV, serta REP dan TRY untuk saran. COMPOUNDRULE tidak didukung; kata
+// berangka dilewati sebelum sampai ke sini.
+function buatKamus(affTeks, dicTeks) {
+  const o = { flag: 'char', coba: '', rep: [], iconv: [], sirkum: null, perlu: null, terlarang: null, majemuk: null };
+  const baris = affTeks.split(/\r?\n/).map((x) => x.trim().split(/\s+/));
+  const silang = new Map();
+  for (const t of baris) {
+    switch (t[0]) {
+      case 'FLAG': o.flag = t[1] === 'long' ? 'long' : t[1] === 'num' ? 'num' : 'char'; break;
+      case 'TRY': o.coba = t[1] || ''; break;
+      case 'CIRCUMFIX': o.sirkum = t[1]; break;
+      case 'NEEDAFFIX': case 'PSEUDOROOT': o.perlu = t[1]; break;
+      case 'FORBIDDENWORD': o.terlarang = t[1]; break;
+      case 'ONLYINCOMPOUND': o.majemuk = t[1]; break;
+      case 'REP': if (t.length >= 3) o.rep.push([t[1].replace(/_/g, ' '), t[2].replace(/_/g, ' ')]); break;
+      case 'ICONV': if (t.length >= 3) o.iconv.push([t[1], t[2]]); break;
+      case 'PFX': case 'SFX': if (t.length >= 4 && /^[YN]$/.test(t[2]) && /^\d+$/.test(t[3])) silang.set(t[0] + t[1], t[2] === 'Y'); break;
+      default: break;
+    }
+  }
+  const pecahFlag = (s) => {
+    if (!s) return [];
+    if (o.flag === 'long') { const out = []; for (let i = 0; i + 1 < s.length; i += 2) out.push(s.slice(i, i + 2)); return out; }
+    if (o.flag === 'num') return s.split(',').filter(Boolean);
+    return Array.from(s);
+  };
+  const punya = (f, flag) => {
+    if (!f || !flag) return false;
+    if (o.flag === 'long') { for (let i = 0; i + 1 < f.length; i += 2) if (f[i] === flag[0] && f[i + 1] === flag[1]) return true; return false; }
+    if (o.flag === 'num') return f.split(',').includes(flag);
+    return f.includes(flag);
+  };
+  const pfx = new Map(), sfx = new Map(), sfxLanjut = new Map();
+  let maksP = 0, maksS = 0;
+  for (const t of baris) {
+    if ((t[0] !== 'PFX' && t[0] !== 'SFX') || t.length < 4 || (/^[YN]$/.test(t[2]) && /^\d+$/.test(t[3]))) continue;
+    const pr = t[0] === 'PFX';
+    const ix = t[3].search(/(?<!\\)\//);
+    const tambahan = ix < 0 ? t[3] : t[3].slice(0, ix);
+    const lanjut = new Set(pecahFlag(ix < 0 ? '' : t[3].slice(ix + 1)));
+    const syaratTeks = t[4] && !t[4].startsWith('#') ? t[4] : '.';
+    let syarat = null;
+    if (syaratTeks !== '.') { try { syarat = new RegExp(pr ? '^(?:' + syaratTeks + ')' : '(?:' + syaratTeks + ')$', 'u'); } catch (_) { syarat = null; } }
+    const r = {
+      flag: t[1], silang: silang.get(t[0] + t[1]) !== false, strip: t[2] === '0' ? '' : t[2], add: tambahan === '0' ? '' : tambahan,
+      lanjut, syarat, sirkum: !!o.sirkum && lanjut.has(o.sirkum), perlu: !!o.perlu && lanjut.has(o.perlu),
+    };
+    const peta = pr ? pfx : sfx;
+    if (!peta.has(r.add)) peta.set(r.add, []);
+    peta.get(r.add).push(r);
+    if (pr) maksP = Math.max(maksP, r.add.length);
+    else {
+      maksS = Math.max(maksS, r.add.length);
+      for (const f of lanjut) { if (!sfxLanjut.has(f)) sfxLanjut.set(f, new Map()); const m = sfxLanjut.get(f); if (!m.has(r.add)) m.set(r.add, []); m.get(r.add).push(r); }
+    }
+  }
+  const kata = new Map();
+  const d = dicTeks.split(/\r?\n/);
+  for (let k = 1; k < d.length; k++) {
+    let s = d[k];
+    if (!s) continue;
+    const sp = s.search(/[\t ]/);
+    if (sp >= 0) s = s.slice(0, sp); // buang data morfologi
+    const ix = s.search(/(?<!\\)\//);
+    const w = (ix < 0 ? s : s.slice(0, ix)).replace(/\\\//g, '/');
+    if (!w) continue;
+    const f = ix < 0 ? '' : s.slice(ix + 1);
+    kata.set(w, kata.has(w) ? kata.get(w) + (o.flag === 'num' && f ? ',' : '') + f : f);
+  }
+  const akarSah = (f) => f != null && !punya(f, o.terlarang) && !punya(f, o.majemuk);
+  // Sah atau tidaknya gabungan awalan p (boleh null), akhiran dalam s2 dan akhiran luar s1.
+  const sah = (f, p, s2, s1) => {
+    if (p && !(punya(f, p.flag) || (s1 && s1.lanjut.has(p.flag)) || (s2 && s2.lanjut.has(p.flag)))) return false;
+    const sirkP = !!(p && p.sirkum), sirkS = !!((s1 && s1.sirkum) || (s2 && s2.sirkum));
+    if (sirkP !== sirkS) return false;
+    const n = (p ? 1 : 0) + (s1 ? 1 : 0) + (s2 ? 1 : 0);
+    return !(n < 2 && ((p && p.perlu) || (s1 && s1.perlu) || (s2 && s2.perlu)));
+  };
+  const cekAkhiran = (w, p) => {
+    for (let L = 0; L <= Math.min(maksS, w.length - 1); L++) {
+      const aturan = sfx.get(L ? w.slice(w.length - L) : '');
+      if (!aturan) continue;
+      for (const s1 of aturan) {
+        if (p && !(s1.silang && p.silang)) continue;
+        const batang = w.slice(0, w.length - L) + s1.strip;
+        if (!batang || (s1.syarat && !s1.syarat.test(batang))) continue;
+        const f = kata.get(batang);
+        if (akarSah(f) && (punya(f, s1.flag) || (p && p.lanjut.has(s1.flag))) && sah(f, p, null, s1)) return true;
+        const dalam = sfxLanjut.get(s1.flag);
+        if (!dalam) continue;
+        for (let L2 = 0; L2 <= Math.min(maksS, batang.length - 1); L2++) {
+          const at2 = dalam.get(L2 ? batang.slice(batang.length - L2) : '');
+          if (!at2) continue;
+          for (const s2 of at2) {
+            if (p && !s2.silang) continue;
+            const akar = batang.slice(0, batang.length - L2) + s2.strip;
+            if (!akar || (s2.syarat && !s2.syarat.test(akar))) continue;
+            const f2 = kata.get(akar);
+            if (akarSah(f2) && (punya(f2, s2.flag) || (p && p.lanjut.has(s2.flag))) && sah(f2, p, s2, s1)) return true;
+          }
+        }
+      }
+    }
+    return false;
+  };
+  const cacheAfiks = new Map();
+  const cekAfiks = (w) => {
+    if (cacheAfiks.has(w)) return cacheAfiks.get(w);
+    let ok = false;
+    const f = kata.get(w);
+    if (akarSah(f) && !punya(f, o.perlu)) ok = true;
+    if (!ok) ok = cekAkhiran(w, null);
+    for (let L = 1; !ok && L <= Math.min(maksP, w.length - 1); L++) {
+      const aturan = pfx.get(w.slice(0, L));
+      if (!aturan) continue;
+      for (const p of aturan) {
+        const batang = p.strip + w.slice(L);
+        if (p.syarat && !p.syarat.test(batang)) continue;
+        const fb = kata.get(batang);
+        if (!p.sirkum && !p.perlu && akarSah(fb) && punya(fb, p.flag)) { ok = true; break; }
+        if (cekAkhiran(batang, p)) { ok = true; break; }
+      }
+    }
+    cacheAfiks.set(w, ok);
+    return ok;
+  };
+  const cek = (w0) => {
+    let w = w0;
+    for (const [a, b] of o.iconv) w = w.split(a).join(b);
+    if (cekAfiks(w)) return true;
+    const kecil = w.toLowerCase();
+    if (kecil !== w) {
+      if (w === w.toUpperCase()) { if (cekAfiks(kecil) || cekAfiks(kecil[0].toUpperCase() + kecil.slice(1))) return true; }
+      else if (w.slice(1) === kecil.slice(1) && cekAfiks(kecil)) return true;
+    }
+    if (/'s$/.test(w)) return cek(w.slice(0, -2));
+    return false;
+  };
+  const huruf = [...new Set(Array.from((o.coba || 'abcdefghijklmnopqrstuvwxyz').toLowerCase()).filter((c) => /\p{Ll}/u.test(c)))];
+  // Saran: ganti pola REP, tukar dua huruf, hapus, ganti, dan sisip satu huruf, lalu dua kata yang menyatu.
+  const saran = (w, maks = 3) => {
+    const kecil = w.toLowerCase();
+    const calon = [];
+    const coba = (c) => { if (calon.length < 8 && c && c !== kecil && !calon.includes(c) && cekAfiks(c)) calon.push(c); };
+    for (const [a, b] of o.rep) for (let i = kecil.indexOf(a); i >= 0; i = kecil.indexOf(a, i + 1)) coba(kecil.slice(0, i) + b + kecil.slice(i + a.length));
+    for (let i = 0; i < kecil.length - 1; i++) coba(kecil.slice(0, i) + kecil[i + 1] + kecil[i] + kecil.slice(i + 2));
+    for (let i = 0; i < kecil.length; i++) coba(kecil.slice(0, i) + kecil.slice(i + 1));
+    for (let i = 0; i < kecil.length; i++) for (const h of huruf) if (h !== kecil[i]) coba(kecil.slice(0, i) + h + kecil.slice(i + 1));
+    for (let i = 0; i <= kecil.length; i++) for (const h of huruf) coba(kecil.slice(0, i) + h + kecil.slice(i));
+    // Calon yang awal dan akhirnya paling banyak sama dengan kata asli didahulukan
+    // (menggunkan → menggunakan, bukan mengagunkan).
+    const mirip = (c) => {
+      let a = 0, b = 0;
+      while (a < c.length && c[a] === kecil[a]) a++;
+      while (b < c.length - a && c[c.length - 1 - b] === kecil[kecil.length - 1 - b]) b++;
+      return [a + b, Math.max(a, b)];
+    };
+    const out = calon.map((c, k) => [c, ...mirip(c), k]).sort((x, y) => y[1] - x[1] || y[2] - x[2] || x[3] - y[3]).map((x) => x[0]).slice(0, maks);
+    for (let i = 3; !out.length && i < kecil.length - 2; i++) {
+      if (cekAfiks(kecil.slice(0, i)) && cekAfiks(kecil.slice(i))) out.push(kecil.slice(0, i) + ' ' + kecil.slice(i));
+    }
+    return /^\p{Lu}/u.test(w) ? out.map((x) => x[0].toUpperCase() + x.slice(1)) : out;
+  };
+  const tambahKata = (daftar) => { for (const w of daftar) if (w && !kata.has(w)) kata.set(w, ''); cacheAfiks.clear(); };
+  return { cek, saran, ada: (w) => kata.has(w) || kata.has(w.toLowerCase()), cekAfiks, tambahKata, jumlahKata: kata.size };
+}
+
+// Kamus dari data berkas kamus/kamus-*.js: { aff, dic, tambahan: [istilah] }.
+function kamusDariData(d) {
+  const k = buatKamus(d.aff, d.dic);
+  k.tambahKata(d.tambahan || []);
+  return k;
+}
+
+// Analisis imbuhan bahasa Indonesia yang longgar: hunspell-id belum memberi flag
+// imbuhan pada banyak kata dasar, sehingga turunan sah (terintegrasi, cocokkan,
+// jaraknya, memperburuk) ditolak. Kata diterima bila sesudah klitik, akhiran, dan
+// awalan dilepas tersisa kata dasar yang ada di kamus. Salah ketik jarang
+// menyisakan kata dasar yang sah, jadi tetap tertangkap.
+const KLITIK = ['', 'nya', 'lah', 'kah', 'pun', 'ku', 'mu'];
+const AKHIRAN = ['', 'kan', 'an', 'i'];
+const AWALAN = ['', 'memper', 'diper', 'ketidak', 'keber', 'berke', 'ber', 'be', 'ter', 'te', 'per', 'pe', 'meng', 'meny', 'men', 'mem', 'me',
+  'peng', 'peny', 'pen', 'pem', 'di', 'ke', 'se', 'ku', 'kau',
+  // Bentuk terikat yang ditulis serangkai (EYD V): antarsumbu, nonlinear, subsistem.
+  ...BENTUK_TERIKAT.split('|'), 'tak', 'tidak', 'nir', 'ekstra', 'tele', 'trans', 'dwi', 'tri', 'catur', 'eka', 'panca'];
+function cekLonggarId(w, kamusId) {
+  const kecil = w.toLowerCase();
+  const dasar = (r) => r.length >= 3 && (kamusId.ada(r) || kamusId.cekAfiks(r));
+  for (const k of KLITIK) {
+    if (k && !kecil.endsWith(k)) continue;
+    const t1 = kecil.slice(0, kecil.length - k.length);
+    if (k && dasar(t1)) return true;
+    for (const a of AKHIRAN) {
+      if (a && !t1.endsWith(a)) continue;
+      const t2 = t1.slice(0, t1.length - a.length);
+      if ((k || a) && dasar(t2)) return true;
+      for (const p of AWALAN) {
+        if (!p || !t2.startsWith(p)) continue;
+        const r = t2.slice(p.length);
+        const calon = [r];
+        // Peluluhan nasal: menyalin ← salin, menulis ← tulis, memukul ← pukul, mengirim ← kirim.
+        if (/^(meny|peny)$/.test(p)) calon.push('s' + r);
+        if (/^(men|pen)$/.test(p) && /^[aeiou]/.test(r)) calon.push('t' + r);
+        if (/^(mem|pem)$/.test(p) && /^[aeiou]/.test(r)) calon.push('p' + r);
+        if (/^(meng|peng)$/.test(p) && /^[aeiou]/.test(r)) calon.push('k' + r);
+        if (calon.some(dasar)) return true;
+      }
+    }
+  }
+  return false;
+}
+
+// Kata yang tidak diperiksa ejaannya: singkatan dan satuan yang lazim di naskah teknik.
+const KECUALI_EJAAN = new Set(('dll dsb dst dkk tsb sbb yth hlm mis kec kab prov tbk ttd rpm khz mhz ghz kpa mpa gpa kwh kva mva kgf psi etc ibid approx maks ' +
+  'min max vol cos sin tan log exp lim det mod std rms fft dft pid nim nidn nuptk sks ess tanh sinh cosh arctan arcsin arccos atan sqrt').split(' '));
+
+function periksaBahasa(model, temuan, kamus, kumpulTakDikenal) {
   const P = model.paragraf;
   const bagian = model.bagian.daftar;
   const kunciPeriksa = new Set(['pernyataan', 'pengesahan', 'kataPengantar', 'persetujuan', 'abstrak', 'abstract', 'bab', 'naskah', 'lampiran', 'daftarPustaka']);
@@ -1912,6 +2134,60 @@ function periksaBahasa(model, temuan) {
   const rxIstilah = new RegExp('(?<![\\p{L}\\p{N}-])(' + Object.keys(ISTILAH_ASING).sort((a, b) => b.length - a.length).map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '\\s+')).join('|') + ')(?![\\p{L}\\p{N}-])', 'giu');
   const rxBaku = new RegExp('(?<![\\p{L}\\p{N}-])(' + Object.keys(TIDAK_BAKU).join('|') + ')(?![\\p{L}\\p{N}-])', 'giu');
   const rxTerikat = new RegExp('(?<![\\p{L}\\p{N}-])(' + BENTUK_TERIKAT + ')\\s+(\\p{Ll}[\\p{L}]+)', 'giu');
+  // Ejaan dengan kamus: kata tak dikenal dikumpulkan dulu, lalu yang punya saran
+  // dekat dan jarang muncul dianggap salah ketik (nama/istilah biasanya berulang).
+  const tidakDikenal = new Map(); // kata huruf kecil → { bhs, muncul: [{ p, s, e, w }] }
+  const rxKataEjaan = /\p{L}[\p{L}'’-]*/gu;
+  function pindaiEjaan(i, p, t, bhsPar) {
+    let m;
+    rxKataEjaan.lastIndex = 0;
+    while ((m = rxKataEjaan.exec(t))) {
+      const w = m[0].replace(/[-'’]+$/, '');
+      const s0 = m.index, e0 = s0 + w.length;
+      if (w.length < 3) continue;
+      const kiri = t[s0 - 1] || ' ', kanan = t[e0] || ' ';
+      // Bagian kode, angka, URL, atau singkatan bertitik (S.T., e.g.).
+      if (/[\p{N}_@/\\.]/u.test(kiri) || /[\p{N}_@/\\]/u.test(kanan) || (kanan === '.' && /\p{L}/u.test(t[e0 + 1] || ''))) continue;
+      const awalToken = t.lastIndexOf(' ', s0) + 1, akhirToken = t.indexOf(' ', e0);
+      if (/https?:|www\.|\.(com|org|net|id|ac)\b|@|doi/i.test(t.slice(awalToken, akhirToken < 0 ? t.length : akhirToken))) continue;
+      // Variabel di dalam rumus atau potongan kode: x_baru, rmin = ω/ωn, kbaru = m*ω².
+      if (/[=<>_*^√∑∫·×≈≤≥]/.test(t.slice(Math.max(0, s0 - 12), s0) + t.slice(e0, e0 + 12))) continue;
+      if (KECUALI_EJAAN.has(w.toLowerCase()) || /^[ivxlcdm]+$/i.test(w)) continue;
+      if (/[^\p{Script=Latin}'’-]/u.test(w)) continue; // huruf Yunani dsb. (τcl, ωn): notasi
+      const huruf = w.replace(/[^\p{L}]/gu, '');
+      if (huruf === huruf.toUpperCase()) continue; // akronim atau teks kapital semua
+      if (/\p{Lu}/u.test(huruf.slice(1)) && !/-\p{Lu}/u.test(w)) continue; // MATLAB-an, iPhone, McDonald
+      const kapital = /^\p{Lu}/u.test(w);
+      if (kapital) {
+        const sebelum = t.slice(0, s0).replace(/["“'‘(\[\s]+$/u, '');
+        if (sebelum && !/[.!?]$/.test(sebelum)) continue; // nama diri di tengah kalimat atau sesudah titik dua
+      }
+      const seg = p.seg.filter((g) => g.e > s0 && g.s < e0);
+      if (seg.some((g) => /consolas|courier|mono|menlo|code/i.test(g.font || ''))) continue; // kode program
+      const miring = seg.length > 0 && seg.every((g) => g.i);
+      const utama = miring ? 'en' : bhsPar;
+      const ada = (x) => kamus[utama].cek(x) || ((miring || utama === 'en') && kamus.id.cek(x)) || cekLonggarId(x, kamus.id);
+      let ok = ada(w);
+      if (!ok && w.includes('-')) ok = w.split('-').every((bg) => bg.length < 3 || /^(nya|ku|mu)$/i.test(bg) || ada(bg) || kamus.en.cek(bg));
+      if (ok) continue;
+      const k = w.toLowerCase();
+      // Nama variabel berupa satu huruf + kata (rlama, kbaru, cdiameter, xsteady).
+      if (k.length >= 4 && /^\p{Ll}/u.test(w) && (kamus.id.ada(k.slice(1)) || kamus.en.cek(k.slice(1)) || cekLonggarId(k.slice(1), kamus.id))) continue;
+      // Istilah Inggris berklitik Indonesia (polenya, loop-nya): yang miring cukup istilahnya.
+      const tanpaKlitik = w.replace(/-?(nya|lah|kah|pun)$/i, '');
+      const inggris = kamus.en.cek(w) || (tanpaKlitik !== w && tanpaKlitik.length >= 3 && kamus.en.cek(tanpaKlitik));
+      if (utama === 'id' && inggris) {
+        // Kata Inggris tegak di teks Indonesia: istilah asing yang belum miring. Satu komentar
+        // penjelasan untuk semuanya (istilah dari daftar kurasi punya komentar sendiri).
+        if (!kapital && !ISTILAH_ASING[k]) tambah('asing', i, s0, s0 + (kamus.en.cek(w) ? w.length : tanpaKlitik.length), `"${tanpaKlitik}" kata bahasa Inggris, dicetak miring`);
+        continue;
+      }
+      if (!tidakDikenal.has(k)) tidakDikenal.set(k, { bhs: utama, muncul: [], kapital: true });
+      const x = tidakDikenal.get(k);
+      if (!kapital) x.kapital = false;
+      x.muncul.push({ p: i, s: s0, e: e0, w });
+    }
+  }
   for (const b of bagian) {
     if (!kunciPeriksa.has(b.kunci)) continue;
     const pustaka = b.kunci === 'daftarPustaka';
@@ -1978,6 +2254,7 @@ function periksaBahasa(model, temuan) {
         const s0 = m.index + m[1].length + m[2].length + m[3].length;
         tambah('kapitalAwal', i, s0, s0 + kataDi(t, s0), 'huruf pertama kalimat kapital');
       }
+      if (kamus) pindaiEjaan(i, p, t, bhs === 'en' || b.kunci === 'abstract' ? 'en' : 'id');
       if (!indonesia) continue;
       // Kata tugas berhuruf kapital di tengah kalimat.
       const rxTugas = /(?<=\p{Ll}[,]?\s)(Dan|Atau|Yang|Di|Ke|Dari|Untuk|Dengan|Pada|Adalah|Serta|Dalam)(?=\s\p{Ll})/gu;
@@ -2010,6 +2287,18 @@ function periksaBahasa(model, temuan) {
       }
     }
   }
+  const tanpaSaran = [];
+  let dihitung = 0;
+  if (kumpulTakDikenal) for (const [k, x] of tidakDikenal) kumpulTakDikenal.set(k, (kumpulTakDikenal.get(k) || 0) + x.muncul.length);
+  for (const [k, x] of tidakDikenal) {
+    const n = x.muncul.length;
+    // Hanya kata huruf kecil yang jarang muncul yang dianggap salah ketik; kata berhuruf
+    // kapital (nama, istilah di awal kalimat) dan yang berulang cukup didaftar.
+    const saran = n <= 2 && !x.kapital && dihitung++ < 400
+      ? [...new Set(kamus[x.bhs].saran(x.muncul[0].w).map((s) => TIDAK_BAKU[s.toLowerCase()] || s))] : [];
+    if (saran.length) for (const o of x.muncul) tambah('typo', o.p, o.s, o.e, `${o.w} → ${saran.join(' / ')}`, 'typo:' + k);
+    else tanpaSaran.push({ x, n });
+  }
   // Satu temuan per rentang: rentang yang bertumpuk diambil yang pertama.
   hasil.sort((a, b) => a.p - b.p || a.s - b.s);
   const bersih = [];
@@ -2030,6 +2319,7 @@ function periksaBahasa(model, temuan) {
     awalanDi: ['Awalan di- ditulis terpisah', 'Awalan di- pada kata kerja pasif ditulis serangkai (dilakukan, digunakan). Kata depan di yang menunjukkan tempat ditulis terpisah (di atas, di dalam).'],
     satuan: ['Angka menempel pada satuan', 'Angka dan simbol satuan dipisah satu spasi (mis. 10 kg, 50 Hz, 220 V), kecuali % dan °.'],
     asing: ['Istilah asing belum miring', 'Istilah asing dicetak miring (Pedoman 3.12 butir 7, EYD V). Bila ada padanan Indonesia yang lazim, pertimbangkan memakainya.'],
+    typo: ['Kemungkinan salah ketik', 'Kata ini tidak ada di kamus ejaan (Hunspell id_ID/en_US) dan mirip dengan kata lain. Bila kata ini nama atau istilah yang memang benar, abaikan.'],
   };
   const perJenis = {};
   for (const h of bersih) (perJenis[h.jenis] = perJenis[h.jenis] || []).push(h);
@@ -2055,13 +2345,23 @@ function periksaBahasa(model, temuan) {
   for (const [jenis, daftar] of Object.entries(perJenis)) {
     const [judul, jelas] = JENIS[jenis];
     temuan.push({
-      grup: 'bahasa', status: jenis === 'asing' || jenis === 'satuan' ? 'perhatian' : 'gagal', judul: `${judul} (${daftar.length})`, ref: jenis === 'asing' ? 'Pedoman 3.12' : 'EYD V',
+      grup: 'bahasa', status: jenis === 'asing' || jenis === 'satuan' ? 'perhatian' : 'gagal', judul: `${judul} (${daftar.length})`,
+      ref: jenis === 'asing' ? 'Pedoman 3.12' : jenis === 'typo' ? 'Kamus ejaan' : 'EYD V',
       pesan: jelas, rincian: daftar.slice(0, 25).map((h) => ({ p: h.p, hal: label(h.p), teks: konteks(P[h.p].teks, h.s, h.e) + ' — ' + h.saran })),
       tanda: daftar.map((h) => ({ p: h.p, s: h.s, e: h.e, hl: true, komentar: h.komentar })),
     });
   }
-  if (!bersih.length) temuan.push({ grup: 'bahasa', status: 'lulus', judul: 'Tidak ditemukan kesalahan penulisan', ref: 'EYD V', pesan: 'Tidak ada spasi ganda, kata berulang, kapital, tanda baca, kata tidak baku, atau istilah asing tegak yang terdeteksi.', rincian: [], tanda: [] });
-  temuan.push({ grup: 'bahasa', status: 'manual', judul: 'Salah ketik (typo)', ref: 'EYD V', pesan: 'Pemeriksa ini belum memakai kamus ejaan, jadi salah ketik umum (mis. "pengujain") tidak terdeteksi. Jalankan Review → Spelling & Grammar di Word dengan bahasa Indonesia.', rincian: [], tanda: [] });
+  if (!bersih.length) temuan.push({ grup: 'bahasa', status: 'lulus', judul: 'Tidak ditemukan kesalahan penulisan', ref: 'EYD V', pesan: `Tidak ada ${kamus ? 'salah ketik, ' : ''}spasi ganda, kata berulang, kapital, tanda baca, kata tidak baku, atau istilah asing tegak yang terdeteksi.`, rincian: [], tanda: [] });
+  if (tanpaSaran.length) {
+    tanpaSaran.sort((a, b) => b.n - a.n);
+    temuan.push({
+      grup: 'bahasa', status: 'info', judul: `Kata tidak dikenal kamus (${tanpaSaran.length})`, ref: 'Kamus Hunspell',
+      pesan: 'Kata berikut tidak ada di kamus ejaan dan tidak punya saran yang dekat, atau sering muncul — biasanya nama, istilah teknis, atau singkatan. Tidak disorot; periksa sekilas ejaannya.',
+      rincian: tanpaSaran.slice(0, 40).map(({ x, n }) => { const o = x.muncul[0]; return { p: o.p, hal: label(o.p), teks: `${o.w}${n > 1 ? ` (${n}×)` : ''} — ${konteks(P[o.p].teks, o.s, o.e)}` }; }),
+      tanda: [],
+    });
+  }
+  if (!kamus) temuan.push({ grup: 'bahasa', status: 'manual', judul: 'Salah ketik (typo)', ref: 'EYD V', pesan: 'Kamus ejaan tidak termuat, jadi salah ketik tidak diperiksa. Muat ulang halaman, atau jalankan Review → Spelling & Grammar di Word dengan bahasa Indonesia.', rincian: [], tanda: [] });
   return bersih.length;
 }
 function kataDi(t, s) { const m = /^[\p{L}\p{N}'’-]+/u.exec(t.slice(s)); return m ? m[0].length : 1; }
@@ -2316,7 +2616,8 @@ async function periksa(bytes, opsi = {}) {
     const label = (i) => { const p = model.paragraf[i]; if (!p) return ''; const nm = model.nomor[p.hal]; return `hal. ${model.andal ? '' : '±'}${p.hal + 1}${nm && nm.tampil ? ` (tertulis ${formatNomor(nm.n, nm.fmt)})` : ''}`; };
     temuan.push({ grup, status, judul, ref, pesan, rincian: rincian.map((r) => ({ p: r.p, hal: label(r.p), teks: r.teks || kutip(model.paragraf[r.p].teks) })), tanda });
   });
-  const jumlahBahasa = periksaBahasa(model, temuan);
+  const kamus = opsi.kamus && opsi.kamus.id && opsi.kamus.en ? opsi.kamus : null;
+  const jumlahBahasa = periksaBahasa(model, temuan, kamus);
   temuan.push(...butirManual(model.skema));
 
   const ringkas = { lulus: 0, gagal: 0, perhatian: 0, info: 0, manual: 0 };
@@ -2375,5 +2676,14 @@ function butirManual(skema) {
   return daftar;
 }
 
-global.PemeriksaTA = { periksa, VERSI, GalatBerkas, LABEL, GRUP, _uji: { uraiXml, serialXml, bukaZip, tulisZip, crc32, bukanTitleCase, bahasa, TIDAK_BAKU, ISTILAH_ASING } };
+// Pemeriksaan kebahasaan atas daftar paragraf polos (tanpa .docx), untuk uji dan kalibrasi.
+function bahasaTeks(daftarTeks, kamus, kumpulTakDikenal) {
+  const paragraf = daftarTeks.map((teks, i) => ({ i, teks, seg: [{ s: 0, e: teks.length, i: false }], toc: false, bernomor: false, hal: 0 }));
+  const model = { paragraf, nomor: [], andal: true, bagian: { daftar: [{ kunci: 'bab', isi: paragraf.map((p) => p.i) }] } };
+  const temuan = [];
+  periksaBahasa(model, temuan, kamus || null, kumpulTakDikenal);
+  return temuan;
+}
+
+global.PemeriksaTA = { periksa, buatKamus, kamusDariData, VERSI, GalatBerkas, LABEL, GRUP, _uji: { uraiXml, serialXml, bukaZip, tulisZip, crc32, bukanTitleCase, bahasa, bahasaTeks, TIDAK_BAKU, ISTILAH_ASING } };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

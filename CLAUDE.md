@@ -153,7 +153,8 @@ verify-export-code, analyze-victims, berkas-tugas), `Template-Modul-Word-dan-PPT
 resmi BOP — Pedoman §15), `Unduhan-Gabungan/` (PDF gabungan), `PDD-UKTPT/`
 (portofolio Serdos, bukan mata kuliah), `Tugas-Akhir/` (Pemeriksa Format TA:
 halaman + `pemeriksa-inti.js`, berjalan sepenuhnya di peramban, CSP `connect-src 'none'`;
-uji `scripts/uji-pemeriksa-ta.mjs`, ikut CI; pedoman dan templat sumbernya rahasia di repo
+kamus ejaan Hunspell id_ID/en_US + istilah teknik di `Tugas-Akhir/kamus/` — sunting `sumber/`, lalu
+`node scripts/bangun-kamus-ta.mjs`; uji `scripts/uji-pemeriksa-ta.mjs`, ikut CI; pedoman dan templat sumbernya rahasia di repo
 privat `kurikulum-teknik-mesin/tugas-akhir/` — jangan menyalin .docx/.pdf-nya ke sini),
 `scripts/` (generator, injector, validator), `index.html`, `Pedoman-Modul.md`, `Pedoman-Slides.md`.
 Cloud Functions, rules, bank soal, dan seed berada di repo privat
