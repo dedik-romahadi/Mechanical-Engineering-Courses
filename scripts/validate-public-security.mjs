@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import crypto from "node:crypto";
 import vm from "node:vm";
 import { spawnSync } from "node:child_process";
 import { uraiSkripInline, deklarasiLeksikal, pemakaian, fungsiTingkatAtas, panggilanTingkatAtas, namaGlobal, presenceSaatMuat, presenceAutoLogin } from "./pemindai-deklarasi.mjs";
@@ -2628,7 +2629,8 @@ for (const course of courseRoots) {
     const rel = `${vsKursus}/Modul/Modul-${m.modul}.html`;
     const html = fs.readFileSync(path.join(root, rel), "utf8");
     if (/VIDEO-SIMULASI|video-simulasi|_vsBagikan/.test(html)) throw new Error(`VIDEO-SIMULASI: ${rel} punya video materi dan tidak boleh memuat video simulasi; jalankan node scripts/video-simulasi.mjs`);
-    if (vsLepas(vsPasang(html, { ...vsDaftar[0], modul: m.modul })) !== html) throw new Error(`VIDEO-SIMULASI: uji mutasi gagal — pelepas tidak membuang kartu simulasi dari ${rel} dengan bersih`);
+    const contohVs = vsDaftar[0] || { berkas: "x.mp4", poster: "x.jpg", halaman: "x.html", judul: "x", durasi: "1:00", animasi: 4, bagianPython: "08", ringkas: "x", bab: [["x", 0]] };
+    if (vsLepas(vsPasang(html, { ...contohVs, modul: m.modul })) !== html) throw new Error(`VIDEO-SIMULASI: uji mutasi gagal — pelepas tidak membuang kartu simulasi dari ${rel} dengan bersih`);
     const sisa = fs.readdirSync(folderVideo).filter((f) => f.startsWith(`Modul-${m.modul}-Simulasi-`));
     if (sisa.length) throw new Error(`VIDEO-SIMULASI: berkas video simulasi modul ${m.modul} harus dihapus: ${sisa.join(", ")}`);
     const relLama = `${vsKursus}/Video/${vsLama(m.modul)}`;
@@ -2639,11 +2641,22 @@ for (const course of courseRoots) {
 // VIDEO-MATERI: video penjelasan materi lengkap modul TTL (scripts/video-materi.mjs + video-materi-data.mjs),
 // panel sendiri di antara hitung mundur dan Bagian 01, plus halaman tonton publiknya (tanpa login).
 {
-  const { KURSUS: vmKursus, COURSE_ID: vmCourse, VIDEO_MATERI: vmDaftar } = await import("./video-materi-data.mjs");
-  const { pasang: vmPasang, halamanTonton: vmTonton, detikVideo: vmDetik, AMBANG: vmAmbang } = await import("./video-materi.mjs");
+  const { KURSUS: vmKursus, COURSE_ID: vmCourse, VIDEO_REPOS: vmRepos, BATAS_REPO_VIDEO: vmBatas, repoVideo: vmRepoVideo, dasarVideo: vmDasarVideo, VIDEO_MATERI: vmDaftar } = await import("./video-materi-data.mjs");
+  const { pasang: vmPasang, halamanTonton: vmTonton, detikVideo: vmDetik, AMBANG: vmAmbang, dirRepoVideo: vmDirVideo } = await import("./video-materi.mjs");
+  // MP4 video materi ada di repo publik terpisah (Pages, domain sama); dicocokkan bila salinannya tersedia.
+  // Situs Pages maksimal 1 GB: video dibagi ke beberapa repo (VIDEO_REPOS), jumlah ukuran tiap repo ≤ BATAS_REPO_VIDEO.
+  const vmDirRepos = {}, vmIsiRepo = {};
+  for (const r of vmRepos) {
+    vmDirRepos[r] = vmDirVideo(r);
+    vmIsiRepo[r] = 0;
+    if (!vmDirRepos[r]) console.warn(`VIDEO-MATERI: salinan ${r} tidak ditemukan (VIDEO_REPOS_DIR); ukuran, sha256, dan tanda MP4 videonya tidak diperiksa`);
+  }
   const { configFirebase: vmConfig } = await import("./video-simulasi.mjs");
   for (const v of vmDaftar) {
     const rel = `${vmKursus}/Modul/Modul-${v.modul}.html`;
+    const vmRepo = vmRepoVideo(v), vmDasar = vmDasarVideo(v), vmDirRepo = vmDirRepos[vmRepo];
+    if (!vmRepos.includes(vmRepo)) throw new Error(`VIDEO-MATERI: repo video modul ${v.modul} (${vmRepo}) tidak terdaftar di VIDEO_REPOS`);
+    vmIsiRepo[vmRepo] += Number(v.ukuran) || 0;
     const html = fs.readFileSync(path.join(root, rel), "utf8");
     const awal = html.split("<!-- VIDEO-MATERI:BLOK BEGIN").length - 1;
     const akhir = html.split("<!-- VIDEO-MATERI:BLOK END").length - 1;
@@ -2668,20 +2681,22 @@ for (const course of courseRoots) {
     const s0 = html.indexOf(AWAL_SIMPAN), s1 = s0 < 0 ? -1 : html.indexOf("</script>", s0);
     if (html.split(AWAL_SIMPAN).length !== 2 || s1 < 0 || !html.slice(s0, s1).includes("panggil('saveModulTonton'")) throw new Error(`VIDEO-MATERI: ${rel} harus memuat tepat satu penyimpan tontonan (script#video-materi-simpan, saveModulTonton)`);
     await ujiSimpanTontonan(blokVideo, html.slice(s0 + AWAL_SIMPAN.length, s1), v, rel);
-    for (const f of [v.berkas, v.poster]) {
-      const berkas = path.join(root, vmKursus, "Video", f);
-      const ukuran = fs.existsSync(berkas) ? fs.statSync(berkas).size : -1;
-      if (ukuran < 1024) throw new Error(`VIDEO-MATERI: ${vmKursus}/Video/${f} tidak ada atau kosong`);
-      // Video materi ±25–30 menit dikodekan sama dengan video simulasi (CRF 31, audio 128 kbps) atas permintaan dosen
-      // (24 Okt 2026: versi 2-pass ≤ 60 MB kurang jernih) → ±75 MB; batas 95 MB menjaga jarak dari batas keras GitHub 100 MB.
-      if (ukuran > 95 * 1024 * 1024) throw new Error(`VIDEO-MATERI: ${vmKursus}/Video/${f} melebihi 95 MB (batas keras GitHub 100 MB per berkas)`);
-      if (!blokVideo.includes(`../Video/${f}`)) throw new Error(`VIDEO-MATERI: ${rel} tidak merujuk ../Video/${f}`);
+    const poster = path.join(root, vmKursus, "Video", v.poster);
+    if (!fs.existsSync(poster) || fs.statSync(poster).size < 1024) throw new Error(`VIDEO-MATERI: ${vmKursus}/Video/${v.poster} tidak ada atau kosong`);
+    if (!blokVideo.includes(`../Video/${v.poster}`)) throw new Error(`VIDEO-MATERI: ${rel} tidak merujuk ../Video/${v.poster}`);
+    if (!blokVideo.includes(`src="${vmDasar}${v.berkas}"`)) throw new Error(`VIDEO-MATERI: ${rel} harus memutar ${vmDasar}${v.berkas} (repo video, domain sama)`);
+    if (fs.existsSync(path.join(root, vmKursus, "Video", v.berkas))) throw new Error(`VIDEO-MATERI: ${vmKursus}/Video/${v.berkas} tidak boleh ada di repo ini; MP4 video materi disimpan di ${vmRepo}`);
+    // Video materi ±25–30 menit dikodekan sama dengan video simulasi (CRF 31, audio 128 kbps) atas permintaan dosen
+    // (24 Okt 2026: versi 2-pass ≤ 60 MB kurang jernih) → ±75–85 MB; batas 95 MB menjaga jarak dari batas keras GitHub 100 MB.
+    if (!(Number.isInteger(v.ukuran) && v.ukuran > 1024 && v.ukuran <= 95 * 1024 * 1024)) throw new Error(`VIDEO-MATERI: ukuran modul ${v.modul} harus bilangan bulat ≤ 95 MB (batas keras GitHub 100 MB per berkas)`);
+    if (!/^[0-9a-f]{64}$/.test(String(v.sha256))) throw new Error(`VIDEO-MATERI: sha256 modul ${v.modul} tidak sah`);
+    if (vmDirRepo) {
+      const mp4 = path.join(vmDirRepo, vmKursus, v.berkas);
+      if (!fs.existsSync(mp4) || fs.statSync(mp4).size !== v.ukuran) throw new Error(`VIDEO-MATERI: ${vmRepo}/${vmKursus}/${v.berkas} tidak ada atau ukurannya ≠ ${v.ukuran}`);
+      const isi = fs.readFileSync(mp4);
+      if (isi.subarray(4, 8).toString("latin1") !== "ftyp") throw new Error(`VIDEO-MATERI: ${v.berkas} bukan berkas MP4 (tanda ftyp tidak ada)`);
+      if (crypto.createHash("sha256").update(isi).digest("hex") !== v.sha256) throw new Error(`VIDEO-MATERI: sha256 ${v.berkas} di ${vmRepo} berbeda dari data`);
     }
-    const kepala = Buffer.alloc(12);
-    const fd = fs.openSync(path.join(root, vmKursus, "Video", v.berkas), "r");
-    fs.readSync(fd, kepala, 0, 12, 0);
-    fs.closeSync(fd);
-    if (kepala.subarray(4, 8).toString("latin1") !== "ftyp") throw new Error(`VIDEO-MATERI: ${v.berkas} bukan berkas MP4 (tanda ftyp tidak ada)`);
     const waktu = v.bab.map((x) => x[1]);
     if (waktu.some((t, i) => !(t >= 0) || (i > 0 && t <= waktu[i - 1]))) throw new Error(`VIDEO-MATERI: waktu bab modul ${v.modul} harus menaik`);
     const tanpa = html.replace(/<!-- VIDEO-MATERI:BLOK BEGIN[\s\S]*?<!-- VIDEO-MATERI:BLOK END v\d+ -->\n/, "");
@@ -2690,7 +2705,10 @@ for (const course of courseRoots) {
     const tonton = fs.existsSync(path.join(root, relTonton)) ? fs.readFileSync(path.join(root, relTonton), "utf8") : null;
     if (tonton !== vmTonton(v, vmConfig(html))) throw new Error(`VIDEO-MATERI: ${relTonton} tidak ada atau berbeda dari keluaran scripts/video-materi.mjs; jalankan skrip itu`);
     if (/createAdminSession|verifyPin|firebase-auth|firebase-functions|pins\/|httpsCallable/.test(tonton)) throw new Error(`VIDEO-MATERI: ${relTonton} adalah halaman publik dan tidak boleh memuat jalur login/admin`);
-    if (!tonton.includes(`src="${v.berkas}"`) || !tonton.includes(jalurTayang)) throw new Error(`VIDEO-MATERI: ${relTonton} harus memutar ${v.berkas} dan memakai penghitung tayang yang sama`);
+    if (!tonton.includes(`src="${vmDasar}${v.berkas}"`) || !tonton.includes(jalurTayang)) throw new Error(`VIDEO-MATERI: ${relTonton} harus memutar ${vmDasar}${v.berkas} dan memakai penghitung tayang yang sama`);
+  }
+  for (const r of vmRepos) {
+    if (vmIsiRepo[r] > vmBatas) throw new Error(`VIDEO-MATERI: video di ${r} berjumlah ${(vmIsiRepo[r] / 1e6).toFixed(1)} MB > ${vmBatas / 1e6} MB (situs GitHub Pages maksimal 1 GB); pindahkan sebagian ke repo video lain`);
   }
   // Pelacak + penyimpan server (VIDEO-MATERI:TONTON + VIDEO-MATERI:SIMPAN) dalam satu konteks dengan Firebase tiruan:
   // peta server dari getModulProgress digabung, detik baru dikirim sekali (bitset base64, bit rendah lebih dulu),
@@ -2739,7 +2757,7 @@ for (const course of courseRoots) {
     // Peta server (perangkat lain) dipulihkan; tanpa detik baru tidak ada kiriman.
     diterapkan({ tontonMateri: { peta: b64(0, 999), detik: N } });
     await alir();
-    if (!/· 62%/.test(String(syarat())) || panggilan.length) gagal(`peta server harus digabung tanpa kiriman ulang (syarat ${syarat()}, ${panggilan.length} panggilan)`);
+    if (!String(syarat()).includes(`· ${Math.floor((100 * 1000) / N)}%`) || panggilan.length) gagal(`peta server harus digabung tanpa kiriman ulang (syarat ${syarat()}, ${panggilan.length} panggilan)`);
     // Detik baru → satu kiriman berisi gabungan; jeda kedua tanpa detik baru tidak mengirim.
     putar(1000, 1200); await alir();
     if (panggilan.length !== 1 || panggilan[0].nama !== "saveModulTonton" || panggilan[0].data.modulId !== "uji-materi" || panggilan[0].data.nim !== "41300000123") gagal(`detik baru harus dikirim sekali ke saveModulTonton: ${JSON.stringify(panggilan.map((x) => x.nama))}`);
