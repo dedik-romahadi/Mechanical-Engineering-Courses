@@ -49,7 +49,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { KURSUS, COURSE_ID, SITUS, VIDEO_MATERI } from "./video-materi-data.mjs";
+import { KURSUS, COURSE_ID, SITUS, repoVideo, dasarVideo, VIDEO_MATERI } from "./video-materi-data.mjs";
 import { configFirebase } from "./video-simulasi.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -85,7 +85,7 @@ ${ATURAN}
 const fmt = (d) => `${Math.floor(d / 60)}:${String(Math.floor(d % 60)).padStart(2, "0")}`;
 
 // Kartu pemutar, dipakai halaman modul (dasar "../Video/", dengan baris progres menonton) dan halaman tonton
-// (dasar "").
+// (dasar ""). `dasar` untuk poster dan halaman tonton; MP4 selalu dari repo video (dasarVideo(v), domain sama).
 function kartu(v, dasar, indent, catatan, progres = false) {
   const id = `vm-m${v.modul}`;
   const tombol = v.bab
@@ -94,7 +94,7 @@ function kartu(v, dasar, indent, catatan, progres = false) {
   return `${indent}<div class="video-materi reveal" id="video-materi">
 ${indent}  <div class="vm-kepala"><span class="vm-ikon" aria-hidden="true">🎓</span><span class="vm-judul">Video penjelasan materi: ${v.judul}</span><span class="vm-meta">TTL Modul ${v.modul} · Bagian 01–${v.bagianAkhir} · ${v.durasi}<span class="vm-tayang" data-tayang="modul-${v.modul}" hidden></span></span></div>
 ${indent}  <video id="${id}" controls preload="none" playsinline poster="${dasar}${v.poster}" aria-label="Video penjelasan materi Modul ${v.modul}: ${v.judul}">
-${indent}    <source src="${dasar}${v.berkas}" type="video/mp4">
+${indent}    <source src="${dasarVideo(v)}${v.berkas}" type="video/mp4">
 ${indent}    Peramban Anda tidak mendukung pemutar video.
 ${indent}  </video>
 ${indent}  <div class="vm-bab" role="group" aria-label="Lompat ke bagian">
@@ -427,6 +427,13 @@ export function pasang(html, v) {
   return out.slice(0, i) + blok(v) + out.slice(i);
 }
 
+// Salinan lokal repo video `repo` (di folder induk env VIDEO_REPOS_DIR, atau bersebelahan dengan repo ini); null bila
+// tidak ada.
+export function dirRepoVideo(repo) {
+  const calon = [process.env.VIDEO_REPOS_DIR, path.resolve(root, "..")].filter(Boolean).map((d) => path.join(d, repo));
+  return calon.find((d) => fs.existsSync(path.join(d, KURSUS))) || null;
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   let berubah = 0;
   const tulis = (berkas, baru) => {
@@ -439,9 +446,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     }
   };
   for (const v of VIDEO_MATERI) {
-    for (const f of [v.berkas, v.poster]) {
-      const p = path.join(root, KURSUS, "Video", f);
-      if (!fs.existsSync(p) || fs.statSync(p).size < 1024) throw new Error(`berkas tidak ada/kosong: ${path.relative(root, p)}`);
+    const poster = path.join(root, KURSUS, "Video", v.poster);
+    if (!fs.existsSync(poster) || fs.statSync(poster).size < 1024) throw new Error(`poster tidak ada/kosong: ${path.relative(root, poster)}`);
+    const dirVideo = dirRepoVideo(repoVideo(v));
+    if (!dirVideo) console.log(`peringatan: salinan ${repoVideo(v)} tidak ditemukan (set VIDEO_REPOS_DIR); ukuran ${v.berkas} tidak diperiksa`);
+    else {
+      const mp4 = path.join(dirVideo, KURSUS, v.berkas);
+      if (!fs.existsSync(mp4) || fs.statSync(mp4).size !== v.ukuran) throw new Error(`${repoVideo(v)}/${KURSUS}/${v.berkas} tidak ada atau ukurannya ≠ ${v.ukuran}`);
     }
     const halaman = path.join(root, KURSUS, "Modul", `Modul-${v.modul}.html`);
     const html = fs.readFileSync(halaman, "utf8");
