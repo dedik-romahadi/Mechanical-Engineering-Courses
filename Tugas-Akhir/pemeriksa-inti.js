@@ -13,7 +13,7 @@
 (function (global) {
 'use strict';
 
-const VERSI = '1.2.1';
+const VERSI = '1.3.0';
 const W_URI = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const PENULIS_KOMENTAR = 'Pemeriksa Format TA';
 
@@ -639,7 +639,8 @@ function bangunModel(docXml, gaya) {
     const gd = cari(d, 'a:graphicData');
     const uri = atr(gd, 'uri') || '';
     const citra = !!(cari(d, 'pic:pic') || cari(d, 'a:blip') || /chart|diagram/i.test(uri));
-    if (citra) rec.gambar.push({ cx, cy, jangkar: !!anak(d, 'wp:anchor') });
+    const blip = cari(d, 'a:blip');
+    if (citra) rec.gambar.push({ cx, cy, jangkar: !!anak(d, 'wp:anchor'), rid: blip ? atr(blip, 'r:embed') : null });
     if (citra || !kotak.length) rec.kejadian.push('G');
   }
   function prosesVml(d, rec) {
@@ -649,7 +650,8 @@ function bangunModel(docXml, gaya) {
       const shape = cari(d, 'v:shape');
       const st = (shape && atr(shape, 'style')) || '';
       const ukurPt = (k) => { const m = new RegExp(k + '\\s*:\\s*([\\d.]+)(pt|in|cm|mm|px)?').exec(st); if (!m) return 0; const x = parseFloat(m[1]); return x * ({ pt: 12700, in: 914400, cm: 360000, mm: 36000, px: 9525 }[m[2] || 'pt']); };
-      rec.gambar.push({ cx: ukurPt('width'), cy: ukurPt('height'), jangkar: false });
+      const im = cari(d, 'v:imagedata');
+      rec.gambar.push({ cx: ukurPt('width'), cy: ukurPt('height'), jangkar: false, rid: im ? atr(im, 'r:id') : null });
       rec.kejadian.push('G');
     }
   }
@@ -1493,6 +1495,106 @@ function periksaModel(model, opsi) {
     tambah('judul', 'gagal', 'Halaman judul tidak ditemukan', 'Pedoman 2.1.2', 'Halaman judul (sama dengan sampul + keterangan tujuan) tidak ditemukan sesudah sampul.');
   }
 
+  /* ---------- Konsistensi identitas ---------- */
+  // NIM, nama penulis, judul TA, dan nama pembimbing harus sama di semua halaman yang memuatnya.
+  {
+    const G2 = 'identitas';
+    const sumber = ['sampul', 'judul', 'pernyataan', 'pengesahan', 'persetujuan', 'abstrak', 'abstract'].map(cariB).filter(Boolean);
+    const barisB = (b) => range(b.mulai, b.akhir).filter((i) => P[i].teks.trim());
+    const modus = (xs) => { const n = new Map(); for (const x of xs) n.set(x, (n.get(x) || 0) + 1); return [...n].sort((a, b) => b[1] - a[1])[0][0]; };
+    // Isian template yang belum diisi ("Nama : ......", "NAMA PENULIS", "(Nama & gelar)") tidak ikut dibandingkan.
+    const isianKosong = (v) => !/\p{L}{2,}/u.test(v) || /\.{4,}|…{2,}|\bnama\s+(penulis|mahasiswa|lengkap|dosen)\b|\bauthor'?s?\s+name\b|\bgelar\b|^\s*(judul\s+(tugas\s+akhir|ta|skripsi)|thesis\s+title)\s*$/i.test(v);
+
+    const nim = [];
+    for (const b of sumber) for (const i of barisB(b)) {
+      const t = P[i].teks;
+      if (/NIDN|NUPTK|NIDK|\bNIP\b/i.test(t)) continue;
+      const m = /(?<!\d)(\d{8,14})(?!\d)/.exec(t);
+      if (m && (/\bNIM\b/i.test(t) || /^\s*\d{8,14}\s*$/.test(t))) nim.push({ i, b, v: m[1], s: m.index, e: m.index + m[1].length });
+    }
+    const nilaiNim = [...new Set(nim.map((x) => x.v))];
+    if (nilaiNim.length > 1) {
+      const utama = modus(nim.map((x) => x.v));
+      const lain = nim.filter((x) => x.v !== utama);
+      tambah(G2, 'gagal', 'NIM berbeda antarhalaman', 'Pedoman 3.5–3.11', `NIM tertulis ${nilaiNim.join(', ')}. Samakan NIM di semua halaman.`,
+        nim.map((x) => rinci(x.i, `${x.b.label}: ${x.v}`)),
+        lain.map((x) => ({ p: x.i, s: x.s, e: x.e, hl: true, komentar: `NIM di ${x.b.label} (${x.v}) berbeda dengan halaman lain (${utama}).` })));
+    } else if (nim.length > 1) tambah(G2, 'lulus', 'NIM sama di semua halaman', 'Pedoman 3.5–3.11', `${nilaiNim[0]} (${[...new Set(nim.map((x) => x.b.label))].join(', ')}).`);
+
+    // Nama: baris sebelum NIM di sampul/halaman judul, isian "Nama :", dan baris terakhir di atas judul Abstrak/Abstract.
+    const kunciNama = (t) => normJudul(t).normalize('NFD').replace(/\p{M}/gu, '').replace(/[^\p{L}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
+    const nama = [];
+    for (const b of sumber) {
+      const idx = barisB(b);
+      if (b.kunci === 'sampul' || b.kunci === 'judul') {
+        const k = idx.findIndex((i) => /^\s*(NIM\s*[:：]?\s*)?\d{8,14}\s*$/i.test(P[i].teks));
+        if (k > 0 && !/\d/.test(P[idx[k - 1]].teks) && hitungKata(P[idx[k - 1]].teks) <= 6) nama.push({ i: idx[k - 1], b, v: P[idx[k - 1]].teks.trim() });
+      } else if (b.kunci === 'abstrak' || b.kunci === 'abstract') {
+        const j = b.pra[b.pra.length - 1];
+        if (b.pra.length >= 2 && hitungKata(P[j].teks) <= 6) nama.push({ i: j, b, v: P[j].teks.trim() });
+      } else {
+        for (const i of idx) {
+          const m = /^\s*Nama(?:\s+(?:Lengkap|Mahasiswa|Penulis))?\s*[:：]\s*(.+?)\s*$/i.exec(P[i].teks);
+          if (m) { nama.push({ i, b, v: m[1] }); break; }
+        }
+      }
+    }
+    for (let k = nama.length - 1; k >= 0; k--) if (isianKosong(nama[k].v)) nama.splice(k, 1);
+    const nilaiNama = [...new Set(nama.map((x) => kunciNama(x.v)))].filter(Boolean);
+    if (nilaiNama.length > 1) {
+      const utama = modus(nama.map((x) => kunciNama(x.v)));
+      tambah(G2, 'perhatian', 'Nama penulis berbeda antarhalaman', 'Pedoman 3.5–3.12', 'Nama penulis tertulis berbeda. Samakan ejaan nama di semua halaman.',
+        nama.map((x) => rinci(x.i, `${x.b.label}: ${x.v}`)),
+        nama.filter((x) => kunciNama(x.v) !== utama).map((x) => ({ p: x.i, hl: true, komentar: `Nama di ${x.b.label} berbeda dengan halaman lain; samakan penulisan nama penulis.` })));
+    } else if (nama.length > 1) tambah(G2, 'lulus', 'Nama penulis sama di semua halaman', 'Pedoman 3.5–3.12', `${nama[0].v} (${[...new Set(nama.map((x) => x.b.label))].join(', ')}).`);
+
+    // Judul TA: dibandingkan dengan judul di sampul.
+    const kunciJudulTA = (t) => kunciNama(t).replace(/\s+/g, '');
+    const acuan = infoSampul && infoSampul.judulTA ? kunciJudulTA(infoSampul.judulTA) : '';
+    const sama = (v) => { const k = kunciJudulTA(v); return k.length >= 10 && (acuan.includes(k) ? k.length / acuan.length >= 0.6 : k.includes(acuan)); };
+    if (acuan.length >= 10 && !isianKosong(infoSampul.judulTA)) {
+      const judul = [];
+      const bAbs = cariB('abstrak');
+      if (bAbs && bAbs.pra.length >= 2) judul.push({ i: bAbs.pra[0], b: bAbs, v: bAbs.pra.slice(0, -1).map((i) => P[i].teks).join(' ') });
+      for (const b of sumber) {
+        if (!['pernyataan', 'pengesahan', 'persetujuan'].includes(b.kunci)) continue;
+        for (const i of barisB(b)) {
+          const t = P[i].teks;
+          const m = /^\s*Judul(?:\s+(?:Tugas Akhir|TA|Skripsi))?\s*[:：]\s*(.+?)\s*$/i.exec(t) || /\bberjudul\s*[:"“]?\s*(.+?)["”]?\s*(?:,|\badalah\b|\bmerupakan\b|\bini\b|$)/i.exec(t);
+          if (m && !isianKosong(m[1]) && kunciJudulTA(m[1]).length >= 10) { judul.push({ i, b, v: m[1] }); break; }
+        }
+      }
+      for (let k = judul.length - 1; k >= 0; k--) if (isianKosong(judul[k].v)) judul.splice(k, 1);
+      const beda = judul.filter((x) => !sama(x.v));
+      if (beda.length) tambah(G2, 'perhatian', 'Judul TA berbeda dengan sampul', 'Pedoman 3.5–3.12', `Judul di halaman berikut tidak sama dengan judul di sampul: "${kutip(infoSampul.judulTA, 90)}".`,
+        beda.map((x) => rinci(x.i, `${x.b.label}: ${kutip(x.v, 90)}`)),
+        beda.map((x) => ({ p: x.i, hl: true, komentar: `Judul di ${x.b.label} berbeda dengan judul di sampul. Samakan judul Tugas Akhir di semua halaman.` })));
+      else if (judul.length) tambah(G2, 'lulus', 'Judul TA sama dengan sampul', 'Pedoman 3.5–3.12', [...new Set(judul.map((x) => x.b.label))].join(', ') + '.');
+    }
+
+    // Pembimbing: nama di atas NIDN pada halaman pengesahan harus sama dengan yang disebut di Kata Pengantar.
+    if (B.pengesahan && B.kataPengantar) {
+      const idx = barisB(B.pengesahan);
+      const intiNama = (t) => t.replace(/[()]/g, '').split(',')[0].split(/\s+/).filter((w) => w && !/\.$/.test(w) && /\p{L}{2,}/u.test(w)).join(' ');
+      const lipat = (t) => t.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/\s+/g, ' ');
+      const teksKP = lipat(B.kataPengantar.isi.map((i) => P[i].teks).join(' '));
+      const iKP = B.kataPengantar.isi.find((i) => /pembimbing/i.test(P[i].teks));
+      idx.forEach((i, k) => {
+        if (!/NIDN|NUPTK|NIDK/i.test(P[i].teks) || k === 0) return;
+        const iNama = idx[k - 1];
+        const label = idx.slice(Math.max(0, k - 4), k).map((j) => P[j].teks).join(' ');
+        if (!/pembimbing/i.test(label) || /pembimbing/i.test(P[iNama].teks) || isianKosong(P[iNama].teks)) return;
+        const inti = intiNama(P[iNama].teks);
+        if (hitungKata(inti) < 1 || inti.length < 4 || iKP == null) return;
+        if (teksKP.includes(lipat(inti))) tambah(G2, 'lulus', 'Nama pembimbing sama di pengesahan dan Kata Pengantar', 'Pedoman 3.9–3.10', inti + '.');
+        else tambah(G2, 'perhatian', 'Nama pembimbing berbeda di Kata Pengantar', 'Pedoman 3.9–3.10',
+          `Halaman pengesahan menulis pembimbing "${kutip(P[iNama].teks, 60)}", tetapi nama itu tidak ditemukan di Kata Pengantar.`,
+          [rinci(iNama, `Pengesahan: ${kutip(P[iNama].teks, 60)}`), rinci(iKP)],
+          [{ p: iKP, hl: false, komentar: `Nama pembimbing di Kata Pengantar tidak sama dengan halaman pengesahan ("${kutip(P[iNama].teks, 60)}"). Samakan nama dan gelarnya.` }]);
+      });
+    }
+  }
+
   /* ---------- Bagian awal lain ---------- */
   const isiBagian = (b) => (b ? b.isi.filter((i) => P[i].tabel == null) : []);
   const prosaB = (b, minKata = 3) => isiBagian(b).filter((i) => hitungKata(P[i].teks) >= minKata);
@@ -1595,23 +1697,49 @@ function periksaModel(model, opsi) {
     }
     if (iKunci == null) tambah(grup, 'gagal', inggris ? 'Keywords belum ada' : 'Kata kunci belum ada', 'Pedoman 3.12', `Di bawah ${nama} dituliskan ${inggris ? 'Keywords' : 'Kata Kunci'} (3–5).`, [],
       [{ p: isi.length ? isi[isi.length - 1] : b.judul.i, hl: false, komentar: `Tambahkan ${inggris ? 'Keywords' : 'Kata Kunci'} (3–5) di bawah ${nama} (Pedoman 3.12 butir 6).` }]);
-    else {
-      const daftarKunci = P[iKunci].teks.replace(rxKunci, '').split(/[,;]/).map((s) => s.replace(/[.\s]+$/, '').trim()).filter((s) => /\p{L}/u.test(s));
+    let daftarKunci = null;
+    if (iKunci != null) {
+      daftarKunci = P[iKunci].teks.replace(rxKunci, '').split(/[,;]/).map((s) => s.replace(/[.\s]+$/, '').trim()).filter((s) => /\p{L}/u.test(s));
       if (daftarKunci.length >= 3 && daftarKunci.length <= 5) tambah(grup, 'lulus', `${daftarKunci.length} ${inggris ? 'keywords' : 'kata kunci'} (3–5)`, 'Pedoman 3.12', daftarKunci.join(', '));
       else tambah(grup, 'gagal', `${daftarKunci.length} ${inggris ? 'keywords' : 'kata kunci'}`, 'Pedoman 3.12', `${inggris ? 'Keywords' : 'Kata kunci'} berjumlah 3–5.`, [rinci(iKunci)],
         [{ p: iKunci, hl: true, komentar: `${inggris ? 'Keywords' : 'Kata kunci'} berjumlah 3–5 (Pedoman 3.12 butir 6); sekarang ${daftarKunci.length}.` }]);
     }
+    return { kunci: daftarKunci, kata, teks: isi.map((i) => P[i].teks).join(' '), p: isi.length ? isi[0] : b.judul.i };
   }
-  if (B.abstrak) cekAbstrak(B.abstrak, 'abstrak', false);
-  if (B.abstract) cekAbstrak(B.abstract, 'abstract', true);
+  const absId = B.abstrak ? cekAbstrak(B.abstrak, 'abstrak', false) : null;
+  const absEn = B.abstract ? cekAbstrak(B.abstract, 'abstract', true) : null;
   if (B.abstrak && B.abstract) {
     const pA = P[B.abstract.mulai];
     if (!pA.kerasSebelum && P[B.abstrak.mulai].hal === pA.hal) tambah('abstract', 'gagal', 'Abstrak dan Abstract satu halaman', 'Pedoman 3.12', 'Abstrak dan Abstract diletakkan di halaman berbeda.');
+    // Abstract adalah terjemahan Abstrak: jumlah kata kunci, panjang, dan angka yang disebut semestinya sama.
+    const beda = [];
+    if (absId.kunci && absEn.kunci && absId.kunci.length !== absEn.kunci.length) beda.push(`Kata Kunci ${absId.kunci.length}, Keywords ${absEn.kunci.length}`);
+    if (absId.kata >= 50 && absEn.kata >= 50) {
+      const r = absEn.kata / absId.kata;
+      if (r < 0.65 || r > 1.35) beda.push(`panjang Abstrak ${absId.kata} kata, Abstract ${absEn.kata} kata`);
+    }
+    // Angka ≥ 2 digit; 3,5 dan 3.5 dianggap sama.
+    const angka = (t) => { const m = new Map(); for (const x of t.match(/\d+(?:[.,]\d+)*/g) || []) { const k = x.replace(/[.,]/g, ''); if (k.length >= 2) m.set(k, x); } return m; };
+    const aId = angka(absId.teks), aEn = angka(absEn.teks);
+    const tanpaPadanan = [...aId].filter(([k]) => !aEn.has(k)).map(([, x]) => x);
+    const tanpaPadananEn = [...aEn].filter(([k]) => !aId.has(k)).map(([, x]) => x);
+    if (tanpaPadanan.length) beda.push(`angka di Abstrak yang tidak ada di Abstract: ${tanpaPadanan.slice(0, 8).join(', ')}`);
+    if (tanpaPadananEn.length) beda.push(`angka di Abstract yang tidak ada di Abstrak: ${tanpaPadananEn.slice(0, 8).join(', ')}`);
+    if (absId.kata && absEn.kata) {
+      if (!beda.length) tambah('abstract', 'lulus', 'Abstrak dan Abstract selaras', 'Pedoman 3.12', 'Jumlah kata kunci, panjang, dan angka yang disebut sepadan.');
+      else tambah('abstract', 'perhatian', 'Abstrak dan Abstract belum selaras', 'Pedoman 3.12', 'Abstract adalah padanan Abstrak dalam bahasa Inggris; isinya semestinya sepadan. Ditemukan: ' + beda.join('; ') + '.', [],
+        [{ p: absEn.p, hl: false, komentar: 'Abstract belum sepadan dengan Abstrak: ' + beda.join('; ') + '. Pastikan Abstract menerjemahkan isi Abstrak yang sama (Pedoman 3.12).' }]);
+    }
   }
 
   /* ---------- Daftar isi & daftar lain ---------- */
   const entriDaftar = (b) => (b ? b.isi.filter((i) => P[i].teks.trim()) : []);
   const bersihEntri = (t) => t.replace(/[\t ]*[.…_ ]{2,}[\t ]*([ivxlcdm]+|\d+)?\s*$/i, '').replace(/\t+\s*([ivxlcdm]+|\d+)\s*$/i, '').replace(/\s+/g, ' ').trim();
+  // Nomor halaman entri: sesudah tab atau titik-titik penghubung.
+  const halEntri = (t) => { const m = /(?:\t|[.…_]{2,}\s*|\s{2,})([ivxlcdm]+|\d+)$/i.exec(t.replace(/\s+$/, '')); return m ? m[1] : null; };
+  const kunciJ = (t) => normJudul(t).normalize('NFD').replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  const halTertulis = (i) => { const nm = model.nomor[P[i].hal]; return nm ? formatNomor(nm.n, nm.fmt) : null; };
+  const kapsiSemua = babList.length ? kapsiBab(babList) : [];
   if (B.daftarIsi) {
     const b = B.daftarIsi;
     const entri = entriDaftar(b);
@@ -1641,6 +1769,74 @@ function periksaModel(model, opsi) {
       if (babEntri.length && salah.length) tambah('daftarIsi', 'gagal', 'Judul bab di daftar isi belum tebal kapital', 'Pedoman 3.13', 'Judul setiap bab di daftar isi ditulis tebal dan kapital.', salah.map((i) => rinci(i)),
         tandaParagraf(salah, 'Judul bab di daftar isi ditulis tebal dan huruf kapital (Pedoman 3.13 butir 2).'));
     }
+    // Entri ditulis sama dengan judul di naskah, dengan nomor halaman yang benar (Pedoman 2.1.9).
+    if (berbab && entri.length) {
+      const judulNaskah = [];
+      for (const x of bagian) {
+        if (!x.judul || x.kunci === 'daftarIsi') continue;
+        judulNaskah.push({ i: x.judul.i, teks: x.baris.map((i) => P[i].teks.trim()).join(' '), nomor: x.kunci === 'bab' ? 'BAB ' + x.bab.teksNomor.toUpperCase() : null });
+      }
+      judulNaskah.push(...subbabNaskah());
+      const entriToc = [];
+      for (let k = 0; k < entri.length; k++) {
+        const i = entri[k];
+        let judul = bersihEntri(P[i].teks), hal = halEntri(P[i].teks);
+        // "BAB I" dan nama bab kadang ditulis pada dua baris daftar isi.
+        if (/^BAB\s+[IVXLC\d]+$/i.test(judul) && k + 1 < entri.length && !/^(BAB\s|\d)/i.test(P[entri[k + 1]].teks.trim())) {
+          judul += ' ' + bersihEntri(P[entri[k + 1]].teks);
+          hal = hal || halEntri(P[entri[k + 1]].teks);
+          k++;
+        }
+        const mNo = /^(\d+(?:\.\d+){1,3})\.?\s/.exec(judul), mBab = /^BAB\s+([IVXLC]+|\d+)\b/i.exec(judul);
+        entriToc.push({ i, judul, hal, nomor: mNo ? mNo[1] : (mBab ? 'BAB ' + mBab[1].toUpperCase() : null) });
+      }
+      const perNomor = new Map(judulNaskah.filter((x) => x.nomor).map((x) => [x.nomor, x]));
+      const perKunci = new Map(judulNaskah.map((x) => [kunciJ(x.teks), x]));
+      // Subbab yang tidak tebal/bergaya judul tetap dicari menurut nomornya.
+      const cariNomor = (n) => {
+        for (const bb of babList) for (const i of bb.isi) if (P[i].tabel == null && !P[i].toc && new RegExp('^' + n.replace(/\./g, '\\.') + '\\.?\\s').test(P[i].teks.trim())) return { i, teks: P[i].teks.trim() };
+        return null;
+      };
+      // Judul bernomor otomatis (multilevel list Word) tidak menyimpan angkanya di teks: entri dicocokkan lewat judulnya saja.
+      const otomatisNomor = babList.flatMap((bb) => bb.isi).filter((i) => P[i].bernomor && P[i].tabel == null && (P[i].outline != null || gayaJudul(P[i])) && hitungKata(P[i].teks) <= 20);
+      const perJudul = new Map([...otomatisNomor.map((i) => [kunciJ(P[i].teks), { i, teks: P[i].teks.trim() }]),
+        ...subbabNaskah().map((x) => [kunciJ(x.teks.replace(/^[\d.]+\s+/, '')), x])]);
+      const beda = [], tiada = [], salahHal = [], dicantumkan = new Set();
+      for (const e of entriToc) {
+        let h = e.nomor ? (perNomor.get(e.nomor) || (/^\d/.test(e.nomor) ? cariNomor(e.nomor) : null)) : perKunci.get(kunciJ(e.judul));
+        if (!h && e.nomor && /^\d/.test(e.nomor) && otomatisNomor.length) {
+          h = perJudul.get(kunciJ(e.judul.replace(/^[\d.]+\s+/, '')));
+          if (!h) continue;
+          dicantumkan.add(e.nomor);
+        } else if (e.nomor) {
+          if (!h) { tiada.push(e); continue; }
+          dicantumkan.add(e.nomor);
+          if (kunciJ(e.judul) !== kunciJ(h.teks)) beda.push({ e, h });
+        }
+        if (!h || !model.andal || !e.hal) continue;
+        const t = halTertulis(h.i);
+        if (t && t.toLowerCase() !== e.hal.toLowerCase()) salahHal.push({ e, h, t });
+      }
+      const belum = judulNaskah.filter((x) => x.tingkat === 1 && !dicantumkan.has(x.nomor));
+      if (beda.length) tambah('daftarIsi', 'gagal', 'Judul di daftar isi berbeda dengan naskah', 'Pedoman 2.1.9',
+        'Daftar isi ditulis sama dengan judul di naskah. Perbarui daftar isi (klik kanan → Update Field → Update entire table) atau samakan judulnya.',
+        beda.map((x) => rinci(x.e.i, `${kutip(x.e.judul, 50)} — di naskah: ${kutip(x.h.teks, 50)}`)),
+        beda.map((x) => ({ p: x.e.i, hl: true, komentar: `Entri ini berbeda dengan judul di naskah ("${kutip(x.h.teks, 60)}"). Daftar isi ditulis sama dengan isi (Pedoman 2.1.9).` })));
+      if (tiada.length) tambah('daftarIsi', 'gagal', 'Entri daftar isi tidak ada di naskah', 'Pedoman 2.1.9',
+        'Bab/subbab berikut tercantum di daftar isi tetapi tidak ditemukan di naskah (mungkin sudah dihapus atau dinomori ulang).',
+        tiada.map((e) => rinci(e.i)), tiada.map((e) => ({ p: e.i, hl: true, komentar: 'Judul ini tidak ditemukan di naskah. Perbarui daftar isi (Update Field) atau hapus entrinya (Pedoman 2.1.9).' })));
+      if (belum.length) tambah('daftarIsi', 'perhatian', 'Subbab belum tercantum di daftar isi', 'Pedoman 2.1.9',
+        'Daftar isi memuat semua bagian tulisan; subbab derajat kedua dan ketiga (mis. 1.1.1) boleh tidak ditulis, tetapi subbab seperti 1.1 dicantumkan.',
+        belum.map((x) => rinci(x.i)));
+      if (salahHal.length) tambah('daftarIsi', 'gagal', 'Nomor halaman di daftar isi tidak sesuai', 'Pedoman 2.1.9',
+        `${salahHal.length} entri menunjuk halaman yang berbeda dengan letak judulnya. Perbarui daftar isi (klik kanan → Update Field → Update page numbers only).`,
+        salahHal.map((x) => rinci(x.e.i, `${kutip(x.e.judul, 50)}: tertulis ${x.e.hal}, di naskah ${x.t}`)),
+        salahHal.map((x, n) => ({ p: x.e.i, hl: true, komentar: n === 0 ? 'Nomor halaman entri ini dan entri bersorot lainnya tidak sesuai dengan letak judulnya. Perbarui daftar isi (Update Field → Update page numbers only).' : null })));
+      if (!beda.length && !tiada.length && !belum.length && !salahHal.length && entriToc.some((e) => e.nomor)) {
+        tambah('daftarIsi', 'lulus', model.andal ? 'Daftar isi sama dengan judul dan halaman naskah' : 'Daftar isi sama dengan judul di naskah', 'Pedoman 2.1.9',
+          `${entriToc.length} entri dicocokkan.` + (model.andal ? '' : ' Nomor halaman tidak dicocokkan karena berkas tidak menyimpan tata letak Word.'));
+      }
+    }
     const otomatis = P.some((p) => p.toc && dalam(b, p.i));
     tambah('daftarIsi', 'info', otomatis ? 'Daftar isi otomatis' : 'Daftar isi diketik manual', 'Saran',
       otomatis ? 'Daftar isi dibuat dengan fitur Word. Perbarui (Update Field) sebelum dicetak.' : 'Daftar isi tidak dibuat dengan fitur Word (References → Table of Contents); nomor halaman harus dicocokkan manual.');
@@ -1661,6 +1857,26 @@ function periksaModel(model, opsi) {
       salah.map((x) => rinci(x.i, `${kutip(P[x.i].teks, 50)} — ${x.kata.join(', ')}`)),
       salah.map((x, n) => ({ p: x.i, hl: true, komentar: n === 0 ? `Nama ${awalan.toLowerCase()} ditulis dengan huruf kapital di awal setiap kata (title case), kecuali kata tugas seperti "dan", "di", "pada" (Pedoman 2.1.10).` : null })));
     cekSpasi(k, entri, 1, 'Pedoman 3.14');
+    // Daftar Tabel/Gambar memuat semua judul tabel/gambar di naskah, sama nama dan halamannya.
+    if (berbab && k !== 'daftarLampiran' && kapsiSemua.length) {
+      const jenis = k === 'daftarTabel' ? 'tabel' : 'gambar';
+      const kap = new Map(kapsiSemua.filter((c) => c.jenis === jenis && c.urut != null).map((c) => [`${c.bab}.${c.urut}`, c]));
+      const daftar = new Map();
+      for (const i of entri) { const m = new RegExp('^' + awalan + '\\s+(\\d+\\.\\d+)', 'i').exec(P[i].teks.trim()); if (m && !daftar.has(m[1])) daftar.set(m[1], i); }
+      const masalah = [], tanda = [];
+      for (const [n, c] of kap) if (!daftar.has(n)) { masalah.push(rinci(c.i, `${awalan} ${n} belum dicantumkan`)); tanda.push({ p: c.i, hl: false, komentar: `${awalan} ${n} belum tercantum di ${LABEL[k]} (Pedoman 2.1.10).` }); }
+      for (const [n, i] of daftar) {
+        const c = kap.get(n);
+        if (!c) { masalah.push(rinci(i, `${awalan} ${n} tidak ada di naskah`)); tanda.push({ p: i, hl: true, komentar: `${awalan} ${n} tidak ditemukan di naskah; perbarui ${LABEL[k]}.` }); continue; }
+        const nama = bersihEntri(P[i].teks).replace(new RegExp('^' + awalan + '\\s+[\\d.]+\\s*[.:]?\\s*', 'i'), '');
+        if (kunciJ(nama) !== kunciJ(c.judul)) { masalah.push(rinci(i, `${awalan} ${n}: nama berbeda — di naskah: ${kutip(c.judul, 50)}`)); tanda.push({ p: i, hl: true, komentar: `Nama ${awalan.toLowerCase()} ini berbeda dengan judulnya di naskah ("${kutip(c.judul, 60)}").` }); }
+        const hal = halEntri(P[i].teks), t = halTertulis(c.i);
+        if (model.andal && hal && t && hal.toLowerCase() !== t.toLowerCase()) masalah.push(rinci(i, `${awalan} ${n}: halaman tertulis ${hal}, di naskah ${t}`));
+      }
+      if (masalah.length) tambah(k, 'gagal', `${LABEL[k]} belum sesuai dengan naskah`, 'Pedoman 2.1.10',
+        `${LABEL[k]} memuat semua ${awalan.toLowerCase()} di naskah dengan nama dan nomor halaman yang sama. Perbarui daftarnya (klik kanan → Update Field).`, masalah, tanda);
+      else if (kap.size) tambah(k, 'lulus', 'Sama dengan judul di naskah', 'Pedoman 2.1.10', `${kap.size} ${awalan.toLowerCase()} tercantum dengan nama yang sama` + (model.andal ? ' dan halaman yang benar.' : '.'));
+    }
   }
 
   /* ---------- Isi: bab (skema Skripsi dan Aplikatif) ---------- */
@@ -1736,8 +1952,124 @@ function periksaModel(model, opsi) {
     } else tambah('isi', 'info', 'Jumlah halaman isi', 'Pedoman 3.3', `± ${jml} halaman menurut pemisah halaman yang tersimpan; simpan ulang dengan Microsoft Word agar terhitung tepat. Ketentuan: 65–90 halaman.`);
     cekSpasi('isi', prosaIsi, 1.5, 'Pedoman 3.2');
     cekKeteranganTabelGambar(babList);
+    cekRujukan();
+  }
+  // Tabel, gambar, dan persamaan bernomor urut per bab dan disebut di teks.
+  function cekRujukan() {
+    const NAMA = { tabel: 'Tabel', gambar: 'Gambar', grafik: 'Grafik', diagram: 'Diagram', persamaan: 'Persamaan' };
+    const kapsi = kapsiSemua.filter((c) => c.urut != null);
+    // Persamaan tampil: paragraf berumus (OMML) yang teks lainnya hanya nomor, mis. "(3.1)"; nomor boleh di sel tabel sebelahnya.
+    const persamaan = [];
+    // Dipindai per rentang bab, bukan b.isi: paragraf yang hanya berisi rumus dianggap kosong oleh model.
+    for (const b of babList) for (let i = b.mulai; i <= b.akhir; i++) {
+      const p = P[i];
+      if (!p.math || p.toc || p.teks.replace(/\(\s*\d+\s*\.\s*\d+\s*\)/, '').trim().length > 3) continue;
+      let m = /\(\s*(\d+)\s*\.\s*(\d+)\s*\)/.exec(p.teks);
+      if (!m && p.tabel != null) {
+        for (let j = i + 1; j <= i + 3 && j < P.length && P[j].tabel === p.tabel; j++) {
+          m = /^\(?\s*(\d+)\s*\.\s*(\d+)\s*\)?$/.exec(P[j].teks.trim());
+          if (m) break;
+        }
+      }
+      const kanan = !m || p.tabel != null || p.jc === 'right' || /\t\s*\(\s*\d+\s*\.\s*\d+\s*\)\s*$/.test(p.teks);
+      persamaan.push({ i, b, jenis: 'persamaan', bab: m ? parseInt(m[1], 10) : null, urut: m ? parseInt(m[2], 10) : null, kanan });
+    }
+    const bernomor = [...kapsi, ...persamaan.filter((x) => x.urut != null)].sort((a, b) => a.i - b.i);
+    const nama = (c) => (c.jenis === 'persamaan' ? `Persamaan (${c.bab}.${c.urut})` : `${NAMA[c.jenis]} ${c.bab}.${c.urut}`);
+
+    // Urutan per jenis per bab: 1, 2, 3 tanpa terlewat atau dipakai dua kali.
+    const tidakUrut = [];
+    const terakhir = new Map();
+    for (const c of bernomor) {
+      const k = c.jenis + '|' + c.bab, lalu = terakhir.get(k) || 0;
+      if (c.urut !== lalu + 1) tidakUrut.push({ c, ket: c.urut <= lalu ? `nomor ${c.bab}.${c.urut} dipakai lagi/mundur; seharusnya ${c.bab}.${lalu + 1}` : `nomor ${c.bab}.${lalu + 1} terlewat` });
+      terakhir.set(k, Math.max(lalu, c.urut));
+    }
+
+    // Rujukan di teks: "Tabel 3.1", "Gambar 3.1 dan 3.2", "Gambar 3.1–3.4", "Persamaan (3.1)".
+    const kapsiIdx = new Set(kapsiSemua.map((c) => c.i));
+    const sebut = new Map();
+    const catat = (jenis, bab, urut, i) => { const k = `${jenis}|${bab}.${urut}`; if (!sebut.has(k)) sebut.set(k, i); };
+    const RX_SEBUT = /\b(Tabel|Gambar|Grafik|Diagram|Persamaan|Pers\.|Equation|Eq\.)\s*\(?(\d+)\.(\d+)\)?((?:\s*(?:,|dan|serta|&|–|-|s\.d\.?|sampai|hingga)\s*\(?\d+\.\d+\)?)*)/gi;
+    for (const b of babList) for (const i of b.isi) {
+      if (kapsiIdx.has(i) || P[i].toc) continue;
+      for (const m of P[i].teks.matchAll(RX_SEBUT)) {
+        const jenis = /^(pers|eq)/i.test(m[1]) ? 'persamaan' : m[1].toLowerCase();
+        let bab = parseInt(m[2], 10), lalu = parseInt(m[3], 10);
+        catat(jenis, bab, lalu, i);
+        for (const x of m[4].matchAll(/(,|dan|serta|&|–|-|s\.d\.?|sampai|hingga)\s*\(?(\d+)\.(\d+)\)?/gi)) {
+          const b2 = parseInt(x[2], 10), u2 = parseInt(x[3], 10);
+          if (/^(–|-|s\.d|sampai|hingga)/i.test(x[1]) && b2 === bab) for (let u = lalu + 1; u < u2; u++) catat(jenis, bab, u, i);
+          catat(jenis, b2, u2, i);
+          bab = b2; lalu = u2;
+        }
+      }
+    }
+    const belumDirujuk = [], sesudah = [];
+    for (const c of bernomor) {
+      const j = sebut.get(`${c.jenis}|${c.bab}.${c.urut}`);
+      if (j == null) belumDirujuk.push(c); else if (j > c.i) sesudah.push(c);
+    }
+
+    const urutTG = tidakUrut.filter((x) => x.c.jenis !== 'persamaan');
+    if (urutTG.length) tambah('isi', 'gagal', 'Nomor tabel/gambar tidak urut', 'Pedoman 3.16', 'Tabel dan gambar dinomori urut per bab (Tabel 3.1, 3.2, 3.3); nomor tidak boleh terlewat atau dipakai dua kali.',
+      urutTG.map((x) => rinci(x.c.i, `${nama(x.c)}: ${x.ket}`)), urutTG.map((x) => ({ p: x.c.i, hl: true, komentar: `${nama(x.c)}: ${x.ket} (Pedoman 3.16).` })));
+    if (belumDirujuk.length) tambah('isi', 'perhatian', 'Tabel/gambar/persamaan belum dirujuk di teks', 'Saran',
+      'Setiap tabel, gambar, dan persamaan disebut di teks (mis. "seperti terlihat pada Tabel 3.1") agar pembaca tahu maksud dan letaknya.',
+      belumDirujuk.map((c) => rinci(c.i, `${nama(c)} — ${kutip(P[c.i].teks, 50)}`)),
+      belumDirujuk.slice(0, 15).map((c) => ({ p: c.i, hl: false, komentar: `${nama(c)} belum disebut di teks. Rujuk di paragraf sebelumnya, mis. "… ditunjukkan pada ${nama(c)}".` })));
+    if (sesudah.length) tambah('isi', 'info', 'Dirujuk sesudah tabel/gambar muncul', 'Saran', 'Sebaiknya tabel/gambar disebut di teks sebelum ditampilkan, bukan sesudahnya.',
+      sesudah.map((c) => rinci(c.i, nama(c))));
+    if (bernomor.length && !urutTG.length && !belumDirujuk.length) tambah('isi', 'lulus', 'Tabel/gambar bernomor urut dan dirujuk di teks', 'Pedoman 3.16', `${bernomor.length} tabel/gambar/persamaan.`);
+
+    if (persamaan.length) {
+      const msl = [];
+      for (const x of persamaan) {
+        const label = x.urut != null ? nama(x) : `Persamaan di ${x.b.label}`;
+        if (x.urut == null) { msl.push({ x, label, ket: 'belum bernomor' }); continue; }
+        if (x.bab !== x.b.bab.nomor) msl.push({ x, label, ket: `nomor bab ${x.bab} padahal berada di ${x.b.label}` });
+        if (!x.kanan) msl.push({ x, label, ket: 'nomor belum di tepi kanan (pakai tab rata kanan atau tabel tanpa garis)' });
+      }
+      for (const t of tidakUrut.filter((y) => y.c.jenis === 'persamaan')) msl.push({ x: t.c, label: nama(t.c), ket: t.ket });
+      if (msl.length) tambah('isi', 'perhatian', 'Penomoran persamaan belum rapi', 'Saran',
+        'Persamaan diberi nomor urut per bab di dalam kurung pada tepi kanan, mis. (3.1), lalu dirujuk di teks dengan "Persamaan (3.1)".',
+        msl.map((y) => rinci(y.x.i, `${y.label}: ${y.ket}`)), msl.slice(0, 15).map((y) => ({ p: y.x.i, hl: false, komentar: `${y.label}: ${y.ket}.` })));
+      else tambah('isi', 'lulus', 'Persamaan bernomor urut di tepi kanan', 'Saran', `${persamaan.length} persamaan.`);
+    }
   }
   function cekKeteranganTabelGambar(daftarBab) {
+    const kapsi = kapsiBab(daftarBab);
+    if (!kapsi.length) return;
+    const masalah = [];
+    for (const c of kapsi) {
+      const m = [];
+      if (c.urut == null) m.push('nomor tidak menyertakan nomor bab (mis. ' + (c.jenis === 'tabel' ? 'Tabel' : 'Gambar') + ` ${c.b.bab.nomor}.1)`);
+      else if (c.bab !== c.b.bab.nomor) m.push(`nomor bab ${c.bab} padahal berada di ${c.b.label}`);
+      if (c.titik) m.push('ada titik sesudah nomor');
+      const tc = bukanTitleCase(c.judul);
+      if (tc.length) m.push('nama belum title case (' + tc.slice(0, 3).join(', ') + ')');
+      if (c.jenis === 'tabel' && !(c.sesudah && c.sesudah.jenis === 'tabel')) m.push('judul tabel tidak tepat di atas tabel');
+      if (c.jenis === 'gambar' && !(c.sebelum && c.sebelum.jenis === 'p' && P[c.sebelum.p].gambar.length)) m.push('judul gambar tidak tepat di bawah gambar');
+      if (c.jenis === 'gambar' && P[c.i].jc !== 'center') m.push('judul gambar tidak di tengah');
+      if (m.length) masalah.push({ c, m });
+    }
+    tambahKeteranganTabelGambar(kapsi, masalah);
+  }
+  // Judul subbab bernomor di bab isi (1.1, 1.1.1): pendek, tanpa tanda baca penutup, tebal atau bergaya judul.
+  function subbabNaskah() {
+    const out = [];
+    for (const b of babList) for (const i of b.isi) {
+      const p = P[i];
+      if (p.tabel != null || p.toc) continue;
+      const m = /^(\d+(?:\.\d+){1,3})\.?\s+(\S.*)$/.exec(p.teks.trim());
+      if (!m || hitungKata(m[2]) > 20 || /[.;:,]$/.test(m[2].trim())) continue;
+      if (!(rasio(p, 'tebal') >= 0.6 || p.outline != null || gayaJudul(p))) continue;
+      out.push({ i, teks: p.teks.trim(), nomor: m[1], tingkat: m[1].split('.').length - 1 });
+    }
+    return out;
+  }
+  // Judul tabel/gambar di bab isi: paragraf "Tabel 3.1 …"/"Gambar 3.1 …" yang di tengah, bergaya keterangan, atau menempel pada tabel/gambar.
+  function kapsiBab(daftarBab) {
     const posBlok = new Map(model.blok.map((x, k) => [x.jenis === 'p' ? 'p' + x.p : 't' + x.t, k]));
     const blokBerisi = (k, arah) => {
       for (let j = k + arah; j >= 0 && j < model.blok.length; j += arah) {
@@ -1761,20 +2093,9 @@ function periksaModel(model, opsi) {
         kapsi.push({ i, b, jenis: m[1].toLowerCase(), bab: parseInt(m[2], 10), urut: m[3] ? parseInt(m[3], 10) : null, titik: !!m[4], judul: m[5], sesudah, sebelum });
       }
     });
-    if (!kapsi.length) return;
-    const masalah = [];
-    for (const c of kapsi) {
-      const m = [];
-      if (c.urut == null) m.push('nomor tidak menyertakan nomor bab (mis. ' + (c.jenis === 'tabel' ? 'Tabel' : 'Gambar') + ` ${c.b.bab.nomor}.1)`);
-      else if (c.bab !== c.b.bab.nomor) m.push(`nomor bab ${c.bab} padahal berada di ${c.b.label}`);
-      if (c.titik) m.push('ada titik sesudah nomor');
-      const tc = bukanTitleCase(c.judul);
-      if (tc.length) m.push('nama belum title case (' + tc.slice(0, 3).join(', ') + ')');
-      if (c.jenis === 'tabel' && !(c.sesudah && c.sesudah.jenis === 'tabel')) m.push('judul tabel tidak tepat di atas tabel');
-      if (c.jenis === 'gambar' && !(c.sebelum && c.sebelum.jenis === 'p' && P[c.sebelum.p].gambar.length)) m.push('judul gambar tidak tepat di bawah gambar');
-      if (c.jenis === 'gambar' && P[c.i].jc !== 'center') m.push('judul gambar tidak di tengah');
-      if (m.length) masalah.push({ c, m });
-    }
+    return kapsi;
+  }
+  function tambahKeteranganTabelGambar(kapsi, masalah) {
     if (!masalah.length) tambah('isi', 'lulus', 'Judul tabel dan gambar sesuai', 'Pedoman 3.16', `${kapsi.length} judul tabel/gambar: bernomor bab, tanpa titik, title case, letaknya benar.`);
     else tambah('isi', 'gagal', 'Judul tabel/gambar belum sesuai', 'Pedoman 3.16', 'Nomor menyertakan nomor bab tanpa titik penutup (Tabel 1.1), title case; judul tabel di atas tabel, judul gambar di bawah gambar dan di tengah.',
       masalah.map((x) => rinci(x.c.i, `${kutip(P[x.c.i].teks, 45)} — ${x.m.join('; ')}`)),
@@ -1837,7 +2158,97 @@ function periksaModel(model, opsi) {
       if (gantung.length / entri.length >= 0.8) tambah('pustaka', 'lulus', 'Indentasi gantung (hanging)', 'APA 7', 'Baris kedua setiap entri menjorok ke dalam.');
       else tambah('pustaka', 'perhatian', 'Belum memakai indentasi gantung', 'APA 7', 'Format APA 7: baris kedua dan seterusnya menjorok 1,27 cm (Paragraph → Special: Hanging).');
       cekSpasi('pustaka', entri, 1.5, 'Pedoman 3.2', { lunak: true });
+      if (babList.length) cekKutipan(entri);
+      cekTautanPustaka(entri);
     }
+  }
+  // Kutipan APA di bab isi ↔ entri daftar pustaka, dicocokkan lewat nama belakang penulis pertama dan tahun.
+  function cekKutipan(entri) {
+    const lipat = (t) => t.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+    const normTahun = (t) => lipat(t).replace(/[\s.]/g, '').replace(/^tt$/, 'nd');
+    const pustaka = entri.map((i) => {
+      const t = P[i].teks.trim();
+      const m = /\(\s*((?:19|20)\d{2}[a-z]?|n\.\s?d\.|t\.\s?t\.)(?:\s*[,;][^)]*)?\)/i.exec(t);
+      const penulis = lipat(m ? t.slice(0, m.index) : t.slice(0, 60));
+      const nama = (penulis.match(/\p{L}[\p{L}'’-]*/u) || [''])[0];
+      const marga = [...penulis.matchAll(/(\p{L}[\p{L}'’-]+),/gu)].map((x) => x[1]);
+      return { i, nama, marga: marga.length ? marga : [nama], tahun: m ? normTahun(m[1]) : null, dikutip: false };
+    }).filter((x) => x.nama);
+    const BUKAN_PENULIS = /^(tabel|gambar|grafik|diagram|persamaan|lampiran|bab|tahun|periode|sejak|hingga|sampai|pada|dalam|januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember)$/;
+    const kutipan = [];
+    const tambahKutipan = (i, penulis, tahun, s, e, naratif) => {
+      const nama = (lipat(penulis).replace(/^(lihat|see|dalam|cf\.|mis\.|e\.g\.,?)\s+/, '').match(/\p{L}[\p{L}'’-]*/u) || [''])[0];
+      if (nama && !BUKAN_PENULIS.test(nama)) kutipan.push({ i, nama, tahun: normTahun(tahun), teks: P[i].teks.slice(s, e), s, e, naratif });
+    };
+    const TAHUN = '(?:19|20)\\d{2}[a-z]?|n\\.\\s?d\\.';
+    for (const b of babList) for (const i of b.isi) {
+      const t = P[i].teks;
+      if (P[i].toc || !/(?:19|20)\d{2}|n\.\s?d\./.test(t)) continue;
+      // Dalam kurung: (Santoso, 2023), (Santoso & Wijaya, 2021; Lee et al., 2020a, 2020b, hlm. 5).
+      for (const m of t.matchAll(/\(([^()]{3,300})\)/g)) {
+        let posisi = m.index + 1;
+        for (const bagianK of m[1].split(';')) {
+          const mk = new RegExp(`^\\s*(.*?\\p{L}.*?)(?:,|\\s(?=et al\\.|dkk\\.))\\s*(?:et al\\.,?\\s*|dkk\\.?,?\\s*)?((?:${TAHUN})(?:\\s*,\\s*(?:${TAHUN}))*)`, 'iu').exec(bagianK);
+          if (mk && !/\d/.test(mk[1])) for (const th of mk[2].split(/\s*,\s*/)) tambahKutipan(i, mk[1], th, posisi, posisi + bagianK.length);
+          posisi += bagianK.length + 1;
+        }
+      }
+      // Naratif: Santoso (2023), Santoso dan Wijaya (2021), Lee et al. (2020).
+      const rxNaratif = new RegExp(`(\\p{Lu}[\\p{L}'’-]+)(?:\\s+(?:dan|and|&)\\s+\\p{Lu}[\\p{L}'’-]+)?(?:\\s+(?:et al\\.|dkk\\.?))?\\s+\\((${TAHUN})(?:[,;][^)]*)?\\)`, 'gu');
+      for (const m of t.matchAll(rxNaratif)) tambahKutipan(i, m[1], m[2], m.index, m.index + m[0].length, true);
+    }
+    if (!kutipan.length) {
+      const angka = babList.some((b) => b.isi.some((i) => /\[\d+(?:\s*[,–-]\s*\d+)*\]/.test(P[i].teks)));
+      if (angka) tambah('pustaka', 'perhatian', 'Kutipan bergaya angka [1]', 'Pedoman 3.18', 'Pedoman memakai APA edisi 7: kutipan ditulis nama belakang penulis dan tahun, mis. (Santoso, 2023).');
+      return;
+    }
+    const sama = (a, b) => a === b || a.replace(/[a-z]$/, '') === b.replace(/[a-z]$/, '') && !(/[a-z]$/.test(a) && /[a-z]$/.test(b));
+    const tidakAda = [], tahunBeda = [];
+    for (const k of kutipan) {
+      const cocok = pustaka.filter((x) => (x.nama === k.nama || x.marga.includes(k.nama)) && x.tahun && sama(x.tahun, k.tahun));
+      if (cocok.length) { cocok.forEach((x) => { x.dikutip = true; }); continue; }
+      const namaSaja = pustaka.filter((x) => x.nama === k.nama || x.marga.includes(k.nama));
+      if (namaSaja.length) { tahunBeda.push({ k, tahun: [...new Set(namaSaja.map((x) => x.tahun || 'tanpa tahun'))].join(', ') }); namaSaja.forEach((x) => { x.dikutip = true; }); }
+      else tidakAda.push(k);
+    }
+    const unik = (xs) => { const lihat = new Set(); return xs.filter((x) => { const k = (x.k || x).i + '|' + (x.k || x).s; if (lihat.has(k)) return false; lihat.add(k); return true; }); };
+    const ta = unik(tidakAda), tb = unik(tahunBeda);
+    // Pola naratif "Nama (2020)" juga cocok dengan nama tempat/lembaga yang bukan kutipan, jadi tanpa kutipan berkurung cukup "perhatian".
+    if (ta.length) tambah('pustaka', ta.some((k) => !k.naratif) ? 'gagal' : 'perhatian', 'Kutipan tidak ada di daftar pustaka', 'Pedoman 3.18',
+      `${ta.length} kutipan di bab isi tidak ditemukan di daftar pustaka. Setiap sumber yang dikutip dicantumkan di Daftar Pustaka (buat lewat Mendeley/Zotero agar selalu cocok).`,
+      ta.map((k) => rinci(k.i, kutip(k.teks, 60))),
+      ta.slice(0, 15).map((k) => ({ p: k.i, s: k.s, e: k.e, hl: true, komentar: `Kutipan "${kutip(k.teks, 50)}" tidak ditemukan di Daftar Pustaka.` })));
+    if (tb.length) tambah('pustaka', 'gagal', 'Tahun kutipan berbeda dengan daftar pustaka', 'Pedoman 3.18',
+      'Nama penulisnya ada di daftar pustaka, tetapi tahunnya berbeda.',
+      tb.map((x) => rinci(x.k.i, `${kutip(x.k.teks, 50)} — di daftar pustaka: ${x.tahun}`)),
+      tb.slice(0, 15).map((x) => ({ p: x.k.i, s: x.k.s, e: x.k.e, hl: true, komentar: `Tahun kutipan ini berbeda dengan Daftar Pustaka (${x.tahun}).` })));
+    const tidakDikutip = pustaka.filter((x) => !x.dikutip);
+    if (tidakDikutip.length) tambah('pustaka', 'perhatian', 'Entri pustaka belum dikutip', 'APA 7',
+      `${tidakDikutip.length} entri tidak ditemukan kutipannya di bab isi. Daftar pustaka hanya memuat sumber yang dikutip; hapus entri itu atau kutip di teks.`,
+      tidakDikutip.map((x) => rinci(x.i)), tandaParagraf(tidakDikutip.map((x) => x.i), 'Entri ini tidak ditemukan kutipannya di bab isi. Daftar pustaka hanya memuat sumber yang dikutip (APA 7).', 15));
+    if (!ta.length && !tb.length && !tidakDikutip.length) tambah('pustaka', 'lulus', 'Kutipan dan daftar pustaka cocok', 'Pedoman 3.18', `${kutipan.length} kutipan cocok dengan ${pustaka.length} entri; semua entri dikutip.`);
+  }
+  // DOI dan URL di daftar pustaka menurut APA 7: https://doi.org/10.xxxx/…, utuh tanpa spasi.
+  function cekTautanPustaka(entri) {
+    const ATURAN = [
+      [/\bdoi\s*:\s*10\.\S+/i, 'DOI ditulis "doi:"; APA 7 memakai https://doi.org/…'],
+      [/\b(?:https?:\/\/)?dx\.doi\.org\/\S+/i, 'dx.doi.org sudah usang; tulis https://doi.org/…'],
+      [/\bhttp:\/\/(?:www\.)?doi\.org\/\S+/i, 'pakai https://, bukan http://'],
+      [/(?<![\w/.:])10\.\d{4,9}\/\S+/, 'DOI tanpa https://doi.org/ di depannya'],
+      [/\bhttps?\s*:\s*\/\s*\/\s+\S+|\bhttps?\s+:\/\/\S+|\bdoi\.org\/\s+10\.\S+|\bhttps?:\/\/\S*[-–]\s+\S+/i, 'URL/DOI terpotong spasi'],
+    ];
+    let adaTautan = 0;
+    const salah = [];
+    for (const i of entri) {
+      const t = P[i].teks;
+      if (/https?:|doi|www\./i.test(t) || /(?<![\w/.:])10\.\d{4,9}\//.test(t)) adaTautan++;
+      for (const [rx, ket] of ATURAN) { const m = rx.exec(t); if (m) { salah.push({ i, ket, s: m.index, e: m.index + m[0].length }); break; } }
+    }
+    if (salah.length) tambah('pustaka', 'perhatian', 'Format DOI/URL belum sesuai APA 7', 'APA 7',
+      'APA 7 menulis DOI sebagai tautan lengkap https://doi.org/10.xxxx/… dan URL ditulis utuh tanpa spasi.',
+      salah.map((x) => rinci(x.i, `${x.ket} — ${kutip(P[x.i].teks.slice(x.s, x.e), 50)}`)),
+      salah.slice(0, 15).map((x) => ({ p: x.i, s: x.s, e: x.e, hl: true, komentar: x.ket + ' (APA 7).' })));
+    else if (adaTautan) tambah('pustaka', 'lulus', 'DOI/URL sesuai APA 7', 'APA 7', `${adaTautan} entri bertautan.`);
   }
   {
     const alat = [];
@@ -1879,10 +2290,55 @@ function periksaModel(model, opsi) {
     }
   }
 
+  /* ---------- Resolusi gambar ---------- */
+  // Piksel dibagi lebar cetak. < 150 dpi tampak buram saat dicetak; pindaian di lampiran, Turnitin, dan LoA dikecualikan.
+  if (model.media.size) {
+    const rendah = [];
+    let diperiksa = 0;
+    for (const p of P) {
+      if ([B.lampiran, B.turnitin, B.loa].some((b) => dalam(b, p.i))) continue;
+      for (const g of p.gambar) {
+        const uk = g.rid && model.media.get(g.rid);
+        if (!uk || g.cx < 1.5 * 360000) continue;
+        diperiksa++;
+        const dpi = Math.round(uk.w / (g.cx / 914400));
+        if (dpi < 150) rendah.push({ p, uk, dpi, lebar: g.cx / 360000 });
+      }
+    }
+    const grup = berbab ? 'isi' : (B.naskah ? 'naskah' : 'umum');
+    if (rendah.length) tambah(grup, 'perhatian', 'Gambar beresolusi rendah', 'Saran',
+      `${rendah.length} gambar kurang dari 150 dpi pada ukuran cetaknya sehingga tampak buram atau pecah saat dicetak. Sisipkan berkas asli beresolusi lebih tinggi (ideal 300 dpi) dan matikan kompresi gambar (File → Options → Advanced → Do not compress images in file).`,
+      rendah.map((x) => rinci(x.p.i, `${x.uk.w} × ${x.uk.h} piksel, lebar cetak ${fmtAngka(x.lebar, 1)} cm ≈ ${x.dpi} dpi`)),
+      rendah.slice(0, 15).map((x) => ({ p: x.p.i, hl: false, komentar: `Gambar ini ${x.uk.w} × ${x.uk.h} piksel dicetak selebar ${fmtAngka(x.lebar, 1)} cm (≈ ${x.dpi} dpi), jadi buram saat dicetak. Ganti dengan berkas beresolusi lebih tinggi (≥ 150 dpi, ideal 300 dpi).` })));
+    else if (diperiksa) tambah(grup, 'lulus', 'Resolusi gambar memadai', 'Saran', `${diperiksa} gambar ≥ 150 dpi pada ukuran cetaknya.`);
+  }
+
   return temuan;
 }
 const RX_KAPSI = /^(Tabel|Gambar|Grafik|Diagram)\s+(\d+)(?:\.(\d+))?(\.)?(?:\s+|\s*[:\-–]\s*)(\S.*)$/i;
 function range(a, b) { const out = []; for (let i = a; i <= b; i++) out.push(i); return out; }
+// Lebar × tinggi piksel dari kepala berkas PNG, GIF, BMP, atau JPEG; null untuk format lain (EMF/WMF vektor).
+function ukuranPiksel(b) {
+  if (!b || b.length < 26) return null;
+  const be16 = (k) => (b[k] << 8) | b[k + 1];
+  const be32 = (k) => ((b[k] << 24) >>> 0) + (b[k + 1] << 16) + (b[k + 2] << 8) + b[k + 3];
+  const le32 = (k) => b[k] | (b[k + 1] << 8) | (b[k + 2] << 16) | (b[k + 3] << 24);
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return { w: be32(16), h: be32(20) };
+  if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46) return { w: b[6] | (b[7] << 8), h: b[8] | (b[9] << 8) };
+  if (b[0] === 0x42 && b[1] === 0x4d) return { w: Math.abs(le32(18)), h: Math.abs(le32(22)) };
+  if (b[0] === 0xff && b[1] === 0xd8) {
+    for (let k = 2; k + 9 < b.length;) {
+      if (b[k] !== 0xff) { k++; continue; }
+      const m = b[k + 1];
+      if (m === 0xff) { k++; continue; }
+      if (m === 0xd8 || m === 0x01 || (m >= 0xd0 && m <= 0xd7)) { k += 2; continue; }
+      // SOF0–SOF15 kecuali DHT (C4), JPG (C8), DAC (CC).
+      if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) return { w: be16(k + 7), h: be16(k + 5) };
+      k += 2 + be16(k + 2);
+    }
+  }
+  return null;
+}
 
 /* ================================================================ Kebersihan & kebahasaan */
 
@@ -2702,6 +3158,17 @@ async function periksa(bytes, opsi = {}) {
   const skemaOtomatis = jenisSkemaDari(barisSampul) || (ada('naskah') || ada('loa') ? 'publikasi' : (ada('bab') ? 'skripsi' : 'publikasi'));
   model.skema = SKEMA[opsi.skema] ? opsi.skema : skemaOtomatis;
 
+  // Ukuran piksel gambar raster, untuk menaksir resolusi cetaknya.
+  model.media = new Map();
+  for (const rid of new Set(model.paragraf.flatMap((p) => p.gambar.map((g) => g.rid)).filter(Boolean))) {
+    const r = rel.get(rid);
+    if (!r || r.eksternal) continue;
+    let data = null;
+    try { data = await bacaEntri(zip, r.target, inflateRaw); } catch (e) { continue; }
+    const uk = ukuranPiksel(data);
+    if (uk) model.media.set(rid, uk);
+  }
+
   const tahunSekarang = opsi.tahunSekarang || new Date().getFullYear();
   const temuan = periksaModel(model, { tahunSekarang });
   periksaKebersihan(model, (grup, status, judul, ref, pesan, rincian = [], tanda = []) => {
@@ -2740,7 +3207,7 @@ async function periksa(bytes, opsi = {}) {
   };
 }
 const GRUP = {
-  umum: 'Kertas, margin & huruf', struktur: 'Kelengkapan & urutan bagian', nomor: 'Penomoran halaman',
+  umum: 'Kertas, margin & huruf', struktur: 'Kelengkapan & urutan bagian', identitas: 'Konsistensi identitas', nomor: 'Penomoran halaman',
   sampul: 'Halaman Sampul', judul: 'Halaman Judul', pernyataan: 'Pernyataan Karya Sendiri', turnitin: 'Surat Hasil Uji Turnitin',
   loa: 'Letter of Acceptance', pengesahan: 'Halaman Pengesahan', kataPengantar: 'Kata Pengantar', persetujuan: 'Persetujuan Publikasi',
   abstrak: 'Abstrak', abstract: 'Abstract', daftarIsi: 'Daftar Isi', daftarTabel: 'Daftar Tabel', daftarGambar: 'Daftar Gambar',
@@ -2762,7 +3229,7 @@ function butirManual(skema) {
     m('Isi abstrak', 'Pedoman 2.1.8, 3.12', 'Memuat permasalahan/fenomena, tujuan, metode, hasil, dan kesimpulan; istilah asing (kecuali nama) dicetak miring.'),
     m('Gelar pada Kata Pengantar', 'Pedoman 2.1.6', 'Gelar ditulis sesuai gelar pendidikan tinggi, mis. Dr. Erna Setiany, S.E., M.Si.'),
     m('Jarak judul dan isi', 'Pedoman 3.7–3.13', 'Jarak antara judul bagian dan isinya 2 × 2 spasi.'),
-    m('Format daftar pustaka dan kutipan', 'Pedoman 3.18', 'APA edisi ketujuh; jurnal diutamakan terindeks internasional, Sinta, Scopus, atau WoS.'),
+    m('Format daftar pustaka dan kutipan', 'Pedoman 3.18', 'Kecocokan kutipan dengan daftar pustaka dan bentuk DOI sudah diperiksa otomatis; periksa sendiri unsur APA edisi ketujuh lainnya (urutan unsur, huruf miring judul buku/jurnal). Jurnal diutamakan terindeks internasional, Sinta, Scopus, atau WoS.'),
   ];
   if (SKEMA[skema].berbab) daftar.push(m('Notasi dan singkatan', 'Pedoman 3.16', 'Daftar notasi/singkatan ditulis dengan huruf aslinya dan disusun menurut abjad (huruf kecil, huruf besar, lalu simbol).'));
   return daftar;
@@ -2777,5 +3244,5 @@ function bahasaTeks(daftarTeks, kamus, kumpulTakDikenal) {
   return temuan;
 }
 
-global.PemeriksaTA = { periksa, buatKamus, kamusDariData, VERSI, GalatBerkas, LABEL, GRUP, SKEMA, _uji: { uraiXml, serialXml, bukaZip, tulisZip, crc32, bukanTitleCase, bahasa, bahasaTeks, TIDAK_BAKU, ISTILAH_ASING } };
+global.PemeriksaTA = { periksa, buatKamus, kamusDariData, VERSI, GalatBerkas, LABEL, GRUP, SKEMA, _uji: { uraiXml, serialXml, bukaZip, tulisZip, crc32, ukuranPiksel, bukanTitleCase, bahasa, bahasaTeks, TIDAK_BAKU, ISTILAH_ASING } };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
