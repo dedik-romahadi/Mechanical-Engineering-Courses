@@ -68,7 +68,7 @@ for (const n of ['LICENSE-id_ID.txt', 'README-en_US.txt']) cek(fs.existsSync(pat
 
 /* ---------------------------------------------------------------- pembangun .docx */
 
-const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"';
+const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"';
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 function r(teks, o = {}) {
   const rp = [];
@@ -98,8 +98,24 @@ function sect({ fmt, start, titlePg, footer = 'rIdF1', footerFirst, kanan = 1701
     `<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1701" w:right="${kanan}" w:bottom="1701" w:left="2268" w:header="720" w:footer="${footerJarak}" w:gutter="0"/>${pn}${titlePg ? '<w:titlePg/>' : ''}</w:sectPr>`;
 }
 const gambar = (wCm, hCm) => `<w:r><w:drawing><wp:inline><wp:extent cx="${Math.round(wCm * 360000)}" cy="${Math.round(hCm * 360000)}"/><wp:docPr id="1" name="Gambar"/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="1" name="g.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdImg"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${Math.round(wCm * 360000)}" cy="${Math.round(hCm * 360000)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`;
+const rumus = (nomor) => `<w:p><w:pPr><w:tabs><w:tab w:val="center" w:pos="4253"/><w:tab w:val="right" w:pos="7937"/></w:tabs><w:spacing w:after="0" w:line="360" w:lineRule="auto"/></w:pPr><w:r><w:tab/></w:r><m:oMath><m:r><m:t>F=m·a</m:t></m:r></m:oMath>${nomor ? `<w:r><w:tab/><w:t>${nomor}</w:t></w:r>` : ''}</w:p>`;
 const zotero = (teks) => `<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> ADDIN ZOTERO_ITEM CSL_CITATION {"citationID":"a1"} </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r>${r(teks)}<w:r><w:fldChar w:fldCharType="end"/></w:r>`;
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+// PNG abu-abu polos w × h piksel yang sah (untuk uji resolusi gambar).
+function pngPolos(w, h) {
+  const potong = (jenis, data) => {
+    const isi = Buffer.concat([Buffer.from(jenis, 'ascii'), data]);
+    const pjg = Buffer.alloc(4); pjg.writeUInt32BE(data.length);
+    const crc = Buffer.alloc(4); crc.writeUInt32BE(PT._uji.crc32(new Uint8Array(isi)) >>> 0);
+    return Buffer.concat([pjg, isi, crc]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 0;
+  const baris = Buffer.alloc((w + 1) * h, 0xc0);
+  for (let y = 0; y < h; y++) baris[y * (w + 1)] = 0;
+  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), potong('IHDR', ihdr), potong('IDAT', zlib.deflateSync(baris)), potong('IEND', Buffer.alloc(0))]);
+}
+const PNG_TAJAM = pngPolos(1600, 1200);
 
 function paketDocx(bodyXml, { tambahan = {} } = {}) {
   const bagian = {
@@ -110,7 +126,7 @@ function paketDocx(bodyXml, { tambahan = {} } = {}) {
     'word/styles.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles ${NS}><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="24"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>`,
     'word/footer1.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr ${NS}><w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>1</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r></w:p></w:ftr>`,
     'word/footer2.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr ${NS}><w:p/></w:ftr>`,
-    'word/media/image1.png': PNG,
+    'word/media/image1.png': PNG_TAJAM,
     'word/document.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${NS}><w:body>${bodyXml}</w:body></w:document>`,
     ...tambahan,
   };
@@ -171,14 +187,14 @@ function naskahPublikasi(o = {}) {
       prosa('Dr. Siti Rahayu, M.T. selaku Dekan Fakultas Teknik;'),
     ]),
     prosa('Dr. Bambang Wijaya, S.T., M.T. selaku Ketua Program Studi Teknik Mesin;'),
-    prosa('Dr. Rina Kartika, S.T., M.Sc. selaku Dosen Pembimbing yang telah menyediakan waktu, tenaga, dan pikiran untuk mengarahkan saya dalam penyusunan Tugas Akhir ini.'),
+    prosa((o.pembimbingBeda ? 'Dr. Rina Kartini' : 'Dr. Rina Kartika') + ', S.T., M.Sc. selaku Dosen Pembimbing yang telah menyediakan waktu, tenaga, dan pikiran untuk mengarahkan saya dalam penyusunan Tugas Akhir ini.'),
     prosa('Akhir kata, saya berharap Tuhan Yang Maha Esa berkenan membalas segala kebaikan semua pihak yang telah membantu. Semoga Tugas Akhir ini membawa manfaat bagi pengembangan ilmu.'),
   ].join('');
   const abstrak = (inggris) => {
     const kunci = inggris ? 'Keywords: vibration, centrifugal pump, MEMS sensor, condition monitoring' : (o.kunci7 ? 'Kata Kunci: a1, b2, c3, d4, e5, f6, g7' : 'Kata Kunci: getaran, pompa sentrifugal, sensor MEMS, pemantauan kondisi');
     const n = !inggris && o.abstrak200 ? 200 : 270;
     return [
-      p(inggris ? 'VIBRATION MONITORING SYSTEM OF CENTRIFUGAL PUMPS BASED ON MEMS SENSORS' : JUDUL, { jc: 'center', b: true }), p('BUDI SANTOSO', { jc: 'center', b: true }), kosong,
+      p(inggris ? 'VIBRATION MONITORING SYSTEM OF CENTRIFUGAL PUMPS BASED ON MEMS SENSORS' : JUDUL, { jc: 'center', b: true }), p(!inggris && o.namaBeda ? 'BUDI SANTOSA' : 'BUDI SANTOSO', { jc: 'center', b: true }), kosong,
       judulBagian(inggris ? 'ABSTRACT' : 'ABSTRAK'), kosong,
       p(teksKata(inggris ? KALIMAT_EN : KALIMAT_ID, n), { jc: 'both', i: inggris }), kosong,
       p(kunci, { jc: 'both', b: true, i: inggris }),
@@ -223,7 +239,7 @@ function naskahPublikasi(o = {}) {
     o.revisi ? '<w:p><w:ins w:id="9" w:author="Uji" w:date="2026-10-01T00:00:00Z"><w:r><w:t>Sisipan revisi.</w:t></w:r></w:ins></w:p>' : '',
     sect({ start: 1 }),
   ].join('');
-  return paketDocx(body);
+  return paketDocx(body, { tambahan: o.gambarBuram ? { 'word/media/image1.png': PNG } : {} });
 }
 
 // Naskah berbab mengikuti templat 5.1 (Skripsi); o.jenis = 'APLIKATIF' meniru templat 5.2, yang sama isinya.
@@ -231,32 +247,42 @@ function naskahSkripsi(o = {}) {
   const baris = (t) => p(t, { jc: 'center', b: true, sz: 14 });
   const judulBagian = (t) => p(t, { jc: 'center', b: true });
   const prosa = (t, x = {}) => p(t, Object.assign({ jc: 'both', line: 1.5, inden: !o.tanpaInden }, x));
-  const halamanJudul = (diajukan) => [p([gambar(3.5, 3)], { jc: 'center' }), baris(JUDUL), baris('TUGAS AKHIR'), baris(o.jenis || 'SKRIPSI'),
+  const halamanJudul = (diajukan) => [p([diajukan && o.andal ? '<w:r><w:lastRenderedPageBreak/></w:r>' : '', gambar(3.5, 3)], { jc: 'center' }), baris(JUDUL), baris('TUGAS AKHIR'), baris(o.jenis || 'SKRIPSI'),
     diajukan ? p('Diajukan Sebagai Salah Satu Syarat Untuk Memperoleh Gelar Sarjana', { jc: 'center', b: true }) : '',
     baris('BUDI SANTOSO'), baris('41320010001'), baris('PROGRAM STUDI TEKNIK MESIN'), baris('FAKULTAS TEKNIK'), baris('UNIVERSITAS MERCU BUANA'), baris('JAKARTA'), baris('2026')].join('');
   const tabel = `<w:tbl><w:tblPr><w:jc w:val="center"/></w:tblPr><w:tr><w:tc>${p('Kondisi')}</w:tc><w:tc>${p('Amplitudo')}</w:tc></w:tr><w:tr><w:tc>${p('Normal')}</w:tc><w:tc>${p('0,8')}</w:tc></w:tr></w:tbl>`;
-  const pustaka = o.pustakaAcak
-    ? ['Wahyudi, B. (2024). Analisis getaran mesin. Jurnal Teknik Mesin, 12(2), 45–52.', 'Anggraini, D. (2025). Perawatan prediktif. Jurnal Rekayasa, 8(1), 1–9.']
-    : ['Anggraini, D. (2025). Perawatan prediktif. Jurnal Rekayasa, 8(1), 1–9.', 'Wahyudi, B. (2024). Analisis getaran mesin. Jurnal Teknik Mesin, 12(2), 45–52.'];
+  const wahyudi = 'Wahyudi, B. (2024). Analisis getaran mesin. Jurnal Teknik Mesin, 12(2), 45–52. ' + (o.doiLama ? 'doi:10.1234/jtm.v12i2.45' : 'https://doi.org/10.1234/jtm.v12i2.45');
+  const anggraini = 'Anggraini, D. (2025). Perawatan prediktif. Jurnal Rekayasa, 8(1), 1–9.';
+  const pustaka = o.pustakaAcak ? [wahyudi, anggraini] : [anggraini, wahyudi];
   if (o.pustakaLama) pustaka.push('Zainal, A. (1999). Dasar getaran mekanik. Penerbit Teknik.', 'Zulkifli, B. (2001). Mesin fluida. Penerbit Teknik.', 'Zuhri, C. (2002). Teori bantalan. Penerbit Teknik.');
   const bab = [['I', 'PENDAHULUAN'], ['II', 'TINJAUAN PUSTAKA'], ['III', 'METODE PENELITIAN'], ['IV', 'HASIL DAN PEMBAHASAN'], ['V', 'KESIMPULAN DAN SARAN']].slice(0, o.tigaBab ? 3 : 5);
   const isiBab = {
     I: [p('1.1 Latar Belakang', { b: true }), prosa(teksKata(KALIMAT_ID, 60)),
       p('1.1.1 Kondisi Pompa di Industri', { b: true }), prosa(teksKata(KALIMAT_ID, 40)),
+      o.tanpaRujukan ? '' : prosa('Data pengujian dirangkum pada Tabel 1.1, sedangkan skema alat uji ditunjukkan pada Gambar 1.1.'),
       o.subbabDalam ? p('1.1.1.1 Batasan Rinci', { b: true }) : '',
       p(o.kapsiTitik ? 'Tabel 1.1. Data Pengujian Getaran' : 'Tabel 1.1 Data Pengujian Getaran', { jc: 'center' }), tabel,
       p('Sumber: Data pengujian', { sz: 10 }),
       p([gambar(10, 6)], { jc: 'center' }), p('Gambar 1.1 Skema Alat Uji', { jc: 'center' }),
-      p('1.2 Perumusan Masalah', { b: true }), prosa(teksKata(KALIMAT_ID, 30)),
+      ...(o.gambarLompat ? [p([gambar(10, 6)], { jc: 'center' }), p('Gambar 1.3 Rangka Pompa Uji', { jc: 'center' })] : []),
+      // o.subbabOtomatis: nomor subbab dari multilevel list Word, tidak tersimpan di teks.
+      o.subbabOtomatis ? `<w:p><w:pPr><w:numPr><w:ilvl w:val="1"/><w:numId w:val="1"/></w:numPr><w:outlineLvl w:val="1"/></w:pPr>${r('Perumusan Masalah', { b: true })}</w:p>` : p('1.2 Perumusan Masalah', { b: true }),
+      prosa(teksKata(KALIMAT_ID, 30)),
       p('1.3 Tujuan Penelitian', { b: true }), prosa(teksKata(KALIMAT_ID, 30)),
-      p('1.4 Manfaat Penelitian', { b: true }), prosa(teksKata(KALIMAT_ID, 30))],
-    II: [p('2.1 Getaran Mesin', { b: true }), p([r(teksKata(KALIMAT_ID, 50) + ' '), zotero('(Wahyudi, 2024)')], { jc: 'both', line: 1.5, inden: !o.tanpaInden })],
+      p('1.4 Manfaat Penelitian', { b: true }), prosa(teksKata(KALIMAT_ID, 30)),
+      prosa('Gaya pada bantalan dihitung dengan Persamaan (1.1).'), rumus(o.persamaanTanpaNomor ? '' : '(1.1)')],
+    II: [p('2.1 Getaran Mesin', { b: true }), p([r(teksKata(KALIMAT_ID, 50) + ' '), zotero('(Wahyudi, 2024)')], { jc: 'both', line: 1.5, inden: !o.tanpaInden }),
+      prosa('Menurut Anggraini (2025), perawatan prediktif menurunkan biaya perbaikan mesin.' + (o.kutipHilang ? ' Hal serupa dilaporkan pada pompa industri (Hartono, 2023).' : '') +
+        (o.kutipTahun ? ' Wahyudi (2023) juga membahas getaran pompa.' : ''))],
   };
-  const isiDaftar = ['KATA PENGANTAR\tvi', 'ABSTRAK\tviii', 'ABSTRACT\tix', ...bab.map(([n, j], k) => `BAB ${n} ${j}\t${k * 2 + 1}`), 'DAFTAR PUSTAKA\t11', 'LAMPIRAN\t12'];
+  const subDaftar = { I: ['1.1 Latar Belakang', o.tocBeda ? '1.2 Rumusan Masalah' : '1.2 Perumusan Masalah', '1.3 Tujuan Penelitian', '1.4 Manfaat Penelitian'], II: ['2.1 Getaran Mesin'] };
+  const isiDaftar = ['KATA PENGANTAR\tv', 'ABSTRAK\tvii', 'ABSTRACT\tviii',
+    ...bab.flatMap(([n, j], k) => [`BAB ${n} ${j}\t${k + 1}`, ...(subDaftar[n] || [`${k + 1}.1 Uraian`]).map((t) => `${t}\t${k + 1}`)]),
+    `DAFTAR PUSTAKA\t${o.halSalah ? bab.length + 3 : bab.length + 1}`, `LAMPIRAN\t${bab.length + 2}`];
   const body = [
     halamanJudul(false), p('', { sect: sect({ fmt: 'lowerRoman', titlePg: true, footerFirst: 'rIdF2', footer: 'rIdF2' }) }),
     halamanJudul(true), pb,
-    judulBagian('HALAMAN PERNYATAAN KARYA SENDIRI'), p('Saya yang bertanda tangan di bawah ini, Nama Budi Santoso, NIM 41320010001, Fakultas Teknik Program Studi Teknik Mesin, menyatakan bahwa Tugas Akhir ini adalah hasil karya saya sendiri.', { jc: 'both', line: 2 }),
+    judulBagian('HALAMAN PERNYATAAN KARYA SENDIRI'), p(`Saya yang bertanda tangan di bawah ini, Nama Budi Santoso, NIM ${o.nimBeda ? '41320010002' : '41320010001'}, Fakultas Teknik Program Studi Teknik Mesin, menyatakan bahwa Tugas Akhir ini adalah hasil karya saya sendiri.`, { jc: 'both', line: 2 }),
     pb, judulBagian('HALAMAN SURAT KETERANGAN HASIL UJI TURNITIN'), p('Tingkat kemiripan sebesar 12%.'),
     pb, judulBagian('HALAMAN PENGESAHAN'), p('Telah berhasil dipertahankan pada sidang tanggal 20 Agustus 2026 dan diterima sebagai persyaratan memperoleh gelar Sarjana pada Program Studi Teknik Mesin.', { jc: 'both' }),
     p('Pembimbing, Dekan Fakultas Teknik, Ketua Program Studi Teknik Mesin, NIDN 0312345678'),
@@ -264,10 +290,10 @@ function naskahSkripsi(o = {}) {
     pb, p('HALAMAN PERNYATAAN PERSETUJUAN PUBLIKASI', { jc: 'center', b: true }), p('TUGAS AKHIR DI REPOSITORI UMB', { jc: 'center', b: true }),
     prosa('Saya memberikan izin kepada Universitas Mercu Buana untuk menyimpan, mengelola, dan memublikasikan Tugas Akhir saya untuk kepentingan akademis.'),
     pb, p(JUDUL, { jc: 'center', b: true }), p('BUDI SANTOSO', { jc: 'center', b: true }), judulBagian('ABSTRAK'), p(teksKata(KALIMAT_ID, 260), { jc: 'both' }), p('Kata Kunci: getaran, pompa, bantalan', { b: true }),
-    pb, p('VIBRATION MONITORING OF CENTRIFUGAL PUMPS', { jc: 'center', b: true }), p('BUDI SANTOSO', { jc: 'center', b: true }), judulBagian('ABSTRACT'), p(teksKata(KALIMAT_EN, 260), { jc: 'both', i: true }), p('Keywords: vibration, pump, bearing', { b: true, i: true }),
+    pb, p('VIBRATION MONITORING OF CENTRIFUGAL PUMPS', { jc: 'center', b: true }), p('BUDI SANTOSO', { jc: 'center', b: true }), judulBagian('ABSTRACT'), p(teksKata(KALIMAT_EN, 260), { jc: 'both', i: true }), p(o.kunciBeda ? 'Keywords: vibration, pump, bearing, sensor' : 'Keywords: vibration, pump, bearing', { b: true, i: true }),
     pb, judulBagian('DAFTAR ISI'), ...isiDaftar.map((t) => p(t, /^BAB/.test(t) ? { b: true } : {})),
-    pb, judulBagian('DAFTAR TABEL'), p('Tabel 1.1 Data Pengujian Getaran\t2'),
-    pb, judulBagian('DAFTAR GAMBAR'), p('Gambar 1.1 Skema Alat Uji\t2'),
+    pb, judulBagian('DAFTAR TABEL'), p('Tabel 1.1 Data Pengujian Getaran\t1'),
+    pb, judulBagian('DAFTAR GAMBAR'), p('Gambar 1.1 Skema Alat Uji\t1'),
     pb, judulBagian('DAFTAR LAMPIRAN'), p('Lampiran 1. Bukti Bimbingan Tugas Akhir\t12'), p('Lampiran 2. Curriculum Vitae\t13'),
     p('', { sect: sect({ fmt: 'lowerRoman', start: 1 }) }),
     ...bab.flatMap(([n, j], k) => [k ? pb : '', judulBagian('BAB ' + n), judulBagian(j),
@@ -279,7 +305,7 @@ function naskahSkripsi(o = {}) {
     prosa('Budi Santoso lahir di Jakarta dan menempuh pendidikan sarjana pada Program Studi Teknik Mesin Universitas Mercu Buana sejak tahun 2022.'),
     sect({ start: 1 }),
   ].join('');
-  return paketDocx(body);
+  return paketDocx(body, { tambahan: o.gambarBuram ? { 'word/media/image1.png': PNG } : {} });
 }
 
 /* ---------------------------------------------------------------- pengujian */
@@ -420,6 +446,51 @@ harap(baik, 'sampul', 'Menyebut skema Publikasi Ilmiah', 'lulus', 'sampul menyeb
   harap(await periksa(naskahSkripsi({ jenis: 'APLIKATIF' }), { skema: 'skripsi' }), 'sampul', 'Jenis TA tidak sesuai skema', 'gagal', 'sampul aplikatif diperiksa sebagai skripsi');
   harap(await periksa(naskahSkripsi({ tigaBab: true })), 'isi', 'Susunan bab berbeda dengan template', 'perhatian', 'tiga bab');
   harap(await periksa(naskahSkripsi({ tanpaInden: true })), 'isi', 'Baris pertama paragraf tidak menjorok 1 cm', 'perhatian', 'tanpa inden baris pertama');
+}
+
+// Konsistensi naskah (v1.3): kutipan ↔ pustaka, rujukan tabel/gambar/persamaan, daftar isi, identitas, abstrak, resolusi gambar, DOI.
+{
+  const andal = await periksa(naskahSkripsi({ andal: true }));
+  cek(andal.meta.andal, 'skripsi o.andal: tata letak Word terbaca');
+  cek(gagalSaja(andal).length === 0, 'naskah skripsi patuh (tata letak Word): tanpa temuan gagal', gagalSaja(andal).join('\n    '));
+  for (const [grup, judul] of [['pustaka', 'Kutipan dan daftar pustaka cocok'], ['pustaka', 'DOI/URL sesuai APA 7'], ['isi', 'Tabel/gambar bernomor urut dan dirujuk di teks'],
+    ['isi', 'Persamaan bernomor urut di tepi kanan'], ['daftarIsi', 'Daftar isi sama dengan judul dan halaman naskah'], ['daftarTabel', 'Sama dengan judul di naskah'],
+    ['daftarGambar', 'Sama dengan judul di naskah'], ['identitas', 'NIM sama di semua halaman'], ['identitas', 'Nama penulis sama di semua halaman'],
+    ['identitas', 'Judul TA sama dengan sampul'], ['abstract', 'Abstrak dan Abstract selaras'], ['isi', 'Resolusi gambar memadai']]) harap(andal, grup, judul, 'lulus', `patuh: ${judul}`);
+  const BARU = /^(Tabel\/gambar\/persamaan belum dirujuk|Entri pustaka belum dikutip|Subbab belum tercantum|Abstrak dan Abstract belum selaras|Gambar beresolusi rendah|Penomoran persamaan|Nama penulis berbeda|Judul TA berbeda|Nama pembimbing berbeda|Format DOI)/;
+  cek(!andal.temuan.some((t) => t.status === 'perhatian' && BARU.test(t.judul)), 'naskah skripsi patuh: pemeriksaan konsistensi tanpa perhatian',
+    andal.temuan.filter((t) => t.status === 'perhatian' && BARU.test(t.judul)).map((t) => `${t.grup}: ${t.judul}`).join(' | '));
+  harap(skripsi, 'daftarIsi', 'Daftar isi sama dengan judul di naskah', 'lulus', 'bukan berkas Word: daftar isi dicocokkan tanpa nomor halaman');
+  const kasusBaru = [
+    ['kutipan tanpa entri pustaka', { kutipHilang: true }, 'pustaka', 'Kutipan tidak ada di daftar pustaka', 'gagal'],
+    ['tahun kutipan berbeda', { kutipTahun: true }, 'pustaka', 'Tahun kutipan berbeda dengan daftar pustaka', 'gagal'],
+    ['DOI "doi:"', { doiLama: true }, 'pustaka', 'Format DOI/URL belum sesuai APA 7', 'perhatian'],
+    ['tabel/gambar tidak dirujuk', { tanpaRujukan: true }, 'isi', 'Tabel/gambar/persamaan belum dirujuk di teks', 'perhatian'],
+    ['nomor gambar terlewat', { gambarLompat: true }, 'isi', 'Nomor tabel/gambar tidak urut', 'gagal'],
+    ['gambar belum di Daftar Gambar', { gambarLompat: true }, 'daftarGambar', 'Daftar Gambar belum sesuai dengan naskah', 'gagal'],
+    ['persamaan tanpa nomor', { persamaanTanpaNomor: true }, 'isi', 'Penomoran persamaan belum rapi', 'perhatian'],
+    ['judul daftar isi berbeda', { tocBeda: true }, 'daftarIsi', 'Judul di daftar isi berbeda dengan naskah', 'gagal'],
+    ['halaman daftar isi salah', { halSalah: true, andal: true }, 'daftarIsi', 'Nomor halaman di daftar isi tidak sesuai', 'gagal'],
+    ['NIM berbeda', { nimBeda: true }, 'identitas', 'NIM berbeda antarhalaman', 'gagal'],
+    ['jumlah keywords berbeda', { kunciBeda: true }, 'abstract', 'Abstrak dan Abstract belum selaras', 'perhatian'],
+    ['gambar buram', { gambarBuram: true }, 'isi', 'Gambar beresolusi rendah', 'perhatian'],
+  ];
+  for (const [nama, o, grup, judul, status] of kasusBaru) harap(await periksa(naskahSkripsi(o)), grup, judul, status, nama);
+  harap(baik, 'identitas', 'Nama pembimbing sama di pengesahan dan Kata Pengantar', 'lulus', 'nama pembimbing sama');
+  {
+    const h = await periksa(naskahSkripsi({ subbabOtomatis: true }));
+    cek(!temukan(h, 'daftarIsi', /tidak ada di naskah|berbeda dengan naskah/).length, 'subbab bernomor otomatis: entri daftar isi dicocokkan lewat judulnya',
+      temukan(h, 'daftarIsi', /tidak ada di naskah|berbeda dengan naskah/).flatMap((t) => t.rincian.map((x) => x.teks)).join(' | '));
+  }
+  harap(await periksa(naskahPublikasi({ pembimbingBeda: true })), 'identitas', 'Nama pembimbing berbeda di Kata Pengantar', 'perhatian', 'nama pembimbing berbeda');
+  harap(await periksa(naskahPublikasi({ namaBeda: true })), 'identitas', 'Nama penulis berbeda antarhalaman', 'perhatian', 'nama penulis berbeda');
+  const tk = temukan(await periksa(naskahSkripsi({ kutipHilang: true })), 'pustaka', 'Kutipan tidak ada')[0];
+  cek(tk && tk.rincian.length === 1 && /Hartono, 2023/.test(tk.rincian[0].teks) && tk.tanda[0].hl && tk.tanda[0].s != null,
+    'kutipan tanpa entri: hanya (Hartono, 2023), disorot pada kutipannya', tk && JSON.stringify(tk.rincian));
+  const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 16, 0x4a, 0x46, 0x49, 0x46, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xff, 0xc0, 0, 17, 8, 0x03, 0x20, 0x04, 0xb0, 3, 1, 0x22, 0, 2, 0x11, 1, 3, 0x11, 1]);
+  cek(JSON.stringify(PT._uji.ukuranPiksel(jpeg)) === '{"w":1200,"h":800}', 'ukuran piksel JPEG terbaca dari penanda SOF', JSON.stringify(PT._uji.ukuranPiksel(jpeg)));
+  cek(JSON.stringify(PT._uji.ukuranPiksel(new Uint8Array(PNG_TAJAM))) === '{"w":1600,"h":1200}', 'ukuran piksel PNG terbaca dari IHDR');
+  await bolakBalik(naskahSkripsi({ kutipHilang: true, gambarLompat: true, tocBeda: true, nimBeda: true, doiLama: true }), 'skripsi konsistensi');
 }
 
 // Templat resmi (privat, repo kurikulum-teknik-mesin): hanya bila tersedia di mesin ini.
