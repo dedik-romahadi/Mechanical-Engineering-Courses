@@ -8076,7 +8076,11 @@ function _forumPanel() {
   const total = _keaktifanTotal();
   let kelas = 'info', isi;
   if (!me) {
-    isi = '💬 Forum diskusi modul ini bernilai <b>' + FORUM_POIN + ' poin</b> (nilai tugas diskalakan ×' + (total - FORUM_POIN) + '/' + total + '). Poin diklaim otomatis setelah ketiga jawaban mahasiswa tersimpan dan memenuhi syarat.';
+    // Modul CAD dengan praktik terbimbing (blok PRAKTIK-POIN di skrip yang sama): Tugas 45 + Forum 2 + Praktik 3.
+    const prak = (typeof praktikAturanKelas === 'function' && praktikAturanKelas()) ? PRAKTIK_POIN : 0;
+    isi = prak
+      ? '💬 Forum diskusi modul ini bernilai <b>' + FORUM_POIN + ' poin</b> dan praktik terbimbing <b>' + prak + ' poin</b> (nilai tugas diskalakan ×' + (total - FORUM_POIN - prak) + '/' + total + '). Poin forum diklaim otomatis setelah ketiga jawaban mahasiswa tersimpan dan memenuhi syarat; poin praktik setelah berkas praktik lolos pemeriksaan server.'
+      : '💬 Forum diskusi modul ini bernilai <b>' + FORUM_POIN + ' poin</b> (nilai tugas diskalakan ×' + (total - FORUM_POIN) + '/' + total + '). Poin diklaim otomatis setelah ketiga jawaban mahasiswa tersimpan dan memenuhi syarat.';
   } else {
     const info = _forumInfoSaya();
     const sama = _forumKlaim.kunci === _forumKunci(me);
