@@ -8231,7 +8231,7 @@ function updateLeaderboard(visitors, schedExpired){
 fetchMasterStudents();
 
 let latestVisitors=[];
-// KEAKTIFAN-KELAS:DATA BEGIN v6 — dipasang scripts/keaktifan-kelas.mjs
+// KEAKTIFAN-KELAS:DATA BEGIN v7 — dipasang scripts/keaktifan-kelas.mjs
 // Centang dosen "aktif di kelas" per mahasiswa per pertemuan (+10 nilai = 10% skala modul,
 // nilai tetap maksimal 100). keaktifan/<kursus>/<pertemuan>/mhs_<NIM> = {aktif:true, waktu}:
 // dibaca publik, ditulis hanya sesi admin dosen. Bonus dijumlahkan ke poin saat data
@@ -8239,6 +8239,7 @@ let latestVisitors=[];
 // untuk kode ekspor dan rekap OBE. v5: `batas` opsional (default = total) membatasi poin
 // sesudah bonus; aturan "forum 2 poin" (blok FORUM-POIN) memakai batas = total - 2.
 // v6: pil papan = bonus pertemuan ini saja ("+5 Poin" / "—"); total sekursus di tooltip.
+// v7: papan hanya memuat mahasiswa yang dicentang di pertemuan ini.
 const KEAKTIFAN_KURSUS = 'sistem_kendali_cerdas';
 const KEAKTIFAN_BONUS_FRAKSI = 0.1;
 function keaktifanTerapkanMurni(list, modul, roster, total, isSim, batas) {
@@ -8324,11 +8325,13 @@ function _keaktifanKartu() {
   const bonus = _keaktifanTotal() * KEAKTIFAN_BONUS_FRAKSI;
   const daftar = Object.entries(hitung)
     .map(([nim, h]) => ({ nim, n: h.n, ini: _keaktifanAktif(nim), s: masterStudents.find((x) => String(x.nim) === nim) }))
-    .filter((x) => x.s)
+    // v7 (permintaan dosen 29 Okt 2026): papan hanya memuat mahasiswa yang dicentang di pertemuan INI;
+    // yang dicentang di pertemuan lain tidak ikut tampil (jumlah pertemuan aktif sekursus tetap di samping NIM).
+    .filter((x) => x.s && x.ini)
     .sort((a, b) => String(a.s.nama).localeCompare(String(b.s.nama), 'id'));
   // Angka "pertemuan ini" = jumlah pil "+5 Poin" yang tampil (hanya mahasiswa roster).
   const ini = daftar.filter((x) => x.ini).length;
-  if (!daftar.length) { el.innerHTML = '<span style="color:#64748b;font-size:.75rem;">Belum ada data.</span>'; return; }
+  if (!daftar.length) { el.innerHTML = '<span style="color:#64748b;font-size:.75rem;">Belum ada mahasiswa yang dicentang aktif di pertemuan ini.</span>'; return; }
   const pil = (x) => {
     const sekursus = 'Aktif di ' + x.n + ' pertemuan kursus ini (total +' + _keaktifanFmt(x.n * bonus) + ' poin)';
     const tip = (x.ini ? 'Aktif di pertemuan ini (+' + _keaktifanFmt(bonus) + ' poin). ' : 'Tidak dicentang aktif di pertemuan ini. ') + sekursus;
@@ -8337,7 +8340,7 @@ function _keaktifanKartu() {
       : '<span class="ka-jumlah ka-nol" title="' + tip + '"><span aria-hidden="true">—</span><span class="ka-sr">' + tip + '</span></span>';
   };
   el.innerHTML = '<div class="ka-daftar">' + daftar.map((x) => '<div class="ka-baris"><span class="ka-ikon">🔥</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escH(x.s.nama) + '</div><div style="font-size:.65rem;color:#64748b;font-family:monospace;">' + escH(x.nim) + '<span class="ka-n"> · ' + x.n + ' pertemuan aktif</span></div></div>' + pil(x) + '</div>').join('') + '</div>'
-    + '<div class="ka-kaki"><b style="color:#f9a8d4">' + daftar.length + '</b> mahasiswa aktif di kursus ini · pertemuan ini: <b style="color:#f9a8d4">' + ini + '</b> · pil = bonus pertemuan ini (+' + _keaktifanFmt(bonus) + ' poin = +' + _keaktifanFmt(KEAKTIFAN_BONUS_FRAKSI * 100) + ' nilai)' + (daftar.length > 3 ? ' · <span style="color:#f9a8d4">gulir untuk melihat semua ↓</span>' : '') + '</div>';
+    + '<div class="ka-kaki"><b style="color:#f9a8d4">' + ini + '</b> mahasiswa aktif di pertemuan ini · pil = bonus pertemuan ini (+' + _keaktifanFmt(bonus) + ' poin = +' + _keaktifanFmt(KEAKTIFAN_BONUS_FRAKSI * 100) + ' nilai)' + (daftar.length > 3 ? ' · <span style="color:#f9a8d4">gulir untuk melihat semua ↓</span>' : '') + '</div>';
 }
 function _keaktifanHias() {
   const body = document.getElementById('visitorTableBody');
@@ -8411,7 +8414,7 @@ const _keaktifanTungguRoster = setInterval(() => {
   if (body) new MutationObserver(() => _keaktifanHias()).observe(body, { childList: true });
   if (_auth && typeof _auth.onAuthStateChanged === 'function') _auth.onAuthStateChanged(() => _keaktifanHias());
 })();
-// KEAKTIFAN-KELAS:DATA END v6
+// KEAKTIFAN-KELAS:DATA END v7
 // FORUM-POIN:DATA BEGIN v4 — dipasang scripts/forum-poin.mjs
 // Aturan "forum 2 poin" (kontrak dosen 13 Okt 2026) untuk modul yang dibuka sejak FORUM_POIN_MULAI:
 // tugas diskalakan x(total-2)/total, bonus keaktifan dibatasi total-2, forum diskusi = 2 x pengali
