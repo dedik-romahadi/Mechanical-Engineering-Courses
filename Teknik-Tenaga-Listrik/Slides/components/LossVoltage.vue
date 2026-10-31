@@ -58,7 +58,7 @@ const curve = computed(() => {
 
 <style scoped>
 .lv { display: flex; gap: 14px; align-items: center; background: #0d1526; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 10px 14px; }
-.lv-svg { width: 370px; height: auto; flex: none; }
+.lv-svg { width: 310px; height: auto; flex: none; }
 .lv-ax { font-size: 9.5px; fill: #94a3b8; font-family: 'Fira Code', ui-monospace, monospace; }
 .lv-dot { filter: drop-shadow(0 0 6px #fbbf24); animation: lv-pulse 1.4s ease-in-out infinite; }
 @keyframes lv-pulse { 50% { r: 8px; } }

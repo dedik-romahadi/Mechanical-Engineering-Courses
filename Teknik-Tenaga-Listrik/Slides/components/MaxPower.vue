@@ -57,7 +57,7 @@ const curveE = computed(() => path(yE))
 
 <style scoped>
 .mp { display: flex; gap: 14px; align-items: center; background: #0d1526; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 10px 14px; }
-.mp-svg { width: 370px; height: auto; flex: none; }
+.mp-svg { width: 310px; height: auto; flex: none; }
 .mp-ax { font-size: 9.5px; fill: #94a3b8; font-family: 'Fira Code', ui-monospace, monospace; }
 .mp-dot { filter: drop-shadow(0 0 6px #fbbf24); }
 .mp-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
