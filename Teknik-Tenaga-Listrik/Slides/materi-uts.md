@@ -790,7 +790,7 @@ title: "M6 · Transien: Gelombang Berjalan"
 
 <div class="mudah"><span>🪢</span><span>Surja petir merambat seperti gelombang pada tali. Di ujung bebas (terbuka) gelombang memantul searah sehingga <b>berlipat dua</b>; di ujung yang diikat (hubung singkat) memantul <b>terbalik</b>.</span></div>
 
-<div class="ket"><b>Z<sub>c</sub></b> impedansi surja · <b>v</b> kecepatan rambat · <b>L, C</b> induktansi, kapasitansi per km · <b>ρ</b> koefisien pantul (bukan resistivitas) · <b>τ</b> koefisien terusan · <b>Z<sub>1</sub>, Z<sub>2</sub></b> impedansi surja sebelum, sesudah sambungan · <b>V<sub>pantul</sub>, V<sub>terus</sub></b> tegangan dipantulkan, diteruskan</div>
+<div class="ket"><b>surja</b> lonjakan tegangan/arus yang sangat singkat (akibat petir atau operasi hubung) dan merambat sebagai gelombang · <b>arester</b> penangkal surja yang mengalirkannya ke tanah · <b>Z<sub>c</sub></b> impedansi surja · <b>v</b> kecepatan rambat · <b>L, C</b> induktansi, kapasitansi per km · <b>ρ</b> koefisien pantul (bukan resistivitas) · <b>τ</b> koefisien terusan · <b>Z<sub>1</sub>, Z<sub>2</sub></b> impedansi surja sebelum, sesudah sambungan · <b>V<sub>pantul</sub>, V<sub>terus</sub></b> tegangan dipantulkan, diteruskan</div>
 
 <div class="ml-grid c2">
 <div class="ml-card v">
