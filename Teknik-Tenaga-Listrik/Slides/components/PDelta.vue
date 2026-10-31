@@ -28,7 +28,7 @@
       <label class="pd-row"><span>P (MW)</span>
         <input type="range" min="100" max="900" step="25" v-model.number="P" /><b>{{ P }}</b></label>
       <div class="pd-read">
-        <div><span>X<sub>eff</sub> = X<sub>L</sub>(1−k)</span><b>{{ fx(Xeff, 1) }} Ω</b></div>
+        <div><span>X<sub>eff</sub> = X<sub>L</sub>·(1−k)</span><b>{{ fx(Xeff, 1) }} Ω</b></div>
         <div><span>P<sub>maks</sub> = V²/X<sub>eff</sub></span><b>{{ fx(Pmax, 0) }} MW</b></div>
         <div><span>δ pada P</span><b :class="{ bad: P > Pmax || delta > 45 }">{{ P > Pmax ? 'tak stabil' : fx(delta, 1) + '°' }}</b></div>
       </div>

@@ -78,7 +78,7 @@ layout: none
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import katex from 'katex'
 import { camOn, toggleCam } from './useCamera'
-const eqHtml = katex.renderToString('P = \\sqrt{3}\\,V_L I_L \\cos\\varphi', { throwOnError: false })
+const eqHtml = katex.renderToString('P = \\sqrt{3}\\cdot V_L\\cdot I_L\\cdot \\cos\\varphi', { throwOnError: false })
 const nowStr = ref('')
 let timer
 function tick() {
@@ -194,7 +194,7 @@ transition: slide-up
 title: "M1 · Rantai Sistem & Tingkat Tegangan"
 ---
 
-<div class="mudah"><span>💬</span><span><b>Bahasa sederhana:</b> listrik itu seperti air dari bendungan ke keran. Dibangkitkan, dikirim lewat "pipa besar" bertegangan tinggi, lalu dibagi ke rumah-rumah. Setiap tahap ada yang "bocor" (rugi).</span></div>
+<div class="mudah"><span>💬</span><span>Listrik itu seperti air dari bendungan ke keran. Dibangkitkan, dikirim lewat "pipa besar" bertegangan tinggi, lalu dibagi ke rumah-rumah. Setiap tahap ada yang "bocor" (rugi).</span></div>
 
 <div class="chain">
   <div class="ch-st"><span class="ch-ic">🏭</span><b>Pembangkit</b><small>6–24 kV</small></div>
@@ -210,14 +210,14 @@ title: "M1 · Rantai Sistem & Tingkat Tegangan"
 <div class="ml-card a">
 <div class="ml-h">⚡ Energi = daya × waktu</div>
 
-$$E = P\,t \qquad P_{bangkit} = P_{beban} + P_{rugi}$$
+$$E = P\cdot t \qquad P_{bangkit} = P_{beban} + P_{rugi}$$
 
 <div class="ml-t">Pompa 1,5 kW menyala 5 jam/hari selama 30 hari = <b>225 kWh</b>. Yang ditagih PLN adalah energinya (kWh).</div>
 </div>
 <div class="ml-card s">
 <div class="ml-h">🔗 Efisiensi berantai — dikali, bukan dijumlah</div>
 
-$$\eta_{total} = \eta_p\,\eta_{trf}\,\eta_t\,\eta_d$$
+$$\eta_{total} = \eta_p\cdot\eta_{trf}\cdot\eta_t\cdot\eta_d$$
 
 <div class="ml-t">38% × 98,5% × 96,5% × 93% ≈ <b>33,59%</b>. Hanya sepertiga energi bahan bakar sampai ke konsumen.</div>
 </div>
@@ -233,19 +233,19 @@ transition: glide
 title: "M1 · Daya Satu & Tiga Fasa, Faktor Daya"
 ---
 
-<div class="mudah"><span>🍺</span><span><b>Bahasa sederhana:</b> bayangkan segelas minuman berbusa. Isi yang bisa diminum = daya aktif <b>P</b>, busanya = daya reaktif <b>Q</b>, isi gelas penuh = daya semu <b>S</b>. Faktor daya = seberapa banyak yang "bisa diminum".</span></div>
+<div class="mudah"><span>🍺</span><span>Bayangkan segelas minuman berbusa. Isi yang bisa diminum = daya aktif <b>P</b>, busanya = daya reaktif <b>Q</b>, isi gelas penuh = daya semu <b>S</b>. Faktor daya = seberapa banyak yang "bisa diminum".</span></div>
 
 <div class="ml-grid c3">
 <div class="ml-card e">
 <div class="ml-h">Satu fasa</div>
 
-$$P = V I \cos\varphi$$
+$$P = V\cdot I\cdot \cos\varphi$$
 
 </div>
 <div class="ml-card v">
 <div class="ml-h">Tiga fasa seimbang</div>
 
-$$P = \sqrt{3}\,V_L I_L \cos\varphi$$
+$$P = \sqrt{3}\cdot V_L\cdot I_L\cdot \cos\varphi$$
 
 </div>
 <div class="ml-card a">
@@ -268,19 +268,19 @@ transition: zoom
 title: "M1 · Mengapa Transmisi Bertegangan Tinggi?"
 ---
 
-<div class="mudah"><span>🚚</span><span><b>Bahasa sederhana:</b> arus itu seperti jumlah mobil di jalan — makin banyak, makin panas jalannya (rugi I²R). Tegangan tinggi = pakai truk besar: barang sama banyak, kendaraannya jauh lebih sedikit.</span></div>
+<div class="mudah"><span>🚚</span><span>Arus itu seperti jumlah mobil di jalan — makin banyak, makin panas jalannya (rugi I²·R). Tegangan tinggi = pakai truk besar: barang sama banyak, kendaraannya jauh lebih sedikit.</span></div>
 
 <div class="ml-grid c2">
 <div class="ml-card s">
 <div class="ml-h">Arus saluran</div>
 
-$$I_L = \frac{P}{\sqrt{3}\,V_L\cos\varphi}$$
+$$I_L = \frac{P}{\sqrt{3}\cdot V_L\cdot \cos\varphi}$$
 
 </div>
 <div class="ml-card c">
 <div class="ml-h">Rugi saluran ∝ 1/V²</div>
 
-$$P_{rugi} = 3 I_L^2 R = \frac{P^2 R}{V_L^2\cos^2\varphi}$$
+$$P_{rugi} = 3\cdot I_L^2\cdot R = \frac{P^2\cdot R}{V_L^2\cdot \cos^2\varphi}$$
 
 </div>
 </div>
@@ -289,7 +289,7 @@ $$P_{rugi} = 3 I_L^2 R = \frac{P^2 R}{V_L^2\cos^2\varphi}$$
 
 <div class="pesan-kunci">
 
-**📐 Tegangan minimum dari batas rugi k:** $V_{min} = \sqrt{PR/(k\cos^2\varphi)}$. Tegangan ×2 → rugi tinggal ¼.
+**📐 Tegangan minimum dari batas rugi k:** $V_{min} = \sqrt{P\cdot R/(k\cdot \cos^2\varphi)}$. Tegangan ×2 → rugi tinggal ¼.
 
 </div>
 
@@ -299,19 +299,19 @@ transition: flip
 title: "M1 · Generator, Frekuensi & Kurva Beban"
 ---
 
-<div class="mudah"><span>🚲</span><span><b>Bahasa sederhana:</b> generator seperti dinamo sepeda — makin cepat diputar atau makin banyak magnetnya, makin rapat gelombangnya. Generator 40 kutub cukup berputar pelan untuk tetap 50 Hz.</span></div>
+<div class="mudah"><span>🚲</span><span>Generator seperti dinamo sepeda — makin cepat diputar atau makin banyak magnetnya, makin rapat gelombangnya. Generator 40 kutub cukup berputar pelan untuk tetap 50 Hz.</span></div>
 
 <div class="ml-grid c2">
 <div class="stack-col">
 
-$$f = \frac{p\,n}{120} \qquad P_{mek} = T\,\omega,\ \ \omega = \frac{2\pi n}{60}$$
+$$f = \frac{p\cdot n}{120} \qquad P_{mek} = T\cdot \omega,\ \ \omega = \frac{2\pi\cdot n}{60}$$
 
 <GeneratorSpin />
 
 </div>
 <div class="stack-col">
 
-$$LF = \frac{P_{rata}}{P_{puncak}} \qquad CF = \frac{E_{tahunan}}{P_{terpasang}\times 8760}$$
+$$LF = \frac{P_{rata}}{P_{puncak}} \qquad CF = \frac{E_{tahunan}}{P_{terpasang}\cdot 8760}$$
 
 <LoadCurve />
 
@@ -352,21 +352,21 @@ transition: slide-left
 title: "M2 · Rating Komponen & Hubung Singkat"
 ---
 
-<div class="mudah"><span>🚌</span><span><b>Bahasa sederhana:</b> rating kVA itu seperti kapasitas kursi bus — yang dihitung semua penumpang (P dan Q), bukan hanya yang membayar (P). Kabel panjang dan kurus = jalan sempit dan jauh → hambatannya besar.</span></div>
+<div class="mudah"><span>🚌</span><span>Rating kVA itu seperti kapasitas kursi bus — yang dihitung semua penumpang (P dan Q), bukan hanya yang membayar (P). Kabel panjang dan kurus = jalan sempit dan jauh → hambatannya besar.</span></div>
 
 <div class="duo">
 <div class="stack">
 <div class="ml-card s">
 <div class="ml-h">📛 Arus nominal dari rating</div>
 
-$$I_n = \frac{S}{\sqrt{3}\,V_L} \qquad P = S\cos\varphi,\ \ Q = S\sin\varphi$$
+$$I_n = \frac{S}{\sqrt{3}\cdot V_L} \qquad P = S\cdot \cos\varphi,\ \ Q = S\cdot \sin\varphi$$
 
 <div class="ml-t">Trafo 630 kVA, 400 V → <b>909,3 A</b>. Generator 250 MVA, cos φ 0,85 → <b>212,5 MW</b> (bukan 250 MW!).</div>
 </div>
 <div class="ml-card c">
 <div class="ml-h">💥 Arus hubung singkat → rating PMT</div>
 
-$$I_{sc} = \frac{S_{sc}}{\sqrt{3}\,V_L} \qquad I_{sc,trafo} = \frac{I_n}{Z_{pu}}$$
+$$I_{sc} = \frac{S_{sc}}{\sqrt{3}\cdot V_L} \qquad I_{sc,trafo} = \frac{I_n}{Z_{pu}}$$
 
 <div class="ml-t">Rel 150 kV, 2.200 MVA → <b>8,47 kA</b>: PMT harus sanggup memutusnya.</div>
 </div>
@@ -375,7 +375,7 @@ $$I_{sc} = \frac{S_{sc}}{\sqrt{3}\,V_L} \qquad I_{sc,trafo} = \frac{I_n}{Z_{pu}}
 <div class="ml-card a">
 <div class="ml-h">🧵 Resistansi penghantar</div>
 
-$$R = \rho\,\frac{L}{A}$$
+$$R = \rho\cdot \frac{L}{A}$$
 
 </div>
 
@@ -394,7 +394,7 @@ transition: blur-fade
 title: "M2 · Transformator: Rasio, Rugi, Efisiensi"
 ---
 
-<div class="mudah"><span>⚙️</span><span><b>Bahasa sederhana:</b> trafo seperti gir sepeda — tegangan turun 50×, arus naik 50×. Rugi inti = biaya tetap (selalu ada), rugi tembaga = biaya yang tumbuh kuadrat dengan beban. Paling hemat saat keduanya sama besar.</span></div>
+<div class="mudah"><span>⚙️</span><span>Trafo seperti gir sepeda — tegangan turun 50×, arus naik 50×. Rugi inti = biaya tetap (selalu ada), rugi tembaga = biaya yang tumbuh kuadrat dengan beban. Paling hemat saat keduanya sama besar.</span></div>
 
 <div class="ml-grid c3">
 <div class="ml-card v">
@@ -406,13 +406,13 @@ $$a = \frac{N_1}{N_2} = \frac{V_1}{V_2} = \frac{I_2}{I_1}$$
 <div class="ml-card c">
 <div class="ml-h">Rugi pada beban x</div>
 
-$$P_{rugi} = P_{Fe} + x^2 P_{Cu}$$
+$$P_{rugi} = P_{Fe} + x^2\cdot P_{Cu}$$
 
 </div>
 <div class="ml-card e">
 <div class="ml-h">Efisiensi</div>
 
-$$\eta = \frac{xS\cos\varphi}{xS\cos\varphi + P_{Fe} + x^2P_{Cu}}$$
+$$\eta = \frac{x\cdot S\cdot \cos\varphi}{x\cdot S\cdot \cos\varphi + P_{Fe} + x^2\cdot P_{Cu}}$$
 
 </div>
 </div>
@@ -421,7 +421,7 @@ $$\eta = \frac{xS\cos\varphi}{xS\cos\varphi + P_{Fe} + x^2P_{Cu}}$$
 
 <div class="pesan-kunci">
 
-**🎯 Efisiensi maksimum** saat $x^2P_{Cu}=P_{Fe}$ → $x_{opt}=\sqrt{P_{Fe}/P_{Cu}}$. Regulasi (beban induktif): $VR \approx R\%\cos\varphi + X\%\sin\varphi$.
+**🎯 Efisiensi maksimum** saat $x^2\cdot P_{Cu}=P_{Fe}$ → $x_{opt}=\sqrt{P_{Fe}/P_{Cu}}$. Regulasi (beban induktif): $VR \approx R\%\cdot \cos\varphi + X\%\cdot \sin\varphi$.
 
 </div>
 
@@ -431,14 +431,14 @@ transition: slide-right
 title: "M3 · Ohm, Seri–Paralel, dan Kirchhoff"
 ---
 
-<div class="mudah"><span>💧</span><span><b>Bahasa sederhana:</b> tegangan = tekanan air, arus = debit, resistansi = sempitnya pipa. Di percabangan air terbagi, tapi <b>yang masuk = yang keluar</b> (KCL). Keliling satu putaran, tekanan yang naik = tekanan yang turun (KVL).</span></div>
+<div class="mudah"><span>💧</span><span>Tegangan = tekanan air, arus = debit, resistansi = sempitnya pipa. Di percabangan air terbagi, tapi <b>yang masuk = yang keluar</b> (KCL). Keliling satu putaran, tekanan yang naik = tekanan yang turun (KVL).</span></div>
 
 <div class="duo">
 <div class="stack">
 <div class="ml-card s">
 <div class="ml-h">Ohm & daya</div>
 
-$$V = IR,\quad P = VI = I^2R = \frac{V^2}{R}$$
+$$V = I\cdot R,\quad P = V\cdot I = I^2\cdot R = \frac{V^2}{R}$$
 
 </div>
 <div class="ml-card v">
@@ -470,25 +470,25 @@ transition: glide
 title: "M3 · Sumber Nyata, Transfer Daya & Kabel DC"
 ---
 
-<div class="mudah"><span>🔋</span><span><b>Bahasa sederhana:</b> baterai nyata punya "hambatan dalam" seperti selang yang bocor di pangkalnya — makin besar arus yang ditarik, makin banyak tegangan yang hilang sebelum sampai ke beban.</span></div>
+<div class="mudah"><span>🔋</span><span>Baterai nyata punya "hambatan dalam" seperti selang yang bocor di pangkalnya — makin besar arus yang ditarik, makin banyak tegangan yang hilang sebelum sampai ke beban.</span></div>
 
 <div class="ml-grid c3">
 <div class="ml-card s">
 <div class="ml-h">Sumber nyata</div>
 
-$$V_t = E - Ir,\quad I_{sc} = E/r$$
+$$V_t = E - I\cdot r,\quad I_{sc} = E/r$$
 
 </div>
 <div class="ml-card e">
 <div class="ml-h">Efisiensi penyaluran</div>
 
-$$\eta = \frac{P_{beban}}{P_{beban} + I^2R_{sal}}$$
+$$\eta = \frac{P_{beban}}{P_{beban} + I^2\cdot R_{sal}}$$
 
 </div>
 <div class="ml-card a">
 <div class="ml-h">Penampang kabel minimum</div>
 
-$$A_{min} = \frac{2\rho L I}{\Delta V_{maks}}$$
+$$A_{min} = \frac{2\cdot\rho\cdot L\cdot I}{\Delta V_{maks}}$$
 
 </div>
 </div>
@@ -509,7 +509,7 @@ class: qz
 <div class="qz-ill">
   <span class="qz-step"><span class="qz-ic">🔁</span><span class="qz-lb">Rugi inti P<sub>Fe</sub></span></span>
   <span class="qz-ar">=</span>
-  <span class="qz-step hot"><span class="qz-ic">🔥</span><span class="qz-lb">Rugi tembaga x²P<sub>Cu</sub></span></span>
+  <span class="qz-step hot"><span class="qz-ic">🔥</span><span class="qz-lb">Rugi tembaga x²·P<sub>Cu</sub></span></span>
   <span class="qz-tag">Modul 2</span>
 </div>
 
@@ -527,21 +527,21 @@ transition: slide-up
 title: "M4 · Dua Ggl dalam Satu Loop & Analisis Mesh"
 ---
 
-<div class="mudah"><span>🎡</span><span><b>Bahasa sederhana:</b> anggap setiap "jendela" rangkaian punya arus sendiri yang berputar seperti bianglala. Cabang yang dipakai dua jendela dilalui <b>selisih</b> kedua arus itu.</span></div>
+<div class="mudah"><span>🎡</span><span>Anggap setiap "jendela" rangkaian punya arus sendiri yang berputar seperti bianglala. Cabang yang dipakai dua jendela dilalui <b>selisih</b> kedua arus itu.</span></div>
 
 <div class="duo">
 <div class="stack">
 <div class="ml-card a">
 <div class="ml-h">🔋 Dua ggl dalam satu loop</div>
 
-$$\textstyle\sum E_k = I\sum R_k$$
+$$\textstyle\sum E_k = I\cdot\sum R_k$$
 
 <div class="ml-t">Searah: dijumlah (12 + 7,5 V). Berlawanan: dikurangi (12 − 7,5 V). Sumber dengan E·I &lt; 0 sedang <b>diisi</b>.</div>
 </div>
 <div class="ml-card v">
 <div class="ml-h">🔲 Persamaan mesh</div>
 
-$$\begin{cases} 18 = 7I_1 - 4I_2 \\ 12 = -4I_1 + 10I_2 \end{cases}$$
+$$\begin{cases} 18 = 7\cdot I_1 - 4\cdot I_2 \\ 12 = -4\cdot I_1 + 10\cdot I_2 \end{cases}$$
 
 <div class="ml-t">Δ = 70 − 16 = 54 → I<sub>1</sub> = 228/54, I<sub>2</sub> = 156/54. Python: <code>np.linalg.solve(A, b)</code>.</div>
 </div>
@@ -559,7 +559,7 @@ transition: zoom
 title: "M4 · Analisis Nodal & Superposisi"
 ---
 
-<div class="mudah"><span>📍</span><span><b>Bahasa sederhana:</b> nodal = cari satu "ketinggian air" V di titik pertemuan; setelah V ketemu, arus tiap cabang tinggal hukum Ohm. Superposisi = nyalakan sumber satu per satu, lalu jumlahkan hasilnya.</span></div>
+<div class="mudah"><span>📍</span><span>Nodal = cari satu "ketinggian air" V di titik pertemuan; setelah V ketemu, arus tiap cabang tinggal hukum Ohm. Superposisi = nyalakan sumber satu per satu, lalu jumlahkan hasilnya.</span></div>
 
 <div class="duo">
 <div class="stack">
@@ -594,7 +594,7 @@ transition: swirl
 title: "M4 · Thevenin, Norton & Sumber Paralel"
 ---
 
-<div class="mudah"><span>🎭</span><span><b>Bahasa sederhana:</b> serumit apa pun jaringannya, dari sudut pandang beban ia "menyamar" sebagai <b>satu baterai + satu resistor</b>. Cukup ukur dua hal: tegangan terbuka dan resistansi saat sumber dimatikan.</span></div>
+<div class="mudah"><span>🎭</span><span>Serumit apa pun jaringannya, dari sudut pandang beban ia "menyamar" sebagai <b>satu baterai + satu resistor</b>. Cukup ukur dua hal: tegangan terbuka dan resistansi saat sumber dimatikan.</span></div>
 
 <div class="duo">
 <div class="stack">
@@ -603,7 +603,7 @@ title: "M4 · Thevenin, Norton & Sumber Paralel"
 
 $$V_{th} = V_{ab}\big|_{terbuka},\ \ R_{th} = R_{ab}\big|_{sumber\ mati}$$
 
-$$I_N = \frac{V_{th}}{R_{th}},\quad P_{L,maks} = \frac{V_{th}^2}{4R_{th}}$$
+$$I_N = \frac{V_{th}}{R_{th}},\quad P_{L,maks} = \frac{V_{th}^2}{4\cdot R_{th}}$$
 
 </div>
 <div class="ml-card e">
@@ -644,7 +644,7 @@ class: qz
   q="Ekuivalen Thevenin sebuah jaringan: <b>V<sub>th</sub> = 12 V</b>, <b>R<sub>th</sub> = 6 Ω</b>. Berapa daya maksimum yang dapat diterima beban?"
   :options="['24 W', '12 W', '2 W', '6 W']"
   :answer="3"
-  explain="P<sub>L,maks</sub> = V<sub>th</sub>²/(4R<sub>th</sub>) = 144/24 = <b>6 W</b>, saat R<sub>L</sub> = R<sub>th</sub> = 6 Ω (arus 1 A)."
+  explain="P<sub>L,maks</sub> = V<sub>th</sub>²/(4·R<sub>th</sub>) = 144/24 = <b>6 W</b>, saat R<sub>L</sub> = R<sub>th</sub> = 6 Ω (arus 1 A)."
 />
 
 ---
@@ -653,23 +653,23 @@ transition: slide-left
 title: "M6 · Model Saluran & Konstanta ABCD"
 ---
 
-<div class="mudah"><span>📏</span><span><b>Bahasa sederhana:</b> saluran pendek cukup dianggap kabel berhambatan. Makin panjang, kabel dan tanah bertingkah seperti <b>kapasitor raksasa</b> — tanpa beban, tegangan di ujung malah naik (efek Ferranti).</span></div>
+<div class="mudah"><span>📏</span><span>Saluran pendek cukup dianggap kabel berhambatan. Makin panjang, kabel dan tanah bertingkah seperti <b>kapasitor raksasa</b> — tanpa beban, tegangan di ujung malah naik (efek Ferranti).</span></div>
 
 <div class="duo">
 <div class="stack">
 <div class="ml-card e">
 <div class="ml-h">Parameter total</div>
 
-$$Z = (r + jx)\,\ell,\qquad Y = jb\,\ell$$
+$$Z = (r + jx)\cdot \ell,\qquad Y = jb\cdot \ell$$
 
 <div class="ml-t">132 kV, 150 km → Z = 15 + j60 Ω, Y = j450 µS.</div>
 </div>
 <div class="ml-card c">
 <div class="ml-h">Nominal-π (80–250 km)</div>
 
-$$A = D = 1 + \tfrac{YZ}{2},\ \ B = Z,\ \ C = Y\!\left(1 + \tfrac{YZ}{4}\right)$$
+$$A = D = 1 + \tfrac{Y\cdot Z}{2},\ \ B = Z,\ \ C = Y\cdot\left(1 + \tfrac{Y\cdot Z}{4}\right)$$
 
-<div class="ml-t">V<sub>S</sub> = AV<sub>R</sub> + BI<sub>R</sub> · I<sub>S</sub> = CV<sub>R</sub> + DI<sub>R</sub> · contoh |A| = 0,9865.</div>
+<div class="ml-t">V<sub>S</sub> = A·V<sub>R</sub> + B·I<sub>R</sub>; I<sub>S</sub> = C·V<sub>R</sub> + D·I<sub>R</sub>; contoh |A| = 0,9865.</div>
 </div>
 </div>
 
@@ -689,22 +689,22 @@ transition: fade
 title: "M6 · Aliran Daya, Regulasi & Efisiensi"
 ---
 
-<div class="mudah"><span>🏋️</span><span><b>Bahasa sederhana:</b> ujung kirim harus "mendorong" lebih kuat untuk menutup tegangan yang hilang di R dan X saluran. Faktor daya jelek = arus lebih besar = dorongan dan rugi makin besar.</span></div>
+<div class="mudah"><span>🏋️</span><span>Ujung kirim harus "mendorong" lebih kuat untuk menutup tegangan yang hilang di R dan X saluran. Faktor daya jelek = arus lebih besar = dorongan dan rugi makin besar.</span></div>
 
 <div class="duo">
 <div class="stack">
 <div class="ml-card s">
 <div class="ml-h">Jatuh tegangan & daya lewat X</div>
 
-$$\Delta V \approx I\,(R\cos\varphi + X\sin\varphi)$$
+$$\Delta V \approx I\cdot (R\cdot \cos\varphi + X\cdot \sin\varphi)$$
 
-$$P = \frac{V_SV_R}{X}\sin\delta$$
+$$P = \frac{V_S\cdot V_R}{X}\cdot \sin\delta$$
 
 </div>
 <div class="ml-card a">
 <div class="ml-h">Regulasi & efisiensi</div>
 
-$$VR = \frac{|V_{R,nl}| - |V_{R,fl}|}{|V_{R,fl}|},\quad \eta = \frac{P_R}{P_R + 3I^2R}$$
+$$VR = \frac{|V_{R,nl}| - |V_{R,fl}|}{|V_{R,fl}|},\quad \eta = \frac{P_R}{P_R + 3\cdot I^2\cdot R}$$
 
 <div class="ml-t">60 MW, pf 0,9: I = 291,6 A, rugi 3,83 MW, <b>η = 94,0%</b>.</div>
 </div>
@@ -724,20 +724,20 @@ transition: glide
 title: "M6 · Kompensasi Shunt & Seri"
 ---
 
-<div class="mudah"><span>🛠️</span><span><b>Bahasa sederhana:</b> kapasitor <b>shunt</b> = "pemasok Q lokal" di dekat beban, jadi saluran tak perlu mengirim Q. Kapasitor <b>seri</b> = "memperpendek" saluran secara listrik, sehingga daya yang bisa dikirim bertambah.</span></div>
+<div class="mudah"><span>🛠️</span><span>Kapasitor <b>shunt</b> = "pemasok Q lokal" di dekat beban, jadi saluran tak perlu mengirim Q. Kapasitor <b>seri</b> = "memperpendek" saluran secara listrik, sehingga daya yang bisa dikirim bertambah.</span></div>
 
 <div class="ml-grid c2">
 <div class="ml-card e">
 <div class="ml-h">🔋 Shunt</div>
 
-$$Q_C = P\,(\tan\varphi_1 - \tan\varphi_2)$$
+$$Q_C = P\cdot (\tan\varphi_1 - \tan\varphi_2)$$
 
 <div class="ml-t">60 MW, pf 0,9 → 0,98: <b>16,9 MVAR</b>. Beban ringan (&lt; SIL) → pasang reaktor.</div>
 </div>
 <div class="ml-card s">
 <div class="ml-h">⚡ Seri</div>
 
-$$X_{eff} = X_L(1-k),\quad P_{maks} = \frac{V_SV_R}{X_L(1-k)}$$
+$$X_{eff} = X_L\cdot (1-k),\quad P_{maks} = \frac{V_S\cdot V_R}{X_L\cdot (1-k)}$$
 
 <div class="ml-t">220 kV, X 80 Ω: 605 MW → <b>1.008 MW</b> pada k = 0,4.</div>
 </div>
@@ -755,13 +755,13 @@ transition: slide-right
 title: "M6 · Transien: Gelombang Berjalan"
 ---
 
-<div class="mudah"><span>🪢</span><span><b>Bahasa sederhana:</b> surja petir merambat seperti gelombang pada tali. Di ujung bebas (terbuka) gelombang memantul searah sehingga <b>berlipat dua</b>; di ujung yang diikat (hubung singkat) memantul <b>terbalik</b>.</span></div>
+<div class="mudah"><span>🪢</span><span>Surja petir merambat seperti gelombang pada tali. Di ujung bebas (terbuka) gelombang memantul searah sehingga <b>berlipat dua</b>; di ujung yang diikat (hubung singkat) memantul <b>terbalik</b>.</span></div>
 
 <div class="ml-grid c2">
 <div class="ml-card v">
 <div class="ml-h">Impedansi surja</div>
 
-$$Z_c = \sqrt{\frac{L}{C}},\quad v = \frac{1}{\sqrt{LC}}$$
+$$Z_c = \sqrt{\frac{L}{C}},\quad v = \frac{1}{\sqrt{L\cdot C}}$$
 
 <div class="ml-t">Saluran udara ≈ 355 Ω, kecepatan ≈ 296.000 km/s.</div>
 </div>
@@ -770,7 +770,7 @@ $$Z_c = \sqrt{\frac{L}{C}},\quad v = \frac{1}{\sqrt{LC}}$$
 
 $$\rho = \frac{Z_2 - Z_1}{Z_1 + Z_2},\quad \tau = 1 + \rho$$
 
-<div class="ml-t">V<sub>pantul</sub> = ρV · V<sub>terus</sub> = τV.</div>
+<div class="ml-t">V<sub>pantul</sub> = ρ·V; V<sub>terus</sub> = τ·V.</div>
 </div>
 </div>
 
@@ -801,7 +801,7 @@ class: qz
   q="Surja <b>200 kV</b> merambat dari saluran udara <b>Z<sub>1</sub> = 400 Ω</b> masuk ke kabel <b>Z<sub>2</sub> = 50 Ω</b>. Berapa tegangan yang diteruskan ke kabel?"
   :options="['355,6 kV', '44,4 kV', '200 kV', '−155,6 kV']"
   :answer="1"
-  explain="τ = 2Z<sub>2</sub>/(Z<sub>1</sub>+Z<sub>2</sub>) = 100/450 = 0,222 → <b>44,4 kV</b>. ρ = −0,778 → yang dipantulkan −155,6 kV."
+  explain="τ = 2·Z<sub>2</sub>/(Z<sub>1</sub>+Z<sub>2</sub>) = 100/450 = 0,222 → <b>44,4 kV</b>. ρ = −0,778 → yang dipantulkan −155,6 kV."
 />
 
 ---
@@ -817,11 +817,11 @@ class: tight
 
 | Modul | Rumus kunci | Satuan / jebakan |
 |---|---|---|
-| **M1** | $P=\sqrt3 V_LI_L\cos\varphi$ · $P_{rugi}=\frac{P^2R}{V_L^2\cos^2\varphi}$ · $f=\frac{pn}{120}$ · $T=\frac{P}{\eta_g\omega}$ · $LF$, $CF$ | V antarfasa; 8760 jam/tahun; η dikali |
-| **M2** | $I_n=\frac{S}{\sqrt3V_L}$ · $\eta=\frac{xS\cos\varphi}{xS\cos\varphi+P_{Fe}+x^2P_{Cu}}$ · $x_{opt}=\sqrt{P_{Fe}/P_{Cu}}$ · $R=\rho\frac{L}{A}$ | rating kVA ≠ kW; ρ dalam Ω·mm²/m |
-| **M3** | $P=I^2R=\frac{V^2}{R}$ · $V_t=E-Ir$ · $P_{L,maks}=\frac{E^2}{4r}$ · $A_{min}=\frac{2\rho LI}{\Delta V}$ | kabel DC: panjang ×2 (pergi-pulang) |
+| **M1** | $P=\sqrt3\cdot V_L\cdot I_L\cdot \cos\varphi$ · $P_{rugi}=\frac{P^2\cdot R}{V_L^2\cdot \cos^2\varphi}$ · $f=\frac{p\cdot n}{120}$ · $T=\frac{P}{\eta_g\cdot \omega}$ · $LF$, $CF$ | V antarfasa; 8760 jam/tahun; η dikali |
+| **M2** | $I_n=\frac{S}{\sqrt3\cdot V_L}$ · $\eta=\frac{x\cdot S\cdot \cos\varphi}{x\cdot S\cdot \cos\varphi+P_{Fe}+x^2\cdot P_{Cu}}$ · $x_{opt}=\sqrt{P_{Fe}/P_{Cu}}$ · $R=\rho\cdot \frac{L}{A}$ | rating kVA ≠ kW; ρ dalam Ω·mm²/m |
+| **M3** | $P=I^2\cdot R=\frac{V^2}{R}$ · $V_t=E-I\cdot r$ · $P_{L,maks}=\frac{E^2}{4\cdot r}$ · $A_{min}=\frac{2\cdot \rho\cdot L\cdot I}{\Delta V}$ | kabel DC: panjang ×2 (pergi-pulang) |
 | **M4** | Mesh · Nodal $V=\frac{\sum E_k/R_k}{\sum 1/R_k}$ · $V_{th},R_{th}$ · $I_{sirk}=\frac{E_1-E_2}{r_1+r_2}$ | tanda ggl; P &lt; 0 = menyerap |
-| **M6** | $\Delta V\approx I(R\cos\varphi+X\sin\varphi)$ · $P=\frac{V_SV_R}{X}\sin\delta$ · $Q_C=P(\tan\varphi_1-\tan\varphi_2)$ · $\rho=\frac{Z_2-Z_1}{Z_1+Z_2}$ | ΔV per fasa vs antarfasa (×√3) |
+| **M6** | $\Delta V\approx I\cdot (R\cdot \cos\varphi+X\cdot \sin\varphi)$ · $P=\frac{V_S\cdot V_R}{X}\cdot \sin\delta$ · $Q_C=P\cdot (\tan\varphi_1-\tan\varphi_2)$ · $\rho=\frac{Z_2-Z_1}{Z_1+Z_2}$ | ΔV per fasa vs antarfasa (×√3) |
 
 </div>
 

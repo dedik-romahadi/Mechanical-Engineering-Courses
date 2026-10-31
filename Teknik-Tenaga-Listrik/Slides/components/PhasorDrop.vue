@@ -17,7 +17,7 @@
       <line :key="'s' + k" x1="20" y1="110" :x2="p.vs[0]" :y2="p.vs[1]" class="pf-v d4" stroke="#34d399" marker-end="url(#pf-ar)" />
       <text :x="p.vr[0] - 4" y="104" text-anchor="end" class="pf-t" fill="#38bdf8">V_R = 76,2 kV</text>
       <text :x="p.vs[0] - 4" :y="p.vs[1] - 6" class="pf-t" text-anchor="end" fill="#34d399">V_S</text>
-      <text :x="p.ir[0] + 4" :y="(p.ir[1] + p.vs[1]) / 2" class="pf-t" fill="#fbbf24">jIX</text>
+      <text :x="p.ir[0] + 4" :y="(p.ir[1] + p.vs[1]) / 2" class="pf-t" fill="#fbbf24">jI·X</text>
       <text :x="p.i[0] + 6" :y="p.i[1] + 4" class="pf-t" fill="#94a3b8">I (φ = {{ fx(phiDeg, 1) }}°)</text>
       <text x="26" y="84" class="pf-t" fill="#34d399">δ = {{ fx(delta, 1) }}°</text>
     </svg>

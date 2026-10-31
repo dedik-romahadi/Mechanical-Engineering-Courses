@@ -27,7 +27,7 @@
         <div><span>P<sub>L</sub></span><b>{{ fx(PL, 1) }} W</b></div>
         <div><span>η = R<sub>L</sub>/(r+R<sub>L</sub>)</span><b>{{ fx((eta * 100), 1) }} %</b></div>
       </div>
-      <div class="mp-note">E = 24 V, r = 1 Ω → P<sub>L,maks</sub> = E²/4r = 144 W tepat saat R<sub>L</sub> = r, tetapi η hanya 50%.</div>
+      <div class="mp-note">E = 24 V, r = 1 Ω → P<sub>L,maks</sub> = E²/(4·r) = 144 W tepat saat R<sub>L</sub> = r, tetapi η hanya 50%.</div>
     </div>
   </div>
 </template>
