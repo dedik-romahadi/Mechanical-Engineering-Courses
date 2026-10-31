@@ -41,6 +41,7 @@ jobs:
             Getaran-Mekanik/Slides/package-lock.json
             Optimalisasi-dan-Automasi/Slides/package-lock.json
             PDD-UKTPT/Slides/package-lock.json
+            Teknik-Tenaga-Listrik/Slides/package-lock.json
 
       - name: Validasi keamanan frontend
         run: |
@@ -96,6 +97,20 @@ jobs:
             --base /Mechanical-Engineering-Courses/PDD-UKTPT/Slides/pembukaan-pdd-uktpt-bidang-pengajaran/ \
             --out dist
 
+      # ── Teknik Tenaga Listrik — Materi Penting UTS ──
+      - name: Install dependencies — Teknik Tenaga Listrik
+        working-directory: Teknik-Tenaga-Listrik/Slides
+        continue-on-error: true
+        run: npm ci
+
+      - name: Build Slidev — Teknik Tenaga Listrik (Materi Penting UTS)
+        working-directory: Teknik-Tenaga-Listrik/Slides
+        continue-on-error: true
+        run: |
+          npx slidev build materi-penting-uts.md \
+            --base /Mechanical-Engineering-Courses/Teknik-Tenaga-Listrik/Slides/materi-penting-uts/ \
+            --out dist
+
       - name: Siapkan direktori Pages
         run: |
           mkdir -p _site
@@ -113,7 +128,7 @@ jobs:
           rsync -a --exclude='Slides/' --exclude='Modul-Word/*.docx' Optimalisasi-dan-Automasi/ _site/Optimalisasi-dan-Automasi/
           rsync -a --exclude='Modul-Word/*.docx' Sistem-Kendali-Cerdas/ _site/Sistem-Kendali-Cerdas/
           rsync -a --exclude='Modul-Word/*.docx' Pemodelan-Computer-Aided-Design/ _site/Pemodelan-Computer-Aided-Design/
-          rsync -a --exclude='Modul-Word/*.docx' Teknik-Tenaga-Listrik/ _site/Teknik-Tenaga-Listrik/
+          rsync -a --exclude='Slides/' --exclude='Modul-Word/*.docx' Teknik-Tenaga-Listrik/ _site/Teknik-Tenaga-Listrik/
           rsync -a --exclude='Slides/' PDD-UKTPT/ _site/PDD-UKTPT/
           rsync -a Admin/ _site/Admin/
           # Pemeriksa format TA: halaman + skrip saja. Pedoman dan templat
@@ -155,6 +170,15 @@ jobs:
             built=$((built+1))
           else
             echo "::warning title=PDD-UKTPT::Build GAGAL — dilewati. Deck lain tetap deploy."
+          fi
+
+          if [ -f Teknik-Tenaga-Listrik/Slides/dist/index.html ]; then
+            mkdir -p _site/Teknik-Tenaga-Listrik/Slides/materi-penting-uts
+            cp -r Teknik-Tenaga-Listrik/Slides/dist/. _site/Teknik-Tenaga-Listrik/Slides/materi-penting-uts/
+            echo "::notice title=TTL::Build sukses — disertakan ke Pages."
+            built=$((built+1))
+          else
+            echo "::warning title=TTL::Build GAGAL — dilewati. Deck lain tetap deploy."
           fi
 
           if [ "$built" -eq 0 ]; then

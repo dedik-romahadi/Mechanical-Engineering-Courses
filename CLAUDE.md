@@ -145,7 +145,7 @@ lewat `courseRoots` seperti course lain. Rincian: Pedoman §2.
 ├── Modul-Word/   Modul versi .docx + .pdf (setoran BOP)
 ├── Exam/         UTS.html + UAS.html
 ├── OBE/          Penilaian-OBE.htm
-└── Slides/       Deck Slidev — hanya Getaran & Opto (lihat Pedoman-Slides.md)
+└── Slides/       Deck Slidev — Getaran, Opto, dan TTL (lihat Pedoman-Slides.md)
 ```
 
 Root: `Admin/` (alat dosen: rescale-deadline, recompute-obe-score, reset-soal,

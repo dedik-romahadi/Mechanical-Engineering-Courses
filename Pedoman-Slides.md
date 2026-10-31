@@ -11,10 +11,13 @@ Dokumen ini adalah quick-start untuk sesi Codex yang mengerjakan slide Slidev di
 | Getaran Mekanik | `Getaran-Mekanik/Slides/` | `Analisis-Getaran-Berbasis-Fourier-Transform.md` | 3030 | `.../Getaran-Mekanik/Slides/Analisis-Getaran-Berbasis-Fourier-Transform/` |
 | Optimalisasi & Otomasi | `Optimalisasi-dan-Automasi/Slides/` | `penerapan-machine-learning.md` | 3031 | `.../Optimalisasi-dan-Automasi/Slides/penerapan-machine-learning/` |
 | PDD-UKTPT (Serdos) | `PDD-UKTPT/Slides/` | `pembukaan-pdd-uktpt-bidang-pengajaran.md` | 3032 | `.../PDD-UKTPT/Slides/pembukaan-pdd-uktpt-bidang-pengajaran/` |
+| Teknik Tenaga Listrik | `Teknik-Tenaga-Listrik/Slides/` | `materi-penting-uts.md` | 3033 | `.../Teknik-Tenaga-Listrik/Slides/materi-penting-uts/` |
 
 > Deck Opto `penerapan-machine-learning.md`: **23 slide**. Brand di SLIDE memakai **"Optimalisasi & Automasi"** (huruf A — sengaja beda dari LMS lain yang "Otomasi", atas permintaan dosen). Punya **2 sesi kuis interaktif** (§17) + **webcam terkunci** (§16). Penyesuaian per-slide via `.slidev-page-N` (§14).
 
-> Hanya tiga deck ini yang ada. Matematika 4, Sistem Kendali Cerdas, Pemodelan CAD, dan Teknik Tenaga Listrik **tidak punya** folder `Slides/`; materi kuliahnya memakai halaman modul HTML dan `Modul-Word/`. `PDD-UKTPT/` bukan mata kuliah (portofolio Serdos) — jangan ditiru strukturnya untuk course.
+> Deck TTL `materi-penting-uts.md` (31 Okt 2026): **24 slide** ringkasan materi UTS (Modul 1–4 dan 6, sesuai matriks UTS SIA), 4 kuis, kalimat "bahasa sederhana" (`.mudah`) di atas tiap slide materi, dan satu animasi relevan per slide: komponen `PowerTriangle`, `LossVoltage`, `GeneratorSpin`, `LoadCurve`, `ConductorR`, `TrafoEff`, `CircuitFlow`, `MaxPower`, `MeshLoops`, `NodeFlow`, `TheveninMorph`, `LineModels`, `PhasorDrop`, `PDelta`, `SurgeWave` (angka berkoma desimal) serta animasi CSS page-agnostic di `style.css` (`.chain`, `.uts-map`, `.rumus-tbl`, `.anim-list`, kuis). Tata letak rumus kiri + animasi kanan memakai `.duo`/`.stack`. Kerangkanya disalin dari deck Opto (header/footer, kamera dengan kunci `ttl-cam-on`, `Callout`, `Quiz`). Tanpa aturan `.slidev-page-N` spesifik, jadi sisip/hapus slide tidak perlu renumber.
+
+> Hanya empat deck ini yang ada. Matematika 4, Sistem Kendali Cerdas, dan Pemodelan CAD **tidak punya** folder `Slides/`; materi kuliahnya memakai halaman modul HTML dan `Modul-Word/`. `PDD-UKTPT/` bukan mata kuliah (portofolio Serdos) — jangan ditiru strukturnya untuk course.
 
 ### Struktur tiap deck
 ```
@@ -321,6 +324,7 @@ Konten langsung di sini — **tanpa H1**.
 cd Optimalisasi-dan-Automasi/Slides && npm run dev   # → port 3031
 cd Getaran-Mekanik/Slides && npm run dev              # → port 3030
 cd PDD-UKTPT/Slides && npm run dev                    # → port 3032
+cd Teknik-Tenaga-Listrik/Slides && npm run dev        # → port 3033
 
 # Build manual
 npm run build   # output ke dist/
@@ -333,7 +337,7 @@ Deploy ke GitHub Pages: **otomatis** setiap ada commit masuk `main` (merge PR, u
 
 Cara kerjanya (sama dengan hosting LMS, lihat `Pedoman-Modul.md` §1.1):
 
-- workflow membangun ketiga deck dengan `npx slidev build --base <path>` lalu **hanya menyalin deck yang berhasil build** (dicek dari `dist/index.html`) ke artefak situs bersama allowlist frontend LMS;
+- workflow membangun keempat deck dengan `npx slidev build --base <path>` lalu **hanya menyalin deck yang berhasil build** (dicek dari `dist/index.html`) ke artefak situs bersama allowlist frontend LMS;
 - publikasi memakai **push ke branch `gh-pages`** (Pages Source: branch `gh-pages`, root), **bukan** `actions/deploy-pages` — jalur artefak itu punya batas keras 10 menit yang berulang kali terlampaui oleh ukuran situs;
 - satu deck yang gagal build tidak menggagalkan deck lain maupun LMS, tetapi deck itu tidak diperbarui di situs — periksa log langkah build-nya;
 - `dist/` tidak pernah di-commit; workflow membangunnya ulang setiap kali.
