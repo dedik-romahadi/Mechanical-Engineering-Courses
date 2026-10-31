@@ -31,7 +31,7 @@
         <div><span>η maks</span><b>{{ fx(etaMax, 2) }} %</b></div>
         <div><span>η beban penuh</span><b>{{ fx(eta(1), 2) }} %</b></div>
       </div>
-      <div class="te-note">η maksimum saat rugi tembaga x²P<sub>Cu</sub> = rugi inti P<sub>Fe</sub>.</div>
+      <div class="te-note">η maksimum saat rugi tembaga x²·P<sub>Cu</sub> = rugi inti P<sub>Fe</sub>.</div>
     </div>
   </div>
 </template>

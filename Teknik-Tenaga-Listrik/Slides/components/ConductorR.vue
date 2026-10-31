@@ -1,5 +1,5 @@
 <!--
-  ConductorR.vue — Resistansi penghantar R = ρL/A (Modul 2, Persamaan 8).
+  ConductorR.vue — Resistansi penghantar R = ρ·L/A (Modul 2, Persamaan 8).
   Kawat makin panjang → R naik; makin tebal → R turun. Warna kawat = panasnya
   pada arus 200 A (rugi I²R). Titik bergerak = elektron (arus).
 -->
@@ -16,7 +16,7 @@
       <label>A <input type="range" min="50" max="400" step="10" v-model.number="A" /></label>
     </div>
     <div class="cr-read">
-      <span>R = ρL/A <b>{{ fx(R, 2) }} Ω</b></span>
+      <span>R = ρ·L/A <b>{{ fx(R, 2) }} Ω</b></span>
       <span>rugi pada 200 A <b>{{ fx(rugi, 1) }} kW</b></span>
     </div>
   </div>
