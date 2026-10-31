@@ -59,7 +59,7 @@ const path = (kk) => {
 
 <style scoped>
 .pd { display: flex; gap: 14px; align-items: center; background: #0d1526; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 10px 14px; }
-.pd-svg { width: 370px; height: auto; flex: none; }
+.pd-svg { width: 310px; height: auto; flex: none; }
 .pd-ax { font-size: 9.5px; fill: #94a3b8; font-family: 'Fira Code', ui-monospace, monospace; }
 .pd-dot { filter: drop-shadow(0 0 6px #fbbf24); }
 .pd-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
