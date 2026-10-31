@@ -97,18 +97,18 @@ jobs:
             --base /Mechanical-Engineering-Courses/PDD-UKTPT/Slides/pembukaan-pdd-uktpt-bidang-pengajaran/ \
             --out dist
 
-      # ── Teknik Tenaga Listrik — Materi Penting UTS ──
+      # ── Teknik Tenaga Listrik — Materi UTS ──
       - name: Install dependencies — Teknik Tenaga Listrik
         working-directory: Teknik-Tenaga-Listrik/Slides
         continue-on-error: true
         run: npm ci
 
-      - name: Build Slidev — Teknik Tenaga Listrik (Materi Penting UTS)
+      - name: Build Slidev — Teknik Tenaga Listrik (Materi UTS)
         working-directory: Teknik-Tenaga-Listrik/Slides
         continue-on-error: true
         run: |
-          npx slidev build materi-penting-uts.md \
-            --base /Mechanical-Engineering-Courses/Teknik-Tenaga-Listrik/Slides/materi-penting-uts/ \
+          npx slidev build materi-uts.md \
+            --base /Mechanical-Engineering-Courses/Teknik-Tenaga-Listrik/Slides/materi-uts/ \
             --out dist
 
       - name: Siapkan direktori Pages
@@ -173,8 +173,16 @@ jobs:
           fi
 
           if [ -f Teknik-Tenaga-Listrik/Slides/dist/index.html ]; then
+            mkdir -p _site/Teknik-Tenaga-Listrik/Slides/materi-uts
+            cp -r Teknik-Tenaga-Listrik/Slides/dist/. _site/Teknik-Tenaga-Listrik/Slides/materi-uts/
+            # Alamat lama (materi-penting-uts, 31 Okt 2026) sudah dibagikan ke
+            # mahasiswa; arahkan ke halaman awal alamat baru.
             mkdir -p _site/Teknik-Tenaga-Listrik/Slides/materi-penting-uts
-            cp -r Teknik-Tenaga-Listrik/Slides/dist/. _site/Teknik-Tenaga-Listrik/Slides/materi-penting-uts/
+            printf '%s\n' '<!doctype html><meta charset="utf-8"><title>Materi UTS</title>' \
+              '<meta http-equiv="refresh" content="0; url=../materi-uts/">' \
+              '<script>location.replace("../materi-uts/")</script>' \
+              '<a href="../materi-uts/">Materi UTS — Teknik Tenaga Listrik</a>' \
+              > _site/Teknik-Tenaga-Listrik/Slides/materi-penting-uts/index.html
             echo "::notice title=TTL::Build sukses — disertakan ke Pages."
             built=$((built+1))
           else
