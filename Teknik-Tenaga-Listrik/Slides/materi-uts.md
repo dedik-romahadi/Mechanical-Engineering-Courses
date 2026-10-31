@@ -1,9 +1,9 @@
 ---
 theme: default
-title: Materi Penting UTS
+title: Materi UTS
 titleTemplate: '%s — Teknik Tenaga Listrik'
 info: |
-  ## Materi Penting UTS — Teknik Tenaga Listrik
+  ## Materi UTS — Teknik Tenaga Listrik
   Ringkasan Modul 1–4 dan 6 untuk Ujian Tengah Semester
   Mata Kuliah Teknik Tenaga Listrik — S1 Teknik Mesin
   Universitas Mercu Buana
@@ -45,7 +45,7 @@ layout: none
 
   <main class="ctr">
     <div class="badge">⚡ &nbsp; Persiapan Ujian Tengah Semester · Modul 1–4 &amp; 6</div>
-    <div class="ttl1">Materi Penting UTS</div>
+    <div class="ttl1">Materi UTS</div>
     <div class="ttl2">Dari pembangkit sampai saluran transmisi — konsep, rumus, dan jebakannya</div>
     <div class="fml">
       <span class="eq" v-html="eqHtml"></span>
