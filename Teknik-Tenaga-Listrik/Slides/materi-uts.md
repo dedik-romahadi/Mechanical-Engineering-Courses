@@ -56,7 +56,7 @@ layout: none
       <span class="out-sep">→</span>
       <span class="out bad">🏠&nbsp;Beban</span>
     </div>
-    <div class="ket-cover"><b>P</b> daya aktif · <b>V<sub>L</sub></b> tegangan antarfasa · <b>I<sub>L</sub></b> arus saluran · <b>cos φ</b> faktor daya</div>
+    <div class="ket-cover"><span v-html="kx('P')"></span> daya aktif · <span v-html="kx('V_L')"></span> tegangan antarfasa · <span v-html="kx('I_L')"></span> arus saluran · <span v-html="kx('\\cos\\varphi')"></span> faktor daya</div>
     <div class="sep"></div>
     <div class="au">
       <span class="au-name">Dedik Romahadi, S.T., M.Sc.</span>
@@ -79,6 +79,7 @@ layout: none
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import katex from 'katex'
 import { camOn, toggleCam } from './useCamera'
+const kx = (t) => katex.renderToString(t, { throwOnError: false })
 const eqHtml = katex.renderToString('P = \\sqrt{3}\\cdot V_L\\cdot I_L\\cdot \\cos\\varphi', { throwOnError: false })
 const nowStr = ref('')
 let timer
@@ -172,7 +173,11 @@ title: "Peta UTS: Apa yang Diujikan?"
 
 <div class="mudah"><span>🧭</span><span><b>Intinya:</b> UTS menguji 5 modul. Makin panjang batangnya, makin besar porsi nilainya — mulai belajar dari yang paling panjang.</span></div>
 
-<div class="ket"><b>120′</b> 120 menit · <b>WIB</b> Waktu Indonesia Barat · <b>M1–M6</b> Modul 1–6 · <b>GI</b> gardu induk · <b>DC</b> arus searah (<i>direct current</i>) · <b>NIM</b> Nomor Induk Mahasiswa</div>
+<div class="ket">
+
+**120′** 120 menit · **WIB** Waktu Indonesia Barat · **M1–M6** Modul 1–6 · **GI** gardu induk · **DC** arus searah (*direct current*) · **NIM** Nomor Induk Mahasiswa
+
+</div>
 
 <div class="ml-grid c4">
   <div class="metric a"><div class="mv">45</div><div class="ml">soal · 4 bagian</div></div>
@@ -201,7 +206,11 @@ title: "M1 · Rantai Sistem & Tingkat Tegangan"
 
 <div class="mudah"><span>💬</span><span>Listrik itu seperti air dari bendungan ke keran. Dibangkitkan, dikirim lewat "pipa besar" bertegangan tinggi, lalu dibagi ke rumah-rumah. Setiap tahap ada yang "bocor" (rugi).</span></div>
 
-<div class="ket"><b>TM</b> tegangan menengah · <b>TR</b> tegangan rendah · <b>PLN</b> Perusahaan Listrik Negara · <b>E</b> energi · <b>t</b> lama pemakaian (jam) · <b>P<sub>bangkit</sub>, P<sub>beban</sub>, P<sub>rugi</sub></b> daya yang dibangkitkan, dipakai beban, hilang di jaringan · <b>η</b> efisiensi; indeks p pembangkit, trf transformator (trafo), t transmisi, d distribusi</div>
+<div class="ket">
+
+**TM** tegangan menengah · **TR** tegangan rendah · **PLN** Perusahaan Listrik Negara · $E$ energi · $t$ lama pemakaian (jam) · $P_{bangkit}, P_{beban}, P_{rugi}$ daya yang dibangkitkan, dipakai beban, hilang di jaringan · $\eta_{total}$ efisiensi total · $\eta_p, \eta_{trf}, \eta_t, \eta_d$ efisiensi pembangkit, transformator (trafo), transmisi, distribusi
+
+</div>
 
 <div class="chain">
   <div class="ch-st"><span class="ch-ic">🏭</span><b>Pembangkit</b><small>6–24 kV</small></div>
@@ -242,7 +251,11 @@ title: "M1 · Daya Satu & Tiga Fasa, Faktor Daya"
 
 <div class="mudah"><span>🍺</span><span>Bayangkan segelas minuman berbusa. Isi yang bisa diminum = daya aktif <b>P</b>, busanya = daya reaktif <b>Q</b>, isi gelas penuh = daya semu <b>S</b>. Faktor daya = seberapa banyak yang "bisa diminum".</span></div>
 
-<div class="ket"><b>V</b> tegangan (volt, V) · <b>I</b> arus (ampere, A) · <b>φ</b> sudut geser fasa antara V dan I · <b>S</b> daya semu · <b>Q</b> daya reaktif (kVAR = kilovolt-ampere reaktif) · <b>3φ</b> tiga fasa</div>
+<div class="ket">
+
+$V$ tegangan (volt, V) · $I$ arus (ampere, A) · $\varphi$ sudut geser fasa antara $V$ dan $I$ · $S$ daya semu · $Q$ daya reaktif (kVAR = kilovolt-ampere reaktif) · **3φ** tiga fasa
+
+</div>
 
 <div class="ml-grid c3">
 <div class="ml-card e">
@@ -279,7 +292,11 @@ title: "M1 · Mengapa Transmisi Bertegangan Tinggi?"
 
 <div class="mudah"><span>🚚</span><span>Arus itu seperti jumlah mobil di jalan — makin banyak, makin panas jalannya (rugi I²·R). Tegangan tinggi = pakai truk besar: barang sama banyak, kendaraannya jauh lebih sedikit.</span></div>
 
-<div class="ket"><b>R</b> resistansi penghantar per fasa (ohm, Ω) · <b>k</b> batas rugi sebagai fraksi P · <b>V<sub>min</sub></b> tegangan saluran minimum · <b>MW</b> megawatt</div>
+<div class="ket">
+
+$R$ resistansi penghantar per fasa (ohm, Ω) · $k$ batas rugi sebagai fraksi $P$ · $V_{min}$ tegangan saluran minimum · **MW** megawatt
+
+</div>
 
 <div class="ml-grid c2">
 <div class="ml-card s">
@@ -312,7 +329,11 @@ title: "M1 · Generator, Frekuensi & Kurva Beban"
 
 <div class="mudah"><span>🚲</span><span>Generator seperti dinamo sepeda — makin cepat diputar atau makin banyak magnetnya, makin rapat gelombangnya. Generator 40 kutub cukup berputar pelan untuk tetap 50 Hz.</span></div>
 
-<div class="ket"><b>f</b> frekuensi (hertz, Hz) · <b>p</b> jumlah kutub · <b>n</b> putaran (rpm = rotasi per menit) · <b>P<sub>mek</sub></b> daya mekanik poros · <b>T</b> torsi · <b>ω</b> kecepatan sudut (rad/s) · <b>LF</b> faktor beban (<i>load factor</i>) · <b>CF</b> faktor kapasitas (<i>capacity factor</i>) · <b>P<sub>rata</sub>, P<sub>puncak</sub></b> beban rata-rata, beban puncak · <b>E<sub>tahunan</sub></b> energi setahun (MWh = megawatt-jam) · <b>P<sub>terpasang</sub></b> kapasitas terpasang · <b>8760</b> jumlah jam dalam setahun</div>
+<div class="ket">
+
+$f$ frekuensi (hertz, Hz) · $p$ jumlah kutub · $n$ putaran (rpm = rotasi per menit) · $P_{mek}$ daya mekanik poros · $T$ torsi · $\omega$ kecepatan sudut (rad/s) · $LF$ faktor beban (*load factor*) · $CF$ faktor kapasitas (*capacity factor*) · $P_{rata}, P_{puncak}$ beban rata-rata, beban puncak · $E_{tahunan}$ energi setahun (MWh = megawatt-jam) · $P_{terpasang}$ kapasitas terpasang · $8760$ jumlah jam dalam setahun
+
+</div>
 
 <div class="ml-grid c2">
 <div class="stack-col">
@@ -367,7 +388,11 @@ title: "M2 · Rating Komponen & Hubung Singkat"
 
 <div class="mudah"><span>🚌</span><span>Rating kVA itu seperti kapasitas kursi bus — yang dihitung semua penumpang (P dan Q), bukan hanya yang membayar (P). Kabel panjang dan kurus = jalan sempit dan jauh → hambatannya besar.</span></div>
 
-<div class="ket"><b>I<sub>n</sub></b> arus nominal · <b>MVA</b> megavolt-ampere · <b>I<sub>sc</sub></b> arus hubung singkat (<i>short circuit</i>; kA = kiloampere) · <b>S<sub>sc</sub></b> daya hubung singkat · <b>Z<sub>pu</sub></b> impedansi trafo per unit · <b>PMT</b> pemutus tenaga · <b>ρ</b> resistivitas bahan (Ω·mm²/m) · <b>L</b> panjang penghantar · <b>A</b> luas penampang (mm²) · <b>S<sub>r</sub></b> rating trafo · <b>Z%</b> impedansi trafo dalam persen</div>
+<div class="ket">
+
+$I_n$ arus nominal · **MVA** megavolt-ampere · $I_{sc}$ arus hubung singkat (*short circuit*; kA = kiloampere) · $S_{sc}$ daya hubung singkat · $I_{sc,trafo}$ arus hubung singkat di sisi trafo · $Z_{pu}$ impedansi trafo per unit · **PMT** pemutus tenaga · $\rho$ resistivitas bahan (Ω·mm²/m) · $L$ panjang penghantar · $A$ luas penampang (mm²) · $S_r$ rating trafo · $Z\%$ impedansi trafo dalam persen
+
+</div>
 
 <div class="duo">
 <div class="stack">
@@ -400,7 +425,9 @@ $$R = \rho\cdot \frac{L}{A}$$
 </div>
 
 <div class="pesan-kunci">
-<strong>⚖️ Trafo paralel</strong> <span>berbagi beban sebanding S<sub>r</sub>/Z%: trafo dengan Z% kecil "lebih rakus" memikul beban dan bisa kelebihan beban walau total kapasitas cukup.</span>
+
+**⚖️ Trafo paralel** berbagi beban sebanding $S_r/Z\%$: trafo dengan $Z\%$ kecil "lebih rakus" memikul beban dan bisa kelebihan beban walau total kapasitas cukup.
+
 </div>
 
 ---
@@ -411,7 +438,11 @@ title: "M2 · Transformator: Rasio, Rugi, Efisiensi"
 
 <div class="mudah"><span>⚙️</span><span>Trafo seperti gir sepeda — tegangan turun 50×, arus naik 50×. Rugi inti = biaya tetap (selalu ada), rugi tembaga = biaya yang tumbuh kuadrat dengan beban. Paling hemat saat keduanya sama besar.</span></div>
 
-<div class="ket"><b>a</b> rasio transformasi · <b>N<sub>1</sub>, N<sub>2</sub></b> jumlah lilitan primer, sekunder · <b>indeks 1, 2</b> sisi primer, sekunder · <b>P<sub>Fe</sub></b> rugi inti (besi) · <b>P<sub>Cu</sub></b> rugi tembaga pada beban penuh · <b>x</b> beban dibagi rating · <b>x<sub>opt</sub></b> beban saat η maksimum · <b>VR</b> regulasi tegangan · <b>R%, X%</b> resistansi dan reaktansi ekuivalen trafo dalam persen</div>
+<div class="ket">
+
+$a$ rasio transformasi · $N_1, N_2$ jumlah lilitan primer, sekunder · $V_1, V_2, I_1, I_2$ tegangan dan arus primer, sekunder · $P_{Fe}$ rugi inti (besi) · $P_{Cu}$ rugi tembaga pada beban penuh · $x$ beban dibagi rating · $x_{opt}$ beban saat $\eta$ maksimum · $VR$ regulasi tegangan · $R\%, X\%$ resistansi dan reaktansi ekuivalen trafo dalam persen
+
+</div>
 
 <div class="ml-grid c3">
 <div class="ml-card v">
@@ -450,7 +481,11 @@ title: "M3 · Ohm, Seri–Paralel, dan Kirchhoff"
 
 <div class="mudah"><span>💧</span><span>Tegangan = tekanan air, arus = debit, resistansi = sempitnya pipa. Di percabangan air terbagi, tapi <b>yang masuk = yang keluar</b> (KCL). Keliling satu putaran, tekanan yang naik = tekanan yang turun (KVL).</span></div>
 
-<div class="ket"><b>R<sub>s</sub>, R<sub>p</sub></b> resistansi ekuivalen seri, paralel · <b>R<sub>k</sub></b> resistansi ke-k · <b>Σ</b> jumlah · <b>KCL</b> <i>Kirchhoff's Current Law</i> (hukum arus Kirchhoff) · <b>KVL</b> <i>Kirchhoff's Voltage Law</i> (hukum tegangan Kirchhoff)</div>
+<div class="ket">
+
+$R_s, R_p$ resistansi ekuivalen seri, paralel · $R_k$ resistansi ke-$k$ · $\sum$ jumlah · $I_{masuk}, I_{keluar}$ arus yang masuk, keluar simpul · **KCL** *Kirchhoff's Current Law* (hukum arus Kirchhoff) · **KVL** *Kirchhoff's Voltage Law* (hukum tegangan Kirchhoff)
+
+</div>
 
 <div class="duo">
 <div class="stack">
@@ -491,7 +526,11 @@ title: "M3 · Sumber Nyata, Transfer Daya & Kabel DC"
 
 <div class="mudah"><span>🔋</span><span>Baterai nyata punya "hambatan dalam" seperti selang yang bocor di pangkalnya — makin besar arus yang ditarik, makin banyak tegangan yang hilang sebelum sampai ke beban.</span></div>
 
-<div class="ket"><b>E</b> ggl (gaya gerak listrik) sumber · <b>r</b> hambatan dalam sumber · <b>V<sub>t</sub></b> tegangan terminal · <b>R<sub>sal</sub></b> resistansi saluran pergi-pulang · <b>A<sub>min</sub></b> penampang kabel minimum · <b>ΔV<sub>maks</sub></b> jatuh tegangan maksimum yang diizinkan · <b>R<sub>L</sub></b> resistansi beban</div>
+<div class="ket">
+
+$E$ ggl (gaya gerak listrik) sumber · $r$ hambatan dalam sumber · $V_t$ tegangan terminal · $R_{sal}$ resistansi saluran pergi-pulang · $A_{min}$ penampang kabel minimum · $\Delta V_{maks}$ jatuh tegangan maksimum yang diizinkan · $R_L$ resistansi beban
+
+</div>
 
 <div class="ml-grid c3">
 <div class="ml-card s">
@@ -517,7 +556,9 @@ $$A_{min} = \frac{2\cdot\rho\cdot L\cdot I}{\Delta V_{maks}}$$
 <MaxPower />
 
 <div class="pesan-kunci">
-<strong>⚠️ Daya maksimum ≠ efisiensi maksimum.</strong> <span>Geser R<sub>L</sub>: puncak daya di R<sub>L</sub> = r tetapi η cuma 50%. Kabel DC: panjang dihitung <b>pergi-pulang (2L)</b>.</span>
+
+**⚠️ Daya maksimum ≠ efisiensi maksimum.** Geser $R_L$: puncak daya di $R_L = r$ tetapi $\eta$ cuma 50%. Kabel DC: panjang dihitung **pergi-pulang** ($2\cdot L$).
+
 </div>
 
 ---
@@ -550,7 +591,11 @@ title: "M4 · Dua Ggl dalam Satu Loop & Analisis Mesh"
 
 <div class="mudah"><span>🎡</span><span>Anggap setiap "jendela" rangkaian punya arus sendiri yang berputar seperti bianglala. Cabang yang dipakai dua jendela dilalui <b>selisih</b> kedua arus itu.</span></div>
 
-<div class="ket"><b>E<sub>k</sub></b> ggl ke-k, bertanda + bila searah lintasan · <b>I<sub>1</sub>, I<sub>2</sub></b> arus mesh loop 1, 2 · <b>R<sub>3</sub></b> resistor cabang bersama · <b>Δ</b> determinan matriks koefisien</div>
+<div class="ket">
+
+$E_k$ ggl ke-$k$, bertanda + bila searah lintasan · $I_1, I_2$ arus mesh loop 1, 2 · $R_3$ resistor cabang bersama · $\Delta$ determinan matriks koefisien
+
+</div>
 
 <div class="duo">
 <div class="stack">
@@ -574,7 +619,11 @@ $$\begin{cases} 18 = 7\cdot I_1 - 4\cdot I_2 \\ 12 = -4\cdot I_1 + 10\cdot I_2 \
 
 </div>
 
-<div class="kesimpulan"><b>✔ Hasil:</b> I<sub>1</sub> = 4,2222 A, I<sub>2</sub> = 2,8889 A, arus R<sub>3</sub> = I<sub>1</sub> − I<sub>2</sub> = <b>1,3333 A</b>.</div>
+<div class="kesimpulan">
+
+**✔ Hasil:** $I_1$ = 4,2222 A, $I_2$ = 2,8889 A, arus $R_3$ = $I_1 - I_2$ = **1,3333 A**.
+
+</div>
 
 ---
 layout: default
@@ -584,7 +633,11 @@ title: "M4 · Analisis Nodal & Superposisi"
 
 <div class="mudah"><span>📍</span><span>Nodal = cari satu "ketinggian air" V di titik pertemuan; setelah V ketemu, arus tiap cabang tinggal hukum Ohm. Superposisi = nyalakan sumber satu per satu, lalu jumlahkan hasilnya.</span></div>
 
-<div class="ket"><b>V</b> tegangan simpul bersama · <b>E<sub>1</sub>, E<sub>2</sub></b> ggl sumber 1, 2 · <b>I<sub>k</sub></b> arus cabang ke-k · <b>I′, I″</b> arus saat hanya E<sub>1</sub> / hanya E<sub>2</sub> aktif</div>
+<div class="ket">
+
+$V$ tegangan simpul bersama · $E_1, E_2$ ggl sumber 1, 2 · $R_1, R_2, R_3$ resistansi cabang · $I_k$ arus cabang ke-$k$ · $I', I''$ arus saat hanya $E_1$ / hanya $E_2$ aktif
+
+</div>
 
 <div class="duo">
 <div class="stack">
@@ -621,7 +674,11 @@ title: "M4 · Thevenin, Norton & Sumber Paralel"
 
 <div class="mudah"><span>🎭</span><span>Serumit apa pun jaringannya, dari sudut pandang beban ia "menyamar" sebagai <b>satu baterai + satu resistor</b>. Cukup ukur dua hal: tegangan terbuka dan resistansi saat sumber dimatikan.</span></div>
 
-<div class="ket"><b>V<sub>th</sub>, R<sub>th</sub></b> tegangan dan resistansi Thevenin · <b>V<sub>ab</sub>, R<sub>ab</sub></b> tegangan dan resistansi antara terminal a–b · <b>I<sub>N</sub></b> arus Norton · <b>P<sub>L,maks</sub></b> daya maksimum ke beban · <b>I<sub>sirk</sub></b> arus sirkulasi · <b>r<sub>1</sub>, r<sub>2</sub></b> hambatan dalam baterai 1, 2</div>
+<div class="ket">
+
+$V_{th}, R_{th}$ tegangan dan resistansi Thevenin · $V_{ab}, R_{ab}$ tegangan dan resistansi antara terminal a–b · $I_N$ arus Norton · $P_{L,maks}$ daya maksimum ke beban · $I_{sirk}$ arus sirkulasi · $r_1, r_2$ hambatan dalam baterai 1, 2
+
+</div>
 
 <div class="duo">
 <div class="stack">
@@ -682,7 +739,11 @@ title: "M6 · Model Saluran & Konstanta ABCD"
 
 <div class="mudah"><span>📏</span><span>Saluran pendek cukup dianggap kabel berhambatan. Makin panjang, kabel dan tanah bertingkah seperti <b>kapasitor raksasa</b> — tanpa beban, tegangan di ujung malah naik (efek Ferranti).</span></div>
 
-<div class="ket"><b>Z</b> impedansi seri total · <b>Y</b> admitansi shunt total · <b>r, x, b</b> resistansi, reaktansi, susceptansi per km · <b>ℓ</b> panjang saluran (km) · <b>j</b> satuan imajiner (√−1) · <b>µS</b> mikrosiemens · <b>A, B, C, D</b> konstanta saluran (ABCD) · <b>V<sub>S</sub>, I<sub>S</sub></b> tegangan dan arus ujung kirim (<i>sending</i>) · <b>V<sub>R</sub>, I<sub>R</sub></b> tegangan dan arus ujung terima (<i>receiving</i>) · <b>V<sub>R,nl</sub></b> V<sub>R</sub> tanpa beban (<i>no load</i>)</div>
+<div class="ket">
+
+$Z$ impedansi seri total · $Y$ admitansi shunt total · $r, x, b$ resistansi, reaktansi, susceptansi per km · $\ell$ panjang saluran (km) · $j$ satuan imajiner ($\sqrt{-1}$) · **µS** mikrosiemens · $A, B, C, D$ konstanta saluran (ABCD) · $V_S, I_S$ tegangan dan arus ujung kirim (*sending*) · $V_R, I_R$ tegangan dan arus ujung terima (*receiving*) · $V_{R,nl}$ $V_R$ tanpa beban (*no load*)
+
+</div>
 
 <div class="duo">
 <div class="stack">
@@ -720,7 +781,11 @@ title: "M6 · Aliran Daya, Regulasi & Efisiensi"
 
 <div class="mudah"><span>🏋️</span><span>Ujung kirim harus "mendorong" lebih kuat untuk menutup tegangan yang hilang di R dan X saluran. Faktor daya jelek = arus lebih besar = dorongan dan rugi makin besar.</span></div>
 
-<div class="ket"><b>ΔV</b> jatuh tegangan per fasa · <b>X</b> reaktansi saluran · <b>δ</b> sudut daya antara V<sub>S</sub> dan V<sub>R</sub> · <b>V<sub>R,fl</sub></b> V<sub>R</sub> beban penuh (<i>full load</i>) · <b>P<sub>R</sub></b> daya diterima · <b>pf</b> faktor daya (<i>power factor</i>)</div>
+<div class="ket">
+
+$\Delta V$ jatuh tegangan per fasa · $X$ reaktansi saluran · $\delta$ sudut daya antara $V_S$ dan $V_R$ · $V_{R,fl}$ $V_R$ beban penuh (*full load*) · $P_R$ daya diterima · **pf** faktor daya (*power factor*)
+
+</div>
 
 <div class="duo">
 <div class="stack">
@@ -757,7 +822,11 @@ title: "M6 · Kompensasi Shunt & Seri"
 
 <div class="mudah"><span>🛠️</span><span>Kapasitor <b>shunt</b> = "pemasok Q lokal" di dekat beban, jadi saluran tak perlu mengirim Q. Kapasitor <b>seri</b> = "memperpendek" saluran secara listrik, sehingga daya yang bisa dikirim bertambah.</span></div>
 
-<div class="ket"><b>Q<sub>C</sub></b> daya reaktif kapasitor (MVAR = megavolt-ampere reaktif) · <b>φ<sub>1</sub>, φ<sub>2</sub></b> sudut faktor daya sebelum, sesudah kompensasi · <b>SIL</b> <i>surge impedance loading</i> (beban natural saluran) · <b>X<sub>L</sub></b> reaktansi induktif saluran · <b>k</b> derajat kompensasi seri = X<sub>C</sub>/X<sub>L</sub> (X<sub>C</sub> reaktansi kapasitor) · <b>X<sub>eff</sub></b> reaktansi efektif · <b>P<sub>maks</sub></b> daya maksimum yang bisa dikirim</div>
+<div class="ket">
+
+$Q_C$ daya reaktif kapasitor (MVAR = megavolt-ampere reaktif) · $\varphi_1, \varphi_2$ sudut faktor daya sebelum, sesudah kompensasi · **SIL** *surge impedance loading* (beban natural saluran) · $X_L$ reaktansi induktif saluran · $k$ derajat kompensasi seri $= X_C/X_L$ ($X_C$ reaktansi kapasitor) · $X_{eff}$ reaktansi efektif · $P_{maks}$ daya maksimum yang bisa dikirim
+
+</div>
 
 <div class="ml-grid c2">
 <div class="ml-card e">
@@ -790,7 +859,11 @@ title: "M6 · Transien: Gelombang Berjalan"
 
 <div class="mudah"><span>🪢</span><span>Surja petir merambat seperti gelombang pada tali. Di ujung bebas (terbuka) gelombang memantul searah sehingga <b>berlipat dua</b>; di ujung yang diikat (hubung singkat) memantul <b>terbalik</b>.</span></div>
 
-<div class="ket"><b>surja</b> lonjakan tegangan/arus yang sangat singkat (akibat petir atau operasi hubung) dan merambat sebagai gelombang · <b>arester</b> penangkal surja yang mengalirkannya ke tanah · <b>Z<sub>c</sub></b> impedansi surja · <b>v</b> kecepatan rambat · <b>L, C</b> induktansi, kapasitansi per km · <b>ρ</b> koefisien pantul (bukan resistivitas) · <b>τ</b> koefisien terusan · <b>Z<sub>1</sub>, Z<sub>2</sub></b> impedansi surja sebelum, sesudah sambungan · <b>V<sub>pantul</sub>, V<sub>terus</sub></b> tegangan dipantulkan, diteruskan</div>
+<div class="ket">
+
+**surja** lonjakan tegangan/arus yang sangat singkat (akibat petir atau operasi hubung) dan merambat sebagai gelombang · **arester** penangkal surja yang mengalirkannya ke tanah · $Z_c$ impedansi surja · $v$ kecepatan rambat · $L, C$ induktansi, kapasitansi per km · $\rho$ koefisien pantul (bukan resistivitas) · $\tau$ koefisien terusan · $Z_1, Z_2$ impedansi surja sebelum, sesudah sambungan · $V_{pantul}, V_{terus}$ tegangan dipantulkan, diteruskan
+
+</div>
 
 <div class="ml-grid c2">
 <div class="ml-card v">
@@ -805,7 +878,11 @@ $$Z_c = \sqrt{\frac{L}{C}},\quad v = \frac{1}{\sqrt{L\cdot C}}$$
 
 $$\rho = \frac{Z_2 - Z_1}{Z_1 + Z_2},\quad \tau = 1 + \rho$$
 
-<div class="ml-t">V<sub>pantul</sub> = ρ·V; V<sub>terus</sub> = τ·V.</div>
+<div class="ml-t">
+
+$V_{pantul} = \rho\cdot V$; $V_{terus} = \tau\cdot V$.
+
+</div>
 </div>
 </div>
 
@@ -848,7 +925,11 @@ class: tight
 
 <div class="mudah"><span>📌</span><span><b>Cara pakai:</b> baris yang menyala bergiliran = urutan modul. Tandai halaman ini — UTS open-book, tapi waktu membaca terbatas.</span></div>
 
-<div class="ket"><b>η<sub>g</sub></b> efisiensi generator</div>
+<div class="ket">
+
+$\eta_g$ efisiensi generator
+
+</div>
 
 <div class="rumus-tbl">
 
@@ -870,7 +951,11 @@ title: "Jebakan Umum & Strategi Mengerjakan"
 
 <div class="mudah"><span>🕵️</span><span><b>Intinya:</b> kebanyakan poin hilang bukan karena tidak paham konsep, tetapi karena satuan, √3, dan akar/kuadrat yang terlewat.</span></div>
 
-<div class="ket"><b>PG</b> pilihan ganda</div>
+<div class="ket">
+
+**PG** pilihan ganda
+
+</div>
 
 <div class="ml-grid c2">
 <div class="rangkuman anim-list">
