@@ -706,8 +706,8 @@ def materi():
                  ["<strong>No shading</strong>", "Muka warna rata tanpa cahaya", "Membandingkan warna material"],
                  ["<strong>Points</strong>", "Hanya vertex", "Memeriksa titik sketsa/mesh"]])
     isi += cards([
-        ("🎨", "Warna dan Appearance", "Klik kanan objek → Appearance: warna muka (Shape color), rusuk (Line color), titik, lebar garis, dan Material tampilan (ambient, diffuse, specular, emissive, shininess). Pada FreeCAD 1.0 warna muka tersimpan pada properti ShapeAppearance.", "Appearance"),
-        ("🧪", "Material (FreeCAD 1.0)", "Tab Data Body → Material: memilih bahan dari pustaka (baja, aluminium, ABS, …) yang membawa massa jenis dan tampilan sekaligus; Std Measure dan FEM membaca massa jenisnya. Editor material menambah bahan baru.", "ρ + tampilan"),
+        ("🎨", "Warna dan Appearance", "Klik kanan objek → Appearance: warna muka (Shape color), rusuk (Line color), titik, lebar garis, dan Material tampilan (ambient, diffuse, specular, emissive, shininess). Pada FreeCAD warna muka tersimpan pada properti ShapeAppearance.", "Appearance"),
+        ("🧪", "Material (FreeCAD)", "Tab Data Body → Material: memilih bahan dari pustaka (baja, aluminium, ABS, …) yang membawa massa jenis dan tampilan sekaligus; Std Measure dan FEM membaca massa jenisnya. Editor material menambah bahan baru.", "ρ + tampilan"),
         ("🫧", "Transparansi", "Tab View → Transparency 0–100 (atau klik kanan → Transparency). Rongga, lubang tembus, dan komponen di dalam terlihat tanpa memotong model; kombinasikan dengan Flat lines agar rusuk tetap tegas.", "0–100 %"),
         ("📦", "Bounding box tampilan", "Tab View → Bounding box (True) menggambar kotak pembatas sejajar sumbu global di sekeliling objek, yang membesar saat objek diputar lewat Placement; angkanya dibaca dari Shape.BoundBox (Tugas 3).", "View → Bounding box"),
     ])
@@ -724,7 +724,7 @@ def materi():
                  ["Render Workbench (addon)", "Render → Project (Cycles, LuxCore, POV-Ray, Appleseed)", "Render fotorealistik dengan material dan kamera perspektif; opsional"],
                  ["Ekspor untuk presentasi", "File → Export → glTF / OBJ / PDF 3D", "Model dilihat di peramban atau pemirsa 3D lain"]])
     isi += kotak("tip-box", "💡 <strong>Tampilan untuk rapat dengan bengkel:</strong> gunakan Flat lines, warna berbeda per komponen, transparansi 50–70 % pada rumah/casing, kamera perspektif hanya untuk tangkapan layar presentasi, dan simpan pandangan kerja (Freeze display) agar setiap orang melihat sudut yang sama. Untuk gambar kerja tetap pakai lembar TechDraw ortografik.")
-    m += bagian(6, "m-tampilan", "Gaya Tampilan, Warna, Material,<br>Transparansi, dan Render Sederhana", "Tampilan yang tepat mempercepat pemeriksaan model dan komunikasi. Bagian ini merangkum draw style, Appearance dan Material FreeCAD 1.0, transparansi, kotak pembatas tampilan yang membesar saat benda diputar, dan render sederhana untuk laporan.", isi, "GAYA TAMPILAN DAN RENDER")
+    m += bagian(6, "m-tampilan", "Gaya Tampilan, Warna, Material,<br>Transparansi, dan Render Sederhana", "Tampilan yang tepat mempercepat pemeriksaan model dan komunikasi. Bagian ini merangkum draw style, Appearance dan Material FreeCAD, transparansi, kotak pembatas tampilan yang membesar saat benda diputar, dan render sederhana untuk laporan.", isi, "GAYA TAMPILAN DAN RENDER")
 
     # 07 — Bacaan: BoundBox, Face.Area, luas potongan
     isi = figure(6, "Kotak pembatas (BoundBox) balok yang diputar θ terhadap sumbu Z", f"Alas {A_R} × {B_R} diputar {TH_R}°: kotak pembatas sejajar sumbu global membesar menjadi XLength = a·cosθ + b·sinθ = {ind(XLEN, 3)} dan YLength = a·sinθ + b·cosθ = {ind(YLEN, 3)} mm; ZLength tetap.", gambar6())
@@ -775,7 +775,7 @@ vo = balok.ViewObject
 vo.BoundingBox = True                                 # gambar kotak pembatas di tampilan 3D
 vo.Transparency = 60                                  # tembus pandang 60 %
 vo.DisplayMode = "Flat Lines"                         # muka berwarna + rusuk
-vo.ShapeAppearance = (App.Material(DiffuseColor=(0.13, 0.83, 0.93)),)   # warna muka (FreeCAD 1.0)''', "Python (FreeCAD)")
+vo.ShapeAppearance = (App.Material(DiffuseColor=(0.13, 0.83, 0.93)),)   # warna muka (FreeCAD)''', "Python (FreeCAD)")
     isi += kode("Python console — luas potongan (slice), luas muka depan, dan luas muka miring baji", f'''import FreeCAD as App, Part
 V = App.Vector
 a, b, h, d = {A_S}, {B_S}, {H_S}, {D_S}
@@ -836,7 +836,7 @@ Part.show(sh, "BalokBerlubang"); Part.show(baji, "Baji")''', "Python (FreeCAD)")
 
     refs = pm_ref(1, "cyan", "14,165,233", "G. R. Bertoline, E. N. Wiebe, N. W. Hartman &amp; W. A. Ross", "Fundamentals of Graphics Communication", ", 6th ed. McGraw-Hill, 2011.", "Bab multiview drawings, axonometric projection (isometrik, dimetrik, trimetrik), section views, dan auxiliary views; dasar Bagian 02–05.")
     refs += pm_ref(2, "amber", "249,115,22", "F. E. Giesecke, A. Mitchell, H. C. Spencer, I. L. Hill, J. T. Dygdon, J. E. Novak &amp; S. Lockhart", "Technical Drawing with Engineering Graphics", ", 15th ed. Pearson, 2016.", "Metode proyeksi sudut pertama dan ketiga, simbol ISO, skala, potongan, dan pandangan bantu untuk panjang sebenarnya.")
-    refs += pm_ref(3, "violet", "168,85,247", "FreeCAD Community", "FreeCAD 1.0 Documentation: Std View commands (Standard views, Orthographic/Perspective, Clipping plane), Navigation Cube, TechDraw Workbench (ProjectionGroup, SectionView, Hatch), Part Cross-sections, TopoShape (BoundBox, slice)", " (wiki.freecad.org), 2024–2026.", "Acuan nama perintah, properti tampilan, dan API yang dipakai di cell Python dan tugas.")
+    refs += pm_ref(3, "violet", "168,85,247", "FreeCAD Community", "FreeCAD Documentation: Std View commands (Standard views, Orthographic/Perspective, Clipping plane), Navigation Cube, TechDraw Workbench (ProjectionGroup, SectionView, Hatch), Part Cross-sections, TopoShape (BoundBox, slice)", " (wiki.freecad.org), 2024–2026.", "Acuan nama perintah, properti tampilan, dan API yang dipakai di cell Python dan tugas.")
     refs += pm_ref(4, "green", "0,224,158", "M. Lombard", "Mastering SolidWorks", ". Wiley, 2019.", "Rujukan utama RPS: bab drawings (views, sections, auxiliary views, scale) dan display states; konsep yang sama pada TechDraw FreeCAD.")
     refs += pm_ref(5, "pink", "236,72,153", "International Organization for Standardization", "ISO 5456-2: Technical drawings — Projection methods — Part 2: Orthographic representations; ISO 128-3: Views, sections and cuts", ". ISO, 1996/2022 (diadopsi sebagai SNI ISO).", "Aturan susunan pandangan sudut pertama/ketiga, simbol metode proyeksi, garis potong, dan arsiran.")
     m += f'''<!-- ═══ PUSTAKA ═══ -->

@@ -76,7 +76,7 @@ export const KALENDER = [
 export const MODUL = [
   { n: 1, sub: "1.1", judul: "Pengenalan <span style=\"color:#67e8f9;\">FreeCAD</span> dan Menggambar 2D",
     judulPolos: "Pengenalan FreeCAD dan Menggambar 2D",
-    desk: "Mengenal posisi CAD dalam alur perancangan, antarmuka FreeCAD 1.0 (workbench, Combo View, jendela 3D), pengaturan workspace dan satuan, perintah dasar Draft Workbench untuk garis, persegi, lingkaran, busur, dan poligon, serta manajemen berkas .FCStd.",
+    desk: "Mengenal posisi CAD dalam alur perancangan, antarmuka FreeCAD (workbench, Combo View, jendela 3D), pengaturan workspace dan satuan, perintah dasar Draft Workbench untuk garis, persegi, lingkaran, busur, dan poligon, serta manajemen berkas .FCStd.",
     chips: ["&#128736; Antarmuka FreeCAD", "&#128208; Draft Workbench", "&#9711; Garis, Lingkaran, Busur", "&#128190; Berkas .FCStd"] },
   { n: 2, sub: "1.2", judul: "Drafting dan <span style=\"color:#67e8f9;\">Penyuntingan 2D</span>",
     judulPolos: "Drafting dan Penyuntingan 2D: Trimex, Offset, Array, Layer, Dimensi",
@@ -280,7 +280,7 @@ export function bannerIntroduction() {
           </h1>
 
           <p style="font-size:12.5px;color:#a5b4c7;line-height:1.55;margin:0 0 9px 0;">
-            Merancang komponen mesin dengan <strong style="color:#67e8f9;">FreeCAD 1.0</strong>: antarmuka dan alat dasar CAD, penggambaran 2D dan pemodelan 3D parametrik, simulasi dan analisis kinerja komponen, perakitan dan evaluasi sistem, hingga
+            Merancang komponen mesin dengan <strong style="color:#67e8f9;">FreeCAD 1.0 atau lebih baru</strong>: antarmuka dan alat dasar CAD, penggambaran 2D dan pemodelan 3D parametrik, simulasi dan analisis kinerja komponen, perakitan dan evaluasi sistem, hingga
             <strong style="color:#c4b5fd;">desain berkelanjutan dan optimasi</strong> &mdash; setiap tugas berupa berkas .FCStd yang diunggah dan dinilai otomatis.
           </p>
 

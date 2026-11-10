@@ -458,7 +458,7 @@ def materi():
     m += bagian(3, "m-posisi", "Penentuan Posisi:<br>Koordinat, Placement, dan Titik Acuan", "Posisi objek di FreeCAD adalah angka, bukan kesan mata. Bagian ini membahas koordinat global dan relatif, properti Placement, cara memilih titik acuan, dan rumus jarak yang dipakai untuk memeriksanya.", isi, "PENENTUAN POSISI")
 
     # 04 — Pengukuran
-    isi = figure(4, "Mode Std Measure dan padanannya di Python console", "Std Measure (FreeCAD 1.0) menampilkan hasil ukur di jendela 3D; Python console memberi angka berpresisi penuh dan besaran seperti titik berat dan kotak pembatas.", gambar4())
+    isi = figure(4, "Mode Std Measure dan padanannya di Python console", "Std Measure (FreeCAD) menampilkan hasil ukur di jendela 3D; Python console memberi angka berpresisi penuh dan besaran seperti titik berat dan kotak pembatas.", gambar4())
     isi += figure(5, "Titik berat, jarak titik–garis, dan sudut pada segitiga", f"Segitiga A(0,0), B({A_T},0), C({C_T},{H_T}): titik berat G, jarak CG, jarak A ke garis BC, dan sudut di B; ketiganya terukur dengan Std Measure atau Python.", gambar5())
     isi += formula(3, "Titik Berat Segitiga dan Jarak Titik ke Garis", r"G = \left(\tfrac{x_A + x_B + x_C}{3},\ \tfrac{y_A + y_B + y_C}{3}\right), \qquad d(A, BC) = \frac{|a\,h|}{\sqrt{(c - a)^{2} + h^{2}}}",
                    r"Untuk \(A(0, 0)\), \(B(a, 0)\), \(C(c, h)\). Contoh \(a = " + str(A_T) + r", c = " + str(C_T) + r", h = " + str(H_T) + r"\): \(G = (" + ind(G_T[0], 3) + ", " + ind(G_T[1], 3) + r")\), \(CG = " + ind(CG_T, 3) + r"\), \(d(A, BC) = " + ind(DABC_T, 3) + r"\) mm.",
@@ -602,7 +602,7 @@ doc.recompute()''', "Python (FreeCAD)")
 
     refs = pm_ref(1, "cyan", "14,165,233", "M. Lombard", "Mastering SolidWorks", ". Wiley, 2019.", "Rujukan utama RPS: bab sketsa 2D (entitas dasar, hubungan geometris) dan transformasi sketsa (move, rotate, scale, copy).")
     refs += pm_ref(2, "amber", "249,115,22", "B. Monroy &amp; R. A. Cook", "Autodesk Inventor 2021 Essentials Plus", ". Sybex, 2021.", "Rujukan utama RPS: alat ukur (Measure) dan penempatan geometri dengan koordinat presisi.")
-    refs += pm_ref(3, "violet", "168,85,247", "FreeCAD Community", "FreeCAD 1.0 Documentation: Draft Line/Circle/Polygon/Point, Draft Move/Rotate/Scale, Std Measure", " (wiki.freecad.org), 2024–2026.", "Acuan nama perintah, opsi Copy/Relative/Uniform, DrawMode Polygon, dan API Draft.move/rotate/scale.")
+    refs += pm_ref(3, "violet", "168,85,247", "FreeCAD Community", "FreeCAD Documentation: Draft Line/Circle/Polygon/Point, Draft Move/Rotate/Scale, Std Measure", " (wiki.freecad.org), 2024–2026.", "Acuan nama perintah, opsi Copy/Relative/Uniform, DrawMode Polygon, dan API Draft.move/rotate/scale.")
     refs += pm_ref(4, "green", "0,224,158", "G. R. Bertoline, E. N. Wiebe, N. W. Hartman &amp; W. A. Ross", "Fundamentals of Graphics Communication", ", 6th ed. McGraw-Hill, 2011.", "Bab geometri 2D: konstruksi poligon, titik berat, dan transformasi koordinat.")
     refs += pm_ref(5, "pink", "236,72,153", "F. E. Giesecke dkk.", "Technical Drawing with Engineering Graphics", ", 15th ed. Pearson, 2016.", "Konstruksi geometris dasar (garis, lingkaran, poligon) dan pengukuran pada gambar teknik.")
     m += f'''<!-- ═══ PUSTAKA ═══ -->
@@ -615,7 +615,7 @@ doc.recompute()''', "Python (FreeCAD)")
 {refs}  </div>
 
   <div class="info-box reveal" style="margin-top:22px">
-    <strong>🔗 Sumber Daring Pendukung:</strong> halaman wiki Draft Polygon (DrawMode), Draft Move/Rotate/Scale (opsi Copy, Subelement, Uniform), Std Measure (mode ukur FreeCAD 1.0), dan Part TopoShape (CenterOfMass, BoundBox, distToShape). Video tutorial pada daftar putar RPS memperlihatkan urutan klik; modul ini memberi rumus untuk memeriksa hasilnya.
+    <strong>🔗 Sumber Daring Pendukung:</strong> halaman wiki Draft Polygon (DrawMode), Draft Move/Rotate/Scale (opsi Copy, Subelement, Uniform), Std Measure (mode ukur FreeCAD), dan Part TopoShape (CenterOfMass, BoundBox, distToShape). Video tutorial pada daftar putar RPS memperlihatkan urutan klik; modul ini memberi rumus untuk memeriksa hasilnya.
   </div>
 </div>
 
@@ -664,7 +664,7 @@ MC = [
     ("<strong>DrawMode inscribed</strong> (bawaan) pada Draft Polygon berarti...",
      ["Sisi-sisi poligon menyinggung lingkaran radius R dari luar", "Titik-titik sudut poligon terletak tepat pada lingkaran radius R", "Poligon digambar tanpa lingkaran acuan", "Radius diukur dari sudut ke tengah sisi"],
      "Arti DrawMode inscribed"),
-    ("Alat FreeCAD 1.0 yang menampilkan jarak, sudut, radius, atau luas elemen langsung di jendela 3D adalah...",
+    ("Alat FreeCAD yang menampilkan jarak, sudut, radius, atau luas elemen langsung di jendela 3D adalah...",
      ["Draft Dimension", "Selection view", "Report view", "Std Measure (ikon penggaris)"],
      "Alat ukur di jendela 3D"),
     ("<strong>Draft Move</strong> dengan opsi Copy aktif akan...",

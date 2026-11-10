@@ -113,7 +113,7 @@ Pemodelan CAD dan Teknik Tenaga Listrik ditambahkan bertahap pada September 2026
 > `Optimalisasi-dan-Automasi`. Pengecualian: deck slide Opto memakai brand
 > "Optimalisasi & Automasi" (huruf A) atas permintaan dosen — jangan "diperbaiki".
 
-Total berkas HTML utama: **84 modul + 12 exam + 6 OBE**. Pemodelan CAD: Modul 1–14 terbit (FreeCAD 1.0; 10 PG + 5 tugas unggah berkas
+Total berkas HTML utama: **84 modul + 12 exam + 6 OBE**. Pemodelan CAD: Modul 1–14 terbit (FreeCAD 1.0 atau lebih baru; 10 PG + 5 tugas unggah berkas
 `.FCStd` + angka bacaan yang wajib terbaca dari geometri berkas (divalidasi server sejak 24 September 2026;
 tugas modul yang salah boleh dikirim ulang dengan nilai maksimal 65%), generator `scripts/cad-modul/bangun-modul-1.py`; berkas dosen
 di `Admin/berkas-tugas.html`), **UTS dan UAS terbit 20 September 2026** dengan bentuk

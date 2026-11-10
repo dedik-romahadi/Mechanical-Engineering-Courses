@@ -436,7 +436,7 @@ def materi():
         ("🧊", "Body", "Wadah Part Design untuk satu solid tunggal. Semua fitur di dalamnya menyatu; benda kedua memerlukan Body kedua. Origin Body menyediakan bidang XY, XZ, YZ, dan sumbu X, Y, Z untuk menempelkan sketsa.", "1 Body = 1 solid"),
         ("✏️", "Fitur berbasis sketsa", "Pad, Pocket, Revolution, Groove, Additive/Subtractive Pipe dan Loft semuanya berangkat dari profil sketsa 2D tertutup. Profil yang baik (tertutup, tidak tumpang tindih, terkonstrain) adalah separuh pekerjaan.", "Sketch → fitur"),
         ("🎀", "Fitur dressing", "Fillet, Chamfer, Draft, dan Thickness menyunting solid yang sudah ada tanpa sketsa. Dibuat paling akhir agar rusuk yang dipilih tidak berubah oleh fitur berikutnya.", "terakhir"),
-        ("🌳", "Pohon fitur parametrik", "Mengubah dimensi sketsa awal menghitung ulang seluruh fitur di bawahnya. FreeCAD 1.0 mengikat fitur ke geometri dengan nama stabil (topological naming) sehingga fillet tidak hilang saat sketsa berubah.", "recompute"),
+        ("🌳", "Pohon fitur parametrik", "Mengubah dimensi sketsa awal menghitung ulang seluruh fitur di bawahnya. FreeCAD mengikat fitur ke geometri dengan nama stabil (topological naming) sehingga fillet tidak hilang saat sketsa berubah.", "recompute"),
     ])
     isi += tabel(["Workbench", "Alat pembentuk solid", "Kapan dipakai di kelas"],
                  [["<strong>Part Design</strong>", "Body, Sketch, Pad, Pocket, Revolution, Groove, Pipe, Loft, Fillet, Chamfer", "Modul 5–7: komponen tunggal berbasis sketsa (utama)"],
@@ -560,7 +560,7 @@ def materi():
                  ["Momen inersia", "—", "<code>Body.Shape.MatrixOfInertia</code>", "mm⁵ (÷ρ untuk massa)"]])
     isi += formula(5, "Massa dari Volume Model", r"m = \rho\,V, \qquad V[\text{cm}^{3}] = \frac{V[\text{mm}^{3}]}{1000}",
                    r"\(\rho\) = massa jenis bahan (baja 7,85; aluminium 2,70; kuningan 8,5 g/cm³). Contoh balok berlubang " + f"{ind(V_PAD, 1)}" + r" mm³ dari baja: \(m = " + ind(V_PAD / 1000 * RHO_BAJA, 1) + r"\) g.",
-                   "Volume dari model adalah dasar taksiran berat, biaya bahan, dan beban rakitan. FreeCAD 1.0 memungkinkan menetapkan Material pada Body sehingga massa tampil otomatis; tanpa itu, kalikan sendiri ρ dengan volume dalam cm³.",
+                   "Volume dari model adalah dasar taksiran berat, biaya bahan, dan beban rakitan. FreeCAD memungkinkan menetapkan Material pada Body sehingga massa tampil otomatis; tanpa itu, kalikan sendiri ρ dengan volume dalam cm³.",
                    [("m", "Massa (g)"), (r"\rho", "Massa jenis (g/cm³)"), ("V", "Volume (cm³)")])
     isi += kotak("tip-box", "💡 <strong>Membaca Body, bukan fitur:</strong> <code>Body.Shape</code> selalu menunjuk fitur Tip (hasil akhir). Membaca <code>Pad.Shape.Volume</code> pada model yang sudah di-Pocket dan di-Fillet memberi volume sebelum pemotongan, bukan volume akhir. Std Measure Volume dengan memilih Body juga membaca Tip.")
     m += bagian(7, "m-baca", "Membaca Volume, Luas, dan Massa:<br>Angka yang Diperiksa Tugas", "Model 3D memberi besaran yang tidak bisa diukur dari gambar 2D. Bagian ini memetakan cara membaca volume, luas permukaan, titik berat, dan massa, serta jebakan membaca fitur alih-alih Body.", isi, "VOLUME DAN MASSA")
@@ -657,7 +657,7 @@ Part.show(akhir, "PorosChamfer")''', "Python (FreeCAD)")
 
     refs = pm_ref(1, "cyan", "14,165,233", "M. Lombard", "Mastering SolidWorks", ". Wiley, 2019.", "Rujukan utama RPS: bab sketch-based features (extrude, revolve, sweep, loft) dan fillet/chamfer; konsep yang sama pada Part Design FreeCAD.")
     refs += pm_ref(2, "amber", "249,115,22", "B. Monroy &amp; R. A. Cook", "Autodesk Inventor 2021 Essentials Plus", ". Sybex, 2021.", "Rujukan utama RPS: alur sketch → feature, fully constrained sketch, dan pohon fitur parametrik.")
-    refs += pm_ref(3, "violet", "168,85,247", "FreeCAD Community", "FreeCAD 1.0 Documentation: PartDesign Workbench (Body, Pad, Pocket, Revolution, AdditivePipe, Fillet, Chamfer), Sketcher Workbench", " (wiki.freecad.org), 2024–2026.", "Acuan nama fitur, parameter, dan API Part Design/Sketcher yang dipakai di cell Python.")
+    refs += pm_ref(3, "violet", "168,85,247", "FreeCAD Community", "FreeCAD Documentation: PartDesign Workbench (Body, Pad, Pocket, Revolution, AdditivePipe, Fillet, Chamfer), Sketcher Workbench", " (wiki.freecad.org), 2024–2026.", "Acuan nama fitur, parameter, dan API Part Design/Sketcher yang dipakai di cell Python.")
     refs += pm_ref(4, "green", "0,224,158", "G. R. Bertoline, E. N. Wiebe, N. W. Hartman &amp; W. A. Ross", "Fundamentals of Graphics Communication", ", 6th ed. McGraw-Hill, 2011.", "Bab solid modeling: fitur berbasis sketsa, operasi sweep, dan pohon fitur.")
     refs += pm_ref(5, "pink", "236,72,153", "R. C. Hibbeler", "Engineering Mechanics: Statics", ", 14th ed. Pearson, 2016.", "Teorema Pappus–Guldinus untuk volume benda putar dan sapuan, serta titik berat gabungan.")
     m += f'''<!-- ═══ PUSTAKA ═══ -->

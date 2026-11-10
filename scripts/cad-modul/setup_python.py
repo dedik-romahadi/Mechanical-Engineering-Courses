@@ -75,7 +75,7 @@ conda --version
           <div><div class="sp-label">Langkah 2</div><div class="sp-title">Buat Environment Khusus</div></div>
         </div>
         <div class="sp-body">
-          <p style="margin-bottom:1rem;">Buat environment terpisah <code>pemodelan_cad</code> dengan <strong>Python 3.11</strong> — versi yang sama dengan Python bawaan FreeCAD 1.0, sehingga modul <code>FreeCAD</code> kelak bisa dipanggil dari Jupyter.</p>
+          <p style="margin-bottom:1rem;">Buat environment terpisah <code>pemodelan_cad</code> dengan <strong>Python 3.11</strong> — samakan dengan versi Python bawaan FreeCAD yang terpasang (Help → About FreeCAD), sehingga modul <code>FreeCAD</code> kelak bisa dipanggil dari Jupyter.</p>
           <div class="sp-cb">
             <div class="sp-cbh">
               <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Terminal</span></div>
@@ -186,7 +186,7 @@ plt.gca().set_aspect(<span class="sp-str">'equal'</span>); plt.grid(alpha=0.3)
 plt.title(<span class="sp-str">f'Hello CAD! A = {A_rumus:.2f} mm² (shoelace {A_shoelace:.2f})'</span>)
 plt.show()</pre></div>
           </div>
-          <p style="margin-top:1.25rem;margin-bottom:1rem;"><strong>Uji B — freecadcmd.</strong> Simpan skrip berikut sebagai <code>hello_cad.py</code>, lalu jalankan dengan FreeCAD tanpa GUI dari terminal (path sesuai folder instalasi FreeCAD 1.0). Skrip membuat pelat 120 × 60 × 10 mm berlubang ⌀16, mencetak volumenya, dan menyimpan <code>hello_cad.FCStd</code> yang bisa dibuka di FreeCAD.</p>
+          <p style="margin-top:1.25rem;margin-bottom:1rem;"><strong>Uji B — freecadcmd.</strong> Simpan skrip berikut sebagai <code>hello_cad.py</code>, lalu jalankan dengan FreeCAD tanpa GUI dari terminal (path sesuai folder instalasi FreeCAD Anda). Skrip membuat pelat 120 × 60 × 10 mm berlubang ⌀16, mencetak volumenya, dan menyimpan <code>hello_cad.FCStd</code> yang bisa dibuka di FreeCAD.</p>
           <div class="sp-cb">
             <div class="sp-cbh">
               <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">hello_cad.py</span></div>
@@ -208,8 +208,8 @@ doc.saveAs(<span class="sp-str">"hello_cad.FCStd"</span>)</pre></div>
               <div class="sp-cbh-left"><div class="sp-cbh-dots"><span></span><span></span><span></span></div><span class="sp-cbh-title">Terminal — folder tempat hello_cad.py disimpan</span></div>
               <button class="sp-cbh-copy" onclick="cpC(this)">📋 Copy</button>
             </div>
-            <div class="sp-cbd"><pre><span class="sp-cm"># Windows (PowerShell) — sesuaikan folder instalasi FreeCAD 1.0</span>
-&amp; "C:\Program Files\FreeCAD 1.0\bin\freecadcmd.exe" hello_cad.py
+            <div class="sp-cbd"><pre><span class="sp-cm"># Windows (PowerShell) — sesuaikan folder instalasi FreeCAD Anda</span>
+&amp; "C:\Program Files\FreeCAD 1.x\bin\freecadcmd.exe" hello_cad.py
 
 <span class="sp-cm"># macOS</span>
 /Applications/FreeCAD.app/Contents/MacOS/FreeCADCmd hello_cad.py
@@ -219,7 +219,7 @@ doc.saveAs(<span class="sp-str">"hello_cad.FCStd"</span>)</pre></div>
 
 <span class="sp-cm"># Output yang diharapkan: Hello CAD! Volume = 69989.4 mm^3, luas permukaan = ... mm^2</span></pre></div>
           </div>
-          <p style="margin-top:1rem;font-size:.85rem;color:var(--sp-t3)"><strong style="color:var(--sp-c4)">Opsional — FreeCAD dari Jupyter:</strong> karena environment memakai Python 3.11 yang sama dengan FreeCAD 1.0, modul FreeCAD biasanya bisa diimpor langsung: <code>import sys; sys.path.append(r"C:\Program Files\FreeCAD 1.0\bin"); import FreeCAD, Part</code> (macOS: <code>/Applications/FreeCAD.app/Contents/lib</code>). Bila muncul <em>ImportError</em> (versi Python berbeda), tetap pakai <code>freecadcmd</code> seperti Uji B.</p>
+          <p style="margin-top:1rem;font-size:.85rem;color:var(--sp-t3)"><strong style="color:var(--sp-c4)">Opsional — FreeCAD dari Jupyter:</strong> bila versi Python environment sama dengan Python bawaan FreeCAD yang terpasang, modul FreeCAD biasanya bisa diimpor langsung: <code>import sys; sys.path.append(r"C:\Program Files\FreeCAD 1.x\bin"); import FreeCAD, Part</code> (macOS: <code>/Applications/FreeCAD.app/Contents/lib</code>). Bila muncul <em>ImportError</em> (versi Python berbeda), tetap pakai <code>freecadcmd</code> seperti Uji B.</p>
           <p style="margin-top:1rem;font-size:.9rem;">✅ Jika grafik heksagon muncul di Jupyter <strong>dan</strong> terminal mencetak <code>Hello CAD! Volume = 69989.4 mm^3</code> → setup Anda <strong style="color:var(--sp-c2)">SUKSES</strong>! Sekarang siap menulis skrip FreeCAD dan mengolah hasil pemodelan.</p>
         </div>
       </div>

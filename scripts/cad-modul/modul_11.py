@@ -1,5 +1,5 @@
 # Konten Modul 11 Pemodelan CAD — Perakitan Komponen dan Analisis Sistem
-# (Sub-CPMK 4.1: Assembly Workbench FreeCAD 1.0, joint dan derajat kebebasan, mekanisme
+# (Sub-CPMK 4.1: Assembly Workbench FreeCAD, joint dan derajat kebebasan, mekanisme
 # engkol-peluncur, tabrakan/kelonggaran, BOM dan gambar rakitan, massa dan pusat massa
 # rakitan, transmisi sabuk). Angka contoh dihitung di sini agar teks, tabel, dan gambar
 # konsisten, dan sengaja tidak sama dengan varian tugas parametrik mana pun (bank tugas
@@ -91,7 +91,7 @@ def gambar1():
     b += t(60, 162, "Placement, dan joint. Mengubah", 10.5, AX, "start")
     b += t(60, 178, "Body memperbarui seluruh rakitan.", 10.5, AX, "start")
     b += teks2(340, 222, "Rakitan = komponen (link) + satu acuan diam + joint yang mengurangi derajat kebebasan sampai tersisa gerak yang diinginkan", 11, AX, maks=70)
-    return svg(680, 248, b, "Gambar 1 — Alur kerja Assembly Workbench 1.0 dan pohon dokumen rakitan")
+    return svg(680, 248, b, "Gambar 1 — Alur kerja Assembly Workbench dan pohon dokumen rakitan")
 
 
 def gambar2():
@@ -553,7 +553,7 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
       <em>ke Rakitan:</em><br>
       <span class="hl-amber">Joint, Gerak, Analisis</span>
     </h1>
-    <p class="hero-sub">Komponen yang selesai dimodelkan harus dirakit dan dianalisis sebagai sistem. Pertemuan ini memakai Assembly Workbench FreeCAD 1.0: memasukkan komponen sebagai link, menetapkan acuan diam (grounded), memilih joint yang tepat menurut derajat kebebasan, menggerakkan mekanisme engkol-peluncur, memeriksa tabrakan dan kelonggaran, menyusun BOM dan gambar rakitan dengan balloon, lalu membaca massa total, pusat massa, dan geometri transmisi sabuk dari model; tugasnya lima rakitan FreeCAD dengan satu angka bacaan tiap rakitan.</p>
+    <p class="hero-sub">Komponen yang selesai dimodelkan harus dirakit dan dianalisis sebagai sistem. Pertemuan ini memakai Assembly Workbench FreeCAD: memasukkan komponen sebagai link, menetapkan acuan diam (grounded), memilih joint yang tepat menurut derajat kebebasan, menggerakkan mekanisme engkol-peluncur, memeriksa tabrakan dan kelonggaran, menyusun BOM dan gambar rakitan dengan balloon, lalu membaca massa total, pusat massa, dan geometri transmisi sabuk dari model; tugasnya lima rakitan FreeCAD dengan satu angka bacaan tiap rakitan.</p>
     <div class="academic-roadmap" aria-label="Alur belajar modul">
       <div class="road-step"><span>01</span><strong>Pelajari</strong><small>Link, grounding, joint, dan DOF</small></div><div class="road-arrow" aria-hidden="true">→</div>
       <div class="road-step"><span>02</span><strong>Eksplorasi</strong><small>Mekanisme, clearance, dan animasi</small></div><div class="road-arrow" aria-hidden="true">→</div>
@@ -573,13 +573,13 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
 def materi():
     m = ""
 
-    # 01 — Assembly Workbench 1.0
-    isi = figure(1, "Alur kerja Assembly Workbench 1.0 dan pohon dokumen rakitan", "Rakitan dibuat lima langkah: Create Assembly, Insert Link komponen, tetapkan satu komponen grounded, buat joint antar acuan geometri, lalu solve. Pohon dokumen hanya menyimpan link, Placement, dan joint; geometri tetap milik Body asal.", gambar1())
+    # 01 — Assembly Workbench
+    isi = figure(1, "Alur kerja Assembly Workbench dan pohon dokumen rakitan", "Rakitan dibuat lima langkah: Create Assembly, Insert Link komponen, tetapkan satu komponen grounded, buat joint antar acuan geometri, lalu solve. Pohon dokumen hanya menyimpan link, Placement, dan joint; geometri tetap milik Body asal.", gambar1())
     isi += cards([
         ("🧩", "Assembly container", "Objek Assembly::AssemblyObject (turunan Part container) menampung link ke komponen, grup Joints, dan hasil solver. Satu dokumen boleh memuat beberapa Assembly; sebuah Assembly boleh dimasukkan ke Assembly lain sebagai sub-assembly.", "1 Assembly = 1 rakitan"),
         ("🔗", "App::Link, bukan salinan", "Insert Link merujuk Body/Part asli (dalam dokumen yang sama atau berkas .FCStd lain). Mengubah sketsa komponen memperbarui semua rakitan yang memakainya; berkas tetap ringan karena geometri tidak digandakan.", "rujuk, jangan gandakan"),
         ("⚓", "Grounded part", "Satu komponen dikunci ke sistem koordinat rakitan (GroundedJoint) sebagai acuan diam. Tanpa acuan, solver tidak punya pegangan: komponen bisa melayang bersama meski semua joint terpenuhi.", "1 acuan diam"),
-        ("🧮", "Solver Ondsel", "FreeCAD 1.0 memakai solver Ondsel (OndselSolver) yang memecahkan semua joint sekaligus dan mengizinkan gerak dinamis: komponen yang masih punya DOF dapat diseret dengan mouse (Move part) atau dianimasikan.", "solve → Placement"),
+        ("🧮", "Solver Ondsel", "Sejak versi 1.0, FreeCAD memakai solver Ondsel (OndselSolver) yang memecahkan semua joint sekaligus dan mengizinkan gerak dinamis: komponen yang masih punya DOF dapat diseret dengan mouse (Move part) atau dianimasikan.", "solve → Placement"),
     ])
     isi += tabel(["Perintah Assembly 1.0", "Fungsi", "Catatan penggunaan"],
                  [["<strong>Create Assembly</strong>", "Membuat wadah rakitan aktif", "Objek Assembly + grup Joints dibuat otomatis"],
@@ -591,7 +591,7 @@ def materi():
                   ["<strong>Bill of Materials</strong>", "Menghasilkan Spreadsheet daftar komponen", "Kolom nama, jumlah, deskripsi; dasar BOM gambar rakitan"],
                   ["<strong>Export ASMT</strong>", "Mengekspor rakitan ke format ASMT", "Untuk simulasi dinamika lanjutan di luar FreeCAD"]])
     isi += kotak("tip-box", "💡 <strong>Cara Membaca Modul Ini:</strong> Bagian 02 menjelaskan joint dan derajat kebebasan sebagai bahasa perakitan. Bagian 03 memasukkan komponen dan menetapkan acuan diam (Tugas 1 dan 3). Bagian 04 menggerakkan mekanisme engkol-peluncur (Tugas 4), Bagian 05 memeriksa tabrakan dan kelonggaran (Tugas 2), Bagian 06 menyusun BOM dan gambar rakitan, dan Bagian 07 membaca massa, pusat massa, serta geometri sabuk (Tugas 3 dan 5). Bagian 08–09 menutup dengan Python dan praktik engkol-peluncur.")
-    m += bagian(1, "m-assembly", "Assembly Workbench 1.0:<br>Rakitan sebagai Kumpulan Tautan", "FreeCAD 1.0 membawa Assembly Workbench bawaan: komponen dimasukkan sebagai link, satu komponen menjadi acuan diam, dan joint mengikat sisanya. Bagian ini memperkenalkan objek, perintah, dan cara berpikir merakit.", isi, "ASSEMBLY WORKBENCH")
+    m += bagian(1, "m-assembly", "Assembly Workbench:<br>Rakitan sebagai Kumpulan Tautan", "Sejak versi 1.0, FreeCAD membawa Assembly Workbench bawaan: komponen dimasukkan sebagai link, satu komponen menjadi acuan diam, dan joint mengikat sisanya. Bagian ini memperkenalkan objek, perintah, dan cara berpikir merakit.", isi, "ASSEMBLY WORKBENCH")
 
     # 02 — Joint dan DOF
     isi = figure(2, "Jenis joint Assembly 1.0 dan derajat kebebasan yang tersisa", "Komponen bebas punya 6 derajat kebebasan (3 translasi + 3 rotasi). Fixed menghapus semuanya; Revolute menyisakan satu rotasi; Cylindrical satu rotasi dan satu translasi sesumbu; Slider satu translasi; Ball tiga rotasi; Distance hanya mengunci jarak.", gambar2())
@@ -673,7 +673,7 @@ def materi():
                    r"\(D\) = diameter lubang &nbsp;·&nbsp; \(d\) = diameter poros &nbsp;·&nbsp; \(c\) = kelonggaran radial (satu sisi). Contoh " + f"D = {D_LUB}, d = {ind(D_POR, 2)}" + r": \(c = " + ind(C_RAD, 3) + r"\) mm.",
                    "Kelonggaran radial adalah jarak terdekat antara permukaan poros dan dinding lubang ketika keduanya sesumbu, persis yang diukur Std Measure Distance antara dua muka silinder. Nilai positif berarti suaian longgar (poros bebas berputar), nol berarti pas, negatif berarti interferensi (suaian sesak atau kesalahan model). Tugas 2 membaca c dari rakitan Cylindrical joint dengan empat desimal.",
                    [("c", "Kelonggaran radial (mm)"), ("D", "Diameter lubang (mm)"), ("d", "Diameter poros (mm)"), (r"c_{\text{diameter}}", "Celah total pada diameter (mm)")])
-    isi += tabel(["Pemeriksaan", "Alat di FreeCAD 1.0", "Bacaan", "Kapan dipakai"],
+    isi += tabel(["Pemeriksaan", "Alat di FreeCAD", "Bacaan", "Kapan dipakai"],
                  [["Jarak terdekat dua komponen", "Std Measure Distance (pilih dua muka/rusuk)", "mm; 0 bila bersentuhan", "Kelonggaran poros-lubang, celah lengan–rangka"],
                   ["Volume tumpang tindih", "Part → Boolean → Common pada dua bentuk link", "mm³; > 0 berarti interferensi", "Uji tabrakan pada posisi tertentu"],
                   ["Jarak minimum skrip", "<code>shapeA.distToShape(shapeB)[0]</code>", "mm dan pasangan titik terdekat", "Loop banyak posisi θ (Bagian 08)"],
@@ -738,7 +738,7 @@ V = App.Vector
 # Dua komponen (di GUI: Body Part Design; di sini Part.makeBox/makeCylinder agar ringkas)
 pelat = doc.addObject("Part::Feature", "Pelat"); pelat.Shape = Part.makeBox({A_P}, {B_P}, {T_P})
 pin = doc.addObject("Part::Feature", "Pin"); pin.Shape = Part.makeCylinder({D_PIN / 2}, {L_PIN})
-asm = doc.addObject("Assembly::AssemblyObject", "Assembly")           # wadah rakitan (Assembly Workbench 1.0)
+asm = doc.addObject("Assembly::AssemblyObject", "Assembly")           # wadah rakitan (Assembly Workbench)
 lp = asm.newObject("App::Link", "LinkPelat"); lp.LinkedObject = pelat  # = Insert Link
 ln = asm.newObject("App::Link", "LinkPin"); ln.LinkedObject = pin
 ln.Placement = App.Placement(V({A_P / 2}, {B_P / 2}, {T_P}), App.Rotation())   # pin berdiri di pusat muka atas (= Fixed joint + Offset)
@@ -829,7 +829,7 @@ print(f"Sudut lilit puli kecil = {{180 - 2*math.degrees(beta):.2f}} deg (>= 120 
     isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) objek Assembly memuat link semua komponen dan grup Joints berisi joint yang diminta; (2) tepat satu komponen grounded (kecuali diminta lain); (3) DOF sisa sesuai (Tugas 1–3, 5: 0 atau seperti diminta; Tugas 4: 1 lalu dikunci pada θ); (4) angka bacaan diambil setelah solve dan dalam satuan mm dengan jumlah desimal yang diminta; (5) berkas .FCStd tersimpan lewat Ctrl+S, nama tanpa spasi, komponen dari berkas lain ikut diunggah bila ada.")
     m += bagian(9, "m-praktik", "Praktik Terbimbing:<br>Rakitan Engkol-Peluncur", "Tujuh langkah berikut membangun mekanisme engkol-peluncur lengkap: komponen, rakitan dan acuan diam, empat joint, penguncian sudut dan pengukuran posisi, titik mati dan uji tabrakan, BOM, gambar rakitan, dan massa; ditutup tabel gejala dan daftar periksa.", isi, "PRAKTIK TERBIMBING")
 
-    refs = pm_ref(1, "cyan", "14,165,233", "FreeCAD Community", "FreeCAD 1.0 Documentation: Assembly Workbench (Create Assembly, Insert Link, Toggle Grounded, Create Joint, Bill of Materials), App Link, Std Measure", " (wiki.freecad.org), 2024–2026.", "Acuan nama perintah, jenis joint, properti Offset/Rotation/Angle Min-Max, dan API App::Link/Placement yang dipakai di cell Python.")
+    refs = pm_ref(1, "cyan", "14,165,233", "FreeCAD Community", "FreeCAD Documentation: Assembly Workbench (Create Assembly, Insert Link, Toggle Grounded, Create Joint, Bill of Materials), App Link, Std Measure", " (wiki.freecad.org), 2024–2026.", "Acuan nama perintah, jenis joint, properti Offset/Rotation/Angle Min-Max, dan API App::Link/Placement yang dipakai di cell Python.")
     refs += pm_ref(2, "amber", "249,115,22", "M. Lombard", "Mastering SolidWorks", ". Wiley, 2019.", "Rujukan utama RPS: bab assemblies (mates, degrees of freedom, in-context design, BOM, exploded views); konsepnya sama pada Assembly FreeCAD.")
     refs += pm_ref(3, "violet", "168,85,247", "B. Monroy &amp; R. A. Cook", "Autodesk Inventor 2021 Essentials Plus", ". Sybex, 2021.", "Rujukan utama RPS: bab assembly constraints/joints, grounded component, interference check, balloon dan parts list.")
     refs += pm_ref(4, "green", "0,224,158", "R. L. Norton", "Design of Machinery", ", 6th ed. McGraw-Hill, 2020.", "Derajat kebebasan (Grübler–Kutzbach), analisis posisi mekanisme engkol-peluncur, dan keseimbangan massa berputar.")
@@ -839,7 +839,7 @@ print(f"Sudut lilit puli kecil = {{180 - 2*math.degrees(beta):.2f}} deg (>= 120 
 <div class="section" id="m-pustaka" style="padding-bottom:40px">
   <div class="section-label reveal">Referensi</div>
   <h2 class="section-title reveal">Daftar Pustaka</h2>
-  <p class="section-desc reveal">Lima referensi inti yang mendasari materi perakitan: dokumentasi Assembly Workbench 1.0 sebagai acuan perintah dan joint, dua buku CAD komersial untuk konsep rakitan, buku kinematika untuk DOF dan mekanisme, serta buku elemen mesin untuk suaian dan sabuk.</p>
+  <p class="section-desc reveal">Lima referensi inti yang mendasari materi perakitan: dokumentasi Assembly Workbench sebagai acuan perintah dan joint, dua buku CAD komersial untuk konsep rakitan, buku kinematika untuk DOF dan mekanisme, serta buku elemen mesin untuk suaian dan sabuk.</p>
   <div class="reveal" style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
 {refs}  </div>
 
@@ -884,7 +884,7 @@ TUGAS_HERO = '''<div class="hero" data-tab="tugas" style="min-height:60vh">
 
 # (teks soal, opsi A-D kanonik, judul singkat untuk ekspor). Kunci kanonik ada di seed backend.
 MC = [
-    ("Pada Assembly Workbench FreeCAD 1.0, <strong>Assembly container</strong> berfungsi sebagai...",
+    ("Pada Assembly Workbench FreeCAD, <strong>Assembly container</strong> berfungsi sebagai...",
      ["Lembar gambar untuk mencetak rakitan", "Body tunggal yang menyatukan semua komponen menjadi satu solid", "Wadah rakitan yang menampung tautan (link) ke komponen, grup Joints, dan hasil solver", "Spreadsheet daftar komponen"],
      "Fungsi Assembly container"),
     ("<strong>Grounded part</strong> pada rakitan adalah...",

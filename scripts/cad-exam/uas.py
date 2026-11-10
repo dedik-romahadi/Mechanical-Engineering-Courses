@@ -94,7 +94,7 @@ BAGIAN_B_DESC = (
     "poros engkol, pelat engkol, pin penghubung, batang penghubung, torak, silinder/liner, dan tiang penyangga. "
     "Tugas terakhir (Bagian C) merakit kesepuluhnya menjadi satu rakitan, jadi kerjakan setiap komponen dengan "
     "sumbu lubang atau sumbu putarnya di titik asal supaya perakitannya lancar. Untuk tiap tugas: kerjakan di "
-    "FreeCAD 1.0, simpan lewat <strong>Ctrl+S</strong> sebagai <code>.FCStd</code> (bukan Export), unggah "
+    "FreeCAD, simpan lewat <strong>Ctrl+S</strong> sebagai <code>.FCStd</code> (bukan Export), unggah "
     "berkasnya, lalu salin angka bacaan yang diminta."
 )
 

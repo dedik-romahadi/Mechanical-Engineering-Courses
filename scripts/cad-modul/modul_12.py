@@ -609,7 +609,7 @@ def materi():
         ("🎯", "Batas penerimaan", "Angka tanpa batas tidak menolong. Tetapkan batas sebelum mengukur: V<sub>int</sub> = 0, c<sub>min</sub> &ge; kelonggaran kerja, tebal dinding &ge; batas proses, jarak tepi &ge; 1,5&nbsp;&times;&nbsp;tebal pelat, SF &ge; 2.", "metrik vs batas"),
         ("🔁", "Verifikasi ulang", "Perbaikan dinyatakan berhasil hanya bila metrik yang sama dibaca ulang pada berkas yang sudah diubah, bukan dari ingatan atau tangkapan layar lama. Catat sebelum dan sesudah pada satu tabel.", "sebelum → sesudah"),
     ])
-    isi += tabel(["Kelompok temuan", "Gejala yang terlihat", "Alat baca di FreeCAD 1.0", "Metrik dan batas lazim"],
+    isi += tabel(["Kelompok temuan", "Gejala yang terlihat", "Alat baca di FreeCAD", "Metrik dan batas lazim"],
                  [["<strong>Fit (suaian)</strong>", "Poros goyang, atau tidak masuk sama sekali", "Std Measure Distance antar muka silinder; ukuran batas dari deviasi", "c<sub>maks</sub>, c<sub>min</sub> (mm, 4 desimal) sesuai kelas fit (Tugas 2)"],
                   ["<strong>Interferensi</strong>", "Komponen saling menembus, solver tetap diam", "Part &rarr; Boolean &rarr; Common; <code>distToShape</code>", "V<sub>int</sub> = 0 mm&sup3; (Tugas 1)"],
                   ["<strong>Gerak</strong>", "Lengan menyenggol rangka pada sudut tertentu", "Placement Angle + Std Measure; loop <code>distToShape</code>", "c<sub>min</sub> &gt; 0 dan &ge; batas kerja (Tugas 5)"],
@@ -866,7 +866,7 @@ print(f"isValid = {rumah.isValid()}, dinding {wd} mm, dasar {h-p} mm")
     isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) tiap tugas punya Body/objek yang diminta, bukan sisa percobaan yang tersembunyi; (2) ukuran dimasukkan lewat konstrain sketsa atau properti, bukan digeser dengan mouse; (3) Part &rarr; Check Geometry bersih untuk semua solid yang diukur; (4) angka bacaan diambil dari bentuk akhir dengan jumlah desimal yang diminta dan memakai koma sesuai isian; (5) berkas disimpan lewat Ctrl+S sebagai .FCStd tanpa spasi pada namanya, lalu diunggah pada kartu tugasnya masing-masing.")
     m += bagian(9, "m-praktik", "Praktik Terbimbing:<br>Audit Satu Dokumen dari Fit sampai Gerak", "Tujuh langkah berikut menjalankan seluruh daftar periksa pada satu dokumen: membuat tabrakan yang disengaja lalu mengukurnya, memperbaikinya, memodelkan fit pada ukuran batas, memeriksa dinding tipis dan jarak tepi, serta membaca jarak bebas gerak; ditutup tabel gejala dan daftar periksa unggah.", isi, "PRAKTIK TERBIMBING")
 
-    refs = pm_ref(1, "cyan", "14,165,233", "FreeCAD Community", "FreeCAD 1.0 Documentation: Part Boolean (Common), Part CheckGeometry, Part RefineShape, Std Measure, Sketcher Slot, PartDesign Pocket, Part TopoShape (distToShape, isValid, common)", " (wiki.freecad.org), 2024–2026.", "Acuan nama perintah, laporan Check Geometry, serta API yang dipakai pada ketiga cell Python di Bagian 08.")
+    refs = pm_ref(1, "cyan", "14,165,233", "FreeCAD Community", "FreeCAD Documentation: Part Boolean (Common), Part CheckGeometry, Part RefineShape, Std Measure, Sketcher Slot, PartDesign Pocket, Part TopoShape (distToShape, isValid, common)", " (wiki.freecad.org), 2024–2026.", "Acuan nama perintah, laporan Check Geometry, serta API yang dipakai pada ketiga cell Python di Bagian 08.")
     refs += pm_ref(2, "amber", "249,115,22", "R. G. Budynas &amp; J. K. Nisbett", "Shigley's Mechanical Engineering Design", ", 11th ed. McGraw-Hill, 2020.", "Suaian dan toleransi ISO (deviasi fundamental, kualitas IT, suaian longgar/transisi/sesak) serta faktor konsentrasi tegangan pada bahu dan lubang.")
     refs += pm_ref(3, "violet", "168,85,247", "G. Boothroyd, P. Dewhurst, &amp; W. Knight", "Product Design for Manufacture and Assembly", ", 3rd ed. CRC Press, 2011.", "Dasar aturan DFM yang dipakai Bagian 05: tebal dinding minimum, keseragaman tebal, sudut tirus, undercut, dan penyederhanaan fitur.")
     refs += pm_ref(4, "green", "0,224,158", "F. E. Giesecke dkk.", "Technical Drawing with Engineering Graphics", ", 15th ed. Pearson, 2016.", "Penulisan toleransi dan suaian pada gambar kerja, ukuran batas, jarak tepi lubang dan slot, serta tanda pemesinan.")
@@ -876,7 +876,7 @@ print(f"isValid = {rumah.isValid()}, dinding {wd} mm, dasar {h-p} mm")
 <div class="section" id="m-pustaka" style="padding-bottom:40px">
   <div class="section-label reveal">Referensi</div>
   <h2 class="section-title reveal">Daftar Pustaka</h2>
-  <p class="section-desc reveal">Lima referensi inti modul ini: dokumentasi FreeCAD 1.0 sebagai acuan perintah dan API pemeriksaan, buku elemen mesin untuk suaian dan konsentrasi tegangan, buku DFMA untuk aturan pembuatan, buku gambar teknik untuk penulisan toleransi, dan buku CAD komersial untuk kebiasaan memeriksa rakitan.</p>
+  <p class="section-desc reveal">Lima referensi inti modul ini: dokumentasi FreeCAD sebagai acuan perintah dan API pemeriksaan, buku elemen mesin untuk suaian dan konsentrasi tegangan, buku DFMA untuk aturan pembuatan, buku gambar teknik untuk penulisan toleransi, dan buku CAD komersial untuk kebiasaan memeriksa rakitan.</p>
   <div class="reveal" style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
 {refs}  </div>
 
