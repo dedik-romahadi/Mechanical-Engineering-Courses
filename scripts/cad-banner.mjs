@@ -34,7 +34,7 @@ const RPS_URL = "https://dedik-romahadi.github.io/Mechanical-Engineering-Courses
 
 // ---------- konfigurasi yang berubah dari pekan ke pekan ----------
 export const PUBLISHED = [1, 2, 3, 4, 5, 6, 7]; // nomor modul yang halamannya sudah terbit
-export const EXAM_PUBLISHED = { UTS: false, UAS: false };
+export const EXAM_PUBLISHED = { UTS: true, UAS: false };
 // Jadwal resmi ujian menurut web SIA (dosen, 12 Okt 2026) dan durasi pengerjaan (keputusan dosen, 12 Okt 2026).
 // Ujian yang tidak ada di sini (UAS) tetap menulis "mengikuti jadwal resmi di web SIA" dan durasi 180 + 120 menit.
 export const JADWAL_UJIAN = {
