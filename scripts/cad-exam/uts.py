@@ -58,7 +58,7 @@ HERO_SUB = (
     "Ujian komprehensif materi <strong>Modul 3 hingga Modul 7</strong> (Sub-CPMK 2.1–2.5), yakni gambar 2D "
     "Draft, dimensi dan anotasi TechDraw, pemodelan 3D berbasis sketsa, sudut pandang dan proyeksi, hingga "
     "proyek gabungan 2D+3D dengan pola dan Clone. Dua puluh soal pilihan ganda dan sepuluh tugas pemodelan: "
-    "modelkan di <strong>FreeCAD 1.0</strong>, unggah dokumen <code>.FCStd</code>, lalu isikan satu angka "
+    "modelkan di <strong>FreeCAD 1.0 atau lebih baru</strong>, unggah dokumen <code>.FCStd</code>, lalu isikan satu angka "
     "bacaan geometri. Seluruh dimensi tugas dihitung dari <strong>2 digit terakhir NIM</strong> Anda, sehingga "
     "model setiap mahasiswa berbeda."
 )
@@ -82,7 +82,7 @@ BAGIAN_A_DESC = (
 )
 BAGIAN_B_JUDUL = "Tugas Pemodelan<br><em style=\"color:var(--amber)\">10 Model FreeCAD</em>"
 BAGIAN_B_DESC = (
-    "Sepuluh tugas pemodelan dengan dimensi milik NIM Anda. Untuk setiap tugas: kerjakan di FreeCAD 1.0, simpan "
+    "Sepuluh tugas pemodelan dengan dimensi milik NIM Anda. Untuk setiap tugas: kerjakan di FreeCAD 1.0 atau lebih baru, simpan "
     "lewat <strong>Ctrl+S</strong> sebagai dokumen <code>.FCStd</code> (bukan Export), unggah berkasnya pada "
     "kartu soal, lalu salin angka bacaan yang diminta ke kolom angka. Berkas adalah bukti pengerjaan yang "
     "diperiksa dosen; angkanya diperiksa server dengan toleransi."

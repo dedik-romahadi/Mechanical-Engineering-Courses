@@ -89,7 +89,7 @@ def gambar2():
     b += t(30, 252, ">>> App.ActiveDocument.Cut.Shape.Area", 9.5, "#00e09e", "start")
     b += t(30, 265, f"{LUAS_BERSIH_CONTOH:.2f}      ← Python console (View → Panels → Python console)", 9.5, AX, "start")
     b += t(335, 292, "Status bar: koordinat kursor, mode navigasi, dan pratinjau perintah", 11, AX)
-    return svg(670, 304, b, "Gambar 2 — Tata letak jendela FreeCAD 1.0")
+    return svg(670, 304, b, "Gambar 2 — Tata letak jendela FreeCAD")
 
 
 def gambar3():
@@ -333,7 +333,7 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
       <em>FreeCAD</em><br>
       <span class="hl-amber">&amp; Menggambar 2D</span>
     </h1>
-    <p class="hero-sub">Pertemuan pembuka mata kuliah ini memperkenalkan cara berpikir CAD parametrik lewat FreeCAD 1.0: mengenal antarmuka dan workbench, menavigasi pandangan 3D, mengatur bidang kerja dan satuan, menggambar objek 2D dengan Draft Workbench, membaca luas, panjang, dan titik berat langsung dari model, serta mengelola berkas .FCStd dengan tertib. Tugasnya berupa lima model 2D yang diunggah dalam bentuk berkas FreeCAD.</p>
+    <p class="hero-sub">Pertemuan pembuka mata kuliah ini memperkenalkan cara berpikir CAD parametrik lewat FreeCAD 1.0 atau lebih baru: mengenal antarmuka dan workbench, menavigasi pandangan 3D, mengatur bidang kerja dan satuan, menggambar objek 2D dengan Draft Workbench, membaca luas, panjang, dan titik berat langsung dari model, serta mengelola berkas .FCStd dengan tertib. Tugasnya berupa lima model 2D yang diunggah dalam bentuk berkas FreeCAD.</p>
     <div class="academic-roadmap" aria-label="Alur belajar modul">
       <div class="road-step"><span>01</span><strong>Pelajari</strong><small>Antarmuka, perintah, dan rumus</small></div><div class="road-arrow" aria-hidden="true">→</div>
       <div class="road-step"><span>02</span><strong>Eksplorasi</strong><small>Tabel, gambar, dan animasi</small></div><div class="road-arrow" aria-hidden="true">→</div>
@@ -360,7 +360,7 @@ def materi():
         ("🔗", "Parametrik", "Setiap bentuk dibangun dari fitur yang menyimpan parameternya (panjang, radius, jumlah lubang). Mengubah satu parameter memperbarui seluruh geometri yang bergantung padanya.", "a/4 → lubang ikut bergeser"),
         ("🌳", "Pohon Fitur", "Riwayat pembuatan model disimpan berurutan: sketsa → pad → lubang → fillet. Riwayat itulah yang membuat model bisa disunting kembali kapan saja.", ""),
         ("🧊", "BREP", "Boundary representation: solid disimpan sebagai kumpulan face, edge, dan vertex yang saling berbatas. Dari BREP inilah luas, volume, dan titik berat dihitung.", "face · edge · vertex"),
-        ("🆓", "FreeCAD 1.0", "Pemodel parametrik sumber terbuka (LGPL) untuk Windows, macOS, dan Linux. Versi 1.0 (November 2024) membawa Assembly bawaan, penyelesaian masalah topological naming, dan Sketcher yang lebih matang.", ""),
+        ("🆓", "FreeCAD", "Pemodel parametrik sumber terbuka (LGPL) untuk Windows, macOS, dan Linux. Versi 1.0 (November 2024) membawa Assembly bawaan, penyelesaian masalah topological naming, dan Sketcher yang lebih matang.", ""),
         ("🏭", "Peran Teknik Mesin", "Model CAD menjadi bahasa bersama antara perancang, analis, dan produksi: dari gambar kerja braket sederhana hingga simulasi tegangan dan program CNC.", ""),
     ])
     isi += tabel(["Aspek", "Sketsa tangan / gambar 2D biasa", "Model CAD parametrik"],
@@ -371,10 +371,10 @@ def materi():
                   ["Ke produksi", "Perlu diterjemahkan operator", "Ekspor DXF/STEP/STL langsung ke mesin"]])
     isi += kotak("info-box", "<strong>📜 Sedikit Sejarah:</strong> Sketchpad karya Ivan Sutherland (1963) memperkenalkan gambar interaktif dengan konstrain; AutoCAD (1982) membawa CAD 2D ke komputer pribadi; Pro/ENGINEER (1987) mempopulerkan pemodelan parametrik berbasis fitur yang kini menjadi standar (SolidWorks, Inventor, Fusion 360, FreeCAD). FreeCAD dimulai Jürgen Riegel tahun 2002 di atas kernel geometri Open CASCADE dan mencapai versi 1.0 pada 2024.")
     isi += kotak("tip-box", "💡 <strong>Cara Membaca Mata Kuliah Ini:</strong> Pertemuan 1–4 membangun <em>keterampilan 2D</em> (Draft dan Sketcher, dimensi, anotasi). Pertemuan 5–7 masuk ke <em>pemodelan 3D</em> (Part Design: pad, revolve, sweep) dan proyek gabungan. Setelah UTS, model dipakai untuk <em>simulasi, perakitan, dan optimasi</em>. Setiap tugas modul menghasilkan berkas .FCStd yang diunggah langsung di halaman ini dan diperiksa lewat angka bacaan dari FreeCAD.")
-    m += bagian(1, "m-cad", "Apa Itu CAD<br>dan Mengapa FreeCAD", "CAD mengubah gambar menjadi model yang dapat diukur dan disunting. Bagian ini menempatkan model CAD dalam alur perancangan, menjelaskan arti parametrik, dan memperkenalkan FreeCAD 1.0 sebagai alat yang dipakai sepanjang semester.", isi, "APA ITU CAD")
+    m += bagian(1, "m-cad", "Apa Itu CAD<br>dan Mengapa FreeCAD", "CAD mengubah gambar menjadi model yang dapat diukur dan disunting. Bagian ini menempatkan model CAD dalam alur perancangan, menjelaskan arti parametrik, dan memperkenalkan FreeCAD 1.0 atau lebih baru sebagai alat yang dipakai sepanjang semester.", isi, "APA ITU CAD")
 
     # 02 — Antarmuka
-    isi = figure(2, "Tata letak jendela FreeCAD 1.0", "Toolbar dan pemilih workbench di atas; Combo View (pohon dokumen dan properti) di kiri; jendela 3D di tengah dengan kubus navigasi; Python console dan Report view di bawah.", gambar2())
+    isi = figure(2, "Tata letak jendela FreeCAD", "Toolbar dan pemilih workbench di atas; Combo View (pohon dokumen dan properti) di kiri; jendela 3D di tengah dengan kubus navigasi; Python console dan Report view di bawah.", gambar2())
     isi += tabel(["Panel", "Isi", "Cara membuka bila tersembunyi"],
                  [["Tree view", "Pohon dokumen: daftar objek dan hierarkinya (Body, Sketch, Cut, …)", "View → Panels → Tree view"],
                   ["Property view", "Tab <strong>Data</strong> (geometri: Length, Radius, Placement) dan <strong>View</strong> (warna, garis, visibilitas)", "View → Panels → Property view"],
@@ -497,7 +497,7 @@ def materi():
                   ["Titik berat", "— (tidak ada di GUI)", "<code>obj.Shape.CenterOfMass</code> → Vector(x, y, z)"],
                   ["Kotak pembatas", "—", "<code>obj.Shape.BoundBox</code> (XLength, YLength, ZLength)"],
                   ["Jarak dua elemen", "Std Measure → Distance", "<code>edge1.distToShape(edge2)</code>"]])
-    isi += kotak("info-box", "<strong>🧪 Std Measure (FreeCAD 1.0):</strong> alat ukur terpadu di toolbar (ikon penggaris) dengan mode Length, Distance, Angle, Area, Radius, dan Volume. Pilih modenya, klik elemen, dan hasilnya tampil di jendela 3D. Python console tetap diperlukan untuk titik berat dan untuk mencatat angka dengan presisi penuh.")
+    isi += kotak("info-box", "<strong>🧪 Std Measure (FreeCAD):</strong> alat ukur terpadu di toolbar (ikon penggaris) dengan mode Length, Distance, Angle, Area, Radius, dan Volume. Pilih modenya, klik elemen, dan hasilnya tampil di jendela 3D. Python console tetap diperlukan untuk titik berat dan untuk mencatat angka dengan presisi penuh.")
     isi += kode("Python console — membuat persegi panjang dan membaca luas", f'''import FreeCAD as App, Draft
 doc = App.newDocument("Latihan1")
 r = Draft.make_rectangle({A_CONTOH}, {B_CONTOH})     # panjang searah X, lebar searah Y (mm), sudut di (0, 0)
@@ -583,7 +583,7 @@ for o in doc.Objects:                                     # semua objek pada poh
     # Pustaka
     refs = pm_ref(1, "cyan", "14,165,233", "M. Lombard", "Mastering SolidWorks", ". Wiley, 2019.", "Rujukan utama RPS: Bab 1–4 tentang antarmuka, sketsa 2D, dan konsep pemodelan parametrik berbasis fitur; konsepnya berlaku sama di FreeCAD.")
     refs += pm_ref(2, "amber", "249,115,22", "B. Monroy &amp; R. A. Cook", "Autodesk Inventor 2021 Essentials Plus", ". Sybex, 2021.", "Rujukan utama RPS: alur kerja sketsa–fitur–gambar kerja dan manajemen berkas proyek CAD.")
-    refs += pm_ref(3, "violet", "168,85,247", "FreeCAD Community", "FreeCAD 1.0 Documentation: Getting started, Draft Workbench, Std Measure", " (wiki.freecad.org), 2024–2026.", "Dokumentasi resmi yang menjadi acuan nama perintah, properti, dan API Python pada modul ini.")
+    refs += pm_ref(3, "violet", "168,85,247", "FreeCAD Community", "FreeCAD Documentation: Getting started, Draft Workbench, Std Measure", " (wiki.freecad.org), 2024–2026.", "Dokumentasi resmi yang menjadi acuan nama perintah, properti, dan API Python pada modul ini.")
     refs += pm_ref(4, "green", "0,224,158", "G. R. Bertoline, E. N. Wiebe, N. W. Hartman &amp; W. A. Ross", "Fundamentals of Graphics Communication", ", 6th ed. McGraw-Hill, 2011.", "Bab 1–3: peran CAD dalam proses desain, sistem koordinat, dan dasar pemodelan geometri.")
     refs += pm_ref(5, "pink", "236,72,153", "F. E. Giesecke dkk.", "Technical Drawing with Engineering Graphics", ", 15th ed. Pearson, 2016.", "Dasar gambar teknik (proyeksi, dimensi, anotasi) yang menjadi standar keluaran model CAD pada Modul 2–4.")
     m += f'''<!-- ═══ PUSTAKA ═══ -->
@@ -596,7 +596,7 @@ for o in doc.Objects:                                     # semua objek pada poh
 {refs}  </div>
 
   <div class="info-box reveal" style="margin-top:22px">
-    <strong>🔗 Sumber Daring Pendukung:</strong> unduhan resmi FreeCAD 1.0 (freecad.org/downloads), manual FreeCAD (wiki.freecad.org/Manual), dan daftar putar video tutorial CAD yang tercantum pada RPS mata kuliah. Video membantu melihat urutan klik; modul ini memberi alasan di balik tiap langkah dan cara memeriksa hasilnya dengan angka.
+    <strong>🔗 Sumber Daring Pendukung:</strong> unduhan resmi FreeCAD versi terbaru (freecad.org/downloads), manual FreeCAD (wiki.freecad.org/Manual), dan daftar putar video tutorial CAD yang tercantum pada RPS mata kuliah. Video membantu melihat urutan klik; modul ini memberi alasan di balik tiap langkah dan cara memeriksa hasilnya dengan angka.
   </div>
 </div>
 
@@ -638,7 +638,7 @@ PETUNJUK_HTML = '''  <div class="warn-box">
     <div class="warn-icon">🧊</div>
     <div>
       <h4>Petunjuk Pengerjaan Tugas 1</h4>
-      <p>Kerjakan lima tugas pemodelan di <strong>FreeCAD 1.0</strong> (Draft Workbench, bidang kerja Top/XY, satuan mm) sesuai angka pada <strong>varian N Anda</strong> yang muncul setelah login. Untuk tiap tugas: simpan model sebagai <strong>.FCStd</strong> (Ctrl+S, bukan Export), klik <strong>⬆ Unggah</strong>, isikan <strong>angka bacaan</strong> dari FreeCAD (Area, Shape.Length, atau CenterOfMass), lalu klik <strong>▶ Kirim &amp; Validasi</strong>. Server membaca geometri berkas Anda: angka yang tidak ada di model ditolak dan <strong>tidak dihitung</strong>, jadi bacalah angkanya dari model yang diunggah. Bila kiriman dinilai salah, tugas <strong>tidak terkunci</strong>: perbaiki model, unggah ulang, lalu kirim ulang (tanpa batas); kiriman benar setelah pernah salah bernilai <strong>65%</strong> dari poin tugas.</p>
+      <p>Kerjakan lima tugas pemodelan di <strong>FreeCAD 1.0 atau lebih baru</strong> (Draft Workbench, bidang kerja Top/XY, satuan mm) sesuai angka pada <strong>varian N Anda</strong> yang muncul setelah login. Untuk tiap tugas: simpan model sebagai <strong>.FCStd</strong> (Ctrl+S, bukan Export), klik <strong>⬆ Unggah</strong>, isikan <strong>angka bacaan</strong> dari FreeCAD (Area, Shape.Length, atau CenterOfMass), lalu klik <strong>▶ Kirim &amp; Validasi</strong>. Server membaca geometri berkas Anda: angka yang tidak ada di model ditolak dan <strong>tidak dihitung</strong>, jadi bacalah angkanya dari model yang diunggah. Bila kiriman dinilai salah, tugas <strong>tidak terkunci</strong>: perbaiki model, unggah ulang, lalu kirim ulang (tanpa batas); kiriman benar setelah pernah salah bernilai <strong>65%</strong> dari poin tugas.</p>
     </div>
   </div>
 

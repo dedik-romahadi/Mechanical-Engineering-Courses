@@ -1,5 +1,5 @@
 # Konten Modul 8 Pemodelan CAD — Simulasi Kinerja Komponen: Tegangan, Termal, Kinematik
-# (Sub-CPMK 3.1; Pertemuan 9 — Pertemuan 8 adalah UTS). FEM Workbench FreeCAD 1.0 dengan
+# (Sub-CPMK 3.1; Pertemuan 9 — Pertemuan 8 adalah UTS). FEM Workbench FreeCAD dengan
 # solver CalculiX: Analysis, material, mesh Gmsh, tumpuan & beban, analisis statik,
 # termal, dan frekuensi, divalidasi rumus analitis. Angka contoh dihitung di sini agar
 # teks, tabel, gambar, dan kode konsisten, dan sengaja tidak sama dengan varian tugas
@@ -459,7 +459,7 @@ HERO = f'''<div class="hero academic-hero" data-tab="modul" data-module-number="
       <em>Komponen:</em><br>
       <span class="hl-amber">Tegangan, Termal, Getaran</span>
     </h1>
-    <p class="hero-sub">Setelah UTS, model 3D mulai diuji, bukan hanya digambar. FEM Workbench FreeCAD 1.0 dengan solver CalculiX membagi komponen menjadi elemen hingga, memberinya material, tumpuan, dan beban, lalu menghitung perpindahan, tegangan, suhu, dan frekuensi alami. Setiap hasil dibandingkan dengan rumus balok, batang tarik, hukum Fourier, dan frekuensi kantilever agar simulasi dapat dipercaya; tugasnya lima berkas FreeCAD berisi Analysis lengkap dengan bacaan analitisnya.</p>
+    <p class="hero-sub">Setelah UTS, model 3D mulai diuji, bukan hanya digambar. FEM Workbench FreeCAD dengan solver CalculiX membagi komponen menjadi elemen hingga, memberinya material, tumpuan, dan beban, lalu menghitung perpindahan, tegangan, suhu, dan frekuensi alami. Setiap hasil dibandingkan dengan rumus balok, batang tarik, hukum Fourier, dan frekuensi kantilever agar simulasi dapat dipercaya; tugasnya lima berkas FreeCAD berisi Analysis lengkap dengan bacaan analitisnya.</p>
     <div class="academic-roadmap" aria-label="Alur belajar modul">
       <div class="road-step"><span>01</span><strong>Pelajari</strong><small>Alur FEM, material, mesh, beban</small></div><div class="road-arrow" aria-hidden="true">→</div>
       <div class="road-step"><span>02</span><strong>Eksplorasi</strong><small>Tabel, gambar, dan animasi</small></div><div class="road-arrow" aria-hidden="true">→</div>
@@ -484,7 +484,7 @@ def materi():
     isi += cards([
         ("🧩", "Diskretisasi", "Benda kontinu dibagi menjadi elemen kecil (tetrahedron) yang terhubung di simpul. Di dalam elemen, perpindahan dianggap mengikuti fungsi sederhana (linear atau kuadratik), sehingga masalah diferensial berubah menjadi sistem persamaan aljabar.", "kontinu → elemen"),
         ("⚖️", "Kesetimbangan", "Kekakuan tiap elemen dirakit menjadi matriks global [K]; gaya luar dan tumpuan membentuk {F} dan syarat batas; solver menyelesaikan [K]{u} = {F} untuk perpindahan simpul u, lalu menurunkan regangan ε dan tegangan σ.", "[K]{u} = {F}"),
-        ("🎯", "Tiga jenis analisis", "Statik (u, σ akibat beban), termal (T dan q akibat beda suhu), dan frekuensi (mode getar dan f<sub>n</sub> tanpa beban). FreeCAD 1.0 juga menyediakan buckling (Modul 9). Kinematika rakitan bukan urusan FEM, melainkan Assembly Workbench (Modul 11).", "static · thermomech · frequency"),
+        ("🎯", "Tiga jenis analisis", "Statik (u, σ akibat beban), termal (T dan q akibat beda suhu), dan frekuensi (mode getar dan f<sub>n</sub> tanpa beban). FreeCAD juga menyediakan buckling (Modul 9). Kinematika rakitan bukan urusan FEM, melainkan Assembly Workbench (Modul 11).", "static · thermomech · frequency"),
         ("🔍", "Validasi", "Hasil FEM tidak otomatis benar: mesh kasar, tumpuan keliru, atau satuan tertukar memberi angka yang meyakinkan tetapi salah. Selalu bandingkan dengan rumus tertutup (δ, σ, q, f₁) pada kasus sederhana sebelum menyimulasikan bentuk rumit.", "FEM vs rumus"),
     ])
     isi += tabel(["Jenis analisis", "Masukan khas", "Keluaran", "Rumus pembanding di modul ini"],
@@ -528,14 +528,14 @@ def materi():
         ("📏", "E dan ν (statik)", "Modulus elastisitas E menentukan kekakuan (δ ∝ 1/E); rasio Poisson ν menentukan penyusutan melintang. Untuk tegangan pada kasus statik tertentu (batang tarik, balok), σ tidak bergantung pada E, hanya δ yang bergantung.", "δ ∝ 1/E"),
         ("⚖️", "ρ (massa, getaran)", "Massa jenis dibutuhkan untuk Self weight dan analisis frekuensi (matriks massa [M]). Massa komponen sendiri dihitung dari ρ × Volume; kartu Steel memberi 7850 kg/m³ = 7,85×10⁻³ g/mm³.", "m = ρ·V"),
         ("🔥", "k, α, c (termal)", "Konduktivitas k mengatur laju kalor q; koefisien muai α mengubah ΔT menjadi regangan termal α·ΔT (tegangan termal bila ditahan); kalor jenis c hanya berperan pada analisis transien.", "q ∝ k"),
-        ("🗂️", "Kartu vs manual", "Material for solid membuka pustaka kartu (.FCMat) FreeCAD 1.0; pilih kartu lalu periksa tab Material Properties. Nilai boleh disunting manual dan tersimpan di dokumen, sehingga berkas .FCStd membawa propertinya.", ".FCMat"),
+        ("🗂️", "Kartu vs manual", "Material for solid membuka pustaka kartu (.FCMat) FreeCAD; pilih kartu lalu periksa tab Material Properties. Nilai boleh disunting manual dan tersimpan di dokumen, sehingga berkas .FCStd membawa propertinya.", ".FCMat"),
     ])
     isi += formula(2, "Massa Komponen dari Volume Model", r"m = \rho\,V, \qquad m[\text{g}] = 7{,}85\times10^{-3}\,V[\text{mm}^{3}] \ \ (\text{baja})",
                    r"\(\rho\) = massa jenis &nbsp;·&nbsp; \(V\) = Shape.Volume. Contoh kantilever " + f"{L_E} × {B_E} × {H_E}" + r" mm: \(V = " + ind(V_E, 0) + r"\) mm³, \(m = " + ind(M_E, 2) + r"\) g.",
-                   "Massa adalah bacaan pertama yang membuktikan material dan geometri sudah benar sebelum solver dijalankan; FreeCAD 1.0 menampilkannya di tab Data bila Material Body diisi. Angka ini juga masuk ke analisis frekuensi lewat matriks massa dan ke Self weight lewat ρ·g.",
+                   "Massa adalah bacaan pertama yang membuktikan material dan geometri sudah benar sebelum solver dijalankan; FreeCAD menampilkannya di tab Data bila Material Body diisi. Angka ini juga masuk ke analisis frekuensi lewat matriks massa dan ke Self weight lewat ρ·g.",
                    [("m", "Massa (g)"), (r"\rho", "Massa jenis (g/mm³ atau kg/m³)"), ("V", "Volume solid (mm³)")])
     isi += kotak("warning-box", "⚠️ <strong>Properti kosong = solver gagal atau hasil nol:</strong> analisis frekuensi tanpa ρ menghasilkan pesan galat CalculiX atau frekuensi tak berhingga; analisis thermomech tanpa k tidak dapat ditulis ke .inp. Periksa tab Material Properties sebelum Run: E, ν, ρ selalu terisi; k, α, c wajib untuk termal.")
-    m += bagian(3, "m-material", "Material dan Properti:<br>E, ν, ρ, k, α yang Dibaca Solver", "Solver hanya tahu material dari angka yang Anda berikan. Bagian ini membahas properti yang dibutuhkan tiap jenis analisis, kartu material FreeCAD 1.0, dan bacaan massa sebagai pemeriksaan pertama.", isi, "MATERIAL DAN PROPERTI")
+    m += bagian(3, "m-material", "Material dan Properti:<br>E, ν, ρ, k, α yang Dibaca Solver", "Solver hanya tahu material dari angka yang Anda berikan. Bagian ini membahas properti yang dibutuhkan tiap jenis analisis, kartu material FreeCAD, dan bacaan massa sebagai pemeriksaan pertama.", isi, "MATERIAL DAN PROPERTI")
 
     # 04 — Mesh
     isi = figure(3, "Mesh kasar dan halus pada kantilever serta elemen tet4 dan tet10", f"Kantilever contoh dibagi menjadi elemen tetrahedron; ukuran 10 / 5 / 2,5 mm memberi kira-kira {ind(N_EL[10], 0)} / {ind(N_EL[5], 0)} / {ind(N_EL[2.5], 0)} elemen. Tet10 menangkap lentur jauh lebih baik daripada tet4.", gambar3())
@@ -545,7 +545,7 @@ def materi():
                   ["Ukuran elemen", "Characteristic Length Max / Min", "Max Size, Fineness", "Mulai ≈ h/2 (tebal terkecil ÷ 2), lalu perhalus"],
                   ["Mesh Regions", "Mesh region pada muka/rusuk", "—", "Halus di sudut, lubang, dan daerah tegangan tinggi"],
                   ["Elemen", "Tetrahedron (tet4/tet10); hexa opsional", "Tetrahedron", "Jumlah elemen tampil pada properti mesh"],
-                  ["Menjalankan", "klik ganda → Apply", "klik ganda → OK", "Gmsh disertakan dalam paket FreeCAD 1.0"]])
+                  ["Menjalankan", "klik ganda → Apply", "klik ganda → OK", "Gmsh disertakan dalam paket FreeCAD (sejak versi 1.0)"]])
     isi += anim_panel(1, "cyan", "Mesh makin halus (h-refinement) pada kantilever", "cvMesh",
                       [("sl_ms_n", "v_ms_n", "Jumlah elemen sepanjang tebal h", 1, 8, 1, 4, "4"),
                        ("sl_ms_orde", "v_ms_orde", "Orde elemen (1 tet4 · 2 tet10)", 1, 2, 1, 2, "2 (tet10)")],
@@ -633,7 +633,7 @@ def materi():
                   ["Constraint", "Temperature ×2 muka ujung + Initial temperature", "Fixed saja, tanpa beban", "Joint Assembly (Revolute, Slider)"],
                   ["Hasil", "CCX_Results → Temperature (Min/Max)", "CCX_EigenMode_1_Results … EigenMode_5 → EigenmodeFrequency", "Gerak mekanisme, jarak, tabrakan"],
                   ["Pembanding", "q = k·A·ΔT/L", "f<sub>n</sub> = (β<sub>n</sub>²/2π)·√(EI/ρA)/L²", "x = r·cosθ + √(l² − r²sin²θ)"]])
-    isi += kotak("info-box", "<strong>🔗 Kinematik bukan FEM:</strong> pertanyaan “sejauh mana lengan bergerak” dan “apakah komponen bertabrakan saat berputar” dijawab Assembly Workbench FreeCAD 1.0 dengan joint dan solver kinematik (Modul 11), bukan CalculiX. FEM menjawab kekuatan, kekakuan, suhu, dan getaran komponen pada posisi tertentu; gabungan keduanya (posisi kritis dari kinematika → beban untuk FEM) adalah praktik industri.")
+    isi += kotak("info-box", "<strong>🔗 Kinematik bukan FEM:</strong> pertanyaan “sejauh mana lengan bergerak” dan “apakah komponen bertabrakan saat berputar” dijawab Assembly Workbench FreeCAD dengan joint dan solver kinematik (Modul 11), bukan CalculiX. FEM menjawab kekuatan, kekakuan, suhu, dan getaran komponen pada posisi tertentu; gabungan keduanya (posisi kritis dari kinematika → beban untuk FEM) adalah praktik industri.")
     m += bagian(7, "m-termal", "Analisis Termal dan Frekuensi:<br>Suhu, Laju Kalor, dan Mode Getar", "Dengan Analysis yang sama, mengganti Analysis Type membuka dua pertanyaan baru: seberapa cepat kalor mengalir dan pada frekuensi berapa komponen beresonansi. Bagian ini membahas keduanya beserta rumus pembandingnya, dan menempatkan kinematika pada tempatnya.", isi, "TERMAL DAN FREKUENSI")
 
     # 08 — Python console
@@ -730,7 +730,7 @@ for n, beta in enumerate([{BETA[0]}, {BETA[1]}, {BETA[2]}], 1):
     isi += kotak("tip-box", "💡 <strong>Daftar periksa sebelum mengunggah:</strong> (1) satu Analysis berisi MaterialSolid (properti terisi), FEMMeshGmsh orde 2, constraint sesuai tugas, dan SolverCcxTools dengan Analysis Type yang benar; (2) hasil CCX_Results (atau CCX_EigenMode_1_Results) ada di pohon setelah Run; (3) angka yang diisikan adalah nilai ANALITIS dengan desimal sesuai label, dihitung dari dimensi varian Anda; (4) selisih FEM terhadap rumus sudah Anda periksa (< 5%); (5) berkas .FCStd tersimpan lewat Ctrl+S, nama tanpa spasi.")
     m += bagian(9, "m-praktik", "Praktik Terbimbing:<br>Kantilever Statik, Termal, dan Frekuensi", "Tujuh langkah berikut membangun Analysis kantilever contoh dari geometri sampai validasi, menguji konvergensi mesh, lalu mengubahnya menjadi analisis termal dan frekuensi; ditutup tabel gejala dan daftar periksa.", isi, "PRAKTIK TERBIMBING")
 
-    refs = pm_ref(1, "cyan", "14,165,233", "FreeCAD Community", "FreeCAD 1.0 Documentation: FEM Workbench (Analysis, Material, Mesh Gmsh/Netgen, Constraints, Solver CalculiX, Results, Post pipeline), FEM Tutorial, FEM Scripting", " (wiki.freecad.org), 2024–2026.", "Acuan nama objek, parameter solver, dan API ObjectsFem/femtools yang dipakai di cell Python.")
+    refs = pm_ref(1, "cyan", "14,165,233", "FreeCAD Community", "FreeCAD Documentation: FEM Workbench (Analysis, Material, Mesh Gmsh/Netgen, Constraints, Solver CalculiX, Results, Post pipeline), FEM Tutorial, FEM Scripting", " (wiki.freecad.org), 2024–2026.", "Acuan nama objek, parameter solver, dan API ObjectsFem/femtools yang dipakai di cell Python.")
     refs += pm_ref(2, "amber", "249,115,22", "G. Dhondt", "CalculiX CrunchiX User's Manual, version 2.21", ". 2023 (dhondt.de).", "Rujukan solver: jenis analisis (static, frequency, heat transfer), format .inp/.frd, dan elemen C3D10.")
     refs += pm_ref(3, "violet", "168,85,247", "D. L. Logan", "A First Course in the Finite Element Method", ", 6th ed. Cengage, 2017.", "Dasar FEM: matriks kekakuan, perakitan [K]{u} = {F}, elemen batang dan balok, konvergensi mesh.")
     refs += pm_ref(4, "green", "0,224,158", "R. C. Hibbeler", "Mechanics of Materials", ", 10th ed. Pearson, 2017.", "Rumus pembanding: tegangan aksial F/A, lentur Mc/I, dan defleksi kantilever FL³/(3EI).")
@@ -892,7 +892,7 @@ def forum_page():
       <strong style="color:var(--amber)">PT Baja Nusantara Alat Berat</strong> memproduksi <strong style="color:var(--cyan)">braket dan poros untuk ekskavator mini</strong>. Setiap desain baru diuji fisik sampai patah: <strong>braket dudukan silinder hidrolik</strong> (pelat S355 tebal 20 mm, empat lubang ⌀17, beban 18 kN) menghabiskan tiga prototipe dan dua minggu, sementara <strong>poros idler</strong> ⌀40 × 300 mm yang dipasang dekat knalpot (ujung 420 K, ujung lain 320 K; mesin 1500–3000 rpm) pernah bergetar keras di lapangan tanpa diketahui sebabnya.
     </p>
     <p style="margin-top:12px">
-      Manajemen membeli lisensi apa pun asal terbukti; tim desain mengusulkan <strong style="color:var(--cyan)">FEM Workbench FreeCAD 1.0 dengan CalculiX</strong>. Percobaan pertama mengecewakan: braket “dua kali lebih kaku” dari uji fisik (mesh tet4 kasar), gaya diberikan pada satu titik sehingga von Mises melonjak tak masuk akal, analisis frekuensi gagal karena massa jenis kosong, dan analisis termal memberi suhu seragam karena hanya satu constraint suhu.
+      Manajemen membeli lisensi apa pun asal terbukti; tim desain mengusulkan <strong style="color:var(--cyan)">FEM Workbench FreeCAD dengan CalculiX</strong>. Percobaan pertama mengecewakan: braket “dua kali lebih kaku” dari uji fisik (mesh tet4 kasar), gaya diberikan pada satu titik sehingga von Mises melonjak tak masuk akal, analisis frekuensi gagal karena massa jenis kosong, dan analisis termal memberi suhu seragam karena hanya satu constraint suhu.
     </p>
     <p style="margin-top:12px">
       Anda diminta menyusun <strong style="color:var(--cyan)">prosedur simulasi yang tervalidasi</strong>: Analysis lengkap dengan material dan mesh yang benar, tumpuan dan beban yang meniru kondisi nyata, validasi δ dan σ terhadap rumus kantilever, serta analisis termal dan frekuensi poros.

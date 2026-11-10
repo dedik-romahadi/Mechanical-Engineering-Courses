@@ -600,7 +600,7 @@ print(f"Pelat chamfer = {{bersih.Area:.2f}} mm^2 (rumus {{{A_C}*{B_C}-{C_C}**2/2
 
     refs = pm_ref(1, "cyan", "14,165,233", "M. Lombard", "Mastering SolidWorks", ". Wiley, 2019.", "Rujukan utama RPS: bab drawing — dimensi, anotasi, dan gaya dimensi pada gambar kerja.")
     refs += pm_ref(2, "amber", "249,115,22", "B. Monroy &amp; R. A. Cook", "Autodesk Inventor 2021 Essentials Plus", ". Sybex, 2021.", "Rujukan utama RPS: pembuatan drawing sheet, dimension styles, dan title block.")
-    refs += pm_ref(3, "violet", "168,85,247", "FreeCAD Community", "FreeCAD 1.0 Documentation: Draft Dimension, Draft Text/Label/ShapeString, Draft AnnotationStyleEditor, TechDraw Workbench", " (wiki.freecad.org), 2024–2026.", "Acuan nama perintah, properti ViewObject dimensi, dan API make_linear_dimension/make_radial_dimension_obj/make_label.")
+    refs += pm_ref(3, "violet", "168,85,247", "FreeCAD Community", "FreeCAD Documentation: Draft Dimension, Draft Text/Label/ShapeString, Draft AnnotationStyleEditor, TechDraw Workbench", " (wiki.freecad.org), 2024–2026.", "Acuan nama perintah, properti ViewObject dimensi, dan API make_linear_dimension/make_radial_dimension_obj/make_label.")
     refs += pm_ref(4, "green", "0,224,158", "F. E. Giesecke dkk.", "Technical Drawing with Engineering Graphics", ", 15th ed. Pearson, 2016.", "Bab dimensioning dan tolerancing: aturan penempatan, chain/baseline, simbol R dan ⌀.")
     refs += pm_ref(5, "pink", "236,72,153", "ISO 129-1:2018 &amp; ISO 3098-1", "Technical product documentation — Indication of dimensions and tolerances; Lettering", ". ISO, Geneva.", "Standar penulisan dimensi, garis perpanjangan, dan tinggi huruf yang diterjemahkan ke AnnotationStyle.")
     m += f'''<!-- ═══ PUSTAKA ═══ -->

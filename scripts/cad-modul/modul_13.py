@@ -523,7 +523,7 @@ def materi():
     isi += cards([
         ("🔩", "Sambungan yang dapat dilepas", "Baut, snap-fit, dan pin lebih baik daripada lem struktural dan las bila komponen harus dipisahkan. Pada Assembly, joint Fixed dengan baut nyata memudahkan pembongkaran; lem tidak terlihat pada model tetapi menyulitkan di akhir hayat.", "baut > lem"),
         ("🧩", "Mono-material", "Satu komponen sedapat mungkin satu material. Insert logam pada plastik, sisipan karet, dan pelapis menurunkan nilai daur ulang seluruh komponen, bukan hanya bagian sisipannya.", "1 komponen = 1 material"),
-        ("🏷️", "Penandaan material", "Tandai material pada model (properti Material FreeCAD 1.0) dan pada produk (kode resin, tanda baja). Tanda yang terbaca membuat pemilahan cepat dan murah.", "tandai di CAD dan produk"),
+        ("🏷️", "Penandaan material", "Tandai material pada model (properti Material FreeCAD) dan pada produk (kode resin, tanda baja). Tanda yang terbaca membuat pemilahan cepat dan murah.", "tandai di CAD dan produk"),
         ("🔁", "Umur dan perbaikan", "Komponen aus dibuat terpisah dan dapat diganti; bagian mahal dibuat bertahan lebih lama. Modul, bukan monolit — persis prinsip sub-assembly Modul 7 dan 11.", "modular, bukan monolit"),
     ])
     isi += kotak("warning-box", "⚠️ <strong>Yang tidak terlihat pada model:</strong> lem, pelapis, cat, dan perlakuan permukaan tidak menambah volume yang berarti sehingga luput dari perhitungan massa, tetapi justru merekalah yang paling sering menggagalkan daur ulang. Catat pilihan ini pada Spreadsheet jejak (Bagian 07) sebagai kolom tersendiri agar tidak “hilang” hanya karena tidak bervolume.")
@@ -692,7 +692,7 @@ for nama, E, rho in [("Baja", {E_ST}, 7.85e-3), ("Aluminium", {E_AL}, 2.70e-3), 
     refs = pm_ref(1, "cyan", "14,165,233", "M. F. Ashby", "Materials and the Environment: Eco-informed Material Choice", ", 2nd ed. Butterworth-Heinemann, 2013.", "Sumber energi terkandung, faktor emisi, dan cara membandingkan alternatif desain pada fungsi yang sama.")
     refs += pm_ref(2, "amber", "249,115,22", "M. F. Ashby", "Materials Selection in Mechanical Design", ", 5th ed. Butterworth-Heinemann, 2016.", "Indeks material untuk balok lentur (E<sup>1/3</sup>/ρ) dan prosedur pemilihan material berbasis fungsi–kendala–tujuan.")
     refs += pm_ref(3, "violet", "168,85,247", "G. Boothroyd, P. Dewhurst &amp; W. A. Knight", "Product Design for Manufacture and Assembly", ", 3rd ed. CRC Press, 2011.", "Dasar DFMA dan Design for Disassembly: jumlah komponen, jenis sambungan, dan biaya bongkar pasang.")
-    refs += pm_ref(4, "green", "0,224,158", "FreeCAD Community", "FreeCAD 1.0 Documentation: PartDesign Thickness, Spreadsheet Workbench, Material, Part TopoShape (Volume, BoundBox)", " (wiki.freecad.org), 2024–2026.", "Acuan parameter Thickness, alias dan ekspresi Spreadsheet, serta API volume yang dipakai pada cell Python.")
+    refs += pm_ref(4, "green", "0,224,158", "FreeCAD Community", "FreeCAD Documentation: PartDesign Thickness, Spreadsheet Workbench, Material, Part TopoShape (Volume, BoundBox)", " (wiki.freecad.org), 2024–2026.", "Acuan parameter Thickness, alias dan ekspresi Spreadsheet, serta API volume yang dipakai pada cell Python.")
     refs += pm_ref(5, "pink", "236,72,153", "T. E. Graedel &amp; B. R. Allenby", "Industrial Ecology and Sustainable Engineering", ". Pearson, 2010.", "Kerangka siklus hidup, 3R, dan batas sistem yang membedakan jejak bahan dari LCA penuh ISO 14040/14044.")
     m += f'''<!-- ═══ PUSTAKA ═══ -->
 <hr class="divider">

@@ -480,7 +480,7 @@ def materi():
         ("📐", "2D tetap berguna", "Kontur yang sudah digambar di Draft (Modul 1–4) dapat langsung ditebalkan Part Extrude; Sketch dipakai bila kontur harus terikat ke muka Body. Keduanya dipadukan lewat Boolean.", "Draft · Sketch · Boolean"),
         ("🔗", "Rakitan parametrik", "Part container menampung beberapa Body/Link dengan Placement masing-masing; Placement yang diikat ekspresi membuat posisi komponen ikut berubah ketika dimensi induknya berubah.", "Placement + ekspresi"),
     ])
-    isi += tabel(["Tahap proyek", "Alat FreeCAD 1.0", "Keluaran", "Dipakai di"],
+    isi += tabel(["Tahap proyek", "Alat FreeCAD", "Keluaran", "Dipakai di"],
                  [["Kontur 2D → solid", "Draft Wire (Make Face) → Part Extrude; Sketch → Pad", "Solid induk", "Bagian 02, Tugas 1"],
                   ["Penggandaan fitur", "PartDesign LinearPattern · PolarPattern · Mirrored · MultiTransform", "n salinan fitur", "Bagian 03, Tugas 4"],
                   ["Transisi bentuk", "Part Loft (Ruled/halus) · Sweep · Additive Loft/Pipe", "Solid transisi", "Bagian 04, Tugas 2"],
@@ -745,7 +745,7 @@ print(f"Posisi global boss = {{boss.getGlobalPlacement().Base}}  (Placement Part
 
     refs = pm_ref(1, "cyan", "14,165,233", "M. Lombard", "Mastering SolidWorks", ". Wiley, 2019.", "Rujukan utama RPS: bab patterns (linear/circular/mirror), loft and sweep, shell and draft, serta reuse of parts dan assemblies bottom-up; konsep yang sama pada FreeCAD.")
     refs += pm_ref(2, "amber", "249,115,22", "B. Monroy &amp; R. A. Cook", "Autodesk Inventor 2021 Essentials Plus", ". Sybex, 2021.", "Rujukan utama RPS: bab feature patterns, loft/sweep, shell, derived components, dan assembly placement.")
-    refs += pm_ref(3, "violet", "168,85,247", "FreeCAD Community", "FreeCAD 1.0 Documentation: Part Extrude, Part Loft, Part Boolean, PartDesign LinearPattern/PolarPattern/Mirrored/MultiTransform, PartDesign Thickness, PartDesign Draft, Std LinkMake, Draft Clone, Std Part, Placement, Expressions", " (wiki.freecad.org), 2024–2026.", "Acuan nama fitur, parameter, dan API (Part::Extrusion, Part::Loft, PartDesign::PolarPattern, App::Link, Draft.make_clone) yang dipakai di cell Python.")
+    refs += pm_ref(3, "violet", "168,85,247", "FreeCAD Community", "FreeCAD Documentation: Part Extrude, Part Loft, Part Boolean, PartDesign LinearPattern/PolarPattern/Mirrored/MultiTransform, PartDesign Thickness, PartDesign Draft, Std LinkMake, Draft Clone, Std Part, Placement, Expressions", " (wiki.freecad.org), 2024–2026.", "Acuan nama fitur, parameter, dan API (Part::Extrusion, Part::Loft, PartDesign::PolarPattern, App::Link, Draft.make_clone) yang dipakai di cell Python.")
     refs += pm_ref(4, "green", "0,224,158", "G. R. Bertoline, E. N. Wiebe, N. W. Hartman &amp; W. A. Ross", "Fundamentals of Graphics Communication", ", 6th ed. McGraw-Hill, 2011.", "Bab solid modeling dan assembly modeling: feature-based decomposition, pattern features, dan constraint-based assembly.")
     refs += pm_ref(5, "pink", "236,72,153", "D. G. Ullman", "The Mechanical Design Process", ", 6th ed. David Ullman LLC, 2017.", "Dekomposisi produk menjadi sub-assembly dan komponen, serta pemakaian ulang komponen standar dalam desain.")
     m += f'''<!-- ═══ PUSTAKA ═══ -->
@@ -753,7 +753,7 @@ print(f"Posisi global boss = {{boss.getGlobalPlacement().Base}}  (Placement Part
 <div class="section" id="m-pustaka" style="padding-bottom:40px">
   <div class="section-label reveal">Referensi</div>
   <h2 class="section-title reveal">Daftar Pustaka</h2>
-  <p class="section-desc reveal">Lima referensi inti yang mendasari materi dekomposisi fitur, pola, Loft/Sweep, Thickness/Draft, blok yang dipakai ulang, dan sub-assembly dengan Placement. Dokumentasi FreeCAD 1.0 adalah pendamping wajib karena nama properti (App::Link, Draft Clone Scale, PolarPattern Mode) mengikuti versi yang dipakai.</p>
+  <p class="section-desc reveal">Lima referensi inti yang mendasari materi dekomposisi fitur, pola, Loft/Sweep, Thickness/Draft, blok yang dipakai ulang, dan sub-assembly dengan Placement. Dokumentasi FreeCAD adalah pendamping wajib karena nama properti (App::Link, Draft Clone Scale, PolarPattern Mode) mengikuti versi yang dipakai.</p>
   <div class="reveal" style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
 {refs}  </div>
 

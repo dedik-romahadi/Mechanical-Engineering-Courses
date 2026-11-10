@@ -259,7 +259,7 @@ badan = f'''<!-- ═══ PETUNJUK PENGERJAAN {LABEL} ═══ -->
   <div class="info-box reveal" style="border-left:4px solid var(--violet);margin-top:24px">
     <strong style="color:var(--violet);font-size:15px">🧊 Alur Pengerjaan Tugas Pemodelan</strong>
     <ol style="margin-top:12px;line-height:1.8;padding-left:24px">
-      <li>Buka <strong>FreeCAD 1.0</strong> (lihat tab Setup FreeCAD pada Modul 1) dan baca dimensi pada kartu soal — angkanya sudah disesuaikan dengan NIM Anda.</li>
+      <li>Buka <strong>FreeCAD 1.0 atau lebih baru</strong> (lihat tab Setup FreeCAD pada Modul 1) dan baca dimensi pada kartu soal — angkanya sudah disesuaikan dengan NIM Anda.</li>
       <li>Modelkan sesuai instruksi, lalu baca angka yang diminta lewat properti objek, <em>Std Measure</em>, atau Python console FreeCAD.</li>
       <li>Simpan dokumen dengan <strong>Ctrl+S</strong> sebagai <code>.FCStd</code> — <em>bukan</em> Export ke STEP/STL.</li>
       <li>Pada kartu soal: pilih berkas → klik <strong>⬆ Unggah</strong> → tunggu status hijau berisi nama berkas dan SHA-256.</li>
@@ -412,7 +412,7 @@ d.ganti("""// ── CHECK EXPORT READY ──
 // konsisten bila susunan soal berubah.""")
 # Teks banner "akses belum dibuka" masih menyarankan menyiapkan Jupyter.
 d.ganti("            Anda dapat menyiapkan environment Python (Jupyter) terlebih dahulu.",
-        "            Anda dapat menyiapkan FreeCAD 1.0 dan berkas kerja Anda terlebih dahulu.")
+        "            Anda dapat menyiapkan FreeCAD 1.0 atau lebih baru dan berkas kerja Anda terlebih dahulu.")
 d.potong("const SCORE_CONFIG = {", "window.pointsToScore = pointsToScore;", f'''const SCORE_CONFIG = {{
   MC_COUNT:        {K.N_MC},
   MC_POINT:        1,
