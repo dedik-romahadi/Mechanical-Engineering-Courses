@@ -1616,6 +1616,35 @@ Mapping Tugas/UTS/UAS memakai:
 
 Saat “Tarik & Hitung” dijalankan, hasil menimpa draft nilai lokal pada tab TGS/UTS/UAS. Publish tetap merupakan tindakan terpisah.
 
+#### 12.1.1 Mengisi nilai SIA dari LMS (export/import)
+
+Nilai Sub-CPMK di SIA (`akad.php/statusnilai/lst` → *view* → **Ubah**) diisi dari
+LMS lewat file, tidak diketik ulang. Kerjakan **satu kelas sampai selesai**
+sebelum kelas berikutnya, karena keenam halaman OBE berbagi localStorage
+`opto-obe-nilai-v1`.
+
+1. Buka `<Course>/OBE/Penilaian-OBE.htm`, login **Dosen**, tab **⚙️ Mapping &
+   Hitung**: periksa mapping (Modul N → Sub-CPMK ke-N), lalu **⚡ Tarik & Hitung
+   Nilai** dan setujui dialognya.
+2. Tab **Nilai Tugas** / **Nilai UTS** / **Nilai UAS** → **📄 File Import .xls**.
+   File `Form_Nilai_<Tugas|UTS|UAS>_<kelas>_347514.xls` meniru format *Export Form
+   Nilai* SIA. Akhiran `_347514` adalah sisa kode kelas lama; isinya tetap benar.
+   Mengunduh dua file berturut-turut memerlukan izin *multiple downloads* Chrome
+   untuk situs Pages.
+3. SIA **Ubah** → tab **Isi Nilai Tugas/UTS/UAS** → **Import Nilai** → pilih file.
+   SIA hanya mengisi kolom Sub-CPMK yang dikenalnya per NIM (disorot kuning). PRE
+   tidak disentuh, dan kolom yang terkunci (tagihan, belum absen ujian, kehadiran
+   < 61%) dilewati. Sub-CPMK berbobot 0 di file (mis. Tugas TTL 2.1, 4.1, 5.2,
+   7.2) tidak punya kolom di SIA dan diabaikan.
+4. **Periksa sebelum menyimpan**: setiap kolom harus sama dengan file. Catat
+   mahasiswa yang kolomnya terkunci padahal punya nilai LMS. Setelah itu klik
+   **Simpan Nilai …** → **Simpan**.
+5. Cek halaman *view* (Rincian Nilai): Σ Nilai boleh berbeda ≤ 0,04 dari tab OBE
+   karena SIA membulatkan bobot × nilai per Sub-CPMK.
+
+Ulangi setelah modul berikutnya selesai, setelah UAS, dan setelah SIA membuka
+kunci mahasiswa yang tertahan (impor ulang menimpa nilai sebelumnya).
+
 ### 12.2 Mahasiswa
 
 - Login memakai NIM dan PIN global.
