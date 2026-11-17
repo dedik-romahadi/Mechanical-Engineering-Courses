@@ -1619,17 +1619,20 @@ Saat “Tarik & Hitung” dijalankan, hasil menimpa draft nilai lokal pada tab T
 #### 12.1.1 Mengisi nilai SIA dari LMS (export/import)
 
 Nilai Sub-CPMK di SIA (`akad.php/statusnilai/lst` → *view* → **Ubah**) diisi dari
-LMS lewat file, tidak diketik ulang. Kerjakan **satu kelas sampai selesai**
-sebelum kelas berikutnya, karena keenam halaman OBE berbagi localStorage
-`opto-obe-nilai-v1`.
+LMS lewat file, tidak diketik ulang. Draft lokal tiap halaman OBE disimpan per
+course (`obe-nilai-<courseId>-v2`, PRE di `obe-pre-override-<courseId>-v2`; sejak
+17 Nov 2026, `scripts/obe-kunci-per-kursus.mjs`, ada `--periksa`, dijalankan CI).
+Sebelumnya keenam halaman berbagi `opto-obe-nilai-v1`, sehingga draft course lain
+tercampur dan "Reset Lokal" menghapus semuanya. Draft lama itu tidak dipindahkan:
+jalankan ulang Tarik & Hitung dan "Update PRE dari .xls SIA".
 
 1. Buka `<Course>/OBE/Penilaian-OBE.htm`, login **Dosen**, tab **⚙️ Mapping &
    Hitung**: periksa mapping (Modul N → Sub-CPMK ke-N), lalu **⚡ Tarik & Hitung
    Nilai** dan setujui dialognya.
 2. Tab **Nilai Tugas** / **Nilai UTS** / **Nilai UAS** → **📄 File Import .xls**.
-   File `Form_Nilai_<Tugas|UTS|UAS>_<kelas>_347514.xls` meniru format *Export Form
-   Nilai* SIA. Akhiran `_347514` adalah sisa kode kelas lama; isinya tetap benar.
-   Mengunduh dua file berturut-turut memerlukan izin *multiple downloads* Chrome
+   File `Form_Nilai_<Tugas|UTS|UAS>_<SIA_CLASS_TOKEN>_<SIA_KODEKELAS>.xls` meniru
+   format *Export Form Nilai* SIA. Konstanta keduanya ada di halaman OBE; kode kelas
+   semester baru diperbarui di `scripts/obe-kunci-per-kursus.mjs`. Mengunduh dua file berturut-turut memerlukan izin *multiple downloads* Chrome
    untuk situs Pages.
 3. SIA **Ubah** → tab **Isi Nilai Tugas/UTS/UAS** → **Import Nilai** → pilih file.
    SIA hanya mengisi kolom Sub-CPMK yang dikenalnya per NIM (disorot kuning). PRE
