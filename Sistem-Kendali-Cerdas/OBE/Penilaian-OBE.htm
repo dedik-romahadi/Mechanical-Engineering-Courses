@@ -745,7 +745,7 @@ document.getElementById('s7body').innerHTML = Object.keys(CPMK).map(k=>
 // ═══════════════════════════════════════════════════════════════
 // RENDER — Penilaian tabs (Tugas/UTS/UAS)
 // ═══════════════════════════════════════════════════════════════
-const LS_KEY = 'opto-obe-nilai-v1';
+const LS_KEY = 'obe-nilai-sistem_kendali_cerdas-v2';  // per course (OBE-KUNCI-PER-KURSUS); dulu 'opto-obe-nilai-v1' bersama
 function loadScores(){
   try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }
   catch { return {}; }
@@ -938,7 +938,7 @@ function cellCsv(v){
 }
 
 // ── PRE override (di-update dari file .xls SIA, simpan ke localStorage) ──
-const PRE_KEY = 'opto-obe-pre-override-v1';
+const PRE_KEY = 'obe-pre-override-sistem_kendali_cerdas-v2';  // per course (OBE-KUNCI-PER-KURSUS); dulu 'opto-obe-pre-override-v1' bersama
 function loadPreOverride(){ try{return JSON.parse(localStorage.getItem(PRE_KEY))||{};}catch{return{};} }
 function savePreOverride(o){ localStorage.setItem(PRE_KEY, JSON.stringify(o)); }
 function getPre(nim){
@@ -1004,6 +1004,7 @@ window.resetPreOverride = function(){
 //   data: i+1, '<NIM>', '<Nama>', '<pre>%', nilai|''
 // Lebar kolom (Excel char unit, dari ref): No=5, NIM=14, Nama=55, PRE=5, Sub=15
 const SIA_CLASS_TOKEN = 'GTRN0000';  // placeholder; ganti dgn token kelas SIA saat tersedia
+const SIA_KODEKELAS = '350131';  // kodekelas SIA (akad.php/nilaiobe/lst/<kodekelas>) — akhiran nama file ekspor
 function exportXLS(formKey){
   if(typeof XLSX === 'undefined'){ toast('⚠️ Library xlsx belum termuat, coba lagi'); return; }
   const form = FORMS[formKey];
@@ -1038,7 +1039,7 @@ function exportXLS(formKey){
   ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, form.label);
-  XLSX.writeFile(wb, `Form_Nilai_${form.label}_${SIA_CLASS_TOKEN}_347514.xls`, { bookType:'biff8' });
+  XLSX.writeFile(wb, `Form_Nilai_${form.label}_${SIA_CLASS_TOKEN}_${SIA_KODEKELAS}.xls`, { bookType:'biff8' });
   toast(`✅ File Import ${form.label} ter-download`);
 }
 
