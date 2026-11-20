@@ -35,7 +35,7 @@ export const JADWAL_UJIAN = {
 // Tautan room Google Meet per pertemuan TMV — diisi PADA PEKANNYA setelah aktivitas
 // Google Meet™ for Moodle dibuat lewat UI form LMS (room dibuat otomatis oleh plugin).
 // Pertemuan yang belum ada di sini memakai tombol nonaktif "Google Meet belum dibuka".
-export const MEET_URL = { 1: "https://meet.google.com/kpn-jaex-kxg", 3: "https://meet.google.com/dni-uqub-heu", 5: "https://meet.google.com/ttj-afpv-ovs", 7: "https://meet.google.com/cdz-txak-bej" };
+export const MEET_URL = { 1: "https://meet.google.com/kpn-jaex-kxg", 3: "https://meet.google.com/dni-uqub-heu", 5: "https://meet.google.com/ttj-afpv-ovs", 7: "https://meet.google.com/cdz-txak-bej", 9: "https://meet.google.com/fgd-fbgu-ver" };
 // Tombol tambahan deck slide (Teknik-Tenaga-Listrik/Slides) per pertemuan — permintaan dosen 31 Okt 2026.
 export const SLIDE_URL = { 7: { href: `${BASE}/Slides/materi-uts/`, teks: "Slide Materi UTS" } };
 export const WA_URL = "https://chat.whatsapp.com/ELpExbiM33dBebdXJMzYFx"; // grup WhatsApp kelas 2F
