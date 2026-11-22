@@ -239,7 +239,12 @@ def terapkan(html):
     # 4. Font dan blok tema terakhir.
     html = html.replace("</head>", FONT + "\n</head>", 1)
     i = html.rfind("</body>")
-    html = html[:i] + f'<style id="tema-premium">\n{tegaskan(TEMA)}\n</style>\n' + html[i:]
+    sini = Path(__file__).parent
+    ikon_css = (sini / "ikon.css").read_text(encoding="utf-8")
+    ikon_js = (sini / "ikon.js").read_text(encoding="utf-8")
+    html = (html[:i] + f'<style id="tema-premium">\n{tegaskan(TEMA)}\n</style>\n'
+            f'<style id="tema-premium-ikon">\n{ikon_css}</style>\n'
+            f'<script id="tema-premium-ikon-js">\n{ikon_js}</script>\n' + html[i:])
     return html
 
 
