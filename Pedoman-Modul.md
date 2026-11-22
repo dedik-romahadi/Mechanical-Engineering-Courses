@@ -193,7 +193,7 @@ Roster login mahasiswa selalu berasal dari `Attributes/students.json` masing-mas
 
 ---
 
-**Urutan kanonik injector modul sesudah regenerasi apa pun** (TTL `bangun.py N`, CAD `bangun-modul-1.py`/`bangun.py N` + `pasang-tautan-pdf.py`, rantai Sisken §6.4; 29 September 2026): `jawaban-privat.mjs` + `pulihkan-pilihan-pg.mjs` → `samakan-kunci-identitas.mjs` → `tambah-progres-modul.mjs` → `simpan-pilihan-poll.mjs` → … → `notasi-halaman.mjs` → `notasi-ekspor.mjs` → `draft-modul.mjs` paling akhir, lalu `--periksa` semua injector harus 0 (rinciannya §17.1). Generator mewarisi blok-blok itu dari halaman sumbernya, jadi pada pembangunan ulang biasa injector hanya menambah kotak centang (`tambah-progres-modul.mjs`) dan sisanya 0.
+**Urutan kanonik injector modul sesudah regenerasi apa pun** (TTL `bangun.py N`, CAD `bangun-modul-1.py`/`bangun.py N` + `pasang-tautan-pdf.py`, rantai Sisken §6.4; 29 September 2026): `jawaban-privat.mjs` + `pulihkan-pilihan-pg.mjs` → `samakan-kunci-identitas.mjs` → `tambah-progres-modul.mjs` → `simpan-pilihan-poll.mjs` → … → `notasi-halaman.mjs` → `notasi-ekspor.mjs` → `draft-modul.mjs` → `python scripts/tema-premium/terapkan.py --semua` (Tema Premium, sejak 22 November 2026, §6.9) paling akhir, lalu `--periksa` semua injector harus 0 (rinciannya §17.1). Generator mewarisi blok-blok itu dari halaman sumbernya, jadi pada pembangunan ulang biasa injector hanya menambah kotak centang (`tambah-progres-modul.mjs`) dan sisanya 0.
 
 **Notasi rumus di teks yang dirender (3 Oktober 2026, TTL dan CAD).** Laporan dosen: Gambar 2 Modul 3 TTL menulis "V_k = V · R_k / R_seri" — garis bawah tampil apa adanya di `<text>` SVG, padahal notasi yang sama di KaTeX tampil benar. Pemindaian menemukan pola yang sama di seluruh generator TTL/CAD (±1.700 kemunculan TTL, ±900 CAD: teks HTML, gambar SVG, kanvas animasi, readout, forum, PG, hero). Aturannya kini: (1) di sumber generator, subskrip dan pangkat di teks tampil ditulis `<sub>…</sub>`/`<sup>…</sup>` (R<sub>L</sub>, e<sup>−t/τ</sup>; prima ″/′, konjugat `<sup>*</sup>`, perkalian ·/×); KaTeX `\( \)` tetap LaTeX, dan segmen KaTeX yang dirakit dari beberapa literal (`r"\(K_t = " + ind(…) + r"\)"`) tidak boleh berisi `<sub>` — auto-render hanya mencari pembatas di dalam satu simpul teks; tanda `<` di dalam KaTeX ditulis `\lt` (TTL Modul 8 dan 14 sempat menulis `\sum_{k<i}`, yang dibaca peramban sebagai tag `<i`). (2) SVG: `pustaka.t()` (TTL dan CAD) mengubah penanda itu menjadi `<tspan>` lewat `rumus_svg` — subskrip 0,72× (minimal 8 unit bila teksnya lebih besar), turun 0,22 em, superskrip naik 0,38 em, ditulis dengan `dy` dan ukuran mutlak karena MuPDF (gambar Modul-Word) mengabaikan `baseline-shift` dan "membocorkan" `font-size` persen; `teks2` menghitung panjang tanpa penanda, `svg()` menulis `aria-label` tanpa markup (`teks_aria`), dan SVG yang ditulis langsung (`HERO_SCHEMATIC_*`) dibungkus `rumus_mentah()`. Teks yang memang kode yang diketik (alias/ekspresi Spreadsheet seperti `t_sigma = (6*F*L/(b*s_izin))^(1/2)`, nama objek FreeCAD `CCX_Results`) dibungkus `pustaka.Kode(...)`: tampil apa adanya dan bertanda `data-kode="1"`; di HTML ditulis `<code>…</code>`. (3) Kanvas: `_ttlKanvas` (`animasi/dasar.js` TTL dan CAD, juga salinan di `animasi/modul-1.js` TTL) membungkus konteksnya dengan `_ttlRumusKtx`, sehingga `fillText`/`measureText` — juga lewat `_ttlTeks`/`_ttlLabel` — menggambar teks berpenanda dengan `_ttlRumus`; teks tanpa penanda diteruskan apa adanya. `_ttlTulis` memasang penanda sebagai `<sub>`/`<sup>` (sisanya di-escape). Kanvas forum (`FORUM_KANVAS`) membungkus konteksnya sendiri dengan `_ttlRumusKtx` bila tersedia; literal kanvas berisi alias yang diketik diberi komentar `// notasi: kode` pada barisnya. (4) Placeholder textarea forum tidak bisa memuat markup: pakai huruf subskrip Unicode bila semua hurufnya tersedia (ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓ, misalnya Iₙ, Zₚᵤ, Xₛ) atau tulis dengan kata ("arus hubung singkat"). (5) Modul-Word: `scripts/svg_word.py` (`tspan_mupdf`) menjangkarkan ulang `<text>` ber-tspan yang rata tengah/kanan karena MuPDF menjangkarkan tiap potongan sendiri-sendiri, dan `buat-modul-word.py` TTL/CAD mempertahankan subskrip pada judul, opsi PG, pertanyaan forum, label tugas, dan keterangan gambar acuan. (6) Pemeriksa tata letak: `ukur_gambar.js` mengukur tinta `<text>` ber-tspan per potongan (metrik pada 10× ukuran agar tidak dibulatkan), `ukur_animasi.js` menyatukan potongan satu rumus (`ctx.__rumus`). TTL Modul 1 adalah kerangka yang tidak dibangun dari nol; isinya disegarkan dari `modul_1.py` + `animasi/modul-1.js` oleh `python scripts/ttl-modul/segarkan-modul-1.py` (`--periksa` melapor; dari sumber yang tidak berubah hasilnya identik), lalu `tambah-progres-modul.mjs` dan `bangun.py 2..14`; rumus overlay login-nya kini `modul_1.RUMUS_LOGIN` berpenanda `<sub>` dan dipasang `el.innerHTML` (konstanta statis; halaman CAD mewarisi baris itu). Penjaganya `scripts/periksa-notasi.mjs`, yang dijalankan `validate-public-security.mjs` (§17.1).
 
@@ -948,22 +948,67 @@ checkout backend yang lebih tua.
 ### 6.9 Tema Premium (desain standar halaman modul)
 
 Sejak 22 November 2026 dosen menetapkan **Tema Premium** (hitam, kuning, putih)
-sebagai desain standar halaman modul. Halaman acuannya
-`Pemodelan-Computer-Aided-Design/Modul/Modul-1-Premium.html`, duplikat uji
-Modul 1 CAD yang dihasilkan dari `Modul-1.html`. Halaman lain **belum**
-dikonversi. Konversi dikerjakan hanya bila dosen memintanya, per course atau per
-halaman, dan selalu lewat generator, bukan suntingan manual.
+sebagai desain standar halaman modul, dan pada hari yang sama tema itu dipasang di
+**ke-84 halaman modul** (Modul 1–14 keenam course). Acuannya Modul 1 Pemodelan CAD
+(`Pemodelan-Computer-Aided-Design/Modul/Modul-1.html`; duplikat uji `Modul-1-Premium.html`
+sudah dihapus). Halaman UTS/UAS, OBE, dan `Admin/` belum memakai tema ini.
+
+**Cara kerja: isi halaman tidak ditulis ulang.** Warna dipetakan di peramban saat halaman
+dimuat. Berkas HTML hanya mendapat dua blok bertanda yang dipasang `terapkan.py`; seluruh
+isi aslinya (CSS, gaya inline, skrip, gambar) tetap byte-identik. Akibatnya skrip penyuntik
+§17.1, jangkar `notasi-halaman.mjs`, dan validator tetap membaca isi asli, dan rantai
+regenerasi tidak menghapus tema. (Versi statis pertama yang menulis ulang warna di berkas
+ditinggalkan: penyuntik menulis ulang bloknya dengan warna lama, 151 jangkar notasi yang
+memuat literal warna tidak ditemukan, dan 10 pemeriksa gagal.)
 
 **Berkas** (`scripts/tema-premium/`):
 
 | Berkas | Isi |
 |---|---|
-| `terapkan.py` | `python scripts/tema-premium/terapkan.py <sumber.html> <keluaran.html>`. Memetakan ulang warna, menyuntikkan tema sebelum `</body>`, dan memasang roda gigi. |
-| `tema-premium.css` | Aturan tema. Setiap perubahan ditambahkan sebagai blok baru bertanda versi (`v1.1` … `v2.2`). |
-| `ikon.css`, `ikon.js` | Ikon emoji bergaris, perbaikan kontras dan ukuran minimum teks di runtime, dan `--tp-tutup` pada cover. |
-| `roda_gigi.py` | SVG hiasan cover. |
+| `terapkan.py` | Pemasang. `--semua` (84 halaman), `--kursus cad,ttl`, `--periksa` (gagal bila ada halaman yang belum terpasang atau basi; dijalankan CI). Idempoten: blok lama dilepas lalu dipasang ulang. Menolak berkas tema yang memuat teks tag dokumen (`<head>`, `<body>`, …), karena penyuntik lain mencari batas dokumen dengan teks itu. |
+| `awal.js` | Dipasang di kepala dokumen. Pustaka pemetaan warna (port fungsi Python yang disetujui: `petakan`, `petakanGelap`, aturan konteks benar/salah) dan penambal kanvas (`fillStyle`, `strokeStyle`, `addColorStop` ke palet gambar; bayangan dimatikan; halo dan kilat di kanvas latar login `*WaveCanvas` tidak digambar). Halaman disembunyikan dan transisi CSS dimatikan sampai warna siap (cadangan 4 detik). |
+| `warna.js` | Dipasang di akhir badan dokumen. Memetakan semua aturan CSS lewat CSSOM (termasuk deklarasi pintas bernilai `var()`), gaya inline, dan warna SVG; memasang roda gigi di setiap cover; memendekkan label bagian soal; mengganti 🅐 menjadi 📝. Konten yang dibuat JavaScript belakangan diproses langsung di callback MutationObserver (sebelum layar digambar). Nilai yang sudah dipetakan tidak dipetakan ulang. |
+| `tema-premium.css` | Aturan tema. Setiap perubahan ditambahkan sebagai blok baru bertanda versi (`v1.1` … `v2.2`). Selektor cover bersifat umum (`.hero[data-tab]`), sehingga tab Kelompok dan Setup ikut. |
+| `ikon.css`, `ikon.js` | Ikon emoji bergaris, perbaikan kontras dan ukuran minimum teks, dan `--tp-tutup` pada cover. |
+| `roda_gigi.py` | SVG roda gigi, ditanam di blok akhir sebagai `window.__tpGigi`. |
 
-Sesudah mengubah salah satu berkas itu, jalankan ulang `terapkan.py`.
+Sesudah mengubah salah satu berkas itu, jalankan `python scripts/tema-premium/terapkan.py --semua`.
+**Dalam rantai regenerasi modul, `terapkan.py` dijalankan paling akhir** (sesudah
+`draft-modul.mjs`, §17.1), lalu `--periksa`.
+
+**Gambar materi dan sebutan warna di teks** (keputusan dosen 22 November 2026: "pola garis +
+ubah teks"). Gambar (SVG dan kanvas) memakai kuning-putih-abu. Warna asli dikelompokkan per
+keluarga rona supaya seri yang berbeda tetap terbedakan, dan teks yang menyebut warna gambar ikut
+diganti dengan kata dari keluarga yang sama:
+
+| Warna asli | Tampil sebagai | Kata pengganti |
+|---|---|---|
+| biru, cyan, toska, teal, indigo | putih, utuh | putih |
+| kuning, amber, oranye, jingga, emas | kuning, utuh | kuning |
+| merah, merah muda, pink, rose | kuning berpola | kuning titik-titik (garis) / berarsir (area) / berongga (titik) |
+| hijau, lime, emerald | abu-abu terang, utuh | abu-abu |
+| ungu, violet, magenta, fuchsia | abu-abu berpola | abu-abu titik-titik / berarsir / berongga |
+
+- Garis keluarga berpola selalu **titik-titik** dan mengganti pola putus-putus aslinya. Dengan
+  begitu garis kuning/abu-abu yang memang putus-putus di gambar asli (mis. garis kapasitas)
+  tidak tertukar dengan garis asal merah/ungu. "garis merah putus-putus" menjadi "garis kuning
+  titik-titik".
+- **Unit gambar** = `figure.ilustrasi` (Gambar N) atau `.anim-panel` (animasi), ditambah kotak
+  tip/info yang tepat berada sesudahnya (pola Sisken `div.tip-box.anim-jelas`). Sebutan warna
+  hanya diganti di dalam unit, pada pola yang merujuk gambar: "garis/kurva/titik/area/panah/…
+  <warna>", "(<warna>)", "<warna> =", "berwarna <warna>", termasuk legenda yang dibuat
+  JavaScript dan teks yang digambar di kanvas. Prosa umum ("lebih hijau", warna UI FreeCAD,
+  lampu lalu lintas, standar alarm), blok kode, dan rumus tidak disentuh.
+- **Mode unit gambar** di `scripts/tema-premium/tema-gambar.json`, per halaman:
+  - `asli`: warnanya data dunia nyata. Contohnya peta warna kontur FEM, warna layer atau UI
+    FreeCAD yang diminta tugas, zona ISO 10816 dan tingkat alarm, kutub magnet merah/biru,
+    korona ungu, dan peta warna F1. Warna dan teks unit itu dibiarkan.
+  - `makna`: merah/hijau berarti benar/salah, layak/melanggar, atau batas. Merah murni dan hijau
+    beserta katanya dipertahankan; warna lain tetap dipetakan.
+  - `teks`: `[frasa persis, pengganti]` untuk kalimat yang tidak tertangkap pola umum. Berlaku di
+    seluruh halaman, termasuk prosa di luar unit dan teks kanvas.
+- Halaman, gambar, atau kalimat baru yang menyebut warna gambar wajib diperiksa ulang dengan
+  laporan per unit (lihat butir pemeriksaan 10). Tambahkan ke `tema-gambar.json` bila perlu.
 
 **Aturan desain yang sudah disetujui dosen:**
 
@@ -972,7 +1017,7 @@ Sesudah mengubah salah satu berkas itu, jalankan ulang `terapkan.py`.
    benar/salah, umpan balik, dan status bolos. Biru, ungu, toska, merah muda,
    dan jingga dipetakan ke kuning atau putih.
 2. **Warna tegas.** Tanpa blur, glow, bayangan bercahaya, gradasi radial, atau
-   warna pucat (`tegaskan()` di `terapkan.py`). Gambar materi (SVG dan kanvas)
+   warna pucat (`warna.js`/`awal.js`). Gambar materi (SVG dan kanvas)
    kuning-putih; merah dan hijau hanya pada pesan umpan balik.
 3. **Tipografi dan ikon.**
    - Judul memakai Outfit, isi memakai Plus Jakarta Sans.
@@ -1017,19 +1062,16 @@ Sesudah mengubah salah satu berkas itu, jalankan ulang `terapkan.py`.
 9. **Panel chat.** Tab aktif dan pesan sendiri berwarna kuning, pesan orang lain
    abu arang.
 10. **Pemeriksaan sebelum terbit.**
-    - Tidak ada gulir mendatar di 375 px dan 320 px.
-    - Semua tab dicek, termasuk Tugas dan Forum (tersembunyi di Mode Preview,
-      jadi tampilkan secara paksa atau login).
+    - `python scripts/tema-premium/terapkan.py --semua --periksa` hijau (juga di CI), dan
+      semua pemeriksa `--periksa` §17.1 tetap hijau.
+    - Di peramban, untuk setiap halaman dan setiap tab pada lebar 1366 dan 375 px: tidak
+      ada gulir mendatar, setiap cover bergigi dan labelnya tidak tertutup navigasi,
+      tidak ada warna jenuh selain kuning/merah/hijau (elemen dan piksel kanvas), tidak
+      ada teks terang di atas kuning, label soal tanpa " · ", dan tidak ada 🅐.
+    - Laporan per unit gambar (di peramban, dari `window.__tpGanti` dan sisa nama warna di
+      unit): tidak ada sebutan warna yang tidak cocok dengan gambarnya, kecuali unit `asli`.
+    - Tab Tugas dan Forum tersembunyi di Mode Preview: tampilkan secara paksa atau login.
     - Cover dan animasi diukur sesudah animasi masuk selesai.
-    - `validate-public-security.mjs` harus hijau. Jumlah halaman admin-auth naik
-      satu untuk setiap duplikat uji.
-
-**Sebelum menerapkannya ke halaman produksi:**
-
-- Uji urutannya dengan skrip penyuntik §17.1 (blok tema harus tetap paling
-  akhir sebelum `</body>`).
-- Jalankan semua validator per area.
-- Jalankan ulang `terapkan.py` setiap kali generator modul dijalankan.
 
 ---
 

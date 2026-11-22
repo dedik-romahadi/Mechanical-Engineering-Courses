@@ -2237,8 +2237,7 @@ try {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
-// +1: duplikat uji Tema Premium (Pemodelan-Computer-Aided-Design/Modul/Modul-1-Premium.html).
-if (authPages !== 109) throw new Error(`Expected 109 admin-auth pages (96 Modul/Exam + 6 OBE + 6 Admin + 1 Modul-1-Premium), got ${authPages}`);
+if (authPages !== 108) throw new Error(`Expected 108 admin-auth pages (96 Modul/Exam + 6 OBE + 6 Admin), got ${authPages}`);
 for (const course of courseRoots) {
   const uas = fs.readFileSync(path.join(root, course, "Exam", "UAS.html"), "utf8");
   if (/const UAS_(TF|MC|COMP_EZ|COMP_HARD)\s*=\s*\[/.test(uas)) throw new Error(`${course}: static UAS bank returned to HTML`);
