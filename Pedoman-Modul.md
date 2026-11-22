@@ -945,6 +945,87 @@ Gabungkan perubahan `modul-ai-chat.js` ke `main` backend sebelum atau bersama PR
 frontend yang membawa hasil `apply-ai-chat.js`, dan jangan menerapkan dari
 checkout backend yang lebih tua.
 
+### 6.9 Tema Premium (desain standar halaman modul)
+
+Sejak 22 November 2026 dosen menetapkan **Tema Premium** (hitam, kuning, putih)
+sebagai desain standar halaman modul. Halaman acuannya
+`Pemodelan-Computer-Aided-Design/Modul/Modul-1-Premium.html`, duplikat uji
+Modul 1 CAD yang dihasilkan dari `Modul-1.html`. Halaman lain **belum**
+dikonversi. Konversi dikerjakan hanya bila dosen memintanya, per course atau per
+halaman, dan selalu lewat generator, bukan suntingan manual.
+
+**Berkas** (`scripts/tema-premium/`):
+
+| Berkas | Isi |
+|---|---|
+| `terapkan.py` | `python scripts/tema-premium/terapkan.py <sumber.html> <keluaran.html>`. Memetakan ulang warna, menyuntikkan tema sebelum `</body>`, dan memasang roda gigi. |
+| `tema-premium.css` | Aturan tema. Setiap perubahan ditambahkan sebagai blok baru bertanda versi (`v1.1` … `v2.2`). |
+| `ikon.css`, `ikon.js` | Ikon emoji bergaris, perbaikan kontras dan ukuran minimum teks di runtime, dan `--tp-tutup` pada cover. |
+| `roda_gigi.py` | SVG hiasan cover. |
+
+Sesudah mengubah salah satu berkas itu, jalankan ulang `terapkan.py`.
+
+**Aturan desain yang sudah disetujui dosen:**
+
+1. **Palet.** Hanya tiga warna: hitam `#0a0a0a`, kuning `#FFD60A`, dan putih
+   `#f5f5f5`, ditambah abu netral. Merah dan hijau hanya dipakai untuk makna:
+   benar/salah, umpan balik, dan status bolos. Biru, ungu, toska, merah muda,
+   dan jingga dipetakan ke kuning atau putih.
+2. **Warna tegas.** Tanpa blur, glow, bayangan bercahaya, gradasi radial, atau
+   warna pucat (`tegaskan()` di `terapkan.py`). Gambar materi (SVG dan kanvas)
+   kuning-putih; merah dan hijau hanya pada pesan umpan balik.
+3. **Tipografi dan ikon.**
+   - Judul memakai Outfit, isi memakai Plus Jakarta Sans.
+   - Ikon emoji memakai Noto Emoji bergaris, di-*subset* ke emoji di halaman,
+     sehingga detailnya tetap terlihat. Warnanya putih di latar gelap dan hitam
+     di latar kuning.
+4. **Kontras.**
+   - Tidak ada teks putih di latar kuning (`.tp-teks-gelap`).
+   - Teks minimal 12 px, kecuali tautan subnav yang 11 px.
+   - Header tabel memakai Outfit 15 px tebal 800, hitam.
+5. **Cover.**
+   - Berlaku untuk semua cover: Modul, Setup FreeCAD, Setup Python, Tugas,
+     Forum, dan Hasil. Latarnya sama (gradasi + grid), sudut bawah 32 px, dan
+     kata kunci judul berwarna kuning.
+   - Tinggi cover mengikuti isinya, tanpa `min-height` layar.
+   - Jarak atas = bagian yang tertutup navbar dan subnav (`--tp-tutup`, dihitung
+     `ikon.js`) + 36 px; di ponsel + 28 px. Label "Pertemuan N" tidak boleh
+     tertutup navigasi.
+   - Jarak cover → hitung mundur → Bagian 01 dibuat rapat.
+6. **Hiasan cover.**
+   - Roda gigi bergaris halus (`rgba(190,190,196,.16)`) yang berputar dan saling
+     berkait. Bukan gelombang sinyal (sudah dicoba dan ditolak dosen).
+   - Lebar desktop (kanan atas / kiri bawah):
+     - Modul dan Tugas: 680 / 470 px;
+     - cover lain: 540 / 380 px.
+   - Lebar ponsel: Modul dan Tugas 82% / 60%; cover lain 70% / 50%.
+   - Animasi berhenti pada `prefers-reduced-motion`.
+7. **Hitung mundur.**
+   - Cincin dan angka tetap tampil, tanpa garis tepi ganda.
+   - Panel tenggat berwarna kuning solid dengan teks hitam besar (Outfit 17 px
+     tebal 800). Ukuran panelnya tetap.
+8. **Daftar mahasiswa di tab Hasil** (status dan nama):
+   - Bolos: merah;
+   - Tepat Waktu: kuning;
+   - Belum: putih;
+   - Terlambat: kuning bergaris tepi.
+9. **Panel chat.** Tab aktif dan pesan sendiri berwarna kuning, pesan orang lain
+   abu arang.
+10. **Pemeriksaan sebelum terbit.**
+    - Tidak ada gulir mendatar di 375 px dan 320 px.
+    - Semua tab dicek, termasuk Tugas dan Forum (tersembunyi di Mode Preview,
+      jadi tampilkan secara paksa atau login).
+    - Cover dan animasi diukur sesudah animasi masuk selesai.
+    - `validate-public-security.mjs` harus hijau. Jumlah halaman admin-auth naik
+      satu untuk setiap duplikat uji.
+
+**Sebelum menerapkannya ke halaman produksi:**
+
+- Uji urutannya dengan skrip penyuntik §17.1 (blok tema harus tetap paling
+  akhir sebelum `</body>`).
+- Jalankan semua validator per area.
+- Jalankan ulang `terapkan.py` setiap kali generator modul dijalankan.
+
 ---
 
 ## 7. Struktur dan penilaian exam
