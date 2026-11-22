@@ -293,13 +293,13 @@ def terapkan(html):
     html = html.replace(
         "const NODE_COLORS = ['#818cf8', '#ec4899', '#fbbf24', '#a78bfa', '#f472b6', '#60a5fa'];",
         "const NODE_COLORS = ['#ffd60a', '#ffffff', '#ffc300', '#ffffff', '#ffd60a', '#f5f5f5'];")
-    # 3b. Sinyal cover: viewBox dipangkas ke rentang kurva (y 225..425 dari 600, mencakup tiga jalur) agar
+    # 3b. Sinyal cover: viewBox dipangkas ke rentang kurva (y 235..375 dari 600) agar
     #     bisa ditaruh sebagai pita di bawah judul tanpa terpotong.
     html = re.sub(r'(<div class="hero-waves">\s*<svg viewBox=")0 0 1440 600"',
-                  r'\g<1>0 225 1440 200"', html)
+                  r'\g<1>0 235 1440 140"', html)
     # 3c. Cover Setup/Python belum punya sinyal: sisipkan pita yang sama (jalur .w1b/.w2b
     #     ikut digambar ulang oleh animasi WAVE TRACES bawaan halaman).
-    pita = ('<div class="hero-waves"><svg viewBox="0 225 1440 200" preserveAspectRatio="none" '
+    pita = ('<div class="hero-waves"><svg viewBox="0 235 1440 140" preserveAspectRatio="none" '
             'xmlns="http://www.w3.org/2000/svg"><path class="wave-trace w1b" d="" fill="none"/>'
             '<path class="wave-trace w2b" d="" fill="none"/></svg></div>')
     html = html.replace('<section class="sp-hero">', '<section class="sp-hero">' + pita)
