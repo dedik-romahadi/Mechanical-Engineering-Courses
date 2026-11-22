@@ -983,6 +983,9 @@ Sesudah mengubah salah satu berkas itu, jalankan ulang `terapkan.py`.
    - Tidak ada teks putih di latar kuning (`.tp-teks-gelap`).
    - Teks minimal 12 px, kecuali tautan subnav yang 11 px.
    - Header tabel memakai Outfit 15 px tebal 800, hitam.
+   - Label bagian soal (`.q-type-badge`, mis. "BAGIAN A — Pilihan Ganda"):
+     kuning solid selebar kolom isi (margin kiri sampai kanan), teks hitam
+     Outfit 18 px tebal 900 (ponsel 16 px, boleh membungkus).
 5. **Cover.**
    - Berlaku untuk semua cover: Modul, Setup FreeCAD, Setup Python, Tugas,
      Forum, dan Hasil. Latarnya sama (gradasi + grid), sudut bawah 32 px, dan
