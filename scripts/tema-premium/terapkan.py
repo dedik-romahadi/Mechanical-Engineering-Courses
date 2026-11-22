@@ -99,6 +99,16 @@ def ganti_warna(css, peta=None):
         if len(bag) < 3 or not all(re.fullmatch(r"\d+(\.\d+)?", x) for x in bag[:3]):
             return m.group(0)
         r, g, b = peta(tuple(int(float(x)) for x in bag[:3]))
+        # Rona kuning tembus pandang tampak keruh/pudar di atas hitam: rona tipis
+        # menjadi abu netral, rona tebal menjadi kuning pekat.
+        if (r, g, b) == KUNING and len(bag) > 3 and peta is not petakan_gelap:
+            try:
+                a = float(bag[3])
+            except ValueError:
+                a = 1.0
+            if a < 0.35:
+                return f"rgba(255,255,255,{round(a / 2, 3)})"
+            return "rgb(255,214,10)"
         return f"{fn}({','.join([str(r), str(g), str(b)] + bag[3:])})"
 
     # Di dalam <svg>/skrip hanya #rrggbb: #abc pendek bisa berupa rujukan id (url(#bed)).
@@ -128,6 +138,54 @@ TEMA = Path(__file__).with_name("tema-premium.css").read_text(encoding="utf-8")
 FONT = ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
         'family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:'
         'ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">')
+
+
+def _buang_radial(teks):
+    """Ganti setiap radial-gradient(...) (kurung bersarang) dengan lapisan transparan
+    supaya jumlah lapisan background tetap sah."""
+    hasil, i = [], 0
+    while True:
+        j = teks.find("radial-gradient(", i)
+        if j < 0:
+            hasil.append(teks[i:])
+            return "".join(hasil)
+        k, d = j + len("radial-gradient("), 1
+        while k < len(teks) and d:
+            d += {"(": 1, ")": -1}.get(teks[k], 0)
+            k += 1
+        hasil.append(teks[i:j] + "linear-gradient(transparent,transparent)")
+        i = k
+
+
+def tegaskan(html):
+    """Tanpa blur dan cahaya: buang filter blur/drop-shadow, cahaya radial,
+    dan bayangan kanvas. text-/box-shadow dan backdrop-filter dimatikan di CSS tema."""
+    html = re.sub(r"(?<![\w-])filter\s*:\s*[^;}\"'`]*(?:blur|drop-shadow)\([^;}\"'`]*",
+                  "filter:none", html)
+    html = _buang_radial(html)
+    html = re.sub(r"(?<![\w-])(-webkit-backdrop-filter|backdrop-filter|box-shadow|text-shadow)"
+                  r"\s*:\s*[^;}\"'`]*", r"\1:none", html)
+    html = re.sub(r"\b(boxShadow|textShadow|backdropFilter)(\s*[:=]\s*)"
+                  r"(?:`[^`]*`|'[^']*'|\"[^\"]*\"|[^,;\n}]+)",
+                  r"\1\2'none'", html)
+    # Halo dan kilatan radial di kanvas animasi -> tidak digambar.
+    html = re.sub(r"ctx\.fillStyle\s*=\s*(haloGrad|flashGrad)\s*;",
+                  "ctx.fillStyle = 'rgba(0,0,0,0)';", html)
+    # Animasi latar login: warna muatan/garis -> kuning & putih pekat, tanpa kilat layar.
+    i = html.find("function initLoginAnimation")
+    j = html.find("Floating particles", i)
+    if i >= 0 and j > i:
+        seg = html[i:j]
+        for lama, baru in (("251,191,36", "255,214,10"), ("96,165,250", "255,255,255"),
+                           ("129,140,248", "255,214,10")):
+            seg = seg.replace(lama, baru)
+        seg = re.sub(r"Math\.min\(activeFlash \* 0\.08, 0\.18\)", "0", seg)
+        seg = seg.replace("globalAlpha = 0.55 + 0.45 * pulse", "globalAlpha = 1")
+        html = html[:i] + seg + html[j:]
+    html = re.sub(r"shadowBlur\s*=\s*[^;\n]+", "shadowBlur = 0", html)
+    # Filter SVG (glow/bayangan) pada gambar materi.
+    html = re.sub(r'\sfilter="url\(#[^)]*\)"', "", html)
+    return html
 
 
 def terapkan(html):
@@ -176,11 +234,12 @@ def terapkan(html):
     # 3. Palet animasi latar login (kanvas) -> kuning, putih, abu.
     html = html.replace(
         "const NODE_COLORS = ['#818cf8', '#ec4899', '#fbbf24', '#a78bfa', '#f472b6', '#60a5fa'];",
-        "const NODE_COLORS = ['#ffd60a', '#ffffff', '#ffc300', '#8e8e93', '#ffd60a', '#d4d4d8'];")
+        "const NODE_COLORS = ['#ffd60a', '#ffffff', '#ffc300', '#ffffff', '#ffd60a', '#f5f5f5'];")
+    html = tegaskan(html)
     # 4. Font dan blok tema terakhir.
     html = html.replace("</head>", FONT + "\n</head>", 1)
     i = html.rfind("</body>")
-    html = html[:i] + f'<style id="tema-premium">\n{TEMA}\n</style>\n' + html[i:]
+    html = html[:i] + f'<style id="tema-premium">\n{tegaskan(TEMA)}\n</style>\n' + html[i:]
     return html
 
 
