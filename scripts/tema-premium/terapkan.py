@@ -301,6 +301,11 @@ def terapkan(html):
     gigi = svg_roda_gigi()
     html = re.sub(r'<div class="hero-waves">\s*<svg\b.*?</svg>\s*</div>', lambda m: gigi, html, flags=re.S)
     html = html.replace('<section class="sp-hero">', '<section class="sp-hero">' + gigi)
+
+    # 3c. Label bagian soal (.q-type-badge) cukup nama bagiannya, mis. "BAGIAN B — Tugas
+    #     Pemodelan FreeCAD"; rincian sesudah " · " (jumlah soal, poin, berkas) dibuang.
+    html = re.sub(r'(<div class="q-type-badge[^"]*">)([^<]*?)\s+·\s[^<]*(</div>)',
+                  lambda m: m.group(1) + m.group(2) + m.group(3), html)
     html = tegaskan(html)
     # 4. Font dan blok tema terakhir.
     html = html.replace("</head>", PRA + FONT + font_emoji(html) + "\n</head>", 1)

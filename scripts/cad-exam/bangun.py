@@ -1091,6 +1091,9 @@ d.ganti(_PENANDA_AI, BLOK_AI)
 # newline="\n": seluruh repo memakai LF, dan penyuntik .mjs mencari jangkar
 # ber-"\n" — menulis dengan terjemahan baris bawaan Windows (CRLF) membuat
 # jangkar mereka meleset dan halaman disuntik ulang tiap kali dijalankan.
+sys.path.insert(0, str(SCR.parent / "cad-modul"))
+from versi_freecad import terapkan as versi_freecad  # noqa: E402
+d.s = versi_freecad(d.s)  # versi FreeCAD otomatis seperti tab Setup FreeCAD Modul 1
 TUJUAN.write_text(d.s, encoding="utf-8", newline="\n")
 print(f"[cad-exam] {K.TUJUAN} ditulis — {len(d.s):,} karakter")
 print(f"[cad-exam] {K.N_SOAL} soal · {K.N_MC} PG @ {pustaka.ind(POIN_MC)} poin · "

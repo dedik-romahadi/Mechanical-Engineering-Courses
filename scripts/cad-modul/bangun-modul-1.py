@@ -626,6 +626,8 @@ ganti("@@SHUFFLE_KOMENTAR@@", "// Urutan opsi PG Sisken, Teknik Tenaga Listrik, 
 TUJUAN.parent.mkdir(parents=True, exist_ok=True)
 from pustaka import koma_katex  # noqa: E402
 s = koma_katex(s)
+from versi_freecad import terapkan as versi_freecad  # noqa: E402
+s = versi_freecad(s)  # "FreeCAD 1.0 atau lebih baru" -> versi rilis terbaru otomatis
 TUJUAN.write_text(s, encoding="utf-8", newline="")
 print(f"Modul-1 CAD ditulis: {len(s)} karakter; bagian {n_bagian}, animasi {n_animasi}; hash jajak {hash_baru}")
 
