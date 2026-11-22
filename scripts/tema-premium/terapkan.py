@@ -77,17 +77,29 @@ def petakan_benar(rgb):
 
 
 def petakan_gelap(rgb):
-    """Untuk gambar SVG dan kanvas: hanya latar gelap/slate yang dinetralkan,
-    warna garis dan blok tetap supaya kode warna gambar tidak hilang."""
+    """Untuk gambar SVG dan kanvas: diseragamkan kuning-putih. Latar gelap/slate ->
+    abu netral, warna pucat -> putih, warna jenuh apa pun -> kuning tema."""
     r, g, b = (x / 255 for x in rgb)
     h, l, s = colorsys.rgb_to_hls(r, g, b)
     if l < 0.24 or (s < 0.38 and l < 0.8):
         return _abu(l)
-    # Hijau mint/toska (aksen tema lama, mis. #00e09e) -> kuning tema; hijau sumbu Y
-    # FreeCAD (#22c55e, hue ~142) tetap karena konvensi X merah, Y hijau, Z biru.
-    if 148 <= h * 360 < 178 and s >= 0.5:
-        return KUNING
-    return rgb
+    if s < 0.38 or l > 0.82:
+        return (250, 248, 240)
+    return KUNING
+
+
+def _peta_skrip(sekitar):
+    """Warna di JavaScript: gambar kanvas -> kuning-putih, kecuali konteksnya
+    penanda benar/salah (umpan balik kuis, galat) yang tetap hijau/merah."""
+    if BENAR.search(sekitar) or SALAH.search(sekitar):
+        return lambda rgb: rgb if (_merah(rgb) or _hijau(rgb)) else petakan_gelap(rgb)
+    return petakan_gelap
+
+
+def _hijau(rgb):
+    r, g, b = (int(x) / 255 for x in rgb)
+    h, l, s = colorsys.rgb_to_hls(r, g, b)
+    return s >= 0.38 and 75 <= h * 360 < 170
 
 
 def ganti_warna(css, peta=None):
@@ -140,7 +152,7 @@ def ganti_css(css):
 
 TEMA = Path(__file__).with_name("tema-premium.css").read_text(encoding="utf-8")
 FONT = ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
-        'family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:'
+        'family=Outfit:wght@300;400;500;600;700;800&family=Noto+Emoji:wght@500;600&family=Plus+Jakarta+Sans:'
         'ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">')
 
 
@@ -217,10 +229,31 @@ def terapkan(html):
     html = "".join(bagian)
     # 2b. Literal warna bertanda kutip di skrip (latar kanvas animasi).
     def skrip(m):
-        return m.group(1) + re.sub(
-            r"(['\"])(#[0-9a-fA-F]{6}|rgba?\([0-9.,\s]+\))\1",
-            lambda k: k.group(1) + ganti_warna(k.group(2), petakan_gelap) + k.group(1),
-            m.group(2)) + m.group(3)
+        # Semua literal warna di skrip (hex 6 digit, rgb(a)( R,G,B ...) termasuk di template
+        # string, dan triplet 'R,G,B' bertanda kutip) -> palet gambar kuning-putih.
+        def ganti(k, ke_teks):
+            sekitar = k.string[max(0, k.start() - 120):k.end() + 60]
+            return ke_teks(k, _peta_skrip(sekitar))
+
+        def hex6(k, peta):
+            r, g, b = peta(_hex_to_rgb(k.group(0)))
+            return f"#{r:02x}{g:02x}{b:02x}"
+
+        def rgb3(k, peta):
+            r, g, b = peta(tuple(int(x) for x in k.group(2, 3, 4)))
+            return f"{k.group(1)}{r},{g},{b}"
+
+        def trip(k, peta):
+            r, g, b = peta(tuple(int(x) for x in k.group(2, 3, 4)))
+            return f"{k.group(1)}{r},{g},{b}{k.group(1)}"
+
+        isi = m.group(2)
+        isi = re.sub(r"#[0-9a-fA-F]{6}\b", lambda k: ganti(k, hex6), isi)
+        isi = re.sub(r"(rgba?\(\s*)(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?=\s*[,)])",
+                     lambda k: ganti(k, rgb3), isi)
+        isi = re.sub(r"(['\"])(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\1",
+                     lambda k: ganti(k, trip), isi)
+        return m.group(1) + isi + m.group(3)
     html = re.sub(r"(<script\b[^>]*>)(.*?)(</script>)", skrip, html, flags=re.S)
     # 2c. CSS yang ditulis di dalam JavaScript (template string, Object.assign style,
     #     cssText) dan larik palet bernama *colors -> pemetaan penuh. Warna gambar
