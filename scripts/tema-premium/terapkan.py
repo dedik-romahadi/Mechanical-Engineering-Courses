@@ -1,6 +1,6 @@
-"""Tema Premium (hitam - kuning - putih): pemasang ke halaman modul.
+"""Tema Premium (hitam - kuning - putih): pemasang ke halaman modul dan ujian (UTS/UAS).
 
-Desain standar halaman modul sejak 22 Nov 2026 (Pedoman-Modul.md §6.9). Acuannya Modul 1
+Desain standar halaman modul sejak 22 Nov 2026 (ujian UTS/UAS sejak 23 Nov 2026) (Pedoman-Modul.md §6.9). Acuannya Modul 1
 Pemodelan CAD. Isi halaman TIDAK ditulis ulang: warna dipetakan di peramban, sehingga
 skrip penyuntik lain, jangkar notasi, dan validator tetap membaca isi aslinya dan rantai
 regenerasi modul tidak menghapus tema. Skrip ini hanya memasang dua blok bertanda:
@@ -17,7 +17,7 @@ Idempoten: blok lama dilepas dulu lalu dipasang ulang. Jalankan PALING AKHIR dal
 regenerasi (sesudah draft-modul.mjs); --periksa gagal bila ada halaman yang belum/basi.
 
 Pemakaian:
-  python scripts/tema-premium/terapkan.py --semua                 (84 halaman modul)
+  python scripts/tema-premium/terapkan.py --semua                 (84 halaman modul + 12 halaman ujian)
   python scripts/tema-premium/terapkan.py --kursus cad,ttl
   python scripts/tema-premium/terapkan.py --semua --periksa
   python scripts/tema-premium/terapkan.py <sumber.html> <keluaran.html>
@@ -85,9 +85,20 @@ def tegaskan_css(css):
                   r"\1:none", css)
 
 
+def tanpa_chat(css):
+    """Halaman ujian tidak punya Chat Kelas dan dilarang memuat teks kelas chat (vp-chat;
+    validate-public-security.mjs, buka-asisten-ujian.mjs): selektor .vp-chat* dibuang dari
+    setiap aturan, dan aturan yang selektornya habis ikut dibuang."""
+    def satu(m):
+        sel = [s for s in m.group(1).split(",") if "vp-chat" not in s]
+        return (",".join(sel) + "{" + m.group(2) + "}") if sel else ""
+    return re.sub(r"([^{}]+)\{([^{}]*)\}", lambda m: satu(m) if "vp-chat" in m.group(1) else m.group(0), css)
+
+
 def font_emoji(html):
-    """Noto Emoji hanya untuk emoji yang ada di halaman (parameter text=), plus 📝."""
-    pakai = sorted((set(re.findall("[‼-㊙\U0001F000-\U0001FAFF]", html)) | {"📝"})
+    """Noto Emoji hanya untuk emoji yang ada di halaman (parameter text=), plus ikon bagian
+    soal yang dipasang warna.js (📝 🔘 💻 🧠 🧊 ⚙)."""
+    pakai = sorted((set(re.findall("[‼-㊙\U0001F000-\U0001FAFF]", html)) | set("📝🔘💻🧠🧊⚙"))
                    - set("→←↑↓↔─│┌┐└┘├┤━═▶◀●○■□▲▼◆◇★☆✓✗×"))
     return ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
             f'family=Noto+Emoji:wght@600&display=swap&text={quote("".join(pakai) + "‍️")}">')
@@ -126,7 +137,10 @@ def terapkan(html, halaman=None):
         raise SystemExit("tema-premium: </head> tidak ditemukan")
     html = html[:i] + kepala + html[i:]
     gigi = "window.__tpGigi = " + json.dumps(svg_roda_gigi()) + ";\n"
-    badan = (f'<style id="tema-premium">\n{tegaskan_css(_baca("tema-premium.css"))}\n</style>\n'
+    css = tegaskan_css(_baca("tema-premium.css"))
+    if halaman and "/Exam/" in halaman.replace("\\", "/"):
+        css = tanpa_chat(css)
+    badan = (f'<style id="tema-premium">\n{css}\n</style>\n'
              f'<style id="tema-premium-ikon">\n{_baca("ikon.css")}</style>\n'
              f'<script id="tema-premium-warna-js">\n{gigi}{_baca("warna.js")}</script>\n'
              f'<script id="tema-premium-ikon-js">\n{_baca("ikon.js")}</script>\n')
@@ -139,6 +153,15 @@ def terapkan(html, halaman=None):
 def halaman_modul(kursus):
     d = AKAR / KURSUS[kursus] / "Modul"
     return [d / f"Modul-{n}.html" for n in range(1, 15) if (d / f"Modul-{n}.html").exists()]
+
+
+def halaman_exam(kursus):
+    d = AKAR / KURSUS[kursus] / "Exam"
+    return [d / f"{u}.html" for u in ("UTS", "UAS") if (d / f"{u}.html").exists()]
+
+
+def halaman_kursus(kursus):
+    return halaman_modul(kursus) + halaman_exam(kursus)
 
 
 def baca(p):
@@ -164,9 +187,9 @@ if __name__ == "__main__":
     arg = sys.argv[1:]
     periksa = "--periksa" in arg
     if "--semua" in arg:
-        berkas = [h for k in KURSUS for h in halaman_modul(k)]
+        berkas = [h for k in KURSUS for h in halaman_kursus(k)]
     elif "--kursus" in arg:
-        berkas = [h for k in arg[arg.index("--kursus") + 1].split(",") for h in halaman_modul(k)]
+        berkas = [h for k in arg[arg.index("--kursus") + 1].split(",") for h in halaman_kursus(k)]
     else:
         src, dst = arg[0], arg[1]
         tulis(dst, terapkan(baca(src), str(Path(src).resolve().relative_to(AKAR))))

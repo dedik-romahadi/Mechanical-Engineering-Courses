@@ -248,6 +248,7 @@
 
   window.__tp = { petakan: petakan, petakanGelap: petakanGelap, gantiWarna: gantiWarna,
                   gantiTriplet: gantiTriplet, buangRadial: buangRadial, BENAR: BENAR, SALAH: SALAH,
+                  merah: merah, hijauP: hijauP,
                   keluarga: keluarga, keluargaTeks: keluargaTeks, KELUARGA: KELUARGA, gantiTeks: gantiTeks,
                   modeUnsur: function (el) { return modeUnsur(el); },
                   dipertahankan: function (v) { return dipertahankan(v); } };
