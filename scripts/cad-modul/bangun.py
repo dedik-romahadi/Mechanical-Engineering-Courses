@@ -213,6 +213,8 @@ assert 'id="page-setup"' not in s and 'id="page-python"' not in s
 
 from pustaka import koma_katex  # noqa: E402
 s = koma_katex(s)
+from versi_freecad import terapkan as versi_freecad  # noqa: E402
+s = versi_freecad(s)  # versi FreeCAD otomatis + skrip VERSI-FREECAD-HALAMAN (tab Setup tidak ikut)
 TUJUAN.write_text(s, encoding="utf-8", newline="")
 print(f"Modul-{N} CAD ditulis: {len(s)} karakter; bagian {n_bagian}, animasi {n_animasi}; pertemuan {P}; hash jajak {hash_baru}")
 

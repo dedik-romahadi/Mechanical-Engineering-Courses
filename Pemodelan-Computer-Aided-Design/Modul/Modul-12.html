@@ -3086,7 +3086,7 @@ window._vpBagikan = function (btn) {
     <div class="warn-icon">🧊</div>
     <div>
       <h4>Petunjuk Pengerjaan Tugas 12</h4>
-      <p>Kerjakan lima tugas pemodelan di <strong>FreeCAD 1.0 atau lebih baru</strong> (Draft Workbench, bidang kerja Top/XY, satuan mm) sesuai angka pada <strong>varian N Anda</strong> yang muncul setelah login. Untuk tiap tugas: simpan model sebagai <strong>.FCStd</strong> (Ctrl+S, bukan Export), klik <strong>⬆ Unggah</strong>, isikan <strong>angka bacaan</strong> dari FreeCAD (Area, Shape.Length, atau CenterOfMass), lalu klik <strong>▶ Kirim &amp; Validasi</strong>. Server membaca geometri berkas Anda: angka yang tidak ada di model ditolak dan <strong>tidak dihitung</strong>, jadi bacalah angkanya dari model yang diunggah. Bila kiriman dinilai salah, tugas <strong>tidak terkunci</strong>: perbaiki model, unggah ulang, lalu kirim ulang (tanpa batas); kiriman benar setelah pernah salah bernilai <strong>65%</strong> dari poin tugas.</p>
+      <p>Kerjakan lima tugas pemodelan di <strong>FreeCAD <span data-fc-versi="seri">1.1</span></strong> (Draft Workbench, bidang kerja Top/XY, satuan mm) sesuai angka pada <strong>varian N Anda</strong> yang muncul setelah login. Untuk tiap tugas: simpan model sebagai <strong>.FCStd</strong> (Ctrl+S, bukan Export), klik <strong>⬆ Unggah</strong>, isikan <strong>angka bacaan</strong> dari FreeCAD (Area, Shape.Length, atau CenterOfMass), lalu klik <strong>▶ Kirim &amp; Validasi</strong>. Server membaca geometri berkas Anda: angka yang tidak ada di model ditolak dan <strong>tidak dihitung</strong>, jadi bacalah angkanya dari model yang diunggah. Bila kiriman dinilai salah, tugas <strong>tidak terkunci</strong>: perbaiki model, unggah ulang, lalu kirim ulang (tanpa batas); kiriman benar setelah pernah salah bernilai <strong>65%</strong> dari poin tugas.</p>
     </div>
   </div>
 
@@ -14576,6 +14576,47 @@ import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.c
     if (d) runTransaction(ref(d, JALUR), function (n) { return (Number(n) || 0) + 1; }).catch(function () {});
   });
   video.addEventListener('ended', function () { sedangTayang = false; });
+})();
+</script>
+<script>
+/* VERSI-FREECAD-HALAMAN v1: nomor versi FreeCAD di halaman ini mengikuti rilis stabil terbaru
+   (sumber dan cache sama dengan tab Setup FreeCAD Modul 1); elemen yang dirender belakangan
+   ikut diperbarui. Dipasang scripts/cad-modul/versi_freecad.py. */
+(function () {
+  var KUNCI = 'fc_versi_terbaru', UMUR = 12 * 3600 * 1000, POLA = /^\d+\.\d+(\.\d+)?$/, aktif = null;
+  function pasang(v) {
+    if (!POLA.test(v)) return;
+    aktif = v;
+    var seri = v.split('.').slice(0, 2).join('.');
+    document.querySelectorAll('[data-fc-versi="penuh"]').forEach(function (el) { if (el.textContent !== v) el.textContent = v; });
+    document.querySelectorAll('[data-fc-versi="seri"]').forEach(function (el) { if (el.textContent !== seri) el.textContent = seri; });
+  }
+  function amati() {
+    if (!window.MutationObserver || !document.body) return;
+    var t = null;
+    new MutationObserver(function () {
+      if (!aktif || t) return;
+      t = setTimeout(function () { t = null; pasang(aktif); }, 200);
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+  amati();
+  try {
+    var c = JSON.parse(localStorage.getItem(KUNCI) || 'null');
+    if (c && c.v) { pasang(c.v); if (Date.now() - c.t < UMUR) return; }
+  } catch (e) {}
+  if (!window.fetch) return;
+  var ctl = window.AbortController ? new AbortController() : null;
+  if (ctl) setTimeout(function () { ctl.abort(); }, 8000);
+  fetch('https://api.github.com/repos/FreeCAD/FreeCAD/releases/latest', { headers: { Accept: 'application/vnd.github+json' }, signal: ctl ? ctl.signal : undefined })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (!d || d.prerelease || d.draft) return;
+      var v = String(d.tag_name || '').replace(/^v/i, '').trim();
+      if (!POLA.test(v)) return;
+      pasang(v);
+      try { localStorage.setItem(KUNCI, JSON.stringify({ v: v, t: Date.now() })); } catch (e) {}
+    })
+    .catch(function () {});
 })();
 </script>
 </body>
