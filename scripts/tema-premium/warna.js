@@ -4,7 +4,7 @@
      2. gaya inline elemen HTML (juga yang ditulis JavaScript belakangan);
      3. warna gambar SVG (atribut fill/stroke/stop-color dan gaya inline) -> kuning-putih;
    lalu struktur tema: roda gigi di setiap cover, label bagian soal cukup nama bagiannya,
-   dan ikon Bagian A (🅐 -> 📝). Pemetaan tidak pernah diterapkan dua kali pada nilai yang
+   dan ikon bagian soal (🅐–🅓 -> ikon bergambar). Pemetaan tidak pernah diterapkan dua kali pada nilai yang
    sama (abu menengah dicerahkan sekali saja). */
 (function () {
   var T = window.__tp;
@@ -27,6 +27,43 @@
       } else b = T.gantiWarna(b, mode);
     }
     return b === v ? null : b;
+  }
+
+  /* Warna makna. Variabel --green/--pink di :root ikut dipetakan ke kuning (dipakai juga di luar
+     makna), jadi deklarasi benar/salah yang merujuknya (".feedback.correct{color:var(--green)}",
+     ".wrong-ans{border-color:var(--pink)}") diberi nilai literal: hijau/merah halaman itu sendiri,
+     dibaca sebelum apa pun dipetakan. */
+  function rgbDari(v) {
+    var d = document.createElement('i');
+    d.style.color = v;
+    if (!d.style.color) return null;
+    document.documentElement.appendChild(d);
+    var m = getComputedStyle(d).color.match(/\d+(?:\.\d+)?/g);
+    d.remove();
+    return m ? [+m[0], +m[1], +m[2]] : null;
+  }
+  function warnaVar(nama, uji, cadangan) {
+    var v = getComputedStyle(document.documentElement).getPropertyValue(nama).trim();
+    var c = v && rgbDari(v);
+    return c && uji(c) ? 'rgb(' + c.join(', ') + ')' : cadangan;
+  }
+  var HIJAU_MAKNA = warnaVar('--green', T.hijauP, '#22c55e');
+  var MERAH_MAKNA = warnaVar('--red', T.merah, warnaVar('--pink', T.merah, '#ef4444'));
+  var RX_VAR_HIJAU = /var\(\s*--(?:green|hijau|success|emerald|lime)\b[^()]*\)/g;
+  var RX_VAR_MERAH = /var\(\s*--(?:red|merah|pink|rose|danger|error)\b[^()]*\)/g;
+  function sulihMakna(st, benar, salah) {
+    if (!benar && !salah) return;
+    var nama = [];
+    for (var i = 0; i < st.length; i++) nama.push(st[i]);
+    for (var q = 0; q < PINTAS.length; q++) if ((st.getPropertyValue(PINTAS[q]) || '').indexOf('var(') >= 0) nama.push(PINTAS[q]);
+    for (i = 0; i < nama.length; i++) {
+      var v = st.getPropertyValue(nama[i]);
+      if (!v || v.indexOf('var(') < 0) continue;
+      var b = v;
+      if (benar) b = b.replace(RX_VAR_HIJAU, HIJAU_MAKNA);
+      if (salah) b = b.replace(RX_VAR_MERAH, MERAH_MAKNA);
+      if (b !== v) st.setProperty(nama[i], b, st.getPropertyPriority(nama[i]));
+    }
   }
 
   /* Deklarasi gaya (aturan CSS atau gaya inline). Nilai yang sudah pernah dipetakan
@@ -67,6 +104,7 @@
       if (r.cssRules && !r.style) aturan(r.cssRules, gelap);           /* @media, @supports, @keyframes */
       else if (r.style) {
         var sel = r.selectorText || r.keyText || '';
+        if (!gelap) sulihMakna(r.style, T.BENAR.test(sel), T.SALAH.test(sel));
         petakanDeklarasi(r.style, gelap ? 'gelap' : (T.BENAR.test(sel) ? 'benar' : 'isi'));
         if (r.cssRules && r.cssRules.length) aturan(r.cssRules, gelap);  /* CSS bersarang */
       }
@@ -224,7 +262,9 @@
     /* Gaya inline di HTML asli: hijau ikut dipetakan (seperti acuan). Gaya yang ditulis
        JavaScript belakangan (umpan balik jawaban): hijau/merah dipertahankan bila teksnya
        penanda benar/salah. */
-    petakanDeklarasi(el.style, !awal && (T.BENAR.test(teks) || T.SALAH.test(teks)) ? 'benar' : 'isi');
+    var bnr = !awal && T.BENAR.test(teks), slh = !awal && T.SALAH.test(teks);
+    sulihMakna(el.style, bnr, slh);
+    petakanDeklarasi(el.style, bnr || slh ? 'benar' : 'isi');
   }
   var legendaSudah = new WeakSet();
 
@@ -243,7 +283,7 @@
     var s = t && t.previousElementSibling;
     return s && s.matches(UNIT) ? s : null;
   }
-  var LINGKUP = '#page-modul,#page-tugas,#page-forum';
+  var LINGKUP = '#page-modul,#page-tugas,#page-forum,#page-uts';   /* #page-uts = soal UTS/UAS */
   var LEWATI_TEKS = 'script,style,textarea,pre,code,kbd,samp,.katex,.MathJax,math,[contenteditable="true"],.cell-code,.code-block,.cm-editor,.CodeMirror';
   var teksSudah = new WeakMap();
   function teks(akar) {
@@ -277,7 +317,14 @@
   /* Struktur tema. */
   var GIGI = window.__tpGigi || '';
   var COVER = '.hero.academic-hero,.hero[data-tab],.sp-hero';
-  var RX_A = /🅐/g;
+  /* Ikon bagian soal: huruf berlingkaran -> ikon bergambar (seperti modul: 📝 PG, 💻 komputasi,
+     🧠 hard). Ujian memakai 🅐–🅓: UTS/UAS umum A benar-salah, B pilihan ganda, C komputasi
+     sedang, D komputasi hard; ujian CAD A pilihan ganda, B tugas pemodelan (🧊 seperti modul CAD), C tugas rakitan. */
+  var CAD = /\/Pemodelan-Computer-Aided-Design\//.test(location.pathname);
+  var IKON = CAD ? { '🅐': '📝', '🅑': '🧊', '🅒': '⚙️', '🅓': '🧠' }
+                 : { '🅐': '📝', '🅑': '🔘', '🅒': '💻', '🅓': '🧠' };
+  var RX_A = /🅐|🅑|🅒|🅓/g;
+  var ADA_IKON = /🅐|🅑|🅒|🅓/;
   function struktur(akar) {
     var covers = [];
     if (akar.matches && akar.matches(COVER)) covers.push(akar);
@@ -303,10 +350,10 @@
       }
     }
     var tw = document.createTreeWalker(akar, NodeFilter.SHOW_TEXT, {
-      acceptNode: function (x) { return x.nodeValue.indexOf('🅐') >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; }
+      acceptNode: function (x) { return ADA_IKON.test(x.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; }
     }), t, ganti = [];
     while ((t = tw.nextNode())) ganti.push(t);
-    ganti.forEach(function (x) { x.nodeValue = x.nodeValue.replace(RX_A, '📝'); });
+    ganti.forEach(function (x) { x.nodeValue = x.nodeValue.replace(RX_A, function (h) { return IKON[h]; }); });
   }
 
   /* Jalan pertama (sinkron, sebelum halaman ditampilkan), lalu pantau perubahan. */
@@ -356,7 +403,7 @@
     tk.forEach(function (x) {
       if (!x.isConnected) return;
       teks(x);
-      if (x.textContent.indexOf('🅐') >= 0) struktur(x);
+      if (ADA_IKON.test(x.textContent)) struktur(x);
     });
     /* Langsung di callback (microtask, sebelum layar digambar): tanpa kilasan warna lama. */
     try { kerjakan(); } catch (e) { if (window.console) console.error('tema-premium', e); }

@@ -945,13 +945,15 @@ Gabungkan perubahan `modul-ai-chat.js` ke `main` backend sebelum atau bersama PR
 frontend yang membawa hasil `apply-ai-chat.js`, dan jangan menerapkan dari
 checkout backend yang lebih tua.
 
-### 6.9 Tema Premium (desain standar halaman modul)
+### 6.9 Tema Premium (desain standar halaman modul dan ujian)
 
 Sejak 22 November 2026 dosen menetapkan **Tema Premium** (hitam, kuning, putih)
 sebagai desain standar halaman modul, dan pada hari yang sama tema itu dipasang di
 **ke-84 halaman modul** (Modul 1–14 keenam course). Acuannya Modul 1 Pemodelan CAD
 (`Pemodelan-Computer-Aided-Design/Modul/Modul-1.html`; duplikat uji `Modul-1-Premium.html`
-sudah dihapus). Halaman UTS/UAS, OBE, dan `Admin/` belum memakai tema ini.
+sudah dihapus). Sejak 23 November 2026 tema yang sama juga terpasang di **ke-12 halaman
+ujian** (`<Course>/Exam/UTS.html` dan `UAS.html`), sehingga totalnya 96 halaman. Halaman OBE
+dan `Admin/` belum memakai tema ini.
 
 **Cara kerja: isi halaman tidak ditulis ulang.** Warna dipetakan di peramban saat halaman
 dimuat. Berkas HTML hanya mendapat dua blok bertanda yang dipasang `terapkan.py`; seluruh
@@ -965,9 +967,9 @@ memuat literal warna tidak ditemukan, dan 10 pemeriksa gagal.)
 
 | Berkas | Isi |
 |---|---|
-| `terapkan.py` | Pemasang. `--semua` (84 halaman), `--kursus cad,ttl`, `--periksa` (gagal bila ada halaman yang belum terpasang atau basi; dijalankan CI). Idempoten: blok lama dilepas lalu dipasang ulang. Menolak berkas tema yang memuat teks tag dokumen (`<head>`, `<body>`, …), karena penyuntik lain mencari batas dokumen dengan teks itu. |
+| `terapkan.py` | Pemasang. `--semua` (84 halaman modul + 12 halaman ujian), `--kursus cad,ttl`, `--periksa` (gagal bila ada halaman yang belum terpasang atau basi; dijalankan CI). Idempoten: blok lama dilepas lalu dipasang ulang. Menolak berkas tema yang memuat teks tag dokumen (`<head>`, `<body>`, …), karena penyuntik lain mencari batas dokumen dengan teks itu. Di halaman ujian, selektor `.vp-chat*` dibuang dari CSS tema (`tanpa_chat`), karena halaman ujian dilarang memuat teks kelas chat (§6.8). |
 | `awal.js` | Dipasang di kepala dokumen. Pustaka pemetaan warna (port fungsi Python yang disetujui: `petakan`, `petakanGelap`, aturan konteks benar/salah) dan penambal kanvas (`fillStyle`, `strokeStyle`, `addColorStop` ke palet gambar; bayangan dimatikan; halo dan kilat di kanvas latar login `*WaveCanvas` tidak digambar). Halaman disembunyikan dan transisi CSS dimatikan sampai warna siap (cadangan 4 detik). |
-| `warna.js` | Dipasang di akhir badan dokumen. Memetakan semua aturan CSS lewat CSSOM (termasuk deklarasi pintas bernilai `var()`), gaya inline, dan warna SVG; memasang roda gigi di setiap cover; memendekkan label bagian soal; mengganti 🅐 menjadi 📝. Konten yang dibuat JavaScript belakangan diproses langsung di callback MutationObserver (sebelum layar digambar). Nilai yang sudah dipetakan tidak dipetakan ulang. |
+| `warna.js` | Dipasang di akhir badan dokumen. Memetakan semua aturan CSS lewat CSSOM (termasuk deklarasi pintas bernilai `var()`), gaya inline, dan warna SVG; memasang roda gigi di setiap cover; memendekkan label bagian soal; mengganti ikon huruf berlingkaran 🅐–🅓 menjadi ikon bergambar (butir 4); memberi warna makna literal pada deklarasi benar/salah (butir 1). Konten yang dibuat JavaScript belakangan diproses langsung di callback MutationObserver (sebelum layar digambar). Nilai yang sudah dipetakan tidak dipetakan ulang. |
 | `tema-premium.css` | Aturan tema. Setiap perubahan ditambahkan sebagai blok baru bertanda versi (`v1.1` … `v2.2`). Selektor cover bersifat umum (`.hero[data-tab]`), sehingga tab Kelompok dan Setup ikut. |
 | `ikon.css`, `ikon.js` | Ikon emoji bergaris, perbaikan kontras dan ukuran minimum teks, dan `--tp-tutup` pada cover. |
 | `roda_gigi.py` | SVG roda gigi, ditanam di blok akhir sebagai `window.__tpGigi`. |
@@ -1016,6 +1018,14 @@ diganti dengan kata dari keluarga yang sama:
    `#f5f5f5`, ditambah abu netral. Merah dan hijau hanya dipakai untuk makna:
    benar/salah, umpan balik, dan status bolos. Biru, ungu, toska, merah muda,
    dan jingga dipetakan ke kuning atau putih.
+   - Variabel `--green`/`--pink` di `:root` ikut menjadi kuning, karena halaman memakainya
+     juga di luar makna. Deklarasi yang selektornya bermakna benar/salah
+     (`.feedback.correct`, `.correct-ans`, `.feedback.wrong`, `.wrong-ans`, pola `T.BENAR`/
+     `T.SALAH` di `awal.js`) dan gaya inline umpan balik yang ditulis JavaScript diberi nilai
+     literal: hijau/merah asli halaman (cadangan `#22c55e`/`#ef4444`). Pilihan yang sedang
+     dipilih tetap kuning; jawaban benar hijau, jawaban salah merah.
+   - Status unggah berkas CAD (`var(--green)` tanpa kata benar/salah) tampil kuning; teks
+     petunjuknya "status hijau" diganti "status kuning" lewat `tema-gambar.json`.
 2. **Warna tegas.** Tanpa blur, glow, bayangan bercahaya, gradasi radial, atau
    warna pucat (`warna.js`/`awal.js`). Gambar materi (SVG dan kanvas)
    kuning-putih; merah dan hijau hanya pada pesan umpan balik.
@@ -1032,7 +1042,10 @@ diganti dengan kata dari keluarga yang sama:
      kuning solid selebar kolom isi (margin kiri sampai kanan), teks hitam
      Outfit 18 px tebal 900 (ponsel 16 px, boleh membungkus). Teksnya hanya nama
      bagian ("BAGIAN B — Tugas Pemodelan FreeCAD"); rincian sesudah " · " (jumlah soal,
-     poin, berkas) dibuang `terapkan.py`. Ikon Bagian A 📝 (bukan 🅐), Bagian B 🧊.
+     poin, berkas) dibuang `warna.js`. Ikon bagian soal bergambar, bukan huruf
+     berlingkaran: modul Bagian A 📝, B 💻 (CAD 🧊), C 🧠; ujian UTS/UAS A benar-salah 📝,
+     B pilihan ganda 🔘, C komputasi sedang 💻, D komputasi hard 🧠; ujian CAD A pilihan
+     ganda 📝, B tugas pemodelan 🧊, C tugas rakitan ⚙️.
 5. **Cover.**
    - Berlaku untuk semua cover: Modul, Setup FreeCAD, Setup Python, Tugas,
      Forum, dan Hasil. Latarnya sama (gradasi + grid), sudut bawah 32 px, dan
@@ -1067,7 +1080,10 @@ diganti dengan kata dari keluarga yang sama:
     - Di peramban, untuk setiap halaman dan setiap tab pada lebar 1366 dan 375 px: tidak
       ada gulir mendatar, setiap cover bergigi dan labelnya tidak tertutup navigasi,
       tidak ada warna jenuh selain kuning/merah/hijau (elemen dan piksel kanvas), tidak
-      ada teks terang di atas kuning, label soal tanpa " · ", dan tidak ada 🅐.
+      ada teks terang di atas kuning, label soal tanpa " · ", dan tidak ada 🅐–🅓.
+    - Ujian: kartu soal baru dirender sesudah soal diambil dari server, jadi di Mode Preview
+      kosong. Periksa dengan data tiruan lewat `renderUTSQuestions()` halaman itu sendiri,
+      termasuk kelas `selected`, `correct-ans`, `wrong-ans`, dan `.feedback.correct/.wrong`.
     - Laporan per unit gambar (di peramban, dari `window.__tpGanti` dan sisa nama warna di
       unit): tidak ada sebutan warna yang tidak cocok dengan gambarnya, kecuali unit `asli`.
     - Tab Tugas dan Forum tersembunyi di Mode Preview: tampilkan secara paksa atau login.

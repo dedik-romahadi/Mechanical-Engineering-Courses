@@ -419,13 +419,13 @@ repo publik ini.
   Hasil (CSS inline halaman, sama dengan basis). Pemisah daftar `\cdot` antar-teks ditulis
   di luar KaTeX (`A \(\cdot\) B`) atau `;\quad`. Pedoman §2 butir (22)–(24).
 - **Desain standar = Tema Premium** (sejak 22 Nov 2026, terpasang di ke-84 halaman
-  modul): hitam/kuning/putih, merah/hijau hanya untuk makna, tanpa glow, cover setinggi
+  modul; ke-12 halaman UTS/UAS sejak 23 Nov 2026): hitam/kuning/putih, merah/hijau hanya untuk makna, tanpa glow, cover setinggi
   isi dengan roda gigi berputar. Acuan: Modul 1 CAD. Isi halaman **tidak** ditulis ulang;
   warna dipetakan di peramban (`scripts/tema-premium/awal.js` + `warna.js`), dan
   `terapkan.py` hanya memasang dua blok bertanda. Jalankan
   `python scripts/tema-premium/terapkan.py --semua` **paling akhir** dalam rantai
-  regenerasi (sesudah `draft-modul.mjs`); `--periksa` dijalankan CI. UTS/UAS, OBE, Admin
-  belum memakai tema. Aturan lengkap: Pedoman §6.9.
+  regenerasi (sesudah `draft-modul.mjs`, juga sesudah `cad-exam/bangun.py`); `--periksa`
+  dijalankan CI. OBE dan Admin belum memakai tema. Aturan lengkap: Pedoman §6.9.
 - **Modul HTML besar dan ber-emoji**; pakai `grep -a`/`git grep` atau skrip
   Node/Python untuk suntingan batch, dan lakukan lewat skrip di `scripts/`
   yang idempoten, bukan suntingan manual per berkas.
