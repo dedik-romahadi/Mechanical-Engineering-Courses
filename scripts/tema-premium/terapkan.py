@@ -85,7 +85,15 @@ def petakan_gelap(rgb):
         return _abu(l)
     if s < 0.38 or l > 0.82:
         return (250, 248, 240)
-    return KUNING
+    # Pembeda tanpa warna lain: garis utama putih, kuning hanya untuk penekanan.
+    deg = h * 360
+    if deg < 70 or deg >= 330:      # merah, jingga, kuning -> kuning (penekanan)
+        return KUNING
+    if deg < 170:                   # hijau -> abu terang
+        return (190, 190, 196)
+    if deg < 260:                   # toska, biru (warna utama gambar) -> putih
+        return (245, 245, 245)
+    return (150, 150, 156)          # ungu, magenta -> abu
 
 
 def _peta_skrip(sekitar):
@@ -152,8 +160,21 @@ def ganti_css(css):
 
 TEMA = Path(__file__).with_name("tema-premium.css").read_text(encoding="utf-8")
 FONT = ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
-        'family=Outfit:wght@300;400;500;600;700;800&family=Noto+Emoji:wght@500;600&family=Plus+Jakarta+Sans:'
+        'family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:'
         'ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">')
+PRA = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
+       '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>')
+
+
+def font_emoji(html):
+    """Noto Emoji hanya untuk emoji yang memang ada di halaman (parameter text=),
+    supaya berkas font yang diunduh kecil. Emoji lain jatuh ke emoji bawaan."""
+    from urllib.parse import quote
+    pakai = sorted(set(re.findall(
+        "[‼-㊙\U0001F000-\U0001FAFF]", html)) - set("→←↑↓↔─│┌┐└┘├┤━═▶◀●○■□▲▼◆◇★☆✓✗×"))
+    teks = quote("".join(pakai) + "‍️")
+    return ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
+            f'family=Noto+Emoji:wght@600&display=swap&text={teks}">')
 
 
 def _buang_radial(teks):
@@ -274,7 +295,7 @@ def terapkan(html):
         "const NODE_COLORS = ['#ffd60a', '#ffffff', '#ffc300', '#ffffff', '#ffd60a', '#f5f5f5'];")
     html = tegaskan(html)
     # 4. Font dan blok tema terakhir.
-    html = html.replace("</head>", FONT + "\n</head>", 1)
+    html = html.replace("</head>", PRA + FONT + font_emoji(html) + "\n</head>", 1)
     i = html.rfind("</body>")
     sini = Path(__file__).parent
     ikon_css = (sini / "ikon.css").read_text(encoding="utf-8")
