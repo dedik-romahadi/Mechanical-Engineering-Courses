@@ -1,7 +1,7 @@
 """Nomor versi FreeCAD di halaman CAD mengikuti rilis stabil terbaru (seperti tab Setup FreeCAD).
 
 Mengganti teks lama "FreeCAD 1.0 atau lebih baru" dengan
-    FreeCAD <span data-fc-versi="seri">1.1</span>
+    FreeCAD <span data-fc-versi="penuh">1.1.4</span>   (semua digit; penanda "seri" juga diganti "penuh")
 (cadangan = FC_VERSI di modul_1.py), lalu memasang skrip VERSI-FREECAD-HALAMAN sebelum
 </body> di halaman yang belum punya skrip VERSI-FREECAD (Modul 2-14, UTS, UAS). Skrip itu
 memakai sumber dan cache yang sama dengan tab Setup (rilis GitHub FreeCAD/FreeCAD,
@@ -19,10 +19,15 @@ import sys
 AKAR = pathlib.Path(__file__).resolve().parents[2]
 CAD = AKAR / "Pemodelan-Computer-Aided-Design"
 _m = re.search(r'FC_VERSI\s*=\s*"([\d.]+)"', (pathlib.Path(__file__).parent / "modul_1.py").read_text(encoding="utf-8"))
-FC_SERI = ".".join(_m.group(1).split(".")[:2])
+FC_VERSI = _m.group(1)
 
 LAMA = re.compile(r"FreeCAD 1\.0 atau lebih baru")
-BARU = f'FreeCAD <span data-fc-versi="seri">{FC_SERI}</span>'
+BARU = f'FreeCAD <span data-fc-versi="penuh">{FC_VERSI}</span>'
+# Dosen (22 Nov 2026): tampilkan semua digit versi (1.1.4, bukan 1.1) di mana pun,
+# termasuk tab Setup FreeCAD -> penanda "seri" diganti "penuh".
+SERI = re.compile(r'<span data-fc-versi="seri">[\d.]+</span>')
+# "1.1.x" (seri + .x) menjadi angka penuh tanpa ".x", bukan "1.1.4.x".
+SERI_X = re.compile(r'(<span data-fc-versi="(?:seri|penuh)">[\d.]+</span>)\.x\b')
 PENANDA = "VERSI-FREECAD-HALAMAN"
 
 SKRIP = """<script>
@@ -71,6 +76,8 @@ SKRIP = """<script>
 
 def terapkan(s: str) -> str:
     s = LAMA.sub(BARU, s)
+    s = SERI_X.sub(lambda m: m.group(1), s)
+    s = SERI.sub(f'<span data-fc-versi="penuh">{FC_VERSI}</span>', s)
     if "data-fc-versi" in s and "VERSI-FREECAD" not in s:
         i = s.rfind("</body>")
         if i < 0:

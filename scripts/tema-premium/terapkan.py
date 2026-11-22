@@ -306,6 +306,8 @@ def terapkan(html):
     #     Pemodelan FreeCAD"; rincian sesudah " · " (jumlah soal, poin, berkas) dibuang.
     html = re.sub(r'(<div class="q-type-badge[^"]*">)([^<]*?)\s+·\s[^<]*(</div>)',
                   lambda m: m.group(1) + m.group(2) + m.group(3), html)
+    #     Ikon Bagian A: huruf berkotak 🅐 diganti 📝 (lembar soal), sejajar 🧊 di Bagian B.
+    html = html.replace("🅐", "📝")
     html = tegaskan(html)
     # 4. Font dan blok tema terakhir.
     html = html.replace("</head>", PRA + FONT + font_emoji(html) + "\n</head>", 1)
