@@ -15428,9 +15428,6 @@ table th *{color:#0a0a0a!important;-webkit-text-fill-color:#0a0a0a!important;opa
 /* v1.5 — kuning secukupnya, hitung mundur ringkas, cover Hasil, ponsel. */
 /* Angka statistik putih: kuning disisakan untuk aksen utama. */
 .stat-num{color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:700!important}
-/* Tenggat sudah lewat: lingkaran berisi 0 tidak informatif, cukup pil tenggat. */
-.countdown-wrap:has(.cd-num .cd-expired) .countdown-rings{display:none!important}
-.countdown-wrap:has(.cd-num .cd-expired){padding-top:26px!important;padding-bottom:26px!important}
 /* Cover Hasil: jejak sinyal di bawah judul, bukan melintasinya. */
 /* Panel tenggat di ponsel: tidak melebihi layar, teks boleh turun baris. */
 .cd-note{min-width:min(331px,100%)!important}
@@ -15441,16 +15438,16 @@ table th *{color:#0a0a0a!important;-webkit-text-fill-color:#0a0a0a!important;opa
 #page-modul .academic-hero{min-height:0!important;padding:56px 28px 44px!important}
 #page-modul .academic-hero>.hero-content{padding-bottom:0!important}
 /* Bilah navigasi tetap (±60 px) menutupi puncak cover: padding atas = navigasi + 36 px. */
-.sp-hero{min-height:0!important;padding:96px 32px 44px!important}
-#page-hasil .hero{min-height:0!important;padding:96px 32px 132px!important;align-items:flex-start!important}
+.sp-hero{min-height:0!important;padding:calc(var(--tp-tutup,60px) + 36px) 32px 44px!important}
+#page-hasil .hero{min-height:0!important;padding:calc(var(--tp-tutup,60px) + 36px) 32px 132px!important;align-items:flex-start!important}
 /* Sinyal Hasil: pita setinggi 120 px di dasar cover (viewBox dipangkas ke kurva). */
 #page-hasil .hero>.hero-waves{top:auto!important;bottom:14px!important;height:120px!important;overflow:hidden!important}
 /* Lebih lebar 16 px agar garis tegak di ujung kiri/kanan jalur tidak tampak. */
 #page-hasil .hero>.hero-waves svg{width:calc(100% + 16px)!important;height:100%!important;margin:0 0 0 -8px!important;transform:none!important}
 @media (max-width:640px){
   #page-modul .academic-hero{padding:68px 16px 32px!important}
-  .sp-hero{padding:88px 18px 32px!important}
-  #page-hasil .hero{padding:88px 18px 106px!important}
+  .sp-hero{padding:calc(var(--tp-tutup,60px) + 28px) 18px 32px!important}
+  #page-hasil .hero{padding:calc(var(--tp-tutup,60px) + 28px) 18px 106px!important}
   #page-hasil .hero>.hero-waves{height:90px!important;bottom:10px!important}
 }
 /* Daftar mahasiswa: bolos merah, tepat waktu kuning, belum putih. */
@@ -15473,13 +15470,13 @@ table th *{color:#0a0a0a!important;-webkit-text-fill-color:#0a0a0a!important;opa
 /* Isi cover langsung di atas latar (tanpa panel kartu), seperti cover lain. */
 #page-modul .hero.academic-hero>.hero-content{position:relative!important;z-index:1!important;background:transparent!important;border:0!important;border-radius:0!important;padding-top:0!important}
 #page-modul .hero.academic-hero>.hero-content::before{display:none!important}
-/* Navigasi + subnav tetap (±89 px) menutupi puncak cover: padding atas = navigasi + 36 px. */
-#page-modul .hero.academic-hero{padding-top:96px!important;padding-bottom:36px!important}
+/* Padding atas = bagian cover yang tertutup navigasi (--tp-tutup, dihitung ikon.js) + 36 px. */
+#page-modul .hero.academic-hero{padding-top:calc(var(--tp-tutup,60px) + 36px)!important;padding-bottom:36px!important}
 /* Jarak: cover -> hitung mundur -> Bagian 01. */
 #page-modul>.hero.academic-hero+div{padding-top:28px!important}
 #page-modul>.hero.academic-hero+div+hr.divider{margin:4px 0!important}
 @media (max-width:640px){
-  #page-modul .hero.academic-hero{padding-top:100px!important;padding-bottom:28px!important}
+  #page-modul .hero.academic-hero{padding-top:calc(var(--tp-tutup,64px) + 28px)!important;padding-bottom:28px!important}
   #page-modul>.hero.academic-hero+div{padding-top:20px!important;padding-left:16px!important;padding-right:16px!important}
   #page-modul>.hero.academic-hero+div+hr.divider{margin:2px 0!important}
 }
@@ -15627,6 +15624,47 @@ table th *{color:#0a0a0a!important;-webkit-text-fill-color:#0a0a0a!important;opa
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mulai);
   else mulai();
+
+  /* Jarak atas cover: bilah navigasi tetap (+ subnav, + banner Mode Preview) bisa
+     setinggi 60-140 px tergantung lebar layar, jadi bagian cover yang tertutup
+     dihitung dari ukuran nyata dan dipasang sebagai --tp-tutup pada tiap cover. */
+  var COVER = '#page-modul .academic-hero,.sp-hero,#page-hasil .hero';
+  var tungguCover = null;
+  function aturCover() {
+    tungguCover = null;
+    var nav = document.getElementById('navTop');
+    if (!nav) return;
+    var bawahNav = nav.getBoundingClientRect().bottom;
+    /* Subnav bagian modul adalah bilah tetap tersendiri di bawah navigasi. */
+    var sub = document.getElementById('modulSubnav');
+    if (sub && sub.getClientRects().length) {
+      var cs = getComputedStyle(sub), rs = sub.getBoundingClientRect();
+      if (cs.visibility !== 'hidden' && +cs.opacity > 0.1 && rs.height > 0) bawahNav = Math.max(bawahNav, rs.bottom);
+    }
+    var daftar = document.querySelectorAll(COVER);
+    for (var i = 0; i < daftar.length; i++) {
+      var h = daftar[i];
+      if (!h.getClientRects().length) continue;
+      var atasDok = h.getBoundingClientRect().top + window.scrollY;
+      h.style.setProperty('--tp-tutup', Math.max(0, Math.round(bawahNav - atasDok)) + 'px');
+    }
+  }
+  function jadwalCover() { if (!tungguCover) tungguCover = setTimeout(aturCover, 60); }
+  function mulaiCover() {
+    aturCover();
+    window.addEventListener('resize', jadwalCover);
+    window.addEventListener('load', jadwalCover);
+    var nav = document.getElementById('navTop');
+    if (window.ResizeObserver && nav) new ResizeObserver(jadwalCover).observe(nav);
+    var sub = document.getElementById('modulSubnav');
+    if (window.ResizeObserver && sub) new ResizeObserver(jadwalCover).observe(sub);
+    var banner = document.getElementById('previewModeBanner');
+    if (window.ResizeObserver && banner) new ResizeObserver(jadwalCover).observe(banner);
+    /* Pindah tab menampilkan cover lain. */
+    new MutationObserver(jadwalCover).observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class'], attributeOldValue: false });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mulaiCover);
+  else mulaiCover();
 })();
 </script>
 </body>

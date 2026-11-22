@@ -122,4 +122,45 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mulai);
   else mulai();
+
+  /* Jarak atas cover: bilah navigasi tetap (+ subnav, + banner Mode Preview) bisa
+     setinggi 60-140 px tergantung lebar layar, jadi bagian cover yang tertutup
+     dihitung dari ukuran nyata dan dipasang sebagai --tp-tutup pada tiap cover. */
+  var COVER = '#page-modul .academic-hero,.sp-hero,#page-hasil .hero';
+  var tungguCover = null;
+  function aturCover() {
+    tungguCover = null;
+    var nav = document.getElementById('navTop');
+    if (!nav) return;
+    var bawahNav = nav.getBoundingClientRect().bottom;
+    /* Subnav bagian modul adalah bilah tetap tersendiri di bawah navigasi. */
+    var sub = document.getElementById('modulSubnav');
+    if (sub && sub.getClientRects().length) {
+      var cs = getComputedStyle(sub), rs = sub.getBoundingClientRect();
+      if (cs.visibility !== 'hidden' && +cs.opacity > 0.1 && rs.height > 0) bawahNav = Math.max(bawahNav, rs.bottom);
+    }
+    var daftar = document.querySelectorAll(COVER);
+    for (var i = 0; i < daftar.length; i++) {
+      var h = daftar[i];
+      if (!h.getClientRects().length) continue;
+      var atasDok = h.getBoundingClientRect().top + window.scrollY;
+      h.style.setProperty('--tp-tutup', Math.max(0, Math.round(bawahNav - atasDok)) + 'px');
+    }
+  }
+  function jadwalCover() { if (!tungguCover) tungguCover = setTimeout(aturCover, 60); }
+  function mulaiCover() {
+    aturCover();
+    window.addEventListener('resize', jadwalCover);
+    window.addEventListener('load', jadwalCover);
+    var nav = document.getElementById('navTop');
+    if (window.ResizeObserver && nav) new ResizeObserver(jadwalCover).observe(nav);
+    var sub = document.getElementById('modulSubnav');
+    if (window.ResizeObserver && sub) new ResizeObserver(jadwalCover).observe(sub);
+    var banner = document.getElementById('previewModeBanner');
+    if (window.ResizeObserver && banner) new ResizeObserver(jadwalCover).observe(banner);
+    /* Pindah tab menampilkan cover lain. */
+    new MutationObserver(jadwalCover).observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class'], attributeOldValue: false });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mulaiCover);
+  else mulaiCover();
 })();
