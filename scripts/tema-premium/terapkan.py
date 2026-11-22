@@ -293,6 +293,10 @@ def terapkan(html):
     html = html.replace(
         "const NODE_COLORS = ['#818cf8', '#ec4899', '#fbbf24', '#a78bfa', '#f472b6', '#60a5fa'];",
         "const NODE_COLORS = ['#ffd60a', '#ffffff', '#ffc300', '#ffffff', '#ffd60a', '#f5f5f5'];")
+    # 3b. Sinyal cover: viewBox dipangkas ke rentang kurva (y 235..375 dari 600) agar
+    #     bisa ditaruh sebagai pita di bawah judul tanpa terpotong.
+    html = re.sub(r'(<div class="hero-waves">\s*<svg viewBox=")0 0 1440 600"',
+                  r'\g<1>0 235 1440 140"', html)
     html = tegaskan(html)
     # 4. Font dan blok tema terakhir.
     html = html.replace("</head>", PRA + FONT + font_emoji(html) + "\n</head>", 1)
