@@ -83,6 +83,10 @@ def petakan_gelap(rgb):
     h, l, s = colorsys.rgb_to_hls(r, g, b)
     if l < 0.24 or (s < 0.38 and l < 0.8):
         return _abu(l)
+    # Hijau mint/toska (aksen tema lama, mis. #00e09e) -> kuning tema; hijau sumbu Y
+    # FreeCAD (#22c55e, hue ~142) tetap karena konvensi X merah, Y hijau, Z biru.
+    if 148 <= h * 360 < 178 and s >= 0.5:
+        return KUNING
     return rgb
 
 
