@@ -83,6 +83,10 @@ def petakan_gelap(rgb):
     h, l, s = colorsys.rgb_to_hls(r, g, b)
     if l < 0.24 or (s < 0.38 and l < 0.8):
         return _abu(l)
+    # Hijau mint/toska (aksen tema lama, mis. #00e09e) -> kuning tema; hijau sumbu Y
+    # FreeCAD (#22c55e, hue ~142) tetap karena konvensi X merah, Y hijau, Z biru.
+    if 148 <= h * 360 < 178 and s >= 0.5:
+        return KUNING
     return rgb
 
 
@@ -239,7 +243,12 @@ def terapkan(html):
     # 4. Font dan blok tema terakhir.
     html = html.replace("</head>", FONT + "\n</head>", 1)
     i = html.rfind("</body>")
-    html = html[:i] + f'<style id="tema-premium">\n{tegaskan(TEMA)}\n</style>\n' + html[i:]
+    sini = Path(__file__).parent
+    ikon_css = (sini / "ikon.css").read_text(encoding="utf-8")
+    ikon_js = (sini / "ikon.js").read_text(encoding="utf-8")
+    html = (html[:i] + f'<style id="tema-premium">\n{tegaskan(TEMA)}\n</style>\n'
+            f'<style id="tema-premium-ikon">\n{ikon_css}</style>\n'
+            f'<script id="tema-premium-ikon-js">\n{ikon_js}</script>\n' + html[i:])
     return html
 
 
