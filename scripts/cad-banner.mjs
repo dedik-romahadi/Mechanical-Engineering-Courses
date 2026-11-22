@@ -23,13 +23,16 @@
 //   node scripts/cad-banner.mjs
 // Keluaran: Pemodelan-Computer-Aided-Design/Banner/*.html (100% inline style, tanpa JS).
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "Pemodelan-Computer-Aided-Design", "Banner");
 const BASE = "https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Pemodelan-Computer-Aided-Design";
+// Versi FreeCAD = FC_VERSI di scripts/cad-modul/modul_1.py (versi yang sama dengan halaman modul;
+// banner di LMS tidak menjalankan skrip, jadi angkanya ditulis tetap saat banner dibangun).
+const FC_VERSI = (readFileSync(join(ROOT, "scripts", "cad-modul", "modul_1.py"), "utf8").match(/FC_VERSI\s*=\s*"([\d.]+)"/) || [])[1] || "1.1.4";
 const RPS_URL = "https://dedik-romahadi.github.io/Mechanical-Engineering-Courses/Unduhan-Gabungan/RPS-Pemodelan-Computer-Aided-Design.pdf";
 
 // ---------- konfigurasi yang berubah dari pekan ke pekan ----------
@@ -280,7 +283,7 @@ export function bannerIntroduction() {
           </h1>
 
           <p style="font-size:12.5px;color:#a5b4c7;line-height:1.55;margin:0 0 9px 0;">
-            Merancang komponen mesin dengan <strong style="color:#67e8f9;">FreeCAD 1.0 atau lebih baru</strong>: antarmuka dan alat dasar CAD, penggambaran 2D dan pemodelan 3D parametrik, simulasi dan analisis kinerja komponen, perakitan dan evaluasi sistem, hingga
+            Merancang komponen mesin dengan <strong style="color:#67e8f9;">FreeCAD ${FC_VERSI}</strong>: antarmuka dan alat dasar CAD, penggambaran 2D dan pemodelan 3D parametrik, simulasi dan analisis kinerja komponen, perakitan dan evaluasi sistem, hingga
             <strong style="color:#c4b5fd;">desain berkelanjutan dan optimasi</strong> &mdash; setiap tugas berupa berkas .FCStd yang diunggah dan dinilai otomatis.
           </p>
 
