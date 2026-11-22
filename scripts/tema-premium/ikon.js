@@ -126,7 +126,7 @@
   /* Jarak atas cover: bilah navigasi tetap (+ subnav, + banner Mode Preview) bisa
      setinggi 60-140 px tergantung lebar layar, jadi bagian cover yang tertutup
      dihitung dari ukuran nyata dan dipasang sebagai --tp-tutup pada tiap cover. */
-  var COVER = '#page-modul .academic-hero,.sp-hero,#page-hasil .hero';
+  var COVER = '#page-modul .academic-hero,.sp-hero,#page-hasil .hero,#page-tugas .hero,#page-forum .hero';
   var tungguCover = null;
   function aturCover() {
     tungguCover = null;
