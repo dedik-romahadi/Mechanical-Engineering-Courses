@@ -250,11 +250,19 @@ table th *{color:#0a0a0a!important;-webkit-text-fill-color:#0a0a0a!important;opa
 /* Subnav bagian modul: sedikit lebih kecil dari batas 12 px (huruf kapital tebal tetap terbaca). */
 #modulSubnav a,#modulSubnav a.tp-min{font-size:11px!important;letter-spacing:.6px!important;padding:0 12px!important}
 
-/* v1.9 — sinyal cover Modul, Setup, Python, dan Hasil = sinyal cover Tugas & Forum:
-   gelombang abu halus yang bergerak di seluruh latar cover, di belakang teks. Cover
-   Tugas, Forum, dan Hasil memakai tata letak bawaan halaman. */
+/* v2.0 — hiasan cover: roda gigi bergaris halus yang berputar dan saling berkait
+   (dibuat scripts/tema-premium/roda_gigi.py) di semua cover, menggantikan gelombang. */
 #page-modul .hero.academic-hero>.hero-waves{display:block!important}
-#page-setup .sp-hero>.hero-waves .wave-trace,#page-python .sp-hero>.hero-waves .wave-trace{fill:none}
-#page-setup .sp-hero>.hero-waves .w1b,#page-python .sp-hero>.hero-waves .w1b{stroke:rgba(190,190,196,.12);stroke-width:1.5}
-#page-setup .sp-hero>.hero-waves .w2b,#page-python .sp-hero>.hero-waves .w2b{stroke:rgba(245,245,245,.08);stroke-width:1}
-.sp-hero>.sp-hero-inner,#page-modul .hero.academic-hero>.hero-content{position:relative;z-index:1}
+.hero-waves.tp-roda-gigi{position:absolute!important;inset:0!important;overflow:hidden!important;pointer-events:none!important;z-index:0}
+.tp-roda-gigi svg{position:absolute;height:auto;overflow:visible;fill:none;stroke:rgba(190,190,196,.16);stroke-width:1.5}
+.tp-roda-gigi svg *{vector-effect:non-scaling-stroke}
+.tp-roda-gigi .tp-gigi-kanan{top:calc(var(--tp-tutup,60px) - 56px);right:-64px;left:auto;bottom:auto;width:min(460px,44%)}
+.tp-roda-gigi .tp-gigi-kiri{bottom:-64px;left:-52px;top:auto;right:auto;width:min(320px,30%)}
+.tp-gigi{transform-box:fill-box;transform-origin:center;animation:tp-putar var(--tp-putar,60s) linear infinite;animation-direction:var(--tp-arah,normal)}
+@keyframes tp-putar{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.tp-gigi{animation:none}}
+@media (max-width:640px){
+  .tp-roda-gigi .tp-gigi-kanan{width:62%;top:calc(var(--tp-tutup,60px) - 30px);right:-56px}
+  .tp-roda-gigi .tp-gigi-kiri{width:44%;bottom:-48px;left:-40px}
+}
+.sp-hero>.sp-hero-inner,#page-modul .hero.academic-hero>.hero-content,.hero>.hero-content{position:relative;z-index:1}

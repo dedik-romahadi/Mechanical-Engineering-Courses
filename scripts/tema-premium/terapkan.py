@@ -18,6 +18,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent))
+from roda_gigi import svg_roda_gigi  # noqa: E402
+
 KUNING = (255, 214, 10)  # #FFD60A
 
 
@@ -293,16 +296,11 @@ def terapkan(html):
     html = html.replace(
         "const NODE_COLORS = ['#818cf8', '#ec4899', '#fbbf24', '#a78bfa', '#f472b6', '#60a5fa'];",
         "const NODE_COLORS = ['#ffd60a', '#ffffff', '#ffc300', '#ffffff', '#ffd60a', '#f5f5f5'];")
-    # 3b. Sinyal cover: viewBox dipangkas ke rentang kurva (y 235..375 dari 600) agar
-    #     bisa ditaruh sebagai pita di bawah judul tanpa terpotong.
-    html = re.sub(r'(<div class="hero-waves">\s*<svg viewBox=")0 0 1440 600"',
-                  r'\g<1>0 235 1440 140"', html)
-    # 3c. Cover Setup/Python belum punya sinyal: sisipkan pita yang sama (jalur .w1b/.w2b
-    #     ikut digambar ulang oleh animasi WAVE TRACES bawaan halaman).
-    pita = ('<div class="hero-waves"><svg viewBox="0 235 1440 140" preserveAspectRatio="none" '
-            'xmlns="http://www.w3.org/2000/svg"><path class="wave-trace w1b" d="" fill="none"/>'
-            '<path class="wave-trace w2b" d="" fill="none"/></svg></div>')
-    html = html.replace('<section class="sp-hero">', '<section class="sp-hero">' + pita)
+    # 3b. Hiasan cover: gelombang sinyal diganti roda gigi berputar yang saling berkait
+    #     (roda_gigi.py). Cover Setup/Python yang belum punya hiasan ikut diberi.
+    gigi = svg_roda_gigi()
+    html = re.sub(r'<div class="hero-waves">\s*<svg\b.*?</svg>\s*</div>', lambda m: gigi, html, flags=re.S)
+    html = html.replace('<section class="sp-hero">', '<section class="sp-hero">' + gigi)
     html = tegaskan(html)
     # 4. Font dan blok tema terakhir.
     html = html.replace("</head>", PRA + FONT + font_emoji(html) + "\n</head>", 1)
